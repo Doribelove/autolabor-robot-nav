@@ -1,0 +1,15 @@
+<launch>
+  <!-- TF: base_footprint -> livox_frame -->
+  <node pkg="tf" type="static_transform_publisher" name="base_to_livox"
+        args="0.2 0 0.3 0 0 0 base_footprint livox_frame 50"/>
+
+  <!-- gmapping -->
+  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+    <param name="base_frame" value="base_footprint"/>
+    <param name="odom_frame" value="odom"/>
+    <param name="map_update_interval" value="0.5"/>
+    <param name="maxUrange" value="8.0"/>     <!-- 只保留这个，设置比实际扫描距离小一点 -->
+    <param name="minimumScore" value="50"/>   <!-- 可以留着，避免匹配崩溃 -->
+  </node>
+</launch>
+

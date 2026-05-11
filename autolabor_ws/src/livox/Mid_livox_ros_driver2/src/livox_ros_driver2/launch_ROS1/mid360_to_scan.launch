@@ -1,0 +1,33 @@
+<launch>
+  <!-- 1. 启动 Livox MID360 驱动 -->
+  <include file="$(find livox_ros_driver2)/launch_ROS1/rviz_MID360.launch"/>
+
+  <!-- 2. 启动 pointcloud_to_laserscan 节点 -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan" output="screen">
+    <!-- 输入点云话题 (Livox 输出的是 livox/lidar) -->
+    <remap from="cloud_in" to="/livox/lidar"/>
+
+    <!-- 输出激光雷达 2D 扫描话题 -->
+    <remap from="scan" to="/scan"/>
+
+    <!-- 参数设置 -->
+    <!-- 选择点云坐标系，Livox 默认是 "livox_frame" -->
+    <param name="target_frame" value="livox_frame"/>
+    <!-- 使用输入点云的时间戳 -->
+    <param name="use_sim_time" value="false"/>
+    <!-- 激光雷达扫描的角分辨率（弧度） -->
+    <param name="angle_increment" value="0.003"/>
+    <!-- 扫描最小/最大角度 (rad) -->
+    <param name="angle_min" value="-3.14"/>
+    <param name="angle_max" value="3.14"/>
+    <!-- 过滤的高度范围 (米)，比如只取 0.0m ~ 0.2m 之间的点 -->
+    <param name="min_height" value="0.0"/>
+    <param name="max_height" value="0.2"/>
+    <!-- 有效的最小/最大测距 (米) -->
+    <param name="range_min" value="0.1"/>
+    <param name="range_max" value="20.0"/>
+    <!-- 输出消息的频率 (Hz) -->
+    <param name="scan_time" value="0.1"/>
+  </node>
+</launch>
+

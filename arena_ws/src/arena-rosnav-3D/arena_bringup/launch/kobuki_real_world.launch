@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <!-- 参数设置 -->
+  <arg name="local_planner" default="dwa" doc="local_planner type [teb, dwa, mpc, rosnav]"/>
+  <arg name="model" default="jackal" doc="model type [jackal]"/>
+  <arg name="global_frame_id" value="map"/>
+  <arg name="odom_frame_id" value="odom"/>
+  <arg name="base_frame_id" value="base_footprint"/>
+  <arg name="map_path" default="$(find simulator_setup)/maps/map.yaml" />
+  
+  <!-- 不使用仿真时间 -->
+  <param name="use_sim_time" value="false"/>
+  
+  <!-- 地图服务器 -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_path)">
+    <param name="frame_id" value="$(arg global_frame_id)"/>
+  </node>
+
+  <!-- 启动move_base与DWA规划器 -->
+  <include file="$(find arena_bringup)/launch/sublaunch_testing/move_base/move_base_$(arg local_planner).launch">
+    <arg name="model" value="$(arg model)"/>
+    <!-- 设置话题重映射以适应真实机器人 -->
+    <remap from="/odom" to="/odometry/filtered" unless="$(eval arg('model') == 'turtlebot3')"/>
+    <remap from="/cmd_vel" to="/nav_vel"/>
+  </include>
+
+  <!-- 启动中间规划器（可选） -->
+  <include file="$(find arena_bringup)/launch/sublaunch_testing/intermediate_planner.launch"/>
+</launch>

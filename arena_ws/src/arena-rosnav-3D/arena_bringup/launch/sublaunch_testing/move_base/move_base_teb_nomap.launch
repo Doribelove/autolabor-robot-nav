@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <!-- Arguments -->
+  <arg name="model" default="turtlebot3_burger"/>
+  <arg name="cmd_vel_topic" default="/ackerman_vel" />
+  <arg name="odom_topic" default="/Odometry" />
+  <!-- <arg name="speed" default="0.22"/> -->
+
+  <!-- move_base -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <remap from="/move_base/cmd_vel" to="/ackerman_vel"/>
+    <remap from="cmd_vel" to="/ackerman_vel"/>
+    <rosparam file="$(find conventional)/config/$(arg model)/costmap_common_params_nomap.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find conventional)/config/$(arg model)/costmap_common_params_nomap.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find conventional)/config/$(arg model)/local_costmap_params_nomap.yaml" command="load" />
+    <rosparam file="$(find conventional)/config/$(arg model)/global_costmap_params_nomap.yaml" command="load" />
+
+    
+    <!-- planner params -->
+    <rosparam file="$(find conventional)/config/$(arg model)/teb_local_planner_params_nomap.yaml" command="load" />
+   
+    <remap from="odom" to="$(arg  odom_topic)"/>
+
+
+    <!-- teb -->
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+    <param name="controller_frequency" value="10.0" />
+    <param name="controller_patience" value="10.0" />
+    <param name="planner_frequency" value="1.0" />
+    
+
+  </node>
+</launch>

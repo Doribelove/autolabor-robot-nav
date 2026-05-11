@@ -1,0 +1,71 @@
+<launch>
+    <!-- ================= Livox 驱动参数 ================= -->
+    <arg name="lvx_file_path" default="livox_test.lvx"/>
+    <arg name="bd_list" default="100000000000000"/>
+    <arg name="xfer_format" default="0"/>
+    <arg name="multi_topic" default="0"/>
+    <arg name="data_src" default="0"/>
+    <arg name="publish_freq" default="10.0"/>
+    <arg name="output_type" default="0"/>
+    <arg name="rviz_enable" default="true"/>
+    <arg name="rosbag_enable" default="false"/>
+    <arg name="cmdline_arg" default="$(arg bd_list)"/>
+    <arg name="msg_frame_id" default="livox_frame"/>
+    <arg name="lidar_bag" default="true"/>
+    <arg name="imu_bag" default="true"/>
+
+    <!-- 将 Livox 参数设为全局参数 -->
+    <param name="xfer_format" value="$(arg xfer_format)"/>
+    <param name="multi_topic" value="$(arg multi_topic)"/>
+    <param name="data_src" value="$(arg data_src)"/>
+    <param name="publish_freq" type="double" value="$(arg publish_freq)"/>
+    <param name="output_data_type" value="$(arg output_type)"/>
+    <param name="cmdline_str" type="string" value="$(arg bd_list)"/>
+    <param name="cmdline_file_path" type="string" value="$(arg lvx_file_path)"/>
+    <param name="user_config_path" type="string" value="$(find livox_ros_driver2)/config/MID360_config.json"/>
+    <param name="frame_id" type="string" value="$(arg msg_frame_id)"/>
+    <param name="enable_lidar_bag" type="bool" value="$(arg lidar_bag)"/>
+    <param name="enable_imu_bag" type="bool" value="$(arg imu_bag)"/>
+
+    <!-- Livox 驱动节点（发布点云，默认话题 /livox/lidar） -->
+    <node name="livox_lidar_publisher2" pkg="livox_ros_driver2"
+          type="livox_ros_driver2_node" required="true"
+          output="screen" args="$(arg cmdline_arg)"/>
+
+    <!-- ================= 点云转激光扫描 ================= -->
+    <node name="pointcloud_to_laserscan" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" output="screen">
+        <!-- 输入点云话题：确认 Livox 驱动实际发布的话题，默认为 /livox/lidar -->
+        <remap from="cloud_in" to="/livox/lidar"/>
+        <!-- 输出 scan 话题，用于 gmapping -->
+        <remap from="scan" to="/scan"/>
+
+        <!-- 目标坐标系：如果设置，会将点云变换到此坐标系下再投影。通常保持与雷达 frame 一致或设为 base_scan -->
+        <param name="target_frame" value="livox_frame"/>
+        <!-- 高度过滤：只转换雷达上下一定范围内的点，避免地面或天花板干扰 -->
+        <param name="min_height" value="-0.8"/>
+        <param name="max_height" value="0.3"/>
+        <!-- 距离范围（MID360 测距能力 0.1m~40m） -->
+        <param name="range_min" value="0.2"/>
+        <param name="range_max" value="12.0"/>
+        <!-- 角度范围（弧度），全向 360° -->
+        <param name="angle_min" value="-3.14159"/>
+        <param name="angle_max" value="3.14159"/>
+        <param name="angle_increment" value="0.00872665"/> <!-- 约 0.5° -->
+        <!-- 扫描周期（秒），与雷达发布频率匹配（10Hz 对应 0.1s） -->
+        <param name="scan_time" value="0.1"/>
+        <param name="use_inf" value="true"/>
+    </node>
+
+    <!-- ================= TF 关系（示例） ================= -->
+    <!-- 如果你的雷达坐标系 livox_frame 不是机器人基座 base_link，需要提供变换。
+         假设雷达安装在机器人中心正上方 0.2m，无旋转：
+         发布静态变换：从 base_link 到 livox_frame -->
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_livox_frame"
+      args="0.16 0 0.9 0 0 0 base_link livox_frame 100"/>
+
+
+    <!-- 可选：录制 rosbag（根据参数） -->
+    <group if="$(arg rosbag_enable)">
+        <node pkg="rosbag" type="record" name="record" output="screen" args="-a"/>
+    </group>
+</launch>

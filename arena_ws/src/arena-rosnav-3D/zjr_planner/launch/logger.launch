@@ -1,0 +1,15 @@
+<launch>
+  <arg name="save_root"     default="$(find zjr_planner)/scripts/data/ros_data"/>
+  <arg name="run_tag" default="run_$(optenv USER user)_$(optenv HOSTNAME host)_$(optenv ROS_NAMESPACE ns)"/>
+  <arg name="world"         default="small_warehouse"/>
+  <arg name="scenario_file" default="small_warehouse_obs10_v0.2.json"/>
+  <arg name="epoch"         default="0"/>
+
+  <node pkg="zjr_planner" type="logger.py" name="sderi_logger" output="screen">
+    <param name="save_root" value="$(arg save_root)"/>
+    <param name="run_tag" value="$(arg run_tag)"/>
+    <param name="world" value="$(arg world)"/>
+    <param name="scenario_file" value="$(arg scenario_file)"/>
+    <param name="epoch" value="$(arg epoch)"/>
+  </node>
+</launch>

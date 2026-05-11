@@ -1,0 +1,51 @@
+<launch>
+  <!-- 基本参数 -->
+  <arg name="model" default="turtlebot3_burger" />
+  <arg name="map_file" default="/home/robot/map/mapj.yaml" />
+  <arg name="local_planner" default="rosnav" />
+  <arg name="agent_name" default="turtlebot3_burger_new" />
+  <arg name="trainings_environment" default="rosnav" />
+  <arg name="network_type" default="rosnav" />
+  <arg name="real" default="true" />
+  <arg name="open_rviz" default="true" />
+  <param name="/train_mode" value="false" />
+
+  <!-- task_mode 作为全局 param -->
+  <arg name="task_mode" default="manual" />
+  <param name="task_mode" value="$(arg task_mode)" />
+
+  <!-- 地图 server -->
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" output="screen">
+    <param name="frame_id" value="map"/>
+  </node>
+
+  <!-- AMCL -->
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/amcl_params.yaml" command="load"/>
+  </node>
+
+  <!-- base_footprint -> base_link -->
+  <node pkg="tf" type="static_transform_publisher" name="base_footprint_to_base_link"
+        args="0 0 0 0 0 0 base_footprint base_link  50"/>
+
+  <!-- 包含 robots.launch（不要传入 task_mode arg） -->
+  <include file="$(find arena_bringup)/launch/sublaunch_testing/robots.launch">
+    <arg name="model" value="$(arg model)"/>
+    <arg name="real" value="$(arg real)"/>
+  </include>
+
+  <!-- rviz（可选） -->
+  <group if="$(arg open_rviz)">
+    <node pkg="rviz" type="rviz" name="rviz" required="true"
+          args="-d $(find arena_bringup)/rviz/nav_LP.rviz"/>
+  </group>
+
+  <!-- 包含 rosnav 的 move_base launch（不要在 include 内放 remap 或未声明的 arg） -->
+  <include file="$(find arena_bringup)/launch/sublaunch_testing/move_base/move_base_$(arg local_planner).launch">
+    <arg name="model" value="$(arg model)"/>
+    <arg name="agent_name" value="$(arg agent_name)" if="$(eval arg('local_planner') == 'rosnav')" />
+    <arg name="trainings_environment" value="$(arg trainings_environment)" if="$(eval arg('local_planner') == 'rosnav')" />
+    <!-- 不再直接传 task_mode 作为 include arg（如果 move_base 子 launch 支持 arg 再传入） -->
+  </include>
+</launch>
+

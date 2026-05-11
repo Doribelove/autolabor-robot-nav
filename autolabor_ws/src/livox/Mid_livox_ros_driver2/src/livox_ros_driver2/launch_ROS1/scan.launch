@@ -1,0 +1,25 @@
+<launch>
+    <node name="pointcloud_to_laserscan" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" output="screen">
+        <remap from="cloud_in" to="/cloud_registered_body"/> 
+        <remap from="scan" to="/scan"/>
+        
+        <param name="target_frame" value="base_link"/> 
+        <param name="transform_tolerance" value="0.5"/>
+        <param name="queue_size" value="10"/>
+
+        <param name="min_height" value="0.25"/>
+        <param name="max_height" value="0.8"/>
+        
+        <param name="range_min" value="0.2"/>
+        <param name="range_max" value="10.0"/>
+        
+        <param name="angle_increment" value="0.00436"/>
+        <param name="scan_time" value="0.1"/>
+        
+        <param name="concurrency_level" value="1"/>
+        <param name="use_inf" value="true"/>
+    </node>
+
+    <node pkg="tf" type="static_transform_publisher" name="body_to_base_link"
+          args="0 0 -0.6 0 0 0 body base_link 100"/>
+</launch>

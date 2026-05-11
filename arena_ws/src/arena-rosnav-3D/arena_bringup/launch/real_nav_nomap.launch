@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="model" default="dingo"/>
+  <arg name="local_planner" default="teb"/>
+  
+  <!-- <arg name="map_file" default="/home/robot/arena_ws/src/arena-rosnav-3D/simulator_setup/maps/small_warehouse/map.yaml"/>
+-->  
+  
+  <param name="use_sim_time" value="false"/>
+  <param name="real" value="true"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro $(find simulator_setup)/robot/$(arg model)/urdf/$(arg model).urdf.xacro"/>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  <param name="model" value="custom_robot" />
+
+  <include file="$(find arena_bringup)/launch/sublaunch_testing/move_base/move_base_$(arg local_planner)_nomap.launch">
+    <arg name="model" value="$(arg model)"/>
+    <arg name="cmd_vel_topic" value="/cmd_vel"/> 
+  </include>
+
+  <node pkg="eval" name="viz_path" type="viz_path.py" />
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find arena_bringup)/rviz/nav_LP.rviz"/>
+</launch>

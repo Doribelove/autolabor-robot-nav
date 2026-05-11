@@ -1,0 +1,26 @@
+<launch>
+
+  <arg name="map_file" default="/home/robot/map/map.yaml"/>
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" />
+
+  <!-- AMCL 可选，如果不使用定位可注释掉 -->
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/amcl_params.yaml" command="load"/>
+  </node>
+
+  <!-- 静态 TF：base_footprint -> base_link -->
+  <node pkg="tf" type="static_transform_publisher" name="base_footprint_to_base_link" args="0 0 0 0 0 0 base_footprint base_link 50" />
+
+  <!-- 启动 move_base -->
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/costmap_common_params.yaml" command="load"/>
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/local_costmap_params.yaml" command="load"/>
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/global_costmap_params.yaml" command="load"/>
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/base_local_planner_params.yaml" command="load"/>
+    
+    <!-- 使用 odom 作为全局坐标系 -->
+    <param name="global_frame_id" value="odom"/>
+    <param name="robot_base_frame" value="base_link"/>
+  </node>
+</launch>
+

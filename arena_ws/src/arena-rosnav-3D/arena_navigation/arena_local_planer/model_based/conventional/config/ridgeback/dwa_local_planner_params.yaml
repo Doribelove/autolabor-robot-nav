@@ -1,0 +1,60 @@
+DWAPlannerROS:
+  # ================== Robot Configuration (机器人速度与物理限制) ==================
+  # 1. 线速度 (Linear Velocity)
+  # 考虑到 M2 80kg 的惯性和安全性，最高速限制在 0.8 左右
+  max_vel_x: 0.8
+  min_vel_x: 0.0         # DWA有时候不允许倒车规划比较好，或者设为 -0.2
+
+  # 【核心修改】M2 无法横向移动，Y轴速度必须锁死为 0
+  max_vel_y: 0.0
+  min_vel_y: 0.0
+
+  # 综合速度
+  max_vel_trans: 0.8
+  min_vel_trans: 0.1     # 克服静摩擦力的最小速度
+
+  # 2. 角速度 (Angular Velocity)
+  # M2 是阿卡曼转向，不能像差速车那样快速自旋，限制角速度防止方向盘打太快
+  max_vel_theta: 0.8     # 约 45度/秒
+  min_vel_theta: 0.1
+
+  # 3. 加速度 (Acceleration) - 解决“颤抖”的关键
+  # M2 自重 80kg，铅酸电池，惯性大。
+  # 必须调低加速度，否则电压跟不上，或者规划出的速度执行不了导致震荡。
+  acc_lim_x: 0.5         # 线性加速度建议 0.5
+  acc_lim_y: 0.0         # Y轴加速度必须为 0
+  acc_lim_theta: 0.5     # 角加速度建议 0.5
+
+  # ================== Goal Tolerance (目标点容忍度) ==================
+  # 阿卡曼车很难像圆形机器人一样精准停在某个点和角度
+  # 必须放宽容忍度，否则车会在终点反复摩擦、调整
+  xy_goal_tolerance: 0.3      # 允许 30cm 的停车误差
+  yaw_goal_tolerance: 0.2     # 允许 11度左右的角度误差
+  latch_xy_goal_tolerance: false
+
+  # ================== Forward Simulation (前向模拟 - 规划器的“脑力”) ==================
+  # 阿卡曼车不够灵活，需要“看”得更远才能避障
+  sim_time: 3.0          # 增加预演时间 (Ridgeback默认可能是1.7或2.0)，让车提早变道
+  
+  vx_samples: 20         # 速度采样数
+  vy_samples: 0          # 【核心修改】非全向移动机器人，Y轴采样必须为 0 (diff/car-like)
+  vth_samples: 40        # 角度采样数
+  
+  controller_frequency: 10.0
+
+  # ================== Trajectory Scoring (路径打分) ==================
+  # 调整这些参数让车更倾向于走直道，而不是频繁扭动
+  path_distance_bias: 64.0  # (原32.0) 增大此值，让车更贴合全局路径
+  goal_distance_bias: 20.0  # 减小此值，防止车为了去终点而在这个位置强行掉头
+  occdist_scale: 0.02       # 避障权重
+  forward_point_distance: 0.5 # 只有阿卡曼车需要调大这个，把计分点前移，防止车头碰撞
+  stop_time_buffer: 0.2
+  scaling_speed: 0.25
+  max_scaling_factor: 0.2
+
+  # ================== Oscillation Prevention (防震荡) ==================
+  oscillation_reset_dist: 0.05
+
+  # ================== Pruning (可选) ==================
+  # 如果支持的话，开启这个可以只规划前面的路径
+  prune_plan: true

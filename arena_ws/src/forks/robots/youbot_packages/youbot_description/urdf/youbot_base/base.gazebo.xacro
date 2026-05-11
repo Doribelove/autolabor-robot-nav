@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+       xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+       xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+       xmlns:xacro="http://www.ros.org/wiki/xacro/#interface">
+
+
+  <xacro:macro name="youbot_base_gazebo">
+    <gazebo reference="youbot_base">
+    </gazebo>
+
+    <!-- front left wheel -->
+    <gazebo reference="wheel_link_fl">
+      <kp>1000000</kp>
+      <kd>100</kd>
+    </gazebo>
+    
+    <gazebo reference="caster_link_fl">
+    </gazebo>
+
+    <!-- front right wheel -->
+    <gazebo reference="wheel_link_fr">
+      <kp>1000000</kp>
+      <kd>100</kd>
+    </gazebo>
+    
+    <gazebo reference="caster_link_fr">   
+    </gazebo>
+
+    <!-- back left wheel -->
+    <gazebo reference="wheel_link_bl">
+      <kp>1000000</kp>
+      <kd>100</kd>
+    </gazebo>
+    
+    <gazebo reference="caster_link_bl">
+    </gazebo>
+
+    <!-- back right wheel -->
+    <gazebo reference="wheel_link_br">
+      <kp>1000000</kp>
+      <kd>100</kd>
+    </gazebo>
+    
+    <gazebo reference="caster_link_br">
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>

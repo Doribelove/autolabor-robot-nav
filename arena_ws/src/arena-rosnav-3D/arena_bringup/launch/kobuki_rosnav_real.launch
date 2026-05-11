@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- === 参数（按需修改） === -->
+  <arg name="map_file" default="$(find simulator_setup)/maps/ignc_lab_corridor/map.yaml"/>
+  <arg name="open_rviz" default="true"/>
+  <arg name="local_planner" default="rosnav"/>
+  <arg name="model" default="jackal" />
+  <arg name="real" default="true"/>
+  <arg name="global_frame_id" value="map"/>
+  <arg name="odom_frame_id" value="odom"/>
+  <arg name="base_frame_id" value="base_footprint"/>
+  <arg name="use_sim_time" default="false"/>
+
+  <!-- 如果你想让这个 launch 一并启动 kobuki driver / mid360，则取消下面 include 的注释 -->
+  <!--
+  <include file="$(find kobuki_node)/launch/minimal.launch" />
+  <include file="$(find mid360_utils)/launch/mid360_to_scan.launch" />
+  -->
+
+  <!-- Map server (静态地图) -->
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" output="screen">
+    <param name="frame_id" value="$(arg global_frame_id)"/>
+  </node>
+
+  <!-- AMCL: 我这里不包含大量参数，建议你先用独立命令启动 amcl (参见文档)。
+       如果你想把 AMCL 放入这个 launch，请把下面的 node 取消注释并准备对应的 params yaml -->
+  <!--
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <param name="odom_frame_id" value="$(arg odom_frame_id)"/>
+    <param name="base_frame_id" value="$(arg base_frame_id)"/>
+  </node>
+  -->
+
+  <!-- 可选： 打开 RViz 观察（rviz 配置在 arena_bringup/rviz/nav_LP.rviz，按需替换） -->
+  <group if="$(arg open_rviz)">
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find arena_bringup)/rviz/nav_LP.rviz" output="screen" />
+  </group>
+
+  <!-- 启动 rosnav 的 move_base 配置（arena 项目中已有 move_base_rosnav 的子 launch） -->
+  <include file="$(find arena_bringup)/launch/sublaunch_testing/move_base/move_base_$(arg local_planner).launch">
+    <arg name="model" value="$(arg model)"/>
+    <arg name="agent_name" value="$(arg model)" if="$(eval arg('local_planner') == 'rosnav')"/>
+    <!-- 如果你的移动平台需要 remap cmd_vel 或 odom，写在这里（示例） -->
+    <!-- <remap from="/cmd_vel" to="/cmd_vel" /> -->
+    <!-- <remap from="/odom" to="/odom" /> -->
+  </include>
+</launch>
+

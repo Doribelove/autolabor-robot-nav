@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="model" default="dingo"/>
+  <arg name="local_planner" default="teb"/>
+  
+  <param name="use_sim_time" value="false"/>
+  <param name="real" value="true"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro $(find simulator_setup)/robot/$(arg model)/urdf/$(arg model).urdf.xacro"/>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <include file="$(find arena_bringup)/launch/sublaunch_testing/move_base/move_base_autolaborm2_$(arg local_planner).launch">
+    <arg name="model" value="$(arg model)"/>
+    <arg name="cmd_vel_topic" value="/cmd_vel"/> 
+    <arg name="odom_topic" value="/Odometry"/> 
+  </include>
+
+  <node pkg="tf" type="static_transform_publisher" name="link_broadcaster" args="0 0 0 0 0 0 odom camera_init 10" />
+
+  <node pkg="eval" name="viz_path" type="viz_path.py" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find arena_bringup)/rviz/nav_LP.rviz"/>
+</launch>

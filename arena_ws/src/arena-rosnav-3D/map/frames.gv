@@ -1,0 +1,19 @@
+digraph G {
+"base_link" -> "chassis_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"odom" -> "base_link"[label="Broadcaster: /autolabor_driver\nAverage rate: 10.221 Hz\nMost recent transform: 1772094872.117 ( 0.093 sec old)\nBuffer length: 4.892 sec\n"];
+"front_c_mount" -> "front_b_mount"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"chassis_link" -> "front_c_mount"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"chassis_link" -> "front_bumper_mount"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"front_laser_mount" -> "front_laser"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"front_mount" -> "front_laser_mount"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"front_b_mount" -> "front_mount"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"chassis_link" -> "imu_link"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"rear_c_mount" -> "rear_b_mount"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"chassis_link" -> "rear_c_mount"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"chassis_link" -> "rear_caster"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+"rear_b_mount" -> "rear_mount"[label="Broadcaster: /robot_state_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 1772094872.210 sec old)\nBuffer length: 0.000 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1772094872.210"[ shape=plaintext ] ;
+ }->"odom";
+}

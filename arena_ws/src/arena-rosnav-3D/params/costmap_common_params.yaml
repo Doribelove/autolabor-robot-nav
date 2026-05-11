@@ -1,0 +1,18 @@
+# 公共 costmap 配置
+obstacle_range: 3.0
+raytrace_range: 3.5
+robot_radius: 0.35
+inflation_radius: 0.8        # 对于 LiDAR 高密度点云，可以适当减小
+cost_scaling_factor: 2.0
+
+robot_base_frame: base_footprint
+map_type: costmap
+
+observation_sources: scan
+scan: 
+  sensor_frame: base_scan
+  data_type: LaserScan
+  topic: /scan
+  marking: true
+  clearing: true
+

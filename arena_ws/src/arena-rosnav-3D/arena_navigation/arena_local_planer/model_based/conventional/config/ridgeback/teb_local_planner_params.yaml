@@ -1,0 +1,66 @@
+TebLocalPlannerROS:
+  odom_topic: odom
+
+  # ================== Robot (机器人物理参数) ==================
+  # 1. 速度限制
+  max_vel_x: 1.2           # 最大速度 (0.8 m/s 是比较安全的调试速度)
+  max_vel_x_backwards: 0.3 # 倒车速度
+  
+  # 【绝对禁止横移】
+  max_vel_y: 0.0           
+  
+  max_vel_theta: 0.6       # 转向角速度 (稍微降低一点，防止转向过猛)
+  
+  # 2. 加速度限制
+  # 【修改】稍微改大一点，帮助克服起步时的静摩擦力
+  acc_lim_x: 0.6           
+  acc_lim_y: 0.0           
+  acc_lim_theta: 0.5       
+
+  # 3. 运动学约束 (阿卡曼转向)
+  # 【修改】改为 1.4m (比铭牌1.2m稍大)，给机械结构留出余量，防止规划出无法执行的死角
+  min_turning_radius: 1.4 
+  
+  # 轴距 0.65m
+  wheelbase: 0.65          
+  
+  # 必须为 False，因为底层驱动接收的是 cmd_vel (Twist)
+  cmd_angle_instead_rotvel: False  
+  
+  # ================== Footprint (机器人轮廓) ==================
+  # M2 尺寸扩大版，防止擦碰
+  footprint_model:
+    type: "polygon"
+    vertices: [[0.55, -0.38], [0.55, 0.38], [-0.55, 0.38], [-0.55, -0.38]]
+
+  # ================== GoalTolerance (目标点容忍度) ==================
+  xy_goal_tolerance: 0.3   # 30cm 误差范围内算到达
+  yaw_goal_tolerance: 0.2  # 角度容忍度
+  free_goal_vel: False     # 到达终点必须停车
+  complete_global_plan: True
+
+  # ================== Optimization (路径优化 - 解决不走的核心) ==================
+  
+  # 【核心修改！重要！】
+  # 默认通常是 1.0。改为 30.0 强迫算法规划出更快的速度，
+  # 这样电机才有足够的电压克服 80kg 车身的摩擦力。
+  weight_optimaltime: 30.0 
+  
+  # 强迫向前开，少倒车
+  weight_kinematics_forward_drive: 100.0 
+  
+  # 【新增】严格遵守转弯半径，防止规划出这就执行不了的急弯
+  weight_kinematics_turning_radius: 50.0 
+  
+  # 保持与障碍物的距离
+  weight_obstacle: 50.0
+  min_obstacle_dist: 0.5   # 至少保持 0.5米距离
+
+  # ================== Recovery (恢复行为) ==================
+  shrink_horizon_backup: True
+  shrink_horizon_min_duration: 10
+  oscillation_recovery: True
+  oscillation_v_eps: 0.1
+  oscillation_omega_eps: 0.1
+  oscillation_recovery_min_duration: 10
+  oscillation_filter_duration: 10

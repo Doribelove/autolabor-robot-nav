@@ -1,0 +1,36 @@
+<launch>
+  <!-- ===================== 1. 地图 & AMCL ===================== -->
+  <arg name="map_file" default="/home/robot/map/map.yaml"/>
+  
+  <!-- 地图 server -->
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" output="screen"/>
+
+  <!-- AMCL -->
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/amcl_params.yaml" command="load"/>
+  </node>
+
+  <!-- ===================== 2. TF ===================== -->
+  <!-- base_link 相对 base_footprint -->
+  <node pkg="tf" type="static_transform_publisher" name="base_footprint_to_base_link"
+        args="0 0 0 0 0 0 base_footprint base_link 50"/>
+
+  <!-- ===================== 3. Move Base ===================== -->
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+  <remap from="/cmd_vel" to="/mobile_base/commands/velocity"/>
+    <!-- Costmap & Planner 参数 -->
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/costmap_common_params.yaml" command="load"/>
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/local_costmap_params.yaml" command="load"/>
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/global_costmap_params.yaml" command="load"/>
+    <rosparam file="/home/robot/arena_ws/src/arena-rosnav-3D/params/base_local_planner_params.yaml" command="load"/>
+    
+    <!-- 指定全局和局部坐标系 -->
+    <param name="global_frame_id" value="map"/>
+    <param name="robot_base_frame" value="base_link"/>
+
+    <!-- ===================== 指定规划器 ===================== -->
+    <param name="base_global_planner" value="navfn/NavfnROS"/> <!-- A* -->
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/> <!-- DWA -->
+  </node>
+</launch>
+

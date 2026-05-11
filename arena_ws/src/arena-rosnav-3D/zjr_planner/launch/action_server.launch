@@ -1,0 +1,94 @@
+<launch>
+  <!-- 1) Toggle dry-run and mode from CLI -->
+  <arg name="dry_run" default="false"/>
+  <arg name="mode"    default="rule"/>
+  <arg name="use_nn" default="true"/> 
+  <arg name="t_min" default="0.30"/>
+  <arg name="t_max" default="1.20"/>
+  <arg name="gamma" default="2.0"/>
+  <arg name="control_dt" default="0.05"/>
+  <arg name="save_dir" default="/home/robot/catkin_arena/src/zjr_planner/imilearning_model"/>
+  <arg name="enable_trainer" default="false"/>
+  <arg name="teacher_p" default="1.0"/>
+
+  <!-- Global params: visible to BOTH main node and spawned child node -->
+  <param name="/save_dir" value="$(arg save_dir)"/>
+  <param name="/runtime_tag" value="best"/>
+  <param name="/reload_every_sec" value="2.0"/>
+
+  <!-- optional but建议也全局化，避免 child 默认值和 main 不一致 -->
+  <param name="/use_nn" value="$(arg use_nn)"/>
+  <param name="/teacher_p" value="$(arg teacher_p)"/>
+  <param name="/eri_min" value="0.0"/>
+  <param name="/eri_max" value="10.0"/>
+
+
+  <!-- 2) Services: add respawn + a small delay so restarts don't collide -->
+  <node pkg="zjr_planner"
+        type="save_pointcloud_service"
+        name="pointcloud_generate_once"
+        output="screen"
+        respawn="false" />
+
+  <node pkg="zjr_planner"
+        type="rrt_multi_paths_srv"
+        name="rrt_multi_paths_srv"
+        output="screen"
+        respawn="false" />
+
+  <node pkg="zjr_planner" type="eri_summary_recorder.py" name="eri_summary_recorder" output="screen" />
+
+
+  <!-- 3) Orchestrator: pick ONE of the name strategies below -->
+
+  <node pkg="zjr_planner"
+        type="main.py"
+        name="$(anon sderi_monitor)"
+        output="screen"
+        respawn="false">
+    <param name="dry_run" value="$(arg dry_run)"/>
+    <param name="mode"    value="$(arg mode)"/>
+    <param name="t_min" value="$(arg t_min)"/>
+    <param name="t_max" value="$(arg t_max)"/>
+    <param name="gamma" value="$(arg gamma)"/>
+    <param name="control_dt" value="$(arg control_dt)"/>
+     <!-- === ERI Online Learning Params (minimal) === -->
+    <param name="eri_bins"  value="11"/>
+    <param name="use_nn" value="$(arg use_nn)"/>
+    <param name="teacher_p" value="$(arg teacher_p)"/>
+    <param name="eri_min" value="0.0"/>
+    <param name="eri_max" value="10.0"/>
+
+
+  </node>
+
+  <node pkg="zjr_planner" type="eri_runtime_logger.py"
+      name="eri_runtime_logger" output="screen">
+   <param name="goal_thresh" value="0.5"/> 
+   <param name="w_progress"  value="1.0"/> 
+   <param name="w_time"      value="0.07"/> 
+   <param name="w_collision" value="3.0"/> 
+   <param name="success_bonus" value="10.0"/> 
+   <param name="timeout_penalty" value="-10.0"/> 
+</node>
+
+<group if="$(arg enable_trainer)">
+  <node pkg="zjr_planner" type="eri_trainer.py"
+      name="eri_trainer" output="screen">
+    <param name="gamma" value="0.9"/>
+    <param name="lr" value="0.001"/>
+    <param name="batch_min" value="32"/>
+    <param name="window_max" value="5000"/>
+    <param name="lambda_reg0" value="1.0"/>
+    <param name="lambda_decay" value="1e-4"/>
+    <param name="adv_norm" value="true"/>
+
+    <!-- checkpoint / snapshot -->
+    <param name="resume" value="True"/>
+    <param name="resume_from" value="latest"/>
+    <param name="snapshot_every" value="2"/>
+    <param name="max_snapshots" value="5"/>
+  </node>
+</group>
+
+</launch>

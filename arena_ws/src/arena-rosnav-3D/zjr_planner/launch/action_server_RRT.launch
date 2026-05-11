@@ -1,0 +1,23 @@
+<launch>
+    <!-- 启动 save_pointcloud_service 节点 -->
+    <node pkg="zjr_planner"
+          type="save_pointcloud_service"
+          name="pointcloud_generate_once"
+          output="screen">
+    </node>
+
+    <!-- 启动 rrt_multi_paths_srv 节点 -->
+    <node pkg="zjr_planner"
+          type="rrt_multi_paths_srv"
+          name="rrt_multi_paths_srv"
+          output="screen">
+    </node>
+
+    <!-- 启动 Python 脚本 -->
+    <node pkg="zjr_planner"
+          type="main_suc_rrt_supply.py"
+          name="main_suc_rrt"
+          output="screen"
+          args="">
+    </node>
+</launch>
