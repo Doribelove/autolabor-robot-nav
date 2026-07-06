@@ -1,0 +1,55 @@
+<launch>
+  <arg name="port" default="/dev/ttyUSB1"/>
+  <arg name="baud_rate" default="115200"/>
+  <arg name="map_frame" default="camera_init"/>
+  <arg name="odom_frame" default="odom"/>
+  <arg name="base_frame" default="base_link"/>
+  <arg name="gps_frame" default="gps"/>
+  <arg name="origin_lat" default=""/>
+  <arg name="origin_lon" default=""/>
+  <arg name="broadcast_tf" default="true"/>
+  <arg name="heading_source" default="gps_course"/>
+  <arg name="min_course_distance" default="0.5"/>
+  <arg name="initial_yaw" default="0.0"/>
+  <arg name="position_filter_alpha" default="0.25"/>
+  <arg name="stationary_filter_alpha" default="0.05"/>
+  <arg name="stationary_speed_threshold" default="0.05"/>
+  <arg name="stationary_hold_radius" default="0.8"/>
+  <arg name="max_fix_jump" default="5.0"/>
+  <arg name="heading_min_speed" default="0.15"/>
+  <arg name="use_wheel_odom" default="false"/>
+  <arg name="wheel_odom_topic" default="/odom"/>
+  <arg name="gps_correction_alpha" default="0.0"/>
+  <arg name="gps_correction_max_step" default="0.05"/>
+  <arg name="gps_correction_reset_distance" default="20.0"/>
+
+  <node pkg="gps_module" type="gps_localization_node.py" name="gps_localization" output="screen">
+    <param name="port" value="$(arg port)"/>
+    <param name="baud_rate" value="$(arg baud_rate)"/>
+    <param name="map_frame" value="$(arg map_frame)"/>
+    <param name="odom_frame" value="$(arg odom_frame)"/>
+    <param name="base_frame" value="$(arg base_frame)"/>
+    <param name="pose_topic" value="/gps/pose"/>
+    <param name="odom_topic" value="/gps/odom"/>
+    <param name="fix_topic" value="/gps/fix"/>
+    <param name="gps_frame" value="$(arg gps_frame)"/>
+    <param name="publish_rate" value="10.0"/>
+    <param name="broadcast_tf" value="$(arg broadcast_tf)"/>
+    <param name="heading_source" value="$(arg heading_source)"/>
+    <param name="min_course_distance" value="$(arg min_course_distance)"/>
+    <param name="initial_yaw" value="$(arg initial_yaw)"/>
+    <param name="position_filter_alpha" value="$(arg position_filter_alpha)"/>
+    <param name="stationary_filter_alpha" value="$(arg stationary_filter_alpha)"/>
+    <param name="stationary_speed_threshold" value="$(arg stationary_speed_threshold)"/>
+    <param name="stationary_hold_radius" value="$(arg stationary_hold_radius)"/>
+    <param name="max_fix_jump" value="$(arg max_fix_jump)"/>
+    <param name="heading_min_speed" value="$(arg heading_min_speed)"/>
+    <param name="use_wheel_odom" value="$(arg use_wheel_odom)"/>
+    <param name="wheel_odom_topic" value="$(arg wheel_odom_topic)"/>
+    <param name="gps_correction_alpha" value="$(arg gps_correction_alpha)"/>
+    <param name="gps_correction_max_step" value="$(arg gps_correction_max_step)"/>
+    <param name="gps_correction_reset_distance" value="$(arg gps_correction_reset_distance)"/>
+    <param name="origin_lat" value="$(arg origin_lat)" unless="$(eval arg('origin_lat') == '')"/>
+    <param name="origin_lon" value="$(arg origin_lon)" unless="$(eval arg('origin_lon') == '')"/>
+  </node>
+</launch>

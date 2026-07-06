@@ -1,0 +1,38 @@
+<launch>
+  <arg name="port" default="/dev/ttyUSB1"/>
+  <arg name="baud_rate" default="115200"/>
+  <arg name="broadcast_tf" default="true"/>
+  <arg name="heading_source" default="gps_course"/>
+  <arg name="min_course_distance" default="0.5"/>
+  <arg name="initial_yaw" default="0.0"/>
+  <arg name="position_filter_alpha" default="0.25"/>
+  <arg name="stationary_filter_alpha" default="0.05"/>
+  <arg name="stationary_speed_threshold" default="0.05"/>
+  <arg name="stationary_hold_radius" default="0.8"/>
+  <arg name="max_fix_jump" default="5.0"/>
+  <arg name="heading_min_speed" default="0.15"/>
+  <arg name="use_wheel_odom" default="false"/>
+  <arg name="wheel_odom_topic" default="/odom"/>
+  <arg name="gps_correction_alpha" default="0.0"/>
+  <arg name="gps_correction_max_step" default="0.05"/>
+  <arg name="gps_correction_reset_distance" default="20.0"/>
+  <include file="$(find gps_module)/launch/gps_localization.launch">
+    <arg name="port" value="$(arg port)"/>
+    <arg name="baud_rate" value="$(arg baud_rate)"/>
+    <arg name="broadcast_tf" value="$(arg broadcast_tf)"/>
+    <arg name="heading_source" value="$(arg heading_source)"/>
+    <arg name="min_course_distance" value="$(arg min_course_distance)"/>
+    <arg name="initial_yaw" value="$(arg initial_yaw)"/>
+    <arg name="position_filter_alpha" value="$(arg position_filter_alpha)"/>
+    <arg name="stationary_filter_alpha" value="$(arg stationary_filter_alpha)"/>
+    <arg name="stationary_speed_threshold" value="$(arg stationary_speed_threshold)"/>
+    <arg name="stationary_hold_radius" value="$(arg stationary_hold_radius)"/>
+    <arg name="max_fix_jump" value="$(arg max_fix_jump)"/>
+    <arg name="heading_min_speed" value="$(arg heading_min_speed)"/>
+    <arg name="use_wheel_odom" value="$(arg use_wheel_odom)"/>
+    <arg name="wheel_odom_topic" value="$(arg wheel_odom_topic)"/>
+    <arg name="gps_correction_alpha" value="$(arg gps_correction_alpha)"/>
+    <arg name="gps_correction_max_step" value="$(arg gps_correction_max_step)"/>
+    <arg name="gps_correction_reset_distance" value="$(arg gps_correction_reset_distance)"/>
+  </include>
+</launch>

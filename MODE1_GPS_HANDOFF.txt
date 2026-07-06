@@ -1,0 +1,390 @@
+模式1 GPS 定位导航交接记录
+记录时间：2026-07-03
+工作目录：/home/robot/robot_ws
+
+一、模式1定义
+
+本项目里“模式1”指：
+
+  ./scripts/bringup.sh gps
+
+也就是 GPS 直接提供定位，FAST_LIO 不再发布 odom/TF，只负责 Livox 点云配准并给导航提供 /scan。
+
+模式1主链路：
+
+  CAN 底盘
+    -> /odom, /cmd_vel 执行
+
+  GPS
+    -> /gps/fix
+    -> gps_localization_node.py
+    -> /gps/pose, /gps/odom
+    -> TF: camera_init -> base_link
+
+  Livox MID360 + FAST_LIO 点云配准
+    -> /cloud_registered_body
+    -> pointcloud_self_filter / pointcloud_to_laserscan
+    -> /scan
+
+  GPS 目标
+    -> /gps/goal_fix
+    -> gps_goal_node.py
+    -> /move_base_simple/goal
+    -> move_base + TEB
+    -> /cmd_vel
+    -> m2_driver
+
+二、推荐启动方式
+
+终端 1，启动整套 GPS 定位导航：
+
+  cd /home/robot/robot_ws
+  source /opt/ros/noetic/setup.bash
+  source /home/robot/robot_ws/devel/setup.bash
+  TERMINAL_MODE=split ./scripts/bringup.sh gps
+
+如果启动时已知车头初始朝向，可以直接传手机指南针读数：
+
+  GPS_COMPASS_HEADING="东北45度" TERMINAL_MODE=split ./scripts/bringup.sh gps
+
+也可以只传数字角度：
+
+  GPS_COMPASS_HEADING_DEG=45 TERMINAL_MODE=split ./scripts/bringup.sh gps
+
+指南针角度约定：
+
+  0   = 北
+  90  = 东
+  180 = 南
+  270 = 西
+
+脚本内部换算：
+
+  ROS yaw = 90度 - 指南针角度
+
+如果直接传 ROS 弧度值，仍然支持：
+
+  GPS_INITIAL_YAW=1.5708 TERMINAL_MODE=split ./scripts/bringup.sh gps
+
+注意：GPS_INITIAL_YAW 优先级高于 GPS_COMPASS_HEADING / GPS_COMPASS_HEADING_DEG。
+
+调试指南针换算但不启动无人车：
+
+  GPS_COMPASS_HEADING="东北45度" ./scripts/bringup.sh --print-gps-yaw
+
+终端 2，如果要接 RabbitMQ 的 GPS 目标：
+
+  cd /home/robot/robot_ws
+  source /opt/ros/noetic/setup.bash
+  source /home/robot/robot_ws/devel/setup.bash
+  ./scripts/shu\ copy.py
+
+三、硬件端口
+
+用户已确认：
+
+  GPS / GNSS：/dev/ttyUSB1
+  无人车底盘 CAN 控制：/dev/ttyUSB0
+
+bringup.sh 当前默认值就是：
+
+  GPS_PORT=/dev/ttyUSB1
+  CAN_PORT=/dev/ttyUSB0
+  GPS_BAUD_RATE=115200
+
+四、我实际运行模式1时的发现
+
+我已经在真实无人车上实际启动过模式1，并做过 ROS 参数、topic、TF、odom 方向的核查。
+
+当时发现的关键问题：
+
+1. 模式1虽然叫 GPS 定位，但之前默认仍有 use_wheel_odom=true 的风险。
+
+   这会把底盘 /odom 和 GPS ENU 坐标混在一起。如果底盘里程计坐标系和 GPS 坐标系没有对齐，/gps/odom 会被带偏，表现为车认为自己的姿态/位置和真实 GPS 不一致，导航时可能乱跑。
+
+   当前已修正：
+
+     scripts/bringup.sh
+       GPS_USE_WHEEL_ODOM=false
+
+   GPS 模式默认不再融合底盘 /odom，只使用 GPS 位置直接形成 /gps/odom。
+
+2. 底盘 odom 的 child_frame_id 曾经不适合导航检查。
+
+   当前已修正：
+
+     src/autolabor_core/autolabor_canbus_driver/autolabor_canbus_driver/launch/drive_only.launch
+
+   把 is_odom_child_baselink 改成 true。
+
+   我运行后验证过：
+
+     /odom child_frame_id = base_link
+
+3. TEB 参数里 penalty_epsilon 之前和 max_vel_x=0.1 有冲突风险。
+
+   之前 GPS 模式 max_vel_x=0.1，同时 penalty_epsilon=0.1，TEB 会有不合理警告，速度约束边界太紧。
+
+   当前已修正：
+
+     GPS_TEB_PENALTY_EPSILON=0.03
+
+   并传入：
+
+     robot_bringup navigation_arena.launch
+     real_nav_nomap.launch
+     move_base_teb_nomap.launch
+
+   我运行后验证过：GPS 模式下没有再出现之前那个 TEB max_vel_x / penalty_epsilon 警告。
+
+4. 单天线 GPS 静止时不能知道车头朝向。
+
+   这不是代码 bug，是传感器能力限制。静止时单 GPS 只能知道位置，不能知道车头朝向。
+
+   当前模式1处理逻辑：
+
+     启动时使用 initial_yaw
+     车辆开始移动后，用 GPS RMC course 更新航向
+
+   当前默认：
+
+     GPS_HEADING_SOURCE=gps_course
+     GPS_HEADING_MIN_SPEED=0.05
+     GPS_MIN_COURSE_DISTANCE=0.2
+
+   新增进展：
+
+     bringup.sh 现在支持直接传手机指南针输出，例如 GPS_COMPASS_HEADING="东北45度"。
+
+   这样车刚启动、还没通过 GPS course 推出方向之前，初始车头方向会更接近真实值。
+
+5. 激光雷达点云不是“挂载在 GPS 点上”。
+
+   模式1里 GPS 发布 camera_init -> base_link，确定车体在全局局部坐标 camera_init 下的位置和朝向。
+
+   Livox/FAST_LIO 只提供点云配准结果，点云经过固定/动态 TF 转换到 base_link/camera_init 相关坐标下，再投影成 /scan 供 costmap 避障使用。
+
+   导航看到的是：
+
+     定位：/gps/odom
+     障碍物：/scan
+
+   不是把每一帧点云绑定到某个 GPS 点上，而是通过同一套 TF 坐标树把定位和障碍物放进同一个导航坐标系。
+
+五、目前已经改过的文件
+
+1. scripts/bringup.sh
+
+   已做内容：
+
+   - GPS 模式默认 GPS_USE_WHEEL_ODOM=false
+   - GPS 模式传入：
+       heading_source
+       heading_min_speed
+       min_course_distance
+       initial_yaw
+       penalty_epsilon
+   - 新增手机指南针输入：
+       GPS_COMPASS_HEADING
+       GPS_COMPASS_HEADING_DEG
+   - 新增调试入口：
+       ./scripts/bringup.sh --print-gps-yaw
+
+2. src/scripts/robot_bringup/launch/navigation_arena.launch
+
+   已做内容：
+
+   - 增加 penalty_epsilon 参数，并继续传给 Arena real_nav。
+
+3. src/navigation_arena/arena-rosnav-3D/arena_bringup/launch/real_nav_nomap.launch
+
+   已做内容：
+
+   - 增加 penalty_epsilon 参数，并传给 move_base_teb_nomap。
+
+4. src/navigation_arena/arena-rosnav-3D/arena_bringup/launch/sublaunch_testing/move_base/move_base_teb_nomap.launch
+
+   已做内容：
+
+   - 增加 penalty_epsilon 参数。
+   - 写入 /move_base/TebLocalPlannerROS/penalty_epsilon。
+
+5. src/autolabor_core/autolabor_canbus_driver/autolabor_canbus_driver/launch/drive_only.launch
+
+   已做内容：
+
+   - is_odom_child_baselink 改为 true。
+
+6. README.md
+
+   已做内容：
+
+   - 更新模式1说明。
+   - 记录 GPS 模式下不默认融合轮速里程计。
+   - 记录手机指南针初始朝向输入方式。
+   - 记录 GPS RabbitMQ 启动方式。
+
+六、我验证过的关键结果
+
+真实启动模式1后验证过：
+
+  /gps/odom 存在
+  /gps/pose 存在
+  /gps/fix 存在
+  /scan 存在
+  camera_init -> base_link TF 可用
+  /cmd_vel 链路连接 move_base -> m2_driver
+  /odom child_frame_id = base_link
+  GPS 模式 use_wheel_odom = false
+  GPS heading_min_speed = 0.05
+  GPS min_course_distance = 0.2
+  TEB penalty_epsilon = 0.03
+
+指南针换算验证过：
+
+  GPS_COMPASS_HEADING_DEG=45    -> 0.7853981634
+  GPS_COMPASS_HEADING=东北      -> 0.7853981634
+  GPS_COMPASS_HEADING=东北45度  -> 0.7853981634
+  GPS_COMPASS_HEADING=东        -> 0
+  GPS_COMPASS_HEADING=西        -> 3.141592654
+  GPS_INITIAL_YAW=1.23 且同时传指南针 -> 1.23
+
+脚本语法验证过：
+
+  bash -n scripts/bringup.sh
+
+七、接手后优先检查清单
+
+如果下一次继续调试模式1，建议按这个顺序检查：
+
+1. 启动前确认端口
+
+   ls -l /dev/ttyUSB0 /dev/ttyUSB1
+
+2. 启动模式1
+
+   cd /home/robot/robot_ws
+   TERMINAL_MODE=split ./scripts/bringup.sh gps
+
+   如果知道车头朝向：
+
+   GPS_COMPASS_HEADING="东北45度" TERMINAL_MODE=split ./scripts/bringup.sh gps
+
+3. 查 GPS 定位参数
+
+   rosparam get /gps/use_wheel_odom
+   rosparam get /gps/heading_source
+   rosparam get /gps/heading_min_speed
+   rosparam get /gps/min_course_distance
+   rosparam get /gps/initial_yaw
+
+   期望：
+
+   /gps/use_wheel_odom = false
+   /gps/heading_source = gps_course
+   /gps/heading_min_speed = 0.05
+   /gps/min_course_distance = 0.2
+
+4. 查 TEB GPS 模式参数
+
+   rosparam get /move_base/TebLocalPlannerROS/odom_topic
+   rosparam get /move_base/TebLocalPlannerROS/xy_goal_tolerance
+   rosparam get /move_base/TebLocalPlannerROS/yaw_goal_tolerance
+   rosparam get /move_base/TebLocalPlannerROS/max_vel_x
+   rosparam get /move_base/TebLocalPlannerROS/penalty_epsilon
+
+   期望：
+
+   odom_topic = /gps/odom
+   xy_goal_tolerance = 1.5
+   yaw_goal_tolerance = 6.283
+   max_vel_x = 0.1
+   penalty_epsilon = 0.03
+
+5. 查 TF
+
+   rosrun tf tf_echo camera_init base_link
+
+   如果 TF 跳变或方向明显反，优先怀疑：
+
+   - 初始车头朝向传错
+   - 手机指南针受磁干扰
+   - GPS course 在低速/倒车/原地转向时不可靠
+   - GPS 原点或目标点经纬度有误
+
+6. 查定位和障碍物
+
+   rostopic echo /gps/fix
+   rostopic echo /gps/odom
+   rostopic echo /scan
+   rostopic info /cmd_vel
+
+八、模式1乱跑的主要风险点
+
+如果车在模式1乱跑，优先怀疑以下几类：
+
+1. 初始朝向错
+
+   单天线 GPS 静止时不知道车头方向。启动时 initial_yaw 错，会导致 camera_init -> base_link 的 yaw 错，导航目标方向和避障方向都会偏。
+
+   解决：
+
+   - 启动时传 GPS_COMPASS_HEADING 或 GPS_COMPASS_HEADING_DEG。
+   - 手机指南针要远离车体电机、电源线、铁磁材料。
+
+2. 手机指南针读数本身不可靠
+
+   如果手机贴在车体金属、电池、电机附近，指南针可能偏几十度。
+
+   建议：
+
+   - 手机离车体远一点测车头方向。
+   - 同一个方向多测几次。
+   - 车头方向不要用“目测东北”代替实际角度。
+
+3. GPS course 低速不可靠
+
+   GPS course 是根据运动轨迹推方向，低速、漂移、停走、倒车时可能不稳定。
+
+   当前已设置：
+
+   - heading_min_speed=0.05
+   - min_course_distance=0.2
+
+   如果现场 GPS 抖动仍大，可以继续调高这两个值。
+
+4. /gps/odom 和 /scan 坐标关系错
+
+   导航必须同时满足：
+
+   - /gps/odom frame_id 是 camera_init
+   - /gps/odom child_frame_id 是 base_link
+   - camera_init -> base_link TF 可用
+   - /scan 能被 costmap 正确接收
+
+5. GPS 目标点或 RabbitMQ 消息错误
+
+   检查：
+
+   rostopic echo /gps/goal_fix
+   rostopic echo /move_base_simple/goal
+
+   如果目标点转换后的局部坐标方向明显反，检查：
+
+   - GPS origin 是否和定位节点一致
+   - 纬度经度字段是否反了
+   - RabbitMQ JSON 里的 LAT/LON 是否正确
+
+九、当前状态
+
+代码修改已保存在工作区文件中。
+
+我启动过的实际 ROS 进程已在当时停止，没有故意留下运行中的 bringup 会话。
+
+当前还没有做 git commit。根目录曾显示 .git 状态不正常，git diff 输出不可靠，下一位 Codex 不应依赖 git diff 判断改动范围，应直接查看上述文件。
+
+下一步建议：
+
+1. 用 GPS_COMPASS_HEADING 方式启动模式1。
+2. 启动后先不要给远目标，先在近距离目标上观察 /gps/odom yaw、TF 和车头真实方向是否一致。
+3. 确认方向一致后，再接 RabbitMQ 目标。

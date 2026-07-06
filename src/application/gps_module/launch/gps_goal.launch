@@ -1,0 +1,24 @@
+<launch>
+  <arg name="frame_id" default="camera_init"/>
+  <arg name="origin_lat" default=""/>
+  <arg name="origin_lon" default=""/>
+  <arg name="target_lat" default=""/>
+  <arg name="target_lon" default=""/>
+  <arg name="yaw_offset" default="0.0"/>
+  <arg name="yaw_offset_deg" default="0.0"/>
+  <arg name="publish_once" default="false"/>
+
+  <node pkg="gps_module" type="gps_goal_node.py" name="gps_goal" output="screen">
+    <param name="frame_id" value="$(arg frame_id)"/>
+    <param name="goal_topic" value="/move_base_simple/goal"/>
+    <param name="fix_topic" value="/gps/fix"/>
+    <param name="goal_fix_topic" value="/gps/goal_fix"/>
+    <param name="origin_lat" value="$(arg origin_lat)" unless="$(eval arg('origin_lat') == '')"/>
+    <param name="origin_lon" value="$(arg origin_lon)" unless="$(eval arg('origin_lon') == '')"/>
+    <param name="target_lat" value="$(arg target_lat)" unless="$(eval arg('target_lat') == '')"/>
+    <param name="target_lon" value="$(arg target_lon)" unless="$(eval arg('target_lon') == '')"/>
+    <param name="yaw_offset" value="$(arg yaw_offset)"/>
+    <param name="yaw_offset_deg" value="$(arg yaw_offset_deg)"/>
+    <param name="publish_once" value="$(arg publish_once)"/>
+  </node>
+</launch>

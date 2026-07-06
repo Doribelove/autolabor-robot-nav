@@ -1,0 +1,9 @@
+<launch>
+
+    <node name="canbus_driver" pkg="autolabor_canbus_driver" type="canbus_driver" output="screen">
+        <param name="port_name" value="/dev/ttyUSB0" />
+    </node>
+
+    <node name="m2_driver" pkg="autolabor_canbus_driver" type="m2_driver" output="screen" />
+
+</launch>

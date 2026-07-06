@@ -1,0 +1,16 @@
+<launch>
+    <arg name="port_name" default="/dev/ttyUSB0" />
+    <arg name="publish_tf" default="true" />
+
+    <node name="canbus_driver" pkg="autolabor_canbus_driver" type="canbus_driver" output="screen">
+        <param name="port_name" value="$(arg port_name)" />                 </node>
+
+    <node name="m2_driver" pkg="autolabor_canbus_driver" type="m2_driver" output="screen" >
+        <param name="odom_frame" value="odom" />                        <param name="base_frame" value="base_link" />                   <param name="poller_rate_hz" value="1" />                       <param name="publish_tf" value="$(arg publish_tf)" />                        
+        
+        <param name="is_odom_child_baselink" value="true" />           
+        <param name="is_simulate_imu" value="false" />                  
+        <param name="is_pub_control_timeout" value="false" />           
+    </node>
+
+    </launch>

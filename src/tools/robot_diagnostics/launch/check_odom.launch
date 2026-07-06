@@ -1,0 +1,13 @@
+<launch>
+  <arg name="topic" default="/Odometry"/>
+  <arg name="timeout" default="10.0"/>
+  <arg name="required_frame" default=""/>
+  <arg name="required_child_frame" default=""/>
+
+  <node pkg="robot_diagnostics" type="check_odom.py" name="check_odom" output="screen" required="true">
+    <param name="topic" value="$(arg topic)"/>
+    <param name="timeout" value="$(arg timeout)"/>
+    <param name="required_frame" value="$(arg required_frame)"/>
+    <param name="required_child_frame" value="$(arg required_child_frame)"/>
+  </node>
+</launch>

@@ -1,0 +1,8 @@
+<launch>
+  <arg name="odom_pub_en" default="true"/>
+  <arg name="tf_pub_en" default="true"/>
+  <include file="$(find fast_lio)/launch/mapping_mid360.launch">
+    <arg name="odom_pub_en" value="$(arg odom_pub_en)"/>
+    <arg name="tf_pub_en" value="$(arg tf_pub_en)"/>
+  </include>
+</launch>

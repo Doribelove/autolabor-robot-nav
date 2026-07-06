@@ -1,0 +1,196 @@
+模式1 GPS 导航 rosbag 采集说明
+记录时间：2026-07-03
+工作目录：/home/robot/robot_ws
+
+一、文件
+
+录包脚本：
+
+  scripts/record_rosbag.sh
+
+默认输出目录：
+
+  你执行脚本时所在的当前目录
+
+也就是说，如果你在 /home/robot/robot_ws 运行：
+
+  ./scripts/record_rosbag.sh mode1
+
+bag 会保存到：
+
+  /home/robot/robot_ws
+
+二、推荐现场采集流程
+
+终端 1，先启动模式1：
+
+  cd /home/robot/robot_ws
+  source /opt/ros/noetic/setup.bash
+  source /home/robot/robot_ws/devel/setup.bash
+  GPS_COMPASS_HEADING="东北45度" TERMINAL_MODE=split ./scripts/bringup.sh gps
+
+如果不需要传初始车头方向：
+
+  TERMINAL_MODE=split ./scripts/bringup.sh gps
+
+终端 2，录制模式1关键消息：
+
+  cd /home/robot/robot_ws
+  ./scripts/record_rosbag.sh mode1
+
+停止录制：
+
+  Ctrl+C
+
+三、录制全部 ROS 消息
+
+如果你想尽可能完整保留现场所有话题：
+
+  cd /home/robot/robot_ws
+  ./scripts/record_rosbag.sh all
+
+注意：all 会包含 Livox 原始点云，文件会很大。
+
+四、同时录两份
+
+如果你想同时得到：
+
+1. 模式1关键话题包：后续回放导航、定位、避障最方便
+2. 全量话题包：后续排查未知问题最完整
+
+运行：
+
+  cd /home/robot/robot_ws
+  ./scripts/record_rosbag.sh both
+
+会生成类似：
+
+  mode1_nav_mode1_20260703_183000_0.bag
+  mode1_nav_all_20260703_183000_0.bag
+
+五、文件名和输出目录
+
+指定文件名前缀：
+
+  BAG_PREFIX=test01 ./scripts/record_rosbag.sh mode1
+
+指定输出目录：
+
+  BAG_DIR=/home/robot/robot_ws/bags BAG_PREFIX=test01 ./scripts/record_rosbag.sh both
+
+默认按 4096MB 自动分包，防止单个 bag 过大。
+
+修改分包大小：
+
+  SPLIT_SIZE_MB=2048 ./scripts/record_rosbag.sh mode1
+
+关闭分包：
+
+  SPLIT_SIZE_MB=0 ./scripts/record_rosbag.sh mode1
+
+六、压缩
+
+默认不压缩，优点是 CPU 压力小，适合真车采集。
+
+如果磁盘空间紧张，可以启用压缩：
+
+  COMPRESSION=lz4 ./scripts/record_rosbag.sh mode1
+
+或：
+
+  COMPRESSION=bz2 ./scripts/record_rosbag.sh mode1
+
+建议优先用 lz4。bz2 压缩率更高，但 CPU 压力更大。
+
+七、mode1 会录哪些关键话题
+
+查看完整列表：
+
+  ./scripts/record_rosbag.sh topics
+
+当前包括：
+
+  /tf
+  /tf_static
+  /rosout
+  /rosout_agg
+  /canbus_msg
+  /odom
+  /cmd_vel
+  /livox/lidar
+  /livox/imu
+  /cloud_registered_body
+  /cloud_filtered_for_scan
+  /scan
+  /gps/fix
+  /gps/pose
+  /gps/odom
+  /gps/goal_fix
+  /move_base_simple/goal
+  /move_base/status
+  /move_base/feedback
+  /move_base/result
+  /move_base/current_goal
+  /move_base/global_costmap/costmap
+  /move_base/global_costmap/costmap_updates
+  /move_base/global_costmap/footprint
+  /move_base/local_costmap/costmap
+  /move_base/local_costmap/costmap_updates
+  /move_base/local_costmap/footprint
+  /move_base/TebLocalPlannerROS/global_plan
+  /move_base/TebLocalPlannerROS/local_plan
+  /move_base/TebLocalPlannerROS/teb_poses
+  /move_base/TebLocalPlannerROS/teb_markers
+
+这些话题覆盖了：
+
+  GPS 原始定位
+  GPS odom
+  TF
+  Livox 原始数据
+  FAST_LIO 配准点云
+  投影后的 /scan
+  move_base 目标、状态、局部/全局代价地图
+  TEB 路径和轨迹可视化
+  cmd_vel 控制输出
+  底盘反馈
+
+八、采集完成后检查
+
+查看 bag 信息：
+
+  rosbag info mode1_nav_mode1_*.bag
+
+查看某个 bag 包含哪些 topic：
+
+  rosbag info your_file.bag | less
+
+九、回放基础命令
+
+只回放数据：
+
+  rosbag play your_file.bag
+
+如果节点需要仿真时间：
+
+  rosparam set use_sim_time true
+  rosbag play --clock your_file.bag
+
+十、使用建议
+
+1. 现场第一次采集建议用 both。
+
+   mode1 包方便后续快速回放，all 包作为兜底证据。
+
+2. 如果磁盘空间不足，优先录 mode1。
+
+3. 录制前先确认模式1已经完整启动：
+
+   rostopic echo /gps/fix
+   rostopic echo /gps/odom
+   rostopic echo /scan
+   rostopic info /cmd_vel
+
+4. 如果是为了排查“乱跑”，录包时一定要包含启动后的初始静止阶段、给目标阶段、车辆开始动作阶段。
+
+   不要只录车辆已经跑起来之后的数据，因为初始 yaw 和 TF 建立阶段很关键。

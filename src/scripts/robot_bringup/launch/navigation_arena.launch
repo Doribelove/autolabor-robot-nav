@@ -1,0 +1,27 @@
+<launch>
+  <arg name="localization_source" default="fast_lio"/>
+  <arg name="local_planner" default="teb"/>
+  <arg name="model" default="dingo"/>
+  <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
+  <arg name="xy_goal_tolerance" default="$(eval 1.5 if arg('localization_source') == 'gps' else 0.5)"/>
+  <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
+  <arg name="max_vel_x" default="1.2"/>
+  <arg name="max_vel_x_backwards" default="1.2"/>
+  <arg name="min_vel_x" default="0.0"/>
+  <arg name="min_vel_x_backwards" default="0.0"/>
+  <arg name="penalty_epsilon" default="$(eval 0.03 if arg('localization_source') == 'gps' else 0.1)"/>
+
+  <include file="$(find arena_bringup)/launch/real_nav_nomap.launch">
+    <arg name="localization_source" value="$(arg localization_source)"/>
+    <arg name="local_planner" value="$(arg local_planner)"/>
+    <arg name="model" value="$(arg model)"/>
+    <arg name="odom_topic" value="$(arg odom_topic)"/>
+    <arg name="xy_goal_tolerance" value="$(arg xy_goal_tolerance)"/>
+    <arg name="yaw_goal_tolerance" value="$(arg yaw_goal_tolerance)"/>
+    <arg name="max_vel_x" value="$(arg max_vel_x)"/>
+    <arg name="max_vel_x_backwards" value="$(arg max_vel_x_backwards)"/>
+    <arg name="min_vel_x" value="$(arg min_vel_x)"/>
+    <arg name="min_vel_x_backwards" value="$(arg min_vel_x_backwards)"/>
+    <arg name="penalty_epsilon" value="$(arg penalty_epsilon)"/>
+  </include>
+</launch>
