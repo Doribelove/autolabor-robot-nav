@@ -17,6 +17,7 @@
 
   GPS
     -> /gps/fix
+    -> /gps/heading
     -> gps_localization_node.py
     -> /gps/pose, /gps/odom
     -> TF: camera_init -> base_link
@@ -43,13 +44,15 @@
   source /home/robot/robot_ws/devel/setup.bash
   TERMINAL_MODE=split ./scripts/bringup.sh gps
 
-如果启动时已知车头初始朝向，可以直接传手机指南针读数：
+当前 GPS 模式默认使用双天线 GNSS 航向：
 
-  GPS_COMPASS_HEADING="东北45度" TERMINAL_MODE=split ./scripts/bringup.sh gps
+  GPS_HEADING_SOURCE=dual_antenna
 
-也可以只传数字角度：
+位置来自主 GNSS 的 GGA 经纬度，航向来自 #UNIHEADINGA。双天线航向静止时也能给车头方向，适合室外 GPS 导航。
 
-  GPS_COMPASS_HEADING_DEG=45 TERMINAL_MODE=split ./scripts/bringup.sh gps
+如果现场临时没有双天线航向，才需要退回旧的单天线/指南针方式：
+
+  GPS_HEADING_SOURCE=auto GPS_COMPASS_HEADING_DEG=45 TERMINAL_MODE=split ./scripts/bringup.sh gps
 
 指南针角度约定：
 
@@ -77,7 +80,99 @@
   cd /home/robot/robot_ws
   source /opt/ros/noetic/setup.bash
   source /home/robot/robot_ws/devel/setup.bash
-  ./scripts/shu\ copy.py
+  ./scripts/rabbitmq_gps_goal_bridge.py
+
+终端 2，如果要运行 GPS 电子围栏和避障测试菜单：
+
+  cd /home/robot/robot_ws
+  source /opt/ros/noetic/setup.bash
+  source /home/robot/robot_ws/devel/setup.bash
+  ./scripts/gps_test_tasks.py
+
+测试菜单数字含义：
+
+  1：发布当前车头正前方 8m 的 GPS 目标。
+  2：以当前位置和当前车头方向为基准，保存前后左右 10m 的永久矩形电子围栏。
+  3：在当前位置前后左右 10m 范围内随机发布 GPS 目标，用于阻拦测试避障。
+  4：显示当前电子围栏。
+  5：清除永久电子围栏。
+
+电子围栏文件固定保存到：
+
+  /home/robot/robot_ws/config/gps_test_fence.json
+
+注意：电子围栏只在 scripts/gps_test_tasks.py 运行时生效。只正常启动 ./scripts/bringup.sh gps 时，不会受这个测试围栏约束。
+
+GPS 测试任务 1 的关键逻辑：
+
+  - scripts/gps_test_tasks.py 使用 /gps/odom 的当前位置和 yaw 计算车头正前方 8m 的 GPS 点。
+  - gps_goal_node.py 把 /gps/goal_fix 转成 /move_base_simple/goal。
+  - 当前目标姿态默认 goal_yaw_mode=bearing，即使用当前位置指向目标点的方向，不再固定 yaw=0。
+
+如果任务 1 仍然调头或明显不是正前方，优先查：
+
+  rostopic echo /move_base_simple/goal
+  rostopic echo /gps/odom
+  rostopic echo /gps/heading
+  rosparam get /gps_goal/goal_yaw_mode
+  rosparam get /gps_goal/odom_topic
+
+判断标准：测试脚本打印的目标 x/y 应和 /move_base_simple/goal 基本一致；如果目标点已经在真实车头后方，说明 /gps/odom yaw 或双天线安装方向需要校正。
+
+RViz 手动发送目标时：
+
+  - Fixed Frame 必须使用 camera_init。
+  - RViz 的 2D Nav Goal 应发布到 /move_base_simple/goal，消息里的 header.frame_id 应是 camera_init。
+  - gps_goal_node.py 和 scripts/gps_test_tasks.py 都不再 latch 发布目标，避免旧 GPS 目标在节点重连时覆盖 RViz 目标。
+  - 如果 RViz 目标点突然变化，先查 /move_base_simple/goal 当前有哪些 publisher：
+
+    rostopic info /move_base_simple/goal
+    rostopic echo /move_base_simple/goal
+
+无障碍前方目标仍绕弯时，重点检查 TEB 与 M2 驱动的 /cmd_vel 语义：
+
+  - m2_driver 订阅 /cmd_vel 时，把 angular.z 当角速度，再换算成前轮转角。
+  - TEB 必须设置 cmd_angle_instead_rotvel=False，不能把 angular.z 直接当 steering angle。
+  - 当前 dingo/nomap TEB 已按“直线优先但保留避障机动性”调参：
+    max_vel_theta=1.5
+    acc_lim_theta=0.5
+    min_turning_radius=1.2
+    global_plan_viapoint_sep=0.8
+    weight_shortest_path=4.0
+    weight_viapoint=8.0
+    enable_homotopy_class_planning=True
+    costmap_obstacles_behind_robot_dist=0.8
+
+现场确认：
+
+  rosparam get /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel
+  rosparam get /move_base/TebLocalPlannerROS/max_vel_theta
+  rosparam get /move_base/TebLocalPlannerROS/acc_lim_theta
+  rosparam get /move_base/TebLocalPlannerROS/min_turning_radius
+  rosparam get /move_base/TebLocalPlannerROS/global_plan_viapoint_sep
+  rosparam get /move_base/TebLocalPlannerROS/weight_shortest_path
+  rosparam get /move_base/TebLocalPlannerROS/weight_viapoint
+  rosparam get /move_base/TebLocalPlannerROS/enable_homotopy_class_planning
+  rosparam get /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist
+
+期望：False、1.5、0.5、1.2、0.8、4.0、8.0、True、0.8。
+
+如果仍然出现前后振荡，记录：
+
+  rostopic echo /cmd_vel
+  rostopic echo /move_base/TebLocalPlannerROS/local_plan
+  rostopic echo /move_base/status
+  rostopic info /move_base_simple/goal
+
+同时保留 RViz 截图，显示 local_costmap、global_costmap、local_plan、global_plan 和 /scan。
+
+RViz 显示电子围栏：
+
+  Fixed Frame: camera_init
+  Display 类型: MarkerArray
+  Topic: /gps/test_fence_markers
+
+绿色线框是围栏边界，橙色点和文字标出 front/back/left/right。
 
 三、硬件端口
 
@@ -85,12 +180,15 @@
 
   GPS / GNSS：/dev/ttyUSB1
   无人车底盘 CAN 控制：/dev/ttyUSB0
+  主 GNSS 天线安装位置：base_link 坐标系 x=-0.3m, y=0.0m
 
 bringup.sh 当前默认值就是：
 
   GPS_PORT=/dev/ttyUSB1
   CAN_PORT=/dev/ttyUSB0
   GPS_BAUD_RATE=115200
+  GPS_ANTENNA_OFFSET_X=-0.3
+  GPS_ANTENNA_OFFSET_Y=0.0
 
 四、我实际运行模式1时的发现
 
@@ -137,26 +235,27 @@ bringup.sh 当前默认值就是：
 
    我运行后验证过：GPS 模式下没有再出现之前那个 TEB max_vel_x / penalty_epsilon 警告。
 
-4. 单天线 GPS 静止时不能知道车头朝向。
+4. 当前模式1已改为双天线 GNSS 航向。
 
-   这不是代码 bug，是传感器能力限制。静止时单 GPS 只能知道位置，不能知道车头朝向。
-
-   当前模式1处理逻辑：
-
-     启动时使用 initial_yaw
-     车辆开始移动后，用 GPS RMC course 更新航向
+   位置来自主 GNSS 的 GGA 经纬度，航向来自 #UNIHEADINGA。双天线能在静止时提供车头方向，不再依赖单天线 GPS course 或运动差分推航向。
 
    当前默认：
 
-     GPS_HEADING_SOURCE=gps_course
+     GPS_HEADING_SOURCE=dual_antenna
+     GPS_HEADING_REQUIRED_SOLUTION_STATUS=SOL_COMPUTED
+     GPS_HEADING_REQUIRED_POSITION_TYPES=NARROW_INT
+     GPS_ANTENNA_OFFSET_X=-0.3
+     GPS_ANTENNA_OFFSET_Y=0.0
      GPS_HEADING_MIN_SPEED=0.05
      GPS_MIN_COURSE_DISTANCE=0.2
 
-   新增进展：
+   gps_localization_node.py 会把主天线位置按 base_link 内的安装偏移换算到底盘中心：
 
-     bringup.sh 现在支持直接传手机指南针输出，例如 GPS_COMPASS_HEADING="东北45度"。
+     base_position = antenna_position - R(yaw) * antenna_offset
 
-   这样车刚启动、还没通过 GPS course 推出方向之前，初始车头方向会更接近真实值。
+   因为当前主天线在 x=-0.3m，发布给导航的 base_link 位置会在主天线前方 0.3m。
+
+   如果双天线航向消息超时或质量不满足要求，GPS 模式会保持最近一次可用 yaw，不会在默认配置下退回低速不稳定的 GPS course。
 
 5. 激光雷达点云不是“挂载在 GPS 点上”。
 
@@ -180,6 +279,11 @@ bringup.sh 当前默认值就是：
    - GPS 模式默认 GPS_USE_WHEEL_ODOM=false
    - GPS 模式传入：
        heading_source
+       heading_timeout
+       heading_required_solution_status
+       heading_required_position_types
+       gps_antenna_offset_x
+       gps_antenna_offset_y
        heading_min_speed
        min_course_distance
        initial_yaw
@@ -229,6 +333,7 @@ bringup.sh 当前默认值就是：
 真实启动模式1后验证过：
 
   /gps/odom 存在
+  /gps/heading 存在
   /gps/pose 存在
   /gps/fix 存在
   /scan 存在
@@ -236,6 +341,10 @@ bringup.sh 当前默认值就是：
   /cmd_vel 链路连接 move_base -> m2_driver
   /odom child_frame_id = base_link
   GPS 模式 use_wheel_odom = false
+  GPS heading_source = dual_antenna
+  GPS heading_required_position_types = NARROW_INT
+  GPS antenna_offset_x = -0.3
+  GPS antenna_offset_y = 0.0
   GPS heading_min_speed = 0.05
   GPS min_course_distance = 0.2
   TEB penalty_epsilon = 0.03
@@ -272,18 +381,28 @@ bringup.sh 当前默认值就是：
 
 3. 查 GPS 定位参数
 
-   rosparam get /gps/use_wheel_odom
-   rosparam get /gps/heading_source
-   rosparam get /gps/heading_min_speed
-   rosparam get /gps/min_course_distance
-   rosparam get /gps/initial_yaw
+   rosparam get /gps_localization/use_wheel_odom
+   rosparam get /gps_localization/heading_source
+   rosparam get /gps_localization/heading_timeout
+   rosparam get /gps_localization/heading_required_solution_status
+   rosparam get /gps_localization/heading_required_position_types
+   rosparam get /gps_localization/gps_antenna_offset_x
+   rosparam get /gps_localization/gps_antenna_offset_y
+   rosparam get /gps_localization/heading_min_speed
+   rosparam get /gps_localization/min_course_distance
+   rosparam get /gps_localization/initial_yaw
+   rostopic echo /gps/heading
 
    期望：
 
-   /gps/use_wheel_odom = false
-   /gps/heading_source = gps_course
-   /gps/heading_min_speed = 0.05
-   /gps/min_course_distance = 0.2
+   /gps_localization/use_wheel_odom = false
+   /gps_localization/heading_source = dual_antenna
+   /gps_localization/heading_required_solution_status = SOL_COMPUTED
+   /gps_localization/heading_required_position_types = NARROW_INT
+   /gps_localization/gps_antenna_offset_x = -0.3
+   /gps_localization/gps_antenna_offset_y = 0.0
+   /gps_localization/heading_min_speed = 0.05
+   /gps_localization/min_course_distance = 0.2
 
 4. 查 TEB GPS 模式参数
 
@@ -291,14 +410,18 @@ bringup.sh 当前默认值就是：
    rosparam get /move_base/TebLocalPlannerROS/xy_goal_tolerance
    rosparam get /move_base/TebLocalPlannerROS/yaw_goal_tolerance
    rosparam get /move_base/TebLocalPlannerROS/max_vel_x
+   rosparam get /move_base/TebLocalPlannerROS/max_vel_x_backwards
+   rosparam get /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive
    rosparam get /move_base/TebLocalPlannerROS/penalty_epsilon
 
    期望：
 
    odom_topic = /gps/odom
-   xy_goal_tolerance = 1.5
+   xy_goal_tolerance = 0.5
    yaw_goal_tolerance = 6.283
-   max_vel_x = 0.1
+   max_vel_x = 1.5
+   max_vel_x_backwards = 1.0
+   weight_kinematics_forward_drive = 20.0
    penalty_epsilon = 0.03
 
 5. 查 TF
@@ -307,15 +430,17 @@ bringup.sh 当前默认值就是：
 
    如果 TF 跳变或方向明显反，优先怀疑：
 
-   - 初始车头朝向传错
-   - 手机指南针受磁干扰
-   - GPS course 在低速/倒车/原地转向时不可靠
+   - /gps/heading 没有发布或超时
+   - #UNIHEADINGA 质量不是 SOL_COMPUTED / NARROW_INT
+   - 双天线安装方向和车辆 base_link 前向不一致
    - GPS 原点或目标点经纬度有误
 
 6. 查定位和障碍物
 
    rostopic echo /gps/fix
+   rostopic echo /gps/heading
    rostopic echo /gps/odom
+   rostopic echo /gps/static_error/summary
    rostopic echo /scan
    rostopic info /cmd_vel
 
@@ -323,35 +448,38 @@ bringup.sh 当前默认值就是：
 
 如果车在模式1乱跑，优先怀疑以下几类：
 
-1. 初始朝向错
+1. 双天线航向没有进入导航
 
-   单天线 GPS 静止时不知道车头方向。启动时 initial_yaw 错，会导致 camera_init -> base_link 的 yaw 错，导航目标方向和避障方向都会偏。
+   当前 GPS 模式应由 #UNIHEADINGA 提供车头方向。若 /gps/heading 不发布、质量不满足要求、或 heading 超时，camera_init -> base_link 的 yaw 会保持最近一次有效值，导航方向可能不对。
 
-   解决：
+   检查：
 
-   - 启动时传 GPS_COMPASS_HEADING 或 GPS_COMPASS_HEADING_DEG。
-   - 手机指南针要远离车体电机、电源线、铁磁材料。
+   - rostopic echo /gps/heading
+   - rosparam get /gps_localization/heading_source
+   - rosparam get /gps_localization/heading_required_solution_status
+   - rosparam get /gps_localization/heading_required_position_types
 
-2. 手机指南针读数本身不可靠
+2. 双天线安装方向和 base_link 前向不一致
 
-   如果手机贴在车体金属、电池、电机附近，指南针可能偏几十度。
+   #UNIHEADINGA 的 heading 表示双天线基线方向。这个方向必须和车辆定义的前向一致；如果主副天线前后装反或横向安装，TF yaw 会稳定但整体偏 90 度或 180 度。
 
    建议：
 
-   - 手机离车体远一点测车头方向。
-   - 同一个方向多测几次。
-   - 车头方向不要用“目测东北”代替实际角度。
+   - 静止时观察 /gps/heading，并和车头真实指南针方向对比。
+   - 小距离前进 1-2 米，确认 /gps/odom yaw 和车头方向一致。
+   - 如果稳定偏固定角度，需要增加双天线安装 yaw offset，而不是改目标点。
 
-3. GPS course 低速不可靠
+3. GPS position 抖动或跳点
 
-   GPS course 是根据运动轨迹推方向，低速、漂移、停走、倒车时可能不稳定。
+   位置仍来自主 GNSS GGA。双天线解决的是车头 yaw，不解决经纬度跳点。
 
    当前已设置：
 
-   - heading_min_speed=0.05
-   - min_course_distance=0.2
+   - stationary_hold_radius=0.8
+   - position_filter_alpha=0.25
+   - max_fix_jump=5.0
 
-   如果现场 GPS 抖动仍大，可以继续调高这两个值。
+   如果现场 GPS 抖动仍大，可以继续调这些位置滤波参数。
 
 4. /gps/odom 和 /scan 坐标关系错
 
@@ -359,6 +487,7 @@ bringup.sh 当前默认值就是：
 
    - /gps/odom frame_id 是 camera_init
    - /gps/odom child_frame_id 是 base_link
+   - /gps/odom 位置已经从主天线补偿到底盘中心
    - camera_init -> base_link TF 可用
    - /scan 能被 costmap 正确接收
 
@@ -385,6 +514,6 @@ bringup.sh 当前默认值就是：
 
 下一步建议：
 
-1. 用 GPS_COMPASS_HEADING 方式启动模式1。
-2. 启动后先不要给远目标，先在近距离目标上观察 /gps/odom yaw、TF 和车头真实方向是否一致。
+1. 直接启动模式1，使用默认双天线航向。
+2. 启动后先不要给远目标，先观察 /gps/heading、/gps/odom yaw、TF 和车头真实方向是否一致。
 3. 确认方向一致后，再接 RabbitMQ 目标。

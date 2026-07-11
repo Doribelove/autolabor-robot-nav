@@ -22,7 +22,7 @@ VIRTUAL_HOST = "/"
 QUEUE_NAME = "collection_vehicle"
 
 # ====================== ROS 导航目标配置 ======================
-# shu copy.py 只负责把 RabbitMQ JSON 里的 GPS 目标发布出去。
+# rabbitmq_gps_goal_bridge.py 只负责把 RabbitMQ JSON 里的 GPS 目标发布出去。
 # gps_module/gps_goal_node.py 会订阅 /gps/goal_fix，把经纬度转换成局部坐标，
 # 再发布 /move_base_simple/goal 给 move_base。
 GPS_GOAL_FIX_TOPIC = "/gps/goal_fix"

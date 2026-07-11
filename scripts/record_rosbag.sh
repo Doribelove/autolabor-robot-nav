@@ -27,8 +27,15 @@ MODE1_TOPICS=(
   /cloud_filtered_for_scan
   /scan
   /gps/fix
+  /gps/heading
   /gps/pose
   /gps/odom
+  /gps/static_error/current
+  /gps/static_error/rms
+  /gps/static_error/max
+  /gps/static_error/std_x
+  /gps/static_error/std_y
+  /gps/static_error/summary
   /gps/goal_fix
   /move_base_simple/goal
   /move_base/status

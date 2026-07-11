@@ -14,6 +14,7 @@ catkin_package()
 
 catkin_install_python(PROGRAMS
   scripts/check_can.py
+  scripts/gps_static_error_monitor.py
   scripts/check_odom.py
   scripts/check_tf.py
   scripts/wait_for_topics.py

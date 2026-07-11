@@ -4,6 +4,8 @@
   <arg name="origin_lon" default=""/>
   <arg name="target_lat" default=""/>
   <arg name="target_lon" default=""/>
+  <arg name="odom_topic" default="/gps/odom"/>
+  <arg name="goal_yaw_mode" default="bearing"/>
   <arg name="yaw_offset" default="0.0"/>
   <arg name="yaw_offset_deg" default="0.0"/>
   <arg name="publish_once" default="false"/>
@@ -13,6 +15,8 @@
     <param name="goal_topic" value="/move_base_simple/goal"/>
     <param name="fix_topic" value="/gps/fix"/>
     <param name="goal_fix_topic" value="/gps/goal_fix"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="goal_yaw_mode" value="$(arg goal_yaw_mode)"/>
     <param name="origin_lat" value="$(arg origin_lat)" unless="$(eval arg('origin_lat') == '')"/>
     <param name="origin_lon" value="$(arg origin_lon)" unless="$(eval arg('origin_lon') == '')"/>
     <param name="target_lat" value="$(arg target_lat)" unless="$(eval arg('target_lat') == '')"/>

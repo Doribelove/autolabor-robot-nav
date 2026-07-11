@@ -8,7 +8,12 @@
   <arg name="origin_lat" default=""/>
   <arg name="origin_lon" default=""/>
   <arg name="broadcast_tf" default="true"/>
-  <arg name="heading_source" default="gps_course"/>
+  <arg name="heading_source" default="dual_antenna"/>
+  <arg name="heading_timeout" default="1.0"/>
+  <arg name="heading_required_solution_status" default="SOL_COMPUTED"/>
+  <arg name="heading_required_position_types" default="NARROW_INT"/>
+  <arg name="gps_antenna_offset_x" default="-0.3"/>
+  <arg name="gps_antenna_offset_y" default="0.0"/>
   <arg name="min_course_distance" default="0.5"/>
   <arg name="initial_yaw" default="0.0"/>
   <arg name="position_filter_alpha" default="0.25"/>
@@ -32,10 +37,16 @@
     <param name="pose_topic" value="/gps/pose"/>
     <param name="odom_topic" value="/gps/odom"/>
     <param name="fix_topic" value="/gps/fix"/>
+    <param name="heading_topic" value="/gps/heading"/>
     <param name="gps_frame" value="$(arg gps_frame)"/>
     <param name="publish_rate" value="10.0"/>
     <param name="broadcast_tf" value="$(arg broadcast_tf)"/>
     <param name="heading_source" value="$(arg heading_source)"/>
+    <param name="heading_timeout" value="$(arg heading_timeout)"/>
+    <param name="heading_required_solution_status" value="$(arg heading_required_solution_status)"/>
+    <param name="heading_required_position_types" value="$(arg heading_required_position_types)"/>
+    <param name="gps_antenna_offset_x" value="$(arg gps_antenna_offset_x)"/>
+    <param name="gps_antenna_offset_y" value="$(arg gps_antenna_offset_y)"/>
     <param name="min_course_distance" value="$(arg min_course_distance)"/>
     <param name="initial_yaw" value="$(arg initial_yaw)"/>
     <param name="position_filter_alpha" value="$(arg position_filter_alpha)"/>

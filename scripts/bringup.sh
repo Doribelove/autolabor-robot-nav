@@ -11,16 +11,22 @@ CAN_PORT="${CAN_PORT:-/dev/ttyUSB0}"
 GPS_PORT="${GPS_PORT:-/dev/ttyUSB1}"
 GPS_BAUD_RATE="${GPS_BAUD_RATE:-115200}"
 FAST_LIO_GPS_YAW_OFFSET_DEG="${FAST_LIO_GPS_YAW_OFFSET_DEG:-0.0}"
-GPS_NAV_MAX_VEL_X="${GPS_NAV_MAX_VEL_X:-0.1}"
-GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-0.1}"
+GPS_NAV_MAX_VEL_X="${GPS_NAV_MAX_VEL_X:-1.5}"
+GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-1.0}"
 GPS_USE_WHEEL_ODOM="${GPS_USE_WHEEL_ODOM:-false}"
-GPS_HEADING_SOURCE="${GPS_HEADING_SOURCE:-gps_course}"
+GPS_HEADING_SOURCE="${GPS_HEADING_SOURCE:-dual_antenna}"
+GPS_HEADING_TIMEOUT="${GPS_HEADING_TIMEOUT:-1.0}"
+GPS_HEADING_REQUIRED_SOLUTION_STATUS="${GPS_HEADING_REQUIRED_SOLUTION_STATUS:-SOL_COMPUTED}"
+GPS_HEADING_REQUIRED_POSITION_TYPES="${GPS_HEADING_REQUIRED_POSITION_TYPES:-NARROW_INT}"
+GPS_ANTENNA_OFFSET_X="${GPS_ANTENNA_OFFSET_X:--0.3}"
+GPS_ANTENNA_OFFSET_Y="${GPS_ANTENNA_OFFSET_Y:-0.0}"
 GPS_HEADING_MIN_SPEED="${GPS_HEADING_MIN_SPEED:-0.05}"
 GPS_MIN_COURSE_DISTANCE="${GPS_MIN_COURSE_DISTANCE:-0.2}"
 GPS_INITIAL_YAW="${GPS_INITIAL_YAW:-}"
 GPS_COMPASS_HEADING="${GPS_COMPASS_HEADING:-}"
 GPS_COMPASS_HEADING_DEG="${GPS_COMPASS_HEADING_DEG:-}"
 GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-0.03}"
+GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-20.0}"
 FILTER_REMOVE_ABOVE_Z="${FILTER_REMOVE_ABOVE_Z:-0.1}"
 FILTER_NEAR_RADIUS="${FILTER_NEAR_RADIUS:-0.4}"
 FILTER_NEAR_MIN_Z="${FILTER_NEAR_MIN_Z:--0.1}"
@@ -41,16 +47,22 @@ usage() {
   echo "  GPS_PORT=/dev/ttyUSB1"
   echo "  GPS_BAUD_RATE=115200"
   echo "  FAST_LIO_GPS_YAW_OFFSET_DEG=0.0"
-  echo "  GPS_NAV_MAX_VEL_X=0.1"
-  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=0.1"
+  echo "  GPS_NAV_MAX_VEL_X=1.5"
+  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.0"
   echo "  GPS_USE_WHEEL_ODOM=false        # gps mode uses GPS position directly by default"
-  echo "  GPS_HEADING_SOURCE=gps_course"
+  echo "  GPS_HEADING_SOURCE=dual_antenna"
+  echo "  GPS_HEADING_TIMEOUT=1.0"
+  echo "  GPS_HEADING_REQUIRED_SOLUTION_STATUS=SOL_COMPUTED"
+  echo "  GPS_HEADING_REQUIRED_POSITION_TYPES=NARROW_INT"
+  echo "  GPS_ANTENNA_OFFSET_X=-0.3        # main antenna x offset in base_link"
+  echo "  GPS_ANTENNA_OFFSET_Y=0.0         # main antenna y offset in base_link"
   echo "  GPS_HEADING_MIN_SPEED=0.05"
   echo "  GPS_MIN_COURSE_DISTANCE=0.2"
   echo "  GPS_INITIAL_YAW=0.0             # radians, used until GPS course is available"
   echo "  GPS_COMPASS_HEADING=东北45度     # phone compass heading, 0=N, 90=E"
   echo "  GPS_COMPASS_HEADING_DEG=45      # numeric compass heading, 0=N, 90=E"
   echo "  GPS_TEB_PENALTY_EPSILON=0.03"
+  echo "  GPS_TEB_FORWARD_DRIVE_WEIGHT=20.0 # higher reduces forward/reverse dithering"
   echo "  FILTER_REMOVE_ABOVE_Z=0.1"
   echo "  FILTER_NEAR_RADIUS=0.4"
   echo "  FILTER_NEAR_MIN_Z=-0.1"
@@ -512,6 +524,8 @@ if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
 
   start_launch "GPS goal converter for FAST_LIO" gps_module gps_goal.launch \
     frame_id:=camera_init \
+    odom_topic:=/Odometry \
+    goal_yaw_mode:=bearing \
     yaw_offset_deg:="$FAST_LIO_GPS_YAW_OFFSET_DEG"
 
   check_tf "camera_init" "base_link" 10.0
@@ -541,6 +555,11 @@ else
     use_wheel_odom:="$GPS_USE_WHEEL_ODOM" \
     wheel_odom_topic:=/odom \
     heading_source:="$GPS_HEADING_SOURCE" \
+    heading_timeout:="$GPS_HEADING_TIMEOUT" \
+    heading_required_solution_status:="$GPS_HEADING_REQUIRED_SOLUTION_STATUS" \
+    heading_required_position_types:="$GPS_HEADING_REQUIRED_POSITION_TYPES" \
+    gps_antenna_offset_x:="$GPS_ANTENNA_OFFSET_X" \
+    gps_antenna_offset_y:="$GPS_ANTENNA_OFFSET_Y" \
     heading_min_speed:="$GPS_HEADING_MIN_SPEED" \
     min_course_distance:="$GPS_MIN_COURSE_DISTANCE" \
     initial_yaw:="$GPS_INITIAL_YAW"
@@ -548,14 +567,18 @@ else
   check_odom "/gps/odom" "camera_init" "base_link"
   check_tf "camera_init" "base_link" 30.0
 
-  start_launch "GPS goal converter" gps_module gps_goal.launch frame_id:=camera_init
+  start_launch "GPS goal converter" gps_module gps_goal.launch \
+    frame_id:=camera_init \
+    odom_topic:=/gps/odom \
+    goal_yaw_mode:=bearing
 
   check_tf "camera_init" "base_link" 10.0
   start_launch "Arena navigation" robot_bringup navigation_arena.launch \
     localization_source:=gps \
     max_vel_x:="$GPS_NAV_MAX_VEL_X" \
     max_vel_x_backwards:="$GPS_NAV_MAX_VEL_X_BACKWARDS" \
-    penalty_epsilon:="$GPS_TEB_PENALTY_EPSILON"
+    penalty_epsilon:="$GPS_TEB_PENALTY_EPSILON" \
+    weight_kinematics_forward_drive:="$GPS_TEB_FORWARD_DRIVE_WEIGHT"
 fi
 
 wait_topics "/move_base/status" 45.0

@@ -9,6 +9,7 @@ import tf2_ros
 from geometry_msgs.msg import PoseStamped, TransformStamped
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import NavSatFix, NavSatStatus
+from std_msgs.msg import Float64
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 
@@ -93,6 +94,40 @@ def parse_nmea_fix(line):
     return None
 
 
+def parse_uniheadinga(line):
+    if not line.startswith("#UNIHEADINGA"):
+        return None
+    if ";" not in line:
+        return None
+
+    _, payload = line.split(";", 1)
+    payload = payload.split("*", 1)[0]
+    parts = payload.split(",")
+    if len(parts) < 5:
+        return None
+
+    try:
+        sol_status = parts[0]
+        position_type = parts[1]
+        baseline_length = float(parts[2])
+        heading_deg = float(parts[3])
+        pitch_deg = float(parts[4])
+        heading_std = float(parts[6]) if len(parts) > 6 and parts[6] != "" else None
+        pitch_std = float(parts[7]) if len(parts) > 7 and parts[7] != "" else None
+    except ValueError:
+        return None
+
+    return {
+        "solution_status": sol_status,
+        "position_type": position_type,
+        "baseline_length_m": baseline_length,
+        "heading_deg": heading_deg,
+        "pitch_deg": pitch_deg,
+        "heading_std_deg": heading_std,
+        "pitch_std_deg": pitch_std,
+    }
+
+
 def gps_to_xy(lat, lon, origin_lat, origin_lon):
     radius = 6378137.0
     d_lat = math.radians(lat - origin_lat)
@@ -107,6 +142,12 @@ def yaw_from_course_deg(course_deg):
     # NMEA course is degrees clockwise from north. ROS yaw here is radians
     # counter-clockwise from the local x axis, where x is east and y is north.
     return math.radians(90.0 - course_deg)
+
+
+def yaw_from_heading_deg(heading_deg):
+    # UNIHEADINGA heading is degrees clockwise from north. Convert to the
+    # same local ENU yaw convention used for NMEA course.
+    return yaw_from_course_deg(heading_deg)
 
 
 def normalize_angle(angle):
@@ -127,6 +168,7 @@ class GpsLocalizationNode:
         self.pose_topic = rospy.get_param("~pose_topic", "/gps/pose")
         self.odom_topic = rospy.get_param("~odom_topic", "/gps/odom")
         self.fix_topic = rospy.get_param("~fix_topic", "/gps/fix")
+        self.heading_topic = rospy.get_param("~heading_topic", "/gps/heading")
         self.gps_frame = rospy.get_param("~gps_frame", "gps")
         self.origin_lat = rospy.get_param("~origin_lat", None)
         self.origin_lon = rospy.get_param("~origin_lon", None)
@@ -144,7 +186,15 @@ class GpsLocalizationNode:
         self.publish_rate = float(rospy.get_param("~publish_rate", 10.0))
         self.serial_timeout = float(rospy.get_param("~serial_timeout", 0.2))
         self.broadcast_tf = bool(rospy.get_param("~broadcast_tf", True))
-        self.heading_source = rospy.get_param("~heading_source", "gps_course")
+        self.heading_source = rospy.get_param("~heading_source", "dual_antenna")
+        self.heading_timeout = float(rospy.get_param("~heading_timeout", 1.0))
+        self.heading_required_solution_status = rospy.get_param(
+            "~heading_required_solution_status",
+            "SOL_COMPUTED",
+        )
+        self.heading_required_position_types = self.parse_csv_param(
+            rospy.get_param("~heading_required_position_types", "NARROW_INT")
+        )
         self.min_course_distance = float(rospy.get_param("~min_course_distance", 0.5))
         self.initial_yaw = float(rospy.get_param("~initial_yaw", 0.0))
         self.position_filter_alpha = float(rospy.get_param("~position_filter_alpha", 0.25))
@@ -155,6 +205,8 @@ class GpsLocalizationNode:
         self.heading_min_speed = float(rospy.get_param("~heading_min_speed", 0.15))
         self.use_wheel_odom = bool(rospy.get_param("~use_wheel_odom", False))
         self.wheel_odom_topic = rospy.get_param("~wheel_odom_topic", "/odom")
+        self.gps_antenna_offset_x = float(rospy.get_param("~gps_antenna_offset_x", -0.3))
+        self.gps_antenna_offset_y = float(rospy.get_param("~gps_antenna_offset_y", 0.0))
         self.gps_correction_alpha = float(rospy.get_param("~gps_correction_alpha", 0.0))
         self.gps_correction_max_step = float(rospy.get_param("~gps_correction_max_step", 0.05))
         self.gps_correction_reset_distance = float(rospy.get_param("~gps_correction_reset_distance", 20.0))
@@ -162,6 +214,7 @@ class GpsLocalizationNode:
         self.pose_pub = rospy.Publisher(self.pose_topic, PoseStamped, queue_size=10)
         self.odom_pub = rospy.Publisher(self.odom_topic, Odometry, queue_size=10)
         self.fix_pub = rospy.Publisher(self.fix_topic, NavSatFix, queue_size=10)
+        self.heading_pub = rospy.Publisher(self.heading_topic, Float64, queue_size=10)
         self.wheel_odom_sub = None
         if self.use_wheel_odom:
             self.wheel_odom_sub = rospy.Subscriber(
@@ -180,6 +233,8 @@ class GpsLocalizationNode:
         self.last_yaw = self.initial_yaw
         self.last_linear_speed = 0.0
         self.last_gps_speed = None
+        self.latest_heading = None
+        self.latest_heading_stamp = None
         self.filtered_x = None
         self.filtered_y = None
         self.latest_wheel_odom = None
@@ -198,6 +253,12 @@ class GpsLocalizationNode:
             self.map_frame,
             self.base_frame,
         )
+        rospy.loginfo(
+            "GPS antenna offset in %s frame: x=%.3f m, y=%.3f m",
+            self.base_frame,
+            self.gps_antenna_offset_x,
+            self.gps_antenna_offset_y,
+        )
         if self.use_wheel_odom:
             rospy.loginfo(
                 "GPS localization using wheel odom %s for continuous local pose; gps_correction_alpha=%.3f",
@@ -205,8 +266,79 @@ class GpsLocalizationNode:
                 self.gps_correction_alpha,
             )
 
+    @staticmethod
+    def parse_csv_param(value):
+        if value in (None, ""):
+            return set()
+        return {item.strip() for item in str(value).split(",") if item.strip()}
+
     def wheel_odom_cb(self, msg):
         self.latest_wheel_odom = msg
+
+    def heading_is_usable(self, heading):
+        if heading is None:
+            return False
+
+        required_status = self.heading_required_solution_status
+        if required_status and heading["solution_status"] != required_status:
+            return False
+
+        required_types = self.heading_required_position_types
+        if required_types and heading["position_type"] not in required_types:
+            return False
+
+        return True
+
+    def handle_heading(self, heading, stamp):
+        if not self.heading_is_usable(heading):
+            rospy.logwarn_throttle(
+                2.0,
+                "Ignoring UNIHEADINGA: solution_status=%s position_type=%s heading=%.3f",
+                heading["solution_status"],
+                heading["position_type"],
+                heading["heading_deg"],
+            )
+            return
+
+        self.latest_heading = heading
+        self.latest_heading_stamp = stamp
+        self.heading_pub.publish(Float64(data=heading["heading_deg"]))
+        rospy.loginfo_throttle(
+            2.0,
+            "Dual-antenna heading %.3f deg, pitch %.3f deg, baseline %.3f m, type=%s",
+            heading["heading_deg"],
+            heading["pitch_deg"],
+            heading["baseline_length_m"],
+            heading["position_type"],
+        )
+
+    def latest_heading_yaw(self, stamp):
+        if self.latest_heading is None or self.latest_heading_stamp is None:
+            return None
+        age = (stamp - self.latest_heading_stamp).to_sec()
+        if self.heading_timeout > 0.0 and age > self.heading_timeout:
+            rospy.logwarn_throttle(
+                2.0,
+                "Dual-antenna heading is stale: age=%.3f sec",
+                age,
+            )
+            return None
+        return yaw_from_heading_deg(self.latest_heading["heading_deg"])
+
+    def antenna_to_base_position(self, antenna_x, antenna_y, yaw):
+        # The GNSS fix is the main antenna position. Navigation needs the
+        # base_link center, so subtract the antenna offset rotated into map.
+        cos_yaw = math.cos(yaw)
+        sin_yaw = math.sin(yaw)
+        offset_map_x = (
+            cos_yaw * self.gps_antenna_offset_x
+            - sin_yaw * self.gps_antenna_offset_y
+        )
+        offset_map_y = (
+            sin_yaw * self.gps_antenna_offset_x
+            + cos_yaw * self.gps_antenna_offset_y
+        )
+        return antenna_x - offset_map_x, antenna_y - offset_map_y
 
     def update_local_pose_from_wheel_odom(self, gps_x, gps_y, gps_yaw, gps_speed):
         if not self.use_wheel_odom:
@@ -317,7 +449,13 @@ class GpsLocalizationNode:
     def update_motion(self, stamp, x, y, course_deg, speed_mps):
         yaw = self.last_yaw
         linear_speed = speed_mps if speed_mps is not None else 0.0
+        dual_antenna_yaw = self.latest_heading_yaw(stamp)
         if (
+            dual_antenna_yaw is not None
+            and self.heading_source in ("dual_antenna", "uniheading", "heading", "auto")
+        ):
+            yaw = dual_antenna_yaw
+        elif (
             course_deg is not None
             and speed_mps is not None
             and speed_mps >= self.heading_min_speed
@@ -390,9 +528,13 @@ class GpsLocalizationNode:
         rate = rospy.Rate(self.publish_rate)
         while not rospy.is_shutdown():
             raw = self.ser.readline().decode("utf-8", errors="ignore").strip()
+            heading = parse_uniheadinga(raw)
+            if heading is not None:
+                self.handle_heading(heading, rospy.Time.now())
+                continue
+
             parsed = parse_nmea_fix(raw)
             if parsed is None:
-                rate.sleep()
                 continue
 
             lat = parsed["lat"]
@@ -427,9 +569,10 @@ class GpsLocalizationNode:
             gps_x, gps_y = self.filter_position(raw_x, raw_y, speed_mps)
             stamp = rospy.Time.now()
             gps_yaw, gps_linear_speed = self.update_motion(stamp, gps_x, gps_y, course_deg, speed_mps)
-            local_pose = self.update_local_pose_from_wheel_odom(gps_x, gps_y, gps_yaw, speed_mps)
+            base_x, base_y = self.antenna_to_base_position(gps_x, gps_y, gps_yaw)
+            local_pose = self.update_local_pose_from_wheel_odom(base_x, base_y, gps_yaw, speed_mps)
             if local_pose is None:
-                x, y, yaw, linear_speed = gps_x, gps_y, gps_yaw, gps_linear_speed
+                x, y, yaw, linear_speed = base_x, base_y, gps_yaw, gps_linear_speed
             else:
                 x, y, yaw, linear_speed = local_pose
             self.publish_fix(stamp, lat, lon, altitude, fix_quality)

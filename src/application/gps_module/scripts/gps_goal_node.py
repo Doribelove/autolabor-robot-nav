@@ -5,7 +5,9 @@ import math
 
 import rospy
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Odometry
 from sensor_msgs.msg import NavSatFix
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 
 def gps_to_xy(lat, lon, origin_lat, origin_lon):
@@ -27,12 +29,19 @@ def rotate_xy(x, y, yaw):
     )
 
 
+def yaw_from_odom(msg):
+    q = msg.pose.pose.orientation
+    return euler_from_quaternion([q.x, q.y, q.z, q.w])[2]
+
+
 class GpsGoalNode:
     def __init__(self):
         self.frame_id = rospy.get_param("~frame_id", "camera_init")
         self.goal_topic = rospy.get_param("~goal_topic", "/move_base_simple/goal")
         self.fix_topic = rospy.get_param("~fix_topic", "/gps/fix")
         self.goal_fix_topic = rospy.get_param("~goal_fix_topic", "/gps/goal_fix")
+        self.odom_topic = rospy.get_param("~odom_topic", "/gps/odom")
+        self.goal_yaw_mode = rospy.get_param("~goal_yaw_mode", "bearing")
         self.publish_once = bool(rospy.get_param("~publish_once", False))
 
         self.origin_lat = rospy.get_param("~origin_lat", None)
@@ -68,10 +77,12 @@ class GpsGoalNode:
         if yaw_offset_deg != 0.0:
             self.yaw_offset += math.radians(yaw_offset_deg)
 
+        self.latest_odom = None
         self.pending_goals = []
-        self.goal_pub = rospy.Publisher(self.goal_topic, PoseStamped, queue_size=1, latch=True)
+        self.goal_pub = rospy.Publisher(self.goal_topic, PoseStamped, queue_size=1)
         self.fix_sub = rospy.Subscriber(self.fix_topic, NavSatFix, self.fix_cb, queue_size=1)
         self.goal_fix_sub = rospy.Subscriber(self.goal_fix_topic, NavSatFix, self.goal_fix_cb, queue_size=1)
+        self.odom_sub = rospy.Subscriber(self.odom_topic, Odometry, self.odom_cb, queue_size=10)
 
         rospy.Timer(rospy.Duration(0.5), self.publish_configured_goal, oneshot=True)
         rospy.loginfo(
@@ -80,12 +91,20 @@ class GpsGoalNode:
             self.frame_id,
             self.yaw_offset,
         )
+        rospy.loginfo(
+            "GPS goal yaw mode=%s, odom_topic=%s",
+            self.goal_yaw_mode,
+            self.odom_topic,
+        )
         if self.origin_lat is not None and self.origin_lon is not None:
             rospy.loginfo(
                 "GPS goal origin loaded: lat=%.8f lon=%.8f",
                 self.origin_lat,
                 self.origin_lon,
             )
+
+    def odom_cb(self, msg):
+        self.latest_odom = msg
 
     def fix_cb(self, msg):
         if self.origin_lat is not None and self.origin_lon is not None:
@@ -130,6 +149,23 @@ class GpsGoalNode:
         if self.publish_once:
             rospy.signal_shutdown("configured GPS goal published")
 
+    def goal_yaw(self, x, y):
+        if self.goal_yaw_mode == "zero":
+            return 0.0
+        if self.latest_odom is None:
+            return 0.0
+
+        pose = self.latest_odom.pose.pose
+        current_yaw = yaw_from_odom(self.latest_odom)
+        if self.goal_yaw_mode == "current":
+            return current_yaw
+
+        dx = x - pose.position.x
+        dy = y - pose.position.y
+        if math.hypot(dx, dy) < 0.1:
+            return current_yaw
+        return math.atan2(dy, dx)
+
     def publish_goal(self, lat, lon):
         if self.origin_lat is None or self.origin_lon is None:
             self.pending_goals.append((lat, lon))
@@ -142,20 +178,27 @@ class GpsGoalNode:
 
         gps_x, gps_y = gps_to_xy(lat, lon, self.origin_lat, self.origin_lon)
         x, y = rotate_xy(gps_x, gps_y, self.yaw_offset)
+        yaw = self.goal_yaw(x, y)
+        q = quaternion_from_euler(0.0, 0.0, yaw)
         msg = PoseStamped()
         msg.header.stamp = rospy.Time.now()
         msg.header.frame_id = self.frame_id
         msg.pose.position.x = x
         msg.pose.position.y = y
         msg.pose.position.z = 0.0
-        msg.pose.orientation.w = 1.0
+        msg.pose.orientation.x = q[0]
+        msg.pose.orientation.y = q[1]
+        msg.pose.orientation.z = q[2]
+        msg.pose.orientation.w = q[3]
         self.goal_pub.publish(msg)
         rospy.loginfo(
-            "Published GPS goal lat=%.8f lon=%.8f as x=%.3f y=%.3f in %s; raw_enu=(%.3f, %.3f)",
+            "Published GPS converted goal to %s: lat=%.8f lon=%.8f as x=%.3f y=%.3f yaw=%.3f in %s; raw_enu=(%.3f, %.3f)",
+            self.goal_topic,
             lat,
             lon,
             x,
             y,
+            yaw,
             self.frame_id,
             gps_x,
             gps_y,

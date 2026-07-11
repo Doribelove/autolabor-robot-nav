@@ -6,7 +6,7 @@
 
 - `scripts/bringup.sh`：导航一键启动主入口。
 - `scripts/keyboard_drive.sh`：只启动底盘和键盘遥控，用于底盘测试，不启动导航。
-- `scripts/shu copy.py`：RabbitMQ 到 ROS GPS 目标的桥接脚本。
+- `scripts/rabbitmq_gps_goal_bridge.py`：RabbitMQ 到 ROS GPS 目标的桥接脚本。
 - `src/scripts/robot_bringup/launch/`：CAN、Livox、FAST_LIO、GPS、Arena 导航的封装 launch。
 - `src/application/gps_module/`：GPS 定位和 GPS 经纬度目标转换。
 - `src/tools/robot_diagnostics/`：一键启动中的 topic、TF、odom、CAN 检查工具。
@@ -92,11 +92,12 @@ FAST_LIO_GPS_YAW_OFFSET_DEG=10 ./scripts/bringup.sh fast_lio
 - Livox MID360
 - FAST_LIO 点云配准，但关闭 FAST_LIO odom/TF
 - 点云过滤和投影：`/scan`
-- GPS 定位：`/gps/fix`、`/gps/pose`、`/gps/odom`
+- 主 GNSS 定位：`/gps/fix`、`/gps/pose`、`/gps/odom`
+- 双天线 GNSS 航向：`/gps/heading`
 - GPS 发布 `camera_init -> base_link`
 - Arena nomap 导航
 
-这个模式下定位来自 GPS，FAST_LIO 只提供点云给 `/scan`。默认不再使用底盘 `/odom`
+这个模式下位置来自主 GNSS 的 GGA 经纬度，车头 yaw 来自双天线 `UNIHEADINGA` 航向，FAST_LIO 只提供点云给 `/scan`。双天线航向静止时也可用，比单天线依赖运动轨迹推航向更适合室外 GPS 导航。默认不再使用底盘 `/odom`
 融合 GPS 位置，避免底盘里程计坐标系和 GPS ENU 坐标系未对齐时把 `/gps/odom`
 带偏。如果现场需要临时启用轮速辅助，可以设置：
 
@@ -104,15 +105,40 @@ FAST_LIO_GPS_YAW_OFFSET_DEG=10 ./scripts/bringup.sh fast_lio
 GPS_USE_WHEEL_ODOM=true ./scripts/bringup.sh gps
 ```
 
+GPS 模式默认要求双天线航向解算质量为：
+
+- `solution_status=SOL_COMPUTED`
+- `position_type=NARROW_INT`
+
+主 GNSS 天线安装在底盘中心后方 0.3m，默认参数为：
+
+- `GPS_ANTENNA_OFFSET_X=-0.3`
+- `GPS_ANTENNA_OFFSET_Y=0.0`
+
+GPS 节点会把 GGA 读到的主天线位置换算成 `base_link` 底盘中心位置，再发布 `/gps/pose`、`/gps/odom` 和 `camera_init -> base_link` TF。也就是说导航算法使用的是底盘中心位置，不是天线位置。
+
+默认启动即可使用双天线航向：
+
+```bash
+./scripts/bringup.sh gps
+```
+
+如果需要临时放宽或改回旧的单天线运动航向方式，可以覆盖：
+
+```bash
+GPS_HEADING_SOURCE=auto ./scripts/bringup.sh gps
+GPS_HEADING_SOURCE=gps_course ./scripts/bringup.sh gps
+```
+
 ## RabbitMQ GPS 目标接入
 
 RabbitMQ 脚本只负责把队列里的 GPS 目标发布到 ROS：
 
 ```text
-RabbitMQ 消息 -> scripts/shu copy.py -> /gps/goal_fix -> gps_goal_node.py -> /move_base_simple/goal -> move_base/TEB -> /cmd_vel -> /m2_driver
+RabbitMQ 消息 -> scripts/rabbitmq_gps_goal_bridge.py -> /gps/goal_fix -> gps_goal_node.py -> /move_base_simple/goal -> move_base/TEB -> /cmd_vel -> /m2_driver
 ```
 
-当前 `scripts/shu copy.py` 的默认配置：
+当前 `scripts/rabbitmq_gps_goal_bridge.py` 的默认配置：
 
 - host：`39.98.47.163`
 - port：`5672`
@@ -138,13 +164,7 @@ cd /home/robot/robot_ws
 cd /home/robot/robot_ws
 source /opt/ros/noetic/setup.bash
 source /home/robot/robot_ws/devel/setup.bash
-./scripts/shu\ copy.py
-```
-
-也可以这样执行带空格的文件名：
-
-```bash
-"./scripts/shu copy.py"
+./scripts/rabbitmq_gps_goal_bridge.py
 ```
 
 ### GPS 定位模式接 RabbitMQ
@@ -162,19 +182,20 @@ cd /home/robot/robot_ws
 cd /home/robot/robot_ws
 source /opt/ros/noetic/setup.bash
 source /home/robot/robot_ws/devel/setup.bash
-./scripts/shu\ copy.py
+./scripts/rabbitmq_gps_goal_bridge.py
 ```
 
 GPS 定位模式会对 TEB 做更宽松的到点设置：
 
 - `odom_topic=/gps/odom`
-- `xy_goal_tolerance=1.5`
+- `xy_goal_tolerance=0.5`
 - `yaw_goal_tolerance=6.283`
-- `max_vel_x=0.1`
-- `max_vel_x_backwards=0.1`
+- `max_vel_x=1.5`
+- `max_vel_x_backwards=1.0`
 - `min_vel_x=0.0`
 - `min_vel_x_backwards=0.0`
 - `penalty_epsilon=0.03`
+- `weight_kinematics_forward_drive=20.0`
 
 这样做是为了避免 GPS 定位噪声和无意义的终点朝向约束导致车辆接近目标后仍持续前进。
 
@@ -183,10 +204,9 @@ GPS 定位节点还会对原始 GPS 位置做滤波：
 - 静止低速时，如果 GPS 抖动在 `stationary_hold_radius=0.8m` 内，保持当前位置不漂移。
 - 正常运动时使用 `position_filter_alpha=0.25` 做低通滤波。
 - 明显跳点超过 `max_fix_jump=5.0m` 会被拒绝。
-- 速度低于 `heading_min_speed=0.05m/s` 时，不使用 RMC course 更新车头方向。
+- 默认使用双天线 `UNIHEADINGA` 更新车头方向，发布 `/gps/heading`，并用于 `/gps/odom` 和 `camera_init -> base_link` TF。
 
-单天线 GPS 静止时无法知道车头绝对朝向。默认 `initial_yaw=0.0`，车辆开始运动后会用
-RMC course 更新航向。如果现场已知初始车头方向，可以传弧度值，例如：
+如果没有双天线航向、临时改回 `GPS_HEADING_SOURCE=gps_course`，单天线 GPS 静止时仍无法知道车头绝对朝向。此时可以传初始弧度值，例如：
 
 ```bash
 GPS_INITIAL_YAW=1.5708 ./scripts/bringup.sh gps
@@ -200,6 +220,139 @@ GPS_COMPASS_HEADING_DEG=45 TERMINAL_MODE=split ./scripts/bringup.sh gps
 ```
 
 指南针角度约定是 `0=北`、`90=东`、`180=南`、`270=西`，也就是手机指南针常见的从正北开始顺时针计数。脚本换算公式是 `ROS yaw = 90度 - 指南针角度`。如果只写方向不写数字，也支持 `GPS_COMPASS_HEADING=正北|东北|正东|东南|正南|西南|正西|西北`；如果同时设置了 `GPS_INITIAL_YAW` 和指南针输入，优先使用 `GPS_INITIAL_YAW`。
+
+双天线航向在线检查：
+
+```bash
+rostopic echo /gps/heading
+rosparam get /gps_localization/heading_source
+rosparam get /gps_localization/heading_required_position_types
+rosparam get /gps_localization/gps_antenna_offset_x
+rosparam get /gps_localization/gps_antenna_offset_y
+```
+
+### GPS 电子围栏和避障测试任务
+
+先启动 GPS 导航：
+
+```bash
+cd /home/robot/robot_ws
+./scripts/bringup.sh gps
+```
+
+另开终端启动测试菜单：
+
+```bash
+cd /home/robot/robot_ws
+source /opt/ros/noetic/setup.bash
+source /home/robot/robot_ws/devel/setup.bash
+./scripts/gps_test_tasks.py
+```
+
+输入数字执行对应任务：
+
+- `1`：读取当前 `/gps/odom` 位置和双天线航向，发布车头正前方 `8m` 的 GPS 目标到 `/gps/goal_fix`。
+- `2`：以当前车体朝向为坐标系，保存前后左右各 `10m` 的矩形电子围栏。围栏文件永久保存在 `/home/robot/robot_ws/config/gps_test_fence.json`，下次重新启动测试脚本会自动加载。
+- `3`：在当前位置前后左右各 `10m` 范围内随机生成 GPS 目标并发布，用于阻拦车辆测试局部避障。
+- `4`：显示当前围栏。
+- `5`：清除永久围栏文件。
+
+电子围栏只由 `scripts/gps_test_tasks.py` 监控：正常只运行 `./scripts/bringup.sh gps` 时不会受这个围栏约束。测试脚本运行时，会拒绝围栏外目标；如果当前 `/gps/odom` 跑到围栏外，会取消 `move_base` 目标并向 `/cmd_vel` 发布零速度。
+
+`./scripts/bringup.sh gps` 打开的导航 RViz 已预置 `GPS Test Fence` 显示组，订阅 `/gps/test_fence_markers`。启动测试菜单并创建或加载围栏后，绿色线框会直接显示在同一个 RViz 中。
+
+测试 `1` 会打印当前 `/gps/odom` 坐标、当前 yaw、目标坐标和直线距离。GPS 目标转换节点会把 `/gps/goal_fix` 转成 `/move_base_simple/goal`，目标姿态默认使用“当前位置指向目标点”的方向，不再固定为 yaw=0。测试前方 8m 时，目标姿态应接近当前车头方向。
+
+如果测试 `1` 仍然调头或明显走反，优先检查：
+
+```bash
+rostopic echo /move_base_simple/goal
+rostopic echo /gps/odom
+rostopic echo /gps/heading
+rosparam get /gps_goal/goal_yaw_mode
+rosparam get /gps_goal/odom_topic
+```
+
+判断标准：`gps_test_tasks.py` 打印的目标 `x/y` 应和 `/move_base_simple/goal` 基本一致；目标 yaw 应接近从当前 `/gps/odom` 指向目标点的方向。如果目标点本身就在真实车头后方，说明 `/gps/odom` yaw 或双天线安装方向需要校正。
+
+RViz 手动发送目标时：
+
+- Fixed Frame 必须使用 `camera_init`。
+- RViz 的 2D Nav Goal 应发布到 `/move_base_simple/goal`，消息里的 `header.frame_id` 应是 `camera_init`。
+- GPS 转换节点和测试脚本不再 latch 发布目标，避免旧 GPS 目标在节点重连时覆盖 RViz 目标。
+- 如果 RViz 目标点突然变化，先查 `/move_base_simple/goal` 当前有哪些 publisher。
+
+```bash
+rostopic info /move_base_simple/goal
+rostopic echo /move_base_simple/goal
+```
+
+无障碍但车辆绕弯时，优先检查 TEB 和 M2 驱动的 `/cmd_vel` 语义：
+
+- `m2_driver` 把 `/cmd_vel.angular.z` 当角速度处理，再换算成前轮转角。
+- 因此 TEB 必须保持 `cmd_angle_instead_rotvel=False`，不能直接把 `/cmd_vel.angular.z` 当转角发布。
+- 当前 GPS/nomap TEB 按“直线优先但保留避障机动性”调参：`max_vel_theta=1.5`、`acc_lim_theta=0.5`、`min_turning_radius=1.2`、`global_plan_viapoint_sep=0.8`、`weight_shortest_path=4.0`、`weight_viapoint=8.0`，并开启多拓扑路径搜索 `enable_homotopy_class_planning=True`。后方障碍参与距离降到 `costmap_obstacles_behind_robot_dist=0.8`，减少后方突然障碍导致的前后振荡。
+
+现场确认：
+
+```bash
+rosparam get /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel
+rosparam get /move_base/TebLocalPlannerROS/max_vel_theta
+rosparam get /move_base/TebLocalPlannerROS/acc_lim_theta
+rosparam get /move_base/TebLocalPlannerROS/min_turning_radius
+rosparam get /move_base/TebLocalPlannerROS/global_plan_viapoint_sep
+rosparam get /move_base/TebLocalPlannerROS/weight_shortest_path
+rosparam get /move_base/TebLocalPlannerROS/weight_viapoint
+rosparam get /move_base/TebLocalPlannerROS/enable_homotopy_class_planning
+rosparam get /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist
+```
+
+期望分别是 `False`、`1.5`、`0.5`、`1.2`、`0.8`、`4.0`、`8.0`、`True`、`0.8`。
+
+如果仍然出现前后振荡，记录这些信息：
+
+```bash
+rostopic echo /cmd_vel
+rostopic echo /move_base/TebLocalPlannerROS/local_plan
+rostopic echo /move_base/status
+rostopic info /move_base_simple/goal
+```
+
+同时在 RViz 截图显示 `local_costmap`、`global_costmap`、`local_plan`、`global_plan` 和 `/scan`。
+
+RViz 显示电子围栏：
+
+- Fixed Frame 使用 `camera_init`。
+- 导航 RViz 已预置 `GPS Test Fence` 显示组，Topic 为 `/gps/test_fence_markers`。
+- 绿色线框是围栏边界，橙色点和文字分别标出 `front/back/left/right`。
+
+### GPS 静止漂移监测
+
+GPS 模式静止时，如果 `camera_init -> base_link` 或 `/gps/odom` 仍在漂移，会影响导航：move_base 会认为车在移动，目标距离、局部代价地图和避障控制都会抖动。
+
+启动导航后，另开终端运行：
+
+```bash
+cd /home/robot/robot_ws
+source /opt/ros/noetic/setup.bash
+source /home/robot/robot_ws/devel/setup.bash
+roslaunch robot_diagnostics gps_static_error_monitor.launch
+```
+
+查看实时误差：
+
+```bash
+rostopic echo /gps/static_error/summary
+rostopic echo /gps/static_error/current
+rostopic echo /gps/static_error/rms
+rostopic echo /gps/static_error/max
+```
+
+默认会等待 5 秒预热，然后把第一帧 `/gps/odom` 作为静止参考点。重置参考点：
+
+```bash
+rostopic pub -1 /gps/static_error/reset std_msgs/Empty "{}"
+```
 
 调试换算结果时可以不启动整车，只打印弧度值：
 
@@ -328,10 +481,13 @@ rostopic info /cmd_vel
 rosparam get /move_base/TebLocalPlannerROS/odom_topic
 rosparam get /move_base/TebLocalPlannerROS/xy_goal_tolerance
 rosparam get /move_base/TebLocalPlannerROS/yaw_goal_tolerance
+rosparam get /move_base/TebLocalPlannerROS/max_vel_x
+rosparam get /move_base/TebLocalPlannerROS/max_vel_x_backwards
 rosparam get /move_base/TebLocalPlannerROS/min_vel_x
+rosparam get /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive
 ```
 
-期望值分别是 `/gps/odom`、`1.5`、`6.283`、`0.0`。如果不是，重新使用一键脚本启动：
+期望值分别是 `/gps/odom`、`0.5`、`6.283`、`1.5`、`1.0`、`0.0`、`20.0`。如果不是，重新使用一键脚本启动：
 
 ```bash
 ./scripts/bringup.sh gps
