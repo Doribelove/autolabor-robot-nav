@@ -1,0 +1,33 @@
+schema_version: "1.0"
+status: pipeline_validation_only
+scope: t02_gazebo_only
+calibrated: false
+formal_experiment: false
+
+timing:
+  history_window_k: 4
+  decision_period_s: 1.0
+  activation_timeout_s: 2.0
+  reward_window_s: 1.0
+  require_ros_time: true
+
+# These weights only make the T04 integration reward arithmetically observable.
+# They are not frozen thesis reward weights and must not be used for training or
+# formal evaluation.
+reward_weights:
+  goal_progress: 1.0
+  elapsed_time: 1.0
+  near_obstacle_risk_integral: 1.0
+  path_error_integral: 1.0
+  smoothness_integral: 1.0
+  planner_failure: 1.0
+  parameter_adjustment: 1.0
+  terminal_goal_or_collision: 1.0
+
+logging:
+  algorithm: TEB-Default
+  scene_id: t04_t06_pipeline_straight
+  scene_split: validation
+  seed: 42
+  excluded_from_formal_results: true
+

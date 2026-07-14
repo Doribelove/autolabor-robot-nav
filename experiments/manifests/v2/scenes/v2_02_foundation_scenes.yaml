@@ -1,0 +1,156 @@
+schema_version: "2.0"
+architecture_generation: v2
+manifest_id: fam_teb_v2_02_foundation_scenes_1
+status: component_candidate_frozen
+simulation_only: true
+formal_experiment: false
+runtime_ready: false
+real_vehicle_use_forbidden: true
+
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+
+simulation_contract:
+  path: config/thesis_experiments/v2/simulation_contract.yaml
+  sha256: 47139897bc6ea4e9da7392e2d2df7dd441b68b218745f443f2fc112199e6b1bb
+  profile: v2_02_dynamics
+
+robot:
+  model: autolabor_m2
+  candidate_config: src/simulation/m2_gazebo/config/simulation_candidates.yaml
+  candidate_sha256: 63edc80a38b4d35c5491660ad4d6882d2ddaf95b4ff66fda820ba20eadbfd946
+  footprint: {length_m: 1.04, width_m: 0.70, height_m: 0.43}
+  footprint_sha256: 803741045997615734223bf4d23493b45da79490357c31434b1d8b4b0d135ab2
+
+policy_boundary:
+  runtime_manifest_access: false
+  runtime_label_topics: []
+  evaluator_only_fields: [family, split, evaluator_only.feasible, evaluator_only.reason]
+
+scenes:
+  - scene_id: v2-02-cruise-straight-40m
+    family: CRUISE
+    split: validation
+    seed: 4201
+    world_template: generated_v2_sdf
+    start: {x_m: 0.0, y_m: 0.0, yaw_rad: 0.0}
+    goal: {x_m: 40.0, y_m: 0.0, yaw_rad: 0.0}
+    timeout_s: 60.0
+    layout:
+      variant: straight_far_side_obstacles
+      reference_centerline: [[0.0, 0.0], [40.0, 0.0]]
+    static_obstacles:
+      - {obstacle_id: cruise-side-left, shape: box, pose: {x_m: 14.0, y_m: 4.0, yaw_rad: 0.0}, size_m: [1.0, 1.0, 1.2]}
+      - {obstacle_id: cruise-side-right, shape: box, pose: {x_m: 26.0, y_m: -4.0, yaw_rad: 0.0}, size_m: [1.0, 1.0, 1.2]}
+    dynamic_agents: []
+    randomization: {position_jitter_m: 0.05, yaw_jitter_rad: 0.01, agent_time_jitter_s: 0.0}
+    sensor_profile: v2_02_laser
+    actuator_profile: v2_02_dynamics
+    collision: {source: gazebo_contacts, topic: /m2_gazebo/contacts, terminate: true}
+    success: {goal_tolerance_m: 0.30, yaw_tolerance_rad: 0.20, stopped_speed_max_mps: 0.05}
+    evaluator_only: {feasible: true, reason: clear_lane_with_far_side_objects}
+    policy_forbidden_fields: [family, split, evaluator_only]
+
+  - scene_id: v2-02-dynamic-crossing
+    family: DYNAMIC
+    split: validation
+    seed: 4202
+    world_template: generated_v2_sdf
+    start: {x_m: 0.0, y_m: 0.0, yaw_rad: 0.0}
+    goal: {x_m: 20.0, y_m: 0.0, yaw_rad: 0.0}
+    timeout_s: 45.0
+    layout:
+      variant: single_crossing
+      reference_centerline: [[0.0, 0.0], [20.0, 0.0]]
+    static_obstacles: []
+    dynamic_agents:
+      - agent_id: crossing-agent-1
+        shape: box
+        size_m: [0.55, 0.55, 1.70]
+        loop: false
+        trajectory:
+          - {time_s: 0.0, x_m: 10.0, y_m: -4.0, yaw_rad: 1.5707963267948966}
+          - {time_s: 8.0, x_m: 10.0, y_m: 4.0, yaw_rad: 1.5707963267948966}
+    randomization: {position_jitter_m: 0.0, yaw_jitter_rad: 0.0, agent_time_jitter_s: 0.20}
+    sensor_profile: v2_02_laser
+    actuator_profile: v2_02_dynamics
+    collision: {source: gazebo_contacts, topic: /m2_gazebo/contacts, terminate: true}
+    success: {goal_tolerance_m: 0.30, yaw_tolerance_rad: 0.20, stopped_speed_max_mps: 0.05}
+    evaluator_only: {feasible: true, reason: crossing_has_temporal_gap}
+    policy_forbidden_fields: [family, split, evaluator_only]
+
+  - scene_id: v2-02-static-dense-five-pillars
+    family: STATIC_DENSE
+    split: validation
+    seed: 4203
+    world_template: generated_v2_sdf
+    start: {x_m: 0.0, y_m: 0.0, yaw_rad: 0.0}
+    goal: {x_m: 14.0, y_m: 0.0, yaw_rad: 0.0}
+    timeout_s: 50.0
+    layout:
+      variant: asymmetric_five_pillars
+      reference_centerline: [[0.0, 0.0], [14.0, 0.0]]
+    static_obstacles:
+      - {obstacle_id: pillar-1, shape: box, pose: {x_m: 3.5, y_m: 0.80, yaw_rad: 0.0}, size_m: [0.65, 0.65, 1.5]}
+      - {obstacle_id: pillar-2, shape: box, pose: {x_m: 5.5, y_m: -0.75, yaw_rad: 0.0}, size_m: [0.65, 0.65, 1.5]}
+      - {obstacle_id: pillar-3, shape: box, pose: {x_m: 7.5, y_m: 0.65, yaw_rad: 0.0}, size_m: [0.65, 0.65, 1.5]}
+      - {obstacle_id: pillar-4, shape: box, pose: {x_m: 9.5, y_m: -0.90, yaw_rad: 0.0}, size_m: [0.65, 0.65, 1.5]}
+      - {obstacle_id: pillar-5, shape: box, pose: {x_m: 11.5, y_m: 0.55, yaw_rad: 0.0}, size_m: [0.65, 0.65, 1.5]}
+    dynamic_agents: []
+    randomization: {position_jitter_m: 0.08, yaw_jitter_rad: 0.03, agent_time_jitter_s: 0.0}
+    sensor_profile: v2_02_laser
+    actuator_profile: v2_02_dynamics
+    collision: {source: gazebo_contacts, topic: /m2_gazebo/contacts, terminate: true}
+    success: {goal_tolerance_m: 0.30, yaw_tolerance_rad: 0.25, stopped_speed_max_mps: 0.05}
+    evaluator_only: {feasible: true, reason: alternating_clearance_exceeds_candidate_footprint}
+    policy_forbidden_fields: [family, split, evaluator_only]
+
+  - scene_id: v2-02-corridor-straight
+    family: CORRIDOR
+    split: validation
+    seed: 4204
+    world_template: generated_v2_sdf
+    start: {x_m: 0.0, y_m: 0.0, yaw_rad: 0.0}
+    goal: {x_m: 12.0, y_m: 0.0, yaw_rad: 0.0}
+    timeout_s: 45.0
+    layout:
+      variant: straight_narrow_offset_entry
+      reference_centerline: [[0.0, 0.15], [3.0, 0.0], [12.0, 0.0]]
+    static_obstacles:
+      - {obstacle_id: corridor-left-wall, shape: box, pose: {x_m: 6.0, y_m: 1.0, yaw_rad: 0.0}, size_m: [12.0, 0.20, 1.2]}
+      - {obstacle_id: corridor-right-wall, shape: box, pose: {x_m: 6.0, y_m: -1.0, yaw_rad: 0.0}, size_m: [12.0, 0.20, 1.2]}
+    dynamic_agents: []
+    randomization: {position_jitter_m: 0.02, yaw_jitter_rad: 0.005, agent_time_jitter_s: 0.0}
+    sensor_profile: v2_02_laser
+    actuator_profile: v2_02_dynamics
+    collision: {source: gazebo_contacts, topic: /m2_gazebo/contacts, terminate: true}
+    success: {goal_tolerance_m: 0.25, yaw_tolerance_rad: 0.15, stopped_speed_max_mps: 0.04}
+    evaluator_only: {feasible: true, reason: free_width_exceeds_candidate_width_with_margin}
+    policy_forbidden_fields: [family, split, evaluator_only]
+
+  - scene_id: v2-02-maneuver-dead-end
+    family: MANEUVER
+    split: validation
+    seed: 4205
+    world_template: generated_v2_sdf
+    start: {x_m: 4.5, y_m: 0.0, yaw_rad: 0.0}
+    goal: {x_m: 0.0, y_m: 0.0, yaw_rad: 3.141592653589793}
+    timeout_s: 60.0
+    layout:
+      variant: u_bay_goal_behind
+      reference_centerline: [[4.5, 0.0], [3.0, 0.0], [1.0, 0.0], [0.0, 0.0]]
+    static_obstacles:
+      - {obstacle_id: dead-end-left-wall, shape: box, pose: {x_m: 3.5, y_m: 1.35, yaw_rad: 0.0}, size_m: [5.0, 0.20, 1.2]}
+      - {obstacle_id: dead-end-right-wall, shape: box, pose: {x_m: 3.5, y_m: -1.35, yaw_rad: 0.0}, size_m: [5.0, 0.20, 1.2]}
+      - {obstacle_id: dead-end-back-wall, shape: box, pose: {x_m: 6.0, y_m: 0.0, yaw_rad: 0.0}, size_m: [0.20, 2.9, 1.2]}
+    dynamic_agents: []
+    randomization: {position_jitter_m: 0.02, yaw_jitter_rad: 0.005, agent_time_jitter_s: 0.0}
+    sensor_profile: v2_02_laser
+    actuator_profile: v2_02_dynamics
+    collision: {source: gazebo_contacts, topic: /m2_gazebo/contacts, terminate: true}
+    success: {goal_tolerance_m: 0.25, yaw_tolerance_rad: 0.20, stopped_speed_max_mps: 0.04}
+    evaluator_only: {feasible: true, reason: bay_supports_bounded_forward_reverse_escape}
+    policy_forbidden_fields: [family, split, evaluator_only]

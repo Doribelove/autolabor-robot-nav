@@ -1,0 +1,33 @@
+schema_version: '1.0'
+task: T12
+status: passed
+run_id: t12_residual_static_footprint_seed102
+algorithm: RL-TEB-Eta-FullSafety
+training_seed: 102
+safety_mode: T12Safety
+episode_count: 271
+step_count: 2125
+failure_count: 3
+run_validation:
+  valid: true
+  run_id: t12_residual_static_footprint_seed102
+  episode_count: 271
+  step_count: 2125
+  verified_checksum_count: 4
+selected_checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_static_footprint_2seed_pilot/runs/t12_residual_static_footprint_seed102/checkpoints/step_001000
+evaluation_policy: checkpoint
+selected_timesteps: 1000
+passed: true
+acceptance_override: true
+episode_boundary_audit:
+  protocol: cancel_terminal_and_plan_quiet_restore_reset_dispatch_v1
+  quiet_period_s: 0.25
+  recovery_quiet_period_s: 1.0
+  timeout_s: 5.0
+  quiesce_count: 274
+  quiesce_failure_count: 0
+  last_terminal_state: 3
+  last_quiet_period_s: 0.25
+  activation_timeout_barrier_count: 0
+  activation_timeout_last_config_seq: null
+  recovery_barrier_pending: false

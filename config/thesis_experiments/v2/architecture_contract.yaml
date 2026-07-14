@@ -1,0 +1,81 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_design_1
+status: implementation_skeleton
+simulation_only: true
+real_vehicle_use_forbidden: true
+
+v1_boundary:
+  contract_path: docs/thesis_experiment/experiment_contract.yaml
+  baseline_snapshot: config/thesis_experiments/v2/v1_frozen_baseline.yaml
+  preserve_v1_runner: true
+  v1_runner_must_reject_v2: true
+  historical_pilots_restart_forbidden: true
+
+paths:
+  config_root: config/thesis_experiments/v2
+  manifest_root: experiments/manifests/v2
+  artifact_root: artifacts/v2
+
+enums:
+  geometry_mode:
+    BALANCED: 0
+    CRUISE: 1
+    STATIC_DENSE: 2
+    CORRIDOR: 3
+    MANEUVER: 4
+  dynamic_overlay:
+    NONE: 0
+    CROSSING: 1
+    HEAD_ON: 2
+    FOLLOW: 3
+    OVERTAKE_OR_YIELD: 4
+  transition_state:
+    STABLE: 0
+    ENTERING: 1
+    EXITING: 2
+    HOLDING: 3
+    SAFE_OVERRIDE: 4
+    FAULTED: 5
+
+action_execution:
+  stages: [commanded, feasible, safe, executed]
+  critic_action: executed
+  record_all_stages: true
+  hidden_execution_state_forbidden: true
+
+modules:
+  required_packages: [nav_world_model, teb_mode_manager]
+  planned_packages: [m2_hybrid_local_planner, m2_maneuver_planner]
+  planner_backends:
+    - single_topology_teb
+    - topology_locked_hcp
+    - ackermann_maneuver
+  v2_learning_implemented: false
+
+rates_hz:
+  tracking: {minimum: 10.0, maximum: 20.0}
+  prediction: {minimum: 10.0, maximum: 20.0}
+  mode_decision: {minimum: 2.0, maximum: 5.0}
+  policy_decision: {minimum: 2.0, maximum: 5.0}
+  planner_expected: 10.0
+  shield_minimum: 10.0
+
+safety:
+  modes: [NORMAL, WARNING, EMERGENCY, FAULT]
+  strict_cbf_claim: false
+  invariants:
+    - no_direct_rl_cmd_vel
+    - health_fault_stop_has_priority
+    - ackermann_constraints_cannot_be_disabled
+    - collision_and_stopping_constraints_cannot_be_disabled
+    - reverse_requires_rear_coverage
+    - parameter_activation_required_for_attribution
+    - real_motion_requires_on_site_approval
+
+runtime:
+  default_mode: disabled
+  skeleton_nodes_publish_valid_data: false
+  allow_training: false
+  allow_motion: false
+  allow_parameter_write: false

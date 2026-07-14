@@ -1,0 +1,34 @@
+schema_version: '2.0'
+architecture_generation: v2
+suite: v2_03_gazebo_world_model_runtime_probe
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_started: false
+truth_scope: evaluator_only_gazebo_model_states
+runtime_policy_truth_access: false
+passed: true
+checks:
+  minimum_track_samples: true
+  position_rmse: true
+  id_switches: true
+  valid_health: true
+  valid_geometry: true
+  valid_context: true
+  crossing_overlay: true
+tracking:
+  sample_count: 88
+  position_rmse_m: 0.2699074679352137
+  id_switches: 0
+  unique_track_ids:
+  - 1
+  first_track_stamp_s: 0.724
+  last_track_stamp_s: 6.64
+health:
+  valid_samples: 95
+  fault_samples: 0
+  geometry_valid_samples: 95
+supervisor:
+  valid_context_samples: 32
+  crossing_overlay_samples: 13

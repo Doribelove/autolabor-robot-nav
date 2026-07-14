@@ -1,0 +1,2081 @@
+schema_version: '2.0'
+stage: V2-04B
+plan_id: fam_teb_v2_04b_anchor_screen_plan_1
+status: calibration_started
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+test_or_validation_selection_used: false
+contract:
+  path: config/thesis_experiments/v2/typed_transaction_calibration_contract.yaml
+  sha256: 38d1b35f61605796301a8450546a455ea840026b1947a1914eb1ff2c4b63138a
+anchor_bank:
+  path: src/application/teb_mode_manager/config/v2_04_anchor_bank_candidate.yaml
+  sha256: 3480e0e5389fd2641bf707399ee0fe5c8abc890f45565e1b4b3ad77c4e14bed4
+scene_manifest:
+  path: experiments/manifests/v2/calibration/v2_04b_anchor_calibration_scenes.yaml
+  sha256: b32c60e56dc907e590151c4f5456f7f95ae0e042317ce63f6961f577e61d3ac4
+strategy: deterministic_one_factor_screen_then_bounded_refinement
+selection_order: safety_feasibility_then_family_objective_lexicographic
+candidate_count: 54
+planned_episode_count: 90
+completed_navigation_episode_count: 0
+candidates:
+- candidate_id: anchor_balanced-c00-center
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: null
+  screen_level: 0
+  values:
+    max_vel_x: 0.9
+    max_vel_theta: 0.75
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.375
+    inflation_dist: 0.725
+    weight_obstacle: 75.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: 9166b9df75ed7dfa57f039888a6b2772296e7070244f9a4dff59c55f237c87ba
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 9166b9df75ed7dfa57f039888a6b2772296e7070244f9a4dff59c55f237c87ba
+  - scene_id: v2-cal-dynamic-crossing-s4302
+    split: calibration
+    seed: 4302
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: a44849463ae438a9434ea4fd05cef3cddb1d134ec8c29b5107f6ac8f2f003ed1
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 9166b9df75ed7dfa57f039888a6b2772296e7070244f9a4dff59c55f237c87ba
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 9166b9df75ed7dfa57f039888a6b2772296e7070244f9a4dff59c55f237c87ba
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 9166b9df75ed7dfa57f039888a6b2772296e7070244f9a4dff59c55f237c87ba
+- candidate_id: anchor_balanced-c01-max_vel_x_low
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: max_vel_x
+  screen_level: -1
+  values:
+    max_vel_x: 0.79
+    max_vel_theta: 0.6583333333333334
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.375
+    inflation_dist: 0.725
+    weight_obstacle: 75.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: 0f7eea6acd4b756d0eb1c3c45cbe8ce8e8b2e651d56fd6783ab1f9f259d176f3
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 0f7eea6acd4b756d0eb1c3c45cbe8ce8e8b2e651d56fd6783ab1f9f259d176f3
+  - scene_id: v2-cal-dynamic-crossing-s4302
+    split: calibration
+    seed: 4302
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: d21f3fa77a6f17253512943c42cc796b2cfb34e09d481200e9ce1469fcef99b7
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 0f7eea6acd4b756d0eb1c3c45cbe8ce8e8b2e651d56fd6783ab1f9f259d176f3
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 0f7eea6acd4b756d0eb1c3c45cbe8ce8e8b2e651d56fd6783ab1f9f259d176f3
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 0f7eea6acd4b756d0eb1c3c45cbe8ce8e8b2e651d56fd6783ab1f9f259d176f3
+- candidate_id: anchor_balanced-c02-max_vel_x_high
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: max_vel_x
+  screen_level: 1
+  values:
+    max_vel_x: 1.01
+    max_vel_theta: 0.75
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.375
+    inflation_dist: 0.725
+    weight_obstacle: 75.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: b093273bb352e504d32cf755a468ec6a41f9a8813a15f44e9c2ddd56385e2f54
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: b093273bb352e504d32cf755a468ec6a41f9a8813a15f44e9c2ddd56385e2f54
+  - scene_id: v2-cal-dynamic-crossing-s4302
+    split: calibration
+    seed: 4302
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: 7064c8d84f9ecdadfb1063847667f62873056ce316d0c7afa3ab3ada29eb63fd
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: b093273bb352e504d32cf755a468ec6a41f9a8813a15f44e9c2ddd56385e2f54
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: b093273bb352e504d32cf755a468ec6a41f9a8813a15f44e9c2ddd56385e2f54
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: b093273bb352e504d32cf755a468ec6a41f9a8813a15f44e9c2ddd56385e2f54
+- candidate_id: anchor_balanced-c03-min_obstacle_dist_low
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: min_obstacle_dist
+  screen_level: -1
+  values:
+    max_vel_x: 0.9
+    max_vel_theta: 0.75
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.34
+    inflation_dist: 0.725
+    weight_obstacle: 75.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: 56e725d23c5f3d2c33d4c065b7a43a29fb5fb0642b8cb03029aa1cb5c46804b8
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 56e725d23c5f3d2c33d4c065b7a43a29fb5fb0642b8cb03029aa1cb5c46804b8
+  - scene_id: v2-cal-dynamic-crossing-s4302
+    split: calibration
+    seed: 4302
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: 373ffce20a9de22aea74de658e52e2fe1fec360c83433fac4c59d01eaffa40f7
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 56e725d23c5f3d2c33d4c065b7a43a29fb5fb0642b8cb03029aa1cb5c46804b8
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 56e725d23c5f3d2c33d4c065b7a43a29fb5fb0642b8cb03029aa1cb5c46804b8
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 56e725d23c5f3d2c33d4c065b7a43a29fb5fb0642b8cb03029aa1cb5c46804b8
+- candidate_id: anchor_balanced-c04-min_obstacle_dist_high
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: min_obstacle_dist
+  screen_level: 1
+  values:
+    max_vel_x: 0.9
+    max_vel_theta: 0.75
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.41
+    inflation_dist: 0.725
+    weight_obstacle: 75.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: 8369e94e9e02983a680aea703ab000052acc1d5b27273df07dd3f4d8974e00ac
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8369e94e9e02983a680aea703ab000052acc1d5b27273df07dd3f4d8974e00ac
+  - scene_id: v2-cal-dynamic-crossing-s4302
+    split: calibration
+    seed: 4302
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: 238fdeb387fdf9b30f808b9e707762f3d7e63130d15745b4992a4e6a209db53d
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8369e94e9e02983a680aea703ab000052acc1d5b27273df07dd3f4d8974e00ac
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8369e94e9e02983a680aea703ab000052acc1d5b27273df07dd3f4d8974e00ac
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8369e94e9e02983a680aea703ab000052acc1d5b27273df07dd3f4d8974e00ac
+- candidate_id: anchor_balanced-c05-weight_obstacle_low
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: weight_obstacle
+  screen_level: -1
+  values:
+    max_vel_x: 0.9
+    max_vel_theta: 0.75
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.375
+    inflation_dist: 0.725
+    weight_obstacle: 60.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: 7c420bf0b71b171abf23136e6757658c8f9bba22ac1ba4e50a3e40d7b6e02646
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 7c420bf0b71b171abf23136e6757658c8f9bba22ac1ba4e50a3e40d7b6e02646
+  - scene_id: v2-cal-dynamic-crossing-s4302
+    split: calibration
+    seed: 4302
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: d231887c03f4d5550ea7320b6cc4a9796d942ee3bf9c3d8150290f2164d0c80e
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 7c420bf0b71b171abf23136e6757658c8f9bba22ac1ba4e50a3e40d7b6e02646
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 7c420bf0b71b171abf23136e6757658c8f9bba22ac1ba4e50a3e40d7b6e02646
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 7c420bf0b71b171abf23136e6757658c8f9bba22ac1ba4e50a3e40d7b6e02646
+- candidate_id: anchor_balanced-c06-weight_obstacle_high
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: weight_obstacle
+  screen_level: 1
+  values:
+    max_vel_x: 0.9
+    max_vel_theta: 0.75
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.375
+    inflation_dist: 0.725
+    weight_obstacle: 90.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: ddb20beed148562c079396096889407f6464dade425eef357649244bffed8119
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: ddb20beed148562c079396096889407f6464dade425eef357649244bffed8119
+  - scene_id: v2-cal-dynamic-crossing-s4302
+    split: calibration
+    seed: 4302
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: 558c05f0dc033f7074b0f7eab2320d8258c3ec20ea39bad7d51be3501ddae47c
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: ddb20beed148562c079396096889407f6464dade425eef357649244bffed8119
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: ddb20beed148562c079396096889407f6464dade425eef357649244bffed8119
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: ddb20beed148562c079396096889407f6464dade425eef357649244bffed8119
+- candidate_id: anchor_balanced-c07-weight_viapoint_low
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: -1
+  values:
+    max_vel_x: 0.9
+    max_vel_theta: 0.75
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.375
+    inflation_dist: 0.725
+    weight_obstacle: 75.0
+    weight_viapoint: 1.75
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: f5b88563ca02facbb29779c09b5c3a9adec8537f2ebb9ce0d14a1846e6c5ec61
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: f5b88563ca02facbb29779c09b5c3a9adec8537f2ebb9ce0d14a1846e6c5ec61
+  - scene_id: v2-cal-dynamic-crossing-s4302
+    split: calibration
+    seed: 4302
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: 62ea940dee7ab09d430d7ae3e4eaa33155fbd8f2c3b97f24fa867c7109697833
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: f5b88563ca02facbb29779c09b5c3a9adec8537f2ebb9ce0d14a1846e6c5ec61
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: f5b88563ca02facbb29779c09b5c3a9adec8537f2ebb9ce0d14a1846e6c5ec61
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: f5b88563ca02facbb29779c09b5c3a9adec8537f2ebb9ce0d14a1846e6c5ec61
+- candidate_id: anchor_balanced-c08-weight_viapoint_high
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: 1
+  values:
+    max_vel_x: 0.9
+    max_vel_theta: 0.75
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.375
+    inflation_dist: 0.725
+    weight_obstacle: 75.0
+    weight_viapoint: 3.25
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: 8b26131f146d34455535e375bcb06f348bbcd81a092e90ebe97897bc63e7cba6
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8b26131f146d34455535e375bcb06f348bbcd81a092e90ebe97897bc63e7cba6
+  - scene_id: v2-cal-dynamic-crossing-s4302
+    split: calibration
+    seed: 4302
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: d8d34ce4fd692f381285ffb4954a168ba24fae19410097f3a2068d5e318ee8d0
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8b26131f146d34455535e375bcb06f348bbcd81a092e90ebe97897bc63e7cba6
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8b26131f146d34455535e375bcb06f348bbcd81a092e90ebe97897bc63e7cba6
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8b26131f146d34455535e375bcb06f348bbcd81a092e90ebe97897bc63e7cba6
+- candidate_id: anchor_cruise-c00-center
+  anchor_id: anchor_cruise
+  base_profile_id: profile_cruise_v2_04
+  screen_coordinate: null
+  screen_level: 0
+  values:
+    max_vel_x: 1.2
+    max_vel_theta: 0.65
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.65
+    min_obstacle_dist: 0.28
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 4.0
+    weight_optimaltime: 1.2
+    dynamic_obstacle_inflation_dist: 0.6
+    weight_dynamic_obstacle: 50.0
+    weight_dynamic_obstacle_inflation: 0.25
+    weight_velocity_obstacle_ratio: 3.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.9
+    switching_blocking_period: 1.0
+  profile_sha256: 67a9512abd2cd50b0a2b9f37741da25ea8944b0ec8ca751f963eb433d742f925
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 67a9512abd2cd50b0a2b9f37741da25ea8944b0ec8ca751f963eb433d742f925
+- candidate_id: anchor_cruise-c01-max_vel_x_low
+  anchor_id: anchor_cruise
+  base_profile_id: profile_cruise_v2_04
+  screen_coordinate: max_vel_x
+  screen_level: -1
+  values:
+    max_vel_x: 0.98
+    max_vel_theta: 0.65
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.65
+    min_obstacle_dist: 0.28
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 4.0
+    weight_optimaltime: 1.2
+    dynamic_obstacle_inflation_dist: 0.6
+    weight_dynamic_obstacle: 50.0
+    weight_dynamic_obstacle_inflation: 0.25
+    weight_velocity_obstacle_ratio: 3.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.9
+    switching_blocking_period: 1.0
+  profile_sha256: ea1d291ecb7128ed22866c68c6823111cef239b39c7d7050bc57590e6b89369c
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: ea1d291ecb7128ed22866c68c6823111cef239b39c7d7050bc57590e6b89369c
+- candidate_id: anchor_cruise-c02-max_vel_x_high
+  anchor_id: anchor_cruise
+  base_profile_id: profile_cruise_v2_04
+  screen_coordinate: max_vel_x
+  screen_level: 1
+  values:
+    max_vel_x: 1.0899999999999999
+    max_vel_theta: 0.65
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.65
+    min_obstacle_dist: 0.28
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 4.0
+    weight_optimaltime: 1.2
+    dynamic_obstacle_inflation_dist: 0.6
+    weight_dynamic_obstacle: 50.0
+    weight_dynamic_obstacle_inflation: 0.25
+    weight_velocity_obstacle_ratio: 3.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.9
+    switching_blocking_period: 1.0
+  profile_sha256: a441e3ad1d9ca269abc6a0ee60325198447b7c4bf123e2e7fb30476ccbd1a7aa
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: a441e3ad1d9ca269abc6a0ee60325198447b7c4bf123e2e7fb30476ccbd1a7aa
+- candidate_id: anchor_cruise-c03-acc_lim_x_low
+  anchor_id: anchor_cruise
+  base_profile_id: profile_cruise_v2_04
+  screen_coordinate: acc_lim_x
+  screen_level: -1
+  values:
+    max_vel_x: 1.2
+    max_vel_theta: 0.65
+    acc_lim_x: 0.68
+    acc_lim_theta: 0.65
+    min_obstacle_dist: 0.28
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 4.0
+    weight_optimaltime: 1.2
+    dynamic_obstacle_inflation_dist: 0.6
+    weight_dynamic_obstacle: 50.0
+    weight_dynamic_obstacle_inflation: 0.25
+    weight_velocity_obstacle_ratio: 3.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.9
+    switching_blocking_period: 1.0
+  profile_sha256: 4a7b96f5146e57f80a0196a333fff51de73fa2b242799a9afe8a39b7c0d50ad7
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 4a7b96f5146e57f80a0196a333fff51de73fa2b242799a9afe8a39b7c0d50ad7
+- candidate_id: anchor_cruise-c04-acc_lim_x_high
+  anchor_id: anchor_cruise
+  base_profile_id: profile_cruise_v2_04
+  screen_coordinate: acc_lim_x
+  screen_level: 1
+  values:
+    max_vel_x: 1.2
+    max_vel_theta: 0.65
+    acc_lim_x: 0.74
+    acc_lim_theta: 0.65
+    min_obstacle_dist: 0.28
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 4.0
+    weight_optimaltime: 1.2
+    dynamic_obstacle_inflation_dist: 0.6
+    weight_dynamic_obstacle: 50.0
+    weight_dynamic_obstacle_inflation: 0.25
+    weight_velocity_obstacle_ratio: 3.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.9
+    switching_blocking_period: 1.0
+  profile_sha256: 1068abf1e848bedd14d90d9db9f58fedb01c8a826c1e1bf59dd7024ba91ee98e
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 1068abf1e848bedd14d90d9db9f58fedb01c8a826c1e1bf59dd7024ba91ee98e
+- candidate_id: anchor_cruise-c05-weight_viapoint_low
+  anchor_id: anchor_cruise
+  base_profile_id: profile_cruise_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: -1
+  values:
+    max_vel_x: 1.2
+    max_vel_theta: 0.65
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.65
+    min_obstacle_dist: 0.28
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 3.25
+    weight_optimaltime: 1.2
+    dynamic_obstacle_inflation_dist: 0.6
+    weight_dynamic_obstacle: 50.0
+    weight_dynamic_obstacle_inflation: 0.25
+    weight_velocity_obstacle_ratio: 3.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.9
+    switching_blocking_period: 1.0
+  profile_sha256: 03a990308f26eb1d29fa5db4de065a9e9e12fb31dd59b6614905675f296688ad
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 03a990308f26eb1d29fa5db4de065a9e9e12fb31dd59b6614905675f296688ad
+- candidate_id: anchor_cruise-c06-weight_viapoint_high
+  anchor_id: anchor_cruise
+  base_profile_id: profile_cruise_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: 1
+  values:
+    max_vel_x: 1.2
+    max_vel_theta: 0.65
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.65
+    min_obstacle_dist: 0.28
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 4.75
+    weight_optimaltime: 1.2
+    dynamic_obstacle_inflation_dist: 0.6
+    weight_dynamic_obstacle: 50.0
+    weight_dynamic_obstacle_inflation: 0.25
+    weight_velocity_obstacle_ratio: 3.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.9
+    switching_blocking_period: 1.0
+  profile_sha256: cd5b307af225378a27207286d2f0cf099a1a239a8042b62e851e6b0466fa5270
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: cd5b307af225378a27207286d2f0cf099a1a239a8042b62e851e6b0466fa5270
+- candidate_id: anchor_cruise-c07-weight_optimaltime_low
+  anchor_id: anchor_cruise
+  base_profile_id: profile_cruise_v2_04
+  screen_coordinate: weight_optimaltime
+  screen_level: -1
+  values:
+    max_vel_x: 1.2
+    max_vel_theta: 0.65
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.65
+    min_obstacle_dist: 0.28
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 4.0
+    weight_optimaltime: 1.03
+    dynamic_obstacle_inflation_dist: 0.6
+    weight_dynamic_obstacle: 50.0
+    weight_dynamic_obstacle_inflation: 0.25
+    weight_velocity_obstacle_ratio: 3.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.9
+    switching_blocking_period: 1.0
+  profile_sha256: 520333ba833998a9073270361db335b29fbd325887700072b0c906e2030e2cca
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 520333ba833998a9073270361db335b29fbd325887700072b0c906e2030e2cca
+- candidate_id: anchor_cruise-c08-weight_optimaltime_high
+  anchor_id: anchor_cruise
+  base_profile_id: profile_cruise_v2_04
+  screen_coordinate: weight_optimaltime
+  screen_level: 1
+  values:
+    max_vel_x: 1.2
+    max_vel_theta: 0.65
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.65
+    min_obstacle_dist: 0.28
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 4.0
+    weight_optimaltime: 1.3699999999999999
+    dynamic_obstacle_inflation_dist: 0.6
+    weight_dynamic_obstacle: 50.0
+    weight_dynamic_obstacle_inflation: 0.25
+    weight_velocity_obstacle_ratio: 3.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.9
+    switching_blocking_period: 1.0
+  profile_sha256: 49cade942f8db1559e343ac8bbe7c574eaae917fb5db958569ffae29e12e36a3
+  evaluations:
+  - scene_id: v2-cal-cruise-straight-35m-s4301
+    split: calibration
+    seed: 4301
+    family: CRUISE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 49cade942f8db1559e343ac8bbe7c574eaae917fb5db958569ffae29e12e36a3
+- candidate_id: anchor_static_dense-c00-center
+  anchor_id: anchor_static_dense
+  base_profile_id: profile_static_dense_v2_04
+  screen_coordinate: null
+  screen_level: 0
+  values:
+    max_vel_x: 0.7
+    max_vel_theta: 0.55
+    acc_lim_x: 0.5
+    acc_lim_theta: 0.55
+    min_obstacle_dist: 0.42
+    inflation_dist: 0.82
+    weight_obstacle: 95.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.65
+    dynamic_obstacle_inflation_dist: 0.9
+    weight_dynamic_obstacle: 75.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 8.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 4
+    selection_cost_hysteresis: 0.82
+    switching_blocking_period: 2.0
+  profile_sha256: 61a32e6ed5441bf88f58d555450f6586c2d467cdff5de6a54468eccf77926994
+  evaluations:
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 61a32e6ed5441bf88f58d555450f6586c2d467cdff5de6a54468eccf77926994
+- candidate_id: anchor_static_dense-c01-min_obstacle_dist_low
+  anchor_id: anchor_static_dense
+  base_profile_id: profile_static_dense_v2_04
+  screen_coordinate: min_obstacle_dist
+  screen_level: -1
+  values:
+    max_vel_x: 0.7
+    max_vel_theta: 0.55
+    acc_lim_x: 0.5
+    acc_lim_theta: 0.55
+    min_obstacle_dist: 0.385
+    inflation_dist: 0.82
+    weight_obstacle: 95.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.65
+    dynamic_obstacle_inflation_dist: 0.9
+    weight_dynamic_obstacle: 75.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 8.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 4
+    selection_cost_hysteresis: 0.82
+    switching_blocking_period: 2.0
+  profile_sha256: 3f1da59ea83f1bf04dd880e242dd4002d128d7073c8ca19b5299ff0c9889f30f
+  evaluations:
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 3f1da59ea83f1bf04dd880e242dd4002d128d7073c8ca19b5299ff0c9889f30f
+- candidate_id: anchor_static_dense-c02-min_obstacle_dist_high
+  anchor_id: anchor_static_dense
+  base_profile_id: profile_static_dense_v2_04
+  screen_coordinate: min_obstacle_dist
+  screen_level: 1
+  values:
+    max_vel_x: 0.7
+    max_vel_theta: 0.55
+    acc_lim_x: 0.5
+    acc_lim_theta: 0.55
+    min_obstacle_dist: 0.45499999999999996
+    inflation_dist: 0.82
+    weight_obstacle: 95.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.65
+    dynamic_obstacle_inflation_dist: 0.9
+    weight_dynamic_obstacle: 75.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 8.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 4
+    selection_cost_hysteresis: 0.82
+    switching_blocking_period: 2.0
+  profile_sha256: 32f43304d2bca720eabfbbbc9f3c84df5f0e518bbb9c2e02d276a95ea74db8b4
+  evaluations:
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 32f43304d2bca720eabfbbbc9f3c84df5f0e518bbb9c2e02d276a95ea74db8b4
+- candidate_id: anchor_static_dense-c03-inflation_dist_low
+  anchor_id: anchor_static_dense
+  base_profile_id: profile_static_dense_v2_04
+  screen_coordinate: inflation_dist
+  screen_level: -1
+  values:
+    max_vel_x: 0.7
+    max_vel_theta: 0.55
+    acc_lim_x: 0.5
+    acc_lim_theta: 0.55
+    min_obstacle_dist: 0.42
+    inflation_dist: 0.75
+    weight_obstacle: 95.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.65
+    dynamic_obstacle_inflation_dist: 0.9
+    weight_dynamic_obstacle: 75.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 8.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 4
+    selection_cost_hysteresis: 0.82
+    switching_blocking_period: 2.0
+  profile_sha256: 949d93b38dff9557b6af351c208dd783b598a967f48b695a1acd2c92ab969a6e
+  evaluations:
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 949d93b38dff9557b6af351c208dd783b598a967f48b695a1acd2c92ab969a6e
+- candidate_id: anchor_static_dense-c04-inflation_dist_high
+  anchor_id: anchor_static_dense
+  base_profile_id: profile_static_dense_v2_04
+  screen_coordinate: inflation_dist
+  screen_level: 1
+  values:
+    max_vel_x: 0.7
+    max_vel_theta: 0.55
+    acc_lim_x: 0.5
+    acc_lim_theta: 0.55
+    min_obstacle_dist: 0.42
+    inflation_dist: 0.8899999999999999
+    weight_obstacle: 95.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.65
+    dynamic_obstacle_inflation_dist: 0.9
+    weight_dynamic_obstacle: 75.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 8.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 4
+    selection_cost_hysteresis: 0.82
+    switching_blocking_period: 2.0
+  profile_sha256: bf97ee6564d0e01cc69223e1de8a0192859b9f1b452b315ff39ebe01387b6166
+  evaluations:
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: bf97ee6564d0e01cc69223e1de8a0192859b9f1b452b315ff39ebe01387b6166
+- candidate_id: anchor_static_dense-c05-weight_obstacle_low
+  anchor_id: anchor_static_dense
+  base_profile_id: profile_static_dense_v2_04
+  screen_coordinate: weight_obstacle
+  screen_level: -1
+  values:
+    max_vel_x: 0.7
+    max_vel_theta: 0.55
+    acc_lim_x: 0.5
+    acc_lim_theta: 0.55
+    min_obstacle_dist: 0.42
+    inflation_dist: 0.82
+    weight_obstacle: 80.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.65
+    dynamic_obstacle_inflation_dist: 0.9
+    weight_dynamic_obstacle: 75.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 8.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 4
+    selection_cost_hysteresis: 0.82
+    switching_blocking_period: 2.0
+  profile_sha256: bcdd9e011513bde8a2dfb476a205c47fe35bbec02ebb396a47eadb540b16d57b
+  evaluations:
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: bcdd9e011513bde8a2dfb476a205c47fe35bbec02ebb396a47eadb540b16d57b
+- candidate_id: anchor_static_dense-c06-weight_obstacle_high
+  anchor_id: anchor_static_dense
+  base_profile_id: profile_static_dense_v2_04
+  screen_coordinate: weight_obstacle
+  screen_level: 1
+  values:
+    max_vel_x: 0.7
+    max_vel_theta: 0.55
+    acc_lim_x: 0.5
+    acc_lim_theta: 0.55
+    min_obstacle_dist: 0.42
+    inflation_dist: 0.82
+    weight_obstacle: 110.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.65
+    dynamic_obstacle_inflation_dist: 0.9
+    weight_dynamic_obstacle: 75.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 8.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 4
+    selection_cost_hysteresis: 0.82
+    switching_blocking_period: 2.0
+  profile_sha256: 8fa338de45c57930e9bc766bbffcb1dc5b7a6898d2168ed468348091625d0a7a
+  evaluations:
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8fa338de45c57930e9bc766bbffcb1dc5b7a6898d2168ed468348091625d0a7a
+- candidate_id: anchor_static_dense-c07-switching_blocking_period_low
+  anchor_id: anchor_static_dense
+  base_profile_id: profile_static_dense_v2_04
+  screen_coordinate: switching_blocking_period
+  screen_level: -1
+  values:
+    max_vel_x: 0.7
+    max_vel_theta: 0.55
+    acc_lim_x: 0.5
+    acc_lim_theta: 0.55
+    min_obstacle_dist: 0.42
+    inflation_dist: 0.82
+    weight_obstacle: 95.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.65
+    dynamic_obstacle_inflation_dist: 0.9
+    weight_dynamic_obstacle: 75.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 8.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 4
+    selection_cost_hysteresis: 0.82
+    switching_blocking_period: 1.7
+  profile_sha256: 23d1d7a032d9d784d9801ec7e2da4523d9ed9c01621f6d3a57b017bb7dbd1fa0
+  evaluations:
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: 23d1d7a032d9d784d9801ec7e2da4523d9ed9c01621f6d3a57b017bb7dbd1fa0
+- candidate_id: anchor_static_dense-c08-switching_blocking_period_high
+  anchor_id: anchor_static_dense
+  base_profile_id: profile_static_dense_v2_04
+  screen_coordinate: switching_blocking_period
+  screen_level: 1
+  values:
+    max_vel_x: 0.7
+    max_vel_theta: 0.55
+    acc_lim_x: 0.5
+    acc_lim_theta: 0.55
+    min_obstacle_dist: 0.42
+    inflation_dist: 0.82
+    weight_obstacle: 95.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.65
+    dynamic_obstacle_inflation_dist: 0.9
+    weight_dynamic_obstacle: 75.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 8.0
+    max_vel_x_backwards: 0.2
+    max_global_plan_lookahead_dist: 8.0
+    global_plan_viapoint_sep: 0.25
+    include_dynamic_obstacles: true
+    max_number_classes: 4
+    selection_cost_hysteresis: 0.82
+    switching_blocking_period: 2.3
+  profile_sha256: c44de54a6671fc0e92b425a2d8d1c469e47d01a22c3a0a3d92f8641f09435d31
+  evaluations:
+  - scene_id: v2-cal-static-dense-four-pillars-s4303
+    split: calibration
+    seed: 4303
+    family: STATIC_DENSE
+    dynamic_overlay: NONE
+    effective_profile_sha256: c44de54a6671fc0e92b425a2d8d1c469e47d01a22c3a0a3d92f8641f09435d31
+- candidate_id: anchor_corridor-c00-center
+  anchor_id: anchor_corridor
+  base_profile_id: profile_corridor_v2_04
+  screen_coordinate: null
+  screen_level: 0
+  values:
+    max_vel_x: 0.5
+    max_vel_theta: 0.38
+    acc_lim_x: 0.4
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.3
+    inflation_dist: 0.58
+    weight_obstacle: 60.0
+    weight_viapoint: 5.0
+    weight_optimaltime: 0.6
+    dynamic_obstacle_inflation_dist: 0.65
+    weight_dynamic_obstacle: 65.0
+    weight_dynamic_obstacle_inflation: 0.4
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.15
+    max_global_plan_lookahead_dist: 5.0
+    global_plan_viapoint_sep: 0.15
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.0
+  profile_sha256: fac3278919932bf579767a02c58c238ac53328297aad5962405f2eeaead3d5f0
+  evaluations:
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: fac3278919932bf579767a02c58c238ac53328297aad5962405f2eeaead3d5f0
+- candidate_id: anchor_corridor-c01-max_vel_x_low
+  anchor_id: anchor_corridor
+  base_profile_id: profile_corridor_v2_04
+  screen_coordinate: max_vel_x
+  screen_level: -1
+  values:
+    max_vel_x: 0.39
+    max_vel_theta: 0.325
+    acc_lim_x: 0.4
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.3
+    inflation_dist: 0.58
+    weight_obstacle: 60.0
+    weight_viapoint: 5.0
+    weight_optimaltime: 0.6
+    dynamic_obstacle_inflation_dist: 0.65
+    weight_dynamic_obstacle: 65.0
+    weight_dynamic_obstacle_inflation: 0.4
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.15
+    max_global_plan_lookahead_dist: 5.0
+    global_plan_viapoint_sep: 0.15
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.0
+  profile_sha256: 3d19e8bdcb748b231f9145884e7f7646053dd8dfef440e8fb9bd9ee890a2f528
+  evaluations:
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 3d19e8bdcb748b231f9145884e7f7646053dd8dfef440e8fb9bd9ee890a2f528
+- candidate_id: anchor_corridor-c02-max_vel_x_high
+  anchor_id: anchor_corridor
+  base_profile_id: profile_corridor_v2_04
+  screen_coordinate: max_vel_x
+  screen_level: 1
+  values:
+    max_vel_x: 0.61
+    max_vel_theta: 0.38
+    acc_lim_x: 0.4
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.3
+    inflation_dist: 0.58
+    weight_obstacle: 60.0
+    weight_viapoint: 5.0
+    weight_optimaltime: 0.6
+    dynamic_obstacle_inflation_dist: 0.65
+    weight_dynamic_obstacle: 65.0
+    weight_dynamic_obstacle_inflation: 0.4
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.15
+    max_global_plan_lookahead_dist: 5.0
+    global_plan_viapoint_sep: 0.15
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.0
+  profile_sha256: 78edfd6c9032ca718765260269809d55d2f387b9cb9a92b719f5524136db5757
+  evaluations:
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 78edfd6c9032ca718765260269809d55d2f387b9cb9a92b719f5524136db5757
+- candidate_id: anchor_corridor-c03-max_vel_theta_low
+  anchor_id: anchor_corridor
+  base_profile_id: profile_corridor_v2_04
+  screen_coordinate: max_vel_theta
+  screen_level: -1
+  values:
+    max_vel_x: 0.5
+    max_vel_theta: 0.28500000000000003
+    acc_lim_x: 0.4
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.3
+    inflation_dist: 0.58
+    weight_obstacle: 60.0
+    weight_viapoint: 5.0
+    weight_optimaltime: 0.6
+    dynamic_obstacle_inflation_dist: 0.65
+    weight_dynamic_obstacle: 65.0
+    weight_dynamic_obstacle_inflation: 0.4
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.15
+    max_global_plan_lookahead_dist: 5.0
+    global_plan_viapoint_sep: 0.15
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.0
+  profile_sha256: 9b677cf3e69f7a3d6e3da3a533feaef33a3fc5e24a947448c9ab1c883db4bced
+  evaluations:
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 9b677cf3e69f7a3d6e3da3a533feaef33a3fc5e24a947448c9ab1c883db4bced
+- candidate_id: anchor_corridor-c04-max_vel_theta_high
+  anchor_id: anchor_corridor
+  base_profile_id: profile_corridor_v2_04
+  screen_coordinate: max_vel_theta
+  screen_level: 1
+  values:
+    max_vel_x: 0.5
+    max_vel_theta: 0.4166666666666667
+    acc_lim_x: 0.4
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.3
+    inflation_dist: 0.58
+    weight_obstacle: 60.0
+    weight_viapoint: 5.0
+    weight_optimaltime: 0.6
+    dynamic_obstacle_inflation_dist: 0.65
+    weight_dynamic_obstacle: 65.0
+    weight_dynamic_obstacle_inflation: 0.4
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.15
+    max_global_plan_lookahead_dist: 5.0
+    global_plan_viapoint_sep: 0.15
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.0
+  profile_sha256: 8a8f3aa172f06da07f4dd71be91ff45929cd2e910eaaac9e076bd02a9e59549b
+  evaluations:
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8a8f3aa172f06da07f4dd71be91ff45929cd2e910eaaac9e076bd02a9e59549b
+- candidate_id: anchor_corridor-c05-min_obstacle_dist_low
+  anchor_id: anchor_corridor
+  base_profile_id: profile_corridor_v2_04
+  screen_coordinate: min_obstacle_dist
+  screen_level: -1
+  values:
+    max_vel_x: 0.5
+    max_vel_theta: 0.38
+    acc_lim_x: 0.4
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.265
+    inflation_dist: 0.58
+    weight_obstacle: 60.0
+    weight_viapoint: 5.0
+    weight_optimaltime: 0.6
+    dynamic_obstacle_inflation_dist: 0.65
+    weight_dynamic_obstacle: 65.0
+    weight_dynamic_obstacle_inflation: 0.4
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.15
+    max_global_plan_lookahead_dist: 5.0
+    global_plan_viapoint_sep: 0.15
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.0
+  profile_sha256: 79dea3bf54b29e3a3980785a49e02a9668317160db86d239c0734a7b69c1a715
+  evaluations:
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 79dea3bf54b29e3a3980785a49e02a9668317160db86d239c0734a7b69c1a715
+- candidate_id: anchor_corridor-c06-min_obstacle_dist_high
+  anchor_id: anchor_corridor
+  base_profile_id: profile_corridor_v2_04
+  screen_coordinate: min_obstacle_dist
+  screen_level: 1
+  values:
+    max_vel_x: 0.5
+    max_vel_theta: 0.38
+    acc_lim_x: 0.4
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.33499999999999996
+    inflation_dist: 0.58
+    weight_obstacle: 60.0
+    weight_viapoint: 5.0
+    weight_optimaltime: 0.6
+    dynamic_obstacle_inflation_dist: 0.65
+    weight_dynamic_obstacle: 65.0
+    weight_dynamic_obstacle_inflation: 0.4
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.15
+    max_global_plan_lookahead_dist: 5.0
+    global_plan_viapoint_sep: 0.15
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.0
+  profile_sha256: 403dde82d0c021325fcab2c08ee5efde2ba8aa8255bdc1e2bc855674850ecb52
+  evaluations:
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 403dde82d0c021325fcab2c08ee5efde2ba8aa8255bdc1e2bc855674850ecb52
+- candidate_id: anchor_corridor-c07-weight_viapoint_low
+  anchor_id: anchor_corridor
+  base_profile_id: profile_corridor_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: -1
+  values:
+    max_vel_x: 0.5
+    max_vel_theta: 0.38
+    acc_lim_x: 0.4
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.3
+    inflation_dist: 0.58
+    weight_obstacle: 60.0
+    weight_viapoint: 4.25
+    weight_optimaltime: 0.6
+    dynamic_obstacle_inflation_dist: 0.65
+    weight_dynamic_obstacle: 65.0
+    weight_dynamic_obstacle_inflation: 0.4
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.15
+    max_global_plan_lookahead_dist: 5.0
+    global_plan_viapoint_sep: 0.15
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.0
+  profile_sha256: 8e21edd0eb567b0db913fd8191f7fa3a1abc193d936ba0f5420245478d8eaa34
+  evaluations:
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8e21edd0eb567b0db913fd8191f7fa3a1abc193d936ba0f5420245478d8eaa34
+- candidate_id: anchor_corridor-c08-weight_viapoint_high
+  anchor_id: anchor_corridor
+  base_profile_id: profile_corridor_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: 1
+  values:
+    max_vel_x: 0.5
+    max_vel_theta: 0.38
+    acc_lim_x: 0.4
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.3
+    inflation_dist: 0.58
+    weight_obstacle: 60.0
+    weight_viapoint: 5.75
+    weight_optimaltime: 0.6
+    dynamic_obstacle_inflation_dist: 0.65
+    weight_dynamic_obstacle: 65.0
+    weight_dynamic_obstacle_inflation: 0.4
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.15
+    max_global_plan_lookahead_dist: 5.0
+    global_plan_viapoint_sep: 0.15
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.0
+  profile_sha256: 36611f6ea1d870dba3ad012c20d1e271ba4f3c20576606a864872f2a1c86e26a
+  evaluations:
+  - scene_id: v2-cal-corridor-offset-s4304
+    split: calibration
+    seed: 4304
+    family: CORRIDOR
+    dynamic_overlay: NONE
+    effective_profile_sha256: 36611f6ea1d870dba3ad012c20d1e271ba4f3c20576606a864872f2a1c86e26a
+- candidate_id: anchor_maneuver_forward-c00-center
+  anchor_id: anchor_maneuver_forward
+  base_profile_id: profile_maneuver_forward_v2_04
+  screen_coordinate: null
+  screen_level: 0
+  values:
+    max_vel_x: 0.4
+    max_vel_theta: 0.32
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 80.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.5
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 10.0
+    max_vel_x_backwards: 0.25
+    max_global_plan_lookahead_dist: 3.5
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: a4c21d08d0c999dc8fbb7c386217f2fef1418c6ebbd64b3daa2e3dca807cbd18
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: a4c21d08d0c999dc8fbb7c386217f2fef1418c6ebbd64b3daa2e3dca807cbd18
+- candidate_id: anchor_maneuver_forward-c01-max_vel_x_low
+  anchor_id: anchor_maneuver_forward
+  base_profile_id: profile_maneuver_forward_v2_04
+  screen_coordinate: max_vel_x
+  screen_level: -1
+  values:
+    max_vel_x: 0.29000000000000004
+    max_vel_theta: 0.2416666666666667
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 80.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.5
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 10.0
+    max_vel_x_backwards: 0.25
+    max_global_plan_lookahead_dist: 3.5
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: fbd534e0a731e47a56a4b31087d397731d9e9d3e16b08812ff433a8e661b5792
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: fbd534e0a731e47a56a4b31087d397731d9e9d3e16b08812ff433a8e661b5792
+- candidate_id: anchor_maneuver_forward-c02-max_vel_x_high
+  anchor_id: anchor_maneuver_forward
+  base_profile_id: profile_maneuver_forward_v2_04
+  screen_coordinate: max_vel_x
+  screen_level: 1
+  values:
+    max_vel_x: 0.51
+    max_vel_theta: 0.32
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 80.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.5
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 10.0
+    max_vel_x_backwards: 0.25
+    max_global_plan_lookahead_dist: 3.5
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 4bf622deca02962c8b3a6ad217464f2d8d4d7dfe625e6a39b4ceaf814ccc8b7d
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 4bf622deca02962c8b3a6ad217464f2d8d4d7dfe625e6a39b4ceaf814ccc8b7d
+- candidate_id: anchor_maneuver_forward-c03-max_vel_theta_low
+  anchor_id: anchor_maneuver_forward
+  base_profile_id: profile_maneuver_forward_v2_04
+  screen_coordinate: max_vel_theta
+  screen_level: -1
+  values:
+    max_vel_x: 0.4
+    max_vel_theta: 0.225
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 80.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.5
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 10.0
+    max_vel_x_backwards: 0.25
+    max_global_plan_lookahead_dist: 3.5
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: d54e87e7b34ae84489bfb075c895a3a86ec92ab02ca19d7e2e52e2c9c2637355
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: d54e87e7b34ae84489bfb075c895a3a86ec92ab02ca19d7e2e52e2c9c2637355
+- candidate_id: anchor_maneuver_forward-c04-max_vel_theta_high
+  anchor_id: anchor_maneuver_forward
+  base_profile_id: profile_maneuver_forward_v2_04
+  screen_coordinate: max_vel_theta
+  screen_level: 1
+  values:
+    max_vel_x: 0.4
+    max_vel_theta: 0.33333333333333337
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 80.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.5
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 10.0
+    max_vel_x_backwards: 0.25
+    max_global_plan_lookahead_dist: 3.5
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 03ee1f0b2e237c278d73b006389fb9fdd9ac2ffc7d13fd2d10102b7c1b892c93
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 03ee1f0b2e237c278d73b006389fb9fdd9ac2ffc7d13fd2d10102b7c1b892c93
+- candidate_id: anchor_maneuver_forward-c05-weight_obstacle_low
+  anchor_id: anchor_maneuver_forward
+  base_profile_id: profile_maneuver_forward_v2_04
+  screen_coordinate: weight_obstacle
+  screen_level: -1
+  values:
+    max_vel_x: 0.4
+    max_vel_theta: 0.32
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 65.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.5
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 10.0
+    max_vel_x_backwards: 0.25
+    max_global_plan_lookahead_dist: 3.5
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 010750be104e5b9372728c762c017cb5ee6d19c8dfa119a8531bb17c1ce7e613
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 010750be104e5b9372728c762c017cb5ee6d19c8dfa119a8531bb17c1ce7e613
+- candidate_id: anchor_maneuver_forward-c06-weight_obstacle_high
+  anchor_id: anchor_maneuver_forward
+  base_profile_id: profile_maneuver_forward_v2_04
+  screen_coordinate: weight_obstacle
+  screen_level: 1
+  values:
+    max_vel_x: 0.4
+    max_vel_theta: 0.32
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 95.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.5
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 10.0
+    max_vel_x_backwards: 0.25
+    max_global_plan_lookahead_dist: 3.5
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 9a283553f99596e82a60651368df7a9743bd06aa6f94db2ff73997a07107fa15
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 9a283553f99596e82a60651368df7a9743bd06aa6f94db2ff73997a07107fa15
+- candidate_id: anchor_maneuver_forward-c07-weight_viapoint_low
+  anchor_id: anchor_maneuver_forward
+  base_profile_id: profile_maneuver_forward_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: -1
+  values:
+    max_vel_x: 0.4
+    max_vel_theta: 0.32
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 80.0
+    weight_viapoint: 2.25
+    weight_optimaltime: 0.5
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 10.0
+    max_vel_x_backwards: 0.25
+    max_global_plan_lookahead_dist: 3.5
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 51ff927089be3f6ba6645ec5be7c56cf29eb748c9f0470cfceb00ca846a30dc9
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 51ff927089be3f6ba6645ec5be7c56cf29eb748c9f0470cfceb00ca846a30dc9
+- candidate_id: anchor_maneuver_forward-c08-weight_viapoint_high
+  anchor_id: anchor_maneuver_forward
+  base_profile_id: profile_maneuver_forward_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: 1
+  values:
+    max_vel_x: 0.4
+    max_vel_theta: 0.32
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 80.0
+    weight_viapoint: 3.75
+    weight_optimaltime: 0.5
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 10.0
+    max_vel_x_backwards: 0.25
+    max_global_plan_lookahead_dist: 3.5
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 16f806aba22dd40f7f0f52c0c6912dbf00d9c401a8b08041c5fc446b7a7ecbfd
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 16f806aba22dd40f7f0f52c0c6912dbf00d9c401a8b08041c5fc446b7a7ecbfd
+- candidate_id: anchor_maneuver_reverse-c00-center
+  anchor_id: anchor_maneuver_reverse
+  base_profile_id: profile_maneuver_reverse_v2_04
+  screen_coordinate: null
+  screen_level: 0
+  values:
+    max_vel_x: 0.35
+    max_vel_theta: 0.28
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 85.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.45
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.35
+    max_global_plan_lookahead_dist: 3.0
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 6cd1782538b3fa15d055664b6c6ee6c8c8c044d93a6931e18e24a6417cc16610
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 6cd1782538b3fa15d055664b6c6ee6c8c8c044d93a6931e18e24a6417cc16610
+- candidate_id: anchor_maneuver_reverse-c01-max_vel_x_backwards_low
+  anchor_id: anchor_maneuver_reverse
+  base_profile_id: profile_maneuver_reverse_v2_04
+  screen_coordinate: max_vel_x_backwards
+  screen_level: -1
+  values:
+    max_vel_x: 0.35
+    max_vel_theta: 0.28
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 85.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.45
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 3.0
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: a2e38ad1b510ebdbec95d869da47c8dace4ff19fdec5b7b966d110f6cbc1df39
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: a2e38ad1b510ebdbec95d869da47c8dace4ff19fdec5b7b966d110f6cbc1df39
+- candidate_id: anchor_maneuver_reverse-c02-max_vel_x_backwards_high
+  anchor_id: anchor_maneuver_reverse
+  base_profile_id: profile_maneuver_reverse_v2_04
+  screen_coordinate: max_vel_x_backwards
+  screen_level: 1
+  values:
+    max_vel_x: 0.35
+    max_vel_theta: 0.28
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 85.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.45
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.39999999999999997
+    max_global_plan_lookahead_dist: 3.0
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 876589d70d42357eaa6a4c1314e6b98232d92687d3caa4c74f642687e234ee8b
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 876589d70d42357eaa6a4c1314e6b98232d92687d3caa4c74f642687e234ee8b
+- candidate_id: anchor_maneuver_reverse-c03-max_vel_theta_low
+  anchor_id: anchor_maneuver_reverse
+  base_profile_id: profile_maneuver_reverse_v2_04
+  screen_coordinate: max_vel_theta
+  screen_level: -1
+  values:
+    max_vel_x: 0.35
+    max_vel_theta: 0.18500000000000003
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 85.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.45
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.35
+    max_global_plan_lookahead_dist: 3.0
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 8cd33608cc215cd39329bc6c904b2dc559136cff890d459da306f84406766865
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 8cd33608cc215cd39329bc6c904b2dc559136cff890d459da306f84406766865
+- candidate_id: anchor_maneuver_reverse-c04-max_vel_theta_high
+  anchor_id: anchor_maneuver_reverse
+  base_profile_id: profile_maneuver_reverse_v2_04
+  screen_coordinate: max_vel_theta
+  screen_level: 1
+  values:
+    max_vel_x: 0.35
+    max_vel_theta: 0.2916666666666667
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 85.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.45
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.35
+    max_global_plan_lookahead_dist: 3.0
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: fd837b07fd72b0974ad5d3406309a2eae6f68de35388df9fcad0908d93ba26bc
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: fd837b07fd72b0974ad5d3406309a2eae6f68de35388df9fcad0908d93ba26bc
+- candidate_id: anchor_maneuver_reverse-c05-weight_obstacle_low
+  anchor_id: anchor_maneuver_reverse
+  base_profile_id: profile_maneuver_reverse_v2_04
+  screen_coordinate: weight_obstacle
+  screen_level: -1
+  values:
+    max_vel_x: 0.35
+    max_vel_theta: 0.28
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 70.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.45
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.35
+    max_global_plan_lookahead_dist: 3.0
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: a9f174c0ba29198951f35d4fe0eed1b67aabe113fd30572ed9514ad7cd7b0d00
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: a9f174c0ba29198951f35d4fe0eed1b67aabe113fd30572ed9514ad7cd7b0d00
+- candidate_id: anchor_maneuver_reverse-c06-weight_obstacle_high
+  anchor_id: anchor_maneuver_reverse
+  base_profile_id: profile_maneuver_reverse_v2_04
+  screen_coordinate: weight_obstacle
+  screen_level: 1
+  values:
+    max_vel_x: 0.35
+    max_vel_theta: 0.28
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 100.0
+    weight_viapoint: 3.0
+    weight_optimaltime: 0.45
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.35
+    max_global_plan_lookahead_dist: 3.0
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: c96e083407019c3a07c714a32fbf1eb142461ace8f7cfe6b0af78869e6106f50
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: c96e083407019c3a07c714a32fbf1eb142461ace8f7cfe6b0af78869e6106f50
+- candidate_id: anchor_maneuver_reverse-c07-weight_viapoint_low
+  anchor_id: anchor_maneuver_reverse
+  base_profile_id: profile_maneuver_reverse_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: -1
+  values:
+    max_vel_x: 0.35
+    max_vel_theta: 0.28
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 85.0
+    weight_viapoint: 2.25
+    weight_optimaltime: 0.45
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.35
+    max_global_plan_lookahead_dist: 3.0
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: ed3294f85e247a7939920337d32d4a94da30578906806ed445524016545bf9f4
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: ed3294f85e247a7939920337d32d4a94da30578906806ed445524016545bf9f4
+- candidate_id: anchor_maneuver_reverse-c08-weight_viapoint_high
+  anchor_id: anchor_maneuver_reverse
+  base_profile_id: profile_maneuver_reverse_v2_04
+  screen_coordinate: weight_viapoint
+  screen_level: 1
+  values:
+    max_vel_x: 0.35
+    max_vel_theta: 0.28
+    acc_lim_x: 0.35
+    acc_lim_theta: 0.45
+    min_obstacle_dist: 0.35
+    inflation_dist: 0.7
+    weight_obstacle: 85.0
+    weight_viapoint: 3.75
+    weight_optimaltime: 0.45
+    dynamic_obstacle_inflation_dist: 0.8
+    weight_dynamic_obstacle: 80.0
+    weight_dynamic_obstacle_inflation: 0.5
+    weight_velocity_obstacle_ratio: 12.0
+    max_vel_x_backwards: 0.35
+    max_global_plan_lookahead_dist: 3.0
+    global_plan_viapoint_sep: 0.2
+    include_dynamic_obstacles: true
+    max_number_classes: 1
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 1.5
+  profile_sha256: 133753dddc04f728753793760be3c1e130d5495ac95d7381ba463b8527794f06
+  evaluations:
+  - scene_id: v2-cal-maneuver-bay-s4305
+    split: calibration
+    seed: 4305
+    family: MANEUVER
+    dynamic_overlay: NONE
+    effective_profile_sha256: 133753dddc04f728753793760be3c1e130d5495ac95d7381ba463b8527794f06
+claims:
+  candidate_screen_preregistered: true
+  anchor_calibration_complete: false
+  anchor_values_frozen: false
+  performance_improvement_observed: false

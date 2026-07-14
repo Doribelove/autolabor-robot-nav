@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="run_test" default="false"/>
+  <arg name="test_mode" default="all"/>
+  <arg name="seed" default="42"/>
+  <arg name="report_path" default="/tmp/m2_chassis_regression.yaml"/>
+  <include file="$(find m2_gazebo)/launch/spawn_m2.launch">
+    <arg name="world" value="$(find m2_gazebo)/worlds/regression.world"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+  </include>
+  <node if="$(arg run_test)" pkg="m2_gazebo" type="m2_regression_test.py"
+        name="m2_regression_test" output="screen" required="true">
+    <param name="mode" value="$(arg test_mode)"/>
+    <param name="seed" value="$(arg seed)"/>
+    <param name="report_path" value="$(arg report_path)"/>
+  </node>
+</launch>

@@ -1,0 +1,635 @@
+schema_version: '2.0'
+stage: V2-04F
+status: fresh_held_out_paired_validation_assessed
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+evidence:
+  progress:
+    path: /home/robot/robot_ws_base_rl/artifacts/v2/validation/v2_04f/v2_04f_progress.yaml
+    sha256: ea88d132e3f39549d421337e2bb1d62f37d540ac1c7efb331ff130cc730dff09
+  preregistration:
+    path: /home/robot/robot_ws_base_rl/experiments/manifests/v2/validation/v2_04f_preregistration.yaml
+    sha256: b70dea08ab631ef840257050e77cf71a4befa572e1326338a3c2f727211237b5
+  contract:
+    path: /home/robot/robot_ws_base_rl/config/thesis_experiments/v2/v2_04f_fresh_paired_validation_contract.yaml
+    sha256: 667dcb913d18c72fc97c2ae93b72b527afaa362dc0c669ad4818dedd2ba24c88
+  valid_paired_episode_count: 30
+stage_1_hard_gates:
+  complete_evidence_pass: true
+  success_non_degradation_pass: true
+  collision_pass: true
+  minimum_clearance_pass: false
+  minimum_clearance_failures:
+  - method: balanced_anchor
+    scene_id: v2-04f-dynamic-s4807
+    minimum_clearance_m: 0.0
+  typed_transaction_pass: true
+  balanced_single_anchor_pass: true
+  rule_required_anchor_coverage_pass: true
+  training_and_label_boundary_pass: true
+  base_safety_and_interface_gates_pass: false
+  all_stage_1_hard_gates_pass: false
+mechanism_checks:
+  cruise_static_dense_fraction_max_observed: 0.0
+  cruise_not_absorbed_by_static_pass: true
+  maneuver_fraction_min_observed: 0.185
+  maneuver_activation_pass: true
+  rule_active_anchor_switch_count_max_observed: 4
+  chatter_pass: false
+  all_mechanism_checks_pass: false
+ttc_evidence_quality:
+  dynamic_episode_count: 6
+  observed_conflict_count: 0
+  observed_conflict_fraction: 0.0
+  required_observed_conflict_fraction: 0.8
+  tracker_invalid_count: 0
+  cross_method_ttc_coverage_pass: false
+method_summaries:
+  fixed_teb:
+    episode_count: 10
+    success_count: 10
+    collision_count: 0
+    minimum_clearance_m: 0.2539009656907737
+    sum_navigation_time_s: 202.99999999999997
+    median_navigation_time_s: 18.55
+    median_path_length_m: 14.241171906361995
+    distinct_active_anchor_ids:
+    - fixed_teb
+    distinct_active_anchor_id_count: 1
+    context_geometry_switch_count_total: 0
+    active_anchor_switch_count_total: 0
+    training_used: false
+    runtime_policy_manifest_access: false
+    typed_transaction_invalid_count: 0
+  balanced_anchor:
+    episode_count: 10
+    success_count: 10
+    collision_count: 0
+    minimum_clearance_m: 0.0
+    sum_navigation_time_s: 293.4
+    median_navigation_time_s: 26.349999999999998
+    median_path_length_m: 14.378958119170854
+    distinct_active_anchor_ids:
+    - anchor_balanced
+    distinct_active_anchor_id_count: 1
+    context_geometry_switch_count_total: 22
+    active_anchor_switch_count_total: 0
+    training_used: false
+    runtime_policy_manifest_access: false
+    typed_transaction_invalid_count: 0
+  rule_multi_anchor:
+    episode_count: 10
+    success_count: 10
+    collision_count: 0
+    minimum_clearance_m: 0.42878425591729374
+    sum_navigation_time_s: 268.4
+    median_navigation_time_s: 29.0
+    median_path_length_m: 14.314196573324585
+    distinct_active_anchor_ids:
+    - anchor_balanced
+    - anchor_corridor
+    - anchor_cruise
+    - anchor_maneuver_forward
+    - anchor_static_dense
+    distinct_active_anchor_id_count: 5
+    context_geometry_switch_count_total: 20
+    active_anchor_switch_count_total: 20
+    training_used: false
+    runtime_policy_manifest_access: false
+    typed_transaction_invalid_count: 0
+family_summaries:
+  fixed_teb:
+    CRUISE:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 32.05
+        path_length_m: 35.10189761260372
+        mean_abs_speed_mps: 1.0951881842783853
+        minimum_clearance_m: 2.6867489608428055
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        lateral_rms_m: 0.012308028242297691
+        heading_oscillation_rad: 0.0
+        unnecessary_deceleration_count: 0.0
+    DYNAMIC:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 17.4
+        path_length_m: 18.09922344820456
+        mean_abs_speed_mps: 1.0403284811768492
+        minimum_clearance_m: 2.854720161663052
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        minimum_predicted_ttc_s: null
+        stop_count: 1.0
+        interaction_clearance_m: 2.854720161663052
+    STATIC_DENSE:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 17.15
+        path_length_m: 14.241171906361995
+        mean_abs_speed_mps: 0.8455936377928268
+        minimum_clearance_m: 0.3847632787256141
+        stop_count: 1.5
+        reverse_distance_m: 0.20642990728520422
+      family_medians:
+        topology_switch_count: 0.0
+        global_replan_count: 35.0
+        recovery_count: 0.0
+    CORRIDOR:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 10.7
+        path_length_m: 10.123609657953546
+        mean_abs_speed_mps: 0.9459984484881864
+        minimum_clearance_m: 0.4716619610030414
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        lateral_rms_m: 0.08462821209700863
+        heading_oscillation_rad: 0.4557816728813363
+        emergency_contact_count: 0.0
+    MANEUVER:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 24.2
+        path_length_m: 4.327780701474058
+        mean_abs_speed_mps: 0.1787911997976097
+        minimum_clearance_m: 0.26052804433538457
+        stop_count: 6.0
+        reverse_distance_m: 2.4116057508687083
+      family_medians:
+        gear_switch_count: 5.0
+        gear_switch_while_moving_count: 5.0
+        reverse_distance_m: 2.4116057508687083
+  balanced_anchor:
+    CRUISE:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 41.849999999999994
+        path_length_m: 35.08298511124174
+        mean_abs_speed_mps: 0.8382915253332976
+        minimum_clearance_m: 2.6852494391405797
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        lateral_rms_m: 0.008528517393691433
+        heading_oscillation_rad: 0.0
+        unnecessary_deceleration_count: 0.0
+    DYNAMIC:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 24.5
+        path_length_m: 18.140533815717944
+        mean_abs_speed_mps: 0.7446977480423433
+        minimum_clearance_m: 0.5359767663394833
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        minimum_predicted_ttc_s: null
+        stop_count: 1.0
+        interaction_clearance_m: 0.5359767663394833
+    STATIC_DENSE:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 25.75
+        path_length_m: 14.378958119170854
+        mean_abs_speed_mps: 0.5584565772536766
+        minimum_clearance_m: 0.4843057870427194
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        topology_switch_count: 0.0
+        global_replan_count: 51.0
+        recovery_count: 0.0
+    CORRIDOR:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 13.649999999999999
+        path_length_m: 10.135818213974796
+        mean_abs_speed_mps: 0.7425876731028295
+        minimum_clearance_m: 0.4695135962029268
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        lateral_rms_m: 0.11360843774885612
+        heading_oscillation_rad: 1.2686297283250747
+        emergency_contact_count: 0.0
+    MANEUVER:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 40.95
+        path_length_m: 4.21507612787574
+        mean_abs_speed_mps: 0.10316259816416859
+        minimum_clearance_m: 0.4172454445746784
+        stop_count: 10.5
+        reverse_distance_m: 2.201754816816723
+      family_medians:
+        gear_switch_count: 9.5
+        gear_switch_while_moving_count: 8.5
+        reverse_distance_m: 2.201754816816723
+  rule_multi_anchor:
+    CRUISE:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 33.3
+        path_length_m: 35.090888814517
+        mean_abs_speed_mps: 1.0538265084937013
+        minimum_clearance_m: 2.6867828006952377
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        lateral_rms_m: 0.010472121707446594
+        heading_oscillation_rad: 0.0
+        unnecessary_deceleration_count: 0.5
+    DYNAMIC:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 18.1
+        path_length_m: 18.09826087920314
+        mean_abs_speed_mps: 1.000576569434757
+        minimum_clearance_m: 2.0653469429086986
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        minimum_predicted_ttc_s: null
+        stop_count: 1.0
+        interaction_clearance_m: 2.0653469429086986
+    STATIC_DENSE:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 29.0
+        path_length_m: 14.314196573324585
+        mean_abs_speed_mps: 0.49374129335234074
+        minimum_clearance_m: 0.5025078080314468
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        topology_switch_count: 1.5
+        global_replan_count: 59.0
+        recovery_count: 0.0
+    CORRIDOR:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 17.2
+        path_length_m: 10.12740937573774
+        mean_abs_speed_mps: 0.5896061873999991
+        minimum_clearance_m: 0.4710818085418307
+        stop_count: 1.0
+        reverse_distance_m: 0.0
+      family_medians:
+        lateral_rms_m: 0.09417675349432586
+        heading_oscillation_rad: 1.8089818325392413
+        emergency_contact_count: 0.0
+    MANEUVER:
+      replicate_count: 2
+      common_medians:
+        navigation_time_s: 36.60000000000001
+        path_length_m: 4.017067926837021
+        mean_abs_speed_mps: 0.11065323821490612
+        minimum_clearance_m: 0.442029954154545
+        stop_count: 8.0
+        reverse_distance_m: 2.1184536576595874
+      family_medians:
+        gear_switch_count: 7.0
+        gear_switch_while_moving_count: 5.5
+        reverse_distance_m: 2.1184536576595874
+paired_comparisons_descriptive_only:
+  balanced_anchor_vs_fixed_teb:
+    CRUISE:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 9.799999999999997
+        median_relative_change_percent: 30.57778426791276
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: -0.01891250136198508
+        median_relative_change_percent: -0.0538788306549257
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: -0.0014995217022257812
+        median_relative_change_percent: -0.05642195382107984
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    DYNAMIC:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 7.1
+        median_relative_change_percent: 40.80459770114942
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: 0.0413103675133808
+        median_relative_change_percent: 0.22821199129581665
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: -2.318743395323569
+        median_relative_change_percent: -81.23971480389199
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    STATIC_DENSE:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 8.599999999999998
+        median_relative_change_percent: 53.05263889854669
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: 0.13778621280885872
+        median_relative_change_percent: 1.0173653704500336
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 0.09954250831710534
+        median_relative_change_percent: 25.928777737916324
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: -0.5
+        median_relative_change_percent: -25.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: -0.20642990728520422
+        median_relative_change_percent: -99.99999999999999
+    CORRIDOR:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 2.95
+        median_relative_change_percent: 27.57009345794393
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: 0.012208556021249706
+        median_relative_change_percent: 0.12061043275231163
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: -0.0021483648001145994
+        median_relative_change_percent: -0.45336298980681866
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    MANEUVER:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 16.750000000000004
+        median_relative_change_percent: 69.21487603305788
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: -0.11270457359831765
+        median_relative_change_percent: -2.6026709473680816
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 0.1567174002392938
+        median_relative_change_percent: 60.31906713574281
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 4.5
+        median_relative_change_percent: 75.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: -0.2098509340519854
+        median_relative_change_percent: -8.563732894090553
+  rule_multi_anchor_vs_fixed_teb:
+    CRUISE:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 1.2499999999999964
+        median_relative_change_percent: 3.89894859813083
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: -0.01100879808672417
+        median_relative_change_percent: -0.03136244206172137
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 3.383985243221588e-05
+        median_relative_change_percent: 0.0020807648476584284
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    DYNAMIC:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 0.6999999999999993
+        median_relative_change_percent: 4.022988505747122
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: -0.0009625690014232191
+        median_relative_change_percent: -0.005320047647942016
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: -0.7893732187543538
+        median_relative_change_percent: -27.65206642109903
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    STATIC_DENSE:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 11.850000000000001
+        median_relative_change_percent: 73.27376399415897
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: 0.07302466696259025
+        median_relative_change_percent: 0.5933292072808096
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 0.11774452930583268
+        median_relative_change_percent: 30.691336965100202
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: -0.5
+        median_relative_change_percent: -25.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: -0.20642990728520422
+        median_relative_change_percent: -99.99999999999999
+    CORRIDOR:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 6.5
+        median_relative_change_percent: 60.74766355140187
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: 0.0037997177841937457
+        median_relative_change_percent: 0.03755733165184226
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: -0.0005801524612107367
+        median_relative_change_percent: -0.12289691938777245
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    MANEUVER:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 12.400000000000006
+        median_relative_change_percent: 51.23966942148763
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: -0.31071277463703684
+        median_relative_change_percent: -7.172073013611904
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 0.18150190981916042
+        median_relative_change_percent: 69.64738054515979
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 2.0
+        median_relative_change_percent: 33.333333333333336
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: -0.2931520932091207
+        median_relative_change_percent: -12.11763525052563
+  rule_multi_anchor_vs_balanced_anchor:
+    CRUISE:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: -8.55
+        median_relative_change_percent: -20.429137499857262
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: 0.00790370327526091
+        median_relative_change_percent: 0.022544927162296002
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 0.001533361554657997
+        median_relative_change_percent: 0.05876940520852457
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    DYNAMIC:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: -6.4
+        median_relative_change_percent: -25.516224188790567
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: -0.042272936514804016
+        median_relative_change_percent: -0.23204333257007148
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 1.5293701765692154
+        median_relative_change_percent: 94.70052487522379
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    STATIC_DENSE:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 3.2500000000000018
+        median_relative_change_percent: 12.705956907477827
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: -0.06476154584626848
+        median_relative_change_percent: -0.439639324550294
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 0.018202020988727335
+        median_relative_change_percent: 3.7518341607482713
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    CORRIDOR:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: 3.55
+        median_relative_change_percent: 26.025118076427653
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: -0.00840883823705596
+        median_relative_change_percent: -0.08300988400507177
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 0.0015682123389038627
+        median_relative_change_percent: 0.3325032114782807
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: 0.0
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: 0.0
+        median_relative_change_percent: null
+    MANEUVER:
+      navigation_time_s:
+        direction: minimize
+        median_target_minus_reference: -4.349999999999998
+        median_relative_change_percent: -10.80419872867179
+      path_length_m:
+        direction: minimize
+        median_target_minus_reference: -0.1980082010387192
+        median_relative_change_percent: -4.697043516637117
+      minimum_clearance_m:
+        direction: maximize
+        median_target_minus_reference: 0.02478450957986661
+        median_relative_change_percent: 6.012238562844285
+      stop_count:
+        direction: minimize
+        median_target_minus_reference: -2.5
+        median_relative_change_percent: -24.090909090909093
+      reverse_distance_m:
+        direction: context_dependent
+        median_target_minus_reference: -0.08330115915713532
+        median_relative_change_percent: -3.7181552844234367
+decision:
+  success_non_degradation_proven: true
+  stage_2_performance_claim_authorized: false
+  descriptive_paired_metrics_computed: true
+  performance_effectiveness_proven: false
+  enter_v2_05_authorized: false
+  validation_may_modify_frozen_supervisor: false
+  runtime_ready: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false
+  blockers:
+  - successful_episode_minimum_clearance_below_0_25_m
+  - held_out_rule_anchor_switch_count_exceeded_preregistered_maximum
+  - dynamic_observed_conflict_fraction_below_preregistered_threshold
+  - rule_navigation_time_regressed_vs_fixed_in_all_five_families

@@ -1,0 +1,65 @@
+schema_version: '1.0'
+task: T12
+study: closed_loop_no_training
+status: passed
+passed: true
+training_performed: false
+simulation_only: true
+methods:
+  old_full_safety:
+    episode_count: 20
+    success_count: 8
+    success_rate: 0.4
+    emergency_stop_count: 12
+    emergency_stop_rate: 0.6
+    collision_count: 0
+    collision_rate: 0.0
+    timeout_count: 0
+    interface_fault_count: 0
+    unknown_termination_count: 0
+    planner_failure_count: 0
+    mean_navigation_time_s: 2.2503
+    mean_min_clearance_m: 12.595661024841846
+  t12_safety:
+    episode_count: 20
+    success_count: 18
+    success_rate: 0.9
+    emergency_stop_count: 2
+    emergency_stop_rate: 0.1
+    collision_count: 0
+    collision_rate: 0.0
+    timeout_count: 0
+    interface_fault_count: 0
+    unknown_termination_count: 0
+    planner_failure_count: 0
+    mean_navigation_time_s: 5.397999999999999
+    mean_min_clearance_m: 12.356905460377664
+  projection_only:
+    episode_count: 20
+    success_count: 19
+    success_rate: 0.95
+    emergency_stop_count: 0
+    emergency_stop_rate: 0.0
+    collision_count: 0
+    collision_rate: 0.0
+    timeout_count: 0
+    interface_fault_count: 0
+    unknown_termination_count: 0
+    planner_failure_count: 1
+    mean_navigation_time_s: 6.316800000000001
+    mean_min_clearance_m: 12.21891096138109
+gates:
+  exact_60_episode_complete_pairing: true
+  new_emergency_rate_reduced_by_20pp: true
+  new_emergency_rate_at_most_quarter_of_old: true
+  collision_not_increased_vs_old: true
+  collision_not_increased_vs_projection: true
+  success_recovered_by_20pp: true
+  success_within_15pp_of_projection: true
+  new_planner_failures_zero: true
+  new_interface_faults_zero: true
+  new_termination_reasons_complete: true
+effect:
+  emergency_rate_reduction_percentage_points: 50.0
+  success_rate_change_percentage_points: 50.0
+decision: safety_repair_validated_no_training_may_proceed

@@ -1,0 +1,75 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_04f_fresh_held_out_three_method_validation_1
+status: preregistered_simulation_only
+formal_experiment: false
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+frozen_inputs:
+  anchor_bank: {path: src/application/teb_mode_manager/config/v2_04c_anchor_bank_frozen.yaml, sha256: b1365f2b14e4a77f4e715bc46369fa4277e9adbb8522190153f7abd2ce635b9d}
+  rule_supervisor: {path: src/application/teb_mode_manager/config/v2_04e4_rule_supervisor_frozen.yaml, sha256: 2c3a8669418d9221be6c314df06d1ce936a1ba414117ce5e47fc6b35f9bdfe1d}
+  supervisor_freeze_report: {path: artifacts/v2/calibration/v2_04e4/v2_04e4_supervisor_freeze_report.yaml, sha256: 71d2a144032e5190867269113e0aa39a08acc4904806ed8d9eb11e87059b2ae2}
+  validation_scene_derivation: {path: experiments/manifests/v2/validation/v2_04f_scene_derivation.yaml, sha256: 0e8bf3010fd496ceffeb546fe4495bdddeef0a113e0f83bd55e658798f5e347d}
+  validation_scenes: {path: artifacts/v2/validation/v2_04f/v2_04f_paired_validation_scenes.yaml, sha256: f9bcb858f2f380390be39e228b6c8aa8cdb2355597f1bd1519fab5830c669915}
+  compiled_scene_index: {path: artifacts/v2/validation/v2_04f/compiled_scenes/compiled_scene_index.yaml, sha256: e061f19b6185187fdbe89e5b1ef89b14e267532c287d611c669c9f2abb7ccd3a}
+  validation_launch: {path: src/simulation/m2_gazebo/launch/m2_v2_04e_04f_supervisor_experiment.launch, sha256: 077209828c8c3401ba562b16d6a153f24e213730db3d4d24865a3ea6eef14031}
+  episode_runner: {path: src/tools/thesis_experiment/scripts/v2_supervisor_repair_episode.py, sha256: 8e3d2221a66b248a2357e22bc45864aad51f9bfa9f08cc027c47c8906fe0e249}
+  batch_runner: {path: src/tools/thesis_experiment/scripts/v2_supervisor_experiment_batch.py, sha256: 0ee8a5b1458fd14bfcfb3535398e6250fefa4c813cfbf4b9683e4e6b44d5d3f1}
+split_boundary:
+  permitted_split: validation
+  permitted_seed_set: [4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+  selection_or_refinement_on_validation_allowed: false
+  validation_result_may_modify_supervisor_or_anchor_bank: false
+  runtime_manifest_access: false
+  runtime_scene_labels_allowed: false
+methods:
+  order: [fixed_teb, balanced_anchor, rule_multi_anchor]
+  fixed_teb: {geometry_profile: legacy_fixed_teb, dynamic_track_bridge: false, rule_supervisor: false, typed_parameter_transactions: false}
+  balanced_anchor: {geometry_profile: frozen_balanced_anchor_only, dynamic_track_bridge: true, rule_supervisor: label_free_dynamic_overlay_only, typed_parameter_transactions: simulation_dynamic_reconfigure, geometry_mode_clamp: BALANCED}
+  rule_multi_anchor: {geometry_profile: frozen_multi_anchor_bank, dynamic_track_bridge: true, rule_supervisor: frozen_v2_04e4_label_free_supervisor, typed_parameter_transactions: simulation_dynamic_reconfigure, geometry_mode_clamp: null}
+pairing:
+  scene_count: 10
+  replicates_per_family: 2
+  family_order: [CRUISE, DYNAMIC, STATIC_DENSE, CORRIDOR, MANEUVER]
+  common_random_numbers_across_methods: true
+  method_block_order_fixed: true
+  planned_navigation_episode_count: 30
+  attempts_per_interface_failure: 2
+  early_stopping_allowed: false
+stage_1_hard_gates:
+  complete_paired_evidence_required: true
+  persistent_interface_failure_count_max: 0
+  collision_count_max_per_method: 0
+  balanced_success_count_must_be_at_least_fixed: true
+  rule_success_count_must_be_at_least_fixed: true
+  minimum_clearance_m_min_per_successful_episode: 0.25
+  training_used_must_be_false: true
+  runtime_label_or_manifest_access_must_be_false: true
+  typed_transaction_valid_required_for: [balanced_anchor, rule_multi_anchor]
+  balanced_distinct_anchor_ids_exact: [anchor_balanced]
+  rule_required_anchor_ids: [anchor_cruise, anchor_static_dense, anchor_corridor, anchor_maneuver_forward]
+  failure_action: report_failure_without_parameter_refinement
+mechanism_checks:
+  rule_cruise_static_dense_fraction_max: 0.10
+  rule_maneuver_fraction_min: 0.15
+  rule_active_anchor_switch_count_max_per_episode: 3
+  measurement_window: post_readiness_goal_execution_only
+ttc_evidence_quality:
+  statuses: [OBSERVED_CONFLICT, NO_CONFLICT_IN_HORIZON, TRACKER_INVALID]
+  dynamic_observed_conflict_fraction_min: 0.80
+  tracker_invalid_dynamic_episode_count_max: 0
+stage_2_comparison:
+  authorized_only_after_all_stage_1_hard_gates: true
+  aggregation: paired_median
+  comparisons: [[balanced_anchor, fixed_teb], [rule_multi_anchor, fixed_teb], [rule_multi_anchor, balanced_anchor]]
+  common_metrics: {navigation_time_s: minimize, path_length_m: minimize, minimum_clearance_m: maximize, stop_count: minimize, reverse_distance_m: context_dependent}
+  family_metrics:
+    CRUISE: [lateral_rms_m, heading_oscillation_rad, unnecessary_deceleration_count]
+    DYNAMIC: [minimum_predicted_ttc_s, stop_count, interaction_clearance_m]
+    STATIC_DENSE: [topology_switch_count, global_replan_count, recovery_count]
+    CORRIDOR: [lateral_rms_m, heading_oscillation_rad, emergency_contact_count]
+    MANEUVER: [gear_switch_count, gear_switch_while_moving_count, reverse_distance_m]
+  claim_rule: {no_single_scalar_score: true, success_and_safety_reported_before_performance: true, family_tradeoffs_reported_without_post_hoc_weighting: true}
+boundaries: {sac_training_allowed: false, any_learning_allowed: false, real_vehicle_parameter_write_allowed: false, real_vehicle_motion_allowed: false, runtime_ready_after_pass: false}

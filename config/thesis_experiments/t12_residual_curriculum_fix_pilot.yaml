@@ -1,0 +1,36 @@
+schema_version: "1.0"
+task: T12
+study_version: t12_residual_curriculum_rotation_fix_2seed_budget_v1
+amendment: experiments/manifests/t12/residual_curriculum_single_factor_amendment.yaml
+mode: residual_semantic_eta
+simulation_only: true
+real_vehicle_use_forbidden: true
+training_enabled: true
+mapping: config/thesis_experiments/A_TEB_v1.yaml
+safety_contract: src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+anchor_source: t08_teb_tuned_gazebo_pilot_v1
+anchor_theta:
+  max_vel_x: 0.9
+  max_vel_theta: 0.75
+  acc_lim_x: 0.6
+  acc_lim_theta: 0.6
+  min_obstacle_dist: 0.375
+  inflation_dist: 0.725
+  weight_obstacle: 75.0
+  weight_viapoint: 2.5
+  weight_optimaltime: 0.75
+normalized_residual_radius: [0.35, 0.25, 0.30, 0.30, 0.25, 0.20, 0.30, 0.25, 0.25]
+minimum_risk_scale: 0.20
+action_ema_alpha: 0.35
+decision_hold_steps: 4
+budget:
+  seeds: [101, 102]
+  timesteps_per_seed: 2000
+  checkpoint_interval_steps: 1000
+  evaluation_seed_limit: 1
+  formal_result: false
+stop_gates:
+  collision_count: 0
+  process_crash_count: 0
+  interface_fault_count: 0
+  valid_checkpoint_required: true

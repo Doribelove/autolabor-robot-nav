@@ -1,0 +1,56 @@
+schema_version: '2.0'
+stage: V2-04C-Q
+status: qualification_failed
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+progress_sha256: c87c9866543ff4b32c5364747ae214d1774fa94555ea42d30694b6449e35efc0
+episode_count: 5
+observed_conflict_count: 5
+observed_conflict_fraction: 1.0
+tracker_invalid_count: 0
+tracker_health_coverage_gate_passed: true
+episodes:
+- scene_id: v2-04c-q-dynamic-s4401
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 20
+  minimum_predicted_ttc_s: 0.38571829329185026
+  success: false
+  collision: false
+- scene_id: v2-04c-q-dynamic-s4402
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 18
+  minimum_predicted_ttc_s: 0.3452157527398572
+  success: false
+  collision: false
+- scene_id: v2-04c-q-dynamic-s4403
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 18
+  minimum_predicted_ttc_s: 0.36210617730561484
+  success: false
+  collision: false
+- scene_id: v2-04c-q-dynamic-s4404
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 18
+  minimum_predicted_ttc_s: 0.43709228944406836
+  success: false
+  collision: false
+- scene_id: v2-04c-q-dynamic-s4405
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 18
+  minimum_predicted_ttc_s: 0.34060249664873876
+  success: false
+  collision: false
+decision:
+  start_refinement: false
+  failure_action: stop_before_refinement_and_preregister_new_contract
+claims:
+  anchor_values_frozen: false
+  sac_training_started: false

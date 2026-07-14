@@ -1,0 +1,84 @@
+schema_version: '2.0'
+architecture_generation: v2
+evaluator_id: fam_teb_v2_02_evaluator_1
+formal_result: false
+runtime_ready: false
+scene_id: v2-04f-dynamic-s4802
+family: DYNAMIC
+split: validation
+seed: 4802
+instance_sha256: 982774b6405ddc9a562b83a261f41d793fd0f8ff22319418529157e28e5b489c
+raw_trace_sha256: 893f4ea83fe3fd40d54b686f73f2d34bd7eeadd9ded4628be95253b24d9b3be4
+termination: SUCCESS
+metrics:
+  common:
+    success: true
+    collision: false
+    navigation_time_s: 22.6
+    path_length_m: 18.08091932329284
+    mean_abs_speed_mps: 0.8000114955038453
+    minimum_clearance_m: 1.0719535326789666
+    stop_count: 1
+    reverse_distance_m: 0.0
+  family:
+    minimum_predicted_ttc_s: null
+    stop_count: 1
+    interaction_clearance_m: 1.0719535326789666
+stage: V2-04F
+method: balanced_anchor
+episode_timeout_s: 80.0
+tracker_message_count: 337
+tracker_health_valid_fraction: 1.0
+finite_ttc_sample_count: 0
+ttc_status: NO_CONFLICT_IN_HORIZON
+context_message_count: 113
+context_valid_count: 111
+context_geometry_sequence:
+- BALANCED
+- CRUISE
+- BALANCED
+- CRUISE
+context_geometry_switch_count: 3
+transaction_message_count: 115
+transaction_valid_count: 113
+transaction_activated_count: 113
+transaction_fault_count: 2
+transaction_backends:
+- simulation_teb_dynamic_reconfigure
+active_anchor_sequence:
+- anchor_balanced
+active_anchor_switch_count: 0
+typed_transaction_expected: true
+typed_transaction_valid: true
+training_used: false
+runtime_policy_manifest_access: false
+runtime_scene_labels_available: false
+experiment_manager_validation_manifest_access: true
+runner_fault_reason: ''
+supervisor_profile_id: frozen_v2_04e_winner
+context_geometry_sample_counts:
+  BALANCED: 24
+  CRUISE: 87
+  STATIC_DENSE: 0
+  CORRIDOR: 0
+  MANEUVER: 0
+context_geometry_sample_fractions:
+  BALANCED: 0.21621621621621623
+  CRUISE: 0.7837837837837838
+  STATIC_DENSE: 0.0
+  CORRIDOR: 0.0
+  MANEUVER: 0.0
+context_overlay_sample_counts:
+  NONE: 111
+  CROSSING: 0
+  HEAD_ON: 0
+  FOLLOW: 0
+  OVERTAKE_OR_YIELD: 0
+context_overlay_sample_fractions:
+  NONE: 1.0
+  CROSSING: 0.0
+  HEAD_ON: 0.0
+  FOLLOW: 0.0
+  OVERTAKE_OR_YIELD: 0.0
+experiment_manager_calibration_manifest_access: false
+mode_measurement_window: post_readiness_goal_execution_only

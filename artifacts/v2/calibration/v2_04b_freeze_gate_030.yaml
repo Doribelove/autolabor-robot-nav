@@ -1,0 +1,69 @@
+schema_version: "2.0"
+stage: V2-04B
+assessment_id: fam_teb_v2_04b_freeze_gate_030_1
+status: continue_calibration_not_frozen
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+
+inputs:
+  candidate_plan:
+    path: artifacts/v2/calibration/v2_04b_anchor_screen_plan.yaml
+    sha256: d58020bf454f03a5d0ed13c856bf95b1acac9d2f39edccf3858108d185976eb1
+  progress_checkpoint:
+    valid_evidence_episode_count: 30
+    sha256: 4fb790940a9582acbff74994c1031d818e22c224c6f8894336cf3ebdb75e3d96
+
+evidence:
+  planned_navigation_episode_count: 90
+  valid_evidence_episode_count: 30
+  successful_episode_count: 29
+  hard_gate_pass_episode_count: 29
+  interface_failure_count: 0
+  termination_counts: {SUCCESS: 29, ABORTED: 1}
+  anchor_episode_counts:
+    anchor_balanced: 25
+    anchor_cruise: 1
+    anchor_static_dense: 1
+    anchor_corridor: 1
+    anchor_maneuver_forward: 1
+    anchor_maneuver_reverse: 1
+  family_episode_counts:
+    CRUISE: 6
+    DYNAMIC: 5
+    STATIC_DENSE: 6
+    CORRIDOR: 6
+    MANEUVER: 7
+  hard_gate_failures:
+    - sequence: 30
+      candidate_id: anchor_balanced-c04-min_obstacle_dist_high
+      family: MANEUVER
+      termination: ABORTED
+      collision: false
+      minimum_clearance_m: 0.41699172072428814
+      runner_fault_reason: move_base_state_4
+
+gate_evaluation:
+  minimum_30_valid_evidence_reached: true
+  all_anchor_centers_evaluated: true
+  all_one_factor_candidates_evaluated: false
+  all_six_anchors_rankable: false
+  complete_preregistered_matrix: false
+  interface_integrity_passed: true
+
+decision:
+  enter_anchor_freeze: false
+  continue_to_episode_count: 90
+  reasons:
+    - only anchor_balanced has partial one-factor coverage at this checkpoint
+    - the five specialized Anchors have center-only evidence and cannot be ranked
+    - one Balanced Maneuver candidate failed the successful-episode hard gate
+
+claims:
+  freeze_assessment_performed: true
+  anchor_values_frozen: false
+  performance_improvement_observed: false
+  sac_training_started: false
+  real_vehicle_validated: false

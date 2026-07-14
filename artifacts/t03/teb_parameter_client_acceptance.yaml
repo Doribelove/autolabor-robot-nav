@@ -1,0 +1,295 @@
+schema_version: 1
+task: T03
+suite: teb_parameter_client_acceptance
+simulation_only: true
+real_driver_started: false
+serial_or_can_accessed: false
+real_vehicle_motion: false
+namespace: /move_base/TebLocalPlannerROS
+safety_gate:
+  explicit_simulation: true
+  use_sim_time: true
+  simulation_marker: true
+probe_status: simulation_candidate_not_real_calibration
+passed: true
+parameter_specs:
+  max_vel_x:
+    name: max_vel_x
+    type: double
+    minimum: 0.01
+    maximum: 100.0
+    current: 1.2
+    description: Maximum translational velocity of the robot
+  max_vel_theta:
+    name: max_vel_theta
+    type: double
+    minimum: 0.01
+    maximum: 100.0
+    current: 1.0
+    description: Maximum angular velocity of the robot
+  acc_lim_x:
+    name: acc_lim_x
+    type: double
+    minimum: 0.01
+    maximum: 100.0
+    current: 0.8
+    description: Maximum translational acceleration of the robot
+  acc_lim_theta:
+    name: acc_lim_theta
+    type: double
+    minimum: 0.01
+    maximum: 100.0
+    current: 0.8
+    description: Maximum angular acceleration of the robot
+  min_obstacle_dist:
+    name: min_obstacle_dist
+    type: double
+    minimum: 0.0
+    maximum: 10.0
+    current: 0.25
+    description: Minimum desired separation from obstacles
+  inflation_dist:
+    name: inflation_dist
+    type: double
+    minimum: 0.0
+    maximum: 15.0
+    current: 0.55
+    description: Buffer zone around obstacles with non-zero penalty costs (should
+      be larger than min_obstacle_dist in order to take effect)
+  weight_obstacle:
+    name: weight_obstacle
+    type: double
+    minimum: 0.0
+    maximum: 1000.0
+    current: 50.0
+    description: Optimization weight for satisfying a minimum seperation from obstacles
+  weight_viapoint:
+    name: weight_viapoint
+    type: double
+    minimum: 0.0
+    maximum: 1000.0
+    current: 1.0
+    description: Optimization weight for minimizing the distance to via-points
+  weight_optimaltime:
+    name: weight_optimaltime
+    type: double
+    minimum: 0.0
+    maximum: 1000.0
+    current: 1.0
+    description: Optimization weight for contracting the trajectory w.r.t. transition
+      time
+startup_snapshot:
+  max_vel_x: 1.2
+  max_vel_theta: 1.0
+  acc_lim_x: 0.8
+  acc_lim_theta: 0.8
+  min_obstacle_dist: 0.25
+  inflation_dist: 0.55
+  weight_obstacle: 50.0
+  weight_viapoint: 1.0
+  weight_optimaltime: 1.0
+transaction:
+  config_seq: 1
+  operation: apply
+  request:
+    max_vel_x: 1.1
+    max_vel_theta: 0.9
+    acc_lim_x: 0.7
+    acc_lim_theta: 0.7
+    min_obstacle_dist: 0.27
+    inflation_dist: 0.57
+    weight_obstacle: 55.0
+    weight_viapoint: 1.1
+    weight_optimaltime: 1.1
+  ack:
+    max_vel_x: 1.1
+    max_vel_theta: 0.9
+    acc_lim_x: 0.7
+    acc_lim_theta: 0.7
+    min_obstacle_dist: 0.27
+    inflation_dist: 0.57
+    weight_obstacle: 55.0
+    weight_viapoint: 1.1
+    weight_optimaltime: 1.1
+  readback:
+    max_vel_x: 1.1
+    max_vel_theta: 0.9
+    acc_lim_x: 0.7
+    acc_lim_theta: 0.7
+    min_obstacle_dist: 0.27
+    inflation_dist: 0.57
+    weight_obstacle: 55.0
+    weight_viapoint: 1.1
+    weight_optimaltime: 1.1
+  latency_s: 0.16806685000028665
+  t_request_wall_s: 1783793133.0219915
+  t_ack_wall_s: 1783793133.19004
+  t_readback_wall_s: 1783793133.190056
+  passed: true
+  failure_code: null
+  failure_message: null
+  restore_attempted: false
+  restore_succeeded: null
+restoration:
+  operation: restore
+  request:
+    max_vel_x: 1.2
+    max_vel_theta: 1.0
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.8
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 1.0
+    weight_optimaltime: 1.0
+  ack:
+    max_vel_x: 1.2
+    max_vel_theta: 1.0
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.8
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 1.0
+    weight_optimaltime: 1.0
+  readback:
+    max_vel_x: 1.2
+    max_vel_theta: 1.0
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.8
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 1.0
+    weight_optimaltime: 1.0
+  latency_s: 0.01416777699978411
+  t_request_wall_s: 1783793133.1900625
+  t_ack_wall_s: 1783793133.2042062
+  t_readback_wall_s: 1783793133.204226
+  passed: true
+final_values:
+  max_vel_x: 1.2
+  max_vel_theta: 1.0
+  acc_lim_x: 0.8
+  acc_lim_theta: 0.8
+  min_obstacle_dist: 0.25
+  inflation_dist: 0.55
+  weight_obstacle: 50.0
+  weight_viapoint: 1.0
+  weight_optimaltime: 1.0
+snapshot_restored: true
+atomic_request_parameter_count: 9
+audit_records:
+- config_seq: 1
+  operation: apply
+  request:
+    max_vel_x: 1.1
+    max_vel_theta: 0.9
+    acc_lim_x: 0.7
+    acc_lim_theta: 0.7
+    min_obstacle_dist: 0.27
+    inflation_dist: 0.57
+    weight_obstacle: 55.0
+    weight_viapoint: 1.1
+    weight_optimaltime: 1.1
+  ack:
+    max_vel_x: 1.1
+    max_vel_theta: 0.9
+    acc_lim_x: 0.7
+    acc_lim_theta: 0.7
+    min_obstacle_dist: 0.27
+    inflation_dist: 0.57
+    weight_obstacle: 55.0
+    weight_viapoint: 1.1
+    weight_optimaltime: 1.1
+  readback:
+    max_vel_x: 1.1
+    max_vel_theta: 0.9
+    acc_lim_x: 0.7
+    acc_lim_theta: 0.7
+    min_obstacle_dist: 0.27
+    inflation_dist: 0.57
+    weight_obstacle: 55.0
+    weight_viapoint: 1.1
+    weight_optimaltime: 1.1
+  latency_s: 0.16806685000028665
+  t_request_wall_s: 1783793133.0219915
+  t_ack_wall_s: 1783793133.19004
+  t_readback_wall_s: 1783793133.190056
+  passed: true
+  failure_code: null
+  failure_message: null
+  restore_attempted: false
+  restore_succeeded: null
+- operation: restore
+  request:
+    max_vel_x: 1.2
+    max_vel_theta: 1.0
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.8
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 1.0
+    weight_optimaltime: 1.0
+  ack:
+    max_vel_x: 1.2
+    max_vel_theta: 1.0
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.8
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 1.0
+    weight_optimaltime: 1.0
+  readback:
+    max_vel_x: 1.2
+    max_vel_theta: 1.0
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.8
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 1.0
+    weight_optimaltime: 1.0
+  latency_s: 0.01416777699978411
+  t_request_wall_s: 1783793133.1900625
+  t_ack_wall_s: 1783793133.2042062
+  t_readback_wall_s: 1783793133.204226
+  passed: true
+- operation: close_restore
+  request:
+    max_vel_x: 1.2
+    max_vel_theta: 1.0
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.8
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 1.0
+    weight_optimaltime: 1.0
+  ack:
+    max_vel_x: 1.2
+    max_vel_theta: 1.0
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.8
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 1.0
+    weight_optimaltime: 1.0
+  readback:
+    max_vel_x: 1.2
+    max_vel_theta: 1.0
+    acc_lim_x: 0.8
+    acc_lim_theta: 0.8
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 1.0
+    weight_optimaltime: 1.0
+  latency_s: 0.019661667999571364
+  t_request_wall_s: 1783793133.2042394
+  t_ack_wall_s: 1783793133.223882
+  t_readback_wall_s: 1783793133.223898
+  passed: true

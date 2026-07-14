@@ -1,0 +1,33 @@
+schema_version: "1.0"
+status: frozen_cpu_t09
+install_during_t01: false
+
+bundled_stable_baselines3:
+  path: src/navigation_arena/forks/stable-baselines3
+  version: 1.1.0a1
+  commit: d47012ba8005177651f8597be14c5f1c34aeaa88
+
+observed_external_packages_not_approved_for_thesis:
+  torch: 2.4.1+cu121
+  gym: 0.26.2
+  stable_baselines3_loaded_from: /home/robot/catkin_ws/src/forks/stable-baselines3
+
+strict_thesis_venv:
+  environment_guard: PYTHONNOUSERSITE=1
+  torch_installed: 2.4.1+cpu
+  gymnasium_installed: 1.0.0
+  stable_baselines3_installed: 2.4.1
+  cuda_required: false
+  lock_file: requirements/thesis-rl-lock.txt
+  audit_file: requirements/thesis-rl-lock.yaml
+
+freeze_gate_results:
+  compatible_imports: passed
+  sac_cpu_smoke: passed
+  pip_check: passed
+  record_hashes_frozen: true
+  forbidden_external_imports: passed
+
+note: >-
+  T09 uses the isolated modern Gymnasium/SB3 API and CPU-only Torch. The
+  observed external catkin_ws combination and bundled legacy SB3 are not used.

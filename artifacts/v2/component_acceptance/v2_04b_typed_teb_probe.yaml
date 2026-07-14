@@ -1,0 +1,58 @@
+schema_version: '2.0'
+stage: V2-04B
+status: passed
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+execution_backend: simulation_teb_dynamic_reconfigure
+teb_namespace: /move_base/TebLocalPlannerROS
+parameter_count: 20
+parameter_type_counts:
+  double: 18
+  int: 1
+  bool: 1
+single_call_complete_profile: true
+transaction_count: 41
+segments:
+- geometry_mode: CRUISE
+  maneuver_reverse: false
+  ticks: 5
+  slow_profile_committed: true
+  profile_id: profile_cruise_v2_04+none
+- geometry_mode: STATIC_DENSE
+  maneuver_reverse: false
+  ticks: 9
+  slow_profile_committed: true
+  profile_id: profile_static_dense_v2_04+none
+- geometry_mode: CORRIDOR
+  maneuver_reverse: false
+  ticks: 9
+  slow_profile_committed: true
+  profile_id: profile_corridor_v2_04+none
+- geometry_mode: MANEUVER
+  maneuver_reverse: false
+  ticks: 6
+  slow_profile_committed: false
+  profile_id: profile_maneuver_forward_v2_04+none
+- geometry_mode: MANEUVER
+  maneuver_reverse: true
+  ticks: 3
+  slow_profile_committed: false
+  profile_id: profile_maneuver_reverse_v2_04+none
+- geometry_mode: BALANCED
+  maneuver_reverse: false
+  ticks: 9
+  slow_profile_committed: true
+  profile_id: profile_balanced_v2_04+none
+timestamps_ordered: true
+typed_trace_reconstructible: true
+startup_snapshot_restored: true
+audit_operation_count: 42
+fault_reason: ''
+claims:
+  anchor_values_calibrated: false
+  navigation_performance_improved: false
+  sac_training_used: false
+  real_vehicle_validated: false

@@ -1,0 +1,14 @@
+<launch>
+  <include file="$(find m2_gazebo)/launch/m2_fixed_teb.launch">
+    <arg name="gui" value="false"/>
+    <arg name="seed" value="42"/>
+  </include>
+  <test test-name="t04_t06_pipeline_integration"
+        pkg="thesis_experiment" type="t04_t06_pipeline_integration.py"
+        name="t04_t06_pipeline_integration" time-limit="75"
+        args="--rostest">
+    <param name="seed" value="42"/>
+    <param name="output_dir"
+           value="/home/robot/robot_ws_base_rl/artifacts/t06/t04_t06_pipeline_run"/>
+  </test>
+</launch>

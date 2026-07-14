@@ -1,0 +1,142 @@
+schema_version: "2.0"
+architecture_generation: v2
+registry_id: fam_teb_v2_parameter_registry_design_1
+status: skeleton_not_runtime_ready
+runtime_ready: false
+minimum_turning_radius_source: calibration_then_fixed
+
+fast_continuous:
+  - name: max_vel_x
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: true
+    transform: bounded_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: max_vel_theta
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: true
+    transform: coupled_to_max_vel_x_and_turning_radius
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: acc_lim_x
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: true
+    transform: bounded_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: acc_lim_theta
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: true
+    transform: bounded_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: min_obstacle_dist
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: true
+    transform: bounded_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: inflation_dist
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: true
+    transform: min_obstacle_dist_plus_softplus_gap
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: weight_obstacle
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: true
+    transform: bounded_log_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: weight_viapoint
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: true
+    transform: bounded_log_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: weight_optimaltime
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: true
+    transform: bounded_log_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: dynamic_obstacle_inflation_dist
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: false
+    transform: min_obstacle_dist_plus_softplus_gap
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: weight_dynamic_obstacle
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: false
+    transform: bounded_log_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: weight_dynamic_obstacle_inflation
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: false
+    transform: bounded_log_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+  - name: weight_velocity_obstacle_ratio
+    type: double
+    lifecycle: fast_continuous
+    owner: feasible_action_decoder
+    online_support: true
+    learned_candidate: false
+    transform: bounded_log_positive
+    bounds: {simulation_min: null, simulation_max: null, real_min: null, real_max: null}
+    max_delta_per_decision: null
+
+slow_mode_profile:
+  - {name: max_vel_x_backwards, type: double, lifecycle: slow_mode_profile, owner: mode_manager, online_support: true, learned_candidate: false, default: null, status: requires_mode_calibration}
+  - {name: max_global_plan_lookahead_dist, type: double, lifecycle: slow_mode_profile, owner: mode_manager, online_support: true, learned_candidate: false, default: null, status: requires_mode_calibration}
+  - {name: global_plan_viapoint_sep, type: double, lifecycle: slow_mode_profile, owner: mode_manager, online_support: true, learned_candidate: false, default: null, status: requires_mode_calibration}
+  - {name: include_dynamic_obstacles, type: bool, lifecycle: slow_mode_profile, owner: mode_manager, online_support: true, learned_candidate: false, default: null, status: requires_tracker_acceptance}
+  - {name: max_number_classes, type: int, lifecycle: slow_mode_profile, owner: mode_manager, online_support: true, learned_candidate: false, default: null, status: requires_hcp_deadline_acceptance}
+  - {name: selection_cost_hysteresis, type: double, lifecycle: slow_mode_profile, owner: mode_manager, online_support: true, learned_candidate: false, default: null, status: requires_topology_lock_acceptance}
+  - {name: switching_blocking_period, type: double, lifecycle: slow_mode_profile, owner: mode_manager, online_support: true, learned_candidate: false, default: null, status: requires_topology_lock_acceptance}
+
+startup_structural:
+  - {name: planner_backend_objects, type: object_set, lifecycle: startup_structural, owner: process_startup, online_support: false, learned_candidate: false, status: preinstantiate_only}
+  - {name: costmap_converter_plugin, type: plugin_name, lifecycle: startup_structural, owner: process_startup, online_support: false, learned_candidate: false, status: startup_only}
+  - {name: footprint, type: polygon, lifecycle: startup_structural, owner: process_startup, online_support: false, learned_candidate: false, status: calibration_then_fixed}
+  - {name: wheelbase, type: double, lifecycle: startup_structural, owner: process_startup, online_support: false, learned_candidate: false, status: calibration_then_fixed}
+  - {name: min_turning_radius, type: double, lifecycle: startup_structural, owner: process_startup, online_support: false, learned_candidate: false, status: calibration_then_fixed}
+  - {name: frames_and_sensor_sources, type: interface_set, lifecycle: startup_structural, owner: process_startup, online_support: false, learned_candidate: false, status: deployment_contract}

@@ -1,0 +1,84 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_04_action_pipeline_candidate_1
+status: uncalibrated_simulation_candidate
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+profiles:
+  parameter_registry: config/thesis_experiments/v2/parameter_registry.yaml
+  anchor_bank: src/application/teb_mode_manager/config/v2_04_anchor_bank_candidate.yaml
+  required_anchor_ids:
+    - anchor_balanced
+    - anchor_cruise
+    - anchor_static_dense
+    - anchor_corridor
+    - anchor_maneuver_forward
+    - anchor_maneuver_reverse
+  required_overlay_ids: [NONE, CROSSING, HEAD_ON, FOLLOW, OVERTAKE_OR_YIELD]
+  calibration_split_only: true
+  formal_test_selection_forbidden: true
+
+action_decoder:
+  parameter_order_source: anchor_bank.parameters
+  normalized_residual_domain: [-1.0, 1.0]
+  zero_residual_rule_pilot: true
+  constraints:
+    finite_exact_schema: true
+    bounded_positive_parameters: true
+    positive_weights: true
+    minimum_turning_radius_m: 1.2
+    yaw_coupling: max_vel_theta_lte_max_vel_x_over_min_turning_radius
+    minimum_inflation_gap_m: 0.20
+    minimum_dynamic_inflation_gap_m: 0.20
+  projection_reason_bits:
+    physical_bound_audit: 1
+    ackermann_coupling_audit: 2
+    inflation_gap_audit: 4
+    dynamic_inflation_gap_audit: 8
+    positive_weight_audit: 16
+    speed_envelope_audit: 32
+
+parameter_transaction:
+  stages: [commanded, feasible, safe, executed]
+  transition_origin: previous_executed
+  execution_feedback_required: true
+  ack_required: true
+  readback_required: true
+  activation_required: true
+  atomic_failure_behavior: hold_previous_executed
+  continuous_rate_source: anchor_bank.parameters.max_rate_per_s
+  discrete_commit: after_continuous_convergence
+  slow_profile_types: [double, int, bool]
+  default_backend: deterministic_shadow
+  dynamic_reconfigure_backend_enabled: false
+  real_parameter_write_enabled: false
+
+rule_closed_loop:
+  policy_source: rule_supervisor_zero_residual
+  learned_policy_loaded: false
+  checkpoint_access: false
+  runtime_scene_labels_allowed: false
+  runtime_manifest_access: false
+  forbidden_runtime_topics: [/gazebo/model_states, /pedsim_simulator/simulated_agents]
+  input_topic: /teb_mode_manager/context
+  output_topic: /teb_rl_v2/action_trace
+  decision_frequency_hz: 5.0
+  context_maximum_age_s: 0.40
+  invalid_context_behavior: publish_invalid_hold_previous_executed
+
+acceptance_gates:
+  normal_projection_rate_max: 0.10
+  continuous_jump_tolerance: 1.0e-12
+  complete_trace_reconstruction_required: true
+  fault_atomicity_required: true
+  all_profile_types_exercised: true
+
+claims:
+  anchor_values_formally_calibrated: false
+  navigation_performance_improved: false
+  v2_learning_implemented: false
+  gazebo_navigation_closed_loop_completed: false
+  real_vehicle_validated: false

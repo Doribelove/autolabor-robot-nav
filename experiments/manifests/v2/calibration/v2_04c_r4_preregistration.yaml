@@ -1,0 +1,39 @@
+schema_version: "2.0"
+stage: V2-04C-Q-R4
+preregistration_id: fam_teb_v2_04c_ttc_qualification_r4_preregistration_1
+status: frozen_before_navigation
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_use_forbidden: true
+resources:
+  amendment:
+    path: config/thesis_experiments/v2/v2_04c_ttc_qualification_r4_amendment.yaml
+    sha256: 5751136df3aa2fb49c2211517c1a0fc0fde3a1be92c163dbd37b41ef72537b72
+  retry_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_r4_plan.yaml
+    sha256: 32f6ba157b667a98f8c43dc63c067dd42883fc4998a9d565584239069a790fd0
+  compiled_scenes:
+    path: artifacts/v2/calibration/v2_04c/qualification/compiled_scenes/compiled_scene_index.yaml
+    sha256: 194b9ebee877554ebe5bd0e0c35a090f23c2ad951a083b5677a173c8d6bd7402
+  teb_source:
+    path: src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp
+    sha256: 5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2
+  teb_binary:
+    path: devel/lib/libteb_local_planner.so
+    sha256: 7d17474e7901821d7f69bf10cdb909e4445f9010e32ee045452ad42c6ba1883e
+single_changed_factor:
+  name: tracked_dynamic_costmap_spatial_fusion
+  r3_value: duplicated
+  r4_value: fused
+budgets:
+  qualification_episode_count: 5
+  attempts_per_episode: 2
+  early_stopping_allowed: false
+boundaries:
+  selection_split: calibration
+  scene_labels_available_to_policy: false
+  refinement_requires_r4_pass: true
+  sac_training_allowed: false
+  real_vehicle_allowed: false

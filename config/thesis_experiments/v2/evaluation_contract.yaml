@@ -1,0 +1,66 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_02_evaluator_1
+status: component_candidate_frozen
+simulation_only: true
+formal_experiment: false
+runtime_ready: false
+
+trace_columns:
+  required:
+    - stamp_s
+    - x_m
+    - y_m
+    - yaw_rad
+    - linear_velocity_mps
+    - angular_velocity_radps
+    - commanded_speed_mps
+    - clearance_m
+    - goal_distance_m
+    - collision
+    - goal_reached
+    - contact_count
+    - topology_id
+    - global_replan_count
+    - recovery_count
+    - gear
+  nullable:
+    - predicted_ttc_s
+  gear_values: [REVERSE, NEUTRAL, FORWARD]
+
+semantics:
+  timestamp_clock: gazebo_sim_time
+  timestamps_strictly_increasing: true
+  terminal_precedence: [COLLISION, SUCCESS, TIMEOUT, ABORTED]
+  success_requires_goal_and_stop: true
+  contact_is_collision_source: true
+  episode_is_statistical_unit: true
+
+metrics:
+  common:
+    - success
+    - collision
+    - navigation_time_s
+    - path_length_m
+    - mean_abs_speed_mps
+    - minimum_clearance_m
+    - stop_count
+    - reverse_distance_m
+  family:
+    CRUISE: [lateral_rms_m, heading_oscillation_rad, unnecessary_deceleration_count]
+    DYNAMIC: [minimum_predicted_ttc_s, stop_count, interaction_clearance_m]
+    STATIC_DENSE: [topology_switch_count, global_replan_count, recovery_count]
+    CORRIDOR: [lateral_rms_m, heading_oscillation_rad, emergency_contact_count]
+    MANEUVER: [gear_switch_count, gear_switch_while_moving_count, reverse_distance_m]
+
+output:
+  formal_result: false
+  preserve_failures: true
+  family_results_separate: true
+  macro_average_primary_forbidden: true
+  raw_trace_sha256_required: true
+
+policy_boundary:
+  evaluator_reads_manifest_labels: true
+  runtime_policy_reads_manifest_labels: false
+  evaluator_output_is_policy_input: false

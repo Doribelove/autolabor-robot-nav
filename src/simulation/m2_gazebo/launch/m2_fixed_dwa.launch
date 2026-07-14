@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="seed" default="42"/>
+  <include file="$(find m2_gazebo)/launch/spawn_m2.launch">
+    <arg name="world" value="$(find m2_gazebo)/worlds/obstacle_test.world"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+  </include>
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <rosparam file="$(find m2_gazebo)/config/move_base.yaml" command="load"/>
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="local_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/local_costmap.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/global_costmap.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/fixed_dwa.yaml" command="load"/>
+    <remap from="cmd_vel" to="/cmd_vel"/>
+    <remap from="odom" to="/odom"/>
+  </node>
+</launch>

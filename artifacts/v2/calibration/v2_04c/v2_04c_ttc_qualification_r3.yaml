@@ -1,0 +1,59 @@
+schema_version: '2.0'
+stage: V2-04C-Q-R3
+status: qualification_failed
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+progress_sha256: 7f54c3f3dffa2959caad9062f7200fb3b2bd5bb52d4e767db4f601ac1589a6ae
+episode_count: 5
+observed_conflict_count: 5
+observed_conflict_fraction: 1.0
+tracker_invalid_count: 0
+tracker_health_coverage_gate_passed: true
+episodes:
+- scene_id: v2-04c-q-dynamic-s4401
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 4
+  minimum_predicted_ttc_s: 1.8107637905401577
+  success: true
+  collision: false
+- scene_id: v2-04c-q-dynamic-s4402
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 3
+  minimum_predicted_ttc_s: 1.7783929571246246
+  success: false
+  collision: false
+- scene_id: v2-04c-q-dynamic-s4403
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 5
+  minimum_predicted_ttc_s: 1.6410410055191793
+  success: true
+  collision: false
+- scene_id: v2-04c-q-dynamic-s4404
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 5
+  minimum_predicted_ttc_s: 1.7057443165081447
+  success: false
+  collision: false
+- scene_id: v2-04c-q-dynamic-s4405
+  status: OBSERVED_CONFLICT
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 4
+  minimum_predicted_ttc_s: 1.7812815337699075
+  success: true
+  collision: false
+decision:
+  start_refinement: false
+  failure_action: stop_before_refinement_and_preregister_new_contract
+claims:
+  anchor_values_frozen: false
+  sac_training_started: false
+amendment:
+  path: /home/robot/robot_ws_base_rl/config/thesis_experiments/v2/v2_04c_ttc_qualification_r3_amendment.yaml
+  sha256: a097524968c4efeaeab05326adaf3696c6aacb7b85b4e75ef0f0c793a14b144e

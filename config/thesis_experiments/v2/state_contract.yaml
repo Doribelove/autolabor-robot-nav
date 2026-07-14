@@ -1,0 +1,47 @@
+schema_version: "2.0"
+architecture_generation: v2
+state_contract_id: fam_teb_v2_state_design_1
+status: skeleton_not_runtime_ready
+runtime_ready: false
+
+laser_scan:
+  metadata_required:
+    - stamp
+    - frame_id
+    - angle_min
+    - angle_max
+    - angle_increment
+    - range_min
+    - range_max
+    - ray_count
+  angle_order: increasing
+  reject_inconsistent_ray_count: true
+  reject_non_finite_angles: true
+  directional_coverage:
+    directions: [front, left, right, rear]
+    front_center_rad: 0.0
+    left_center_rad: 1.5707963267948966
+    right_center_rad: -1.5707963267948966
+    rear_center_rad: 3.141592653589793
+    coverage_probe_half_width_rad: 0.08726646259971647
+    rear_required_for_reverse: true
+    minimum_rear_coverage_rad: null
+    maximum_scan_age_s: null
+
+observation_groups:
+  - geometry_and_motion
+  - dynamic_risk
+  - mode_and_transition
+  - action_execution_context
+  - health_and_safety
+
+action_context:
+  stages: [commanded, feasible, safe, executed]
+  projection_reason_mask_required: true
+  safety_reason_mask_required: true
+  hidden_ema_hold_state_forbidden: true
+
+v1_compatibility:
+  v1_observation_dimension_unchanged: true
+  v1_sector_count_unchanged: 36
+  v2_metadata_is_additive: true

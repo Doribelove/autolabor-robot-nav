@@ -1,0 +1,801 @@
+schema_version: '1.0'
+task: T12
+study: residual_curriculum_fix_post_pilot_diagnosis
+generated_from_frozen_artifacts: true
+training_performed: false
+formal_result: false
+sources:
+  residual_config: config/thesis_experiments/t12_residual_curriculum_fix_pilot.yaml
+  residual_config_sha256: 37a62e7779bbe15390deb20755ccdacaf66f05e986765403b51ff29c0ef14b9f
+  safety_config: src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+  safety_config_sha256: f7c258a538a0e0baa7946c0c6b39dd26c51a43eb26d2e0fa78832978ece9e797
+  mapping: config/thesis_experiments/A_TEB_v1.yaml
+  mapping_sha256: 799a3e3967044be3995d24f430940931f99d8187b402845afbbac129cf74be9e
+seeds:
+- seed: 101
+  source:
+    episodes_sha256: d20a56e3129aeec5e413b518df547cdd0513e983c89e0c956d4caae8660e6d1c
+    steps_sha256: 61bac971dcd604e5d35bffea3eaae043358539cdc415b9ff3c70e59181aa874f
+    model_selection_sha256: 1061fc214aed82112cc92d0bb077cd9cdbb07dcce63701bb8cf72cd430000c3a
+  episode_count: 301
+  phase_episode_counts:
+    train: 288
+    validation: 6
+    test: 7
+  training_scene_ids:
+  - t11-train-clear-left
+  - t11-train-clear-right
+  - t11-train-clear-straight
+  - t11-train-corridor
+  - t11-train-obstacle
+  validation_mean_returns:
+  - 23.587397436300915
+  - 23.338663061459858
+  validation_return_change: -0.24873437484105665
+  selected_timesteps: 1000
+  phase_summaries:
+    train:
+      step_count: 2000
+      transition_stored_count: 2000
+      mean_reward_total_per_step: 2.9695552199757898
+      reward_components:
+        reward_progress:
+          sum: 3400.8213353534475
+          mean_per_step: 1.7004106676767237
+        reward_time:
+          sum: -95.23399999999722
+          mean_per_step: -0.04761699999999861
+        reward_near_obstacle:
+          sum: -41.57068809719305
+          mean_per_step: -0.020785344048596523
+        reward_path_error:
+          sum: -7.634172185785796
+          mean_per_step: -0.003817086092892898
+        reward_smoothness:
+          sum: -53.17549192894862
+          mean_per_step: -0.02658774596447431
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -134.0965431899413
+          mean_per_step: -0.06704827159497065
+        reward_terminal:
+          sum: 2870.0
+          mean_per_step: 1.435
+      projection_intervention_count: 1721
+      projection_intervention_rate: 0.8605
+      safety_intervention_count: 909
+      safety_intervention_rate: 0.4545
+    validation:
+      step_count: 50
+      transition_stored_count: 50
+      mean_reward_total_per_step: 2.815563629084424
+      reward_components:
+        reward_progress:
+          sum: 88.28918099375595
+          mean_per_step: 1.765783619875119
+        reward_time:
+          sum: -2.362199999999984
+          mean_per_step: -0.04724399999999968
+        reward_near_obstacle:
+          sum: -1.2960437470698292
+          mean_per_step: -0.025920874941396582
+        reward_path_error:
+          sum: -0.11812561841518171
+          mean_per_step: -0.0023625123683036343
+        reward_smoothness:
+          sum: -0.9193229730864956
+          mean_per_step: -0.018386459461729912
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -2.815307200963308
+          mean_per_step: -0.05630614401926616
+        reward_terminal:
+          sum: 60.0
+          mean_per_step: 1.2
+      projection_intervention_count: 46
+      projection_intervention_rate: 0.92
+      safety_intervention_count: 37
+      safety_intervention_rate: 0.74
+    test:
+      step_count: 68
+      transition_stored_count: 68
+      mean_reward_total_per_step: 2.664766804046649
+      reward_components:
+        reward_progress:
+          sum: 122.03961424408918
+          mean_per_step: 1.7947002094718998
+        reward_time:
+          sum: -3.2158000000000104
+          mean_per_step: -0.04729117647058839
+        reward_near_obstacle:
+          sum: -2.7063662349372515
+          mean_per_step: -0.039799503454959584
+        reward_path_error:
+          sum: -0.2185621638889937
+          mean_per_step: -0.0032141494689557895
+        reward_smoothness:
+          sum: -1.5381014067423715
+          mean_per_step: -0.02261913833444664
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -3.1566417633484534
+          mean_per_step: -0.046421202402183136
+        reward_terminal:
+          sum: 70.0
+          mean_per_step: 1.0294117647058822
+      projection_intervention_count: 53
+      projection_intervention_rate: 0.7794117647058824
+      safety_intervention_count: 42
+      safety_intervention_rate: 0.6176470588235294
+  training_windows:
+    steps_1_1000:
+      step_count: 1000
+      transition_stored_count: 1000
+      mean_reward_total_per_step: 3.0466065005064857
+      reward_components:
+        reward_progress:
+          sum: 1714.2315082632238
+          mean_per_step: 1.7142315082632238
+        reward_time:
+          sum: -47.42579999999954
+          mean_per_step: -0.04742579999999954
+        reward_near_obstacle:
+          sum: -18.300583512208696
+          mean_per_step: -0.018300583512208698
+        reward_path_error:
+          sum: -4.1346736145798895
+          mean_per_step: -0.00413467361457989
+        reward_smoothness:
+          sum: -27.73727207211352
+          mean_per_step: -0.02773727207211352
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -70.02667855783326
+          mean_per_step: -0.07002667855783326
+        reward_terminal:
+          sum: 1500.0
+          mean_per_step: 1.5
+      projection_intervention_count: 850
+      projection_intervention_rate: 0.85
+      safety_intervention_count: 399
+      safety_intervention_rate: 0.399
+    steps_1001_2000:
+      step_count: 1000
+      transition_stored_count: 1000
+      mean_reward_total_per_step: 2.8925039394450938
+      reward_components:
+        reward_progress:
+          sum: 1686.5898270902271
+          mean_per_step: 1.686589827090227
+        reward_time:
+          sum: -47.808199999999346
+          mean_per_step: -0.04780819999999934
+        reward_near_obstacle:
+          sum: -23.270104584984345
+          mean_per_step: -0.023270104584984345
+        reward_path_error:
+          sum: -3.4994985712058977
+          mean_per_step: -0.003499498571205898
+        reward_smoothness:
+          sum: -25.438219856835
+          mean_per_step: -0.025438219856835
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -64.06986463210748
+          mean_per_step: -0.06406986463210748
+        reward_terminal:
+          sum: 1370.0
+          mean_per_step: 1.37
+      projection_intervention_count: 871
+      projection_intervention_rate: 0.871
+      safety_intervention_count: 510
+      safety_intervention_rate: 0.51
+  exploration:
+    raw_action_l1_mean: 2.5794927077293397
+    raw_action_l1_p95: 3.613555431365967
+    raw_action_saturation_fraction: 0.0393
+    raw_mean_abs_by_eta:
+      speed: 0.5220622209310531
+      obstacle_conservatism: 0.5186973308324814
+      clearance: 0.5165397473573685
+      path_tracking: 0.5048096445202828
+      smoothness: 0.5173837640881538
+    ema_held_action_l1_mean: 0.9487860083159885
+    ema_to_raw_l1_ratio: 0.36781883719732633
+    ema_alpha: 0.35
+    decision_hold_steps: 4
+    mean_train_episode_steps: 6.944444444444445
+    train_episode_fraction_at_most_one_hold_window: 0.23958333333333334
+  residual:
+    normalized_radius:
+      max_vel_x: 0.35
+      max_vel_theta: 0.25
+      acc_lim_x: 0.3
+      acc_lim_theta: 0.3
+      min_obstacle_dist: 0.25
+      inflation_dist: 0.2
+      weight_obstacle: 0.3
+      weight_viapoint: 0.25
+      weight_optimaltime: 0.25
+    radius_utilization_mean:
+      max_vel_x: 0.08323487738704641
+      max_vel_theta: 0.0
+      acc_lim_x: 0.06241870365816937
+      acc_lim_theta: 0.06775620464939688
+      min_obstacle_dist: 0.08767603426905628
+      inflation_dist: 0.023439065599020797
+      weight_obstacle: 0.07105208207617385
+      weight_viapoint: 0.0
+      weight_optimaltime: 0.13519586662636054
+    radius_utilization_p95:
+      max_vel_x: 0.22149846142392857
+      max_vel_theta: 0.0
+      acc_lim_x: 0.19653278047898626
+      acc_lim_theta: 0.20652223582844353
+      min_obstacle_dist: 0.2761620897330239
+      inflation_dist: 0.06050955398521907
+      weight_obstacle: 0.17694818585979433
+      weight_viapoint: 0.0
+      weight_optimaltime: 0.33457372486591375
+    inferred_risk_scale_mean: 0.729523186280154
+    inferred_risk_scale_p05: 0.20199493329014906
+    inferred_risk_scale_p95: 1.0000000000000038
+    minimum_risk_scale: 0.2
+  projection:
+    overall_rate: 0.8593012275731823
+    mean_candidate_to_projected_normalized_l1: 1.954910973003755
+    rate_by_episode_step:
+      '0': 1.0
+      '1': 1.0
+      '2': 1.0
+      '3': 0.6133333333333333
+      '4': 0.6379310344827587
+      '5': 0.7083333333333334
+      '6': 0.8833333333333333
+      '7': 0.9537037037037037
+    reason_counts:
+      acc_lim_theta:rate_limit: 426
+      acc_lim_x:rate_limit: 452
+      inflation_dist:rate_limit: 1621
+      max_vel_theta:ackermann_turning_radius: 517
+      max_vel_theta:rate_limit: 601
+      max_vel_x:rate_limit: 1081
+      min_obstacle_dist:rate_limit: 1400
+      weight_obstacle:rate_limit: 1398
+      weight_optimaltime:rate_limit: 601
+      weight_viapoint:rate_limit: 1129
+    mean_first_step_previous_to_anchor_normalized_l1: 9.0
+    mean_applied_to_anchor_normalized_l1: 3.0205164623914085
+  safety:
+    overall_intervention_rate: 0.4664778092540132
+    mode_counts:
+      NORMAL: 1122
+      WARNING: 996
+      EMERGENCY: 0
+      FAULT: 0
+    fallback_count: 0
+  scenarios:
+    t11-test-id-clear-straight:
+      split: test_id
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 4.1440000000000055
+      mean_return: 19.578039851596976
+      mean_steps: 5.0
+    t11-test-id-corridor:
+      split: test_id
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 7.027999999999793
+      mean_return: 27.177751461841545
+      mean_steps: 10.0
+    t11-test-id-left:
+      split: test_id
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 6.048000000000002
+      mean_return: 23.023790513860096
+      mean_steps: 8.0
+    t11-test-id-obstacle:
+      split: test_id
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 8.655999999999949
+      mean_return: 26.654445219292057
+      mean_steps: 12.0
+    t11-test-ood-long-turn:
+      split: test_ood
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 7.851999999999862
+      mean_return: 28.22231355996516
+      mean_steps: 11.0
+    t11-test-ood-narrow-corridor:
+      split: test_ood
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 6.757999999999811
+      mean_return: 27.539264539251477
+      mean_steps: 10.0
+    t11-test-ood-obstacle-offset:
+      split: test_ood
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 8.342000000000098
+      mean_return: 29.008537529364848
+      mean_steps: 12.0
+    t11-train-clear-left:
+      split: train
+      episode_count: 63
+      success_rate: 1.0
+      mean_navigation_time_s: 4.571492063492054
+      mean_return: 18.606299689300105
+      mean_steps: 5.444444444444445
+    t11-train-clear-right:
+      split: train
+      episode_count: 63
+      success_rate: 1.0
+      mean_navigation_time_s: 5.043650793650801
+      mean_return: 18.741713659248962
+      mean_steps: 6.158730158730159
+    t11-train-clear-straight:
+      split: train
+      episode_count: 64
+      success_rate: 1.0
+      mean_navigation_time_s: 3.6207187500000018
+      mean_return: 17.559913991647267
+      mean_steps: 4.0
+    t11-train-corridor:
+      split: train
+      episode_count: 45
+      success_rate: 1.0
+      mean_navigation_time_s: 6.2532000000000085
+      mean_return: 24.737671081324645
+      mean_steps: 8.11111111111111
+    t11-train-obstacle:
+      split: train
+      episode_count: 53
+      success_rate: 0.9811320754716981
+      mean_navigation_time_s: 8.737283018867926
+      mean_return: 25.455771789961403
+      mean_steps: 12.226415094339623
+    t11-validation-clear-offset:
+      split: validation
+      episode_count: 2
+      success_rate: 1.0
+      mean_navigation_time_s: 4.045999999999935
+      mean_return: 19.3212435746847
+      mean_steps: 5.0
+    t11-validation-corridor:
+      split: validation
+      episode_count: 2
+      success_rate: 1.0
+      mean_navigation_time_s: 6.189999999999941
+      mean_return: 24.869958000841464
+      mean_steps: 8.0
+    t11-validation-obstacle-offset:
+      split: validation
+      episode_count: 2
+      success_rate: 1.0
+      mean_navigation_time_s: 8.490999999999985
+      mean_return: 26.19788915158442
+      mean_steps: 12.0
+- seed: 102
+  source:
+    episodes_sha256: 8db0820d9d355f483974f7c8575ae1bca6362996bc526bbbc24ec3e4638d5751
+    steps_sha256: 892968c6abd4210be7398cad918ebe3f7bc3f8285499b807fbea276b7f403aea
+    model_selection_sha256: 8c14de51b50d00caf49d3fa8e0005e68c1c367fcd23ebfdf85044d6e1eebc73c
+  episode_count: 301
+  phase_episode_counts:
+    train: 288
+    validation: 6
+    test: 7
+  training_scene_ids:
+  - t11-train-clear-left
+  - t11-train-clear-right
+  - t11-train-clear-straight
+  - t11-train-corridor
+  - t11-train-obstacle
+  validation_mean_returns:
+  - 23.232022285461426
+  - 23.27725563446681
+  validation_return_change: 0.04523334900538245
+  selected_timesteps: 2000
+  phase_summaries:
+    train:
+      step_count: 2000
+      transition_stored_count: 2000
+      mean_reward_total_per_step: 2.967697655333029
+      reward_components:
+        reward_progress:
+          sum: 3400.4069414949176
+          mean_per_step: 1.700203470747459
+        reward_time:
+          sum: -95.04619999999716
+          mean_per_step: -0.047523099999998576
+        reward_near_obstacle:
+          sum: -43.285714586175835
+          mean_per_step: -0.021642857293087917
+        reward_path_error:
+          sum: -7.545047309320376
+          mean_per_step: -0.003772523654660188
+        reward_smoothness:
+          sum: -54.3530366726514
+          mean_per_step: -0.0271765183363257
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -134.78163226071774
+          mean_per_step: -0.06739081613035887
+        reward_terminal:
+          sum: 2870.0
+          mean_per_step: 1.435
+      projection_intervention_count: 1763
+      projection_intervention_rate: 0.8815
+      safety_intervention_count: 915
+      safety_intervention_rate: 0.4575
+    validation:
+      step_count: 50
+      transition_stored_count: 50
+      mean_reward_total_per_step: 2.7905566778421873
+      reward_components:
+        reward_progress:
+          sum: 87.29665979442777
+          mean_per_step: 1.7459331958885553
+        reward_time:
+          sum: -2.390200000000004
+          mean_per_step: -0.04780400000000008
+        reward_near_obstacle:
+          sum: -1.2902943951652917
+          mean_per_step: -0.025805887903305832
+        reward_path_error:
+          sum: -0.15401813923882432
+          mean_per_step: -0.0030803627847764865
+        reward_smoothness:
+          sum: -1.0511516900507025
+          mean_per_step: -0.02102303380101405
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -2.8831616778636016
+          mean_per_step: -0.05766323355727203
+        reward_terminal:
+          sum: 60.0
+          mean_per_step: 1.2
+      projection_intervention_count: 46
+      projection_intervention_rate: 0.92
+      safety_intervention_count: 36
+      safety_intervention_rate: 0.72
+    test:
+      step_count: 67
+      transition_stored_count: 67
+      mean_reward_total_per_step: 2.679541245851163
+      reward_components:
+        reward_progress:
+          sum: 120.32016308071425
+          mean_per_step: 1.7958233295628994
+        reward_time:
+          sum: -3.1701999999999964
+          mean_per_step: -0.04731641791044771
+        reward_near_obstacle:
+          sum: -2.7841063686537564
+          mean_per_step: -0.04155382639781726
+        reward_path_error:
+          sum: -0.2506655874529631
+          mean_per_step: -0.0037412774246710907
+        reward_smoothness:
+          sum: -1.4308662175115026
+          mean_per_step: -0.021356212201664216
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -3.1550614350680943
+          mean_per_step: -0.04709046918012081
+        reward_terminal:
+          sum: 70.0
+          mean_per_step: 1.044776119402985
+      projection_intervention_count: 58
+      projection_intervention_rate: 0.8656716417910447
+      safety_intervention_count: 41
+      safety_intervention_rate: 0.6119402985074627
+  training_windows:
+    steps_1_1000:
+      step_count: 1000
+      transition_stored_count: 1000
+      mean_reward_total_per_step: 3.0337609153426497
+      reward_components:
+        reward_progress:
+          sum: 1713.7922377327332
+          mean_per_step: 1.7137922377327333
+        reward_time:
+          sum: -47.62179999999943
+          mean_per_step: -0.04762179999999943
+        reward_near_obstacle:
+          sum: -20.177067384470252
+          mean_per_step: -0.02017706738447025
+        reward_path_error:
+          sum: -3.9299965841250315
+          mean_per_step: -0.003929996584125031
+        reward_smoothness:
+          sum: -28.450372840337334
+          mean_per_step: -0.028450372840337333
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -69.85208558115586
+          mean_per_step: -0.06985208558115587
+        reward_terminal:
+          sum: 1490.0
+          mean_per_step: 1.49
+      projection_intervention_count: 856
+      projection_intervention_rate: 0.856
+      safety_intervention_count: 403
+      safety_intervention_rate: 0.403
+    steps_1001_2000:
+      step_count: 1000
+      transition_stored_count: 1000
+      mean_reward_total_per_step: 2.9016343953234047
+      reward_components:
+        reward_progress:
+          sum: 1686.6147037621806
+          mean_per_step: 1.6866147037621806
+        reward_time:
+          sum: -47.42439999999939
+          mean_per_step: -0.04742439999999939
+        reward_near_obstacle:
+          sum: -23.10864720170558
+          mean_per_step: -0.02310864720170558
+        reward_path_error:
+          sum: -3.6150507251953576
+          mean_per_step: -0.0036150507251953576
+        reward_smoothness:
+          sum: -25.90266383231398
+          mean_per_step: -0.02590266383231398
+        reward_planner_failure:
+          sum: 0.0
+          mean_per_step: 0.0
+        reward_parameter_adjustment:
+          sum: -64.92954667956137
+          mean_per_step: -0.06492954667956137
+        reward_terminal:
+          sum: 1380.0
+          mean_per_step: 1.38
+      projection_intervention_count: 907
+      projection_intervention_rate: 0.907
+      safety_intervention_count: 512
+      safety_intervention_rate: 0.512
+  exploration:
+    raw_action_l1_mean: 2.5832896991074086
+    raw_action_l1_p95: 3.6376267671585083
+    raw_action_saturation_fraction: 0.0369
+    raw_mean_abs_by_eta:
+      speed: 0.5289189959466457
+      obstacle_conservatism: 0.5194255220592022
+      clearance: 0.5166337933540345
+      path_tracking: 0.5068963093459606
+      smoothness: 0.5114150784015655
+    ema_held_action_l1_mean: 0.9623806269424187
+    ema_to_raw_l1_ratio: 0.3725407286975771
+    ema_alpha: 0.35
+    decision_hold_steps: 4
+    mean_train_episode_steps: 6.944444444444445
+    train_episode_fraction_at_most_one_hold_window: 0.2222222222222222
+  residual:
+    normalized_radius:
+      max_vel_x: 0.35
+      max_vel_theta: 0.25
+      acc_lim_x: 0.3
+      acc_lim_theta: 0.3
+      min_obstacle_dist: 0.25
+      inflation_dist: 0.2
+      weight_obstacle: 0.3
+      weight_viapoint: 0.25
+      weight_optimaltime: 0.25
+    radius_utilization_mean:
+      max_vel_x: 0.08076678781159376
+      max_vel_theta: 0.0
+      acc_lim_x: 0.0688478882040381
+      acc_lim_theta: 0.07493508807101795
+      min_obstacle_dist: 0.09000733876832706
+      inflation_dist: 0.023731167806722762
+      weight_obstacle: 0.06988108616234354
+      weight_viapoint: 0.0
+      weight_optimaltime: 0.12888378854310914
+    radius_utilization_p95:
+      max_vel_x: 0.21612228066917158
+      max_vel_theta: 0.0
+      acc_lim_x: 0.20667152812775352
+      acc_lim_theta: 0.21758146721171565
+      min_obstacle_dist: 0.25976157167748326
+      inflation_dist: 0.05964988192464549
+      weight_obstacle: 0.17465847659520567
+      weight_viapoint: 0.0
+      weight_optimaltime: 0.3321789145469669
+    inferred_risk_scale_mean: 0.7282822502722962
+    inferred_risk_scale_p05: 0.20000000000000248
+    inferred_risk_scale_p95: 1.0000000000000044
+    minimum_risk_scale: 0.2
+  projection:
+    overall_rate: 0.8819083608880491
+    mean_candidate_to_projected_normalized_l1: 1.9763490610321512
+    rate_by_episode_step:
+      '0': 1.0
+      '1': 1.0
+      '2': 1.0
+      '3': 0.6632996632996633
+      '4': 0.6751054852320675
+      '5': 0.7272727272727273
+      '6': 0.9090909090909091
+      '7': 0.9906542056074766
+    reason_counts:
+      acc_lim_theta:rate_limit: 460
+      acc_lim_x:rate_limit: 432
+      inflation_dist:rate_limit: 1636
+      max_vel_theta:ackermann_turning_radius: 519
+      max_vel_theta:rate_limit: 602
+      max_vel_x:rate_limit: 1131
+      min_obstacle_dist:rate_limit: 1418
+      weight_obstacle:rate_limit: 1413
+      weight_optimaltime:rate_limit: 602
+      weight_viapoint:rate_limit: 1146
+    mean_first_step_previous_to_anchor_normalized_l1: 9.0
+    mean_applied_to_anchor_normalized_l1: 3.069334378923098
+  safety:
+    overall_intervention_rate: 0.46858762399622106
+    mode_counts:
+      NORMAL: 1119
+      WARNING: 998
+      EMERGENCY: 0
+      FAULT: 0
+    fallback_count: 0
+  scenarios:
+    t11-test-id-clear-straight:
+      split: test_id
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 4.1440000000000055
+      mean_return: 19.62104274770884
+      mean_steps: 5.0
+    t11-test-id-corridor:
+      split: test_id
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 7.055999999999813
+      mean_return: 26.326926744100547
+      mean_steps: 9.0
+    t11-test-id-left:
+      split: test_id
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 6.2560000000000855
+      mean_return: 22.26271460707907
+      mean_steps: 8.0
+    t11-test-id-obstacle:
+      split: test_id
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 8.54600000000005
+      mean_return: 26.43363624058758
+      mean_steps: 12.0
+    t11-test-ood-long-turn:
+      split: test_ood
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 7.8599999999999
+      mean_return: 28.534445240569497
+      mean_steps: 11.0
+    t11-test-ood-narrow-corridor:
+      split: test_ood
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 6.751999999999953
+      mean_return: 26.853208531244057
+      mean_steps: 10.0
+    t11-test-ood-obstacle-offset:
+      split: test_ood
+      episode_count: 1
+      success_rate: 1.0
+      mean_navigation_time_s: 8.354000000000042
+      mean_return: 29.49728936073835
+      mean_steps: 12.0
+    t11-train-clear-left:
+      split: train
+      episode_count: 63
+      success_rate: 1.0
+      mean_navigation_time_s: 4.596888888888891
+      mean_return: 18.741272925473535
+      mean_steps: 5.555555555555555
+    t11-train-clear-right:
+      split: train
+      episode_count: 63
+      success_rate: 1.0
+      mean_navigation_time_s: 4.997079365079365
+      mean_return: 18.718025516937427
+      mean_steps: 6.095238095238095
+    t11-train-clear-straight:
+      split: train
+      episode_count: 64
+      success_rate: 1.0
+      mean_navigation_time_s: 3.625468750000008
+      mean_return: 17.47838492541792
+      mean_steps: 3.953125
+    t11-train-corridor:
+      split: train
+      episode_count: 45
+      success_rate: 1.0
+      mean_navigation_time_s: 6.2345333333333475
+      mean_return: 24.627261321553174
+      mean_steps: 8.044444444444444
+    t11-train-obstacle:
+      split: train
+      episode_count: 53
+      success_rate: 0.9811320754716981
+      mean_navigation_time_s: 8.773207547169811
+      mean_return: 25.445587058443788
+      mean_steps: 12.283018867924529
+    t11-validation-clear-offset:
+      split: validation
+      episode_count: 2
+      success_rate: 1.0
+      mean_navigation_time_s: 4.052999999999997
+      mean_return: 19.48756189973308
+      mean_steps: 5.0
+    t11-validation-corridor:
+      split: validation
+      episode_count: 2
+      success_rate: 1.0
+      mean_navigation_time_s: 6.249000000000024
+      mean_return: 24.407952421935914
+      mean_steps: 8.0
+    t11-validation-obstacle-offset:
+      split: validation
+      episode_count: 2
+      success_rate: 1.0
+      mean_navigation_time_s: 8.754000000000019
+      mean_return: 25.86840262438568
+      mean_steps: 12.0
+cross_seed:
+  both_validation_changes_negative: false
+  mean_validation_return_change: -0.1017505129178371
+  mean_projection_intervention_rate: 0.8706047942306157
+  mean_safety_intervention_rate: 0.46753271662511714
+  mean_fraction_train_episodes_at_most_one_hold_window: 0.2309027777777778
+  training_scene_ids:
+  - t11-train-clear-left
+  - t11-train-clear-right
+  - t11-train-clear-straight
+  - t11-train-corridor
+  - t11-train-obstacle
+  training_scene_count: 5
+diagnosis:
+  learning_gain_supported: false
+  budget_expansion_allowed: false
+  primary_observations:
+  - Validation trend is inconsistent across seeds and the cross-seed mean change is
+    negative.
+  - The repaired curriculum covers all 5 intended training scenes.
+  - Projection intervenes on most steps, so the executed parameter trajectory differs
+    materially from the SAC candidate.
+  - Most training episodes now exceed one four-step hold window, but they still contain
+    only a small number of independent decisions.
+  - The initial normalized theta-to-anchor L1 distance remains 9.0 at every episode
+    reset.
+  - Safety intervention and risk scaling activate in the repaired obstacle/corridor
+    curriculum without emergency or fault fallback.
+  - The fixed TEB-Tuned anchor is strong; test goal completion alone does not isolate
+    a learned residual benefit.
+  next_gate: review_episode_anchor_initialization_single_factor

@@ -1,0 +1,71 @@
+schema_version: '2.0'
+stage: V2-04C-Q-R2
+status: calibration_complete
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+candidate_plan:
+  path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_r2_plan.yaml
+  sha256: f050c8f41cac2d81c6ce3f3572dd63b14fc7f39b9faa8f45b755d6f0a72b7d40
+planned_navigation_episode_count: 5
+valid_evidence_episode_count: 5
+successful_episode_count: 3
+hard_gate_pass_episode_count: 3
+interface_failure_count: 0
+freeze_minimum_episode_gate_reached: false
+anchor_values_frozen: false
+performance_improvement_observed: false
+episodes:
+- sequence: 1
+  candidate_id: v2_04c-q-r2-balanced-center
+  anchor_id: anchor_balanced
+  scene_id: v2-04c-q-dynamic-s4401
+  family: DYNAMIC
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04c/qualification_r2/episodes/ep_001__v2_04c-q-r2-balanced-center__v2-04c-q-dynamic-s4401/evaluation.yaml
+  evaluation_sha256: 9e4ed4bd1362f63b4264ccf53430b6202ab904e1c14990820ee1cf0c390c663a
+  termination: TIMEOUT
+  success: false
+  hard_gate_pass: false
+- sequence: 2
+  candidate_id: v2_04c-q-r2-balanced-center
+  anchor_id: anchor_balanced
+  scene_id: v2-04c-q-dynamic-s4402
+  family: DYNAMIC
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04c/qualification_r2/episodes/ep_002__v2_04c-q-r2-balanced-center__v2-04c-q-dynamic-s4402/evaluation.yaml
+  evaluation_sha256: c14ce93c4f513c64824ef4ea4c2bf79454898e155848ef234656ba2ca7e5209a
+  termination: SUCCESS
+  success: true
+  hard_gate_pass: true
+- sequence: 3
+  candidate_id: v2_04c-q-r2-balanced-center
+  anchor_id: anchor_balanced
+  scene_id: v2-04c-q-dynamic-s4403
+  family: DYNAMIC
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04c/qualification_r2/episodes/ep_003__v2_04c-q-r2-balanced-center__v2-04c-q-dynamic-s4403/evaluation.yaml
+  evaluation_sha256: fbc5dc19d8b644f06bd7ecbacfab4dd24ecc738514cbfab79f59a85dbff53894
+  termination: SUCCESS
+  success: true
+  hard_gate_pass: true
+- sequence: 4
+  candidate_id: v2_04c-q-r2-balanced-center
+  anchor_id: anchor_balanced
+  scene_id: v2-04c-q-dynamic-s4404
+  family: DYNAMIC
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04c/qualification_r2/episodes/ep_004__v2_04c-q-r2-balanced-center__v2-04c-q-dynamic-s4404/evaluation.yaml
+  evaluation_sha256: f70a9c0b910c27eb5a51b59819e7b56f1b9d179e26e5d616215c101446543509
+  termination: SUCCESS
+  success: true
+  hard_gate_pass: true
+- sequence: 5
+  candidate_id: v2_04c-q-r2-balanced-center
+  anchor_id: anchor_balanced
+  scene_id: v2-04c-q-dynamic-s4405
+  family: DYNAMIC
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04c/qualification_r2/episodes/ep_005__v2_04c-q-r2-balanced-center__v2-04c-q-dynamic-s4405/evaluation.yaml
+  evaluation_sha256: b8fdee4d80510050bc32e00d6c9d2bb65a59df4ce5822e94dc55779d7c7b3a86
+  termination: TIMEOUT
+  success: false
+  hard_gate_pass: false
+interface_failures: []

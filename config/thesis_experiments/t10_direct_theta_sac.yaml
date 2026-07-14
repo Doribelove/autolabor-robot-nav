@@ -1,0 +1,72 @@
+schema_version: "1.0"
+status: t10_direct_theta_sac_smoke_frozen
+simulation_only: true
+formal_experiment: false
+real_vehicle_use_forbidden: true
+algorithm: RL-TEB-Direct-Theta
+runtime:
+  python: 3.8.10
+  torch: 2.4.1+cpu
+  gymnasium: 1.0.0
+  stable_baselines3: 2.4.1
+  device: cpu
+  lock: requirements/thesis-rl-lock.yaml
+action:
+  theta_order: [max_vel_x, max_vel_theta, acc_lim_x, acc_lim_theta, min_obstacle_dist, inflation_dist, weight_obstacle, weight_viapoint, weight_optimaltime]
+  action_semantics: delta_normalized_theta
+  range: [-1.0, 1.0]
+  bounds_path: src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+  bounds_sha256: f7c258a538a0e0baa7946c0c6b39dd26c51a43eb26d2e0fa78832978ece9e797
+  mapping_version: direct_theta_v1
+observation:
+  core_history_k: 4
+  core_dimension: 244
+  action_context: previous_applied_delta_normalized_theta_9_plus_l1
+  appended_action_context_dimension: 10
+  total_dimension: 254
+  normalization: SB3_VecNormalize_train_only
+  normalization_stats_saved_with_checkpoint: true
+reward:
+  source: src/application/teb_rl_tuner/config/t04_t06_simulation_validation.yaml
+  formal_weights_frozen: false
+safety:
+  source: src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+  projection_and_filter_required: true
+  snapshot_restore_required: true
+training:
+  seed: 42
+  learning_rate: 0.0003
+  buffer_size: 100000
+  learning_starts: 1000
+  batch_size: 256
+  tau: 0.005
+  gamma: 0.99
+  train_freq: 1
+  gradient_steps: 1
+  net_arch: [256, 256]
+  production_total_timesteps: null
+smoke_override:
+  total_timesteps_before_resume: 16
+  total_timesteps_after_resume: 4
+  learning_starts: 4
+  batch_size: 8
+  buffer_size: 256
+  net_arch: [32, 32]
+  evaluation_episodes: 2
+checkpoint:
+  files: [model.zip, replay_buffer.pkl, vecnormalize.pkl, checkpoint_manifest.yaml]
+  resume_required: true
+  hashes_required: true
+  runtime_match_required: true
+acceptance:
+  sac_gradient_update_required: true
+  replay_buffer_nonempty_required: true
+  deterministic_evaluation_required: true
+  failures_retained: true
+  excluded_from_formal_results: true
+fairness:
+  semantic_reference: config/thesis_experiments/t09_sac.yaml
+  identical_fields: [runtime, observation, reward, safety, training, smoke_override, checkpoint, acceptance]
+  only_intended_difference: action_parameterization_and_derived_network_output_size
+  report_network_parameter_count: true
+  report_inference_latency: true

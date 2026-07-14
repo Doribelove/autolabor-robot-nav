@@ -1,0 +1,65 @@
+schema_version: '1.0'
+run_id: t08_fixed_dwa_seed42
+created_at_utc: '2026-07-12T07:56:35Z'
+algorithm: Fixed-DWA
+mode: gazebo
+scene_id: t08_baseline_matrix
+scene_ids:
+- t08-clear-straight-v1
+- t08-obstacle-straight-v1
+- t08-clear-turn-v1
+scene_split: validation
+training_seed: null
+evaluation_seed: 42
+source:
+  main_commit: e9b9a9e17ac5e7e35d95eec2a7ad7c7667049da7
+  main_dirty: true
+  submodule_commits: {}
+  ros_version: '1.17.4
+
+    '
+  gazebo_version: '11'
+  python_version: 3.8.10
+  host_id: WP
+configuration:
+  experiment_contract_path: /home/robot/robot_ws_base_rl/docs/thesis_experiment/experiment_contract.yaml
+  experiment_contract_sha256: 8eb11ffc1ca1051e991c8268e609e269baca33cc2069c692699aca4ba9618b90
+  scene_manifest_path: /home/robot/robot_ws_base_rl/config/thesis_experiments/t08_baselines.yaml
+  scene_manifest_sha256: aa56c08ff7811a001cadd3d7f5ffb517e9921fea6e7451a519c59635cc25ed0e
+  theta_bounds_path: null
+  theta_bounds_sha256: null
+  A_TEB_path: null
+  A_TEB_sha256: null
+  reward_config_path: /home/robot/robot_ws_base_rl/config/thesis_experiments/t08_baselines.yaml
+  reward_config_sha256: aa56c08ff7811a001cadd3d7f5ffb517e9921fea6e7451a519c59635cc25ed0e
+  safety_config_path: /home/robot/robot_ws_base_rl/src/simulation/m2_gazebo/config/fixed_dwa.yaml
+  safety_config_sha256: 3ffcde006548182625e7fd1bffd52018642d582826b6726aeac8282c35d948af
+  policy_checkpoint_path: null
+  policy_checkpoint_sha256: null
+topics:
+  scan: /scan
+  odom: /odom
+  cmd_vel: /cmd_vel
+  global_plan: /move_base/DWAPlannerROS/global_plan
+  local_plan: /move_base/DWAPlannerROS/local_plan
+  status: /move_base/status
+safety:
+  allow_motion: false
+  allow_parameter_write: false
+  speed_limit_mps: 0.8
+  human_operator: null
+  emergency_stop_checked: false
+  fence_checked: false
+  conservative_fallback_checked: false
+artifacts:
+  episode_csv: episodes.csv
+  step_log: steps.csv
+  rosbag: null
+  stdout_log: null
+  failure_index: failure_index.yaml
+  checksums_file: checksums.sha256
+completion:
+  validated: true
+  validation_report: null
+  excluded_from_formal_results: true
+  exclusion_reason: t08_pipeline_validation_only

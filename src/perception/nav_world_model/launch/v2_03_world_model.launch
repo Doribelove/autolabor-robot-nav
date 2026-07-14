@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="config" default="$(find nav_world_model)/config/v2_03_candidate.yaml"/>
+  <arg name="allow_unfrozen_simulation_candidate" default="false"/>
+  <arg name="publish_teb_obstacles" default="false"/>
+  <node pkg="nav_world_model" type="nav_world_model_node.py"
+        name="nav_world_model" output="screen" required="true">
+    <param name="config" value="$(arg config)"/>
+    <param name="allow_unfrozen_simulation_candidate"
+           value="$(arg allow_unfrozen_simulation_candidate)"/>
+  </node>
+  <node if="$(arg publish_teb_obstacles)" pkg="nav_world_model"
+        type="tracks_to_teb_obstacles.py" name="tracks_to_teb_obstacles"
+        output="screen" required="true">
+    <param name="fixed_frame" value="odom"/>
+    <param name="minimum_confidence" value="0.55"/>
+    <param name="input_tracks" value="/nav_world_model/tracks"/>
+    <param name="input_health" value="/nav_world_model/health"/>
+    <param name="input_odometry" value="/odom"/>
+    <param name="output_obstacles" value="/move_base/TebLocalPlannerROS/obstacles"/>
+  </node>
+</launch>

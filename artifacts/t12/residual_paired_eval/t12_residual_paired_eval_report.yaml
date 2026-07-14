@@ -1,0 +1,187 @@
+schema_version: '1.0'
+task: T12
+study: residual_selected_zero_teb_tuned_small_paired_evaluation
+formal_result: false
+training_performed: false
+simulation_only: true
+integrity_passed: true
+stable_learning_gain_supported: true
+methods:
+  selected_sac:
+    episode_count: 8
+    goal: 4
+    success_rate: 0.5
+    collision: 0
+    emergency_stop: 0
+    planner_failure: 2
+    interface_fault: 0
+    mean_return: 19.154068780269487
+    mean_navigation_time_s: 20.209000000000003
+    mean_path_length_m: 10.707379148722271
+    projection_intervention_count: 216
+    safety_intervention_count: 218
+  zero_residual:
+    episode_count: 8
+    goal: 4
+    success_rate: 0.5
+    collision: 0
+    emergency_stop: 0
+    planner_failure: 3
+    interface_fault: 0
+    mean_return: 17.115967330253618
+    mean_navigation_time_s: 18.2445
+    mean_path_length_m: 9.458205237608174
+    projection_intervention_count: 155
+    safety_intervention_count: 163
+  teb_tuned:
+    episode_count: 8
+    goal: 4
+    success_rate: 0.5
+    collision: 0
+    emergency_stop: 0
+    planner_failure: 4
+    interface_fault: 0
+    mean_return: 8.729402942743425
+    mean_navigation_time_s: 14.070250000000001
+    mean_path_length_m: 5.605946842478181
+    projection_intervention_count: 0
+    safety_intervention_count: 0
+per_training_seed:
+  selected_sac:
+    '101':
+      episode_count: 4
+      goal: 2
+      success_rate: 0.5
+      collision: 0
+      emergency_stop: 0
+      planner_failure: 0
+      interface_fault: 0
+      mean_return: 18.326318854951747
+      mean_navigation_time_s: 25.0155
+      mean_path_length_m: 13.346537217288112
+      projection_intervention_count: 126
+      safety_intervention_count: 136
+    '102':
+      episode_count: 4
+      goal: 2
+      success_rate: 0.5
+      collision: 0
+      emergency_stop: 0
+      planner_failure: 2
+      interface_fault: 0
+      mean_return: 19.981818705587223
+      mean_navigation_time_s: 15.4025
+      mean_path_length_m: 8.06822108015643
+      projection_intervention_count: 90
+      safety_intervention_count: 82
+  zero_residual:
+    '101':
+      episode_count: 4
+      goal: 2
+      success_rate: 0.5
+      collision: 0
+      emergency_stop: 0
+      planner_failure: 1
+      interface_fault: 0
+      mean_return: 14.590762879985174
+      mean_navigation_time_s: 20.9255
+      mean_path_length_m: 10.951931185720495
+      projection_intervention_count: 93
+      safety_intervention_count: 97
+    '102':
+      episode_count: 4
+      goal: 2
+      success_rate: 0.5
+      collision: 0
+      emergency_stop: 0
+      planner_failure: 2
+      interface_fault: 0
+      mean_return: 19.64117178052206
+      mean_navigation_time_s: 15.5635
+      mean_path_length_m: 7.964479289495856
+      projection_intervention_count: 62
+      safety_intervention_count: 66
+  teb_tuned:
+    '101':
+      episode_count: 4
+      goal: 2
+      success_rate: 0.5
+      collision: 0
+      emergency_stop: 0
+      planner_failure: 2
+      interface_fault: 0
+      mean_return: 8.182065613252588
+      mean_navigation_time_s: 14.893000000000002
+      mean_path_length_m: 5.6192894414797365
+      projection_intervention_count: 0
+      safety_intervention_count: 0
+    '102':
+      episode_count: 4
+      goal: 2
+      success_rate: 0.5
+      collision: 0
+      emergency_stop: 0
+      planner_failure: 2
+      interface_fault: 0
+      mean_return: 9.276740272234264
+      mean_navigation_time_s: 13.2475
+      mean_path_length_m: 5.592604243476624
+      projection_intervention_count: 0
+      safety_intervention_count: 0
+paired_effects:
+  selected_minus_zero_residual:
+    pair_count: 8
+    mean_return_delta: 2.038101450015868
+    return_delta_by_training_seed:
+      '101': 3.7355559749665725
+      '102': 0.34064692506516314
+    both_goal_pair_count: 4
+    mean_navigation_time_reduction_s_on_both_goal: -0.025999999999998913
+    mean_path_length_reduction_m_on_both_goal: -0.01626837513750523
+  selected_minus_teb_tuned:
+    pair_count: 8
+    mean_return_delta: 10.42466583752606
+    return_delta_by_training_seed:
+      '101': 10.144253241699158
+      '102': 10.705078433352963
+    both_goal_pair_count: 4
+    mean_navigation_time_reduction_s_on_both_goal: 0.027000000000001023
+    mean_path_length_reduction_m_on_both_goal: 0.013954271331586998
+gates:
+  exact_24_episode_complete_pairing: true
+  run_integrity_complete: true
+  selected_vs_zero_return_positive_each_training_seed: true
+  selected_success_not_lower_each_training_seed: true
+  selected_safety_not_worse_than_zero: true
+runs:
+  t12e_selected_sac_seed101:
+    valid: true
+    episode_count: 4
+    evaluation_policy: checkpoint
+    selected_timesteps: 1000
+  t12e_selected_sac_seed102:
+    valid: true
+    episode_count: 4
+    evaluation_policy: checkpoint
+    selected_timesteps: 1000
+  t12e_zero_residual_seed101:
+    valid: true
+    episode_count: 4
+    evaluation_policy: zero_residual
+    selected_timesteps: 0
+  t12e_zero_residual_seed102:
+    valid: true
+    episode_count: 4
+    evaluation_policy: zero_residual
+    selected_timesteps: 0
+  t12e_teb_tuned_seed101:
+    valid: true
+    episode_count: 4
+    evaluation_policy: teb_tuned
+    selected_timesteps: 0
+  t12e_teb_tuned_seed102:
+    valid: true
+    episode_count: 4
+    evaluation_policy: teb_tuned
+    selected_timesteps: 0
+decision: eligible_for_budget_expansion_review_not_automatic_expansion

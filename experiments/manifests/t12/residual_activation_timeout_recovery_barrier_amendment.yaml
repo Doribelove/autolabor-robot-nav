@@ -1,0 +1,56 @@
+schema_version: "1.0"
+status: preregistered_before_implementation
+task: T12
+amendment_id: t12_residual_activation_timeout_recovery_barrier_v1
+created_at: "2026-07-13T19:20:00+08:00"
+reason:
+  boundary_atomicity_500_step_passed: true
+  boundary_atomicity_2000_step_seed101_failed: true
+  observed_failure_sequence:
+    - planner_oscillation_recovery
+    - config_seq_2_activation_timeout
+    - immediate_exception_path_snapshot_restore
+    - move_base_sigsegv
+    - next_boundary_detected_action_server_unavailable
+single_factor_change:
+  name: activation_timeout_recovery_barrier
+  rules:
+    - never_restore_snapshot_inside_activation_timeout_exception_handler
+    - cancel_the_active_goal_and_finish_the_episode
+    - retain_the_episode_snapshot_for_the_next_atomic_reset_boundary
+    - require_action_terminal_and_local_plan_quiet_for_1.0_second_before_the_single_restore
+    - fail_closed_without_parameter_write_if_move_base_is_unavailable
+frozen_unchanged_fields:
+  episode_boundary_atomic_order: cancel_terminal_quiet_restore_reset_dispatch
+  initialize_residual_anchor: true
+  curriculum_rotation_repair: enabled
+  reward: config/thesis_experiments/t11_formal.yaml#reward
+  normalized_residual_radius: [0.35, 0.25, 0.30, 0.30, 0.25, 0.20, 0.30, 0.25, 0.25]
+  minimum_risk_scale: 0.20
+  action_ema_alpha: 0.35
+  decision_hold_steps: 4
+  safety_mode: T12Safety
+  sac_hyperparameters: config/thesis_experiments/t11_formal.yaml#training
+  training_seeds: [101, 102]
+  full_timesteps_per_seed: 2000
+stress_pilot:
+  seed: 101
+  timesteps: 1300
+  formal_result: false
+  gates:
+    run_complete: true
+    move_base_crash_count: 0
+    activation_timeout_count: 0
+    interface_fault_count: 0
+    dynamic_reconfigure_failure_count: 0
+    boundary_quiesce_failure_count: 0
+    all_episode_first_steps_match_anchor: true
+    all_five_training_scenes_observed: true
+    collision_count: 0
+decision_after_stress:
+  pass: run_full_two_seed_2000_step_pilot
+  fail: stop_without_baseline_pairing_or_learning_factor_change
+decision_after_full_two_seed:
+  pass_condition: both_runs_complete_zero_integrity_fault_and_validation_positive_each_seed
+  pass: run_complete_frozen_baseline_pairing
+  fail: stop_without_pairing

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="gazebo_seed" default="42"/>
+  <arg name="algorithm" default="RL-TEB-Semantic-Eta"/>
+  <arg name="training_seed" default="101"/>
+  <arg name="phase" default="train"/>
+  <arg name="safety_mode" default="FullSafety"/>
+  <arg name="checkpoint" default=""/>
+  <arg name="run_id" default="t11_run"/>
+  <arg name="output_dir" default="/home/robot/robot_ws_base_rl/artifacts/t11/runs/$(arg run_id)"/>
+  <arg name="acceptance_timesteps" default="0"/>
+  <arg name="acceptance_eval_seed_limit" default="0"/>
+  <arg name="task" default="T11"/>
+  <arg name="scene_manifest" default=""/>
+  <arg name="evaluation_seed_override" default="0"/>
+  <arg name="t12_safety_config" default="/home/robot/robot_ws_base_rl/config/thesis_experiments/t12_shadow.yaml"/>
+  <arg name="semantic_mode" default="cumulative"/>
+  <arg name="residual_config" default="/home/robot/robot_ws_base_rl/config/thesis_experiments/t12_residual_semantic_eta.yaml"/>
+  <arg name="zero_action_policy" default="false"/>
+  <arg name="evaluation_policy" default="checkpoint"/>
+  <arg name="initialize_residual_anchor" default="false"/>
+  <include file="$(find m2_gazebo)/launch/m2_fixed_teb.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg gazebo_seed)"/>
+  </include>
+  <node pkg="thesis_experiment" type="t11_formal_run.py"
+        name="t11_formal_run" output="screen" required="true"
+        launch-prefix="/home/robot/robot_ws_base_rl/.venv/bin/python">
+    <env name="PYTHONNOUSERSITE" value="1"/>
+    <param name="config" value="/home/robot/robot_ws_base_rl/config/thesis_experiments/t11_formal.yaml"/>
+    <param name="algorithm" value="$(arg algorithm)"/>
+    <param name="training_seed" value="$(arg training_seed)"/>
+    <param name="phase" value="$(arg phase)"/>
+    <param name="safety_mode" value="$(arg safety_mode)"/>
+    <param name="checkpoint" value="$(arg checkpoint)"/>
+    <param name="run_id" value="$(arg run_id)"/>
+    <param name="output_dir" value="$(arg output_dir)"/>
+    <param name="acceptance_timesteps" value="$(arg acceptance_timesteps)"/>
+    <param name="acceptance_eval_seed_limit" value="$(arg acceptance_eval_seed_limit)"/>
+    <param name="task" value="$(arg task)"/>
+    <param name="scene_manifest" value="$(arg scene_manifest)"/>
+    <param name="evaluation_seed_override" value="$(arg evaluation_seed_override)"/>
+    <param name="t12_safety_config" value="$(arg t12_safety_config)"/>
+    <param name="semantic_mode" value="$(arg semantic_mode)"/>
+    <param name="residual_config" value="$(arg residual_config)"/>
+    <param name="zero_action_policy" value="$(arg zero_action_policy)"/>
+    <param name="evaluation_policy" value="$(arg evaluation_policy)"/>
+    <param name="initialize_residual_anchor" value="$(arg initialize_residual_anchor)"/>
+  </node>
+</launch>

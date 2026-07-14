@@ -1,0 +1,32 @@
+schema_version: "2.0"
+stage: V2-04E3
+split: calibration
+preregistration_id: fam_teb_v2_04e3_goal_window_confirmation_preregistration_1
+status: frozen_before_first_v2_04e3_navigation
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_use_forbidden: true
+resources:
+  contract: {path: config/thesis_experiments/v2/v2_04e3_measurement_window_confirmation_contract.yaml, sha256: 3af860ea6ae7bbd031346f549c89c79410fbd420eaf05e04d3d766fae1385ee8}
+  candidate_bank: {path: experiments/manifests/v2/calibration/v2_04e3_supervisor_candidate.yaml, sha256: a23cf32073880056ce596cac5e16b78dc3961c226919324173edef011f127553}
+  scene_derivation: {path: experiments/manifests/v2/calibration/v2_04e3_scene_derivation.yaml, sha256: af48cb5388511f4719df6da6e827d681c38801185807acd4a4c5d14917515e6f}
+  calibration_scenes: {path: artifacts/v2/calibration/v2_04e3/v2_04e3_supervisor_calibration_scenes.yaml, sha256: 6ae54d50d6d8681ce0b7604192ec235cb63553cda6f17da4f4bd81baf1303817}
+  compiled_scene_index: {path: artifacts/v2/calibration/v2_04e3/compiled_scenes/compiled_scene_index.yaml, sha256: dac5c8b4eb8648a1264f77d03323280dde056242c38f7936d9065e68253ab874}
+  supervisor_source: {path: src/application/teb_mode_manager/src/teb_mode_manager/rule_supervisor.py, sha256: ed42d56a0be93cfafd15aa46c59d1237dfec19ad2a5e2f90d9f7cea8d7846d14}
+  experiment_launch: {path: src/simulation/m2_gazebo/launch/m2_v2_04e_04f_supervisor_experiment.launch, sha256: 077209828c8c3401ba562b16d6a153f24e213730db3d4d24865a3ea6eef14031}
+  episode_runner: {path: src/tools/thesis_experiment/scripts/v2_supervisor_repair_episode.py, sha256: 8a03fecbea700673bcd7b8eec9a968e887b3b22100389c37931b9d4326e8a830}
+  batch_runner: {path: src/tools/thesis_experiment/scripts/v2_supervisor_experiment_batch.py, sha256: 7599c0265f3dfe1a3353b64e969c786ee26fbe58f5c42e0470837622f2c5f3c1}
+  frozen_anchor_bank: {path: src/application/teb_mode_manager/config/v2_04c_anchor_bank_frozen.yaml, sha256: b1365f2b14e4a77f4e715bc46369fa4277e9adbb8522190153f7abd2ce635b9d}
+  source_calibration_assessment: {path: artifacts/v2/calibration/v2_04e2/v2_04e2_assessment.yaml, sha256: b82c1419bfe983beef4bf2696d930aba82a0f8d07fd68daa7851072fe1d44dff}
+candidate_ids: [pocket_g_wide_hold_confirmation]
+scene_ids: [v2-04e3-cruise-s4721, v2-04e3-dynamic-s4722, v2-04e3-static-s4723, v2-04e3-corridor-s4724, v2-04e3-maneuver-s4725]
+budget: {candidate_count: 1, calibration_scene_count: 5, planned_navigation_episode_count: 5, attempts_per_interface_failure: 2, early_stopping_allowed: false}
+data_firewall:
+  allowed_seed_set: [4721, 4722, 4723, 4724, 4725]
+  forbidden_v2_04d_validation_seed_set: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610]
+  forbidden_prior_calibration_seed_set: [4701, 4702, 4703, 4704, 4705, 4711, 4712, 4713, 4714, 4715]
+  held_out_v2_04f_seed_set_reserved_and_unopened: [4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+  v2_04d_artifact_reads_by_selector_allowed: false
+claims: {policy_parameters_unchanged_from_pocket_g: true, goal_window_measurement_only: true, runtime_scene_labels_available: false, anchor_bank_unchanged: true, validation_not_started: true, sac_training_started: false, real_vehicle_validated: false}

@@ -1,0 +1,71 @@
+schema_version: '1.0'
+run_id: t12p_legacy_seed102
+created_at_utc: '2026-07-13T03:34:06Z'
+algorithm: RL-TEB-Eta-FullSafety
+mode: gazebo
+scene_id: t11_formal_matrix
+scene_ids:
+- t12p-corridor-narrow
+- t12p-corridor-tight
+- t12p-obstacle-center
+- t12p-obstacle-offset
+scene_split: test_id
+scene_splits:
+- test_id
+- test_ood
+training_seed: 102
+evaluation_seed: null
+source:
+  main_commit: e9b9a9e17ac5e7e35d95eec2a7ad7c7667049da7
+  main_dirty: true
+  submodule_commits: {}
+  ros_version: noetic
+  gazebo_version: '11'
+  python_version: 3.8.10
+  host_id: WP
+configuration:
+  experiment_contract_path: /home/robot/robot_ws_base_rl/docs/thesis_experiment/experiment_contract.yaml
+  experiment_contract_sha256: 8eb11ffc1ca1051e991c8268e609e269baca33cc2069c692699aca4ba9618b90
+  scene_manifest_path: /home/robot/robot_ws_base_rl/experiments/manifests/t12/residual_pilot_scenes.yaml
+  scene_manifest_sha256: 2e5c173a691654cbf59da6e905c69c09dc89196057a8ff22af2c2ab82f1eae37
+  theta_bounds_path: /home/robot/robot_ws_base_rl/src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+  theta_bounds_sha256: f7c258a538a0e0baa7946c0c6b39dd26c51a43eb26d2e0fa78832978ece9e797
+  A_TEB_path: /home/robot/robot_ws_base_rl/config/thesis_experiments/A_TEB_v1.yaml
+  A_TEB_sha256: 799a3e3967044be3995d24f430940931f99d8187b402845afbbac129cf74be9e
+  reward_config_path: /home/robot/robot_ws_base_rl/config/thesis_experiments/t11_formal.yaml
+  reward_config_sha256: 3f374fa1c51d1161c3808a2452616bf36b3f0aa97886e88bed78e1a31169086f
+  safety_config_path: /home/robot/robot_ws_base_rl/src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+  safety_config_sha256: f7c258a538a0e0baa7946c0c6b39dd26c51a43eb26d2e0fa78832978ece9e797
+  runtime_safety_override_path: /home/robot/robot_ws_base_rl/config/thesis_experiments/t12_shadow.yaml
+  runtime_safety_override_sha256: 26d6f7d76128e24cc656d3fd61998fcbe03db940c285a58726fb6ccb37a0b5f9
+  residual_config_path: null
+  residual_config_sha256: null
+  policy_checkpoint_path: /home/robot/robot_ws_base_rl/artifacts/t11/runs/t11_semantic_eta_fullsafety_seed102/checkpoints/step_000200/model.zip
+  policy_checkpoint_sha256: cef58893043951e09bed7d8d6447e96064a7e2b62519d40a39ed6a940257aeb3
+topics:
+  scan: /scan
+  odom: /odom
+  cmd_vel: /cmd_vel
+  global_plan: /move_base/TebLocalPlannerROS/global_plan
+  local_plan: /move_base/TebLocalPlannerROS/local_plan
+  status: /move_base/status
+safety:
+  allow_motion: false
+  allow_parameter_write: false
+  speed_limit_mps: 1.2
+  human_operator: null
+  emergency_stop_checked: false
+  fence_checked: false
+  conservative_fallback_checked: true
+artifacts:
+  episode_csv: episodes.csv
+  step_log: steps.csv
+  rosbag: null
+  stdout_log: null
+  failure_index: failure_index.yaml
+  checksums_file: checksums.sha256
+completion:
+  validated: true
+  validation_report: null
+  excluded_from_formal_results: false
+  exclusion_reason: null

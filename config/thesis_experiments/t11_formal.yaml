@@ -1,0 +1,96 @@
+schema_version: "1.0"
+status: frozen_gazebo_t11
+study_version: t11_gazebo_formal_v1
+simulation_only: true
+formal_experiment: true
+real_vehicle_use_forbidden: true
+runtime_lock: requirements/thesis-rl-lock.yaml
+scene_manifest: experiments/manifests/t11/scenes.yaml
+semantic_mapping: config/thesis_experiments/A_TEB_v1.yaml
+safety_contract: src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+algorithms:
+  training: [RL-TEB-Semantic-Eta, RL-TEB-Direct-Theta]
+  runtime_safety_ablations: [FullSafety, ProjectionOnly, NoSafety, NoFallback]
+  ablation_policy_source: RL-TEB-Semantic-Eta
+observation:
+  dimension: 254
+  history_k: 4
+  action_context: previous_applied_delta_normalized_theta_9_plus_l1
+action:
+  range: [-1.0, 1.0]
+  scaling: executable_physical_rate_v1
+  direct_rule: action_times_per_parameter_normalized_rate_limit
+  semantic_rule: row_l1_normalized_A_TEB_times_per_parameter_normalized_rate_limit
+reward:
+  version: t11_reward_v1
+  warning_distance_m: 0.60
+  weights:
+    progress: 5.0
+    elapsed_time: 0.10
+    near_obstacle: 2.0
+    path_error: 1.0
+    smoothness: 0.05
+    angular_acceleration: 0.50
+    planner_failure: 5.0
+    parameter_adjustment: 0.05
+    goal_terminal: 10.0
+    collision_terminal: 20.0
+  selection_provenance: frozen_before_t11_runs_engineering_scale_balance_no_test_feedback
+environment:
+  activation_timeout_s: 2.0
+  reward_window_s: 0.50
+  max_steps_per_episode: 60
+  max_ros_duration_s: 55.0
+  collision_threshold_m: 0.10
+  near_collision_threshold_m: 0.30
+training:
+  seeds: [101, 102, 103, 104, 105]
+  total_timesteps_per_seed: 500
+  learning_rate: 0.0003
+  buffer_size: 10000
+  learning_starts: 64
+  batch_size: 64
+  tau: 0.005
+  gamma: 0.99
+  train_freq: 1
+  gradient_steps: 1
+  net_arch: [128, 128]
+  validation_frequency_steps: 100
+  validation_episodes_per_scene: 1
+  validation_seed: 301
+  validation_selection:
+    metric: mean_undiscounted_episode_return
+    validation_return_threshold: 10.0
+    min_evaluations: 3
+    patience_evaluations: 2
+    minimum_improvement: 0.05
+    rule: best_validation_checkpoint_then_earliest_on_tie
+    training_budget_always_completed_for_exact_cross_algorithm_budget: true
+  curriculum:
+    - {until_timestep: 150, scene_tags: [easy]}
+    - {until_timestep: 350, scene_tags: [easy, obstacle]}
+    - {until_timestep: 500, scene_tags: [easy, obstacle, corridor]}
+evaluation:
+  checkpoint_selection: best_validation_mean_return
+  training_seed_selection_forbidden: true
+  evaluation_seeds: [201, 202, 203, 204, 205, 206, 207, 208, 209, 210]
+  splits: [test_id, test_ood]
+  paired_common_random_numbers: true
+  retain_all_failures: true
+  no_test_checkpoint_selection: true
+safety_ablations:
+  FullSafety: projection_plus_margin_filter_plus_conservative_fallback
+  ProjectionOnly: box_rate_coupling_projection_without_margin_filter_or_fallback
+  NoSafety: action_box_and_interface_bounds_only_without_rate_coupling_or_margin_filter
+  NoFallback: projection_plus_margin_filter_and_emergency_stop_without_conservative_theta_substitution
+  simulation_only_for_unsafe_groups: true
+artifacts:
+  root: artifacts/t11
+  step_episode_csv_required: true
+  manifest_required: true
+  checksums_required: true
+  checkpoint_required: true
+  failure_index_required: true
+limitations:
+  - t02_gazebo_is_deterministic_kinematic_not_calibrated_real_dynamics
+  - formal_refers_to_preregistered_gazebo_protocol_not_real_vehicle_validation

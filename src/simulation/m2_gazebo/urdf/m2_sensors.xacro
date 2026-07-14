@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="m2_sensors">
+    <link name="${prefix}laser_link">
+      <visual><geometry><cylinder radius="0.05" length="0.08"/></geometry><material name="sensor_black"><color rgba="0.05 0.05 0.05 1"/></material></visual>
+      <collision><geometry><cylinder radius="0.05" length="0.08"/></geometry></collision>
+      <xacro:wheel_inertial mass="0.5" radius="0.05" width="0.08"/>
+    </link>
+    <joint name="${prefix}laser_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}laser_link"/>
+      <origin xyz="0 0 0.60" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${prefix}imu_link">
+      <visual><geometry><box size="0.04 0.04 0.02"/></geometry></visual>
+      <collision><geometry><box size="0.04 0.04 0.02"/></geometry></collision>
+      <xacro:box_inertial mass="0.1" x="0.04" y="0.04" z="0.02"/>
+    </link>
+    <joint name="${prefix}imu_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}imu_link"/>
+      <origin xyz="0 0 0.40" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+</robot>

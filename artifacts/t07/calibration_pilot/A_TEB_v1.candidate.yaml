@@ -1,0 +1,1044 @@
+schema_version: '1.0'
+mapping_version: A_TEB_v1_gazebo_calibration
+status: calibration_candidate
+created_from:
+  source_files:
+  - path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+    sha256: 896363c29e79e8b68d96fb4bec0aa5a740bc9942fad58cd4a0017a97811b8ee2
+  analysis_version: t07-central-difference-v1
+eta_order:
+- speed
+- obstacle_conservatism
+- clearance
+- path_tracking
+- smoothness
+theta_order:
+- max_vel_x
+- max_vel_theta
+- acc_lim_x
+- acc_lim_theta
+- min_obstacle_dist
+- inflation_dist
+- weight_obstacle
+- weight_viapoint
+- weight_optimaltime
+normalization: normalized_theta_to_minus_one_plus_one
+matrix:
+- - 0.32153042
+  - 0.0
+  - 0.0
+  - -0.39926942
+  - -1.0
+- - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+- - 0.45104563
+  - 0.0
+  - 0.0
+  - -1.0
+  - 0.0
+- - -1.0
+  - 0.0
+  - 0.0
+  - 0.63142886
+  - -0.82261188
+- - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+- - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+- - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - -0.53996729
+- - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+- - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+evidence:
+  by_matrix_entry:
+    max_vel_x.speed:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 1.3529999999999804
+      accepted: true
+      rejection_reason: null
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: &id001
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 38
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 29
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 39
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: &id002
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 11
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 2
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 12
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: &id003
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 65
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 56
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 66
+    max_vel_x.obstacle_conservatism:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id001
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id002
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id003
+    max_vel_x.clearance:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id001
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id002
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id003
+    max_vel_x.path_tracking:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: -0.011294774579833607
+      accepted: true
+      rejection_reason: null
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id001
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id002
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id003
+    max_vel_x.smoothness:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: -4.4775663341930825
+      accepted: true
+      rejection_reason: null
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id001
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id002
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id003
+    max_vel_theta.speed:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: 0.2500000000000569
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: &id004
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 40
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 30
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 41
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: &id005
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 13
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 3
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 14
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: &id006
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 67
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 57
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 68
+    max_vel_theta.obstacle_conservatism:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id004
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id005
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id006
+    max_vel_theta.clearance:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id004
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id005
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id006
+    max_vel_theta.path_tracking:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: -0.004980243716516398
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id004
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id005
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id006
+    max_vel_theta.smoothness:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: -0.4527737554582868
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id004
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id005
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id006
+    acc_lim_x.speed:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 1.8979999999999966
+      accepted: true
+      rejection_reason: null
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: &id007
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 42
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 31
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 43
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: &id008
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 15
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 4
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 16
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: &id009
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 69
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 58
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 70
+    acc_lim_x.obstacle_conservatism:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id007
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id008
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id009
+    acc_lim_x.clearance:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id007
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id008
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id009
+    acc_lim_x.path_tracking:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: -0.02828860415021487
+      accepted: true
+      rejection_reason: null
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id007
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id008
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id009
+    acc_lim_x.smoothness:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: 0.422656935268524
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id007
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id008
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id009
+    acc_lim_theta.speed:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: -4.208000000000028
+      accepted: true
+      rejection_reason: null
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: &id010
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 44
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 32
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 45
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: &id011
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 17
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 5
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 18
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: &id012
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 71
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 59
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 72
+    acc_lim_theta.obstacle_conservatism:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id010
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id011
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id012
+    acc_lim_theta.clearance:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id010
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id011
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id012
+    acc_lim_theta.path_tracking:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: 0.017862241187613318
+      accepted: true
+      rejection_reason: null
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id010
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id011
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id012
+    acc_lim_theta.smoothness:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: -3.6832992387333645
+      accepted: true
+      rejection_reason: null
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id010
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id011
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id012
+    min_obstacle_dist.speed:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.12500000000002845
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: &id013
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 46
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 33
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 47
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: &id014
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 19
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 6
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 20
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: &id015
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 73
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 60
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 74
+    min_obstacle_dist.obstacle_conservatism:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id013
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id014
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id015
+    min_obstacle_dist.clearance:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id013
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id014
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id015
+    min_obstacle_dist.path_tracking:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: 0.008384499837889652
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id013
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id014
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id015
+    min_obstacle_dist.smoothness:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: 1.425189176030386
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id013
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id014
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id015
+    inflation_dist.speed:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: -0.3499999999998803
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: &id016
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 48
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 34
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 49
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: &id017
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 21
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 7
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 22
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: &id018
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 75
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 61
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 76
+    inflation_dist.obstacle_conservatism:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id016
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id017
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id018
+    inflation_dist.clearance:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id016
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id017
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id018
+    inflation_dist.path_tracking:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: 0.010187021698007776
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id016
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id017
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id018
+    inflation_dist.smoothness:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: -0.9869051010820673
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id016
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id017
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id018
+    weight_obstacle.speed:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.2499999999999858
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: &id019
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 50
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 35
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 51
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: &id020
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 23
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 8
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 24
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: &id021
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 77
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 62
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 78
+    weight_obstacle.obstacle_conservatism:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id019
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id020
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id021
+    weight_obstacle.clearance:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id019
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id020
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id021
+    weight_obstacle.path_tracking:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.00902262836099392
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id019
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id020
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id021
+    weight_obstacle.smoothness:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: -2.417739358701656
+      accepted: true
+      rejection_reason: null
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id019
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id020
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id021
+    weight_viapoint.speed:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.5
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: &id022
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 52
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 36
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 53
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: &id023
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 25
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 9
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 26
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: &id024
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 79
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 63
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 80
+    weight_viapoint.obstacle_conservatism:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id022
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id023
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id024
+    weight_viapoint.clearance:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id022
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id023
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id024
+    weight_viapoint.path_tracking:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: 8.133886987490846e-06
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id022
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id023
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id024
+    weight_viapoint.smoothness:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: -0.03020562930049575
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id022
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id023
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id024
+    weight_optimaltime.speed:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: 0.3724999999999313
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: &id025
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 54
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 37
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 55
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: &id026
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 27
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 10
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 28
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: &id027
+        - direction: minus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 81
+        - direction: baseline
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 64
+        - direction: plus
+          path: /home/robot/robot_ws_base_rl/artifacts/t07/calibration_pilot/sensitivity_observations.csv
+          line: 82
+    weight_optimaltime.obstacle_conservatism:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id025
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id026
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id027
+    weight_optimaltime.clearance:
+      paired_scene_seed_count: 3
+      sign_consistency: 1.0
+      median_sensitivity: 0.0
+      accepted: false
+      rejection_reason: no_resolved_effect
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id025
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id026
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id027
+    weight_optimaltime.path_tracking:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: -0.0011768934175084708
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id025
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id026
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id027
+    weight_optimaltime.smoothness:
+      paired_scene_seed_count: 3
+      sign_consistency: 0.6666666666666666
+      median_sensitivity: -0.15173697692369761
+      accepted: false
+      rejection_reason: sparsity_top_k
+      paired_scene_seeds:
+      - scene_id: t07-left-turn-pilot-v1
+        seed: '42'
+        source_records: *id025
+      - scene_id: t07-obstacle-straight-pilot-v1
+        seed: '42'
+        source_records: *id026
+      - scene_id: t07-right-turn-pilot-v1
+        seed: '42'
+        source_records: *id027
+  incomplete_pairs: []
+  thresholds:
+    min_pairs: 2
+    min_sign_consistency: 0.5
+    min_abs_sensitivity: 1.0e-08
+    top_k_per_eta: 3
+frozen: false
+sha256: 4b953991c5a42ce6b3015627bd861cb1072bbcf47de2886ba6ba9a0b747655dc

@@ -1,0 +1,72 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: cbdabd9fc8037430aa83cb9871876d27f952c7ee3611f5b5aec0a24bb160549d
+scene:
+  scene_id: v2-02-cruise-straight-40m
+  family: CRUISE
+  split: validation
+  seed: 4201
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 40.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 60.0
+  layout:
+    variant: straight_far_side_obstacles
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 40.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: cruise-side-left
+    shape: box
+    pose:
+      x_m: 14.009223725918632
+      y_m: 4.04759958683734
+      yaw_rad: 0.0005891382575617632
+    size_m:
+    - 1.0
+    - 1.0
+    - 1.2
+  - obstacle_id: cruise-side-right
+    shape: box
+    pose:
+      x_m: 25.96007483957497
+      y_m: -3.984674038217723
+      yaw_rad: -0.00700821179668923
+    size_m:
+    - 1.0
+    - 1.0
+    - 1.2
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.05
+    yaw_jitter_rad: 0.01
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: clear_lane_with_far_side_objects
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: bf52de54ab068f58625af46c8e1303ac1045106d5a2a351d256b4c66a5f39ee6

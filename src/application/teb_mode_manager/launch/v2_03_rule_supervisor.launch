@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="config" default="$(find teb_mode_manager)/config/v2_03_rule_candidate.yaml"/>
+  <arg name="allow_unfrozen_simulation_candidate" default="false"/>
+  <node pkg="teb_mode_manager" type="rule_context_supervisor_node.py"
+        name="rule_context_supervisor" output="screen" required="true">
+    <param name="config" value="$(arg config)"/>
+    <param name="allow_unfrozen_simulation_candidate"
+           value="$(arg allow_unfrozen_simulation_candidate)"/>
+  </node>
+</launch>

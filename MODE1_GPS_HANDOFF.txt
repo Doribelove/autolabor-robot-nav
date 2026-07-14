@@ -1,6 +1,6 @@
 模式1 GPS 定位导航交接记录
 记录时间：2026-07-03
-工作目录：/home/robot/robot_ws
+工作目录：/home/robot/robot_ws_base_rl
 
 一、模式1定义
 
@@ -39,9 +39,9 @@
 
 终端 1，启动整套 GPS 定位导航：
 
-  cd /home/robot/robot_ws
+  cd /home/robot/robot_ws_base_rl
   source /opt/ros/noetic/setup.bash
-  source /home/robot/robot_ws/devel/setup.bash
+  source /home/robot/robot_ws_base_rl/devel/setup.bash
   TERMINAL_MODE=split ./scripts/bringup.sh gps
 
 当前 GPS 模式默认使用双天线 GNSS 航向：
@@ -77,16 +77,16 @@
 
 终端 2，如果要接 RabbitMQ 的 GPS 目标：
 
-  cd /home/robot/robot_ws
+  cd /home/robot/robot_ws_base_rl
   source /opt/ros/noetic/setup.bash
-  source /home/robot/robot_ws/devel/setup.bash
+  source /home/robot/robot_ws_base_rl/devel/setup.bash
   ./scripts/rabbitmq_gps_goal_bridge.py
 
 终端 2，如果要运行 GPS 电子围栏和避障测试菜单：
 
-  cd /home/robot/robot_ws
+  cd /home/robot/robot_ws_base_rl
   source /opt/ros/noetic/setup.bash
-  source /home/robot/robot_ws/devel/setup.bash
+  source /home/robot/robot_ws_base_rl/devel/setup.bash
   ./scripts/gps_test_tasks.py
 
 测试菜单数字含义：
@@ -99,7 +99,7 @@
 
 电子围栏文件固定保存到：
 
-  /home/robot/robot_ws/config/gps_test_fence.json
+  /home/robot/robot_ws_base_rl/config/gps_test_fence.json
 
 注意：电子围栏只在 scripts/gps_test_tasks.py 运行时生效。只正常启动 ./scripts/bringup.sh gps 时，不会受这个测试围栏约束。
 
@@ -372,7 +372,7 @@ bringup.sh 当前默认值就是：
 
 2. 启动模式1
 
-   cd /home/robot/robot_ws
+   cd /home/robot/robot_ws_base_rl
    TERMINAL_MODE=split ./scripts/bringup.sh gps
 
    如果知道车头朝向：

@@ -1,0 +1,91 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_04e_calibration_only_rule_supervisor_repair_1
+status: preregistered_simulation_only
+formal_experiment: false
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+objective:
+  primary:
+    - prevent_cruise_absorption_by_static_dense
+    - activate_maneuver_from_label_free_reverse_path_evidence
+    - reduce_geometry_and_anchor_chatter
+  explicitly_not_optimized:
+    - v2_04d_validation_metrics
+    - anchor_parameter_values
+    - sac_policy
+
+split_boundary:
+  permitted_split: calibration
+  calibration_seed_range: [4701, 4705]
+  forbidden_historical_validation_seed_range: [4601, 4610]
+  forbidden_inputs:
+    - artifacts/v2/validation/v2_04d/episodes
+    - artifacts/v2/validation/v2_04d/v2_04d_paired_assessment.yaml
+  historical_validation_data_may_influence_algorithm_or_threshold_selection: false
+  runtime_manifest_access: false
+  runtime_scene_labels_allowed: false
+  evaluator_family_labels_allowed_for_calibration_scoring: true
+
+frozen_inputs:
+  anchor_bank:
+    path: src/application/teb_mode_manager/config/v2_04c_anchor_bank_frozen.yaml
+    sha256: b1365f2b14e4a77f4e715bc46369fa4277e9adbb8522190153f7abd2ce635b9d
+  repaired_supervisor_source:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/rule_supervisor.py
+    sha256: f41cdb1c3d3505914ef6175963f077dbafbf757f24316547caddffd327544894
+
+budget:
+  candidate_count: 4
+  calibration_scene_count: 5
+  planned_navigation_episode_count: 20
+  attempts_per_interface_failure: 2
+  early_stopping_allowed: false
+  post_start_candidate_addition_allowed: false
+
+hard_gates_per_candidate:
+  valid_episode_count_exact: 5
+  success_count_exact: 5
+  collision_count_max: 0
+  persistent_interface_failure_count_max: 0
+  typed_transaction_valid_required: true
+  training_used_must_be_false: true
+  cruise:
+    cruise_valid_context_fraction_min: 0.45
+    static_dense_valid_context_fraction_max: 0.10
+  static_dense:
+    static_dense_valid_context_fraction_min: 0.20
+  corridor:
+    corridor_valid_context_fraction_min: 0.20
+  maneuver:
+    maneuver_valid_context_fraction_min: 0.15
+  chatter:
+    active_anchor_switch_count_max_per_episode: 3
+    active_anchor_switch_count_mean_max: 2.0
+
+selection:
+  hard_gate_pass_required_before_ranking: true
+  deterministic_order:
+    - highest_expected_family_mode_fraction_sum
+    - lowest_total_anchor_switch_count
+    - lowest_total_navigation_time_s
+    - lexical_candidate_id
+  no_scalar_reweighting_after_first_episode: true
+
+freeze_and_validation_boundary:
+  supervisor_freeze_requires_calibration_hard_gate_pass: true
+  held_out_validation_preregistration_must_follow_supervisor_freeze: true
+  held_out_validation_seed_range_reserved: [4801, 4810]
+  held_out_validation_scene_content_may_not_be_read_by_calibration_selector: true
+  validation_may_not_modify_frozen_supervisor: true
+
+boundaries:
+  sac_training_allowed: false
+  any_learning_allowed: false
+  anchor_bank_changes_allowed: false
+  real_vehicle_parameter_write_allowed: false
+  real_vehicle_motion_allowed: false
+  runtime_ready_after_pass: false

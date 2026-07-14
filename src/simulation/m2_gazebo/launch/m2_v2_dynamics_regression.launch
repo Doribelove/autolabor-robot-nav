@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="run_test" default="false"/>
+  <arg name="seed" default="42"/>
+  <arg name="report_path" default="/tmp/v2_dynamics_regression.yaml"/>
+
+  <include file="$(find m2_gazebo)/launch/spawn_m2.launch">
+    <arg name="world" value="$(find m2_gazebo)/worlds/regression.world"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+    <arg name="enable_actuator_dynamics" value="true"/>
+    <arg name="speed_time_constant" value="0.22"/>
+    <arg name="steering_time_constant" value="0.18"/>
+    <arg name="max_acceleration" value="1.20"/>
+    <arg name="max_deceleration" value="1.60"/>
+    <arg name="max_brake_deceleration" value="2.40"/>
+    <arg name="max_emergency_deceleration" value="3.00"/>
+    <arg name="max_steering_rate" value="0.80"/>
+    <arg name="command_delay" value="0.08"/>
+    <arg name="command_jitter" value="0.015"/>
+    <arg name="laser_topic" value="/v2/scan_raw"/>
+    <arg name="laser_noise_stddev" value="0.0"/>
+  </include>
+
+  <node pkg="m2_gazebo" type="v2_scan_transport.py" name="v2_scan_transport"
+        output="screen" required="true">
+    <param name="input_topic" value="/v2/scan_raw"/>
+    <param name="output_topic" value="/scan"/>
+    <param name="delay_s" value="0.06"/>
+    <param name="jitter_s" value="0.01"/>
+    <param name="noise_stddev_m" value="0.01"/>
+    <param name="seed" value="$(arg seed)"/>
+  </node>
+
+  <node if="$(arg run_test)" pkg="m2_gazebo" type="v2_dynamics_regression_test.py"
+        name="v2_dynamics_regression_test" output="screen" required="true">
+    <param name="seed" value="$(arg seed)"/>
+    <param name="report_path" value="$(arg report_path)"/>
+  </node>
+</launch>

@@ -1,0 +1,26 @@
+schema_version: "1.0"
+status: frozen_gazebo_t12_closed_loop
+simulation_only: true
+training_forbidden: true
+real_vehicle_use_forbidden: true
+paired_common_random_numbers: true
+collision_definition:
+  source: footprint_clearance
+  collision_threshold_m: 0.10
+  near_collision_threshold_m: 0.30
+randomization:
+  deterministic_from_scene_and_evaluation_seed: true
+  goal_jitter_m: 0.10
+  obstacle_jitter_m: 0.15
+  corridor_half_width_jitter_m: 0.05
+scenes:
+  - {scene_id: t12-clear-straight, split: test_id, layout: clear, start: [0.0, 0.0, 0.0], goal: [3.0, 0.0, 0.0], timeout_s: 35.0}
+  - {scene_id: t12-clear-left, split: test_id, layout: clear, start: [0.0, 0.0, 0.0], goal: [3.0, 2.5, 1.4], timeout_s: 45.0}
+  - {scene_id: t12-clear-right, split: test_id, layout: clear, start: [0.0, 0.0, 0.0], goal: [3.0, -2.5, -1.4], timeout_s: 45.0}
+  - {scene_id: t12-obstacle-center, split: test_id, layout: obstacle, obstacle: [2.7, 0.0], start: [0.0, 0.0, 0.0], goal: [5.2, 0.0, 0.0], timeout_s: 50.0}
+  - {scene_id: t12-obstacle-left, split: test_id, layout: obstacle, obstacle: [2.8, 0.45], start: [0.0, 0.0, 0.0], goal: [5.4, 0.15, 0.0], timeout_s: 50.0}
+  - {scene_id: t12-obstacle-right, split: test_id, layout: obstacle, obstacle: [2.8, -0.45], start: [0.0, 0.0, 0.0], goal: [5.4, -0.15, 0.0], timeout_s: 50.0}
+  - {scene_id: t12-corridor-standard, split: test_id, layout: corridor, corridor_half_width_m: 1.0, start: [0.0, 0.0, 0.0], goal: [5.0, 0.0, 0.0], timeout_s: 50.0}
+  - {scene_id: t12-long-turn, split: test_ood, layout: clear, start: [0.0, 0.0, 0.0], goal: [4.0, 3.5, 1.57], timeout_s: 55.0}
+  - {scene_id: t12-obstacle-offset-long, split: test_ood, layout: obstacle, obstacle: [3.0, -0.45], start: [0.0, 0.0, 0.0], goal: [5.8, -0.2, 0.0], timeout_s: 55.0}
+  - {scene_id: t12-corridor-narrow, split: test_ood, layout: corridor, corridor_half_width_m: 0.82, start: [0.0, 0.0, 0.0], goal: [5.0, 0.0, 0.0], timeout_s: 55.0}

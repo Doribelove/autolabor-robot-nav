@@ -1,0 +1,439 @@
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+xacro: in-order processing became default in ROS Melodic. You can drop the option.
+... logging to /home/robot/.ros/log/baa7029c-7eb0-11f1-91bc-3382cc4c3ed1/roslaunch-WP-1064729.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+]2;/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/launch/t11_formal_run.launch
+[1mstarted roslaunch server http://WP:45581/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /m2_gazebo/simulation_only: True
+ * /m2_robot_state_publisher/publish_frequency: 30.0
+ * /move_base/TebLocalPlannerROS/acc_lim_theta: 0.8
+ * /move_base/TebLocalPlannerROS/acc_lim_x: 0.8
+ * /move_base/TebLocalPlannerROS/allow_init_with_backwards_motion: True
+ * /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel: False
+ * /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist: 1.5
+ * /move_base/TebLocalPlannerROS/dt_hysteresis: 0.1
+ * /move_base/TebLocalPlannerROS/dt_ref: 0.3
+ * /move_base/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /move_base/TebLocalPlannerROS/enable_multithreading: True
+ * /move_base/TebLocalPlannerROS/feasibility_check_no_poses: 5
+ * /move_base/TebLocalPlannerROS/footprint_model/type: polygon
+ * /move_base/TebLocalPlannerROS/footprint_model/vertices: [[0.52, 0.35], [0...
+ * /move_base/TebLocalPlannerROS/global_plan_overwrite_orientation: True
+ * /move_base/TebLocalPlannerROS/include_costmap_obstacles: True
+ * /move_base/TebLocalPlannerROS/inflation_dist: 0.55
+ * /move_base/TebLocalPlannerROS/map_frame: odom
+ * /move_base/TebLocalPlannerROS/max_global_plan_lookahead_dist: 8.0
+ * /move_base/TebLocalPlannerROS/max_number_classes: 4
+ * /move_base/TebLocalPlannerROS/max_samples: 500
+ * /move_base/TebLocalPlannerROS/max_vel_theta: 1.0
+ * /move_base/TebLocalPlannerROS/max_vel_x: 1.2
+ * /move_base/TebLocalPlannerROS/max_vel_x_backwards: 0.6
+ * /move_base/TebLocalPlannerROS/max_vel_y: 0.0
+ * /move_base/TebLocalPlannerROS/min_obstacle_dist: 0.25
+ * /move_base/TebLocalPlannerROS/min_turning_radius: 1.2
+ * /move_base/TebLocalPlannerROS/obstacle_poses_affected: 15
+ * /move_base/TebLocalPlannerROS/odom_topic: /odom
+ * /move_base/TebLocalPlannerROS/teb_autosize: True
+ * /move_base/TebLocalPlannerROS/weight_acc_lim_theta: 1.0
+ * /move_base/TebLocalPlannerROS/weight_acc_lim_x: 1.0
+ * /move_base/TebLocalPlannerROS/weight_adapt_factor: 2.0
+ * /move_base/TebLocalPlannerROS/weight_inflation: 0.1
+ * /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive: 10.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_nh: 1000.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_turning_radius: 10.0
+ * /move_base/TebLocalPlannerROS/weight_max_vel_theta: 1.0
+ * /move_base/TebLocalPlannerROS/weight_max_vel_x: 2.0
+ * /move_base/TebLocalPlannerROS/weight_obstacle: 50.0
+ * /move_base/TebLocalPlannerROS/weight_optimaltime: 1.0
+ * /move_base/TebLocalPlannerROS/weight_viapoint: 1.0
+ * /move_base/TebLocalPlannerROS/wheelbase: 0.65
+ * /move_base/base_global_planner: navfn/NavfnROS
+ * /move_base/base_local_planner: teb_local_planner...
+ * /move_base/clearing_rotation_allowed: False
+ * /move_base/controller_frequency: 10.0
+ * /move_base/controller_patience: 5.0
+ * /move_base/global_costmap/footprint: [[0.52, 0.35], [0...
+ * /move_base/global_costmap/footprint_padding: 0.05
+ * /move_base/global_costmap/global_frame: odom
+ * /move_base/global_costmap/height: 30.0
+ * /move_base/global_costmap/inflation_layer/cost_scaling_factor: 4.0
+ * /move_base/global_costmap/inflation_layer/enabled: True
+ * /move_base/global_costmap/inflation_layer/inflation_radius: 0.55
+ * /move_base/global_costmap/obstacle_layer/enabled: True
+ * /move_base/global_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/global_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/global_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/global_costmap/obstacle_layer/scan/inf_is_valid: True
+ * /move_base/global_costmap/obstacle_layer/scan/marking: True
+ * /move_base/global_costmap/obstacle_layer/scan/obstacle_range: 12.0
+ * /move_base/global_costmap/obstacle_layer/scan/raytrace_range: 15.0
+ * /move_base/global_costmap/obstacle_layer/scan/sensor_frame: laser_link
+ * /move_base/global_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/global_costmap/plugins: [{'name': 'obstac...
+ * /move_base/global_costmap/publish_frequency: 2.0
+ * /move_base/global_costmap/resolution: 0.05
+ * /move_base/global_costmap/robot_base_frame: base_link
+ * /move_base/global_costmap/rolling_window: True
+ * /move_base/global_costmap/transform_tolerance: 0.3
+ * /move_base/global_costmap/update_frequency: 5.0
+ * /move_base/global_costmap/width: 30.0
+ * /move_base/local_costmap/footprint: [[0.52, 0.35], [0...
+ * /move_base/local_costmap/footprint_padding: 0.05
+ * /move_base/local_costmap/global_frame: odom
+ * /move_base/local_costmap/height: 12.0
+ * /move_base/local_costmap/inflation_layer/cost_scaling_factor: 4.0
+ * /move_base/local_costmap/inflation_layer/enabled: True
+ * /move_base/local_costmap/inflation_layer/inflation_radius: 0.55
+ * /move_base/local_costmap/obstacle_layer/enabled: True
+ * /move_base/local_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/local_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/local_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/local_costmap/obstacle_layer/scan/inf_is_valid: True
+ * /move_base/local_costmap/obstacle_layer/scan/marking: True
+ * /move_base/local_costmap/obstacle_layer/scan/obstacle_range: 12.0
+ * /move_base/local_costmap/obstacle_layer/scan/raytrace_range: 15.0
+ * /move_base/local_costmap/obstacle_layer/scan/sensor_frame: laser_link
+ * /move_base/local_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/local_costmap/plugins: [{'name': 'obstac...
+ * /move_base/local_costmap/publish_frequency: 5.0
+ * /move_base/local_costmap/resolution: 0.05
+ * /move_base/local_costmap/robot_base_frame: base_link
+ * /move_base/local_costmap/rolling_window: True
+ * /move_base/local_costmap/transform_tolerance: 0.3
+ * /move_base/local_costmap/update_frequency: 10.0
+ * /move_base/local_costmap/width: 12.0
+ * /move_base/oscillation_distance: 0.2
+ * /move_base/oscillation_timeout: 10.0
+ * /move_base/planner_frequency: 1.0
+ * /move_base/planner_patience: 5.0
+ * /move_base/recovery_behavior_enabled: False
+ * /move_base/shutdown_costmaps: False
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /t11_formal_run/acceptance_eval_seed_limit: 1
+ * /t11_formal_run/acceptance_timesteps: 1300
+ * /t11_formal_run/algorithm: RL-TEB-Semantic-Eta
+ * /t11_formal_run/checkpoint: 
+ * /t11_formal_run/config: /home/robot/robot...
+ * /t11_formal_run/evaluation_policy: checkpoint
+ * /t11_formal_run/evaluation_seed_override: 0
+ * /t11_formal_run/initialize_residual_anchor: True
+ * /t11_formal_run/output_dir: /home/robot/robot...
+ * /t11_formal_run/phase: train
+ * /t11_formal_run/residual_config: /home/robot/robot...
+ * /t11_formal_run/run_id: t12_residual_stat...
+ * /t11_formal_run/safety_mode: T12Safety
+ * /t11_formal_run/scene_manifest: 
+ * /t11_formal_run/semantic_mode: residual_training
+ * /t11_formal_run/t12_safety_config: /home/robot/robot...
+ * /t11_formal_run/task: T12
+ * /t11_formal_run/training_seed: 101
+ * /t11_formal_run/zero_action_policy: False
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    m2_robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    move_base (move_base/move_base)
+    spawn_m2 (gazebo_ros/spawn_model)
+    t11_formal_run (thesis_experiment/t11_formal_run.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [1064785][0m
+[1mROS_MASTER_URI=http://localhost:11311[0m
+]2;/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/launch/t11_formal_run.launch http://localhost:11311
+[1msetting /run_id to baa7029c-7eb0-11f1-91bc-3382cc4c3ed1[0m
+[1mprocess[rosout-1]: started with pid [1064818][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [1064825][0m
+[1mprocess[spawn_m2-3]: started with pid [1064828][0m
+[1mprocess[m2_robot_state_publisher-4]: started with pid [1064831][0m
+[1mprocess[move_base-5]: started with pid [1064832][0m
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[INFO] [1783943294.624052, 0.000000]: Loading model XML from ros parameter robot_description
+[INFO] [1783943294.627380, 0.000000]: Waiting for service /gazebo/spawn_urdf_model
+[INFO] [1783943295.532264, 0.200000]: Calling service /gazebo/spawn_urdf_model
+[INFO] [1783943295.884158, 0.376000]: Spawn status: SpawnModel: Successfully spawned entity
+[INFO] [1783943296.216610829, 0.596000000]: global_costmap: Using plugin "obstacle_layer"
+[INFO] [1783943296.218944020, 0.600000000]:     Subscribed to Topics: scan
+[INFO] [1783943296.223392094, 0.604000000]: global_costmap: Using plugin "inflation_layer"
+[INFO] [1783943296.234497260, 0.614000000]: local_costmap: Using plugin "obstacle_layer"
+[INFO] [1783943296.235267803, 0.616000000]:     Subscribed to Topics: scan
+[INFO] [1783943296.239641132, 0.620000000]: local_costmap: Using plugin "inflation_layer"
+[INFO] [1783943296.249732434, 0.630000000]: Created local_planner teb_local_planner/TebLocalPlannerROS
+[INFO] [1783943296.267774529, 0.648000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783943296.267909871, 0.648000000]: Parallel planning in distinctive topologies disabled.
+[INFO] [1783943296.267929012, 0.648000000]: No costmap conversion plugin specified. All occupied costmap cells are treaten as point obstacles.
+[INFO] [1783943296.453834406, 0.836000000]: Recovery behavior will clear layer 'obstacles'
+[INFO] [1783943296.454643880, 0.836000000]: Recovery behavior will clear layer 'obstacles'
+[INFO] [1783943296.513336647, 0.896000000]: odom received!
+[INFO] [1783943302.293260496, 6.662000000]: GOAL Reached!
+[INFO] [1783943308.541720108, 12.898000000]: GOAL Reached!
+[INFO] [1783943314.806634726, 19.152000000]: GOAL Reached!
+[INFO] [1783943319.885123032, 24.222000000]: GOAL Reached!
+[INFO] [1783943326.261573217, 30.584000000]: GOAL Reached!
+[INFO] [1783943332.624024152, 36.934000000]: GOAL Reached!
+[INFO] [1783943337.691922821, 41.996000000]: GOAL Reached!
+[INFO] [1783943343.963450690, 48.252000000]: GOAL Reached!
+[INFO] [1783943350.328685352, 54.608000000]: GOAL Reached!
+[INFO] [1783943355.409733621, 59.678000000]: GOAL Reached!
+[INFO] [1783943361.379133270, 65.638000000]: GOAL Reached!
+[INFO] [1783943366.826924178, 71.078000000]: GOAL Reached!
+[INFO] [1783943371.803564959, 76.046000000]: GOAL Reached!
+[INFO] [1783943377.563232566, 81.794000000]: GOAL Reached!
+[INFO] [1783943383.823877255, 88.044000000]: GOAL Reached!
+[INFO] [1783943388.903499251, 93.112000000]: GOAL Reached!
+[INFO] [1783943394.758274731, 98.958000000]: GOAL Reached!
+[INFO] [1783943400.421982974, 104.610000000]: GOAL Reached!
+[INFO] [1783943405.287144679, 109.466000000]: GOAL Reached!
+[INFO] [1783943411.855804970, 116.018000000]: GOAL Reached!
+[INFO] [1783943418.112664075, 122.268000000]: GOAL Reached!
+[INFO] [1783943423.077684459, 127.222000000]: GOAL Reached!
+[INFO] [1783943429.330145767, 133.466000000]: GOAL Reached!
+[INFO] [1783943435.803714434, 139.924000000]: GOAL Reached!
+[INFO] [1783943440.870446104, 144.984000000]: GOAL Reached!
+[INFO] [1783943447.142988445, 151.244000000]: GOAL Reached!
+[INFO] [1783943453.616895688, 157.702000000]: GOAL Reached!
+[INFO] [1783943458.691670158, 162.766000000]: GOAL Reached!
+[INFO] [1783943463.653624478, 167.720000000]: GOAL Reached!
+[INFO] [1783943469.739629639, 173.794000000]: GOAL Reached!
+[INFO] [1783943477.797297791, 181.838000000]: GOAL Reached!
+[INFO] [1783943488.491176826, 192.516000000]: GOAL Reached!
+[INFO] [1783943493.570548004, 197.586000000]: GOAL Reached!
+[INFO] [1783943499.839995217, 203.844000000]: GOAL Reached!
+[INFO] [1783943505.914476121, 209.908000000]: GOAL Reached!
+[INFO] [1783943515.573366149, 219.548000000]: GOAL Reached!
+[INFO] [1783943520.525517810, 224.494000000]: GOAL Reached!
+[INFO] [1783943526.485406209, 230.444000000]: GOAL Reached!
+[INFO] [1783943532.831388686, 236.778000000]: GOAL Reached!
+[INFO] [1783943544.725679706, 248.648000000]: GOAL Reached!
+[INFO] [1783943549.681899332, 253.596000000]: GOAL Reached!
+[INFO] [1783943555.243882438, 259.146000000]: GOAL Reached!
+[INFO] [1783943561.707014919, 265.598000000]: GOAL Reached!
+[INFO] [1783943572.598838874, 276.474000000]: GOAL Reached!
+[INFO] [1783943577.655820749, 281.518000000]: GOAL Reached!
+[INFO] [1783943583.753014711, 287.602000000]: GOAL Reached!
+[INFO] [1783943591.015445159, 294.850000000]: GOAL Reached!
+[INFO] [1783943600.785496576, 304.602000000]: GOAL Reached!
+[INFO] [1783943606.036549684, 309.848000000]: GOAL Reached!
+[INFO] [1783943612.395389710, 316.190000000]: GOAL Reached!
+[INFO] [1783943618.761472135, 322.546000000]: GOAL Reached!
+[INFO] [1783943630.257640006, 334.018000000]: GOAL Reached!
+[INFO] [1783943635.303535316, 339.058000000]: GOAL Reached!
+[INFO] [1783943641.571694979, 345.314000000]: GOAL Reached!
+[INFO] [1783943647.644551258, 351.376000000]: GOAL Reached!
+[INFO] [1783943652.683195302, 356.404000000]: GOAL Reached!
+[INFO] [1783943658.925285878, 362.636000000]: GOAL Reached!
+[INFO] [1783943665.480099324, 369.178000000]: GOAL Reached!
+[INFO] [1783943676.859873750, 380.538000000]: GOAL Reached!
+[INFO] [1783943684.639968632, 388.304000000]: GOAL Reached!
+[INFO] [1783943689.900005866, 393.556000000]: GOAL Reached!
+[INFO] [1783943695.550931279, 399.196000000]: GOAL Reached!
+[INFO] [1783943702.132411881, 405.766000000]: GOAL Reached!
+[INFO] [1783943713.203995986, 416.822000000]: GOAL Reached!
+[INFO] [1783943721.181653717, 424.784000000]: GOAL Reached!
+[INFO] [1783943726.053142273, 429.646000000]: GOAL Reached!
+[INFO] [1783943732.111430301, 435.690000000]: GOAL Reached!
+[INFO] [1783943738.372094545, 441.940000000]: GOAL Reached!
+[INFO] [1783943751.043690226, 454.588000000]: GOAL Reached!
+[INFO] [1783943759.009338388, 462.540000000]: GOAL Reached!
+[INFO] [1783943764.066461789, 467.588000000]: GOAL Reached!
+[INFO] [1783943770.090074004, 473.600000000]: GOAL Reached!
+[INFO] [1783943776.355389184, 479.856000000]: GOAL Reached!
+[INFO] [1783943784.629402769, 488.118000000]: GOAL Reached!
+[INFO] [1783943792.729270438, 496.198000000]: GOAL Reached!
+[INFO] [1783943797.696082385, 501.154000000]: GOAL Reached!
+[INFO] [1783943804.073820994, 507.522000000]: GOAL Reached!
+[INFO] [1783943810.620295467, 514.060000000]: GOAL Reached!
+[INFO] [1783943821.489062173, 524.902000000]: GOAL Reached!
+[INFO] [1783943829.361857938, 532.766000000]: GOAL Reached!
+[INFO] [1783943834.655969077, 538.050000000]: GOAL Reached!
+[INFO] [1783943840.716333521, 544.098000000]: GOAL Reached!
+[INFO] [1783943846.979568331, 550.352000000]: GOAL Reached!
+[INFO] [1783943857.247561439, 560.598000000]: GOAL Reached!
+[INFO] [1783943865.207555592, 568.544000000]: GOAL Reached!
+[INFO] [1783943870.275585180, 573.602000000]: GOAL Reached!
+[INFO] [1783943875.859230952, 579.174000000]: GOAL Reached!
+[INFO] [1783943882.129112677, 585.434000000]: GOAL Reached!
+[INFO] [1783943892.095240818, 595.380000000]: GOAL Reached!
+[INFO] [1783943899.973392663, 603.244000000]: GOAL Reached!
+[INFO] [1783943904.930798016, 608.192000000]: GOAL Reached!
+[INFO] [1783943911.183392536, 614.432000000]: GOAL Reached!
+[INFO] [1783943917.965930017, 621.202000000]: GOAL Reached!
+[INFO] [1783943928.643062222, 631.860000000]: GOAL Reached!
+[INFO] [1783943936.417415443, 639.620000000]: GOAL Reached!
+[INFO] [1783943941.397983613, 644.586000000]: GOAL Reached!
+[INFO] [1783943947.465122466, 650.642000000]: GOAL Reached!
+[INFO] [1783943953.834506464, 657.002000000]: GOAL Reached!
+[INFO] [1783943963.591125492, 666.740000000]: GOAL Reached!
+[INFO] [1783943971.658937169, 674.790000000]: GOAL Reached!
+[INFO] [1783943976.612010432, 679.734000000]: GOAL Reached!
+[INFO] [1783943982.875110058, 685.986000000]: GOAL Reached!
+[INFO] [1783943989.235034510, 692.332000000]: GOAL Reached!
+[INFO] [1783943999.811541967, 702.892000000]: GOAL Reached!
+[INFO] [1783944007.769448464, 710.832000000]: GOAL Reached!
+[INFO] [1783944013.024094180, 716.078000000]: GOAL Reached!
+[INFO] [1783944019.281218897, 722.324000000]: GOAL Reached!
+[INFO] [1783944025.649791794, 728.680000000]: GOAL Reached!
+[INFO] [1783944044.925121243, 747.940000000]: GOAL Reached!
+[INFO] [1783944052.726246744, 755.734000000]: GOAL Reached!
+[INFO] [1783944057.931821233, 760.934000000]: GOAL Reached!
+[INFO] [1783944064.140599362, 767.136000000]: GOAL Reached!
+[INFO] [1783944070.545507248, 773.534000000]: GOAL Reached!
+[INFO] [1783944081.255373146, 784.234000000]: GOAL Reached!
+[INFO] [1783944089.059856652, 792.032000000]: GOAL Reached!
+[INFO] [1783944094.270727864, 797.238000000]: GOAL Reached!
+[INFO] [1783944100.177037636, 803.136000000]: GOAL Reached!
+[INFO] [1783944106.397401423, 809.352000000]: GOAL Reached!
+[INFO] [1783944116.609685047, 819.554000000]: GOAL Reached!
+[INFO] [1783944124.517600274, 827.456000000]: GOAL Reached!
+[INFO] [1783944129.425323657, 832.352000000]: GOAL Reached!
+[INFO] [1783944135.493530151, 838.408000000]: GOAL Reached!
+[INFO] [1783944142.181462429, 845.084000000]: GOAL Reached!
+[INFO] [1783944150.621992482, 853.514000000]: GOAL Reached!
+[INFO] [1783944158.467399974, 861.346000000]: GOAL Reached!
+[INFO] [1783944163.422770988, 866.292000000]: GOAL Reached!
+[INFO] [1783944169.688797864, 872.548000000]: GOAL Reached!
+[INFO] [1783944175.955233485, 878.804000000]: GOAL Reached!
+[INFO] [1783944185.839379519, 888.670000000]: GOAL Reached!
+[INFO] [1783944193.689878315, 896.508000000]: GOAL Reached!
+[INFO] [1783944198.631428976, 901.440000000]: GOAL Reached!
+[INFO] [1783944204.205051297, 907.004000000]: GOAL Reached!
+[INFO] [1783944210.685440701, 913.472000000]: GOAL Reached!
+[INFO] [1783944220.953343241, 923.718000000]: GOAL Reached!
+[INFO] [1783944228.927781171, 931.680000000]: GOAL Reached!
+[INFO] [1783944234.002994858, 936.746000000]: GOAL Reached!
+[INFO] [1783944240.265108716, 942.996000000]: GOAL Reached!
+[INFO] [1783944246.849715062, 949.568000000]: GOAL Reached!
+[INFO] [1783944257.921869054, 960.624000000]: GOAL Reached!
+[INFO] [1783944265.901507979, 968.586000000]: GOAL Reached!
+[INFO] [1783944271.171247843, 973.846000000]: GOAL Reached!
+[INFO] [1783944277.133971097, 979.798000000]: GOAL Reached!
+[INFO] [1783944285.017970972, 987.668000000]: GOAL Reached!
+[INFO] [1783944294.819507494, 997.452000000]: GOAL Reached!
+[INFO] [1783944302.693490082, 1005.314000000]: GOAL Reached!
+[INFO] [1783944307.673868309, 1010.282000000]: GOAL Reached!
+[INFO] [1783944313.756764317, 1016.356000000]: GOAL Reached!
+[INFO] [1783944320.006025189, 1022.594000000]: GOAL Reached!
+[INFO] [1783944330.373503404, 1032.942000000]: GOAL Reached!
+[INFO] [1783944338.149274325, 1040.704000000]: GOAL Reached!
+[INFO] [1783944343.243281696, 1045.788000000]: GOAL Reached!
+[INFO] [1783944349.512791388, 1052.048000000]: GOAL Reached!
+[INFO] [1783944357.549371418, 1060.070000000]: GOAL Reached!
+[INFO] [1783944367.626201396, 1070.128000000]: GOAL Reached!
+[INFO] [1783944375.495706060, 1077.982000000]: GOAL Reached!
+[INFO] [1783944380.495162060, 1082.972000000]: GOAL Reached!
+[INFO] [1783944386.582002311, 1089.048000000]: GOAL Reached!
+[INFO] [1783944392.841777358, 1095.296000000]: GOAL Reached!
+[INFO] [1783944403.133114399, 1105.570000000]: GOAL Reached!
+[INFO] [1783944411.021184945, 1113.444000000]: GOAL Reached!
+[INFO] [1783944416.093552439, 1118.506000000]: GOAL Reached!
+[INFO] [1783944421.787597813, 1124.192000000]: GOAL Reached!
+[INFO] [1783944428.259579248, 1130.650000000]: GOAL Reached!
+[INFO] [1783944438.051754173, 1140.424000000]: GOAL Reached!
+[INFO] [1783944446.734643380, 1149.096000000]: GOAL Reached!
+[INFO] [1783944452.011520343, 1154.362000000]: GOAL Reached!
+[INFO] [1783944458.276039025, 1160.614000000]: GOAL Reached!
+[INFO] [1783944464.557526280, 1166.884000000]: GOAL Reached!
+[INFO] [1783944474.307610202, 1176.616000000]: GOAL Reached!
+[INFO] [1783944482.169245704, 1184.464000000]: GOAL Reached!
+[INFO] [1783944487.120122858, 1189.406000000]: GOAL Reached!
+[INFO] [1783944492.789262429, 1195.066000000]: GOAL Reached!
+[INFO] [1783944499.155148165, 1201.420000000]: GOAL Reached!
+[INFO] [1783944509.442863794, 1211.690000000]: GOAL Reached!
+[INFO] [1783944517.414046291, 1219.650000000]: GOAL Reached!
+[INFO] [1783944525.913325774, 1228.134000000]: GOAL Reached!
+[INFO] [1783944535.575634547, 1237.778000000]: GOAL Reached!
+[INFO] [1783944543.443939127, 1245.634000000]: GOAL Reached!
+[INFO] [1783944554.596538349, 1256.766000000]: GOAL Reached!
+[INFO] [1783944562.475340380, 1264.634000000]: GOAL Reached!
+[INFO] [1783944567.927543430, 1270.074000000]: GOAL Reached!
+[INFO] [1783944574.708498245, 1276.842000000]: GOAL Reached!
+[INFO] [1783944581.959619673, 1284.082000000]: GOAL Reached!
+[INFO] [1783944591.944197174, 1294.054000000]: GOAL Reached!
+[INFO] [1783944600.627659[WARN] [1783944630.340987, 1332.382000]: training environment stop requested: adapter_close
+schema_version: '1.0'
+task: T12
+status: passed
+run_id: t12_residual_static_footprint_seed101
+algorithm: RL-TEB-Eta-FullSafety
+training_seed: 101
+safety_mode: T12Safety
+episode_count: 189
+step_count: 1422
+failure_count: 1
+run_validation:
+  valid: true
+  run_id: t12_residual_static_footprint_seed101
+  episode_count: 189
+  step_count: 1422
+  verified_checksum_count: 4
+selected_checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_static_footprint_reconfigure_stress/runs/t12_residual_static_footprint_seed101/checkpoints/step_000650
+evaluation_policy: checkpoint
+selected_timesteps: 650
+passed: true
+acceptance_override: true
+episode_boundary_audit:
+  protocol: cancel_terminal_and_plan_quiet_restore_reset_dispatch_v1
+  quiet_period_s: 0.25
+  recovery_quiet_period_s: 1.0
+  timeout_s: 5.0
+  quiesce_count: 192
+  quiesce_failure_count: 0
+  last_terminal_state: 3
+  last_quiet_period_s: 0.25
+  activation_timeout_barrier_count: 0
+  activation_timeout_last_config_seq: null
+  recovery_barrier_pending: false
+
+[INFO] [1783943294.741375712]: Finished loading Gazebo ROS API Plugin.
+[INFO] [1783943294.742315393]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...
+[INFO] [1783943295.339334217, 0.010000000]: waitForService: Service [/gazebo/set_physics_properties] is now available.
+[INFO] [1783943295.364828375, 0.036000000]: Physics dynamic reconfigure ready.
+[INFO] [1783943295.773346532, 0.376000000]: <initialOrientationAsReference> is unset, using default value of false to comply with REP 145 (world as orientation reference)
+[INFO] [1783943295.773400843, 0.376000000]: <robotNamespace> set to: //
+[INFO] [1783943295.773415357, 0.376000000]: <topicName> set to: imu/data
+[INFO] [1783943295.773426790, 0.376000000]: <frameName> set to: imu_link
+[INFO] [1783943295.773457787, 0.376000000]: <updateRateHZ> set to: 50
+[INFO] [1783943295.773473534, 0.376000000]: <gaussianNoise> set to: 0
+[INFO] [1783943295.773502830, 0.376000000]: <xyzOffset> set to: 0 0 0
+[INFO] [1783943295.773531173, 0.376000000]: <rpyOffset> set to: 0 -0 0
+[INFO] [1783943295.888562914, 0.376000000]: Laser Plugin: Using the 'robotNamespace' param: '/'
+[INFO] [1783943295.888583332, 0.376000000]: Starting Laser Plugin (ns = /)
+[INFO] [1783943295.889265930, 0.376000000]: Laser Plugin (ns = /)  <tf_prefix_>, set to ""
+[INFO] [1783943295.995112068, 0.376000000]: M2 simulation-only Ackermann interface loaded; cmd_angle_instead_rotvel=false
+110, 1302.718000000]: GOAL Reached!
+[INFO] [1783944610.612743189, 1312.682000000]: GOAL Reached!
+[INFO] [1783944620.587211942, 1322.640000000]: GOAL Reached!
+[INFO] [1783944628.845239106, 1330.886000000]: GOAL Reached!
+[31mWARNING: disk usage in log directory [/home/robot/.ros/log] is over 1GB.
+It's recommended that you use the 'rosclean' command.[0m
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[31m================================================================================REQUIRED process [t11_formal_run-6] has died!
+process has finished cleanly
+log file: /home/robot/.ros/log/baa7029c-7eb0-11f1-91bc-3382cc4c3ed1/t11_formal_run-6*.log
+Initiating shutdown!
+================================================================================[0m
+[1mprocess[t11_formal_run-6]: started with pid [1064833][0m
+[1m[spawn_m2-3] process has finished cleanly
+log file: /home/robot/.ros/log/baa7029c-7eb0-11f1-91bc-3382cc4c3ed1/spawn_m2-3*.log[0m
+[t11_formal_run-6] killing on exit
+[move_base-5] killing on exit
+[m2_robot_state_publisher-4] killing on exit
+[gazebo-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

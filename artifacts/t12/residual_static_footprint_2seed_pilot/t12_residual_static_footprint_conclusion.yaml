@@ -1,0 +1,61 @@
+schema_version: "1.0"
+task: T12
+study: residual_static_footprint_two_seed_pilot_conclusion
+created_at: "2026-07-13T21:20:00+08:00"
+formal_result: false
+simulation_only: true
+system_factor:
+  name: static_footprint_lifetime_during_dynamic_reconfigure
+  amendment: experiments/manifests/t12/residual_static_footprint_reconfigure_amendment.yaml
+  implementation: dynamic_reconfigure_updates_TebConfig_without_reconstructing_static_robot_footprint
+stress_gate:
+  report: artifacts/t12/residual_static_footprint_reconfigure_stress/t12_residual_static_footprint_reconfigure_stress_report.yaml
+  passed: true
+  training_steps: 1300
+  footprint_model_load_count: 1
+  move_base_crash: 0
+  activation_timeout: 0
+  test_goal: 7
+two_seed_gate:
+  report: artifacts/t12/residual_static_footprint_2seed_pilot/t12_residual_static_footprint_2seed_report.yaml
+  report_sha256: e15640f719966123d9df2cabc2a95ccdedc1a7275ade6db84977b5fd5c56aa24
+  both_runs_complete: true
+  seed101:
+    validation_mean_returns: [23.60558827718099, 24.05828610000511]
+    validation_return_change: 0.4526978228241205
+    selected_timesteps: 2000
+    projection_intervention_rate: 0.651
+    safety_intervention_rate: 0.464
+    test_goal: 7
+    test_collision: 0
+    test_emergency_stop: 0
+    move_base_crash: 0
+    footprint_model_load_count: 1
+  seed102:
+    validation_mean_returns: [23.785964985688526, 23.707580546538036]
+    validation_return_change: -0.07838443915048998
+    selected_timesteps: 1000
+    projection_intervention_rate: 0.695
+    safety_intervention_rate: 0.4555
+    test_goal: 7
+    test_collision: 0
+    test_emergency_stop: 0
+    move_base_crash: 0
+    footprint_model_load_count: 1
+  operational_integrity_gate_as_generated: true
+  validation_improved_each_seed: false
+  learning_gate_passed: false
+audit_qualification:
+  issue: seed101_activation_timeout_is_recorded_by_boundary_audit_but_not_by_step_transition_drop_count
+  boundary_audit_activation_timeout_barrier_count: 1
+  boundary_audit_activation_timeout_last_config_seq: 19
+  step_transition_drop_activation_timeout_count: 0
+  interpretation: the_recovery_barrier_prevented_a_crash_and_the_run_completed_but_a_strict_zero_event_claim_is_not_supported
+  effect_on_decision: none_because_the_learning_gate_already_failed
+frozen_decision:
+  expand_training_budget: false
+  run_frozen_three_method_pairing: false
+  claim_residual_sac_gain: false
+  next_allowed_factor: residual_action_projection_alignment
+  next_rule: change_only_one_learning_factor_after_preregistering_a_new_amendment
+  frozen_fields_until_amendment: [reward, residual_radius, ema, hold, safety, sac_hyperparameters, training_budget]

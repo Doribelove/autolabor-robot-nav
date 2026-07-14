@@ -1,0 +1,61 @@
+schema_version: '1.0'
+task: T12
+study: residual_episode_boundary_integrity_pilot
+formal_result: false
+expanded_budget: false
+launch_exit_status: 0
+run_id: t12_residual_boundary_integrity_seed101
+training_seed: 101
+training_timesteps: 500
+configuration_sha256: 258275aa710ff67df577519047b752119424fbe1a4f9676bc47e4da5620137aa
+boundary_audit:
+  protocol: cancel_terminal_and_plan_quiet_restore_reset_dispatch_v1
+  quiet_period_s: 0.25
+  timeout_s: 5.0
+  quiesce_count: 89
+  quiesce_failure_count: 0
+  last_terminal_state: 3
+training_scene_ids:
+- t11-train-clear-left
+- t11-train-clear-right
+- t11-train-clear-straight
+- t11-train-corridor
+- t11-train-obstacle
+episode_count: 86
+step_count: 630
+train_step_count: 500
+first_step_previous_to_anchor_normalized_l1:
+  episode_count: 86
+  maximum: 0.0
+  mean: 0.0
+event_counts:
+  move_base_crash: 0
+  sigsegv: 0
+  activation_timeout: 0
+  interface_fault: 0
+  dynamic_reconfigure_failure: 0
+  collision: 0
+  emergency_stop: 0
+  test_goal: 7
+gates:
+  run_complete: true
+  atomic_boundary_protocol_recorded: true
+  boundary_quiesce_failure_count_zero: true
+  move_base_crash_count_zero: true
+  activation_timeout_count_zero: true
+  interface_fault_count_zero: true
+  dynamic_reconfigure_failure_count_zero: true
+  all_episode_first_steps_match_anchor: true
+  all_five_training_scenes_observed: true
+  test_collision_count_zero: true
+  test_emergency_stop_count_zero: true
+  test_goal_count_seven: true
+mechanism_gate:
+  reference_projection_intervention_rate: 0.8706
+  observed_projection_intervention_rate: 0.598
+  drop_percentage_points: 27.260000000000005
+  maximum_rate: 0.77
+  projection_rate_materially_reduced: true
+integrity_passed: true
+proceed_to_two_seed_pilot: true
+decision: run_two_seed_2000_step_pilot

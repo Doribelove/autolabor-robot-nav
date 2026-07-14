@@ -1,0 +1,47 @@
+schema_version: "1.0"
+status: frozen_before_repair_pilot
+task: T12
+amendment_id: t12_residual_curriculum_rotation_fix_v1
+created_at: "2026-07-13T14:45:00+08:00"
+reason:
+  original_validation_change_seed101: -0.23973852396011353
+  original_validation_change_seed102: -0.17634399731954176
+  observed_training_scene_ids: [t11-train-clear-straight]
+  intended_training_scene_count: 5
+  root_cause: repeated_unchanged_curriculum_update_reset_scenario_index_to_minus_one_each_episode
+paired_review:
+  selected_minus_zero_mean_return: 2.038101450015868
+  selected_minus_zero_return_by_training_seed: {101: 3.7355559749665725, 102: 0.34064692506516314}
+  selected_success_rate: 0.5
+  zero_residual_success_rate: 0.5
+  teb_tuned_success_rate: 0.5
+  joint_stable_gain_supported: false
+single_factor_change:
+  name: preserve_curriculum_scenario_rotation
+  file: src/tools/thesis_experiment/src/thesis_experiment/gazebo_training_adapter.py
+  rule: unchanged_scenario_list_must_not_reset_scenario_index
+frozen_unchanged_fields:
+  residual_config: config/thesis_experiments/t12_residual_training.yaml
+  training_seeds: [101, 102]
+  timesteps_per_seed: 2000
+  checkpoints: [1000, 2000]
+  evaluation_seed_limit: 1
+  reward: config/thesis_experiments/t11_formal.yaml#reward
+  normalized_residual_radius: [0.35, 0.25, 0.30, 0.30, 0.25, 0.20, 0.30, 0.25, 0.25]
+  minimum_risk_scale: 0.20
+  action_ema_alpha: 0.35
+  decision_hold_steps: 4
+  safety_mode: T12Safety
+  model_selection: validation_only_best_mean_return_earliest_on_tie
+pilot:
+  formal_result: false
+  output_root: artifacts/t12/residual_curriculum_fix_pilot
+  expand_budget: false
+  acceptance:
+    both_seeds_complete: true
+    observed_train_scene_ids_exactly_match_curriculum_contract: true
+    zero_collision_interface_fault_process_crash: true
+    validation_return_change_positive_each_seed: true
+decision_after_pilot:
+  pass: paired_baseline_confirmation_then_budget_expansion_review
+  fail: stop_and_review_next_single_factor_without_budget_expansion

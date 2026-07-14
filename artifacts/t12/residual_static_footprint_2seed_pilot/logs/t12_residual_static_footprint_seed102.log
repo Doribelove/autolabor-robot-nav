@@ -1,0 +1,629 @@
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+xacro: in-order processing became default in ROS Melodic. You can drop the option.
+... logging to /home/robot/.ros/log/9e90cba8-7eb8-11f1-91bc-3382cc4c3ed1/roslaunch-WP-1090690.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+]2;/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/launch/t11_formal_run.launch
+[1mstarted roslaunch server http://WP:34875/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /m2_gazebo/simulation_only: True
+ * /m2_robot_state_publisher/publish_frequency: 30.0
+ * /move_base/TebLocalPlannerROS/acc_lim_theta: 0.8
+ * /move_base/TebLocalPlannerROS/acc_lim_x: 0.8
+ * /move_base/TebLocalPlannerROS/allow_init_with_backwards_motion: True
+ * /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel: False
+ * /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist: 1.5
+ * /move_base/TebLocalPlannerROS/dt_hysteresis: 0.1
+ * /move_base/TebLocalPlannerROS/dt_ref: 0.3
+ * /move_base/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /move_base/TebLocalPlannerROS/enable_multithreading: True
+ * /move_base/TebLocalPlannerROS/feasibility_check_no_poses: 5
+ * /move_base/TebLocalPlannerROS/footprint_model/type: polygon
+ * /move_base/TebLocalPlannerROS/footprint_model/vertices: [[0.52, 0.35], [0...
+ * /move_base/TebLocalPlannerROS/global_plan_overwrite_orientation: True
+ * /move_base/TebLocalPlannerROS/include_costmap_obstacles: True
+ * /move_base/TebLocalPlannerROS/inflation_dist: 0.55
+ * /move_base/TebLocalPlannerROS/map_frame: odom
+ * /move_base/TebLocalPlannerROS/max_global_plan_lookahead_dist: 8.0
+ * /move_base/TebLocalPlannerROS/max_number_classes: 4
+ * /move_base/TebLocalPlannerROS/max_samples: 500
+ * /move_base/TebLocalPlannerROS/max_vel_theta: 1.0
+ * /move_base/TebLocalPlannerROS/max_vel_x: 1.2
+ * /move_base/TebLocalPlannerROS/max_vel_x_backwards: 0.6
+ * /move_base/TebLocalPlannerROS/max_vel_y: 0.0
+ * /move_base/TebLocalPlannerROS/min_obstacle_dist: 0.25
+ * /move_base/TebLocalPlannerROS/min_turning_radius: 1.2
+ * /move_base/TebLocalPlannerROS/obstacle_poses_affected: 15
+ * /move_base/TebLocalPlannerROS/odom_topic: /odom
+ * /move_base/TebLocalPlannerROS/teb_autosize: True
+ * /move_base/TebLocalPlannerROS/weight_acc_lim_theta: 1.0
+ * /move_base/TebLocalPlannerROS/weight_acc_lim_x: 1.0
+ * /move_base/TebLocalPlannerROS/weight_adapt_factor: 2.0
+ * /move_base/TebLocalPlannerROS/weight_inflation: 0.1
+ * /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive: 10.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_nh: 1000.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_turning_radius: 10.0
+ * /move_base/TebLocalPlannerROS/weight_max_vel_theta: 1.0
+ * /move_base/TebLocalPlannerROS/weight_max_vel_x: 2.0
+ * /move_base/TebLocalPlannerROS/weight_obstacle: 50.0
+ * /move_base/TebLocalPlannerROS/weight_optimaltime: 1.0
+ * /move_base/TebLocalPlannerROS/weight_viapoint: 1.0
+ * /move_base/TebLocalPlannerROS/wheelbase: 0.65
+ * /move_base/base_global_planner: navfn/NavfnROS
+ * /move_base/base_local_planner: teb_local_planner...
+ * /move_base/clearing_rotation_allowed: False
+ * /move_base/controller_frequency: 10.0
+ * /move_base/controller_patience: 5.0
+ * /move_base/global_costmap/footprint: [[0.52, 0.35], [0...
+ * /move_base/global_costmap/footprint_padding: 0.05
+ * /move_base/global_costmap/global_frame: odom
+ * /move_base/global_costmap/height: 30.0
+ * /move_base/global_costmap/inflation_layer/cost_scaling_factor: 4.0
+ * /move_base/global_costmap/inflation_layer/enabled: True
+ * /move_base/global_costmap/inflation_layer/inflation_radius: 0.55
+ * /move_base/global_costmap/obstacle_layer/enabled: True
+ * /move_base/global_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/global_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/global_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/global_costmap/obstacle_layer/scan/inf_is_valid: True
+ * /move_base/global_costmap/obstacle_layer/scan/marking: True
+ * /move_base/global_costmap/obstacle_layer/scan/obstacle_range: 12.0
+ * /move_base/global_costmap/obstacle_layer/scan/raytrace_range: 15.0
+ * /move_base/global_costmap/obstacle_layer/scan/sensor_frame: laser_link
+ * /move_base/global_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/global_costmap/plugins: [{'name': 'obstac...
+ * /move_base/global_costmap/publish_frequency: 2.0
+ * /move_base/global_costmap/resolution: 0.05
+ * /move_base/global_costmap/robot_base_frame: base_link
+ * /move_base/global_costmap/rolling_window: True
+ * /move_base/global_costmap/transform_tolerance: 0.3
+ * /move_base/global_costmap/update_frequency: 5.0
+ * /move_base/global_costmap/width: 30.0
+ * /move_base/local_costmap/footprint: [[0.52, 0.35], [0...
+ * /move_base/local_costmap/footprint_padding: 0.05
+ * /move_base/local_costmap/global_frame: odom
+ * /move_base/local_costmap/height: 12.0
+ * /move_base/local_costmap/inflation_layer/cost_scaling_factor: 4.0
+ * /move_base/local_costmap/inflation_layer/enabled: True
+ * /move_base/local_costmap/inflation_layer/inflation_radius: 0.55
+ * /move_base/local_costmap/obstacle_layer/enabled: True
+ * /move_base/local_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/local_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/local_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/local_costmap/obstacle_layer/scan/inf_is_valid: True
+ * /move_base/local_costmap/obstacle_layer/scan/marking: True
+ * /move_base/local_costmap/obstacle_layer/scan/obstacle_range: 12.0
+ * /move_base/local_costmap/obstacle_layer/scan/raytrace_range: 15.0
+ * /move_base/local_costmap/obstacle_layer/scan/sensor_frame: laser_link
+ * /move_base/local_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/local_costmap/plugins: [{'name': 'obstac...
+ * /move_base/local_costmap/publish_frequency: 5.0
+ * /move_base/local_costmap/resolution: 0.05
+ * /move_base/local_costmap/robot_base_frame: base_link
+ * /move_base/local_costmap/rolling_window: True
+ * /move_base/local_costmap/transform_tolerance: 0.3
+ * /move_base/local_costmap/update_frequency: 10.0
+ * /move_base/local_costmap/width: 12.0
+ * /move_base/oscillation_distance: 0.2
+ * /move_base/oscillation_timeout: 10.0
+ * /move_base/planner_frequency: 1.0
+ * /move_base/planner_patience: 5.0
+ * /move_base/recovery_behavior_enabled: False
+ * /move_base/shutdown_costmaps: False
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /t11_formal_run/acceptance_eval_seed_limit: 1
+ * /t11_formal_run/acceptance_timesteps: 2000
+ * /t11_formal_run/algorithm: RL-TEB-Semantic-Eta
+ * /t11_formal_run/checkpoint: 
+ * /t11_formal_run/config: /home/robot/robot...
+ * /t11_formal_run/evaluation_policy: checkpoint
+ * /t11_formal_run/evaluation_seed_override: 0
+ * /t11_formal_run/initialize_residual_anchor: True
+ * /t11_formal_run/output_dir: /home/robot/robot...
+ * /t11_formal_run/phase: train
+ * /t11_formal_run/residual_config: /home/robot/robot...
+ * /t11_formal_run/run_id: t12_residual_stat...
+ * /t11_formal_run/safety_mode: T12Safety
+ * /t11_formal_run/scene_manifest: 
+ * /t11_formal_run/semantic_mode: residual_training
+ * /t11_formal_run/t12_safety_config: /home/robot/robot...
+ * /t11_formal_run/task: T12
+ * /t11_formal_run/training_seed: 102
+ * /t11_formal_run/zero_action_policy: False
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    m2_robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    move_base (move_base/move_base)
+    spawn_m2 (gazebo_ros/spawn_model)
+    t11_formal_run (thesis_experiment/t11_formal_run.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [1090746][0m
+[1mROS_MASTER_URI=http://localhost:11311[0m
+]2;/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/launch/t11_formal_run.launch http://localhost:11311
+[1msetting /run_id to 9e90cba8-7eb8-11f1-91bc-3382cc4c3ed1[0m
+[1mprocess[rosout-1]: started with pid [1090779][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [1090786][0m
+[1mprocess[spawn_m2-3]: started with pid [1090789][0m
+[1mprocess[m2_robot_state_publisher-4]: started with pid [1090792][0m
+[1mprocess[move_base-5]: started with pid [1090793][0m
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[INFO] [1783946683.495037, 0.000000]: Loading model XML from ros parameter robot_description
+[INFO] [1783946683.499244, 0.000000]: Waiting for service /gazebo/spawn_urdf_model
+[INFO] [1783946684.403799, 0.212000]: Calling service /gazebo/spawn_urdf_model
+[INFO] [1783946684.743765, 0.376000]: Spawn status: SpawnModel: Successfully spawned entity
+[INFO] [1783946685.056289991, 0.576000000]: global_costmap: Using plugin "obstacle_layer"
+[INFO] [1783946685.059547818, 0.580000000]:     Subscribed to Topics: scan
+[INFO] [1783946685.064714306, 0.586000000]: global_costmap: Using plugin "inflation_layer"
+[INFO] [1783946685.077216028, 0.598000000]: local_costmap: Using plugin "obstacle_layer"
+[INFO] [1783946685.077979377, 0.598000000]:     Subscribed to Topics: scan
+[INFO] [1783946685.082124494, 0.602000000]: local_costmap: Using plugin "inflation_layer"
+[INFO] [1783946685.092207765, 0.612000000]: Created local_planner teb_local_planner/TebLocalPlannerROS
+[INFO] [1783946685.108511467, 0.628000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783946685.108616884, 0.630000000]: Parallel planning in distinctive topologies disabled.
+[INFO] [1783946685.108630188, 0.630000000]: No costmap conversion plugin specified. All occupied costmap cells are treaten as point obstacles.
+[INFO] [1783946685.292496772, 0.814000000]: Recovery behavior will clear layer 'obstacles'
+[INFO] [1783946685.293275744, 0.814000000]: Recovery behavior will clear layer 'obstacles'
+[INFO] [1783946685.332973064, 0.856000000]: odom received!
+[INFO] [1783946690.965345885, 6.474000000]: GOAL Reached!
+[INFO] [1783946696.537613995, 12.038000000]: GOAL Reached!
+[INFO] [1783946702.792492050, 18.284000000]: GOAL Reached!
+[INFO] [1783946707.825662030, 23.308000000]: GOAL Reached!
+[INFO] [1783946714.087862939, 29.556000000]: GOAL Reached!
+[INFO] [1783946721.959147722, 37.416000000]: GOAL Reached!
+[INFO] [1783946727.009347205, 42.458000000]: GOAL Reached!
+[INFO] [1783946735.965959752, 51.400000000]: GOAL Reached!
+[INFO] [1783946742.261816127, 57.682000000]: GOAL Reached!
+[INFO] [1783946747.324329206, 62.736000000]: GOAL Reached!
+[INFO] [1783946753.401568892, 68.802000000]: GOAL Reached!
+[INFO] [1783946759.061479130, 74.452000000]: GOAL Reached!
+[INFO] [1783946764.047834328, 79.430000000]: GOAL Reached!
+[INFO] [1783946769.707437585, 85.080000000]: GOAL Reached!
+[INFO] [1783946777.271536044, 92.630000000]: GOAL Reached!
+[INFO] [1783946782.349247728, 97.702000000]: GOAL Reached!
+[INFO] [1783946788.018780807, 103.358000000]: GOAL Reached!
+[INFO] [1783946793.889915615, 109.218000000]: GOAL Reached!
+[INFO] [1783946798.868477974, 114.188000000]: GOAL Reached!
+[INFO] [1783946805.143165484, 120.450000000]: GOAL Reached!
+[INFO] [1783946811.429000195, 126.722000000]: GOAL Reached!
+[INFO] [1783946816.481766151, 131.766000000]: GOAL Reached!
+[INFO] [1783946822.749871332, 138.022000000]: GOAL Reached!
+[INFO] [1783946829.017804549, 144.276000000]: GOAL Reached!
+[INFO] [1783946834.267771399, 149.516000000]: GOAL Reached!
+[INFO] [1783946840.525615033, 155.766000000]: GOAL Reached!
+[INFO] [1783946846.790475868, 162.022000000]: GOAL Reached!
+[INFO] [1783946851.747200460, 166.966000000]: GOAL Reached!
+[INFO] [1783946856.719730900, 171.928000000]: GOAL Reached!
+[INFO] [1783946862.691520561, 177.894000000]: GOAL Reached!
+[INFO] [1783946869.449757663, 184.638000000]: GOAL Reached!
+[INFO] [1783946879.843914501, 195.016000000]: GOAL Reached!
+[INFO] [1783946884.899491575, 200.062000000]: GOAL Reached!
+[INFO] [1783946891.173073313, 206.326000000]: GOAL Reached!
+[INFO] [1783946897.421167689, 212.562000000]: GOAL Reached!
+[INFO] [1783946907.179961048, 222.304000000]: GOAL Reached!
+[INFO] [1783946912.148041125, 227.262000000]: GOAL Reached!
+[INFO] [1783946918.097125758, 233.200000000]: GOAL Reached!
+[INFO] [1783946924.445564420, 239.538000000]: GOAL Reached!
+[INFO] [1783946935.817436196, 250.888000000]: GOAL Reached!
+[INFO] [1783946940.790007170, 255.850000000]: GOAL Reached!
+[INFO] [1783946946.355877473, 261.408000000]: GOAL Reached!
+[INFO] [1783946953.220917311, 268.262000000]: GOAL Reached!
+[INFO] [1783946963.514587384, 278.536000000]: GOAL Reached!
+[INFO] [1783946968.469334008, 283.480000000]: GOAL Reached!
+[INFO] [1783946974.445616730, 289.446000000]: GOAL Reached!
+[INFO] [1783946980.813587155, 295.802000000]: GOAL Reached!
+[INFO] [1783946990.797729990, 305.768000000]: GOAL Reached!
+[INFO] [1783946996.041167316, 31[ERROR] [1783947142.031239055, 456.738000000]: Aborting because the robot appears to be oscillating over and over. Even after executing all recovery behaviors
+[WARN] [1783947143.468657605, 458.170000000]: TebLocalPlannerROS: possible oscillation (of the robot or its local plan) detected. Activating recovery strategy (prefer current turning direction during optimization).
+[WARN] [1783947143.769056727, 458.472000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1020 seconds
+[WARN] [1783947143.897117906, 458.600000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1300 seconds
+[WARN] [1783947144.034286703, 458.736000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1660 seconds
+[WARN] [1783947144.180158736, 458.882000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2120 seconds
+[WARN] [1783947144.309514624, 459.010000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1280 seconds
+[WARN] [1783947144.451466452, 459.152000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1700 seconds
+[WARN] [1783947144.451958404, 459.152000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.6420 seconds
+[WARN] [1783947144.594183869, 459.296000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2140 seconds
+[WARN] [1783947144.744954369, 459.448000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1520 seconds
+[WARN] [1783947144.901581846, 459.602000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2060 seconds
+[WARN] [1783947145.042202842, 459.744000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1420 seconds
+[WARN] [1783947145.193419373, 459.896000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1940 seconds
+[WARN] [1783947145.344293467, 460.044000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2420 seconds
+[WARN] [1783947145.490872556, 460.192000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1480 seconds
+[WARN] [1783947145.491503633, 460.192000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 1.0400 seconds
+[WARN] [1783947145.663131928, 460.364000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2200 seconds
+[WARN] [1783947145.826789515, 460.526000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1620 seconds
+[WARN] [1783947145.987385191, 460.688000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2240 seconds
+[WARN] [1783947146.150361468, 460.850000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1620 seconds
+[WARN] [1783947146.150907392, 460.850000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.4580 seconds
+[WARN] [1783947146.319196851, 461.018000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2300 seconds
+[WARN] [1783947146.486035193, 461.184000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1660 seconds
+[WARN] [1783947146.652844425, 461.354000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2360 seconds
+[WARN] [1783947146.822129524, 461.522000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1680 seconds
+[WARN] [1783947146.822596408, 461.522000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.6720 seconds
+[WARN] [1783947146.990395585, 461.690000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2360 seconds
+[WARN] [1783947147.169391560, 461.868000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1780 seconds
+[WARN] [1783947147.345228178, 462.046000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2560 seconds
+[WARN] [1783947147.511180605, 462.212000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1660 seconds
+[WARN] [1783947147.511578264, 462.212000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.4900 seconds
+[WARN] [1783947147.687902177, 462.388000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2420 seconds
+[WARN] [1783947147.862055955, 462.560000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1720 seconds
+[WARN] [1783947147.862498997, 462.560000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1480 seconds
+[WARN] [1783947148.033331982, 462.730000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2420 seconds
+[WARN] [1783947148.203767475, 462.900000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1700 seconds
+[WARN] [1783947148.369891275, 463.066000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2360 seconds
+[WARN] [1783947148.370484404, 463.068000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.4560 seconds
+[WARN] [1783947148.541981408, 463.238000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1720 seconds
+[WARN] [1783947148.709280949, 463.406000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2400 seconds
+[WARN] [1783947148.875770993, 463.572000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1660 seconds
+[WARN] [1783947148.876531015, 463.574000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.4060 seconds
+[WARN] [1783947149.049178200, 463.746000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2400 seconds
+[WARN] [1783947149.211628412, 463.906000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1600 seconds
+[WARN] [1783947149.374145051, 464.068000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2220 seconds
+[WARN] [1783947149.532196199, 464.226000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1580 seconds
+[WARN] [1783947149.532785483, 464.228000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.6540 seconds
+[WARN] [1783947149.701291816, 464.396000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2280 seconds
+[WARN] [1783947149.869636485, 464.564000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1680 seconds
+[WARN] [1783947150.038124267, 464.732000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2360 seconds
+[WARN] [1783947150.207327507, 464.902000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1700 seconds
+[WARN] [1783947150.207931459, 464.902000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.6740 seconds
+[WARN] [1783947150.371366442, 465.064000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2320 seconds
+[WARN] [1783947150.539941354, 465.232000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1680 seconds
+[WARN] [1783947150.540324592, 465.232000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1300 seconds
+[WARN] [1783947150.711379387, 465.406000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2420 seconds
+[WARN] [1783947150.711802190, 465.406000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1040 seconds
+[WARN] [1783947150.880021993, 465.572000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1660 seconds
+[WARN] [1783947151.054417785, 465.748000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2420 seconds
+[WARN] [1783947151.054899515, 465.748000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1460 seconds
+[WARN] [1783947151.226423398, 465.922000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1740 seconds
+[WARN] [1783947151.226788731, 465.922000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1200 seconds
+[WARN] [1783947151.394424215, 466.088000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2400 seconds
+[WARN] [1783947151.394822916, 466.088000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1860 seconds
+[WARN] [1783947151.563103718, 466.256000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1680 seconds
+[WARN] [1783947151.563500996, 466.258000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1560 seconds
+[WARN] [1783947151.735780957, 466.430000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2420 seconds
+[WARN] [1783947151.736151933, 466.430000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1280 seconds
+[WARN] [1783947151.910837831, 466.602000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1720 seconds
+[WARN] [1783947152.082278720, 466.774000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2440 seconds
+[WARN] [1783947152.254128082, 466.944000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1700 seconds
+[WARN] [1783947152.254693014, 466.946000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.4440 seconds
+[WARN] [1783947152.430984596, 467.122000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2480 seconds
+[WARN] [1783947152.605875115, 467.296000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1740 seconds
+[WARN] [1783947152.779956569, 467.470000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2480 seconds
+[WARN] [1783947152.949461386, 467.640000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1700 seconds
+[WARN] [1783947152.950068986, 467.640000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.5940 seconds
+[WARN] [1783947153.122478624, 467.812000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2420 seconds
+[WARN] [1783947153.292220037, 467.982000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1700 seconds
+[WARN] [1783947153.292705787, 467.984000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1440 seconds
+[WARN] [1783947153.467275806, 468.156000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2440 seconds
+[WARN] [1783947153.467661035, 468.156000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1160 seconds
+[WARN] [1783947153.641648462, 468.330000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1740 seconds
+[WARN] [1783947153.812092521, 468.500000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2440 seconds
+[WARN] [1783947153.980200499, 468.668000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1680 seconds
+[WARN] [1783947153.980672401, 468.668000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.3280 seconds
+[WARN] [1783947154.161858980, 468.852000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2520 seconds
+[WARN] [1783947154.339152524, 469.028000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1760 seconds
+[WARN] [1783947154.339612574, 469.030000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1620 seconds
+[WARN] [1783947154.518305805, 469.206000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2540 seconds
+[WARN] [1783947154.518676873, 469.208000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1400 seconds
+[WARN] [1783947154.701525105, 469.392000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1860 seconds
+[WARN] [1783947154.878904769, 469.568000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2620 seconds
+[WARN] [1783947155.056002903, 469.744000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1760 seconds
+[WARN] [1783947155.233608774, 469.920000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2520 seconds
+[WARN] [1783947155.411617604, 470.098000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1780 seconds
+[WARN] [1783947155.589224120, 470.276000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2560 seconds
+[WARN] [1783947155.766702764, 470.452000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1760 seconds
+[WARN] [1783947155.767091031, 470.454000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 1.2860 seconds
+[WARN] [1783947155.953757170, 470.642000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2660 seconds
+[WARN] [1783947156.134012196, 470.822000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1800 seconds
+[WARN] [1783947156.314292816, 471.002000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2600 seconds
+[ERROR] [1783947156.494838204, 471.180000000]: Aborting because the robot appears to be oscillating over and over. Even after executing all recovery behaviors
+[WARN] [1783947156.495435408, 471.182000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.6280 seconds
+1.004000000]: GOAL Reached!
+[INFO] [1783947002.505507719, 317.456000000]: GOAL Reached!
+[INFO] [1783947008.760999305, 323.698000000]: GOAL Reached!
+[INFO] [1783947022.749831329, 337.666000000]: GOAL Reached!
+[INFO] [1783947027.719680446, 342.626000000]: GOAL Reached!
+[INFO] [1783947033.973059054, 348.868000000]: GOAL Reached!
+[INFO] [1783947040.030758853, 354.916000000]: GOAL Reached!
+[INFO] [1783947045.299120496, 360.172000000]: GOAL Reached!
+[INFO] [1783947051.276073728, 366.140000000]: GOAL Reached!
+[INFO] [1783947057.518993511, 372.372000000]: GOAL Reached!
+[INFO] [1783947067.987234208, 382.824000000]: GOAL Reached!
+[INFO] [1783947075.863523522, 390.686000000]: GOAL Reached!
+[INFO] [1783947081.131837631, 395.944000000]: GOAL Reached!
+[INFO] [1783947086.794840753, 401.600000000]: GOAL Reached!
+[INFO] [1783947093.356617044, 408.148000000]: GOAL Reached!
+[INFO] [1783947103.921510869, 418.694000000]: GOAL Reached!
+[INFO] [1783947111.897845702, 426.658000000]: GOAL Reached!
+[INFO] [1783947116.858148279, 431.608000000]: GOAL Reached!
+[INFO] [1783947122.947551444, 437.688000000]: GOAL Reached!
+[INFO] [1783947129.231632343, 443.960000000]: GOAL Reached!
+[INFO] [1783947155.056067677, 469.744000000]: TebLocalPlannerROS: oscillation recovery disabled/expired.
+[INFO] [1783947161.689775978, 476.362000000]: GOAL Reached!
+[INFO] [1783947167.743365545, 482.408000000]: GOAL Reached!
+[INFO] [1783947174.205857553, 488.856000000]: GOAL Reached!
+[INFO] [1783947183.893640844, 498.530000000]: GOAL Reached!
+[INFO] [1783947192.177835875, 506.796000000]: GOAL Reached!
+[INFO] [1783947197.240773290, 511.854000000]: GOAL Reached!
+[INFO] [1783947203.507429836, 518.106000000]: GOAL Reached!
+[INFO] [1783947209.882017856, 524.470000000]: GOAL Reached!
+[INFO] [1783947221.134971299, 535.702000000]: GOAL Reached!
+[INFO] [1783947229.032687141, 543.588000000]: GOAL Reached!
+[INFO] [1783947234.291162030, 548.836000000]: GOAL Reached!
+[INFO] [1783947240.548037117, 555.082000000]: GOAL Reached!
+[INFO] [1783947246.927124819, 561.448000000]: GOAL Reached!
+[INFO] [1783947256.901314889, 571.404000000]: GOAL Reached!
+[INFO] [1783947264.977796123, 579.466000000]: GOAL Reached!
+[INFO] [1783947270.031941825, 584.512000000]: GOAL Reached!
+[INFO] [1783947275.681169063, 590.150000000]: GOAL Reached!
+[INFO] [1783947281.923048357, 596.384000000]: GOAL Reached!
+[INFO] [1783947292.318898363, 606.760000000]: GOAL Reached!
+[INFO] [1783947300.095896011, 614.524000000]: GOAL Reached!
+[INFO] [1783947305.158876638, 619.578000000]: GOAL Reached!
+[INFO] [1783947311.031962815, 625.440000000]: GOAL Reached!
+[INFO] [1783947317.604765369, 632.000000000]: GOAL Reached!
+[INFO] [1783947327.964919671, 642.340000000]: GOAL Reached!
+[INFO] [1783947335.841093018, 650.204000000]: GOAL Reached!
+[INFO] [1783947341.812426454, 656.164000000]: GOAL Reached!
+[INFO] [1783947347.872887304, 662.214000000]: GOAL Reached!
+[INFO] [1783947353.927201823, 668.256000000]: GOAL Reached!
+[INFO] [1783947364.413079265, 678.724000000]: GOAL Reached!
+[INFO] [1783947372.486755425, 686.784000000]: GOAL Reached!
+[INFO] [1783947377.457838992, 691.742000000]: GOAL Reached!
+[INFO] [1783947383.746488319, 698.022000000]: GOAL Reached!
+[INFO] [1783947389.817779272, 704.080000000]: GOAL Reached!
+[INFO] [1783947400.470407872, 714.714000000]: GOAL Reached!
+[INFO] [1783947408.438602287, 722.668000000]: GOAL Reached!
+[INFO] [1783947413.721258930, 727.942000000]: GOAL Reached!
+[INFO] [1783947420.096085757, 734.308000000]: GOAL Reached!
+[INFO] [1783947426.359389911, 740.558000000]: GOAL Reached!
+[INFO] [1783947437.949372801, 752.128000000]: GOAL Reached!
+[INFO] [1783947445.835594487, 760.000000000]: GOAL Reached!
+[INFO] [1783947451.097115693, 765.252000000]: GOAL Reached!
+[INFO] [1783947457.359590513, 771.506000000]: GOAL Reached!
+[INFO] [1783947463.744962894, 777.878000000]: GOAL Reached!
+[INFO] [1783947474.531085115, 788.644000000]: GOAL Reached!
+[INFO] [1783947482.366171280, 796.466000000]: GOAL Reached!
+[INFO] [1783947487.424405328, 801.514000000]: GOAL Reached!
+[INFO] [1783947493.694942470, 807.774000000]: GOAL Reached!
+[INFO] [1783947499.985874101, 814.052000000]: GOAL Reached!
+[INFO] [1783947509.856027023, 823.906000000]: GOAL Reached!
+[INFO] [1783947517.944304259, 831.978000000]: GOAL Reached!
+[INFO] [1783947522.893104204, 836.918000000]: GOAL Reached!
+[INFO] [1783947528.840869806, 842.856000000]: GOAL Reached!
+[INFO] [1783947535.206108624, 849.206000000]: GOAL Reached!
+[INFO] [1783947547.489471042, 861.472000000]: GOAL Reached!
+[INFO] [1783947555.365504046, 869.330000000]: GOAL Reached!
+[INFO] [1783947560.338923930, 874.296000000]: GOAL Reached!
+[INFO] [1783947566.607992575, 880.556000000]: GOAL Reached!
+[INFO] [1783947572.857259475, 886.798000000]: GOAL Reached!
+[INFO] [1783947582.421488311, 896.344000000]: GOAL Reached!
+[INFO] [1783947590.300897948, 904.208000000]: GOAL Reached!
+[INFO] [1783947595.391227295, 909.292000000]: GOAL Reached!
+[INFO] [1783947601.045086292, 914.934000000]: GOAL Reached!
+[INFO] [1783947607.319626786, 921.198000000]: GOAL Reached!
+[INFO] [1783947617.602485527, 931.462000000]: GOAL Reached!
+[INFO] [1783947625.591240263, 939.438000000]: GOAL Reached!
+[INFO] [1783947630.863619888, 944.702000000]: GOAL Reached!
+[INFO] [1783947636.905065362, 950.732000000]: GOAL Reached!
+[INFO] [1783947643.576105171, 957.390000000]: GOAL Reached!
+[INFO] [1783947654.251395574, 968.046000000]: GOAL Reached!
+[INFO] [1783947662.123447843, 975.906000000]: GOAL Reached!
+[INFO] [1783947667.401500325, 981.174000000]: GOAL Reached!
+[INFO] [1783947673.368925019, 987.132000000]: GOAL Reached!
+[INFO] [1783947680.924479987, 994.676000000]: GOAL Reached!
+[INFO] [1783947690.804962752, 1004.538000000]: GOAL Reached!
+[INFO] [1783947698.669236095, 1012.386000000]: GOAL Reached!
+[INFO] [1783947703.629739559, 1017.336000000]: GOAL Reached!
+[INFO] [1783947709.585574886, 1023.282000000]: GOAL Reached!
+[INFO] [1783947715.864233340, 1029.550000000]: GOAL Reached!
+[INFO] [1783947726.642757727, 1040.308000000]: GOAL Reached!
+[INFO] [1783947734.407697118, 1048.060000000]: GOAL Reached!
+[INFO] [1783947739.375097619, 1053.018000000]: GOAL Reached!
+[INFO] [1783947745.645481114, 1059.276000000]: GOAL Reached!
+[INFO] [1783947752.138123291, 1065.760000000]: GOAL Reached!
+[INFO] [1783947761.998167500, 1075.602000000]: GOAL Reached!
+[INFO] [1783947769.845024695, 1083.432000000]: GOAL Reached!
+[INFO] [1783947774.791084824, 1088.370000000]: GOAL Reached!
+[INFO] [1783947780.884514903, 1094.450000000]: GOAL Reached!
+[INFO] [1783947787.154506205, 1100.712000000]: GOAL Reached!
+[INFO] [1783947797.427283588, 1110.964000000]: GOAL Reached!
+[INFO] [1783947805.292749610, 1118.818000000]: GOAL Reached!
+[INFO] [1783947810.235942954, 1123.752000000]: GOAL Reached!
+[INFO] [1783947815.990229098, 1129.496000000]: GOAL Reached!
+[INFO] [1783947822.271324760, 1135.766000000]: GOAL Reached!
+[INFO] [1783947834.041897385, 1147.516000000]: GOAL Reached!
+[INFO] [1783947841.914269339, 1155.374000000]: GOAL Reached!
+[INFO] [1783947847.187819141, 1160.636000000]: GOAL Reached!
+[INFO] [1783947853.657864820, 1167.094000000]: GOAL Reached!
+[INFO] [1783947860.025554963, 1173.452000000]: GOAL Reached!
+[INFO] [1783947869.782959863, 1183.194000000]: GOAL Reached!
+[INFO] [1783947877.673215475, 1191.068000000]: GOAL Reached!
+[INFO] [1783947882.742722905, 1196.128000000]: GOAL Reached!
+[INFO] [1783947888.615177748, 1201.990000000]: GOAL Reached!
+[INFO] [1783947895.087941558, 1208.450000000]: GOAL Reached!
+[INFO] [1783947904.957510081, 1218.302000000]: GOAL Reached!
+[INFO] [1783947912.939030352, 1226.270000000]: GOAL Reached!
+[INFO] [1783947917.902966248, 1231.226000000]: GOAL Reached!
+[INFO] [1783947923.983901792, 1237.294000000]: GOAL Reached!
+[INFO] [1783947930.249231227, 1243.548000000]: GOAL Reached!
+[INFO] [1783947940.308255116, 1253.596000000]: GOAL Reached!
+[INFO] [1783947947.990658712, 1261.260000000]: GOAL Reached!
+[INFO] [1783947953.038785986, 1266.302000000]: GOAL Reached!
+[INFO] [1783947959.006079077, 1272.258000000]: GOAL Reached!
+[INFO] [1783947965.478836834, 1278.718000000]: GOAL Reached!
+[INFO] [1783947976.841115250, 1290.062000000]: GOAL Reached!
+[INFO] [1783947985.407798330, 1298.608[ERROR] [1783948274.782358197, 1587.468000000]: TebOptimalPlanner::getVelocityCommand() - timediff<=0 is invalid!
+[WARN] [1783948274.782474975, 1587.468000000]: TebLocalPlannerROS: velocity command invalid. Resetting planner...
+000000]: GOAL Reached!
+[INFO] [1783947990.479636366, 1303.674000000]: GOAL Reached!
+[INFO] [1783947996.563344801, 1309.746000000]: GOAL Reached!
+[INFO] [1783948002.935371666, 1316.106000000]: GOAL Reached!
+[INFO] [1783948013.531807324, 1326.684000000]: GOAL Reached!
+[INFO] [1783948021.610044592, 1334.744000000]: GOAL Reached!
+[INFO] [1783948026.569319527, 1339.696000000]: GOAL Reached!
+[INFO] [1783948032.829437355, 1345.944000000]: GOAL Reached!
+[INFO] [1783948039.071556500, 1352.176000000]: GOAL Reached!
+[INFO] [1783948051.154055987, 1364.236000000]: GOAL Reached!
+[INFO] [1783948059.620660396, 1372.686000000]: GOAL Reached!
+[INFO] [1783948064.667748949, 1377.724000000]: GOAL Reached!
+[INFO] [1783948070.413369162, 1383.458000000]: GOAL Reached!
+[INFO] [1783948076.779601210, 1389.812000000]: GOAL Reached!
+[INFO] [1783948087.247657207, 1400.260000000]: GOAL Reached!
+[INFO] [1783948095.108210239, 1408.106000000]: GOAL Reached!
+[INFO] [1783948100.173764370, 1413.162000000]: GOAL Reached!
+[INFO] [1783948106.142482991, 1419.120000000]: GOAL Reached!
+[INFO] [1783948112.615248492, 1425.582000000]: GOAL Reached!
+[INFO] [1783948123.092636251, 1436.044000000]: GOAL Reached!
+[INFO] [1783948155.787639093, 1468.686000000]: GOAL Reached!
+[INFO] [1783948160.668903468, 1473.558000000]: GOAL Reached!
+[INFO] [1783948166.927860648, 1479.806000000]: GOAL Reached!
+[INFO] [1783948173.495427931, 1486.364000000]: GOAL Reached!
+[INFO] [1783948184.773171028, 1497.620000000]: GOAL Reached!
+[INFO] [1783948192.651712968, 1505.486000000]: GOAL Reached!
+[INFO] [1783948197.942205036, 1510.768000000]: GOAL Reached!
+[INFO] [1783948204.210243877, 1517.024000000]: GOAL Reached!
+[INFO] [1783948210.981964550, 1523.784000000]: GOAL Reached!
+[INFO] [1783948220.959481820, 1533.744000000]: GOAL Reached!
+[INFO] [1783948228.837009715, 1541.606000000]: GOAL Reached!
+[INFO] [1783948233.683025952, 1546.444000000]: GOAL Reached!
+[INFO] [1783948239.951351693, 1552.702000000]: GOAL Reached!
+[INFO] [1783948245.825688857, 1558.564000000]: GOAL Reached!
+[INFO] [1783948256.601785832, 1569.324000000]: GOAL Reached!
+[INFO] [1783948264.576167324, 1577.282000000]: GOAL Reached!
+[INFO] [1783948269.821040902, 1582.516000000]: GOAL Reached!
+[INFO] [1783948277.585709019, 1590.268000000]: GOAL Reached!
+[INFO] [1783948283.939588101, 1596.612000000]: GOAL Reached!
+[INFO] [1783948294.793822196, 1607.444000000]: GOAL Reached!
+[INFO] [1783948314.779320359, 1627.406000000]: GOAL Reached!
+[INFO] [1783948319.845384205, 1632.460000000]: GOAL Reached!
+[INFO] [1783948326.195562310, 1638.800000000]: GOAL Reached!
+[INFO] [1783948332.446742348, 1645.042000000]: GOAL Reached!
+[INFO] [1783948343.513233918, 1656.090000000]: GOAL Reached!
+[INFO] [1783948351.586196504, 1664.148000000]: GOAL Reached!
+[INFO] [1783948356.983579255, 1669.534000000]: GOAL Reached!
+[INFO] [1783948363.039490513, 1675.578000000]: GOAL Reached!
+[INFO] [1783948369.092919116, 1681.622000000]: GOAL Reached!
+[INFO] [1783948379.103933032, 1691.614000000]: GOAL Reached!
+[INFO] [1783948387.186566742, 1699.688000000]: GOAL Reached!
+[INFO] [1783948392.157651303, 1704.644000000]: GOAL Reached!
+[INFO] [1783948398.413390734, 1710.892000000]: GOAL Reached!
+[INFO] [1783948404.799554565, 1717.264000000]: GOAL Reached!
+[INFO] [1783948414.579344697, 1727.028000000]: GOAL Reached!
+[INFO] [1783948422.551291847, 1734.986000000]: GOAL Reached!
+[INFO] [1783948427.607612437, 1740.034000000]: GOAL Reached!
+[INFO] [1783948433.874585583, 1746.290000000]: GOAL Reached!
+[INFO] [1783948439.959730133, 1752.364000000]: GOAL Reached!
+[INFO] [1783948456.950128109, 1769.326000000]: GOAL Reached!
+[INFO] [1783948464.921838767, 1777.286000000]: GOAL Reached!
+[INFO] [1783948470.184212551, 1782.536000000]: GOAL Reached!
+[INFO] [1783948476.148157640, 1788.488000000]: GOAL Reached!
+[INFO] [1783948482.517334608, 1794.846000000]: GOAL Reached!
+[INFO] [1783948492.396200578, 1804.708000000]: GOAL Reached!
+[INFO] [1783948500.263251639, 1812.562000000]: GOAL Reached!
+[INFO] [1783948505.133415307, 1817.424000000]: GOAL Reached!
+[INFO] [1783948511.412104901, 1823.690000000]: [ERROR] [1783948659.420855570, 1971.440000000]: TebOptimalPlanner::getVelocityCommand() - timediff<=0 is invalid!
+[WARN] [1783948659.420946090, 1971.440000000]: TebLocalPlannerROS: velocity command invalid. Resetting planner...
+[WARN] [1783948662.368410, 1974.386000]: training environment stop requested: adapter_close
+schema_version: '1.0'
+task: T12
+status: passed
+run_id: t12_residual_static_footprint_seed102
+algorithm: RL-TEB-Eta-FullSafety
+training_seed: 102
+safety_mode: T12Safety
+episode_count: 271
+step_count: 2125
+failure_count: 3
+run_validation:
+  valid: true
+  run_id: t12_residual_static_footprint_seed102
+  episode_count: 271
+  step_count: 2125
+  verified_checksum_count: 4
+selected_checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_static_footprint_2seed_pilot/runs/t12_residual_static_footprint_seed102/checkpoints/step_001000
+evaluation_policy: checkpoint
+selected_timesteps: 1000
+passed: true
+acceptance_override: true
+episode_boundary_audit:
+  protocol: cancel_terminal_and_plan_quiet_restore_reset_dispatch_v1
+  quiet_period_s: 0.25
+  recovery_quiet_period_s: 1.0
+  timeout_s: 5.0
+  quiesce_count: 274
+  quiesce_failure_count: 0
+  last_terminal_state: 3
+  last_quiet_period_s: 0.25
+  activation_timeout_barrier_count: 0
+  activation_timeout_last_config_seq: null
+  recovery_barrier_pending: false
+
+GOAL Reached!
+[INFO] [1783948517.699727014, 1829.966000000]: GOAL Reached!
+[INFO] [1783948527.573242425, 1839.824000000]: GOAL Reached!
+[INFO] [1783948535.554573127, 1847.794000000]: GOAL Reached!
+[INFO] [1783948541.004465782, 1853.234000000]: GOAL Reached!
+[INFO] [1783948546.671866518, 1858.892000000]: GOAL Reached!
+[INFO] [1783948555.907424306, 1868.110000000]: GOAL Reached!
+[INFO] [1783948566.477391469, 1878.662000000]: GOAL Reached!
+[INFO] [1783948574.333500126, 1886.508000000]: GOAL Reached!
+[INFO] [1783948585.392339146, 1897.546000000]: GOAL Reached!
+[INFO] [1783948593.265356795, 1905.402000000]: GOAL Reached!
+[INFO] [1783948598.741630628, 1910.866000000]: GOAL Reached!
+[INFO] [1783948605.526208207, 1917.640000000]: GOAL Reached!
+[INFO] [1783948612.755412270, 1924.858000000]: GOAL Reached!
+[INFO] [1783948623.042025377, 1935.126000000]: GOAL Reached!
+[INFO] [1783948632.713236781, 1944.780000000]: GOAL Reached!
+[INFO] [1783948641.999438958, 1954.050000000]: GOAL Reached!
+[INFO] [1783948652.061849037, 1964.094000000]: GOAL Reached!
+[INFO] [1783948660.721553198, 1972.738000000]: GOAL Reached!
+[INFO] [1783946683.600182574]: Finished loading Gazebo ROS API Plugin.
+[INFO] [1783946683.600975106]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...
+[INFO] [1783946684.196043075, 0.010000000]: waitForService: Service [/gazebo/set_physics_properties] is now available.
+[INFO] [1783946684.238670961, 0.052000000]: Physics dynamic reconfigure ready.
+[INFO] [1783946684.631869590, 0.376000000]: <initialOrientationAsReference> is unset, using default value of false to comply with REP 145 (world as orientation reference)
+[INFO] [1783946684.631905049, 0.376000000]: <robotNamespace> set to: //
+[INFO] [1783946684.631912807, 0.376000000]: <topicName> set to: imu/data
+[INFO] [1783946684.631918669, 0.376000000]: <frameName> set to: imu_link
+[INFO] [1783946684.631935727, 0.376000000]: <updateRateHZ> set to: 50
+[INFO] [1783946684.631943628, 0.376000000]: <gaussianNoise> set to: 0
+[INFO] [1783946684.631965032, 0.376000000]: <xyzOffset> set to: 0 0 0
+[INFO] [1783946684.631983971, 0.376000000]: <rpyOffset> set to: 0 -0 0
+[INFO] [1783946684.747228377, 0.376000000]: Laser Plugin: Using the 'robotNamespace' param: '/'
+[INFO] [1783946684.747249384, 0.376000000]: Starting Laser Plugin (ns = /)
+[INFO] [1783946684.748233530, 0.376000000]: Laser Plugin (ns = /)  <tf_prefix_>, set to ""
+[INFO] [1783946684.855309221, 0.376000000]: M2 simulation-only Ackermann interface loaded; cmd_angle_instead_rotvel=false
+[31mWARNING: disk usage in log directory [/home/robot/.ros/log] is over 1GB.
+It's recommended that you use the 'rosclean' command.[0m
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[31m================================================================================REQUIRED process [t11_formal_run-6] has died!
+process has finished cleanly
+log file: /home/robot/.ros/log/9e90cba8-7eb8-11f1-91bc-3382cc4c3ed1/t11_formal_run-6*.log
+Initiating shutdown!
+================================================================================[0m
+[1mprocess[t11_formal_run-6]: started with pid [1090794][0m
+[1m[spawn_m2-3] process has finished cleanly
+log file: /home/robot/.ros/log/9e90cba8-7eb8-11f1-91bc-3382cc4c3ed1/spawn_m2-3*.log[0m
+[t11_formal_run-6] killing on exit
+[move_base-5] killing on exit
+[m2_robot_state_publisher-4] killing on exit
+[gazebo-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

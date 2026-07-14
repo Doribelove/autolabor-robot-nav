@@ -1,0 +1,94 @@
+cmake_minimum_required(VERSION 3.0.2)
+project(thesis_experiment)
+
+find_package(catkin REQUIRED COMPONENTS
+  actionlib
+  gazebo_msgs
+  geometry_msgs
+  move_base_msgs
+  nav_msgs
+  rospy
+  sensor_msgs
+  std_msgs
+  std_srvs
+  teb_rl_tuner
+  nav_world_model
+  teb_mode_manager
+)
+
+catkin_python_setup()
+
+catkin_package(CATKIN_DEPENDS
+  actionlib
+  gazebo_msgs
+  geometry_msgs
+  move_base_msgs
+  nav_msgs
+  rospy
+  sensor_msgs
+  std_msgs
+  std_srvs
+  teb_rl_tuner
+  nav_world_model
+  teb_mode_manager
+)
+
+catkin_install_python(PROGRAMS
+  scripts/validate_thesis_config.py
+  scripts/validate_run.py
+  scripts/t04_t06_pipeline_integration.py
+  scripts/analyze_teb_sensitivity.py
+  scripts/long_training_environment_integration.py
+  scripts/t07_gazebo_calibration.py
+  scripts/t08_fixed_dwa_baseline.py
+  scripts/evaluate_t08_baselines.py
+  scripts/t09_gazebo_sac_smoke.py
+  scripts/t10_gazebo_sac_smoke.py
+  scripts/evaluate_t10_sac_pair.py
+  scripts/validate_t11_contract.py
+  scripts/t11_formal_run.py
+  scripts/evaluate_t11.py
+  scripts/t12_offline_replay.py
+  scripts/evaluate_t12_closed_loop.py
+  scripts/diagnose_t12_residual_training.py
+  scripts/evaluate_t12_residual_pair.py
+  scripts/compile_v2_scenes.py
+  scripts/evaluate_v2_episode.py
+  scripts/v2_03_offline_acceptance.py
+  scripts/v2_03_runtime_probe.py
+  scripts/v2_04_offline_acceptance.py
+  scripts/v2_04_runtime_probe.py
+  scripts/v2_04b_typed_transaction_probe.py
+  scripts/start_v2_04b_anchor_calibration.py
+  scripts/v2_04b_calibration_episode.py
+  scripts/v2_04b_calibration_batch.py
+  scripts/assess_v2_04b_anchor_freeze.py
+  scripts/prepare_v2_04c.py
+  scripts/prepare_v2_04c_r2.py
+  scripts/prepare_v2_04c_r3.py
+  scripts/prepare_v2_04c_r4.py
+  scripts/assess_v2_04c_ttc.py
+  scripts/freeze_v2_04c_anchor_bank.py
+  scripts/v2_04d_validation_episode.py
+  scripts/v2_04d_validation_batch.py
+  scripts/assess_v2_04d.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  catkin_add_nosetests(tests/test_metric_schema.py)
+  catkin_add_nosetests(tests/test_baseline_evaluator.py)
+  catkin_add_nosetests(tests/test_v2_contract.py)
+  catkin_add_nosetests(tests/test_v2_02.py)
+  catkin_add_nosetests(tests/test_v2_03.py)
+  catkin_add_nosetests(tests/test_v2_04.py)
+  catkin_add_nosetests(tests/test_v2_04b.py)
+  catkin_add_nosetests(tests/test_v2_04d.py)
+  catkin_add_nosetests(tests/test_v2_04e.py)
+  add_rostest(tests/t04_t06_pipeline_integration.test)
+endif()

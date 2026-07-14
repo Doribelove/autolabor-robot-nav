@@ -1,0 +1,62 @@
+schema_version: '1.0'
+task: T12
+study_version: t12_offline_shadow_v1
+mode: shadow
+read_only: true
+allow_motion: false
+allow_parameter_write: false
+
+source:
+  run_glob: artifacts/t11/runs/t11_semantic_eta_fullsafety_seed10[1-4]
+  step_file: steps.csv
+  episode_file: episodes.csv
+  include_splits: [test_id, test_ood]
+
+runtime:
+  ema_alpha: 0.35
+  ood_warning_score: 0.20
+  ood_fallback_score: 0.75
+  decision_frequency_hz: 1.0
+
+feature_envelope:
+  footprint_clearance: [0.10, 30.0]
+  linear_velocity: [-1.2, 1.2]
+  approximate_ttc: [0.0, 30.0]
+  obstacle_density: [0.0, 1.0]
+  path_error: [0.0, 3.0]
+  goal_distance: [0.0, 12.0]
+
+safety:
+  directional_corridor_logic_version: forward_cone_latched_v2
+  a_brake_lower_mps2: 0.5
+  total_latency_upper_s: 0.5
+  distance_margin_m: 0.20
+  warning_margin_m: 0.20
+  emergency_margin_m: 0.0
+  emergency_distance_cap_m: 0.35
+  emergency_confirmation_s: 0.25
+  recovery_margin_m: 0.30
+  recovery_healthy_duration_s: 1.0
+  # Bilateral side-wall WARNING profile. This keeps TEB feasible in corridors;
+  # the all-direction clearance still warns, but side walls do not inflate the
+  # required obstacle distance until the trajectory becomes impossible.
+  corridor_warning_theta:
+    max_vel_x: 0.80
+    max_vel_theta: 0.65
+    acc_lim_x: 0.60
+    acc_lim_theta: 0.60
+    min_obstacle_dist: 0.25
+    inflation_dist: 0.55
+    weight_obstacle: 50.0
+    weight_viapoint: 4.0
+    weight_optimaltime: 0.70
+
+theta_config: src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+
+acceptance:
+  # The immutable four-seed T11 test set contains 991 recorded decisions.
+  minimum_step_rows: 900
+  maximum_optimized_emergency_rate: 0.01
+  # Require a large, but evidence-based, false-stop signal before live shadow.
+  minimum_counterfactual_false_stop_fraction: 0.80
+  maximum_invalid_row_fraction: 0.01

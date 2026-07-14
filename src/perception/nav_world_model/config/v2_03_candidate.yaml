@@ -1,0 +1,75 @@
+schema_version: "2.0"
+architecture_generation: v2
+profile_id: fam_teb_v2_03_world_model_candidate_1
+status: uncalibrated_simulation_candidate
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+allow_unfrozen_simulation_candidate_required: true
+
+topics:
+  scan: /scan
+  odometry: /odom
+  global_path: /move_base/NavfnROS/plan
+  local_costmap: /move_base/local_costmap/costmap
+  local_geometry: /nav_world_model/local_geometry
+  tracks: /nav_world_model/tracks
+  health: /nav_world_model/health
+
+frames:
+  fixed: odom
+  robot: base_link
+
+scan:
+  required_ray_count: 720
+  sector_half_width_rad: 0.2617993877991494
+  density_radius_m: 8.0
+  robot_radius_m: 0.62
+
+detection:
+  maximum_cluster_gap_m: 0.35
+  minimum_cluster_points: 3
+  maximum_cluster_diameter_m: 1.60
+  maximum_tracking_range_m: 15.0
+
+tracker:
+  association_gate_m: 1.00
+  alpha: 0.75
+  beta: 0.20
+  minimum_confirmed_hits: 3
+  maximum_misses: 5
+  maximum_dt_s: 0.30
+  stationary_speed_max_mps: 0.12
+  dynamic_speed_min_mps: 0.18
+  crossing_lateral_speed_min_mps: 0.20
+  crossing_path_half_width_m: 0.90
+
+prediction:
+  horizon_s: 2.0
+  step_s: 0.5
+  confidence_decay_per_s: 0.20
+
+corridor:
+  minimum_x_m: -1.0
+  maximum_x_m: 5.0
+  minimum_side_distance_m: 0.45
+  maximum_side_distance_m: 3.0
+  maximum_residual_m: 0.18
+  maximum_slope_difference: 0.20
+  dead_end_front_distance_m: 2.0
+  dead_end_side_distance_m: 1.6
+
+health:
+  maximum_scan_age_s: 0.25
+  maximum_odometry_age_s: 0.25
+  maximum_tracker_age_s: 0.25
+  tf_lookup_timeout_s: 0.05
+  require_costmap: false
+  require_global_path: false
+
+policy_boundary:
+  forbidden_runtime_topics: [/gazebo/model_states, /pedsim_simulator/simulated_agents]
+  forbidden_runtime_fields: [family, split, evaluator_only, scene_id]
+  gazebo_or_pedsim_truth_evaluator_only: true
+  scene_manifest_access: false

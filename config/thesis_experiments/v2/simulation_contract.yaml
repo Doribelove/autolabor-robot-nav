@@ -1,0 +1,93 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_02_simulation_candidate_1
+status: component_candidate_frozen
+simulation_only: true
+formal_experiment: false
+runtime_ready: false
+real_vehicle_use_forbidden: true
+
+profile:
+  name: v2_02_dynamics
+  plugin: m2_ackermann_plugin
+  legacy_v1_default_preserved: true
+  planar_kinematic_pose_integration: true
+  full_tire_force_model_claimed: false
+
+actuator:
+  update_rate_hz: 50.0
+  speed_time_constant_s: 0.22
+  steering_time_constant_s: 0.18
+  max_acceleration_mps2: 1.20
+  max_deceleration_mps2: 1.60
+  max_brake_deceleration_mps2: 2.40
+  max_emergency_deceleration_mps2: 3.00
+  max_steering_rate_radps: 0.80
+  reverse_requires_zero_crossing: true
+
+command_transport:
+  delay_s: 0.08
+  jitter_s: 0.015
+  timeout_s: 0.50
+  ordered_activation: true
+  deterministic_seed: 42
+  queue_limit: 512
+
+laser_transport:
+  raw_topic: /v2/scan_raw
+  output_topic: /scan
+  update_rate_hz: 15.0
+  delay_s: 0.06
+  jitter_s: 0.01
+  range_noise_stddev_m: 0.01
+  angle_min_rad: -3.141592653589793
+  angle_max_rad: 3.141592653589793
+  ray_count: 720
+  preserve_acquisition_stamp: true
+
+contact_collision:
+  enabled: true
+  topic: /m2_gazebo/contacts
+  message_type: gazebo_msgs/ContactsState
+  chassis_collision: chassis_collision
+  evaluator_only: true
+
+determinism:
+  gazebo_seed_required: true
+  reset_clears_actuator_state: true
+  reset_clears_delay_queue: true
+  same_seed_reproducible: true
+  common_random_numbers_supported: true
+
+regression_gates:
+  straight:
+    command_speed_mps: 1.0
+    duration_s: 4.0
+    minimum_steady_speed_mps: 0.90
+    maximum_lateral_error_m: 0.05
+  circle:
+    command_speed_mps: 0.60
+    command_yaw_rate_radps: 0.40
+    maximum_steady_yaw_rate_error_radps: 0.06
+    maximum_radius_error_m: 0.20
+  braking:
+    initial_speed_mps: 1.0
+    maximum_stop_time_s: 1.0
+    minimum_stopping_distance_m: 0.10
+    maximum_stopping_distance_m: 0.45
+  reverse:
+    command_speed_mps: -0.20
+    minimum_steady_speed_mps: 0.16
+    maximum_lateral_error_m: 0.05
+  delay:
+    commanded_delay_s: 0.08
+    jitter_s: 0.015
+    scheduler_resolution_tolerance_s: 0.025
+    minimum_observed_s: 0.060
+    maximum_observed_s: 0.120
+
+claims:
+  real_vehicle_calibrated: false
+  real_vehicle_safety_claim_allowed: false
+  nonzero_stopping_distance_required: true
+  training_allowed: false

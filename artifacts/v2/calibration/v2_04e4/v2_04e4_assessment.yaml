@@ -1,0 +1,65 @@
+schema_version: '2.0'
+stage: V2-04E4
+status: calibration_winner_selected
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+contract:
+  path: config/thesis_experiments/v2/v2_04e4_exit_hold_calibration_contract.yaml
+  sha256: 81156dde0ed342531096a4e649a3a0b73eef1b18234f033d9b2dfa8c7a412ca1
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04e4_preregistration.yaml
+  sha256: 55c2cf33123f1e4b3b2ed3ea3631d0fe56db5383827feb563fd5d63fd9598ca4
+valid_evidence_episode_count: 5
+candidate_summaries:
+  pocket_g_exit10:
+    hard_gate_pass: true
+    checks:
+      valid_episode_count: true
+      success_count: true
+      collision_count: true
+      typed_transaction_valid: true
+      training_unused: true
+      cruise_fraction: true
+      cruise_static_absorption: true
+      static_fraction: true
+      corridor_fraction: true
+      maneuver_fraction: true
+      switch_max: true
+      switch_mean: true
+    success_count: 5
+    collision_count: 0
+    expected_family_mode_fraction_sum: 3.079448168766144
+    maneuver_fraction: 0.20441988950276244
+    cruise_static_dense_fraction: 0.0
+    active_anchor_switch_counts:
+    - 1
+    - 3
+    - 1
+    - 0
+    - 1
+    active_anchor_switch_count_total: 6
+    navigation_time_s_total: 133.7
+    evidence:
+    - path: artifacts/v2/calibration/v2_04e4/episodes/ep_001__pocket_g_exit10__v2-04e4-cruise-s4731/evaluation.yaml
+      sha256: 3b3172bdfa66f6610b0e2a5e278328824e0856636db5917a08e79cd40dafaea0
+    - path: artifacts/v2/calibration/v2_04e4/episodes/ep_002__pocket_g_exit10__v2-04e4-dynamic-s4732/evaluation.yaml
+      sha256: 5de5f3130e7aaec0cc3f597539e7823eeba7ba939918fec58042ff33cb4803c0
+    - path: artifacts/v2/calibration/v2_04e4/episodes/ep_003__pocket_g_exit10__v2-04e4-static-s4733/evaluation.yaml
+      sha256: 050821ff0e4b8e8a58a2f7f7c8182f9e22d5e5907a23b6f227b3218702848218
+    - path: artifacts/v2/calibration/v2_04e4/episodes/ep_004__pocket_g_exit10__v2-04e4-corridor-s4734/evaluation.yaml
+      sha256: 034d54bd07a201339374d418dabd065f1b5fdd2aa14f12614229dc700d360598
+    - path: artifacts/v2/calibration/v2_04e4/episodes/ep_005__pocket_g_exit10__v2-04e4-maneuver-s4735/evaluation.yaml
+      sha256: 56edcfd1d08b92d52b57c10b00fb2db869792675533e9429d10cfbdc19e7382d
+passing_candidate_ids:
+- pocket_g_exit10
+selected_candidate_id: pocket_g_exit10
+decision:
+  freeze_rule_supervisor_authorized: true
+  held_out_validation_authorized: true
+  new_calibration_only_repair_stage_required: false
+  v2_04d_validation_data_used_for_selection: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false

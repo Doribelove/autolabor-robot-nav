@@ -1,0 +1,24 @@
+schema_version: '1.0'
+algorithm: RL-TEB-Semantic-Eta
+training_seed: 101
+validation:
+- checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_boundary_integrity_pilot/runs/t12_residual_boundary_integrity_seed101/checkpoints/step_000250
+  timesteps: 250
+  episode_returns:
+  - 19.49599289894104
+  - 26.831746459007263
+  - 25.456525087356567
+  mean_return: 23.928088148434956
+- checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_boundary_integrity_pilot/runs/t12_residual_boundary_integrity_seed101/checkpoints/step_000500
+  timesteps: 500
+  episode_returns:
+  - 27.35141012072563
+  - 25.56788432598114
+  - 19.579708337783813
+  mean_return: 24.16633426149686
+selected_checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_boundary_integrity_pilot/runs/t12_residual_boundary_integrity_seed101/checkpoints/step_000500
+selected_timesteps: 500
+selected_mean_validation_return: 24.16633426149686
+test_episode_count: 7
+test_results_used_for_selection: false
+evaluation_policy: checkpoint_deterministic_policy

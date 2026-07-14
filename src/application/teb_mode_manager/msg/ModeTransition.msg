@@ -1,0 +1,11 @@
+std_msgs/Header header
+string schema_version
+uint64 mode_seq
+uint8 from_geometry_mode
+uint8 to_geometry_mode
+uint8 dynamic_overlay
+uint8 transition_state
+float32 progress
+duration minimum_dwell_remaining
+string reason
+bool valid

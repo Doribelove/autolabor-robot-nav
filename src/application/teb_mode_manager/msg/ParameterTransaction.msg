@@ -1,0 +1,30 @@
+std_msgs/Header header
+string schema_version
+uint64 world_model_seq
+uint64 mode_seq
+uint64 config_seq
+uint8 geometry_mode
+uint8 dynamic_overlay
+uint8 transition_state
+string anchor_id
+string profile_id
+string execution_backend
+
+string[] parameter_names
+string[] parameter_types
+float64[] commanded
+float64[] feasible
+float64[] safe
+float64[] executed
+
+uint64 projection_reason_mask
+uint64 safety_reason_mask
+time t_request
+time t_ack
+time t_readback
+time t_active
+bool activated
+bool slow_profile_committed
+bool training_used
+bool valid
+string fault_reason

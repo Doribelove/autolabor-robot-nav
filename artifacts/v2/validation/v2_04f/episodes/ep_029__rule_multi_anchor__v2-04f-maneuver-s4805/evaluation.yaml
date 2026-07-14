@@ -1,0 +1,83 @@
+schema_version: '2.0'
+architecture_generation: v2
+evaluator_id: fam_teb_v2_02_evaluator_1
+formal_result: false
+runtime_ready: false
+scene_id: v2-04f-maneuver-s4805
+family: MANEUVER
+split: validation
+seed: 4805
+instance_sha256: c633f3aa54f33ff91830a9a0aae93713df4afec779a86e6030367198e88a3fc0
+raw_trace_sha256: 66a9ee92acde838b0180b5bd97d328fff1a9d324a4c5cbbe93b19e79e8e29118
+termination: SUCCESS
+metrics:
+  common:
+    success: true
+    collision: false
+    navigation_time_s: 33.300000000000004
+    path_length_m: 3.9569971133284145
+    mean_abs_speed_mps: 0.11891146174415204
+    minimum_clearance_m: 0.45527565239179624
+    stop_count: 7
+    reverse_distance_m: 2.0842792882652392
+  family:
+    gear_switch_count: 6
+    gear_switch_while_moving_count: 6
+    reverse_distance_m: 2.0842792882652392
+stage: V2-04F
+method: rule_multi_anchor
+episode_timeout_s: 60.0
+tracker_message_count: 495
+tracker_health_valid_fraction: 1.0
+finite_ttc_sample_count: 0
+ttc_status: NO_CONFLICT_IN_HORIZON
+context_message_count: 167
+context_valid_count: 167
+context_geometry_sequence:
+- MANEUVER
+- STATIC_DENSE
+context_geometry_switch_count: 1
+transaction_message_count: 168
+transaction_valid_count: 168
+transaction_activated_count: 168
+transaction_fault_count: 0
+transaction_backends:
+- simulation_teb_dynamic_reconfigure
+active_anchor_sequence:
+- anchor_maneuver_forward
+- anchor_static_dense
+active_anchor_switch_count: 1
+typed_transaction_expected: true
+typed_transaction_valid: true
+training_used: false
+runtime_policy_manifest_access: false
+runtime_scene_labels_available: false
+experiment_manager_validation_manifest_access: true
+runner_fault_reason: ''
+supervisor_profile_id: frozen_v2_04e_winner
+context_geometry_sample_counts:
+  BALANCED: 0
+  CRUISE: 0
+  STATIC_DENSE: 130
+  CORRIDOR: 0
+  MANEUVER: 37
+context_geometry_sample_fractions:
+  BALANCED: 0.0
+  CRUISE: 0.0
+  STATIC_DENSE: 0.7784431137724551
+  CORRIDOR: 0.0
+  MANEUVER: 0.2215568862275449
+context_overlay_sample_counts:
+  NONE: 167
+  CROSSING: 0
+  HEAD_ON: 0
+  FOLLOW: 0
+  OVERTAKE_OR_YIELD: 0
+context_overlay_sample_fractions:
+  NONE: 1.0
+  CROSSING: 0.0
+  HEAD_ON: 0.0
+  FOLLOW: 0.0
+  OVERTAKE_OR_YIELD: 0.0
+experiment_manager_calibration_manifest_access: false
+mode_measurement_window: post_readiness_goal_execution_only

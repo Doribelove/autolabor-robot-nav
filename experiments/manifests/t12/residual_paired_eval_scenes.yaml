@@ -1,0 +1,22 @@
+schema_version: "1.0"
+status: frozen_before_t12_residual_paired_evaluation
+simulation_only: true
+training_forbidden: true
+formal_result: false
+real_vehicle_use_forbidden: true
+paired_common_random_numbers: true
+source_scene_contract: experiments/manifests/t12/residual_pilot_scenes.yaml
+collision_definition:
+  source: footprint_clearance
+  collision_threshold_m: 0.10
+  near_collision_threshold_m: 0.30
+randomization:
+  deterministic_from_scene_and_evaluation_seed: true
+  goal_jitter_m: 0.05
+  obstacle_jitter_m: 0.10
+  corridor_half_width_jitter_m: 0.03
+scenes:
+  - {scene_id: t12e-obstacle-center, split: test_id, layout: obstacle, obstacle: [2.7, 0.0], start: [0.0, 0.0, 0.0], goal: [5.2, 0.0, 0.0], timeout_s: 50.0}
+  - {scene_id: t12e-obstacle-offset, split: test_id, layout: obstacle, obstacle: [3.0, -0.45], start: [0.0, 0.0, 0.0], goal: [5.8, -0.2, 0.0], timeout_s: 55.0}
+  - {scene_id: t12e-corridor-narrow, split: test_ood, layout: corridor, corridor_half_width_m: 0.82, start: [0.0, 0.0, 0.0], goal: [5.0, 0.0, 0.0], timeout_s: 55.0}
+  - {scene_id: t12e-corridor-tight, split: test_ood, layout: corridor, corridor_half_width_m: 0.78, start: [0.0, 0.0, 0.0], goal: [4.5, 0.0, 0.0], timeout_s: 55.0}

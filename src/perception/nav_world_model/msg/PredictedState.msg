@@ -1,0 +1,4 @@
+duration time_from_start
+geometry_msgs/PoseWithCovariance pose
+geometry_msgs/TwistWithCovariance velocity
+float32 confidence

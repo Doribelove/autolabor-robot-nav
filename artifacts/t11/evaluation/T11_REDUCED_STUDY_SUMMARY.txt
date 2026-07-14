@@ -1,0 +1,74 @@
+T11 多场景、多 seed 训练与安全消融——缩减研究摘要
+=======================================================
+
+日期：2026-07-13
+环境：仅 Gazebo/ROS Noetic，未连接实车、串口或 CAN
+
+一、为什么缩减
+
+原预注册计划：5 个训练 seed、5 个算法/安全组、25 个 run、1750 个 test episodes。
+执行到 23/25 run 后，用户报告剩余实验额度不足。原预注册文件保持不变，新增
+budget_amendment.yaml。主分析只使用 seed 101--104，因为这 4 个 seed 的五组矩阵完整。
+
+缩减主矩阵：
+  4 training seeds x 5 groups x 7 scenes x 10 evaluation seeds
+  = 20 runs
+  = 1400 test episodes
+
+seed105 已完成的 Semantic-Eta、Direct-Theta、ProjectionOnly 只作 supplementary；
+NoSafety 的三个部分运行在预算停止时终止，NoFallback 未运行。不插补缺失组，也不把
+不完整 seed 混入主均值。
+
+二、严格验证
+
+  - 20/20 run manifests 通过 RunValidator；
+  - 1400/1400 test episode keys 完整且唯一；
+  - Semantic/Direct 和三组安全消融各有 280 个严格配对样本；
+  - failure rows 原样保留；
+  - test 结果未参与 checkpoint 选择；
+  - 汇总报告和研究合同 checksum 已验证。
+
+三、描述性结果（主矩阵）
+
+组                              成功率     ID成功率   OOD成功率   碰撞率
+RL-TEB-Semantic-Eta             42.86%     50.00%     33.33%      0.00%
+RL-TEB-Direct-Theta             43.21%     50.00%     34.17%      0.00%
+RL-TEB-Eta-ProjectionOnly       90.00%    100.00%     76.67%      0.00%
+RL-TEB-Eta-NoSafety             90.71%    100.00%     78.33%      0.00%
+RL-TEB-Eta-NoFallback           42.86%     50.00%     33.33%      0.00%
+
+FullSafety/Semantic-Eta 的 280 个 test episodes 中：
+  - goal：120
+  - emergency_stop：160
+
+这说明当前安全状态机/急停阈值非常保守，显著降低任务完成率。FullSafety 与
+NoFallback 的成功率几乎相同，当前数据没有显示保守参数替换带来额外任务收益。
+
+ProjectionOnly 和 NoSafety 的任务成功率较高，但它们有 planner failure、timeout 和
+invalid-velocity/oscillation 事件。NoSafety seed104 还出现过一次 move_base SIGSEGV
+fatal attempt。因此“成功率更高”不能解释为“更安全”。
+
+四、收敛结论
+
+主分析中的 8 个训练 run（2 个动作空间 x 4 seeds）都没有达到冻结的 validation
+return 阈值 10。500-step 预算只足以验证训练与比较管线，不能宣称 SAC 已收敛。
+Semantic-Eta 与 Direct-Theta 的任务成功率非常接近，目前没有性能优势证据。
+
+五、长期运行中解决的问题
+
+  - reset 后 local plan 获取增加同场景、同目标重试；
+  - 同步状态帧要求实际 observation timestamp 严格递增；
+  - episode 边界先取消目标并等待 TEB 停止，再恢复参数快照，避免线程竞争；
+  - batch 不再相信 roslaunch 返回码，必须验证正式 report；
+  - 不完整 attempt 留档，run 之间增加 ROS/Gazebo shutdown 门禁。
+
+六、证据入口
+
+  evaluator：artifacts/t11/evaluation/t11_evaluation_report.yaml
+  amendment：experiments/manifests/t11/budget_amendment.yaml
+  checksum：artifacts/t11/t11_reduced_study_checksums.sha256
+  fatal log：artifacts/t11/failed_attempts/
+  各 run：artifacts/t11/runs/
+
+准确表述：T11 完成了“预算修订后的 4-seed 完整缩减矩阵”。
+禁止表述：原预注册 5-seed 正式矩阵已完成，或 SAC 已收敛，或 NoSafety 更安全。

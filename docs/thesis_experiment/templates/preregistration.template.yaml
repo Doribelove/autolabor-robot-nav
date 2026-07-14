@@ -1,0 +1,49 @@
+schema_version: "1.0"
+study_version: null
+frozen_at_utc: null
+git_commit: null
+
+primary_proposition: "通过低维语义参数空间和安全投影，使强化学习调参在保持安全约束的同时，提高TEB在多类场景中的导航效率和参数适应能力。"
+
+primary_comparisons:
+  - id: H1
+    groups: [RL-TEB-Direct-Theta, RL-TEB-Semantic-Eta]
+    primary_metrics: [sample_efficiency, success, collision, min_obstacle_distance, ood_drop]
+  - id: H2
+    groups: [RL-TEB-Eta-NoSafety, RL-TEB-Eta-ProjectionOnly, RL-TEB-Eta-FullSafety]
+    primary_metrics: [collision, near_collision_time_ratio, candidate_parameter_violation_count, navigation_time]
+  - id: H3
+    groups: [TEB-Tuned, Rule-TEB, RL-TEB-Semantic-Eta]
+    primary_metrics: [success, navigation_time, path_length, min_obstacle_distance]
+  - id: H4
+    groups: [RL-TEB-Eta-NoFallback, RL-TEB-Eta-FullSafety]
+    primary_metrics: [collision, planner_failure_count, safety_fallback_count, success]
+
+scene_manifests: []
+training_seeds: []
+evaluation_seeds: []
+model_selection_rule: null
+formal_repetition_rule: null
+
+exclusion_rules:
+  allowed:
+    - verified_infrastructure_fault
+    - corrupted_artifact_with_logged_checksum_failure
+  forbidden:
+    - poor_algorithm_performance
+    - collision
+    - timeout
+    - inconvenient_outlier
+
+statistics:
+  alpha: 0.05
+  confidence_interval: 0.95
+  multiple_comparison: holm
+  continuous_paired_test_rule: paired_t_if_difference_normal_else_wilcoxon
+  binary_paired_test: mcnemar_or_paired_bootstrap
+  effect_sizes: true
+  episode_is_independent_unit: true
+
+frozen: false
+sha256: null
+

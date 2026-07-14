@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="m2_obstacle_test">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="default_physics" type="ode">
+      <max_step_size>0.002</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
+    <include><uri>model://sun</uri></include>
+    <include><uri>model://ground_plane</uri></include>
+    <model name="front_box">
+      <static>true</static>
+      <pose>4.0 0.8 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>1.0 1.0 1.0</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>1.0 1.0 1.0</size></box></geometry><material><ambient>0.7 0.2 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+    <model name="left_wall">
+      <static>true</static>
+      <pose>2.5 3.0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>7.0 0.2 1.0</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>7.0 0.2 1.0</size></box></geometry></visual>
+      </link>
+    </model>
+    <model name="right_wall">
+      <static>true</static>
+      <pose>2.5 -3.0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>7.0 0.2 1.0</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>7.0 0.2 1.0</size></box></geometry></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

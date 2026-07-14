@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="seed" default="42"/>
+  <arg name="algorithm" default="TEB-Default"/>
+  <arg name="run_id" default="t08_teb_default_seed42"/>
+  <arg name="output_dir" default="/home/robot/robot_ws_base_rl/artifacts/t08/$(arg run_id)"/>
+  <include file="$(find m2_gazebo)/launch/m2_fixed_teb.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+  </include>
+  <node pkg="thesis_experiment" type="t08_fixed_dwa_baseline.py"
+        name="t08_teb_baseline" output="screen" required="true">
+    <param name="seed" value="$(arg seed)"/>
+    <param name="algorithm" value="$(arg algorithm)"/>
+    <param name="planner_namespace" value="TebLocalPlannerROS"/>
+    <param name="run_id" value="$(arg run_id)"/>
+    <param name="output_dir" value="$(arg output_dir)"/>
+    <param name="baseline_contract" value="/home/robot/robot_ws_base_rl/config/thesis_experiments/t08_baselines.yaml"/>
+  </node>
+</launch>

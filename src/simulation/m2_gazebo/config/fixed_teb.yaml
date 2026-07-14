@@ -1,0 +1,48 @@
+TebLocalPlannerROS:
+  odom_topic: /odom
+  map_frame: odom
+  teb_autosize: true
+  dt_ref: 0.3
+  dt_hysteresis: 0.1
+  max_samples: 500
+  global_plan_overwrite_orientation: true
+  allow_init_with_backwards_motion: true
+  max_global_plan_lookahead_dist: 8.0
+  feasibility_check_no_poses: 5
+
+  max_vel_x: 1.2
+  max_vel_x_backwards: 0.6
+  max_vel_y: 0.0
+  max_vel_theta: 1.0
+  acc_lim_x: 0.8
+  acc_lim_theta: 0.8
+  min_turning_radius: 1.2
+  wheelbase: 0.65
+  cmd_angle_instead_rotvel: false
+
+  footprint_model:
+    type: polygon
+    vertices: [[0.52, 0.35], [0.52, -0.35], [-0.52, -0.35], [-0.52, 0.35]]
+  min_obstacle_dist: 0.25
+  inflation_dist: 0.55
+  include_costmap_obstacles: true
+  costmap_obstacles_behind_robot_dist: 1.5
+  obstacle_poses_affected: 15
+
+  weight_max_vel_x: 2.0
+  weight_max_vel_theta: 1.0
+  weight_acc_lim_x: 1.0
+  weight_acc_lim_theta: 1.0
+  weight_kinematics_nh: 1000.0
+  weight_kinematics_forward_drive: 10.0
+  weight_kinematics_turning_radius: 10.0
+  weight_optimaltime: 1.0
+  weight_obstacle: 50.0
+  weight_inflation: 0.1
+  weight_viapoint: 1.0
+  weight_adapt_factor: 2.0
+  # Deterministic T02 fixed baseline: follow the global plan without spawning
+  # multiple topology optimizers for every dense laser wall.
+  enable_homotopy_class_planning: false
+  enable_multithreading: true
+  max_number_classes: 4

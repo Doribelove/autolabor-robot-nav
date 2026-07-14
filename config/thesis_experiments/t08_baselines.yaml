@@ -1,0 +1,52 @@
+schema_version: "1.0"
+status: frozen_gazebo_t08
+simulation_only: true
+formal_experiment: false
+real_vehicle_use_forbidden: true
+reference_algorithm: TEB-Default
+theta_order: [max_vel_x, max_vel_theta, acc_lim_x, acc_lim_theta, min_obstacle_dist, inflation_dist, weight_obstacle, weight_viapoint, weight_optimaltime]
+algorithms:
+  - name: Fixed-DWA
+    config_version: fixed_dwa_gazebo_v1
+    policy_kind: fixed_navigation_parameters
+    config_path: src/simulation/m2_gazebo/config/fixed_dwa.yaml
+    writes_teb_parameters: false
+  - name: TEB-Default
+    config_version: teb_default_gazebo_v1
+    policy_kind: fixed_theta
+    theta: {max_vel_x: 1.2, max_vel_theta: 1.0, acc_lim_x: 0.8, acc_lim_theta: 0.8, min_obstacle_dist: 0.25, inflation_dist: 0.55, weight_obstacle: 50.0, weight_viapoint: 1.0, weight_optimaltime: 1.0}
+    writes_teb_parameters: true
+  - name: TEB-Tuned
+    config_version: teb_tuned_gazebo_pilot_v1
+    policy_kind: fixed_theta
+    derivation: t07_calibration_midpoint_engineering_baseline_not_claimed_optimal
+    theta: {max_vel_x: 0.9, max_vel_theta: 0.75, acc_lim_x: 0.6, acc_lim_theta: 0.6, min_obstacle_dist: 0.375, inflation_dist: 0.725, weight_obstacle: 75.0, weight_viapoint: 2.5, weight_optimaltime: 0.75}
+    writes_teb_parameters: true
+  - name: Rule-TEB
+    config_version: rule_teb_causal_gazebo_v1
+    policy_kind: causal_hysteretic_rules
+    writes_teb_parameters: true
+    future_information_forbidden: true
+    thresholds:
+      cautious_clearance_enter_m: 0.65
+      cautious_clearance_exit_m: 0.85
+      cautious_ttc_enter_s: 1.2
+      cautious_ttc_exit_s: 1.8
+      tracking_error_enter_m: 0.35
+      tracking_error_exit_m: 0.20
+    profiles:
+      efficient: {max_vel_x: 1.2, max_vel_theta: 0.9, acc_lim_x: 0.8, acc_lim_theta: 0.7, min_obstacle_dist: 0.25, inflation_dist: 0.55, weight_obstacle: 50.0, weight_viapoint: 1.0, weight_optimaltime: 1.0}
+      tracking: {max_vel_x: 0.8, max_vel_theta: 0.8, acc_lim_x: 0.6, acc_lim_theta: 0.6, min_obstacle_dist: 0.35, inflation_dist: 0.65, weight_obstacle: 70.0, weight_viapoint: 4.0, weight_optimaltime: 0.7}
+      cautious: {max_vel_x: 0.6, max_vel_theta: 0.5, acc_lim_x: 0.4, acc_lim_theta: 0.4, min_obstacle_dist: 0.5, inflation_dist: 0.9, weight_obstacle: 100.0, weight_viapoint: 2.0, weight_optimaltime: 0.5}
+evaluation_matrix:
+  seeds: [42]
+  scenes:
+    - {scene_id: t08-clear-straight-v1, split: validation, layout: clear, goal: [3.0, 0.0, 0.0], timeout_s: 30.0}
+    - {scene_id: t08-obstacle-straight-v1, split: validation, layout: obstacle, goal: [5.0, 0.0, 0.0], timeout_s: 45.0}
+    - {scene_id: t08-clear-turn-v1, split: validation, layout: clear, goal: [3.0, 3.0, 1.5707963267948966], timeout_s: 45.0}
+logging:
+  episode_schema: docs/thesis_experiment/schemas/episode_metrics_schema.csv
+  step_schema: docs/thesis_experiment/schemas/step_metrics_schema.csv
+  retain_all_failures: true
+  paired_scene_seed_required: true
+  excluded_from_formal_results: true

@@ -1,0 +1,65 @@
+schema_version: "1.0"
+run_id: null
+created_at_utc: null
+algorithm: null
+mode: gazebo  # gazebo | bag_replay | shadow | real_closed_loop
+scene_id: null
+scene_split: null
+training_seed: null
+evaluation_seed: null
+
+source:
+  main_commit: null
+  main_dirty: null
+  submodule_commits: {}
+  ros_version: null
+  gazebo_version: null
+  python_version: null
+  host_id: null
+
+configuration:
+  experiment_contract_sha256: null
+  scene_manifest_path: null
+  scene_manifest_sha256: null
+  theta_bounds_path: null
+  theta_bounds_sha256: null
+  A_TEB_path: null
+  A_TEB_sha256: null
+  reward_config_path: null
+  reward_config_sha256: null
+  safety_config_path: null
+  safety_config_sha256: null
+  policy_checkpoint_path: null
+  policy_checkpoint_sha256: null
+
+topics:
+  scan: /scan
+  odom: null
+  cmd_vel: /cmd_vel
+  global_plan: null
+  local_plan: /move_base/TebLocalPlannerROS/local_plan
+  status: /move_base/status
+
+safety:
+  allow_motion: false
+  allow_parameter_write: false
+  speed_limit_mps: null
+  human_operator: null
+  emergency_stop_checked: false
+  fence_checked: false
+  conservative_fallback_checked: false
+
+artifacts:
+  episode_csv: null
+  step_log: null
+  rosbag: null
+  stdout_log: null
+  failure_index: null
+  checksums_file: null
+
+completion:
+  validated: false
+  validation_report: null
+  excluded_from_formal_results: true
+  exclusion_reason: pipeline_or_pilot_until_explicitly_frozen
+

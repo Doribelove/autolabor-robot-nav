@@ -1,0 +1,43 @@
+schema_version: "1.0"
+status: frozen_before_execution
+task: T12
+study: residual_selected_zero_teb_tuned_small_paired_evaluation
+formal_result: false
+training_performed: false
+simulation_only: true
+real_vehicle_use_forbidden: true
+scene_manifest: experiments/manifests/t12/residual_paired_eval_scenes.yaml
+training_seeds: [101, 102]
+evaluation_seed_by_training_seed: {101: 701, 102: 702}
+methods:
+  selected_sac:
+    policy: deterministic_selected_1000_step_checkpoint
+    residual_runtime: true
+    safety_mode: T12Safety
+  zero_residual:
+    policy: deterministic_zero_5d_action
+    residual_runtime: true
+    safety_mode: T12Safety
+  teb_tuned:
+    policy: fixed_t08_teb_tuned_anchor
+    residual_runtime: false
+    safety_mode: ProjectionOnly
+common_controls:
+  initialize_each_run_to_t08_teb_tuned_anchor: true
+  same_scene_and_evaluation_seed: true
+  same_episode_manager_reward_termination_and_logger: true
+  selected_checkpoint_not_changed_by_this_evaluation: true
+primary_comparison: selected_sac_minus_zero_residual
+primary_metric: paired_undiscounted_episode_return
+stable_gain_rule:
+  return_delta_strictly_positive_for_each_training_seed: true
+  selected_success_not_lower_for_each_training_seed: true
+  selected_collision_emergency_interface_fault_not_higher: true
+secondary_metrics:
+  - navigation_time_on_pairs_where_both_reach_goal
+  - path_length_on_pairs_where_both_reach_goal
+  - projection_and_safety_intervention_counts
+  - selected_sac_minus_teb_tuned_return
+decision_rule:
+  pass: eligible_for_budget_expansion_review_not_automatic_expansion
+  fail: register_exactly_one_factor_amendment_before_new_small_budget_pilot

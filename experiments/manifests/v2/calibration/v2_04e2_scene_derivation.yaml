@@ -1,0 +1,21 @@
+schema_version: "2.0"
+stage: V2-04E2
+derivation_id: fam_teb_v2_04e2_new_seed_calibration_scene_derivation_1
+status: frozen_before_materialization
+source_manifest:
+  path: experiments/manifests/v2/calibration/v2_04e_supervisor_calibration_scenes.yaml
+  sha256: 397921e0311ac70b0e54cee090ce418d89b0de434f36ee62c7432a4b4d7827bb
+target_manifest_id: fam_teb_v2_04e2_rule_supervisor_calibration_scenes_1
+target_path: artifacts/v2/calibration/v2_04e2/v2_04e2_supervisor_calibration_scenes.yaml
+split: calibration
+scene_replacements:
+  - {source_scene_id: v2-04e-cruise-s4701, target_scene_id: v2-04e2-cruise-s4711, seed: 4711, layout_variant: v2_04e2_cruise}
+  - {source_scene_id: v2-04e-dynamic-s4702, target_scene_id: v2-04e2-dynamic-s4712, seed: 4712, layout_variant: v2_04e2_ttc_crossing}
+  - {source_scene_id: v2-04e-static-s4703, target_scene_id: v2-04e2-static-s4713, seed: 4713, layout_variant: v2_04e2_static}
+  - {source_scene_id: v2-04e-corridor-s4704, target_scene_id: v2-04e2-corridor-s4714, seed: 4714, layout_variant: v2_04e2_corridor}
+  - {source_scene_id: v2-04e-maneuver-s4705, target_scene_id: v2-04e2-maneuver-s4715, seed: 4715, layout_variant: v2_04e2_maneuver}
+forbidden_seed_sets:
+  v2_04d_validation: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610]
+  v2_04e_calibration: [4701, 4702, 4703, 4704, 4705]
+  reserved_v2_04f_validation: [4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+

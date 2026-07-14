@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="report_path" default="/tmp/t03_teb_parameter_client_rostest.yaml"/>
+  <include file="$(find m2_gazebo)/launch/m2_fixed_teb.launch">
+    <arg name="gui" value="false"/>
+    <arg name="seed" value="42"/>
+  </include>
+  <test test-name="t03_teb_client_integration" pkg="teb_rl_tuner"
+        type="t03_teb_client_integration.py" args="--rostest" time-limit="90.0">
+    <param name="simulation" value="true"/>
+    <param name="timeout_s" value="5.0"/>
+    <param name="report_path" value="$(arg report_path)"/>
+    <rosparam param="probe_theta">
+      max_vel_x: 1.1
+      max_vel_theta: 0.9
+      acc_lim_x: 0.7
+      acc_lim_theta: 0.7
+      min_obstacle_dist: 0.27
+      inflation_dist: 0.57
+      weight_obstacle: 55.0
+      weight_viapoint: 1.1
+      weight_optimaltime: 1.1
+    </rosparam>
+  </test>
+</launch>

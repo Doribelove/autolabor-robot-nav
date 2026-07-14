@@ -1,0 +1,27 @@
+schema_version: "1.0"
+purpose: calibration_pilot
+data_classification: pipeline_calibration_pilot_non_formal
+simulation_only: true
+formal_experiment: false
+real_vehicle_use_forbidden: true
+paired_common_random_numbers: true
+sources:
+  worlds: src/simulation/m2_gazebo/worlds
+  theta_candidates: src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+theta:
+  order: [max_vel_x, max_vel_theta, acc_lim_x, acc_lim_theta, min_obstacle_dist, inflation_dist, weight_obstacle, weight_viapoint, weight_optimaltime]
+  simulation_candidate_bounds: {max_vel_x: [0.6, 1.2], max_vel_theta: [0.5, 1.0], acc_lim_x: [0.4, 0.8], acc_lim_theta: [0.4, 0.8], min_obstacle_dist: [0.25, 0.5], inflation_dist: [0.55, 0.9], weight_obstacle: [50.0, 100.0], weight_viapoint: [1.0, 4.0], weight_optimaltime: [0.5, 1.0]}
+  baseline: {max_vel_x: 0.9, max_vel_theta: 0.75, acc_lim_x: 0.6, acc_lim_theta: 0.6, min_obstacle_dist: 0.375, inflation_dist: 0.725, weight_obstacle: 75.0, weight_viapoint: 2.5, weight_optimaltime: 0.75}
+  pilot_delta: {max_vel_x: 0.1, max_vel_theta: 0.1, acc_lim_x: 0.1, acc_lim_theta: 0.1, min_obstacle_dist: 0.05, inflation_dist: 0.05, weight_obstacle: 10.0, weight_viapoint: 0.5, weight_optimaltime: 0.1}
+scenes:
+  - scene_id: replace-with-unique-calibration-scene-id
+    split: train
+    world: src/simulation/m2_gazebo/worlds/obstacle_test.world
+    layout: obstacle
+    start: {x_m: 0.0, y_m: 0.0, yaw_rad: 0.0}
+    goal: {x_m: 5.0, y_m: 0.0, yaw_rad: 0.0}
+    seeds: [42, 43]
+    timeout_s: 45.0
+    collision: {source: scan_clearance, threshold_m: 0.2}
+    randomization: {mode: disabled_t02_deterministic, obstacle_jitter_m: 0.0, sensor_noise_scale: 0.0}
+    randomization_spec_hash: replace-with-canonical-sha256

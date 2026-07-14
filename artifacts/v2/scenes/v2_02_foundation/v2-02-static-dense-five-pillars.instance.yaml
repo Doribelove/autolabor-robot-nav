@@ -1,0 +1,102 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: cbdabd9fc8037430aa83cb9871876d27f952c7ee3611f5b5aec0a24bb160549d
+scene:
+  scene_id: v2-02-static-dense-five-pillars
+  family: STATIC_DENSE
+  split: validation
+  seed: 4203
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 14.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 50.0
+  layout:
+    variant: asymmetric_five_pillars
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 14.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: pillar-1
+    shape: box
+    pose:
+      x_m: 3.4471733364693407
+      y_m: 0.8679797744221444
+      yaw_rad: -0.012497608450066526
+    size_m:
+    - 0.65
+    - 0.65
+    - 1.5
+  - obstacle_id: pillar-2
+    shape: box
+    pose:
+      x_m: 5.4908343289094566
+      y_m: -0.7823347490729913
+      yaw_rad: -0.017404420150885114
+    size_m:
+    - 0.65
+    - 0.65
+    - 1.5
+  - obstacle_id: pillar-3
+    shape: box
+    pose:
+      x_m: 7.4800230294618695
+      y_m: 0.6897738497196007
+      yaw_rad: -0.011702099537597321
+    size_m:
+    - 0.65
+    - 0.65
+    - 1.5
+  - obstacle_id: pillar-4
+    shape: box
+    pose:
+      x_m: 9.48908318371693
+      y_m: -0.8498628664141289
+      yaw_rad: -0.022739259920170122
+    size_m:
+    - 0.65
+    - 0.65
+    - 1.5
+  - obstacle_id: pillar-5
+    shape: box
+    pose:
+      x_m: 11.534361830149553
+      y_m: 0.4898713837666953
+      yaw_rad: 0.000201557365858418
+    size_m:
+    - 0.65
+    - 0.65
+    - 1.5
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.08
+    yaw_jitter_rad: 0.03
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.25
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: alternating_clearance_exceeds_candidate_footprint
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: e0b729c0520c6881700efe3cab653b0497fbaf9da41f2d7ce23808b9e7f8ea49

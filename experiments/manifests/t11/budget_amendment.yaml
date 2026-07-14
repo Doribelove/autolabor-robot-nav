@@ -1,0 +1,48 @@
+schema_version: '1.0'
+task: T11
+amendment_id: t11-budget-reduction-20260713
+created_at_local: '2026-07-13T00:47:00+08:00'
+reason: user_reported_insufficient_remaining_experiment_budget
+timing: post_preregistration_after_23_of_25_planned_runs
+original_plan:
+  training_seeds: [101, 102, 103, 104, 105]
+  run_count: 25
+  test_episode_count: 1750
+  status: incomplete
+amended_primary_analysis:
+  matrix_rule: use_only_training_seeds_with_all_five_algorithm_safety_groups_complete
+  group_count: 5
+  training_seed_count: 4
+  run_count: 20
+  test_episode_count: 1400
+primary_training_seeds: [101, 102, 103, 104]
+excluded_from_primary:
+  training_seed: 105
+  completed_groups:
+    - RL-TEB-Semantic-Eta
+    - RL-TEB-Direct-Theta
+    - RL-TEB-Eta-ProjectionOnly
+  missing_groups:
+    - RL-TEB-Eta-NoSafety
+    - RL-TEB-Eta-NoFallback
+  treatment: supplementary_only_no_imputation
+fatal_attempts_retained:
+  - group: RL-TEB-Eta-NoSafety
+    training_seed: 104
+    failure: move_base_sigsegv
+    log: artifacts/t11/failed_attempts/t11_semantic_eta_no_safety_seed104_planner_sigsegv_attempt1.log
+stopped_for_budget:
+  - group: RL-TEB-Eta-NoSafety
+    training_seed: 105
+    log: artifacts/t11/failed_attempts/t11_semantic_eta_no_safety_seed105_budget_stopped.log
+  - group: RL-TEB-Eta-NoSafety
+    training_seed: 105
+    log: artifacts/t11/failed_attempts/t11_semantic_eta_no_safety_seed105_budget_stopped_retry2.log
+  - group: RL-TEB-Eta-NoSafety
+    training_seed: 105
+    log: artifacts/t11/failed_attempts/t11_semantic_eta_no_safety_seed105_budget_stopped_retry3.log
+interpretation:
+  formal_five_seed_claim_allowed: false
+  reduced_complete_matrix_claim_allowed: true
+  inferential_statistics_allowed: false
+  descriptive_paired_analysis_allowed: true

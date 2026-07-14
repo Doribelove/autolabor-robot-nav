@@ -1,0 +1,43 @@
+schema_version: "2.0"
+stage: V2-04E-R1
+amendment_id: fam_teb_v2_04e_r1_compiled_split_adapter_fix_1
+status: frozen_before_restarting_calibration_navigation
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+trigger:
+  original_preregistration:
+    path: experiments/manifests/v2/calibration/v2_04e_preregistration.yaml
+    sha256: d1d3006a6d9d24852717745144555e9faf3e804a265216ce127c8df074063cbd
+  excluded_attempt_count: 2
+  excluded_valid_evidence_count: 0
+  fault: compiled_scene_instance_hash_mismatch_caused_by_runner_split_adapter
+  navigation_outcome_observed_but_not_accepted_as_evidence: true
+  failed_logs:
+    runner_sha256: 5debdbeddf6bf73a6ef6f7d9c16cf42de39a47f2dce493ce38bd8bb7a8212cfc
+    launch_sha256: 373c1bdc7d871bef3e460d22b55b979eb92bb46cc1fc9e7478c2f83e39ee22a6
+
+single_change:
+  component: evaluator_split_adapter
+  before_episode_runner_sha256: d3cf5db0b4d1617d202d28bb521eda1eb3b365578d71dae190c2e8e734aee99d
+  after_episode_runner_sha256: c38591e22c601f0107e15fe090de4b07a04338de8eafd703cc137ec58cc98b6c
+  behavior: restore_original_compiled_scene_split_during_unchanged_hash_checked_evaluation
+
+unchanged:
+  candidate_bank: true
+  candidate_thresholds: true
+  calibration_seeds: true
+  budget: true
+  stopping_conditions: true
+  selection_order: true
+  anchor_bank: true
+  supervisor_algorithm: true
+
+restart_rule:
+  all_20_valid_episodes_still_required: true
+  excluded_attempts_do_not_count_toward_budget: true
+  failed_attempt_outputs_may_not_enter_candidate_selection: true
+  v2_04d_validation_data_access_allowed: false
+

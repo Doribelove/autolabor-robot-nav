@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="seed" default="42"/>
+  <arg name="report_path" default="/tmp/m2_fixed_teb_regression.yaml"/>
+
+  <include file="$(find m2_gazebo)/launch/spawn_m2.launch">
+    <arg name="world" value="$(find m2_gazebo)/worlds/obstacle_test.world"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+  </include>
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <rosparam file="$(find m2_gazebo)/config/move_base.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="local_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/local_costmap.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/global_costmap.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/fixed_teb.yaml" command="load"/>
+    <param name="TebLocalPlannerROS/xy_goal_tolerance" value="0.25"/>
+    <param name="TebLocalPlannerROS/yaw_goal_tolerance" value="0.15"/>
+    <remap from="cmd_vel" to="/cmd_vel"/>
+    <remap from="odom" to="/odom"/>
+  </node>
+
+  <node pkg="m2_gazebo" type="m2_teb_regression_test.py" name="m2_teb_regression_test"
+        output="screen" required="true">
+    <param name="seed" value="$(arg seed)"/>
+    <param name="report_path" value="$(arg report_path)"/>
+    <param name="goal_timeout_s" value="45.0"/>
+  </node>
+</launch>
