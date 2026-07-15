@@ -1,0 +1,68 @@
+schema_version: "2.0"
+stage: V2-04G
+derivation_id: fam_teb_v2_04g_calibration_scene_derivation_1
+status: preregistered_before_calibration_navigation
+source_manifest:
+  path: experiments/manifests/v2/calibration/v2_04e_supervisor_calibration_scenes.yaml
+  sha256: 397921e0311ac70b0e54cee090ce418d89b0de434f36ee62c7432a4b4d7827bb
+target_manifest_id: fam_teb_v2_04g_calibration_scenes_1
+target_path: artifacts/v2/calibration/v2_04g/v2_04g_calibration_scenes.yaml
+scene_derivations:
+  - {source_scene_id: v2-04e-cruise-s4701, target_scene_id: v2-04g-cruise-s4901, seed: 4901, layout_variant: v2_04g_cruise_a, evaluator_reason: new_calibration_cruise_a}
+  - {source_scene_id: v2-04e-cruise-s4701, target_scene_id: v2-04g-cruise-s4902, seed: 4902, layout_variant: v2_04g_cruise_b, evaluator_reason: new_calibration_cruise_b}
+  - {source_scene_id: v2-04e-cruise-s4701, target_scene_id: v2-04g-cruise-s4903, seed: 4903, layout_variant: v2_04g_cruise_c, evaluator_reason: new_calibration_cruise_c}
+  - source_scene_id: v2-04e-dynamic-s4702
+    target_scene_id: v2-04g-dynamic-conflict-s4904
+    seed: 4904
+    layout_variant: v2_04g_dynamic_conflict_early
+    evaluator_reason: new_calibration_expected_observed_conflict
+    scene_patch:
+      dynamic_agents:
+        - agent_id: crossing-agent
+          shape: box
+          size_m: [0.55, 0.55, 1.70]
+          loop: false
+          trajectory:
+            - {time_s: 7.0, x_m: 8.0, y_m: -3.5, yaw_rad: 1.5707963267948966}
+            - {time_s: 15.0, x_m: 8.0, y_m: 3.5, yaw_rad: 1.5707963267948966}
+  - source_scene_id: v2-04e-dynamic-s4702
+    target_scene_id: v2-04g-dynamic-conflict-s4905
+    seed: 4905
+    layout_variant: v2_04g_dynamic_conflict_late
+    evaluator_reason: new_calibration_expected_observed_conflict
+    scene_patch:
+      dynamic_agents:
+        - agent_id: crossing-agent
+          shape: box
+          size_m: [0.55, 0.55, 1.70]
+          loop: false
+          trajectory:
+            - {time_s: 9.0, x_m: 9.0, y_m: -3.5, yaw_rad: 1.5707963267948966}
+            - {time_s: 17.0, x_m: 9.0, y_m: 3.5, yaw_rad: 1.5707963267948966}
+  - source_scene_id: v2-04e-dynamic-s4702
+    target_scene_id: v2-04g-dynamic-clear-s4906
+    seed: 4906
+    layout_variant: v2_04g_dynamic_no_conflict
+    evaluator_reason: new_calibration_expected_no_conflict_in_horizon
+    scene_patch:
+      dynamic_agents:
+        - agent_id: crossing-agent
+          shape: box
+          size_m: [0.55, 0.55, 1.70]
+          loop: false
+          trajectory:
+            - {time_s: 0.0, x_m: 8.0, y_m: -3.5, yaw_rad: 1.5707963267948966}
+            - {time_s: 4.0, x_m: 8.0, y_m: 3.5, yaw_rad: 1.5707963267948966}
+  - {source_scene_id: v2-04e-static-s4703, target_scene_id: v2-04g-static-s4907, seed: 4907, layout_variant: v2_04g_static_a, evaluator_reason: new_calibration_static_a}
+  - {source_scene_id: v2-04e-static-s4703, target_scene_id: v2-04g-static-s4908, seed: 4908, layout_variant: v2_04g_static_b, evaluator_reason: new_calibration_static_b}
+  - {source_scene_id: v2-04e-static-s4703, target_scene_id: v2-04g-static-s4909, seed: 4909, layout_variant: v2_04g_static_c, evaluator_reason: new_calibration_static_c}
+  - {source_scene_id: v2-04e-corridor-s4704, target_scene_id: v2-04g-corridor-s4910, seed: 4910, layout_variant: v2_04g_corridor_a, evaluator_reason: new_calibration_corridor_a}
+  - {source_scene_id: v2-04e-corridor-s4704, target_scene_id: v2-04g-corridor-s4911, seed: 4911, layout_variant: v2_04g_corridor_b, evaluator_reason: new_calibration_corridor_b}
+  - {source_scene_id: v2-04e-corridor-s4704, target_scene_id: v2-04g-corridor-s4912, seed: 4912, layout_variant: v2_04g_corridor_c, evaluator_reason: new_calibration_corridor_c}
+  - {source_scene_id: v2-04e-maneuver-s4705, target_scene_id: v2-04g-maneuver-s4913, seed: 4913, layout_variant: v2_04g_maneuver_a, evaluator_reason: new_calibration_maneuver_a}
+  - {source_scene_id: v2-04e-maneuver-s4705, target_scene_id: v2-04g-maneuver-s4914, seed: 4914, layout_variant: v2_04g_maneuver_b, evaluator_reason: new_calibration_maneuver_b}
+  - {source_scene_id: v2-04e-maneuver-s4705, target_scene_id: v2-04g-maneuver-s4915, seed: 4915, layout_variant: v2_04g_maneuver_c, evaluator_reason: new_calibration_maneuver_c}
+forbidden_seed_sets:
+  v2_04d_validation: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610]
+  supervisor_calibration: [4701, 4702, 4703, 4704, 4705, 4711, 4712, 4713, 4714, 4715, 4721, 4722, 4723, 4724, 4725, 4731, 4732, 4733, 4734, 4735]
+  v2_04f_validation: [4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]

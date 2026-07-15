@@ -36,6 +36,9 @@ catkin_install_python(PROGRAMS
   scripts/rule_context_supervisor_node.py
   scripts/rule_anchor_transaction_node.py
   scripts/simulation_typed_anchor_transaction_node.py
+  scripts/v2_04g_typed_anchor_transaction_node.py
+  scripts/v2_04g_r1_typed_anchor_transaction_node.py
+  scripts/v2_04g_r2_typed_anchor_transaction_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
@@ -47,4 +50,8 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(tests/test_rule_supervisor.py)
   catkin_add_nosetests(tests/test_action_pipeline.py)
   catkin_add_nosetests(tests/test_typed_teb_transaction.py)
+  catkin_add_nosetests(tests/test_idempotent_typed_teb_transaction.py)
+  catkin_add_nosetests(tests/test_mechanism_controller.py)
+  catkin_add_nosetests(tests/test_bounded_context_join.py)
+  catkin_add_nosetests(tests/test_world_model_input_join.py)
 endif()

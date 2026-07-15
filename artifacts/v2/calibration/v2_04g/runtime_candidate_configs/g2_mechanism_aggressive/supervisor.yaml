@@ -1,0 +1,71 @@
+schema_version: '2.0'
+architecture_generation: v2
+status: calibration_candidate
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+parameter_write_enabled: false
+real_vehicle_use_forbidden: true
+allow_unfrozen_simulation_candidate_required: true
+topics:
+  local_geometry: /nav_world_model/local_geometry
+  tracks: /nav_world_model/tracks
+  health: /nav_world_model/health
+  context: /teb_mode_manager/context
+  transition: /teb_mode_manager/transition
+dynamic:
+  minimum_track_confidence: 0.45
+  predicted_ttc_max_s: 5.0
+  closest_approach_max_m: 1.35
+health:
+  maximum_input_age_s: 0.3
+  require_matching_world_model_seq: true
+  fault_forces_balanced_none: true
+policy_boundary:
+  runtime_scene_labels_allowed: false
+  runtime_manifest_access: false
+  forbidden_runtime_topics:
+  - /gazebo/model_states
+  - /pedsim_simulator/simulated_agents
+  published_parameter_transactions: false
+  published_velocity_commands: false
+profile_id: fam_teb_v2_04g_g2_mechanism_aggressive_supervisor
+geometry:
+  cruise:
+    confidence_min: 0.62
+    exit_confidence: 0.4
+    obstacle_density_max: 0.09
+    forward_clearance_full_m: 10.0
+    path_curvature_abs_max: 0.09
+  static_dense:
+    confidence_min: 0.6
+    exit_confidence: 0.4
+    obstacle_density_full: 0.18
+    persistence_density_full: 0.11
+  corridor:
+    confidence_min: 0.65
+    exit_confidence: 0.48
+    width_min_m: 1.05
+    width_max_m: 2.6
+    front_clearance_min_m: 1.0
+  maneuver:
+    confidence_min: 0.6
+    exit_confidence: 0.4
+    dead_end_score_min: 0.65
+    reverse_heading_error_min_rad: 2.0
+    reverse_front_clearance_full_m: 1.8
+    reverse_front_clearance_max_m: 3.2
+    reverse_rear_clearance_full_m: 3.0
+    pocket_front_clearance_full_m: 2.2
+    pocket_front_clearance_max_m: 3.5
+    pocket_side_clearance_full_m: 1.7
+    pocket_side_clearance_max_m: 2.5
+    pocket_rear_clearance_full_m: 3.0
+transition:
+  minimum_mode_confidence: 0.55
+  minimum_dwell_s: 3.5
+  enter_confirmation_s: 0.8
+  exit_confirmation_s: 12.0
+  blend_duration_s: 0.8
+  overlay_release_confirmation_s: 0.2
+  switch_score_margin: 0.22

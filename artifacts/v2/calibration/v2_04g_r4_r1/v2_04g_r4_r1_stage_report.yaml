@@ -1,0 +1,118 @@
+schema_version: "2.0"
+stage: V2-04G-R4-R1
+status: calibration_complete_no_winner
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+
+single_changed_factor:
+  name: maneuver_anchor_min_obstacle_dist_m
+  values_m: [0.28, 0.30, 0.32]
+  all_other_aggressive_runtime_values_frozen: true
+
+evidence:
+  preregistration: {path: experiments/manifests/v2/calibration/v2_04g_r4_r1_preregistration.yaml, sha256: 70b5d7c48b5a9f1cf290a361042d69836485e0a0b30ee29eff5885f34f3758b1}
+  contract: {path: config/thesis_experiments/v2/v2_04g_r4_r1_clearance_repair_contract.yaml, sha256: f0dd447f0ab883744703338c29076c5b51b2fec28bcf309487af33fc27f13eb0}
+  readiness: {path: artifacts/v2/calibration/v2_04g_r4_r1/activation_probe/activation_probe_summary.yaml, sha256: b79f8d45910b01224d049bbc8d9cafe447b84ec1c1c45a58dd87870f00adefc1}
+  ttc_three_state_probe: {path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_ttc_three_state_probe.yaml, sha256: f4050b5d6633153da436b8b0ad2c047b67f18135a42a77c4af335dac0616122d}
+  navigation_progress: {path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_progress.yaml, sha256: 6c8709fc882c25e1a2d65d665391ea95e072306b31c0c3f0f8037b03c365b6a5}
+  assessment: {path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_assessment.yaml, sha256: 201d2f7a8a5c4b679a1500a9487c342434f73222f0c262c4a8014441efc6bc04}
+
+budget_accounting:
+  readiness_probe_count: 6
+  ttc_component_probe_count: 3
+  fixed_reference_episode_count: 15
+  candidate_episode_count: 45
+  complete_navigation_episode_count: 60
+  persistent_interface_failure_count: 0
+  budget_expanded: false
+
+readiness_result:
+  passed: true
+  valid_probe_count: 6
+  clean_transaction_count: 180
+  world_model_sequence_mismatch_count: 0
+  world_model_input_join_fault_count: 0
+  backend_transaction_fault_count: 0
+  unknown_transaction_fault_count: 0
+
+component_ttc_result:
+  passed: true
+  observed_status_order: [OBSERVED_CONFLICT, NO_CONFLICT_IN_HORIZON, TRACKER_INVALID]
+
+fixed_reference_result:
+  success_count: 15
+  collision_count: 0
+  navigation_ttc_counts: {OBSERVED_CONFLICT: 2, NO_CONFLICT_IN_HORIZON: 1, TRACKER_INVALID: 0}
+  validity_gate_pass: true
+
+candidate_decisions:
+  r4r1_aggressive_control_m028:
+    success_count: 15
+    collision_count: 0
+    winner_eligible: false
+    minimum_scan_clearance_m: 0.24567518784104436
+    minimum_maneuver_truth_clearance_m: 0.254854888387973
+    maneuver_reverse_sample_count: 138
+    total_navigation_time_ratio_vs_fixed: 1.0494677520350657
+    navigation_ttc_counts: {OBSERVED_CONFLICT: 1, NO_CONFLICT_IN_HORIZON: 2, TRACKER_INVALID: 0}
+    all_hard_gates_pass: false
+    disqualifying_gates: [minimum_clearance, ttc, maneuver_scan_clearance, repair_candidate_eligible]
+  r4r1_clearance_m030:
+    success_count: 15
+    collision_count: 0
+    winner_eligible: true
+    minimum_scan_clearance_m: 0.2521048393702555
+    minimum_maneuver_truth_clearance_m: 0.2634820865384154
+    maneuver_reverse_sample_count: 94
+    total_navigation_time_ratio_vs_fixed: 1.026299311208516
+    navigation_ttc_counts: {OBSERVED_CONFLICT: 1, NO_CONFLICT_IN_HORIZON: 2, TRACKER_INVALID: 0}
+    clearance_repair_pass: true
+    success_safety_transaction_time_reverse_chatter_pass: true
+    all_hard_gates_pass: false
+    disqualifying_gates: [ttc]
+  r4r1_clearance_m032:
+    success_count: 14
+    collision_count: 0
+    winner_eligible: true
+    minimum_scan_clearance_m: 0.25452013191003253
+    minimum_maneuver_truth_clearance_m: 0.2625373358233095
+    maneuver_reverse_sample_count: 128
+    total_navigation_time_ratio_vs_fixed: 1.111772072636193
+    navigation_ttc_counts: {OBSERVED_CONFLICT: 1, NO_CONFLICT_IN_HORIZON: 2, TRACKER_INVALID: 0}
+    clearance_repair_pass: true
+    all_hard_gates_pass: false
+    disqualifying_gates: [success_non_degradation, ttc, total_time]
+
+diagnosis:
+  maneuver_clearance_single_factor_effect_demonstrated: true
+  m030_scan_margin_improvement_vs_control_m: 0.00642965152921114
+  m030_truth_margin_improvement_vs_control_m: 0.0086271981504424
+  m030_preserved_passed_time_reverse_chatter_and_transaction_gates: true
+  frozen_ttc_gate_preserved: false
+  common_candidate_ttc_failure:
+    scene_id: v2-04g-r4-r1-dynamic-conflict-s5094
+    expected_status: OBSERVED_CONFLICT
+    observed_status_for_all_aggressive_variants: NO_CONFLICT_IN_HORIZON
+    fixed_reference_status: OBSERVED_CONFLICT
+    interpretation: aggressive_dynamic_interaction_timing_is_not_robust_to_fresh_seed_jitter
+
+decision:
+  passing_candidate_ids: []
+  winner_candidate_id: null
+  winner_freeze_attempted: false
+  winner_freeze_authorized: false
+  winner_configuration_generated: false
+  fresh_held_out_validation_authorized: false
+  enter_v2_05_authorized: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false
+
+next_action_boundary:
+  post_hoc_ttc_threshold_or_scene_relabel_forbidden: true
+  reuse_r4_r1_navigation_seeds_for_tuning_forbidden: true
+  resume_or_expand_r4_r1_budget_forbidden: true
+  preserve_m030_clearance_result_as_non_ranking_frozen_diagnosis: true
+  any_follow_up_requires_independent_calibration_only_ttc_robustness_stage_and_fresh_seeds: true

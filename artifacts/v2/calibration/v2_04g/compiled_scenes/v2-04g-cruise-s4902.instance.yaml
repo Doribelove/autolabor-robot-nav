@@ -1,0 +1,72 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+scene:
+  scene_id: v2-04g-cruise-s4902
+  family: CRUISE
+  split: calibration
+  seed: 4902
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 35.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 55.0
+  layout:
+    variant: v2_04g_cruise_b
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 35.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: cruise-left
+    shape: box
+    pose:
+      x_m: 12.046637486761433
+      y_m: 3.503309288691675
+      yaw_rad: -0.0022950653585754534
+    size_m:
+    - 0.8
+    - 0.8
+    - 1.2
+  - obstacle_id: cruise-right
+    shape: box
+    pose:
+      x_m: 23.05824917524494
+      y_m: -3.446898310386349
+      yaw_rad: 0.003055756507769374
+    size_m:
+    - 0.8
+    - 0.8
+    - 1.2
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.06
+    yaw_jitter_rad: 0.01
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: new_calibration_cruise_b
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: 5fb9ee27fc80da4eeaf7bb941eff39193cc95196d36816273b343ecfa7e86450

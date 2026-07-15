@@ -1,0 +1,56 @@
+schema_version: "2.0"
+stage: V2-04G-R2
+status: failed
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04g_r2_preregistration.yaml
+  sha256: 3b7b59d84f27af99924e1297000c1880bfdf5faf235c2b83be06644194667ca4
+planned_probe_count: 6
+executed_probe_count: 3
+valid_probe_count: 2
+failed_probe_count: 1
+not_executed_probe_count: 3
+all_probe_hard_gates_pass: false
+reports:
+  - profile_id: r2_target_balanced
+    repeat: 1
+    seed: 4971
+    status: pass
+    transaction_activated_fraction: 1.0
+    transaction_valid_fraction: 1.0
+    transaction_fault_count: 0
+    join_valid_fraction: 1.0
+    report_sha256: 92fcf3b82a0e2413a7af20b47cade442053560866eb5fd958959f13fdd187780
+  - profile_id: r2_target_balanced
+    repeat: 2
+    seed: 4972
+    status: pass
+    transaction_activated_fraction: 1.0
+    transaction_valid_fraction: 1.0
+    transaction_fault_count: 0
+    join_valid_fraction: 1.0
+    report_sha256: e2766def558922e0749ce47bbeb364e9a0b29540117470e7d535c21f81ce0572
+  - profile_id: r2_target_balanced
+    repeat: 3
+    seed: 4973
+    status: fail
+    transaction_activated_fraction: 0.9666666666666667
+    transaction_valid_fraction: 0.9666666666666667
+    transaction_fault_count: 1
+    join_valid_fraction: 1.0
+    join_reason_counts: {EXACT_SEQUENCE_JOIN: 30}
+    report_sha256: 742b4c16ddaf15d611041aa1dbd856172ee9a1ccb46ce1888bcd17e38bbd7c62
+failure_classification:
+  join_failure: false
+  backend_fault_proven: false
+  expected_fail_closed_context_hold_proven: false
+  classification: UNCLASSIFIED_TRANSACTION_FAULT_WITH_VALID_EXACT_JOIN
+  reason: >-
+    The frozen join was valid for all 30 mechanism samples, but the listener
+    counted one transaction fault without preserving the fault_reason domain.
+navigation_authorized: false
+ttc_component_probe_authorized_after_failure: false
+remaining_activation_probes_authorized: false

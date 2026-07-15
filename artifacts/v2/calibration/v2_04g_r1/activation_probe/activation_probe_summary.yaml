@@ -1,0 +1,57 @@
+schema_version: '2.0'
+stage: V2-04G-R1
+status: complete
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04g_r1_preregistration.yaml
+  sha256: 4b077c02ce554d4c484f5b2d3ee6673a45a91f02fdffe1cc5204ca1568c2938c
+planned_probe_count: 6
+valid_probe_count: 6
+all_probe_hard_gates_pass: true
+reports:
+- profile_id: g1_mechanism_balanced
+  repeat: 1
+  seed: 4941
+  transaction_activated_fraction: 1.0
+  join_valid_fraction: 1.0
+  join_reason_counts:
+    EXACT_SEQUENCE_JOIN: 30
+- profile_id: g1_mechanism_balanced
+  repeat: 2
+  seed: 4942
+  transaction_activated_fraction: 1.0
+  join_valid_fraction: 1.0
+  join_reason_counts:
+    EXACT_SEQUENCE_JOIN: 30
+- profile_id: g1_mechanism_balanced
+  repeat: 3
+  seed: 4943
+  transaction_activated_fraction: 1.0
+  join_valid_fraction: 1.0
+  join_reason_counts:
+    EXACT_SEQUENCE_JOIN: 30
+- profile_id: g2_mechanism_aggressive
+  repeat: 1
+  seed: 4944
+  transaction_activated_fraction: 1.0
+  join_valid_fraction: 1.0
+  join_reason_counts:
+    EXACT_SEQUENCE_JOIN: 30
+- profile_id: g2_mechanism_aggressive
+  repeat: 2
+  seed: 4945
+  transaction_activated_fraction: 1.0
+  join_valid_fraction: 1.0
+  join_reason_counts:
+    EXACT_SEQUENCE_JOIN: 30
+- profile_id: g2_mechanism_aggressive
+  repeat: 3
+  seed: 4946
+  transaction_activated_fraction: 1.0
+  join_valid_fraction: 1.0
+  join_reason_counts:
+    EXACT_SEQUENCE_JOIN: 30
+navigation_authorized: true

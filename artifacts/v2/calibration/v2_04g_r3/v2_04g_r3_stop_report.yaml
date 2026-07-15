@@ -1,0 +1,102 @@
+schema_version: "2.0"
+stage: V2-04G-R3
+status: stopped_at_activation_readiness_gate
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04g_r3_preregistration.yaml
+  sha256: 068ce36f96b9d78ff7e870724f2cf013043c9283bee3b32a8b3b4008aeefef6e
+activation_summary:
+  path: artifacts/v2/calibration/v2_04g_r3/activation_probe/activation_probe_summary.yaml
+  sha256: 44cc2c1cd8ec5728e8787ececf163614fcab8c0c2708a763b996e2763719eab4
+failed_probe:
+  path: artifacts/v2/calibration/v2_04g_r3/activation_probe/probe_06_r2_target_aggressive_repeat_3/report.yaml
+  sha256: 0949b85961d0360f4f52a0c0075988cf38106d644a4ef99a35b69c5dd68e0f5d
+
+execution:
+  planned_readiness_probe_count: 6
+  executed_readiness_probe_count: 6
+  passed_readiness_probe_count: 5
+  failed_readiness_probe_count: 1
+  attempts_per_probe: 1
+  ttc_component_probe_started: false
+  navigation_started: false
+  navigation_episode_count: 0
+  sac_training_started: false
+  real_vehicle_used: false
+
+aggregate_readiness_evidence:
+  transaction_message_count: 180
+  clean_transaction_count: 176
+  expected_fail_closed_context_hold_count: 4
+  backend_transaction_fault_count: 0
+  unknown_transaction_fault_count: 0
+  minimum_join_valid_fraction: 1.0
+  minimum_transaction_valid_fraction: 0.9333333333333333
+  minimum_transaction_activated_fraction: 0.9333333333333333
+
+failed_gate:
+  probe_sequence: 6
+  profile_id: r2_target_aggressive
+  repeat: 3
+  seed: 4996
+  required_consecutive_stable_count: 10
+  observed_maximum_consecutive_stable_count: 10
+  transaction_message_count: 30
+  clean_transaction_count: 28
+  expected_fail_closed_context_hold_count: 2
+  expected_fail_closed_context_hold_count_max: 1
+  transaction_valid_fraction: 0.9333333333333333
+  transaction_activated_fraction: 0.9333333333333333
+  minimum_fraction_required: 0.95
+  join_valid_fraction: 1.0
+  backend_transaction_fault_count: 0
+  unknown_transaction_fault_count: 0
+  failed_hard_gates:
+    - transaction_activated_fraction
+    - transaction_valid_fraction
+    - expected_context_hold_count
+
+fault_diagnosis:
+  transaction_fault_reason: invalid_or_faulted_context_hold_previous_executed
+  taxonomy_class: EXPECTED_FAIL_CLOSED_CONTEXT_HOLD
+  context_reason: world_model_sequence_mismatch
+  occurrence_count_in_failed_probe: 2
+  typed_backend_failure_observed: false
+  r1_transaction_geometry_join_failure_observed: false
+  mechanism_join_reasons: {EXACT_SEQUENCE_JOIN: 30}
+  mechanism_maximum_sequence_delta: 0
+  mechanism_maximum_timestamp_delta_s: 0.136000000000001
+  interpretation: >-
+    The fail-closed transaction behavior and R1 bounded join behaved as
+    designed. The remaining readiness defect is upstream: the rule supervisor
+    reads the latest LocalGeometry, TrackedObstacleArray, and WorldModelHealth
+    messages independently and requires exact sequence equality, so its timer
+    can observe a partially delivered three-topic publication set.
+
+stopping_rule_application:
+  failed_probe_retried: false
+  budget_expanded: false
+  ttc_skipped: true
+  navigation_skipped: true
+  evidence_preserved: true
+
+decision:
+  r3_readiness_pass: false
+  r3_ttc_authorized: false
+  r3_navigation_authorized: false
+  candidate_freeze_authorized: false
+  held_out_validation_authorized: false
+  v2_05_authorized: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false
+
+next_entry_condition: >-
+  Preregister one calibration-only world-model input-alignment repair that
+  preserves the frozen R1 transaction join, R2 candidate values, idempotent
+  transaction runtime, and R2-R1 fault taxonomy. Use new readiness seeds and
+  require 6/6 before creating another full calibration round.

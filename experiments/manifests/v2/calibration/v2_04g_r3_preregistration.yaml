@@ -1,0 +1,197 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R3
+split: calibration
+preregistration_id: fam_teb_v2_04g_r3_frozen_mechanism_full_calibration_1
+status: preregistered_before_readiness
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+research_question: >-
+  With the R1 bounded cache join, R2 candidate values and idempotent typed
+  transaction runtime, and R2-R1 readiness taxonomy all byte-frozen, do the
+  three R2 candidates pass readiness, TTC, safety, reverse observability, and
+  paired navigation-efficiency gates on entirely new calibration-only seeds?
+
+single_changed_factor:
+  name: fresh_readiness_and_navigation_evidence
+  join_changed: false
+  r2_candidate_values_changed: false
+  typed_transaction_runtime_changed: false
+  readiness_taxonomy_changed: false
+  evaluator_changed: false
+
+candidate_ids:
+  - r2_control_g2
+  - r2_target_balanced
+  - r2_target_aggressive
+
+scene_ids:
+  - v2-04g-r3-cruise-s5021
+  - v2-04g-r3-cruise-s5022
+  - v2-04g-r3-cruise-s5023
+  - v2-04g-r3-dynamic-conflict-s5024
+  - v2-04g-r3-dynamic-conflict-s5025
+  - v2-04g-r3-dynamic-clear-s5026
+  - v2-04g-r3-static-s5027
+  - v2-04g-r3-static-s5028
+  - v2-04g-r3-static-s5029
+  - v2-04g-r3-corridor-s5030
+  - v2-04g-r3-corridor-s5031
+  - v2-04g-r3-corridor-s5032
+  - v2-04g-r3-maneuver-s5033
+  - v2-04g-r3-maneuver-s5034
+  - v2-04g-r3-maneuver-s5035
+
+seed_firewall:
+  readiness_probe_only_seeds: [4991, 4992, 4993, 4994, 4995, 4996]
+  navigation_calibration_seeds: [5021, 5022, 5023, 5024, 5025, 5026, 5027, 5028, 5029, 5030, 5031, 5032, 5033, 5034, 5035]
+  all_prior_v2_04g_calibration_and_probe_seeds_forbidden: [4901, 4902, 4903, 4904, 4905, 4906, 4907, 4908, 4909, 4910, 4911, 4912, 4913, 4914, 4915, 4921, 4922, 4923, 4924, 4925, 4926, 4927, 4928, 4929, 4930, 4931, 4932, 4933, 4934, 4935, 4941, 4942, 4943, 4944, 4945, 4946, 4951, 4952, 4953, 4954, 4955, 4956, 4957, 4958, 4959, 4960, 4961, 4962, 4963, 4964, 4965, 4971, 4972, 4973, 4974, 4975, 4976, 4981, 4982, 4983, 4984, 4985, 4986]
+  previous_validation_seeds_forbidden: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610, 4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+  reserved_future_held_out_seeds: [5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010]
+  validation_data_used: false
+  prior_calibration_data_used_for_candidate_ranking: false
+  fresh_r3_data_used_before_preregistration: false
+
+activation_readiness_probe:
+  required_before_ttc_and_navigation: true
+  scene_id: v2-04g-r3-cruise-s5021
+  profile_ids: [r2_target_balanced, r2_target_aggressive]
+  planned_probe_count: 6
+  warmup_timeout_s: 12.0
+  measurement_duration_s: 6.0
+  minimum_message_count: 20
+  minimum_valid_fraction: 0.95
+  required_consecutive_stable_count: 10
+  maximum_expected_context_hold_count: 1
+  maximum_backend_transaction_fault_count: 0
+  maximum_unknown_transaction_fault_count: 0
+  summary_path: artifacts/v2/calibration/v2_04g_r3/activation_probe/activation_probe_summary.yaml
+  schedule:
+    - {sequence: 1, profile_id: r2_target_balanced, repeat: 1, seed: 4991}
+    - {sequence: 2, profile_id: r2_target_balanced, repeat: 2, seed: 4992}
+    - {sequence: 3, profile_id: r2_target_balanced, repeat: 3, seed: 4993}
+    - {sequence: 4, profile_id: r2_target_aggressive, repeat: 1, seed: 4994}
+    - {sequence: 5, profile_id: r2_target_aggressive, repeat: 2, seed: 4995}
+    - {sequence: 6, profile_id: r2_target_aggressive, repeat: 3, seed: 4996}
+
+ttc_component_probe:
+  required_after_readiness_and_before_navigation: true
+  required_status_order: [OBSERVED_CONFLICT, NO_CONFLICT_IN_HORIZON, TRACKER_INVALID]
+  report_path: artifacts/v2/calibration/v2_04g_r3/v2_04g_r3_ttc_three_state_probe.yaml
+
+budget:
+  activation_readiness_probe_count: 6
+  attempts_per_readiness_probe_max: 1
+  ttc_component_probe_count: 3
+  fixed_reference_episode_count: 15
+  candidate_count: 3
+  episode_count_per_candidate: 15
+  planned_navigation_episode_count: 60
+  attempts_per_navigation_episode_max: 2
+  total_evidence_unit_budget: 69
+  budget_expansion_forbidden: true
+
+resources:
+  contract:
+    path: config/thesis_experiments/v2/v2_04g_r3_full_calibration_contract.yaml
+    sha256: bd419f9bb2a1f5b74c69f9e0bc78b8e7b065a22db1ac61eb94bc89f4247f1597
+  candidate_bank:
+    path: experiments/manifests/v2/calibration/v2_04g_r2_mechanism_candidates.yaml
+    sha256: 78c434703091147bfeee174906744ff89d71ebafc8156d7b0691937476667f6d
+  scene_derivation:
+    path: experiments/manifests/v2/calibration/v2_04g_r3_scene_derivation.yaml
+    sha256: a0d570b69f0699f0c1f9bc372306e86b5c80aa41db022c104d60f1cd2cea98ee
+  compiled_source_manifest:
+    path: artifacts/v2/calibration/v2_04g_r3/v2_04g_r3_calibration_scenes.yaml
+    sha256: e4ef6bdad9b61e191c94e3da27e5419b367cf9430d3f5692a7ee481a036ffff1
+  compiled_scene_index:
+    path: artifacts/v2/calibration/v2_04g_r3/compiled_scenes/compiled_scene_index.yaml
+    sha256: 96e4773a93b90a88f171247890d52e10b52824dfdafc43446b16f6e7f9c6093e
+  frozen_supervisor:
+    path: src/application/teb_mode_manager/config/v2_04e4_rule_supervisor_frozen.yaml
+    sha256: 2c3a8669418d9221be6c314df06d1ce936a1ba414117ce5e47fc6b35f9bdfe1d
+  frozen_anchor_bank:
+    path: src/application/teb_mode_manager/config/v2_04c_anchor_bank_frozen.yaml
+    sha256: b1365f2b14e4a77f4e715bc46369fa4277e9adbb8522190153f7abd2ce635b9d
+  bounded_join_source:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/bounded_context_join.py
+    sha256: 485a5c57397c845982508f1f4c67739ad8c58ebf2f63c9336a08e2f0f3157442
+  r1_typed_join_node:
+    path: src/application/teb_mode_manager/scripts/v2_04g_r1_typed_anchor_transaction_node.py
+    sha256: 08f245eccd3bd4dc770d0d4e68227f026980fdbc7fdeba563e3780d5d26c11ae
+  idempotent_transaction_source:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/idempotent_typed_teb_transaction.py
+    sha256: 2ad255dea35715709384c02683836847a9089b1a729677f7739d2b9ea53aabf1
+  r2_typed_transaction_node:
+    path: src/application/teb_mode_manager/scripts/v2_04g_r2_typed_anchor_transaction_node.py
+    sha256: bf704a571d39e8bff1915d4f67e970e13c119877a2619d55148446a21fe57e47
+  typed_transaction_launch:
+    path: src/application/teb_mode_manager/launch/v2_04g_r2_simulation_typed_anchor.launch
+    sha256: cba3ffa1d2a4f840f6cb35d66925b9632109c90dbc0b91c66c1b4ee2188e9fae
+  experiment_launch:
+    path: src/simulation/m2_gazebo/launch/m2_v2_04g_r2_mechanism_calibration.launch
+    sha256: e23b3b95b7ca7ed1605fde160e5652e433357c9e192c0f318e95a9a7c0a073ac
+  r2_materialization_helper:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r2_calibration_batch.py
+    sha256: 7a764e9ce3b37ed721a418c8118058a5ba6ae7035760ad3d9c27160c4c7d8bbd
+  readiness_listener:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r3_activation_probe_listener.py
+    sha256: fdf5a3a9008f147faa44d96a926f819a72ee063ad7f62fb25d639771fcd76ff5
+  readiness_batch:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r3_activation_probe_batch.py
+    sha256: 056d8742951ce6c822c45bfdc65fb359a4fcf0f0f8398a5e152fcef371f7a1c3
+  episode_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r3_mechanism_episode.py
+    sha256: 2aeeb604d9ce61ece4db05045fc90f9e7b99dbdb9980eb08752e2bf3a8ca5579
+  batch_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r3_calibration_batch.py
+    sha256: 33690465d7804aa4b9a45fbb306f49c7d41874ec9442b9d237d20b3089f622a8
+  ttc_probe_runner:
+    path: src/tools/thesis_experiment/scripts/probe_v2_04g_r3_ttc_states.py
+    sha256: 653cb70c804c388a764ca9fa81712965bbc653149eaccfa1ba7fc8f00c99d723
+  assessor:
+    path: src/tools/thesis_experiment/scripts/assess_v2_04g_r3.py
+    sha256: 9405ce6dc902dd8435f3f1e49cce8148cf527b0f0d4f0ba981167359c4c48c48
+
+frozen_readiness_boundary:
+  taxonomy_contract:
+    path: config/thesis_experiments/v2/v2_04g_r2_r1_readiness_taxonomy_contract.yaml
+    sha256: 8191bba17b9ec3eeac4d2ab8a5c5d5444f10b71caaeba3d2b27a0db8c5d3b75f
+  taxonomy_listener:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r2_r1_activation_probe_listener.py
+    sha256: 7c49c485dee3515c6eba381c60b48d5917000c7bbb44a83213ad7ba266a66740
+  passed_summary:
+    path: artifacts/v2/calibration/v2_04g_r2_r1/activation_probe/activation_probe_summary.yaml
+    sha256: d930acf8592ad7a19c4faed8668581eff50f3f36c027c4432d20503a2b2cb1d3
+  freeze_report:
+    path: artifacts/v2/calibration/v2_04g_r2_r1/v2_04g_r2_r1_readiness_freeze_report.yaml
+    sha256: 4e47f09bfa6173f276184373ed09ae67d7a5f47264fe57b48d611241e7a4261b
+
+execution_order:
+  - readiness seeds 4991 through 4996 with one attempt each
+  - TTC three-state component probe
+  - Fixed TEB scenes 5021 through 5035
+  - r2_control_g2 scenes 5021 through 5035
+  - r2_target_balanced scenes 5021 through 5035
+  - r2_target_aggressive scenes 5021 through 5035
+  - fail-closed assessment and optional freeze decision
+
+stopping_rules:
+  readiness_failure: stop_before_ttc_and_navigation_and_preserve
+  ttc_failure: stop_before_navigation_and_preserve
+  persistent_interface_failure: stop_and_preserve
+  fixed_reference_invalid: stop_before_freeze
+  no_candidate_passes_all_hard_gates: stop_without_freeze_or_validation
+  candidate_performance_early_stop: forbidden
+
+post_stage_boundaries:
+  use_4991_4996_for_navigation_or_validation: false
+  use_5021_5035_for_future_validation: false
+  generate_future_validation_before_freeze: false
+  v2_05_authorized: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false

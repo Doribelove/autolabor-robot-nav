@@ -1,11 +1,11 @@
 # TEB RL Thesis Development Status
 
-更新时间：2026-07-14
+更新时间：2026-07-15
 
 ## 当前阶段
 
-- 阶段：T12 冻结证据维护 + FAM-TEB V2-04E/F supervisor 修复与 fresh validation 完成
-- 状态：T00--T11 已完成；T12 两 seed 完整但学习门失败；V2-04E4 supervisor 已冻结，V2-04F 成功率不退化通过但综合 hard gate 失败，新训练尚未启动
+- 阶段：T12 冻结证据维护 + FAM-TEB V2-04G-R4-R1 单因素净空修复完成、无 winner
+- 状态：T00--T11 已完成；T12 两 seed 完整但学习门失败；V2-04G-R4-R1 仅扫描 Aggressive Maneuver `min_obstacle_dist` 0.28/0.30/0.32 m，使用全新 seeds 完成 readiness 6/6、TTC 3/3 和 navigation 60/60。0.30 m 候选修复 scan/truth 净空且保持成功、时间、倒车、切换和事务门，但 fresh Dynamic 覆盖仅 1 conflict/2 clear，未达 2/1 TTC gate；未冻结 winner、未启动训练
 - 当前负责人：Ubuntu Codex CLI + 用户
 
 ## V2 架构设计状态
@@ -13,8 +13,8 @@
 - 系统指南：`docs/thesis_experiment/V2_SYSTEM_GUIDE.md`
 - 架构代号：`FAM-TEB V2`
 - 设计状态：`DESIGN COMPLETE`
-- 实现状态：`V2-04C ANCHOR FROZEN + V2-04E4 SUPERVISOR FROZEN + V2-04F FRESH PAIRED VALIDATION COMPLETE (30/30) / HARD GATE BLOCKED`
-- 正式实验状态：`V2-04F PREREGISTERED HELD-OUT VALIDATION COMPLETE / formal_result=false`
+- 实现状态：`V2-04G-R4-R1 SINGLE-FACTOR MANEUVER CLEARANCE REPAIR COMPLETE / ALL OTHER AGGRESSIVE MECHANISMS FROZEN`
+- 正式实验状态：`READINESS 6/6 / TTC COMPONENT 3/3 / NAVIGATION 60/60 / M030 CLEARANCE REPAIRED / NAVIGATION TTC COVERAGE FAILED / NO WINNER / formal_result=false`
 - 实车状态：`FORBIDDEN WITHOUT NEW CALIBRATION AND ON-SITE APPROVAL`
 - 与 V1 的关系：V1/T00--T12 合同、runner、配置和 artifacts 保持冻结；V2 必须使用独立的
   schema、配置、manifest 和 artifact 根目录。
@@ -23,7 +23,7 @@
   规则监督器、V2-04 Anchor Bank/类型化 profile/feasible decoder/平滑 shadow 事务和零训练
   规则闭环；V2-04B 已增加 simulation-only 20 参数 typed TEB 真实事务和 calibration split，
   最新验收见 `artifacts/v2/component_acceptance/v2_04b_acceptance.yaml`。
-- 最新入口：V2-04E--E4 使用 4701--4735 的独立 calibration seeds 修复并冻结无标签 supervisor；V2-04F 使用冻结后才生成的 4801--4810 fresh held-out seeds 完成 30/30 三方法配对。三方法均 10/10 成功、0 contact collision；Rule 的 Cruise Static fraction=0、Maneuver 最低 fraction=18.5% 且五 Anchor 全覆盖。但 Balanced 有 1 次 0.0m 净空、Rule 最大切换 4、Dynamic observed TTC=0/6，且 Rule 对 Fixed 五类时间均退化。当前不得进入 V2-05，validation 不得回用于调参。
+- 最新入口：V2-04G-R4-R1 冻结全部 R4 Aggressive 机制，仅同步修改两个 Maneuver anchor 的 `min_obstacle_dist`。0.30 m 在 fresh seeds 上实现 15/15 success、总时间比 1.0263、scan 0.2521 m、truth 0.2635 m、reverse 94，但三个 Dynamic 场景仅 1 conflict/2 clear，未达到 2/1 TTC gate。详见 `docs/thesis_experiment/CURRENT_V2_04G_R4_R1_HANDOFF.md`。本轮无 winner，禁止 freeze、held-out、V2-05/SAC。
   不得把 V2 当作 T12 action/projection 单因素
   续跑，也不授权新训练或实车闭环。所有模式和参数阈值继续保持 `runtime_ready=false`。
 
@@ -31,7 +31,7 @@
 
 | 项目 | 版本/commit | 备注 |
 | --- | --- | --- |
-| 主仓 | `e9b9a9e17ac5e7e35d95eec2a7ad7c7667049da7` | remote main 已核验；当前本地分支 `base_on_rl`，dirty，尚未推送 |
+| 主仓 | `a592f23`（本轮开始时） | 当前本地分支 `base_rl`，V2-04G 工作树 dirty，尚未提交或推送 |
 | arena-rosnav-3D | `634bcb091a90b362087cdba5a9cd3856466d493c` | dirty（70 项） |
 | TEB fork | `b4cf0639775e4521cdf7681158043ad3eef4b01a`；package `0.8.4` | 本地 fork含静态 footprint 生命周期修复，dirty；优先于系统 TEB 0.9.1 |
 | ROS | Noetic `1.17.4` | catkin 0.8.12，move_base 1.17.3 |
@@ -57,7 +57,7 @@
 | T10 SAC Direct-Theta | DONE | 9D normalized Δθ；与 T09 共享执行器/observation/reward/safety/预算；checkpoint/resume；配对验收；参数量/时延报告 | 20-step smoke 只能证明公平管线，不证明两种动作空间的性能差异 |
 | T11 正式仿真/消融 | DONE (AMENDED) | 4 seed×5 组×70 test=20 run/1400 episode 完整矩阵；20/20 manifest valid；四组 paired comparison 各 280 对；3 个 seed105 run supplementary | 原 5-seed 预注册未完成，禁止宣称完整 5-seed 正式实验；500-step validation 阈值均未达到；NoSafety 有 1 次 move_base SIGSEGV fatal attempt |
 | T12 安全修复/Residual SAC/rosbag-shadow | IN PROGRESS | 静态 footprint stress 通过；两 seed 各 2000-step 完整、14/14 test goal、0 crash/collision/emergency；validation change +0.4527/-0.0784 | 学习门失败且 projection 65.1%/69.5%，不扩预算、不做新配对；下一步单因素审查 Residual action/projection 匹配；rosbag adapter/live shadow 仍待实现 |
-| FAM-TEB V2 | V2-04E4 SUPERVISOR FROZEN / V2-04F HARD GATE BLOCKED | V2-04E--E4 calibration-only 共 45 个有效 episode，冻结 label-free supervisor；V2-04F 三方法×10 fresh validation=30/30 有效，均 10/10 SUCCESS、0 contact collision、0 interface failure；Cruise 不再被 Static 吸收，Maneuver Anchor 已触发；证据见 `artifacts/v2/validation/v2_04f/v2_04f_paired_assessment.yaml` | Balanced dynamic 有 0.0m 最小净空；Rule held-out 最大切换 4；Dynamic finite-TTC 0/6；Rule 五类时间相对 Fixed 全部退化。成功率不退化已证明，但综合性能有效性未证明；不授权 V2-05、训练或实车闭环，`runtime_ready=false` |
+| FAM-TEB V2 | V2-04G-R4-R1 COMPLETE / NO WINNER | 单因素 Maneuver clearance 0.28/0.30/0.32；readiness 6/6、TTC component 3/3、navigation 60/60；0.30 m 为 15/15 success、scan/truth 0.2521/0.2635 m、总时间比 1.0263、reverse 94，但 navigation TTC 为 1/2/0 未达 2/1/0；证据见 `artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_stage_report.yaml` | 净空修复有效但 TTC 鲁棒性门失败，禁止 freeze/held-out/V2-05/SAC/实车；若继续须新的 TTC 单因素 calibration-only 阶段与 fresh seeds，`runtime_ready=false` |
 | T13 M2 闭环 | TODO | | |
 | T14 统计/论文导出 | TODO | | |
 
@@ -266,6 +266,10 @@ reward、EMA 或 hold。禁止新训练和配对；下一入口是预注册一�
 ```
 
 ## 当前阻塞项
+
+- V2-04G-R3 的 readiness 5/6 失败证据继续冻结；其 `world_model_sequence_mismatch` 已由
+  V2-04G-R3-R1 三流原子缓存 join 修复并在新 seeds 上获得 6/6、180 clean。下一入口是新的
+  full calibration-only 预注册，不得重试或恢复 R3/R3-R1。
 
 - 本地论文分支 `base_on_rl` 尚未设置 upstream，也未推送到 GitHub。
 - FAST_LIO、arena-rosnav-3D、Livox driver 等复制来的子模块存在既有 dirty 状态，未清理或重置。

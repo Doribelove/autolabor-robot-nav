@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- R1 bounded join is frozen byte-for-byte; only the R2 mechanism stage
+       validator and candidate profile inputs differ. -->
+  <arg name="allow_simulation_teb_parameter_write" default="false"/>
+  <arg name="allow_unfrozen_simulation_candidate" default="false"/>
+  <arg name="anchor_bank"/>
+  <arg name="force_geometry_balanced" default="false"/>
+  <arg name="mechanism_config" default=""/>
+
+  <node pkg="teb_mode_manager"
+        type="v2_04g_r2_typed_anchor_transaction_node.py"
+        name="v2_04g_r2_typed_anchor_transaction"
+        output="screen" required="true">
+    <param name="allow_simulation_teb_parameter_write"
+           value="$(arg allow_simulation_teb_parameter_write)"/>
+    <param name="allow_unfrozen_simulation_candidate"
+           value="$(arg allow_unfrozen_simulation_candidate)"/>
+    <param name="anchor_bank" value="$(arg anchor_bank)"/>
+    <param name="force_geometry_balanced" value="$(arg force_geometry_balanced)"/>
+    <param name="mechanism_config" value="$(arg mechanism_config)"/>
+    <param name="teb_namespace" value="/move_base/TebLocalPlannerROS"/>
+    <param name="clock_timeout_s" value="10.0"/>
+    <param name="transaction_timeout_s" value="2.0"/>
+    <param name="equality_tolerance" value="1.0e-9"/>
+    <param name="context_topic" value="/teb_mode_manager/context"/>
+    <param name="geometry_topic" value="/nav_world_model/local_geometry"/>
+    <param name="context_maximum_age_s" value="0.40"/>
+    <param name="join_maximum_entries" value="32"/>
+    <param name="join_maximum_arrival_age_s" value="1.0"/>
+    <param name="join_maximum_sequence_delta" value="2"/>
+    <param name="join_maximum_timestamp_delta_s" value="0.45"/>
+    <param name="action_trace_topic" value="/teb_rl_v2/action_trace"/>
+    <param name="mechanism_state_topic" value="/teb_mode_manager/mechanism_state"/>
+  </node>
+</launch>

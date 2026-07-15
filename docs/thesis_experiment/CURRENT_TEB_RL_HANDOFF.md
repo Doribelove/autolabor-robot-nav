@@ -1,6 +1,6 @@
 # TEB RL Thesis Current Handoff
 
-更新时间：2026-07-14 00:54 CST
+更新时间：2026-07-14
 
 这是 `/home/robot/robot_ws_base_rl` 论文工作空间的当前主交接书。新 Codex
 会话应先读本文件，再读 `DEVELOPMENT_STATUS.md`、实验合同和实验书。旧的 T00
@@ -49,11 +49,28 @@ git submodule status
 `docs/thesis_experiment/CURRENT_V2_02_HANDOFF.md` 和
 `docs/thesis_experiment/CURRENT_V2_03_HANDOFF.md`，最后阅读
 `docs/thesis_experiment/CURRENT_V2_04_HANDOFF.md`，并以
-`docs/thesis_experiment/CURRENT_V2_04F_HANDOFF.md` 作为当前最新入口。V2-04C Anchor Bank
-已冻结；V2-04E--E4 已用独立 calibration seeds 冻结规则监督器；V2-04F 已完成 30/30 全新
-held-out 三方法配对。三方法均 10/10 成功，Cruise/Static 混淆和 Maneuver 不触发已修复，
-但净空、抖动、TTC 覆盖和相对 Fixed 的时间效率门仍失败。所有配置继续
-`runtime_ready=false`，不授权 V2-05、训练、历史 T12 重跑、实车闭环或实车参数写入。
+`docs/thesis_experiment/CURRENT_V2_04G_R4_R1_HANDOFF.md` 作为当前最新入口。V2-04C Anchor Bank
+已冻结；V2-04G-R1 已完成并证明有界 join 修复有效，但机制和时间门失败。V2-04G-R2 随后
+冻结 R1 join，建立 Maneuver 倒车、三目标族时间效率和幂等 typed TEB 事务候选；其正式
+readiness 在第 3/6 次重复记录到 1 次未分类 transaction fault，因此在 TTC 和导航前停止。
+后续 R2-R1 仅修复 fault taxonomy 和连续稳定门，并以全新 seeds 4981--4986 完成 6/6。
+全新的 V2-04G-R3 full calibration-only 轮次随后冻结上述基础设施，使用 readiness seeds
+4991--4996；前 5 个通过，第 6 个出现两次预期 context hold，事务有效/激活率 0.9333，因而
+在 TTC 和导航前按合同停止。根因已收敛到 rule supervisor 对 geometry/tracks/health 三个 topic
+采用无缓存的 latest-message exact-sequence 检查，而不是 R1 transaction join 或 TEB backend。
+独立的 V2-04G-R3-R1 随后实现三流 exact-sequence 有界原子缓存 join，并用全新 seeds
+5041--5046 完成 6/6：180/180 transactions clean，valid/activated/join 均为 1.0，
+world-model mismatch、input-join fault、backend/unknown fault 均为 0。随后 V2-04G-R4 使用
+全新 readiness seeds 5051--5056 与导航 seeds 5061--5075，完整执行 readiness 6/6、TTC
+3/3 和 60/60 导航 evidence；四种方法均 15/15 success、0 collision。没有候选通过全部
+hard gates：Aggressive 仅因 Maneuver 最小净空 0.2414 m 低于 0.25 m 而失败，Balanced
+因总时间与 Maneuver 时间失败，control 因倒车与效率失败。因此没有冻结 winner，也没有
+授权 held-out validation。所有配置继续 `runtime_ready=false`，不授权 V2-05、训练、历史
+T12 重跑、实车闭环或实车参数写入。随后 V2-04G-R4-R1 仅扫描 Aggressive Maneuver
+`min_obstacle_dist` 0.28/0.30/0.32 m，使用 fresh readiness seeds 5081--5086 和导航 seeds
+5091--5105 完成 6/6、3/3、60/60。0.30 m 修复 scan/truth 净空并保持成功率、时间、倒车、
+切换与事务门，但 Dynamic 覆盖仅为 1 conflict/2 clear，未达冻结 2/1 TTC gate；因此仍无
+winner、无 freeze、无 held-out 授权。
 
 不要重新执行 T00--T11；T12 Residual SAC 两 seed 小预算训练已经完成，先按
 `CURRENT_T12_RESIDUAL_TRAINING_HANDOFF.md` 和 `CURRENT_T12_RESIDUAL_LEARNING_REVIEW.md`

@@ -1,0 +1,148 @@
+schema_version: '2.0'
+stage: V2-04G-R3
+status: fail
+simulation_only: true
+runtime_ready: false
+training_used: false
+real_vehicle_used: false
+profile_id: r2_target_aggressive
+repeat: 3
+seed: 4996
+warmup_elapsed_s: 1.8200000000000003
+required_consecutive_stable_count: 10
+maximum_consecutive_stable_count: 10
+warmup_mechanism_message_count: 10
+warmup_instability_counts: {}
+measurement_duration_s: 6.0
+transaction_message_count: 30
+transaction_valid_count: 28
+transaction_activated_count: 28
+transaction_valid_fraction: 0.9333333333333333
+transaction_activated_fraction: 0.9333333333333333
+transaction_backend_counts:
+  simulation_teb_dynamic_reconfigure: 30
+fault_reason_counts:
+  invalid_or_faulted_context_hold_previous_executed: 2
+fault_taxonomy_counts:
+  CLEAN: 28
+  EXPECTED_FAIL_CLOSED_CONTEXT_HOLD: 2
+fault_samples:
+- transaction_stamp_s: 8.314
+  world_model_seq: 114
+  mode_seq: 0
+  config_seq: 38
+  valid: false
+  activated: false
+  geometry_mode: BALANCED
+  dynamic_overlay: NONE
+  transition_state: FAULTED
+  execution_backend: simulation_teb_dynamic_reconfigure
+  fault_reason: invalid_or_faulted_context_hold_previous_executed
+  fault_taxonomy: EXPECTED_FAIL_CLOSED_CONTEXT_HOLD
+  latest_context:
+    source_stamp_s: 8.2
+    arrival_stamp_s: 8.2
+    world_model_seq: 114
+    mode_seq: 0
+    geometry_mode: BALANCED
+    dynamic_overlay: NONE
+    transition_state: FAULTED
+    valid: false
+    reason: world_model_sequence_mismatch
+    arrival_age_s: 0.0
+  latest_mechanism:
+    corridor_centerline_active: false
+    dynamic_overlay: NONE
+    geometry_mode: BALANCED
+    join_arrival_age_s: 0.120000000000001
+    join_cache_size: 15
+    join_reason: EXACT_SEQUENCE_JOIN
+    join_sequence_delta: 0
+    join_timestamp_delta_s: 0.07599999999999962
+    join_valid: true
+    joined_geometry_sequence: 111
+    maneuver_reverse: false
+    mode_seq: 0
+    reason: balanced_no_special_mechanism
+    residuals: {}
+    topology_locked: false
+    topology_preference: NONE
+    topology_switch_count: 0
+    transaction_activated: true
+    transaction_fault_reason: ''
+    transaction_valid: true
+    world_model_seq: 111
+- transaction_stamp_s: 8.914
+  world_model_seq: 122
+  mode_seq: 0
+  config_seq: 41
+  valid: false
+  activated: false
+  geometry_mode: BALANCED
+  dynamic_overlay: NONE
+  transition_state: FAULTED
+  execution_backend: simulation_teb_dynamic_reconfigure
+  fault_reason: invalid_or_faulted_context_hold_previous_executed
+  fault_taxonomy: EXPECTED_FAIL_CLOSED_CONTEXT_HOLD
+  latest_context:
+    source_stamp_s: 8.8
+    arrival_stamp_s: 8.8
+    world_model_seq: 122
+    mode_seq: 0
+    geometry_mode: BALANCED
+    dynamic_overlay: NONE
+    transition_state: FAULTED
+    valid: false
+    reason: world_model_sequence_mismatch
+    arrival_age_s: 0.0
+  latest_mechanism:
+    corridor_centerline_active: false
+    dynamic_overlay: NONE
+    geometry_mode: BALANCED
+    join_arrival_age_s: 0.17800000000000082
+    join_cache_size: 15
+    join_reason: EXACT_SEQUENCE_JOIN
+    join_sequence_delta: 0
+    join_timestamp_delta_s: 0.13199999999999967
+    join_valid: true
+    joined_geometry_sequence: 119
+    maneuver_reverse: false
+    mode_seq: 0
+    reason: balanced_no_special_mechanism
+    residuals: {}
+    topology_locked: false
+    topology_preference: NONE
+    topology_switch_count: 0
+    transaction_activated: true
+    transaction_fault_reason: ''
+    transaction_valid: true
+    world_model_seq: 119
+mechanism_message_count: 30
+join_valid_count: 30
+join_valid_fraction: 1.0
+join_reason_counts:
+  EXACT_SEQUENCE_JOIN: 30
+unique_context_sequence_count: 30
+maximum_join_sequence_delta: 0
+maximum_join_timestamp_delta_s: 0.136000000000001
+context_message_count: 30
+context_valid_count: 28
+context_valid_fraction: 0.9333333333333333
+context_reason_counts:
+  insufficient_mode_confidence;no_predicted_dynamic_conflict: 28
+  world_model_sequence_mismatch: 2
+hard_gates:
+  consecutive_stable_readiness: true
+  transaction_message_count: true
+  mechanism_message_count: true
+  transaction_activated_fraction: false
+  transaction_valid_fraction: false
+  join_valid_fraction: true
+  expected_context_hold_count: false
+  backend_transaction_fault_count: true
+  unknown_transaction_fault_count: true
+  fault_taxonomy_complete: true
+  join_reason_domain: true
+  execution_backend_domain: true
+  training_unused: true
+all_hard_gates_pass: false

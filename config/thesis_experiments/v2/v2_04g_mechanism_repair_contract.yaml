@@ -1,0 +1,122 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G
+contract_id: fam_teb_v2_04g_calibration_only_mechanism_repair_1
+status: preregistered_before_navigation
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+scope:
+  split: calibration
+  candidate_count: 3
+  scene_count: 15
+  scene_count_per_family: 3
+  fixed_reference_episode_count: 15
+  candidate_navigation_episode_count: 45
+  planned_navigation_episode_count: 60
+  tracker_invalid_component_probe_count: 3
+  total_evidence_unit_budget: 63
+  validation_seed_reuse_forbidden: true
+  frozen_v2_04f_evidence_may_select_numeric_values: false
+
+ttc_semantics:
+  statuses: [OBSERVED_CONFLICT, NO_CONFLICT_IN_HORIZON, TRACKER_INVALID]
+  OBSERVED_CONFLICT: healthy tracker and at least one finite relative-motion collision-envelope TTC sample
+  NO_CONFLICT_IN_HORIZON: healthy tracker with no finite TTC inside the frozen horizon
+  TRACKER_INVALID: no tracker message or no healthy tracker sample
+  dynamic_scene_design:
+    expected_observed_conflict_scene_count_per_method: 2
+    expected_no_conflict_scene_count_per_method: 1
+    navigation_tracker_invalid_count_max_per_method: 0
+  component_fault_probe:
+    required_statuses: [OBSERVED_CONFLICT, NO_CONFLICT_IN_HORIZON, TRACKER_INVALID]
+    all_three_states_required: true
+
+clearance_audit:
+  legacy_metric: nonnegative LaserScan endpoint-to-rectangular-footprint clearance
+  added_evidence:
+    - signed_scan_footprint_clearance
+    - minimum_raw_range_and_ray_angle
+    - evaluator_only_gazebo_oriented_box_clearance
+    - gazebo_contact_count
+  classifications:
+    - TRUE_GEOMETRIC_INTRUSION
+    - PHYSICAL_NEAR_MISS_WITH_SCAN_INTRUSION
+    - SENSOR_OR_FOOTPRINT_GEOMETRY_MISMATCH
+    - PHYSICAL_NEAR_MISS
+    - CLEARANCE_POSITIVE
+  runtime_policy_truth_access: false
+
+candidate_mechanisms:
+  static_dense:
+    implementation: episode_local_left_or_right_topology_preference_lock
+    unlock_only_on: [front_infeasible, geometry_mode_exit]
+  corridor:
+    implementation: center_offset_conditioned_viapoint_and_speed_residual
+  maneuver:
+    implementation: bounded_forward_or_reverse_anchor_decision
+    reverse_requires: [rear_coverage, rear_clearance, front_constraint, heading_error]
+  dynamic:
+    implementation: relative_motion_ttc_plus_rate_limited_overlay_release
+  transition:
+    implementation: frozen_dwell_plus_candidate_margin_without_scene_labels
+
+hard_gates:
+  evidence:
+    complete_navigation_episode_count: 60
+    persistent_interface_failure_count_max: 0
+    training_used: false
+    runtime_manifest_or_scene_label_access: false
+  fixed_reference_validity:
+    success_count_min: 14
+    collision_count_max: 0
+  candidate_safety:
+    success_count_not_below_fixed: true
+    collision_count_max: 0
+    minimum_clearance_m_min_per_successful_episode: 0.25
+    typed_transaction_invalid_count_max: 0
+  ttc:
+    observed_conflict_count_min_per_method: 2
+    no_conflict_count_min_per_method: 1
+    tracker_invalid_navigation_count_max_per_method: 0
+    component_three_state_probe_pass: true
+  chatter:
+    active_anchor_switch_count_max_per_episode: 3
+    active_anchor_switch_count_mean_max: 2.0
+  mechanism_activation_for_non_control_candidates:
+    topology_locked_sample_count_min: 1
+    corridor_centerline_sample_count_min: 1
+    maneuver_reverse_sample_count_min: 1
+    mechanism_topology_switch_count_max_per_episode: 1
+  efficiency_vs_fixed:
+    total_navigation_time_ratio_max: 1.05
+    family_median_navigation_time_regression_percent_max: 15.0
+    family_non_regression_count_min: 3
+    required_family_set: [CRUISE, DYNAMIC, STATIC_DENSE, CORRIDOR, MANEUVER]
+
+ranking_after_hard_gates:
+  - highest_family_navigation_time_improvement_count
+  - lowest_total_navigation_time_ratio_vs_fixed
+  - highest_minimum_clearance_m
+  - lowest_total_active_anchor_switch_count
+  - lexical_candidate_id
+
+stopping_rules:
+  - persistent interface failure after two attempts stops the batch and preserves all evidence
+  - fixed reference collision or fewer than 14 successes invalidates the split before candidate freeze
+  - candidate collision or incomplete evidence disqualifies that candidate without deleting episodes
+  - no candidate passing every hard gate means no freeze and no new held-out validation
+  - all candidates are evaluated within the fixed budget; no early performance winner selection
+
+post_calibration_gate:
+  freeze_only_if_all_hard_gates_pass: true
+  held_out_validation_generated_only_after_freeze: true
+  held_out_seed_range_reserved: [5001, 5010]
+  held_out_methods: [fixed_teb, balanced_anchor, rule_multi_anchor]
+  held_out_planned_episode_count: 30
+  v2_05_authorized: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false

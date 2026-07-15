@@ -1,0 +1,118 @@
+schema_version: '2.0'
+architecture_generation: v2
+evaluator_id: fam_teb_v2_02_evaluator_1
+formal_result: false
+runtime_ready: false
+scene_id: v2-04g-r1-maneuver-s4933
+family: MANEUVER
+split: calibration
+seed: 4933
+instance_sha256: 99d3c1523628e58b1cfc45cd68624733bc6a7a8df0ba33fa8d7b6a8d2a3b17ff
+raw_trace_sha256: b4df6b77be28c345ebed2823224dd568cd937a1c431da3d4846e249fa54ad85f
+termination: SUCCESS
+metrics:
+  common:
+    success: true
+    collision: false
+    navigation_time_s: 21.099999999999998
+    path_length_m: 4.352022883038449
+    mean_abs_speed_mps: 0.2064263570956261
+    minimum_clearance_m: 0.31741897393793206
+    stop_count: 5
+    reverse_distance_m: 2.48005786657031
+  family:
+    gear_switch_count: 4
+    gear_switch_while_moving_count: 4
+    reverse_distance_m: 2.48005786657031
+stage: V2-04G-R2
+method: rule_multi_anchor
+episode_timeout_s: 60.0
+tracker_message_count: 315
+tracker_health_valid_fraction: 1.0
+finite_ttc_sample_count: 0
+ttc_status: NO_CONFLICT_IN_HORIZON
+context_message_count: 106
+context_valid_count: 106
+context_geometry_sequence:
+- MANEUVER
+- STATIC_DENSE
+context_geometry_switch_count: 1
+transaction_message_count: 107
+transaction_valid_count: 107
+transaction_activated_count: 107
+transaction_fault_count: 0
+transaction_backends:
+- simulation_teb_dynamic_reconfigure
+active_anchor_sequence:
+- anchor_maneuver_reverse
+- anchor_static_dense
+active_anchor_switch_count: 1
+typed_transaction_expected: true
+typed_transaction_valid: true
+training_used: false
+runtime_policy_manifest_access: false
+runtime_scene_labels_available: false
+experiment_manager_validation_manifest_access: false
+runner_fault_reason: ''
+supervisor_profile_id: r2_target_balanced
+context_geometry_sample_counts:
+  BALANCED: 0
+  CRUISE: 0
+  STATIC_DENSE: 56
+  CORRIDOR: 0
+  MANEUVER: 50
+context_geometry_sample_fractions:
+  BALANCED: 0.0
+  CRUISE: 0.0
+  STATIC_DENSE: 0.5283018867924528
+  CORRIDOR: 0.0
+  MANEUVER: 0.4716981132075472
+context_overlay_sample_counts:
+  NONE: 106
+  CROSSING: 0
+  HEAD_ON: 0
+  FOLLOW: 0
+  OVERTAKE_OR_YIELD: 0
+context_overlay_sample_fractions:
+  NONE: 1.0
+  CROSSING: 0.0
+  HEAD_ON: 0.0
+  FOLLOW: 0.0
+  OVERTAKE_OR_YIELD: 0.0
+experiment_manager_calibration_manifest_access: true
+mode_measurement_window: post_readiness_goal_execution_only
+clearance_audit:
+  schema_version: '2.0'
+  stage: V2-04G-R2
+  evaluator_only_gazebo_truth_used: true
+  runtime_policy_received_truth: false
+  minimum_signed_scan_clearance_m: 0.31741897393793206
+  minimum_truth_box_clearance_m: 0.32640402909799493
+  classification: CLEARANCE_POSITIVE
+  minimum_scan_detail:
+    stamp_s: 26.842
+    robot_x_m: 0.5550015230097698
+    robot_y_m: -0.015255090084944557
+    signed_scan_clearance_m: 0.31741897393793206
+    clipped_scan_clearance_m: 0.31741897393793206
+    raw_range_m: 0.846299946308136
+    ray_index: 21
+    ray_angle_rad: -2.9580758279189467
+    footprint_boundary_range_m: 0.5288809723702039
+  minimum_truth_detail:
+    stamp_s: 26.842
+    clearance_m: 0.32640402909799493
+    closest_model: bay-back
+    model_x_m: 5.511238904
+    model_y_m: -0.007107244
+  contact_count: 0
+mechanism_message_count: 106
+mechanism_join_valid_count: 106
+mechanism_join_valid_fraction: 1.0
+mechanism_join_reason_counts:
+  EXACT_SEQUENCE_JOIN: 106
+mechanism_topology_locked_sample_count: 55
+mechanism_corridor_centerline_sample_count: 0
+mechanism_maneuver_reverse_sample_count: 51
+mechanism_topology_switch_count: 0
+

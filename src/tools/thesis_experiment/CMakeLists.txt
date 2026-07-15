@@ -72,6 +72,48 @@ catkin_install_python(PROGRAMS
   scripts/v2_04d_validation_episode.py
   scripts/v2_04d_validation_batch.py
   scripts/assess_v2_04d.py
+  scripts/derive_v2_04g_scenes.py
+  scripts/probe_v2_04g_ttc_states.py
+  scripts/v2_04g_mechanism_episode.py
+  scripts/v2_04g_calibration_batch.py
+  scripts/assess_v2_04g.py
+  scripts/v2_04g_r1_activation_probe_listener.py
+  scripts/v2_04g_r1_activation_probe_batch.py
+  scripts/v2_04g_r1_mechanism_episode.py
+  scripts/v2_04g_r1_calibration_batch.py
+  scripts/probe_v2_04g_r1_ttc_states.py
+  scripts/assess_v2_04g_r1.py
+  scripts/v2_04g_r2_mechanism_episode.py
+  scripts/v2_04g_r2_calibration_batch.py
+  scripts/v2_04g_r2_activation_probe_listener.py
+  scripts/v2_04g_r2_activation_probe_batch.py
+  scripts/probe_v2_04g_r2_ttc_states.py
+  scripts/assess_v2_04g_r2.py
+  scripts/v2_04g_r2_r1_activation_probe_listener.py
+  scripts/v2_04g_r2_r1_activation_probe_batch.py
+  scripts/v2_04g_r3_activation_probe_listener.py
+  scripts/v2_04g_r3_activation_probe_batch.py
+  scripts/v2_04g_r3_mechanism_episode.py
+  scripts/v2_04g_r3_calibration_batch.py
+  scripts/probe_v2_04g_r3_ttc_states.py
+  scripts/assess_v2_04g_r3.py
+  scripts/v2_04g_r3_r1_activation_probe_listener.py
+  scripts/v2_04g_r3_r1_activation_probe_batch.py
+  scripts/v2_04g_r4_activation_probe_listener.py
+  scripts/v2_04g_r4_activation_probe_batch.py
+  scripts/v2_04g_r4_mechanism_episode.py
+  scripts/v2_04g_r4_calibration_batch.py
+  scripts/probe_v2_04g_r4_ttc_states.py
+  scripts/assess_v2_04g_r4.py
+  scripts/freeze_v2_04g_r4_winner.py
+  scripts/v2_04g_r4_r1_candidate_materializer.py
+  scripts/v2_04g_r4_r1_activation_probe_listener.py
+  scripts/v2_04g_r4_r1_activation_probe_batch.py
+  scripts/v2_04g_r4_r1_mechanism_episode.py
+  scripts/v2_04g_r4_r1_calibration_batch.py
+  scripts/probe_v2_04g_r4_r1_ttc_states.py
+  scripts/assess_v2_04g_r4_r1.py
+  scripts/freeze_v2_04g_r4_r1_winner.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
@@ -90,5 +132,13 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(tests/test_v2_04b.py)
   catkin_add_nosetests(tests/test_v2_04d.py)
   catkin_add_nosetests(tests/test_v2_04e.py)
+  catkin_add_nosetests(tests/test_v2_04g.py)
+  catkin_add_nosetests(tests/test_v2_04g_r1.py)
+  catkin_add_nosetests(tests/test_v2_04g_r2.py)
+  catkin_add_nosetests(tests/test_v2_04g_r2_r1.py)
+  catkin_add_nosetests(tests/test_v2_04g_r3.py)
+  catkin_add_nosetests(tests/test_v2_04g_r3_r1.py)
+  catkin_add_nosetests(tests/test_v2_04g_r4.py)
+  catkin_add_nosetests(tests/test_v2_04g_r4_r1.py)
   add_rostest(tests/t04_t06_pipeline_integration.test)
 endif()

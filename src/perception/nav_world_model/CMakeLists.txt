@@ -52,4 +52,5 @@ install(DIRECTORY config launch
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(tests/test_world_model_core.py)
   catkin_add_nosetests(tests/test_teb_bridge.py)
+  catkin_add_nosetests(tests/test_risk_evidence.py)
 endif()

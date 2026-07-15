@@ -15,6 +15,7 @@ from teb_mode_manager.rule_supervisor import (
     RuntimeTrack,
     SupervisorHealth,
 )
+from teb_mode_manager.world_model_input_join import BoundedWorldModelInputJoin
 
 
 GEOMETRY_ENUM = {
@@ -44,6 +45,12 @@ MOTION_NAME = {
     TrackedObstacle.MOTION_HEAD_ON: "HEAD_ON",
     TrackedObstacle.MOTION_FOLLOWING: "FOLLOWING",
     TrackedObstacle.MOTION_DEPARTING: "DEPARTING",
+}
+WORLD_MODEL_INPUT_JOIN_LIMITS = {
+    "maximum_entries_per_stream": 32,
+    "maximum_arrival_age_s": 1.0,
+    "maximum_sequence_lag": 2,
+    "maximum_timestamp_spread_s": 0.05,
 }
 
 
@@ -88,9 +95,9 @@ class RuleSupervisorNode:
         if not rospy.get_param("~allow_unfrozen_simulation_candidate", False):
             raise RuntimeError("unfrozen V2-03 candidate requires explicit simulation opt-in")
         self.lock = threading.RLock()
-        self.geometry = None
-        self.tracks = None
-        self.health = None
+        self.input_join = BoundedWorldModelInputJoin(
+            **WORLD_MODEL_INPUT_JOIN_LIMITS
+        )
         self.supervisor = RuleContextSupervisor(self.config)
         topics = self.config["topics"]
         self.context_publisher = rospy.Publisher(
@@ -99,67 +106,73 @@ class RuleSupervisorNode:
         self.transition_publisher = rospy.Publisher(
             topics["transition"], ModeTransition, queue_size=5
         )
-        rospy.Subscriber(topics["local_geometry"], LocalGeometry, self._geometry, queue_size=2)
-        rospy.Subscriber(topics["tracks"], TrackedObstacleArray, self._tracks, queue_size=2)
-        rospy.Subscriber(topics["health"], WorldModelHealth, self._health, queue_size=2)
+        rospy.Subscriber(topics["local_geometry"], LocalGeometry, self._geometry, queue_size=32)
+        rospy.Subscriber(topics["tracks"], TrackedObstacleArray, self._tracks, queue_size=32)
+        rospy.Subscriber(topics["health"], WorldModelHealth, self._health, queue_size=32)
         self.timer = rospy.Timer(rospy.Duration(0.20), self._tick)
 
     def _geometry(self, message):
         with self.lock:
-            self.geometry = message
+            self._add_input("geometry", message)
 
     def _tracks(self, message):
         with self.lock:
-            self.tracks = message
+            self._add_input("tracks", message)
 
     def _health(self, message):
         with self.lock:
-            self.health = message
+            self._add_input("health", message)
+
+    def _add_input(self, stream, message):
+        self.input_join.add(
+            stream,
+            int(message.world_model_seq),
+            message.header.stamp.to_sec(),
+            rospy.Time.now().to_sec(),
+            message,
+        )
 
     def _tick(self, _event):
         with self.lock:
             now = rospy.Time.now()
-            if self.geometry is None or self.tracks is None or self.health is None:
-                self._publish_missing(now, "world_model_inputs_missing")
+            joined = self.input_join.resolve(now.to_sec())
+            if not joined.valid:
+                self._publish_missing(
+                    now, "world_model_input_join_{}".format(joined.reason.lower())
+                )
                 return
-            sequences = {
-                self.geometry.world_model_seq,
-                self.tracks.world_model_seq,
-                self.health.world_model_seq,
-            }
-            matching = len(sequences) == 1
-            age = max(0.0, (now - self.geometry.header.stamp).to_sec())
+            geometry = joined.payloads["geometry"]
+            tracks_message = joined.payloads["tracks"]
+            health = joined.payloads["health"]
+            age = max(0.0, (now - geometry.header.stamp).to_sec())
             valid = (
-                self.geometry.valid and not self.geometry.stale
-                and self.health.valid and not self.health.stale
-                and matching
+                geometry.valid and not geometry.stale
+                and health.valid and not health.stale
                 and age <= self.config["health"]["maximum_input_age_s"]
             )
             reason = ""
-            if not matching:
-                reason = "world_model_sequence_mismatch"
-            elif age > self.config["health"]["maximum_input_age_s"]:
+            if age > self.config["health"]["maximum_input_age_s"]:
                 reason = "world_model_input_stale"
-            elif not self.health.valid or self.health.stale:
-                reason = self.health.fault_reason or "world_model_health_fault"
-            elif not self.geometry.valid or self.geometry.stale:
+            elif not health.valid or health.stale:
+                reason = health.fault_reason or "world_model_health_fault"
+            elif not geometry.valid or geometry.stale:
                 reason = "local_geometry_invalid"
             snapshot = FeatureSnapshot(
-                world_model_seq=self.geometry.world_model_seq,
+                world_model_seq=geometry.world_model_seq,
                 stamp_s=now.to_sec(),
-                front_clearance_m=self.geometry.front_clearance_m,
-                rear_clearance_m=self.geometry.rear_clearance_m,
-                obstacle_density=self.geometry.obstacle_density,
-                static_persistence=self.geometry.static_persistence,
-                corridor_width_m=self.geometry.corridor_width_m,
-                corridor_parallel_confidence=self.geometry.corridor_parallel_confidence,
-                dead_end_score=self.geometry.dead_end_score,
-                path_curvature=self.geometry.path_curvature,
-                goal_direction_stability=self.geometry.goal_direction_stability,
-                rear_covered=self.geometry.rear_covered,
-                signed_heading_error_rad=self.geometry.signed_heading_error_rad,
-                left_clearance_m=self.geometry.left_clearance_m,
-                right_clearance_m=self.geometry.right_clearance_m,
+                front_clearance_m=geometry.front_clearance_m,
+                rear_clearance_m=geometry.rear_clearance_m,
+                obstacle_density=geometry.obstacle_density,
+                static_persistence=geometry.static_persistence,
+                corridor_width_m=geometry.corridor_width_m,
+                corridor_parallel_confidence=geometry.corridor_parallel_confidence,
+                dead_end_score=geometry.dead_end_score,
+                path_curvature=geometry.path_curvature,
+                goal_direction_stability=geometry.goal_direction_stability,
+                rear_covered=geometry.rear_covered,
+                signed_heading_error_rad=geometry.signed_heading_error_rad,
+                left_clearance_m=geometry.left_clearance_m,
+                right_clearance_m=geometry.right_clearance_m,
             )
             tracks = [
                 RuntimeTrack(
@@ -172,7 +185,7 @@ class RuleSupervisorNode:
                     radius=max((abs(point.x) for point in item.footprint.points), default=0.25),
                     confidence=item.confidence,
                 )
-                for item in self.tracks.obstacles
+                for item in tracks_message.obstacles
             ]
             decision = self.supervisor.update(
                 snapshot, tracks, SupervisorHealth(valid=valid, stale=not valid, fault_reason=reason)

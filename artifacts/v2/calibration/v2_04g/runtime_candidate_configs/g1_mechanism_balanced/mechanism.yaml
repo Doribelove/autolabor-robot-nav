@@ -1,0 +1,40 @@
+schema_version: '2.0'
+architecture_generation: v2
+stage: V2-04G
+profile_id: fam_teb_v2_04g_g1_mechanism_balanced_mechanism
+status: calibration_candidate
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+static_topology:
+  unlock_front_clearance_m: 0.55
+  residuals:
+    max_vel_x: 0.2
+    weight_viapoint: 0.25
+    weight_optimaltime: 0.35
+corridor_centerline:
+  correction_offset_m: 0.1
+  centered_residuals:
+    max_vel_x: 0.25
+    weight_optimaltime: 0.25
+  correction_residuals:
+    max_vel_x: -0.1
+    weight_viapoint: 0.6
+maneuver:
+  reverse_rear_clearance_min_m: 1.5
+  reverse_front_clearance_max_m: 3.5
+  reverse_heading_error_min_rad: 2.0
+  forward_residuals:
+    max_vel_x: 0.2
+    weight_optimaltime: 0.25
+  reverse_residuals:
+    max_vel_x: 0.35
+    weight_optimaltime: 0.3
+dynamic_release:
+  overlay_release_confirmation_s: 0.3
+policy_boundary:
+  runtime_scene_labels_allowed: false
+  runtime_manifest_access: false
+  published_velocity_commands: false
+  learned_policy_loaded: false

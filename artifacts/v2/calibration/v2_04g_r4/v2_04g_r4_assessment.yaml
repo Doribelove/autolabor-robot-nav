@@ -1,0 +1,287 @@
+schema_version: '2.0'
+stage: V2-04G-R4
+status: calibration_assessed
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+evidence:
+  progress:
+    path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r4/v2_04g_r4_progress.yaml
+    sha256: adf493dea0e57e10636affcaebaa9482998ed0097fba6e72d93606b58653519b
+  preregistration:
+    path: /home/robot/robot_ws_base_rl/experiments/manifests/v2/calibration/v2_04g_r4_preregistration.yaml
+    sha256: d68c6f04b029a573b68cf87bfbfd2ff1044bda910600b7a23b0daa613d85aa10
+  contract:
+    path: /home/robot/robot_ws_base_rl/config/thesis_experiments/v2/v2_04g_r4_full_calibration_contract.yaml
+    sha256: 695fe8400649997a63a0aa2ade322d534e493c3a8367f064c38f315399af87d6
+  ttc_probe:
+    path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r4/v2_04g_r4_ttc_three_state_probe.yaml
+    sha256: 672743846c96e5c5b32da6bf8343f2cc718d2bf5f87d36ed3171540fb1f9875a
+  navigation_episode_count: 60
+  activation_readiness_probe:
+    path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r4/activation_probe/activation_probe_summary.yaml
+    sha256: cbc0836c3475a345d0cb1506f9af991ba0a47a4a1c29f236bfd503a1e2812807
+fixed_reference:
+  episode_count: 15
+  success_count: 15
+  collision_count: 0
+  validity_gate_pass: true
+ttc_three_state_component_probe_pass: true
+candidate_summaries:
+  r2_control_g2:
+    episode_count: 15
+    success_count: 15
+    collision_count: 0
+    minimum_clearance_m: 0.40176290546474014
+    active_anchor_switch_max: 1
+    active_anchor_switch_mean: 0.8
+    ttc_counts:
+      OBSERVED_CONFLICT: 2
+      NO_CONFLICT_IN_HORIZON: 1
+      TRACKER_INVALID: 0
+    mechanism:
+      topology_locked_sample_count: 611
+      corridor_centerline_sample_count: 209
+      maneuver_reverse_sample_count: 0
+      topology_switch_max: 0
+    total_navigation_time_s: 349.79999999999995
+    total_navigation_time_ratio_vs_fixed: 1.0989632422243165
+    family_time:
+      CRUISE:
+        paired_relative_changes_percent:
+        - 0.0
+        - -0.6230529595015665
+        - -0.31250000000000444
+        median_relative_change_percent: -0.31250000000000444
+      DYNAMIC:
+        paired_relative_changes_percent:
+        - -25.925925925925927
+        - 15.909090909090892
+        - 17.318435754189952
+        median_relative_change_percent: 15.909090909090892
+      STATIC_DENSE:
+        paired_relative_changes_percent:
+        - 2.0304568527918705
+        - 6.40394088669951
+        - 43.243243243243235
+        median_relative_change_percent: 6.40394088669951
+      CORRIDOR:
+        paired_relative_changes_percent:
+        - 27.10280373831776
+        - 33.644859813084125
+        - 28.037383177570096
+        median_relative_change_percent: 28.037383177570096
+      MANEUVER:
+        paired_relative_changes_percent:
+        - 17.355371900826444
+        - 16.872427983539097
+        - 28.806584362139937
+        median_relative_change_percent: 17.355371900826444
+    family_non_regression_count: 1
+    hard_gates:
+      complete: true
+      success_non_degradation: true
+      collision: true
+      minimum_clearance: true
+      typed_transaction: true
+      boundary: true
+      ttc: true
+      chatter: true
+      mechanism_activation: false
+      total_time: false
+      family_time_regression: false
+      family_non_regression_count: true
+      activation_readiness: true
+      bounded_context_join: true
+      maneuver_reverse_observability: false
+      priority_family_efficiency: false
+    all_hard_gates_pass: false
+    bounded_context_join:
+      minimum_valid_fraction_per_episode: 1.0
+      reason_counts:
+        EXACT_SEQUENCE_JOIN: 1750
+      pass: true
+    priority_mechanism_evidence:
+      maneuver_episode_with_reverse_count: 0
+      maneuver_reverse_sample_count: 0
+      maneuver_reverse_observability_pass: false
+      target_family_median_time_changes_percent:
+        STATIC_DENSE: 6.40394088669951
+        CORRIDOR: 28.037383177570096
+        MANEUVER: 17.355371900826444
+      priority_family_efficiency_pass: false
+  r2_target_balanced:
+    episode_count: 15
+    success_count: 15
+    collision_count: 0
+    minimum_clearance_m: 0.2649398493878119
+    active_anchor_switch_max: 1
+    active_anchor_switch_mean: 0.8
+    ttc_counts:
+      OBSERVED_CONFLICT: 2
+      NO_CONFLICT_IN_HORIZON: 1
+      TRACKER_INVALID: 0
+    mechanism:
+      topology_locked_sample_count: 650
+      corridor_centerline_sample_count: 163
+      maneuver_reverse_sample_count: 170
+      topology_switch_max: 0
+    total_navigation_time_s: 357.79999999999995
+    total_navigation_time_ratio_vs_fixed: 1.1240967640590636
+    family_time:
+      CRUISE:
+        paired_relative_changes_percent:
+        - -1.1102230246251565e-14
+        - -0.6230529595015665
+        - -0.31249999999999334
+        median_relative_change_percent: -0.31249999999999334
+      DYNAMIC:
+        paired_relative_changes_percent:
+        - -25.925925925925927
+        - 13.636363636363628
+        - 6.145251396648053
+        median_relative_change_percent: 6.145251396648053
+      STATIC_DENSE:
+        paired_relative_changes_percent:
+        - 9.644670050761395
+        - 3.4482758620689618
+        - 52.70270270270271
+        median_relative_change_percent: 9.644670050761395
+      CORRIDOR:
+        paired_relative_changes_percent:
+        - 2.803738317756999
+        - 0.0
+        - -0.9345794392523166
+        median_relative_change_percent: 0.0
+      MANEUVER:
+        paired_relative_changes_percent:
+        - 76.03305785123968
+        - -8.641975308641982
+        - 67.4897119341564
+        median_relative_change_percent: 67.4897119341564
+    family_non_regression_count: 2
+    hard_gates:
+      complete: true
+      success_non_degradation: true
+      collision: true
+      minimum_clearance: true
+      typed_transaction: true
+      boundary: true
+      ttc: true
+      chatter: true
+      mechanism_activation: true
+      total_time: false
+      family_time_regression: false
+      family_non_regression_count: true
+      activation_readiness: true
+      bounded_context_join: true
+      maneuver_reverse_observability: true
+      priority_family_efficiency: false
+    all_hard_gates_pass: false
+    bounded_context_join:
+      minimum_valid_fraction_per_episode: 1.0
+      reason_counts:
+        EXACT_SEQUENCE_JOIN: 1791
+      pass: true
+    priority_mechanism_evidence:
+      maneuver_episode_with_reverse_count: 3
+      maneuver_reverse_sample_count: 170
+      maneuver_reverse_observability_pass: true
+      target_family_median_time_changes_percent:
+        STATIC_DENSE: 9.644670050761395
+        CORRIDOR: 0.0
+        MANEUVER: 67.4897119341564
+      priority_family_efficiency_pass: false
+  r2_target_aggressive:
+    episode_count: 15
+    success_count: 15
+    collision_count: 0
+    minimum_clearance_m: 0.24140194591947384
+    active_anchor_switch_max: 1
+    active_anchor_switch_mean: 0.8666666666666667
+    ttc_counts:
+      OBSERVED_CONFLICT: 2
+      NO_CONFLICT_IN_HORIZON: 1
+      TRACKER_INVALID: 0
+    mechanism:
+      topology_locked_sample_count: 512
+      corridor_centerline_sample_count: 180
+      maneuver_reverse_sample_count: 123
+      topology_switch_max: 0
+    total_navigation_time_s: 327.9
+    total_navigation_time_ratio_vs_fixed: 1.0301602262016964
+    family_time:
+      CRUISE:
+        paired_relative_changes_percent:
+        - -0.31249999999999334
+        - -0.31152647975078324
+        - -0.31249999999998224
+        median_relative_change_percent: -0.31249999999998224
+      DYNAMIC:
+        paired_relative_changes_percent:
+        - -25.925925925925927
+        - 21.590909090909093
+        - 6.145251396648053
+        median_relative_change_percent: 6.145251396648053
+      STATIC_DENSE:
+        paired_relative_changes_percent:
+        - 6.598984771573589
+        - -0.9852216748768438
+        - 52.70270270270271
+        median_relative_change_percent: 6.598984771573589
+      CORRIDOR:
+        paired_relative_changes_percent:
+        - 30.84112149532709
+        - 0.9345794392523498
+        - 3.7383177570093657
+        median_relative_change_percent: 3.7383177570093657
+      MANEUVER:
+        paired_relative_changes_percent:
+        - 0.8264462809917327
+        - -2.469135802469127
+        - -1.2345679012345563
+        median_relative_change_percent: -1.2345679012345563
+    family_non_regression_count: 2
+    hard_gates:
+      complete: true
+      success_non_degradation: true
+      collision: true
+      minimum_clearance: false
+      typed_transaction: true
+      boundary: true
+      ttc: true
+      chatter: true
+      mechanism_activation: true
+      total_time: true
+      family_time_regression: true
+      family_non_regression_count: true
+      activation_readiness: true
+      bounded_context_join: true
+      maneuver_reverse_observability: true
+      priority_family_efficiency: true
+    all_hard_gates_pass: false
+    bounded_context_join:
+      minimum_valid_fraction_per_episode: 1.0
+      reason_counts:
+        EXACT_SEQUENCE_JOIN: 1642
+      pass: true
+    priority_mechanism_evidence:
+      maneuver_episode_with_reverse_count: 3
+      maneuver_reverse_sample_count: 123
+      maneuver_reverse_observability_pass: true
+      target_family_median_time_changes_percent:
+        STATIC_DENSE: 6.598984771573589
+        CORRIDOR: 3.7383177570093657
+        MANEUVER: -1.2345679012345563
+      priority_family_efficiency_pass: true
+passing_candidate_ids: []
+winner_candidate_id: null
+decision:
+  freeze_authorized: false
+  generate_fresh_held_out_validation_authorized: false
+  enter_v2_05_authorized: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false
+activation_readiness_probe_pass: true
+all_hard_gates_pass: false
