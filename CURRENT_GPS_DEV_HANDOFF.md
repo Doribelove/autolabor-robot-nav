@@ -108,12 +108,20 @@ GPS_HEADING_REQUIRED_POSITION_TYPES=NARROW_INT
 GPS_ANTENNA_OFFSET_X=-0.3
 GPS_ANTENNA_OFFSET_Y=0.0
 GPS_USE_WHEEL_ODOM=false
+GPS_USE_WHEEL_TWIST=true
+GPS_WHEEL_TWIST_TIMEOUT=0.5
+GPS_RMC_SPEED_TIMEOUT=1.0
+GPS_NAV_MAX_VEL_X_BACKWARDS=1.4
+GPS_XY_GOAL_TOLERANCE=0.3
+GPS_GLOBAL_COSTMAP_SIZE=200.0
+GPS_GLOBAL_COSTMAP_RESOLUTION=0.25
 GPS_GOAL_SLOWDOWN_ENABLED=true
 GPS_GOAL_COMFORTABLE_DECEL=0.4
 GPS_GOAL_MIN_APPROACH_SPEED=0.15
+GPS_GOAL_HARD_STOP_DISTANCE=0.2
 ```
 
-The main GNSS antenna is treated as mounted at `x=-0.3m`, `y=0.0m` in `base_link`. The localization node compensates this offset so `/gps/odom` represents the chassis center.
+The main GNSS antenna is treated as mounted at `x=-0.3m`, `y=0.0m` in `base_link`. The localization node compensates this offset so `/gps/odom` represents the chassis center. Position and yaw remain GNSS-based by default, while `/gps/odom.twist` uses fresh signed chassis `/odom` linear and angular velocity without enabling wheel-pose integration. The M2 driver timestamps `/odom` with the oldest velocity/wheel/steering measurement used to form that twist and stops publishing when any required feedback is stale. The GPS node checks that source timestamp rather than callback receipt time. If chassis twist is older than `0.5s`, it falls back to RMC course/speed and dual-antenna heading rate; cached RMC motion is discarded after `1.0s`.
 
 ## GPS Goal Conversion
 
@@ -242,16 +250,38 @@ config/teb_profiles/gps_obstacle.yaml
 - Suppress angular fluctuation (`max_vel_theta=0.8`, `acc_lim_theta=0.3`, `weight_acc_lim_theta=200`).
 - Favor time and straight/short paths (`weight_optimaltime=6`, `weight_shortest_path=8`, `weight_viapoint=12`).
 - Disable homotopy-class candidates to avoid needless topology changes in open space.
-- Use `weight_kinematics_forward_drive=100` to discourage reverse/forward dithering.
+- The configured `weight_kinematics_forward_drive=100` is currently ineffective
+  in this fork's carlike branch; do not rely on it to prohibit reverse motion.
 
 `obstacle` intent and key values:
 
 - Warehouse shelving, fixed facilities, and dense static obstacles.
-- Expand the local rolling costmap to `24 x 24 m`, which makes the `max_global_plan_lookahead_dist=10` TEB horizon effective; also increase obstacle influence to `obstacle_poses_affected=30`.
-- Retain four homotopy classes and increase roadmap sampling.
-- Make topology switches less frequent (`selection_cost_hysteresis=1.5`, `switching_blocking_period=10`).
+- Expand the local rolling costmap to `24 x 24 m`, which makes the
+  `max_global_plan_lookahead_dist=10` TEB horizon effective.
+- Use three homotopy classes, ten roadmap samples, and `5 x 4` optimizer
+  iterations. This reduces the configured upper search budget from
+  `4 x 10 x 6 = 240` to `3 x 5 x 4 = 60` optimizer passes per cycle.
+- Favor the previous route by 5% while allowing a replacement after `0.5s`
+  (`selection_cost_hysteresis=0.95`, `selection_prefer_initial_plan=0.95`,
+  `switching_blocking_period=0.5`). The former hysteresis value `1.5` actually
+  favored a new route in this fork and then locked it for `10s`.
+- Recover from an infeasible plan's shortened horizon after `3s`, not `10s`.
+- Treat laser/costmap points as static (`include_dynamic_obstacles=false`),
+  because no costmap-converter source currently supplies obstacle velocities.
 - Increase obstacle clearance/cost (`min_obstacle_dist=0.35`, `inflation_dist=0.7`, `weight_obstacle=80`).
-- Use `weight_kinematics_forward_drive=60` and delete backward detours to reduce reversing while retaining escape maneuverability.
+- Raise angular speed/acceleration to `1.4rad/s` and `0.8rad/s^2`, and the
+  time-optimal weight to `4.0`, so an avoidance arc builds and resumes sooner.
+- Raise the symmetric longitudinal planning limit to `acc_lim_x=2.0m/s^2`.
+  This remains below the cruise profile's `2.5m/s^2`, but it is a planning
+  constraint rather than a measured chassis guarantee; retain it only after
+  commanded-versus-measured acceleration and braking pass the staged road test.
+- `delete_detours_backwards=true` remains active. The configured
+  `weight_kinematics_forward_drive=60` is ineffective in this fork's carlike
+  branch and does not enforce a no-reverse policy.
+
+`obstacle_poses_affected` is also ineffective while
+`legacy_obstacle_association=false`; it must not be credited for the current
+clearance behavior.
 
 The positional speed argument is passed after the overlay, so it remains the final `max_vel_x` value.
 
@@ -260,6 +290,7 @@ After restarting GPS navigation, verify:
 ```bash
 rosparam get /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel
 rosparam get /move_base/TebLocalPlannerROS/max_vel_theta
+rosparam get /move_base/TebLocalPlannerROS/acc_lim_x
 rosparam get /move_base/TebLocalPlannerROS/acc_lim_theta
 rosparam get /move_base/TebLocalPlannerROS/min_turning_radius
 rosparam get /move_base/TebLocalPlannerROS/global_plan_viapoint_sep
@@ -269,9 +300,18 @@ rosparam get /move_base/TebLocalPlannerROS/weight_shortest_path
 rosparam get /move_base/TebLocalPlannerROS/weight_viapoint
 rosparam get /move_base/TebLocalPlannerROS/enable_homotopy_class_planning
 rosparam get /move_base/TebLocalPlannerROS/max_number_classes
+rosparam get /move_base/TebLocalPlannerROS/no_inner_iterations
+rosparam get /move_base/TebLocalPlannerROS/no_outer_iterations
+rosparam get /move_base/TebLocalPlannerROS/roadmap_graph_no_samples
+rosparam get /move_base/TebLocalPlannerROS/selection_cost_hysteresis
+rosparam get /move_base/TebLocalPlannerROS/selection_prefer_initial_plan
 rosparam get /move_base/TebLocalPlannerROS/switching_blocking_period
+rosparam get /move_base/TebLocalPlannerROS/include_dynamic_obstacles
+rosparam get /move_base/TebLocalPlannerROS/shrink_horizon_min_duration
 rosparam get /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist
 rosparam get /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive
+rosparam get /move_base/global_costmap/width
+rosparam get /move_base/global_costmap/resolution
 ```
 
 Expected for `cruise`:
@@ -279,6 +319,7 @@ Expected for `cruise`:
 ```text
 False
 0.8
+2.5
 0.3
 1.2
 1.0
@@ -288,17 +329,27 @@ False
 12.0
 False
 1
+10
+6
+8
+1.2
+0.95
 5.0
+True
+10
 0.5
 100.0
+200.0
+0.25
 ```
 
 Expected for `obstacle`:
 
 ```text
 False
-1.2
-0.4
+1.4
+2.0
+0.8
 1.2
 0.6
 10.0
@@ -306,11 +357,60 @@ False
 3.0
 4.0
 True
+3
+5
 4
-10.0
+10
+0.95
+0.95
+0.5
+False
+3.0
 0.8
 60.0
+200.0
+0.25
 ```
+
+### Obstacle response evidence and staged acceptance
+
+The pre-tuning `1.0m/s obstacle` session logged 71
+`trajectory is not feasible` resets. The main burst lasted about `5.92s` at
+almost every 10Hz control cycle, while only one control-loop overrun was logged
+(`0.1049s`). This maps the observed stop primarily to planner rejection and
+zero-command resets, not to a generic CPU stall or the goal limiter.
+
+Restart before testing so the overlay is reloaded:
+
+```bash
+cd /home/robot/robot_ws
+./scripts/bringup.sh gps 0.8 obstacle
+```
+
+Record the first repeatable bypass run:
+
+```bash
+rosbag record -O ~/m2_obstacle_tune_01.bag \
+  /cmd_vel_navigation /cmd_vel /odom /gps/odom \
+  /m2_driver/wheel_angle /m2_driver/left_wheel_vel \
+  /m2_driver/right_wheel_vel /move_base/status \
+  /move_base/TebLocalPlannerROS/local_plan /scan /rosout
+```
+
+Acceptance for this first stage:
+
+- No continuous `trajectory is not feasible` burst longer than two 10Hz cycles.
+- No visible zero-command plateau unless the footprint really has no safe path.
+- No repeated control-loop miss warning.
+- Re-test the efficiency tune at `0.8`, `1.4`, `1.8`, then `2.2m/s`, with the
+  physical remote and emergency stop ready. Record front-wheel angle during
+  every forward/reverse transition; motion must not outrun steering alignment.
+
+For acceleration calibration, compare `/cmd_vel_navigation`, `/cmd_vel`, and
+`/gps/odom.twist.twist.linear.x` during both `0 -> 0.5m/s` acceleration and
+`0.5 -> 0m/s` braking. Fast command rise with slow odometry rise identifies a
+VCU/drive-layer limit; it is not fixed by raising TEB acceleration. Set the
+final `acc_lim_x` no higher than the reliably measured chassis deceleration.
 
 ## Current Speed / Goal Tuning
 
@@ -318,8 +418,8 @@ GPS mode overrides TEB through launch args:
 
 ```text
 max_vel_x=1.5
-max_vel_x_backwards=1.0
-xy_goal_tolerance=0.5
+max_vel_x_backwards=1.4
+xy_goal_tolerance=0.3
 yaw_goal_tolerance=6.283
 weight_kinematics_forward_drive=100.0 (cruise) or 60.0 (obstacle)
 penalty_epsilon=0.03
@@ -335,16 +435,53 @@ GPS navigation inserts `gps_goal_speed_limiter.py` between TEB and the M2 driver
 /move_base -> /cmd_vel_navigation -> /gps_goal_speed_limiter -> /cmd_vel -> /m2_driver
 ```
 
-The node tracks `/move_base/current_goal` and `/gps/odom`. Its default forward cap is based on `v = sqrt(2 * 0.4 * (distance - 0.5))`, with a `0.15m/s` minimum while outside the `0.5m` goal tolerance. At `2.0m/s`, limiting begins about `5.5m` from the goal center; at `1.5m/s`, about `3.3m`.
+The node tracks `/move_base/current_goal`, `/move_base/goal`, `/move_base/status`, and `/gps/odom`. TEB's GPS `xy_goal_tolerance=0.3m` is independent of the limiter's `hard_stop_distance=0.2m`. The default forward cap is based on `v = sqrt(2 * 0.4 * (distance - 0.2))`, with a `0.15m/s` minimum outside the hard-stop radius. At `2.0m/s`, limiting begins about `5.2m` from the goal center; at `1.5m/s`, about `3.0m`.
 
-The limiter changes only an excessive positive `linear.x` near the goal. A lower/zero obstacle command passes immediately, negative recovery velocity passes unchanged, and `angular.z` always passes unchanged. If navigation commands stop for `0.5s`, the relay publishes zero instead of holding the last command. `/move_base/cancel` also latches a zero output until move_base publishes a new current goal, preserving electronic-fence stop authority.
+Outside `0.2m`, the limiter changes only an excessive positive `linear.x`; whenever it reduces forward speed, it scales `angular.z` by the same ratio to preserve the Ackermann trajectory curvature already checked by TEB. Lower/zero obstacle commands and negative recovery velocity pass unchanged. At or inside `0.2m`, it publishes a full zero `Twist` as a safety fallback. If navigation commands stop for `0.5s`, the relay publishes zero instead of holding the last command. `/move_base/cancel` follows actionlib `GoalID` matching: a specific ID stops only that active goal, an empty ID with zero stamp cancels all current goals, and an empty ID with a timestamp cancels goals at or before that time. Stopping or terminal `/move_base/status` states also stop the relay; a genuinely new action goal releases it. Timer and cancellation output are serialized so an old nonzero timer command cannot overwrite a cancellation stop.
 
 Runtime tuning:
 
 ```bash
 GPS_GOAL_COMFORTABLE_DECEL=0.3 ./scripts/bringup.sh gps 2.0 cruise
+GPS_XY_GOAL_TOLERANCE=0.3 GPS_GOAL_HARD_STOP_DISTANCE=0.2 ./scripts/bringup.sh gps
 GPS_GOAL_SLOWDOWN_ENABLED=false ./scripts/bringup.sh gps 2.0 cruise
 ```
+
+## Ackermann Recovery And Reverse Commands
+
+`navigation_arena.launch` now replaces move_base's default in-place rotation
+recovery with this explicit chain:
+
+```text
+conservative costmap clear
+  -> footprint-checked reverse Ackermann arc
+  -> footprint-checked forward Ackermann arc
+```
+
+The arc plugin is `robot_bringup/AckermannArcRecovery`. Each motion ramps at
+`0.60m/s^2` to at most `0.30m/s`, uses no more than `0.24rad/s`, keeps a
+turning radius of at least `1.30m`, and stops after at most `0.55m` or `4.0s`.
+It runs at `20Hz`, checks the complete padded footprint every `0.05m`,
+and refuses unknown, inscribed, lethal, over-threshold, stale-costmap, or
+out-of-map trajectories. A cancel or new action goal immediately publishes a
+zero command. An interrupt arriving just before `runBehavior()` is retained for
+`0.5s` and consumed once, closing the recovery-start race without permanently
+latching old messages. In GPS mode the plugin publishes through
+`/cmd_vel_navigation`, so the goal limiter and electronic-fence cancel authority
+remain in the path.
+
+The M2 `/cmd_vel` conversion now uses signed linear velocity:
+
+```text
+steering = atan(angular.z * wheelbase / linear.x)
+```
+
+This is required for a reverse command's actual yaw rate to have the same sign
+as standard `Twist.angular.z` and as the trajectory collision-checked by TEB.
+
+The tested steering-center correction value `-0.3` is a chassis calibration
+and is independent of `GPS_ANTENNA_OFFSET_X=-0.3m`. Verify after a chassis
+power cycle whether the VCU persists the steering-center setting.
 
 ## Costmap / Perception State
 
@@ -359,17 +496,31 @@ local_costmap update_frequency: 10 Hz
 Current local map / laser obstacle settings:
 
 ```text
-local_costmap width: 20.0
-local_costmap height: 20.0
+local_costmap width: 20.0 (cruise), 24.0 (obstacle)
+local_costmap height: 20.0 (cruise), 24.0 (obstacle)
 obstacle_range: 10.0
 raytrace_range: 11.0
 scan range_max: 12.0
 ```
 
+GPS uses a separate coarse global rolling map for long-range path generation:
+
+```text
+global_costmap width/height: 200.0 m
+global_costmap resolution: 0.25 m/cell
+global_costmap initial origin: (-100.0, -100.0)
+```
+
+This is an `800 x 800` grid (640,000 cells) and accepts goals with useful
+margin beyond 50m. `GPS_GLOBAL_COSTMAP_SIZE` and
+`GPS_GLOBAL_COSTMAP_RESOLUTION` can be changed together for farther targets;
+bringup rejects configurations above one million cells. The detailed local
+costmap remains at `0.1m/cell`, so local obstacle geometry is not coarsened.
+
 Current clearance:
 
 ```text
-TebLocalPlannerROS/min_obstacle_dist: 0.3
+TebLocalPlannerROS/min_obstacle_dist: 0.3 (cruise), 0.35 (obstacle)
 ```
 
 ## GPS Static Error Monitor
@@ -432,13 +583,24 @@ This will distinguish:
 
 ## Verification Already Run
 
-Recent checks passed:
+Checks for the GPS twist, goal limiter, and Ackermann recovery changes passed:
 
 ```bash
-python3 -m py_compile src/application/gps_module/scripts/gps_goal_node.py scripts/gps_test_tasks.py
-python3 -c "import yaml; yaml.safe_load(open('src/navigation_arena/arena-rosnav-3D/arena_navigation/arena_local_planer/model_based/conventional/config/dingo/teb_local_planner_params_nomap.yaml'))"
+catkin_make --pkg autolabor_canbus_driver gps_module robot_bringup -j2
+cmake --build build --target run_tests_gps_module run_tests_robot_bringup -- -j2
+catkin_test_results build/test_results/gps_module
+catkin_test_results build/test_results/robot_bringup
+python3 -m py_compile src/application/gps_module/scripts/gps_localization_node.py src/scripts/robot_bringup/scripts/gps_goal_speed_limiter.py
 bash -n scripts/bringup.sh
+git diff --check
 ```
+
+There are 56 directly added regression cases: 14 GPS motion/timestamp cases,
+17 limiter/cancel cases, 10 recovery geometry/interrupt cases, 9 obstacle
+profile/efficiency cases, and 6 long-range costmap cases. The user reported a
+successful `2.2m/s obstacle` run before this efficiency increment; the new
+acceleration, reverse-speed, and recovery-speed defaults still require the
+staged acceptance above.
 
 ## Git / Working Tree Notes
 
@@ -461,4 +623,8 @@ The runtime fence file is ignored:
 config/gps_test_fence.json
 ```
 
-No git commit has been made for the latest GPS navigation tuning unless the user explicitly requests one.
+On 2026-07-16, the user requested a complete GitHub checkpoint. The current
+workspace state is being saved on the `experiment/715` branch with the commit
+note `715实验分支：保存当前项目完整进度`. Modified third-party submodules are
+stored on matching `experiment/715` branches in Doribelove forks so the parent
+repository can be cloned recursively without missing local commits.

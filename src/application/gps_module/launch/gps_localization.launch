@@ -23,7 +23,18 @@
   <arg name="max_fix_jump" default="5.0"/>
   <arg name="heading_min_speed" default="0.15"/>
   <arg name="use_wheel_odom" default="false"/>
+  <arg name="use_wheel_twist" default="true"/>
   <arg name="wheel_odom_topic" default="/odom"/>
+  <arg name="wheel_twist_timeout" default="0.5"/>
+  <arg name="rmc_speed_timeout" default="1.0"/>
+  <arg name="rmc_direction_cos_threshold" default="0.5"/>
+  <arg name="position_speed_min_dt" default="0.05"/>
+  <arg name="position_speed_max_abs" default="3.5"/>
+  <arg name="heading_rate_filter_alpha" default="0.35"/>
+  <arg name="heading_rate_min_dt" default="0.02"/>
+  <arg name="heading_rate_max_dt" default="1.0"/>
+  <arg name="heading_rate_timeout" default="0.5"/>
+  <arg name="heading_rate_max_abs" default="3.0"/>
   <arg name="gps_correction_alpha" default="0.0"/>
   <arg name="gps_correction_max_step" default="0.05"/>
   <arg name="gps_correction_reset_distance" default="20.0"/>
@@ -56,7 +67,18 @@
     <param name="max_fix_jump" value="$(arg max_fix_jump)"/>
     <param name="heading_min_speed" value="$(arg heading_min_speed)"/>
     <param name="use_wheel_odom" value="$(arg use_wheel_odom)"/>
+    <param name="use_wheel_twist" value="$(arg use_wheel_twist)"/>
     <param name="wheel_odom_topic" value="$(arg wheel_odom_topic)"/>
+    <param name="wheel_twist_timeout" value="$(arg wheel_twist_timeout)"/>
+    <param name="rmc_speed_timeout" value="$(arg rmc_speed_timeout)"/>
+    <param name="rmc_direction_cos_threshold" value="$(arg rmc_direction_cos_threshold)"/>
+    <param name="position_speed_min_dt" value="$(arg position_speed_min_dt)"/>
+    <param name="position_speed_max_abs" value="$(arg position_speed_max_abs)"/>
+    <param name="heading_rate_filter_alpha" value="$(arg heading_rate_filter_alpha)"/>
+    <param name="heading_rate_min_dt" value="$(arg heading_rate_min_dt)"/>
+    <param name="heading_rate_max_dt" value="$(arg heading_rate_max_dt)"/>
+    <param name="heading_rate_timeout" value="$(arg heading_rate_timeout)"/>
+    <param name="heading_rate_max_abs" value="$(arg heading_rate_max_abs)"/>
     <param name="gps_correction_alpha" value="$(arg gps_correction_alpha)"/>
     <param name="gps_correction_max_step" value="$(arg gps_correction_max_step)"/>
     <param name="gps_correction_reset_distance" value="$(arg gps_correction_reset_distance)"/>

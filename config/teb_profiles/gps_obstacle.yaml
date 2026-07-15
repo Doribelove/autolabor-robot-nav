@@ -13,32 +13,58 @@ TebLocalPlannerROS:
   costmap_obstacles_behind_robot_dist: 0.8
   obstacle_poses_affected: 30
 
-  # Keep enough steering authority for Ackermann avoidance while using gentler
-  # longitudinal acceleration in confined areas.
-  max_vel_theta: 1.2
-  min_vel_theta: -1.2
-  acc_lim_x: 1.2
-  acc_lim_theta: 0.4
+  # This profile receives only costmap/laser obstacles; no converter currently
+  # supplies obstacle velocities. Treat all observed points as static and use
+  # TEB's faster, better-tested temporal resizing path.
+  include_dynamic_obstacles: false
+
+  # Build forward/reverse speed and avoidance curvature sooner. TEB uses one
+  # symmetric longitudinal bound for acceleration and braking, so keep it below
+  # the open-road profile and verify both directions in the staged road test.
+  # The angular-speed increase lets a 1.2 m-radius hardware-limited turn carry
+  # up to 1.68 m/s instead of the former 1.44 m/s.
+  max_vel_theta: 1.4
+  min_vel_theta: -1.4
+  acc_lim_x: 2.0
+  acc_lim_theta: 0.8
 
   min_obstacle_dist: 0.35
   inflation_dist: 0.7
   weight_obstacle: 80.0
   weight_inflation: 0.5
-  weight_acc_lim_theta: 150.0
-  weight_optimaltime: 1.5
+  weight_acc_lim_theta: 120.0
+  weight_optimaltime: 4.0
   weight_shortest_path: 3.0
   weight_viapoint: 4.0
 
-  # Keep multiple ways around fixed facilities, but make the current/initial
-  # topology harder to replace so the path does not switch repeatedly.
+  # Keep several ways around fixed facilities without exceeding the 10 Hz
+  # control budget.  The old 4 classes * 6 outer * 10 inner iterations could
+  # require 240 optimizer passes per cycle.
+  no_inner_iterations: 5
+  no_outer_iterations: 4
   enable_homotopy_class_planning: true
   enable_multithreading: true
-  max_number_classes: 4
-  selection_cost_hysteresis: 1.5
-  selection_prefer_initial_plan: 0.8
+  max_number_classes: 3
+
+  # In this TEB fork the previous-best cost is multiplied by hysteresis before
+  # comparison.  A value of 1.5 therefore encouraged switching rather than
+  # suppressing it. Favor the current class by 5%, mildly prefer the global-plan
+  # class, and never lock a selected class for the former 10 seconds: an old
+  # class can become infeasible as the vehicle approaches a newly seen object.
+  selection_cost_hysteresis: 0.95
+  selection_prefer_initial_plan: 0.95
   selection_obst_cost_scale: 20.0
-  roadmap_graph_no_samples: 15
+  roadmap_graph_no_samples: 10
   roadmap_graph_area_width: 6.0
-  switching_blocking_period: 10.0
+  switching_blocking_period: 0.5
   delete_detours_backwards: true
   max_ratio_detours_duration_best_duration: 2.0
+
+  # A single infeasible cycle still enables TEB's safer half-horizon fallback,
+  # but it no longer leaves the vehicle in that hesitant mode for 10 seconds.
+  shrink_horizon_backup: true
+  shrink_horizon_min_duration: 3.0
+
+  # Keep the fork's default near-term collision-check depth explicit. Raising
+  # it to hide stutter would instead reject more complete command cycles.
+  feasibility_check_no_poses: 5

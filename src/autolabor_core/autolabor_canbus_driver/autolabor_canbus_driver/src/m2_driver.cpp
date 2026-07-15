@@ -2,6 +2,7 @@
 #include "autolabor_canbus_driver/Autocan.h"
 #include "utilities/big_endian_transform.h"
 
+#include <algorithm>
 #include <cmath>
 #include <nav_msgs/Odometry.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -133,6 +134,7 @@ namespace autolabor_driver{
                     break;
                 case Autocan::Vcu::CurrentVelocity:
                     cur_vel_ = autolabor::build_from_little_endian<float>(msg->payload.data());
+                    cur_vel_time_ = ros::Time::now();
                     break;
                 case Autocan::Vcu::OdomXy:
                     cur_odom_x_ = autolabor::build_from_little_endian<float>(msg->payload.data());
@@ -234,16 +236,20 @@ namespace autolabor_driver{
         float target_vel = clamp(static_cast<float>(msg->linear.x), -chassis_parameter_.max_speed, chassis_parameter_.max_speed);
         float target_angular = static_cast<float>(msg->angular.z);
 
-        // 计算前轮转角,判断是否线速度为0
+        // Convert the standard Twist yaw rate to a steering angle.  Keep the
+        // sign of linear velocity: while reversing, the steering angle must
+        // change sign to produce the requested angular.z in the base frame.
+        // Using abs(target_vel) here makes reverse arcs turn in the opposite
+        // direction from the trajectory checked by the local planner.
         float steer_rad = 0;
-        if(target_vel == 0)
+        if(std::abs(target_vel) < 1e-4f)
         {
             if(target_angular>0.01) steer_rad = chassis_parameter_.max_steer;
             else if(target_angular<-0.01) steer_rad = -chassis_parameter_.max_steer;
         }
         else
         {
-            steer_rad = std::atan(target_angular * chassis_parameter_.robot_length / abs(target_vel));
+            steer_rad = std::atan(target_angular * chassis_parameter_.robot_length / target_vel);
             steer_rad = clamp(steer_rad, -chassis_parameter_.max_steer, chassis_parameter_.max_steer);
         }
         // 转化为相对速度
@@ -305,7 +311,21 @@ namespace autolabor_driver{
 
     void M2Driver::send_odom(const ros::TimerEvent& event) {
         ros::Time now = ros::Time::now();
-        if ((now - cur_left_time_).toSec() < sync_timeout_ && (now - cur_right_time_).toSec() < sync_timeout_ && (now - cur_steer_time_).toSec() < sync_timeout_) {
+        const auto is_fresh = [&](const ros::Time& stamp) {
+            if (stamp.isZero()) return false;
+            const double age = (now - stamp).toSec();
+            return age >= 0.0 && age < sync_timeout_;
+        };
+        if (is_fresh(cur_vel_time_) && is_fresh(cur_left_time_) &&
+            is_fresh(cur_right_time_) && is_fresh(cur_steer_time_)) {
+            // The twist is derived from velocity and steering feedback.  Use
+            // the oldest contributing measurement as the odometry timestamp
+            // so downstream freshness checks cannot mistake repeated timer
+            // publications for newly received chassis data.
+            ros::Time measurement_time = cur_vel_time_;
+            measurement_time = std::min(measurement_time, cur_left_time_);
+            measurement_time = std::min(measurement_time, cur_right_time_);
+            measurement_time = std::min(measurement_time, cur_steer_time_);
             // 读取车长度
             double robotLength = 0.65;
             if(ChassisParameterHelper::areSet(chassis_parameter_))robotLength = chassis_parameter_.robot_length;
@@ -318,7 +338,7 @@ namespace autolabor_driver{
 
             if (publish_tf_) {
                 geometry_msgs::TransformStamped transform_stamped;
-                transform_stamped.header.stamp = now;
+                transform_stamped.header.stamp = measurement_time;
                 transform_stamped.header.frame_id = odom_frame_;
                 transform_stamped.child_frame_id = base_frame_;
                 transform_stamped.transform.translation.x = cur_odom_x_;
@@ -337,7 +357,7 @@ namespace autolabor_driver{
             {
                 odom_msg.child_frame_id = base_frame_;
             }
-            odom_msg.header.stamp = now;
+            odom_msg.header.stamp = measurement_time;
             odom_msg.pose.pose.position.x = cur_odom_x_;
             odom_msg.pose.pose.position.y = cur_odom_y_;
             odom_msg.pose.pose.position.z = 0;

@@ -70,15 +70,15 @@ namespace autolabor_driver {
 
         float cur_odom_x_ = 0,cur_odom_y_ = 0,cur_odom_yaw_ = 0;
         float cur_vel_ = 0,cur_left_vel_ = 0,cur_right_vel_ = 0,cur_steer_ = 0;
-        ros::Time cur_left_time_, cur_right_time_,cur_steer_time_;
-        int poller_rate_hz_;
-        int pub_odom_hz_;
-        bool is_odom_child_baselink_;
-        bool is_pub_control_timeout_;
+        ros::Time cur_vel_time_, cur_left_time_, cur_right_time_, cur_steer_time_;
+        int poller_rate_hz_ = 1;
+        int pub_odom_hz_ = 10;
+        bool is_odom_child_baselink_ = false;
+        bool is_pub_control_timeout_ = false;
         // 里程计计算
-        double sync_timeout_;
+        double sync_timeout_ = 1.0;
         // tf变换
-        bool publish_tf_;
+        bool publish_tf_ = false;
         tf2_ros::TransformBroadcaster tf_broadcast_;
         // 坐标系
         std::string odom_frame_, base_frame_;

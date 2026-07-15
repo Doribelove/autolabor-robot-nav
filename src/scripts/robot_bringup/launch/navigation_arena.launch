@@ -5,7 +5,7 @@
   <arg name="goal_slowdown_enabled" default="$(eval arg('localization_source') == 'gps')"/>
   <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
   <arg name="cmd_vel_topic" default="$(eval '/cmd_vel_navigation' if arg('goal_slowdown_enabled') else '/cmd_vel')"/>
-  <arg name="xy_goal_tolerance" default="$(eval 0.5 if arg('localization_source') == 'gps' else 0.5)"/>
+  <arg name="xy_goal_tolerance" default="$(eval 0.3 if arg('localization_source') == 'gps' else 0.5)"/>
   <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
   <arg name="max_vel_x" default="1.2"/>
   <arg name="max_vel_x_backwards" default="1.2"/>
@@ -14,10 +14,27 @@
   <arg name="penalty_epsilon" default="$(eval 0.03 if arg('localization_source') == 'gps' else 0.1)"/>
   <arg name="weight_kinematics_forward_drive" default="$(eval 20.0 if arg('localization_source') == 'gps' else 500.0)"/>
   <arg name="teb_profile_file" default=""/>
+  <!-- GPS goals routinely exceed the legacy 20 m rolling-map radius. -->
+  <arg name="global_costmap_size" default="$(eval 200.0 if arg('localization_source') == 'gps' else 40.0)"/>
+  <arg name="global_costmap_resolution" default="$(eval 0.25 if arg('localization_source') == 'gps' else 0.1)"/>
   <arg name="goal_slowdown_decel" default="0.4"/>
   <arg name="goal_slowdown_min_speed" default="0.15"/>
+  <arg name="goal_slowdown_hard_stop_distance" default="0.2"/>
   <arg name="goal_slowdown_cmd_timeout" default="0.5"/>
   <arg name="goal_slowdown_odom_timeout" default="1.0"/>
+
+  <!--
+    The M2 cannot rotate in place. Replace move_base's default rotate
+    recoveries with bounded, footprint-checked Ackermann arcs. Parameters are
+    loaded in move_base's private namespace before the node starts.
+  -->
+  <rosparam file="$(find robot_bringup)/config/ackermann_recovery.yaml"
+            command="load"
+            ns="/move_base"/>
+  <param name="/move_base/ackermann_reverse_arc/cmd_vel_topic"
+         value="$(arg cmd_vel_topic)"/>
+  <param name="/move_base/ackermann_forward_arc/cmd_vel_topic"
+         value="$(arg cmd_vel_topic)"/>
 
   <include file="$(find arena_bringup)/launch/real_nav_nomap.launch">
     <arg name="localization_source" value="$(arg localization_source)"/>
@@ -34,6 +51,8 @@
     <arg name="penalty_epsilon" value="$(arg penalty_epsilon)"/>
     <arg name="weight_kinematics_forward_drive" value="$(arg weight_kinematics_forward_drive)"/>
     <arg name="teb_profile_file" value="$(arg teb_profile_file)"/>
+    <arg name="global_costmap_size" value="$(arg global_costmap_size)"/>
+    <arg name="global_costmap_resolution" value="$(arg global_costmap_resolution)"/>
   </include>
 
   <node if="$(arg goal_slowdown_enabled)"
@@ -45,9 +64,12 @@
     <param name="output_cmd_topic" value="/cmd_vel"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="goal_topic" value="/move_base/current_goal"/>
+    <param name="action_goal_topic" value="/move_base/goal"/>
     <param name="cancel_topic" value="/move_base/cancel"/>
+    <param name="status_topic" value="/move_base/status"/>
     <param name="comfortable_decel" type="double" value="$(arg goal_slowdown_decel)"/>
-    <param name="goal_tolerance" type="double" value="$(arg xy_goal_tolerance)"/>
+    <param name="hard_stop_distance" type="double" value="$(arg goal_slowdown_hard_stop_distance)"/>
+    <param name="planner_xy_goal_tolerance" type="double" value="$(arg xy_goal_tolerance)"/>
     <param name="min_approach_speed" type="double" value="$(arg goal_slowdown_min_speed)"/>
     <param name="cmd_timeout" type="double" value="$(arg goal_slowdown_cmd_timeout)"/>
     <param name="odom_timeout" type="double" value="$(arg goal_slowdown_odom_timeout)"/>

@@ -1,0 +1,66 @@
+# Autolabor M2 recovery chain.
+#
+# move_base's default rotate_recovery publishes angular velocity with zero
+# linear velocity. The M2 can steer its front wheels in that state, but it
+# cannot rotate, so that recovery can only wait until it times out. Supplying
+# this explicit list replaces the defaults; clearing_rotation_allowed is also
+# false as a fail-safe if move_base ever falls back to its default list.
+recovery_behavior_enabled: true
+clearing_rotation_allowed: false
+
+recovery_behaviors:
+  - name: conservative_clear
+    type: clear_costmap_recovery/ClearCostmapRecovery
+  - name: ackermann_reverse_arc
+    type: robot_bringup/AckermannArcRecovery
+  - name: ackermann_forward_arc
+    type: robot_bringup/AckermannArcRecovery
+
+conservative_clear:
+  # Only stale observations outside the immediate 3 m window are cleared.
+  # Real obstacles beside the vehicle remain in the costmap and are never
+  # cleared merely to make a recovery trajectory appear feasible.
+  reset_distance: 3.0
+  layer_names: [obstacles_layer]
+  affected_maps: both
+  force_updating: true
+
+ackermann_reverse_arc:
+  direction: -1
+  # Complete the same bounded 0.55 m escape arc sooner. The larger acceleration
+  # reaches this still-low recovery speed in 0.5 s; footprint/costmap checks,
+  # distance, duration, and the conservative turning radius remain unchanged.
+  linear_speed: 0.30
+  acceleration_limit: 0.60
+  min_turning_radius: 1.30
+  max_angular_speed: 0.24
+  max_distance: 0.55
+  max_duration: 4.0
+  # 20 Hz keeps a comfortable margin inside the M2 command watchdog.
+  frequency: 20.0
+  command_hold_timeout: 0.20
+  # Consume only an interrupt received in the narrow hand-off before runBehavior.
+  # The event is one-shot, so an old goal/cancel cannot latch recovery off.
+  pre_run_interrupt_timeout: 0.50
+  sim_granularity: 0.05
+  safety_lookahead: 0.30
+  max_pose_jump: 0.50
+  max_footprint_cost: 252.0
+  preferred_turn: auto
+
+ackermann_forward_arc:
+  direction: 1
+  linear_speed: 0.30
+  acceleration_limit: 0.60
+  min_turning_radius: 1.30
+  max_angular_speed: 0.24
+  max_distance: 0.55
+  max_duration: 4.0
+  frequency: 20.0
+  command_hold_timeout: 0.20
+  pre_run_interrupt_timeout: 0.50
+  sim_granularity: 0.05
+  safety_lookahead: 0.30
+  max_pose_jump: 0.50
+  max_footprint_cost: 252.0
+  preferred_turn: auto

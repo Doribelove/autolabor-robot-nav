@@ -7,7 +7,7 @@ This repository is a ROS workspace for the Autolabor robot navigation setup.
 Important local path:
 
 - Workspace root: `/home/robot/robot_ws`
-- GitHub remote: `git@github.com:Doribelove/autolabor-arena-nav.git`
+- GitHub remote: `git@github.com:Doribelove/autolabor-robot-nav.git`
 - Main branch: `main`
 
 ## Git Workflow
@@ -21,10 +21,10 @@ Important local path:
   - `*.bag`
   - `*.bag.active`
 - The initial project import commit is `a4f7490 Initial robot workspace import`.
-- The project was prepared for pushing to `Doribelove/autolabor-arena-nav`.
+- The project is hosted at `Doribelove/autolabor-robot-nav`.
 - HTTPS push previously failed with GitHub `403 Permission denied`.
 - An SSH key was generated at `/home/robot/.ssh/id_ed25519`.
-- The public key that needs to be added to GitHub is in:
+- The SSH key is authenticated with GitHub. Its public key is in:
   - `/home/robot/.ssh/id_ed25519.pub`
 
 ## Submodules
@@ -34,13 +34,28 @@ Several third-party packages under `src/` are nested Git repositories and are tr
 When cloning this project elsewhere, use:
 
 ```bash
-git clone --recurse-submodules git@github.com:Doribelove/autolabor-arena-nav.git
+git clone --recurse-submodules git@github.com:Doribelove/autolabor-robot-nav.git
 ```
 
 If already cloned, initialize submodules with:
 
 ```bash
 git submodule update --init --recursive
+```
+
+Submodule remote convention:
+
+- Keep public upstream clone URLs in `.gitmodules`.
+- For a locally maintained fork, use `origin` for the writable fork and `upstream` for the original project.
+- Push submodule commits before committing or pushing the parent repository's gitlink update.
+
+Recommended per-clone safety settings:
+
+```bash
+git config fetch.recurseSubmodules on-demand
+git config push.recurseSubmodules check
+git config status.submoduleSummary true
+git config diff.submodule log
 ```
 
 ## Common Commands

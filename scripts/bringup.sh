@@ -14,8 +14,11 @@ GPS_PORT="${GPS_PORT:-/dev/ttyUSB1}"
 GPS_BAUD_RATE="${GPS_BAUD_RATE:-115200}"
 FAST_LIO_GPS_YAW_OFFSET_DEG="${FAST_LIO_GPS_YAW_OFFSET_DEG:-0.0}"
 GPS_NAV_MAX_VEL_X="${GPS_NAV_MAX_VEL_X:-1.5}"
-GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-1.0}"
+GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-1.4}"
 GPS_USE_WHEEL_ODOM="${GPS_USE_WHEEL_ODOM:-false}"
+GPS_USE_WHEEL_TWIST="${GPS_USE_WHEEL_TWIST:-true}"
+GPS_WHEEL_TWIST_TIMEOUT="${GPS_WHEEL_TWIST_TIMEOUT:-0.5}"
+GPS_RMC_SPEED_TIMEOUT="${GPS_RMC_SPEED_TIMEOUT:-1.0}"
 GPS_HEADING_SOURCE="${GPS_HEADING_SOURCE:-dual_antenna}"
 GPS_HEADING_TIMEOUT="${GPS_HEADING_TIMEOUT:-1.0}"
 GPS_HEADING_REQUIRED_SOLUTION_STATUS="${GPS_HEADING_REQUIRED_SOLUTION_STATUS:-SOL_COMPUTED}"
@@ -31,9 +34,13 @@ GPS_TEB_PROFILE="${GPS_TEB_PROFILE:-cruise}"
 GPS_TEB_PROFILE_FILE=""
 GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-}"
 GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-}"
+GPS_XY_GOAL_TOLERANCE="${GPS_XY_GOAL_TOLERANCE:-0.3}"
+GPS_GLOBAL_COSTMAP_SIZE="${GPS_GLOBAL_COSTMAP_SIZE:-200.0}"
+GPS_GLOBAL_COSTMAP_RESOLUTION="${GPS_GLOBAL_COSTMAP_RESOLUTION:-0.25}"
 GPS_GOAL_SLOWDOWN_ENABLED="${GPS_GOAL_SLOWDOWN_ENABLED:-true}"
 GPS_GOAL_COMFORTABLE_DECEL="${GPS_GOAL_COMFORTABLE_DECEL:-0.4}"
 GPS_GOAL_MIN_APPROACH_SPEED="${GPS_GOAL_MIN_APPROACH_SPEED:-0.15}"
+GPS_GOAL_HARD_STOP_DISTANCE="${GPS_GOAL_HARD_STOP_DISTANCE:-0.2}"
 GPS_GOAL_CMD_TIMEOUT="${GPS_GOAL_CMD_TIMEOUT:-0.5}"
 GPS_GOAL_ODOM_TIMEOUT="${GPS_GOAL_ODOM_TIMEOUT:-1.0}"
 FILTER_REMOVE_ABOVE_Z="${FILTER_REMOVE_ABOVE_Z:-0.1}"
@@ -66,9 +73,12 @@ usage() {
   echo "  GPS_BAUD_RATE=115200"
   echo "  FAST_LIO_GPS_YAW_OFFSET_DEG=0.0"
   echo "  GPS_NAV_MAX_VEL_X=1.5       # overridden by the optional gps speed argument"
-  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.0 # never raised by the gps speed argument"
+  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.4 # capped by the optional gps speed argument"
   echo "  GPS_TEB_PROFILE=cruise|obstacle # used when the third argument is omitted"
   echo "  GPS_USE_WHEEL_ODOM=false        # gps mode uses GPS position directly by default"
+  echo "  GPS_USE_WHEEL_TWIST=true        # publish fresh signed chassis twist in /gps/odom"
+  echo "  GPS_WHEEL_TWIST_TIMEOUT=0.5     # s; then fall back to GNSS motion estimates"
+  echo "  GPS_RMC_SPEED_TIMEOUT=1.0       # s; discard cached RMC speed/course after this"
   echo "  GPS_HEADING_SOURCE=dual_antenna"
   echo "  GPS_HEADING_TIMEOUT=1.0"
   echo "  GPS_HEADING_REQUIRED_SOLUTION_STATUS=SOL_COMPUTED"
@@ -82,9 +92,13 @@ usage() {
   echo "  GPS_COMPASS_HEADING_DEG=45      # numeric compass heading, 0=N, 90=E"
   echo "  GPS_TEB_PENALTY_EPSILON=0.03     # optional profile-default override"
   echo "  GPS_TEB_FORWARD_DRIVE_WEIGHT=... # optional profile-default override"
+  echo "  GPS_XY_GOAL_TOLERANCE=0.3        # m; TEB declares the GPS goal reached"
+  echo "  GPS_GLOBAL_COSTMAP_SIZE=200.0     # m; rolling square, about +/-100 m around robot"
+  echo "  GPS_GLOBAL_COSTMAP_RESOLUTION=0.25 # m/cell; size/resolution is capped at 1M cells"
   echo "  GPS_GOAL_SLOWDOWN_ENABLED=true   # only caps forward speed near the goal"
   echo "  GPS_GOAL_COMFORTABLE_DECEL=0.4   # m/s^2; smaller starts gentler braking earlier"
-  echo "  GPS_GOAL_MIN_APPROACH_SPEED=0.15 # m/s outside the goal tolerance"
+  echo "  GPS_GOAL_MIN_APPROACH_SPEED=0.15 # m/s outside the limiter hard-stop radius"
+  echo "  GPS_GOAL_HARD_STOP_DISTANCE=0.2  # m; safety stop, independent of TEB tolerance"
   echo "  FILTER_REMOVE_ABOVE_Z=0.1"
   echo "  FILTER_NEAR_RADIUS=0.4"
   echo "  FILTER_NEAR_MIN_Z=-0.1"
@@ -569,6 +583,21 @@ if [[ -n "$GPS_NAV_MAX_SPEED_ARG" ]]; then
 fi
 
 if [[ "$MODE" == "gps" ]]; then
+  case "$GPS_USE_WHEEL_TWIST" in
+    true|false) ;;
+    *)
+      echo "Invalid GPS_USE_WHEEL_TWIST: $GPS_USE_WHEEL_TWIST (use true or false)" >&2
+      exit 1
+      ;;
+  esac
+  if ! is_nonnegative_number "$GPS_WHEEL_TWIST_TIMEOUT"; then
+    echo "Invalid GPS_WHEEL_TWIST_TIMEOUT: $GPS_WHEEL_TWIST_TIMEOUT" >&2
+    exit 1
+  fi
+  if ! is_nonnegative_number "$GPS_RMC_SPEED_TIMEOUT"; then
+    echo "Invalid GPS_RMC_SPEED_TIMEOUT: $GPS_RMC_SPEED_TIMEOUT" >&2
+    exit 1
+  fi
   if ! is_positive_number "$GPS_NAV_MAX_VEL_X"; then
     echo "Invalid GPS_NAV_MAX_VEL_X: $GPS_NAV_MAX_VEL_X" >&2
     exit 1
@@ -583,6 +612,32 @@ if [[ "$MODE" == "gps" ]]; then
   fi
   if ! is_nonnegative_number "$GPS_TEB_FORWARD_DRIVE_WEIGHT"; then
     echo "Invalid GPS_TEB_FORWARD_DRIVE_WEIGHT: $GPS_TEB_FORWARD_DRIVE_WEIGHT" >&2
+    exit 1
+  fi
+  if ! is_positive_number "$GPS_XY_GOAL_TOLERANCE"; then
+    echo "Invalid GPS_XY_GOAL_TOLERANCE: $GPS_XY_GOAL_TOLERANCE" >&2
+    exit 1
+  fi
+  if ! is_positive_number "$GPS_GLOBAL_COSTMAP_SIZE"; then
+    echo "Invalid GPS_GLOBAL_COSTMAP_SIZE: $GPS_GLOBAL_COSTMAP_SIZE" >&2
+    exit 1
+  fi
+  if ! is_positive_number "$GPS_GLOBAL_COSTMAP_RESOLUTION"; then
+    echo "Invalid GPS_GLOBAL_COSTMAP_RESOLUTION: $GPS_GLOBAL_COSTMAP_RESOLUTION" >&2
+    exit 1
+  fi
+  GPS_GLOBAL_COSTMAP_CELLS="$(awk \
+    -v size="$GPS_GLOBAL_COSTMAP_SIZE" \
+    -v resolution="$GPS_GLOBAL_COSTMAP_RESOLUTION" \
+    'BEGIN {
+      cells_per_side = int(size / resolution);
+      if (cells_per_side * resolution < size) cells_per_side++;
+      printf "%.0f\n", cells_per_side * cells_per_side;
+    }')"
+  if ! awk -v cells="$GPS_GLOBAL_COSTMAP_CELLS" \
+    'BEGIN { exit !(cells <= 1000000) }'; then
+    echo "GPS global costmap would contain $GPS_GLOBAL_COSTMAP_CELLS cells; limit is 1000000." >&2
+    echo "Increase GPS_GLOBAL_COSTMAP_RESOLUTION or reduce GPS_GLOBAL_COSTMAP_SIZE." >&2
     exit 1
   fi
   case "$GPS_GOAL_SLOWDOWN_ENABLED" in
@@ -601,6 +656,15 @@ if [[ "$MODE" == "gps" ]]; then
       echo "Invalid GPS_GOAL_MIN_APPROACH_SPEED: $GPS_GOAL_MIN_APPROACH_SPEED" >&2
       exit 1
     fi
+    if ! is_nonnegative_number "$GPS_GOAL_HARD_STOP_DISTANCE"; then
+      echo "Invalid GPS_GOAL_HARD_STOP_DISTANCE: $GPS_GOAL_HARD_STOP_DISTANCE" >&2
+      exit 1
+    fi
+    if ! awk -v hard_stop="$GPS_GOAL_HARD_STOP_DISTANCE" -v tolerance="$GPS_XY_GOAL_TOLERANCE" \
+      'BEGIN { exit !(hard_stop < tolerance) }'; then
+      echo "GPS_GOAL_HARD_STOP_DISTANCE ($GPS_GOAL_HARD_STOP_DISTANCE) must be smaller than GPS_XY_GOAL_TOLERANCE ($GPS_XY_GOAL_TOLERANCE)" >&2
+      exit 1
+    fi
     if ! is_positive_number "$GPS_GOAL_CMD_TIMEOUT"; then
       echo "Invalid GPS_GOAL_CMD_TIMEOUT: $GPS_GOAL_CMD_TIMEOUT" >&2
       exit 1
@@ -613,9 +677,12 @@ if [[ "$MODE" == "gps" ]]; then
   require_file "$GPS_TEB_PROFILE_FILE"
   echo "==> GPS TEB profile: $GPS_TEB_PROFILE ($GPS_TEB_PROFILE_FILE)"
   echo "==> GPS navigation speed limits: forward=$GPS_NAV_MAX_VEL_X m/s, backward=$GPS_NAV_MAX_VEL_X_BACKWARDS m/s"
+  echo "==> GPS odom twist: wheel=$GPS_USE_WHEEL_TWIST, wheel timeout=$GPS_WHEEL_TWIST_TIMEOUT s, RMC timeout=$GPS_RMC_SPEED_TIMEOUT s"
+  echo "==> GPS goal distances: TEB tolerance=$GPS_XY_GOAL_TOLERANCE m, limiter hard stop=$GPS_GOAL_HARD_STOP_DISTANCE m"
+  echo "==> GPS global costmap: ${GPS_GLOBAL_COSTMAP_SIZE} x ${GPS_GLOBAL_COSTMAP_SIZE} m, resolution=$GPS_GLOBAL_COSTMAP_RESOLUTION m, cells=$GPS_GLOBAL_COSTMAP_CELLS"
   echo "==> GPS TEB forward-drive weight: $GPS_TEB_FORWARD_DRIVE_WEIGHT"
   if [[ "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
-    echo "==> GPS goal slowdown: decel=$GPS_GOAL_COMFORTABLE_DECEL m/s^2, minimum approach=$GPS_GOAL_MIN_APPROACH_SPEED m/s"
+    echo "==> GPS goal slowdown: decel=$GPS_GOAL_COMFORTABLE_DECEL m/s^2, minimum approach=$GPS_GOAL_MIN_APPROACH_SPEED m/s, hard stop=$GPS_GOAL_HARD_STOP_DISTANCE m"
   else
     echo "==> GPS goal slowdown: disabled"
   fi
@@ -665,6 +732,9 @@ if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
   start_launch "GPS fix reader for FAST_LIO goals" robot_bringup gps_localization.launch \
     port:="$GPS_PORT" \
     baud_rate:="$GPS_BAUD_RATE" \
+    use_wheel_twist:="$GPS_USE_WHEEL_TWIST" \
+    wheel_twist_timeout:="$GPS_WHEEL_TWIST_TIMEOUT" \
+    rmc_speed_timeout:="$GPS_RMC_SPEED_TIMEOUT" \
     broadcast_tf:=false
   wait_topics "/gps/fix" 60.0
 
@@ -699,7 +769,10 @@ else
     port:="$GPS_PORT" \
     baud_rate:="$GPS_BAUD_RATE" \
     use_wheel_odom:="$GPS_USE_WHEEL_ODOM" \
+    use_wheel_twist:="$GPS_USE_WHEEL_TWIST" \
     wheel_odom_topic:=/odom \
+    wheel_twist_timeout:="$GPS_WHEEL_TWIST_TIMEOUT" \
+    rmc_speed_timeout:="$GPS_RMC_SPEED_TIMEOUT" \
     heading_source:="$GPS_HEADING_SOURCE" \
     heading_timeout:="$GPS_HEADING_TIMEOUT" \
     heading_required_solution_status:="$GPS_HEADING_REQUIRED_SOLUTION_STATUS" \
@@ -725,8 +798,12 @@ else
     goal_slowdown_enabled:="$GPS_GOAL_SLOWDOWN_ENABLED" \
     goal_slowdown_decel:="$GPS_GOAL_COMFORTABLE_DECEL" \
     goal_slowdown_min_speed:="$GPS_GOAL_MIN_APPROACH_SPEED" \
+    goal_slowdown_hard_stop_distance:="$GPS_GOAL_HARD_STOP_DISTANCE" \
     goal_slowdown_cmd_timeout:="$GPS_GOAL_CMD_TIMEOUT" \
     goal_slowdown_odom_timeout:="$GPS_GOAL_ODOM_TIMEOUT" \
+    xy_goal_tolerance:="$GPS_XY_GOAL_TOLERANCE" \
+    global_costmap_size:="$GPS_GLOBAL_COSTMAP_SIZE" \
+    global_costmap_resolution:="$GPS_GLOBAL_COSTMAP_RESOLUTION" \
     max_vel_x:="$GPS_NAV_MAX_VEL_X" \
     max_vel_x_backwards:="$GPS_NAV_MAX_VEL_X_BACKWARDS" \
     penalty_epsilon:="$GPS_TEB_PENALTY_EPSILON" \

@@ -154,6 +154,109 @@ def normalize_angle(angle):
     return math.atan2(math.sin(angle), math.cos(angle))
 
 
+def motion_sample_is_fresh(now_sec, sample_sec, timeout):
+    """Return whether a cached sensor sample is still safe to reuse."""
+    if sample_sec is None:
+        return False
+    age = now_sec - sample_sec
+    return age >= 0.0 and (timeout <= 0.0 or age <= timeout)
+
+
+def validate_float_parameter(
+    name,
+    value,
+    minimum=None,
+    maximum=None,
+    minimum_inclusive=True,
+    maximum_inclusive=True,
+):
+    """Validate a numeric ROS parameter and return it as float."""
+    value = float(value)
+    if not math.isfinite(value):
+        raise ValueError("{} must be finite".format(name))
+    if minimum is not None:
+        below_minimum = value < minimum if minimum_inclusive else value <= minimum
+        if below_minimum:
+            operator = ">=" if minimum_inclusive else ">"
+            raise ValueError("{} must be {} {}".format(name, operator, minimum))
+    if maximum is not None:
+        above_maximum = value > maximum if maximum_inclusive else value >= maximum
+        if above_maximum:
+            operator = "<=" if maximum_inclusive else "<"
+            raise ValueError("{} must be {} {}".format(name, operator, maximum))
+    return value
+
+
+def signed_speed_from_course(
+    speed_mps,
+    course_yaw,
+    vehicle_yaw,
+    stationary_speed_threshold=0.05,
+    direction_cos_threshold=0.5,
+):
+    """Convert unsigned GNSS ground speed into body-frame longitudinal speed.
+
+    NMEA RMC speed-over-ground has no forward/reverse sign.  The sign is
+    recovered by comparing its course-over-ground with the independently
+    measured vehicle heading.  Ambiguous near-sideways courses are rejected
+    instead of silently reporting a wrong direction.
+    """
+    if speed_mps is None or course_yaw is None or vehicle_yaw is None:
+        return None
+    if not all(math.isfinite(value) for value in (speed_mps, course_yaw, vehicle_yaw)):
+        return None
+
+    speed = abs(speed_mps)
+    if speed <= max(0.0, stationary_speed_threshold):
+        return 0.0
+
+    direction_cos = math.cos(normalize_angle(course_yaw - vehicle_yaw))
+    threshold = max(0.0, min(1.0, direction_cos_threshold))
+    if direction_cos >= threshold:
+        return speed
+    if direction_cos <= -threshold:
+        return -speed
+    return None
+
+
+def heading_rate_from_samples(previous_yaw, current_yaw, dt, max_abs_rate=0.0):
+    """Calculate a wrap-safe yaw rate, rejecting invalid heading jumps."""
+    if previous_yaw is None or current_yaw is None or dt <= 0.0:
+        return None
+    if not all(math.isfinite(value) for value in (previous_yaw, current_yaw, dt)):
+        return None
+
+    angular_velocity = normalize_angle(current_yaw - previous_yaw) / dt
+    if max_abs_rate > 0.0 and abs(angular_velocity) > max_abs_rate:
+        return None
+    return angular_velocity
+
+
+def longitudinal_speed_from_positions(
+    previous_x,
+    previous_y,
+    current_x,
+    current_y,
+    vehicle_yaw,
+    dt,
+    min_dt=0.05,
+    max_abs_speed=0.0,
+):
+    """Estimate body-forward speed from positions without amplifying tiny dt."""
+    values = (previous_x, previous_y, current_x, current_y, vehicle_yaw, dt)
+    if any(value is None or not math.isfinite(value) for value in values):
+        return None
+    if dt < max(0.0, min_dt):
+        return None
+
+    dx = current_x - previous_x
+    dy = current_y - previous_y
+    speed = (dx * math.cos(vehicle_yaw) + dy * math.sin(vehicle_yaw)) / dt
+    if max_abs_speed > 0.0 and abs(speed) > max_abs_speed:
+        return None
+    return speed
+
+
 def yaw_from_quaternion(q):
     return euler_from_quaternion([q.x, q.y, q.z, q.w])[2]
 
@@ -204,7 +307,64 @@ class GpsLocalizationNode:
         self.max_fix_jump = float(rospy.get_param("~max_fix_jump", 5.0))
         self.heading_min_speed = float(rospy.get_param("~heading_min_speed", 0.15))
         self.use_wheel_odom = bool(rospy.get_param("~use_wheel_odom", False))
+        self.use_wheel_twist = bool(rospy.get_param("~use_wheel_twist", True))
         self.wheel_odom_topic = rospy.get_param("~wheel_odom_topic", "/odom")
+        self.wheel_twist_timeout = validate_float_parameter(
+            "~wheel_twist_timeout",
+            rospy.get_param("~wheel_twist_timeout", 0.5),
+            minimum=0.0,
+        )
+        self.rmc_speed_timeout = validate_float_parameter(
+            "~rmc_speed_timeout",
+            rospy.get_param("~rmc_speed_timeout", 1.0),
+            minimum=0.0,
+        )
+        self.rmc_direction_cos_threshold = validate_float_parameter(
+            "~rmc_direction_cos_threshold",
+            rospy.get_param("~rmc_direction_cos_threshold", 0.5),
+            minimum=0.0,
+            maximum=1.0,
+        )
+        self.position_speed_min_dt = validate_float_parameter(
+            "~position_speed_min_dt",
+            rospy.get_param("~position_speed_min_dt", 0.05),
+            minimum=0.0,
+            minimum_inclusive=False,
+        )
+        self.position_speed_max_abs = validate_float_parameter(
+            "~position_speed_max_abs",
+            rospy.get_param("~position_speed_max_abs", 3.5),
+            minimum=0.0,
+            minimum_inclusive=False,
+        )
+        self.heading_rate_filter_alpha = validate_float_parameter(
+            "~heading_rate_filter_alpha",
+            rospy.get_param("~heading_rate_filter_alpha", 0.35),
+            minimum=0.0,
+            maximum=1.0,
+        )
+        self.heading_rate_min_dt = validate_float_parameter(
+            "~heading_rate_min_dt",
+            rospy.get_param("~heading_rate_min_dt", 0.02),
+            minimum=0.0,
+            minimum_inclusive=False,
+        )
+        self.heading_rate_max_dt = validate_float_parameter(
+            "~heading_rate_max_dt",
+            rospy.get_param("~heading_rate_max_dt", 1.0),
+            minimum=self.heading_rate_min_dt,
+        )
+        self.heading_rate_timeout = validate_float_parameter(
+            "~heading_rate_timeout",
+            rospy.get_param("~heading_rate_timeout", 0.5),
+            minimum=0.0,
+        )
+        self.heading_rate_max_abs = validate_float_parameter(
+            "~heading_rate_max_abs",
+            rospy.get_param("~heading_rate_max_abs", 3.0),
+            minimum=0.0,
+            minimum_inclusive=False,
+        )
         self.gps_antenna_offset_x = float(rospy.get_param("~gps_antenna_offset_x", -0.3))
         self.gps_antenna_offset_y = float(rospy.get_param("~gps_antenna_offset_y", 0.0))
         self.gps_correction_alpha = float(rospy.get_param("~gps_correction_alpha", 0.0))
@@ -216,7 +376,7 @@ class GpsLocalizationNode:
         self.fix_pub = rospy.Publisher(self.fix_topic, NavSatFix, queue_size=10)
         self.heading_pub = rospy.Publisher(self.heading_topic, Float64, queue_size=10)
         self.wheel_odom_sub = None
-        if self.use_wheel_odom:
+        if self.use_wheel_odom or self.use_wheel_twist:
             self.wheel_odom_sub = rospy.Subscriber(
                 self.wheel_odom_topic,
                 Odometry,
@@ -233,11 +393,18 @@ class GpsLocalizationNode:
         self.last_yaw = self.initial_yaw
         self.last_linear_speed = 0.0
         self.last_gps_speed = None
+        self.last_gps_course_deg = None
+        self.last_rmc_stamp = None
         self.latest_heading = None
         self.latest_heading_stamp = None
+        self.previous_heading_yaw = None
+        self.previous_heading_stamp = None
+        self.filtered_heading_rate = None
+        self.filtered_heading_rate_stamp = None
         self.filtered_x = None
         self.filtered_y = None
         self.latest_wheel_odom = None
+        self.latest_wheel_odom_stamp = None
         self.last_wheel_x = None
         self.last_wheel_y = None
         self.last_wheel_yaw = None
@@ -265,6 +432,11 @@ class GpsLocalizationNode:
                 self.wheel_odom_topic,
                 self.gps_correction_alpha,
             )
+        elif self.use_wheel_twist:
+            rospy.loginfo(
+                "GPS pose remains GNSS-based; using fresh chassis twist from %s",
+                self.wheel_odom_topic,
+            )
 
     @staticmethod
     def parse_csv_param(value):
@@ -274,6 +446,13 @@ class GpsLocalizationNode:
 
     def wheel_odom_cb(self, msg):
         self.latest_wheel_odom = msg
+        # Prefer the chassis measurement timestamp over callback receipt time.
+        # The driver publishes odometry on a timer, so receipt time alone can
+        # make an old velocity sample appear perpetually fresh.
+        if msg.header.stamp.to_sec() > 0.0:
+            self.latest_wheel_odom_stamp = msg.header.stamp
+        else:
+            self.latest_wheel_odom_stamp = rospy.Time.now()
 
     def heading_is_usable(self, heading):
         if heading is None:
@@ -300,6 +479,33 @@ class GpsLocalizationNode:
             )
             return
 
+        heading_yaw = yaw_from_heading_deg(heading["heading_deg"])
+        if self.previous_heading_yaw is not None and self.previous_heading_stamp is not None:
+            dt = (stamp - self.previous_heading_stamp).to_sec()
+            if self.heading_rate_min_dt <= dt <= self.heading_rate_max_dt:
+                raw_rate = heading_rate_from_samples(
+                    self.previous_heading_yaw,
+                    heading_yaw,
+                    dt,
+                    self.heading_rate_max_abs,
+                )
+                if raw_rate is not None:
+                    alpha = max(0.0, min(1.0, self.heading_rate_filter_alpha))
+                    if self.filtered_heading_rate is None:
+                        self.filtered_heading_rate = raw_rate
+                    else:
+                        self.filtered_heading_rate += alpha * (
+                            raw_rate - self.filtered_heading_rate
+                        )
+                    self.filtered_heading_rate_stamp = stamp
+                else:
+                    rospy.logwarn_throttle(
+                        2.0,
+                        "Ignoring implausible dual-antenna heading rate",
+                    )
+
+        self.previous_heading_yaw = heading_yaw
+        self.previous_heading_stamp = stamp
         self.latest_heading = heading
         self.latest_heading_stamp = stamp
         self.heading_pub.publish(Float64(data=heading["heading_deg"]))
@@ -316,7 +522,7 @@ class GpsLocalizationNode:
         if self.latest_heading is None or self.latest_heading_stamp is None:
             return None
         age = (stamp - self.latest_heading_stamp).to_sec()
-        if self.heading_timeout > 0.0 and age > self.heading_timeout:
+        if age < 0.0 or (self.heading_timeout > 0.0 and age > self.heading_timeout):
             rospy.logwarn_throttle(
                 2.0,
                 "Dual-antenna heading is stale: age=%.3f sec",
@@ -324,6 +530,48 @@ class GpsLocalizationNode:
             )
             return None
         return yaw_from_heading_deg(self.latest_heading["heading_deg"])
+
+    def latest_heading_rate(self, stamp):
+        if self.filtered_heading_rate is None or self.filtered_heading_rate_stamp is None:
+            return 0.0
+        age = (stamp - self.filtered_heading_rate_stamp).to_sec()
+        if age < 0.0 or (self.heading_rate_timeout > 0.0 and age > self.heading_rate_timeout):
+            return 0.0
+        return self.filtered_heading_rate
+
+    def latest_wheel_twist(self, stamp):
+        # use_wheel_odom historically implied that wheel odometry also owns
+        # the reported velocity.  Keep that behavior while allowing twist to
+        # be enabled independently of wheel-pose integration.
+        if not (self.use_wheel_twist or self.use_wheel_odom):
+            return None
+        if self.latest_wheel_odom is None or self.latest_wheel_odom_stamp is None:
+            return None
+        if not motion_sample_is_fresh(
+            stamp.to_sec(),
+            self.latest_wheel_odom_stamp.to_sec(),
+            self.wheel_twist_timeout,
+        ):
+            rospy.logwarn_throttle(2.0, "Wheel odom twist is stale; using GNSS fallback")
+            return None
+
+        twist = self.latest_wheel_odom.twist.twist
+        if not math.isfinite(twist.linear.x) or not math.isfinite(twist.angular.z):
+            rospy.logwarn_throttle(2.0, "Wheel odom contains a non-finite twist")
+            return None
+        return twist.linear.x, twist.angular.z
+
+    def latest_rmc_motion(self, stamp):
+        if self.last_rmc_stamp is None:
+            return None, None
+        if not motion_sample_is_fresh(
+            stamp.to_sec(),
+            self.last_rmc_stamp.to_sec(),
+            self.rmc_speed_timeout,
+        ):
+            rospy.logwarn_throttle(2.0, "RMC speed is stale; discarding cached motion")
+            return None, None
+        return self.last_gps_speed, self.last_gps_course_deg
 
     def antenna_to_base_position(self, antenna_x, antenna_y, yaw):
         # The GNSS fix is the main antenna position. Navigation needs the
@@ -359,7 +607,7 @@ class GpsLocalizationNode:
             self.last_wheel_x = wheel_x
             self.last_wheel_y = wheel_y
             self.last_wheel_yaw = wheel_yaw
-            return self.local_x, self.local_y, self.local_yaw, 0.0
+            return self.local_x, self.local_y, self.local_yaw
 
         dx = wheel_x - self.last_wheel_x
         dy = wheel_y - self.last_wheel_y
@@ -396,12 +644,7 @@ class GpsLocalizationNode:
             self.local_x += step_x
             self.local_y += step_y
 
-        wheel_speed = self.latest_wheel_odom.twist.twist.linear.x
-        if gps_speed is not None and abs(gps_speed) > abs(wheel_speed):
-            linear_speed = gps_speed
-        else:
-            linear_speed = wheel_speed
-        return self.local_x, self.local_y, self.local_yaw, linear_speed
+        return self.local_x, self.local_y, self.local_yaw
 
     def filter_position(self, raw_x, raw_y, speed_mps):
         if self.filtered_x is None or self.filtered_y is None:
@@ -448,7 +691,6 @@ class GpsLocalizationNode:
 
     def update_motion(self, stamp, x, y, course_deg, speed_mps):
         yaw = self.last_yaw
-        linear_speed = speed_mps if speed_mps is not None else 0.0
         dual_antenna_yaw = self.latest_heading_yaw(stamp)
         if (
             dual_antenna_yaw is not None
@@ -467,8 +709,6 @@ class GpsLocalizationNode:
             dy = y - self.last_y
             distance = math.hypot(dx, dy)
             dt = (stamp - self.last_stamp).to_sec() if self.last_stamp is not None else 0.0
-            if speed_mps is None and dt > 0.0:
-                linear_speed = distance / dt
             if (
                 self.heading_source in ("gps_course", "auto")
                 and distance >= self.min_course_distance
@@ -476,14 +716,51 @@ class GpsLocalizationNode:
             ):
                 yaw = math.atan2(dy, dx)
 
+        wheel_twist = self.latest_wheel_twist(stamp)
+        if wheel_twist is not None:
+            linear_speed, angular_speed = wheel_twist
+        else:
+            course_yaw = yaw_from_course_deg(course_deg) if course_deg is not None else None
+            linear_speed = signed_speed_from_course(
+                speed_mps,
+                course_yaw,
+                yaw,
+                self.stationary_speed_threshold,
+                self.rmc_direction_cos_threshold,
+            )
+            if linear_speed is None:
+                linear_speed = 0.0
+                if self.last_x is not None and self.last_y is not None and self.last_stamp is not None:
+                    dt = (stamp - self.last_stamp).to_sec()
+                    position_speed = longitudinal_speed_from_positions(
+                        self.last_x,
+                        self.last_y,
+                        x,
+                        y,
+                        yaw,
+                        dt,
+                        self.position_speed_min_dt,
+                        self.position_speed_max_abs,
+                    )
+                    if position_speed is not None:
+                        linear_speed = position_speed
+                    else:
+                        rospy.logwarn_throttle(
+                            2.0,
+                            "GNSS position speed fallback rejected; reporting zero",
+                        )
+            angular_speed = self.latest_heading_rate(stamp)
+            if abs(linear_speed) <= self.stationary_speed_threshold:
+                angular_speed = 0.0
+
         self.last_x = x
         self.last_y = y
         self.last_stamp = stamp
         self.last_yaw = yaw
         self.last_linear_speed = linear_speed
-        return yaw, linear_speed
+        return yaw, linear_speed, angular_speed
 
-    def publish_pose_and_tf(self, stamp, x, y, yaw, linear_speed):
+    def publish_pose_and_tf(self, stamp, x, y, yaw, linear_speed, angular_speed):
         q = quaternion_from_euler(0.0, 0.0, yaw)
 
         pose = PoseStamped()
@@ -506,6 +783,7 @@ class GpsLocalizationNode:
         gps_odom.child_frame_id = self.base_frame
         gps_odom.pose.pose = pose.pose
         gps_odom.twist.twist.linear.x = linear_speed
+        gps_odom.twist.twist.angular.z = angular_speed
         self.odom_pub.publish(gps_odom)
 
         if not self.broadcast_tf:
@@ -537,6 +815,8 @@ class GpsLocalizationNode:
             if parsed is None:
                 continue
 
+            stamp = rospy.Time.now()
+
             lat = parsed["lat"]
             lon = parsed["lon"]
             altitude = parsed["altitude"]
@@ -544,10 +824,12 @@ class GpsLocalizationNode:
             satellites = parsed["satellites"]
             course_deg = parsed["course_deg"]
             speed_mps = parsed["speed_mps"]
-            if speed_mps is None:
-                speed_mps = self.last_gps_speed
-            else:
+            if raw.startswith("$GNRMC") or raw.startswith("$GPRMC"):
                 self.last_gps_speed = speed_mps
+                self.last_gps_course_deg = course_deg
+                self.last_rmc_stamp = stamp
+            else:
+                speed_mps, course_deg = self.latest_rmc_motion(stamp)
             if altitude is None:
                 altitude = self.last_altitude
             else:
@@ -567,16 +849,25 @@ class GpsLocalizationNode:
 
             raw_x, raw_y = gps_to_xy(lat, lon, self.origin_lat, self.origin_lon)
             gps_x, gps_y = self.filter_position(raw_x, raw_y, speed_mps)
-            stamp = rospy.Time.now()
-            gps_yaw, gps_linear_speed = self.update_motion(stamp, gps_x, gps_y, course_deg, speed_mps)
+            gps_yaw, gps_linear_speed, gps_angular_speed = self.update_motion(
+                stamp, gps_x, gps_y, course_deg, speed_mps
+            )
             base_x, base_y = self.antenna_to_base_position(gps_x, gps_y, gps_yaw)
             local_pose = self.update_local_pose_from_wheel_odom(base_x, base_y, gps_yaw, speed_mps)
             if local_pose is None:
                 x, y, yaw, linear_speed = base_x, base_y, gps_yaw, gps_linear_speed
             else:
-                x, y, yaw, linear_speed = local_pose
+                x, y, yaw = local_pose
+                linear_speed = gps_linear_speed
             self.publish_fix(stamp, lat, lon, altitude, fix_quality)
-            self.publish_pose_and_tf(stamp, x, y, yaw, linear_speed)
+            self.publish_pose_and_tf(
+                stamp,
+                x,
+                y,
+                yaw,
+                linear_speed,
+                gps_angular_speed,
+            )
             rate.sleep()
 
     def close(self):

@@ -13,6 +13,10 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package()
 
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(test/test_gps_localization_motion.py)
+endif()
+
 catkin_install_python(PROGRAMS
   scripts/gps_localization_node.py
   scripts/gps_goal_node.py
