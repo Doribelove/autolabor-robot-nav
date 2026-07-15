@@ -5,6 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROBOT_WS="$(cd "$SCRIPT_DIR/.." && pwd)"
 ROS_SETUP="${ROS_SETUP:-/opt/ros/noetic/setup.bash}"
 MODE="${1:-fast_lio}"
+GPS_NAV_MAX_SPEED_ARG="${2:-}"
+GPS_TEB_PROFILE_ARG="${3:-}"
 TERMINAL_MODE="${TERMINAL_MODE:-auto}"
 CLEAN_START="${CLEAN_START:-true}"
 CAN_PORT="${CAN_PORT:-/dev/ttyUSB0}"
@@ -25,8 +27,15 @@ GPS_MIN_COURSE_DISTANCE="${GPS_MIN_COURSE_DISTANCE:-0.2}"
 GPS_INITIAL_YAW="${GPS_INITIAL_YAW:-}"
 GPS_COMPASS_HEADING="${GPS_COMPASS_HEADING:-}"
 GPS_COMPASS_HEADING_DEG="${GPS_COMPASS_HEADING_DEG:-}"
-GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-0.03}"
-GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-20.0}"
+GPS_TEB_PROFILE="${GPS_TEB_PROFILE:-cruise}"
+GPS_TEB_PROFILE_FILE=""
+GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-}"
+GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-}"
+GPS_GOAL_SLOWDOWN_ENABLED="${GPS_GOAL_SLOWDOWN_ENABLED:-true}"
+GPS_GOAL_COMFORTABLE_DECEL="${GPS_GOAL_COMFORTABLE_DECEL:-0.4}"
+GPS_GOAL_MIN_APPROACH_SPEED="${GPS_GOAL_MIN_APPROACH_SPEED:-0.15}"
+GPS_GOAL_CMD_TIMEOUT="${GPS_GOAL_CMD_TIMEOUT:-0.5}"
+GPS_GOAL_ODOM_TIMEOUT="${GPS_GOAL_ODOM_TIMEOUT:-1.0}"
 FILTER_REMOVE_ABOVE_Z="${FILTER_REMOVE_ABOVE_Z:-0.1}"
 FILTER_NEAR_RADIUS="${FILTER_NEAR_RADIUS:-0.4}"
 FILTER_NEAR_MIN_Z="${FILTER_NEAR_MIN_Z:--0.1}"
@@ -38,7 +47,16 @@ TERMINAL_KIND=""
 TERMINAL_SCRIPT_DIR=""
 
 usage() {
-  echo "Usage: $0 {fast_lio|fast_lio_gps|gps|--print-gps-yaw}"
+  echo "Usage:"
+  echo "  $0 fast_lio"
+  echo "  $0 fast_lio_gps"
+  echo "  $0 gps [max_speed_mps] [cruise|obstacle]"
+  echo "  $0 --print-gps-yaw"
+  echo
+  echo "Examples:"
+  echo "  $0 gps                       # 1.5 m/s, high-speed cruise TEB profile"
+  echo "  $0 gps 2.0 cruise            # open-road high-speed cruise profile"
+  echo "  $0 gps 1.0 obstacle          # dense static-obstacle avoidance profile"
   echo
   echo "Environment:"
   echo "  TERMINAL_MODE=auto|split|same   # auto opens split terminals when possible"
@@ -47,8 +65,9 @@ usage() {
   echo "  GPS_PORT=/dev/ttyUSB1"
   echo "  GPS_BAUD_RATE=115200"
   echo "  FAST_LIO_GPS_YAW_OFFSET_DEG=0.0"
-  echo "  GPS_NAV_MAX_VEL_X=1.5"
-  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.0"
+  echo "  GPS_NAV_MAX_VEL_X=1.5       # overridden by the optional gps speed argument"
+  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.0 # never raised by the gps speed argument"
+  echo "  GPS_TEB_PROFILE=cruise|obstacle # used when the third argument is omitted"
   echo "  GPS_USE_WHEEL_ODOM=false        # gps mode uses GPS position directly by default"
   echo "  GPS_HEADING_SOURCE=dual_antenna"
   echo "  GPS_HEADING_TIMEOUT=1.0"
@@ -61,12 +80,34 @@ usage() {
   echo "  GPS_INITIAL_YAW=0.0             # radians, used until GPS course is available"
   echo "  GPS_COMPASS_HEADING=东北45度     # phone compass heading, 0=N, 90=E"
   echo "  GPS_COMPASS_HEADING_DEG=45      # numeric compass heading, 0=N, 90=E"
-  echo "  GPS_TEB_PENALTY_EPSILON=0.03"
-  echo "  GPS_TEB_FORWARD_DRIVE_WEIGHT=20.0 # higher reduces forward/reverse dithering"
+  echo "  GPS_TEB_PENALTY_EPSILON=0.03     # optional profile-default override"
+  echo "  GPS_TEB_FORWARD_DRIVE_WEIGHT=... # optional profile-default override"
+  echo "  GPS_GOAL_SLOWDOWN_ENABLED=true   # only caps forward speed near the goal"
+  echo "  GPS_GOAL_COMFORTABLE_DECEL=0.4   # m/s^2; smaller starts gentler braking earlier"
+  echo "  GPS_GOAL_MIN_APPROACH_SPEED=0.15 # m/s outside the goal tolerance"
   echo "  FILTER_REMOVE_ABOVE_Z=0.1"
   echo "  FILTER_NEAR_RADIUS=0.4"
   echo "  FILTER_NEAR_MIN_Z=-0.1"
   echo "  FILTER_NEAR_MAX_Z=0.1"
+}
+
+is_positive_number() {
+  local value="$1"
+  [[ "$value" =~ ^[0-9]+([.][0-9]+)?$ ]] || return 1
+  awk -v value="$value" 'BEGIN { exit !(value > 0.0) }'
+}
+
+is_nonnegative_number() {
+  local value="$1"
+  [[ "$value" =~ ^[0-9]+([.][0-9]+)?$ ]] || return 1
+  awk -v value="$value" 'BEGIN { exit !(value >= 0.0) }'
+}
+
+min_number() {
+  awk -v first="$1" -v second="$2" 'BEGIN {
+    if (first < second) print first;
+    else print second;
+  }'
 }
 
 normalize_compass_heading_deg() {
@@ -435,20 +476,22 @@ check_tf() {
 
 check_cmd_vel_route() {
   local topic="${1:-/cmd_vel}"
-  local timeout="${2:-10}"
+  local expected_publisher="${2:-/move_base}"
+  local expected_subscriber="${3:-/m2_driver}"
+  local timeout="${4:-10}"
   local deadline=$((SECONDS + timeout))
   local info=""
 
   while (( SECONDS < deadline )); do
     info="$(rostopic info "$topic" 2>/dev/null || true)"
-    if grep -q "/move_base" <<<"$info" && grep -q "/m2_driver" <<<"$info"; then
+    if grep -Fq "$expected_publisher" <<<"$info" && grep -Fq "$expected_subscriber" <<<"$info"; then
       return 0
     fi
     sleep 0.5
   done
 
   echo "Command velocity route is not connected on $topic." >&2
-  echo "Expected /move_base publisher and /m2_driver subscriber." >&2
+  echo "Expected $expected_publisher publisher and $expected_subscriber subscriber." >&2
   if [[ -n "$info" ]]; then
     echo "$info" >&2
   fi
@@ -457,6 +500,12 @@ check_cmd_vel_route() {
 
 trap cleanup EXIT
 trap 'cleanup; exit 130' INT TERM
+
+if (( $# > 3 )); then
+  echo "Too many arguments." >&2
+  usage >&2
+  exit 1
+fi
 
 case "$MODE" in
   fast_lio|fast_lio_gps|gps) ;;
@@ -474,6 +523,103 @@ case "$MODE" in
     exit 1
     ;;
 esac
+
+if [[ -n "$GPS_TEB_PROFILE_ARG" ]]; then
+  if [[ "$MODE" != "gps" ]]; then
+    echo "The optional TEB profile argument is only supported in gps mode." >&2
+    usage >&2
+    exit 1
+  fi
+  GPS_TEB_PROFILE="$GPS_TEB_PROFILE_ARG"
+fi
+
+if [[ "$MODE" == "gps" ]]; then
+  case "$GPS_TEB_PROFILE" in
+    cruise)
+      GPS_TEB_PROFILE_FILE="$ROBOT_WS/config/teb_profiles/gps_cruise.yaml"
+      GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-0.03}"
+      GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-100.0}"
+      ;;
+    obstacle)
+      GPS_TEB_PROFILE_FILE="$ROBOT_WS/config/teb_profiles/gps_obstacle.yaml"
+      GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-0.03}"
+      GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-60.0}"
+      ;;
+    *)
+      echo "Invalid GPS TEB profile: $GPS_TEB_PROFILE" >&2
+      echo "Use cruise or obstacle, for example: $0 gps 2.0 cruise" >&2
+      exit 1
+      ;;
+  esac
+fi
+
+if [[ -n "$GPS_NAV_MAX_SPEED_ARG" ]]; then
+  if [[ "$MODE" != "gps" ]]; then
+    echo "The optional max_speed_mps argument is only supported in gps mode." >&2
+    usage >&2
+    exit 1
+  fi
+  if ! is_positive_number "$GPS_NAV_MAX_SPEED_ARG"; then
+    echo "Invalid GPS max speed: $GPS_NAV_MAX_SPEED_ARG" >&2
+    echo "Use a positive number in m/s, for example: $0 gps 2.0" >&2
+    exit 1
+  fi
+  GPS_NAV_MAX_VEL_X="$GPS_NAV_MAX_SPEED_ARG"
+  GPS_NAV_MAX_VEL_X_BACKWARDS="$(min_number "$GPS_NAV_MAX_VEL_X_BACKWARDS" "$GPS_NAV_MAX_SPEED_ARG")"
+fi
+
+if [[ "$MODE" == "gps" ]]; then
+  if ! is_positive_number "$GPS_NAV_MAX_VEL_X"; then
+    echo "Invalid GPS_NAV_MAX_VEL_X: $GPS_NAV_MAX_VEL_X" >&2
+    exit 1
+  fi
+  if ! is_nonnegative_number "$GPS_NAV_MAX_VEL_X_BACKWARDS"; then
+    echo "Invalid GPS_NAV_MAX_VEL_X_BACKWARDS: $GPS_NAV_MAX_VEL_X_BACKWARDS" >&2
+    exit 1
+  fi
+  if ! is_nonnegative_number "$GPS_TEB_PENALTY_EPSILON"; then
+    echo "Invalid GPS_TEB_PENALTY_EPSILON: $GPS_TEB_PENALTY_EPSILON" >&2
+    exit 1
+  fi
+  if ! is_nonnegative_number "$GPS_TEB_FORWARD_DRIVE_WEIGHT"; then
+    echo "Invalid GPS_TEB_FORWARD_DRIVE_WEIGHT: $GPS_TEB_FORWARD_DRIVE_WEIGHT" >&2
+    exit 1
+  fi
+  case "$GPS_GOAL_SLOWDOWN_ENABLED" in
+    true|false) ;;
+    *)
+      echo "Invalid GPS_GOAL_SLOWDOWN_ENABLED: $GPS_GOAL_SLOWDOWN_ENABLED (use true or false)" >&2
+      exit 1
+      ;;
+  esac
+  if [[ "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
+    if ! is_positive_number "$GPS_GOAL_COMFORTABLE_DECEL"; then
+      echo "Invalid GPS_GOAL_COMFORTABLE_DECEL: $GPS_GOAL_COMFORTABLE_DECEL" >&2
+      exit 1
+    fi
+    if ! is_nonnegative_number "$GPS_GOAL_MIN_APPROACH_SPEED"; then
+      echo "Invalid GPS_GOAL_MIN_APPROACH_SPEED: $GPS_GOAL_MIN_APPROACH_SPEED" >&2
+      exit 1
+    fi
+    if ! is_positive_number "$GPS_GOAL_CMD_TIMEOUT"; then
+      echo "Invalid GPS_GOAL_CMD_TIMEOUT: $GPS_GOAL_CMD_TIMEOUT" >&2
+      exit 1
+    fi
+    if ! is_positive_number "$GPS_GOAL_ODOM_TIMEOUT"; then
+      echo "Invalid GPS_GOAL_ODOM_TIMEOUT: $GPS_GOAL_ODOM_TIMEOUT" >&2
+      exit 1
+    fi
+  fi
+  require_file "$GPS_TEB_PROFILE_FILE"
+  echo "==> GPS TEB profile: $GPS_TEB_PROFILE ($GPS_TEB_PROFILE_FILE)"
+  echo "==> GPS navigation speed limits: forward=$GPS_NAV_MAX_VEL_X m/s, backward=$GPS_NAV_MAX_VEL_X_BACKWARDS m/s"
+  echo "==> GPS TEB forward-drive weight: $GPS_TEB_FORWARD_DRIVE_WEIGHT"
+  if [[ "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
+    echo "==> GPS goal slowdown: decel=$GPS_GOAL_COMFORTABLE_DECEL m/s^2, minimum approach=$GPS_GOAL_MIN_APPROACH_SPEED m/s"
+  else
+    echo "==> GPS goal slowdown: disabled"
+  fi
+fi
 
 if [[ "$MODE" == "gps" ]]; then
   if [[ -z "$GPS_INITIAL_YAW" && ( -n "$GPS_COMPASS_HEADING" || -n "$GPS_COMPASS_HEADING_DEG" ) ]]; then
@@ -575,6 +721,12 @@ else
   check_tf "camera_init" "base_link" 10.0
   start_launch "Arena navigation" robot_bringup navigation_arena.launch \
     localization_source:=gps \
+    teb_profile_file:="$GPS_TEB_PROFILE_FILE" \
+    goal_slowdown_enabled:="$GPS_GOAL_SLOWDOWN_ENABLED" \
+    goal_slowdown_decel:="$GPS_GOAL_COMFORTABLE_DECEL" \
+    goal_slowdown_min_speed:="$GPS_GOAL_MIN_APPROACH_SPEED" \
+    goal_slowdown_cmd_timeout:="$GPS_GOAL_CMD_TIMEOUT" \
+    goal_slowdown_odom_timeout:="$GPS_GOAL_ODOM_TIMEOUT" \
     max_vel_x:="$GPS_NAV_MAX_VEL_X" \
     max_vel_x_backwards:="$GPS_NAV_MAX_VEL_X_BACKWARDS" \
     penalty_epsilon:="$GPS_TEB_PENALTY_EPSILON" \
@@ -583,7 +735,12 @@ fi
 
 wait_topics "/move_base/status" 45.0
 wait_topics "/move_base/local_costmap/costmap,/move_base/global_costmap/costmap" 45.0
-check_cmd_vel_route "/cmd_vel" 10
+if [[ "$MODE" == "gps" && "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
+  check_cmd_vel_route "/cmd_vel_navigation" "/move_base" "/gps_goal_speed_limiter" 10
+  check_cmd_vel_route "/cmd_vel" "/gps_goal_speed_limiter" "/m2_driver" 10
+else
+  check_cmd_vel_route "/cmd_vel" "/move_base" "/m2_driver" 10
+fi
 echo "Robot bringup is running in $MODE mode."
 if (( SPLIT_TERMINALS )); then
   echo "Split terminals are open. Keep this terminal running; Ctrl+C here stops the launched processes."

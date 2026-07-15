@@ -1,0 +1,44 @@
+# The TEB implementation clips its usable plan to 85% of half the local
+# costmap width. Expand this scene's rolling window from 20 x 20 m to 24 x
+# 24 m so the longer TEB lookahead is effective rather than merely configured.
+local_costmap:
+  width: 24.0
+  height: 24.0
+
+TebLocalPlannerROS:
+  # Dense static obstacles: use the available rolling costmap horizon and
+  # start shaping the local path earlier.
+  max_global_plan_lookahead_dist: 10.0
+  global_plan_viapoint_sep: 0.6
+  costmap_obstacles_behind_robot_dist: 0.8
+  obstacle_poses_affected: 30
+
+  # Keep enough steering authority for Ackermann avoidance while using gentler
+  # longitudinal acceleration in confined areas.
+  max_vel_theta: 1.2
+  min_vel_theta: -1.2
+  acc_lim_x: 1.2
+  acc_lim_theta: 0.4
+
+  min_obstacle_dist: 0.35
+  inflation_dist: 0.7
+  weight_obstacle: 80.0
+  weight_inflation: 0.5
+  weight_acc_lim_theta: 150.0
+  weight_optimaltime: 1.5
+  weight_shortest_path: 3.0
+  weight_viapoint: 4.0
+
+  # Keep multiple ways around fixed facilities, but make the current/initial
+  # topology harder to replace so the path does not switch repeatedly.
+  enable_homotopy_class_planning: true
+  enable_multithreading: true
+  max_number_classes: 4
+  selection_cost_hysteresis: 1.5
+  selection_prefer_initial_plan: 0.8
+  selection_obst_cost_scale: 20.0
+  roadmap_graph_no_samples: 15
+  roadmap_graph_area_width: 6.0
+  switching_blocking_period: 10.0
+  delete_detours_backwards: true
+  max_ratio_detours_duration_best_duration: 2.0

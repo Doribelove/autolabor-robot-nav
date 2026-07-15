@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.0.2)
 project(robot_bringup)
 
 find_package(catkin REQUIRED COMPONENTS
+  actionlib_msgs
   geometry_msgs
+  nav_msgs
   roscpp
   rospy
   sensor_msgs
@@ -20,6 +22,7 @@ target_link_libraries(pointcloud_self_filter ${catkin_LIBRARIES})
 catkin_install_python(PROGRAMS
   scripts/autolabor_cmd_test.py
   scripts/autolabor_keyboard_teleop.py
+  scripts/gps_goal_speed_limiter.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

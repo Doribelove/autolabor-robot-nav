@@ -6,6 +6,7 @@ import math
 import os
 import pika
 import sys
+import threading
 import time
 
 import rospy
@@ -22,12 +23,12 @@ VIRTUAL_HOST = "/"
 QUEUE_NAME = "collection_vehicle"
 
 # ====================== ROS 导航目标配置 ======================
-# rabbitmq_gps_goal_bridge.py 只负责把 RabbitMQ JSON 里的 GPS 目标发布出去。
+# rabbitmq_gps_goal_bridge.py 接收 RabbitMQ JSON，保存最新 GPS 目标；
+# 操作员在当前终端输入 1 后，才把保存的目标发布出去。
 # gps_module/gps_goal_node.py 会订阅 /gps/goal_fix，把经纬度转换成局部坐标，
 # 再发布 /move_base_simple/goal 给 move_base。
 GPS_GOAL_FIX_TOPIC = "/gps/goal_fix"
 GPS_FRAME_ID = "gps"
-PUBLISH_INTERVAL_SEC = 0.2
 
 # ====================== Exchange 配置 ======================
 # 如果发送端是直接发到队列：
@@ -145,6 +146,7 @@ def extract_targets(data, allowed_types=None):
             "time": target.get("TIME", ""),
             "type": target_type,
             "data": target.get("DATA", ""),
+            "url": target.get("URL", ""),
         })
 
     return extracted
@@ -160,33 +162,64 @@ class GpsGoalBridge:
             "~gps_frame_id",
             get_env("GPS_FRAME_ID", GPS_FRAME_ID),
         )
-        self.publish_interval = float(rospy.get_param(
-            "~publish_interval",
-            get_env("PUBLISH_INTERVAL_SEC", PUBLISH_INTERVAL_SEC),
-        ))
         self.allowed_types = parse_allowed_types(rospy.get_param(
             "~allowed_types",
             get_env("ALLOWED_TARGET_TYPES", ""),
         ))
         self.wait_for_subscriber = bool(rospy.get_param(
             "~wait_for_subscriber",
-            False,
+            True,
         ))
+        self.latest_target = None
+        self.latest_target_lock = threading.Lock()
 
         self.pub = rospy.Publisher(
             self.goal_fix_topic,
             NavSatFix,
             queue_size=10,
-            latch=True,
+            latch=False,
         )
 
-        print("[*] ROS GPS 目标桥接已启动")
+        print("[*] ROS GPS 目标接收桥接已启动")
         print(f"    goal_fix_topic: {self.goal_fix_topic}")
         print(f"    frame_id: {self.frame_id}")
         if self.allowed_types is None:
             print("    allowed_types: all")
         else:
             print(f"    allowed_types: {sorted(self.allowed_types)}")
+
+    def save_latest_target(self, target):
+        saved_target = dict(target)
+        saved_target["received_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        with self.latest_target_lock:
+            self.latest_target = saved_target
+
+        print("\n[√] 已保存最新 GPS 点（尚未发送给无人车）")
+        print(f"    LAT: {saved_target['lat']:.12f}")
+        print(f"    LON: {saved_target['lon']:.12f}")
+        print(f"    TYPE: {saved_target['type']}")
+        print(f"    TIME: {saved_target['time']}")
+        print(f"    DATA: {saved_target['data']}")
+        if saved_target["url"]:
+            print(f"    URL: {saved_target['url']}")
+        print(f"    接收时间: {saved_target['received_at']}")
+        print("    输入 1 发送该点，输入 2 清空该点")
+
+    def get_latest_target(self):
+        with self.latest_target_lock:
+            if self.latest_target is None:
+                return None
+            return dict(self.latest_target)
+
+    def clear_latest_target(self):
+        with self.latest_target_lock:
+            had_target = self.latest_target is not None
+            self.latest_target = None
+
+        if had_target:
+            print("\n[√] 已清空保存的最新 GPS 点")
+        else:
+            print("\n[!] 当前没有已保存的 GPS 点")
 
     def wait_until_connected(self):
         if not self.wait_for_subscriber:
@@ -213,7 +246,7 @@ class GpsGoalBridge:
 
         self.pub.publish(msg)
         print(
-            "[√] 已发布 GPS 目标到 %s: lat=%.12f lon=%.12f type=%s time=%s data=%s"
+            "[√] 已将保存的 GPS 目标发布到 %s: lat=%.12f lon=%.12f type=%s time=%s data=%s"
             % (
                 self.goal_fix_topic,
                 target["lat"],
@@ -224,6 +257,18 @@ class GpsGoalBridge:
             )
         )
 
+    def publish_latest_target(self):
+        target = self.get_latest_target()
+        if target is None:
+            print("\n[!] 当前没有已保存的 GPS 点，无法发送")
+            return False
+
+        self.wait_until_connected()
+        if rospy.is_shutdown():
+            return False
+        self.publish_target(target)
+        return True
+
     def handle_json_message(self, message):
         data = load_json_message(message)
         cmd = data.get("CMD", "")
@@ -232,18 +277,44 @@ class GpsGoalBridge:
 
         print(f"CMD: {cmd}, DEVICE: {device}, TARGETS 数量: {len(targets)}")
         if not targets:
-            print("[!] 未提取到有效 GPS 目标，消息将 ack 但不会发布导航目标")
+            print("[!] 未提取到有效 GPS 点，消息将 ack，但不会更新已保存的点")
             return 0
 
-        self.wait_until_connected()
-        for target in targets:
-            if rospy.is_shutdown():
-                raise RuntimeError("ROS is shutting down")
-            self.publish_target(target)
-            if self.publish_interval > 0:
-                time.sleep(self.publish_interval)
+        if len(targets) > 1:
+            print(f"[!] 本条消息包含 {len(targets)} 个目标，只保存 TARGETS 中最后一个点")
+        self.save_latest_target(targets[-1])
 
         return len(targets)
+
+
+def start_operator_console(gps_bridge):
+    def console_loop():
+        print("\n========== GPS 目标操作 ==========")
+        print("输入 1：发送当前保存的最新 GPS 点")
+        print("输入 2：清空当前保存的最新 GPS 点")
+        print("按 Ctrl+C：退出桥接程序")
+
+        while not rospy.is_shutdown():
+            try:
+                command = input("GPS操作> ").strip()
+            except EOFError:
+                print("\n[!] 当前终端没有可用的标准输入，交互操作已停止")
+                return
+
+            if command == "1":
+                gps_bridge.publish_latest_target()
+            elif command == "2":
+                gps_bridge.clear_latest_target()
+            elif command:
+                print("[!] 无效输入：请输入 1 或 2")
+
+    console_thread = threading.Thread(
+        target=console_loop,
+        name="gps_goal_operator_console",
+        daemon=True,
+    )
+    console_thread.start()
+    return console_thread
 
 
 def connect_rabbitmq():
@@ -340,10 +411,13 @@ def start_consume(channel, gps_bridge):
         try:
             message = decode_message(body)
             print(f"消息内容: {message}")
-            published_count = gps_bridge.handle_json_message(message)
+            extracted_count = gps_bridge.handle_json_message(message)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            print(f"[√] 消息处理完成，发布 GPS 目标 {published_count} 个，已 ack")
+            if extracted_count > 0:
+                print(f"[√] 消息处理完成，提取 GPS 点 {extracted_count} 个，最新点已保存，未自动发送，已 ack")
+            else:
+                print("[√] 消息处理完成，没有更新 GPS 点，已 ack")
 
         except Exception as e:
             print(f"[×] 消息处理失败: {e}")
@@ -367,6 +441,7 @@ def start_consume(channel, gps_bridge):
     print("[*] 请重点确认：vhost、queue、exchange、routing_key 是否一致")
     print("[*] 按 Ctrl+C 退出\n")
 
+    start_operator_console(gps_bridge)
     channel.start_consuming()
 
 

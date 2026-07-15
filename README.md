@@ -86,6 +86,60 @@ FAST_LIO_GPS_YAW_OFFSET_DEG=10 ./scripts/bringup.sh fast_lio
 ./scripts/bringup.sh gps
 ```
 
+可以用第二个位置参数设置 GPS 定点导航的最大速度，用第三个位置参数选择 TEB 场景：
+
+```bash
+# 场景 1：空旷道路、园区主路、长直道
+./scripts/bringup.sh gps 2.0 cruise
+
+# 场景 2：仓库货架、固定设施、密集静态障碍
+./scripts/bringup.sh gps 1.0 obstacle
+```
+
+不传第二个参数时仍使用默认 `1.5m/s`；不传第三个参数时默认使用 `cruise`。第二个参数覆盖 `GPS_NAV_MAX_VEL_X`，并保证倒车上限不会高于它；默认倒车上限仍是 `1.0m/s`，不会因为前进上限改为 `2.0m/s` 而自动提高。M2 驱动还会按底盘上报的硬件最高速度钳制 `/cmd_vel.linear.x`，因此这里设置的是导航规划器上限，不会绕过底盘硬件限制。
+
+两套场景都是在原始 dingo nomap 参数上叠加的小型覆盖文件：
+
+| 场景 | 目标 | 主要调整 |
+|---|---|---|
+| `cruise` | 快速、稳定、长直道少摆动 | 纵向加速度 `2.5`，角速度上限 `0.8`，角加速度 `0.3`，提高时间/直线路径权重，关闭多拓扑候选切换 |
+| `obstacle` | 提前绕过固定障碍、路径稳定、少倒车 | 将局部滚动窗口扩为 `24×24m`，有效 TEB 前视设为 `10m`，保留 4 个同伦拓扑，将拓扑切换锁定时间提高到 `10s`，提高障碍代价和前进约束 |
+
+配置文件分别是 `config/teb_profiles/gps_cruise.yaml` 和 `config/teb_profiles/gps_obstacle.yaml`。也可以不用第三个参数，改用环境变量选择：
+
+```bash
+GPS_TEB_PROFILE=obstacle ./scripts/bringup.sh gps 1.0
+```
+
+#### 接近目标时平缓减速
+
+GPS 模式默认在 TEB 和底盘之间启用目标减速器：
+
+```text
+move_base/TEB -> /cmd_vel_navigation -> gps_goal_speed_limiter -> /cmd_vel -> m2_driver
+```
+
+它根据当前目标距离施加 `v ≤ sqrt(2 × a × 剩余距离)` 的前进速度上限，默认舒适减速度 `a=0.4m/s²`、到点容差 `0.5m`、最低接近速度 `0.15m/s`。以 `2.0m/s` 行驶时，约在距目标中心 `5.5m` 开始逐步限速；以 `1.5m/s` 行驶时约在 `3.3m` 开始。
+
+这个限制只处理接近目标时仍然过高的正向线速度：
+
+- TEB 为避障给出的更低速度或零速度立即通过。
+- 倒车恢复速度不限制。
+- `/cmd_vel.angular.z` 原样通过，因此绕障转向不受影响。
+- 收到 `/move_base/cancel` 时立即持续输出零速度，直到 `move_base` 接受新目标，因此测试电子围栏的取消停车仍有最高优先级。
+
+需要更柔和、提前更远减速时，减小舒适减速度，例如：
+
+```bash
+GPS_GOAL_COMFORTABLE_DECEL=0.3 ./scripts/bringup.sh gps 2.0 cruise
+```
+
+如需现场对比旧行为，可临时关闭：
+
+```bash
+GPS_GOAL_SLOWDOWN_ENABLED=false ./scripts/bringup.sh gps 2.0 cruise
+```
+
 启动内容：
 
 - CAN 底盘
@@ -132,10 +186,10 @@ GPS_HEADING_SOURCE=gps_course ./scripts/bringup.sh gps
 
 ## RabbitMQ GPS 目标接入
 
-RabbitMQ 脚本只负责把队列里的 GPS 目标发布到 ROS：
+RabbitMQ 脚本负责接收队列消息、缓存并打印最新 GPS 点；只有操作员确认后才发布到 ROS：
 
 ```text
-RabbitMQ 消息 -> scripts/rabbitmq_gps_goal_bridge.py -> /gps/goal_fix -> gps_goal_node.py -> /move_base_simple/goal -> move_base/TEB -> /cmd_vel -> /m2_driver
+RabbitMQ 消息 -> scripts/rabbitmq_gps_goal_bridge.py 缓存并打印最新 GPS 点 -> 操作员输入 1 -> /gps/goal_fix -> gps_goal_node.py -> /move_base_simple/goal -> move_base/TEB -> /cmd_vel_navigation -> 目标减速器 -> /cmd_vel -> /m2_driver
 ```
 
 当前 `scripts/rabbitmq_gps_goal_bridge.py` 的默认配置：
@@ -147,7 +201,32 @@ RabbitMQ 消息 -> scripts/rabbitmq_gps_goal_bridge.py -> /gps/goal_fix -> gps_g
 - queue：`collection_vehicle`
 - ROS 发布话题：`/gps/goal_fix`
 
-消息中需要有 `TARGETS`，每个目标至少包含 `LAT` 和 `LON`。
+消息中需要有 `TARGETS`，每个目标至少包含 `LAT` 和 `LON`。例如当前外部设备发送：
+
+```json
+{
+  "CMD": "1007",
+  "DEVICE": "100",
+  "TARGETS": [
+    {
+      "DATA": "1783068596237_0.jpg",
+      "LAT": 30.674179252383237,
+      "LON": 104.52607620185489,
+      "TIME": "1783068596237.000000",
+      "TYPE": "0",
+      "URL": "http://gips2.baidu.com/it/u=195724436,3554684702&fm=3028&app=3028&f=JPEG&fmt=auto?w=1280&h=960"
+    }
+  ]
+}
+```
+
+桥接收到有效消息后不会自动发送导航目标，而是：
+
+- 提取并保存 `TARGETS` 中最后一个有效点。
+- 在当前桥接终端打印 `LAT`、`LON`、`TYPE`、`TIME`、`DATA`、`URL` 和接收时间。
+- 输入 `1`：把当前保存的点发布到 `/gps/goal_fix`，无人车开始处理该导航目标。
+- 输入 `2`：清空当前保存的点。
+- 新消息会覆盖内存中原来保存的点；退出或重启桥接程序后，内存缓存也会清空。
 
 ### 推荐 RabbitMQ 启动流程
 
@@ -165,6 +244,18 @@ cd /home/robot/robot_ws
 source /opt/ros/noetic/setup.bash
 source /home/robot/robot_ws/devel/setup.bash
 ./scripts/rabbitmq_gps_goal_bridge.py
+```
+
+桥接连接成功后保持该终端在前台。收到消息并核对打印的经纬度无误后，在提示符 `GPS操作>` 后输入：
+
+```text
+1
+```
+
+只有这时目标才会从 `/gps/goal_fix` 进入导航链路。若不需要该点，输入：
+
+```text
+2
 ```
 
 ### GPS 定位模式接 RabbitMQ
@@ -256,8 +347,48 @@ source /home/robot/robot_ws/devel/setup.bash
 - `3`：在当前位置前后左右各 `10m` 范围内随机生成 GPS 目标并发布，用于阻拦车辆测试局部避障。
 - `4`：显示当前围栏。
 - `5`：清除永久围栏文件。
+- `6`：进入基于 `FOD_FINAL_TEST_TASKS.md` 的 FOD 回收装备最终测试菜单（T01～T08）。
 
 电子围栏只由 `scripts/gps_test_tasks.py` 监控：正常只运行 `./scripts/bringup.sh gps` 时不会受这个围栏约束。测试脚本运行时，会拒绝围栏外目标；如果当前 `/gps/odom` 跑到围栏外，会取消 `move_base` 目标并向 `/cmd_vel` 发布零速度。
+
+#### FOD 最终测试子菜单
+
+在 GPS 测试主菜单输入 `6`：
+
+```text
+1: T01 设备与 GPS 检查（默认静止采样 120 秒）
+2: T02 基础回收测试
+3: T03 机坪处置效率测试（中心/左上/右下，共 3 次）
+4: T04 滑行道处置效率测试（近/中/远，共 3 次）
+5: T05 单个固定障碍物测试
+6: T06 多个固定障碍物测试
+7: T07 同一位置重复回收测试（共 3 次）
+8: T08 异常与急停检查表
+9: 显示测试记录和效率汇总
+0: 返回 GPS 测试主菜单
+```
+
+T01 自动检查 `/canbus_msg`、`/gps/fix`、`/gps/odom`、`/gps/heading`、`/scan` 和 `/move_base/status`，并在车辆静止时采集 `/gps/odom`，计算相对首帧的位置 RMS、最大偏移和最大航向变化。清扫装置当前没有 ROS 状态接口，因此由现场人员确认是否已上电待机。
+
+T02～T07 使用外部检测车和 RabbitMQ 桥接：
+
+1. 在 FOD 测试终端选择测试项、完成现场布置，并按回车进入等待。
+2. 检测车发送 FOD 消息。
+3. 在 RabbitMQ 桥接终端确认经纬度后输入 `1`。
+4. 测试脚本收到新的 `/gps/goal_fix` 时自动记录目标和开始时刻。
+5. 车辆到达、清扫完成且确认 FOD 完全回收后，在测试终端按回车结束计时。
+6. 按提示填写自主到达、避障、清扫、碰撞、越界、人工接管和停车结果。
+
+测试记录持久化到：
+
+```text
+/home/robot/robot_ws/test_results/fod_final_test_records.jsonl
+/home/robot/robot_ws/test_results/fod_final_test_records.csv
+```
+
+`test_results/` 是现场运行输出，已加入 `.gitignore`。T03 和 T04 使用大纲公式 `η = S / t_avg` 分别汇总，合格阈值为 `50m²/s`；T07 汇总三次导航成功率、回收成功率和平均时间。
+
+T08 需要在低速且急停人员就位时完成。脚本只记录“通过/失败/跳过”，不会自动制造通信中断或触发实体急停。
 
 `./scripts/bringup.sh gps` 打开的导航 RViz 已预置 `GPS Test Fence` 显示组，订阅 `/gps/test_fence_markers`。启动测试菜单并创建或加载围栏后，绿色线框会直接显示在同一个 RViz 中。
 
@@ -291,7 +422,7 @@ rostopic echo /move_base_simple/goal
 
 - `m2_driver` 把 `/cmd_vel.angular.z` 当角速度处理，再换算成前轮转角。
 - 因此 TEB 必须保持 `cmd_angle_instead_rotvel=False`，不能直接把 `/cmd_vel.angular.z` 当转角发布。
-- 当前 GPS/nomap TEB 按“直线优先但保留避障机动性”调参：`max_vel_theta=1.5`、`acc_lim_theta=0.5`、`min_turning_radius=1.2`、`global_plan_viapoint_sep=0.8`、`weight_shortest_path=4.0`、`weight_viapoint=8.0`，并开启多拓扑路径搜索 `enable_homotopy_class_planning=True`。后方障碍参与距离降到 `costmap_obstacles_behind_robot_dist=0.8`，减少后方突然障碍导致的前后振荡。
+- GPS/nomap 的共用基础配置保留 `min_turning_radius=1.2` 和 `cmd_angle_instead_rotvel=False`；`cruise` 与 `obstacle` 再分别覆盖速度平滑、前视、障碍代价和同伦拓扑参数。
 
 现场确认：
 
@@ -301,13 +432,17 @@ rosparam get /move_base/TebLocalPlannerROS/max_vel_theta
 rosparam get /move_base/TebLocalPlannerROS/acc_lim_theta
 rosparam get /move_base/TebLocalPlannerROS/min_turning_radius
 rosparam get /move_base/TebLocalPlannerROS/global_plan_viapoint_sep
+rosparam get /move_base/TebLocalPlannerROS/max_global_plan_lookahead_dist
+rosparam get /move_base/local_costmap/width
 rosparam get /move_base/TebLocalPlannerROS/weight_shortest_path
 rosparam get /move_base/TebLocalPlannerROS/weight_viapoint
 rosparam get /move_base/TebLocalPlannerROS/enable_homotopy_class_planning
+rosparam get /move_base/TebLocalPlannerROS/max_number_classes
+rosparam get /move_base/TebLocalPlannerROS/switching_blocking_period
 rosparam get /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist
 ```
 
-期望分别是 `False`、`1.5`、`0.5`、`1.2`、`0.8`、`4.0`、`8.0`、`True`、`0.8`。
+`cruise` 的关键期望值依次是 `False`、`0.8`、`0.3`、`1.2`、`1.0`、`8.0`、`20.0`、`8.0`、`12.0`、`False`、`1`、`5.0`、`0.5`；`obstacle` 依次是 `False`、`1.2`、`0.4`、`1.2`、`0.6`、`10.0`、`24.0`、`3.0`、`4.0`、`True`、`4`、`10.0`、`0.8`。
 
 如果仍然出现前后振荡，记录这些信息：
 
@@ -396,7 +531,7 @@ cd /home/robot/robot_ws
 - `camera_init -> base_link` TF 是否可用。
 - `/scan` 是否出现。
 - `/move_base/status` 和 costmap 是否出现。
-- `/cmd_vel` 是否连接：发布者应有 `/move_base`，订阅者应有 `/m2_driver`。
+- GPS 模式检查两段速度链路：`/cmd_vel_navigation` 应从 `/move_base` 到 `/gps_goal_speed_limiter`，`/cmd_vel` 应从减速器到 `/m2_driver`。FAST_LIO 模式仍是 `/move_base -> /cmd_vel -> /m2_driver`。
 
 常用手动检查命令：
 
@@ -405,6 +540,7 @@ rostopic list
 rostopic echo /gps/fix
 rostopic echo /gps/goal_fix
 rostopic echo /move_base_simple/goal
+rostopic info /cmd_vel_navigation
 rostopic info /cmd_vel
 rosrun tf tf_echo camera_init base_link
 rosnode list
@@ -418,7 +554,8 @@ rosnode list
 - 激光投影：`/scan`
 - 导航目标：`/move_base_simple/goal`
 - RabbitMQ GPS 目标中转：`/gps/goal_fix`
-- 控制输出：`/cmd_vel`
+- GPS 导航原始控制：`/cmd_vel_navigation`
+- 底盘最终控制：`/cmd_vel`
 - 导航全局帧：`camera_init`
 - 机器人底盘帧：`base_link`
 
@@ -427,6 +564,8 @@ rosnode list
 ## 常见问题
 
 ### RabbitMQ 收到消息但车不走
+
+新的桥接流程默认只保存目标，不会自动让车移动。先查看桥接终端是否已经打印最新 GPS 点，然后在 `GPS操作>` 后输入 `1`。
 
 先检查是否有 GPS 目标转换节点：
 
@@ -439,6 +578,7 @@ rosnode list | grep gps_goal
 ```bash
 rostopic echo /gps/goal_fix
 rostopic echo /move_base_simple/goal
+rostopic info /cmd_vel_navigation
 rostopic info /cmd_vel
 ```
 
@@ -460,18 +600,19 @@ rosnode list | grep laserMapping
 
 `/scan` 来自 `robot_bringup scan_fast_lio.launch`，由 `pointcloud_self_filter` 和 `pointcloud_to_laserscan` 生成。
 
-### move_base 有目标但 /cmd_vel 没接到底盘
+### move_base 有目标但速度没接到底盘
 
 检查：
 
 ```bash
+rostopic info /cmd_vel_navigation
 rostopic info /cmd_vel
 ```
 
-期望看到：
+GPS 模式期望看到：
 
-- publisher：`/move_base`
-- subscriber：`/m2_driver`
+- `/cmd_vel_navigation`：publisher 为 `/move_base`，subscriber 为 `/gps_goal_speed_limiter`。
+- `/cmd_vel`：publisher 为 `/gps_goal_speed_limiter`，subscriber 为 `/m2_driver`。
 
 ### GPS 模式下车一直往目标前进但不判定到达
 
@@ -487,7 +628,7 @@ rosparam get /move_base/TebLocalPlannerROS/min_vel_x
 rosparam get /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive
 ```
 
-期望值分别是 `/gps/odom`、`0.5`、`6.283`、`1.5`、`1.0`、`0.0`、`20.0`。如果不是，重新使用一键脚本启动：
+默认 `cruise` 的期望值分别是 `/gps/odom`、`0.5`、`6.283`、`1.5`、`1.0`、`0.0`、`100.0`。如果以 `obstacle` 启动，最后一个值应为 `60.0`；如果传入了速度参数，`max_vel_x` 应等于该参数。如果不是，重新使用一键脚本启动：
 
 ```bash
 ./scripts/bringup.sh gps

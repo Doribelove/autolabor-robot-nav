@@ -1,0 +1,28 @@
+TebLocalPlannerROS:
+  # Open roads and long straight segments: look farther ahead and favor a
+  # smooth, time-efficient path that stays close to the global plan.
+  # The 20 x 20 m local costmap clips usable plan distance to about 8.5 m.
+  max_global_plan_lookahead_dist: 8.0
+  global_plan_viapoint_sep: 1.0
+
+  # The forward speed limit is supplied by bringup.sh. Raise longitudinal
+  # acceleration while limiting angular speed/acceleration fluctuations.
+  max_vel_theta: 0.8
+  min_vel_theta: -0.8
+  acc_lim_x: 2.5
+  acc_lim_theta: 0.3
+
+  weight_max_vel_x: 5.0
+  weight_max_vel_theta: 30.0
+  weight_acc_lim_x: 20.0
+  weight_acc_lim_theta: 200.0
+  weight_kinematics_turning_radius: 1000.0
+  weight_optimaltime: 6.0
+  weight_shortest_path: 8.0
+  weight_viapoint: 12.0
+
+  # On an open route a single topology avoids unnecessary candidate changes.
+  enable_homotopy_class_planning: false
+  max_number_classes: 1
+  costmap_obstacles_behind_robot_dist: 0.5
+  obstacle_poses_affected: 15
