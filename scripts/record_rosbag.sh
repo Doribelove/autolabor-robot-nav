@@ -19,7 +19,16 @@ MODE1_TOPICS=(
   /rosout
   /rosout_agg
   /canbus_msg
+  /m2_driver/chassis_info
+  /m2_driver/chassis_monitor
+  /m2_driver/control_timeout
+  /m2_driver/left_wheel_vel
+  /m2_driver/right_wheel_vel
+  /m2_driver/wheel_angle
+  /m2_driver/emergency_stop
+  /m2_driver/brake_set
   /odom
+  /cmd_vel_navigation
   /cmd_vel
   /livox/lidar
   /livox/imu
@@ -38,6 +47,8 @@ MODE1_TOPICS=(
   /gps/static_error/summary
   /gps/goal_fix
   /move_base_simple/goal
+  /move_base/goal
+  /move_base/cancel
   /move_base/status
   /move_base/feedback
   /move_base/result

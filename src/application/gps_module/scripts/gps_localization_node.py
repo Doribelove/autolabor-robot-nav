@@ -154,6 +154,65 @@ def normalize_angle(angle):
     return math.atan2(math.sin(angle), math.cos(angle))
 
 
+STRICT_DUAL_ANTENNA_HEADING_SOURCES = frozenset(
+    ("dual_antenna", "uniheading", "heading")
+)
+FALLBACK_HEADING_SOURCES = frozenset(("auto", "gps_course"))
+SUPPORTED_HEADING_SOURCES = (
+    STRICT_DUAL_ANTENNA_HEADING_SOURCES | FALLBACK_HEADING_SOURCES
+)
+
+
+def validate_heading_source(source):
+    """Normalize and validate the configured navigation heading policy."""
+    normalized = str(source).strip().lower()
+    if normalized not in SUPPORTED_HEADING_SOURCES:
+        raise ValueError(
+            "heading_source must be one of {} (got {!r})".format(
+                ", ".join(sorted(SUPPORTED_HEADING_SOURCES)),
+                source,
+            )
+        )
+    return normalized
+
+
+def heading_solution_is_usable(heading, required_status, required_types):
+    """Return whether a parsed dual-antenna solution passes quality checks."""
+    if heading is None:
+        return False
+    if required_status and heading.get("solution_status") != required_status:
+        return False
+    if required_types and heading.get("position_type") not in required_types:
+        return False
+    heading_deg = heading.get("heading_deg")
+    return heading_deg is not None and math.isfinite(heading_deg)
+
+
+def evaluate_dual_antenna_heading(
+    heading,
+    now_sec,
+    sample_sec,
+    timeout,
+    required_status,
+    required_types,
+):
+    """Return ``(yaw, state)`` for a cached dual-antenna measurement."""
+    if heading is None or sample_sec is None:
+        return None, "missing"
+    if not heading_solution_is_usable(heading, required_status, required_types):
+        return None, "invalid"
+    if not motion_sample_is_fresh(now_sec, sample_sec, timeout):
+        return None, "stale"
+    return yaw_from_heading_deg(heading["heading_deg"]), "ok"
+
+
+def navigation_heading_is_ready(heading_source, dual_antenna_yaw):
+    """Strict dual-antenna modes require a usable yaw before publishing."""
+    if heading_source not in STRICT_DUAL_ANTENNA_HEADING_SOURCES:
+        return True
+    return dual_antenna_yaw is not None and math.isfinite(dual_antenna_yaw)
+
+
 def motion_sample_is_fresh(now_sec, sample_sec, timeout):
     """Return whether a cached sensor sample is still safe to reuse."""
     if sample_sec is None:
@@ -196,10 +255,9 @@ def signed_speed_from_course(
 ):
     """Convert unsigned GNSS ground speed into body-frame longitudinal speed.
 
-    NMEA RMC speed-over-ground has no forward/reverse sign.  The sign is
-    recovered by comparing its course-over-ground with the independently
-    measured vehicle heading.  Ambiguous near-sideways courses are rejected
-    instead of silently reporting a wrong direction.
+    NMEA RMC speed-over-ground has no forward/reverse sign. The sign is
+    recovered by comparing course-over-ground with independently measured
+    vehicle heading. Ambiguous near-sideways courses are rejected.
     """
     if speed_mps is None or course_yaw is None or vehicle_yaw is None:
         return None
@@ -242,7 +300,7 @@ def longitudinal_speed_from_positions(
     min_dt=0.05,
     max_abs_speed=0.0,
 ):
-    """Estimate body-forward speed from positions without amplifying tiny dt."""
+    """Estimate signed body-forward speed from GNSS positions."""
     values = (previous_x, previous_y, current_x, current_y, vehicle_yaw, dt)
     if any(value is None or not math.isfinite(value) for value in values):
         return None
@@ -255,6 +313,17 @@ def longitudinal_speed_from_positions(
     if max_abs_speed > 0.0 and abs(speed) > max_abs_speed:
         return None
     return speed
+
+
+def position_filter_motion_speed(wheel_twist, rmc_speed_mps):
+    """Prefer measured wheel speed when deciding whether GPS is stationary."""
+    if wheel_twist is not None:
+        wheel_speed = wheel_twist[0]
+        if math.isfinite(wheel_speed):
+            return abs(wheel_speed)
+    if rmc_speed_mps is not None and math.isfinite(rmc_speed_mps):
+        return abs(rmc_speed_mps)
+    return None
 
 
 def yaw_from_quaternion(q):
@@ -289,8 +358,15 @@ class GpsLocalizationNode:
         self.publish_rate = float(rospy.get_param("~publish_rate", 10.0))
         self.serial_timeout = float(rospy.get_param("~serial_timeout", 0.2))
         self.broadcast_tf = bool(rospy.get_param("~broadcast_tf", True))
-        self.heading_source = rospy.get_param("~heading_source", "dual_antenna")
-        self.heading_timeout = float(rospy.get_param("~heading_timeout", 1.0))
+        self.heading_source = validate_heading_source(
+            rospy.get_param("~heading_source", "dual_antenna")
+        )
+        self.heading_timeout = validate_float_parameter(
+            "~heading_timeout",
+            rospy.get_param("~heading_timeout", 1.0),
+            minimum=0.0,
+            minimum_inclusive=False,
+        )
         self.heading_required_solution_status = rospy.get_param(
             "~heading_required_solution_status",
             "SOL_COMPUTED",
@@ -446,27 +522,19 @@ class GpsLocalizationNode:
 
     def wheel_odom_cb(self, msg):
         self.latest_wheel_odom = msg
-        # Prefer the chassis measurement timestamp over callback receipt time.
-        # The driver publishes odometry on a timer, so receipt time alone can
-        # make an old velocity sample appear perpetually fresh.
+        # Use the chassis measurement timestamp for freshness. A timer-driven
+        # publisher can otherwise make old velocity data look perpetually new.
         if msg.header.stamp.to_sec() > 0.0:
             self.latest_wheel_odom_stamp = msg.header.stamp
         else:
             self.latest_wheel_odom_stamp = rospy.Time.now()
 
     def heading_is_usable(self, heading):
-        if heading is None:
-            return False
-
-        required_status = self.heading_required_solution_status
-        if required_status and heading["solution_status"] != required_status:
-            return False
-
-        required_types = self.heading_required_position_types
-        if required_types and heading["position_type"] not in required_types:
-            return False
-
-        return True
+        return heading_solution_is_usable(
+            heading,
+            self.heading_required_solution_status,
+            self.heading_required_position_types,
+        )
 
     def handle_heading(self, heading, stamp):
         if not self.heading_is_usable(heading):
@@ -519,17 +587,32 @@ class GpsLocalizationNode:
         )
 
     def latest_heading_yaw(self, stamp):
-        if self.latest_heading is None or self.latest_heading_stamp is None:
-            return None
-        age = (stamp - self.latest_heading_stamp).to_sec()
-        if age < 0.0 or (self.heading_timeout > 0.0 and age > self.heading_timeout):
-            rospy.logwarn_throttle(
-                2.0,
-                "Dual-antenna heading is stale: age=%.3f sec",
-                age,
-            )
-            return None
-        return yaw_from_heading_deg(self.latest_heading["heading_deg"])
+        sample_sec = (
+            self.latest_heading_stamp.to_sec()
+            if self.latest_heading_stamp is not None
+            else None
+        )
+        yaw, state = evaluate_dual_antenna_heading(
+            self.latest_heading,
+            stamp.to_sec(),
+            sample_sec,
+            self.heading_timeout,
+            self.heading_required_solution_status,
+            self.heading_required_position_types,
+        )
+        if self.heading_source in STRICT_DUAL_ANTENNA_HEADING_SOURCES:
+            if state == "missing":
+                rospy.logwarn_throttle(2.0, "Waiting for a valid dual-antenna heading")
+            elif state == "invalid":
+                rospy.logwarn_throttle(2.0, "Cached dual-antenna heading is invalid")
+            elif state == "stale":
+                age = stamp.to_sec() - sample_sec
+                rospy.logwarn_throttle(
+                    2.0,
+                    "Dual-antenna heading is stale: age=%.3f sec",
+                    age,
+                )
+        return yaw
 
     def latest_heading_rate(self, stamp):
         if self.filtered_heading_rate is None or self.filtered_heading_rate_stamp is None:
@@ -540,9 +623,8 @@ class GpsLocalizationNode:
         return self.filtered_heading_rate
 
     def latest_wheel_twist(self, stamp):
-        # use_wheel_odom historically implied that wheel odometry also owns
-        # the reported velocity.  Keep that behavior while allowing twist to
-        # be enabled independently of wheel-pose integration.
+        # Wheel pose integration remains separately controlled by
+        # use_wheel_odom; this path reads only the measured twist.
         if not (self.use_wheel_twist or self.use_wheel_odom):
             return None
         if self.latest_wheel_odom is None or self.latest_wheel_odom_stamp is None:
@@ -668,7 +750,10 @@ class GpsLocalizationNode:
             )
             return self.filtered_x, self.filtered_y
 
-        is_stationary = speed_mps is not None and speed_mps < self.stationary_speed_threshold
+        is_stationary = (
+            speed_mps is not None
+            and abs(speed_mps) < self.stationary_speed_threshold
+        )
         if is_stationary and distance <= self.stationary_hold_radius:
             return self.filtered_x, self.filtered_y
 
@@ -708,7 +793,6 @@ class GpsLocalizationNode:
             dx = x - self.last_x
             dy = y - self.last_y
             distance = math.hypot(dx, dy)
-            dt = (stamp - self.last_stamp).to_sec() if self.last_stamp is not None else 0.0
             if (
                 self.heading_source in ("gps_course", "auto")
                 and distance >= self.min_course_distance
@@ -835,6 +919,10 @@ class GpsLocalizationNode:
             else:
                 self.last_altitude = altitude
 
+            # /gps/fix remains available for diagnostics and goal conversion
+            # even while strict heading policy suppresses navigation pose.
+            self.publish_fix(stamp, lat, lon, altitude, fix_quality)
+
             if self.origin_lat is None or self.origin_lon is None:
                 self.origin_lat = lat
                 self.origin_lon = lon
@@ -848,9 +936,28 @@ class GpsLocalizationNode:
                 )
 
             raw_x, raw_y = gps_to_xy(lat, lon, self.origin_lat, self.origin_lon)
-            gps_x, gps_y = self.filter_position(raw_x, raw_y, speed_mps)
+            wheel_twist = self.latest_wheel_twist(stamp)
+            filter_speed_mps = position_filter_motion_speed(wheel_twist, speed_mps)
+            gps_x, gps_y = self.filter_position(raw_x, raw_y, filter_speed_mps)
+
+            dual_antenna_yaw = self.latest_heading_yaw(stamp)
+            if not navigation_heading_is_ready(
+                self.heading_source,
+                dual_antenna_yaw,
+            ):
+                rospy.logwarn_throttle(
+                    2.0,
+                    "Suppressing GPS navigation pose/odom/TF until a fresh, valid dual-antenna heading is available",
+                )
+                rate.sleep()
+                continue
+
             gps_yaw, gps_linear_speed, gps_angular_speed = self.update_motion(
-                stamp, gps_x, gps_y, course_deg, speed_mps
+                stamp,
+                gps_x,
+                gps_y,
+                course_deg,
+                speed_mps,
             )
             base_x, base_y = self.antenna_to_base_position(gps_x, gps_y, gps_yaw)
             local_pose = self.update_local_pose_from_wheel_odom(base_x, base_y, gps_yaw, speed_mps)
@@ -859,7 +966,6 @@ class GpsLocalizationNode:
             else:
                 x, y, yaw = local_pose
                 linear_speed = gps_linear_speed
-            self.publish_fix(stamp, lat, lon, altitude, fix_quality)
             self.publish_pose_and_tf(
                 stamp,
                 x,

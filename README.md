@@ -96,14 +96,14 @@ FAST_LIO_GPS_YAW_OFFSET_DEG=10 ./scripts/bringup.sh fast_lio
 ./scripts/bringup.sh gps 1.0 obstacle
 ```
 
-不传第二个参数时仍使用默认 `1.5m/s`；不传第三个参数时默认使用 `cruise`。第二个参数覆盖 `GPS_NAV_MAX_VEL_X`，并保证倒车上限不会高于它；默认倒车上限仍是 `1.0m/s`，不会因为前进上限改为 `2.0m/s` 而自动提高。M2 驱动还会按底盘上报的硬件最高速度钳制 `/cmd_vel.linear.x`，因此这里设置的是导航规划器上限，不会绕过底盘硬件限制。
+不传第二个参数时仍使用默认 `1.5m/s`；不传第三个参数时默认使用 `cruise`。第二个参数覆盖 `GPS_NAV_MAX_VEL_X`，并保证倒车上限不会高于它；默认倒车上限仍是 `1.0m/s`，不会因为前进上限改为 `2.0m/s` 而自动提高。CAN 底盘启动后，`bringup.sh` 会读取 `/m2_driver/chassis_parameter`，把 TEB 的前进和倒车规划上限同时收紧到车辆上报的 `max_speed`；M2 驱动仍保留最终硬件钳制。这样规划轨迹和底盘真实能力使用同一速度上限。
 
 两套场景都是在原始 dingo nomap 参数上叠加的小型覆盖文件：
 
 | 场景 | 目标 | 主要调整 |
 |---|---|---|
-| `cruise` | 快速、稳定、长直道少摆动 | 纵向加速度 `2.5`，角速度上限 `0.8`，角加速度 `0.3`，提高时间/直线路径权重，关闭多拓扑候选切换 |
-| `obstacle` | 提前绕过固定障碍、路径稳定、少倒车 | 将局部滚动窗口扩为 `24×24m`，有效 TEB 前视设为 `10m`，保留 4 个同伦拓扑，将拓扑切换锁定时间提高到 `10s`，提高障碍代价和前进约束 |
+| `cruise` | 快速、稳定、长直道少摆动 | 纵向加速度 `2.5`，角速度上限 `1.3`，角加速度 `0.8`，规划最小半径 `1.35m`，关闭多拓扑候选切换 |
+| `obstacle` | 提前绕过固定障碍、路径稳定、少倒车 | 将局部滚动窗口扩为 `24×24m`，有效 TEB 前视设为 `10m`，规划最小半径 `1.35m`，保留 4 个同伦拓扑并提高障碍代价和前进约束 |
 
 配置文件分别是 `config/teb_profiles/gps_cruise.yaml` 和 `config/teb_profiles/gps_obstacle.yaml`。也可以不用第三个参数，改用环境变量选择：
 
@@ -119,14 +119,15 @@ GPS 模式默认在 TEB 和底盘之间启用目标减速器：
 move_base/TEB -> /cmd_vel_navigation -> gps_goal_speed_limiter -> /cmd_vel -> m2_driver
 ```
 
-它根据当前目标距离施加 `v ≤ sqrt(2 × a × 剩余距离)` 的前进速度上限，默认舒适减速度 `a=0.4m/s²`、到点容差 `0.5m`、最低接近速度 `0.15m/s`。以 `2.0m/s` 行驶时，约在距目标中心 `5.5m` 开始逐步限速；以 `1.5m/s` 行驶时约在 `3.3m` 开始。
+它根据当前目标距离施加 `v ≤ sqrt(2 × a × 剩余距离)` 的前进速度上限，默认舒适减速度 `a=0.4m/s²`、TEB 到点容差 `0.3m`、减速器硬停半径 `0.2m`、最低接近速度 `0.15m/s`。硬停半径必须严格位于规划器成功半径内，避免减速器先停车、TEB 却因严格距离判断一直保持 `ACTIVE`。以 `2.0m/s` 行驶时，约在距目标中心 `5.2m` 开始逐步限速；以 `1.5m/s` 行驶时约在 `3.0m` 开始。
 
 这个限制只处理接近目标时仍然过高的正向线速度：
 
 - TEB 为避障给出的更低速度或零速度立即通过。
 - 倒车恢复速度不限制。
-- `/cmd_vel.angular.z` 原样通过，因此绕障转向不受影响。
-- 收到 `/move_base/cancel` 时立即持续输出零速度，直到 `move_base` 接受新目标，因此测试电子围栏的取消停车仍有最高优先级。
+- 如果正向线速度被降低，`/cmd_vel.angular.z` 会按同一比例降低，保持阿克曼曲率，不会因为限速反而要求更大的前轮转角。
+- 收到匹配当前 GoalID 的 `/move_base/cancel` 或终止状态时立即锁存完整零速度；只有新的带身份 `/move_base/goal` 才能解除，延迟的旧取消或 `/move_base/current_goal` 不能误停、误解锁。
+- 当前目标期间 GPS odom 缺失、超时、坐标非有限或坐标系不一致时失效停车，不透传旧速度。
 
 需要更柔和、提前更远减速时，减小舒适减速度，例如：
 
@@ -140,6 +141,19 @@ GPS_GOAL_COMFORTABLE_DECEL=0.3 ./scripts/bringup.sh gps 2.0 cruise
 GPS_GOAL_SLOWDOWN_ENABLED=false ./scripts/bringup.sh gps 2.0 cruise
 ```
 
+#### 现场导航录包
+
+下一轮 GPS 实车测试建议在另一个终端启动标准录包：
+
+```bash
+cd /home/robot/robot_ws
+BAG_DIR=/tmp BAG_PREFIX=gps_validation ./scripts/record_rosbag.sh mode1
+```
+
+`mode1` 同时记录 `/cmd_vel_navigation`、`/cmd_vel`、GPS/底盘 odom、原始
+`/canbus_msg`、`/m2_driver/chassis_monitor`、`/m2_driver/control_timeout`、
+左右轮速、前轮转角、目标和 TEB 计划，能够区分导航主动停车与底盘保护。
+
 启动内容：
 
 - CAN 底盘
@@ -151,9 +165,9 @@ GPS_GOAL_SLOWDOWN_ENABLED=false ./scripts/bringup.sh gps 2.0 cruise
 - GPS 发布 `camera_init -> base_link`
 - Arena nomap 导航
 
-这个模式下位置来自主 GNSS 的 GGA 经纬度，车头 yaw 来自双天线 `UNIHEADINGA` 航向，FAST_LIO 只提供点云给 `/scan`。双天线航向静止时也可用，比单天线依赖运动轨迹推航向更适合室外 GPS 导航。默认不再使用底盘 `/odom`
-融合 GPS 位置，避免底盘里程计坐标系和 GPS ENU 坐标系未对齐时把 `/gps/odom`
-带偏。如果现场需要临时启用轮速辅助，可以设置：
+这个模式下位置来自主 GNSS 的 GGA 经纬度，车头 yaw 来自双天线 `UNIHEADINGA` 航向，FAST_LIO 只提供点云给 `/scan`。双天线航向静止时也可用，比单天线依赖运动轨迹推航向更适合室外 GPS 导航。默认不使用底盘 `/odom` 积分位姿，避免底盘里程计坐标系和 GPS ENU 坐标系未对齐时把 `/gps/odom` 带偏；但会使用 `/odom.twist` 中新鲜的有符号线速度和角速度，让 TEB 能看到车辆真实运动。底盘 twist 超过 `0.5s` 未更新时会回退到 GNSS 运动估计。
+
+如果现场确实需要临时启用轮式里程计的位姿积分，可以设置：
 
 ```bash
 GPS_USE_WHEEL_ODOM=true ./scripts/bringup.sh gps
@@ -163,6 +177,11 @@ GPS 模式默认要求双天线航向解算质量为：
 
 - `solution_status=SOL_COMPUTED`
 - `position_type=NARROW_INT`
+
+在默认严格双天线模式下，启动时只有收到新鲜且满足上述质量的航向后才会发布
+`/gps/pose`、`/gps/odom` 和导航 TF；运行中航向超过 `1.0s` 未更新或质量降级时，
+这些导航输出会暂停，目标减速器随后因 odom 超时输出完整零速度。`/gps/fix` 会继续
+发布，便于诊断，但不会拿陈旧航向继续导航。
 
 主 GNSS 天线安装在底盘中心后方 0.3m，默认参数为：
 
@@ -324,7 +343,7 @@ rosparam get /gps_localization/gps_antenna_offset_y
 
 ### GPS 电子围栏和避障测试任务
 
-先启动 GPS 导航：
+先启动 GPS 导航，并等待终端显示 `Robot bringup is running in gps mode.`：
 
 ```bash
 cd /home/robot/robot_ws
@@ -340,6 +359,8 @@ source /home/robot/robot_ws/devel/setup.bash
 ./scripts/gps_test_tasks.py
 ```
 
+测试脚本会绑定启动时的 ROS master。每次重启 `bringup.sh` 或 `roscore` 后，旧测试脚本都必须退出并重新启动；否则它不会自动注册到新的 ROS master。发布目标前，脚本会检查 `/gps/goal_fix -> /gps_goal -> /move_base_simple/goal -> /move_base`，并且只有实际观察到转换后的 `/move_base_simple/goal` 才打印“联动成功”。链路不完整时会拒绝发布并指出缺失节点，避免界面显示成功而无人车没有收到任务。
+
 输入数字执行对应任务：
 
 - `1`：读取当前 `/gps/odom` 位置和双天线航向，发布车头正前方 `8m` 的 GPS 目标到 `/gps/goal_fix`。
@@ -349,7 +370,7 @@ source /home/robot/robot_ws/devel/setup.bash
 - `5`：清除永久围栏文件。
 - `6`：进入基于 `FOD_FINAL_TEST_TASKS.md` 的 FOD 回收装备最终测试菜单（T01～T08）。
 
-电子围栏只由 `scripts/gps_test_tasks.py` 监控：正常只运行 `./scripts/bringup.sh gps` 时不会受这个围栏约束。测试脚本运行时，会拒绝围栏外目标；如果当前 `/gps/odom` 跑到围栏外，会取消 `move_base` 目标并向 `/cmd_vel` 发布零速度。
+电子围栏只由 `scripts/gps_test_tasks.py` 监控：正常只运行 `./scripts/bringup.sh gps` 时不会受这个围栏约束。测试脚本运行时，会拒绝围栏外目标；如果当前 `/gps/odom` 跑到围栏外，会取消 `move_base` 目标，由目标减速器锁存零速度。测试脚本不再直接发布 `/cmd_vel`，保证正式控制链始终只有一个速度发布者。
 
 #### FOD 最终测试子菜单
 
@@ -421,8 +442,12 @@ rostopic echo /move_base_simple/goal
 无障碍但车辆绕弯时，优先检查 TEB 和 M2 驱动的 `/cmd_vel` 语义：
 
 - `m2_driver` 把 `/cmd_vel.angular.z` 当角速度处理，再换算成前轮转角。
+- 倒车时换算必须保留 `/cmd_vel.linear.x` 的负号；同一个车体角速度下，
+  前进和倒车所需的前轮转角符号相反。
 - 因此 TEB 必须保持 `cmd_angle_instead_rotvel=False`，不能直接把 `/cmd_vel.angular.z` 当转角发布。
-- GPS/nomap 的共用基础配置保留 `min_turning_radius=1.2` 和 `cmd_angle_instead_rotvel=False`；`cruise` 与 `obstacle` 再分别覆盖速度平滑、前视、障碍代价和同伦拓扑参数。
+- GPS/nomap 的共用基础配置保留 `cmd_angle_instead_rotvel=False`；`cruise` 与 `obstacle` 都把 `min_turning_radius` 覆盖为 `1.35m` 并启用 `use_proportional_saturation=True`，给约 `1.22m` 的理论硬件极限留出转向余量。
+- 当前 TEB fork 已让阿克曼 carlike 分支应用
+  `weight_kinematics_forward_drive`。这个参数是前进软偏好，不是绝对禁止倒车。
 
 现场确认：
 
@@ -431,6 +456,7 @@ rosparam get /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel
 rosparam get /move_base/TebLocalPlannerROS/max_vel_theta
 rosparam get /move_base/TebLocalPlannerROS/acc_lim_theta
 rosparam get /move_base/TebLocalPlannerROS/min_turning_radius
+rosparam get /move_base/TebLocalPlannerROS/use_proportional_saturation
 rosparam get /move_base/TebLocalPlannerROS/global_plan_viapoint_sep
 rosparam get /move_base/TebLocalPlannerROS/max_global_plan_lookahead_dist
 rosparam get /move_base/local_costmap/width
@@ -442,7 +468,7 @@ rosparam get /move_base/TebLocalPlannerROS/switching_blocking_period
 rosparam get /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist
 ```
 
-`cruise` 的关键期望值依次是 `False`、`0.8`、`0.3`、`1.2`、`1.0`、`8.0`、`20.0`、`8.0`、`12.0`、`False`、`1`、`5.0`、`0.5`；`obstacle` 依次是 `False`、`1.2`、`0.4`、`1.2`、`0.6`、`10.0`、`24.0`、`3.0`、`4.0`、`True`、`4`、`10.0`、`0.8`。
+`cruise` 的前五个关键期望值是 `False`、`1.3`、`0.8`、`1.35`、`True`；`obstacle` 对应为 `False`、`1.2`、`0.4`、`1.35`、`True`。两者必须保持同比饱和，否则线速度单独被限幅时会把轨迹曲率放大到近满舵。
 
 如果仍然出现前后振荡，记录这些信息：
 
@@ -556,6 +582,8 @@ rosnode list
 - RabbitMQ GPS 目标中转：`/gps/goal_fix`
 - GPS 导航原始控制：`/cmd_vel_navigation`
 - 底盘最终控制：`/cmd_vel`
+- 底盘控制器保护：`/m2_driver/chassis_monitor`（`*_stuck` 兼容字段实际表示协议 bit 2 电流超限）
+- 底盘控制超时：`/m2_driver/control_timeout`
 - 导航全局帧：`camera_init`
 - 机器人底盘帧：`base_link`
 
@@ -628,7 +656,7 @@ rosparam get /move_base/TebLocalPlannerROS/min_vel_x
 rosparam get /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive
 ```
 
-默认 `cruise` 的期望值分别是 `/gps/odom`、`0.5`、`6.283`、`1.5`、`1.0`、`0.0`、`100.0`。如果以 `obstacle` 启动，最后一个值应为 `60.0`；如果传入了速度参数，`max_vel_x` 应等于该参数。如果不是，重新使用一键脚本启动：
+默认 `cruise` 的期望值分别是 `/gps/odom`、`0.3`、`6.283`、`1.5`、`1.0`、`0.0`、`100.0`。如果以 `obstacle` 启动，最后一个值应为 `60.0`；如果传入了速度参数，`max_vel_x` 应等于该参数或底盘上报的更低 `max_speed`。如果不是，重新使用一键脚本启动：
 
 ```bash
 ./scripts/bringup.sh gps

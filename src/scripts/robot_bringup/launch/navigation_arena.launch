@@ -14,27 +14,11 @@
   <arg name="penalty_epsilon" default="$(eval 0.03 if arg('localization_source') == 'gps' else 0.1)"/>
   <arg name="weight_kinematics_forward_drive" default="$(eval 20.0 if arg('localization_source') == 'gps' else 500.0)"/>
   <arg name="teb_profile_file" default=""/>
-  <!-- GPS goals routinely exceed the legacy 20 m rolling-map radius. -->
-  <arg name="global_costmap_size" default="$(eval 200.0 if arg('localization_source') == 'gps' else 40.0)"/>
-  <arg name="global_costmap_resolution" default="$(eval 0.25 if arg('localization_source') == 'gps' else 0.1)"/>
   <arg name="goal_slowdown_decel" default="0.4"/>
   <arg name="goal_slowdown_min_speed" default="0.15"/>
   <arg name="goal_slowdown_hard_stop_distance" default="0.2"/>
   <arg name="goal_slowdown_cmd_timeout" default="0.5"/>
   <arg name="goal_slowdown_odom_timeout" default="1.0"/>
-
-  <!--
-    The M2 cannot rotate in place. Replace move_base's default rotate
-    recoveries with bounded, footprint-checked Ackermann arcs. Parameters are
-    loaded in move_base's private namespace before the node starts.
-  -->
-  <rosparam file="$(find robot_bringup)/config/ackermann_recovery.yaml"
-            command="load"
-            ns="/move_base"/>
-  <param name="/move_base/ackermann_reverse_arc/cmd_vel_topic"
-         value="$(arg cmd_vel_topic)"/>
-  <param name="/move_base/ackermann_forward_arc/cmd_vel_topic"
-         value="$(arg cmd_vel_topic)"/>
 
   <include file="$(find arena_bringup)/launch/real_nav_nomap.launch">
     <arg name="localization_source" value="$(arg localization_source)"/>
@@ -51,8 +35,6 @@
     <arg name="penalty_epsilon" value="$(arg penalty_epsilon)"/>
     <arg name="weight_kinematics_forward_drive" value="$(arg weight_kinematics_forward_drive)"/>
     <arg name="teb_profile_file" value="$(arg teb_profile_file)"/>
-    <arg name="global_costmap_size" value="$(arg global_costmap_size)"/>
-    <arg name="global_costmap_resolution" value="$(arg global_costmap_resolution)"/>
   </include>
 
   <node if="$(arg goal_slowdown_enabled)"

@@ -1,7 +1,10 @@
 #ifndef AUTOLABOR_CANBUS_DRIVER_M2_DRIVER_H
 #define AUTOLABOR_CANBUS_DRIVER_M2_DRIVER_H
 
+#include <algorithm>
 #include <climits>
+#include <cmath>
+#include <limits>
 #include <queue>
 #include <std_msgs/Float64.h>
 #include <std_msgs/Bool.h>
@@ -20,6 +23,7 @@
 #include "autolabor_canbus_driver/ChassisMonitorInfo.h"
 #include "autolabor_canbus_driver/ChassisParameter.h"
 #include "autolabor_canbus_driver/ChassisParameterServer.h"
+#include "autolabor_canbus_driver/m2_twist_steering.h"
 
 namespace autolabor_driver {
 
@@ -71,14 +75,14 @@ namespace autolabor_driver {
         float cur_odom_x_ = 0,cur_odom_y_ = 0,cur_odom_yaw_ = 0;
         float cur_vel_ = 0,cur_left_vel_ = 0,cur_right_vel_ = 0,cur_steer_ = 0;
         ros::Time cur_vel_time_, cur_left_time_, cur_right_time_, cur_steer_time_;
-        int poller_rate_hz_ = 1;
-        int pub_odom_hz_ = 10;
-        bool is_odom_child_baselink_ = false;
-        bool is_pub_control_timeout_ = false;
+        int poller_rate_hz_;
+        int pub_odom_hz_;
+        bool is_odom_child_baselink_;
+        bool is_pub_control_timeout_;
         // 里程计计算
-        double sync_timeout_ = 1.0;
+        double sync_timeout_;
         // tf变换
-        bool publish_tf_ = false;
+        bool publish_tf_;
         tf2_ros::TransformBroadcaster tf_broadcast_;
         // 坐标系
         std::string odom_frame_, base_frame_;
@@ -119,13 +123,14 @@ namespace autolabor_driver {
             return params;
         }
 
-        // 检查是否所有参数都已设置（不是无限大）
+        // 所有参数必须为有限值；控制相关的速度、转角和轴距还必须为正值。
         static bool areSet(const autolabor_canbus_driver::ChassisParameter& params) {
-            return !std::isinf(params.max_speed) &&
-                   !std::isinf(params.max_steer) &&
-                   !std::isinf(params.robot_width) &&
-                   !std::isinf(params.robot_length) &&
-                   !std::isinf(params.wheel_radius);
+            return m2_chassis_parameters_are_valid(
+                params.max_speed,
+                params.max_steer,
+                params.robot_width,
+                params.robot_length,
+                params.wheel_radius);
         }
     };
 }

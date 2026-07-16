@@ -27,6 +27,73 @@ class MotionSampleFreshnessTest(unittest.TestCase):
         self.assertFalse(GPS_LOCALIZATION.motion_sample_is_fresh(10.0, None, 1.0))
 
 
+class HeadingPolicyTest(unittest.TestCase):
+    @staticmethod
+    def valid_heading():
+        return {
+            "solution_status": "SOL_COMPUTED",
+            "position_type": "NARROW_INT",
+            "heading_deg": 90.0,
+        }
+
+    def evaluate(self, heading, now_sec=10.0, sample_sec=9.8):
+        return GPS_LOCALIZATION.evaluate_dual_antenna_heading(
+            heading,
+            now_sec,
+            sample_sec,
+            0.5,
+            "SOL_COMPUTED",
+            {"NARROW_INT"},
+        )
+
+    def test_strict_sources_block_missing_heading(self):
+        yaw, state = self.evaluate(None, sample_sec=None)
+
+        self.assertIsNone(yaw)
+        self.assertEqual(state, "missing")
+        for source in ("dual_antenna", "uniheading", "heading"):
+            self.assertFalse(
+                GPS_LOCALIZATION.navigation_heading_is_ready(source, yaw)
+            )
+
+    def test_stale_heading_is_rejected(self):
+        yaw, state = self.evaluate(self.valid_heading(), sample_sec=9.0)
+
+        self.assertIsNone(yaw)
+        self.assertEqual(state, "stale")
+        self.assertFalse(
+            GPS_LOCALIZATION.navigation_heading_is_ready("dual_antenna", yaw)
+        )
+
+    def test_fresh_valid_heading_opens_strict_source(self):
+        yaw, state = self.evaluate(self.valid_heading())
+
+        self.assertEqual(state, "ok")
+        self.assertAlmostEqual(yaw, 0.0)
+        self.assertTrue(
+            GPS_LOCALIZATION.navigation_heading_is_ready("dual_antenna", yaw)
+        )
+
+    def test_invalid_heading_quality_is_rejected(self):
+        heading = self.valid_heading()
+        heading["position_type"] = "SINGLE"
+
+        yaw, state = self.evaluate(heading)
+
+        self.assertIsNone(yaw)
+        self.assertEqual(state, "invalid")
+
+    def test_auto_and_gps_course_keep_fallback(self):
+        for source in ("auto", "gps_course"):
+            self.assertTrue(
+                GPS_LOCALIZATION.navigation_heading_is_ready(source, None)
+            )
+
+    def test_unknown_heading_source_is_rejected(self):
+        with self.assertRaises(ValueError):
+            GPS_LOCALIZATION.validate_heading_source("unknown")
+
+
 class WheelOdomTimestampTest(unittest.TestCase):
     def test_callback_preserves_chassis_measurement_timestamp(self):
         node = GPS_LOCALIZATION.GpsLocalizationNode.__new__(
@@ -111,6 +178,38 @@ class PositionSpeedTest(unittest.TestCase):
                 0.0, 0.0, 1.0, 0.0, 0.0, 0.1, max_abs_speed=3.5
             )
         )
+
+
+class PositionFilterMotionTest(unittest.TestCase):
+    @staticmethod
+    def make_node():
+        node = GPS_LOCALIZATION.GpsLocalizationNode.__new__(
+            GPS_LOCALIZATION.GpsLocalizationNode
+        )
+        node.filtered_x = 0.0
+        node.filtered_y = 0.0
+        node.max_fix_jump = 5.0
+        node.stationary_speed_threshold = 0.05
+        node.stationary_hold_radius = 0.8
+        node.stationary_filter_alpha = 0.05
+        node.position_filter_alpha = 0.25
+        return node
+
+    def test_wheel_speed_takes_priority_over_zero_rmc_speed(self):
+        speed = GPS_LOCALIZATION.position_filter_motion_speed((-0.4, 0.2), 0.0)
+        self.assertAlmostEqual(speed, 0.4)
+
+        node = self.make_node()
+        x, _ = node.filter_position(0.5, 0.0, speed)
+        self.assertAlmostEqual(x, 0.125)
+
+    def test_missing_wheel_twist_keeps_stationary_rmc_hold(self):
+        speed = GPS_LOCALIZATION.position_filter_motion_speed(None, 0.0)
+        node = self.make_node()
+
+        x, _ = node.filter_position(0.5, 0.0, speed)
+
+        self.assertEqual(x, 0.0)
 
 
 class NodeMotionSelectionTest(unittest.TestCase):

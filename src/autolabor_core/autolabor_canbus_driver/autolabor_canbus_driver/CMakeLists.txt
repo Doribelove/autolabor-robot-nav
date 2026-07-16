@@ -68,3 +68,6 @@ target_link_libraries(canbus_driver ${catkin_LIBRARIES})
 target_link_libraries(pm1_driver ${catkin_LIBRARIES})
 target_link_libraries(m2_driver ${catkin_LIBRARIES})
 
+if(CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(test_m2_twist_steering test/test_m2_twist_steering.cpp)
+endif()

@@ -56,14 +56,16 @@ namespace autolabor_driver {
             static const uint8_t OdomXy = 0x21;             // 里程计xy
             static const uint8_t OdomTheta = 0x22;          // 里程计Yaw
             static const uint8_t ControllerMonitor = 0x23;  // 控制器监控，前三个字节：[0]:TCU状态；[1]:左轮ECU状态 [2]:右轮ECU状态
-                                                            // 每个字节0位为急停，1位为数据超时，2位为电机卡死，3位为刹车状态。该消息在控制发送时，如果发现有控制器异常，会向上发送
+                                                            // 每个字节0位为急停，1位为数据超时，2位为电流超限，3位为刹车状态。该消息在控制发送时，如果发现有控制器异常，会向上发送
             static const uint8_t ControlTimeout = 0x24;     // 控制超时
 
 
             // 定义位掩码为公共静态常量
             static constexpr uint8_t VCU_MONITOR_STATUS_BIT = 0x01;  // 第0位，表示状态
             static constexpr uint8_t VCU_MONITOR_DATA_TIMEOUT_BIT = 0x02;  // 第1位，表示数据超时
-            static constexpr uint8_t VCU_MONITOR_STUCK_BIT = 0x04;  // 第2位，表示卡死
+            static constexpr uint8_t VCU_MONITOR_CURRENT_OVERLIMIT_BIT = 0x04;  // 第2位，表示电流超限
+            // 兼容现有 ChassisMonitorInfo 的 *_stuck 字段名；协议含义是电流超限。
+            static constexpr uint8_t VCU_MONITOR_STUCK_BIT = VCU_MONITOR_CURRENT_OVERLIMIT_BIT;
             static constexpr uint8_t VCU_MONITOR_BRAKE_BIT = 0x08;  // 第3位，表示刹车
         };
 

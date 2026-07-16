@@ -47,7 +47,7 @@ def goal_speed_cap(distance, comfortable_decel, hard_stop_distance, min_approach
 
 
 def angular_velocity_at_limited_speed(original_speed, limited_speed, angular_velocity):
-    """Scale yaw rate with speed so a limited Ackermann command keeps curvature."""
+    """Scale yaw rate with forward speed so Ackermann curvature is unchanged."""
     if not math.isfinite(original_speed) or original_speed <= 0.0:
         raise ValueError("original_speed must be a finite positive value")
     if not math.isfinite(limited_speed) or limited_speed < 0.0:
@@ -100,23 +100,12 @@ class GpsGoalSpeedLimiter:
         self.cancel_topic = rospy.get_param("~cancel_topic", "/move_base/cancel")
         self.status_topic = rospy.get_param("~status_topic", "/move_base/status")
         self.comfortable_decel = float(rospy.get_param("~comfortable_decel", 0.4))
-        if rospy.has_param("~hard_stop_distance"):
-            self.hard_stop_distance = float(rospy.get_param("~hard_stop_distance"))
-        elif rospy.has_param("~goal_tolerance"):
-            # Keep old launch files usable, but do not couple new configurations
-            # to the local planner's xy_goal_tolerance.
-            self.hard_stop_distance = float(rospy.get_param("~goal_tolerance"))
-            rospy.logwarn(
-                "~goal_tolerance is deprecated for gps_goal_speed_limiter; "
-                "use ~hard_stop_distance instead"
-            )
-        else:
-            self.hard_stop_distance = 0.2
-        self.planner_xy_goal_tolerance = None
-        if rospy.has_param("~planner_xy_goal_tolerance"):
-            self.planner_xy_goal_tolerance = float(
-                rospy.get_param("~planner_xy_goal_tolerance")
-            )
+        self.hard_stop_distance = float(
+            rospy.get_param("~hard_stop_distance", 0.2)
+        )
+        self.planner_xy_goal_tolerance = float(
+            rospy.get_param("~planner_xy_goal_tolerance", 0.3)
+        )
         self.min_approach_speed = float(rospy.get_param("~min_approach_speed", 0.15))
         self.cmd_timeout = float(rospy.get_param("~cmd_timeout", 0.5))
         self.odom_timeout = float(rospy.get_param("~odom_timeout", 1.0))
@@ -129,10 +118,9 @@ class GpsGoalSpeedLimiter:
             self.hard_stop_distance,
             self.min_approach_speed,
         )
-        if self.planner_xy_goal_tolerance is not None:
-            validate_goal_distances(
-                self.hard_stop_distance, self.planner_xy_goal_tolerance
-            )
+        validate_goal_distances(
+            self.hard_stop_distance, self.planner_xy_goal_tolerance
+        )
         timing_parameters = (self.cmd_timeout, self.odom_timeout, self.publish_rate)
         if any(not math.isfinite(value) or value <= 0.0 for value in timing_parameters):
             raise ValueError("timeouts and publish_rate must be positive")
@@ -175,16 +163,12 @@ class GpsGoalSpeedLimiter:
 
         rospy.loginfo(
             "GPS goal speed limiter: %s -> %s, decel=%.3f m/s^2, "
-            "hard_stop_distance=%.3f m, planner_tolerance=%s",
+            "hard_stop_distance=%.3f m, planner_tolerance=%.3f m",
             self.input_cmd_topic,
             self.output_cmd_topic,
             self.comfortable_decel,
             self.hard_stop_distance,
-            (
-                "unverified"
-                if self.planner_xy_goal_tolerance is None
-                else "%.3f m" % self.planner_xy_goal_tolerance
-            ),
+            self.planner_xy_goal_tolerance,
         )
 
     def cmd_callback(self, msg):
@@ -198,10 +182,9 @@ class GpsGoalSpeedLimiter:
             self.latest_odom_time = rospy.Time.now()
 
     def goal_callback(self, msg):
-        # /move_base/current_goal has no GoalID. It is retained only as a
-        # compatibility pose source before an action goal has ever been seen;
-        # once identity-aware tracking is active, a delayed pose-only message
-        # must not overwrite a newer /move_base/goal target.
+        # /move_base/current_goal has no GoalID. Keep it only as a startup pose
+        # source before identity-aware /move_base/goal tracking begins. A delayed
+        # pose-only message must never overwrite or unlock a newer action goal.
         with self.lock:
             accepted = self.active_goal_id is None
             if accepted:
@@ -227,12 +210,12 @@ class GpsGoalSpeedLimiter:
     def _remember_cancel_request(self, msg):
         if msg.id:
             # actionlib remembers an ID-specific cancel that arrives before its
-            # goal, so mirror that behavior for cross-topic callback reordering.
+            # goal, so mirror that behavior for cross-topic callback ordering.
             self._remember_blocked_goal_id(msg.id)
             return
 
-        # A zero ID and zero stamp cancels only goals that are currently known;
-        # unlike a timestamped cancel, it must not reject future goals.
+        # A zero ID and zero stamp cancels only goals already known. Unlike a
+        # timestamped cancel, it must not reject a future action goal.
         if is_zero_stamp(msg.stamp):
             return
         if is_zero_stamp(self.last_cancel_stamp) or msg.stamp > self.last_cancel_stamp:
@@ -261,11 +244,12 @@ class GpsGoalSpeedLimiter:
             if not self._goal_was_stopped(goal_id):
                 self.stop_latched = False
             goal_is_stopped = self.stop_latched
+            # Fence the previous goal's command until move_base publishes a
+            # fresh command for this action goal.
+            self.cmd_pub.publish(Twist())
 
         if goal_is_stopped:
-            rospy.logwarn(
-                "Ignoring already-cancelled move_base goal id=%s", goal_id.id
-            )
+            rospy.logwarn("Ignoring already-cancelled move_base goal id=%s", goal_id.id)
         else:
             rospy.loginfo("Goal slowdown accepted move_base goal id=%s", goal_id.id)
 
@@ -276,9 +260,8 @@ class GpsGoalSpeedLimiter:
             if matches_active:
                 self._remember_blocked_goal_id(self.active_goal_id.id)
                 self._latch_stop()
-                # Publish while holding the same lock used by timer_callback.
-                # This prevents a timer snapshot from publishing an old nonzero
-                # command after the cancellation stop.
+                # Timer publishes under this same lock, so either its old command
+                # precedes this stop or it observes the latch and publishes zero.
                 self.cmd_pub.publish(Twist())
 
         if matches_active:
@@ -308,8 +291,8 @@ class GpsGoalSpeedLimiter:
             odom_time = self.latest_odom_time
             goal = copy.deepcopy(self.current_goal)
 
-            # Keep cancellation, terminal action states, and the electronic-fence
-            # stop authoritative until move_base publishes a genuinely new goal.
+            # Keep cancellation and terminal action states authoritative until
+            # move_base publishes a genuinely new identity-bearing action goal.
             if self.stop_latched:
                 self.cmd_pub.publish(Twist())
                 return
@@ -319,14 +302,19 @@ class GpsGoalSpeedLimiter:
                 self.cmd_pub.publish(Twist())
                 return
 
-            # No accepted goal or no fresh pose: preserve the planner command. This
-            # keeps the relay from changing obstacle handling if GPS data is absent.
+            # During an active goal, position is required to enforce the goal
+            # fence. Missing or stale odometry therefore fails closed.
             if goal is None or odom is None or odom_time is None:
-                self.cmd_pub.publish(cmd)
+                rospy.logwarn_throttle(
+                    2.0, "Goal slowdown fail-stop: goal or GPS odometry is missing"
+                )
+                self.cmd_pub.publish(Twist())
                 return
             if (now - odom_time).to_sec() > self.odom_timeout:
-                rospy.logwarn_throttle(2.0, "Goal slowdown skipped: GPS odometry is stale")
-                self.cmd_pub.publish(cmd)
+                rospy.logwarn_throttle(
+                    2.0, "Goal slowdown fail-stop: GPS odometry is stale"
+                )
+                self.cmd_pub.publish(Twist())
                 return
 
             goal_frame = goal.header.frame_id.lstrip("/")
@@ -334,20 +322,32 @@ class GpsGoalSpeedLimiter:
             if goal_frame and odom_frame and goal_frame != odom_frame:
                 rospy.logwarn_throttle(
                     2.0,
-                    "Goal slowdown skipped: goal frame %s differs from odom frame %s",
+                    "Goal slowdown fail-stop: goal frame %s differs from odom frame %s",
                     goal.header.frame_id,
                     odom.header.frame_id,
                 )
-                self.cmd_pub.publish(cmd)
+                self.cmd_pub.publish(Twist())
+                return
+
+            coordinates = (
+                goal.pose.position.x,
+                goal.pose.position.y,
+                odom.pose.pose.position.x,
+                odom.pose.pose.position.y,
+            )
+            if any(not math.isfinite(value) for value in coordinates):
+                rospy.logwarn_throttle(
+                    2.0, "Goal slowdown fail-stop: goal or odometry position is non-finite"
+                )
+                self.cmd_pub.publish(Twist())
                 return
 
             dx = goal.pose.position.x - odom.pose.pose.position.x
             dy = goal.pose.position.y - odom.pose.pose.position.y
             distance = math.hypot(dx, dy)
 
-            # This is a safety fallback inside the planner's (separate) goal
-            # tolerance, so it must stop every degree of freedom rather than only
-            # cap positive linear velocity.
+            # This safety fallback is strictly inside the planner's success
+            # radius. Stop every degree of freedom, including reverse/rotation.
             if distance <= self.hard_stop_distance:
                 rospy.loginfo_throttle(
                     1.0,
@@ -366,8 +366,7 @@ class GpsGoalSpeedLimiter:
             )
 
             # Only cap excessive forward approach speed. Lower planner commands
-            # (including an obstacle stop) and reverse recovery pass through. If
-            # forward speed is capped, scale yaw rate too so curvature is unchanged.
+            # and reverse pass through. Scale yaw rate to preserve curvature.
             if cmd.linear.x > cap:
                 original_speed = cmd.linear.x
                 cmd.linear.x = cap
@@ -382,8 +381,7 @@ class GpsGoalSpeedLimiter:
                     cap,
                 )
 
-            # Publishing while holding self.lock serializes timer output with
-            # cancellation/status stops and closes the stale-command race.
+            # Serialize the final output with cancel/status stop publications.
             self.cmd_pub.publish(cmd)
 
     def publish_stop(self):

@@ -1,8 +1,116 @@
 # Current GPS Development Handoff
 
-Date: 2026-07-15
+Date: 2026-07-16
 
 This file records the current GPS navigation development state for the Autolabor M2 robot in `/home/robot/robot_ws`.
+
+## 2026-07-16 GPS Test Task Link Fix
+
+The observed no-response test was an entry-link failure, not a planner or
+chassis-command failure. `/gps_test_tasks` registered with an old ROS master;
+bringup then stopped that master and started a new one. The still-running test
+process did not re-register. Its own `/gps/goal_fix` subscriber could observe
+its own publication, while the new `/gps_goal` process received nothing.
+
+The test script now remembers the ROS master PID and exits on master loss or
+replacement. Before publishing or arming an external FOD goal, it verifies the
+current graph from `/gps/goal_fix` through `/gps_goal` and
+`/move_base_simple/goal` to `/move_base`, requires fresh `/gps/odom`, and waits
+for the matching converted `PoseStamped` before reporting link success.
+Bringup also verifies both goal-topic connections before declaring itself
+ready. Always wait until bringup prints its ready message, then start the test
+script in a second terminal. Restart the test script after every bringup or
+roscore restart.
+
+## 2026-07-16 Reverse-Incident Fix
+
+The latest live run was actually `./scripts/bringup.sh gps 2.7 cruise`, with
+`max_vel_x_backwards=1.0`, even though the initial report named `2.0`. Five
+goals were published from RViz. The only goal farther than 12 m from the local
+origin was `(3.963, 14.584)`; it was replaced after about 40 s and was never
+reported reached. No rosbag captured the incident command sign, so do not
+claim that the historical `/cmd_vel_navigation.linear.x` was directly
+observed negative.
+
+Two deterministic defects found in the command path have now been fixed:
+
+- The TEB carlike graph ignored `weight_kinematics_forward_drive`, so the
+  configured cruise value `100` had no effect. `EdgeKinematicsCarlike` now
+  contains separate nonholonomic, backward-drive, and turning-radius errors,
+  and the optimizer wires all three configured weights.
+- The M2 driver converted a reverse `Twist` with
+  `atan(angular.z * wheelbase / abs(linear.x))`. It now retains the sign of
+  `linear.x`, so a reverse arc produces the yaw direction requested by TEB.
+
+The forward-drive weight remains a soft preference: it strongly discourages
+unnecessary reverse but still permits a genuinely required maneuver. The
+changes compiled successfully. Six TEB tests and twelve M2 steering/safety
+tests pass.
+They are not active in a process that was already running before the rebuild;
+restart bringup before the controlled road test. Keep the software emergency
+stop asserted until the restart is complete and record both command topics,
+GPS/chassis odometry, steering, goals, status, and TEB plans during the first
+low-speed test.
+
+## 2026-07-16 Premature-Stop Live Test
+
+The second controlled `gps 0.3 cruise` run used target `(1.976, 13.863)`, about
+`8.85m` from the vehicle when sent. The vehicle travelled about `5.70m`, then
+stopped with about `3.21m` still remaining. This was not a navigation success,
+obstacle stop, software emergency, command dropout, or reverse command:
+
+- `move_base` remained `ACTIVE` until the goal was manually cancelled.
+- `/cmd_vel_navigation` and `/cmd_vel` continued at about
+  `v=+0.300m/s, omega=+0.243rad/s` for another `84.7s` while the wheels were
+  stationary.
+- The laser had no nearby obstacle and both command streams remained fresh.
+- The steering swept repeatedly between almost full left and full right. On
+  the final sweep the wheels braked and stopped even though the positive
+  command continued.
+
+The strongest deterministic cause was non-proportional TEB saturation. The
+local plan segment had a geometric radius of about `2.20m`, but TEB clipped
+only its estimated `0.53m/s` linear velocity to `0.30m/s` while retaining the
+same angular velocity. The command radius therefore collapsed to about
+`1.23m`, placing steering at roughly `99%` of the M2 limit and causing repeated
+extreme steering reversals. The exact VCU/TCU protection bit cannot be recovered
+from that bag because it did not contain `0x23`/`0x24` diagnostics.
+
+The corrective set for the next controlled run is:
+
+- Both GPS TEB profiles set `use_proportional_saturation=true` and use a
+  `1.35m` planning minimum radius, above the approximately `1.22m` theoretical
+  chassis limit.
+- The GPS goal-speed limiter and the M2 final chassis-speed clamp scale
+  `angular.z` whenever they reduce linear velocity, preserving Ackermann
+  curvature through the complete command path.
+- `/gps/odom.twist` now uses fresh signed `/odom` linear and angular velocity
+  while GPS position and dual-antenna yaw remain unchanged. The M2 `/odom`
+  timestamp is the oldest of the four fresh feedback samples used to form it.
+- Strict dual-antenna mode suppresses navigation pose/odom/TF until heading is
+  fresh and quality-valid, and suppresses them again if heading becomes stale.
+  Stationary position filtering prefers fresh wheel speed over RMC speed.
+- VCU `0x23` now logs raw controller bytes and identifies bit 2 as current
+  overlimit; `0x24` control-timeout publication/logging is enabled.
+- M2 command handling rejects invalid chassis parameters and non-finite Twist
+  input, with a final CAN-boundary sanitizer that can only encode finite,
+  chassis-limited motion or an explicit zero command.
+- The recorder includes both command topics, raw CAN, controller monitor,
+  timeout, wheel speeds, and steering angle.
+- The goal-speed limiter uses a `0.20m` hard-stop radius strictly inside the
+  GPS planner's `0.30m` success radius, avoiding a boundary deadlock where the
+  relay could stop the vehicle before TEB's strict goal check succeeded.
+- Goal cancellation and terminal states are GoalID-aware and stop-latched;
+  final timer publishing is serialized with stops. Missing/stale/non-finite
+  GPS odometry during an active goal fails to a complete zero command.
+- Clean restart removes any old goal-speed limiter, and startup requires one
+  and only one publisher on each command topic.
+
+The full workspace builds. Relevant tests currently pass: 22 GPS motion/heading
+tests, 34 goal-limiter/profile/bringup tests, 12 M2 command-safety tests, and
+6 TEB tests (74 total). These new
+binaries still require a bringup restart under software emergency before the
+next road test.
 
 ## Current Goal
 
@@ -32,7 +140,7 @@ GPS navigation maximum speed and TEB scene profile:
 ./scripts/bringup.sh gps 1.0 obstacle
 ```
 
-The second positional argument overrides the GPS TEB forward `max_vel_x`; the third selects `cruise` (open road/long straight) or `obstacle` (dense fixed obstacles). Omitting the third argument selects `cruise`. Reverse speed remains capped by its configured limit and is never allowed to exceed the positional maximum. The M2 driver still clamps commands to the chassis-reported hardware maximum.
+The second positional argument requests the GPS TEB forward `max_vel_x`; the third selects `cruise` (open road/long straight) or `obstacle` (dense fixed obstacles). Omitting the third argument selects `cruise`. Reverse speed remains capped by its configured limit and is never allowed to exceed the positional maximum. After the CAN driver starts, bringup reads `/m2_driver/chassis_parameter` and caps both TEB speed limits to the chassis-reported `max_speed`; the M2 driver still provides a final clamp.
 
 RabbitMQ GPS target bridge:
 
@@ -247,11 +355,15 @@ config/teb_profiles/gps_obstacle.yaml
 
 - Open roads, campus roads, and long straight segments.
 - Raise longitudinal acceleration (`acc_lim_x=2.5`).
-- Suppress angular fluctuation (`max_vel_theta=0.8`, `acc_lim_theta=0.3`, `weight_acc_lim_theta=200`).
+- Permit efficient Ackermann turns at the default `1.5m/s` cruise speed
+  (`max_vel_theta=1.3`, `acc_lim_theta=0.8`, `weight_acc_lim_theta=200`).
+  With the `1.2m` minimum turning radius, the required yaw rate is
+  `1.5 / 1.2 = 1.25rad/s`; the small remaining margin covers TEB's soft
+  constraint without changing the hardware turning-radius limit.
 - Favor time and straight/short paths (`weight_optimaltime=6`, `weight_shortest_path=8`, `weight_viapoint=12`).
 - Disable homotopy-class candidates to avoid needless topology changes in open space.
-- The configured `weight_kinematics_forward_drive=100` is currently ineffective
-  in this fork's carlike branch; do not rely on it to prohibit reverse motion.
+- `weight_kinematics_forward_drive=100` is now applied by this fork's carlike
+  graph. It is a strong forward preference, not a hard prohibition of reverse.
 
 `obstacle` intent and key values:
 
@@ -276,8 +388,8 @@ config/teb_profiles/gps_obstacle.yaml
   constraint rather than a measured chassis guarantee; retain it only after
   commanded-versus-measured acceleration and braking pass the staged road test.
 - `delete_detours_backwards=true` remains active. The configured
-  `weight_kinematics_forward_drive=60` is ineffective in this fork's carlike
-  branch and does not enforce a no-reverse policy.
+  `weight_kinematics_forward_drive=60` now applies to the carlike graph, but it
+  remains a soft preference and does not enforce a no-reverse policy.
 
 `obstacle_poses_affected` is also ineffective while
 `legacy_obstacle_association=false`; it must not be credited for the current
@@ -318,9 +430,9 @@ Expected for `cruise`:
 
 ```text
 False
-0.8
+1.3
 2.5
-0.3
+0.8
 1.2
 1.0
 8.0

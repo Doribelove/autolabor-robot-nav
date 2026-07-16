@@ -14,7 +14,7 @@ GPS_PORT="${GPS_PORT:-/dev/ttyUSB1}"
 GPS_BAUD_RATE="${GPS_BAUD_RATE:-115200}"
 FAST_LIO_GPS_YAW_OFFSET_DEG="${FAST_LIO_GPS_YAW_OFFSET_DEG:-0.0}"
 GPS_NAV_MAX_VEL_X="${GPS_NAV_MAX_VEL_X:-1.5}"
-GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-1.4}"
+GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-1.0}"
 GPS_USE_WHEEL_ODOM="${GPS_USE_WHEEL_ODOM:-false}"
 GPS_USE_WHEEL_TWIST="${GPS_USE_WHEEL_TWIST:-true}"
 GPS_WHEEL_TWIST_TIMEOUT="${GPS_WHEEL_TWIST_TIMEOUT:-0.5}"
@@ -35,8 +35,6 @@ GPS_TEB_PROFILE_FILE=""
 GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-}"
 GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-}"
 GPS_XY_GOAL_TOLERANCE="${GPS_XY_GOAL_TOLERANCE:-0.3}"
-GPS_GLOBAL_COSTMAP_SIZE="${GPS_GLOBAL_COSTMAP_SIZE:-200.0}"
-GPS_GLOBAL_COSTMAP_RESOLUTION="${GPS_GLOBAL_COSTMAP_RESOLUTION:-0.25}"
 GPS_GOAL_SLOWDOWN_ENABLED="${GPS_GOAL_SLOWDOWN_ENABLED:-true}"
 GPS_GOAL_COMFORTABLE_DECEL="${GPS_GOAL_COMFORTABLE_DECEL:-0.4}"
 GPS_GOAL_MIN_APPROACH_SPEED="${GPS_GOAL_MIN_APPROACH_SPEED:-0.15}"
@@ -73,7 +71,7 @@ usage() {
   echo "  GPS_BAUD_RATE=115200"
   echo "  FAST_LIO_GPS_YAW_OFFSET_DEG=0.0"
   echo "  GPS_NAV_MAX_VEL_X=1.5       # overridden by the optional gps speed argument"
-  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.4 # capped by the optional gps speed argument"
+  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.0 # never raised by the gps speed argument"
   echo "  GPS_TEB_PROFILE=cruise|obstacle # used when the third argument is omitted"
   echo "  GPS_USE_WHEEL_ODOM=false        # gps mode uses GPS position directly by default"
   echo "  GPS_USE_WHEEL_TWIST=true        # publish fresh signed chassis twist in /gps/odom"
@@ -93,12 +91,10 @@ usage() {
   echo "  GPS_TEB_PENALTY_EPSILON=0.03     # optional profile-default override"
   echo "  GPS_TEB_FORWARD_DRIVE_WEIGHT=... # optional profile-default override"
   echo "  GPS_XY_GOAL_TOLERANCE=0.3        # m; TEB declares the GPS goal reached"
-  echo "  GPS_GLOBAL_COSTMAP_SIZE=200.0     # m; rolling square, about +/-100 m around robot"
-  echo "  GPS_GLOBAL_COSTMAP_RESOLUTION=0.25 # m/cell; size/resolution is capped at 1M cells"
   echo "  GPS_GOAL_SLOWDOWN_ENABLED=true   # only caps forward speed near the goal"
   echo "  GPS_GOAL_COMFORTABLE_DECEL=0.4   # m/s^2; smaller starts gentler braking earlier"
   echo "  GPS_GOAL_MIN_APPROACH_SPEED=0.15 # m/s outside the limiter hard-stop radius"
-  echo "  GPS_GOAL_HARD_STOP_DISTANCE=0.2  # m; safety stop, independent of TEB tolerance"
+  echo "  GPS_GOAL_HARD_STOP_DISTANCE=0.2  # m; must be below TEB goal tolerance"
   echo "  FILTER_REMOVE_ABOVE_Z=0.1"
   echo "  FILTER_NEAR_RADIUS=0.4"
   echo "  FILTER_NEAR_MIN_Z=-0.1"
@@ -122,6 +118,47 @@ min_number() {
     if (first < second) print first;
     else print second;
   }'
+}
+
+clamp_gps_speed_to_chassis_limit() {
+  [[ "$MODE" == "gps" ]] || return 0
+
+  local service_name="/m2_driver/chassis_parameter"
+  local deadline=$((SECONDS + 15))
+  local response=""
+  local chassis_max_speed=""
+
+  while (( SECONDS < deadline )); do
+    if rosservice info "$service_name" >/dev/null 2>&1; then
+      response="$(timeout 2 rosservice call "$service_name" 2>/dev/null || true)"
+      if grep -Eq '^success:[[:space:]]+True$' <<<"$response"; then
+        chassis_max_speed="$(awk '/^[[:space:]]*max_speed:/ {print $2; exit}' <<<"$response")"
+        if is_positive_number "$chassis_max_speed"; then
+          break
+        fi
+      fi
+    fi
+    sleep 0.25
+  done
+
+  if ! is_positive_number "$chassis_max_speed"; then
+    echo "Unable to read a valid max_speed from $service_name after 15 seconds." >&2
+    echo "Refusing to start GPS navigation with a planner/chassis speed mismatch." >&2
+    return 1
+  fi
+
+  local requested_forward="$GPS_NAV_MAX_VEL_X"
+  local requested_backward="$GPS_NAV_MAX_VEL_X_BACKWARDS"
+  GPS_NAV_MAX_VEL_X="$(min_number "$GPS_NAV_MAX_VEL_X" "$chassis_max_speed")"
+  GPS_NAV_MAX_VEL_X_BACKWARDS="$(min_number "$GPS_NAV_MAX_VEL_X_BACKWARDS" "$chassis_max_speed")"
+
+  echo "==> M2 chassis-reported max speed: $chassis_max_speed m/s"
+  if [[ "$GPS_NAV_MAX_VEL_X" != "$requested_forward" ||
+        "$GPS_NAV_MAX_VEL_X_BACKWARDS" != "$requested_backward" ]]; then
+    echo "==> GPS planner speed capped to chassis: forward=$GPS_NAV_MAX_VEL_X m/s, backward=$GPS_NAV_MAX_VEL_X_BACKWARDS m/s"
+  else
+    echo "==> GPS planner speed is within chassis limit: forward=$GPS_NAV_MAX_VEL_X m/s, backward=$GPS_NAV_MAX_VEL_X_BACKWARDS m/s"
+  fi
 }
 
 normalize_compass_heading_deg() {
@@ -247,6 +284,7 @@ cleanup_existing_nodes() {
     /body_to_base_link
     /canbus_driver
     /gps_goal
+    /gps_goal_speed_limiter
     /gps_localization
     /laserMapping
     /livox_lidar_publisher2
@@ -488,6 +526,52 @@ check_tf() {
     _timeout:="$timeout"
 }
 
+check_topic_route() {
+  local topic="$1"
+  local expected_publisher="${2:-}"
+  local expected_subscriber="${3:-}"
+  local timeout="${4:-10}"
+  local deadline=$((SECONDS + timeout))
+  local info=""
+  local publishers=""
+  local subscribers=""
+  local publisher_ok=0
+  local subscriber_ok=0
+
+  while (( SECONDS < deadline )); do
+    info="$(rostopic info "$topic" 2>/dev/null || true)"
+    publishers="$(awk '
+      /^Publishers:/ { section = "publishers"; next }
+      /^Subscribers:/ { section = "subscribers"; next }
+      section == "publishers" && /^[[:space:]]*\*/ { print $2 }
+    ' <<<"$info")"
+    subscribers="$(awk '
+      /^Publishers:/ { section = "publishers"; next }
+      /^Subscribers:/ { section = "subscribers"; next }
+      section == "subscribers" && /^[[:space:]]*\*/ { print $2 }
+    ' <<<"$info")"
+
+    publisher_ok=0
+    subscriber_ok=0
+    if [[ -z "$expected_publisher" ]] || grep -Fxq "$expected_publisher" <<<"$publishers"; then
+      publisher_ok=1
+    fi
+    if [[ -z "$expected_subscriber" ]] || grep -Fxq "$expected_subscriber" <<<"$subscribers"; then
+      subscriber_ok=1
+    fi
+    if (( publisher_ok && subscriber_ok )); then
+      return 0
+    fi
+    sleep 0.2
+  done
+
+  echo "ROS topic route is not connected on $topic." >&2
+  echo "Expected publisher: ${expected_publisher:-any}; subscriber: ${expected_subscriber:-any}." >&2
+  echo "Observed publishers: ${publishers:-none}" >&2
+  echo "Observed subscribers: ${subscribers:-none}" >&2
+  return 1
+}
+
 check_cmd_vel_route() {
   local topic="${1:-/cmd_vel}"
   local expected_publisher="${2:-/move_base}"
@@ -495,17 +579,35 @@ check_cmd_vel_route() {
   local timeout="${4:-10}"
   local deadline=$((SECONDS + timeout))
   local info=""
+  local publishers=""
+  local subscribers=""
+  local publisher_count=0
 
   while (( SECONDS < deadline )); do
     info="$(rostopic info "$topic" 2>/dev/null || true)"
-    if grep -Fq "$expected_publisher" <<<"$info" && grep -Fq "$expected_subscriber" <<<"$info"; then
+    publishers="$(awk '
+      /^Publishers:/ { section = "publishers"; next }
+      /^Subscribers:/ { section = "subscribers"; next }
+      section == "publishers" && /^[[:space:]]*\*/ { print $2 }
+    ' <<<"$info")"
+    subscribers="$(awk '
+      /^Publishers:/ { section = "publishers"; next }
+      /^Subscribers:/ { section = "subscribers"; next }
+      section == "subscribers" && /^[[:space:]]*\*/ { print $2 }
+    ' <<<"$info")"
+    publisher_count="$(grep -c '^/' <<<"$publishers" || true)"
+    if (( publisher_count == 1 )) &&
+       grep -Fxq "$expected_publisher" <<<"$publishers" &&
+       grep -Fxq "$expected_subscriber" <<<"$subscribers"; then
       return 0
     fi
     sleep 0.5
   done
 
   echo "Command velocity route is not connected on $topic." >&2
-  echo "Expected $expected_publisher publisher and $expected_subscriber subscriber." >&2
+  echo "Expected exactly one publisher ($expected_publisher) and subscriber $expected_subscriber." >&2
+  echo "Observed publishers: ${publishers:-none}" >&2
+  echo "Observed subscribers: ${subscribers:-none}" >&2
   if [[ -n "$info" ]]; then
     echo "$info" >&2
   fi
@@ -618,26 +720,13 @@ if [[ "$MODE" == "gps" ]]; then
     echo "Invalid GPS_XY_GOAL_TOLERANCE: $GPS_XY_GOAL_TOLERANCE" >&2
     exit 1
   fi
-  if ! is_positive_number "$GPS_GLOBAL_COSTMAP_SIZE"; then
-    echo "Invalid GPS_GLOBAL_COSTMAP_SIZE: $GPS_GLOBAL_COSTMAP_SIZE" >&2
+  if ! is_nonnegative_number "$GPS_GOAL_HARD_STOP_DISTANCE"; then
+    echo "Invalid GPS_GOAL_HARD_STOP_DISTANCE: $GPS_GOAL_HARD_STOP_DISTANCE" >&2
     exit 1
   fi
-  if ! is_positive_number "$GPS_GLOBAL_COSTMAP_RESOLUTION"; then
-    echo "Invalid GPS_GLOBAL_COSTMAP_RESOLUTION: $GPS_GLOBAL_COSTMAP_RESOLUTION" >&2
-    exit 1
-  fi
-  GPS_GLOBAL_COSTMAP_CELLS="$(awk \
-    -v size="$GPS_GLOBAL_COSTMAP_SIZE" \
-    -v resolution="$GPS_GLOBAL_COSTMAP_RESOLUTION" \
-    'BEGIN {
-      cells_per_side = int(size / resolution);
-      if (cells_per_side * resolution < size) cells_per_side++;
-      printf "%.0f\n", cells_per_side * cells_per_side;
-    }')"
-  if ! awk -v cells="$GPS_GLOBAL_COSTMAP_CELLS" \
-    'BEGIN { exit !(cells <= 1000000) }'; then
-    echo "GPS global costmap would contain $GPS_GLOBAL_COSTMAP_CELLS cells; limit is 1000000." >&2
-    echo "Increase GPS_GLOBAL_COSTMAP_RESOLUTION or reduce GPS_GLOBAL_COSTMAP_SIZE." >&2
+  if ! awk -v hard_stop="$GPS_GOAL_HARD_STOP_DISTANCE" -v tolerance="$GPS_XY_GOAL_TOLERANCE" \
+    'BEGIN { exit !(hard_stop < tolerance) }'; then
+    echo "GPS_GOAL_HARD_STOP_DISTANCE ($GPS_GOAL_HARD_STOP_DISTANCE) must be smaller than GPS_XY_GOAL_TOLERANCE ($GPS_XY_GOAL_TOLERANCE)" >&2
     exit 1
   fi
   case "$GPS_GOAL_SLOWDOWN_ENABLED" in
@@ -656,15 +745,6 @@ if [[ "$MODE" == "gps" ]]; then
       echo "Invalid GPS_GOAL_MIN_APPROACH_SPEED: $GPS_GOAL_MIN_APPROACH_SPEED" >&2
       exit 1
     fi
-    if ! is_nonnegative_number "$GPS_GOAL_HARD_STOP_DISTANCE"; then
-      echo "Invalid GPS_GOAL_HARD_STOP_DISTANCE: $GPS_GOAL_HARD_STOP_DISTANCE" >&2
-      exit 1
-    fi
-    if ! awk -v hard_stop="$GPS_GOAL_HARD_STOP_DISTANCE" -v tolerance="$GPS_XY_GOAL_TOLERANCE" \
-      'BEGIN { exit !(hard_stop < tolerance) }'; then
-      echo "GPS_GOAL_HARD_STOP_DISTANCE ($GPS_GOAL_HARD_STOP_DISTANCE) must be smaller than GPS_XY_GOAL_TOLERANCE ($GPS_XY_GOAL_TOLERANCE)" >&2
-      exit 1
-    fi
     if ! is_positive_number "$GPS_GOAL_CMD_TIMEOUT"; then
       echo "Invalid GPS_GOAL_CMD_TIMEOUT: $GPS_GOAL_CMD_TIMEOUT" >&2
       exit 1
@@ -676,13 +756,12 @@ if [[ "$MODE" == "gps" ]]; then
   fi
   require_file "$GPS_TEB_PROFILE_FILE"
   echo "==> GPS TEB profile: $GPS_TEB_PROFILE ($GPS_TEB_PROFILE_FILE)"
-  echo "==> GPS navigation speed limits: forward=$GPS_NAV_MAX_VEL_X m/s, backward=$GPS_NAV_MAX_VEL_X_BACKWARDS m/s"
+  echo "==> GPS requested navigation speed limits: forward=$GPS_NAV_MAX_VEL_X m/s, backward=$GPS_NAV_MAX_VEL_X_BACKWARDS m/s"
   echo "==> GPS odom twist: wheel=$GPS_USE_WHEEL_TWIST, wheel timeout=$GPS_WHEEL_TWIST_TIMEOUT s, RMC timeout=$GPS_RMC_SPEED_TIMEOUT s"
   echo "==> GPS goal distances: TEB tolerance=$GPS_XY_GOAL_TOLERANCE m, limiter hard stop=$GPS_GOAL_HARD_STOP_DISTANCE m"
-  echo "==> GPS global costmap: ${GPS_GLOBAL_COSTMAP_SIZE} x ${GPS_GLOBAL_COSTMAP_SIZE} m, resolution=$GPS_GLOBAL_COSTMAP_RESOLUTION m, cells=$GPS_GLOBAL_COSTMAP_CELLS"
   echo "==> GPS TEB forward-drive weight: $GPS_TEB_FORWARD_DRIVE_WEIGHT"
   if [[ "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
-    echo "==> GPS goal slowdown: decel=$GPS_GOAL_COMFORTABLE_DECEL m/s^2, minimum approach=$GPS_GOAL_MIN_APPROACH_SPEED m/s, hard stop=$GPS_GOAL_HARD_STOP_DISTANCE m"
+    echo "==> GPS goal slowdown: decel=$GPS_GOAL_COMFORTABLE_DECEL m/s^2, minimum approach=$GPS_GOAL_MIN_APPROACH_SPEED m/s"
   else
     echo "==> GPS goal slowdown: disabled"
   fi
@@ -711,6 +790,7 @@ make_writable "$CAN_PORT"
 roslaunch robot_diagnostics check_can.launch port:="$CAN_PORT"
 start_launch "CAN chassis driver" robot_bringup can.launch port_name:="$CAN_PORT" publish_tf:=false
 wait_topics "/canbus_msg" 30.0
+clamp_gps_speed_to_chassis_limit
 
 if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
   start_launch "Livox MID360 driver" robot_bringup livox_mid360.launch
@@ -802,8 +882,6 @@ else
     goal_slowdown_cmd_timeout:="$GPS_GOAL_CMD_TIMEOUT" \
     goal_slowdown_odom_timeout:="$GPS_GOAL_ODOM_TIMEOUT" \
     xy_goal_tolerance:="$GPS_XY_GOAL_TOLERANCE" \
-    global_costmap_size:="$GPS_GLOBAL_COSTMAP_SIZE" \
-    global_costmap_resolution:="$GPS_GLOBAL_COSTMAP_RESOLUTION" \
     max_vel_x:="$GPS_NAV_MAX_VEL_X" \
     max_vel_x_backwards:="$GPS_NAV_MAX_VEL_X_BACKWARDS" \
     penalty_epsilon:="$GPS_TEB_PENALTY_EPSILON" \
@@ -812,6 +890,8 @@ fi
 
 wait_topics "/move_base/status" 45.0
 wait_topics "/move_base/local_costmap/costmap,/move_base/global_costmap/costmap" 45.0
+check_topic_route "/gps/goal_fix" "" "/gps_goal" 10
+check_topic_route "/move_base_simple/goal" "/gps_goal" "/move_base" 10
 if [[ "$MODE" == "gps" && "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
   check_cmd_vel_route "/cmd_vel_navigation" "/move_base" "/gps_goal_speed_limiter" 10
   check_cmd_vel_route "/cmd_vel" "/gps_goal_speed_limiter" "/m2_driver" 10

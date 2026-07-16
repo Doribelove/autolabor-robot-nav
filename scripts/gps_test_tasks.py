@@ -2,18 +2,21 @@
 # -*- coding: utf-8 -*-
 
 import csv
+from collections import deque
 import datetime
 import json
 import math
 import os
 import random
+import select
 import sys
 import threading
 import time
 
+import rosgraph
 import rospy
 from actionlib_msgs.msg import GoalID
-from geometry_msgs.msg import Point, Twist
+from geometry_msgs.msg import Point, PoseStamped
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from tf.transformations import euler_from_quaternion
@@ -160,12 +163,23 @@ def polygon_contains(point, polygon):
     return inside
 
 
+def topic_node_map(entries):
+    return {topic: set(nodes) for topic, nodes in entries}
+
+
+def contains_node(nodes, expected):
+    return any(node == expected or node.endswith(expected) for node in nodes)
+
+
 class GpsTestTasks:
     def __init__(self):
         self.odom_topic = rospy.get_param("~odom_topic", "/gps/odom")
         self.goal_fix_topic = rospy.get_param("~goal_fix_topic", "/gps/goal_fix")
+        self.converted_goal_topic = rospy.get_param(
+            "~converted_goal_topic",
+            "/move_base_simple/goal",
+        )
         self.cancel_topic = rospy.get_param("~cancel_topic", "/move_base/cancel")
-        self.cmd_vel_topic = rospy.get_param("~cmd_vel_topic", "/cmd_vel")
         self.marker_topic = rospy.get_param("~marker_topic", "/gps/test_fence_markers")
         self.marker_frame_id = rospy.get_param("~marker_frame_id", "camera_init")
         self.fence_file = rospy.get_param(
@@ -179,18 +193,34 @@ class GpsTestTasks:
         self.fod_goal_wait_timeout = float(rospy.get_param("~fod_goal_wait_timeout", 300.0))
         self.gps_stability_duration = float(rospy.get_param("~gps_stability_duration", 120.0))
         self.default_test_area_m2 = float(rospy.get_param("~default_test_area_m2", 1000.0))
+        self.odom_timeout = float(rospy.get_param("~odom_timeout", 1.0))
+        self.goal_route_timeout = float(rospy.get_param("~goal_route_timeout", 5.0))
+        self.goal_delivery_timeout = float(rospy.get_param("~goal_delivery_timeout", 3.0))
+        self.goal_delivery_tolerance = float(rospy.get_param("~goal_delivery_tolerance", 0.25))
+
+        self.master = rosgraph.Master(rospy.get_name())
+        try:
+            self.master_pid = self.master.getPid()
+        except Exception as exc:
+            raise RuntimeError(
+                "ROS master 不可用。请先完整启动 ./scripts/bringup.sh gps，再启动测试脚本：%s"
+                % exc
+            )
 
         self.latest_odom = None
+        self.latest_odom_received_monotonic = None
         self.odom_sequence = 0
         self.fence = None
         self.last_outside_warn = 0.0
         self.goal_condition = threading.Condition()
         self.goal_sequence = 0
         self.latest_observed_goal = None
+        self.converted_goal_condition = threading.Condition()
+        self.converted_goal_sequence = 0
+        self.recent_converted_goals = deque(maxlen=20)
 
         self.goal_pub = rospy.Publisher(self.goal_fix_topic, NavSatFix, queue_size=10)
         self.cancel_pub = rospy.Publisher(self.cancel_topic, GoalID, queue_size=10)
-        self.cmd_pub = rospy.Publisher(self.cmd_vel_topic, Twist, queue_size=10)
         self.marker_pub = rospy.Publisher(self.marker_topic, MarkerArray, queue_size=1, latch=True)
         self.odom_sub = rospy.Subscriber(self.odom_topic, Odometry, self.odom_cb, queue_size=20)
         self.goal_observer_sub = rospy.Subscriber(
@@ -199,17 +229,164 @@ class GpsTestTasks:
             self.goal_observed_cb,
             queue_size=20,
         )
+        self.converted_goal_sub = rospy.Subscriber(
+            self.converted_goal_topic,
+            PoseStamped,
+            self.converted_goal_cb,
+            queue_size=20,
+        )
         self.monitor_timer = rospy.Timer(
             rospy.Duration(1.0 / max(self.monitor_rate_hz, 0.1)),
             self.monitor_fence,
         )
         self.marker_timer = rospy.Timer(rospy.Duration(1.0), self.publish_fence_markers_timer)
+        self.master_watchdog_timer = rospy.Timer(rospy.Duration(1.0), self.monitor_master_session)
 
         self.load_fence()
+        try:
+            self.wait_for_navigation_route(timeout=1.0)
+            print(
+                "[联动检查] 已连接：%s -> /gps_goal -> %s -> /move_base"
+                % (self.goal_fix_topic, self.converted_goal_topic)
+            )
+        except RuntimeError as exc:
+            if rospy.is_shutdown():
+                raise
+            print("[联动未就绪] %s" % exc)
+            print("  请等待 ./scripts/bringup.sh gps 完整显示运行成功后，再重新启动本脚本。")
 
     def odom_cb(self, msg):
         self.latest_odom = msg
+        self.latest_odom_received_monotonic = time.monotonic()
         self.odom_sequence += 1
+
+    def converted_goal_cb(self, msg):
+        with self.converted_goal_condition:
+            self.converted_goal_sequence += 1
+            self.recent_converted_goals.append({
+                "sequence": self.converted_goal_sequence,
+                "frame_id": msg.header.frame_id,
+                "x": float(msg.pose.position.x),
+                "y": float(msg.pose.position.y),
+            })
+            self.converted_goal_condition.notify_all()
+
+    def ensure_master_session(self):
+        try:
+            current_pid = self.master.getPid()
+        except Exception as exc:
+            reason = (
+                "ROS master 已断开；当前测试节点不再与导航系统联动。"
+                "请退出，重新启动 bringup，待其完成后再启动 gps_test_tasks.py：%s" % exc
+            )
+            if not rospy.is_shutdown():
+                rospy.signal_shutdown(reason)
+            raise RuntimeError(reason)
+
+        if current_pid != self.master_pid:
+            reason = (
+                "检测到 ROS master 已更换（PID %s -> %s）；当前测试节点不会自动重新注册。"
+                "请退出本脚本，等待 bringup 完成后重新启动。"
+                % (self.master_pid, current_pid)
+            )
+            if not rospy.is_shutdown():
+                rospy.signal_shutdown(reason)
+            raise RuntimeError(reason)
+
+    def monitor_master_session(self, _event):
+        try:
+            self.ensure_master_session()
+        except RuntimeError as exc:
+            rospy.logerr("%s", exc)
+
+    def navigation_route_missing(self):
+        self.ensure_master_session()
+        try:
+            publishers, subscribers, _services = self.master.getSystemState()
+        except Exception as exc:
+            raise RuntimeError("无法读取当前 ROS 连接图：%s" % exc)
+
+        publisher_map = topic_node_map(publishers)
+        subscriber_map = topic_node_map(subscribers)
+        checks = (
+            (
+                subscriber_map,
+                self.goal_fix_topic,
+                "/gps_goal",
+                "%s 缺少 /gps_goal 订阅" % self.goal_fix_topic,
+            ),
+            (
+                publisher_map,
+                self.converted_goal_topic,
+                "/gps_goal",
+                "%s 缺少 /gps_goal 发布" % self.converted_goal_topic,
+            ),
+            (
+                subscriber_map,
+                self.converted_goal_topic,
+                "/move_base",
+                "%s 缺少 /move_base 订阅" % self.converted_goal_topic,
+            ),
+            (
+                publisher_map,
+                self.odom_topic,
+                "/gps_localization",
+                "%s 缺少 /gps_localization 发布" % self.odom_topic,
+            ),
+            (
+                publisher_map,
+                "/move_base/status",
+                "/move_base",
+                "/move_base/status 缺少 /move_base 发布",
+            ),
+        )
+        return [
+            message
+            for topic_map, topic, node, message in checks
+            if not contains_node(topic_map.get(topic, set()), node)
+        ]
+
+    def wait_for_navigation_route(self, timeout=None):
+        timeout = self.goal_route_timeout if timeout is None else float(timeout)
+        deadline = time.monotonic() + max(0.0, timeout)
+        missing = []
+        while not rospy.is_shutdown():
+            missing = self.navigation_route_missing()
+            if not missing:
+                return
+            if time.monotonic() >= deadline:
+                break
+            rospy.sleep(0.1)
+        if rospy.is_shutdown():
+            raise RuntimeError("ROS 正在关闭，测试任务不能发布。")
+        raise RuntimeError(
+            "导航任务链路未就绪：%s。测试目标未发布。"
+            % "；".join(missing)
+        )
+
+    def wait_for_converted_goal(self, x, y, baseline_sequence):
+        deadline = time.monotonic() + self.goal_delivery_timeout
+        while not rospy.is_shutdown():
+            self.ensure_master_session()
+            with self.converted_goal_condition:
+                for goal in reversed(self.recent_converted_goals):
+                    if goal["sequence"] <= baseline_sequence:
+                        break
+                    if (
+                        goal["frame_id"] == self.marker_frame_id
+                        and math.hypot(goal["x"] - x, goal["y"] - y)
+                        <= self.goal_delivery_tolerance
+                    ):
+                        return goal
+                remaining = deadline - time.monotonic()
+                if remaining <= 0.0:
+                    break
+                self.converted_goal_condition.wait(timeout=min(0.1, remaining))
+        raise RuntimeError(
+            "目标已发送到 %s，但 %.1f 秒内未在 %s 收到对应目标；"
+            "无人车不会启动，请检查 /gps_goal，且不要重复盲发。"
+            % (self.goal_fix_topic, self.goal_delivery_timeout, self.converted_goal_topic)
+        )
 
     def pose_snapshot(self):
         if self.latest_odom is None:
@@ -244,12 +421,21 @@ class GpsTestTasks:
         return float(origin_lat), float(origin_lon)
 
     def require_pose(self):
-        if self.latest_odom is None:
+        self.ensure_master_session()
+        odom_age = (
+            math.inf
+            if self.latest_odom_received_monotonic is None
+            else time.monotonic() - self.latest_odom_received_monotonic
+        )
+        if self.latest_odom is None or odom_age > self.odom_timeout:
             rospy.loginfo("Waiting for %s ...", self.odom_topic)
             self.latest_odom = rospy.wait_for_message(self.odom_topic, Odometry, timeout=10.0)
+            self.latest_odom_received_monotonic = time.monotonic()
         origin_lat, origin_lon = self.get_origin()
         p = self.latest_odom.pose.pose.position
         yaw = yaw_from_odom(self.latest_odom)
+        if not all(math.isfinite(value) for value in (p.x, p.y, yaw, origin_lat, origin_lon)):
+            raise RuntimeError("GPS 位姿或原点包含非有限值，拒绝生成测试目标。")
         return p.x, p.y, yaw, origin_lat, origin_lon
 
     def local_to_navsat(self, x, y):
@@ -262,6 +448,7 @@ class GpsTestTasks:
             print("[拒绝] 目标点在电子围栏外，不发布：%s x=%.3f y=%.3f" % (label, x, y))
             return False
 
+        self.wait_for_navigation_route()
         lat, lon = self.local_to_navsat(x, y)
         msg = NavSatFix()
         msg.header.stamp = rospy.Time.now()
@@ -271,14 +458,24 @@ class GpsTestTasks:
         msg.latitude = lat
         msg.longitude = lon
         msg.altitude = 0.0
+        with self.converted_goal_condition:
+            converted_goal_baseline = self.converted_goal_sequence
         self.goal_pub.publish(msg)
-        print("[发布] %s: x=%.3f y=%.3f lat=%.12f lon=%.12f -> %s" % (
+        print("[发送] %s: x=%.3f y=%.3f lat=%.12f lon=%.12f -> %s" % (
             label,
             x,
             y,
             lat,
             lon,
             self.goal_fix_topic,
+        ))
+        converted = self.wait_for_converted_goal(x, y, converted_goal_baseline)
+        print("[联动成功] %s 已转换为 %s: x=%.3f y=%.3f frame=%s" % (
+            self.goal_fix_topic,
+            self.converted_goal_topic,
+            converted["x"],
+            converted["y"],
+            converted["frame_id"],
         ))
         return True
 
@@ -507,10 +704,8 @@ class GpsTestTasks:
         self.marker_pub.publish(MarkerArray(markers=markers))
 
     def cancel_motion(self):
-        self.cancel_pub.publish(GoalID())
-        stop = Twist()
         for _ in range(3):
-            self.cmd_pub.publish(stop)
+            self.cancel_pub.publish(GoalID())
             rospy.sleep(0.05)
 
     def print_fence(self):
@@ -544,9 +739,22 @@ class GpsTestTasks:
     def fod_csv_file(self):
         return os.path.join(self.fod_results_dir, FOD_CSV_FILENAME)
 
+    def read_input(self, prompt):
+        sys.stdout.write(prompt)
+        sys.stdout.flush()
+        while not rospy.is_shutdown():
+            readable, _writable, _exceptional = select.select([sys.stdin], [], [], 0.2)
+            if not readable:
+                continue
+            line = sys.stdin.readline()
+            if line == "":
+                raise RuntimeError("标准输入已关闭。")
+            return line.rstrip("\r\n")
+        raise RuntimeError("ROS 已关闭，停止等待操作员输入。")
+
     def ask_float(self, prompt, default, minimum=0.0):
         while not rospy.is_shutdown():
-            raw = input("%s [默认 %.3f]: " % (prompt, default)).strip()
+            raw = self.read_input("%s [默认 %.3f]: " % (prompt, default)).strip()
             if not raw:
                 value = float(default)
             else:
@@ -563,7 +771,7 @@ class GpsTestTasks:
 
     def ask_yes_no(self, prompt):
         while not rospy.is_shutdown():
-            raw = input("%s [y/n]: " % prompt).strip().lower()
+            raw = self.read_input("%s [y/n]: " % prompt).strip().lower()
             if raw in ("y", "yes", "1", "是", "通过"):
                 return True
             if raw in ("n", "no", "0", "否", "失败"):
@@ -573,7 +781,7 @@ class GpsTestTasks:
 
     def ask_pass_fail_skip(self, prompt):
         while not rospy.is_shutdown():
-            raw = input("%s [p=通过/f=失败/s=跳过]: " % prompt).strip().lower()
+            raw = self.read_input("%s [p=通过/f=失败/s=跳过]: " % prompt).strip().lower()
             if raw in ("p", "pass", "y", "yes", "通过"):
                 return "pass"
             if raw in ("f", "fail", "n", "no", "失败"):
@@ -707,7 +915,7 @@ class GpsTestTasks:
         gps_acceptable = self.ask_yes_no("GPS 定位和航向稳定性是否满足现场要求")
         cleaning_ready = self.ask_yes_no("清扫装置是否已上电并进入待机状态")
         passed = all(topic_status.values()) and gps_acceptable and cleaning_ready
-        notes = input("备注（可留空）: ").strip()
+        notes = self.read_input("备注（可留空）: ").strip()
 
         self.save_fod_record({
             "record_type": "device_check",
@@ -727,9 +935,12 @@ class GpsTestTasks:
         print("[T01] 结果：%s" % ("通过" if passed else "不通过"))
 
     def wait_for_fod_goal(self):
-        input("准备完成后按回车进入等待；随后让检测车发送 FOD 点，并在 RabbitMQ 桥接终端输入 1。")
+        self.wait_for_navigation_route()
+        self.read_input("准备完成后按回车进入等待；随后让检测车发送 FOD 点，并在 RabbitMQ 桥接终端输入 1。")
         with self.goal_condition:
             baseline = self.goal_sequence
+            with self.converted_goal_condition:
+                converted_goal_baseline = self.converted_goal_sequence
             deadline = time.monotonic() + self.fod_goal_wait_timeout
             print("[等待] 新的 %s，超时 %.0f 秒..." % (
                 self.goal_fix_topic,
@@ -740,14 +951,34 @@ class GpsTestTasks:
                 if remaining <= 0.0:
                     raise RuntimeError("等待新的 %s 超时。" % self.goal_fix_topic)
                 self.goal_condition.wait(timeout=min(0.5, remaining))
+                self.ensure_master_session()
             if rospy.is_shutdown():
                 raise RuntimeError("ROS is shutting down")
             observed = dict(self.latest_observed_goal)
 
+        origin_lat, origin_lon = self.get_origin()
+        target_x, target_y = gps_to_xy(
+            observed["latitude"],
+            observed["longitude"],
+            origin_lat,
+            origin_lon,
+        )
+        converted = self.wait_for_converted_goal(
+            target_x,
+            target_y,
+            converted_goal_baseline,
+        )
         print("[开始计时] %s" % observed["received_at"])
         print("[目标] lat=%.12f lon=%.12f" % (
             observed["latitude"],
             observed["longitude"],
+        ))
+        print("[联动成功] %s 已转换为 %s: x=%.3f y=%.3f frame=%s" % (
+            self.goal_fix_topic,
+            self.converted_goal_topic,
+            converted["x"],
+            converted["y"],
+            converted["frame_id"],
         ))
         return observed
 
@@ -768,7 +999,7 @@ class GpsTestTasks:
                 minimum=1000.0,
             )
         goal = self.wait_for_fod_goal()
-        completion = input("FOD 完全回收后按回车结束计时；输入 c 取消本次任务: ").strip().lower()
+        completion = self.read_input("FOD 完全回收后按回车结束计时；输入 c 取消本次任务: ").strip().lower()
         end_unix = time.time()
         if completion in ("c", "cancel", "取消"):
             self.cancel_motion()
@@ -803,7 +1034,7 @@ class GpsTestTasks:
         boundary_violation = self.ask_yes_no("是否发生越界")
         manual_takeover = self.ask_yes_no("是否发生人工接管")
         vehicle_stopped = self.ask_yes_no("任务完成后车辆是否停止")
-        notes = input("备注（漏扫、推移、未吸入等，可留空）: ").strip()
+        notes = self.read_input("备注（漏扫、推移、未吸入等，可留空）: ").strip()
 
         efficiency = area_m2 / duration_s if duration_s > 0.0 else None
         criteria_pass = (
@@ -872,7 +1103,7 @@ class GpsTestTasks:
         )
         for index, task_id in enumerate(task_ids, 1):
             if index > 1:
-                input("车辆回到规定的相同起点和朝向、重新放置 FOD 后按回车继续。")
+                self.read_input("车辆回到规定的相同起点和朝向、重新放置 FOD 后按回车继续。")
             self.run_fod_case(task_id, area_m2=area_m2)
         self.print_fod_summary()
 
@@ -885,7 +1116,7 @@ class GpsTestTasks:
         )
         for repeat in range(1, 4):
             if repeat > 1:
-                input("在同一位置重新放置 FOD，车辆恢复到测试起点后按回车继续。")
+                self.read_input("在同一位置重新放置 FOD，车辆恢复到测试起点后按回车继续。")
             case = {
                 "name": "重复回收测试",
                 "location": "同一位置第 %d 次" % repeat,
@@ -909,7 +1140,7 @@ class GpsTestTasks:
         for key, label in scenarios:
             print("\n[T08] %s" % label)
             results[key] = self.ask_pass_fail_skip("该项响应是否符合预期")
-        notes = input("T08 备注（可留空）: ").strip()
+        notes = self.read_input("T08 备注（可留空）: ").strip()
         completed = all(value != "skip" for value in results.values())
         passed = completed and all(value == "pass" for value in results.values())
         self.save_fod_record({
@@ -1007,7 +1238,7 @@ class GpsTestTasks:
             print("  8: T08 异常与急停检查表")
             print("  9: 显示测试记录和效率汇总")
             print("  0: 返回 GPS 测试主菜单")
-            choice = input("FOD测试> ").strip().lower()
+            choice = self.read_input("FOD测试> ").strip().lower()
             try:
                 if choice == "1":
                     self.task_t01_device_and_gps_check()
@@ -1037,6 +1268,7 @@ class GpsTestTasks:
     def menu_loop(self):
         print("")
         print("GPS 测试任务已启动。普通 GPS 导航不会自动启用这个电子围栏，只有本脚本运行时会监控。")
+        print("本脚本必须在 bringup 完全启动后运行；每次重启 bringup/roscore 都必须重新启动本脚本。")
         print("RViz 可添加 MarkerArray 订阅：%s" % self.marker_topic)
         self.print_fence()
         while not rospy.is_shutdown():
@@ -1049,8 +1281,9 @@ class GpsTestTasks:
             print("  5: 清除永久电子围栏")
             print("  6: FOD 回收装备最终测试（T01-T08）")
             print("  q: 退出")
-            choice = input("> ").strip().lower()
+            choice = self.read_input("> ").strip().lower()
             try:
+                self.ensure_master_session()
                 if choice == "1":
                     self.task_forward_8m()
                 elif choice == "2":
@@ -1073,11 +1306,16 @@ class GpsTestTasks:
 
 def main():
     rospy.init_node("gps_test_tasks", anonymous=False)
-    tasks = GpsTestTasks()
     try:
+        tasks = GpsTestTasks()
         tasks.menu_loop()
     except KeyboardInterrupt:
         pass
+    except RuntimeError as exc:
+        if not rospy.is_shutdown():
+            print("[运行失败] %s" % exc)
+        return 2
+    return 0
 
 
 if __name__ == "__main__":
