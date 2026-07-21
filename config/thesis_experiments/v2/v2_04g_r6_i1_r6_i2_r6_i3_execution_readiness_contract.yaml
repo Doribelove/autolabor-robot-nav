@@ -1,0 +1,164 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-I3
+contract_id: fam_teb_v2_04g_r6_i3_execution_readiness_closure_1
+status: offline_execution_readiness_closure_authorized_release_absent
+contract_date: "2026-07-21"
+independent_stage: true
+source_stage: V2-04G-R6-I2
+simulation_only: true
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized_by_this_contract: false
+execution_release_required: true
+execution_release_present: false
+ros_or_gazebo_start_authorized: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+claim_limit: >-
+  Offline scene, runner, release-validator, dependency-closure and machine-review
+  readiness only; this contract is not an execution release, simulation result,
+  safety claim, performance claim or deployment-readiness claim.
+
+authorization_basis:
+  explicit_user_readiness_closure_instruction_received: true
+  explicit_user_simulation_execution_instruction_received: false
+  bounded_authorization_envelope_valid: true
+  authorization_envelope_alone_sufficient_to_start: false
+  separate_exact_hash_execution_release_required: true
+  release_validation_required_before_any_attempt_root_journal_or_subprocess: true
+
+allowed_offline_outputs:
+  - fresh_scene_derivation_manifest
+  - fresh_scene_manifest
+  - fresh_compiled_scene_index_and_fourteen_children
+  - scene_behavior_equivalence_audit
+  - actual_fail_closed_runner_source
+  - dedicated_release_validator_source_and_negative_tests
+  - independent_execution_dependency_closure
+  - deterministic_execution_readiness_machine_review
+
+forbidden_outputs_or_side_effects:
+  execution_release_manifest: true
+  execution_attempt_root: true
+  execution_journal: true
+  execution_receipt: true
+  raw_or_semantic_evidence: true
+  stage_execution_report: true
+  ros_or_gazebo_process: true
+  move_base_or_teb_process: true
+  seed_or_evidence_consumption: true
+  winner_ranking_or_freezing: true
+  v2_05_or_training: true
+  real_vehicle_or_real_vehicle_teb_write: true
+
+fresh_seed_and_budget_boundary:
+  execution_seeds: [5151, 5152, 5153]
+  compile_support_only_seeds: [5154, 5155, 5156, 5157]
+  compile_support_seeds_are_execution_evidence: false
+  evidence_units_authorized: 6
+  evidence_units_consumed: 0
+  attempt_limit_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+  seed_replacement_allowed: false
+  budget_expansion_allowed: false
+  stop_on_first_terminal_failure: true
+  forfeit_all_unattempted_units_after_terminal_failure: true
+  held_out_5001_5010_forbidden: true
+  r5_5111_5135_forbidden: true
+  r6_i1_5141_5147_forbidden_for_execution: true
+
+exact_schedule:
+  canonical_sha256: ee89717421f2dd82cdaddb2c8e8722c5d1d4b52db97311c3b7231ba9d161571c
+  identity_count: 6
+  rows:
+    - {sequence: 1, profile_id: r6_semantics_legacy_control, scene_id: v2-04g-r6-i3-dynamic-conflict-single-s5151, seed: 5151, attempt: 1, expected_ttc_status: OBSERVED_CONFLICT, expected_overlay_semantics: non_none}
+    - {sequence: 2, profile_id: r6_semantics_circle_contact, scene_id: v2-04g-r6-i3-dynamic-conflict-single-s5151, seed: 5151, attempt: 1, expected_ttc_status: OBSERVED_CONFLICT, expected_overlay_semantics: non_none_iff_finite_ttc}
+    - {sequence: 3, profile_id: r6_semantics_circle_contact, scene_id: v2-04g-r6-i3-dynamic-conflict-multi-s5152, seed: 5152, attempt: 1, expected_ttc_status: OBSERVED_CONFLICT, expected_overlay_semantics: non_none_iff_finite_ttc}
+    - {sequence: 4, profile_id: r6_semantics_legacy_control, scene_id: v2-04g-r6-i3-dynamic-conflict-multi-s5152, seed: 5152, attempt: 1, expected_ttc_status: OBSERVED_CONFLICT, expected_overlay_semantics: non_none}
+    - {sequence: 5, profile_id: r6_semantics_legacy_control, scene_id: v2-04g-r6-i3-dynamic-semantic-clear-s5153, seed: 5153, attempt: 1, expected_ttc_status: NO_CONFLICT_IN_HORIZON, expected_overlay_semantics: legacy_non_none_identifiability}
+    - {sequence: 6, profile_id: r6_semantics_circle_contact, scene_id: v2-04g-r6-i3-dynamic-semantic-clear-s5153, seed: 5153, attempt: 1, expected_ttc_status: NO_CONFLICT_IN_HORIZON, expected_overlay_semantics: none_iff_no_finite_ttc}
+
+scene_materialization_contract:
+  source_manifest:
+    path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_scenes.yaml
+    sha256: 12c50c598951ab09bf5696b9c3acec97691a4d5ae92063352f2a7e46caf87081
+  source_compiled_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/compiled_scenes/compiled_scene_index.yaml
+    sha256: 1f1cdde389dc98687142ca8d8c47c03bc8391b003d9103bde05c0e41cfddc4a0
+  target_scene_manifest: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/v2_04g_r6_i3_scenes.yaml
+  target_compiled_index: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/compiled_scene_index.yaml
+  target_behavior_audit: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/v2_04g_r6_i3_scene_behavior_equivalence.yaml
+  target_scene_count: 7
+  target_compiled_child_count: 14
+  target_execution_scene_count: 3
+  target_compile_support_scene_count: 4
+  top_level_identity_fields_allowed_to_change: [manifest_id]
+  per_scene_identity_fields_allowed_to_change: [scene_id, seed]
+  behavior_fields_allowed_to_change: []
+  preserve_layout_variant_exactly: true
+  preserve_evaluator_fields_exactly: true
+  preserve_trajectory_and_obstacle_fields_exactly: true
+  preserve_randomization_parameters_exactly: true
+  posthoc_scene_timing_change_allowed: false
+
+scene_identity_map:
+  - {source_scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141, source_seed: 5141, target_scene_id: v2-04g-r6-i3-dynamic-conflict-single-s5151, target_seed: 5151, execution_role: paired_semantic_probe}
+  - {source_scene_id: v2-04g-r6-i1-dynamic-conflict-multi-s5142, source_seed: 5142, target_scene_id: v2-04g-r6-i3-dynamic-conflict-multi-s5152, target_seed: 5152, execution_role: paired_semantic_probe}
+  - {source_scene_id: v2-04g-r6-i1-dynamic-semantic-clear-s5143, source_seed: 5143, target_scene_id: v2-04g-r6-i3-dynamic-semantic-clear-s5153, target_seed: 5153, execution_role: paired_semantic_probe}
+  - {source_scene_id: v2-04g-r6-i1-compile-support-cruise-s5144, source_seed: 5144, target_scene_id: v2-04g-r6-i3-compile-support-cruise-s5154, target_seed: 5154, execution_role: compile_support_only_never_execute}
+  - {source_scene_id: v2-04g-r6-i1-compile-support-static-s5145, source_seed: 5145, target_scene_id: v2-04g-r6-i3-compile-support-static-s5155, target_seed: 5155, execution_role: compile_support_only_never_execute}
+  - {source_scene_id: v2-04g-r6-i1-compile-support-corridor-s5146, source_seed: 5146, target_scene_id: v2-04g-r6-i3-compile-support-corridor-s5156, target_seed: 5156, execution_role: compile_support_only_never_execute}
+  - {source_scene_id: v2-04g-r6-i1-compile-support-maneuver-s5147, source_seed: 5147, target_scene_id: v2-04g-r6-i3-compile-support-maneuver-s5157, target_seed: 5157, execution_role: compile_support_only_never_execute}
+
+canonical_future_paths:
+  execution_release_manifest: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+  actual_entrypoint: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_r6_i2_r6_i3_bounded_validation.py
+  execution_dependency_closure: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/execution_dependency_closure.yaml
+  readiness_machine_review: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/v2_04g_r6_i3_execution_readiness_review.yaml
+  execution_attempts_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/attempts
+  execution_journals_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/journals
+
+frozen_resources:
+  i3_preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_preregistration.yaml
+    sha256: a8295c723c1cf973c2c35c86e5b2d5c07361bdf0e92f36a0e8d12d2364ce6268
+  i3_authorization_envelope:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_bounded_simulation_authorization.yaml
+    sha256: ef0a5886bacfd9e439d56e5586a851a33e2ab4076ac11f6b84033425b9b305d2
+  i3_authorization_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_authorization_review/v2_04g_r6_i3_authorization_review.yaml
+    sha256: 20a058f15a79aebc448497374071c7028363faa185d1ebe820f1102c6b330913
+  i2_machine_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i2_repair_review/v2_04g_r6_i2_integration_review.yaml
+    sha256: b23f7384e3c88aa9c3c0a9af50f6fc51159b2091b6b44cb127d034847bbb8a61
+  i2_dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i2_repair_review/execution_dependency_closure.yaml
+    file_sha256: 63c4e7ba5d8fd64315040a566aabdb54cd71b034ce76f814aa3f519be6dfac58
+    logical_sha256: 2be410c333b78d707b591fb30bef0b344b40c19e3f957d91fbc6e56f1bd01fe6
+  source_i1_scene_derivation:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_scene_derivation.yaml
+    sha256: 5f3e756609828b70ba0612c59a510d1d3750bd8fe33161829da3f9b7e706ce12
+  scene_deriver:
+    path: src/tools/thesis_experiment/scripts/derive_v2_04g_scenes.py
+    sha256: c477448794e2c509c7a652e4731344761179e3c3e2ebea5de2ee9e3f5260e65b
+  scene_compiler_entrypoint:
+    path: src/tools/thesis_experiment/scripts/compile_v2_scenes.py
+    sha256: a6111cf0f6edc2d86264f69a6989533a1b6a021e1685bb2d67b6475a32a26bae
+  scene_compiler_module:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+    sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+
+completion_gate:
+  fresh_scene_behavior_equivalence_required: true
+  compiled_index_and_all_children_hash_bound_required: true
+  actual_runner_integrates_i2_bootstrap_required: true
+  release_validator_negative_tests_required: true
+  independent_execution_dependency_closure_required: true
+  deterministic_readiness_machine_review_required: true
+  release_must_remain_absent_in_this_work: true
+  attempt_and_journal_roots_must_remain_absent: true
+  execution_may_start_after_this_contract_alone: false

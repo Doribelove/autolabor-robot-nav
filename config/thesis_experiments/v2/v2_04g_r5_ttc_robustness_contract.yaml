@@ -1,0 +1,208 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R5
+contract_id: fam_teb_v2_04g_r5_dynamic_ttc_prediction_timing_repair_1
+status: preregistered_design_dry_run_only
+simulation_only: true
+calibration_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+scope:
+  split: calibration
+  objective: repair_dynamic_conflict_ttc_coverage_robustness_without_regressing_r4_r1_m030_passed_gates
+  candidate_count: 3
+  winner_eligible_candidate_count: 2
+  readiness_derived_scene_count: 7
+  readiness_execution_probe_scene_count: 3
+  readiness_compile_support_only_scene_count: 4
+  scene_count: 15
+  scene_count_per_family: 3
+  activation_readiness_probe_count: 6
+  readiness_compile_support_execution_count: 0
+  ttc_component_probe_count: 3
+  fixed_reference_episode_count: 15
+  candidate_navigation_episode_count: 45
+  planned_navigation_episode_count: 60
+  total_evidence_unit_budget: 69
+  prior_evidence_reuse_for_ranking: false
+  held_out_seed_consumption: false
+
+single_changed_factor:
+  name: dynamic_conflict_prediction_horizon_s
+  runtime_field: supervisor.dynamic.predicted_ttc_max_s
+  preregistered_values_s: [5.0, 4.5, 4.0]
+  control_value_s: 5.0
+  repair_candidate_values_s: [4.5, 4.0]
+  rationale: >-
+    The evaluator relative-motion envelope remains frozen at 5.0 s. Reducing
+    only the runtime supervisor horizon creates a 0.5--1.0 s separation from
+    that evaluator horizon while retaining a 4.0 s maximum runtime prediction
+    window. This is not a guaranteed reaction time; safety and clearance
+    remain hard gates.
+  overlay_release_confirmation_s_frozen: 0.20
+  evaluator_relative_ttc_horizon_s_frozen: 5.0
+
+frozen_m030_input:
+  classification: demonstrated_clearance_repair_non_ranking_input_not_system_winner
+  maneuver_forward_min_obstacle_dist_m: 0.30
+  maneuver_reverse_min_obstacle_dist_m: 0.30
+  maneuver_inflation_dist_m: 0.52
+  source_stage_report_sha256: e1ad0aeb7739e8c1abad0f17059f8dbe31c671dd03584d96637830033e5ab22a
+
+frozen_passed_mechanisms:
+  all_anchor_values_changed: false
+  supervisor_geometry_thresholds_changed: false
+  supervisor_transition_values_other_than_declared_factor_changed: false
+  overlay_release_confirmation_changed: false
+  dynamic_overlay_anchor_scales_changed: false
+  static_topology_mechanism_changed: false
+  corridor_centerline_mechanism_changed: false
+  maneuver_reverse_state_machine_changed: false
+  maneuver_speed_acceleration_or_time_values_changed: false
+  typed_transaction_runtime_changed: false
+  bounded_transaction_join_changed: false
+  atomic_world_model_input_join_changed: false
+  readiness_taxonomy_changed: false
+  evaluator_ttc_semantics_changed: false
+  scene_runtime_labels_or_manifest_access: false
+  learned_policy_loaded: false
+
+ttc_activation_coverage_readiness_gate:
+  profile_ids: [r5_ttc_h450, r5_ttc_h400]
+  fresh_scene_count: 3
+  evidence_unit_count: 6
+  expected_observed_conflict_count_per_profile: 2
+  expected_no_conflict_count_per_profile: 1
+  tracker_invalid_count_max_per_profile: 0
+  required_consecutive_stable_count: 10
+  measurement_duration_s: 6.0
+  minimum_message_count_per_stream: 20
+  minimum_transaction_activated_fraction: 0.95
+  minimum_transaction_valid_fraction: 0.95
+  minimum_transaction_join_valid_fraction: 0.95
+  maximum_expected_context_hold_count_per_probe: 1
+  maximum_world_model_sequence_mismatch_count: 0
+  maximum_world_model_input_join_fault_count: 0
+  maximum_backend_transaction_fault_count: 0
+  maximum_unknown_transaction_fault_count: 0
+  all_six_probes_required: true
+
+ttc_coverage_gate:
+  statuses: [OBSERVED_CONFLICT, NO_CONFLICT_IN_HORIZON, TRACKER_INVALID]
+  component_probe_required_status_order: [OBSERVED_CONFLICT, NO_CONFLICT_IN_HORIZON, TRACKER_INVALID]
+  component_probe_count: 3
+  full_navigation_expected_observed_conflict_scene_count_per_method: 2
+  full_navigation_expected_no_conflict_scene_count_per_method: 1
+  full_navigation_tracker_invalid_count_max_per_method: 0
+  post_hoc_scene_relabel_forbidden: true
+  evaluator_horizon_or_threshold_change_forbidden: true
+
+hard_gates:
+  evidence:
+    ttc_activation_coverage_readiness_pass: true
+    ttc_component_coverage_pass: true
+    complete_navigation_episode_count: 60
+    duplicate_evidence_identity_count_max: 0
+    readiness_compile_support_execution_count_max: 0
+    persistent_interface_failure_count_max: 0
+    training_used: false
+    runtime_manifest_or_scene_label_access: false
+    evaluator_truth_fed_to_runtime: false
+  bounded_context_join:
+    minimum_valid_fraction_per_episode: 0.90
+    allowed_join_reasons: [EXACT_SEQUENCE_JOIN, BOUNDED_SEQUENCE_TIME_JOIN]
+  fixed_reference_validity:
+    success_count_min: 14
+    collision_count_max: 0
+  candidate_safety:
+    success_count_not_below_fixed: true
+    collision_count_max: 0
+    minimum_clearance_m_min_per_successful_episode: 0.25
+    typed_transaction_invalid_count_max: 0
+  maneuver_clearance_preservation:
+    minimum_signed_scan_clearance_m_per_successful_maneuver: 0.25
+    minimum_truth_box_clearance_m_per_successful_maneuver: 0.25
+    contact_count_max_per_maneuver: 0
+    truth_metric_evaluator_only: true
+    runtime_truth_access_forbidden: true
+  ttc:
+    observed_conflict_count_min_per_method: 2
+    no_conflict_count_min_per_method: 1
+    tracker_invalid_navigation_count_max_per_method: 0
+    component_three_state_probe_pass: true
+  dynamic_overlay_activation:
+    conflict_episode_with_non_none_overlay_count_min_per_candidate: 2
+  chatter:
+    active_anchor_switch_count_max_per_episode: 3
+    active_anchor_switch_count_mean_max: 2.0
+  mechanism_activation_for_non_control_candidates:
+    topology_locked_sample_count_min: 1
+    corridor_centerline_sample_count_min: 1
+    maneuver_reverse_sample_count_min: 3
+    mechanism_topology_switch_count_max_per_episode: 1
+  mechanism_activation:
+    maneuver_reverse_episode_count_min: 2
+    maneuver_reverse_sample_count_min: 3
+  efficiency_vs_fixed:
+    total_navigation_time_ratio_max: 1.05
+    family_median_navigation_time_regression_percent_max: 15.0
+    family_non_regression_count_min: 1
+    required_family_set: [CRUISE, DYNAMIC, STATIC_DENSE, CORRIDOR, MANEUVER]
+  priority_family_efficiency:
+    families: [STATIC_DENSE, CORRIDOR, MANEUVER]
+    median_navigation_time_regression_percent_max: 15.0
+
+ranking_after_all_hard_gates:
+  - lowest_total_navigation_time_ratio_vs_fixed
+  - highest_minimum_truth_maneuver_clearance_m
+  - highest_minimum_scan_clearance_m
+  - lowest_active_anchor_switch_mean
+  - lexical_candidate_id
+
+budget_and_retry:
+  activation_readiness_attempts_per_identity_max: 1
+  ttc_component_attempts_per_identity_max: 1
+  navigation_attempts_per_identity_max: 1
+  terminal_failure_identity_retry_forbidden: true
+  resume_after_any_terminal_failure_forbidden: true
+  preserve_failure_evidence: true
+  budget_expansion_forbidden: true
+  readiness_compile_support_scene_execution_forbidden: true
+
+execution_order:
+  - validate frozen resources and seed firewall offline
+  - six scene-based TTC activation-and-coverage readiness episodes on three fresh probe-only seeds
+  - three deterministic TTC component identities without navigation seeds
+  - fifteen Fixed TEB episodes on fresh navigation calibration seeds
+  - fifteen control-horizon episodes on the same fresh navigation seeds
+  - fifteen 4.5-second candidate episodes on the same fresh navigation seeds
+  - fifteen 4.0-second candidate episodes on the same fresh navigation seeds
+  - fail-closed hard-gate assessment
+  - stop and wait for a separate winner-freeze instruction
+
+stopping_rules:
+  - any TTC activation-and-coverage readiness failure stops before component TTC and navigation
+  - TTC component coverage failure stops before navigation
+  - any terminal evidence failure stops immediately and permanently records the identity
+  - no failed identity may be retried in the same run or after resume
+  - fixed-reference collision or fewer than 14 successes invalidates the split
+  - candidate collision, incomplete evidence or any hard-gate failure disqualifies that candidate
+  - no early performance selection, no seed replacement and no budget expansion
+  - no passing candidate means stop without winner, held-out or V2-05
+
+current_design_authorization:
+  contract_and_preregistration_edits: true
+  scene_derivation_and_sdf_compilation_without_ros: true
+  validator_and_unit_tests: true
+  dry_run_audit_without_ros_or_gazebo: true
+  bounded_gazebo_calibration_execution: false
+  formal_gazebo_batch: false
+  winner_freeze: false
+  held_out_validation: false
+  v2_05: false
+  sac_training: false
+  real_vehicle_motion: false
+  real_vehicle_parameter_write: false

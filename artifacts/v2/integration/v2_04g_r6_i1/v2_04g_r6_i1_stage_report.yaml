@@ -1,0 +1,53 @@
+schema_version: '2.0'
+architecture_generation: v2
+stage: V2-04G-R6-I1
+status: terminal_failure
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+execution_authorization:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i1_bounded_simulation_authorization.yaml
+  sha256: 3eb157c0ea2ec4a6af2dea86f2756871512f06a7aee2eab24f6a96be03f68db3
+evidence_budget_authorized: 6
+evidence_units_consumed: 1
+r5_remaining_units_consumed: 0
+held_out_5001_5010_accessed: false
+retry_count: 0
+resume_used: false
+attempt_limit_per_identity: 1
+planned_identity_count: 6
+attempt_ledger:
+- sequence: 1
+  identity:
+    stage: V2-04G-R6-I1
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+    seed: 5141
+    attempt: 1
+  status: terminal_failure
+  seed_consumed: true
+  evidence_units_consumed: 1
+  attempt_limit: 1
+  resume_forbidden: true
+  journal_root: artifacts/v2/integration/v2_04g_r6_i1/execution/journals
+  journal: artifacts/v2/integration/v2_04g_r6_i1/execution/journals/attempt_73c14969a81b4dbd4837158a06c9d03abeef09033adf4702684a5427e9405f3f.yaml
+  raw_evidence_root: artifacts/v2/integration/v2_04g_r6_i1/execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i1-dynamic-conflict-single-s5141/raw
+  consumption_boundary: base_roslaunch_spawn_requested
+  failure_type: R6I1ExecutionError
+  failure_reason: 'service readiness timed out: /move_base/TebLocalPlannerROS/set_parameters'
+  emergency_process_containment: true
+terminal_failure:
+  identity:
+    stage: V2-04G-R6-I1
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+    seed: 5141
+    attempt: 1
+  failure_type: R6I1ExecutionError
+  reason: 'service readiness timed out: /move_base/TebLocalPlannerROS/set_parameters'
+assessment_complete: false
+winner_ranked_or_frozen: false
+unattempted_budget_forfeited: 5
+resume_forbidden: true

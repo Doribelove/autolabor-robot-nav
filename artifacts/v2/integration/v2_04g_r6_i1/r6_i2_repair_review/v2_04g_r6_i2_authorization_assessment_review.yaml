@@ -1,0 +1,36 @@
+schema_version: '2.0'
+architecture_generation: v2
+stage: V2-04G-R6-I2
+review_id: fam_teb_v2_04g_r6_i2_authorization_assessment_review_1
+status: repair_component_review_pass_execution_not_authorized
+review_result: pass
+offline_only: true
+execution_authorized: false
+real_authorization_created: false
+seed_values: []
+evidence_budget_units: 0
+ros_or_gazebo_started: false
+repairs:
+  single_open_no_follow_hash_and_parse: true
+  closed_authorization_top_level_schema: true
+  closed_nested_authorization_schema: true
+  exact_preregistration_schedule_binding: true
+  type_sensitive_schedule_comparison: true
+  all_bound_resources_single_read_verified: true
+  assessor_source_digests_explicitly_scoped: true
+  assessor_has_no_free_stage_document_reference: true
+  assessor_is_deterministic_and_write_free: true
+negative_test_classes:
+- authorization_symlink
+- duplicate_yaml_key
+- caller_hash_mismatch
+- extra_top_level_key
+- extra_nested_key
+- schedule_reorder
+- schedule_type_confusion
+- resource_hash_mismatch
+- independent_logical_closure_digest_mismatch
+- prior_stage_reuse_flag
+- nonempty_ledger_without_replay
+- ledger_not_exact_schedule_prefix
+scope_limit: implementation_and_offline_review_only_no_execution_authority

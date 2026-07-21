@@ -1,0 +1,161 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-R6-I4
+contract_id: fam_teb_v2_04g_r6_i4_preflight_integrity_repair_readiness_1
+status: offline_preflight_integrity_repair_authorized
+contract_date: "2026-07-21"
+independent_stage: true
+source_stage: V2-04G-R6-I3
+source_status: execution_release_preflight_failed_closed_before_state_creation
+offline_only: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized_by_this_contract: false
+ros_or_gazebo_start_authorized: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+claim_limit: >-
+  Offline preflight-integrity parser-scope repair, real-roster regression,
+  trusted-hash rebuild, dependency closure and deterministic machine review
+  only. This contract is not an execution release, a simulation result, a
+  safety or performance claim, or deployment readiness.
+
+authorization_basis:
+  explicit_user_i4_offline_repair_instruction_received: true
+  explicit_user_simulation_execution_instruction_received_for_i4: false
+  independent_future_simulation_execution_instruction_required: true
+  future_execution_identity_seed_schedule_and_budget_decision_deferred: true
+
+i4_allocation:
+  execution_seeds: []
+  compile_support_seeds: []
+  exact_schedule: []
+  evidence_units_authorized: 0
+  evidence_units_consumed: 0
+  evidence_units_forfeited: 0
+  attempt_roots_allowed: false
+  execution_state_allowed: false
+
+source_i3_allocation_snapshot:
+  authorization_units: 6
+  consumed_units: 0
+  forfeited_units: 0
+  terminal_attempts: 0
+  execution_state_created: false
+  future_reuse_or_execution_authorized_by_i4: false
+
+parser_repair_boundary:
+  authorization_resource_count: 12
+  all_resources_exact_bytes_sha256_rehashed: true
+  single_open_no_follow_required: true
+  parsed_authorization_resource_labels:
+    - preregistration
+    - inherited_r6_i2_dependency_closure
+  hash_only_authorization_resource_labels:
+    - aligned_supervisor
+    - frozen_evaluator
+    - legacy_supervisor
+    - r6_design_report
+    - r6_i1_scene_derivation
+    - r6_i2_authorization_component_review
+    - r6_i2_authorization_module
+    - r6_i2_contract
+    - r6_i2_integration_review
+    - source_r6_i1_compiled_scene_index
+  parse_selection_by_closed_label_only: true
+  suffix_based_parse_forbidden: true
+  strict_yaml_loader_unchanged: true
+  string_key_rule_unchanged_for_parsed_documents: true
+  legacy_integer_key_resource_must_remain_hash_only: true
+
+frozen_behavior_boundary:
+  semantic_factor_change_allowed: false
+  seven_threshold_change_allowed: false
+  scene_behavior_change_allowed: false
+  evaluator_change_allowed: false
+  anchor_bank_change_allowed: false
+  mechanism_change_allowed: false
+  transaction_or_join_change_allowed: false
+  training_change_allowed: false
+  real_vehicle_change_allowed: false
+
+historical_exact_resources:
+  failed_i3_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+    sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  i3_preflight_failure_handoff:
+    path: docs/thesis_experiment/CURRENT_V2_04G_R6_I3_RELEASE_PREFLIGHT_HANDOFF.md
+    sha256: eeb9734b3d6e6c4d531f60d4bd162f24512f0d549d601395d1f7654169ef1755
+  i3_authorization:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_bounded_simulation_authorization.yaml
+    sha256: ef0a5886bacfd9e439d56e5586a851a33e2ab4076ac11f6b84033425b9b305d2
+  i3_preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_preregistration.yaml
+    sha256: a8295c723c1cf973c2c35c86e5b2d5c07361bdf0e92f36a0e8d12d2364ce6268
+  i3_dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/execution_dependency_closure.yaml
+    file_sha256: 55f0e343788409301258da96f355e78d9fb689bdcc270ef8f5b9fe54b06a4b37
+    logical_sha256: f83beb04dc6e7cd1e43c2611997f86dbd5bf07c36f33d51fc979128f2cb4ed4f
+  i3_readiness_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/v2_04g_r6_i3_execution_readiness_review.yaml
+    sha256: 3a8e9e466a08f7d3ef65542b285cf5020e6ce53dbb63cbe9b2316afb717a680e
+  i3_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_r6_i2_r6_i3_bounded_validation.py
+    sha256: ef3a477c6d8b6924455c24b6fbe7821472e23cc61369a3fb91a37d6c72b233d5
+  i3_validator:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_r6_i2_r6_i3_release.py
+    sha256: c79551a518d36bd04ddec3dbc0cd99a8b5a881e41cd3edeec041bea8004ef43a
+  i3_validator_tests:
+    path: src/tools/thesis_experiment/tests/test_v2_04g_r6_i1.py.d/test_v2_04g_r6_i3_release_validator.py
+    sha256: e04aa910166236603d5ac38c46a7ab0ac135ec18bc51b6c98ffd462aab2440f2
+  legacy_integer_key_scene_derivation:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_scene_derivation.yaml
+    sha256: 5f3e756609828b70ba0612c59a510d1d3750bd8fe33161829da3f9b7e706ce12
+  inherited_i2_dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i2_repair_review/execution_dependency_closure.yaml
+    file_sha256: 63c4e7ba5d8fd64315040a566aabdb54cd71b034ce76f814aa3f519be6dfac58
+    logical_sha256: 2be410c333b78d707b591fb30bef0b344b40c19e3f957d91fbc6e56f1bd01fe6
+  inherited_i2_machine_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i2_repair_review/v2_04g_r6_i2_integration_review.yaml
+    sha256: b23f7384e3c88aa9c3c0a9af50f6fc51159b2091b6b44cb127d034847bbb8a61
+
+canonical_paths:
+  failed_i3_release: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+  future_i4_release: experiments/manifests/v2/integration/v2_04g_r6_i4_execution_release.yaml
+  repair_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review
+  dependency_closure: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review/execution_dependency_closure.yaml
+  machine_review: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review/v2_04g_r6_i4_preflight_integrity_readiness_review.yaml
+
+required_state_gate:
+  failed_i3_release_exact_sha_present: true
+  future_i4_release_present: false
+  i3_attempt_root_present: false
+  i3_journal_root_present: false
+  i3_receipt_root_present: false
+  i3_raw_evidence_root_present: false
+  i3_semantic_evidence_root_present: false
+  i3_stage_report_present: false
+  i3_execution_report_present: false
+  i4_attempt_root_present: false
+  i4_journal_root_present: false
+  i4_receipt_root_present: false
+  i4_raw_evidence_root_present: false
+  i4_semantic_evidence_root_present: false
+  i4_ros_home_present: false
+  i4_ros_logs_present: false
+  i4_stage_report_present: false
+  i4_execution_report_present: false
+
+completion_gate:
+  real_twelve_resource_roster_regression_required: true
+  legacy_integer_key_positive_and_drift_negative_required: true
+  rebuilt_runner_trust_hashes_required: true
+  independent_dependency_closure_required: true
+  inherited_i3_and_i2_targets_mechanically_rehashed_required: true
+  deterministic_machine_review_required: true
+  future_release_must_remain_absent: true
+  execution_state_must_remain_absent: true
+  seed_or_budget_consumption_must_remain_zero: true
+  execution_may_start_after_this_contract_alone: false

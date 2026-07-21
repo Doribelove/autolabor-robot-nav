@@ -1,0 +1,171 @@
+
+===== base_launch.log =====
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+xacro: in-order processing became default in ROS Melodic. You can drop the option.
+... logging to /home/robot/robot_ws_base_rl/artifacts/v2/integration/v2_04g_r6_i1/execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i1-dynamic-conflict-single-s5141/work/ros_logs/233a3322-835e-11f1-b66d-19eacb789834/roslaunch-WP-28471.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/robot/robot_ws_base_rl/src/simulation/m2_gazebo/launch/m2_v2_04g_r6_execution_integration.launch
+[1mstarted roslaunch server http://WP:34343/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /m2_gazebo/simulation_only: True
+ * /m2_robot_state_publisher/publish_frequency: 30.0
+ * /move_base/TebLocalPlannerROS/acc_lim_theta: 0.6
+ * /move_base/TebLocalPlannerROS/acc_lim_x: 0.6
+ * /move_base/TebLocalPlannerROS/allow_init_with_backwards_motion: True
+ * /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel: False
+ * /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist: 1.5
+ * /move_base/TebLocalPlannerROS/dt_hysteresis: 0.1
+ * /move_base/TebLocalPlannerROS/dt_ref: 0.3
+ * /move_base/TebLocalPlannerROS/dynamic_obstacle_inflation_dist: 0.75
+ * /move_base/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /move_base/TebLocalPlannerROS/enable_multithreading: True
+ * /move_base/TebLocalPlannerROS/feasibility_check_no_poses: 5
+ * /move_base/TebLocalPlannerROS/footprint_model/type: polygon
+ * /move_base/TebLocalPlannerROS/footprint_model/vertices: [[0.52, 0.35], [0...
+ * /move_base/TebLocalPlannerROS/global_plan_overwrite_orientation: True
+ * /move_base/TebLocalPlannerROS/global_plan_viapoint_sep: 0.35
+ * /move_base/TebLocalPlannerROS/include_costmap_obstacles: True
+ * /move_base/TebLocalPlannerROS/include_dynamic_obstacles: True
+ * /move_base/TebLocalPlannerROS/inflation_dist: 0.725
+ * /move_base/TebLocalPlannerROS/map_frame: odom
+ * /move_base/TebLocalPlannerROS/max_global_plan_lookahead_dist: 6.0
+ * /move_base/TebLocalPlannerROS/max_number_classes: 2
+ * /move_base/TebLocalPlannerROS/max_samples: 500
+ * /move_base/TebLocalPlannerROS/max_vel_theta: 0.75
+ * /move_base/TebLocalPlannerROS/max_vel_x: 0.9
+ * /move_base/TebLocalPlannerROS/max_vel_x_backwards: 0.3
+ * /move_base/TebLocalPlannerROS/max_vel_y: 0.0
+ * /move_base/TebLocalPlannerROS/min_obstacle_dist: 0.375
+ * /move_base/TebLocalPlannerROS/min_turning_radius: 1.2
+ * /move_base/TebLocalPlannerROS/obstacle_poses_affected: 15
+ * /move_base/TebLocalPlannerROS/odom_topic: /odom
+ * /move_base/TebLocalPlannerROS/selection_cost_hysteresis: 0.95
+ * /move_base/TebLocalPlannerROS/switching_blocking_period: 0.5
+ * /move_base/TebLocalPlannerROS/teb_autosize: True
+ * /move_base/TebLocalPlannerROS/weight_acc_lim_theta: 1.0
+ * /move_base/TebLocalPlannerROS/weight_acc_lim_x: 1.0
+ * /move_base/TebLocalPlannerROS/weight_adapt_factor: 2.0
+ * /move_base/TebLocalPlannerROS/weight_dynamic_obstacle: 60.0
+ * /move_base/TebLocalPlannerROS/weight_dynamic_obstacle_inflation: 0.3
+ * /move_base/TebLocalPlannerROS/weight_inflation: 0.1
+ * /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive: 10.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_nh: 1000.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_turning_radius: 10.0
+ * /move_base/TebLocalPlannerROS/weight_max_vel_theta: 1.0
+ * /move_base/TebLocalPlannerROS/weight_max_vel_x: 2.0
+ * /move_base/TebLocalPlannerROS/weight_obstacle: 75.0
+ * /move_base/TebLocalPlannerROS/weight_optimaltime: 0.75
+ * /move_base/TebLocalPlannerROS/weight_velocity_obstacle_ratio: 5.0
+ * /move_base/TebLocalPlannerROS/weight_viapoint: 2.5
+ * /move_base/TebLocalPlannerROS/wheelbase: 0.65
+ * /move_base/base_global_planner: navfn/NavfnROS
+ * /move_base/base_local_planner: teb_local_planner...
+ * /move_base/clearing_rotation_allowed: False
+ * /move_base/controller_frequency: 10.0
+ * /move_base/controller_patience: 5.0
+ * /move_base/global_costmap/footprint: [[0.52, 0.35], [0...
+ * /move_base/global_costmap/footprint_padding: 0.05
+ * /move_base/global_costmap/global_frame: odom
+ * /move_base/global_costmap/height: 30.0
+ * /move_base/global_costmap/inflation_layer/cost_scaling_factor: 4.0
+ * /move_base/global_costmap/inflation_layer/enabled: True
+ * /move_base/global_costmap/inflation_layer/inflation_radius: 0.55
+ * /move_base/global_costmap/obstacle_layer/enabled: True
+ * /move_base/global_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/global_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/global_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/global_costmap/obstacle_layer/scan/inf_is_valid: True
+ * /move_base/global_costmap/obstacle_layer/scan/marking: True
+ * /move_base/global_costmap/obstacle_layer/scan/obstacle_range: 12.0
+ * /move_base/global_costmap/obstacle_layer/scan/raytrace_range: 15.0
+ * /move_base/global_costmap/obstacle_layer/scan/sensor_frame: laser_link
+ * /move_base/global_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/global_costmap/plugins: [{'name': 'obstac...
+ * /move_base/global_costmap/publish_frequency: 2.0
+ * /move_base/global_costmap/resolution: 0.05
+ * /move_base/global_costmap/robot_base_frame: base_link
+ * /move_base/global_costmap/rolling_window: True
+ * /move_base/global_costmap/transform_tolerance: 0.3
+ * /move_base/global_costmap/update_frequency: 5.0
+ * /move_base/global_costmap/width: 80.0
+ * /move_base/local_costmap/footprint: [[0.52, 0.35], [0...
+ * /move_base/local_costmap/footprint_padding: 0.05
+ * /move_base/local_costmap/global_frame: odom
+ * /move_base/local_costmap/height: 12.0
+ * /move_base/local_costmap/inflation_layer/cost_scaling_factor: 4.0
+ * /move_base/local_costmap/inflation_layer/enabled: True
+ * /move_base/local_costmap/inflation_layer/inflation_radius: 0.55
+ * /move_base/local_costmap/obstacle_layer/enabled: True
+ * /move_base/local_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/local_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/local_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/local_costmap/obstacle_layer/scan/inf_is_valid: True
+ * /move_base/local_costmap/obstacle_layer/scan/marking: True
+ * /move_base/local_costmap/obstacle_layer/scan/obstacle_range: 12.0
+ * /move_base/local_costmap/obstacle_layer/scan/raytrace_range: 15.0
+ * /move_base/local_costmap/obstacle_layer/scan/sensor_frame: laser_link
+ * /move_base/local_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/local_costmap/plugins: [{'name': 'obstac...
+ * /move_base/local_costmap/publish_frequency: 5.0
+ * /move_base/local_costmap/resolution: 0.05
+ * /move_base/local_costmap/robot_base_frame: base_link
+ * /move_base/local_costmap/rolling_window: True
+ * /move_base/local_costmap/transform_tolerance: 0.3
+ * /move_base/local_costmap/update_frequency: 10.0
+ * /move_base/local_costmap/width: 12.0
+ * /move_base/oscillation_distance: 0.2
+ * /move_base/oscillation_timeout: 10.0
+ * /move_base/planner_frequency: 1.0
+ * /move_base/planner_patience: 5.0
+ * /move_base/recovery_behavior_enabled: False
+ * /move_base/shutdown_costmaps: False
+ * /nav_world_model/allow_unfrozen_simulation_candidate: True
+ * /nav_world_model/config: /home/robot/robot...
+ * /r6_rule_context_supervisor/allow_unfrozen_simulation_candidate: True
+ * /r6_rule_context_supervisor/attempt_profile_id: r6_semantics_lega...
+ * /r6_rule_context_supervisor/config: /home/robot/robot...
+ * /r6_rule_context_supervisor/config_sha256: a6941f6fd66e187c3...
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /tracks_to_teb_obstacles/fixed_frame: odom
+ * /tracks_to_teb_obstacles/input_health: /nav_world_model/...
+ * /tracks_to_teb_obstacles/input_odometry: /odom
+ * /tracks_to_teb_obstacles/input_tracks: /nav_world_model/...
+ * /tracks_to_teb_obstacles/minimum_confidence: 0.55
+ * /tracks_to_teb_obstacles/output_obstacles: /move_base/TebLoc...
+ * /use_sim_time: True
+ * /v2_scan_transport/delay_s: 0.06
+ * /v2_scan_transport/input_topic: /v2/scan_raw
+ * /v2_scan_transport/jitter_s: 0.01
+ * /v2_scan_transport/noise_stddev_m: 0.01
+ * /v2_scan_transport/output_topic: /scan
+ * /v2_scan_transport/seed: 5141
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    m2_robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    move_base (move_base/move_base)
+    nav_world_model (nav_world_model/nav_world_model_node.py)
+    r6_rule_context_supervisor (teb_mode_manager/r6_rule_context_supervisor_node.py)
+    spawn_m2 (gazebo_ros/spawn_model)
+    tracks_to_teb_obstacles (nav_world_model/tracks_to_teb_obstacles.py)
+    v2_scan_transport (m2_gazebo/v2_scan_transport.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [28581][0m
+[1mROS_MASTER_URI=http://127.0.0.1:11311[0m
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[INFO] [1784457577.873049, 0.000000]: Loading model XML from ros parameter robot_description
+[INFO] [1784457577.902868, 0.000000]: Waiting for service /gazebo/spawn_urdf_model
+[INFO] [1784457579.413111, 0.000000]: Calling service /gazebo/spawn_urdf_model
+[INFO] [1784457579.788399, 0.000000]: Spawn status: SpawnModel: Successfully spawned entity

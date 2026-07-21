@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- This launch is an integration surface, not execution authorization. -->
+  <arg name="config"/>
+  <arg name="config_sha256"/>
+  <arg name="attempt_profile_id"/>
+  <arg name="allow_unfrozen_simulation_candidate" default="false"/>
+
+  <node pkg="teb_mode_manager"
+        type="r6_rule_context_supervisor_node.py"
+        name="r6_rule_context_supervisor"
+        output="screen"
+        required="true">
+    <param name="config" value="$(arg config)"/>
+    <param name="config_sha256" value="$(arg config_sha256)"/>
+    <param name="attempt_profile_id" value="$(arg attempt_profile_id)"/>
+    <param name="allow_unfrozen_simulation_candidate"
+           value="$(arg allow_unfrozen_simulation_candidate)"/>
+  </node>
+</launch>

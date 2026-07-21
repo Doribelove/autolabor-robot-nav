@@ -1,11 +1,11 @@
 # TEB RL Thesis Development Status
 
-更新时间：2026-07-15
+更新时间：2026-07-21
 
 ## 当前阶段
 
-- 阶段：T12 冻结证据维护 + FAM-TEB V2-04G-R4-R1 单因素净空修复完成、无 winner
-- 状态：T00--T11 已完成；T12 两 seed 完整但学习门失败；V2-04G-R4-R1 仅扫描 Aggressive Maneuver `min_obstacle_dist` 0.28/0.30/0.32 m，使用全新 seeds 完成 readiness 6/6、TTC 3/3 和 navigation 60/60。0.30 m 候选修复 scan/truth 净空且保持成功、时间、倒车、切换和事务门，但 fresh Dynamic 覆盖仅 1 conflict/2 clear，未达 2/1 TTC gate；未冻结 winner、未启动训练
+- 阶段：T12 冻结证据维护 + FAM-TEB V2-04G-R6-I6 pure-offline result interpretation/design closure complete
+- 状态：T00--T11 已完成；T12 两 seed 完整但学习门失败；V2-04G-R5 与 R6-I1 均永久停止，I5 终态冻结且不得重跑。I6 以 13-resource SHA 清单冻结 I5 关键证据，确定性复核报告 `c1fd43205d0f3b3c6a029590b33808812dc8db795bdcf4b270c345e033b9dd68` 返回 `offline_result_interpretation_design_closure_pass`；现有结论只限 fresh simulation semantic/execution integration。未来 V2-04G-P1 已预注册 90 个全新 scene-seed block / 270 episodes、零新增训练步数，但 `execution_authorized=false`、budget=0，未创建 release 或运行状态
 - 当前负责人：Ubuntu Codex CLI + 用户
 
 ## V2 架构设计状态
@@ -13,8 +13,8 @@
 - 系统指南：`docs/thesis_experiment/V2_SYSTEM_GUIDE.md`
 - 架构代号：`FAM-TEB V2`
 - 设计状态：`DESIGN COMPLETE`
-- 实现状态：`V2-04G-R4-R1 SINGLE-FACTOR MANEUVER CLEARANCE REPAIR COMPLETE / ALL OTHER AGGRESSIVE MECHANISMS FROZEN`
-- 正式实验状态：`READINESS 6/6 / TTC COMPONENT 3/3 / NAVIGATION 60/60 / M030 CLEARANCE REPAIRED / NAVIGATION TTC COVERAGE FAILED / NO WINNER / formal_result=false`
+- 实现状态：`R6-I5 6/6 SIMULATION INTEGRATION PASS FROZEN / R6-I6 OFFLINE INTERPRETATION CLOSURE PASS`
+- 正式实验状态：`NO PERFORMANCE RESULT / P1 DESIGN PREREGISTERED / 0 AUTHORIZED + 0 CONSUMED / NO WINNER / formal_result=false`
 - 实车状态：`FORBIDDEN WITHOUT NEW CALIBRATION AND ON-SITE APPROVAL`
 - 与 V1 的关系：V1/T00--T12 合同、runner、配置和 artifacts 保持冻结；V2 必须使用独立的
   schema、配置、manifest 和 artifact 根目录。
@@ -23,7 +23,7 @@
   规则监督器、V2-04 Anchor Bank/类型化 profile/feasible decoder/平滑 shadow 事务和零训练
   规则闭环；V2-04B 已增加 simulation-only 20 参数 typed TEB 真实事务和 calibration split，
   最新验收见 `artifacts/v2/component_acceptance/v2_04b_acceptance.yaml`。
-- 最新入口：V2-04G-R4-R1 冻结全部 R4 Aggressive 机制，仅同步修改两个 Maneuver anchor 的 `min_obstacle_dist`。0.30 m 在 fresh seeds 上实现 15/15 success、总时间比 1.0263、scan 0.2521 m、truth 0.2635 m、reverse 94，但三个 Dynamic 场景仅 1 conflict/2 clear，未达到 2/1 TTC gate。详见 `docs/thesis_experiment/CURRENT_V2_04G_R4_R1_HANDOFF.md`。本轮无 winner，禁止 freeze、held-out、V2-05/SAC。
+- 最新入口：独立 `V2-04G-R6-I6` 已完成纯离线解释闭环。I5 13-resource freeze manifest SHA 为 `40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935`；I6 reviewer 重验 14 项 source binding、6 journals、36 raw bindings 和六行语义计数，并与持久化报告 exact-equal。论文可宣称集成正确性和可复核性，不可宣称性能、泛化、安全、winner 或部署。最后一轮 `V2-04G-P1` 性能设计固定 3 roles × 30 fresh blocks × 3 methods = 270 episodes，主确认性对比 180 episodes，不增加训练预算；当前没有执行授权。详见 `docs/thesis_experiment/CURRENT_V2_04G_R6_I1_R6_I2_R6_I3_R6_I4_R6_I5_R6_I6_RESULT_INTERPRETATION_HANDOFF.md`。
   不得把 V2 当作 T12 action/projection 单因素
   续跑，也不授权新训练或实车闭环。所有模式和参数阈值继续保持 `runtime_ready=false`。
 
@@ -31,7 +31,7 @@
 
 | 项目 | 版本/commit | 备注 |
 | --- | --- | --- |
-| 主仓 | `a592f23`（本轮开始时） | 当前本地分支 `base_rl`，V2-04G 工作树 dirty，尚未提交或推送 |
+| 主仓 | 见 `git log -1` | 当前本地分支 `base_rl`；本轮整理 R5--I6 的代码、合同、证据和论文草稿并发布到该分支 |
 | arena-rosnav-3D | `634bcb091a90b362087cdba5a9cd3856466d493c` | dirty（70 项） |
 | TEB fork | `b4cf0639775e4521cdf7681158043ad3eef4b01a`；package `0.8.4` | 本地 fork含静态 footprint 生命周期修复，dirty；优先于系统 TEB 0.9.1 |
 | ROS | Noetic `1.17.4` | catkin 0.8.12，move_base 1.17.3 |
@@ -57,7 +57,7 @@
 | T10 SAC Direct-Theta | DONE | 9D normalized Δθ；与 T09 共享执行器/observation/reward/safety/预算；checkpoint/resume；配对验收；参数量/时延报告 | 20-step smoke 只能证明公平管线，不证明两种动作空间的性能差异 |
 | T11 正式仿真/消融 | DONE (AMENDED) | 4 seed×5 组×70 test=20 run/1400 episode 完整矩阵；20/20 manifest valid；四组 paired comparison 各 280 对；3 个 seed105 run supplementary | 原 5-seed 预注册未完成，禁止宣称完整 5-seed 正式实验；500-step validation 阈值均未达到；NoSafety 有 1 次 move_base SIGSEGV fatal attempt |
 | T12 安全修复/Residual SAC/rosbag-shadow | IN PROGRESS | 静态 footprint stress 通过；两 seed 各 2000-step 完整、14/14 test goal、0 crash/collision/emergency；validation change +0.4527/-0.0784 | 学习门失败且 projection 65.1%/69.5%，不扩预算、不做新配对；下一步单因素审查 Residual action/projection 匹配；rosbag adapter/live shadow 仍待实现 |
-| FAM-TEB V2 | V2-04G-R4-R1 COMPLETE / NO WINNER | 单因素 Maneuver clearance 0.28/0.30/0.32；readiness 6/6、TTC component 3/3、navigation 60/60；0.30 m 为 15/15 success、scan/truth 0.2521/0.2635 m、总时间比 1.0263、reverse 94，但 navigation TTC 为 1/2/0 未达 2/1/0；证据见 `artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_stage_report.yaml` | 净空修复有效但 TTC 鲁棒性门失败，禁止 freeze/held-out/V2-05/SAC/实车；若继续须新的 TTC 单因素 calibration-only 阶段与 fresh seeds，`runtime_ready=false` |
+| FAM-TEB V2 | R6-I5 EVIDENCE FROZEN / R6-I6 OFFLINE CLOSURE PASS / P1 DESIGN ONLY | 13-resource freeze；I6 deterministic interpretation exact-equal；论文 claims matrix；90 fresh-block / 270-episode final performance design，additional training=0 | I5 不可重跑；P1 `execution_authorized=false`、budget=0，须独立审查、新 release 和明确模拟授权后才可执行；当前无性能、winner、V2-05/SAC/实车结论，`formal_result=false`、`runtime_ready=false` |
 | T13 M2 闭环 | TODO | | |
 | T14 统计/论文导出 | TODO | | |
 
@@ -122,6 +122,30 @@ rosrun thesis_experiment validate_thesis_config.py metric-schema docs/thesis_exp
 ## 最近一次测试结果
 
 ```text
+R6-I6 pure-offline interpretation/design closure：I5 freeze manifest 的 13/13 资源 SHA 校验通过；
+versioned reviewer 重验 14 项 source binding、6 journal binding、36 raw-resource binding、readiness
+直接计数和六行 TTC/overlay 观察，并与 persisted review exact-equal，状态为
+`offline_result_interpretation_design_closure_pass`。定向 pytest 4 passed。I6 没有启动 ROS/Gazebo、
+没有创建 release/journal/attempt、没有训练或执行预算。future P1 design 固定 90 fresh blocks、
+270 episodes、180 confirmatory paired episodes 与 0 additional training steps，但 execution 未授权。
+发布前终态适用回归：I4/I5 release、I5 deterministic assessment 与 I6 共 87 passed；R5、TTC-D1
+和 R6 execution-integration 共 53 passed；83 个 staged Python 文件 AST parse、218 个 staged YAML
+safe-load 全部通过。完整历史快照集合另为 258 passed / 15 failed，15 项均要求后来已经合法生成的
+I3/I5 release、attempt 或 downstream handoff “不存在”；这些执行前快照断言保留原样，不作为终态 gate。
+R6-I5 bounded simulation execution：唯一 release SHA `9cef80f5...8b3d43` 通过 29-resource
+exact-hash full prejournal；冻结 schedule SHA `b52d00a2...d5402` 的 6/6 unit 全部
+`evidence_complete`，6/6 positive-clock bootstrap、direct readiness、scene snapshot 与 two-phase
+teardown/restore 通过。expected/observed TTC 全部一致；semantic-clear 中 legacy 为 0 finite TTC /
+18 non-NONE，circle-contact 为 0/0。retry=0、resume=false、terminal failure=null，未访问 held-out、
+未训练、未连接实车。deterministic assessment replay 与 persisted report exact-equal，report SHA
+`8ed09660...e5599`、`integrity_failures=[]`、`simulation_integration_validation_pass`；最终
+ROS/Gazebo/process/ports 均清空。该结论仅限 fresh simulation semantic/execution integration，
+不构成性能、泛化、winner 或 deployment claim。
+R6-I3 readiness reviewer：`execution_readiness_closure_pass_release_absent`；
+release-validator + readiness 共 24 项定向测试通过，reviewer `--check-only` byte-equivalent。
+fresh scene 内存重编 14/14 byte-equal，3/3 execution compiled behavior equivalence；closure
+136 local/187 edges、307 external、47 Python、9 runtime、0 unresolved，并重哈 inherited I2
+106 local/301 external targets。全部为离线/静态检查，本阶段未启动 ROS/Gazebo。
 catkin_make -j4 -l4：成功，共 73 个 catkin 包。
 teb_rl_tuner：14 项 T03 核心事务测试、4 项配置测试、1 项 Gazebo rostest；
 catkin_test_results 汇总 20 tests、0 errors、0 failures。
@@ -267,11 +291,22 @@ reward、EMA 或 hold。禁止新训练和配对；下一入口是预注册一�
 
 ## 当前阻塞项
 
-- V2-04G-R3 的 readiness 5/6 失败证据继续冻结；其 `world_model_sequence_mismatch` 已由
-  V2-04G-R3-R1 三流原子缓存 join 修复并在新 seeds 上获得 6/6、180 clean。下一入口是新的
-  full calibration-only 预注册，不得重试或恢复 R3/R3-R1。
+- R6-I5 已完成唯一获准执行并由 I6 冻结：6/6 consumed、0 forfeited、0 retry/resume，terminal
+  assessment pass。不得再次调用 `--execute`、替换 seed、扩预算或从已有 journal resume。I6 只完成
+  离线 result interpretation/design closure；未来 P1 尚无 execution authorization、budget、release、
+  schedule materialization 或 journal。当前仍不能形成性能、泛化、winner、训练或实车结论。
+- 默认 login shell 混入 `arena_ws`/`catkin_ws` 的 ROS、Python 与 Gazebo 路径。未来任何复核或
+  runner 必须使用 `env -i` non-login shell，只 source Noetic 与本论文 workspace。
+- V2-04G-R3/R4/R4-R1 的历史失败与不利 seeds 继续冻结，不得重试或恢复。V2-04G-R5
+  已在 readiness identity 1/6 因 TTC coverage mismatch terminally stop；seed5111 和全部
+  失败证据已保留。R6-I1 也已在 sequence1 seed5141 的 bootstrap readiness 终止；1 unit
+  consumed、5 units forfeited、resume forbidden。不得重试、resume、消费 R5 剩余 68
+  budget 或 R6-I1 剩余 units，也不得继续任何 R6-I1 episode。
 
-- 本地论文分支 `base_on_rl` 尚未设置 upstream，也未推送到 GitHub。
+- 当前本地论文分支为 `base_rl`，跟踪 `origin/base_rl`；R5--I6 代码、合同、冻结证据和论文
+  正文章节在本轮按显式路径整理发布，既有 dirty submodule 不纳入该发布。
+- stable workspace `/home/robot/robot_ws` 在 I5 中未修改、未 source、未连接。I5 最终检查时
+  ROS/Gazebo/move_base 进程和保留端口均为空；未来任何新执行仍必须重新建立独占仿真边界。
 - FAST_LIO、arena-rosnav-3D、Livox driver 等复制来的子模块存在既有 dirty 状态，未清理或重置。
 - T11 reward、课程、场景、checkpoint 和 seed 合同已冻结；原 5-seed 计划因额度约束缩减，主结论只能基于 amendment 中的 4-seed 完整矩阵。
 - M2 模型当前是确定性运动学接口模型，不包含已标定轮胎力、悬挂、转向滞后或制动动力学。
@@ -289,10 +324,14 @@ reward、EMA 或 hold。禁止新训练和配对；下一入口是预注册一�
 
 ## 下一步
 
-1. 新会话先读 `CURRENT_TEB_RL_HANDOFF.md` 和 `CURRENT_T12_RESIDUAL_TRAINING_HANDOFF.md`，核对冻结报告/checksum，禁止重复启动。
-2. 阅读 `CURRENT_T12_RESIDUAL_LEARNING_REVIEW.md`；原训练诊断、三方法配对与 curriculum 单因素 pilot 已完成。
-3. 当前不扩预算，也不重启任何历史 pilot；Residual action/projection 离线审查已经完成。
-4. 若继续训练，必须先登记一个动作—执行对齐学习 amendment；不得同时修改 residual radius、reward、EMA、hold、SAC 或 safety。只有两 seed validation 均上升后才启动新三方法冻结配对。
-5. T12 后续仍需用新 Gazebo/rosbag 数据做 live shadow 确认；默认只读，不向实车 TEB 写参数。
-6. T04--T11 继续复用 T03 四重仿真门控、快照恢复、manifest 和失败保留规则。
-7. 在实车标定完成前，实车参数范围、制动/时延、安全距离和实车保守回退继续保持 TBD。
+1. FAM-TEB V2 新会话在 I5 execution handoff 后继续读 `CURRENT_V2_04G_R6_I1_R6_I2_R6_I3_R6_I4_R6_I5_R6_I6_RESULT_INTERPRETATION_HANDOFF.md`。R5/R6-I1 终止、I5 终态和失败 I3 release 均保持冻结，不得再次启动。
+2. 论文继续以 `thesis_draft/CH03_FAM_TEB_SYSTEM_DESIGN.md`、`CH04_EXPERIMENT_INTEGRITY_METHOD.md`、`CH05_I5_INTEGRATION_RESULTS.md` 和 claims matrix 为正文基线；I5 只证明 semantic/execution integration，不得提前写成性能提升。
+3. 最后一轮性能目标采用已预注册的 `V2-04G-P1` 设计：3 scene roles × 30 fresh blocks × 3 methods = 270 episodes，主配对 180 episodes，additional training=0。先做独立离线设计审查和可计算性/功效复核，不先扩训练预算。
+4. P1 若要实际运行，必须建立新 closure/review/release、fresh budget 和独立明确的 simulation authorization；当前设计文件不是授权，不得复用 I5 identities、seeds 5161--5163 或任何历史 budget。
+5. 1.5/1.0 秒不属于本轮 factor；仍只是 D1 frozen trace 上的离线讨论值，不是合格配置或授权。winner freeze、held-out 5001--5010、V2-05/SAC 和实车仍分别需要独立授权。
+6. T12 新会话先读 `CURRENT_TEB_RL_HANDOFF.md`、`CURRENT_T12_RESIDUAL_TRAINING_HANDOFF.md` 和 `CURRENT_T12_RESIDUAL_LEARNING_REVIEW.md`，禁止重复启动。
+7. 当前不扩预算，也不重启任何历史 pilot；Residual action/projection 离线审查已经完成。
+8. 若继续训练，必须先登记一个动作—执行对齐学习 amendment；不得同时修改 residual radius、reward、EMA、hold、SAC 或 safety。只有两 seed validation 均上升后才启动新三方法冻结配对。
+9. T12 后续仍需用新 Gazebo/rosbag 数据做 live shadow 确认；默认只读，不向实车 TEB 写参数。
+10. T04--T11 继续复用 T03 四重仿真门控、快照恢复、manifest 和失败保留规则。
+11. 在实车标定完成前，实车参数范围、制动/时延、安全距离和实车保守回退继续保持 TBD。

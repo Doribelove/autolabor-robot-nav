@@ -1,0 +1,31 @@
+schema_version: "2.0"
+stage: V2-04G-R5
+derivation_id: fam_teb_v2_04g_r5_ttc_activation_coverage_readiness_derivation_1
+status: preregistered_design_not_executed
+simulation_only: true
+calibration_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+single_factor: fresh_scene_based_ttc_activation_and_coverage_readiness
+source_manifest:
+  path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_calibration_scenes.yaml
+  sha256: 29527d9bac30e002124a215d540244c7a053062854a2af5f38a8b3b3577cb0f4
+target_manifest_id: fam_teb_v2_04g_r5_ttc_readiness_scenes_1
+target_path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_ttc_readiness_scenes.yaml
+execution_probe_seeds: [5111, 5112, 5113]
+compile_support_only_seeds: [5114, 5115, 5116, 5117]
+scene_derivations:
+  - {source_scene_id: v2-04g-r4-r1-dynamic-conflict-s5094, target_scene_id: v2-04g-r5-readiness-dynamic-conflict-s5111, seed: 5111, execution_role: readiness_probe, layout_variant: v2_04g_r5_readiness_dynamic_conflict_early, evaluator_reason: preregistered_ttc_readiness_expected_observed_conflict_a}
+  - {source_scene_id: v2-04g-r4-r1-dynamic-conflict-s5095, target_scene_id: v2-04g-r5-readiness-dynamic-conflict-s5112, seed: 5112, execution_role: readiness_probe, layout_variant: v2_04g_r5_readiness_dynamic_conflict_late, evaluator_reason: preregistered_ttc_readiness_expected_observed_conflict_b}
+  - {source_scene_id: v2-04g-r4-r1-dynamic-clear-s5096, target_scene_id: v2-04g-r5-readiness-dynamic-clear-s5113, seed: 5113, execution_role: readiness_probe, layout_variant: v2_04g_r5_readiness_dynamic_no_conflict, evaluator_reason: preregistered_ttc_readiness_expected_no_conflict}
+  - {source_scene_id: v2-04g-r4-r1-cruise-s5091, target_scene_id: v2-04g-r5-readiness-compile-support-cruise-s5114, seed: 5114, execution_role: compile_support_only_never_execute, layout_variant: v2_04g_r5_readiness_compile_support_cruise, evaluator_reason: compile_support_only_not_evidence}
+  - {source_scene_id: v2-04g-r4-r1-static-s5097, target_scene_id: v2-04g-r5-readiness-compile-support-static-s5115, seed: 5115, execution_role: compile_support_only_never_execute, layout_variant: v2_04g_r5_readiness_compile_support_static, evaluator_reason: compile_support_only_not_evidence}
+  - {source_scene_id: v2-04g-r4-r1-corridor-s5100, target_scene_id: v2-04g-r5-readiness-compile-support-corridor-s5116, seed: 5116, execution_role: compile_support_only_never_execute, layout_variant: v2_04g_r5_readiness_compile_support_corridor, evaluator_reason: compile_support_only_not_evidence}
+  - {source_scene_id: v2-04g-r4-r1-maneuver-s5103, target_scene_id: v2-04g-r5-readiness-compile-support-maneuver-s5117, seed: 5117, execution_role: compile_support_only_never_execute, layout_variant: v2_04g_r5_readiness_compile_support_maneuver, evaluator_reason: compile_support_only_not_evidence}
+forbidden_seed_sets:
+  prior_validation: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610, 4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+  all_prior_v2_04g_calibration_and_probe: [4901, 4902, 4903, 4904, 4905, 4906, 4907, 4908, 4909, 4910, 4911, 4912, 4913, 4914, 4915, 4921, 4922, 4923, 4924, 4925, 4926, 4927, 4928, 4929, 4930, 4931, 4932, 4933, 4934, 4935, 4941, 4942, 4943, 4944, 4945, 4946, 4951, 4952, 4953, 4954, 4955, 4956, 4957, 4958, 4959, 4960, 4961, 4962, 4963, 4964, 4965, 4971, 4972, 4973, 4974, 4975, 4976, 4981, 4982, 4983, 4984, 4985, 4986, 4991, 4992, 4993, 4994, 4995, 4996, 5021, 5022, 5023, 5024, 5025, 5026, 5027, 5028, 5029, 5030, 5031, 5032, 5033, 5034, 5035, 5041, 5042, 5043, 5044, 5045, 5046, 5051, 5052, 5053, 5054, 5055, 5056, 5061, 5062, 5063, 5064, 5065, 5066, 5067, 5068, 5069, 5070, 5071, 5072, 5073, 5074, 5075, 5081, 5082, 5083, 5084, 5085, 5086, 5091, 5092, 5093, 5094, 5095, 5096, 5097, 5098, 5099, 5100, 5101, 5102, 5103, 5104, 5105]
+  navigation_calibration_only: [5121, 5122, 5123, 5124, 5125, 5126, 5127, 5128, 5129, 5130, 5131, 5132, 5133, 5134, 5135]
+  reserved_future_held_out: [5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010]

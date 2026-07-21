@@ -1,0 +1,95 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-R6-I4
+preregistration_id: fam_teb_v2_04g_r6_i4_preflight_integrity_repair_1
+status: frozen_offline_repair_preregistration
+preregistration_date: "2026-07-21"
+independent_stage: true
+source_stage: V2-04G-R6-I3
+offline_only: true
+simulation_only: true
+execution_authorized: false
+execution_ready: false
+formal_result: false
+runtime_ready: false
+ros_or_gazebo_start_authorized: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+single_repair_factor:
+  id: authorization_resource_semantic_parse_scope
+  old_behavior: parse_every_authorization_bound_yaml_by_filename_suffix
+  new_behavior: >-
+    Rehash every authorization-bound resource from one no-follow snapshot, but
+    strict-parse only the two closed labels whose documents the validator
+    semantically consumes.
+  parsed_labels:
+    - preregistration
+    - inherited_r6_i2_dependency_closure
+  expected_parsed_count: 2
+  expected_hash_only_count: 10
+  strict_yaml_policy_changed: false
+  authorization_resource_bytes_changed: false
+  authorization_manifest_bytes_changed: false
+
+real_roster_regression:
+  authorization_path: experiments/manifests/v2/integration/v2_04g_r6_i3_bounded_simulation_authorization.yaml
+  authorization_sha256: ef0a5886bacfd9e439d56e5586a851a33e2ab4076ac11f6b84033425b9b305d2
+  resource_count: 12
+  legacy_resource_label: r6_i1_scene_derivation
+  legacy_resource_path: experiments/manifests/v2/integration/v2_04g_r6_i1_scene_derivation.yaml
+  legacy_resource_sha256: 5f3e756609828b70ba0612c59a510d1d3750bd8fe33161829da3f9b7e706ce12
+  expected_integer_keys: [5141, 5142, 5143, 5144, 5145, 5146, 5147]
+  legacy_resource_must_be_hash_only: true
+  byte_drift_must_fail_before_semantic_use: true
+
+allocation:
+  execution_seeds: []
+  schedule: []
+  evidence_units_authorized: 0
+  evidence_units_consumed: 0
+  evidence_units_forfeited: 0
+
+source_i3_state:
+  failed_release_path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+  failed_release_sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  authorized_units: 6
+  consumed_units: 0
+  forfeited_units: 0
+  attempt_or_journal_created: false
+  reusable_or_executable_under_this_preregistration: false
+
+future_gate:
+  future_release_path: experiments/manifests/v2/integration/v2_04g_r6_i4_execution_release.yaml
+  future_release_must_remain_absent: true
+  future_execution_requires_new_explicit_user_instruction: true
+  future_seed_schedule_budget_decision_deferred: true
+
+bound_resources:
+  i4_contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_preflight_integrity_repair_contract.yaml
+    sha256: a5ac55ecd84a59a847e92e4268c95983312e39720fbd1839871bb25f90e158a4
+  failed_i3_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+    sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  i3_authorization:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_bounded_simulation_authorization.yaml
+    sha256: ef0a5886bacfd9e439d56e5586a851a33e2ab4076ac11f6b84033425b9b305d2
+  inherited_i3_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/execution_dependency_closure.yaml
+    sha256: 55f0e343788409301258da96f355e78d9fb689bdcc270ef8f5b9fe54b06a4b37
+    logical_sha256: f83beb04dc6e7cd1e43c2611997f86dbd5bf07c36f33d51fc979128f2cb4ed4f
+  inherited_i2_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i2_repair_review/execution_dependency_closure.yaml
+    sha256: 63c4e7ba5d8fd64315040a566aabdb54cd71b034ce76f814aa3f519be6dfac58
+    logical_sha256: 2be410c333b78d707b591fb30bef0b344b40c19e3f957d91fbc6e56f1bd01fe6
+
+completion_gate:
+  validator_real_roster_positive_required: true
+  validator_real_roster_hash_drift_negative_required: true
+  parsed_labels_exactly_two_required: true
+  hash_only_labels_exactly_ten_required: true
+  trusted_hash_chain_rebuilt_required: true
+  closure_and_machine_review_required: true
+  execution_side_effects_forbidden: true
+  downstream_execution_authorized: false

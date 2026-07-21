@@ -1,0 +1,214 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-I3
+audit_id: fam_teb_v2_04g_r6_i3_scene_behavior_equivalence_1
+status: fresh_scene_materialization_pass_behavior_equivalent
+review_result: pass
+offline_only: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_release_present: false
+evidence_units_consumed: 0
+ros_or_gazebo_started: false
+attempt_root_or_journal_created: false
+claim_limit: fresh_scene_identity_and_deterministic_compilation_only_not_execution_evidence
+
+provenance:
+  readiness_contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_i1_r6_i2_r6_i3_execution_readiness_contract.yaml
+    sha256: 65b2477324fa3764ecf28763ee21f59b070db7bb633897f2bf9672fb20912c2a
+  readiness_transition:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_readiness_transition.yaml
+    sha256: 9ca4d1661546adf826fd2e66818f73b1b4ef93cd1c94610c01d3560dab1b9890
+  scene_derivation:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_scene_derivation.yaml
+    sha256: 7c0a493370c5e47770adcf388b1234ac37385ddfbf71284fe2e547797050c7e9
+  source_scene_manifest:
+    path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_scenes.yaml
+    sha256: 12c50c598951ab09bf5696b9c3acec97691a4d5ae92063352f2a7e46caf87081
+  source_compiled_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/compiled_scenes/compiled_scene_index.yaml
+    sha256: 1f1cdde389dc98687142ca8d8c47c03bc8391b003d9103bde05c0e41cfddc4a0
+  scene_deriver:
+    path: src/tools/thesis_experiment/scripts/derive_v2_04g_scenes.py
+    sha256: c477448794e2c509c7a652e4731344761179e3c3e2ebea5de2ee9e3f5260e65b
+  scene_compiler_entrypoint:
+    path: src/tools/thesis_experiment/scripts/compile_v2_scenes.py
+    sha256: a6111cf0f6edc2d86264f69a6989533a1b6a021e1685bb2d67b6475a32a26bae
+  scene_compiler_module:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+    sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+
+target_scene_manifest:
+  path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/v2_04g_r6_i3_scenes.yaml
+  sha256: 7d56821d54e02b3e659e1f39fc74cd6af76e7a3c28944ffff6b425d2d819bae6
+  manifest_id: fam_teb_v2_04g_r6_i3_execution_readiness_scenes_1
+  scene_count: 7
+  seeds: [5151, 5152, 5153, 5154, 5155, 5156, 5157]
+  execution_seeds: [5151, 5152, 5153]
+  compile_support_only_seeds: [5154, 5155, 5156, 5157]
+  compile_support_evidence_units: 0
+  schema_validation_pass: true
+
+equivalence_rule:
+  comparison: exact_type_sensitive_recursive_equality_after_identity_normalization
+  allowed_top_level_changed_paths: [manifest_id]
+  allowed_per_scene_changed_paths: [scene_id, seed]
+  behavior_fields_allowed_to_change: []
+  observed_top_level_changed_paths: [manifest_id]
+  observed_per_scene_changed_paths: [scene_id, seed]
+  observed_behavior_fields_changed: []
+  scene_order_preserved: true
+  layout_variant_preserved_exactly: true
+  evaluator_only_preserved_exactly: true
+  trajectory_and_obstacle_fields_preserved_exactly: true
+  randomization_parameters_preserved_exactly: true
+  scene_timing_preserved_exactly: true
+  pass: true
+
+scene_equivalence:
+  - source_scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+    source_seed: 5141
+    target_scene_id: v2-04g-r6-i3-dynamic-conflict-single-s5151
+    target_seed: 5151
+    execution_role: paired_semantic_probe
+    normalized_source_sha256: 48f85b92b0dfc06e444b0354dadc19bd2e618667f06fa5b158cd29079cb04d56
+    normalized_target_sha256: 48f85b92b0dfc06e444b0354dadc19bd2e618667f06fa5b158cd29079cb04d56
+    behavior_fields_changed: []
+    pass: true
+  - source_scene_id: v2-04g-r6-i1-dynamic-conflict-multi-s5142
+    source_seed: 5142
+    target_scene_id: v2-04g-r6-i3-dynamic-conflict-multi-s5152
+    target_seed: 5152
+    execution_role: paired_semantic_probe
+    normalized_source_sha256: 8b6dcc193aefc036292e8e05d3ded5fdb0ebe2ba3a79967021a711eda5d702c2
+    normalized_target_sha256: 8b6dcc193aefc036292e8e05d3ded5fdb0ebe2ba3a79967021a711eda5d702c2
+    behavior_fields_changed: []
+    pass: true
+  - source_scene_id: v2-04g-r6-i1-dynamic-semantic-clear-s5143
+    source_seed: 5143
+    target_scene_id: v2-04g-r6-i3-dynamic-semantic-clear-s5153
+    target_seed: 5153
+    execution_role: paired_semantic_probe
+    normalized_source_sha256: 66514c086ee24da2e24d383af701d5f57f09ae01986d47e8869700ace9d66b33
+    normalized_target_sha256: 66514c086ee24da2e24d383af701d5f57f09ae01986d47e8869700ace9d66b33
+    behavior_fields_changed: []
+    pass: true
+  - source_scene_id: v2-04g-r6-i1-compile-support-cruise-s5144
+    source_seed: 5144
+    target_scene_id: v2-04g-r6-i3-compile-support-cruise-s5154
+    target_seed: 5154
+    execution_role: compile_support_only_never_execute
+    normalized_source_sha256: 3622949b9559399e02eec0f1e1d6a2c8d188d64e6fdfbe84d939ce6a186b3f51
+    normalized_target_sha256: 3622949b9559399e02eec0f1e1d6a2c8d188d64e6fdfbe84d939ce6a186b3f51
+    behavior_fields_changed: []
+    pass: true
+  - source_scene_id: v2-04g-r6-i1-compile-support-static-s5145
+    source_seed: 5145
+    target_scene_id: v2-04g-r6-i3-compile-support-static-s5155
+    target_seed: 5155
+    execution_role: compile_support_only_never_execute
+    normalized_source_sha256: 0598b72e43eee76e10386a83f70d6ee81eee64fe0a8540ad3a577e8f6f985ef2
+    normalized_target_sha256: 0598b72e43eee76e10386a83f70d6ee81eee64fe0a8540ad3a577e8f6f985ef2
+    behavior_fields_changed: []
+    pass: true
+  - source_scene_id: v2-04g-r6-i1-compile-support-corridor-s5146
+    source_seed: 5146
+    target_scene_id: v2-04g-r6-i3-compile-support-corridor-s5156
+    target_seed: 5156
+    execution_role: compile_support_only_never_execute
+    normalized_source_sha256: 5f2a2551628bae1df989cd714be47386916d0f5f90507380eeea8c8ca2df05fe
+    normalized_target_sha256: 5f2a2551628bae1df989cd714be47386916d0f5f90507380eeea8c8ca2df05fe
+    behavior_fields_changed: []
+    pass: true
+  - source_scene_id: v2-04g-r6-i1-compile-support-maneuver-s5147
+    source_seed: 5147
+    target_scene_id: v2-04g-r6-i3-compile-support-maneuver-s5157
+    target_seed: 5157
+    execution_role: compile_support_only_never_execute
+    normalized_source_sha256: 6865353116f2a58a4abb7a359fcae9b34ecda2f5d776ad3a0155b3d2abfc6e0c
+    normalized_target_sha256: 6865353116f2a58a4abb7a359fcae9b34ecda2f5d776ad3a0155b3d2abfc6e0c
+    behavior_fields_changed: []
+    pass: true
+
+compiled_execution_scene_equivalence:
+  scope: three_execution_scenes_only
+  source_target_comparison: normalized_compiled_instance_and_world
+  instance_normalization:
+    - remove_derived_instance_sha256
+    - replace_scene_id_with_common_identity
+    - replace_seed_with_zero
+    - canonical_type_sensitive_json
+  world_normalization:
+    - replace_sdf_world_name_with_common_identity
+    - canonical_element_tree_serialization
+  execution_scene_randomization_is_zero: true
+  compile_support_cross_seed_compiled_equivalence_required: false
+  compile_support_reason: >-
+    Seeds 5154--5157 exercise nonzero compile randomization and are never
+    evidence; their source-target spec equivalence and fresh deterministic
+    recompilation are reviewed separately.
+  rows:
+    - source_scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+      target_scene_id: v2-04g-r6-i3-dynamic-conflict-single-s5151
+      normalized_source_instance_sha256: 96834b47f768179cfb96378f9a5066329680f71f97700279bd886f58a0da0075
+      normalized_target_instance_sha256: 96834b47f768179cfb96378f9a5066329680f71f97700279bd886f58a0da0075
+      normalized_source_world_sha256: d3fce6e0ab8f005b11219f54650e06d68cc4dabc5b3109aa67ae0885e762e246
+      normalized_target_world_sha256: d3fce6e0ab8f005b11219f54650e06d68cc4dabc5b3109aa67ae0885e762e246
+      pass: true
+    - source_scene_id: v2-04g-r6-i1-dynamic-conflict-multi-s5142
+      target_scene_id: v2-04g-r6-i3-dynamic-conflict-multi-s5152
+      normalized_source_instance_sha256: cc1386200fe52e3d5aebe67b67eed2eb3193a07c6dec27780997bf250bfacc5c
+      normalized_target_instance_sha256: cc1386200fe52e3d5aebe67b67eed2eb3193a07c6dec27780997bf250bfacc5c
+      normalized_source_world_sha256: 4d225dc4a669e709428f0646204a69ca039d2d10bc438ea15598b50fed3381b1
+      normalized_target_world_sha256: 4d225dc4a669e709428f0646204a69ca039d2d10bc438ea15598b50fed3381b1
+      pass: true
+    - source_scene_id: v2-04g-r6-i1-dynamic-semantic-clear-s5143
+      target_scene_id: v2-04g-r6-i3-dynamic-semantic-clear-s5153
+      normalized_source_instance_sha256: 08c9b4f51fa7e5d75b5d50f8027ba967fbd741a5883cf81f7037c98eedff31ab
+      normalized_target_instance_sha256: 08c9b4f51fa7e5d75b5d50f8027ba967fbd741a5883cf81f7037c98eedff31ab
+      normalized_source_world_sha256: e109ecc52cb7b743c19c7f20c87f36e65ba9e0a564ffc02270040aa27e3b366a
+      normalized_target_world_sha256: e109ecc52cb7b743c19c7f20c87f36e65ba9e0a564ffc02270040aa27e3b366a
+      pass: true
+  all_three_execution_scenes_compiled_behavior_equivalent: true
+  pass: true
+
+compiled_scene_index:
+  path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/compiled_scene_index.yaml
+  sha256: d71a60cef681b497694d244df95d99c79110768b26a5875e5328430a156f4d3e
+  schema_version: "2.0"
+  manifest_id: fam_teb_v2_04g_r6_i3_execution_readiness_scenes_1
+  scene_count: 7
+  child_count: 14
+  families: [DYNAMIC, DYNAMIC, DYNAMIC, CRUISE, STATIC_DENSE, CORRIDOR, MANEUVER]
+  all_children_regular_non_symlink_files: true
+  all_child_hashes_match: true
+  deterministic_recompile_child_bytes_equal: true
+  deterministic_recompile_normalized_index_equal: true
+
+compiled_children:
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-conflict-single-s5151.instance.yaml, sha256: 7a03d0438ab63f9a29bb6b6bdb24a3efe36258879bf1e470c6f476a997068d42}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-conflict-single-s5151.world, sha256: aae04f2a457c9647f3ab0f4ec50528e5bd758da55f1786a8a16aa7257a1a0bda}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-conflict-multi-s5152.instance.yaml, sha256: 3da8364c6c35ff4eff7f899cc4677ef3ccdb28098aac08925e9bbaf7056316c5}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-conflict-multi-s5152.world, sha256: 4eaf2562a30a1b511615c54e2df3211c7169144c42bca021c0898bce5e937911}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-semantic-clear-s5153.instance.yaml, sha256: a6c2bc5ea03e3b7a3267a44b0e81a853d3896918850027bcbb32b01e187779a1}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-semantic-clear-s5153.world, sha256: 5124b036851b7de941b40445702ef50a39ddb29d35149ec05a794661065985f1}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-cruise-s5154.instance.yaml, sha256: baeeb5ba91d75553f0cbf5d09ee029a7bde868e95e6f4942b91917954013bd16}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-cruise-s5154.world, sha256: ccc3032c79a42eef5dc29cc82858d41da054eb77157b8e4c884298672fdf2a2b}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-static-s5155.instance.yaml, sha256: c56b3643ba4c2d108c43739ffe8f72d6500f6d2f25802a3a3e77177324ff103b}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-static-s5155.world, sha256: 75d6830a68a58980341750994afa21305c6a5b7814f99bdcdc04a23ba1846d46}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-corridor-s5156.instance.yaml, sha256: f8241095073cd035ef625407aefa140df58010dbc247e0867bb688bcf9f6b05b}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-corridor-s5156.world, sha256: b99120f9d052d753f38da4fa8b78384fba0d19461069162c906f356edf1ae417}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-maneuver-s5157.instance.yaml, sha256: 35e7645a1a9711dc79b13c6cf6984f5410367becd8db5e2c63537928b0771678}
+  - {path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-maneuver-s5157.world, sha256: b5568967169ac46df6a6c8f6a3a3caf9dcb306b3cea39c56d9c5708fa7f83074}
+
+safety_boundary:
+  execution_release_manifest_present: false
+  execution_attempt_root_present: false
+  execution_journal_present: false
+  execution_receipt_present: false
+  raw_or_semantic_evidence_present: false
+  execution_may_start: false
+  next_explicit_user_execution_instruction_required: true

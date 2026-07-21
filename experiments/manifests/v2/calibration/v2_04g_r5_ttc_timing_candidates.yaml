@@ -1,0 +1,65 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R5
+candidate_bank_id: fam_teb_v2_04g_r5_ttc_prediction_timing_candidates_1
+status: preregistered_calibration_candidates_not_executed
+simulation_only: true
+calibration_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+single_changed_factor:
+  name: dynamic_conflict_prediction_horizon_s
+  runtime_field: supervisor.dynamic.predicted_ttc_max_s
+  preregistered_values_s: [5.0, 4.5, 4.0]
+  evaluator_ttc_horizon_s_frozen: 5.0
+  overlay_release_confirmation_s_frozen: 0.20
+  all_anchor_values_changed: false
+  maneuver_clearance_changed: false
+  mechanism_controller_changed: false
+  supervisor_fields_other_than_runtime_field_changed: false
+  transaction_or_join_changed: false
+  evaluator_or_scene_label_semantics_changed: false
+
+frozen_m030_input:
+  status: demonstrated_clearance_repair_non_ranking_input_not_system_winner
+  source_stage: V2-04G-R4-R1
+  source_stage_report:
+    path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_stage_report.yaml
+    sha256: e1ad0aeb7739e8c1abad0f17059f8dbe31c671dd03584d96637830033e5ab22a
+  supervisor:
+    path: artifacts/v2/calibration/v2_04g_r4_r1/runtime_candidate_configs/r4r1_clearance_m030/supervisor.yaml
+    sha256: 2e29d6c0f2f32360976a76dbeef5e2bd5739ba1e64da888265ca7232a45aae39
+  anchor_bank:
+    path: artifacts/v2/calibration/v2_04g_r4_r1/runtime_candidate_configs/r4r1_clearance_m030/anchor_bank.yaml
+    sha256: 2f5d52a07f389a60eb03a92aaf5c082a0f446d0e493c8ee6ed2500dc6b23fb67
+  mechanism:
+    path: artifacts/v2/calibration/v2_04g_r4_r1/runtime_candidate_configs/r4r1_clearance_m030/mechanism.yaml
+    sha256: d08cf4aa3093278844bff95529c206dc190a606bb3702ae1f7af38c3ccc68645
+  maneuver_min_obstacle_dist_m: 0.30
+  maneuver_inflation_dist_m: 0.52
+
+candidates:
+  - candidate_id: r5_ttc_control_h500
+    role: frozen_r4_r1_m030_timing_control_not_winner_eligible
+    predicted_ttc_max_s: 5.0
+    winner_eligible: false
+  - candidate_id: r5_ttc_h450
+    role: ttc_prediction_timing_repair_candidate
+    predicted_ttc_max_s: 4.5
+    winner_eligible: true
+  - candidate_id: r5_ttc_h400
+    role: ttc_prediction_timing_repair_candidate
+    predicted_ttc_max_s: 4.0
+    winner_eligible: true
+
+selection_boundary:
+  select_only_after_complete_fresh_calibration: true
+  control_candidate_can_be_frozen: false
+  ttc_readiness_and_navigation_gates_both_required: true
+  candidate_budget_expansion_forbidden: true
+  post_hoc_horizon_or_threshold_change_forbidden: true
+  held_out_validation_used: false
+  winner_freeze_requires_separate_user_instruction: true

@@ -1,0 +1,68 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+scene:
+  scene_id: v2-04g-r6-i1-dynamic-semantic-clear-s5143
+  family: DYNAMIC
+  split: calibration
+  seed: 5143
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 18.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 80.0
+  layout:
+    variant: v2_04g_r6_i1_time_separated_crossing
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 18.0
+      - 0.0
+  static_obstacles: []
+  dynamic_agents:
+  - agent_id: crossing-agent
+    shape: box
+    size_m:
+    - 0.55
+    - 0.55
+    - 1.7
+    loop: false
+    trajectory:
+    - time_s: 7.0
+      x_m: 8.0
+      y_m: -3.5
+      yaw_rad: 1.5707963267948966
+    - time_s: 15.0
+      x_m: 8.0
+      y_m: 3.5
+      yaw_rad: 1.5707963267948966
+  randomization:
+    position_jitter_m: 0.0
+    yaw_jitter_rad: 0.0
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: preregistered_time_separated_centerline_crossing
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: 70e5f0565540611e6ddc980201970180d831c9dd71e072f737603d8fbe2cdb6a

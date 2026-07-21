@@ -1,0 +1,88 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-DESIGN
+candidate_bank_id: fam_teb_v2_04g_r6_dynamic_conflict_semantics_design_1
+status: design_candidates_not_materialized_not_executable
+design_only: true
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_authorized: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+single_changed_factor:
+  name: dynamic_conflict_estimator_semantics
+  type: categorical_atomic
+  runtime_field: supervisor.dynamic.conflict_estimator_id
+  factor_count: 1
+  control_value: legacy_class_conditioned_geometry_v1
+  repair_value: shared_circle_envelope_first_contact_v1
+  independently_tunable_subcomponents: false
+  only_profile_field_allowed_to_differ: true
+
+shared_frozen_values:
+  predicted_ttc_max_s: 5.0
+  evaluator_ttc_horizon_s: 5.0
+  minimum_track_confidence: 0.45
+  robot_radius_m: 0.62
+  minimum_relative_speed_mps: 0.05
+  world_model_prediction_horizon_s: 2.0
+  closest_approach_max_m_control_only: 1.35
+  overlay_release_confirmation_s: 0.20
+  footprint_input: tracked_obstacle_footprint
+  empty_footprint_radius_default_m: 0.25
+  runtime_scene_or_gazebo_truth_access: false
+
+estimators:
+  legacy_class_conditioned_geometry_v1:
+    role: frozen_behavior_control_not_winner_eligible
+    conflict_gate:
+      crossing: centerline_crossing_time
+      other_dynamic_classes: point_closest_approach
+    footprint_radius_semantics: maximum_absolute_x_extent
+    evaluator_aligned: false
+  shared_circle_envelope_first_contact_v1:
+    role: semantic_alignment_repair_candidate_not_winner_eligible
+    conflict_gate:
+      primitive: nav_world_model.risk_evidence.relative_collision_ttc
+      conflict_present_iff_finite_ttc: true
+      no_finite_ttc_overlay: NONE
+      selected_conflict: earliest_ttc_then_frozen_overlay_priority_then_track_id
+      motion_class_use: overlay_label_only_not_conflict_gate
+    footprint_radius_semantics: maximum_xy_circumradius
+    runtime_track_adapter: runtime_track_from_footprint
+    precomputed_legacy_runtime_track_radius_accepted: false
+    excluded_motion_classes: [STATIONARY, DEPARTING]
+    evaluator_aligned: true
+
+candidates:
+  - candidate_id: r6_semantics_legacy_control
+    conflict_estimator_id: legacy_class_conditioned_geometry_v1
+    role: design_control
+    winner_eligible: false
+    runtime_config_materialized: false
+  - candidate_id: r6_semantics_circle_contact
+    conflict_estimator_id: shared_circle_envelope_first_contact_v1
+    role: design_repair_candidate
+    winner_eligible: false
+    runtime_config_materialized: false
+
+excluded_second_factors:
+  horizon_values_1_5_or_1_0_present: false
+  numeric_horizon_scan: false
+  motion_classifier_threshold_change: false
+  overlay_mapping_change: false
+  transition_or_dwell_change: false
+  anchor_bank_change: false
+  teb_parameter_change: false
+  mechanism_or_join_change: false
+  evaluator_change: false
+  scene_change: false
+
+materialization_boundary:
+  in_memory_design_comparison_allowed: true
+  persist_runtime_config_allowed: false
+  create_ros_node_or_launch_allowed: false
+  create_episode_runner_or_batch_allowed: false
+  execution_authorization_required_for_any_future_runtime_use: true

@@ -1,0 +1,296 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-DESIGN
+contract_id: fam_teb_v2_04g_r6_runtime_evaluator_semantic_alignment_design_1
+status: design_preregistration_review_contract_execution_not_authorized
+design_only: true
+offline_only: true
+calibration_execution_allowed: false
+formal_result: false
+runtime_ready: false
+execution_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+scope:
+  source_stage: V2-04G-TTC-D1
+  frozen_execution_source_stage: V2-04G-R5
+  objective: >-
+    Design exactly one categorical runtime conflict-estimator factor that makes
+    non-NONE runtime conflict eligibility use the same relative circle-envelope
+    first-contact primitive as the frozen evaluator, while implementing and
+    offline-verifying all six D1 execution-integrity repairs.
+  d1_seed5111_use: frozen_design_input_only_not_new_evidence
+  new_evidence_units: 0
+  execution_episode_count: 0
+  runtime_config_count_persisted: 0
+  scene_count_created: 0
+  evaluator_files_changed: 0
+
+single_changed_factor:
+  name: dynamic_conflict_estimator_semantics
+  type: categorical_atomic
+  runtime_field: supervisor.dynamic.conflict_estimator_id
+  factor_count: 1
+  control_value: legacy_class_conditioned_geometry_v1
+  repair_value: shared_circle_envelope_first_contact_v1
+  only_profile_field_allowed_to_differ: true
+  atomic_definition_includes:
+    - conflict_eligibility_primitive
+    - tracked_footprint_radius_interpretation
+    - multi_track_conflict_selection_order
+  independently_tunable_subcomponents: false
+  scientific_hypothesis: >-
+    Using finite relative circle-envelope TTC as the necessary and sufficient
+    runtime conflict-eligibility gate will remove the D1 mismatch in which
+    centerline CROSSING overlays exist while evaluator finite TTC is absent.
+
+aligned_estimator:
+  primitive:
+    path: src/perception/nav_world_model/src/nav_world_model/risk_evidence.py
+    callable: relative_collision_ttc
+    sha256: 96f20f43e5f764d8356725ee5b9d1598a4c9265ce228740f69710fd085b7a0dc
+  track_frame: current_robot_frame
+  velocity_semantics: relative_velocity
+  actor_radius_source: tracked_obstacle_footprint_circumradius
+  actor_radius_scene_truth_or_hardcode_allowed: false
+  runtime_track_adapter:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/r6_relative_ttc_supervisor.py
+    callable: runtime_track_from_footprint
+    footprint_bearing_input_required: true
+    precomputed_runtime_track_radius_accepted: false
+    empty_footprint_frozen_default_m: 0.25
+  robot_radius_m: 0.62
+  horizon_s: 5.0
+  minimum_track_confidence: 0.45
+  minimum_relative_speed_mps: 0.05
+  excluded_motion_classes: [STATIONARY, DEPARTING]
+  conflict_present_iff_finite_ttc: true
+  selected_conflict: earliest_ttc_then_frozen_overlay_priority_then_track_id
+  no_finite_ttc_overlay: NONE
+  motion_class_use: overlay_label_only_not_conflict_gate
+  runtime_truth_access: false
+
+frozen_non_factor_fields:
+  supervisor_predicted_ttc_max_s: 5.0
+  evaluator_ttc_horizon_s: 5.0
+  minimum_track_confidence: 0.45
+  robot_radius_m: 0.62
+  minimum_relative_speed_mps: 0.05
+  world_model_prediction_horizon_s: 2.0
+  legacy_closest_approach_max_m: 1.35
+  overlay_release_confirmation_s: 0.20
+  horizon_values_1_5_and_1_0_enabled: false
+  motion_classifier_thresholds_changed: false
+  overlay_taxonomy_or_mapping_changed: false
+  transition_hysteresis_or_dwell_changed: false
+  anchor_bank_changed: false
+  teb_parameters_changed: false
+  mechanism_or_join_changed: false
+  evaluator_changed: false
+  scene_changed: false
+
+offline_identifiability:
+  source_report:
+    path: artifacts/v2/diagnosis/v2_04g_ttc_d1/v2_04g_ttc_d1_report.yaml
+    sha256: e8983d6bb9fc805c807d289cb65949b5d08b4eab8984a72760febde91d6bb063
+  trace_rows: 193
+  legacy_proxy_non_none_count: 25
+  legacy_proxy_crossing_count: 21
+  legacy_proxy_overtake_or_yield_count: 4
+  shared_circle_ttc_finite_count: 0
+  expected_changed_rows_under_proposed_definition: 25
+  source_reused_as_new_evidence: false
+  claim_limit: design_identifiability_only
+
+common_integrity_repairs:
+  candidate_symmetric: true
+  parameter_surface_changed: []
+  execution_proven: false
+  readiness_direct_counts:
+    risk_id: D1-RISK-READINESS-DIRECT-COUNTS
+    helper: thesis_experiment.v2_04g_r6_integrity.validate_readiness_raw_evidence
+    design_fix_status_required: OFFLINE_PROTOCOL_IMPLEMENTED_AND_UNIT_VERIFIED
+    future_gate:
+      activation_and_evaluation_identity_directly_bound: true
+      activation_tracker_message_count_min: 20
+      activation_context_message_count_min: 20
+      evaluation_tracker_message_count_min: 20
+      evaluation_context_message_count_min: 20
+      aggregate_boolean_alone_is_insufficient: true
+  compiled_scene_snapshot:
+    risk_id: D1-RISK-COMPILED-SCENE-TOCTOU
+    helpers:
+      - thesis_experiment.v2_04g_r6_integrity.acquire_compiled_scene_lease
+      - thesis_experiment.v2_04g_r6_integrity.materialize_scene_snapshot
+      - thesis_experiment.v2_04g_r6_integrity.revalidate_scene_snapshot
+    design_fix_status_required: OFFLINE_PROTOCOL_IMPLEMENTED_AND_UNIT_VERIFIED
+    future_gate:
+      index_and_child_hashes_verified: true
+      source_bytes_captured_once: true
+      attempt_local_content_addressed_snapshot: true
+      exclusive_creation: true
+      pre_spawn_revalidation: true
+      post_episode_revalidation: true
+      command_may_reference_only_bound_snapshot: true
+  interruption_terminalization:
+    risk_id: D1-RISK-SIGINT-IN-PROGRESS
+    helpers:
+      - thesis_experiment.v2_04g_r6_integrity.AtomicAttemptJournal
+      - thesis_experiment.v2_04g_r6_integrity.seal_orphaned_attempt
+    design_fix_status_required: OFFLINE_PROTOCOL_IMPLEMENTED_AND_UNIT_VERIFIED
+    future_gate:
+      outer_context_covers_start_work_evidence_and_teardown: true
+      keyboard_interrupt_terminal_status: terminal_interrupted
+      orphan_nonterminal_status: terminal_unclean_shutdown
+      resume_after_interruption: false
+      atomic_write_file_and_directory_fsync: true
+      canonical_journal_root_required: true
+      state_and_lock_path_derived_from_complete_identity: true
+      caller_selected_state_filename_allowed: false
+      concurrent_same_identity_allowed: false
+  terminal_raw_evidence_binding:
+    risk_id: D1-RISK-ASSESSMENT-RAW-BINDING
+    helpers:
+      - thesis_experiment.v2_04g_r6_integrity.bind_attempt_raw_evidence
+      - thesis_experiment.v2_04g_r6_integrity.bind_terminal_attempt_evidence
+      - thesis_experiment.v2_04g_r6_integrity.AtomicAttemptJournal.attach_terminal_evidence
+    design_fix_status_required: OFFLINE_PROTOCOL_IMPLEMENTED_AND_UNIT_VERIFIED
+    future_gate:
+      iterate_attempt_ledger_not_only_accepted_reports: true
+      activation_evaluation_trace_clearance_log_and_teardown_bound: true
+      raw_hash_and_identity_cross_checks: true
+      terminal_failure_may_have_incomplete_evidence: true
+      not_produced_requires_phase_and_reason: true
+      not_produced_phase_must_match_current_journal_lifecycle: true
+      preattached_terminal_bundle_may_advance_lifecycle: false
+      post_episode_terminal_requires_all_six_produced_resources: true
+      terminal_artifact_directory_inventory_must_be_exact: true
+      silent_raw_evidence_omission_allowed: false
+  complete_dependency_closure:
+    risk_id: D1-RISK-EXECUTION-HASH-CLOSURE
+    helper: thesis_experiment.v2_04g_r6_integrity.verify_dependency_closure
+    design_fix_status_required: OFFLINE_PROTOCOL_IMPLEMENTED_AND_UNIT_VERIFIED
+    future_gate:
+      mechanically_generated_manifest_required: true
+      dynamic_python_launch_config_and_scene_edges_required: true
+      unresolved_dependencies_allowed: false
+      guard_must_verify_before_ledger_or_subprocess: true
+      regenerate_after_any_future_entrypoint_change: true
+      current_execution_generator_status: not_applicable_no_execution_entrypoint
+  two_phase_teardown_restore:
+    risk_id: D1-RISK-TEARDOWN-RESTORE
+    helper: thesis_experiment.v2_04g_r6_integrity.verify_teardown_restore
+    additional_helpers:
+      - thesis_experiment.v2_04g_r6_integrity.authorize_launch_stop
+      - thesis_experiment.v2_04g_r6_integrity.AtomicAttemptJournal.capture_startup_profile
+      - thesis_experiment.v2_04g_r6_integrity.AtomicAttemptJournal.verify_post_episode_scene
+    design_fix_status_required: OFFLINE_PROTOCOL_IMPLEMENTED_AND_UNIT_VERIFIED
+    future_gate:
+      restore_requested_while_backend_alive: true
+      transaction_ack_and_readback_receipt: true
+      independent_final_readback_receipt: true
+      startup_profile_exact_match: true
+      startup_profile_lease_binds_complete_attempt_identity: true
+      teardown_token_binds_complete_attempt_identity: true
+      teardown_token_binds_journal_provenance: true
+      launch_stop_gate_checks_expected_identity: true
+      launch_stop_only_after_restore_pass: true
+      failure_terminal_status: terminal_teardown_failure
+
+seed_and_budget_boundary:
+  seed_schedule_present: false
+  seed_values: []
+  seed_allocation_deferred: true
+  seed_consumption: 0
+  evidence_budget_authorized: 0
+  d1_seed5111_reconsumed: false
+  r5_remaining_68_units_consumed: false
+  held_out_5001_5010_accessed: false
+  future_seed_or_budget_amendment_requires_separate_review: true
+
+frozen_inputs:
+  d1_contract:
+    path: config/thesis_experiments/v2/v2_04g_ttc_d1_offline_diagnosis_contract.yaml
+    sha256: 7b6639362e28e1fb8c553e1d9a4333867142036e6d94f4a8816ac11bc5993913
+  d1_report:
+    path: artifacts/v2/diagnosis/v2_04g_ttc_d1/v2_04g_ttc_d1_report.yaml
+    sha256: e8983d6bb9fc805c807d289cb65949b5d08b4eab8984a72760febde91d6bb063
+  d1_script:
+    path: src/tools/thesis_experiment/scripts/diagnose_v2_04g_ttc_d1.py
+    sha256: 879ea2e1454ab7356af6aee25265a0399e25108edb9906046f7c844d6cc82fe7
+  d1_handoff:
+    path: docs/thesis_experiment/CURRENT_V2_04G_TTC_D1_HANDOFF.md
+    sha256: 6c286a402c2be58c13ba18b833bcba18bbeafa5cd2ef8dac65f733db5e75e155
+  r5_preregistration:
+    path: experiments/manifests/v2/calibration/v2_04g_r5_preregistration.yaml
+    sha256: 0adcfd6a7a686b799b6dc55394cdf1e90fa140cee636d4283e0fb807f14134c6
+  r5_stage_report:
+    path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_stage_report.yaml
+    sha256: d0da836c0a80506a8edd227ce057b46eef815b9e23e59555ed4cd585174d7077
+  r5_assessment:
+    path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_assessment.yaml
+    sha256: 6d0b2a9b8456fbb75c9b2497f135bebcbbeecea370babbf636b1cd95a2d46b7e
+  r5_readiness_summary:
+    path: artifacts/v2/calibration/v2_04g_r5/readiness/v2_04g_r5_readiness_summary.yaml
+    sha256: 5c74ead279ed1201cd91e2e9a85c9c00a81323b56dbbc1d87245cf930d8e55a1
+  frozen_rule_supervisor:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/rule_supervisor.py
+    sha256: ed42d56a0be93cfafd15aa46c59d1237dfec19ad2a5e2f90d9f7cea8d7846d14
+  frozen_rule_supervisor_node:
+    path: src/application/teb_mode_manager/scripts/rule_context_supervisor_node.py
+    sha256: 63800f33ef583c5b3fe337f86027e62ad70ec68ecfe210018cb176f377a79732
+  frozen_risk_evidence:
+    path: src/perception/nav_world_model/src/nav_world_model/risk_evidence.py
+    sha256: 96f20f43e5f764d8356725ee5b9d1598a4c9265ce228740f69710fd085b7a0dc
+  frozen_world_model_core:
+    path: src/perception/nav_world_model/src/nav_world_model/core.py
+    sha256: 160e1c09ab14903c1f75e40862a9645c55a0f690097e1755c82ed072ce2f89ad
+  frozen_world_model_config:
+    path: src/perception/nav_world_model/config/v2_03_candidate.yaml
+    sha256: 0a0259175ca089484e71db347f740ecd7627340ccb543bd81293f0315f647791
+  frozen_v2_evaluator:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_evaluator.py
+    sha256: 55ad5a0abd2d6a8fe41ed9942a512405e42d7be6c41eff779df8a7335496e681
+  frozen_r5_readiness_batch:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r5_readiness_batch.py
+    sha256: 4f91b4f3cacd4319b67fd1dab9250d395c4de493ec1c04c6eb141be9789ba1f3
+  frozen_r5_assessor:
+    path: src/tools/thesis_experiment/scripts/assess_v2_04g_r5.py
+    sha256: 6cafdfc48b8525fab0b3b77ad537ffcf5d850c407d2af26d22d3618919ab7318
+  frozen_transaction_node:
+    path: src/application/teb_mode_manager/scripts/v2_04g_r1_typed_anchor_transaction_node.py
+    sha256: 08f245eccd3bd4dc770d0d4e68227f026980fdbc7fdeba563e3780d5d26c11ae
+
+design_review_output:
+  path: artifacts/v2/design_review/v2_04g_r6/v2_04g_r6_design_review.yaml
+  deterministic: true
+  atomic_write: true
+  only_persistent_write_allowed: true
+
+forbidden_r6_artifacts_this_stage:
+  execution_authorization: true
+  seed_schedule: true
+  evidence_budget: true
+  scene_manifest_or_compiled_scene: true
+  persisted_runtime_candidate_config: true
+  ros_node_or_launch: true
+  episode_runner_or_batch: true
+  assessment_claiming_execution_evidence: true
+
+authorization:
+  design_and_preregistration_review: true
+  pure_python_reference_implementation: true
+  pure_python_unit_tests: true
+  offline_d1_design_replay: true
+  create_execution_authorization: false
+  ros_or_gazebo_execution: false
+  component_or_navigation_execution: false
+  seed_or_evidence_consumption: false
+  use_held_out_5001_5010: false
+  candidate_ranking_or_winner_freeze: false
+  start_v2_05: false
+  sac_or_other_training: false
+  connect_real_vehicle: false
+  real_vehicle_motion: false
+  write_real_vehicle_teb_parameters: false

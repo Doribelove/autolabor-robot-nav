@@ -114,6 +114,24 @@ catkin_install_python(PROGRAMS
   scripts/probe_v2_04g_r4_r1_ttc_states.py
   scripts/assess_v2_04g_r4_r1.py
   scripts/freeze_v2_04g_r4_r1_winner.py
+  scripts/v2_04g_r5_candidate_materializer.py
+  scripts/validate_v2_04g_r5.py
+  scripts/v2_04g_r5_execution_guard.py
+  scripts/v2_04g_r5_activation_probe_listener.py
+  scripts/v2_04g_r5_readiness_batch.py
+  scripts/probe_v2_04g_r5_ttc_states.py
+  scripts/v2_04g_r5_mechanism_episode.py
+  scripts/v2_04g_r5_bounded_calibration.py
+  scripts/assess_v2_04g_r5.py
+  scripts/diagnose_v2_04g_ttc_d1.py
+  scripts/review_v2_04g_r6.py
+  scripts/v2_04g_r6_i1_candidate_materializer.py
+  scripts/generate_v2_04g_r6_i1_dependency_closure.py
+  scripts/v2_04g_r6_i1_activation_probe_listener.py
+  scripts/v2_04g_r6_i1_mechanism_episode.py
+  scripts/v2_04g_r6_i1_runtime_control.py
+  scripts/v2_04g_r6_i1_bounded_validation.py
+  scripts/assess_v2_04g_r6_i1.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
@@ -140,5 +158,12 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(tests/test_v2_04g_r3_r1.py)
   catkin_add_nosetests(tests/test_v2_04g_r4.py)
   catkin_add_nosetests(tests/test_v2_04g_r4_r1.py)
+  catkin_add_nosetests(tests/test_v2_04g_r5.py)
+  catkin_add_nosetests(tests/test_v2_04g_r5_readiness_execution.py)
+  catkin_add_nosetests(tests/test_v2_04g_r5_bounded_calibration.py)
+  catkin_add_nosetests(tests/test_v2_04g_r5_assessment.py)
+  catkin_add_nosetests(tests/test_v2_04g_ttc_d1.py)
+  catkin_add_nosetests(tests/test_v2_04g_r6.py)
+  catkin_add_nosetests(tests/test_v2_04g_r6_i1.py)
   add_rostest(tests/t04_t06_pipeline_integration.test)
 endif()

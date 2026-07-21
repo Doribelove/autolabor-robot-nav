@@ -1,0 +1,111 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-R6-I6
+status: offline_result_interpretation_design_preregistered
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+source_evidence:
+  evidence_freeze_manifest:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i6_interpretation/i5_evidence_freeze.sha256
+    sha256: 40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935
+  i5_execution_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_release.yaml
+    sha256: 9cef80f5c4eaf562719a71bb11fadd2cded7208d2ade07a22b09d7b6058b3d43
+  i5_preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_preregistration.yaml
+    sha256: 602fc1044fb9e3e8ac284e77cadcbaced95c5edfb9721df0da26f876cc42c073
+  i5_authorization:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_bounded_simulation_authorization.yaml
+    sha256: bc59820b0140b50503657966d735511a8007d9ec8e14f3f2cf237791ff170592
+  i5_dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/execution_dependency_closure.yaml
+    sha256: b351d892263adf00ec0b8362b0afd1b98b00342d327090b5171463227120d97d
+  i5_readiness_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_execution_readiness_review.yaml
+    sha256: d4456bba057ee231aab7df77276df05407daaa14723a67a6658d3f49009b18c4
+  i5_stage_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_stage_report.yaml
+    sha256: 501ab197eacd9926d9760402e2c8586e37edc4d288c5c4cb0610024a8a1c5fef
+  i5_execution_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_execution_report.yaml
+    sha256: 8ed096601c13cc45fba34d32d5ae78477cabd345b9730df8ab4eced7fc0e5599
+  r5_terminal_stage_report:
+    path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_stage_report.yaml
+    sha256: d0da836c0a80506a8edd227ce057b46eef815b9e23e59555ed4cd585174d7077
+  d1_offline_diagnosis_report:
+    path: artifacts/v2/diagnosis/v2_04g_ttc_d1/v2_04g_ttc_d1_report.yaml
+    sha256: e8983d6bb9fc805c807d289cb65949b5d08b4eab8984a72760febde91d6bb063
+  r6_i1_terminal_stage_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_stage_report.yaml
+    sha256: 7b1744474278f43d563e1e362ee02e64c9746db30a31bf0dfc26897a8018a50e
+  r6_i1_terminal_assessment:
+    path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_terminal_assessment.yaml
+    sha256: 8a13a9e7c284a21f0537d591b5bb0959a64c9ee9eb1525038fbd8fbc3f3c0e1d
+  failed_i3_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+    sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  i4_preflight_integrity_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review/v2_04g_r6_i4_preflight_integrity_readiness_review.yaml
+    sha256: 3f183768e657ec17f4fd1045ffd0749d13213cc53017a09c6e166d840d647b12
+
+claim_interpretation:
+  allowed_claims:
+    - i5_completed_all_six_fresh_simulation_integration_units
+    - i5_expected_and_observed_ttc_status_matched_all_six_units
+    - i5_direct_readiness_bootstrap_scene_snapshot_and_teardown_gates_passed
+    - circle_contact_semantics_suppressed_legacy_non_none_overlay_in_the_single_semantic_clear_i5_scene
+    - i5_supports_semantic_and_execution_integration_correctness_only
+  forbidden_claims:
+    - navigation_performance_improvement
+    - safety_superiority
+    - generalization
+    - winner_or_best_profile
+    - whole_system_superiority
+    - learning_or_training_gain
+    - real_vehicle_validity
+    - deployment_readiness
+  interpretation_rule: >-
+    I5 was a three-fresh-seed, six-unit integration schedule without a
+    preregistered navigation-performance estimand or sufficient repetition.
+    Semantic count differences are mechanism evidence, not performance effects.
+  wording_if_cited_in_thesis: >-
+    The bounded I5 study validated semantic and execution integration in fresh
+    simulation; it did not estimate or establish navigation-performance gain.
+
+future_performance_design:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i6_future_multiseed_performance_design.yaml
+  sha256: a5b74aa99cb63785aa3993ba7cae40974baa3ab9b6aace71ee9cb815e08d379c
+  status_required: design_preregistered_execution_not_authorized
+  planned_scene_seed_blocks: 90
+  planned_episode_count: 270
+  planned_training_budget_steps: 0
+  positive_result_guaranteed: false
+  separate_review_release_and_execution_authorization_required: true
+
+forbidden_side_effects:
+  i5_rerun_or_resume: true
+  create_i6_execution_authorization: true
+  create_i6_execution_release: true
+  create_i6_attempt_or_journal: true
+  start_ros_or_gazebo: true
+  start_training: true
+  consume_seed_or_evidence_budget: true
+  rank_or_freeze_winner: true
+  use_held_out_5001_5010: true
+  connect_real_vehicle: true
+  write_online_teb_parameters: true
+
+reviewer_integrity:
+  reviewer:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_r6_i5_r6_i6_result_interpretation_reviewer.py
+    sha256: 13414d948749fcd4a2bc044acb71b82bf0a5039873f103f3cf17b99eb15f3d9e
+  directed_test:
+    path: src/tools/thesis_experiment/tests/test_v2_04g_r6_i1.py.d/test_v2_04g_r6_i6_result_interpretation.py
+    sha256: 7caf22e8fc0a81a3e4477636daec5a4d7c4042fd8d49c1c8450153ad09f38672

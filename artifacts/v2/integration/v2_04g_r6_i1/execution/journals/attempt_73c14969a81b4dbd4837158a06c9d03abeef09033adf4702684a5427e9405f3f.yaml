@@ -1,0 +1,48 @@
+schema_version: '2.0'
+stage: V2-04G-R6-I1
+identity:
+  stage: V2-04G-R6-I1
+  profile_id: r6_semantics_legacy_control
+  scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+  seed: 5141
+  attempt: 1
+status: terminal_failure
+lifecycle_phase: terminal_failure
+resume_forbidden: true
+active_identity: null
+downstream_authorized: false
+evidence_binding:
+  identity:
+    stage: V2-04G-R6-I1
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+    seed: 5141
+    attempt: 1
+  terminal_raw_evidence_declared: true
+  terminal_phase: attempt_started
+  resources:
+    activation:
+      status: not_produced
+      phase: attempt_started
+      reason: 'service readiness timed out: /move_base/TebLocalPlannerROS/set_parameters'
+    clearance:
+      status: not_produced
+      phase: attempt_started
+      reason: 'service readiness timed out: /move_base/TebLocalPlannerROS/set_parameters'
+    evaluation:
+      status: not_produced
+      phase: attempt_started
+      reason: 'service readiness timed out: /move_base/TebLocalPlannerROS/set_parameters'
+    process_log:
+      status: produced
+      path: artifacts/v2/integration/v2_04g_r6_i1/execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i1-dynamic-conflict-single-s5141/raw/process.log
+      sha256: b7e4515e122757db31e9f2424319822fb2a9ab9f8ebdd7b227def676e32aa085
+    teardown_receipt:
+      status: not_produced
+      phase: attempt_started
+      reason: 'service readiness timed out: /move_base/TebLocalPlannerROS/set_parameters'
+    trace:
+      status: not_produced
+      phase: attempt_started
+      reason: 'service readiness timed out: /move_base/TebLocalPlannerROS/set_parameters'
+failure_type: R6I1ExecutionError

@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   rosgraph_msgs
   rospy
   std_msgs
+  std_srvs
 )
 
 catkin_python_setup()
@@ -29,6 +30,7 @@ catkin_package(CATKIN_DEPENDS
   rosgraph_msgs
   rospy
   std_msgs
+  std_srvs
 )
 
 catkin_install_python(PROGRAMS
@@ -39,6 +41,8 @@ catkin_install_python(PROGRAMS
   scripts/v2_04g_typed_anchor_transaction_node.py
   scripts/v2_04g_r1_typed_anchor_transaction_node.py
   scripts/v2_04g_r2_typed_anchor_transaction_node.py
+  scripts/r6_rule_context_supervisor_node.py
+  scripts/v2_04g_r6_typed_anchor_transaction_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
@@ -54,4 +58,5 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(tests/test_mechanism_controller.py)
   catkin_add_nosetests(tests/test_bounded_context_join.py)
   catkin_add_nosetests(tests/test_world_model_input_join.py)
+  catkin_add_nosetests(tests/test_r6_execution_integration.py)
 endif()

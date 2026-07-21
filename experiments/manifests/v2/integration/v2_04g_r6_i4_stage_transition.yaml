@@ -1,0 +1,89 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-R6-I4
+transition_id: fam_teb_v2_04g_r6_i3_to_r6_i4_offline_preflight_repair_1
+transition_date: "2026-07-21"
+status: independent_offline_repair_stage_opened
+source_stage: V2-04G-R6-I3
+target_stage: V2-04G-R6-I4
+independent_stage: true
+explicit_user_i4_offline_repair_instruction_received: true
+explicit_user_i4_simulation_execution_instruction_received: false
+execution_authorized: false
+execution_ready: false
+offline_only: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+ros_or_gazebo_start_authorized: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+source_terminal_snapshot:
+  release_present: true
+  release_path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+  release_sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  full_preflight_passed: false
+  failure_class: legacy_integer_key_resource_overparsed
+  failure_before_state_creation: true
+  evidence_units_authorized: 6
+  evidence_units_consumed: 0
+  evidence_units_forfeited: 0
+  attempts_present: false
+  journals_present: false
+  stage_report_present: false
+  ros_or_gazebo_started: false
+
+target_allocation:
+  execution_seeds: []
+  compile_support_seeds: []
+  schedule: []
+  evidence_units_authorized: 0
+  evidence_units_consumed: 0
+  evidence_units_forfeited: 0
+
+allowed_outputs:
+  - versioned_repaired_release_validator
+  - real_authorization_roster_regression_tests
+  - versioned_offline_preflight_runner
+  - independent_dependency_closure
+  - deterministic_machine_review
+  - current_stage_handoff
+
+forbidden_outputs_or_side_effects:
+  future_i4_execution_release: true
+  execution_attempt_root: true
+  execution_journal: true
+  execution_receipt: true
+  raw_or_semantic_evidence: true
+  stage_execution_report: true
+  ros_or_gazebo_process: true
+  move_base_or_teb_process: true
+  seed_or_budget_consumption: true
+  retry_or_resume: true
+  seed_replacement_or_budget_expansion: true
+  winner_selection_or_freezing: true
+  v2_05_or_training: true
+  real_vehicle_or_real_vehicle_teb_write: true
+
+bound_resources:
+  i4_contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_preflight_integrity_repair_contract.yaml
+    sha256: a5ac55ecd84a59a847e92e4268c95983312e39720fbd1839871bb25f90e158a4
+  i4_preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i4_repair_preregistration.yaml
+    sha256: 4abd2bdaf50ef5b0100494d5ef23d6628e0db03a7513f8a7aa3803f1224e701a
+  failed_i3_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+    sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  i3_failure_handoff:
+    path: docs/thesis_experiment/CURRENT_V2_04G_R6_I3_RELEASE_PREFLIGHT_HANDOFF.md
+    sha256: eeb9734b3d6e6c4d531f60d4bd162f24512f0d549d601395d1f7654169ef1755
+
+completion_boundary:
+  failed_release_preserved_exactly: true
+  source_i3_allocation_remains_six_zero_zero: true
+  target_i4_allocation_remains_zero: true
+  future_release_path_must_remain_absent: true
+  repair_closure_does_not_authorize_execution: true
+  new_explicit_simulation_execution_instruction_required: true
