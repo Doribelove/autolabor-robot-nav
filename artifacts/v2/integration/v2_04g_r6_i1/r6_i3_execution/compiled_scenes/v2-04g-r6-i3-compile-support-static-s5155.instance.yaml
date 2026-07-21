@@ -1,0 +1,92 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+scene:
+  scene_id: v2-04g-r6-i3-compile-support-static-s5155
+  family: STATIC_DENSE
+  split: calibration
+  seed: 5155
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 13.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 50.0
+  layout:
+    variant: v2_04g_r6_i1_compile_support_static
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 13.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: pillar-1
+    shape: box
+    pose:
+      x_m: 3.218482111328855
+      y_m: -0.6799593302929134
+      yaw_rad: 0.0011024724980891797
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-2
+    shape: box
+    pose:
+      x_m: 5.892156347537571
+      y_m: 0.6838497435605745
+      yaw_rad: 0.012827280658889948
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-3
+    shape: box
+    pose:
+      x_m: 8.223854185115814
+      y_m: -0.7241021870955197
+      yaw_rad: 0.023308702132852483
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-4
+    shape: box
+    pose:
+      x_m: 10.753266316515035
+      y_m: 0.6899684365803277
+      yaw_rad: 0.02931901029957959
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.1
+    yaw_jitter_rad: 0.03
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.25
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: compile_support_only_not_evidence
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: f83309dccc63f48945e7ad6dd621eed033d38a944858394e6d6ddba743fc136e

@@ -1,0 +1,74 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+scene:
+  scene_id: v2-04g-r3-corridor-s5031
+  family: CORRIDOR
+  split: calibration
+  seed: 5031
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.15
+    yaw_rad: 0.0
+  goal:
+    x_m: 10.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 45.0
+  layout:
+    variant: v2_04g_r3_corridor_b
+    reference_centerline:
+    - - 0.0
+      - 0.15
+    - - 2.5
+      - 0.0
+    - - 10.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: corridor-left
+    shape: box
+    pose:
+      x_m: 4.990932130237931
+      y_m: 1.1025632580935385
+      yaw_rad: 0.0026833977116859833
+    size_m:
+    - 10.0
+    - 0.2
+    - 1.2
+  - obstacle_id: corridor-right
+    shape: box
+    pose:
+      x_m: 4.992621322620804
+      y_m: -1.0874472433792945
+      yaw_rad: 0.0004437565653469804
+    size_m:
+    - 10.0
+    - 0.2
+    - 1.2
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.015
+    yaw_jitter_rad: 0.004
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.25
+    yaw_tolerance_rad: 0.15
+    stopped_speed_max_mps: 0.04
+  evaluator_only:
+    feasible: true
+    reason: fresh_full_calibration_corridor_b
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: a387a51c1ded087015f84c0366a7bb37e3d3b45d08cfed8a283b8ab9fd53bcb0

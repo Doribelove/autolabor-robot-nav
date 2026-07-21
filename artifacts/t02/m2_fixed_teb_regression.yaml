@@ -1,0 +1,166 @@
+schema_version: 1
+suite: m2_fixed_teb_regression
+simulation_only: true
+rl_enabled: false
+seed: 42
+passed: true
+summary:
+  passed: 5
+  failed: 0
+  total: 5
+cases:
+- name: straight_goal
+  passed: true
+  metrics:
+    goal:
+      x_m: 4.0
+      y_m: 0.0
+      yaw_rad: 0.0
+    action_state: 3
+    action_state_name: SUCCEEDED
+    elapsed_s: 4.6
+    final_position_error_m: 0.0006365096448246454
+    final_yaw_error_rad: 0.0
+    path_length_m: 3.9993634903551754
+    minimum_scan_range_m: null
+    cmd_vel_message_count: 47
+    max_cmd_vel_gap_s: 0.10600000000000032
+    planner_error_count: 0
+    control_deadline_miss_count: 0
+    planner_errors: []
+    global_plan_received: true
+    local_plan_received: true
+  thresholds:
+    required_action_state: 3
+    max_elapsed_s: 45.0
+    max_position_error_m: 0.3
+    max_yaw_error_rad: 0.2
+    minimum_scan_range_m: 0.2
+    max_cmd_vel_gap_s: 0.5
+    max_planner_error_count: 0
+    max_control_deadline_miss_count: 0
+  message: passed
+- name: left_turn_goal
+  passed: true
+  metrics:
+    goal:
+      x_m: 3.0
+      y_m: 3.0
+      yaw_rad: 1.5707963267948966
+    action_state: 3
+    action_state_name: SUCCEEDED
+    elapsed_s: 4.800000000000001
+    final_position_error_m: 0.02422086970802424
+    final_yaw_error_rad: 0.021135399213151773
+    path_length_m: 4.419042214296916
+    minimum_scan_range_m: null
+    cmd_vel_message_count: 48
+    max_cmd_vel_gap_s: 0.10800000000000054
+    planner_error_count: 0
+    control_deadline_miss_count: 0
+    planner_errors: []
+    global_plan_received: true
+    local_plan_received: true
+  thresholds:
+    required_action_state: 3
+    max_elapsed_s: 45.0
+    max_position_error_m: 0.3
+    max_yaw_error_rad: 0.2
+    minimum_scan_range_m: 0.2
+    max_cmd_vel_gap_s: 0.5
+    max_planner_error_count: 0
+    max_control_deadline_miss_count: 0
+  message: passed
+- name: right_turn_goal
+  passed: true
+  metrics:
+    goal:
+      x_m: 3.0
+      y_m: -3.0
+      yaw_rad: -1.5707963267948966
+    action_state: 3
+    action_state_name: SUCCEEDED
+    elapsed_s: 5.200000000000001
+    final_position_error_m: 0.007300832346665942
+    final_yaw_error_rad: 0.007135439390940634
+    path_length_m: 4.430217726543644
+    minimum_scan_range_m: null
+    cmd_vel_message_count: 53
+    max_cmd_vel_gap_s: 0.10800000000000054
+    planner_error_count: 0
+    control_deadline_miss_count: 0
+    planner_errors: []
+    global_plan_received: true
+    local_plan_received: true
+  thresholds:
+    required_action_state: 3
+    max_elapsed_s: 45.0
+    max_position_error_m: 0.3
+    max_yaw_error_rad: 0.2
+    minimum_scan_range_m: 0.2
+    max_cmd_vel_gap_s: 0.5
+    max_planner_error_count: 0
+    max_control_deadline_miss_count: 0
+  message: passed
+- name: single_obstacle_detour
+  passed: true
+  metrics:
+    goal:
+      x_m: 5.0
+      y_m: 0.0
+      yaw_rad: 0.0
+    action_state: 3
+    action_state_name: SUCCEEDED
+    elapsed_s: 6.699999999999999
+    final_position_error_m: 0.09063380771985392
+    final_yaw_error_rad: 0.0908094024815907
+    path_length_m: 5.821635633302325
+    minimum_scan_range_m: 0.677495539188385
+    cmd_vel_message_count: 68
+    max_cmd_vel_gap_s: 0.11599999999999966
+    planner_error_count: 0
+    control_deadline_miss_count: 0
+    planner_errors: []
+    global_plan_received: true
+    local_plan_received: true
+  thresholds:
+    required_action_state: 3
+    max_elapsed_s: 45.0
+    max_position_error_m: 0.3
+    max_yaw_error_rad: 0.2
+    minimum_scan_range_m: 0.25
+    max_cmd_vel_gap_s: 0.5
+    max_planner_error_count: 0
+    max_control_deadline_miss_count: 0
+  message: passed
+- name: narrow_corridor
+  passed: true
+  metrics:
+    goal:
+      x_m: 5.0
+      y_m: 0.0
+      yaw_rad: 0.0
+    action_state: 3
+    action_state_name: SUCCEEDED
+    elapsed_s: 5.600000000000001
+    final_position_error_m: 0.0021244491413533032
+    final_yaw_error_rad: 0.00010606141665241034
+    path_length_m: 4.998379484246197
+    minimum_scan_range_m: 0.8495240211486816
+    cmd_vel_message_count: 57
+    max_cmd_vel_gap_s: 0.11200000000000188
+    planner_error_count: 0
+    control_deadline_miss_count: 0
+    planner_errors: []
+    global_plan_received: true
+    local_plan_received: true
+  thresholds:
+    required_action_state: 3
+    max_elapsed_s: 45.0
+    max_position_error_m: 0.3
+    max_yaw_error_rad: 0.2
+    minimum_scan_range_m: 0.45
+    max_cmd_vel_gap_s: 0.5
+    max_planner_error_count: 0
+    max_control_deadline_miss_count: 0
+  message: passed

@@ -1,0 +1,92 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+scene:
+  scene_id: v2-04e-static-s4703
+  family: STATIC_DENSE
+  split: calibration
+  seed: 4703
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 13.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 50.0
+  layout:
+    variant: v2_04e_static
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 13.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: pillar-1
+    shape: box
+    pose:
+      x_m: 3.1851075742542
+      y_m: -0.7833732613975715
+      yaw_rad: 0.020445928515686145
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-2
+    shape: box
+    pose:
+      x_m: 5.8882804184019335
+      y_m: 0.6463464876544627
+      yaw_rad: -0.02624415582200951
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-3
+    shape: box
+    pose:
+      x_m: 8.330340761740555
+      y_m: -0.9101621389290249
+      yaw_rad: 0.0034555340219347918
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-4
+    shape: box
+    pose:
+      x_m: 10.77200149433611
+      y_m: 0.6504945582151308
+      yaw_rad: -0.01602846057264978
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.1
+    yaw_jitter_rad: 0.03
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.25
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: new_calibration_seed
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: 27057778d1357cb62b23ed4324e4e6356fa38610fafae0e879f08d5806dd89a3

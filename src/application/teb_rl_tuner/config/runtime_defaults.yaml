@@ -1,0 +1,36 @@
+schema_version: "1.0"
+status: t10_semantic_direct_paired_smoke_ready
+mode: shadow
+teb_namespace: /move_base/TebLocalPlannerROS
+decision_frequency_hz: 1.0
+
+semantic_mapping:
+  path: config/thesis_experiments/A_TEB_v1.yaml
+  status: frozen_gazebo_calibration_v1
+  sha256: 1ca660f8d4f1863a93d75686bc0cafe8259942aaac60c3e2817c31162fcb1000
+  real_vehicle_validated: false
+
+theta_order:
+  - max_vel_x
+  - max_vel_theta
+  - acc_lim_x
+  - acc_lim_theta
+  - min_obstacle_dist
+  - inflation_dist
+  - weight_obstacle
+  - weight_viapoint
+  - weight_optimaltime
+
+# A_TEB is frozen above for the Gazebo contract only. Physical bounds, rate
+# limits, and reward values remain simulation candidates pending later freeze gates.
+safety:
+  allow_motion: false
+  allow_parameter_write: false
+  default_mode: shadow
+  physical_bounds_status: calibration_required
+  conservative_fallback_status: simulation_pipeline_only_real_calibration_required
+  t03_write_gate:
+    explicit_simulation_required: true
+    use_sim_time_required: true
+    simulation_marker_required: /m2_gazebo/simulation_only
+    exact_teb_namespace_required: /move_base/TebLocalPlannerROS

@@ -1,0 +1,46 @@
+schema_version: '1.0'
+task: T09
+status: passed
+algorithm: RL-TEB-Semantic-Eta
+simulation_only: true
+formal_experiment: false
+real_vehicle_use_forbidden: true
+training_timesteps: 20
+pre_resume_timesteps: 16
+resume_delta_timesteps: 4
+replay_buffer_size: 20
+actor_parameter_l1_change: 11.789561949670315
+policy_steps: 20
+stored_transitions: 20
+training_terminal_reasons:
+- goal
+- goal
+- goal
+- goal
+- goal
+- goal
+- goal
+- goal
+evaluation_episode_count: 2
+evaluation_terminal_reasons:
+- goal
+- goal
+observation_dimension: 254
+action_dimension: 5
+observation_action_context: previous_applied_delta_normalized_theta_9_plus_l1
+actor_parameter_count: 9546
+trainable_parameter_count: 47182
+deterministic_inference_latency_ms:
+  sample_count: 5
+  mean: 1.1931905995879788
+  p95: 1.5885715998592786
+  max: 1.6115079997689463
+checkpoint_manifest: /home/robot/robot_ws_base_rl/artifacts/t09/gazebo_sac_smoke/checkpoint/checkpoint_manifest.yaml
+checkpoint_files:
+  model.zip: 93bcc5d499547a7b2b08a5dac0bcb35ee35be5f7d84779c1b64c8a821cc38e3e
+  replay_buffer.pkl: ef3b7574eac6514707868778b440f4a9d8348a15bce40ad39d823fb36a2f156f
+  vecnormalize.pkl: 2840cf1af1175221dc21b1b9feeb60f3ce8293f54bf00bb62b7a67f2246fc397
+config_sha256: fe1ccc69505b6957b43247208e21b3783dee5b86f6ea0a420ac8bc1da5272181
+action_contract_sha256: 1ca660f8d4f1863a93d75686bc0cafe8259942aaac60c3e2817c31162fcb1000
+snapshot_restored_on_close: true
+passed: true

@@ -1,0 +1,49 @@
+schema_version: "1.0"
+status: frozen_before_anchor_initialization_pilot
+task: T12
+amendment_id: t12_residual_episode_anchor_initialization_v1
+created_at: "2026-07-13T17:09:27+08:00"
+reason:
+  curriculum_rotation_repaired: true
+  curriculum_fix_validation_change_seed101: -0.24873437484105665
+  curriculum_fix_validation_change_seed102: 0.04523334900538245
+  curriculum_fix_cross_seed_mean_change: -0.1017505129178371
+  observed_first_step_previous_to_anchor_normalized_l1: 9.0
+  observed_projection_intervention_rate: 0.8706
+  interpretation: episodes_start_from_pre_run_teb_snapshot_instead_of_the_frozen_teb_tuned_residual_anchor
+single_factor_change:
+  name: initialize_each_run_and_episode_at_teb_tuned_residual_anchor
+  launch_parameter: initialize_residual_anchor
+  value: true
+  implementation_path: src/tools/thesis_experiment/src/thesis_experiment/t11_training.py
+  episode_restore_path: src/tools/thesis_experiment/src/thesis_experiment/gazebo_training_adapter.py
+frozen_unchanged_fields:
+  curriculum_rotation_repair: enabled
+  residual_config_reference: config/thesis_experiments/t12_residual_curriculum_fix_pilot.yaml
+  training_seeds: [101, 102]
+  timesteps_per_seed: 2000
+  checkpoints: [1000, 2000]
+  evaluation_seed_limit: 1
+  reward: config/thesis_experiments/t11_formal.yaml#reward
+  anchor_source: t08_teb_tuned_gazebo_pilot_v1
+  normalized_residual_radius: [0.35, 0.25, 0.30, 0.30, 0.25, 0.20, 0.30, 0.25, 0.25]
+  minimum_risk_scale: 0.20
+  action_ema_alpha: 0.35
+  decision_hold_steps: 4
+  safety_mode: T12Safety
+  model_selection: validation_only_best_mean_return_earliest_on_tie
+pilot:
+  simulation_only: true
+  formal_result: false
+  output_root: artifacts/t12/residual_anchor_init_pilot
+  expand_budget: false
+  acceptance:
+    both_seeds_complete: true
+    anchor_initialization_active_in_each_manifest: true
+    first_training_step_previous_theta_matches_anchor: true
+    observed_train_scene_ids_exactly_match_curriculum_contract: true
+    zero_collision_interface_fault_process_crash: true
+    validation_return_change_positive_each_seed: true
+decision_after_pilot:
+  pass: frozen_paired_baseline_confirmation_then_budget_expansion_review
+  fail: stop_without_budget_expansion_and_review_one_next_factor

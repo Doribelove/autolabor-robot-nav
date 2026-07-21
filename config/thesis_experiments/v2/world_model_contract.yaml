@@ -1,0 +1,72 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_03_world_model_rule_candidate_1
+status: component_candidate_frozen
+simulation_only: true
+formal_experiment: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+profiles:
+  world_model:
+    path: src/perception/nav_world_model/config/v2_03_candidate.yaml
+    sha256: 0a0259175ca089484e71db347f740ecd7627340ccb543bd81293f0315f647791
+  rule_supervisor:
+    path: src/application/teb_mode_manager/config/v2_03_rule_candidate.yaml
+    sha256: eaa9862ea8c5c56ffab91925f6b980c6757d1bb7e2a0943f8a0efd1159ce4657
+  deployment_mode_thresholds:
+    path: config/thesis_experiments/v2/mode_thresholds.yaml
+    runtime_ready_must_remain: false
+
+runtime_inputs:
+  allowed: [/scan, /odom, /move_base/NavfnROS/plan, /move_base/local_costmap/costmap]
+  evaluator_only: [/gazebo/model_states, /pedsim_simulator/simulated_agents]
+  forbidden_fields: [family, split, evaluator_only, scene_id]
+  runtime_manifest_access: false
+  truth_used_by_policy: false
+
+world_model:
+  fixed_frame: odom
+  robot_frame: base_link
+  scan_validation: fail_closed
+  geometry_source: laser_and_optional_runtime_path
+  tracker: gated_nearest_neighbor_alpha_beta
+  prediction: constant_velocity_with_growing_covariance
+  tracker_reset_on_time_regression: true
+  all_four_scan_directions_required: true
+  optional_costmap_health_reported: true
+
+rule_supervisor:
+  implementation: deterministic_observation_rules
+  geometry_modes: [BALANCED, CRUISE, STATIC_DENSE, CORRIDOR, MANEUVER]
+  dynamic_overlays: [NONE, CROSSING, HEAD_ON, FOLLOW, OVERTAKE_OR_YIELD]
+  minimum_dwell_and_confirmation: true
+  balanced_on_low_confidence: true
+  fault_forces_balanced_none: true
+  publishes_velocity_commands: false
+  publishes_parameter_transactions: false
+
+health:
+  required_checks: [scan_metadata, scan_age, tf, localization_age, tracker_age, directional_coverage]
+  stale_is_invalid: true
+  sequence_mismatch_is_invalid: true
+  fault_priority_over_mode: true
+
+acceptance_gates:
+  synthetic_tracking_position_rmse_max_m: 0.20
+  synthetic_prediction_rmse_max_m: 0.35
+  synthetic_id_switches_max: 0
+  synthetic_mode_macro_recall_min: 1.0
+  health_fault_cases_required: 4
+  gazebo_dynamic_track_samples_min: 12
+  gazebo_dynamic_position_rmse_max_m: 0.80
+  gazebo_dynamic_id_switches_max: 1
+  gazebo_crossing_overlay_required: true
+
+claims:
+  tracker_real_vehicle_calibrated: false
+  planner_performance_claim_allowed: false
+  learning_claim_allowed: false
+  training_started: false
+  real_vehicle_started: false

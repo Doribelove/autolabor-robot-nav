@@ -1,0 +1,413 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R5
+split: calibration
+preregistration_id: fam_teb_v2_04g_r5_dynamic_ttc_prediction_timing_repair_1
+status: preregistered_design_dry_run_only_not_executed
+simulation_only: true
+calibration_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+research_question: >-
+  With the demonstrated V2-04G-R4-R1 Maneuver min_obstacle_dist=0.30 m
+  repair retained only as a fixed non-ranking input, and every other passed
+  Anchor, supervisor, typed-transaction, join, reverse, switching, clearance
+  and time mechanism frozen, can changing only the Dynamic-conflict runtime
+  prediction horizon improve TTC activation and coverage robustness on fresh
+  calibration-only evidence without violating any preregistered safety,
+  completeness or efficiency hard gate?
+
+single_changed_factor:
+  name: dynamic_conflict_prediction_horizon_s
+  runtime_field: supervisor.dynamic.predicted_ttc_max_s
+  candidate_values_s: [5.0, 4.5, 4.0]
+  control_value_s: 5.0
+  repair_candidate_values_s: [4.5, 4.0]
+  evaluator_relative_ttc_horizon_s_frozen: 5.0
+  overlay_release_confirmation_s_frozen: 0.20
+  all_anchor_values_changed: false
+  supervisor_fields_other_than_runtime_field_changed: false
+  mechanism_controller_changed: false
+  typed_transaction_or_join_changed: false
+  evaluator_or_scene_label_semantics_changed: false
+
+frozen_m030_input:
+  classification: demonstrated_clearance_repair_non_ranking_input_not_system_winner
+  source_stage: V2-04G-R4-R1
+  maneuver_forward_min_obstacle_dist_m: 0.30
+  maneuver_reverse_min_obstacle_dist_m: 0.30
+  maneuver_inflation_dist_m: 0.52
+  control_or_candidate_ranking_claim: false
+  system_winner_claim: false
+
+candidate_ids:
+  - r5_ttc_control_h500
+  - r5_ttc_h450
+  - r5_ttc_h400
+
+winner_eligible_candidate_ids:
+  - r5_ttc_h450
+  - r5_ttc_h400
+
+candidate_roles:
+  r5_ttc_control_h500:
+    predicted_ttc_max_s: 5.0
+    role: frozen_r4_r1_m030_timing_control_not_winner_eligible
+    winner_eligible: false
+  r5_ttc_h450:
+    predicted_ttc_max_s: 4.5
+    role: ttc_prediction_timing_repair_candidate
+    winner_eligible: true
+  r5_ttc_h400:
+    predicted_ttc_max_s: 4.0
+    role: ttc_prediction_timing_repair_candidate
+    winner_eligible: true
+
+scene_ids:
+  - v2-04g-r5-cruise-s5121
+  - v2-04g-r5-cruise-s5122
+  - v2-04g-r5-cruise-s5123
+  - v2-04g-r5-dynamic-conflict-s5124
+  - v2-04g-r5-dynamic-conflict-s5125
+  - v2-04g-r5-dynamic-clear-s5126
+  - v2-04g-r5-static-s5127
+  - v2-04g-r5-static-s5128
+  - v2-04g-r5-static-s5129
+  - v2-04g-r5-corridor-s5130
+  - v2-04g-r5-corridor-s5131
+  - v2-04g-r5-corridor-s5132
+  - v2-04g-r5-maneuver-s5133
+  - v2-04g-r5-maneuver-s5134
+  - v2-04g-r5-maneuver-s5135
+
+seed_firewall:
+  ttc_readiness_probe_only_seeds: [5111, 5112, 5113]
+  readiness_compile_support_only_seeds: [5114, 5115, 5116, 5117]
+  readiness_derived_seeds: [5111, 5112, 5113, 5114, 5115, 5116, 5117]
+  navigation_calibration_seeds: [5121, 5122, 5123, 5124, 5125, 5126, 5127, 5128, 5129, 5130, 5131, 5132, 5133, 5134, 5135]
+  reserved_future_held_out_seeds: [5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010]
+  previous_validation_seeds_forbidden: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610, 4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+  all_prior_v2_04g_calibration_and_probe_seeds_forbidden: [4901, 4902, 4903, 4904, 4905, 4906, 4907, 4908, 4909, 4910, 4911, 4912, 4913, 4914, 4915, 4921, 4922, 4923, 4924, 4925, 4926, 4927, 4928, 4929, 4930, 4931, 4932, 4933, 4934, 4935, 4941, 4942, 4943, 4944, 4945, 4946, 4951, 4952, 4953, 4954, 4955, 4956, 4957, 4958, 4959, 4960, 4961, 4962, 4963, 4964, 4965, 4971, 4972, 4973, 4974, 4975, 4976, 4981, 4982, 4983, 4984, 4985, 4986, 4991, 4992, 4993, 4994, 4995, 4996, 5021, 5022, 5023, 5024, 5025, 5026, 5027, 5028, 5029, 5030, 5031, 5032, 5033, 5034, 5035, 5041, 5042, 5043, 5044, 5045, 5046, 5051, 5052, 5053, 5054, 5055, 5056, 5061, 5062, 5063, 5064, 5065, 5066, 5067, 5068, 5069, 5070, 5071, 5072, 5073, 5074, 5075, 5081, 5082, 5083, 5084, 5085, 5086, 5091, 5092, 5093, 5094, 5095, 5096, 5097, 5098, 5099, 5100, 5101, 5102, 5103, 5104, 5105]
+  readiness_probe_support_navigation_and_held_out_sets_pairwise_disjoint: true
+  readiness_probe_seeds_used_for_navigation_or_ranking: false
+  readiness_compile_support_seeds_executed_or_counted_as_evidence: false
+  navigation_seeds_used_before_preregistration: false
+  held_out_data_used: false
+  held_out_seed_consumption: false
+
+ttc_activation_coverage_readiness:
+  required_before_component_ttc_and_navigation: true
+  profile_ids: [r5_ttc_h450, r5_ttc_h400]
+  execution_scene_ids:
+    - v2-04g-r5-readiness-dynamic-conflict-s5111
+    - v2-04g-r5-readiness-dynamic-conflict-s5112
+    - v2-04g-r5-readiness-dynamic-clear-s5113
+  shared_scene_seeds_per_profile: [5111, 5112, 5113]
+  expected_status_order_per_profile: [OBSERVED_CONFLICT, OBSERVED_CONFLICT, NO_CONFLICT_IN_HORIZON]
+  planned_probe_count: 6
+  attempts_per_identity_max: 1
+  warmup_timeout_s: 12.0
+  measurement_duration_s: 6.0
+  minimum_message_count_per_stream: 20
+  required_consecutive_stable_count: 10
+  minimum_transaction_activated_fraction: 0.95
+  minimum_transaction_valid_fraction: 0.95
+  minimum_transaction_join_valid_fraction: 0.95
+  maximum_expected_context_hold_count_per_probe: 1
+  maximum_world_model_sequence_mismatch_count: 0
+  maximum_world_model_input_join_fault_count: 0
+  maximum_backend_transaction_fault_count: 0
+  maximum_unknown_transaction_fault_count: 0
+  expected_observed_conflict_count_per_profile: 2
+  expected_no_conflict_count_per_profile: 1
+  tracker_invalid_count_max_per_profile: 0
+  all_six_probes_required: true
+  schedule:
+    - {sequence: 1, identity: r5-readiness-r5_ttc_h450-s5111, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-readiness-dynamic-conflict-s5111, seed: 5111, expected_status: OBSERVED_CONFLICT, attempt_limit: 1}
+    - {sequence: 2, identity: r5-readiness-r5_ttc_h450-s5112, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-readiness-dynamic-conflict-s5112, seed: 5112, expected_status: OBSERVED_CONFLICT, attempt_limit: 1}
+    - {sequence: 3, identity: r5-readiness-r5_ttc_h450-s5113, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-readiness-dynamic-clear-s5113, seed: 5113, expected_status: NO_CONFLICT_IN_HORIZON, attempt_limit: 1}
+    - {sequence: 4, identity: r5-readiness-r5_ttc_h400-s5111, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-readiness-dynamic-conflict-s5111, seed: 5111, expected_status: OBSERVED_CONFLICT, attempt_limit: 1}
+    - {sequence: 5, identity: r5-readiness-r5_ttc_h400-s5112, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-readiness-dynamic-conflict-s5112, seed: 5112, expected_status: OBSERVED_CONFLICT, attempt_limit: 1}
+    - {sequence: 6, identity: r5-readiness-r5_ttc_h400-s5113, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-readiness-dynamic-clear-s5113, seed: 5113, expected_status: NO_CONFLICT_IN_HORIZON, attempt_limit: 1}
+
+readiness_compile_support_boundary:
+  purpose: satisfy_frozen_five_foundation_family_compiler_contract_only
+  scene_ids:
+    - v2-04g-r5-readiness-compile-support-cruise-s5114
+    - v2-04g-r5-readiness-compile-support-static-s5115
+    - v2-04g-r5-readiness-compile-support-corridor-s5116
+    - v2-04g-r5-readiness-compile-support-maneuver-s5117
+  covered_families: [CRUISE, STATIC_DENSE, CORRIDOR, MANEUVER]
+  dynamic_family_covered_by_execution_probe_scenes: true
+  included_in_readiness_schedule: false
+  included_in_navigation_schedule: false
+  included_in_evidence_budget: false
+  included_in_candidate_ranking: false
+  execution_forbidden: true
+
+ttc_component_probe:
+  required_after_readiness_and_before_navigation: true
+  implementation: deterministic_ros_free_component_fixture
+  required_status_order: [OBSERVED_CONFLICT, NO_CONFLICT_IN_HORIZON, TRACKER_INVALID]
+  planned_probe_count: 3
+  attempts_per_identity_max: 1
+  seed_consumption: none
+  schedule:
+    - {sequence: 1, identity: r5-ttc-component-observed-conflict, expected_status: OBSERVED_CONFLICT, attempt_limit: 1}
+    - {sequence: 2, identity: r5-ttc-component-no-conflict, expected_status: NO_CONFLICT_IN_HORIZON, attempt_limit: 1}
+    - {sequence: 3, identity: r5-ttc-component-tracker-invalid, expected_status: TRACKER_INVALID, attempt_limit: 1}
+
+navigation_schedule:
+  method_order: [fixed_reference, r5_ttc_control_h500, r5_ttc_h450, r5_ttc_h400]
+  scene_order: [v2-04g-r5-cruise-s5121, v2-04g-r5-cruise-s5122, v2-04g-r5-cruise-s5123, v2-04g-r5-dynamic-conflict-s5124, v2-04g-r5-dynamic-conflict-s5125, v2-04g-r5-dynamic-clear-s5126, v2-04g-r5-static-s5127, v2-04g-r5-static-s5128, v2-04g-r5-static-s5129, v2-04g-r5-corridor-s5130, v2-04g-r5-corridor-s5131, v2-04g-r5-corridor-s5132, v2-04g-r5-maneuver-s5133, v2-04g-r5-maneuver-s5134, v2-04g-r5-maneuver-s5135]
+  exact_cartesian_product_required: true
+  planned_episode_count: 60
+  attempts_per_identity_max: 1
+  duplicate_identity_count_max: 0
+  schedule:
+    - {sequence: 1, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-cruise-s5121, seed: 5121, attempt_limit: 1}
+    - {sequence: 2, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-cruise-s5122, seed: 5122, attempt_limit: 1}
+    - {sequence: 3, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-cruise-s5123, seed: 5123, attempt_limit: 1}
+    - {sequence: 4, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-dynamic-conflict-s5124, seed: 5124, attempt_limit: 1}
+    - {sequence: 5, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-dynamic-conflict-s5125, seed: 5125, attempt_limit: 1}
+    - {sequence: 6, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-dynamic-clear-s5126, seed: 5126, attempt_limit: 1}
+    - {sequence: 7, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-static-s5127, seed: 5127, attempt_limit: 1}
+    - {sequence: 8, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-static-s5128, seed: 5128, attempt_limit: 1}
+    - {sequence: 9, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-static-s5129, seed: 5129, attempt_limit: 1}
+    - {sequence: 10, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-corridor-s5130, seed: 5130, attempt_limit: 1}
+    - {sequence: 11, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-corridor-s5131, seed: 5131, attempt_limit: 1}
+    - {sequence: 12, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-corridor-s5132, seed: 5132, attempt_limit: 1}
+    - {sequence: 13, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-maneuver-s5133, seed: 5133, attempt_limit: 1}
+    - {sequence: 14, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-maneuver-s5134, seed: 5134, attempt_limit: 1}
+    - {sequence: 15, method: fixed_teb, profile_id: fixed_reference, scene_id: v2-04g-r5-maneuver-s5135, seed: 5135, attempt_limit: 1}
+    - {sequence: 16, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-cruise-s5121, seed: 5121, attempt_limit: 1}
+    - {sequence: 17, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-cruise-s5122, seed: 5122, attempt_limit: 1}
+    - {sequence: 18, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-cruise-s5123, seed: 5123, attempt_limit: 1}
+    - {sequence: 19, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-dynamic-conflict-s5124, seed: 5124, attempt_limit: 1}
+    - {sequence: 20, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-dynamic-conflict-s5125, seed: 5125, attempt_limit: 1}
+    - {sequence: 21, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-dynamic-clear-s5126, seed: 5126, attempt_limit: 1}
+    - {sequence: 22, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-static-s5127, seed: 5127, attempt_limit: 1}
+    - {sequence: 23, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-static-s5128, seed: 5128, attempt_limit: 1}
+    - {sequence: 24, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-static-s5129, seed: 5129, attempt_limit: 1}
+    - {sequence: 25, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-corridor-s5130, seed: 5130, attempt_limit: 1}
+    - {sequence: 26, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-corridor-s5131, seed: 5131, attempt_limit: 1}
+    - {sequence: 27, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-corridor-s5132, seed: 5132, attempt_limit: 1}
+    - {sequence: 28, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-maneuver-s5133, seed: 5133, attempt_limit: 1}
+    - {sequence: 29, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-maneuver-s5134, seed: 5134, attempt_limit: 1}
+    - {sequence: 30, method: rule_multi_anchor, profile_id: r5_ttc_control_h500, scene_id: v2-04g-r5-maneuver-s5135, seed: 5135, attempt_limit: 1}
+    - {sequence: 31, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-cruise-s5121, seed: 5121, attempt_limit: 1}
+    - {sequence: 32, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-cruise-s5122, seed: 5122, attempt_limit: 1}
+    - {sequence: 33, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-cruise-s5123, seed: 5123, attempt_limit: 1}
+    - {sequence: 34, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-dynamic-conflict-s5124, seed: 5124, attempt_limit: 1}
+    - {sequence: 35, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-dynamic-conflict-s5125, seed: 5125, attempt_limit: 1}
+    - {sequence: 36, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-dynamic-clear-s5126, seed: 5126, attempt_limit: 1}
+    - {sequence: 37, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-static-s5127, seed: 5127, attempt_limit: 1}
+    - {sequence: 38, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-static-s5128, seed: 5128, attempt_limit: 1}
+    - {sequence: 39, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-static-s5129, seed: 5129, attempt_limit: 1}
+    - {sequence: 40, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-corridor-s5130, seed: 5130, attempt_limit: 1}
+    - {sequence: 41, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-corridor-s5131, seed: 5131, attempt_limit: 1}
+    - {sequence: 42, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-corridor-s5132, seed: 5132, attempt_limit: 1}
+    - {sequence: 43, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-maneuver-s5133, seed: 5133, attempt_limit: 1}
+    - {sequence: 44, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-maneuver-s5134, seed: 5134, attempt_limit: 1}
+    - {sequence: 45, method: rule_multi_anchor, profile_id: r5_ttc_h450, scene_id: v2-04g-r5-maneuver-s5135, seed: 5135, attempt_limit: 1}
+    - {sequence: 46, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-cruise-s5121, seed: 5121, attempt_limit: 1}
+    - {sequence: 47, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-cruise-s5122, seed: 5122, attempt_limit: 1}
+    - {sequence: 48, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-cruise-s5123, seed: 5123, attempt_limit: 1}
+    - {sequence: 49, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-dynamic-conflict-s5124, seed: 5124, attempt_limit: 1}
+    - {sequence: 50, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-dynamic-conflict-s5125, seed: 5125, attempt_limit: 1}
+    - {sequence: 51, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-dynamic-clear-s5126, seed: 5126, attempt_limit: 1}
+    - {sequence: 52, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-static-s5127, seed: 5127, attempt_limit: 1}
+    - {sequence: 53, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-static-s5128, seed: 5128, attempt_limit: 1}
+    - {sequence: 54, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-static-s5129, seed: 5129, attempt_limit: 1}
+    - {sequence: 55, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-corridor-s5130, seed: 5130, attempt_limit: 1}
+    - {sequence: 56, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-corridor-s5131, seed: 5131, attempt_limit: 1}
+    - {sequence: 57, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-corridor-s5132, seed: 5132, attempt_limit: 1}
+    - {sequence: 58, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-maneuver-s5133, seed: 5133, attempt_limit: 1}
+    - {sequence: 59, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-maneuver-s5134, seed: 5134, attempt_limit: 1}
+    - {sequence: 60, method: rule_multi_anchor, profile_id: r5_ttc_h400, scene_id: v2-04g-r5-maneuver-s5135, seed: 5135, attempt_limit: 1}
+
+budget:
+  activation_readiness_probe_count: 6
+  attempts_per_readiness_identity_max: 1
+  ttc_component_probe_count: 3
+  attempts_per_ttc_component_identity_max: 1
+  fixed_reference_episode_count: 15
+  candidate_count: 3
+  episode_count_per_candidate: 15
+  planned_navigation_episode_count: 60
+  attempts_per_navigation_identity_max: 1
+  compile_support_scene_count_not_evidence: 4
+  total_evidence_unit_budget: 69
+  budget_arithmetic: 6_readiness_plus_3_component_plus_60_navigation
+  terminal_failure_identity_retry_forbidden: true
+  resume_after_any_terminal_failure_forbidden: true
+  preserve_failure_evidence: true
+  budget_expansion_forbidden: true
+
+hard_gates:
+  evidence:
+    ttc_activation_coverage_readiness_pass: true
+    ttc_component_coverage_pass: true
+    complete_navigation_episode_count: 60
+    duplicate_evidence_identity_count_max: 0
+    readiness_compile_support_execution_count_max: 0
+    persistent_interface_failure_count_max: 0
+    training_used: false
+    runtime_manifest_or_scene_label_access: false
+    evaluator_truth_fed_to_runtime: false
+  bounded_context_join:
+    minimum_valid_fraction_per_episode: 0.90
+    allowed_join_reasons: [EXACT_SEQUENCE_JOIN, BOUNDED_SEQUENCE_TIME_JOIN]
+  fixed_reference_validity:
+    success_count_min: 14
+    collision_count_max: 0
+  candidate_safety:
+    success_count_not_below_fixed: true
+    collision_count_max: 0
+    minimum_clearance_m_min_per_successful_episode: 0.25
+    typed_transaction_invalid_count_max: 0
+  maneuver_clearance_preservation:
+    minimum_signed_scan_clearance_m_per_successful_maneuver: 0.25
+    minimum_truth_box_clearance_m_per_successful_maneuver: 0.25
+    contact_count_max_per_maneuver: 0
+    truth_metric_evaluator_only: true
+    runtime_truth_access_forbidden: true
+  ttc:
+    observed_conflict_count_min_per_method: 2
+    no_conflict_count_min_per_method: 1
+    tracker_invalid_navigation_count_max_per_method: 0
+    component_three_state_probe_pass: true
+  dynamic_overlay_activation:
+    conflict_episode_with_non_none_overlay_count_min_per_candidate: 2
+  chatter:
+    active_anchor_switch_count_max_per_episode: 3
+    active_anchor_switch_count_mean_max: 2.0
+  mechanism_activation_for_non_control_candidates:
+    topology_locked_sample_count_min: 1
+    corridor_centerline_sample_count_min: 1
+    maneuver_reverse_sample_count_min: 3
+    mechanism_topology_switch_count_max_per_episode: 1
+  mechanism_activation:
+    maneuver_reverse_episode_count_min: 2
+    maneuver_reverse_sample_count_min: 3
+  efficiency_vs_fixed:
+    total_navigation_time_ratio_max: 1.05
+    family_median_navigation_time_regression_percent_max: 15.0
+    family_non_regression_count_min: 1
+    required_family_set: [CRUISE, DYNAMIC, STATIC_DENSE, CORRIDOR, MANEUVER]
+  priority_family_efficiency:
+    families: [STATIC_DENSE, CORRIDOR, MANEUVER]
+    median_navigation_time_regression_percent_max: 15.0
+
+ranking_after_all_hard_gates:
+  - lowest_total_navigation_time_ratio_vs_fixed
+  - highest_minimum_truth_maneuver_clearance_m
+  - highest_minimum_scan_clearance_m
+  - lowest_active_anchor_switch_mean
+  - lexical_candidate_id
+
+resources:
+  contract: {path: config/thesis_experiments/v2/v2_04g_r5_ttc_robustness_contract.yaml, sha256: a60b1210c8bb1f2064c62745c5841a604e4dddf13654f9050814a04a7f282bb7}
+  candidate_bank: {path: experiments/manifests/v2/calibration/v2_04g_r5_ttc_timing_candidates.yaml, sha256: 74f09ea326f8da6e7939da9cc1eb28ba7adf9470b655558cd08b792008c43b91}
+  navigation_scene_derivation: {path: experiments/manifests/v2/calibration/v2_04g_r5_scene_derivation.yaml, sha256: 3afe91d583dc346396e55150c573b4c2fb8dfe2c90559c4c927b8305055b4912}
+  navigation_scene_manifest: {path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_calibration_scenes.yaml, sha256: 7fd04c6a9fc89f451219049e6b34b0be2c9c077b941410a4818f42c36b987121}
+  navigation_compiled_scene_index: {path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/compiled_scene_index.yaml, sha256: 5f90ec4cffb7c946ed2adc0cd8792878faa7d78d94bcb5c64470cf3ebb8b641d}
+  readiness_scene_derivation: {path: experiments/manifests/v2/calibration/v2_04g_r5_ttc_readiness_scene_derivation.yaml, sha256: 63b737e502320cad078dce01fb3f3dd19a35611645e6f963f58e270e0fa691c7}
+  readiness_scene_manifest: {path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_ttc_readiness_scenes.yaml, sha256: 648ac7821b9f41373c0bce0d961f61068f71b11e346a22daf227a108e25b8d99}
+  readiness_compiled_scene_index: {path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/compiled_scene_index.yaml, sha256: c242a3ccc5d629a0f830ef109e05c30e68051c6de1ca3cb70769c9587d9c2407}
+  candidate_materializer: {path: src/tools/thesis_experiment/scripts/v2_04g_r5_candidate_materializer.py, sha256: f113923da7d1c02478896ed0d3333718d4a1c29ec0eb66a4d34052563f31431e}
+  dry_run_validator: {path: src/tools/thesis_experiment/scripts/validate_v2_04g_r5.py, sha256: 62945501d6a2ea59ff155c9b0dffc7e2aae00f11d873370b91accfebf7f90973}
+  dry_run_validator_tests: {path: src/tools/thesis_experiment/tests/test_v2_04g_r5.py, sha256: bfda265e4f97d73adbfd10ab41cc8268dbcb27d0b7a5fee4ac0c8e78a811c432}
+  scene_deriver_source: {path: src/tools/thesis_experiment/scripts/derive_v2_04g_scenes.py, sha256: c477448794e2c509c7a652e4731344761179e3c3e2ebea5de2ee9e3f5260e65b}
+  scene_compiler_source: {path: src/tools/thesis_experiment/scripts/compile_v2_scenes.py, sha256: a6111cf0f6edc2d86264f69a6989533a1b6a021e1685bb2d67b6475a32a26bae}
+  v2_scene_contract_source: {path: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py, sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718}
+  simulation_contract: {path: config/thesis_experiments/v2/simulation_contract.yaml, sha256: 47139897bc6ea4e9da7392e2d2df7dd441b68b218745f443f2fc112199e6b1bb}
+  robot_simulation_candidate_config: {path: src/simulation/m2_gazebo/config/simulation_candidates.yaml, sha256: 63edc80a38b4d35c5491660ad4d6882d2ddaf95b4ff66fda820ba20eadbfd946}
+  frozen_m030_supervisor: {path: artifacts/v2/calibration/v2_04g_r4_r1/runtime_candidate_configs/r4r1_clearance_m030/supervisor.yaml, sha256: 2e29d6c0f2f32360976a76dbeef5e2bd5739ba1e64da888265ca7232a45aae39}
+  frozen_m030_anchor_bank: {path: artifacts/v2/calibration/v2_04g_r4_r1/runtime_candidate_configs/r4r1_clearance_m030/anchor_bank.yaml, sha256: 2f5d52a07f389a60eb03a92aaf5c082a0f446d0e493c8ee6ed2500dc6b23fb67}
+  frozen_m030_mechanism: {path: artifacts/v2/calibration/v2_04g_r4_r1/runtime_candidate_configs/r4r1_clearance_m030/mechanism.yaml, sha256: d08cf4aa3093278844bff95529c206dc190a606bb3702ae1f7af38c3ccc68645}
+  rule_supervisor_source: {path: src/application/teb_mode_manager/src/teb_mode_manager/rule_supervisor.py, sha256: ed42d56a0be93cfafd15aa46c59d1237dfec19ad2a5e2f90d9f7cea8d7846d14}
+  mechanism_controller_source: {path: src/application/teb_mode_manager/src/teb_mode_manager/mechanism_controller.py, sha256: bd48e206b181efc1da9359b6fd01fe94ebd661975ae15d4b6fe5131d80e7716a}
+  action_pipeline_source: {path: src/application/teb_mode_manager/src/teb_mode_manager/action_pipeline.py, sha256: d13873814e27bd95b8f3a752d631faa7d1e0e79a63c763408e678e926885fdba}
+  atomic_world_model_input_join_source: {path: src/application/teb_mode_manager/src/teb_mode_manager/world_model_input_join.py, sha256: b0b54475fee338e197a1ce726d0eb63932f7879d015834e97474574f28230b55}
+  bounded_transaction_join_source: {path: src/application/teb_mode_manager/src/teb_mode_manager/bounded_context_join.py, sha256: 485a5c57397c845982508f1f4c67739ad8c58ebf2f63c9336a08e2f0f3157442}
+  idempotent_transaction_source: {path: src/application/teb_mode_manager/src/teb_mode_manager/idempotent_typed_teb_transaction.py, sha256: 2ad255dea35715709384c02683836847a9089b1a729677f7739d2b9ea53aabf1}
+  integrated_rule_supervisor_node: {path: src/application/teb_mode_manager/scripts/rule_context_supervisor_node.py, sha256: 63800f33ef583c5b3fe337f86027e62ad70ec68ecfe210018cb176f377a79732}
+  world_model_core_source: {path: src/perception/nav_world_model/src/nav_world_model/core.py, sha256: 160e1c09ab14903c1f75e40862a9645c55a0f690097e1755c82ed072ce2f89ad}
+  world_model_node_source: {path: src/perception/nav_world_model/scripts/nav_world_model_node.py, sha256: ed27e2b79060e294e0ec087200cb508c0254114ad48b9c40d97c300b4e5680ee}
+  risk_evidence_source: {path: src/perception/nav_world_model/src/nav_world_model/risk_evidence.py, sha256: 96f20f43e5f764d8356725ee5b9d1598a4c9265ce228740f69710fd085b7a0dc}
+  v2_evaluator_source: {path: src/tools/thesis_experiment/src/thesis_experiment/v2_evaluator.py, sha256: 55ad5a0abd2d6a8fe41ed9942a512405e42d7be6c41eff779df8a7335496e681}
+  trajectory_actor_plugin_source: {path: src/simulation/m2_gazebo/src/v2_trajectory_actor_plugin.cpp, sha256: c77027785d268001ea70f71169e1f6f1250a6bf3a30c7b1fccda8e613b2e0a65}
+  experiment_launch: {path: src/simulation/m2_gazebo/launch/m2_v2_04g_r2_mechanism_calibration.launch, sha256: e23b3b95b7ca7ed1605fde160e5652e433357c9e192c0f318e95a9a7c0a073ac}
+
+frozen_r4_r1_boundary:
+  source_stage_report: {path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_stage_report.yaml, sha256: e1ad0aeb7739e8c1abad0f17059f8dbe31c671dd03584d96637830033e5ab22a}
+  source_assessment: {path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_assessment.yaml, sha256: 201d2f7a8a5c4b679a1500a9487c342434f73222f0c262c4a8014441efc6bc04}
+  source_preregistration: {path: experiments/manifests/v2/calibration/v2_04g_r4_r1_preregistration.yaml, sha256: 70b5d7c48b5a9f1cf290a361042d69836485e0a0b30ee29eff5885f34f3758b1}
+  source_contract: {path: config/thesis_experiments/v2/v2_04g_r4_r1_clearance_repair_contract.yaml, sha256: f0dd447f0ab883744703338c29076c5b51b2fec28bcf309487af33fc27f13eb0}
+  source_candidate_bank: {path: experiments/manifests/v2/calibration/v2_04g_r4_r1_clearance_candidates.yaml, sha256: eb296b1daf81c1d17fc3a3caa665addfae3cbb51f2b6221a5e44e1526da5ae28}
+  source_scene_manifest: {path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_calibration_scenes.yaml, sha256: 29527d9bac30e002124a215d540244c7a053062854a2af5f38a8b3b3577cb0f4}
+  source_compiled_scene_index: {path: artifacts/v2/calibration/v2_04g_r4_r1/compiled_scenes/compiled_scene_index.yaml, sha256: 96d0257b492207041032d3f7b883baa3e6510cab0284f793cad8712a3fb9c977}
+  source_declared_winner: none
+  source_formal_result: false
+
+execution_order:
+  - validate frozen resources, single-factor diff, exact schedules and seed firewall offline
+  - six scene-based TTC activation-and-coverage readiness episodes on probe-only seeds 5111 through 5113
+  - three deterministic TTC component evidence identities
+  - fifteen Fixed TEB episodes on navigation seeds 5121 through 5135
+  - fifteen non-winner control-horizon episodes on the same navigation seeds
+  - fifteen 4.5-second candidate episodes on the same navigation seeds
+  - fifteen 4.0-second candidate episodes on the same navigation seeds
+  - fail-closed hard-gate assessment
+  - stop and wait for a separate winner-freeze instruction
+
+stopping_rules:
+  readiness_failure: stop_before_component_ttc_and_navigation_and_preserve
+  ttc_component_failure: stop_before_navigation_and_preserve
+  any_terminal_evidence_failure: stop_immediately_preserve_identity_and_forbid_resume
+  failed_identity_retry: forbidden
+  fixed_reference_collision_or_fewer_than_14_successes: invalidate_split
+  candidate_collision_incomplete_evidence_or_any_hard_gate_failure: disqualify_candidate
+  no_candidate_passes_all_hard_gates: stop_without_winner_held_out_or_v2_05
+  early_performance_selection: forbidden
+  seed_replacement: forbidden
+  post_hoc_scene_relabel_or_threshold_change: forbidden
+  failure_episode_deletion: forbidden
+  adverse_seed_deletion: forbidden
+  budget_expansion: forbidden
+
+dry_run_audit_boundary:
+  output_path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_dry_run_audit.yaml
+  ros_process_start_allowed: false
+  gazebo_process_start_allowed: false
+  episode_execution_allowed: false
+  candidate_runtime_persistent_write_allowed: false
+  progress_or_result_persistent_write_allowed: false
+  audit_output_write_allowed: true
+
+current_design_authorization:
+  contract_and_preregistration_edits: true
+  scene_derivation_and_sdf_compilation_without_ros: true
+  validator_and_unit_tests: true
+  dry_run_audit_without_ros_or_gazebo: true
+  bounded_gazebo_calibration_execution: false
+  formal_gazebo_batch: false
+  winner_freeze: false
+  held_out_validation: false
+  v2_05: false
+  sac_training: false
+  real_vehicle_motion: false
+  real_vehicle_parameter_write: false
+
+post_stage_boundaries:
+  use_readiness_probe_or_compile_support_seeds_for_navigation_or_validation: false
+  use_navigation_calibration_seeds_for_future_held_out_validation: false
+  consume_reserved_held_out_seeds_5001_5010: false
+  freeze_winner_without_separate_user_instruction: false
+  start_v2_05: false
+  start_sac_training: false
+  connect_or_command_real_vehicle: false

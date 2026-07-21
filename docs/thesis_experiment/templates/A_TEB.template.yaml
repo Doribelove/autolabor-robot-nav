@@ -1,0 +1,50 @@
+schema_version: "1.0"
+mapping_version: TBD
+status: calibration_required
+created_from:
+  calibration_run_ids: []
+  calibration_report: null
+  git_commit: null
+  theta_bounds_sha256: null
+
+eta_order:
+  - speed
+  - obstacle_conservatism
+  - clearance
+  - path_tracking
+  - smoothness
+
+theta_order:
+  - max_vel_x
+  - max_vel_theta
+  - acc_lim_x
+  - acc_lim_theta
+  - min_obstacle_dist
+  - inflation_dist
+  - weight_obstacle
+  - weight_viapoint
+  - weight_optimaltime
+
+normalization: physical_theta_to_minus_one_plus_one
+
+# 每行对应一个 theta，每列对应一个 eta。
+# null 表示尚未标定；正式训练前必须全部替换为有证据的数值或删除该参数。
+matrix:
+  - [null, null, null, null, null]
+  - [null, null, null, null, null]
+  - [null, null, null, null, null]
+  - [null, null, null, null, null]
+  - [null, null, null, null, null]
+  - [null, null, null, null, null]
+  - [null, null, null, null, null]
+  - [null, null, null, null, null]
+  - [null, null, null, null, null]
+
+evidence:
+  sign_consistency_by_nonzero_entry: {}
+  sensitivity_summary: {}
+  rejected_entries: []
+
+frozen: false
+sha256: null
+

@@ -1,0 +1,45 @@
+schema_version: "2.0"
+stage: V2-04C-Q-R2
+preregistration_id: fam_teb_v2_04c_ttc_qualification_r2_preregistration_1
+status: frozen_before_navigation
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_use_forbidden: true
+resources:
+  amendment:
+    path: config/thesis_experiments/v2/v2_04c_ttc_qualification_r2_amendment.yaml
+    sha256: 2901df2dcf81cc0860ef59ceae45fd7774ebbb8df5209c4332e8f23e940b50ce
+  retry_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_r2_plan.yaml
+    sha256: f050c8f41cac2d81c6ce3f3572dd63b14fc7f39b9faa8f45b755d6f0a72b7d40
+  compiled_scenes:
+    path: artifacts/v2/calibration/v2_04c/qualification/compiled_scenes/compiled_scene_index.yaml
+    sha256: 194b9ebee877554ebe5bd0e0c35a090f23c2ad951a083b5677a173c8d6bd7402
+  scene_manifest:
+    path: experiments/manifests/v2/calibration/v2_04c_ttc_qualification_scenes.yaml
+    sha256: 87fafdc4a2802df3f81585794a55b2cf2e4cbd909f99e860bc771bf1fa29288c
+  anchor_bank:
+    path: src/application/teb_mode_manager/config/v2_04_anchor_bank_candidate.yaml
+    sha256: 3480e0e5389fd2641bf707399ee0fe5c8abc890f45565e1b4b3ad77c4e14bed4
+  episode_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04b_calibration_episode.py
+    sha256: fbc72e4f1e15a3eb22369abf9e2b6e54204e51c9f005f0873c0572573e531a32
+  batch_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04b_calibration_batch.py
+    sha256: ab3c11543403b46fba3ca8bb3011b5543cc7a5c6b9bb093317a610139ad253f1
+single_changed_factor:
+  name: dynamic_episode_timeout_s
+  r1_value_s: 48.0
+  r2_value_s: 80.0
+budgets:
+  qualification_episode_count: 5
+  attempts_per_episode: 2
+  early_stopping_allowed: false
+boundaries:
+  selection_split: calibration
+  scene_labels_available_to_policy: false
+  refinement_requires_r2_pass: true
+  sac_training_allowed: false
+  real_vehicle_allowed: false

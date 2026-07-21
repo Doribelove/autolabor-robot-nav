@@ -1,0 +1,51 @@
+schema_version: "2.0"
+stage: V2-04C-Q-R3
+preregistration_id: fam_teb_v2_04c_ttc_qualification_r3_preregistration_1
+status: frozen_before_navigation
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_use_forbidden: true
+resources:
+  amendment:
+    path: config/thesis_experiments/v2/v2_04c_ttc_qualification_r3_amendment.yaml
+    sha256: a097524968c4efeaeab05326adaf3696c6aacb7b85b4e75ef0f0c793a14b144e
+  retry_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_r3_plan.yaml
+    sha256: de41aaff83898e6fdb88226bc2f098d27d64605ad95f98bda6d341c887a7e0ea
+  compiled_scenes:
+    path: artifacts/v2/calibration/v2_04c/qualification/compiled_scenes/compiled_scene_index.yaml
+    sha256: 194b9ebee877554ebe5bd0e0c35a090f23c2ad951a083b5677a173c8d6bd7402
+  conversion_core:
+    path: src/perception/nav_world_model/src/nav_world_model/teb_bridge.py
+    sha256: 252ea6bed656fe622787b5db63867243089558591e0ca819d1babb7eff074a45
+  ros_adapter:
+    path: src/perception/nav_world_model/scripts/tracks_to_teb_obstacles.py
+    sha256: bc3079d0c06f0baa0388b933b53724a4eba3e5066e5e98e4fcac3ec82736d09c
+  world_model_launch:
+    path: src/perception/nav_world_model/launch/v2_03_world_model.launch
+    sha256: ea190371af328d3aa9e8ea8d8628edaa7bae38366d7035f6769b131f039713fc
+  simulation_launch:
+    path: src/simulation/m2_gazebo/launch/m2_v2_typed_teb.launch
+    sha256: 6551ba9a3e689213ed5305163e1184a3d199fc663ba7768aaad0793e05e4639c
+  episode_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04b_calibration_episode.py
+    sha256: fbc72e4f1e15a3eb22369abf9e2b6e54204e51c9f005f0873c0572573e531a32
+  batch_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04b_calibration_batch.py
+    sha256: ab3c11543403b46fba3ca8bb3011b5543cc7a5c6b9bb093317a610139ad253f1
+single_changed_factor:
+  name: healthy_tracker_velocity_bridge_to_teb_custom_obstacles
+  r2_value: disabled
+  r3_value: enabled
+budgets:
+  qualification_episode_count: 5
+  attempts_per_episode: 2
+  early_stopping_allowed: false
+boundaries:
+  selection_split: calibration
+  scene_labels_available_to_policy: false
+  refinement_requires_r3_pass: true
+  sac_training_allowed: false
+  real_vehicle_allowed: false

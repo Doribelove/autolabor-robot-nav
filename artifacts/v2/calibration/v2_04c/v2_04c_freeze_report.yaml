@@ -1,0 +1,141 @@
+schema_version: '2.0'
+stage: V2-04C
+status: anchor_bank_frozen
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+planned_navigation_episode_count: 180
+valid_evidence_episode_count: 180
+successful_episode_count: 179
+hard_gate_pass_episode_count: 179
+interface_failure_count: 0
+winners:
+  anchor_balanced:
+    winner_candidate_id: anchor_balanced-rc00-incumbent
+    winner_profile_sha256: 9166b9df75ed7dfa57f039888a6b2772296e7070244f9a4dff59c55f237c87ba
+    selection_score:
+    - 0.0
+    - 0.0
+    - 155.85
+    family_regrets:
+      CRUISE: 0.0
+      DYNAMIC: 0.0
+      STATIC_DENSE: 0.0
+      CORRIDOR: 0.0
+      MANEUVER: 0.0
+    aggregate_metrics:
+      CRUISE:
+        navigation_time_s: 41.849999999999994
+        lateral_rms_m: 0.008034315473287553
+        heading_oscillation_rad: 0.0
+        unnecessary_deceleration_count: 0.0
+      DYNAMIC:
+        ttc_objective_value_s: 1.6769056321465512
+        stop_count: 2.0
+        navigation_time_s: 42.0
+      STATIC_DENSE:
+        topology_switch_count: 0.0
+        recovery_count: 0.0
+        navigation_time_s: 24.950000000000003
+      CORRIDOR:
+        lateral_rms_m: 0.11641702066920626
+        heading_oscillation_rad: 0.784864306585876
+        navigation_time_s: 13.6
+      MANEUVER:
+        gear_switch_while_moving_count: 6.0
+        navigation_time_s: 33.45
+        path_length_m: 4.127611068548265
+    hard_gate_candidate_count: 8
+  anchor_cruise:
+    winner_candidate_id: anchor_cruise-rc00-incumbent
+    winner_profile_sha256: 49cade942f8db1559e343ac8bbe7c574eaae917fb5db958569ffae29e12e36a3
+    selection_score:
+    - 0.0
+    - - 31.700000000000003
+      - 0.015166768759506455
+      - 0.0
+      - 0.5
+    family_regrets:
+      CRUISE: 0.0
+    aggregate_metrics:
+      CRUISE:
+        navigation_time_s: 31.700000000000003
+        lateral_rms_m: 0.015166768759506455
+        heading_oscillation_rad: 0.0
+        unnecessary_deceleration_count: 0.5
+    hard_gate_candidate_count: 9
+  anchor_static_dense:
+    winner_candidate_id: anchor_static_dense-rc03-hfff-mpmp
+    winner_profile_sha256: ba70dbfaba54d5f24c8b62c92169a6961207e14a115f7959e346dee8881c1c74
+    selection_score:
+    - 0.0
+    - - 0.0
+      - 0.0
+      - 23.349999999999998
+    family_regrets:
+      STATIC_DENSE: 0.0
+    aggregate_metrics:
+      STATIC_DENSE:
+        topology_switch_count: 0.0
+        recovery_count: 0.0
+        navigation_time_s: 23.349999999999998
+    hard_gate_candidate_count: 9
+  anchor_corridor:
+    winner_candidate_id: anchor_corridor-rc05-hfff-pmmp
+    winner_profile_sha256: ab8d32f45ce8fb9881cc0dc3b10249a85f4c591e99dbd872b89ae2e128f31bbd
+    selection_score:
+    - -0.1267597874479598
+    - - 0.08422425365052244
+      - 1.5832357509508967
+      - 17.85
+    family_regrets:
+      CORRIDOR: -0.1267597874479598
+    aggregate_metrics:
+      CORRIDOR:
+        lateral_rms_m: 0.08422425365052244
+        heading_oscillation_rad: 1.5832357509508967
+        navigation_time_s: 17.85
+    hard_gate_candidate_count: 9
+  anchor_maneuver_forward:
+    winner_candidate_id: anchor_maneuver_forward-rc01-hfff-mmmm
+    winner_profile_sha256: b876c9431eec3c5046e389693e006cbdabb076a55040b29dc3bd08157acbc3a0
+    selection_score:
+    - -0.15927440852442487
+    - - 1.5
+      - 30.7
+      - 3.9517304603507073
+    family_regrets:
+      MANEUVER: -0.15927440852442487
+    aggregate_metrics:
+      MANEUVER:
+        gear_switch_while_moving_count: 1.5
+        navigation_time_s: 30.7
+        path_length_m: 3.9517304603507073
+    hard_gate_candidate_count: 9
+  anchor_maneuver_reverse:
+    winner_candidate_id: anchor_maneuver_reverse-rc00-incumbent
+    winner_profile_sha256: a9f174c0ba29198951f35d4fe0eed1b67aabe113fd30572ed9514ad7cd7b0d00
+    selection_score:
+    - 0.0
+    - - 2.5
+      - 30.5
+      - 3.984105961210513
+    family_regrets:
+      MANEUVER: 0.0
+    aggregate_metrics:
+      MANEUVER:
+        gear_switch_while_moving_count: 2.5
+        navigation_time_s: 30.5
+        path_length_m: 3.984105961210513
+    hard_gate_candidate_count: 9
+claims:
+  qualification_passed: true
+  anchor_values_frozen: true
+  validation_or_test_selection_used: false
+  sac_training_started: false
+  real_vehicle_validated: false
+frozen_anchor_bank:
+  path: /home/robot/robot_ws_base_rl/src/application/teb_mode_manager/config/v2_04c_anchor_bank_frozen.yaml
+  sha256: b1365f2b14e4a77f4e715bc46369fa4277e9adbb8522190153f7abd2ce635b9d

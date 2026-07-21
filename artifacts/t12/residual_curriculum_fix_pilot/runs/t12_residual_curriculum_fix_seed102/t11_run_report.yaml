@@ -1,0 +1,21 @@
+schema_version: '1.0'
+task: T12
+status: passed
+run_id: t12_residual_curriculum_fix_seed102
+algorithm: RL-TEB-Eta-FullSafety
+training_seed: 102
+safety_mode: T12Safety
+episode_count: 301
+step_count: 2117
+failure_count: 1
+run_validation:
+  valid: true
+  run_id: t12_residual_curriculum_fix_seed102
+  episode_count: 301
+  step_count: 2117
+  verified_checksum_count: 4
+selected_checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_curriculum_fix_pilot/runs/t12_residual_curriculum_fix_seed102/checkpoints/step_002000
+evaluation_policy: checkpoint
+selected_timesteps: 2000
+passed: true
+acceptance_override: true

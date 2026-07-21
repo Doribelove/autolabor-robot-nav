@@ -1,0 +1,84 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+scene:
+  scene_id: v2-04g-r4-r1-maneuver-s5103
+  family: MANEUVER
+  split: calibration
+  seed: 5103
+  world_template: generated_v2_sdf
+  start:
+    x_m: 4.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 0.5
+    y_m: 0.0
+    yaw_rad: 3.141592653589793
+  timeout_s: 60.0
+  layout:
+    variant: v2_04g_r4_r1_maneuver_a
+    reference_centerline:
+    - - 4.0
+      - 0.0
+    - - 2.5
+      - 0.0
+    - - 0.5
+      - 0.0
+  static_obstacles:
+  - obstacle_id: bay-left
+    shape: box
+    pose:
+      x_m: 3.0098922750585286
+      y_m: 1.5179337107118809
+      yaw_rad: 0.0014162683668954013
+    size_m:
+    - 5.0
+    - 0.2
+    - 1.2
+  - obstacle_id: bay-right
+    shape: box
+    pose:
+      x_m: 2.983317911545792
+      y_m: -1.479878358414145
+      yaw_rad: 0.004530273197499386
+    size_m:
+    - 5.0
+    - 0.2
+    - 1.2
+  - obstacle_id: bay-back
+    shape: box
+    pose:
+      x_m: 5.523074819935376
+      y_m: 0.009383213231556303
+      yaw_rad: 0.0033782137547115586
+    size_m:
+    - 0.2
+    - 3.2
+    - 1.2
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.025
+    yaw_jitter_rad: 0.005
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.25
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.04
+  evaluator_only:
+    feasible: true
+    reason: fresh_clearance_repair_maneuver_a
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: d93ae01c64d6f5e4a8b706d311dc6508961e56f1eb2da7ed76fef7285d6efc54

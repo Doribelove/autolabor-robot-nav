@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="seed" default="42"/>
+  <arg name="output_dir" default="/home/robot/robot_ws_base_rl/artifacts/t10/gazebo_sac_smoke"/>
+  <include file="$(find m2_gazebo)/launch/m2_fixed_teb.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+  </include>
+  <node pkg="thesis_experiment" type="t10_gazebo_sac_smoke.py"
+        name="t10_gazebo_sac_smoke" output="screen" required="true"
+        launch-prefix="/home/robot/robot_ws_base_rl/.venv/bin/python">
+    <env name="PYTHONNOUSERSITE" value="1"/>
+    <param name="output_dir" value="$(arg output_dir)"/>
+    <param name="config" value="/home/robot/robot_ws_base_rl/config/thesis_experiments/t10_direct_theta_sac.yaml"/>
+  </node>
+</launch>

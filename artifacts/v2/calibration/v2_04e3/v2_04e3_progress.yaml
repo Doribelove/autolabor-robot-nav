@@ -1,0 +1,70 @@
+schema_version: '2.0'
+stage: V2-04E3
+status: complete
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04e3_preregistration.yaml
+  sha256: ecec86038b5029d108f3f5d3af11248f742a3f9cf539cc7ecde5c1e26904f7e4
+planned_navigation_episode_count: 5
+valid_evidence_episode_count: 5
+interface_failure_count: 0
+episodes:
+- sequence: 1
+  profile_id: pocket_g_wide_hold_confirmation
+  method: rule_multi_anchor
+  scene_id: v2-04e3-cruise-s4721
+  family: CRUISE
+  seed: 4721
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e3/episodes/ep_001__pocket_g_wide_hold_confirmation__v2-04e3-cruise-s4721/evaluation.yaml
+  evaluation_sha256: 8cbe0d6111be6681fdc5d008e9ceafbebb95702c108cf237bca48d5e73e5e875
+  trace_sha256: e92cdf1c94b6e009826cc79823714ae5fd53afd475a2fd267f3bf596c29d890f
+  success: true
+  collision: false
+- sequence: 2
+  profile_id: pocket_g_wide_hold_confirmation
+  method: rule_multi_anchor
+  scene_id: v2-04e3-dynamic-s4722
+  family: DYNAMIC
+  seed: 4722
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e3/episodes/ep_002__pocket_g_wide_hold_confirmation__v2-04e3-dynamic-s4722/evaluation.yaml
+  evaluation_sha256: ba417bda624085f2703f288221aa81f75d6623a075c07636431a790c5060bee6
+  trace_sha256: c9d26834c90ebf6c6a3f1ed3d178965db1da6172d1924b1437dd915a5b1d7773
+  success: true
+  collision: false
+- sequence: 3
+  profile_id: pocket_g_wide_hold_confirmation
+  method: rule_multi_anchor
+  scene_id: v2-04e3-static-s4723
+  family: STATIC_DENSE
+  seed: 4723
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e3/episodes/ep_003__pocket_g_wide_hold_confirmation__v2-04e3-static-s4723/evaluation.yaml
+  evaluation_sha256: 7561655c9a63706b521d6cc9099a97292b4636817c8b4eef55686b1548d57600
+  trace_sha256: 5845a4e8c84c5a39cf0b7d1900cafe2c876d74684786381084f443e4a0de3251
+  success: true
+  collision: false
+- sequence: 4
+  profile_id: pocket_g_wide_hold_confirmation
+  method: rule_multi_anchor
+  scene_id: v2-04e3-corridor-s4724
+  family: CORRIDOR
+  seed: 4724
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e3/episodes/ep_004__pocket_g_wide_hold_confirmation__v2-04e3-corridor-s4724/evaluation.yaml
+  evaluation_sha256: bf8fd5336bf113304a3308722f216598c550dd93a2a0e7cb5bdafbdab3223182
+  trace_sha256: 0d8f01fccfd30152b5144470c5c6395a722c8984804bcc64e49a7b8ebaddb983
+  success: true
+  collision: false
+- sequence: 5
+  profile_id: pocket_g_wide_hold_confirmation
+  method: rule_multi_anchor
+  scene_id: v2-04e3-maneuver-s4725
+  family: MANEUVER
+  seed: 4725
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e3/episodes/ep_005__pocket_g_wide_hold_confirmation__v2-04e3-maneuver-s4725/evaluation.yaml
+  evaluation_sha256: a823ab7b08e6c3bc980cc48ea41abe1dbfcb55dc2f459bd85bdcb020e4f50e51
+  trace_sha256: 1f219a0b2468cde89a93730c7db1fec089569dbe7cdee659fa51730a60ff0595
+  success: true
+  collision: false
+interface_failures: []

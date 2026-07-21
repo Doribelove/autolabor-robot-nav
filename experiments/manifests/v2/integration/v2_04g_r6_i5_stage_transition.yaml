@@ -1,0 +1,150 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-R6-I5
+transition_id: fam_teb_v2_04g_r6_i4_to_r6_i5_bounded_simulation_execution_1
+transition_date: "2026-07-21"
+status: independent_bounded_simulation_execution_stage_opened
+source_stage: V2-04G-R6-I4
+source_status: preflight_integrity_repair_readiness_closure_pass_future_release_absent
+target_stage: V2-04G-R6-I5
+independent_stage: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_authorized: true
+execution_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+user_instruction_boundary:
+  explicit_user_full_bounded_simulation_execution_instruction_received: true
+  authorized_actions:
+    - create_and_validate_contract_preregistration_authorization_and_transition
+    - derive_materialize_and_compile_fresh_scenes_offline
+    - implement_and_test_versioned_i5_runner_and_release_validator
+    - build_and_review_independent_i5_dependency_closure
+    - create_once_and_validate_unique_canonical_exact_hash_release
+    - run_full_prejournal_state_process_and_dependency_validation
+    - execute_frozen_six_identity_schedule_until_complete_or_first_terminal_failure
+    - persist_deterministic_bounded_assessment
+  separate_future_user_instruction_required_after_valid_release: false
+  authorization_envelope_alone_sufficient_to_start_processes: false
+  valid_exact_hash_release_and_full_prejournal_required: true
+
+source_i4_snapshot:
+  repaired_validator:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_release.py
+    sha256: 9b9dd3fc580d0f880705bf87e120cdb9d30fdce812f585ee99e3f0fdf1fa3994
+  dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review/execution_dependency_closure.yaml
+    file_sha256: e9d27ed1522ca744f1bbf4a91832287ac2e780aa395c1fa1d147e3c587099b0f
+    logical_sha256: dceb73df8619849f5b5a0442b739be09815bfc86939a188873c94993fe4d5b74
+  machine_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review/v2_04g_r6_i4_preflight_integrity_readiness_review.yaml
+    sha256: 3f183768e657ec17f4fd1045ffd0749d13213cc53017a09c6e166d840d647b12
+    status: preflight_integrity_repair_readiness_closure_pass_future_release_absent
+  allocation:
+    execution_seeds: []
+    schedule: []
+    evidence_units_authorized: 0
+    evidence_units_consumed: 0
+    evidence_units_forfeited: 0
+  reserved_i4_release_present: false
+  execution_state_present: false
+
+historical_i3_snapshot:
+  failed_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+    sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  allocated_seeds: [5151, 5152, 5153, 5154, 5155, 5156, 5157]
+  authorized_units: 6
+  consumed_units: 0
+  forfeited_units: 0
+  execution_state_created: false
+  release_authorization_identity_or_budget_reusable: false
+
+target_allocation:
+  execution_seeds: [5161, 5162, 5163]
+  compile_support_only_seeds: [5164, 5165, 5166, 5167]
+  exact_schedule_sha256: b52d00a2dc0c1f2edf149d30120451ea836fc1d0589109a1016dc48e9a9d5402
+  evidence_units_authorized: 6
+  evidence_units_consumed: 0
+  evidence_units_forfeited: 0
+  compile_support_evidence_units: 0
+  attempt_limit_per_identity: 1
+  retry_or_resume_allowed: false
+  replacement_or_expansion_allowed: false
+
+authorization_resource_policy:
+  exact_resource_count: 12
+  parsed_labels: [preregistration, inherited_i4_dependency_closure]
+  hash_only_label_count: 10
+  parse_selection_by_closed_label_only: true
+  suffix_based_parse_forbidden: true
+  exact_bytes_sha256_for_all_resources_required: true
+
+canonical_outputs:
+  scene_derivation: experiments/manifests/v2/integration/v2_04g_r6_i5_scene_derivation.yaml
+  scene_manifest: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_scenes.yaml
+  compiled_scene_index: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/compiled_scenes/compiled_scene_index.yaml
+  dependency_closure: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/execution_dependency_closure.yaml
+  machine_review: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_execution_readiness_review.yaml
+  unique_release: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_release.yaml
+  stage_report: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_stage_report.yaml
+
+release_and_prejournal_boundary:
+  unique_release_created_by_transition: false
+  unique_release_must_be_absent_until_readiness_review_passes: true
+  caller_supplied_exact_release_and_authorization_hashes_required: true
+  all_release_authorization_closure_and_runtime_resources_rehashed: true
+  state_gate_and_host_process_isolation_required: true
+  execution_state_creation_before_full_prejournal_allowed: false
+  ros_or_gazebo_start_before_full_prejournal_allowed: false
+  execution_may_start_after_all_gates_pass: true
+  prejournal_failure_consumed_units: 0
+  prejournal_failure_forfeited_units: 0
+  failed_release_retry_or_reuse_allowed: false
+
+attempt_and_budget_boundary:
+  first_terminal_failure_stops_stage: true
+  consumption_boundary: base_roslaunch_spawn_requested
+  attempt_limit_per_identity: 1
+  retry_or_resume_allowed: false
+  replacement_seed_allowed: false
+  budget_expansion_allowed: false
+  unattempted_units_forfeited_after_attempt_terminal_failure: true
+  unattempted_budget_forfeited_formula: six_minus_consumed
+
+state_after_transition:
+  authorization_envelope_present: true
+  execution_release_present: false
+  execution_attempt_root_present: false
+  execution_journal_present: false
+  execution_receipt_present: false
+  raw_or_semantic_evidence_present: false
+  ros_or_gazebo_started_by_transition: false
+  execution_ready: false
+  next_gate: fresh_scene_runner_validator_closure_review_then_unique_release_prejournal
+
+bound_resources:
+  contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_r6_i5_bounded_simulation_execution_contract.yaml
+    sha256: f4ce9115427028e12fce1176176204005989652c57bbf8d00a8c4eda8f33042a
+  preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_preregistration.yaml
+    sha256: 602fc1044fb9e3e8ac284e77cadcbaced95c5edfb9721df0da26f876cc42c073
+  authorization:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_bounded_simulation_authorization.yaml
+    sha256: bc59820b0140b50503657966d735511a8007d9ec8e14f3f2cf237791ff170592
+
+forbidden_outputs_or_actions:
+  alternate_release_path: true
+  i3_or_i4_release_reuse: true
+  i3_identity_or_budget_reuse: true
+  retry_or_resume: true
+  seed_replacement_or_budget_expansion: true
+  held_out_5001_5010: true
+  winner_selection_or_freezing: true
+  v2_05_or_training: true
+  real_vehicle_or_real_vehicle_teb_write: true
+  formal_or_runtime_ready_claim: true

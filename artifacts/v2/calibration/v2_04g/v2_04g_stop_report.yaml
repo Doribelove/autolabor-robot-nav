@@ -1,0 +1,112 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G
+status: stopped_fail_closed_persistent_interface_failure
+simulation_only: true
+runtime_ready: false
+formal_result: false
+training_started: false
+real_vehicle_used: false
+created_date: "2026-07-14"
+
+evidence:
+  preregistration:
+    path: experiments/manifests/v2/calibration/v2_04g_preregistration.yaml
+    sha256: e851cc5ee3d79f568e62f16d466a0cde2e1d755c5db2e0c53014589322ac8796
+  progress:
+    path: artifacts/v2/calibration/v2_04g/v2_04g_progress.yaml
+    sha256: f2704770f0f0e76631a425df9dc9d5a97446dc6f309025f8a75a0572d01ee801
+  accepted_navigation_episode_count: 31
+  planned_navigation_episode_count: 60
+  persistent_interface_failure_count: 1
+  accepted_profile_counts:
+    fixed_reference: 15
+    g0_frozen_control: 15
+    g1_mechanism_balanced: 1
+    g2_mechanism_aggressive: 0
+
+failed_identity:
+  sequence: 32
+  profile_id: g1_mechanism_balanced
+  method: rule_multi_anchor
+  scene_id: v2-04g-cruise-s4902
+  family: CRUISE
+  seed: 4902
+  attempts: 2
+  failure: V2-04D runtime readiness timeout
+  runner_log:
+    path: artifacts/v2/calibration/v2_04g/episodes/ep_032__g1_mechanism_balanced__v2-04g-cruise-s4902/runner.log
+    sha256: 06b7e84c52843b5432648a8a388a4f27a4fb8a1519dbcdc4f2639a3a7dbab7ff
+  launch_log:
+    path: artifacts/v2/calibration/v2_04g/episodes/ep_032__g1_mechanism_balanced__v2-04g-cruise-s4902/launch.log
+    sha256: d480a67329ca6e1527d528c26df45c58cacb0ba0ec05432f3f10c430028b47fa
+
+partial_findings:
+  fixed_reference:
+    episode_count: 15
+    success_count: 15
+    collision_count: 0
+    total_navigation_time_s: 311.6
+    active_anchor_switch_count_max: 0
+    minimum_reported_clearance_m: 0.0
+  g0_frozen_control:
+    episode_count: 15
+    success_count: 15
+    collision_count: 0
+    total_navigation_time_s: 414.3
+    active_anchor_switch_count_max: 3
+    active_anchor_switch_count_mean: 1.3333333333333333
+    minimum_reported_clearance_m: 0.39782861950094695
+  dynamic_observability_for_complete_profiles:
+    fixed_reference:
+      OBSERVED_CONFLICT: 2
+      NO_CONFLICT_IN_HORIZON: 1
+      TRACKER_INVALID: 0
+    g0_frozen_control:
+      OBSERVED_CONFLICT: 2
+      NO_CONFLICT_IN_HORIZON: 1
+      TRACKER_INVALID: 0
+  clearance_audit:
+    CLEARANCE_POSITIVE: 30
+    TRUE_GEOMETRIC_INTRUSION: 1
+    conclusion: >-
+      The 0.000 m value in fixed_reference dynamic-conflict-s4904 is a real
+      footprint geometry overlap, not a LaserScan or evaluator-definition
+      artifact. Signed scan clearance was -0.2032027354 m and evaluator-only
+      Gazebo oriented-box clearance was 0.0 m. Gazebo contact_count remained
+      zero, so the pose-driven actor contact channel is not authoritative.
+
+interface_diagnosis:
+  primary_hypothesis: exact_world_model_sequence_join_is_timing_fragile
+  confidence: high
+  evidence:
+    - >-
+      The V2-04G typed transaction node requires LocalGeometry.world_model_seq
+      to equal ContextState.world_model_seq at the transaction timer tick.
+    - >-
+      The accepted g1 Cruise-s4901 episode published 163 transaction messages
+      but only 26 activated transactions, consistent with intermittent exact
+      sequence matches.
+    - >-
+      Cruise-s4902 reached normal ROS/Gazebo startup on both attempts, but no
+      activated transaction satisfied readiness within the frozen timeout.
+  excluded_as_primary_causes:
+    - scene label or validation data access
+    - SAC or learned-policy loading
+    - real-vehicle parameter writes
+
+hard_gate_state:
+  complete_navigation_episode_count: false
+  persistent_interface_failure_count_max: false
+  fixed_reference_validity: true
+  dynamic_three_state_component_probe: true
+  candidate_freeze_eligible: false
+
+decision:
+  resume_same_v2_04g_preregistration_authorized: false
+  freeze_anchor_or_mechanism_authorized: false
+  generate_fresh_held_out_validation_authorized: false
+  enter_v2_05_authorized: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false
+  required_next_stage: V2-04G-R1 calibration-only interface synchronization repair

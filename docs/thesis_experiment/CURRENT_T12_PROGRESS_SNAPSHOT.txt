@@ -1,0 +1,143 @@
+Autolabor M2 TEB-RL 项目当前进度快照
+保存日期：2026-07-13
+工作空间：/home/robot/robot_ws_base_rl
+分支：base_on_rl
+
+一、当前阶段
+
+T00--T10：已完成。
+T11：已完成缩减额度的四 seed 正式矩阵与安全消融；遗留的 FullSafety 过度急停问题已定位。
+T12：已完成第一阶段，即安全逻辑修复、只读 Shadow Runtime 和 T11 遥测离线反事实回放。
+T12：已完成第二阶段，即三方法、两 seed、十场景、共 60 episode 的无训练 Gazebo 闭环复验。
+T12：已完成窄走廊方向性安全与 Residual Semantic-Eta 的24-episode无训练 pilot。
+
+二、T11 已有结论
+
+主矩阵包含 20/20 个 run、1400/1400 个测试 episode。
+Semantic-Eta FullSafety 成功率：42.86%。
+Direct-Theta FullSafety 成功率：43.21%。
+ProjectionOnly 成功率：90.00%。
+NoSafety 成功率：90.71%。
+NoFallback 成功率：42.86%。
+记录碰撞率均为 0，但 NoSafety seed104 保留了一次 move_base SIGSEGV 失败尝试。
+8 个主训练 run 没有达到冻结的 validation return 阈值，因此不得宣称 SAC 已收敛。
+
+T11 FullSafety 的主要问题不是策略完全无效，而是安全过滤器把理论制动距离包络直接当成
+急停条件。在约 1.2m 净空时也会进入 EMERGENCY，导致 160/280 个测试 episode 急停。
+
+三、T12 已实现内容
+
+1. 安全状态机修复
+   - 理论制动包络主要触发 WARNING 和保守参数推荐。
+   - EMERGENCY 还必须满足硬近场净空阈值 0.35m，并持续 0.25s。
+   - 保留恢复滞回、健康检查和 ConservativeFallbackPolicy。
+
+2. 参数输出保护
+   - SAC 候选参数先经过 EMA 平滑。
+   - 再经过 9 参数边界、参数耦合和每步变化率投影。
+   - NaN/Inf 或参数不完整继续拒绝，不因追求成功率而关闭。
+
+3. OOD 保护
+   - 对净空、速度、TTC、障碍密度、路径误差和目标距离计算可解释的 envelope score。
+   - 轻度 OOD 进入 WARNING，严重 OOD 使用保守回退。
+
+4. Shadow 安全属性
+   - allow_motion 固定为 false。
+   - allow_parameter_write 固定为 false。
+   - 当前实现只能输出、记录和比较推荐参数，不能控制机器人或修改在线 TEB。
+
+四、T12 离线验收结果
+
+数据来源：4 个 Semantic-Eta FullSafety seed。
+测试 episode：280。
+回放决策行：991。
+无效状态行：0。
+
+原始急停 episode：160。
+其中最小净空大于 0.35m 的反事实误停候选：131。
+误停候选比例：81.875%。
+
+改进逻辑在已记录步骤中的 EMERGENCY：0。
+改进逻辑在已记录步骤中的 FAULT：0。
+OOD 保守回退：127 次。
+安全投影：238 次。
+
+平均原候选动作 L1：0.6232085。
+平均 EMA+投影动作 L1：0.2353019。
+动作幅度降低：62.2435%。
+平均 SAC 推理时间：1.531ms。
+
+T12 离线验收状态：passed。
+Python 全量回归：121 passed。
+catkin_make：成功，共 71 个包。
+T12 报告与逐步决策 checksum：通过。
+
+闭环复验结果：
+- 旧 FullSafety：8/20 成功，12/20 急停，0 碰撞。
+- T12Safety：18/20 成功，2/20 急停，0 碰撞，0 planner failure，0 interface fault。
+- ProjectionOnly：19/20 成功，0 急停，0 碰撞，1 planner failure。
+- T12Safety 相对旧逻辑：成功率 +50 percentage points，急停率 -50 percentage points。
+- 60/60 episode 配对完整，所有预设门槛 passed。
+
+五、结论边界
+
+已经证明：
+- T11 FullSafety 存在显著的系统性过度急停。
+- 新逻辑能消除历史记录中的错误急停触发，并显著平滑 SAC 参数输出。
+- 改进没有删除 NaN/Inf、参数边界、变化率和 OOD 回退保护。
+
+尚未证明：
+- 新逻辑闭环运行 Gazebo 后的实际成功率。
+- SAC 是否最终优于 ProjectionOnly、固定 TEB 或规则基线。
+- 新逻辑对完整路径长度、耗时、净空和 TTC 的最终影响。
+- 任何实车安全性或 sim-to-real 性能。
+
+因此不能写成“成功率已经提高”，应写成“离线反事实验证通过，闭环性能待复验”。
+
+六、关键文件
+
+T12 配置：config/thesis_experiments/t12_shadow.yaml
+Shadow Runtime：src/application/teb_rl_tuner/src/teb_rl_tuner/shadow_runtime.py
+安全状态机：src/application/teb_rl_tuner/src/teb_rl_tuner/safety_margin_filter.py
+离线回放：src/tools/thesis_experiment/src/thesis_experiment/t12_replay.py
+运行入口：src/tools/thesis_experiment/scripts/t12_offline_replay.py
+验收报告：artifacts/t12/offline_replay/t12_replay_report.yaml
+逐步决策：artifacts/t12/offline_replay/shadow_decisions.csv
+校验文件：artifacts/t12/offline_replay/checksums.sha256
+闭环报告：artifacts/t12/closed_loop/t12_closed_loop_report.yaml
+闭环场景合同：experiments/manifests/t12/closed_loop_scenes.yaml
+闭环总校验：artifacts/t12/closed_loop/checksums.sha256
+Residual pilot 配置：config/thesis_experiments/t12_residual_semantic_eta.yaml
+Residual pilot 报告：artifacts/t12/residual_pilot/t12_residual_pilot_report.yaml
+Residual pilot 校验：artifacts/t12/residual_pilot/checksums.sha256
+T11 报告：artifacts/t11/evaluation/t11_evaluation_report.yaml
+
+七、复现命令
+
+cd /home/robot/robot_ws_base_rl
+source scripts/activate_thesis_env.sh
+python -m pytest -q src/application/teb_rl_tuner/tests src/tools/thesis_experiment/tests
+source devel/setup.bash
+rosrun thesis_experiment t12_offline_replay.py
+cd artifacts/t12/offline_replay
+sha256sum -c checksums.sha256
+
+八、下一步最低成本实验
+
+不要立刻重跑完整 T11。先做小额度闭环 Gazebo 复验：
+- Semantic-Eta + 新安全逻辑；
+- 原 Semantic-Eta FullSafety；
+- ProjectionOnly；
+- 使用完全相同的小场景集和 seed；
+- 对比 success、emergency-stop、collision、timeout、净空、TTC、时间和路径长度。
+
+若新安全逻辑明显降低急停且没有增加碰撞，再扩展 seed；否则优先修改安全阈值、reward 或
+场景课程，不消耗完整训练额度。
+
+九、安全与工作区约束
+
+不得修改 /home/robot/robot_ws 稳定实车工作空间。
+不得启动实车运动、串口/CAN 或向实车 TEB 写参数。
+实车操作必须获得现场用户逐次批准。
+现有 worktree 包含用户既有修改和子模块 dirty 状态，不得清理、reset 或覆盖。
+当前改动尚未提交或推送。

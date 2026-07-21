@@ -1,0 +1,214 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-I1
+contract_id: fam_teb_v2_04g_r6_i1_execution_integration_1
+status: execution_integration_review_contract_not_authorized
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+source_design_stage: V2-04G-R6-DESIGN
+objective: >-
+  Review the actual ROS execution integration for the frozen single R6
+  conflict-estimator factor, close all six D1 execution-integrity risks at
+  their real call sites, and preregister a bounded fresh-seed simulation
+  validation without authorizing or starting it.
+single_changed_factor:
+  runtime_field: supervisor.dynamic.conflict_estimator_id
+  factor_count: 1
+  control_value: legacy_class_conditioned_geometry_v1
+  aligned_value: shared_circle_envelope_first_contact_v1
+  only_profile_field_allowed_to_differ: true
+  atomic_definition_includes:
+    - conflict_eligibility_primitive
+    - tracked_footprint_radius_interpretation
+    - multi_track_conflict_selection_order
+frozen_values:
+  runtime_and_evaluator_horizon_s: 5.0
+  minimum_track_confidence: 0.45
+  robot_radius_m: 0.62
+  minimum_relative_speed_mps: 0.05
+  closest_approach_max_m: 1.35
+  overlay_release_confirmation_s: 0.20
+  world_model_prediction_horizon_s: 2.0
+  horizon_1_5_or_1_0_enabled: false
+fresh_seed_and_budget:
+  execution_seeds: [5141, 5142, 5143]
+  compile_support_only_seeds: [5144, 5145, 5146, 5147]
+  evidence_units_preregistered: 6
+  evidence_units_authorized_by_review: 0
+  evidence_units_consumed_by_review: 0
+  attempt_limit_per_identity: 1
+  retry_or_resume_allowed: false
+  r5_5111_5135_reused: false
+  r5_remaining_units_consumed: 0
+  held_out_5001_5010_accessed: false
+six_execution_integrity_repairs:
+  readiness_direct_counts:
+    risk_id: D1-RISK-READINESS-DIRECT-COUNTS
+    call_sites:
+      - v2_04g_r6_i1_activation_probe_listener.R6DirectCountProbe
+      - v2_04g_r6_i1_bounded_validation._validate_semantics
+      - thesis_experiment.v2_04g_r6_integrity.validate_readiness_raw_evidence
+  compiled_scene_toctou:
+    risk_id: D1-RISK-COMPILED-SCENE-TOCTOU
+    call_sites:
+      - thesis_experiment.v2_04g_r6_integrity.acquire_compiled_scene_lease
+      - thesis_experiment.v2_04g_r6_integrity.materialize_scene_snapshot
+      - thesis_experiment.v2_04g_r6_integrity.revalidate_scene_snapshot
+  interruption_terminalization:
+    risk_id: D1-RISK-SIGINT-IN-PROGRESS
+    call_sites:
+      - thesis_experiment.v2_04g_r6_integrity.AtomicAttemptJournal
+      - v2_04g_r6_i1_bounded_validation._terminal_raw
+  assessment_raw_binding:
+    risk_id: D1-RISK-ASSESSMENT-RAW-BINDING
+    call_sites:
+      - thesis_experiment.v2_04g_r6_i1_execution_integrity.validate_persisted_attempt
+      - assess_v2_04g_r6_i1.build_assessment
+  execution_hash_closure:
+    risk_id: D1-RISK-EXECUTION-HASH-CLOSURE
+    call_sites:
+      - thesis_experiment.v2_04g_r6_i1_dependency.build_dependency_closure
+      - v2_04g_r6_i1_bounded_validation._verify_closure
+  teardown_restore:
+    risk_id: D1-RISK-TEARDOWN-RESTORE
+    call_sites:
+      - teb_mode_manager.r6_execution_integration.R6TwoPhaseIdempotentTypedTebTransactionBackend
+      - v2_04g_r6_typed_anchor_transaction_node.R6SimulationTypedAnchorTransactionNode
+      - thesis_experiment.v2_04g_r6_integrity.verify_teardown_restore
+      - thesis_experiment.v2_04g_r6_integrity.authorize_launch_stop
+review_boundary:
+  ros_or_gazebo_started: false
+  move_base_started: false
+  execution_authorization_created_by_review: false
+  seed_or_evidence_units_consumed: 0
+  runtime_configs_and_scenes_are_review_inputs_not_execution: true
+  dependency_closure_generated_from_actual_entrypoints: true
+  separate_authorization_required_after_pass: true
+  authorization_cli_sha256_trust_anchor_required: true
+downstream_forbidden:
+  retry_or_resume_r5: true
+  consume_r5_remaining_68: true
+  use_held_out_5001_5010: true
+  rank_or_freeze_winner: true
+  start_v2_05: true
+  start_sac_or_training: true
+  connect_real_vehicle: true
+  write_real_vehicle_teb: true
+resources:
+  r6_design_contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_semantic_alignment_design_contract.yaml
+    sha256: 16dfcbd9d4d34758653b61b5b73018415d956d5e337597cd1163021c2e228be1
+  r6_design_preregistration:
+    path: experiments/manifests/v2/preregistrations/v2_04g_r6_semantic_alignment_preregistration.yaml
+    sha256: 1e923a316d8dd8675628da4cfd7feab51653fd543df76e226b919a198019d912
+  r6_design_candidate_bank:
+    path: experiments/manifests/v2/preregistrations/v2_04g_r6_semantic_candidates.yaml
+    sha256: 6732b132067591f71c365463b5677bbe5dc161b9fb5b891ebac8a74b70c63c5d
+  r6_semantic_reference:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/r6_relative_ttc_supervisor.py
+    sha256: da7ebfbe361137da603c2b7767ef3040ae91751603097dd14b70225ac44a1b83
+  r6_design_integrity:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_integrity.py
+    sha256: 65887068fcc1d98296a04eb1b8d87f2d6e29139365555bdfa27323efee9b89f8
+  r6_design_report:
+    path: artifacts/v2/design_review/v2_04g_r6/v2_04g_r6_design_review.yaml
+    sha256: 7cd08db3ead76c31f20fc76c23c3ec7ad86ddbe39d095b599ee75b6fea76cb1e
+  r6_design_handoff:
+    path: docs/thesis_experiment/CURRENT_V2_04G_R6_DESIGN_HANDOFF.md
+    sha256: 134a7a838571392353d84f64d2f1045d78f2922816e718443d7b70db7380f1c6
+  execution_preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_execution_preregistration.yaml
+    sha256: fccd32ee6265003827693e8374dcf57cebdbcb82e3e155e0cb756ab9dce55c26
+  stage_transition:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_stage_transition.yaml
+    sha256: 4f2b77a15987f4927d9cb789396f409c009a4fb699a91ef7bbb2906e82249029
+  scene_derivation:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_scene_derivation.yaml
+    sha256: 5f3e756609828b70ba0612c59a510d1d3750bd8fe33161829da3f9b7e706ce12
+  scene_manifest:
+    path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_scenes.yaml
+    sha256: 12c50c598951ab09bf5696b9c3acec97691a4d5ae92063352f2a7e46caf87081
+  compiled_scene_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/compiled_scenes/compiled_scene_index.yaml
+    sha256: 1f1cdde389dc98687142ca8d8c47c03bc8391b003d9103bde05c0e41cfddc4a0
+  r6_semantics_legacy_control_supervisor:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_legacy_control/supervisor.yaml
+    sha256: a6941f6fd66e187c3642d9594502b5afbc3d9022f8b76ef598ac1969ac410da6
+  r6_semantics_legacy_control_anchor_bank:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_legacy_control/anchor_bank.yaml
+    sha256: 5a3ecfc4c9dc8b6bfbb90ad5f036250396eceb99bd0154d1634012bbc4a4a72f
+  r6_semantics_legacy_control_mechanism:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_legacy_control/mechanism.yaml
+    sha256: f3deff87e322e1d009fc30bfef6abb4b44770c455e3db61ff8e22afa041eea5e
+  r6_semantics_circle_contact_supervisor:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/supervisor.yaml
+    sha256: d5e35cfe84082b229ae6e656c2d3aaa7a10c8c61b696184bda8dc90e47a762da
+  r6_semantics_circle_contact_anchor_bank:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/anchor_bank.yaml
+    sha256: 5a3ecfc4c9dc8b6bfbb90ad5f036250396eceb99bd0154d1634012bbc4a4a72f
+  r6_semantics_circle_contact_mechanism:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/mechanism.yaml
+    sha256: f3deff87e322e1d009fc30bfef6abb4b44770c455e3db61ff8e22afa041eea5e
+  runtime_supervisor_node:
+    path: src/application/teb_mode_manager/scripts/r6_rule_context_supervisor_node.py
+    sha256: 201def549c5e4f22d12693d9e3adf53bf350a32ce8562c1672f02a901d042f5b
+  transaction_node:
+    path: src/application/teb_mode_manager/scripts/v2_04g_r6_typed_anchor_transaction_node.py
+    sha256: fe9f2d2c23242c3a22bfe3d6f36f286f388105e5628383acc177d9b6be143c2a
+  transaction_helper:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/r6_execution_integration.py
+    sha256: 83f38157c19897fa7700f08ea3d3acd41049ef53badcee8f29dac7e56c4f68e0
+  supervisor_launch:
+    path: src/application/teb_mode_manager/launch/v2_04g_r6_rule_supervisor.launch
+    sha256: 7f51d65423a7e6562a188fe2a88f8d5dee78429bb5baa96a51e72c3323d70f8d
+  transaction_launch:
+    path: src/application/teb_mode_manager/launch/v2_04g_r6_simulation_typed_anchor.launch
+    sha256: 1b3d228bc406eb4d25f6b4efb8f939e6a337f8114785e0cfcf35d5a756baa7fc
+  simulation_launch:
+    path: src/simulation/m2_gazebo/launch/m2_v2_04g_r6_execution_integration.launch
+    sha256: 32a667c92bb590de8a776c33dc1acba5e97b1b8c897b75cdc306beec15a9e7c0
+  candidate_materializer:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_candidate_materializer.py
+    sha256: 7a18ebc524517d57f2fe3d318a876930ee01b98c2b9d5f8cee79f5bcd94a852d
+  dependency_generator:
+    path: src/tools/thesis_experiment/scripts/generate_v2_04g_r6_i1_dependency_closure.py
+    sha256: dfebbda120ef4eae4b44e03dd6b6c8b49f4b5eb724d5038345cd2c3b5fcf3c2f
+  dependency_module:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_dependency.py
+    sha256: 8147b60ed1fbd54c86c6a77889f35bde22b02b26ec83b5b88eaceefee4f22a80
+  persisted_integrity:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_execution_integrity.py
+    sha256: 46861f49874125faafce8a66b6845a416564f4ecbe0f231dbcf54dbd2b88a117
+  activation_listener:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_activation_probe_listener.py
+    sha256: 7f73363bd1c2887d63536e7d846aa11afe3d15ced13deb3b5a52753aa4f9b758
+  mechanism_episode:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_mechanism_episode.py
+    sha256: d3ca53e433121adde8618a958d9791ca50345d0bbd5832c25b80a1c884508b61
+  runtime_control:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_runtime_control.py
+    sha256: b927578e21ba2318571c0e2b4fb1925470648d0ffd40e0ce39346189d83e6fa1
+  bounded_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_bounded_validation.py
+    sha256: 7c4ee80727569ffb5f8a670be1b6a571004f2d7d8b17136f7f40610c6990cd10
+  assessor:
+    path: src/tools/thesis_experiment/scripts/assess_v2_04g_r6_i1.py
+    sha256: 35eee8ebab36e875525a9a08cc252e7043e9ac9ad3a9228651680602fe326d50
+  integration_reviewer:
+    path: src/tools/thesis_experiment/scripts/review_v2_04g_r6_i1.py
+    sha256: db3a187bf8e2015dae5ed01236632bcaeb00e397da222406b36ef612fbd785b6
+  integration_tests:
+    path: src/tools/thesis_experiment/tests/test_v2_04g_r6_i1.py
+    sha256: a5f5d8c9cae65f5e9ca55d26937b1554f9d46dbb13234ae5fe5b5bead9c8503a
+  transaction_tests:
+    path: src/application/teb_mode_manager/tests/test_r6_execution_integration.py
+    sha256: a08f4f25a1a99a318a8c69d8cb7492bc20335b84897caf7b4200b1170a3ed8ef
+review_output:
+  path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_integration_review.yaml
+  deterministic: true
+  atomic_write: true

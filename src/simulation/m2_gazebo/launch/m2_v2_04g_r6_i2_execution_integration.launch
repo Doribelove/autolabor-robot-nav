@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- R6-I2 future integration surface.  This review-only file embeds no
+       authorization, seed value, scene, budget, or permissive write gate. -->
+  <arg name="world"/>
+  <arg name="seed"/>
+  <arg name="xacro_executable"/>
+  <arg name="rule_supervisor_config"/>
+  <arg name="rule_supervisor_config_sha256"/>
+  <arg name="anchor_bank"/>
+  <arg name="mechanism_config"/>
+  <arg name="attempt_stage"/>
+  <arg name="attempt_profile_id"/>
+  <arg name="attempt_scene_id"/>
+  <arg name="attempt_number"/>
+  <arg name="allow_simulation_teb_parameter_write" default="false"/>
+  <arg name="allow_unfrozen_simulation_candidate" default="false"/>
+  <arg name="start_typed_transaction" default="false"/>
+  <arg name="gui" default="false"/>
+  <arg name="paused" default="true"/>
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+  <arg name="load_balanced_anchor" default="true"/>
+  <arg name="publish_teb_obstacles" default="true"/>
+  <arg name="force_geometry_balanced" default="false"/>
+  <arg name="startup_profile_topic"
+       default="/teb_mode_manager/r6/startup_profile"/>
+  <arg name="teardown_receipt_topic"
+       default="/teb_mode_manager/r6/teardown_receipt"/>
+  <arg name="restore_startup_service"
+       default="/teb_mode_manager/r6/restore_startup"/>
+  <arg name="arm_execution_service"
+       default="/teb_mode_manager/r6/arm_execution"/>
+
+  <include file="$(find m2_gazebo)/launch/m2_v2_04g_r6_i2_spawn_m2.launch">
+    <arg name="world" value="$(arg world)"/>
+    <arg name="seed" value="$(arg seed)"/>
+    <arg name="xacro_executable" value="$(arg xacro_executable)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="x" value="$(arg x)"/>
+    <arg name="y" value="$(arg y)"/>
+    <arg name="yaw" value="$(arg yaw)"/>
+  </include>
+
+  <node pkg="m2_gazebo"
+        type="v2_scan_transport.py"
+        name="v2_scan_transport"
+        output="screen"
+        required="true">
+    <param name="input_topic" value="/v2/scan_raw"/>
+    <param name="output_topic" value="/scan"/>
+    <param name="delay_s" value="0.06"/>
+    <param name="jitter_s" value="0.01"/>
+    <param name="noise_stddev_m" value="0.01"/>
+    <param name="seed" value="$(arg seed)"/>
+  </node>
+
+  <node pkg="move_base"
+        type="move_base"
+        name="move_base"
+        output="screen">
+    <rosparam file="$(find m2_gazebo)/config/move_base.yaml"
+              command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml"
+              command="load"
+              ns="local_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml"
+              command="load"
+              ns="global_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/local_costmap.yaml"
+              command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/global_costmap.yaml"
+              command="load"/>
+    <param name="global_costmap/width" value="80.0"/>
+    <param name="global_costmap/height" value="30.0"/>
+    <rosparam file="$(find m2_gazebo)/config/fixed_teb.yaml"
+              command="load"/>
+    <rosparam if="$(arg load_balanced_anchor)"
+              file="$(find m2_gazebo)/config/v2_04b_calibration_teb.yaml"
+              command="load"/>
+    <remap from="cmd_vel" to="/cmd_vel"/>
+    <remap from="odom" to="/odom"/>
+  </node>
+
+  <include file="$(find nav_world_model)/launch/v2_03_world_model.launch">
+    <arg name="allow_unfrozen_simulation_candidate"
+         value="$(arg allow_unfrozen_simulation_candidate)"/>
+    <arg name="publish_teb_obstacles"
+         value="$(arg publish_teb_obstacles)"/>
+  </include>
+
+  <include file="$(find teb_mode_manager)/launch/v2_04g_r6_rule_supervisor.launch">
+    <arg name="config" value="$(arg rule_supervisor_config)"/>
+    <arg name="config_sha256"
+         value="$(arg rule_supervisor_config_sha256)"/>
+    <arg name="attempt_profile_id"
+         value="$(arg attempt_profile_id)"/>
+    <arg name="allow_unfrozen_simulation_candidate"
+         value="$(arg allow_unfrozen_simulation_candidate)"/>
+  </include>
+
+  <group if="$(arg start_typed_transaction)">
+    <include file="$(find teb_mode_manager)/launch/v2_04g_r6_simulation_typed_anchor.launch">
+      <arg name="allow_simulation_teb_parameter_write"
+           value="$(arg allow_simulation_teb_parameter_write)"/>
+      <arg name="allow_unfrozen_simulation_candidate"
+           value="$(arg allow_unfrozen_simulation_candidate)"/>
+      <arg name="anchor_bank" value="$(arg anchor_bank)"/>
+      <arg name="mechanism_config" value="$(arg mechanism_config)"/>
+      <arg name="force_geometry_balanced"
+           value="$(arg force_geometry_balanced)"/>
+      <arg name="attempt_stage" value="$(arg attempt_stage)"/>
+      <arg name="attempt_profile_id"
+           value="$(arg attempt_profile_id)"/>
+      <arg name="attempt_scene_id" value="$(arg attempt_scene_id)"/>
+      <arg name="attempt_seed" value="$(arg seed)"/>
+      <arg name="attempt_number" value="$(arg attempt_number)"/>
+      <arg name="supervisor_config_sha256"
+           value="$(arg rule_supervisor_config_sha256)"/>
+      <arg name="startup_profile_topic"
+           value="$(arg startup_profile_topic)"/>
+      <arg name="teardown_receipt_topic"
+           value="$(arg teardown_receipt_topic)"/>
+      <arg name="restore_startup_service"
+           value="$(arg restore_startup_service)"/>
+      <arg name="arm_execution_service"
+           value="$(arg arm_execution_service)"/>
+    </include>
+  </group>
+</launch>

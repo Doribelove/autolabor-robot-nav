@@ -1,0 +1,40 @@
+schema_version: '2.0'
+architecture_generation: v2
+stage: V2-04G-R2
+profile_id: fam_teb_v2_04g_r5_r5_ttc_h400_mechanism
+status: calibration_candidate
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+static_topology:
+  unlock_front_clearance_m: 0.4
+  residuals:
+    max_vel_x: 0.75
+    weight_viapoint: 0.1
+    weight_optimaltime: 0.8
+corridor_centerline:
+  correction_offset_m: 0.12
+  centered_residuals:
+    max_vel_x: 0.7
+    weight_optimaltime: 0.75
+  correction_residuals:
+    max_vel_x: -0.05
+    weight_viapoint: 0.3
+maneuver:
+  reverse_rear_clearance_min_m: 1.0
+  reverse_front_clearance_max_m: 5.0
+  reverse_heading_error_min_rad: 0.0
+  forward_residuals:
+    max_vel_x: 0.6
+    weight_optimaltime: 0.7
+  reverse_residuals:
+    max_vel_x: 0.8
+    weight_optimaltime: 0.8
+dynamic_release:
+  overlay_release_confirmation_s: 0.2
+policy_boundary:
+  runtime_scene_labels_allowed: false
+  runtime_manifest_access: false
+  published_velocity_commands: false
+  learned_policy_loaded: false

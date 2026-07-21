@@ -1,0 +1,273 @@
+schema_version: "1.0"
+status: development_contract
+paper:
+  proposition: "通过低维语义参数空间和安全投影，使强化学习调参在保持安全约束的同时，提高TEB在多类场景中的导航效率和参数适应能力。"
+  learned_planner: TEB
+  robot: Autolabor_M2
+  traditional_baseline: DWA_fixed_only
+  forbidden_core_claims:
+    - cross_planner_shared_policy
+    - multi_robot_transfer
+    - end_to_end_cmd_vel_policy
+    - strict_cbf_guarantee
+
+environment:
+  os: Ubuntu_20.04
+  ros: noetic
+  simulator: gazebo11
+  workspace: /home/robot/robot_ws_base_rl
+  source_snapshot_required: true
+  submodules_required: true
+
+confirmed_real_interfaces:
+  scan_topic: /scan
+  gps_odom_topic: /gps/odom
+  fast_lio_odom_topic: /Odometry
+  gps_heading_topic: /gps/heading
+  cmd_vel_topic: /cmd_vel
+  move_base_status_topic: /move_base/status
+  global_frame_gps: camera_init
+  base_frame: base_link
+  teb_namespace: /move_base/TebLocalPlannerROS
+  cmd_angle_instead_rotvel: false
+  gps_antenna_offset_candidate_m: [-0.3, 0.0]
+  min_turning_radius_candidate_m: 1.2
+
+interfaces_to_discover_on_ubuntu:
+  global_plan_topic: null
+  local_plan_topic: /move_base/TebLocalPlannerROS/local_plan
+  teb_reconfigure_service: /move_base/TebLocalPlannerROS/set_parameters
+  teb_parameter_descriptions_topic: null
+  gazebo_contact_topic: null
+  emergency_stop_interface: null
+
+timing:
+  planner_frequency_hz_expected: 10.0
+  rl_frequency_hz_initial: 1.0
+  history_window_k_initial: 4
+  use_ros_timestamps: true
+  reward_window_starts_after_activation: true
+  activation_definition: first_complete_teb_local_plan_after_parameter_ack
+  transition_on_activation_timeout: discard_and_fault
+  calibrated_total_latency_upper_s: null
+
+state:
+  lidar_sector_count: 36
+  features:
+    - lidar_sector_quantiles
+    - footprint_clearance
+    - obstacle_density
+    - approximate_ttc
+    - goal_distance
+    - goal_bearing_sin_cos
+    - path_cross_track_error
+    - path_heading_error
+    - linear_angular_velocity
+    - acceleration
+    - normalized_current_theta
+    - previous_eta_and_action
+    - planner_validity_and_failure_count
+    - sensor_tf_localization_interface_validity
+    - safety_mode_one_hot
+  normalization_source: train_only_or_physical_bounds
+
+action:
+  semantic_eta:
+    dimensions: [speed, obstacle_conservatism, clearance, path_tracking, smoothness]
+    range: [-1.0, 1.0]
+    mapping: delta_z_theta_equals_A_TEB_times_delta_eta
+    mapping_file: config/thesis_experiments/A_TEB_v1.yaml
+    mapping_status: frozen_gazebo_calibration_v1
+    mapping_sha256: 1ca660f8d4f1863a93d75686bc0cafe8259942aaac60c3e2817c31162fcb1000
+  direct_theta:
+    range: [-1.0, 1.0]
+    same_physical_bounds_as_semantic: true
+    same_safety_filter_as_semantic: true
+
+baselines:
+  status: frozen_gazebo_t08
+  contract_file: config/thesis_experiments/t08_baselines.yaml
+  contract_sha256: aa56c08ff7811a001cadd3d7f5ffb517e9921fea6e7451a519c59635cc25ed0e
+  algorithms: [Fixed-DWA, TEB-Default, TEB-Tuned, Rule-TEB]
+  reference_algorithm: TEB-Default
+  paired_scene_seed_required: true
+  retain_all_failures: true
+  real_vehicle_validated: false
+
+learning:
+  status: t10_semantic_direct_paired_smoke_validated
+  algorithms: [RL-TEB-Semantic-Eta, RL-TEB-Direct-Theta]
+  runtime_lock: requirements/thesis-rl-lock.yaml
+  runtime_lock_sha256: 555d759eb9b8a960bbc6fe0318c883460169fa8d87a7f570bee9d5f44d1271bd
+  semantic_training_config: config/thesis_experiments/t09_sac.yaml
+  semantic_training_config_sha256: fe1ccc69505b6957b43247208e21b3783dee5b86f6ea0a420ac8bc1da5272181
+  direct_training_config: config/thesis_experiments/t10_direct_theta_sac.yaml
+  direct_training_config_sha256: 7ce02aad0b15253ceac8fcd13643ae3350e4e50656ddbcf016a8a68a5032c92b
+  observation_dimension: 254
+  observation_action_context: previous_applied_delta_normalized_theta_9_plus_l1
+  semantic_action_dimension: 5
+  semantic_action_semantics: delta_eta
+  direct_action_dimension: 9
+  direct_action_semantics: delta_normalized_theta
+  paired_identical_fields: [runtime, observation, reward, safety, training, smoke_override, checkpoint, acceptance]
+  checkpoint_resume_required: true
+  normalization_stats_checkpointed: true
+  device: cpu
+  formal_training_complete: false
+  real_vehicle_validated: false
+
+theta_candidates:
+  - name: max_vel_x
+    online_support: true
+    physical_min: null
+    physical_max: null
+    max_delta_per_rl_step: null
+    real_min: null
+    real_max: null
+  - name: max_vel_theta
+    online_support: true
+    physical_min: null
+    physical_max: null
+    max_delta_per_rl_step: null
+    real_min: null
+    real_max: null
+  - name: acc_lim_x
+    online_support: true
+    physical_min: null
+    physical_max: null
+    max_delta_per_rl_step: null
+    real_min: null
+    real_max: null
+  - name: acc_lim_theta
+    online_support: true
+    physical_min: null
+    physical_max: null
+    max_delta_per_rl_step: null
+    real_min: null
+    real_max: null
+  - name: min_obstacle_dist
+    online_support: true
+    physical_min: null
+    physical_max: null
+    max_delta_per_rl_step: null
+    real_min: null
+    real_max: null
+  - name: inflation_dist
+    online_support: true
+    physical_min: null
+    physical_max: null
+    max_delta_per_rl_step: null
+    real_min: null
+    real_max: null
+  - name: weight_obstacle
+    online_support: true
+    physical_min: null
+    physical_max: null
+    max_delta_per_rl_step: null
+    real_min: null
+    real_max: null
+  - name: weight_viapoint
+    online_support: true
+    physical_min: null
+    physical_max: null
+    max_delta_per_rl_step: null
+    real_min: null
+    real_max: null
+  - name: weight_optimaltime
+    online_support: true
+    physical_min: null
+    physical_max: null
+    max_delta_per_rl_step: null
+    real_min: null
+    real_max: null
+
+fixed_structural_parameters:
+  cmd_angle_instead_rotvel: false
+  min_turning_radius: calibration_then_fixed
+  footprint: calibration_then_fixed
+  frame_and_odom_topics: fixed_per_mode
+  homotopy_and_optimizer_structure: fixed
+
+safety:
+  name: safety_margin_parameter_filter
+  strict_cbf_claim: false
+  braking_model: "d_safe=v^2/(2*a_brake_lower)+v*tau_total_upper+d_margin"
+  a_brake_lower: null
+  d_margin_m: null
+  d_warn_m: null
+  d_emergency_m: null
+  modes: [NORMAL, WARNING, EMERGENCY, FAULT]
+  hysteresis_required: true
+  atomic_fallback_required: true
+  conservative_config: config/thesis_experiments/teb_conservative.yaml
+  real_unsafe_ablations_forbidden: true
+
+reward:
+  components:
+    - goal_progress
+    - elapsed_time
+    - near_obstacle_risk_integral
+    - path_error_integral
+    - smoothness_integral
+    - planner_failure
+    - parameter_adjustment
+    - terminal_goal_or_collision
+  weights: null
+  every_component_logged: true
+
+cmdp_costs:
+  components:
+    - collision
+    - near_collision
+    - parameter_violation
+    - planner_failure
+    - emergency_or_fallback
+  budget: null
+  initial_optimizer: standard_sac_plus_runtime_filter
+  optional_extension: lagrangian_sac_after_mvp
+
+experiment_groups:
+  - Fixed-DWA
+  - TEB-Default
+  - TEB-Tuned
+  - Rule-TEB
+  - RL-TEB-Direct-Theta
+  - RL-TEB-Semantic-Eta
+  - RL-TEB-Eta-NoSafety
+  - RL-TEB-Eta-ProjectionOnly
+  - RL-TEB-Eta-FullSafety
+  - RL-TEB-Eta-NoFallback
+
+scene_splits: [train, validation, test_id, test_ood, test_disturbance, real]
+evaluation:
+  pilot_paired_seeds_per_scene: 10
+  target_training_seeds_initial: 5
+  formal_repetitions: determine_from_pilot_variance_and_power
+  paired_common_random_numbers: true
+  test_set_for_model_selection_forbidden: true
+  episode_is_independent_unit: true
+  holm_correction: true
+
+real_deployment:
+  default_mode: shadow
+  allow_motion_env: ALLOW_MOTION
+  allow_parameter_write_env: ALLOW_PARAMETER_WRITE
+  initial_closed_loop_speed_limit_mps: 0.3
+  next_gate_speed_limit_mps: 0.5
+  higher_speed_requires_new_approval: true
+  required_guards:
+    - human_operator
+    - emergency_stop
+    - electronic_fence
+    - conservative_fallback
+    - rosbag
+    - healthy_gps_heading_tf_scan_odom
+
+artifacts:
+  raw_root: artifacts/raw
+  processed_root: artifacts/processed
+  export_root: exports
+  bag_files_in_git_forbidden: true
+  generated_build_outputs_in_git_forbidden: true
+  required_checksums: sha256
+  thesis_csv_destination: thesis_word_workspace/06_results/csv

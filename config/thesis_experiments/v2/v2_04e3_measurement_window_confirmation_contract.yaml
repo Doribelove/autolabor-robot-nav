@@ -1,0 +1,43 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_04e3_goal_window_confirmation_1
+status: preregistered_simulation_only
+formal_experiment: false
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+trigger:
+  v2_04e2_assessment: {path: artifacts/v2/calibration/v2_04e2/v2_04e2_assessment.yaml, sha256: b82c1419bfe983beef4bf2696d930aba82a0f8d07fd68daa7851072fe1d44dff}
+  selected_confirmation_candidate: pocket_g_wide_hold
+  candidate_success_count: 5
+  maneuver_fraction: 0.23353293413173654
+  active_anchor_switch_count_max: 3
+  active_anchor_switch_count_mean: 1.6
+  only_failed_gate: cruise_fraction
+measurement_defect:
+  before: readiness_and_goal_execution
+  after: post_readiness_goal_execution_only
+  policy_or_threshold_change_allowed: false
+split_boundary:
+  permitted_split: calibration
+  permitted_seed_set: [4721, 4722, 4723, 4724, 4725]
+  forbidden_v2_04d_validation_data_use: true
+  held_out_validation_seed_set_reserved: [4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+budget: {candidate_count: 1, calibration_scene_count: 5, planned_navigation_episode_count: 5, attempts_per_interface_failure: 2, early_stopping_allowed: false}
+hard_gates_per_candidate:
+  valid_episode_count_exact: 5
+  success_count_exact: 5
+  collision_count_max: 0
+  typed_transaction_valid_required: true
+  training_used_must_be_false: true
+  cruise: {cruise_valid_context_fraction_min: 0.45, static_dense_valid_context_fraction_max: 0.10}
+  static_dense: {static_dense_valid_context_fraction_min: 0.20}
+  corridor: {corridor_valid_context_fraction_min: 0.20}
+  maneuver: {maneuver_valid_context_fraction_min: 0.15}
+  chatter: {active_anchor_switch_count_max_per_episode: 3, active_anchor_switch_count_mean_max: 2.0}
+freeze_and_validation_boundary:
+  supervisor_freeze_requires_all_hard_gates: true
+  held_out_validation_preregistration_must_follow_freeze: true
+  validation_may_not_modify_frozen_supervisor: true
+boundaries: {sac_training_allowed: false, any_learning_allowed: false, real_vehicle_parameter_write_allowed: false, real_vehicle_motion_allowed: false, runtime_ready_after_pass: false}

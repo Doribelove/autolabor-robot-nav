@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="world"/>
+  <arg name="gui" default="false"/>
+  <arg name="seed" default="42"/>
+  <arg name="report_path" default="/tmp/v2_dynamic_scene_runtime_probe.yaml"/>
+  <include file="$(find m2_gazebo)/launch/m2_v2_scene.launch">
+    <arg name="world" value="$(arg world)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+  </include>
+  <node pkg="m2_gazebo" type="v2_scene_runtime_probe.py"
+        name="v2_scene_runtime_probe" output="screen" required="true">
+    <rosparam param="expected_models">[autolabor_m2, crossing-agent-1]</rosparam>
+    <param name="moving_model" value="crossing-agent-1"/>
+    <param name="minimum_motion_m" value="0.8"/>
+    <param name="sample_duration_s" value="1.5"/>
+    <param name="report_path" value="$(arg report_path)"/>
+  </node>
+</launch>

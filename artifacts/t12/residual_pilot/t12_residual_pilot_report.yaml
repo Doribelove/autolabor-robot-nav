@@ -1,0 +1,45 @@
+schema_version: '1.0'
+task: T12
+study: residual_semantic_eta_no_training_pilot
+training_performed: false
+methods:
+  legacy:
+    episode_count: 8
+    goal: 3
+    emergency_stop: 5
+    collision: 0
+    planner_failure: 0
+    interface_fault: 0
+    success_rate: 0.375
+    process_crash_count: 0
+    dynamic_reconfigure_failure_count: 0
+  directional:
+    episode_count: 8
+    goal: 5
+    emergency_stop: 0
+    collision: 0
+    planner_failure: 0
+    interface_fault: 0
+    success_rate: 0.625
+    process_crash_count: 0
+    dynamic_reconfigure_failure_count: 0
+  residual:
+    episode_count: 8
+    goal: 6
+    emergency_stop: 0
+    collision: 0
+    planner_failure: 1
+    interface_fault: 0
+    success_rate: 0.75
+    process_crash_count: 0
+    dynamic_reconfigure_failure_count: 0
+gates:
+  paired_24_episodes: true
+  directional_zero_collision: true
+  directional_zero_process_crash_or_interface_fault: true
+  directional_emergency_below_legacy: true
+  residual_pipeline_zero_collision: true
+  residual_pipeline_zero_process_crash_or_interface_fault: true
+  residual_navigation_abort_at_most_one: true
+  residual_pipeline_minimum_success: true
+passed: true

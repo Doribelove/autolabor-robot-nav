@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find m2_gazebo)/launch/m2_v2_dynamics_regression.launch">
+    <arg name="gui" value="false"/>
+    <arg name="run_test" value="false"/>
+    <arg name="seed" value="42"/>
+  </include>
+  <test pkg="m2_gazebo" type="v2_dynamics_regression_test.py"
+        test-name="v2_dynamics_regression_rostest" time-limit="90.0">
+    <param name="seed" value="42"/>
+    <param name="report_path" value="$(env HOME)/.ros/v2_dynamics_regression_rostest.yaml"/>
+  </test>
+</launch>

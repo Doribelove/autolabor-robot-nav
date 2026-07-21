@@ -1,0 +1,59 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R4-R1
+candidate_bank_id: fam_teb_v2_04g_r4_r1_maneuver_clearance_candidates_1
+status: preregistered_calibration_candidates
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+single_changed_factor:
+  name: maneuver_anchor_min_obstacle_dist_m
+  synchronized_anchor_fields:
+    - anchors.anchor_maneuver_forward.values.min_obstacle_dist
+    - anchors.anchor_maneuver_reverse.values.min_obstacle_dist
+  frozen_inflation_dist_m: 0.52
+  minimum_inflation_gap_m: 0.20
+  all_non_maneuver_anchor_values_changed: false
+  maneuver_speed_or_time_values_changed: false
+  maneuver_reverse_state_machine_changed: false
+  supervisor_or_transition_values_changed: false
+  dynamic_overlay_values_changed: false
+
+base_aggressive_candidate:
+  candidate_bank_path: experiments/manifests/v2/calibration/v2_04g_r2_mechanism_candidates.yaml
+  candidate_bank_sha256: 78c434703091147bfeee174906744ff89d71ebafc8156d7b0691937476667f6d
+  candidate_id: r2_target_aggressive
+  maneuver_min_obstacle_dist_m: 0.28
+  maneuver_inflation_dist_m: 0.52
+
+frozen_r4_diagnosis:
+  stage_report_path: artifacts/v2/calibration/v2_04g_r4/v2_04g_r4_stage_report.yaml
+  stage_report_sha256: 8fc0e980c84ff973bd4842ef4c542e5b136fb0a432d215093d7367f934c9ebd1
+  failing_scene_id: v2-04g-r4-maneuver-s5073
+  signed_scan_clearance_m: 0.24140194591947384
+  gazebo_truth_box_clearance_m: 0.24494812433538438
+  diagnosis: physical_geometry_margin_shortfall_not_scan_or_evaluator_artifact
+  r4_evidence_eligible_for_r4_r1_ranking: false
+
+candidates:
+  - candidate_id: r4r1_aggressive_control_m028
+    role: frozen_aggressive_control_not_winner_eligible
+    maneuver_min_obstacle_dist_m: 0.28
+    winner_eligible: false
+  - candidate_id: r4r1_clearance_m030
+    role: clearance_repair_candidate
+    maneuver_min_obstacle_dist_m: 0.30
+    winner_eligible: true
+  - candidate_id: r4r1_clearance_m032
+    role: clearance_repair_candidate
+    maneuver_min_obstacle_dist_m: 0.32
+    winner_eligible: true
+
+selection_boundary:
+  select_only_after_complete_fresh_calibration: true
+  control_candidate_can_be_frozen: false
+  candidate_budget_expansion_forbidden: true
+  post_hoc_value_change_forbidden: true
+  held_out_validation_used: false

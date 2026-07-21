@@ -1,0 +1,148 @@
+schema_version: "2.0"
+architecture_generation: v2
+phase: V2-02
+accepted_at: "2026-07-13T23:49:20+08:00"
+status: component_complete
+passed: true
+formal_result: false
+runtime_ready: false
+simulation_only: true
+training_started: false
+real_vehicle_started: false
+online_real_teb_write_performed: false
+
+scope:
+  title: credible simulation dynamics, braking/delay model, and five-family scene system
+  navigation_algorithms_in_scope: false
+  real_vehicle_calibration_claimed: false
+  v1_default_dynamics_preserved: true
+
+contracts:
+  simulation:
+    path: config/thesis_experiments/v2/simulation_contract.yaml
+    sha256: 47139897bc6ea4e9da7392e2d2df7dd441b68b218745f443f2fc112199e6b1bb
+    validator_status: valid
+    runtime_ready: false
+  evaluation:
+    path: config/thesis_experiments/v2/evaluation_contract.yaml
+    sha256: 240bbc2c3512161063a1132e226bf40a714ce0e297a0b46832493a085a632615
+    validator_status: valid
+    runtime_ready: false
+  scene_manifest:
+    path: experiments/manifests/v2/scenes/v2_02_foundation_scenes.yaml
+    sha256: f1ddf63575f79cf27829a7a66f4ca27cb2c3d327089cc6da9803ca27b1ff944e
+    status: valid
+
+implementation:
+  actuator_plugin:
+    path: src/simulation/m2_gazebo/src/m2_ackermann_plugin.cpp
+    sha256: 6819c1252ba0955cb7a1eb973f0bc5d53edd27e1986caf284b7ad68620ec7ed4
+    features:
+      - first_order_speed_response
+      - first_order_steering_response
+      - acceleration_and_deceleration_limits
+      - ordered_brake_and_emergency_authority
+      - reverse_zero_crossing
+      - ordered_delayed_command_queue
+      - deterministic_delay_jitter
+      - timeout_and_reset_atomicity
+  trajectory_actor:
+    path: src/simulation/m2_gazebo/src/v2_trajectory_actor_plugin.cpp
+    sha256: c77027785d268001ea70f71169e1f6f1250a6bf3a30c7b1fccda8e613b2e0a65
+    collision_representation: pose_driven_static_collision_model
+  scene_compiler:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+    sha256: cbdabd9fc8037430aa83cb9871876d27f952c7ee3611f5b5aec0a24bb160549d
+  evaluator:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_evaluator.py
+    sha256: 55ad5a0abd2d6a8fe41ed9942a512405e42d7be6c41eff779df8a7335496e681
+
+dynamics_regression:
+  seed: 42
+  runs: 2
+  cases_per_run: 6
+  total_passed: 12
+  total_failed: 0
+  primary_report:
+    path: artifacts/v2/component_acceptance/v2_02_dynamics_regression.yaml
+    sha256: 19649ceb802415ac376b327b4cee75daaed5e32e3bbd849d7a314d3f0ff0d906
+  repeat_report:
+    path: artifacts/v2/component_acceptance/v2_02_dynamics_regression_repeat.yaml
+    sha256: 2a23296608b3a0351906133a202b30c3d853fe7ac63a42ba85aacb114ab73934
+  representative_metrics:
+    straight_final_x_m: 3.484281233920016
+    straight_steady_speed_mps: 0.999999921689006
+    circle_radius_m: 1.5000000568570278
+    braking_distance_m: 0.2522429058473048
+    braking_stop_time_s: 0.9199999999999999
+    reverse_final_x_m: -0.7499697017829675
+    command_delay_observed_range_s: [0.07399999999999807, 0.11400000000000077]
+    mean_scan_age_s: 0.06375
+    laser_ray_count: 720
+  cross_process_absolute_differences:
+    straight_final_x_m: 0.019999998569883548
+    circle_radius_m: 0.0
+    braking_distance_m: 0.020355105033972976
+    reverse_final_x_m: 0.003999999939080068
+    maximum_observed_command_delay_s: 0.013999999999999346
+    mean_scan_age_s: 0.0007500000000000007
+
+scene_system:
+  compiled_index:
+    path: artifacts/v2/scenes/v2_02_foundation/compiled_scene_index.yaml
+    sha256: 0f89322e4dfa77b509cf165f000bfed970cdc4dd685e1c52aa39cf1aa4293f55
+  scene_count: 5
+  families: [CRUISE, DYNAMIC, STATIC_DENSE, CORRIDOR, MANEUVER]
+  deterministic_compilation_tested: true
+  runtime_manifest_label_access_forbidden: true
+  dynamic_runtime_probe:
+    path: artifacts/v2/component_acceptance/v2_02_dynamic_scene_runtime_probe.yaml
+    sha256: 543d0ff5efdfac48113c20eedd7a6cebe99f8ab13c281bccac1f4902247e77c8
+    passed: true
+    crossing_agent_motion_m: 1.498
+
+evaluation_system:
+  terminal_precedence: [collision, success, timeout, aborted]
+  exact_trace_schema: true
+  instance_and_trace_hash_validation: true
+  common_metrics: true
+  family_specific_metrics: true
+  planner_or_policy_performance_evaluated: false
+
+verification:
+  full_workspace_build:
+    command: catkin_make -j4 -l4
+    packages: 73
+    passed: true
+  python_pytest:
+    passed: 162
+    errors: 0
+    failures: 0
+  catkin_tests:
+    m2_gazebo: {passed: 34, errors: 0, failures: 0}
+    teb_rl_tuner: {passed: 60, errors: 0, failures: 0}
+    thesis_experiment: {passed: 29, errors: 0, failures: 0}
+
+development_defects_closed:
+  - id: dynamic_actor_concurrent_insertion_sigsegv
+    symptom: gzserver_exit_139_during_pose_driven_dynamic_body_update
+    resolution: use_pose_driven_static_collision_objects_for_scripted_actors
+    regression_evidence: dynamic_runtime_probe_passed_with_robot_present
+  - id: rostest_scheduler_observation_boundary
+    symptom: observed_activation_includes_one_simulation_scheduler_cycle
+    resolution: declare_and_validate_0.025_second_observation_tolerance
+    physical_delay_parameters_changed: false
+
+known_limitations:
+  - planar_kinematic_pose_integration_is_not_a_full_tire_force_model
+  - all_dynamics_values_are_uncalibrated_simulation_candidates
+  - mode_and_parameter_thresholds_remain_runtime_ready_false
+  - scene_compilation_and_component_probes_do_not_prove_navigation_success
+  - tracker_prediction_topology_lock_hybrid_astar_anchor_bank_and_sac_are_not_implemented
+  - gazebo_classic_is_end_of_life_and_emits_deprecation_warnings
+
+next_gate:
+  phase: V2-03
+  title: world model and rule supervisor
+  training_authorized: false
+  real_vehicle_authorized: false

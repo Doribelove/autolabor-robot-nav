@@ -1,0 +1,1058 @@
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+xacro: in-order processing became default in ROS Melodic. You can drop the option.
+... logging to /home/robot/.ros/log/734123c2-7ea8-11f1-91bc-3382cc4c3ed1/roslaunch-WP-1042202.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+]2;/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/launch/t11_formal_run.launch
+[1mstarted roslaunch server http://WP:36263/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /gazebo/enable_ros_network: True
+ * /m2_gazebo/simulation_only: True
+ * /m2_robot_state_publisher/publish_frequency: 30.0
+ * /move_base/TebLocalPlannerROS/acc_lim_theta: 0.8
+ * /move_base/TebLocalPlannerROS/acc_lim_x: 0.8
+ * /move_base/TebLocalPlannerROS/allow_init_with_backwards_motion: True
+ * /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel: False
+ * /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist: 1.5
+ * /move_base/TebLocalPlannerROS/dt_hysteresis: 0.1
+ * /move_base/TebLocalPlannerROS/dt_ref: 0.3
+ * /move_base/TebLocalPlannerROS/enable_homotopy_class_planning: False
+ * /move_base/TebLocalPlannerROS/enable_multithreading: True
+ * /move_base/TebLocalPlannerROS/feasibility_check_no_poses: 5
+ * /move_base/TebLocalPlannerROS/footprint_model/type: polygon
+ * /move_base/TebLocalPlannerROS/footprint_model/vertices: [[0.52, 0.35], [0...
+ * /move_base/TebLocalPlannerROS/global_plan_overwrite_orientation: True
+ * /move_base/TebLocalPlannerROS/include_costmap_obstacles: True
+ * /move_base/TebLocalPlannerROS/inflation_dist: 0.55
+ * /move_base/TebLocalPlannerROS/map_frame: odom
+ * /move_base/TebLocalPlannerROS/max_global_plan_lookahead_dist: 8.0
+ * /move_base/TebLocalPlannerROS/max_number_classes: 4
+ * /move_base/TebLocalPlannerROS/max_samples: 500
+ * /move_base/TebLocalPlannerROS/max_vel_theta: 1.0
+ * /move_base/TebLocalPlannerROS/max_vel_x: 1.2
+ * /move_base/TebLocalPlannerROS/max_vel_x_backwards: 0.6
+ * /move_base/TebLocalPlannerROS/max_vel_y: 0.0
+ * /move_base/TebLocalPlannerROS/min_obstacle_dist: 0.25
+ * /move_base/TebLocalPlannerROS/min_turning_radius: 1.2
+ * /move_base/TebLocalPlannerROS/obstacle_poses_affected: 15
+ * /move_base/TebLocalPlannerROS/odom_topic: /odom
+ * /move_base/TebLocalPlannerROS/teb_autosize: True
+ * /move_base/TebLocalPlannerROS/weight_acc_lim_theta: 1.0
+ * /move_base/TebLocalPlannerROS/weight_acc_lim_x: 1.0
+ * /move_base/TebLocalPlannerROS/weight_adapt_factor: 2.0
+ * /move_base/TebLocalPlannerROS/weight_inflation: 0.1
+ * /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive: 10.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_nh: 1000.0
+ * /move_base/TebLocalPlannerROS/weight_kinematics_turning_radius: 10.0
+ * /move_base/TebLocalPlannerROS/weight_max_vel_theta: 1.0
+ * /move_base/TebLocalPlannerROS/weight_max_vel_x: 2.0
+ * /move_base/TebLocalPlannerROS/weight_obstacle: 50.0
+ * /move_base/TebLocalPlannerROS/weight_optimaltime: 1.0
+ * /move_base/TebLocalPlannerROS/weight_viapoint: 1.0
+ * /move_base/TebLocalPlannerROS/wheelbase: 0.65
+ * /move_base/base_global_planner: navfn/NavfnROS
+ * /move_base/base_local_planner: teb_local_planner...
+ * /move_base/clearing_rotation_allowed: False
+ * /move_base/controller_frequency: 10.0
+ * /move_base/controller_patience: 5.0
+ * /move_base/global_costmap/footprint: [[0.52, 0.35], [0...
+ * /move_base/global_costmap/footprint_padding: 0.05
+ * /move_base/global_costmap/global_frame: odom
+ * /move_base/global_costmap/height: 30.0
+ * /move_base/global_costmap/inflation_layer/cost_scaling_factor: 4.0
+ * /move_base/global_costmap/inflation_layer/enabled: True
+ * /move_base/global_costmap/inflation_layer/inflation_radius: 0.55
+ * /move_base/global_costmap/obstacle_layer/enabled: True
+ * /move_base/global_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/global_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/global_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/global_costmap/obstacle_layer/scan/inf_is_valid: True
+ * /move_base/global_costmap/obstacle_layer/scan/marking: True
+ * /move_base/global_costmap/obstacle_layer/scan/obstacle_range: 12.0
+ * /move_base/global_costmap/obstacle_layer/scan/raytrace_range: 15.0
+ * /move_base/global_costmap/obstacle_layer/scan/sensor_frame: laser_link
+ * /move_base/global_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/global_costmap/plugins: [{'name': 'obstac...
+ * /move_base/global_costmap/publish_frequency: 2.0
+ * /move_base/global_costmap/resolution: 0.05
+ * /move_base/global_costmap/robot_base_frame: base_link
+ * /move_base/global_costmap/rolling_window: True
+ * /move_base/global_costmap/transform_tolerance: 0.3
+ * /move_base/global_costmap/update_frequency: 5.0
+ * /move_base/global_costmap/width: 30.0
+ * /move_base/local_costmap/footprint: [[0.52, 0.35], [0...
+ * /move_base/local_costmap/footprint_padding: 0.05
+ * /move_base/local_costmap/global_frame: odom
+ * /move_base/local_costmap/height: 12.0
+ * /move_base/local_costmap/inflation_layer/cost_scaling_factor: 4.0
+ * /move_base/local_costmap/inflation_layer/enabled: True
+ * /move_base/local_costmap/inflation_layer/inflation_radius: 0.55
+ * /move_base/local_costmap/obstacle_layer/enabled: True
+ * /move_base/local_costmap/obstacle_layer/observation_sources: scan
+ * /move_base/local_costmap/obstacle_layer/scan/clearing: True
+ * /move_base/local_costmap/obstacle_layer/scan/data_type: LaserScan
+ * /move_base/local_costmap/obstacle_layer/scan/inf_is_valid: True
+ * /move_base/local_costmap/obstacle_layer/scan/marking: True
+ * /move_base/local_costmap/obstacle_layer/scan/obstacle_range: 12.0
+ * /move_base/local_costmap/obstacle_layer/scan/raytrace_range: 15.0
+ * /move_base/local_costmap/obstacle_layer/scan/sensor_frame: laser_link
+ * /move_base/local_costmap/obstacle_layer/scan/topic: /scan
+ * /move_base/local_costmap/plugins: [{'name': 'obstac...
+ * /move_base/local_costmap/publish_frequency: 5.0
+ * /move_base/local_costmap/resolution: 0.05
+ * /move_base/local_costmap/robot_base_frame: base_link
+ * /move_base/local_costmap/rolling_window: True
+ * /move_base/local_costmap/transform_tolerance: 0.3
+ * /move_base/local_costmap/update_frequency: 10.0
+ * /move_base/local_costmap/width: 12.0
+ * /move_base/oscillation_distance: 0.2
+ * /move_base/oscillation_timeout: 10.0
+ * /move_base/planner_frequency: 1.0
+ * /move_base/planner_patience: 5.0
+ * /move_base/recovery_behavior_enabled: False
+ * /move_base/shutdown_costmaps: False
+ * /robot_description: <?xml version="1....
+ * /rosdistro: noetic
+ * /rosversion: 1.17.4
+ * /t11_formal_run/acceptance_eval_seed_limit: 1
+ * /t11_formal_run/acceptance_timesteps: 2000
+ * /t11_formal_run/algorithm: RL-TEB-Semantic-Eta
+ * /t11_formal_run/checkpoint: 
+ * /t11_formal_run/config: /home/robot/robot...
+ * /t11_formal_run/evaluation_policy: checkpoint
+ * /t11_formal_run/evaluation_seed_override: 0
+ * /t11_formal_run/initialize_residual_anchor: True
+ * /t11_formal_run/output_dir: /home/robot/robot...
+ * /t11_formal_run/phase: train
+ * /t11_formal_run/residual_config: /home/robot/robot...
+ * /t11_formal_run/run_id: t12_residual_boun...
+ * /t11_formal_run/safety_mode: T12Safety
+ * /t11_formal_run/scene_manifest: 
+ * /t11_formal_run/semantic_mode: residual_training
+ * /t11_formal_run/t12_safety_config: /home/robot/robot...
+ * /t11_formal_run/task: T12
+ * /t11_formal_run/training_seed: 101
+ * /t11_formal_run/zero_action_policy: False
+ * /use_sim_time: True
+
+NODES
+  /
+    gazebo (gazebo_ros/gzserver)
+    m2_robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    move_base (move_base/move_base)
+    spawn_m2 (gazebo_ros/spawn_model)
+    t11_formal_run (thesis_experiment/t11_formal_run.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [1042258][0m
+[1mROS_MASTER_URI=http://localhost:11311[0m
+]2;/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/launch/t11_formal_run.launch http://localhost:11311
+[1msetting /run_id to 734123c2-7ea8-11f1-91bc-3382cc4c3ed1[0m
+[1mprocess[rosout-1]: started with pid [1042291][0m
+started core service [/rosout]
+[1mprocess[gazebo-2]: started with pid [1042298][0m
+[1mprocess[spawn_m2-3]: started with pid [1042301][0m
+[1mprocess[m2_robot_state_publisher-4]: started with pid [1042304][0m
+[1mprocess[move_base-5]: started with pid [1042305][0m
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[INFO] [1783939738.837867, 0.000000]: Loading model XML from ros parameter robot_description
+[INFO] [1783939738.841740, 0.000000]: Waiting for service /gazebo/spawn_urdf_model
+[INFO] [1783939739.746349, 0.154000]: Calling service /gazebo/spawn_urdf_model
+[INFO] [1783939739.937627, 0.180000]: Spawn status: SpawnModel: Successfully spawned entity
+[INFO] [1783939740.367627466, 0.480000000]: global_costmap: Using plugin "obstacle_layer"
+[INFO] [1783939740.369996295, 0.482000000]:     Subscribed to Topics: scan
+[INFO] [1783939740.374813110, 0.488000000]: global_costmap: Using plugin "inflation_layer"
+[INFO] [1783939740.386144228, 0.498000000]: local_costmap: Using plugin "obstacle_layer"
+[INFO] [1783939740.386908830, 0.500000000]:     Subscribed to Topics: scan
+[INFO] [1783939740.391119068, 0.504000000]: local_costmap: Using plugin "inflation_layer"
+[INFO] [1783939740.401239969, 0.514000000]: Created local_planner teb_local_planner/TebLocalPlannerROS
+[INFO] [1783939740.417603875, 0.530000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939740.417711630, 0.530000000]: Parallel planning in distinctive topologies disabled.
+[INFO] [1783939740.417728751, 0.530000000]: No costmap conversion plugin specified. All occupied costmap cells are treaten as point obstacles.
+[INFO] [1783939740.439243827, 0.552000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939740.605258306, 0.718000000]: Recovery behavior will clear layer 'obstacles'
+[INFO] [1783939740.606524993, 0.720000000]: Recovery behavior will clear layer 'obstacles'
+[INFO] [1783939740.651981572, 0.764000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939740.686719209, 0.800000000]: odom received!
+[INFO] [1783939742.517201549, 2.628000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939746.369529891, 6.470000000]: GOAL Reached!
+[INFO] [1783939746.724905210, 6.824000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939747.611853523, 7.708000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939749.962967291, 10.058000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939751.953401551, 12.044000000]: GOAL Reached!
+[INFO] [1783939752.296661689, 12.386000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939753.181642396, 13.270000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939755.578346521, 15.662000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939757.419633946, 17.500000000]: GOAL Reached!
+[INFO] [1783939757.747266191, 17.828000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939758.627634169, 18.706000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939761.020370490, 21.094000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939762.662988531, 22.734000000]: GOAL Reached!
+[INFO] [1783939763.032104755, 23.102000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939763.901960351, 23.970000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939766.291813143, 26.356000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939769.133576096, 29.194000000]: GOAL Reached!
+[INFO] [1783939769.485867654, 29.548000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939770.372075155, 30.430000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939772.864339050, 32.920000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939775.700755622, 35.752000000]: GOAL Reached!
+[INFO] [1783939776.058358913, 36.106000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939776.921995309, 36.968000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939780.658754953, 40.702000000]: GOAL Reached!
+[INFO] [1783939781.003530552, 41.048000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939781.886065533, 41.928000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939784.234371534, 44.268000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939787.025179376, 47.056000000]: GOAL Reached!
+[INFO] [1783939787.375853518, 47.406000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939788.260700688, 48.288000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939790.605807937, 50.630000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939793.397537266, 53.416000000]: GOAL Reached!
+[INFO] [1783939793.750705944, 53.768000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939794.632578522, 54.648000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939798.463505119, 58.474000000]: GOAL Reached!
+[INFO] [1783939798.838327692, 58.848000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939799.702009419, 59.708000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939802.101682815, 62.104000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939804.545188817, 64.544000000]: GOAL Reached!
+[INFO] [1783939804.908343869, 64.906000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939805.792535433, 65.790000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939808.159997721, 68.150000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939810.134697072, 70.124000000]: GOAL Reached!
+[INFO] [1783939810.499191660, 70.486000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939811.396460755, 71.384000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939815.211338914, 75.190000000]: GOAL Reached!
+[INFO] [1783939815.568601376, 75.546000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939816.463939453, 76.440000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939818.815068328, 78.788000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939820.998042397, 80.966000000]: GOAL Reached!
+[INFO] [1783939821.358641413, 81.326000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939822.256824784, 82.222000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939824.741277056, 84.704000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939827.573614530, 87.532000000]: GOAL Reached!
+[INFO] [1783939827.908581301, 87.864000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939828.785034401, 88.740000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939832.615917587, 92.564000000]: GOAL Reached!
+[INFO] [1783939832.978183504, 92.924000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939833.875457420, 93.822000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939836.362400499, 96.304000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939838.696008818, 98.632000000]: GOAL Reached!
+[INFO] [1783939839.049152954, 98.984000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939839.926522130, 99.862000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939842.273704929, 102.204000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939844.456396056, 104.382000000]: GOAL Reached!
+[INFO] [1783939844.803033123, 104.728000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939845.680345846, 105.602000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939849.309222638, 109.226000000]: GOAL Reached!
+[INFO] [1783939849.669202753, 109.586000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939850.544431943, 110.458000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939852.991745292, 112.904000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939855.673247924, 115.580000000]: GOAL Reached!
+[INFO] [1783939856.017154351, 115.922000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939856.876595242, 116.782000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939859.229770771, 119.132000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939862.113555785, 122.008000000]: GOAL Reached!
+[INFO] [1783939862.473618598, 122.368000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939863.347719384, 123.240000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939867.085051657, 126.972000000]: GOAL Reached!
+[INFO] [1783939867.438262400, 127.326000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939868.318134649, 128.202000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939870.812279011, 130.690000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939873.343189684, 133.218000000]: GOAL Reached!
+[INFO] [1783939873.712083145, 133.586000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939874.611177846, 134.484000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939877.048895247, 136.918000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939879.629030192, 139.492000000]: GOAL Reached!
+[INFO] [1783939879.983529854, 139.846000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939880.882021203, 140.742000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939884.599051176, 144.452000000]: GOAL Reached!
+[INFO] [1783939884.933493109, 144.786000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939885.804879298, 145.656000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939888.159282642, 148.012000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939890.944987033, 150.788000000]: GOAL Reached!
+[INFO] [1783939891.283209670, 151.126000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939892.183008645, 152.024000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939894.672421591, 154.508000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939897.405221622, 157.236000000]: GOAL Reached!
+[INFO] [1783939897.776615451, 157.606000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939898.655261586, 158.484000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939901.053047969, 160.878000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939902.483756359, 162.306000000]: GOAL Reached!
+[INFO] [1783939902.825318748, 162.646000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939903.702529494, 163.520000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939906.107907525, 165.924000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939908.439437322, 168.252000000]: GOAL Reached!
+[INFO] [1783939908.794211836, 168.606000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939909.667227467, 169.478000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939912.021966462, 171.828000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939914.801371208, 174.604000000]: GOAL Reached!
+[INFO] [1783939915.163656903, 174.966000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939916.053189978, 175.856000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939918.448470769, 178.248000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939920.947841668, 180.742000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939925.076619050, 184.866000000]: GOAL Reached!
+[INFO] [1783939925.428027235, 185.214000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939926.295253866, 186.082000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939930.031136475, 189.810000000]: GOAL Reached!
+[INFO] [1783939930.386583533, 190.164000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939931.236117069, 191.016000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939933.599473303, 193.374000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939936.078352893, 195.850000000]: GOAL Reached!
+[INFO] [1783939936.413903223, 196.186000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939937.310116066, 197.080000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939939.801234524, 199.566000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939942.330415960, 202.094000000]: GOAL Reached!
+[INFO] [1783939942.665769811, 202.426000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939943.540718154, 203.304000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939945.893741277, 205.652000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939948.341415606, 208.092000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939950.741707960, 210.490000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939953.971561493, 213.716000000]: GOAL Reached!
+[INFO] [1783939954.325981491, 214.066000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939955.224277468, 214.962000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939959.045583885, 218.776000000]: GOAL Reached!
+[INFO] [1783939959.397122712, 219.126000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939960.284365028, 220.014000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939962.639181775, 222.362000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939965.115263346, 224.834000000]: GOAL Reached!
+[INFO] [1783939965.471310509, 225.186000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939966.344629940, 226.060000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939968.691424552, 228.404000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939971.373864440, 231.080000000]: GOAL Reached!
+[INFO] [1783939971.722098023, 231.426000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939972.616541759, 232.320000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939974.960616741, 234.664000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939975.613831457, 235.312000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939977.464873356, 237.160000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939979.244421562, 238.938000000]: GOAL Reached!
+[INFO] [1783939979.610112047, 239.306000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939980.487953980, 240.180000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939984.515583795, 244.198000000]: GOAL Reached!
+[INFO] [1783939984.863451255, 244.546000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939985.740106828, 245.420000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939988.191370642, 247.870000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939990.073781327, 249.748000000]: GOAL Reached!
+[INFO] [1783939990.432632350, 250.104000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939991.333687864, 251.004000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939993.769747401, 253.438000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939996.348294257, 256.014000000]: GOAL Reached!
+[INFO] [1783939996.703028376, 256.366000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783939997.617307354, 257.280000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940000.039115492, 259.696000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940002.430458330, 262.084000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940004.881939568, 264.532000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940007.012947785, 266.658000000]: GOAL Reached!
+[INFO] [1783940007.362791019, 267.006000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940008.242594281, 267.884000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940012.073739404, 271.708000000]: GOAL Reached!
+[INFO] [1783940012.431158623, 272.066000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940013.330644477, 272.964000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940015.824466768, 275.452000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940018.153301789, 277.776000000]: GOAL Reached!
+[INFO] [1783940018.504629223, 278.126000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940019.401695464, 279.022000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940021.838228931, 281.454000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940024.521046018, 284.132000000]: GOAL Reached!
+[INFO] [1783940024.874304055, 284.484000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940025.767452354, 285.376000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940028.114622483, 287.718000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940030.510083395, 290.112000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940032.960711177, 292.558000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940035.791817590, 295.386000000]: GOAL Reached!
+[INFO] [1783940036.154540301, 295.746000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940037.051679169, 296.642000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940040.869619761, 300.454000000]: GOAL Reached!
+[INFO] [1783940041.223637990, 300.806000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940042.099780971, 301.682000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940044.496071701, 304.076000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940046.829153025, 306.406000000]: GOAL Reached!
+[INFO] [1783940047.187457413, 306.764000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940048.063443659, 307.640000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940050.538113155, 310.114000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940053.577849535, 313.148000000]: GOAL Reached!
+[INFO] [1783940053.911265209, 313.484000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940054.779557505, 314.352000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940057.125480860, 316.696000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940059.574537962, 319.140000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940061.972166733, 321.538000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940064.612632443, 324.176000000]: GOAL Reached!
+[INFO] [1783940064.939842420, 324.502000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940065.793978628, 325.356000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940069.629509363, 329.182000000]: GOAL Reached!
+[INFO] [1783940069.993703306, 329.546000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940070.868545315, 330.420000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940073.356642090, 332.906000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940075.988810141, 335.534000000]: GOAL Reached!
+[INFO] [1783940076.341054270, 335.886000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940077.221097675, 336.764000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940079.655259455, 339.196000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940081.637300197, 341.174000000]: GOAL Reached!
+[INFO] [1783940082.008379615, 341.544000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940082.907841888, 342.444000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940085.349042921, 344.878000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940087.795905899, 347.322000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940090.249369050, 349.772000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940093.327166435, 352.846000000]: GOAL Reached!
+[INFO] [1783940093.668439769, 353.186000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940094.540904243, 354.060000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940098.367064131, 357.878000000]: GOAL Reached!
+[INFO] [1783940098.710865580, 358.224000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940099.570479347, 359.080000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940101.921302370, 361.428000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940104.607693597, 364.108000000]: GOAL Reached!
+[INFO] [1783940104.961271495, 364.460000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940105.839913052, 365.338000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940108.180222444, 367.676000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940110.863693973, 370.354000000]: GOAL Reached!
+[INFO] [1783940111.215778810, 370.706000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940112.142760369, 371.632000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940114.553432711, 374.042000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940117.004540072, 376.490000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940119.462733595, 378.938000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940121.737186612, 381.214000000]: GOAL Reached!
+[INFO] [1783940122.111325405, 381.586000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940123.031754209, 382.504000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940125.521786175, 384.990000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940129.041170534, 388.504000000]: GOAL Reached!
+[INFO] [1783940129.404285457, 388.866000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940130.278759832, 389.742000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940134.105203376, 393.558000000]: GOAL Reached!
+[INFO] [1783940134.472761213, 393.926000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940135.350757191, 394.800000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940137.699052841, 397.146000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940139.981374902, 399.426000000]: GOAL Reached!
+[INFO] [1783940140.344274788, 399.786000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940141.242283767, 400.682000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940143.726663252, 403.164000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940146.658161006, 406.092000000]: GOAL Reached!
+[INFO] [1783940146.995949500, 406.426000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940147.892242633, 407.322000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940150.327543253, 409.754000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940152.733628476, 412.154000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940155.134712106, 414.550000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940158.713670529, 418.124000000]: GOAL Reached!
+[INFO] [1783940159.078303903, 418.486000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940159.972967855, 419.380000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940162.371258417, 421.778000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940166.092653603, 425.490000000]: GOAL Reached!
+[INFO] [1783940166.451861715, 425.848000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940167.325108659, 426.722000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940170.955777475, 430.344000000]: GOAL Reached!
+[INFO] [1783940171.306036814, 430.694000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940172.199052960, 431.584000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940174.542775279, 433.924000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940177.025503615, 436.402000000]: GOAL Reached!
+[INFO] [1783940177.370287289, 436.748000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940178.244903660, 437.620000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940180.687914405, 440.060000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940183.267871851, 442.636000000]: GOAL Reached!
+[INFO] [1783940183.619614622, 442.986000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940184.514972869, 443.878000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940186.270516831, 445.630000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940186.919790653, 446.278000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940187.620122352, 446.978000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940188.313517878, 447.672000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940194.147981510, 453.496000000]: GOAL Reached!
+[INFO] [1783940194.519006228, 453.866000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940195.435762299, 454.782000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940196.085489740, 455.430000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940196.708767757, 456.054000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940197.309486596, 456.654000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940202.044806247, 461.384000000]: GOAL Reached!
+[INFO] [1783940202.390587048, 461.728000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940203.266599798, 462.600000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940205.653039995, 464.984000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940207.283658610, 466.616000000]: GOAL Reached!
+[INFO] [1783940207.657753333, 466.986000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940208.536034393, 467.862000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940210.989595884, 470.310000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940213.565639618, 472.884000000]: GOAL Reached!
+[INFO] [1783940213.928016730, 473.244000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940214.806756287, 474.122000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940217.210247485, 476.518000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940219.837732634, 479.144000000]: GOAL Reached!
+[INFO] [1783940220.200767588, 479.504000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940221.098451995, 480.400000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940223.439277097, 482.738000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940224.086039985, 483.382000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940224.640434531, 483.936000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940225.245072365, 484.540000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940230.822147950, 490.108000000]: GOAL Reached!
+[INFO] [1783940231.183242944, 490.466000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940232.133729766, 491.420000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940232.794790675, 492.078000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940233.430882288, 492.712000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940234.028023082, 493.308000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940238.908227456, 498.182000000]: GOAL Reached!
+[INFO] [1783940239.251344813, 498.526000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940240.127779818, 499.400000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940243.850089928, 503.118000000]: GOAL Reached!
+[INFO] [1783940244.200020390, 503.466000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940245.078918792, 504.344000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940247.577000367, 506.838000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940250.105480474, 509.364000000]: GOAL Reached!
+[INFO] [1783940250.429435032, 509.684000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940251.330574674, 510.586000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940253.759709731, 513.010000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940256.338892173, 515.588000000]: GOAL Reached!
+[INFO] [1783940256.679000558, 515.926000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940257.608631409, 516.852000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940260.030065440, 519.270000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940260.626718512, 519.864000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940261.226187559, 520.466000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940261.874726577, 521.110000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940267.604566098, 526.836000000]: GOAL Reached!
+[INFO] [1783940267.954568210, 527.184000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940268.834518297, 528.062000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940269.526507243, 528.754000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940270.072997466, 529.300000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940270.676503237, 529.900000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940275.657367180, 534.872000000]: GOAL Reached!
+[INFO] [1783940276.032640643, 535.246000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940276.927288607, 536.140000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940280.748451302, 539.952000000]: GOAL Reached!
+[INFO] [1783940281.100621752, 540.304000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940281.980443517, 541.182000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940284.420830446, 543.618000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940286.802989999, 545.998000000]: GOAL Reached!
+[INFO] [1783940287.151872347, 546.346000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940288.028587437, 547.220000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940290.380805595, 549.570000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940293.161982415, 552.346000000]: GOAL Reached!
+[INFO] [1783940293.523130054, 552.706000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940294.422111565, 553.604000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940295.660749566, 554.840000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940296.312703475, 555.490000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940296.954729298, 556.134000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940297.556637916, 556.736000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940303.441400942, 562.608000000]: GOAL Reached!
+[INFO] [1783940303.800517706, 562.966000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940304.714286166, 563.880000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940305.357276782, 564.520000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940306.006102592, 565.168000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940306.595986039, 565.758000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940311.431977320, 570.588000000]: GOAL Reached!
+[INFO] [1783940311.792802818, 570.946000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940312.683630027, 571.836000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940316.514963824, 575.664000000]: GOAL Reached!
+[INFO] [1783940316.879313475, 576.028000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940317.777649350, 576.924000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940320.255990317, 579.398000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940322.189072857, 581.330000000]: GOAL Reached!
+[INFO] [1783940322.507685057, 581.646000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940323.373318361, 582.512000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940325.770686532, 584.906000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940328.408137169, 587.542000000]: GOAL Reached!
+[INFO] [1783940328.752268781, 587.886000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940329.623959952, 588.754000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940330.176935497, 589.308000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940330.824493704, 589.954000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940331.374192165, 590.504000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940332.019636118, 591.146000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940338.255688653, 597.374000000]: GOAL Reached!
+[INFO] [1783940338.606263044, 597.722000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940339.564457406, 598.678000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940340.165683587, 599.280000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940340.764812969, 599.882000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940341.363089773, 600.478000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940346.096938659, 605.204000000]: GOAL Reached!
+[INFO] [1783940346.461466010, 605.566000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940347.333457865, 606.438000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940351.052345032, 610.152000000]: GOAL Reached!
+[INFO] [1783940351.409021326, 610.506000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940352.302571930, 611.400000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940354.753714498, 613.846000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940357.129842498, 616.220000000]: GOAL Reached!
+[INFO] [1783940357.499262085, 616.588000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940358.392773636, 617.478000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940360.835931229, 619.920000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940364.617349462, 623.696000000]: GOAL Reached!
+[INFO] [1783940364.968633479, 624.046000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940365.861280014, 624.938000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940367.662642867, 626.738000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940368.308325196, 627.382000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940368.907918047, 627.982000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940369.553122788, 628.624000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940375.986373716, 635.046000000]: GOAL Reached!
+[INFO] [1783940376.345872381, 635.404000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940377.289209708, 636.346000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940377.943856874, 637.000000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940378.586264970, 637.644000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940379.239303832, 638.296000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940383.867776516, 642.916000000]: GOAL Reached!
+[INFO] [1783940384.239218202, 643.286000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940385.133174266, 644.180000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940388.959111645, 648.000000000]: GOAL Reached!
+[INFO] [1783940389.305751533, 648.344000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940390.182272284, 649.222000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940392.630040762, 651.662000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940395.006757411, 654.040000000]: GOAL Reached!
+[INFO] [1783940395.351698124, 654.386000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940396.253770795, 655.282000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940398.689029924, 657.712000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940401.267313895, 660.288000000]: GOAL Reached!
+[INFO] [1783940401.624704712, 660.644000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940402.524967711, 661.544000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940404.881065241, 663.898000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940406.126472473, 665.142000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940406.776277776, 665.786000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940407.375834245, 666.388000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940408.023060457, 667.034000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940413.256179528, 672.258000000]: GOAL Reached!
+[INFO] [1783940413.603855401, 672.604000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940414.500269561, 673.500000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940415.194916537, 674.194000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940415.782285030, 674.780000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940416.394189789, 675.388000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940421.523337229, 680.510000000]: GOAL Reached!
+[INFO] [1783940421.900574542, 680.886000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940422.794868244, 681.780000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940426.514831999, 685.494000000]: GOAL Reached!
+[INFO] [1783940426.867535807, 685.846000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940427.743521267, 686.720000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940430.134429120, 689.110000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940432.770281026, 691.738000000]: GOAL Reached!
+[INFO] [1783940433.119022983, 692.086000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940433.995244537, 692.962000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940436.389570516, 695.352000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940439.126367468, 698.084000000]: GOAL Reached!
+[INFO] [1783940439.487783364, 698.444000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940440.386121346, 699.344000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940442.873755451, 701.824000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940443.570345293, 702.520000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940444.223271541, 703.174000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940444.823635662, 703.774000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940450.403760601, 709.344000000]: GOAL Reached!
+[INFO] [1783940450.760577859, 709.698000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940451.687584266, 710.626000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940452.338058907, 711.274000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940453.036957801, 711.972000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940453.739161132, 712.674000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940458.369293898, 717.296000000]: GOAL Reached!
+[INFO] [1783940458.721156901, 717.646000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940459.597239899, 718.524000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940463.425026214, 722.344000000]: GOAL Reached!
+[INFO] [1783940463.787803130, 722.706000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940464.663572549, 723.582000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940467.008338348, 725.922000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940469.791270012, 728.700000000]: GOAL Reached!
+[INFO] [1783940470.135801939, 729.044000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940471.006681476, 729.914000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940473.413252272, 732.316000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940476.047191035, 734.946000000]: GOAL Reached!
+[INFO] [1783940476.422554033, 735.322000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940477.304790701, 736.200000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940479.736493799, 738.630000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940480.382733428, 739.276000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940480.986524330, 739.878000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940481.634601585, 740.524000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940487.018613202, 745.902000000]: GOAL Reached!
+[INFO] [1783940487.386645034, 746.268000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940488.283338618, 747.164000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940488.976774868, 747.858000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940489.677701263, 748.554000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940490.329059514, 749.208000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940494.907325045, 753.776000000]: GOAL Reached!
+[INFO] [1783940495.255171459, 754.126000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940496.135049419, 755.004000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940498.483756662, 757.346000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940500.166046931, 759.026000000]: GOAL Reached!
+[INFO] [1783940500.508416050, 759.366000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940501.382963555, 760.240000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940503.788635552, 762.642000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940506.218940135, 765.068000000]: GOAL Reached!
+[INFO] [1783940506.558688343, 765.406000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940507.453977607, 766.300000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940509.891689734, 768.734000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940512.469376471, 771.308000000]: GOAL Reached!
+[INFO] [1783940512.810928008, 771.648000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940513.709216384, 772.544000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940514.405994078, 773.240000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940515.104415540, 773.936000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940515.789573734, 774.622000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940516.388017320, 775.222000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940523.129292997, 781.948000000]: GOAL Reached!
+[INFO] [1783940523.485508557, 782.306000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940524.383512126, 783.202000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940525.023207528, 783.840000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940525.674525070, 784.490000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940526.378857875, 785.192000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940531.006318313, 789.810000000]: GOAL Reached!
+[INFO] [1783940531.364200894, 790.166000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940532.238695303, 791.042000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940534.637169725, 793.436000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940536.066450741, 794.862000000]: GOAL Reached!
+[INFO] [1783940536.431806855, 795.226000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940537.310687753, 796.106000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940539.798240154, 798.590000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940542.033920797, 800.818000000]: GOAL Reached!
+[INFO] [1783940542.403244202, 801.188000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940543.295184027, 802.080000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940545.786179461, 804.564000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940548.320298370, 807.094000000]: GOAL Reached!
+[INFO] [1783940548.652341897, 807.426000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940549.550682943, 808.320000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940550.248612313, 809.018000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940550.791939887, 809.560000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940551.443999679, 810.212000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940552.140241786, 810.908000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940558.072435255, 816.832000000]: GOAL Reached!
+[INFO] [1783940558.426327158, 817.186000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940559.324377949, 818.082000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940559.964828827, 818.720000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940560.602647941, 819.356000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940561.213188590, 819.968000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940566.042450944, 824.788000000]: GOAL Reached!
+[INFO] [1783940566.381370628, 825.126000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940567.240317352, 825.982000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940570.977480695, 829.712000000]: GOAL Reached!
+[INFO] [1783940571.313036232, 830.046000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940572.192661872, 830.924000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940574.642895864, 833.370000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940577.222945176, 835.946000000]: GOAL Reached!
+[INFO] [1783940577.584167470, 836.306000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940578.459881016, 837.180000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940580.808815564, 839.526000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940583.791164692, 842.502000000]: GOAL Reached!
+[INFO] [1783940584.157509186, 842.866000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940585.049918637, 843.760000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940586.789553230, 845.496000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940587.392604342, 846.098000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940588.041853364, 846.744000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940588.638454699, 847.342000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940594.377246570, 853.068000000]: GOAL Reached!
+[INFO] [1783940594.736417700, 853.426000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940595.631483342, 854.322000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940596.176002752, 854.864000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940596.829391174, 855.516000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940597.476074134, 856.162000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940602.257863089, 860.936000000]: GOAL Reached!
+[INFO] [1783940602.610003571, 861.288000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940603.487481946, 862.162000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940607.214259280, 865.884000000]: GOAL Reached!
+[INFO] [1783940607.595145660, 866.266000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940608.479133493, 867.146000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940610.920501586, 869.584000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940613.506508460, 872.166000000]: GOAL Reached!
+[INFO] [1783940613.868529672, 872.526000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940614.761994297, 873.420000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940617.245625443, 875.898000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940619.778627967, 878.428000000]: GOAL Reached!
+[INFO] [1783940620.137410767, 878.784000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940621.014082381, 879.660000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940622.215801634, 880.860000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940622.756166003, 881.400000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940623.407950027, 882.052000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940624.010629811, 882.654000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940629.545959593, 888.178000000]: GOAL Reached!
+[INFO] [1783940629.905635827, 888.538000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940630.811465342, 889.442000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940631.455122575, 890.084000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940632.103718363, 890.730000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940632.699970415, 891.326000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940637.429073326, 896.050000000]: GOAL Reached!
+[INFO] [1783940637.768835058, 896.388000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940638.643629869, 897.260000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940642.474218335, 901.088000000]: GOAL Reached!
+[INFO] [1783940642.837747395, 901.448000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940643.733954481, 902.340000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940646.226331105, 904.830000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940647.957243566, 906.558000000]: GOAL Reached!
+[INFO] [1783940648.300392822, 906.900000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940649.183458336, 907.786000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940651.683676593, 910.278000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940654.314055066, 912.906000000]: GOAL Reached!
+[INFO] [1783940654.655858193, 913.246000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940655.554309745, 914.140000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940657.452061340, 916.034000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940658.043973548, 916.626000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940658.645199049, 917.226000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940659.248473885, 917.826000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940664.886790513, 923.454000000]: GOAL Reached!
+[INFO] [1783940665.240558424, 923.806000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940666.184543873, 924.754000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940666.849459479, 925.416000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940667.407085068, 925.972000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940668.010021315, 926.574000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940672.889567042, 931.444000000]: GOAL Reached!
+[INFO] [1783940673.251892944, 931.806000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940674.128026528, 932.680000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940676.480414234, 935.030000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940677.958397340, 936.504000000]: GOAL Reached!
+[INFO] [1783940678.321215287, 936.868000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940679.196161182, 937.740000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940681.691615633, 940.234000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940683.925829716, 942.460000000]: GOAL Reached!
+[INFO] [1783940684.269659229, 942.804000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940685.167578181, 943.702000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940687.654981774, 946.184000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940690.387728235, 948.912000000]: GOAL Reached!
+[INFO] [1783940690.737990045, 949.262000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940691.612953791, 950.136000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940693.960786434, 952.480000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940694.562048189, 953.078000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940695.214242894, 953.728000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940695.909792770, 954.424000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940701.245330748, 959.750000000]: GOAL Reached!
+[INFO] [1783940701.621089420, 960.126000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940702.520152242, 961.022000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940703.207791339, 961.708000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940703.805682365, 962.306000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940704.356466302, 962.854000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940711.038192002, 969.524000000]: GOAL Reached!
+[INFO] [1783940711.402609768, 969.888000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940712.281013678, 970.764000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940716.311626199, 974.786000000]: GOAL Reached!
+[INFO] [1783940716.691922951, 975.168000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940717.566248981, 976.040000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940719.914065155, 978.388000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940722.299489890, 980.764000000]: GOAL Reached!
+[INFO] [1783940722.642612919, 981.104000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940723.523565802, 981.984000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940725.966151035, 984.422000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940729.649029718, 988.098000000]: GOAL Reached!
+[INFO] [1783940730.016254412, 988.468000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940730.911883293, 989.360000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940732.102726973, 990.548000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940732.801793496, 991.244000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940733.452549924, 991.894000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940734.046843062, 992.490000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940739.637169354, 998.066000000]: GOAL Reached!
+[INFO] [1783940739.992270089, 998.424000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940740.924782304, 999.352000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940741.537292687, 999.964000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940742.181207523, 1000.606000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940742.875764375, 1001.300000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940747.513702774, 1005.928000000]: GOAL Reached!
+[INFO] [1783940747.871588979, 1006.286000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940748.750751163, 1007.162000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940752.371438283, 1010.778000000]: GOAL Reached!
+[INFO] [1783940752.737461618, 1011.142000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940753.618541658, 1012.022000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940755.959788522, 1014.358000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940758.439096660, 1016.834000000]: GOAL Reached!
+[INFO] [1783940758.792057583, 1017.186000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940759.689941281, 1018.082000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940762.124068446, 1020.512000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940764.505325312, 1022.890000000]: GOAL Reached!
+[INFO] [1783940764.862281742, 1023.246000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940765.777022046, 1024.160000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940767.645639279, 1026.030000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940768.239489777, 1026.618000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940768.847240174, 1027.224000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940769.538147968, 1027.916000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940775.171425428, 1033.540000000]: GOAL Reached!
+[INFO] [1783940775.518132203, 1033.884000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940776.451685745, 1034.818000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940777.058075019, 1035.422000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940777.655374249, 1036.020000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940778.250457162, 1036.614000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940782.933398638, 1041.288000000]: GOAL Reached!
+[INFO] [1783940783.272208095, 1041.626000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940784.154615186, 1042.508000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940787.969449668, 1046.316000000]: GOAL Reached!
+[INFO] [1783940788.321455130, 1046.666000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940789.194971648, 1047.540000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940791.641875931, 1049.982000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940794.224075758, 1052.558000000]: GOAL Reached!
+[INFO] [1783940794.593575872, 1052.928000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940795.492821293, 1053.826000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940797.927863471, 1056.256000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940800.609087996, 1058.934000000]: GOAL Reached!
+[INFO] [1783940800.962497352, 1059.286000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940801.884266303, 1060.206000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940803.101248010, 1061.422000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940803.745210394, 1062.064000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940804.440017807, 1062.758000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940805.092665917, 1063.408000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940810.875314817, 1069.182000000]: GOAL Reached!
+[INFO] [1783940811.221523923, 1069.528000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940812.137271614, 1070.442000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940812.826515905, 1071.130000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940813.473646603, 1071.776000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940814.074993677, 1072.378000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940818.756254959, 1077.050000000]: GOAL Reached!
+[INFO] [1783940819.132244594, 1077.424000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940820.013263111, 1078.304000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940823.840525550, 1082.128000000]: GOAL Reached!
+[INFO] [1783940824.220425402, 1082.506000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940825.096927710, 1083.380000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940827.553391467, 1085.828000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940830.131209240, 1088.402000000]: GOAL Reached!
+[INFO] [1783940830.498217481, 1088.766000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940831.379408349, 1089.646000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940833.816712963, 1092.080000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940836.196089689, 1094.454000000]: GOAL Reached!
+[INFO] [1783940836.548300320, 1094.806000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940837.445365019, 1095.702000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940838.093693753, 1096.350000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940838.678048179, 1096.932000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940839.330846500, 1097.584000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940839.882566628, 1098.134000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940846.267277344, 1104.508000000]: GOAL Reached!
+[INFO] [1783940846.607919656, 1104.848000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940847.522840608, 1105.760000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940848.160389616, 1106.398000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940848.756744786, 1106.996000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940849.409445093, 1107.646000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940854.139950585, 1112.366000000]: GOAL Reached!
+[INFO] [1783940854.506766803, 1112.736000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940855.376248561, 1113.600000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940857.777141435, 1115.998000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940859.405762087, 1117.626000000]: GOAL Reached!
+[INFO] [1783940859.749328844, 1117.966000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940860.625401224, 1118.840000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940863.026805671, 1121.238000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940865.058299557, 1123.266000000]: GOAL Reached!
+[INFO] [1783940865.418974932, 1123.626000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940866.313949711, 1124.520000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940868.667500437, 1126.868000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940871.446184827, 1129.644000000]: GOAL Reached!
+[INFO] [1783940871.791001803, 1129.988000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940872.690517391, 1130.884000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940873.985911988, 1132.180000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940874.682504517, 1132.872000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940875.375714490, 1133.566000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940876.031669162, 1134.220000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940881.707920639, 1139.888000000]: GOAL Reached!
+[INFO] [1783940882.068398606, 1140.246000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940882.990869114, 1141.170000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940883.665592650, 1141.844000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940884.328531844, 1142.504000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940884.911590090, 1143.086000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940889.691363598, 1147.856000000]: GOAL Reached!
+[INFO] [1783940890.040947362, 1148.204000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940890.919024727, 1149.082000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940893.321608169, 1151.480000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940894.953239788, 1153.108000000]: GOAL Reached!
+[INFO] [1783940895.307752539, 1153.466000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940896.190125777, 1154.342000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940898.643571948, 1156.792000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940901.226208015, 1159.370000000]: GOAL Reached!
+[INFO] [1783940901.582551322, 1159.724000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940902.462028643, 1160.604000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940904.901114584, 1163.038000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940907.483724841, 1165.616000000]: GOAL Reached!
+[INFO] [1783940907.839448421, 1165.968000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940908.733253977, 1166.862000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940909.268563120, 1167.396000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940909.919693617, 1168.048000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940910.614646899, 1168.740000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940911.268703626, 1169.394000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940917.148048718, 1175.262000000]: GOAL Reached!
+[INFO] [1783940917.512981180, 1175.626000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940918.445684048, 1176.556000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940919.112262883, 1177.220000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940919.761319833, 1177.870000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940920.354834545, 1178.464000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940925.037755695, 1183.136000000]: GOAL Reached!
+[INFO] [1783940925.388175573, 1183.486000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940926.267560504, 1184.364000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940929.998092645, 1188.088000000]: GOAL Reached!
+[INFO] [1783940930.358409027, 1188.446000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940931.234851707, 1189.322000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940933.632976182, 1191.716000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940935.565482086, 1193.646000000]: GOAL Reached!
+[INFO] [1783940935.917950842, 1193.996000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940936.803478659, 1194.882000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940939.191657862, 1197.264000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940941.825812853, 1199.894000000]: GOAL Reached!
+[INFO] [1783940942.179487361, 1200.248000000]: Footprint model 'polygon' loaded for trajectory optimization.
+[INFO] [1783940943.101082882, 1201.168000000]: Footprint model 'polygon' loaded fo[ERROR] [1783940989.981117895, 1247.962000000]: Aborting because the robot appears to be oscillating over and over. Even after executing all recovery behaviors
+[WARN] [1783940991.562466347, 1249.544000000]: TebLocalPlannerROS: possible oscillation (of the robot or its local plan) detected. Activating recovery strategy (prefer current turning direction during optimization).
+[WARN] [1783940991.673112843, 1249.654000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1100 seconds
+[WARN] [1783940991.800648805, 1249.780000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1360 seconds
+[WARN] [1783940991.950581918, 1249.928000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.1840 seconds
+[WARN] [1783940991.951174823, 1249.930000000]: Map update loop missed its desired rate of 10.0000Hz... the loop actually took 0.1200 seconds
+[WARN] [1783940992.105683357, 1250.084000000]: Control loop missed its desired rate of 10.0000Hz... the loop actually took 0.2400 seconds
+[WARN] [1783940994.141279, 1252.110000]: training environment stop requested: config_seq 2 did not activate within 2.000s
+[WARN] [1783940995.222126, 1253.192000]: training environment stop requested: adapter_close
+Traceback (most recent call last):
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/src/thesis_experiment/t11_training.py", line 535, in run
+    return self._train(raw_vec, recorded, recorder)
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/src/thesis_experiment/t11_training.py", line 560, in _train
+    model.learn(total_timesteps=total_timesteps,
+  File "/home/robot/robot_ws_base_rl/.venv/lib/python3.8/site-packages/stable_baselines3/sac/sac.py", line 307, in learn
+    return super().learn(
+  File "/home/robot/robot_ws_base_rl/.venv/lib/python3.8/site-packages/stable_baselines3/common/off_policy_algorithm.py", line 328, in learn
+    rollout = self.collect_rollouts(
+  File "/home/robot/robot_ws_base_rl/.venv/lib/python3.8/site-packages/stable_baselines3/common/off_policy_algorithm.py", line 560, in collect_rollouts
+    new_obs, rewards, dones, infos = env.step(actions)
+  File "/home/robot/robot_ws_base_rl/.venv/lib/python3.8/site-packages/stable_baselines3/common/vec_env/base_vec_env.py", line 206, in step
+    return self.step_wait()
+  File "/home/robot/robot_ws_base_rl/.venv/lib/python3.8/site-packages/stable_baselines3/common/vec_env/vec_normalize.py", line 181, in step_wait
+    obs, rewards, dones, infos = self.venv.step_wait()
+  File "/home/robot/robot_ws_base_rl/.venv/lib/python3.8/site-packages/stable_baselines3/common/vec_env/dummy_vec_env.py", line 70, in step_wait
+    obs, self.reset_infos[env_idx] = self.envs[env_idx].reset()
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/src/thesis_experiment/t11_training.py", line 256, in reset
+    observation, info = self.env.reset(**kwargs)
+  File "/home/robot/robot_ws_base_rl/src/application/teb_rl_tuner/src/teb_rl_tuner/sac_environment.py", line 210, in reset
+    observation, info = self.core.reset(seed=seed)
+  File "/home/robot/robot_ws_base_rl/src/application/teb_rl_tuner/src/teb_rl_tuner/training_environment.py", line 235, in reset
+    self._reset_episode_boundary(seed)
+  File "/home/robot/robot_ws_base_rl/src/application/teb_rl_tuner/src/teb_rl_tuner/training_environment.py", line 224, in _reset_episode_boundary
+    self.adapter.reset_with_parameter_snapshot(self._snapshot, seed)
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/src/thesis_experiment/gazebo_training_adapter.py", line 312, in reset_with_parameter_snapshot
+    self._quiesce_navigation()
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/src/thesis_experiment/gazebo_training_adapter.py", line 333, in _quiesce_navigation
+    raise RuntimeError("move_base action server unavailable at episode boundary")
+RuntimeError: move_base action server unavailable at episode boundary
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/robot/robot_ws_base_rl/devel/lib/thesis_experiment/t11_formal_run.py", line 15, in <module>
+    exec(compile(fh.read(), python_script, 'exec'), context)
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/scripts/t11_formal_run.py", line 20, in <module>
+    sys.exit(main())
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/scripts/t11_formal_run.py", line 14, in main
+    report = T11FormalRunner().run()
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/src/thesis_experiment/t11_training.py", line 539, in run
+    self.adapter.close()
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/src/thesis_experiment/gazebo_training_adapter.py", line 640, in close
+    self._quiesce_navigation()
+  File "/home/robot/robot_ws_base_rl/src/tools/thesis_experiment/src/thesis_experiment/gazebo_training_adapter.py", line 333, in _quiesce_navigation
+    raise RuntimeError("move_base action server unavailable at episode boundary")
+RuntimeError: move_base action server unavailable at episode boundary
+[INFO] [1783939738.967387177]: Finished loading Gazebo ROS API Plugin.
+[INFO] [1783939738.968146605]: waitForService: Service [/gazebo/set_physics_properties] has not been advertised, waiting...
+[INFO] [1783939739.583227491]: waitForService: Service [/gazebo/set_physics_properties] is now available.
+[INFO] [1783939739.626581825, 0.036000000]: Physics dynamic reconfigure ready.
+[INFO] [1783939739.825198041, 0.180000000]: <initialOrientationAsReference> is unset, using default value of false to comply with REP 145 (world as orientation reference)
+[INFO] [1783939739.825235521, 0.180000000]: <robotNamespace> set to: //
+[INFO] [1783939739.825242570, 0.180000000]: <topicName> set to: imu/data
+[INFO] [1783939739.825247516, 0.180000000]: <frameName> set to: imu_link
+[INFO] [1783939739.825264518, 0.180000000]: <updateRateHZ> set to: 50
+[INFO] [1783939739.825271178, 0.180000000]: <gaussianNoise> set to: 0
+[INFO] [1783939739.825288201, 0.180000000]: <xyzOffset> set to: 0 0 0
+[INFO] [1783939739.825302575, 0.180000000]: <rpyOffset> set to: 0 -0 0
+[INFO] [1783939739.941562654, 0.180000000]: Laser Plugin: Using the 'robotNamespace' param: '/'
+[INFO] [1783939739.941583641, 0.180000000]: Starting Laser Plugin (ns = /)
+[INFO] [1783939739.942347491, 0.180000000]: Laser Plugin (ns = /)  <tf_prefix_>, set to ""
+[INFO] [1783939740.065499449, 0.180000000]: M2 simulation-only Ackermann interface loaded; cmd_angle_instead_rotvel=false
+[31mWARNING: disk usage in log directory [/home/robot/.ros/log] is over 1GB.
+It's recommended that you use the 'rosclean' command.[0m
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+WARNING: Package name "gazebo_ros_2Dmap_plugin" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[31m[move_base-5] process has died [pid 1042305, exit code -11, cmd /opt/ros/noetic/lib/move_base/move_base cmd_vel:=/cmd_vel odom:=/odom __name:=move_base __log:=/home/robot/.ros/log/734123c2-7ea8-11f1-91bc-3382cc4c3ed1/move_base-5.log].
+log file: /home/robot/.ros/log/734123c2-7ea8-11f1-91bc-3382cc4c3ed1/move_base-5*.log[0m
+[31m================================================================================REQUIRED process [t11_formal_run-6] has died!
+process has died [pid 1042306, exit code 1, cmd /home/robot/robot_ws_base_rl/.venv/bin/python /home/robot/robot_ws_base_rl/devel/lib/thesis_experiment/t11_formal_run.py __name:=t11_formal_run __log:=/home/robot/.ros/log/734123c2-7ea8-11f1-91bc-3382cc4c3ed1/t11_formal_run-6.log].
+log file: /home/robot/.ros/log/734123c2-7ea8-11f1-91bc-3382cc4c3ed1/t11_formal_run-6*.log
+Initiating shutdown!
+================================================================================[0m
+[1mprocess[t11_formal_run-6]: started with pid [1042306][0m
+[1m[spawn_m2-3] process has finished cleanly
+log file: /home/robot/.ros/log/734123c2-7ea8-11f1-91bc-3382cc4c3ed1/spawn_m2-3*.log[0m
+[t11_formal_run-6] killing on exit
+[m2_robot_state_publisher-4] killing on exit
+[gazebo-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

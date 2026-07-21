@@ -1,0 +1,810 @@
+schema_version: '2.0'
+architecture_generation: v2
+stage: V2-04G-R6-I5
+status: execution_complete_pending_assessment
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+execution_release:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_release.yaml
+  sha256: 9cef80f5c4eaf562719a71bb11fadd2cded7208d2ade07a22b09d7b6058b3d43
+authorization_envelope:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i5_bounded_simulation_authorization.yaml
+  sha256: bc59820b0140b50503657966d735511a8007d9ec8e14f3f2cf237791ff170592
+evidence_budget_authorized: 6
+evidence_units_consumed: 6
+r5_remaining_units_consumed: 0
+r6_i1_forfeited_units_consumed: 0
+held_out_5001_5010_accessed: false
+retry_count: 0
+resume_used: false
+attempt_limit_per_identity: 1
+planned_identity_count: 6
+attempt_ledger:
+- sequence: 1
+  identity:
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i5-dynamic-conflict-single-s5161
+    seed: 5161
+    attempt: 1
+  status: evidence_complete
+  seed_consumed: true
+  evidence_units_consumed: 1
+  attempt_limit: 1
+  resume_forbidden: true
+  journal_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals
+  journal: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_e45297a05b4ec59a797c3a0dd616b50148bf831c7f4dad570897c04ca88870cd.yaml
+  raw_evidence_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw
+  credential_safe_environment_audit:
+    policy_id: v2_04g_r6_i2_credential_safe_environment_v1
+    allowlist_mode: exact_key_allowlist
+    source_value_material_recorded: false
+    credential_value_copied: false
+    inherited_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    forced_key_names:
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    removed_credential_like_key_names: []
+    removed_non_allowlisted_key_names:
+    - ARCHDIR
+    - EUSDIR
+    - OLDPWD
+    - PWD
+    - PYTHONDONTWRITEBYTECODE
+    - ROSLISP_PACKAGE_DIRECTORIES
+    - ROS_MASTER_URI
+    - SHLVL
+    child_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    loopback_only_ros_master: true
+    ros_log_location_confined_to_attempt_root: true
+  consumption_boundary: base_roslaunch_spawn_requested
+  bootstrap_receipt:
+    protocol_id: v2_04g_r6_i2_positive_clock_bootstrap_v1
+    state: service_wait_released
+    terminal: true
+    positive_clock_required: true
+    strict_clock_progression_required: true
+    topic_existence_is_sufficient: false
+    zero_clock_is_sufficient: false
+    single_positive_clock_sample_is_sufficient: false
+    pre_unpause_positive_clock_is_sufficient: false
+    service_wait_allowed: true
+    timeout_s: 45.0
+    base_spawn_monotonic_s: 9883.205302841
+    deadline_monotonic_s: 9928.205302841
+    unpause_ack_monotonic_s: 9886.865882969
+    positive_clock:
+      sec: 1
+      nsec: 0
+    positive_clock_observed_monotonic_s: 9887.972483893
+    clock_progression_sample:
+      sec: 1
+      nsec: 930000000
+    clock_progression_observed_monotonic_s: 9888.901031001
+    post_ack_clock_sample_count: 2
+    post_ack_zero_clock_sample_count: 0
+    post_positive_equal_clock_sample_count: 0
+    pre_ack_clock_sample_count_ignored: 0
+    pre_ack_positive_clock_sample_count_ignored: 0
+    failure_reason: null
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/activation.yaml
+      sha256: d9f92bad3f737093a89a23f55669803f5fc246f783f5d509de9110de7e28bb6f
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/evaluation.yaml
+      sha256: 87ce8c4034982484c6f1513f4fd4f4219f5190889823b064379ae1458360be0a
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/trace.csv
+      sha256: 9175ccc1b02eb99e3c2ce8def5d1f622473c4731f4031da5339e3d3e2d74daf9
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/clearance.yaml
+      sha256: 5ffe4cffa2affc9d31ef6da42cefc9975a384d03c082fa9f1b8a4587a68f1662
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/process.log
+      sha256: 52c8f68fc1ecc935285829e72d8ea3d1b473ba66d71247fdb3b900f24d59399e
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/teardown_receipt.yaml
+      sha256: c68e530f1421e2ab3f59f72e8828ee76363288c038da9a4994beb72623c144d2
+  expected_ttc_status: OBSERVED_CONFLICT
+  observed_ttc_status: OBSERVED_CONFLICT
+  semantic_observation:
+    finite_ttc_sample_count: 31
+    non_none_overlay_count: 25
+  supervisor_config_sha256: a6941f6fd66e187c3642d9594502b5afbc3d9022f8b76ef598ac1969ac410da6
+- sequence: 2
+  identity:
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i5-dynamic-conflict-single-s5161
+    seed: 5161
+    attempt: 1
+  status: evidence_complete
+  seed_consumed: true
+  evidence_units_consumed: 1
+  attempt_limit: 1
+  resume_forbidden: true
+  journal_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals
+  journal: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_98c64603ee95557865d05f0713d4a1881b54de0b94a0c061e2c90f6e514f92a7.yaml
+  raw_evidence_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw
+  credential_safe_environment_audit:
+    policy_id: v2_04g_r6_i2_credential_safe_environment_v1
+    allowlist_mode: exact_key_allowlist
+    source_value_material_recorded: false
+    credential_value_copied: false
+    inherited_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    forced_key_names:
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    removed_credential_like_key_names: []
+    removed_non_allowlisted_key_names:
+    - ARCHDIR
+    - EUSDIR
+    - OLDPWD
+    - PWD
+    - PYTHONDONTWRITEBYTECODE
+    - ROSLISP_PACKAGE_DIRECTORIES
+    - ROS_MASTER_URI
+    - SHLVL
+    child_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    loopback_only_ros_master: true
+    ros_log_location_confined_to_attempt_root: true
+  consumption_boundary: base_roslaunch_spawn_requested
+  bootstrap_receipt:
+    protocol_id: v2_04g_r6_i2_positive_clock_bootstrap_v1
+    state: service_wait_released
+    terminal: true
+    positive_clock_required: true
+    strict_clock_progression_required: true
+    topic_existence_is_sufficient: false
+    zero_clock_is_sufficient: false
+    single_positive_clock_sample_is_sufficient: false
+    pre_unpause_positive_clock_is_sufficient: false
+    service_wait_allowed: true
+    timeout_s: 45.0
+    base_spawn_monotonic_s: 9926.25409699
+    deadline_monotonic_s: 9971.25409699
+    unpause_ack_monotonic_s: 9928.832853009
+    positive_clock:
+      sec: 0
+      nsec: 854000000
+    positive_clock_observed_monotonic_s: 9929.884244277
+    clock_progression_sample:
+      sec: 1
+      nsec: 888000000
+    clock_progression_observed_monotonic_s: 9930.919479592
+    post_ack_clock_sample_count: 2
+    post_ack_zero_clock_sample_count: 0
+    post_positive_equal_clock_sample_count: 0
+    pre_ack_clock_sample_count_ignored: 0
+    pre_ack_positive_clock_sample_count_ignored: 0
+    failure_reason: null
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/activation.yaml
+      sha256: 7622c9a5481e1d2e9e7bf13248baecc1125f0081df6c929cd426dfb662ae881e
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/evaluation.yaml
+      sha256: 165921375221a3fba6fe1743a27c00c7af7b1daebdef18cae52823c30eeef65a
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/trace.csv
+      sha256: 80f5e8c46731cca69cb8b79dd888f652aa9550720ee8327687fbfc808399e0f8
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/clearance.yaml
+      sha256: babddc11eeaaee8f8bf6a5b0d3f5fe604b0bf75ca21b58032aedecdedb28eea5
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/process.log
+      sha256: 060fa86be8990635d949bd78e1ef084556eaec028f4574fc29435b521e50ff90
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/teardown_receipt.yaml
+      sha256: 96fd3c56874f883fc4065dbf0b9613d8efe573b407f705e4edd486e1553cac66
+  expected_ttc_status: OBSERVED_CONFLICT
+  observed_ttc_status: OBSERVED_CONFLICT
+  semantic_observation:
+    finite_ttc_sample_count: 30
+    non_none_overlay_count: 19
+  supervisor_config_sha256: d5e35cfe84082b229ae6e656c2d3aaa7a10c8c61b696184bda8dc90e47a762da
+- sequence: 3
+  identity:
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+    seed: 5162
+    attempt: 1
+  status: evidence_complete
+  seed_consumed: true
+  evidence_units_consumed: 1
+  attempt_limit: 1
+  resume_forbidden: true
+  journal_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals
+  journal: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_29ef869eb2b99183c92c6afef3d37fd81d8cebfb34ff4d1e30cc05ab777e97cb.yaml
+  raw_evidence_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw
+  credential_safe_environment_audit:
+    policy_id: v2_04g_r6_i2_credential_safe_environment_v1
+    allowlist_mode: exact_key_allowlist
+    source_value_material_recorded: false
+    credential_value_copied: false
+    inherited_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    forced_key_names:
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    removed_credential_like_key_names: []
+    removed_non_allowlisted_key_names:
+    - ARCHDIR
+    - EUSDIR
+    - OLDPWD
+    - PWD
+    - PYTHONDONTWRITEBYTECODE
+    - ROSLISP_PACKAGE_DIRECTORIES
+    - ROS_MASTER_URI
+    - SHLVL
+    child_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    loopback_only_ros_master: true
+    ros_log_location_confined_to_attempt_root: true
+  consumption_boundary: base_roslaunch_spawn_requested
+  bootstrap_receipt:
+    protocol_id: v2_04g_r6_i2_positive_clock_bootstrap_v1
+    state: service_wait_released
+    terminal: true
+    positive_clock_required: true
+    strict_clock_progression_required: true
+    topic_existence_is_sufficient: false
+    zero_clock_is_sufficient: false
+    single_positive_clock_sample_is_sufficient: false
+    pre_unpause_positive_clock_is_sufficient: false
+    service_wait_allowed: true
+    timeout_s: 45.0
+    base_spawn_monotonic_s: 9961.644279405
+    deadline_monotonic_s: 10006.644279405
+    unpause_ack_monotonic_s: 9964.631041847
+    positive_clock:
+      sec: 0
+      nsec: 936000000
+    positive_clock_observed_monotonic_s: 9965.666621985
+    clock_progression_sample:
+      sec: 1
+      nsec: 966000000
+    clock_progression_observed_monotonic_s: 9966.698792804
+    post_ack_clock_sample_count: 2
+    post_ack_zero_clock_sample_count: 0
+    post_positive_equal_clock_sample_count: 0
+    pre_ack_clock_sample_count_ignored: 0
+    pre_ack_positive_clock_sample_count_ignored: 0
+    failure_reason: null
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/activation.yaml
+      sha256: b1fa5ca5a5dcddcd54acac53646d708a560fbf7639f8e6a8a8fb7e3899cc28f6
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/evaluation.yaml
+      sha256: a37c054247f2353450930c676759156d1628e989956d1532f235953e031b5e34
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/trace.csv
+      sha256: 656f2e1303066ce88ab794559e7e141acd4bb6b93d5c78c2a54c25b69f807659
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/clearance.yaml
+      sha256: 717493796aa6dcfdb00e9ceecb219eb5976015f01102f570c60f1ab3b539a2b9
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/process.log
+      sha256: 90ad13f45ce9dc95d0a573ad8b64df46aca68eb09eb0ed06dcf6c0d0a1eef5ff
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/teardown_receipt.yaml
+      sha256: 6a82fc1e6742fefc91cbed1782600b6caae77596a05c246ddca3e67367fafe89
+  expected_ttc_status: OBSERVED_CONFLICT
+  observed_ttc_status: OBSERVED_CONFLICT
+  semantic_observation:
+    finite_ttc_sample_count: 32
+    non_none_overlay_count: 19
+  supervisor_config_sha256: d5e35cfe84082b229ae6e656c2d3aaa7a10c8c61b696184bda8dc90e47a762da
+- sequence: 4
+  identity:
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+    seed: 5162
+    attempt: 1
+  status: evidence_complete
+  seed_consumed: true
+  evidence_units_consumed: 1
+  attempt_limit: 1
+  resume_forbidden: true
+  journal_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals
+  journal: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_f89cae79f4a258fb07e3fb45b01494b19ec7234a183063f558ad5e88c4ea35bf.yaml
+  raw_evidence_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw
+  credential_safe_environment_audit:
+    policy_id: v2_04g_r6_i2_credential_safe_environment_v1
+    allowlist_mode: exact_key_allowlist
+    source_value_material_recorded: false
+    credential_value_copied: false
+    inherited_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    forced_key_names:
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    removed_credential_like_key_names: []
+    removed_non_allowlisted_key_names:
+    - ARCHDIR
+    - EUSDIR
+    - OLDPWD
+    - PWD
+    - PYTHONDONTWRITEBYTECODE
+    - ROSLISP_PACKAGE_DIRECTORIES
+    - ROS_MASTER_URI
+    - SHLVL
+    child_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    loopback_only_ros_master: true
+    ros_log_location_confined_to_attempt_root: true
+  consumption_boundary: base_roslaunch_spawn_requested
+  bootstrap_receipt:
+    protocol_id: v2_04g_r6_i2_positive_clock_bootstrap_v1
+    state: service_wait_released
+    terminal: true
+    positive_clock_required: true
+    strict_clock_progression_required: true
+    topic_existence_is_sufficient: false
+    zero_clock_is_sufficient: false
+    single_positive_clock_sample_is_sufficient: false
+    pre_unpause_positive_clock_is_sufficient: false
+    service_wait_allowed: true
+    timeout_s: 45.0
+    base_spawn_monotonic_s: 10056.146979085
+    deadline_monotonic_s: 10101.146979085
+    unpause_ack_monotonic_s: 10059.16369335
+    positive_clock:
+      sec: 0
+      nsec: 956000000
+    positive_clock_observed_monotonic_s: 10060.223129766
+    clock_progression_sample:
+      sec: 1
+      nsec: 992000000
+    clock_progression_observed_monotonic_s: 10061.257720104
+    post_ack_clock_sample_count: 2
+    post_ack_zero_clock_sample_count: 0
+    post_positive_equal_clock_sample_count: 0
+    pre_ack_clock_sample_count_ignored: 0
+    pre_ack_positive_clock_sample_count_ignored: 0
+    failure_reason: null
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/activation.yaml
+      sha256: f118f68da177ad1b7a47e0cdad3fc0f8982947c86202b78346fe332c1120211f
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/evaluation.yaml
+      sha256: f7e2daf5b917e88d1d0bc050b84b81cee9c430911fad07a37f1ff17cab9207eb
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/trace.csv
+      sha256: 0f9df9c030ebde4cc3be6ff02114c17e3859ad0708b8aa8b0146742356d569ab
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/clearance.yaml
+      sha256: f8b2ffff73ae178c32f468bcb1f1461514d6465d53f4af7f359f72444d56784a
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/process.log
+      sha256: 503cf5727a6b9f82ea4369f2f3bc071e35ccbb6da8c912a7ddce403d983dea00
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/teardown_receipt.yaml
+      sha256: aaee9627b137e6cd23e791571131cfa41070f371433a92027a8c77c467a72112
+  expected_ttc_status: OBSERVED_CONFLICT
+  observed_ttc_status: OBSERVED_CONFLICT
+  semantic_observation:
+    finite_ttc_sample_count: 28
+    non_none_overlay_count: 30
+  supervisor_config_sha256: a6941f6fd66e187c3642d9594502b5afbc3d9022f8b76ef598ac1969ac410da6
+- sequence: 5
+  identity:
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+    seed: 5163
+    attempt: 1
+  status: evidence_complete
+  seed_consumed: true
+  evidence_units_consumed: 1
+  attempt_limit: 1
+  resume_forbidden: true
+  journal_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals
+  journal: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_9c741ecb753191742d24c5b198f65c76ae982bb43c6936abb7a6e822f239815f.yaml
+  raw_evidence_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw
+  credential_safe_environment_audit:
+    policy_id: v2_04g_r6_i2_credential_safe_environment_v1
+    allowlist_mode: exact_key_allowlist
+    source_value_material_recorded: false
+    credential_value_copied: false
+    inherited_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    forced_key_names:
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    removed_credential_like_key_names: []
+    removed_non_allowlisted_key_names:
+    - ARCHDIR
+    - EUSDIR
+    - OLDPWD
+    - PWD
+    - PYTHONDONTWRITEBYTECODE
+    - ROSLISP_PACKAGE_DIRECTORIES
+    - ROS_MASTER_URI
+    - SHLVL
+    child_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    loopback_only_ros_master: true
+    ros_log_location_confined_to_attempt_root: true
+  consumption_boundary: base_roslaunch_spawn_requested
+  bootstrap_receipt:
+    protocol_id: v2_04g_r6_i2_positive_clock_bootstrap_v1
+    state: service_wait_released
+    terminal: true
+    positive_clock_required: true
+    strict_clock_progression_required: true
+    topic_existence_is_sufficient: false
+    zero_clock_is_sufficient: false
+    single_positive_clock_sample_is_sufficient: false
+    pre_unpause_positive_clock_is_sufficient: false
+    service_wait_allowed: true
+    timeout_s: 45.0
+    base_spawn_monotonic_s: 10092.067391186
+    deadline_monotonic_s: 10137.067391186
+    unpause_ack_monotonic_s: 10095.085388911
+    positive_clock:
+      sec: 0
+      nsec: 940000000
+    positive_clock_observed_monotonic_s: 10096.123270923
+    clock_progression_sample:
+      sec: 1
+      nsec: 962000000
+    clock_progression_observed_monotonic_s: 10097.15035957
+    post_ack_clock_sample_count: 2
+    post_ack_zero_clock_sample_count: 0
+    post_positive_equal_clock_sample_count: 0
+    pre_ack_clock_sample_count_ignored: 0
+    pre_ack_positive_clock_sample_count_ignored: 0
+    failure_reason: null
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/activation.yaml
+      sha256: 5c6de68f99ae40f60e7e3ec9e8feb74e98707a533be1d0b16be2d57f7fb9758a
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/evaluation.yaml
+      sha256: d877eebb36528611b56a4cb36721fa4b28f7168785babe1ade835590fecc641f
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/trace.csv
+      sha256: a3c50990b4f5ed73554256019209e63dbe76d89602c4da3679c6b091373a190f
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/clearance.yaml
+      sha256: f768b0441edd248d00b17806d0e1a388df18812daf5d639ad58f5a31b7187d70
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/process.log
+      sha256: 3211c2cf1d7faee43095163bb4dd70de80aa535d3e619d5b075e69b7aa3432be
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/teardown_receipt.yaml
+      sha256: 736977564fcd46f4be963ec315acf6020375ac1720839e242ca1a3d97f2949c7
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  observed_ttc_status: NO_CONFLICT_IN_HORIZON
+  semantic_observation:
+    finite_ttc_sample_count: 0
+    non_none_overlay_count: 18
+  supervisor_config_sha256: a6941f6fd66e187c3642d9594502b5afbc3d9022f8b76ef598ac1969ac410da6
+- sequence: 6
+  identity:
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+    seed: 5163
+    attempt: 1
+  status: evidence_complete
+  seed_consumed: true
+  evidence_units_consumed: 1
+  attempt_limit: 1
+  resume_forbidden: true
+  journal_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals
+  journal: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_d196b95de2a91df54dab443896d105cc0ea268b7de6adce124e085a88f37e4e8.yaml
+  raw_evidence_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw
+  credential_safe_environment_audit:
+    policy_id: v2_04g_r6_i2_credential_safe_environment_v1
+    allowlist_mode: exact_key_allowlist
+    source_value_material_recorded: false
+    credential_value_copied: false
+    inherited_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    forced_key_names:
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    removed_credential_like_key_names: []
+    removed_non_allowlisted_key_names:
+    - ARCHDIR
+    - EUSDIR
+    - OLDPWD
+    - PWD
+    - PYTHONDONTWRITEBYTECODE
+    - ROSLISP_PACKAGE_DIRECTORIES
+    - ROS_MASTER_URI
+    - SHLVL
+    child_key_names:
+    - CMAKE_PREFIX_PATH
+    - HOME
+    - LANG
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    loopback_only_ros_master: true
+    ros_log_location_confined_to_attempt_root: true
+  consumption_boundary: base_roslaunch_spawn_requested
+  bootstrap_receipt:
+    protocol_id: v2_04g_r6_i2_positive_clock_bootstrap_v1
+    state: service_wait_released
+    terminal: true
+    positive_clock_required: true
+    strict_clock_progression_required: true
+    topic_existence_is_sufficient: false
+    zero_clock_is_sufficient: false
+    single_positive_clock_sample_is_sufficient: false
+    pre_unpause_positive_clock_is_sufficient: false
+    service_wait_allowed: true
+    timeout_s: 45.0
+    base_spawn_monotonic_s: 10126.273574468
+    deadline_monotonic_s: 10171.273574468
+    unpause_ack_monotonic_s: 10129.292299771
+    positive_clock:
+      sec: 0
+      nsec: 930000000
+    positive_clock_observed_monotonic_s: 10130.320288419
+    clock_progression_sample:
+      sec: 1
+      nsec: 978000000
+    clock_progression_observed_monotonic_s: 10131.373183628
+    post_ack_clock_sample_count: 2
+    post_ack_zero_clock_sample_count: 0
+    post_positive_equal_clock_sample_count: 0
+    pre_ack_clock_sample_count_ignored: 0
+    pre_ack_positive_clock_sample_count_ignored: 0
+    failure_reason: null
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/activation.yaml
+      sha256: b5bbee6748ac31b02915e3703eda32f8cbfe3e78be1231256c282b0e805677ab
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/evaluation.yaml
+      sha256: 2e427f2c7db68a8f5768b3bb7e2227aca42fddb78619952d4fe894d6f0ee22da
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/trace.csv
+      sha256: 7230d594fbe028e2c1b13ee4e4206c73490fd1fa38c3b4c361d8bba3176a0588
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/clearance.yaml
+      sha256: 7bc20dcb1d901f86b4e67ea115504e620ae6590021b8163d70c3e8507c4e4d76
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/process.log
+      sha256: 242d5890b0a26534fa3c7f4c1f64dbb0d93b2bcf7a87af3f4de3d33214ccb426
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/teardown_receipt.yaml
+      sha256: cff816d2c384709a0dd25d3ea2bbccc2600af7201fd6154f0c587f36199c6825
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  observed_ttc_status: NO_CONFLICT_IN_HORIZON
+  semantic_observation:
+    finite_ttc_sample_count: 0
+    non_none_overlay_count: 0
+  supervisor_config_sha256: d5e35cfe84082b229ae6e656c2d3aaa7a10c8c61b696184bda8dc90e47a762da
+terminal_failure: null
+assessment_complete: false
+winner_ranked_or_frozen: false
+unattempted_budget_forfeited: 0
+resume_forbidden: true

@@ -1,0 +1,14 @@
+std_msgs/Header header
+string schema_version
+uint64 world_model_seq
+bool valid
+bool stale
+bool scan_valid
+bool tf_valid
+bool localization_valid
+bool costmap_valid
+bool tracker_valid
+float32 scan_age_s
+float32 tf_age_s
+float32 tracker_age_s
+string fault_reason

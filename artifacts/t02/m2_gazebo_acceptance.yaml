@@ -1,0 +1,157 @@
+schema_version: 1
+task: T02
+title: Autolabor M2 Gazebo interface acceptance
+date: 2026-07-12
+status: passed_quantitative_simulation_candidate
+safety_scope:
+  simulation_only: true
+  real_driver_started: false
+  serial_or_can_accessed: false
+  real_vehicle_motion: false
+  teb_dynamic_reconfigure_write_sent: false
+
+implementation:
+  package: src/simulation/m2_gazebo
+  controller: deterministic_kinematic_ackermann_bicycle
+  calibrated: false
+  candidate_source: src/simulation/m2_gazebo/config/simulation_candidates.yaml
+  arena_third_party_model_modified: false
+  tf_policy: odom_to_base_link
+  fake_gps_odom: false
+
+source_confirmed_driver_contract:
+  cmd_vel:
+    type: geometry_msgs/Twist
+    linear_x: target_linear_velocity_mps
+    angular_z: target_yaw_rate_radps
+  ackerman_vel:
+    type: geometry_msgs/Twist
+    linear_x: target_linear_velocity_mps
+    angular_z: direct_center_steering_angle_rad
+  chassis_parameter_service:
+    type: autolabor_canbus_driver/ChassisParameterServer
+    request_fields: []
+    behavior: query_only
+  discrepancy_notes:
+    - The checked-in real driver uses abs(linear.x) when converting yaw rate to steering.
+    - The simulation uses signed linear velocity to preserve requested body yaw-rate sign in reverse.
+    - The prose supplied for the service says query/set, but the checked-in srv and callback only query.
+
+confirmed_ros_interfaces:
+  topics:
+    /scan: sensor_msgs/LaserScan
+    /odom: nav_msgs/Odometry
+    /cmd_vel: geometry_msgs/Twist
+    /joint_states: sensor_msgs/JointState
+    /move_base/status: actionlib_msgs/GoalStatusArray
+    /move_base/TebLocalPlannerROS/global_plan: nav_msgs/Path
+    /move_base/TebLocalPlannerROS/local_plan: nav_msgs/Path
+    /move_base/local_costmap/costmap: nav_msgs/OccupancyGrid
+  services:
+    /m2_driver/chassis_parameter: autolabor_canbus_driver/ChassisParameterServer
+    /move_base/TebLocalPlannerROS/set_parameters: dynamic_reconfigure/Reconfigure
+  transforms:
+    - odom -> base_link
+    - base_link -> laser_link
+    - base_link -> imu_link
+
+acceptance:
+  full_workspace_build:
+    command: catkin_make -j4 -l4
+    result: passed_100_percent
+    package_count: 71
+  unit_and_static_tests:
+    command: catkin_make run_tests_m2_gazebo -j4 -l4
+    result: passed
+    unique_tests: 9
+    coverage:
+      - low_and_zero_speed
+      - steering_saturation
+      - reverse_yaw_sign
+      - inner_outer_ackermann_geometry
+      - rear_electronic_differential
+      - required_model_links_and_joints
+      - gazebo_plugins
+      - uncalibrated_candidate_markers
+      - turning_radius_derivation
+  headless_gazebo_regression:
+    command: roslaunch m2_gazebo m2_regression.launch run_test:=true gui:=false seed:=42
+    result: passed
+    machine_report: artifacts/t02/m2_chassis_regression.yaml
+    cases_passed: 11
+    cases_failed: 0
+    checks:
+      - spawn_and_reset
+      - static_stability
+      - straight_5m
+      - straight_10m
+      - low_speed_reverse
+      - left_fixed_radius_circle
+      - right_fixed_radius_circle
+      - stop_response
+      - scan_fixed_obstacle
+      - tf_integrity
+      - seed_reset_repeatability
+    selected_metrics:
+      straight_5m_error_m: 0.04
+      straight_10m_error_m: 0.04
+      left_circle_closure_error_m: 0.01922
+      right_circle_closure_error_m: 0.01922
+      stop_response_time_s: 0.012
+      kinematic_braking_distance_m: 0.0
+      scan_absolute_error_m: 0.00267
+      tf_latest_age_s: 0.014
+      reset_pose_max_span: 0.0
+  fixed_teb_no_goal_start:
+    command: roslaunch m2_gazebo m2_fixed_teb.launch gui:=false
+    result: passed
+    facts:
+      - TebLocalPlannerROS loaded with polygon footprint.
+      - Global and local costmaps subscribed to /scan.
+      - move_base reported odom received.
+      - No navigation goal was published by the launch file.
+  fixed_teb_navigation_regression:
+    command: roslaunch m2_gazebo m2_fixed_teb_regression.launch gui:=false seed:=42
+    result: passed
+    machine_report: artifacts/t02/m2_fixed_teb_regression.yaml
+    rl_enabled: false
+    cases_passed: 5
+    cases_failed: 0
+    action_results:
+      straight_goal: SUCCEEDED
+      left_turn_goal: SUCCEEDED
+      right_turn_goal: SUCCEEDED
+      single_obstacle_detour: SUCCEEDED
+      narrow_corridor_1_8m: SUCCEEDED
+    stability:
+      maximum_cmd_vel_gap_s: 0.116
+      planner_error_count: 0
+      control_deadline_miss_count: 0
+      global_plan_received_all_cases: true
+      local_plan_received_all_cases: true
+    clearance:
+      single_obstacle_min_scan_range_m: 0.6775
+      narrow_corridor_min_scan_range_m: 0.8495
+
+confirmed_facts:
+  - A standalone M2 Gazebo package now exists and does not modify Arena robot assets.
+  - The initial model provides four wheels, two steering joints, collision/inertia, laser, IMU, joint states, odometry, and TF.
+  - cmd_angle_instead_rotvel is false in the fixed TEB configuration.
+  - The deterministic fixed TEB baseline disables homotopy-class expansion to keep dense-wall control deadlines stable; it still follows Navfn global plans around the single obstacle.
+  - Candidate wheelbase, footprint, turning radius, wheel radius, sensor poses, mass, and limits are explicitly calibrated=false.
+
+inferences:
+  - The kinematic model is suitable for interface development and deterministic T03/T04 software tests.
+  - It is not yet sufficient evidence for tire-force, suspension, steering-lag, braking-distance, or sim-to-real claims.
+  - The zero simulated braking distance is a property of the kinematic controller, not a physical M2 result.
+
+tbd_real_vehicle_calibration:
+  - wheel_radius_and_effective_rolling_radius
+  - laser_and_imu_mount_transforms
+  - wheelbase_track_and_footprint_measurement
+  - minimum_turning_radius_definition_and_steering_limits
+  - forward_and_reverse_cmd_vel_sign_behavior
+  - velocity_and_steering_saturation
+  - steering_response_latency_and_rate_limit
+  - braking_deceleration_and_command_timeout
+  - chassis_parameter_robot_length_field_semantics

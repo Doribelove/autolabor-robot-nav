@@ -1,0 +1,111 @@
+schema_version: '2.0'
+stage: V2-04B
+assessment_id: fam_teb_v2_04b_final_freeze_assessment_1
+status: freeze_blocked
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+evidence:
+  planned_navigation_episode_count: 90
+  valid_evidence_episode_count: 90
+  successful_episode_count: 87
+  hard_gate_pass_episode_count: 87
+  interface_failure_count: 0
+  dynamic_episode_count: 9
+  dynamic_ttc_observed_episode_count: 0
+  progress_sha256: 6a7a0e2dff2b6b8366cc2c459fd4635aaa0e670f95b0623e64eed2312770c8a9
+freeze_blockers:
+- balanced_cross_family_aggregation_not_preregistered
+- dynamic_primary_ttc_objective_unobserved
+- bounded_refinement_not_preregistered
+provisional_single_family_screen_winners:
+  anchor_balanced:
+    rankable: false
+    reason: multi_family_aggregation_not_preregistered
+  anchor_cruise:
+    rankable: true
+    provisional_only: true
+    candidate_id: anchor_cruise-c08-weight_optimaltime_high
+    profile_sha256: 49cade942f8db1559e343ac8bbe7c574eaae917fb5db958569ffae29e12e36a3
+    objective_metrics:
+    - navigation_time_s
+    - lateral_rms_m
+    - heading_oscillation_rad
+    - unnecessary_deceleration_count
+    objective_vector:
+    - 31.6
+    - 0.012021701512640011
+    - 0.0
+    - 1
+  anchor_static_dense:
+    rankable: true
+    provisional_only: true
+    candidate_id: anchor_static_dense-c01-min_obstacle_dist_low
+    profile_sha256: 3f1da59ea83f1bf04dd880e242dd4002d128d7073c8ca19b5299ff0c9889f30f
+    objective_metrics:
+    - success
+    - topology_switch_count
+    - recovery_count
+    - navigation_time_s
+    objective_vector:
+    - true
+    - 0
+    - 0
+    - 23.4
+  anchor_corridor:
+    rankable: true
+    provisional_only: true
+    candidate_id: anchor_corridor-c02-max_vel_x_high
+    profile_sha256: 78edfd6c9032ca718765260269809d55d2f387b9cb9a92b719f5524136db5757
+    objective_metrics:
+    - success
+    - lateral_rms_m
+    - heading_oscillation_rad
+    - navigation_time_s
+    objective_vector:
+    - true
+    - 0.08932566259076492
+    - 1.5681264312688723
+    - 19.2
+  anchor_maneuver_forward:
+    rankable: true
+    provisional_only: true
+    candidate_id: anchor_maneuver_forward-c05-weight_obstacle_low
+    profile_sha256: 010750be104e5b9372728c762c017cb5ee6d19c8dfa119a8531bb17c1ce7e613
+    objective_metrics:
+    - success
+    - gear_switch_while_moving_count
+    - navigation_time_s
+    - path_length_m
+    objective_vector:
+    - true
+    - 1
+    - 30.299999999999997
+    - 3.9654476277905677
+  anchor_maneuver_reverse:
+    rankable: true
+    provisional_only: true
+    candidate_id: anchor_maneuver_reverse-c05-weight_obstacle_low
+    profile_sha256: a9f174c0ba29198951f35d4fe0eed1b67aabe113fd30572ed9514ad7cd7b0d00
+    objective_metrics:
+    - success
+    - gear_switch_while_moving_count
+    - navigation_time_s
+    - path_length_m
+    objective_vector:
+    - true
+    - 1
+    - 29.6
+    - 4.0203845553817
+decision:
+  enter_anchor_freeze: false
+  anchor_bank_mutation_allowed: false
+  required_next_stage: preregister_v2_04c_refinement_and_aggregation
+claims:
+  calibration_screen_complete: true
+  anchor_values_frozen: false
+  performance_improvement_observed: false
+  sac_training_started: false
+  real_vehicle_validated: false

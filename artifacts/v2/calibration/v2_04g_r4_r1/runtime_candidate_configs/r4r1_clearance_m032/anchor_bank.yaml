@@ -1,0 +1,413 @@
+schema_version: '2.0'
+architecture_generation: v2
+bank_id: fam_teb_v2_04g_r4_r1_r4r1_clearance_m032_anchor_candidate
+status: uncalibrated_simulation_candidate
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+parameter_write_enabled: false
+real_vehicle_use_forbidden: true
+source_provenance:
+  baseline: v2_04b_screen_plus_v2_04c_independent_refinement
+  mode_deltas: v2_04g_r4_r1_single_factor_maneuver_clearance
+  formal_test_scenes_used: false
+vehicle:
+  minimum_turning_radius_m: 1.2
+  minimum_inflation_gap_m: 0.2
+  minimum_dynamic_inflation_gap_m: 0.2
+parameters:
+- name: max_vel_x
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.1
+  - 1.2
+  max_rate_per_s: 0.5
+  residual_fraction: 0.2
+- name: max_vel_theta
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.05
+  - 1.0
+  max_rate_per_s: 0.5
+  residual_fraction: 0.2
+- name: acc_lim_x
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.2
+  - 0.8
+  max_rate_per_s: 0.5
+  residual_fraction: 0.2
+- name: acc_lim_theta
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.2
+  - 0.8
+  max_rate_per_s: 0.5
+  residual_fraction: 0.2
+- name: min_obstacle_dist
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.25
+  - 0.6
+  max_rate_per_s: 0.15
+  residual_fraction: 0.15
+- name: inflation_dist
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.5
+  - 1.2
+  max_rate_per_s: 0.2
+  residual_fraction: 0.15
+- name: weight_obstacle
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 30.0
+  - 180.0
+  max_rate_per_s: 30.0
+  residual_fraction: 0.3
+- name: weight_viapoint
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.5
+  - 8.0
+  max_rate_per_s: 2.0
+  residual_fraction: 0.3
+- name: weight_optimaltime
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.3
+  - 2.0
+  max_rate_per_s: 0.5
+  residual_fraction: 0.25
+- name: dynamic_obstacle_inflation_dist
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.5
+  - 1.4
+  max_rate_per_s: 0.25
+  residual_fraction: 0.15
+- name: weight_dynamic_obstacle
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 20.0
+  - 200.0
+  max_rate_per_s: 40.0
+  residual_fraction: 0.3
+- name: weight_dynamic_obstacle_inflation
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.1
+  - 4.0
+  max_rate_per_s: 1.0
+  residual_fraction: 0.3
+- name: weight_velocity_obstacle_ratio
+  type: double
+  lifecycle: fast_continuous
+  bounds:
+  - 0.1
+  - 40.0
+  max_rate_per_s: 10.0
+  residual_fraction: 0.3
+- name: max_vel_x_backwards
+  type: double
+  lifecycle: slow_mode_profile
+  bounds:
+  - 0.1
+  - 0.6
+  max_rate_per_s: 0.25
+  residual_fraction: 0.0
+- name: max_global_plan_lookahead_dist
+  type: double
+  lifecycle: slow_mode_profile
+  bounds:
+  - 3.0
+  - 8.0
+  max_rate_per_s: 2.0
+  residual_fraction: 0.0
+- name: global_plan_viapoint_sep
+  type: double
+  lifecycle: slow_mode_profile
+  bounds:
+  - 0.1
+  - 1.0
+  max_rate_per_s: 0.4
+  residual_fraction: 0.0
+- name: include_dynamic_obstacles
+  type: bool
+  lifecycle: slow_mode_profile
+  bounds: null
+  max_rate_per_s: null
+  residual_fraction: 0.0
+- name: max_number_classes
+  type: int
+  lifecycle: slow_mode_profile
+  bounds:
+  - 1
+  - 4
+  max_rate_per_s: null
+  residual_fraction: 0.0
+- name: selection_cost_hysteresis
+  type: double
+  lifecycle: slow_mode_profile
+  bounds:
+  - 0.75
+  - 1.0
+  max_rate_per_s: 0.2
+  residual_fraction: 0.0
+- name: switching_blocking_period
+  type: double
+  lifecycle: slow_mode_profile
+  bounds:
+  - 0.0
+  - 3.0
+  max_rate_per_s: 1.0
+  residual_fraction: 0.0
+mode_anchor_map:
+  BALANCED: anchor_balanced
+  CRUISE: anchor_cruise
+  STATIC_DENSE: anchor_static_dense
+  CORRIDOR: anchor_corridor
+  MANEUVER: anchor_maneuver_forward
+anchors:
+  anchor_balanced:
+    geometry_mode: BALANCED
+    maneuver_direction: FORWARD
+    profile_id: profile_balanced_v2_04c_frozen
+    values:
+      max_vel_x: 0.9
+      max_vel_theta: 0.75
+      acc_lim_x: 0.6
+      acc_lim_theta: 0.6
+      min_obstacle_dist: 0.375
+      inflation_dist: 0.725
+      weight_obstacle: 75.0
+      weight_viapoint: 2.5
+      weight_optimaltime: 0.75
+      dynamic_obstacle_inflation_dist: 0.75
+      weight_dynamic_obstacle: 60.0
+      weight_dynamic_obstacle_inflation: 0.3
+      weight_velocity_obstacle_ratio: 5.0
+      max_vel_x_backwards: 0.3
+      max_global_plan_lookahead_dist: 6.0
+      global_plan_viapoint_sep: 0.35
+      include_dynamic_obstacles: true
+      max_number_classes: 2
+      selection_cost_hysteresis: 0.95
+      switching_blocking_period: 0.5
+  anchor_cruise:
+    geometry_mode: CRUISE
+    maneuver_direction: FORWARD
+    profile_id: profile_cruise_v2_04c_frozen
+    values:
+      max_vel_x: 1.2
+      max_vel_theta: 0.65
+      acc_lim_x: 0.8
+      acc_lim_theta: 0.65
+      min_obstacle_dist: 0.28
+      inflation_dist: 0.55
+      weight_obstacle: 50.0
+      weight_viapoint: 4.0
+      weight_optimaltime: 1.3699999999999999
+      dynamic_obstacle_inflation_dist: 0.6
+      weight_dynamic_obstacle: 50.0
+      weight_dynamic_obstacle_inflation: 0.25
+      weight_velocity_obstacle_ratio: 3.0
+      max_vel_x_backwards: 0.2
+      max_global_plan_lookahead_dist: 8.0
+      global_plan_viapoint_sep: 0.25
+      include_dynamic_obstacles: true
+      max_number_classes: 1
+      selection_cost_hysteresis: 0.9
+      switching_blocking_period: 1.0
+  anchor_static_dense:
+    geometry_mode: STATIC_DENSE
+    maneuver_direction: FORWARD
+    profile_id: profile_static_dense_v2_04c_frozen
+    values:
+      max_vel_x: 1.2
+      max_vel_theta: 1.0
+      acc_lim_x: 0.8
+      acc_lim_theta: 0.8
+      min_obstacle_dist: 0.27
+      inflation_dist: 0.52
+      weight_obstacle: 52.0
+      weight_viapoint: 2.0
+      weight_optimaltime: 1.6
+      dynamic_obstacle_inflation_dist: 0.9
+      weight_dynamic_obstacle: 75.0
+      weight_dynamic_obstacle_inflation: 0.5
+      weight_velocity_obstacle_ratio: 8.0
+      max_vel_x_backwards: 0.6
+      max_global_plan_lookahead_dist: 8.0
+      global_plan_viapoint_sep: 0.25
+      include_dynamic_obstacles: true
+      max_number_classes: 2
+      selection_cost_hysteresis: 0.9
+      switching_blocking_period: 0.5
+  anchor_corridor:
+    geometry_mode: CORRIDOR
+    maneuver_direction: FORWARD
+    profile_id: profile_corridor_v2_04c_frozen
+    values:
+      max_vel_x: 1.2
+      max_vel_theta: 0.8
+      acc_lim_x: 0.8
+      acc_lim_theta: 0.8
+      min_obstacle_dist: 0.26
+      inflation_dist: 0.5
+      weight_obstacle: 50.0
+      weight_viapoint: 4.0
+      weight_optimaltime: 1.55
+      dynamic_obstacle_inflation_dist: 0.65
+      weight_dynamic_obstacle: 65.0
+      weight_dynamic_obstacle_inflation: 0.4
+      weight_velocity_obstacle_ratio: 12.0
+      max_vel_x_backwards: 0.5
+      max_global_plan_lookahead_dist: 7.0
+      global_plan_viapoint_sep: 0.15
+      include_dynamic_obstacles: true
+      max_number_classes: 1
+      selection_cost_hysteresis: 0.9
+      switching_blocking_period: 0.25
+  anchor_maneuver_forward:
+    geometry_mode: MANEUVER
+    maneuver_direction: FORWARD
+    profile_id: profile_maneuver_forward_v2_04c_frozen
+    values:
+      max_vel_x: 1.2
+      max_vel_theta: 1.0
+      acc_lim_x: 0.8
+      acc_lim_theta: 0.8
+      min_obstacle_dist: 0.32
+      inflation_dist: 0.52
+      weight_obstacle: 55.0
+      weight_viapoint: 2.0
+      weight_optimaltime: 1.5
+      dynamic_obstacle_inflation_dist: 0.8
+      weight_dynamic_obstacle: 80.0
+      weight_dynamic_obstacle_inflation: 0.5
+      weight_velocity_obstacle_ratio: 10.0
+      max_vel_x_backwards: 0.6
+      max_global_plan_lookahead_dist: 5.0
+      global_plan_viapoint_sep: 0.2
+      include_dynamic_obstacles: true
+      max_number_classes: 1
+      selection_cost_hysteresis: 0.9
+      switching_blocking_period: 0.25
+  anchor_maneuver_reverse:
+    geometry_mode: MANEUVER
+    maneuver_direction: REVERSE
+    profile_id: profile_maneuver_reverse_v2_04c_frozen
+    values:
+      max_vel_x: 1.2
+      max_vel_theta: 1.0
+      acc_lim_x: 0.8
+      acc_lim_theta: 0.8
+      min_obstacle_dist: 0.32
+      inflation_dist: 0.52
+      weight_obstacle: 55.0
+      weight_viapoint: 2.5
+      weight_optimaltime: 1.6
+      dynamic_obstacle_inflation_dist: 0.8
+      weight_dynamic_obstacle: 80.0
+      weight_dynamic_obstacle_inflation: 0.5
+      weight_velocity_obstacle_ratio: 12.0
+      max_vel_x_backwards: 0.6
+      max_global_plan_lookahead_dist: 5.0
+      global_plan_viapoint_sep: 0.2
+      include_dynamic_obstacles: true
+      max_number_classes: 1
+      selection_cost_hysteresis: 0.9
+      switching_blocking_period: 0.25
+overlays:
+  NONE:
+    profile_suffix: none
+    scale: {}
+    offset: {}
+  CROSSING:
+    profile_suffix: crossing
+    scale:
+      max_vel_x: 0.75
+      max_vel_theta: 0.75
+      acc_lim_x: 0.85
+      acc_lim_theta: 0.92
+      weight_dynamic_obstacle: 1.45
+      weight_dynamic_obstacle_inflation: 1.35
+      weight_velocity_obstacle_ratio: 1.35
+    offset:
+      min_obstacle_dist: 0.08
+      inflation_dist: 0.12
+      dynamic_obstacle_inflation_dist: 0.2
+  HEAD_ON:
+    profile_suffix: head_on
+    scale:
+      max_vel_x: 0.4
+      max_vel_theta: 0.4
+      acc_lim_x: 0.7
+      acc_lim_theta: 0.85
+      weight_dynamic_obstacle: 1.8
+      weight_dynamic_obstacle_inflation: 1.7
+      weight_velocity_obstacle_ratio: 1.8
+    offset:
+      min_obstacle_dist: 0.1
+      inflation_dist: 0.15
+      dynamic_obstacle_inflation_dist: 0.25
+  FOLLOW:
+    profile_suffix: follow
+    scale:
+      max_vel_x: 0.7
+      max_vel_theta: 0.7
+      acc_lim_x: 0.8
+      weight_dynamic_obstacle: 1.3
+      weight_velocity_obstacle_ratio: 1.4
+    offset:
+      min_obstacle_dist: 0.05
+      inflation_dist: 0.08
+      dynamic_obstacle_inflation_dist: 0.12
+  OVERTAKE_OR_YIELD:
+    profile_suffix: overtake_or_yield
+    scale:
+      max_vel_x: 0.72
+      max_vel_theta: 0.72
+      acc_lim_x: 0.82
+      acc_lim_theta: 0.94
+      weight_dynamic_obstacle: 1.35
+      weight_dynamic_obstacle_inflation: 1.25
+      weight_velocity_obstacle_ratio: 1.4
+    offset:
+      min_obstacle_dist: 0.08
+      inflation_dist: 0.12
+      dynamic_obstacle_inflation_dist: 0.18
+transaction:
+  decision_frequency_hz: 5.0
+  equality_tolerance: 1.0e-09
+  continuous_convergence_tolerance: 1.0e-06
+  transition_origin: previous_executed
+  discrete_commit: after_continuous_convergence
+  backend: deterministic_shadow
+  ack_delay_s: 0.002
+  readback_delay_s: 0.002
+  activation_delay_s: 0.001
+  dynamic_reconfigure_enabled: false
+  restore_previous_on_failure: true
+policy_boundary:
+  policy_source: rule_supervisor_zero_residual
+  learned_policy_loaded: false
+  runtime_scene_labels_allowed: false
+  runtime_manifest_access: false
+  forbidden_runtime_topics:
+  - /gazebo/model_states
+  - /pedsim_simulator/simulated_agents
+  published_velocity_commands: false

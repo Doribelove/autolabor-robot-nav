@@ -1,0 +1,521 @@
+schema_version: '2.0'
+architecture_generation: v2
+manifest_id: fam_teb_v2_04g_r6_i5_bounded_simulation_scenes_1
+status: component_candidate_frozen
+simulation_only: true
+formal_experiment: false
+runtime_ready: false
+real_vehicle_use_forbidden: true
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+simulation_contract:
+  path: config/thesis_experiments/v2/simulation_contract.yaml
+  sha256: 47139897bc6ea4e9da7392e2d2df7dd441b68b218745f443f2fc112199e6b1bb
+  profile: v2_02_dynamics
+robot:
+  model: autolabor_m2
+  candidate_config: src/simulation/m2_gazebo/config/simulation_candidates.yaml
+  candidate_sha256: 63edc80a38b4d35c5491660ad4d6882d2ddaf95b4ff66fda820ba20eadbfd946
+  footprint:
+    length_m: 1.04
+    width_m: 0.7
+    height_m: 0.43
+  footprint_sha256: 803741045997615734223bf4d23493b45da79490357c31434b1d8b4b0d135ab2
+policy_boundary:
+  runtime_manifest_access: false
+  runtime_label_topics: []
+  evaluator_only_fields:
+  - family
+  - split
+  - evaluator_only.feasible
+  - evaluator_only.reason
+scenes:
+- scene_id: v2-04g-r6-i5-dynamic-conflict-single-s5161
+  family: DYNAMIC
+  split: calibration
+  seed: 5161
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 18.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 80.0
+  layout:
+    variant: v2_04g_r6_i1_single_circle_contact
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 18.0
+      - 0.0
+  static_obstacles: []
+  dynamic_agents:
+  - agent_id: crossing-agent
+    shape: box
+    size_m:
+    - 0.55
+    - 0.55
+    - 1.7
+    loop: false
+    trajectory:
+    - time_s: 10.9
+      x_m: 8.0
+      y_m: -3.5
+      yaw_rad: 1.5707963267948966
+    - time_s: 18.9
+      x_m: 8.0
+      y_m: 3.5
+      yaw_rad: 1.5707963267948966
+  randomization:
+    position_jitter_m: 0.0
+    yaw_jitter_rad: 0.0
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: preregistered_single_track_circle_contact
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+- scene_id: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+  family: DYNAMIC
+  split: calibration
+  seed: 5162
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 18.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 80.0
+  layout:
+    variant: v2_04g_r6_i1_multi_circle_contact
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 18.0
+      - 0.0
+  static_obstacles: []
+  dynamic_agents:
+  - agent_id: crossing-agent-a
+    shape: box
+    size_m:
+    - 0.55
+    - 0.55
+    - 1.7
+    loop: false
+    trajectory:
+    - time_s: 10.5
+      x_m: 7.5
+      y_m: -3.5
+      yaw_rad: 1.5707963267948966
+    - time_s: 18.5
+      x_m: 7.5
+      y_m: 3.5
+      yaw_rad: 1.5707963267948966
+  - agent_id: crossing-agent-b
+    shape: box
+    size_m:
+    - 0.55
+    - 0.55
+    - 1.7
+    loop: false
+    trajectory:
+    - time_s: 12.3
+      x_m: 9.5
+      y_m: 3.5
+      yaw_rad: -1.5707963267948966
+    - time_s: 20.3
+      x_m: 9.5
+      y_m: -3.5
+      yaw_rad: -1.5707963267948966
+  randomization:
+    position_jitter_m: 0.0
+    yaw_jitter_rad: 0.0
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: preregistered_multi_track_circle_contact
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+- scene_id: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+  family: DYNAMIC
+  split: calibration
+  seed: 5163
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 18.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 80.0
+  layout:
+    variant: v2_04g_r6_i1_time_separated_crossing
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 18.0
+      - 0.0
+  static_obstacles: []
+  dynamic_agents:
+  - agent_id: crossing-agent
+    shape: box
+    size_m:
+    - 0.55
+    - 0.55
+    - 1.7
+    loop: false
+    trajectory:
+    - time_s: 7.0
+      x_m: 8.0
+      y_m: -3.5
+      yaw_rad: 1.5707963267948966
+    - time_s: 15.0
+      x_m: 8.0
+      y_m: 3.5
+      yaw_rad: 1.5707963267948966
+  randomization:
+    position_jitter_m: 0.0
+    yaw_jitter_rad: 0.0
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: preregistered_time_separated_centerline_crossing
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+- scene_id: v2-04g-r6-i5-compile-support-cruise-s5164
+  family: CRUISE
+  split: calibration
+  seed: 5164
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 35.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 55.0
+  layout:
+    variant: v2_04g_r6_i1_compile_support_cruise
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 35.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: cruise-left
+    shape: box
+    pose:
+      x_m: 12.0
+      y_m: 3.5
+      yaw_rad: 0.0
+    size_m:
+    - 0.8
+    - 0.8
+    - 1.2
+  - obstacle_id: cruise-right
+    shape: box
+    pose:
+      x_m: 23.0
+      y_m: -3.5
+      yaw_rad: 0.0
+    size_m:
+    - 0.8
+    - 0.8
+    - 1.2
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.06
+    yaw_jitter_rad: 0.01
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: compile_support_only_not_evidence
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+- scene_id: v2-04g-r6-i5-compile-support-static-s5165
+  family: STATIC_DENSE
+  split: calibration
+  seed: 5165
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 13.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 50.0
+  layout:
+    variant: v2_04g_r6_i1_compile_support_static
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 13.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: pillar-1
+    shape: box
+    pose:
+      x_m: 3.2
+      y_m: -0.75
+      yaw_rad: 0.0
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-2
+    shape: box
+    pose:
+      x_m: 5.8
+      y_m: 0.72
+      yaw_rad: 0.0
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-3
+    shape: box
+    pose:
+      x_m: 8.3
+      y_m: -0.82
+      yaw_rad: 0.0
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-4
+    shape: box
+    pose:
+      x_m: 10.7
+      y_m: 0.68
+      yaw_rad: 0.0
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.1
+    yaw_jitter_rad: 0.03
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.25
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: compile_support_only_not_evidence
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+- scene_id: v2-04g-r6-i5-compile-support-corridor-s5166
+  family: CORRIDOR
+  split: calibration
+  seed: 5166
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.15
+    yaw_rad: 0.0
+  goal:
+    x_m: 10.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 45.0
+  layout:
+    variant: v2_04g_r6_i1_compile_support_corridor
+    reference_centerline:
+    - - 0.0
+      - 0.15
+    - - 2.5
+      - 0.0
+    - - 10.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: corridor-left
+    shape: box
+    pose:
+      x_m: 5.0
+      y_m: 1.1
+      yaw_rad: 0.0
+    size_m:
+    - 10.0
+    - 0.2
+    - 1.2
+  - obstacle_id: corridor-right
+    shape: box
+    pose:
+      x_m: 5.0
+      y_m: -1.1
+      yaw_rad: 0.0
+    size_m:
+    - 10.0
+    - 0.2
+    - 1.2
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.015
+    yaw_jitter_rad: 0.004
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.25
+    yaw_tolerance_rad: 0.15
+    stopped_speed_max_mps: 0.04
+  evaluator_only:
+    feasible: true
+    reason: compile_support_only_not_evidence
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+- scene_id: v2-04g-r6-i5-compile-support-maneuver-s5167
+  family: MANEUVER
+  split: calibration
+  seed: 5167
+  world_template: generated_v2_sdf
+  start:
+    x_m: 4.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 0.5
+    y_m: 0.0
+    yaw_rad: 3.141592653589793
+  timeout_s: 60.0
+  layout:
+    variant: v2_04g_r6_i1_compile_support_maneuver
+    reference_centerline:
+    - - 4.0
+      - 0.0
+    - - 2.5
+      - 0.0
+    - - 0.5
+      - 0.0
+  static_obstacles:
+  - obstacle_id: bay-left
+    shape: box
+    pose:
+      x_m: 3.0
+      y_m: 1.5
+      yaw_rad: 0.0
+    size_m:
+    - 5.0
+    - 0.2
+    - 1.2
+  - obstacle_id: bay-right
+    shape: box
+    pose:
+      x_m: 3.0
+      y_m: -1.5
+      yaw_rad: 0.0
+    size_m:
+    - 5.0
+    - 0.2
+    - 1.2
+  - obstacle_id: bay-back
+    shape: box
+    pose:
+      x_m: 5.5
+      y_m: 0.0
+      yaw_rad: 0.0
+    size_m:
+    - 0.2
+    - 3.2
+    - 1.2
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.025
+    yaw_jitter_rad: 0.005
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.25
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.04
+  evaluator_only:
+    feasible: true
+    reason: compile_support_only_not_evidence
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only

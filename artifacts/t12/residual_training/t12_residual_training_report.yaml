@@ -1,0 +1,46 @@
+schema_version: '1.0'
+task: T12
+study: residual_sac_2seed_small_budget
+formal_result: false
+runs:
+  101:
+    training_budget_steps: 2000
+    validation_mean_returns:
+    - 24.42351432641347
+    - 24.183775802453358
+    validation_return_change: -0.23973852396011353
+    selected_timesteps: 1000
+    test_episode_count: 7
+    test_success_rate: 1.0
+    goal: 7
+    collision: 0
+    emergency_stop: 0
+    planner_failure: 0
+    interface_fault: 0
+    process_crash_count: 0
+    dynamic_reconfigure_failure_count: 0
+  102:
+    training_budget_steps: 2000
+    validation_mean_returns:
+    - 23.59639863173167
+    - 23.42005463441213
+    validation_return_change: -0.17634399731954176
+    selected_timesteps: 1000
+    test_episode_count: 7
+    test_success_rate: 1.0
+    goal: 7
+    collision: 0
+    emergency_stop: 0
+    planner_failure: 0
+    interface_fault: 0
+    process_crash_count: 0
+    dynamic_reconfigure_failure_count: 0
+gates:
+  two_seed_complete: true
+  zero_collision: true
+  zero_interface_fault: true
+  zero_process_crash: true
+  zero_dynamic_reconfigure_failure: true
+  both_have_finite_validation: true
+passed: true
+expansion_recommendation: pending_learning_trend_review

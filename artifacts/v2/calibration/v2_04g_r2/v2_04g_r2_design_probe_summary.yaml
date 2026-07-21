@@ -1,0 +1,83 @@
+schema_version: "2.0"
+stage: V2-04G-R2
+status: design_complete_before_preregistration
+simulation_only: true
+runtime_ready: false
+training_used: false
+real_vehicle_used: false
+purpose: >-
+  Use already-consumed V2-04G-R1 calibration scenes only to diagnose and select
+  R2 mechanism factors before opening fresh R2 calibration seeds.
+evidence_boundary:
+  source_scene_ids:
+    - v2-04g-r1-static-s4928
+    - v2-04g-r1-corridor-s4931
+    - v2-04g-r1-maneuver-s4933
+  source_seeds: [4928, 4931, 4933]
+  admissible_for_r2_candidate_design: true
+  admissible_for_r2_ranking: false
+  admissible_for_future_validation: false
+  r2_navigation_seeds_consumed: false
+  reserved_held_out_seeds_consumed: false
+diagnosis:
+  maneuver_reverse_root_cause: >-
+    The R1 minimum heading-error threshold was 1.90 rad, while the observed
+    Maneuver-mode absolute heading error was at most 0.846 rad; rear coverage
+    and rear clearance were otherwise valid.
+  static_time_root_cause: repeated_stops_and_parameter_callback_disturbance
+  one_hz_result: rejected_as_global_fix
+  one_hz_reason: >-
+    It increased balanced Static time to 28.9 s and did not provide a stable
+    cross-candidate improvement.
+  retained_factors:
+    - heading-independent reverse selection still bounded by rear/front clearance
+    - higher target-family velocity and acceleration envelopes
+    - idempotent coalescing of already-active typed TEB transactions
+  frozen_factors:
+    - R1 bounded sequence/timestamp cache join source and limits
+    - four-stage commanded/feasible/safe/executed action semantics
+    - rule supervisor has no runtime scene labels or manifest access
+fixed_reference_same_scene:
+  STATIC_DENSE: {navigation_time_s: 19.9}
+  CORRIDOR: {navigation_time_s: 10.6}
+  MANEUVER: {navigation_time_s: 24.4}
+selected_design_probe:
+  root: artifacts/v2/calibration/v2_04g_r2/design_pilot_coalesced_r2
+  target_balanced:
+    STATIC_DENSE:
+      navigation_time_s: 22.0
+      relative_change_vs_fixed_percent: 10.552763819095482
+      maneuver_reverse_sample_count: 0
+      evaluation_sha256: 503bb49ed8a1ce58ebf3348c74478cb287d6dc56ecde527560f7f526d726bd06
+    CORRIDOR:
+      navigation_time_s: 11.2
+      relative_change_vs_fixed_percent: 5.660377358490555
+      maneuver_reverse_sample_count: 0
+      evaluation_sha256: 61527c38225843c6f8f8dc5449c1274731cdb514baaaeafaf2e60d96dc0bbca4
+    MANEUVER:
+      navigation_time_s: 21.1
+      relative_change_vs_fixed_percent: -13.524590163934432
+      maneuver_reverse_sample_count: 51
+      evaluation_sha256: abbade206615bc6f680ba11476a31b80eceebf5edcfa700a74e0eebc68de123a
+  target_aggressive:
+    STATIC_DENSE:
+      navigation_time_s: 43.9
+      relative_change_vs_fixed_percent: 120.6030150753769
+      maneuver_reverse_sample_count: 0
+      evaluation_sha256: 600d5bc5014318af1b3a2261fcbb34814e170ffcbe2fa3e9d463ec58ffa6590e
+    CORRIDOR:
+      navigation_time_s: 11.4
+      relative_change_vs_fixed_percent: 7.547169811320762
+      maneuver_reverse_sample_count: 0
+      evaluation_sha256: c67d7d22c204a9e6e32e16e562124d3ea08d87d41c150c6d46723578f988b017
+    MANEUVER:
+      navigation_time_s: 24.6
+      relative_change_vs_fixed_percent: 0.8196721311475297
+      maneuver_reverse_sample_count: 32
+      evaluation_sha256: 0850d107305df14fee2e53260fb82a367b91a0f19c0521a89aedeff8452fae70
+selection_before_preregistration:
+  primary_candidate_id: r2_target_balanced
+  diagnostic_control_candidate_id: r2_control_g2
+  stress_candidate_id: r2_target_aggressive
+  winner_predeclared: false
+  fresh_calibration_required_for_ranking: true

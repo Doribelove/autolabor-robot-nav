@@ -1,0 +1,76 @@
+schema_version: '1.0'
+run_id: t11_semantic_eta_fullsafety_seed105
+created_at_utc: '2026-07-12T16:17:16Z'
+algorithm: RL-TEB-Semantic-Eta
+mode: gazebo
+scene_id: t11_formal_matrix
+scene_ids:
+- t11-test-id-clear-straight
+- t11-test-id-corridor
+- t11-test-id-left
+- t11-test-id-obstacle
+- t11-test-ood-long-turn
+- t11-test-ood-narrow-corridor
+- t11-test-ood-obstacle-offset
+- t11-train-clear-straight
+- t11-validation-clear-offset
+- t11-validation-corridor
+- t11-validation-obstacle-offset
+scene_split: train
+scene_splits:
+- test_id
+- test_ood
+- train
+- validation
+training_seed: 105
+evaluation_seed: null
+source:
+  main_commit: e9b9a9e17ac5e7e35d95eec2a7ad7c7667049da7
+  main_dirty: true
+  submodule_commits: {}
+  ros_version: noetic
+  gazebo_version: '11'
+  python_version: 3.8.10
+  host_id: WP
+configuration:
+  experiment_contract_path: /home/robot/robot_ws_base_rl/docs/thesis_experiment/experiment_contract.yaml
+  experiment_contract_sha256: 8eb11ffc1ca1051e991c8268e609e269baca33cc2069c692699aca4ba9618b90
+  scene_manifest_path: /home/robot/robot_ws_base_rl/experiments/manifests/t11/scenes.yaml
+  scene_manifest_sha256: 7bd16763e0c650dd14798c7b42d22c312d871906ff5cae53e5f8ed1e9de71f4f
+  theta_bounds_path: /home/robot/robot_ws_base_rl/src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+  theta_bounds_sha256: 4cd51fc80c22332d871ba7a782285ca7495c02d868bb452925704e5a28ac22c6
+  A_TEB_path: /home/robot/robot_ws_base_rl/config/thesis_experiments/A_TEB_v1.yaml
+  A_TEB_sha256: 799a3e3967044be3995d24f430940931f99d8187b402845afbbac129cf74be9e
+  reward_config_path: /home/robot/robot_ws_base_rl/config/thesis_experiments/t11_formal.yaml
+  reward_config_sha256: 3f374fa1c51d1161c3808a2452616bf36b3f0aa97886e88bed78e1a31169086f
+  safety_config_path: /home/robot/robot_ws_base_rl/src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+  safety_config_sha256: 4cd51fc80c22332d871ba7a782285ca7495c02d868bb452925704e5a28ac22c6
+  policy_checkpoint_path: /home/robot/robot_ws_base_rl/artifacts/t11/runs/t11_semantic_eta_fullsafety_seed105/checkpoints/step_000400/model.zip
+  policy_checkpoint_sha256: d6048c50467be64439a6e2c2b04aa6384de5ca812b27160f918e080f086537c7
+topics:
+  scan: /scan
+  odom: /odom
+  cmd_vel: /cmd_vel
+  global_plan: /move_base/TebLocalPlannerROS/global_plan
+  local_plan: /move_base/TebLocalPlannerROS/local_plan
+  status: /move_base/status
+safety:
+  allow_motion: false
+  allow_parameter_write: false
+  speed_limit_mps: 1.2
+  human_operator: null
+  emergency_stop_checked: false
+  fence_checked: false
+  conservative_fallback_checked: true
+artifacts:
+  episode_csv: episodes.csv
+  step_log: steps.csv
+  rosbag: null
+  stdout_log: null
+  failure_index: failure_index.yaml
+  checksums_file: checksums.sha256
+completion:
+  validated: true
+  validation_report: null
+  excluded_from_formal_results: false
+  exclusion_reason: null

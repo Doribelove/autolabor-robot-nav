@@ -1,0 +1,38 @@
+schema_version: '1.0'
+status: complete
+algorithm: RL-TEB-Direct-Theta
+num_timesteps: 200
+config:
+  seed: 102
+  learning_rate: 0.0003
+  buffer_size: 10000
+  learning_starts: 64
+  batch_size: 64
+  tau: 0.005
+  gamma: 0.99
+  train_freq: 1
+  gradient_steps: 1
+  net_arch:
+  - 128
+  - 128
+  device: cpu
+runtime:
+  python: 3.8.10
+  torch: 2.4.1+cpu
+  torch_cuda_available: false
+  gymnasium: 1.0.0
+  stable_baselines3: 2.4.1
+  numpy: 1.24.4
+  device: cpu
+files:
+  model.zip: 95c17599a0590ffb79ee86bb270fb883c5681fb2876656d6fde1f99db79fc77f
+  replay_buffer.pkl: 4ae1f6014d7b1df2c8e93a26b1eb58fec16c1e2ad8059364faf25a0f08609607
+  vecnormalize.pkl: 17dc71a50177092c7fd028375bd8666ffcf2992a9a34846d88225691e8f42d9f
+metadata:
+  task: T11
+  training_seed: 102
+  t11_config_sha256: 3f374fa1c51d1161c3808a2452616bf36b3f0aa97886e88bed78e1a31169086f
+  scene_manifest_sha256: 7bd16763e0c650dd14798c7b42d22c312d871906ff5cae53e5f8ed1e9de71f4f
+  safety_mode: FullSafety
+  phase: training
+  timestep: 200

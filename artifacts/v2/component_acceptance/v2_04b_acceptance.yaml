@@ -1,0 +1,106 @@
+schema_version: "2.0"
+stage: V2-04B
+status: passed_with_calibration_screen_complete_freeze_blocked
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+
+typed_teb_transaction:
+  implemented: true
+  execution_backend: simulation_teb_dynamic_reconfigure
+  exact_namespace: /move_base/TebLocalPlannerROS
+  parameter_count: 20
+  type_counts: {double: 18, int: 1, bool: 1}
+  complete_profile_single_request: true
+  description_type_range_validation: true
+  acknowledgement_verified: true
+  callback_readback_verified: true
+  fault_restore_target: previous_executed
+  shutdown_restore_target: startup_snapshot
+  actual_gazebo_transaction_count: 41
+  actual_anchor_segments: 6
+  startup_snapshot_restored: true
+  report:
+    path: artifacts/v2/component_acceptance/v2_04b_typed_teb_probe.yaml
+    sha256: 9413aaadda494969cf33f97d3ebd85adb4cd77989f4818d234ae19519c4fb7dc
+
+calibration:
+  status: screen_complete_freeze_blocked
+  selection_split: calibration
+  validation_or_test_selection_used: false
+  scene_count: 5
+  candidate_count: 54
+  planned_navigation_episode_count: 90
+  completed_navigation_episode_count: 90
+  valid_evidence_episode_count: 90
+  successful_episode_count: 87
+  hard_gate_pass_episode_count: 87
+  interface_failure_count: 0
+  collision_episode_count: 0
+  aborted_episode_count: 3
+  minimum_30_episode_freeze_gate_reached: true
+  anchor_freeze_eligible: false
+  anchor_values_frozen: false
+  candidate_plan:
+    path: artifacts/v2/calibration/v2_04b_anchor_screen_plan.yaml
+    sha256: d58020bf454f03a5d0ed13c856bf95b1acac9d2f39edccf3858108d185976eb1
+  compiled_scene_index:
+    path: artifacts/v2/calibration/compiled_scenes/compiled_scene_index.yaml
+    sha256: 77f5946ac39092fece861fe670012d1195a6e5ac8f9f683f61739635f2100d5e
+  batch_progress:
+    path: artifacts/v2/calibration/v2_04b_batch_progress.yaml
+    sha256: 6a7a0e2dff2b6b8366cc2c459fd4635aaa0e670f95b0623e64eed2312770c8a9
+  freeze_gate_030:
+    path: artifacts/v2/calibration/v2_04b_freeze_gate_030.yaml
+    sha256: 765833aa9a4dce476243594ac984b9835e5e17749258e4b7ca147ed7e5db21a1
+    decision: continue_calibration_not_frozen
+  final_freeze_assessment:
+    path: artifacts/v2/calibration/v2_04b_final_freeze_assessment.yaml
+    sha256: a79ef859862325334f756c1ffe3400d9a9f5df4143a1e30520f9b1a9ebba8fb6
+    decision: freeze_blocked
+    blockers:
+      - balanced_cross_family_aggregation_not_preregistered
+      - dynamic_primary_ttc_objective_unobserved
+      - bounded_refinement_not_preregistered
+  first_episode:
+    scene_id: v2-cal-cruise-straight-35m-s4301
+    candidate_id: anchor_cruise-c00-center
+    seed: 4301
+    termination: SUCCESS
+    collision: false
+    navigation_time_s: 31.8
+    path_length_m: 35.097896335409544
+    mean_abs_speed_mps: 1.1036624727212239
+    minimum_footprint_clearance_m: 2.697208155969843
+    lateral_rms_m: 0.011210186130944313
+    heading_oscillation_rad: 0.0
+    unnecessary_deceleration_count: 0
+    typed_ramp_transaction_count: 5
+    startup_snapshot_restored: true
+    raw_trace:
+      path: artifacts/v2/calibration/pilot_001_cruise_center/trace.csv
+      sha256: 5d6ffff27fe3b3aa7c7bc8b8149932f5d11e8718b6db00db833880e63b186649
+    evaluation:
+      path: artifacts/v2/calibration/pilot_001_cruise_center/evaluation.yaml
+      sha256: 5cf60cbd9010600e0789fb59721866f50220b4054227f3c97ccf3e79c5bd9cfe
+
+verification:
+  workspace_catkin_packages: 73
+  python_tests: {count: 201, errors: 0, failures: 0}
+  teb_mode_manager_catkin_tests: {count: 20, errors: 0, failures: 0}
+  thesis_experiment_catkin_tests: {count: 43, errors: 0, failures: 0}
+  residual_ros_or_gazebo_processes: 0
+
+claims:
+  typed_teb_transaction_implemented: true
+  anchor_calibration_started: true
+  calibration_screen_complete: true
+  anchor_calibration_complete: false
+  anchor_freeze_eligible: false
+  freeze_assessment_performed: true
+  anchor_values_frozen: false
+  navigation_performance_improved: false
+  sac_training_started: false
+  real_vehicle_validated: false

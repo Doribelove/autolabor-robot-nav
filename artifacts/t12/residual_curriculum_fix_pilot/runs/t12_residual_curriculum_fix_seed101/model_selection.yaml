@@ -1,0 +1,24 @@
+schema_version: '1.0'
+algorithm: RL-TEB-Semantic-Eta
+training_seed: 101
+validation:
+- checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_curriculum_fix_pilot/runs/t12_residual_curriculum_fix_seed101/checkpoints/step_001000
+  timesteps: 1000
+  episode_returns:
+  - 19.314353108406067
+  - 26.479571402072906
+  - 24.968267798423767
+  mean_return: 23.587397436300915
+- checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_curriculum_fix_pilot/runs/t12_residual_curriculum_fix_seed101/checkpoints/step_002000
+  timesteps: 2000
+  episode_returns:
+  - 25.91620671749115
+  - 24.771648168563843
+  - 19.328134298324585
+  mean_return: 23.338663061459858
+selected_checkpoint: /home/robot/robot_ws_base_rl/artifacts/t12/residual_curriculum_fix_pilot/runs/t12_residual_curriculum_fix_seed101/checkpoints/step_001000
+selected_timesteps: 1000
+selected_mean_validation_return: 23.587397436300915
+test_episode_count: 7
+test_results_used_for_selection: false
+evaluation_policy: checkpoint_deterministic_policy

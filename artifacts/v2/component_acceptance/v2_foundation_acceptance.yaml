@@ -1,0 +1,103 @@
+schema_version: "2.0"
+architecture_generation: v2
+report_id: v2_foundation_acceptance_20260713
+generated_at: "2026-07-13T22:56:49+08:00"
+phase: v2_00_v2_01
+passed: true
+formal_result: false
+
+scope:
+  description: V1 isolation, V2 machine contracts, ROS interface skeletons, and two foundation repairs
+  simulation_only: true
+  training_started: false
+  gazebo_training_started: false
+  real_robot_motion_started: false
+  real_teb_parameters_modified: false
+
+v1_isolation:
+  snapshot: config/thesis_experiments/v2/v1_frozen_baseline.yaml
+  snapshot_sha256: 9923f6bbc9f35f7a0b2eb0658202a95f8cd8e81ce1ed6c415b8c7426edfe5a0f
+  repository_and_submodule_state_recorded: true
+  t11_t12_evidence_hashes_recorded: true
+  t11_t12_evidence_hashes_verified: true
+  v1_runner_rejects_v2_resources: true
+
+contracts:
+  validator: src/tools/thesis_experiment/src/thesis_experiment/v2_contract.py
+  validator_sha256: 326b04efa91a0f9049af7f6af1c237049bbee744d61b1bccd0d1b820d52fafc7
+  files:
+    - path: config/thesis_experiments/v2/architecture_contract.yaml
+      sha256: 8c256ba2ad1d46500e78194657278dd12b20844966123882cc8e4185cb760794
+      schema_valid: true
+      runtime_ready: false
+    - path: config/thesis_experiments/v2/parameter_registry.yaml
+      sha256: 89e0bdd3d8f9364db62100242be764d75097ddc80dabcb705ea0696a165ac0ec
+      schema_valid: true
+      runtime_ready: false
+    - path: config/thesis_experiments/v2/mode_thresholds.yaml
+      sha256: 3321b4b675d2daca43b0fc15fc62220ad6f4eedeff77ecbdac4eb9396302056c
+      schema_valid: true
+      runtime_ready: false
+    - path: config/thesis_experiments/v2/state_contract.yaml
+      sha256: 1fbcc837269d671bd8a8b40a8eab41bd5244758ea59b3f9c0bb8bb6a4deb8336
+      schema_valid: true
+      runtime_ready: false
+  enum_contract_frozen: true
+  four_action_stages_frozen: true
+  fail_closed_validation: true
+
+ros_skeletons:
+  packages:
+    - name: nav_world_model
+      package_xml_sha256: c0fbbca0c9b28fd7a06ab50f6c63fcdc7b382c6b815fa92ae02ee609b90c6bc8
+      message_count: 5
+      fail_closed_node: true
+    - name: teb_mode_manager
+      package_xml_sha256: 53cab4f084eaf565cee15b703261bffac0be1484a545e044b2ceddd6d0a9bdf4
+      message_count: 3
+      fail_closed_node: true
+  publishes_control_commands: false
+  writes_teb_parameters: false
+
+foundation_repairs:
+  corridor_latch_is_episode_local: true
+  corridor_latch_cleared_on_reset: true
+  scan_angle_domain_in_state_contract: true
+  rear_scan_coverage_in_state_contract: true
+  v1_observation_dimension_changed: false
+
+validation:
+  python_and_config_tests:
+    passed: 150
+    failed: 0
+    duration_seconds: 2.68
+  catkin_build:
+    passed: true
+    package_count: 73
+  catkin_tests:
+    - package: m2_gazebo
+      passed: 14
+      failed: 0
+      errors: 0
+    - package: teb_rl_tuner
+      passed: 60
+      failed: 0
+      errors: 0
+    - package: thesis_experiment
+      passed: 21
+      failed: 0
+      errors: 0
+  ros_interface_discovery:
+    packages_discoverable: true
+    messages_discoverable: true
+
+known_boundaries:
+  - V2 thresholds and bounds intentionally remain null and runtime_ready=false.
+  - World model, dynamic tracker, Hybrid A-star, topology lock, and SAC are not implemented.
+  - This report is component acceptance evidence, not a formal navigation result.
+
+next_gate:
+  id: V2-02
+  name: trusted_simulation_dynamics_and_scene_system
+  training_authorized: false
+  real_robot_authorized: false

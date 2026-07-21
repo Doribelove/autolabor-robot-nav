@@ -1,0 +1,91 @@
+schema_version: '2.0'
+architecture_generation: v2
+suite: v2_02_dynamics_regression
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_use_forbidden: true
+seed: 42
+passed: true
+summary:
+  passed: 6
+  failed: 0
+  total: 6
+cases:
+- name: straight_response
+  passed: true
+  metrics:
+    duration_s: 4.0
+    final_x_m: 3.484281233920016
+    lateral_error_m: 0.0
+    steady_speed_mps: 0.999999921689006
+  thresholds:
+    minimum_steady_speed_mps: 0.9
+    maximum_lateral_error_m: 0.05
+    final_x_range_m:
+    - 2.8
+    - 4.1
+  message: passed
+  duration_sim_s: 4.224
+- name: fixed_radius_circle
+  passed: true
+  metrics:
+    mean_steady_speed_mps: 0.5999996627377009
+    mean_steady_yaw_rate_radps: 0.3999997599966023
+    estimated_radius_m: 1.5000000568570278
+  thresholds:
+    maximum_steady_yaw_rate_error_radps: 0.06
+    maximum_radius_error_m: 0.2
+  message: passed
+  duration_sim_s: 4.224
+- name: nonzero_braking_distance
+  passed: true
+  metrics:
+    initial_speed_mps: 0.999766558216818
+    stop_time_s: 0.9199999999999999
+    stopping_distance_m: 0.2522429058473048
+  thresholds:
+    maximum_stop_time_s: 1.0
+    minimum_stopping_distance_m: 0.1
+    maximum_stopping_distance_m: 0.45
+  message: passed
+  duration_sim_s: 3.378
+- name: low_speed_reverse
+  passed: true
+  metrics:
+    steady_speed_mps: -0.19999999695400408
+    final_x_m: -0.7499697017829675
+    lateral_error_m: 0.0
+  thresholds:
+    minimum_abs_steady_speed_mps: 0.16
+    maximum_lateral_error_m: 0.05
+  message: passed
+  duration_sim_s: 4.258000000000001
+- name: command_delay_repeatability
+  passed: true
+  metrics:
+    sample_count: 8
+    minimum_observed_s: 0.07399999999999807
+    maximum_observed_s: 0.11400000000000077
+    maximum_repeat_error_s: 0.004000000000001336
+  thresholds:
+    minimum_observed_s: 0.06
+    maximum_observed_s: 0.12
+    scheduler_resolution_tolerance_s: 0.025
+    maximum_repeat_error_s: 0.025
+  message: passed
+  duration_sim_s: 2.5479999999999983
+- name: sensor_delay_and_contact
+  passed: true
+  metrics:
+    mean_scan_age_s: 0.06375
+    ray_count: 720
+    contact_topic_type: gazebo_msgs/ContactsState
+    contact_message_count: 1877
+  thresholds:
+    minimum_mean_scan_age_s: 0.045
+    maximum_mean_scan_age_s: 0.1
+    required_ray_count: 720
+  message: passed
+  duration_sim_s: 0.0

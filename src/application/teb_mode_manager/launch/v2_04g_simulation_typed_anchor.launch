@@ -1,0 +1,34 @@
+<launch>
+  <!-- This launch alone cannot authorize a write: Gazebo marker, /clock and
+       /use_sim_time are independently checked by the node. -->
+  <arg name="allow_simulation_teb_parameter_write" default="false"/>
+  <arg name="allow_unfrozen_simulation_candidate" default="false"/>
+  <arg name="teb_namespace" default="/move_base/TebLocalPlannerROS"/>
+  <arg name="context_topic" default="/teb_mode_manager/context"/>
+  <arg name="action_trace_topic" default="/teb_rl_v2/action_trace"/>
+  <arg name="anchor_bank"
+       default="$(find teb_mode_manager)/config/v2_04_anchor_bank_candidate.yaml"/>
+  <arg name="force_geometry_balanced" default="false"/>
+  <arg name="mechanism_config" default=""/>
+
+  <node pkg="teb_mode_manager"
+        type="v2_04g_typed_anchor_transaction_node.py"
+        name="v2_04g_typed_anchor_transaction"
+        output="screen"
+        required="true">
+    <param name="anchor_bank" value="$(arg anchor_bank)"/>
+    <param name="allow_simulation_teb_parameter_write"
+           value="$(arg allow_simulation_teb_parameter_write)"/>
+    <param name="allow_unfrozen_simulation_candidate"
+           value="$(arg allow_unfrozen_simulation_candidate)"/>
+    <param name="teb_namespace" value="$(arg teb_namespace)"/>
+    <param name="context_topic" value="$(arg context_topic)"/>
+    <param name="action_trace_topic" value="$(arg action_trace_topic)"/>
+    <param name="force_geometry_balanced" value="$(arg force_geometry_balanced)"/>
+    <param name="mechanism_config" value="$(arg mechanism_config)"/>
+    <param name="context_maximum_age_s" value="0.40"/>
+    <param name="transaction_timeout_s" value="2.0"/>
+    <param name="clock_timeout_s" value="10.0"/>
+    <param name="equality_tolerance" value="1.0e-9"/>
+  </node>
+</launch>

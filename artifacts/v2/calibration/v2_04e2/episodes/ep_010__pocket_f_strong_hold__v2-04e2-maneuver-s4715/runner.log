@@ -1,0 +1,89 @@
+schema_version: '2.0'
+architecture_generation: v2
+evaluator_id: fam_teb_v2_02_evaluator_1
+formal_result: false
+runtime_ready: false
+scene_id: v2-04e2-maneuver-s4715
+family: MANEUVER
+split: calibration
+seed: 4715
+instance_sha256: e4c532537e6fc38c39c55b06c578e8790e7029b923387c877ac511572c9d8f94
+raw_trace_sha256: bd19a00b58b1655c669a23c43a212a9de96c8fad59ec93e844d4feeada0cb115
+termination: SUCCESS
+metrics:
+  common:
+    success: true
+    collision: false
+    navigation_time_s: 37.6
+    path_length_m: 4.110013106518902
+    mean_abs_speed_mps: 0.10927893304424957
+    minimum_clearance_m: 0.4268130789681316
+    stop_count: 8
+    reverse_distance_m: 2.2557464542036434
+  family:
+    gear_switch_count: 7
+    gear_switch_while_moving_count: 7
+    reverse_distance_m: 2.2557464542036434
+stage: V2-04E2
+method: rule_multi_anchor
+episode_timeout_s: 60.0
+tracker_message_count: 558
+tracker_health_valid_fraction: 1.0
+finite_ttc_sample_count: 0
+ttc_status: NO_CONFLICT_IN_HORIZON
+context_message_count: 191
+context_valid_count: 189
+context_geometry_sequence:
+- BALANCED
+- MANEUVER
+- STATIC_DENSE
+- BALANCED
+- STATIC_DENSE
+context_geometry_switch_count: 4
+transaction_message_count: 190
+transaction_valid_count: 188
+transaction_activated_count: 188
+transaction_fault_count: 2
+transaction_backends:
+- simulation_teb_dynamic_reconfigure
+active_anchor_sequence:
+- anchor_balanced
+- anchor_maneuver_forward
+- anchor_static_dense
+- anchor_balanced
+- anchor_static_dense
+active_anchor_switch_count: 4
+typed_transaction_expected: true
+typed_transaction_valid: true
+training_used: false
+runtime_policy_manifest_access: false
+runtime_scene_labels_available: false
+experiment_manager_validation_manifest_access: false
+runner_fault_reason: ''
+supervisor_profile_id: pocket_f_strong_hold
+context_geometry_sample_counts:
+  BALANCED: 26
+  CRUISE: 0
+  STATIC_DENSE: 130
+  CORRIDOR: 0
+  MANEUVER: 33
+context_geometry_sample_fractions:
+  BALANCED: 0.13756613756613756
+  CRUISE: 0.0
+  STATIC_DENSE: 0.6878306878306878
+  CORRIDOR: 0.0
+  MANEUVER: 0.1746031746031746
+context_overlay_sample_counts:
+  NONE: 189
+  CROSSING: 0
+  HEAD_ON: 0
+  FOLLOW: 0
+  OVERTAKE_OR_YIELD: 0
+context_overlay_sample_fractions:
+  NONE: 1.0
+  CROSSING: 0.0
+  HEAD_ON: 0.0
+  FOLLOW: 0.0
+  OVERTAKE_OR_YIELD: 0.0
+experiment_manager_calibration_manifest_access: true
+

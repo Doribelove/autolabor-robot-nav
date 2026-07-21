@@ -1,0 +1,178 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-R6-I3
+release_id: fam_teb_v2_04g_r6_i3_execution_release_1
+status: bounded_simulation_execution_released
+release_date: "2026-07-21"
+release_source: explicit_user_instruction_after_execution_readiness_closure
+explicit_user_execution_instruction_received: true
+execution_release_authorized: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+scope:
+  purpose: runtime_evaluator_semantic_and_execution_integrity_validation
+  stage_only: V2-04G-R6-I3
+  profiles:
+    - r6_semantics_legacy_control
+    - r6_semantics_circle_contact
+  fresh_execution_seeds: [5151, 5152, 5153]
+  exact_identity_count: 6
+  component_stage_authorized: false
+  general_navigation_calibration_authorized: false
+  winner_selection_authorized: false
+evidence_budget_authorized: 6
+fresh_execution_seeds: [5151, 5152, 5153]
+attempt_limit_per_identity: 1
+retry_or_resume_allowed: false
+seed_replacement_allowed: false
+budget_expansion_allowed: false
+stop_on_first_terminal_failure: true
+forfeit_unattempted_units_after_terminal_failure: true
+i1_retry_or_resume_authorized: false
+i1_forfeited_units_reused: false
+prior_identity_reuse_allowed: false
+r5_retry_or_resume_authorized: false
+r5_remaining_units_consumed: 0
+held_out_5001_5010_accessed: false
+rank_or_freeze_winner_authorized: false
+v2_05_authorized: false
+sac_or_training_authorized: false
+real_vehicle_authorized: false
+real_vehicle_teb_write_authorized: false
+authorization_envelope_alone_sufficient_for_execution: false
+exact_schedule:
+  - sequence: 1
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i3-dynamic-conflict-single-s5151
+    seed: 5151
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none
+  - sequence: 2
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i3-dynamic-conflict-single-s5151
+    seed: 5151
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none_iff_finite_ttc
+  - sequence: 3
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i3-dynamic-conflict-multi-s5152
+    seed: 5152
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none_iff_finite_ttc
+  - sequence: 4
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i3-dynamic-conflict-multi-s5152
+    seed: 5152
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none
+  - sequence: 5
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i3-dynamic-semantic-clear-s5153
+    seed: 5153
+    attempt: 1
+    expected_ttc_status: NO_CONFLICT_IN_HORIZON
+    expected_overlay_semantics: legacy_non_none_identifiability
+  - sequence: 6
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i3-dynamic-semantic-clear-s5153
+    seed: 5153
+    attempt: 1
+    expected_ttc_status: NO_CONFLICT_IN_HORIZON
+    expected_overlay_semantics: none_iff_no_finite_ttc
+exact_schedule_sha256: ee89717421f2dd82cdaddb2c8e8722c5d1d4b52db97311c3b7231ba9d161571c
+bound_resources:
+  preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_preregistration.yaml
+    sha256: a8295c723c1cf973c2c35c86e5b2d5c07361bdf0e92f36a0e8d12d2364ce6268
+  authorization_envelope:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_bounded_simulation_authorization.yaml
+    sha256: ef0a5886bacfd9e439d56e5586a851a33e2ab4076ac11f6b84033425b9b305d2
+  fresh_scene_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/compiled_scene_index.yaml
+    sha256: d71a60cef681b497694d244df95d99c79110768b26a5875e5328430a156f4d3e
+  execution_entrypoint:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_r6_i2_r6_i3_bounded_validation.py
+    sha256: ef3a477c6d8b6924455c24b6fbe7821472e23cc61369a3fb91a37d6c72b233d5
+  release_validator:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_r6_i2_r6_i3_release.py
+    sha256: c79551a518d36bd04ddec3dbc0cd99a8b5a881e41cd3edeec041bea8004ef43a
+  release_validator_tests:
+    path: src/tools/thesis_experiment/tests/test_v2_04g_r6_i1.py.d/test_v2_04g_r6_i3_release_validator.py
+    sha256: e04aa910166236603d5ac38c46a7ab0ac135ec18bc51b6c98ffd462aab2440f2
+  execution_dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/execution_dependency_closure.yaml
+    sha256: 55f0e343788409301258da96f355e78d9fb689bdcc270ef8f5b9fe54b06a4b37
+  execution_machine_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/v2_04g_r6_i3_execution_readiness_review.yaml
+    sha256: 3a8e9e466a08f7d3ef65542b285cf5020e6ce53dbb63cbe9b2316afb717a680e
+  fresh_scene_child_01:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-conflict-single-s5151.instance.yaml
+    sha256: 7a03d0438ab63f9a29bb6b6bdb24a3efe36258879bf1e470c6f476a997068d42
+  fresh_scene_child_02:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-conflict-single-s5151.world
+    sha256: aae04f2a457c9647f3ab0f4ec50528e5bd758da55f1786a8a16aa7257a1a0bda
+  fresh_scene_child_03:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-conflict-multi-s5152.instance.yaml
+    sha256: 3da8364c6c35ff4eff7f899cc4677ef3ccdb28098aac08925e9bbaf7056316c5
+  fresh_scene_child_04:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-conflict-multi-s5152.world
+    sha256: 4eaf2562a30a1b511615c54e2df3211c7169144c42bca021c0898bce5e937911
+  fresh_scene_child_05:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-semantic-clear-s5153.instance.yaml
+    sha256: a6c2bc5ea03e3b7a3267a44b0e81a853d3896918850027bcbb32b01e187779a1
+  fresh_scene_child_06:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-dynamic-semantic-clear-s5153.world
+    sha256: 5124b036851b7de941b40445702ef50a39ddb29d35149ec05a794661065985f1
+  fresh_scene_child_07:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-cruise-s5154.instance.yaml
+    sha256: baeeb5ba91d75553f0cbf5d09ee029a7bde868e95e6f4942b91917954013bd16
+  fresh_scene_child_08:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-cruise-s5154.world
+    sha256: ccc3032c79a42eef5dc29cc82858d41da054eb77157b8e4c884298672fdf2a2b
+  fresh_scene_child_09:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-static-s5155.instance.yaml
+    sha256: c56b3643ba4c2d108c43739ffe8f72d6500f6d2f25802a3a3e77177324ff103b
+  fresh_scene_child_10:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-static-s5155.world
+    sha256: 75d6830a68a58980341750994afa21305c6a5b7814f99bdcdc04a23ba1846d46
+  fresh_scene_child_11:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-corridor-s5156.instance.yaml
+    sha256: f8241095073cd035ef625407aefa140df58010dbc247e0867bb688bcf9f6b05b
+  fresh_scene_child_12:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-corridor-s5156.world
+    sha256: b99120f9d052d753f38da4fa8b78384fba0d19461069162c906f356edf1ae417
+  fresh_scene_child_13:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-maneuver-s5157.instance.yaml
+    sha256: 35e7645a1a9711dc79b13c6cf6984f5410367becd8db5e2c63537928b0771678
+  fresh_scene_child_14:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/compiled_scenes/v2-04g-r6-i3-compile-support-maneuver-s5157.world
+    sha256: b5568967169ac46df6a6c8f6a3a3caf9dcb306b3cea39c56d9c5708fa7f83074
+dependency_closure_digest: f83beb04dc6e7cd1e43c2611997f86dbd5bf07c36f33d51fc979128f2cb4ed4f
+release_trust_anchor:
+  mechanism: caller_supplied_exact_execution_release_file_sha256
+  self_hash_embedded: false
+  guard_rejects_missing_or_mismatched_cli_hash: true
+  authorization_hash_independently_supplied: true
+prejournal_gate:
+  release_validation_before_execution_state_creation_required: true
+  authorization_revalidation_required: true
+  all_bound_resources_rehashed_required: true
+  closure_logical_digest_recomputed_required: true
+  scene_children_rehashed_required: true
+  machine_review_pass_required: true
+  existing_execution_state_absent_required: true
+  forbidden_processes_absent_required: true
+  execution_state_creation_before_validation_allowed: false
+completion_boundary:
+  maximum_claim: fresh_simulation_runtime_evaluator_semantic_integration
+  safety_performance_generalization_claim_allowed: false
+  formal_result_must_remain_false: true
+  runtime_ready_must_remain_false: true
+  downstream_authorization_after_completion: false

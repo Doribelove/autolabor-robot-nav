@@ -1,0 +1,62 @@
+schema_version: 1
+model: autolabor_m2
+scope: simulation_only
+calibrated: false
+status: simulation_candidate
+warning: >-
+  These values are thesis simulation candidates, not final real-vehicle
+  calibration. Revalidate every value against the chassis_parameter service,
+  mechanical measurement, and low-speed on-site tests before sim-to-real use.
+
+geometry:
+  length_m: {value: 1.04, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+  width_m: {value: 0.70, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+  height_m: {value: 0.43, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+  wheelbase_m: {value: 0.65, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+  track_m: {value: 0.60, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+  ground_clearance_m: {value: 0.11, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+  wheel_radius_m: {value: 0.15, source: illustrative_driver_document_example_only, calibrated: false, status: simulation_candidate}
+  wheel_width_m: {value: 0.08, source: geometric_placeholder, calibrated: false, status: simulation_candidate}
+
+dynamics:
+  mass_kg: {value: 80.0, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+  max_speed_mps: {value: 2.778, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+  min_turning_radius_m: {value: 1.20, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+  max_center_steering_angle_rad: {value: 0.4964, source: derived_atan_wheelbase_over_radius, calibrated: false, status: simulation_candidate}
+  command_timeout_s: {value: 0.5, source: simulation_safety_default, calibrated: false, status: simulation_candidate}
+  speed_time_constant_s: {value: 0.22, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  steering_time_constant_s: {value: 0.18, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  max_acceleration_mps2: {value: 1.20, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  max_deceleration_mps2: {value: 1.60, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  max_brake_deceleration_mps2: {value: 2.40, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  max_emergency_deceleration_mps2: {value: 3.00, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  max_steering_rate_radps: {value: 0.80, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  command_delay_s: {value: 0.08, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  command_jitter_s: {value: 0.015, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+
+sensors:
+  laser_xyz_m: {value: [0.0, 0.0, 0.60], source: placeholder_mount_pose, calibrated: false, status: simulation_candidate}
+  laser_rpy_rad: {value: [0.0, 0.0, 0.0], source: placeholder_mount_pose, calibrated: false, status: simulation_candidate}
+  imu_xyz_m: {value: [0.0, 0.0, 0.40], source: placeholder_mount_pose, calibrated: false, status: simulation_candidate}
+  imu_rpy_rad: {value: [0.0, 0.0, 0.0], source: placeholder_mount_pose, calibrated: false, status: simulation_candidate}
+  laser_transport_delay_s: {value: 0.06, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  laser_transport_jitter_s: {value: 0.01, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+  laser_range_noise_stddev_m: {value: 0.01, source: v2_02_preregistered_simulation_candidate, calibrated: false, status: simulation_candidate}
+
+driver_contract:
+  cmd_angle_instead_rotvel: false
+  cmd_vel_semantics: {linear_x: target_linear_velocity_mps, angular_z: target_yaw_rate_radps}
+  ackerman_vel_semantics: {linear_x: target_linear_velocity_mps, angular_z: center_steering_angle_rad}
+  chassis_parameter_service_mode: query_only
+  serial_baud: {value: 115200, source: user_supplied_driver_document, calibrated: false, status: simulation_candidate}
+  encoder_lines: {value: 4096, source: user_supplied_datasheet, calibrated: false, status: simulation_candidate}
+
+known_interface_discrepancies:
+  - id: reverse_cmd_vel_sign
+    fact: The checked-in real M2 driver uses abs(linear.x) in its yaw-rate-to-steering conversion.
+    simulation_behavior: Uses atan(wheelbase * angular.z / linear.x) so the requested body yaw-rate sign is preserved while reversing.
+    validation: TBD_real_vehicle_low_speed_test
+  - id: chassis_parameter_mutability
+    fact: The checked-in ChassisParameterServer request is empty and the callback only returns current values.
+    simulation_behavior: Query-only, matching the source-level service definition.
+    validation: confirmed_from_source

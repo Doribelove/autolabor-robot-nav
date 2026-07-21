@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="v2-04g-r2-corridor-s4961">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="v2_deterministic" type="ode">
+      <max_step_size>0.002</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <model name="corridor-left">
+      <static>true</static>
+      <pose>5.004579726 1.087406776 0.600000000 0 0 -0.000611318</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 1.200000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 1.200000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="corridor-right">
+      <static>true</static>
+      <pose>5.008966835 -1.094519636 0.600000000 0 0 -0.000202921</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 1.200000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 1.200000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

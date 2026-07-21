@@ -2,7 +2,7 @@
 
 Date: 2026-07-09
 
-This file records the current GPS navigation development state for the Autolabor M2 robot in `/home/robot/robot_ws`.
+This file records the current GPS navigation development state for the Autolabor M2 robot in `/home/robot/robot_ws_base_rl`.
 
 ## Current Goal
 
@@ -21,25 +21,25 @@ The desired behavior is:
 GPS navigation:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 ./scripts/bringup.sh gps
 ```
 
 RabbitMQ GPS target bridge:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/robot/robot_ws_base_rl/devel/setup.bash
 ./scripts/rabbitmq_gps_goal_bridge.py
 ```
 
 GPS test task menu:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/robot/robot_ws_base_rl/devel/setup.bash
 ./scripts/gps_test_tasks.py
 ```
 
@@ -145,7 +145,7 @@ q: Quit.
 Fence file:
 
 ```text
-/home/robot/robot_ws/config/gps_test_fence.json
+/home/robot/robot_ws_base_rl/config/gps_test_fence.json
 ```
 
 The fence is only active while `scripts/gps_test_tasks.py` is running. Normal `./scripts/bringup.sh gps` is not constrained by this fence.
@@ -289,9 +289,9 @@ src/tools/robot_diagnostics/launch/gps_static_error_monitor.launch
 Run after GPS navigation starts:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/robot/robot_ws_base_rl/devel/setup.bash
 roslaunch robot_diagnostics gps_static_error_monitor.launch
 ```
 

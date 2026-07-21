@@ -1,0 +1,39 @@
+schema_version: '1.0'
+stage: V2-04G-R6-I5
+required_order:
+- base_spawn
+- unpause_request
+- successful_unpause_ack
+- first_strictly_positive_post_ack_clock
+- second_strictly_greater_positive_post_ack_clock
+- release_move_base_and_teb_service_wait
+barrier:
+  protocol_id: v2_04g_r6_i2_positive_clock_bootstrap_v1
+  state: service_wait_released
+  terminal: true
+  positive_clock_required: true
+  strict_clock_progression_required: true
+  topic_existence_is_sufficient: false
+  zero_clock_is_sufficient: false
+  single_positive_clock_sample_is_sufficient: false
+  pre_unpause_positive_clock_is_sufficient: false
+  service_wait_allowed: true
+  timeout_s: 45.0
+  base_spawn_monotonic_s: 9961.644279405
+  deadline_monotonic_s: 10006.644279405
+  unpause_ack_monotonic_s: 9964.631041847
+  positive_clock:
+    sec: 0
+    nsec: 936000000
+  positive_clock_observed_monotonic_s: 9965.666621985
+  clock_progression_sample:
+    sec: 1
+    nsec: 966000000
+  clock_progression_observed_monotonic_s: 9966.698792804
+  post_ack_clock_sample_count: 2
+  post_ack_zero_clock_sample_count: 0
+  post_positive_equal_clock_sample_count: 0
+  pre_ack_clock_sample_count_ignored: 0
+  pre_ack_positive_clock_sample_count_ignored: 0
+  failure_reason: null
+move_base_teb_service_wait_after_release: true

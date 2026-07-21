@@ -1,0 +1,67 @@
+schema_version: "1.0"
+status: t09_semantic_eta_sac_smoke_frozen
+simulation_only: true
+formal_experiment: false
+real_vehicle_use_forbidden: true
+algorithm: RL-TEB-Semantic-Eta
+runtime:
+  python: 3.8.10
+  torch: 2.4.1+cpu
+  gymnasium: 1.0.0
+  stable_baselines3: 2.4.1
+  device: cpu
+  lock: requirements/thesis-rl-lock.yaml
+action:
+  eta_order: [speed, obstacle_conservatism, clearance, path_tracking, smoothness]
+  action_semantics: delta_eta
+  range: [-1.0, 1.0]
+  eta_state_clipped: [-1.0, 1.0]
+  mapping_path: config/thesis_experiments/A_TEB_v1.yaml
+  mapping_sha256: 1ca660f8d4f1863a93d75686bc0cafe8259942aaac60c3e2817c31162fcb1000
+  mapping_frozen: true
+observation:
+  core_history_k: 4
+  core_dimension: 244
+  action_context: previous_applied_delta_normalized_theta_9_plus_l1
+  appended_action_context_dimension: 10
+  total_dimension: 254
+  normalization: SB3_VecNormalize_train_only
+  normalization_stats_saved_with_checkpoint: true
+reward:
+  source: src/application/teb_rl_tuner/config/t04_t06_simulation_validation.yaml
+  formal_weights_frozen: false
+safety:
+  source: src/application/teb_rl_tuner/config/t05_simulation_safety.yaml
+  projection_and_filter_required: true
+  snapshot_restore_required: true
+training:
+  seed: 42
+  learning_rate: 0.0003
+  buffer_size: 100000
+  learning_starts: 1000
+  batch_size: 256
+  tau: 0.005
+  gamma: 0.99
+  train_freq: 1
+  gradient_steps: 1
+  net_arch: [256, 256]
+  production_total_timesteps: null
+smoke_override:
+  total_timesteps_before_resume: 16
+  total_timesteps_after_resume: 4
+  learning_starts: 4
+  batch_size: 8
+  buffer_size: 256
+  net_arch: [32, 32]
+  evaluation_episodes: 2
+checkpoint:
+  files: [model.zip, replay_buffer.pkl, vecnormalize.pkl, checkpoint_manifest.yaml]
+  resume_required: true
+  hashes_required: true
+  runtime_match_required: true
+acceptance:
+  sac_gradient_update_required: true
+  replay_buffer_nonempty_required: true
+  deterministic_evaluation_required: true
+  failures_retained: true
+  excluded_from_formal_results: true

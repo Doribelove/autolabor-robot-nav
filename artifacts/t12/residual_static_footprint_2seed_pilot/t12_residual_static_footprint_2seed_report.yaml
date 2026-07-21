@@ -1,0 +1,114 @@
+schema_version: '1.0'
+task: T12
+study: residual_static_footprint_two_seed_pilot
+formal_result: false
+expanded_budget: false
+runs:
+  101:
+    training_budget_steps: 2000
+    training_scene_ids:
+    - t11-train-clear-left
+    - t11-train-clear-right
+    - t11-train-clear-straight
+    - t11-train-corridor
+    - t11-train-obstacle
+    training_scene_episode_counts:
+      t11-train-clear-left: 54
+      t11-train-clear-right: 54
+      t11-train-clear-straight: 55
+      t11-train-corridor: 37
+      t11-train-obstacle: 44
+    validation_mean_returns:
+    - 23.60558827718099
+    - 24.05828610000511
+    validation_return_change: 0.4526978228241205
+    selected_timesteps: 2000
+    projection_intervention_rate: 0.651
+    safety_intervention_rate: 0.464
+    first_step_previous_to_anchor_normalized_l1_max: 0.0
+    boundary_audit:
+      protocol: cancel_terminal_and_plan_quiet_restore_reset_dispatch_v1
+      quiet_period_s: 0.25
+      recovery_quiet_period_s: 1.0
+      timeout_s: 5.0
+      quiesce_count: 260
+      quiesce_failure_count: 0
+      last_terminal_state: 3
+      last_quiet_period_s: 0.25
+      activation_timeout_barrier_count: 1
+      activation_timeout_last_config_seq: 19
+      recovery_barrier_pending: false
+    test_episode_count: 7
+    test_goal: 7
+    test_collision: 0
+    test_emergency_stop: 0
+    test_interface_fault: 0
+    move_base_crash_count: 0
+    sigsegv_count: 0
+    footprint_model_load_count: 1
+    dynamic_reconfigure_failure_mentions: 0
+    activation_timeout_count: 0
+  102:
+    training_budget_steps: 2000
+    training_scene_ids:
+    - t11-train-clear-left
+    - t11-train-clear-right
+    - t11-train-clear-straight
+    - t11-train-corridor
+    - t11-train-obstacle
+    training_scene_episode_counts:
+      t11-train-clear-left: 57
+      t11-train-clear-right: 57
+      t11-train-clear-straight: 58
+      t11-train-corridor: 40
+      t11-train-obstacle: 46
+    validation_mean_returns:
+    - 23.785964985688526
+    - 23.707580546538036
+    validation_return_change: -0.07838443915048998
+    selected_timesteps: 1000
+    projection_intervention_rate: 0.695
+    safety_intervention_rate: 0.4555
+    first_step_previous_to_anchor_normalized_l1_max: 0.0
+    boundary_audit:
+      protocol: cancel_terminal_and_plan_quiet_restore_reset_dispatch_v1
+      quiet_period_s: 0.25
+      recovery_quiet_period_s: 1.0
+      timeout_s: 5.0
+      quiesce_count: 274
+      quiesce_failure_count: 0
+      last_terminal_state: 3
+      last_quiet_period_s: 0.25
+      activation_timeout_barrier_count: 0
+      activation_timeout_last_config_seq: null
+      recovery_barrier_pending: false
+    test_episode_count: 7
+    test_goal: 7
+    test_collision: 0
+    test_emergency_stop: 0
+    test_interface_fault: 0
+    move_base_crash_count: 0
+    sigsegv_count: 0
+    footprint_model_load_count: 1
+    dynamic_reconfigure_failure_mentions: 0
+    activation_timeout_count: 0
+gates:
+  two_seed_complete: true
+  atomic_boundary_active: true
+  zero_boundary_quiesce_failure: true
+  recovery_barrier_protocol_recorded: true
+  static_footprint_loaded_once_each_seed: true
+  all_episode_first_steps_match_anchor: true
+  all_five_training_scenes_each_seed: true
+  zero_move_base_crash: true
+  zero_dynamic_reconfigure_failure: true
+  zero_activation_timeout: true
+  zero_test_collision: true
+  zero_test_emergency_stop: true
+  zero_test_interface_fault: true
+  test_goal_seven_each_seed: true
+  validation_improved_each_seed: false
+integrity_passed: true
+learning_gate_passed: false
+proceed_to_frozen_pairing: false
+decision: stop_and_review_residual_action_projection_alignment_without_budget_expansion

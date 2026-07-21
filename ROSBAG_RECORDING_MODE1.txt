@@ -1,6 +1,6 @@
 模式1 GPS 导航 rosbag 采集说明
 记录时间：2026-07-03
-工作目录：/home/robot/robot_ws
+工作目录：/home/robot/robot_ws_base_rl
 
 一、文件
 
@@ -12,21 +12,21 @@
 
   你执行脚本时所在的当前目录
 
-也就是说，如果你在 /home/robot/robot_ws 运行：
+也就是说，如果你在 /home/robot/robot_ws_base_rl 运行：
 
   ./scripts/record_rosbag.sh mode1
 
 bag 会保存到：
 
-  /home/robot/robot_ws
+  /home/robot/robot_ws_base_rl
 
 二、推荐现场采集流程
 
 终端 1，先启动模式1：
 
-  cd /home/robot/robot_ws
+  cd /home/robot/robot_ws_base_rl
   source /opt/ros/noetic/setup.bash
-  source /home/robot/robot_ws/devel/setup.bash
+  source /home/robot/robot_ws_base_rl/devel/setup.bash
   GPS_COMPASS_HEADING="东北45度" TERMINAL_MODE=split ./scripts/bringup.sh gps
 
 如果不需要传初始车头方向：
@@ -35,7 +35,7 @@ bag 会保存到：
 
 终端 2，录制模式1关键消息：
 
-  cd /home/robot/robot_ws
+  cd /home/robot/robot_ws_base_rl
   ./scripts/record_rosbag.sh mode1
 
 停止录制：
@@ -46,7 +46,7 @@ bag 会保存到：
 
 如果你想尽可能完整保留现场所有话题：
 
-  cd /home/robot/robot_ws
+  cd /home/robot/robot_ws_base_rl
   ./scripts/record_rosbag.sh all
 
 注意：all 会包含 Livox 原始点云，文件会很大。
@@ -60,7 +60,7 @@ bag 会保存到：
 
 运行：
 
-  cd /home/robot/robot_ws
+  cd /home/robot/robot_ws_base_rl
   ./scripts/record_rosbag.sh both
 
 会生成类似：
@@ -76,7 +76,7 @@ bag 会保存到：
 
 指定输出目录：
 
-  BAG_DIR=/home/robot/robot_ws/bags BAG_PREFIX=test01 ./scripts/record_rosbag.sh both
+  BAG_DIR=/home/robot/robot_ws_base_rl/bags BAG_PREFIX=test01 ./scripts/record_rosbag.sh both
 
 默认按 4096MB 自动分包，防止单个 bag 过大。
 

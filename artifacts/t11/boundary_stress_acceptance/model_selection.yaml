@@ -1,0 +1,23 @@
+schema_version: '1.0'
+algorithm: RL-TEB-Semantic-Eta
+training_seed: 102
+validation:
+- checkpoint: /home/robot/robot_ws_base_rl/artifacts/t11/boundary_stress_acceptance/checkpoints/step_000050
+  timesteps: 50
+  episode_returns:
+  - 19.65776228904724
+  - 2.3734044432640076
+  - 0.0
+  mean_return: 7.343722244103749
+- checkpoint: /home/robot/robot_ws_base_rl/artifacts/t11/boundary_stress_acceptance/checkpoints/step_000100
+  timesteps: 100
+  episode_returns:
+  - 19.507092118263245
+  - 3.1329379081726074
+  - 0.0
+  mean_return: 7.546676675478618
+selected_checkpoint: /home/robot/robot_ws_base_rl/artifacts/t11/boundary_stress_acceptance/checkpoints/step_000100
+selected_timesteps: 100
+selected_mean_validation_return: 7.546676675478618
+test_episode_count: 7
+test_results_used_for_selection: false

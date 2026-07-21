@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="world"/>
+  <arg name="gui" default="false"/>
+  <arg name="seed" default="42"/>
+  <arg name="report_path" default="/tmp/v2_03_gazebo_runtime_probe.yaml"/>
+
+  <include file="$(find m2_gazebo)/launch/m2_v2_scene.launch">
+    <arg name="world" value="$(arg world)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+  </include>
+  <include file="$(find nav_world_model)/launch/v2_03_world_model.launch">
+    <arg name="allow_unfrozen_simulation_candidate" value="true"/>
+  </include>
+  <include file="$(find teb_mode_manager)/launch/v2_03_rule_supervisor.launch">
+    <arg name="allow_unfrozen_simulation_candidate" value="true"/>
+  </include>
+
+  <!-- Evaluator-only: this node alone reads Gazebo truth. -->
+  <node pkg="thesis_experiment" type="v2_03_runtime_probe.py"
+        name="v2_03_runtime_probe" output="screen" required="true">
+    <param name="report_path" value="$(arg report_path)"/>
+    <param name="sample_duration_s" value="6.0"/>
+    <param name="minimum_track_samples" value="12"/>
+    <param name="maximum_position_rmse_m" value="0.8"/>
+    <param name="maximum_id_switches" value="1"/>
+  </node>
+</launch>

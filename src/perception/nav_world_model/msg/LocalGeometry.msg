@@ -1,0 +1,29 @@
+std_msgs/Header header
+string schema_version
+uint64 world_model_seq
+bool valid
+bool stale
+
+float32 front_clearance_m
+float32 left_clearance_m
+float32 right_clearance_m
+float32 rear_clearance_m
+float32 footprint_clearance_m
+float32 obstacle_density
+float32 static_persistence
+
+float32 corridor_width_m
+float32 corridor_axis_yaw_rad
+float32 corridor_parallel_confidence
+float32 corridor_center_offset_m
+float32 dead_end_score
+
+float32 path_curvature
+float32 signed_cross_track_error_m
+float32 signed_heading_error_rad
+float32 goal_direction_stability
+
+bool front_covered
+bool left_covered
+bool right_covered
+bool rear_covered

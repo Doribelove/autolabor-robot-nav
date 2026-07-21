@@ -1,0 +1,81 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-I3
+transition_id: fam_teb_v2_04g_r6_i3_authorization_to_execution_readiness_1
+transition_date: "2026-07-21"
+source_status: bounded_authorization_review_pass_execution_release_required
+target_status: offline_execution_readiness_closure_in_progress_release_absent
+independent_stage_preserved: true
+simulation_only: true
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized_by_transition: false
+execution_release_created_by_transition: false
+ros_or_gazebo_started_by_transition: false
+attempt_root_or_journal_created_by_transition: false
+seed_or_evidence_units_consumed_by_transition: 0
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+user_instruction_boundary:
+  explicit_execution_readiness_closure_instruction_received: true
+  allowed_actions:
+    - materialize_fresh_scenes_offline
+    - implement_actual_runner_source
+    - implement_dedicated_release_validator_and_tests
+    - build_independent_execution_dependency_closure
+    - build_execution_readiness_machine_review
+  forbidden_actions:
+    - create_execution_release_manifest
+    - create_execution_attempt_root_or_journal
+    - start_ros_gazebo_move_base_or_teb
+    - consume_any_seed_or_evidence_unit
+    - execute_any_schedule_identity
+  next_explicit_simulation_execution_instruction_required: true
+
+readiness_contract:
+  path: config/thesis_experiments/v2/v2_04g_r6_i1_r6_i2_r6_i3_execution_readiness_contract.yaml
+  sha256: 65b2477324fa3764ecf28763ee21f59b070db7bb633897f2bf9672fb20912c2a
+
+frozen_authorization_boundary:
+  preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_preregistration.yaml
+    sha256: a8295c723c1cf973c2c35c86e5b2d5c07361bdf0e92f36a0e8d12d2364ce6268
+  authorization_envelope:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_bounded_simulation_authorization.yaml
+    sha256: ef0a5886bacfd9e439d56e5586a851a33e2ab4076ac11f6b84033425b9b305d2
+  authorization_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_authorization_review/v2_04g_r6_i3_authorization_review.yaml
+    sha256: 20a058f15a79aebc448497374071c7028363faa185d1ebe820f1102c6b330913
+    historical_phase_snapshot: true
+    absence_review_not_rebuilt_after_authorized_materialization: true
+  inherited_i2_machine_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i2_repair_review/v2_04g_r6_i2_integration_review.yaml
+    sha256: b23f7384e3c88aa9c3c0a9af50f6fc51159b2091b6b44cb127d034847bbb8a61
+  inherited_i2_dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i2_repair_review/execution_dependency_closure.yaml
+    file_sha256: 63c4e7ba5d8fd64315040a566aabdb54cd71b034ce76f814aa3f519be6dfac58
+    logical_sha256: 2be410c333b78d707b591fb30bef0b344b40c19e3f957d91fbc6e56f1bd01fe6
+
+fresh_allocation:
+  execution_seeds: [5151, 5152, 5153]
+  compile_support_only_seeds: [5154, 5155, 5156, 5157]
+  exact_schedule_sha256: ee89717421f2dd82cdaddb2c8e8722c5d1d4b52db97311c3b7231ba9d161571c
+  evidence_units_authorized: 6
+  evidence_units_consumed: 0
+  compile_support_evidence_units: 0
+  retry_or_resume_allowed: false
+  replacement_or_expansion_allowed: false
+
+state_after_transition:
+  fresh_scene_materialization_authorized_offline: true
+  runner_and_integrity_source_authorized_offline: true
+  dependency_closure_and_review_authorized_offline: true
+  release_manifest_present: false
+  execution_attempt_root_present: false
+  execution_journal_present: false
+  execution_receipt_present: false
+  execution_may_start: false
+  next_gate: separate_explicit_user_simulation_execution_instruction_and_exact_hash_release

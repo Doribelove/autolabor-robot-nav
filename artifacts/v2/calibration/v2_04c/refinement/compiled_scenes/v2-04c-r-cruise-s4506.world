@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="v2-04c-r-cruise-s4506">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="v2_deterministic" type="ode">
+      <max_step_size>0.002</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <model name="r-cruise-left">
+      <static>true</static>
+      <pose>12.036292055 3.446738588 0.600000000 0 0 0.004041712</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.800000 0.800000 1.200000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.800000 0.800000 1.200000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="r-cruise-right">
+      <static>true</static>
+      <pose>22.965132316 -3.468585765 0.600000000 0 0 -0.002833612</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.800000 0.800000 1.200000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.800000 0.800000 1.200000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

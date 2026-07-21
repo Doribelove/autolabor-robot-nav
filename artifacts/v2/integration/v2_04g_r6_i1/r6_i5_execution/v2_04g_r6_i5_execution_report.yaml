@@ -1,0 +1,299 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-R6-I5
+assessment_id: fam_teb_v2_04g_r6_i5_deterministic_assessment_1
+status: simulation_integration_validation_pass
+assessment_result: pass
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+winner_ranked_or_frozen: false
+downstream_authorized: false
+safety_performance_or_generalization_claimed: false
+claim_limit: fresh_simulation_runtime_evaluator_semantic_integration_only
+preregistration:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_preregistration.yaml
+  sha256: 602fc1044fb9e3e8ac284e77cadcbaced95c5edfb9721df0da26f876cc42c073
+stage_report_input:
+  path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_stage_report.yaml
+  sha256: 501ab197eacd9926d9760402e2c8586e37edc4d288c5c4cb0610024a8a1c5fef
+exact_schedule_sha256: b52d00a2dc0c1f2edf149d30120451ea836fc1d0589109a1016dc48e9a9d5402
+planned_identity_count: 6
+completed_identity_count: 6
+evidence_budget_authorized: 6
+evidence_units_consumed: 6
+unattempted_budget_forfeited: 0
+all_completed_journals_directly_replayed: true
+attempt_replays:
+- sequence: 1
+  identity: &id001
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i5-dynamic-conflict-single-s5161
+    seed: 5161
+    attempt: 1
+  status: evidence_complete
+  journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_e45297a05b4ec59a797c3a0dd616b50148bf831c7f4dad570897c04ca88870cd.yaml
+    sha256: ca5a86ecb3cd8f0443df78720505a28732ccdbcb6a3d69d84ccf8c0007b1fe30
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/activation.yaml
+      sha256: d9f92bad3f737093a89a23f55669803f5fc246f783f5d509de9110de7e28bb6f
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/clearance.yaml
+      sha256: 5ffe4cffa2affc9d31ef6da42cefc9975a384d03c082fa9f1b8a4587a68f1662
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/evaluation.yaml
+      sha256: 87ce8c4034982484c6f1513f4fd4f4219f5190889823b064379ae1458360be0a
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/process.log
+      sha256: 52c8f68fc1ecc935285829e72d8ea3d1b473ba66d71247fdb3b900f24d59399e
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/teardown_receipt.yaml
+      sha256: c68e530f1421e2ab3f59f72e8828ee76363288c038da9a4994beb72623c144d2
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/trace.csv
+      sha256: 9175ccc1b02eb99e3c2ce8def5d1f622473c4731f4031da5339e3d3e2d74daf9
+  scene_snapshot_post_episode_verified: true
+  readiness:
+    identity: *id001
+    minimum_message_count: 20
+    direct_counts:
+      activation_tracker_message_count: 89
+      activation_context_message_count: 30
+      evaluation_tracker_message_count: 418
+      evaluation_context_message_count: 140
+    pass: true
+  semantic_observation:
+    finite_ttc_sample_count: 31
+    non_none_overlay_count: 25
+  teardown_restore_verified: true
+- sequence: 2
+  identity: &id002
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i5-dynamic-conflict-single-s5161
+    seed: 5161
+    attempt: 1
+  status: evidence_complete
+  journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_98c64603ee95557865d05f0713d4a1881b54de0b94a0c061e2c90f6e514f92a7.yaml
+    sha256: f6384e2899377257619d208cb97d0fece5f3f9e73bdaabb26e53a36ae32d0ff0
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/activation.yaml
+      sha256: 7622c9a5481e1d2e9e7bf13248baecc1125f0081df6c929cd426dfb662ae881e
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/clearance.yaml
+      sha256: babddc11eeaaee8f8bf6a5b0d3f5fe604b0bf75ca21b58032aedecdedb28eea5
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/evaluation.yaml
+      sha256: 165921375221a3fba6fe1743a27c00c7af7b1daebdef18cae52823c30eeef65a
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/process.log
+      sha256: 060fa86be8990635d949bd78e1ef084556eaec028f4574fc29435b521e50ff90
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/teardown_receipt.yaml
+      sha256: 96fd3c56874f883fc4065dbf0b9613d8efe573b407f705e4edd486e1553cac66
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/02__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-single-s5161/raw/trace.csv
+      sha256: 80f5e8c46731cca69cb8b79dd888f652aa9550720ee8327687fbfc808399e0f8
+  scene_snapshot_post_episode_verified: true
+  readiness:
+    identity: *id002
+    minimum_message_count: 20
+    direct_counts:
+      activation_tracker_message_count: 88
+      activation_context_message_count: 30
+      evaluation_tracker_message_count: 318
+      evaluation_context_message_count: 107
+    pass: true
+  semantic_observation:
+    finite_ttc_sample_count: 30
+    non_none_overlay_count: 19
+  teardown_restore_verified: true
+- sequence: 3
+  identity: &id003
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+    seed: 5162
+    attempt: 1
+  status: evidence_complete
+  journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_29ef869eb2b99183c92c6afef3d37fd81d8cebfb34ff4d1e30cc05ab777e97cb.yaml
+    sha256: 64cc9501d2966781b76ec9b75710096b15dda0a71e94f96c3f53a1246eb7dc26
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/activation.yaml
+      sha256: b1fa5ca5a5dcddcd54acac53646d708a560fbf7639f8e6a8a8fb7e3899cc28f6
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/clearance.yaml
+      sha256: 717493796aa6dcfdb00e9ceecb219eb5976015f01102f570c60f1ab3b539a2b9
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/evaluation.yaml
+      sha256: a37c054247f2353450930c676759156d1628e989956d1532f235953e031b5e34
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/process.log
+      sha256: 90ad13f45ce9dc95d0a573ad8b64df46aca68eb09eb0ed06dcf6c0d0a1eef5ff
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/teardown_receipt.yaml
+      sha256: 6a82fc1e6742fefc91cbed1782600b6caae77596a05c246ddca3e67367fafe89
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/03__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/trace.csv
+      sha256: 656f2e1303066ce88ab794559e7e141acd4bb6b93d5c78c2a54c25b69f807659
+  scene_snapshot_post_episode_verified: true
+  readiness:
+    identity: *id003
+    minimum_message_count: 20
+    direct_counts:
+      activation_tracker_message_count: 88
+      activation_context_message_count: 30
+      evaluation_tracker_message_count: 1181
+      evaluation_context_message_count: 400
+    pass: true
+  semantic_observation:
+    finite_ttc_sample_count: 32
+    non_none_overlay_count: 19
+  teardown_restore_verified: true
+- sequence: 4
+  identity: &id004
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+    seed: 5162
+    attempt: 1
+  status: evidence_complete
+  journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_f89cae79f4a258fb07e3fb45b01494b19ec7234a183063f558ad5e88c4ea35bf.yaml
+    sha256: c49d6b5d1455c23e232a4393a716e2cda3a6e88cd4b652c8ec8968f85ae140c1
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/activation.yaml
+      sha256: f118f68da177ad1b7a47e0cdad3fc0f8982947c86202b78346fe332c1120211f
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/clearance.yaml
+      sha256: f8b2ffff73ae178c32f468bcb1f1461514d6465d53f4af7f359f72444d56784a
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/evaluation.yaml
+      sha256: f7e2daf5b917e88d1d0bc050b84b81cee9c430911fad07a37f1ff17cab9207eb
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/process.log
+      sha256: 503cf5727a6b9f82ea4369f2f3bc071e35ccbb6da8c912a7ddce403d983dea00
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/teardown_receipt.yaml
+      sha256: aaee9627b137e6cd23e791571131cfa41070f371433a92027a8c77c467a72112
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/04__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-conflict-multi-s5162/raw/trace.csv
+      sha256: 0f9df9c030ebde4cc3be6ff02114c17e3859ad0708b8aa8b0146742356d569ab
+  scene_snapshot_post_episode_verified: true
+  readiness:
+    identity: *id004
+    minimum_message_count: 20
+    direct_counts:
+      activation_tracker_message_count: 88
+      activation_context_message_count: 30
+      evaluation_tracker_message_count: 319
+      evaluation_context_message_count: 107
+    pass: true
+  semantic_observation:
+    finite_ttc_sample_count: 28
+    non_none_overlay_count: 30
+  teardown_restore_verified: true
+- sequence: 5
+  identity: &id005
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+    seed: 5163
+    attempt: 1
+  status: evidence_complete
+  journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_9c741ecb753191742d24c5b198f65c76ae982bb43c6936abb7a6e822f239815f.yaml
+    sha256: 43d5e0363e1be3c2aceaf4f8edd6c54d81f37741ab0b65f8af76e91145cccfcc
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/activation.yaml
+      sha256: 5c6de68f99ae40f60e7e3ec9e8feb74e98707a533be1d0b16be2d57f7fb9758a
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/clearance.yaml
+      sha256: f768b0441edd248d00b17806d0e1a388df18812daf5d639ad58f5a31b7187d70
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/evaluation.yaml
+      sha256: d877eebb36528611b56a4cb36721fa4b28f7168785babe1ade835590fecc641f
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/process.log
+      sha256: 3211c2cf1d7faee43095163bb4dd70de80aa535d3e619d5b075e69b7aa3432be
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/teardown_receipt.yaml
+      sha256: 736977564fcd46f4be963ec315acf6020375ac1720839e242ca1a3d97f2949c7
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/05__r6_semantics_legacy_control__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/trace.csv
+      sha256: a3c50990b4f5ed73554256019209e63dbe76d89602c4da3679c6b091373a190f
+  scene_snapshot_post_episode_verified: true
+  readiness:
+    identity: *id005
+    minimum_message_count: 20
+    direct_counts:
+      activation_tracker_message_count: 89
+      activation_context_message_count: 30
+      evaluation_tracker_message_count: 292
+      evaluation_context_message_count: 98
+    pass: true
+  semantic_observation:
+    finite_ttc_sample_count: 0
+    non_none_overlay_count: 18
+  teardown_restore_verified: true
+- sequence: 6
+  identity: &id006
+    stage: V2-04G-R6-I5
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+    seed: 5163
+    attempt: 1
+  status: evidence_complete
+  journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/journals/attempt_d196b95de2a91df54dab443896d105cc0ea268b7de6adce124e085a88f37e4e8.yaml
+    sha256: b62308ce7526fec67497562440352e2ad1af30561d0170d024dff99e8cba1419
+  raw_resources:
+    activation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/activation.yaml
+      sha256: b5bbee6748ac31b02915e3703eda32f8cbfe3e78be1231256c282b0e805677ab
+    clearance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/clearance.yaml
+      sha256: 7bc20dcb1d901f86b4e67ea115504e620ae6590021b8163d70c3e8507c4e4d76
+    evaluation:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/evaluation.yaml
+      sha256: 2e427f2c7db68a8f5768b3bb7e2227aca42fddb78619952d4fe894d6f0ee22da
+    process_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/process.log
+      sha256: 242d5890b0a26534fa3c7f4c1f64dbb0d93b2bcf7a87af3f4de3d33214ccb426
+    teardown_receipt:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/teardown_receipt.yaml
+      sha256: cff816d2c384709a0dd25d3ea2bbccc2600af7201fd6154f0c587f36199c6825
+    trace:
+      path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/attempts/06__r6_semantics_circle_contact__v2-04g-r6-i5-dynamic-semantic-clear-s5163/raw/trace.csv
+      sha256: 7230d594fbe028e2c1b13ee4e4206c73490fd1fa38c3b4c361d8bba3176a0588
+  scene_snapshot_post_episode_verified: true
+  readiness:
+    identity: *id006
+    minimum_message_count: 20
+    direct_counts:
+      activation_tracker_message_count: 89
+      activation_context_message_count: 30
+      evaluation_tracker_message_count: 280
+      evaluation_context_message_count: 94
+    pass: true
+  semantic_observation:
+    finite_ttc_sample_count: 0
+    non_none_overlay_count: 0
+  teardown_restore_verified: true
+integrity_failures: []
+ttc_status_matches_preregistration: true
+semantic_schedule_pass: true
+readiness_direct_counts_pass: true
+two_phase_teardown_restore_pass: true
+integration_validation_pass: true

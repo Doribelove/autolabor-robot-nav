@@ -1,0 +1,149 @@
+schema_version: 1
+suite: m2_chassis_regression
+simulation_only: true
+move_base_started: false
+seed: 42
+passed: true
+summary:
+  passed: 11
+  failed: 0
+  total: 11
+cases:
+- name: spawn_and_reset
+  passed: true
+  metrics:
+    reset_xy_error_m: 0.0
+    joint_count: 6
+    parameter_query: true
+  thresholds:
+    max_reset_xy_error_m: 0.03
+    minimum_joint_count: 6
+  message: passed
+  duration_sim_s: 0.388
+- name: static_stability
+  passed: true
+  metrics:
+    duration_s: 3.0
+    xy_drift_m: 8.995951105821384e-34
+    max_abs_roll_rad: 4.851632227345618e-23
+    max_abs_pitch_rad: 3.826497257674092e-18
+  thresholds:
+    max_xy_drift_m: 0.01
+    max_abs_roll_pitch_rad: 0.02
+  message: passed
+  duration_sim_s: 3.2739999999999996
+- name: straight_5m
+  passed: true
+  metrics:
+    target_m: 5.0
+    final_x_m: 5.0399999999999805
+    distance_error_m: 0.039999999999980496
+    lateral_error_m: 0.0
+    yaw_error_rad: 0.0
+  thresholds:
+    max_distance_error_m: 0.08
+    max_lateral_error_m: 0.03
+    max_yaw_error_rad: 0.02
+  message: passed
+  duration_sim_s: 5.39
+- name: straight_10m
+  passed: true
+  metrics:
+    target_m: 10.0
+    final_x_m: 10.039999999999875
+    distance_error_m: 0.0399999999998748
+    lateral_error_m: 0.0
+    yaw_error_rad: 0.0
+  thresholds:
+    max_distance_error_m: 0.08
+    max_lateral_error_m: 0.03
+    max_yaw_error_rad: 0.02
+  message: passed
+  duration_sim_s: 10.389999999999999
+- name: low_speed_reverse
+  passed: true
+  metrics:
+    speed_mps: -0.2
+    duration_s: 5.0
+    final_x_m: -1.0000000000000007
+    distance_error_m: 6.661338147750939e-16
+  thresholds:
+    max_distance_error_m: 0.06
+    max_lateral_error_m: 0.03
+  message: passed
+  duration_sim_s: 5.353999999999999
+- name: left_fixed_radius_circle
+  passed: true
+  metrics:
+    direction: left
+    command_radius_m: 1.4999999999999998
+    duration_s: 15.707963267948966
+    closure_error_m: 0.01922195896552958
+    yaw_closure_error_rad: 0.012814692820418225
+  thresholds:
+    max_closure_error_m: 0.18
+    max_yaw_closure_error_rad: 0.12
+  message: passed
+  duration_sim_s: 16.088
+- name: right_fixed_radius_circle
+  passed: true
+  metrics:
+    direction: right
+    command_radius_m: 1.4999999999999998
+    duration_s: 15.707963267948966
+    closure_error_m: 0.01922195896552958
+    yaw_closure_error_rad: 0.012814692820418225
+  thresholds:
+    max_closure_error_m: 0.18
+    max_yaw_closure_error_rad: 0.12
+  message: passed
+  duration_sim_s: 16.088
+- name: stop_response
+  passed: true
+  metrics:
+    initial_speed_mps: 1.0
+    response_time_s: 0.012000000000000455
+    braking_distance_m: 0.0
+  thresholds:
+    max_response_time_s: 0.08
+    max_braking_distance_m: 0.05
+  message: passed
+  duration_sim_s: 1.2860000000000014
+- name: scan_fixed_obstacle
+  passed: true
+  metrics:
+    expected_range_m: 4.75
+    measured_range_m: 4.752668762207032
+    absolute_error_m: 0.0026687622070316053
+    sample_count: 720
+  thresholds:
+    max_absolute_error_m: 0.06
+    expected_sample_count: 720
+  message: passed
+  duration_sim_s: 0.6779999999999973
+- name: tf_integrity
+  passed: true
+  metrics:
+    frame_count: 10
+    base_link_parent: odom
+    latest_transform_age_s: 0.014
+    cycle_found: false
+  thresholds:
+    max_transform_age_s: 0.15
+    required_base_link_parent: odom
+  message: passed
+  duration_sim_s: 0.30799999999999983
+- name: seed_reset_repeatability
+  passed: true
+  metrics:
+    seed: 42
+    reset_count: 3
+    x_span_m: 0.0
+    y_span_m: 0.0
+    yaw_span_rad: 0.0
+    center_scan_span_m: 0.010870933532714844
+  thresholds:
+    max_pose_span: 0.01
+    max_scan_span_m: 0.03
+  message: passed
+  duration_sim_s: 0.8219999999999956

@@ -1,0 +1,96 @@
+schema_version: "2.0"
+architecture_generation: v2
+amendment_id: fam_teb_v2_04c_ttc_qualification_r4_dynamic_fusion_1
+stage: V2-04C-Q-R4
+status: preregistered_before_retry
+formal_experiment: false
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+failed_r3_evidence:
+  preregistration:
+    path: experiments/manifests/v2/calibration/v2_04c_r3_preregistration.yaml
+    sha256: bcf57b226bc3014a37ce75b269b6dce8b721b7f5b7a46135b673a4b655a587b1
+  qualification_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_r3_plan.yaml
+    sha256: de41aaff83898e6fdb88226bc2f098d27d64605ad95f98bda6d341c887a7e0ea
+  qualification_progress:
+    path: artifacts/v2/calibration/v2_04c/qualification_r3/v2_04c_q_r3_batch_progress.yaml
+    sha256: 7f54c3f3dffa2959caad9062f7200fb3b2bd5bb52d4e767db4f601ac1589a6ae
+  qualification_assessment:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_r3.yaml
+    sha256: 4a582594a9309921eeb64a60507cdfc3fb7d76e54169914ea11e405bb2baee07
+
+single_changed_factor:
+  name: tracked_dynamic_costmap_spatial_fusion
+  r3_value: duplicated_costmap_points_plus_custom_tracked_obstacle
+  r4_value: replace_nearby_static_costmap_points_with_one_velocity_aware_tracked_obstacle
+  fusion_radius_m: max_0.25_or_track_radius_plus_0.15
+  only_nonzero_velocity_custom_obstacles: true
+  only_static_costmap_points_removed: true
+  costmap_fallback_retained: true
+
+fusion_resources:
+  teb_source:
+    path: src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp
+    sha256: 5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2
+  teb_source_repository_commit: b4cf0639775e4521cdf7681158043ad3eef4b01a
+  teb_simulation_binary:
+    path: devel/lib/libteb_local_planner.so
+    sha256: 7d17474e7901821d7f69bf10cdb909e4445f9010e32ee045452ad42c6ba1883e
+  tracker_bridge:
+    path: src/perception/nav_world_model/scripts/tracks_to_teb_obstacles.py
+    sha256: bc3079d0c06f0baa0388b933b53724a4eba3e5066e5e98e4fcac3ec82736d09c
+  simulation_launch:
+    path: src/simulation/m2_gazebo/launch/m2_v2_typed_teb.launch
+    sha256: 6551ba9a3e689213ed5305163e1184a3d199fc663ba7768aaad0793e05e4639c
+
+invariants:
+  base_contract:
+    path: config/thesis_experiments/v2/v2_04c_refinement_contract.yaml
+    sha256: bbd89356b530271f366489e08f33a10d16b503ecf19f4a849bc046a24ce0270b
+  scene_geometry_unchanged: true
+  actor_timing_unchanged: true
+  scene_seeds_unchanged: true
+  balanced_profile_values_unchanged: true
+  dynamic_overlay_unchanged: true
+  tracker_velocity_bridge_enabled: true
+  dynamic_episode_timeout_s: 80.0
+  ttc_semantics_unchanged: true
+  qualification_thresholds_unchanged: true
+  common_random_numbers_with_r1_r2_r3: true
+  runtime_scene_labels_available_to_policy: false
+
+qualification_gate:
+  planned_episode_count: 5
+  observed_conflict_fraction_min: 0.80
+  tracker_health_valid_fraction_min_per_episode: 0.95
+  tracker_invalid_count_max: 0
+  successful_episode_count_min: 5
+  collision_count_max: 0
+  interface_failure_count_max: 0
+  failure_action: stop_before_refinement_and_preregister_new_contract
+
+conditional_refinement_authorization:
+  qualification_must_pass: true
+  refinement_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_refinement_plan.yaml
+    sha256: 29b1e1bd88066d7f34c63db776fd13c5f52545e85fa3ce6864f67a568c769ada
+  tracker_velocity_bridge_enabled: true
+  tracked_dynamic_costmap_spatial_fusion_enabled: true
+  dynamic_episode_timeout_s: 80.0
+  non_dynamic_scene_timeout_unchanged: true
+  planned_navigation_episode_count: 180
+  early_stopping_allowed: false
+  incomplete_candidate_selection_allowed: false
+
+claims:
+  r1_r2_r3_evidence_is_immutable: true
+  single_fusion_factor_retry: true
+  refinement_started: false
+  anchor_values_frozen: false
+  v2_04d_started: false
+  sac_training_started: false
+  real_vehicle_validated: false

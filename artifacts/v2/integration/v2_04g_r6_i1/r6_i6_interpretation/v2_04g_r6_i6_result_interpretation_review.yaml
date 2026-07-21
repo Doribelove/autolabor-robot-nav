@@ -1,0 +1,130 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-R6-I6
+review_id: fam_teb_v2_04g_r6_i6_result_interpretation_review_1
+status: offline_result_interpretation_design_closure_pass
+review_result: pass
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_started: false
+real_vehicle_used: false
+contract:
+  path: config/thesis_experiments/v2/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_r6_i5_r6_i6_offline_result_interpretation_design_contract.yaml
+  sha256: d140ff1e11f6b8c2f77e015a3da726a973253261c8ddcebe5180b513c31d5613
+source_evidence_verified:
+  evidence_freeze_manifest:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i6_interpretation/i5_evidence_freeze.sha256
+    sha256: 40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935
+  i5_execution_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_release.yaml
+    sha256: 9cef80f5c4eaf562719a71bb11fadd2cded7208d2ade07a22b09d7b6058b3d43
+  i5_preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_preregistration.yaml
+    sha256: 602fc1044fb9e3e8ac284e77cadcbaced95c5edfb9721df0da26f876cc42c073
+  i5_authorization:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_bounded_simulation_authorization.yaml
+    sha256: bc59820b0140b50503657966d735511a8007d9ec8e14f3f2cf237791ff170592
+  i5_dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/execution_dependency_closure.yaml
+    sha256: b351d892263adf00ec0b8362b0afd1b98b00342d327090b5171463227120d97d
+  i5_readiness_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_execution_readiness_review.yaml
+    sha256: d4456bba057ee231aab7df77276df05407daaa14723a67a6658d3f49009b18c4
+  i5_stage_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_stage_report.yaml
+    sha256: 501ab197eacd9926d9760402e2c8586e37edc4d288c5c4cb0610024a8a1c5fef
+  i5_execution_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_execution_report.yaml
+    sha256: 8ed096601c13cc45fba34d32d5ae78477cabd345b9730df8ab4eced7fc0e5599
+  r5_terminal_stage_report:
+    path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_stage_report.yaml
+    sha256: d0da836c0a80506a8edd227ce057b46eef815b9e23e59555ed4cd585174d7077
+  d1_offline_diagnosis_report:
+    path: artifacts/v2/diagnosis/v2_04g_ttc_d1/v2_04g_ttc_d1_report.yaml
+    sha256: e8983d6bb9fc805c807d289cb65949b5d08b4eab8984a72760febde91d6bb063
+  r6_i1_terminal_stage_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_stage_report.yaml
+    sha256: 7b1744474278f43d563e1e362ee02e64c9746db30a31bf0dfc26897a8018a50e
+  r6_i1_terminal_assessment:
+    path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_terminal_assessment.yaml
+    sha256: 8a13a9e7c284a21f0537d591b5bb0959a64c9ee9eb1525038fbd8fbc3f3c0e1d
+  failed_i3_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+    sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  i4_preflight_integrity_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review/v2_04g_r6_i4_preflight_integrity_readiness_review.yaml
+    sha256: 3f183768e657ec17f4fd1045ffd0749d13213cc53017a09c6e166d840d647b12
+i5_replay_verification:
+  journal_bindings_verified: 6
+  raw_resource_bindings_verified: 36
+  semantic_observations:
+  - sequence: 1
+    profile_id: r6_semantics_legacy_control
+    finite_ttc_sample_count: 31
+    non_none_overlay_count: 25
+  - sequence: 2
+    profile_id: r6_semantics_circle_contact
+    finite_ttc_sample_count: 30
+    non_none_overlay_count: 19
+  - sequence: 3
+    profile_id: r6_semantics_circle_contact
+    finite_ttc_sample_count: 32
+    non_none_overlay_count: 19
+  - sequence: 4
+    profile_id: r6_semantics_legacy_control
+    finite_ttc_sample_count: 28
+    non_none_overlay_count: 30
+  - sequence: 5
+    profile_id: r6_semantics_legacy_control
+    finite_ttc_sample_count: 0
+    non_none_overlay_count: 18
+  - sequence: 6
+    profile_id: r6_semantics_circle_contact
+    finite_ttc_sample_count: 0
+    non_none_overlay_count: 0
+i5_interpretation:
+  integration_claim_supported: true
+  performance_claim_supported: false
+  performance_improvement_established: false
+  allowed_claims:
+  - i5_completed_all_six_fresh_simulation_integration_units
+  - i5_expected_and_observed_ttc_status_matched_all_six_units
+  - i5_direct_readiness_bootstrap_scene_snapshot_and_teardown_gates_passed
+  - circle_contact_semantics_suppressed_legacy_non_none_overlay_in_the_single_semantic_clear_i5_scene
+  - i5_supports_semantic_and_execution_integration_correctness_only
+  forbidden_claims:
+  - navigation_performance_improvement
+  - safety_superiority
+  - generalization
+  - winner_or_best_profile
+  - whole_system_superiority
+  - learning_or_training_gain
+  - real_vehicle_validity
+  - deployment_readiness
+  claim_limit: fresh_simulation_semantic_and_execution_integration_only
+future_performance_design:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i6_future_multiseed_performance_design.yaml
+  sha256: a5b74aa99cb63785aa3993ba7cae40974baa3ab9b6aace71ee9cb815e08d379c
+  summary:
+    scene_seed_blocks: 90
+    planned_episode_count: 270
+    confirmatory_pair_episode_count: 180
+    training_budget_steps: 0
+    execution_authorized: false
+    primary_comparison: r6_semantics_circle_contact_vs_r6_semantics_legacy_control
+    claim_scope: fresh_simulation_dynamic_interaction_only
+  capable_of_testing_targeted_improvement: true
+  guarantees_positive_result: false
+  separate_execution_review_and_authorization_required: true
+side_effect_audit:
+  i5_rerun_or_resume: false
+  ros_or_gazebo_started: false
+  training_started: false
+  seed_or_evidence_consumed: false
+  execution_material_created: false
+  real_vehicle_connected: false
+closure_pass: true

@@ -1,0 +1,136 @@
+schema_version: "2.0"
+stage: V2-04G-R6-I1
+derivation_id: fam_teb_v2_04g_r6_i1_semantic_integration_scenes_1
+status: integration_preregistered_execution_not_authorized
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+source_manifest:
+  path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_ttc_readiness_scenes.yaml
+  sha256: 648ac7821b9f41373c0bce0d961f61068f71b11e346a22daf227a108e25b8d99
+target_manifest_id: fam_teb_v2_04g_r6_i1_semantic_integration_scenes_1
+target_path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_scenes.yaml
+execution_probe_seeds: [5141, 5142, 5143]
+compile_support_only_seeds: [5144, 5145, 5146, 5147]
+seed_roles:
+  5141: single_track_circle_contact
+  5142: multi_track_circle_contact
+  5143: time_separated_centerline_crossing
+  5144: compile_support_only_cruise
+  5145: compile_support_only_static_dense
+  5146: compile_support_only_corridor
+  5147: compile_support_only_maneuver
+scene_derivations:
+  - source_scene_id: v2-04g-r5-readiness-dynamic-conflict-s5111
+    target_scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+    seed: 5141
+    execution_role: paired_semantic_probe
+    layout_variant: v2_04g_r6_i1_single_circle_contact
+    evaluator_reason: preregistered_single_track_circle_contact
+    scene_patch:
+      dynamic_agents:
+        - agent_id: crossing-agent
+          shape: box
+          size_m: [0.55, 0.55, 1.7]
+          loop: false
+          trajectory:
+            - {time_s: 10.9, x_m: 8.0, y_m: -3.5, yaw_rad: 1.5707963267948966}
+            - {time_s: 18.9, x_m: 8.0, y_m: 3.5, yaw_rad: 1.5707963267948966}
+      randomization:
+        position_jitter_m: 0.0
+        yaw_jitter_rad: 0.0
+        agent_time_jitter_s: 0.0
+  - source_scene_id: v2-04g-r5-readiness-dynamic-conflict-s5112
+    target_scene_id: v2-04g-r6-i1-dynamic-conflict-multi-s5142
+    seed: 5142
+    execution_role: paired_semantic_probe
+    layout_variant: v2_04g_r6_i1_multi_circle_contact
+    evaluator_reason: preregistered_multi_track_circle_contact
+    scene_patch:
+      dynamic_agents:
+        - agent_id: crossing-agent-a
+          shape: box
+          size_m: [0.55, 0.55, 1.7]
+          loop: false
+          trajectory:
+            - {time_s: 10.5, x_m: 7.5, y_m: -3.5, yaw_rad: 1.5707963267948966}
+            - {time_s: 18.5, x_m: 7.5, y_m: 3.5, yaw_rad: 1.5707963267948966}
+        - agent_id: crossing-agent-b
+          shape: box
+          size_m: [0.55, 0.55, 1.7]
+          loop: false
+          trajectory:
+            - {time_s: 12.3, x_m: 9.5, y_m: 3.5, yaw_rad: -1.5707963267948966}
+            - {time_s: 20.3, x_m: 9.5, y_m: -3.5, yaw_rad: -1.5707963267948966}
+      randomization:
+        position_jitter_m: 0.0
+        yaw_jitter_rad: 0.0
+        agent_time_jitter_s: 0.0
+  - source_scene_id: v2-04g-r5-readiness-dynamic-conflict-s5111
+    target_scene_id: v2-04g-r6-i1-dynamic-semantic-clear-s5143
+    seed: 5143
+    execution_role: paired_semantic_probe
+    layout_variant: v2_04g_r6_i1_time_separated_crossing
+    evaluator_reason: preregistered_time_separated_centerline_crossing
+    scene_patch:
+      dynamic_agents:
+        - agent_id: crossing-agent
+          shape: box
+          size_m: [0.55, 0.55, 1.7]
+          loop: false
+          trajectory:
+            - {time_s: 7.0, x_m: 8.0, y_m: -3.5, yaw_rad: 1.5707963267948966}
+            - {time_s: 15.0, x_m: 8.0, y_m: 3.5, yaw_rad: 1.5707963267948966}
+      randomization:
+        position_jitter_m: 0.0
+        yaw_jitter_rad: 0.0
+        agent_time_jitter_s: 0.0
+  - source_scene_id: v2-04g-r5-readiness-compile-support-cruise-s5114
+    target_scene_id: v2-04g-r6-i1-compile-support-cruise-s5144
+    seed: 5144
+    execution_role: compile_support_only_never_execute
+    layout_variant: v2_04g_r6_i1_compile_support_cruise
+    evaluator_reason: compile_support_only_not_evidence
+  - source_scene_id: v2-04g-r5-readiness-compile-support-static-s5115
+    target_scene_id: v2-04g-r6-i1-compile-support-static-s5145
+    seed: 5145
+    execution_role: compile_support_only_never_execute
+    layout_variant: v2_04g_r6_i1_compile_support_static
+    evaluator_reason: compile_support_only_not_evidence
+  - source_scene_id: v2-04g-r5-readiness-compile-support-corridor-s5116
+    target_scene_id: v2-04g-r6-i1-compile-support-corridor-s5146
+    seed: 5146
+    execution_role: compile_support_only_never_execute
+    layout_variant: v2_04g_r6_i1_compile_support_corridor
+    evaluator_reason: compile_support_only_not_evidence
+  - source_scene_id: v2-04g-r5-readiness-compile-support-maneuver-s5117
+    target_scene_id: v2-04g-r6-i1-compile-support-maneuver-s5147
+    seed: 5147
+    execution_role: compile_support_only_never_execute
+    layout_variant: v2_04g_r6_i1_compile_support_maneuver
+    evaluator_reason: compile_support_only_not_evidence
+forbidden_seed_sets:
+  held_out_5001_5010: [5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010]
+  r5_terminal_allocation_5111_5135: [5111, 5112, 5113, 5114, 5115, 5116, 5117, 5118, 5119, 5120, 5121, 5122, 5123, 5124, 5125, 5126, 5127, 5128, 5129, 5130, 5131, 5132, 5133, 5134, 5135]
+  prior_failed_identities: [4902, 4973, 4996, 5073, 5094, 5111]
+offline_truth_screen:
+  source_robot_trace: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/trace.csv
+  source_robot_trace_sha256: e23990fbfd6e3f80f6abe8f841b90eb096204cbdf55d0d66ca52bc28f99b7bbc
+  claim_limit: preregistration_timing_screen_only_not_new_evidence
+  robot_arrival_reference:
+    x_7_5_m_time_s: 14.488
+    x_8_0_m_time_s: 14.888
+    x_9_5_m_time_s: 16.288
+  actor_crossing_times_s:
+    v2-04g-r6-i1-dynamic-conflict-single-s5141: [14.9]
+    v2-04g-r6-i1-dynamic-conflict-multi-s5142: [14.5, 16.3]
+    v2-04g-r6-i1-dynamic-semantic-clear-s5143: [11.0]
+  absolute_arrival_delta_s:
+    v2-04g-r6-i1-dynamic-conflict-single-s5141: [0.012]
+    v2-04g-r6-i1-dynamic-conflict-multi-s5142: [0.012, 0.012]
+    v2-04g-r6-i1-dynamic-semantic-clear-s5143: [3.888]
+  conflict_delta_max_s: 0.05
+  semantic_clear_delta_min_s: 3.5
+  screen_pass: true

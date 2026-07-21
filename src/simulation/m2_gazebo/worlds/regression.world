@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="m2_regression">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="deterministic_physics" type="ode">
+      <max_step_size>0.002</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
+    <include><uri>model://sun</uri></include>
+    <include><uri>model://ground_plane</uri></include>
+    <!-- At reset the laser origin is x=0 and the near face is x=4.75 m. -->
+    <model name="scan_target">
+      <static>true</static>
+      <pose>5 0 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.5 2.0 1.5</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.5 2.0 1.5</size></box></geometry><material><ambient>0.8 0.2 0.1 1</ambient></material></visual>
+      </link>
+    </model>
+  </world>
+</sdf>

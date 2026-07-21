@@ -1,0 +1,130 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R2-R1
+contract_id: fam_teb_v2_04g_r2_r1_readiness_fault_taxonomy_repair_1
+status: preregistered_before_probe
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+navigation_allowed_in_this_stage: false
+real_vehicle_use_forbidden: true
+
+scope:
+  split: calibration
+  readiness_only: true
+  changed_factor: activation_readiness_fault_taxonomy_and_stable_window
+  candidate_numeric_values_changed: false
+  join_source_or_limits_changed: false
+  typed_transaction_runtime_changed: false
+  planned_probe_count: 6
+  navigation_episode_budget: 0
+  validation_data_use: forbidden
+
+frozen_runtime_dependencies:
+  bounded_join_source_sha256: 485a5c57397c845982508f1f4c67739ad8c58ebf2f63c9336a08e2f0f3157442
+  r1_typed_join_node_sha256: 08f245eccd3bd4dc770d0d4e68227f026980fdbc7fdeba563e3780d5d26c11ae
+  r2_candidate_bank_sha256: 78c434703091147bfeee174906744ff89d71ebafc8156d7b0691937476667f6d
+  idempotent_transaction_source_sha256: 2ad255dea35715709384c02683836847a9089b1a729677f7739d2b9ea53aabf1
+  r2_typed_transaction_node_sha256: bf704a571d39e8bff1915d4f67e970e13c119877a2619d55148446a21fe57e47
+  join_limits:
+    maximum_entries: 32
+    maximum_arrival_age_s: 1.0
+    maximum_sequence_delta: 2
+    maximum_timestamp_delta_s: 0.45
+    future_sequence_allowed: false
+    future_timestamp_allowed: false
+
+fault_taxonomy:
+  classes:
+    CLEAN:
+      predicate: fault_reason is empty
+      hard_fault: false
+    EXPECTED_FAIL_CLOSED_CONTEXT_HOLD:
+      exact_reason: invalid_or_faulted_context_hold_previous_executed
+      meaning: invalid or FAULTED context caused the transaction loop to hold the previous executed profile
+      hard_fault: false
+    BACKEND_TRANSACTION_FAULT:
+      case_insensitive_substrings:
+        - acknowledgement
+        - readback
+        - restore
+        - dynamic_reconfigure
+        - timed out
+        - timeout
+        - outside live bounds
+        - typed request
+      meaning: typed request, acknowledgement, readback, timeout, or restore failure
+      hard_fault: true
+    UNKNOWN_TRANSACTION_FAULT:
+      predicate: nonempty fault_reason not matched above
+      hard_fault: true
+  classification_order:
+    - CLEAN
+    - EXPECTED_FAIL_CLOSED_CONTEXT_HOLD
+    - BACKEND_TRANSACTION_FAULT
+    - UNKNOWN_TRANSACTION_FAULT
+  required_fault_snapshot_fields:
+    - full fault_reason
+    - fault taxonomy class
+    - transaction stamp, world_model_seq, mode_seq, and config_seq
+    - transaction valid and activated flags
+    - geometry, overlay, and transition enums
+    - execution backend
+    - latest ContextState validity, reason, sequence, enums, and arrival age
+    - latest mechanism join validity, reason, deltas, and transaction state
+
+stable_readiness_window:
+  source_stream: /teb_mode_manager/mechanism_state
+  required_consecutive_stable_count: 10
+  stable_predicate:
+    join_valid: true
+    transaction_valid: true
+    transaction_activated: true
+    transaction_fault_reason: empty
+  reset_to_zero_on_any_unstable_message: true
+  measurement_starts_only_after_barrier: true
+  warmup_timeout_s: 12.0
+
+measurement:
+  duration_s: 6.0
+  minimum_message_count_per_stream: 20
+  minimum_transaction_activated_fraction: 0.95
+  minimum_transaction_valid_fraction: 0.95
+  minimum_join_valid_fraction: 0.95
+  maximum_expected_context_hold_count: 1
+  maximum_backend_transaction_fault_count: 0
+  maximum_unknown_transaction_fault_count: 0
+  allowed_join_reasons: [EXACT_SEQUENCE_JOIN, BOUNDED_SEQUENCE_TIME_JOIN]
+  required_execution_backend: simulation_teb_dynamic_reconfigure
+  training_message_count_max: 0
+
+hard_gates:
+  all_six_probes_required: true
+  consecutive_stable_readiness_required: true
+  complete_fault_taxonomy_required: true
+  full_fault_snapshots_required_for_every_nonempty_reason: true
+  backend_transaction_fault_count_max: 0
+  unknown_transaction_fault_count_max: 0
+  expected_context_hold_count_max_per_probe: 1
+  join_valid_fraction_min_per_probe: 0.95
+  transaction_valid_fraction_min_per_probe: 0.95
+  transaction_activated_fraction_min_per_probe: 0.95
+  runtime_scene_labels_or_manifest_access: forbidden
+  learned_policy_loaded: false
+
+stopping_rules:
+  - any failed probe stops the round and preserves completed evidence
+  - a failed report cannot be overwritten or retried inside this round
+  - budget expansion is forbidden
+  - navigation, TTC qualification, SAC, and real vehicle are outside this round
+
+pass_boundary:
+  readiness_taxonomy_repair_complete_if_6_of_6_pass: true
+  new_full_calibration_preregistration_authorized_after_pass: true
+  current_r2_navigation_resume_authorized: false
+  candidate_freeze_authorized: false
+  held_out_validation_authorized: false
+  v2_05_authorized: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false

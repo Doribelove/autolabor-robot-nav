@@ -1,0 +1,39 @@
+schema_version: '2.0'
+stage: V2-04G
+status: complete
+simulation_only: true
+runtime_ready: false
+training_used: false
+real_vehicle_used: false
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04g_preregistration.yaml
+  sha256: e851cc5ee3d79f568e62f16d466a0cde2e1d755c5db2e0c53014589322ac8796
+probe_count: 3
+expected_status_order:
+- OBSERVED_CONFLICT
+- NO_CONFLICT_IN_HORIZON
+- TRACKER_INVALID
+observed_status_order:
+- OBSERVED_CONFLICT
+- NO_CONFLICT_IN_HORIZON
+- TRACKER_INVALID
+all_three_states_pass: true
+probes:
+- probe_id: healthy_observed_conflict
+  tracker_message_count: 1
+  healthy_tracker_sample_count: 1
+  finite_ttc_sample_count: 1
+  finite_ttc_s: 2.3219959134333696
+  status: OBSERVED_CONFLICT
+- probe_id: healthy_no_conflict_in_horizon
+  tracker_message_count: 1
+  healthy_tracker_sample_count: 1
+  finite_ttc_sample_count: 0
+  finite_ttc_s: null
+  status: NO_CONFLICT_IN_HORIZON
+- probe_id: tracker_invalid_fail_closed
+  tracker_message_count: 0
+  healthy_tracker_sample_count: 0
+  finite_ttc_sample_count: 0
+  finite_ttc_s: null
+  status: TRACKER_INVALID

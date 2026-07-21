@@ -1,0 +1,142 @@
+schema_version: '2.0'
+stage: V2-04E2
+status: calibration_complete_no_freeze
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+contract:
+  path: config/thesis_experiments/v2/v2_04e2_rule_supervisor_repair_contract.yaml
+  sha256: 813c3e4cd1bd0a45da8ea43e03b364b5cdf4de76a44ba2552594bd73ba1dd33e
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04e2_preregistration.yaml
+  sha256: 52ba85331215c0dc9000ea951a9d5a42b73f7218456c756b39cdd7609671f9e7
+valid_evidence_episode_count: 15
+candidate_summaries:
+  pocket_e_guarded:
+    hard_gate_pass: false
+    checks:
+      valid_episode_count: true
+      success_count: false
+      collision_count: true
+      typed_transaction_valid: true
+      training_unused: true
+      cruise_fraction: false
+      cruise_static_absorption: true
+      static_fraction: true
+      corridor_fraction: true
+      maneuver_fraction: true
+      switch_max: true
+      switch_mean: true
+    success_count: 4
+    collision_count: 0
+    expected_family_mode_fraction_sum: 2.5557740108390044
+    maneuver_fraction: 0.20103092783505155
+    cruise_static_dense_fraction: 0.0
+    active_anchor_switch_counts:
+    - 3
+    - 1
+    - 1
+    - 0
+    - 3
+    active_anchor_switch_count_total: 8
+    navigation_time_s_total: 138.5
+    evidence:
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_001__pocket_e_guarded__v2-04e2-cruise-s4711/evaluation.yaml
+      sha256: 603abf836cf0f737f40c8008b2025bec5cbb05bd41ef37c7b0d4f9608f7ec481
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_002__pocket_e_guarded__v2-04e2-dynamic-s4712/evaluation.yaml
+      sha256: e94a6ff29f61c08e3252f94d1abfbf65dacbaf60a663bfc157a909c004b994b4
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_003__pocket_e_guarded__v2-04e2-static-s4713/evaluation.yaml
+      sha256: b53b8f00bf0c93a06b5ca27f585fd9304db28e10815fadb521ee068e054fae56
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_004__pocket_e_guarded__v2-04e2-corridor-s4714/evaluation.yaml
+      sha256: 1fcfc5cd9f99343e197874eb89dae39d238f552d28569e2473955314a517906a
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_005__pocket_e_guarded__v2-04e2-maneuver-s4715/evaluation.yaml
+      sha256: 458aba500e33d2038e1cc4afbd5b4a572496c91bfb5a5fc87184fc850af98944
+  pocket_f_strong_hold:
+    hard_gate_pass: false
+    checks:
+      valid_episode_count: true
+      success_count: true
+      collision_count: true
+      typed_transaction_valid: true
+      training_unused: true
+      cruise_fraction: true
+      cruise_static_absorption: true
+      static_fraction: true
+      corridor_fraction: true
+      maneuver_fraction: true
+      switch_max: false
+      switch_mean: false
+    success_count: 5
+    collision_count: 0
+    expected_family_mode_fraction_sum: 2.028202548625084
+    maneuver_fraction: 0.1746031746031746
+    cruise_static_dense_fraction: 0.0
+    active_anchor_switch_counts:
+    - 3
+    - 2
+    - 1
+    - 4
+    - 4
+    active_anchor_switch_count_total: 14
+    navigation_time_s_total: 135.10000000000002
+    evidence:
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_006__pocket_f_strong_hold__v2-04e2-cruise-s4711/evaluation.yaml
+      sha256: 3edd9a8312b0e05b145a4baed532a439f8a53d845047a9302d8458559fa3ef20
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_007__pocket_f_strong_hold__v2-04e2-dynamic-s4712/evaluation.yaml
+      sha256: 9a7ef38cc7829aa234a9ac08ee06bbd8ec9290cc5105606e06f775a5344e19fa
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_008__pocket_f_strong_hold__v2-04e2-static-s4713/evaluation.yaml
+      sha256: 4e30f4768a6837257ee3a8a2487cb6180933e256ba7ae64af74cb8ce2218e0ad
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_009__pocket_f_strong_hold__v2-04e2-corridor-s4714/evaluation.yaml
+      sha256: a7aa52209b67b9cee68c2fc868a994737e39fdce8c6dcae7d65d2e21bba874ab
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_010__pocket_f_strong_hold__v2-04e2-maneuver-s4715/evaluation.yaml
+      sha256: 4510b760bede01184095b1d0a4310f5c1d796b53f3b3dfab86cdfd0604d434a8
+  pocket_g_wide_hold:
+    hard_gate_pass: false
+    checks:
+      valid_episode_count: true
+      success_count: true
+      collision_count: true
+      typed_transaction_valid: true
+      training_unused: true
+      cruise_fraction: false
+      cruise_static_absorption: true
+      static_fraction: true
+      corridor_fraction: true
+      maneuver_fraction: true
+      switch_max: true
+      switch_mean: true
+    success_count: 5
+    collision_count: 0
+    expected_family_mode_fraction_sum: 2.296099071697874
+    maneuver_fraction: 0.23353293413173654
+    cruise_static_dense_fraction: 0.0
+    active_anchor_switch_counts:
+    - 3
+    - 1
+    - 1
+    - 2
+    - 1
+    active_anchor_switch_count_total: 8
+    navigation_time_s_total: 133.2
+    evidence:
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_011__pocket_g_wide_hold__v2-04e2-cruise-s4711/evaluation.yaml
+      sha256: eb4b5caec985cf8e35ae0f1111b82208bb0811211466709a540f59508dfadae8
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_012__pocket_g_wide_hold__v2-04e2-dynamic-s4712/evaluation.yaml
+      sha256: b7caf273f32b8ab5a878b9ba978fb49ed3e7f67befa53412ab27a4f3d8b88a3d
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_013__pocket_g_wide_hold__v2-04e2-static-s4713/evaluation.yaml
+      sha256: 9ef7e94608fa2cde20c632e11aa85d88af944fb4bbccb09a09604e324e79035a
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_014__pocket_g_wide_hold__v2-04e2-corridor-s4714/evaluation.yaml
+      sha256: 10f85c6bfb4307b6cb17df3a65a64ddffdd5da9e0dc94fa5f0a49443f0eff205
+    - path: artifacts/v2/calibration/v2_04e2/episodes/ep_015__pocket_g_wide_hold__v2-04e2-maneuver-s4715/evaluation.yaml
+      sha256: 5540e98598b040f8b358312384717eaf00b1f7937b6e37b76078653491e61d23
+passing_candidate_ids: []
+selected_candidate_id: null
+decision:
+  freeze_rule_supervisor_authorized: false
+  held_out_validation_authorized: false
+  new_calibration_only_repair_stage_required: true
+  v2_04d_validation_data_used_for_selection: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false

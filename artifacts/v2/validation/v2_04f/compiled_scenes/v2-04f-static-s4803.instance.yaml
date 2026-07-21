@@ -1,0 +1,92 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+scene:
+  scene_id: v2-04f-static-s4803
+  family: STATIC_DENSE
+  split: validation
+  seed: 4803
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 13.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 50.0
+  layout:
+    variant: v2_04f_static
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 13.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: pillar-1
+    shape: box
+    pose:
+      x_m: 3.132237643471416
+      y_m: -0.7703121375919358
+      yaw_rad: -0.0274454247341873
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-2
+    shape: box
+    pose:
+      x_m: 5.748565979619622
+      y_m: 0.6602884519211968
+      yaw_rad: 0.01888225088110973
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-3
+    shape: box
+    pose:
+      x_m: 8.37185235589155
+      y_m: -0.76023585963239
+      yaw_rad: -0.020524983302927312
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-4
+    shape: box
+    pose:
+      x_m: 10.660041088170386
+      y_m: 0.652591087176054
+      yaw_rad: 0.0006670394943711665
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.1
+    yaw_jitter_rad: 0.03
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.25
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: fresh_held_out_after_v2_04e4_supervisor_freeze
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: 246dc9378cfc2bf2dfb3d5585db32a294b3e7d86b86412b6f789094947d5074f

@@ -1,0 +1,62 @@
+schema_version: '2.0'
+architecture_generation: v2
+evaluator_id: fam_teb_v2_02_evaluator_1
+formal_result: false
+runtime_ready: false
+scene_id: v2-04d-dynamic-s4602
+family: DYNAMIC
+split: validation
+seed: 4602
+instance_sha256: 7e40ed45bacc31668c9d591ad8791df9294f10229b64331263a84110992e38a0
+raw_trace_sha256: 31fc5b0693f8170df1c48e7b8afe11ef89ae48fcd8c05f19d57be0beb3856c58
+termination: SUCCESS
+metrics:
+  common:
+    success: true
+    collision: false
+    navigation_time_s: 34.1
+    path_length_m: 18.134062852655347
+    mean_abs_speed_mps: 0.5318684799525729
+    minimum_clearance_m: 0.6497059162150047
+    stop_count: 2
+    reverse_distance_m: 0.0029232807184227843
+  family:
+    minimum_predicted_ttc_s: 1.206478702201995
+    stop_count: 2
+    interaction_clearance_m: 1.166878635911167
+stage: V2-04D
+method: rule_multi_anchor
+episode_timeout_s: 80.0
+tracker_message_count: 505
+tracker_health_valid_fraction: 1.0
+finite_ttc_sample_count: 5
+ttc_status: OBSERVED_CONFLICT
+context_message_count: 173
+context_valid_count: 172
+context_geometry_sequence:
+- STATIC_DENSE
+- BALANCED
+- STATIC_DENSE
+- BALANCED
+- STATIC_DENSE
+context_geometry_switch_count: 4
+transaction_message_count: 172
+transaction_valid_count: 171
+transaction_activated_count: 171
+transaction_fault_count: 1
+transaction_backends:
+- simulation_teb_dynamic_reconfigure
+active_anchor_sequence:
+- anchor_static_dense
+- anchor_balanced
+- anchor_static_dense
+- anchor_balanced
+- anchor_static_dense
+active_anchor_switch_count: 4
+typed_transaction_expected: true
+typed_transaction_valid: true
+training_used: false
+runtime_policy_manifest_access: false
+runtime_scene_labels_available: false
+experiment_manager_validation_manifest_access: true
+runner_fault_reason: ''

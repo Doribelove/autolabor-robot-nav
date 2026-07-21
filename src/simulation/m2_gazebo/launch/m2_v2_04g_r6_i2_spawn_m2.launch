@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- R6-I2 repair-only copy.  No seed value or execution authorization is
+       embedded.  The xacro executable is an explicit, review-bound input. -->
+  <arg name="world"/>
+  <arg name="seed"/>
+  <arg name="xacro_executable"/>
+  <arg name="gui" default="false"/>
+  <arg name="paused" default="true"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="z" default="0.02"/>
+  <arg name="yaw" default="0.0"/>
+  <arg name="enable_actuator_dynamics" default="true"/>
+  <arg name="speed_time_constant" default="0.22"/>
+  <arg name="steering_time_constant" default="0.18"/>
+  <arg name="max_acceleration" default="1.20"/>
+  <arg name="max_deceleration" default="1.60"/>
+  <arg name="max_brake_deceleration" default="2.40"/>
+  <arg name="max_emergency_deceleration" default="3.00"/>
+  <arg name="max_steering_rate" default="0.80"/>
+  <arg name="command_delay" default="0.08"/>
+  <arg name="command_jitter" default="0.015"/>
+  <arg name="laser_topic" default="/v2/scan_raw"/>
+  <arg name="laser_noise_stddev" default="0.0"/>
+
+  <param name="use_sim_time" value="$(arg use_sim_time)"/>
+  <param name="/m2_gazebo/simulation_only" value="true"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="extra_gazebo_args" value="--seed $(arg seed)"/>
+  </include>
+
+  <param name="robot_description"
+         command="$(arg xacro_executable) --inorder '$(find m2_gazebo)/urdf/m2.urdf.xacro' enable_actuator_dynamics:=$(arg enable_actuator_dynamics) dynamics_seed:=$(arg seed) speed_time_constant:=$(arg speed_time_constant) steering_time_constant:=$(arg steering_time_constant) max_acceleration:=$(arg max_acceleration) max_deceleration:=$(arg max_deceleration) max_brake_deceleration:=$(arg max_brake_deceleration) max_emergency_deceleration:=$(arg max_emergency_deceleration) max_steering_rate:=$(arg max_steering_rate) command_delay:=$(arg command_delay) command_jitter:=$(arg command_jitter) laser_topic:=$(arg laser_topic) laser_noise_stddev:=$(arg laser_noise_stddev)"/>
+  <node pkg="gazebo_ros"
+        type="spawn_model"
+        name="spawn_m2"
+        output="screen"
+        args="-urdf -param robot_description -model autolabor_m2 -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw)"/>
+  <node pkg="robot_state_publisher"
+        type="robot_state_publisher"
+        name="m2_robot_state_publisher"
+        output="screen">
+    <param name="publish_frequency" value="30.0"/>
+  </node>
+</launch>

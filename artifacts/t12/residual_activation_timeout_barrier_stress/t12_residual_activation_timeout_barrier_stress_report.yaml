@@ -1,0 +1,40 @@
+schema_version: '1.0'
+task: T12
+study: residual_activation_timeout_recovery_barrier_stress
+formal_result: false
+expanded_budget: false
+launch_exit_status: 0
+training_seed: 101
+training_timesteps: 1300
+boundary_audit: {}
+training_scene_ids: []
+episode_count: 0
+step_count: 0
+first_step_previous_to_anchor_normalized_l1_max: null
+projection_intervention_rate: .inf
+validation_mean_returns: []
+event_counts:
+  move_base_crash: 1
+  sigsegv: 1
+  activation_timeout: 0
+  interface_fault: 0
+  dynamic_reconfigure_failure: 0
+  collision: 0
+  emergency_stop: 0
+  test_goal: 0
+gates:
+  run_complete: false
+  recovery_barrier_protocol_recorded: false
+  boundary_quiesce_failure_count_zero: false
+  move_base_crash_count_zero: false
+  activation_timeout_count_zero: true
+  interface_fault_count_zero: true
+  dynamic_reconfigure_failure_count_zero: true
+  all_episode_first_steps_match_anchor: false
+  all_five_training_scenes_observed: false
+  test_collision_count_zero: true
+  test_emergency_stop_count_zero: true
+  test_goal_count_seven: false
+integrity_passed: false
+proceed_to_full_two_seed: false
+decision: stop_without_baseline_pairing

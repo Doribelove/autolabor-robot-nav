@@ -1,0 +1,126 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_04b_typed_transaction_calibration_1
+status: calibration_started
+simulation_only: true
+formal_experiment: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+resources:
+  anchor_bank:
+    path: src/application/teb_mode_manager/config/v2_04_anchor_bank_candidate.yaml
+    sha256: 3480e0e5389fd2641bf707399ee0fe5c8abc890f45565e1b4b3ad77c4e14bed4
+  calibration_scene_manifest:
+    path: experiments/manifests/v2/calibration/v2_04b_anchor_calibration_scenes.yaml
+    sha256: b32c60e56dc907e590151c4f5456f7f95ae0e042317ce63f6961f577e61d3ac4
+  gazebo_startup_profile:
+    path: src/simulation/m2_gazebo/config/v2_04b_calibration_teb.yaml
+    sha256: 1e9f4953dad4494e30692da3d9ab27b23d3c924a83b0a9e79a8bfefba355a171
+
+write_gate:
+  explicit_opt_in_required: true
+  use_sim_time_required: true
+  simulation_marker_required: /m2_gazebo/simulation_only
+  active_gazebo_clock_required: true
+  exact_teb_namespace: /move_base/TebLocalPlannerROS
+  generic_runtime_write_enabled: false
+  real_vehicle_write_enabled: false
+
+typed_transaction:
+  parameter_count: 20
+  type_counts: {double: 18, int: 1, bool: 1}
+  complete_profile_single_request: true
+  live_description_validation_required: true
+  live_type_validation_required: true
+  live_range_validation_required: true
+  acknowledgement_required: true
+  callback_readback_required: true
+  activation_barrier: teb_reconfigure_callback_before_service_reply
+  failure_restore_target: previous_executed
+  shutdown_restore_target: startup_snapshot
+  timeout_s: 2.0
+  equality_tolerance: 1.0e-9
+
+calibration:
+  selection_split: calibration
+  permitted_manifest_splits: [calibration]
+  forbidden_selection_splits: [validation, test_id, test_ood]
+  strategy: deterministic_one_factor_screen_then_bounded_refinement
+  selection_order: safety_feasibility_then_family_objective_lexicographic
+  coordinate_step_fraction_of_domain: 0.10
+  coordinate_levels: [-1, 0, 1]
+  candidate_budget_per_anchor: 9
+  common_random_numbers: true
+  runtime_scene_labels_allowed: false
+  evaluator_output_is_policy_input: false
+  anchor_scene_families:
+    anchor_balanced: [CRUISE, DYNAMIC, STATIC_DENSE, CORRIDOR, MANEUVER]
+    anchor_cruise: [CRUISE]
+    anchor_static_dense: [STATIC_DENSE]
+    anchor_corridor: [CORRIDOR]
+    anchor_maneuver_forward: [MANEUVER]
+    anchor_maneuver_reverse: [MANEUVER]
+  dynamic_overlay_by_family:
+    CRUISE: NONE
+    DYNAMIC: CROSSING
+    STATIC_DENSE: NONE
+    CORRIDOR: NONE
+    MANEUVER: NONE
+  screening_coordinates:
+    anchor_balanced: [max_vel_x, min_obstacle_dist, weight_obstacle, weight_viapoint]
+    anchor_cruise: [max_vel_x, acc_lim_x, weight_viapoint, weight_optimaltime]
+    anchor_static_dense: [min_obstacle_dist, inflation_dist, weight_obstacle, switching_blocking_period]
+    anchor_corridor: [max_vel_x, max_vel_theta, min_obstacle_dist, weight_viapoint]
+    anchor_maneuver_forward: [max_vel_x, max_vel_theta, weight_obstacle, weight_viapoint]
+    anchor_maneuver_reverse: [max_vel_x_backwards, max_vel_theta, weight_obstacle, weight_viapoint]
+  hard_gates:
+    collision_count_max: 0
+    interface_failure_count_max: 0
+    minimum_clearance_m_min: 0.25
+    successful_episode_required: true
+  family_objectives:
+    CRUISE:
+      - {metric: navigation_time_s, direction: minimize}
+      - {metric: lateral_rms_m, direction: minimize}
+      - {metric: heading_oscillation_rad, direction: minimize}
+      - {metric: unnecessary_deceleration_count, direction: minimize}
+    DYNAMIC:
+      - {metric: collision, direction: minimize}
+      - {metric: minimum_predicted_ttc_s, direction: maximize}
+      - {metric: stop_count, direction: minimize}
+      - {metric: navigation_time_s, direction: minimize}
+    STATIC_DENSE:
+      - {metric: success, direction: maximize}
+      - {metric: topology_switch_count, direction: minimize}
+      - {metric: recovery_count, direction: minimize}
+      - {metric: navigation_time_s, direction: minimize}
+    CORRIDOR:
+      - {metric: success, direction: maximize}
+      - {metric: lateral_rms_m, direction: minimize}
+      - {metric: heading_oscillation_rad, direction: minimize}
+      - {metric: navigation_time_s, direction: minimize}
+    MANEUVER:
+      - {metric: success, direction: maximize}
+      - {metric: gear_switch_while_moving_count, direction: minimize}
+      - {metric: navigation_time_s, direction: minimize}
+      - {metric: path_length_m, direction: minimize}
+
+acceptance_gates:
+  actual_gazebo_transaction_probe_required: true
+  startup_snapshot_restore_required: true
+  all_typed_stages_reconstructible: true
+  calibration_scene_count: 5
+  generated_candidate_count: 54
+  planned_calibration_episode_count: 90
+  navigation_episode_count_min_before_freeze: 30
+
+claims:
+  typed_teb_transaction_implemented: true
+  anchor_calibration_started: true
+  anchor_calibration_complete: false
+  anchor_values_frozen: false
+  navigation_performance_improved: false
+  sac_training_started: false
+  real_vehicle_validated: false

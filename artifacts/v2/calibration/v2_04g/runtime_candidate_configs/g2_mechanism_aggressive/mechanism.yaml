@@ -1,0 +1,40 @@
+schema_version: '2.0'
+architecture_generation: v2
+stage: V2-04G
+profile_id: fam_teb_v2_04g_g2_mechanism_aggressive_mechanism
+status: calibration_candidate
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+static_topology:
+  unlock_front_clearance_m: 0.5
+  residuals:
+    max_vel_x: 0.35
+    weight_viapoint: 0.35
+    weight_optimaltime: 0.5
+corridor_centerline:
+  correction_offset_m: 0.08
+  centered_residuals:
+    max_vel_x: 0.4
+    weight_optimaltime: 0.4
+  correction_residuals:
+    max_vel_x: -0.15
+    weight_viapoint: 0.75
+maneuver:
+  reverse_rear_clearance_min_m: 1.4
+  reverse_front_clearance_max_m: 3.6
+  reverse_heading_error_min_rad: 1.9
+  forward_residuals:
+    max_vel_x: 0.35
+    weight_optimaltime: 0.4
+  reverse_residuals:
+    max_vel_x: 0.5
+    weight_optimaltime: 0.45
+dynamic_release:
+  overlay_release_confirmation_s: 0.2
+policy_boundary:
+  runtime_scene_labels_allowed: false
+  runtime_manifest_access: false
+  published_velocity_commands: false
+  learned_policy_loaded: false

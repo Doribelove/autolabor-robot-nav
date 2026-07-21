@@ -1,0 +1,78 @@
+schema_version: "2.0"
+stage: V2-04E
+split: calibration
+preregistration_id: fam_teb_v2_04e_rule_supervisor_repair_r1_preregistration_1
+status: frozen_before_restarting_calibration_navigation
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_use_forbidden: true
+
+supersedes:
+  path: experiments/manifests/v2/calibration/v2_04e_preregistration.yaml
+  sha256: d1d3006a6d9d24852717745144555e9faf3e804a265216ce127c8df074063cbd
+  accepted_evidence_episode_count: 0
+amendment:
+  path: config/thesis_experiments/v2/v2_04e_r1_split_adapter_amendment.yaml
+  sha256: d72b06164bfc2c12e992b88bd3553342d5af1425f59afdaee0975d20f0b3bf0a
+
+resources:
+  contract:
+    path: config/thesis_experiments/v2/v2_04e_rule_supervisor_repair_contract.yaml
+    sha256: 479576dd7069e9a7981f7a67033a3fc8bcef46d1a974102dd7aa3ca2bf61bf45
+  candidate_bank:
+    path: experiments/manifests/v2/calibration/v2_04e_supervisor_candidates.yaml
+    sha256: c2102fdca5d2aff68c5b03ca64499f4f6b452faf398fd200bea3ddbbf1c4c17a
+  calibration_scenes:
+    path: experiments/manifests/v2/calibration/v2_04e_supervisor_calibration_scenes.yaml
+    sha256: 397921e0311ac70b0e54cee090ce418d89b0de434f36ee62c7432a4b4d7827bb
+  compiled_scene_index:
+    path: artifacts/v2/calibration/v2_04e/compiled_scenes/compiled_scene_index.yaml
+    sha256: 9863eda5aec6a4fb7433a963bc23c547bbfd72aba5e291946a12df4cd4d6d191
+  repaired_supervisor_source:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/rule_supervisor.py
+    sha256: f41cdb1c3d3505914ef6175963f077dbafbf757f24316547caddffd327544894
+  experiment_launch:
+    path: src/simulation/m2_gazebo/launch/m2_v2_04e_04f_supervisor_experiment.launch
+    sha256: 077209828c8c3401ba562b16d6a153f24e213730db3d4d24865a3ea6eef14031
+  episode_runner:
+    path: src/tools/thesis_experiment/scripts/v2_supervisor_repair_episode.py
+    sha256: c38591e22c601f0107e15fe090de4b07a04338de8eafd703cc137ec58cc98b6c
+  batch_runner:
+    path: src/tools/thesis_experiment/scripts/v2_supervisor_experiment_batch.py
+    sha256: bb7bb2731760c5a1cdf3ab5bfd9c8410a17ff39ed8a7a076ff658d520a4718ab
+  frozen_anchor_bank:
+    path: src/application/teb_mode_manager/config/v2_04c_anchor_bank_frozen.yaml
+    sha256: b1365f2b14e4a77f4e715bc46369fa4277e9adbb8522190153f7abd2ce635b9d
+
+candidate_ids:
+  - repair_a_balanced
+  - repair_b_sensitive_maneuver
+  - repair_c_cruise_guarded
+  - repair_d_strong_hysteresis
+scene_ids:
+  - v2-04e-cruise-s4701
+  - v2-04e-dynamic-s4702
+  - v2-04e-static-s4703
+  - v2-04e-corridor-s4704
+  - v2-04e-maneuver-s4705
+budget:
+  candidate_count: 4
+  calibration_scene_count: 5
+  planned_navigation_episode_count: 20
+  attempts_per_interface_failure: 2
+  early_stopping_allowed: false
+data_firewall:
+  allowed_seed_set: [4701, 4702, 4703, 4704, 4705]
+  forbidden_v2_04d_validation_seed_set: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610]
+  v2_04d_artifact_reads_by_selector_allowed: false
+  held_out_v2_04f_seed_set_reserved_and_unopened: [4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+claims:
+  evaluator_only_amendment: true
+  candidate_search_unchanged: true
+  runtime_scene_labels_available: false
+  anchor_bank_unchanged: true
+  validation_not_started: true
+  sac_training_started: false
+  real_vehicle_validated: false

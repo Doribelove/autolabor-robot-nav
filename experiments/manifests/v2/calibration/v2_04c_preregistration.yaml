@@ -1,0 +1,41 @@
+schema_version: "2.0"
+stage: V2-04C
+preregistration_id: fam_teb_v2_04c_refinement_preregistration_1
+status: frozen_before_navigation
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_use_forbidden: true
+resources:
+  contract:
+    path: config/thesis_experiments/v2/v2_04c_refinement_contract.yaml
+    sha256: bbd89356b530271f366489e08f33a10d16b503ecf19f4a849bc046a24ce0270b
+  qualification_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_plan.yaml
+    sha256: 13932da6c28f9ddfb148dd0ee840385436e644c0962df26878c55b0512034c0f
+  refinement_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_refinement_plan.yaml
+    sha256: 29b1e1bd88066d7f34c63db776fd13c5f52545e85fa3ce6864f67a568c769ada
+  qualification_compiled_scenes:
+    path: artifacts/v2/calibration/v2_04c/qualification/compiled_scenes/compiled_scene_index.yaml
+    sha256: 194b9ebee877554ebe5bd0e0c35a090f23c2ad951a083b5677a173c8d6bd7402
+  refinement_compiled_scenes:
+    path: artifacts/v2/calibration/v2_04c/refinement/compiled_scenes/compiled_scene_index.yaml
+    sha256: 684b8cb94bfb4e124caecc5a4f7c21967fb997f1ccf6f3cf1ce3b367c59180aa
+budgets:
+  ttc_qualification_episode_count: 5
+  refinement_candidate_count: 54
+  refinement_episode_count: 180
+  early_stopping_allowed: false
+boundaries:
+  selection_split: calibration
+  validation_or_test_selection_allowed: false
+  sac_training_allowed: false
+  real_vehicle_allowed: false
+claims:
+  aggregation_fixed_before_navigation: true
+  ttc_semantics_fixed_before_navigation: true
+  joint_candidates_fixed_before_navigation: true
+  new_calibration_seeds_fixed_before_navigation: true
+  freeze_gate_fixed_before_navigation: true

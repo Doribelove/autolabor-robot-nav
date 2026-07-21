@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="autolabor_m2">
+  <xacro:arg name="prefix" default=""/>
+  <xacro:arg name="publish_tf" default="true"/>
+  <xacro:arg name="enable_actuator_dynamics" default="false"/>
+  <xacro:arg name="dynamics_seed" default="42"/>
+  <xacro:arg name="speed_time_constant" default="0.22"/>
+  <xacro:arg name="steering_time_constant" default="0.18"/>
+  <xacro:arg name="max_acceleration" default="1.20"/>
+  <xacro:arg name="max_deceleration" default="1.60"/>
+  <xacro:arg name="max_brake_deceleration" default="2.40"/>
+  <xacro:arg name="max_emergency_deceleration" default="3.00"/>
+  <xacro:arg name="max_steering_rate" default="0.80"/>
+  <xacro:arg name="command_delay" default="0.0"/>
+  <xacro:arg name="command_jitter" default="0.0"/>
+  <xacro:arg name="laser_topic" default="scan"/>
+  <xacro:arg name="laser_noise_stddev" default="0.01"/>
+
+  <!-- Simulation candidates only; authoritative provenance is in
+       config/simulation_candidates.yaml. -->
+  <xacro:property name="prefix" value="$(arg prefix)"/>
+  <xacro:property name="body_length" value="1.04"/>
+  <xacro:property name="body_width" value="0.70"/>
+  <xacro:property name="body_height" value="0.32"/>
+  <xacro:property name="body_center_z" value="0.27"/>
+  <xacro:property name="wheelbase" value="0.65"/>
+  <xacro:property name="track" value="0.60"/>
+  <xacro:property name="wheel_radius" value="0.15"/>
+  <xacro:property name="wheel_width" value="0.08"/>
+  <xacro:property name="mass" value="80.0"/>
+  <xacro:property name="max_steer" value="0.4964"/>
+
+  <xacro:include filename="$(find m2_gazebo)/urdf/m2_base.xacro"/>
+  <xacro:include filename="$(find m2_gazebo)/urdf/m2_sensors.xacro"/>
+  <xacro:include filename="$(find m2_gazebo)/urdf/m2_gazebo.xacro"/>
+
+  <xacro:m2_base/>
+  <xacro:m2_sensors/>
+  <xacro:m2_gazebo
+      publish_tf="$(arg publish_tf)"
+      enable_actuator_dynamics="$(arg enable_actuator_dynamics)"
+      dynamics_seed="$(arg dynamics_seed)"
+      speed_time_constant="$(arg speed_time_constant)"
+      steering_time_constant="$(arg steering_time_constant)"
+      max_acceleration="$(arg max_acceleration)"
+      max_deceleration="$(arg max_deceleration)"
+      max_brake_deceleration="$(arg max_brake_deceleration)"
+      max_emergency_deceleration="$(arg max_emergency_deceleration)"
+      max_steering_rate="$(arg max_steering_rate)"
+      command_delay="$(arg command_delay)"
+      command_jitter="$(arg command_jitter)"
+      laser_topic="$(arg laser_topic)"
+      laser_noise_stddev="$(arg laser_noise_stddev)"/>
+</robot>

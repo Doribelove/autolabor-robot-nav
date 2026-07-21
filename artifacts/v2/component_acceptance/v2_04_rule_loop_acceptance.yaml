@@ -1,0 +1,116 @@
+schema_version: '2.0'
+stage: V2-04
+status: passed
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+real_teb_parameter_write_used: false
+execution_backend: deterministic_shadow
+anchor_bank_id: fam_teb_v2_04_anchor_bank_sim_candidate_1
+parameter_count: 20
+profile_type_counts:
+  double: 18
+  int: 1
+  bool: 1
+anchor_count: 6
+overlay_count: 5
+normal_rule_loop:
+  schedule_segments: 10
+  transaction_count: 800
+  activated_count: 800
+  projection_count: 0
+  projection_rate: 0.0
+  projection_gate_max: 0.1
+  continuous_jump_count: 0
+  maximum_continuous_rate_ratio: 1.0000000000000862
+  slow_profile_commit_count: 4
+  complete_trace_reconstruction: true
+  all_training_used_false: true
+fault_atomicity:
+- fault: timeout
+  held_previous_executed: true
+  fault_reason: shadow_request_timeout
+- fault: ack_mismatch
+  held_previous_executed: true
+  fault_reason: shadow_ack_mismatch
+- fault: readback_mismatch
+  held_previous_executed: true
+  fault_reason: shadow_readback_mismatch
+switch_first_steps:
+- mode_seq: 1
+  geometry_mode: BALANCED
+  dynamic_overlay: NONE
+  anchor_id: anchor_balanced
+  max_vel_x_commanded: 0.9
+  max_vel_x_previous_executed: 0.9
+  max_vel_x_executed: 0.9
+- mode_seq: 2
+  geometry_mode: CRUISE
+  dynamic_overlay: NONE
+  anchor_id: anchor_cruise
+  max_vel_x_commanded: 1.2
+  max_vel_x_previous_executed: 0.9
+  max_vel_x_executed: 0.9999999999999997
+- mode_seq: 3
+  geometry_mode: CRUISE
+  dynamic_overlay: CROSSING
+  anchor_id: anchor_cruise
+  max_vel_x_commanded: 0.66
+  max_vel_x_previous_executed: 1.2
+  max_vel_x_executed: 1.0999999999999985
+- mode_seq: 4
+  geometry_mode: STATIC_DENSE
+  dynamic_overlay: NONE
+  anchor_id: anchor_static_dense
+  max_vel_x_commanded: 0.7
+  max_vel_x_previous_executed: 0.66
+  max_vel_x_executed: 0.7
+- mode_seq: 5
+  geometry_mode: STATIC_DENSE
+  dynamic_overlay: HEAD_ON
+  anchor_id: anchor_static_dense
+  max_vel_x_commanded: 0.27999999999999997
+  max_vel_x_previous_executed: 0.7
+  max_vel_x_executed: 0.5999999999999985
+- mode_seq: 6
+  geometry_mode: CORRIDOR
+  dynamic_overlay: NONE
+  anchor_id: anchor_corridor
+  max_vel_x_commanded: 0.5
+  max_vel_x_previous_executed: 0.27999999999999997
+  max_vel_x_executed: 0.3800000000000014
+- mode_seq: 7
+  geometry_mode: CORRIDOR
+  dynamic_overlay: FOLLOW
+  anchor_id: anchor_corridor
+  max_vel_x_commanded: 0.35
+  max_vel_x_previous_executed: 0.5
+  max_vel_x_executed: 0.3999999999999986
+- mode_seq: 8
+  geometry_mode: MANEUVER
+  dynamic_overlay: NONE
+  anchor_id: anchor_maneuver_forward
+  max_vel_x_commanded: 0.4
+  max_vel_x_previous_executed: 0.35
+  max_vel_x_executed: 0.4
+- mode_seq: 9
+  geometry_mode: MANEUVER
+  dynamic_overlay: OVERTAKE_OR_YIELD
+  anchor_id: anchor_maneuver_reverse
+  max_vel_x_commanded: 0.175
+  max_vel_x_previous_executed: 0.4
+  max_vel_x_executed: 0.2999999999999915
+- mode_seq: 10
+  geometry_mode: BALANCED
+  dynamic_overlay: NONE
+  anchor_id: anchor_balanced
+  max_vel_x_commanded: 0.9
+  max_vel_x_previous_executed: 0.175
+  max_vel_x_executed: 0.2750000000000085
+claims:
+  anchor_values_formally_calibrated: false
+  navigation_performance_improved: false
+  gazebo_navigation_closed_loop_completed: false
+  real_vehicle_validated: false

@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="v2-02-maneuver-dead-end">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="v2_deterministic" type="ode">
+      <max_step_size>0.002</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <model name="dead-end-left-wall">
+      <static>true</static>
+      <pose>3.509528404 1.340964241 0.600000000 0 0 -0.003464446</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>5.000000 0.200000 1.200000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>5.000000 0.200000 1.200000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="dead-end-right-wall">
+      <static>true</static>
+      <pose>3.492664819 -1.361727330 0.600000000 0 0 0.000101650</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>5.000000 0.200000 1.200000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>5.000000 0.200000 1.200000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <model name="dead-end-back-wall">
+      <static>true</static>
+      <pose>6.000025525 0.002940671 0.600000000 0 0 -0.004761999</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.200000 2.900000 1.200000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.200000 2.900000 1.200000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

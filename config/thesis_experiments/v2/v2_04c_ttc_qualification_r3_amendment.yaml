@@ -1,0 +1,102 @@
+schema_version: "2.0"
+architecture_generation: v2
+amendment_id: fam_teb_v2_04c_ttc_qualification_r3_tracker_teb_bridge_1
+stage: V2-04C-Q-R3
+status: preregistered_before_retry
+formal_experiment: false
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+failed_r2_evidence:
+  preregistration:
+    path: experiments/manifests/v2/calibration/v2_04c_r2_preregistration.yaml
+    sha256: 6b126c7ef8b5912ae17428c212d37bfd598d9ab877cc403a728f27d968d62eef
+  qualification_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_r2_plan.yaml
+    sha256: f050c8f41cac2d81c6ce3f3572dd63b14fc7f39b9faa8f45b755d6f0a72b7d40
+  qualification_progress:
+    path: artifacts/v2/calibration/v2_04c/qualification_r2/v2_04c_q_r2_batch_progress.yaml
+    sha256: 8cc90e2640711ef65f7060e5b80f465be1fdd8150ce114d7944f0fc1cf10e46d
+  qualification_assessment:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_r2.yaml
+    sha256: 6c0a026a7f88681d2ace5c44d9a242b709354a9cc194eee03b666428d39ea964
+
+single_changed_factor:
+  name: healthy_tracker_velocity_bridge_to_teb_custom_obstacles
+  r2_value: disabled
+  r3_value: enabled
+  input: /nav_world_model/tracks
+  health_gate: /nav_world_model/health
+  output: /move_base/TebLocalPlannerROS/obstacles
+  fixed_frame: odom
+  invalid_health_behavior: publish_empty_dynamic_overlay_and_retain_costmap_fallback
+  selected_motion_classes: [CROSSING, HEAD_ON, FOLLOWING, DEPARTING]
+  minimum_track_confidence: 0.55
+
+bridge_resources:
+  conversion_core:
+    path: src/perception/nav_world_model/src/nav_world_model/teb_bridge.py
+    sha256: 252ea6bed656fe622787b5db63867243089558591e0ca819d1babb7eff074a45
+  ros_adapter:
+    path: src/perception/nav_world_model/scripts/tracks_to_teb_obstacles.py
+    sha256: bc3079d0c06f0baa0388b933b53724a4eba3e5066e5e98e4fcac3ec82736d09c
+  world_model_launch:
+    path: src/perception/nav_world_model/launch/v2_03_world_model.launch
+    sha256: ea190371af328d3aa9e8ea8d8628edaa7bae38366d7035f6769b131f039713fc
+  simulation_launch:
+    path: src/simulation/m2_gazebo/launch/m2_v2_typed_teb.launch
+    sha256: 6551ba9a3e689213ed5305163e1184a3d199fc663ba7768aaad0793e05e4639c
+  episode_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04b_calibration_episode.py
+    sha256: fbc72e4f1e15a3eb22369abf9e2b6e54204e51c9f005f0873c0572573e531a32
+  batch_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04b_calibration_batch.py
+    sha256: ab3c11543403b46fba3ca8bb3011b5543cc7a5c6b9bb093317a610139ad253f1
+
+invariants:
+  base_contract:
+    path: config/thesis_experiments/v2/v2_04c_refinement_contract.yaml
+    sha256: bbd89356b530271f366489e08f33a10d16b503ecf19f4a849bc046a24ce0270b
+  scene_geometry_unchanged: true
+  actor_timing_unchanged: true
+  scene_seeds_unchanged: true
+  balanced_profile_values_unchanged: true
+  dynamic_overlay_unchanged: true
+  dynamic_episode_timeout_s: 80.0
+  ttc_semantics_unchanged: true
+  qualification_thresholds_unchanged: true
+  common_random_numbers_with_r1_r2: true
+  runtime_scene_labels_available_to_policy: false
+
+qualification_gate:
+  planned_episode_count: 5
+  observed_conflict_fraction_min: 0.80
+  tracker_health_valid_fraction_min_per_episode: 0.95
+  tracker_invalid_count_max: 0
+  successful_episode_count_min: 5
+  collision_count_max: 0
+  interface_failure_count_max: 0
+  failure_action: stop_before_refinement_and_preregister_new_contract
+
+conditional_refinement_authorization:
+  qualification_must_pass: true
+  refinement_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_refinement_plan.yaml
+    sha256: 29b1e1bd88066d7f34c63db776fd13c5f52545e85fa3ce6864f67a568c769ada
+  tracker_velocity_bridge_enabled: true
+  dynamic_episode_timeout_s: 80.0
+  non_dynamic_scene_timeout_unchanged: true
+  planned_navigation_episode_count: 180
+  early_stopping_allowed: false
+  incomplete_candidate_selection_allowed: false
+
+claims:
+  r1_r2_evidence_is_immutable: true
+  single_architecture_factor_retry: true
+  refinement_started: false
+  anchor_values_frozen: false
+  v2_04d_started: false
+  sac_training_started: false
+  real_vehicle_validated: false

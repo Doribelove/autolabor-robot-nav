@@ -1,0 +1,150 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-I1
+preregistration_id: fam_teb_v2_04g_r6_i1_execution_integration_1
+status: integration_preregistered_execution_not_authorized
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+objective: >-
+  Integrate the single frozen R6 conflict-estimator selector into the ROS
+  runtime and validate runtime/evaluator finite-TTC eligibility plus all six
+  D1 integrity repairs on a bounded, fresh-seed simulation schedule.
+claim_limit: simulation_integration_only_not_safety_performance_or_generalization
+single_changed_factor:
+  name: dynamic_conflict_estimator_semantics
+  runtime_field: supervisor.dynamic.conflict_estimator_id
+  factor_count: 1
+  only_profile_field_allowed_to_differ: true
+  atomic_subcomponents:
+    - conflict_eligibility_primitive
+    - tracked_footprint_radius_interpretation
+    - multi_track_conflict_selection_order
+  levels:
+    r6_semantics_legacy_control: legacy_class_conditioned_geometry_v1
+    r6_semantics_circle_contact: shared_circle_envelope_first_contact_v1
+  winner_eligible_profiles: []
+frozen_common_values:
+  predicted_ttc_max_s: 5.0
+  evaluator_ttc_horizon_s: 5.0
+  minimum_track_confidence: 0.45
+  robot_radius_m: 0.62
+  minimum_relative_speed_mps: 0.05
+  world_model_prediction_horizon_s: 2.0
+  closest_approach_max_m: 1.35
+  overlay_release_confirmation_s: 0.20
+  horizon_values_1_5_or_1_0_enabled: false
+  evaluator_changed: false
+  anchor_bank_changed: false
+  mechanism_changed: false
+  scene_timing_posthoc_change_allowed: false
+fresh_seed_firewall:
+  execution_seeds: [5141, 5142, 5143]
+  compile_support_only_seeds: [5144, 5145, 5146, 5147]
+  seed5111_or_r5_allocation_reused: false
+  r5_allocated_interval_5111_5135_forbidden: true
+  held_out_5001_5010_forbidden: true
+  prior_failed_seed_retry: false
+  seed_substitution_after_execution: false
+budget:
+  evidence_unit_definition: one_profile_x_one_execution_scene_x_attempt_1
+  evidence_units_authorizable: 6
+  evidence_units_authorized_before_separate_authorization: 0
+  evidence_units_consumed_before_authorization: 0
+  compile_support_evidence_units: 0
+  attempt_limit_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+  replacement_seed_allowed: false
+  budget_expansion_allowed: false
+  failure_stops_stage_and_forfeits_unattempted_units: true
+schedule:
+  - sequence: 1
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+    seed: 5141
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none
+  - sequence: 2
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+    seed: 5141
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none_iff_finite_ttc
+  - sequence: 3
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i1-dynamic-conflict-multi-s5142
+    seed: 5142
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none_iff_finite_ttc
+  - sequence: 4
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i1-dynamic-conflict-multi-s5142
+    seed: 5142
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none
+  - sequence: 5
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i1-dynamic-semantic-clear-s5143
+    seed: 5143
+    attempt: 1
+    expected_ttc_status: NO_CONFLICT_IN_HORIZON
+    expected_overlay_semantics: legacy_non_none_identifiability
+  - sequence: 6
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i1-dynamic-semantic-clear-s5143
+    seed: 5143
+    attempt: 1
+    expected_ttc_status: NO_CONFLICT_IN_HORIZON
+    expected_overlay_semantics: none_iff_no_finite_ttc
+readiness_gate:
+  minimum_message_count_per_stream: 20
+  warmup_timeout_s: 12.0
+  measurement_duration_s: 6.0
+  minimum_valid_fraction: 0.95
+  required_consecutive_stable_count: 10
+  maximum_expected_context_hold_count_per_probe: 3
+  activation_tracker_and_context_counts_direct: true
+  evaluation_tracker_and_context_counts_direct: true
+integrity_gates:
+  required_risk_ids:
+    - D1-RISK-READINESS-DIRECT-COUNTS
+    - D1-RISK-COMPILED-SCENE-TOCTOU
+    - D1-RISK-SIGINT-IN-PROGRESS
+    - D1-RISK-ASSESSMENT-RAW-BINDING
+    - D1-RISK-EXECUTION-HASH-CLOSURE
+    - D1-RISK-TEARDOWN-RESTORE
+  canonical_attempt_journal_outermost: true
+  scene_snapshot_command_only: true
+  exact_six_file_raw_inventory: true
+  persisted_assessor_replays_all_journals: true
+  dependency_closure_regenerated_before_any_journal_or_subprocess: true
+  initial_independent_readback_before_transaction_arm: true
+  transaction_write_barrier_until_journal_bound: true
+  restore_ack_readback_and_independent_readback_before_normal_stop: true
+  emergency_containment_is_terminal_failure_not_pass: true
+execution_order:
+  - offline_integration_review_pass
+  - separate_authorization_hash_trust_anchor
+  - dependency_and_process_preflight_before_ledger
+  - exact_schedule_until_complete_or_first_terminal_failure
+  - persisted_journal_assessment
+downstream_forbidden:
+  r5_retry_or_resume: true
+  r5_remaining_68_units: true
+  held_out_5001_5010: true
+  rank_or_freeze_winner: true
+  v2_05: true
+  sac_or_any_training: true
+  real_vehicle: true
+  real_vehicle_teb_write: true
+  formal_or_runtime_ready_claim: true
+resources: {}

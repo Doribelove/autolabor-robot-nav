@@ -1,0 +1,25 @@
+schema_version: "2.0"
+stage: V2-04F
+derivation_id: fam_teb_v2_04f_fresh_held_out_scene_derivation_1
+status: frozen_after_supervisor_freeze_before_validation_navigation
+source_manifest:
+  path: experiments/manifests/v2/calibration/v2_04e_supervisor_calibration_scenes.yaml
+  sha256: 397921e0311ac70b0e54cee090ce418d89b0de434f36ee62c7432a4b4d7827bb
+target_manifest_id: fam_teb_v2_04f_fresh_held_out_validation_scenes_1
+target_path: artifacts/v2/validation/v2_04f/v2_04f_paired_validation_scenes.yaml
+split: validation
+evaluator_reason: fresh_held_out_after_v2_04e4_supervisor_freeze
+scene_replacements:
+  - {source_scene_id: v2-04e-cruise-s4701, target_scene_id: v2-04f-cruise-s4801, seed: 4801, layout_variant: v2_04f_cruise}
+  - {source_scene_id: v2-04e-cruise-s4701, target_scene_id: v2-04f-cruise-s4806, seed: 4806, layout_variant: v2_04f_cruise}
+  - {source_scene_id: v2-04e-dynamic-s4702, target_scene_id: v2-04f-dynamic-s4802, seed: 4802, layout_variant: v2_04f_ttc_crossing}
+  - {source_scene_id: v2-04e-dynamic-s4702, target_scene_id: v2-04f-dynamic-s4807, seed: 4807, layout_variant: v2_04f_ttc_crossing}
+  - {source_scene_id: v2-04e-static-s4703, target_scene_id: v2-04f-static-s4803, seed: 4803, layout_variant: v2_04f_static}
+  - {source_scene_id: v2-04e-static-s4703, target_scene_id: v2-04f-static-s4808, seed: 4808, layout_variant: v2_04f_static}
+  - {source_scene_id: v2-04e-corridor-s4704, target_scene_id: v2-04f-corridor-s4804, seed: 4804, layout_variant: v2_04f_corridor}
+  - {source_scene_id: v2-04e-corridor-s4704, target_scene_id: v2-04f-corridor-s4809, seed: 4809, layout_variant: v2_04f_corridor}
+  - {source_scene_id: v2-04e-maneuver-s4705, target_scene_id: v2-04f-maneuver-s4805, seed: 4805, layout_variant: v2_04f_maneuver}
+  - {source_scene_id: v2-04e-maneuver-s4705, target_scene_id: v2-04f-maneuver-s4810, seed: 4810, layout_variant: v2_04f_maneuver}
+forbidden_seed_sets:
+  v2_04d_validation: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610]
+  all_supervisor_calibration: [4701, 4702, 4703, 4704, 4705, 4711, 4712, 4713, 4714, 4715, 4721, 4722, 4723, 4724, 4725, 4731, 4732, 4733, 4734, 4735]

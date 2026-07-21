@@ -1,0 +1,42 @@
+schema_version: '2.0'
+stage: V2-04G-R4
+status: complete
+simulation_only: true
+runtime_ready: false
+training_used: false
+real_vehicle_used: false
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04g_r4_preregistration.yaml
+  sha256: d68c6f04b029a573b68cf87bfbfd2ff1044bda910600b7a23b0daa613d85aa10
+readiness_summary:
+  path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r4/activation_probe/activation_probe_summary.yaml
+  sha256: cbc0836c3475a345d0cb1506f9af991ba0a47a4a1c29f236bfd503a1e2812807
+probe_count: 3
+expected_status_order:
+- OBSERVED_CONFLICT
+- NO_CONFLICT_IN_HORIZON
+- TRACKER_INVALID
+observed_status_order:
+- OBSERVED_CONFLICT
+- NO_CONFLICT_IN_HORIZON
+- TRACKER_INVALID
+all_three_states_pass: true
+probes:
+- probe_id: healthy_observed_conflict
+  tracker_message_count: 1
+  healthy_tracker_sample_count: 1
+  finite_ttc_sample_count: 1
+  finite_ttc_s: 2.3219959134333696
+  status: OBSERVED_CONFLICT
+- probe_id: healthy_no_conflict_in_horizon
+  tracker_message_count: 1
+  healthy_tracker_sample_count: 1
+  finite_ttc_sample_count: 0
+  finite_ttc_s: null
+  status: NO_CONFLICT_IN_HORIZON
+- probe_id: tracker_invalid_fail_closed
+  tracker_message_count: 0
+  healthy_tracker_sample_count: 0
+  finite_ttc_sample_count: 0
+  finite_ttc_s: null
+  status: TRACKER_INVALID

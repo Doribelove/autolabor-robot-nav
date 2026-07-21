@@ -1,0 +1,76 @@
+schema_version: "1.0"
+task: T12
+study: residual_episode_boundary_atomicity_two_seed_pilot
+status: stopped_on_full_budget_integrity_gate
+formal_result: false
+expanded_budget: false
+simulation_only: true
+amendment: experiments/manifests/t12/residual_episode_boundary_atomicity_amendment.yaml
+prerequisite_integrity_pilot:
+  report: artifacts/t12/residual_boundary_integrity_pilot/t12_residual_boundary_integrity_report.yaml
+  passed: true
+  training_timesteps: 500
+  boundary_quiesce_count: 89
+  boundary_quiesce_failure_count: 0
+  all_episode_first_steps_match_anchor: true
+  all_five_training_scenes_observed: true
+  test_goal: 7
+  test_collision: 0
+  test_emergency_stop: 0
+  observed_projection_intervention_rate: 0.598
+  reference_projection_intervention_rate: 0.8706
+  projection_drop_percentage_points: 27.26
+full_pilot_execution:
+  seed101:
+    started: true
+    completed: false
+    goal_reached_log_count: 173
+    checkpoint_1000_complete: true
+    checkpoint_2000_complete: false
+    failure_phase: active_training_episode_after_step_1000
+    preceding_events:
+      oscillation_abort: true
+      parameter_activation_timeout: config_seq_2
+    move_base_sigsegv_count: 1
+    dynamic_reconfigure_failure_count: 0
+    boundary_fail_closed_after_server_loss: true
+    unsafe_anchor_restore_attempted_after_server_loss: false
+    log: artifacts/t12/residual_boundary_atomicity_2seed_pilot/logs/t12_residual_boundary_atomicity_seed101.log
+    log_sha256: a1133a066811dc785201ddc509da480f3669aa2a5dd586ce42d0cb5689b7028d
+    checkpoint_manifest_sha256: 4f4e3b7d76188d06d6b17f0c43667a46edcd911496e4212c3b73f9f1c2b91272
+  seed102:
+    started: false
+    reason_not_started: seed101_failed_full_budget_integrity_gate
+gates:
+  small_integrity_pilot_passed: true
+  seed101_full_run_complete: false
+  seed102_full_run_complete: false
+  two_seed_complete: false
+  zero_move_base_crash: false
+  zero_activation_timeout: false
+  validation_improved_each_seed: not_evaluable
+  frozen_three_method_pairing_authorized: false
+full_budget_integrity_passed: false
+learning_gate_passed: false
+pairing_performed: false
+causal_review:
+  boundary_change_effect:
+    atomic_order_executed: true
+    unsafe_restore_after_move_base_loss_prevented: true
+    small_pilot_projection_rate_materially_reduced: true
+  remaining_failure:
+    location: online_parameter_activation_during_active_episode
+    not_location: episode_boundary_anchor_restore
+    observed_sequence:
+      - planner_oscillation_and_recovery
+      - config_seq_2_activation_timeout
+      - move_base_sigsegv
+      - next_boundary_detected_action_server_unavailable_and_failed_closed
+  conclusion: episode_boundary_atomicity_is_helpful_but_not_sufficient_for_2000_step_operational_stability
+  causal_limit: logs_do_not_identify_the_exact_teb_cpp_fault_or_prove_a_single_parameter_value_caused_it
+decision: stop_without_seed102_pairing_or_learning_factor_change
+next_allowed_work:
+  training: forbidden_until_a_new_single_factor_system_integrity_amendment_is_frozen
+  offline_review: inspect_online_parameter_write_during_planner_oscillation_recovery_and_activation_health
+  learning_factor_change: forbidden_because_full_budget_integrity_did_not_pass
+  frozen_fields: [reward, residual_radius, ema, hold, safety, sac_hyperparameters, training_budget]

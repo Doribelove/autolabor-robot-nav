@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="v2-02-dynamic-crossing">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="v2_deterministic" type="ode">
+      <max_step_size>0.002</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <model name="crossing-agent-1">
+      <static>true</static>
+      <pose>10.000000000 -4.000000000 0.850000000 0 0 1.570796327</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.550000 0.550000 1.700000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.550000 0.550000 1.700000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+      <plugin name="crossing-agent-1_trajectory" filename="libv2_trajectory_actor_plugin.so">
+        <loop>false</loop>
+        <z>0.850000</z>
+        <waypoint>
+          <time>0.077474334</time>
+          <x>10.000000000</x>
+          <y>-4.000000000</y>
+          <yaw>1.570796327</yaw>
+        </waypoint>
+        <waypoint>
+          <time>8.077474334</time>
+          <x>10.000000000</x>
+          <y>4.000000000</y>
+          <yaw>1.570796327</yaw>
+        </waypoint>
+      </plugin>
+    </model>
+  </world>
+</sdf>

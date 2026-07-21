@@ -1,0 +1,32 @@
+schema_version: "1.0"
+status: frozen_gazebo_t11
+simulation_only: true
+formal_experiment: true
+real_vehicle_use_forbidden: true
+world: src/simulation/m2_gazebo/worlds/obstacle_test.world
+paired_common_random_numbers: true
+collision_definition:
+  source: footprint_clearance
+  collision_threshold_m: 0.10
+  near_collision_threshold_m: 0.30
+randomization:
+  deterministic_from_scene_and_evaluation_seed: true
+  goal_jitter_m: 0.10
+  obstacle_jitter_m: 0.15
+  corridor_half_width_jitter_m: 0.05
+scenes:
+  - {scene_id: t11-train-clear-straight, split: train, curriculum: easy, layout: clear, start: [0.0, 0.0, 0.0], goal: [2.5, 0.0, 0.0], timeout_s: 30.0}
+  - {scene_id: t11-train-clear-left, split: train, curriculum: easy, layout: clear, start: [0.0, 0.0, 0.0], goal: [2.2, 1.8, 1.2], timeout_s: 35.0}
+  - {scene_id: t11-train-clear-right, split: train, curriculum: easy, layout: clear, start: [0.0, 0.0, 0.0], goal: [2.2, -1.8, -1.2], timeout_s: 35.0}
+  - {scene_id: t11-train-obstacle, split: train, curriculum: obstacle, layout: obstacle, obstacle: [2.5, 0.0], start: [0.0, 0.0, 0.0], goal: [5.0, 0.0, 0.0], timeout_s: 45.0}
+  - {scene_id: t11-train-corridor, split: train, curriculum: corridor, layout: corridor, corridor_half_width_m: 1.0, start: [0.0, 0.0, 0.0], goal: [4.5, 0.0, 0.0], timeout_s: 45.0}
+  - {scene_id: t11-validation-clear-offset, split: validation, layout: clear, start: [0.0, 0.0, 0.0], goal: [2.7, 0.8, 0.4], timeout_s: 35.0}
+  - {scene_id: t11-validation-obstacle-offset, split: validation, layout: obstacle, obstacle: [2.6, 0.25], start: [0.0, 0.0, 0.0], goal: [5.0, 0.3, 0.0], timeout_s: 45.0}
+  - {scene_id: t11-validation-corridor, split: validation, layout: corridor, corridor_half_width_m: 0.95, start: [0.0, 0.0, 0.0], goal: [4.5, 0.0, 0.0], timeout_s: 45.0}
+  - {scene_id: t11-test-id-clear-straight, split: test_id, layout: clear, start: [0.0, 0.0, 0.0], goal: [3.0, 0.0, 0.0], timeout_s: 35.0}
+  - {scene_id: t11-test-id-left, split: test_id, layout: clear, start: [0.0, 0.0, 0.0], goal: [3.0, 2.5, 1.4], timeout_s: 45.0}
+  - {scene_id: t11-test-id-obstacle, split: test_id, layout: obstacle, obstacle: [2.7, 0.0], start: [0.0, 0.0, 0.0], goal: [5.2, 0.0, 0.0], timeout_s: 50.0}
+  - {scene_id: t11-test-id-corridor, split: test_id, layout: corridor, corridor_half_width_m: 1.0, start: [0.0, 0.0, 0.0], goal: [5.0, 0.0, 0.0], timeout_s: 50.0}
+  - {scene_id: t11-test-ood-long-turn, split: test_ood, layout: clear, start: [0.0, 0.0, 0.0], goal: [4.0, 3.5, 1.57], timeout_s: 55.0}
+  - {scene_id: t11-test-ood-obstacle-offset, split: test_ood, layout: obstacle, obstacle: [3.0, -0.45], start: [0.0, 0.0, 0.0], goal: [5.8, -0.2, 0.0], timeout_s: 55.0}
+  - {scene_id: t11-test-ood-narrow-corridor, split: test_ood, layout: corridor, corridor_half_width_m: 0.82, start: [0.0, 0.0, 0.0], goal: [5.0, 0.0, 0.0], timeout_s: 55.0}

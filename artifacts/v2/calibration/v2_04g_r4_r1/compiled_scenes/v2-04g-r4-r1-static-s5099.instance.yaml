@@ -1,0 +1,92 @@
+schema_version: '2.0'
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+scene:
+  scene_id: v2-04g-r4-r1-static-s5099
+  family: STATIC_DENSE
+  split: calibration
+  seed: 5099
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 13.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 50.0
+  layout:
+    variant: v2_04g_r4_r1_static_c
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 13.0
+      - 0.0
+  static_obstacles:
+  - obstacle_id: pillar-1
+    shape: box
+    pose:
+      x_m: 3.2815606246647233
+      y_m: -0.7345411698846038
+      yaw_rad: 0.01859080323400185
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-2
+    shape: box
+    pose:
+      x_m: 5.743208094788526
+      y_m: 0.6253445557428519
+      yaw_rad: -0.00035992545680384126
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-3
+    shape: box
+    pose:
+      x_m: 8.376068855000517
+      y_m: -0.8987701448668975
+      yaw_rad: 0.015965925554698782
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  - obstacle_id: pillar-4
+    shape: box
+    pose:
+      x_m: 10.639838076643096
+      y_m: 0.7640634697110458
+      yaw_rad: 0.006974616563272042
+    size_m:
+    - 0.6
+    - 0.6
+    - 1.5
+  dynamic_agents: []
+  randomization:
+    position_jitter_m: 0.1
+    yaw_jitter_rad: 0.03
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.25
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: fresh_clearance_repair_static_c
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only
+instance_sha256: 49ff36b8bc384ae6ebb6a665bef120d8346ff09a685b83832b65b7133e7c6654

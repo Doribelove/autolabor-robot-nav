@@ -1,0 +1,38 @@
+schema_version: '1.0'
+status: complete
+algorithm: RL-TEB-Semantic-Eta
+num_timesteps: 200
+config:
+  seed: 101
+  learning_rate: 0.0003
+  buffer_size: 10000
+  learning_starts: 64
+  batch_size: 64
+  tau: 0.005
+  gamma: 0.99
+  train_freq: 1
+  gradient_steps: 1
+  net_arch:
+  - 128
+  - 128
+  device: cpu
+runtime:
+  python: 3.8.10
+  torch: 2.4.1+cpu
+  torch_cuda_available: false
+  gymnasium: 1.0.0
+  stable_baselines3: 2.4.1
+  numpy: 1.24.4
+  device: cpu
+files:
+  model.zip: 5cd75efebb9569f11017d5309114c42b00d486af6303eb91cd0f74793ca78061
+  replay_buffer.pkl: 8e3a7a0eff63514fbd6fcc75e754def41cc2a3506f26d760b07649a83e05896e
+  vecnormalize.pkl: 6c5221e47d68a346ffd212a4a1846d985a6a25fcd38048638900c281ab2bec42
+metadata:
+  task: T11
+  training_seed: 101
+  t11_config_sha256: 3f374fa1c51d1161c3808a2452616bf36b3f0aa97886e88bed78e1a31169086f
+  scene_manifest_sha256: 7bd16763e0c650dd14798c7b42d22c312d871906ff5cae53e5f8ed1e9de71f4f
+  safety_mode: FullSafety
+  phase: training
+  timestep: 200

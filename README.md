@@ -1,6 +1,41 @@
 # Robot WS 导航项目上手说明
 
+## 硕士论文 TEB 强化学习实验
+
+Ubuntu 20.04 上继续开发 Gazebo、TEB 自适应调参、安全过滤和 Autolabor M2
+sim-to-real 实验前，先阅读：
+
+- `docs/thesis_experiment/CURRENT_TEB_RL_HANDOFF.md`
+- `docs/thesis_experiment/DEVELOPMENT_STATUS.md`
+- `docs/thesis_experiment/experiment_contract.yaml`
+- `docs/thesis_experiment/UBUNTU20_TEB_RL_EXPERIMENT_BOOK.md`
+
+当前 T00--T11 已完成，T12 两 seed 学习门失败且保持冻结。FAM-TEB V2-00--V2-03 组件门
+和 V2-04 软件/shadow 事务门已完成；最新入口是
+`docs/thesis_experiment/CURRENT_V2_04_HANDOFF.md`。不要重跑历史训练或把未标定 V2 Anchor
+写成性能结论。
+
+实车默认使用离线回放或 shadow 模式；真实运动和在线 TEB 参数写入必须由现场用户明确批准。
+
 本工作空间是 ROS Noetic/catkin 项目，核心功能是 Autolabor 底盘、Livox MID360、FAST_LIO、GPS 和 Arena `move_base + TEB` 的真车无地图导航。
+
+本复制工作空间用于论文、Gazebo、TEB 强化学习和 sim-to-real 开发，路径为
+`/home/robot/robot_ws_base_rl`。稳定实车工作空间保留在 `/home/robot/robot_ws`。
+两个工作空间必须分别编译；同一终端只能 source 其中一个工作空间的
+`devel/setup.bash`。
+
+论文 Python 依赖使用工作空间内的 `.venv` 隔离。该环境通过
+`--system-site-packages` 保留对 ROS Noetic Python 包（例如 `rospy`）的访问。
+日常使用必须通过隔离脚本激活，它会先清除其他 catkin 工作空间遗留的
+`PYTHONPATH`、`ROS_PACKAGE_PATH` 和 `CMAKE_PREFIX_PATH`：
+
+```bash
+cd /home/robot/robot_ws_base_rl
+source scripts/activate_thesis_env.sh
+```
+
+基础依赖见 `requirements/thesis-base.txt`。T09 CPU-only Torch/Gymnasium/SB3 组合已
+冻结在 `requirements/thesis-rl-lock.txt` 和 `requirements/thesis-rl-lock.yaml`。
 
 ## 目录速览
 
@@ -10,6 +45,11 @@
 - `src/scripts/robot_bringup/launch/`：CAN、Livox、FAST_LIO、GPS、Arena 导航的封装 launch。
 - `src/application/gps_module/`：GPS 定位和 GPS 经纬度目标转换。
 - `src/tools/robot_diagnostics/`：一键启动中的 topic、TF、odom、CAN 检查工具。
+- `src/application/teb_rl_tuner/`：论文 TEB 调参核心，包含参数事务、状态/奖励、
+  投影/安全、长期训练环境、Semantic-Eta/Direct-Theta Gym wrapper 和 SAC checkpoint/resume。
+- `src/simulation/m2_gazebo/`：T02 独立 M2 Ackermann 仿真模型、固定 TEB 和定量回归。
+- `src/tools/thesis_experiment/`：实验合同、CSV/manifest/checksum 写入、run validator、
+  长期 Gazebo episode 适配器、T07 扰动标定、T08 四基线 evaluator 和 T09/T10 共享 SAC smoke。
 - `src/navigation_arena/arena-rosnav-3D/`：Arena 导航、`move_base`、TEB、costmap 配置。
 
 ## 基础环境
@@ -17,9 +57,9 @@
 每个手动开的终端都先进入工作空间并加载环境：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/robot/robot_ws_base_rl/devel/setup.bash
 ```
 
 一键脚本 `scripts/bringup.sh` 会自动 source 上面两个环境文件，所以直接运行脚本时不需要手动 source。
@@ -41,7 +81,7 @@ CAN_PORT=/dev/ttyUSB0 GPS_PORT=/dev/ttyUSB1 ./scripts/bringup.sh fast_lio
 一键启动入口：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 ./scripts/bringup.sh fast_lio
 ```
 
@@ -154,16 +194,16 @@ RabbitMQ 消息 -> scripts/rabbitmq_gps_goal_bridge.py -> /gps/goal_fix -> gps_g
 终端 1，启动导航和 GPS 目标转换：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 ./scripts/bringup.sh fast_lio
 ```
 
 终端 2，启动 RabbitMQ 桥接：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/robot/robot_ws_base_rl/devel/setup.bash
 ./scripts/rabbitmq_gps_goal_bridge.py
 ```
 
@@ -172,16 +212,16 @@ source /home/robot/robot_ws/devel/setup.bash
 终端 1：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 ./scripts/bringup.sh gps
 ```
 
 终端 2：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/robot/robot_ws_base_rl/devel/setup.bash
 ./scripts/rabbitmq_gps_goal_bridge.py
 ```
 
@@ -236,23 +276,23 @@ rosparam get /gps_localization/gps_antenna_offset_y
 先启动 GPS 导航：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 ./scripts/bringup.sh gps
 ```
 
 另开终端启动测试菜单：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/robot/robot_ws_base_rl/devel/setup.bash
 ./scripts/gps_test_tasks.py
 ```
 
 输入数字执行对应任务：
 
 - `1`：读取当前 `/gps/odom` 位置和双天线航向，发布车头正前方 `8m` 的 GPS 目标到 `/gps/goal_fix`。
-- `2`：以当前车体朝向为坐标系，保存前后左右各 `10m` 的矩形电子围栏。围栏文件永久保存在 `/home/robot/robot_ws/config/gps_test_fence.json`，下次重新启动测试脚本会自动加载。
+- `2`：以当前车体朝向为坐标系，保存前后左右各 `10m` 的矩形电子围栏。围栏文件永久保存在 `/home/robot/robot_ws_base_rl/config/gps_test_fence.json`，下次重新启动测试脚本会自动加载。
 - `3`：在当前位置前后左右各 `10m` 范围内随机生成 GPS 目标并发布，用于阻拦车辆测试局部避障。
 - `4`：显示当前围栏。
 - `5`：清除永久围栏文件。
@@ -333,9 +373,9 @@ GPS 模式静止时，如果 `camera_init -> base_link` 或 `/gps/odom` 仍在�
 启动导航后，另开终端运行：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/robot/robot_ws_base_rl/devel/setup.bash
 roslaunch robot_diagnostics gps_static_error_monitor.launch
 ```
 
@@ -367,9 +407,9 @@ GPS_COMPASS_HEADING="东北45度" ./scripts/bringup.sh --print-gps-yaw
 正常使用 `fast_lio` 不需要手动补启动，因为一键启动已经包含 `gps_goal_node.py`。如果调试时只单独启动了部分 launch，缺少 GPS 目标转换节点，可以手动启动：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/robot/robot_ws_base_rl/devel/setup.bash
 roslaunch gps_module gps_goal.launch frame_id:=camera_init
 ```
 
@@ -378,7 +418,7 @@ roslaunch gps_module gps_goal.launch frame_id:=camera_init
 不启动导航，只测 CAN 底盘和键盘控制：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/robot/robot_ws_base_rl
 ./scripts/keyboard_drive.sh
 ```
 
@@ -534,6 +574,7 @@ sudo usermod -aG dialout robot
 
 ## 维护备注
 
-当前根目录 `.git` 目录存在但内容为空，`git status` 不能正常使用。如果需要版本管理，需要重新初始化或恢复 `.git`。
+当前 Git 元数据有效，论文开发分支为 `base_on_rl`；工作树包含既有 GPS、子模块和
+论文开发修改，禁止通过重新初始化、reset 或 clean 覆盖这些改动。
 
 `robot_bringup` 的 launch 里实际使用了 `pointcloud_to_laserscan` 和 `tf`，新环境部署时要确认这两个 ROS 包已经安装。

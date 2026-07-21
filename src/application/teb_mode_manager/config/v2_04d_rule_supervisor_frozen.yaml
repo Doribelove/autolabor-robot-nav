@@ -1,0 +1,59 @@
+schema_version: "2.0"
+architecture_generation: v2
+profile_id: fam_teb_v2_04d_rule_supervisor_validation_frozen_1
+status: frozen_for_no_training_paired_validation
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+parameter_write_enabled: false
+real_vehicle_use_forbidden: true
+allow_unfrozen_simulation_candidate_required: true
+
+topics:
+  local_geometry: /nav_world_model/local_geometry
+  tracks: /nav_world_model/tracks
+  health: /nav_world_model/health
+  context: /teb_mode_manager/context
+  transition: /teb_mode_manager/transition
+
+geometry:
+  cruise:
+    confidence_min: 0.65
+    obstacle_density_max: 0.08
+    forward_clearance_full_m: 12.0
+    path_curvature_abs_max: 0.08
+  static_dense:
+    confidence_min: 0.60
+    obstacle_density_full: 0.18
+  corridor:
+    confidence_min: 0.65
+    width_min_m: 1.05
+    width_max_m: 2.60
+    front_clearance_min_m: 1.00
+  maneuver:
+    confidence_min: 0.60
+    dead_end_score_min: 0.65
+
+dynamic:
+  minimum_track_confidence: 0.45
+  predicted_ttc_max_s: 4.0
+  closest_approach_max_m: 1.25
+
+transition:
+  minimum_mode_confidence: 0.55
+  minimum_dwell_s: 1.0
+  enter_confirmation_s: 0.40
+  blend_duration_s: 0.60
+  overlay_release_confirmation_s: 0.40
+
+health:
+  maximum_input_age_s: 0.30
+  require_matching_world_model_seq: true
+  fault_forces_balanced_none: true
+
+policy_boundary:
+  runtime_scene_labels_allowed: false
+  runtime_manifest_access: false
+  forbidden_runtime_topics: [/gazebo/model_states, /pedsim_simulator/simulated_agents]
+  published_parameter_transactions: false
+  published_velocity_commands: false

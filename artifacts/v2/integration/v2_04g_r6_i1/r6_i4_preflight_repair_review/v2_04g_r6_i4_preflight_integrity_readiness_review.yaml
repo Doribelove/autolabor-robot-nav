@@ -1,0 +1,292 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-R6-I4
+source_stage: V2-04G-R6-I3
+review_id: fam_teb_v2_04g_r6_i4_preflight_integrity_repair_readiness_review_1
+status: preflight_integrity_repair_readiness_closure_pass_future_release_absent
+review_result: pass
+independent_stage: true
+offline_only: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+ros_or_gazebo_started_by_review: false
+authority_review:
+  contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_preflight_integrity_repair_contract.yaml
+    sha256: a5ac55ecd84a59a847e92e4268c95983312e39720fbd1839871bb25f90e158a4
+  preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i4_repair_preregistration.yaml
+    sha256: 4abd2bdaf50ef5b0100494d5ef23d6628e0db03a7513f8a7aa3803f1224e701a
+  transition:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i4_stage_transition.yaml
+    sha256: 99161770dbc0da0699868ce9a37b53b22d42214edff10bcb2ea191c3f2f49c2d
+  i4_execution_seeds: []
+  i4_exact_schedule: []
+  i4_evidence_units_authorized: 0
+  i4_evidence_units_consumed: 0
+  i4_evidence_units_forfeited: 0
+  execution_authorized: false
+  pass: true
+failed_i3_release_snapshot:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+  sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  present: true
+  historical_authorized_units: 6
+  historical_consumed_units: 0
+  historical_forfeited_units: 0
+  executable_or_reusable_under_i4: false
+future_i4_release:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i4_execution_release.yaml
+  present: false
+  new_explicit_simulation_execution_instruction_required: true
+runner_trust_and_real_roster_review:
+  runner:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_bounded_validation.py
+    sha256: ae4fa36c255d56b6e739235e55f472dad4afc966bb6b2ffd39199c1e94a72f4e
+  repaired_validator:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_release.py
+    sha256: 9b9dd3fc580d0f880705bf87e120cdb9d30fdce812f585ee99e3f0fdf1fa3994
+  real_roster_validator_tests:
+    path: src/tools/thesis_experiment/tests/test_v2_04g_r6_i1.py.d/test_v2_04g_r6_i4_release_validator.py
+    sha256: 663fd2da6a8781e3cc4041aad46141e3ffdfee38883d4bcf2fe0e1eb59cc3a89
+  preflight_integrity_tests:
+    path: src/tools/thesis_experiment/tests/test_v2_04g_r6_i1.py.d/test_v2_04g_r6_i4_preflight_integrity.py
+    sha256: 7fbcca44813689eacba048da8ee0e49b6dc9b212a2e69bae3161bad79c30c4ca
+  runner_top_level_imports:
+  - argparse
+  - hashlib
+  - json
+  - os
+  - pathlib
+  - stat
+  - sys
+  - types
+  execute_surface_present: false
+  runner_trusted_hashes_match_actual_bytes: true
+  offline_preflight_called_in_process: true
+  offline_preflight_deterministic: true
+  offline_preflight_receipt:
+    schema_version: '1.0'
+    stage: V2-04G-R6-I4
+    source_stage: V2-04G-R6-I3
+    status: offline_preflight_integrity_repair_pass_failed_release_preserved
+    execution_authorized: false
+    execution_ready: false
+    formal_result: false
+    runtime_ready: false
+    offline_only: true
+    simulation_only: true
+    failed_i3_release:
+      path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+      sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+      present: true
+      release_resource_count: 22
+      historical_identity_count: 6
+      historical_schedule_sha256: ee89717421f2dd82cdaddb2c8e8722c5d1d4b52db97311c3b7231ba9d161571c
+      authorized_units: 6
+      consumed_units: 0
+      forfeited_units: 0
+      executable_under_i4: false
+    future_i4_release:
+      path: experiments/manifests/v2/integration/v2_04g_r6_i4_execution_release.yaml
+      present: false
+      new_explicit_simulation_instruction_required: true
+    authorization_resource_audit:
+      resource_count: 12
+      all_exact_bytes_sha256_rehashed: true
+      parsed_labels:
+      - inherited_r6_i2_dependency_closure
+      - preregistration
+      parsed_count: 2
+      hash_only_labels:
+      - aligned_supervisor
+      - frozen_evaluator
+      - legacy_supervisor
+      - r6_design_report
+      - r6_i1_scene_derivation
+      - r6_i2_authorization_component_review
+      - r6_i2_authorization_module
+      - r6_i2_contract
+      - r6_i2_integration_review
+      - source_r6_i1_compiled_scene_index
+      hash_only_count: 10
+      legacy_integer_key_resource_parsed: false
+      pass: true
+    trusted_sources:
+    - path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_release.py
+      sha256: 9b9dd3fc580d0f880705bf87e120cdb9d30fdce812f585ee99e3f0fdf1fa3994
+      size_bytes: 50560
+    - path: src/tools/thesis_experiment/tests/test_v2_04g_r6_i1.py.d/test_v2_04g_r6_i4_release_validator.py
+      sha256: 663fd2da6a8781e3cc4041aad46141e3ffdfee38883d4bcf2fe0e1eb59cc3a89
+      size_bytes: 31100
+    state_gate:
+      failed_i3_release: true
+      future_i4_release: false
+      i3_attempts: false
+      i3_journals: false
+      i3_receipts: false
+      i3_raw_evidence: false
+      i3_semantic_evidence: false
+      i3_stage_report: false
+      i3_execution_report: false
+      i4_attempts: false
+      i4_journals: false
+      i4_receipts: false
+      i4_raw_evidence: false
+      i4_semantic_evidence: false
+      i4_ros_home: false
+      i4_ros_logs: false
+      i4_stage_report: false
+      i4_execution_report: false
+    host_process_isolation:
+      forbidden_matches: []
+      pass: true
+    i4_allocation:
+      execution_seeds: []
+      schedule: []
+      evidence_units_authorized: 0
+      evidence_units_consumed: 0
+      evidence_units_forfeited: 0
+    side_effects:
+      execution_state_created: false
+      attempt_or_journal_created: false
+      subprocess_started: false
+      ros_or_gazebo_started: false
+      seed_or_budget_consumed: false
+  real_roster_regression_review:
+    test_path: src/tools/thesis_experiment/tests/test_v2_04g_r6_i1.py.d/test_v2_04g_r6_i4_release_validator.py
+    test_sha256: 663fd2da6a8781e3cc4041aad46141e3ffdfee38883d4bcf2fe0e1eb59cc3a89
+    real_authorization_resource_count: 12
+    expected_legacy_integer_keys:
+    - 5141
+    - 5142
+    - 5143
+    - 5144
+    - 5145
+    - 5146
+    - 5147
+    legacy_resource_hash_only_in_validator: true
+    actual_integer_key_positive_case_passed: true
+    hash_only_byte_drift_negative_case_passed: true
+    hash_only_symlink_negative_case_passed: true
+    parsed_i2_non_string_key_negative_case_passed: true
+    authorization_missing_label_negative_case_passed: true
+    authorization_extra_label_negative_case_passed: true
+    authorization_path_swap_negative_case_passed: true
+    regressions_executed_in_process: true
+    workspace_execution_state_created: false
+    subprocess_started: false
+    pass: true
+  state_before_equals_state_after: true
+  forbidden_processes_before: []
+  forbidden_processes_after: []
+  pass: true
+dependency_closure_review:
+  path: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review/execution_dependency_closure.yaml
+  file_sha256: e9d27ed1522ca744f1bbf4a91832287ac2e780aa395c1fa1d147e3c587099b0f
+  deterministic_rebuild_count: 2
+  all_i4_sources_contracts_and_tests_bound: true
+  local_file_count: 54
+  local_edge_count: 65
+  external_file_count: 307
+  external_python_binding_count: 47
+  external_runtime_binding_count: 9
+  authorization_resource_count: 12
+  inherited_i3_revalidation:
+    closure_path: artifacts/v2/integration/v2_04g_r6_i1/r6_i3_execution/execution_dependency_closure.yaml
+    file_sha256: 55f0e343788409301258da96f355e78d9fb689bdcc270ef8f5b9fe54b06a4b37
+    logical_sha256: f83beb04dc6e7cd1e43c2611997f86dbd5bf07c36f33d51fc979128f2cb4ed4f
+    local_file_count: 136
+    external_file_count: 307
+    external_python_binding_count: 47
+    external_runtime_binding_count: 9
+    unresolved_count: 0
+    all_targets_mechanically_rehashed: true
+    terminal_frozen_snapshot: true
+    pass: true
+  inherited_i2_revalidation:
+    closure_path: artifacts/v2/integration/v2_04g_r6_i1/r6_i2_repair_review/execution_dependency_closure.yaml
+    file_sha256: 63c4e7ba5d8fd64315040a566aabdb54cd71b034ce76f814aa3f519be6dfac58
+    logical_sha256: 2be410c333b78d707b591fb30bef0b344b40c19e3f957d91fbc6e56f1bd01fe6
+    local_file_count: 106
+    external_file_count: 301
+    external_python_binding_count: 45
+    external_runtime_binding_count: 5
+    unresolved_count: 0
+    all_targets_mechanically_rehashed: true
+    terminal_frozen_snapshot: true
+    pass: true
+  unresolved_count: 0
+  closure_sha256: dceb73df8619849f5b5a0442b739be09815bfc86939a188873c94993fe4d5b74
+  mechanically_rebuilt_and_rehashed: true
+  process_started: false
+  execution_state_created: false
+  pass: true
+state_and_process_isolation:
+  state_before:
+    failed_i3_release: true
+    future_i4_release: false
+    forbidden_01_v2_04g_r6_i4_execution_release.yaml: false
+    forbidden_02_attempts: false
+    forbidden_03_journals: false
+    forbidden_04_receipts: false
+    forbidden_05_raw_evidence: false
+    forbidden_06_semantic_evidence: false
+    forbidden_07_v2_04g_r6_i3_stage_report.yaml: false
+    forbidden_08_v2_04g_r6_i3_execution_report.yaml: false
+    forbidden_09_attempts: false
+    forbidden_10_journals: false
+    forbidden_11_receipts: false
+    forbidden_12_raw_evidence: false
+    forbidden_13_semantic_evidence: false
+    forbidden_14_ros_home: false
+    forbidden_15_ros_logs: false
+    forbidden_16_v2_04g_r6_i4_stage_report.yaml: false
+    forbidden_17_v2_04g_r6_i4_execution_report.yaml: false
+  state_after:
+    failed_i3_release: true
+    future_i4_release: false
+    forbidden_01_v2_04g_r6_i4_execution_release.yaml: false
+    forbidden_02_attempts: false
+    forbidden_03_journals: false
+    forbidden_04_receipts: false
+    forbidden_05_raw_evidence: false
+    forbidden_06_semantic_evidence: false
+    forbidden_07_v2_04g_r6_i3_stage_report.yaml: false
+    forbidden_08_v2_04g_r6_i3_execution_report.yaml: false
+    forbidden_09_attempts: false
+    forbidden_10_journals: false
+    forbidden_11_receipts: false
+    forbidden_12_raw_evidence: false
+    forbidden_13_semantic_evidence: false
+    forbidden_14_ros_home: false
+    forbidden_15_ros_logs: false
+    forbidden_16_v2_04g_r6_i4_stage_report.yaml: false
+    forbidden_17_v2_04g_r6_i4_execution_report.yaml: false
+  state_unchanged: true
+  forbidden_processes_before: []
+  forbidden_processes_after: []
+  pass: true
+i4_allocation:
+  execution_seeds: []
+  schedule: []
+  evidence_units_authorized: 0
+  evidence_units_consumed: 0
+  evidence_units_forfeited: 0
+side_effects:
+  future_execution_release_created: false
+  attempt_root_created: false
+  journal_created: false
+  execution_evidence_created: false
+  subprocess_started_by_review: false
+  ros_started_by_review: false
+  gazebo_started_by_review: false
+  move_base_or_teb_started_by_review: false
+  training_started: false
+  real_vehicle_used: false
+  seed_or_budget_consumed: false
+next_gate: stop_and_wait_for_new_explicit_simulation_execution_authorization_before_any_future_release_or_execution_state
+claim_limit: offline_preflight_integrity_repair_readiness_closure_only_not_simulation_execution_safety_performance_or_deployment_readiness

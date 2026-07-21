@@ -1,0 +1,89 @@
+schema_version: '2.0'
+stage: V2-04C-Q-R4
+plan_id: fam_teb_v2_04c_ttc_qualification_r4_plan_1
+status: preregistered
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+test_or_validation_selection_used: false
+contract:
+  path: config/thesis_experiments/v2/v2_04c_ttc_qualification_r4_amendment.yaml
+  sha256: 5751136df3aa2fb49c2211517c1a0fc0fde3a1be92c163dbd37b41ef72537b72
+anchor_bank:
+  path: src/application/teb_mode_manager/config/v2_04_anchor_bank_candidate.yaml
+  sha256: 3480e0e5389fd2641bf707399ee0fe5c8abc890f45565e1b4b3ad77c4e14bed4
+scene_manifest:
+  path: experiments/manifests/v2/calibration/v2_04c_ttc_qualification_scenes.yaml
+  sha256: 87fafdc4a2802df3f81585794a55b2cf2e4cbd909f99e860bc771bf1fa29288c
+candidate_count: 1
+planned_episode_count: 5
+completed_navigation_episode_count: 0
+candidates:
+- candidate_id: v2_04c-q-r4-balanced-center
+  anchor_id: anchor_balanced
+  base_profile_id: profile_balanced_v2_04
+  screen_coordinate: null
+  screen_level: 0
+  values:
+    max_vel_x: 0.9
+    max_vel_theta: 0.75
+    acc_lim_x: 0.6
+    acc_lim_theta: 0.6
+    min_obstacle_dist: 0.375
+    inflation_dist: 0.725
+    weight_obstacle: 75.0
+    weight_viapoint: 2.5
+    weight_optimaltime: 0.75
+    dynamic_obstacle_inflation_dist: 0.75
+    weight_dynamic_obstacle: 60.0
+    weight_dynamic_obstacle_inflation: 0.3
+    weight_velocity_obstacle_ratio: 5.0
+    max_vel_x_backwards: 0.3
+    max_global_plan_lookahead_dist: 6.0
+    global_plan_viapoint_sep: 0.35
+    include_dynamic_obstacles: true
+    max_number_classes: 2
+    selection_cost_hysteresis: 0.95
+    switching_blocking_period: 0.5
+  profile_sha256: 9166b9df75ed7dfa57f039888a6b2772296e7070244f9a4dff59c55f237c87ba
+  evaluations:
+  - scene_id: v2-04c-q-dynamic-s4401
+    split: calibration
+    seed: 4401
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: a44849463ae438a9434ea4fd05cef3cddb1d134ec8c29b5107f6ac8f2f003ed1
+  - scene_id: v2-04c-q-dynamic-s4402
+    split: calibration
+    seed: 4402
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: a44849463ae438a9434ea4fd05cef3cddb1d134ec8c29b5107f6ac8f2f003ed1
+  - scene_id: v2-04c-q-dynamic-s4403
+    split: calibration
+    seed: 4403
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: a44849463ae438a9434ea4fd05cef3cddb1d134ec8c29b5107f6ac8f2f003ed1
+  - scene_id: v2-04c-q-dynamic-s4404
+    split: calibration
+    seed: 4404
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: a44849463ae438a9434ea4fd05cef3cddb1d134ec8c29b5107f6ac8f2f003ed1
+  - scene_id: v2-04c-q-dynamic-s4405
+    split: calibration
+    seed: 4405
+    family: DYNAMIC
+    dynamic_overlay: CROSSING
+    effective_profile_sha256: a44849463ae438a9434ea4fd05cef3cddb1d134ec8c29b5107f6ac8f2f003ed1
+  retry_provenance:
+    r3_candidate_id: v2_04c-q-r3-balanced-center
+    single_changed_factor: tracked_dynamic_costmap_spatial_fusion
+    episode_timeout_s: 80.0
+claims:
+  qualification_only: true
+  dynamic_fusion_only_retry: true
+  common_random_numbers_with_r1_r2_r3: true
+  refinement_selection_used: false

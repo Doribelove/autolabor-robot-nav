@@ -1,0 +1,78 @@
+schema_version: "2.0"
+architecture_generation: v2
+amendment_id: fam_teb_v2_04c_ttc_qualification_r2_timeout_only_1
+stage: V2-04C-Q-R2
+status: preregistered_before_retry
+formal_experiment: false
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+failed_r1_evidence:
+  preregistration:
+    path: experiments/manifests/v2/calibration/v2_04c_preregistration.yaml
+    sha256: c624a51f3316fe5b2ecab2680efcfafb24f0900eab106effaad7d46b26ffd990
+  qualification_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification_plan.yaml
+    sha256: 13932da6c28f9ddfb148dd0ee840385436e644c0962df26878c55b0512034c0f
+  qualification_progress:
+    path: artifacts/v2/calibration/v2_04c/qualification/v2_04c_q_batch_progress.yaml
+    sha256: c87c9866543ff4b32c5364747ae214d1774fa94555ea42d30694b6449e35efc0
+  qualification_assessment:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_ttc_qualification.yaml
+    sha256: ed57fa8f42b9e47c2f63abf16917cb37e7b9d209261504a5ba387a1c112c1ac4
+  compiled_scene_index:
+    path: artifacts/v2/calibration/v2_04c/qualification/compiled_scenes/compiled_scene_index.yaml
+    sha256: 194b9ebee877554ebe5bd0e0c35a090f23c2ad951a083b5677a173c8d6bd7402
+
+single_changed_factor:
+  name: dynamic_episode_timeout_s
+  scope: experiment_manager_wall_clock_only
+  r1_value_s: 48.0
+  r2_value_s: 80.0
+  rationale: r1_observed_conflict_and_tracker_health_passed_but_all_robots_were_still_progressing_at_timeout
+
+invariants:
+  base_contract:
+    path: config/thesis_experiments/v2/v2_04c_refinement_contract.yaml
+    sha256: bbd89356b530271f366489e08f33a10d16b503ecf19f4a849bc046a24ce0270b
+  scene_geometry_unchanged: true
+  actor_timing_unchanged: true
+  scene_seeds_unchanged: true
+  balanced_profile_values_unchanged: true
+  dynamic_overlay_unchanged: true
+  ttc_semantics_unchanged: true
+  qualification_thresholds_unchanged: true
+  common_random_numbers_with_r1: true
+  runtime_scene_labels_available_to_policy: false
+
+qualification_gate:
+  planned_episode_count: 5
+  observed_conflict_fraction_min: 0.80
+  tracker_health_valid_fraction_min_per_episode: 0.95
+  tracker_invalid_count_max: 0
+  successful_episode_count_min: 5
+  collision_count_max: 0
+  interface_failure_count_max: 0
+  failure_action: stop_before_refinement_and_preregister_new_contract
+
+conditional_refinement_authorization:
+  qualification_must_pass: true
+  refinement_plan:
+    path: artifacts/v2/calibration/v2_04c/v2_04c_refinement_plan.yaml
+    sha256: 29b1e1bd88066d7f34c63db776fd13c5f52545e85fa3ce6864f67a568c769ada
+  dynamic_episode_timeout_s: 80.0
+  non_dynamic_scene_timeout_unchanged: true
+  planned_navigation_episode_count: 180
+  early_stopping_allowed: false
+  incomplete_candidate_selection_allowed: false
+
+claims:
+  r1_evidence_is_immutable: true
+  single_factor_retry: true
+  refinement_started: false
+  anchor_values_frozen: false
+  v2_04d_started: false
+  sac_training_started: false
+  real_vehicle_validated: false

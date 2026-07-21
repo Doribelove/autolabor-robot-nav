@@ -1,0 +1,47 @@
+schema_version: "2.0"
+stage: V2-04F
+split: validation
+preregistration_id: fam_teb_v2_04f_fresh_held_out_three_method_preregistration_1
+status: frozen_before_first_v2_04f_navigation
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_use_forbidden: true
+frozen_supervisor:
+  path: src/application/teb_mode_manager/config/v2_04e4_rule_supervisor_frozen.yaml
+  sha256: 2c3a8669418d9221be6c314df06d1ce936a1ba414117ce5e47fc6b35f9bdfe1d
+resources:
+  contract: {path: config/thesis_experiments/v2/v2_04f_fresh_paired_validation_contract.yaml, sha256: 667dcb913d18c72fc97c2ae93b72b527afaa362dc0c669ad4818dedd2ba24c88}
+  supervisor_freeze_report: {path: artifacts/v2/calibration/v2_04e4/v2_04e4_supervisor_freeze_report.yaml, sha256: 71d2a144032e5190867269113e0aa39a08acc4904806ed8d9eb11e87059b2ae2}
+  validation_scenes: {path: artifacts/v2/validation/v2_04f/v2_04f_paired_validation_scenes.yaml, sha256: f9bcb858f2f380390be39e228b6c8aa8cdb2355597f1bd1519fab5830c669915}
+  compiled_scene_index: {path: artifacts/v2/validation/v2_04f/compiled_scenes/compiled_scene_index.yaml, sha256: e061f19b6185187fdbe89e5b1ef89b14e267532c287d611c669c9f2abb7ccd3a}
+  frozen_anchor_bank: {path: src/application/teb_mode_manager/config/v2_04c_anchor_bank_frozen.yaml, sha256: b1365f2b14e4a77f4e715bc46369fa4277e9adbb8522190153f7abd2ce635b9d}
+  frozen_rule_supervisor: {path: src/application/teb_mode_manager/config/v2_04e4_rule_supervisor_frozen.yaml, sha256: 2c3a8669418d9221be6c314df06d1ce936a1ba414117ce5e47fc6b35f9bdfe1d}
+  experiment_launch: {path: src/simulation/m2_gazebo/launch/m2_v2_04e_04f_supervisor_experiment.launch, sha256: 077209828c8c3401ba562b16d6a153f24e213730db3d4d24865a3ea6eef14031}
+  episode_runner: {path: src/tools/thesis_experiment/scripts/v2_supervisor_repair_episode.py, sha256: 8e3d2221a66b248a2357e22bc45864aad51f9bfa9f08cc027c47c8906fe0e249}
+  batch_runner: {path: src/tools/thesis_experiment/scripts/v2_supervisor_experiment_batch.py, sha256: 0ee8a5b1458fd14bfcfb3535398e6250fefa4c813cfbf4b9683e4e6b44d5d3f1}
+method_ids: [fixed_teb, balanced_anchor, rule_multi_anchor]
+scene_ids:
+  - v2-04f-cruise-s4801
+  - v2-04f-cruise-s4806
+  - v2-04f-dynamic-s4802
+  - v2-04f-dynamic-s4807
+  - v2-04f-static-s4803
+  - v2-04f-static-s4808
+  - v2-04f-corridor-s4804
+  - v2-04f-corridor-s4809
+  - v2-04f-maneuver-s4805
+  - v2-04f-maneuver-s4810
+budget: {method_count: 3, validation_scene_count: 10, planned_navigation_episode_count: 30, attempts_per_interface_failure: 2, early_stopping_allowed: false}
+data_firewall:
+  allowed_seed_set: [4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+  forbidden_v2_04d_validation_seed_set: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610]
+  forbidden_all_calibration_seed_set: [4701, 4702, 4703, 4704, 4705, 4711, 4712, 4713, 4714, 4715, 4721, 4722, 4723, 4724, 4725, 4731, 4732, 4733, 4734, 4735]
+  validation_selection_or_refinement_allowed: false
+claims:
+  supervisor_frozen_before_scene_materialization: true
+  supervisor_and_anchor_modification_after_validation_start_allowed: false
+  runtime_scene_labels_available: false
+  sac_training_started: false
+  real_vehicle_validated: false

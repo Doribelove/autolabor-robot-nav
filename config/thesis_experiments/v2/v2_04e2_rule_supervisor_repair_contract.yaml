@@ -1,0 +1,80 @@
+schema_version: "2.0"
+architecture_generation: v2
+contract_id: fam_teb_v2_04e2_calibration_only_rule_supervisor_repair_1
+status: preregistered_simulation_only
+formal_experiment: false
+simulation_only: true
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+trigger:
+  v2_04e_assessment:
+    path: artifacts/v2/calibration/v2_04e/v2_04e_assessment.yaml
+    sha256: 98f3269934a01f046076f4d465978141e5ba7a7cae48d27cbb22d7f9a01d7f56
+  v2_04e_valid_episode_count: 20
+  v2_04e_passing_candidate_count: 0
+  observed_calibration_failures:
+    maneuver_fraction_all_candidates: 0.0
+    maximum_switch_gate_failed_by_all_candidates: true
+
+single_stage_scope:
+  fixed_algorithm_changes:
+    - bilateral_side_pocket_maneuver_evidence
+    - separate_balanced_exit_confirmation
+  threshold_search_is_bounded_by_candidate_bank: true
+  anchor_bank_changes_allowed: false
+  v2_04d_validation_data_used: false
+
+split_boundary:
+  permitted_split: calibration
+  permitted_seed_set: [4711, 4712, 4713, 4714, 4715]
+  forbidden_seed_sets:
+    v2_04d_validation: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610]
+    v2_04e_calibration: [4701, 4702, 4703, 4704, 4705]
+    reserved_v2_04f_validation: [4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+  runtime_manifest_access: false
+  runtime_scene_labels_allowed: false
+
+budget:
+  candidate_count: 3
+  calibration_scene_count: 5
+  planned_navigation_episode_count: 15
+  attempts_per_interface_failure: 2
+  early_stopping_allowed: false
+  post_start_candidate_addition_allowed: false
+
+hard_gates_per_candidate:
+  valid_episode_count_exact: 5
+  success_count_exact: 5
+  collision_count_max: 0
+  persistent_interface_failure_count_max: 0
+  typed_transaction_valid_required: true
+  training_used_must_be_false: true
+  cruise: {cruise_valid_context_fraction_min: 0.45, static_dense_valid_context_fraction_max: 0.10}
+  static_dense: {static_dense_valid_context_fraction_min: 0.20}
+  corridor: {corridor_valid_context_fraction_min: 0.20}
+  maneuver: {maneuver_valid_context_fraction_min: 0.15}
+  chatter: {active_anchor_switch_count_max_per_episode: 3, active_anchor_switch_count_mean_max: 2.0}
+
+selection:
+  hard_gate_pass_required_before_ranking: true
+  deterministic_order:
+    - highest_expected_family_mode_fraction_sum
+    - lowest_total_anchor_switch_count
+    - lowest_total_navigation_time_s
+    - lexical_candidate_id
+  no_scalar_reweighting_after_first_episode: true
+
+freeze_and_validation_boundary:
+  supervisor_freeze_requires_calibration_hard_gate_pass: true
+  held_out_validation_preregistration_must_follow_supervisor_freeze: true
+  held_out_validation_seed_set_reserved: [4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+  validation_may_not_modify_frozen_supervisor: true
+
+boundaries:
+  sac_training_allowed: false
+  any_learning_allowed: false
+  real_vehicle_parameter_write_allowed: false
+  real_vehicle_motion_allowed: false
+  runtime_ready_after_pass: false

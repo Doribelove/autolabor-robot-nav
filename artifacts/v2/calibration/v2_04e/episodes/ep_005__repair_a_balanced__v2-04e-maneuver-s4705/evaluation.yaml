@@ -1,0 +1,80 @@
+schema_version: '2.0'
+architecture_generation: v2
+evaluator_id: fam_teb_v2_02_evaluator_1
+formal_result: false
+runtime_ready: false
+scene_id: v2-04e-maneuver-s4705
+family: MANEUVER
+split: calibration
+seed: 4705
+instance_sha256: ad5f39b98f796ad753e274a068b39d924e9164fd3f9a144488fd4124dcb0fdc2
+raw_trace_sha256: 5b912698fa110c17dc12d9f474b52e7d62460c5a56595460b10e45ee33692a3e
+termination: SUCCESS
+metrics:
+  common:
+    success: true
+    collision: false
+    navigation_time_s: 36.5
+    path_length_m: 4.037779857045509
+    mean_abs_speed_mps: 0.1106047662416421
+    minimum_clearance_m: 0.43436678314225075
+    stop_count: 7
+    reverse_distance_m: 2.169959249054347
+  family:
+    gear_switch_count: 7
+    gear_switch_while_moving_count: 7
+    reverse_distance_m: 2.169959249054347
+stage: V2-04E
+method: rule_multi_anchor
+episode_timeout_s: 60.0
+tracker_message_count: 541
+tracker_health_valid_fraction: 1.0
+finite_ttc_sample_count: 0
+ttc_status: NO_CONFLICT_IN_HORIZON
+context_message_count: 185
+context_valid_count: 185
+context_geometry_sequence:
+- STATIC_DENSE
+context_geometry_switch_count: 0
+transaction_message_count: 184
+transaction_valid_count: 184
+transaction_activated_count: 184
+transaction_fault_count: 0
+transaction_backends:
+- simulation_teb_dynamic_reconfigure
+active_anchor_sequence:
+- anchor_static_dense
+active_anchor_switch_count: 0
+typed_transaction_expected: true
+typed_transaction_valid: true
+training_used: false
+runtime_policy_manifest_access: false
+runtime_scene_labels_available: false
+experiment_manager_validation_manifest_access: false
+runner_fault_reason: ''
+supervisor_profile_id: repair_a_balanced
+context_geometry_sample_counts:
+  BALANCED: 0
+  CRUISE: 0
+  STATIC_DENSE: 185
+  CORRIDOR: 0
+  MANEUVER: 0
+context_geometry_sample_fractions:
+  BALANCED: 0.0
+  CRUISE: 0.0
+  STATIC_DENSE: 1.0
+  CORRIDOR: 0.0
+  MANEUVER: 0.0
+context_overlay_sample_counts:
+  NONE: 185
+  CROSSING: 0
+  HEAD_ON: 0
+  FOLLOW: 0
+  OVERTAKE_OR_YIELD: 0
+context_overlay_sample_fractions:
+  NONE: 1.0
+  CROSSING: 0.0
+  HEAD_ON: 0.0
+  FOLLOW: 0.0
+  OVERTAKE_OR_YIELD: 0.0
+experiment_manager_calibration_manifest_access: true

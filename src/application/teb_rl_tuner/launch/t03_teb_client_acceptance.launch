@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="seed" default="42"/>
+  <arg name="timeout_s" default="5.0"/>
+  <arg name="report_path" default="/home/robot/robot_ws_base_rl/artifacts/t03/teb_parameter_client_acceptance.yaml"/>
+
+  <include file="$(find m2_gazebo)/launch/m2_fixed_teb.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+  </include>
+
+  <node pkg="teb_rl_tuner" type="t03_teb_client_integration.py"
+        name="t03_teb_client_integration" output="screen" required="true">
+    <param name="simulation" value="true"/>
+    <param name="timeout_s" value="$(arg timeout_s)"/>
+    <param name="report_path" value="$(arg report_path)"/>
+    <rosparam param="probe_theta" subst_value="true">
+      max_vel_x: 1.1
+      max_vel_theta: 0.9
+      acc_lim_x: 0.7
+      acc_lim_theta: 0.7
+      min_obstacle_dist: 0.27
+      inflation_dist: 0.57
+      weight_obstacle: 55.0
+      weight_viapoint: 1.1
+      weight_optimaltime: 1.1
+    </rosparam>
+  </node>
+</launch>

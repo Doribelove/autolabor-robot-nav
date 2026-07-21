@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- V2-04E/04F experiment-manager inputs. Runtime policy nodes receive no
+       manifest, split, family, candidate score, or evaluator result. -->
+  <arg name="world" default="$(find m2_gazebo)/worlds/obstacle_test.world"/>
+  <arg name="gui" default="false"/>
+  <arg name="seed" default="4701"/>
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+  <arg name="load_balanced_anchor" default="true"/>
+  <arg name="publish_teb_obstacles" default="true"/>
+  <arg name="start_rule_supervisor" default="true"/>
+  <arg name="start_typed_transaction" default="true"/>
+  <arg name="force_geometry_balanced" default="false"/>
+  <arg name="rule_supervisor_config"
+       default="$(find teb_mode_manager)/config/v2_04d_rule_supervisor_frozen.yaml"/>
+
+  <include file="$(find m2_gazebo)/launch/spawn_m2.launch">
+    <arg name="world" value="$(arg world)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+    <arg name="x" value="$(arg x)"/>
+    <arg name="y" value="$(arg y)"/>
+    <arg name="yaw" value="$(arg yaw)"/>
+    <arg name="enable_actuator_dynamics" value="true"/>
+    <arg name="command_delay" value="0.08"/>
+    <arg name="command_jitter" value="0.015"/>
+    <arg name="laser_topic" value="/v2/scan_raw"/>
+    <arg name="laser_noise_stddev" value="0.0"/>
+  </include>
+
+  <node pkg="m2_gazebo" type="v2_scan_transport.py" name="v2_scan_transport"
+        output="screen" required="true">
+    <param name="input_topic" value="/v2/scan_raw"/>
+    <param name="output_topic" value="/scan"/>
+    <param name="delay_s" value="0.06"/>
+    <param name="jitter_s" value="0.01"/>
+    <param name="noise_stddev_m" value="0.01"/>
+    <param name="seed" value="$(arg seed)"/>
+  </node>
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <rosparam file="$(find m2_gazebo)/config/move_base.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="local_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/local_costmap.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/global_costmap.yaml" command="load"/>
+    <param name="global_costmap/width" value="80.0"/>
+    <param name="global_costmap/height" value="30.0"/>
+    <rosparam file="$(find m2_gazebo)/config/fixed_teb.yaml" command="load"/>
+    <rosparam if="$(arg load_balanced_anchor)"
+              file="$(find m2_gazebo)/config/v2_04b_calibration_teb.yaml" command="load"/>
+    <remap from="cmd_vel" to="/cmd_vel"/>
+    <remap from="odom" to="/odom"/>
+  </node>
+
+  <include file="$(find nav_world_model)/launch/v2_03_world_model.launch">
+    <arg name="allow_unfrozen_simulation_candidate" value="true"/>
+    <arg name="publish_teb_obstacles" value="$(arg publish_teb_obstacles)"/>
+  </include>
+
+  <group if="$(arg start_rule_supervisor)">
+    <include file="$(find teb_mode_manager)/launch/v2_03_rule_supervisor.launch">
+      <arg name="config" value="$(arg rule_supervisor_config)"/>
+      <arg name="allow_unfrozen_simulation_candidate" value="true"/>
+    </include>
+  </group>
+
+  <group if="$(arg start_typed_transaction)">
+    <include file="$(find teb_mode_manager)/launch/v2_04b_simulation_typed_anchor.launch">
+      <arg name="allow_simulation_teb_parameter_write" value="true"/>
+      <arg name="allow_unfrozen_simulation_candidate" value="true"/>
+      <arg name="anchor_bank"
+           value="$(find teb_mode_manager)/config/v2_04c_anchor_bank_frozen.yaml"/>
+      <arg name="force_geometry_balanced" value="$(arg force_geometry_balanced)"/>
+    </include>
+  </group>
+</launch>
+

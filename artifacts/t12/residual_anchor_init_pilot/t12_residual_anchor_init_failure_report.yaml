@@ -1,0 +1,69 @@
+schema_version: "1.0"
+task: T12
+study: residual_episode_anchor_initialization_single_factor_pilot
+status: stopped_on_integrity_gate
+formal_result: false
+expanded_budget: false
+simulation_only: true
+amendment: experiments/manifests/t12/residual_anchor_initialization_single_factor_amendment.yaml
+frozen_checksums: experiments/manifests/t12/residual_anchor_init_frozen_checksums.sha256
+requested_scientific_change:
+  initialize_residual_anchor: true
+  all_other_scientific_fields_frozen: true
+execution:
+  seed101:
+    attempts_started: 2
+    attempts_allowed: 2
+    completed_run_count: 0
+    attempt1:
+      log: artifacts/t12/residual_anchor_init_pilot/logs/t12_residual_anchor_init_seed101_a1.log
+      log_sha256: a82427f2bdd9ab62a91297ad857b03dcff56311cc6a08026dda53f1fba6ffe21
+      goal_reached_log_count: 158
+      checkpoint_1000_complete: true
+      checkpoint_manifest_sha256: 3b8538c1d0cd3ae84feea4ef0798482294840bd65f67f8ee9d51db85bf17a3f1
+      failure_context: episode_reset_after_step_1000_checkpoint
+      root_failure: move_base_sigsegv_exit_code_minus_11
+      downstream_failure: dynamic_reconfigure_service_unavailable
+    attempt2:
+      log: artifacts/t12/residual_anchor_init_pilot/logs/t12_residual_anchor_init_seed101_a2.log
+      log_sha256: 543a9b078e757849c2a4fcaa864b1ea2efae6a3ff2978f8300eb19cdb57b8f03
+      goal_reached_log_count: 59
+      checkpoint_1000_complete: false
+      preceding_planner_events:
+        invalid_timediff: true
+        oscillation_abort: true
+        config_activation_timeout: true
+      failure_context: episode_reset_before_step_1000_checkpoint
+      root_failure: move_base_sigsegv_exit_code_minus_11
+      downstream_failure: dynamic_reconfigure_service_unavailable
+  seed102:
+    attempts_started: 0
+    reason_not_started: seed101_exhausted_bounded_attempts_and_integrity_gate_failed
+gates:
+  frozen_contract_checksums_passed_before_run: true
+  full_test_suite_passed_before_run: true
+  seed101_completed: false
+  seed102_completed: false
+  two_seed_complete: false
+  zero_process_crash: false
+  zero_interface_failure: false
+  validation_improved_each_seed: not_evaluable
+  first_training_step_matches_anchor: not_evaluable_from_incomplete_run_artifacts
+integrity_passed: false
+learning_gate_passed: false
+causal_review:
+  observed_repeatability: two_of_two_seed101_attempts_ended_with_move_base_sigsegv
+  common_boundary: episode_reset_parameter_restore
+  relevant_call_path:
+    - TrainingEnvironment.reset
+    - TrainingEnvironment._restore_snapshot
+    - GazeboTrainingAdapter.restore_parameter_snapshot
+    - TebParameterClient.apply
+  interpretation: current_episode_boundary_anchor_restore_protocol_is_not_operationally_stable_enough_for_a_learning_claim
+  causal_limit: crash_logs_do_not_prove_that_anchor_values_alone_caused_the_move_base_fault
+decision: reject_current_anchor_initialization_amendment_and_do_not_expand_budget
+next_allowed_work:
+  training: forbidden_until_a_new_single_factor_amendment_is_frozen
+  offline_review: inspect_episode_boundary_quiescence_and_restore_order
+  candidate_single_factor: make_parameter_restore_atomic_while_move_base_has_no_active_goal_before_dispatching_the_next_goal
+  prohibited_combined_changes: [reward, residual_radius, ema, hold, safety, training_budget]

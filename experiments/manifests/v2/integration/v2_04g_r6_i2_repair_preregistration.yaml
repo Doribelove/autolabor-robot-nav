@@ -1,0 +1,127 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-I2
+preregistration_id: fam_teb_v2_04g_r6_i2_bootstrap_integrity_repair_review
+status: repair_review_preregistered_execution_not_authorized
+preregistration_date: "2026-07-19"
+scope: offline_and_static_integration_repair_review_only
+execution_authorized: false
+ros_or_gazebo_start_authorized: false
+seed_allocation_authorized: false
+seed_values: []
+execution_schedule: []
+evidence_budget_authorized: 0
+retry_or_resume_i1_authorized: false
+i1_forfeited_units_reused: false
+prior_identity_reuse_allowed: false
+training_authorized: false
+real_vehicle_authorized: false
+formal_result: false
+runtime_ready: false
+
+frozen_experimental_boundary:
+  only_future_factor_field: supervisor.dynamic.conflict_estimator_id
+  factor_levels:
+    r6_semantics_legacy_control: legacy_class_conditioned_geometry_v1
+    r6_semantics_circle_contact: shared_circle_envelope_first_contact_v1
+  thresholds:
+    ttc_horizon_s: 5.0
+    minimum_track_confidence: 0.45
+    robot_circle_radius_m: 0.62
+    minimum_relative_speed_mps: 0.05
+    legacy_closest_approach_threshold_m: 1.35
+    overlay_release_confirmation_s: 0.20
+    world_model_classification_horizon_s: 2.0
+  factor_change_in_i2_allowed: false
+  threshold_change_in_i2_allowed: false
+  scene_change_in_i2_allowed: false
+  evaluator_change_in_i2_allowed: false
+  anchor_or_mechanism_change_in_i2_allowed: false
+  runtime_profile_write_in_i2_allowed: false
+  frozen_bindings:
+    legacy_supervisor:
+      path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_legacy_control/supervisor.yaml
+      sha256: a6941f6fd66e187c3642d9594502b5afbc3d9022f8b76ef598ac1969ac410da6
+    aligned_supervisor:
+      path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/supervisor.yaml
+      sha256: d5e35cfe84082b229ae6e656c2d3aaa7a10c8c61b696184bda8dc90e47a762da
+    compiled_scene_index:
+      path: artifacts/v2/integration/v2_04g_r6_i1/compiled_scenes/compiled_scene_index.yaml
+      sha256: 1f1cdde389dc98687142ca8d8c47c03bc8391b003d9103bde05c0e41cfddc4a0
+    evaluator:
+      path: src/tools/thesis_experiment/src/thesis_experiment/v2_evaluator.py
+      sha256: 55ad5a0abd2d6a8fe41ed9942a512405e42d7be6c41eff779df8a7335496e681
+
+repair_items:
+  - repair_id: R6-I2-BOOTSTRAP-CLOCK
+    source_finding: R6-I1-POST-01
+    implementation_requirement:
+      - unpause_requested_before_move_base_or_teb_service_wait
+      - strictly_positive_clock_required
+      - monotonic_clock_progression_required
+      - base_early_exit_or_zero_only_clock_fails_closed
+    verification: pure_python_state_machine_and_static_call_order
+  - repair_id: R6-I2-EXTERNAL-HASH-CLOSURE
+    source_finding: R6-I1-POST-02
+    implementation_requirement:
+      - every_external_python_binding_has_canonical_path_and_sha256
+      - every_external_runtime_binding_has_canonical_path_and_sha256
+      - interpreter_or_builtin_provider_is_explicit
+      - unresolved_bindings_equal_zero
+    verification: mechanically_reproducible_dependency_closure
+  - repair_id: R6-I2-AUTHORIZATION-CLOSED-SCHEMA
+    source_finding: R6-I1-POST-03
+    implementation_requirement:
+      - closed_type_sensitive_schema
+      - every_bound_resource_enforced
+      - independent_closure_digest_enforced
+      - exact_schedule_enforced
+      - all_scope_and_safety_flags_enforced
+    verification: pure_python_positive_and_mutation_tests_only
+  - repair_id: R6-I2-SINGLE-OPEN-HASH-PARSE
+    source_finding: R6-I1-POST-04
+    implementation_requirement:
+      - canonical_path
+      - no_follow_single_open
+      - regular_file_check
+      - one_byte_snapshot_for_hash_and_parse
+      - duplicate_yaml_keys_rejected
+    verification: pure_python_toctou_and_symlink_negative_tests
+  - repair_id: R6-I2-DETERMINISTIC-ASSESSOR
+    source_finding: R6-I1-POST-05
+    implementation_requirement:
+      - no_free_variable_stage_reference
+      - deterministic_build
+      - exact_empty_execution_state
+      - no_write_to_i1
+    verification: repeated_offline_build_and_negative_tests
+  - repair_id: R6-I2-CREDENTIAL-SAFE-LOGGING
+    source_finding: R6-I1-SENSITIVE-LOG-CLEANUP
+    implementation_requirement:
+      - allowlisted_child_environment
+      - credential_like_keys_removed
+      - log_text_redaction
+      - log_path_confined_to_attempt_root
+    verification: pure_python_secret_injection_tests
+
+integration_review_gates:
+  exact_repair_item_count: 6
+  pure_python_or_static_tests_only: true
+  launch_xml_parse_only: true
+  launch_process_start_allowed: false
+  authorization_file_must_be_absent: true
+  execution_artifact_root_must_be_absent: true
+  seed_or_evidence_consumption_must_equal: 0
+  semantic_boundary_hashes_must_match: true
+  i1_frozen_hashes_must_match: true
+  external_binding_unresolved_count_must_equal: 0
+  all_repair_tests_must_pass: true
+
+future_execution_boundary:
+  current_review_may_create_authorization: false
+  current_review_may_allocate_seed_or_budget: false
+  current_review_may_start_ros_or_gazebo: false
+  future_stage_must_be_independent: true
+  future_seed_and_budget_must_be_fresh: true
+  future_authorization_requires_new_explicit_user_instruction: true
+  i1_retry_or_resume_remains_forbidden: true

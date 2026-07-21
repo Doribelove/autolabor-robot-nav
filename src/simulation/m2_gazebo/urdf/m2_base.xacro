@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="box_inertial" params="mass x y z ox:=0 oy:=0 oz:=0">
+    <inertial>
+      <origin xyz="${ox} ${oy} ${oz}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia ixx="${mass*(y*y+z*z)/12.0}" ixy="0" ixz="0"
+               iyy="${mass*(x*x+z*z)/12.0}" iyz="0"
+               izz="${mass*(x*x+y*y)/12.0}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="wheel_inertial" params="mass radius width">
+    <inertial>
+      <mass value="${mass}"/>
+      <inertia ixx="${mass*(3*radius*radius+width*width)/12.0}" ixy="0" ixz="0"
+               iyy="${mass*radius*radius/2.0}" iyz="0"
+               izz="${mass*(3*radius*radius+width*width)/12.0}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="wheel_link" params="name">
+    <link name="${prefix}${name}_wheel_link">
+      <visual>
+        <origin rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+        <material name="m2_tire"><color rgba="0.06 0.06 0.06 1"/></material>
+      </visual>
+      <collision name="${prefix}chassis_collision">
+        <origin rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+      </collision>
+      <xacro:wheel_inertial mass="3.0" radius="${wheel_radius}" width="${wheel_width}"/>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="front_corner" params="side y sign">
+    <link name="${prefix}front_${side}_steer_link">
+      <visual><geometry><box size="0.05 0.05 0.12"/></geometry></visual>
+      <collision><geometry><box size="0.05 0.05 0.12"/></geometry></collision>
+      <xacro:box_inertial mass="0.5" x="0.05" y="0.05" z="0.12"/>
+    </link>
+    <joint name="${prefix}front_${side}_steer_joint" type="revolute">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}front_${side}_steer_link"/>
+      <origin xyz="${wheelbase/2} ${y} ${wheel_radius}" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="${-max_steer*1.5}" upper="${max_steer*1.5}" effort="300" velocity="2.0"/>
+      <dynamics damping="0.5" friction="0.1"/>
+    </joint>
+    <xacro:wheel_link name="front_${side}"/>
+    <joint name="${prefix}front_${side}_wheel_joint" type="continuous">
+      <parent link="${prefix}front_${side}_steer_link"/>
+      <child link="${prefix}front_${side}_wheel_link"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="500" velocity="30"/>
+      <dynamics damping="0.05" friction="0.01"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="rear_corner" params="side y">
+    <xacro:wheel_link name="rear_${side}"/>
+    <joint name="${prefix}rear_${side}_wheel_joint" type="continuous">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}rear_${side}_wheel_link"/>
+      <origin xyz="${-wheelbase/2} ${y} ${wheel_radius}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="500" velocity="30"/>
+      <dynamics damping="0.05" friction="0.01"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="m2_base">
+    <!-- Keep base_link as the TF/kinematic root. The fixed chassis child owns
+         the body inertia so robot_state_publisher/KDL does not drop root inertia. -->
+    <link name="${prefix}base_link"/>
+    <link name="${prefix}chassis_link">
+      <visual>
+        <origin xyz="0 0 ${body_center_z}"/>
+        <geometry><box size="${body_length} ${body_width} ${body_height}"/></geometry>
+        <material name="m2_body"><color rgba="0.12 0.32 0.62 1"/></material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${body_center_z}"/>
+        <geometry><box size="${body_length} ${body_width} ${body_height}"/></geometry>
+      </collision>
+      <xacro:box_inertial mass="${mass-14.0}" x="${body_length}" y="${body_width}"
+                           z="${body_height}" oz="${body_center_z}"/>
+    </link>
+    <joint name="${prefix}chassis_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}chassis_link"/>
+    </joint>
+
+    <xacro:front_corner side="left" y="${track/2}" sign="1"/>
+    <xacro:front_corner side="right" y="${-track/2}" sign="-1"/>
+    <xacro:rear_corner side="left" y="${track/2}"/>
+    <xacro:rear_corner side="right" y="${-track/2}"/>
+  </xacro:macro>
+</robot>

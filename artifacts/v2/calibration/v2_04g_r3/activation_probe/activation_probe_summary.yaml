@@ -1,0 +1,115 @@
+schema_version: '2.0'
+stage: V2-04G-R3
+status: failed
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04g_r3_preregistration.yaml
+  sha256: 068ce36f96b9d78ff7e870724f2cf013043c9283bee3b32a8b3b4008aeefef6e
+planned_probe_count: 6
+executed_probe_count: 6
+valid_probe_count: 5
+all_probe_hard_gates_pass: false
+aggregate_fault_taxonomy_counts:
+  CLEAN: 176
+  EXPECTED_FAIL_CLOSED_CONTEXT_HOLD: 4
+aggregate_fault_reason_counts:
+  invalid_or_faulted_context_hold_previous_executed: 4
+reports:
+- profile_id: r2_target_balanced
+  repeat: 1
+  seed: 4991
+  status: pass
+  maximum_consecutive_stable_count: 10
+  transaction_activated_fraction: 1.0
+  transaction_valid_fraction: 1.0
+  join_valid_fraction: 1.0
+  fault_taxonomy_counts:
+    CLEAN: 30
+  fault_reason_counts: {}
+  report_path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r3/activation_probe/probe_01_r2_target_balanced_repeat_1/report.yaml
+  report_sha256: 84ac11efbc4b353cc83b0d27ad682ca6aa0be9b05ac74e0d19abde1f75153038
+- profile_id: r2_target_balanced
+  repeat: 2
+  seed: 4992
+  status: pass
+  maximum_consecutive_stable_count: 10
+  transaction_activated_fraction: 0.9666666666666667
+  transaction_valid_fraction: 0.9666666666666667
+  join_valid_fraction: 1.0
+  fault_taxonomy_counts:
+    CLEAN: 29
+    EXPECTED_FAIL_CLOSED_CONTEXT_HOLD: 1
+  fault_reason_counts:
+    invalid_or_faulted_context_hold_previous_executed: 1
+  report_path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r3/activation_probe/probe_02_r2_target_balanced_repeat_2/report.yaml
+  report_sha256: dc5d2d55ef00cc2375bf06484e90b3f54e5ce0d98e1fd9acc2fe7613b5183318
+- profile_id: r2_target_balanced
+  repeat: 3
+  seed: 4993
+  status: pass
+  maximum_consecutive_stable_count: 10
+  transaction_activated_fraction: 1.0
+  transaction_valid_fraction: 1.0
+  join_valid_fraction: 1.0
+  fault_taxonomy_counts:
+    CLEAN: 30
+  fault_reason_counts: {}
+  report_path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r3/activation_probe/probe_03_r2_target_balanced_repeat_3/report.yaml
+  report_sha256: 2cdad3becdb962f2d47a16226e316f17dfe99771816d2ea5cedb10a8f3bf0afe
+- profile_id: r2_target_aggressive
+  repeat: 1
+  seed: 4994
+  status: pass
+  maximum_consecutive_stable_count: 10
+  transaction_activated_fraction: 1.0
+  transaction_valid_fraction: 1.0
+  join_valid_fraction: 1.0
+  fault_taxonomy_counts:
+    CLEAN: 30
+  fault_reason_counts: {}
+  report_path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r3/activation_probe/probe_04_r2_target_aggressive_repeat_1/report.yaml
+  report_sha256: c7b07543d4e4991b8c3f3c931640d0585c7d8118588533dd23895798eff74621
+- profile_id: r2_target_aggressive
+  repeat: 2
+  seed: 4995
+  status: pass
+  maximum_consecutive_stable_count: 10
+  transaction_activated_fraction: 0.9666666666666667
+  transaction_valid_fraction: 0.9666666666666667
+  join_valid_fraction: 1.0
+  fault_taxonomy_counts:
+    CLEAN: 29
+    EXPECTED_FAIL_CLOSED_CONTEXT_HOLD: 1
+  fault_reason_counts:
+    invalid_or_faulted_context_hold_previous_executed: 1
+  report_path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r3/activation_probe/probe_05_r2_target_aggressive_repeat_2/report.yaml
+  report_sha256: dfa9975ae215a6c11d2f2819e22a3d9f16f6c2f7c04be0a4fa93029de9c8a0bc
+- profile_id: r2_target_aggressive
+  repeat: 3
+  seed: 4996
+  status: fail
+  maximum_consecutive_stable_count: 10
+  transaction_activated_fraction: 0.9333333333333333
+  transaction_valid_fraction: 0.9333333333333333
+  join_valid_fraction: 1.0
+  fault_taxonomy_counts:
+    CLEAN: 28
+    EXPECTED_FAIL_CLOSED_CONTEXT_HOLD: 2
+  fault_reason_counts:
+    invalid_or_faulted_context_hold_previous_executed: 2
+  report_path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04g_r3/activation_probe/probe_06_r2_target_aggressive_repeat_3/report.yaml
+  report_sha256: 0949b85961d0360f4f52a0c0075988cf38106d644a4ef99a35b69c5dd68e0f5d
+failure:
+  sequence: 6
+  profile_id: r2_target_aggressive
+  repeat: 3
+  seed: 4996
+  reason: readiness taxonomy hard gate failed
+readiness_pass: false
+ttc_probe_authorized: false
+navigation_authorized: false
+sac_training_authorized: false
+real_vehicle_authorized: false

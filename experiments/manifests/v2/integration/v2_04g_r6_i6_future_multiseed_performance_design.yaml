@@ -1,0 +1,290 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P1
+design_id: fam_teb_v2_04g_final_fresh_multiseed_paired_performance_1
+design_date: "2026-07-21"
+status: design_preregistered_execution_not_authorized
+source_interpretation_stage: V2-04G-R6-I6
+independent_future_stage: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_allowed: false
+training_budget_steps: 0
+checkpoint_selection_allowed: false
+real_vehicle_use_forbidden: true
+objective: >-
+  Test, with fresh common-random-number scene seeds and paired statistics,
+  whether evaluator-aligned circle-contact conflict semantics reduce unnecessary
+  dynamic intervention and traversal time in semantically clear encounters while
+  preserving success, collision, clearance, and true-conflict response relative
+  to the frozen legacy class-conditioned semantics. No training budget is added.
+claim_target: >-
+  A confirmatory result may support only a fresh-simulation dynamic-interaction
+  efficiency improvement claim for the aligned conflict estimator relative to
+  the legacy estimator, conditional on every integrity and safety gate. It may
+  not support whole-system, cross-family, learning, real-vehicle, or deployment
+  superiority.
+
+methods:
+  confirmatory_pair:
+    control:
+      method_id: r6_semantics_legacy_control
+      estimator_id: legacy_class_conditioned_geometry_v1
+      role: frozen_active_control
+    treatment:
+      method_id: r6_semantics_circle_contact
+      estimator_id: shared_circle_envelope_first_contact_v1
+      role: evaluator_aligned_candidate
+    only_allowed_behavioral_difference: supervisor.dynamic.conflict_estimator_id
+  contextual_reference:
+    method_id: fixed_teb_reference
+    role: secondary_context_only
+    included_in_primary_claim: false
+    confirmatory_superiority_claim_allowed: false
+  method_count: 3
+  learning_policy_used: false
+  checkpoint_used: false
+
+frozen_common_system:
+  predicted_ttc_max_s: 5.0
+  evaluator_ttc_horizon_s: 5.0
+  minimum_track_confidence: 0.45
+  robot_radius_m: 0.62
+  minimum_relative_speed_mps: 0.05
+  world_model_prediction_horizon_s: 2.0
+  closest_approach_max_m: 1.35
+  overlay_release_confirmation_s: 0.20
+  horizon_values_1_5_or_1_0_enabled: false
+  tracker_or_classifier_change_allowed: false
+  anchor_or_mechanism_change_allowed: false
+  transaction_or_join_change_allowed: false
+  evaluator_change_allowed: false
+  posthoc_threshold_change_allowed: false
+  scene_label_visible_to_runtime: false
+
+fresh_seed_firewall:
+  historical_high_watermark: 5167
+  held_out_5001_5010_forbidden: true
+  all_r5_r6_i1_i3_i5_allocated_seeds_forbidden: true
+  scene_seed_block:
+    first: 5201
+    last: 5290
+    count: 90
+  compile_support_only_seeds: [5291, 5292, 5293, 5294]
+  compile_support_seeds_are_evidence: false
+  seed_replacement_allowed: false
+  seed_selection_after_outcome_allowed: false
+
+scene_families:
+  - role: single_true_conflict
+    seed_first: 5201
+    seed_last: 5230
+    paired_blocks: 30
+    expected_ttc_status: OBSERVED_CONFLICT
+    purpose: preserve finite-TTC detection and safe crossing response
+  - role: multi_true_conflict
+    seed_first: 5231
+    seed_last: 5260
+    paired_blocks: 30
+    expected_ttc_status: OBSERVED_CONFLICT
+    purpose: preserve deterministic multi-track selection and response
+  - role: time_separated_semantic_clear
+    seed_first: 5261
+    seed_last: 5290
+    paired_blocks: 30
+    expected_ttc_status: NO_CONFLICT_IN_HORIZON
+    purpose: measure false overlay burden and avoidable efficiency loss
+total_scene_seed_blocks: 90
+scene_geometry_and_timing_freeze_required_before_authorization: true
+compiled_scene_child_hashes_required_before_authorization: true
+
+planned_matrix:
+  common_random_numbers: true
+  every_method_runs_every_scene_seed_block: true
+  scene_seed_blocks: 90
+  methods_per_block: 3
+  planned_episode_count: 270
+  planned_confirmatory_paired_episode_count: 180
+  planned_contextual_reference_episode_count: 90
+  attempt_limit_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+  replacement_seed_allowed: false
+  budget_expansion_allowed: false
+  randomized_order: deterministic_counterbalanced_within_block
+  exact_schedule_and_digest_required_before_execution_authorization: true
+  planned_budget_is_not_authorized_budget: true
+
+sample_size_rationale:
+  confirmatory_pairs_per_scene_role: 30
+  assumed_sd_of_paired_log_time_difference: 0.15
+  target_true_geometric_time_reduction_fraction: 0.10
+  one_sided_alpha: 0.05
+  target_power: 0.90
+  approximate_required_pairs_before_inflation: 22
+  inflation_for_non_normality_and_integrity_risk_fraction: 0.25
+  selected_pairs_per_role: 30
+  binary_noninferiority_capacity:
+    success_and_collision_population: all_90_blocks_role_stratified
+    true_conflict_population: 60_single_and_multi_conflict_blocks
+    one_sided_exact_upper_bound_with_zero_harmful_discordances_all_90: 0.0328
+    one_sided_exact_upper_bound_with_zero_harmful_discordances_conflict_60: 0.0487
+    per_role_point_harm_guard_required: true
+    note: >-
+      The pooled binary interval is interpreted only after stratification. No
+      scene role may show an excess of treatment-only failure or collision;
+      this prevents the 90-block aggregate from masking role-specific harm.
+  rationale_limit: >-
+    This is a design assumption, not an effect estimate from I5. I5 was not a
+    performance pilot and is excluded from the future confirmatory analysis.
+    Thirty pairs per role power the continuous efficiency contrast; the pooled
+    90-block and 60-conflict-block binary capacities make the five-percentage-
+    point noninferiority gates attainable only under very low harmful
+    discordance, without weakening those gates.
+
+statistical_unit:
+  primary_unit: scene_seed_block
+  paired_observation: treatment_minus_control_within_same_scene_seed
+  control_rate_samples_are_not_independent_units: true
+  i5_units_included_in_analysis: false
+  historical_calibration_units_included_in_analysis: false
+
+outcomes:
+  primary_efficiency:
+    population: time_separated_semantic_clear
+    metric: restricted_completion_time_s
+    definition: navigation_time_if_success_else_frozen_scene_timeout
+    transform: log
+    effect: geometric_mean_time_reduction_fraction_treatment_vs_control
+    direction: larger_reduction_is_better
+  primary_mechanism:
+    population: time_separated_semantic_clear
+    metric: non_none_overlay_time_fraction
+    effect: paired_reduction_fraction_treatment_vs_control
+  safety_and_task_gates:
+    - success
+    - collision
+    - minimum_footprint_clearance_m
+    - true_conflict_ttc_status_match
+    - emergency_or_interface_failure
+  secondary:
+    - navigation_time_by_scene_role
+    - path_length_m
+    - stop_time_s
+    - unnecessary_stop_count
+    - minimum_predicted_ttc_s
+    - finite_ttc_sample_fraction
+    - parameter_transaction_invalid_count
+    - planner_deadline_miss_count
+
+analysis:
+  analysis_population: intention_to_treat_all_consumed_identities
+  paired_log_time_test: one_sided_paired_randomization_test
+  paired_interval: scene_seed_stratified_paired_bootstrap
+  bootstrap_resamples: 10000
+  bootstrap_rng_seed: 20260721
+  binary_outcome_method: exact_paired_mcnemar_and_paired_score_interval
+  binary_noninferiority_population: all_90_blocks_stratified_by_scene_role
+  binary_role_harm_guard: treatment_harmful_discordance_excess_must_be_nonpositive_in_every_role
+  minimum_clearance_method: paired_bootstrap_difference
+  multiplicity:
+    primary_gatekeeping_order:
+      - integrity
+      - collision_and_success_noninferiority
+      - clearance_noninferiority
+      - true_conflict_semantic_preservation
+      - semantic_clear_efficiency_superiority
+      - semantic_clear_mechanism_reduction
+    secondary_family_adjustment: holm
+    familywise_alpha: 0.05
+  report_both_raw_and_adjusted_p_values: true
+  report_effect_size_and_confidence_interval: true
+  report_each_scene_role_separately: true
+  macro_average_cannot_mask_family_failure: true
+
+confirmatory_decision_rule:
+  all_conditions_required: true
+  integrity:
+    complete_matrix_required: true
+    unexplained_process_crash_count_max: 0
+    hash_or_schema_failure_count_max: 0
+    dropped_or_replaced_episode_count_max: 0
+  success_noninferiority:
+    estimand: treatment_minus_control_success_probability
+    pooled_scene_seed_blocks: 90
+    lower_confidence_bound_min: -0.05
+    treatment_success_count_not_below_control_in_each_role: true
+  collision_noninferiority:
+    estimand: treatment_minus_control_collision_probability
+    pooled_scene_seed_blocks: 90
+    upper_confidence_bound_max: 0.05
+    treatment_collision_count_must_not_exceed_control: true
+    treatment_collision_count_must_not_exceed_control_in_each_role: true
+  clearance_noninferiority:
+    estimand: treatment_minus_control_minimum_clearance_m
+    pooled_scene_seed_blocks: 90
+    lower_confidence_bound_min_m: -0.05
+    per_role_point_estimate_min_m: -0.05
+  true_conflict_preservation:
+    conflict_scene_seed_blocks: 60
+    expected_observed_ttc_match_fraction_min: 0.95
+    treatment_match_fraction_not_below_control: true
+  efficiency_superiority:
+    treatment_geometric_time_reduction_point_estimate_min: 0.05
+    one_sided_confidence_lower_bound_strictly_above: 0.0
+    adjusted_p_value_max: 0.05
+  mechanism_reduction:
+    non_none_overlay_fraction_reduction_point_estimate_min: 0.30
+    one_sided_confidence_lower_bound_strictly_above: 0.0
+    adjusted_p_value_max: 0.05
+  decision_if_any_condition_fails: performance_improvement_not_demonstrated
+
+failure_and_missingness_policy:
+  algorithmic_failure_retained: true
+  collision_retained: true
+  timeout_retained: true
+  planner_failure_retained: true
+  post_consumption_process_failure_retained: true
+  failed_episode_deletion_forbidden: true
+  successful_only_primary_analysis_forbidden: true
+  missing_confirmatory_pair_invalidates_confirmatory_claim: true
+  pre_consumption_preflight_failure_action: stop_without_consuming_and_require_new_review
+  post_consumption_integrity_failure_action: stop_stage_and_forbid_confirmatory_claim
+  no_imputation_except_restricted_time_rule: true
+
+claim_rules:
+  claim_if_all_confirmatory_gates_pass: >-
+    In fresh dynamic-interaction simulation, evaluator-aligned circle-contact
+    conflict semantics improved semantically clear traversal efficiency relative
+    to the legacy class-conditioned estimator while meeting preregistered task,
+    collision, clearance, and true-conflict noninferiority gates.
+  mandatory_scope_qualifiers:
+    - fresh_simulation
+    - dynamic_interaction_scenes_only
+    - rule_based_no_training
+    - relative_to_legacy_conflict_estimator
+  claims_forbidden_even_if_pass:
+    - whole_fam_teb_system_superiority
+    - five_scene_family_generalization
+    - reinforcement_learning_improvement
+    - real_vehicle_performance
+    - real_vehicle_safety
+    - deployment_readiness
+    - strict_cbf_guarantee
+  failure_wording: >-
+    The preregistered final paired study did not demonstrate the targeted
+    performance improvement; all observed effects remain descriptive.
+
+future_release_gates:
+  separate_implementation_readiness_review_required: true
+  separate_dependency_closure_required: true
+  separate_execution_authorization_required: true
+  separate_exact_hash_release_required: true
+  explicit_user_execution_instruction_required: true
+  current_design_may_start_ros_or_gazebo: false
+  current_design_may_create_attempt_or_journal: false
+  current_design_may_consume_seed_or_budget: false

@@ -1,0 +1,144 @@
+schema_version: "2.0"
+architecture_generation: v2
+phase: V2-03
+accepted_at: "2026-07-14T00:18:38+08:00"
+status: component_complete
+passed: true
+formal_result: false
+runtime_ready: false
+simulation_only: true
+training_started: false
+real_vehicle_started: false
+online_teb_parameter_write_performed: false
+velocity_command_publisher_added: false
+
+scope:
+  title: local world model, dynamic tracking and prediction, health, and label-free rule supervisor
+  planner_or_policy_performance_in_scope: false
+  gazebo_or_pedsim_truth_runtime_policy_input: false
+  evaluator_truth_use: true
+
+contracts:
+  world_model_rule:
+    path: config/thesis_experiments/v2/world_model_contract.yaml
+    sha256: 61fab0cd20437afa1980a21fb340fadf9b2690e60321c47cf7f4e151d97c97b3
+    validator_status: valid
+    runtime_ready: false
+  deployment_mode_thresholds:
+    path: config/thesis_experiments/v2/mode_thresholds.yaml
+    sha256: 3321b4b675d2daca43b0fc15fc62220ad6f4eedeff77ecbdac4eb9396302056c
+    runtime_ready: false
+  simulation_profiles:
+    world_model:
+      path: src/perception/nav_world_model/config/v2_03_candidate.yaml
+      sha256: 0a0259175ca089484e71db347f740ecd7627340ccb543bd81293f0315f647791
+    rule_supervisor:
+      path: src/application/teb_mode_manager/config/v2_03_rule_candidate.yaml
+      sha256: eaa9862ea8c5c56ffab91925f6b980c6757d1bb7e2a0943f8a0efd1159ce4657
+    activation_requires_simulation_marker_and_explicit_opt_in: true
+
+implementation:
+  world_model_core:
+    path: src/perception/nav_world_model/src/nav_world_model/core.py
+    sha256: 160e1c09ab14903c1f75e40862a9645c55a0f690097e1755c82ed072ce2f89ad
+    features:
+      - strict_laserscan_metadata_validation
+      - four_direction_coverage_and_clearance
+      - local_obstacle_density
+      - side_line_corridor_geometry
+      - dead_end_score
+      - optional_runtime_path_metrics
+      - ordered_scan_clustering
+      - gated_nearest_neighbor_alpha_beta_tracking
+      - constant_velocity_prediction_with_growing_covariance
+      - tracker_reset_on_time_regression
+  world_model_ros_node:
+    path: src/perception/nav_world_model/scripts/nav_world_model_node.py
+    sha256: ed27e2b79060e294e0ec087200cb508c0254114ad48b9c40d97c300b4e5680ee
+    runtime_inputs: [/scan, /odom, /tf, /move_base/NavfnROS/plan, /move_base/local_costmap/costmap]
+    outputs: [/nav_world_model/local_geometry, /nav_world_model/tracks, /nav_world_model/health]
+  rule_supervisor_core:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/rule_supervisor.py
+    sha256: 8eb1889bc160e87dec08191c742a31f25689580935e72ab8f9d8317270ad4bbe
+    geometry_modes: [BALANCED, CRUISE, STATIC_DENSE, CORRIDOR, MANEUVER]
+    dynamic_overlays: [NONE, CROSSING, HEAD_ON, FOLLOW, OVERTAKE_OR_YIELD]
+    transition_controls: [confidence, confirmation, minimum_dwell, blend, overlay_release_hysteresis]
+  rule_supervisor_ros_node:
+    path: src/application/teb_mode_manager/scripts/rule_context_supervisor_node.py
+    sha256: 07c8dde223df4bb0c23f596c4b36327508bbe54f4fb90afd949669e67918d9db
+    output: /teb_mode_manager/context
+    transition_audit_output: /teb_mode_manager/transition
+    scene_label_input: false
+    manifest_access: false
+    parameter_write: false
+    cmd_vel_write: false
+
+health_semantics:
+  checks: [scan_metadata, scan_age, tf, localization_age, tracker_age, directional_coverage]
+  stale_is_invalid: true
+  sequence_mismatch_is_invalid: true
+  fault_output: BALANCED_NONE_FAULTED
+  costmap_optional_but_health_reported: true
+
+synthetic_acceptance:
+  report:
+    path: artifacts/v2/component_acceptance/v2_03_synthetic_acceptance.yaml
+    sha256: 89c48dedfcc6de3253d723eb437ba466a9b791be9187bae3eee58754fc2d99fc
+  passed: true
+  tracking_samples: 48
+  position_rmse_m: 0.02074012506518078
+  prediction_1s_rmse_m: 0.07799561197842302
+  id_switches: 0
+  mode_macro_recall: 1.0
+  mode_confusion_diagonal: 5
+  mode_confusion_total: 5
+  fault_cases_passed: 4
+
+gazebo_runtime_acceptance:
+  report:
+    path: artifacts/v2/component_acceptance/v2_03_gazebo_runtime_probe.yaml
+    sha256: 27e72da1a994a15e88b07aa946b02993fed9eb58cfd07218fcd1c371a4339fd8
+  passed: true
+  scene: v2-02-dynamic-crossing
+  runtime_policy_inputs: [LaserScan, Odometry, TF]
+  evaluator_truth: /gazebo/model_states
+  track_samples: 88
+  position_rmse_m: 0.2699074679352137
+  id_switches: 0
+  unique_track_ids: [1]
+  valid_health_samples: 95
+  valid_geometry_samples: 95
+  valid_context_samples: 32
+  crossing_overlay_samples: 13
+
+verification:
+  full_workspace_build:
+    command: catkin_make -j4 -l4
+    packages: 73
+    passed: true
+  python_pytest:
+    passed: 177
+    errors: 0
+    failures: 0
+  catkin_tests:
+    nav_world_model: {passed: 5, errors: 0, failures: 0}
+    teb_mode_manager: {passed: 5, errors: 0, failures: 0}
+    thesis_experiment: {passed: 34, errors: 0, failures: 0}
+    m2_gazebo: {passed: 34, errors: 0, failures: 0}
+    teb_rl_tuner: {passed: 60, errors: 0, failures: 0}
+
+known_limitations:
+  - scan_cluster_tracking_is_not_a_production_multi_sensor_tracker
+  - nearest_neighbor_data_association_has_no_reidentification_or_occlusion_model
+  - prediction_is_constant_velocity_only
+  - synthetic_five_mode_confusion_does_not_replace_full_gazebo_scene_matrix
+  - gazebo_truth_was_used_only_by_the_runtime_evaluator
+  - thresholds_are_uncalibrated_simulation_candidates_and_runtime_ready_false
+  - no_teb_dynamic_obstacle_bridge_or_planner_backend_was_enabled
+  - no_navigation_performance_or_learning_improvement_is_claimed
+
+next_gate:
+  phase: V2-04
+  title: anchor bank, typed profiles, feasible action trace, and no-training closed loop
+  training_authorized: false
+  real_vehicle_authorized: false

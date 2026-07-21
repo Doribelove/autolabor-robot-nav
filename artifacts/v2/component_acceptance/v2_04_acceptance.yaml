@@ -1,0 +1,124 @@
+schema_version: "2.0"
+stage: V2-04
+acceptance_id: fam_teb_v2_04_software_shadow_gate_1
+timestamp_cst: "2026-07-14 00:54:00"
+status: component_software_shadow_complete
+passed: true
+formal_result: false
+simulation_only: true
+runtime_ready: false
+
+scope:
+  anchor_bank_implemented: true
+  typed_profile_implemented: true
+  feasible_action_decoder_implemented: true
+  previous_executed_smoothing_implemented: true
+  four_stage_action_trace_implemented: true
+  zero_training_rule_loop_implemented: true
+  execution_backend: deterministic_shadow
+  anchor_values_formally_calibrated: false
+  dynamic_reconfigure_backend_implemented: false
+  gazebo_navigation_effect_validated: false
+  v2_learning_implemented: false
+
+safety_boundary:
+  training_started: false
+  checkpoint_loaded: false
+  velocity_command_published: false
+  real_teb_parameter_write_used: false
+  real_vehicle_used: false
+  runtime_scene_label_used: false
+  runtime_gazebo_truth_used: false
+  deployment_parameter_registry_runtime_ready: false
+  mode_thresholds_runtime_ready: false
+
+software_inventory:
+  anchor_count: 6
+  dynamic_overlay_count: 5
+  parameter_count: 20
+  parameter_types: {double: 18, int: 1, bool: 1}
+  zero_residual_anchor_overlay_combinations: 30
+  transition_origin: previous_executed
+  discrete_commit: after_continuous_convergence
+  transaction_requirements: [request, ack, readback, activation]
+  action_stages: [commanded, feasible, safe, executed]
+
+acceptance_gates:
+  normal_projection_rate:
+    result: 0.0
+    maximum: 0.10
+    passed: true
+  continuous_parameter_jump:
+    violation_count: 0
+    maximum_rate_ratio: 1.0000000000000862
+    tolerance_note: floating_point_roundoff_only
+    passed: true
+  trace_reconstruction:
+    transaction_count: 800
+    complete: true
+    passed: true
+  fault_atomicity:
+    cases: [timeout, ack_mismatch, readback_mismatch]
+    held_previous_executed: 3
+    total: 3
+    passed: true
+  ros_topic_runtime:
+    transaction_count: 20
+    valid_activated_count: 15
+    invalid_hold_count: 5
+    normal_projection_count: 0
+    complete_twenty_parameter_trace: true
+    passed: true
+
+verification:
+  full_workspace_build:
+    command: catkin_make -j4 -l4
+    package_count: 73
+    passed: true
+  python_pytest:
+    passed: 191
+    errors: 0
+    failures: 0
+  catkin:
+    teb_mode_manager: {tests: 15, errors: 0, failures: 0}
+    thesis_experiment: {tests: 38, errors: 0, failures: 0}
+    nav_world_model: {tests: 5, errors: 0, failures: 0}
+    m2_gazebo: {tests: 34, errors: 0, failures: 0}
+    teb_rl_tuner: {tests: 60, errors: 0, failures: 0}
+
+evidence:
+  action_pipeline_contract:
+    path: config/thesis_experiments/v2/action_pipeline_contract.yaml
+    sha256: baa92ccf77b4244dbdbd618b2d055c8b1a18aebca08e0e7ea8e51c3e2369dfc9
+  anchor_bank:
+    path: src/application/teb_mode_manager/config/v2_04_anchor_bank_candidate.yaml
+    sha256: 3480e0e5389fd2641bf707399ee0fe5c8abc890f45565e1b4b3ad77c4e14bed4
+  action_pipeline_implementation:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/action_pipeline.py
+    sha256: 7c06cb57a78f8879cac87d4ef02c0eb53c54b05c08b4934fd87621051b3a4630
+  offline_rule_loop_report:
+    path: artifacts/v2/component_acceptance/v2_04_rule_loop_acceptance.yaml
+    sha256: 455778c21ce60c7d8751e569d1d92afabeaea0f240d82e9833954884d3ce9eda
+  ros_runtime_probe:
+    path: artifacts/v2/component_acceptance/v2_04_ros_runtime_probe.yaml
+    sha256: c17df0ca25fec7e5efa6d9e13eca6f9d9eeed94a7aa2b126fbb8b29bdc34e9bd
+
+deferred_gates:
+  - independent_anchor_calibration_on_calibration_split
+  - simulation_only_typed_teb_dynamic_reconfigure_transaction
+  - real_teb_ack_readback_restore_acceptance_in_gazebo
+  - five_family_no_training_navigation_comparison
+  - dynamic_tracker_to_teb_bridge
+  - static_topology_lock
+  - corridor_centerline
+  - ackermann_bidirectional_maneuver_planner
+  - predictive_motion_shield
+  - any_v2_learning_or_sac_training
+  - real_vehicle_calibration_and_on_site_approval
+
+claims:
+  proves_software_action_pipeline: true
+  proves_transaction_continuity_and_reconstruction: true
+  proves_navigation_performance_improvement: false
+  proves_anchor_optimality: false
+  proves_real_vehicle_safety: false

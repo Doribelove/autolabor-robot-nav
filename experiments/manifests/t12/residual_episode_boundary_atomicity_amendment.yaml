@@ -1,0 +1,66 @@
+schema_version: "1.0"
+status: preregistered_before_implementation
+task: T12
+amendment_id: t12_residual_episode_boundary_atomicity_v1
+created_at: "2026-07-13T18:30:46+08:00"
+reason:
+  prior_amendment: t12_residual_episode_anchor_initialization_v1
+  prior_seed101_attempts: 2
+  prior_move_base_sigsegv_count: 2
+  common_failure_boundary: episode_reset_parameter_restore
+single_factor_change:
+  name: atomic_episode_boundary_quiescence_restore_reset_dispatch
+  required_order:
+    - cancel_previous_goal
+    - confirm_action_terminal_and_local_plan_quiet
+    - restore_teb_tuned_residual_anchor
+    - reset_scene_and_robot_state
+    - dispatch_next_goal
+  failure_rule: fail_closed_before_parameter_write_if_move_base_is_not_quiescent
+frozen_unchanged_fields:
+  initialize_residual_anchor: true
+  curriculum_rotation_repair: enabled
+  reward: config/thesis_experiments/t11_formal.yaml#reward
+  normalized_residual_radius: [0.35, 0.25, 0.30, 0.30, 0.25, 0.20, 0.30, 0.25, 0.25]
+  minimum_risk_scale: 0.20
+  action_ema_alpha: 0.35
+  decision_hold_steps: 4
+  safety_mode: T12Safety
+  sac_hyperparameters: config/thesis_experiments/t11_formal.yaml#training
+  training_seeds: [101, 102]
+  full_pilot_timesteps_per_seed: 2000
+  full_pilot_checkpoints: [1000, 2000]
+  evaluation_seed_limit: 1
+integrity_pilot:
+  seed: 101
+  timesteps: 500
+  checkpoints: [250, 500]
+  formal_result: false
+  output_root: artifacts/t12/residual_boundary_integrity_pilot
+  gates:
+    run_complete: true
+    move_base_crash_count: 0
+    activation_timeout_count: 0
+    interface_fault_count: 0
+    dynamic_reconfigure_failure_count: 0
+    all_episode_first_steps_match_anchor: true
+    all_five_training_scenes_observed: true
+    collision_count: 0
+    emergency_stop_count: 0
+    test_goal_count: 7
+  mechanism_gate:
+    reference_projection_intervention_rate: 0.8706
+    maximum_projection_intervention_rate: 0.77
+    required_drop_percentage_points: 10.06
+decision_after_integrity_pilot:
+  pass: run_two_seed_2000_step_pilot_without_other_changes
+  fail: stop_and_review_offline_without_training_budget_expansion
+decision_after_two_seed_pilot:
+  pass_condition: validation_return_change_positive_for_both_seeds_with_all_integrity_gates
+  pass: run_frozen_three_method_pairing
+  fail: stop_and_review_residual_action_projection_alignment_as_one_future_factor
+pairing_claim_boundary:
+  return_gain_alone_is_insufficient: true
+  require_success_increment_over_baselines: true
+  require_consistent_efficiency_gain_on_both_goal_pairs: true
+  require_no_safety_regression: true

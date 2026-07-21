@@ -1,0 +1,988 @@
+schema_version: '2.0'
+architecture_generation: v2
+stage: V2-04G-TTC-D1
+status: complete_offline_diagnosis
+offline_only: true
+diagnosis_only: true
+formal_result: false
+runtime_ready: false
+source:
+  stage: V2-04G-R5
+  identity: r5-readiness-r5_ttc_h450-s5111
+  seed: 5111
+  reuse_classification: read_only_diagnosis_not_new_evidence
+  new_evidence_units_consumed: 0
+  r5_remaining_units_consumed: 0
+implementation:
+  contract:
+    path: config/thesis_experiments/v2/v2_04g_ttc_d1_offline_diagnosis_contract.yaml
+    sha256: 7b6639362e28e1fb8c553e1d9a4333867142036e6d94f4a8816ac11bc5993913
+  script:
+    path: src/tools/thesis_experiment/scripts/diagnose_v2_04g_ttc_d1.py
+    sha256: 879ea2e1454ab7356af6aee25265a0399e25108edb9906046f7c844d6cc82fe7
+integrity:
+  declared_d1_frozen_inputs:
+    count: 31
+    all_hashes_match: true
+    resources:
+      r5_preregistration:
+        path: experiments/manifests/v2/calibration/v2_04g_r5_preregistration.yaml
+        sha256: 0adcfd6a7a686b799b6dc55394cdf1e90fa140cee636d4283e0fb807f14134c6
+        verified: true
+      r5_contract:
+        path: config/thesis_experiments/v2/v2_04g_r5_ttc_robustness_contract.yaml
+        sha256: a60b1210c8bb1f2064c62745c5841a604e4dddf13654f9050814a04a7f282bb7
+        verified: true
+      r5_candidate_bank:
+        path: experiments/manifests/v2/calibration/v2_04g_r5_ttc_timing_candidates.yaml
+        sha256: 74f09ea326f8da6e7939da9cc1eb28ba7adf9470b655558cd08b792008c43b91
+        verified: true
+      r5_execution_authorization:
+        path: experiments/manifests/v2/calibration/v2_04g_r5_bounded_execution_authorization.yaml
+        sha256: a7b87ed63489bf019cf86bcf303ca5779583cf0e4770852bdfa3d41130a23660
+        verified: true
+      r5_dry_run_audit:
+        path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_dry_run_audit.yaml
+        sha256: d7a3113c89b08889dc754a72f4e792c422225f19504ab3218d9712cf46dee8e1
+        verified: true
+      r5_stage_report:
+        path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_stage_report.yaml
+        sha256: d0da836c0a80506a8edd227ce057b46eef815b9e23e59555ed4cd585174d7077
+        verified: true
+      r5_assessment:
+        path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_assessment.yaml
+        sha256: 6d0b2a9b8456fbb75c9b2497f135bebcbbeecea370babbf636b1cd95a2d46b7e
+        verified: true
+      readiness_summary:
+        path: artifacts/v2/calibration/v2_04g_r5/readiness/v2_04g_r5_readiness_summary.yaml
+        sha256: 5c74ead279ed1201cd91e2e9a85c9c00a81323b56dbbc1d87245cf930d8e55a1
+        verified: true
+      activation_report:
+        path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/activation_report.yaml
+        sha256: 5a58fc20fb977e30010032116ce537e9b51e3d49f976f790a219fdd3c1e57357
+        verified: true
+      evaluation:
+        path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/evaluation.yaml
+        sha256: 638734a495298bc65217b19bc0507cbf74c85e4b709f58fda24913091d99bd9e
+        verified: true
+      trace:
+        path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/trace.csv
+        sha256: e23990fbfd6e3f80f6abe8f841b90eb096204cbdf55d0d66ca52bc28f99b7bbc
+        verified: true
+      clearance_audit:
+        path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/clearance_audit.yaml
+        sha256: 483227dae28b0f8c01c55943876ec7ef461ec9cb11471ef7d0455e7481442df9
+        verified: true
+      launch_log:
+        path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/launch.log
+        sha256: b5f5424b01122e2965efa5afb8f0a64757655d3ca1b35a4d46813557727adfcb
+        verified: true
+      listener_log:
+        path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/listener.log
+        sha256: d4522cb22341d724a443ffc2ea3e1d29ea050b4c2bf7c0a4b9be57eadbe1df53
+        verified: true
+      runner_log:
+        path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/runner.log
+        sha256: 1e616ed2baa2842e181f0d172924cebc043e95257468ac135c00cd9ba328a3fa
+        verified: true
+      readiness_compiled_index:
+        path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/compiled_scene_index.yaml
+        sha256: c242a3ccc5d629a0f830ef109e05c30e68051c6de1ca3cb70769c9587d9c2407
+        verified: true
+      navigation_compiled_index:
+        path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/compiled_scene_index.yaml
+        sha256: 5f90ec4cffb7c946ed2adc0cd8792878faa7d78d94bcb5c64470cf3ebb8b641d
+        verified: true
+      seed5111_instance:
+        path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5111.instance.yaml
+        sha256: cbe972643b4fcc9f13235560e9af86eeda73b11830102165e228fc4a29335b4d
+        verified: true
+      seed5111_world:
+        path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5111.world
+        sha256: 6aec35dec98a1cd4108637d56d0c55468fa7fd09cf59a6adcf38947803050849
+        verified: true
+      runtime_supervisor_h500:
+        path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_control_h500/supervisor.yaml
+        sha256: a7ab5613e7d7b7a8a943ab8dba288d8a3ad86257ba856bd35b84b01c4476a4cd
+        verified: true
+      runtime_supervisor_h450:
+        path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_h450/supervisor.yaml
+        sha256: 75f4aba2534dbf941a8d11594210620a50660d2e81074aab1b1fb80baee016ae
+        verified: true
+      runtime_supervisor_h400:
+        path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_h400/supervisor.yaml
+        sha256: 878e5a8faa9e59418296cc4d8d36d9433f4b2b50965f61be075ce0197bb0c18c
+        verified: true
+      world_model_config:
+        path: src/perception/nav_world_model/config/v2_03_candidate.yaml
+        sha256: 0a0259175ca089484e71db347f740ecd7627340ccb543bd81293f0315f647791
+        verified: true
+      world_model_core:
+        path: src/perception/nav_world_model/src/nav_world_model/core.py
+        sha256: 160e1c09ab14903c1f75e40862a9645c55a0f690097e1755c82ed072ce2f89ad
+        verified: true
+      risk_evidence:
+        path: src/perception/nav_world_model/src/nav_world_model/risk_evidence.py
+        sha256: 96f20f43e5f764d8356725ee5b9d1598a4c9265ce228740f69710fd085b7a0dc
+        verified: true
+      rule_supervisor:
+        path: src/application/teb_mode_manager/src/teb_mode_manager/rule_supervisor.py
+        sha256: ed42d56a0be93cfafd15aa46c59d1237dfec19ad2a5e2f90d9f7cea8d7846d14
+        verified: true
+      v2_evaluator:
+        path: src/tools/thesis_experiment/src/thesis_experiment/v2_evaluator.py
+        sha256: 55ad5a0abd2d6a8fe41ed9942a512405e42d7be6c41eff779df8a7335496e681
+        verified: true
+      v2_scene:
+        path: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+        sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+        verified: true
+      r5_readiness_batch:
+        path: src/tools/thesis_experiment/scripts/v2_04g_r5_readiness_batch.py
+        sha256: 4f91b4f3cacd4319b67fd1dab9250d395c4de493ec1c04c6eb141be9789ba1f3
+        verified: true
+      r5_assessor:
+        path: src/tools/thesis_experiment/scripts/assess_v2_04g_r5.py
+        sha256: 6cafdfc48b8525fab0b3b77ad537ffcf5d850c407d2af26d22d3618919ab7318
+        verified: true
+      r5_episode_runner:
+        path: src/tools/thesis_experiment/scripts/v2_04g_r5_mechanism_episode.py
+        sha256: 9f7d3ed8447c0263d2bb6c9d7132aa86140c9bba00c024e24afd618a1c72b461
+        verified: true
+  r5_preregistered_resource_closure:
+    declared_count: 39
+    verified_count: 39
+    all_hashes_match: true
+    resources:
+    - label: resources.contract
+      path: config/thesis_experiments/v2/v2_04g_r5_ttc_robustness_contract.yaml
+      sha256: a60b1210c8bb1f2064c62745c5841a604e4dddf13654f9050814a04a7f282bb7
+    - label: resources.candidate_bank
+      path: experiments/manifests/v2/calibration/v2_04g_r5_ttc_timing_candidates.yaml
+      sha256: 74f09ea326f8da6e7939da9cc1eb28ba7adf9470b655558cd08b792008c43b91
+    - label: resources.navigation_scene_derivation
+      path: experiments/manifests/v2/calibration/v2_04g_r5_scene_derivation.yaml
+      sha256: 3afe91d583dc346396e55150c573b4c2fb8dfe2c90559c4c927b8305055b4912
+    - label: resources.navigation_scene_manifest
+      path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_calibration_scenes.yaml
+      sha256: 7fd04c6a9fc89f451219049e6b34b0be2c9c077b941410a4818f42c36b987121
+    - label: resources.navigation_compiled_scene_index
+      path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/compiled_scene_index.yaml
+      sha256: 5f90ec4cffb7c946ed2adc0cd8792878faa7d78d94bcb5c64470cf3ebb8b641d
+    - label: resources.readiness_scene_derivation
+      path: experiments/manifests/v2/calibration/v2_04g_r5_ttc_readiness_scene_derivation.yaml
+      sha256: 63b737e502320cad078dce01fb3f3dd19a35611645e6f963f58e270e0fa691c7
+    - label: resources.readiness_scene_manifest
+      path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_ttc_readiness_scenes.yaml
+      sha256: 648ac7821b9f41373c0bce0d961f61068f71b11e346a22daf227a108e25b8d99
+    - label: resources.readiness_compiled_scene_index
+      path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/compiled_scene_index.yaml
+      sha256: c242a3ccc5d629a0f830ef109e05c30e68051c6de1ca3cb70769c9587d9c2407
+    - label: resources.candidate_materializer
+      path: src/tools/thesis_experiment/scripts/v2_04g_r5_candidate_materializer.py
+      sha256: f113923da7d1c02478896ed0d3333718d4a1c29ec0eb66a4d34052563f31431e
+    - label: resources.dry_run_validator
+      path: src/tools/thesis_experiment/scripts/validate_v2_04g_r5.py
+      sha256: 62945501d6a2ea59ff155c9b0dffc7e2aae00f11d873370b91accfebf7f90973
+    - label: resources.dry_run_validator_tests
+      path: src/tools/thesis_experiment/tests/test_v2_04g_r5.py
+      sha256: bfda265e4f97d73adbfd10ab41cc8268dbcb27d0b7a5fee4ac0c8e78a811c432
+    - label: resources.scene_deriver_source
+      path: src/tools/thesis_experiment/scripts/derive_v2_04g_scenes.py
+      sha256: c477448794e2c509c7a652e4731344761179e3c3e2ebea5de2ee9e3f5260e65b
+    - label: resources.scene_compiler_source
+      path: src/tools/thesis_experiment/scripts/compile_v2_scenes.py
+      sha256: a6111cf0f6edc2d86264f69a6989533a1b6a021e1685bb2d67b6475a32a26bae
+    - label: resources.v2_scene_contract_source
+      path: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+      sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+    - label: resources.simulation_contract
+      path: config/thesis_experiments/v2/simulation_contract.yaml
+      sha256: 47139897bc6ea4e9da7392e2d2df7dd441b68b218745f443f2fc112199e6b1bb
+    - label: resources.robot_simulation_candidate_config
+      path: src/simulation/m2_gazebo/config/simulation_candidates.yaml
+      sha256: 63edc80a38b4d35c5491660ad4d6882d2ddaf95b4ff66fda820ba20eadbfd946
+    - label: resources.frozen_m030_supervisor
+      path: artifacts/v2/calibration/v2_04g_r4_r1/runtime_candidate_configs/r4r1_clearance_m030/supervisor.yaml
+      sha256: 2e29d6c0f2f32360976a76dbeef5e2bd5739ba1e64da888265ca7232a45aae39
+    - label: resources.frozen_m030_anchor_bank
+      path: artifacts/v2/calibration/v2_04g_r4_r1/runtime_candidate_configs/r4r1_clearance_m030/anchor_bank.yaml
+      sha256: 2f5d52a07f389a60eb03a92aaf5c082a0f446d0e493c8ee6ed2500dc6b23fb67
+    - label: resources.frozen_m030_mechanism
+      path: artifacts/v2/calibration/v2_04g_r4_r1/runtime_candidate_configs/r4r1_clearance_m030/mechanism.yaml
+      sha256: d08cf4aa3093278844bff95529c206dc190a606bb3702ae1f7af38c3ccc68645
+    - label: resources.rule_supervisor_source
+      path: src/application/teb_mode_manager/src/teb_mode_manager/rule_supervisor.py
+      sha256: ed42d56a0be93cfafd15aa46c59d1237dfec19ad2a5e2f90d9f7cea8d7846d14
+    - label: resources.mechanism_controller_source
+      path: src/application/teb_mode_manager/src/teb_mode_manager/mechanism_controller.py
+      sha256: bd48e206b181efc1da9359b6fd01fe94ebd661975ae15d4b6fe5131d80e7716a
+    - label: resources.action_pipeline_source
+      path: src/application/teb_mode_manager/src/teb_mode_manager/action_pipeline.py
+      sha256: d13873814e27bd95b8f3a752d631faa7d1e0e79a63c763408e678e926885fdba
+    - label: resources.atomic_world_model_input_join_source
+      path: src/application/teb_mode_manager/src/teb_mode_manager/world_model_input_join.py
+      sha256: b0b54475fee338e197a1ce726d0eb63932f7879d015834e97474574f28230b55
+    - label: resources.bounded_transaction_join_source
+      path: src/application/teb_mode_manager/src/teb_mode_manager/bounded_context_join.py
+      sha256: 485a5c57397c845982508f1f4c67739ad8c58ebf2f63c9336a08e2f0f3157442
+    - label: resources.idempotent_transaction_source
+      path: src/application/teb_mode_manager/src/teb_mode_manager/idempotent_typed_teb_transaction.py
+      sha256: 2ad255dea35715709384c02683836847a9089b1a729677f7739d2b9ea53aabf1
+    - label: resources.integrated_rule_supervisor_node
+      path: src/application/teb_mode_manager/scripts/rule_context_supervisor_node.py
+      sha256: 63800f33ef583c5b3fe337f86027e62ad70ec68ecfe210018cb176f377a79732
+    - label: resources.world_model_core_source
+      path: src/perception/nav_world_model/src/nav_world_model/core.py
+      sha256: 160e1c09ab14903c1f75e40862a9645c55a0f690097e1755c82ed072ce2f89ad
+    - label: resources.world_model_node_source
+      path: src/perception/nav_world_model/scripts/nav_world_model_node.py
+      sha256: ed27e2b79060e294e0ec087200cb508c0254114ad48b9c40d97c300b4e5680ee
+    - label: resources.risk_evidence_source
+      path: src/perception/nav_world_model/src/nav_world_model/risk_evidence.py
+      sha256: 96f20f43e5f764d8356725ee5b9d1598a4c9265ce228740f69710fd085b7a0dc
+    - label: resources.v2_evaluator_source
+      path: src/tools/thesis_experiment/src/thesis_experiment/v2_evaluator.py
+      sha256: 55ad5a0abd2d6a8fe41ed9942a512405e42d7be6c41eff779df8a7335496e681
+    - label: resources.trajectory_actor_plugin_source
+      path: src/simulation/m2_gazebo/src/v2_trajectory_actor_plugin.cpp
+      sha256: c77027785d268001ea70f71169e1f6f1250a6bf3a30c7b1fccda8e613b2e0a65
+    - label: resources.experiment_launch
+      path: src/simulation/m2_gazebo/launch/m2_v2_04g_r2_mechanism_calibration.launch
+      sha256: e23b3b95b7ca7ed1605fde160e5652e433357c9e192c0f318e95a9a7c0a073ac
+    - label: frozen_r4_r1_boundary.source_stage_report
+      path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_stage_report.yaml
+      sha256: e1ad0aeb7739e8c1abad0f17059f8dbe31c671dd03584d96637830033e5ab22a
+    - label: frozen_r4_r1_boundary.source_assessment
+      path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_assessment.yaml
+      sha256: 201d2f7a8a5c4b679a1500a9487c342434f73222f0c262c4a8014441efc6bc04
+    - label: frozen_r4_r1_boundary.source_preregistration
+      path: experiments/manifests/v2/calibration/v2_04g_r4_r1_preregistration.yaml
+      sha256: 70b5d7c48b5a9f1cf290a361042d69836485e0a0b30ee29eff5885f34f3758b1
+    - label: frozen_r4_r1_boundary.source_contract
+      path: config/thesis_experiments/v2/v2_04g_r4_r1_clearance_repair_contract.yaml
+      sha256: f0dd447f0ab883744703338c29076c5b51b2fec28bcf309487af33fc27f13eb0
+    - label: frozen_r4_r1_boundary.source_candidate_bank
+      path: experiments/manifests/v2/calibration/v2_04g_r4_r1_clearance_candidates.yaml
+      sha256: eb296b1daf81c1d17fc3a3caa665addfae3cbb51f2b6221a5e44e1526da5ae28
+    - label: frozen_r4_r1_boundary.source_scene_manifest
+      path: artifacts/v2/calibration/v2_04g_r4_r1/v2_04g_r4_r1_calibration_scenes.yaml
+      sha256: 29527d9bac30e002124a215d540244c7a053062854a2af5f38a8b3b3577cb0f4
+    - label: frozen_r4_r1_boundary.source_compiled_scene_index
+      path: artifacts/v2/calibration/v2_04g_r4_r1/compiled_scenes/compiled_scene_index.yaml
+      sha256: 96d0257b492207041032d3f7b883baa3e6510cab0284f793cad8712a3fb9c977
+  compiled_scene_children:
+    readiness:
+      index_path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/compiled_scene_index.yaml
+      declared_child_file_count: 14
+      verified_child_file_count: 14
+      all_child_hashes_match: true
+      files:
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5111.instance.yaml
+        sha256: cbe972643b4fcc9f13235560e9af86eeda73b11830102165e228fc4a29335b4d
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5111.world
+        sha256: 6aec35dec98a1cd4108637d56d0c55468fa7fd09cf59a6adcf38947803050849
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5112.instance.yaml
+        sha256: ddcc844f26aca2eb5e190f32b13f8fa84542dc96e27e4d2ed4a922a0b94eab30
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5112.world
+        sha256: 61012f5ec0a665779cb3ae39924bae61fb281507f22345480351315b6d8d966e
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-clear-s5113.instance.yaml
+        sha256: ec890759025847af5a41ffe9eed18aac696b29e767d7635ecd9ed8445f8d2e99
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-clear-s5113.world
+        sha256: c571a26456a1ad0b2c024cfa917f024da592f195d96851b315f49d8dc5509164
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-cruise-s5114.instance.yaml
+        sha256: 07e2a22ca4181c6b9d7b4b19ce4a61ba6772c2f2d3edbb45060b33b2e00b7b84
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-cruise-s5114.world
+        sha256: 2fe5c87fcddedb408158564570f1eb533b904fbf930a48b729840d805eba51b8
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-static-s5115.instance.yaml
+        sha256: 05ce4c14bf6b982ef1739f9e1bc92e436dc8f3cc3b66c3afdd5f04ce6b1b0705
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-static-s5115.world
+        sha256: 112051bc12022c164c1442de8c46d1fc572fa4bd47d74a081cf89deefcfd7ee4
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-corridor-s5116.instance.yaml
+        sha256: 2e4f9b8e9e01579d715202fa872eda59f85b738b53cb03a10fbd20256eb45fb4
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-corridor-s5116.world
+        sha256: dbdca3ab0f5157de69f3ad36c483713c2ea092da5f1d002ef8c512216b8b414f
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-maneuver-s5117.instance.yaml
+        sha256: 22d8ba2533fd443ec6316487879b98aa631c07272ad069afd21ee2685c521d18
+      - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-maneuver-s5117.world
+        sha256: 79a746e6d726cf33eb09db3808d1720553692d2c9d5f4e8649b2d6d1e9566361
+    navigation:
+      index_path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/compiled_scene_index.yaml
+      declared_child_file_count: 30
+      verified_child_file_count: 30
+      all_child_hashes_match: true
+      files:
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5121.instance.yaml
+        sha256: fb3f152f37926b2e1e539f07ba158b8fb5b3d06386e464a25e921f3f25ffca2d
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5121.world
+        sha256: 9d3a852c53f0588bfcc5e3d95eaeee149462391f6144f793356651ca86990819
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5122.instance.yaml
+        sha256: d0767f8a344b24805eb2a2805f8fc0cae6e96b8f90490bd8b1bfee2b2ded1b63
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5122.world
+        sha256: 6fd8098c644632eac612ab16905f729a44a6360cbb6c4668a63cb37b990dcc66
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5123.instance.yaml
+        sha256: bf6e2c937b4b001ce12eaf1d98ce409e2637b196e81f51cbd9743c31e9903915
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5123.world
+        sha256: 49cb47f5c984eb3024445eedbb1cc34baa804a162aa667126e357fccb3e04ccf
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-conflict-s5124.instance.yaml
+        sha256: 36c3999f5a72cdcade47e74ebe3de8d714416f02812b398ada086f7cb96f7364
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-conflict-s5124.world
+        sha256: 9a64f39051c441839cca83349efa97b1eb0e00df1b719846fce5c3e1c68fddc3
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-conflict-s5125.instance.yaml
+        sha256: 65af1901fa4712cc380b06072bc70b7d2fc33ca70692afdf8574226ba94d463a
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-conflict-s5125.world
+        sha256: 3572b1bbe588bb590a6d0e3be9603412d48f0420bafde4085812e770d866f5a7
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-clear-s5126.instance.yaml
+        sha256: b924807a2054007837f8766558862297bba18ae73c4b64a2d038a40c76370a07
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-clear-s5126.world
+        sha256: b3b9ba63e69156c764c6f8bf5be5d00800af7d60a8e216262c15074369906315
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5127.instance.yaml
+        sha256: 4803b7b52240206ee7dce41f8f56889918c9ddf2bc28155e4a3e6889a2364197
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5127.world
+        sha256: e6e3b47bd8f8838b5013231063b49d4c7dd7139d9f9ffa8a8719eb6ce2d05902
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5128.instance.yaml
+        sha256: 48758ffd4217ecc4386fe5ff50e8173e5d85c6695ca5b997ccfcb7f5d5c2c7b3
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5128.world
+        sha256: 30c83431dee0d03e28979b693bf23f283119b79b21f8d2353e0fa3e795bb11e5
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5129.instance.yaml
+        sha256: 7727833d433cb211a568a323bd8dfaa01277bb3792042b453d77706e60b391ac
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5129.world
+        sha256: 2a54698ca50245644872af0f815dd952a37507be7467dfa5524e9c5146964005
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5130.instance.yaml
+        sha256: 90613d3160a6e73ca505caa9b403fb76466b605ac4df224c79d50b36ec74028e
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5130.world
+        sha256: 83fbe125d274199602c8da42c4e069d8d70e32f4fb3c5891f02ba2ecb1c7c086
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5131.instance.yaml
+        sha256: 27f5f04bf199d30e3f376e5d77b701833dd0f57a7f969c73311d19652dd49430
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5131.world
+        sha256: 319f75fcd6ca2dac2f5e25c7dd0024dd5bd6be0e1945bed0e3db77f6800af3e9
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5132.instance.yaml
+        sha256: 56a948d6da6f2755172eb99afdfe84459a499ba7a138e3677ef62152bdef24e6
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5132.world
+        sha256: 1fd9254e86dc453c61f7b31aefd473c3060f62a02c8222531e9f7bddad7806fd
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5133.instance.yaml
+        sha256: 630bd8e8f47cea38115a0643fbc777319c7136004edc02d00702f32f18ff5dc7
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5133.world
+        sha256: 5d1efdb7ddc22b84c15e6aaf2f47156b01f2d01ba4d9e59dbd9930963b76527b
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5134.instance.yaml
+        sha256: b3d60ba19648a845220a6579a90230d2a855615a922be25397b3ff49135f5de9
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5134.world
+        sha256: a839f51fa3a66badeb6f93ca22309a06d99938e456b258f2ca67452efd784579
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5135.instance.yaml
+        sha256: 503f27b43397f4bb61e4f9332240352dfb563e89ca61c7e707eda9bdb7a63787
+      - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5135.world
+        sha256: a46add82ac6cd2401583d8df8da9623d5a3d3412a412d16c440dc9b9a42f10ba
+    all_44_child_hashes_match: true
+  r5_artifact_tree_before_and_after_identical: true
+  r5_artifact_tree:
+    file_count: 68
+    tree_sha256: ecb1f33093dee469008c2ad2d783b3e8ffd1c0739db7903b5df273717e270984
+    files:
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/compiled_scene_index.yaml
+      sha256: 5f90ec4cffb7c946ed2adc0cd8792878faa7d78d94bcb5c64470cf3ebb8b641d
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5130.instance.yaml
+      sha256: 90613d3160a6e73ca505caa9b403fb76466b605ac4df224c79d50b36ec74028e
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5130.world
+      sha256: 83fbe125d274199602c8da42c4e069d8d70e32f4fb3c5891f02ba2ecb1c7c086
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5131.instance.yaml
+      sha256: 27f5f04bf199d30e3f376e5d77b701833dd0f57a7f969c73311d19652dd49430
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5131.world
+      sha256: 319f75fcd6ca2dac2f5e25c7dd0024dd5bd6be0e1945bed0e3db77f6800af3e9
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5132.instance.yaml
+      sha256: 56a948d6da6f2755172eb99afdfe84459a499ba7a138e3677ef62152bdef24e6
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-corridor-s5132.world
+      sha256: 1fd9254e86dc453c61f7b31aefd473c3060f62a02c8222531e9f7bddad7806fd
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5121.instance.yaml
+      sha256: fb3f152f37926b2e1e539f07ba158b8fb5b3d06386e464a25e921f3f25ffca2d
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5121.world
+      sha256: 9d3a852c53f0588bfcc5e3d95eaeee149462391f6144f793356651ca86990819
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5122.instance.yaml
+      sha256: d0767f8a344b24805eb2a2805f8fc0cae6e96b8f90490bd8b1bfee2b2ded1b63
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5122.world
+      sha256: 6fd8098c644632eac612ab16905f729a44a6360cbb6c4668a63cb37b990dcc66
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5123.instance.yaml
+      sha256: bf6e2c937b4b001ce12eaf1d98ce409e2637b196e81f51cbd9743c31e9903915
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-cruise-s5123.world
+      sha256: 49cb47f5c984eb3024445eedbb1cc34baa804a162aa667126e357fccb3e04ccf
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-clear-s5126.instance.yaml
+      sha256: b924807a2054007837f8766558862297bba18ae73c4b64a2d038a40c76370a07
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-clear-s5126.world
+      sha256: b3b9ba63e69156c764c6f8bf5be5d00800af7d60a8e216262c15074369906315
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-conflict-s5124.instance.yaml
+      sha256: 36c3999f5a72cdcade47e74ebe3de8d714416f02812b398ada086f7cb96f7364
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-conflict-s5124.world
+      sha256: 9a64f39051c441839cca83349efa97b1eb0e00df1b719846fce5c3e1c68fddc3
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-conflict-s5125.instance.yaml
+      sha256: 65af1901fa4712cc380b06072bc70b7d2fc33ca70692afdf8574226ba94d463a
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-dynamic-conflict-s5125.world
+      sha256: 3572b1bbe588bb590a6d0e3be9603412d48f0420bafde4085812e770d866f5a7
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5133.instance.yaml
+      sha256: 630bd8e8f47cea38115a0643fbc777319c7136004edc02d00702f32f18ff5dc7
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5133.world
+      sha256: 5d1efdb7ddc22b84c15e6aaf2f47156b01f2d01ba4d9e59dbd9930963b76527b
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5134.instance.yaml
+      sha256: b3d60ba19648a845220a6579a90230d2a855615a922be25397b3ff49135f5de9
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5134.world
+      sha256: a839f51fa3a66badeb6f93ca22309a06d99938e456b258f2ca67452efd784579
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5135.instance.yaml
+      sha256: 503f27b43397f4bb61e4f9332240352dfb563e89ca61c7e707eda9bdb7a63787
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-maneuver-s5135.world
+      sha256: a46add82ac6cd2401583d8df8da9623d5a3d3412a412d16c440dc9b9a42f10ba
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5127.instance.yaml
+      sha256: 4803b7b52240206ee7dce41f8f56889918c9ddf2bc28155e4a3e6889a2364197
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5127.world
+      sha256: e6e3b47bd8f8838b5013231063b49d4c7dd7139d9f9ffa8a8719eb6ce2d05902
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5128.instance.yaml
+      sha256: 48758ffd4217ecc4386fe5ff50e8173e5d85c6695ca5b997ccfcb7f5d5c2c7b3
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5128.world
+      sha256: 30c83431dee0d03e28979b693bf23f283119b79b21f8d2353e0fa3e795bb11e5
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5129.instance.yaml
+      sha256: 7727833d433cb211a568a323bd8dfaa01277bb3792042b453d77706e60b391ac
+    - path: artifacts/v2/calibration/v2_04g_r5/compiled_scenes/v2-04g-r5-static-s5129.world
+      sha256: 2a54698ca50245644872af0f815dd952a37507be7467dfa5524e9c5146964005
+    - path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/activation_report.yaml
+      sha256: 5a58fc20fb977e30010032116ce537e9b51e3d49f976f790a219fdd3c1e57357
+    - path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/clearance_audit.yaml
+      sha256: 483227dae28b0f8c01c55943876ec7ef461ec9cb11471ef7d0455e7481442df9
+    - path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/evaluation.yaml
+      sha256: 638734a495298bc65217b19bc0507cbf74c85e4b709f58fda24913091d99bd9e
+    - path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/launch.log
+      sha256: b5f5424b01122e2965efa5afb8f0a64757655d3ca1b35a4d46813557727adfcb
+    - path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/listener.log
+      sha256: d4522cb22341d724a443ffc2ea3e1d29ea050b4c2bf7c0a4b9be57eadbe1df53
+    - path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/runner.log
+      sha256: 1e616ed2baa2842e181f0d172924cebc043e95257468ac135c00cd9ba328a3fa
+    - path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/trace.csv
+      sha256: e23990fbfd6e3f80f6abe8f841b90eb096204cbdf55d0d66ca52bc28f99b7bbc
+    - path: artifacts/v2/calibration/v2_04g_r5/readiness/v2_04g_r5_readiness_summary.yaml
+      sha256: 5c74ead279ed1201cd91e2e9a85c9c00a81323b56dbbc1d87245cf930d8e55a1
+    - path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_control_h500/anchor_bank.yaml
+      sha256: 5a3ecfc4c9dc8b6bfbb90ad5f036250396eceb99bd0154d1634012bbc4a4a72f
+    - path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_control_h500/mechanism.yaml
+      sha256: f3deff87e322e1d009fc30bfef6abb4b44770c455e3db61ff8e22afa041eea5e
+    - path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_control_h500/supervisor.yaml
+      sha256: a7ab5613e7d7b7a8a943ab8dba288d8a3ad86257ba856bd35b84b01c4476a4cd
+    - path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_h400/anchor_bank.yaml
+      sha256: 2ca8a25c3babad61ec7294513b9b2a536e1124949d72688e4fb0c4ed49056a42
+    - path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_h400/mechanism.yaml
+      sha256: 86decf0d1e93b1748dab447ddf649266e3b53ee798a9304b66d082bc7349072c
+    - path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_h400/supervisor.yaml
+      sha256: 878e5a8faa9e59418296cc4d8d36d9433f4b2b50965f61be075ce0197bb0c18c
+    - path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_h450/anchor_bank.yaml
+      sha256: ed3a1df662e85a75ff496d26881546a0218b7542a250c8aba43c146ca430daad
+    - path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_h450/mechanism.yaml
+      sha256: 22deac4a6129703c207281bc35a50d0ccc9534a1499cce479b10561a6510e02e
+    - path: artifacts/v2/calibration/v2_04g_r5/runtime_candidate_configs/r5_ttc_h450/supervisor.yaml
+      sha256: 75f4aba2534dbf941a8d11594210620a50660d2e81074aab1b1fb80baee016ae
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/compiled_scene_index.yaml
+      sha256: c242a3ccc5d629a0f830ef109e05c30e68051c6de1ca3cb70769c9587d9c2407
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-corridor-s5116.instance.yaml
+      sha256: 2e4f9b8e9e01579d715202fa872eda59f85b738b53cb03a10fbd20256eb45fb4
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-corridor-s5116.world
+      sha256: dbdca3ab0f5157de69f3ad36c483713c2ea092da5f1d002ef8c512216b8b414f
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-cruise-s5114.instance.yaml
+      sha256: 07e2a22ca4181c6b9d7b4b19ce4a61ba6772c2f2d3edbb45060b33b2e00b7b84
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-cruise-s5114.world
+      sha256: 2fe5c87fcddedb408158564570f1eb533b904fbf930a48b729840d805eba51b8
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-maneuver-s5117.instance.yaml
+      sha256: 22d8ba2533fd443ec6316487879b98aa631c07272ad069afd21ee2685c521d18
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-maneuver-s5117.world
+      sha256: 79a746e6d726cf33eb09db3808d1720553692d2c9d5f4e8649b2d6d1e9566361
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-static-s5115.instance.yaml
+      sha256: 05ce4c14bf6b982ef1739f9e1bc92e436dc8f3cc3b66c3afdd5f04ce6b1b0705
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-compile-support-static-s5115.world
+      sha256: 112051bc12022c164c1442de8c46d1fc572fa4bd47d74a081cf89deefcfd7ee4
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-clear-s5113.instance.yaml
+      sha256: ec890759025847af5a41ffe9eed18aac696b29e767d7635ecd9ed8445f8d2e99
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-clear-s5113.world
+      sha256: c571a26456a1ad0b2c024cfa917f024da592f195d96851b315f49d8dc5509164
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5111.instance.yaml
+      sha256: cbe972643b4fcc9f13235560e9af86eeda73b11830102165e228fc4a29335b4d
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5111.world
+      sha256: 6aec35dec98a1cd4108637d56d0c55468fa7fd09cf59a6adcf38947803050849
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5112.instance.yaml
+      sha256: ddcc844f26aca2eb5e190f32b13f8fa84542dc96e27e4d2ed4a922a0b94eab30
+    - path: artifacts/v2/calibration/v2_04g_r5/ttc_readiness_compiled_scenes/v2-04g-r5-readiness-dynamic-conflict-s5112.world
+      sha256: 61012f5ec0a665779cb3ae39924bae61fb281507f22345480351315b6d8d966e
+    - path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_assessment.yaml
+      sha256: 6d0b2a9b8456fbb75c9b2497f135bebcbbeecea370babbf636b1cd95a2d46b7e
+    - path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_calibration_scenes.yaml
+      sha256: 7fd04c6a9fc89f451219049e6b34b0be2c9c077b941410a4818f42c36b987121
+    - path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_dry_run_audit.yaml
+      sha256: d7a3113c89b08889dc754a72f4e792c422225f19504ab3218d9712cf46dee8e1
+    - path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_stage_report.yaml
+      sha256: d0da836c0a80506a8edd227ce057b46eef815b9e23e59555ed4cd585174d7077
+    - path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_ttc_readiness_scenes.yaml
+      sha256: 648ac7821b9f41373c0bce0d961f61068f71b11e346a22daf227a108e25b8d99
+frozen_r5_outcome:
+  expected_ttc_status: OBSERVED_CONFLICT
+  observed_ttc_status: NO_CONFLICT_IN_HORIZON
+  readiness_status: terminal_failure
+  assessment_status: calibration_terminally_stopped
+  attempted_evidence_units: 1
+  remaining_units_forfeited: 68
+  retry_performed: false
+  resume_performed: false
+  component_started: false
+  navigation_started: false
+  ranking_performed: false
+  winner: null
+seed5111:
+  trace_row_count: 193
+  trace_finite_predicted_ttc_sample_count: 0
+  evaluation_tracker_message_count: 290
+  evaluation_context_message_count: 97
+  activation_context_message_count: 30
+  observed_runtime_context_overlay_sample_counts:
+    NONE: 79
+    CROSSING: 14
+    HEAD_ON: 0
+    FOLLOW: 0
+    OVERTAKE_OR_YIELD: 4
+  offline_truth_proxy_motion_class_counts:
+    STATIONARY: 113
+    CROSSING: 21
+    HEAD_ON: 14
+    DEPARTING: 15
+    UNKNOWN: 30
+  sampling_note: Runtime context counts and trace-proxy counts have different rates and are not treated
+    as sample-aligned.
+semantic_comparison:
+  runtime_pipeline:
+    motion_classification: centerline crossing must be reachable within the upstream world-model prediction
+      horizon
+    upstream_motion_classifier_horizon_s: 2.0
+    overlay: CROSSING uses centerline-crossing time; other dynamic classes use point closest approach
+      minus actor radius
+    runtime_context_crossing_samples_observed: 14
+  evaluator_pipeline:
+    semantics: first circle-envelope contact under relative motion
+    horizon_s: 5.0
+    robot_radius_m: 0.62
+    actor_radius_m: 0.3889087296526012
+    finite_ttc_samples_observed: 0
+  semantic_difference_confirmed: true
+  runtime_crossing_overlay_with_zero_evaluator_finite_ttc: true
+  diagnosis: A runtime CROSSING overlay is not equivalent to evaluator circle-envelope contact.  The upstream
+    2.0 s motion classifier also caps which samples can reach the longer supervisor horizons.
+integrated_candidate_distinguishability:
+  frozen_candidate_horizons_s:
+  - 5.0
+  - 4.5
+  - 4.0
+  overlay_counts_by_horizon_s:
+    '5.0':
+      NONE: 168
+      CROSSING: 21
+      HEAD_ON: 0
+      FOLLOW: 0
+      OVERTAKE_OR_YIELD: 4
+    '4.5':
+      NONE: 169
+      CROSSING: 21
+      HEAD_ON: 0
+      FOLLOW: 0
+      OVERTAKE_OR_YIELD: 3
+    '4.0':
+      NONE: 172
+      CROSSING: 21
+      HEAD_ON: 0
+      FOLLOW: 0
+      OVERTAKE_OR_YIELD: 0
+  pairwise:
+  - first_horizon_s: 5.0
+    second_horizon_s: 4.5
+    difference_count: 1
+    crossing_motion_class_difference_count: 0
+    differences:
+    - trace_index: 25
+      stamp_s: 7.9879999999999995
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+  - first_horizon_s: 4.5
+    second_horizon_s: 4.0
+    difference_count: 3
+    crossing_motion_class_difference_count: 0
+    differences:
+    - trace_index: 26
+      stamp_s: 8.088
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+    - trace_index: 27
+      stamp_s: 8.188
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+    - trace_index: 28
+      stamp_s: 8.288
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+  - first_horizon_s: 5.0
+    second_horizon_s: 4.0
+    difference_count: 4
+    crossing_motion_class_difference_count: 0
+    differences:
+    - trace_index: 25
+      stamp_s: 7.9879999999999995
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+    - trace_index: 26
+      stamp_s: 8.088
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+    - trace_index: 27
+      stamp_s: 8.188
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+    - trace_index: 28
+      stamp_s: 8.288
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+  reachable_crossing_sample_count: 21
+  all_frozen_candidates_equal_on_reachable_crossing_samples: true
+  frozen_candidate_crossing_difference_count: 0
+  only_unknown_class_samples_distinguish_frozen_candidates: true
+  conclusion: The 5.0/4.5/4.0 second factor is not integratedly identifiable on the target CROSSING samples
+    in this trace.
+arrival_timing:
+  intersection_x_m: 8.0
+  actor_centerline_crossing_time_s: 10.917137089133282
+  robot_pose_at_actor_crossing:
+    stamp_s: 10.917137089133282
+    x_m: 4.4992469537766935
+    y_m: 0.000883906010718825
+    yaw_rad: 0.014607860566761005
+    interpolation_ratio: 0.29137089133282607
+  robot_crossing_point_arrival_time_s: 14.922396673811173
+  robot_pose_at_crossing_point:
+    stamp_s: 14.922396673811173
+    x_m: 8.0
+    y_m: 0.06284670380916409
+    yaw_rad: 0.12096180697508813
+    interpolation_ratio: 0.34396673811172696
+  robot_minus_actor_arrival_time_s: 4.005259584677891
+  actor_arrived_first: true
+ttc_and_circle_envelope:
+  evaluation_finite_ttc_sample_count: 0
+  trace_finite_ttc_sample_count: 0
+  proxy_finite_ttc_sample_count: 0
+  proxy_minimum_ttc_s: null
+  finite_samples: []
+  robot_radius_m: 0.62
+  actor_radius_m: 0.3889087296526012
+  interaction_radius_m: 1.0089087296526011
+  minimum_predicted_circle_envelope:
+    trace_index: 28
+    stamp_s: 8.288
+    motion_class: UNKNOWN
+    closest_time_from_sample_s: 4.18864379068949
+    predicted_center_separation_m: 1.693733092818502
+    circle_envelope_margin_m: 0.6848243631659008
+  classification: NO_CIRCLE_CONTACT_WITHIN_5S_PROXY
+truth_clearance:
+  frozen_async_gazebo_truth_minimum_m: 1.6251341291519297
+  frozen_async_gazebo_truth_detail:
+    stamp_s: 12.988
+    clearance_m: 1.6251341291519297
+    closest_model: crossing-agent
+    model_x_m: 8.0
+    model_y_m: 1.8102550471250005
+  trace_synchronous_proxy_minimum:
+    trace_index: 74
+    stamp_s: 12.888
+    clearance_m: 1.625170961143916
+    robot_x_m: 5.8740329640199
+    robot_y_m: 0.16817572774990033
+    actor_x_m: 8.0
+    actor_y_m: 1.7245050470083783
+  absolute_difference_m: 3.683199198634135e-05
+  minimum_signed_scan_clearance_m: 1.661492443468028
+  contact_count: 0
+  runtime_policy_received_truth: false
+  authority_note: The preserved asynchronous Gazebo model-state audit is the authoritative executed truth
+    metric; the trace-synchronous interpolation is a close offline cross-check.
+exploratory_future_horizons:
+  horizons_s:
+  - 1.5
+  - 1.0
+  offline_counterfactual_only: true
+  runtime_config_created: false
+  r6_execution_authorization_created: false
+  overlay_counts_by_horizon_s:
+    '5.0':
+      NONE: 168
+      CROSSING: 21
+      HEAD_ON: 0
+      FOLLOW: 0
+      OVERTAKE_OR_YIELD: 4
+    '1.5':
+      NONE: 177
+      CROSSING: 16
+      HEAD_ON: 0
+      FOLLOW: 0
+      OVERTAKE_OR_YIELD: 0
+    '1.0':
+      NONE: 182
+      CROSSING: 11
+      HEAD_ON: 0
+      FOLLOW: 0
+      OVERTAKE_OR_YIELD: 0
+  pairwise:
+  - first_horizon_s: 5.0
+    second_horizon_s: 1.5
+    difference_count: 9
+    crossing_motion_class_difference_count: 5
+    differences:
+    - trace_index: 25
+      stamp_s: 7.9879999999999995
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+    - trace_index: 26
+      stamp_s: 8.088
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+    - trace_index: 27
+      stamp_s: 8.188
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+    - trace_index: 28
+      stamp_s: 8.288
+      motion_class: UNKNOWN
+      first_overlay: OVERTAKE_OR_YIELD
+      second_overlay: NONE
+    - trace_index: 35
+      stamp_s: 8.988
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+    - trace_index: 36
+      stamp_s: 9.088
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+    - trace_index: 37
+      stamp_s: 9.188
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+    - trace_index: 38
+      stamp_s: 9.288
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+    - trace_index: 39
+      stamp_s: 9.388
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+  - first_horizon_s: 1.5
+    second_horizon_s: 1.0
+    difference_count: 5
+    crossing_motion_class_difference_count: 5
+    differences:
+    - trace_index: 40
+      stamp_s: 9.488
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+    - trace_index: 41
+      stamp_s: 9.588
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+    - trace_index: 42
+      stamp_s: 9.688
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+    - trace_index: 43
+      stamp_s: 9.788
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+    - trace_index: 44
+      stamp_s: 9.888
+      motion_class: CROSSING
+      first_overlay: CROSSING
+      second_overlay: NONE
+  assessment: 1.5 and 1.0 seconds are distinguishable on this frozen trace, including CROSSING samples,
+    so they may be considered only as future preregistration candidates.  One trace cannot establish suitability,
+    safety, performance, or a winner.
+  suitable_for_future_r6_execution: null
+  requires_fresh_preregistration_review_and_authorization: true
+risk_audit:
+  required_count: 6
+  confirmed_count: 6
+  all_required_risks_machine_recorded: true
+  findings:
+  - risk_id: D1-RISK-READINESS-DIRECT-COUNTS
+    status: CONFIRMED
+    evidence:
+      source_path: src/tools/thesis_experiment/scripts/v2_04g_r5_readiness_batch.py
+      immediate_gate_start_line: 340
+      direct_tracker_message_count_check_present: false
+      direct_context_message_count_check_present: false
+      minimum_required_count: 20
+      observed_evaluation_tracker_message_count: 290
+      observed_evaluation_context_message_count: 97
+      observed_activation_context_message_count: 30
+    interpretation: The immediate combined readiness/TTC condition relies on the listener aggregate gate
+      but does not directly compare the evaluation tracker/context counts to the preregistered minimum.
+    future_requirement: Bind and directly hard-check both evaluation stream counts before accepting an
+      identity.
+    changes_r5_terminal_stop: false
+  - risk_id: D1-RISK-COMPILED-SCENE-TOCTOU
+    status: CONFIRMED
+    evidence:
+      source_path: src/tools/thesis_experiment/scripts/v2_04g_r5_readiness_batch.py
+      compiled_load_line: 164
+      execution_load_call: instances = _BASE._load_instances(COMPILED_SCENES)
+      child_sha256_revalidation_present_in_design_block: false
+      d1_readiness_child_hashes_verified: 14
+      d1_navigation_child_hashes_verified: 30
+    interpretation: The frozen index hashes were checked before execution, but the child files were loaded
+      later without revalidating each index-declared digest, leaving a TOCTOU interval.
+    future_requirement: Revalidate every compiled child immediately before launch and bind the exact instance/world
+      pair into the attempt ledger.
+    changes_r5_terminal_stop: false
+  - risk_id: D1-RISK-SIGINT-IN-PROGRESS
+    status: CONFIRMED
+    evidence:
+      source_path: src/tools/thesis_experiment/scripts/v2_04g_r5_readiness_batch.py
+      attempt_ledger_written_before_run: true
+      except_exception_line: 549
+      keyboard_interrupt_handler_present: false
+      base_exception_handler_present: false
+      summary_initial_status: in_progress
+      resume_forbidden_if_interrupted: true
+    interpretation: KeyboardInterrupt is outside Exception, so SIGINT can bypass the terminal-state recorder
+      after an attempt was ledgered.
+    future_requirement: Atomically catch interruption, teardown, and persist an explicit terminal_interrupted
+      state before re-raising.
+    changes_r5_terminal_stop: false
+  - risk_id: D1-RISK-ASSESSMENT-RAW-BINDING
+    status: CONFIRMED
+    evidence:
+      source_path: src/tools/thesis_experiment/scripts/assess_v2_04g_r5.py
+      readiness_summary_reports_count: 0
+      assessment_evidence_keys:
+      - candidate_bank
+      - contract
+      - dry_run_audit
+      - execution_authorization
+      - preregistration
+      - readiness
+      activation_directly_bound: false
+      evaluation_directly_bound: false
+      trace_directly_bound: false
+      stage_report_separately_binds_raw_hashes: true
+    interpretation: The terminal summary contains no accepted report row, so the assessment output binds
+      the summary but not the raw activation, evaluation, or trace.  The manually assembled stage report
+      binds them separately.
+    future_requirement: Make a terminal assessment verify and emit hashes for all raw attempt evidence,
+      including failed-gate attempts.
+    changes_r5_terminal_stop: false
+  - risk_id: D1-RISK-EXECUTION-HASH-CLOSURE
+    status: CONFIRMED
+    evidence:
+      source_path: src/tools/thesis_experiment/scripts/v2_04g_r5_mechanism_episode.py
+      dynamic_chain_entry_line: 19
+      transitive_dependency_count: 7
+      dependencies:
+      - path: src/tools/thesis_experiment/scripts/v2_04g_r5_mechanism_episode.py
+        sha256: 9f7d3ed8447c0263d2bb6c9d7132aa86140c9bba00c024e24afd618a1c72b461
+        in_preregistered_39_file_closure: false
+      - path: src/tools/thesis_experiment/scripts/v2_04g_r4_r1_mechanism_episode.py
+        sha256: 3d1e5f9b1cc046de78fa20ca4b1577bf009605604fc021c9d9129f0e5e35314b
+        in_preregistered_39_file_closure: false
+      - path: src/tools/thesis_experiment/scripts/v2_04g_r4_mechanism_episode.py
+        sha256: 899a47ebcaf2f303fb96215fcad346760131e243a3285e85057f2fa3c35025b0
+        in_preregistered_39_file_closure: false
+      - path: src/tools/thesis_experiment/scripts/v2_04g_r3_mechanism_episode.py
+        sha256: 2aeeb604d9ce61ece4db05045fc90f9e7b99dbdb9980eb08752e2bf3a8ca5579
+        in_preregistered_39_file_closure: false
+      - path: src/tools/thesis_experiment/scripts/v2_04g_r2_mechanism_episode.py
+        sha256: 4f74b7931ea8fa462dae09e55f54b096eae364f58387ebb3e3abed4ca50c9248
+        in_preregistered_39_file_closure: false
+      - path: src/tools/thesis_experiment/scripts/v2_04g_r1_mechanism_episode.py
+        sha256: 52cb1c14be235a3a13ebb39382beaee6af25259677c304710ff8443b6d36bf7d
+        in_preregistered_39_file_closure: false
+      - path: src/tools/thesis_experiment/scripts/v2_04d_validation_episode.py
+        sha256: a9685f3606f975621e7a9bd2bf78197bbdeff7505b9bb0450a105d693e7c2c3b
+        in_preregistered_39_file_closure: false
+      missing_from_preregistered_closure_count: 7
+      missing_from_preregistered_closure_paths:
+      - src/tools/thesis_experiment/scripts/v2_04g_r5_mechanism_episode.py
+      - src/tools/thesis_experiment/scripts/v2_04g_r4_r1_mechanism_episode.py
+      - src/tools/thesis_experiment/scripts/v2_04g_r4_mechanism_episode.py
+      - src/tools/thesis_experiment/scripts/v2_04g_r3_mechanism_episode.py
+      - src/tools/thesis_experiment/scripts/v2_04g_r2_mechanism_episode.py
+      - src/tools/thesis_experiment/scripts/v2_04g_r1_mechanism_episode.py
+      - src/tools/thesis_experiment/scripts/v2_04d_validation_episode.py
+      top_level_runner_bound_by_stage_report: true
+    interpretation: The top-level R5 runner hash is recorded in the stage report, but its dynamically
+      loaded wrapper/evaluator chain is not fully included in the preregistered closure.
+    future_requirement: Generate a mechanical transitive execution manifest and bind the entire closure
+      before authorization.
+    changes_r5_terminal_stop: false
+  - risk_id: D1-RISK-TEARDOWN-RESTORE
+    status: CONFIRMED
+    evidence:
+      log_path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/launch.log
+      goal_reached_line: 211
+      startup_restore_failure_line: 212
+      restore_failure_after_goal: true
+      navigation_success: true
+      measurement_interface_gates_passed: true
+      startup_profile_restored: false
+    interpretation: The measurement and navigation evidence completed, but teardown failed to restore
+      the startup typed TEB profile; therefore the claim is limited to interface gates during the measurement
+      window.
+    future_requirement: Treat startup-profile restore as a teardown hard gate with an independently verified
+      final profile.
+    changes_r5_terminal_stop: false
+root_cause_classification:
+  primary: seed5111 actor_robot_temporal_separation_produced_no_evaluator_circle_contact_within_horizon
+  structural: runtime_centerline_crossing_semantics_and_upstream_2s_classification_cap_do_not_match_evaluator_circle_contact_semantics
+  r5_factor_issue: 5.0_4.5_4.0_supervisor_horizons_are_not_identifiable_on_reachable_crossing_samples
+  tracker_invalid: false
+  transaction_or_join_failure: false
+  collision: false
+authorizations_after_diagnosis:
+  retry_or_resume_r5_seed5111: false
+  consume_remaining_r5_units: false
+  execute_component: false
+  execute_navigation: false
+  freeze_winner: false
+  use_held_out_seeds_5001_5010: false
+  create_r6_execution_authorization: false
+  start_v2_05: false
+  sac_or_other_training: false
+  connect_real_vehicle: false
+  write_real_vehicle_teb_parameters: false
+side_effects:
+  ros_started: false
+  gazebo_started: false
+  move_base_started: false
+  component_executions: 0
+  navigation_executions: 0
+  seeds_consumed: 0
+  evidence_units_consumed: 0
+  threshold_files_changed: 0
+  scene_files_changed: 0
+  evaluator_files_changed: 0
+  r5_files_changed: 0
+  training_started: false
+  real_vehicle_connected: false
+  real_vehicle_teb_parameter_writes: 0
+  only_persistent_write_is_d1_report: true

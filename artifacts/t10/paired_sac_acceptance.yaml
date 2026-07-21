@@ -1,0 +1,98 @@
+schema_version: '1.0'
+task: T10
+status: passed
+passed: true
+simulation_only: true
+formal_experiment: false
+purpose: pipeline_fairness_acceptance_not_performance_comparison
+fairness_contract:
+  status: valid
+  paired_fields:
+  - runtime
+  - observation
+  - reward
+  - safety
+  - training
+  - smoke_override
+  - checkpoint
+  - acceptance
+  semantic_config_sha256: fe1ccc69505b6957b43247208e21b3783dee5b86f6ea0a420ac8bc1da5272181
+  direct_config_sha256: 7ce02aad0b15253ceac8fcd13643ae3350e4e50656ddbcf016a8a68a5032c92b
+  observation_dimension: 254
+  semantic_action_dimension: 5
+  direct_action_dimension: 9
+identical_report_fields:
+- simulation_only
+- formal_experiment
+- real_vehicle_use_forbidden
+- training_timesteps
+- pre_resume_timesteps
+- resume_delta_timesteps
+- replay_buffer_size
+- evaluation_episode_count
+- observation_dimension
+- observation_action_context
+semantic_eta:
+  action_dimension: 5
+  actor_parameter_count: 9546
+  trainable_parameter_count: 47182
+  inference_latency_ms:
+    sample_count: 5
+    mean: 1.1931905995879788
+    p95: 1.5885715998592786
+    max: 1.6115079997689463
+  training_terminal_reasons:
+  - goal
+  - goal
+  - goal
+  - goal
+  - goal
+  - goal
+  - goal
+  - goal
+  evaluation_terminal_reasons:
+  - goal
+  - goal
+direct_theta:
+  action_dimension: 9
+  actor_parameter_count: 9810
+  trainable_parameter_count: 47958
+  inference_latency_ms:
+    sample_count: 4
+    mean: 1.3630860003104317
+    p95: 1.607569949737808
+    max: 1.6617149994999636
+  training_terminal_reasons:
+  - goal
+  - goal
+  - goal
+  - goal
+  - goal
+  - goal
+  - goal
+  evaluation_terminal_reasons:
+  - goal
+  - goal
+derived:
+  actor_parameter_count_delta_direct_minus_semantic: 264
+  trainable_parameter_count_delta_direct_minus_semantic: 776
+  mean_inference_latency_ratio_direct_over_semantic: 1.1423874783970973
+checkpoint_validation:
+  semantic_eta:
+    manifest: /home/robot/robot_ws_base_rl/artifacts/t09/gazebo_sac_smoke/checkpoint/checkpoint_manifest.yaml
+    num_timesteps: 20
+    files:
+      model.zip: 93bcc5d499547a7b2b08a5dac0bcb35ee35be5f7d84779c1b64c8a821cc38e3e
+      replay_buffer.pkl: ef3b7574eac6514707868778b440f4a9d8348a15bce40ad39d823fb36a2f156f
+      vecnormalize.pkl: 2840cf1af1175221dc21b1b9feeb60f3ce8293f54bf00bb62b7a67f2246fc397
+  direct_theta:
+    manifest: /home/robot/robot_ws_base_rl/artifacts/t10/gazebo_sac_smoke/checkpoint/checkpoint_manifest.yaml
+    num_timesteps: 20
+    files:
+      model.zip: 6998f15f9f378e2b324c7d624da6411c219cc18f504d48d201567f0799ac7bc6
+      replay_buffer.pkl: d3cf37e7a98504a5a226040a0a0ac966b8b702d8c64d78507d32fa44bcac228e
+      vecnormalize.pkl: 941b89d73379635a988c0b7fe7d9fcccc2dae9595fb2a9127ae982dda2922afa
+limitations:
+- twenty_step_smoke_is_not_converged_training
+- latency_sample_count_is_too_small_for_performance_claims
+- formal_paired_training_and_evaluation_remain_T11

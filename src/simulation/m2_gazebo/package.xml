@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>m2_gazebo</name>
+  <version>0.1.0</version>
+  <description>Isolated Gazebo interface and candidate model for the Autolabor M2 thesis experiments.</description>
+
+  <maintainer email="doribelove@example.com">Doribelove</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>autolabor_canbus_driver</build_depend>
+  <build_depend>gazebo_dev</build_depend>
+  <build_depend>gazebo_ros</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>gazebo_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_ros</build_depend>
+
+  <exec_depend>autolabor_canbus_driver</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gazebo_plugins</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>gazebo_msgs</exec_depend>
+  <exec_depend>actionlib</exec_depend>
+  <exec_depend>move_base_msgs</exec_depend>
+  <exec_depend>move_base</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>nav_world_model</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>rosgraph_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>teb_mode_manager</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <test_depend>rostest</test_depend>
+
+  <export>
+    <gazebo_ros plugin_path="${prefix}/lib" gazebo_model_path="${prefix}"/>
+  </export>
+</package>

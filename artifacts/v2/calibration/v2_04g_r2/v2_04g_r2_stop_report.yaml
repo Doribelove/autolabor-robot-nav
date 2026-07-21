@@ -1,0 +1,70 @@
+schema_version: "2.0"
+stage: V2-04G-R2
+status: stopped_fail_closed_before_navigation
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+stop_trigger: activation_readiness_failure
+preregistered_rule: any activation readiness repeat failure stops before navigation
+completed_work:
+  preregistration_frozen: true
+  r1_bounded_join_frozen_by_hash: true
+  fresh_navigation_scenes_compiled: 15
+  new_contract_tests_passed: 8
+  package_build_passed: true
+  activation_probes_planned: 6
+  activation_probes_executed: 3
+  activation_probes_passed: 2
+  activation_probes_failed: 1
+  ttc_component_probes_executed: 0
+  navigation_episodes_executed: 0
+failure:
+  profile_id: r2_target_balanced
+  repeat: 3
+  seed: 4973
+  transaction_message_count: 30
+  transaction_valid_fraction: 0.9666666666666667
+  transaction_activated_fraction: 0.9666666666666667
+  transaction_fault_count: 1
+  mechanism_join_valid_fraction: 1.0
+  join_reason_counts: {EXACT_SEQUENCE_JOIN: 30}
+  frozen_join_gate_pass: true
+  zero_transaction_fault_gate_pass: false
+  classification: UNCLASSIFIED_TRANSACTION_FAULT_WITH_VALID_EXACT_JOIN
+evidence:
+  preregistration:
+    path: experiments/manifests/v2/calibration/v2_04g_r2_preregistration.yaml
+    sha256: 3b7b59d84f27af99924e1297000c1880bfdf5faf235c2b83be06644194667ca4
+  activation_summary:
+    path: artifacts/v2/calibration/v2_04g_r2/activation_probe/activation_probe_summary.yaml
+    sha256: ee248ba2fa794cdf45589e61f663e7eb533845e354c50e63a0c49134d2407f06
+  failed_probe:
+    path: artifacts/v2/calibration/v2_04g_r2/activation_probe/probe_03_r2_target_balanced_repeat_3/report.yaml
+    sha256: 742b4c16ddaf15d611041aa1dbd856172ee9a1ccb46ce1888bcd17e38bbd7c62
+  excluded_design_probe:
+    path: artifacts/v2/calibration/v2_04g_r2/v2_04g_r2_design_probe_summary.yaml
+    sha256: 17632202f216880c03525752690a5efe08be65f6ba7d9bcca05ce48d17335322
+decision:
+  candidate_ranking_performed: false
+  anchor_or_mechanism_freeze_authorized: false
+  held_out_validation_authorized: false
+  enter_v2_05_authorized: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false
+next_stage_requirement:
+  name: independent_calibration_only_readiness_fault_taxonomy_repair
+  required_changes:
+    - preserve transaction fault_reason counts in every readiness report
+    - distinguish expected fail-closed context hold from backend request/ack/readback faults
+    - require a consecutive stable readiness window before measurement
+    - keep R1 bounded join source and numeric limits frozen
+    - keep R2 candidate mechanism numbers frozen while repairing readiness semantics
+    - use entirely new readiness and navigation seeds
+  forbidden:
+    - rerun failed V2-04G-R2 evidence as if it had not occurred
+    - consume seeds 5001--5010
+    - use validation data for repair
+    - start SAC training
+    - start real-vehicle closed loop

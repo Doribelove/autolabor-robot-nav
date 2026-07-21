@@ -1,0 +1,75 @@
+schema_version: "2.0"
+architecture_generation: v2
+threshold_set_id: fam_teb_v2_mode_thresholds_design_1
+status: design_placeholders
+runtime_ready: false
+
+modes:
+  BALANCED:
+    minimum_dwell_s: null
+    enter_confirmation_s: null
+    exit_confirmation_s: null
+    enter: {mode_confidence_max: null}
+    exit: {mode_confidence_min: null}
+  CRUISE:
+    minimum_dwell_s: null
+    enter_confirmation_s: null
+    exit_confirmation_s: null
+    enter:
+      obstacle_density_max: null
+      forward_clearance_min_m: null
+      predicted_ttc_min_s: null
+      path_curvature_abs_max: null
+      goal_direction_variance_max: null
+    exit:
+      obstacle_density_max: null
+      forward_clearance_min_m: null
+      predicted_ttc_min_s: null
+      path_curvature_abs_max: null
+  STATIC_DENSE:
+    minimum_dwell_s: null
+    enter_confirmation_s: null
+    exit_confirmation_s: null
+    enter: {static_density_min: null, forward_path_blocked_score_min: null}
+    exit: {static_density_max: null, forward_path_blocked_score_max: null}
+  CORRIDOR:
+    minimum_dwell_s: null
+    enter_confirmation_s: null
+    exit_confirmation_s: null
+    enter:
+      corridor_confidence_min: null
+      corridor_width_max_m: null
+      front_clearance_min_m: null
+    exit:
+      corridor_confidence_max: null
+      corridor_width_min_m: null
+  MANEUVER:
+    minimum_dwell_s: null
+    enter_confirmation_s: null
+    exit_confirmation_s: null
+    enter:
+      normal_backend_infeasible_duration_min_s: null
+      dead_end_score_min: null
+      progress_rate_max_mps: null
+    exit:
+      normal_backend_feasible_duration_min_s: null
+      dead_end_score_max: null
+
+dynamic_overlays:
+  NONE: {release_confirmation_s: null}
+  CROSSING: {crossing_probability_min: null, predicted_ttc_max_s: null}
+  HEAD_ON: {closing_speed_min_mps: null, predicted_ttc_max_s: null}
+  FOLLOW: {same_direction_probability_min: null, time_headway_max_s: null}
+  OVERTAKE_OR_YIELD: {path_block_probability_min: null, decision_horizon_s: null}
+
+transition:
+  anchor_blend_duration_s: null
+  max_parameter_total_variation_per_s: null
+  safe_release_time_constant_s: null
+  minimum_mode_confidence: null
+
+runtime:
+  enabled: false
+  parameter_write_enabled: false
+  default_geometry_mode: BALANCED
+  default_dynamic_overlay: NONE

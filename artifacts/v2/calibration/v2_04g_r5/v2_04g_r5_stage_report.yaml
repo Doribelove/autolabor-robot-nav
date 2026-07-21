@@ -1,0 +1,182 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R5
+split: calibration
+status: terminally_stopped_at_readiness_identity_1
+simulation_only: true
+calibration_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+
+frozen_start:
+  preregistration:
+    path: experiments/manifests/v2/calibration/v2_04g_r5_preregistration.yaml
+    sha256: 0adcfd6a7a686b799b6dc55394cdf1e90fa140cee636d4283e0fb807f14134c6
+  dry_run_audit:
+    path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_dry_run_audit.yaml
+    sha256: d7a3113c89b08889dc754a72f4e792c422225f19504ab3218d9712cf46dee8e1
+  validator_status: dry_run_audit_pass
+  declared_resource_count: 39
+  all_declared_resource_hashes_match: true
+  preexisting_ros_gazebo_or_training_process_count: 0
+  dirty_submodules_preserved: true
+
+execution_authorization:
+  path: experiments/manifests/v2/calibration/v2_04g_r5_bounded_execution_authorization.yaml
+  sha256: a7b87ed63489bf019cf86bcf303ca5779583cf0e4770852bdfa3d41130a23660
+  attempts_per_identity_max: 1
+  terminal_failure_retry_forbidden: true
+  resume_after_terminal_failure_forbidden: true
+
+execution_implementation:
+  execution_guard_sha256: 2d4ae1311983eff5496f0fda221357bb2395cae6d3c16f89743137d5bb02237e
+  activation_listener_sha256: 4ba8e94baba80075f08b566050f8ec87575c815c3a616ee79996a4678fdd0083
+  readiness_batch_sha256: 4f91b4f3cacd4319b67fd1dab9250d395c4de493ec1c04c6eb141be9789ba1f3
+  ttc_component_probe_sha256: 0f367b08873209569dfecf21eda4e66cd471f9833f2a451010f21efdcb07a7b4
+  episode_runner_sha256: 9f7d3ed8447c0263d2bb6c9d7132aa86140c9bba00c024e24afd618a1c72b461
+  navigation_batch_sha256: df5658940faabce41bfb1850f77532afbadef0e24d26fc353dcdcab9aed06c46
+  assessment_sha256: 6cafdfc48b8525fab0b3b77ad537ffcf5d850c407d2af26d22d3618919ab7318
+
+single_changed_factor:
+  runtime_field: supervisor.dynamic.predicted_ttc_max_s
+  control_value_s: 5.0
+  candidate_values_s: [4.5, 4.0]
+  evaluator_relative_ttc_horizon_s_frozen: 5.0
+  overlay_release_confirmation_s_frozen: 0.20
+  all_other_supervisor_anchor_mechanism_transaction_join_and_evaluator_fields_frozen: true
+
+frozen_m030_input:
+  classification: demonstrated_clearance_repair_non_ranking_input_not_system_winner
+  maneuver_forward_min_obstacle_dist_m: 0.30
+  maneuver_reverse_min_obstacle_dist_m: 0.30
+  maneuver_inflation_dist_m: 0.52
+  system_winner_claim: false
+
+candidate_design:
+  r5_ttc_control_h500:
+    predicted_ttc_max_s: 5.0
+    role: frozen_m030_timing_control
+    winner_eligible: false
+  r5_ttc_h450:
+    predicted_ttc_max_s: 4.5
+    role: ttc_prediction_timing_repair_candidate
+    winner_eligible: true
+  r5_ttc_h400:
+    predicted_ttc_max_s: 4.0
+    role: ttc_prediction_timing_repair_candidate
+    winner_eligible: true
+
+budget:
+  preregistered_evidence_unit_budget: 69
+  planned_readiness: 6
+  planned_ttc_component: 3
+  planned_navigation: 60
+  attempted_readiness: 1
+  attempted_ttc_component: 0
+  attempted_navigation: 0
+  total_attempted_evidence_units: 1
+  remaining_units_forfeited_by_terminal_stop: 68
+  held_out_seed_consumption: false
+  held_out_seeds_5001_5010_used: []
+
+terminal_readiness_identity:
+  sequence: 1
+  identity: r5-readiness-r5_ttc_h450-s5111
+  profile_id: r5_ttc_h450
+  scene_id: v2-04g-r5-readiness-dynamic-conflict-s5111
+  seed: 5111
+  attempt: 1
+  expected_ttc_status: OBSERVED_CONFLICT
+  observed_ttc_status: NO_CONFLICT_IN_HORIZON
+  terminal_reason: expected_TTC_coverage_status_mismatch
+  retry_performed: false
+  resume_performed: false
+  preserved: true
+
+activation_and_interface_evidence:
+  activation_listener_all_hard_gates_pass: true
+  transaction_message_count: 30
+  transaction_valid_fraction: 1.0
+  transaction_activated_fraction: 1.0
+  mechanism_message_count: 30
+  join_valid_fraction: 1.0
+  world_model_sequence_mismatch_count: 0
+  world_model_input_join_fault_count: 0
+  backend_transaction_fault_count: 0
+  unknown_transaction_fault_count: 0
+  navigation_termination: SUCCESS
+  navigation_success: true
+  collision: false
+  navigation_time_s: 19.4
+  minimum_clearance_m: 1.661492443468028
+  tracker_message_count: 290
+  tracker_health_valid_fraction: 1.0
+  finite_ttc_sample_count: 0
+  minimum_predicted_ttc_s: null
+  non_none_overlay_sample_count: 18
+  context_overlay_sample_counts:
+    NONE: 79
+    CROSSING: 14
+    HEAD_ON: 0
+    FOLLOW: 0
+    OVERTAKE_OR_YIELD: 4
+
+stopping_result:
+  readiness_status: terminal_failure
+  readiness_resume_forbidden: true
+  ttc_component_started: false
+  navigation_started: false
+  candidate_ranking_performed: false
+  qualified_candidate_ids: []
+  winner_candidate_id: null
+  no_winner: true
+
+assessment:
+  path: artifacts/v2/calibration/v2_04g_r5/v2_04g_r5_assessment.yaml
+  sha256: 6d0b2a9b8456fbb75c9b2497f135bebcbbeecea370babbf636b1cd95a2d46b7e
+  status: calibration_terminally_stopped
+  attempted_evidence_unit_count: 1
+  valid_combined_readiness_evidence_count: 0
+  ranking_performed: false
+  all_downstream_authorizations_false: true
+
+preserved_evidence:
+  readiness_summary:
+    path: artifacts/v2/calibration/v2_04g_r5/readiness/v2_04g_r5_readiness_summary.yaml
+    sha256: 5c74ead279ed1201cd91e2e9a85c9c00a81323b56dbbc1d87245cf930d8e55a1
+  activation_report:
+    path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/activation_report.yaml
+    sha256: 5a58fc20fb977e30010032116ce537e9b51e3d49f976f790a219fdd3c1e57357
+  evaluation:
+    path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/evaluation.yaml
+    sha256: 638734a495298bc65217b19bc0507cbf74c85e4b709f58fda24913091d99bd9e
+  trace:
+    path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/trace.csv
+    sha256: e23990fbfd6e3f80f6abe8f841b90eb096204cbdf55d0d66ca52bc28f99b7bbc
+  clearance_audit:
+    path: artifacts/v2/calibration/v2_04g_r5/readiness/episodes/readiness_01__r5_ttc_h450__v2-04g-r5-readiness-dynamic-conflict-s5111/clearance_audit.yaml
+    sha256: 483227dae28b0f8c01c55943876ec7ef461ec9cb11471ef7d0455e7481442df9
+
+tests:
+  r5_design_execution_assessment_tests: 40
+  r5_design_execution_assessment_tests_passed: 40
+  full_v2_tests: 142
+  full_v2_tests_passed: 142
+
+unauthorized_and_not_performed:
+  retry_failed_readiness_identity: false
+  resume_r5_execution: false
+  consume_remaining_budget: false
+  execute_ttc_component: false
+  execute_navigation_60: false
+  freeze_winner: false
+  held_out_validation: false
+  v2_05: false
+  sac_training: false
+  real_vehicle_connection: false
+  real_vehicle_motion: false
+  real_vehicle_parameter_write: false
+  commit: false
+  push: false

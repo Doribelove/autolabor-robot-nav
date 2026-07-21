@@ -1,0 +1,36 @@
+schema_version: '1.0'
+task: T12
+status: passed
+passed: true
+mode: offline_telemetry_replay
+shadow_only: true
+allow_motion: false
+allow_parameter_write: false
+source_run_count: 4
+episode_count: 280
+step_row_count: 991
+invalid_row_count: 0
+original_emergency_episode_count: 160
+counterfactual_false_stop_candidate_count: 131
+counterfactual_false_stop_fraction: 0.81875
+optimized_emergency_step_count: 0
+optimized_fault_step_count: 0
+ood_fallback_step_count: 127
+original_projection_step_count: 227
+optimized_projection_step_count: 238
+mean_candidate_l1: 0.6232085137204252
+mean_smoothed_l1: 0.2350604025678039
+mean_projected_l1: 0.2353019127003338
+mean_recommendation_l1: 6.838247383826834
+mean_action_l1_reduction_after_smoothing_projection: 0.6224346947771455
+mean_inference_latency_ms: 1.5313824661690216
+mean_simulated_activation_latency_ms: 62.75681130171602
+acceptance:
+  minimum_step_rows: 900
+  maximum_optimized_emergency_rate: 0.01
+  minimum_counterfactual_false_stop_fraction: 0.8
+  maximum_invalid_row_fraction: 0.01
+limitations:
+- telemetry_csv_replay_does_not_reconstruct_raw_lidar
+- counterfactual_safety_result_requires_live_shadow_confirmation
+- simulation_theta_bounds_are_not_real_vehicle_calibration

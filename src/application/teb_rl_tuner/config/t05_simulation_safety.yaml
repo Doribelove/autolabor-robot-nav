@@ -1,0 +1,51 @@
+schema_version: "1.0"
+status: simulation_candidate
+scope: t02_gazebo_only
+calibrated: false
+real_vehicle_use_forbidden: true
+
+# Bounds and rates below are deliberately local pipeline-test constraints around
+# the T02 fixed configuration. They are not physical or real-vehicle limits.
+theta_bounds:
+  max_vel_x: [0.6, 1.2]
+  max_vel_theta: [0.5, 1.0]
+  acc_lim_x: [0.4, 0.8]
+  acc_lim_theta: [0.4, 0.8]
+  min_obstacle_dist: [0.25, 0.50]
+  inflation_dist: [0.55, 0.90]
+  weight_obstacle: [50.0, 100.0]
+  weight_viapoint: [1.0, 4.0]
+  weight_optimaltime: [0.5, 1.0]
+
+max_delta_per_step:
+  max_vel_x: 0.10
+  max_vel_theta: 0.10
+  acc_lim_x: 0.10
+  acc_lim_theta: 0.10
+  min_obstacle_dist: 0.05
+  inflation_dist: 0.05
+  weight_obstacle: 10.0
+  weight_viapoint: 0.5
+  weight_optimaltime: 0.1
+
+conservative_theta:
+  max_vel_x: 0.6
+  max_vel_theta: 0.5
+  acc_lim_x: 0.4
+  acc_lim_theta: 0.4
+  min_obstacle_dist: 0.50
+  inflation_dist: 0.90
+  weight_obstacle: 100.0
+  weight_viapoint: 2.0
+  weight_optimaltime: 0.5
+
+# T02 has no calibrated braking dynamics. These values exist only to exercise
+# the Gazebo pipeline and may never populate the real safety contract.
+safety_margin:
+  a_brake_lower_mps2: 0.5
+  total_latency_upper_s: 0.5
+  distance_margin_m: 0.20
+  warning_margin_m: 0.20
+  emergency_margin_m: 0.0
+  recovery_margin_m: 0.30
+  recovery_healthy_duration_s: 1.0

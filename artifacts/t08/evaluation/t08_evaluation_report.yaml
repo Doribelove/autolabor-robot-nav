@@ -1,0 +1,225 @@
+schema_version: '1.0'
+status: valid
+complete_matrix: true
+failure_rows_retained: true
+episode_count: 12
+expected_episode_count: 12
+algorithms:
+  Fixed-DWA:
+    episode_count: 3
+    success_count: 1
+    failure_count: 2
+    success_rate: 0.3333333333333333
+    collision_count: 1
+    termination_reasons:
+      collision: 1
+      goal: 1
+      timeout: 1
+    metrics:
+      navigation_time:
+        mean: 19.706666666666667
+        median: 7.5059999999999985
+      path_length:
+        mean: 2.156677368606129
+        median: 2.251833690330386
+      smoothness:
+        mean: 1.443910493089935
+        median: 1.5375032442014476
+      min_obstacle_distance:
+        mean: 20.064182329606126
+        median: 30.0
+      near_collision_time_ratio:
+        mean: 0.24997779554134472
+        median: 0.0
+      parameter_total_variation:
+        mean: 0.0
+        median: 0.0
+  TEB-Default:
+    episode_count: 3
+    success_count: 3
+    failure_count: 0
+    success_rate: 1.0
+    collision_count: 0
+    termination_reasons:
+      goal: 3
+    metrics:
+      navigation_time:
+        mean: 5.334
+        median: 4.802
+      path_length:
+        mean: 4.469381685095383
+        median: 4.441416541026054
+      smoothness:
+        mean: 24.30285242159729
+        median: 16.379555490351663
+      min_obstacle_distance:
+        mean: 20.11419495396258
+        median: 30.0
+      near_collision_time_ratio:
+        mean: 0.23245614035087717
+        median: 0.0
+      parameter_total_variation:
+        mean: 0.0
+        median: 0.0
+  TEB-Tuned:
+    episode_count: 3
+    success_count: 3
+    failure_count: 0
+    success_rate: 1.0
+    collision_count: 0
+    termination_reasons:
+      goal: 3
+    metrics:
+      navigation_time:
+        mean: 7.366666666666666
+        median: 6.899999999999999
+      path_length:
+        mean: 4.672601516376646
+        median: 4.703223184823646
+      smoothness:
+        mean: 16.29343871401454
+        median: 12.766567458200043
+      min_obstacle_distance:
+        mean: 20.155201777997572
+        median: 30.0
+      near_collision_time_ratio:
+        mean: 0.20716510903426796
+        median: 0.0
+      parameter_total_variation:
+        mean: 0.0
+        median: 0.0
+  Rule-TEB:
+    episode_count: 3
+    success_count: 2
+    failure_count: 1
+    success_rate: 0.6666666666666666
+    collision_count: 0
+    termination_reasons:
+      emergency_stop: 1
+      goal: 2
+    metrics:
+      navigation_time:
+        mean: 3.5700000000000003
+        median: 3.6000000000000005
+      path_length:
+        mean: 3.0200918258368326
+        median: 3.000328697047286
+      smoothness:
+        mean: 13.876411391744945
+        median: 14.998312993501264
+      min_obstacle_distance:
+        mean: 20.126337262919538
+        median: 30.0
+      near_collision_time_ratio:
+        mean: 0.21973466003316736
+        median: 0.0
+      parameter_total_variation:
+        mean: 0.0
+        median: 0.0
+paired_against_reference:
+  Fixed-DWA:
+    reference: TEB-Default
+    pair_count: 3
+    pairs:
+    - scene_id: t08-clear-straight-v1
+      seed: 42
+      success_delta: 0
+      navigation_time_delta_s: 3.000000000000001
+      path_length_delta_m: -0.19571650333585877
+      clearance_delta_m: 0.0
+    - scene_id: t08-obstacle-straight-v1
+      seed: 42
+      success_delta: -1
+      navigation_time_delta_s: -0.09400000000000208
+      path_length_delta_m: -4.552813595436237
+      clearance_delta_m: -0.15003787306936428
+    - scene_id: t08-clear-turn-v1
+      seed: 42
+      success_delta: -1
+      navigation_time_delta_s: 40.211999999999996
+      path_length_delta_m: -2.1895828506956683
+      clearance_delta_m: 0.0
+  TEB-Tuned:
+    reference: TEB-Default
+    pair_count: 3
+    pairs:
+    - scene_id: t08-clear-straight-v1
+      seed: 42
+      success_delta: 0
+      navigation_time_delta_s: 0.9000000000000004
+      path_length_delta_m: 1.9091969195805802e-05
+      clearance_delta_m: 0.0
+    - scene_id: t08-obstacle-straight-v1
+      seed: 42
+      success_delta: 0
+      navigation_time_delta_s: 3.0999999999999988
+      path_length_delta_m: 0.3478337580769981
+      clearance_delta_m: 0.12302047210497247
+    - scene_id: t08-clear-turn-v1
+      seed: 42
+      success_delta: 0
+      navigation_time_delta_s: 2.097999999999999
+      path_length_delta_m: 0.2618066437975912
+      clearance_delta_m: 0.0
+  Rule-TEB:
+    reference: TEB-Default
+    pair_count: 3
+    pairs:
+    - scene_id: t08-clear-straight-v1
+      seed: 42
+      success_delta: 0
+      navigation_time_delta_s: 8.881784197001252e-16
+      path_length_delta_m: -0.0003335695635953151
+      clearance_delta_m: 0.0
+    - scene_id: t08-obstacle-straight-v1
+      seed: 42
+      success_delta: -1
+      navigation_time_delta_s: -5.59
+      path_length_delta_m: -4.367846004236744
+      clearance_delta_m: 0.03642692687087712
+    - scene_id: t08-clear-turn-v1
+      seed: 42
+      success_delta: 0
+      navigation_time_delta_s: 0.29800000000000004
+      path_length_delta_m: 0.02030999602468775
+      clearance_delta_m: 0.0
+task: T08
+simulation_only: true
+formal_experiment: false
+real_vehicle_use_forbidden: true
+contract_path: /home/robot/robot_ws_base_rl/config/thesis_experiments/t08_baselines.yaml
+contract_sha256: aa56c08ff7811a001cadd3d7f5ffb517e9921fea6e7451a519c59635cc25ed0e
+source_bundles:
+- manifest: /home/robot/robot_ws_base_rl/artifacts/t08/t08_fixed_dwa_seed42/run_manifest.yaml
+  manifest_sha256: 4cf034025fd25b74a2af98274fe19ad32a32b09731f114e6d4f2ae4820e14d5e
+  validation:
+    valid: true
+    run_id: t08_fixed_dwa_seed42
+    episode_count: 3
+    step_count: 3
+    verified_checksum_count: 3
+- manifest: /home/robot/robot_ws_base_rl/artifacts/t08/t08_teb_default_seed42/run_manifest.yaml
+  manifest_sha256: ca96c0b0b94a357151e5eb572e0e647f263c1be577ae97f733f1fb77eb491e4d
+  validation:
+    valid: true
+    run_id: t08_teb_default_seed42
+    episode_count: 3
+    step_count: 3
+    verified_checksum_count: 3
+- manifest: /home/robot/robot_ws_base_rl/artifacts/t08/t08_teb_tuned_seed42/run_manifest.yaml
+  manifest_sha256: 90d34bda3c3f6f9bb02e34684669b0476fbd500fc2f2acae2073deeac981ca40
+  validation:
+    valid: true
+    run_id: t08_teb_tuned_seed42
+    episode_count: 3
+    step_count: 3
+    verified_checksum_count: 3
+- manifest: /home/robot/robot_ws_base_rl/artifacts/t08/t08_rule_teb_seed42/run_manifest.yaml
+  manifest_sha256: 941f9f328f01b5ec0bda0861ee85f3ad272c0ed4443fce2425d9267d897c366f
+  validation:
+    valid: true
+    run_id: t08_rule_teb_seed42
+    episode_count: 3
+    step_count: 3
+    verified_checksum_count: 3
+passed: true

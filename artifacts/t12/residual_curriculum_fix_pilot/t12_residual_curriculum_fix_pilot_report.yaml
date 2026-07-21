@@ -1,0 +1,68 @@
+schema_version: '1.0'
+task: T12
+study: residual_curriculum_rotation_single_factor_pilot
+formal_result: false
+expanded_budget: false
+runs:
+  101:
+    training_budget_steps: 2000
+    training_scene_ids:
+    - t11-train-clear-left
+    - t11-train-clear-right
+    - t11-train-clear-straight
+    - t11-train-corridor
+    - t11-train-obstacle
+    training_scene_episode_counts:
+      t11-train-clear-left: 63
+      t11-train-clear-right: 63
+      t11-train-clear-straight: 64
+      t11-train-corridor: 45
+      t11-train-obstacle: 53
+    validation_mean_returns:
+    - 23.587397436300915
+    - 23.338663061459858
+    validation_return_change: -0.24873437484105665
+    selected_timesteps: 1000
+    test_episode_count: 7
+    test_goal: 7
+    test_collision: 0
+    test_emergency_stop: 0
+    test_interface_fault: 0
+    process_crash_count: 0
+    dynamic_reconfigure_failure_count: 0
+  102:
+    training_budget_steps: 2000
+    training_scene_ids:
+    - t11-train-clear-left
+    - t11-train-clear-right
+    - t11-train-clear-straight
+    - t11-train-corridor
+    - t11-train-obstacle
+    training_scene_episode_counts:
+      t11-train-clear-left: 63
+      t11-train-clear-right: 63
+      t11-train-clear-straight: 64
+      t11-train-corridor: 45
+      t11-train-obstacle: 53
+    validation_mean_returns:
+    - 23.232022285461426
+    - 23.27725563446681
+    validation_return_change: 0.04523334900538245
+    selected_timesteps: 2000
+    test_episode_count: 7
+    test_goal: 7
+    test_collision: 0
+    test_emergency_stop: 0
+    test_interface_fault: 0
+    process_crash_count: 0
+    dynamic_reconfigure_failure_count: 0
+gates:
+  two_seed_complete: true
+  curriculum_scene_rotation_repaired: true
+  zero_collision: true
+  zero_interface_fault: true
+  zero_process_crash: true
+  validation_improved_each_seed: false
+integrity_passed: true
+learning_gate_passed: false
+decision: stop_and_review_next_single_factor_without_budget_expansion

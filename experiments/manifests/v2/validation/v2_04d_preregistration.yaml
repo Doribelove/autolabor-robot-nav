@@ -1,0 +1,59 @@
+schema_version: "2.0"
+stage: V2-04D
+preregistration_id: fam_teb_v2_04d_no_training_paired_validation_preregistration_1
+status: frozen_before_navigation
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_use_forbidden: true
+resources:
+  contract:
+    path: config/thesis_experiments/v2/v2_04d_paired_validation_contract.yaml
+    sha256: 6ee528f8a9c6dff0cc9ce35150e9ef315ddb86bbaca542dada0679e9533bfba0
+  validation_scenes:
+    path: experiments/manifests/v2/validation/v2_04d_paired_validation_scenes.yaml
+    sha256: 10327c02293863973188bb53e9e162a0df377045a6b74688ddcc913d2a7b8604
+  compiled_scene_index:
+    path: artifacts/v2/validation/v2_04d/compiled_scenes/compiled_scene_index.yaml
+    sha256: eedce8e7b372102fe330b7ebeef1581c24b99026f3a9339c1b8c24e043dc3663
+  frozen_anchor_bank:
+    path: src/application/teb_mode_manager/config/v2_04c_anchor_bank_frozen.yaml
+    sha256: b1365f2b14e4a77f4e715bc46369fa4277e9adbb8522190153f7abd2ce635b9d
+methods:
+  - method_id: fixed_teb
+    display_name: Fixed TEB
+  - method_id: balanced_anchor
+    display_name: Single Balanced Anchor
+  - method_id: rule_multi_anchor
+    display_name: Rule Multi-Anchor
+validation_scene_ids:
+  - v2-04d-cruise-s4601
+  - v2-04d-cruise-s4606
+  - v2-04d-dynamic-s4602
+  - v2-04d-dynamic-s4607
+  - v2-04d-static-s4603
+  - v2-04d-static-s4608
+  - v2-04d-corridor-s4604
+  - v2-04d-corridor-s4609
+  - v2-04d-maneuver-s4605
+  - v2-04d-maneuver-s4610
+budget:
+  method_count: 3
+  validation_scene_count: 10
+  planned_navigation_episode_count: 30
+  attempts_per_interface_failure: 2
+  early_stopping_allowed: false
+decision_order:
+  stage_1: success_collision_clearance_interface_and_mechanism_gates
+  stage_2: paired_time_path_stability_clearance_and_maneuver_comparison
+  stage_2_requires_stage_1_pass: true
+claims:
+  frozen_before_first_v2_04d_navigation: true
+  anchor_selection_complete: true
+  validation_cannot_modify_anchor_bank: true
+  runtime_scene_labels_available: false
+  v2_04d_started: false
+  v2_05_started: false
+  sac_training_started: false
+  real_vehicle_validated: false

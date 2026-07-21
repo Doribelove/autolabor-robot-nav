@@ -1,0 +1,181 @@
+schema_version: '2.0'
+stage: V2-04E
+status: calibration_complete_no_freeze
+formal_result: false
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+contract:
+  path: /home/robot/robot_ws_base_rl/config/thesis_experiments/v2/v2_04e_rule_supervisor_repair_contract.yaml
+  sha256: 479576dd7069e9a7981f7a67033a3fc8bcef46d1a974102dd7aa3ca2bf61bf45
+preregistration:
+  path: /home/robot/robot_ws_base_rl/experiments/manifests/v2/calibration/v2_04e_r1_preregistration.yaml
+  sha256: e50920a9543733965a5603cc75e6c29f8decd1905ec8184ef2eca60dcbd95593
+valid_evidence_episode_count: 20
+candidate_summaries:
+  repair_a_balanced:
+    hard_gate_pass: false
+    checks:
+      valid_episode_count: true
+      success_count: true
+      collision_count: true
+      typed_transaction_valid: true
+      training_unused: true
+      cruise_fraction: true
+      cruise_static_absorption: true
+      static_fraction: true
+      corridor_fraction: true
+      maneuver_fraction: false
+      switch_max: false
+      switch_mean: false
+    success_count: 5
+    collision_count: 0
+    expected_family_mode_fraction_sum: 2.3415270018621976
+    maneuver_fraction: 0.0
+    cruise_static_dense_fraction: 0.0
+    active_anchor_switch_counts:
+    - 6
+    - 3
+    - 3
+    - 0
+    - 0
+    active_anchor_switch_count_total: 12
+    navigation_time_s_total: 138.3
+    evidence:
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_001__repair_a_balanced__v2-04e-cruise-s4701/evaluation.yaml
+      sha256: 15ac5e26f9ff0cfcfae7e3ada74a78d708df87613bccb261a971f0f65b631d62
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_002__repair_a_balanced__v2-04e-dynamic-s4702/evaluation.yaml
+      sha256: 439c419bc27b99cd3179955670622af13468710f952ed5cc01cc1a6a75cf17ab
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_003__repair_a_balanced__v2-04e-static-s4703/evaluation.yaml
+      sha256: 5559210db2d7c26d375a1ab2ca4985464783ac1fb9d5c9a775a77902ed2df88a
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_004__repair_a_balanced__v2-04e-corridor-s4704/evaluation.yaml
+      sha256: 54792802f9176c0750d8ea217824f507c627248d93da5e55467a9d3d6d4c20bb
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_005__repair_a_balanced__v2-04e-maneuver-s4705/evaluation.yaml
+      sha256: 9402568f5b5eeb092158fdc8d79c5ca028ab98db8042d92df1a18c5eb0316e4d
+  repair_b_sensitive_maneuver:
+    hard_gate_pass: false
+    checks:
+      valid_episode_count: true
+      success_count: true
+      collision_count: true
+      typed_transaction_valid: true
+      training_unused: true
+      cruise_fraction: false
+      cruise_static_absorption: false
+      static_fraction: true
+      corridor_fraction: true
+      maneuver_fraction: false
+      switch_max: false
+      switch_mean: true
+    success_count: 5
+    collision_count: 0
+    expected_family_mode_fraction_sum: 2.355769230769231
+    maneuver_fraction: 0.0
+    cruise_static_dense_fraction: 0.40384615384615385
+    active_anchor_switch_counts:
+    - 6
+    - 1
+    - 0
+    - 0
+    - 0
+    active_anchor_switch_count_total: 7
+    navigation_time_s_total: 148.60000000000002
+    evidence:
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_006__repair_b_sensitive_maneuver__v2-04e-cruise-s4701/evaluation.yaml
+      sha256: b2c5ef59dad699f56fe7be19b1df24cdc70d3302dc9d14008d15b8d32316dbc0
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_007__repair_b_sensitive_maneuver__v2-04e-dynamic-s4702/evaluation.yaml
+      sha256: 340e4ed7167807335c9ec7819af04805e534a4ab7c4588ba19a301ffa7fdab1f
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_008__repair_b_sensitive_maneuver__v2-04e-static-s4703/evaluation.yaml
+      sha256: b3cf3346e4b2674d7413d9b584b6ddd456ae72bf46af6367e2a8581ed3688317
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_009__repair_b_sensitive_maneuver__v2-04e-corridor-s4704/evaluation.yaml
+      sha256: e83d3965bef4772d5785b5b5c5133b918386e719ae015a6dd50059039e665d34
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_010__repair_b_sensitive_maneuver__v2-04e-maneuver-s4705/evaluation.yaml
+      sha256: d5a72c010a72cb428be27649017fc5163d688ca17e448f23dafb65274a66e7bf
+  repair_c_cruise_guarded:
+    hard_gate_pass: false
+    checks:
+      valid_episode_count: true
+      success_count: true
+      collision_count: true
+      typed_transaction_valid: true
+      training_unused: true
+      cruise_fraction: true
+      cruise_static_absorption: true
+      static_fraction: true
+      corridor_fraction: true
+      maneuver_fraction: false
+      switch_max: false
+      switch_mean: false
+    success_count: 5
+    collision_count: 0
+    expected_family_mode_fraction_sum: 2.428175096512465
+    maneuver_fraction: 0.0
+    cruise_static_dense_fraction: 0.0
+    active_anchor_switch_counts:
+    - 3
+    - 1
+    - 1
+    - 2
+    - 6
+    active_anchor_switch_count_total: 13
+    navigation_time_s_total: 134.9
+    evidence:
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_011__repair_c_cruise_guarded__v2-04e-cruise-s4701/evaluation.yaml
+      sha256: 6ca65170b2a108a869b17a93a62beb3545fd25fe93e903b3edc2907869776faf
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_012__repair_c_cruise_guarded__v2-04e-dynamic-s4702/evaluation.yaml
+      sha256: 590f11390b72a503e23f34570b3dd5c8397992365d2896a09fbfc25258ad7739
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_013__repair_c_cruise_guarded__v2-04e-static-s4703/evaluation.yaml
+      sha256: d88d77a2578a2c5a9a0abf4af0ae7ac1eaad050793c4732cefd5c53a53650a05
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_014__repair_c_cruise_guarded__v2-04e-corridor-s4704/evaluation.yaml
+      sha256: 87e8450697a9df148eabbd181ae473c000c656f8e591a74696d33ebcd6c87a5a
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_015__repair_c_cruise_guarded__v2-04e-maneuver-s4705/evaluation.yaml
+      sha256: 469e929afbe287479aa6690db8b746fec58c064f7d8a541cb57bd226abb40952
+  repair_d_strong_hysteresis:
+    hard_gate_pass: false
+    checks:
+      valid_episode_count: true
+      success_count: true
+      collision_count: true
+      typed_transaction_valid: true
+      training_unused: true
+      cruise_fraction: true
+      cruise_static_absorption: true
+      static_fraction: true
+      corridor_fraction: true
+      maneuver_fraction: false
+      switch_max: false
+      switch_mean: false
+    success_count: 5
+    collision_count: 0
+    expected_family_mode_fraction_sum: 2.218055473124023
+    maneuver_fraction: 0.0
+    cruise_static_dense_fraction: 0.0
+    active_anchor_switch_counts:
+    - 3
+    - 1
+    - 5
+    - 2
+    - 3
+    active_anchor_switch_count_total: 14
+    navigation_time_s_total: 132.5
+    evidence:
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_016__repair_d_strong_hysteresis__v2-04e-cruise-s4701/evaluation.yaml
+      sha256: d367c09d7166192afad7a27cc47c177b9361acd0d57be94f6c15d6745e721e94
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_017__repair_d_strong_hysteresis__v2-04e-dynamic-s4702/evaluation.yaml
+      sha256: 6855175df10b9f5a76f03b2ba5d7bae5c835f1f60223a2d177afa75df2b6786a
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_018__repair_d_strong_hysteresis__v2-04e-static-s4703/evaluation.yaml
+      sha256: 61226e5c1c89c3665a61f412ceeb10c1a46a182dd535bfd22f425caa82d3f26e
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_019__repair_d_strong_hysteresis__v2-04e-corridor-s4704/evaluation.yaml
+      sha256: 023c076ac809ac89cc1e1dbf6de4a881098e1bcd3bf1b6b85ac14f2135e7493f
+    - path: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e/episodes/ep_020__repair_d_strong_hysteresis__v2-04e-maneuver-s4705/evaluation.yaml
+      sha256: 4dc3cbbe0028f86c2f95ae06caaf76e1dba747ea66231bcf0de398d7dbfbfc09
+passing_candidate_ids: []
+selected_candidate_id: null
+decision:
+  freeze_rule_supervisor_authorized: false
+  held_out_validation_authorized: false
+  new_calibration_only_repair_stage_required: true
+  v2_04d_validation_data_used_for_selection: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false

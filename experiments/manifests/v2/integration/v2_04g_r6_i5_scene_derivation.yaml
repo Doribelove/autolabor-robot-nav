@@ -1,0 +1,164 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-I5
+derivation_id: fam_teb_v2_04g_r6_i5_bounded_simulation_scenes_1
+status: fresh_scene_derivation_frozen_materialization_authorized
+simulation_only: true
+offline_derivation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+stage_execution_authorization_present: true
+execution_authorized_by_derivation: false
+execution_release_present: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+derivation_rule: clone_frozen_r6_i1_behavior_replace_only_manifest_scene_id_and_seed
+
+authority_dag:
+  contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_r6_i5_bounded_simulation_execution_contract.yaml
+    sha256: f4ce9115427028e12fce1176176204005989652c57bbf8d00a8c4eda8f33042a
+  preregistration:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_preregistration.yaml
+    sha256: 602fc1044fb9e3e8ac284e77cadcbaced95c5edfb9721df0da26f876cc42c073
+  authorization:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_bounded_simulation_authorization.yaml
+    sha256: bc59820b0140b50503657966d735511a8007d9ec8e14f3f2cf237791ff170592
+  transition:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i5_stage_transition.yaml
+    sha256: 1dcca6b55e3571c8f7511852efde6042af92323bf441b2ac5c761b2afa013d58
+
+source_manifest:
+  path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_scenes.yaml
+  sha256: 12c50c598951ab09bf5696b9c3acec97691a4d5ae92063352f2a7e46caf87081
+source_compiled_index:
+  path: artifacts/v2/integration/v2_04g_r6_i1/compiled_scenes/compiled_scene_index.yaml
+  sha256: 1f1cdde389dc98687142ca8d8c47c03bc8391b003d9103bde05c0e41cfddc4a0
+target_manifest_id: fam_teb_v2_04g_r6_i5_bounded_simulation_scenes_1
+target_path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_scenes.yaml
+target_compiled_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/compiled_scenes
+target_behavior_audit: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_scene_behavior_equivalence.yaml
+
+behavior_equivalence_contract:
+  allowed_top_level_changes: [manifest_id]
+  allowed_per_scene_changes: [scene_id, seed]
+  behavior_fields_changed: []
+  preserve_scene_order: true
+  preserve_layout_variant_exactly: true
+  preserve_evaluator_only_exactly: true
+  preserve_scene_timing_exactly: true
+  preserve_randomization_parameters_exactly: true
+  compare_type_sensitively: true
+  compiled_outputs_must_reproduce_deterministically: true
+
+freshness_audit:
+  authoritative_pre_i5_seed_and_scene_fields_scanned: true
+  execution_or_compile_seed_match_found: false
+  target_scene_identity_match_found: false
+  sha256_substring_matches_excluded_from_seed_evidence: true
+  historical_allocated_high_watermark: 5157
+
+execution_probe_seeds: [5161, 5162, 5163]
+compile_support_only_seeds: [5164, 5165, 5166, 5167]
+compile_support_seeds_are_evidence: false
+seed_roles:
+  5161: single_track_circle_contact
+  5162: multi_track_circle_contact
+  5163: time_separated_centerline_crossing
+  5164: compile_support_only_cruise
+  5165: compile_support_only_static_dense
+  5166: compile_support_only_corridor
+  5167: compile_support_only_maneuver
+
+scene_derivations:
+  - source_scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+    source_seed: 5141
+    target_scene_id: v2-04g-r6-i5-dynamic-conflict-single-s5161
+    seed: 5161
+    execution_role: paired_semantic_probe
+    layout_variant: v2_04g_r6_i1_single_circle_contact
+    evaluator_reason: preregistered_single_track_circle_contact
+    behavior_fields_changed: []
+  - source_scene_id: v2-04g-r6-i1-dynamic-conflict-multi-s5142
+    source_seed: 5142
+    target_scene_id: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+    seed: 5162
+    execution_role: paired_semantic_probe
+    layout_variant: v2_04g_r6_i1_multi_circle_contact
+    evaluator_reason: preregistered_multi_track_circle_contact
+    behavior_fields_changed: []
+  - source_scene_id: v2-04g-r6-i1-dynamic-semantic-clear-s5143
+    source_seed: 5143
+    target_scene_id: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+    seed: 5163
+    execution_role: paired_semantic_probe
+    layout_variant: v2_04g_r6_i1_time_separated_crossing
+    evaluator_reason: preregistered_time_separated_centerline_crossing
+    behavior_fields_changed: []
+  - source_scene_id: v2-04g-r6-i1-compile-support-cruise-s5144
+    source_seed: 5144
+    target_scene_id: v2-04g-r6-i5-compile-support-cruise-s5164
+    seed: 5164
+    execution_role: compile_support_only_never_execute
+    layout_variant: v2_04g_r6_i1_compile_support_cruise
+    evaluator_reason: compile_support_only_not_evidence
+    behavior_fields_changed: []
+  - source_scene_id: v2-04g-r6-i1-compile-support-static-s5145
+    source_seed: 5145
+    target_scene_id: v2-04g-r6-i5-compile-support-static-s5165
+    seed: 5165
+    execution_role: compile_support_only_never_execute
+    layout_variant: v2_04g_r6_i1_compile_support_static
+    evaluator_reason: compile_support_only_not_evidence
+    behavior_fields_changed: []
+  - source_scene_id: v2-04g-r6-i1-compile-support-corridor-s5146
+    source_seed: 5146
+    target_scene_id: v2-04g-r6-i5-compile-support-corridor-s5166
+    seed: 5166
+    execution_role: compile_support_only_never_execute
+    layout_variant: v2_04g_r6_i1_compile_support_corridor
+    evaluator_reason: compile_support_only_not_evidence
+    behavior_fields_changed: []
+  - source_scene_id: v2-04g-r6-i1-compile-support-maneuver-s5147
+    source_seed: 5147
+    target_scene_id: v2-04g-r6-i5-compile-support-maneuver-s5167
+    seed: 5167
+    execution_role: compile_support_only_never_execute
+    layout_variant: v2_04g_r6_i1_compile_support_maneuver
+    evaluator_reason: compile_support_only_not_evidence
+    behavior_fields_changed: []
+
+expected_compiled_children:
+  - v2-04g-r6-i5-dynamic-conflict-single-s5161.instance.yaml
+  - v2-04g-r6-i5-dynamic-conflict-single-s5161.world
+  - v2-04g-r6-i5-dynamic-conflict-multi-s5162.instance.yaml
+  - v2-04g-r6-i5-dynamic-conflict-multi-s5162.world
+  - v2-04g-r6-i5-dynamic-semantic-clear-s5163.instance.yaml
+  - v2-04g-r6-i5-dynamic-semantic-clear-s5163.world
+  - v2-04g-r6-i5-compile-support-cruise-s5164.instance.yaml
+  - v2-04g-r6-i5-compile-support-cruise-s5164.world
+  - v2-04g-r6-i5-compile-support-static-s5165.instance.yaml
+  - v2-04g-r6-i5-compile-support-static-s5165.world
+  - v2-04g-r6-i5-compile-support-corridor-s5166.instance.yaml
+  - v2-04g-r6-i5-compile-support-corridor-s5166.world
+  - v2-04g-r6-i5-compile-support-maneuver-s5167.instance.yaml
+  - v2-04g-r6-i5-compile-support-maneuver-s5167.world
+
+forbidden_seed_sets:
+  held_out_5001_5010: [5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010]
+  r5_terminal_allocation_5111_5135: [5111, 5112, 5113, 5114, 5115, 5116, 5117, 5118, 5119, 5120, 5121, 5122, 5123, 5124, 5125, 5126, 5127, 5128, 5129, 5130, 5131, 5132, 5133, 5134, 5135]
+  r6_i1_terminal_allocation_5141_5147: [5141, 5142, 5143, 5144, 5145, 5146, 5147]
+  r6_i3_failed_release_allocation_5151_5157: [5151, 5152, 5153, 5154, 5155, 5156, 5157]
+  prior_failed_identities: [4902, 4973, 4996, 5073, 5094, 5111, 5141]
+
+materialization_and_execution_boundary:
+  fresh_scene_materialization_authorized_offline: true
+  evidence_units_consumed_by_materialization: 0
+  compile_support_evidence_units: 0
+  execution_release_created_by_derivation: false
+  attempt_root_or_journal_created_by_derivation: false
+  ros_or_gazebo_started_by_derivation: false
+  execution_may_start_from_derivation_alone: false
+  unique_exact_hash_release_and_full_prejournal_required: true
+  separate_future_user_instruction_after_valid_release_required: false

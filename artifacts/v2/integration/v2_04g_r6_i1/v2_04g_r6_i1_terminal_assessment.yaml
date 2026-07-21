@@ -1,0 +1,118 @@
+schema_version: '2.0'
+architecture_generation: v2
+stage: V2-04G-R6-I1
+assessment_id: fam_teb_v2_04g_r6_i1_terminal_assessment_1
+assessment_date: '2026-07-19'
+status: terminal_execution_failure_preserved
+assessment_result: fail
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+execution_authorization:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i1_bounded_simulation_authorization.yaml
+  sha256: 3eb157c0ea2ec4a6af2dea86f2756871512f06a7aee2eab24f6a96be03f68db3
+  evidence_budget_authorized: 6
+stage_report:
+  path: artifacts/v2/integration/v2_04g_r6_i1/v2_04g_r6_i1_stage_report.yaml
+  sha256: 7b1744474278f43d563e1e362ee02e64c9746db30a31bf0dfc26897a8018a50e
+attempted_identity_count: 1
+evidence_units_consumed: 1
+unattempted_budget_forfeited: 5
+retry_count: 0
+resume_used: false
+resume_forbidden: true
+terminal_identity:
+  stage: V2-04G-R6-I1
+  profile_id: r6_semantics_legacy_control
+  scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+  seed: 5141
+  attempt: 1
+terminal_failure_reason: 'service readiness timed out: /move_base/TebLocalPlannerROS/set_parameters'
+terminal_journal_replay:
+  identity:
+    stage: V2-04G-R6-I1
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i1-dynamic-conflict-single-s5141
+    seed: 5141
+    attempt: 1
+  status: terminal_failure
+  raw_resource_count: 1
+  integrity_pass: true
+bootstrap_root_cause:
+  diagnosis: paused_sim_time_bootstrap_order_deadlock
+  confidence: confirmed
+  causal_chain:
+  - base_launch_requested_with_paused_true
+  - move_base_subscribed_to_simulated_clock_at_zero
+  - runner_waited_for_teb_dynamic_reconfigure_service
+  - runner_unpause_call_was_ordered_after_service_wait
+  - service_was_not_advertised_before_timeout
+  executed_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_bounded_validation.py
+    sha256: 7c4ee80727569ffb5f8a670be1b6a571004f2d7d8b17136f7f40610c6990cd10
+    source_order_verified: paused_true_before_service_wait_before_unpause
+  sanitized_observations:
+    use_sim_time: true
+    maximum_rosout_time_s: 0.0
+    timestamped_rosout_row_count: 17
+    move_base_clock_subscription_observed: true
+    target_service_advertised: false
+  supporting_files:
+    base_launch_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i1-dynamic-conflict-single-s5141/work/base_launch.log
+      sha256: 0357f5b2c59fcd33c667892ff4ae3d9c92b892e7070346569061b8124637b507
+    master_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i1-dynamic-conflict-single-s5141/work/ros_logs/233a3322-835e-11f1-b66d-19eacb789834/master.log
+      sha256: 311363fcad670df7334ebfc4d7d338e5958c777a64fef9b55592971c782a64de
+    rosout_log:
+      path: artifacts/v2/integration/v2_04g_r6_i1/execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i1-dynamic-conflict-single-s5141/work/ros_logs/233a3322-835e-11f1-b66d-19eacb789834/rosout.log
+      sha256: b76c0bb84f5a117144a0c2f03d764579149abba96fef56ffd2965bcdbb4e33ba
+  semantic_factor_activated: false
+  transaction_started: false
+  runtime_evaluator_alignment_observed: false
+review_findings:
+- id: R6-I1-POST-01
+  severity: blocking
+  finding: integration review did not exercise a positive /clock bootstrap barrier
+    before move_base readiness
+- id: R6-I1-POST-02
+  severity: blocking_for_future_authorization
+  finding: named external Python and runtime bindings are not all path-and-SHA closed
+- id: R6-I1-POST-03
+  severity: blocking_for_future_authorization
+  finding: runner does not enforce every authorization binding, digest, scope flag,
+    and exact schedule invariant
+- id: R6-I1-POST-04
+  severity: blocking_for_future_authorization
+  finding: authorization and selected YAML resources are hashed and parsed through
+    separate reads
+- id: R6-I1-POST-05
+  severity: offline_tooling
+  finding: the preauthorized assessor raises NameError before writing; it is preserved
+    byte-for-byte to retain the executed dependency closure
+  preserved_assessor:
+    path: src/tools/thesis_experiment/scripts/assess_v2_04g_r6_i1.py
+    sha256: 35eee8ebab36e875525a9a08cc252e7043e9ac9ad3a9228651680602fe326d50
+d1_integrity_outcome:
+  terminal_journal_no_resume: pass
+  exact_terminal_raw_inventory: pass
+  compiled_scene_snapshot_materialized: pass_pre_spawn_only
+  readiness_direct_counts: not_reached
+  two_phase_teardown_restore: not_reached
+  semantic_raw_binding: not_reached
+  execution_dependency_closure: authorized_snapshot_preserved_with_post_review_gaps
+claims:
+  runtime_evaluator_semantic_alignment_validated: false
+  safety_performance_or_generalization_claimed: false
+  winner_ranked_or_frozen: false
+  downstream_authorized: false
+next_stage_requirements:
+- independent_preregistration_and_authorization_only
+- fresh_seed_and_fresh_budget_only
+- positive_clock_barrier_before_move_base_readiness
+- fully_hashed_external_runtime_dependency_closure
+- single_open_hash_and_parse_for_authorization_resources
+- closed_authorization_schema_and_exact_schedule_validation
+- credential_safe_ros_log_environment

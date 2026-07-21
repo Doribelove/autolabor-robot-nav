@@ -1,0 +1,175 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R2
+split: calibration
+preregistration_id: fam_teb_v2_04g_r2_mechanism_repair_calibration_1
+status: preregistered_before_activation_probe
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+research_question: >-
+  On the byte-frozen R1 bounded sequence/timestamp join, can a bounded
+  multi-factor rule-mechanism repair make reverse intent observable in fresh
+  Maneuver episodes and reduce the Static/Corridor/Maneuver time regressions
+  without degrading success, collision safety, clearance, TTC evidence, or
+  typed transaction validity?
+
+frozen_infrastructure:
+  bounded_join_source_sha256: 485a5c57397c845982508f1f4c67739ad8c58ebf2f63c9336a08e2f0f3157442
+  r1_typed_join_node_sha256: 08f245eccd3bd4dc770d0d4e68227f026980fdbc7fdeba563e3780d5d26c11ae
+  join_numeric_limits: {maximum_entries: 32, maximum_arrival_age_s: 1.0, maximum_sequence_delta: 2, maximum_timestamp_delta_s: 0.45}
+  join_future_sequence_allowed: false
+  join_future_timestamp_allowed: false
+
+candidate_ids:
+  - r2_control_g2
+  - r2_target_balanced
+  - r2_target_aggressive
+
+scene_ids:
+  - v2-04g-r2-cruise-s4951
+  - v2-04g-r2-cruise-s4952
+  - v2-04g-r2-cruise-s4953
+  - v2-04g-r2-dynamic-conflict-s4954
+  - v2-04g-r2-dynamic-conflict-s4955
+  - v2-04g-r2-dynamic-clear-s4956
+  - v2-04g-r2-static-s4957
+  - v2-04g-r2-static-s4958
+  - v2-04g-r2-static-s4959
+  - v2-04g-r2-corridor-s4960
+  - v2-04g-r2-corridor-s4961
+  - v2-04g-r2-corridor-s4962
+  - v2-04g-r2-maneuver-s4963
+  - v2-04g-r2-maneuver-s4964
+  - v2-04g-r2-maneuver-s4965
+
+seed_firewall:
+  navigation_calibration_seeds: [4951, 4952, 4953, 4954, 4955, 4956, 4957, 4958, 4959, 4960, 4961, 4962, 4963, 4964, 4965]
+  activation_probe_only_seeds: [4971, 4972, 4973, 4974, 4975, 4976]
+  r1_design_probe_seeds_excluded_from_ranking: [4928, 4931, 4933]
+  previous_v2_04g_calibration_seeds_forbidden: [4901, 4902, 4903, 4904, 4905, 4906, 4907, 4908, 4909, 4910, 4911, 4912, 4913, 4914, 4915]
+  previous_v2_04g_r1_calibration_seeds_forbidden: [4921, 4922, 4923, 4924, 4925, 4926, 4927, 4928, 4929, 4930, 4931, 4932, 4933, 4934, 4935, 4941, 4942, 4943, 4944, 4945, 4946]
+  previous_validation_seeds_forbidden: [4601, 4602, 4603, 4604, 4605, 4606, 4607, 4608, 4609, 4610, 4801, 4802, 4803, 4804, 4805, 4806, 4807, 4808, 4809, 4810]
+  reserved_future_held_out_seeds: [5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010]
+  validation_data_used_for_candidate_design: false
+  validation_data_used_for_candidate_ranking: false
+  fresh_r2_navigation_data_used_before_preregistration: false
+
+activation_readiness_probe:
+  required_before_navigation: true
+  scene_id: v2-04g-r2-cruise-s4951
+  profile_ids: [r2_target_balanced, r2_target_aggressive]
+  planned_probe_count: 6
+  warmup_timeout_s: 8.0
+  measurement_duration_s: 6.0
+  minimum_message_count: 20
+  minimum_valid_fraction: 0.95
+  summary_path: artifacts/v2/calibration/v2_04g_r2/activation_probe/activation_probe_summary.yaml
+  schedule:
+    - {sequence: 1, profile_id: r2_target_balanced, repeat: 1, seed: 4971}
+    - {sequence: 2, profile_id: r2_target_balanced, repeat: 2, seed: 4972}
+    - {sequence: 3, profile_id: r2_target_balanced, repeat: 3, seed: 4973}
+    - {sequence: 4, profile_id: r2_target_aggressive, repeat: 1, seed: 4974}
+    - {sequence: 5, profile_id: r2_target_aggressive, repeat: 2, seed: 4975}
+    - {sequence: 6, profile_id: r2_target_aggressive, repeat: 3, seed: 4976}
+
+budget:
+  activation_readiness_probe_count: 6
+  fixed_reference_episode_count: 15
+  candidate_count: 3
+  episode_count_per_candidate: 15
+  planned_navigation_episode_count: 60
+  tracker_invalid_component_probe_count: 3
+  total_evidence_unit_budget: 69
+  attempts_per_navigation_episode_max: 2
+  budget_expansion_forbidden: true
+
+resources:
+  contract:
+    path: config/thesis_experiments/v2/v2_04g_r2_mechanism_repair_contract.yaml
+    sha256: 536a66b53dbdd0f281a1003edc3fac23df38da1002ca927997f4d144e1e04d87
+  candidate_bank:
+    path: experiments/manifests/v2/calibration/v2_04g_r2_mechanism_candidates.yaml
+    sha256: 78c434703091147bfeee174906744ff89d71ebafc8156d7b0691937476667f6d
+  scene_derivation:
+    path: experiments/manifests/v2/calibration/v2_04g_r2_scene_derivation.yaml
+    sha256: 8dfa3b8a3360feea4b4b87161fc754869c12ec77eb4bbf378e47fc8ceefdb3c8
+  compiled_source_manifest:
+    path: artifacts/v2/calibration/v2_04g_r2/v2_04g_r2_calibration_scenes.yaml
+    sha256: 7f37a5394fa562d101b9f75c2b73d8e7bef02db18eeb79b5026a6f32d781fc53
+  compiled_scene_index:
+    path: artifacts/v2/calibration/v2_04g_r2/compiled_scenes/compiled_scene_index.yaml
+    sha256: 5e3ea3c4207c9ccd42252ad2310ce6ddba29d1c2c901fc5a2e6c2aeb4c9ab5e3
+  frozen_supervisor:
+    path: src/application/teb_mode_manager/config/v2_04e4_rule_supervisor_frozen.yaml
+    sha256: 2c3a8669418d9221be6c314df06d1ce936a1ba414117ce5e47fc6b35f9bdfe1d
+  frozen_anchor_bank:
+    path: src/application/teb_mode_manager/config/v2_04c_anchor_bank_frozen.yaml
+    sha256: b1365f2b14e4a77f4e715bc46369fa4277e9adbb8522190153f7abd2ce635b9d
+  bounded_join_source:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/bounded_context_join.py
+    sha256: 485a5c57397c845982508f1f4c67739ad8c58ebf2f63c9336a08e2f0f3157442
+  r1_typed_join_node:
+    path: src/application/teb_mode_manager/scripts/v2_04g_r1_typed_anchor_transaction_node.py
+    sha256: 08f245eccd3bd4dc770d0d4e68227f026980fdbc7fdeba563e3780d5d26c11ae
+  idempotent_transaction_source:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/idempotent_typed_teb_transaction.py
+    sha256: 2ad255dea35715709384c02683836847a9089b1a729677f7739d2b9ea53aabf1
+  r2_typed_transaction_node:
+    path: src/application/teb_mode_manager/scripts/v2_04g_r2_typed_anchor_transaction_node.py
+    sha256: bf704a571d39e8bff1915d4f67e970e13c119877a2619d55148446a21fe57e47
+  typed_transaction_launch:
+    path: src/application/teb_mode_manager/launch/v2_04g_r2_simulation_typed_anchor.launch
+    sha256: cba3ffa1d2a4f840f6cb35d66925b9632109c90dbc0b91c66c1b4ee2188e9fae
+  experiment_launch:
+    path: src/simulation/m2_gazebo/launch/m2_v2_04g_r2_mechanism_calibration.launch
+    sha256: e23b3b95b7ca7ed1605fde160e5652e433357c9e192c0f318e95a9a7c0a073ac
+  activation_probe_listener:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r2_activation_probe_listener.py
+    sha256: 8ebf0c9dec84a5ca035830d6d6797c27d12bbdde3c28a7308ece50c2c2d34af9
+  activation_probe_batch:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r2_activation_probe_batch.py
+    sha256: d921672f80dfb0acea834e10944532888d3dc0d67a75b0494c73c9cd8eed8913
+  episode_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r2_mechanism_episode.py
+    sha256: 4f74b7931ea8fa462dae09e55f54b096eae364f58387ebb3e3abed4ca50c9248
+  batch_runner:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r2_calibration_batch.py
+    sha256: 7a764e9ce3b37ed721a418c8118058a5ba6ae7035760ad3d9c27160c4c7d8bbd
+  ttc_probe_runner:
+    path: src/tools/thesis_experiment/scripts/probe_v2_04g_r2_ttc_states.py
+    sha256: c341bf88b06f1f31850b0c3594ff8e0229028b5b059116e024c3e8c461bba9ab
+  assessor:
+    path: src/tools/thesis_experiment/scripts/assess_v2_04g_r2.py
+    sha256: 9c8d549ecf4d7162b18098b4cca868760689426048321b39dbcc8c9814c0a50e
+  excluded_design_probe_summary:
+    path: artifacts/v2/calibration/v2_04g_r2/v2_04g_r2_design_probe_summary.yaml
+    sha256: 17632202f216880c03525752690a5efe08be65f6ba7d9bcca05ce48d17335322
+
+execution_order:
+  - six deterministic activation-readiness probes
+  - three-state deterministic TTC component probe
+  - all fixed reference scenes in listed order
+  - r2_control_g2 scenes in listed order
+  - r2_target_balanced scenes in listed order
+  - r2_target_aggressive scenes in listed order
+  - fail-closed assessment and optional freeze decision
+
+hard_gates_source: config/thesis_experiments/v2/v2_04g_r2_mechanism_repair_contract.yaml
+stopping_rules:
+  activation_readiness_failure: stop_before_navigation_and_preserve
+  persistent_interface_failure: stop_and_preserve
+  fixed_reference_invalid: stop_before_freeze
+  no_candidate_passes_all_hard_gates: stop_without_freeze_or_validation
+  candidate_performance_early_stop: forbidden
+
+post_stage_boundaries:
+  generate_future_validation_before_freeze: false
+  use_4951_4965_for_future_validation: false
+  use_4971_4976_for_navigation_or_validation: false
+  v2_05_authorized: false
+  sac_training_authorized: false
+  real_vehicle_authorized: false

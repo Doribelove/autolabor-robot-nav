@@ -1,0 +1,69 @@
+schema_version: '2.0'
+architecture_generation: v2
+suite: v2_03_synthetic_world_model_rule_acceptance
+simulation_only: true
+formal_result: false
+runtime_ready: false
+training_started: false
+real_vehicle_started: false
+truth_scope: evaluator_only_synthetic
+passed: true
+checks:
+  tracking_position_rmse: true
+  prediction_rmse: true
+  id_switches: true
+  mode_macro_recall: true
+  health_fault_cases: true
+tracking:
+  sample_count: 48
+  position_rmse_m: 0.02074012506518078
+  prediction_1s_rmse_m: 0.07799561197842302
+  id_switches: 0
+  unique_track_ids:
+  - 1
+mode_supervisor:
+  macro_recall: 1.0
+  predictions:
+    BALANCED: BALANCED
+    CRUISE: CRUISE
+    STATIC_DENSE: STATIC_DENSE
+    CORRIDOR: CORRIDOR
+    MANEUVER: MANEUVER
+  confusion_matrix:
+    BALANCED:
+      BALANCED: 1
+      CRUISE: 0
+      STATIC_DENSE: 0
+      CORRIDOR: 0
+      MANEUVER: 0
+    CRUISE:
+      BALANCED: 0
+      CRUISE: 1
+      STATIC_DENSE: 0
+      CORRIDOR: 0
+      MANEUVER: 0
+    STATIC_DENSE:
+      BALANCED: 0
+      CRUISE: 0
+      STATIC_DENSE: 1
+      CORRIDOR: 0
+      MANEUVER: 0
+    CORRIDOR:
+      BALANCED: 0
+      CRUISE: 0
+      STATIC_DENSE: 0
+      CORRIDOR: 1
+      MANEUVER: 0
+    MANEUVER:
+      BALANCED: 0
+      CRUISE: 0
+      STATIC_DENSE: 0
+      CORRIDOR: 0
+      MANEUVER: 1
+health:
+  fault_cases_required:
+  - scan_metadata
+  - scan_stale
+  - tf_timeout
+  - localization_stale
+  fault_cases_passed: 4

@@ -1,0 +1,70 @@
+schema_version: '2.0'
+stage: V2-04E4
+status: complete
+simulation_only: true
+runtime_ready: false
+training_started: false
+real_vehicle_used: false
+preregistration:
+  path: experiments/manifests/v2/calibration/v2_04e4_preregistration.yaml
+  sha256: 55c2cf33123f1e4b3b2ed3ea3631d0fe56db5383827feb563fd5d63fd9598ca4
+planned_navigation_episode_count: 5
+valid_evidence_episode_count: 5
+interface_failure_count: 0
+episodes:
+- sequence: 1
+  profile_id: pocket_g_exit10
+  method: rule_multi_anchor
+  scene_id: v2-04e4-cruise-s4731
+  family: CRUISE
+  seed: 4731
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e4/episodes/ep_001__pocket_g_exit10__v2-04e4-cruise-s4731/evaluation.yaml
+  evaluation_sha256: 3b3172bdfa66f6610b0e2a5e278328824e0856636db5917a08e79cd40dafaea0
+  trace_sha256: 882ba50fe56f752068c89d2e56bc8f0f0475b97126fab83b1665be734486a8db
+  success: true
+  collision: false
+- sequence: 2
+  profile_id: pocket_g_exit10
+  method: rule_multi_anchor
+  scene_id: v2-04e4-dynamic-s4732
+  family: DYNAMIC
+  seed: 4732
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e4/episodes/ep_002__pocket_g_exit10__v2-04e4-dynamic-s4732/evaluation.yaml
+  evaluation_sha256: 5de5f3130e7aaec0cc3f597539e7823eeba7ba939918fec58042ff33cb4803c0
+  trace_sha256: 89fbf9545df0472662a43406634411f43a57e279c1d8b7722dc2688da0a70a81
+  success: true
+  collision: false
+- sequence: 3
+  profile_id: pocket_g_exit10
+  method: rule_multi_anchor
+  scene_id: v2-04e4-static-s4733
+  family: STATIC_DENSE
+  seed: 4733
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e4/episodes/ep_003__pocket_g_exit10__v2-04e4-static-s4733/evaluation.yaml
+  evaluation_sha256: 050821ff0e4b8e8a58a2f7f7c8182f9e22d5e5907a23b6f227b3218702848218
+  trace_sha256: 6e75d515f5201ed3b7f8c417e746205a2f27a7385d7c444e93fb7d974f9a117a
+  success: true
+  collision: false
+- sequence: 4
+  profile_id: pocket_g_exit10
+  method: rule_multi_anchor
+  scene_id: v2-04e4-corridor-s4734
+  family: CORRIDOR
+  seed: 4734
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e4/episodes/ep_004__pocket_g_exit10__v2-04e4-corridor-s4734/evaluation.yaml
+  evaluation_sha256: 034d54bd07a201339374d418dabd065f1b5fdd2aa14f12614229dc700d360598
+  trace_sha256: 3b1db0aea47c8015709a3817fc813082c7b2bc1be7a3ae4911503da05d0898ed
+  success: true
+  collision: false
+- sequence: 5
+  profile_id: pocket_g_exit10
+  method: rule_multi_anchor
+  scene_id: v2-04e4-maneuver-s4735
+  family: MANEUVER
+  seed: 4735
+  evaluation: /home/robot/robot_ws_base_rl/artifacts/v2/calibration/v2_04e4/episodes/ep_005__pocket_g_exit10__v2-04e4-maneuver-s4735/evaluation.yaml
+  evaluation_sha256: 56edcfd1d08b92d52b57c10b00fb2db869792675533e9429d10cfbdc19e7382d
+  trace_sha256: 92b3075e20701ef54ea4aa57e6d8d8d02686cf7b04666b61a528f080ce780572
+  success: true
+  collision: false
+interface_failures: []

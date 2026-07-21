@@ -1,0 +1,28 @@
+schema_version: "2.0"
+architecture_generation: v2
+stage: V2-04G-R6-I1
+record_type: generated_runtime_log_security_cleanup
+cleanup_date: "2026-07-19"
+status: sensitive_unbound_log_removed
+scope:
+  simulation_only: true
+  bound_raw_evidence_modified: false
+  journal_modified: false
+  stage_report_modified: false
+removed_resource:
+  path: artifacts/v2/integration/v2_04g_r6_i1/execution/attempts/01__r6_semantics_legacy_control__v2-04g-r6-i1-dynamic-conflict-single-s5141/work/ros_logs/233a3322-835e-11f1-b66d-19eacb789834/roslaunch-WP-28471.log
+  pre_removal_sha256: 71c84e329b34601f88dcc8db3514ac91896cf7daed1df0c4457c3e5afd703975
+  pre_removal_size_bytes: 105671
+  raw_evidence_bound: false
+reason:
+  credential_like_environment_names_detected: true
+  credential_values_copied_to_audit: false
+  staging_or_commit_forbidden: true
+retained_evidence:
+  canonical_terminal_journal: true
+  exact_bound_raw_process_log: true
+  sanitized_terminal_assessment: true
+remediation:
+  rotate_exposed_environment_credentials: required
+  future_roslaunch_environment_redaction: required_before_new_authorization
+  retry_or_resume_authorized: false

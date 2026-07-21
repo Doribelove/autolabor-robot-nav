@@ -1,0 +1,42 @@
+schema_version: 1
+task: T07
+status: completed_gazebo_calibration
+simulation_only: true
+formal_experiment: false
+real_vehicle_use_forbidden: true
+manifest: experiments/manifests/t07/calibration_pilot.yaml
+full_plan_run_count: 114
+executed_run_count: 57
+executed_scene_count: 3
+executed_seed_count_per_scene: 1
+observation_row_count: 81
+successful_episode_count: 56
+failed_episode_count: 1
+incomplete_pair_count: 0
+analysis:
+  method: paired_central_difference
+  minimum_pairs_per_entry: 2
+  actual_pairs_per_entry: 3
+  minimum_sign_consistency: 0.5
+  top_k_per_semantic_column: 3
+  oriented_scores:
+    speed: negative_navigation_time
+    obstacle_conservatism: negative_near_obstacle_risk_integral
+    clearance: minimum_footprint_clearance
+    path_tracking: negative_path_error_integral
+    smoothness: negative_smoothness_integral
+mapping:
+  path: config/thesis_experiments/A_TEB_v1.yaml
+  mapping_version: A_TEB_v1_gazebo_calibration
+  frozen: true
+  sha256: 1ca660f8d4f1863a93d75686bc0cafe8259942aaac60c3e2817c31162fcb1000
+  nonzero_entry_count: 15
+  zero_or_sparsity_rejected_entry_count: 30
+source_csv:
+  path: artifacts/t07/calibration_pilot/sensitivity_observations.csv
+  sha256: 896363c29e79e8b68d96fb4bec0aa5a740bc9942fad58cd4a0017a97811b8ee2
+notes:
+  - One failed episode is retained as calibration evidence and was not deleted.
+  - The second checked-in seed remains available for an expanded rerun.
+  - This mapping is frozen for the current Gazebo training contract, not validated for real-vehicle use.
+passed: true

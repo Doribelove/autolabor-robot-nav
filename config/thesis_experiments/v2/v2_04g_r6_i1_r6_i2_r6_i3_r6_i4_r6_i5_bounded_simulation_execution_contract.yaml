@@ -1,0 +1,235 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-R6-I5
+contract_id: fam_teb_v2_04g_r6_i5_bounded_simulation_execution_1
+status: bounded_simulation_execution_contract_authorized
+contract_date: "2026-07-21"
+independent_stage: true
+source_stage: V2-04G-R6-I4
+source_status: preflight_integrity_repair_readiness_closure_pass_future_release_absent
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+training_allowed: false
+real_vehicle_use_forbidden: true
+claim_limit: >-
+  Fresh-seed bounded simulation runtime-evaluator semantic and execution-
+  integrity validation only. This contract is not an execution release, a
+  safety or performance claim, deployment readiness, training authority, or
+  real-vehicle authority.
+
+authorization_basis:
+  explicit_user_full_bounded_simulation_execution_instruction_received: true
+  authority_scope_includes_offline_preparation: true
+  authority_scope_includes_unique_release_creation_and_validation: true
+  authority_scope_includes_exact_schedule_execution_after_prejournal_pass: true
+  separate_future_user_instruction_required_after_valid_release: false
+  contract_alone_sufficient_to_start_ros_or_gazebo: false
+  exact_hash_authorization_and_release_required: true
+
+single_changed_factor:
+  name: dynamic_conflict_estimator_semantics
+  runtime_field: supervisor.dynamic.conflict_estimator_id
+  factor_count: 1
+  only_profile_field_allowed_to_differ: true
+  atomic_subcomponents:
+    - conflict_eligibility_primitive
+    - tracked_footprint_radius_interpretation
+    - multi_track_conflict_selection_order
+  levels:
+    r6_semantics_legacy_control: legacy_class_conditioned_geometry_v1
+    r6_semantics_circle_contact: shared_circle_envelope_first_contact_v1
+  winner_selection_authorized: false
+
+frozen_common_values:
+  predicted_ttc_max_s: 5.0
+  evaluator_ttc_horizon_s: 5.0
+  minimum_track_confidence: 0.45
+  robot_radius_m: 0.62
+  minimum_relative_speed_mps: 0.05
+  world_model_prediction_horizon_s: 2.0
+  closest_approach_max_m: 1.35
+  overlay_release_confirmation_s: 0.20
+  horizon_values_1_5_or_1_0_enabled: false
+  evaluator_changed: false
+  anchor_bank_changed: false
+  mechanism_changed: false
+  tracker_or_classifier_changed: false
+  transaction_or_join_changed: false
+  scene_behavior_changed: false
+  scene_timing_posthoc_change_allowed: false
+
+fresh_allocation:
+  execution_seeds: [5161, 5162, 5163]
+  compile_support_only_seeds: [5164, 5165, 5166, 5167]
+  compile_support_seeds_are_evidence: false
+  exact_identity_count: 6
+  evidence_units_authorized: 6
+  evidence_units_consumed_before_execution: 0
+  evidence_units_forfeited_before_execution: 0
+  attempt_limit_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+  seed_replacement_allowed: false
+  budget_expansion_allowed: false
+  stop_on_first_terminal_failure: true
+  forfeit_unattempted_units_after_terminal_failure: true
+  consumption_boundary: base_roslaunch_spawn_requested
+
+exact_schedule:
+  - sequence: 1
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i5-dynamic-conflict-single-s5161
+    seed: 5161
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none
+  - sequence: 2
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i5-dynamic-conflict-single-s5161
+    seed: 5161
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none_iff_finite_ttc
+  - sequence: 3
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+    seed: 5162
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none_iff_finite_ttc
+  - sequence: 4
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+    seed: 5162
+    attempt: 1
+    expected_ttc_status: OBSERVED_CONFLICT
+    expected_overlay_semantics: non_none
+  - sequence: 5
+    profile_id: r6_semantics_legacy_control
+    scene_id: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+    seed: 5163
+    attempt: 1
+    expected_ttc_status: NO_CONFLICT_IN_HORIZON
+    expected_overlay_semantics: legacy_non_none_identifiability
+  - sequence: 6
+    profile_id: r6_semantics_circle_contact
+    scene_id: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+    seed: 5163
+    attempt: 1
+    expected_ttc_status: NO_CONFLICT_IN_HORIZON
+    expected_overlay_semantics: none_iff_no_finite_ttc
+exact_schedule_sha256: b52d00a2dc0c1f2edf149d30120451ea836fc1d0589109a1016dc48e9a9d5402
+
+i4_trust_anchors:
+  repaired_validator:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_r6_i2_r6_i3_r6_i4_release.py
+    sha256: 9b9dd3fc580d0f880705bf87e120cdb9d30fdce812f585ee99e3f0fdf1fa3994
+  dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review/execution_dependency_closure.yaml
+    file_sha256: e9d27ed1522ca744f1bbf4a91832287ac2e780aa395c1fa1d147e3c587099b0f
+    logical_sha256: dceb73df8619849f5b5a0442b739be09815bfc86939a188873c94993fe4d5b74
+  machine_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i4_preflight_repair_review/v2_04g_r6_i4_preflight_integrity_readiness_review.yaml
+    sha256: 3f183768e657ec17f4fd1045ffd0749d13213cc53017a09c6e166d840d647b12
+    required_status: preflight_integrity_repair_readiness_closure_pass_future_release_absent
+
+historical_i3_non_reuse:
+  failed_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i3_execution_release.yaml
+    sha256: 5c47557f539f5d2dcf91349d1d7fda87d81de4d08f75be174644930879ac7fb6
+  allocated_seeds: [5151, 5152, 5153, 5154, 5155, 5156, 5157]
+  authorized_units: 6
+  consumed_units: 0
+  forfeited_units: 0
+  terminal_attempts: 0
+  execution_state_created: false
+  release_or_authorization_reusable: false
+  identities_or_budget_reusable: false
+  retry_or_resume_authorized: false
+  failed_release_must_remain_exact: true
+
+i4_non_execution_snapshot:
+  allocated_seeds: []
+  schedule: []
+  evidence_units_authorized: 0
+  evidence_units_consumed: 0
+  evidence_units_forfeited: 0
+  execution_state_created: false
+  reserved_i4_release_path_must_remain_absent: true
+
+authorization_resource_policy:
+  exact_resource_count: 12
+  all_resources_exact_bytes_sha256_rehashed: true
+  single_open_no_follow_required: true
+  parsed_resource_labels:
+    - preregistration
+    - inherited_i4_dependency_closure
+  hash_only_resource_labels:
+    - aligned_supervisor
+    - contract
+    - failed_i3_release
+    - frozen_evaluator
+    - i4_machine_review
+    - i4_validator
+    - legacy_supervisor
+    - r6_design_report
+    - source_i1_compiled_scene_index
+    - source_i1_scene_manifest
+  parse_selection_by_closed_label_only: true
+  suffix_based_parse_forbidden: true
+  strict_yaml_loader_unchanged: true
+  string_key_rule_unchanged_for_parsed_documents: true
+  integer_key_scene_derivation_must_remain_hash_only: true
+
+canonical_paths:
+  preregistration: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_preregistration.yaml
+  authorization: experiments/manifests/v2/integration/v2_04g_r6_i5_bounded_simulation_authorization.yaml
+  transition: experiments/manifests/v2/integration/v2_04g_r6_i5_stage_transition.yaml
+  scene_derivation: experiments/manifests/v2/integration/v2_04g_r6_i5_scene_derivation.yaml
+  release: experiments/manifests/v2/integration/v2_04g_r6_i5_execution_release.yaml
+  execution_root: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution
+  compiled_scene_index: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/compiled_scenes/compiled_scene_index.yaml
+  dependency_closure: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/execution_dependency_closure.yaml
+  machine_review: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_execution_readiness_review.yaml
+  stage_report: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_stage_report.yaml
+
+release_and_prejournal_gate:
+  unique_canonical_release_required: true
+  release_must_be_created_after_dependency_closure_and_machine_review: true
+  release_must_bind_exact_contract_preregistration_authorization_transition: true
+  release_must_bind_scene_index_and_all_fourteen_children: true
+  release_must_bind_runner_validator_tests_closure_and_review: true
+  caller_supplied_exact_release_sha256_required: true
+  caller_supplied_exact_authorization_sha256_required: true
+  release_hash_and_parse_single_open_no_follow_required: true
+  full_dependency_and_runtime_binding_rehash_required: true
+  i4_trust_anchor_rehash_required: true
+  state_and_host_process_isolation_required: true
+  validation_before_any_execution_state_or_subprocess: true
+  prejournal_failure_consumed_units: 0
+  prejournal_failure_forfeited_units: 0
+  failed_release_reuse_after_prejournal_failure_allowed: false
+
+terminal_execution_policy:
+  attempt_state_creation_after_full_prejournal_only: true
+  first_terminal_failure_stops_stage: true
+  current_identity_consumed_only_at_base_roslaunch_spawn_request: true
+  unattempted_budget_forfeited_formula: six_minus_consumed
+  retry_or_resume_after_terminal_failure_allowed: false
+  replacement_seed_or_budget_expansion_allowed: false
+  successful_completion_units_required: 6
+  post_completion_claim_limited_to_frozen_assessment: true
+
+downstream_forbidden:
+  r5_retry_or_resume: true
+  r6_i1_retry_or_resume: true
+  r6_i3_retry_resume_or_release_reuse: true
+  held_out_5001_5010: true
+  winner_ranking_or_freezing: true
+  v2_05: true
+  sac_or_any_training: true
+  real_vehicle: true
+  real_vehicle_teb_write: true
+  formal_or_runtime_ready_claim: true

@@ -1,0 +1,22 @@
+schema_version: "1.0"
+study_version: t11_gazebo_formal_v1
+frozen_at_utc: "2026-07-12T00:00:00Z"
+primary_comparisons:
+  - {id: H1, groups: [RL-TEB-Direct-Theta, RL-TEB-Semantic-Eta], primary_metrics: [validation_return_auc, time_to_threshold, success, collision, min_obstacle_distance, ood_drop]}
+  - {id: H2, groups: [NoSafety, ProjectionOnly, FullSafety], primary_metrics: [collision, near_collision_time_ratio, candidate_parameter_violation_count, navigation_time]}
+  - {id: H4, groups: [NoFallback, FullSafety], primary_metrics: [collision, planner_failure_count, safety_fallback_count, success]}
+scene_manifests: [experiments/manifests/t11/scenes.yaml]
+training_seeds: [101, 102, 103, 104, 105]
+evaluation_seeds: [201, 202, 203, 204, 205, 206, 207, 208, 209, 210]
+model_selection_rule: best_validation_mean_undiscounted_return_then_earliest_checkpoint_on_tie
+formal_repetition_rule: all_training_seed_x_scene_x_evaluation_seed_rows_retained
+exclusion_rules:
+  allowed: [verified_infrastructure_fault, corrupted_artifact_with_logged_checksum_failure]
+  forbidden: [poor_algorithm_performance, collision, timeout, inconvenient_outlier]
+statistics:
+  alpha: 0.05
+  confidence_interval: 0.95
+  multiple_comparison: holm
+  episode_is_independent_unit: true
+  paired_common_random_numbers: true
+frozen: true
