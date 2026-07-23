@@ -246,6 +246,128 @@ def validate_float_parameter(
     return value
 
 
+def validate_bool_parameter(name, value):
+    """Validate a ROS boolean parameter without treating ``"false"`` as true."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized == "true":
+            return True
+        if normalized == "false":
+            return False
+    raise ValueError("{} must be true or false".format(name))
+
+
+def validate_int_parameter(name, value, minimum=None):
+    """Validate an integer ROS parameter and return it as ``int``."""
+    if isinstance(value, bool):
+        raise ValueError("{} must be an integer".format(name))
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        raise ValueError("{} must be an integer".format(name))
+    if not math.isfinite(numeric) or not numeric.is_integer():
+        raise ValueError("{} must be an integer".format(name))
+    integer = int(numeric)
+    if minimum is not None and integer < minimum:
+        raise ValueError("{} must be >= {}".format(name, minimum))
+    return integer
+
+
+class HeadingJumpGuard:
+    """Hold a trusted yaw while dual-antenna heading is physically inconsistent.
+
+    The expected yaw is propagated with fresh chassis angular velocity.  This
+    lets normal Ackermann turns pass while rejecting a GNSS-only discontinuity.
+    During a rejection the guard keeps producing yaw; it never requests a stop.
+    """
+
+    def __init__(
+        self,
+        enabled,
+        jump_threshold_rad,
+        recovery_tolerance_rad,
+        recovery_samples,
+        max_prediction_dt,
+    ):
+        self.enabled = bool(enabled)
+        self.jump_threshold_rad = float(jump_threshold_rad)
+        self.recovery_tolerance_rad = float(recovery_tolerance_rad)
+        self.recovery_samples = int(recovery_samples)
+        self.max_prediction_dt = float(max_prediction_dt)
+        self.trusted_yaw = None
+        self.last_sample_sec = None
+        self.holding = False
+        self.recovery_count = 0
+
+    def update(self, raw_yaw, sample_sec, wheel_yaw_rate=None):
+        """Return ``(navigation_yaw, state, innovation_rad)`` for one sample."""
+        raw_yaw = normalize_angle(raw_yaw)
+        if self.trusted_yaw is None or self.last_sample_sec is None:
+            self.trusted_yaw = raw_yaw
+            self.last_sample_sec = sample_sec
+            return raw_yaw, "initialized", 0.0
+
+        dt = sample_sec - self.last_sample_sec
+        self.last_sample_sec = sample_sec
+
+        if not self.enabled:
+            self.trusted_yaw = raw_yaw
+            self.holding = False
+            self.recovery_count = 0
+            return raw_yaw, "disabled", 0.0
+
+        prediction_is_valid = (
+            wheel_yaw_rate is not None
+            and math.isfinite(wheel_yaw_rate)
+            and math.isfinite(dt)
+            and dt > 0.0
+            and dt <= self.max_prediction_dt
+        )
+
+        # A new rejection is only declared when chassis angular velocity can
+        # independently confirm that the GNSS change is physically impossible.
+        # If wheel feedback is momentarily unavailable, live GNSS remains in use
+        # unless a rejection was already active.
+        if not prediction_is_valid and not self.holding:
+            self.trusted_yaw = raw_yaw
+            self.recovery_count = 0
+            return raw_yaw, "unmonitored", 0.0
+
+        predicted_yaw = self.trusted_yaw
+        if prediction_is_valid:
+            predicted_yaw = normalize_angle(
+                predicted_yaw + wheel_yaw_rate * dt
+            )
+        innovation = abs(normalize_angle(raw_yaw - predicted_yaw))
+
+        if self.holding:
+            if innovation <= self.recovery_tolerance_rad:
+                self.recovery_count += 1
+            else:
+                self.recovery_count = 0
+
+            if self.recovery_count >= self.recovery_samples:
+                self.trusted_yaw = raw_yaw
+                self.holding = False
+                self.recovery_count = 0
+                return raw_yaw, "recovered", innovation
+
+            self.trusted_yaw = predicted_yaw
+            return predicted_yaw, "holding", innovation
+
+        if innovation > self.jump_threshold_rad:
+            self.trusted_yaw = predicted_yaw
+            self.holding = True
+            self.recovery_count = 0
+            return predicted_yaw, "rejected", innovation
+
+        self.trusted_yaw = raw_yaw
+        self.recovery_count = 0
+        return raw_yaw, "accepted", innovation
+
+
 def signed_speed_from_course(
     speed_mps,
     course_yaw,
@@ -441,8 +563,43 @@ class GpsLocalizationNode:
             minimum=0.0,
             minimum_inclusive=False,
         )
+        self.heading_jump_guard_enabled = validate_bool_parameter(
+            "~heading_jump_guard_enabled",
+            rospy.get_param("~heading_jump_guard_enabled", False),
+        )
+        self.heading_jump_threshold_deg = validate_float_parameter(
+            "~heading_jump_threshold_deg",
+            rospy.get_param("~heading_jump_threshold_deg", 1.5),
+            minimum=0.0,
+            minimum_inclusive=False,
+        )
+        self.heading_recovery_tolerance_deg = validate_float_parameter(
+            "~heading_recovery_tolerance_deg",
+            rospy.get_param("~heading_recovery_tolerance_deg", 0.8),
+            minimum=0.0,
+            minimum_inclusive=False,
+        )
+        if self.heading_recovery_tolerance_deg > self.heading_jump_threshold_deg:
+            raise ValueError(
+                "~heading_recovery_tolerance_deg must be <= "
+                "~heading_jump_threshold_deg"
+            )
+        self.heading_recovery_samples = validate_int_parameter(
+            "~heading_recovery_samples",
+            rospy.get_param("~heading_recovery_samples", 3),
+            minimum=1,
+        )
+        self.heading_jump_guard = HeadingJumpGuard(
+            enabled=self.heading_jump_guard_enabled,
+            jump_threshold_rad=math.radians(self.heading_jump_threshold_deg),
+            recovery_tolerance_rad=math.radians(
+                self.heading_recovery_tolerance_deg
+            ),
+            recovery_samples=self.heading_recovery_samples,
+            max_prediction_dt=self.heading_rate_max_dt,
+        )
         self.gps_antenna_offset_x = float(rospy.get_param("~gps_antenna_offset_x", -0.3))
-        self.gps_antenna_offset_y = float(rospy.get_param("~gps_antenna_offset_y", 0.0))
+        self.gps_antenna_offset_y = float(rospy.get_param("~gps_antenna_offset_y", -0.05))
         self.gps_correction_alpha = float(rospy.get_param("~gps_correction_alpha", 0.0))
         self.gps_correction_max_step = float(rospy.get_param("~gps_correction_max_step", 0.05))
         self.gps_correction_reset_distance = float(rospy.get_param("~gps_correction_reset_distance", 20.0))
@@ -473,6 +630,7 @@ class GpsLocalizationNode:
         self.last_rmc_stamp = None
         self.latest_heading = None
         self.latest_heading_stamp = None
+        self.latest_navigation_heading_yaw = None
         self.previous_heading_yaw = None
         self.previous_heading_stamp = None
         self.filtered_heading_rate = None
@@ -513,6 +671,15 @@ class GpsLocalizationNode:
                 "GPS pose remains GNSS-based; using fresh chassis twist from %s",
                 self.wheel_odom_topic,
             )
+        if self.heading_jump_guard_enabled:
+            rospy.logwarn(
+                "GPS cruise heading jump guard enabled: reject mismatch > %.2f deg; "
+                "resume live heading after %d samples within %.2f deg. "
+                "Rejected samples keep publishing pose/odom/TF and do not request a stop.",
+                self.heading_jump_threshold_deg,
+                self.heading_recovery_samples,
+                self.heading_recovery_tolerance_deg,
+            )
 
     @staticmethod
     def parse_csv_param(value):
@@ -538,16 +705,67 @@ class GpsLocalizationNode:
 
     def handle_heading(self, heading, stamp):
         if not self.heading_is_usable(heading):
+            heading_std = heading.get("heading_std_deg")
+            heading_std_text = (
+                "unknown" if heading_std is None else "{:.3f} deg".format(heading_std)
+            )
             rospy.logwarn_throttle(
                 2.0,
-                "Ignoring UNIHEADINGA: solution_status=%s position_type=%s heading=%.3f",
+                "Ignoring UNIHEADINGA: solution_status=%s position_type=%s "
+                "heading=%.3f deg baseline=%.3f m heading_std=%s",
                 heading["solution_status"],
                 heading["position_type"],
                 heading["heading_deg"],
+                heading["baseline_length_m"],
+                heading_std_text,
             )
             return
 
-        heading_yaw = yaw_from_heading_deg(heading["heading_deg"])
+        raw_heading_yaw = yaw_from_heading_deg(heading["heading_deg"])
+        wheel_twist = (
+            self.latest_wheel_twist(stamp)
+            if self.heading_jump_guard_enabled
+            else None
+        )
+        wheel_yaw_rate = wheel_twist[1] if wheel_twist is not None else None
+        heading_yaw, guard_state, innovation = self.heading_jump_guard.update(
+            raw_heading_yaw,
+            stamp.to_sec(),
+            wheel_yaw_rate,
+        )
+        self.latest_navigation_heading_yaw = heading_yaw
+
+        if guard_state == "rejected":
+            rospy.logwarn(
+                "GPS cruise heading jump rejected: mismatch=%.2f deg, "
+                "raw heading=%.3f deg, chassis yaw rate=%.3f deg/s; "
+                "holding the predicted trusted heading without stopping",
+                math.degrees(innovation),
+                heading["heading_deg"],
+                math.degrees(wheel_yaw_rate),
+            )
+        elif guard_state == "holding":
+            rospy.logwarn_throttle(
+                1.0,
+                "GPS cruise heading guard is holding trusted yaw: "
+                "current mismatch=%.2f deg, recovery=%d/%d; navigation continues",
+                math.degrees(innovation),
+                self.heading_jump_guard.recovery_count,
+                self.heading_recovery_samples,
+            )
+        elif guard_state == "recovered":
+            rospy.loginfo(
+                "GPS cruise heading recovered after %d stable samples; "
+                "resuming live dual-antenna yaw",
+                self.heading_recovery_samples,
+            )
+        elif guard_state == "unmonitored" and self.heading_jump_guard_enabled:
+            rospy.logwarn_throttle(
+                2.0,
+                "GPS cruise heading guard lacks fresh chassis angular velocity; "
+                "temporarily accepting live dual-antenna yaw",
+            )
+
         if self.previous_heading_yaw is not None and self.previous_heading_stamp is not None:
             dt = (stamp - self.previous_heading_stamp).to_sec()
             if self.heading_rate_min_dt <= dt <= self.heading_rate_max_dt:
@@ -612,6 +830,8 @@ class GpsLocalizationNode:
                     "Dual-antenna heading is stale: age=%.3f sec",
                     age,
                 )
+        if state == "ok" and self.latest_navigation_heading_yaw is not None:
+            return self.latest_navigation_heading_yaw
         return yaw
 
     def latest_heading_rate(self, stamp):

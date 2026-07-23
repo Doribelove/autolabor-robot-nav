@@ -38,7 +38,7 @@ class PixelDetection:
 @dataclass(frozen=True)
 class AssociationConfig:
     min_iou: float = 0.05
-    max_anchor_distance_ratio: float = 0.10
+    max_anchor_distance_ratio: float = 0.18
     min_area_ratio: float = 0.35
     max_area_ratio: float = 2.80
 
@@ -53,7 +53,8 @@ class TargetMachineConfig:
     min_vertical_progress_fraction: float = 0.06
     loss_confirm_frames: int = 5
     loss_confirm_min_sec: float = 0.20
-    early_loss_max_frames: int = 10
+    early_loss_grace_frames: int = 20
+    early_loss_max_frames: int = 60
     filter_alpha: float = 0.35
 
 
@@ -794,9 +795,25 @@ class TargetPhaseMachine:
         # No spatial match.  A fresh detector frame reached this branch, so it
         # represents target absence rather than detector-topic timeout.
         if self.state == APPROACH:
-            self.state = REACQUIRE
-            self.missing_frames = 1
+            # A dropout may be tolerated for steering continuity, but it must
+            # never count as part of the consecutive bottom-entry proof.
             self.bottom_hits = 0
+            if not candidates:
+                self.missing_frames += 1
+                if self.missing_frames <= self.config.early_loss_grace_frames:
+                    self.reason = (
+                        "target briefly missing %d/%d; holding visual command"
+                        % (
+                            self.missing_frames,
+                            self.config.early_loss_grace_frames,
+                        )
+                    )
+                    return self._decision()
+            else:
+                # A different visible object is not a detector dropout and
+                # must stop immediately rather than using the grace window.
+                self.missing_frames = 1
+            self.state = REACQUIRE
             self.reason = "target lost before bottom gate; stopped for reacquisition"
             return self._decision()
 

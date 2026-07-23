@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Fail-closed pixel visual servo for recovering one detected FOD.
+"""Pixel visual servo for recovering one detected FOD.
 
 This node is intentionally not auto-started by the perception launch.  It owns
 ``/cmd_vel`` only after a dedicated launch is started, and non-zero motion also
-requires both ``~allow_motion:=true`` and an explicit SetBool(true) call.
+requires both ``~allow_motion:=true`` and an explicit SetBool(true) call.  Its
+normal mode is fail-closed on CAN/VCU safety feedback; an explicit
+``~external_estop_override:=true`` delegates those checks to an attended
+external emergency-stop operator while retaining the visual, odometry, wheel,
+command-ownership, lease, distance, and absolute-time guards.
 """
 
 from collections import deque
@@ -81,6 +85,7 @@ RAW_REQUIRED_TYPES = {
     VCU_GAMEPAD_EMERGENCY: "gamepad emergency stop",
     VCU_COMMON_STATE: "vehicle running state",
 }
+RAW_QUERY_ORDER = tuple(RAW_REQUIRED_TYPES)
 RAW_OBSERVED_TYPES = dict(RAW_REQUIRED_TYPES)
 RAW_OBSERVED_TYPES[VCU_CONTROLLER_MONITOR] = "controller monitor"
 
@@ -191,13 +196,6 @@ class FodVisualServoNode:
         self.emergency_stop_topic = rospy.get_param(
             "~emergency_stop_topic", "/m2_driver/emergency_stop"
         )
-        self.m2_bypass_topics = (
-            self.steer_center_bias_topic,
-            self.reset_odom_topic,
-            self.brake_set_topic,
-            self.emergency_stop_topic,
-        )
-
         self.expected_detector_node = rospy.get_param(
             "~expected_detector_node", "/fod_detector"
         )
@@ -229,8 +227,23 @@ class FodVisualServoNode:
                 ["Metal", "Soft", "Plastic", "Wire", "Tool", "w"],
             )
         )
-        self.min_confidence = float(rospy.get_param("~min_confidence", 0.45))
+        self.min_confidence = float(rospy.get_param("~min_confidence", 0.30))
         self.allow_motion = strict_bool_param("~allow_motion", False)
+        self.external_estop_override = strict_bool_param(
+            "~external_estop_override", False
+        )
+        # Steering-center changes, odometry resets, and brake commands can
+        # invalidate the controller's geometry/progress accounting, so they
+        # remain forbidden in both modes.  The VCU emergency command topic is
+        # part of the explicitly delegated CAN/VCU safety chain and is omitted
+        # only when the external-estop override is requested.
+        self.m2_bypass_topics = (
+            self.steer_center_bias_topic,
+            self.reset_odom_topic,
+            self.brake_set_topic,
+        )
+        if not self.external_estop_override:
+            self.m2_bypass_topics += (self.emergency_stop_topic,)
         self.use_camera_principal_point = strict_bool_param(
             "~use_camera_principal_point", True
         )
@@ -263,9 +276,9 @@ class FodVisualServoNode:
         self.chassis_status_timeout_sec = float(
             rospy.get_param("~chassis_status_timeout_sec", 3.0)
         )
-        self.raw_can_timeout_sec = float(rospy.get_param("~raw_can_timeout_sec", 1.25))
+        self.raw_can_timeout_sec = float(rospy.get_param("~raw_can_timeout_sec", 2.5))
         self.raw_can_query_interval_sec = float(
-            rospy.get_param("~raw_can_query_interval_sec", 0.40)
+            rospy.get_param("~raw_can_query_interval_sec", 0.20)
         )
         self.graph_check_interval_sec = float(
             rospy.get_param("~graph_check_interval_sec", 0.50)
@@ -278,12 +291,12 @@ class FodVisualServoNode:
             rospy.get_param("~max_acquire_anchor_v_fraction", 0.80)
         )
         self.acquire_max_abs_horizontal_error = float(
-            rospy.get_param("~acquire_max_abs_horizontal_error", 0.40)
+            rospy.get_param("~acquire_max_abs_horizontal_error", 0.65)
         )
         association_config = AssociationConfig(
             min_iou=float(rospy.get_param("~association_min_iou", 0.05)),
             max_anchor_distance_ratio=float(
-                rospy.get_param("~association_max_anchor_distance_ratio", 0.10)
+                rospy.get_param("~association_max_anchor_distance_ratio", 0.18)
             ),
             min_area_ratio=float(rospy.get_param("~association_min_area_ratio", 0.35)),
             max_area_ratio=float(rospy.get_param("~association_max_area_ratio", 2.80)),
@@ -305,8 +318,11 @@ class FodVisualServoNode:
             loss_confirm_min_sec=float(
                 rospy.get_param("~loss_confirm_min_sec", 0.20)
             ),
+            early_loss_grace_frames=int(
+                rospy.get_param("~early_loss_grace_frames", 20)
+            ),
             early_loss_max_frames=int(
-                rospy.get_param("~early_loss_max_frames", 10)
+                rospy.get_param("~early_loss_max_frames", 60)
             ),
             filter_alpha=float(rospy.get_param("~pixel_filter_alpha", 0.35)),
         )
@@ -324,8 +340,8 @@ class FodVisualServoNode:
         self.max_runtime_horizontal_error = float(
             rospy.get_param("~max_runtime_horizontal_error", 0.70)
         )
-        self.far_speed_mps = float(rospy.get_param("~far_speed_mps", 0.15))
-        self.near_speed_mps = float(rospy.get_param("~near_speed_mps", 0.06))
+        self.far_speed_mps = float(rospy.get_param("~far_speed_mps", 0.20))
+        self.near_speed_mps = float(rospy.get_param("~near_speed_mps", 0.20))
         self.slow_start_fraction = float(
             rospy.get_param("~slow_start_fraction", 0.65)
         )
@@ -338,8 +354,11 @@ class FodVisualServoNode:
         self.minimum_lateral_speed_scale = float(
             rospy.get_param("~minimum_lateral_speed_scale", 0.35)
         )
+        self.approach_min_command_speed_mps = float(
+            rospy.get_param("~approach_min_command_speed_mps", 0.20)
+        )
         self.max_linear_acceleration_mps2 = float(
-            rospy.get_param("~max_linear_acceleration_mps2", 0.20)
+            rospy.get_param("~max_linear_acceleration_mps2", 4.00)
         )
         self.max_curvature_rate_per_sec = float(
             rospy.get_param("~max_curvature_rate_per_sec", 0.80)
@@ -370,7 +389,7 @@ class FodVisualServoNode:
         self.preblind_max_displacement_m = float(
             rospy.get_param("~preblind_max_displacement_m", 0.05)
         )
-        self.blind_speed_mps = float(rospy.get_param("~blind_speed_mps", 0.08))
+        self.blind_speed_mps = float(rospy.get_param("~blind_speed_mps", 0.20))
         self.blind_distance_m = float(rospy.get_param("~blind_distance_m", 0.50))
         self.blind_hard_distance_m = float(
             rospy.get_param("~blind_hard_distance_m", 0.55)
@@ -450,6 +469,7 @@ class FodVisualServoNode:
         self.session_raw_can_fault_generation = 0
         self.last_raw_can_fault_reason = ""
         self.last_raw_query_monotonic = 0.0
+        self.raw_can_query_index = 0
         self.m2_bypass_event_generation = 0
         self.session_m2_bypass_event_generation = 0
         self.last_m2_bypass_event_topic = ""
@@ -535,19 +555,34 @@ class FodVisualServoNode:
         self.wheel_sub = rospy.Subscriber(
             self.wheel_angle_topic, Float64, self._wheel_angle_cb, queue_size=50
         )
-        self.chassis_sub = rospy.Subscriber(
-            self.chassis_status_topic,
-            ChassisStatusInfo,
-            self._chassis_status_cb,
-            queue_size=20,
-        )
-        self.control_timeout_sub = rospy.Subscriber(
-            self.control_timeout_topic, Bool, self._control_timeout_cb, queue_size=20
-        )
-        self.canbus_sub = rospy.Subscriber(
-            self.canbus_topic, CanBusMessage, self._raw_canbus_cb, queue_size=100
-        )
-        self.m2_bypass_subscribers = (
+        self.chassis_sub = None
+        self.control_timeout_sub = None
+        self.canbus_sub = None
+        self.canbus_proxy = None
+        if not self.external_estop_override:
+            self.chassis_sub = rospy.Subscriber(
+                self.chassis_status_topic,
+                ChassisStatusInfo,
+                self._chassis_status_cb,
+                queue_size=20,
+            )
+            self.control_timeout_sub = rospy.Subscriber(
+                self.control_timeout_topic,
+                Bool,
+                self._control_timeout_cb,
+                queue_size=20,
+            )
+            self.canbus_sub = rospy.Subscriber(
+                self.canbus_topic,
+                CanBusMessage,
+                self._raw_canbus_cb,
+                queue_size=100,
+            )
+            self.canbus_proxy = rospy.ServiceProxy(
+                self.canbus_service, CanBusService
+            )
+
+        m2_bypass_subscribers = [
             rospy.Subscriber(
                 self.steer_center_bias_topic,
                 Float64,
@@ -569,15 +604,18 @@ class FodVisualServoNode:
                 callback_args=self.brake_set_topic,
                 queue_size=20,
             ),
-            rospy.Subscriber(
-                self.emergency_stop_topic,
-                Bool,
-                self._m2_bypass_control_cb,
-                callback_args=self.emergency_stop_topic,
-                queue_size=20,
-            ),
-        )
-        self.canbus_proxy = rospy.ServiceProxy(self.canbus_service, CanBusService)
+        ]
+        if not self.external_estop_override:
+            m2_bypass_subscribers.append(
+                rospy.Subscriber(
+                    self.emergency_stop_topic,
+                    Bool,
+                    self._m2_bypass_control_cb,
+                    callback_args=self.emergency_stop_topic,
+                    queue_size=20,
+                )
+            )
+        self.m2_bypass_subscribers = tuple(m2_bypass_subscribers)
         self.chassis_parameter_proxy = rospy.ServiceProxy(
             self.chassis_parameter_service, ChassisParameterServer
         )
@@ -595,12 +633,21 @@ class FodVisualServoNode:
 
         self._publish_status(force=True)
         rospy.logwarn(
-            "FOD visual servo loaded with allow_motion=%s. It publishes zero on %s "
-            "while disabled; non-zero motion also requires %s/set_enabled true.",
+            "FOD visual servo loaded with allow_motion=%s, "
+            "external_estop_override=%s. It publishes zero on %s while disabled; "
+            "non-zero motion also requires %s/set_enabled true.",
             self.allow_motion,
+            self.external_estop_override,
             self.cmd_vel_topic,
             rospy.get_name(),
         )
+        if self.external_estop_override:
+            rospy.logwarn(
+                "EXTERNAL ESTOP OVERRIDE ACTIVE: raw CAN, aggregated chassis "
+                "emergency, VCU command-timeout, CAN graph/service, and ROS "
+                "emergency-stop-topic gates are disabled. Keep the attended "
+                "remote emergency stop immediately operable throughout the run."
+            )
 
     def _validate_parameters(self):
         numeric = {
@@ -655,6 +702,7 @@ class FodVisualServoNode:
             "near_start_fraction": self.near_start_fraction,
             "lateral_slowdown_error": self.lateral_slowdown_error,
             "minimum_lateral_speed_scale": self.minimum_lateral_speed_scale,
+            "approach_min_command_speed_mps": self.approach_min_command_speed_mps,
             "max_linear_acceleration_mps2": self.max_linear_acceleration_mps2,
             "max_curvature_rate_per_sec": self.max_curvature_rate_per_sec,
             "max_approach_distance_m": self.max_approach_distance_m,
@@ -757,14 +805,19 @@ class FodVisualServoNode:
             ),
             ("wheel_angle_timeout_sec", self.wheel_angle_timeout_sec, 0.20, 1.00),
             ("chassis_status_timeout_sec", self.chassis_status_timeout_sec, 1.00, 5.00),
-            ("raw_can_timeout_sec", self.raw_can_timeout_sec, 0.60, 2.00),
-            ("raw_can_query_interval_sec", self.raw_can_query_interval_sec, 0.20, 0.80),
+            ("raw_can_timeout_sec", self.raw_can_timeout_sec, 1.00, 5.00),
+            ("raw_can_query_interval_sec", self.raw_can_query_interval_sec, 0.10, 0.50),
             ("graph_check_interval_sec", self.graph_check_interval_sec, 0.20, 1.00),
         ):
             if not low <= value <= high:
                 raise ValueError("%s must be between %.2f and %.2f" % (name, low, high))
-        if self.raw_can_timeout_sec <= self.raw_can_query_interval_sec:
-            raise ValueError("raw CAN timeout must exceed its query interval")
+        minimum_raw_can_timeout = (
+            2.0 * len(RAW_QUERY_ORDER) * self.raw_can_query_interval_sec
+        )
+        if self.raw_can_timeout_sec < minimum_raw_can_timeout:
+            raise ValueError(
+                "raw CAN timeout must cover at least two complete query rounds"
+            )
 
         if not 0.05 <= self.min_acquire_anchor_v_fraction < 0.70:
             raise ValueError("min acquisition vertical fraction is invalid")
@@ -772,13 +825,13 @@ class FodVisualServoNode:
             raise ValueError("max acquisition vertical fraction is invalid")
         if self.min_acquire_anchor_v_fraction >= self.max_acquire_anchor_v_fraction:
             raise ValueError("acquisition vertical range is empty")
-        if not 0.10 <= self.acquire_max_abs_horizontal_error <= 0.60:
+        if not 0.10 <= self.acquire_max_abs_horizontal_error <= 1.0:
             raise ValueError("acquisition horizontal gate is invalid")
         if not 3 <= self.machine_config.acquire_frames <= 20:
             raise ValueError("acquire_frames must be between 3 and 20")
         if not 0.0 <= self.association_config.min_iou <= 0.5:
             raise ValueError("association_min_iou is invalid")
-        if not 0.02 <= self.association_config.max_anchor_distance_ratio <= 0.20:
+        if not 0.02 <= self.association_config.max_anchor_distance_ratio <= 0.25:
             raise ValueError("association anchor distance is invalid")
         if not 0.10 <= self.association_config.min_area_ratio < 1.0:
             raise ValueError("association minimum area ratio is invalid")
@@ -798,8 +851,12 @@ class FodVisualServoNode:
             raise ValueError("loss_confirm_frames must be between 3 and 15")
         if not 0.10 <= self.machine_config.loss_confirm_min_sec <= 1.0:
             raise ValueError("loss_confirm_min_sec is invalid")
-        if not 3 <= self.machine_config.early_loss_max_frames <= 30:
-            raise ValueError("early_loss_max_frames must be between 3 and 30")
+        if not 0 <= self.machine_config.early_loss_grace_frames <= 30:
+            raise ValueError("early_loss_grace_frames must be between 0 and 30")
+        if not 3 <= self.machine_config.early_loss_max_frames <= 100:
+            raise ValueError("early_loss_max_frames must be between 3 and 100")
+        if self.machine_config.early_loss_grace_frames >= self.machine_config.early_loss_max_frames:
+            raise ValueError("early loss grace must be below the loss fault threshold")
         if not 0.05 <= self.machine_config.filter_alpha <= 1.0:
             raise ValueError("pixel_filter_alpha is invalid")
 
@@ -813,6 +870,10 @@ class FodVisualServoNode:
             raise ValueError("max steering angle exceeds the 12 degree safety limit")
         if not 0.30 <= self.max_runtime_horizontal_error <= 1.0:
             raise ValueError("runtime horizontal error gate is invalid")
+        if self.acquire_max_abs_horizontal_error > self.max_runtime_horizontal_error:
+            raise ValueError(
+                "acquisition horizontal gate must not exceed the runtime gate"
+            )
         if not 0.02 <= self.near_speed_mps <= self.far_speed_mps:
             raise ValueError("near_speed_mps must be positive and no greater than far speed")
         if self.far_speed_mps > MAX_COMMAND_SPEED_MPS:
@@ -823,7 +884,9 @@ class FodVisualServoNode:
             raise ValueError("lateral_slowdown_error is invalid")
         if not 0.20 <= self.minimum_lateral_speed_scale <= 1.0:
             raise ValueError("minimum lateral speed scale is invalid")
-        if not 0.05 <= self.max_linear_acceleration_mps2 <= 0.50:
+        if not 0.05 <= self.approach_min_command_speed_mps <= self.far_speed_mps:
+            raise ValueError("approach minimum command speed is invalid")
+        if not 0.05 <= self.max_linear_acceleration_mps2 <= 4.00:
             raise ValueError("linear acceleration limit is invalid")
         if not 0.10 <= self.max_curvature_rate_per_sec <= 2.0:
             raise ValueError("curvature rate limit is invalid")
@@ -850,8 +913,8 @@ class FodVisualServoNode:
             raise ValueError("settle timeout is invalid")
         if not 0.02 <= self.preblind_max_displacement_m <= 0.15:
             raise ValueError("preblind displacement limit is invalid")
-        if not 0.03 <= self.blind_speed_mps <= 0.10:
-            raise ValueError("blind_speed_mps must be between 0.03 and 0.10")
+        if not 0.03 <= self.blind_speed_mps <= MAX_COMMAND_SPEED_MPS:
+            raise ValueError("blind_speed_mps must be between 0.03 and 0.20")
         if not 0.05 <= self.blind_distance_m <= MAX_BLIND_DISTANCE_M:
             raise ValueError("blind_distance_m exceeds the 0.50 m hard target limit")
         if not self.blind_distance_m <= self.blind_hard_distance_m:
@@ -1198,15 +1261,20 @@ class FodVisualServoNode:
             raise ControllerAbort("real-vehicle visual servo requires /use_sim_time=false")
 
         publishers, subscribers, services = self.master.getSystemState()
-        expected_publishers = (
+        expected_publishers = [
             (self.detections_topic, self.expected_detector_node),
             (self.camera_info_topic, self.expected_camera_node),
             (self.odom_topic, self.expected_driver_node),
             (self.wheel_angle_topic, self.expected_driver_node),
-            (self.chassis_status_topic, self.expected_driver_node),
-            (self.control_timeout_topic, self.expected_driver_node),
-            (self.canbus_topic, self.expected_canbus_node),
-        )
+        ]
+        if not self.external_estop_override:
+            expected_publishers.extend(
+                (
+                    (self.chassis_status_topic, self.expected_driver_node),
+                    (self.control_timeout_topic, self.expected_driver_node),
+                    (self.canbus_topic, self.expected_canbus_node),
+                )
+            )
         for topic, expected_node in expected_publishers:
             actual = self._topic_nodes(publishers, topic)
             if actual != {expected_node}:
@@ -1246,16 +1314,17 @@ class FodVisualServoNode:
                 "publishers) to exit" % details
             )
 
-        canbus_services = self._topic_nodes(services, self.canbus_service)
-        if canbus_services != {self.expected_canbus_node}:
-            raise ControllerAbort(
-                "%s provider must be exactly %s; current: %s"
-                % (
-                    self.canbus_service,
-                    self.expected_canbus_node,
-                    self._format_nodes(canbus_services),
+        if not self.external_estop_override:
+            canbus_services = self._topic_nodes(services, self.canbus_service)
+            if canbus_services != {self.expected_canbus_node}:
+                raise ControllerAbort(
+                    "%s provider must be exactly %s; current: %s"
+                    % (
+                        self.canbus_service,
+                        self.expected_canbus_node,
+                        self._format_nodes(canbus_services),
+                    )
                 )
-            )
         parameter_services = self._topic_nodes(
             services, self.chassis_parameter_service
         )
@@ -1281,27 +1350,42 @@ class FodVisualServoNode:
             )
         if self.cmd_pub.get_num_connections() < 1:
             raise ControllerAbort("cmd_vel publisher is not connected to the M2 driver")
-        if rospy.get_param(self.expected_driver_node + "/is_pub_control_timeout", None) is not True:
+        if (
+            not self.external_estop_override
+            and rospy.get_param(
+                self.expected_driver_node + "/is_pub_control_timeout", None
+            )
+            is not True
+        ):
             raise ControllerAbort(
                 self.expected_driver_node + "/is_pub_control_timeout must be true"
             )
         self.last_graph_check_monotonic = now
 
     def _query_and_check_raw_can(self):
+        if self.external_estop_override:
+            return
+
         now = time.monotonic()
         if now - self.last_raw_query_monotonic >= self.raw_can_query_interval_sec:
-            requests = []
-            for msg_type in RAW_REQUIRED_TYPES:
-                request = CanBusMessage()
-                request.node_type = VCU_NODE_TYPE
-                request.node_seq = VCU_NODE_ID
-                request.msg_type = msg_type
-                request.payload = []
-                requests.append(request)
+            # The serial bridge writes every request in one service call
+            # back-to-back.  The VCU can drop replies when all four safety
+            # queries arrive as a burst, so send one query per interval and
+            # rotate through the complete safety set.  Unsafe replies are
+            # still latched immediately by _raw_canbus_cb.
+            msg_type = RAW_QUERY_ORDER[self.raw_can_query_index]
+            request = CanBusMessage()
+            request.node_type = VCU_NODE_TYPE
+            request.node_seq = VCU_NODE_ID
+            request.msg_type = msg_type
+            request.payload = []
             try:
-                self.canbus_proxy(requests)
+                self.canbus_proxy([request])
             except (rospy.ROSException, rospy.ServiceException) as exc:
                 raise ControllerAbort("raw CAN emergency query failed: %s" % exc)
+            self.raw_can_query_index = (
+                self.raw_can_query_index + 1
+            ) % len(RAW_QUERY_ORDER)
             self.last_raw_query_monotonic = now
 
         with self.sensor_lock:
@@ -1417,8 +1501,6 @@ class FodVisualServoNode:
         odom = self.latest_odom
         wheel_angle = self.latest_wheel_angle
         wheel_receipt = self.latest_wheel_angle_monotonic
-        chassis = self.latest_chassis_status
-        chassis_receipt = self.latest_chassis_status_monotonic
         if detection is None or detection.error:
             raise ControllerAbort("terminal commit lacks valid detections")
         if camera is None or camera.error:
@@ -1429,36 +1511,43 @@ class FodVisualServoNode:
             wheel_angle
         ):
             raise ControllerAbort("terminal commit lacks valid wheel feedback")
-        if chassis is None or chassis_receipt is None:
-            raise ControllerAbort("terminal commit lacks valid chassis status")
-        if (
-            chassis.hard_emergency
-            or chassis.soft_emergency
-            or chassis.gamepad_emergency
-            or chassis.robot_emergency
-        ):
-            raise ControllerAbort("terminal commit observed an active chassis emergency")
 
         receipt_limits = [
             (detection.receipt_monotonic, self.detection_timeout_sec),
             (camera.receipt_monotonic, self.camera_info_timeout_sec),
             (odom.receipt_monotonic, self.odom_timeout_sec),
             (wheel_receipt, self.wheel_angle_timeout_sec),
-            (chassis_receipt, self.chassis_status_timeout_sec),
         ]
-        for msg_type, label in RAW_REQUIRED_TYPES.items():
-            status = self.raw_can_status.get(msg_type)
-            if status is None:
+        if not self.external_estop_override:
+            chassis = self.latest_chassis_status
+            chassis_receipt = self.latest_chassis_status_monotonic
+            if chassis is None or chassis_receipt is None:
+                raise ControllerAbort("terminal commit lacks valid chassis status")
+            if (
+                chassis.hard_emergency
+                or chassis.soft_emergency
+                or chassis.gamepad_emergency
+                or chassis.robot_emergency
+            ):
                 raise ControllerAbort(
-                    "terminal commit lacks raw CAN status: %s" % label
+                    "terminal commit observed an active chassis emergency"
                 )
-            receipt, safe, value, error = status
-            if error or not safe:
-                raise ControllerAbort(
-                    "terminal commit raw CAN %s is unsafe, value=%r error=%s"
-                    % (label, value, error or "none")
-                )
-            receipt_limits.append((receipt, self.raw_can_timeout_sec))
+            receipt_limits.append(
+                (chassis_receipt, self.chassis_status_timeout_sec)
+            )
+            for msg_type, label in RAW_REQUIRED_TYPES.items():
+                status = self.raw_can_status.get(msg_type)
+                if status is None:
+                    raise ControllerAbort(
+                        "terminal commit lacks raw CAN status: %s" % label
+                    )
+                receipt, safe, value, error = status
+                if error or not safe:
+                    raise ControllerAbort(
+                        "terminal commit raw CAN %s is unsafe, value=%r error=%s"
+                        % (label, value, error or "none")
+                    )
+                receipt_limits.append((receipt, self.raw_can_timeout_sec))
 
         # Sample both clocks at the last practical point before phase commit.
         # terminal_feedback_is_fresh also rechecks the absolute mode and
@@ -1492,7 +1581,6 @@ class FodVisualServoNode:
             camera = self.latest_camera
             odom = self.latest_odom
             wheel_receipt = self.latest_wheel_angle_monotonic
-            chassis = self.latest_chassis_status
             if camera is None or camera.error:
                 raise ControllerAbort("cannot arm with invalid CameraInfo")
             if odom is None or (
@@ -1505,19 +1593,23 @@ class FodVisualServoNode:
                 and self.invalid_wheel_monotonic >= wheel_receipt
             ):
                 raise ControllerAbort("cannot arm with invalid wheel-angle feedback")
-            if chassis is None or (
-                chassis.hard_emergency
-                or chassis.soft_emergency
-                or chassis.gamepad_emergency
-                or chassis.robot_emergency
-            ):
-                raise ControllerAbort("cannot arm while a chassis emergency is active")
-            for msg_type, label in RAW_REQUIRED_TYPES.items():
-                status = self.raw_can_status.get(msg_type)
-                if status is None or status[3] or not status[1]:
+            if not self.external_estop_override:
+                chassis = self.latest_chassis_status
+                if chassis is None or (
+                    chassis.hard_emergency
+                    or chassis.soft_emergency
+                    or chassis.gamepad_emergency
+                    or chassis.robot_emergency
+                ):
                     raise ControllerAbort(
-                        "cannot arm with unsafe raw CAN status: %s" % label
+                        "cannot arm while a chassis emergency is active"
                     )
+                for msg_type, label in RAW_REQUIRED_TYPES.items():
+                    status = self.raw_can_status.get(msg_type)
+                    if status is None or status[3] or not status[1]:
+                        raise ControllerAbort(
+                            "cannot arm with unsafe raw CAN status: %s" % label
+                        )
 
             # Any callback after this atomic capture advances its generation
             # above the floor and will be visible once ACQUIRE becomes active.
@@ -1635,36 +1727,37 @@ class FodVisualServoNode:
                 % math.degrees(wheel_angle)
             )
 
-        chassis = snapshot["chassis"]
-        chassis_receipt = snapshot["chassis_receipt"]
-        if chassis is None or chassis_receipt is None:
-            raise ControllerAbort("no chassis status has been received")
-        if now - chassis_receipt > self.chassis_status_timeout_sec:
-            raise ControllerAbort("chassis status is stale")
-        if (
-            chassis.hard_emergency
-            or chassis.soft_emergency
-            or chassis.gamepad_emergency
-            or chassis.robot_emergency
-        ):
-            raise ControllerAbort(
-                "chassis emergency is active: hard=%s soft=%s gamepad=%s robot=%s"
-                % (
-                    chassis.hard_emergency,
-                    chassis.soft_emergency,
-                    chassis.gamepad_emergency,
-                    chassis.robot_emergency,
+        if not self.external_estop_override:
+            chassis = snapshot["chassis"]
+            chassis_receipt = snapshot["chassis_receipt"]
+            if chassis is None or chassis_receipt is None:
+                raise ControllerAbort("no chassis status has been received")
+            if now - chassis_receipt > self.chassis_status_timeout_sec:
+                raise ControllerAbort("chassis status is stale")
+            if (
+                chassis.hard_emergency
+                or chassis.soft_emergency
+                or chassis.gamepad_emergency
+                or chassis.robot_emergency
+            ):
+                raise ControllerAbort(
+                    "chassis emergency is active: hard=%s soft=%s gamepad=%s robot=%s"
+                    % (
+                        chassis.hard_emergency,
+                        chassis.soft_emergency,
+                        chassis.gamepad_emergency,
+                        chassis.robot_emergency,
+                    )
                 )
-            )
-        if (
-            self.phase != PRECHECK
-            and snapshot["chassis_fault_generation"]
-            > self.session_chassis_fault_generation
-        ):
-            raise ControllerAbort(
-                "a chassis emergency was observed during the active session: %s"
-                % (snapshot["last_chassis_fault_reason"] or "unknown")
-            )
+            if (
+                self.phase != PRECHECK
+                and snapshot["chassis_fault_generation"]
+                > self.session_chassis_fault_generation
+            ):
+                raise ControllerAbort(
+                    "a chassis emergency was observed during the active session: %s"
+                    % (snapshot["last_chassis_fault_reason"] or "unknown")
+                )
         if (
             self.phase != PRECHECK
             and snapshot["m2_bypass_event_generation"]
@@ -1675,7 +1768,11 @@ class FodVisualServoNode:
                 "session on %s"
                 % (snapshot["last_m2_bypass_event_topic"] or "an unknown topic")
             )
-        if snapshot["control_timeout_seen"] and not ignore_control_timeout:
+        if (
+            not self.external_estop_override
+            and snapshot["control_timeout_seen"]
+            and not ignore_control_timeout
+        ):
             raise ControllerAbort("VCU reported a 200ms command timeout")
 
     def _check_health(self, force_graph=False, require_new_detection=False, ignore_control_timeout=False):
@@ -1861,7 +1958,15 @@ class FodVisualServoNode:
                 self.machine_config, self.association_config
             )
             self.phase = PRECHECK
-            self.reason = "running graph, sensor, emergency-stop, and chassis prechecks"
+            if self.external_estop_override:
+                self.reason = (
+                    "running visual, odometry, wheel, and ROS control-chain "
+                    "prechecks; CAN/VCU safety gates are overridden"
+                )
+            else:
+                self.reason = (
+                    "running graph, sensor, emergency-stop, and chassis prechecks"
+                )
             self.mode_started_monotonic = now
             self.mode_deadline_monotonic = now + self.mode_timeout_sec
             self.precheck_deadline_monotonic = now + self.precheck_timeout_sec
@@ -1872,13 +1977,25 @@ class FodVisualServoNode:
             self.max_curvature = None
             self._clear_run_metrics()
             self._publish_status(force=True)
-        rospy.logwarn(
-            "FOD visual-servo enable requested. Vehicle remains stopped until all prechecks "
-            "pass and exactly one target is stable. Keep the physical emergency stop ready."
-        )
+        if self.external_estop_override:
+            rospy.logwarn(
+                "FOD visual-servo enable requested with external emergency-stop "
+                "override. CAN/VCU safety state is not checked; the vehicle remains "
+                "stopped until visual/odometry/wheel/control-chain prechecks pass and "
+                "one target is stable. Keep the remote stop immediately operable."
+            )
+        else:
+            rospy.logwarn(
+                "FOD visual-servo enable requested. Vehicle remains stopped until all "
+                "prechecks pass and exactly one target is stable. Keep the physical "
+                "emergency stop ready."
+            )
         return SetBoolResponse(
             success=True,
-            message="enable accepted; watch /fod_visual_servo/state for ACQUIRE",
+            message=(
+                "enable accepted; motion waits for prechecks and one stable target "
+                "inside the steering capture range"
+            ),
         )
 
     def _clear_run_metrics(self):
@@ -2024,7 +2141,7 @@ class FodVisualServoNode:
             self.last_processed_odom_sequence = odom.sequence
             self._transition(
                 ACQUIRE,
-                "prechecks passed; waiting for exactly one stable central target",
+                "prechecks passed; waiting for one stable target inside the steering capture range",
             )
             return
 
@@ -2143,8 +2260,17 @@ class FodVisualServoNode:
             )
 
     def _acquisition_candidates(self, frame):
+        if not frame.candidates:
+            observations = tuple(getattr(frame, "observations", tuple()))
+            if observations:
+                best_confidence = max(item.confidence for item in observations)
+                return (
+                    tuple(),
+                    "best target confidence %.3f is below acquisition threshold %.3f"
+                    % (best_confidence, self.min_confidence),
+                )
         if len(frame.candidates) != 1:
-            return frame.candidates
+            return frame.candidates, ""
         candidate = frame.candidates[0]
         q = candidate.anchor_v / float(frame.height - 1)
         error = horizontal_error(candidate.anchor_u, self.target_u_px, frame.width)
@@ -2153,10 +2279,22 @@ class FodVisualServoNode:
             <= q
             <= self.max_acquire_anchor_v_fraction
         ):
-            return tuple()
+            return (
+                tuple(),
+                "target vertical fraction %.3f is outside capture range %.3f..%.3f"
+                % (
+                    q,
+                    self.min_acquire_anchor_v_fraction,
+                    self.max_acquire_anchor_v_fraction,
+                ),
+            )
         if abs(error) > self.acquire_max_abs_horizontal_error:
-            return tuple()
-        return frame.candidates
+            return (
+                tuple(),
+                "target horizontal error %.3f exceeds steering capture limit %.3f"
+                % (error, self.acquire_max_abs_horizontal_error),
+            )
+        return frame.candidates, ""
 
     def _process_detection_events(self):
         frames = self._take_detection_events()
@@ -2179,11 +2317,11 @@ class FodVisualServoNode:
                 LOSS_CONFIRM,
             ):
                 continue
-            candidates = (
-                self._acquisition_candidates(frame)
-                if self.phase == ACQUIRE
-                else frame.candidates
-            )
+            acquisition_reason = ""
+            if self.phase == ACQUIRE:
+                candidates, acquisition_reason = self._acquisition_candidates(frame)
+            else:
+                candidates = frame.candidates
             if (
                 self.phase in (EDGE_ARMED, LOSS_CONFIRM)
                 and not candidates
@@ -2207,8 +2345,11 @@ class FodVisualServoNode:
             if decision.acquired:
                 self._start_approach_odometry()
             self.phase = decision.state
-            self.reason = decision.reason
-            self.target_visible = self.phase in (APPROACH, EDGE_ARMED)
+            self.reason = acquisition_reason or decision.reason
+            self.target_visible = bool(candidates) and self.phase in (
+                APPROACH,
+                EDGE_ARMED,
+            )
             if decision.filtered_u is not None and decision.filtered_v is not None:
                 self.horizontal_error_value = horizontal_error(
                     decision.filtered_u, self.target_u_px, frame.width
@@ -2265,15 +2406,18 @@ class FodVisualServoNode:
                 "locked target horizontal error %.3f exceeds %.3f"
                 % (error, self.max_runtime_horizontal_error)
             )
-        speed = approach_speed(
-            vertical_fraction=q,
-            horizontal_error_abs=abs(error),
-            far_speed=self.far_speed_mps,
-            near_speed=self.near_speed_mps,
-            slow_start_fraction=self.slow_start_fraction,
-            near_start_fraction=self.near_start_fraction,
-            lateral_slowdown_error=self.lateral_slowdown_error,
-            minimum_lateral_scale=self.minimum_lateral_speed_scale,
+        speed = max(
+            self.approach_min_command_speed_mps,
+            approach_speed(
+                vertical_fraction=q,
+                horizontal_error_abs=abs(error),
+                far_speed=self.far_speed_mps,
+                near_speed=self.near_speed_mps,
+                slow_start_fraction=self.slow_start_fraction,
+                near_start_fraction=self.near_start_fraction,
+                lateral_slowdown_error=self.lateral_slowdown_error,
+                minimum_lateral_scale=self.minimum_lateral_speed_scale,
+            ),
         )
         curvature = curvature_from_pixel_error(
             error=error,
@@ -2892,6 +3036,8 @@ class FodVisualServoNode:
             "state": self.phase,
             "reason": self.reason,
             "allow_motion": self.allow_motion,
+            "external_estop_override": self.external_estop_override,
+            "can_vcu_safety_checks_enabled": not self.external_estop_override,
             "active": self.phase
             not in (DISABLED, PRECHECK, COMPLETE, ABORT),
             "completed": self.phase == COMPLETE,

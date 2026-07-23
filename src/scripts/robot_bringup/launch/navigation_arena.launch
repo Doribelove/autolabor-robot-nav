@@ -2,6 +2,8 @@
   <arg name="localization_source" default="fast_lio"/>
   <arg name="local_planner" default="teb"/>
   <arg name="model" default="dingo"/>
+  <arg name="start_rviz" default="true"/>
+  <arg name="planner_frequency" default="1.0"/>
   <arg name="goal_slowdown_enabled" default="$(eval arg('localization_source') == 'gps')"/>
   <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
   <arg name="cmd_vel_topic" default="$(eval '/cmd_vel_navigation' if arg('goal_slowdown_enabled') else '/cmd_vel')"/>
@@ -19,11 +21,16 @@
   <arg name="goal_slowdown_hard_stop_distance" default="0.2"/>
   <arg name="goal_slowdown_cmd_timeout" default="0.5"/>
   <arg name="goal_slowdown_odom_timeout" default="1.0"/>
+  <arg name="goal_near_commit_distance" default="1.0"/>
+  <arg name="goal_near_timeout" default="15.0"/>
+  <arg name="goal_near_max_regression" default="0.5"/>
 
   <include file="$(find arena_bringup)/launch/real_nav_nomap.launch">
     <arg name="localization_source" value="$(arg localization_source)"/>
     <arg name="local_planner" value="$(arg local_planner)"/>
     <arg name="model" value="$(arg model)"/>
+    <arg name="start_rviz" value="$(arg start_rviz)"/>
+    <arg name="planner_frequency" value="$(arg planner_frequency)"/>
     <arg name="odom_topic" value="$(arg odom_topic)"/>
     <arg name="cmd_vel_topic" value="$(arg cmd_vel_topic)"/>
     <arg name="xy_goal_tolerance" value="$(arg xy_goal_tolerance)"/>
@@ -55,5 +62,8 @@
     <param name="min_approach_speed" type="double" value="$(arg goal_slowdown_min_speed)"/>
     <param name="cmd_timeout" type="double" value="$(arg goal_slowdown_cmd_timeout)"/>
     <param name="odom_timeout" type="double" value="$(arg goal_slowdown_odom_timeout)"/>
+    <param name="near_goal_commit_distance" type="double" value="$(arg goal_near_commit_distance)"/>
+    <param name="near_goal_timeout" type="double" value="$(arg goal_near_timeout)"/>
+    <param name="near_goal_max_regression" type="double" value="$(arg goal_near_max_regression)"/>
   </node>
 </launch>

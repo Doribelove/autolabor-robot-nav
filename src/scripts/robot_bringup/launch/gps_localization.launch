@@ -7,7 +7,7 @@
   <arg name="heading_required_solution_status" default="SOL_COMPUTED"/>
   <arg name="heading_required_position_types" default="NARROW_INT"/>
   <arg name="gps_antenna_offset_x" default="-0.3"/>
-  <arg name="gps_antenna_offset_y" default="0.0"/>
+  <arg name="gps_antenna_offset_y" default="-0.05"/>
   <arg name="min_course_distance" default="0.5"/>
   <arg name="initial_yaw" default="0.0"/>
   <arg name="position_filter_alpha" default="0.25"/>
@@ -29,6 +29,10 @@
   <arg name="heading_rate_max_dt" default="1.0"/>
   <arg name="heading_rate_timeout" default="0.5"/>
   <arg name="heading_rate_max_abs" default="3.0"/>
+  <arg name="heading_jump_guard_enabled" default="false"/>
+  <arg name="heading_jump_threshold_deg" default="1.5"/>
+  <arg name="heading_recovery_tolerance_deg" default="0.8"/>
+  <arg name="heading_recovery_samples" default="3"/>
   <arg name="gps_correction_alpha" default="0.0"/>
   <arg name="gps_correction_max_step" default="0.05"/>
   <arg name="gps_correction_reset_distance" default="20.0"/>
@@ -63,6 +67,10 @@
     <arg name="heading_rate_max_dt" value="$(arg heading_rate_max_dt)"/>
     <arg name="heading_rate_timeout" value="$(arg heading_rate_timeout)"/>
     <arg name="heading_rate_max_abs" value="$(arg heading_rate_max_abs)"/>
+    <arg name="heading_jump_guard_enabled" value="$(arg heading_jump_guard_enabled)"/>
+    <arg name="heading_jump_threshold_deg" value="$(arg heading_jump_threshold_deg)"/>
+    <arg name="heading_recovery_tolerance_deg" value="$(arg heading_recovery_tolerance_deg)"/>
+    <arg name="heading_recovery_samples" value="$(arg heading_recovery_samples)"/>
     <arg name="gps_correction_alpha" value="$(arg gps_correction_alpha)"/>
     <arg name="gps_correction_max_step" value="$(arg gps_correction_max_step)"/>
     <arg name="gps_correction_reset_distance" value="$(arg gps_correction_reset_distance)"/>

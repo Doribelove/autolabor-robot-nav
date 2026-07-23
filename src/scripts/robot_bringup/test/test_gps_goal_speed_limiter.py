@@ -117,6 +117,9 @@ class GoalLimiterOutputTest(unittest.TestCase):
         limiter.current_goal = goal
         limiter.active_goal_id = goal_id("active", 9.0)
         limiter.stop_latched = False
+        limiter.arrival_latched = False
+        limiter.near_goal_started_time = None
+        limiter.near_goal_closest_distance = None
         limiter.last_cancel_stamp = rospy.Time()
         limiter.blocked_goal_ids = OrderedDict()
         limiter.cmd_timeout = 0.5
@@ -124,6 +127,9 @@ class GoalLimiterOutputTest(unittest.TestCase):
         limiter.comfortable_decel = 0.4
         limiter.hard_stop_distance = 0.2
         limiter.min_approach_speed = 0.15
+        limiter.near_goal_commit_distance = 1.0
+        limiter.near_goal_timeout = 15.0
+        limiter.near_goal_max_regression = 0.5
         limiter.cmd_pub = FakePublisher()
         return limiter, now
 
@@ -141,6 +147,17 @@ class GoalLimiterOutputTest(unittest.TestCase):
             limiter.timer_callback(None)
 
         self.assertEqual(limiter.cmd_pub.messages, [Twist()])
+        self.assertTrue(limiter.stop_latched)
+        self.assertTrue(limiter.arrival_latched)
+
+        # A noisy GPS sample just outside the threshold and a new planner
+        # command must not restart the already-arrived action.
+        limiter.current_goal.pose.position.x = 0.21
+        limiter.latest_cmd = copy.deepcopy(command)
+        limiter.latest_cmd_time = now
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+        self.assertEqual(limiter.cmd_pub.messages[-1], Twist())
 
     def test_gap_inside_planner_tolerance_is_not_hard_stopped(self):
         command = Twist()
@@ -154,6 +171,19 @@ class GoalLimiterOutputTest(unittest.TestCase):
         output = limiter.cmd_pub.messages[-1]
         self.assertAlmostEqual(output.linear.x, 0.2)
         self.assertAlmostEqual(output.angular.z, 0.1)
+
+    def test_arrival_latches_even_when_planner_command_has_expired(self):
+        command = Twist()
+        command.linear.x = 0.4
+        limiter, now = self.limiter_at_distance(0.2, command)
+        limiter.latest_cmd_time = None
+
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+
+        self.assertTrue(limiter.stop_latched)
+        self.assertTrue(limiter.arrival_latched)
+        self.assertEqual(limiter.cmd_pub.messages, [Twist()])
 
     def test_missing_odometry_during_active_goal_fails_stopped(self):
         command = Twist()
@@ -201,6 +231,58 @@ class GoalLimiterOutputTest(unittest.TestCase):
 
         self.assertEqual(limiter.cmd_pub.messages, [Twist()])
 
+    def test_new_goal_releases_arrival_latch_and_resets_near_goal_fence(self):
+        command = Twist()
+        command.linear.x = 0.4
+        limiter, now = self.limiter_at_distance(0.2, command)
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+
+        limiter.near_goal_started_time = now
+        limiter.near_goal_closest_distance = 0.2
+        limiter.action_goal_callback(action_goal("next", 20.0, x=5.0))
+
+        self.assertFalse(limiter.stop_latched)
+        self.assertFalse(limiter.arrival_latched)
+        self.assertIsNone(limiter.near_goal_started_time)
+        self.assertIsNone(limiter.near_goal_closest_distance)
+
+    def test_moving_away_after_near_goal_commit_latches_stop(self):
+        command = Twist()
+        command.linear.x = 0.3
+        limiter, now = self.limiter_at_distance(0.9, command)
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+
+        later = rospy.Time.from_sec(10.2)
+        limiter.current_goal.pose.position.x = 1.41
+        limiter.latest_cmd = copy.deepcopy(command)
+        limiter.latest_cmd_time = later
+        limiter.latest_odom_time = later
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=later):
+            limiter.timer_callback(None)
+
+        self.assertTrue(limiter.stop_latched)
+        self.assertEqual(limiter.cmd_pub.messages[-1], Twist())
+
+    def test_near_goal_timeout_latches_stop_even_after_some_progress(self):
+        command = Twist()
+        command.linear.x = 0.3
+        limiter, now = self.limiter_at_distance(0.9, command)
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+
+        later = rospy.Time.from_sec(25.1)
+        limiter.current_goal.pose.position.x = 0.4
+        limiter.latest_cmd = copy.deepcopy(command)
+        limiter.latest_cmd_time = later
+        limiter.latest_odom_time = later
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=later):
+            limiter.timer_callback(None)
+
+        self.assertTrue(limiter.stop_latched)
+        self.assertEqual(limiter.cmd_pub.messages[-1], Twist())
+
 
 class ActionGoalIdentityTest(unittest.TestCase):
     @staticmethod
@@ -211,6 +293,9 @@ class ActionGoalIdentityTest(unittest.TestCase):
         limiter.current_goal = PoseStamped()
         limiter.current_goal.pose.position.x = 2.0
         limiter.stop_latched = False
+        limiter.arrival_latched = False
+        limiter.near_goal_started_time = None
+        limiter.near_goal_closest_distance = None
         limiter.latest_cmd = Twist()
         limiter.latest_cmd.linear.x = 1.0
         limiter.latest_cmd_time = rospy.Time.from_sec(stamp_sec)
@@ -220,9 +305,9 @@ class ActionGoalIdentityTest(unittest.TestCase):
         return limiter
 
     @staticmethod
-    def status_message(identifier, state):
+    def status_message(identifier, state, stamp_sec=10.0):
         item = GoalStatus()
-        item.goal_id = goal_id(identifier, 10.0)
+        item.goal_id = goal_id(identifier, stamp_sec)
         item.status = state
         message = GoalStatusArray()
         message.status_list = [item]
@@ -328,6 +413,33 @@ class ActionGoalIdentityTest(unittest.TestCase):
         limiter.status_callback(self.status_message("new", GoalStatus.ABORTED))
         self.assertTrue(limiter.stop_latched)
         self.assertEqual(limiter.cmd_pub.messages, [Twist()])
+
+    def test_status_binds_empty_action_id_before_terminal_state(self):
+        limiter = self.limiter_with_active_goal("", 20.0)
+
+        limiter.status_callback(
+            self.status_message("generated-id", GoalStatus.ACTIVE, stamp_sec=20.0)
+        )
+
+        self.assertEqual(limiter.active_goal_id.id, "generated-id")
+        self.assertFalse(limiter.stop_latched)
+
+        limiter.status_callback(
+            self.status_message("generated-id", GoalStatus.SUCCEEDED, stamp_sec=20.0)
+        )
+
+        self.assertTrue(limiter.stop_latched)
+        self.assertEqual(limiter.cmd_pub.messages, [Twist()])
+
+    def test_empty_id_does_not_bind_to_an_older_active_status(self):
+        limiter = self.limiter_with_active_goal("", 20.0)
+
+        limiter.status_callback(
+            self.status_message("old-id", GoalStatus.ACTIVE, stamp_sec=10.0)
+        )
+
+        self.assertEqual(limiter.active_goal_id.id, "")
+        self.assertFalse(limiter.stop_latched)
 
 
 class CancelPublishOrderingTest(unittest.TestCase):

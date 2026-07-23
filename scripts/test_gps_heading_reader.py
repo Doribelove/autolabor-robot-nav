@@ -123,6 +123,8 @@ def main():
                 print(
                     "HEADING: heading={heading_deg:.4f}deg ros_yaw={yaw:.6f}rad "
                     "pitch={pitch_deg:.4f}deg baseline={baseline_length_m:.4f}m "
+                    "heading_std={heading_std_deg:.4f}deg "
+                    "pitch_std={pitch_std_deg:.4f}deg "
                     "status={solution_status} type={position_type}".format(
                         yaw=yaw,
                         **heading,

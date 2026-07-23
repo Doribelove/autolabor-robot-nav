@@ -5,10 +5,14 @@
 ## 目录速览
 
 - `scripts/bringup.sh`：导航一键启动主入口。
+- `scripts/operator_gui.sh`：启动 Qt 操作与诊断台（内嵌 RViz）。
 - `scripts/keyboard_drive.sh`：只启动底盘和键盘遥控，用于底盘测试，不启动导航。
 - `scripts/rabbitmq_gps_goal_bridge.py`：RabbitMQ 到 ROS GPS 目标的桥接脚本。
+- `src/application/autolabor_operator_gui/`：Qt5 主窗口、状态页和内嵌式 RViz。
+- `src/application/autolabor_operator_msgs/`：RabbitMQ 状态和远程目标的结构化 ROS 消息。
 - `src/scripts/robot_bringup/launch/`：CAN、Livox、FAST_LIO、GPS、Arena 导航的封装 launch。
 - `src/application/gps_module/`：GPS 定位和 GPS 经纬度目标转换。
+- `src/perception_camera/hikrobot_mvs_camera/`：海康 MVS 工业相机 ROS 驱动。
 - `src/tools/robot_diagnostics/`：一键启动中的 topic、TF、odom、CAN 检查工具。
 - `src/navigation_arena/arena-rosnav-3D/`：Arena 导航、`move_base`、TEB、costmap 配置。
 
@@ -46,6 +50,36 @@ cd /home/robot/robot_ws
 ```
 
 `bringup.sh` 支持 3 种导航模式。
+
+### 与海康相机同时使用
+
+MVS SDK 自带的旧版 `libusb-1.0.so.0` 会覆盖 Ubuntu 系统 libusb，而
+FAST_LIO 依赖的 PCL 需要新版符号。`bringup.sh` 只在 FAST_LIO 子进程中
+优先加载系统库；相机及其他 ROS 节点的动态库环境保持不变。因此不需要
+修改原来的导航命令，也不要在整个桌面会话中全局覆盖 `LD_LIBRARY_PATH`。
+
+终端 1 正常启动导航：
+
+```bash
+cd /home/robot/robot_ws
+./scripts/bringup.sh gps 2.7 cruise
+```
+
+等待导航打印 `Robot bringup is running in gps mode.` 后，在终端 2 启动
+相机。启动前先关闭会独占相机的 `hikrobot-mvs` 桌面客户端：
+
+```bash
+cd /home/robot/robot_ws
+source /opt/ros/noetic/setup.bash
+source devel/setup.bash
+roslaunch hikrobot_mvs_camera fod_camera.launch
+```
+
+需要相机和 FOD 检测器一起启动时，终端 2 改用：
+
+```bash
+roslaunch autolabor_fod_vision hikrobot_fod_detection.launch start_camera:=true
+```
 
 ### 1. FAST_LIO 定位导航
 
@@ -102,8 +136,24 @@ FAST_LIO_GPS_YAW_OFFSET_DEG=10 ./scripts/bringup.sh fast_lio
 
 | 场景 | 目标 | 主要调整 |
 |---|---|---|
-| `cruise` | 快速、稳定、长直道少摆动 | 纵向加速度 `2.5`，角速度上限 `1.3`，角加速度 `0.8`，规划最小半径 `1.35m`，关闭多拓扑候选切换 |
+| `cruise` | 快速、稳定、长直道少摆动 | 局部滚动窗口 `16×16m`，TEB 前视 `6.5m`，固定当前目标的全局参考线，降低转向/路径回正增益，关闭多拓扑候选切换 |
 | `obstacle` | 提前绕过固定障碍、路径稳定、少倒车 | 将局部滚动窗口扩为 `24×24m`，有效 TEB 前视设为 `10m`，规划最小半径 `1.35m`，保留 4 个同伦拓扑并提高障碍代价和前进约束 |
+
+`cruise` 仍保持 `0.1m` 分辨率，因此局部代价地图由原先的 `200×200`
+网格减少为 `160×160`，单层网格数量减少约 `36%`。TEB 代码只使用地图
+半宽的 `85%`，理论边界为 `6.8m`；显式配置 `6.5m` 前视以留出边界余量。
+正前方 `8m` 目标仍由全局规划器完整管理，TEB 随滚动地图连续执行局部段。
+`obstacle` 模式继续使用 `24×24m`，不受该缩减影响。
+
+高速 `cruise` 还专门抑制偏离路径后的左右过量修正：移动状态 GPS 位置滤波
+系数由通用值 `0.25` 提高为 `0.70`；按 GPS 位置 10Hz、车速 2.7m/s 估算，
+一阶滤波的稳态纵向滞后由约 `0.81m` 降为约 `0.12m`。全局规划频率设为
+`0Hz`，因此控制过程中沿用下发目标时生成的参考路线，不会每秒从已经偏移的
+车身位置重新画一条路线；收到新目标或规划失败时仍会重新规划。TEB 同时使用
+2 个轨迹位姿平均控制量，并把巡航角速度/角加速度限制为 `0.85rad/s` 和
+`0.45rad/s²`。这些设置不会增加途中停车条件；真正的急弯可能由 TEB 主动降速。
+`obstacle` 保留 `position_filter_alpha=0.25` 和 `planner_frequency=1Hz`，继续
+周期性适应障碍环境。
 
 配置文件分别是 `config/teb_profiles/gps_cruise.yaml` 和 `config/teb_profiles/gps_obstacle.yaml`。也可以不用第三个参数，改用环境变量选择：
 
@@ -127,12 +177,23 @@ move_base/TEB -> /cmd_vel_navigation -> gps_goal_speed_limiter -> /cmd_vel -> m2
 - 倒车恢复速度不限制。
 - 如果正向线速度被降低，`/cmd_vel.angular.z` 会按同一比例降低，保持阿克曼曲率，不会因为限速反而要求更大的前轮转角。
 - 收到匹配当前 GoalID 的 `/move_base/cancel` 或终止状态时立即锁存完整零速度；只有新的带身份 `/move_base/goal` 才能解除，延迟的旧取消或 `/move_base/current_goal` 不能误停、误解锁。
+- 首次进入目标中心 `0.2m` 后立即锁存完整零速度；后续 GPS 抖到阈值外也不会让旧目标重新起步。
+- 首次进入 `1.0m` 后启动终点围栏；超过 `15s` 仍未到达，或相对最近点退离 `0.5m`，立即锁存停车，避免在目标附近无限徘徊。
 - 当前目标期间 GPS odom 缺失、超时、坐标非有限或坐标系不一致时失效停车，不透传旧速度。
 
 需要更柔和、提前更远减速时，减小舒适减速度，例如：
 
 ```bash
 GPS_GOAL_COMFORTABLE_DECEL=0.3 ./scripts/bringup.sh gps 2.0 cruise
+```
+
+终点围栏也可按现场 GPS 精度调整：
+
+```bash
+GPS_GOAL_NEAR_COMMIT_DISTANCE=1.0 \
+GPS_GOAL_NEAR_TIMEOUT=15.0 \
+GPS_GOAL_NEAR_MAX_REGRESSION=0.5 \
+./scripts/bringup.sh gps 2.7 cruise
 ```
 
 如需现场对比旧行为，可临时关闭：
@@ -167,6 +228,20 @@ BAG_DIR=/tmp BAG_PREFIX=gps_validation ./scripts/record_rosbag.sh mode1
 
 这个模式下位置来自主 GNSS 的 GGA 经纬度，车头 yaw 来自双天线 `UNIHEADINGA` 航向，FAST_LIO 只提供点云给 `/scan`。双天线航向静止时也可用，比单天线依赖运动轨迹推航向更适合室外 GPS 导航。默认不使用底盘 `/odom` 积分位姿，避免底盘里程计坐标系和 GPS ENU 坐标系未对齐时把 `/gps/odom` 带偏；但会使用 `/odom.twist` 中新鲜的有符号线速度和角速度，让 TEB 能看到车辆真实运动。底盘 twist 超过 `0.5s` 未更新时会回退到 GNSS 运动估计。
 
+`cruise` 和 `obstacle` 当前都默认关闭双天线航向跳变保护，导航直接使用每一帧
+满足 `SOL_COMPUTED + NARROW_INT` 的实时航向。真车记录表明，旧保护在持续小偏差
+下可能长时间保持旧 yaw，最终让 TF 方向错误并诱发 TEB 徘徊，因此正常巡航不要
+启用它。原始 `/gps/heading` 仍可用于现场诊断。
+
+为避免继承 shell 中可能残留的旧设置，也可以显式指定关闭：
+
+```bash
+GPS_HEADING_JUMP_GUARD_ENABLED=false \
+./scripts/bringup.sh gps 2.7 cruise
+```
+
+航向数据超时或质量降级时，原有定位安全门和停车逻辑仍然有效。
+
 如果现场确实需要临时启用轮式里程计的位姿积分，可以设置：
 
 ```bash
@@ -183,12 +258,28 @@ GPS 模式默认要求双天线航向解算质量为：
 这些导航输出会暂停，目标减速器随后因 odom 超时输出完整零速度。`/gps/fix` 会继续
 发布，便于诊断，但不会拿陈旧航向继续导航。
 
-主 GNSS 天线安装在底盘中心后方 0.3m，默认参数为：
+启动器默认等待最多 `120s` 让双天线从 `NARROW_FLOAT` 收敛到
+`NARROW_INT`，可通过 `GPS_ODOM_STARTUP_TIMEOUT` 调整。等待期间 GPS
+终端会打印当前基线长度和航向标准差；如果超时后仍是 `NARROW_FLOAT`，应检查
+车辆是否位于开阔天空、两个天线和馈线是否连接可靠，以及接收机定向/固定基线
+配置，不应在高速导航中放宽该质量门槛。
+
+不启动 ROS、只读一帧 GGA 和双天线航向质量：
+
+```bash
+./scripts/test_gps_heading_reader.py --port /dev/ttyUSB1 --timeout 15
+```
+
+主 GNSS 天线安装在底盘中心后方 0.3m、右方 0.05m。按照 `base_link`
+的 X 向前、Y 向左约定，默认参数为：
 
 - `GPS_ANTENNA_OFFSET_X=-0.3`
-- `GPS_ANTENNA_OFFSET_Y=0.0`
+- `GPS_ANTENNA_OFFSET_Y=-0.05`
 
-GPS 节点会把 GGA 读到的主天线位置换算成 `base_link` 底盘中心位置，再发布 `/gps/pose`、`/gps/odom` 和 `camera_init -> base_link` TF。也就是说导航算法使用的是底盘中心位置，不是天线位置。
+GPS 节点会把 GGA 读到的主天线位置沿车体向前补偿 0.3m、向左补偿
+0.05m，换算成 `base_link` 底盘中心位置，再发布 `/gps/pose`、`/gps/odom`
+和 `camera_init -> base_link` TF。也就是说导航算法使用的是底盘中心位置，
+不是天线位置。
 
 默认启动即可使用双天线航向：
 
@@ -201,6 +292,47 @@ GPS 节点会把 GGA 读到的主天线位置换算成 `base_link` 底盘中心�
 ```bash
 GPS_HEADING_SOURCE=auto ./scripts/bringup.sh gps
 GPS_HEADING_SOURCE=gps_course ./scripts/bringup.sh gps
+```
+
+## Qt 操作与诊断台
+
+第一版界面已包含内嵌 RViz，以及 ROS、CAN、GNSS、双天线航向、雷达、
+`move_base`、RabbitMQ 和录包状态。分页可查看 GPS/局部坐标、现有
+静态漂移指标、RabbitMQ 缓存目标与消息计数，并提供车头正前方
+`8m` GPS 测试、取消导航、重置静态误差和一键 `mode1` 录包。相机/
+YOLO 与清扫装置页面已预留，后续可按独立 ROS 接口接入。
+
+首次编译：
+
+```bash
+cd /home/robot/robot_ws
+source /opt/ros/noetic/setup.bash
+catkin_make -DCATKIN_WHITELIST_PACKAGES=''
+source devel/setup.bash
+```
+
+使用内嵌 RViz 时，先只禁用原 launch 中的独立 RViz，其他原有节点不变：
+
+```bash
+# 终端 1：原导航流程，仅不再额外打开独立 RViz
+NAV_START_RVIZ=false ./scripts/bringup.sh gps 0.3 cruise
+
+# 终端 2：Qt 操作台
+./scripts/operator_gui.sh
+```
+
+不设置 `NAV_START_RVIZ=false` 时，`bringup.sh` 仍默认打开原来的独立 RViz，
+所以旧流程完全保留。Qt 界面不发布 `/cmd_vel`；CAN、GNSS、雷达、
+导航或 RabbitMQ 节点缺失时只显示离线，不会阻止界面启动。
+内嵌 RViz 默认以地图为主，可用右侧按钮显示 Displays 调试面板；
+它不提供绕过前置检查的 `2D Nav Goal`，人工任意点目标仍使用原独立 RViz。
+RabbitMQ 桥接原有终端 `1/2` 确认流程仍可独立使用；界面另外使用
+`/rabbitmq_bridge/publish_latest` 和 `/rabbitmq_bridge/clear_latest` 服务。
+
+如果已经单独启动静态误差监视节点，可避免重复启动：
+
+```bash
+./scripts/operator_gui.sh start_gps_error_monitor:=false
 ```
 
 ## RabbitMQ GPS 目标接入
@@ -312,7 +444,7 @@ GPS 定位模式会对 TEB 做更宽松的到点设置：
 GPS 定位节点还会对原始 GPS 位置做滤波：
 
 - 静止低速时，如果 GPS 抖动在 `stationary_hold_radius=0.8m` 内，保持当前位置不漂移。
-- 正常运动时使用 `position_filter_alpha=0.25` 做低通滤波。
+- 正常运动时，`cruise` 使用 `position_filter_alpha=0.70` 降低高速控制相位滞后；`obstacle` 和直接启动定位节点仍使用 `0.25`。
 - 明显跳点超过 `max_fix_jump=5.0m` 会被拒绝。
 - 默认使用双天线 `UNIHEADINGA` 更新车头方向，发布 `/gps/heading`，并用于 `/gps/odom` 和 `camera_init -> base_link` TF。
 
@@ -453,8 +585,10 @@ rostopic echo /move_base_simple/goal
 
 ```bash
 rosparam get /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel
+rosparam get /move_base/planner_frequency
 rosparam get /move_base/TebLocalPlannerROS/max_vel_theta
 rosparam get /move_base/TebLocalPlannerROS/acc_lim_theta
+rosparam get /move_base/TebLocalPlannerROS/control_look_ahead_poses
 rosparam get /move_base/TebLocalPlannerROS/min_turning_radius
 rosparam get /move_base/TebLocalPlannerROS/use_proportional_saturation
 rosparam get /move_base/TebLocalPlannerROS/global_plan_viapoint_sep
@@ -466,9 +600,16 @@ rosparam get /move_base/TebLocalPlannerROS/enable_homotopy_class_planning
 rosparam get /move_base/TebLocalPlannerROS/max_number_classes
 rosparam get /move_base/TebLocalPlannerROS/switching_blocking_period
 rosparam get /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist
+rosparam get /gps_localization/position_filter_alpha
 ```
 
-`cruise` 的前五个关键期望值是 `False`、`1.3`、`0.8`、`1.35`、`True`；`obstacle` 对应为 `False`、`1.2`、`0.4`、`1.35`、`True`。两者必须保持同比饱和，否则线速度单独被限幅时会把轨迹曲率放大到近满舵。
+`cruise` 的关键期望值是：`cmd_angle_instead_rotvel=False`、
+`planner_frequency=0.0`、`max_vel_theta=0.85`、`acc_lim_theta=0.45`、
+`control_look_ahead_poses=2`、`min_turning_radius=1.35`、
+`use_proportional_saturation=True`、`position_filter_alpha=0.70`；其 TEB 前视和
+局部地图宽度应为 `6.5`、`16.0`。`obstacle` 的规划频率、角速度、角加速度、
+位置滤波分别保持 `1.0`、`1.2`、`0.4`、`0.25`，前视和宽度为 `10.0`、
+`24.0`。两者必须保持同比饱和，否则线速度单独被限幅时会把轨迹曲率放大到近满舵。
 
 如果仍然出现前后振荡，记录这些信息：
 

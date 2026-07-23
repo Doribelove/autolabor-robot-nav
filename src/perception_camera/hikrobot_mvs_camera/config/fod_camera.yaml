@@ -1,0 +1,32 @@
+# MV-CU013-A0UC currently assigned to the FOD perception sidecar.
+serial_number: "DA7535899"
+transport: "usb"
+camera_name: "fod_camera"
+frame_id: "fod_camera_optical_frame"
+camera_info_url: "package://hikrobot_mvs_camera/config/fod_camera_1280x1024.yaml"
+
+# Relative to the launch namespace. image_transport also publishes camera_info.
+image_topic: "image_raw"
+publisher_queue_size: 1
+
+# camera_pinhole_my.yaml was calibrated at the full sensor resolution.
+# Enforce that ROI so the published CameraInfo remains geometrically valid.
+image_width: 1280
+image_height: 1024
+offset_x: 0
+offset_y: 0
+
+# Free-running acquisition is safe without an external trigger cable.
+trigger_mode: false
+trigger_source: "Line0"
+acquisition_frame_rate: 20.0
+
+# Supported values: Off, Once, Continuous.
+exposure_auto: "Continuous"
+exposure_time_us: 5000.0
+gain_auto: "Continuous"
+gain: 0.0
+
+grab_timeout_ms: 1000
+max_consecutive_timeouts: 5
+reconnect_delay_sec: 1.0

@@ -1,16 +1,27 @@
+## Keep the GPS cruise rolling window compact to reduce costmap work.  TEB
+## only transforms global-plan points within 85% of the costmap half-width,
+## so 16 m provides a theoretical 6.8 m usable radius.
+local_costmap:
+  width: 16.0
+  height: 16.0
+
 TebLocalPlannerROS:
   # Open roads and long straight segments: look farther ahead and favor a
-  # smooth, time-efficient path that stays close to the global plan.
-  # The 20 x 20 m local costmap clips usable plan distance to about 8.5 m.
-  max_global_plan_lookahead_dist: 8.0
-  global_plan_viapoint_sep: 1.0
+  # smooth path that stays close to the global plan without chasing every
+  # small lateral error.  Averaging the command over two trajectory poses
+  # damps alternating left/right corrections at high speed.
+  # Stay slightly inside the 16 x 16 m costmap's theoretical 6.8 m TEB limit
+  # instead of relying on an implicit clip at the map boundary.
+  max_global_plan_lookahead_dist: 6.5
+  global_plan_viapoint_sep: 1.5
+  control_look_ahead_poses: 2
 
-  # The forward speed limit is supplied by bringup.sh.  At the 1.2 m hardware
-  # minimum turning radius, 1.5 m/s requires 1.25 rad/s of yaw rate.  Keep a
-  # small optimization margin above that value so a normal cruise turn is not
-  # forced below about 0.96 m/s by the former 0.8 rad/s limit.
-  max_vel_theta: 1.3
-  min_vel_theta: -1.3
+  # The forward speed limit is supplied by bringup.sh.  Cruise mode is for
+  # efficient straight travel, so cap yaw authority below the chassis limit.
+  # TEB may reduce linear speed on a genuinely tight bend instead of making a
+  # full-speed, high-gain correction back toward a straight reference line.
+  max_vel_theta: 0.85
+  min_vel_theta: -0.85
   # When any component reaches its limit, scale the complete Twist together.
   # This preserves Ackermann curvature instead of demanding more steering at
   # a lower linear speed.
@@ -19,18 +30,22 @@ TebLocalPlannerROS:
   # normal tracking does not sit on the mechanical limit.
   min_turning_radius: 1.35
   acc_lim_x: 2.5
-  # Build steering curvature promptly instead of spending several seconds at
-  # near-zero speed while respecting an overly gentle yaw-acceleration limit.
-  acc_lim_theta: 0.8
+  # Limit how quickly the optimizer can reverse a correction.  This remains a
+  # TEB planning constraint; the chassis driver keeps its hardware limits.
+  acc_lim_theta: 0.45
 
   weight_max_vel_x: 5.0
   weight_max_vel_theta: 30.0
   weight_acc_lim_x: 20.0
-  weight_acc_lim_theta: 200.0
+  weight_acc_lim_theta: 250.0
   weight_kinematics_turning_radius: 1000.0
-  weight_optimaltime: 6.0
-  weight_shortest_path: 8.0
-  weight_viapoint: 12.0
+  # A very high via-point/time pressure made the optimizer snap back across
+  # the route after a lateral offset.  Retain path attraction, but let the
+  # longer lookahead converge smoothly instead of demanding an immediate
+  # zero-crossing of the cross-track error.
+  weight_optimaltime: 4.0
+  weight_shortest_path: 5.0
+  weight_viapoint: 6.0
 
   # On an open route a single topology avoids unnecessary candidate changes.
   enable_homotopy_class_planning: false

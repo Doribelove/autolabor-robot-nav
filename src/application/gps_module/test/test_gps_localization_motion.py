@@ -93,6 +93,25 @@ class HeadingPolicyTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             GPS_LOCALIZATION.validate_heading_source("unknown")
 
+    def test_navigation_uses_guarded_yaw_while_raw_heading_stays_fresh(self):
+        node = GPS_LOCALIZATION.GpsLocalizationNode.__new__(
+            GPS_LOCALIZATION.GpsLocalizationNode
+        )
+        node.latest_heading = self.valid_heading()
+        node.latest_heading["heading_deg"] = 92.4
+        node.latest_heading_stamp = GPS_LOCALIZATION.rospy.Time.from_sec(10.0)
+        node.latest_navigation_heading_yaw = 0.0
+        node.heading_timeout = 0.5
+        node.heading_required_solution_status = "SOL_COMPUTED"
+        node.heading_required_position_types = {"NARROW_INT"}
+        node.heading_source = "dual_antenna"
+
+        yaw = node.latest_heading_yaw(
+            GPS_LOCALIZATION.rospy.Time.from_sec(10.1)
+        )
+
+        self.assertAlmostEqual(yaw, 0.0)
+
 
 class WheelOdomTimestampTest(unittest.TestCase):
     def test_callback_preserves_chassis_measurement_timestamp(self):
@@ -125,6 +144,18 @@ class ParameterValidationTest(unittest.TestCase):
             GPS_LOCALIZATION.validate_float_parameter(
                 "direction_threshold", 1.1, minimum=0.0, maximum=1.0
             )
+
+    def test_boolean_and_integer_parameters_are_strict(self):
+        self.assertTrue(GPS_LOCALIZATION.validate_bool_parameter("enabled", "true"))
+        self.assertFalse(GPS_LOCALIZATION.validate_bool_parameter("enabled", False))
+        self.assertEqual(
+            GPS_LOCALIZATION.validate_int_parameter("samples", 3, minimum=1),
+            3,
+        )
+        with self.assertRaises(ValueError):
+            GPS_LOCALIZATION.validate_bool_parameter("enabled", "yes")
+        with self.assertRaises(ValueError):
+            GPS_LOCALIZATION.validate_int_parameter("samples", 1.5, minimum=1)
 
 
 class SignedSpeedTest(unittest.TestCase):
@@ -160,6 +191,90 @@ class HeadingRateTest(unittest.TestCase):
         self.assertIsNone(rate)
 
 
+class HeadingJumpGuardTest(unittest.TestCase):
+    @staticmethod
+    def make_guard(enabled=True, recovery_samples=3):
+        return GPS_LOCALIZATION.HeadingJumpGuard(
+            enabled=enabled,
+            jump_threshold_rad=math.radians(1.5),
+            recovery_tolerance_rad=math.radians(0.8),
+            recovery_samples=recovery_samples,
+            max_prediction_dt=1.0,
+        )
+
+    def test_straight_line_heading_jump_is_held_without_losing_output(self):
+        guard = self.make_guard()
+        guard.update(0.0, 1.0, 0.0)
+
+        yaw, state, innovation = guard.update(math.radians(2.4), 1.1, 0.0)
+
+        self.assertEqual(state, "rejected")
+        self.assertAlmostEqual(yaw, 0.0)
+        self.assertAlmostEqual(math.degrees(innovation), 2.4)
+        self.assertTrue(guard.holding)
+
+    def test_live_heading_resumes_only_after_consecutive_stable_samples(self):
+        guard = self.make_guard(recovery_samples=3)
+        guard.update(0.0, 1.0, 0.0)
+        guard.update(math.radians(2.4), 1.1, 0.0)
+
+        for index, heading_deg in enumerate((0.2, 0.1), start=1):
+            yaw, state, _ = guard.update(
+                math.radians(heading_deg), 1.1 + 0.1 * index, 0.0
+            )
+            self.assertEqual(state, "holding")
+            self.assertAlmostEqual(yaw, 0.0)
+
+        yaw, state, _ = guard.update(math.radians(0.15), 1.4, 0.0)
+
+        self.assertEqual(state, "recovered")
+        self.assertAlmostEqual(yaw, math.radians(0.15))
+        self.assertFalse(guard.holding)
+
+    def test_real_turn_matching_chassis_yaw_rate_is_not_rejected(self):
+        guard = self.make_guard()
+        guard.update(0.0, 1.0, math.radians(20.0))
+
+        yaw, state, innovation = guard.update(
+            math.radians(2.0), 1.1, math.radians(20.0)
+        )
+
+        self.assertEqual(state, "accepted")
+        self.assertAlmostEqual(yaw, math.radians(2.0))
+        self.assertAlmostEqual(innovation, 0.0)
+
+    def test_held_heading_follows_chassis_turn_until_gnss_recovers(self):
+        guard = self.make_guard()
+        guard.update(0.0, 1.0, 0.0)
+        guard.update(math.radians(2.4), 1.1, 0.0)
+
+        yaw, state, _ = guard.update(
+            math.radians(5.0), 1.2, math.radians(10.0)
+        )
+
+        self.assertEqual(state, "holding")
+        self.assertAlmostEqual(yaw, math.radians(1.0))
+
+    def test_missing_wheel_feedback_fails_open_before_a_rejection(self):
+        guard = self.make_guard()
+        guard.update(0.0, 1.0, None)
+
+        yaw, state, _ = guard.update(math.radians(3.0), 1.1, None)
+
+        self.assertEqual(state, "unmonitored")
+        self.assertAlmostEqual(yaw, math.radians(3.0))
+        self.assertFalse(guard.holding)
+
+    def test_disabled_guard_preserves_live_heading(self):
+        guard = self.make_guard(enabled=False)
+        guard.update(0.0, 1.0, 0.0)
+
+        yaw, state, _ = guard.update(math.radians(3.0), 1.1, 0.0)
+
+        self.assertEqual(state, "disabled")
+        self.assertAlmostEqual(yaw, math.radians(3.0))
+
+
 class PositionSpeedTest(unittest.TestCase):
     def test_projection_preserves_reverse_sign(self):
         speed = GPS_LOCALIZATION.longitudinal_speed_from_positions(
@@ -178,6 +293,35 @@ class PositionSpeedTest(unittest.TestCase):
                 0.0, 0.0, 1.0, 0.0, 0.0, 0.1, max_abs_speed=3.5
             )
         )
+
+
+class AntennaOffsetTest(unittest.TestCase):
+    @staticmethod
+    def make_node():
+        node = GPS_LOCALIZATION.GpsLocalizationNode.__new__(
+            GPS_LOCALIZATION.GpsLocalizationNode
+        )
+        node.gps_antenna_offset_x = -0.3
+        node.gps_antenna_offset_y = -0.05
+        return node
+
+    def test_rear_right_antenna_is_shifted_to_chassis_center(self):
+        node = self.make_node()
+
+        base_x, base_y = node.antenna_to_base_position(10.0, 20.0, 0.0)
+
+        self.assertAlmostEqual(base_x, 10.3)
+        self.assertAlmostEqual(base_y, 20.05)
+
+    def test_offset_rotates_with_vehicle_yaw(self):
+        node = self.make_node()
+
+        base_x, base_y = node.antenna_to_base_position(
+            10.0, 20.0, math.pi / 2.0
+        )
+
+        self.assertAlmostEqual(base_x, 9.95)
+        self.assertAlmostEqual(base_y, 20.3)
 
 
 class PositionFilterMotionTest(unittest.TestCase):

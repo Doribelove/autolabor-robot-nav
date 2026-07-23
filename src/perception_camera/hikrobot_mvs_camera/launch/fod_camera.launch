@@ -1,0 +1,37 @@
+<launch>
+  <arg name="namespace" default="fod_camera"/>
+  <arg name="serial_number" default="DA7535899"/>
+  <arg name="transport" default="usb"/>
+  <arg name="frame_id" default="fod_camera_optical_frame"/>
+  <arg name="camera_info_url"
+       default="package://hikrobot_mvs_camera/config/fod_camera_1280x1024.yaml"/>
+  <arg name="image_width" default="1280"/>
+  <arg name="image_height" default="1024"/>
+  <arg name="offset_x" default="0"/>
+  <arg name="offset_y" default="0"/>
+  <arg name="trigger_mode" default="false"/>
+  <arg name="trigger_source" default="Line0"/>
+  <arg name="acquisition_frame_rate" default="20.0"/>
+
+  <group ns="$(arg namespace)">
+    <node pkg="hikrobot_mvs_camera"
+          type="hikrobot_mvs_camera_node"
+          name="driver"
+          output="screen">
+      <rosparam command="load"
+                file="$(find hikrobot_mvs_camera)/config/fod_camera.yaml"/>
+      <param name="serial_number" value="$(arg serial_number)"/>
+      <param name="transport" value="$(arg transport)"/>
+      <param name="frame_id" value="$(arg frame_id)"/>
+      <param name="camera_info_url" value="$(arg camera_info_url)"/>
+      <param name="image_width" value="$(arg image_width)"/>
+      <param name="image_height" value="$(arg image_height)"/>
+      <param name="offset_x" value="$(arg offset_x)"/>
+      <param name="offset_y" value="$(arg offset_y)"/>
+      <param name="trigger_mode" value="$(arg trigger_mode)"/>
+      <param name="trigger_source" value="$(arg trigger_source)"/>
+      <param name="acquisition_frame_rate"
+             value="$(arg acquisition_frame_rate)"/>
+    </node>
+  </group>
+</launch>

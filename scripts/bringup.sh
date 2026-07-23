@@ -9,10 +9,12 @@ GPS_NAV_MAX_SPEED_ARG="${2:-}"
 GPS_TEB_PROFILE_ARG="${3:-}"
 TERMINAL_MODE="${TERMINAL_MODE:-auto}"
 CLEAN_START="${CLEAN_START:-true}"
+NAV_START_RVIZ="${NAV_START_RVIZ:-true}"
 CAN_PORT="${CAN_PORT:-/dev/ttyUSB0}"
 GPS_PORT="${GPS_PORT:-/dev/ttyUSB1}"
 GPS_BAUD_RATE="${GPS_BAUD_RATE:-115200}"
 FAST_LIO_GPS_YAW_OFFSET_DEG="${FAST_LIO_GPS_YAW_OFFSET_DEG:-0.0}"
+FAST_LIO_SYSTEM_LIBRARY_DIR="${FAST_LIO_SYSTEM_LIBRARY_DIR:-/lib/x86_64-linux-gnu}"
 GPS_NAV_MAX_VEL_X="${GPS_NAV_MAX_VEL_X:-1.5}"
 GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-1.0}"
 GPS_USE_WHEEL_ODOM="${GPS_USE_WHEEL_ODOM:-false}"
@@ -21,10 +23,16 @@ GPS_WHEEL_TWIST_TIMEOUT="${GPS_WHEEL_TWIST_TIMEOUT:-0.5}"
 GPS_RMC_SPEED_TIMEOUT="${GPS_RMC_SPEED_TIMEOUT:-1.0}"
 GPS_HEADING_SOURCE="${GPS_HEADING_SOURCE:-dual_antenna}"
 GPS_HEADING_TIMEOUT="${GPS_HEADING_TIMEOUT:-1.0}"
+GPS_ODOM_STARTUP_TIMEOUT="${GPS_ODOM_STARTUP_TIMEOUT:-120.0}"
 GPS_HEADING_REQUIRED_SOLUTION_STATUS="${GPS_HEADING_REQUIRED_SOLUTION_STATUS:-SOL_COMPUTED}"
 GPS_HEADING_REQUIRED_POSITION_TYPES="${GPS_HEADING_REQUIRED_POSITION_TYPES:-NARROW_INT}"
+GPS_HEADING_JUMP_GUARD_ENABLED="${GPS_HEADING_JUMP_GUARD_ENABLED:-}"
+GPS_HEADING_JUMP_THRESHOLD_DEG="${GPS_HEADING_JUMP_THRESHOLD_DEG:-1.5}"
+GPS_HEADING_RECOVERY_TOLERANCE_DEG="${GPS_HEADING_RECOVERY_TOLERANCE_DEG:-0.8}"
+GPS_HEADING_RECOVERY_SAMPLES="${GPS_HEADING_RECOVERY_SAMPLES:-3}"
+GPS_POSITION_FILTER_ALPHA="${GPS_POSITION_FILTER_ALPHA:-}"
 GPS_ANTENNA_OFFSET_X="${GPS_ANTENNA_OFFSET_X:--0.3}"
-GPS_ANTENNA_OFFSET_Y="${GPS_ANTENNA_OFFSET_Y:-0.0}"
+GPS_ANTENNA_OFFSET_Y="${GPS_ANTENNA_OFFSET_Y:--0.05}"
 GPS_HEADING_MIN_SPEED="${GPS_HEADING_MIN_SPEED:-0.05}"
 GPS_MIN_COURSE_DISTANCE="${GPS_MIN_COURSE_DISTANCE:-0.2}"
 GPS_INITIAL_YAW="${GPS_INITIAL_YAW:-}"
@@ -34,6 +42,7 @@ GPS_TEB_PROFILE="${GPS_TEB_PROFILE:-cruise}"
 GPS_TEB_PROFILE_FILE=""
 GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-}"
 GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-}"
+GPS_GLOBAL_PLANNER_FREQUENCY="${GPS_GLOBAL_PLANNER_FREQUENCY:-}"
 GPS_XY_GOAL_TOLERANCE="${GPS_XY_GOAL_TOLERANCE:-0.3}"
 GPS_GOAL_SLOWDOWN_ENABLED="${GPS_GOAL_SLOWDOWN_ENABLED:-true}"
 GPS_GOAL_COMFORTABLE_DECEL="${GPS_GOAL_COMFORTABLE_DECEL:-0.4}"
@@ -41,6 +50,9 @@ GPS_GOAL_MIN_APPROACH_SPEED="${GPS_GOAL_MIN_APPROACH_SPEED:-0.15}"
 GPS_GOAL_HARD_STOP_DISTANCE="${GPS_GOAL_HARD_STOP_DISTANCE:-0.2}"
 GPS_GOAL_CMD_TIMEOUT="${GPS_GOAL_CMD_TIMEOUT:-0.5}"
 GPS_GOAL_ODOM_TIMEOUT="${GPS_GOAL_ODOM_TIMEOUT:-1.0}"
+GPS_GOAL_NEAR_COMMIT_DISTANCE="${GPS_GOAL_NEAR_COMMIT_DISTANCE:-1.0}"
+GPS_GOAL_NEAR_TIMEOUT="${GPS_GOAL_NEAR_TIMEOUT:-15.0}"
+GPS_GOAL_NEAR_MAX_REGRESSION="${GPS_GOAL_NEAR_MAX_REGRESSION:-0.5}"
 FILTER_REMOVE_ABOVE_Z="${FILTER_REMOVE_ABOVE_Z:-0.1}"
 FILTER_NEAR_RADIUS="${FILTER_NEAR_RADIUS:-0.4}"
 FILTER_NEAR_MIN_Z="${FILTER_NEAR_MIN_Z:--0.1}"
@@ -66,10 +78,12 @@ usage() {
   echo "Environment:"
   echo "  TERMINAL_MODE=auto|split|same   # auto opens split terminals when possible"
   echo "  CLEAN_START=true|false          # kill old nodes from this bringup before starting"
+  echo "  NAV_START_RVIZ=true|false       # false when using the embedded operator GUI RViz"
   echo "  CAN_PORT=/dev/ttyUSB0"
   echo "  GPS_PORT=/dev/ttyUSB1"
   echo "  GPS_BAUD_RATE=115200"
   echo "  FAST_LIO_GPS_YAW_OFFSET_DEG=0.0"
+  echo "  FAST_LIO_SYSTEM_LIBRARY_DIR=/lib/x86_64-linux-gnu # isolate FAST_LIO from the MVS SDK libusb"
   echo "  GPS_NAV_MAX_VEL_X=1.5       # overridden by the optional gps speed argument"
   echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.0 # never raised by the gps speed argument"
   echo "  GPS_TEB_PROFILE=cruise|obstacle # used when the third argument is omitted"
@@ -79,10 +93,16 @@ usage() {
   echo "  GPS_RMC_SPEED_TIMEOUT=1.0       # s; discard cached RMC speed/course after this"
   echo "  GPS_HEADING_SOURCE=dual_antenna"
   echo "  GPS_HEADING_TIMEOUT=1.0"
+  echo "  GPS_ODOM_STARTUP_TIMEOUT=120.0  # s; wait for strict dual-antenna heading to become fixed"
   echo "  GPS_HEADING_REQUIRED_SOLUTION_STATUS=SOL_COMPUTED"
   echo "  GPS_HEADING_REQUIRED_POSITION_TYPES=NARROW_INT"
+  echo "  GPS_HEADING_JUMP_GUARD_ENABLED=true|false # defaults false; optional diagnostic override"
+  echo "  GPS_HEADING_JUMP_THRESHOLD_DEG=1.5        # mismatch against chassis-predicted yaw"
+  echo "  GPS_HEADING_RECOVERY_TOLERANCE_DEG=0.8    # live heading must return within this"
+  echo "  GPS_HEADING_RECOVERY_SAMPLES=3            # consecutive stable samples before recovery"
+  echo "  GPS_POSITION_FILTER_ALPHA=0.70             # cruise default; moving-position responsiveness"
   echo "  GPS_ANTENNA_OFFSET_X=-0.3        # main antenna x offset in base_link"
-  echo "  GPS_ANTENNA_OFFSET_Y=0.0         # main antenna y offset in base_link"
+  echo "  GPS_ANTENNA_OFFSET_Y=-0.05       # main antenna is 0.05 m right of base_link"
   echo "  GPS_HEADING_MIN_SPEED=0.05"
   echo "  GPS_MIN_COURSE_DISTANCE=0.2"
   echo "  GPS_INITIAL_YAW=0.0             # radians, used until GPS course is available"
@@ -90,11 +110,15 @@ usage() {
   echo "  GPS_COMPASS_HEADING_DEG=45      # numeric compass heading, 0=N, 90=E"
   echo "  GPS_TEB_PENALTY_EPSILON=0.03     # optional profile-default override"
   echo "  GPS_TEB_FORWARD_DRIVE_WEIGHT=... # optional profile-default override"
+  echo "  GPS_GLOBAL_PLANNER_FREQUENCY=0.0 # cruise default; stable route until a new goal/failure"
   echo "  GPS_XY_GOAL_TOLERANCE=0.3        # m; TEB declares the GPS goal reached"
   echo "  GPS_GOAL_SLOWDOWN_ENABLED=true   # only caps forward speed near the goal"
   echo "  GPS_GOAL_COMFORTABLE_DECEL=0.4   # m/s^2; smaller starts gentler braking earlier"
   echo "  GPS_GOAL_MIN_APPROACH_SPEED=0.15 # m/s outside the limiter hard-stop radius"
   echo "  GPS_GOAL_HARD_STOP_DISTANCE=0.2  # m; must be below TEB goal tolerance"
+  echo "  GPS_GOAL_NEAR_COMMIT_DISTANCE=1.0 # m; arm bounded final approach"
+  echo "  GPS_GOAL_NEAR_TIMEOUT=15.0        # s; lock stopped if final approach never completes"
+  echo "  GPS_GOAL_NEAR_MAX_REGRESSION=0.5 # m; lock stopped if vehicle moves away after commit"
   echo "  FILTER_REMOVE_ABOVE_Z=0.1"
   echo "  FILTER_NEAR_RADIUS=0.4"
   echo "  FILTER_NEAR_MIN_Z=-0.1"
@@ -111,6 +135,10 @@ is_nonnegative_number() {
   local value="$1"
   [[ "$value" =~ ^[0-9]+([.][0-9]+)?$ ]] || return 1
   awk -v value="$value" 'BEGIN { exit !(value >= 0.0) }'
+}
+
+is_positive_integer() {
+  [[ "$1" =~ ^[1-9][0-9]*$ ]]
 }
 
 min_number() {
@@ -457,17 +485,37 @@ start_terminal_command() {
   return 1
 }
 
-start_launch() {
+start_launch_command() {
   local label="$1"
   shift
   if (( SPLIT_TERMINALS )); then
-    start_terminal_command "$label" roslaunch "$@"
+    start_terminal_command "$label" "$@"
   else
     echo "==> starting $label"
-    roslaunch "$@" &
+    "$@" &
     PIDS+=("$!")
   fi
   wait_ros_master 15
+}
+
+start_launch() {
+  local label="$1"
+  shift
+  start_launch_command "$label" roslaunch "$@"
+}
+
+start_fast_lio_launch() {
+  local label="$1"
+  shift
+  local fast_lio_library_path="$FAST_LIO_SYSTEM_LIBRARY_DIR"
+  if [[ -n "${LD_LIBRARY_PATH:-}" ]]; then
+    fast_lio_library_path+=":$LD_LIBRARY_PATH"
+  fi
+
+  echo "==> FAST_LIO libusb: preferring $FAST_LIO_SYSTEM_LIBRARY_DIR"
+  start_launch_command "$label" \
+    env "LD_LIBRARY_PATH=$fast_lio_library_path" \
+    roslaunch "$@"
 }
 
 wait_ros_master() {
@@ -509,9 +557,10 @@ check_odom() {
   local topic="$1"
   local frame="$2"
   local child_frame="${3:-}"
+  local timeout="${4:-15.0}"
   rosrun robot_diagnostics check_odom.py \
     _topic:="$topic" \
-    _timeout:=15.0 \
+    _timeout:="$timeout" \
     _required_frame:="$frame" \
     _required_child_frame:="$child_frame"
 }
@@ -640,6 +689,14 @@ case "$MODE" in
     ;;
 esac
 
+case "$NAV_START_RVIZ" in
+  true|false) ;;
+  *)
+    echo "Invalid NAV_START_RVIZ: $NAV_START_RVIZ (use true or false)" >&2
+    exit 1
+    ;;
+esac
+
 if [[ -n "$GPS_TEB_PROFILE_ARG" ]]; then
   if [[ "$MODE" != "gps" ]]; then
     echo "The optional TEB profile argument is only supported in gps mode." >&2
@@ -655,11 +712,17 @@ if [[ "$MODE" == "gps" ]]; then
       GPS_TEB_PROFILE_FILE="$ROBOT_WS/config/teb_profiles/gps_cruise.yaml"
       GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-0.03}"
       GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-100.0}"
+      GPS_HEADING_JUMP_GUARD_ENABLED="${GPS_HEADING_JUMP_GUARD_ENABLED:-false}"
+      GPS_POSITION_FILTER_ALPHA="${GPS_POSITION_FILTER_ALPHA:-0.70}"
+      GPS_GLOBAL_PLANNER_FREQUENCY="${GPS_GLOBAL_PLANNER_FREQUENCY:-0.0}"
       ;;
     obstacle)
       GPS_TEB_PROFILE_FILE="$ROBOT_WS/config/teb_profiles/gps_obstacle.yaml"
       GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-0.03}"
       GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-60.0}"
+      GPS_HEADING_JUMP_GUARD_ENABLED="${GPS_HEADING_JUMP_GUARD_ENABLED:-false}"
+      GPS_POSITION_FILTER_ALPHA="${GPS_POSITION_FILTER_ALPHA:-0.25}"
+      GPS_GLOBAL_PLANNER_FREQUENCY="${GPS_GLOBAL_PLANNER_FREQUENCY:-1.0}"
       ;;
     *)
       echo "Invalid GPS TEB profile: $GPS_TEB_PROFILE" >&2
@@ -700,6 +763,39 @@ if [[ "$MODE" == "gps" ]]; then
     echo "Invalid GPS_RMC_SPEED_TIMEOUT: $GPS_RMC_SPEED_TIMEOUT" >&2
     exit 1
   fi
+  if ! is_positive_number "$GPS_ODOM_STARTUP_TIMEOUT"; then
+    echo "Invalid GPS_ODOM_STARTUP_TIMEOUT: $GPS_ODOM_STARTUP_TIMEOUT" >&2
+    exit 1
+  fi
+  case "$GPS_HEADING_JUMP_GUARD_ENABLED" in
+    true|false) ;;
+    *)
+      echo "Invalid GPS_HEADING_JUMP_GUARD_ENABLED: $GPS_HEADING_JUMP_GUARD_ENABLED (use true or false)" >&2
+      exit 1
+      ;;
+  esac
+  if ! is_positive_number "$GPS_HEADING_JUMP_THRESHOLD_DEG"; then
+    echo "Invalid GPS_HEADING_JUMP_THRESHOLD_DEG: $GPS_HEADING_JUMP_THRESHOLD_DEG" >&2
+    exit 1
+  fi
+  if ! is_positive_number "$GPS_HEADING_RECOVERY_TOLERANCE_DEG"; then
+    echo "Invalid GPS_HEADING_RECOVERY_TOLERANCE_DEG: $GPS_HEADING_RECOVERY_TOLERANCE_DEG" >&2
+    exit 1
+  fi
+  if ! awk -v recovery="$GPS_HEADING_RECOVERY_TOLERANCE_DEG" -v jump="$GPS_HEADING_JUMP_THRESHOLD_DEG" \
+    'BEGIN { exit !(recovery <= jump) }'; then
+    echo "GPS_HEADING_RECOVERY_TOLERANCE_DEG ($GPS_HEADING_RECOVERY_TOLERANCE_DEG) must be <= GPS_HEADING_JUMP_THRESHOLD_DEG ($GPS_HEADING_JUMP_THRESHOLD_DEG)" >&2
+    exit 1
+  fi
+  if ! is_positive_integer "$GPS_HEADING_RECOVERY_SAMPLES"; then
+    echo "Invalid GPS_HEADING_RECOVERY_SAMPLES: $GPS_HEADING_RECOVERY_SAMPLES (use a positive integer)" >&2
+    exit 1
+  fi
+  if ! is_positive_number "$GPS_POSITION_FILTER_ALPHA" ||
+     ! awk -v alpha="$GPS_POSITION_FILTER_ALPHA" 'BEGIN { exit !(alpha <= 1.0) }'; then
+    echo "Invalid GPS_POSITION_FILTER_ALPHA: $GPS_POSITION_FILTER_ALPHA (use 0 < alpha <= 1)" >&2
+    exit 1
+  fi
   if ! is_positive_number "$GPS_NAV_MAX_VEL_X"; then
     echo "Invalid GPS_NAV_MAX_VEL_X: $GPS_NAV_MAX_VEL_X" >&2
     exit 1
@@ -714,6 +810,10 @@ if [[ "$MODE" == "gps" ]]; then
   fi
   if ! is_nonnegative_number "$GPS_TEB_FORWARD_DRIVE_WEIGHT"; then
     echo "Invalid GPS_TEB_FORWARD_DRIVE_WEIGHT: $GPS_TEB_FORWARD_DRIVE_WEIGHT" >&2
+    exit 1
+  fi
+  if ! is_nonnegative_number "$GPS_GLOBAL_PLANNER_FREQUENCY"; then
+    echo "Invalid GPS_GLOBAL_PLANNER_FREQUENCY: $GPS_GLOBAL_PLANNER_FREQUENCY" >&2
     exit 1
   fi
   if ! is_positive_number "$GPS_XY_GOAL_TOLERANCE"; then
@@ -753,15 +853,39 @@ if [[ "$MODE" == "gps" ]]; then
       echo "Invalid GPS_GOAL_ODOM_TIMEOUT: $GPS_GOAL_ODOM_TIMEOUT" >&2
       exit 1
     fi
+    if ! is_positive_number "$GPS_GOAL_NEAR_COMMIT_DISTANCE"; then
+      echo "Invalid GPS_GOAL_NEAR_COMMIT_DISTANCE: $GPS_GOAL_NEAR_COMMIT_DISTANCE" >&2
+      exit 1
+    fi
+    if ! awk -v commit="$GPS_GOAL_NEAR_COMMIT_DISTANCE" -v hard_stop="$GPS_GOAL_HARD_STOP_DISTANCE" \
+      'BEGIN { exit !(commit > hard_stop) }'; then
+      echo "GPS_GOAL_NEAR_COMMIT_DISTANCE ($GPS_GOAL_NEAR_COMMIT_DISTANCE) must be greater than GPS_GOAL_HARD_STOP_DISTANCE ($GPS_GOAL_HARD_STOP_DISTANCE)" >&2
+      exit 1
+    fi
+    if ! is_positive_number "$GPS_GOAL_NEAR_TIMEOUT"; then
+      echo "Invalid GPS_GOAL_NEAR_TIMEOUT: $GPS_GOAL_NEAR_TIMEOUT" >&2
+      exit 1
+    fi
+    if ! is_positive_number "$GPS_GOAL_NEAR_MAX_REGRESSION"; then
+      echo "Invalid GPS_GOAL_NEAR_MAX_REGRESSION: $GPS_GOAL_NEAR_MAX_REGRESSION" >&2
+      exit 1
+    fi
   fi
   require_file "$GPS_TEB_PROFILE_FILE"
   echo "==> GPS TEB profile: $GPS_TEB_PROFILE ($GPS_TEB_PROFILE_FILE)"
   echo "==> GPS requested navigation speed limits: forward=$GPS_NAV_MAX_VEL_X m/s, backward=$GPS_NAV_MAX_VEL_X_BACKWARDS m/s"
   echo "==> GPS odom twist: wheel=$GPS_USE_WHEEL_TWIST, wheel timeout=$GPS_WHEEL_TWIST_TIMEOUT s, RMC timeout=$GPS_RMC_SPEED_TIMEOUT s"
+  echo "==> GPS moving-position filter alpha: $GPS_POSITION_FILTER_ALPHA"
+  echo "==> GPS global planner frequency: $GPS_GLOBAL_PLANNER_FREQUENCY Hz (0 keeps the route stable while controlling)"
+  if [[ "$GPS_HEADING_JUMP_GUARD_ENABLED" == "true" ]]; then
+    echo "==> GPS cruise heading jump guard: enabled, reject >$GPS_HEADING_JUMP_THRESHOLD_DEG deg, recover within $GPS_HEADING_RECOVERY_TOLERANCE_DEG deg for $GPS_HEADING_RECOVERY_SAMPLES samples; no stop is generated"
+  else
+    echo "==> GPS heading jump guard: disabled; navigation uses live dual-antenna yaw"
+  fi
   echo "==> GPS goal distances: TEB tolerance=$GPS_XY_GOAL_TOLERANCE m, limiter hard stop=$GPS_GOAL_HARD_STOP_DISTANCE m"
   echo "==> GPS TEB forward-drive weight: $GPS_TEB_FORWARD_DRIVE_WEIGHT"
   if [[ "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
-    echo "==> GPS goal slowdown: decel=$GPS_GOAL_COMFORTABLE_DECEL m/s^2, minimum approach=$GPS_GOAL_MIN_APPROACH_SPEED m/s"
+    echo "==> GPS goal slowdown: decel=$GPS_GOAL_COMFORTABLE_DECEL m/s^2, minimum approach=$GPS_GOAL_MIN_APPROACH_SPEED m/s; near-goal fence=$GPS_GOAL_NEAR_COMMIT_DISTANCE m/$GPS_GOAL_NEAR_TIMEOUT s/$GPS_GOAL_NEAR_MAX_REGRESSION m regression"
   else
     echo "==> GPS goal slowdown: disabled"
   fi
@@ -778,6 +902,7 @@ fi
 
 require_file "$ROS_SETUP"
 require_file "$ROBOT_WS/devel/setup.bash"
+require_file "$FAST_LIO_SYSTEM_LIBRARY_DIR/libusb-1.0.so.0"
 
 source "$ROS_SETUP"
 source "$ROBOT_WS/devel/setup.bash"
@@ -787,7 +912,8 @@ setup_terminal_mode
 start_ros_master
 
 make_writable "$CAN_PORT"
-roslaunch robot_diagnostics check_can.launch port:="$CAN_PORT"
+echo "==> checking CAN device: $CAN_PORT"
+rosrun robot_diagnostics check_can.py _port:="$CAN_PORT" _require_write:=true
 start_launch "CAN chassis driver" robot_bringup can.launch port_name:="$CAN_PORT" publish_tf:=false
 wait_topics "/canbus_msg" 30.0
 clamp_gps_speed_to_chassis_limit
@@ -796,7 +922,7 @@ if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
   start_launch "Livox MID360 driver" robot_bringup livox_mid360.launch
   wait_topics "/livox/lidar,/livox/imu" 45.0
 
-  start_launch "FAST_LIO localization" robot_bringup fast_lio.launch
+  start_fast_lio_launch "FAST_LIO localization" robot_bringup fast_lio.launch
   wait_topics "/Odometry,/cloud_registered_body" 60.0
   check_odom "/Odometry" "camera_init" "body"
 
@@ -825,13 +951,15 @@ if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
     yaw_offset_deg:="$FAST_LIO_GPS_YAW_OFFSET_DEG"
 
   check_tf "camera_init" "base_link" 10.0
-  start_launch "Arena navigation" robot_bringup navigation_arena.launch localization_source:=fast_lio
+  start_launch "Arena navigation" robot_bringup navigation_arena.launch \
+    localization_source:=fast_lio \
+    start_rviz:="$NAV_START_RVIZ"
 else
   make_writable "$GPS_PORT"
   start_launch "Livox MID360 driver" robot_bringup livox_mid360.launch
   wait_topics "/livox/lidar,/livox/imu" 45.0
 
-  start_launch "FAST_LIO point cloud registration" robot_bringup fast_lio.launch odom_pub_en:=false tf_pub_en:=false
+  start_fast_lio_launch "FAST_LIO point cloud registration" robot_bringup fast_lio.launch odom_pub_en:=false tf_pub_en:=false
   wait_topics "/cloud_registered_body" 60.0
 
   start_launch "FAST_LIO filtered scan projection" robot_bringup scan_fast_lio.launch \
@@ -857,13 +985,24 @@ else
     heading_timeout:="$GPS_HEADING_TIMEOUT" \
     heading_required_solution_status:="$GPS_HEADING_REQUIRED_SOLUTION_STATUS" \
     heading_required_position_types:="$GPS_HEADING_REQUIRED_POSITION_TYPES" \
+    heading_jump_guard_enabled:="$GPS_HEADING_JUMP_GUARD_ENABLED" \
+    heading_jump_threshold_deg:="$GPS_HEADING_JUMP_THRESHOLD_DEG" \
+    heading_recovery_tolerance_deg:="$GPS_HEADING_RECOVERY_TOLERANCE_DEG" \
+    heading_recovery_samples:="$GPS_HEADING_RECOVERY_SAMPLES" \
+    position_filter_alpha:="$GPS_POSITION_FILTER_ALPHA" \
     gps_antenna_offset_x:="$GPS_ANTENNA_OFFSET_X" \
     gps_antenna_offset_y:="$GPS_ANTENNA_OFFSET_Y" \
     heading_min_speed:="$GPS_HEADING_MIN_SPEED" \
     min_course_distance:="$GPS_MIN_COURSE_DISTANCE" \
     initial_yaw:="$GPS_INITIAL_YAW"
   wait_topics "/gps/fix,/gps/pose,/gps/odom" 60.0
-  check_odom "/gps/odom" "camera_init" "base_link"
+  echo "==> waiting up to $GPS_ODOM_STARTUP_TIMEOUT s for GPS odom; required heading quality: $GPS_HEADING_REQUIRED_SOLUTION_STATUS + $GPS_HEADING_REQUIRED_POSITION_TYPES"
+  if ! check_odom "/gps/odom" "camera_init" "base_link" "$GPS_ODOM_STARTUP_TIMEOUT"; then
+    echo "GPS localization did not become navigation-ready." >&2
+    echo "Check the GPS localization terminal for the latest UNIHEADINGA status." >&2
+    echo "NARROW_FLOAT is intentionally rejected by the default NARROW_INT safety gate." >&2
+    exit 1
+  fi
   check_tf "camera_init" "base_link" 30.0
 
   start_launch "GPS goal converter" gps_module gps_goal.launch \
@@ -874,6 +1013,8 @@ else
   check_tf "camera_init" "base_link" 10.0
   start_launch "Arena navigation" robot_bringup navigation_arena.launch \
     localization_source:=gps \
+    start_rviz:="$NAV_START_RVIZ" \
+    planner_frequency:="$GPS_GLOBAL_PLANNER_FREQUENCY" \
     teb_profile_file:="$GPS_TEB_PROFILE_FILE" \
     goal_slowdown_enabled:="$GPS_GOAL_SLOWDOWN_ENABLED" \
     goal_slowdown_decel:="$GPS_GOAL_COMFORTABLE_DECEL" \
@@ -881,6 +1022,9 @@ else
     goal_slowdown_hard_stop_distance:="$GPS_GOAL_HARD_STOP_DISTANCE" \
     goal_slowdown_cmd_timeout:="$GPS_GOAL_CMD_TIMEOUT" \
     goal_slowdown_odom_timeout:="$GPS_GOAL_ODOM_TIMEOUT" \
+    goal_near_commit_distance:="$GPS_GOAL_NEAR_COMMIT_DISTANCE" \
+    goal_near_timeout:="$GPS_GOAL_NEAR_TIMEOUT" \
+    goal_near_max_regression:="$GPS_GOAL_NEAR_MAX_REGRESSION" \
     xy_goal_tolerance:="$GPS_XY_GOAL_TOLERANCE" \
     max_vel_x:="$GPS_NAV_MAX_VEL_X" \
     max_vel_x_backwards:="$GPS_NAV_MAX_VEL_X_BACKWARDS" \

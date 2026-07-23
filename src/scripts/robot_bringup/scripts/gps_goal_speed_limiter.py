@@ -26,6 +26,8 @@ STOP_GOAL_STATES = frozenset(
     )
 )
 
+TRACKING_GOAL_STATES = frozenset((GoalStatus.PENDING, GoalStatus.ACTIVE))
+
 
 def goal_speed_cap(distance, comfortable_decel, hard_stop_distance, min_approach_speed):
     """Return the kinematic speed cap for the remaining distance to a goal."""
@@ -110,6 +112,15 @@ class GpsGoalSpeedLimiter:
         self.cmd_timeout = float(rospy.get_param("~cmd_timeout", 0.5))
         self.odom_timeout = float(rospy.get_param("~odom_timeout", 1.0))
         self.publish_rate = float(rospy.get_param("~publish_rate", 50.0))
+        self.near_goal_commit_distance = float(
+            rospy.get_param("~near_goal_commit_distance", 1.0)
+        )
+        self.near_goal_timeout = float(
+            rospy.get_param("~near_goal_timeout", 15.0)
+        )
+        self.near_goal_max_regression = float(
+            rospy.get_param("~near_goal_max_regression", 0.5)
+        )
 
         # Validate all numeric parameters before accepting control commands.
         goal_speed_cap(
@@ -124,6 +135,22 @@ class GpsGoalSpeedLimiter:
         timing_parameters = (self.cmd_timeout, self.odom_timeout, self.publish_rate)
         if any(not math.isfinite(value) or value <= 0.0 for value in timing_parameters):
             raise ValueError("timeouts and publish_rate must be positive")
+        if (
+            not math.isfinite(self.near_goal_commit_distance)
+            or self.near_goal_commit_distance <= self.hard_stop_distance
+        ):
+            raise ValueError(
+                "near_goal_commit_distance must be finite and greater than "
+                "hard_stop_distance"
+            )
+        near_goal_limits = (
+            self.near_goal_timeout,
+            self.near_goal_max_regression,
+        )
+        if any(not math.isfinite(value) or value <= 0.0 for value in near_goal_limits):
+            raise ValueError(
+                "near_goal_timeout and near_goal_max_regression must be positive"
+            )
 
         self.lock = threading.Lock()
         self.latest_cmd = Twist()
@@ -133,6 +160,9 @@ class GpsGoalSpeedLimiter:
         self.current_goal = None
         self.active_goal_id = None
         self.stop_latched = True
+        self.arrival_latched = False
+        self.near_goal_started_time = None
+        self.near_goal_closest_distance = None
         self.last_cancel_stamp = rospy.Time()
         self.blocked_goal_ids = OrderedDict()
 
@@ -169,6 +199,13 @@ class GpsGoalSpeedLimiter:
             self.comfortable_decel,
             self.hard_stop_distance,
             self.planner_xy_goal_tolerance,
+        )
+        rospy.loginfo(
+            "GPS near-goal fence: commit=%.2f m, timeout=%.1f s, "
+            "max_regression=%.2f m; a new goal is required after a latched stop",
+            self.near_goal_commit_distance,
+            self.near_goal_timeout,
+            self.near_goal_max_regression,
         )
 
     def cmd_callback(self, msg):
@@ -234,12 +271,18 @@ class GpsGoalSpeedLimiter:
         self.latest_cmd = Twist()
         self.latest_cmd_time = None
 
+    def _reset_goal_progress(self):
+        self.arrival_latched = False
+        self.near_goal_started_time = None
+        self.near_goal_closest_distance = None
+
     def action_goal_callback(self, msg):
         goal_id = copy.deepcopy(msg.goal_id)
         goal_pose = copy.deepcopy(msg.goal.target_pose)
         with self.lock:
             self.active_goal_id = goal_id
             self.current_goal = goal_pose
+            self._reset_goal_progress()
             self._latch_stop()
             if not self._goal_was_stopped(goal_id):
                 self.stop_latched = False
@@ -251,7 +294,13 @@ class GpsGoalSpeedLimiter:
         if goal_is_stopped:
             rospy.logwarn("Ignoring already-cancelled move_base goal id=%s", goal_id.id)
         else:
-            rospy.loginfo("Goal slowdown accepted move_base goal id=%s", goal_id.id)
+            rospy.loginfo(
+                "Goal slowdown accepted move_base goal id=%s frame=%s x=%.3f y=%.3f",
+                goal_id.id or "<pending-status-id>",
+                goal_pose.header.frame_id,
+                goal_pose.pose.position.x,
+                goal_pose.pose.position.y,
+            )
 
     def cancel_callback(self, msg):
         with self.lock:
@@ -270,8 +319,27 @@ class GpsGoalSpeedLimiter:
             rospy.logdebug("Ignored cancellation for a non-active move_base goal")
 
     def status_callback(self, msg):
+        bound_goal_id = None
         with self.lock:
             active_id = None if self.active_goal_id is None else self.active_goal_id.id
+            if (
+                self.active_goal_id is not None
+                and not active_id
+                and not is_zero_stamp(self.active_goal_id.stamp)
+            ):
+                tracking = [
+                    status
+                    for status in msg.status_list
+                    if (
+                        status.status in TRACKING_GOAL_STATES
+                        and status.goal_id.id
+                        and status.goal_id.stamp >= self.active_goal_id.stamp
+                    )
+                ]
+                if len(tracking) == 1:
+                    self.active_goal_id = copy.deepcopy(tracking[0].goal_id)
+                    active_id = self.active_goal_id.id
+                    bound_goal_id = active_id
             stop_active = False
             for status in msg.status_list:
                 if status.status in STOP_GOAL_STATES:
@@ -281,6 +349,11 @@ class GpsGoalSpeedLimiter:
             if stop_active:
                 self._latch_stop()
                 self.cmd_pub.publish(Twist())
+        if bound_goal_id is not None:
+            rospy.loginfo(
+                "Goal slowdown bound pending action identity to move_base id=%s",
+                bound_goal_id,
+            )
 
     def timer_callback(self, _event):
         now = rospy.Time.now()
@@ -294,11 +367,6 @@ class GpsGoalSpeedLimiter:
             # Keep cancellation and terminal action states authoritative until
             # move_base publishes a genuinely new identity-bearing action goal.
             if self.stop_latched:
-                self.cmd_pub.publish(Twist())
-                return
-
-            # A stale navigation command must never be kept alive by this relay.
-            if cmd_time is None or (now - cmd_time).to_sec() > self.cmd_timeout:
                 self.cmd_pub.publish(Twist())
                 return
 
@@ -346,15 +414,66 @@ class GpsGoalSpeedLimiter:
             dy = goal.pose.position.y - odom.pose.pose.position.y
             distance = math.hypot(dx, dy)
 
-            # This safety fallback is strictly inside the planner's success
-            # radius. Stop every degree of freedom, including reverse/rotation.
+            # Once the vehicle enters the arrival radius, keep every degree of
+            # freedom stopped. GPS noise must not release the old goal; only a
+            # genuinely new action goal may do that.
             if distance <= self.hard_stop_distance:
-                rospy.loginfo_throttle(
-                    1.0,
-                    "Goal hard stop: distance=%.2f m, threshold=%.2f m",
+                self.arrival_latched = True
+                self._latch_stop()
+                rospy.loginfo(
+                    "Goal arrival latched: distance=%.2f m, threshold=%.2f m; "
+                    "GPS jitter cannot restart this goal",
                     distance,
                     self.hard_stop_distance,
                 )
+                self.cmd_pub.publish(Twist())
+                return
+
+            # Entering the near-goal zone commits this action to a bounded
+            # final approach. If localization/planner oscillation then carries
+            # the robot away, or never completes, fail stopped instead of
+            # roaming around the target indefinitely.
+            if self.near_goal_started_time is None:
+                if distance <= self.near_goal_commit_distance:
+                    self.near_goal_started_time = now
+                    self.near_goal_closest_distance = distance
+                    rospy.loginfo(
+                        "Near-goal fence armed: distance=%.2f m, timeout=%.1f s, "
+                        "max_regression=%.2f m",
+                        distance,
+                        self.near_goal_timeout,
+                        self.near_goal_max_regression,
+                    )
+            else:
+                self.near_goal_closest_distance = min(
+                    self.near_goal_closest_distance,
+                    distance,
+                )
+                elapsed = max(0.0, (now - self.near_goal_started_time).to_sec())
+                regression = distance - self.near_goal_closest_distance
+                stop_reason = None
+                if regression >= self.near_goal_max_regression:
+                    stop_reason = (
+                        "distance regressed by {:.2f} m after reaching {:.2f} m"
+                    ).format(regression, self.near_goal_closest_distance)
+                elif elapsed >= self.near_goal_timeout:
+                    stop_reason = (
+                        "final approach exceeded {:.1f} s (closest {:.2f} m)"
+                    ).format(elapsed, self.near_goal_closest_distance)
+
+                if stop_reason is not None:
+                    self._latch_stop()
+                    rospy.logerr(
+                        "Near-goal safety stop latched: %s; publish a new goal to release",
+                        stop_reason,
+                    )
+                    self.cmd_pub.publish(Twist())
+                    return
+
+            # A stale navigation command must never be kept alive by this
+            # relay. Evaluate the goal fence first so a planner command gap
+            # cannot hide an arrival or final-approach timeout.
+            if cmd_time is None or (now - cmd_time).to_sec() > self.cmd_timeout:
                 self.cmd_pub.publish(Twist())
                 return
 

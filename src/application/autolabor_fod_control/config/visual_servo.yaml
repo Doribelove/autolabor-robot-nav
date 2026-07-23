@@ -12,10 +12,11 @@ canbus_topic: /canbus_msg
 canbus_service: /canbus_server
 chassis_parameter_service: /m2_driver/chassis_parameter
 
-# These M2 inputs bypass /cmd_vel.  PRECHECK and every active graph audit
-# require all four to have no publishers, and any message received during an
-# active session is sticky-fatal.  Run one-shot calibration first and wait for
-# its `rostopic pub -1` process to exit before enabling this mode.
+# These M2 inputs bypass /cmd_vel.  The default mode requires all four to have
+# no publishers.  External-estop override exempts only emergency_stop; the
+# geometry/progress-altering steer/reset/brake inputs remain forbidden in every
+# mode.  Finish one-shot calibration and wait for `rostopic pub -1` to exit
+# before enabling this controller.
 steer_center_bias_topic: /m2_driver/steer_center_bias
 reset_odom_topic: /m2_driver/reset_odom
 brake_set_topic: /m2_driver/brake_set
@@ -36,11 +37,19 @@ expected_model_sha256: 7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edc
 # "fod".  A higher threshold than the detector's display threshold is used for
 # motion decisions.
 allowed_class_names: [Metal, Soft, Plastic, Wire, Tool, w]
-min_confidence: 0.45
+# The live approved model publishes the current small Metal target steadily at
+# roughly 0.38..0.43 confidence.  Require six stable frames for acquisition,
+# but do not discard those valid detections with a mismatched 0.45 gate.
+min_confidence: 0.30
 
 # Explicit hardware authorization is supplied by the launch argument and is
 # false by default.  A SetBool(true) service call is still required afterwards.
 allow_motion: false
+# Opt-in only: delegate raw CAN, aggregated chassis emergency, VCU timeout, CAN
+# graph/service, and ROS emergency-stop-topic safety gates to an attended remote
+# stop operator.  Visual, odom, wheel, controller-ownership, lease, distance,
+# and absolute-time checks remain active.
+external_estop_override: false
 precheck_timeout_sec: 15.0
 mode_timeout_sec: 75.0
 publish_rate_hz: 20.0
@@ -57,8 +66,12 @@ source_stamp_timeout_sec: 0.80
 detection_odom_sync_tolerance_sec: 0.20
 wheel_angle_timeout_sec: 0.60
 chassis_status_timeout_sec: 3.0
-raw_can_timeout_sec: 1.25
-raw_can_query_interval_sec: 0.40
+# Query one safety item every 0.20 s in round-robin order.  Sending all four
+# back-to-back makes this VCU intermittently drop replies.  A 2.50 s freshness
+# window covers more than two complete 0.80 s rounds without weakening the
+# immediate unsafe-value latch.
+raw_can_timeout_sec: 2.50
+raw_can_query_interval_sec: 0.20
 graph_check_interval_sec: 0.50
 
 # Target lock and blind-zone gate.  target_u is CameraInfo.cx plus this offset.
@@ -67,10 +80,13 @@ use_camera_principal_point: true
 target_u_offset_px: 0.0
 min_acquire_anchor_v_fraction: 0.20
 max_acquire_anchor_v_fraction: 0.80
-acquire_max_abs_horizontal_error: 0.40
+# Accept targets across the central 65% of the image width. Keep a small
+# margin inside the runtime gate so pixel jitter cannot acquire and then
+# immediately abort at the edge.
+acquire_max_abs_horizontal_error: 0.65
 acquire_frames: 6
 association_min_iou: 0.05
-association_max_anchor_distance_ratio: 0.10
+association_max_anchor_distance_ratio: 0.18
 association_min_area_ratio: 0.35
 association_max_area_ratio: 2.80
 pixel_filter_alpha: 0.35
@@ -82,7 +98,12 @@ min_approach_distance_m: 0.10
 min_vertical_progress_fraction: 0.06
 loss_confirm_frames: 5
 loss_confirm_min_sec: 0.20
-early_loss_max_frames: 10
+# The live detector can drop a locked target for more than ten consecutive
+# frames.  Hold the last visual command for at most 20 empty frames (about
+# 1.0 s at 20 Hz, or 0.20 m at the hard speed limit), then stop and allow
+# reacquisition until 60 total misses (about 3.0 s) before latching ABORT.
+early_loss_grace_frames: 20
+early_loss_max_frames: 60
 
 # Ackermann-compatible pixel controller.  With the current forward camera,
 # image-right requires ROS negative yaw, hence steering_sign=-1.
@@ -91,13 +112,22 @@ curvature_gain: 0.65
 horizontal_deadband: 0.025
 max_steering_angle_deg: 12.0
 max_runtime_horizontal_error: 0.70
-far_speed_mps: 0.15
-near_speed_mps: 0.06
+far_speed_mps: 0.20
+near_speed_mps: 0.20
 slow_start_fraction: 0.65
 near_start_fraction: 0.82
 lateral_slowdown_error: 0.45
 minimum_lateral_speed_scale: 0.35
-max_linear_acceleration_mps2: 0.20
+# Two live M2 runs showed that both a 0.0525 m/s shaped command and the later
+# 0.12 m/s minimum can turn the front wheel without starting sustained chassis
+# motion (the 0.12 m/s run accumulated only 0.0106 m in three seconds).  Use
+# the 0.20 m/s command already proven to start this chassis during straight-line
+# calibration.  Distance, steering, lease and absolute-time limits remain active.
+approach_min_command_speed_mps: 0.20
+# At the 20 Hz control rate this reaches the low 0.20 m/s hard speed limit in
+# one tick. A slow ramp is ineffective on the physical chassis because every
+# intermediate command remains below its measured start deadband.
+max_linear_acceleration_mps2: 4.00
 max_curvature_rate_per_sec: 0.80
 max_approach_distance_m: 6.0
 approach_no_motion_timeout_sec: 3.0
@@ -113,7 +143,7 @@ settle_speed_mps: 0.03
 settle_confirm_sec: 0.30
 settle_timeout_sec: 3.0
 preblind_max_displacement_m: 0.05
-blind_speed_mps: 0.08
+blind_speed_mps: 0.20
 blind_distance_m: 0.50
 blind_hard_distance_m: 0.55
 blind_timeout_sec: 12.0

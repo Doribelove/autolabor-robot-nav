@@ -1,0 +1,20 @@
+<launch>
+  <!-- The GUI is optional and does not start or replace the existing bringup stack. -->
+  <arg name="enable_rviz" default="true"/>
+  <arg name="start_gps_error_monitor" default="true"/>
+  <arg name="rviz_config"
+       default="$(find autolabor_operator_gui)/config/operator_navigation.rviz"/>
+
+  <node pkg="autolabor_operator_gui"
+        type="autolabor_operator_gui_node"
+        name="autolabor_operator_gui"
+        output="screen"
+        required="true">
+    <param name="enable_rviz" value="$(arg enable_rviz)"/>
+    <param name="rviz_config" value="$(arg rviz_config)"/>
+  </node>
+
+  <!-- This monitor tolerates missing odometry and simply waits for samples. -->
+  <include if="$(arg start_gps_error_monitor)"
+           file="$(find robot_diagnostics)/launch/gps_static_error_monitor.launch"/>
+</launch>

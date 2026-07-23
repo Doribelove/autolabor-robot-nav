@@ -1,0 +1,35 @@
+# ROS camera_info_manager calibration converted from camera_pinhole_my.yaml.
+# The source uses the FAST-LIVO2/rpg_vikit Pinhole schema, whose
+# cam_d0..cam_d3 entries map to OpenCV k1, k2, p1, p2.
+# Keep this calibration only with the same camera, lens and focus setting.
+image_width: 1280
+image_height: 1024
+camera_name: fod_camera
+
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [1317.351870191406, 0.0, 620.0427501216508,
+         0.0, 1317.2541565758393, 528.0745237498298,
+         0.0, 0.0, 1.0]
+
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.08084581801278319, 0.15604196538205564,
+         -0.0009972275285411304, 0.0003369430849212756, 0.0]
+
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1.0, 0.0, 0.0,
+         0.0, 1.0, 0.0,
+         0.0, 0.0, 1.0]
+
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [1317.351870191406, 0.0, 620.0427501216508, 0.0,
+         0.0, 1317.2541565758393, 528.0745237498298, 0.0,
+         0.0, 0.0, 1.0, 0.0]

@@ -1,0 +1,45 @@
+# The node itself is only started when the dedicated launch argument is true.
+enabled: true
+monitor_only: false
+
+image_topic: /fod_camera/image_raw
+get_controls_service: /fod_camera/driver/get_imaging_controls
+set_controls_service: /fod_camera/driver/set_imaging_controls
+control_rate_hz: 2.0
+image_timeout_sec: 1.0
+settle_cycles: 2
+max_sample_width: 320
+
+# Ignore the upper image area, which is commonly sky/window/background. Tune
+# these fractions after the camera is mounted so that this ROI covers the road.
+roi_x_min: 0.05
+roi_x_max: 0.95
+roi_y_min: 0.25
+roi_y_max: 1.0
+
+target_median: 115.0
+median_tolerance: 8.0
+dark_threshold: 5
+bright_threshold: 250
+max_dark_fraction: 0.08
+max_bright_fraction: 0.02
+
+# If both tails clip, exposure alone cannot solve the scene. The controller
+# holds its setting (or leaves native auto active) and reports a warning.
+dynamic_range_dark_fraction: 0.08
+dynamic_range_bright_fraction: 0.02
+sharpness_warn_threshold: 45.0
+color_mean_spread_warn: 45.0
+
+controller_gain: 0.60
+max_exposure_step_ratio: 1.35
+
+# 5 ms limits motion blur on a moving robot. Analogue gain is only raised after
+# exposure reaches this cap, and is removed before exposure is shortened.
+exposure_min_us: 200.0
+exposure_max_us: 5000.0
+gain_min: 0.0
+gain_max: 12.0
+gain_step: 0.5
+
+restore_auto_on_shutdown: true

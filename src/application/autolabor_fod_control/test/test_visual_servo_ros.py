@@ -46,9 +46,11 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.travel_m = 0.0
         self.command = Twist()
         self.minimum_angular_command = 0.0
+        self.maximum_angular_command = 0.0
         self.maximum_linear_command = 0.0
         self.loss_pose = None
         self.loss_odom_release_monotonic = None
+        self.detection_frame_count = 0
         self.saw_sync_wait = False
         self.latest_reason = ""
         self.freeze_wheel_after_loss = (
@@ -136,6 +138,9 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             self.command = msg
             self.minimum_angular_command = min(
                 self.minimum_angular_command, float(msg.angular.z)
+            )
+            self.maximum_angular_command = max(
+                self.maximum_angular_command, float(msg.angular.z)
             )
             self.maximum_linear_command = max(
                 self.maximum_linear_command, float(msg.linear.x)
@@ -239,8 +244,17 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         dt = min(0.10, max(0.0, now_monotonic - self.last_tick))
         self.last_tick = now_monotonic
         with self.lock:
-            linear_x = float(self.command.linear.x)
-            angular_z = float(self.command.angular.z)
+            commanded_linear_x = float(self.command.linear.x)
+            commanded_angular_z = float(self.command.angular.z)
+            # Model both physical M2 observations: 0.12 m/s can turn the front
+            # wheel yet fails to produce sustained odometry, while 0.20 m/s
+            # has already started the same chassis in straight calibration.
+            if 0.0 < abs(commanded_linear_x) < 0.20:
+                linear_x = 0.0
+                angular_z = 0.0
+            else:
+                linear_x = commanded_linear_x
+                angular_z = commanded_angular_z
             self.yaw += angular_z * dt
             self.x += linear_x * math.cos(self.yaw) * dt
             self.y += linear_x * math.sin(self.yaw) * dt
@@ -308,10 +322,30 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         message.model_sha256 = MODEL_SHA
         message.model_task = "detect"
         message.inference_ms = 20.0
+        self.detection_frame_count += 1
         visible = travel < 0.50
-        if visible:
+        off_center_case = (
+            self._testMethodName
+            == "test_off_center_target_is_acquired_and_steered_toward"
+        )
+        # After the six-frame acquisition, remove twelve consecutive frames.
+        # The robot must start through its physical deadband, retain the last
+        # visual command, and associate the substantially moved target when it
+        # returns. Later isolated drops exercise the same hold path repeatedly.
+        simulate_dropout = off_center_case and travel < 0.20 and (
+            8 <= self.detection_frame_count <= 19
+            or (
+                self.detection_frame_count > 19
+                and self.detection_frame_count % 8 == 0
+            )
+        )
+        if visible and not simulate_dropout:
             q = 0.50 + 0.42 * min(1.0, travel / 0.35)
-            u = CX + 80.0 * max(0.0, 1.0 - travel / 0.25)
+            if off_center_case:
+                initial_offset = -0.58 * 0.5 * WIDTH
+            else:
+                initial_offset = 80.0
+            u = CX + initial_offset * max(0.0, 1.0 - travel / 0.25)
             v = q * (HEIGHT - 1)
             item = FodDetection()
             item.class_id = 0
@@ -389,6 +423,7 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.assertTrue(states, "no controller states were published")
         self.assertEqual(states[-1], "COMPLETE", "state trace: %r" % states)
         self.assertIn("APPROACH", states)
+        self.assertNotIn("REACQUIRE", states)
         self.assertIn("LOSS_CONFIRM", states)
         self.assertIn("STEER_SETTLE", states)
         self.assertIn("BLIND_ADVANCE", states)
@@ -409,6 +444,21 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.assertGreaterEqual(forward, 0.495)
         self.assertLessEqual(forward, 0.55)
         self.assertLessEqual(abs(lateral), 0.08)
+
+    def test_off_center_target_is_acquired_and_steered_toward(self):
+        self._enable_controller()
+        terminal = self._wait_for_terminal_state(25.0)
+
+        with self.lock:
+            states = list(self.states)
+            maximum_angular = self.maximum_angular_command
+            maximum_linear = self.maximum_linear_command
+        self.assertEqual(terminal, "COMPLETE", "state trace: %r" % states)
+        self.assertIn("APPROACH", states)
+        self.assertNotIn("REACQUIRE", states)
+        self.assertGreater(maximum_linear, 0.0)
+        # An image-left target must produce positive ROS yaw while advancing.
+        self.assertGreater(maximum_angular, 1e-4)
 
     def test_stale_wheel_feedback_cannot_authorize_blind_motion(self):
         self._enable_controller()

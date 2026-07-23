@@ -1,8 +1,121 @@
 # Current GPS Development Handoff
 
-Date: 2026-07-16
+Date: 2026-07-23
 
 This file records the current GPS navigation development state for the Autolabor M2 robot in `/home/robot/robot_ws`.
+
+## 2026-07-23 Live Heading and Near-Goal Latch
+
+A straight-line steering calibration observed a transient dual-antenna heading
+change of about `23.99deg/s` while chassis yaw rate was only about
+`0.015deg/s`, wheel angle was approximately `0.021deg`, and the driven path
+remained straight. This is treated as a GNSS heading outlier rather than real
+body rotation.
+
+An initial jump guard was added for this observation, but live navigation then
+showed that a small persistent mismatch could leave it holding an old yaw for
+minutes; one recorded run grew to roughly `140deg` disagreement and TEB began
+oscillating. Both `cruise` and `obstacle` therefore now default
+`GPS_HEADING_JUMP_GUARD_ENABLED=false`. Navigation directly uses each fresh,
+quality-valid dual-antenna heading. The old guard remains only as an explicit
+diagnostic opt-in and must not be enabled for the normal `2.7m/s cruise` run.
+
+The RViz goal from the affected run remained fixed in `camera_init`; the
+apparent moving target came from the incorrect live robot orientation/TF, not
+from mutation of the target `PoseStamped`.
+
+The same run exposed a separate terminal-control defect: after a one-cycle
+hard stop at `0.17m`, GPS noise reported `0.21m` and the old action moved again.
+The goal limiter now latches a complete stop on first entry into `0.20m`; only
+a new `/move_base/goal` releases it. A bounded final-approach fence also arms
+inside `1.0m` and latches stopped if the action takes more than `15s` or moves
+`0.5m` farther away than its closest point. This prevents indefinite roaming
+around a goal even if TEB never reaches a terminal action state.
+
+## 2026-07-22 Strict Dual-Antenna Startup Gate
+
+After the FAST_LIO libusb fix, live GPS bringup passed CAN, Livox,
+`/cloud_registered_body`, `/scan`, and chassis `/odom`. GPS then advertised
+all topics but correctly withheld `/gps/odom`: every `UNIHEADINGA` sample was
+`SOL_COMPUTED + NARROW_FLOAT`, while production requires `NARROW_INT`. A
+subsequent direct sample reported a `0.5715m` baseline, `0.7200deg` heading
+standard deviation, 23 tracked satellites and 15 solution satellites. This is
+a real float ambiguity solution, not a missing serial stream.
+
+Bringup now waits up to `120s` for strict GPS odometry instead of failing after
+`15s`, prints the required heading quality in the main terminal, and explains
+that persistent `NARROW_FLOAT` is intentionally rejected. Rejected-heading
+logs now include baseline and heading standard deviation. Do not weaken the
+default gate for the `2.7m/s cruise` run; if float persists outdoors, inspect
+both antenna views/cables and the receiver's heading/fixed-baseline setup.
+
+## 2026-07-22 FAST_LIO / Hikrobot MVS libusb Isolation
+
+Installing Hikrobot MVS added `/opt/MVS/lib/64` to the global loader cache.
+Its bundled `libusb-1.0.so.0` lacks `libusb_set_option`, which PCL 1.10 needs,
+so `fastlio_mapping` exited with code 127 before publishing
+`/cloud_registered_body`. Navigation bringup now prepends
+`/lib/x86_64-linux-gnu` only for the FAST_LIO roslaunch child. The camera and
+all other processes keep their original environment, so navigation and the
+Hikrobot camera can run concurrently with the original commands. The one-shot
+CAN preflight also runs directly through `rosrun`, avoiding the misleading
+`REQUIRED process ... has died` message after a successful check.
+
+Concurrent startup:
+
+```bash
+./scripts/bringup.sh gps 2.7 cruise
+# In a second sourced terminal, after bringup is ready:
+roslaunch hikrobot_mvs_camera fod_camera.launch
+```
+
+## 2026-07-22 GPS Antenna Lateral Offset
+
+The confirmed main GNSS antenna position in `base_link` is now
+`x=-0.30m`, `y=-0.05m`: 0.30m behind and 0.05m to the right of the chassis
+center. GPS localization subtracts the yaw-rotated antenna offset, so the
+published chassis-center pose is corrected 0.30m forward and 0.05m left from
+the antenna position in the vehicle frame.
+
+## 2026-07-17 Qt Operator Console
+
+The first optional Qt5/librviz operator console is under
+`src/application/autolabor_operator_gui`, with structured RabbitMQ messages in
+`src/application/autolabor_operator_msgs`. It displays ROS, CAN, GNSS, heading,
+laser, navigation and RabbitMQ health; GPS/local pose and existing static-error
+metrics; an embedded RViz; cached remote targets; and event logs. The first
+test controls are an 8m forward GPS goal, move_base cancellation, static-error
+reset and start/stop of the existing `mode1` rosbag script. Camera/YOLO and
+cleaning-device pages are placeholders for later ROS interfaces.
+
+The console is deliberately a sidecar and never publishes `/cmd_vel`. Missing
+robot-side nodes or RabbitMQ only produce offline cards. RabbitMQ connection
+failures keep the bridge ROS services and status publisher alive. The bridge
+still supports the original terminal `1/2` confirmation commands, and now also
+publishes latched `/rabbitmq_bridge/status` and
+`/rabbitmq_bridge/latest_target`, with bounded Trigger services at
+`/rabbitmq_bridge/publish_latest` and `/rabbitmq_bridge/clear_latest`.
+
+Recommended launch without a duplicate RViz window:
+
+```bash
+NAV_START_RVIZ=false ./scripts/bringup.sh gps 0.3 cruise
+./scripts/operator_gui.sh
+```
+
+`NAV_START_RVIZ` defaults to `true`, so the original standalone-RViz bringup
+continues unchanged when the GUI is not used.
+
+## 2026-07-17 GPS Cruise Costmap Reduction
+
+The GPS `cruise` overlay now reduces the local rolling costmap from
+`20 x 20m` to `16 x 16m` at the unchanged `0.1m` resolution. This changes the
+grid from `200 x 200` to `160 x 160` cells, a 36% reduction in cells per layer.
+TEB only transforms global-plan points inside 85% of the costmap half-width,
+so the theoretical local-plan boundary is `6.8m`; cruise explicitly uses a
+`6.5m` lookahead to retain boundary margin. An 8m GPS goal remains valid and is
+followed as successive local segments while the rolling window moves. The
+`obstacle` overlay remains `24 x 24m` with a `10m` TEB lookahead.
 
 ## 2026-07-16 GPS Test Task Link Fix
 
@@ -97,20 +210,22 @@ The corrective set for the next controlled run is:
   chassis-limited motion or an explicit zero command.
 - The recorder includes both command topics, raw CAN, controller monitor,
   timeout, wheel speeds, and steering angle.
-- The goal-speed limiter uses a `0.20m` hard-stop radius strictly inside the
-  GPS planner's `0.30m` success radius, avoiding a boundary deadlock where the
-  relay could stop the vehicle before TEB's strict goal check succeeded.
+- The goal-speed limiter uses a `0.20m` arrival radius strictly inside the GPS
+  planner's `0.30m` success radius. Entry is stop-latched against GPS noise;
+  the `1.0m` final-approach fence also latches stopped after `15s` or `0.5m`
+  regression from the closest point.
 - Goal cancellation and terminal states are GoalID-aware and stop-latched;
   final timer publishing is serialized with stops. Missing/stale/non-finite
   GPS odometry during an active goal fails to a complete zero command.
 - Clean restart removes any old goal-speed limiter, and startup requires one
   and only one publisher on each command topic.
 
-The full workspace builds. Relevant tests currently pass: 22 GPS motion/heading
-tests, 34 goal-limiter/profile/bringup tests, 12 M2 command-safety tests, and
-6 TEB tests (74 total). These new
-binaries still require a bringup restart under software emergency before the
-next road test.
+The full workspace builds. The isolated `gps_module` and `robot_bringup`
+package run for this change passes 79 tests: 32 GPS motion/heading tests and
+47 goal-limiter/profile/bringup tests. The previously passing 12 M2
+command-safety and 6 TEB tests were not rerun for this Python/launch-only
+change. The running bringup still requires a restart under software emergency
+before the next road test.
 
 ## Current Goal
 
@@ -211,10 +326,11 @@ New messages replace the in-memory saved point.
 GPS_PORT=/dev/ttyUSB1
 GPS_BAUD_RATE=115200
 GPS_HEADING_SOURCE=dual_antenna
+GPS_ODOM_STARTUP_TIMEOUT=120.0
 GPS_HEADING_REQUIRED_SOLUTION_STATUS=SOL_COMPUTED
 GPS_HEADING_REQUIRED_POSITION_TYPES=NARROW_INT
 GPS_ANTENNA_OFFSET_X=-0.3
-GPS_ANTENNA_OFFSET_Y=0.0
+GPS_ANTENNA_OFFSET_Y=-0.05
 GPS_USE_WHEEL_ODOM=false
 GPS_USE_WHEEL_TWIST=true
 GPS_WHEEL_TWIST_TIMEOUT=0.5
@@ -229,7 +345,7 @@ GPS_GOAL_MIN_APPROACH_SPEED=0.15
 GPS_GOAL_HARD_STOP_DISTANCE=0.2
 ```
 
-The main GNSS antenna is treated as mounted at `x=-0.3m`, `y=0.0m` in `base_link`. The localization node compensates this offset so `/gps/odom` represents the chassis center. Position and yaw remain GNSS-based by default, while `/gps/odom.twist` uses fresh signed chassis `/odom` linear and angular velocity without enabling wheel-pose integration. The M2 driver timestamps `/odom` with the oldest velocity/wheel/steering measurement used to form that twist and stops publishing when any required feedback is stale. The GPS node checks that source timestamp rather than callback receipt time. If chassis twist is older than `0.5s`, it falls back to RMC course/speed and dual-antenna heading rate; cached RMC motion is discarded after `1.0s`.
+The main GNSS antenna is treated as mounted at `x=-0.3m`, `y=-0.05m` in `base_link`. The localization node compensates this offset so `/gps/odom` represents the chassis center. Position and yaw remain GNSS-based by default, while `/gps/odom.twist` uses fresh signed chassis `/odom` linear and angular velocity without enabling wheel-pose integration. The M2 driver timestamps `/odom` with the oldest velocity/wheel/steering measurement used to form that twist and stops publishing when any required feedback is stale. The GPS node checks that source timestamp rather than callback receipt time. If chassis twist is older than `0.5s`, it falls back to RMC course/speed and dual-antenna heading rate; cached RMC motion is discarded after `1.0s`.
 
 ## GPS Goal Conversion
 
@@ -354,13 +470,23 @@ config/teb_profiles/gps_obstacle.yaml
 `cruise` intent and key values:
 
 - Open roads, campus roads, and long straight segments.
+- Use a `16 x 16m` local rolling costmap and a `6.5m` TEB lookahead. The
+  theoretical 85%-of-half-width boundary is `6.8m`.
+- Keep `planner_frequency=0.0` while controlling so the global reference line
+  is not rebuilt once per second from an already-offset vehicle pose. New
+  goals and planning failures still trigger planning. `obstacle` remains at
+  `1.0Hz`.
+- Use `position_filter_alpha=0.70` in cruise only. At a 10Hz position update
+  and 2.7m/s, the first-order filter's constant-motion lag falls from about
+  `0.81m` at alpha 0.25 to about `0.12m`. Obstacle/direct launch stays at 0.25.
 - Raise longitudinal acceleration (`acc_lim_x=2.5`).
-- Permit efficient Ackermann turns at the default `1.5m/s` cruise speed
-  (`max_vel_theta=1.3`, `acc_lim_theta=0.8`, `weight_acc_lim_theta=200`).
-  With the `1.2m` minimum turning radius, the required yaw rate is
-  `1.5 / 1.2 = 1.25rad/s`; the small remaining margin covers TEB's soft
-  constraint without changing the hardware turning-radius limit.
-- Favor time and straight/short paths (`weight_optimaltime=6`, `weight_shortest_path=8`, `weight_viapoint=12`).
+- Damp high-speed lateral recovery with `control_look_ahead_poses=2`,
+  `global_plan_viapoint_sep=1.5`, `max_vel_theta=0.85`,
+  `acc_lim_theta=0.45`, and `weight_acc_lim_theta=250`. A genuinely tight bend
+  can make TEB reduce linear speed instead of commanding a sharp correction at
+  full cruise speed.
+- Retain moderate time/path attraction without snapping across the reference
+  (`weight_optimaltime=4`, `weight_shortest_path=5`, `weight_viapoint=6`).
 - Disable homotopy-class candidates to avoid needless topology changes in open space.
 - `weight_kinematics_forward_drive=100` is now applied by this fork's carlike
   graph. It is a strong forward preference, not a hard prohibition of reverse.
@@ -401,9 +527,11 @@ After restarting GPS navigation, verify:
 
 ```bash
 rosparam get /move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel
+rosparam get /move_base/planner_frequency
 rosparam get /move_base/TebLocalPlannerROS/max_vel_theta
 rosparam get /move_base/TebLocalPlannerROS/acc_lim_x
 rosparam get /move_base/TebLocalPlannerROS/acc_lim_theta
+rosparam get /move_base/TebLocalPlannerROS/control_look_ahead_poses
 rosparam get /move_base/TebLocalPlannerROS/min_turning_radius
 rosparam get /move_base/TebLocalPlannerROS/global_plan_viapoint_sep
 rosparam get /move_base/TebLocalPlannerROS/max_global_plan_lookahead_dist
@@ -424,6 +552,7 @@ rosparam get /move_base/TebLocalPlannerROS/costmap_obstacles_behind_robot_dist
 rosparam get /move_base/TebLocalPlannerROS/weight_kinematics_forward_drive
 rosparam get /move_base/global_costmap/width
 rosparam get /move_base/global_costmap/resolution
+rosparam get /gps_localization/position_filter_alpha
 ```
 
 Expected for `cruise`:
@@ -433,10 +562,10 @@ False
 1.3
 2.5
 0.8
-1.2
+1.35
 1.0
-8.0
-20.0
+6.5
+16.0
 8.0
 12.0
 False
@@ -549,13 +678,14 @@ GPS navigation inserts `gps_goal_speed_limiter.py` between TEB and the M2 driver
 
 The node tracks `/move_base/current_goal`, `/move_base/goal`, `/move_base/status`, and `/gps/odom`. TEB's GPS `xy_goal_tolerance=0.3m` is independent of the limiter's `hard_stop_distance=0.2m`. The default forward cap is based on `v = sqrt(2 * 0.4 * (distance - 0.2))`, with a `0.15m/s` minimum outside the hard-stop radius. At `2.0m/s`, limiting begins about `5.2m` from the goal center; at `1.5m/s`, about `3.0m`.
 
-Outside `0.2m`, the limiter changes only an excessive positive `linear.x`; whenever it reduces forward speed, it scales `angular.z` by the same ratio to preserve the Ackermann trajectory curvature already checked by TEB. Lower/zero obstacle commands and negative recovery velocity pass unchanged. At or inside `0.2m`, it publishes a full zero `Twist` as a safety fallback. If navigation commands stop for `0.5s`, the relay publishes zero instead of holding the last command. `/move_base/cancel` follows actionlib `GoalID` matching: a specific ID stops only that active goal, an empty ID with zero stamp cancels all current goals, and an empty ID with a timestamp cancels goals at or before that time. Stopping or terminal `/move_base/status` states also stop the relay; a genuinely new action goal releases it. Timer and cancellation output are serialized so an old nonzero timer command cannot overwrite a cancellation stop.
+Outside `0.2m`, the limiter changes only an excessive positive `linear.x`; whenever it reduces forward speed, it scales `angular.z` by the same ratio to preserve the Ackermann trajectory curvature already checked by TEB. Lower/zero obstacle commands and negative recovery velocity pass unchanged. At or inside `0.2m`, it latches a full zero `Twist`, so later GPS jitter cannot restart that action. Once distance first falls within `1.0m`, the final approach is also bounded to `15s` and `0.5m` regression from the closest point; violating either condition latches stopped until a new goal. If navigation commands stop for `0.5s`, the relay publishes zero instead of holding the last command. `/move_base/cancel` follows actionlib `GoalID` matching: a specific ID stops only that active goal, an empty ID with zero stamp cancels all current goals, and an empty ID with a timestamp cancels goals at or before that time. Stopping or terminal `/move_base/status` states also stop the relay; a genuinely new action goal releases it. Timer and cancellation output are serialized so an old nonzero timer command cannot overwrite a cancellation stop.
 
 Runtime tuning:
 
 ```bash
 GPS_GOAL_COMFORTABLE_DECEL=0.3 ./scripts/bringup.sh gps 2.0 cruise
 GPS_XY_GOAL_TOLERANCE=0.3 GPS_GOAL_HARD_STOP_DISTANCE=0.2 ./scripts/bringup.sh gps
+GPS_GOAL_NEAR_COMMIT_DISTANCE=1.0 GPS_GOAL_NEAR_TIMEOUT=15.0 GPS_GOAL_NEAR_MAX_REGRESSION=0.5 ./scripts/bringup.sh gps 2.0 cruise
 GPS_GOAL_SLOWDOWN_ENABLED=false ./scripts/bringup.sh gps 2.0 cruise
 ```
 
@@ -608,8 +738,8 @@ local_costmap update_frequency: 10 Hz
 Current local map / laser obstacle settings:
 
 ```text
-local_costmap width: 20.0 (cruise), 24.0 (obstacle)
-local_costmap height: 20.0 (cruise), 24.0 (obstacle)
+local_costmap width: 16.0 (cruise), 24.0 (obstacle)
+local_costmap height: 16.0 (cruise), 24.0 (obstacle)
 obstacle_range: 10.0
 raytrace_range: 11.0
 scan range_max: 12.0
@@ -707,9 +837,25 @@ bash -n scripts/bringup.sh
 git diff --check
 ```
 
-There are 56 directly added regression cases: 14 GPS motion/timestamp cases,
+The Qt/RabbitMQ increment was also validated with the package whitelist
+explicitly cleared, so the complete 69-package workspace remains buildable:
+
+```bash
+catkin_make -DCATKIN_WHITELIST_PACKAGES='' -j2
+python3 -m unittest -v src/scripts/robot_bringup/test/test_teb_profile_tuning.py
+python3 -m py_compile scripts/rabbitmq_gps_goal_bridge.py
+bash -n scripts/bringup.sh scripts/operator_gui.sh
+```
+
+Additional smoke tests covered GUI startup with a fresh master and no robot
+nodes, absence of any GUI `/cmd_vel` publisher, clean required-launch shutdown,
+legacy RViz default/disabled selection, and RabbitMQ retry/status/services with
+an unreachable broker.
+
+There are 61 directly added regression cases: 16 GPS motion/timestamp cases,
 17 limiter/cancel cases, 10 recovery geometry/interrupt cases, 9 obstacle
-profile/efficiency cases, and 6 long-range costmap cases. The user reported a
+profile/efficiency cases, 6 long-range costmap cases, and 3 startup/runtime
+isolation cases. The user reported a
 successful `2.2m/s obstacle` run before this efficiency increment; the new
 acceleration, reverse-speed, and recovery-speed defaults still require the
 staged acceptance above.

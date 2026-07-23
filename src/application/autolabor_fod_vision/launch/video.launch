@@ -1,0 +1,20 @@
+<launch>
+  <arg name="video"/>
+  <arg name="fps" default="30.0"/>
+  <arg name="weights" default="/home/robot/robot_ws/src/yolo/yolo11n.pt"/>
+  <arg name="detector_python" default="/home/robot/python_env/fod_yolo/bin/python3"/>
+  <arg name="loop" default="true"/>
+
+  <include file="$(find autolabor_fod_vision)/launch/perception.launch">
+    <arg name="source_type" value="video"/>
+    <arg name="source" value="$(arg video)"/>
+    <arg name="weights" value="$(arg weights)"/>
+    <arg name="detector_python" value="$(arg detector_python)"/>
+    <arg name="width" value="0"/>
+    <arg name="height" value="0"/>
+    <arg name="fps" value="$(arg fps)"/>
+    <arg name="loop" value="$(arg loop)"/>
+    <arg name="smoke_test_only" value="true"/>
+    <arg name="enable_projection" value="false"/>
+  </include>
+</launch>

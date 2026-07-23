@@ -180,7 +180,7 @@ RViz 显示电子围栏：
 
   GPS / GNSS：/dev/ttyUSB1
   无人车底盘 CAN 控制：/dev/ttyUSB0
-  主 GNSS 天线安装位置：base_link 坐标系 x=-0.3m, y=0.0m
+  主 GNSS 天线安装位置：base_link 坐标系 x=-0.3m, y=-0.05m
 
 bringup.sh 当前默认值就是：
 
@@ -188,7 +188,7 @@ bringup.sh 当前默认值就是：
   CAN_PORT=/dev/ttyUSB0
   GPS_BAUD_RATE=115200
   GPS_ANTENNA_OFFSET_X=-0.3
-  GPS_ANTENNA_OFFSET_Y=0.0
+  GPS_ANTENNA_OFFSET_Y=-0.05
 
 四、我实际运行模式1时的发现
 
@@ -245,7 +245,7 @@ bringup.sh 当前默认值就是：
      GPS_HEADING_REQUIRED_SOLUTION_STATUS=SOL_COMPUTED
      GPS_HEADING_REQUIRED_POSITION_TYPES=NARROW_INT
      GPS_ANTENNA_OFFSET_X=-0.3
-     GPS_ANTENNA_OFFSET_Y=0.0
+     GPS_ANTENNA_OFFSET_Y=-0.05
      GPS_HEADING_MIN_SPEED=0.05
      GPS_MIN_COURSE_DISTANCE=0.2
 
@@ -253,7 +253,7 @@ bringup.sh 当前默认值就是：
 
      base_position = antenna_position - R(yaw) * antenna_offset
 
-   因为当前主天线在 x=-0.3m，发布给导航的 base_link 位置会在主天线前方 0.3m。
+   因为当前主天线在 x=-0.3m、y=-0.05m，发布给导航的 base_link 位置会在主天线前方 0.3m、左方 0.05m。
 
    如果双天线航向消息超时或质量不满足要求，GPS 模式会保持最近一次可用 yaw，不会在默认配置下退回低速不稳定的 GPS course。
 
@@ -400,7 +400,7 @@ bringup.sh 当前默认值就是：
    /gps_localization/heading_required_solution_status = SOL_COMPUTED
    /gps_localization/heading_required_position_types = NARROW_INT
    /gps_localization/gps_antenna_offset_x = -0.3
-   /gps_localization/gps_antenna_offset_y = 0.0
+   /gps_localization/gps_antenna_offset_y = -0.05
    /gps_localization/heading_min_speed = 0.05
    /gps_localization/min_course_distance = 0.2
 

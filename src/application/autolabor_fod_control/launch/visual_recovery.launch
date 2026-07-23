@@ -2,11 +2,14 @@
   <!-- Motion stays impossible unless this is explicitly set true and the
        operator subsequently calls /fod_visual_servo/set_enabled. -->
   <arg name="allow_motion" default="false"/>
+  <!-- Explicit attended-remote override.  Default false keeps every CAN/VCU
+       emergency and command-timeout gate enabled. -->
+  <arg name="external_estop_override" default="false"/>
   <arg name="config"
        default="$(find autolabor_fod_control)/config/visual_servo.yaml"/>
   <arg name="blind_distance_m" default="0.50"/>
   <arg name="target_u_offset_px" default="0.0"/>
-  <arg name="min_confidence" default="0.45"/>
+  <arg name="min_confidence" default="0.30"/>
 
   <node pkg="autolabor_fod_control"
         type="fod_visual_servo_node.py"
@@ -16,6 +19,8 @@
         required="true">
     <rosparam command="load" file="$(arg config)"/>
     <param name="allow_motion" value="$(arg allow_motion)"/>
+    <param name="external_estop_override"
+           value="$(arg external_estop_override)"/>
     <param name="blind_distance_m" value="$(arg blind_distance_m)"/>
     <param name="target_u_offset_px" value="$(arg target_u_offset_px)"/>
     <param name="min_confidence" value="$(arg min_confidence)"/>

@@ -1,0 +1,79 @@
+<launch>
+  <!--
+    The camera driver is expected to be running already by default. Set
+    start_camera:=true only when /fod_camera/driver is not running.
+  -->
+  <arg name="start_camera" default="false"/>
+  <arg name="serial_number" default="DA7535899"/>
+  <arg name="acquisition_frame_rate" default="20.0"/>
+
+  <!-- Optional ROI-based exposure/gain controller; disabled preserves the
+       existing camera behaviour. -->
+  <arg name="enable_image_quality_controller" default="false"/>
+  <arg name="image_quality_monitor_only" default="false"/>
+  <arg name="image_quality_target_median" default="115.0"/>
+  <arg name="image_quality_exposure_max_us" default="5000.0"/>
+
+  <arg name="weights"
+       default="/home/robot/robot_ws/src/yolo/fod_yolo11n_img640_e300_orig/weights/best.pt"/>
+  <arg name="expected_model_sha256"
+       default="7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500"/>
+  <arg name="detector_python"
+       default="/home/robot/python_env/fod_yolo/bin/python3"/>
+  <arg name="device" default="auto"/>
+  <arg name="image_size" default="640"/>
+  <arg name="confidence" default="0.25"/>
+  <arg name="iou" default="0.45"/>
+  <arg name="max_detections" default="100"/>
+  <arg name="required_class_names"
+       default="Metal,Soft,Plastic,Wire,Tool,w"/>
+
+  <!-- Keep metric projection off until the physical camera extrinsic is known. -->
+  <arg name="enable_projection" default="false"/>
+  <arg name="base_frame" default="base_link"/>
+  <arg name="tracking_frame" default="camera_init"/>
+
+  <group if="$(arg start_camera)">
+    <include file="$(find hikrobot_mvs_camera)/launch/fod_camera.launch">
+      <arg name="serial_number" value="$(arg serial_number)"/>
+      <arg name="acquisition_frame_rate"
+           value="$(arg acquisition_frame_rate)"/>
+    </include>
+  </group>
+
+  <group if="$(arg enable_image_quality_controller)">
+    <node pkg="autolabor_fod_vision"
+          type="fod_image_quality_controller_node.py"
+          name="fod_image_quality_controller"
+          output="screen"
+          respawn="false">
+      <rosparam command="load"
+                file="$(find autolabor_fod_vision)/config/image_quality_controller.yaml"/>
+      <param name="enabled" value="true"/>
+      <param name="monitor_only" value="$(arg image_quality_monitor_only)"/>
+      <param name="target_median"
+             value="$(arg image_quality_target_median)"/>
+      <param name="exposure_max_us"
+             value="$(arg image_quality_exposure_max_us)"/>
+    </node>
+  </group>
+
+  <include file="$(find autolabor_fod_vision)/launch/perception.launch">
+    <arg name="start_source" value="false"/>
+    <arg name="weights" value="$(arg weights)"/>
+    <arg name="expected_model_sha256"
+         value="$(arg expected_model_sha256)"/>
+    <arg name="detector_python" value="$(arg detector_python)"/>
+    <arg name="device" value="$(arg device)"/>
+    <arg name="image_size" value="$(arg image_size)"/>
+    <arg name="confidence" value="$(arg confidence)"/>
+    <arg name="iou" value="$(arg iou)"/>
+    <arg name="max_detections" value="$(arg max_detections)"/>
+    <arg name="smoke_test_only" value="false"/>
+    <arg name="required_class_names" value="$(arg required_class_names)"/>
+    <arg name="enable_projection" value="$(arg enable_projection)"/>
+    <arg name="base_frame" value="$(arg base_frame)"/>
+    <arg name="tracking_frame" value="$(arg tracking_frame)"/>
+    <arg name="allowed_class_names" value="$(arg required_class_names)"/>
+  </include>
+</launch>
