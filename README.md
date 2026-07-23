@@ -8,6 +8,7 @@
 - `scripts/operator_gui.sh`：启动 Qt 操作与诊断台（内嵌 RViz）。
 - `scripts/keyboard_drive.sh`：只启动底盘和键盘遥控，用于底盘测试，不启动导航。
 - `scripts/rabbitmq_gps_goal_bridge.py`：RabbitMQ 到 ROS GPS 目标的桥接脚本。
+- `scripts/fod_mode.sh`：在 GPS 导航和视觉 FOD 回收之间做安全切换。
 - `src/application/autolabor_operator_gui/`：Qt5 主窗口、状态页和内嵌式 RViz。
 - `src/application/autolabor_operator_msgs/`：RabbitMQ 状态和远程目标的结构化 ROS 消息。
 - `src/scripts/robot_bringup/launch/`：CAN、Livox、FAST_LIO、GPS、Arena 导航的封装 launch。
@@ -150,8 +151,10 @@ FAST_LIO_GPS_YAW_OFFSET_DEG=10 ./scripts/bringup.sh fast_lio
 一阶滤波的稳态纵向滞后由约 `0.81m` 降为约 `0.12m`。全局规划频率设为
 `0Hz`，因此控制过程中沿用下发目标时生成的参考路线，不会每秒从已经偏移的
 车身位置重新画一条路线；收到新目标或规划失败时仍会重新规划。TEB 同时使用
-2 个轨迹位姿平均控制量，并把巡航角速度/角加速度限制为 `0.85rad/s` 和
-`0.45rad/s²`。这些设置不会增加途中停车条件；真正的急弯可能由 TEB 主动降速。
+2 个轨迹位姿平均控制量，并把持续巡航角速度限制为 `0.85rad/s`。转向建立角
+加速度使用 `0.70rad/s²`，比原来的 `0.45rad/s²` 更快建立有效曲率；同时保留
+`weight_acc_lim_theta=250`，强惩罚超过该边界的左右快速反转。直线行驶时角速度
+和角加速度均为零，因此不会降低满速直线效率。真正的急弯仍可能由 TEB 主动降速。
 `obstacle` 保留 `position_filter_alpha=0.25` 和 `planner_frequency=1Hz`，继续
 周期性适应障碍环境。
 
@@ -161,33 +164,50 @@ FAST_LIO_GPS_YAW_OFFSET_DEG=10 ./scripts/bringup.sh fast_lio
 GPS_TEB_PROFILE=obstacle ./scripts/bringup.sh gps 1.0
 ```
 
-#### 接近目标时平缓减速
+#### 终点控制：默认不额外限速
 
-GPS 模式默认在 TEB 和底盘之间启用目标减速器：
+GPS 模式默认在 TEB 和底盘之间保留 GPS 指令安全继电器，并由 GPS/FOD
+模式仲裁器独占底盘速度出口：
 
 ```text
-move_base/TEB -> /cmd_vel_navigation -> gps_goal_speed_limiter -> /cmd_vel -> m2_driver
+move_base/TEB
+  -> /cmd_vel_navigation
+  -> gps_goal_speed_limiter
+  -> /cmd_vel_gps
+  -> fod_navigation_mode
+  -> /cmd_vel
+  -> m2_driver
 ```
 
-它根据当前目标距离施加 `v ≤ sqrt(2 × a × 剩余距离)` 的前进速度上限，默认舒适减速度 `a=0.4m/s²`、TEB 到点容差 `0.3m`、减速器硬停半径 `0.2m`、最低接近速度 `0.15m/s`。硬停半径必须严格位于规划器成功半径内，避免减速器先停车、TEB 却因严格距离判断一直保持 `ACTIVE`。以 `2.0m/s` 行驶时，约在距目标中心 `5.2m` 开始逐步限速；以 `1.5m/s` 行驶时约在 `3.0m` 开始。
+`GPS_GOAL_SPEED_CAP_ENABLED=false` 是默认值。因此即使最终目标已经很近，
+继电器也不再根据目标距离压低 TEB 给出的正向速度，`linear.x` 和
+`angular.z` 原样通过。TEB 仍可能根据自己的轨迹和到点条件主动减速；这里关闭
+的是额外的 `sqrt(2ad)` 终点速度上限，并不是强制车辆保持恒速。
 
-这个限制只处理接近目标时仍然过高的正向线速度：
+速度上限关闭后，下列停车保护仍然有效：
 
-- TEB 为避障给出的更低速度或零速度立即通过。
-- 倒车恢复速度不限制。
-- 如果正向线速度被降低，`/cmd_vel.angular.z` 会按同一比例降低，保持阿克曼曲率，不会因为限速反而要求更大的前轮转角。
 - 收到匹配当前 GoalID 的 `/move_base/cancel` 或终止状态时立即锁存完整零速度；只有新的带身份 `/move_base/goal` 才能解除，延迟的旧取消或 `/move_base/current_goal` 不能误停、误解锁。
 - 首次进入目标中心 `0.2m` 后立即锁存完整零速度；后续 GPS 抖到阈值外也不会让旧目标重新起步。
 - 首次进入 `1.0m` 后启动终点围栏；超过 `15s` 仍未到达，或相对最近点退离 `0.5m`，立即锁存停车，避免在目标附近无限徘徊。
 - 当前目标期间 GPS odom 缺失、超时、坐标非有限或坐标系不一致时失效停车，不透传旧速度。
+- TEB 指令超过 `0.5s` 未更新时输出零速度；中间子目标仍绕过只属于最终目标的
+  `1.0m` 围栏和 `0.2m` 到点锁存。
 
-需要更柔和、提前更远减速时，减小舒适减速度，例如：
+如果之后需要恢复额外的舒适减速，可显式开启：
 
 ```bash
-GPS_GOAL_COMFORTABLE_DECEL=0.3 ./scripts/bringup.sh gps 2.0 cruise
+GPS_GOAL_SPEED_CAP_ENABLED=true \
+GPS_GOAL_COMFORTABLE_DECEL=0.4 \
+./scripts/bringup.sh gps 2.0 cruise
 ```
 
-终点围栏也可按现场 GPS 精度调整：
+开启后，继电器按
+`v ≤ sqrt(2 × a × (目标距离 - 0.2))` 限制过高的正向速度，并同步缩放
+`angular.z` 以保持阿克曼曲率。默认 `a=0.4m/s²`、最低接近速度
+`0.15m/s`；`1.5m/s`、`2.0m/s` 和 `2.7m/s` 分别约在距目标
+`3.0m`、`5.2m` 和 `9.3m` 时开始介入。倒车和 TEB 已给出的更低速度不受影响。
+
+终点围栏可按现场 GPS 精度调整：
 
 ```bash
 GPS_GOAL_NEAR_COMMIT_DISTANCE=1.0 \
@@ -196,11 +216,34 @@ GPS_GOAL_NEAR_MAX_REGRESSION=0.5 \
 ./scripts/bringup.sh gps 2.7 cruise
 ```
 
-如需现场对比旧行为，可临时关闭：
+`GPS_GOAL_SLOWDOWN_ENABLED` 是兼容保留的整个继电器总开关。通常应保持
+`true`；设为 `false` 会同时移除上述到点锁存、超时、取消和近终点围栏保护。
+它只适合诊断，不是关闭终点限速所需的设置。
+
+#### GPS 导航中切换到视觉 FOD 回收
+
+`./scripts/bringup.sh gps` 默认把视觉控制器启动在待机状态，相机和 YOLO 可在
+另一个终端常驻。确认 `/fod/detections` 正常后执行：
 
 ```bash
-GPS_GOAL_SLOWDOWN_ENABLED=false ./scripts/bringup.sh gps 2.0 cruise
+./scripts/fod_mode.sh start
 ```
+
+仲裁器先阻断 GPS 速度，暂停并保留长距离最终目标，取消当前滚动子目标，确认
+底盘停车后才放行 `/cmd_vel_fod`。视觉回收 `COMPLETE` 后会从车辆新位置自动
+恢复滚动 GPS 导航；视觉 `ABORT` 时保持停车，不会自动恢复。
+FOD 模式期间新发的 `/gps/goal_fix` 会被拒绝；回到 `GPS_ACTIVE` 后再发送新
+目标，避免无意覆盖暂停前保留的最终目标。
+
+```bash
+./scripts/fod_mode.sh status
+./scripts/fod_mode.sh stop
+```
+
+`stop` 用于操作员主动结束/复位视觉模式并恢复 GPS。联动模式下不要直接调用
+`/fod_visual_servo/set_enabled`，完整安全说明见
+`src/application/autolabor_fod_control/README.md`。
+
 
 #### 现场导航录包
 
@@ -211,7 +254,8 @@ cd /home/robot/robot_ws
 BAG_DIR=/tmp BAG_PREFIX=gps_validation ./scripts/record_rosbag.sh mode1
 ```
 
-`mode1` 同时记录 `/cmd_vel_navigation`、`/cmd_vel`、GPS/底盘 odom、原始
+`mode1` 同时记录 `/cmd_vel_navigation`、`/cmd_vel_gps`、`/cmd_vel_fod`、
+`/cmd_vel`、GPS/底盘 odom、模式状态、原始
 `/canbus_msg`、`/m2_driver/chassis_monitor`、`/m2_driver/control_timeout`、
 左右轮速、前轮转角、目标和 TEB 计划，能够区分导航主动停车与底盘保护。
 
@@ -255,7 +299,7 @@ GPS 模式默认要求双天线航向解算质量为：
 
 在默认严格双天线模式下，启动时只有收到新鲜且满足上述质量的航向后才会发布
 `/gps/pose`、`/gps/odom` 和导航 TF；运行中航向超过 `1.0s` 未更新或质量降级时，
-这些导航输出会暂停，目标减速器随后因 odom 超时输出完整零速度。`/gps/fix` 会继续
+这些导航输出会暂停，GPS 目标安全继电器随后因 odom 超时输出完整零速度。`/gps/fix` 会继续
 发布，便于诊断，但不会拿陈旧航向继续导航。
 
 启动器默认等待最多 `120s` 让双天线从 `NARROW_FLOAT` 收敛到
@@ -340,7 +384,11 @@ RabbitMQ 桥接原有终端 `1/2` 确认流程仍可独立使用；界面另外�
 RabbitMQ 脚本负责接收队列消息、缓存并打印最新 GPS 点；只有操作员确认后才发布到 ROS：
 
 ```text
-RabbitMQ 消息 -> scripts/rabbitmq_gps_goal_bridge.py 缓存并打印最新 GPS 点 -> 操作员输入 1 -> /gps/goal_fix -> gps_goal_node.py -> /move_base_simple/goal -> move_base/TEB -> /cmd_vel_navigation -> 目标减速器 -> /cmd_vel -> /m2_driver
+RabbitMQ 消息 -> scripts/rabbitmq_gps_goal_bridge.py 缓存并打印最新 GPS 点 -> 操作员输入 1 -> /gps/goal_fix
+
+GPS 定位模式：/gps/goal_fix -> gps_long_range_goal_manager.py -> 15m 滚动子目标 -> /move_base/goal -> move_base/TEB -> /cmd_vel_navigation -> GPS 目标安全继电器 -> /cmd_vel_gps -> GPS/FOD 仲裁器 -> /cmd_vel -> /m2_driver
+
+FAST_LIO 模式：/gps/goal_fix -> gps_goal_node.py -> /move_base_simple/goal -> move_base/TEB -> /cmd_vel -> /m2_driver
 ```
 
 当前 `scripts/rabbitmq_gps_goal_bridge.py` 的默认配置：
@@ -430,16 +478,73 @@ source /home/robot/robot_ws/devel/setup.bash
 GPS 定位模式会对 TEB 做更宽松的到点设置：
 
 - `odom_topic=/gps/odom`
-- `xy_goal_tolerance=0.5`
+- `xy_goal_tolerance=0.3`
 - `yaw_goal_tolerance=6.283`
 - `max_vel_x=1.5`
 - `max_vel_x_backwards=1.0`
 - `min_vel_x=0.0`
 - `min_vel_x_backwards=0.0`
 - `penalty_epsilon=0.03`
-- `weight_kinematics_forward_drive=20.0`
+- `weight_kinematics_forward_drive=100.0`（`cruise`）或 `60.0`（`obstacle`）
 
 这样做是为了避免 GPS 定位噪声和无意义的终点朝向约束导致车辆接近目标后仍持续前进。
+
+#### 长距离 GPS 滚动前视目标
+
+`./scripts/bringup.sh gps` 默认启动长距离 GPS 目标管理器。外部只需发布一次
+最终经纬度，不需要自行计算或连续发送子目标：
+
+```bash
+rostopic pub -1 /gps/goal_fix sensor_msgs/NavSatFix \
+"{header: {frame_id: 'gps'}, status: {status: 0, service: 1}, latitude: 30.674179252383237, longitude: 104.52607620185489, altitude: 0.0}"
+```
+
+管理器的默认行为：
+
+- 把 `/gps/goal_fix` 视为最终目标，并发布到
+  `/gps/long_range/final_goal` 供检查。
+- 最终目标在 15m 以外时，只向 `move_base` 下发车辆当前位置至最终点连线上的
+  15m 临时目标。
+- 距当前临时目标小于等于 5m、取得等价的向前进度、绕障后已越过临时目标，
+  或该临时目标提前成功时，立即换成下一目标；不会要求车辆回头补经过旧点。
+- 最终目标进入 15m 范围后，只下发一次最终目标，之后不再滚动更新；由 TEB
+  控制最后一段，并由安全继电器执行到点停车。默认不施加额外终点速度上限。
+- 经纬度非法、GPS odom 或 `move_base` 状态超时会拒绝或取消任务；默认还会拒绝
+  距当前位置超过 1000m 的目标，防止坐标输入错误。
+
+当前全局代价地图保持 `40×40m`、`0.1m/cell`、`rolling_window=true`，
+无需扩大。15m 前视相对约 20m 的地图半宽保留约 5m 余量，供 GPS 误差、地图
+滚动延迟和绕障使用。因此 200m 最终目标可以执行，但在任一时刻交给
+`move_base` 的目标仍不超过约 15m。
+
+中间子目标使用专属 action GoalID。安全继电器识别后不会为每个子目标触发
+1m 终点围栏或 0.2m 到点锁存；GPS odom 超时、导航命令超时、取消和 action
+失败等停车保护仍然有效。最后一个目标才启用这些终点保护；是否额外按距离
+限速由 `GPS_GOAL_SPEED_CAP_ENABLED` 控制，默认关闭。同一路线的连续子目标
+切换会保留仍在 0.5s 新鲜期内的上一条 TEB 控制指令，避免人为插入零速脉冲；
+新路线或非连续目标仍先归零。
+
+查看实时状态：
+
+```bash
+rostopic echo /gps/long_range/final_goal
+rostopic echo /gps/long_range/subgoal
+rostopic echo /gps/long_range/status
+rostopic echo /move_base/goal
+```
+
+默认参数可在启动时覆盖：
+
+```bash
+GPS_LONG_RANGE_LOOKAHEAD_DISTANCE=15.0 \
+GPS_LONG_RANGE_ADVANCE_DISTANCE=5.0 \
+GPS_LONG_RANGE_MAX_FINAL_DISTANCE=1000.0 \
+./scripts/bringup.sh gps
+```
+
+`GPS_LONG_RANGE_ADVANCE_DISTANCE` 必须小于前视距离；前视距离默认还被
+`GPS_LONG_RANGE_MAX_LOOKAHEAD_DISTANCE=18.0` 限制。现场不建议先把前视调到
+18m，因为会明显压缩 40m 地图的边界余量。
 
 GPS 定位节点还会对原始 GPS 位置做滤波：
 
@@ -491,7 +596,7 @@ source /home/robot/robot_ws/devel/setup.bash
 ./scripts/gps_test_tasks.py
 ```
 
-测试脚本会绑定启动时的 ROS master。每次重启 `bringup.sh` 或 `roscore` 后，旧测试脚本都必须退出并重新启动；否则它不会自动注册到新的 ROS master。发布目标前，脚本会检查 `/gps/goal_fix -> /gps_goal -> /move_base_simple/goal -> /move_base`，并且只有实际观察到转换后的 `/move_base_simple/goal` 才打印“联动成功”。链路不完整时会拒绝发布并指出缺失节点，避免界面显示成功而无人车没有收到任务。
+测试脚本会绑定启动时的 ROS master。每次重启 `bringup.sh` 或 `roscore` 后，旧测试脚本都必须退出并重新启动；否则它不会自动注册到新的 ROS master。GPS 模式下，发布目标前脚本会检查 `/gps/goal_fix -> /gps_long_range_goal_manager -> /move_base/goal -> /move_base`，并用 `/gps/long_range/final_goal` 核对完整最终坐标；通过 `GPS_LONG_RANGE_GOAL_ENABLED=false` 启用旧兼容链路时，仍检查 `/gps_goal -> /move_base_simple/goal`。链路不完整时会拒绝发布并指出缺失节点，避免界面显示成功而无人车没有收到任务。
 
 输入数字执行对应任务：
 
@@ -502,7 +607,7 @@ source /home/robot/robot_ws/devel/setup.bash
 - `5`：清除永久围栏文件。
 - `6`：进入基于 `FOD_FINAL_TEST_TASKS.md` 的 FOD 回收装备最终测试菜单（T01～T08）。
 
-电子围栏只由 `scripts/gps_test_tasks.py` 监控：正常只运行 `./scripts/bringup.sh gps` 时不会受这个围栏约束。测试脚本运行时，会拒绝围栏外目标；如果当前 `/gps/odom` 跑到围栏外，会取消 `move_base` 目标，由目标减速器锁存零速度。测试脚本不再直接发布 `/cmd_vel`，保证正式控制链始终只有一个速度发布者。
+电子围栏只由 `scripts/gps_test_tasks.py` 监控：正常只运行 `./scripts/bringup.sh gps` 时不会受这个围栏约束。测试脚本运行时，会拒绝围栏外目标；如果当前 `/gps/odom` 跑到围栏外，会取消 `move_base` 目标，由 GPS 目标安全继电器锁存零速度。测试脚本不再直接发布 `/cmd_vel`，保证正式控制链始终只有一个速度发布者。
 
 #### FOD 最终测试子菜单
 
@@ -545,25 +650,37 @@ T08 需要在低速且急停人员就位时完成。脚本只记录“通过/失
 
 `./scripts/bringup.sh gps` 打开的导航 RViz 已预置 `GPS Test Fence` 显示组，订阅 `/gps/test_fence_markers`。启动测试菜单并创建或加载围栏后，绿色线框会直接显示在同一个 RViz 中。
 
-测试 `1` 会打印当前 `/gps/odom` 坐标、当前 yaw、目标坐标和直线距离。GPS 目标转换节点会把 `/gps/goal_fix` 转成 `/move_base_simple/goal`，目标姿态默认使用“当前位置指向目标点”的方向，不再固定为 yaw=0。测试前方 8m 时，目标姿态应接近当前车头方向。
+测试 `1` 会打印当前 `/gps/odom` 坐标、当前 yaw、目标坐标和直线距离。由于
+前方 8m 位于默认 15m 前视范围内，长距离管理器会直接把它作为最终
+`/move_base/goal`；目标姿态使用“当前位置指向目标点”的方向。脚本会用
+`/gps/long_range/final_goal` 核对转换后的完整最终坐标。
 
 如果测试 `1` 仍然调头或明显走反，优先检查：
 
 ```bash
-rostopic echo /move_base_simple/goal
+rostopic echo /gps/long_range/final_goal
+rostopic echo /gps/long_range/subgoal
+rostopic echo /move_base/goal
 rostopic echo /gps/odom
 rostopic echo /gps/heading
-rosparam get /gps_goal/goal_yaw_mode
-rosparam get /gps_goal/odom_topic
+rosparam get /gps_long_range_goal_manager/lookahead_distance
+rosparam get /gps_long_range_goal_manager/odom_topic
 ```
 
-判断标准：`gps_test_tasks.py` 打印的目标 `x/y` 应和 `/move_base_simple/goal` 基本一致；目标 yaw 应接近从当前 `/gps/odom` 指向目标点的方向。如果目标点本身就在真实车头后方，说明 `/gps/odom` yaw 或双天线安装方向需要校正。
+判断标准：`gps_test_tasks.py` 打印的目标 `x/y` 应和
+`/gps/long_range/final_goal` 基本一致；8m 测试下
+`/gps/long_range/subgoal` 也应是同一点。目标 yaw 应接近从当前
+`/gps/odom` 指向目标点的方向。如果目标点本身就在真实车头后方，说明
+`/gps/odom` yaw 或双天线安装方向需要校正。
 
 RViz 手动发送目标时：
 
 - Fixed Frame 必须使用 `camera_init`。
 - RViz 的 2D Nav Goal 应发布到 `/move_base_simple/goal`，消息里的 `header.frame_id` 应是 `camera_init`。
-- GPS 转换节点和测试脚本不再 latch 发布目标，避免旧 GPS 目标在节点重连时覆盖 RViz 目标。
+- 旧 GPS 直接转换节点和测试脚本不 latch 发布
+  `/move_base_simple/goal`；长距离管理器只 latch 诊断用的
+  `/gps/long_range/final_goal` 与 `/gps/long_range/subgoal`，不会借此重发
+  move_base action。
 - 如果 RViz 目标点突然变化，先查 `/move_base_simple/goal` 当前有哪些 publisher。
 
 ```bash
@@ -604,7 +721,7 @@ rosparam get /gps_localization/position_filter_alpha
 ```
 
 `cruise` 的关键期望值是：`cmd_angle_instead_rotvel=False`、
-`planner_frequency=0.0`、`max_vel_theta=0.85`、`acc_lim_theta=0.45`、
+`planner_frequency=0.0`、`max_vel_theta=0.85`、`acc_lim_theta=0.70`、
 `control_look_ahead_poses=2`、`min_turning_radius=1.35`、
 `use_proportional_saturation=True`、`position_filter_alpha=0.70`；其 TEB 前视和
 局部地图宽度应为 `6.5`、`16.0`。`obstacle` 的规划频率、角速度、角加速度、
@@ -664,16 +781,22 @@ GPS_COMPASS_HEADING="东北45度" ./scripts/bringup.sh --print-gps-yaw
 
 如果要现场调滤波强度，可从 `robot_bringup gps_localization.launch` 传参。
 
-### 手动补启动 GPS 目标转换
+### 手动补启动 GPS 目标管理
 
-正常使用 `fast_lio` 不需要手动补启动，因为一键启动已经包含 `gps_goal_node.py`。如果调试时只单独启动了部分 launch，缺少 GPS 目标转换节点，可以手动启动：
+正常使用一键启动不需要手动补节点。若调试时只启动了部分 GPS 定位导航
+launch，应启动滚动前视管理器：
 
 ```bash
 cd /home/robot/robot_ws
 source /opt/ros/noetic/setup.bash
 source /home/robot/robot_ws/devel/setup.bash
-roslaunch gps_module gps_goal.launch frame_id:=camera_init
+roslaunch gps_module gps_long_range_goal.launch \
+  frame_id:=camera_init odom_topic:=/gps/odom \
+  lookahead_distance:=15.0 advance_distance:=5.0
 ```
+
+FAST_LIO/`fast_lio_gps` 模式仍使用原直接转换节点，手动补启动时使用
+`roslaunch gps_module gps_goal.launch frame_id:=camera_init`。
 
 ## 单独底盘键盘测试
 
@@ -698,7 +821,12 @@ cd /home/robot/robot_ws
 - `camera_init -> base_link` TF 是否可用。
 - `/scan` 是否出现。
 - `/move_base/status` 和 costmap 是否出现。
-- GPS 模式检查两段速度链路：`/cmd_vel_navigation` 应从 `/move_base` 到 `/gps_goal_speed_limiter`，`/cmd_vel` 应从减速器到 `/m2_driver`。FAST_LIO 模式仍是 `/move_base -> /cmd_vel -> /m2_driver`。
+- GPS 模式检查 `/gps/goal_fix` 只有长距离管理器一个订阅者，并检查
+  `/gps_long_range_goal_manager -> /move_base/goal -> /move_base`。
+- GPS 模式默认检查三段速度链路：`/cmd_vel_navigation` 从 `/move_base` 到
+  `/gps_goal_speed_limiter`，`/cmd_vel_gps` 与 `/cmd_vel_fod` 分别进入
+  `/fod_navigation_mode`，最后仅由该仲裁器发布 `/cmd_vel` 到 `/m2_driver`。
+  FAST_LIO 模式仍是 `/move_base -> /cmd_vel -> /m2_driver`。
 
 常用手动检查命令：
 
@@ -706,6 +834,9 @@ cd /home/robot/robot_ws
 rostopic list
 rostopic echo /gps/fix
 rostopic echo /gps/goal_fix
+rostopic echo /gps/long_range/status
+rostopic echo /gps/long_range/subgoal
+rostopic info /move_base/goal
 rostopic echo /move_base_simple/goal
 rostopic info /cmd_vel_navigation
 rostopic info /cmd_vel
@@ -719,7 +850,11 @@ rosnode list
 - GPS odom：`/gps/odom`
 - 点云输入：`/cloud_registered_body`
 - 激光投影：`/scan`
-- 导航目标：`/move_base_simple/goal`
+- GPS 最终目标（本地坐标）：`/gps/long_range/final_goal`
+- GPS 当前滚动子目标：`/gps/long_range/subgoal`
+- GPS 滚动路线状态：`/gps/long_range/status`
+- move_base action 目标：`/move_base/goal`
+- RViz/FAST_LIO 简单目标：`/move_base_simple/goal`
 - RabbitMQ GPS 目标中转：`/gps/goal_fix`
 - GPS 导航原始控制：`/cmd_vel_navigation`
 - 底盘最终控制：`/cmd_vel`
@@ -736,17 +871,19 @@ rosnode list
 
 新的桥接流程默认只保存目标，不会自动让车移动。先查看桥接终端是否已经打印最新 GPS 点，然后在 `GPS操作>` 后输入 `1`。
 
-先检查是否有 GPS 目标转换节点：
+GPS 定位模式先检查是否有长距离目标管理器：
 
 ```bash
-rosnode list | grep gps_goal
+rosnode list | grep gps_long_range_goal_manager
 ```
 
 再检查链路：
 
 ```bash
 rostopic echo /gps/goal_fix
-rostopic echo /move_base_simple/goal
+rostopic echo /gps/long_range/status
+rostopic echo /gps/long_range/subgoal
+rostopic info /move_base/goal
 rostopic info /cmd_vel_navigation
 rostopic info /cmd_vel
 ```
@@ -754,8 +891,13 @@ rostopic info /cmd_vel
 如果是手动拆分启动的流程，确认已经启动：
 
 ```bash
-roslaunch gps_module gps_goal.launch frame_id:=camera_init
+roslaunch gps_module gps_long_range_goal.launch \
+  frame_id:=camera_init odom_topic:=/gps/odom
 ```
+
+状态为 `REJECTED_NEW_GOAL` 时，按 `reason` 检查 GPS 原点、`/gps/odom`、
+`/move_base/status` 或 1000m 最大距离限制，修复后重新发送最终点。FAST_LIO
+模式仍查看 `/gps_goal` 和 `/move_base_simple/goal`。
 
 ### 一直等不到 /scan
 

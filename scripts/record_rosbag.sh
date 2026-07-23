@@ -29,7 +29,14 @@ MODE1_TOPICS=(
   /m2_driver/brake_set
   /odom
   /cmd_vel_navigation
+  /cmd_vel_gps
+  /cmd_vel_fod
   /cmd_vel
+  /fod_navigation_mode/state
+  /fod_navigation_mode/status
+  /fod_visual_servo/state
+  /fod_visual_servo/status
+  /fod_visual_servo/completed
   /livox/lidar
   /livox/imu
   /cloud_registered_body
@@ -46,6 +53,10 @@ MODE1_TOPICS=(
   /gps/static_error/std_y
   /gps/static_error/summary
   /gps/goal_fix
+  /gps/long_range/final_goal
+  /gps/long_range/subgoal
+  /gps/long_range/status
+  /gps/long_range/active
   /move_base_simple/goal
   /move_base/goal
   /move_base/cancel

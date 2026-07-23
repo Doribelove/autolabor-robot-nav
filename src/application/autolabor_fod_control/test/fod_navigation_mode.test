@@ -1,0 +1,32 @@
+<launch>
+  <param name="/use_sim_time" value="false"/>
+
+  <node pkg="autolabor_fod_control"
+        type="fod_navigation_mode_manager.py"
+        name="fod_navigation_mode_test"
+        output="screen"
+        respawn="false">
+    <param name="gps_cmd_topic" value="/test/cmd_vel_gps"/>
+    <param name="fod_cmd_topic" value="/test/cmd_vel_fod"/>
+    <param name="output_cmd_topic" value="/test/cmd_vel"/>
+    <param name="odom_topic" value="/test/odom"/>
+    <param name="visual_state_topic" value="/test/fod/state"/>
+    <param name="visual_enable_service" value="/test/fod/set_enabled"/>
+    <param name="gps_pause_service" value="/test/gps/set_paused"/>
+    <param name="move_base_goal_topic" value="/test/move_base/goal"/>
+    <param name="move_base_cancel_topic" value="/test/move_base/cancel"/>
+    <param name="require_output_driver" value="false"/>
+    <param name="expected_visual_node" value="/fake_mode_world"/>
+    <param name="expected_gps_limiter_node" value="/fake_mode_world"/>
+    <param name="stop_confirm_sec" value="0.10"/>
+    <param name="transition_timeout_sec" value="2.0"/>
+    <param name="service_wait_timeout_sec" value="1.0"/>
+    <param name="graph_check_rate_hz" value="2.0"/>
+  </node>
+
+  <test test-name="fod_navigation_mode_integration"
+        pkg="autolabor_fod_control"
+        type="test_fod_navigation_mode_ros.py"
+        name="fake_mode_world"
+        time-limit="30.0"/>
+</launch>

@@ -10,6 +10,8 @@
   <arg name="blind_distance_m" default="0.50"/>
   <arg name="target_u_offset_px" default="0.0"/>
   <arg name="min_confidence" default="0.30"/>
+  <arg name="cmd_vel_topic" default="/cmd_vel"/>
+  <arg name="expected_cmd_vel_subscriber_node" default="/m2_driver"/>
 
   <node pkg="autolabor_fod_control"
         type="fod_visual_servo_node.py"
@@ -24,5 +26,8 @@
     <param name="blind_distance_m" value="$(arg blind_distance_m)"/>
     <param name="target_u_offset_px" value="$(arg target_u_offset_px)"/>
     <param name="min_confidence" value="$(arg min_confidence)"/>
+    <param name="cmd_vel_topic" value="$(arg cmd_vel_topic)"/>
+    <param name="expected_cmd_vel_subscriber_node"
+           value="$(arg expected_cmd_vel_subscriber_node)"/>
   </node>
 </launch>

@@ -670,6 +670,7 @@ class ExternalEstopOverrideTest(unittest.TestCase):
         node.expected_detector_node = "/fod_detector"
         node.expected_camera_node = "/fod_camera/driver"
         node.expected_driver_node = "/m2_driver"
+        node.expected_cmd_vel_subscriber_node = "/m2_driver"
         node.expected_canbus_node = "/canbus_driver"
         node.cmd_pub = mock.Mock()
         node.cmd_pub.get_num_connections.return_value = 1

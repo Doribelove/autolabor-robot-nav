@@ -46,6 +46,16 @@ class FakePublisher:
 
 
 class GoalSpeedCapTest(unittest.TestCase):
+    def test_boolean_parameter_parses_ros_and_shell_forms(self):
+        for value in (True, 1, "true", "YES", "on"):
+            self.assertTrue(LIMITER.boolean_parameter(value, "test"))
+        for value in (False, 0, "false", "NO", "off"):
+            self.assertFalse(LIMITER.boolean_parameter(value, "test"))
+
+    def test_boolean_parameter_rejects_ambiguous_value(self):
+        with self.assertRaises(ValueError):
+            LIMITER.boolean_parameter("sometimes", "test")
+
     def test_speed_cap_uses_remaining_distance_outside_hard_stop(self):
         self.assertAlmostEqual(
             LIMITER.goal_speed_cap(1.2, 0.4, 0.2, 0.15),
@@ -116,6 +126,7 @@ class GoalLimiterOutputTest(unittest.TestCase):
         limiter.latest_odom_time = now
         limiter.current_goal = goal
         limiter.active_goal_id = goal_id("active", 9.0)
+        limiter.active_goal_is_terminal = True
         limiter.stop_latched = False
         limiter.arrival_latched = False
         limiter.near_goal_started_time = None
@@ -124,6 +135,7 @@ class GoalLimiterOutputTest(unittest.TestCase):
         limiter.blocked_goal_ids = OrderedDict()
         limiter.cmd_timeout = 0.5
         limiter.odom_timeout = 1.0
+        limiter.speed_cap_enabled = True
         limiter.comfortable_decel = 0.4
         limiter.hard_stop_distance = 0.2
         limiter.min_approach_speed = 0.15
@@ -171,6 +183,33 @@ class GoalLimiterOutputTest(unittest.TestCase):
         output = limiter.cmd_pub.messages[-1]
         self.assertAlmostEqual(output.linear.x, 0.2)
         self.assertAlmostEqual(output.angular.z, 0.1)
+
+    def test_disabled_speed_cap_forwards_terminal_command_unchanged(self):
+        command = Twist()
+        command.linear.x = 1.0
+        command.angular.z = 0.5
+        limiter, now = self.limiter_at_distance(0.25, command)
+        limiter.speed_cap_enabled = False
+
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+
+        self.assertEqual(limiter.cmd_pub.messages[-1], command)
+        self.assertFalse(limiter.stop_latched)
+        self.assertFalse(limiter.arrival_latched)
+
+    def test_disabled_speed_cap_keeps_hard_stop_latch(self):
+        command = Twist()
+        command.linear.x = 1.0
+        limiter, now = self.limiter_at_distance(0.2, command)
+        limiter.speed_cap_enabled = False
+
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+
+        self.assertEqual(limiter.cmd_pub.messages, [Twist()])
+        self.assertTrue(limiter.stop_latched)
+        self.assertTrue(limiter.arrival_latched)
 
     def test_arrival_latches_even_when_planner_command_has_expired(self):
         command = Twist()
@@ -247,6 +286,37 @@ class GoalLimiterOutputTest(unittest.TestCase):
         self.assertIsNone(limiter.near_goal_started_time)
         self.assertIsNone(limiter.near_goal_closest_distance)
 
+    def test_rolling_intermediate_goal_bypasses_terminal_slowdown_and_latches(self):
+        command = Twist()
+        command.linear.x = 1.0
+        command.angular.z = 0.4
+        limiter, now = self.limiter_at_distance(0.1, command)
+        limiter.active_goal_id = goal_id(
+            "gps_long_range/100-1/1/intermediate",
+            9.0,
+        )
+        limiter.active_goal_is_terminal = False
+
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+
+        self.assertEqual(limiter.cmd_pub.messages[-1], command)
+        self.assertFalse(limiter.stop_latched)
+        self.assertFalse(limiter.arrival_latched)
+        self.assertIsNone(limiter.near_goal_started_time)
+
+    def test_rolling_intermediate_goal_still_fails_stopped_on_stale_odom(self):
+        command = Twist()
+        command.linear.x = 1.0
+        limiter, now = self.limiter_at_distance(10.0, command)
+        limiter.active_goal_is_terminal = False
+        limiter.latest_odom_time = now - rospy.Duration.from_sec(1.1)
+
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+
+        self.assertEqual(limiter.cmd_pub.messages, [Twist()])
+
     def test_moving_away_after_near_goal_commit_latches_stop(self):
         command = Twist()
         command.linear.x = 0.3
@@ -290,6 +360,7 @@ class ActionGoalIdentityTest(unittest.TestCase):
         limiter = LIMITER.GpsGoalSpeedLimiter.__new__(LIMITER.GpsGoalSpeedLimiter)
         limiter.lock = threading.Lock()
         limiter.active_goal_id = goal_id(identifier, stamp_sec)
+        limiter.active_goal_is_terminal = True
         limiter.current_goal = PoseStamped()
         limiter.current_goal.pose.position.x = 2.0
         limiter.stop_latched = False
@@ -394,6 +465,91 @@ class ActionGoalIdentityTest(unittest.TestCase):
         self.assertEqual(limiter.current_goal.pose.position.x, 5.0)
         self.assertIsNone(limiter.latest_cmd_time)
         self.assertEqual(limiter.cmd_pub.messages[-1], Twist())
+
+    def test_managed_action_goal_marks_only_intermediate_segments_non_terminal(self):
+        limiter = self.limiter_with_active_goal()
+
+        limiter.action_goal_callback(
+            action_goal(
+                "gps_long_range/100-1/1/intermediate",
+                20.0,
+            )
+        )
+        self.assertFalse(limiter.active_goal_is_terminal)
+
+        limiter.action_goal_callback(
+            action_goal(
+                "gps_long_range/100-1/2/final",
+                21.0,
+            )
+        )
+        self.assertTrue(limiter.active_goal_is_terminal)
+
+        limiter.action_goal_callback(action_goal("rviz-goal", 22.0))
+        self.assertTrue(limiter.active_goal_is_terminal)
+
+    def test_contiguous_route_segment_keeps_fresh_command_without_zero_pulse(self):
+        limiter = self.limiter_with_active_goal(
+            "gps_long_range/100-1/1/intermediate",
+            20.0,
+        )
+        limiter.active_goal_is_terminal = False
+
+        limiter.action_goal_callback(
+            action_goal(
+                "gps_long_range/100-1/2/intermediate",
+                21.0,
+                x=25.0,
+            )
+        )
+
+        self.assertFalse(limiter.stop_latched)
+        self.assertFalse(limiter.active_goal_is_terminal)
+        self.assertEqual(limiter.latest_cmd.linear.x, 1.0)
+        self.assertEqual(
+            limiter.latest_cmd_time,
+            rospy.Time.from_sec(20.0),
+        )
+        self.assertEqual(limiter.cmd_pub.messages, [])
+
+    def test_contiguous_transition_to_final_goal_is_also_seamless(self):
+        limiter = self.limiter_with_active_goal(
+            "gps_long_range/100-1/7/intermediate",
+            20.0,
+        )
+        limiter.active_goal_is_terminal = False
+
+        limiter.action_goal_callback(
+            action_goal(
+                "gps_long_range/100-1/8/final",
+                21.0,
+                x=200.0,
+            )
+        )
+
+        self.assertFalse(limiter.stop_latched)
+        self.assertTrue(limiter.active_goal_is_terminal)
+        self.assertEqual(limiter.latest_cmd.linear.x, 1.0)
+        self.assertEqual(limiter.cmd_pub.messages, [])
+
+    def test_new_route_token_still_fences_the_previous_command_with_zero(self):
+        limiter = self.limiter_with_active_goal(
+            "gps_long_range/100-1/1/intermediate",
+            20.0,
+        )
+        limiter.active_goal_is_terminal = False
+
+        limiter.action_goal_callback(
+            action_goal(
+                "gps_long_range/101-1/1/intermediate",
+                21.0,
+                x=15.0,
+            )
+        )
+
+        self.assertFalse(limiter.stop_latched)
+        self.assertIsNone(limiter.latest_cmd_time)
+        self.assertEqual(limiter.cmd_pub.messages, [Twist()])
 
     def test_cancel_received_before_same_goal_keeps_that_goal_stopped(self):
         limiter = self.limiter_with_active_goal()

@@ -25,10 +25,15 @@ EDGE_ARMED → LOSS_CONFIRM → STEER_SETTLE → BLIND_ADVANCE → FINAL_STOP �
 
 - YOLO 不是避障器。第一次及调参试验必须在封闭净空区域进行，人员离开车辆
   前方，操作员全程手持物理急停。
-- 只能启动纯 CAN/M2 底盘；不要同时启动 move_base、GPS 导航、速度限制器、
-  键盘遥控、rqt topic publisher 或任何 `rostopic pub /cmd_vel`。
-- 控制器要求自己是 `/cmd_vel` 的唯一发布者，并要求 `/ackerman_vel` 没有任何
-  发布者。运行中出现竞争发布者会立即锁存 `ABORT` 并发零速。
+- 单独运行本页后半部分的 `visual_recovery.launch` 时，只能启动纯 CAN/M2
+  底盘；不要同时启动 move_base、GPS 导航、速度限制器、键盘遥控、rqt topic
+  publisher 或任何 `rostopic pub /cmd_vel`。
+- GPS 联动模式使用 `gps_visual_recovery_standby.launch`：GPS 和视觉控制器只
+  分别发布到 `/cmd_vel_gps`、`/cmd_vel_fod`，`/fod_navigation_mode` 是
+  `/cmd_vel` 的唯一发布者。不得另起一个独立 `visual_recovery.launch`。
+- 独立模式要求视觉控制器自己是 `/cmd_vel` 的唯一发布者；联动模式要求它自己
+  是 `/cmd_vel_fod` 的唯一发布者，并且该话题只接到模式仲裁器。两种模式都要求
+  `/ackerman_vel` 没有任何发布者，运行中发现控制冲突会失效停车。
 - `/m2_driver/steer_center_bias`、`/m2_driver/reset_odom`、
   `/m2_driver/brake_set` 和 `/m2_driver/emergency_stop` 都会绕过 `/cmd_vel`。
   默认模式下 `PRECHECK` 和运行期图审计要求这些话题没有发布者。转向中心标定
@@ -63,7 +68,105 @@ catkin_make --pkg autolabor_canbus_driver autolabor_fod_msgs \
 source devel/setup.bash
 ```
 
+## GPS 导航联动（推荐运行方式）
+
+`./scripts/bringup.sh gps` 默认同时启动安全仲裁器和处于 `DISABLED` 的视觉控制
+器，但不自动占用相机。正常速度链为：
+
+```text
+move_base/TEB
+  -> /cmd_vel_navigation
+  -> GPS 安全继电器
+  -> /cmd_vel_gps
+  -> /fod_navigation_mode
+  -> /cmd_vel
+  -> m2_driver
+```
+
+相机与 YOLO 可在第二个终端常驻：
+
+```bash
+cd ~/robot_ws
+source /opt/ros/noetic/setup.bash
+source devel/setup.bash
+
+roslaunch autolabor_fod_vision hikrobot_fod_detection.launch \
+  start_camera:=true \
+  enable_image_quality_controller:=true \
+  image_quality_exposure_max_us:=12000
+```
+
+确认 `/fod/detections` 正常、车辆前方净空且操作员拿好急停后，只需执行：
+
+```bash
+cd ~/robot_ws
+./scripts/fod_mode.sh start
+```
+
+该命令按以下顺序执行，不会让两个控制器同时控制底盘：
+
+```text
+GPS_ACTIVE
+  -> 立即屏蔽 GPS 速度
+  -> 暂停长距离管理器并取消当前 move_base 子目标
+  -> 保留最终 GPS 经纬度目标
+  -> 用新鲜 /odom 连续确认停车 0.5s
+  -> 使能视觉控制器
+  -> FOD_ACTIVE
+```
+
+视觉控制器到达 `COMPLETE` 后，仲裁器先保持停车、将视觉控制器复位为
+`DISABLED`，再从车辆回收后的当前位置重新计算一个滚动 GPS 子目标，自动恢复
+GPS。它不会恢复已经取消的旧 15m 子目标，也不会扩大 40m 全局滚动地图。
+回收期间新发布到 `/gps/goal_fix` 的目标会被明确拒绝，不会悄悄覆盖已保留的
+最终目标；如果确实需要换目标，请等状态回到 `GPS_ACTIVE` 后重新发送。
+
+查看状态：
+
+```bash
+./scripts/fod_mode.sh status
+# 或持续查看
+./scripts/fod_mode.sh watch
+```
+
+主动退出回收并恢复 GPS：
+
+```bash
+./scripts/fod_mode.sh stop
+```
+
+`ABORT` 不会自动恢复 GPS：模式仲裁器会保持 `/cmd_vel` 为零，避免检测断流、
+控制冲突或里程异常后车辆突然继续高速导航。排除原因后执行 `fod_mode.sh stop`
+明确恢复 GPS；需要再次回收时再执行 `start`。如果相机/YOLO 没启动，视觉
+`PRECHECK` 会超时进入 `ABORT`，GPS 同样保持暂停。
+
+联动模式下不要直接调用 `/fod_visual_servo/set_enabled`；该服务由模式仲裁器
+管理。正常操作只使用 `/fod_navigation_mode/set_fod_enabled`，也就是
+`fod_mode.sh`。
+
+首次验证建议把盲走距离缩短到 `0.20m`，然后重新启动 GPS：
+
+```bash
+FOD_RECOVERY_BLIND_DISTANCE_M=0.20 ./scripts/bringup.sh gps 0.3 cruise
+```
+
+默认保留全部 CAN/VCU 安全检查。只有在有人全程手持外部急停且现场确实需要时
+才可显式覆盖：
+
+```bash
+FOD_RECOVERY_EXTERNAL_ESTOP_OVERRIDE=true \
+FOD_RECOVERY_BLIND_DISTANCE_M=0.20 \
+./scripts/bringup.sh gps 0.3 cruise
+```
+
+如需旧的纯导航拓扑做诊断，可使用
+`FOD_RECOVERY_STANDBY_ENABLED=false ./scripts/bringup.sh gps`；此时
+`fod_mode.sh` 不可用。
+
 ## 从开机零状态启动
+
+以下流程只用于“不启动 GPS/move_base”的视觉控制器独立测试。GPS 联动真车运行
+请使用上一节。
 
 ### 终端一：相机和 YOLO
 

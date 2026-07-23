@@ -1,0 +1,48 @@
+<launch>
+  <arg name="frame_id" default="camera_init"/>
+  <arg name="odom_topic" default="/gps/odom"/>
+  <arg name="lookahead_distance" default="15.0"/>
+  <arg name="advance_distance" default="5.0"/>
+  <arg name="max_lookahead_distance" default="18.0"/>
+  <arg name="max_final_goal_distance" default="1000.0"/>
+  <arg name="odom_timeout" default="1.0"/>
+  <arg name="move_base_status_timeout" default="2.0"/>
+  <arg name="update_rate" default="10.0"/>
+  <arg name="pause_service" default="/gps/long_range/set_paused"/>
+
+  <node pkg="gps_module"
+        type="gps_long_range_goal_manager.py"
+        name="gps_long_range_goal_manager"
+        output="screen"
+        required="true">
+    <param name="frame_id" value="$(arg frame_id)"/>
+    <param name="fix_topic" value="/gps/fix"/>
+    <param name="goal_fix_topic" value="/gps/goal_fix"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="action_goal_topic" value="/move_base/goal"/>
+    <param name="cancel_topic" value="/move_base/cancel"/>
+    <param name="move_base_status_topic" value="/move_base/status"/>
+    <param name="final_goal_topic" value="/gps/long_range/final_goal"/>
+    <param name="subgoal_topic" value="/gps/long_range/subgoal"/>
+    <param name="route_status_topic" value="/gps/long_range/status"/>
+    <param name="route_active_topic" value="/gps/long_range/active"/>
+    <param name="pause_service" value="$(arg pause_service)"/>
+    <param name="lookahead_distance"
+           type="double"
+           value="$(arg lookahead_distance)"/>
+    <param name="advance_distance"
+           type="double"
+           value="$(arg advance_distance)"/>
+    <param name="max_lookahead_distance"
+           type="double"
+           value="$(arg max_lookahead_distance)"/>
+    <param name="max_final_goal_distance"
+           type="double"
+           value="$(arg max_final_goal_distance)"/>
+    <param name="odom_timeout" type="double" value="$(arg odom_timeout)"/>
+    <param name="move_base_status_timeout"
+           type="double"
+           value="$(arg move_base_status_timeout)"/>
+    <param name="update_rate" type="double" value="$(arg update_rate)"/>
+  </node>
+</launch>

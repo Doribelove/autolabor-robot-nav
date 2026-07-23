@@ -4,6 +4,233 @@ Date: 2026-07-23
 
 This file records the current GPS navigation development state for the Autolabor M2 robot in `/home/robot/robot_ws`.
 
+## 2026-07-23 Local Checkpoint and Next Session
+
+The current development branch is `pre-safety-runtime`. This checkpoint
+contains the rolling 15m GPS goal manager, final-goal safety relay changes,
+GPS cruise turn-entry tuning, and the GPS/FOD visual-recovery mode arbiter
+described below. The camera/YOLO launch is intentionally still separate.
+
+The next required work is an attended low-speed vehicle validation; the
+integrated GPS/FOD transition has passed automated ROS tests but has not yet
+driven the physical vehicle. Start with:
+
+```bash
+cd /home/robot/robot_ws
+FOD_RECOVERY_BLIND_DISTANCE_M=0.20 ./scripts/bringup.sh gps 0.3 cruise
+
+# In a second sourced terminal:
+roslaunch autolabor_fod_vision hikrobot_fod_detection.launch \
+  start_camera:=true \
+  enable_image_quality_controller:=true \
+  image_quality_exposure_max_us:=12000
+
+# After detections are healthy and the operator holds the physical stop:
+./scripts/fod_mode.sh start
+./scripts/fod_mode.sh watch
+```
+
+Confirm the complete state sequence
+`GPS_ACTIVE -> ENTERING_FOD -> FOD_ACTIVE -> FOD_COMPLETE_STOP ->
+RETURNING_GPS -> GPS_ACTIVE`, verify that the retained final GPS route resumes
+from the post-recovery pose, and record `mode1` during the run. If the visual
+controller reaches `ABORT`, diagnose it while stopped and use
+`./scripts/fod_mode.sh stop` only when it is safe to resume GPS.
+
+Do not start the standalone `visual_recovery.launch` alongside integrated GPS
+bringup, and do not call `/fod_visual_servo/set_enabled` directly. Keep
+`FOD_RECOVERY_EXTERNAL_ESTOP_OVERRIDE=false` unless an attended test explicitly
+requires the override.
+
+The following pre-existing untracked user files are deliberately outside this
+checkpoint and must not be deleted or committed without review:
+
+```text
+_allow_motion:=true
+_current_bias_deg:=-0.4
+_distance_m:=5.0
+_external_estop_override:=true
+_speed_mps:=0.20
+src/SweepDeviceControl/
+```
+
+## 2026-07-23 GPS/FOD Visual-Recovery Mode Arbitration
+
+GPS bringup now defaults to
+`FOD_RECOVERY_STANDBY_ENABLED=true`. The camera/YOLO perception launch remains
+separate and may run continuously, while the visual motion controller starts
+in `DISABLED` standby. The chassis command chain is now:
+
+```text
+move_base -> /cmd_vel_navigation -> gps_goal_speed_limiter -> /cmd_vel_gps
+visual servo -----------------------------------------------> /cmd_vel_fod
+                      both -> /fod_navigation_mode -> /cmd_vel -> m2_driver
+```
+
+`/fod_navigation_mode` is the sole `/cmd_vel` publisher. It forwards only one
+fresh, finite input and publishes zero during every transition or fault. Its
+graph watchdog latches `FAULT_STOP` if another `/cmd_vel` publisher appears or
+the expected M2 subscriber disappears.
+
+Operator commands:
+
+```bash
+./scripts/fod_mode.sh start
+./scripts/fod_mode.sh status
+./scripts/fod_mode.sh watch
+./scripts/fod_mode.sh stop
+```
+
+On `start`, the manager blocks GPS output first, calls
+`/gps/long_range/set_paused`, cancels the current move_base segment, and
+requires fresh `/odom` below `0.03m/s` and `0.05rad/s` for `0.5s` before it
+enables visual motion. The long-range manager retains the final WGS84 target
+while paused and ignores its expected cancel/preempt echoes. On resume it
+selects a new rolling segment from the post-recovery position rather than
+continuing the canceled subgoal.
+
+Visual `COMPLETE` automatically disables and resets the visual controller,
+reconfirms the stop, resumes the retained GPS route, and returns to
+`GPS_ACTIVE`. Visual `ABORT`, missing/stale stop odometry, service failure, or
+a command-graph fault stays stopped with GPS paused; only an explicit
+`fod_mode.sh stop` attempts recovery. Integrated operation must not call
+`/fod_visual_servo/set_enabled` directly. The old direct
+`visual_recovery.launch` remains available only for CAN-only standalone tests.
+
+Defaults:
+
+```text
+FOD_RECOVERY_STANDBY_ENABLED=true
+FOD_RECOVERY_EXTERNAL_ESTOP_OVERRIDE=false
+FOD_RECOVERY_BLIND_DISTANCE_M=0.50
+FOD_RECOVERY_TRANSITION_TIMEOUT=12.0
+```
+
+The mode1 recorder includes `/cmd_vel_gps`, `/cmd_vel_fod`, both mode-manager
+status topics, and visual controller state/status/completion.
+
+Verification for this increment:
+
+- Incremental `gps_module`, `autolabor_fod_control`, and `robot_bringup` build
+  passes.
+- 85 direct long-range/visual/mode unit tests and 26 startup/profile
+  architecture tests pass.
+- The new ROS graph test verifies exclusive command selection, retained GPS
+  pause, ABORT stop-latching, explicit recovery, and automatic COMPLETE resume.
+- The existing eight-scenario full visual recovery ROS test still passes,
+  including the 0.50m completion loop and all transient fail-closed cases.
+- A full 73-package `catkin_make -j2` completes successfully; the focused
+  GPS/FOD/bringup suite covers 196 test cases with zero failures.
+
+New `/gps/goal_fix` messages are deliberately rejected while the manager is
+paused. The retained pre-recovery final target therefore cannot be silently
+replaced; send a replacement only after the mode returns to `GPS_ACTIVE`.
+
+## 2026-07-23 Rolling Lookahead GPS Goals
+
+GPS mode now accepts one distant final WGS84 target and keeps the existing
+`40 x 40m`, `0.1m/cell` rolling global costmap. This section supersedes older
+handoff notes below that describe a `200 x 200m` coarse global map or direct
+GPS-mode publication to `/move_base_simple/goal`.
+
+The default GPS target chain is:
+
+```text
+/gps/goal_fix (final WGS84 target)
+  -> /gps_long_range_goal_manager
+  -> /move_base/goal (bounded action goal)
+  -> move_base + TEB
+```
+
+The manager converts and retains the final point, then selects a point on the
+current-vehicle-to-final straight line at a default `15m` lookahead. It
+replaces a non-final segment when the vehicle is within `5m` of it, has made
+equivalent radial progress, has passed it during an obstacle detour, when the
+segment succeeds early, or when the final point enters the `15m` horizon. Once
+the final point is selected, that exact final action goal is sent only once
+and retained until completion, cancellation, failure, or replacement by a new
+external goal. A 200m target therefore advances in roughly 10m increments
+without enlarging the costmap.
+
+Managed action GoalIDs distinguish `intermediate` from `final` segments.
+`gps_goal_speed_limiter.py` bypasses the `1m` near-goal fence and the `0.2m`
+arrival latch only for strictly formatted intermediate IDs.
+Odom/frame/command freshness, cancel, action failure, and zero-output
+protections remain active. The final segment uses those terminal safety
+checks, but the additional distance-based forward-speed cap now defaults off
+through `GPS_GOAL_SPEED_CAP_ENABLED=false`; final TEB commands otherwise pass
+through unchanged. Consecutive segment IDs within the same route retain a
+still-fresh TEB command instead of injecting the relay's normal new-goal zero
+pulse; a different route or non-consecutive ID still fences the old command
+with zero.
+
+Default parameters:
+
+```text
+GPS_LONG_RANGE_GOAL_ENABLED=true
+GPS_LONG_RANGE_LOOKAHEAD_DISTANCE=15.0
+GPS_LONG_RANGE_ADVANCE_DISTANCE=5.0
+GPS_LONG_RANGE_MAX_LOOKAHEAD_DISTANCE=18.0
+GPS_LONG_RANGE_MAX_FINAL_DISTANCE=1000.0
+GPS_LONG_RANGE_ODOM_TIMEOUT=1.0
+GPS_LONG_RANGE_MOVE_BASE_STATUS_TIMEOUT=2.0
+GPS_LONG_RANGE_UPDATE_RATE=10.0
+```
+
+The manager rejects a new goal unless the GPS origin, fresh `/gps/odom`, and
+fresh `/move_base/status` are available. Invalid coordinates and targets over
+the configured 1000m bound are rejected. Runtime loss of odom or move_base
+status cancels the active segment and deactivates the route. A foreign RViz or
+action goal supersedes the managed route. Bringup enforces exactly one
+subscriber to `/gps/goal_fix` in GPS mode so the old direct converter cannot
+run in parallel.
+
+Observability topics:
+
+```text
+/gps/long_range/final_goal
+/gps/long_range/subgoal
+/gps/long_range/status
+/gps/long_range/active
+```
+
+`scripts/gps_test_tasks.py` detects the new action route and verifies the
+complete final local coordinate using `/gps/long_range/final_goal`; it retains
+fallback support for GPS mode with `GPS_LONG_RANGE_GOAL_ENABLED=false`. The
+mode1 rosbag list includes all four rolling-route topics.
+
+Verification completed for this increment:
+
+- The complete 73-package workspace builds.
+- The 119 directly relevant GPS/manager/limiter/bringup tests pass:
+  32 localization, 27 rolling-goal, 40 limiter, and 20 profile/startup tests.
+- A live ROS graph smoke test with synthetic odometry and move_base status
+  converted one 200m GPS target into action targets at `15m`, `25m`, then the
+  exact `200m` final point. Their identities were
+  `intermediate`, `intermediate`, `final`; the final diagnostic pose was
+  published once.
+
+## 2026-07-23 Cruise Turn-Entry Response
+
+GPS `cruise` now uses `acc_lim_theta=0.70rad/s^2`, up from `0.45rad/s^2`, to
+shorten the few-tenths-of-a-metre-per-second phase while initial steering
+curvature builds. This is deliberately narrower than restoring the former
+fully aggressive tune: `max_vel_theta=0.85rad/s`,
+`weight_acc_lim_theta=250`, `control_look_ahead_poses=2`,
+`min_turning_radius=1.35m`, proportional Twist saturation, the stable
+`planner_frequency=0` reference route, and the `position_filter_alpha=0.70`
+moving-position filter all remain unchanged. Consequently straight-line
+maximum velocity is not capped by this change, while sustained tight turns
+and abrupt left/right reversals retain their existing damping.
+
+The profile regression test locks both sides of this tradeoff: quicker
+turn-entry acceleration must remain exactly `0.70`, while the steady yaw cap,
+strong acceleration weight, steering-radius margin, proportional saturation,
+two-pose command averaging, and absence of a profile-level `max_vel_x`
+override must remain in place. This is configuration-level protection, not a
+guarantee against physical snaking; validate with wheel-angle and both command
+topics before the first `2.7m/s` run.
+
 ## 2026-07-23 Live Heading and Near-Goal Latch
 
 A straight-line steering calibration observed a transient dual-antenna heading
@@ -287,6 +514,8 @@ Main GNSS GGA position + dual-antenna UNIHEADINGA heading
   -> move_base + TEB
   -> /cmd_vel_navigation
   -> gps_goal_speed_limiter.py
+  -> /cmd_vel_gps
+  -> fod_navigation_mode_manager.py
   -> /cmd_vel
   -> m2_driver
 ```
@@ -298,16 +527,19 @@ RabbitMQ
   -> rabbitmq_gps_goal_bridge.py saves and prints latest valid target
   -> operator enters 1 in the bridge terminal
   -> /gps/goal_fix
-  -> gps_goal_node.py
-  -> /move_base_simple/goal
+  -> gps_long_range_goal_manager.py
+  -> rolling /move_base/goal
   -> move_base + TEB
 
 Test task
   -> /gps/goal_fix
-  -> gps_goal_node.py
-  -> /move_base_simple/goal
+  -> gps_long_range_goal_manager.py
+  -> rolling /move_base/goal
   -> move_base + TEB
 ```
+
+FAST_LIO and `fast_lio_gps` compatibility modes still use
+`gps_goal_node.py -> /move_base_simple/goal`.
 
 RabbitMQ bridge operator behavior:
 
@@ -335,44 +567,56 @@ GPS_USE_WHEEL_ODOM=false
 GPS_USE_WHEEL_TWIST=true
 GPS_WHEEL_TWIST_TIMEOUT=0.5
 GPS_RMC_SPEED_TIMEOUT=1.0
-GPS_NAV_MAX_VEL_X_BACKWARDS=1.4
+GPS_NAV_MAX_VEL_X_BACKWARDS=1.0
 GPS_XY_GOAL_TOLERANCE=0.3
-GPS_GLOBAL_COSTMAP_SIZE=200.0
-GPS_GLOBAL_COSTMAP_RESOLUTION=0.25
 GPS_GOAL_SLOWDOWN_ENABLED=true
+GPS_GOAL_SPEED_CAP_ENABLED=false
 GPS_GOAL_COMFORTABLE_DECEL=0.4
 GPS_GOAL_MIN_APPROACH_SPEED=0.15
 GPS_GOAL_HARD_STOP_DISTANCE=0.2
+GPS_LONG_RANGE_GOAL_ENABLED=true
+GPS_LONG_RANGE_LOOKAHEAD_DISTANCE=15.0
+GPS_LONG_RANGE_ADVANCE_DISTANCE=5.0
+GPS_LONG_RANGE_MAX_LOOKAHEAD_DISTANCE=18.0
+GPS_LONG_RANGE_MAX_FINAL_DISTANCE=1000.0
 ```
 
 The main GNSS antenna is treated as mounted at `x=-0.3m`, `y=-0.05m` in `base_link`. The localization node compensates this offset so `/gps/odom` represents the chassis center. Position and yaw remain GNSS-based by default, while `/gps/odom.twist` uses fresh signed chassis `/odom` linear and angular velocity without enabling wheel-pose integration. The M2 driver timestamps `/odom` with the oldest velocity/wheel/steering measurement used to form that twist and stops publishing when any required feedback is stale. The GPS node checks that source timestamp rather than callback receipt time. If chassis twist is older than `0.5s`, it falls back to RMC course/speed and dual-antenna heading rate; cached RMC motion is discarded after `1.0s`.
 
-## GPS Goal Conversion
+## GPS Goal Management
 
-File:
+GPS-mode files:
 
 ```text
-src/application/gps_module/scripts/gps_goal_node.py
+src/application/gps_module/scripts/gps_long_range_goal_manager.py
+src/application/gps_module/src/gps_module/long_range.py
+src/application/gps_module/launch/gps_long_range_goal.launch
 ```
 
 Current behavior:
 
 - Subscribes `/gps/goal_fix`.
-- Publishes `/move_base_simple/goal`.
-- Subscribes current odom, usually `/gps/odom` in GPS mode.
-- `goal_yaw_mode=bearing` by default.
-- Converted goal yaw is the bearing from current odom position to target, not fixed yaw 0.
-- Publisher is no longer latched, to avoid old GPS goals reappearing and overriding RViz goals.
+- Treats that message as the final target and publishes bounded action goals on
+  `/move_base/goal`.
+- Uses `/gps/odom`, a 15m lookahead, and a 5m advance threshold.
+- Publishes final/subgoal/status observability topics under `/gps/long_range`.
+- Uses the bearing from current odom position to each target as its target yaw.
+- Yields the route when a foreign RViz/action goal takes control.
 
 Current `bringup.sh gps` launches it with:
 
 ```text
 frame_id:=camera_init
 odom_topic:=/gps/odom
-goal_yaw_mode:=bearing
+lookahead_distance:=15.0
+advance_distance:=5.0
 ```
 
-RViz manual goals must use:
+FAST_LIO compatibility modes still launch
+`src/application/gps_module/scripts/gps_goal_node.py` and publish
+`/move_base_simple/goal`.
+
+RViz manual goals still use:
 
 ```text
 Fixed Frame: camera_init
@@ -482,9 +726,12 @@ config/teb_profiles/gps_obstacle.yaml
 - Raise longitudinal acceleration (`acc_lim_x=2.5`).
 - Damp high-speed lateral recovery with `control_look_ahead_poses=2`,
   `global_plan_viapoint_sep=1.5`, `max_vel_theta=0.85`,
-  `acc_lim_theta=0.45`, and `weight_acc_lim_theta=250`. A genuinely tight bend
-  can make TEB reduce linear speed instead of commanding a sharp correction at
-  full cruise speed.
+  `acc_lim_theta=0.70`, and `weight_acc_lim_theta=250`. The higher acceleration
+  bound shortens the low-speed steering-build phase, while the unchanged
+  steady-yaw cap, strong acceleration weight, command averaging, and stable
+  global route continue to suppress rapid left/right corrections at full
+  cruise speed. A genuinely tight bend can still make TEB reduce linear speed
+  instead of commanding a sharp correction at full cruise speed.
 - Retain moderate time/path attraction without snapping across the reference
   (`weight_optimaltime=4`, `weight_shortest_path=5`, `weight_viapoint=6`).
 - Disable homotopy-class candidates to avoid needless topology changes in open space.
@@ -558,59 +805,65 @@ rosparam get /gps_localization/position_filter_alpha
 Expected for `cruise`:
 
 ```text
-False
-1.3
-2.5
-0.8
-1.35
-1.0
-6.5
-16.0
-8.0
-12.0
-False
-1
-10
-6
-8
-1.2
-0.95
-5.0
-True
-10
-0.5
-100.0
-200.0
-0.25
+cmd_angle_instead_rotvel=False
+planner_frequency=0.0
+max_vel_theta=0.85
+acc_lim_x=2.5
+acc_lim_theta=0.70
+control_look_ahead_poses=2
+min_turning_radius=1.35
+global_plan_viapoint_sep=1.5
+max_global_plan_lookahead_dist=6.5
+local_costmap/width=16.0
+weight_shortest_path=5.0
+weight_viapoint=6.0
+enable_homotopy_class_planning=False
+max_number_classes=1
+no_inner_iterations=10
+no_outer_iterations=6
+roadmap_graph_no_samples=8
+selection_cost_hysteresis=1.2
+selection_prefer_initial_plan=0.95
+switching_blocking_period=5.0
+include_dynamic_obstacles=True
+shrink_horizon_min_duration=10
+costmap_obstacles_behind_robot_dist=0.5
+weight_kinematics_forward_drive=100.0
+global_costmap/width=40.0
+global_costmap/resolution=0.1
+gps_localization/position_filter_alpha=0.70
 ```
 
 Expected for `obstacle`:
 
 ```text
-False
-1.4
-2.0
-0.8
-1.2
-0.6
-10.0
-24.0
-3.0
-4.0
-True
-3
-5
-4
-10
-0.95
-0.95
-0.5
-False
-3.0
-0.8
-60.0
-200.0
-0.25
+cmd_angle_instead_rotvel=False
+planner_frequency=1.0
+max_vel_theta=1.2
+acc_lim_x=1.2
+acc_lim_theta=0.4
+control_look_ahead_poses=1
+min_turning_radius=1.35
+global_plan_viapoint_sep=0.6
+max_global_plan_lookahead_dist=10.0
+local_costmap/width=24.0
+weight_shortest_path=3.0
+weight_viapoint=4.0
+enable_homotopy_class_planning=True
+max_number_classes=4
+no_inner_iterations=10
+no_outer_iterations=6
+roadmap_graph_no_samples=15
+selection_cost_hysteresis=1.5
+selection_prefer_initial_plan=0.8
+switching_blocking_period=10.0
+include_dynamic_obstacles=True
+shrink_horizon_min_duration=10
+costmap_obstacles_behind_robot_dist=0.8
+weight_kinematics_forward_drive=60.0
+global_costmap/width=40.0
+global_costmap/resolution=0.1
+gps_localization/position_filter_alpha=0.25
 ```
 
 ### Obstacle response evidence and staged acceptance
@@ -668,26 +921,55 @@ penalty_epsilon=0.03
 
 This means GPS targets do not require a strict final orientation.
 
-## Goal-Approach Slowdown
+## Goal Command Safety Relay And Optional Speed Cap
 
-GPS navigation inserts `gps_goal_speed_limiter.py` between TEB and the M2 driver:
+GPS navigation inserts `gps_goal_speed_limiter.py` between TEB and the M2
+driver:
 
 ```text
-/move_base -> /cmd_vel_navigation -> /gps_goal_speed_limiter -> /cmd_vel -> /m2_driver
+/move_base -> /cmd_vel_navigation -> /gps_goal_speed_limiter
+  -> /cmd_vel_gps -> /fod_navigation_mode -> /cmd_vel -> /m2_driver
 ```
 
-The node tracks `/move_base/current_goal`, `/move_base/goal`, `/move_base/status`, and `/gps/odom`. TEB's GPS `xy_goal_tolerance=0.3m` is independent of the limiter's `hard_stop_distance=0.2m`. The default forward cap is based on `v = sqrt(2 * 0.4 * (distance - 0.2))`, with a `0.15m/s` minimum outside the hard-stop radius. At `2.0m/s`, limiting begins about `5.2m` from the goal center; at `1.5m/s`, about `3.0m`.
+The node tracks `/move_base/current_goal`, `/move_base/goal`,
+`/move_base/status`, and `/gps/odom`. `GPS_GOAL_SPEED_CAP_ENABLED=false` is the
+default, so outside a stop condition it forwards the final-goal `linear.x` and
+`angular.z` from TEB unchanged even near the target. TEB may still choose to
+slow down on its own. This switch disables only the relay's extra
+distance-based cap.
 
-Outside `0.2m`, the limiter changes only an excessive positive `linear.x`; whenever it reduces forward speed, it scales `angular.z` by the same ratio to preserve the Ackermann trajectory curvature already checked by TEB. Lower/zero obstacle commands and negative recovery velocity pass unchanged. At or inside `0.2m`, it latches a full zero `Twist`, so later GPS jitter cannot restart that action. Once distance first falls within `1.0m`, the final approach is also bounded to `15s` and `0.5m` regression from the closest point; violating either condition latches stopped until a new goal. If navigation commands stop for `0.5s`, the relay publishes zero instead of holding the last command. `/move_base/cancel` follows actionlib `GoalID` matching: a specific ID stops only that active goal, an empty ID with zero stamp cancels all current goals, and an empty ID with a timestamp cancels goals at or before that time. Stopping or terminal `/move_base/status` states also stop the relay; a genuinely new action goal releases it. Timer and cancellation output are serialized so an old nonzero timer command cannot overwrite a cancellation stop.
+TEB's GPS `xy_goal_tolerance=0.3m` remains independent of the relay's
+`hard_stop_distance=0.2m`. At or inside `0.2m`, the relay latches a full zero
+`Twist`, so later GPS jitter cannot restart that action. Once distance first
+falls within `1.0m`, the final approach is bounded to `15s` and `0.5m`
+regression from the closest point; violating either condition latches stopped
+until a new goal. If navigation commands stop for `0.5s`, the relay publishes
+zero instead of holding the last command. `/move_base/cancel` follows
+actionlib `GoalID` matching, stopping or terminal `/move_base/status` states
+also stop the relay, and only a genuinely new action goal releases it. Timer
+and cancellation output are serialized so an old nonzero timer command cannot
+overwrite a cancellation stop.
+
+The former comfort cap remains available as an opt-in. When enabled, it uses
+`v = sqrt(2 * 0.4 * (distance - 0.2))`, with a `0.15m/s` minimum outside the
+hard-stop radius. It changes only excessive positive `linear.x` and scales
+`angular.z` by the same ratio to preserve Ackermann curvature. At `1.5m/s`,
+`2.0m/s`, and `2.7m/s`, it begins limiting at about `3.0m`, `5.2m`, and
+`9.3m` respectively. Lower/zero obstacle commands and negative recovery
+velocity pass unchanged.
 
 Runtime tuning:
 
 ```bash
-GPS_GOAL_COMFORTABLE_DECEL=0.3 ./scripts/bringup.sh gps 2.0 cruise
+GPS_GOAL_SPEED_CAP_ENABLED=true GPS_GOAL_COMFORTABLE_DECEL=0.3 ./scripts/bringup.sh gps 2.0 cruise
 GPS_XY_GOAL_TOLERANCE=0.3 GPS_GOAL_HARD_STOP_DISTANCE=0.2 ./scripts/bringup.sh gps
 GPS_GOAL_NEAR_COMMIT_DISTANCE=1.0 GPS_GOAL_NEAR_TIMEOUT=15.0 GPS_GOAL_NEAR_MAX_REGRESSION=0.5 ./scripts/bringup.sh gps 2.0 cruise
-GPS_GOAL_SLOWDOWN_ENABLED=false ./scripts/bringup.sh gps 2.0 cruise
 ```
+
+`GPS_GOAL_SLOWDOWN_ENABLED=false` remains a legacy master bypass for
+diagnostics. It removes the entire relay, including arrival, stale-input,
+cancel, and near-goal protections, so it is not needed to disable speed
+limiting and should normally remain `true`.
 
 ## Ackermann Recovery And Reverse Commands
 
@@ -745,19 +1027,18 @@ raytrace_range: 11.0
 scan range_max: 12.0
 ```
 
-GPS uses a separate coarse global rolling map for long-range path generation:
+GPS keeps the existing rolling global map:
 
 ```text
-global_costmap width/height: 200.0 m
-global_costmap resolution: 0.25 m/cell
-global_costmap initial origin: (-100.0, -100.0)
+global_costmap width/height: 40.0 m
+global_costmap resolution: 0.1 m/cell
+global_costmap rolling_window: true
 ```
 
-This is an `800 x 800` grid (640,000 cells) and accepts goals with useful
-margin beyond 50m. `GPS_GLOBAL_COSTMAP_SIZE` and
-`GPS_GLOBAL_COSTMAP_RESOLUTION` can be changed together for farther targets;
-bringup rejects configurations above one million cells. The detailed local
-costmap remains at `0.1m/cell`, so local obstacle geometry is not coarsened.
+This is a `400 x 400` grid. The long-range manager keeps each intermediate
+move_base target at `15m`, leaving about `5m` inside the nominal `20m`
+half-width for GPS error, rolling-window latency, and obstacle detours. Far
+final targets therefore do not require a larger or coarser map.
 
 Current clearance:
 
