@@ -10,10 +10,14 @@ PACKAGE_SRC = Path(__file__).resolve().parents[1] / "src"
 sys.path.insert(0, str(PACKAGE_SRC))
 
 from autolabor_fod_control.mode_manager import (  # noqa: E402
+    ENTER_FOD,
     FOD_SOURCE,
     GPS_SOURCE,
+    KEEP_GPS,
     STOP_SOURCE,
+    WAIT_FOR_FOD,
     CommandArbiter,
+    FodEntryGate,
     stopped_sample_is_valid,
 )
 
@@ -71,6 +75,39 @@ class StopConfirmationInputTest(unittest.TestCase):
         self.assertFalse(
             stopped_sample_is_valid(0.0, math.nan, 0.1, 0.6, 0.03, 0.05)
         )
+
+
+class FodEntryGateTest(unittest.TestCase):
+    def test_nearest_target_strictly_inside_five_metres_enters_fod(self):
+        gate = FodEntryGate(5.0, 1.0)
+        gate.update((4.8, 2.1, 3.0), 10.0)
+
+        decision = gate.evaluate(10.1, 10.0)
+
+        self.assertEqual(decision.action, ENTER_FOD)
+        self.assertAlmostEqual(decision.nearest_depth_m, 2.1)
+
+    def test_target_at_or_beyond_five_metres_keeps_gps(self):
+        for depth in (5.0, 7.5):
+            with self.subTest(depth=depth):
+                gate = FodEntryGate(5.0, 1.0)
+                gate.update((depth,), 20.0)
+                decision = gate.evaluate(20.1, 20.0)
+                self.assertEqual(decision.action, KEEP_GPS)
+
+    def test_one_second_without_valid_depth_keeps_gps(self):
+        gate = FodEntryGate(5.0, 1.0)
+        gate.update((math.nan, -1.0), 30.0)
+
+        self.assertEqual(gate.evaluate(30.99, 30.0).action, WAIT_FOR_FOD)
+        self.assertEqual(gate.evaluate(31.0, 30.0).action, KEEP_GPS)
+
+    def test_stale_close_target_does_not_trigger_handoff(self):
+        gate = FodEntryGate(5.0, 1.0)
+        gate.update((2.0,), 39.0)
+
+        self.assertEqual(gate.evaluate(40.1, 40.0).action, WAIT_FOR_FOD)
+        self.assertEqual(gate.evaluate(41.1, 40.0).action, KEEP_GPS)
 
 
 if __name__ == "__main__":

@@ -4,10 +4,13 @@
 #include <actionlib_msgs/GoalID.h>
 #include <actionlib_msgs/GoalStatusArray.h>
 #include <autolabor_canbus_driver/CanBusMessage.h>
+#include <autolabor_fod_msgs/FodDetectionArray.h>
 #include <autolabor_operator_msgs/RabbitMqStatus.h>
 #include <autolabor_operator_msgs/RemoteTarget.h>
+#include <diagnostic_msgs/DiagnosticArray.h>
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
+#include <sensor_msgs/Image.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <std_msgs/Empty.h>
@@ -15,6 +18,7 @@
 #include <std_msgs/String.h>
 
 #include <QFutureWatcher>
+#include <QImage>
 #include <QMainWindow>
 #include <QProcess>
 #include <QString>
@@ -27,6 +31,8 @@
 #include <string>
 
 class QCloseEvent;
+class QCheckBox;
+class QDoubleSpinBox;
 class QFrame;
 class QLabel;
 class QPlainTextEdit;
@@ -55,6 +61,24 @@ struct TimedScalar
   bool received = false;
   double value = 0.0;
   ros::WallTime received_at;
+};
+
+struct DiagnosticSnapshot
+{
+  bool received = false;
+  unsigned char level = 0;
+  std::string message;
+  std::map<std::string, std::string> values;
+  ros::WallTime received_at;
+};
+
+struct CameraControlsResult
+{
+  bool success = false;
+  QString message;
+  bool auto_exposure_gain = true;
+  double exposure_percent = 100.0;
+  double gain_percent = 100.0;
 };
 
 struct TelemetrySnapshot
@@ -96,6 +120,40 @@ struct TelemetrySnapshot
   bool remote_target_received = false;
   autolabor_operator_msgs::RemoteTarget remote_target;
   ros::WallTime remote_target_received_at;
+
+  bool camera_received = false;
+  std::size_t camera_width = 0;
+  std::size_t camera_height = 0;
+  std::string camera_encoding;
+  ros::WallTime camera_received_at;
+  QImage raw_preview;
+  ros::WallTime raw_preview_received_at;
+
+  bool debug_image_received = false;
+  QImage debug_image;
+  ros::WallTime debug_image_received_at;
+
+  bool detections_received = false;
+  autolabor_fod_msgs::FodDetectionArray detections;
+  ros::WallTime detections_received_at;
+  TimedScalar detection_fps;
+
+  bool mode_state_received = false;
+  std::string mode_state;
+  ros::WallTime mode_state_received_at;
+  bool mode_status_received = false;
+  std::string mode_status;
+  ros::WallTime mode_status_received_at;
+
+  bool visual_state_received = false;
+  std::string visual_state;
+  ros::WallTime visual_state_received_at;
+  bool visual_status_received = false;
+  std::string visual_status;
+  ros::WallTime visual_status_received_at;
+
+  DiagnosticSnapshot detector_diagnostic;
+  DiagnosticSnapshot image_quality_diagnostic;
 };
 
 class MainWindow : public QMainWindow
@@ -123,11 +181,19 @@ private Q_SLOTS:
   void handleMasterProbeFinished();
   void toggleRvizPanels();
   void sendForwardGoal();
+  void sendManualGpsGoal();
+  void useCurrentGpsForGoal();
   void cancelNavigation();
   void resetStaticError();
   void publishRabbitTarget();
   void clearRabbitTarget();
   void toggleRecording();
+  void startFodMode();
+  void stopFodMode();
+  void queryCameraControls();
+  void applyCameraControls();
+  void enableImageQualityControl();
+  void disableImageQualityControl();
   void handleRecorderFinished(int exit_code, QProcess::ExitStatus exit_status);
   void handleRecorderError(QProcess::ProcessError error);
 
@@ -144,6 +210,7 @@ private:
   QWidget* buildGpsPage();
   QWidget* buildRabbitPage();
   QWidget* buildTestPage();
+  QWidget* buildVisionPage();
   QWidget* buildPlaceholderPage(const QString& title, const QString& subtitle,
                                 const QStringList& planned_items);
   QWidget* buildLogPage();
@@ -160,6 +227,16 @@ private:
   void shutdownRosInterfaces();
   void callTriggerService(const std::string& service_name, QPushButton* button,
                           const QString& action_name);
+  void callSetBoolService(const std::string& service_name, bool enabled,
+                          QPushButton* button, const QString& action_name);
+  void requestFodMode(bool enabled);
+  void requestCameraControls(bool apply_changes);
+  void applyCameraControlsResult(const CameraControlsResult& result);
+  bool gpsGoalReady(const TelemetrySnapshot& data, QString* reason = nullptr) const;
+  void publishGpsGoal(double latitude, double longitude, double altitude,
+                      const QString& source_description);
+  void updateImageLabel(QLabel* label, const QImage& image,
+                        const QString& placeholder);
 
   void fixCallback(const sensor_msgs::NavSatFix::ConstPtr& msg);
   void headingCallback(const std_msgs::Float64::ConstPtr& msg);
@@ -175,12 +252,21 @@ private:
   void navigationCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
   void rabbitStatusCallback(const autolabor_operator_msgs::RabbitMqStatus::ConstPtr& msg);
   void remoteTargetCallback(const autolabor_operator_msgs::RemoteTarget::ConstPtr& msg);
+  void cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg);
+  void debugImageCallback(const sensor_msgs::Image::ConstPtr& msg);
+  void detectionsCallback(const autolabor_fod_msgs::FodDetectionArray::ConstPtr& msg);
+  void modeStateCallback(const std_msgs::String::ConstPtr& msg);
+  void modeStatusCallback(const std_msgs::String::ConstPtr& msg);
+  void visualStateCallback(const std_msgs::String::ConstPtr& msg);
+  void visualStatusCallback(const std_msgs::String::ConstPtr& msg);
+  void diagnosticsCallback(const diagnostic_msgs::DiagnosticArray::ConstPtr& msg);
 
   TelemetrySnapshot snapshot() const;
   static double wallAge(const ros::WallTime& stamp);
   static double yawFromQuaternion(const geometry_msgs::Quaternion& quaternion);
   static QString navigationState(const actionlib_msgs::GoalStatusArray& status);
   static QString ageText(double age_seconds);
+  static bool imageMessageToQImage(const sensor_msgs::Image& message, QImage* image);
 
   mutable std::mutex snapshot_mutex_;
   TelemetrySnapshot telemetry_;
@@ -201,6 +287,14 @@ private:
   ros::Subscriber navigation_subscriber_;
   ros::Subscriber rabbit_status_subscriber_;
   ros::Subscriber remote_target_subscriber_;
+  ros::Subscriber camera_image_subscriber_;
+  ros::Subscriber debug_image_subscriber_;
+  ros::Subscriber detections_subscriber_;
+  ros::Subscriber mode_state_subscriber_;
+  ros::Subscriber mode_status_subscriber_;
+  ros::Subscriber visual_state_subscriber_;
+  ros::Subscriber visual_status_subscriber_;
+  ros::Subscriber diagnostics_subscriber_;
   ros::Publisher goal_publisher_;
   ros::Publisher cancel_publisher_;
   ros::Publisher error_reset_publisher_;
@@ -210,7 +304,11 @@ private:
   bool ros_interfaces_ready_ = false;
   bool rviz_initialized_ = false;
   bool enable_rviz_ = true;
+  std::string navigation_mode_label_ = "GPS";
+  std::string odom_topic_ = "/gps/odom";
   std::string rviz_config_path_;
+  std::string rviz_startup_fixed_frame_ = "base_link";
+  std::string rviz_navigation_fixed_frame_ = "camera_init";
   bool has_origin_ = false;
   double origin_latitude_ = 0.0;
   double origin_longitude_ = 0.0;
@@ -220,6 +318,7 @@ private:
 
   std::map<QString, StatusCard> status_cards_;
   std::map<QString, QLabel*> values_;
+  QLabel* app_subtitle_ = nullptr;
   QTabWidget* tabs_ = nullptr;
   QWidget* rviz_host_ = nullptr;
   QVBoxLayout* rviz_layout_ = nullptr;
@@ -232,6 +331,29 @@ private:
   QPushButton* rabbit_publish_button_ = nullptr;
   QPushButton* rabbit_clear_button_ = nullptr;
   QPushButton* record_button_ = nullptr;
+  QLabel* overview_camera_preview_ = nullptr;
+  QLabel* vision_camera_preview_ = nullptr;
+  QPlainTextEdit* vision_detections_ = nullptr;
+  QDoubleSpinBox* gps_latitude_input_ = nullptr;
+  QDoubleSpinBox* gps_longitude_input_ = nullptr;
+  QPushButton* manual_goal_button_ = nullptr;
+  QPushButton* overview_fod_start_button_ = nullptr;
+  QPushButton* overview_fod_stop_button_ = nullptr;
+  QPushButton* fod_start_button_ = nullptr;
+  QPushButton* fod_stop_button_ = nullptr;
+  QCheckBox* exposure_auto_checkbox_ = nullptr;
+  QDoubleSpinBox* exposure_input_ = nullptr;
+  QDoubleSpinBox* gain_input_ = nullptr;
+  QPushButton* camera_query_button_ = nullptr;
+  QPushButton* camera_apply_button_ = nullptr;
+  QPushButton* image_quality_enable_button_ = nullptr;
+  QPushButton* image_quality_disable_button_ = nullptr;
+
+  ros::WallTime last_raw_preview_conversion_;
+  ros::WallTime last_debug_preview_conversion_;
+  bool manual_goal_initialized_ = false;
+  bool mode_request_pending_ = false;
+  bool camera_request_pending_ = false;
 
   QProcess recorder_;
   bool recorder_error_ = false;

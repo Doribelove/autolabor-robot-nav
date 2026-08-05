@@ -4,13 +4,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROBOT_WS="$(cd "$SCRIPT_DIR/.." && pwd)"
 ROS_SETUP="${ROS_SETUP:-/opt/ros/noetic/setup.bash}"
+PRIVATE_SETUP="${PRIVATE_SETUP:-$ROBOT_WS/.deps/setup.bash}"
 MODE_SERVICE="/fod_navigation_mode/set_fod_enabled"
 STATUS_TOPIC="/fod_navigation_mode/status"
 
 usage() {
   echo "Usage: $0 start|stop|status|watch"
   echo
-  echo "  start   pause the retained GPS route, stop, then enable FOD recovery"
+  echo "  start   enter FOD only when nearest depth is <5m; otherwise keep GPS"
   echo "  stop    disable FOD recovery and resume the retained GPS route"
   echo "  status  print one GPS/FOD mode-manager status message"
   echo "  watch   continuously display the mode-manager status"
@@ -37,7 +38,11 @@ if [[ ! -f "$ROS_SETUP" || ! -f "$ROBOT_WS/devel/setup.bash" ]]; then
   exit 2
 fi
 
-source "$ROS_SETUP"
+if [[ -f "$PRIVATE_SETUP" ]]; then
+  source "$PRIVATE_SETUP"
+else
+  source "$ROS_SETUP"
+fi
 source "$ROBOT_WS/devel/setup.bash"
 
 case "$1" in
@@ -46,7 +51,7 @@ case "$1" in
       echo "$MODE_SERVICE is unavailable. Start GPS bringup first." >&2
       exit 3
     fi
-    echo "Requesting FOD recovery. GPS output is blocked before the vehicle-stop check."
+    echo "Checking nearest FOD depth. GPS stays active for >=5m or 1s without a valid-depth FOD."
     call_mode_service true
     ;;
   stop)

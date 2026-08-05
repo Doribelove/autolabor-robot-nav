@@ -15,11 +15,12 @@
   <arg name="image_quality_exposure_max_us" default="5000.0"/>
 
   <arg name="weights"
-       default="/home/robot/robot_ws/src/yolo/fod_yolo11n_img640_e300_orig/weights/best.pt"/>
+       default="$(find autolabor_fod_vision)/../../yolo/fod_yolo11n_img640_e300_orig/weights/best.pt"/>
   <arg name="expected_model_sha256"
        default="7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500"/>
   <arg name="detector_python"
-       default="/home/robot/python_env/fod_yolo/bin/python3"/>
+       default="$(find autolabor_fod_vision)/../../../.venv/fod_yolo/bin/python3"/>
+  <arg name="image_quality_python" default="$(arg detector_python)"/>
   <arg name="device" default="auto"/>
   <arg name="image_size" default="640"/>
   <arg name="confidence" default="0.25"/>
@@ -46,6 +47,7 @@
           type="fod_image_quality_controller_node.py"
           name="fod_image_quality_controller"
           output="screen"
+          launch-prefix="$(arg image_quality_python)"
           respawn="false">
       <rosparam command="load"
                 file="$(find autolabor_fod_vision)/config/image_quality_controller.yaml"/>

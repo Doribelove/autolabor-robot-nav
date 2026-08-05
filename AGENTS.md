@@ -6,7 +6,7 @@ This repository is a ROS workspace for the Autolabor robot navigation setup.
 
 Important local path:
 
-- Workspace root: `/home/robot/robot_ws`
+- Workspace root: `/home/slam/robot_ws`
 - GitHub remote: `git@github.com:Doribelove/autolabor-robot-nav.git`
 - Main branch: `main`
 
@@ -23,9 +23,9 @@ Important local path:
 - The initial project import commit is `a4f7490 Initial robot workspace import`.
 - The project is hosted at `Doribelove/autolabor-robot-nav`.
 - HTTPS push previously failed with GitHub `403 Permission denied`.
-- An SSH key was generated at `/home/robot/.ssh/id_ed25519`.
+- An SSH key was generated at `/home/slam/.ssh/id_ed25519`.
 - The SSH key is authenticated with GitHub. Its public key is in:
-  - `/home/robot/.ssh/id_ed25519.pub`
+  - `/home/slam/.ssh/id_ed25519.pub`
 
 ## Submodules
 

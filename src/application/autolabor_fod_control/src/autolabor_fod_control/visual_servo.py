@@ -29,6 +29,11 @@ class PixelDetection:
     height: float
     anchor_u: float
     anchor_v: float
+    depth_valid: bool = False
+    depth_m: float = float("nan")
+    depth_mad_m: float = float("nan")
+    depth_sample_count: int = 0
+    depth_valid_fraction: float = 0.0
 
     @property
     def area(self) -> float:
@@ -262,6 +267,91 @@ def matching_detections(
         scored.append((score, candidate))
     scored.sort(key=lambda item: item[0], reverse=True)
     return tuple(item[1] for item in scored)
+
+
+def depth_rejection_reason(
+    detection: PixelDetection,
+    min_depth_m: float,
+    max_depth_m: float,
+    min_sample_count: int,
+    min_valid_fraction: float,
+    max_mad_m: float,
+) -> str:
+    """Return an empty string only for a motion-grade depth measurement."""
+
+    if not detection.depth_valid:
+        return "registered depth is unavailable"
+    if not _finite(
+        (detection.depth_m, detection.depth_mad_m, detection.depth_valid_fraction)
+    ):
+        return "depth measurement contains a non-finite value"
+    if not min_depth_m <= detection.depth_m <= max_depth_m:
+        return "depth %.3fm is outside %.3f..%.3fm" % (
+            detection.depth_m,
+            min_depth_m,
+            max_depth_m,
+        )
+    if detection.depth_sample_count < min_sample_count:
+        return "depth has %d samples, requires %d" % (
+            detection.depth_sample_count,
+            min_sample_count,
+        )
+    if detection.depth_valid_fraction < min_valid_fraction:
+        return "depth valid fraction %.3f is below %.3f" % (
+            detection.depth_valid_fraction,
+            min_valid_fraction,
+        )
+    if detection.depth_mad_m > max_mad_m:
+        return "depth MAD %.3fm exceeds %.3fm" % (
+            detection.depth_mad_m,
+            max_mad_m,
+        )
+    return ""
+
+
+def nearest_depth_target(
+    candidates: Sequence[PixelDetection],
+    preferred: Optional[PixelDetection] = None,
+    preferred_hysteresis_m: float = 0.0,
+    image_width: int = 0,
+    image_height: int = 0,
+    association: Optional[AssociationConfig] = None,
+) -> Optional[PixelDetection]:
+    """Select the closest valid-depth target, stabilizing a pending lock.
+
+    Hysteresis applies only while acquiring. Once the phase machine locks an
+    object it continues normal spatial association and never jumps to another
+    object merely because their depths cross.
+    """
+
+    ranked = sorted(
+        (
+            item
+            for item in candidates
+            if item.depth_valid and math.isfinite(item.depth_m) and item.depth_m > 0.0
+        ),
+        key=lambda item: item.depth_m,
+    )
+    if not ranked:
+        return None
+    closest = ranked[0]
+    if (
+        preferred is None
+        or preferred_hysteresis_m <= 0.0
+        or image_width <= 1
+        or image_height <= 1
+    ):
+        return closest
+    matches = matching_detections(
+        preferred,
+        ranked,
+        image_width,
+        image_height,
+        association or AssociationConfig(),
+    )
+    if matches and matches[0].depth_m <= closest.depth_m + preferred_hysteresis_m:
+        return matches[0]
+    return closest
 
 
 def horizontal_error(anchor_u: float, target_u: float, image_width: int) -> float:
@@ -601,7 +691,7 @@ class TargetPhaseMachine:
 
     def reset(self) -> None:
         self.state = ACQUIRE
-        self.reason = "waiting for one stable target"
+        self.reason = "waiting for one stable depth-selected target"
         self.pending = None
         self.pending_hits = 0
         self.locked = None

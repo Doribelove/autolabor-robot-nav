@@ -97,7 +97,7 @@ Environment:
   WAIT_ROS_MASTER_SEC=10        # wait for roscore before recording
 
 Examples:
-  cd /home/robot/robot_ws
+  cd /home/slam/robot_ws
   ./scripts/record_rosbag.sh mode1
   ./scripts/record_rosbag.sh all
   BAG_PREFIX=field_test_01 ./scripts/record_rosbag.sh both

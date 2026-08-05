@@ -84,6 +84,16 @@ void setDefaultEnvironment(const char* name, const std::string& value)
   }
 }
 
+std::string environmentOr(const char* name, const std::string& fallback)
+{
+  const char* value = std::getenv(name);
+  if (value != nullptr && value[0] != '\0')
+  {
+    return value;
+  }
+  return fallback;
+}
+
 }  // namespace
 
 class HikrobotMvsCamera
@@ -94,7 +104,8 @@ public:
       private_nh_(std::move(private_nh)),
       image_transport_(nh_)
   {
-    private_nh_.param<std::string>("mvs_root", mvs_root_, "/opt/MVS");
+    private_nh_.param<std::string>(
+      "mvs_root", mvs_root_, environmentOr("MVS_ROOT", "/opt/MVS"));
     private_nh_.param<std::string>("serial_number", serial_number_, "");
     private_nh_.param<std::string>("transport", transport_, "usb");
     private_nh_.param<std::string>("camera_name", camera_name_, "camera");
@@ -187,6 +198,7 @@ public:
   {
     setDefaultEnvironment("MVCAM_SDK_PATH", mvs_root_);
     setDefaultEnvironment("MVCAM_COMMON_RUNENV", mvs_root_ + "/lib");
+    setDefaultEnvironment("MVCAM_SOFTWARE_LIBENV", mvs_root_ + "/lib");
     setDefaultEnvironment("MVCAM_GENICAM_CLPROTOCOL",
                           mvs_root_ + "/lib/CLProtocol");
     setDefaultEnvironment("ALLUSERSPROFILE", mvs_root_ + "/MVFG");

@@ -1,0 +1,81 @@
+<launch>
+  <!-- ZED 2 production source for the FOD detector and visual servo. -->
+  <arg name="start_camera" default="false"/>
+  <arg name="serial_number" default="23748636"/>
+  <arg name="camera_name" default="zed2"/>
+  <arg name="node_name" default="zed_node"/>
+
+  <arg name="enable_image_quality_controller" default="false"/>
+  <arg name="image_quality_monitor_only" default="false"/>
+  <arg name="image_quality_target_median" default="115.0"/>
+  <arg name="image_quality_exposure_max_percent" default="100.0"/>
+
+  <arg name="weights"
+       default="$(find autolabor_fod_vision)/../../yolo/fod_yolo11n_img640_e300_orig/weights/best.pt"/>
+  <arg name="expected_model_sha256"
+       default="7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500"/>
+  <arg name="detector_python"
+       default="$(find autolabor_fod_vision)/../../../.venv/fod_yolo/bin/python3"/>
+  <arg name="image_quality_python" default="$(arg detector_python)"/>
+  <arg name="device" default="auto"/>
+  <arg name="image_size" default="640"/>
+  <arg name="confidence" default="0.25"/>
+  <arg name="iou" default="0.45"/>
+  <arg name="max_detections" default="100"/>
+  <arg name="required_class_names" default="Metal,Soft,Plastic,Wire,Tool,w"/>
+
+  <!-- Keep metric projection off until the physical ZED mount TF is measured. -->
+  <arg name="enable_projection" default="false"/>
+  <arg name="base_frame" default="base_link"/>
+  <arg name="tracking_frame" default="camera_init"/>
+
+  <group if="$(arg start_camera)">
+    <include file="$(find robot_bringup)/launch/zed2_camera.launch">
+      <arg name="camera_name" value="$(arg camera_name)"/>
+      <arg name="node_name" value="$(arg node_name)"/>
+      <arg name="serial_number" value="$(arg serial_number)"/>
+      <arg name="publish_tf" value="false"/>
+      <arg name="publish_map_tf" value="false"/>
+      <arg name="publish_fod_aliases" value="true"/>
+    </include>
+  </group>
+
+  <group if="$(arg enable_image_quality_controller)">
+    <node pkg="autolabor_fod_vision"
+          type="fod_image_quality_controller_node.py"
+          name="fod_image_quality_controller"
+          output="screen"
+          launch-prefix="$(arg image_quality_python)"
+          respawn="false">
+      <rosparam command="load"
+                file="$(find autolabor_fod_vision)/config/image_quality_controller.yaml"/>
+      <param name="enabled" value="true"/>
+      <param name="monitor_only" value="$(arg image_quality_monitor_only)"/>
+      <param name="target_median" value="$(arg image_quality_target_median)"/>
+      <param name="exposure_max_percent"
+             value="$(arg image_quality_exposure_max_percent)"/>
+      <param name="dynamic_reconfigure_server"
+             value="/$(arg camera_name)/$(arg node_name)"/>
+    </node>
+  </group>
+
+  <include file="$(find autolabor_fod_vision)/launch/perception.launch">
+    <arg name="start_source" value="false"/>
+    <arg name="weights" value="$(arg weights)"/>
+    <arg name="expected_model_sha256" value="$(arg expected_model_sha256)"/>
+    <arg name="detector_python" value="$(arg detector_python)"/>
+    <arg name="device" value="$(arg device)"/>
+    <arg name="image_size" value="$(arg image_size)"/>
+    <arg name="confidence" value="$(arg confidence)"/>
+    <arg name="iou" value="$(arg iou)"/>
+    <arg name="max_detections" value="$(arg max_detections)"/>
+    <arg name="smoke_test_only" value="false"/>
+    <arg name="required_class_names" value="$(arg required_class_names)"/>
+    <arg name="enable_depth_fusion" value="true"/>
+    <arg name="depth_topic" value="/fod_camera/depth_registered"/>
+    <arg name="enable_projection" value="$(arg enable_projection)"/>
+    <arg name="base_frame" value="$(arg base_frame)"/>
+    <arg name="tracking_frame" value="$(arg tracking_frame)"/>
+    <arg name="allowed_class_names" value="$(arg required_class_names)"/>
+  </include>
+</launch>

@@ -148,6 +148,29 @@ Visualization Manager:
       Topic: /gps/odom
       Unreliable: false
       Value: true
+    - Angle Tolerance: 0.1
+      Class: rviz/Odometry
+      Color: 255; 183; 77
+      Enabled: true
+      Keep: 250
+      Length: 0.5
+      Name: FAST_LIO trajectory
+      Position Tolerance: 0.05
+      Shaft Length: 0.25
+      Shaft Radius: 0.025
+      Shape:
+        Alpha: 1
+        Axes Length: 0.5
+        Axes Radius: 0.05
+        Color: 255; 183; 77
+        Head Length: 0.15
+        Head Radius: 0.08
+        Shaft Length: 0.25
+        Shaft Radius: 0.025
+        Value: Arrow
+      Topic: /Odometry
+      Unreliable: false
+      Value: true
     - Alpha: 1
       Axes Length: 1
       Axes Radius: 0.1
@@ -202,6 +225,8 @@ Visualization Manager:
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
   Value: true
   Views:
     Current:

@@ -395,7 +395,15 @@ class BringupCommandRouteSafetyTest(unittest.TestCase):
 
     def test_fast_lio_prefers_system_libusb_without_changing_other_launches(self):
         self.assertIn(
-            'FAST_LIO_SYSTEM_LIBRARY_DIR="${FAST_LIO_SYSTEM_LIBRARY_DIR:-/lib/x86_64-linux-gnu}"',
+            'DEFAULT_FAST_LIO_SYSTEM_LIBRARY_DIR="/lib/aarch64-linux-gnu"',
+            self.script,
+        )
+        self.assertIn(
+            'DEFAULT_FAST_LIO_SYSTEM_LIBRARY_DIR="/lib/x86_64-linux-gnu"',
+            self.script,
+        )
+        self.assertIn(
+            'FAST_LIO_SYSTEM_LIBRARY_DIR="${FAST_LIO_SYSTEM_LIBRARY_DIR:-$DEFAULT_FAST_LIO_SYSTEM_LIBRARY_DIR}"',
             self.script,
         )
         self.assertIn(

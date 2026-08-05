@@ -22,6 +22,11 @@ class Detection:
     anchor_u: float
     anchor_v: float
     mask: List[Tuple[float, float]] = field(default_factory=list)
+    depth_valid: bool = False
+    depth_m: float = float("nan")
+    depth_mad_m: float = float("nan")
+    depth_sample_count: int = 0
+    depth_valid_fraction: float = 0.0
 
 
 @dataclass
@@ -199,7 +204,14 @@ def annotate_image(
         if detection.mask:
             polygon = np.asarray(detection.mask, dtype=np.int32).reshape((-1, 1, 2))
             cv2.polylines(output, [polygon], True, (255, 180, 0), 2)
-        label = "{} {:.2f}".format(detection.class_name, detection.confidence)
+        depth_text = (
+            " {:.2f}m".format(detection.depth_m)
+            if detection.depth_valid and np.isfinite(detection.depth_m)
+            else " depth:N/A"
+        )
+        label = "{} {:.2f}{}".format(
+            detection.class_name, detection.confidence, depth_text
+        )
         cv2.putText(
             output,
             label,

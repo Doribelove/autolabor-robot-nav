@@ -31,10 +31,12 @@ from autolabor_fod_control.visual_servo import (
     approach_speed,
     blind_goal_reached,
     curvature_from_pixel_error,
+    depth_rejection_reason,
     find_forbidden_publishers,
     horizontal_error,
     interpolate_planar_pose,
     matching_detections,
+    nearest_depth_target,
     renew_motion_lease_now,
     terminal_feedback_is_fresh,
     terminal_sensor_fence_unchanged,
@@ -74,6 +76,11 @@ def detection(
     confidence=0.90,
     box_width=100.0,
     box_height=80.0,
+    depth_valid=True,
+    depth_m=2.0,
+    depth_mad_m=0.02,
+    depth_sample_count=200,
+    depth_valid_fraction=0.90,
 ):
     v = q * (HEIGHT - 1)
     return PixelDetection(
@@ -86,6 +93,11 @@ def detection(
         height=box_height,
         anchor_u=u,
         anchor_v=v,
+        depth_valid=depth_valid,
+        depth_m=depth_m,
+        depth_mad_m=depth_mad_m,
+        depth_sample_count=depth_sample_count,
+        depth_valid_fraction=depth_valid_fraction,
     )
 
 
@@ -135,6 +147,10 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         node.acquire_max_abs_horizontal_error = 0.65
         node.min_confidence = 0.30
         node.target_u_px = TARGET_U
+        node.require_depth_for_acquisition = True
+        node.nearest_depth_hysteresis_m = 0.10
+        node.association_config = AssociationConfig()
+        node.machine = TargetPhaseMachine(TargetMachineConfig(), node.association_config)
         return node
 
     @staticmethod
@@ -151,6 +167,10 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         self.assertEqual(config["acquire_max_abs_horizontal_error"], 0.65)
         self.assertEqual(config["max_runtime_horizontal_error"], 0.70)
         self.assertEqual(config["min_confidence"], 0.30)
+        self.assertTrue(config["require_depth_for_acquisition"])
+        self.assertEqual(config["min_target_depth_m"], 0.35)
+        self.assertEqual(config["max_target_depth_m"], 5.0)
+        self.assertEqual(config["nearest_depth_hysteresis_m"], 0.10)
         self.assertEqual(config["association_max_anchor_distance_ratio"], 0.18)
         self.assertEqual(config["early_loss_grace_frames"], 20)
         self.assertEqual(config["early_loss_max_frames"], 60)
@@ -203,6 +223,61 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         self.assertEqual(candidates, tuple())
         self.assertIn("confidence 0.290", reason)
         self.assertIn("threshold 0.300", reason)
+
+    def test_multiple_targets_select_the_nearest_valid_depth(self):
+        node = self.make_node()
+        farther = detection(u=TARGET_U - 120.0, depth_m=3.20)
+        nearest = detection(u=TARGET_U + 90.0, depth_m=1.45)
+        frame = SimpleNamespace(
+            candidates=(farther, nearest),
+            observations=(farther, nearest),
+            width=WIDTH,
+            height=HEIGHT,
+        )
+        candidates, reason = node._acquisition_candidates(frame)
+        self.assertEqual(candidates, (nearest,))
+        self.assertEqual(reason, "")
+
+    def test_pending_target_hysteresis_prevents_depth_jitter_switch(self):
+        node = self.make_node()
+        pending = detection(u=TARGET_U - 100.0, depth_m=2.00)
+        node.machine.pending = pending
+        same_target = detection(u=TARGET_U - 96.0, depth_m=2.06)
+        # This second object is still inside the broad association envelope;
+        # the best spatial match must retain the pending target.
+        marginally_nearer = detection(u=TARGET_U + 100.0, depth_m=2.00)
+        frame = SimpleNamespace(
+            candidates=(same_target, marginally_nearer),
+            observations=(same_target, marginally_nearer),
+            width=WIDTH,
+            height=HEIGHT,
+        )
+        candidates, _ = node._acquisition_candidates(frame)
+        self.assertEqual(candidates, (same_target,))
+
+    def test_clear_nearest_target_change_resets_acquisition_hits(self):
+        node = self.make_node()
+        pending = detection(u=TARGET_U - 100.0, depth_m=2.00)
+        node.machine.pending = pending
+        node.machine.pending_hits = 4
+        same_target = detection(u=TARGET_U - 96.0, depth_m=2.05)
+        clearly_nearer = detection(u=TARGET_U + 100.0, depth_m=1.70)
+        frame = SimpleNamespace(
+            candidates=(same_target, clearly_nearer),
+            observations=(same_target, clearly_nearer),
+            width=WIDTH,
+            height=HEIGHT,
+        )
+        candidates, _ = node._acquisition_candidates(frame)
+        self.assertEqual(candidates, (clearly_nearer,))
+        self.assertIsNone(node.machine.pending)
+        self.assertEqual(node.machine.pending_hits, 0)
+
+    def test_unusable_depth_has_an_explicit_motion_rejection(self):
+        target = detection(depth_valid=False, depth_m=float("nan"))
+        reason = depth_rejection_reason(target, 0.35, 15.0, 20, 0.20, 0.35)
+        self.assertIn("unavailable", reason)
+        self.assertIsNone(nearest_depth_target((target,)))
 
     def test_off_center_target_keeps_proven_chassis_start_speed(self):
         error = -0.60

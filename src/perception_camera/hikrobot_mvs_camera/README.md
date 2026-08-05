@@ -17,9 +17,8 @@ Close the MVS desktop client first because the camera is opened exclusively,
 then run:
 
 ```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
-source devel/setup.bash
+cd /home/slam/robot_ws
+source .deps/setup.bash
 roslaunch hikrobot_mvs_camera fod_camera.launch
 ```
 
@@ -51,18 +50,6 @@ roslaunch hikrobot_mvs_camera fod_camera.launch \
   trigger_mode:=true trigger_source:=Line0
 ```
 
-## MVS client
-
-Run the installed client with:
-
-```bash
-hikrobot-mvs
-```
-
-The wrapper keeps MVS runtime logs under `/opt/MVS/bin/Temp` instead of the
-directory from which it was launched. Close the client before starting the ROS
-node.
-
 ## Calibration
 
 The supplied `camera_pinhole_my.yaml` is preserved as the original reference.
@@ -81,7 +68,7 @@ To use a replacement standard ROS calibration file:
 
 ```bash
 roslaunch hikrobot_mvs_camera fod_camera.launch \
-  camera_info_url:=file:///home/robot/.ros/camera_info/fod_camera.yaml
+  camera_info_url:=file:///home/slam/.ros/camera_info/fod_camera.yaml
 ```
 
 The calibration resolution must match the camera output resolution. The
@@ -90,18 +77,16 @@ offset_y:=0` and refuses to stream if the camera cannot apply that ROI.
 
 ## Installation boundary
 
-The installed release is MVS 5.0.1 Build 20260512 for Linux x86_64. The
-official archive is:
+The active aarch64 MVS runtime is installed inside this workspace at
+`.deps/mvs`; the camera-control library is
+`.deps/mvs/lib/aarch64/libMvCameraControl.so`. `.deps/setup.bash` exports
+`MVS_ROOT`, and the launch passes that root to the node. No system-wide
+`/opt/MVS` install or loader-cache change is required.
 
-```text
-https://www.hikrobotics.com/cn2/source/support/software/MVS_Linux_STD_V5.0.1_260512.zip
-SHA-256 cd6c4e3352afb1f6395b9be8a692b4fa8a911ae7eea7ff1f9181970f221bf264
-```
-
-MVS is installed in `/opt/MVS`. Runtime linking is provided by
-`/etc/ld.so.conf.d/hikrobot-mvs.conf`, and access to USB vendor `2bdf` is
-provided by `/etc/udev/rules.d/80-hikrobot-mvs.rules`. The safe client launcher
-is `/usr/local/bin/hikrobot-mvs`.
+USB vendor `2bdf` access is provided persistently by
+`/etc/udev/rules.d/80-hikrobot-mvs.rules`. The repository copy is
+`config/80-hikrobot-mvs.rules`; it grants the `plugdev` group read/write access
+to the USB device node. The `slam` user is a member of `plugdev`.
 
 The MVS directory also contains an older private `libusb-1.0.so.0`. Navigation
 bringup isolates only its FAST_LIO child onto the Ubuntu system libusb, while
@@ -112,4 +97,4 @@ camera can run in a second terminal at the same time as
 The vendor package's broad post-install script is deliberately not used: it
 would edit user shell profiles, install boot services, modify network sysctls,
 and load unrelated GigE/PCIe drivers. This USB camera package only needs the
-SDK files, dynamic-library entry, and targeted udev rule.
+workspace-local SDK files and targeted udev rule.

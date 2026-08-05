@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""Latest-frame YOLO inference node with explicit smoke-test safeguards."""
+"""Latest-frame YOLO inference with registered ZED depth fusion."""
 
+from collections import deque
+import math
 import threading
+import time
 import traceback
 
 import rospy
@@ -12,6 +15,7 @@ from geometry_msgs.msg import Point32
 from sensor_msgs.msg import Image, RegionOfInterest
 
 from autolabor_fod_vision.detector import UltralyticsDetector, annotate_image
+from autolabor_fod_vision.depth_fusion import estimate_detection_depth
 
 
 def _csv_ints(value):
@@ -34,6 +38,39 @@ class DetectorNode:
             rospy.get_param("~required_class_names", "fod")
         )
         self.debug_every_n = max(1, int(rospy.get_param("~debug_every_n", 1)))
+        self.enable_depth_fusion = bool(
+            rospy.get_param("~enable_depth_fusion", False)
+        )
+        self.depth_topic = str(
+            rospy.get_param("~depth_topic", "/fod_camera/depth_registered")
+        )
+        self.depth_sync_tolerance_sec = float(
+            rospy.get_param("~depth_sync_tolerance_sec", 0.06)
+        )
+        self.depth_wait_sec = float(rospy.get_param("~depth_wait_sec", 0.03))
+        self.depth_min_m = float(rospy.get_param("~depth_min_m", 0.30))
+        self.depth_max_m = float(rospy.get_param("~depth_max_m", 15.0))
+        self.depth_min_samples = int(rospy.get_param("~depth_min_samples", 20))
+        self.depth_min_valid_fraction = float(
+            rospy.get_param("~depth_min_valid_fraction", 0.20)
+        )
+        self.depth_bbox_inset_fraction = float(
+            rospy.get_param("~depth_bbox_inset_fraction", 0.18)
+        )
+        if not self.depth_topic.startswith("/"):
+            raise ValueError("depth_topic must be an absolute ROS topic")
+        if not 0.0 < self.depth_sync_tolerance_sec <= 0.20:
+            raise ValueError("depth_sync_tolerance_sec must be in (0, 0.20]")
+        if not 0.0 <= self.depth_wait_sec <= 0.10:
+            raise ValueError("depth_wait_sec must be in [0, 0.10]")
+        if not 0.0 < self.depth_min_m < self.depth_max_m:
+            raise ValueError("depth range is invalid")
+        if self.depth_min_samples < 1:
+            raise ValueError("depth_min_samples must be positive")
+        if not 0.0 <= self.depth_min_valid_fraction <= 1.0:
+            raise ValueError("depth_min_valid_fraction must be in [0, 1]")
+        if not 0.0 <= self.depth_bbox_inset_fraction < 0.5:
+            raise ValueError("depth_bbox_inset_fraction must be in [0, 0.5)")
         classes = _csv_ints(rospy.get_param("~classes", ""))
         self.bridge = CvBridge()
         self.detector = UltralyticsDetector(
@@ -75,12 +112,28 @@ class DetectorNode:
         )
         self._condition = threading.Condition()
         self._latest_message = None
+        self._depth_condition = threading.Condition()
+        self._depth_messages = deque(maxlen=45)
         self._stopping = False
         self.received_frames = 0
         self.processed_frames = 0
         self.dropped_frames = 0
         self.last_inference_ms = 0.0
         self.last_error = ""
+        self.received_depth_frames = 0
+        self.synchronized_depth_frames = 0
+        self.depth_missing_frames = 0
+        self.last_depth_sync_delta_sec = float("nan")
+        self.last_depth_valid_detections = 0
+        self.depth_subscriber = None
+        if self.enable_depth_fusion:
+            self.depth_subscriber = rospy.Subscriber(
+                self.depth_topic,
+                Image,
+                self._depth_callback,
+                queue_size=10,
+                buff_size=16 * 1024 * 1024,
+            )
         self.subscriber = rospy.Subscriber(
             "/fod_camera/image_raw",
             Image,
@@ -92,12 +145,15 @@ class DetectorNode:
         self.worker.start()
         rospy.on_shutdown(self.shutdown)
         rospy.loginfo(
-            "FOD detector ready: model=%s task=%s device=%s classes=%s sha256=%s",
+            "FOD detector ready: model=%s task=%s device=%s classes=%s sha256=%s "
+            "depth_fusion=%s depth_topic=%s",
             self.detector.model_name,
             self.detector.task,
             self.detector.device,
             ",".join(self.detector.names.values()),
             self.detector.model_sha256,
+            self.enable_depth_fusion,
+            self.depth_topic,
         )
 
     def _image_callback(self, message):
@@ -107,6 +163,41 @@ class DetectorNode:
                 self.dropped_frames += 1
             self._latest_message = message
             self._condition.notify()
+
+    def _depth_callback(self, message):
+        with self._depth_condition:
+            self.received_depth_frames += 1
+            self._depth_messages.append(message)
+            self._depth_condition.notify_all()
+
+    def _matching_depth_message(self, image_message):
+        if not self.enable_depth_fusion:
+            return None, float("nan")
+        image_stamp = float(image_message.header.stamp.to_sec())
+        if not math.isfinite(image_stamp) or image_stamp <= 0.0:
+            return None, float("nan")
+        deadline = time.monotonic() + self.depth_wait_sec
+        with self._depth_condition:
+            while True:
+                compatible = [
+                    item
+                    for item in self._depth_messages
+                    if item.header.frame_id == image_message.header.frame_id
+                ]
+                if compatible:
+                    best = min(
+                        compatible,
+                        key=lambda item: abs(
+                            float(item.header.stamp.to_sec()) - image_stamp
+                        ),
+                    )
+                    delta = abs(float(best.header.stamp.to_sec()) - image_stamp)
+                    if math.isfinite(delta) and delta <= self.depth_sync_tolerance_sec:
+                        return best, delta
+                remaining = deadline - time.monotonic()
+                if remaining <= 0.0 or self._stopping:
+                    return None, float("nan")
+                self._depth_condition.wait(timeout=remaining)
 
     def _to_ros_detection(self, detection, width, height):
         message = FodDetection()
@@ -137,6 +228,11 @@ class DetectorNode:
             )
             for point in detection.mask
         ]
+        message.depth_valid = bool(detection.depth_valid)
+        message.depth_m = float(detection.depth_m)
+        message.depth_mad_m = float(detection.depth_mad_m)
+        message.depth_sample_count = int(detection.depth_sample_count)
+        message.depth_valid_fraction = float(detection.depth_valid_fraction)
         return message
 
     def _publish_diagnostic(self, level, text):
@@ -155,6 +251,23 @@ class DetectorNode:
             KeyValue("processed_frames", str(self.processed_frames)),
             KeyValue("dropped_frames", str(self.dropped_frames)),
             KeyValue("last_inference_ms", "{:.2f}".format(self.last_inference_ms)),
+            KeyValue("depth_fusion_enabled", str(self.enable_depth_fusion)),
+            KeyValue("depth_topic", self.depth_topic),
+            KeyValue("received_depth_frames", str(self.received_depth_frames)),
+            KeyValue(
+                "synchronized_depth_frames", str(self.synchronized_depth_frames)
+            ),
+            KeyValue("depth_missing_frames", str(self.depth_missing_frames)),
+            KeyValue(
+                "last_depth_sync_delta_ms",
+                "{:.2f}".format(1000.0 * self.last_depth_sync_delta_sec)
+                if math.isfinite(self.last_depth_sync_delta_sec)
+                else "N/A",
+            ),
+            KeyValue(
+                "last_depth_valid_detections",
+                str(self.last_depth_valid_detections),
+            ),
         ]
         array = DiagnosticArray()
         array.header.stamp = rospy.Time.now()
@@ -165,6 +278,58 @@ class DetectorNode:
         image = self.bridge.imgmsg_to_cv2(image_message, desired_encoding="bgr8")
         result = self.detector.predict(image)
         self.last_inference_ms = result.inference_ms
+        depth_message, depth_delta = self._matching_depth_message(image_message)
+        depth_image = None
+        depth_error = ""
+        if depth_message is not None:
+            try:
+                converted = self.bridge.imgmsg_to_cv2(
+                    depth_message, desired_encoding="32FC1"
+                )
+                if converted.shape != image.shape[:2]:
+                    raise ValueError(
+                        "registered depth is {}x{}, RGB is {}x{}".format(
+                            converted.shape[1],
+                            converted.shape[0],
+                            image.shape[1],
+                            image.shape[0],
+                        )
+                    )
+                depth_image = converted
+            except Exception as error:
+                depth_error = str(error)
+
+        valid_depth_detections = 0
+        for item in result.detections:
+            if depth_image is None:
+                continue
+            estimate = estimate_detection_depth(
+                depth_image,
+                (item.xmin, item.ymin, item.xmax, item.ymax),
+                item.mask,
+                min_depth_m=self.depth_min_m,
+                max_depth_m=self.depth_max_m,
+                min_samples=self.depth_min_samples,
+                min_valid_fraction=self.depth_min_valid_fraction,
+                bbox_inset_fraction=self.depth_bbox_inset_fraction,
+            )
+            item.depth_valid = estimate.valid
+            item.depth_m = estimate.depth_m
+            item.depth_mad_m = estimate.mad_m
+            item.depth_sample_count = estimate.sample_count
+            item.depth_valid_fraction = estimate.valid_fraction
+            if estimate.valid:
+                valid_depth_detections += 1
+
+        depth_synchronized = depth_image is not None
+        if self.enable_depth_fusion:
+            if depth_synchronized:
+                self.synchronized_depth_frames += 1
+                self.last_depth_sync_delta_sec = depth_delta
+            else:
+                self.depth_missing_frames += 1
+                self.last_depth_sync_delta_sec = float("nan")
+        self.last_depth_valid_detections = valid_depth_detections
         output = FodDetectionArray()
         output.header = image_message.header
         output.image_width = image.shape[1]
@@ -173,6 +338,12 @@ class DetectorNode:
         output.model_sha256 = self.detector.model_sha256
         output.model_task = self.detector.task
         output.inference_ms = result.inference_ms
+        output.depth_synchronized = depth_synchronized
+        output.depth_sync_delta_sec = (
+            depth_delta if depth_synchronized else float("nan")
+        )
+        if depth_synchronized:
+            output.depth_header = depth_message.header
         output.detections = [
             self._to_ros_detection(item, image.shape[1], image.shape[0])
             for item in result.detections
@@ -186,13 +357,26 @@ class DetectorNode:
                 if self.smoke_test_only
                 else self.detector.model_name
             )
+            if self.enable_depth_fusion:
+                banner += " | DEPTH {}".format(
+                    "SYNC" if depth_synchronized else "MISSING"
+                )
             debug = annotate_image(
                 image, result.detections, result.inference_ms, banner
             )
             debug_message = self.bridge.cv2_to_imgmsg(debug, encoding="bgr8")
             debug_message.header = image_message.header
             self.debug_pub.publish(debug_message)
-        self._publish_diagnostic(DiagnosticStatus.OK, "inference active")
+        diagnostic_level = DiagnosticStatus.OK
+        diagnostic_text = "inference and depth fusion active"
+        if self.enable_depth_fusion and not depth_synchronized:
+            diagnostic_level = DiagnosticStatus.WARN
+            diagnostic_text = "inference active; registered depth unavailable"
+            if depth_error:
+                diagnostic_text += ": " + depth_error
+        elif not self.enable_depth_fusion:
+            diagnostic_text = "inference active; depth fusion disabled"
+        self._publish_diagnostic(diagnostic_level, diagnostic_text)
 
     def _worker_loop(self):
         while not rospy.is_shutdown():
@@ -216,6 +400,8 @@ class DetectorNode:
         with self._condition:
             self._stopping = True
             self._condition.notify_all()
+        with self._depth_condition:
+            self._depth_condition.notify_all()
         if (
             hasattr(self, "worker")
             and self.worker.is_alive()

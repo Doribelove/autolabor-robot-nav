@@ -4,6 +4,10 @@
   <arg name="start_gps_error_monitor" default="true"/>
   <arg name="rviz_config"
        default="$(find autolabor_operator_gui)/config/operator_navigation.rviz"/>
+  <arg name="navigation_mode_label" default="GPS"/>
+  <arg name="odom_topic" default="/gps/odom"/>
+  <arg name="rviz_startup_fixed_frame" default="base_link"/>
+  <arg name="rviz_navigation_fixed_frame" default="camera_init"/>
 
   <node pkg="autolabor_operator_gui"
         type="autolabor_operator_gui_node"
@@ -12,6 +16,12 @@
         required="true">
     <param name="enable_rviz" value="$(arg enable_rviz)"/>
     <param name="rviz_config" value="$(arg rviz_config)"/>
+    <param name="navigation_mode_label" value="$(arg navigation_mode_label)"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="rviz_startup_fixed_frame"
+           value="$(arg rviz_startup_fixed_frame)"/>
+    <param name="rviz_navigation_fixed_frame"
+           value="$(arg rviz_navigation_fixed_frame)"/>
   </node>
 
   <!-- This monitor tolerates missing odometry and simply waits for samples. -->

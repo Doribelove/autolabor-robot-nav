@@ -1,7 +1,7 @@
 # Project Health Fix Roadmap
 
 Last audit: 2026-07-15
-Workspace: `/home/robot/robot_ws`
+Workspace: `/home/slam/robot_ws`
 Target platform: ROS Noetic / Python 3
 
 ## Purpose
@@ -340,7 +340,7 @@ Priority: medium; isolate from production work where possible.
 - Repair or remove the truncated
   `pedsim_gazebo_plugin/worlds/social_activities.world`.
 - Fix non-void C++ functions without returns and format-string mismatches.
-- Remove obsolete `/home/robot/arena_ws/...` absolute launch paths.
+- Remove obsolete `/home/slam/arena_ws/...` absolute launch paths.
 - Add a `use_rviz` option and disable evaluation visualization in headless
   production launches.
 - Complete install-space rules or document that only devel-space is supported.

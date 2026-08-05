@@ -9,9 +9,9 @@
   <arg name="loop" default="true"/>
   <arg name="start_source" default="true"/>
 
-  <arg name="weights" default="/home/robot/robot_ws/src/yolo/yolo11n.pt"/>
+  <arg name="weights" default="$(find autolabor_fod_vision)/../../yolo/yolo11n.pt"/>
   <arg name="expected_model_sha256" default=""/>
-  <arg name="detector_python" default="/home/robot/python_env/fod_yolo/bin/python3"/>
+  <arg name="detector_python" default="$(find autolabor_fod_vision)/../../../.venv/fod_yolo/bin/python3"/>
   <arg name="device" default="auto"/>
   <arg name="image_size" default="640"/>
   <arg name="confidence" default="0.25"/>
@@ -19,6 +19,8 @@
   <arg name="max_detections" default="100"/>
   <arg name="smoke_test_only" default="true"/>
   <arg name="required_class_names" default="fod"/>
+  <arg name="enable_depth_fusion" default="false"/>
+  <arg name="depth_topic" default="/fod_camera/depth_registered"/>
 
   <arg name="enable_projection" default="false"/>
   <arg name="base_frame" default="base_link"/>
@@ -58,6 +60,8 @@
     <param name="max_detections" value="$(arg max_detections)"/>
     <param name="smoke_test_only" value="$(arg smoke_test_only)"/>
     <param name="required_class_names" value="$(arg required_class_names)"/>
+    <param name="enable_depth_fusion" value="$(arg enable_depth_fusion)"/>
+    <param name="depth_topic" value="$(arg depth_topic)"/>
   </node>
 
   <group if="$(arg enable_projection)">

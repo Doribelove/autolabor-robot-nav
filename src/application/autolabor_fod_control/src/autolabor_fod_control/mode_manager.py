@@ -1,4 +1,4 @@
-"""Pure command-selection helpers for GPS/FOD controller arbitration."""
+"""Pure command-selection and GPS/FOD entry helpers."""
 
 from dataclasses import dataclass
 import math
@@ -8,12 +8,99 @@ GPS_SOURCE = "GPS"
 FOD_SOURCE = "FOD"
 STOP_SOURCE = "STOP"
 
+WAIT_FOR_FOD = "WAIT_FOR_FOD"
+ENTER_FOD = "ENTER_FOD"
+KEEP_GPS = "KEEP_GPS"
+
 
 @dataclass(frozen=True)
 class TimedCommand:
     linear_x: float
     angular_z: float
     receipt_monotonic: float
+
+
+@dataclass(frozen=True)
+class FodEntryDecision:
+    action: str
+    reason: str
+    nearest_depth_m: float = None
+
+
+class FodEntryGate:
+    """Allow GPS/FOD handoff only for a recent target strictly inside range."""
+
+    def __init__(self, entry_distance_m, no_detection_timeout_sec):
+        self.entry_distance_m = float(entry_distance_m)
+        self.no_detection_timeout_sec = float(no_detection_timeout_sec)
+        if (
+            not math.isfinite(self.entry_distance_m)
+            or self.entry_distance_m <= 0.0
+        ):
+            raise ValueError("entry_distance_m must be finite and positive")
+        if (
+            not math.isfinite(self.no_detection_timeout_sec)
+            or self.no_detection_timeout_sec <= 0.0
+        ):
+            raise ValueError(
+                "no_detection_timeout_sec must be finite and positive"
+            )
+        self.latest_nearest_depth_m = None
+        self.latest_valid_receipt_monotonic = None
+
+    def update(self, depths_m, receipt_monotonic):
+        receipt = float(receipt_monotonic)
+        if not math.isfinite(receipt):
+            raise ValueError("FOD detection receipt time must be finite")
+        valid_depths = [
+            float(depth)
+            for depth in depths_m
+            if math.isfinite(float(depth)) and float(depth) > 0.0
+        ]
+        if not valid_depths:
+            return
+        self.latest_nearest_depth_m = min(valid_depths)
+        self.latest_valid_receipt_monotonic = receipt
+
+    def evaluate(self, now_monotonic, request_started_monotonic):
+        now = float(now_monotonic)
+        started = float(request_started_monotonic)
+        if not math.isfinite(now) or not math.isfinite(started) or now < started:
+            raise ValueError("FOD entry evaluation time is invalid")
+
+        if (
+            self.latest_nearest_depth_m is not None
+            and self.latest_valid_receipt_monotonic is not None
+        ):
+            age = now - self.latest_valid_receipt_monotonic
+            if 0.0 <= age <= self.no_detection_timeout_sec:
+                depth = self.latest_nearest_depth_m
+                if depth < self.entry_distance_m:
+                    return FodEntryDecision(
+                        ENTER_FOD,
+                        "nearest FOD %.3fm is within the %.3fm entry distance"
+                        % (depth, self.entry_distance_m),
+                        depth,
+                    )
+                return FodEntryDecision(
+                    KEEP_GPS,
+                    "nearest FOD %.3fm is not within %.3fm; GPS remains active"
+                    % (depth, self.entry_distance_m),
+                    depth,
+                )
+
+        elapsed = now - started
+        if elapsed >= self.no_detection_timeout_sec:
+            return FodEntryDecision(
+                KEEP_GPS,
+                "no valid-depth FOD was observed for %.3fs; GPS remains active"
+                % self.no_detection_timeout_sec,
+            )
+        return FodEntryDecision(
+            WAIT_FOR_FOD,
+            "waiting up to %.3fs for valid-depth FOD information"
+            % self.no_detection_timeout_sec,
+        )
 
 
 class CommandArbiter:

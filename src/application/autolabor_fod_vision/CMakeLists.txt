@@ -5,8 +5,8 @@ find_package(catkin REQUIRED COMPONENTS
   autolabor_fod_msgs
   cv_bridge
   diagnostic_msgs
+  dynamic_reconfigure
   geometry_msgs
-  hikrobot_mvs_camera
   rospy
   sensor_msgs
   std_msgs
@@ -23,8 +23,8 @@ catkin_package(
   autolabor_fod_msgs
   cv_bridge
   diagnostic_msgs
+  dynamic_reconfigure
   geometry_msgs
-  hikrobot_mvs_camera
   rospy
   sensor_msgs
   std_msgs
@@ -51,6 +51,7 @@ install(DIRECTORY config launch
 
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_camera_info.py)
+  catkin_add_nosetests(test/test_depth_fusion.py)
   catkin_add_nosetests(test/test_image_quality.py)
   catkin_add_nosetests(test/test_projection.py)
   catkin_add_nosetests(test/test_tracking.py)

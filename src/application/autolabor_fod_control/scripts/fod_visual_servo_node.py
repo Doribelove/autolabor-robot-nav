@@ -53,6 +53,9 @@ from autolabor_fod_control.visual_servo import (
     find_forbidden_publishers,
     horizontal_error,
     interpolate_planar_pose,
+    depth_rejection_reason,
+    matching_detections,
+    nearest_depth_target,
     renew_motion_lease_now,
     terminal_feedback_is_fresh,
     terminal_sensor_fence_unchanged,
@@ -104,6 +107,8 @@ class DetectionFrame:
     height: int
     observations: Tuple[PixelDetection, ...]
     candidates: Tuple[PixelDetection, ...]
+    depth_rejected: Tuple[PixelDetection, ...] = tuple()
+    depth_rejections: Tuple[str, ...] = tuple()
     error: str = ""
 
 
@@ -212,12 +217,12 @@ class FodVisualServoNode:
         self.expected_canbus_node = rospy.get_param(
             "~expected_canbus_node", "/canbus_driver"
         )
-        self.expected_image_width = int(rospy.get_param("~expected_image_width", 1280))
+        self.expected_image_width = int(rospy.get_param("~expected_image_width", 640))
         self.expected_image_height = int(
-            rospy.get_param("~expected_image_height", 1024)
+            rospy.get_param("~expected_image_height", 360)
         )
         self.expected_camera_frame = rospy.get_param(
-            "~expected_camera_frame", "fod_camera_optical_frame"
+            "~expected_camera_frame", "zed2_left_camera_optical_frame"
         )
         self.expected_odom_frame = rospy.get_param("~expected_odom_frame", "odom")
         self.expected_base_frame = rospy.get_param("~expected_base_frame", "base_link")
@@ -232,6 +237,30 @@ class FodVisualServoNode:
             )
         )
         self.min_confidence = float(rospy.get_param("~min_confidence", 0.30))
+        self.require_depth_for_acquisition = strict_bool_param(
+            "~require_depth_for_acquisition", True
+        )
+        self.min_target_depth_m = float(
+            rospy.get_param("~min_target_depth_m", 0.35)
+        )
+        self.max_target_depth_m = float(
+            rospy.get_param("~max_target_depth_m", 5.0)
+        )
+        self.min_depth_sample_count = int(
+            rospy.get_param("~min_depth_sample_count", 20)
+        )
+        self.min_depth_valid_fraction = float(
+            rospy.get_param("~min_depth_valid_fraction", 0.20)
+        )
+        self.max_depth_mad_m = float(
+            rospy.get_param("~max_depth_mad_m", 0.35)
+        )
+        self.max_depth_sync_delta_sec = float(
+            rospy.get_param("~max_depth_sync_delta_sec", 0.08)
+        )
+        self.nearest_depth_hysteresis_m = float(
+            rospy.get_param("~nearest_depth_hysteresis_m", 0.10)
+        )
         self.allow_motion = strict_bool_param("~allow_motion", False)
         self.external_estop_override = strict_bool_param(
             "~external_estop_override", False
@@ -656,6 +685,12 @@ class FodVisualServoNode:
     def _validate_parameters(self):
         numeric = {
             "min_confidence": self.min_confidence,
+            "min_target_depth_m": self.min_target_depth_m,
+            "max_target_depth_m": self.max_target_depth_m,
+            "min_depth_valid_fraction": self.min_depth_valid_fraction,
+            "max_depth_mad_m": self.max_depth_mad_m,
+            "max_depth_sync_delta_sec": self.max_depth_sync_delta_sec,
+            "nearest_depth_hysteresis_m": self.nearest_depth_hysteresis_m,
             "target_u_offset_px": self.target_u_offset_px,
             "precheck_timeout_sec": self.precheck_timeout_sec,
             "mode_timeout_sec": self.mode_timeout_sec,
@@ -780,6 +815,20 @@ class FodVisualServoNode:
             raise ValueError("expected_model_sha256 must be exactly 64 hex characters")
         if not 0.25 <= self.min_confidence <= 0.95:
             raise ValueError("min_confidence must be between 0.25 and 0.95")
+        if not 0.30 <= self.min_target_depth_m < self.max_target_depth_m:
+            raise ValueError("target depth range is invalid")
+        if not self.max_target_depth_m <= 15.0:
+            raise ValueError("max_target_depth_m exceeds the configured ZED range")
+        if not 10 <= self.min_depth_sample_count <= 10000:
+            raise ValueError("min_depth_sample_count is invalid")
+        if not 0.05 <= self.min_depth_valid_fraction <= 1.0:
+            raise ValueError("min_depth_valid_fraction is invalid")
+        if not 0.0 <= self.max_depth_mad_m <= 1.0:
+            raise ValueError("max_depth_mad_m is invalid")
+        if not 0.0 < self.max_depth_sync_delta_sec <= 0.20:
+            raise ValueError("max_depth_sync_delta_sec is invalid")
+        if not 0.0 <= self.nearest_depth_hysteresis_m <= 0.50:
+            raise ValueError("nearest_depth_hysteresis_m is invalid")
         if abs(self.target_u_offset_px) > 0.15 * self.expected_image_width:
             raise ValueError("target_u_offset_px exceeds the conservative calibration range")
         if not 5.0 <= self.precheck_timeout_sec <= 60.0:
@@ -979,8 +1028,35 @@ class FodVisualServoNode:
         if str(msg.model_task).strip().lower() not in ("detect", "segment"):
             errors.append("unsupported detector model task %r" % msg.model_task)
 
+        depth_frame_trusted = bool(msg.depth_synchronized)
+        if depth_frame_trusted:
+            depth_stamp_sec = float(msg.depth_header.stamp.to_sec())
+            depth_delta_sec = float(msg.depth_sync_delta_sec)
+            measured_delta_sec = abs(depth_stamp_sec - stamp_sec)
+            if not math.isfinite(depth_stamp_sec) or depth_stamp_sec <= 0.0:
+                errors.append("synchronized depth source stamp is invalid")
+                depth_frame_trusted = False
+            if msg.depth_header.frame_id != msg.header.frame_id:
+                errors.append("registered depth frame does not match the RGB frame")
+                depth_frame_trusted = False
+            if (
+                not math.isfinite(depth_delta_sec)
+                or depth_delta_sec < 0.0
+                or depth_delta_sec > self.max_depth_sync_delta_sec
+            ):
+                errors.append("registered depth synchronization delta is invalid")
+                depth_frame_trusted = False
+            elif (
+                math.isfinite(measured_delta_sec)
+                and abs(measured_delta_sec - depth_delta_sec) > 0.002
+            ):
+                errors.append("registered depth synchronization metadata is inconsistent")
+                depth_frame_trusted = False
+
         observations = []
         candidates = []
+        depth_rejected = []
+        depth_rejections = []
         for index, item in enumerate(msg.detections):
             detection = PixelDetection(
                 class_id=int(item.class_id),
@@ -992,6 +1068,11 @@ class FodVisualServoNode:
                 height=float(item.bbox.height),
                 anchor_u=float(item.anchor_px.x),
                 anchor_v=float(item.anchor_px.y),
+                depth_valid=bool(item.depth_valid),
+                depth_m=float(item.depth_m),
+                depth_mad_m=float(item.depth_mad_m),
+                depth_sample_count=int(item.depth_sample_count),
+                depth_valid_fraction=float(item.depth_valid_fraction),
             )
             try:
                 validate_detection(detection, width, height)
@@ -1001,7 +1082,27 @@ class FodVisualServoNode:
             if detection.class_name in self.allowed_class_names:
                 observations.append(detection)
                 if detection.confidence >= self.min_confidence:
-                    candidates.append(detection)
+                    rejection = ""
+                    if self.require_depth_for_acquisition:
+                        if not depth_frame_trusted:
+                            rejection = "registered RGB/depth frame is not synchronized"
+                        else:
+                            rejection = depth_rejection_reason(
+                                detection,
+                                self.min_target_depth_m,
+                                self.max_target_depth_m,
+                                self.min_depth_sample_count,
+                                self.min_depth_valid_fraction,
+                                self.max_depth_mad_m,
+                            )
+                    if rejection:
+                        depth_rejected.append(detection)
+                        depth_rejections.append(
+                            "detection[%d] %s: %s"
+                            % (index, detection.class_name, rejection)
+                        )
+                    else:
+                        candidates.append(detection)
 
         with self.sensor_lock:
             if (
@@ -1030,6 +1131,8 @@ class FodVisualServoNode:
                 height=height,
                 observations=tuple(observations),
                 candidates=tuple(candidates),
+                depth_rejected=tuple(depth_rejected),
+                depth_rejections=tuple(depth_rejections),
                 error="; ".join(errors),
             )
             if len(self.detection_queue) == self.detection_queue.maxlen:
@@ -1996,13 +2099,13 @@ class FodVisualServoNode:
         else:
             rospy.logwarn(
                 "FOD visual-servo enable requested. Vehicle remains stopped until all "
-                "prechecks pass and exactly one target is stable. Keep the physical "
+                "prechecks pass and the nearest depth-qualified target is stable. Keep the physical "
                 "emergency stop ready."
             )
         return SetBoolResponse(
             success=True,
             message=(
-                "enable accepted; motion waits for prechecks and one stable target "
+                "enable accepted; motion waits for prechecks and one stable depth-selected target "
                 "inside the steering capture range"
             ),
         )
@@ -2150,7 +2253,7 @@ class FodVisualServoNode:
             self.last_processed_odom_sequence = odom.sequence
             self._transition(
                 ACQUIRE,
-                "prechecks passed; waiting for one stable target inside the steering capture range",
+                "prechecks passed; waiting for the nearest stable depth-qualified target inside the steering capture range",
             )
             return
 
@@ -2270,6 +2373,11 @@ class FodVisualServoNode:
 
     def _acquisition_candidates(self, frame):
         if not frame.candidates:
+            depth_rejections = tuple(
+                getattr(frame, "depth_rejections", tuple())
+            )
+            if depth_rejections:
+                return tuple(), depth_rejections[0]
             observations = tuple(getattr(frame, "observations", tuple()))
             if observations:
                 best_confidence = max(item.confidence for item in observations)
@@ -2278,9 +2386,40 @@ class FodVisualServoNode:
                     "best target confidence %.3f is below acquisition threshold %.3f"
                     % (best_confidence, self.min_confidence),
                 )
-        if len(frame.candidates) != 1:
-            return frame.candidates, ""
-        candidate = frame.candidates[0]
+        candidates = frame.candidates
+        if len(candidates) > 1 and getattr(
+            self, "require_depth_for_acquisition", False
+        ):
+            pending = getattr(getattr(self, "machine", None), "pending", None)
+            candidate = nearest_depth_target(
+                candidates,
+                preferred=pending,
+                preferred_hysteresis_m=self.nearest_depth_hysteresis_m,
+                image_width=frame.width,
+                image_height=frame.height,
+                association=self.association_config,
+            )
+            if candidate is None:
+                return tuple(), "multiple targets are visible but none has valid depth"
+            if pending is not None:
+                pending_matches = matching_detections(
+                    pending,
+                    candidates,
+                    frame.width,
+                    frame.height,
+                    self.association_config,
+                )
+                # The phase machine sees only the depth-selected candidate. If
+                # selection genuinely changes objects, reset its hit counter so
+                # a broad association gate cannot blend two targets into one
+                # six-frame acquisition.
+                if not pending_matches or candidate is not pending_matches[0]:
+                    self.machine.pending = None
+                    self.machine.pending_hits = 0
+            candidates = (candidate,)
+        elif len(candidates) != 1:
+            return candidates, ""
+        candidate = candidates[0]
         q = candidate.anchor_v / float(frame.height - 1)
         error = horizontal_error(candidate.anchor_u, self.target_u_px, frame.width)
         if not (
@@ -2303,7 +2442,7 @@ class FodVisualServoNode:
                 "target horizontal error %.3f exceeds steering capture limit %.3f"
                 % (error, self.acquire_max_abs_horizontal_error),
             )
-        return frame.candidates, ""
+        return candidates, ""
 
     def _process_detection_events(self):
         frames = self._take_detection_events()
@@ -2326,6 +2465,24 @@ class FodVisualServoNode:
                 LOSS_CONFIRM,
             ):
                 continue
+            if (
+                self.phase != ACQUIRE
+                and self.require_depth_for_acquisition
+                and self.machine.locked is not None
+                and frame.depth_rejected
+            ):
+                rejected_matches = matching_detections(
+                    self.machine.locked,
+                    frame.depth_rejected,
+                    frame.width,
+                    frame.height,
+                    self.association_config,
+                )
+                if rejected_matches:
+                    raise ControllerAbort(
+                        "locked target lost motion-grade registered depth: %s"
+                        % (frame.depth_rejections[0] if frame.depth_rejections else "invalid depth")
+                    )
             acquisition_reason = ""
             if self.phase == ACQUIRE:
                 candidates, acquisition_reason = self._acquisition_candidates(frame)
@@ -2777,7 +2934,7 @@ class FodVisualServoNode:
             )
             self._transition(
                 BLIND_ADVANCE,
-                "steering centered; completing 0.50m from first target loss",
+                "steering centered; advancing 0.50m to carry the FOD through the roller",
             )
             return
 
@@ -2827,7 +2984,8 @@ class FodVisualServoNode:
             self._hard_stop()
             self.phase = FINAL_STOP
             self.reason = (
-                "0.50m reached; confirming full stop while enforcing 0.55m hard limit"
+                "roller pass distance 0.50m reached; confirming full stop while "
+                "enforcing 0.55m hard limit"
             )
             self.final_stop_started_monotonic = now
             with self.sensor_lock:
@@ -2988,7 +3146,8 @@ class FodVisualServoNode:
                     self._check_terminal_commit_health_locked()
                     self.phase = COMPLETE
                     self.reason = (
-                        "FOD recovery complete and stopped: net forward %.3fm, "
+                        "FOD passed the roller; recovery complete and stopped: "
+                        "net forward %.3fm, "
                         "path %.3fm" % (progress.forward_m, progress.path_m)
                     )
                     self.target_visible = False
@@ -3054,6 +3213,23 @@ class FodVisualServoNode:
             "target_locked": target is not None,
             "target_class": target.class_name if target is not None else "",
             "target_confidence": round(target.confidence, 4) if target is not None else None,
+            "target_depth_m": (
+                round(target.depth_m, 4)
+                if target is not None
+                and target.depth_valid
+                and math.isfinite(target.depth_m)
+                else None
+            ),
+            "target_depth_mad_m": (
+                round(target.depth_mad_m, 4)
+                if target is not None
+                and target.depth_valid
+                and math.isfinite(target.depth_mad_m)
+                else None
+            ),
+            "target_depth_sample_count": (
+                target.depth_sample_count if target is not None else None
+            ),
             "target_anchor_u_px": (
                 round(self.machine.filtered_u, 3)
                 if self.machine.filtered_u is not None

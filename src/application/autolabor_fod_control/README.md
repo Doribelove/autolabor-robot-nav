@@ -1,8 +1,11 @@
 # Autolabor FOD Visual Recovery Control
 
-本包在现有 `/fod/detections` 基础上提供一套真车视觉伺服回环。它只使用像素
-位置接近 FOD；由于当前还没有经过验证的相机安装外参，不会用 bbox 大小伪造
-米制距离。目标在闭环转向校正下移动到画面下方并按连续帧确认消失后，程序立即以该
+本包在现有 `/fod/detections` 基础上提供一套真车视觉伺服回环。它使用 ZED
+注册深度在多个候选中选择最近 FOD。GPS 联动入口只在最近 FOD 严格小于 `5 m`
+时切换控制；目标在 `5 m` 外或连续 `1 s` 没有有效深度识别时继续原 GPS 导航。
+进入视觉控制后使用像素位置闭环转向；由于当前还没有
+经过验证的相机安装外参，不会把轴向深度或 bbox 大小伪造成地面坐标。目标在
+闭环转向校正下移动到画面下方并按连续帧确认消失后，程序立即以该
 时刻的底盘 `/odom` 位姿开始计量，先停车等待前轮回中，再继续直行，直到自
 首次消失位置起的净前进距离达到 `0.50 m`。
 
@@ -25,6 +28,8 @@ EDGE_ARMED → LOSS_CONFIRM → STEER_SETTLE → BLIND_ADVANCE → FINAL_STOP �
 
 - YOLO 不是避障器。第一次及调参试验必须在封闭净空区域进行，人员离开车辆
   前方，操作员全程手持物理急停。
+- 运动候选必须有同步的 ZED 注册深度，并通过距离、有效像素数、有效比例和
+  MAD 离散度门限。锁定目标仍可见但其深度质量失效时立即进入 `ABORT`。
 - 单独运行本页后半部分的 `visual_recovery.launch` 时，只能启动纯 CAN/M2
   底盘；不要同时启动 move_base、GPS 导航、速度限制器、键盘遥控、rqt topic
   publisher 或任何 `rostopic pub /cmd_vel`。
@@ -90,10 +95,9 @@ cd ~/robot_ws
 source /opt/ros/noetic/setup.bash
 source devel/setup.bash
 
-roslaunch autolabor_fod_vision hikrobot_fod_detection.launch \
+roslaunch autolabor_fod_vision zed_fod_detection.launch \
   start_camera:=true \
-  enable_image_quality_controller:=true \
-  image_quality_exposure_max_us:=12000
+  enable_image_quality_controller:=false
 ```
 
 确认 `/fod/detections` 正常、车辆前方净空且操作员拿好急停后，只需执行：
@@ -107,7 +111,11 @@ cd ~/robot_ws
 
 ```text
 GPS_ACTIVE
-  -> 立即屏蔽 GPS 速度
+  -> 检查最近有效深度 FOD
+      ├─ 距离 >= 5m：保持 GPS_ACTIVE，不暂停路线
+      ├─ 连续 1s 无有效深度 FOD：保持 GPS_ACTIVE，不暂停路线
+      └─ 距离 < 5m：开始控制权交接
+  -> 屏蔽 GPS 速度
   -> 暂停长距离管理器并取消当前 move_base 子目标
   -> 保留最终 GPS 经纬度目标
   -> 用新鲜 /odom 连续确认停车 0.5s
@@ -115,7 +123,9 @@ GPS_ACTIVE
   -> FOD_ACTIVE
 ```
 
-视觉控制器到达 `COMPLETE` 后，仲裁器先保持停车、将视觉控制器复位为
+视觉控制器让目标沿图像中线向下移动；目标在底部中央消失后，车辆回正并继续
+直行 `0.50 m`，使 FOD 沿车体中心通过滚轴。到达 `COMPLETE` 后，仲裁器先保持
+停车、将视觉控制器复位为
 `DISABLED`，再从车辆回收后的当前位置重新计算一个滚动 GPS 子目标，自动恢复
 GPS。它不会恢复已经取消的旧 15m 子目标，也不会扩大 40m 全局滚动地图。
 回收期间新发布到 `/gps/goal_fix` 的目标会被明确拒绝，不会悄悄覆盖已保留的
@@ -138,7 +148,7 @@ GPS。它不会恢复已经取消的旧 15m 子目标，也不会扩大 40m 全�
 `ABORT` 不会自动恢复 GPS：模式仲裁器会保持 `/cmd_vel` 为零，避免检测断流、
 控制冲突或里程异常后车辆突然继续高速导航。排除原因后执行 `fod_mode.sh stop`
 明确恢复 GPS；需要再次回收时再执行 `start`。如果相机/YOLO 没启动，视觉
-`PRECHECK` 会超时进入 `ABORT`，GPS 同样保持暂停。
+入口连续 `1 s` 收不到有效深度 FOD，会直接保持 `GPS_ACTIVE`，不会暂停路线。
 
 联动模式下不要直接调用 `/fod_visual_servo/set_enabled`；该服务由模式仲裁器
 管理。正常操作只使用 `/fod_navigation_mode/set_fod_enabled`，也就是
@@ -177,17 +187,19 @@ cd ~/robot_ws
 source /opt/ros/noetic/setup.bash
 source devel/setup.bash
 
-roslaunch autolabor_fod_vision hikrobot_fod_detection.launch \
+roslaunch autolabor_fod_vision zed_fod_detection.launch \
   start_camera:=true \
-  enable_image_quality_controller:=true \
-  image_quality_exposure_max_us:=12000
+  enable_image_quality_controller:=false
 ```
 
-先确认下面两个话题接近 `20 Hz`：
+先确认下面三个话题接近 `15 Hz`，并确认检测消息的
+`depth_synchronized: true`：
 
 ```bash
 rostopic hz /fod_camera/image_raw
+rostopic hz /fod_camera/depth_registered
 rostopic hz /fod/detections
+rostopic echo -n 1 /fod/detections
 ```
 
 ### 终端二：只启动底盘
@@ -263,8 +275,8 @@ rostopic echo /fod_visual_servo/status
 
 ### 终端四：明确使能
 
-将且仅将一个无害、柔软的试验 FOD 放在画面可见范围内，保证其初始底部锚点
-不在画面最下沿，并清空车辆前方至少 `7 m`。操作员拿好物理急停后执行：
+将一个或多个无害、柔软的试验 FOD 放在画面可见范围内，保证最近目标的初始
+底部锚点不在画面最下沿，并清空车辆前方至少 `7 m`。操作员拿好物理急停后执行：
 
 ```bash
 cd ~/robot_ws
@@ -274,8 +286,11 @@ source devel/setup.bash
 rosservice call /fod_visual_servo/set_enabled "data: true"
 ```
 
-服务先进入 `PRECHECK`。检查通过后状态变为 `ACQUIRE`，唯一目标连续稳定
-6 帧后才开始低速前进并通过像素误差自动转向，不要求目标预先位于正中央。
+服务先进入 `PRECHECK`。检查通过后状态变为 `ACQUIRE`。若有多个合格 FOD，
+先按 `depth_m` 选择最近者；正在确认的目标允许 `0.10 m` 深度迟滞，避免相近
+目标因测距噪声来回切换。最近目标连续稳定 6 帧后才开始低速前进并通过像素
+误差自动转向，不要求目标预先位于正中央。完成锁定后只按空间关联继续跟随同一
+目标，不会因为另一个 FOD 后来更近而中途换目标。
 控制器默认接受置信度不低于 `0.30` 的目标；现场批准模型对当前小尺寸 Metal
 目标的稳定输出约为 `0.38–0.43`，此前 `0.45` 的二次门槛会错误地把这些检测
 过滤成 `no eligible target`。连续 6 帧确认仍用于抑制单帧误检。
@@ -313,7 +328,7 @@ rosservice call /fod_visual_servo/set_enabled "data: false"
 rostopic echo -n 1 /fod_visual_servo/status
 ```
 
-其中包含当前状态、停止原因、目标类别/置信度、像素误差、目标纵向比例、
+其中包含当前状态、停止原因、目标类别/置信度、目标深度/MAD/采样数、像素误差、目标纵向比例、
 接近路程、盲走路程、实际下发的速度/曲率，以及检测、CameraInfo、odom、
 前轮转角和底盘状态的新鲜度。相同信息也会写入 `/diagnostics`。
 
@@ -334,8 +349,8 @@ rostopic echo -n 1 /fod_visual_servo/status
 
 ## 现场标定参数
 
-默认横向基准使用 CameraInfo 的主点 `cx`（当前标定约 `620.04 px`），不是简单
-假定 `1280/2=640 px`。实际回收机构中心线与相机光轴可能不重合，可小幅调整：
+默认横向基准使用运行时 ZED CameraInfo 的主点 `cx`，不是硬编码为图像宽度
+的一半。实际回收机构中心线与相机光轴可能不重合，可小幅调整：
 
 ```bash
 roslaunch autolabor_fod_control visual_recovery.launch \

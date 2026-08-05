@@ -10,12 +10,12 @@
 
 ## 重要边界
 
-`/home/robot/robot_ws/src/yolo/yolo11n.pt` 和 `yolo11s.pt` 是 COCO 通用
+`/home/slam/robot_ws/src/yolo/yolo11n.pt` 和 `yolo11s.pt` 是 COCO 通用
 权重，只用于验证 CUDA、媒体读取和 ROS 推理链路。赵工提供的生产候选权重
 位于：
 
 ```text
-/home/robot/robot_ws/src/yolo/fod_yolo11n_img640_e300_orig/weights/best.pt
+/home/slam/robot_ws/src/yolo/fod_yolo11n_img640_e300_orig/weights/best.pt
 SHA256 7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500
 ```
 
@@ -28,7 +28,7 @@ launch 会在反序列化前校验上述 SHA256、逐项校验类别并关闭
 ## 安装
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 ./scripts/setup_fod_yolo_env.sh
 catkin_make --pkg autolabor_fod_msgs autolabor_fod_vision -j2
 source devel/setup.bash
@@ -40,16 +40,16 @@ source devel/setup.bash
 独立环境复用本机已经验证过的 CUDA PyTorch，FOD 自身依赖固定为：
 
 ```text
-/home/robot/python_env/fod_yolo
-torch 2.4.1 + CUDA 12.1
-torchvision 0.19.1
+/home/slam/robot_ws/.venv/fod_yolo
+torch 2.0.0+nv23.05 + Jetson CUDA 11.4
+torchvision 0.15.1
 ultralytics 8.3.0
 numpy 1.24.4
 opencv-python 4.10.0.84
 ```
 
-该环境通过 `--system-site-packages` 只复用本机 CUDA PyTorch/ROS 基础库；
-Ultralytics、Torchvision、NumPy 和 OpenCV 的 FOD 版本安装在独立环境中，
+该环境通过 `--system-site-packages` 复用 ROS 基础库；Jetson ARM64 版
+PyTorch/Torchvision 及 Ultralytics、NumPy 和 OpenCV 安装在独立环境中，
 不会写入系统 Python 或已有的 `rosnav` 环境。
 
 ROS 的 `catkin_install_python` 使用系统解释器，因此 YOLO 节点在 launch
@@ -91,7 +91,7 @@ FOD并不代表链路失败。
 终端一：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 source /opt/ros/noetic/setup.bash
 source devel/setup.bash
 roslaunch autolabor_fod_vision laptop_camera.launch
@@ -108,6 +108,7 @@ rqt_image_view /fod/debug/image
 ```text
 /fod_camera/image_raw       sensor_msgs/Image
 /fod_camera/camera_info     sensor_msgs/CameraInfo
+/fod_camera/depth_registered sensor_msgs/Image (32FC1, metres)
 /fod/detections             autolabor_fod_msgs/FodDetectionArray
 /fod/debug/image            sensor_msgs/Image
 /diagnostics                diagnostic_msgs/DiagnosticArray
@@ -115,45 +116,45 @@ rqt_image_view /fod/debug/image
 
 笔记本摄像头尚未标定，因此该 launch 明确关闭米制投影。
 
-## 海康工业相机实时 FOD 识别
+## ZED 2 实时 FOD 识别
 
-运行识别时必须关闭 `hikrobot-mvs` 桌面客户端，因为客户端和 ROS 驱动会
-独占同一台相机。
-
-如果相机驱动已经按下列方式启动：
+当前生产入口使用序列号 `23748636` 的 ZED 2。一个命令同时启动 ZED、真实
+FOD 权重和检测器：
 
 ```bash
-roslaunch hikrobot_mvs_camera fod_camera.launch
-```
-
-在另一个终端启动真实 FOD 权重：
-
-```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
-source devel/setup.bash
-roslaunch autolabor_fod_vision hikrobot_fod_detection.launch
-```
-
-也可以在确认没有 `/fod_camera/driver` 运行时，用一个命令同时启动相机和
-检测器：
-
-```bash
-roslaunch autolabor_fod_vision hikrobot_fod_detection.launch \
+roslaunch autolabor_fod_vision zed_fod_detection.launch \
   start_camera:=true
 ```
 
-需要让专用入口同时按地面区域自动调节曝光和增益时，显式启用图像质量控制器：
+ZED 原生话题由 launch 映射到稳定的应用接口：
+
+```text
+/zed2/zed_node/rgb/image_rect_color -> /fod_camera/image_raw
+/zed2/zed_node/rgb/camera_info     -> /fod_camera/camera_info
+/zed2/zed_node/depth/depth_registered -> /fod_camera/depth_registered
+```
+
+消息的 `frame_id` 不伪装，保持为 `zed2_left_camera_optical_frame`。视觉伺服
+会同时校验发布者必须是 `/zed2/zed_node`、分辨率必须是 `640x360`。
+
+生产 launch 会把同一时刻的注册深度图融合进 YOLO 结果。每个
+`FodDetection` 包含 `depth_valid`、`depth_m`、`depth_mad_m`、
+`depth_sample_count` 和 `depth_valid_fraction`；数组消息还包含深度帧头与
+RGB/深度时间差。Segment 模型在掩膜内部采样，Detect 模型在 bbox 内缩区域
+采样，再用中位数/MAD 排除 NaN、飞点和边缘背景。`/fod/debug/image` 会在每个
+检测框旁标出米制深度，无可靠深度时明确显示 `depth:N/A`。
+
+默认保留 ZED 原生联动自动曝光/增益。需要试验路面 ROI 控制器时显式启用：
 
 ```bash
-roslaunch autolabor_fod_vision hikrobot_fod_detection.launch \
+roslaunch autolabor_fod_vision zed_fod_detection.launch \
   start_camera:=true \
   enable_image_quality_controller:=true
 ```
 
-该功能默认关闭，因此不会改变原有启动行为。启用后，节点以配置文件中的
-地面 ROI 亮度中位数为目标，优先调整曝光；达到 `5000 us` 的运动模糊上限
-后才增加模拟增益，变亮时则先降低增益。它还会在 `/diagnostics` 报告过曝、
+该功能默认关闭。启用后，节点通过 ZED dynamic-reconfigure 接口，以配置文件
+中的地面 ROI 亮度中位数为目标，优先调整曝光百分比，达到上限后才增加增益
+百分比，变亮时则先降低增益。它还会在 `/diagnostics` 报告过曝、
 欠曝、强逆光/动态范围冲突、清晰度偏低和明显色偏。若 ROI 内同时有大量
 纯黑与纯白像素，曝光无法解决问题，控制器会保持当前值（尚未接管时保留
 相机原生自动模式），提示调整灯光、遮光或相机角度。
@@ -161,13 +162,13 @@ roslaunch autolabor_fod_vision hikrobot_fod_detection.launch \
 只观察指标而不更改相机：
 
 ```bash
-roslaunch autolabor_fod_vision hikrobot_fod_detection.launch \
+roslaunch autolabor_fod_vision zed_fod_detection.launch \
   start_camera:=true \
   enable_image_quality_controller:=true \
   image_quality_monitor_only:=true
 ```
 
-运行时可暂停控制并恢复海康相机原生连续自动曝光/增益：
+运行时可暂停控制并恢复 ZED 原生联动自动曝光/增益：
 
 ```bash
 rosservice call /fod_image_quality_controller/set_enabled "data: false"
@@ -196,12 +197,12 @@ rostopic hz /fod/detections
 `confidence:=0.4` 重新启动；正式阈值应通过有标注的现场测试集确定，而
 不是只观察单幅画面。
 
-该 launch 目前只做识别和画框。虽然相机已经发布标定后的
+该 launch 做识别、注册深度融合和画框，但不把轴向深度冒充地面坐标。虽然相机已经发布标定后的
 `/fod_camera/camera_info`，但在得到并验证
-`base_link -> fod_camera_optical_frame` 安装外参 TF 前，不会输出可信的
+`base_link -> zed2_left_camera_optical_frame` 安装外参 TF 前，不会输出可信的
 地面坐标。
 
-需要在检测结果之上显式接管真车、将单个 FOD 引导到画面底部并在其消失后按
+需要在检测结果之上显式接管真车、从多个 FOD 中锁定最近目标、将其引导到画面底部并在其消失后按
 底盘里程计前进 0.5 m 时，使用独立的 `autolabor_fod_control` 包。它不会由
 本 launch 自动启动；完整的控制源隔离、安全检查和启动步骤见
 `src/application/autolabor_fod_control/README.md`。
@@ -215,7 +216,7 @@ roslaunch autolabor_fod_vision video.launch video:=/path/to/test.mp4 loop:=false
 
 若录像不是 30 FPS，通过 `fps:=录像帧率` 按原速回放。
 
-媒体源只负责发布 ROS 图像；检测器只订阅图像。海康相机已经使用
+媒体源只负责发布 ROS 图像；检测器只订阅图像。ZED 生产入口已经使用
 `/fod_camera/image_raw` 和 `/fod_camera/camera_info`，后级无需打开
 相机 SDK。
 
@@ -259,7 +260,7 @@ rostopic echo /fod/target
 
 - `CameraInfo.K` 是实际分辨率下的有效标定；
 - 图像、CameraInfo、detections 使用同一采集时间和光学 frame；
-- 存在采集时刻的 `base_link <- fod_camera_optical_frame` TF；
+- 存在采集时刻的 `base_link <- zed2_left_camera_optical_frame` TF；
 - `camera_init <- base_link` 可用，以便在稳定坐标系中跟踪；
 - 检测 anchor 是 FOD 的地面接触点；Detect 模型默认使用 bbox 底边中心，
   Segment 模型则保留 mask 轮廓。

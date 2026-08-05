@@ -16,11 +16,17 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 from std_srvs.srv import SetBool, SetBoolResponse
 
+from autolabor_fod_msgs.msg import FodDetectionArray
+
 from autolabor_fod_control.mode_manager import (
+    ENTER_FOD,
     FOD_SOURCE,
     GPS_SOURCE,
+    KEEP_GPS,
     STOP_SOURCE,
+    WAIT_FOR_FOD,
     CommandArbiter,
+    FodEntryGate,
     stopped_sample_is_valid,
 )
 
@@ -51,6 +57,9 @@ class FodNavigationModeManager:
         self.odom_topic = rospy.get_param("~odom_topic", "/odom")
         self.visual_state_topic = rospy.get_param(
             "~visual_state_topic", "/fod_visual_servo/state"
+        )
+        self.detections_topic = rospy.get_param(
+            "~detections_topic", "/fod/detections"
         )
         self.visual_enable_service = rospy.get_param(
             "~visual_enable_service", "/fod_visual_servo/set_enabled"
@@ -102,6 +111,12 @@ class FodNavigationModeManager:
         self.require_output_driver = _strict_bool_param(
             "~require_output_driver", True
         )
+        self.fod_entry_distance_m = float(
+            rospy.get_param("~fod_entry_distance_m", 5.0)
+        )
+        self.fod_no_detection_timeout_sec = float(
+            rospy.get_param("~fod_no_detection_timeout_sec", 1.0)
+        )
 
         self._validate_parameters()
 
@@ -109,6 +124,10 @@ class FodNavigationModeManager:
         self.transition_lock = threading.Lock()
         self.shutdown_event = threading.Event()
         self.arbiter = CommandArbiter(self.command_timeout_sec)
+        self.entry_gate = FodEntryGate(
+            self.fod_entry_distance_m,
+            self.fod_no_detection_timeout_sec,
+        )
         self.mode = GPS_ACTIVE
         self.reason = "GPS navigation owns the chassis command path"
         self.command_source = GPS_SOURCE
@@ -118,6 +137,8 @@ class FodNavigationModeManager:
         self.latest_odom_receipt = None
         self.latest_linear_x = None
         self.latest_angular_z = None
+        self.latest_detection_array_receipt = None
+        self.latest_detection_count = 0
         self.last_output_reason = "waiting for first GPS command"
         self.auto_return_started = False
         self.fault_worker_started = False
@@ -147,6 +168,12 @@ class FodNavigationModeManager:
         )
         self.visual_state_sub = rospy.Subscriber(
             self.visual_state_topic, String, self._visual_state_cb, queue_size=10
+        )
+        self.detections_sub = rospy.Subscriber(
+            self.detections_topic,
+            FodDetectionArray,
+            self._detections_cb,
+            queue_size=2,
         )
         self.move_base_goal_sub = rospy.Subscriber(
             self.move_base_goal_topic,
@@ -189,6 +216,7 @@ class FodNavigationModeManager:
             "output_cmd_topic": self.output_cmd_topic,
             "odom_topic": self.odom_topic,
             "visual_state_topic": self.visual_state_topic,
+            "detections_topic": self.detections_topic,
             "visual_enable_service": self.visual_enable_service,
             "gps_pause_service": self.gps_pause_service,
             "move_base_goal_topic": self.move_base_goal_topic,
@@ -218,6 +246,8 @@ class FodNavigationModeManager:
             "transition_timeout_sec": self.transition_timeout_sec,
             "service_wait_timeout_sec": self.service_wait_timeout_sec,
             "graph_check_rate_hz": self.graph_check_rate_hz,
+            "fod_entry_distance_m": self.fod_entry_distance_m,
+            "fod_no_detection_timeout_sec": self.fod_no_detection_timeout_sec,
         }
         for name, value in positive.items():
             if not math.isfinite(value) or value <= 0.0:
@@ -329,6 +359,22 @@ class FodNavigationModeManager:
             msg.goal_id.id or "<empty>",
         )
 
+    def _detections_cb(self, msg):
+        depths_m = []
+        if bool(msg.depth_synchronized):
+            depths_m = [
+                float(item.depth_m)
+                for item in msg.detections
+                if bool(item.depth_valid)
+                and math.isfinite(float(item.depth_m))
+                and float(item.depth_m) > 0.0
+            ]
+        receipt = time.monotonic()
+        with self.lock:
+            self.latest_detection_array_receipt = receipt
+            self.latest_detection_count = len(msg.detections)
+            self.entry_gate.update(depths_m, receipt)
+
     def _visual_state_cb(self, msg):
         state = str(msg.data).strip().upper()
         start_auto_return = False
@@ -336,7 +382,10 @@ class FodNavigationModeManager:
             self.visual_state = state
             if state == "COMPLETE" and self.mode == FOD_ACTIVE:
                 self.mode = FOD_COMPLETE_STOP
-                self.reason = "visual recovery completed; preparing GPS resume"
+                self.reason = (
+                    "FOD passed the roller and recovery completed; "
+                    "preparing GPS resume"
+                )
                 self.command_source = STOP_SOURCE
                 self.allow_move_base_goals = False
                 self._publish_zero_locked("visual COMPLETE transition stop")
@@ -515,6 +564,21 @@ class FodNavigationModeManager:
             "only after visual COMPLETE"
         )
 
+    def _wait_for_fod_entry_decision(self):
+        request_started = time.monotonic()
+        while not self.shutdown_event.is_set():
+            now = time.monotonic()
+            with self.lock:
+                if self.mode != GPS_ACTIVE:
+                    return None, "GPS/FOD state changed to {} during entry check".format(
+                        self.mode
+                    )
+                decision = self.entry_gate.evaluate(now, request_started)
+            if decision.action != WAIT_FOR_FOD:
+                return decision, ""
+            self.shutdown_event.wait(0.02)
+        return None, "ROS shutdown interrupted the FOD entry check"
+
     def _return_to_gps(self, reason_prefix):
         self._set_mode(
             RETURNING_GPS,
@@ -600,6 +664,27 @@ class FodNavigationModeManager:
                             "to return/reset first"
                         ).format(mode),
                     )
+                decision, error = self._wait_for_fod_entry_decision()
+                if decision is None:
+                    return SetBoolResponse(success=False, message=error)
+                if decision.action == KEEP_GPS:
+                    self._set_mode(
+                        GPS_ACTIVE,
+                        decision.reason,
+                        GPS_SOURCE,
+                        True,
+                    )
+                    return SetBoolResponse(
+                        success=True,
+                        message=decision.reason,
+                    )
+                if decision.action != ENTER_FOD:
+                    return SetBoolResponse(
+                        success=False,
+                        message="unexpected FOD entry decision: {}".format(
+                            decision.action
+                        ),
+                    )
                 success, message = self._enter_fod_mode()
                 return SetBoolResponse(success=success, message=message)
 
@@ -642,6 +727,19 @@ class FodNavigationModeManager:
             )
             gps_age = self.arbiter.age(GPS_SOURCE, now)
             fod_age = self.arbiter.age(FOD_SOURCE, now)
+            detection_array_age = (
+                None
+                if self.latest_detection_array_receipt is None
+                else max(0.0, now - self.latest_detection_array_receipt)
+            )
+            entry_depth_age = (
+                None
+                if self.entry_gate.latest_valid_receipt_monotonic is None
+                else max(
+                    0.0,
+                    now - self.entry_gate.latest_valid_receipt_monotonic,
+                )
+            )
             return {
                 "state": self.mode,
                 "reason": self.reason,
@@ -649,6 +747,22 @@ class FodNavigationModeManager:
                 "output_reason": self.last_output_reason,
                 "gps_paused": self.gps_paused,
                 "visual_state": self.visual_state,
+                "fod_entry_distance_m": self.fod_entry_distance_m,
+                "fod_no_detection_timeout_sec": (
+                    self.fod_no_detection_timeout_sec
+                ),
+                "nearest_fod_depth_m": self.entry_gate.latest_nearest_depth_m,
+                "nearest_fod_depth_age_sec": (
+                    None
+                    if entry_depth_age is None
+                    else round(entry_depth_age, 3)
+                ),
+                "detection_array_age_sec": (
+                    None
+                    if detection_array_age is None
+                    else round(detection_array_age, 3)
+                ),
+                "detection_count": self.latest_detection_count,
                 "move_base_goals_allowed": self.allow_move_base_goals,
                 "odom_age_sec": None if odom_age is None else round(odom_age, 3),
                 "measured_linear_x": self.latest_linear_x,

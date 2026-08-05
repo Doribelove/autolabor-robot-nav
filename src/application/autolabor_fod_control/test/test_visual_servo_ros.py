@@ -31,9 +31,10 @@ from autolabor_fod_control.visual_servo import local_displacement
 
 
 MODEL_SHA = "7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500"
-WIDTH = 1280
-HEIGHT = 1024
-CX = 620.043
+WIDTH = 640
+HEIGHT = 360
+CX = 320.0
+CAMERA_FRAME = "zed2_left_camera_optical_frame"
 WHEELBASE = 0.65
 
 
@@ -305,23 +306,26 @@ class FakeWorldIntegrationTest(unittest.TestCase):
     def _publish_camera(self, stamp):
         message = CameraInfo()
         message.header.stamp = stamp
-        message.header.frame_id = "fod_camera_optical_frame"
+        message.header.frame_id = CAMERA_FRAME
         message.width = WIDTH
         message.height = HEIGHT
-        message.K = [800.0, 0.0, CX, 0.0, 800.0, 528.0, 0.0, 0.0, 1.0]
-        message.P = [800.0, 0.0, CX, 0.0, 0.0, 800.0, 528.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+        message.K = [400.0, 0.0, CX, 0.0, 400.0, 180.0, 0.0, 0.0, 1.0]
+        message.P = [400.0, 0.0, CX, 0.0, 0.0, 400.0, 180.0, 0.0, 0.0, 0.0, 1.0, 0.0]
         self.camera_pub.publish(message)
 
     def _publish_detection(self, stamp, travel, x, y, yaw):
         message = FodDetectionArray()
         message.header.stamp = stamp
-        message.header.frame_id = "fod_camera_optical_frame"
+        message.header.frame_id = CAMERA_FRAME
         message.image_width = WIDTH
         message.image_height = HEIGHT
         message.model_name = "best.pt"
         message.model_sha256 = MODEL_SHA
         message.model_task = "detect"
         message.inference_ms = 20.0
+        message.depth_synchronized = True
+        message.depth_header = message.header
+        message.depth_sync_delta_sec = 0.0
         self.detection_frame_count += 1
         visible = travel < 0.50
         off_center_case = (
@@ -351,6 +355,11 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             item.class_id = 0
             item.class_name = "Metal"
             item.confidence = 0.90
+            item.depth_valid = True
+            item.depth_m = max(0.45, 2.0 - travel)
+            item.depth_mad_m = 0.02
+            item.depth_sample_count = 200
+            item.depth_valid_fraction = 0.90
             item.bbox = RegionOfInterest(
                 x_offset=int(round(u - 50.0)),
                 y_offset=int(round(v - 80.0)),

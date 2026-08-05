@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import inspect
 import math
 import os
 import pika
@@ -12,6 +13,14 @@ import rospy
 from autolabor_operator_msgs.msg import RabbitMqStatus, RemoteTarget
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from std_srvs.srv import Trigger, TriggerResponse
+
+# Ubuntu 20.04 ships pika 0.11, where the broker-side channel exception is
+# named ChannelClosed.  Pika 1.x renamed it to ChannelClosedByBroker.
+PIKA_CHANNEL_CLOSED_BY_BROKER = getattr(
+    pika.exceptions,
+    "ChannelClosedByBroker",
+    pika.exceptions.ChannelClosed,
+)
 
 # ====================== RabbitMQ 配置 ======================
 RABBITMQ_HOST = "39.98.47.163"
@@ -86,6 +95,52 @@ def as_text(value):
 def exception_text(error):
     detail = as_text(error).strip()
     return detail if detail else error.__class__.__name__
+
+
+def schedule_connection_timer(connection, delay, callback):
+    """Schedule work in pika's I/O thread on both pika 0.11 and 1.x."""
+    call_later = getattr(connection, "call_later", None)
+    if callable(call_later):
+        return call_later(delay, callback)
+
+    add_timeout = getattr(connection, "add_timeout", None)
+    if callable(add_timeout):
+        return add_timeout(delay, callback)
+
+    raise RuntimeError(
+        "installed pika has neither BlockingConnection.call_later nor "
+        "BlockingConnection.add_timeout"
+    )
+
+
+def cancel_connection_timer(connection, timer_id):
+    if timer_id is None:
+        return
+    remove_timeout = getattr(connection, "remove_timeout", None)
+    if not callable(remove_timeout):
+        return
+    try:
+        remove_timeout(timer_id)
+    except Exception:
+        # The timer may already have fired while start_consuming() was
+        # returning; there is nothing left to cancel in that case.
+        pass
+
+
+def register_consumer(channel, queue_name, callback):
+    """Register a manual-ack consumer across pika 0.11 and pika 1.x."""
+    parameters = inspect.signature(channel.basic_consume).parameters
+    if "on_message_callback" in parameters:
+        return channel.basic_consume(
+            queue=queue_name,
+            on_message_callback=callback,
+            auto_ack=False,
+        )
+    return channel.basic_consume(
+        callback,
+        queue=queue_name,
+        no_ack=False,
+    )
 
 
 def load_rabbitmq_config():
@@ -672,10 +727,10 @@ def start_consume(connection, channel, gps_bridge, config, start_console=True):
             )
             print("[!] 消息已 nack，未重新入队")
 
-    channel.basic_consume(
-        queue=config["queue_name"],
-        on_message_callback=message_callback,
-        auto_ack=False
+    register_consumer(
+        channel,
+        config["queue_name"],
+        message_callback,
     )
 
     with gps_bridge.status_lock:
@@ -690,33 +745,31 @@ def start_consume(connection, channel, gps_bridge, config, start_console=True):
     if start_console:
         start_operator_console(gps_bridge)
 
-    # pika's BlockingConnection can otherwise remain inside start_consuming()
-    # after rospy has handled SIGINT/SIGTERM.  A small watchdog schedules the
-    # stop in pika's own I/O thread so roslaunch shutdown remains graceful even
-    # when the queue is completely idle.
-    consumer_finished = threading.Event()
+    # Pika 0.11 has no add_callback_threadsafe().  Polling from a pika timer
+    # keeps the shutdown action inside the connection's own I/O thread and
+    # works on both the Ubuntu 20.04 package and current pika releases.
+    shutdown_timer = None
 
     def stop_on_ros_shutdown():
-        while not consumer_finished.wait(0.2):
-            if not rospy.is_shutdown():
-                continue
-            if connection.is_open:
+        nonlocal shutdown_timer
+        if rospy.is_shutdown():
+            if connection.is_open and channel.is_open:
                 try:
-                    connection.add_callback_threadsafe(channel.stop_consuming)
+                    channel.stop_consuming()
                 except pika.exceptions.AMQPError:
                     pass
             return
+        shutdown_timer = schedule_connection_timer(
+            connection, 0.2, stop_on_ros_shutdown
+        )
 
-    shutdown_watcher = threading.Thread(
-        target=stop_on_ros_shutdown,
-        name="rabbitmq_ros_shutdown_watcher",
-        daemon=True,
+    shutdown_timer = schedule_connection_timer(
+        connection, 0.2, stop_on_ros_shutdown
     )
-    shutdown_watcher.start()
     try:
         channel.start_consuming()
     finally:
-        consumer_finished.set()
+        cancel_connection_timer(connection, shutdown_timer)
 
 
 def main():
@@ -765,7 +818,7 @@ def main():
             print(f"[×] {error}")
             gps_bridge.set_connection_state("error", connected=False, error=error)
 
-        except pika.exceptions.ChannelClosedByBroker as e:
+        except PIKA_CHANNEL_CLOSED_BY_BROKER as e:
             error = "RabbitMQ 通道被服务端关闭: %s" % exception_text(e)
             print(f"[×] {error}")
             print("[!] 常见原因：队列已存在，但 durable 等属性和你声明的不一致")

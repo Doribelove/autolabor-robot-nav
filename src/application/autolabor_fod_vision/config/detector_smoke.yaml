@@ -8,3 +8,15 @@ warmup: true
 debug_every_n: 1
 smoke_test_only: true
 required_class_names: fod
+
+# Registered metric depth is opt-in so legacy video/webcam smoke tests keep
+# working. The ZED production launch overrides this to true.
+enable_depth_fusion: false
+depth_topic: /fod_camera/depth_registered
+depth_sync_tolerance_sec: 0.06
+depth_wait_sec: 0.03
+depth_min_m: 0.30
+depth_max_m: 15.0
+depth_min_samples: 20
+depth_min_valid_fraction: 0.20
+depth_bbox_inset_fraction: 0.18

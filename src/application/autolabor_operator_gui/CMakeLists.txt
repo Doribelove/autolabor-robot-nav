@@ -9,7 +9,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   autolabor_canbus_driver
+  autolabor_fod_msgs
   autolabor_operator_msgs
+  diagnostic_msgs
+  dynamic_reconfigure
   nav_msgs
   roscpp
   roslib
@@ -28,7 +31,10 @@ catkin_package(
   CATKIN_DEPENDS
     actionlib_msgs
     autolabor_canbus_driver
+    autolabor_fod_msgs
     autolabor_operator_msgs
+    diagnostic_msgs
+    dynamic_reconfigure
     nav_msgs
     roscpp
     roslib
@@ -58,6 +64,10 @@ target_link_libraries(${PROJECT_NAME}_node
   Qt5::Widgets
   ${catkin_LIBRARIES}
 )
+
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(test/test_operator_gui_contract.py)
+endif()
 
 install(TARGETS ${PROJECT_NAME}_node
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

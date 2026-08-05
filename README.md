@@ -1,10 +1,17 @@
 # Robot WS 导航项目上手说明
 
-本工作空间是 ROS Noetic/catkin 项目，核心功能是 Autolabor 底盘、Livox MID360、FAST_LIO、GPS 和 Arena `move_base + TEB` 的真车无地图导航。
+本工作空间是 ROS Noetic/catkin 项目，核心功能是 Autolabor 底盘、Livox Mid-360、FAST_LIO、GPS 和 Arena `move_base + TEB` 的真车无地图导航。
+
+本机 `slam` 用户的完整环境、构建结果、GPS/Qt/FOD 启动链和验收记录见
+[`PROJECT_VALIDATION_SLAM.md`](PROJECT_VALIDATION_SLAM.md)。
 
 ## 目录速览
 
 - `scripts/bringup.sh`：导航一键启动主入口。
+- `scripts/operator_all_in_one.sh`：GPS 导航、相机/YOLO11、RabbitMQ 和 Qt
+  一体化启动入口。
+- `scripts/operator_fast_lio_all_in_one.sh`：FAST_LIO 定位导航、相机/YOLO11、
+  RabbitMQ 和 Qt 一体化启动入口。
 - `scripts/operator_gui.sh`：启动 Qt 操作与诊断台（内嵌 RViz）。
 - `scripts/keyboard_drive.sh`：只启动底盘和键盘遥控，用于底盘测试，不启动导航。
 - `scripts/rabbitmq_gps_goal_bridge.py`：RabbitMQ 到 ROS GPS 目标的桥接脚本。
@@ -13,7 +20,8 @@
 - `src/application/autolabor_operator_msgs/`：RabbitMQ 状态和远程目标的结构化 ROS 消息。
 - `src/scripts/robot_bringup/launch/`：CAN、Livox、FAST_LIO、GPS、Arena 导航的封装 launch。
 - `src/application/gps_module/`：GPS 定位和 GPS 经纬度目标转换。
-- `src/perception_camera/hikrobot_mvs_camera/`：海康 MVS 工业相机 ROS 驱动。
+- `src/perception_camera/zed-ros-wrapper/`：当前 ZED 2 相机 ROS 驱动。
+- `src/perception_camera/hikrobot_mvs_camera/`：停用的旧海康驱动，仅保留历史代码。
 - `src/tools/robot_diagnostics/`：一键启动中的 topic、TF、odom、CAN 检查工具。
 - `src/navigation_arena/arena-rosnav-3D/`：Arena 导航、`move_base`、TEB、costmap 配置。
 
@@ -22,18 +30,28 @@
 每个手动开的终端都先进入工作空间并加载环境：
 
 ```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+cd /home/slam/robot_ws
+source /home/slam/robot_ws/.deps/setup.bash
 ```
 
-一键脚本 `scripts/bringup.sh` 会自动 source 上面两个环境文件，所以直接运行脚本时不需要手动 source。
+`.deps/setup.bash` 会依次加载 ROS Noetic、当前 `devel` 空间以及本项目自带的
+Livox、ZED 和用户态依赖。一键脚本会自动加载它，所以直接运行脚本时不需要
+手动 source。
 
 默认设备口：
 
 - CAN 底盘：`/dev/ttyUSB0`
 - GPS：`/dev/ttyUSB1`
 - GPS 波特率：`115200`
+- Livox Mid-360：序列号 `47MDMBB0030112`，`eth3`
+  使用 `192.168.1.50/24`，雷达使用 `192.168.1.112`
+
+雷达开机检查：
+
+```bash
+ip -brief address show eth3
+ping -I eth3 -c 2 -W 1 192.168.1.112
+```
 
 可以用环境变量覆盖：
 
@@ -46,40 +64,31 @@ CAN_PORT=/dev/ttyUSB0 GPS_PORT=/dev/ttyUSB1 ./scripts/bringup.sh fast_lio
 一键启动入口：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 ./scripts/bringup.sh fast_lio
 ```
 
 `bringup.sh` 支持 3 种导航模式。
 
-### 与海康相机同时使用
+### 与 ZED 2 相机同时使用
 
-MVS SDK 自带的旧版 `libusb-1.0.so.0` 会覆盖 Ubuntu 系统 libusb，而
-FAST_LIO 依赖的 PCL 需要新版符号。`bringup.sh` 只在 FAST_LIO 子进程中
-优先加载系统库；相机及其他 ROS 节点的动态库环境保持不变。因此不需要
-修改原来的导航命令，也不要在整个桌面会话中全局覆盖 `LD_LIBRARY_PATH`。
+当前生产相机为序列号 `23748636` 的 ZED 2。项目入口关闭 ZED 自己的定位 TF
+发布，避免与 GPS/FAST_LIO 的 `odom`、`map` 坐标链冲突。
 
 终端 1 正常启动导航：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 ./scripts/bringup.sh gps 2.7 cruise
 ```
 
 等待导航打印 `Robot bringup is running in gps mode.` 后，在终端 2 启动
-相机。启动前先关闭会独占相机的 `hikrobot-mvs` 桌面客户端：
+相机和检测器：
 
 ```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
+cd /home/slam/robot_ws
 source devel/setup.bash
-roslaunch hikrobot_mvs_camera fod_camera.launch
-```
-
-需要相机和 FOD 检测器一起启动时，终端 2 改用：
-
-```bash
-roslaunch autolabor_fod_vision hikrobot_fod_detection.launch start_camera:=true
+roslaunch autolabor_fod_vision zed_fod_detection.launch start_camera:=true
 ```
 
 ### 1. FAST_LIO 定位导航
@@ -91,7 +100,7 @@ roslaunch autolabor_fod_vision hikrobot_fod_detection.launch start_camera:=true
 启动内容：
 
 - CAN 底盘：`/canbus_driver`、`/m2_driver`
-- Livox MID360：`/livox/lidar`、`/livox/imu`
+- Livox Mid-360：`/livox/lidar`、`/livox/imu`
 - FAST_LIO 定位：`/Odometry`、`/cloud_registered_body`
 - 点云过滤和投影：`/scan`
 - GPS 读数：`/gps/fix`
@@ -250,7 +259,7 @@ FOD 模式期间新发的 `/gps/goal_fix` 会被拒绝；回到 `GPS_ACTIVE` 后
 下一轮 GPS 实车测试建议在另一个终端启动标准录包：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 BAG_DIR=/tmp BAG_PREFIX=gps_validation ./scripts/record_rosbag.sh mode1
 ```
 
@@ -262,7 +271,7 @@ BAG_DIR=/tmp BAG_PREFIX=gps_validation ./scripts/record_rosbag.sh mode1
 启动内容：
 
 - CAN 底盘
-- Livox MID360
+- Livox Mid-360
 - FAST_LIO 点云配准，但关闭 FAST_LIO odom/TF
 - 点云过滤和投影：`/scan`
 - 主 GNSS 定位：`/gps/fix`、`/gps/pose`、`/gps/odom`
@@ -340,22 +349,53 @@ GPS_HEADING_SOURCE=gps_course ./scripts/bringup.sh gps
 
 ## Qt 操作与诊断台
 
-第一版界面已包含内嵌 RViz，以及 ROS、CAN、GNSS、双天线航向、雷达、
-`move_base`、RabbitMQ 和录包状态。分页可查看 GPS/局部坐标、现有
-静态漂移指标、RabbitMQ 缓存目标与消息计数，并提供车头正前方
-`8m` GPS 测试、取消导航、重置静态误差和一键 `mode1` 录包。相机/
-YOLO 与清扫装置页面已预留，后续可按独立 ROS 接口接入。
+当前界面已把内嵌 RViz、相机/YOLO11、实时双天线航向、GPS 目标输入、
+RabbitMQ、GPS/视觉控制模式和录包放到同一个操作台。内嵌 RViz 工具栏的
+`2D Nav Goal` 发布 `/move_base_simple/goal`；综合页也可直接输入 WGS84
+纬度、经度并发送到 `/gps/goal_fix`。视觉页显示标注画面、结构化检测结果、
+推理状态，并提供 ZED 相机曝光/增益和图像质量控制入口。
+
+GPS 定位模式一键启动：
+
+```bash
+cd /home/slam/robot_ws
+./scripts/operator_all_in_one.sh 0.3 cruise
+```
+
+FAST_LIO 定位模式一键启动：
+
+```bash
+cd /home/slam/robot_ws
+./scripts/operator_fast_lio_all_in_one.sh 0.3
+```
+
+两条命令都会关闭独立 RViz，并行启动导航、ZED 2/YOLO11、RabbitMQ 桥接和
+Qt。Qt 先打开并持续显示初始化状态；后台完成 readiness gate 后再放行与实时数据
+相关的按钮。GPS 版订阅 `/gps/odom`，FAST_LIO 版订阅 `/Odometry`，两者的
+内嵌 RViz 都使用 `camera_init` 作为导航坐标系。FAST_LIO 版不依赖双天线
+`NARROW_INT` 航向来建立定位，但仍启动 `/gps/fix`，用于把 WGS84 目标转换为
+局部目标。
+
+如果 CAN、GNSS 或导航节点提前失败，入口会进入“降级操作台”并保留 Qt 诊断；
+离线项显示故障，运动入口继续受安全就绪门控。YOLO 环境缺失时只跳过视觉侧。
+关闭 Qt 窗口或在启动终端按 `Ctrl+C` 会停止该命令启动的整套进程。RabbitMQ
+或视觉侧不需要自动启动时可分别设置 `OPERATOR_START_RABBITMQ=false`、
+`OPERATOR_START_VISION=false`。
+
+FAST_LIO 模式的速度参数同时限制 TEB 前进和倒车速度，默认 `0.3 m/s`，并在
+启动时再次按 M2 底盘上报的最大速度收紧。GPS/FOD 路线暂停与视觉回收仲裁器
+仅属于 GPS 模式；FAST_LIO 模式下 Qt 的视觉行驶切换按钮会因服务不存在而保持
+禁用，相机与 YOLO 状态显示不受影响。
 
 首次编译：
 
 ```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
-catkin_make -DCATKIN_WHITELIST_PACKAGES=''
-source devel/setup.bash
+cd /home/slam/robot_ws
+./scripts/build_workspace.sh
+source .deps/setup.bash
 ```
 
-使用内嵌 RViz 时，先只禁用原 launch 中的独立 RViz，其他原有节点不变：
+原来的分终端方式仍然保留：
 
 ```bash
 # 终端 1：原导航流程，仅不再额外打开独立 RViz
@@ -369,9 +409,15 @@ NAV_START_RVIZ=false ./scripts/bringup.sh gps 0.3 cruise
 所以旧流程完全保留。Qt 界面不发布 `/cmd_vel`；CAN、GNSS、雷达、
 导航或 RabbitMQ 节点缺失时只显示离线，不会阻止界面启动。
 内嵌 RViz 默认以地图为主，可用右侧按钮显示 Displays 调试面板；
-它不提供绕过前置检查的 `2D Nav Goal`，人工任意点目标仍使用原独立 RViz。
+`2D Nav Goal` 适合发送 `camera_init` 局部地图目标，经纬度目标使用综合页的
+GPS 输入框。
 RabbitMQ 桥接原有终端 `1/2` 确认流程仍可独立使用；界面另外使用
 `/rabbitmq_bridge/publish_latest` 和 `/rabbitmq_bridge/clear_latest` 服务。
+
+视觉页的“立即单独启动”不会直接调用视觉伺服或发布速度。它通过
+`/fod_navigation_mode/set_fod_enabled` 先让 GPS 路线休眠并保留最终经纬度，
+取消当前滚动子目标、确认车辆停车后才把底盘控制交给视觉模块。视觉完成后自动
+恢复 GPS；异常时保持停车，需点击“退出视觉模式并恢复 GPS”明确恢复。
 
 如果已经单独启动静态误差监视节点，可避免重复启动：
 
@@ -432,16 +478,15 @@ FAST_LIO 模式：/gps/goal_fix -> gps_goal_node.py -> /move_base_simple/goal ->
 终端 1，启动导航和 GPS 目标转换：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 ./scripts/bringup.sh fast_lio
 ```
 
 终端 2，启动 RabbitMQ 桥接：
 
 ```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+cd /home/slam/robot_ws
+source .deps/setup.bash
 ./scripts/rabbitmq_gps_goal_bridge.py
 ```
 
@@ -462,16 +507,15 @@ source /home/robot/robot_ws/devel/setup.bash
 终端 1：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 ./scripts/bringup.sh gps
 ```
 
 终端 2：
 
 ```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+cd /home/slam/robot_ws
+source .deps/setup.bash
 ./scripts/rabbitmq_gps_goal_bridge.py
 ```
 
@@ -583,16 +627,15 @@ rosparam get /gps_localization/gps_antenna_offset_y
 先启动 GPS 导航，并等待终端显示 `Robot bringup is running in gps mode.`：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 ./scripts/bringup.sh gps
 ```
 
 另开终端启动测试菜单：
 
 ```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+cd /home/slam/robot_ws
+source .deps/setup.bash
 ./scripts/gps_test_tasks.py
 ```
 
@@ -601,7 +644,7 @@ source /home/robot/robot_ws/devel/setup.bash
 输入数字执行对应任务：
 
 - `1`：读取当前 `/gps/odom` 位置和双天线航向，发布车头正前方 `8m` 的 GPS 目标到 `/gps/goal_fix`。
-- `2`：以当前车体朝向为坐标系，保存前后左右各 `10m` 的矩形电子围栏。围栏文件永久保存在 `/home/robot/robot_ws/config/gps_test_fence.json`，下次重新启动测试脚本会自动加载。
+- `2`：以当前车体朝向为坐标系，保存前后左右各 `10m` 的矩形电子围栏。围栏文件永久保存在 `/home/slam/robot_ws/config/gps_test_fence.json`，下次重新启动测试脚本会自动加载。
 - `3`：在当前位置前后左右各 `10m` 范围内随机生成 GPS 目标并发布，用于阻拦车辆测试局部避障。
 - `4`：显示当前围栏。
 - `5`：清除永久围栏文件。
@@ -640,8 +683,8 @@ T02～T07 使用外部检测车和 RabbitMQ 桥接：
 测试记录持久化到：
 
 ```text
-/home/robot/robot_ws/test_results/fod_final_test_records.jsonl
-/home/robot/robot_ws/test_results/fod_final_test_records.csv
+/home/slam/robot_ws/test_results/fod_final_test_records.jsonl
+/home/slam/robot_ws/test_results/fod_final_test_records.csv
 ```
 
 `test_results/` 是现场运行输出，已加入 `.gitignore`。T03 和 T04 使用大纲公式 `η = S / t_avg` 分别汇总，合格阈值为 `50m²/s`；T07 汇总三次导航成功率、回收成功率和平均时间。
@@ -752,9 +795,8 @@ GPS 模式静止时，如果 `camera_init -> base_link` 或 `/gps/odom` 仍在�
 启动导航后，另开终端运行：
 
 ```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+cd /home/slam/robot_ws
+source .deps/setup.bash
 roslaunch robot_diagnostics gps_static_error_monitor.launch
 ```
 
@@ -787,9 +829,8 @@ GPS_COMPASS_HEADING="东北45度" ./scripts/bringup.sh --print-gps-yaw
 launch，应启动滚动前视管理器：
 
 ```bash
-cd /home/robot/robot_ws
-source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+cd /home/slam/robot_ws
+source .deps/setup.bash
 roslaunch gps_module gps_long_range_goal.launch \
   frame_id:=camera_init odom_topic:=/gps/odom \
   lookahead_distance:=15.0 advance_distance:=5.0
@@ -803,7 +844,7 @@ FAST_LIO/`fast_lio_gps` 模式仍使用原直接转换节点，手动补启动�
 不启动导航，只测 CAN 底盘和键盘控制：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 ./scripts/keyboard_drive.sh
 ```
 
@@ -978,14 +1019,15 @@ Device is not writable and non-interactive sudo is unavailable
 sudo chmod 666 /dev/ttyUSB1
 ```
 
-长期修复建议把 `robot` 用户加入串口设备组，然后重新登录：
+长期修复建议把 `slam` 用户加入串口设备组，然后重新登录：
 
 ```bash
-sudo usermod -aG dialout robot
+sudo usermod -aG dialout slam
 ```
 
 ## 维护备注
 
-当前根目录 `.git` 目录存在但内容为空，`git status` 不能正常使用。如果需要版本管理，需要重新初始化或恢复 `.git`。
+当前根目录 Git 元数据有效，主仓库和 13 个 submodule 已通过完整性检查。工作区
+保留了用户原有的未提交内容，维护时不要用破坏性命令覆盖这些修改。
 
 `robot_bringup` 的 launch 里实际使用了 `pointcloud_to_laserscan` 和 `tf`，新环境部署时要确认这两个 ROS 包已经安装。

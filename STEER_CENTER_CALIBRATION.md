@@ -101,7 +101,7 @@ GNSS 单点抖动误停。累计航向变化和横向偏移门禁不受此容错
 ## 编译
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 source /opt/ros/noetic/setup.bash
 catkin_make --only-pkg-with-deps robot_diagnostics -j2
 source devel/setup.bash
@@ -114,7 +114,7 @@ source devel/setup.bash
 终端一，启动底盘：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 source /opt/ros/noetic/setup.bash
 source devel/setup.bash
 roslaunch robot_bringup can.launch port_name:=/dev/ttyUSB0 publish_tf:=false
@@ -123,7 +123,7 @@ roslaunch robot_bringup can.launch port_name:=/dev/ttyUSB0 publish_tf:=false
 终端二，启动双天线 GPS 定位：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 source /opt/ros/noetic/setup.bash
 source devel/setup.bash
 roslaunch robot_bringup gps_localization.launch \
@@ -144,7 +144,7 @@ rostopic info /ackerman_vel
 然后运行默认 `0.20m/s、5m` 标定：
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 source /opt/ros/noetic/setup.bash
 source devel/setup.bash
 rosrun robot_diagnostics steer_center_calibration.py \
@@ -188,8 +188,8 @@ rosrun robot_diagnostics steer_center_calibration.py \
 每次结果保存在忽略提交的目录：
 
 ```text
-/home/robot/robot_ws/test_results/steer_center_calibration_*.csv
-/home/robot/robot_ws/test_results/steer_center_calibration_*_summary.json
+/home/slam/robot_ws/test_results/steer_center_calibration_*.csv
+/home/slam/robot_ws/test_results/steer_center_calibration_*_summary.json
 ```
 
 CSV 保存每个 GPS odom 样本、原始 GPS 航向、轮角、命令、累计距离和横向偏移。

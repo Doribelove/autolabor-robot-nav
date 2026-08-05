@@ -1,5 +1,5 @@
-# Topics and expected production graph.  This controller is intentionally tied
-# to the real Hikrobot + M2 chain; simulation must use a separate configuration.
+# Topics and expected production graph. This controller is intentionally tied
+# to the real ZED 2 + M2 chain; simulation must use a separate configuration.
 detections_topic: /fod/detections
 camera_info_topic: /fod_camera/camera_info
 odom_topic: /odom
@@ -23,16 +23,17 @@ brake_set_topic: /m2_driver/brake_set
 emergency_stop_topic: /m2_driver/emergency_stop
 
 expected_detector_node: /fod_detector
-expected_camera_node: /fod_camera/driver
+expected_camera_node: /zed2/zed_node
 expected_driver_node: /m2_driver
 # Standalone mode sends directly to the driver. The integrated GPS/FOD launch
 # overrides this with /fod_navigation_mode while keeping /m2_driver as the
 # odometry, wheel, chassis-status, and parameter-service authority.
 expected_cmd_vel_subscriber_node: /m2_driver
 expected_canbus_node: /canbus_driver
-expected_image_width: 1280
-expected_image_height: 1024
-expected_camera_frame: fod_camera_optical_frame
+# ZED 2 grabs HD720 and the project launch publishes with downscale factor 2.
+expected_image_width: 640
+expected_image_height: 360
+expected_camera_frame: zed2_left_camera_optical_frame
 expected_odom_frame: odom
 expected_base_frame: base_link
 expected_model_sha256: 7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500
@@ -45,6 +46,23 @@ allowed_class_names: [Metal, Soft, Plastic, Wire, Tool, w]
 # roughly 0.38..0.43 confidence.  Require six stable frames for acquisition,
 # but do not discard those valid detections with a mismatched 0.45 gate.
 min_confidence: 0.30
+
+# ZED registered-depth gates. Every motion candidate must carry a synchronized,
+# robust depth estimate. Among multiple eligible FODs, the closest depth is
+# selected; a small acquisition-only hysteresis prevents pixel/depth noise from
+# resetting the six-frame lock. After lock, spatial association keeps following
+# that same object instead of jumping to a different FOD.
+require_depth_for_acquisition: true
+min_target_depth_m: 0.35
+# GPS remains in control until the mode manager sees the nearest FOD strictly
+# inside 5 m. Keep visual acquisition on the same range so a farther object
+# cannot replace the target while the vehicle is stopping for handoff.
+max_target_depth_m: 5.0
+min_depth_sample_count: 20
+min_depth_valid_fraction: 0.20
+max_depth_mad_m: 0.35
+max_depth_sync_delta_sec: 0.08
+nearest_depth_hysteresis_m: 0.10
 
 # Explicit hardware authorization is supplied by the launch argument and is
 # false by default.  A SetBool(true) service call is still required afterwards.
@@ -140,8 +158,9 @@ approach_progress_step_m: 0.02
 max_measured_speed_mps: 0.30
 max_pose_step_m: 0.05
 
-# After confirmed disappearance, command zero until the steering and chassis
-# have settled.  Then travel exactly 0.50 m from wheel odometry.
+# After a centered target moves down and disappears at the image bottom,
+# command zero until steering/chassis settle. Then travel exactly 0.50 m from
+# wheel odometry so the FOD passes beneath the vehicle and through the roller.
 settle_wheel_angle_deg: 2.0
 settle_speed_mps: 0.03
 settle_confirm_sec: 0.30

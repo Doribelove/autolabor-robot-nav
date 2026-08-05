@@ -8,6 +8,7 @@ import unittest
 import rospy
 import rostest
 from actionlib_msgs.msg import GoalID
+from autolabor_fod_msgs.msg import FodDetection, FodDetectionArray
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
@@ -23,6 +24,8 @@ class FodNavigationModeRosTest(unittest.TestCase):
         cls.pause_requests = []
         cls.visual_requests = []
         cls.cancel_count = 0
+        cls.publish_detection = True
+        cls.detection_depth_m = 2.0
 
         cls.output_sub = rospy.Subscriber(
             "/test/cmd_vel", Twist, cls._output_cb, queue_size=20
@@ -48,6 +51,9 @@ class FodNavigationModeRosTest(unittest.TestCase):
         cls.odom_pub = rospy.Publisher("/test/odom", Odometry, queue_size=1)
         cls.visual_state_pub = rospy.Publisher(
             "/test/fod/state", String, queue_size=1, latch=True
+        )
+        cls.detection_pub = rospy.Publisher(
+            "/test/fod/detections", FodDetectionArray, queue_size=1
         )
         cls.pause_service = rospy.Service(
             "/test/gps/set_paused", SetBool, cls._pause_cb
@@ -83,6 +89,7 @@ class FodNavigationModeRosTest(unittest.TestCase):
             cls.fod_pub,
             cls.odom_pub,
             cls.visual_state_pub,
+            cls.detection_pub,
             cls.pause_service,
             cls.visual_service,
         ):
@@ -135,6 +142,27 @@ class FodNavigationModeRosTest(unittest.TestCase):
         odom.child_frame_id = "base_link"
         cls.odom_pub.publish(odom)
 
+        with cls.lock:
+            publish_detection = cls.publish_detection
+            depth_m = cls.detection_depth_m
+        detections = FodDetectionArray()
+        detections.header.stamp = rospy.Time.now()
+        detections.depth_synchronized = True
+        detections.depth_header = detections.header
+        detections.depth_sync_delta_sec = 0.0
+        if publish_detection:
+            item = FodDetection()
+            item.class_id = 0
+            item.class_name = "Metal"
+            item.confidence = 0.9
+            item.depth_valid = True
+            item.depth_m = depth_m
+            item.depth_mad_m = 0.02
+            item.depth_sample_count = 200
+            item.depth_valid_fraction = 0.9
+            detections.detections.append(item)
+        cls.detection_pub.publish(detections)
+
     @staticmethod
     def _wait_until(predicate, timeout):
         deadline = time.monotonic() + timeout
@@ -145,6 +173,36 @@ class FodNavigationModeRosTest(unittest.TestCase):
         raise AssertionError("condition did not become true within {:.1f}s".format(timeout))
 
     def test_abort_stays_stopped_and_complete_resumes_gps(self):
+        with self.lock:
+            type(self).detection_depth_m = 6.0
+            type(self).publish_detection = True
+        rospy.sleep(0.15)
+        response = self.mode_proxy(True)
+        self.assertTrue(response.success, response.message)
+        self.assertIn("GPS remains active", response.message)
+        self.assertEqual(self.latest_state, "GPS_ACTIVE")
+        with self.lock:
+            self.assertEqual(self.pause_requests, [])
+            self.assertEqual(self.visual_requests, [])
+
+        with self.lock:
+            type(self).publish_detection = False
+        rospy.sleep(0.40)
+        started = time.monotonic()
+        response = self.mode_proxy(True)
+        elapsed = time.monotonic() - started
+        self.assertTrue(response.success, response.message)
+        self.assertIn("no valid-depth FOD", response.message)
+        self.assertGreaterEqual(elapsed, 0.25)
+        self.assertEqual(self.latest_state, "GPS_ACTIVE")
+        with self.lock:
+            self.assertEqual(self.pause_requests, [])
+            self.assertEqual(self.visual_requests, [])
+
+        with self.lock:
+            type(self).detection_depth_m = 2.0
+            type(self).publish_detection = True
+        rospy.sleep(0.15)
         response = self.mode_proxy(True)
         self.assertTrue(response.success, response.message)
         self._wait_until(lambda: self.latest_state == "FOD_ACTIVE", 2.0)

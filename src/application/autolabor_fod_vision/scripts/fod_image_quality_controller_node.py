@@ -2,15 +2,12 @@
 """ROI-based exposure/gain control and input-quality diagnostics."""
 
 import threading
+from types import SimpleNamespace
 
 import rospy
 from cv_bridge import CvBridge
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
-from hikrobot_mvs_camera.srv import (
-    GetImagingControls,
-    SetImagingControls,
-    SetImagingControlsRequest,
-)
+from dynamic_reconfigure.client import Client as DynamicReconfigureClient
 from sensor_msgs.msg import Image
 from std_srvs.srv import SetBool, SetBoolResponse
 
@@ -39,17 +36,8 @@ class ImageQualityControllerNode:
         self.image_topic = str(
             rospy.get_param("~image_topic", "/fod_camera/image_raw")
         )
-        self.get_service_name = str(
-            rospy.get_param(
-                "~get_controls_service",
-                "/fod_camera/driver/get_imaging_controls",
-            )
-        )
-        self.set_service_name = str(
-            rospy.get_param(
-                "~set_controls_service",
-                "/fod_camera/driver/set_imaging_controls",
-            )
+        self.dynamic_server = str(
+            rospy.get_param("~dynamic_reconfigure_server", "/zed2/zed_node")
         )
         self.control_rate_hz = max(
             0.1, float(rospy.get_param("~control_rate_hz", 2.0))
@@ -101,14 +89,14 @@ class ImageQualityControllerNode:
                 rospy.get_param("~max_exposure_step_ratio", 1.35)
             ),
             exposure_min_us=float(
-                rospy.get_param("~exposure_min_us", 200.0)
+                rospy.get_param("~exposure_min_percent", 1.0)
             ),
             exposure_max_us=float(
-                rospy.get_param("~exposure_max_us", 5000.0)
+                rospy.get_param("~exposure_max_percent", 100.0)
             ),
             gain_min=float(rospy.get_param("~gain_min", 0.0)),
-            gain_max=float(rospy.get_param("~gain_max", 12.0)),
-            gain_step=float(rospy.get_param("~gain_step", 0.5)),
+            gain_max=float(rospy.get_param("~gain_max", 100.0)),
+            gain_step=float(rospy.get_param("~gain_step", 2.0)),
         )
         self.controller = ExposureGainController(self.config)
         self.bridge = CvBridge()
@@ -123,12 +111,9 @@ class ImageQualityControllerNode:
         self._last_action = "starting"
         self._shutdown = False
 
-        self.get_controls = rospy.ServiceProxy(
-            self.get_service_name, GetImagingControls
-        )
-        self.set_controls = rospy.ServiceProxy(
-            self.set_service_name, SetImagingControls
-        )
+        # ZED camera initialization takes several seconds. Connect lazily so
+        # roslaunch startup order cannot make this sidecar exit permanently.
+        self.dynamic_client = None
         self.diagnostic_pub = rospy.Publisher(
             "/diagnostics", DiagnosticArray, queue_size=2
         )
@@ -148,7 +133,7 @@ class ImageQualityControllerNode:
         rospy.on_shutdown(self.shutdown)
         rospy.loginfo(
             "FOD image-quality controller ready: enabled=%s monitor_only=%s "
-            "ROI=(%.2f,%.2f)-(%.2f,%.2f), exposure cap=%.0f us",
+            "ROI=(%.2f,%.2f)-(%.2f,%.2f), ZED exposure cap=%.0f%%",
             self.enabled,
             self.monitor_only,
             self.roi.x_min,
@@ -167,16 +152,57 @@ class ImageQualityControllerNode:
         with self._image_lock:
             return self._latest_image, self._latest_receipt
 
-    def _request_set(self, exposure_auto, exposure_time_us, gain_auto, gain):
-        request = SetImagingControlsRequest()
-        request.exposure_auto = exposure_auto
-        request.exposure_time_us = exposure_time_us
-        request.gain_auto = gain_auto
-        request.gain = gain
-        response = self.set_controls(request)
-        if not response.success:
-            raise RuntimeError(response.message)
-        return response
+    @staticmethod
+    def _controls(configuration):
+        automatic = bool(configuration["auto_exposure_gain"])
+        return SimpleNamespace(
+            success=True,
+            message="ZED dynamic-reconfigure values",
+            exposure_auto=automatic,
+            exposure_time_us=float(configuration["exposure"]),
+            exposure_min_us=1.0,
+            exposure_max_us=100.0,
+            gain_auto=automatic,
+            gain=float(configuration["gain"]),
+            gain_min=0.0,
+            gain_max=100.0,
+        )
+
+    def _client(self):
+        if self.dynamic_client is None:
+            self.dynamic_client = DynamicReconfigureClient(
+                self.dynamic_server, timeout=0.75
+            )
+        return self.dynamic_client
+
+    def _get_controls(self):
+        return self._controls(self._client().get_configuration(timeout=1.0))
+
+    def _update_field(self, name, value):
+        # Send the complete current configuration. The upstream ROS1 wrapper
+        # initializes omitted service fields to defaults, which can otherwise
+        # revert auto mode while setting exposure or gain.
+        configuration = self._client().get_configuration(timeout=1.0)
+        configuration[name] = value
+        return self._client().update_configuration(configuration)
+
+    def _request_set(self, exposure_auto, exposure_percent, gain_auto, gain):
+        if bool(exposure_auto) != bool(gain_auto):
+            raise ValueError("ZED uses one shared automatic exposure/gain mode")
+        # The ROS1 ZED wrapper assigns non-bitmask dynamic-reconfigure levels
+        # to these fields and handles exactly one level per callback. Send
+        # ordered single-field updates so manual values reach the hardware.
+        configuration = self._update_field(
+            "auto_exposure_gain", bool(exposure_auto)
+        )
+        if not exposure_auto:
+            configuration = self._update_field(
+                "exposure", int(round(exposure_percent))
+            )
+            configuration = self._update_field(
+                "gain", int(round(gain))
+            )
+        return self._controls(configuration)
 
     def _restore_auto(self):
         if not self._manual_control_active:
@@ -191,9 +217,9 @@ class ImageQualityControllerNode:
             self._manual_control_active = False
             self._remaining_settle_cycles = 0
             self._last_action = "restored_camera_auto"
-            rospy.loginfo("Restored Hikrobot native continuous exposure/gain")
-            return True, "camera native automatic exposure/gain restored"
-        except (rospy.ServiceException, RuntimeError) as error:
+            rospy.loginfo("Restored ZED native automatic exposure/gain")
+            return True, "ZED automatic exposure/gain restored"
+        except Exception as error:
             rospy.logerr("Failed to restore camera automatic controls: %s", error)
             return False, str(error)
 
@@ -220,7 +246,7 @@ class ImageQualityControllerNode:
     ):
         status = DiagnosticStatus()
         status.name = "fod_vision/image_quality_controller"
-        status.hardware_id = "hikrobot_mvs_camera"
+        status.hardware_id = "zed2"
         status.level = level
         status.message = message
         values = [
@@ -257,12 +283,11 @@ class ImageQualityControllerNode:
         if controls is not None:
             values.extend(
                 [
-                    ("exposure_auto", controls.exposure_auto),
-                    ("exposure_time_us", controls.exposure_time_us),
-                    ("exposure_hw_min_us", controls.exposure_min_us),
-                    ("exposure_hw_max_us", controls.exposure_max_us),
-                    ("gain_auto", controls.gain_auto),
-                    ("gain", controls.gain),
+                    ("auto_exposure_gain", controls.exposure_auto),
+                    ("exposure_percent", controls.exposure_time_us),
+                    ("exposure_hw_min_percent", controls.exposure_min_us),
+                    ("exposure_hw_max_percent", controls.exposure_max_us),
+                    ("gain_percent", controls.gain),
                     ("gain_hw_min", controls.gain_min),
                     ("gain_hw_max", controls.gain_max),
                 ]
@@ -302,9 +327,7 @@ class ImageQualityControllerNode:
                     bright_threshold=self.config.bright_threshold,
                     max_sample_width=self.max_sample_width,
                 )
-                controls = self.get_controls()
-                if not controls.success:
-                    raise RuntimeError(controls.message)
+                controls = self._get_controls()
                 self._last_controls = controls
                 hardware = ImagingControlBounds(
                     exposure_min_us=controls.exposure_min_us,
@@ -353,8 +376,8 @@ class ImageQualityControllerNode:
                         self._remaining_settle_cycles = self.settle_cycles
                         action = recommendation.reason
                         rospy.loginfo(
-                            "Image-quality control: %s, exposure %.1f -> %.1f us, "
-                            "gain %.2f -> %.2f",
+                            "Image-quality control: %s, ZED exposure %.0f%% -> %.0f%%, "
+                            "gain %.0f%% -> %.0f%%",
                             action,
                             controls.exposure_time_us,
                             applied.exposure_time_us,

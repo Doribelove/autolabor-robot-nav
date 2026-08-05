@@ -1,8 +1,210 @@
 # Current GPS Development Handoff
 
-Date: 2026-07-23
+Date: 2026-08-05
 
-This file records the current GPS navigation development state for the Autolabor M2 robot in `/home/robot/robot_ws`.
+This file records the current GPS navigation development state for the Autolabor M2 robot in `/home/slam/robot_ws`.
+
+## 2026-08-05 ZED 2 Replaces Hikrobot in the Production Path
+
+The active Qt/FOD camera is now ZED 2 serial `23748636`. The old Hikrobot
+package remains only as historical source and is not referenced by the
+integrated launcher, Qt camera controls, image-quality controller, or visual
+servo production configuration.
+
+The production perception entry is:
+
+```bash
+roslaunch autolabor_fod_vision zed_fod_detection.launch start_camera:=true
+```
+
+`scripts/operator_all_in_one.sh` uses that launch automatically. The project
+ZED launch maps rectified RGB and CameraInfo to `/fod_camera/image_raw` and
+`/fod_camera/camera_info`, while preserving the truthful
+`zed2_left_camera_optical_frame` header. Live validation measured both RGB and
+YOLO detections at approximately 15 Hz; image, CameraInfo, and detections were
+all `640x360`, and the production model SHA256 matched the approved value.
+
+The visual-servo graph gate now requires `/zed2/zed_node` as the sole
+CameraInfo publisher and requires the ZED frame and dimensions above. ZED
+positional-tracking TF publication remains disabled to avoid conflicts with
+GPS/FAST_LIO localization. Metric ground projection remains disabled until the
+physical `base_link -> zed2_left_camera_optical_frame` mount extrinsic is
+measured.
+
+Qt and the optional ROI image-quality controller use ZED dynamic-reconfigure
+percent controls (`0..100`) rather than Hikrobot microseconds/dB services. ZED
+native automatic exposure/gain is the integrated default; the custom ROI
+controller remains opt-in.
+
+## 2026-07-28 Replacement Livox Mid-360 Installation
+
+The burned radar was replaced by serial number `47MDMBB0030112`. Do not
+configure this unit as a Mid-360S merely because it is a newer hardware
+revision. Its Ethernet discovery reply reports Livox device type `9`, which is
+the standard Mid-360 protocol. Mid-360S reports device type `35`. The discovery
+reply was captured on the live cable and also contained the exact serial
+number, so this model decision is based on the device itself.
+
+Current fixed network settings:
+
+```text
+Jetson interface:   eth3
+Jetson adapter MAC: 50:54:7b:e3:c9:10
+Jetson address:     192.168.1.50/24
+Radar address:      192.168.1.112
+Radar MAC:          58:b8:58:79:18:dd
+Radar serial:       47MDMBB0030112
+```
+
+NetworkManager profile `有线连接 2` is persistently bound to adapter MAC
+`50:54:7b:e3:c9:10` (currently enumerated as `eth3`) and set to the static
+Jetson address with no gateway, no DNS, IPv6 disabled, and
+`never-default=yes`. The competing DHCP profile `有线连接 3` has autoconnect
+disabled. Therefore the radar connection does not replace the Wi-Fi default
+route.
+
+The two Livox submodules are now checked out at:
+
+```text
+Livox-SDK2:          v1.3.1, f5d9375
+livox_ros_driver2:   1.2.6, 13eb05e
+```
+
+SDK2 was built and installed under `.deps/livox-sdk2`. The ROS driver defaults
+to ROS1 for this Noetic workspace. Its active Mid-360 configuration uses host
+`192.168.1.50`, radar `192.168.1.112`, host UDP ports `56101` through `56501`,
+and radar UDP ports `56100` through `56500`. The project launch remains:
+
+```bash
+source /home/slam/robot_ws/.deps/setup.bash
+roslaunch robot_bringup livox_mid360.launch
+```
+
+Do not source `devel/setup.bash` again after `.deps/setup.bash`; the private
+setup already sources the workspace and then exposes locally installed ROS
+packages. `bringup.sh` was corrected to preserve this order, including its
+split-terminal path. This is required for the locally installed
+`pointcloud_to_laserscan` package to remain discoverable.
+
+Live verification on 2026-07-28:
+
+- `ping -I eth3 192.168.1.112` returned with zero packet loss.
+- Driver 1.2.6 detected device type `9`, serial `47MDMBB0030112`, and command
+  port `56100`, then successfully enabled normal mode and the IMU.
+- `/livox/lidar` published `livox_ros_driver2/CustomMsg` at approximately
+  `10Hz`; the sampled frame contained `19,968` points.
+- `/livox/imu` published `sensor_msgs/Imu` at approximately `200Hz`.
+- FAST_LIO initialized from those topics and published
+  `/cloud_registered_body` at approximately `10Hz`; a sampled frame contained
+  `1,619` points.
+- The project scan filter and projection published `/scan` at approximately
+  `10Hz`. A sampled scan had `1,442` bins, `410` finite returns, and a finite
+  range of `0.484m` to `4.691m`.
+- `base_link -> body` was present with the GPS-mode static translation
+  `(0, 0, 0.6)`.
+- The complete 73-package workspace build finished at `100%` with exit code
+  `0`.
+
+That initial radar-only check did not start CAN, GNSS, or move_base. A later
+complete stationary vehicle regression is recorded below. Radar firmware was
+not flashed, and all test ROS processes were stopped cleanly afterwards.
+
+## 2026-07-28 FAST_LIO Qt All-in-One Entry
+
+The independent FAST_LIO operator entry is:
+
+```bash
+cd /home/slam/robot_ws
+./scripts/operator_fast_lio_all_in_one.sh 0.3
+```
+
+It reuses the integrated Qt console but selects `/Odometry` instead of
+`/gps/odom`, labels the header `FAST_LIO NAVIGATION`, disables the GPS-only
+static-error monitor, and adds `/Odometry` to the embedded RViz trajectory
+displays. RViz starts in `base_link` so `/scan` is visible immediately and
+switches to `camera_init` once FAST_LIO odometry is fresh. The optional speed
+argument limits both TEB forward and reverse velocity and is capped again
+against the M2-reported chassis limit.
+
+The physical regression was run with RabbitMQ disabled and without publishing
+a navigation goal. The complete readiness gate reached
+`Robot bringup is running in fast_lio mode.`. `/Odometry` and `/scan` both ran
+at approximately `10Hz`; `/scan` contained `1,442` bins. The Hikrobot raw image
+was `1280x1024 bgr8` at approximately `20Hz`; YOLO debug images and structured
+detections also ran at approximately `20Hz`, using `best.pt`. TEB confirmed
+`odom_topic=/Odometry`, `max_vel_x=0.3`, and
+`max_vel_x_backwards=0.3`. Closing Qt stopped navigation, camera/YOLO, CAN, and
+the fallback ROS master started by the wrapper.
+
+The same regression exposed an intermittent black embedded-RViz canvas. The
+ROS master probe could re-enter while `VisualizationFrame::initialize()` was
+processing nested Qt events, causing two RViz frames to be constructed about
+one second apart. The probe now commits its online/offline transition before
+initializing RViz. The final physical rerun logged one RViz load and displayed
+the live FAST_LIO map together with the camera image.
+
+The original GPS entry remains:
+
+```bash
+./scripts/operator_all_in_one.sh 0.3 cruise
+```
+
+The Hikrobot camera outage had two independent causes. The USB device initially
+lacked access for the `slam` process; the targeted udev rule now grants
+`root:plugdev` mode `0660`. The ROS node also assumed `/opt/MVS`, while the
+active aarch64 SDK is `.deps/mvs`; the launch and node now honor `MVS_ROOT`.
+The image-quality Python node uses the same `.venv/fod_yolo` interpreter as
+the detector because the system Python `cv_bridge` extension is incompatible
+on this machine.
+
+## 2026-07-23 Integrated Qt Navigation and Vision Console
+
+`autolabor_operator_gui` now provides one combined operator view for embedded
+RViz, WGS84 GPS goal entry, live dual-antenna heading, Hikrobot camera controls,
+YOLO11 annotated images/detections, RabbitMQ targets, and GPS/FOD mode status.
+The embedded RViz has restored `rviz/SetGoal` on
+`/move_base_simple/goal`. The heading display explicitly uses the receiver
+convention `0deg=north`, clockwise positive.
+
+The visual page subscribes `/fod_camera/image_raw`, `/fod/debug/image`, and
+`/fod/detections`; it reads/sets the existing Hikrobot exposure/gain services
+and can enable/disable the existing ROI image-quality controller. Its
+`立即单独启动` button never calls the visual servo directly. It calls only
+`/fod_navigation_mode/set_fod_enabled`, so the existing fail-closed sequence
+pauses and retains the GPS route, blocks GPS commands, cancels the current
+rolling subgoal, confirms the stopped chassis, and only then transfers command
+ownership to FOD. The button requires fresh camera/detection data and a visible
+detection. GPS target buttons are disabled while the mode manager reports GPS
+paused.
+
+The new complete launcher is:
+
+```bash
+cd /home/slam/robot_ws
+./scripts/operator_all_in_one.sh 0.3 cruise
+```
+
+It forces `NAV_START_RVIZ=false` and waits for the exact full bringup readiness
+message. On success it starts camera/YOLO, the image-quality controller,
+RabbitMQ bridge, and Qt. If navigation exits before readiness, the wrapper
+starts or reuses a ROS master and continues in degraded-console mode so Qt
+still opens; the GUI readiness gates keep motion controls unavailable. A
+missing YOLO Python environment similarly disables only the visual sidecar.
+`OPERATOR_START_VISION=false`, `OPERATOR_START_CAMERA=false`, and
+`OPERATOR_START_RABBITMQ=false` keep those parts optional. Closing Qt or
+pressing Ctrl+C stops all processes started by this wrapper; runtime logs are
+under `log/operator_all_in_one_*`.
+
+Verification for this Qt increment:
+
+- The complete 73-package workspace builds with the catkin whitelist cleared.
+- Six operator-console contract tests pass.
+- Headless Qt startup/shutdown succeeds without leaving a ROS master behind.
+- Synthetic BGR camera/debug images, heading/mode messages, and a structured
+  FOD detection exercised the new callbacks without a process failure.
+- Physical RViz clicking, camera service changes, and GPS/FOD vehicle handoff
+  still require an attended low-speed vehicle test with the physical stop in
+  hand.
 
 ## 2026-07-23 Local Checkpoint and Next Session
 
@@ -16,7 +218,7 @@ integrated GPS/FOD transition has passed automated ROS tests but has not yet
 driven the physical vehicle. Start with:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 FOD_RECOVERY_BLIND_DISTANCE_M=0.20 ./scripts/bringup.sh gps 0.3 cruise
 
 # In a second sourced terminal:
@@ -471,7 +673,7 @@ The desired behavior is:
 GPS navigation:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 ./scripts/bringup.sh gps
 ```
 
@@ -487,18 +689,18 @@ The second positional argument requests the GPS TEB forward `max_vel_x`; the thi
 RabbitMQ GPS target bridge:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/slam/robot_ws/devel/setup.bash
 ./scripts/rabbitmq_gps_goal_bridge.py
 ```
 
 GPS test task menu:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/slam/robot_ws/devel/setup.bash
 ./scripts/gps_test_tasks.py
 ```
 
@@ -653,8 +855,8 @@ q: Quit.
 FOD final test records:
 
 ```text
-/home/robot/robot_ws/test_results/fod_final_test_records.jsonl
-/home/robot/robot_ws/test_results/fod_final_test_records.csv
+/home/slam/robot_ws/test_results/fod_final_test_records.jsonl
+/home/slam/robot_ws/test_results/fod_final_test_records.csv
 ```
 
 For T02-T07, the test script arms first and waits for a new `/gps/goal_fix`. The RabbitMQ bridge operator then enters `1`; goal reception is the timer start. The operator presses Enter after cleaning and confirmed recovery to stop the timer, then records the manual pass/fail criteria. T03/T04 summarize `S / t_avg`; T07 summarizes three-run success rates.
@@ -662,7 +864,7 @@ For T02-T07, the test script arms first and waits for a new `/gps/goal_fix`. The
 Fence file:
 
 ```text
-/home/robot/robot_ws/config/gps_test_fence.json
+/home/slam/robot_ws/config/gps_test_fence.json
 ```
 
 The fence is only active while `scripts/gps_test_tasks.py` is running. Normal `./scripts/bringup.sh gps` is not constrained by this fence.
@@ -877,7 +1079,7 @@ zero-command resets, not to a generic CPU stall or the goal limiter.
 Restart before testing so the overlay is reloaded:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 ./scripts/bringup.sh gps 0.8 obstacle
 ```
 
@@ -1058,9 +1260,9 @@ src/tools/robot_diagnostics/launch/gps_static_error_monitor.launch
 Run after GPS navigation starts:
 
 ```bash
-cd /home/robot/robot_ws
+cd /home/slam/robot_ws
 source /opt/ros/noetic/setup.bash
-source /home/robot/robot_ws/devel/setup.bash
+source /home/slam/robot_ws/devel/setup.bash
 roslaunch robot_diagnostics gps_static_error_monitor.launch
 ```
 
@@ -1167,3 +1369,19 @@ workspace state is being saved on the `experiment/715` branch with the commit
 note `715实验分支：保存当前项目完整进度`. Modified third-party submodules are
 stored on matching `experiment/715` branches in Doribelove forks so the parent
 repository can be cloned recursively without missing local commits.
+
+## ZED depth-aware multi-FOD visual servo (2026-08-05)
+
+- `zed2_camera.launch` now aliases registered `32FC1` metric depth to
+  `/fod_camera/depth_registered` alongside RGB and CameraInfo.
+- `fod_detector_node.py` synchronizes RGB/depth by source stamp, robustly samples
+  each YOLO mask or inset bbox, and publishes depth, MAD, sample count and valid
+  fraction in `FodDetection`. The debug image and Qt detection list show depth.
+- `fod_visual_servo_node.py` requires motion-grade depth and chooses the nearest
+  eligible FOD during `ACQUIRE`. A 0.10 m acquisition hysteresis stabilizes the
+  six-frame lock; after lock it keeps spatially associating the same target.
+- A visible locked target losing motion-grade depth causes fail-closed `ABORT`.
+- Focused unit tests pass (56/56), the visual-servo rostest passes (8/8), the
+  77-package workspace builds with `scripts/build_workspace.sh`, and live ZED
+  validation measured RGB/depth/detections at about 14.9 Hz with 0 ms stamp
+  delta and zero missing synchronized depth frames over 902 processed frames.

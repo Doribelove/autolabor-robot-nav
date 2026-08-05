@@ -1,0 +1,2 @@
+# Allow active operators in the plugdev group to open Hikrobot USB3 cameras.
+ACTION=="add", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="2bdf", GROUP="plugdev", MODE="0660", TAG+="uaccess"

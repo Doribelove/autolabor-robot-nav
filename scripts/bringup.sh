@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROBOT_WS="$(cd "$SCRIPT_DIR/.." && pwd)"
 ROS_SETUP="${ROS_SETUP:-/opt/ros/noetic/setup.bash}"
+PRIVATE_SETUP="${PRIVATE_SETUP:-$ROBOT_WS/.deps/setup.bash}"
 MODE="${1:-fast_lio}"
 GPS_NAV_MAX_SPEED_ARG="${2:-}"
 GPS_TEB_PROFILE_ARG="${3:-}"
@@ -14,7 +15,20 @@ CAN_PORT="${CAN_PORT:-/dev/ttyUSB0}"
 GPS_PORT="${GPS_PORT:-/dev/ttyUSB1}"
 GPS_BAUD_RATE="${GPS_BAUD_RATE:-115200}"
 FAST_LIO_GPS_YAW_OFFSET_DEG="${FAST_LIO_GPS_YAW_OFFSET_DEG:-0.0}"
-FAST_LIO_SYSTEM_LIBRARY_DIR="${FAST_LIO_SYSTEM_LIBRARY_DIR:-/lib/x86_64-linux-gnu}"
+case "$(uname -m)" in
+  aarch64|arm64)
+    DEFAULT_FAST_LIO_SYSTEM_LIBRARY_DIR="/lib/aarch64-linux-gnu"
+    ;;
+  x86_64|amd64)
+    DEFAULT_FAST_LIO_SYSTEM_LIBRARY_DIR="/lib/x86_64-linux-gnu"
+    ;;
+  *)
+    DEFAULT_FAST_LIO_SYSTEM_LIBRARY_DIR="/lib"
+    ;;
+esac
+FAST_LIO_SYSTEM_LIBRARY_DIR="${FAST_LIO_SYSTEM_LIBRARY_DIR:-$DEFAULT_FAST_LIO_SYSTEM_LIBRARY_DIR}"
+FAST_LIO_NAV_MAX_VEL_X="${FAST_LIO_NAV_MAX_VEL_X:-1.2}"
+FAST_LIO_NAV_MAX_VEL_X_BACKWARDS="${FAST_LIO_NAV_MAX_VEL_X_BACKWARDS:-1.2}"
 GPS_NAV_MAX_VEL_X="${GPS_NAV_MAX_VEL_X:-1.5}"
 GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-1.0}"
 GPS_USE_WHEEL_ODOM="${GPS_USE_WHEEL_ODOM:-false}"
@@ -96,7 +110,9 @@ usage() {
   echo "  GPS_PORT=/dev/ttyUSB1"
   echo "  GPS_BAUD_RATE=115200"
   echo "  FAST_LIO_GPS_YAW_OFFSET_DEG=0.0"
-  echo "  FAST_LIO_SYSTEM_LIBRARY_DIR=/lib/x86_64-linux-gnu # isolate FAST_LIO from the MVS SDK libusb"
+  echo "  FAST_LIO_SYSTEM_LIBRARY_DIR=$DEFAULT_FAST_LIO_SYSTEM_LIBRARY_DIR # isolate FAST_LIO from the MVS SDK libusb"
+  echo "  FAST_LIO_NAV_MAX_VEL_X=1.2       # FAST_LIO forward planner limit"
+  echo "  FAST_LIO_NAV_MAX_VEL_X_BACKWARDS=1.2 # FAST_LIO reverse planner limit"
   echo "  GPS_NAV_MAX_VEL_X=1.5       # overridden by the optional gps speed argument"
   echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.0 # never raised by the gps speed argument"
   echo "  GPS_TEB_PROFILE=cruise|obstacle # used when the third argument is omitted"
@@ -171,13 +187,24 @@ min_number() {
   }'
 }
 
-clamp_gps_speed_to_chassis_limit() {
-  [[ "$MODE" == "gps" ]] || return 0
-
+clamp_navigation_speed_to_chassis_limit() {
   local service_name="/m2_driver/chassis_parameter"
   local deadline=$((SECONDS + 15))
   local response=""
   local chassis_max_speed=""
+  local planner_label=""
+  local requested_forward=""
+  local requested_backward=""
+
+  if [[ "$MODE" == "gps" ]]; then
+    planner_label="GPS"
+    requested_forward="$GPS_NAV_MAX_VEL_X"
+    requested_backward="$GPS_NAV_MAX_VEL_X_BACKWARDS"
+  else
+    planner_label="FAST_LIO"
+    requested_forward="$FAST_LIO_NAV_MAX_VEL_X"
+    requested_backward="$FAST_LIO_NAV_MAX_VEL_X_BACKWARDS"
+  fi
 
   while (( SECONDS < deadline )); do
     if rosservice info "$service_name" >/dev/null 2>&1; then
@@ -194,21 +221,28 @@ clamp_gps_speed_to_chassis_limit() {
 
   if ! is_positive_number "$chassis_max_speed"; then
     echo "Unable to read a valid max_speed from $service_name after 15 seconds." >&2
-    echo "Refusing to start GPS navigation with a planner/chassis speed mismatch." >&2
+    echo "Refusing to start $planner_label navigation with an unchecked planner/chassis speed mismatch." >&2
     return 1
   fi
 
-  local requested_forward="$GPS_NAV_MAX_VEL_X"
-  local requested_backward="$GPS_NAV_MAX_VEL_X_BACKWARDS"
-  GPS_NAV_MAX_VEL_X="$(min_number "$GPS_NAV_MAX_VEL_X" "$chassis_max_speed")"
-  GPS_NAV_MAX_VEL_X_BACKWARDS="$(min_number "$GPS_NAV_MAX_VEL_X_BACKWARDS" "$chassis_max_speed")"
+  local capped_forward
+  local capped_backward
+  capped_forward="$(min_number "$requested_forward" "$chassis_max_speed")"
+  capped_backward="$(min_number "$requested_backward" "$chassis_max_speed")"
+  if [[ "$MODE" == "gps" ]]; then
+    GPS_NAV_MAX_VEL_X="$capped_forward"
+    GPS_NAV_MAX_VEL_X_BACKWARDS="$capped_backward"
+  else
+    FAST_LIO_NAV_MAX_VEL_X="$capped_forward"
+    FAST_LIO_NAV_MAX_VEL_X_BACKWARDS="$capped_backward"
+  fi
 
   echo "==> M2 chassis-reported max speed: $chassis_max_speed m/s"
-  if [[ "$GPS_NAV_MAX_VEL_X" != "$requested_forward" ||
-        "$GPS_NAV_MAX_VEL_X_BACKWARDS" != "$requested_backward" ]]; then
-    echo "==> GPS planner speed capped to chassis: forward=$GPS_NAV_MAX_VEL_X m/s, backward=$GPS_NAV_MAX_VEL_X_BACKWARDS m/s"
+  if [[ "$capped_forward" != "$requested_forward" ||
+        "$capped_backward" != "$requested_backward" ]]; then
+    echo "==> $planner_label planner speed capped to chassis: forward=$capped_forward m/s, backward=$capped_backward m/s"
   else
-    echo "==> GPS planner speed is within chassis limit: forward=$GPS_NAV_MAX_VEL_X m/s, backward=$GPS_NAV_MAX_VEL_X_BACKWARDS m/s"
+    echo "==> $planner_label planner speed is within chassis limit: forward=$capped_forward m/s, backward=$capped_backward m/s"
   fi
 }
 
@@ -313,7 +347,7 @@ make_writable() {
     echo "Run this in a local terminal, then start bringup again:" >&2
     echo "  sudo chmod 666 $dev" >&2
     echo "For a persistent fix, add the robot user to the device group and relogin:" >&2
-    echo "  sudo usermod -aG dialout robot" >&2
+    echo "  sudo usermod -aG dialout slam" >&2
     exit 3
   fi
 }
@@ -426,6 +460,9 @@ write_terminal_script() {
     printf 'echo "==> sourcing ROS environment"\n'
     printf 'source %q\n' "$ROS_SETUP"
     printf 'source %q\n' "$ROBOT_WS/devel/setup.bash"
+    if [[ -f "$PRIVATE_SETUP" ]]; then
+      printf 'source %q\n' "$PRIVATE_SETUP"
+    fi
     printf 'child_pid=""\n'
     printf 'cleanup_child() {\n'
     printf '  if [[ -n "${child_pid:-}" ]] && kill -0 "$child_pid" >/dev/null 2>&1; then\n'
@@ -824,6 +861,18 @@ if [[ -n "$GPS_NAV_MAX_SPEED_ARG" ]]; then
   GPS_NAV_MAX_VEL_X_BACKWARDS="$(min_number "$GPS_NAV_MAX_VEL_X_BACKWARDS" "$GPS_NAV_MAX_SPEED_ARG")"
 fi
 
+if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
+  if ! is_positive_number "$FAST_LIO_NAV_MAX_VEL_X"; then
+    echo "Invalid FAST_LIO_NAV_MAX_VEL_X: $FAST_LIO_NAV_MAX_VEL_X" >&2
+    exit 1
+  fi
+  if ! is_positive_number "$FAST_LIO_NAV_MAX_VEL_X_BACKWARDS"; then
+    echo "Invalid FAST_LIO_NAV_MAX_VEL_X_BACKWARDS: $FAST_LIO_NAV_MAX_VEL_X_BACKWARDS" >&2
+    exit 1
+  fi
+  echo "==> FAST_LIO requested navigation speed limits: forward=$FAST_LIO_NAV_MAX_VEL_X m/s, backward=$FAST_LIO_NAV_MAX_VEL_X_BACKWARDS m/s"
+fi
+
 if [[ "$MODE" == "gps" ]]; then
   case "$GPS_USE_WHEEL_TWIST" in
     true|false) ;;
@@ -1073,6 +1122,11 @@ require_file "$FAST_LIO_SYSTEM_LIBRARY_DIR/libusb-1.0.so.0"
 
 source "$ROS_SETUP"
 source "$ROBOT_WS/devel/setup.bash"
+if [[ -f "$PRIVATE_SETUP" ]]; then
+  # Keep user-space ROS packages (for example pointcloud_to_laserscan under
+  # .deps/sysroot) ahead of the system/workspace prefixes.
+  source "$PRIVATE_SETUP"
+fi
 
 cleanup_existing_nodes
 setup_terminal_mode
@@ -1083,10 +1137,10 @@ echo "==> checking CAN device: $CAN_PORT"
 rosrun robot_diagnostics check_can.py _port:="$CAN_PORT" _require_write:=true
 start_launch "CAN chassis driver" robot_bringup can.launch port_name:="$CAN_PORT" publish_tf:=false
 wait_topics "/canbus_msg" 30.0
-clamp_gps_speed_to_chassis_limit
+clamp_navigation_speed_to_chassis_limit
 
 if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
-  start_launch "Livox MID360 driver" robot_bringup livox_mid360.launch
+  start_launch "Livox Mid-360 driver" robot_bringup livox_mid360.launch
   wait_topics "/livox/lidar,/livox/imu" 45.0
 
   start_fast_lio_launch "FAST_LIO localization" robot_bringup fast_lio.launch
@@ -1120,10 +1174,12 @@ if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
   check_tf "camera_init" "base_link" 10.0
   start_launch "Arena navigation" robot_bringup navigation_arena.launch \
     localization_source:=fast_lio \
-    start_rviz:="$NAV_START_RVIZ"
+    start_rviz:="$NAV_START_RVIZ" \
+    max_vel_x:="$FAST_LIO_NAV_MAX_VEL_X" \
+    max_vel_x_backwards:="$FAST_LIO_NAV_MAX_VEL_X_BACKWARDS"
 else
   make_writable "$GPS_PORT"
-  start_launch "Livox MID360 driver" robot_bringup livox_mid360.launch
+  start_launch "Livox Mid-360 driver" robot_bringup livox_mid360.launch
   wait_topics "/livox/lidar,/livox/imu" 45.0
 
   start_fast_lio_launch "FAST_LIO point cloud registration" robot_bringup fast_lio.launch odom_pub_en:=false tf_pub_en:=false

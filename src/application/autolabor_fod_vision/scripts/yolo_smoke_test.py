@@ -12,6 +12,9 @@ from autolabor_fod_vision.detector import UltralyticsDetector, annotate_image
 
 
 IMAGE_SUFFIXES = {".bmp", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"}
+DEFAULT_WEIGHTS = (
+    Path(__file__).resolve().parents[3] / "yolo" / "yolo11n.pt"
+)
 
 
 def parse_args():
@@ -20,7 +23,7 @@ def parse_args():
     )
     parser.add_argument(
         "--weights",
-        default="/home/robot/robot_ws/src/yolo/yolo11n.pt",
+        default=str(DEFAULT_WEIGHTS),
         help="Trusted .pt checkpoint",
     )
     parser.add_argument("--source", required=True, help="Image, video, camera path, or index")

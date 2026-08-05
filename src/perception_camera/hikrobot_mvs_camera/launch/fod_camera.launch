@@ -1,5 +1,6 @@
 <launch>
   <arg name="namespace" default="fod_camera"/>
+  <arg name="mvs_root" default="$(optenv MVS_ROOT /opt/MVS)"/>
   <arg name="serial_number" default="DA7535899"/>
   <arg name="transport" default="usb"/>
   <arg name="frame_id" default="fod_camera_optical_frame"/>
@@ -20,6 +21,7 @@
           output="screen">
       <rosparam command="load"
                 file="$(find hikrobot_mvs_camera)/config/fod_camera.yaml"/>
+      <param name="mvs_root" value="$(arg mvs_root)"/>
       <param name="serial_number" value="$(arg serial_number)"/>
       <param name="transport" value="$(arg transport)"/>
       <param name="frame_id" value="$(arg frame_id)"/>
