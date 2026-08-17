@@ -1,0 +1,96 @@
+<launch>
+  <arg name="port" default="/dev/ttyUSB1"/>
+  <arg name="baud_rate" default="115200"/>
+  <arg name="map_frame" default="camera_init"/>
+  <arg name="odom_frame" default="odom"/>
+  <arg name="base_frame" default="base_link"/>
+  <arg name="gps_frame" default="gps"/>
+  <arg name="origin_lat" default=""/>
+  <arg name="origin_lon" default=""/>
+  <arg name="broadcast_tf" default="true"/>
+  <arg name="heading_source" default="dual_antenna"/>
+  <arg name="heading_timeout" default="1.0"/>
+  <arg name="heading_required_solution_status" default="SOL_COMPUTED"/>
+  <arg name="heading_required_position_types" default="NARROW_INT"/>
+  <arg name="gps_antenna_offset_x" default="-0.3"/>
+  <arg name="gps_antenna_offset_y" default="-0.05"/>
+  <arg name="min_course_distance" default="0.5"/>
+  <arg name="initial_yaw" default="0.0"/>
+  <arg name="position_filter_alpha" default="0.25"/>
+  <arg name="stationary_filter_alpha" default="0.05"/>
+  <arg name="stationary_speed_threshold" default="0.05"/>
+  <arg name="stationary_hold_radius" default="0.8"/>
+  <arg name="max_fix_jump" default="5.0"/>
+  <arg name="heading_min_speed" default="0.15"/>
+  <arg name="use_wheel_odom" default="false"/>
+  <arg name="use_wheel_twist" default="true"/>
+  <arg name="wheel_odom_topic" default="/odom"/>
+  <arg name="wheel_twist_timeout" default="0.5"/>
+  <arg name="rmc_speed_timeout" default="1.0"/>
+  <arg name="rmc_direction_cos_threshold" default="0.5"/>
+  <arg name="position_speed_min_dt" default="0.05"/>
+  <arg name="position_speed_max_abs" default="3.5"/>
+  <arg name="heading_rate_filter_alpha" default="0.35"/>
+  <arg name="heading_rate_min_dt" default="0.02"/>
+  <arg name="heading_rate_max_dt" default="1.0"/>
+  <arg name="heading_rate_timeout" default="0.5"/>
+  <arg name="heading_rate_max_abs" default="3.0"/>
+  <arg name="heading_jump_guard_enabled" default="false"/>
+  <arg name="heading_jump_threshold_deg" default="1.5"/>
+  <arg name="heading_recovery_tolerance_deg" default="0.8"/>
+  <arg name="heading_recovery_samples" default="3"/>
+  <arg name="gps_correction_alpha" default="0.0"/>
+  <arg name="gps_correction_max_step" default="0.05"/>
+  <arg name="gps_correction_reset_distance" default="20.0"/>
+
+  <node pkg="gps_module" type="gps_localization_node.py" name="gps_localization" output="screen">
+    <param name="port" value="$(arg port)"/>
+    <param name="baud_rate" value="$(arg baud_rate)"/>
+    <param name="map_frame" value="$(arg map_frame)"/>
+    <param name="odom_frame" value="$(arg odom_frame)"/>
+    <param name="base_frame" value="$(arg base_frame)"/>
+    <param name="pose_topic" value="/gps/pose"/>
+    <param name="odom_topic" value="/gps/odom"/>
+    <param name="fix_topic" value="/gps/fix"/>
+    <param name="heading_topic" value="/gps/heading"/>
+    <param name="gps_frame" value="$(arg gps_frame)"/>
+    <param name="publish_rate" value="10.0"/>
+    <param name="broadcast_tf" value="$(arg broadcast_tf)"/>
+    <param name="heading_source" value="$(arg heading_source)"/>
+    <param name="heading_timeout" value="$(arg heading_timeout)"/>
+    <param name="heading_required_solution_status" value="$(arg heading_required_solution_status)"/>
+    <param name="heading_required_position_types" value="$(arg heading_required_position_types)"/>
+    <param name="gps_antenna_offset_x" value="$(arg gps_antenna_offset_x)"/>
+    <param name="gps_antenna_offset_y" value="$(arg gps_antenna_offset_y)"/>
+    <param name="min_course_distance" value="$(arg min_course_distance)"/>
+    <param name="initial_yaw" value="$(arg initial_yaw)"/>
+    <param name="position_filter_alpha" value="$(arg position_filter_alpha)"/>
+    <param name="stationary_filter_alpha" value="$(arg stationary_filter_alpha)"/>
+    <param name="stationary_speed_threshold" value="$(arg stationary_speed_threshold)"/>
+    <param name="stationary_hold_radius" value="$(arg stationary_hold_radius)"/>
+    <param name="max_fix_jump" value="$(arg max_fix_jump)"/>
+    <param name="heading_min_speed" value="$(arg heading_min_speed)"/>
+    <param name="use_wheel_odom" value="$(arg use_wheel_odom)"/>
+    <param name="use_wheel_twist" value="$(arg use_wheel_twist)"/>
+    <param name="wheel_odom_topic" value="$(arg wheel_odom_topic)"/>
+    <param name="wheel_twist_timeout" value="$(arg wheel_twist_timeout)"/>
+    <param name="rmc_speed_timeout" value="$(arg rmc_speed_timeout)"/>
+    <param name="rmc_direction_cos_threshold" value="$(arg rmc_direction_cos_threshold)"/>
+    <param name="position_speed_min_dt" value="$(arg position_speed_min_dt)"/>
+    <param name="position_speed_max_abs" value="$(arg position_speed_max_abs)"/>
+    <param name="heading_rate_filter_alpha" value="$(arg heading_rate_filter_alpha)"/>
+    <param name="heading_rate_min_dt" value="$(arg heading_rate_min_dt)"/>
+    <param name="heading_rate_max_dt" value="$(arg heading_rate_max_dt)"/>
+    <param name="heading_rate_timeout" value="$(arg heading_rate_timeout)"/>
+    <param name="heading_rate_max_abs" value="$(arg heading_rate_max_abs)"/>
+    <param name="heading_jump_guard_enabled" value="$(arg heading_jump_guard_enabled)"/>
+    <param name="heading_jump_threshold_deg" value="$(arg heading_jump_threshold_deg)"/>
+    <param name="heading_recovery_tolerance_deg" value="$(arg heading_recovery_tolerance_deg)"/>
+    <param name="heading_recovery_samples" value="$(arg heading_recovery_samples)"/>
+    <param name="gps_correction_alpha" value="$(arg gps_correction_alpha)"/>
+    <param name="gps_correction_max_step" value="$(arg gps_correction_max_step)"/>
+    <param name="gps_correction_reset_distance" value="$(arg gps_correction_reset_distance)"/>
+    <param name="origin_lat" value="$(arg origin_lat)" unless="$(eval arg('origin_lat') == '')"/>
+    <param name="origin_lon" value="$(arg origin_lon)" unless="$(eval arg('origin_lon') == '')"/>
+  </node>
+</launch>

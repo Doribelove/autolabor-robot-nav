@@ -1,0 +1,47 @@
+local_costmap:
+   global_frame: camera_init
+   robot_base_frame: base_link
+   
+   # 容忍 TF 延迟，3.0s 是合理的，给 Fast-LIO 留够容错空间
+   transform_tolerance: 5.0
+   
+   # --- 障碍物地图更新频率：跟随当前 10Hz scan，避免无效空转 ---
+   update_frequency: 10.0
+   publish_frequency: 2.0   # 只是给 Rviz 看的，不用太快
+   
+   static_map: false
+   rolling_window: true
+   
+   # --- 视野优化：20x20 给阿克曼倒车和绕障更多局部规划空间 ---
+   width: 20.0
+   height: 20.0
+   resolution: 0.1
+
+   # --- 插件声明：确保层级正确 ---
+   plugins:
+    - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: inflater_layer,  type: "costmap_2d::InflationLayer"}
+
+   # 障碍物层（会继承 common_params，这里可以不写，除非要特殊覆盖）
+   obstacles_layer:
+     observation_sources: scan
+     scan:
+       sensor_frame: base_link
+       data_type: LaserScan
+       topic: /scan
+       expected_update_rate: 0.3
+       marking: true
+       clearing: true
+       obstacle_range: 10.0
+       raytrace_range: 11.0
+       min_obstacle_height: -1.0
+       max_obstacle_height: 3.0
+       inf_is_valid: true
+
+   # 膨胀层精修
+   inflater_layer:
+     enabled: true
+     # 增加到 10.0：让代价梯度更陡，方便在窄空间操作
+     cost_scaling_factor: 10.0  
+     # 建议设为 1.2：给 1.04m 长的车身留出足够的安全余量
+     inflation_radius: 1.2

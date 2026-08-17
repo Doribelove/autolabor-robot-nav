@@ -1,0 +1,9 @@
+<launch>
+  <arg name="topics" default="/rosout"/>
+  <arg name="timeout" default="30.0"/>
+
+  <node pkg="robot_diagnostics" type="wait_for_topics.py" name="wait_for_topics" output="screen" required="true">
+    <param name="topics" value="$(arg topics)"/>
+    <param name="timeout" value="$(arg timeout)"/>
+  </node>
+</launch>

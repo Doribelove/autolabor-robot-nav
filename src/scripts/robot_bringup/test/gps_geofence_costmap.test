@@ -1,0 +1,58 @@
+<launch>
+  <param name="/gps/origin_lat" type="double" value="30.0"/>
+  <param name="/gps/origin_lon" type="double" value="104.0"/>
+
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="gps_geofence_test_tf"
+        args="0 0 0 0 0 0 camera_init base_link"/>
+
+  <!-- Keep this integration test independent from the complete robot model.
+       Only move_base, its two costmaps and the GPS geofence layer are needed. -->
+  <rosparam file="$(find robot_bringup)/test/config/gps_geofence_costmap.yaml"
+            command="load"
+            ns="move_base/global_costmap/gps_geofence_layer"/>
+  <rosparam file="$(find robot_bringup)/test/config/gps_geofence_costmap.yaml"
+            command="load"
+            ns="move_base/local_costmap/gps_geofence_layer"/>
+  <param name="move_base/global_costmap/gps_geofence_layer/enabled"
+         type="bool"
+         value="true"/>
+  <param name="move_base/local_costmap/gps_geofence_layer/enabled"
+         type="bool"
+         value="true"/>
+
+  <node pkg="robot_bringup"
+        type="test_move_base_runner.sh"
+        name="move_base"
+        output="screen">
+    <remap from="/move_base/cmd_vel" to="/gps_geofence_test/cmd_vel"/>
+    <remap from="cmd_vel" to="/gps_geofence_test/cmd_vel"/>
+    <remap from="odom" to="/gps/odom"/>
+
+    <rosparam file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml"
+              command="load"
+              ns="local_costmap"/>
+    <rosparam file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml"
+              command="load"
+              ns="global_costmap"/>
+    <rosparam file="$(find conventional)/config/dingo/local_costmap_params_nomap.yaml"
+              command="load"/>
+    <rosparam file="$(find conventional)/config/dingo/global_costmap_params_nomap.yaml"
+              command="load"/>
+    <rosparam file="$(find conventional)/config/dingo/teb_local_planner_params_nomap.yaml"
+              command="load"/>
+    <rosparam file="$(find robot_bringup)/../../../config/teb_profiles/gps_cruise.yaml"
+              command="load"/>
+
+    <param name="TebLocalPlannerROS/odom_topic" value="/gps/odom"/>
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
+    <param name="controller_frequency" type="double" value="10.0"/>
+    <param name="planner_frequency" type="double" value="1.0"/>
+  </node>
+
+  <test test-name="gps_geofence_costmap_integration"
+        pkg="robot_bringup"
+        type="test_gps_geofence_costmap_ros.py"
+        time-limit="40"/>
+</launch>

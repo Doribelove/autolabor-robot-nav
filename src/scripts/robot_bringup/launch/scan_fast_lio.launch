@@ -1,0 +1,48 @@
+<launch>
+  <arg name="input_cloud" default="/cloud_registered_body"/>
+  <arg name="filtered_cloud" default="/cloud_filtered_for_scan"/>
+  <arg name="output_scan" default="/scan"/>
+
+  <arg name="remove_above_z" default="0.1"/>
+  <arg name="near_radius" default="0.4"/>
+  <arg name="near_min_z" default="-0.1"/>
+  <arg name="near_max_z" default="0.1"/>
+  <arg name="body_tf_parent" default="body"/>
+  <arg name="body_tf_child" default="base_link"/>
+  <arg name="body_tf_x" default="-0.2"/>
+  <arg name="body_tf_z" default="-0.6"/>
+  <arg name="publish_body_tf" default="false"/>
+
+  <node name="pointcloud_self_filter" pkg="robot_bringup" type="pointcloud_self_filter" output="screen">
+    <param name="input_topic" value="$(arg input_cloud)"/>
+    <param name="output_topic" value="$(arg filtered_cloud)"/>
+    <param name="remove_above_z" value="$(arg remove_above_z)"/>
+    <param name="near_radius" value="$(arg near_radius)"/>
+    <param name="near_min_z" value="$(arg near_min_z)"/>
+    <param name="near_max_z" value="$(arg near_max_z)"/>
+  </node>
+
+  <node name="pointcloud_to_laserscan" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" output="screen">
+    <remap from="cloud_in" to="$(arg filtered_cloud)"/>
+    <remap from="scan" to="$(arg output_scan)"/>
+
+    <param name="target_frame" value="base_link"/>
+    <param name="transform_tolerance" value="0.5"/>
+    <param name="queue_size" value="10"/>
+
+    <param name="min_height" value="0.25"/>
+    <param name="max_height" value="0.8"/>
+
+    <param name="range_min" value="0.2"/>
+    <param name="range_max" value="12.0"/>
+
+    <param name="angle_increment" value="0.00436"/>
+    <param name="scan_time" value="0.1"/>
+
+    <param name="concurrency_level" value="1"/>
+    <param name="use_inf" value="true"/>
+  </node>
+
+  <node if="$(arg publish_body_tf)" pkg="tf" type="static_transform_publisher" name="body_to_base_link"
+        args="$(arg body_tf_x) 0 $(arg body_tf_z) 0 0 0 $(arg body_tf_parent) $(arg body_tf_child) 100"/>
+</launch>

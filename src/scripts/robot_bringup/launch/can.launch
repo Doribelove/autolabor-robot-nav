@@ -1,0 +1,8 @@
+<launch>
+  <arg name="port_name" default="/dev/ttyUSB0"/>
+  <arg name="publish_tf" default="true"/>
+  <include file="$(find autolabor_canbus_driver)/launch/drive_only.launch">
+    <arg name="port_name" value="$(arg port_name)"/>
+    <arg name="publish_tf" value="$(arg publish_tf)"/>
+  </include>
+</launch>

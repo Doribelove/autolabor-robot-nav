@@ -1,0 +1,9 @@
+<launch>
+  <arg name="port" default="/dev/ttyUSB0"/>
+  <arg name="require_write" default="true"/>
+
+  <node pkg="robot_diagnostics" type="check_can.py" name="check_can" output="screen" required="true">
+    <param name="port" value="$(arg port)"/>
+    <param name="require_write" value="$(arg require_write)"/>
+  </node>
+</launch>

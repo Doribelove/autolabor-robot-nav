@@ -1,0 +1,31 @@
+<launch>
+  <arg name="target_x" default="2.0"/>
+  <arg name="target_y" default="0.25"/>
+
+  <node pkg="autolabor_fod_vision"
+        type="fod_sim_source_node.py"
+        name="fod_sim_source"
+        output="screen">
+    <rosparam command="load" file="$(find autolabor_fod_vision)/config/simulator.yaml"/>
+    <param name="target_x" value="$(arg target_x)"/>
+    <param name="target_y" value="$(arg target_y)"/>
+  </node>
+
+  <node pkg="autolabor_fod_vision"
+        type="fod_ground_projector_node.py"
+        name="fod_ground_projector"
+        output="screen">
+    <rosparam command="load" file="$(find autolabor_fod_vision)/config/projection.yaml"/>
+    <param name="base_frame" value="base_link"/>
+    <param name="output_frame" value="odom"/>
+    <param name="allowed_class_names" value="fod"/>
+  </node>
+
+  <node pkg="autolabor_fod_vision"
+        type="fod_tracker_node.py"
+        name="fod_tracker"
+        output="screen">
+    <rosparam command="load" file="$(find autolabor_fod_vision)/config/tracker.yaml"/>
+    <param name="tracking_frame" value="odom"/>
+  </node>
+</launch>

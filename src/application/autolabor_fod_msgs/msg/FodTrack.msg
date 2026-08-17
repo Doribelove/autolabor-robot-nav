@@ -1,0 +1,10 @@
+uint32 track_id
+int32 class_id
+string class_name
+float32 confidence
+geometry_msgs/PoseWithCovariance pose
+time first_observed
+time last_observed
+uint32 hit_count
+uint32 miss_count
+bool confirmed

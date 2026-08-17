@@ -1,0 +1,31 @@
+<launch>
+  <arg name="cmd_topic" default="/cmd_vel"/>
+  <arg name="linear_speed" default="0.25"/>
+  <arg name="angular_speed" default="0.6"/>
+  <arg name="max_linear" default="1.5"/>
+  <arg name="max_angular" default="1.2"/>
+  <arg name="key_timeout" default="0.5"/>
+  <arg name="steering_timeout" default="$(arg key_timeout)"/>
+  <arg name="key_switch_quiet_time" default="0.25"/>
+  <arg name="max_turn_angular" default="$(arg max_angular)"/>
+  <arg name="auto_stop" default="false"/>
+  <arg name="s_curve_speed" default="0.7"/>
+  <arg name="s_curve_angular" default="$(arg angular_speed)"/>
+  <arg name="s_curve_duration" default="6.0"/>
+
+  <node pkg="robot_bringup" type="autolabor_keyboard_teleop.py" name="autolabor_keyboard_teleop" output="screen">
+    <param name="cmd_topic" value="$(arg cmd_topic)"/>
+    <param name="linear_speed" value="$(arg linear_speed)"/>
+    <param name="angular_speed" value="$(arg angular_speed)"/>
+    <param name="max_linear" value="$(arg max_linear)"/>
+    <param name="max_angular" value="$(arg max_angular)"/>
+    <param name="key_timeout" value="$(arg key_timeout)"/>
+    <param name="steering_timeout" value="$(arg steering_timeout)"/>
+    <param name="key_switch_quiet_time" value="$(arg key_switch_quiet_time)"/>
+    <param name="max_turn_angular" value="$(arg max_turn_angular)"/>
+    <param name="auto_stop" value="$(arg auto_stop)"/>
+    <param name="s_curve_speed" value="$(arg s_curve_speed)"/>
+    <param name="s_curve_angular" value="$(arg s_curve_angular)"/>
+    <param name="s_curve_duration" value="$(arg s_curve_duration)"/>
+  </node>
+</launch>

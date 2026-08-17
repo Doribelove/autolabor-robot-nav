@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Measured on this M2 between the two lidar rotation centres. -->
+  <arg name="lidar_center_distance_m" default="0.94" />
+
+  <arg name="front_port" default="/dev/serial/by-path/platform-3610000.xhci-usb-0:4.4:1.0-port0" />
+  <arg name="rear_port" default="/dev/serial/by-path/platform-3610000.xhci-usb-0:4.3:1.0-port0" />
+  <arg name="front_topic" default="/lidar/front/scan_raw" />
+  <arg name="rear_topic" default="/lidar/rear/scan_raw" />
+  <arg name="output_topic" default="/scan" />
+  <arg name="target_frame" default="base_link" />
+
+  <!-- M2 mounting observation: both LD19 local +Y axes point toward the nearest end. -->
+  <arg name="front_x" default="$(eval float(arg('lidar_center_distance_m')) / 2.0)" />
+  <arg name="front_y" default="0.0" />
+  <arg name="front_z" default="0.18" />
+  <arg name="front_yaw" default="-1.5707963267948966" />
+  <arg name="rear_x" default="$(eval -float(arg('lidar_center_distance_m')) / 2.0)" />
+  <arg name="rear_y" default="0.0" />
+  <arg name="rear_z" default="0.18" />
+  <arg name="rear_yaw" default="-1.5707963267948966" />
+
+  <arg name="publish_static_tf" default="true" />
+  <arg name="start_rviz" default="false" />
+  <arg name="driver_required" default="true" />
+  <arg name="fusion_required" default="true" />
+
+  <node name="ld19_front" pkg="ldlidar_stl_ros" type="ldlidar_stl_ros_node"
+        output="screen" required="$(arg driver_required)">
+    <param name="product_name" value="LDLiDAR_LD19" />
+    <param name="topic_name" value="$(arg front_topic)" />
+    <param name="frame_id" value="front_laser" />
+    <param name="port_name" value="$(arg front_port)" />
+    <param name="port_baudrate" value="230400" />
+    <param name="laser_scan_dir" value="true" />
+    <param name="enable_angle_crop_func" value="false" />
+    <param name="angle_crop_min" value="135.0" />
+    <param name="angle_crop_max" value="225.0" />
+  </node>
+
+  <node name="ld19_rear" pkg="ldlidar_stl_ros" type="ldlidar_stl_ros_node"
+        output="screen" required="$(arg driver_required)">
+    <param name="product_name" value="LDLiDAR_LD19" />
+    <param name="topic_name" value="$(arg rear_topic)" />
+    <param name="frame_id" value="rear_laser" />
+    <param name="port_name" value="$(arg rear_port)" />
+    <param name="port_baudrate" value="230400" />
+    <param name="laser_scan_dir" value="true" />
+    <param name="enable_angle_crop_func" value="false" />
+    <param name="angle_crop_min" value="135.0" />
+    <param name="angle_crop_max" value="225.0" />
+  </node>
+
+  <node name="dual_laser_fusion" pkg="autolabor_dual_lidar"
+        type="dual_laser_fusion.py" output="screen" required="$(arg fusion_required)">
+    <param name="front_topic" value="$(arg front_topic)" />
+    <param name="rear_topic" value="$(arg rear_topic)" />
+    <param name="output_topic" value="$(arg output_topic)" />
+    <param name="target_frame" value="$(arg target_frame)" />
+    <param name="front_x" value="$(arg front_x)" />
+    <param name="front_y" value="$(arg front_y)" />
+    <param name="front_yaw" value="$(arg front_yaw)" />
+    <param name="rear_x" value="$(arg rear_x)" />
+    <param name="rear_y" value="$(arg rear_y)" />
+    <param name="rear_yaw" value="$(arg rear_yaw)" />
+    <param name="range_min" value="0.02" />
+    <param name="range_max" value="13.0" />
+    <param name="angle_increment" value="0.008726646259971648" />
+    <param name="sync_slop" value="0.08" />
+  </node>
+
+  <!-- Disable these when the robot URDF publishes the same transforms. -->
+  <group if="$(arg publish_static_tf)">
+    <node name="front_lidar_tf" pkg="tf" type="static_transform_publisher"
+          args="$(arg front_x) $(arg front_y) $(arg front_z) $(arg front_yaw) 0 0 $(arg target_frame) front_laser 100" />
+    <node name="rear_lidar_tf" pkg="tf" type="static_transform_publisher"
+          args="$(arg rear_x) $(arg rear_y) $(arg rear_z) $(arg rear_yaw) 0 0 $(arg target_frame) rear_laser 100" />
+  </group>
+
+  <node if="$(arg start_rviz)" name="dual_lidar_rviz" pkg="rviz" type="rviz"
+        args="-f $(arg target_frame) -d $(find ldlidar_stl_ros)/rviz/ldlidar_noetic.rviz"
+        output="screen" />
+</launch>

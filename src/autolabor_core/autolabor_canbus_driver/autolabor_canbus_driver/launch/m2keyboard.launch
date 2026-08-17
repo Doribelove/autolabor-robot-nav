@@ -1,0 +1,28 @@
+<launch>
+
+    <node name="canbus_driver" pkg="autolabor_canbus_driver" type="canbus_driver" output="screen">
+        <param name="port_name" value="/dev/ttyUSB0" />                 <!-- 机器人底盘串口设备名称 -->
+    </node>
+
+    <node name="m2_driver" pkg="autolabor_canbus_driver" type="m2_driver" output="screen" >
+        <param name="odom_frame" value="odom" />                        <!-- 机器人里程计的坐标系 -->
+        <param name="base_frame" value="base_link" />                   <!-- 机器人底盘的坐标系 -->
+        <param name="poller_rate_hz" value="1" />                       <!-- 机器人状态参数的轮询频率，默认1Hz查询 -->
+        <param name="publish_tf" value="true" />                        <!-- 是否发布odom到base_link的tf变换 -->
+        <param name="is_odom_child_baselink" value="false" />           <!-- 在odom消息中，是否指定odom是base_link的子坐标系 -->
+        <param name="is_simulate_imu" value="false" />                  <!-- 是否模拟IMU传感器 -->
+        <param name="is_pub_control_timeout" value="false" />            <!-- 是否发布控制超时的警告消息 -->
+    </node>
+
+    <node name="keyboard_control" pkg="autolabor_keyboard_control" type="keyboard_control_node" output="screen">
+            <param name="linear_min" value="0.4" />
+            <param name="linear_max" value="1.0" />
+            <param name="linear_step" value="0.1" />
+            <param name="angular_min" value="0.45" />                   <!-- 机器人前轮转角 -->
+            <param name="angular_max" value="0.50" />
+            <param name="angular_step" value="0.05" />
+            <remap from="cmd_vel" to="cmd_vel" />                  <!-- 转换为ackerman底盘控制指令 -->
+    </node>
+
+</launch>
+

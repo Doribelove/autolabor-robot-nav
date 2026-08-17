@@ -1,0 +1,11 @@
+std_msgs/Header header
+bool valid
+string status
+uint32 track_id
+int32 class_id
+string class_name
+float32 confidence
+geometry_msgs/PoseWithCovariance pose
+time last_observed
+float32 age_sec
+uint32 candidate_count

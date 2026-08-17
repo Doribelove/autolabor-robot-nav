@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="model" default="dingo"/>
+  <arg name="local_planner" default="teb"/>
+  <arg name="localization_source" default="fast_lio"/>
+  <arg name="start_rviz" default="true"/>
+  <arg name="planner_frequency" default="1.0"/>
+  <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
+  <arg name="cmd_vel_topic" default="/cmd_vel"/>
+  <arg name="xy_goal_tolerance" default="$(eval 0.5 if arg('localization_source') == 'gps' else 0.5)"/>
+  <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
+  <arg name="max_vel_x" default="1.2"/>
+  <arg name="max_vel_x_backwards" default="1.2"/>
+  <arg name="min_vel_x" default="0.0"/>
+  <arg name="min_vel_x_backwards" default="0.0"/>
+  <arg name="penalty_epsilon" default="$(eval 0.03 if arg('localization_source') == 'gps' else 0.1)"/>
+  <arg name="weight_kinematics_forward_drive" default="$(eval 20.0 if arg('localization_source') == 'gps' else 500.0)"/>
+  <arg name="teb_profile_file" default=""/>
+  
+  <!-- <arg name="map_file" default="/home/slam/arena_ws/src/arena-rosnav-3D/simulator_setup/maps/small_warehouse/map.yaml"/>
+-->  
+  
+  <param name="use_sim_time" value="false"/>
+  <param name="real" value="true"/>
+  <param name="localization_source" value="$(arg localization_source)"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro $(find simulator_setup)/robot/$(arg model)/urdf/$(arg model).urdf.xacro"/>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  <param name="model" value="custom_robot" />
+
+  <include file="$(find arena_bringup)/launch/sublaunch_testing/move_base/move_base_$(arg local_planner)_nomap.launch">
+    <arg name="model" value="$(arg model)"/>
+    <arg name="cmd_vel_topic" value="$(arg cmd_vel_topic)"/> 
+    <arg name="odom_topic" value="$(arg odom_topic)"/>
+    <arg name="xy_goal_tolerance" value="$(arg xy_goal_tolerance)"/>
+    <arg name="yaw_goal_tolerance" value="$(arg yaw_goal_tolerance)"/>
+    <arg name="max_vel_x" value="$(arg max_vel_x)"/>
+    <arg name="max_vel_x_backwards" value="$(arg max_vel_x_backwards)"/>
+    <arg name="min_vel_x" value="$(arg min_vel_x)"/>
+    <arg name="min_vel_x_backwards" value="$(arg min_vel_x_backwards)"/>
+    <arg name="penalty_epsilon" value="$(arg penalty_epsilon)"/>
+    <arg name="weight_kinematics_forward_drive" value="$(arg weight_kinematics_forward_drive)"/>
+    <arg name="teb_profile_file" value="$(arg teb_profile_file)"/>
+    <arg name="planner_frequency" value="$(arg planner_frequency)"/>
+  </include>
+
+  <node pkg="eval" name="viz_path" type="viz_path.py" />
+
+  <node if="$(arg start_rviz)"
+        name="rviz"
+        pkg="rviz"
+        type="rviz"
+        args="-d $(find arena_bringup)/rviz/nav_LP.rviz"/>
+</launch>

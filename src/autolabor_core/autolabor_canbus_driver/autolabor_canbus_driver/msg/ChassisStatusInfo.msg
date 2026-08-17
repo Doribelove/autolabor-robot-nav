@@ -1,0 +1,10 @@
+# ChassisStatusInfo.msg
+float32 battery_percent
+float32 remain_sec
+float32 remain_capacity
+float32 battery_voltage
+float32 battery_current
+bool hard_emergency
+bool soft_emergency
+bool gamepad_emergency
+bool robot_emergency

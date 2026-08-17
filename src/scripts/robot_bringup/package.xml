@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>robot_bringup</name>
+  <version>0.1.0</version>
+  <description>Launch wrappers for the migrated robot stack.</description>
+
+  <maintainer email="robot@example.com">robot</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>actionlib_msgs</depend>
+  <depend>costmap_2d</depend>
+  <depend>geometry_msgs</depend>
+  <depend>livox_ros_driver2</depend>
+  <depend>move_base_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>pluginlib</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <exec_depend>tf</exec_depend>
+
+  <exec_depend>python3-yaml</exec_depend>
+
+  <exec_depend>arena_bringup</exec_depend>
+  <exec_depend>autolabor_canbus_driver</exec_depend>
+  <exec_depend>autolabor_fod_control</exec_depend>
+  <exec_depend>fast_lio</exec_depend>
+  <exec_depend>gps_module</exec_depend>
+  <exec_depend>robot_diagnostics</exec_depend>
+  <exec_depend>pointcloud_to_laserscan</exec_depend>
+  <exec_depend>zed_wrapper</exec_depend>
+
+  <test_depend>gps_module</test_depend>
+  <test_depend>conventional</test_depend>
+  <test_depend>move_base</test_depend>
+  <test_depend>rostest</test_depend>
+  <test_depend>teb_local_planner</test_depend>
+  <test_depend>tf2_ros</test_depend>
+
+  <export>
+    <costmap_2d plugin="${prefix}/costmap_plugins.xml"/>
+  </export>
+</package>

@@ -1,0 +1,15 @@
+<launch>
+  <arg name="odom_topic" default="/gps/odom"/>
+  <arg name="window_seconds" default="120.0"/>
+  <arg name="warmup_seconds" default="5.0"/>
+  <arg name="warn_error" default="0.5"/>
+  <arg name="error_prefix" default="/gps/static_error"/>
+
+  <node pkg="robot_diagnostics" type="gps_static_error_monitor.py" name="gps_static_error_monitor" output="screen">
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="window_seconds" value="$(arg window_seconds)"/>
+    <param name="warmup_seconds" value="$(arg warmup_seconds)"/>
+    <param name="warn_error" value="$(arg warn_error)"/>
+    <param name="error_prefix" value="$(arg error_prefix)"/>
+  </node>
+</launch>
