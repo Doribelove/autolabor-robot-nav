@@ -1,0 +1,11 @@
+int32 class_id
+string class_name
+float32 confidence
+sensor_msgs/RegionOfInterest bbox
+geometry_msgs/Point32 anchor_px
+geometry_msgs/Polygon mask_px
+bool depth_valid
+float32 depth_m
+float32 depth_mad_m
+uint32 depth_sample_count
+float32 depth_valid_fraction

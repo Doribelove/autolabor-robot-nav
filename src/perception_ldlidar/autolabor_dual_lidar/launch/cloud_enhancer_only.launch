@@ -1,0 +1,17 @@
+<launch>
+  <arg name="mid_cloud_topic" default="/cloud_registered_body" />
+  <arg name="lidar_scan_topic" default="/dual_lidar/scan" />
+  <arg name="enhanced_cloud_topic" default="/cloud_registered_body_enhanced" />
+  <arg name="lidar_z" default="0.0" />
+  <arg name="scan_timeout" default="0.35" />
+
+  <!-- Visualization/debug side product only; MoveBase never consumes this cloud. -->
+  <node name="optional_cloud_enhancer" pkg="autolabor_dual_lidar"
+        type="optional_cloud_enhancer" output="screen" required="false">
+    <param name="mid_cloud_topic" value="$(arg mid_cloud_topic)" />
+    <param name="lidar_scan_topic" value="$(arg lidar_scan_topic)" />
+    <param name="output_topic" value="$(arg enhanced_cloud_topic)" />
+    <param name="lidar_z" value="$(arg lidar_z)" />
+    <param name="scan_timeout" value="$(arg scan_timeout)" />
+  </node>
+</launch>

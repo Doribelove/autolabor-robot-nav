@@ -1,0 +1,19 @@
+<launch>
+  <arg name="lat" default=""/>
+  <arg name="lon" default=""/>
+  <arg name="altitude" default="0.0"/>
+  <arg name="goal_fix_topic" default="/gps/goal_fix"/>
+  <arg name="frame_id" default="gps"/>
+  <arg name="publish_once" default="true"/>
+  <arg name="wait_for_subscriber" default="true"/>
+
+  <node pkg="gps_module" type="gps_goal_publisher_node.py" name="gps_goal_publisher" output="screen">
+    <param name="lat" value="$(arg lat)" unless="$(eval arg('lat') == '')"/>
+    <param name="lon" value="$(arg lon)" unless="$(eval arg('lon') == '')"/>
+    <param name="altitude" value="$(arg altitude)"/>
+    <param name="goal_fix_topic" value="$(arg goal_fix_topic)"/>
+    <param name="frame_id" value="$(arg frame_id)"/>
+    <param name="publish_once" value="$(arg publish_once)"/>
+    <param name="wait_for_subscriber" value="$(arg wait_for_subscriber)"/>
+  </node>
+</launch>

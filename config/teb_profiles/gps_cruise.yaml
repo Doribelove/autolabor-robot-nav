@@ -1,0 +1,72 @@
+## Keep the GPS cruise rolling window compact to reduce costmap work.  TEB
+## only transforms global-plan points within 85% of the costmap half-width,
+## so 16 m provides a theoretical 6.8 m usable radius.
+local_costmap:
+  width: 16.0
+  height: 16.0
+  plugins:
+    - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: gps_geofence_layer, type: "robot_bringup/GpsGeofenceLayer"}
+    - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+
+global_costmap:
+  plugins:
+    - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: gps_geofence_layer, type: "robot_bringup/GpsGeofenceLayer"}
+    - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+
+TebLocalPlannerROS:
+  # Open roads and long straight segments: look farther ahead and favor a
+  # smooth path that stays close to the global plan without chasing every
+  # small lateral error.  Averaging the command over two trajectory poses
+  # damps alternating left/right corrections at high speed.
+  # Stay slightly inside the 16 x 16 m costmap's theoretical 6.8 m TEB limit
+  # instead of relying on an implicit clip at the map boundary.
+  max_global_plan_lookahead_dist: 6.5
+  global_plan_viapoint_sep: 1.5
+  control_look_ahead_poses: 2
+
+  # The forward speed limit is supplied by bringup.sh.  Cruise mode is for
+  # efficient straight travel, so cap yaw authority below the chassis limit.
+  # TEB may reduce linear speed on a genuinely tight bend instead of making a
+  # full-speed, high-gain correction back toward a straight reference line.
+  max_vel_theta: 0.85
+  min_vel_theta: -0.85
+  # When any component reaches its limit, scale the complete Twist together.
+  # This preserves Ackermann curvature instead of demanding more steering at
+  # a lower linear speed.
+  use_proportional_saturation: true
+  # The chassis' theoretical limit is about 1.22 m; retain steering margin so
+  # normal tracking does not sit on the mechanical limit.
+  min_turning_radius: 1.35
+  acc_lim_x: 2.5
+  # Build the first useful steering curvature promptly instead of spending
+  # several reference intervals at a few tenths of a metre per second.  Keep
+  # this below the former 0.8 rad/s^2 tune: the 0.85 rad/s steady-yaw cap,
+  # two-pose command averaging, stable global route and high acceleration
+  # weight below still suppress rapid left/right corrections at cruise speed.
+  # On a straight trajectory omega and angular acceleration remain zero, so
+  # this does not lower the requested full-speed linear cruise command.
+  acc_lim_theta: 0.70
+
+  weight_max_vel_x: 5.0
+  weight_max_vel_theta: 30.0
+  weight_acc_lim_x: 20.0
+  # Enforce the quicker but still bounded yaw-acceleration limit strongly.
+  # Do not lower this merely to obtain faster turns: that would let the
+  # optimizer buy abrupt steering reversals and can reintroduce snaking.
+  weight_acc_lim_theta: 250.0
+  weight_kinematics_turning_radius: 1000.0
+  # A very high via-point/time pressure made the optimizer snap back across
+  # the route after a lateral offset.  Retain path attraction, but let the
+  # longer lookahead converge smoothly instead of demanding an immediate
+  # zero-crossing of the cross-track error.
+  weight_optimaltime: 4.0
+  weight_shortest_path: 5.0
+  weight_viapoint: 6.0
+
+  # On an open route a single topology avoids unnecessary candidate changes.
+  enable_homotopy_class_planning: false
+  max_number_classes: 1
+  costmap_obstacles_behind_robot_dist: 0.5
+  obstacle_poses_affected: 15

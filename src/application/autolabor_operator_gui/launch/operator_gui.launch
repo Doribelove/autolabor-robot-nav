@@ -1,0 +1,29 @@
+<launch>
+  <!-- The GUI is optional and does not start or replace the existing bringup stack. -->
+  <arg name="enable_rviz" default="true"/>
+  <arg name="rviz_config"
+       default="$(find autolabor_operator_gui)/config/operator_navigation.rviz"/>
+  <arg name="navigation_mode_label" default="FAST_LIO"/>
+  <arg name="odom_topic" default="/Odometry"/>
+  <arg name="cloud_topic" default="/cloud_registered_body"/>
+  <arg name="imu_topic" default="/livox/imu"/>
+  <arg name="rviz_startup_fixed_frame" default="base_link"/>
+  <arg name="rviz_navigation_fixed_frame" default="camera_init"/>
+
+  <node pkg="autolabor_operator_gui"
+        type="autolabor_operator_gui_node"
+        name="autolabor_operator_gui"
+        output="screen"
+        required="true">
+    <param name="enable_rviz" value="$(arg enable_rviz)"/>
+    <param name="rviz_config" value="$(arg rviz_config)"/>
+    <param name="navigation_mode_label" value="$(arg navigation_mode_label)"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="cloud_topic" value="$(arg cloud_topic)"/>
+    <param name="imu_topic" value="$(arg imu_topic)"/>
+    <param name="rviz_startup_fixed_frame"
+           value="$(arg rviz_startup_fixed_frame)"/>
+    <param name="rviz_navigation_fixed_frame"
+           value="$(arg rviz_navigation_fixed_frame)"/>
+  </node>
+</launch>

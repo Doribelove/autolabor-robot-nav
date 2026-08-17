@@ -1,0 +1,7 @@
+<launch>
+  <!-- Replacement sensor 47MDMBB0030112 reports as Mid-360 at 192.168.1.112. -->
+  <arg name="user_config_path" default="$(find livox_ros_driver2)/config/MID360_config.json"/>
+  <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch">
+    <arg name="user_config_path" value="$(arg user_config_path)"/>
+  </include>
+</launch>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <!-- Arguments -->
+  <arg name="model" default="turtlebot3_burger"/>
+  <arg name="cmd_vel_topic" default="/cmd_vel" />
+  <arg name="odom_topic" default="/Odometry" />
+  <arg name="xy_goal_tolerance" default="0.5" />
+  <arg name="yaw_goal_tolerance" default="0.3" />
+  <arg name="max_vel_x" default="1.2" />
+  <arg name="max_vel_x_backwards" default="1.2" />
+  <arg name="min_vel_x" default="0.0" />
+  <arg name="min_vel_x_backwards" default="0.0" />
+  <arg name="penalty_epsilon" default="0.1" />
+  <arg name="weight_kinematics_forward_drive" default="500.0" />
+  <arg name="teb_profile_file" default="" />
+  <arg name="planner_frequency" default="1.0" />
+  <!-- <arg name="speed" default="0.22"/> -->
+
+  <!-- move_base -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <remap from="/move_base/cmd_vel" to="$(arg cmd_vel_topic)"/>
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+    <rosparam file="$(find conventional)/config/$(arg model)/costmap_common_params_nomap.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find conventional)/config/$(arg model)/costmap_common_params_nomap.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find conventional)/config/$(arg model)/local_costmap_params_nomap.yaml" command="load" />
+    <rosparam file="$(find conventional)/config/$(arg model)/global_costmap_params_nomap.yaml" command="load" />
+
+    
+    <!-- planner params -->
+    <rosparam file="$(find conventional)/config/$(arg model)/teb_local_planner_params_nomap.yaml" command="load" />
+    <!-- Optional mode-specific overlay. Explicit launch arguments below remain the final overrides. -->
+    <rosparam if="$(eval arg('teb_profile_file') != '')" file="$(arg teb_profile_file)" command="load" />
+    <param name="TebLocalPlannerROS/odom_topic" value="$(arg odom_topic)" />
+    <param name="TebLocalPlannerROS/xy_goal_tolerance" type="double" value="$(arg xy_goal_tolerance)" />
+    <param name="TebLocalPlannerROS/yaw_goal_tolerance" type="double" value="$(arg yaw_goal_tolerance)" />
+    <param name="TebLocalPlannerROS/max_vel_x" type="double" value="$(arg max_vel_x)" />
+    <param name="TebLocalPlannerROS/max_vel_x_backwards" type="double" value="$(arg max_vel_x_backwards)" />
+    <param name="TebLocalPlannerROS/min_vel_x" type="double" value="$(arg min_vel_x)" />
+    <param name="TebLocalPlannerROS/min_vel_x_backwards" type="double" value="$(arg min_vel_x_backwards)" />
+    <param name="TebLocalPlannerROS/penalty_epsilon" type="double" value="$(arg penalty_epsilon)" />
+    <param name="TebLocalPlannerROS/weight_kinematics_forward_drive" type="double" value="$(arg weight_kinematics_forward_drive)" />
+   
+    <remap from="odom" to="$(arg  odom_topic)"/>
+
+
+    <!-- teb -->
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+    <param name="controller_frequency" value="10.0" />
+    <param name="controller_patience" value="10.0" />
+    <param name="planner_frequency" value="$(arg planner_frequency)" />
+    
+
+  </node>
+</launch>

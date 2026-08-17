@@ -1,0 +1,78 @@
+<launch>
+  <arg name="port" default="/dev/ttyUSB1"/>
+  <arg name="baud_rate" default="115200"/>
+  <arg name="broadcast_tf" default="true"/>
+  <arg name="heading_source" default="dual_antenna"/>
+  <arg name="heading_timeout" default="1.0"/>
+  <arg name="heading_required_solution_status" default="SOL_COMPUTED"/>
+  <arg name="heading_required_position_types" default="NARROW_INT"/>
+  <arg name="gps_antenna_offset_x" default="-0.3"/>
+  <arg name="gps_antenna_offset_y" default="-0.05"/>
+  <arg name="min_course_distance" default="0.5"/>
+  <arg name="initial_yaw" default="0.0"/>
+  <arg name="position_filter_alpha" default="0.25"/>
+  <arg name="stationary_filter_alpha" default="0.05"/>
+  <arg name="stationary_speed_threshold" default="0.05"/>
+  <arg name="stationary_hold_radius" default="0.8"/>
+  <arg name="max_fix_jump" default="5.0"/>
+  <arg name="heading_min_speed" default="0.15"/>
+  <arg name="use_wheel_odom" default="false"/>
+  <arg name="use_wheel_twist" default="true"/>
+  <arg name="wheel_odom_topic" default="/odom"/>
+  <arg name="wheel_twist_timeout" default="0.5"/>
+  <arg name="rmc_speed_timeout" default="1.0"/>
+  <arg name="rmc_direction_cos_threshold" default="0.5"/>
+  <arg name="position_speed_min_dt" default="0.05"/>
+  <arg name="position_speed_max_abs" default="3.5"/>
+  <arg name="heading_rate_filter_alpha" default="0.35"/>
+  <arg name="heading_rate_min_dt" default="0.02"/>
+  <arg name="heading_rate_max_dt" default="1.0"/>
+  <arg name="heading_rate_timeout" default="0.5"/>
+  <arg name="heading_rate_max_abs" default="3.0"/>
+  <arg name="heading_jump_guard_enabled" default="false"/>
+  <arg name="heading_jump_threshold_deg" default="1.5"/>
+  <arg name="heading_recovery_tolerance_deg" default="0.8"/>
+  <arg name="heading_recovery_samples" default="3"/>
+  <arg name="gps_correction_alpha" default="0.0"/>
+  <arg name="gps_correction_max_step" default="0.05"/>
+  <arg name="gps_correction_reset_distance" default="20.0"/>
+  <include file="$(find gps_module)/launch/gps_localization.launch">
+    <arg name="port" value="$(arg port)"/>
+    <arg name="baud_rate" value="$(arg baud_rate)"/>
+    <arg name="broadcast_tf" value="$(arg broadcast_tf)"/>
+    <arg name="heading_source" value="$(arg heading_source)"/>
+    <arg name="heading_timeout" value="$(arg heading_timeout)"/>
+    <arg name="heading_required_solution_status" value="$(arg heading_required_solution_status)"/>
+    <arg name="heading_required_position_types" value="$(arg heading_required_position_types)"/>
+    <arg name="gps_antenna_offset_x" value="$(arg gps_antenna_offset_x)"/>
+    <arg name="gps_antenna_offset_y" value="$(arg gps_antenna_offset_y)"/>
+    <arg name="min_course_distance" value="$(arg min_course_distance)"/>
+    <arg name="initial_yaw" value="$(arg initial_yaw)"/>
+    <arg name="position_filter_alpha" value="$(arg position_filter_alpha)"/>
+    <arg name="stationary_filter_alpha" value="$(arg stationary_filter_alpha)"/>
+    <arg name="stationary_speed_threshold" value="$(arg stationary_speed_threshold)"/>
+    <arg name="stationary_hold_radius" value="$(arg stationary_hold_radius)"/>
+    <arg name="max_fix_jump" value="$(arg max_fix_jump)"/>
+    <arg name="heading_min_speed" value="$(arg heading_min_speed)"/>
+    <arg name="use_wheel_odom" value="$(arg use_wheel_odom)"/>
+    <arg name="use_wheel_twist" value="$(arg use_wheel_twist)"/>
+    <arg name="wheel_odom_topic" value="$(arg wheel_odom_topic)"/>
+    <arg name="wheel_twist_timeout" value="$(arg wheel_twist_timeout)"/>
+    <arg name="rmc_speed_timeout" value="$(arg rmc_speed_timeout)"/>
+    <arg name="rmc_direction_cos_threshold" value="$(arg rmc_direction_cos_threshold)"/>
+    <arg name="position_speed_min_dt" value="$(arg position_speed_min_dt)"/>
+    <arg name="position_speed_max_abs" value="$(arg position_speed_max_abs)"/>
+    <arg name="heading_rate_filter_alpha" value="$(arg heading_rate_filter_alpha)"/>
+    <arg name="heading_rate_min_dt" value="$(arg heading_rate_min_dt)"/>
+    <arg name="heading_rate_max_dt" value="$(arg heading_rate_max_dt)"/>
+    <arg name="heading_rate_timeout" value="$(arg heading_rate_timeout)"/>
+    <arg name="heading_rate_max_abs" value="$(arg heading_rate_max_abs)"/>
+    <arg name="heading_jump_guard_enabled" value="$(arg heading_jump_guard_enabled)"/>
+    <arg name="heading_jump_threshold_deg" value="$(arg heading_jump_threshold_deg)"/>
+    <arg name="heading_recovery_tolerance_deg" value="$(arg heading_recovery_tolerance_deg)"/>
+    <arg name="heading_recovery_samples" value="$(arg heading_recovery_samples)"/>
+    <arg name="gps_correction_alpha" value="$(arg gps_correction_alpha)"/>
+    <arg name="gps_correction_max_step" value="$(arg gps_correction_max_step)"/>
+    <arg name="gps_correction_reset_distance" value="$(arg gps_correction_reset_distance)"/>
+  </include>
+</launch>

@@ -1,0 +1,15 @@
+<launch>
+  <node name="avoidance_scan_fusion_test_node" pkg="robot_bringup"
+        type="optional_laserscan_fusion.py" output="screen" required="true">
+    <param name="primary_topic" value="/test/mid360_scan" />
+    <param name="optional_topic" value="/test/dual_scan" />
+    <param name="output_topic" value="/test/avoidance_scan" />
+    <param name="optional_enabled" value="true" />
+    <param name="optional_timeout" value="0.15" />
+  </node>
+
+  <test test-name="avoidance_scan_fusion_contract"
+        pkg="robot_bringup"
+        type="test_avoidance_scan_fusion.py"
+        time-limit="30" />
+</launch>

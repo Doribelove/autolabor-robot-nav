@@ -1,0 +1,65 @@
+<launch>
+  <arg name="start_livox" default="true"/>
+  <arg name="livox_config"
+       default="$(find autolabor_dual_host)/config/livox_mid360_nvidia.json"/>
+  <arg name="start_dual_lidar" default="false"/>
+  <arg name="front_lidar_port" default="/dev/ttyUSB4"/>
+  <arg name="rear_lidar_port" default="/dev/ttyUSB5"/>
+  <arg name="start_can" default="false"/>
+  <arg name="can_port" default="/dev/ttyUSB0"/>
+  <arg name="start_watchdog" default="true"/>
+  <arg name="motion_enabled" default="false"/>
+  <arg name="max_linear_speed" default="0.30"/>
+  <arg name="max_angular_speed" default="0.60"/>
+  <arg name="command_timeout_sec" default="0.25"/>
+
+  <!-- The driver binds to the sensor-facing NVIDIA NIC. Only these two
+       remapped topics cross the NVIDIA/J6M link. -->
+  <group if="$(arg start_livox)">
+    <remap from="/livox/lidar" to="/gateway/livox/lidar"/>
+    <remap from="/livox/imu" to="/gateway/livox/imu"/>
+    <include file="$(find robot_bringup)/launch/livox_mid360.launch">
+      <arg name="user_config_path" value="$(arg livox_config)"/>
+    </include>
+  </group>
+
+  <!-- Front/rear LD19 are optional. Their fused LaserScan is small enough to
+       send to J6M; losing either scanner never replaces the required MID360. -->
+  <include if="$(arg start_dual_lidar)"
+           file="$(find autolabor_dual_lidar)/launch/dual_ld19_fused.launch">
+    <arg name="front_port" value="$(arg front_lidar_port)"/>
+    <arg name="rear_port" value="$(arg rear_lidar_port)"/>
+    <arg name="front_topic" value="/dual_lidar/front/scan_raw"/>
+    <arg name="rear_topic" value="/dual_lidar/rear/scan_raw"/>
+    <arg name="output_topic" value="/dual_lidar/scan"/>
+    <arg name="target_frame" value="base_link"/>
+    <arg name="lidar_center_distance_m" value="0.94"/>
+    <arg name="start_rviz" value="false"/>
+  </include>
+
+  <!-- USB-CAN and the M2 protocol remain on NVIDIA because J6M has no usable
+       USB host port in this vehicle integration. -->
+  <include if="$(arg start_can)" file="$(find robot_bringup)/launch/can.launch">
+    <arg name="port_name" value="$(arg can_port)"/>
+    <arg name="publish_tf" value="false"/>
+  </include>
+
+  <!-- This is the only publisher allowed on /cmd_vel. It keeps publishing
+       zero unless the J6M command is fresh, graph ownership is exact, and
+       motion_enabled is explicitly true. -->
+  <node if="$(arg start_watchdog)"
+        pkg="autolabor_dual_host"
+        type="cmd_vel_watchdog.py"
+        name="nvidia_cmd_vel_watchdog"
+        output="screen"
+        required="true">
+    <param name="input_topic" value="/cmd_vel_safe"/>
+    <param name="output_topic" value="/cmd_vel"/>
+    <param name="expected_input_publisher" value="/fod_navigation_mode"/>
+    <param name="expected_output_subscriber" value="/m2_driver"/>
+    <param name="motion_enabled" type="bool" value="$(arg motion_enabled)"/>
+    <param name="max_linear_speed" type="double" value="$(arg max_linear_speed)"/>
+    <param name="max_angular_speed" type="double" value="$(arg max_angular_speed)"/>
+    <param name="command_timeout_sec" type="double" value="$(arg command_timeout_sec)"/>
+  </node>
+</launch>

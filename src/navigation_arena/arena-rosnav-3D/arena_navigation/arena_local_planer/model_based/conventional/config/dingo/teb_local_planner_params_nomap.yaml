@@ -1,0 +1,115 @@
+TebLocalPlannerROS:
+  odom_topic: /Odometry
+  map_frame: camera_init
+  global_plan_overwrite_orientation: True
+  allow_init_with_backwards_motion: False
+  max_global_plan_lookahead_dist: 12.0
+  global_plan_viapoint_sep: 0.8
+  global_plan_prune_distance: 1.0
+  exact_arc_length: False
+
+  # Robot
+  dt_ref: 0.3
+  dt_hysteresis: 0.03
+  max_vel_x: 1.2
+  max_vel_x_backwards: 1.2
+  max_vel_y: 0.0
+  max_vel_theta: 1.5
+  min_vel_theta: -1.5
+  min_vel_x: 0.0           # 允许到达目标时减速到 0，避免 GPS 模式下持续前进
+  min_vel_x_backwards: 0.0
+  acc_lim_x: 2.0
+  acc_lim_theta: 0.5
+  min_turning_radius: 1.2 # Hardware minimum turning radius.
+  wheelbase: 0.65
+  # M2 driver subscribes /cmd_vel as Twist and converts angular.z velocity to steering.
+  # Keep this false so TEB publishes rotational velocity, not steering angle.
+  cmd_angle_instead_rotvel: False
+  
+  footprint_model:
+    type: "polygon"
+    vertices: [[0.52, 0.35], [0.52, -0.35], [-0.52, -0.35], [-0.52, 0.35]]
+    # RADIUS: 0.378 from (0.2755**2 + 0.2585**2)**(1/2)
+
+  # GoalTolerance
+
+  xy_goal_tolerance: 0.5
+  yaw_goal_tolerance: 0.3
+  latch_xy_goal_tolerance: true
+  free_goal_vel: False
+  complete_global_plan: True
+
+   # Obstacles
+
+  min_obstacle_dist: 0.3 # Keep extra clearance between the footprint and obstacles.
+  inflation_dist: 0.6
+  include_costmap_obstacles: True
+  costmap_obstacles_behind_robot_dist: 0.8
+  obstacle_poses_affected: 15
+
+  dynamic_obstacle_inflation_dist: 0.6
+  include_dynamic_obstacles: True
+
+  costmap_converter_plugin: ""
+  costmap_converter_spin_thread: True
+  costmap_converter_rate: 5
+
+  # Optimization
+
+  no_inner_iterations: 10
+  no_outer_iterations: 6
+  optimization_activate: True
+  optimization_verbose: False
+  penalty_epsilon: 0.1
+  obstacle_cost_exponent: 4
+  weight_max_vel_x: 5.0
+  weight_max_vel_theta: 10.0
+  weight_acc_lim_x: 30.0
+  weight_acc_lim_theta: 100.0
+  weight_kinematics_nh: 1000
+  weight_kinematics_forward_drive: 500.0
+  weight_kinematics_turning_radius: 700.0
+  weight_optimaltime: 2.0
+  weight_shortest_path: 4.0
+  weight_obstacle: 50.0
+  weight_inflation: 0.2
+  weight_dynamic_obstacle: 10
+  weight_dynamic_obstacle_inflation: 0.2
+  weight_viapoint: 8.0
+  weight_adapt_factor: 2
+
+  # Homotopy Class Planner
+
+  enable_homotopy_class_planning: True
+  enable_multithreading: True
+  max_number_classes: 3
+  selection_cost_hysteresis: 1.2
+  selection_prefer_initial_plan: 0.95
+  selection_obst_cost_scale: 10.0
+  selection_alternative_time_cost: False
+
+  roadmap_graph_no_samples: 8
+  roadmap_graph_area_width: 5
+  roadmap_graph_area_length_scale: 1.0
+  h_signature_prescaler: 0.5
+  h_signature_threshold: 0.1
+  obstacle_heading_threshold: 0.45
+  #change
+  switching_blocking_period: 5.0
+  viapoints_all_candidates: False
+  delete_detours_backwards: True
+  max_ratio_detours_duration_best_duration: 1.5
+  visualize_hc_graph: False
+  visualize_with_time_as_z_axis_scale: False
+
+  # Recovery
+
+  shrink_horizon_backup: True
+  shrink_horizon_min_duration: 10
+  oscillation_recovery: True
+  oscillation_v_eps: 0.1
+  oscillation_omega_eps: 0.1
+  oscillation_recovery_min_duration: 10
+  oscillation_filter_duration: 10
+
+  heading_scoring: True

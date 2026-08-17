@@ -1,0 +1,17 @@
+<launch>
+  <arg name="image"/>
+  <arg name="weights" default="$(find autolabor_fod_vision)/../../yolo/yolo11n.pt"/>
+  <arg name="detector_python" default="$(find autolabor_fod_vision)/../../../.venv/fod_yolo/bin/python3"/>
+
+  <include file="$(find autolabor_fod_vision)/launch/perception.launch">
+    <arg name="source_type" value="image"/>
+    <arg name="source" value="$(arg image)"/>
+    <arg name="weights" value="$(arg weights)"/>
+    <arg name="detector_python" value="$(arg detector_python)"/>
+    <arg name="width" value="0"/>
+    <arg name="height" value="0"/>
+    <arg name="fps" value="1.0"/>
+    <arg name="smoke_test_only" value="true"/>
+    <arg name="enable_projection" value="false"/>
+  </include>
+</launch>

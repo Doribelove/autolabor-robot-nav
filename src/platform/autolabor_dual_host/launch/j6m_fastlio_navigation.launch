@@ -1,0 +1,117 @@
+<launch>
+  <arg name="start_relays" default="true"/>
+  <arg name="start_fast_lio" default="true"/>
+  <arg name="start_scan" default="true"/>
+  <arg name="start_enhanced_cloud" default="true"/>
+  <arg name="start_navigation" default="true"/>
+  <arg name="start_fod_arbiter" default="true"/>
+  <arg name="fod_motion_enabled" default="false"/>
+  <arg name="use_dual_lidar" default="true"/>
+  <arg name="max_linear_speed" default="0.30"/>
+  <arg name="max_linear_speed_backwards" default="0.30"/>
+  <arg name="mid360_sensor_x" default="0.20"/>
+  <arg name="mid360_sensor_y" default="0.0"/>
+  <arg name="mid360_sensor_z" default="0.9"/>
+  <arg name="mid360_crop_enabled" default="true"/>
+  <arg name="mid360_crop_min_x" default="-0.75"/>
+  <arg name="mid360_crop_max_x" default="0.75"/>
+  <arg name="mid360_crop_min_y" default="-0.50"/>
+  <arg name="mid360_crop_max_y" default="0.50"/>
+
+  <!-- One subscription per raw Livox stream crosses the machines. FAST-LIO
+       and scan conversion then consume the local relay topics on J6M. -->
+  <group if="$(arg start_relays)">
+    <node pkg="topic_tools" type="relay" name="relay_livox_lidar"
+          args="/gateway/livox/lidar /livox/lidar" output="screen" required="true"/>
+    <node pkg="topic_tools" type="relay" name="relay_livox_imu"
+          args="/gateway/livox/imu /livox/imu" output="screen" required="true"/>
+  </group>
+
+  <include if="$(arg start_fast_lio)"
+           file="$(find robot_bringup)/launch/fast_lio.launch">
+    <arg name="odom_pub_en" value="true"/>
+    <arg name="tf_pub_en" value="true"/>
+    <arg name="publish_body_base_tf" value="true"/>
+    <!-- fast_lio.launch publishes body -> base_link, hence the inverse translation. -->
+    <arg name="body_tf_x" value="$(eval -float(arg('mid360_sensor_x')))"/>
+  </include>
+
+  <!-- MID360 is the mandatory primary obstacle source. The NVIDIA LD19 scan
+       is optional and automatically drops out after 0.35 s of staleness. -->
+  <include if="$(arg start_scan)"
+           file="$(find robot_bringup)/launch/scan_mid360_avoidance.launch">
+    <arg name="input_custom" value="/livox/lidar"/>
+    <arg name="dual_lidar_scan" value="/dual_lidar/scan"/>
+    <arg name="output_scan" value="/scan"/>
+    <arg name="use_dual_lidar" value="$(arg use_dual_lidar)"/>
+    <arg name="sensor_x" value="$(arg mid360_sensor_x)"/>
+    <arg name="sensor_y" value="$(arg mid360_sensor_y)"/>
+    <arg name="sensor_z" value="$(arg mid360_sensor_z)"/>
+    <arg name="crop_enabled" value="$(arg mid360_crop_enabled)"/>
+    <arg name="crop_min_x" value="$(arg mid360_crop_min_x)"/>
+    <arg name="crop_max_x" value="$(arg mid360_crop_max_x)"/>
+    <arg name="crop_min_y" value="$(arg mid360_crop_min_y)"/>
+    <arg name="crop_max_y" value="$(arg mid360_crop_max_y)"/>
+  </include>
+
+  <include if="$(arg start_enhanced_cloud)"
+           file="$(find autolabor_dual_lidar)/launch/cloud_enhancer_only.launch">
+    <arg name="mid_cloud_topic" value="/cloud_registered_body"/>
+    <arg name="lidar_scan_topic" value="/dual_lidar/scan"/>
+    <arg name="enhanced_cloud_topic" value="/cloud_registered_body_enhanced"/>
+  </include>
+
+  <group if="$(arg start_navigation)">
+    <!-- FAST-LIO mode drives a dedicated navigation topic. The FOD arbiter is
+         the sole publisher of the cross-machine /cmd_vel_safe lease. -->
+    <include file="$(find robot_bringup)/launch/navigation_j6m.launch">
+      <arg name="localization_source" value="fast_lio"/>
+      <arg name="start_rviz" value="false"/>
+      <arg name="goal_slowdown_enabled" value="false"/>
+      <arg name="output_cmd_vel_topic" value="/cmd_vel_navigation"/>
+      <arg name="max_vel_x" value="$(arg max_linear_speed)"/>
+      <arg name="max_vel_x_backwards" value="$(arg max_linear_speed_backwards)"/>
+    </include>
+
+    <group if="$(arg start_fod_arbiter)">
+      <node pkg="autolabor_dual_host"
+            type="move_base_pause_bridge.py"
+            name="navigation_pause"
+            output="screen"
+            required="true">
+        <param name="reissue_on_resume" type="bool" value="true"/>
+      </node>
+
+      <include file="$(find autolabor_fod_control)/launch/visual_recovery.launch">
+        <arg name="allow_motion" value="$(arg fod_motion_enabled)"/>
+        <arg name="external_estop_override" value="false"/>
+        <arg name="cmd_vel_topic" value="/cmd_vel_fod"/>
+        <arg name="expected_cmd_vel_subscriber_node" value="/fod_navigation_mode"/>
+      </include>
+
+      <!-- The manager retains its historical GPS_* state strings for Qt
+           compatibility, but its primary input and pause service are FAST-LIO
+           move_base in this launch. -->
+      <node pkg="autolabor_fod_control"
+            type="fod_navigation_mode_manager.py"
+            name="fod_navigation_mode"
+            output="screen"
+            required="true">
+        <param name="gps_cmd_topic" value="/cmd_vel_navigation"/>
+        <param name="fod_cmd_topic" value="/cmd_vel_fod"/>
+        <param name="output_cmd_topic" value="/cmd_vel_safe"/>
+        <param name="odom_topic" value="/odom"/>
+        <param name="detections_topic" value="/fod/detections"/>
+        <param name="visual_state_topic" value="/fod_visual_servo/state"/>
+        <param name="visual_enable_service" value="/fod_visual_servo/set_enabled"/>
+        <param name="gps_pause_service" value="/navigation_pause/set_paused"/>
+        <param name="expected_driver_node" value="/nvidia_cmd_vel_watchdog"/>
+        <param name="expected_visual_node" value="/fod_visual_servo"/>
+        <param name="expected_gps_limiter_node" value="/move_base"/>
+        <param name="expected_move_base_node" value="/move_base"/>
+        <param name="require_output_driver" type="bool" value="true"/>
+        <param name="command_timeout_sec" type="double" value="0.30"/>
+      </node>
+    </group>
+  </group>
+</launch>

@@ -1,0 +1,86 @@
+<launch>
+  <arg name="source_type" default="device"/>
+  <arg name="source" default="/dev/video0"/>
+  <arg name="camera_info_url" default=""/>
+  <arg name="camera_frame" default="fod_camera_optical_frame"/>
+  <arg name="width" default="1280"/>
+  <arg name="height" default="720"/>
+  <arg name="fps" default="30.0"/>
+  <arg name="loop" default="true"/>
+  <arg name="start_source" default="true"/>
+
+  <arg name="weights" default="$(find autolabor_fod_vision)/../../yolo/yolo11n.pt"/>
+  <arg name="expected_model_sha256" default=""/>
+  <arg name="detector_python" default="$(find autolabor_fod_vision)/../../../.venv/fod_yolo/bin/python3"/>
+  <arg name="device" default="auto"/>
+  <arg name="image_size" default="640"/>
+  <arg name="confidence" default="0.25"/>
+  <arg name="iou" default="0.45"/>
+  <arg name="max_detections" default="100"/>
+  <arg name="smoke_test_only" default="true"/>
+  <arg name="required_class_names" default="fod"/>
+  <arg name="enable_depth_fusion" default="false"/>
+  <arg name="depth_topic" default="/fod_camera/depth_registered"/>
+
+  <arg name="enable_projection" default="false"/>
+  <arg name="base_frame" default="base_link"/>
+  <arg name="tracking_frame" default="camera_init"/>
+  <arg name="allowed_class_names" default="fod"/>
+
+  <group if="$(arg start_source)">
+    <node pkg="autolabor_fod_vision"
+          type="fod_media_source_node.py"
+          name="fod_media_source"
+          output="screen">
+      <rosparam command="load" file="$(find autolabor_fod_vision)/config/media_source.yaml"/>
+      <param name="source_type" value="$(arg source_type)"/>
+      <param name="source" value="$(arg source)"/>
+      <param name="camera_info_url" value="$(arg camera_info_url)"/>
+      <param name="frame_id" value="$(arg camera_frame)"/>
+      <param name="width" value="$(arg width)"/>
+      <param name="height" value="$(arg height)"/>
+      <param name="fps" value="$(arg fps)"/>
+      <param name="loop" value="$(arg loop)"/>
+    </node>
+  </group>
+
+  <node pkg="autolabor_fod_vision"
+        type="fod_detector_node.py"
+        name="fod_detector"
+        launch-prefix="$(arg detector_python)"
+        output="screen">
+    <rosparam command="load" file="$(find autolabor_fod_vision)/config/detector_smoke.yaml"/>
+    <param name="weights" value="$(arg weights)"/>
+    <param name="expected_model_sha256"
+           value="$(arg expected_model_sha256)"/>
+    <param name="device" value="$(arg device)"/>
+    <param name="image_size" value="$(arg image_size)"/>
+    <param name="confidence" value="$(arg confidence)"/>
+    <param name="iou" value="$(arg iou)"/>
+    <param name="max_detections" value="$(arg max_detections)"/>
+    <param name="smoke_test_only" value="$(arg smoke_test_only)"/>
+    <param name="required_class_names" value="$(arg required_class_names)"/>
+    <param name="enable_depth_fusion" value="$(arg enable_depth_fusion)"/>
+    <param name="depth_topic" value="$(arg depth_topic)"/>
+  </node>
+
+  <group if="$(arg enable_projection)">
+    <node pkg="autolabor_fod_vision"
+          type="fod_ground_projector_node.py"
+          name="fod_ground_projector"
+          output="screen">
+      <rosparam command="load" file="$(find autolabor_fod_vision)/config/projection.yaml"/>
+      <param name="base_frame" value="$(arg base_frame)"/>
+      <param name="output_frame" value="$(arg tracking_frame)"/>
+      <param name="allowed_class_names" value="$(arg allowed_class_names)"/>
+    </node>
+
+    <node pkg="autolabor_fod_vision"
+          type="fod_tracker_node.py"
+          name="fod_tracker"
+          output="screen">
+      <rosparam command="load" file="$(find autolabor_fod_vision)/config/tracker.yaml"/>
+      <param name="tracking_frame" value="$(arg tracking_frame)"/>
+    </node>
+  </group>
+</launch>

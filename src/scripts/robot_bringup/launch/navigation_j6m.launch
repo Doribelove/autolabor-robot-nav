@@ -1,0 +1,99 @@
+<launch>
+  <!-- Headless J6M move_base + TEB entry. It intentionally has no RViz,
+       robot model, simulator package, or evaluation sidecar dependency. -->
+  <arg name="localization_source" default="gps"/>
+  <arg name="start_rviz" default="false"/>
+  <arg name="planner_frequency" default="1.0"/>
+  <arg name="goal_slowdown_enabled" default="$(eval arg('localization_source') == 'gps')"/>
+  <arg name="goal_speed_cap_enabled" default="false"/>
+  <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
+  <arg name="output_cmd_vel_topic" default="/cmd_vel"/>
+  <arg name="cmd_vel_topic" default="$(eval '/cmd_vel_navigation' if arg('goal_slowdown_enabled') else arg('output_cmd_vel_topic'))"/>
+  <arg name="xy_goal_tolerance" default="$(eval 0.3 if arg('localization_source') == 'gps' else 0.5)"/>
+  <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
+  <arg name="max_vel_x" default="0.3"/>
+  <arg name="max_vel_x_backwards" default="0.3"/>
+  <arg name="min_vel_x" default="0.0"/>
+  <arg name="min_vel_x_backwards" default="0.0"/>
+  <arg name="penalty_epsilon" default="0.03"/>
+  <arg name="weight_kinematics_forward_drive" default="100.0"/>
+  <arg name="teb_profile_file" default=""/>
+  <arg name="goal_slowdown_decel" default="0.4"/>
+  <arg name="goal_slowdown_min_speed" default="0.15"/>
+  <arg name="goal_slowdown_hard_stop_distance" default="0.2"/>
+  <arg name="goal_slowdown_cmd_timeout" default="0.5"/>
+  <arg name="goal_slowdown_odom_timeout" default="1.0"/>
+  <arg name="goal_near_commit_distance" default="1.0"/>
+  <arg name="goal_near_timeout" default="15.0"/>
+  <arg name="goal_near_max_regression" default="0.5"/>
+  <arg name="gps_geofence_enabled" default="$(eval arg('localization_source') == 'gps')"/>
+  <arg name="gps_geofence_file" default="$(find robot_bringup)/config/gps_geofences.yaml"/>
+
+  <group if="$(arg gps_geofence_enabled)">
+    <rosparam file="$(arg gps_geofence_file)"
+              command="load"
+              ns="move_base/global_costmap/gps_geofence_layer"/>
+    <rosparam file="$(arg gps_geofence_file)"
+              command="load"
+              ns="move_base/local_costmap/gps_geofence_layer"/>
+    <param name="move_base/global_costmap/gps_geofence_layer/enabled" type="bool" value="true"/>
+    <param name="move_base/local_costmap/gps_geofence_layer/enabled" type="bool" value="true"/>
+  </group>
+
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <remap from="/move_base/cmd_vel" to="$(arg cmd_vel_topic)"/>
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+    <remap from="odom" to="$(arg odom_topic)"/>
+
+    <rosparam file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="local_costmap"/>
+    <rosparam file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find conventional)/config/dingo/local_costmap_params_nomap.yaml" command="load"/>
+    <rosparam file="$(find conventional)/config/dingo/global_costmap_params_nomap.yaml" command="load"/>
+    <rosparam file="$(find conventional)/config/dingo/teb_local_planner_params_nomap.yaml" command="load"/>
+    <rosparam if="$(eval arg('teb_profile_file') != '')" file="$(arg teb_profile_file)" command="load"/>
+
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
+    <param name="controller_frequency" type="double" value="10.0"/>
+    <param name="controller_patience" type="double" value="10.0"/>
+    <param name="planner_frequency" type="double" value="$(arg planner_frequency)"/>
+    <!-- The stock rotate recovery is unsafe for an Ackermann chassis. Keep
+         recovery motion disabled until the dedicated arc recovery is restored
+         and revalidated on an elevated vehicle. -->
+    <param name="recovery_behavior_enabled" type="bool" value="false"/>
+    <param name="clearing_rotation_allowed" type="bool" value="false"/>
+
+    <param name="TebLocalPlannerROS/odom_topic" value="$(arg odom_topic)"/>
+    <param name="TebLocalPlannerROS/xy_goal_tolerance" type="double" value="$(arg xy_goal_tolerance)"/>
+    <param name="TebLocalPlannerROS/yaw_goal_tolerance" type="double" value="$(arg yaw_goal_tolerance)"/>
+    <param name="TebLocalPlannerROS/max_vel_x" type="double" value="$(arg max_vel_x)"/>
+    <param name="TebLocalPlannerROS/max_vel_x_backwards" type="double" value="$(arg max_vel_x_backwards)"/>
+    <param name="TebLocalPlannerROS/min_vel_x" type="double" value="$(arg min_vel_x)"/>
+    <param name="TebLocalPlannerROS/min_vel_x_backwards" type="double" value="$(arg min_vel_x_backwards)"/>
+    <param name="TebLocalPlannerROS/penalty_epsilon" type="double" value="$(arg penalty_epsilon)"/>
+    <param name="TebLocalPlannerROS/weight_kinematics_forward_drive" type="double" value="$(arg weight_kinematics_forward_drive)"/>
+  </node>
+
+  <node if="$(arg goal_slowdown_enabled)"
+        pkg="robot_bringup"
+        type="gps_goal_speed_limiter.py"
+        name="gps_goal_speed_limiter"
+        output="screen">
+    <param name="input_cmd_topic" value="$(arg cmd_vel_topic)"/>
+    <param name="output_cmd_topic" value="$(arg output_cmd_vel_topic)"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="goal_topic" value="/move_base/current_goal"/>
+    <param name="action_goal_topic" value="/move_base/goal"/>
+    <param name="cancel_topic" value="/move_base/cancel"/>
+    <param name="status_topic" value="/move_base/status"/>
+    <param name="speed_cap_enabled" type="bool" value="$(arg goal_speed_cap_enabled)"/>
+    <param name="comfortable_decel" type="double" value="$(arg goal_slowdown_decel)"/>
+    <param name="hard_stop_distance" type="double" value="$(arg goal_slowdown_hard_stop_distance)"/>
+    <param name="planner_xy_goal_tolerance" type="double" value="$(arg xy_goal_tolerance)"/>
+    <param name="min_approach_speed" type="double" value="$(arg goal_slowdown_min_speed)"/>
+    <param name="cmd_timeout" type="double" value="$(arg goal_slowdown_cmd_timeout)"/>
+    <param name="odom_timeout" type="double" value="$(arg goal_slowdown_odom_timeout)"/>
+    <param name="near_goal_commit_distance" type="double" value="$(arg goal_near_commit_distance)"/>
+    <param name="near_goal_timeout" type="double" value="$(arg goal_near_timeout)"/>
+    <param name="near_goal_max_regression" type="double" value="$(arg goal_near_max_regression)"/>
+  </node>
+</launch>

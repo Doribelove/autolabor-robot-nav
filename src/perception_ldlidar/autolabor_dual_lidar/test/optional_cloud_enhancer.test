@@ -1,0 +1,19 @@
+<launch>
+  <!-- Match the production FAST-LIO relationship used by bringup. -->
+  <node name="test_body_to_base_link" pkg="tf" type="static_transform_publisher"
+        args="0 0 -0.6 0 0 0 body base_link 100" />
+
+  <node name="optional_cloud_enhancer_test_node" pkg="autolabor_dual_lidar"
+        type="optional_cloud_enhancer" output="screen">
+    <param name="mid_cloud_topic" value="/test/mid_cloud" />
+    <param name="lidar_scan_topic" value="/test/dual_scan" />
+    <param name="output_topic" value="/test/enhanced_cloud" />
+    <param name="scan_timeout" value="0.15" />
+    <param name="lidar_z" value="0.0" />
+  </node>
+
+  <test test-name="optional_cloud_enhancer_contract"
+        pkg="autolabor_dual_lidar"
+        type="test_optional_cloud_enhancer.py"
+        time-limit="30" />
+</launch>

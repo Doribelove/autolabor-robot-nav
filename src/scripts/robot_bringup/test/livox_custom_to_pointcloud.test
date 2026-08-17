@@ -1,0 +1,26 @@
+<launch>
+  <node name="livox_custom_to_pointcloud_test_node" pkg="robot_bringup"
+        type="livox_custom_to_pointcloud" output="screen" required="true">
+    <param name="input_topic" value="/test/livox_custom" />
+    <param name="output_topic" value="/test/livox_cloud" />
+    <param name="target_frame" value="base_link" />
+    <param name="sensor_x" value="1.0" />
+    <param name="sensor_y" value="2.0" />
+    <param name="sensor_z" value="3.0" />
+    <param name="sensor_yaw" value="1.5707963267948966" />
+    <param name="min_range" value="0.5" />
+    <param name="max_range" value="12.0" />
+    <param name="filter_invalid_tags" value="true" />
+    <param name="line_count" value="4" />
+    <param name="crop_enabled" value="true" />
+    <param name="crop_min_x" value="-0.75" />
+    <param name="crop_max_x" value="0.75" />
+    <param name="crop_min_y" value="-0.50" />
+    <param name="crop_max_y" value="0.50" />
+  </node>
+
+  <test test-name="livox_custom_to_pointcloud_contract"
+        pkg="robot_bringup"
+        type="test_livox_custom_to_pointcloud.py"
+        time-limit="30" />
+</launch>
