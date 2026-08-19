@@ -108,8 +108,8 @@ ssh "$target" "set -eu
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find amcl >/dev/null
     rospack find map_server >/dev/null
-    ! ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/amcl/amcl | grep -q "not found"
-    ! ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server | grep -q "not found"
+    ! ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/amcl/amcl | grep -q not.found
+    ! ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server | grep -q not.found
     roslaunch --files robot_bringup navigation_j6m.launch use_static_map:=true >/dev/null
     ln -sfn /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install /opt/autolabor/dual_host/current
   '
