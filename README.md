@@ -25,7 +25,7 @@ J6M：ROS master、Livox topic relay、FAST-LIO、MID360/LD19 避障融合、mov
 在 NVIDIA 主机：
 
 1. WCH USB 转网口适配器（MAC `50:54:7B:E3:C9:10`）直连 MID360，NVIDIA 为 `192.168.1.50`，MID360 为 `192.168.1.112`。
-2. ASIX USB 千兆网口（MAC `6C:1F:F7:C4:82:83`）连接 T1/J6M，NVIDIA 为 `192.168.10.50`，J6M 为 `192.168.10.100`。
+2. ASIX USB 千兆网口（MAC `6C:1F:F7:C4:82:83`）接入 USB 扩展坞，扩展坞 RJ45 接交换机；J6M 也连接该交换机。NVIDIA 为 `192.168.10.50`，J6M 为 `192.168.10.100`。
 3. USB-CAN、前 LD19、后 LD19 均连接 NVIDIA。
 4. 用 VS Code 编辑 [dual_host.env](/home/slam/robot_j6m_ws/config/dual_host.env)，不要猜串口。
 
@@ -44,7 +44,7 @@ cd /home/slam/robot_j6m_ws
 
 若输出包含 `IN_USE_BY_PID`，先明确停止占用该设备的旧 `robot_ws`/串口进程；新网关会拒绝冲突，不会自动杀进程。
 
-两根网线和 MID360 均已连接、供电后，在 NVIDIA 执行一次：
+交换机、J6M 和 MID360 均已连接、供电后，在 NVIDIA 首次配置时执行一次：
 
 ```bash
 sudo /home/slam/robot_j6m_ws/scripts/configure_network.sh --apply
@@ -54,6 +54,10 @@ sudo /home/slam/robot_j6m_ws/scripts/configure_network.sh --apply
 该脚本先验证 MID360，再切换 J6M 地址；Wi-Fi 默认路由不会交给机器人网口。
 
 ## 正常启动
+
+每次启动先给交换机、J6M 和 MID360 供电，并确认 ASIX USB 网卡经扩展坞到交换机、
+J6M 到交换机、MID360 专用 USB 网卡到 MID360 的链路灯均已亮。不要按可能变化的
+`eth0/eth1/eth2` 名称判断 USB 网卡，启动器会按 MAC 识别。
 
 推荐在 NVIDIA 主机使用一键双机启动器：
 
