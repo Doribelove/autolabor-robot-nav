@@ -28,6 +28,24 @@
   <arg name="goal_near_max_regression" default="0.5"/>
   <arg name="gps_geofence_enabled" default="$(eval arg('localization_source') == 'gps')"/>
   <arg name="gps_geofence_file" default="$(find robot_bringup)/config/gps_geofences.yaml"/>
+  <arg name="use_static_map" default="false"/>
+  <arg name="map_file" default="/var/lib/autolabor/maps/current/map.yaml"/>
+  <arg name="start_amcl" default="$(arg use_static_map)"/>
+  <arg name="amcl_config" default="$(find robot_bringup)/config/amcl_fast_lio.yaml"/>
+
+  <!-- Static-map TF ownership: AMCL publishes map to camera_init; FAST-LIO
+       publishes camera_init to body, followed by the static base_link TF. -->
+  <group if="$(arg use_static_map)">
+    <node pkg="map_server" type="map_server" name="map_server"
+          args="$(arg map_file)" output="screen" required="true">
+      <param name="frame_id" value="map"/>
+    </node>
+    <node if="$(arg start_amcl)" pkg="amcl" type="amcl" name="amcl"
+          output="screen" required="true">
+      <rosparam file="$(arg amcl_config)" command="load"/>
+      <remap from="scan" to="/scan"/>
+    </node>
+  </group>
 
   <group if="$(arg gps_geofence_enabled)">
     <rosparam file="$(arg gps_geofence_file)"
@@ -45,10 +63,14 @@
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
     <remap from="odom" to="$(arg odom_topic)"/>
 
-    <rosparam file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="local_costmap"/>
-    <rosparam file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="global_costmap"/>
-    <rosparam file="$(find conventional)/config/dingo/local_costmap_params_nomap.yaml" command="load"/>
-    <rosparam file="$(find conventional)/config/dingo/global_costmap_params_nomap.yaml" command="load"/>
+    <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="local_costmap"/>
+    <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="global_costmap"/>
+    <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/local_costmap_params_nomap.yaml" command="load"/>
+    <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/global_costmap_params_nomap.yaml" command="load"/>
+    <rosparam if="$(arg use_static_map)" file="$(find robot_bringup)/config/costmap_common_static.yaml" command="load" ns="local_costmap"/>
+    <rosparam if="$(arg use_static_map)" file="$(find robot_bringup)/config/costmap_common_static.yaml" command="load" ns="global_costmap"/>
+    <rosparam if="$(arg use_static_map)" file="$(find robot_bringup)/config/local_costmap_static.yaml" command="load"/>
+    <rosparam if="$(arg use_static_map)" file="$(find robot_bringup)/config/global_costmap_static.yaml" command="load"/>
     <rosparam file="$(find conventional)/config/dingo/teb_local_planner_params_nomap.yaml" command="load"/>
     <rosparam if="$(eval arg('teb_profile_file') != '')" file="$(arg teb_profile_file)" command="load"/>
 

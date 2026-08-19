@@ -1,0 +1,37 @@
+local_costmap:
+  # Keep the local controller in FAST-LIO's smooth frame. AMCL corrections
+  # change map -> camera_init without causing jumps in local obstacle tracking.
+  global_frame: camera_init
+  robot_base_frame: base_link
+  transform_tolerance: 1.0
+  update_frequency: 10.0
+  publish_frequency: 2.0
+  static_map: false
+  rolling_window: true
+  width: 20.0
+  height: 20.0
+  resolution: 0.10
+
+  plugins:
+    - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+
+  obstacles_layer:
+    observation_sources: scan
+    scan:
+      sensor_frame: base_link
+      data_type: LaserScan
+      topic: /scan
+      expected_update_rate: 0.3
+      marking: true
+      clearing: true
+      obstacle_range: 10.0
+      raytrace_range: 11.0
+      min_obstacle_height: -1.0
+      max_obstacle_height: 3.0
+      inf_is_valid: true
+
+  inflater_layer:
+    enabled: true
+    cost_scaling_factor: 10.0
+    inflation_radius: 1.2

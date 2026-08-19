@@ -23,16 +23,23 @@ NVIDIA_UI = WORKSPACE_ROOT / "scripts" / "nvidia_ui.sh"
 NVIDIA_UI_TEXT = NVIDIA_UI.read_text(encoding="utf-8")
 RECORD_ROSBAG = WORKSPACE_ROOT / "scripts" / "record_rosbag.sh"
 RECORD_ROSBAG_TEXT = RECORD_ROSBAG.read_text(encoding="utf-8")
+MAPPING_SESSION = WORKSPACE_ROOT / "scripts" / "global_mapping_session.sh"
+MAPPING_SESSION_TEXT = MAPPING_SESSION.read_text(encoding="utf-8")
 BUILD_GLOBAL_MAP = WORKSPACE_ROOT / "scripts" / "build_global_map.sh"
 VIEW_GLOBAL_MAP = WORKSPACE_ROOT / "scripts" / "view_global_map.sh"
 
 
 class OperatorGuiContractTest(unittest.TestCase):
-    def test_record_button_has_an_executable_mapping_recorder(self):
+    def test_record_button_runs_synchronized_bag_and_static_mapping(self):
         self.assertTrue(RECORD_ROSBAG.is_file())
         self.assertTrue(os.access(str(RECORD_ROSBAG), os.X_OK))
-        self.assertIn('scripts/record_rosbag.sh', GUI_SOURCE)
-        self.assertIn('QStringLiteral("mode1")', GUI_SOURCE)
+        self.assertTrue(MAPPING_SESSION.is_file())
+        self.assertTrue(os.access(str(MAPPING_SESSION), os.X_OK))
+        self.assertIn('scripts/global_mapping_session.sh', GUI_SOURCE)
+        self.assertIn('record_rosbag.sh" mode1', MAPPING_SESSION_TEXT)
+        self.assertIn('fused_scan_mapper.py', MAPPING_SESSION_TEXT)
+        self.assertIn('GLOBAL_MAPPING_LATEST=', MAPPING_SESSION_TEXT)
+        self.assertIn('MAPPING_REQUIRE_DUAL_LIDAR', MAPPING_SESSION_TEXT)
         for topic in (
             "/tf",
             "/tf_static",
@@ -40,7 +47,10 @@ class OperatorGuiContractTest(unittest.TestCase):
             "/livox/imu",
             "/cloud_registered_body",
             "/Odometry",
+            "/mid360/scan",
+            "/dual_lidar/scan",
             "/scan",
+            "/avoidance/dual_lidar_active",
         ):
             self.assertIn(topic, RECORD_ROSBAG_TEXT)
         self.assertIn('$ROBOT_WS/rosbags', RECORD_ROSBAG_TEXT)
@@ -63,7 +73,12 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("- Class: rviz/SetGoal", tools)
         set_goal = tools[tools.index("- Class: rviz/SetGoal") :]
         self.assertIn("Topic: /move_base_simple/goal", set_goal.split("Value:", 1)[0])
-        self.assertIn("Fixed Frame: camera_init", RVIZ_CONFIG)
+        self.assertIn("- Class: rviz/SetInitialPose", tools)
+        set_initial_pose = tools[tools.index("- Class: rviz/SetInitialPose") :]
+        self.assertIn("Topic: /initialpose", set_initial_pose.split("Value:", 1)[0])
+        self.assertIn("Fixed Frame: map", RVIZ_CONFIG)
+        self.assertIn("Name: Static global map", RVIZ_CONFIG)
+        self.assertIn("Topic: /map", RVIZ_CONFIG)
 
     def test_launch_defaults_to_fast_lio_streams(self):
         launch_root = ElementTree.parse(
@@ -90,13 +105,13 @@ class OperatorGuiContractTest(unittest.TestCase):
             element.attrib["name"]: element.attrib.get("default")
             for element in launch_root.findall("arg")
         }
-        self.assertEqual("camera_init", launch_args["rviz_startup_fixed_frame"])
-        self.assertEqual("camera_init", launch_args["rviz_navigation_fixed_frame"])
+        self.assertEqual("map", launch_args["rviz_startup_fixed_frame"])
+        self.assertEqual("map", launch_args["rviz_navigation_fixed_frame"])
         self.assertIn(
-            '"rviz_startup_fixed_frame", rviz_startup_fixed_frame_, "camera_init"',
+            '"rviz_startup_fixed_frame", rviz_startup_fixed_frame_, "map"',
             GUI_SOURCE,
         )
-        self.assertIn("rviz_startup_fixed_frame:=camera_init", NVIDIA_UI_TEXT)
+        self.assertIn("rviz_fixed_frame=map", NVIDIA_UI_TEXT)
 
     def test_fast_lio_health_checks_live_chain_and_stability(self):
         for callback in ("odomCallback", "cloudCallback", "imuCallback"):

@@ -17,6 +17,8 @@
   <arg name="mid360_crop_max_x" default="0.75"/>
   <arg name="mid360_crop_min_y" default="-0.50"/>
   <arg name="mid360_crop_max_y" default="0.50"/>
+  <arg name="use_static_map" default="true"/>
+  <arg name="map_file" default="/var/lib/autolabor/maps/current/map.yaml"/>
 
   <!-- One subscription per raw Livox stream crosses the machines. FAST-LIO
        and scan conversion then consume the local relay topics on J6M. -->
@@ -71,6 +73,8 @@
       <arg name="output_cmd_vel_topic" value="/cmd_vel_navigation"/>
       <arg name="max_vel_x" value="$(arg max_linear_speed)"/>
       <arg name="max_vel_x_backwards" value="$(arg max_linear_speed_backwards)"/>
+      <arg name="use_static_map" value="$(arg use_static_map)"/>
+      <arg name="map_file" value="$(arg map_file)"/>
     </include>
 
     <group if="$(arg start_fod_arbiter)">
