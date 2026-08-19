@@ -311,7 +311,7 @@ private:
   std::string cloud_topic_ = "/cloud_registered_body";
   std::string imu_topic_ = "/livox/imu";
   std::string rviz_config_path_;
-  std::string rviz_startup_fixed_frame_ = "base_link";
+  std::string rviz_startup_fixed_frame_ = "camera_init";
   std::string rviz_navigation_fixed_frame_ = "camera_init";
   QTimer master_probe_timer_;
   QFutureWatcher<MasterProbeResult> master_probe_watcher_;

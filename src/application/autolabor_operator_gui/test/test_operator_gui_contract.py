@@ -21,9 +21,43 @@ FAST_LIO_ALL_IN_ONE = WORKSPACE_ROOT / "scripts" / "operator_fast_lio_all_in_one
 FAST_LIO_ALL_IN_ONE_TEXT = FAST_LIO_ALL_IN_ONE.read_text(encoding="utf-8")
 NVIDIA_UI = WORKSPACE_ROOT / "scripts" / "nvidia_ui.sh"
 NVIDIA_UI_TEXT = NVIDIA_UI.read_text(encoding="utf-8")
+RECORD_ROSBAG = WORKSPACE_ROOT / "scripts" / "record_rosbag.sh"
+RECORD_ROSBAG_TEXT = RECORD_ROSBAG.read_text(encoding="utf-8")
+BUILD_GLOBAL_MAP = WORKSPACE_ROOT / "scripts" / "build_global_map.sh"
+VIEW_GLOBAL_MAP = WORKSPACE_ROOT / "scripts" / "view_global_map.sh"
 
 
 class OperatorGuiContractTest(unittest.TestCase):
+    def test_record_button_has_an_executable_mapping_recorder(self):
+        self.assertTrue(RECORD_ROSBAG.is_file())
+        self.assertTrue(os.access(str(RECORD_ROSBAG), os.X_OK))
+        self.assertIn('scripts/record_rosbag.sh', GUI_SOURCE)
+        self.assertIn('QStringLiteral("mode1")', GUI_SOURCE)
+        for topic in (
+            "/tf",
+            "/tf_static",
+            "/livox/lidar",
+            "/livox/imu",
+            "/cloud_registered_body",
+            "/Odometry",
+            "/scan",
+        ):
+            self.assertIn(topic, RECORD_ROSBAG_TEXT)
+        self.assertIn('$ROBOT_WS/rosbags', RECORD_ROSBAG_TEXT)
+
+    def test_offline_mapping_tools_have_fixed_workspace_storage(self):
+        self.assertTrue(BUILD_GLOBAL_MAP.is_file())
+        self.assertTrue(VIEW_GLOBAL_MAP.is_file())
+        self.assertTrue(os.access(str(BUILD_GLOBAL_MAP), os.X_OK))
+        self.assertTrue(os.access(str(VIEW_GLOBAL_MAP), os.X_OK))
+        mapping = BUILD_GLOBAL_MAP.read_text(encoding="utf-8")
+        self.assertIn('BAG_ROOT="$ROBOT_WS/rosbags"', mapping)
+        self.assertIn('MAP_ROOT="$ROBOT_WS/global_maps"', mapping)
+        self.assertIn('ROS_MASTER_URI="http://127.0.0.1:$ROS_PORT"', mapping)
+        self.assertIn('/livox/lidar /livox/imu', mapping)
+        self.assertIn('global_map_raw.pcd', mapping)
+        self.assertIn('global_map.pcd', mapping)
+
     def test_embedded_rviz_has_local_navigation_goal_tool(self):
         tools = RVIZ_CONFIG[RVIZ_CONFIG.index("  Tools:") :]
         self.assertIn("- Class: rviz/SetGoal", tools)
@@ -47,6 +81,22 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertNotIn("geofence_config_file", launch_args)
         for parameter in ("odom_topic", "cloud_topic", "imu_topic"):
             self.assertIn(f'node_->param<std::string>("{parameter}"', GUI_SOURCE)
+
+    def test_rviz_initializes_directly_in_navigation_frame(self):
+        launch_root = ElementTree.parse(
+            str(PACKAGE_ROOT / "launch" / "operator_gui.launch")
+        ).getroot()
+        launch_args = {
+            element.attrib["name"]: element.attrib.get("default")
+            for element in launch_root.findall("arg")
+        }
+        self.assertEqual("camera_init", launch_args["rviz_startup_fixed_frame"])
+        self.assertEqual("camera_init", launch_args["rviz_navigation_fixed_frame"])
+        self.assertIn(
+            '"rviz_startup_fixed_frame", rviz_startup_fixed_frame_, "camera_init"',
+            GUI_SOURCE,
+        )
+        self.assertIn("rviz_startup_fixed_frame:=camera_init", NVIDIA_UI_TEXT)
 
     def test_fast_lio_health_checks_live_chain_and_stability(self):
         for callback in ("odomCallback", "cloudCallback", "imuCallback"):
