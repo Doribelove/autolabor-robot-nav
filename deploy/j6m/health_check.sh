@@ -30,11 +30,11 @@ chroot "$ROOTFS" /bin/bash -lc '
   for package in "${packages[@]}"; do rospack find "$package"; done
   python3 -m py_compile \
     /opt/autolabor/dual_host/current/lib/autolabor_dual_host/cmd_vel_watchdog.py \
-    /opt/autolabor/dual_host/current/lib/autolabor_dual_host/move_base_pause_bridge.py
+    /opt/autolabor/dual_host/current/lib/autolabor_dual_host/move_base_pause_bridge.py \
+    /opt/autolabor/dual_host/current/lib/robot_bringup/fused_scan_mapper.py
   executables=(
     /opt/autolabor/dual_host/current/lib/autolabor_dual_lidar/optional_cloud_enhancer
     /opt/autolabor/dual_host/current/lib/robot_bringup/livox_custom_to_pointcloud
-    /opt/autolabor/dual_host/current/lib/robot_bringup/fused_scan_mapper.py
     /opt/autolabor/ros/install/lib/fast_lio/fastlio_mapping
   )
   for executable in "${executables[@]}"; do
