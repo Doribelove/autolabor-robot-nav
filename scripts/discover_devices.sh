@@ -10,6 +10,10 @@ echo "Persistent serial aliases:"
 ls -l /dev/serial/by-id /dev/serial/by-path 2>&1 || true
 
 echo
+echo "Autolabor physical-role aliases:"
+ls -l /dev/autolabor/lidar_front /dev/autolabor/lidar_rear 2>&1 || true
+
+echo
 echo "USB serial properties:"
 found=false
 for device in /dev/ttyUSB* /dev/ttyACM*; do
@@ -33,5 +37,5 @@ if [[ "$found" == false ]]; then
 fi
 
 echo
-echo "Do not guess CAN/front/rear assignments. Update config/dual_host.env and"
-echo "set the matching *_CONFIRMED flag only after one-device-at-a-time identification."
+echo "The LD19 role aliases are valid only while the identified physical USB sockets"
+echo "remain unchanged. Re-run one-device-at-a-time identification after rewiring."

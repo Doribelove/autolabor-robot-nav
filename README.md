@@ -40,7 +40,18 @@ cd /home/slam/robot_j6m_ws
 ./scripts/discover_devices.sh
 ```
 
-确认后才把 `CAN_PORT_CONFIRMED`、`DUAL_LIDAR_PORTS_CONFIRMED` 改成 `true`。前后雷达应使用 `/dev/serial/by-path/...`，不依赖易变化的 `/dev/ttyUSBn`。
+本车已通过“只拔车头雷达”的方式确认固定 USB 物理口：`1-4.4` 为车头
+LD19、`1-4.3` 为车尾 LD19。两只 CH341 的 USB 序列信息相同，因此使用物理口
+生成可读的稳定别名；首次配置或重装系统后执行：
+
+```bash
+./scripts/install_dual_lidar_udev.sh
+```
+
+运行配置使用 `/dev/autolabor/lidar_front` 和 `/dev/autolabor/lidar_rear`。
+只要两个 USB 插口保持不变，`/dev/ttyUSBn` 如何变化都不会交换前后角色；改变接线后
+必须重新做单设备插拔确认。确认后才把 `CAN_PORT_CONFIRMED`、
+`DUAL_LIDAR_PORTS_CONFIRMED` 改成 `true`。
 
 若输出包含 `IN_USE_BY_PID`，先明确停止占用该设备的旧 `robot_ws`/串口进程；新网关会拒绝冲突，不会自动杀进程。
 
