@@ -1131,7 +1131,7 @@ void MainWindow::setupRosInterfaces()
   node_->param<std::string>("cloud_topic", cloud_topic_, "/cloud_registered_body");
   node_->param<std::string>("imu_topic", imu_topic_, "/livox/imu");
   node_->param<std::string>(
-      "rviz_startup_fixed_frame", rviz_startup_fixed_frame_, "base_link");
+      "rviz_startup_fixed_frame", rviz_startup_fixed_frame_, "camera_init");
   node_->param<std::string>(
       "rviz_navigation_fixed_frame", rviz_navigation_fixed_frame_, "camera_init");
   if (app_subtitle_)

@@ -136,7 +136,7 @@ if [[ "$NVIDIA_START_QT" == true ]]; then
       odom_topic:=/Odometry \
       cloud_topic:=/cloud_registered_body \
       imu_topic:=/livox/imu \
-      rviz_startup_fixed_frame:=base_link \
+      rviz_startup_fixed_frame:=camera_init \
       rviz_navigation_fixed_frame:=camera_init
 fi
 
