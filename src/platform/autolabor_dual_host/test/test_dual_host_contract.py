@@ -70,6 +70,17 @@ class DualHostContractTest(unittest.TestCase):
         self.assertIn("rospack find amcl", deploy)
         self.assertIn("rospack find map_server", deploy)
         self.assertIn("ldd /opt/autolabor/dual_host/releases/", deploy)
+        for soname in (
+            "libyaml-cpp.so.0.6",
+            "libSDL-1.2.so.0",
+            "libSDL_image-1.2.so.0",
+            "libpulsecommon-13.99.so",
+            "libsndfile.so.1",
+            "libFLAC.so.8",
+        ):
+            self.assertIn(soname, deploy)
+        self.assertIn('rsync -aL "${navigation_system_libraries[@]}"', deploy)
+        self.assertIn("if ldd /opt/autolabor/dual_host/releases/", deploy)
 
     def test_shutdown_is_synchronous_and_verifies_residuals(self):
         def script_text(relative_path):
