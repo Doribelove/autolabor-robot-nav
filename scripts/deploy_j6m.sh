@@ -12,6 +12,26 @@ target="$(dual_host_select_ssh)" || {
 stamp="$(date +%Y%m%d_%H%M%S)"
 rootfs="$J6M_RUNTIME_BASE/rootfs"
 remote_build="$rootfs/opt/autolabor/dual_host/build_ws.$stamp"
+remote_install="$rootfs/opt/autolabor/dual_host/releases/$stamp/install"
+navigation_runtime="${J6M_NAVIGATION_RUNTIME_SOURCE:-${BASE_ROBOT_WS:-/home/slam/robot_ws}/.deps/sysroot/opt/ros/noetic}"
+
+navigation_runtime_paths=(
+  ./lib/amcl
+  ./lib/map_server
+  ./lib/libamcl_map.so
+  ./lib/libamcl_pf.so
+  ./lib/libamcl_sensors.so
+  ./lib/libmap_server_image_loader.so
+  ./lib/python3/dist-packages/amcl
+  ./share/amcl
+  ./share/map_server
+)
+for runtime_path in "${navigation_runtime_paths[@]}"; do
+  [[ -e "$navigation_runtime/${runtime_path#./}" ]] || {
+    echo "Missing ARM64 navigation runtime: $navigation_runtime/${runtime_path#./}" >&2
+    exit 2
+  }
+done
 
 ssh "$target" "set -eu
   test -x '$rootfs/bin/bash'
@@ -66,6 +86,31 @@ ssh "$target" "set -eu
     rospack find autolabor_dual_host >/dev/null
     rospack find autolabor_dual_lidar >/dev/null
     rospack find robot_bringup >/dev/null
+  '
+  '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"
+
+# The minimal J6M rootfs does not carry the Debian amcl/map_server packages.
+# Reuse the project's pinned ARM64 Noetic sysroot and place the runtime in the
+# release overlay, where setup.bash provides both ROS_PACKAGE_PATH and
+# LD_LIBRARY_PATH without modifying the base rootfs.
+(
+  cd "$navigation_runtime"
+  rsync -aR "${navigation_runtime_paths[@]}" "$target:$remote_install/"
+)
+
+ssh "$target" "set -eu
+  '$J6M_RUNTIME_BASE/bin/mount_chroot.sh' >/dev/null
+  trap \"'$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null 2>&1 || true\" EXIT
+  chroot '$rootfs' /usr/bin/env RELEASE='$stamp' /bin/bash -lc '
+    set -eo pipefail
+    source /opt/ros/noetic/setup.bash
+    source /opt/autolabor/ros/install/setup.bash
+    source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
+    rospack find amcl >/dev/null
+    rospack find map_server >/dev/null
+    ! ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/amcl/amcl | grep -q "not found"
+    ! ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server | grep -q "not found"
+    roslaunch --files robot_bringup navigation_j6m.launch use_static_map:=true >/dev/null
     ln -sfn /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install /opt/autolabor/dual_host/current
   '
   '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"
