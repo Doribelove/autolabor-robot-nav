@@ -1,0 +1,7 @@
+# Autolabor M2 dual-LD19 role aliases.
+# Physically identified on 2026-08-19 by unplugging only the front sensor:
+#   USB topology 1-4.4 = front, USB topology 1-4.3 = rear.
+# These aliases intentionally follow the fixed USB sockets, because both CH341
+# adapters expose the same non-unique USB serial string.
+SUBSYSTEM=="tty", ENV{ID_VENDOR_ID}=="1a86", ENV{ID_MODEL_ID}=="7523", ENV{ID_PATH}=="platform-3610000.xhci-usb-0:4.4:1.0", SYMLINK+="autolabor/lidar_front", GROUP="dialout", MODE="0660"
+SUBSYSTEM=="tty", ENV{ID_VENDOR_ID}=="1a86", ENV{ID_MODEL_ID}=="7523", ENV{ID_PATH}=="platform-3610000.xhci-usb-0:4.3:1.0", SYMLINK+="autolabor/lidar_rear", GROUP="dialout", MODE="0660"

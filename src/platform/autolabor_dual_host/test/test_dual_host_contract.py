@@ -82,6 +82,36 @@ class DualHostContractTest(unittest.TestCase):
         self.assertIn('rsync -aL "${navigation_system_libraries[@]}"', deploy)
         self.assertIn("if ldd /opt/autolabor/dual_host/releases/", deploy)
 
+    def test_dual_lidar_role_aliases_follow_verified_physical_ports(self):
+        rules_path = os.path.join(
+            WORKSPACE_DIR, "deploy", "99-autolabor-dual-lidar.rules"
+        )
+        installer_path = os.path.join(
+            WORKSPACE_DIR, "scripts", "install_dual_lidar_udev.sh"
+        )
+        example_path = os.path.join(
+            WORKSPACE_DIR, "config", "dual_host.env.example"
+        )
+        with open(rules_path, "r", encoding="utf-8") as stream:
+            rules = stream.read()
+        with open(installer_path, "r", encoding="utf-8") as stream:
+            installer = stream.read()
+        with open(example_path, "r", encoding="utf-8") as stream:
+            example = stream.read()
+
+        self.assertIn(
+            'ID_PATH}=="platform-3610000.xhci-usb-0:4.4:1.0"', rules
+        )
+        self.assertIn('SYMLINK+="autolabor/lidar_front"', rules)
+        self.assertIn(
+            'ID_PATH}=="platform-3610000.xhci-usb-0:4.3:1.0"', rules
+        )
+        self.assertIn('SYMLINK+="autolabor/lidar_rear"', rules)
+        self.assertIn("udevadm control --reload-rules", installer)
+        self.assertIn("udevadm trigger --subsystem-match=tty", installer)
+        self.assertIn("FRONT_LIDAR_PORT=/dev/autolabor/lidar_front", example)
+        self.assertIn("REAR_LIDAR_PORT=/dev/autolabor/lidar_rear", example)
+
     def test_shutdown_is_synchronous_and_verifies_residuals(self):
         def script_text(relative_path):
             with open(
