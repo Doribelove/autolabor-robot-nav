@@ -1,12 +1,15 @@
 # 双机项目终端交接
 
-更新时间：2026-08-16（Asia/Shanghai）
+更新时间：2026-08-19（Asia/Shanghai）
 
 工作区：`/home/slam/robot_j6m_ws`
 
 这份文档面向下一位现场操作人员。正常情况下只需要一条命令，不要再分别手工启动两台机器。
 
 ## 一键启动
+
+先给交换机、J6M 和 MID360 供电，确认 ASIX USB 网卡经扩展坞 RJ45 与 J6M
+均接入交换机，MID360 专用 USB 网卡直连 MID360，且三段链路灯均已亮。
 
 在 NVIDIA 主机打开一个终端：
 
@@ -88,19 +91,28 @@ move_base -> /cmd_vel_navigation -> /cmd_vel_safe
 
 ## 当前实机配置
 
-- NVIDIA↔J6M：当前 `eth1=192.168.10.50/24`，J6M `eth0=192.168.10.100/24`。
-- NVIDIA↔MID360：当前 `eth0=192.168.1.50/24`，MID360 `192.168.1.112`。
+- NVIDIA↔J6M：ASIX USB 网卡经扩展坞 RJ45 和交换机连接 J6M；NVIDIA 为 `192.168.10.50/24`，J6M `eth0=192.168.10.100/24`。
+- NVIDIA↔MID360：MID360 专用 USB 网卡为 `192.168.1.50/24`，MID360 为 `192.168.1.112`；USB 网卡接口名以 MAC 识别结果为准。
 - Wi-Fi `wlan0` 保持默认路由，机器人网口不接管互联网路由。
 - CAN：`/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_B400CG51-if00-port0`，已确认。
 - ZED 2：序列号 `23748636`，彩色图、深度和 YOLO 检测实测约 `15 Hz`。
 - MID360 点云、`/Odometry`、`/scan` 实测约 `10 Hz`，IMU 约 `200 Hz`。
 
-USB 网卡名称可能在重启后重新枚举；启动器会按下列永久 MAC 自动找回接口并修正 NetworkManager 配置：
+接口名称可能在重启后变化；启动器会按下列永久 MAC 自动找回接口并修正 NetworkManager 配置：
 
 ```text
-6C:1F:F7:C4:82:83  ASIX 千兆网卡  -> J6M
-50:54:7B:E3:C9:10  WCH 百兆网卡   -> MID360
+6C:1F:F7:C4:82:83  ASIX 千兆网卡         -> 扩展坞 RJ45/交换机/J6M
+50:54:7B:E3:C9:10  MID360 专用 USB 网卡  -> MID360
 ```
+
+J6M 串口控制台当前是 FT4232H 第 3 路，波特率 `921600`。诊断时使用稳定的
+`/dev/serial/by-path/...` 路径，不依赖可能变化的 `ttyUSBn`：
+
+```bash
+screen /dev/serial/by-path/platform-3610000.xhci-usb-0:4.1.1:1.2-port0 921600
+```
+
+退出 screen：先按 `Ctrl-A`，再按 `K`，最后输入 `y`。
 
 网络异常时先运行：
 

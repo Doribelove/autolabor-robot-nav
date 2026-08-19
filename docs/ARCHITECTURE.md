@@ -5,18 +5,19 @@
 ```text
 MID360 192.168.1.112
         │ RJ45
-NVIDIA USB Ethernet eth0 192.168.1.50
+NVIDIA WCH USB Ethernet 192.168.1.50
 
 J6M eth0 192.168.10.100
-        │ T1/车载以太网适配链路
-NVIDIA USB Ethernet eth2 192.168.10.50
+        │ 交换机 / USB 扩展坞 RJ45
+NVIDIA ASIX USB Ethernet 192.168.10.50
 
 NVIDIA wlan0 ── Internet/default route
 ```
 
 两个有线接口必须位于不同 `/24`。J6M 不直接接 MID360；NVIDIA 作为物理协议和 ROS 网络网关。
 接口名不是身份依据：NVIDIA 启动器分别用永久 MAC `6C:1F:F7:C4:82:83`
-（J6M）和 `50:54:7B:E3:C9:10`（MID360）解析当前接口名并绑定 NetworkManager 配置。
+（ASIX USB 网卡，经扩展坞和交换机连接 J6M）和 `50:54:7B:E3:C9:10`（MID360）
+解析当前接口名并绑定 NetworkManager 配置。
 
 ## 生命周期与故障恢复
 
