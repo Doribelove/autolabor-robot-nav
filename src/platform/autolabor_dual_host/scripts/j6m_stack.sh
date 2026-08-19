@@ -29,11 +29,17 @@ MID360_CROP_MIN_X="${MID360_CROP_MIN_X:--0.75}"
 MID360_CROP_MAX_X="${MID360_CROP_MAX_X:-0.75}"
 MID360_CROP_MIN_Y="${MID360_CROP_MIN_Y:--0.50}"
 MID360_CROP_MAX_Y="${MID360_CROP_MAX_Y:-0.50}"
+STATIC_MAP_ENABLED="${STATIC_MAP_ENABLED:-true}"
+STATIC_MAP_FILE="${STATIC_MAP_FILE:-/var/lib/autolabor/maps/current/map.yaml}"
 
-case "$REQUIRE_CAN:$USE_DUAL_LIDAR:$FOD_MOTION_ENABLED" in
-  true:true:true|true:true:false|true:false:true|true:false:false|false:true:true|false:true:false|false:false:true|false:false:false) ;;
+case "$REQUIRE_CAN:$USE_DUAL_LIDAR:$FOD_MOTION_ENABLED:$STATIC_MAP_ENABLED" in
+  true:true:true:true|true:true:true:false|true:true:false:true|true:true:false:false|true:false:true:true|true:false:true:false|true:false:false:true|true:false:false:false|false:true:true:true|false:true:true:false|false:true:false:true|false:true:false:false|false:false:true:true|false:false:true:false|false:false:false:true|false:false:false:false) ;;
   *) echo "Boolean environment values must be literal true or false." >&2; exit 2 ;;
 esac
+if [[ "$STATIC_MAP_ENABLED" == true && ! -s "$STATIC_MAP_FILE" ]]; then
+  echo "Static map is missing: $STATIC_MAP_FILE" >&2
+  exit 2
+fi
 
 PIDS=()
 STARTED_MASTER=false
@@ -113,6 +119,8 @@ roslaunch autolabor_dual_host j6m_fastlio_navigation.launch \
   mid360_crop_min_x:="$MID360_CROP_MIN_X" \
   mid360_crop_max_x:="$MID360_CROP_MAX_X" \
   mid360_crop_min_y:="$MID360_CROP_MIN_Y" \
-  mid360_crop_max_y:="$MID360_CROP_MAX_Y" &
+  mid360_crop_max_y:="$MID360_CROP_MAX_Y" \
+  use_static_map:="$STATIC_MAP_ENABLED" \
+  map_file:="$STATIC_MAP_FILE" &
 PIDS+=("$!")
 wait "${PIDS[-1]}"

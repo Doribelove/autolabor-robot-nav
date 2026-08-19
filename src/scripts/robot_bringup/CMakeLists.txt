@@ -47,6 +47,8 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_gps_goal_speed_limiter.py)
   catkin_add_nosetests(test/test_teb_profile_tuning.py)
   catkin_add_nosetests(test/test_avoidance_scan_fusion_math.py)
+  catkin_add_nosetests(test/test_fused_scan_mapper.py)
+  catkin_add_nosetests(test/test_static_map_navigation.py)
   add_rostest(test/livox_custom_to_pointcloud.test)
   add_rostest(test/avoidance_scan_fusion.test)
 endif()
@@ -56,6 +58,7 @@ catkin_install_python(PROGRAMS
   scripts/autolabor_keyboard_teleop.py
   scripts/gps_geofence_recorder.py
   scripts/gps_goal_speed_limiter.py
+  scripts/fused_scan_mapper.py
   scripts/optional_laserscan_fusion.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

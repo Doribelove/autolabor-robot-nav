@@ -24,12 +24,18 @@ MID360_CROP_MIN_X="${MID360_CROP_MIN_X:--0.75}"
 MID360_CROP_MAX_X="${MID360_CROP_MAX_X:-0.75}"
 MID360_CROP_MIN_Y="${MID360_CROP_MIN_Y:--0.50}"
 MID360_CROP_MAX_Y="${MID360_CROP_MAX_Y:-0.50}"
+STATIC_MAP_ENABLED="${STATIC_MAP_ENABLED:-true}"
+STATIC_MAP_FILE="${STATIC_MAP_FILE:-/var/lib/autolabor/maps/current/map.yaml}"
 
 [[ -x "$ROOTFS/bin/bash" ]] || { echo "Invalid rootfs: $ROOTFS" >&2; exit 2; }
 chroot "$ROOTFS" /usr/bin/test -r /opt/autolabor/dual_host/current/setup.bash || {
   echo "Dual-host overlay is not deployed in the J6M rootfs." >&2
   exit 2
 }
+if [[ "$STATIC_MAP_ENABLED" != true && "$STATIC_MAP_ENABLED" != false ]]; then
+  echo "STATIC_MAP_ENABLED must be literal true or false." >&2
+  exit 2
+fi
 if ! ip -o -4 address show dev "$J6M_INTERFACE" |
     awk '{print $4}' | grep -Fxq "$J6M_IP/24"; then
   echo "J6M $J6M_INTERFACE does not have $J6M_IP/24; complete the NVIDIA network cutover first." >&2
@@ -107,6 +113,8 @@ chroot "$ROOTFS" /usr/bin/env -i \
   MID360_CROP_MAX_X="$MID360_CROP_MAX_X" \
   MID360_CROP_MIN_Y="$MID360_CROP_MIN_Y" \
   MID360_CROP_MAX_Y="$MID360_CROP_MAX_Y" \
+  STATIC_MAP_ENABLED="$STATIC_MAP_ENABLED" \
+  STATIC_MAP_FILE="$STATIC_MAP_FILE" \
   /bin/bash -lc 'exec /opt/autolabor/dual_host/current/lib/autolabor_dual_host/j6m_stack.sh' \
   >"$RUNTIME_BASE/logs/dual_host/$stamp/console.log" 2>&1 &
 child_pid=$!

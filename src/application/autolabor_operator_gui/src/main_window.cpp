@@ -284,7 +284,7 @@ MainWindow::~MainWindow()
   if (recorder_.state() != QProcess::NotRunning)
   {
     recorder_.terminate();
-    if (!recorder_.waitForFinished(1500))
+    if (!recorder_.waitForFinished(60000))
       recorder_.kill();
   }
   shutdownRosInterfaces();
@@ -297,7 +297,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
   if (recorder_.state() != QProcess::NotRunning)
   {
     recorder_.terminate();
-    if (!recorder_.waitForFinished(1500))
+    if (!recorder_.waitForFinished(60000))
       recorder_.kill();
   }
   ros::shutdown();
@@ -751,7 +751,7 @@ QWidget* MainWindow::buildTestPage()
   auto* cancel = new QPushButton(QStringLiteral("取消当前导航目标"), controls);
   cancel->setObjectName(QStringLiteral("dangerButton"));
   cancel->setMinimumHeight(58);
-  record_button_ = new QPushButton(QStringLiteral("开始 mode1 录包"), controls);
+  record_button_ = new QPushButton(QStringLiteral("开始录包并建立全局地图"), controls);
   record_button_->setObjectName(QStringLiteral("recordButton"));
   record_button_->setMinimumHeight(58);
   connect(forward_goal_button_, &QPushButton::clicked, this,
@@ -1131,9 +1131,9 @@ void MainWindow::setupRosInterfaces()
   node_->param<std::string>("cloud_topic", cloud_topic_, "/cloud_registered_body");
   node_->param<std::string>("imu_topic", imu_topic_, "/livox/imu");
   node_->param<std::string>(
-      "rviz_startup_fixed_frame", rviz_startup_fixed_frame_, "camera_init");
+      "rviz_startup_fixed_frame", rviz_startup_fixed_frame_, "map");
   node_->param<std::string>(
-      "rviz_navigation_fixed_frame", rviz_navigation_fixed_frame_, "camera_init");
+      "rviz_navigation_fixed_frame", rviz_navigation_fixed_frame_, "map");
   if (app_subtitle_)
   {
     app_subtitle_->setText(
@@ -1980,8 +1980,12 @@ void MainWindow::refreshUi()
               QStringLiteral("%1 目标").arg(data.detections.detections.size()),
               QStringLiteral("%1 ms").arg(data.detections.inference_ms, 0, 'f', 1));
 
-  if (recorder_.state() != QProcess::NotRunning)
-    setStatus("record", Health::Good, QStringLiteral("录制中"), QStringLiteral("mode1"));
+  if (recorder_.state() != QProcess::NotRunning && recorder_stop_requested_)
+    setStatus("record", Health::Warning, QStringLiteral("保存中"),
+              QStringLiteral("正在关闭 bag 并写入静态地图"));
+  else if (recorder_.state() != QProcess::NotRunning)
+    setStatus("record", Health::Good, QStringLiteral("录制与建图中"),
+              QStringLiteral("MID360 + 前后 LD19"));
   else if (recorder_error_)
     setStatus("record", Health::Bad, QStringLiteral("异常"), QStringLiteral("查看日志"));
   else
@@ -2315,8 +2319,13 @@ void MainWindow::refreshUi()
   camera_apply_button_->setEnabled(camera_controls_available);
   image_quality_enable_button_->setEnabled(master_online_ && ros_interfaces_ready_);
   image_quality_disable_button_->setEnabled(master_online_ && ros_interfaces_ready_);
-  record_button_->setText(recorder_.state() == QProcess::NotRunning ? QStringLiteral("开始 mode1 录包")
-                                                                    : QStringLiteral("停止录包"));
+  if (recorder_.state() == QProcess::NotRunning)
+    record_button_->setText(QStringLiteral("开始录包并建立全局地图"));
+  else if (recorder_stop_requested_)
+    record_button_->setText(QStringLiteral("正在保存全局地图……"));
+  else
+    record_button_->setText(QStringLiteral("停止录包并保存全局地图"));
+  record_button_->setEnabled(!recorder_stop_requested_);
 }
 
 bool MainWindow::relativeGoalReady(const TelemetrySnapshot& data,
@@ -2760,13 +2769,16 @@ void MainWindow::toggleRecording()
 {
   if (recorder_.state() != QProcess::NotRunning)
   {
+    if (recorder_stop_requested_)
+      return;
     recorder_stop_requested_ = true;
-    appendEvent(QStringLiteral("正在停止 rosbag 录制……"));
+    record_button_->setEnabled(false);
+    appendEvent(QStringLiteral("正在停止录包并保存二维静态全局地图，请勿关闭程序……"));
     recorder_.terminate();
-    QTimer::singleShot(2000, this, [this]() {
+    QTimer::singleShot(60000, this, [this]() {
       if (recorder_.state() != QProcess::NotRunning)
       {
-        appendEvent(QStringLiteral("录包进程未在 2 秒内退出，执行强制停止。"), true);
+        appendEvent(QStringLiteral("建图会话未在 60 秒内完成保存，执行强制停止。"), true);
         recorder_.kill();
       }
     });
@@ -2780,21 +2792,21 @@ void MainWindow::toggleRecording()
   const QString workspace_path =
       QDir::cleanPath(QDir(package_path).absoluteFilePath(QStringLiteral("../../..")));
   recorder_.setWorkingDirectory(workspace_path);
-  recorder_.setProgram(QDir(workspace_path).filePath(QStringLiteral("scripts/record_rosbag.sh")));
-  recorder_.setArguments({ QStringLiteral("mode1") });
+  recorder_.setProgram(
+      QDir(workspace_path).filePath(QStringLiteral("scripts/global_mapping_session.sh")));
+  recorder_.setArguments(QStringList());
   recorder_.setProcessChannelMode(QProcess::SeparateChannels);
   recorder_.start();
-  appendEvent(QStringLiteral("已启动 mode1 rosbag 录制子进程。"));
+  appendEvent(QStringLiteral("已启动同步 rosbag 录制与 MID360/前后雷达融合建图会话。"));
 }
 
 void MainWindow::handleRecorderFinished(int exit_code, QProcess::ExitStatus exit_status)
 {
-  const bool normal = recorder_stop_requested_ ||
-                      (exit_status == QProcess::NormalExit &&
-                       (exit_code == 0 || exit_code == 130 || exit_code == 143));
+  const bool normal = exit_status == QProcess::NormalExit && exit_code == 0;
   recorder_error_ = !normal;
-  appendEvent(recorder_stop_requested_ ? QStringLiteral("录包已由操作员停止。")
-                                       : QStringLiteral("录包进程已结束：exit=%1").arg(exit_code),
+  appendEvent(recorder_stop_requested_ && normal
+                  ? QStringLiteral("录包已结束，二维静态全局地图已保存并设为 latest。")
+                  : QStringLiteral("录包/建图会话已结束：exit=%1").arg(exit_code),
               !normal);
   recorder_stop_requested_ = false;
 }

@@ -25,6 +25,7 @@ chroot "$ROOTFS" /bin/bash -lc '
     autolabor_dual_host autolabor_dual_lidar autolabor_fod_control
     autolabor_fod_msgs conventional fast_lio livox_ros_driver2 move_base
     pointcloud_to_laserscan robot_bringup teb_local_planner topic_tools
+    amcl map_server
   )
   for package in "${packages[@]}"; do rospack find "$package"; done
   python3 -m py_compile \
@@ -33,6 +34,7 @@ chroot "$ROOTFS" /bin/bash -lc '
   executables=(
     /opt/autolabor/dual_host/current/lib/autolabor_dual_lidar/optional_cloud_enhancer
     /opt/autolabor/dual_host/current/lib/robot_bringup/livox_custom_to_pointcloud
+    /opt/autolabor/dual_host/current/lib/robot_bringup/fused_scan_mapper.py
     /opt/autolabor/ros/install/lib/fast_lio/fastlio_mapping
   )
   for executable in "${executables[@]}"; do

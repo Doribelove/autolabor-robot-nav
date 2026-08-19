@@ -130,14 +130,16 @@ if [[ "$NVIDIA_START_VISION" == true ]]; then
 fi
 
 if [[ "$NVIDIA_START_QT" == true ]]; then
+  rviz_fixed_frame=camera_init
+  [[ "$STATIC_MAP_ENABLED" == false ]] || rviz_fixed_frame=map
   start_process "$LOG_DIR/gui.log" \
     roslaunch autolabor_operator_gui operator_gui.launch \
       navigation_mode_label:=J6M_FAST_LIO \
       odom_topic:=/Odometry \
       cloud_topic:=/cloud_registered_body \
       imu_topic:=/livox/imu \
-      rviz_startup_fixed_frame:=camera_init \
-      rviz_navigation_fixed_frame:=camera_init
+      rviz_startup_fixed_frame:="$rviz_fixed_frame" \
+      rviz_navigation_fixed_frame:="$rviz_fixed_frame"
 fi
 
 if (( ${#PIDS[@]} == 0 )); then

@@ -1,0 +1,29 @@
+map_type: costmap
+transform_tolerance: 1.0
+meter_scoring: true
+
+footprint: [[0.52, 0.35], [0.52, -0.35], [-0.52, -0.35], [-0.52, 0.35]]
+footprint_padding: 0.10
+
+obstacle_range: 10.0
+raytrace_range: 11.0
+
+obstacles_layer:
+  observation_sources: scan
+  scan:
+    sensor_frame: base_link
+    data_type: LaserScan
+    topic: /scan
+    expected_update_rate: 0.3
+    marking: true
+    clearing: true
+    obstacle_range: 10.0
+    raytrace_range: 11.0
+    min_obstacle_height: -1.0
+    max_obstacle_height: 3.0
+    inf_is_valid: true
+
+inflater_layer:
+  enabled: true
+  cost_scaling_factor: 3.0
+  inflation_radius: 1.2

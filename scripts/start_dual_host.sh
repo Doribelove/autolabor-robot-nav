@@ -54,6 +54,13 @@ REQUIRED_NODES=(
   /nvidia_cmd_vel_watchdog
 )
 
+if [[ "$STATIC_MAP_ENABLED" == true ]]; then
+  REQUIRED_NODES+=(/map_server /amcl)
+elif [[ "$STATIC_MAP_ENABLED" != false ]]; then
+  echo "STATIC_MAP_ENABLED must be literal true or false." >&2
+  exit 3
+fi
+
 if dual_host_mode_enabled "$NVIDIA_START_LIVOX"; then
   REQUIRED_NODES+=(/livox_lidar_publisher2)
 fi
@@ -101,7 +108,7 @@ show_runtime_status() {
     return 1
   fi
   "$SCRIPT_DIR/health_check.sh" --runtime
-  echo "Qt, ZED, YOLO, FAST-LIO, navigation, MID360 and CAN are ready."
+  echo "Qt, ZED, YOLO, FAST-LIO, localization, navigation, MID360 and CAN are ready."
 }
 
 service_state() {
@@ -416,6 +423,11 @@ target="$(dual_host_select_ssh)" || {
   echo "J6M SSH is unavailable at both configured addresses." >&2
   exit 5
 }
+
+if [[ "$STATIC_MAP_ENABLED" == true ]]; then
+  echo "[3/6] Synchronizing the selected static map to J6M..."
+  "$SCRIPT_DIR/sync_static_map.sh" "$target"
+fi
 
 stamp="$(date +%Y%m%d_%H%M%S)"
 LOG_DIR="$DUAL_HOST_WS/log/dual_host_launcher_$stamp"

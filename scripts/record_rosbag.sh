@@ -42,7 +42,16 @@ MODE1_TOPICS=(
   /livox/imu
   /cloud_registered_body
   /cloud_filtered_for_scan
+  /mid360/scan
+  /dual_lidar/scan
   /scan
+  /avoidance/dual_lidar_active
+  /avoidance/source_mode
+  /map
+  /map_metadata
+  /amcl_pose
+  /particlecloud
+  /initialpose
   /gps/fix
   /gps/heading
   /gps/pose
