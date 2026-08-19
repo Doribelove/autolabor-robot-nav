@@ -54,6 +54,23 @@ class DualHostContractTest(unittest.TestCase):
         self.assertEqual("192.168.1.50", host["point_data_ip"])
         self.assertEqual("192.168.1.112", config["lidar_configs"][0]["ip"])
 
+    def test_j6m_release_bundles_static_localization_runtime(self):
+        deploy_path = os.path.join(WORKSPACE_DIR, "scripts", "deploy_j6m.sh")
+        with open(deploy_path, "r", encoding="utf-8") as stream:
+            deploy = stream.read()
+        for runtime_path in (
+            "./lib/amcl",
+            "./lib/map_server",
+            "./lib/libamcl_sensors.so",
+            "./lib/libmap_server_image_loader.so",
+            "./share/amcl",
+            "./share/map_server",
+        ):
+            self.assertIn(runtime_path, deploy)
+        self.assertIn("rospack find amcl", deploy)
+        self.assertIn("rospack find map_server", deploy)
+        self.assertIn("ldd /opt/autolabor/dual_host/releases/", deploy)
+
     def test_shutdown_is_synchronous_and_verifies_residuals(self):
         def script_text(relative_path):
             with open(
