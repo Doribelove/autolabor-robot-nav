@@ -36,10 +36,16 @@ chroot "$ROOTFS" /bin/bash -lc '
     /opt/autolabor/dual_host/current/lib/autolabor_dual_lidar/optional_cloud_enhancer
     /opt/autolabor/dual_host/current/lib/robot_bringup/livox_custom_to_pointcloud
     /opt/autolabor/ros/install/lib/fast_lio/fastlio_mapping
+    /opt/autolabor/dual_host/current/lib/amcl/amcl
+    /opt/autolabor/dual_host/current/lib/map_server/map_server
   )
   for executable in "${executables[@]}"; do
     test -x "$executable"
-    ! ldd "$executable" | grep -q "not found"
+    if ldd "$executable" | grep -q "not found"; then
+      ldd "$executable" >&2
+      echo "Unresolved shared libraries: $executable" >&2
+      exit 1
+    fi
   done
   roslaunch --files autolabor_dual_host j6m_fastlio_navigation.launch >/dev/null
   rosmsg md5 livox_ros_driver2/CustomMsg

@@ -14,6 +14,7 @@ rootfs="$J6M_RUNTIME_BASE/rootfs"
 remote_build="$rootfs/opt/autolabor/dual_host/build_ws.$stamp"
 remote_install="$rootfs/opt/autolabor/dual_host/releases/$stamp/install"
 navigation_runtime="${J6M_NAVIGATION_RUNTIME_SOURCE:-${BASE_ROBOT_WS:-/home/slam/robot_ws}/.deps/sysroot/opt/ros/noetic}"
+navigation_sysroot="${navigation_runtime%/opt/ros/noetic}"
 
 navigation_runtime_paths=(
   ./lib/amcl
@@ -29,6 +30,50 @@ navigation_runtime_paths=(
 for runtime_path in "${navigation_runtime_paths[@]}"; do
   [[ -e "$navigation_runtime/${runtime_path#./}" ]] || {
     echo "Missing ARM64 navigation runtime: $navigation_runtime/${runtime_path#./}" >&2
+    exit 2
+  }
+done
+
+# map_server and SDL_image need these direct/transitive libraries, but the
+# deliberately small J6M rootfs does not provide them. Prefer the pinned ARM64
+# sysroot and fall back to the matching ARM64 host copy where necessary.
+find_navigation_library() {
+  local soname="$1"
+  local candidate
+  for candidate in \
+    "$navigation_sysroot/usr/lib/aarch64-linux-gnu/$soname" \
+    "$navigation_sysroot/usr/lib/aarch64-linux-gnu/pulseaudio/$soname" \
+    "$navigation_sysroot/lib/aarch64-linux-gnu/$soname" \
+    "/usr/lib/aarch64-linux-gnu/$soname" \
+    "/usr/lib/aarch64-linux-gnu/pulseaudio/$soname" \
+    "/lib/aarch64-linux-gnu/$soname"; do
+    if [[ -e "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  echo "Missing ARM64 navigation library: $soname" >&2
+  return 1
+}
+
+navigation_system_libraries=(
+  "$(find_navigation_library libyaml-cpp.so.0.6)"
+  "$(find_navigation_library libSDL-1.2.so.0)"
+  "$(find_navigation_library libSDL_image-1.2.so.0)"
+  "$(find_navigation_library libasound.so.2)"
+  "$(find_navigation_library libpulse-simple.so.0)"
+  "$(find_navigation_library libpulse.so.0)"
+  "$(find_navigation_library libcaca.so.0)"
+  "$(find_navigation_library libpulsecommon-13.99.so)"
+  "$(find_navigation_library libslang.so.2)"
+  "$(find_navigation_library libwrap.so.0)"
+  "$(find_navigation_library libsndfile.so.1)"
+  "$(find_navigation_library libasyncns.so.0)"
+  "$(find_navigation_library libFLAC.so.8)"
+)
+for system_library in "${navigation_system_libraries[@]}"; do
+  file -L "$system_library" | grep -q 'ARM aarch64' || {
+    echo "Navigation library is not ARM64: $system_library" >&2
     exit 2
   }
 done
@@ -97,6 +142,9 @@ ssh "$target" "set -eu
   cd "$navigation_runtime"
   rsync -aR "${navigation_runtime_paths[@]}" "$target:$remote_install/"
 )
+# Dereference SONAME symlinks so every release is self-contained even when the
+# target rootfs has neither the symlink nor its versioned ELF target.
+rsync -aL "${navigation_system_libraries[@]}" "$target:$remote_install/lib/"
 
 ssh "$target" "set -eu
   '$J6M_RUNTIME_BASE/bin/mount_chroot.sh' >/dev/null
@@ -108,8 +156,16 @@ ssh "$target" "set -eu
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find amcl >/dev/null
     rospack find map_server >/dev/null
-    ! ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/amcl/amcl | grep -q not.found
-    ! ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server | grep -q not.found
+    if ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/amcl/amcl | grep -q not.found; then
+      ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/amcl/amcl >&2
+      echo AMCL.has.unresolved.shared.libraries >&2
+      exit 1
+    fi
+    if ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server | grep -q not.found; then
+      ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server >&2
+      echo map_server.has.unresolved.shared.libraries >&2
+      exit 1
+    fi
     roslaunch --files robot_bringup navigation_j6m.launch use_static_map:=true >/dev/null
     ln -sfn /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install /opt/autolabor/dual_host/current
   '
