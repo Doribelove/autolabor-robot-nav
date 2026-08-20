@@ -13,7 +13,7 @@ Usage: $0 [--start | --restart | --status | --stop | --foreground]
   --status      Show service state and run the dual-host health check.
   --stop        Stop both hosts synchronously and verify all residuals.
   --foreground  Diagnostic mode: keep the supervisor attached to this terminal.
-  --map-set DIR Enable fixed-map FAST-LIO localization with a complete map set.
+  --map-set DIR Enable FAST-LIO odometry plus known-map ICP localization.
   --static-map-source
                 Select fused (default) or lidar2d as move_base's static map.
 
@@ -147,7 +147,7 @@ REQUIRED_NODES=(
 )
 
 if [[ "$STATIC_MAP_ENABLED" == true ]]; then
-  REQUIRED_NODES+=(/map_server /fast_lio_localization_cmd_vel_gate)
+  REQUIRED_NODES+=(/map_server /fast_lio_map_localizer /fast_lio_localization_cmd_vel_gate)
 elif [[ "$STATIC_MAP_ENABLED" != false ]]; then
   echo "STATIC_MAP_ENABLED must be literal true or false." >&2
   exit 3
@@ -203,7 +203,7 @@ show_runtime_status() {
   if [[ "$STATIC_MAP_ENABLED" == true ]]; then
     echo "Selected map set: ${STATIC_MAP_SET:-unknown} (${STATIC_MAP_SOURCE_MODE:-fused})"
     timeout 3 rostopic echo -n 1 /fast_lio/localization_status 2>/dev/null |
-      sed -n 's/^data: /FAST-LIO fixed-map /p' || true
+      sed -n 's/^data: /FAST-LIO map localization /p' || true
   else
     echo "Selected map set: none (incremental FAST-LIO mode)"
   fi
@@ -514,6 +514,24 @@ activate_network_profile() {
   fi
 }
 
+verify_j6m_static_localization_release() {
+  local remote_host="$1"
+  local current_link="$J6M_RUNTIME_BASE/rootfs/opt/autolabor/dual_host/current"
+  ssh -o BatchMode=yes "$remote_host" "set -eu
+    release=\$(readlink '$current_link')
+    case \"\$release\" in
+      /opt/autolabor/dual_host/releases/*/install) ;;
+      *) echo \"Invalid J6M current release: \$release\" >&2; exit 1 ;;
+    esac
+    install='$J6M_RUNTIME_BASE/rootfs'\"\$release\"
+    test -x \"\$install/lib/fast_lio_localization/fast_lio_map_localizer\"
+    test -r \"\$install/share/fast_lio_localization/launch/known_map_localization.launch\"
+    launch=\"\$install/share/autolabor_dual_host/launch/j6m_fastlio_navigation.launch\"
+    grep -Fq 'fast_lio_localization' \"\$launch\"
+    ! grep -Fq 'localization_enabled' \"\$launch\"
+  "
+}
+
 echo "[2/6] Resolving, activating and checking the two dedicated Ethernet profiles..."
 wait_for_interface NVIDIA_J6M_INTERFACE "$NVIDIA_J6M_MAC" "J6M"
 wait_for_interface NVIDIA_LIVOX_INTERFACE "$NVIDIA_LIVOX_MAC" "MID360"
@@ -542,6 +560,11 @@ target="$(dual_host_select_ssh)" || {
 }
 
 if [[ "$STATIC_MAP_ENABLED" == true ]]; then
+  if ! verify_j6m_static_localization_release "$target"; then
+    echo "J6M current release does not contain the separate known-map localizer." >&2
+    echo "Run ./scripts/deploy_j6m.sh successfully before static-map startup." >&2
+    exit 5
+  fi
   echo "[3/6] Synchronizing the selected static map to J6M..."
   "$SCRIPT_DIR/sync_static_map.sh" "$target"
 fi

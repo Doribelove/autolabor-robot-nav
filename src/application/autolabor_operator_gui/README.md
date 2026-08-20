@@ -87,12 +87,13 @@ NVIDIA 看门狗、CAN/M2 和实体急停约束。
 静态导航使用以下唯一 TF 所有权关系：
 
 ```text
-map --fixed-map FAST-LIO--> body --static--> base_link
+map --multiscale ICP--> camera_init --FAST-LIO--> body --static--> base_link
 ```
 
 全局和局部 costmap 都使用 `map`。map_server 只加载二维静态图，不参与定位；
-FAST-LIO 加载 `map_3d/map.pcd` 并等待 `2D Pose Estimate` 后进行点到平面 IEKF
-匹配。状态未达到 `LOCALIZED` 时速度门控持续输出零速度。
+FAST-LIO 保持原始高频里程计，独立定位器加载 `map_3d/map.pcd`，等待
+`2D Pose Estimate` 后以低频多尺度 ICP 校正 `map -> camera_init`。状态未达到
+`LOCALIZED` 时速度门控持续输出零速度。
 
 二维占据图的观测严格来自 `/dual_lidar/scan`，FAST-LIO `/Odometry` 只负责放置
 扫描；MID360 水平切片只在停止建图后加入最终融合图。

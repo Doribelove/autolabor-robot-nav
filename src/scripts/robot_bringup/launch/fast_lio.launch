@@ -6,15 +6,9 @@
   <arg name="body_tf_child" default="base_link"/>
   <arg name="body_tf_x" default="-0.2"/>
   <arg name="body_tf_z" default="-0.6"/>
-  <arg name="localization_enabled" default="false"/>
-  <arg name="map_file_path" default=""/>
-  <arg name="initial_body_z" default="0.0"/>
   <include file="$(find fast_lio)/launch/mapping_mid360.launch">
     <arg name="odom_pub_en" value="$(arg odom_pub_en)"/>
     <arg name="tf_pub_en" value="$(arg tf_pub_en)"/>
-    <arg name="localization_enabled" value="$(arg localization_enabled)"/>
-    <arg name="map_file_path" value="$(arg map_file_path)"/>
-    <arg name="initial_body_z" value="$(arg initial_body_z)"/>
   </include>
 
   <!-- FAST-LIO owns camera_init -> body; this fixed transform exposes base_link to navigation. -->

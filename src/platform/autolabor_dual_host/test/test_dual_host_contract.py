@@ -65,7 +65,8 @@ class DualHostContractTest(unittest.TestCase):
         ):
             self.assertIn(runtime_path, deploy)
         self.assertIn("./src/localization_fastlio/FAST_LIO", deploy)
-        self.assertIn("fast_lio\\\\;robot_bringup", deploy)
+        self.assertIn("./src/localization_fastlio/fast_lio_localization", deploy)
+        self.assertIn("fast_lio\\\\;fast_lio_localization\\\\;robot_bringup", deploy)
         self.assertNotIn("./lib/amcl", deploy)
         self.assertIn("rospack find map_server", deploy)
         self.assertIn("ldd /opt/autolabor/dual_host/releases/", deploy)
@@ -152,6 +153,12 @@ class DualHostContractTest(unittest.TestCase):
         self.assertIn("KillMode=control-group", start_text)
         self.assertIn("DUAL_HOST_RUN_TOKEN", start_text)
         self.assertIn("wait_for_managed_service", start_text)
+        self.assertIn("verify_j6m_static_localization_release", start_text)
+        self.assertIn("fast_lio_localization/fast_lio_map_localizer", start_text)
+        self.assertLess(
+            start_text.index("verify_j6m_static_localization_release \"$target\""),
+            start_text.index('sync_static_map.sh\" \"$target\"'),
+        )
         self.assertIn("dual_host_find_interface_by_mac", config_text)
         self.assertIn("NVIDIA_LIVOX_MAC", config_text)
 

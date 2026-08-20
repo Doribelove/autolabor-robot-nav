@@ -21,7 +21,7 @@ def _valid_range(value, scan):
 
 
 def add_scan_to_bins(scan, x_offset, y_offset, yaw, angle_min,
-                     angle_increment, ranges, intensities):
+                     angle_increment, ranges, intensities, self_crop=None):
     """Transform scan points into the target frame and keep the nearest/bin."""
     cos_yaw = math.cos(yaw)
     sin_yaw = math.sin(yaw)
@@ -36,6 +36,10 @@ def add_scan_to_bins(scan, x_offset, y_offset, yaw, angle_min,
         source_y = distance * math.sin(source_angle)
         target_x = x_offset + cos_yaw * source_x - sin_yaw * source_y
         target_y = y_offset + sin_yaw * source_x + cos_yaw * source_y
+        if (self_crop is not None
+                and self_crop[0] <= target_x <= self_crop[1]
+                and self_crop[2] <= target_y <= self_crop[3]):
+            continue
         target_range = math.hypot(target_x, target_y)
         target_angle = math.atan2(target_y, target_x)
 
@@ -71,6 +75,16 @@ class DualLaserFusion:
         self.rear_pose = self._read_pose("rear")
         self.output_range_min = rospy.get_param("~range_min", 0.02)
         self.output_range_max = rospy.get_param("~range_max", 13.0)
+        self.self_crop_enabled = rospy.get_param("~self_crop_enabled", True)
+        self.self_crop = (
+            float(rospy.get_param("~self_crop_min_x", -0.75)),
+            float(rospy.get_param("~self_crop_max_x", 0.75)),
+            float(rospy.get_param("~self_crop_min_y", -0.50)),
+            float(rospy.get_param("~self_crop_max_y", 0.50)),
+        )
+        if (self.self_crop[0] >= self.self_crop[1]
+                or self.self_crop[2] >= self.self_crop[3]):
+            raise ValueError("invalid self-crop rectangle")
 
         front_topic = rospy.get_param("~front_topic", "/lidar/front/scan_raw")
         rear_topic = rospy.get_param("~rear_topic", "/lidar/rear/scan_raw")
@@ -90,12 +104,14 @@ class DualLaserFusion:
         self.synchronizer.registerCallback(self._callback)
 
         rospy.loginfo(
-            "Fusing %s and %s into %s (%s, %d bins)",
+            "Fusing %s and %s into %s (%s, %d bins, self crop=%s %s)",
             front_topic,
             rear_topic,
             self.output_topic,
             self.target_frame,
             self.bin_count,
+            self.self_crop_enabled,
+            self.self_crop,
         )
 
     @staticmethod
@@ -116,7 +132,8 @@ class DualLaserFusion:
             self.angle_min,
             self.angle_increment,
             ranges,
-            intensities
+            intensities,
+            self.self_crop if self.self_crop_enabled else None,
         )
         add_scan_to_bins(
             rear_scan,
@@ -124,7 +141,8 @@ class DualLaserFusion:
             self.angle_min,
             self.angle_increment,
             ranges,
-            intensities
+            intensities,
+            self.self_crop if self.self_crop_enabled else None,
         )
 
         output = LaserScan()
@@ -154,4 +172,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

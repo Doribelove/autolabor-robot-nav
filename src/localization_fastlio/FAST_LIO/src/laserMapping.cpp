@@ -37,7 +37,6 @@
 #include <math.h>
 #include <thread>
 #include <fstream>
-#include <sstream>
 #include <csignal>
 #include <unistd.h>
 #include <Python.h>
@@ -54,8 +53,6 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/io/pcd_io.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <std_msgs/String.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
 #include <geometry_msgs/Vector3.h>
@@ -86,22 +83,6 @@ condition_variable sig_buffer;
 
 string root_dir = ROOT_DIR;
 string map_file_path, lid_topic, imu_topic;
-string world_frame = "camera_init";
-
-bool localization_mode = false;
-bool initial_pose_received = false;
-bool initial_pose_applied = false;
-geometry_msgs::PoseWithCovarianceStamped initial_pose_message;
-double localization_initial_body_z = 0.0;
-double localization_base_to_body_x = 0.20;
-double localization_base_to_body_y = 0.0;
-double localization_max_residual = 0.30;
-int localization_min_features = 50;
-int localization_good_frames_required = 5;
-int localization_lost_frames_required = 10;
-int localization_good_frames = 0;
-int localization_bad_frames = 0;
-string localization_state = "MAPPING";
 
 double res_mean_last = 0.05, total_residual = 0.0;
 double last_timestamp_lidar = 0, last_timestamp_imu = -1.0;
@@ -165,66 +146,6 @@ void SigHandle(int sig)
     flg_exit = true;
     ROS_WARN("catch sig %d", sig);
     sig_buffer.notify_all();
-}
-
-void initialPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& message)
-{
-    if (!localization_mode) return;
-    const string frame = message->header.frame_id.empty() ? "map" : message->header.frame_id;
-    if (frame != "map" && frame != "/map")
-    {
-        ROS_ERROR_STREAM("FAST-LIO localization rejects /initialpose in frame " << frame
-                         << "; expected map");
-        return;
-    }
-    if (!std::isfinite(message->pose.pose.position.x) ||
-        !std::isfinite(message->pose.pose.position.y))
-    {
-        ROS_ERROR("FAST-LIO localization rejects non-finite /initialpose");
-        return;
-    }
-    initial_pose_message = *message;
-    initial_pose_received = true;
-    initial_pose_applied = false;
-    localization_good_frames = 0;
-    localization_bad_frames = 0;
-    localization_state = "ALIGNING";
-    ROS_WARN("FAST-LIO localization received a new approximate initial pose");
-}
-
-void publishLocalizationStatus(const ros::Publisher& publisher)
-{
-    if (!localization_mode) return;
-    std_msgs::String message;
-    std::ostringstream stream;
-    stream << "state=" << localization_state
-           << ";effective_features=" << effct_feat_num
-           << ";mean_residual=" << res_mean_last
-           << ";initial_pose=" << (initial_pose_applied ? "applied" : "waiting");
-    message.data = stream.str();
-    publisher.publish(message);
-}
-
-void applyInitialPose()
-{
-    const geometry_msgs::Pose& pose = initial_pose_message.pose.pose;
-    const double yaw = tf::getYaw(pose.orientation);
-    state_point = kf.get_x();
-    state_point.rot = SO3(cos(yaw * 0.5), 0.0, 0.0, sin(yaw * 0.5));
-    state_point.pos(0) = pose.position.x + cos(yaw) * localization_base_to_body_x
-                        - sin(yaw) * localization_base_to_body_y;
-    state_point.pos(1) = pose.position.y + sin(yaw) * localization_base_to_body_x
-                        + cos(yaw) * localization_base_to_body_y;
-    state_point.pos(2) = localization_initial_body_z;
-    state_point.vel = Zero3d;
-    kf.change_x(state_point);
-    path.poses.clear();
-    initial_pose_applied = true;
-    localization_good_frames = 0;
-    localization_bad_frames = 0;
-    localization_state = "ALIGNING";
-    ROS_WARN_STREAM("FAST-LIO localization seed applied: base x=" << pose.position.x
-                    << " y=" << pose.position.y << " yaw=" << yaw);
 }
 
 inline void dump_lio_state_to_log(FILE *fp)  
@@ -573,7 +494,7 @@ void publish_frame_world(const ros::Publisher & pubLaserCloudFull)
         sensor_msgs::PointCloud2 laserCloudmsg;
         pcl::toROSMsg(*laserCloudWorld, laserCloudmsg);
         laserCloudmsg.header.stamp = ros::Time().fromSec(lidar_end_time);
-        laserCloudmsg.header.frame_id = world_frame;
+        laserCloudmsg.header.frame_id = "camera_init";
         pubLaserCloudFull.publish(laserCloudmsg);
         publish_count -= PUBFRAME_PERIOD;
     }
@@ -640,7 +561,7 @@ void publish_effect_world(const ros::Publisher & pubLaserCloudEffect)
     sensor_msgs::PointCloud2 laserCloudFullRes3;
     pcl::toROSMsg(*laserCloudWorld, laserCloudFullRes3);
     laserCloudFullRes3.header.stamp = ros::Time().fromSec(lidar_end_time);
-    laserCloudFullRes3.header.frame_id = world_frame;
+    laserCloudFullRes3.header.frame_id = "camera_init";
     pubLaserCloudEffect.publish(laserCloudFullRes3);
 }
 
@@ -649,7 +570,7 @@ void publish_map(const ros::Publisher & pubLaserCloudMap)
     sensor_msgs::PointCloud2 laserCloudMap;
     pcl::toROSMsg(*featsFromMap, laserCloudMap);
     laserCloudMap.header.stamp = ros::Time().fromSec(lidar_end_time);
-    laserCloudMap.header.frame_id = world_frame;
+    laserCloudMap.header.frame_id = "camera_init";
     pubLaserCloudMap.publish(laserCloudMap);
 }
 
@@ -673,7 +594,7 @@ void publish_odometry(const ros::Publisher & pubOdomAftMapped)
         return;
     }
 
-    odomAftMapped.header.frame_id = world_frame;
+    odomAftMapped.header.frame_id = "camera_init";
     odomAftMapped.child_frame_id = "body";
     odomAftMapped.header.stamp = ros::Time().fromSec(lidar_end_time);// ros::Time().fromSec(lidar_end_time);
     set_posestamp(odomAftMapped.pose);
@@ -706,7 +627,7 @@ void publish_odometry(const ros::Publisher & pubOdomAftMapped)
     transform.setRotation( q );
     if (tf_pub_en)
     {
-        br.sendTransform( tf::StampedTransform( transform, odomAftMapped.header.stamp, world_frame, "body" ) );
+        br.sendTransform( tf::StampedTransform( transform, odomAftMapped.header.stamp, "camera_init", "body" ) );
     }
 }
 
@@ -714,7 +635,7 @@ void publish_path(const ros::Publisher pubPath)
 {
     set_posestamp(msg_body_pose);
     msg_body_pose.header.stamp = ros::Time().fromSec(lidar_end_time);
-    msg_body_pose.header.frame_id = world_frame;
+    msg_body_pose.header.frame_id = "camera_init";
 
     /*** if path is too large, the rvis will crash ***/
     static int jjj = 0;
@@ -857,14 +778,6 @@ int main(int argc, char** argv)
     nh.param<bool>("publish/tf_pub_en",tf_pub_en, true);
     nh.param<int>("max_iteration",NUM_MAX_ITERATIONS,4);
     nh.param<string>("map_file_path",map_file_path,"");
-    nh.param<bool>("localization/enabled", localization_mode, false);
-    nh.param<double>("localization/initial_body_z", localization_initial_body_z, 0.0);
-    nh.param<double>("localization/base_to_body_x", localization_base_to_body_x, 0.20);
-    nh.param<double>("localization/base_to_body_y", localization_base_to_body_y, 0.0);
-    nh.param<double>("localization/max_mean_residual", localization_max_residual, 0.30);
-    nh.param<int>("localization/min_effective_features", localization_min_features, 50);
-    nh.param<int>("localization/good_frames_required", localization_good_frames_required, 5);
-    nh.param<int>("localization/lost_frames_required", localization_lost_frames_required, 10);
     nh.param<string>("common/lid_topic",lid_topic,"/livox/lidar");
     nh.param<string>("common/imu_topic", imu_topic,"/livox/imu");
     nh.param<bool>("common/time_sync_en", time_sync_en, false);
@@ -897,9 +810,7 @@ int main(int argc, char** argv)
     cout<<"p_pre->lidar_type "<<p_pre->lidar_type<<endl;
     
     path.header.stamp    = ros::Time::now();
-    world_frame = localization_mode ? "map" : "camera_init";
-    localization_state = localization_mode ? "WAITING_INITIAL_POSE" : "MAPPING";
-    path.header.frame_id = world_frame;
+    path.header.frame_id ="camera_init";
 
     /*** variables definition ***/
     int effect_feat_num = 0, frame_num = 0;
@@ -930,31 +841,6 @@ int main(int argc, char** argv)
     fill(epsi, epsi+23, 0.001);
     kf.init_dyn_share(get_f, df_dx, df_dw, h_share_model, NUM_MAX_ITERATIONS, epsi);
 
-    if (localization_mode)
-    {
-        if (map_file_path.empty())
-        {
-            ROS_FATAL("FAST-LIO localization requires map_file_path");
-            return 2;
-        }
-        if (localization_min_features < 1 || localization_good_frames_required < 1 ||
-            localization_lost_frames_required < 1 || localization_max_residual <= 0.0)
-        {
-            ROS_FATAL("FAST-LIO localization quality parameters are invalid");
-            return 2;
-        }
-        PointCloudXYZI::Ptr prior_map(new PointCloudXYZI());
-        if (pcl::io::loadPCDFile<PointType>(map_file_path, *prior_map) < 0 || prior_map->size() < 50)
-        {
-            ROS_FATAL_STREAM("FAST-LIO localization cannot load a usable map: " << map_file_path);
-            return 2;
-        }
-        ikdtree.set_downsample_param(filter_size_map_min);
-        ikdtree.Build(prior_map->points);
-        ROS_INFO_STREAM("FAST-LIO fixed-map localization loaded " << prior_map->size()
-                        << " points from " << map_file_path);
-    }
-
     /*** debug record ***/
     FILE *fp;
     string pos_log_dir = root_dir + "/Log/pos_log.txt";
@@ -974,9 +860,6 @@ int main(int argc, char** argv)
         nh.subscribe(lid_topic, 200000, livox_pcl_cbk) : \
         nh.subscribe(lid_topic, 200000, standard_pcl_cbk);
     ros::Subscriber sub_imu = nh.subscribe(imu_topic, 200000, imu_cbk);
-    ros::Subscriber sub_initial_pose;
-    if (localization_mode)
-        sub_initial_pose = nh.subscribe("/initialpose", 2, initialPoseCallback);
     ros::Publisher pubLaserCloudFull = nh.advertise<sensor_msgs::PointCloud2>
             ("/cloud_registered", 100000);
     ros::Publisher pubLaserCloudFull_body = nh.advertise<sensor_msgs::PointCloud2>
@@ -989,9 +872,6 @@ int main(int argc, char** argv)
             ("/Odometry", 100000);
     ros::Publisher pubPath          = nh.advertise<nav_msgs::Path> 
             ("/path", 100000);
-    ros::Publisher pubLocalizationStatus = nh.advertise<std_msgs::String>
-            ("/fast_lio/localization_status", 1, true);
-    publishLocalizationStatus(pubLocalizationStatus);
 //------------------------------------------------------------------------------------------------------
     signal(SIGINT, SigHandle);
     ros::Rate rate(5000);
@@ -1029,20 +909,10 @@ int main(int argc, char** argv)
                 continue;
             }
 
-            if (localization_mode && !initial_pose_received)
-            {
-                localization_state = "WAITING_INITIAL_POSE";
-                publishLocalizationStatus(pubLocalizationStatus);
-                ROS_WARN_THROTTLE(5.0, "FAST-LIO fixed map loaded; waiting for /initialpose in map frame");
-                continue;
-            }
-            if (localization_mode && !initial_pose_applied)
-                applyInitialPose();
-
             flg_EKF_inited = (Measures.lidar_beg_time - first_lidar_time) < INIT_TIME ? \
                             false : true;
             /*** Segment the map in lidar FOV ***/
-            if (!localization_mode) lasermap_fov_segment();
+            lasermap_fov_segment();
 
             /*** downsample the feature points in a scan ***/
             downSizeFilterSurf.setInputCloud(feats_undistort);
@@ -1112,38 +982,12 @@ int main(int argc, char** argv)
 
             double t_update_end = omp_get_wtime();
 
-            if (localization_mode)
-            {
-                const bool quality_good = effct_feat_num >= localization_min_features &&
-                                          std::isfinite(res_mean_last) &&
-                                          res_mean_last <= localization_max_residual;
-                if (quality_good)
-                {
-                    ++localization_good_frames;
-                    localization_bad_frames = 0;
-                    if (localization_good_frames >= localization_good_frames_required)
-                        localization_state = "LOCALIZED";
-                    else
-                        localization_state = "ALIGNING";
-                }
-                else
-                {
-                    ++localization_bad_frames;
-                    localization_good_frames = 0;
-                    if (localization_bad_frames >= localization_lost_frames_required)
-                        localization_state = "LOST";
-                    else
-                        localization_state = "DEGRADED";
-                }
-                publishLocalizationStatus(pubLocalizationStatus);
-            }
-
             /******* Publish odometry *******/
             publish_odometry(pubOdomAftMapped);
 
             /*** add the feature points to map kdtree ***/
             t3 = omp_get_wtime();
-            if (!localization_mode) map_incremental();
+            map_incremental();
             t5 = omp_get_wtime();
             
             /******* Publish points *******/

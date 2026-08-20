@@ -5,18 +5,20 @@
 ## 当前状态
 
 - NVIDIA 端 21 个包已用 Release 配置编译通过。
-- 启动前单元、ROS 集成和安全链共 377 项测试通过，0 失败。
+- 原双机版本的启动前单元、ROS 集成和安全链共 377 项测试通过，0 失败；本次新增
+  `fast_lio_localization` 已单独通过编译、22 项相关测试和现有 bag 重放验证。
 - J6M Ubuntu 20.04/ROS Noetic chroot 已存在于 `/map/autolabor_runtime/rootfs`。
 - J6M 版本 `20260820_141651` 已部署并通过静态及实机运行健康检查。
 - 两机 ROS 普通消息和 Livox 自定义消息已在当前临时网段双向验证。
 - J6M relay、FAST-LIO、避障融合、增强点云、move_base 与 FOD 仲裁已在实机数据流中完整拉起，并通过连续启停清理验证。
-- 三地图建图、地图同步、固定三维图 FAST-LIO 重定位、map_server 和定位速度门已完成实机静止验证；尚未用完整场地图执行路线行驶验收。
+- 三地图建图和地图同步已完成实机静止验证；已知三维图定位改为 FAST-LIO 高频里程计加低频多尺度 ICP，并已通过 bag 重放验证。尚未部署本次定位更新，也未用完整场地图执行路线行驶验收。
 
 ## 机器分工
 
 NVIDIA：MID360 网口驱动、USB-CAN/M2、前后 LD19、ZED、YOLO、Qt/RViz，以及最终 `/cmd_vel` 看门狗。
 
-J6M：ROS master、Livox topic relay、FAST-LIO、MID360/LD19 避障融合、move_base + TEB、FOD 安全仲裁。
+J6M：ROS master、Livox topic relay、FAST-LIO、高频里程计上的已知地图 ICP 定位、
+MID360/LD19 避障融合、map_server、move_base + TEB、FOD 安全仲裁。
 
 原 `/home/slam/robot_ws` 继续承担机场 GPS 模式；不要用其中的旧一体化脚本启动本双机模式。
 
@@ -64,34 +66,140 @@ sudo /home/slam/robot_j6m_ws/scripts/configure_network.sh --apply
 
 该脚本先验证 MID360，再切换 J6M 地址；Wi-Fi 默认路由不会交给机器人网口。
 
-## 正常启动
+## 一键启动和运行模式
 
 每次启动先给交换机、J6M 和 MID360 供电，并确认 ASIX USB 网卡经扩展坞到交换机、
 J6M 到交换机、MID360 专用 USB 网卡到 MID360 的链路灯均已亮。不要按可能变化的
 `eth0/eth1/eth2` 名称判断 USB 网卡，启动器会按 MAC 识别。
 
-推荐在 NVIDIA 主机使用一键双机启动器：
+以下命令均在 NVIDIA 主机执行。
+
+### 无静态地图启动
+
+日常建图、录包或只需要 FAST-LIO 增量里程计时，使用默认启动：
 
 ```bash
 cd /home/slam/robot_j6m_ws
 ./scripts/start_dual_host.sh
 ```
 
-它会自动回收能由运行令牌或工作区来源严格确认的旧进程，按 MAC 找回可能改名的 USB 网卡，再完成网络检查、J6M 时间同步、双端冷启动和运行态健康检查。启动成功后栈由用户级 `autolabor-dual-host.service` 托管，终端可以直接关闭；桌面会话重启也不会再把 ROS 子进程遗留在主机上。完整现场交接见 [终端交接文档](/home/slam/robot_j6m_ws/docs/HANDOFF.md)。
+不传 `--map-set` 时不会加载历史 PCD，也不会启动 map_server 和已知地图定位器。
+FAST-LIO 在本次启动建立的 `camera_init` 坐标系内输出增量里程计。这也是 Qt
+“录入静态地图”功能要求的运行模式。
+
+### 加载静态地图启动
+
+注意：下面的一键命令只负责加载地图并拉起定位链，不包含车辆当前初始位姿。
+地图文件本身不知道车辆本次上电后停在旧地图的什么位置，因此每次静态地图模式
+冷启动后都必须重新发送 `/initialpose`。
+
+从完全停止状态首次加载最近完成的地图集：
+
+```bash
+./scripts/start_dual_host.sh --start \
+  --map-set global_maps/map_sets/latest
+```
+
+如果双机栈已经在运行，切换到静态地图模式必须冷重启：
+
+```bash
+./scripts/start_dual_host.sh --restart \
+  --map-set global_maps/map_sets/latest
+```
+
+启动器会验证 `manifest.yaml` 和三类地图是否完整，将选中的地图集原子同步到 J6M，
+然后启动以下链路：
+
+```text
+map_server ------------------------------> /map（move_base 二维静态地图）
+FAST-LIO --------------------------------> camera_init -> body
+fast_lio_localization + map_3d/map.pcd --> map -> camera_init
+静态外参 --------------------------------> body -> base_link
+```
+
+默认给 move_base 加载 `map_fused_2d`。需要只使用前后 LD19 建成的二维图时：
+
+```bash
+./scripts/start_dual_host.sh --restart \
+  --map-set global_maps/map_sets/latest \
+  --static-map-source lidar2d
+```
+
+`--static-map-source` 只影响 move_base 使用的二维占据图；三维重定位始终加载同一
+地图集的 `map_3d/map.pcd`。此模式不启动 AMCL，map_server 也不负责定位。
+
+### 静态地图启动后的必做步骤：设置初始位姿
+
+一键启动命令返回成功，只表示双机节点和传感器链已经就绪，不表示车辆已经完成
+全局定位。此时定位器正常状态应为 `WAITING_INITIAL_POSE`，导航速度门保持关闭。
+
+推荐在 Qt 内嵌 RViz 中操作：
+
+1. 等待二维静态地图显示出来，并确认 `/Odometry` 已有数据。
+2. 点击工具栏 `2D Pose Estimate`。
+3. 在地图中车辆实际所在位置按下鼠标，并沿车头方向拖动后松开。这里指定的是
+   `base_link` 在 `map` 中的二维位置和朝向，不是 MID360 的安装位置。
+4. 等待 `/fast_lio/localization_status` 变为 `LOCALIZED`，再发送导航目标。
+
+也可以从命令行发布初值。以下示例仅适用于车辆回到该地图的建图起点、车头方向与
+建图开始时一致的情况。`/initialpose` 表示 `base_link` 的位姿，定位器会根据
+`MID360_SENSOR_X/Y` 自动换算到 FAST-LIO 的 `body`，因此不要手工减去雷达安装偏置。
+当前地图集 `map_20260820_160221` 记录的首帧底盘位姿约为
+`(0.019, -0.023, 0.003 rad)`，现场已验证可以直接发送 `(0, 0, 0)`：
+
+```bash
+rostopic pub -1 /initialpose geometry_msgs/PoseWithCovarianceStamped \
+"header:
+  frame_id: map
+pose:
+  pose:
+    position: {x: 0.0, y: 0.0, z: 0.0}
+    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}"
+```
+
+其中四元数 `z=0,w=1` 表示 `yaw=0`；其他朝向应使用
+`z=sin(yaw/2), w=cos(yaw/2)`。如果车辆不在建图起点，必须填写其在二维地图上的
+实际近似位置，不能照抄示例。初值不需要厘米级精确，但位置和朝向必须落在 ICP
+能够收敛的邻域内。
+
+定位器收到初值后执行粗、精两级 scan-to-map ICP。观察定位状态和 TF：
+
+```bash
+rostopic echo /fast_lio/localization_status
+rosrun tf tf_echo map camera_init
+```
+
+只有状态消息以 `state=LOCALIZED;` 开头时，导航速度门才会放行 move_base 的速度。
+当前 `start_dual_host.sh` 没有 `--initial-pose` 参数，也不会复用上一次初值，这是为了
+避免车辆被移动后仍套用旧位姿造成错误定位和危险导航。
+
+如果当前正在静态地图模式运行，要返回无图增量模式：
+
+```bash
+./scripts/start_dual_host.sh --restart
+```
+
+### 启停和状态管理
+
+一键启动器会自动回收能由运行令牌或工作区来源严格确认的旧进程，按 MAC 找回可能
+改名的 USB 网卡，再完成网络检查、J6M 时间同步、双端冷启动和运行态健康检查。
+启动成功后栈由用户级 `autolabor-dual-host.service` 托管，终端可以直接关闭。
 
 常用管理入口：
 
 ```bash
 ./scripts/start_dual_host.sh --status   # 查看服务与完整运行态
-./scripts/start_dual_host.sh --restart  # 同步清理后冷启动
+./scripts/start_dual_host.sh --restart  # 清理后以无图 FAST-LIO 模式冷启动
 ./scripts/start_dual_host.sh --stop     # 同步停止并验证无残留
-./scripts/start_dual_host.sh --start --map-set global_maps/map_sets/latest
-# 可选：--static-map-source fused（默认）或 lidar2d
+./scripts/start_dual_host.sh --foreground  # 前台诊断，不交给用户服务托管
 ```
 
-脚本只回收可以严格证明属于本项目的进程，不会为了抢占 CAN 串口而杀死无关程序。需要观察前台监督器详细输出时，可使用 `./scripts/start_dual_host.sh --foreground`。
+`--status` 会读取当前运行实例保存的地图模式和地图集，并在静态地图模式下同时显示
+`/fast_lio/localization_status`。脚本不会为了抢占 CAN 串口而杀死无法证明属于本项目
+的程序。完整现场交接见 [终端交接文档](/home/slam/robot_j6m_ws/docs/HANDOFF.md)。
 
-只有在分端诊断时，才按下面的手工顺序启动。
+只有在分端诊断时才使用下面的手工顺序；它不能替代带 `--map-set` 的一键地图同步
+和模式管理。
 
 先在 J6M 的 VS Code 终端或 SSH 终端执行：
 
@@ -128,17 +236,63 @@ cd /home/slam/robot_j6m_ws
 
 该命令是同步关停：先停 NVIDIA 上的 Qt/视觉，再停 Livox/CAN 网关，自动回收具有本项目严格来源证据的遗留进程，确认 ROS 注册和 CAN 串口都已释放后，最后停 J6M。脚本正常返回即可立即重新启动；若仍有无法证明归属的占用者，会返回非零状态并列出具体 PID，避免误杀主机上的其他程序。
 
+## 静态地图建图与录包
+
+静态地图建图必须先使用无图模式启动完整双机栈，并确保 MID360、IMU、前后两只
+固定物理口 LD19 都在线：
+
+```bash
+./scripts/start_dual_host.sh --restart
+```
+
+随后在 Qt 中执行：
+
+1. 点击“录入静态地图”。后台同时启动 MID360 三维体素累积和双 LD19 二维占据建图。
+2. 在符合运动安全条件的情况下覆盖需要建图的区域；建图过程中不要切换静态地图模式。
+3. 点击“结束静态地图录入”，等待界面提示“三类静态地图均已保存，latest 已更新”。
+4. 使用上面的 `--restart --map-set global_maps/map_sets/latest` 加载新地图。
+
+每次成功建图会生成自包含目录：
+
+```text
+global_maps/map_sets/map_<时间>/
+├── manifest.yaml
+├── map_3d/       # MID360 /cloud_registered 体素 PCD，供三维重定位
+├── map_2d/       # 只使用前后 LD19 的 PGM/YAML
+└── map_fused_2d/ # LD19 占据图与 MID360 指定高度切片的占据并集
+```
+
+只有三类地图全部保存并且 `manifest.yaml` 标记为 `complete` 后，
+`global_maps/map_sets/latest` 才会原子切换到新地图集。
+
+Qt 的“开始录包”与“录入静态地图”是两个独立功能：“开始录包”只运行 rosbag 记录，
+不会自动启动或保存地图。已有 bag 必须包含 `/cloud_registered`、
+`/dual_lidar/scan` 和 `/Odometry`，才能离线生成同样的三地图地图集：
+
+```bash
+./scripts/build_static_map_from_bag.sh \
+  rosbags/example.bag example_map
+```
+
+二维原始图严格只使用 `/dual_lidar/scan`；FAST-LIO `/Odometry` 只负责放置扫描。
+MID360 数据只进入三维 PCD，并在停止建图后通过指定高度带投影加入融合二维图。
+
 ## 关键退化行为
 
 - 前后 LD19 未连接：MID360 仍独立生成 `/scan`，FAST-LIO 与避障不受影响。
 - 任一 LD19 数据超过 0.35 秒未更新：`/scan` 自动退回纯 MID360。
 - MID360 或 IMU 缺失：J6M 主链不应进入可导航状态。
+- 静态地图模式未发送 `/initialpose`、ICP 质量不合格或定位数据超时：状态不会保持
+  `LOCALIZED`，导航速度门持续输出零速度。
+- 建图时任一固定物理口 LD19 不在线：三地图建图拒绝启动，不会用 MID360 `/scan`
+  冒充双 LD19 二维建图数据。
 - CAN 未确认且 `REQUIRE_CAN=true`：J6M 一直等待，不会启动运动链。
 - J6M 指令超过 0.25 秒未更新、节点所有权异常或 NVIDIA 视觉端退出：NVIDIA 看门狗持续输出零速度。
 
-## 如何判断 FAST-LIO 定位质量
+## 如何判断 FAST-LIO 与全局定位质量
 
-Qt 的“FAST-LIO”页把判断拆成可核查的证据，而不是只看 RViz 轨迹是否在动：
+Qt 的“FAST-LIO”页主要判断局部 FAST-LIO 里程计是否连续可靠，而不是只看 RViz
+轨迹是否在动：
 
 - `/Odometry` 与注册点云应稳定在约 `10 Hz`，IMU 应约 `200 Hz`；
 - 三路数据年龄应分别小于约 `0.30 s / 0.30 s / 0.10 s`；
@@ -149,6 +303,22 @@ Qt 的“FAST-LIO”页把判断拆成可核查的证据，而不是只看 RViz 
 
 界面综合为 `0–100` 分：`≥85` 且无关键故障为“健康”，`65–84` 为“注意”，
 其余或任一关键流中断为“异常”。只有“健康”时 Qt 相对目标按钮才会放行。
+
+静态地图模式还必须单独检查全局定位状态：
+
+```bash
+rostopic echo -n 1 /fast_lio/localization_status
+```
+
+- `WAITING_INITIAL_POSE`：尚未在 RViz 中设置初始位姿；
+- `ALIGNING`：已经收到初值，正在进行粗、精两级 ICP；
+- `LOCALIZED`：重叠率、RMSE 和内点数满足阈值，速度门可以放行；
+- `DEGRADED` 或 `LOST`：匹配失败、成功结果过期或传感器数据过期，速度立即受阻。
+
+状态消息同时包含 `overlap`、`rmse` 和 `inliers`。调试时可查看
+`/fast_lio_localization/aligned_scan` 与 `/fast_lio_localization/prior_map` 是否重合，
+以及 `/localization` 是否持续输出 `map -> body` 位姿。Qt 的 FAST-LIO 健康分正常
+并不等价于全局地图定位已经达到 `LOCALIZED`。
 
 ## 安全启用运动
 
@@ -173,16 +343,20 @@ FOD_MOTION_ENABLED=false
 
 ## 构建、部署和检查
 
-均在 NVIDIA 执行：
+均在 NVIDIA 执行。包含 `fast_lio_localization` 的代码更新需要先停止双机栈，再重新
+构建并部署到 J6M：
 
 ```bash
+./scripts/start_dual_host.sh --stop
 ./scripts/build_workspace.sh
-./scripts/sync_j6m_time.sh
-./scripts/deploy_j6m.sh
 ./scripts/health_check.sh --static
+./scripts/deploy_j6m.sh
+./scripts/sync_j6m_time.sh
 ```
 
-网络切换后可运行 `--network`，实际主链启动后运行 `--runtime`。J6M 自身检查命令是：
+部署完成后，可按需要使用无图或静态地图的一键启动命令。网络切换后可运行
+`./scripts/health_check.sh --network`，实际主链启动后运行
+`./scripts/health_check.sh --runtime`。J6M 自身检查命令是：
 
 ```bash
 /map/autolabor_runtime/dual_host/bin/health_check.sh

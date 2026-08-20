@@ -84,6 +84,7 @@ paths=(
   ./src/navigation_arena/arena-rosnav-3D/arena_navigation/arena_local_planer/model_based/conventional
   ./src/perception_ldlidar/autolabor_dual_lidar
   ./src/localization_fastlio/FAST_LIO
+  ./src/localization_fastlio/fast_lio_localization
   ./src/scripts/robot_bringup
   ./src/platform/autolabor_dual_host
 )
@@ -120,11 +121,12 @@ ssh "$target" "set -eu
       -DCMAKE_BUILD_TYPE=Release \
       -DCATKIN_ENABLE_TESTING=OFF \
       -DCMAKE_INSTALL_PREFIX=/opt/autolabor/dual_host/releases/\"\$RELEASE\"/install \
-      -DCATKIN_WHITELIST_PACKAGES=conventional\\;fast_lio\\;robot_bringup\\;autolabor_dual_lidar\\;autolabor_dual_host
+      -DCATKIN_WHITELIST_PACKAGES=conventional\\;fast_lio\\;fast_lio_localization\\;robot_bringup\\;autolabor_dual_lidar\\;autolabor_dual_host
     test -f /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find autolabor_dual_host >/dev/null
     rospack find autolabor_dual_lidar >/dev/null
+    rospack find fast_lio_localization >/dev/null
     rospack find robot_bringup >/dev/null
   '
   '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"

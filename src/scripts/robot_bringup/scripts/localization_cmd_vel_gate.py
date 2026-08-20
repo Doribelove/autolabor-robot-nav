@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Allow navigation velocity only while fixed-map FAST-LIO is localized."""
+"""Allow navigation velocity only while known-map localization is healthy."""
 
 import threading
 

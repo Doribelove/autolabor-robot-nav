@@ -10,6 +10,14 @@
   <arg name="output_topic" default="/scan" />
   <arg name="target_frame" default="base_link" />
 
+  <!-- Suppress returns from the measured 1.5 x 1.0 m chassis envelope after
+       each LD19 point is transformed into base_link. -->
+  <arg name="self_crop_enabled" default="true" />
+  <arg name="self_crop_min_x" default="-0.75" />
+  <arg name="self_crop_max_x" default="0.75" />
+  <arg name="self_crop_min_y" default="-0.50" />
+  <arg name="self_crop_max_y" default="0.50" />
+
   <!-- M2 mounting observation: both LD19 local +Y axes point toward the nearest end. -->
   <arg name="front_x" default="$(eval float(arg('lidar_center_distance_m')) / 2.0)" />
   <arg name="front_y" default="0.0" />
@@ -63,6 +71,11 @@
     <param name="rear_x" value="$(arg rear_x)" />
     <param name="rear_y" value="$(arg rear_y)" />
     <param name="rear_yaw" value="$(arg rear_yaw)" />
+    <param name="self_crop_enabled" value="$(arg self_crop_enabled)" />
+    <param name="self_crop_min_x" value="$(arg self_crop_min_x)" />
+    <param name="self_crop_max_x" value="$(arg self_crop_max_x)" />
+    <param name="self_crop_min_y" value="$(arg self_crop_min_y)" />
+    <param name="self_crop_max_y" value="$(arg self_crop_max_y)" />
     <param name="range_min" value="0.02" />
     <param name="range_max" value="13.0" />
     <param name="angle_increment" value="0.008726646259971648" />

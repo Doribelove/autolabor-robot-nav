@@ -32,7 +32,7 @@ class FusionMathTest(unittest.TestCase):
         self.ranges = [math.inf] * 720
         self.intensities = [0.0] * 720
 
-    def add(self, scan, x=0.0, y=0.0, yaw=0.0):
+    def add(self, scan, x=0.0, y=0.0, yaw=0.0, self_crop=None):
         MODULE.add_scan_to_bins(
             scan,
             x,
@@ -42,6 +42,7 @@ class FusionMathTest(unittest.TestCase):
             self.increment,
             self.ranges,
             self.intensities,
+            self_crop,
         )
 
     def test_translation_and_rotation(self):
@@ -61,7 +62,28 @@ class FusionMathTest(unittest.TestCase):
         self.add(scan)
         self.assertTrue(all(math.isinf(value) for value in self.ranges))
 
+    def test_transformed_returns_inside_chassis_are_removed(self):
+        crop = (-0.75, 0.75, -0.50, 0.50)
+        # Representative of a short front-LD19 return. After the measured
+        # sensor transform it lies at x=0.52 inside the chassis envelope.
+        self.add(
+            one_point_scan(math.pi / 2.0, 0.05),
+            x=0.47,
+            yaw=-math.pi / 2.0,
+            self_crop=crop,
+        )
+        self.assertTrue(all(math.isinf(value) for value in self.ranges))
+
+    def test_transformed_returns_outside_chassis_are_preserved(self):
+        crop = (-0.75, 0.75, -0.50, 0.50)
+        self.add(
+            one_point_scan(math.pi / 2.0, 0.50),
+            x=0.47,
+            yaw=-math.pi / 2.0,
+            self_crop=crop,
+        )
+        self.assertAlmostEqual(self.ranges[360], 0.97, places=6)
+
 
 if __name__ == "__main__":
     unittest.main()
-

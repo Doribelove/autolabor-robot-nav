@@ -48,7 +48,9 @@ Normal startup remains map-free incremental FAST-LIO. To load a map set:
   --static-map-source lidar2d
 ```
 
-In map mode, FAST-LIO loads `map_3d/map.pcd` read-only and waits for an
-approximate `/initialpose`. `map_server` loads the selected 2-D grid for
-move_base; AMCL is not used. Navigation velocity remains blocked until the
-FAST-LIO status is `LOCALIZED`.
+In map mode, FAST-LIO remains the original high-rate odometry. The separate
+`fast_lio_localization` node loads `map_3d/map.pcd`, waits for an approximate
+`/initialpose`, and applies low-rate coarse-to-fine ICP corrections through
+`map -> camera_init`. `map_server` loads the selected 2-D grid for move_base;
+AMCL is not used. Navigation velocity remains blocked until localization is
+`LOCALIZED`.
