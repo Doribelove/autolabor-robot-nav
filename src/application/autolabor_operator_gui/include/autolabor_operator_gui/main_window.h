@@ -179,6 +179,8 @@ private Q_SLOTS:
   void sendRelativeGoal();
   void cancelNavigation();
   void toggleRecording();
+  void startStaticMapping();
+  void stopStaticMapping();
   void startFodMode();
   void stopFodMode();
   void queryCameraControls();
@@ -187,6 +189,8 @@ private Q_SLOTS:
   void disableImageQualityControl();
   void handleRecorderFinished(int exit_code, QProcess::ExitStatus exit_status);
   void handleRecorderError(QProcess::ProcessError error);
+  void handleMapperFinished(int exit_code, QProcess::ExitStatus exit_status);
+  void handleMapperError(QProcess::ProcessError error);
 private:
   struct StatusCard
   {
@@ -306,6 +310,7 @@ private:
   bool ros_interfaces_ready_ = false;
   bool rviz_initialized_ = false;
   bool enable_rviz_ = true;
+  bool static_map_mode_ = false;
   std::string navigation_mode_label_ = "FAST_LIO";
   std::string odom_topic_ = "/Odometry";
   std::string cloud_topic_ = "/cloud_registered_body";
@@ -330,6 +335,8 @@ private:
   QPushButton* rviz_panels_button_ = nullptr;
   QPushButton* forward_goal_button_ = nullptr;
   QPushButton* record_button_ = nullptr;
+  QPushButton* static_map_start_button_ = nullptr;
+  QPushButton* static_map_stop_button_ = nullptr;
   QLabel* overview_camera_preview_ = nullptr;
   QLabel* vision_camera_preview_ = nullptr;
   QPlainTextEdit* vision_detections_ = nullptr;
@@ -357,6 +364,9 @@ private:
   QProcess recorder_;
   bool recorder_error_ = false;
   bool recorder_stop_requested_ = false;
+  QProcess mapper_;
+  bool mapper_error_ = false;
+  bool mapper_stop_requested_ = false;
 };
 
 }  // namespace autolabor_operator_gui

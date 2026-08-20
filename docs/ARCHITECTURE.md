@@ -49,6 +49,14 @@ ZED + YOLO（NVIDIA）── /fod/detections ── J6M FOD 仲裁
 
 FAST-LIO 始终只使用 MID360 原始点和 IMU，前后二维雷达不会污染定位。move_base 的避障输入是独立的 `/scan`：MID360 是强制主源，LD19 是可超时移除的增强源。
 
+静态建图是独立数据链：`/cloud_registered` 体素累积为三维 PCD；
+`/dual_lidar/scan + /Odometry` 生成纯双 LD19 二维占据图；停止后再把三维图在
+LD19 高度带投影并以占据并集合成第三张图。普通“录包”不会触发该流程。
+
+不传 `--map-set` 时启动器保持无图 FAST-LIO 模式。传入地图集后，FAST-LIO 加载
+只读 PCD，等待 `/initialpose` 后直接估计 `map -> body`；map_server 只为 move_base
+加载二维图，不再启动 AMCL。定位状态丢失时速度门控输出零速度。
+
 原始 Livox 数据跨机只建立一组 relay 订阅，避免 FAST-LIO、点云转换各自重复传输大消息。默认不跨机发送 ZED RGB、深度图或完整视觉点云。
 
 Qt/RViz 默认显示 `/cloud_registered_body_enhanced`，用于直接检查 MID360 与可选 LD19 的空间效果。该显示会让完整点云跨机传输；需要节省带宽时可在 Displays 中取消勾选。融合后的 `/scan` 也默认显示并持续用于避障。

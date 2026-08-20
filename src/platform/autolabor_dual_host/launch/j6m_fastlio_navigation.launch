@@ -17,8 +17,10 @@
   <arg name="mid360_crop_max_x" default="0.75"/>
   <arg name="mid360_crop_min_y" default="-0.50"/>
   <arg name="mid360_crop_max_y" default="0.50"/>
-  <arg name="use_static_map" default="true"/>
-  <arg name="map_file" default="/var/lib/autolabor/maps/current/map.yaml"/>
+  <arg name="use_static_map" default="false"/>
+  <arg name="map_file" default=""/>
+  <arg name="fast_lio_map_file" default=""/>
+  <arg name="fast_lio_initial_body_z" default="0.0"/>
 
   <!-- One subscription per raw Livox stream crosses the machines. FAST-LIO
        and scan conversion then consume the local relay topics on J6M. -->
@@ -34,6 +36,9 @@
     <arg name="odom_pub_en" value="true"/>
     <arg name="tf_pub_en" value="true"/>
     <arg name="publish_body_base_tf" value="true"/>
+    <arg name="localization_enabled" value="$(arg use_static_map)"/>
+    <arg name="map_file_path" value="$(arg fast_lio_map_file)"/>
+    <arg name="initial_body_z" value="$(arg fast_lio_initial_body_z)"/>
     <!-- fast_lio.launch publishes body -> base_link, hence the inverse translation. -->
     <arg name="body_tf_x" value="$(eval -float(arg('mid360_sensor_x')))"/>
   </include>
@@ -111,7 +116,8 @@
         <param name="gps_pause_service" value="/navigation_pause/set_paused"/>
         <param name="expected_driver_node" value="/nvidia_cmd_vel_watchdog"/>
         <param name="expected_visual_node" value="/fod_visual_servo"/>
-        <param name="expected_gps_limiter_node" value="/move_base"/>
+        <param name="expected_gps_limiter_node"
+               value="$(eval '/fast_lio_localization_cmd_vel_gate' if arg('use_static_map') else '/move_base')"/>
         <param name="expected_move_base_node" value="/move_base"/>
         <param name="require_output_driver" type="bool" value="true"/>
         <param name="command_timeout_sec" type="double" value="0.30"/>

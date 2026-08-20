@@ -5,12 +5,12 @@
 ## 当前状态
 
 - NVIDIA 端 21 个包已用 Release 配置编译通过。
-- 相关单元、ROS 集成和安全链共 269 项测试通过，0 失败。
+- 启动前单元、ROS 集成和安全链共 377 项测试通过，0 失败。
 - J6M Ubuntu 20.04/ROS Noetic chroot 已存在于 `/map/autolabor_runtime/rootfs`。
-- J6M 版本 `20260811_021645` 已部署并通过静态健康检查；`/map` 仍有约 19 GB 可用。
+- J6M 版本 `20260820_141651` 已部署并通过静态及实机运行健康检查。
 - 两机 ROS 普通消息和 Livox 自定义消息已在当前临时网段双向验证。
-- 无硬件网关 smoke 中，J6M relay、FAST-LIO、避障融合、增强点云、move_base 与 FOD 仲裁已完整拉起并通过连续启停清理验证。
-- 车辆运动默认关闭；尚未执行最终双网段切换、硬件实流和架空行驶验证。
+- J6M relay、FAST-LIO、避障融合、增强点云、move_base 与 FOD 仲裁已在实机数据流中完整拉起，并通过连续启停清理验证。
+- 三地图建图、地图同步、固定三维图 FAST-LIO 重定位、map_server 和定位速度门已完成实机静止验证；尚未用完整场地图执行路线行驶验收。
 
 ## 机器分工
 
@@ -85,6 +85,8 @@ cd /home/slam/robot_j6m_ws
 ./scripts/start_dual_host.sh --status   # 查看服务与完整运行态
 ./scripts/start_dual_host.sh --restart  # 同步清理后冷启动
 ./scripts/start_dual_host.sh --stop     # 同步停止并验证无残留
+./scripts/start_dual_host.sh --start --map-set global_maps/map_sets/latest
+# 可选：--static-map-source fused（默认）或 lidar2d
 ```
 
 脚本只回收可以严格证明属于本项目的进程，不会为了抢占 CAN 串口而杀死无关程序。需要观察前台监督器详细输出时，可使用 `./scripts/start_dual_host.sh --foreground`。

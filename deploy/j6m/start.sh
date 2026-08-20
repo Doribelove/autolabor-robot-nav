@@ -13,6 +13,10 @@ LAUNCHER_PATTERN="(^|[[:space:]])${RUNTIME_BASE}/dual_host/bin/start\\.sh([[:spa
 
 [[ "$(id -u)" == 0 ]] || { echo "start.sh must run as root on J6M." >&2; exit 2; }
 [[ -r "$ENV_FILE" ]] || { echo "Missing J6M dual-host config: $ENV_FILE" >&2; exit 2; }
+requested_static_map_enabled="${STATIC_MAP_ENABLED:-}"
+requested_static_map_file="${STATIC_MAP_FILE:-}"
+requested_fast_lio_map_file="${FAST_LIO_MAP_FILE:-}"
+requested_fast_lio_initial_body_z="${FAST_LIO_INITIAL_BODY_Z:-}"
 set -a
 source "$ENV_FILE"
 set +a
@@ -24,8 +28,10 @@ MID360_CROP_MIN_X="${MID360_CROP_MIN_X:--0.75}"
 MID360_CROP_MAX_X="${MID360_CROP_MAX_X:-0.75}"
 MID360_CROP_MIN_Y="${MID360_CROP_MIN_Y:--0.50}"
 MID360_CROP_MAX_Y="${MID360_CROP_MAX_Y:-0.50}"
-STATIC_MAP_ENABLED="${STATIC_MAP_ENABLED:-true}"
-STATIC_MAP_FILE="${STATIC_MAP_FILE:-/var/lib/autolabor/maps/current/map.yaml}"
+STATIC_MAP_ENABLED="${requested_static_map_enabled:-false}"
+STATIC_MAP_FILE="${requested_static_map_file:-}"
+FAST_LIO_MAP_FILE="${requested_fast_lio_map_file:-}"
+FAST_LIO_INITIAL_BODY_Z="${requested_fast_lio_initial_body_z:-0.0}"
 
 [[ -x "$ROOTFS/bin/bash" ]] || { echo "Invalid rootfs: $ROOTFS" >&2; exit 2; }
 chroot "$ROOTFS" /usr/bin/test -r /opt/autolabor/dual_host/current/setup.bash || {
@@ -115,6 +121,8 @@ chroot "$ROOTFS" /usr/bin/env -i \
   MID360_CROP_MAX_Y="$MID360_CROP_MAX_Y" \
   STATIC_MAP_ENABLED="$STATIC_MAP_ENABLED" \
   STATIC_MAP_FILE="$STATIC_MAP_FILE" \
+  FAST_LIO_MAP_FILE="$FAST_LIO_MAP_FILE" \
+  FAST_LIO_INITIAL_BODY_Z="$FAST_LIO_INITIAL_BODY_Z" \
   /bin/bash -lc 'exec /opt/autolabor/dual_host/current/lib/autolabor_dual_host/j6m_stack.sh' \
   >"$RUNTIME_BASE/logs/dual_host/$stamp/console.log" 2>&1 &
 child_pid=$!

@@ -3,6 +3,21 @@
 DUAL_HOST_WS="${DUAL_HOST_WS:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 DUAL_HOST_CONFIG="${DUAL_HOST_CONFIG:-$DUAL_HOST_WS/config/dual_host.env}"
 
+# Command-line launch selection is exported to child scripts and must take
+# precedence over persistent hardware defaults in dual_host.env.
+_map_enabled_was_set="${STATIC_MAP_ENABLED+x}"
+_map_enabled_override="${STATIC_MAP_ENABLED:-}"
+_map_set_was_set="${STATIC_MAP_SET+x}"
+_map_set_override="${STATIC_MAP_SET:-}"
+_map_source_was_set="${STATIC_MAP_SOURCE_MODE+x}"
+_map_source_override="${STATIC_MAP_SOURCE_MODE:-}"
+_map_file_was_set="${STATIC_MAP_FILE+x}"
+_map_file_override="${STATIC_MAP_FILE:-}"
+_lio_map_was_set="${FAST_LIO_MAP_FILE+x}"
+_lio_map_override="${FAST_LIO_MAP_FILE:-}"
+_lio_z_was_set="${FAST_LIO_INITIAL_BODY_Z+x}"
+_lio_z_override="${FAST_LIO_INITIAL_BODY_Z:-}"
+
 if [[ ! -r "$DUAL_HOST_CONFIG" ]]; then
   echo "Missing dual-host configuration: $DUAL_HOST_CONFIG" >&2
   return 2 2>/dev/null || exit 2
@@ -12,15 +27,27 @@ set -a
 source "$DUAL_HOST_CONFIG"
 set +a
 
+[[ -z "$_map_enabled_was_set" ]] || STATIC_MAP_ENABLED="$_map_enabled_override"
+[[ -z "$_map_set_was_set" ]] || STATIC_MAP_SET="$_map_set_override"
+[[ -z "$_map_source_was_set" ]] || STATIC_MAP_SOURCE_MODE="$_map_source_override"
+[[ -z "$_map_file_was_set" ]] || STATIC_MAP_FILE="$_map_file_override"
+[[ -z "$_lio_map_was_set" ]] || FAST_LIO_MAP_FILE="$_lio_map_override"
+[[ -z "$_lio_z_was_set" ]] || FAST_LIO_INITIAL_BODY_Z="$_lio_z_override"
+
 NVIDIA_J6M_MAC="${NVIDIA_J6M_MAC:-}"
 NVIDIA_LIVOX_MAC="${NVIDIA_LIVOX_MAC:-}"
 DUAL_HOST_DEVICE_WAIT_SEC="${DUAL_HOST_DEVICE_WAIT_SEC:-20}"
-STATIC_MAP_ENABLED="${STATIC_MAP_ENABLED:-true}"
-STATIC_MAP_FILE="${STATIC_MAP_FILE:-/var/lib/autolabor/maps/current/map.yaml}"
+STATIC_MAP_ENABLED="${STATIC_MAP_ENABLED:-false}"
+STATIC_MAP_SET="${STATIC_MAP_SET:-}"
+STATIC_MAP_SOURCE_MODE="${STATIC_MAP_SOURCE_MODE:-fused}"
+STATIC_MAP_FILE="${STATIC_MAP_FILE:-}"
+FAST_LIO_MAP_FILE="${FAST_LIO_MAP_FILE:-}"
+FAST_LIO_INITIAL_BODY_Z="${FAST_LIO_INITIAL_BODY_Z:-0.0}"
 MAPPING_REQUIRE_DUAL_LIDAR="${MAPPING_REQUIRE_DUAL_LIDAR:-true}"
 MAPPING_TOPIC_WAIT_SEC="${MAPPING_TOPIC_WAIT_SEC:-10}"
 export NVIDIA_J6M_MAC NVIDIA_LIVOX_MAC DUAL_HOST_DEVICE_WAIT_SEC
-export STATIC_MAP_ENABLED STATIC_MAP_FILE
+export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
+export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
 export MAPPING_REQUIRE_DUAL_LIDAR MAPPING_TOPIC_WAIT_SEC
 
 dual_host_normalize_mac() {

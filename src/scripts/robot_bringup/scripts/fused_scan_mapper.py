@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Build a persistent 2-D occupancy map from the fused avoidance scan.
+"""Build a persistent 2-D occupancy map from the dual-LD19 scan.
 
-The mapper deliberately consumes the final ``/scan`` contract rather than
-individual lidar topics.  Consequently the same implementation works with a
-MID360-only degraded scan and with the normal MID360 + dual-LD19 fusion.  A
-FAST-LIO odometry pose supplies the continuous camera_init-frame trajectory.
+Only the front/rear LD19 measurements are occupancy observations.  FAST-LIO
+odometry supplies the trajectory used to place each scan in the common map
+frame; MID360 scan points are never inserted into this grid.
 
 Two execution modes are supported:
 
@@ -203,7 +202,7 @@ class SparseOccupancyMapper:
 
     def save(self, output_dir, map_name="map", padding_m=1.0):
         if not self.cells or self.integrated_scans == 0:
-            raise RuntimeError("no fused scans were integrated; refusing to save empty map")
+            raise RuntimeError("no dual-LD19 scans were integrated; refusing to save empty map")
         output_dir = os.path.abspath(output_dir)
         os.makedirs(output_dir, exist_ok=True)
         padding_cells = max(0, int(math.ceil(padding_m / self.resolution)))
@@ -264,7 +263,9 @@ class SparseOccupancyMapper:
             "frame_id": "map",
             "trajectory_frame": "camera_init",
             "scan_frame": "base_link",
-            "scan_topic": "/scan",
+            "scan_topic": "/dual_lidar/scan",
+            "occupancy_source": "dual_ld19_only",
+            "pose_source": "fast_lio_odometry",
             "odom_topic": "/Odometry",
             "resolution_m": self.resolution,
             "width_cells": width,
@@ -405,7 +406,7 @@ class LiveMapperNode:
         )
         rospy.on_shutdown(self.save)
         rospy.loginfo(
-            "fused_scan_mapper: %s + %s -> %s (resolution %.3f m)",
+            "dual_lidar_grid_mapper: %s + %s -> %s (resolution %.3f m)",
             arguments.scan_topic,
             arguments.odom_topic,
             arguments.output_dir,
@@ -430,7 +431,7 @@ class LiveMapperNode:
                 self.mapper.skipped_pose_age += 1
                 self.rospy.logwarn_throttle(
                     5.0,
-                    "fused_scan_mapper: odometry age %.3f s exceeds %.3f s",
+                    "dual_lidar_grid_mapper: odometry age %.3f s exceeds %.3f s",
                     age,
                     self.arguments.max_pose_age,
                 )
@@ -444,7 +445,7 @@ class LiveMapperNode:
             )
         self.rospy.loginfo_throttle(
             10.0,
-            "fused_scan_mapper: integrated %d scans, %d sparse cells",
+            "dual_lidar_grid_mapper: integrated %d scans, %d sparse cells",
             self.mapper.integrated_scans,
             len(self.mapper.cells),
         )
@@ -462,11 +463,11 @@ class LiveMapperNode:
                 )
             except Exception as error:  # shutdown path must leave explicit evidence
                 print("MAP_SAVE_FAILED={}".format(error), file=sys.stderr, flush=True)
-                self.rospy.logerr("fused_scan_mapper: map save failed: %s", error)
+                self.rospy.logerr("dual_lidar_grid_mapper: map save failed: %s", error)
                 return
         try:
             print("MAP_SAVED={}".format(result["yaml"]), flush=True)
-            self.rospy.loginfo("fused_scan_mapper: saved %s", result["yaml"])
+            self.rospy.loginfo("dual_lidar_grid_mapper: saved %s", result["yaml"])
         except Exception as error:
             print("MAP_SAVE_REPORT_FAILED={}".format(error), file=sys.stderr, flush=True)
 
@@ -474,7 +475,7 @@ class LiveMapperNode:
 def process_live(arguments):
     import rospy
 
-    rospy.init_node("fused_scan_mapper", disable_signals=False)
+    rospy.init_node("dual_lidar_grid_mapper", disable_signals=False)
     LiveMapperNode(arguments)
     rospy.spin()
     return 0
@@ -487,7 +488,7 @@ def parse_arguments(argv=None):
     mode.add_argument("--bag", help="read an existing rosbag directly")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--map-name", default="map")
-    parser.add_argument("--scan-topic", default="/scan")
+    parser.add_argument("--scan-topic", default="/dual_lidar/scan")
     parser.add_argument("--odom-topic", default="/Odometry")
     parser.add_argument("--resolution", type=float, default=0.10)
     parser.add_argument("--beam-stride", type=int, default=4)

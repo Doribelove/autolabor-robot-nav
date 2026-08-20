@@ -1,7 +1,7 @@
 # Autolabor 室内 FAST-LIO Qt 操作台
 
 ROS Noetic、Qt5 Widgets 与 `librviz` 构成的双机真车操作界面。当前版本采用
-FAST-LIO 局部连续定位与 AMCL 静态地图校正，不接入 GNSS、WGS84 目标或
+FAST-LIO 增量定位或固定三维地图定位，不接入 GNSS、WGS84 目标或
 RabbitMQ。界面本身从不发布 `/cmd_vel`。
 
 ## 已集成功能
@@ -17,11 +17,10 @@ RabbitMQ。界面本身从不发布 `/cmd_vel`。
   - 车辆静止至少 5 秒后的窗口最大漂移。
 - 综合页输入 `Δ前向 / Δ左向 / ΔYaw`。点击发送后，以当前车体姿态换算成里程计
   固定坐标系下的 `geometry_msgs/PoseStamped`，发布到 `/move_base_simple/goal`。
-- 内嵌 RViz 的 Fixed Frame 为 `map`，显示 `/map` 静态地图；`2D Pose Estimate`
-  用于设置 AMCL 初始位姿，`2D Nav Goal` 发布 `/move_base_simple/goal`。
-- “开始录包并建立全局地图”同时启动 mode1 rosbag 和二维栅格建图；停止后先
-  完整关闭 bag，再把 `map.pgm/map.yaml` 保存到
-  `global_maps/static_maps/<时间戳>/` 并更新 `latest`。
+- 地图模式下 RViz 的 Fixed Frame 为 `map`；`2D Pose Estimate` 为 FAST-LIO
+  固定地图匹配提供近似初值，`2D Nav Goal` 发布 `/move_base_simple/goal`。
+- “开始录包”只记录相关话题；“录入静态地图/结束静态地图录入”独立生成 MID360
+  三维图、双 LD19 二维图和高度切片融合图，保存在 `global_maps/map_sets/`。
 - ZED/YOLO11 画面、检测结果、曝光/增益和图像质量控制完整保留。
 - 视觉行驶只调用 `/fod_navigation_mode/set_fod_enabled`；局部路线暂停、停车确认
   和恢复都由安全仲裁器完成。
@@ -55,6 +54,8 @@ source devel/setup.bash
 ```bash
 cd /home/slam/robot_j6m_ws
 ./scripts/start_dual_host.sh
+# 或加载地图集：
+./scripts/start_dual_host.sh --start --map-set global_maps/map_sets/latest
 ```
 
 仅调试 Qt：
@@ -86,14 +87,12 @@ NVIDIA 看门狗、CAN/M2 和实体急停约束。
 静态导航使用以下唯一 TF 所有权关系：
 
 ```text
-map --AMCL--> camera_init --FAST-LIO--> body --static--> base_link
+map --fixed-map FAST-LIO--> body --static--> base_link
 ```
 
-全局 costmap 在 `map` 中加载 `StaticLayer + ObstacleLayer + InflationLayer`；局部
-costmap 留在平滑的 `camera_init` 中滚动更新。若车辆不是从建图起点重新启动，
-下发导航目标前必须在 RViz 中用 `2D Pose Estimate` 设置当前地图位姿。
+全局和局部 costmap 都使用 `map`。map_server 只加载二维静态图，不参与定位；
+FAST-LIO 加载 `map_3d/map.pcd` 并等待 `2D Pose Estimate` 后进行点到平面 IEKF
+匹配。状态未达到 `LOCALIZED` 时速度门控持续输出零速度。
 
-实时融合建图默认要求 `/mid360/scan`、`/dual_lidar/scan` 和
-`/avoidance/dual_lidar_active=true` 同时成立；否则会拒绝生成一个被误标为融合的
-地图。只有明确接受 MID360 单源降级地图时，才把
-`MAPPING_REQUIRE_DUAL_LIDAR=false`。
+二维占据图的观测严格来自 `/dual_lidar/scan`，FAST-LIO `/Odometry` 只负责放置
+扫描；MID360 水平切片只在停止建图后加入最终融合图。

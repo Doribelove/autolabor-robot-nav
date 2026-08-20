@@ -59,15 +59,14 @@ class DualHostContractTest(unittest.TestCase):
         with open(deploy_path, "r", encoding="utf-8") as stream:
             deploy = stream.read()
         for runtime_path in (
-            "./lib/amcl",
             "./lib/map_server",
-            "./lib/libamcl_sensors.so",
             "./lib/libmap_server_image_loader.so",
-            "./share/amcl",
             "./share/map_server",
         ):
             self.assertIn(runtime_path, deploy)
-        self.assertIn("rospack find amcl", deploy)
+        self.assertIn("./src/localization_fastlio/FAST_LIO", deploy)
+        self.assertIn("fast_lio\\\\;robot_bringup", deploy)
+        self.assertNotIn("./lib/amcl", deploy)
         self.assertIn("rospack find map_server", deploy)
         self.assertIn("ldd /opt/autolabor/dual_host/releases/", deploy)
         for soname in (

@@ -6,118 +6,158 @@ ROBOT_WS="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/load_config.sh"
 source "$SCRIPT_DIR/setup_env.sh"
 
-MAP_ROOT="${STATIC_MAP_OUTPUT_ROOT:-$ROBOT_WS/global_maps/static_maps}"
-SESSION_BAG_DIR="${BAG_DIR:-$ROBOT_WS/rosbags}"
-REQUIRE_DUAL="${MAPPING_REQUIRE_DUAL_LIDAR:-true}"
-WAIT_SECONDS="${MAPPING_TOPIC_WAIT_SEC:-10}"
+MAP_ROOT="${STATIC_MAP_OUTPUT_ROOT:-$ROBOT_WS/global_maps/map_sets}"
+WAIT_SECONDS="${MAPPING_TOPIC_WAIT_SEC:-15}"
+VOXEL_SIZE="${MAPPING_3D_VOXEL_SIZE:-0.10}"
+GRID_RESOLUTION="${MAPPING_2D_RESOLUTION:-0.10}"
+SLICE_CENTER_Z="${MAPPING_SLICE_CENTER_Z:--0.42}"
+SLICE_HALF_WIDTH="${MAPPING_SLICE_HALF_WIDTH:-0.10}"
+SLICE_MIN_POINTS="${MAPPING_SLICE_MIN_POINTS_PER_CELL:-2}"
+BASE_OFFSET_X="${MAPPING_BASE_OFFSET_X:--0.20}"
+BASE_OFFSET_Y="${MAPPING_BASE_OFFSET_Y:-0.0}"
 
-case "$REQUIRE_DUAL" in true|false) ;; *)
-  echo "MAPPING_REQUIRE_DUAL_LIDAR must be true or false." >&2
-  exit 2
-esac
 [[ "$WAIT_SECONDS" =~ ^[0-9]+$ ]] || {
   echo "MAPPING_TOPIC_WAIT_SEC must be a non-negative integer." >&2
   exit 2
 }
 
 wait_for_message() {
-  local topic="$1"
-  timeout "$WAIT_SECONDS" rostopic echo -n 1 "$topic" >/dev/null 2>&1
+  timeout "$WAIT_SECONDS" rostopic echo -n 1 "$1" >/dev/null 2>&1
 }
 
-wait_for_message /Odometry || {
-  echo "FAST-LIO /Odometry is unavailable; global mapping was not started." >&2
-  exit 3
-}
-wait_for_message /scan || {
-  echo "Fused /scan is unavailable; global mapping was not started." >&2
-  exit 3
-}
-wait_for_message /mid360/scan || {
-  echo "MID360 /mid360/scan is unavailable; global mapping was not started." >&2
-  exit 3
-}
-if [[ "$REQUIRE_DUAL" == true ]]; then
-  wait_for_message /dual_lidar/scan || {
-    echo "Dual LD19 /dual_lidar/scan is unavailable; refusing a MID360-only map." >&2
+for topic in /Odometry /cloud_registered /dual_lidar/scan; do
+  wait_for_message "$topic" || {
+    echo "Required static-mapping topic is unavailable: $topic" >&2
     exit 3
   }
-  dual_state="$(timeout "$WAIT_SECONDS" rostopic echo -n 1 /avoidance/dual_lidar_active 2>/dev/null || true)"
-  grep -Eq '^data: (True|true)$' <<<"$dual_state" || {
-    echo "Scan fusion reports dual_lidar_active=false; refusing a MID360-only map." >&2
-    exit 3
-  }
-fi
+done
+dual_state="$(timeout "$WAIT_SECONDS" rostopic echo -n 1 /avoidance/dual_lidar_active 2>/dev/null || true)"
+grep -Eq '^data: (True|true)$' <<<"$dual_state" || {
+  echo "Both fixed-port LD19 sensors must be active before static mapping." >&2
+  exit 3
+}
 
 stamp="$(date +%Y%m%d_%H%M%S)"
-map_name="fused_${stamp}"
-output_dir="$MAP_ROOT/$map_name"
-mkdir -p "$output_dir"
+map_id="map_${stamp}"
+output_dir="$MAP_ROOT/$map_id"
+map_3d_dir="$output_dir/map_3d"
+map_2d_dir="$output_dir/map_2d"
+map_fused_dir="$output_dir/map_fused_2d"
+mkdir -p "$map_3d_dir" "$map_2d_dir" "$map_fused_dir"
 
-recorder_pid=""
-mapper_pid=""
-shutdown_started=false
+pointcloud_pid=""
+grid_pid=""
+finalizing=false
+
+write_manifest() {
+  local status="$1"
+  local temporary="$output_dir/manifest.yaml.tmp"
+  {
+    printf 'schema_version: 1\n'
+    printf 'map_id: "%s"\n' "$map_id"
+    printf 'status: "%s"\n' "$status"
+    printf 'created_at: "%s"\n' "$(date --iso-8601=seconds)"
+    printf 'frame_id: map\n'
+    printf 'pose_source: fast_lio_odometry\n'
+    printf 'map_3d:\n  pcd: map_3d/map.pcd\n  voxel_size_m: %s\n' "$VOXEL_SIZE"
+    printf 'map_2d:\n  yaml: map_2d/map.yaml\n  occupancy_source: dual_ld19_only\n  resolution_m: %s\n' "$GRID_RESOLUTION"
+    printf 'map_fused_2d:\n  yaml: map_fused_2d/map.yaml\n  fusion_policy: occupied_union\n'
+    printf '  slice_center_z_m: %s\n  slice_half_width_m: %s\n' "$SLICE_CENTER_Z" "$SLICE_HALF_WIDTH"
+    printf 'default_static_map_source: fused\n'
+    printf 'initial_body_z_m: 0.0\n'
+  } >"$temporary"
+  mv -f -- "$temporary" "$output_dir/manifest.yaml"
+}
+
+write_manifest recording
+
+stop_mapper() {
+  local pid="$1"
+  [[ -z "$pid" ]] || kill -INT "$pid" 2>/dev/null || true
+}
 
 finish_session() {
-  local requested_status="$1" recorder_status=0 mapper_status=0 required
-  [[ "$shutdown_started" == false ]] || return 0
-  shutdown_started=true
+  local reason_status="$1"
+  local pointcloud_status=0 grid_status=0 required
+  [[ "$finalizing" == false ]] || return 0
+  finalizing=true
   trap - EXIT INT TERM HUP
+  echo "Finalizing three-map static mapping session..."
   set +e
-  [[ -z "$recorder_pid" ]] || kill -INT "$recorder_pid" 2>/dev/null
-  [[ -z "$mapper_pid" ]] || kill -INT "$mapper_pid" 2>/dev/null
-  [[ -z "$recorder_pid" ]] || wait "$recorder_pid"
-  recorder_status=$?
-  [[ -z "$mapper_pid" ]] || wait "$mapper_pid"
-  mapper_status=$?
+  stop_mapper "$pointcloud_pid"
+  stop_mapper "$grid_pid"
+  [[ -z "$pointcloud_pid" ]] || wait "$pointcloud_pid"
+  pointcloud_status=$?
+  [[ -z "$grid_pid" ]] || wait "$grid_pid"
+  grid_status=$?
   set -e
 
-  for required in map.pgm map.yaml mapping_info.yaml; do
-    if [[ ! -s "$output_dir/$required" ]]; then
-      echo "Global map save failed: missing $output_dir/$required" >&2
-      echo "Partial session retained at $output_dir" >&2
+  if [[ "$reason_status" -ne 0 || "$pointcloud_status" -ne 0 || "$grid_status" -ne 0 ]]; then
+    write_manifest failed
+    echo "Static mapping processes failed; partial data retained at $output_dir" >&2
+    exit 5
+  fi
+  for required in "$map_3d_dir/map.pcd" "$map_2d_dir/map.pgm" \
+                  "$map_2d_dir/map.yaml" "$map_2d_dir/mapping_info.yaml"; do
+    if [[ ! -s "$required" ]]; then
+      write_manifest failed
+      echo "Static map save failed: missing $required" >&2
       exit 5
     fi
   done
 
-  printf '%s\n' \
-    'status: complete' \
-    'mode: live_fused_scan' \
-    "requires_dual_lidar: $REQUIRE_DUAL" \
-    'component_scan_topics:' \
-    '  - /mid360/scan' \
-    '  - /dual_lidar/scan' \
-    'fused_scan_topic: /scan' \
-    'fast_lio_odometry_topic: /Odometry' \
-    "rosbag_directory: $SESSION_BAG_DIR" \
-    "recorder_exit_status: $recorder_status" \
-    "mapper_exit_status: $mapper_status" \
-    >"$output_dir/session_info.yaml.tmp"
-  mv -f -- "$output_dir/session_info.yaml.tmp" "$output_dir/session_info.yaml"
+  if ! rosrun robot_bringup map_set_fuser.py \
+      --map-2d "$map_2d_dir/map.yaml" \
+      --map-3d "$map_3d_dir/map.pcd" \
+      --output-dir "$map_fused_dir" \
+      --slice-center-z "$SLICE_CENTER_Z" \
+      --slice-half-width "$SLICE_HALF_WIDTH" \
+      --min-points-per-cell "$SLICE_MIN_POINTS" \
+      --resolution "$GRID_RESOLUTION"; then
+    write_manifest failed
+    echo "3-D slice fusion failed; partial data retained at $output_dir" >&2
+    exit 6
+  fi
 
+  {
+    printf 'status: complete\n'
+    printf 'input_topic: /cloud_registered\n'
+    printf 'frame_id: map\n'
+    printf 'voxel_size_m: %s\n' "$VOXEL_SIZE"
+  } >"$map_3d_dir/config.yaml"
+  cp -- "$map_2d_dir/mapping_info.yaml" "$map_2d_dir/config.yaml"
+  write_manifest complete
   latest_temporary="$MAP_ROOT/.latest.$$"
-  ln -s "$map_name" "$latest_temporary"
+  ln -s "$map_id" "$latest_temporary"
   mv -Tf -- "$latest_temporary" "$MAP_ROOT/latest"
-  echo "GLOBAL_MAPPING_COMPLETE=$output_dir/map.yaml"
-  echo "GLOBAL_MAPPING_LATEST=$MAP_ROOT/latest/map.yaml"
-  exit "$requested_status"
+  echo "STATIC_MAPPING_COMPLETE=$output_dir"
+  echo "STATIC_MAPPING_LATEST=$MAP_ROOT/latest"
+  exit 0
 }
 
 trap 'finish_session 0' INT TERM
-trap 'finish_session 1' HUP
-trap 'finish_session 1' EXIT
+trap 'finish_session 1' HUP EXIT
 
-echo "Starting synchronized rosbag recording and fused 2-D global mapping."
-echo "Map output: $output_dir"
-BAG_PREFIX="fused_mapping_${stamp}" "$SCRIPT_DIR/record_rosbag.sh" mode1 &
-recorder_pid=$!
+echo "Starting MID360 3-D voxel mapping and dual-LD19-only 2-D grid mapping."
+echo "STATIC_MAPPING_DIRECTORY=$output_dir"
+rosrun robot_bringup voxel_cloud_mapper \
+  _input_topic:=/cloud_registered \
+  _output_file:="$map_3d_dir/map.pcd" \
+  _voxel_size:="$VOXEL_SIZE" &
+pointcloud_pid=$!
+
 rosrun robot_bringup fused_scan_mapper.py \
   --ros \
-  --output-dir "$output_dir" &
-mapper_pid=$!
+  --output-dir "$map_2d_dir" \
+  --scan-topic /dual_lidar/scan \
+  --odom-topic /Odometry \
+  --resolution "$GRID_RESOLUTION" \
+  --base-offset-x "$BASE_OFFSET_X" \
+  --base-offset-y "$BASE_OFFSET_Y" &
+grid_pid=$!
 
-while kill -0 "$recorder_pid" 2>/dev/null && kill -0 "$mapper_pid" 2>/dev/null; do
+while kill -0 "$pointcloud_pid" 2>/dev/null && kill -0 "$grid_pid" 2>/dev/null; do
   sleep 0.5
 done
-echo "Mapping or recording process exited unexpectedly; finalizing available data." >&2
+echo "A static mapping process exited unexpectedly." >&2
 finish_session 1
