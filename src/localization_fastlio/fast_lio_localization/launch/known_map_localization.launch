@@ -1,0 +1,30 @@
+<launch>
+  <arg name="map_file"/>
+  <arg name="scan_topic" default="/cloud_registered"/>
+  <arg name="odom_topic" default="/Odometry"/>
+  <arg name="initial_pose_topic" default="/initialpose"/>
+  <arg name="map_frame" default="map"/>
+  <arg name="odom_frame" default="camera_init"/>
+  <arg name="body_frame" default="body"/>
+  <arg name="base_to_body_x" default="0.20"/>
+  <arg name="base_to_body_y" default="0.0"/>
+  <arg name="initial_body_z" default="0.0"/>
+
+  <node pkg="fast_lio_localization"
+        type="fast_lio_map_localizer"
+        name="fast_lio_map_localizer"
+        output="screen"
+        required="true">
+    <rosparam command="load" file="$(find fast_lio_localization)/config/mid360.yaml"/>
+    <param name="map_file" value="$(arg map_file)"/>
+    <param name="scan_topic" value="$(arg scan_topic)"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="initial_pose_topic" value="$(arg initial_pose_topic)"/>
+    <param name="map_frame" value="$(arg map_frame)"/>
+    <param name="odom_frame" value="$(arg odom_frame)"/>
+    <param name="body_frame" value="$(arg body_frame)"/>
+    <param name="base_to_body_x" value="$(arg base_to_body_x)"/>
+    <param name="base_to_body_y" value="$(arg base_to_body_y)"/>
+    <param name="initial_body_z" value="$(arg initial_body_z)"/>
+  </node>
+</launch>

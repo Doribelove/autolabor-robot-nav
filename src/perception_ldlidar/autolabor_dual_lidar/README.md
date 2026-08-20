@@ -21,6 +21,12 @@ The measured front/rear rotation-centre distance is 0.94 m, so the default
 poses are `x=+0.47 m` and `x=-0.47 m`. The USB devices use physical `by-path`
 names because both CH340 adapters have the same USB identity.
 
+After both scans are transformed into `base_link`, returns inside the measured
+chassis envelope `x=[-0.75,+0.75] m`, `y=[-0.50,+0.50] m` are removed. This
+prevents short LD19 reflections from the vehicle itself from becoming false
+MoveBase obstacles; points outside that envelope remain available for
+avoidance and mapping.
+
 ## Automatic use
 
 `scripts/bringup.sh` defaults to `DUAL_LIDAR_MODE=auto` and

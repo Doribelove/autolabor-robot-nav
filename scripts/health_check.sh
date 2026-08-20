@@ -11,6 +11,18 @@ case "$mode" in
   *) echo "Usage: $0 --static | --network | --runtime" >&2; exit 2 ;;
 esac
 
+# The managed supervisor records the mode selected for the active run. A
+# standalone runtime check must use that record instead of silently falling
+# back to the map-free defaults from dual_host.env.
+MAP_MODE_FILE="$DUAL_HOST_WS/runtime/run/map_mode.env"
+if [[ "$mode" == --runtime && -r "$MAP_MODE_FILE" ]]; then
+  source "$MAP_MODE_FILE"
+fi
+case "${STATIC_MAP_ENABLED:-false}" in
+  true|false) ;;
+  *) echo "Invalid STATIC_MAP_ENABLED in $MAP_MODE_FILE" >&2; exit 2 ;;
+esac
+
 failures=0
 test_results_output="$(mktemp /tmp/robot_j6m_test_results.XXXXXX)"
 trap 'rm -f -- "$test_results_output"' EXIT
@@ -19,7 +31,7 @@ fail() { echo "FAIL $*" >&2; failures=$((failures + 1)); }
 
 required_packages=(
   autolabor_dual_host autolabor_dual_lidar autolabor_fod_control
-  autolabor_fod_msgs autolabor_operator_gui fast_lio livox_ros_driver2
+  autolabor_fod_msgs autolabor_operator_gui fast_lio fast_lio_localization livox_ros_driver2
   robot_bringup teb_local_planner zed_wrapper map_server
 )
 for package in "${required_packages[@]}"; do
@@ -73,7 +85,7 @@ if [[ "$mode" == --runtime ]]; then
     fail "J6M ROS master is unreachable at $ROS_MASTER_URI"
   else
     runtime_nodes=(/nvidia_cmd_vel_watchdog /livox_lidar_publisher2 /laserMapping /avoidance_scan_fusion /move_base /fod_navigation_mode)
-    [[ "$STATIC_MAP_ENABLED" == false ]] || runtime_nodes+=(/map_server /fast_lio_localization_cmd_vel_gate)
+    [[ "$STATIC_MAP_ENABLED" == false ]] || runtime_nodes+=(/map_server /fast_lio_map_localizer /fast_lio_localization_cmd_vel_gate)
     [[ "$REQUIRE_CAN" == false ]] || runtime_nodes+=(/canbus_driver /m2_driver)
     node_list="$(rosnode list 2>/dev/null || true)"
     for node in "${runtime_nodes[@]}"; do

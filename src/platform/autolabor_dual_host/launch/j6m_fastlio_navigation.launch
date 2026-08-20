@@ -36,12 +36,20 @@
     <arg name="odom_pub_en" value="true"/>
     <arg name="tf_pub_en" value="true"/>
     <arg name="publish_body_base_tf" value="true"/>
-    <arg name="localization_enabled" value="$(arg use_static_map)"/>
-    <arg name="map_file_path" value="$(arg fast_lio_map_file)"/>
-    <arg name="initial_body_z" value="$(arg fast_lio_initial_body_z)"/>
+    <!-- Known-map mode still keeps this original FAST-LIO odometry unchanged.
+         The separate localizer below estimates map -> camera_init. -->
     <!-- fast_lio.launch publishes body -> base_link, hence the inverse translation. -->
     <arg name="body_tf_x" value="$(eval -float(arg('mid360_sensor_x')))"/>
   </include>
+
+  <group if="$(arg use_static_map)">
+    <include file="$(find fast_lio_localization)/launch/known_map_localization.launch">
+      <arg name="map_file" value="$(arg fast_lio_map_file)"/>
+      <arg name="base_to_body_x" value="$(arg mid360_sensor_x)"/>
+      <arg name="base_to_body_y" value="$(arg mid360_sensor_y)"/>
+      <arg name="initial_body_z" value="$(arg fast_lio_initial_body_z)"/>
+    </include>
+  </group>
 
   <!-- MID360 is the mandatory primary obstacle source. The NVIDIA LD19 scan
        is optional and automatically drops out after 0.35 s of staleness. -->

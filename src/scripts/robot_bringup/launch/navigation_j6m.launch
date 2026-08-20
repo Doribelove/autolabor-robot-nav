@@ -32,8 +32,9 @@
   <arg name="gps_geofence_file" default="$(find robot_bringup)/config/gps_geofences.yaml"/>
   <arg name="map_file" default="/var/lib/autolabor/maps/current/map.yaml"/>
 
-  <!-- In static-map mode FAST-LIO loads the 3-D prior and owns map -> body.
-       map_server supplies only the immutable 2-D navigation map. -->
+  <!-- In static-map mode the separate FAST-LIO map localizer loads the 3-D
+       prior and owns map -> camera_init. Original FAST-LIO continues to own
+       camera_init -> body; map_server supplies only the immutable 2-D map. -->
   <group if="$(arg use_static_map)">
     <node pkg="map_server" type="map_server" name="map_server"
           args="$(arg map_file)" output="screen" required="true">

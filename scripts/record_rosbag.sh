@@ -51,6 +51,8 @@ MODE1_TOPICS=(
   /map
   /map_metadata
   /fast_lio/localization_status
+  /localization
+  /fast_lio_localization/aligned_scan
   /initialpose
   /gps/fix
   /gps/heading

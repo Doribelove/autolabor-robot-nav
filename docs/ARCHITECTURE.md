@@ -53,9 +53,11 @@ FAST-LIO 始终只使用 MID360 原始点和 IMU，前后二维雷达不会污�
 `/dual_lidar/scan + /Odometry` 生成纯双 LD19 二维占据图；停止后再把三维图在
 LD19 高度带投影并以占据并集合成第三张图。普通“录包”不会触发该流程。
 
-不传 `--map-set` 时启动器保持无图 FAST-LIO 模式。传入地图集后，FAST-LIO 加载
-只读 PCD，等待 `/initialpose` 后直接估计 `map -> body`；map_server 只为 move_base
-加载二维图，不再启动 AMCL。定位状态丢失时速度门控输出零速度。
+不传 `--map-set` 时启动器保持无图 FAST-LIO 模式。传入地图集后，FAST-LIO 仍按
+原始算法输出高频 `camera_init -> body` 里程计；独立的 `fast_lio_localization` 节点
+加载 PCD，在 `/initialpose` 附近执行低频粗到精 scan-to-map ICP，估计
+`map -> camera_init`。map_server 只为 move_base 加载二维图，不启动 AMCL；ICP
+质量不合格、数据过期或定位丢失时，速度门控输出零速度。
 
 原始 Livox 数据跨机只建立一组 relay 订阅，避免 FAST-LIO、点云转换各自重复传输大消息。默认不跨机发送 ZED RGB、深度图或完整视觉点云。
 
