@@ -88,6 +88,8 @@ class SparseOccupancyMapperTest(unittest.TestCase):
             self.assertEqual(0.5, config["resolution"])
             self.assertEqual("complete", metadata["status"])
             self.assertEqual(1, metadata["integrated_scans"])
+            self.assertEqual("/dual_lidar/scan", metadata["scan_topic"])
+            self.assertEqual("dual_ld19_only", metadata["occupancy_source"])
 
     def test_quaternion_yaw(self):
         quaternion = Quaternion(z=math.sin(math.pi / 4.0), w=math.cos(math.pi / 4.0))

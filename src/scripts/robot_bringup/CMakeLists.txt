@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
 )
+find_package(roscpp REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
@@ -36,6 +37,11 @@ add_executable(livox_custom_to_pointcloud src/livox_custom_to_pointcloud.cpp)
 add_dependencies(livox_custom_to_pointcloud ${catkin_EXPORTED_TARGETS})
 target_link_libraries(livox_custom_to_pointcloud ${catkin_LIBRARIES})
 
+add_executable(voxel_cloud_mapper src/voxel_cloud_mapper.cpp)
+add_dependencies(voxel_cloud_mapper ${catkin_EXPORTED_TARGETS})
+target_include_directories(voxel_cloud_mapper PRIVATE ${roscpp_INCLUDE_DIRS})
+target_link_libraries(voxel_cloud_mapper ${roscpp_LIBRARIES})
+
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   add_rostest(test/gps_geofence_costmap.test)
@@ -48,6 +54,7 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_teb_profile_tuning.py)
   catkin_add_nosetests(test/test_avoidance_scan_fusion_math.py)
   catkin_add_nosetests(test/test_fused_scan_mapper.py)
+  catkin_add_nosetests(test/test_map_set_fuser.py)
   catkin_add_nosetests(test/test_static_map_navigation.py)
   add_rostest(test/livox_custom_to_pointcloud.test)
   add_rostest(test/avoidance_scan_fusion.test)
@@ -59,6 +66,8 @@ catkin_install_python(PROGRAMS
   scripts/gps_geofence_recorder.py
   scripts/gps_goal_speed_limiter.py
   scripts/fused_scan_mapper.py
+  scripts/map_set_fuser.py
+  scripts/localization_cmd_vel_gate.py
   scripts/optional_laserscan_fusion.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
@@ -75,7 +84,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
-install(TARGETS gps_geofence_layer pointcloud_self_filter livox_custom_to_pointcloud
+install(TARGETS gps_geofence_layer pointcloud_self_filter livox_custom_to_pointcloud voxel_cloud_mapper
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

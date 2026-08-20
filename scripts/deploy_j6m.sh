@@ -17,14 +17,8 @@ navigation_runtime="${J6M_NAVIGATION_RUNTIME_SOURCE:-${BASE_ROBOT_WS:-/home/slam
 navigation_sysroot="${navigation_runtime%/opt/ros/noetic}"
 
 navigation_runtime_paths=(
-  ./lib/amcl
   ./lib/map_server
-  ./lib/libamcl_map.so
-  ./lib/libamcl_pf.so
-  ./lib/libamcl_sensors.so
   ./lib/libmap_server_image_loader.so
-  ./lib/python3/dist-packages/amcl
-  ./share/amcl
   ./share/map_server
 )
 for runtime_path in "${navigation_runtime_paths[@]}"; do
@@ -89,6 +83,7 @@ paths=(
   ./src/CMakeLists.txt
   ./src/navigation_arena/arena-rosnav-3D/arena_navigation/arena_local_planer/model_based/conventional
   ./src/perception_ldlidar/autolabor_dual_lidar
+  ./src/localization_fastlio/FAST_LIO
   ./src/scripts/robot_bringup
   ./src/platform/autolabor_dual_host
 )
@@ -125,7 +120,7 @@ ssh "$target" "set -eu
       -DCMAKE_BUILD_TYPE=Release \
       -DCATKIN_ENABLE_TESTING=OFF \
       -DCMAKE_INSTALL_PREFIX=/opt/autolabor/dual_host/releases/\"\$RELEASE\"/install \
-      -DCATKIN_WHITELIST_PACKAGES=conventional\\;robot_bringup\\;autolabor_dual_lidar\\;autolabor_dual_host
+      -DCATKIN_WHITELIST_PACKAGES=conventional\\;fast_lio\\;robot_bringup\\;autolabor_dual_lidar\\;autolabor_dual_host
     test -f /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find autolabor_dual_host >/dev/null
@@ -134,7 +129,7 @@ ssh "$target" "set -eu
   '
   '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"
 
-# The minimal J6M rootfs does not carry the Debian amcl/map_server packages.
+# The minimal J6M rootfs does not carry the Debian map_server package.
 # Reuse the project's pinned ARM64 Noetic sysroot and place the runtime in the
 # release overlay, where setup.bash provides both ROS_PACKAGE_PATH and
 # LD_LIBRARY_PATH without modifying the base rootfs.
@@ -154,13 +149,7 @@ ssh "$target" "set -eu
     source /opt/ros/noetic/setup.bash
     source /opt/autolabor/ros/install/setup.bash
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
-    rospack find amcl >/dev/null
     rospack find map_server >/dev/null
-    if ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/amcl/amcl | grep -q not.found; then
-      ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/amcl/amcl >&2
-      echo AMCL.has.unresolved.shared.libraries >&2
-      exit 1
-    fi
     if ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server | grep -q not.found; then
       ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server >&2
       echo map_server.has.unresolved.shared.libraries >&2

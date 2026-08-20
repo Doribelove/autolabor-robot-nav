@@ -272,6 +272,20 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     if (!output.isEmpty())
       appendEvent(output, true);
   });
+  connect(&mapper_,
+          QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
+          &MainWindow::handleMapperFinished);
+  connect(&mapper_, &QProcess::errorOccurred, this, &MainWindow::handleMapperError);
+  connect(&mapper_, &QProcess::readyReadStandardOutput, this, [this]() {
+    const QString output = QString::fromLocal8Bit(mapper_.readAllStandardOutput()).trimmed();
+    if (!output.isEmpty())
+      appendEvent(output);
+  });
+  connect(&mapper_, &QProcess::readyReadStandardError, this, [this]() {
+    const QString output = QString::fromLocal8Bit(mapper_.readAllStandardError()).trimmed();
+    if (!output.isEmpty())
+      appendEvent(output, true);
+  });
 
   appendEvent(QStringLiteral("操作台界面已启动；正在后台探测 ROS master。"));
   requestMasterProbe();
@@ -287,6 +301,12 @@ MainWindow::~MainWindow()
     if (!recorder_.waitForFinished(60000))
       recorder_.kill();
   }
+  if (mapper_.state() != QProcess::NotRunning)
+  {
+    mapper_.terminate();
+    if (!mapper_.waitForFinished(120000))
+      mapper_.kill();
+  }
   shutdownRosInterfaces();
   if (spinner_)
     spinner_->stop();
@@ -299,6 +319,12 @@ void MainWindow::closeEvent(QCloseEvent* event)
     recorder_.terminate();
     if (!recorder_.waitForFinished(60000))
       recorder_.kill();
+  }
+  if (mapper_.state() != QProcess::NotRunning)
+  {
+    mapper_.terminate();
+    if (!mapper_.waitForFinished(120000))
+      mapper_.kill();
   }
   ros::shutdown();
   event->accept();
@@ -751,23 +777,34 @@ QWidget* MainWindow::buildTestPage()
   auto* cancel = new QPushButton(QStringLiteral("取消当前导航目标"), controls);
   cancel->setObjectName(QStringLiteral("dangerButton"));
   cancel->setMinimumHeight(58);
-  record_button_ = new QPushButton(QStringLiteral("开始录包并建立全局地图"), controls);
+  record_button_ = new QPushButton(QStringLiteral("开始录包"), controls);
   record_button_->setObjectName(QStringLiteral("recordButton"));
   record_button_->setMinimumHeight(58);
+  static_map_start_button_ = new QPushButton(QStringLiteral("录入静态地图"), controls);
+  static_map_start_button_->setMinimumHeight(58);
+  static_map_stop_button_ = new QPushButton(QStringLiteral("结束静态地图录入"), controls);
+  static_map_stop_button_->setObjectName(QStringLiteral("dangerButton"));
+  static_map_stop_button_->setMinimumHeight(58);
   connect(forward_goal_button_, &QPushButton::clicked, this,
           &MainWindow::sendForwardRelativeGoal);
   connect(cancel, &QPushButton::clicked, this, &MainWindow::cancelNavigation);
   connect(record_button_, &QPushButton::clicked, this, &MainWindow::toggleRecording);
+  connect(static_map_start_button_, &QPushButton::clicked, this,
+          &MainWindow::startStaticMapping);
+  connect(static_map_stop_button_, &QPushButton::clicked, this,
+          &MainWindow::stopStaticMapping);
   controls_layout->addWidget(forward_goal_button_, 0, 0);
   controls_layout->addWidget(cancel, 0, 1);
   controls_layout->addWidget(record_button_, 0, 2);
+  controls_layout->addWidget(static_map_start_button_, 1, 0, 1, 2);
+  controls_layout->addWidget(static_map_stop_button_, 1, 2);
 
   auto* roadmap = new QGroupBox(QStringLiteral("后续测试中心"), page);
   auto* roadmap_layout = new QVBoxLayout(roadmap);
   auto* roadmap_text = new QLabel(
       QStringLiteral("相对目标按当前车体姿态换算到 camera_init，再发布 PoseStamped。"
                      "发送入口要求三路 FAST-LIO 数据、TF、定位健康度、模式仲裁与 move_base "
-                     "订阅全部就绪；取消和录包不依赖目标坐标。"),
+                     "订阅全部就绪；普通录包与三地图静态建图是两个独立流程。"),
       roadmap);
   roadmap_text->setWordWrap(true);
   roadmap_text->setStyleSheet(QStringLiteral("color:#b7c4d4;font-size:12pt;"));
@@ -1122,6 +1159,7 @@ void MainWindow::setupRosInterfaces()
   node_.reset(new ros::NodeHandle("~"));
   tf_listener_.reset(new tf2_ros::TransformListener(tf_buffer_, *node_, false));
   node_->param("enable_rviz", enable_rviz_, true);
+  node_->param("static_map_mode", static_map_mode_, false);
   const std::string default_rviz =
       ros::package::getPath("autolabor_operator_gui") + "/config/operator_navigation.rviz";
   node_->param<std::string>(
@@ -1980,13 +2018,19 @@ void MainWindow::refreshUi()
               QStringLiteral("%1 目标").arg(data.detections.detections.size()),
               QStringLiteral("%1 ms").arg(data.detections.inference_ms, 0, 'f', 1));
 
-  if (recorder_.state() != QProcess::NotRunning && recorder_stop_requested_)
-    setStatus("record", Health::Warning, QStringLiteral("保存中"),
-              QStringLiteral("正在关闭 bag 并写入静态地图"));
+  if (mapper_.state() != QProcess::NotRunning && mapper_stop_requested_)
+    setStatus("record", Health::Warning, QStringLiteral("地图保存中"),
+              QStringLiteral("正在保存三类静态地图"));
+  else if (mapper_.state() != QProcess::NotRunning)
+    setStatus("record", Health::Good, QStringLiteral("静态建图中"),
+              QStringLiteral("MID360 三维 + 双 LD19 二维"));
+  else if (recorder_.state() != QProcess::NotRunning && recorder_stop_requested_)
+    setStatus("record", Health::Warning, QStringLiteral("录包保存中"),
+              QStringLiteral("正在关闭 bag"));
   else if (recorder_.state() != QProcess::NotRunning)
-    setStatus("record", Health::Good, QStringLiteral("录制与建图中"),
-              QStringLiteral("MID360 + 前后 LD19"));
-  else if (recorder_error_)
+    setStatus("record", Health::Good, QStringLiteral("录包中"),
+              QStringLiteral("仅记录相关 ROS 话题"));
+  else if (recorder_error_ || mapper_error_)
     setStatus("record", Health::Bad, QStringLiteral("异常"), QStringLiteral("查看日志"));
   else
     setStatus("record", Health::Idle, QStringLiteral("未录制"), QStringLiteral("可随时启动"));
@@ -2320,12 +2364,20 @@ void MainWindow::refreshUi()
   image_quality_enable_button_->setEnabled(master_online_ && ros_interfaces_ready_);
   image_quality_disable_button_->setEnabled(master_online_ && ros_interfaces_ready_);
   if (recorder_.state() == QProcess::NotRunning)
-    record_button_->setText(QStringLiteral("开始录包并建立全局地图"));
+    record_button_->setText(QStringLiteral("开始录包"));
   else if (recorder_stop_requested_)
-    record_button_->setText(QStringLiteral("正在保存全局地图……"));
+    record_button_->setText(QStringLiteral("正在保存录包……"));
   else
-    record_button_->setText(QStringLiteral("停止录包并保存全局地图"));
+    record_button_->setText(QStringLiteral("停止录包"));
   record_button_->setEnabled(!recorder_stop_requested_);
+  const bool mapping_running = mapper_.state() != QProcess::NotRunning;
+  static_map_start_button_->setEnabled(!static_map_mode_ && !mapping_running);
+  static_map_stop_button_->setEnabled(!static_map_mode_ && mapping_running &&
+                                      !mapper_stop_requested_);
+  static_map_start_button_->setToolTip(
+      static_map_mode_
+          ? QStringLiteral("当前已加载静态地图，不能同时建立新地图")
+          : QStringLiteral("同时建立 MID360 三维图和双 LD19 二维图"));
 }
 
 bool MainWindow::relativeGoalReady(const TelemetrySnapshot& data,
@@ -2773,12 +2825,12 @@ void MainWindow::toggleRecording()
       return;
     recorder_stop_requested_ = true;
     record_button_->setEnabled(false);
-    appendEvent(QStringLiteral("正在停止录包并保存二维静态全局地图，请勿关闭程序……"));
+    appendEvent(QStringLiteral("正在停止并索引 rosbag，请勿关闭程序……"));
     recorder_.terminate();
     QTimer::singleShot(60000, this, [this]() {
       if (recorder_.state() != QProcess::NotRunning)
       {
-        appendEvent(QStringLiteral("建图会话未在 60 秒内完成保存，执行强制停止。"), true);
+        appendEvent(QStringLiteral("录包未在 60 秒内完成保存，执行强制停止。"), true);
         recorder_.kill();
       }
     });
@@ -2793,11 +2845,11 @@ void MainWindow::toggleRecording()
       QDir::cleanPath(QDir(package_path).absoluteFilePath(QStringLiteral("../../..")));
   recorder_.setWorkingDirectory(workspace_path);
   recorder_.setProgram(
-      QDir(workspace_path).filePath(QStringLiteral("scripts/global_mapping_session.sh")));
-  recorder_.setArguments(QStringList());
+      QDir(workspace_path).filePath(QStringLiteral("scripts/record_rosbag.sh")));
+  recorder_.setArguments(QStringList() << QStringLiteral("mode1"));
   recorder_.setProcessChannelMode(QProcess::SeparateChannels);
   recorder_.start();
-  appendEvent(QStringLiteral("已启动同步 rosbag 录制与 MID360/前后雷达融合建图会话。"));
+  appendEvent(QStringLiteral("已开始录制相关 ROS 话题；本操作不会触发建图。"));
 }
 
 void MainWindow::handleRecorderFinished(int exit_code, QProcess::ExitStatus exit_status)
@@ -2805,8 +2857,8 @@ void MainWindow::handleRecorderFinished(int exit_code, QProcess::ExitStatus exit
   const bool normal = exit_status == QProcess::NormalExit && exit_code == 0;
   recorder_error_ = !normal;
   appendEvent(recorder_stop_requested_ && normal
-                  ? QStringLiteral("录包已结束，二维静态全局地图已保存并设为 latest。")
-                  : QStringLiteral("录包/建图会话已结束：exit=%1").arg(exit_code),
+                  ? QStringLiteral("录包已结束并完成索引。")
+                  : QStringLiteral("录包进程已结束：exit=%1").arg(exit_code),
               !normal);
   recorder_stop_requested_ = false;
 }
@@ -2817,6 +2869,69 @@ void MainWindow::handleRecorderError(QProcess::ProcessError error)
     return;
   recorder_error_ = true;
   appendEvent(QStringLiteral("录包进程错误（%1）：%2").arg(static_cast<int>(error)).arg(recorder_.errorString()),
+              true);
+}
+
+void MainWindow::startStaticMapping()
+{
+  if (static_map_mode_)
+  {
+    appendEvent(QStringLiteral("当前已加载静态地图，建图功能已禁用。"), true);
+    return;
+  }
+  if (mapper_.state() != QProcess::NotRunning)
+    return;
+  mapper_error_ = false;
+  mapper_stop_requested_ = false;
+  const QString package_path =
+      QString::fromStdString(ros::package::getPath("autolabor_operator_gui"));
+  const QString workspace_path =
+      QDir::cleanPath(QDir(package_path).absoluteFilePath(QStringLiteral("../../..")));
+  mapper_.setWorkingDirectory(workspace_path);
+  mapper_.setProgram(
+      QDir(workspace_path).filePath(QStringLiteral("scripts/global_mapping_session.sh")));
+  mapper_.setArguments(QStringList());
+  mapper_.setProcessChannelMode(QProcess::SeparateChannels);
+  mapper_.start();
+  appendEvent(QStringLiteral("已启动三地图静态建图；占据二维图只使用前后 LD19 数据。"));
+}
+
+void MainWindow::stopStaticMapping()
+{
+  if (mapper_.state() == QProcess::NotRunning || mapper_stop_requested_)
+    return;
+  mapper_stop_requested_ = true;
+  static_map_stop_button_->setEnabled(false);
+  appendEvent(QStringLiteral("正在停止建图、保存三维/二维地图并生成融合图，请勿关闭程序……"));
+  mapper_.terminate();
+  QTimer::singleShot(120000, this, [this]() {
+    if (mapper_.state() != QProcess::NotRunning)
+    {
+      appendEvent(QStringLiteral("静态地图未在 120 秒内完成保存，执行强制停止。"), true);
+      mapper_.kill();
+    }
+  });
+}
+
+void MainWindow::handleMapperFinished(int exit_code, QProcess::ExitStatus exit_status)
+{
+  const bool normal = exit_status == QProcess::NormalExit && exit_code == 0;
+  mapper_error_ = !normal;
+  appendEvent(mapper_stop_requested_ && normal
+                  ? QStringLiteral("三类静态地图均已保存，latest 已更新。")
+                  : QStringLiteral("静态建图进程已结束：exit=%1").arg(exit_code),
+              !normal);
+  mapper_stop_requested_ = false;
+}
+
+void MainWindow::handleMapperError(QProcess::ProcessError error)
+{
+  if (mapper_stop_requested_ && error == QProcess::Crashed)
+    return;
+  mapper_error_ = true;
+  appendEvent(QStringLiteral("静态建图进程错误（%1）：%2")
+                  .arg(static_cast<int>(error))
+                  .arg(mapper_.errorString()),
               true);
 }
 

@@ -13,22 +13,42 @@ View the latest completed map on the robot desktop with:
 ./scripts/view_global_map.sh
 ```
 
-## Static 2-D maps
+## Three-map static map sets
 
-Qt fused-mapping sessions and `build_static_map_from_bag.sh` write standard
-`map_server` files below `global_maps/static_maps/<session>/`:
+Qt's `录入静态地图` workflow and `build_static_map_from_bag.sh` write one
+self-contained map set below `global_maps/map_sets/<session>/`:
 
-- `map.pgm` and `map.yaml`: static occupancy grid;
-- `mapping_info.yaml`: source topics, grid statistics and first/final pose;
-- `session_info.yaml`: live Qt session and component-scan provenance.
+```text
+<session>/
+├── manifest.yaml
+├── map_3d/       # MID360 /cloud_registered voxel PCD
+├── map_2d/       # front/rear LD19-only map_server PGM/YAML
+└── map_fused_2d/ # LD19 grid plus a fixed-height slice of the 3-D map
+```
 
-`global_maps/static_maps/latest` is switched only after all required files have
-been saved successfully. With `STATIC_MAP_ENABLED=true`, `start_dual_host.sh`
-synchronizes this selected map to J6M before launching `map_server`, AMCL and
-move_base.
+The LD19 grid uses FAST-LIO `/Odometry` only as its trajectory; MID360 points
+are not inserted into `map_2d`. The third map is created after recording stops
+by projecting the configured PCD height band and conservatively adding its
+occupied cells to the LD19 grid.
 
-Build a 2-D map from an existing bag with:
+`global_maps/map_sets/latest` is switched atomically only after all three maps
+and their configuration files are complete. A historical bag can be processed
+only when it contains `/cloud_registered`, `/dual_lidar/scan` and `/Odometry`:
 
 ```bash
 ./scripts/build_static_map_from_bag.sh rosbags/example.bag example_map
 ```
+
+Normal startup remains map-free incremental FAST-LIO. To load a map set:
+
+```bash
+./scripts/start_dual_host.sh --start --map-set global_maps/map_sets/latest
+# Use the raw LD19 static grid instead of the fused grid when needed:
+./scripts/start_dual_host.sh --start --map-set global_maps/map_sets/latest \
+  --static-map-source lidar2d
+```
+
+In map mode, FAST-LIO loads `map_3d/map.pcd` read-only and waits for an
+approximate `/initialpose`. `map_server` loads the selected 2-D grid for
+move_base; AMCL is not used. Navigation velocity remains blocked until the
+FAST-LIO status is `LOCALIZED`.

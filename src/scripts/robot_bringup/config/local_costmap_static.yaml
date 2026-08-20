@@ -1,7 +1,6 @@
 local_costmap:
-  # Keep the local controller in FAST-LIO's smooth frame. AMCL corrections
-  # change map -> camera_init without causing jumps in local obstacle tracking.
-  global_frame: camera_init
+  # Fixed-map FAST-LIO publishes map -> body directly in static-map mode.
+  global_frame: map
   robot_base_frame: base_link
   transform_tolerance: 1.0
   update_frequency: 10.0

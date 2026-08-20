@@ -40,6 +40,7 @@ MODE1_TOPICS=(
   /fod_visual_servo/completed
   /livox/lidar
   /livox/imu
+  /cloud_registered
   /cloud_registered_body
   /cloud_filtered_for_scan
   /mid360/scan
@@ -49,8 +50,7 @@ MODE1_TOPICS=(
   /avoidance/source_mode
   /map
   /map_metadata
-  /amcl_pose
-  /particlecloud
+  /fast_lio/localization_status
   /initialpose
   /gps/fix
   /gps/heading

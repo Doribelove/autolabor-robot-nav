@@ -30,16 +30,22 @@ VIEW_GLOBAL_MAP = WORKSPACE_ROOT / "scripts" / "view_global_map.sh"
 
 
 class OperatorGuiContractTest(unittest.TestCase):
-    def test_record_button_runs_synchronized_bag_and_static_mapping(self):
+    def test_recording_and_three_map_mapping_are_independent(self):
         self.assertTrue(RECORD_ROSBAG.is_file())
         self.assertTrue(os.access(str(RECORD_ROSBAG), os.X_OK))
         self.assertTrue(MAPPING_SESSION.is_file())
         self.assertTrue(os.access(str(MAPPING_SESSION), os.X_OK))
         self.assertIn('scripts/global_mapping_session.sh', GUI_SOURCE)
-        self.assertIn('record_rosbag.sh" mode1', MAPPING_SESSION_TEXT)
+        self.assertIn('scripts/record_rosbag.sh', GUI_SOURCE)
+        self.assertNotIn('record_rosbag.sh', MAPPING_SESSION_TEXT)
+        self.assertIn('/cloud_registered', MAPPING_SESSION_TEXT)
+        self.assertIn('/dual_lidar/scan', MAPPING_SESSION_TEXT)
         self.assertIn('fused_scan_mapper.py', MAPPING_SESSION_TEXT)
-        self.assertIn('GLOBAL_MAPPING_LATEST=', MAPPING_SESSION_TEXT)
-        self.assertIn('MAPPING_REQUIRE_DUAL_LIDAR', MAPPING_SESSION_TEXT)
+        self.assertIn('map_set_fuser.py', MAPPING_SESSION_TEXT)
+        self.assertIn('STATIC_MAPPING_LATEST=', MAPPING_SESSION_TEXT)
+        self.assertIn('录入静态地图', GUI_SOURCE)
+        self.assertIn('结束静态地图录入', GUI_SOURCE)
+        self.assertIn('static_map_mode_', GUI_SOURCE)
         for topic in (
             "/tf",
             "/tf_static",

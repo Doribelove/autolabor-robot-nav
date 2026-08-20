@@ -20,7 +20,7 @@ fail() { echo "FAIL $*" >&2; failures=$((failures + 1)); }
 required_packages=(
   autolabor_dual_host autolabor_dual_lidar autolabor_fod_control
   autolabor_fod_msgs autolabor_operator_gui fast_lio livox_ros_driver2
-  robot_bringup teb_local_planner zed_wrapper amcl map_server
+  robot_bringup teb_local_planner zed_wrapper map_server
 )
 for package in "${required_packages[@]}"; do
   if rospack find "$package" >/dev/null 2>&1; then
@@ -73,7 +73,7 @@ if [[ "$mode" == --runtime ]]; then
     fail "J6M ROS master is unreachable at $ROS_MASTER_URI"
   else
     runtime_nodes=(/nvidia_cmd_vel_watchdog /livox_lidar_publisher2 /laserMapping /avoidance_scan_fusion /move_base /fod_navigation_mode)
-    [[ "$STATIC_MAP_ENABLED" == false ]] || runtime_nodes+=(/map_server /amcl)
+    [[ "$STATIC_MAP_ENABLED" == false ]] || runtime_nodes+=(/map_server /fast_lio_localization_cmd_vel_gate)
     [[ "$REQUIRE_CAN" == false ]] || runtime_nodes+=(/canbus_driver /m2_driver)
     node_list="$(rosnode list 2>/dev/null || true)"
     for node in "${runtime_nodes[@]}"; do

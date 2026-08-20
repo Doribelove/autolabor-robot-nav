@@ -6,12 +6,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() {
   cat <<EOF
 Usage: $0 [--start | --restart | --status | --stop | --foreground]
+          [--map-set DIR] [--static-map-source fused|lidar2d]
 
   --start       Start the complete stack as a managed user service (default).
   --restart     Cold-stop both hosts, then start the managed service.
   --status      Show service state and run the dual-host health check.
   --stop        Stop both hosts synchronously and verify all residuals.
   --foreground  Diagnostic mode: keep the supervisor attached to this terminal.
+  --map-set DIR Enable fixed-map FAST-LIO localization with a complete map set.
+  --static-map-source
+                Select fused (default) or lidar2d as move_base's static map.
 
 The default start waits until the complete graph is ready, then returns to the
 shell. The stack remains owned by autolabor-dual-host.service; closing this
@@ -19,25 +23,113 @@ terminal or restarting the graphical desktop cannot orphan its ROS children.
 EOF
 }
 
-mode="${1:---start}"
-(( $# <= 1 )) || { usage >&2; exit 2; }
-case "$mode" in
-  --start|--restart|--status|--stop|--foreground|--supervise) ;;
-  -h|--help) usage; exit 0 ;;
-  *) usage >&2; exit 2 ;;
+mode=""
+requested_map_set=""
+requested_static_source="fused"
+while (( $# > 0 )); do
+  case "$1" in
+    --start|--restart|--status|--stop|--foreground|--supervise)
+      [[ -z "$mode" ]] || { echo "Only one lifecycle mode may be selected." >&2; exit 2; }
+      mode="$1"
+      shift
+      ;;
+    --map-set)
+      (( $# >= 2 )) || { echo "--map-set requires a directory." >&2; exit 2; }
+      requested_map_set="$2"
+      shift 2
+      ;;
+    --static-map-source)
+      (( $# >= 2 )) || { echo "--static-map-source requires fused or lidar2d." >&2; exit 2; }
+      requested_static_source="$2"
+      shift 2
+      ;;
+    -h|--help) usage; exit 0 ;;
+    *) usage >&2; exit 2 ;;
+  esac
+done
+mode="${mode:---start}"
+case "$requested_static_source" in fused|lidar2d) ;; *)
+  echo "--static-map-source must be fused or lidar2d." >&2; exit 2 ;;
 esac
 
 # Catkin setup files inspect the caller's positional parameters when sourced.
+inherited_static_map_enabled="${STATIC_MAP_ENABLED:-}"
+inherited_static_map_set="${STATIC_MAP_SET:-}"
+inherited_static_map_source_mode="${STATIC_MAP_SOURCE_MODE:-}"
+inherited_static_map_file="${STATIC_MAP_FILE:-}"
+inherited_fast_lio_map_file="${FAST_LIO_MAP_FILE:-}"
+inherited_fast_lio_initial_body_z="${FAST_LIO_INITIAL_BODY_Z:-}"
 set --
 source "$SCRIPT_DIR/load_config.sh"
 source "$SCRIPT_DIR/setup_env.sh"
+
+if [[ "$mode" == --supervise && -n "$inherited_static_map_enabled" ]]; then
+  STATIC_MAP_ENABLED="$inherited_static_map_enabled"
+  STATIC_MAP_SET="$inherited_static_map_set"
+  STATIC_MAP_SOURCE_MODE="${inherited_static_map_source_mode:-fused}"
+  STATIC_MAP_FILE="$inherited_static_map_file"
+  FAST_LIO_MAP_FILE="$inherited_fast_lio_map_file"
+  FAST_LIO_INITIAL_BODY_Z="${inherited_fast_lio_initial_body_z:-0.0}"
+  export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
+  export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
+elif [[ "$mode" != --supervise ]]; then
+  if [[ -n "$requested_map_set" ]]; then
+    map_sets_root="$(readlink -f -- "$DUAL_HOST_WS/global_maps/map_sets" 2>/dev/null || true)"
+    selected_map_set="$(readlink -f -- "$requested_map_set" 2>/dev/null || true)"
+    [[ -n "$map_sets_root" && -n "$selected_map_set" && -d "$selected_map_set" &&
+       "$selected_map_set" == "$map_sets_root/"* ]] || {
+      echo "--map-set must select a directory below $DUAL_HOST_WS/global_maps/map_sets" >&2
+      exit 3
+    }
+    grep -Eq '^status:[[:space:]]*"?complete"?[[:space:]]*$' \
+      "$selected_map_set/manifest.yaml" 2>/dev/null || {
+      echo "Map set is missing a complete manifest: $selected_map_set" >&2
+      exit 3
+    }
+    for required in map_3d/map.pcd map_2d/map.yaml map_2d/map.pgm \
+                    map_fused_2d/map.yaml map_fused_2d/map.pgm; do
+      [[ -s "$selected_map_set/$required" ]] || {
+        echo "Map set is incomplete: $selected_map_set/$required" >&2
+        exit 3
+      }
+    done
+    STATIC_MAP_ENABLED=true
+    STATIC_MAP_SET="$selected_map_set"
+    STATIC_MAP_SOURCE_MODE="$requested_static_source"
+    FAST_LIO_MAP_FILE=/var/lib/autolabor/maps/current/map_3d/map.pcd
+    if [[ "$requested_static_source" == fused ]]; then
+      STATIC_MAP_FILE=/var/lib/autolabor/maps/current/map_fused_2d/map.yaml
+    else
+      STATIC_MAP_FILE=/var/lib/autolabor/maps/current/map_2d/map.yaml
+    fi
+    FAST_LIO_INITIAL_BODY_Z="$(awk '/^initial_body_z_m:/{print $2; exit}' "$selected_map_set/manifest.yaml")"
+    FAST_LIO_INITIAL_BODY_Z="${FAST_LIO_INITIAL_BODY_Z:-0.0}"
+  else
+    STATIC_MAP_ENABLED=false
+    STATIC_MAP_SET=""
+    STATIC_MAP_SOURCE_MODE=fused
+    STATIC_MAP_FILE=""
+    FAST_LIO_MAP_FILE=""
+    FAST_LIO_INITIAL_BODY_Z=0.0
+  fi
+  export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
+  export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
+fi
 
 RUN_DIR="$DUAL_HOST_WS/runtime/run"
 READY_FILE="$RUN_DIR/dual_host.ready"
 RUN_TOKEN_FILE="$RUN_DIR/nvidia_run.token"
 SERVICE_TOKEN_FILE="$RUN_DIR/service_run.token"
+MAP_MODE_FILE="$RUN_DIR/map_mode.env"
 SERVICE_UNIT="autolabor-dual-host.service"
 mkdir -p "$RUN_DIR" "$DUAL_HOST_WS/log"
+
+if [[ "$mode" == --status && -r "$MAP_MODE_FILE" ]]; then
+  # This file is generated by the managed supervisor with shell-escaped values.
+  source "$MAP_MODE_FILE"
+  export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
+  export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
+fi
 
 REQUIRED_NODES=(
   /laserMapping
@@ -55,7 +147,7 @@ REQUIRED_NODES=(
 )
 
 if [[ "$STATIC_MAP_ENABLED" == true ]]; then
-  REQUIRED_NODES+=(/map_server /amcl)
+  REQUIRED_NODES+=(/map_server /fast_lio_localization_cmd_vel_gate)
 elif [[ "$STATIC_MAP_ENABLED" != false ]]; then
   echo "STATIC_MAP_ENABLED must be literal true or false." >&2
   exit 3
@@ -108,6 +200,13 @@ show_runtime_status() {
     return 1
   fi
   "$SCRIPT_DIR/health_check.sh" --runtime
+  if [[ "$STATIC_MAP_ENABLED" == true ]]; then
+    echo "Selected map set: ${STATIC_MAP_SET:-unknown} (${STATIC_MAP_SOURCE_MODE:-fused})"
+    timeout 3 rostopic echo -n 1 /fast_lio/localization_status 2>/dev/null |
+      sed -n 's/^data: /FAST-LIO fixed-map /p' || true
+  else
+    echo "Selected map set: none (incremental FAST-LIO mode)"
+  fi
   echo "Qt, ZED, YOLO, FAST-LIO, localization, navigation, MID360 and CAN are ready."
 }
 
@@ -233,6 +332,7 @@ start_managed_service() {
 
   systemctl --user reset-failed "$SERVICE_UNIT" >/dev/null 2>&1 || true
   remove_ready_file
+  [[ ! -f "$MAP_MODE_FILE" ]] || unlink "$MAP_MODE_FILE"
   token="$(< /proc/sys/kernel/random/uuid)"
   [[ "$token" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$ ]] || {
     echo "Cannot create a valid dual-host run token." >&2
@@ -251,6 +351,12 @@ start_managed_service() {
 
   command+=(--setenv="DUAL_HOST_RUN_TOKEN=$token")
   command+=(--setenv="DUAL_HOST_CONFIG=$DUAL_HOST_CONFIG")
+  command+=(--setenv="STATIC_MAP_ENABLED=$STATIC_MAP_ENABLED")
+  command+=(--setenv="STATIC_MAP_SET=${STATIC_MAP_SET:-}")
+  command+=(--setenv="STATIC_MAP_SOURCE_MODE=${STATIC_MAP_SOURCE_MODE:-fused}")
+  command+=(--setenv="STATIC_MAP_FILE=${STATIC_MAP_FILE:-}")
+  command+=(--setenv="FAST_LIO_MAP_FILE=${FAST_LIO_MAP_FILE:-}")
+  command+=(--setenv="FAST_LIO_INITIAL_BODY_Z=${FAST_LIO_INITIAL_BODY_Z:-0.0}")
   for variable in DISPLAY XAUTHORITY DBUS_SESSION_BUS_ADDRESS XDG_RUNTIME_DIR LANG LC_ALL; do
     case "$variable" in
       DISPLAY) value="$display" ;;
@@ -282,6 +388,7 @@ stop_managed_service() {
   # run its EXIT trap, and also supports stacks started by older revisions.
   "$SCRIPT_DIR/stop_dual_host.sh" || service_status=$?
   remove_ready_file
+  [[ ! -f "$MAP_MODE_FILE" ]] || unlink "$MAP_MODE_FILE"
   [[ ! -f "$SERVICE_TOKEN_FILE" ]] || unlink "$SERVICE_TOKEN_FILE"
   systemctl --user reset-failed "$SERVICE_UNIT" >/dev/null 2>&1 || true
   return "$service_status"
@@ -337,6 +444,15 @@ echo "[1/6] Preparing a clean dual-host cold start..."
 
 write_single_line_file "$RUN_TOKEN_FILE" "$DUAL_HOST_RUN_TOKEN"
 export DUAL_HOST_RUN_TOKEN
+{
+  printf 'STATIC_MAP_ENABLED=%q\n' "$STATIC_MAP_ENABLED"
+  printf 'STATIC_MAP_SET=%q\n' "${STATIC_MAP_SET:-}"
+  printf 'STATIC_MAP_SOURCE_MODE=%q\n' "${STATIC_MAP_SOURCE_MODE:-fused}"
+  printf 'STATIC_MAP_FILE=%q\n' "${STATIC_MAP_FILE:-}"
+  printf 'FAST_LIO_MAP_FILE=%q\n' "${FAST_LIO_MAP_FILE:-}"
+  printf 'FAST_LIO_INITIAL_BODY_Z=%q\n' "${FAST_LIO_INITIAL_BODY_Z:-0.0}"
+} >"$MAP_MODE_FILE.tmp.$$"
+mv -f -- "$MAP_MODE_FILE.tmp.$$" "$MAP_MODE_FILE"
 
 remote_ssh_pid=""
 nvidia_pid=""
@@ -347,6 +463,7 @@ cleanup() {
   cleanup_started=true
   trap - EXIT INT TERM HUP
   remove_ready_file
+  [[ ! -f "$MAP_MODE_FILE" ]] || unlink "$MAP_MODE_FILE"
   echo
   echo "Synchronizing shutdown on NVIDIA and J6M..."
   "$SCRIPT_DIR/stop_dual_host.sh" || true
@@ -435,7 +552,12 @@ mkdir -p "$LOG_DIR"
 
 echo "[4/6] Starting the J6M ROS master/waiter..."
 ssh -o BatchMode=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=3 \
-  "$target" "$J6M_RUNTIME_BASE/dual_host/bin/start.sh" \
+  "$target" env \
+  STATIC_MAP_ENABLED="$STATIC_MAP_ENABLED" \
+  STATIC_MAP_FILE="${STATIC_MAP_FILE:-}" \
+  FAST_LIO_MAP_FILE="${FAST_LIO_MAP_FILE:-}" \
+  FAST_LIO_INITIAL_BODY_Z="${FAST_LIO_INITIAL_BODY_Z:-0.0}" \
+  "$J6M_RUNTIME_BASE/dual_host/bin/start.sh" \
   >"$LOG_DIR/j6m_ssh.log" 2>&1 &
 remote_ssh_pid=$!
 

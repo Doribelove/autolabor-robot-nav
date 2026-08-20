@@ -9,6 +9,7 @@
   <arg name="imu_topic" default="/livox/imu"/>
   <arg name="rviz_startup_fixed_frame" default="map"/>
   <arg name="rviz_navigation_fixed_frame" default="map"/>
+  <arg name="static_map_mode" default="false"/>
 
   <node pkg="autolabor_operator_gui"
         type="autolabor_operator_gui_node"
@@ -25,5 +26,6 @@
            value="$(arg rviz_startup_fixed_frame)"/>
     <param name="rviz_navigation_fixed_frame"
            value="$(arg rviz_navigation_fixed_frame)"/>
+    <param name="static_map_mode" value="$(arg static_map_mode)"/>
   </node>
 </launch>
