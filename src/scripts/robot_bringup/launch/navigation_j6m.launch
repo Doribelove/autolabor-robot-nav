@@ -48,6 +48,7 @@
       <param name="status_timeout" value="0.5"/>
       <param name="command_timeout" value="0.5"/>
     </node>
+    <include file="$(find autolabor_coverage)/launch/coverage.launch"/>
   </group>
 
   <group if="$(arg gps_geofence_enabled)">
@@ -78,6 +79,8 @@
     <rosparam if="$(eval arg('teb_profile_file') != '')" file="$(arg teb_profile_file)" command="load"/>
 
     <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
+    <param if="$(arg use_static_map)" name="base_global_planner"
+           value="autolabor_coverage/CoverageGlobalPlanner"/>
     <param name="controller_frequency" type="double" value="10.0"/>
     <param name="controller_patience" type="double" value="10.0"/>
     <param name="planner_frequency" type="double" value="$(arg planner_frequency)"/>

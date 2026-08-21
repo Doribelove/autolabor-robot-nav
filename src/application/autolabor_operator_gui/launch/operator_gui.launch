@@ -3,6 +3,8 @@
   <arg name="enable_rviz" default="true"/>
   <arg name="rviz_config"
        default="$(find autolabor_operator_gui)/config/operator_navigation.rviz"/>
+  <arg name="coverage_rviz_config"
+       default="$(find autolabor_operator_gui)/config/coverage_navigation.rviz"/>
   <arg name="navigation_mode_label" default="FAST_LIO"/>
   <arg name="odom_topic" default="/Odometry"/>
   <arg name="cloud_topic" default="/cloud_registered_body"/>
@@ -18,6 +20,7 @@
         required="true">
     <param name="enable_rviz" value="$(arg enable_rviz)"/>
     <param name="rviz_config" value="$(arg rviz_config)"/>
+    <param name="coverage_rviz_config" value="$(arg coverage_rviz_config)"/>
     <param name="navigation_mode_label" value="$(arg navigation_mode_label)"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="cloud_topic" value="$(arg cloud_topic)"/>

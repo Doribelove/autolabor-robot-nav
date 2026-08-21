@@ -15,6 +15,9 @@ GUI_HEADER = (
 RVIZ_CONFIG = (PACKAGE_ROOT / "config" / "operator_navigation.rviz").read_text(
     encoding="utf-8"
 )
+COVERAGE_RVIZ_CONFIG = (
+    PACKAGE_ROOT / "config" / "coverage_navigation.rviz"
+).read_text(encoding="utf-8")
 ALL_IN_ONE = WORKSPACE_ROOT / "scripts" / "operator_all_in_one.sh"
 ALL_IN_ONE_TEXT = ALL_IN_ONE.read_text(encoding="utf-8")
 FAST_LIO_ALL_IN_ONE = WORKSPACE_ROOT / "scripts" / "operator_fast_lio_all_in_one.sh"
@@ -30,6 +33,32 @@ VIEW_GLOBAL_MAP = WORKSPACE_ROOT / "scripts" / "view_global_map.sh"
 
 
 class OperatorGuiContractTest(unittest.TestCase):
+    def test_coverage_page_requires_static_map_and_supports_polygon_editing(self):
+        self.assertIn("buildCoveragePage()", GUI_SOURCE)
+        self.assertIn("框定覆盖清扫范围", GUI_SOURCE)
+        self.assertIn("确认区域并生成轨迹", GUI_SOURCE)
+        self.assertIn("取消框定", GUI_SOURCE)
+        self.assertIn("static_map_mode_ && data.map_received", GUI_SOURCE)
+        self.assertIn('"/coverage/clicked_point"', GUI_SOURCE)
+        self.assertIn('"/coverage/plan"', GUI_SOURCE)
+        self.assertIn('"/coverage/start"', GUI_SOURCE)
+        self.assertIn('"/coverage/set_paused"', GUI_SOURCE)
+        self.assertIn('"/coverage/cancel"', GUI_SOURCE)
+
+    def test_cleaning_rviz_shows_map_vehicle_and_coverage_paths(self):
+        for required in (
+            "Topic: /map",
+            "Topic: /coverage/planned_path",
+            "Topic: /coverage/executed_path",
+            "Marker Topic: /coverage/ui_markers",
+            "Marker Topic: /coverage/markers",
+            "Class: rviz/RobotModel",
+            "Topic: /coverage/clicked_point",
+            "Single click: false",
+            "Fixed Frame: map",
+        ):
+            self.assertIn(required, COVERAGE_RVIZ_CONFIG)
+
     def test_recording_and_three_map_mapping_are_independent(self):
         self.assertTrue(RECORD_ROSBAG.is_file())
         self.assertTrue(os.access(str(RECORD_ROSBAG), os.X_OK))

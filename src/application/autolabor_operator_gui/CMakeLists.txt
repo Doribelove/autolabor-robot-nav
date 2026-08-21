@@ -8,6 +8,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
+  autolabor_coverage
   autolabor_canbus_driver
   autolabor_fod_msgs
   diagnostic_msgs
@@ -31,6 +32,7 @@ find_package(Qt5 REQUIRED COMPONENTS
 catkin_package(
   CATKIN_DEPENDS
     actionlib_msgs
+    autolabor_coverage
     autolabor_canbus_driver
     autolabor_fod_msgs
     diagnostic_msgs

@@ -78,6 +78,27 @@ NVIDIA /nvidia_cmd_vel_watchdog（250 ms lease、0.3 m/s 上限）
 NVIDIA /m2_driver → USB-CAN → M2 底盘
 ```
 
+静态地图覆盖清扫在现有控制链上增加任务层，不旁路安全仲裁：
+
+```text
+Qt 清扫页（NVIDIA）
+  /coverage/clicked_point → 多边形 /coverage/plan
+        ↓
+J6M /coverage_manager
+  静态图裁剪 + 连通域 + 弓字扫描线 + 任务状态机
+        ├─ 转场目标 ── CoverageGlobalPlanner → Navfn
+        └─ 清扫分段 ── CoverageGlobalPlanner → 强制 /coverage/enforced_path
+                                ↓
+                         move_base + TEB
+                                ↓
+             原有 FOD 仲裁、跨机看门狗与 M2 控制链
+```
+
+`CoverageGlobalPlanner` 是 move_base 的全局规划插件：没有活动覆盖分段时委托 Navfn，
+活动清扫分段时只接受管理器发布且端点匹配的新鲜路径。路径过期且任务仍活动时保持
+fail-closed，不允许突然改走最短路。区域本身不是 geofence；转场由 Navfn 在完整已知
+自由地图中规划。覆盖管理器只在静态地图模式启动。
+
 `/fod_navigation_mode` 是 `/cmd_vel_safe` 的唯一发布者；NVIDIA 看门狗是 `/cmd_vel` 的唯一发布者。看门狗拒绝 NaN/Inf、非平面指令、超限指令、重复发布者、错误订阅者和过期命令。
 
 ## 运行位置
@@ -90,6 +111,7 @@ NVIDIA /m2_driver → USB-CAN → M2 底盘
 | 前后 LD19 驱动/初次融合 | 是 |  |
 | MID360 + LD19 避障融合 |  | 是 |
 | move_base + TEB |  | 是 |
+| 覆盖规划、任务状态机、全局规划插件 |  | 是 |
 | USB-CAN/M2 | 是 |  |
 | ZED、CUDA、YOLO | 是 |  |
 | FOD 速度仲裁 |  | 是 |

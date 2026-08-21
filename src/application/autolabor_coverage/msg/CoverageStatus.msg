@@ -1,0 +1,16 @@
+std_msgs/Header header
+string state
+string plan_id
+bool map_ready
+bool localized
+bool active
+bool paused
+uint32 current_segment
+uint32 total_segments
+uint32 blocked_segments
+float32 requested_area_m2
+float32 reachable_area_m2
+float32 unreachable_area_m2
+float32 traversed_area_m2
+float32 coverage_ratio
+string detail

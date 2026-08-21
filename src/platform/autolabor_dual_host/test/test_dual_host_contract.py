@@ -73,7 +73,12 @@ class DualHostContractTest(unittest.TestCase):
             self.assertIn(runtime_path, deploy)
         self.assertIn("./src/localization_fastlio/FAST_LIO", deploy)
         self.assertIn("./src/localization_fastlio/fast_lio_localization", deploy)
-        self.assertIn("fast_lio\\\\;fast_lio_localization\\\\;robot_bringup", deploy)
+        self.assertIn(
+            "fast_lio\\\\;fast_lio_localization\\\\;autolabor_coverage\\\\;robot_bringup",
+            deploy,
+        )
+        self.assertIn("./src/application/autolabor_coverage", deploy)
+        self.assertIn("rospack find autolabor_coverage", deploy)
         self.assertNotIn("./lib/amcl", deploy)
         self.assertIn("rospack find map_server", deploy)
         self.assertIn("ldd /opt/autolabor/dual_host/releases/", deploy)
