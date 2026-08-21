@@ -32,7 +32,8 @@ class FusionMathTest(unittest.TestCase):
         self.ranges = [math.inf] * 720
         self.intensities = [0.0] * 720
 
-    def add(self, scan, x=0.0, y=0.0, yaw=0.0, self_crop=None):
+    def add(self, scan, x=0.0, y=0.0, yaw=0.0, self_crop=None,
+            fov_center=None, fov_width=2.0 * math.pi):
         MODULE.add_scan_to_bins(
             scan,
             x,
@@ -43,6 +44,8 @@ class FusionMathTest(unittest.TestCase):
             self.ranges,
             self.intensities,
             self_crop,
+            fov_center,
+            fov_width,
         )
 
     def test_translation_and_rotation(self):
@@ -68,7 +71,7 @@ class FusionMathTest(unittest.TestCase):
         # sensor transform it lies at x=0.52 inside the chassis envelope.
         self.add(
             one_point_scan(math.pi / 2.0, 0.05),
-            x=0.47,
+            x=0.46,
             yaw=-math.pi / 2.0,
             self_crop=crop,
         )
@@ -78,11 +81,33 @@ class FusionMathTest(unittest.TestCase):
         crop = (-0.75, 0.75, -0.50, 0.50)
         self.add(
             one_point_scan(math.pi / 2.0, 0.50),
-            x=0.47,
+            x=0.46,
             yaw=-math.pi / 2.0,
             self_crop=crop,
         )
-        self.assertAlmostEqual(self.ranges[360], 0.97, places=6)
+        self.assertAlmostEqual(self.ranges[360], 0.96, places=6)
+
+    def test_front_fov_keeps_forward_and_rejects_side_return(self):
+        self.add(
+            one_point_scan(0.0, 2.0),
+            fov_center=0.0,
+            fov_width=math.radians(120.0),
+        )
+        self.add(
+            one_point_scan(math.pi / 2.0, 2.0),
+            fov_center=0.0,
+            fov_width=math.radians(120.0),
+        )
+        self.assertAlmostEqual(self.ranges[360], 2.0, places=6)
+        self.assertTrue(math.isinf(self.ranges[540]))
+
+    def test_rear_fov_keeps_backward_return(self):
+        self.add(
+            one_point_scan(math.pi, 2.0),
+            fov_center=math.pi,
+            fov_width=math.radians(120.0),
+        )
+        self.assertAlmostEqual(self.ranges[0], 2.0, places=6)
 
 
 if __name__ == "__main__":

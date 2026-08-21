@@ -45,6 +45,8 @@ class SparseOccupancyMapperTest(unittest.TestCase):
             max_range=10.0,
             free_space_range=5.0,
             base_offset_x=0.0,
+            base_offset_y=0.0,
+            self_crop=None,
         )
         self.assertTrue(mapper.integrate_scan(scan([3.0], angle_min=0.0), 0.0, 0.0, 0.0))
         self.assertLess(mapper.cells[(1, 0)], 0.0)
@@ -60,12 +62,41 @@ class SparseOccupancyMapperTest(unittest.TestCase):
             max_range=10.0,
             free_space_range=5.0,
             base_offset_x=-0.5,
+            base_offset_y=0.0,
+            self_crop=None,
         )
         mapper.integrate_scan(scan([1.0], angle_min=0.0), 2.0, 3.0, math.pi / 2.0)
         # body=(2,3), base=(2,2.5), one metre forward at yaw=+90 -> (2,3.5)
         self.assertGreater(mapper.cells[(4, 7)], 0.0)
         self.assertAlmostEqual(2.0, mapper.final_base_pose[0])
         self.assertAlmostEqual(2.5, mapper.final_base_pose[1])
+
+    def test_front_rear_visibility_rejects_side_beams(self):
+        mapper = MODULE.SparseOccupancyMapper(
+            resolution=0.5,
+            beam_stride=1,
+            scan_stride=1,
+            front_rear_fov_deg=120.0,
+            self_crop=None,
+        )
+        mapper.integrate_scan(
+            scan([2.0, 2.0, 2.0], angle_min=0.0, increment=math.pi / 2.0),
+            0.0, 0.0, 0.0,
+        )
+        self.assertGreater(mapper.cells[(3, -1)], 0.0)
+        self.assertNotIn((-1, 3), mapper.cells)
+
+    def test_historical_scan_self_returns_are_removed(self):
+        mapper = MODULE.SparseOccupancyMapper(
+            resolution=0.1,
+            beam_stride=1,
+            scan_stride=1,
+            base_offset_x=0.0,
+            base_offset_y=0.0,
+            front_rear_fov_deg=360.0,
+        )
+        self.assertFalse(mapper.integrate_scan(
+            scan([0.4], angle_min=0.0), 0.0, 0.0, 0.0))
 
     def test_save_produces_map_server_files(self):
         mapper = MODULE.SparseOccupancyMapper(
@@ -76,6 +107,8 @@ class SparseOccupancyMapperTest(unittest.TestCase):
             max_range=10.0,
             free_space_range=5.0,
             base_offset_x=0.0,
+            base_offset_y=0.0,
+            self_crop=None,
         )
         mapper.integrate_scan(scan([2.0], angle_min=0.0), 0.0, 0.0, 0.0)
         with tempfile.TemporaryDirectory() as output_dir:
@@ -90,6 +123,30 @@ class SparseOccupancyMapperTest(unittest.TestCase):
             self.assertEqual(1, metadata["integrated_scans"])
             self.assertEqual("/dual_lidar/scan", metadata["scan_topic"])
             self.assertEqual("dual_ld19_only", metadata["occupancy_source"])
+            self.assertEqual(5, metadata["min_occupied_observations"])
+            self.assertEqual(1, metadata["transient_occupied_cells_filtered"])
+
+    def test_occupied_cell_requires_distinct_scan_observations(self):
+        mapper = MODULE.SparseOccupancyMapper(
+            resolution=0.5,
+            beam_stride=1,
+            scan_stride=1,
+            min_range=0.1,
+            max_range=10.0,
+            free_space_range=5.0,
+            base_offset_x=0.0,
+            base_offset_y=0.0,
+            self_crop=None,
+            min_occupied_observations=3,
+        )
+        for _ in range(3):
+            mapper.integrate_scan(scan([2.0], angle_min=0.0), 0.0, 0.0, 0.0)
+        self.assertEqual(3, mapper.occupied_observations[(4, 0)])
+        with tempfile.TemporaryDirectory() as output_dir:
+            result = mapper.save(output_dir, padding_m=0.5)
+            metadata = yaml.safe_load(pathlib.Path(result["metadata"]).read_text())
+            self.assertEqual(1, metadata["occupied_cells"])
+            self.assertEqual(0, metadata["transient_occupied_cells_filtered"])
 
     def test_quaternion_yaw(self):
         quaternion = Quaternion(z=math.sin(math.pi / 4.0), w=math.cos(math.pi / 4.0))

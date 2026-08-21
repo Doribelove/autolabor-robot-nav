@@ -186,6 +186,22 @@ ping -I "$NVIDIA_J6M_INTERFACE" -c 3 -W 1 "$J6M_IP" >/dev/null
 
 cleanup_j6m_host_route
 
+bind_profile_to_hardware() {
+  local connection="$1" interface="$2" mac="$3"
+  if [[ -n "$mac" ]]; then
+    # USB Ethernet interface names can change after a reboot.  Leave the
+    # transient ethN name unset and let NetworkManager match the permanent MAC.
+    nmcli connection modify "$connection" \
+      connection.interface-name "" \
+      connection.autoconnect yes \
+      802-3-ethernet.mac-address "$mac"
+  else
+    nmcli connection modify "$connection" \
+      connection.interface-name "$interface" \
+      connection.autoconnect yes
+  fi
+}
+
 connection="$NVIDIA_J6M_CONNECTION"
 if ! nmcli -t -f NAME connection show | grep -Fxq "$connection"; then
   connection="$(nmcli -t -f NAME,DEVICE connection show --active |
@@ -196,14 +212,14 @@ fi
   exit 5
 }
 
+bind_profile_to_hardware "$connection" "$NVIDIA_J6M_INTERFACE" "$NVIDIA_J6M_MAC"
 nmcli connection modify "$connection" \
-  connection.interface-name "$NVIDIA_J6M_INTERFACE" \
   ipv4.method manual \
   ipv4.addresses "$NVIDIA_J6M_IP/24" \
   ipv4.never-default yes \
   ipv4.gateway "" \
   ipv6.method disabled
-nmcli connection up "$connection"
+nmcli connection up "$connection" ifname "$NVIDIA_J6M_INTERFACE"
 
 ping -I "$NVIDIA_J6M_INTERFACE" -c 5 -W 1 "$J6M_IP" >/dev/null
 
@@ -220,14 +236,14 @@ if ! nmcli -t -f NAME connection show | grep -Fxq "$NVIDIA_LIVOX_CONNECTION"; th
       con-name "$NVIDIA_LIVOX_CONNECTION"
   fi
 fi
+bind_profile_to_hardware "$NVIDIA_LIVOX_CONNECTION" "$NVIDIA_LIVOX_INTERFACE" "$NVIDIA_LIVOX_MAC"
 nmcli connection modify "$NVIDIA_LIVOX_CONNECTION" \
-  connection.interface-name "$NVIDIA_LIVOX_INTERFACE" \
   ipv4.method manual \
   ipv4.addresses "$NVIDIA_LIVOX_IP/24" \
   ipv4.never-default yes \
   ipv4.gateway "" \
   ipv6.method disabled
-nmcli connection up "$NVIDIA_LIVOX_CONNECTION"
+nmcli connection up "$NVIDIA_LIVOX_CONNECTION" ifname "$NVIDIA_LIVOX_INTERFACE"
 
 sensor_route="$(ip route get "$MID360_IP" | awk '{for (i=1; i<=NF; ++i) if ($i == "dev") {print $(i+1); exit}}')"
 [[ "$sensor_route" == "$NVIDIA_LIVOX_INTERFACE" ]] || {

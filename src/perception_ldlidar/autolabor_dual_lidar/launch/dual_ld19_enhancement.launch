@@ -2,8 +2,8 @@
 <launch>
   <arg name="front_port" default="/dev/serial/by-path/platform-3610000.xhci-usb-0:4.4:1.0-port0" />
   <arg name="rear_port" default="/dev/serial/by-path/platform-3610000.xhci-usb-0:4.3:1.0-port0" />
-  <arg name="lidar_center_distance_m" default="0.94" />
-  <arg name="target_frame" default="body" />
+  <arg name="lidar_center_distance_m" default="0.92" />
+  <arg name="target_frame" default="base_link" />
   <arg name="mid_cloud_topic" default="/cloud_registered_body" />
   <arg name="enhanced_cloud_topic" default="/cloud_registered_body_enhanced" />
   <arg name="lidar_z" default="0.0" />
@@ -35,4 +35,3 @@
     <param name="scan_timeout" value="$(arg scan_timeout)" />
   </node>
 </launch>
-

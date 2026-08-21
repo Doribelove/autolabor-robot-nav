@@ -8,10 +8,12 @@
 - 原双机版本的启动前单元、ROS 集成和安全链共 377 项测试通过，0 失败；本次新增
   `fast_lio_localization` 已单独通过编译、22 项相关测试和现有 bag 重放验证。
 - J6M Ubuntu 20.04/ROS Noetic chroot 已存在于 `/map/autolabor_runtime/rootfs`。
-- J6M 版本 `20260820_141651` 已部署并通过静态及实机运行健康检查。
+- J6M 版本 `20260821_135316` 已部署并通过远端静态健康检查。
 - 两机 ROS 普通消息和 Livox 自定义消息已在当前临时网段双向验证。
 - J6M relay、FAST-LIO、避障融合、增强点云、move_base 与 FOD 仲裁已在实机数据流中完整拉起，并通过连续启停清理验证。
-- 三地图建图和地图同步已完成实机静止验证；已知三维图定位改为 FAST-LIO 高频里程计加低频多尺度 ICP，并已通过 bag 重放验证。尚未部署本次定位更新，也未用完整场地图执行路线行驶验收。
+- 三地图建图、跨帧静态过滤和地图同步已完成 bag 验证；当前 `latest` 为
+  `map_20260821_filtered_final`，并已同步到 J6M。已知三维图定位采用 FAST-LIO
+  高频里程计加低频多尺度 ICP；尚未用本次地图执行路线行驶验收。
 
 ## 机器分工
 
@@ -31,7 +33,9 @@ MID360/LD19 避障融合、map_server、move_base + TEB、FOD 安全仲裁。
 3. USB-CAN、前 LD19、后 LD19 均连接 NVIDIA。
 4. 用 VS Code 编辑 [dual_host.env](/home/slam/robot_j6m_ws/config/dual_host.env)，不要猜串口。
 
-当前 MID360 安装外参以底盘 `base_link` 为参考：X 向车头 `+0.20 m`、Y 为 `0.0 m`、Z 为 `+0.90 m`，姿态与车体同向。更换安装位置后应同步修改 `dual_host.env` 中的 `MID360_SENSOR_X/Y/Z`，再重新部署并重启 J6M 栈。
+当前 MID360 安装外参以底盘 `base_link` 为参考：X 向车头 `+0.20 m`、Y 为 `0.0 m`、Z 为 `+1.00 m`，姿态与车体同向。前后 LD19 分别位于
+`(+0.46, 0, 0.20) m` 和 `(-0.46, 0, 0.20) m`，各自只保留朝车外的
+`120°` 有效视场。更换安装位置后应同步修改 `dual_host.env` 中的外参，再重新部署并重启 J6M 栈。
 
 导航避障点云当前会删除 `base_link` 中 `X=[-0.75,+0.75] m`、`Y=[-0.50,+0.50] m` 的 `1.5×1.0 m` 车体矩形内部点（含边界），保留矩形外且符合原有 `0.5–12.0 m` 距离和高度条件的点。矩形过滤在 MID360 外参变换之后执行，因此已包含雷达相对底盘前移 `0.20 m` 的偏置。范围由 `MID360_CROP_*` 配置控制。
 
@@ -144,8 +148,9 @@ fast_lio_localization + map_3d/map.pcd --> map -> camera_init
 也可以从命令行发布初值。以下示例仅适用于车辆回到该地图的建图起点、车头方向与
 建图开始时一致的情况。`/initialpose` 表示 `base_link` 的位姿，定位器会根据
 `MID360_SENSOR_X/Y` 自动换算到 FAST-LIO 的 `body`，因此不要手工减去雷达安装偏置。
-当前地图集 `map_20260820_160221` 记录的首帧底盘位姿约为
-`(0.019, -0.023, 0.003 rad)`，现场已验证可以直接发送 `(0, 0, 0)`：
+当前地图集 `map_20260821_filtered_final` 记录的首帧底盘位姿约为
+`(-0.180, -0.047, 0.0015 rad)`；车辆确实位于建图起点附近且车头方向一致时，可以
+发送近似初值 `(0, 0, 0)`：
 
 ```bash
 rostopic pub -1 /initialpose geometry_msgs/PoseWithCovarianceStamped \
@@ -257,9 +262,9 @@ cd /home/slam/robot_j6m_ws
 ```text
 global_maps/map_sets/map_<时间>/
 ├── manifest.yaml
-├── map_3d/       # MID360 /cloud_registered 体素 PCD，供三维重定位
-├── map_2d/       # 只使用前后 LD19 的 PGM/YAML
-└── map_fused_2d/ # LD19 占据图与 MID360 指定高度切片的占据并集
+├── map_3d/       # MID360 /cloud_registered 跨帧体素 PCD，供三维重定位
+├── map_2d/       # 前后 LD19 跨帧确认后的 PGM/YAML
+└── map_fused_2d/ # LD19 占据图与 MID360 持久高度切片的占据并集
 ```
 
 只有三类地图全部保存并且 `manifest.yaml` 标记为 `complete` 后，
@@ -275,7 +280,18 @@ Qt 的“开始录包”与“录入静态地图”是两个独立功能：“�
 ```
 
 二维原始图严格只使用 `/dual_lidar/scan`；FAST-LIO `/Odometry` 只负责放置扫描。
-MID360 数据只进入三维 PCD，并在停止建图后通过指定高度带投影加入融合二维图。
+历史虚拟 360° scan 会再次按前向/后向各 `120°` 截取，并删除车体矩形内的自反射。
+某个 LD19 栅格至少需要在 5 个不同的已积分扫描帧中被命中，才会保存为静态障碍。
+
+MID360 数据进入三维 PCD 前会按 FAST-LIO `/Odometry` 限制为车体周围 `20 m`，三维
+体素至少需要在 3 个不同点云帧中出现。融合二维图不是直接投影整张 PCD，而是在
+FAST-LIO 的 `camera_init`/地图坐标中截取 `Z=-0.756±0.10 m`：这个高度来自
+`base_link -> body ≈ (0.211, 0.02329, 0.95588) m` 和 LD19 离地 `0.20 m`，即
+LD19 扫描平面相对 FAST-LIO 的 IMU `body` 原点约为 `-0.756 m`。该二维栅格还必须
+在至少 20 个不同 MID360 点云帧中出现才参与并集，因此跟车行人、飞点和单帧远点
+不会直接固化为全局地图。若雷达高度、FAST-LIO 内部激光到 IMU 外参或建图初始姿态
+发生变化，必须同步重算 `MAPPING_SLICE_CENTER_Z`；建图起点应位于水平地面并保持车体
+姿态正常。
 
 ## 关键退化行为
 

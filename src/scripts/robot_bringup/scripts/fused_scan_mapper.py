@@ -14,6 +14,7 @@ The saved map follows the ROS map_server PGM/YAML convention.
 """
 
 import argparse
+import collections
 import datetime
 import math
 import os
@@ -74,8 +75,11 @@ class SparseOccupancyMapper:
         min_range=0.10,
         max_range=12.0,
         free_space_range=8.0,
-        base_offset_x=-0.20,
-        base_offset_y=0.0,
+        base_offset_x=-0.211,
+        base_offset_y=-0.02329,
+        front_rear_fov_deg=120.0,
+        self_crop=(-0.75, 0.75, -0.50, 0.50),
+        min_occupied_observations=5,
         free_log_odds=-0.35,
         occupied_log_odds=0.85,
         min_log_odds=-4.0,
@@ -89,6 +93,14 @@ class SparseOccupancyMapper:
             raise ValueError("invalid min_range/max_range")
         if free_space_range <= min_range or free_space_range > max_range:
             raise ValueError("free_space_range must be within mapper range")
+        if front_rear_fov_deg <= 0.0 or front_rear_fov_deg > 360.0:
+            raise ValueError("front_rear_fov_deg must be within (0, 360]")
+        if (self_crop is not None and
+                (len(self_crop) != 4 or self_crop[0] >= self_crop[1] or
+                 self_crop[2] >= self_crop[3])):
+            raise ValueError("invalid self-crop rectangle")
+        if min_occupied_observations < 1:
+            raise ValueError("min_occupied_observations must be positive")
         self.resolution = float(resolution)
         self.beam_stride = int(beam_stride)
         self.scan_stride = int(scan_stride)
@@ -97,11 +109,19 @@ class SparseOccupancyMapper:
         self.free_space_range = float(free_space_range)
         self.base_offset_x = float(base_offset_x)
         self.base_offset_y = float(base_offset_y)
+        self.front_rear_fov = math.radians(float(front_rear_fov_deg))
+        self.front_rear_fov_deg = float(front_rear_fov_deg)
+        self.self_crop = self_crop
+        self.min_occupied_observations = int(min_occupied_observations)
         self.free_log_odds = float(free_log_odds)
         self.occupied_log_odds = float(occupied_log_odds)
         self.min_log_odds = float(min_log_odds)
         self.max_log_odds = float(max_log_odds)
         self.cells = {}
+        # Count distinct integrated scans, not raw beams. A moving person may
+        # create many adjacent endpoints in one scan, but that must still be
+        # only one observation of each candidate static cell.
+        self.occupied_observations = collections.Counter()
         self.scan_messages = 0
         self.integrated_scans = 0
         self.integrated_beams = 0
@@ -119,6 +139,19 @@ class SparseOccupancyMapper:
         self.cells[cell] = min(
             self.max_log_odds,
             max(self.min_log_odds, previous + increment),
+        )
+
+    @staticmethod
+    def _angle_distance(first, second):
+        return abs((first - second + math.pi) % (2.0 * math.pi) - math.pi)
+
+    def _bearing_is_visible(self, bearing):
+        if self.front_rear_fov >= 2.0 * math.pi - 1e-9:
+            return True
+        half = 0.5 * self.front_rear_fov
+        return (
+            self._angle_distance(bearing, 0.0) <= half or
+            self._angle_distance(bearing, math.pi) <= half
         )
 
     def integrate_scan(self, scan, pose_x, pose_y, pose_yaw):
@@ -149,9 +182,13 @@ class SparseOccupancyMapper:
 
         beams = 0
         endpoints = 0
+        observed_endpoint_cells = set()
         sensor_min = max(self.min_range, float(scan.range_min))
         sensor_max = min(self.max_range, float(scan.range_max))
         for index in range(0, len(scan.ranges), self.beam_stride):
+            scan_angle = scan.angle_min + index * scan.angle_increment
+            if not self._bearing_is_visible(scan_angle):
+                continue
             measured_range = float(scan.ranges[index])
             hit = math.isfinite(measured_range)
             if hit:
@@ -162,6 +199,12 @@ class SparseOccupancyMapper:
                     hit = False
                 else:
                     ray_range = measured_range
+                    if self.self_crop is not None:
+                        local_x = ray_range * math.cos(scan_angle)
+                        local_y = ray_range * math.sin(scan_angle)
+                        if (self.self_crop[0] <= local_x <= self.self_crop[1] and
+                                self.self_crop[2] <= local_y <= self.self_crop[3]):
+                            continue
             elif math.isinf(measured_range) and measured_range > 0.0:
                 ray_range = self.free_space_range
             else:
@@ -169,7 +212,7 @@ class SparseOccupancyMapper:
 
             if not hit:
                 ray_range = min(ray_range, self.free_space_range)
-            angle = pose_yaw + scan.angle_min + index * scan.angle_increment
+            angle = pose_yaw + scan_angle
             end_x = origin_x + ray_range * math.cos(angle)
             end_y = origin_y + ray_range * math.sin(angle)
             end_cell = (self._cell(end_x), self._cell(end_y))
@@ -182,10 +225,12 @@ class SparseOccupancyMapper:
                 self._update(cell, self.free_log_odds)
             if hit:
                 self._update(end_cell, self.occupied_log_odds)
+                observed_endpoint_cells.add(end_cell)
                 endpoints += 1
             beams += 1
 
         if beams:
+            self.occupied_observations.update(observed_endpoint_cells)
             self.integrated_scans += 1
             self.integrated_beams += beams
             self.occupied_endpoints += endpoints
@@ -220,11 +265,17 @@ class SparseOccupancyMapper:
         pixels = bytearray([UNKNOWN_PIXEL]) * (width * height)
         occupied_cells = 0
         free_cells = 0
+        transient_occupied_cells = 0
         for (cell_x, cell_y), log_odds in self.cells.items():
             probability = self.probability(log_odds)
             if probability >= 0.65:
-                pixel = OCCUPIED_PIXEL
-                occupied_cells += 1
+                if (self.occupied_observations[(cell_x, cell_y)] >=
+                        self.min_occupied_observations):
+                    pixel = OCCUPIED_PIXEL
+                    occupied_cells += 1
+                else:
+                    transient_occupied_cells += 1
+                    continue
             elif probability <= 0.35:
                 pixel = FREE_PIXEL
                 free_cells += 1
@@ -276,10 +327,14 @@ class SparseOccupancyMapper:
             "integrated_beams": self.integrated_beams,
             "occupied_endpoints": self.occupied_endpoints,
             "occupied_cells": occupied_cells,
+            "transient_occupied_cells_filtered": transient_occupied_cells,
+            "min_occupied_observations": self.min_occupied_observations,
             "free_cells": free_cells,
             "skipped_pose_age": self.skipped_pose_age,
             "frame_rejections": self.frame_rejections,
             "base_offset_xy_m": [self.base_offset_x, self.base_offset_y],
+            "front_rear_fov_deg": self.front_rear_fov_deg,
+            "self_crop_xy_m": list(self.self_crop) if self.self_crop else None,
             "first_base_pose_xyyaw": self.first_base_pose,
             "final_base_pose_xyyaw": self.final_base_pose,
             "beam_stride": self.beam_stride,
@@ -310,6 +365,14 @@ def mapper_from_arguments(arguments):
         free_space_range=arguments.free_space_range,
         base_offset_x=arguments.base_offset_x,
         base_offset_y=arguments.base_offset_y,
+        front_rear_fov_deg=arguments.front_rear_fov_deg,
+        self_crop=(
+            arguments.self_crop_min_x,
+            arguments.self_crop_max_x,
+            arguments.self_crop_min_y,
+            arguments.self_crop_max_y,
+        ) if arguments.self_crop else None,
+        min_occupied_observations=arguments.min_occupied_observations,
     )
 
 
@@ -496,8 +559,17 @@ def parse_arguments(argv=None):
     parser.add_argument("--min-range", type=float, default=0.10)
     parser.add_argument("--max-range", type=float, default=12.0)
     parser.add_argument("--free-space-range", type=float, default=8.0)
-    parser.add_argument("--base-offset-x", type=float, default=-0.20)
-    parser.add_argument("--base-offset-y", type=float, default=0.0)
+    parser.add_argument("--base-offset-x", type=float, default=-0.211)
+    parser.add_argument("--base-offset-y", type=float, default=-0.02329)
+    parser.add_argument("--front-rear-fov-deg", type=float, default=120.0)
+    crop = parser.add_mutually_exclusive_group()
+    crop.add_argument("--self-crop", dest="self_crop", action="store_true", default=True)
+    crop.add_argument("--no-self-crop", dest="self_crop", action="store_false")
+    parser.add_argument("--self-crop-min-x", type=float, default=-0.75)
+    parser.add_argument("--self-crop-max-x", type=float, default=0.75)
+    parser.add_argument("--self-crop-min-y", type=float, default=-0.50)
+    parser.add_argument("--self-crop-max-y", type=float, default=0.50)
+    parser.add_argument("--min-occupied-observations", type=int, default=5)
     parser.add_argument("--max-pose-age", type=float, default=0.20)
     parser.add_argument("--padding", type=float, default=1.0)
     return parser.parse_args(argv)

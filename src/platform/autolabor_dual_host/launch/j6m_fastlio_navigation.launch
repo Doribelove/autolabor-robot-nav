@@ -11,7 +11,10 @@
   <arg name="max_linear_speed_backwards" default="0.30"/>
   <arg name="mid360_sensor_x" default="0.20"/>
   <arg name="mid360_sensor_y" default="0.0"/>
-  <arg name="mid360_sensor_z" default="0.9"/>
+  <arg name="mid360_sensor_z" default="1.0"/>
+  <arg name="fast_lio_lidar_in_body_x" default="-0.011"/>
+  <arg name="fast_lio_lidar_in_body_y" default="-0.02329"/>
+  <arg name="fast_lio_lidar_in_body_z" default="0.04412"/>
   <arg name="mid360_crop_enabled" default="true"/>
   <arg name="mid360_crop_min_x" default="-0.75"/>
   <arg name="mid360_crop_max_x" default="0.75"/>
@@ -39,14 +42,16 @@
     <!-- Known-map mode still keeps this original FAST-LIO odometry unchanged.
          The separate localizer below estimates map -> camera_init. -->
     <!-- fast_lio.launch publishes body -> base_link, hence the inverse translation. -->
-    <arg name="body_tf_x" value="$(eval -float(arg('mid360_sensor_x')))"/>
+    <arg name="body_tf_x" value="$(eval -(float(arg('mid360_sensor_x')) - float(arg('fast_lio_lidar_in_body_x'))))"/>
+    <arg name="body_tf_y" value="$(eval -(float(arg('mid360_sensor_y')) - float(arg('fast_lio_lidar_in_body_y'))))"/>
+    <arg name="body_tf_z" value="$(eval -(float(arg('mid360_sensor_z')) - float(arg('fast_lio_lidar_in_body_z'))))"/>
   </include>
 
   <group if="$(arg use_static_map)">
     <include file="$(find fast_lio_localization)/launch/known_map_localization.launch">
       <arg name="map_file" value="$(arg fast_lio_map_file)"/>
-      <arg name="base_to_body_x" value="$(arg mid360_sensor_x)"/>
-      <arg name="base_to_body_y" value="$(arg mid360_sensor_y)"/>
+      <arg name="base_to_body_x" value="$(eval float(arg('mid360_sensor_x')) - float(arg('fast_lio_lidar_in_body_x')))"/>
+      <arg name="base_to_body_y" value="$(eval float(arg('mid360_sensor_y')) - float(arg('fast_lio_lidar_in_body_y')))"/>
       <arg name="initial_body_z" value="$(arg fast_lio_initial_body_z)"/>
     </include>
   </group>

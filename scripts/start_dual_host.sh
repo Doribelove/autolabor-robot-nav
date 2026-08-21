@@ -497,20 +497,29 @@ wait_for_interface() {
 
 activate_network_profile() {
   local connection="$1" interface="$2" mac="$3" label="$4" address="$5"
-  local profile_interface profile_mac
+  local profile_interface profile_mac profile_autoconnect
   profile_interface="$(nmcli -g connection.interface-name connection show "$connection" 2>/dev/null || true)"
   profile_mac="$(nmcli -g 802-3-ethernet.mac-address connection show "$connection" 2>/dev/null || true)"
+  profile_autoconnect="$(nmcli -g connection.autoconnect connection show "$connection" 2>/dev/null || true)"
   if [[ -n "$mac" &&
-        ( "$profile_interface" != "$interface" || "${profile_mac,,}" != "${mac,,}" ) ]]; then
-    echo "Updating $label profile binding to $interface (${mac^^})..."
+        ( -n "$profile_interface" || "${profile_mac,,}" != "${mac,,}" ||
+          "$profile_autoconnect" != "yes" ) ]]; then
+    echo "Updating $label profile binding to permanent MAC ${mac^^}..."
+    nmcli connection modify "$connection" \
+      connection.interface-name "" \
+      connection.autoconnect yes \
+      802-3-ethernet.mac-address "$mac"
+  elif [[ -z "$mac" &&
+          ( "$profile_interface" != "$interface" || "$profile_autoconnect" != "yes" ) ]]; then
+    echo "Updating $label profile binding to $interface..."
     nmcli connection modify "$connection" \
       connection.interface-name "$interface" \
-      802-3-ethernet.mac-address "$mac"
+      connection.autoconnect yes
   fi
   if ! ip -o -4 address show dev "$interface" 2>/dev/null |
        awk '{print $4}' | grep -Fxq "$address/24"; then
     echo "Activating $label profile $connection on $interface..."
-    nmcli connection up "$connection" >/dev/null
+    nmcli connection up "$connection" ifname "$interface" >/dev/null
   fi
 }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <!-- Measured on this M2 between the two lidar rotation centres. -->
-  <arg name="lidar_center_distance_m" default="0.94" />
+  <arg name="lidar_center_distance_m" default="0.92" />
 
   <arg name="front_port" default="/dev/serial/by-path/platform-3610000.xhci-usb-0:4.4:1.0-port0" />
   <arg name="rear_port" default="/dev/serial/by-path/platform-3610000.xhci-usb-0:4.3:1.0-port0" />
@@ -18,15 +18,20 @@
   <arg name="self_crop_min_y" default="-0.50" />
   <arg name="self_crop_max_y" default="0.50" />
 
-  <!-- M2 mounting observation: both LD19 local +Y axes point toward the nearest end. -->
+  <!-- Measured mounting convention: both LD19 units use the same local-axis yaw.
+       Their different outward sectors are selected in target-frame coordinates below. -->
   <arg name="front_x" default="$(eval float(arg('lidar_center_distance_m')) / 2.0)" />
   <arg name="front_y" default="0.0" />
-  <arg name="front_z" default="0.18" />
+  <arg name="front_z" default="0.20" />
   <arg name="front_yaw" default="-1.5707963267948966" />
   <arg name="rear_x" default="$(eval -float(arg('lidar_center_distance_m')) / 2.0)" />
   <arg name="rear_y" default="0.0" />
-  <arg name="rear_z" default="0.18" />
+  <arg name="rear_z" default="0.20" />
   <arg name="rear_yaw" default="-1.5707963267948966" />
+  <!-- Useful vehicle-frame visibility: front faces +X, rear faces -X. -->
+  <arg name="lidar_fov_deg" default="120.0" />
+  <arg name="front_fov_center" default="0.0" />
+  <arg name="rear_fov_center" default="3.141592653589793" />
 
   <arg name="publish_static_tf" default="true" />
   <arg name="start_rviz" default="false" />
@@ -71,6 +76,9 @@
     <param name="rear_x" value="$(arg rear_x)" />
     <param name="rear_y" value="$(arg rear_y)" />
     <param name="rear_yaw" value="$(arg rear_yaw)" />
+    <param name="lidar_fov_deg" value="$(arg lidar_fov_deg)" />
+    <param name="front_fov_center" value="$(arg front_fov_center)" />
+    <param name="rear_fov_center" value="$(arg rear_fov_center)" />
     <param name="self_crop_enabled" value="$(arg self_crop_enabled)" />
     <param name="self_crop_min_x" value="$(arg self_crop_min_x)" />
     <param name="self_crop_max_x" value="$(arg self_crop_max_x)" />

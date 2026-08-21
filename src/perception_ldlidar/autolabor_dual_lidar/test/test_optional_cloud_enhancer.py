@@ -141,9 +141,9 @@ class OptionalCloudEnhancerContract(unittest.TestCase):
         points = list(point_cloud2.read_points(
             output, field_names=("x", "y", "z", "intensity"), skip_nans=True))
         self.assertEqual(len(points), 2)
-        self.assertAlmostEqual(points[1][0], 1.0, places=5)
-        self.assertAlmostEqual(points[1][1], 0.0, places=5)
-        self.assertAlmostEqual(points[1][2], -0.6, places=5)
+        self.assertAlmostEqual(points[1][0], 0.789, places=5)
+        self.assertAlmostEqual(points[1][1], -0.02329, places=5)
+        self.assertAlmostEqual(points[1][2], -0.95588, places=5)
         self.assertAlmostEqual(points[1][3], 9.0, places=5)
         self.wait_status(True)
 
