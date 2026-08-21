@@ -94,6 +94,7 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         self.assertIn("map_fused_2d/map.yaml", sync)
         self.assertIn("runtime/run/map_mode.env", health)
         self.assertIn("runtime_nodes+=(/map_server /fast_lio_map_localizer", health)
+        self.assertIn("/coverage_manager", health)
 
 
 if __name__ == "__main__":

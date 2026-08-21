@@ -27,6 +27,7 @@ class MoveBasePauseBridge:
         self.paused = False
         self.retained_pose = None
         self.retained_goal_id = ""
+        self.coverage_active = False
 
         self.cancel_pub = rospy.Publisher(self.cancel_topic, GoalID, queue_size=5)
         self.goal_pub = rospy.Publisher(
@@ -39,6 +40,9 @@ class MoveBasePauseBridge:
             MoveBaseActionGoal,
             self._goal_callback,
             queue_size=10,
+        )
+        self.coverage_sub = rospy.Subscriber(
+            "/coverage/active", Bool, self._coverage_callback, queue_size=5
         )
         self.service = rospy.Service("~set_paused", SetBool, self._set_paused)
         self._publish_status("ready")
@@ -58,6 +62,11 @@ class MoveBasePauseBridge:
             self.retained_goal_id = str(message.goal_id.id)
         self._publish_status("navigation goal retained")
 
+    def _coverage_callback(self, message):
+        with self.lock:
+            self.coverage_active = bool(message.data)
+        self._publish_status("coverage activity changed")
+
     def _publish_cancel_all(self):
         cancel = GoalID()
         cancel.stamp = rospy.Time()
@@ -76,7 +85,12 @@ class MoveBasePauseBridge:
                 self._publish_cancel_all()
                 message = "move_base goal canceled and retained"
             else:
-                if self.reissue_on_resume and self.retained_pose is not None:
+                # Coverage owns its segment state and must reissue the exact
+                # enforced swath after a safety pause.  Republishing only the
+                # retained endpoint here would race that state machine and can
+                # briefly produce an unconstrained shortest path.
+                if (self.reissue_on_resume and not self.coverage_active and
+                        self.retained_pose is not None):
                     reissue = copy.deepcopy(self.retained_pose)
                     reissue.header.stamp = rospy.Time.now()
                     message = "retained move_base target reissued"
@@ -95,6 +109,7 @@ class MoveBasePauseBridge:
                 "retained_goal_id": self.retained_goal_id,
                 "reason": reason,
                 "reissue_on_resume": self.reissue_on_resume,
+                "coverage_active": self.coverage_active,
             }
         self.paused_pub.publish(Bool(data=payload["paused"]))
         self.status_pub.publish(String(data=json.dumps(payload, sort_keys=True)))

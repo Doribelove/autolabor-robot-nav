@@ -1,0 +1,7 @@
+<launch>
+  <arg name="config_file" default="$(find autolabor_coverage)/config/coverage.yaml"/>
+  <node pkg="autolabor_coverage" type="coverage_manager.py"
+        name="coverage_manager" output="screen" required="true">
+    <rosparam file="$(arg config_file)" command="load"/>
+  </node>
+</launch>

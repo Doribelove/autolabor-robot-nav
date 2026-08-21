@@ -1,7 +1,11 @@
 #include <autolabor_operator_gui/main_window.h>
 
 #include <dynamic_reconfigure/Reconfigure.h>
+#include <autolabor_coverage/PlanCoverage.h>
+#include <autolabor_coverage/StartCoverage.h>
 #include <rviz/render_panel.h>
+#include <rviz/tool.h>
+#include <rviz/tool_manager.h>
 #include <rviz/visualization_frame.h>
 #include <rviz/visualization_manager.h>
 
@@ -10,6 +14,9 @@
 #include <ros/topic.h>
 #include <sensor_msgs/image_encodings.h>
 #include <std_srvs/SetBool.h>
+#include <std_srvs/Trigger.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -416,13 +423,7 @@ void MainWindow::buildUi()
   tabs_->addTab(buildFastLioPage(), QStringLiteral("FAST-LIO"));
   tabs_->addTab(buildTestPage(), QStringLiteral("测试"));
   tabs_->addTab(buildVisionPage(), QStringLiteral("视觉"));
-  tabs_->addTab(buildPlaceholderPage(
-                    QStringLiteral("清扫装置"),
-                    QStringLiteral("为清扫机构状态与控制接口预留的独立页面"),
-                    { QStringLiteral("主刷、边刷、风机与喷淋状态"),
-                      QStringLiteral("电机电流、温度、转速与故障码"),
-                      QStringLiteral("作业模式和累计清扫里程（后续接入）") }),
-                QStringLiteral("清扫"));
+  tabs_->addTab(buildCoveragePage(), QStringLiteral("清扫"));
   tabs_->addTab(buildLogPage(), QStringLiteral("日志"));
   root->addWidget(tabs_, 1);
 
@@ -1033,6 +1034,170 @@ QWidget* MainWindow::buildPlaceholderPage(const QString& title, const QString& s
   return page;
 }
 
+QWidget* MainWindow::buildCoveragePage()
+{
+  auto* page = new QWidget(this);
+  auto* root = new QVBoxLayout(page);
+  root->setContentsMargins(16, 12, 16, 12);
+
+  auto* splitter = new QSplitter(Qt::Horizontal, page);
+  coverage_rviz_host_ = new QWidget(splitter);
+  coverage_rviz_layout_ = new QVBoxLayout(coverage_rviz_host_);
+  coverage_rviz_layout_->setContentsMargins(0, 0, 0, 0);
+  coverage_rviz_placeholder_ = new QLabel(
+      QStringLiteral("清扫全局地图将在静态地图模式下加载\n"
+                     "无全局地图时，覆盖清扫功能保持禁用"),
+      coverage_rviz_host_);
+  coverage_rviz_placeholder_->setAlignment(Qt::AlignCenter);
+  coverage_rviz_placeholder_->setStyleSheet(
+      QStringLiteral("background:#0b1119;border:1px solid #2b3a4e;border-radius:8px;"
+                     "color:#718096;font-size:14pt;"));
+  coverage_rviz_layout_->addWidget(coverage_rviz_placeholder_);
+  coverage_rviz_host_->setMinimumWidth(650);
+  splitter->addWidget(coverage_rviz_host_);
+
+  auto* side = new QScrollArea(splitter);
+  side->setWidgetResizable(true);
+  side->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  side->setMinimumWidth(390);
+  side->setMaximumWidth(540);
+  auto* controls = new QWidget(side);
+  auto* controls_layout = new QVBoxLayout(controls);
+  controls_layout->setContentsMargins(10, 0, 10, 10);
+  controls_layout->setSpacing(12);
+
+  auto* selection = new QGroupBox(QStringLiteral("覆盖区域"), controls);
+  auto* selection_layout = new QVBoxLayout(selection);
+  auto* instructions = new QLabel(
+      QStringLiteral("点击“框定”后，在左侧地图用 Publish Point 连续点选任意数量顶点。"
+                     "可逐点撤销或随时取消；确认后首尾自动闭合为清扫区域。"),
+      selection);
+  instructions->setWordWrap(true);
+  instructions->setStyleSheet(QStringLiteral("color:#b7c4d4;font-size:10pt;"));
+  selection_layout->addWidget(instructions);
+  coverage_select_button_ = new QPushButton(QStringLiteral("框定覆盖清扫范围"), selection);
+  coverage_select_button_->setEnabled(false);
+  connect(coverage_select_button_, &QPushButton::clicked,
+          this, &MainWindow::beginCoverageSelection);
+  selection_layout->addWidget(coverage_select_button_);
+  auto* edit_row = new QHBoxLayout();
+  coverage_undo_button_ = new QPushButton(QStringLiteral("撤销一点"), selection);
+  coverage_selection_cancel_button_ = new QPushButton(QStringLiteral("取消框定"), selection);
+  coverage_selection_cancel_button_->setObjectName(QStringLiteral("dangerButton"));
+  coverage_undo_button_->setEnabled(false);
+  coverage_selection_cancel_button_->setEnabled(false);
+  connect(coverage_undo_button_, &QPushButton::clicked,
+          this, &MainWindow::undoCoveragePoint);
+  connect(coverage_selection_cancel_button_, &QPushButton::clicked,
+          this, &MainWindow::cancelCoverageSelection);
+  edit_row->addWidget(coverage_undo_button_);
+  edit_row->addWidget(coverage_selection_cancel_button_);
+  selection_layout->addLayout(edit_row);
+  coverage_confirm_button_ = new QPushButton(QStringLiteral("确认区域并生成轨迹"), selection);
+  coverage_confirm_button_->setEnabled(false);
+  connect(coverage_confirm_button_, &QPushButton::clicked,
+          this, &MainWindow::confirmCoverageSelection);
+  selection_layout->addWidget(coverage_confirm_button_);
+  controls_layout->addWidget(selection);
+
+  auto* parameters = new QGroupBox(QStringLiteral("规划参数"), controls);
+  auto* parameters_layout = new QVBoxLayout(parameters);
+  auto* width_row = new QWidget(parameters);
+  auto* width_layout = new QHBoxLayout(width_row);
+  width_layout->setContentsMargins(0, 0, 0, 0);
+  width_layout->addWidget(new QLabel(QStringLiteral("有效清扫宽度"), width_row));
+  coverage_width_input_ = new QDoubleSpinBox(width_row);
+  coverage_width_input_->setRange(0.30, 3.00);
+  coverage_width_input_->setDecimals(2);
+  coverage_width_input_->setSingleStep(0.05);
+  coverage_width_input_->setSuffix(QStringLiteral(" m"));
+  coverage_width_input_->setValue(0.70);
+  coverage_width_input_->setEnabled(false);
+  width_layout->addWidget(coverage_width_input_, 1);
+  parameters_layout->addWidget(width_row);
+  auto* overlap_row = new QWidget(parameters);
+  auto* overlap_layout = new QHBoxLayout(overlap_row);
+  overlap_layout->setContentsMargins(0, 0, 0, 0);
+  overlap_layout->addWidget(new QLabel(QStringLiteral("相邻轨迹重叠率"), overlap_row));
+  coverage_overlap_input_ = new QDoubleSpinBox(overlap_row);
+  coverage_overlap_input_->setRange(0.0, 50.0);
+  coverage_overlap_input_->setDecimals(0);
+  coverage_overlap_input_->setSingleStep(5.0);
+  coverage_overlap_input_->setSuffix(QStringLiteral(" %"));
+  coverage_overlap_input_->setValue(15.0);
+  coverage_overlap_input_->setEnabled(false);
+  overlap_layout->addWidget(coverage_overlap_input_, 1);
+  parameters_layout->addWidget(overlap_row);
+  coverage_reverse_checkbox_ = new QCheckBox(
+      QStringLiteral("仅在转场时允许低速倒车"), parameters);
+  coverage_reverse_checkbox_->setChecked(true);
+  coverage_reverse_checkbox_->setEnabled(false);
+  parameters_layout->addWidget(coverage_reverse_checkbox_);
+  controls_layout->addWidget(parameters);
+
+  auto* status = new QGroupBox(QStringLiteral("清扫状态"), controls);
+  auto* status_layout = new QVBoxLayout(status);
+  status_layout->addWidget(createMetricRow(QStringLiteral("全局地图"),
+                                            &values_["coverage_map"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("任务状态"),
+                                            &values_["coverage_state"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("已选顶点"),
+                                            &values_["coverage_points"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("分段进度"),
+                                            &values_["coverage_progress"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("可覆盖 / 框定面积"),
+                                            &values_["coverage_area"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("不可覆盖估算"),
+                                            &values_["coverage_unreachable"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("完成率"),
+                                            &values_["coverage_ratio"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("详情"),
+                                            &values_["coverage_detail"]));
+  controls_layout->addWidget(status);
+
+  auto* task = new QGroupBox(QStringLiteral("任务控制"), controls);
+  auto* task_layout = new QVBoxLayout(task);
+  coverage_start_button_ = new QPushButton(QStringLiteral("开始覆盖清扫"), task);
+  coverage_start_button_->setObjectName(QStringLiteral("visionButton"));
+  coverage_pause_button_ = new QPushButton(QStringLiteral("暂停覆盖清扫"), task);
+  coverage_cancel_button_ = new QPushButton(QStringLiteral("取消覆盖清扫"), task);
+  coverage_cancel_button_->setObjectName(QStringLiteral("dangerButton"));
+  coverage_start_button_->setEnabled(false);
+  coverage_pause_button_->setEnabled(false);
+  coverage_cancel_button_->setEnabled(false);
+  connect(coverage_start_button_, &QPushButton::clicked,
+          this, &MainWindow::startCoverage);
+  connect(coverage_pause_button_, &QPushButton::clicked,
+          this, &MainWindow::toggleCoveragePause);
+  connect(coverage_cancel_button_, &QPushButton::clicked,
+          this, &MainWindow::cancelCoverageTask);
+  task_layout->addWidget(coverage_start_button_);
+  auto* task_row = new QHBoxLayout();
+  task_row->addWidget(coverage_pause_button_);
+  task_row->addWidget(coverage_cancel_button_);
+  task_layout->addLayout(task_row);
+  auto* safety = new QLabel(
+      QStringLiteral("V1 只执行导航覆盖，不控制主刷、边刷、风机或喷淋。开始前后端还会"
+                     "复核全局定位、运动门、里程计和 FOD 导航仲裁；任一失败均不发车。"),
+      task);
+  safety->setWordWrap(true);
+  safety->setStyleSheet(
+      QStringLiteral("background:#3d3222;color:#f0cf8a;border:1px solid #8e6a2d;"
+                     "border-radius:6px;padding:10px;font-size:10pt;"));
+  task_layout->addWidget(safety);
+  controls_layout->addWidget(task);
+  controls_layout->addStretch();
+  side->setWidget(controls);
+  splitter->addWidget(side);
+  splitter->setCollapsible(0, false);
+  splitter->setCollapsible(1, false);
+  splitter->setStretchFactor(0, 4);
+  splitter->setStretchFactor(1, 1);
+  splitter->setSizes({ 1200, 470 });
+  root->addWidget(splitter, 1);
+  return page;
+}
+
 QWidget* MainWindow::buildLogPage()
 {
   auto* page = new QWidget(this);
@@ -1134,6 +1299,21 @@ void MainWindow::handleMasterProbeFinished()
                          "color:#718096;font-size:14pt;"));
       rviz_layout_->addWidget(rviz_placeholder_);
     }
+    if (coverage_rviz_initialized_ && coverage_rviz_frame_)
+    {
+      coverage_rviz_layout_->removeWidget(coverage_rviz_frame_);
+      delete coverage_rviz_frame_;
+      coverage_rviz_frame_ = nullptr;
+      coverage_rviz_initialized_ = false;
+      coverage_rviz_placeholder_ = new QLabel(
+          QStringLiteral("ROS master 已恢复，正在重新加载清扫地图……"),
+          coverage_rviz_host_);
+      coverage_rviz_placeholder_->setAlignment(Qt::AlignCenter);
+      coverage_rviz_placeholder_->setStyleSheet(
+          QStringLiteral("background:#0b1119;border:1px solid #2b3a4e;border-radius:8px;"
+                         "color:#718096;font-size:14pt;"));
+      coverage_rviz_layout_->addWidget(coverage_rviz_placeholder_);
+    }
     appendEvent(QStringLiteral("ROS master 已连接，正在注册界面订阅与发布接口。"));
     setupRosInterfaces();
   }
@@ -1162,9 +1342,13 @@ void MainWindow::setupRosInterfaces()
   node_->param("static_map_mode", static_map_mode_, false);
   const std::string default_rviz =
       ros::package::getPath("autolabor_operator_gui") + "/config/operator_navigation.rviz";
+  const std::string default_coverage_rviz =
+      ros::package::getPath("autolabor_operator_gui") + "/config/coverage_navigation.rviz";
   node_->param<std::string>(
       "navigation_mode_label", navigation_mode_label_, "FAST_LIO");
   node_->param<std::string>("rviz_config", rviz_config_path_, default_rviz);
+  node_->param<std::string>("coverage_rviz_config", coverage_rviz_config_path_,
+                            default_coverage_rviz);
   node_->param<std::string>("odom_topic", odom_topic_, "/Odometry");
   node_->param<std::string>("cloud_topic", cloud_topic_, "/cloud_registered_body");
   node_->param<std::string>("imu_topic", imu_topic_, "/livox/imu");
@@ -1202,13 +1386,21 @@ void MainWindow::setupRosInterfaces()
       "/fod_visual_servo/status", 10, &MainWindow::visualStatusCallback, this);
   diagnostics_subscriber_ =
       node_->subscribe("/diagnostics", 30, &MainWindow::diagnosticsCallback, this);
+  map_subscriber_ = node_->subscribe("/map", 1, &MainWindow::mapCallback, this);
+  coverage_point_subscriber_ = node_->subscribe(
+      "/coverage/clicked_point", 20, &MainWindow::coveragePointCallback, this);
+  coverage_status_subscriber_ = node_->subscribe(
+      "/coverage/status", 10, &MainWindow::coverageStatusCallback, this);
 
   relative_goal_publisher_ =
       node_->advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10, false);
   cancel_publisher_ = node_->advertise<actionlib_msgs::GoalID>("/move_base/cancel", 10, false);
+  coverage_draft_publisher_ = node_->advertise<visualization_msgs::MarkerArray>(
+      "/coverage/ui_markers", 1, true);
   ros_interfaces_ready_ = true;
   appendEvent(QStringLiteral("ROS 接口已注册；FAST-LIO 健康监测开始采样。"));
   setupEmbeddedRviz();
+  setupCoverageRviz();
 }
 
 void MainWindow::setupEmbeddedRviz()
@@ -1312,6 +1504,73 @@ void MainWindow::toggleRvizPanels()
                                       : QStringLiteral("显示 RViz 调试面板"));
 }
 
+void MainWindow::setupCoverageRviz()
+{
+  if (coverage_rviz_initialized_ || !coverage_rviz_layout_)
+    return;
+  if (!static_map_mode_)
+  {
+    if (coverage_rviz_placeholder_)
+      coverage_rviz_placeholder_->setText(
+          QStringLiteral("一键启动未加载全局地图\n覆盖清扫功能已禁用"));
+    return;
+  }
+  if (!enable_rviz_)
+  {
+    if (coverage_rviz_placeholder_)
+      coverage_rviz_placeholder_->setText(
+          QStringLiteral("已通过 enable_rviz:=false 禁用清扫地图 RViz"));
+    return;
+  }
+  try
+  {
+    coverage_rviz_frame_ = new rviz::VisualizationFrame(coverage_rviz_host_);
+    coverage_rviz_frame_->setWindowFlags(Qt::Widget);
+    coverage_rviz_frame_->setSplashPath(QString());
+    coverage_rviz_frame_->setShowChooseNewMaster(false);
+    coverage_rviz_frame_->initialize(
+        QString::fromStdString(coverage_rviz_config_path_));
+    if (coverage_rviz_frame_->getManager() &&
+        coverage_rviz_frame_->getManager()->getRenderPanel())
+    {
+      rviz::RenderPanel* render_panel =
+          coverage_rviz_frame_->getManager()->getRenderPanel();
+      render_panel->setAutoFillBackground(false);
+      render_panel->setAttribute(Qt::WA_StyledBackground, false);
+      coverage_rviz_frame_->getManager()->setFixedFrame(QStringLiteral("map"));
+    }
+    for (QDockWidget* dock : coverage_rviz_frame_->findChildren<QDockWidget*>())
+      dock->hide();
+    coverage_rviz_frame_->setHideButtonVisibility(false);
+    if (coverage_rviz_frame_->menuBar())
+      coverage_rviz_frame_->menuBar()->hide();
+    if (coverage_rviz_frame_->statusBar())
+      coverage_rviz_frame_->statusBar()->hide();
+    if (coverage_rviz_placeholder_)
+    {
+      coverage_rviz_layout_->removeWidget(coverage_rviz_placeholder_);
+      coverage_rviz_placeholder_->deleteLater();
+      coverage_rviz_placeholder_ = nullptr;
+    }
+    coverage_rviz_layout_->addWidget(coverage_rviz_frame_);
+    coverage_rviz_initialized_ = true;
+    appendEvent(QStringLiteral("清扫页全局地图 RViz 已加载，可框定多边形区域。"));
+  }
+  catch (const std::exception& error)
+  {
+    appendEvent(QStringLiteral("清扫页 RViz 加载失败：") +
+                    QString::fromLocal8Bit(error.what()), true);
+    if (coverage_rviz_frame_)
+    {
+      coverage_rviz_frame_->deleteLater();
+      coverage_rviz_frame_ = nullptr;
+    }
+    if (coverage_rviz_placeholder_)
+      coverage_rviz_placeholder_->setText(
+          QStringLiteral("清扫地图 RViz 加载失败；覆盖控制已禁用"));
+  }
+}
+
 void MainWindow::shutdownRosInterfaces()
 {
   ros_interfaces_ready_ = false;
@@ -1329,8 +1588,17 @@ void MainWindow::shutdownRosInterfaces()
   visual_state_subscriber_.shutdown();
   visual_status_subscriber_.shutdown();
   diagnostics_subscriber_.shutdown();
+  map_subscriber_.shutdown();
+  coverage_point_subscriber_.shutdown();
+  coverage_status_subscriber_.shutdown();
   relative_goal_publisher_.shutdown();
   cancel_publisher_.shutdown();
+  coverage_draft_publisher_.shutdown();
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    telemetry_.map_received = false;
+    telemetry_.coverage_status_received = false;
+  }
   tf_listener_.reset();
   tf_buffer_.clear();
   node_.reset();
@@ -1480,6 +1748,46 @@ void MainWindow::navigationCallback(const actionlib_msgs::GoalStatusArray::Const
   telemetry_.navigation_received = true;
   telemetry_.navigation = *msg;
   telemetry_.navigation_received_at = ros::WallTime::now();
+}
+
+void MainWindow::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
+{
+  if (msg->header.frame_id != "map" || msg->info.width == 0 ||
+      msg->info.height == 0 || msg->data.size() !=
+          static_cast<std::size_t>(msg->info.width) * msg->info.height)
+    return;
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  telemetry_.map_received = true;
+  telemetry_.map_received_at = ros::WallTime::now();
+  telemetry_.map_width = msg->info.width;
+  telemetry_.map_height = msg->info.height;
+  telemetry_.map_resolution = msg->info.resolution;
+}
+
+void MainWindow::coveragePointCallback(
+    const geometry_msgs::PointStamped::ConstPtr& msg)
+{
+  if (msg->header.frame_id != "map" || !std::isfinite(msg->point.x) ||
+      !std::isfinite(msg->point.y))
+    return;
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    if (!coverage_selecting_)
+      return;
+    geometry_msgs::Point point = msg->point;
+    point.z = 0.0;
+    coverage_draft_points_.push_back(point);
+  }
+  publishCoverageDraft();
+}
+
+void MainWindow::coverageStatusCallback(
+    const autolabor_coverage::CoverageStatus::ConstPtr& msg)
+{
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  telemetry_.coverage_status_received = true;
+  telemetry_.coverage_status = *msg;
+  telemetry_.coverage_status_received_at = ros::WallTime::now();
 }
 
 void MainWindow::cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg)
@@ -2378,6 +2686,115 @@ void MainWindow::refreshUi()
       static_map_mode_
           ? QStringLiteral("当前已加载静态地图，不能同时建立新地图")
           : QStringLiteral("同时建立 MID360 三维图和双 LD19 二维图"));
+
+  std::size_t coverage_point_count = 0;
+  bool coverage_selecting = false;
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    coverage_point_count = coverage_draft_points_.size();
+    coverage_selecting = coverage_selecting_;
+  }
+  const bool coverage_map_ready = master_online_ && ros_interfaces_ready_ &&
+                                  static_map_mode_ && data.map_received;
+  const bool coverage_status_fresh = data.coverage_status_received &&
+                                     wallAge(data.coverage_status_received_at) <= 2.0;
+  const autolabor_coverage::CoverageStatus& coverage = data.coverage_status;
+  const bool coverage_active = data.coverage_status_received && coverage.active;
+  values_["coverage_map"]->setText(
+      coverage_map_ready
+          ? QStringLiteral("已加载 · %1×%2 @ %3 m")
+                .arg(data.map_width)
+                .arg(data.map_height)
+                .arg(data.map_resolution, 0, 'f', 2)
+          : (static_map_mode_ ? QStringLiteral("等待 /map")
+                              : QStringLiteral("未加载，功能禁用")));
+  QString coverage_state = QStringLiteral("后端未就绪");
+  if (coverage_status_fresh)
+  {
+    const QString raw = QString::fromStdString(coverage.state);
+    const std::map<QString, QString> labels = {
+      { QStringLiteral("IDLE"), QStringLiteral("等待框定") },
+      { QStringLiteral("READY"), QStringLiteral("轨迹已就绪") },
+      { QStringLiteral("GOING_TO_START"), QStringLiteral("前往起点") },
+      { QStringLiteral("TRANSITING"), QStringLiteral("转场中") },
+      { QStringLiteral("SWEEPING"), QStringLiteral("覆盖清扫中") },
+      { QStringLiteral("WAITING_OBSTACLE"), QStringLiteral("等待动态障碍") },
+      { QStringLiteral("PAUSED"), QStringLiteral("已暂停") },
+      { QStringLiteral("COMPLETED"), QStringLiteral("已完成") },
+      { QStringLiteral("COMPLETED_PARTIAL"), QStringLiteral("部分完成") },
+      { QStringLiteral("CANCELED"), QStringLiteral("已取消") },
+      { QStringLiteral("FAILED"), QStringLiteral("失败") },
+    };
+    const auto found = labels.find(raw);
+    coverage_state = found == labels.end() ? raw : found->second;
+  }
+  if (coverage_selecting)
+    coverage_state = coverage_plan_pending_ ? QStringLiteral("正在规划")
+                                            : QStringLiteral("正在框定区域");
+  else if (coverage_plan_pending_)
+    coverage_state = QStringLiteral("正在规划");
+  values_["coverage_state"]->setText(coverage_state);
+  values_["coverage_points"]->setText(QString::number(coverage_point_count));
+  values_["coverage_progress"]->setText(
+      coverage_status_fresh
+          ? QStringLiteral("%1 / %2 · 阻塞 %3")
+                .arg(coverage.current_segment)
+                .arg(coverage.total_segments)
+                .arg(coverage.blocked_segments)
+          : QStringLiteral("--"));
+  values_["coverage_area"]->setText(
+      coverage_status_fresh
+          ? QStringLiteral("%1 / %2 m²")
+                .arg(coverage.reachable_area_m2, 0, 'f', 1)
+                .arg(coverage.requested_area_m2, 0, 'f', 1)
+          : QStringLiteral("--"));
+  values_["coverage_unreachable"]->setText(
+      coverage_status_fresh
+          ? QStringLiteral("%1 m²").arg(coverage.unreachable_area_m2, 0, 'f', 1)
+          : QStringLiteral("--"));
+  values_["coverage_ratio"]->setText(
+      coverage_status_fresh
+          ? QStringLiteral("%1 %").arg(100.0 * coverage.coverage_ratio, 0, 'f', 1)
+          : QStringLiteral("--"));
+  values_["coverage_detail"]->setText(
+      coverage_status_fresh ? QString::fromStdString(coverage.detail)
+                            : QStringLiteral("等待 /coverage/status"));
+
+  const bool coverage_editable = coverage_map_ready && !coverage_active &&
+                                 !coverage_plan_pending_ &&
+                                 !coverage_command_pending_;
+  coverage_width_input_->setEnabled(coverage_editable);
+  coverage_overlap_input_->setEnabled(coverage_editable);
+  coverage_reverse_checkbox_->setEnabled(coverage_editable);
+  coverage_select_button_->setEnabled(coverage_editable && !coverage_selecting);
+  coverage_undo_button_->setEnabled(coverage_selecting && coverage_point_count > 0 &&
+                                    !coverage_plan_pending_);
+  // Selection cancellation remains available even if /map disappears while
+  // the operator is drawing; it never sends a motion command.
+  coverage_selection_cancel_button_->setEnabled(coverage_selecting &&
+                                                  !coverage_plan_pending_);
+  coverage_confirm_button_->setEnabled(coverage_map_ready && coverage_selecting &&
+                                        coverage_point_count >= 3 &&
+                                        !coverage_plan_pending_);
+  const bool coverage_can_start = coverage_editable && coverage_status_fresh &&
+                                  coverage.state == "READY" && coverage.localized &&
+                                  !coverage_plan_id_.empty();
+  coverage_start_button_->setEnabled(coverage_can_start);
+  coverage_start_button_->setToolTip(
+      coverage_can_start
+          ? QStringLiteral("后端仍会复核运动门、FOD 仲裁、定位、里程计和 move_base")
+          : (!coverage_map_ready
+                 ? QStringLiteral("需要以 --map-set 启动并收到全局地图")
+                 : QStringLiteral("需要先生成轨迹并达到 LOCALIZED")));
+  // Once a task is active, pause/cancel are safety controls and stay available
+  // even if the map topic subsequently drops out.
+  coverage_pause_button_->setEnabled(master_online_ && ros_interfaces_ready_ &&
+                                      coverage_active && !coverage_command_pending_);
+  coverage_cancel_button_->setEnabled(master_online_ && ros_interfaces_ready_ &&
+                                       coverage_active && !coverage_command_pending_);
+  coverage_pause_button_->setText(
+      coverage_status_fresh && coverage.paused ? QStringLiteral("恢复覆盖清扫")
+                                               : QStringLiteral("暂停覆盖清扫"));
 }
 
 bool MainWindow::relativeGoalReady(const TelemetrySnapshot& data,
@@ -2511,6 +2928,337 @@ void MainWindow::cancelNavigation()
   cancel.id.clear();
   cancel_publisher_.publish(cancel);
   appendEvent(QStringLiteral("已向 /move_base/cancel 发布空 GoalID（取消全部当前目标）。"), true);
+}
+
+void MainWindow::selectCoveragePointTool(bool enabled)
+{
+  if (!coverage_rviz_frame_ || !coverage_rviz_frame_->getManager() ||
+      !coverage_rviz_frame_->getManager()->getToolManager())
+    return;
+  rviz::ToolManager* manager =
+      coverage_rviz_frame_->getManager()->getToolManager();
+  const QString wanted = enabled ? QStringLiteral("rviz/PublishPoint")
+                                 : QStringLiteral("rviz/MoveCamera");
+  for (int index = 0; index < manager->numTools(); ++index)
+  {
+    rviz::Tool* tool = manager->getTool(index);
+    if (tool && tool->getClassId() == wanted)
+    {
+      manager->setCurrentTool(tool);
+      return;
+    }
+  }
+}
+
+void MainWindow::publishCoverageDraft()
+{
+  if (!ros_interfaces_ready_ || !coverage_draft_publisher_)
+    return;
+  std::vector<geometry_msgs::Point> points;
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    points = coverage_draft_points_;
+  }
+  visualization_msgs::MarkerArray array;
+  visualization_msgs::Marker clear;
+  clear.action = visualization_msgs::Marker::DELETEALL;
+  array.markers.push_back(clear);
+  if (!points.empty())
+  {
+    visualization_msgs::Marker vertices;
+    vertices.header.frame_id = "map";
+    vertices.header.stamp = ros::Time::now();
+    vertices.ns = "coverage_ui_vertices";
+    vertices.id = 0;
+    vertices.type = visualization_msgs::Marker::SPHERE_LIST;
+    vertices.action = visualization_msgs::Marker::ADD;
+    vertices.pose.orientation.w = 1.0;
+    vertices.scale.x = 0.22;
+    vertices.scale.y = 0.22;
+    vertices.scale.z = 0.12;
+    vertices.color.r = 1.0;
+    vertices.color.g = 0.72;
+    vertices.color.b = 0.05;
+    vertices.color.a = 1.0;
+    vertices.points = points;
+    array.markers.push_back(vertices);
+
+    visualization_msgs::Marker outline = vertices;
+    outline.ns = "coverage_ui_outline";
+    outline.id = 1;
+    outline.type = visualization_msgs::Marker::LINE_STRIP;
+    outline.scale.x = 0.08;
+    outline.points = points;
+    array.markers.push_back(outline);
+  }
+  coverage_draft_publisher_.publish(array);
+}
+
+void MainWindow::beginCoverageSelection()
+{
+  const TelemetrySnapshot data = snapshot();
+  if (!master_online_ || !ros_interfaces_ready_ || !static_map_mode_ ||
+      !data.map_received || !coverage_rviz_initialized_)
+  {
+    QMessageBox::information(
+        this, QStringLiteral("无法框定清扫范围"),
+        QStringLiteral("只有通过 --map-set 一键启动并收到 /map 后，覆盖清扫才可用。"));
+    return;
+  }
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    coverage_selecting_ = true;
+    coverage_draft_points_.clear();
+  }
+  publishCoverageDraft();
+  selectCoveragePointTool(true);
+  appendEvent(QStringLiteral("开始框定覆盖区域：请在清扫页全局地图连续点选顶点。"));
+}
+
+void MainWindow::undoCoveragePoint()
+{
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    if (!coverage_selecting_ || coverage_draft_points_.empty())
+      return;
+    coverage_draft_points_.pop_back();
+  }
+  publishCoverageDraft();
+}
+
+void MainWindow::cancelCoverageSelection()
+{
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    coverage_selecting_ = false;
+    coverage_draft_points_.clear();
+  }
+  publishCoverageDraft();
+  selectCoveragePointTool(false);
+  appendEvent(QStringLiteral("已取消本次覆盖区域框定。"));
+}
+
+void MainWindow::confirmCoverageSelection()
+{
+  std::vector<geometry_msgs::Point> points;
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    if (!coverage_selecting_)
+      return;
+    points = coverage_draft_points_;
+  }
+  if (points.size() < 3)
+  {
+    QMessageBox::information(this, QStringLiteral("顶点不足"),
+                             QStringLiteral("至少需要三个顶点才能形成覆盖多边形。"));
+    return;
+  }
+  const double width = coverage_width_input_->value();
+  const double overlap = coverage_overlap_input_->value() / 100.0;
+  const bool allow_reverse = coverage_reverse_checkbox_->isChecked();
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    coverage_selecting_ = false;
+  }
+  coverage_plan_pending_ = true;
+  selectCoveragePointTool(false);
+  appendEvent(QStringLiteral("正在按静态地图障碍物裁剪覆盖区域并生成弓字轨迹……"));
+
+  auto* watcher = new QFutureWatcher<CoveragePlanUiResult>(this);
+  connect(watcher, &QFutureWatcher<CoveragePlanUiResult>::finished, this,
+          [this, watcher]() {
+            const CoveragePlanUiResult result = watcher->result();
+            coverage_plan_pending_ = false;
+            if (result.success)
+            {
+              coverage_plan_id_ = result.plan_id;
+              {
+                std::lock_guard<std::mutex> lock(snapshot_mutex_);
+                coverage_draft_points_.clear();
+              }
+              publishCoverageDraft();
+              appendEvent(
+                  QStringLiteral("覆盖轨迹已生成：%1 条清扫线，可覆盖 %2 / %3 m²，"
+                                 "不可覆盖估算 %4 m²。")
+                      .arg(result.swath_count)
+                      .arg(result.reachable_area_m2, 0, 'f', 1)
+                      .arg(result.requested_area_m2, 0, 'f', 1)
+                      .arg(result.unreachable_area_m2, 0, 'f', 1));
+            }
+            else
+            {
+              {
+                std::lock_guard<std::mutex> lock(snapshot_mutex_);
+                coverage_selecting_ = true;
+              }
+              selectCoveragePointTool(true);
+              appendEvent(QStringLiteral("覆盖规划失败：") + result.message, true);
+              QMessageBox::warning(this, QStringLiteral("覆盖规划失败"), result.message);
+            }
+            watcher->deleteLater();
+          });
+  watcher->setFuture(QtConcurrent::run([points, width, overlap, allow_reverse]() {
+    CoveragePlanUiResult result;
+    ros::NodeHandle node;
+    ros::ServiceClient client =
+        node.serviceClient<autolabor_coverage::PlanCoverage>("/coverage/plan", false);
+    if (!client.waitForExistence(ros::Duration(2.0)))
+    {
+      result.message = QStringLiteral("J6M 覆盖规划服务未启动；请检查静态地图 bringup");
+      return result;
+    }
+    autolabor_coverage::PlanCoverage call;
+    call.request.region.header.frame_id = "map";
+    call.request.region.header.stamp = ros::Time::now();
+    for (const geometry_msgs::Point& point : points)
+    {
+      geometry_msgs::Point32 vertex;
+      vertex.x = static_cast<float>(point.x);
+      vertex.y = static_cast<float>(point.y);
+      vertex.z = 0.0F;
+      call.request.region.polygon.points.push_back(vertex);
+    }
+    call.request.operation_width_m = width;
+    call.request.overlap_ratio = overlap;
+    call.request.allow_reverse_transit = allow_reverse;
+    if (!client.call(call))
+    {
+      result.message = QStringLiteral("覆盖规划服务调用失败");
+      return result;
+    }
+    result.success = call.response.success;
+    result.message = QString::fromStdString(call.response.message);
+    result.plan_id = call.response.plan_id;
+    result.requested_area_m2 = call.response.requested_area_m2;
+    result.reachable_area_m2 = call.response.reachable_area_m2;
+    result.unreachable_area_m2 = call.response.unreachable_area_m2;
+    result.swath_count = call.response.swath_count;
+    return result;
+  }));
+}
+
+void MainWindow::startCoverage()
+{
+  if (coverage_plan_id_.empty() || coverage_command_pending_)
+    return;
+  const QMessageBox::StandardButton answer = QMessageBox::question(
+      this, QStringLiteral("确认开始覆盖清扫"),
+      QStringLiteral("无人车将先导航到规划器选择的起点，再逐段执行覆盖轨迹。V1 不会启动"
+                     "刷盘、风机或喷淋。请确认现场人员远离车辆、实体急停可用且当前定位"
+                     "与车辆真实位置一致。\n\n是否开始？"),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+  if (answer != QMessageBox::Yes)
+    return;
+  coverage_command_pending_ = true;
+  coverage_start_button_->setEnabled(false);
+  const std::string plan_id = coverage_plan_id_;
+  auto* watcher = new QFutureWatcher<QString>(this);
+  connect(watcher, &QFutureWatcher<QString>::finished, this,
+          [this, watcher]() {
+            const QString result = watcher->result();
+            const bool success = result.startsWith(QStringLiteral("OK|"));
+            const QString message = result.section('|', 1, -1);
+            coverage_command_pending_ = false;
+            appendEvent(QStringLiteral("开始覆盖清扫：") + message, !success);
+            if (!success)
+              QMessageBox::warning(this, QStringLiteral("覆盖任务未启动"), message);
+            watcher->deleteLater();
+          });
+  watcher->setFuture(QtConcurrent::run([plan_id]() {
+    ros::NodeHandle node;
+    ros::ServiceClient client =
+        node.serviceClient<autolabor_coverage::StartCoverage>("/coverage/start", false);
+    if (!client.waitForExistence(ros::Duration(1.0)))
+      return QStringLiteral("ERR|覆盖执行服务未启动");
+    autolabor_coverage::StartCoverage call;
+    call.request.plan_id = plan_id;
+    if (!client.call(call))
+      return QStringLiteral("ERR|覆盖执行服务调用失败");
+    return QString(call.response.accepted ? QStringLiteral("OK|")
+                                          : QStringLiteral("ERR|")) +
+           QString::fromStdString(call.response.message);
+  }));
+}
+
+void MainWindow::callCoveragePause(bool paused)
+{
+  if (coverage_command_pending_)
+    return;
+  coverage_command_pending_ = true;
+  auto* watcher = new QFutureWatcher<QString>(this);
+  connect(watcher, &QFutureWatcher<QString>::finished, this,
+          [this, watcher, paused]() {
+            const QString result = watcher->result();
+            const bool success = result.startsWith(QStringLiteral("OK|"));
+            const QString message = result.section('|', 1, -1);
+            coverage_command_pending_ = false;
+            appendEvent(paused ? QStringLiteral("暂停覆盖清扫：") + message
+                               : QStringLiteral("恢复覆盖清扫：") + message,
+                        !success);
+            if (!success)
+              QMessageBox::warning(this, QStringLiteral("覆盖任务控制失败"), message);
+            watcher->deleteLater();
+          });
+  watcher->setFuture(QtConcurrent::run([paused]() {
+    ros::NodeHandle node;
+    ros::ServiceClient client =
+        node.serviceClient<std_srvs::SetBool>("/coverage/set_paused", false);
+    if (!client.waitForExistence(ros::Duration(1.0)))
+      return QStringLiteral("ERR|覆盖暂停服务未启动");
+    std_srvs::SetBool call;
+    call.request.data = paused;
+    if (!client.call(call))
+      return QStringLiteral("ERR|覆盖暂停服务调用失败");
+    return QString(call.response.success ? QStringLiteral("OK|")
+                                         : QStringLiteral("ERR|")) +
+           QString::fromStdString(call.response.message);
+  }));
+}
+
+void MainWindow::toggleCoveragePause()
+{
+  const TelemetrySnapshot data = snapshot();
+  if (!data.coverage_status_received || !data.coverage_status.active)
+    return;
+  callCoveragePause(!data.coverage_status.paused);
+}
+
+void MainWindow::cancelCoverageTask()
+{
+  if (coverage_command_pending_)
+    return;
+  const QMessageBox::StandardButton answer = QMessageBox::question(
+      this, QStringLiteral("确认取消覆盖清扫"),
+      QStringLiteral("将取消当前 move_base 目标并终止本次覆盖任务。是否继续？"),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+  if (answer != QMessageBox::Yes)
+    return;
+  coverage_command_pending_ = true;
+  auto* watcher = new QFutureWatcher<QString>(this);
+  connect(watcher, &QFutureWatcher<QString>::finished, this,
+          [this, watcher]() {
+            const QString result = watcher->result();
+            const bool success = result.startsWith(QStringLiteral("OK|"));
+            const QString message = result.section('|', 1, -1);
+            coverage_command_pending_ = false;
+            appendEvent(QStringLiteral("取消覆盖清扫：") + message, !success);
+            if (!success)
+              QMessageBox::warning(this, QStringLiteral("覆盖任务取消失败"), message);
+            watcher->deleteLater();
+          });
+  watcher->setFuture(QtConcurrent::run([]() {
+    ros::NodeHandle node;
+    ros::ServiceClient client =
+        node.serviceClient<std_srvs::Trigger>("/coverage/cancel", false);
+    if (!client.waitForExistence(ros::Duration(1.0)))
+      return QStringLiteral("ERR|覆盖取消服务未启动");
+    std_srvs::Trigger call;
+    if (!client.call(call))
+      return QStringLiteral("ERR|覆盖取消服务调用失败");
+    return QString(call.response.success ? QStringLiteral("OK|")
+                                         : QStringLiteral("ERR|")) +
+           QString::fromStdString(call.response.message);
+  }));
 }
 
 void MainWindow::callSetBoolService(const std::string& service_name, bool enabled,

@@ -4,9 +4,13 @@
 #include <actionlib_msgs/GoalID.h>
 #include <actionlib_msgs/GoalStatusArray.h>
 #include <autolabor_canbus_driver/CanBusMessage.h>
+#include <autolabor_coverage/CoverageStatus.h>
 #include <autolabor_fod_msgs/FodDetectionArray.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/PointStamped.h>
+#include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
@@ -31,6 +35,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 class QCloseEvent;
 class QCheckBox;
@@ -78,6 +83,17 @@ struct CameraControlsResult
   bool auto_exposure_gain = true;
   double exposure_percent = 100.0;
   double gain_percent = 100.0;
+};
+
+struct CoveragePlanUiResult
+{
+  bool success = false;
+  QString message;
+  std::string plan_id;
+  double requested_area_m2 = 0.0;
+  double reachable_area_m2 = 0.0;
+  double unreachable_area_m2 = 0.0;
+  unsigned int swath_count = 0;
 };
 
 struct TelemetrySnapshot
@@ -149,6 +165,15 @@ struct TelemetrySnapshot
 
   DiagnosticSnapshot detector_diagnostic;
   DiagnosticSnapshot image_quality_diagnostic;
+
+  bool map_received = false;
+  ros::WallTime map_received_at;
+  unsigned int map_width = 0;
+  unsigned int map_height = 0;
+  double map_resolution = 0.0;
+  bool coverage_status_received = false;
+  autolabor_coverage::CoverageStatus coverage_status;
+  ros::WallTime coverage_status_received_at;
 };
 
 class MainWindow : public QMainWindow
@@ -175,6 +200,13 @@ private Q_SLOTS:
   void requestMasterProbe();
   void handleMasterProbeFinished();
   void toggleRvizPanels();
+  void beginCoverageSelection();
+  void undoCoveragePoint();
+  void cancelCoverageSelection();
+  void confirmCoverageSelection();
+  void startCoverage();
+  void toggleCoveragePause();
+  void cancelCoverageTask();
   void sendForwardRelativeGoal();
   void sendRelativeGoal();
   void cancelNavigation();
@@ -230,6 +262,7 @@ private:
   QWidget* buildFastLioPage();
   QWidget* buildTestPage();
   QWidget* buildVisionPage();
+  QWidget* buildCoveragePage();
   QWidget* buildPlaceholderPage(const QString& title, const QString& subtitle,
                                 const QStringList& planned_items);
   QWidget* buildLogPage();
@@ -243,12 +276,16 @@ private:
 
   void setupRosInterfaces();
   void setupEmbeddedRviz();
+  void setupCoverageRviz();
   void shutdownRosInterfaces();
   void callSetBoolService(const std::string& service_name, bool enabled,
                           QPushButton* button, const QString& action_name);
   void requestFodMode(bool enabled);
   void requestCameraControls(bool apply_changes);
   void applyCameraControlsResult(const CameraControlsResult& result);
+  void publishCoverageDraft();
+  void selectCoveragePointTool(bool enabled);
+  void callCoveragePause(bool paused);
   FastLioHealthResult evaluateFastLioHealth(const TelemetrySnapshot& data) const;
   bool relativeGoalReady(const TelemetrySnapshot& data,
                          const FastLioHealthResult& health,
@@ -272,6 +309,10 @@ private:
   void visualStateCallback(const std_msgs::String::ConstPtr& msg);
   void visualStatusCallback(const std_msgs::String::ConstPtr& msg);
   void diagnosticsCallback(const diagnostic_msgs::DiagnosticArray::ConstPtr& msg);
+  void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+  void coveragePointCallback(const geometry_msgs::PointStamped::ConstPtr& msg);
+  void coverageStatusCallback(
+      const autolabor_coverage::CoverageStatus::ConstPtr& msg);
 
   TelemetrySnapshot snapshot() const;
   static double wallAge(const ros::WallTime& stamp);
@@ -300,8 +341,12 @@ private:
   ros::Subscriber visual_state_subscriber_;
   ros::Subscriber visual_status_subscriber_;
   ros::Subscriber diagnostics_subscriber_;
+  ros::Subscriber map_subscriber_;
+  ros::Subscriber coverage_point_subscriber_;
+  ros::Subscriber coverage_status_subscriber_;
   ros::Publisher relative_goal_publisher_;
   ros::Publisher cancel_publisher_;
+  ros::Publisher coverage_draft_publisher_;
   mutable tf2_ros::Buffer tf_buffer_;
   std::unique_ptr<tf2_ros::TransformListener> tf_listener_;
 
@@ -309,6 +354,7 @@ private:
   bool previous_probe_online_ = false;
   bool ros_interfaces_ready_ = false;
   bool rviz_initialized_ = false;
+  bool coverage_rviz_initialized_ = false;
   bool enable_rviz_ = true;
   bool static_map_mode_ = false;
   std::string navigation_mode_label_ = "FAST_LIO";
@@ -316,6 +362,7 @@ private:
   std::string cloud_topic_ = "/cloud_registered_body";
   std::string imu_topic_ = "/livox/imu";
   std::string rviz_config_path_;
+  std::string coverage_rviz_config_path_;
   std::string rviz_startup_fixed_frame_ = "map";
   std::string rviz_navigation_fixed_frame_ = "map";
   QTimer master_probe_timer_;
@@ -330,6 +377,10 @@ private:
   QVBoxLayout* rviz_layout_ = nullptr;
   QLabel* rviz_placeholder_ = nullptr;
   rviz::VisualizationFrame* rviz_frame_ = nullptr;
+  QWidget* coverage_rviz_host_ = nullptr;
+  QVBoxLayout* coverage_rviz_layout_ = nullptr;
+  QLabel* coverage_rviz_placeholder_ = nullptr;
+  rviz::VisualizationFrame* coverage_rviz_frame_ = nullptr;
   QPlainTextEdit* overview_events_ = nullptr;
   QPlainTextEdit* log_events_ = nullptr;
   QPushButton* rviz_panels_button_ = nullptr;
@@ -355,6 +406,21 @@ private:
   QPushButton* camera_apply_button_ = nullptr;
   QPushButton* image_quality_enable_button_ = nullptr;
   QPushButton* image_quality_disable_button_ = nullptr;
+  QDoubleSpinBox* coverage_width_input_ = nullptr;
+  QDoubleSpinBox* coverage_overlap_input_ = nullptr;
+  QCheckBox* coverage_reverse_checkbox_ = nullptr;
+  QPushButton* coverage_select_button_ = nullptr;
+  QPushButton* coverage_undo_button_ = nullptr;
+  QPushButton* coverage_selection_cancel_button_ = nullptr;
+  QPushButton* coverage_confirm_button_ = nullptr;
+  QPushButton* coverage_start_button_ = nullptr;
+  QPushButton* coverage_pause_button_ = nullptr;
+  QPushButton* coverage_cancel_button_ = nullptr;
+  bool coverage_selecting_ = false;
+  bool coverage_plan_pending_ = false;
+  bool coverage_command_pending_ = false;
+  std::vector<geometry_msgs::Point> coverage_draft_points_;
+  std::string coverage_plan_id_;
   ros::WallTime last_raw_preview_conversion_;
   ros::WallTime last_debug_preview_conversion_;
   bool mode_request_pending_ = false;

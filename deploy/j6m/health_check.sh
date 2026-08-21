@@ -22,7 +22,7 @@ chroot "$ROOTFS" /bin/bash -lc '
   set -u
   python3 -c "import socket; assert socket.gethostbyname(\"localhost\") == \"127.0.0.1\"; socket.gethostbyname(socket.gethostname())"
   packages=(
-    autolabor_dual_host autolabor_dual_lidar autolabor_fod_control
+    autolabor_coverage autolabor_dual_host autolabor_dual_lidar autolabor_fod_control
     autolabor_fod_msgs conventional fast_lio fast_lio_localization livox_ros_driver2 move_base
     pointcloud_to_laserscan robot_bringup teb_local_planner topic_tools
     map_server
@@ -31,6 +31,7 @@ chroot "$ROOTFS" /bin/bash -lc '
   python3 -m py_compile \
     /opt/autolabor/dual_host/current/lib/autolabor_dual_host/cmd_vel_watchdog.py \
     /opt/autolabor/dual_host/current/lib/autolabor_dual_host/move_base_pause_bridge.py \
+    /opt/autolabor/dual_host/current/lib/autolabor_coverage/coverage_manager.py \
     /opt/autolabor/dual_host/current/lib/robot_bringup/fused_scan_mapper.py
   executables=(
     /opt/autolabor/dual_host/current/lib/autolabor_dual_lidar/optional_cloud_enhancer
@@ -47,9 +48,21 @@ chroot "$ROOTFS" /bin/bash -lc '
       exit 1
     fi
   done
+  shared_libraries=(
+    /opt/autolabor/dual_host/current/lib/libcoverage_global_planner.so
+  )
+  for library in "${shared_libraries[@]}"; do
+    test -r "$library"
+    if ldd "$library" | grep -q "not found"; then
+      ldd "$library" >&2
+      echo "Unresolved shared libraries: $library" >&2
+      exit 1
+    fi
+  done
   roslaunch --files autolabor_dual_host j6m_fastlio_navigation.launch >/dev/null
   rosmsg md5 livox_ros_driver2/CustomMsg
   rosmsg md5 autolabor_fod_msgs/FodDetectionArray
+  rosmsg md5 autolabor_coverage/CoverageStatus
   test ! -e /opt/autolabor/dual_host/current/share/zed_wrapper
   ! command -v nvcc >/dev/null
 '
