@@ -17,8 +17,10 @@ required MID360 scan drives output; an absent or stale optional scan is never
 allowed to keep `/scan` alive by itself. This makes a MID360 outage fail closed
 while an LD19 outage falls back to MID360.
 
-The measured front/rear rotation-centre distance is 0.94 m, so the default
-poses are `x=+0.47 m` and `x=-0.47 m`. The USB devices use physical `by-path`
+The measured front/rear rotation-centre distance is 0.92 m, so the default
+poses are `x=+0.46 m`, `z=+0.20 m` and `x=-0.46 m`, `z=+0.20 m` in
+`base_link`. Each scanner contributes only its outward-facing 120-degree field
+of view (front centred at 0 degrees, rear centred at 180 degrees). The USB devices use physical `by-path`
 names because both CH340 adapters have the same USB identity.
 
 After both scans are transformed into `base_link`, returns inside the measured

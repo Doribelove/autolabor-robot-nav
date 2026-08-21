@@ -30,6 +30,11 @@ class DualHostContractTest(unittest.TestCase):
         self.assertIn('<arg name="motion_enabled" default="false"/>', text)
         self.assertIn('/gateway/livox/lidar', text)
         self.assertIn('/gateway/livox/imu', text)
+        self.assertIn('<arg name="lidar_center_distance_m" default="0.92"/>', text)
+        self.assertIn(
+            '<arg name="lidar_center_distance_m" value="$(arg lidar_center_distance_m)"/>',
+            text,
+        )
 
     def test_j6m_uses_mid360_for_fastlio_and_optional_ld19_for_scan(self):
         text = self._launch_text("j6m_fastlio_navigation.launch")
@@ -40,7 +45,9 @@ class DualHostContractTest(unittest.TestCase):
         self.assertIn('dual_lidar_scan" value="/dual_lidar/scan', text)
         self.assertIn('/cloud_registered_body_enhanced', text)
         self.assertIn('<arg name="mid360_sensor_x" default="0.20"/>', text)
-        self.assertIn('<arg name="body_tf_x" value="$(eval -float(arg(\'mid360_sensor_x\')))"/>', text)
+        self.assertIn('<arg name="mid360_sensor_z" default="1.0"/>', text)
+        self.assertIn("fast_lio_lidar_in_body_z", text)
+        self.assertIn('<arg name="body_tf_z" value="$(eval -(', text)
         self.assertIn('<arg name="sensor_x" value="$(arg mid360_sensor_x)"/>', text)
         self.assertIn('<arg name="mid360_crop_enabled" default="true"/>', text)
         self.assertIn('<arg name="mid360_crop_min_x" default="-0.75"/>', text)

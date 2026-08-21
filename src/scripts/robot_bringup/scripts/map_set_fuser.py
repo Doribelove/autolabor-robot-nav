@@ -110,6 +110,37 @@ def load_map(map_yaml_path):
     return metadata, cells, resolution
 
 
+def load_slice_observations(path, resolution, center_z, half_width):
+    with open(path, "r", encoding="utf-8") as stream:
+        metadata = yaml.safe_load(stream)
+    if not isinstance(metadata, dict):
+        raise ValueError("invalid persistent slice metadata")
+    if not math.isclose(
+            float(metadata["resolution_m"]), resolution,
+            rel_tol=0.0, abs_tol=1e-9):
+        raise ValueError("persistent slice resolution does not match 2-D map")
+    if not math.isclose(
+            float(metadata["slice_center_z_m"]), center_z,
+            rel_tol=0.0, abs_tol=1e-6):
+        raise ValueError("persistent slice center does not match requested slice")
+    if not math.isclose(
+            float(metadata["slice_half_width_m"]), half_width,
+            rel_tol=0.0, abs_tol=1e-6):
+        raise ValueError("persistent slice width does not match requested slice")
+    accepted = {}
+    for item in metadata.get("cells", []):
+        if not isinstance(item, list) or len(item) != 3:
+            raise ValueError("invalid persistent slice cell")
+        cell = (int(item[0]), int(item[1]))
+        observations = int(item[2])
+        if observations < int(metadata["min_frame_observations"]):
+            raise ValueError("slice file contains a cell below its frame threshold")
+        accepted[cell] = observations
+    if len(accepted) != int(metadata.get("accepted_cells", len(accepted))):
+        raise ValueError("persistent slice accepted-cell count is inconsistent")
+    return metadata, accepted
+
+
 def write_map(output_dir, name, cells, resolution, metadata):
     if not cells:
         raise RuntimeError("refusing to save an empty fused map")
@@ -167,21 +198,33 @@ def fuse(arguments):
     if arguments.resolution is not None and not math.isclose(
             resolution, arguments.resolution, rel_tol=0.0, abs_tol=1e-9):
         raise ValueError("2-D map resolution does not match requested resolution")
-    hits = collections.Counter()
-    slice_points = 0
     lower = arguments.slice_center_z - arguments.slice_half_width
     upper = arguments.slice_center_z + arguments.slice_half_width
-    for x, y, z in read_binary_pcd_xyz(arguments.map_3d):
-        if not (math.isfinite(x) and math.isfinite(y) and math.isfinite(z)):
-            continue
-        if lower <= z <= upper:
-            hits[(int(math.floor(x / resolution)), int(math.floor(y / resolution)))] += 1
-            slice_points += 1
+    slice_observations_path = getattr(arguments, "slice_observations", None)
+    persistence_metadata = None
+    if slice_observations_path:
+        persistence_metadata, accepted_cells = load_slice_observations(
+            slice_observations_path,
+            resolution,
+            arguments.slice_center_z,
+            arguments.slice_half_width,
+        )
+        hits = collections.Counter(accepted_cells)
+        slice_points = int(persistence_metadata.get("candidate_cells", len(hits)))
+    else:
+        hits = collections.Counter()
+        slice_points = 0
+        for x, y, z in read_binary_pcd_xyz(arguments.map_3d):
+            if not (math.isfinite(x) and math.isfinite(y) and math.isfinite(z)):
+                continue
+            if lower <= z <= upper:
+                hits[(int(math.floor(x / resolution)), int(math.floor(y / resolution)))] += 1
+                slice_points += 1
 
     projected_cells = 0
     newly_occupied = 0
     for cell, count in hits.items():
-        if count < arguments.min_points_per_cell:
+        if not slice_observations_path and count < arguments.min_points_per_cell:
             continue
         projected_cells += 1
         if cells.get(cell) != OCCUPIED_PIXEL:
@@ -197,13 +240,34 @@ def fuse(arguments):
         resolution,
         {
             "frame_id": "map",
-            "fusion_policy": "occupied_union",
+            "fusion_policy": (
+                "persistent_occupied_union"
+                if slice_observations_path else "occupied_union"
+            ),
+            "slice_source": (
+                "distinct_frame_observations"
+                if slice_observations_path else "pcd_point_count"
+            ),
             "map_2d": os.path.abspath(arguments.map_2d),
             "map_3d": os.path.abspath(arguments.map_3d),
+            "slice_observations": (
+                os.path.abspath(slice_observations_path)
+                if slice_observations_path else None
+            ),
             "slice_center_z_m": arguments.slice_center_z,
             "slice_half_width_m": arguments.slice_half_width,
             "slice_bounds_z_m": [lower, upper],
-            "min_points_per_cell": arguments.min_points_per_cell,
+            "min_points_per_cell": (
+                None if persistence_metadata else arguments.min_points_per_cell
+            ),
+            "min_frame_observations": (
+                int(persistence_metadata["min_frame_observations"])
+                if persistence_metadata else None
+            ),
+            "observed_clouds": (
+                int(persistence_metadata["observed_clouds"])
+                if persistence_metadata else None
+            ),
             "slice_points": slice_points,
             "projected_occupied_cells": projected_cells,
             "newly_occupied_cells": newly_occupied,
@@ -216,6 +280,10 @@ def parse_arguments(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--map-2d", required=True)
     parser.add_argument("--map-3d", required=True)
+    parser.add_argument(
+        "--slice-observations",
+        help="YAML of distinct-frame slice observations from voxel_cloud_mapper",
+    )
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--map-name", default="map")
     parser.add_argument("--slice-center-z", type=float, required=True)

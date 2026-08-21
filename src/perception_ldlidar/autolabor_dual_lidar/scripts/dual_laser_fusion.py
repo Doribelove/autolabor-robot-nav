@@ -21,7 +21,8 @@ def _valid_range(value, scan):
 
 
 def add_scan_to_bins(scan, x_offset, y_offset, yaw, angle_min,
-                     angle_increment, ranges, intensities, self_crop=None):
+                     angle_increment, ranges, intensities, self_crop=None,
+                     target_fov_center=None, target_fov_width=TAU):
     """Transform scan points into the target frame and keep the nearest/bin."""
     cos_yaw = math.cos(yaw)
     sin_yaw = math.sin(yaw)
@@ -42,6 +43,12 @@ def add_scan_to_bins(scan, x_offset, y_offset, yaw, angle_min,
             continue
         target_range = math.hypot(target_x, target_y)
         target_angle = math.atan2(target_y, target_x)
+        if target_fov_center is not None:
+            angular_error = abs(
+                (target_angle - target_fov_center + math.pi) % TAU - math.pi
+            )
+            if angular_error > 0.5 * target_fov_width:
+                continue
 
         # The output scan covers a complete circle. Wrap +pi into the -pi bin.
         relative_angle = (target_angle - angle_min) % TAU
@@ -85,6 +92,12 @@ class DualLaserFusion:
         if (self.self_crop[0] >= self.self_crop[1]
                 or self.self_crop[2] >= self.self_crop[3]):
             raise ValueError("invalid self-crop rectangle")
+        self.front_fov_center = float(rospy.get_param("~front_fov_center", 0.0))
+        self.rear_fov_center = float(rospy.get_param("~rear_fov_center", math.pi))
+        self.lidar_fov_width = math.radians(
+            float(rospy.get_param("~lidar_fov_deg", 120.0)))
+        if self.lidar_fov_width <= 0.0 or self.lidar_fov_width > TAU:
+            raise ValueError("~lidar_fov_deg must be within (0, 360]")
 
         front_topic = rospy.get_param("~front_topic", "/lidar/front/scan_raw")
         rear_topic = rospy.get_param("~rear_topic", "/lidar/rear/scan_raw")
@@ -104,12 +117,13 @@ class DualLaserFusion:
         self.synchronizer.registerCallback(self._callback)
 
         rospy.loginfo(
-            "Fusing %s and %s into %s (%s, %d bins, self crop=%s %s)",
+            "Fusing %s and %s into %s (%s, %d bins, %.1f deg FOV, self crop=%s %s)",
             front_topic,
             rear_topic,
             self.output_topic,
             self.target_frame,
             self.bin_count,
+            math.degrees(self.lidar_fov_width),
             self.self_crop_enabled,
             self.self_crop,
         )
@@ -134,6 +148,8 @@ class DualLaserFusion:
             ranges,
             intensities,
             self.self_crop if self.self_crop_enabled else None,
+            self.front_fov_center,
+            self.lidar_fov_width,
         )
         add_scan_to_bins(
             rear_scan,
@@ -143,6 +159,8 @@ class DualLaserFusion:
             ranges,
             intensities,
             self.self_crop if self.self_crop_enabled else None,
+            self.rear_fov_center,
+            self.lidar_fov_width,
         )
 
         output = LaserScan()

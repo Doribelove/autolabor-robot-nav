@@ -62,7 +62,7 @@ public:
 
     private_nh_.param("sensor_x", sensor_x_, 0.20);
     private_nh_.param("sensor_y", sensor_y_, 0.0);
-    private_nh_.param("sensor_z", sensor_z_, 0.9);
+    private_nh_.param("sensor_z", sensor_z_, 1.0);
     private_nh_.param("sensor_roll", sensor_roll_, 0.0);
     private_nh_.param("sensor_pitch", sensor_pitch_, 0.0);
     private_nh_.param("sensor_yaw", sensor_yaw_, 0.0);

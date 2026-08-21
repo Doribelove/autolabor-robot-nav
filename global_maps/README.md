@@ -21,15 +21,19 @@ self-contained map set below `global_maps/map_sets/<session>/`:
 ```text
 <session>/
 ├── manifest.yaml
-├── map_3d/       # MID360 /cloud_registered voxel PCD
-├── map_2d/       # front/rear LD19-only map_server PGM/YAML
-└── map_fused_2d/ # LD19 grid plus a fixed-height slice of the 3-D map
+├── map_3d/       # temporally persistent MID360 /cloud_registered voxel PCD
+├── map_2d/       # temporally confirmed front/rear LD19 map_server PGM/YAML
+└── map_fused_2d/ # LD19 grid plus a persistent fixed-height 3-D slice
 ```
 
 The LD19 grid uses FAST-LIO `/Odometry` only as its trajectory; MID360 points
-are not inserted into `map_2d`. The third map is created after recording stops
-by projecting the configured PCD height band and conservatively adding its
-occupied cells to the LD19 grid.
+are not inserted into `map_2d`. An LD19 occupied cell must be observed in at
+least five distinct integrated scans. The third map is created after recording
+stops by adding only MID360 slice cells observed in at least 20 distinct cloud
+frames. The default band is `Z=-0.756+/-0.10 m` in the level initial FAST-LIO
+`camera_init` frame, corresponding to the `0.20 m` LD19 plane below the IMU
+`body` origin at `0.95588 m`. MID360 points beyond 20 m from the matching
+FAST-LIO pose are discarded before accumulation.
 
 `global_maps/map_sets/latest` is switched atomically only after all three maps
 and their configuration files are complete. A historical bag can be processed

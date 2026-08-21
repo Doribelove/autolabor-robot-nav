@@ -88,13 +88,13 @@ FOD_RECOVERY_TRANSITION_TIMEOUT="${FOD_RECOVERY_TRANSITION_TIMEOUT:-12.0}"
 DUAL_LIDAR_MODE="${DUAL_LIDAR_MODE:-auto}"
 DUAL_LIDAR_FRONT_PORT="${DUAL_LIDAR_FRONT_PORT:-/dev/serial/by-path/platform-3610000.xhci-usb-0:4.4:1.0-port0}"
 DUAL_LIDAR_REAR_PORT="${DUAL_LIDAR_REAR_PORT:-/dev/serial/by-path/platform-3610000.xhci-usb-0:4.3:1.0-port0}"
-DUAL_LIDAR_CENTER_DISTANCE_M="${DUAL_LIDAR_CENTER_DISTANCE_M:-0.94}"
+DUAL_LIDAR_CENTER_DISTANCE_M="${DUAL_LIDAR_CENTER_DISTANCE_M:-0.92}"
 DUAL_LIDAR_ENHANCED_CLOUD_TOPIC="${DUAL_LIDAR_ENHANCED_CLOUD_TOPIC:-/cloud_registered_body_enhanced}"
 DUAL_LIDAR_USE_FOR_SCAN="${DUAL_LIDAR_USE_FOR_SCAN:-true}"
 DUAL_LIDAR_AVAILABLE=false
 MID360_AVOIDANCE_SENSOR_X="${MID360_AVOIDANCE_SENSOR_X:-0.20}"
 MID360_AVOIDANCE_SENSOR_Y="${MID360_AVOIDANCE_SENSOR_Y:-0.0}"
-MID360_AVOIDANCE_SENSOR_Z="${MID360_AVOIDANCE_SENSOR_Z:-0.9}"
+MID360_AVOIDANCE_SENSOR_Z="${MID360_AVOIDANCE_SENSOR_Z:-1.0}"
 MID360_AVOIDANCE_SENSOR_ROLL="${MID360_AVOIDANCE_SENSOR_ROLL:-0.0}"
 MID360_AVOIDANCE_SENSOR_PITCH="${MID360_AVOIDANCE_SENSOR_PITCH:-0.0}"
 MID360_AVOIDANCE_SENSOR_YAW="${MID360_AVOIDANCE_SENSOR_YAW:-0.0}"
@@ -181,12 +181,12 @@ usage() {
   echo "  DUAL_LIDAR_MODE=auto|on|off     # auto starts both LD19 only when both USB paths exist"
   echo "  DUAL_LIDAR_FRONT_PORT=...       # stable by-path for the front LD19"
   echo "  DUAL_LIDAR_REAR_PORT=...        # stable by-path for the rear LD19"
-  echo "  DUAL_LIDAR_CENTER_DISTANCE_M=0.94"
+  echo "  DUAL_LIDAR_CENTER_DISTANCE_M=0.92"
   echo "  DUAL_LIDAR_ENHANCED_CLOUD_TOPIC=/cloud_registered_body_enhanced"
   echo "  DUAL_LIDAR_USE_FOR_SCAN=true    # merge live dual LD19 scans into MoveBase /scan"
   echo "  MID360_AVOIDANCE_SENSOR_X=0.20  # MID360 pose in base_link"
   echo "  MID360_AVOIDANCE_SENSOR_Y=0.0"
-  echo "  MID360_AVOIDANCE_SENSOR_Z=0.9"
+  echo "  MID360_AVOIDANCE_SENSOR_Z=1.0"
   echo "  MID360_AVOIDANCE_SENSOR_ROLL=0.0"
   echo "  MID360_AVOIDANCE_SENSOR_PITCH=0.0"
   echo "  MID360_AVOIDANCE_SENSOR_YAW=0.0"
@@ -1409,8 +1409,9 @@ else
     tf_pub_en:=false \
     body_tf_parent:=base_link \
     body_tf_child:=body \
-    body_tf_x:=0.2 \
-    body_tf_z:=0.6
+    body_tf_x:=0.211 \
+    body_tf_y:=0.02329 \
+    body_tf_z:=0.95588
   wait_topics "/cloud_registered_body" 60.0
 
   start_optional_cloud_enhancer

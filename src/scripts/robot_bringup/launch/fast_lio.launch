@@ -4,8 +4,11 @@
   <arg name="publish_body_base_tf" default="true"/>
   <arg name="body_tf_parent" default="body"/>
   <arg name="body_tf_child" default="base_link"/>
-  <arg name="body_tf_x" default="-0.2"/>
-  <arg name="body_tf_z" default="-0.6"/>
+  <!-- body is the FAST-LIO IMU frame. Values are derived from
+       base_link->MID360=(0.20,0,1.00) and lidar-in-IMU extrinsic_T. -->
+  <arg name="body_tf_x" default="-0.211"/>
+  <arg name="body_tf_y" default="-0.02329"/>
+  <arg name="body_tf_z" default="-0.95588"/>
   <include file="$(find fast_lio)/launch/mapping_mid360.launch">
     <arg name="odom_pub_en" value="$(arg odom_pub_en)"/>
     <arg name="tf_pub_en" value="$(arg tf_pub_en)"/>
@@ -14,5 +17,5 @@
   <!-- FAST-LIO owns camera_init -> body; this fixed transform exposes base_link to navigation. -->
   <node if="$(arg publish_body_base_tf)" pkg="tf" type="static_transform_publisher"
         name="body_to_base_link"
-        args="$(arg body_tf_x) 0 $(arg body_tf_z) 0 0 0 $(arg body_tf_parent) $(arg body_tf_child) 100"/>
+        args="$(arg body_tf_x) $(arg body_tf_y) $(arg body_tf_z) 0 0 0 $(arg body_tf_parent) $(arg body_tf_child) 100"/>
 </launch>
