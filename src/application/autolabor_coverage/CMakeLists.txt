@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(catkin REQUIRED COMPONENTS
   actionlib
+  autolabor_canbus_driver
   base_local_planner
   costmap_2d
   dynamic_reconfigure
@@ -18,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   roscpp
   rospy
+  sensor_msgs
   std_msgs
   std_srvs
   tf2_ros
@@ -42,9 +44,10 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES coverage_global_planner
   CATKIN_DEPENDS
-    actionlib costmap_2d dynamic_reconfigure geometry_msgs message_runtime
-    move_base_msgs nav_core nav_msgs navfn pluginlib roscpp rospy std_msgs
-    std_srvs tf2_ros visualization_msgs
+    actionlib autolabor_canbus_driver base_local_planner costmap_2d
+    dynamic_reconfigure geometry_msgs message_runtime
+    move_base_msgs nav_core nav_msgs navfn pluginlib roscpp rospy sensor_msgs
+    std_msgs std_srvs tf2_ros visualization_msgs
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
@@ -68,4 +71,5 @@ install(FILES coverage_global_planner_plugin.xml
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_coverage_geometry.py)
   catkin_add_nosetests(test/test_coverage_contract.py)
+  catkin_add_nosetests(test/test_coverage_manager_state_machine.py)
 endif()

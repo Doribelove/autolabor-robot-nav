@@ -46,4 +46,5 @@ install(DIRECTORY config launch
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_cmd_vel_watchdog.py)
   catkin_add_nosetests(test/test_dual_host_contract.py)
+  catkin_add_nosetests(test/test_move_base_pause_bridge.py)
 endif()

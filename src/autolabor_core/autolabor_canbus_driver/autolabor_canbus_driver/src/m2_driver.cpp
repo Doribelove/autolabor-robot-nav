@@ -170,7 +170,11 @@ namespace autolabor_driver{
                     // Keep the legacy *_stuck message fields for ROS API
                     // compatibility, but label protocol bit2 accurately in
                     // the diagnostic and retain all three raw status bytes.
-                    ROS_WARN("VCU ControllerMonitor (0x23) raw=[0x%02X 0x%02X 0x%02X]: "
+                    // The VCU can repeat the same fault frame at tens of Hz.
+                    // Preserve both the warning and the published status, but
+                    // keep a persistent hardware state from flooding logs.
+                    ROS_WARN_THROTTLE(5.0,
+                             "VCU ControllerMonitor (0x23) raw=[0x%02X 0x%02X 0x%02X]: "
                              "TCU{emergency=%u timeout=%u current_overlimit=%u brake=%u} "
                              "LECU{emergency=%u timeout=%u current_overlimit=%u brake=%u} "
                              "RECU{emergency=%u timeout=%u current_overlimit=%u brake=%u}; "

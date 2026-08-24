@@ -82,6 +82,7 @@ ssh "$target" "set -eu
 paths=(
   ./src/CMakeLists.txt
   ./src/navigation_arena/arena-rosnav-3D/arena_navigation/arena_local_planer/model_based/conventional
+  ./src/navigation_arena/forks/navigation/local_planner/teb
   ./src/perception_ldlidar/autolabor_dual_lidar
   ./src/localization_fastlio/FAST_LIO
   ./src/localization_fastlio/fast_lio_localization
@@ -122,7 +123,8 @@ ssh "$target" "set -eu
       -DCMAKE_BUILD_TYPE=Release \
       -DCATKIN_ENABLE_TESTING=OFF \
       -DCMAKE_INSTALL_PREFIX=/opt/autolabor/dual_host/releases/\"\$RELEASE\"/install \
-      -DCATKIN_WHITELIST_PACKAGES=conventional\\;fast_lio\\;fast_lio_localization\\;autolabor_coverage\\;robot_bringup\\;autolabor_dual_lidar\\;autolabor_dual_host
+      -DFAST_LIO_RUNTIME_DIR=/var/lib/autolabor/fast_lio/ \
+      -DCATKIN_WHITELIST_PACKAGES=conventional\\;teb_local_planner\\;fast_lio\\;fast_lio_localization\\;autolabor_coverage\\;robot_bringup\\;autolabor_dual_lidar\\;autolabor_dual_host
     test -f /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find autolabor_dual_host >/dev/null
@@ -130,6 +132,7 @@ ssh "$target" "set -eu
     rospack find fast_lio_localization >/dev/null
     rospack find autolabor_coverage >/dev/null
     rospack find robot_bringup >/dev/null
+    rospack find teb_local_planner >/dev/null
   '
   '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"
 
@@ -155,8 +158,13 @@ ssh "$target" "set -eu
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find map_server >/dev/null
     rospack find autolabor_coverage >/dev/null
+    rospack find teb_local_planner >/dev/null
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_coverage/coverage_manager.py
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_global_planner.so
+    test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so
+    grep -aFq treat_unknown_as_obstacle /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so
+    test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/fast_lio/fastlio_mapping
+    grep -aFq /var/lib/autolabor/fast_lio/ /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/fast_lio/fastlio_mapping
     if ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server | grep -q not.found; then
       ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server >&2
       echo map_server.has.unresolved.shared.libraries >&2

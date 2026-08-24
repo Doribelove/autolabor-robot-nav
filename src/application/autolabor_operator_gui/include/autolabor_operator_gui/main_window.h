@@ -50,6 +50,7 @@ class QVBoxLayout;
 namespace rviz
 {
 class VisualizationFrame;
+class Tool;
 }
 
 namespace autolabor_operator_gui
@@ -168,9 +169,13 @@ struct TelemetrySnapshot
 
   bool map_received = false;
   ros::WallTime map_received_at;
+  std::uint64_t map_message_count = 0;
   unsigned int map_width = 0;
   unsigned int map_height = 0;
   double map_resolution = 0.0;
+  double map_origin_x = 0.0;
+  double map_origin_y = 0.0;
+  double map_origin_yaw = 0.0;
   bool coverage_status_received = false;
   autolabor_coverage::CoverageStatus coverage_status;
   ros::WallTime coverage_status_received_at;
@@ -200,6 +205,10 @@ private Q_SLOTS:
   void requestMasterProbe();
   void handleMasterProbeFinished();
   void toggleRvizPanels();
+  void fitOverviewMapView();
+  void followOverviewVehicle();
+  void selectInitialPoseTool();
+  void toggleOverview3dMap();
   void beginCoverageSelection();
   void undoCoveragePoint();
   void cancelCoverageSelection();
@@ -277,6 +286,18 @@ private:
   void setupRosInterfaces();
   void setupEmbeddedRviz();
   void setupCoverageRviz();
+  void attachRvizToTab(int tab_index);
+  bool ensureStaticMapDisplayReady(const TelemetrySnapshot& data);
+  void publishMapDisplayStatus(const std::string& status);
+  bool fitRvizMapView(rviz::VisualizationFrame* frame,
+                      const TelemetrySnapshot& data);
+  bool setRvizFollowVehicleView(const TelemetrySnapshot& data);
+  bool setOverview3dMapView(bool enabled,
+                            const TelemetrySnapshot& data);
+  void updateNavigationPathDisplays(const TelemetrySnapshot& data);
+  bool selectRvizTool(rviz::VisualizationFrame* frame,
+                      const QString& class_id);
+  void handleOverviewRvizToolChanged(rviz::Tool* tool);
   void shutdownRosInterfaces();
   void callSetBoolService(const std::string& service_name, bool enabled,
                           QPushButton* button, const QString& action_name);
@@ -347,6 +368,7 @@ private:
   ros::Publisher relative_goal_publisher_;
   ros::Publisher cancel_publisher_;
   ros::Publisher coverage_draft_publisher_;
+  ros::Publisher map_display_status_publisher_;
   mutable tf2_ros::Buffer tf_buffer_;
   std::unique_ptr<tf2_ros::TransformListener> tf_listener_;
 
@@ -354,7 +376,6 @@ private:
   bool previous_probe_online_ = false;
   bool ros_interfaces_ready_ = false;
   bool rviz_initialized_ = false;
-  bool coverage_rviz_initialized_ = false;
   bool enable_rviz_ = true;
   bool static_map_mode_ = false;
   std::string navigation_mode_label_ = "FAST_LIO";
@@ -362,7 +383,6 @@ private:
   std::string cloud_topic_ = "/cloud_registered_body";
   std::string imu_topic_ = "/livox/imu";
   std::string rviz_config_path_;
-  std::string coverage_rviz_config_path_;
   std::string rviz_startup_fixed_frame_ = "map";
   std::string rviz_navigation_fixed_frame_ = "map";
   QTimer master_probe_timer_;
@@ -373,17 +393,35 @@ private:
   std::map<QString, QLabel*> values_;
   QLabel* app_subtitle_ = nullptr;
   QTabWidget* tabs_ = nullptr;
+  int overview_tab_index_ = -1;
+  int coverage_tab_index_ = -1;
+  int rviz_attached_tab_index_ = -1;
   QWidget* rviz_host_ = nullptr;
   QVBoxLayout* rviz_layout_ = nullptr;
+  QFrame* rviz_map_controls_ = nullptr;
+  QLabel* rviz_map_instruction_ = nullptr;
+  QPushButton* rviz_fit_map_button_ = nullptr;
+  QPushButton* rviz_initial_pose_button_ = nullptr;
+  QPushButton* rviz_follow_vehicle_button_ = nullptr;
+  QPushButton* rviz_3d_map_button_ = nullptr;
   QLabel* rviz_placeholder_ = nullptr;
   rviz::VisualizationFrame* rviz_frame_ = nullptr;
   QWidget* coverage_rviz_host_ = nullptr;
   QVBoxLayout* coverage_rviz_layout_ = nullptr;
   QLabel* coverage_rviz_placeholder_ = nullptr;
-  rviz::VisualizationFrame* coverage_rviz_frame_ = nullptr;
   QPlainTextEdit* overview_events_ = nullptr;
   QPlainTextEdit* log_events_ = nullptr;
   QPushButton* rviz_panels_button_ = nullptr;
+  std::uint64_t overview_fitted_map_count_ = 0;
+  std::uint64_t coverage_fitted_map_count_ = 0;
+  std::uint64_t rviz_map_refresh_message_count_ = 0;
+  std::uint64_t rviz_map_ready_message_count_ = 0;
+  unsigned int rviz_map_refresh_attempts_ = 0;
+  ros::WallTime rviz_map_refresh_at_;
+  std::string map_display_status_;
+  bool overview_initial_pose_tool_active_ = false;
+  bool rviz_follow_after_initial_pose_ = false;
+  bool overview_3d_map_enabled_ = false;
   QPushButton* forward_goal_button_ = nullptr;
   QPushButton* record_button_ = nullptr;
   QPushButton* static_map_start_button_ = nullptr;
@@ -408,6 +446,7 @@ private:
   QPushButton* image_quality_disable_button_ = nullptr;
   QDoubleSpinBox* coverage_width_input_ = nullptr;
   QDoubleSpinBox* coverage_overlap_input_ = nullptr;
+  QDoubleSpinBox* coverage_speed_input_ = nullptr;
   QCheckBox* coverage_reverse_checkbox_ = nullptr;
   QPushButton* coverage_select_button_ = nullptr;
   QPushButton* coverage_undo_button_ = nullptr;

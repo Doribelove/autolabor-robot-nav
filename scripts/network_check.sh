@@ -9,7 +9,13 @@ failed=0
 
 check_address() {
   local interface="$1" address="$2" label="$3"
-  [[ -e "/sys/class/net/$interface" ]] || return 0
+  if [[ -z "$interface" ||
+        ( ! -d "$DUAL_HOST_SYS_CLASS_NET_ROOT/$interface" &&
+          ! -L "$DUAL_HOST_SYS_CLASS_NET_ROOT/$interface" ) ]]; then
+    echo "ERR $label: hardware interface is unresolved" >&2
+    failed=1
+    return
+  fi
   if ip -o -4 address show dev "$interface" | awk '{print $4}' | grep -Fxq "$address/24"; then
     echo "OK  $label: $interface has $address/24"
   else
@@ -20,25 +26,68 @@ check_address() {
 
 check_mac() {
   local interface="$1" expected="$2" label="$3" actual
-  [[ -n "$expected" ]] || return 0
-  if [[ ! -r "/sys/class/net/$interface/address" ]]; then
+  if [[ -z "$interface" || -z "$expected" ]]; then
+    echo "ERR $label: interface or resolved permanent MAC is absent" >&2
+    failed=1
     return
   fi
-  actual="$(<"/sys/class/net/$interface/address")"
+  actual="$(dual_host_interface_permanent_mac "$interface" 2>/dev/null || true)"
+  if [[ -z "$actual" ]]; then
+    echo "ERR $label: cannot read permanent MAC for $interface" >&2
+    failed=1
+    return
+  fi
   if [[ "${actual,,}" == "${expected,,}" ]]; then
-    echo "OK  $label: $interface has MAC ${actual^^}"
+    echo "OK  $label: $interface has permanent MAC ${actual^^}"
   else
-    echo "ERR $label: $interface has MAC ${actual^^}, expected ${expected^^}" >&2
+    echo "ERR $label: $interface has permanent MAC ${actual^^}, expected ${expected^^}" >&2
     failed=1
   fi
 }
 
-for interface in "$NVIDIA_J6M_INTERFACE" "$NVIDIA_LIVOX_INTERFACE"; do
-  if [[ ! -e "/sys/class/net/$interface" ]]; then
-    echo "ERR missing interface: $interface" >&2
+check_link_state() {
+  local interface="$1" connection="$2" label="$3" carrier managed active
+  if [[ -z "$interface" ||
+        ( ! -d "$DUAL_HOST_SYS_CLASS_NET_ROOT/$interface" &&
+          ! -L "$DUAL_HOST_SYS_CLASS_NET_ROOT/$interface" ) ]]; then
+    return
+  fi
+  if [[ -r "$DUAL_HOST_SYS_CLASS_NET_ROOT/$interface/carrier" ]]; then
+    carrier="$(<"$DUAL_HOST_SYS_CLASS_NET_ROOT/$interface/carrier")"
+  else
+    carrier=""
+  fi
+  if [[ "$carrier" == 1 ]]; then
+    echo "OK  $label: $interface has Ethernet carrier"
+  else
+    echo "ERR $label: $interface has no Ethernet carrier" >&2
     failed=1
   fi
-done
+  managed="$(LC_ALL=C nmcli -e no -g GENERAL.NM-MANAGED device show "$interface" 2>/dev/null || true)"
+  active="$(LC_ALL=C nmcli -e no -g GENERAL.CONNECTION device show "$interface" 2>/dev/null || true)"
+  if [[ "$managed" == yes ]]; then
+    echo "OK  $label: $interface is managed by NetworkManager"
+  else
+    echo "ERR $label: $interface is not managed by NetworkManager" >&2
+    failed=1
+  fi
+  if [[ "$active" == "$connection" ]]; then
+    echo "OK  $label: active profile is $connection"
+  else
+    echo "ERR $label: active profile is ${active:---}, expected $connection" >&2
+    failed=1
+  fi
+}
+
+if [[ -z "$NVIDIA_J6M_INTERFACE" || -z "$NVIDIA_LIVOX_INTERFACE" ]]; then
+  echo "ERR one or both dedicated Ethernet roles are unresolved" >&2
+  failed=1
+elif ! dual_host_network_roles_are_distinct; then
+  echo "ERR J6M and MID360 resolved to the same hardware interface" >&2
+  failed=1
+else
+  echo "OK  J6M and MID360 use distinct hardware interfaces"
+fi
 
 if ! python3 - "$NVIDIA_J6M_IP" "$NVIDIA_LIVOX_IP" <<'PY'
 import ipaddress
@@ -59,6 +108,8 @@ check_address "$NVIDIA_J6M_INTERFACE" "$NVIDIA_J6M_IP" "J6M link"
 check_address "$NVIDIA_LIVOX_INTERFACE" "$NVIDIA_LIVOX_IP" "MID360 link"
 check_mac "$NVIDIA_J6M_INTERFACE" "${NVIDIA_J6M_MAC:-}" "J6M link"
 check_mac "$NVIDIA_LIVOX_INTERFACE" "${NVIDIA_LIVOX_MAC:-}" "MID360 link"
+check_link_state "$NVIDIA_J6M_INTERFACE" "$NVIDIA_J6M_CONNECTION" "J6M link"
+check_link_state "$NVIDIA_LIVOX_INTERFACE" "$NVIDIA_LIVOX_CONNECTION" "MID360 link"
 
 default_device="$(ip route show default | awk 'NR == 1 {for (i=1; i<=NF; ++i) if ($i == "dev") print $(i+1)}')"
 if [[ "$default_device" == "$NVIDIA_J6M_INTERFACE" || "$default_device" == "$NVIDIA_LIVOX_INTERFACE" ]]; then
@@ -68,14 +119,16 @@ else
   echo "OK  default route remains on ${default_device:-an external interface}"
 fi
 
-if ping -I "$NVIDIA_J6M_INTERFACE" -c 3 -W 1 "$J6M_IP" >/dev/null 2>&1; then
+if [[ -n "$NVIDIA_J6M_INTERFACE" ]] &&
+   ping -I "$NVIDIA_J6M_INTERFACE" -c 3 -W 1 "$J6M_IP" >/dev/null 2>&1; then
   echo "OK  NVIDIA -> J6M ping"
 else
   echo "ERR cannot ping J6M $J6M_IP via $NVIDIA_J6M_INTERFACE" >&2
   failed=1
 fi
 
-if ping -I "$NVIDIA_LIVOX_INTERFACE" -c 3 -W 1 "$MID360_IP" >/dev/null 2>&1; then
+if [[ -n "$NVIDIA_LIVOX_INTERFACE" ]] &&
+   ping -I "$NVIDIA_LIVOX_INTERFACE" -c 3 -W 1 "$MID360_IP" >/dev/null 2>&1; then
   echo "OK  NVIDIA -> MID360 ping"
 else
   echo "ERR cannot ping MID360 $MID360_IP via $NVIDIA_LIVOX_INTERFACE" >&2

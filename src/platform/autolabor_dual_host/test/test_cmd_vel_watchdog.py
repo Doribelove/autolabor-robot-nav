@@ -38,6 +38,17 @@ class CommandValidationTest(unittest.TestCase):
         self.assertFalse(accepted)
         self.assertIn("unsupported", reason)
 
+    def test_accepts_chassis_hard_limit_and_rejects_above_it(self):
+        accepted, reason = evaluate_twist_values(
+            (1.7, 0.0, 0.0, 0.0, 0.0, 0.0), 1.7, 0.6
+        )
+        self.assertTrue(accepted, reason)
+        accepted, reason = evaluate_twist_values(
+            (1.701, 0.0, 0.0, 0.0, 0.0, 0.0), 1.7, 0.6
+        )
+        self.assertFalse(accepted)
+        self.assertIn("linear speed", reason)
+
 
 if __name__ == "__main__":
     unittest.main()

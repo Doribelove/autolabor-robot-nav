@@ -99,6 +99,7 @@ J6M 上的 `/map/autolabor_runtime/dual_host/bin/rollback.sh` 切换 `current`�
 
 ```text
 conventional
+teb_local_planner
 fast_lio
 fast_lio_localization
 robot_bringup
@@ -151,11 +152,16 @@ NVIDIA wlan0：互联网默认路由
 NVIDIA USB 网卡的 `eth0/eth1/eth2` 名称会在重启后变化，绝不能把接口名当作硬件身份：
 
 ```text
-6C:1F:F7:C4:82:83  ASIX -> 交换机/J6M
+6C:1F:F7:C4:96:B8  ASIX -> 交换机/J6M
 50:54:7B:E3:C9:10  WCH  -> MID360
 ```
 
-- 使用 `scripts/load_config.sh` 的 MAC 解析结果或读取 `/sys/class/net/*/address`。
+- 使用 `scripts/load_config.sh` 的硬件身份解析结果；永久 MAC 未命中时，只允许用
+  `config/dual_host.env` 中同时配置且唯一匹配的 USB VID:PID + serial 兜底。不得仅凭
+  VID:PID、驱动名或现存 `ethN` 自动认领网卡。
+- 正常启动会在任何 J6M 远程停机前调用 `scripts/network_prepare.sh`，恢复
+  NetworkManager 托管、修正 profile、等待载波/地址/两端可达；不要把这个顺序改回
+  “先远程 stop，后修网络”。同步停机后还必须再次复检网络。
 - NetworkManager 持久 profile 应绑定永久 MAC、`connection.autoconnect=yes`，并让
   `connection.interface-name` 保持为空。空接口名是预期状态，不要“修复”为某个
   易变的 `ethN`；激活时可以临时传入当前 `ifname`。
@@ -198,6 +204,19 @@ J6M 重启后时钟可能失效；网络恢复后运行 `scripts/sync_j6m_time.s
 `IN_USE_BY_PID` 时只报告占用者或安全停止能证明属于本项目的进程，不得杀死未知进程。
 使用 screen 诊断后必须退出并释放串口。
 
+## ZED 相机就绪判定
+
+- ZED 2 视频端 `2b03:f780` 必须以 `5000M` 或更高的 USB 3.x 速率枚举；`480M`
+  是 USB 2.0 降级，不能仅凭 `2b03:f780/f781` 出现在 `lsusb` 就判定正常。
+- 启动或诊断先运行 `./scripts/zed_camera_check.sh --wait 0`。`f780/f781` usbfs 必须对
+  `slam` 可访问；hidraw 是可选内核接口，不得因它未生成而单独拒绝已能被 ZED SDK
+  识别的相机。重启后 usbfs 若遗留为 `root:root 0600`，使用已安装的
+  `autolabor-zed-coldplug.service`，首次安装入口为 `scripts/install_zed_udev.sh`。
+- `/zed2/zed_node` 存活不是相机 ready。必须确认 `/fod_camera/image_raw` 和
+  `/fod_camera/depth_registered` 有新鲜消息；否则检查 `log/nvidia_ui_*/vision.log`。
+- 不要用可能争抢相机的 ZED Explorer/Diagnostic 作为运行栈内健康探针；确需运行时
+  先通过统一入口完整停止双机栈，诊断完再完整冷启动。
+
 ## 启停、地图和运行态
 
 正常操作只使用统一入口：
@@ -218,6 +237,13 @@ J6M 重启后时钟可能失效；网络恢复后运行 `scripts/sync_j6m_time.s
   也不得把 FAST-LIO 健康等同于全局定位成功。
 - `map_server` 只加载二维地图；全局定位由 `fast_lio_localization` 提供
   `map -> camera_init`，本模式不使用 AMCL。
+- 定位前 Qt/RViz 依靠 `operator_gui.launch` 的
+  `map -> autolabor_map_display_anchor` 静态叶子识别二维地图根帧。该叶子绝不能改成
+  `map -> camera_init/base_link`，也不得据此声称车辆已定位；它仅解决初始位姿前的
+  地图渲染循环依赖。
+- Qt 收到 `/map` 不等于内嵌 RViz 已完成渲染。静态地图启动验收还必须要求
+  `/autolabor_operator_gui/map_display_status` 为 `READY`；保留 MapDisplay 自动重订阅和
+  实际宽、高、分辨率校验，禁止把这项检查降级成仅检查 `/map` 有消息。
 - 静态建图必须从无图模式开始，并确认 MID360、IMU 和要求的固定物理口 LD19 在线；
   普通 rosbag 录制不会自动生成地图。
 

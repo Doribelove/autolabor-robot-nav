@@ -37,6 +37,7 @@ private:
   bool initialized_ = false;
   bool coverage_active_ = false;
   double goal_match_tolerance_ = 0.35;
+  double goal_yaw_match_tolerance_ = 0.20;
   double path_timeout_ = 1.0;
   ros::NodeHandle private_nh_;
   ros::Subscriber active_subscriber_;

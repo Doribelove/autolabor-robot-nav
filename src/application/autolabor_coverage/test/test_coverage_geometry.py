@@ -7,13 +7,19 @@ import unittest
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PACKAGE_ROOT / "src"))
+# Keep a sourced catkin devel package ahead of the source helper so generated
+# ``autolabor_coverage.msg`` modules remain importable when tests share a
+# process.  In a standalone geometry run the appended source path is still
+# sufficient.
+sys.path.append(str(PACKAGE_ROOT / "src"))
 
 from autolabor_coverage.coverage_geometry import (  # noqa: E402
     CoveragePlanner,
     GridMap,
     Point,
+    Swath,
     order_swaths,
+    rasterize_swept_cells,
     validate_polygon,
 )
 
@@ -47,6 +53,12 @@ class CoverageGeometryTest(unittest.TestCase):
             self.assertGreaterEqual(swath.length, 1.2)
             self.assertTrue(math.isfinite(swath.start.x))
             self.assertTrue(math.isfinite(swath.end.y))
+
+    def test_one_metre_cleaning_width_uses_point_eight_five_lane_spacing(self):
+        plan = CoveragePlanner(self.grid_with_obstacle()).plan(
+            self.rectangle(), 1.00, 0.15
+        )
+        self.assertAlmostEqual(0.85, plan.spacing, places=6)
 
     def test_occupied_band_splits_or_clips_the_cleaning_lines(self):
         free = CoveragePlanner(self.grid_with_obstacle()).plan(
@@ -94,6 +106,31 @@ class CoverageGeometryTest(unittest.TestCase):
             math.hypot(current.x - first.start.x, current.y - first.start.y),
             math.hypot(current.x - first.end.x, current.y - first.end.y),
         )
+
+    def test_route_entry_uses_vehicle_heading_when_distances_are_equal(self):
+        swath = Swath(Point(1.0, 0.0), Point(-1.0, 0.0), 0.0, 2.0)
+        route = order_swaths(
+            [swath], Point(0.0, 0.0), 0.85, 1.35, current_yaw=0.0
+        )
+        self.assertEqual(Point(-1.0, 0.0), route[0].start)
+        self.assertEqual(Point(1.0, 0.0), route[0].end)
+
+    def test_swept_area_cells_are_clipped_and_do_not_double_count(self):
+        grid = GridMap(50, 50, 0.1, 0.0, 0.0, [0] * 2500)
+        polygon = [Point(1.0, 1.0), Point(4.0, 1.0),
+                   Point(4.0, 4.0), Point(1.0, 4.0)]
+        first = rasterize_swept_cells(
+            grid, polygon, Point(1.5, 2.0), Point(3.5, 2.0), 1.0
+        )
+        repeated = set(first)
+        repeated.update(rasterize_swept_cells(
+            grid, polygon, Point(1.5, 2.0), Point(3.5, 2.0), 1.0
+        ))
+        self.assertEqual(first, repeated)
+        self.assertGreater(len(first) * grid.resolution ** 2, 2.0)
+        for cell_x, cell_y in first:
+            self.assertGreaterEqual((cell_x + 0.5) * grid.resolution, 1.0)
+            self.assertLessEqual((cell_x + 0.5) * grid.resolution, 4.0)
 
 
 if __name__ == "__main__":

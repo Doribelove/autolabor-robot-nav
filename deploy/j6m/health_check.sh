@@ -36,7 +36,7 @@ chroot "$ROOTFS" /bin/bash -lc '
   executables=(
     /opt/autolabor/dual_host/current/lib/autolabor_dual_lidar/optional_cloud_enhancer
     /opt/autolabor/dual_host/current/lib/robot_bringup/livox_custom_to_pointcloud
-    /opt/autolabor/ros/install/lib/fast_lio/fastlio_mapping
+    /opt/autolabor/dual_host/current/lib/fast_lio/fastlio_mapping
     /opt/autolabor/dual_host/current/lib/fast_lio_localization/fast_lio_map_localizer
     /opt/autolabor/dual_host/current/lib/map_server/map_server
   )
@@ -48,6 +48,10 @@ chroot "$ROOTFS" /bin/bash -lc '
       exit 1
     fi
   done
+  test -d /var/lib/autolabor/fast_lio/Log
+  test -d /var/lib/autolabor/fast_lio/PCD
+  grep -aFq /var/lib/autolabor/fast_lio/ \
+    /opt/autolabor/dual_host/current/lib/fast_lio/fastlio_mapping
   shared_libraries=(
     /opt/autolabor/dual_host/current/lib/libcoverage_global_planner.so
   )

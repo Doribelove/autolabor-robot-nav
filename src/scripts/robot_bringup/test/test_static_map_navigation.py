@@ -17,6 +17,28 @@ KNOWN_MAP_SOURCE = (
     / "src"
     / "fast_lio_map_localizer.cpp"
 ).read_text(encoding="utf-8")
+MAPPING_SESSION = (WORKSPACE_ROOT / "scripts/global_mapping_session.sh").read_text(
+    encoding="utf-8"
+)
+OFFLINE_MAPPING = (
+    WORKSPACE_ROOT / "scripts/build_static_map_from_bag.sh"
+).read_text(encoding="utf-8")
+VOXEL_MAPPER_SOURCE = (
+    PACKAGE_ROOT / "src/voxel_cloud_mapper.cpp"
+).read_text(encoding="utf-8")
+TEB_ROOT = (
+    WORKSPACE_ROOT
+    / "src/navigation_arena/forks/navigation/local_planner/teb"
+)
+TEB_CONFIG_HEADER = (
+    TEB_ROOT / "include/teb_local_planner/teb_config.h"
+).read_text(encoding="utf-8")
+TEB_RECONFIGURE = (
+    TEB_ROOT / "cfg/TebLocalPlannerReconfigure.cfg"
+).read_text(encoding="utf-8")
+TEB_OPTIMAL_PLANNER = (
+    TEB_ROOT / "src/optimal_planner.cpp"
+).read_text(encoding="utf-8")
 
 
 class StaticMapNavigationContractTest(unittest.TestCase):
@@ -36,6 +58,14 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         self.assertTrue(global_config["static_map"])
         self.assertFalse(local_config["static_map"])
         self.assertTrue(local_config["rolling_window"])
+        local_plugins = {
+            plugin["name"]: plugin["type"] for plugin in local_config["plugins"]
+        }
+        self.assertEqual(
+            "costmap_2d::StaticLayer", local_plugins["static_layer"]
+        )
+        self.assertEqual("/map", local_config["static_layer"]["map_topic"])
+        self.assertTrue(local_config["static_layer"]["track_unknown_space"])
 
     def test_navigation_uses_map_server_and_localization_velocity_gate_without_amcl(self):
         launch_path = PACKAGE_ROOT / "launch" / "navigation_j6m.launch"
@@ -45,7 +75,108 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         self.assertTrue({"use_static_map", "map_file"} <= arguments)
         self.assertIn('pkg="map_server" type="map_server"', text)
         self.assertIn('type="localization_cmd_vel_gate.py"', text)
+        self.assertIn('<param name="cancel_topic" value="/move_base/cancel"/>', text)
+        self.assertIn('<param name="goal_topic" value="/move_base/goal"/>', text)
+        self.assertIn(
+            'name="TebLocalPlannerROS/feasibility_check_no_poses"', text
+        )
+        self.assertIn('type="int" value="50"', text)
+        self.assertIn(
+            'name="TebLocalPlannerROS/max_global_plan_lookahead_dist"', text
+        )
+        self.assertIn('type="double" value="8.0"', text)
+        self.assertIn(
+            'name="TebLocalPlannerROS/treat_unknown_as_obstacle"', text
+        )
+        self.assertIn(
+            'name="CoverageGlobalPlanner_navfn/allow_unknown"', text
+        )
         self.assertNotIn('pkg="amcl"', text)
+
+    def test_static_navigation_rejects_unknown_without_changing_nomap_default(self):
+        self.assertIn("bool treat_unknown_as_obstacle", TEB_CONFIG_HEADER)
+        self.assertIn(
+            "trajectory.treat_unknown_as_obstacle = false", TEB_CONFIG_HEADER
+        )
+        self.assertIn('grp_trajectory.add("treat_unknown_as_obstacle"',
+                      TEB_RECONFIGURE)
+        self.assertIn("cfg_->trajectory.treat_unknown_as_obstacle",
+                      TEB_OPTIMAL_PLANNER)
+        self.assertIn("footprint_cost == -2", TEB_OPTIMAL_PLANNER)
+        self.assertIn(
+            "footprint_cost == -3 && pose_index == 0", TEB_OPTIMAL_PLANNER
+        )
+        self.assertNotIn("footprint_cost < 0", TEB_OPTIMAL_PLANNER)
+        self.assertIn("an out-of-rolling-map (-3) future sample", TEB_CONFIG_HEADER)
+
+    def test_three_dimensional_and_two_dimensional_maps_share_fast_lio_odometry(self):
+        self.assertIn("_input_topic:=/cloud_registered", MAPPING_SESSION)
+        self.assertIn("_odom_topic:=/Odometry", MAPPING_SESSION)
+        self.assertIn("--scan-topic /dual_lidar/scan", MAPPING_SESSION)
+        self.assertIn("--odom-topic /Odometry", MAPPING_SESSION)
+        self.assertIn("map_set_fuser.py", MAPPING_SESSION)
+
+    def test_mid360_static_slice_defaults_are_consistent(self):
+        for script in (MAPPING_SESSION, OFFLINE_MAPPING):
+            self.assertIn(
+                'SLICE_CENTER_Z="${MAPPING_SLICE_CENTER_Z:--0.4}"', script
+            )
+            self.assertIn(
+                'SLICE_HALF_WIDTH="${MAPPING_SLICE_HALF_WIDTH:-0.20}"', script
+            )
+            self.assertIn(
+                'SLICE_SELF_CROP_ENABLED="${MAPPING_SLICE_SELF_CROP_ENABLED:-true}"',
+                script,
+            )
+            self.assertIn('_slice_self_crop_enabled:="$SLICE_SELF_CROP_ENABLED"', script)
+            self.assertIn('_slice_sweep_front:="$SLICE_SWEEP_FRONT"', script)
+            self.assertIn('_slice_sweep_rear:="$SLICE_SWEEP_REAR"', script)
+            self.assertIn('_slice_sweep_half_width:="$SLICE_SWEEP_HALF_WIDTH"', script)
+            self.assertIn('_body_to_base_z:="$BASE_OFFSET_Z"', script)
+        self.assertIn(
+            'param<double>("slice_center_z", slice_center_z_, -0.4)',
+            VOXEL_MAPPER_SOURCE,
+        )
+        self.assertIn(
+            'param<double>("slice_half_width", slice_half_width_, 0.20)',
+            VOXEL_MAPPER_SOURCE,
+        )
+        self.assertIn("sync_policies::ExactTime", VOXEL_MAPPER_SOURCE)
+        self.assertIn("recordSweptCrop", VOXEL_MAPPER_SOURCE)
+        self.assertIn("mapPointInsideBaseCrop", VOXEL_MAPPER_SOURCE)
+        self.assertIn('<< "schema_version: 2\\n"', VOXEL_MAPPER_SOURCE)
+
+    def test_offline_mapping_is_deterministic_and_waits_for_voxel_subscriptions(self):
+        play_index = OFFLINE_MAPPING.index("rosbag play --clock")
+        for command in (
+            "wait_for_subscription /voxel_cloud_mapper /cloud_registered",
+            "wait_for_subscription /voxel_cloud_mapper /Odometry",
+        ):
+            self.assertIn(command, OFFLINE_MAPPING)
+            self.assertLess(OFFLINE_MAPPING.index(command), play_index)
+        self.assertIn('fused_scan_mapper.py --bag "$BAG_PATH"', OFFLINE_MAPPING)
+        self.assertNotIn("fused_scan_mapper.py --ros", OFFLINE_MAPPING)
+
+    def test_static_navigation_obstacles_still_use_planar_fused_scan(self):
+        common = yaml.safe_load(
+            (PACKAGE_ROOT / "config/costmap_common_static.yaml").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual("/scan", common["obstacles_layer"]["scan"]["topic"])
+
+    def test_indoor_navigation_default_forward_speed_is_point_eight(self):
+        launch_path = PACKAGE_ROOT / "launch" / "navigation_j6m.launch"
+        root = ElementTree.parse(str(launch_path)).getroot()
+        arguments = {
+            item.attrib["name"]: item.attrib.get("default")
+            for item in root.findall("arg")
+        }
+        self.assertEqual("0.8", arguments["max_vel_x"])
+        self.assertEqual("0.3", arguments["max_vel_x_backwards"])
+        self.assertEqual("0.6", arguments["max_vel_theta"])
+        text = launch_path.read_text(encoding="utf-8")
+        self.assertIn("TebLocalPlannerROS/max_vel_theta", text)
 
     def test_known_map_localizer_uses_multiscale_icp_and_separate_map_tf(self):
         self.assertGreaterEqual(KNOWN_MAP_SOURCE.count("IterativeClosestPoint"), 2)
@@ -95,6 +226,8 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         self.assertIn("runtime/run/map_mode.env", health)
         self.assertIn("runtime_nodes+=(/map_server /fast_lio_map_localizer", health)
         self.assertIn("/coverage_manager", health)
+        self.assertIn("/fast_lio_map_localizer/good_matches_required 2", health)
+        self.assertIn("/fast_lio_localization_cmd_vel_gate/cancel_topic", health)
 
 
 if __name__ == "__main__":

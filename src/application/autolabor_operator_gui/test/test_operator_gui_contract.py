@@ -5,6 +5,8 @@ import os
 import unittest
 import xml.etree.ElementTree as ElementTree
 
+import yaml
+
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = PACKAGE_ROOT.parents[2]
@@ -44,20 +46,154 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn('"/coverage/start"', GUI_SOURCE)
         self.assertIn('"/coverage/set_paused"', GUI_SOURCE)
         self.assertIn('"/coverage/cancel"', GUI_SOURCE)
+        self.assertIn("最高前进速度", GUI_SOURCE)
+        self.assertIn("coverage_width_input_->setValue(1.00)", GUI_SOURCE)
+        self.assertIn("coverage_speed_input_->setRange(0.10, 1.60)", GUI_SOURCE)
+        self.assertIn("coverage_speed_input_->setValue(0.80)", GUI_SOURCE)
+        self.assertIn("class ScrollSafeDoubleSpinBox", GUI_SOURCE)
+        self.assertIn("event->ignore()", GUI_SOURCE)
+        self.assertIn("call.request.max_speed_mps = max_speed_mps", GUI_SOURCE)
 
-    def test_cleaning_rviz_shows_map_vehicle_and_coverage_paths(self):
+    def test_coverage_status_distinguishes_navigation_from_cleaning_hardware(self):
+        for evidence in (
+            "覆盖任务状态",
+            "覆盖导航状态",
+            "覆盖路线执行中",
+            "路线约束",
+            "运动学核对",
+            "障碍感知",
+            "已覆盖估算",
+            "未接入 · 仅执行覆盖导航",
+            "coverage.kinematics_verified",
+            "coverage.lane_spacing_m",
+            "coverage.required_steering_angle_rad",
+            "coverage.avoidance_ready",
+            "coverage.avoidance_detail",
+        ):
+            self.assertIn(evidence, GUI_SOURCE)
+        self.assertNotIn(
+            '{ QStringLiteral("SWEEPING"), QStringLiteral("覆盖清扫中") }',
+            GUI_SOURCE,
+        )
+
+    def test_rviz_shows_live_navigation_footprint_and_coverage_paths(self):
         for required in (
             "Topic: /map",
             "Topic: /coverage/planned_path",
             "Topic: /coverage/executed_path",
             "Marker Topic: /coverage/ui_markers",
             "Marker Topic: /coverage/markers",
-            "Class: rviz/RobotModel",
+            "Class: rviz/Polygon",
+            "Name: Vehicle navigation footprint (base_link)",
+            "Topic: /move_base/local_costmap/footprint",
+            "Class: rviz/Odometry",
+            "Name: Live vehicle pose and recent trail",
+            "Keep: 120",
+            "Topic: /Odometry",
             "Topic: /coverage/clicked_point",
             "Single click: false",
             "Fixed Frame: map",
         ):
             self.assertIn(required, COVERAGE_RVIZ_CONFIG)
+
+        for required in (
+            "Topic: /coverage/planned_path",
+            "Topic: /coverage/executed_path",
+            "Marker Topic: /coverage/ui_markers",
+            "Marker Topic: /coverage/markers",
+            "Topic: /coverage/clicked_point",
+            "Single click: false",
+        ):
+            self.assertIn(required, RVIZ_CONFIG)
+
+        for config in (RVIZ_CONFIG, COVERAGE_RVIZ_CONFIG):
+            displays = yaml.safe_load(config)["Visualization Manager"]["Displays"]
+            by_name = {display.get("Name"): display for display in displays}
+            connector = by_name["Coverage connector preview (disabled)"]
+            self.assertEqual("/coverage/planned_path", connector["Topic"])
+            self.assertIs(False, connector["Enabled"])
+            self.assertIs(False, connector["Value"])
+            for path_name in ("TEB global plan", "TEB local plan"):
+                self.assertIs(False, by_name[path_name]["Enabled"])
+                self.assertIs(False, by_name[path_name]["Value"])
+            aligned_scan = by_name["Localization aligned scan (dynamic)"]
+            self.assertEqual(
+                "/fast_lio_localization/aligned_scan", aligned_scan["Topic"]
+            )
+            self.assertIs(True, aligned_scan["Enabled"])
+            vehicle_displays = [
+                display for display in displays
+                if display.get("Name") == "Vehicle navigation footprint (base_link)"
+            ]
+            self.assertEqual(1, len(vehicle_displays))
+            vehicle_display = vehicle_displays[0]
+            self.assertEqual("rviz/Polygon", vehicle_display["Class"])
+            self.assertEqual(
+                "/move_base/local_costmap/footprint", vehicle_display["Topic"]
+            )
+            self.assertIs(True, vehicle_display["Enabled"])
+            self.assertIs(True, vehicle_display["Value"])
+            self.assertNotIn(
+                "rviz/RobotModel", [display.get("Class") for display in displays]
+            )
+
+        static_costmap = yaml.safe_load(
+            (WORKSPACE_ROOT / "src/scripts/robot_bringup/config/costmap_common_static.yaml")
+            .read_text(encoding="utf-8")
+        )
+        no_map_costmap = yaml.safe_load(
+            (WORKSPACE_ROOT / "src/navigation_arena/arena-rosnav-3D/arena_navigation/"
+             "arena_local_planer/model_based/conventional/config/dingo/"
+             "costmap_common_params_nomap.yaml").read_text(encoding="utf-8")
+        )
+        teb = yaml.safe_load(
+            (WORKSPACE_ROOT / "src/navigation_arena/arena-rosnav-3D/arena_navigation/"
+             "arena_local_planer/model_based/conventional/config/dingo/"
+             "teb_local_planner_params_nomap.yaml").read_text(encoding="utf-8")
+        )["TebLocalPlannerROS"]
+        coverage = yaml.safe_load(
+            (WORKSPACE_ROOT / "src/application/autolabor_coverage/config/coverage.yaml")
+            .read_text(encoding="utf-8")
+        )
+        expected_body = [
+            [0.52, 0.35],
+            [0.52, -0.35],
+            [-0.52, -0.35],
+            [-0.52, 0.35],
+        ]
+        self.assertEqual(expected_body, static_costmap["footprint"])
+        self.assertEqual(expected_body, no_map_costmap["footprint"])
+        self.assertEqual(expected_body, teb["footprint_model"]["vertices"])
+        self.assertAlmostEqual(0.10, static_costmap["footprint_padding"])
+        self.assertAlmostEqual(0.10, no_map_costmap["footprint_padding"])
+        self.assertAlmostEqual(0.62, coverage["footprint_front_m"])
+        self.assertAlmostEqual(0.62, coverage["footprint_rear_m"])
+        self.assertAlmostEqual(0.45, coverage["footprint_half_width_m"])
+
+    def test_local_costmap_is_a_prominent_foreground_overlay(self):
+        for config in (RVIZ_CONFIG, COVERAGE_RVIZ_CONFIG):
+            displays = yaml.safe_load(config)["Visualization Manager"]["Displays"]
+            local_costmaps = [
+                display for display in displays
+                if display.get("Topic") == "/move_base/local_costmap/costmap"
+            ]
+            self.assertEqual(1, len(local_costmaps))
+            local_costmap = local_costmaps[0]
+            self.assertEqual("rviz/Map", local_costmap["Class"])
+            self.assertEqual("costmap", local_costmap["Color Scheme"])
+            self.assertIs(True, local_costmap["Enabled"])
+            self.assertIs(True, local_costmap["Value"])
+            self.assertGreaterEqual(local_costmap["Alpha"], 0.90)
+            self.assertIs(False, local_costmap["Draw Behind"])
+
+        operator_displays = yaml.safe_load(RVIZ_CONFIG)["Visualization Manager"]["Displays"]
+        global_costmaps = [
+            display for display in operator_displays
+            if display.get("Topic") == "/move_base/global_costmap/costmap"
+        ]
+        self.assertEqual(1, len(global_costmaps))
+        self.assertIs(False, global_costmaps[0]["Enabled"])
+        self.assertIs(False, global_costmaps[0]["Value"])
 
     def test_recording_and_three_map_mapping_are_independent(self):
         self.assertTrue(RECORD_ROSBAG.is_file())
@@ -115,6 +251,114 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("Name: Static global map", RVIZ_CONFIG)
         self.assertIn("Topic: /map", RVIZ_CONFIG)
 
+    def test_coverage_owns_move_base_and_blocks_overview_goal_preemption(self):
+        for evidence in (
+            'tool->getClassId() == QStringLiteral("rviz/SetGoal")',
+            "coverage_owns_navigation",
+            "覆盖任务正在独占 move_base，已阻止新的地图导航目标",
+            "覆盖清扫正在独占 move_base，不能发送普通目标",
+            "请在清扫页使用“取消覆盖清扫”",
+        ):
+            self.assertIn(evidence, GUI_SOURCE)
+
+    def test_static_map_bootstrap_view_is_visible_before_initial_pose(self):
+        for config in (RVIZ_CONFIG, COVERAGE_RVIZ_CONFIG):
+            view = config[config.index("  Views:") : config.index("Window Geometry:")]
+            self.assertIn("Target Frame: map", view)
+            self.assertNotIn("Target Frame: base_link", view)
+        for evidence in (
+            "① 显示整张地图",
+            "② 设置初始位姿",
+            'QStringLiteral("rviz/SetInitialPose")',
+            "map_origin_x",
+            "map_origin_y",
+            "map_origin_yaw",
+            "width_pixels / axis_width_m",
+            "height_pixels / axis_height_m",
+            'view->subProp(QStringLiteral("Target Frame"))->setValue(QStringLiteral("map"))',
+            "二维静态地图已加载，综合页 RViz 已自动显示完整地图",
+        ):
+            self.assertIn(evidence, GUI_SOURCE + GUI_HEADER)
+
+    def test_local_view_follows_vehicle_only_after_localization(self):
+        for evidence in (
+            "③ 跟随车辆",
+            "followOverviewVehicle",
+            "setRvizFollowVehicleView",
+            "rviz_follow_after_initial_pose_",
+            "data.coverage_status.localized",
+            'tf_buffer_.canTransform("map", "base_link"',
+            'manager->setFixedFrame(QStringLiteral("map"))',
+            '->setValue(QStringLiteral("base_link"))',
+            'view->subProp(QStringLiteral("X"))->setValue(0.0)',
+            'view->subProp(QStringLiteral("Y"))->setValue(0.0)',
+            "局部跟车视角",
+        ):
+            self.assertIn(evidence, GUI_SOURCE + GUI_HEADER)
+        follow_view = GUI_SOURCE[
+            GUI_SOURCE.index("bool MainWindow::setRvizFollowVehicleView") :
+            GUI_SOURCE.index("void MainWindow::updateNavigationPathDisplays")
+        ]
+        self.assertNotIn("ros::Duration", follow_view)
+
+    def test_navigation_path_legend_and_stale_path_clearing_are_explicit(self):
+        for evidence in (
+            "路线图例：青色＝覆盖条带预览",
+            "蓝色＝全局参考路线",
+            "红色＝当前局部轨迹",
+            "绿色＝覆盖执行记录",
+            'kTebGlobalPlanDisplayName = "TEB global plan"',
+            'kTebLocalPlanDisplayName = "TEB local plan"',
+            "updateNavigationPathDisplays(data)",
+            "actionlib_msgs::GoalStatus::PENDING",
+            "actionlib_msgs::GoalStatus::ACTIVE",
+            "display->setEnabled(goal_active)",
+        ):
+            self.assertIn(evidence, GUI_SOURCE + GUI_HEADER)
+
+    def test_known_3d_map_is_an_explicit_reversible_option(self):
+        name = "Name: Known 3D global map (optional)"
+        name_at = RVIZ_CONFIG.index(name)
+        block_start = RVIZ_CONFIG.rfind("\n    - ", 0, name_at)
+        block_end = RVIZ_CONFIG.find("\n    - ", name_at)
+        prior_map = RVIZ_CONFIG[block_start:block_end]
+        for evidence in (
+            "Class: rviz/PointCloud2",
+            "Topic: /fast_lio_localization/prior_map",
+            "Decay Time: 0",
+            "Enabled: false",
+            "Value: false",
+            "Color Transformer: AxisColor",
+            "Axis: Z",
+        ):
+            self.assertIn(evidence, prior_map)
+
+        default_view = RVIZ_CONFIG[
+            RVIZ_CONFIG.index("  Views:") : RVIZ_CONFIG.index("Window Geometry:")
+        ]
+        self.assertIn("Class: rviz/TopDownOrtho", default_view)
+        self.assertIn("Target Frame: map", default_view)
+        for evidence in (
+            "④ 显示静态三维先验",
+            "rviz_3d_map_button_->setCheckable(true)",
+            "rviz_3d_map_button_->setChecked(false)",
+            "setOverview3dMapView",
+            'setCurrentViewControllerType(QStringLiteral("rviz/Orbit"))',
+            'setCurrentViewControllerType(QStringLiteral("rviz/TopDownOrtho"))',
+            "findDisplayByName",
+            "prior_map->setEnabled(true)",
+            "prior_map->setEnabled(false)",
+            'selectRvizTool(rviz_frame_, QStringLiteral("rviz/MoveCamera"))',
+            "if (!setOverview3dMapView(false, data))",
+            "Always enforce the real RViz state",
+            "Validate all geometry before changing the display or view controller",
+            "!overview_3d_map_enabled_",
+        ):
+            self.assertIn(evidence, GUI_SOURCE + GUI_HEADER)
+        self.assertGreaterEqual(
+            GUI_SOURCE.count("if (!setOverview3dMapView(false, data))"), 2
+        )
+
     def test_launch_defaults_to_fast_lio_streams(self):
         launch_root = ElementTree.parse(
             str(PACKAGE_ROOT / "launch" / "operator_gui.launch")
@@ -131,6 +375,28 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertNotIn("geofence_config_file", launch_args)
         for parameter in ("odom_topic", "cloud_topic", "imu_topic"):
             self.assertIn(f'node_->param<std::string>("{parameter}"', GUI_SOURCE)
+
+    def test_static_map_launch_exposes_map_frame_without_faking_robot_pose(self):
+        launch_root = ElementTree.parse(
+            str(PACKAGE_ROOT / "launch" / "operator_gui.launch")
+        ).getroot()
+        static_groups = [
+            group
+            for group in launch_root.findall("group")
+            if group.attrib.get("if") == "$(arg static_map_mode)"
+        ]
+        self.assertEqual(1, len(static_groups))
+        anchor = static_groups[0].find("node")
+        self.assertIsNotNone(anchor)
+        self.assertEqual("tf2_ros", anchor.attrib["pkg"])
+        self.assertEqual("static_transform_publisher", anchor.attrib["type"])
+        self.assertEqual("operator_map_display_anchor", anchor.attrib["name"])
+        self.assertEqual("true", anchor.attrib["required"])
+        self.assertEqual(
+            "0 0 0 0 0 0 1 map autolabor_map_display_anchor",
+            anchor.attrib["args"],
+        )
+        self.assertNotIn("camera_init", anchor.attrib["args"])
 
     def test_rviz_initializes_directly_in_navigation_frame(self):
         launch_root = ElementTree.parse(
@@ -222,9 +488,9 @@ class OperatorGuiContractTest(unittest.TestCase):
     def test_rviz_shows_enhanced_mid360_cloud(self):
         self.assertIn("Class: rviz/PointCloud2", RVIZ_CONFIG)
         self.assertIn("Topic: /cloud_registered_body_enhanced", RVIZ_CONFIG)
+        cloud_start = RVIZ_CONFIG.index("Class: rviz/PointCloud2")
         cloud_display = RVIZ_CONFIG[
-            RVIZ_CONFIG.index("Class: rviz/PointCloud2") :
-            RVIZ_CONFIG.index("Class: rviz/Path")
+            cloud_start : RVIZ_CONFIG.index("Class: rviz/Path", cloud_start)
         ]
         self.assertIn("Enabled: true", cloud_display)
         self.assertIn("Value: true", cloud_display)
@@ -243,6 +509,70 @@ class OperatorGuiContractTest(unittest.TestCase):
             "render_panel->setAttribute(Qt::WA_StyledBackground, false);", setup
         )
 
+    def test_overview_and_coverage_share_one_rviz_manager(self):
+        self.assertIn("overview_tab_index_", GUI_HEADER)
+        self.assertIn("coverage_tab_index_", GUI_HEADER)
+        self.assertIn("rviz_attached_tab_index_", GUI_HEADER)
+        self.assertNotIn("coverage_rviz_frame_", GUI_HEADER + GUI_SOURCE)
+        self.assertNotIn("coverage_rviz_initialized_", GUI_HEADER + GUI_SOURCE)
+        self.assertEqual(1, GUI_SOURCE.count("new rviz::VisualizationFrame"))
+        self.assertIn("QTabWidget::currentChanged", GUI_SOURCE)
+        self.assertIn("QTimer::singleShot(0, this", GUI_SOURCE)
+        self.assertIn("void MainWindow::attachRvizToTab", GUI_SOURCE)
+        self.assertIn("rviz_frame_->setParent(target_host, Qt::Widget);", GUI_SOURCE)
+        setup_ros = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::setupRosInterfaces()") :
+            GUI_SOURCE.index("void MainWindow::setupEmbeddedRviz()")
+        ]
+        self.assertIn("if (active_tab == coverage_tab_index_)", setup_ros)
+        self.assertIn("else if (active_tab == overview_tab_index_)", setup_ros)
+        self.assertNotIn("setupEmbeddedRviz();\n  setupCoverageRviz();", setup_ros)
+        coverage_setup = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::setupCoverageRviz()") :
+            GUI_SOURCE.index("void MainWindow::shutdownRosInterfaces()")
+        ]
+        self.assertIn("setupEmbeddedRviz();", coverage_setup)
+        self.assertNotIn("new rviz::VisualizationFrame", coverage_setup)
+
+    def test_map_fit_waits_for_real_render_panel_size(self):
+        fit = GUI_SOURCE[
+            GUI_SOURCE.index("bool MainWindow::fitRvizMapView") :
+            GUI_SOURCE.index("bool MainWindow::selectRvizTool")
+        ]
+        self.assertIn("render_panel->width() < 200", fit)
+        self.assertIn("render_panel->height() < 120", fit)
+
+    def test_embedded_map_display_resubscribes_and_reports_actual_readiness(self):
+        readiness = GUI_SOURCE[
+            GUI_SOURCE.index("bool MainWindow::ensureStaticMapDisplayReady") :
+            GUI_SOURCE.index("bool MainWindow::fitRvizMapView")
+        ]
+        cmake = (PACKAGE_ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
+        self.assertIn("dynamic_cast<rviz::MapDisplay*>", readiness)
+        self.assertIn('kStaticMapDisplayName = "Static global map"', GUI_SOURCE)
+        self.assertLess(
+            readiness.index("map_display->setEnabled(false);"),
+            readiness.index("map_display->setEnabled(true);"),
+        )
+        self.assertIn("map_display->getWidth()", readiness)
+        self.assertIn("map_display->getHeight()", readiness)
+        self.assertIn("map_display->getResolution()", readiness)
+        self.assertIn('publishMapDisplayStatus("ERROR;', readiness)
+        self.assertIn('"READY;width="', readiness)
+        self.assertIn(
+            '"/autolabor_operator_gui/map_display_status", 1, true', GUI_SOURCE
+        )
+        self.assertIn("find_library(RVIZ_DEFAULT_PLUGIN_LIBRARY", cmake)
+        self.assertIn("${RVIZ_DEFAULT_PLUGIN_LIBRARY}", cmake)
+        self.assertIn("embedded_map_ready", GUI_SOURCE)
+
+    def test_light_rviz_and_coverage_sidebar_surfaces_use_dark_text(self):
+        self.assertIn("QToolBar { background: #f5f5f5; color: #111827;", GUI_SOURCE)
+        self.assertIn("QMenu, QAbstractItemView { background: #ffffff; color: #111827;",
+                      GUI_SOURCE)
+        self.assertIn("QWidget#coverageControls QGroupBox::title { color: #111827; }",
+                      GUI_SOURCE)
+
     def test_master_probe_commits_state_before_initializing_rviz(self):
         handler = GUI_SOURCE[
             GUI_SOURCE.index("void MainWindow::handleMasterProbeFinished()") :
@@ -260,6 +590,10 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn('"/zed2/zed_node/set_parameters"', GUI_SOURCE)
         self.assertIn('"/zed2/zed_node/parameter_updates"', GUI_SOURCE)
         self.assertIn("立即单独启动", GUI_SOURCE)
+        self.assertIn("sensor_msgs::image_encodings::BGRA8", GUI_SOURCE)
+        self.assertIn("sensor_msgs::image_encodings::RGBA8", GUI_SOURCE)
+        self.assertIn("message.width) * 4U", GUI_SOURCE)
+        self.assertIn("QImage::Format_RGBA8888", GUI_SOURCE)
 
     def test_visual_motion_uses_safe_mode_arbiter_only(self):
         self.assertIn('"/fod_navigation_mode/set_fod_enabled"', GUI_SOURCE)

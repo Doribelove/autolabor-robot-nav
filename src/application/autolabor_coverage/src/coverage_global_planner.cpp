@@ -1,6 +1,8 @@
 #include "autolabor_coverage/coverage_global_planner.h"
 
+#include <base_local_planner/costmap_model.h>
 #include <costmap_2d/cost_values.h>
+#include <costmap_2d/footprint.h>
 #include <pluginlib/class_list_macros.h>
 
 #include <algorithm>
@@ -11,6 +13,34 @@
 
 namespace autolabor_coverage
 {
+namespace
+{
+
+bool normalizedYaw(const geometry_msgs::Quaternion& quaternion, double& yaw)
+{
+  const double squared_norm = quaternion.x * quaternion.x +
+                              quaternion.y * quaternion.y +
+                              quaternion.z * quaternion.z +
+                              quaternion.w * quaternion.w;
+  if (!std::isfinite(squared_norm) || squared_norm < 1.0e-12)
+    return false;
+  const double inverse_norm = 1.0 / std::sqrt(squared_norm);
+  const double x = quaternion.x * inverse_norm;
+  const double y = quaternion.y * inverse_norm;
+  const double z = quaternion.z * inverse_norm;
+  const double w = quaternion.w * inverse_norm;
+  yaw = std::atan2(2.0 * (w * z + x * y),
+                   1.0 - 2.0 * (y * y + z * z));
+  return std::isfinite(yaw);
+}
+
+double yawError(double first, double second)
+{
+  return std::abs(std::atan2(std::sin(second - first),
+                            std::cos(second - first)));
+}
+
+}  // namespace
 
 CoverageGlobalPlanner::CoverageGlobalPlanner(std::string name,
                                              costmap_2d::Costmap2DROS* costmap_ros)
@@ -28,6 +58,7 @@ void CoverageGlobalPlanner::initialize(std::string name,
   costmap_ros_ = costmap_ros;
   private_nh_ = ros::NodeHandle("~/" + name);
   private_nh_.param("goal_match_tolerance", goal_match_tolerance_, 0.35);
+  private_nh_.param("goal_yaw_match_tolerance", goal_yaw_match_tolerance_, 0.20);
   private_nh_.param("path_timeout", path_timeout_, 1.0);
   fallback_.initialize(name + "_navfn", costmap_ros);
   active_subscriber_ = private_nh_.subscribe(
@@ -105,6 +136,27 @@ bool CoverageGlobalPlanner::makeEnforcedPlan(
     ROS_ERROR_THROTTLE(1.0, "coverage goal does not match enforced path endpoint");
     return false;
   }
+  double expected_yaw = 0.0;
+  double goal_yaw = 0.0;
+  if (!normalizedYaw(poses.back().pose.orientation, expected_yaw) ||
+      !normalizedYaw(goal.pose.orientation, goal_yaw) ||
+      yawError(expected_yaw, goal_yaw) > goal_yaw_match_tolerance_)
+  {
+    ROS_ERROR_THROTTLE(1.0,
+                       "coverage goal yaw does not match enforced path endpoint");
+    return false;
+  }
+  const auto& footprint = costmap_ros_->getRobotFootprint();
+  if (footprint.size() < 3)
+  {
+    ROS_ERROR_THROTTLE(1.0, "coverage costmap footprint is unavailable");
+    return false;
+  }
+  double inscribed_radius = 0.0;
+  double circumscribed_radius = 0.0;
+  costmap_2d::calculateMinAndMaxDistances(
+      footprint, inscribed_radius, circumscribed_radius);
+  base_local_planner::CostmapModel world_model(*costmap_ros_->getCostmap());
   std::size_t nearest = 0;
   double nearest_squared = std::numeric_limits<double>::infinity();
   for (std::size_t index = 0; index < poses.size(); ++index)
@@ -130,6 +182,9 @@ bool CoverageGlobalPlanner::makeEnforcedPlan(
     pose.header.stamp = stamp;
     if (!std::isfinite(pose.pose.position.x) || !std::isfinite(pose.pose.position.y))
       return false;
+    double pose_yaw = 0.0;
+    if (!normalizedYaw(pose.pose.orientation, pose_yaw))
+      return false;
     unsigned int mx = 0;
     unsigned int my = 0;
     if (!costmap_ros_->getCostmap()->worldToMap(pose.pose.position.x,
@@ -138,6 +193,14 @@ bool CoverageGlobalPlanner::makeEnforcedPlan(
     const unsigned char cost = costmap_ros_->getCostmap()->getCost(mx, my);
     if (cost == costmap_2d::LETHAL_OBSTACLE || cost == costmap_2d::NO_INFORMATION)
       return false;
+    if (world_model.footprintCost(
+            pose.pose.position.x, pose.pose.position.y, pose_yaw, footprint,
+            inscribed_radius, circumscribed_radius) < 0.0)
+    {
+      ROS_WARN_THROTTLE(1.0,
+                        "coverage path is blocked for the complete vehicle footprint");
+      return false;
+    }
     plan.push_back(std::move(pose));
   }
   return plan.size() >= 2;

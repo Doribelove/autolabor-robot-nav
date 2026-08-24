@@ -23,6 +23,280 @@ class DualHostContractTest(unittest.TestCase):
         with open(path, "r", encoding="utf-8") as stream:
             return stream.read()
 
+    @staticmethod
+    def _write_text(path, value):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as stream:
+            stream.write(value)
+
+    def _add_fake_usb_network_device(
+        self, temporary, sys_class_net, interface, mac, usb_id, serial
+    ):
+        usb_device = os.path.join(temporary, "devices", interface)
+        usb_function = os.path.join(usb_device, "net-function")
+        os.makedirs(usb_function)
+        vendor, product = usb_id.split(":")
+        self._write_text(os.path.join(usb_device, "idVendor"), vendor + "\n")
+        self._write_text(os.path.join(usb_device, "idProduct"), product + "\n")
+        self._write_text(os.path.join(usb_device, "serial"), serial + "\n")
+        interface_dir = os.path.join(sys_class_net, interface)
+        os.makedirs(interface_dir)
+        self._write_text(os.path.join(interface_dir, "address"), mac + "\n")
+        self._write_text(os.path.join(interface_dir, "carrier"), "1\n")
+        os.symlink(usb_function, os.path.join(interface_dir, "device"))
+
+    def _write_network_test_config(self, path):
+        self._write_text(
+            path,
+            """J6M_IP=192.168.10.100
+NVIDIA_J6M_IP=192.168.10.50
+NVIDIA_J6M_INTERFACE=eth0
+NVIDIA_J6M_MAC=6C:1F:F7:C4:82:83
+NVIDIA_J6M_USB_ID=0B95:1790
+NVIDIA_J6M_USB_SERIAL=000000000011CA
+NVIDIA_J6M_CONNECTION=matrix-eth2
+NVIDIA_LIVOX_INTERFACE=eth0
+NVIDIA_LIVOX_MAC=50:54:7B:E3:C9:10
+NVIDIA_LIVOX_USB_ID=1A86:E397
+NVIDIA_LIVOX_USB_SERIAL=50547BE3C910
+NVIDIA_LIVOX_CONNECTION=mid360-eth0
+NVIDIA_LIVOX_IP=192.168.1.50
+MID360_IP=192.168.1.112
+DUAL_HOST_DEVICE_WAIT_SEC=1
+DUAL_HOST_NETWORK_WAIT_SEC=1
+DUAL_HOST_NETWORK_POLL_SEC=0.01
+""",
+        )
+
+    def test_network_identity_uses_exact_usb_fallback_not_stale_eth_name(self):
+        load_config = os.path.join(WORKSPACE_DIR, "scripts", "load_config.sh")
+        with tempfile.TemporaryDirectory() as temporary:
+            sys_class_net = os.path.join(temporary, "net")
+            os.makedirs(sys_class_net)
+            self._add_fake_usb_network_device(
+                temporary,
+                sys_class_net,
+                "eth0",
+                "50:54:7b:e3:c9:10",
+                "1a86:e397",
+                "50547BE3C910",
+            )
+            self._add_fake_usb_network_device(
+                temporary,
+                sys_class_net,
+                "eth7",
+                "6c:1f:f7:c4:96:b8",
+                "0b95:1790",
+                "000000000011CA",
+            )
+            config = os.path.join(temporary, "dual_host.env")
+            self._write_network_test_config(config)
+            script = r'''set -euo pipefail
+DUAL_HOST_CONFIG="$1"
+DUAL_HOST_SYS_CLASS_NET_ROOT="$2"
+source "$3"
+printf 'J6M=%s %s %s\n' "$NVIDIA_J6M_INTERFACE" "$NVIDIA_J6M_MAC" "$NVIDIA_J6M_IDENTITY_SOURCE"
+printf 'MID360=%s %s %s\n' "$NVIDIA_LIVOX_INTERFACE" "$NVIDIA_LIVOX_MAC" "$NVIDIA_LIVOX_IDENTITY_SOURCE"
+dual_host_network_roles_are_distinct
+'''
+            result = subprocess.run(
+                ["bash", "-c", script, "bash", config, sys_class_net, load_config],
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(
+            "J6M=eth7 6c:1f:f7:c4:96:b8 usb-id+serial\n"
+            "MID360=eth0 50:54:7b:e3:c9:10 configured-mac\n",
+            result.stdout,
+        )
+
+    def test_j6m_time_sync_is_subsecond_and_latency_checked(self):
+        path = os.path.join(WORKSPACE_DIR, "scripts", "sync_j6m_time.sh")
+        with open(path, "r", encoding="utf-8") as stream:
+            sync = stream.read()
+        for evidence in (
+            "coproc J6M_TIME_SSH",
+            "__J6M_TIME_READY__",
+            "date +%s.%N",
+            "date +%s%N",
+            "local_midpoint_ns",
+            "max_skew_ns=100000000",
+            "midpoint skew",
+        ):
+            self.assertIn(evidence, sync)
+        self.assertNotIn('host_epoch="$(date +%s)"', sync)
+
+    def test_duplicate_usb_identity_is_not_accepted(self):
+        load_config = os.path.join(WORKSPACE_DIR, "scripts", "load_config.sh")
+        with tempfile.TemporaryDirectory() as temporary:
+            sys_class_net = os.path.join(temporary, "net")
+            os.makedirs(sys_class_net)
+            self._add_fake_usb_network_device(
+                temporary,
+                sys_class_net,
+                "eth0",
+                "50:54:7b:e3:c9:10",
+                "1a86:e397",
+                "50547BE3C910",
+            )
+            for interface, mac in (
+                ("eth7", "6c:1f:f7:c4:96:b8"),
+                ("eth8", "6c:1f:f7:c4:96:b9"),
+            ):
+                self._add_fake_usb_network_device(
+                    temporary,
+                    sys_class_net,
+                    interface,
+                    mac,
+                    "0b95:1790",
+                    "000000000011CA",
+                )
+            config = os.path.join(temporary, "dual_host.env")
+            self._write_network_test_config(config)
+            script = r'''set -euo pipefail
+DUAL_HOST_CONFIG="$1"
+DUAL_HOST_SYS_CLASS_NET_ROOT="$2"
+source "$3"
+[[ -z "$NVIDIA_J6M_INTERFACE" ]]
+[[ "$NVIDIA_LIVOX_INTERFACE" == eth0 ]]
+! dual_host_network_roles_are_distinct
+'''
+            result = subprocess.run(
+                ["bash", "-c", script, "bash", config, sys_class_net, load_config],
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+
+        self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_profile_repair_sets_managed_before_activation(self):
+        load_config = os.path.join(WORKSPACE_DIR, "scripts", "load_config.sh")
+        prepare = os.path.join(WORKSPACE_DIR, "scripts", "network_prepare.sh")
+        with tempfile.TemporaryDirectory() as temporary:
+            sys_class_net = os.path.join(temporary, "net")
+            os.makedirs(sys_class_net)
+            self._add_fake_usb_network_device(
+                temporary,
+                sys_class_net,
+                "eth0",
+                "50:54:7b:e3:c9:10",
+                "1a86:e397",
+                "50547BE3C910",
+            )
+            self._add_fake_usb_network_device(
+                temporary,
+                sys_class_net,
+                "eth7",
+                "6c:1f:f7:c4:96:b8",
+                "0b95:1790",
+                "000000000011CA",
+            )
+            config = os.path.join(temporary, "dual_host.env")
+            log = os.path.join(temporary, "nmcli.log")
+            state = os.path.join(temporary, "state")
+            os.makedirs(state)
+            self._write_network_test_config(config)
+            script = r'''set -euo pipefail
+DUAL_HOST_CONFIG="$1"
+DUAL_HOST_SYS_CLASS_NET_ROOT="$2"
+log="$3"
+state="$4"
+source "$5"
+source "$6"
+nmcli() {
+  printf '%q ' "$@" >>"$log"
+  printf '\n' >>"$log"
+  case "$*" in
+    "device show eth7") return 0 ;;
+    "device set eth7 managed yes") touch "$state/managed"; return 0 ;;
+    "-e no -g GENERAL.NM-MANAGED device show eth7")
+      [[ -f "$state/managed" ]] && echo yes || echo no
+      return 0 ;;
+    "connection show matrix-eth2") return 0 ;;
+    "-e no -g connection.interface-name connection show matrix-eth2") echo eth0; return 0 ;;
+    "-e no -g 802-3-ethernet.mac-address connection show matrix-eth2") echo '6C:1F:F7:C4:82:83'; return 0 ;;
+    "-e no -g connection.autoconnect connection show matrix-eth2") echo no; return 0 ;;
+    "-e no -g ipv4.method connection show matrix-eth2") echo manual; return 0 ;;
+    "-e no -g ipv4.addresses connection show matrix-eth2") echo 192.168.10.50/24; return 0 ;;
+    "-e no -g ipv4.never-default connection show matrix-eth2") echo yes; return 0 ;;
+    "-e no -g ipv4.gateway connection show matrix-eth2") return 0 ;;
+    "-e no -g ipv6.method connection show matrix-eth2") echo disabled; return 0 ;;
+    "connection modify matrix-eth2 "*) touch "$state/modified"; return 0 ;;
+    "-e no -g GENERAL.CONNECTION device show eth7")
+      [[ -f "$state/active" ]] && echo matrix-eth2 || echo --
+      return 0 ;;
+    "--wait 15 connection up matrix-eth2 ifname eth7")
+      [[ -f "$state/managed" && -f "$state/modified" ]] || return 8
+      touch "$state/active" "$state/address"
+      return 0 ;;
+  esac
+  echo "unexpected nmcli call: $*" >&2
+  return 9
+}
+ip() {
+  if [[ "$*" == "-o -4 address show dev eth7" && -f "$state/address" ]]; then
+    echo '7: eth7 inet 192.168.10.50/24 scope global eth7'
+  fi
+}
+dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
+'''
+            result = subprocess.run(
+                [
+                    "bash",
+                    "-c",
+                    script,
+                    "bash",
+                    config,
+                    sys_class_net,
+                    log,
+                    state,
+                    load_config,
+                    prepare,
+                ],
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            with open(log, "r", encoding="utf-8") as stream:
+                commands = stream.read()
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        managed = commands.index("device set eth7 managed yes")
+        modified = commands.index("connection modify matrix-eth2")
+        activated = commands.index("--wait 15 connection up matrix-eth2 ifname eth7")
+        self.assertLess(managed, modified)
+        self.assertLess(modified, activated)
+        modify_command = commands[modified : commands.index("\n", modified)]
+        self.assertIn("connection.interface-name ''", modify_command)
+        self.assertIn("connection.autoconnect yes", modify_command)
+        self.assertIn(
+            "802-3-ethernet.mac-address 6c:1f:f7:c4:96:b8", modify_command
+        )
+        self.assertNotIn("connection.interface-name eth7", modify_command)
+
+    def test_network_preflight_precedes_remote_stop(self):
+        start_path = os.path.join(WORKSPACE_DIR, "scripts", "start_dual_host.sh")
+        with open(start_path, "r", encoding="utf-8") as stream:
+            start = stream.read()
+        supervisor = start[start.index('echo "[1/6] Self-checking'):]
+        first_prepare = supervisor.index("dual_host_prepare_network")
+        first_stop = supervisor.index('"$SCRIPT_DIR/stop_dual_host.sh"')
+        second_prepare = supervisor.index("dual_host_prepare_network", first_stop)
+        self.assertLess(first_prepare, first_stop)
+        self.assertGreater(second_prepare, first_stop)
+        start_branch = start[start.index('elif [[ "$mode" == --start ]]'):]
+        self.assertLess(
+            start_branch.index("dual_host_prepare_network"),
+            start_branch.index("start_managed_service"),
+        )
+
     def test_nvidia_owns_only_final_driver_topic(self):
         text = self._launch_text("nvidia_gateway.launch")
         self.assertIn('<param name="input_topic" value="/cmd_vel_safe"/>', text)
@@ -35,6 +309,145 @@ class DualHostContractTest(unittest.TestCase):
             '<arg name="lidar_center_distance_m" value="$(arg lidar_center_distance_m)"/>',
             text,
         )
+
+    def test_navigation_default_and_watchdog_hard_speed_limits_are_separate(self):
+        nvidia_launch = self._launch_text("nvidia_gateway.launch")
+        j6m_launch = self._launch_text("j6m_fastlio_navigation.launch")
+        self.assertIn('<arg name="max_linear_speed" default="1.70"/>', nvidia_launch)
+        self.assertIn('<arg name="max_linear_speed" default="0.80"/>', j6m_launch)
+        self.assertIn('<arg name="max_angular_speed" default="0.60"/>', nvidia_launch)
+        self.assertIn('<arg name="max_angular_speed" default="0.60"/>', j6m_launch)
+        gateway = os.path.join(WORKSPACE_DIR, "scripts", "nvidia_gateway.sh")
+        with open(gateway, "r", encoding="utf-8") as stream:
+            gateway_text = stream.read()
+        self.assertIn('max_linear_speed:="$CMD_VEL_MAX_LINEAR_SPEED"', gateway_text)
+        self.assertIn('max_angular_speed:="$CMD_VEL_MAX_ANGULAR_SPEED"', gateway_text)
+        example = os.path.join(WORKSPACE_DIR, "config", "dual_host.env.example")
+        with open(example, "r", encoding="utf-8") as stream:
+            example_text = stream.read()
+        self.assertIn("NAV_MAX_LINEAR_SPEED=0.80", example_text)
+        self.assertIn("CMD_VEL_MAX_LINEAR_SPEED=1.70", example_text)
+        self.assertIn("CMD_VEL_MAX_ANGULAR_SPEED=0.60", example_text)
+
+    def test_runtime_health_checks_data_host_placement_and_live_limits(self):
+        health_path = os.path.join(WORKSPACE_DIR, "scripts", "health_check.sh")
+        with open(health_path, "r", encoding="utf-8") as stream:
+            health = stream.read()
+        self.assertIn("topic_has_recent_message", health)
+        self.assertIn("node_on_host", health)
+        self.assertIn("'$2 == wanted {print $1; exit}'", health)
+        for topic in (
+            "/gateway/livox/lidar",
+            "/gateway/livox/imu",
+            "/Odometry",
+            "/cloud_registered_body",
+            "/scan",
+            "/cmd_vel_safe",
+            "/cmd_vel",
+        ):
+            self.assertIn(topic, health)
+        self.assertIn("/nvidia_cmd_vel_watchdog/max_linear_speed", health)
+        self.assertIn("/nvidia_cmd_vel_watchdog/max_angular_speed", health)
+        self.assertIn("/move_base/TebLocalPlannerROS/max_vel_theta", health)
+        self.assertIn("--allow-missing-data", health)
+        self.assertIn("stack remains running", health)
+        self.assertIn("critical_runtime_topics", health)
+        self.assertIn("/fod_camera/image_raw", health)
+        self.assertIn("/fod_camera/depth_registered", health)
+        self.assertIn("required camera topic", health)
+        self.assertIn("zed_camera_check.sh", health)
+        self.assertIn("/operator_map_display_anchor", health)
+        self.assertIn("transform_is_available map autolabor_map_display_anchor", health)
+        self.assertIn("^[[:space:]-]*Translation:", health)
+        self.assertIn("without connecting robot TF", health)
+        self.assertIn("/autolabor_operator_gui/map_display_status", health)
+        self.assertIn("'READY;'", health)
+        self.assertIn("confirmed the 2-D map texture is loaded", health)
+
+    def test_zed_usb_preflight_requires_superspeed(self):
+        check = os.path.join(WORKSPACE_DIR, "scripts", "zed_camera_check.sh")
+        with tempfile.TemporaryDirectory() as temporary:
+            sys_root = os.path.join(temporary, "sys")
+            hidraw_sys_root = os.path.join(temporary, "hidraw")
+            device_root = os.path.join(temporary, "dev")
+            dev_root = os.path.join(device_root, "bus", "usb")
+            video = os.path.join(sys_root, "2-1.1")
+            hid = os.path.join(sys_root, "2-1.2")
+            os.makedirs(video)
+            os.makedirs(hid)
+            for device, product, devnum in (
+                (video, "f780", "10"),
+                (hid, "f781", "11"),
+            ):
+                self._write_text(os.path.join(device, "idVendor"), "2b03\n")
+                self._write_text(os.path.join(device, "idProduct"), product + "\n")
+                self._write_text(os.path.join(device, "busnum"), "2\n")
+                self._write_text(os.path.join(device, "devnum"), devnum + "\n")
+            self._write_text(os.path.join(video, "speed"), "480\n")
+            self._write_text(os.path.join(hid, "serial"), "23748636\n")
+            os.makedirs(os.path.join(dev_root, "002"))
+            self._write_text(os.path.join(dev_root, "002", "010"), "")
+            self._write_text(os.path.join(dev_root, "002", "011"), "")
+            # ZED SDK 4 can use the accessible f781 usbfs endpoint even when
+            # this Jetson kernel does not bind the optional hidraw interface.
+            os.makedirs(hidraw_sys_root)
+            config = os.path.join(temporary, "dual_host.env")
+            self._write_network_test_config(config)
+            environment = dict(os.environ)
+            environment.update(
+                {
+                    "DUAL_HOST_CONFIG": config,
+                    "DUAL_HOST_USB_SYS_ROOT": sys_root,
+                    "DUAL_HOST_USB_DEV_ROOT": dev_root,
+                    "DUAL_HOST_HIDRAW_SYS_ROOT": hidraw_sys_root,
+                    "DUAL_HOST_DEVICE_ROOT": device_root,
+                }
+            )
+            usb2 = subprocess.run(
+                [check, "--wait", "0"],
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=environment,
+            )
+            self._write_text(os.path.join(video, "speed"), "5000\n")
+            usb3 = subprocess.run(
+                [check, "--wait", "0"],
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=environment,
+            )
+
+        self.assertNotEqual(0, usb2.returncode)
+        self.assertIn("negotiated only 480M", usb2.stderr)
+        self.assertEqual(0, usb3.returncode, usb3.stderr)
+        self.assertIn("SuperSpeed USB (5000M", usb3.stdout)
+
+    def test_zed_udev_install_repairs_post_boot_coldplug(self):
+        rule = os.path.join(WORKSPACE_DIR, "deploy", "99-autolabor-zed.rules")
+        service = os.path.join(
+            WORKSPACE_DIR, "deploy", "autolabor-zed-coldplug.service"
+        )
+        installer = os.path.join(WORKSPACE_DIR, "scripts", "install_zed_udev.sh")
+        with open(rule, "r", encoding="utf-8") as stream:
+            rule_text = stream.read()
+        with open(service, "r", encoding="utf-8") as stream:
+            service_text = stream.read()
+        with open(installer, "r", encoding="utf-8") as stream:
+            installer_text = stream.read()
+
+        self.assertIn('ATTR{idVendor}=="2b03"', rule_text)
+        self.assertIn('ATTR{idProduct}=="f780"', rule_text)
+        self.assertIn('ATTR{idProduct}=="f781"', rule_text)
+        self.assertIn('GROUP="video"', rule_text)
+        self.assertIn("After=systemd-udevd.service systemd-udev-trigger.service", service_text)
+        self.assertIn("--attr-match=idVendor=2b03", service_text)
+        self.assertIn("--subsystem-match=hidraw", service_text)
+        self.assertIn("systemctl enable autolabor-zed-coldplug.service", installer_text)
+        self.assertIn("systemctl restart autolabor-zed-coldplug.service", installer_text)
 
     def test_j6m_uses_mid360_for_fastlio_and_optional_ld19_for_scan(self):
         text = self._launch_text("j6m_fastlio_navigation.launch")
@@ -93,6 +506,46 @@ class DualHostContractTest(unittest.TestCase):
             self.assertIn(soname, deploy)
         self.assertIn('rsync -aL "${navigation_system_libraries[@]}"', deploy)
         self.assertIn("if ldd /opt/autolabor/dual_host/releases/", deploy)
+        self.assertIn(
+            "-DFAST_LIO_RUNTIME_DIR=/var/lib/autolabor/fast_lio/", deploy
+        )
+        self.assertIn("grep -aFq /var/lib/autolabor/fast_lio/", deploy)
+        self.assertNotIn("strings /opt/autolabor/dual_host/releases/", deploy)
+
+        remote_health_path = os.path.join(
+            WORKSPACE_DIR, "deploy", "j6m", "health_check.sh"
+        )
+        with open(remote_health_path, "r", encoding="utf-8") as stream:
+            remote_health = stream.read()
+        self.assertIn(
+            "/opt/autolabor/dual_host/current/lib/fast_lio/fastlio_mapping",
+            remote_health,
+        )
+        self.assertNotIn(
+            "/opt/autolabor/ros/install/lib/fast_lio/fastlio_mapping",
+            remote_health,
+        )
+        self.assertIn("/var/lib/autolabor/fast_lio/Log", remote_health)
+        self.assertIn("grep -aFq /var/lib/autolabor/fast_lio/", remote_health)
+
+    def test_persistent_can_fault_logging_is_throttled(self):
+        driver_path = os.path.join(
+            WORKSPACE_DIR,
+            "src",
+            "autolabor_core",
+            "autolabor_canbus_driver",
+            "autolabor_canbus_driver",
+            "src",
+            "m2_driver.cpp",
+        )
+        with open(driver_path, "r", encoding="utf-8") as stream:
+            driver = stream.read()
+        monitor_case = driver[
+            driver.index("case Autocan::Vcu::ControllerMonitor:"):
+            driver.index("case Autocan::Vcu::ControlTimeout:")
+        ]
+        self.assertIn("ROS_WARN_THROTTLE(5.0", monitor_case)
+        self.assertNotIn('ROS_WARN("VCU ControllerMonitor', monitor_case)
 
     def test_dual_lidar_role_aliases_follow_verified_physical_ports(self):
         rules_path = os.path.join(
@@ -158,6 +611,9 @@ class DualHostContractTest(unittest.TestCase):
         self.assertLess(stop_text.index("start_nvidia.sh"), stop_text.index("dual_host_select_ssh"))
         self.assertIn("nvidia_gateway.child.pid", gateway_text)
         self.assertIn("nvidia_ui.children", ui_text)
+        self.assertIn("wait_for_zed_image", ui_text)
+        self.assertIn("/fod_camera/image_raw", ui_text)
+        self.assertIn('serial_number:="$NVIDIA_ZED_SERIAL"', ui_text)
         self.assertIn("dual_host_stop_pid_file", remote_text)
         self.assertIn("j6m_launcher.pid", remote_text)
         self.assertIn("mountpoint -q", remote_text)
@@ -165,6 +621,12 @@ class DualHostContractTest(unittest.TestCase):
         self.assertIn("KillMode=control-group", start_text)
         self.assertIn("DUAL_HOST_RUN_TOKEN", start_text)
         self.assertIn("wait_for_managed_service", start_text)
+        self.assertIn("zed_camera_check.sh", start_text)
+        self.assertIn("mandatory runtime check failed", start_text)
+        self.assertIn("performing one complete cold restart", start_text)
+        self.assertIn(
+            'health_check.sh" --runtime --allow-missing-data', start_text
+        )
         self.assertIn("verify_j6m_static_localization_release", start_text)
         self.assertIn("fast_lio_localization/fast_lio_map_localizer", start_text)
         self.assertLess(

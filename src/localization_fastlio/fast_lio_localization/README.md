@@ -33,7 +33,12 @@ FAST-LIO odometry are used to derive the initial map-to-odometry transform.
 
 Velocity is permitted only while `/fast_lio/localization_status` starts with
 `state=LOCALIZED;`. Failed ICP, stale scan/odometry, or an expired successful
-match changes the state and closes the gate.
+match changes the state, closes the gate, and cancels the active move_base goal.
+An initial pose is accepted only while both scan and odometry receipts are
+fresh, and two consecutive quality-approved ICP matches are required before
+the state becomes `LOCALIZED`.
 
 This remains rough-initial-pose localization, like the referenced upstream
-implementation. It is not descriptor-based kidnapped-robot global search.
+implementation. It is an experimental, explicit `--map-set` opt-in and is not
+descriptor-based kidnapped-robot global search. Map-free FAST-LIO remains the
+default runtime.

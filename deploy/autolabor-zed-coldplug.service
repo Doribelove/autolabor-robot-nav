@@ -1,0 +1,14 @@
+[Unit]
+Description=Reapply ZED udev permissions after Jetson coldplug
+After=systemd-udevd.service systemd-udev-trigger.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/udevadm control --reload-rules
+ExecStart=/usr/bin/udevadm trigger --action=add --subsystem-match=usb --attr-match=idVendor=2b03
+ExecStart=/usr/bin/udevadm trigger --action=add --subsystem-match=hidraw
+ExecStart=/usr/bin/udevadm settle --timeout=20
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -13,4 +13,15 @@ float32 reachable_area_m2
 float32 unreachable_area_m2
 float32 traversed_area_m2
 float32 coverage_ratio
+float32 operation_width_m
+float32 lane_spacing_m
+float32 minimum_turning_radius_m
+float32 required_steering_angle_rad
+float32 chassis_wheelbase_m
+float32 chassis_max_steering_angle_rad
+float32 chassis_max_speed_mps
+bool kinematics_verified
+string kinematics_detail
+bool avoidance_ready
+string avoidance_detail
 string detail
