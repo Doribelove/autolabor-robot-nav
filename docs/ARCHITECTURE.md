@@ -15,9 +15,10 @@ NVIDIA wlan0 ── Internet/default route
 ```
 
 两个有线接口必须位于不同 `/24`。J6M 不直接接 MID360；NVIDIA 作为物理协议和 ROS 网络网关。
-接口名不是身份依据：NVIDIA 启动器分别用永久 MAC `6C:1F:F7:C4:82:83`
+接口名不是身份依据：NVIDIA 启动器分别用永久 MAC `6C:1F:F7:C4:96:B8`
 （ASIX USB 网卡，经扩展坞和交换机连接 J6M）和 `50:54:7B:E3:C9:10`（MID360）
-解析当前接口名并绑定 NetworkManager 配置。
+解析当前接口名并绑定 NetworkManager 配置。若永久 MAC 未命中，只接受配置中 USB
+VID:PID + serial 的唯一精确匹配；网络自愈必须在首次 J6M 远程停机之前完成。
 
 ## 生命周期与故障恢复
 
@@ -50,18 +51,38 @@ ZED + YOLO（NVIDIA）── /fod/detections ── J6M FOD 仲裁
 FAST-LIO 始终只使用 MID360 原始点和 IMU，前后二维雷达不会污染定位。move_base 的避障输入是独立的 `/scan`：MID360 是强制主源，LD19 是可超时移除的增强源。
 
 静态建图是独立数据链：`/cloud_registered` 体素累积为三维 PCD；
-`/dual_lidar/scan + /Odometry` 生成纯双 LD19 二维占据图；停止后再把三维图在
-LD19 高度带投影并以占据并集合成第三张图。普通“录包”不会触发该流程。
+`/dual_lidar/scan + /Odometry` 生成纯双 LD19 二维占据图；停止后再把三维图在配置的
+中高度障碍带投影，并以占据并集合成第三张图。普通“录包”不会触发该流程。
+MID360 高度切片与同时间戳 `/Odometry` 精确配对，逐帧在 `base_link` 删除车体自点；
+保存切片观测前，再减去含 padding 的导航 footprint 沿建图轨迹扫过的全部相交栅格。
+该裁剪只影响融合二维图，完整三维 PCD 仍用于已知地图 ICP 定位。
 
-不传 `--map-set` 时启动器保持无图 FAST-LIO 模式。传入地图集后，FAST-LIO 仍按
+不传 `--map-set` 时启动器保持无图 FAST-LIO 模式。已知地图定位属于实验性显式
+可选项；传入地图集后，FAST-LIO 仍按
 原始算法输出高频 `camera_init -> body` 里程计；独立的 `fast_lio_localization` 节点
 加载 PCD，在 `/initialpose` 附近执行低频粗到精 scan-to-map ICP，估计
 `map -> camera_init`。map_server 只为 move_base 加载二维图，不启动 AMCL；ICP
-质量不合格、数据过期或定位丢失时，速度门控输出零速度。
+质量不合格、数据过期或定位丢失时，速度门控输出零速度并取消旧导航目标。
 
 原始 Livox 数据跨机只建立一组 relay 订阅，避免 FAST-LIO、点云转换各自重复传输大消息。默认不跨机发送 ZED RGB、深度图或完整视觉点云。
 
-Qt/RViz 默认显示 `/cloud_registered_body_enhanced`，用于直接检查 MID360 与可选 LD19 的空间效果。该显示会让完整点云跨机传输；需要节省带宽时可在 Displays 中取消勾选。融合后的 `/scan` 也默认显示并持续用于避障。
+Qt/RViz 默认显示 `/cloud_registered_body_enhanced`，并在静态定位模式显示低频动态
+`/fast_lio_localization/aligned_scan`，用于区分实时匹配点云与锁存的三维先验。完整点云
+显示会占用跨机带宽；需要节省带宽时可在 Displays 中取消勾选。融合后的 `/scan` 也默认
+显示并持续用于避障。
+
+静态地图模式下，初始位姿前 TopDownOrtho 以 `map` 为视角目标显示全图；定位达到
+`LOCALIZED` 后可自动或手动把视角目标改为 `base_link`，Fixed Frame 始终保持 `map`。
+综合页可由“④ 显示静态三维先验”按需订阅 J6M 上锁存发布的
+`/fast_lio_localization/prior_map`。该显示默认关闭，开启时使用 `map` 固定坐标系和
+Orbit 视角；关闭或进入初始位姿工具时恢复二维 TopDownOrtho 全图。清扫页仍保持纯二维。
+
+综合页和清扫页不再依赖全局 `robot_description` 生成车体；两者直接用
+`rviz/Polygon` 显示 `/move_base/local_costmap/footprint`。这个 Polygon 是
+costmap 根据 `base_link` 和当前 footprint/padding 持续发布的实际导航安全边界，当前约为
+`1.24 × 0.90 m`。静态地图在初始位姿或新鲜里程计/TF 缺失时没有可用的
+`map -> base_link`，因此车框暂不显示；定位链建立后，它在二维和三维视角中都会随
+车辆移动。
 
 ## 控制链
 
@@ -72,7 +93,7 @@ J6M move_base
 J6M /fod_navigation_mode
   /cmd_vel_safe
         ↓  ROS TCP/IP
-NVIDIA /nvidia_cmd_vel_watchdog（250 ms lease、0.3 m/s 上限）
+NVIDIA /nvidia_cmd_vel_watchdog（250 ms lease、1.7 m/s 绝对硬上限）
   /cmd_vel
         ↓
 NVIDIA /m2_driver → USB-CAN → M2 底盘
@@ -94,10 +115,34 @@ J6M /coverage_manager
              原有 FOD 仲裁、跨机看门狗与 M2 控制链
 ```
 
+普通点到点入口使用独立的目标门：Qt/RViz 发布 `/move_base_simple/goal`，J6M
+`/navigation_pause` 仅在未暂停且没有活动覆盖任务时转发到
+`/navigation_goal/accepted`；move_base 在完整双机启动中只订阅后者。覆盖管理器仍通过
+actionlib 直接拥有自己的分段目标，因而普通目标不能再抢占覆盖任务。
+
 `CoverageGlobalPlanner` 是 move_base 的全局规划插件：没有活动覆盖分段时委托 Navfn，
 活动清扫分段时只接受管理器发布且端点匹配的新鲜路径。路径过期且任务仍活动时保持
 fail-closed，不允许突然改走最短路。区域本身不是 geofence；转场由 Navfn 在完整已知
-自由地图中规划。覆盖管理器只在静态地图模式启动。
+自由地图中规划。覆盖管理器只在静态地图模式启动。覆盖默认有效宽度 `1.00 m`、重叠率
+`15%`、车道中心距 `0.85 m`。普通导航和覆盖任务默认最高前进速度为 `0.80 m/s`；清扫页
+按任务限制在 `0.10–1.60 m/s`，管理器动态写入 TEB，并在开始前同时核对 NVIDIA 看门狗
+和 VCU 实时上限。VCU/TEB/覆盖模型统一按 `0.65 m` 轴距与 `1.35 m` 最小转弯半径核对，
+强制覆盖路径还检查终点 yaw 和完整车辆 footprint。倒车仅在转场以 `0.15 m/s` 允许 TEB
+尝试；Navfn 转场尚不是带档位的 Reeds-Shepp 规划。
+
+静态模式的 rolling local costmap 由 StaticLayer（`/map`）、ObstacleLayer（融合
+`/scan`）和 InflationLayer 叠加，避免 TEB 只看实时雷达而穿过二维已知墙体。静态模式
+还单独启用 `treat_unknown_as_obstacle=true` 和 Navfn `allow_unknown=false`；无图模式的
+TEB 默认值仍为 false。该开关只拒绝 CostmapModel 的 `-2` 未知区；`-3` 未来足迹超出
+滚动局部窗口不是碰撞，但当前姿态超窗仍拒绝。静态 TEB 视野为 `8.0 m`，在 `20 m`
+局部窗口内保留边界裕量。Qt 中蓝色为 TEB 接收的全局参考路线，红色为当前局部优化轨迹；
+两者只在 move_base 目标活动期间启用，终态会清掉 RViz 缓存。
+
+覆盖任务比普通导航多一层障碍链 fail-closed：`/scan` 必须具有新鲜时间戳、正确
+`base_link` 帧和有效几何，同时 `/avoidance/dual_lidar_active` 必须新鲜且为 true。
+失去任一条件只在边沿取消一次当前目标，转入人工暂停；恢复数据不会自动恢复运动。
+单个异常 `/scan` 只会替换最新诊断；最近有效样本仍在 `0.5 s` 窗口内时保持就绪，持续
+异常或缺流超过窗口后才锁存暂停。锁存原因在暂停等待期间保持可见。
 
 `/fod_navigation_mode` 是 `/cmd_vel_safe` 的唯一发布者；NVIDIA 看门狗是 `/cmd_vel` 的唯一发布者。看门狗拒绝 NaN/Inf、非平面指令、超限指令、重复发布者、错误订阅者和过期命令。
 

@@ -13,12 +13,27 @@ VOXEL_MIN_FRAMES="${MAPPING_3D_MIN_FRAME_OBSERVATIONS:-3}"
 POINT_MAX_RANGE="${MAPPING_3D_MAX_POINT_RANGE:-20.0}"
 GRID_RESOLUTION="${MAPPING_2D_RESOLUTION:-0.10}"
 LIDAR_MIN_FRAMES="${MAPPING_2D_MIN_OCCUPIED_OBSERVATIONS:-5}"
-SLICE_CENTER_Z="${MAPPING_SLICE_CENTER_Z:--0.756}"
-SLICE_HALF_WIDTH="${MAPPING_SLICE_HALF_WIDTH:-0.10}"
+SLICE_CENTER_Z="${MAPPING_SLICE_CENTER_Z:--0.4}"
+SLICE_HALF_WIDTH="${MAPPING_SLICE_HALF_WIDTH:-0.20}"
 SLICE_MIN_FRAMES="${MAPPING_SLICE_MIN_FRAME_OBSERVATIONS:-20}"
 BASE_OFFSET_X="${MAPPING_BASE_OFFSET_X:--0.211}"
 BASE_OFFSET_Y="${MAPPING_BASE_OFFSET_Y:--0.02329}"
+BASE_OFFSET_Z="${MAPPING_BASE_OFFSET_Z:--0.95588}"
+SLICE_SELF_CROP_ENABLED="${MAPPING_SLICE_SELF_CROP_ENABLED:-true}"
+SLICE_SELF_CROP_MIN_X="${MAPPING_SLICE_SELF_CROP_MIN_X:--0.75}"
+SLICE_SELF_CROP_MAX_X="${MAPPING_SLICE_SELF_CROP_MAX_X:-0.75}"
+SLICE_SELF_CROP_MIN_Y="${MAPPING_SLICE_SELF_CROP_MIN_Y:--0.50}"
+SLICE_SELF_CROP_MAX_Y="${MAPPING_SLICE_SELF_CROP_MAX_Y:-0.50}"
+SLICE_SWEEP_FRONT="${MAPPING_SLICE_SWEEP_FRONT:-0.62}"
+SLICE_SWEEP_REAR="${MAPPING_SLICE_SWEEP_REAR:-0.62}"
+SLICE_SWEEP_HALF_WIDTH="${MAPPING_SLICE_SWEEP_HALF_WIDTH:-0.45}"
+SLICE_SWEEP_LINEAR_STEP="${MAPPING_SLICE_SWEEP_LINEAR_STEP:-0.05}"
+SLICE_SWEEP_ANGULAR_STEP="${MAPPING_SLICE_SWEEP_ANGULAR_STEP:-0.03490658503988659}"
 
+[[ "$SLICE_SELF_CROP_ENABLED" == true ]] || {
+  echo "MAPPING_SLICE_SELF_CROP_ENABLED must remain true for fused-map generation." >&2
+  exit 2
+}
 [[ "$WAIT_SECONDS" =~ ^[0-9]+$ ]] || {
   echo "MAPPING_TOPIC_WAIT_SEC must be a non-negative integer." >&2
   exit 2
@@ -70,6 +85,10 @@ write_manifest() {
     printf 'map_fused_2d:\n  yaml: map_fused_2d/map.yaml\n  fusion_policy: persistent_occupied_union\n'
     printf '  slice_center_z_m: %s\n  slice_half_width_m: %s\n' "$SLICE_CENTER_Z" "$SLICE_HALF_WIDTH"
     printf '  min_frame_observations: %s\n' "$SLICE_MIN_FRAMES"
+    printf '  moving_self_crop:\n    enabled: true\n'
+    printf '    point_bounds_xy_m: [%s, %s, %s, %s]\n' "$SLICE_SELF_CROP_MIN_X" "$SLICE_SELF_CROP_MAX_X" "$SLICE_SELF_CROP_MIN_Y" "$SLICE_SELF_CROP_MAX_Y"
+    printf '    sweep_bounds_xy_m: [-%s, %s, -%s, %s]\n' "$SLICE_SWEEP_REAR" "$SLICE_SWEEP_FRONT" "$SLICE_SWEEP_HALF_WIDTH" "$SLICE_SWEEP_HALF_WIDTH"
+    printf '    body_to_base_xyz_m: [%s, %s, %s]\n' "$BASE_OFFSET_X" "$BASE_OFFSET_Y" "$BASE_OFFSET_Z"
     printf 'default_static_map_source: fused\n'
     printf 'initial_body_z_m: 0.0\n'
   } >"$temporary"
@@ -133,6 +152,7 @@ finish_session() {
     printf 'voxel_size_m: %s\n' "$VOXEL_SIZE"
     printf 'min_frame_observations: %s\n' "$VOXEL_MIN_FRAMES"
     printf 'max_point_range_m: %s\n' "$POINT_MAX_RANGE"
+    printf 'moving_slice_self_crop: true\n'
   } >"$map_3d_dir/config.yaml"
   cp -- "$map_2d_dir/mapping_info.yaml" "$map_2d_dir/config.yaml"
   write_manifest complete
@@ -160,7 +180,19 @@ rosrun robot_bringup voxel_cloud_mapper \
   _slice_center_z:="$SLICE_CENTER_Z" \
   _slice_half_width:="$SLICE_HALF_WIDTH" \
   _slice_resolution:="$GRID_RESOLUTION" \
-  _slice_min_frame_observations:="$SLICE_MIN_FRAMES" &
+  _slice_min_frame_observations:="$SLICE_MIN_FRAMES" \
+  _slice_self_crop_enabled:="$SLICE_SELF_CROP_ENABLED" \
+  _slice_self_crop_min_x:="$SLICE_SELF_CROP_MIN_X" \
+  _slice_self_crop_max_x:="$SLICE_SELF_CROP_MAX_X" \
+  _slice_self_crop_min_y:="$SLICE_SELF_CROP_MIN_Y" \
+  _slice_self_crop_max_y:="$SLICE_SELF_CROP_MAX_Y" \
+  _slice_sweep_front:="$SLICE_SWEEP_FRONT" \
+  _slice_sweep_rear:="$SLICE_SWEEP_REAR" \
+  _slice_sweep_half_width:="$SLICE_SWEEP_HALF_WIDTH" \
+  _body_to_base_x:="$BASE_OFFSET_X" _body_to_base_y:="$BASE_OFFSET_Y" \
+  _body_to_base_z:="$BASE_OFFSET_Z" \
+  _slice_sweep_linear_step:="$SLICE_SWEEP_LINEAR_STEP" \
+  _slice_sweep_angular_step:="$SLICE_SWEEP_ANGULAR_STEP" &
 pointcloud_pid=$!
 
 rosrun robot_bringup fused_scan_mapper.py \

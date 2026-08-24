@@ -34,9 +34,27 @@ set +a
 [[ -z "$_lio_map_was_set" ]] || FAST_LIO_MAP_FILE="$_lio_map_override"
 [[ -z "$_lio_z_was_set" ]] || FAST_LIO_INITIAL_BODY_Z="$_lio_z_override"
 
+NVIDIA_J6M_INTERFACE="${NVIDIA_J6M_INTERFACE:-}"
+NVIDIA_LIVOX_INTERFACE="${NVIDIA_LIVOX_INTERFACE:-}"
 NVIDIA_J6M_MAC="${NVIDIA_J6M_MAC:-}"
 NVIDIA_LIVOX_MAC="${NVIDIA_LIVOX_MAC:-}"
+NVIDIA_J6M_CONFIGURED_MAC="$NVIDIA_J6M_MAC"
+NVIDIA_LIVOX_CONFIGURED_MAC="$NVIDIA_LIVOX_MAC"
+NVIDIA_J6M_USB_ID="${NVIDIA_J6M_USB_ID:-}"
+NVIDIA_J6M_USB_SERIAL="${NVIDIA_J6M_USB_SERIAL:-}"
+NVIDIA_LIVOX_USB_ID="${NVIDIA_LIVOX_USB_ID:-}"
+NVIDIA_LIVOX_USB_SERIAL="${NVIDIA_LIVOX_USB_SERIAL:-}"
+DUAL_HOST_SYS_CLASS_NET_ROOT="${DUAL_HOST_SYS_CLASS_NET_ROOT:-/sys/class/net}"
 DUAL_HOST_DEVICE_WAIT_SEC="${DUAL_HOST_DEVICE_WAIT_SEC:-20}"
+DUAL_HOST_NETWORK_WAIT_SEC="${DUAL_HOST_NETWORK_WAIT_SEC:-90}"
+DUAL_HOST_NETWORK_POLL_SEC="${DUAL_HOST_NETWORK_POLL_SEC:-1}"
+NVIDIA_ZED_SERIAL="${NVIDIA_ZED_SERIAL:-23748636}"
+ZED_USB_WAIT_SEC="${ZED_USB_WAIT_SEC:-20}"
+ZED_IMAGE_WAIT_SEC="${ZED_IMAGE_WAIT_SEC:-60}"
+NAV_MAX_LINEAR_SPEED="${NAV_MAX_LINEAR_SPEED:-0.80}"
+NAV_MAX_REVERSE_SPEED="${NAV_MAX_REVERSE_SPEED:-0.30}"
+CMD_VEL_MAX_LINEAR_SPEED="${CMD_VEL_MAX_LINEAR_SPEED:-1.70}"
+CMD_VEL_MAX_ANGULAR_SPEED="${CMD_VEL_MAX_ANGULAR_SPEED:-0.60}"
 STATIC_MAP_ENABLED="${STATIC_MAP_ENABLED:-false}"
 STATIC_MAP_SET="${STATIC_MAP_SET:-}"
 STATIC_MAP_SOURCE_MODE="${STATIC_MAP_SOURCE_MODE:-fused}"
@@ -46,7 +64,16 @@ FAST_LIO_INITIAL_BODY_Z="${FAST_LIO_INITIAL_BODY_Z:-0.0}"
 MAPPING_REQUIRE_DUAL_LIDAR="${MAPPING_REQUIRE_DUAL_LIDAR:-true}"
 MAPPING_TOPIC_WAIT_SEC="${MAPPING_TOPIC_WAIT_SEC:-10}"
 DUAL_LIDAR_CENTER_DISTANCE_M="${DUAL_LIDAR_CENTER_DISTANCE_M:-0.92}"
-export NVIDIA_J6M_MAC NVIDIA_LIVOX_MAC DUAL_HOST_DEVICE_WAIT_SEC
+export NVIDIA_J6M_INTERFACE NVIDIA_LIVOX_INTERFACE
+export NVIDIA_J6M_MAC NVIDIA_LIVOX_MAC
+export NVIDIA_J6M_CONFIGURED_MAC NVIDIA_LIVOX_CONFIGURED_MAC
+export NVIDIA_J6M_USB_ID NVIDIA_J6M_USB_SERIAL
+export NVIDIA_LIVOX_USB_ID NVIDIA_LIVOX_USB_SERIAL
+export DUAL_HOST_SYS_CLASS_NET_ROOT DUAL_HOST_DEVICE_WAIT_SEC
+export DUAL_HOST_NETWORK_WAIT_SEC DUAL_HOST_NETWORK_POLL_SEC
+export NVIDIA_ZED_SERIAL ZED_USB_WAIT_SEC ZED_IMAGE_WAIT_SEC
+export NAV_MAX_LINEAR_SPEED NAV_MAX_REVERSE_SPEED CMD_VEL_MAX_LINEAR_SPEED
+export CMD_VEL_MAX_ANGULAR_SPEED
 export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
 export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
 export MAPPING_REQUIRE_DUAL_LIDAR MAPPING_TOPIC_WAIT_SEC
@@ -56,36 +83,146 @@ dual_host_normalize_mac() {
   printf '%s\n' "${1,,}"
 }
 
-dual_host_find_interface_by_mac() {
-  local wanted actual address_file
-  wanted="$(dual_host_normalize_mac "${1:-}")"
-  [[ "$wanted" =~ ^([0-9a-f]{2}:){5}[0-9a-f]{2}$ ]] || return 1
-  for address_file in /sys/class/net/*/address; do
-    [[ -r "$address_file" ]] || continue
-    actual="$(<"$address_file")"
-    if [[ "${actual,,}" == "$wanted" ]]; then
-      printf '%s\n' "${address_file%/address}" | sed 's#.*/##'
+dual_host_interface_permanent_mac() {
+  local interface="$1" value
+  [[ -n "$interface" ]] || return 1
+  if [[ "$DUAL_HOST_SYS_CLASS_NET_ROOT" == /sys/class/net ]] &&
+     command -v ethtool >/dev/null 2>&1; then
+    value="$(ethtool -P "$interface" 2>/dev/null |
+      awk '/Permanent address:/ {print $3; exit}')"
+    if [[ "${value,,}" =~ ^([0-9a-f]{2}:){5}[0-9a-f]{2}$ ]] &&
+       [[ "${value,,}" != 00:00:00:00:00:00 ]]; then
+      printf '%s\n' "${value,,}"
       return 0
     fi
+  fi
+  [[ -r "$DUAL_HOST_SYS_CLASS_NET_ROOT/$interface/address" ]] || return 1
+  value="$(<"$DUAL_HOST_SYS_CLASS_NET_ROOT/$interface/address")"
+  [[ "${value,,}" =~ ^([0-9a-f]{2}:){5}[0-9a-f]{2}$ ]] || return 1
+  printf '%s\n' "${value,,}"
+}
+
+dual_host_find_interface_by_mac() {
+  local wanted actual interface interface_dir
+  local -a matches=()
+  wanted="$(dual_host_normalize_mac "${1:-}")"
+  [[ "$wanted" =~ ^([0-9a-f]{2}:){5}[0-9a-f]{2}$ ]] || return 1
+  for interface_dir in "$DUAL_HOST_SYS_CLASS_NET_ROOT"/*; do
+    [[ -d "$interface_dir" || -L "$interface_dir" ]] || continue
+    interface="${interface_dir##*/}"
+    actual="$(dual_host_interface_permanent_mac "$interface" 2>/dev/null || true)"
+    [[ "$actual" != "$wanted" ]] || matches+=("$interface")
+  done
+  (( ${#matches[@]} == 1 )) || return $(( ${#matches[@]} > 1 ? 2 : 1 ))
+  printf '%s\n' "${matches[0]}"
+}
+
+dual_host_usb_device_path() {
+  local interface="$1" wanted_usb_id="${2,,}" path parent vendor product
+  [[ "$wanted_usb_id" =~ ^[0-9a-f]{4}:[0-9a-f]{4}$ ]] || return 1
+  path="$(readlink -f "$DUAL_HOST_SYS_CLASS_NET_ROOT/$interface/device" 2>/dev/null || true)"
+  [[ -n "$path" ]] || return 1
+  while [[ "$path" != / && -n "$path" ]]; do
+    if [[ -r "$path/idVendor" && -r "$path/idProduct" ]]; then
+      vendor="$(<"$path/idVendor")"
+      product="$(<"$path/idProduct")"
+      if [[ "${vendor,,}:${product,,}" == "$wanted_usb_id" ]]; then
+        printf '%s\n' "$path"
+        return 0
+      fi
+    fi
+    parent="${path%/*}"
+    [[ "$parent" != "$path" ]] || break
+    path="$parent"
   done
   return 1
 }
 
-dual_host_resolve_interface_variable() {
-  local variable_name="$1" mac="$2" resolved
-  [[ "$variable_name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || return 2
-  resolved="$(dual_host_find_interface_by_mac "$mac" 2>/dev/null || true)"
-  [[ -z "$resolved" ]] || printf -v "$variable_name" '%s' "$resolved"
-  export "$variable_name"
+dual_host_interface_usb_serial() {
+  local interface="$1" usb_id="$2" path
+  path="$(dual_host_usb_device_path "$interface" "$usb_id" 2>/dev/null || true)"
+  [[ -n "$path" && -r "$path/serial" ]] || return 1
+  tr -d '\r\n' <"$path/serial"
+}
+
+dual_host_find_interface_by_usb_identity() {
+  local wanted_usb_id="${1,,}" wanted_serial="$2"
+  local interface interface_dir actual_serial
+  local -a matches=()
+  [[ "$wanted_usb_id" =~ ^[0-9a-f]{4}:[0-9a-f]{4}$ &&
+     -n "$wanted_serial" ]] || return 1
+  for interface_dir in "$DUAL_HOST_SYS_CLASS_NET_ROOT"/*; do
+    [[ -d "$interface_dir" || -L "$interface_dir" ]] || continue
+    interface="${interface_dir##*/}"
+    actual_serial="$(dual_host_interface_usb_serial "$interface" "$wanted_usb_id" 2>/dev/null || true)"
+    [[ "$actual_serial" != "$wanted_serial" ]] || matches+=("$interface")
+  done
+  (( ${#matches[@]} == 1 )) || return $(( ${#matches[@]} > 1 ? 2 : 1 ))
+  printf '%s\n' "${matches[0]}"
+}
+
+dual_host_resolve_network_role() {
+  local prefix="$1" configured_mac="$2" usb_id="$3" usb_serial="$4"
+  local interface_variable="${prefix}_INTERFACE"
+  local mac_variable="${prefix}_MAC"
+  local source_variable="${prefix}_IDENTITY_SOURCE"
+  local path_variable="${prefix}_USB_DEVICE_PATH"
+  local configured_interface="${!interface_variable:-}"
+  local resolved="" resolved_mac="" identity_source="" usb_path=""
+
+  if [[ "${configured_mac,,}" =~ ^([0-9a-f]{2}:){5}[0-9a-f]{2}$ ]]; then
+    resolved="$(dual_host_find_interface_by_mac "$configured_mac" 2>/dev/null || true)"
+    [[ -z "$resolved" ]] || identity_source="configured-mac"
+  fi
+  if [[ -z "$resolved" && "${usb_id,,}" =~ ^[0-9a-f]{4}:[0-9a-f]{4}$ &&
+        -n "$usb_serial" ]]; then
+    resolved="$(dual_host_find_interface_by_usb_identity "$usb_id" "$usb_serial" 2>/dev/null || true)"
+    [[ -z "$resolved" ]] || identity_source="usb-id+serial"
+  fi
+  if [[ -z "$resolved" && -z "$configured_mac" && -z "$usb_id" &&
+        -n "$configured_interface" &&
+        ( -d "$DUAL_HOST_SYS_CLASS_NET_ROOT/$configured_interface" ||
+          -L "$DUAL_HOST_SYS_CLASS_NET_ROOT/$configured_interface" ) ]]; then
+    resolved="$configured_interface"
+    identity_source="explicit-interface"
+  fi
+
+  if [[ -n "$resolved" ]]; then
+    resolved_mac="$(dual_host_interface_permanent_mac "$resolved" 2>/dev/null || true)"
+    [[ -n "$resolved_mac" ]] || resolved=""
+  fi
+  if [[ -n "$resolved" ]]; then
+    usb_path="$(dual_host_usb_device_path "$resolved" "$usb_id" 2>/dev/null || true)"
+    printf -v "$interface_variable" '%s' "$resolved"
+    printf -v "$mac_variable" '%s' "$resolved_mac"
+    printf -v "$source_variable" '%s' "$identity_source"
+    printf -v "$path_variable" '%s' "$usb_path"
+  else
+    # A configured hardware identity is authoritative.  Never retain a stale
+    # ethN fallback when that identity is absent: ethN names change at reboot.
+    printf -v "$interface_variable" '%s' ''
+    printf -v "$mac_variable" '%s' "$configured_mac"
+    printf -v "$source_variable" '%s' 'unresolved'
+    printf -v "$path_variable" '%s' ''
+  fi
+  export "$interface_variable" "$mac_variable" "$source_variable" "$path_variable"
+}
+
+dual_host_network_roles_are_distinct() {
+  [[ -n "${NVIDIA_J6M_INTERFACE:-}" && -n "${NVIDIA_LIVOX_INTERFACE:-}" ]] || return 1
+  [[ "$NVIDIA_J6M_INTERFACE" != "$NVIDIA_LIVOX_INTERFACE" ]] || return 1
+  if [[ -n "${NVIDIA_J6M_USB_DEVICE_PATH:-}" &&
+        -n "${NVIDIA_LIVOX_USB_DEVICE_PATH:-}" ]]; then
+    [[ "$NVIDIA_J6M_USB_DEVICE_PATH" != "$NVIDIA_LIVOX_USB_DEVICE_PATH" ]] || return 1
+  fi
 }
 
 dual_host_refresh_local_interfaces() {
-  if [[ -n "${NVIDIA_J6M_MAC:-}" ]]; then
-    dual_host_resolve_interface_variable NVIDIA_J6M_INTERFACE "$NVIDIA_J6M_MAC"
-  fi
-  if [[ -n "${NVIDIA_LIVOX_MAC:-}" ]]; then
-    dual_host_resolve_interface_variable NVIDIA_LIVOX_INTERFACE "$NVIDIA_LIVOX_MAC"
-  fi
+  dual_host_resolve_network_role NVIDIA_J6M "$NVIDIA_J6M_CONFIGURED_MAC" \
+    "$NVIDIA_J6M_USB_ID" "$NVIDIA_J6M_USB_SERIAL"
+  dual_host_resolve_network_role NVIDIA_LIVOX "$NVIDIA_LIVOX_CONFIGURED_MAC" \
+    "$NVIDIA_LIVOX_USB_ID" "$NVIDIA_LIVOX_USB_SERIAL"
+  return 0
 }
 
 dual_host_refresh_local_interfaces

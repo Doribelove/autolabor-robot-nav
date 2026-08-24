@@ -1,0 +1,5 @@
+# ZED 2 production camera (SN is checked by the project preflight).
+# The Jetson user is a member of video; keep access narrower than MODE=0666.
+ACTION=="add|change", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="2b03", ATTR{idProduct}=="f780", GROUP="video", MODE="0660", TAG+="uaccess"
+ACTION=="add|change", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="2b03", ATTR{idProduct}=="f781", GROUP="video", MODE="0660", TAG+="uaccess"
+ACTION=="add|change", SUBSYSTEM=="hidraw", KERNEL=="hidraw*", ATTRS{idVendor}=="2b03", ATTRS{idProduct}=="f781", GROUP="video", MODE="0660", TAG+="uaccess"

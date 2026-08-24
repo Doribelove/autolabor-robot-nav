@@ -7,8 +7,9 @@
   <arg name="start_fod_arbiter" default="true"/>
   <arg name="fod_motion_enabled" default="false"/>
   <arg name="use_dual_lidar" default="true"/>
-  <arg name="max_linear_speed" default="0.30"/>
+  <arg name="max_linear_speed" default="0.80"/>
   <arg name="max_linear_speed_backwards" default="0.30"/>
+  <arg name="max_angular_speed" default="0.60"/>
   <arg name="mid360_sensor_x" default="0.20"/>
   <arg name="mid360_sensor_y" default="0.0"/>
   <arg name="mid360_sensor_z" default="1.0"/>
@@ -91,8 +92,11 @@
       <arg name="output_cmd_vel_topic" value="/cmd_vel_navigation"/>
       <arg name="max_vel_x" value="$(arg max_linear_speed)"/>
       <arg name="max_vel_x_backwards" value="$(arg max_linear_speed_backwards)"/>
+      <arg name="max_vel_theta" value="$(arg max_angular_speed)"/>
       <arg name="use_static_map" value="$(arg use_static_map)"/>
       <arg name="map_file" value="$(arg map_file)"/>
+      <arg name="move_base_simple_goal_topic"
+           value="$(eval '/navigation_goal/accepted' if arg('start_fod_arbiter') else '/move_base_simple/goal')"/>
     </include>
 
     <group if="$(arg start_fod_arbiter)">
@@ -102,6 +106,8 @@
             output="screen"
             required="true">
         <param name="reissue_on_resume" type="bool" value="true"/>
+        <param name="simple_goal_request_topic" value="/move_base_simple/goal"/>
+        <param name="simple_goal_output_topic" value="/navigation_goal/accepted"/>
       </node>
 
       <include file="$(find autolabor_fod_control)/launch/visual_recovery.launch">

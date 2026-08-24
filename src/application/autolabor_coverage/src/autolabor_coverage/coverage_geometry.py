@@ -261,16 +261,81 @@ def sample_path(start, end, spacing):
     ]
 
 
+def rasterize_swept_cells(grid, polygon, start, end, operation_width):
+    """Return unique known-free map cells covered by one cleaning-centre segment.
+
+    Cell centres are tested against a capsule of ``operation_width`` around the
+    measured segment and clipped to the operator-selected polygon.  The result
+    is intentionally an area estimate, but unlike distance multiplied by width
+    it does not count overlaps or retries more than once.
+    """
+    if (not math.isfinite(operation_width) or operation_width <= 0.0 or
+            not polygon):
+        return set()
+    radius = 0.5 * operation_width
+    minimum_x = min(start.x, end.x) - radius
+    maximum_x = max(start.x, end.x) + radius
+    minimum_y = min(start.y, end.y) - radius
+    maximum_y = max(start.y, end.y) + radius
+    first_x = max(0, int(math.floor((minimum_x - grid.origin_x) / grid.resolution)))
+    last_x = min(
+        grid.width - 1,
+        int(math.floor((maximum_x - grid.origin_x) / grid.resolution)),
+    )
+    first_y = max(0, int(math.floor((minimum_y - grid.origin_y) / grid.resolution)))
+    last_y = min(
+        grid.height - 1,
+        int(math.floor((maximum_y - grid.origin_y) / grid.resolution)),
+    )
+    if first_x > last_x or first_y > last_y:
+        return set()
+
+    delta_x = end.x - start.x
+    delta_y = end.y - start.y
+    length_squared = delta_x * delta_x + delta_y * delta_y
+    radius_squared = radius * radius
+    covered = set()
+    for cell_y in range(first_y, last_y + 1):
+        world_y = grid.origin_y + (cell_y + 0.5) * grid.resolution
+        for cell_x in range(first_x, last_x + 1):
+            if grid.data[cell_y * grid.width + cell_x] != 0:
+                continue
+            world_x = grid.origin_x + (cell_x + 0.5) * grid.resolution
+            point = Point(world_x, world_y)
+            if not point_in_polygon(point, polygon):
+                continue
+            if length_squared <= EPSILON:
+                closest_x = start.x
+                closest_y = start.y
+            else:
+                projection = (
+                    (world_x - start.x) * delta_x +
+                    (world_y - start.y) * delta_y
+                ) / length_squared
+                projection = min(1.0, max(0.0, projection))
+                closest_x = start.x + projection * delta_x
+                closest_y = start.y + projection * delta_y
+            distance_squared = ((world_x - closest_x) ** 2 +
+                                (world_y - closest_y) ** 2)
+            if distance_squared <= radius_squared + EPSILON:
+                covered.add((cell_x, cell_y))
+    return covered
+
+
 class CoveragePlanner:
     def __init__(self, grid_map, footprint_front=0.62, footprint_rear=0.62,
                  footprint_half_width=0.45, minimum_swath_length=1.2,
-                 angle_step_degrees=15.0):
+                 angle_step_degrees=15.0, minimum_turning_radius=1.35):
         self.grid = grid_map
         self.front = float(footprint_front)
         self.rear = float(footprint_rear)
         self.half_width = float(footprint_half_width)
         self.minimum_swath_length = float(minimum_swath_length)
         self.angle_step = math.radians(float(angle_step_degrees))
+        self.minimum_turning_radius = float(minimum_turning_radius)
+        if (not math.isfinite(self.minimum_turning_radius) or
+                self.minimum_turning_radius <= 0.0):
+            raise ValueError("minimum turning radius must be positive")
 
     def _pose_is_free(self, point, angle, cache):
         key = (
@@ -390,7 +455,8 @@ class CoveragePlanner:
             unreachable = max(0.0, area - reachable)
             split_penalty = max(0, len(swaths) - int(math.ceil(area / max(
                 operation_width * max(math.sqrt(area), 1.0), EPSILON))))
-            score = (path_length + len(swaths) * math.pi * 1.2 +
+            score = (path_length +
+                     len(swaths) * math.pi * self.minimum_turning_radius +
                      split_penalty * 2.0 + unreachable * 100.0)
             candidate = CoveragePlan(
                 angle=angle,
@@ -408,7 +474,24 @@ class CoveragePlanner:
         return best
 
 
-def order_swaths(swaths, current, spacing, minimum_turning_radius):
+def _heading_delta(first, second):
+    return abs(math.atan2(math.sin(second - first), math.cos(second - first)))
+
+
+def _entry_cost(current, current_yaw, entry, sweep_yaw, minimum_turning_radius):
+    distance = math.hypot(current.x - entry.x, current.y - entry.y)
+    if current_yaw is None or not math.isfinite(current_yaw):
+        return distance
+    # R*delta is the lower-bound arc length needed to change heading at the
+    # configured Ackermann radius.  It makes route direction heading-aware,
+    # while move_base/TEB remains responsible for the actual connector.
+    return distance + minimum_turning_radius * _heading_delta(
+        current_yaw, sweep_yaw
+    )
+
+
+def order_swaths(swaths, current, spacing, minimum_turning_radius,
+                 current_yaw=None):
     if not swaths:
         return []
     ordered_by_v = sorted(swaths, key=lambda swath: (
@@ -425,24 +508,53 @@ def order_swaths(swaths, current, spacing, minimum_turning_radius):
     # the vehicle; this provides a deterministic, low-cost coverage entry.
     first_position = min(
         range(len(index_order)),
-        key=lambda position: min(
-            math.hypot(current.x - ordered_by_v[index_order[position]].start.x,
-                       current.y - ordered_by_v[index_order[position]].start.y),
-            math.hypot(current.x - ordered_by_v[index_order[position]].end.x,
-                       current.y - ordered_by_v[index_order[position]].end.y),
-        ),
+        key=lambda position: min((
+            _entry_cost(
+                current,
+                current_yaw,
+                ordered_by_v[index_order[position]].start,
+                math.atan2(
+                    ordered_by_v[index_order[position]].end.y -
+                    ordered_by_v[index_order[position]].start.y,
+                    ordered_by_v[index_order[position]].end.x -
+                    ordered_by_v[index_order[position]].start.x,
+                ),
+                minimum_turning_radius,
+            ),
+            _entry_cost(
+                current,
+                current_yaw,
+                ordered_by_v[index_order[position]].end,
+                math.atan2(
+                    ordered_by_v[index_order[position]].start.y -
+                    ordered_by_v[index_order[position]].end.y,
+                    ordered_by_v[index_order[position]].start.x -
+                    ordered_by_v[index_order[position]].end.x,
+                ),
+                minimum_turning_radius,
+            ),
+        )),
     )
     index_order = index_order[first_position:] + index_order[:first_position]
     route = []
     cursor = current
+    cursor_yaw = current_yaw
     for index in index_order:
         swath = ordered_by_v[index]
-        start_distance = math.hypot(cursor.x - swath.start.x,
-                                    cursor.y - swath.start.y)
-        end_distance = math.hypot(cursor.x - swath.end.x,
-                                  cursor.y - swath.end.y)
-        if end_distance < start_distance:
+        forward_yaw = math.atan2(swath.end.y - swath.start.y,
+                                 swath.end.x - swath.start.x)
+        reverse_yaw = math.atan2(swath.start.y - swath.end.y,
+                                 swath.start.x - swath.end.x)
+        start_cost = _entry_cost(
+            cursor, cursor_yaw, swath.start, forward_yaw,
+            minimum_turning_radius)
+        end_cost = _entry_cost(
+            cursor, cursor_yaw, swath.end, reverse_yaw,
+            minimum_turning_radius)
+        if end_cost < start_cost:
             swath = Swath(swath.end, swath.start, swath.scan_v, swath.length)
+            forward_yaw = reverse_yaw
         route.append(swath)
         cursor = swath.end
+        cursor_yaw = forward_yaw
     return route

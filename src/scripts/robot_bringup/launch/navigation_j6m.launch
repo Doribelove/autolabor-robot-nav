@@ -13,8 +13,9 @@
   <arg name="cmd_vel_topic" default="$(eval arg('localization_gate_input_topic') if arg('use_static_map') else ('/cmd_vel_navigation' if arg('goal_slowdown_enabled') else arg('output_cmd_vel_topic')))"/>
   <arg name="xy_goal_tolerance" default="$(eval 0.3 if arg('localization_source') == 'gps' else 0.5)"/>
   <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
-  <arg name="max_vel_x" default="0.3"/>
+  <arg name="max_vel_x" default="0.8"/>
   <arg name="max_vel_x_backwards" default="0.3"/>
+  <arg name="max_vel_theta" default="0.6"/>
   <arg name="min_vel_x" default="0.0"/>
   <arg name="min_vel_x_backwards" default="0.0"/>
   <arg name="penalty_epsilon" default="0.03"/>
@@ -31,6 +32,10 @@
   <arg name="gps_geofence_enabled" default="$(eval arg('localization_source') == 'gps')"/>
   <arg name="gps_geofence_file" default="$(find robot_bringup)/config/gps_geofences.yaml"/>
   <arg name="map_file" default="/var/lib/autolabor/maps/current/map.yaml"/>
+  <!-- When an arbitration bridge is present, move_base consumes only its
+       accepted output.  Diagnostic launches without that bridge retain the
+       standard direct simple-goal topic. -->
+  <arg name="move_base_simple_goal_topic" default="/move_base_simple/goal"/>
 
   <!-- In static-map mode the separate FAST-LIO map localizer loads the 3-D
        prior and owns map -> camera_init. Original FAST-LIO continues to own
@@ -45,6 +50,8 @@
       <param name="input_topic" value="$(arg localization_gate_input_topic)"/>
       <param name="output_topic" value="$(arg output_cmd_vel_topic)"/>
       <param name="status_topic" value="/fast_lio/localization_status"/>
+      <param name="cancel_topic" value="/move_base/cancel"/>
+      <param name="goal_topic" value="/move_base/goal"/>
       <param name="status_timeout" value="0.5"/>
       <param name="command_timeout" value="0.5"/>
     </node>
@@ -63,6 +70,7 @@
   </group>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <remap from="/move_base_simple/goal" to="$(arg move_base_simple_goal_topic)"/>
     <remap from="/move_base/cmd_vel" to="$(arg cmd_vel_topic)"/>
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
     <remap from="odom" to="$(arg odom_topic)"/>
@@ -95,6 +103,24 @@
     <param name="TebLocalPlannerROS/yaw_goal_tolerance" type="double" value="$(arg yaw_goal_tolerance)"/>
     <param name="TebLocalPlannerROS/max_vel_x" type="double" value="$(arg max_vel_x)"/>
     <param name="TebLocalPlannerROS/max_vel_x_backwards" type="double" value="$(arg max_vel_x_backwards)"/>
+    <param name="TebLocalPlannerROS/max_vel_theta" type="double" value="$(arg max_vel_theta)"/>
+    <!-- Static-map navigation checks up to 50 poses across the local TEB
+         horizon against the rolling map+scan costmap, not only five poses. -->
+    <param if="$(arg use_static_map)"
+           name="TebLocalPlannerROS/feasibility_check_no_poses"
+           type="int" value="50"/>
+    <!-- Retain at least 15% margin inside the 20 m rolling local window.  TEB
+         can then validate the complete optimized horizon without its polygon
+         footprint repeatedly straddling the moving costmap boundary. -->
+    <param if="$(arg use_static_map)"
+           name="TebLocalPlannerROS/max_global_plan_lookahead_dist"
+           type="double" value="8.0"/>
+    <param if="$(arg use_static_map)"
+           name="TebLocalPlannerROS/treat_unknown_as_obstacle"
+           type="bool" value="true"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner_navfn/allow_unknown"
+           type="bool" value="false"/>
     <param name="TebLocalPlannerROS/min_vel_x" type="double" value="$(arg min_vel_x)"/>
     <param name="TebLocalPlannerROS/min_vel_x_backwards" type="double" value="$(arg min_vel_x_backwards)"/>
     <param name="TebLocalPlannerROS/penalty_epsilon" type="double" value="$(arg penalty_epsilon)"/>

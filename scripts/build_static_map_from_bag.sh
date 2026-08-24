@@ -14,11 +14,27 @@ VOXEL_MIN_FRAMES="${MAPPING_3D_MIN_FRAME_OBSERVATIONS:-3}"
 POINT_MAX_RANGE="${MAPPING_3D_MAX_POINT_RANGE:-20.0}"
 GRID_RESOLUTION="${MAPPING_2D_RESOLUTION:-0.10}"
 LIDAR_MIN_FRAMES="${MAPPING_2D_MIN_OCCUPIED_OBSERVATIONS:-5}"
-SLICE_CENTER_Z="${MAPPING_SLICE_CENTER_Z:--0.756}"
-SLICE_HALF_WIDTH="${MAPPING_SLICE_HALF_WIDTH:-0.10}"
+SLICE_CENTER_Z="${MAPPING_SLICE_CENTER_Z:--0.4}"
+SLICE_HALF_WIDTH="${MAPPING_SLICE_HALF_WIDTH:-0.20}"
 SLICE_MIN_FRAMES="${MAPPING_SLICE_MIN_FRAME_OBSERVATIONS:-20}"
 BASE_OFFSET_X="${MAPPING_BASE_OFFSET_X:--0.211}"
 BASE_OFFSET_Y="${MAPPING_BASE_OFFSET_Y:--0.02329}"
+BASE_OFFSET_Z="${MAPPING_BASE_OFFSET_Z:--0.95588}"
+SLICE_SELF_CROP_ENABLED="${MAPPING_SLICE_SELF_CROP_ENABLED:-true}"
+SLICE_SELF_CROP_MIN_X="${MAPPING_SLICE_SELF_CROP_MIN_X:--0.75}"
+SLICE_SELF_CROP_MAX_X="${MAPPING_SLICE_SELF_CROP_MAX_X:-0.75}"
+SLICE_SELF_CROP_MIN_Y="${MAPPING_SLICE_SELF_CROP_MIN_Y:--0.50}"
+SLICE_SELF_CROP_MAX_Y="${MAPPING_SLICE_SELF_CROP_MAX_Y:-0.50}"
+SLICE_SWEEP_FRONT="${MAPPING_SLICE_SWEEP_FRONT:-0.62}"
+SLICE_SWEEP_REAR="${MAPPING_SLICE_SWEEP_REAR:-0.62}"
+SLICE_SWEEP_HALF_WIDTH="${MAPPING_SLICE_SWEEP_HALF_WIDTH:-0.45}"
+SLICE_SWEEP_LINEAR_STEP="${MAPPING_SLICE_SWEEP_LINEAR_STEP:-0.05}"
+SLICE_SWEEP_ANGULAR_STEP="${MAPPING_SLICE_SWEEP_ANGULAR_STEP:-0.03490658503988659}"
+
+[[ "$SLICE_SELF_CROP_ENABLED" == true ]] || {
+  echo "MAPPING_SLICE_SELF_CROP_ENABLED must remain true for fused-map generation." >&2
+  exit 2
+}
 
 usage() {
   cat <<'EOF'
@@ -97,24 +113,57 @@ rosrun robot_bringup voxel_cloud_mapper \
   _slice_center_z:="$SLICE_CENTER_Z" _slice_half_width:="$SLICE_HALF_WIDTH" \
   _slice_resolution:="$GRID_RESOLUTION" \
   _slice_min_frame_observations:="$SLICE_MIN_FRAMES" \
+  _slice_self_crop_enabled:="$SLICE_SELF_CROP_ENABLED" \
+  _slice_self_crop_min_x:="$SLICE_SELF_CROP_MIN_X" \
+  _slice_self_crop_max_x:="$SLICE_SELF_CROP_MAX_X" \
+  _slice_self_crop_min_y:="$SLICE_SELF_CROP_MIN_Y" \
+  _slice_self_crop_max_y:="$SLICE_SELF_CROP_MAX_Y" \
+  _slice_sweep_front:="$SLICE_SWEEP_FRONT" \
+  _slice_sweep_rear:="$SLICE_SWEEP_REAR" \
+  _slice_sweep_half_width:="$SLICE_SWEEP_HALF_WIDTH" \
+  _body_to_base_x:="$BASE_OFFSET_X" _body_to_base_y:="$BASE_OFFSET_Y" \
+  _body_to_base_z:="$BASE_OFFSET_Z" \
+  _slice_sweep_linear_step:="$SLICE_SWEEP_LINEAR_STEP" \
+  _slice_sweep_angular_step:="$SLICE_SWEEP_ANGULAR_STEP" \
   >"$OUTPUT_DIR/voxel.log" 2>&1 &
 pointcloud_pid=$!
-rosrun robot_bringup fused_scan_mapper.py --ros \
+rosrun robot_bringup fused_scan_mapper.py --bag "$BAG_PATH" \
   --output-dir "$MAP_2D_DIR" --scan-topic /dual_lidar/scan \
   --odom-topic /Odometry --resolution "$GRID_RESOLUTION" \
   --base-offset-x "$BASE_OFFSET_X" --base-offset-y "$BASE_OFFSET_Y" \
   --min-occupied-observations "$LIDAR_MIN_FRAMES" \
-  >"$OUTPUT_DIR/grid.log" 2>&1 &
-grid_pid=$!
+  >"$OUTPUT_DIR/grid.log" 2>&1
+
+wait_for_subscription() {
+  local node_name="$1"
+  local topic_name="$2"
+  local node_info=""
+  for _ in $(seq 1 100); do
+    node_info="$(rosnode info "$node_name" 2>/dev/null || true)"
+    if awk -v expected="$topic_name" '
+      /^Subscriptions:/ { in_subscriptions = 1; next }
+      /^Services:/ { in_subscriptions = 0 }
+      in_subscriptions && index($0, " * " expected " ") == 1 { found = 1 }
+      END { exit(found ? 0 : 1) }
+    ' <<<"$node_info"; then
+      return 0
+    fi
+    sleep 0.1
+  done
+  echo "Offline mapper $node_name did not subscribe to $topic_name." >&2
+  return 1
+}
+
+wait_for_subscription /voxel_cloud_mapper /cloud_registered
+wait_for_subscription /voxel_cloud_mapper /Odometry
 
 rosbag play --clock --rate="$PLAY_RATE" "$BAG_PATH" --topics \
-  /cloud_registered /dual_lidar/scan /Odometry >"$OUTPUT_DIR/play.log" 2>&1 &
+  /cloud_registered /Odometry >"$OUTPUT_DIR/play.log" 2>&1 &
 player_pid=$!
 wait "$player_pid"; player_pid=""
 sleep 2
-kill -INT "$pointcloud_pid" "$grid_pid"
+kill -INT "$pointcloud_pid"
 wait "$pointcloud_pid"; pointcloud_pid=""
-wait "$grid_pid"; grid_pid=""
 
 for required in "$MAP_3D_DIR/map.pcd" "$SLICE_OBSERVATIONS" \
                 "$MAP_2D_DIR/map.pgm" "$MAP_2D_DIR/map.yaml"; do
@@ -126,7 +175,7 @@ rosrun robot_bringup map_set_fuser.py \
   --output-dir "$MAP_FUSED_DIR" --slice-center-z "$SLICE_CENTER_Z" \
   --slice-half-width "$SLICE_HALF_WIDTH" --resolution "$GRID_RESOLUTION"
 cp -- "$MAP_2D_DIR/mapping_info.yaml" "$MAP_2D_DIR/config.yaml"
-printf 'status: complete\ninput_topic: /cloud_registered\nvoxel_size_m: %s\nmin_frame_observations: %s\nmax_point_range_m: %s\n' \
+printf 'status: complete\ninput_topic: /cloud_registered\nvoxel_size_m: %s\nmin_frame_observations: %s\nmax_point_range_m: %s\nmoving_slice_self_crop: true\n' \
   "$VOXEL_SIZE" "$VOXEL_MIN_FRAMES" "$POINT_MAX_RANGE" >"$MAP_3D_DIR/config.yaml"
 cat >"$OUTPUT_DIR/manifest.yaml" <<EOF
 schema_version: 1
@@ -148,6 +197,11 @@ map_fused_2d:
   slice_center_z_m: $SLICE_CENTER_Z
   slice_half_width_m: $SLICE_HALF_WIDTH
   min_frame_observations: $SLICE_MIN_FRAMES
+  moving_self_crop:
+    enabled: true
+    point_bounds_xy_m: [$SLICE_SELF_CROP_MIN_X, $SLICE_SELF_CROP_MAX_X, $SLICE_SELF_CROP_MIN_Y, $SLICE_SELF_CROP_MAX_Y]
+    sweep_bounds_xy_m: [-$SLICE_SWEEP_REAR, $SLICE_SWEEP_FRONT, -$SLICE_SWEEP_HALF_WIDTH, $SLICE_SWEEP_HALF_WIDTH]
+    body_to_base_xyz_m: [$BASE_OFFSET_X, $BASE_OFFSET_Y, $BASE_OFFSET_Z]
 default_static_map_source: fused
 initial_body_z_m: 0.0
 EOF

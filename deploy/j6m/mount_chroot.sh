@@ -15,6 +15,7 @@ mkdir -p \
   "$ROOTFS/etc" "$RUNTIME_BASE/config" "$RUNTIME_BASE/maps" \
   "$RUNTIME_BASE/fast_lio" "$RUNTIME_BASE/ros-home" \
   "$RUNTIME_BASE/logs" "$RUNTIME_BASE/run"
+mkdir -p "$RUNTIME_BASE/fast_lio/Log" "$RUNTIME_BASE/fast_lio/PCD"
 
 rbind_once() {
   local source_path="$1" target_path="$2"

@@ -1262,10 +1262,30 @@ bool TebOptimalPlanner::isTrajectoryFeasible(base_local_planner::CostmapModel* c
   if (look_ahead_idx < 0 || look_ahead_idx >= teb().sizePoses())
     look_ahead_idx = teb().sizePoses() - 1;
   
+  auto footprint_is_blocked = [this](double footprint_cost, int pose_index)
+  {
+    // CostmapModel uses distinct negative return codes: -1 is a lethal
+    // collision, -2 is unknown space, and -3 means that the sampled footprint
+    // is only outside the current rolling costmap.  Collapsing all negative
+    // values made a valid long-horizon trajectory permanently infeasible as
+    // soon as a future pose touched the moving window boundary.
+    return footprint_cost == -1 ||
+           (cfg_->trajectory.treat_unknown_as_obstacle && footprint_cost == -2) ||
+           (footprint_cost == -3 && pose_index == 0);
+  };
+
   for (int i=0; i <= look_ahead_idx; ++i)
   {           
-    if ( costmap_model->footprintCost(teb().Pose(i).x(), teb().Pose(i).y(), teb().Pose(i).theta(), footprint_spec, inscribed_radius, circumscribed_radius) == -1 )
+    const double footprint_cost = costmap_model->footprintCost(
+        teb().Pose(i).x(), teb().Pose(i).y(), teb().Pose(i).theta(),
+        footprint_spec, inscribed_radius, circumscribed_radius);
+    if (footprint_is_blocked(footprint_cost, i))
     {
+      ROS_WARN_THROTTLE(1.0,
+                        "TEB trajectory footprint rejected: pose=%d cost=%.0f "
+                        "x=%.3f y=%.3f (-1 lethal, -2 unknown, -3 current "
+                        "pose outside map)",
+                        i, footprint_cost, teb().Pose(i).x(), teb().Pose(i).y());
       if (visualization_)
       {
         visualization_->publishInfeasibleRobotPose(teb().Pose(i), *robot_model_);
@@ -1290,9 +1310,19 @@ bool TebOptimalPlanner::isTrajectoryFeasible(base_local_planner::CostmapModel* c
           intermediate_pose.position() = intermediate_pose.position() + delta_dist / (n_additional_samples + 1.0);
           intermediate_pose.theta() = g2o::normalize_theta(intermediate_pose.theta() + 
                                                            delta_rot / (n_additional_samples + 1.0));
-          if ( costmap_model->footprintCost(intermediate_pose.x(), intermediate_pose.y(), intermediate_pose.theta(),
-            footprint_spec, inscribed_radius, circumscribed_radius) == -1 )
+          const double intermediate_cost = costmap_model->footprintCost(
+              intermediate_pose.x(), intermediate_pose.y(),
+              intermediate_pose.theta(), footprint_spec,
+              inscribed_radius, circumscribed_radius);
+          if (footprint_is_blocked(intermediate_cost, i))
           {
+            ROS_WARN_THROTTLE(1.0,
+                              "TEB trajectory footprint rejected: pose=%d "
+                              "intermediate=%d cost=%.0f x=%.3f y=%.3f "
+                              "(-1 lethal, -2 unknown, -3 current segment "
+                              "outside map)",
+                              i, step, intermediate_cost,
+                              intermediate_pose.x(), intermediate_pose.y());
             if (visualization_) 
             {
               visualization_->publishInfeasibleRobotPose(intermediate_pose, *robot_model_);

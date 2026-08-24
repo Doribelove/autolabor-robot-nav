@@ -18,7 +18,36 @@ RabbitMQ。界面本身从不发布 `/cmd_vel`。
 - 综合页输入 `Δ前向 / Δ左向 / ΔYaw`。点击发送后，以当前车体姿态换算成里程计
   固定坐标系下的 `geometry_msgs/PoseStamped`，发布到 `/move_base_simple/goal`。
 - 地图模式下 RViz 的 Fixed Frame 为 `map`；`2D Pose Estimate` 为 FAST-LIO
-  固定地图匹配提供近似初值，`2D Nav Goal` 发布 `/move_base_simple/goal`。
+  固定地图匹配提供近似初值，`2D Nav Goal` 发布 `/move_base_simple/goal`。综合页在
+  `/map` 到达后自动显示整张地图，并提供中文“显示整张地图/设置初始位姿”入口；
+  初始位姿前视角不跟随尚未接入 `map` 的 `base_link`。若窗口初始化时漏接锁存地图，
+  GUI 会自动重订阅，并在 MapDisplay 的宽、高和分辨率真实匹配后通过锁存话题
+  `/autolabor_operator_gui/map_display_status` 报告 `READY`。
+- 初始位姿工具退出并且 ICP 达到 `LOCALIZED` 后，综合页自动进入“③ 跟随车辆”视角；
+  Fixed Frame 仍为 `map`，TopDownOrtho 的 Target Frame 改为 `base_link`，方便持续观察
+  20 m × 20 m 局部代价地图和实时点云。“① 显示整张地图”可随时返回全图。
+- 综合页“④ 显示静态三维先验”按需订阅
+  `/fast_lio_localization/prior_map` 并切换为可旋转的 Orbit 视角；再次点击恢复二维全图。
+  该显示默认关闭，因此无图模式和现有二维导航基线不变，也不会默认跨机拉取先验 PCD。
+- `/fast_lio_localization/aligned_scan` 作为动态匹配点云显示；静态先验 PCD 与动态点云在
+  名称上明确区分，避免把锁存先验误判成“局部点云停止更新”。
+- 综合页和清扫页都以亮绿色二维矩形显示
+  `/move_base/local_costmap/footprint`。该轮廓直接来自 move_base 当前 costmap：
+  基础车体为 `1.04 × 0.70 m`，叠加 `0.10 m` footprint padding 后，实际显示并参与
+  避障的安全外框约为 `1.24 × 0.90 m`；它随 `base_link` 位姿持续移动，不依赖 URDF。
+  静态地图模式要在人工初始位姿以及新鲜里程计/TF 共同建立 `map -> base_link` 后才显示
+  车框；无数据流启动时暂不显示属于正常状态。
+- 综合页和清扫页默认以高对比前景层显示车辆周围 `20 m × 20 m` 的
+  `/move_base/local_costmap/costmap`。重复的全局 costmap 叠层默认关闭，避免遮住实时
+  障碍与膨胀区；需要调试时仍可在“显示 RViz 调试面板”中重新启用。
+- 清扫页默认使用 `1.00 m` 有效宽度和 `15%` 重叠（车道中心距 `0.85 m`），显示
+  覆盖导航状态、路线约束、VCU/TEB 运动学核对、完整障碍感知状态及去重后的覆盖面积
+  估算。`SWEEPING`
+  只显示为“覆盖路线执行中”；V1 未接入主刷、边刷、风机或喷淋状态，界面不会据此
+  推断实体清扫机构已经工作。
+- 两个地图页都显示路线图例：青色覆盖条带、蓝色全局参考路线、红色当前 TEB 局部轨迹、
+  绿色覆盖执行记录。蓝/红路线只在活动目标期间启用，任务结束后清空缓存；不会再显示
+  可能穿过障碍物的直线“条带连接预览”。
 - “开始录包”只记录相关话题；“录入静态地图/结束静态地图录入”独立生成 MID360
   三维图、双 LD19 二维图和高度切片融合图，保存在 `global_maps/map_sets/`。
 - ZED/YOLO11 画面、检测结果、曝光/增益和图像质量控制完整保留。

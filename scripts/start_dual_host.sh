@@ -13,13 +13,16 @@ Usage: $0 [--start | --restart | --status | --stop | --foreground]
   --status      Show service state and run the dual-host health check.
   --stop        Stop both hosts synchronously and verify all residuals.
   --foreground  Diagnostic mode: keep the supervisor attached to this terminal.
-  --map-set DIR Enable FAST-LIO odometry plus known-map ICP localization.
+  --map-set DIR EXPERIMENTAL opt-in: enable known-map ICP localization.
   --static-map-source
                 Select fused (default) or lidar2d as move_base's static map.
 
 The default start waits until the complete graph is ready, then returns to the
-shell. The stack remains owned by autolabor-dual-host.service; closing this
-terminal or restarting the graphical desktop cannot orphan its ROS children.
+shell. Optional sensor messages may be reported as degraded; an enabled ZED
+camera must publish live image and depth data. The stack remains owned by
+autolabor-dual-host.service;
+closing this terminal or restarting the graphical desktop cannot orphan its ROS
+children.
 EOF
 }
 
@@ -62,6 +65,7 @@ inherited_fast_lio_initial_body_z="${FAST_LIO_INITIAL_BODY_Z:-}"
 set --
 source "$SCRIPT_DIR/load_config.sh"
 source "$SCRIPT_DIR/setup_env.sh"
+source "$SCRIPT_DIR/network_prepare.sh"
 
 if [[ "$mode" == --supervise && -n "$inherited_static_map_enabled" ]]; then
   STATIC_MAP_ENABLED="$inherited_static_map_enabled"
@@ -116,6 +120,13 @@ elif [[ "$mode" != --supervise ]]; then
   export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
 fi
 
+case "$mode:$STATIC_MAP_ENABLED" in
+  --start:true|--restart:true|--foreground:true|--supervise:true)
+    echo "WARNING: experimental 3-D known-map localization + 2-D navigation mode is enabled." >&2
+    echo "Navigation remains stopped until a fresh /initialpose produces consecutive accepted ICP matches." >&2
+    ;;
+esac
+
 RUN_DIR="$DUAL_HOST_WS/runtime/run"
 READY_FILE="$RUN_DIR/dual_host.ready"
 RUN_TOKEN_FILE="$RUN_DIR/nvidia_run.token"
@@ -168,6 +179,7 @@ if [[ "$NVIDIA_START_CAMERA" == true ]]; then
 fi
 if [[ "$NVIDIA_START_QT" == true ]]; then
   REQUIRED_NODES+=(/autolabor_operator_gui)
+  [[ "$STATIC_MAP_ENABLED" != true ]] || REQUIRED_NODES+=(/operator_map_display_anchor)
 fi
 
 ros_master_reachable() {
@@ -192,14 +204,18 @@ runtime_ready() {
 }
 
 show_runtime_status() {
-  local missing
+  local missing health_policy="${1:-strict}"
   missing="$(missing_runtime_nodes)"
   if [[ -n "$missing" ]]; then
     echo "Dual-host stack is not fully ready. Missing:" >&2
     sed 's/^/  - /' <<<"$missing" >&2
     return 1
   fi
-  "$SCRIPT_DIR/health_check.sh" --runtime
+  if [[ "$health_policy" == allow-missing-data ]]; then
+    "$SCRIPT_DIR/health_check.sh" --runtime --allow-missing-data
+  else
+    "$SCRIPT_DIR/health_check.sh" --runtime
+  fi
   if [[ "$STATIC_MAP_ENABLED" == true ]]; then
     echo "Selected map set: ${STATIC_MAP_SET:-unknown} (${STATIC_MAP_SOURCE_MODE:-fused})"
     timeout 3 rostopic echo -n 1 /fast_lio/localization_status 2>/dev/null |
@@ -207,7 +223,7 @@ show_runtime_status() {
   else
     echo "Selected map set: none (incremental FAST-LIO mode)"
   fi
-  echo "Qt, ZED, YOLO, FAST-LIO, localization, navigation, MID360 and CAN are ready."
+  echo "The dual-host ROS graph is ready; live data availability is reported above."
 }
 
 service_state() {
@@ -266,7 +282,10 @@ wait_for_managed_service() {
   while true; do
     state="$(service_state)"
     if ready_file_matches "$token" && runtime_ready; then
-      show_runtime_status
+      if ! show_runtime_status allow-missing-data; then
+        echo "The service has a ready marker, but a mandatory runtime check failed." >&2
+        return 1
+      fi
       echo
       echo "Dual-host project is ready and managed by $SERVICE_UNIT."
       echo "This terminal may now be closed. Use '$0 --stop' for a clean stop."
@@ -325,9 +344,12 @@ start_managed_service() {
       echo "Run '$0 --restart' to rebuild its ownership records." >&2
       return 1
     fi
-    echo "$SERVICE_UNIT is already active; waiting for full readiness..."
-    wait_for_managed_service "$token"
-    return
+    echo "$SERVICE_UNIT is already active; checking full readiness..."
+    if wait_for_managed_service "$token"; then
+      return 0
+    fi
+    echo "The active stack is degraded; performing one complete cold restart..." >&2
+    stop_managed_service
   fi
 
   systemctl --user reset-failed "$SERVICE_UNIT" >/dev/null 2>&1 || true
@@ -357,6 +379,12 @@ start_managed_service() {
   command+=(--setenv="STATIC_MAP_FILE=${STATIC_MAP_FILE:-}")
   command+=(--setenv="FAST_LIO_MAP_FILE=${FAST_LIO_MAP_FILE:-}")
   command+=(--setenv="FAST_LIO_INITIAL_BODY_Z=${FAST_LIO_INITIAL_BODY_Z:-0.0}")
+  if [[ "${DUAL_HOST_NETWORK_PREFLIGHT_DONE:-}" == 1 ]]; then
+    command+=(--setenv="DUAL_HOST_NETWORK_PREFLIGHT_DONE=1")
+  fi
+  if [[ "${DUAL_HOST_ZED_PREFLIGHT_DONE:-}" == 1 ]]; then
+    command+=(--setenv="DUAL_HOST_ZED_PREFLIGHT_DONE=1")
+  fi
   for variable in DISPLAY XAUTHORITY DBUS_SESSION_BUS_ADDRESS XDG_RUNTIME_DIR LANG LC_ALL; do
     case "$variable" in
       DISPLAY) value="$display" ;;
@@ -369,7 +397,7 @@ start_managed_service() {
   done
   command+=("$SCRIPT_DIR/start_dual_host.sh" --supervise)
 
-  echo "Starting $SERVICE_UNIT; this command will return after the full health check passes..."
+  echo "Starting $SERVICE_UNIT; this command will return after structural runtime checks pass..."
   write_single_line_file "$SERVICE_TOKEN_FILE" "$token"
   if ! "${command[@]}"; then
     [[ ! -f "$SERVICE_TOKEN_FILE" ]] || unlink "$SERVICE_TOKEN_FILE"
@@ -424,10 +452,22 @@ elif [[ "$MOTION_ENABLED" != false ]]; then
 fi
 
 if [[ "$mode" == --restart ]]; then
+  echo "Self-checking and repairing the two dedicated Ethernet links before restart..."
+  dual_host_prepare_network
+  export DUAL_HOST_NETWORK_PREFLIGHT_DONE=1
+  echo "Checking ZED USB 3.x transport and access before restart..."
+  "$SCRIPT_DIR/zed_camera_check.sh" --wait "$ZED_USB_WAIT_SEC"
+  export DUAL_HOST_ZED_PREFLIGHT_DONE=1
   stop_managed_service
   start_managed_service
   exit $?
 elif [[ "$mode" == --start ]]; then
+  echo "Self-checking and repairing the two dedicated Ethernet links before start..."
+  dual_host_prepare_network
+  export DUAL_HOST_NETWORK_PREFLIGHT_DONE=1
+  echo "Checking ZED USB 3.x transport and access before start..."
+  "$SCRIPT_DIR/zed_camera_check.sh" --wait "$ZED_USB_WAIT_SEC"
+  export DUAL_HOST_ZED_PREFLIGHT_DONE=1
   start_managed_service
   exit $?
 fi
@@ -439,8 +479,25 @@ if [[ ! "${DUAL_HOST_RUN_TOKEN:-}" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$ ]]; t
 fi
 export DUAL_HOST_RUN_TOKEN
 
-echo "[1/6] Preparing a clean dual-host cold start..."
+echo "[1/6] Self-checking and repairing the two dedicated Ethernet links..."
+if [[ "${DUAL_HOST_NETWORK_PREFLIGHT_DONE:-}" == 1 ]]; then
+  echo "The invoking start command completed the initial network preflight."
+else
+  dual_host_prepare_network
+fi
+
+echo "Checking ZED USB 3.x transport and access..."
+if [[ "${DUAL_HOST_ZED_PREFLIGHT_DONE:-}" == 1 ]]; then
+  echo "The invoking start command completed the initial ZED USB preflight."
+else
+  "$SCRIPT_DIR/zed_camera_check.sh" --wait "$ZED_USB_WAIT_SEC"
+fi
+
+echo "[2/6] Preparing a clean dual-host cold start..."
 "$SCRIPT_DIR/stop_dual_host.sh"
+
+echo "Rechecking both Ethernet links after the synchronized stop..."
+dual_host_prepare_network
 
 write_single_line_file "$RUN_TOKEN_FILE" "$DUAL_HOST_RUN_TOKEN"
 export DUAL_HOST_RUN_TOKEN
@@ -473,56 +530,6 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT TERM HUP
 
-wait_for_interface() {
-  local variable_name="$1" mac="$2" label="$3"
-  local wait_seconds="${DUAL_HOST_DEVICE_WAIT_SEC:-20}" deadline interface
-  dual_host_refresh_local_interfaces
-  interface="${!variable_name}"
-  [[ -e "/sys/class/net/$interface" ]] && return 0
-  if [[ ! "$mac" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
-    echo "$label interface $interface is absent and no valid fallback MAC is configured." >&2
-    return 1
-  fi
-  echo "$label interface is absent; waiting up to ${wait_seconds}s for USB enumeration (MAC ${mac^^})..."
-  deadline=$((SECONDS + wait_seconds))
-  while (( SECONDS < deadline )); do
-    sleep 1
-    dual_host_refresh_local_interfaces
-    interface="${!variable_name}"
-    [[ -e "/sys/class/net/$interface" ]] && return 0
-  done
-  echo "$label USB Ethernet adapter is not connected (expected MAC ${mac^^})." >&2
-  return 1
-}
-
-activate_network_profile() {
-  local connection="$1" interface="$2" mac="$3" label="$4" address="$5"
-  local profile_interface profile_mac profile_autoconnect
-  profile_interface="$(nmcli -g connection.interface-name connection show "$connection" 2>/dev/null || true)"
-  profile_mac="$(nmcli -g 802-3-ethernet.mac-address connection show "$connection" 2>/dev/null || true)"
-  profile_autoconnect="$(nmcli -g connection.autoconnect connection show "$connection" 2>/dev/null || true)"
-  if [[ -n "$mac" &&
-        ( -n "$profile_interface" || "${profile_mac,,}" != "${mac,,}" ||
-          "$profile_autoconnect" != "yes" ) ]]; then
-    echo "Updating $label profile binding to permanent MAC ${mac^^}..."
-    nmcli connection modify "$connection" \
-      connection.interface-name "" \
-      connection.autoconnect yes \
-      802-3-ethernet.mac-address "$mac"
-  elif [[ -z "$mac" &&
-          ( "$profile_interface" != "$interface" || "$profile_autoconnect" != "yes" ) ]]; then
-    echo "Updating $label profile binding to $interface..."
-    nmcli connection modify "$connection" \
-      connection.interface-name "$interface" \
-      connection.autoconnect yes
-  fi
-  if ! ip -o -4 address show dev "$interface" 2>/dev/null |
-       awk '{print $4}' | grep -Fxq "$address/24"; then
-    echo "Activating $label profile $connection on $interface..."
-    nmcli connection up "$connection" ifname "$interface" >/dev/null
-  fi
-}
-
 verify_j6m_static_localization_release() {
   local remote_host="$1"
   local current_link="$J6M_RUNTIME_BASE/rootfs/opt/autolabor/dual_host/current"
@@ -540,15 +547,6 @@ verify_j6m_static_localization_release() {
     ! grep -Fq 'localization_enabled' \"\$launch\"
   "
 }
-
-echo "[2/6] Resolving, activating and checking the two dedicated Ethernet profiles..."
-wait_for_interface NVIDIA_J6M_INTERFACE "$NVIDIA_J6M_MAC" "J6M"
-wait_for_interface NVIDIA_LIVOX_INTERFACE "$NVIDIA_LIVOX_MAC" "MID360"
-activate_network_profile "$NVIDIA_J6M_CONNECTION" "$NVIDIA_J6M_INTERFACE" \
-  "$NVIDIA_J6M_MAC" "J6M" "$NVIDIA_J6M_IP"
-activate_network_profile "$NVIDIA_LIVOX_CONNECTION" "$NVIDIA_LIVOX_INTERFACE" \
-  "$NVIDIA_LIVOX_MAC" "MID360" "$NVIDIA_LIVOX_IP"
-"$SCRIPT_DIR/network_check.sh"
 
 if [[ ! -r /dev/nvhost-vic || ! -w /dev/nvhost-vic ]]; then
   echo "Jetson video engine is inaccessible: /dev/nvhost-vic" >&2
@@ -642,7 +640,7 @@ done
 
 sleep 3
 echo "[6/6] Running the final runtime health check..."
-"$SCRIPT_DIR/health_check.sh" --runtime
+"$SCRIPT_DIR/health_check.sh" --runtime --allow-missing-data
 
 ready_temporary="$READY_FILE.tmp.$$"
 printf '%s\n' "$DUAL_HOST_RUN_TOKEN" >"$ready_temporary"

@@ -189,7 +189,8 @@ roslaunch autolabor_dual_host nvidia_gateway.launch \
   rear_lidar_port:="$REAR_LIDAR_PORT" \
   lidar_center_distance_m:="$DUAL_LIDAR_CENTER_DISTANCE_M" \
   motion_enabled:="$MOTION_ENABLED" \
-  max_linear_speed:="$NAV_MAX_LINEAR_SPEED" \
+  max_linear_speed:="$CMD_VEL_MAX_LINEAR_SPEED" \
+  max_angular_speed:="$CMD_VEL_MAX_ANGULAR_SPEED" \
   command_timeout_sec:="$CMD_VEL_TIMEOUT_SEC" \
   >"$LOG_DIR/gateway.log" 2>&1 &
 child_pid=$!

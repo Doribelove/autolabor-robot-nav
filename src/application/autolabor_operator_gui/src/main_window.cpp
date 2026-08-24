@@ -3,9 +3,14 @@
 #include <dynamic_reconfigure/Reconfigure.h>
 #include <autolabor_coverage/PlanCoverage.h>
 #include <autolabor_coverage/StartCoverage.h>
+#include <rviz/default_plugin/map_display.h>
+#include <rviz/display.h>
+#include <rviz/display_group.h>
 #include <rviz/render_panel.h>
 #include <rviz/tool.h>
 #include <rviz/tool_manager.h>
+#include <rviz/view_controller.h>
+#include <rviz/view_manager.h>
 #include <rviz/visualization_frame.h>
 #include <rviz/visualization_manager.h>
 
@@ -46,6 +51,7 @@
 #include <QPixmap>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QVBoxLayout>
+#include <QWheelEvent>
 
 #include <algorithm>
 #include <cmath>
@@ -65,6 +71,48 @@ constexpr double kFastLioFreshCloudSeconds = 0.30;
 constexpr double kFastLioFreshImuSeconds = 0.10;
 constexpr double kFastLioCriticalStreamSeconds = 1.0;
 constexpr double kFastLioStationaryWindowSeconds = 5.0;
+constexpr double kMapDisplayRefreshIntervalSeconds = 1.0;
+constexpr unsigned int kMapDisplayMaxRefreshAttempts = 5;
+const char* const kStaticMapDisplayName = "Static global map";
+const char* const kPriorMapDisplayName = "Known 3D global map (optional)";
+const char* const kTebGlobalPlanDisplayName = "TEB global plan";
+const char* const kTebLocalPlanDisplayName = "TEB local plan";
+
+rviz::Display* findDisplayByName(rviz::DisplayGroup* group,
+                                 const QString& name)
+{
+  if (!group)
+    return nullptr;
+  for (int index = 0; index < group->numDisplays(); ++index)
+  {
+    rviz::Display* display = group->getDisplayAt(index);
+    if (!display)
+      continue;
+    if (display->getName() == name)
+      return display;
+    if (auto* nested_group = dynamic_cast<rviz::DisplayGroup*>(display))
+    {
+      if (rviz::Display* match = findDisplayByName(nested_group, name))
+        return match;
+    }
+  }
+  return nullptr;
+}
+
+class ScrollSafeDoubleSpinBox final : public QDoubleSpinBox
+{
+public:
+  using QDoubleSpinBox::QDoubleSpinBox;
+
+protected:
+  void wheelEvent(QWheelEvent* event) override
+  {
+    // The controls live inside a scroll area.  Never reinterpret sidebar
+    // scrolling as an operating-parameter change; operators can still type a
+    // value or use the explicit step buttons.
+    event->ignore();
+  }
+};
 
 const char* const kZedReconfigureService = "/zed2/zed_node/set_parameters";
 const char* const kZedParameterUpdatesTopic = "/zed2/zed_node/parameter_updates";
@@ -373,6 +421,22 @@ void MainWindow::buildUi()
     QCheckBox { color: #c7d2df; spacing: 8px; min-height: 34px; font-size: 12pt; }
     QPlainTextEdit, QTextBrowser { background: #0d141d; border: 1px solid #2c394a; border-radius: 6px; color: #c8d2df; selection-background-color: #245d87; font-size: 12pt; }
     QScrollArea { border: 0; }
+    QScrollArea#coverageSide, QWidget#coverageControls { background: #f4f6f8; }
+    QWidget#coverageControls QGroupBox::title { color: #111827; }
+    QToolBar { background: #f5f5f5; color: #111827; border: 0; }
+    QToolBar QToolButton { background: transparent; color: #111827; border: 1px solid transparent; }
+    QToolBar QToolButton:hover { background: #dce5ee; border-color: #aab8c5; }
+    QToolBar QToolButton:disabled { background: transparent; color: #586474; }
+    QMenu, QAbstractItemView { background: #ffffff; color: #111827; selection-background-color: #cfe8ff; selection-color: #111827; }
+    QDockWidget { color: #111827; }
+    QFrame#globalMapControls { background: #17212e; border: 1px solid #334154; border-radius: 6px; }
+    QLabel#globalMapInstruction { color: #dce5f0; font-size: 11pt; }
+    QPushButton#mapViewButton, QPushButton#initialPoseButton, QPushButton#threeDMapButton { min-height: 36px; font-size: 11pt; padding: 2px 12px; }
+    QPushButton#initialPoseButton { background: #287a5a; border-color: #36a876; }
+    QPushButton#initialPoseButton:hover { background: #31936c; }
+    QPushButton#threeDMapButton { background: #68458d; border-color: #9567bf; }
+    QPushButton#threeDMapButton:hover { background: #7b52a5; }
+    QPushButton#threeDMapButton:checked { background: #a06a24; border-color: #d89537; }
     QSplitter::handle { background: #263346; width: 5px; height: 5px; }
   )"));
 
@@ -419,12 +483,30 @@ void MainWindow::buildUi()
   tabs_ = new QTabWidget(central);
   tabs_->setTabPosition(QTabWidget::North);
   tabs_->setDocumentMode(true);
-  tabs_->addTab(buildOverviewPage(), QStringLiteral("综合"));
+  overview_tab_index_ = tabs_->addTab(buildOverviewPage(), QStringLiteral("综合"));
   tabs_->addTab(buildFastLioPage(), QStringLiteral("FAST-LIO"));
   tabs_->addTab(buildTestPage(), QStringLiteral("测试"));
   tabs_->addTab(buildVisionPage(), QStringLiteral("视觉"));
-  tabs_->addTab(buildCoveragePage(), QStringLiteral("清扫"));
+  coverage_tab_index_ = tabs_->addTab(buildCoveragePage(), QStringLiteral("清扫"));
   tabs_->addTab(buildLogPage(), QStringLiteral("日志"));
+  connect(tabs_, &QTabWidget::currentChanged, this, [this](int index) {
+    if (!master_online_ || !ros_interfaces_ready_ || !enable_rviz_)
+      return;
+    // Qt/Ogre cannot reliably create a native render window below a hidden
+    // QTabWidget page on Jetson/X11.  Defer construction until the selected
+    // page has completed its visibility/layout event.
+    if (index != overview_tab_index_ && index != coverage_tab_index_)
+      return;
+    QTimer::singleShot(0, this, [this, index]() {
+      if (!tabs_ || tabs_->currentIndex() != index || !master_online_ ||
+          !ros_interfaces_ready_ || !enable_rviz_)
+        return;
+      if (index == overview_tab_index_)
+        setupEmbeddedRviz();
+      else if (index == coverage_tab_index_)
+        setupCoverageRviz();
+    });
+  });
   root->addWidget(tabs_, 1);
 
   setCentralWidget(central);
@@ -499,6 +581,67 @@ QWidget* MainWindow::buildOverviewPage()
   rviz_host_ = new QWidget(splitter);
   rviz_layout_ = new QVBoxLayout(rviz_host_);
   rviz_layout_->setContentsMargins(0, 0, 0, 0);
+  rviz_layout_->setSpacing(6);
+
+  rviz_map_controls_ = new QFrame(rviz_host_);
+  rviz_map_controls_->setObjectName(QStringLiteral("globalMapControls"));
+  auto* map_controls_layout = new QHBoxLayout(rviz_map_controls_);
+  map_controls_layout->setContentsMargins(10, 6, 10, 6);
+  map_controls_layout->setSpacing(8);
+  rviz_map_instruction_ = new QLabel(
+      QStringLiteral("全局地图加载后：先显示全图，再按车辆真实位置设置初始位姿"),
+      rviz_map_controls_);
+  rviz_map_instruction_->setObjectName(QStringLiteral("globalMapInstruction"));
+  rviz_map_instruction_->setWordWrap(true);
+  rviz_fit_map_button_ =
+      new QPushButton(QStringLiteral("① 显示整张地图"), rviz_map_controls_);
+  rviz_fit_map_button_->setObjectName(QStringLiteral("mapViewButton"));
+  rviz_fit_map_button_->setEnabled(false);
+  rviz_initial_pose_button_ =
+      new QPushButton(QStringLiteral("② 设置初始位姿"), rviz_map_controls_);
+  rviz_initial_pose_button_->setObjectName(QStringLiteral("initialPoseButton"));
+  rviz_initial_pose_button_->setEnabled(false);
+  rviz_follow_vehicle_button_ =
+      new QPushButton(QStringLiteral("③ 跟随车辆"), rviz_map_controls_);
+  rviz_follow_vehicle_button_->setObjectName(QStringLiteral("followVehicleButton"));
+  rviz_follow_vehicle_button_->setEnabled(false);
+  rviz_follow_vehicle_button_->setToolTip(
+      QStringLiteral("保持 map 为固定坐标系，将二维视角锁定在 base_link；"
+                     "仅在三维 ICP 已 LOCALIZED 后启用"));
+  rviz_3d_map_button_ =
+      new QPushButton(QStringLiteral("④ 显示静态三维先验"), rviz_map_controls_);
+  rviz_3d_map_button_->setObjectName(QStringLiteral("threeDMapButton"));
+  rviz_3d_map_button_->setCheckable(true);
+  rviz_3d_map_button_->setChecked(false);
+  rviz_3d_map_button_->setEnabled(false);
+  rviz_3d_map_button_->setToolTip(
+      QStringLiteral("显示启动时锁存的已知三维 PCD；它是静态先验，不是实时局部点云"));
+  connect(rviz_fit_map_button_, &QPushButton::clicked, this,
+          &MainWindow::fitOverviewMapView);
+  connect(rviz_initial_pose_button_, &QPushButton::clicked, this,
+          &MainWindow::selectInitialPoseTool);
+  connect(rviz_follow_vehicle_button_, &QPushButton::clicked, this,
+          &MainWindow::followOverviewVehicle);
+  connect(rviz_3d_map_button_, &QPushButton::clicked, this,
+          &MainWindow::toggleOverview3dMap);
+  map_controls_layout->addWidget(rviz_map_instruction_, 1);
+  map_controls_layout->addWidget(rviz_fit_map_button_);
+  map_controls_layout->addWidget(rviz_initial_pose_button_);
+  map_controls_layout->addWidget(rviz_follow_vehicle_button_);
+  map_controls_layout->addWidget(rviz_3d_map_button_);
+  rviz_map_controls_->setVisible(false);
+  rviz_layout_->addWidget(rviz_map_controls_);
+
+  auto* route_legend = new QLabel(
+      QStringLiteral("路线图例：青色＝覆盖条带预览 · 蓝色＝全局参考路线 · "
+                     "红色＝当前局部轨迹 · 绿色＝覆盖执行记录"),
+      rviz_host_);
+  route_legend->setWordWrap(true);
+  route_legend->setStyleSheet(
+      QStringLiteral("color:#aebfd2;background:#121c29;padding:5px 9px;"
+                     "border-radius:5px;font-size:10pt;"));
+  rviz_layout_->addWidget(route_legend);
+
   rviz_placeholder_ = new QLabel(
       QStringLiteral("RViz 将在 ROS master 可用后加载\n未启动导航节点时，其他页面仍可正常使用"),
       rviz_host_);
@@ -506,7 +649,7 @@ QWidget* MainWindow::buildOverviewPage()
   rviz_placeholder_->setStyleSheet(
       QStringLiteral("background:#0b1119;border:1px solid #2b3a4e;border-radius:8px;"
                      "color:#718096;font-size:14pt;"));
-  rviz_layout_->addWidget(rviz_placeholder_);
+  rviz_layout_->addWidget(rviz_placeholder_, 1);
   rviz_host_->setMinimumWidth(600);
   splitter->addWidget(rviz_host_);
 
@@ -1044,8 +1187,17 @@ QWidget* MainWindow::buildCoveragePage()
   coverage_rviz_host_ = new QWidget(splitter);
   coverage_rviz_layout_ = new QVBoxLayout(coverage_rviz_host_);
   coverage_rviz_layout_->setContentsMargins(0, 0, 0, 0);
+  auto* route_legend = new QLabel(
+      QStringLiteral("路线图例：青色＝覆盖条带预览 · 蓝色＝全局参考路线 · "
+                     "红色＝当前局部轨迹 · 绿色＝覆盖执行记录"),
+      coverage_rviz_host_);
+  route_legend->setWordWrap(true);
+  route_legend->setStyleSheet(
+      QStringLiteral("color:#aebfd2;background:#121c29;padding:5px 9px;"
+                     "border-radius:5px;font-size:10pt;"));
+  coverage_rviz_layout_->addWidget(route_legend);
   coverage_rviz_placeholder_ = new QLabel(
-      QStringLiteral("清扫全局地图将在静态地图模式下加载\n"
+      QStringLiteral("实验性全局地图将在静态地图模式下加载\n"
                      "无全局地图时，覆盖清扫功能保持禁用"),
       coverage_rviz_host_);
   coverage_rviz_placeholder_->setAlignment(Qt::AlignCenter);
@@ -1057,11 +1209,13 @@ QWidget* MainWindow::buildCoveragePage()
   splitter->addWidget(coverage_rviz_host_);
 
   auto* side = new QScrollArea(splitter);
+  side->setObjectName(QStringLiteral("coverageSide"));
   side->setWidgetResizable(true);
   side->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   side->setMinimumWidth(390);
   side->setMaximumWidth(540);
   auto* controls = new QWidget(side);
+  controls->setObjectName(QStringLiteral("coverageControls"));
   auto* controls_layout = new QVBoxLayout(controls);
   controls_layout->setContentsMargins(10, 0, 10, 10);
   controls_layout->setSpacing(12);
@@ -1106,12 +1260,12 @@ QWidget* MainWindow::buildCoveragePage()
   auto* width_layout = new QHBoxLayout(width_row);
   width_layout->setContentsMargins(0, 0, 0, 0);
   width_layout->addWidget(new QLabel(QStringLiteral("有效清扫宽度"), width_row));
-  coverage_width_input_ = new QDoubleSpinBox(width_row);
+  coverage_width_input_ = new ScrollSafeDoubleSpinBox(width_row);
   coverage_width_input_->setRange(0.30, 3.00);
   coverage_width_input_->setDecimals(2);
   coverage_width_input_->setSingleStep(0.05);
   coverage_width_input_->setSuffix(QStringLiteral(" m"));
-  coverage_width_input_->setValue(0.70);
+  coverage_width_input_->setValue(1.00);
   coverage_width_input_->setEnabled(false);
   width_layout->addWidget(coverage_width_input_, 1);
   parameters_layout->addWidget(width_row);
@@ -1119,7 +1273,7 @@ QWidget* MainWindow::buildCoveragePage()
   auto* overlap_layout = new QHBoxLayout(overlap_row);
   overlap_layout->setContentsMargins(0, 0, 0, 0);
   overlap_layout->addWidget(new QLabel(QStringLiteral("相邻轨迹重叠率"), overlap_row));
-  coverage_overlap_input_ = new QDoubleSpinBox(overlap_row);
+  coverage_overlap_input_ = new ScrollSafeDoubleSpinBox(overlap_row);
   coverage_overlap_input_->setRange(0.0, 50.0);
   coverage_overlap_input_->setDecimals(0);
   coverage_overlap_input_->setSingleStep(5.0);
@@ -1128,29 +1282,52 @@ QWidget* MainWindow::buildCoveragePage()
   coverage_overlap_input_->setEnabled(false);
   overlap_layout->addWidget(coverage_overlap_input_, 1);
   parameters_layout->addWidget(overlap_row);
+  auto* speed_row = new QWidget(parameters);
+  auto* speed_layout = new QHBoxLayout(speed_row);
+  speed_layout->setContentsMargins(0, 0, 0, 0);
+  speed_layout->addWidget(new QLabel(QStringLiteral("最高前进速度"), speed_row));
+  coverage_speed_input_ = new ScrollSafeDoubleSpinBox(speed_row);
+  coverage_speed_input_->setRange(0.10, 1.60);
+  coverage_speed_input_->setDecimals(2);
+  coverage_speed_input_->setSingleStep(0.10);
+  coverage_speed_input_->setSuffix(QStringLiteral(" m/s"));
+  coverage_speed_input_->setValue(0.80);
+  coverage_speed_input_->setEnabled(false);
+  coverage_speed_input_->setToolTip(
+      QStringLiteral("默认 0.80 m/s；覆盖任务限 1.60 m/s，并在开始前实时核对 VCU 上限"));
+  speed_layout->addWidget(coverage_speed_input_, 1);
+  parameters_layout->addWidget(speed_row);
   coverage_reverse_checkbox_ = new QCheckBox(
-      QStringLiteral("仅在转场时允许低速倒车"), parameters);
+      QStringLiteral("仅在转场允许 TEB 尝试低速倒车"), parameters);
   coverage_reverse_checkbox_->setChecked(true);
   coverage_reverse_checkbox_->setEnabled(false);
   parameters_layout->addWidget(coverage_reverse_checkbox_);
   controls_layout->addWidget(parameters);
 
-  auto* status = new QGroupBox(QStringLiteral("清扫状态"), controls);
+  auto* status = new QGroupBox(QStringLiteral("覆盖任务状态"), controls);
   auto* status_layout = new QVBoxLayout(status);
-  status_layout->addWidget(createMetricRow(QStringLiteral("全局地图"),
+  status_layout->addWidget(createMetricRow(QStringLiteral("全局地图（实验）"),
                                             &values_["coverage_map"]));
-  status_layout->addWidget(createMetricRow(QStringLiteral("任务状态"),
+  status_layout->addWidget(createMetricRow(QStringLiteral("覆盖导航状态"),
                                             &values_["coverage_state"]));
   status_layout->addWidget(createMetricRow(QStringLiteral("已选顶点"),
                                             &values_["coverage_points"]));
   status_layout->addWidget(createMetricRow(QStringLiteral("分段进度"),
                                             &values_["coverage_progress"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("路线约束"),
+                                            &values_["coverage_parameters"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("运动学核对"),
+                                            &values_["coverage_kinematics"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("障碍感知"),
+                                            &values_["coverage_avoidance"]));
   status_layout->addWidget(createMetricRow(QStringLiteral("可覆盖 / 框定面积"),
                                             &values_["coverage_area"]));
   status_layout->addWidget(createMetricRow(QStringLiteral("不可覆盖估算"),
                                             &values_["coverage_unreachable"]));
-  status_layout->addWidget(createMetricRow(QStringLiteral("完成率"),
+  status_layout->addWidget(createMetricRow(QStringLiteral("覆盖进度估算"),
                                             &values_["coverage_ratio"]));
+  status_layout->addWidget(createMetricRow(QStringLiteral("清扫机构"),
+                                            &values_["coverage_actuator"]));
   status_layout->addWidget(createMetricRow(QStringLiteral("详情"),
                                             &values_["coverage_detail"]));
   controls_layout->addWidget(status);
@@ -1178,7 +1355,9 @@ QWidget* MainWindow::buildCoveragePage()
   task_layout->addLayout(task_row);
   auto* safety = new QLabel(
       QStringLiteral("V1 只执行导航覆盖，不控制主刷、边刷、风机或喷淋。开始前后端还会"
-                     "复核全局定位、运动门、里程计和 FOD 导航仲裁；任一失败均不发车。"),
+                     "复核全局定位、运动门、里程计和 FOD 导航仲裁；任一失败均不发车。"
+                     "默认最高前进速度为 0.80 m/s，覆盖任务上限为 1.60 m/s；开始时还会"
+                     "在线核对 VCU 轴距、最大转角和 TEB 最小转弯半径。"),
       task);
   safety->setWordWrap(true);
   safety->setStyleSheet(
@@ -1288,31 +1467,47 @@ void MainWindow::handleMasterProbeFinished()
       if (rviz_panels_button_)
         rviz_panels_button_->setEnabled(false);
       rviz_layout_->removeWidget(rviz_frame_);
+      coverage_rviz_layout_->removeWidget(rviz_frame_);
       delete rviz_frame_;
       rviz_frame_ = nullptr;
       rviz_initialized_ = false;
-      rviz_placeholder_ = new QLabel(
-          QStringLiteral("ROS master 已恢复，正在重新加载 RViz……"), rviz_host_);
-      rviz_placeholder_->setAlignment(Qt::AlignCenter);
-      rviz_placeholder_->setStyleSheet(
+      rviz_attached_tab_index_ = -1;
+      overview_fitted_map_count_ = 0;
+      coverage_fitted_map_count_ = 0;
+      overview_initial_pose_tool_active_ = false;
+      rviz_follow_after_initial_pose_ = false;
+      overview_3d_map_enabled_ = false;
+      if (rviz_follow_vehicle_button_)
+        rviz_follow_vehicle_button_->setEnabled(false);
+      if (rviz_3d_map_button_)
+      {
+        rviz_3d_map_button_->setChecked(false);
+        rviz_3d_map_button_->setEnabled(false);
+        rviz_3d_map_button_->setText(QStringLiteral("④ 显示静态三维先验"));
+      }
+      if (rviz_map_instruction_)
+        rviz_map_instruction_->setText(
+            QStringLiteral("全局地图加载后：先显示全图，再按车辆真实位置设置初始位姿"));
+      const QString placeholder_style =
           QStringLiteral("background:#0b1119;border:1px solid #2b3a4e;border-radius:8px;"
-                         "color:#718096;font-size:14pt;"));
-      rviz_layout_->addWidget(rviz_placeholder_);
-    }
-    if (coverage_rviz_initialized_ && coverage_rviz_frame_)
-    {
-      coverage_rviz_layout_->removeWidget(coverage_rviz_frame_);
-      delete coverage_rviz_frame_;
-      coverage_rviz_frame_ = nullptr;
-      coverage_rviz_initialized_ = false;
-      coverage_rviz_placeholder_ = new QLabel(
-          QStringLiteral("ROS master 已恢复，正在重新加载清扫地图……"),
-          coverage_rviz_host_);
-      coverage_rviz_placeholder_->setAlignment(Qt::AlignCenter);
-      coverage_rviz_placeholder_->setStyleSheet(
-          QStringLiteral("background:#0b1119;border:1px solid #2b3a4e;border-radius:8px;"
-                         "color:#718096;font-size:14pt;"));
-      coverage_rviz_layout_->addWidget(coverage_rviz_placeholder_);
+                         "color:#718096;font-size:14pt;");
+      if (!rviz_placeholder_)
+      {
+        rviz_placeholder_ = new QLabel(
+            QStringLiteral("ROS master 已恢复，正在重新加载 RViz……"), rviz_host_);
+        rviz_placeholder_->setAlignment(Qt::AlignCenter);
+        rviz_placeholder_->setStyleSheet(placeholder_style);
+        rviz_layout_->addWidget(rviz_placeholder_, 1);
+      }
+      if (!coverage_rviz_placeholder_)
+      {
+        coverage_rviz_placeholder_ = new QLabel(
+            QStringLiteral("ROS master 已恢复，正在重新加载清扫地图……"),
+            coverage_rviz_host_);
+        coverage_rviz_placeholder_->setAlignment(Qt::AlignCenter);
+        coverage_rviz_placeholder_->setStyleSheet(placeholder_style);
+        coverage_rviz_layout_->addWidget(coverage_rviz_placeholder_, 1);
+      }
     }
     appendEvent(QStringLiteral("ROS master 已连接，正在注册界面订阅与发布接口。"));
     setupRosInterfaces();
@@ -1340,15 +1535,13 @@ void MainWindow::setupRosInterfaces()
   tf_listener_.reset(new tf2_ros::TransformListener(tf_buffer_, *node_, false));
   node_->param("enable_rviz", enable_rviz_, true);
   node_->param("static_map_mode", static_map_mode_, false);
+  if (rviz_map_controls_)
+    rviz_map_controls_->setVisible(static_map_mode_ && enable_rviz_);
   const std::string default_rviz =
       ros::package::getPath("autolabor_operator_gui") + "/config/operator_navigation.rviz";
-  const std::string default_coverage_rviz =
-      ros::package::getPath("autolabor_operator_gui") + "/config/coverage_navigation.rviz";
   node_->param<std::string>(
       "navigation_mode_label", navigation_mode_label_, "FAST_LIO");
   node_->param<std::string>("rviz_config", rviz_config_path_, default_rviz);
-  node_->param<std::string>("coverage_rviz_config", coverage_rviz_config_path_,
-                            default_coverage_rviz);
   node_->param<std::string>("odom_topic", odom_topic_, "/Odometry");
   node_->param<std::string>("cloud_topic", cloud_topic_, "/cloud_registered_body");
   node_->param<std::string>("imu_topic", imu_topic_, "/livox/imu");
@@ -1397,34 +1590,64 @@ void MainWindow::setupRosInterfaces()
   cancel_publisher_ = node_->advertise<actionlib_msgs::GoalID>("/move_base/cancel", 10, false);
   coverage_draft_publisher_ = node_->advertise<visualization_msgs::MarkerArray>(
       "/coverage/ui_markers", 1, true);
+  map_display_status_publisher_ = node_->advertise<std_msgs::String>(
+      "/autolabor_operator_gui/map_display_status", 1, true);
+  map_display_status_.clear();
+  publishMapDisplayStatus(static_map_mode_ && enable_rviz_
+                              ? "WAITING_RVIZ"
+                              : "DISABLED");
   ros_interfaces_ready_ = true;
   appendEvent(QStringLiteral("ROS 接口已注册；FAST-LIO 健康监测开始采样。"));
-  setupEmbeddedRviz();
-  setupCoverageRviz();
+  // Build only the RViz belonging to the visible tab.  Creating the coverage
+  // VisualizationFrame while its tab is hidden produces an unexposed native
+  // Ogre surface on Jetson/X11 and can leave both embedded views black.
+  const int active_tab = tabs_ ? tabs_->currentIndex() : overview_tab_index_;
+  if (active_tab == coverage_tab_index_)
+    setupCoverageRviz();
+  else if (active_tab == overview_tab_index_)
+    setupEmbeddedRviz();
 }
 
 void MainWindow::setupEmbeddedRviz()
 {
-  if (rviz_initialized_ || !rviz_layout_)
+  if (!rviz_layout_ || !coverage_rviz_layout_)
     return;
-  if (!enable_rviz_)
+  const int active_tab = tabs_ ? tabs_->currentIndex() : overview_tab_index_;
+  if (active_tab != overview_tab_index_ && active_tab != coverage_tab_index_)
+    return;
+  if (rviz_initialized_)
   {
-    if (rviz_placeholder_)
-      rviz_placeholder_->setText(QStringLiteral("已通过 enable_rviz:=false 禁用嵌入式 RViz"));
+    attachRvizToTab(active_tab);
     return;
   }
+  if (!enable_rviz_)
+  {
+    QLabel* placeholder = active_tab == coverage_tab_index_
+                              ? coverage_rviz_placeholder_
+                              : rviz_placeholder_;
+    if (placeholder)
+      placeholder->setText(QStringLiteral("已通过 enable_rviz:=false 禁用嵌入式 RViz"));
+    return;
+  }
+  QWidget* target_host = active_tab == coverage_tab_index_
+                             ? coverage_rviz_host_
+                             : rviz_host_;
+  QVBoxLayout* target_layout = active_tab == coverage_tab_index_
+                                   ? coverage_rviz_layout_
+                                   : rviz_layout_;
   try
   {
-    rviz_frame_ = new rviz::VisualizationFrame(rviz_host_);
+    // Keep exactly one VisualizationFrame/VisualizationManager in this
+    // process.  Multiple managers share Ogre::Root and the hidden coverage
+    // frame used to make both native render surfaces intermittently black.
+    rviz_frame_ = new rviz::VisualizationFrame(target_host);
     rviz_frame_->setWindowFlags(Qt::Widget);
     rviz_frame_->setSplashPath(QString());
     rviz_frame_->setShowChooseNewMaster(false);
     rviz_frame_->initialize(QString::fromStdString(rviz_config_path_));
-    // The console's global QWidget background rule also matches RViz's
-    // QtOgreRenderWindow.  On Jetson/X11 that style background is painted over
-    // the native Ogre child window, leaving a black panel even while RViz is
-    // receiving and rendering frames.  Keep the dark theme everywhere else,
-    // but let Ogre own painting for its render panel.
+    // The render panel owns a native Ogre surface.  Keep it outside Qt's
+    // styled-background painting and explicitly request the first frame after
+    // it is attached to the visible tab.
     if (rviz_frame_->getManager() && rviz_frame_->getManager()->getRenderPanel())
     {
       rviz::RenderPanel* render_panel = rviz_frame_->getManager()->getRenderPanel();
@@ -1435,6 +1658,12 @@ void MainWindow::setupEmbeddedRviz()
     {
       rviz_frame_->getManager()->setFixedFrame(
           QString::fromStdString(rviz_startup_fixed_frame_));
+    }
+    if (rviz_frame_->getManager() && rviz_frame_->getManager()->getToolManager())
+    {
+      connect(rviz_frame_->getManager()->getToolManager(),
+              &rviz::ToolManager::toolChanged, this,
+              &MainWindow::handleOverviewRvizToolChanged);
     }
     bool found_left_dock = false;
     for (QDockWidget* dock : rviz_frame_->findChildren<QDockWidget*>())
@@ -1455,16 +1684,46 @@ void MainWindow::setupEmbeddedRviz()
       rviz_frame_->menuBar()->hide();
     if (rviz_frame_->statusBar())
       rviz_frame_->statusBar()->hide();
-    if (rviz_placeholder_)
+    if (active_tab == overview_tab_index_ && rviz_placeholder_)
     {
       rviz_layout_->removeWidget(rviz_placeholder_);
       rviz_placeholder_->deleteLater();
       rviz_placeholder_ = nullptr;
     }
-    rviz_layout_->addWidget(rviz_frame_);
+    if (active_tab == coverage_tab_index_ && coverage_rviz_placeholder_)
+    {
+      coverage_rviz_layout_->removeWidget(coverage_rviz_placeholder_);
+      coverage_rviz_placeholder_->deleteLater();
+      coverage_rviz_placeholder_ = nullptr;
+    }
+    target_layout->addWidget(rviz_frame_, 1);
+    rviz_frame_->show();
+    target_layout->activate();
+    if (rviz_frame_->getManager() && rviz_frame_->getManager()->getRenderPanel())
+    {
+      rviz_frame_->getManager()->getRenderPanel()->show();
+      rviz_frame_->getManager()->getRenderPanel()->update();
+      rviz_frame_->getManager()->queueRender();
+    }
     rviz_initialized_ = true;
+    rviz_attached_tab_index_ = active_tab;
+    overview_fitted_map_count_ = 0;
+    coverage_fitted_map_count_ = 0;
+    rviz_map_refresh_message_count_ = 0;
+    rviz_map_ready_message_count_ = 0;
+    rviz_map_refresh_attempts_ = 0;
+    rviz_map_refresh_at_ = ros::WallTime();
+    rviz_follow_after_initial_pose_ = false;
+    overview_3d_map_enabled_ = false;
+    if (rviz_3d_map_button_)
+    {
+      rviz_3d_map_button_->setChecked(false);
+      rviz_3d_map_button_->setText(QStringLiteral("④ 显示静态三维先验"));
+    }
     appendEvent(
-        QStringLiteral("嵌入式 RViz 已加载：") +
+        (active_tab == coverage_tab_index_
+             ? QStringLiteral("清扫页共享 RViz 已加载：")
+             : QStringLiteral("嵌入式 RViz 已加载：")) +
         QString::fromStdString(rviz_config_path_) +
         QStringLiteral("（启动坐标系 ") +
         QString::fromStdString(rviz_startup_fixed_frame_) +
@@ -1478,9 +1737,596 @@ void MainWindow::setupEmbeddedRviz()
       rviz_frame_->deleteLater();
       rviz_frame_ = nullptr;
     }
-    if (rviz_placeholder_)
-      rviz_placeholder_->setText(QStringLiteral("RViz 加载失败；其他功能仍可使用"));
+    rviz_initialized_ = false;
+    rviz_attached_tab_index_ = -1;
+    QLabel* placeholder = active_tab == coverage_tab_index_
+                              ? coverage_rviz_placeholder_
+                              : rviz_placeholder_;
+    if (placeholder)
+      placeholder->setText(QStringLiteral("RViz 加载失败；其他功能仍可使用"));
   }
+}
+
+void MainWindow::attachRvizToTab(int tab_index)
+{
+  if (!rviz_initialized_ || !rviz_frame_ ||
+      (tab_index != overview_tab_index_ && tab_index != coverage_tab_index_) ||
+      rviz_attached_tab_index_ == tab_index)
+    return;
+
+  QWidget* target_host = tab_index == coverage_tab_index_
+                             ? coverage_rviz_host_
+                             : rviz_host_;
+  QVBoxLayout* target_layout = tab_index == coverage_tab_index_
+                                   ? coverage_rviz_layout_
+                                   : rviz_layout_;
+  if (!target_host || !target_layout)
+    return;
+
+  rviz_frame_->hide();
+  rviz_layout_->removeWidget(rviz_frame_);
+  coverage_rviz_layout_->removeWidget(rviz_frame_);
+  if (tab_index == overview_tab_index_ && rviz_placeholder_)
+  {
+    rviz_layout_->removeWidget(rviz_placeholder_);
+    rviz_placeholder_->deleteLater();
+    rviz_placeholder_ = nullptr;
+  }
+  if (tab_index == coverage_tab_index_ && coverage_rviz_placeholder_)
+  {
+    coverage_rviz_layout_->removeWidget(coverage_rviz_placeholder_);
+    coverage_rviz_placeholder_->deleteLater();
+    coverage_rviz_placeholder_ = nullptr;
+  }
+  rviz_frame_->setParent(target_host, Qt::Widget);
+  target_layout->addWidget(rviz_frame_, 1);
+  rviz_frame_->show();
+  target_layout->activate();
+  rviz_attached_tab_index_ = tab_index;
+  overview_fitted_map_count_ = 0;
+  coverage_fitted_map_count_ = 0;
+
+  const TelemetrySnapshot data = snapshot();
+  if (tab_index == coverage_tab_index_ && data.map_received)
+  {
+    setOverview3dMapView(false, data);
+    if (setRvizFollowVehicleView(data))
+      appendEvent(QStringLiteral("清扫页已自动切换到局部跟车视角。"));
+  }
+  selectRvizTool(rviz_frame_, QStringLiteral("rviz/MoveCamera"));
+  if (rviz_frame_->getManager())
+  {
+    rviz_frame_->getManager()->setFixedFrame(QStringLiteral("map"));
+    if (rviz_frame_->getManager()->getRenderPanel())
+    {
+      rviz_frame_->getManager()->getRenderPanel()->show();
+      rviz_frame_->getManager()->getRenderPanel()->update();
+    }
+    rviz_frame_->getManager()->queueRender();
+  }
+  appendEvent(tab_index == coverage_tab_index_
+                  ? QStringLiteral("共享 RViz 已切换到清扫页。")
+                  : QStringLiteral("共享 RViz 已返回综合页。"));
+}
+
+void MainWindow::publishMapDisplayStatus(const std::string& status)
+{
+  if (!map_display_status_publisher_ || status == map_display_status_)
+    return;
+  std_msgs::String message;
+  message.data = status;
+  map_display_status_publisher_.publish(message);
+  map_display_status_ = status;
+}
+
+bool MainWindow::ensureStaticMapDisplayReady(const TelemetrySnapshot& data)
+{
+  if (!static_map_mode_ || !enable_rviz_)
+  {
+    publishMapDisplayStatus("DISABLED");
+    return false;
+  }
+  if (!rviz_initialized_ || !rviz_frame_ || !rviz_frame_->getManager())
+  {
+    publishMapDisplayStatus("WAITING_RVIZ");
+    return false;
+  }
+  if (!data.map_received || data.map_message_count == 0)
+  {
+    publishMapDisplayStatus("WAITING_MAP");
+    return false;
+  }
+
+  auto* map_display = dynamic_cast<rviz::MapDisplay*>(findDisplayByName(
+      rviz_frame_->getManager()->getRootDisplayGroup(),
+      QString::fromLatin1(kStaticMapDisplayName)));
+  if (!map_display)
+  {
+    publishMapDisplayStatus("ERROR;reason=display_missing");
+    return false;
+  }
+  if (!map_display->isEnabled())
+  {
+    publishMapDisplayStatus("ERROR;reason=display_disabled");
+    return false;
+  }
+
+  if (rviz_map_refresh_message_count_ != data.map_message_count)
+  {
+    rviz_map_refresh_message_count_ = data.map_message_count;
+    rviz_map_ready_message_count_ = 0;
+    rviz_map_refresh_attempts_ = 0;
+    rviz_map_refresh_at_ = ros::WallTime();
+  }
+
+  const bool dimensions_match =
+      map_display->getWidth() == static_cast<int>(data.map_width) &&
+      map_display->getHeight() == static_cast<int>(data.map_height) &&
+      std::abs(map_display->getResolution() - data.map_resolution) <= 1e-6;
+  // The GUI's telemetry subscriber and the embedded rviz/Map display are two
+  // independent subscribers.  On Jetson/X11 the latter can miss map_server's
+  // first latched delivery while VisualizationFrame is being embedded.  Force
+  // one clean resubscription per full map, then verify MapDisplay's own loaded
+  // dimensions instead of treating the telemetry callback as rendered output.
+  if (rviz_map_refresh_attempts_ > 0 && dimensions_match)
+  {
+    if (rviz_map_ready_message_count_ != data.map_message_count)
+    {
+      rviz_map_ready_message_count_ = data.map_message_count;
+      appendEvent(QStringLiteral(
+          "嵌入式 RViz 已确认收到 /map，二维地图纹理与尺寸均已就绪。"));
+    }
+    publishMapDisplayStatus(
+        "READY;width=" + std::to_string(data.map_width) +
+        ";height=" + std::to_string(data.map_height) +
+        ";resolution=" + std::to_string(data.map_resolution));
+    return true;
+  }
+
+  const bool refresh_due =
+      rviz_map_refresh_attempts_ == 0 ||
+      (ros::WallTime::now() - rviz_map_refresh_at_).toSec() >=
+          kMapDisplayRefreshIntervalSeconds;
+  if (refresh_due &&
+      rviz_map_refresh_attempts_ < kMapDisplayMaxRefreshAttempts)
+  {
+    ++rviz_map_refresh_attempts_;
+    rviz_map_refresh_at_ = ros::WallTime::now();
+    map_display->setEnabled(false);
+    map_display->setEnabled(true);
+    rviz_frame_->getManager()->queueRender();
+    publishMapDisplayStatus(
+        "RESUBSCRIBING;attempt=" + std::to_string(rviz_map_refresh_attempts_));
+    if (rviz_map_refresh_attempts_ == 1)
+    {
+      if (rviz_map_instruction_)
+        rviz_map_instruction_->setText(
+            QStringLiteral("已收到 /map，正在确认嵌入式 RViz 二维地图显示……"));
+      appendEvent(QStringLiteral(
+          "检测到嵌入式 RViz 尚未接收锁存地图，正在自动重订阅 /map。"));
+    }
+    return false;
+  }
+
+  if (rviz_map_refresh_attempts_ >= kMapDisplayMaxRefreshAttempts)
+  {
+    if (map_display_status_ != "ERROR;reason=no_map_after_resubscribe")
+      appendEvent(QStringLiteral(
+          "嵌入式 RViz 多次重订阅后仍未收到 /map；启动自检将阻止误报就绪。"),
+                  true);
+    publishMapDisplayStatus("ERROR;reason=no_map_after_resubscribe");
+  }
+  else
+  {
+    publishMapDisplayStatus(
+        "WAITING_RVIZ_MAP;attempt=" + std::to_string(rviz_map_refresh_attempts_));
+  }
+  return false;
+}
+
+bool MainWindow::fitRvizMapView(rviz::VisualizationFrame* frame,
+                                const TelemetrySnapshot& data)
+{
+  if (!frame || !frame->getManager() || !frame->getManager()->getViewManager() ||
+      !data.map_received || data.map_width == 0 || data.map_height == 0 ||
+      !std::isfinite(data.map_resolution) || data.map_resolution <= 0.0 ||
+      !std::isfinite(data.map_origin_x) || !std::isfinite(data.map_origin_y) ||
+      !std::isfinite(data.map_origin_yaw))
+    return false;
+
+  rviz::ViewController* view = frame->getManager()->getViewManager()->getCurrent();
+  rviz::RenderPanel* render_panel = frame->getManager()->getRenderPanel();
+  if (!view || !render_panel || view->getClassId() != QStringLiteral("rviz/TopDownOrtho"))
+    return false;
+
+  // A newly added frame reports RViz's 100x30 fallback size until the tab's
+  // layout pass completes.  Do not consume map_message_count using that size:
+  // refreshUi() will retry and fit the map once the real viewport is ready.
+  if (render_panel->width() < 200 || render_panel->height() < 120)
+    return false;
+
+  const double map_width_m = data.map_width * data.map_resolution;
+  const double map_height_m = data.map_height * data.map_resolution;
+  const double cosine = std::cos(data.map_origin_yaw);
+  const double sine = std::sin(data.map_origin_yaw);
+  const double center_x = data.map_origin_x + cosine * map_width_m * 0.5 -
+                          sine * map_height_m * 0.5;
+  const double center_y = data.map_origin_y + sine * map_width_m * 0.5 +
+                          cosine * map_height_m * 0.5;
+  const double axis_width_m = std::abs(cosine) * map_width_m +
+                              std::abs(sine) * map_height_m;
+  const double axis_height_m = std::abs(sine) * map_width_m +
+                               std::abs(cosine) * map_height_m;
+  if (!std::isfinite(center_x) || !std::isfinite(center_y) ||
+      axis_width_m <= 0.0 || axis_height_m <= 0.0)
+    return false;
+
+  // TopDownOrtho Scale is pixels per metre. Leave a 10% border so the
+  // operator can see the complete occupancy grid before choosing /initialpose.
+  const double width_pixels = render_panel->width();
+  const double height_pixels = render_panel->height();
+  const double scale = std::max(
+      0.05, std::min(1000.0, 0.90 * std::min(width_pixels / axis_width_m,
+                                             height_pixels / axis_height_m)));
+
+  frame->getManager()->setFixedFrame(QStringLiteral("map"));
+  view->subProp(QStringLiteral("Target Frame"))->setValue(QStringLiteral("map"));
+  view->subProp(QStringLiteral("X"))->setValue(center_x);
+  view->subProp(QStringLiteral("Y"))->setValue(center_y);
+  view->subProp(QStringLiteral("Scale"))->setValue(scale);
+  frame->getManager()->queueRender();
+  return true;
+}
+
+bool MainWindow::setRvizFollowVehicleView(const TelemetrySnapshot& data)
+{
+  const bool localization_fresh =
+      data.coverage_status_received &&
+      wallAge(data.coverage_status_received_at) <= 2.0 &&
+      data.coverage_status.localized;
+  if (!static_map_mode_ || !rviz_initialized_ || !rviz_frame_ ||
+      !rviz_frame_->getManager() ||
+      !rviz_frame_->getManager()->getViewManager() ||
+      !data.map_received ||
+      rviz_map_ready_message_count_ != data.map_message_count ||
+      !localization_fresh ||
+      !tf_buffer_.canTransform("map", "base_link", ros::Time(0)))
+    return false;
+
+  // First leave any Orbit/static-prior mode through the same reversible path
+  // used by the full-map button, then change only the TopDownOrtho target.
+  // Fixed Frame remains map so all map, costmap and path displays retain their
+  // navigation semantics while the viewport follows the vehicle.
+  if (!setOverview3dMapView(false, data))
+    return false;
+
+  rviz::VisualizationManager* manager = rviz_frame_->getManager();
+  rviz::ViewController* view = manager->getViewManager()->getCurrent();
+  rviz::RenderPanel* render_panel = manager->getRenderPanel();
+  if (!view || !render_panel ||
+      view->getClassId() != QStringLiteral("rviz/TopDownOrtho") ||
+      render_panel->width() < 200 || render_panel->height() < 120)
+    return false;
+
+  // Match the 20 x 20 m rolling local costmap with a small border.
+  const double scale = std::max(
+      5.0, std::min(100.0,
+                    0.90 * std::min(render_panel->width(), render_panel->height()) /
+                        22.0));
+  manager->setFixedFrame(QStringLiteral("map"));
+  view->subProp(QStringLiteral("Target Frame"))
+      ->setValue(QStringLiteral("base_link"));
+  view->subProp(QStringLiteral("X"))->setValue(0.0);
+  view->subProp(QStringLiteral("Y"))->setValue(0.0);
+  view->subProp(QStringLiteral("Scale"))->setValue(scale);
+  if (!selectRvizTool(rviz_frame_, QStringLiteral("rviz/MoveCamera")))
+    return false;
+
+  overview_fitted_map_count_ = data.map_message_count;
+  coverage_fitted_map_count_ = data.map_message_count;
+  if (rviz_map_instruction_)
+    rviz_map_instruction_->setText(
+        QStringLiteral("局部跟车视角：实时点云、局部代价地图和当前路线随车辆更新"));
+  manager->queueRender();
+  return true;
+}
+
+void MainWindow::updateNavigationPathDisplays(const TelemetrySnapshot& data)
+{
+  if (!rviz_initialized_ || !rviz_frame_ || !rviz_frame_->getManager())
+    return;
+
+  bool goal_active = false;
+  if (data.navigation_received && wallAge(data.navigation_received_at) <= 2.0)
+  {
+    for (const actionlib_msgs::GoalStatus& status : data.navigation.status_list)
+    {
+      if (status.status == actionlib_msgs::GoalStatus::PENDING ||
+          status.status == actionlib_msgs::GoalStatus::ACTIVE ||
+          status.status == actionlib_msgs::GoalStatus::PREEMPTING ||
+          status.status == actionlib_msgs::GoalStatus::RECALLING)
+      {
+        goal_active = true;
+        break;
+      }
+    }
+  }
+
+  rviz::DisplayGroup* root = rviz_frame_->getManager()->getRootDisplayGroup();
+  for (const char* display_name :
+       { kTebGlobalPlanDisplayName, kTebLocalPlanDisplayName })
+  {
+    rviz::Display* display =
+        findDisplayByName(root, QString::fromLatin1(display_name));
+    if (display && display->isEnabled() != goal_active)
+      display->setEnabled(goal_active);
+  }
+}
+
+bool MainWindow::selectRvizTool(rviz::VisualizationFrame* frame,
+                                const QString& class_id)
+{
+  if (!frame || !frame->getManager() || !frame->getManager()->getToolManager())
+    return false;
+  rviz::ToolManager* manager = frame->getManager()->getToolManager();
+  for (int index = 0; index < manager->numTools(); ++index)
+  {
+    rviz::Tool* tool = manager->getTool(index);
+    if (tool && tool->getClassId() == class_id)
+    {
+      manager->setCurrentTool(tool);
+      if (frame->getManager()->getRenderPanel())
+        frame->getManager()->getRenderPanel()->setFocus(Qt::OtherFocusReason);
+      return true;
+    }
+  }
+  return false;
+}
+
+bool MainWindow::setOverview3dMapView(bool enabled,
+                                      const TelemetrySnapshot& data)
+{
+  if (!static_map_mode_ || !rviz_initialized_ || !rviz_frame_ ||
+      !rviz_frame_->getManager() ||
+      !rviz_frame_->getManager()->getViewManager() || !data.map_received ||
+      rviz_map_ready_message_count_ != data.map_message_count ||
+      data.map_width == 0 || data.map_height == 0 ||
+      !std::isfinite(data.map_resolution) || data.map_resolution <= 0.0 ||
+      !std::isfinite(data.map_origin_x) || !std::isfinite(data.map_origin_y) ||
+      !std::isfinite(data.map_origin_yaw))
+    return false;
+
+  rviz::VisualizationManager* manager = rviz_frame_->getManager();
+  rviz::Display* prior_map = findDisplayByName(
+      manager->getRootDisplayGroup(), QString::fromLatin1(kPriorMapDisplayName));
+  if (enabled && !prior_map)
+    return false;
+
+  rviz::ViewManager* view_manager = manager->getViewManager();
+  auto update_controls = [this](bool active, const QString& instruction) {
+    overview_3d_map_enabled_ = active;
+    if (rviz_3d_map_button_)
+    {
+      rviz_3d_map_button_->setChecked(active);
+      rviz_3d_map_button_->setText(
+          active ? QStringLiteral("返回二维地图")
+                 : QStringLiteral("④ 显示静态三维先验"));
+    }
+    if (rviz_map_instruction_)
+      rviz_map_instruction_->setText(instruction);
+  };
+  auto restore_2d = [&]() {
+    if (prior_map)
+      prior_map->setEnabled(false);
+    view_manager->setCurrentViewControllerType(QStringLiteral("rviz/TopDownOrtho"));
+    rviz::ViewController* view = view_manager->getCurrent();
+    const bool top_down_ready =
+        view && view->getClassId() == QStringLiteral("rviz/TopDownOrtho");
+    const bool fitted = top_down_ready && fitRvizMapView(rviz_frame_, data);
+    update_controls(
+        false, QStringLiteral("二维地图已完整显示；可按车辆真实位置设置初始位姿"));
+    manager->queueRender();
+    return fitted;
+  };
+
+  manager->setFixedFrame(QStringLiteral("map"));
+  if (!enabled)
+  {
+    const bool restored = restore_2d();
+    if (restored)
+      overview_fitted_map_count_ = data.map_message_count;
+    return restored;
+  }
+
+  // Validate all geometry before changing the display or view controller so a
+  // malformed map cannot leave the button and RViz in contradictory states.
+  const double map_width_m = data.map_width * data.map_resolution;
+  const double map_height_m = data.map_height * data.map_resolution;
+  const double cosine = std::cos(data.map_origin_yaw);
+  const double sine = std::sin(data.map_origin_yaw);
+  const double center_x = data.map_origin_x + cosine * map_width_m * 0.5 -
+                          sine * map_height_m * 0.5;
+  const double center_y = data.map_origin_y + sine * map_width_m * 0.5 +
+                          cosine * map_height_m * 0.5;
+  const double distance =
+      std::max(8.0, 1.15 * std::hypot(map_width_m, map_height_m));
+  if (!std::isfinite(map_width_m) || !std::isfinite(map_height_m) ||
+      map_width_m <= 0.0 || map_height_m <= 0.0 ||
+      !std::isfinite(center_x) || !std::isfinite(center_y) ||
+      !std::isfinite(distance))
+    return false;
+
+  view_manager->setCurrentViewControllerType(QStringLiteral("rviz/Orbit"));
+  rviz::ViewController* view = view_manager->getCurrent();
+  if (!view || view->getClassId() != QStringLiteral("rviz/Orbit"))
+  {
+    restore_2d();
+    return false;
+  }
+
+  view->subProp(QStringLiteral("Target Frame"))->setValue(QStringLiteral("map"));
+  view->subProp(QStringLiteral("Focal Point"))
+      ->subProp(QStringLiteral("X"))
+      ->setValue(center_x);
+  view->subProp(QStringLiteral("Focal Point"))
+      ->subProp(QStringLiteral("Y"))
+      ->setValue(center_y);
+  view->subProp(QStringLiteral("Focal Point"))
+      ->subProp(QStringLiteral("Z"))
+      ->setValue(0.0);
+  view->subProp(QStringLiteral("Distance"))->setValue(distance);
+  view->subProp(QStringLiteral("Pitch"))->setValue(kPi / 4.0);
+  view->subProp(QStringLiteral("Yaw"))->setValue(kPi / 4.0);
+  if (!selectRvizTool(rviz_frame_, QStringLiteral("rviz/MoveCamera")))
+  {
+    restore_2d();
+    return false;
+  }
+  prior_map->setEnabled(true);
+  update_controls(
+      true, QStringLiteral("三维 PCD 显示已开启；拖动鼠标旋转/平移，滚轮缩放"));
+  manager->queueRender();
+  return true;
+}
+
+void MainWindow::toggleOverview3dMap()
+{
+  rviz_follow_after_initial_pose_ = false;
+  const bool requested = rviz_3d_map_button_ && rviz_3d_map_button_->isChecked();
+  const TelemetrySnapshot data = snapshot();
+  if (!setOverview3dMapView(requested, data))
+  {
+    if (rviz_3d_map_button_)
+      rviz_3d_map_button_->setChecked(overview_3d_map_enabled_);
+    QMessageBox::warning(
+        this, QStringLiteral("三维地图不可用"),
+        QStringLiteral("请确认已使用 --map-set 启动、地图已加载，并且 RViz 配置包含 "
+                       "/fast_lio_localization/prior_map。"));
+    return;
+  }
+  appendEvent(requested
+                  ? QStringLiteral("已开启三维先验地图显示并切换到可旋转视角；"
+                                   "若点云尚未出现，请等待定位器的锁存地图。")
+                  : QStringLiteral("已隐藏三维先验地图，并恢复完整二维地图视角。"));
+}
+
+void MainWindow::fitOverviewMapView()
+{
+  rviz_follow_after_initial_pose_ = false;
+  const TelemetrySnapshot data = snapshot();
+  if (!static_map_mode_ || !rviz_initialized_ || !data.map_received ||
+      rviz_map_ready_message_count_ != data.map_message_count)
+  {
+    QMessageBox::information(
+        this, QStringLiteral("全局地图未就绪"),
+        QStringLiteral("请使用 --map-set 启动静态地图模式，并等待二维地图加载完成。"));
+    return;
+  }
+  // Always enforce the real RViz state. The debug panel lets operators change
+  // the view/display manually, which may not match overview_3d_map_enabled_.
+  if (!setOverview3dMapView(false, data))
+  {
+    QMessageBox::warning(this, QStringLiteral("无法返回二维地图"),
+                         QStringLiteral("RViz 三维显示未能安全关闭，请查看调试面板。"));
+    return;
+  }
+  overview_fitted_map_count_ = data.map_message_count;
+  if (rviz_map_instruction_)
+    rviz_map_instruction_->setText(
+        QStringLiteral("整张地图已显示；下一步点击“② 设置初始位姿”"));
+  appendEvent(QStringLiteral("综合页 RViz 已重新居中并缩放到完整二维地图。"));
+}
+
+void MainWindow::followOverviewVehicle()
+{
+  const TelemetrySnapshot data = snapshot();
+  if (!setRvizFollowVehicleView(data))
+  {
+    QMessageBox::information(
+        this, QStringLiteral("局部跟车视角未就绪"),
+        QStringLiteral("请等待二维地图显示为 READY、三维 ICP 状态达到 LOCALIZED，"
+                       "并确认 map 到 base_link 的 TF 可用。"));
+    return;
+  }
+  rviz_follow_after_initial_pose_ = false;
+  appendEvent(QStringLiteral(
+      "已切换到局部跟车视角；Fixed Frame 保持 map，视角 Target Frame 为 base_link。"));
+}
+
+void MainWindow::selectInitialPoseTool()
+{
+  rviz_follow_after_initial_pose_ = false;
+  const TelemetrySnapshot data = snapshot();
+  if (!static_map_mode_ || !rviz_initialized_ || !data.map_received ||
+      rviz_map_ready_message_count_ != data.map_message_count)
+  {
+    QMessageBox::information(
+        this, QStringLiteral("全局地图未就绪"),
+        QStringLiteral("请使用 --map-set 启动静态地图模式，并等待二维地图加载完成。"));
+    return;
+  }
+  // SetInitialPose is deliberately a two-dimensional operation even if the
+  // operator changed the embedded RViz view through its debug panel.
+  if (!setOverview3dMapView(false, data))
+  {
+    QMessageBox::warning(this, QStringLiteral("无法设置初始位姿"),
+                         QStringLiteral("请先关闭三维地图并返回二维视角。"));
+    return;
+  }
+  overview_fitted_map_count_ = data.map_message_count;
+  if (!selectRvizTool(rviz_frame_, QStringLiteral("rviz/SetInitialPose")))
+  {
+    QMessageBox::warning(this, QStringLiteral("初始位姿工具不可用"),
+                         QStringLiteral("RViz 配置中未加载 SetInitialPose 工具。"));
+    return;
+  }
+  appendEvent(QStringLiteral(
+      "已选择初始位姿工具；请在二维地图上车辆真实位置按下鼠标，并沿车头方向拖动后松开。"));
+}
+
+void MainWindow::handleOverviewRvizToolChanged(rviz::Tool* tool)
+{
+  const TelemetrySnapshot data = snapshot();
+  const bool coverage_owns_navigation =
+      data.coverage_status_received &&
+      wallAge(data.coverage_status_received_at) <= 2.0 &&
+      data.coverage_status.active;
+  if (tool && tool->getClassId() == QStringLiteral("rviz/SetGoal") &&
+      (coverage_owns_navigation ||
+       rviz_attached_tab_index_ == coverage_tab_index_))
+  {
+    // The shared VisualizationFrame also carries the overview SetGoal tool.
+    // Letting it stay active on the coverage page used to publish a second
+    // simple goal and preempt the coverage manager's action goal.
+    QTimer::singleShot(0, this, [this]() {
+      selectRvizTool(rviz_frame_, QStringLiteral("rviz/MoveCamera"));
+    });
+    appendEvent(
+        coverage_owns_navigation
+            ? QStringLiteral("覆盖任务正在独占 move_base，已阻止新的地图导航目标。")
+            : QStringLiteral("清扫页不发送普通导航目标，已切回地图浏览工具。"),
+        true);
+    return;
+  }
+  const bool active = tool && tool->getClassId() == QStringLiteral("rviz/SetInitialPose");
+  const bool initial_pose_tool_just_finished =
+      !active && overview_initial_pose_tool_active_;
+  if (rviz_initial_pose_button_)
+    rviz_initial_pose_button_->setText(
+        active ? QStringLiteral("请在地图按住并拖向车头")
+               : QStringLiteral("② 设置初始位姿"));
+  if (rviz_map_instruction_)
+  {
+    if (active)
+      rviz_map_instruction_->setText(
+          QStringLiteral("在车辆真实位置按下鼠标，沿车头方向拖动后松开"));
+    else if (initial_pose_tool_just_finished)
+      rviz_map_instruction_->setText(
+          QStringLiteral("初始位姿工具已退出；等待三维 ICP LOCALIZED 后自动进入跟车视角"));
+  }
+  if (initial_pose_tool_just_finished)
+    rviz_follow_after_initial_pose_ = true;
+  overview_initial_pose_tool_active_ = active;
 }
 
 void MainWindow::toggleRvizPanels()
@@ -1506,13 +2352,13 @@ void MainWindow::toggleRvizPanels()
 
 void MainWindow::setupCoverageRviz()
 {
-  if (coverage_rviz_initialized_ || !coverage_rviz_layout_)
+  if (!coverage_rviz_layout_)
     return;
   if (!static_map_mode_)
   {
     if (coverage_rviz_placeholder_)
       coverage_rviz_placeholder_->setText(
-          QStringLiteral("一键启动未加载全局地图\n覆盖清扫功能已禁用"));
+          QStringLiteral("未选择实验性全局地图\n现有无图导航基线保持不变"));
     return;
   }
   if (!enable_rviz_)
@@ -1522,53 +2368,9 @@ void MainWindow::setupCoverageRviz()
           QStringLiteral("已通过 enable_rviz:=false 禁用清扫地图 RViz"));
     return;
   }
-  try
-  {
-    coverage_rviz_frame_ = new rviz::VisualizationFrame(coverage_rviz_host_);
-    coverage_rviz_frame_->setWindowFlags(Qt::Widget);
-    coverage_rviz_frame_->setSplashPath(QString());
-    coverage_rviz_frame_->setShowChooseNewMaster(false);
-    coverage_rviz_frame_->initialize(
-        QString::fromStdString(coverage_rviz_config_path_));
-    if (coverage_rviz_frame_->getManager() &&
-        coverage_rviz_frame_->getManager()->getRenderPanel())
-    {
-      rviz::RenderPanel* render_panel =
-          coverage_rviz_frame_->getManager()->getRenderPanel();
-      render_panel->setAutoFillBackground(false);
-      render_panel->setAttribute(Qt::WA_StyledBackground, false);
-      coverage_rviz_frame_->getManager()->setFixedFrame(QStringLiteral("map"));
-    }
-    for (QDockWidget* dock : coverage_rviz_frame_->findChildren<QDockWidget*>())
-      dock->hide();
-    coverage_rviz_frame_->setHideButtonVisibility(false);
-    if (coverage_rviz_frame_->menuBar())
-      coverage_rviz_frame_->menuBar()->hide();
-    if (coverage_rviz_frame_->statusBar())
-      coverage_rviz_frame_->statusBar()->hide();
-    if (coverage_rviz_placeholder_)
-    {
-      coverage_rviz_layout_->removeWidget(coverage_rviz_placeholder_);
-      coverage_rviz_placeholder_->deleteLater();
-      coverage_rviz_placeholder_ = nullptr;
-    }
-    coverage_rviz_layout_->addWidget(coverage_rviz_frame_);
-    coverage_rviz_initialized_ = true;
-    appendEvent(QStringLiteral("清扫页全局地图 RViz 已加载，可框定多边形区域。"));
-  }
-  catch (const std::exception& error)
-  {
-    appendEvent(QStringLiteral("清扫页 RViz 加载失败：") +
-                    QString::fromLocal8Bit(error.what()), true);
-    if (coverage_rviz_frame_)
-    {
-      coverage_rviz_frame_->deleteLater();
-      coverage_rviz_frame_ = nullptr;
-    }
-    if (coverage_rviz_placeholder_)
-      coverage_rviz_placeholder_->setText(
-          QStringLiteral("清扫地图 RViz 加载失败；覆盖控制已禁用"));
-  }
+  setupEmbeddedRviz();
+  if (rviz_initialized_)
+    attachRvizToTab(coverage_tab_index_);
 }
 
 void MainWindow::shutdownRosInterfaces()
@@ -1594,6 +2396,12 @@ void MainWindow::shutdownRosInterfaces()
   relative_goal_publisher_.shutdown();
   cancel_publisher_.shutdown();
   coverage_draft_publisher_.shutdown();
+  map_display_status_publisher_.shutdown();
+  map_display_status_.clear();
+  rviz_map_refresh_message_count_ = 0;
+  rviz_map_ready_message_count_ = 0;
+  rviz_map_refresh_attempts_ = 0;
+  rviz_map_refresh_at_ = ros::WallTime();
   {
     std::lock_guard<std::mutex> lock(snapshot_mutex_);
     telemetry_.map_received = false;
@@ -1753,15 +2561,27 @@ void MainWindow::navigationCallback(const actionlib_msgs::GoalStatusArray::Const
 void MainWindow::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 {
   if (msg->header.frame_id != "map" || msg->info.width == 0 ||
-      msg->info.height == 0 || msg->data.size() !=
+      msg->info.height == 0 || !std::isfinite(msg->info.resolution) ||
+      msg->info.resolution <= 0.0 ||
+      !std::isfinite(msg->info.origin.position.x) ||
+      !std::isfinite(msg->info.origin.position.y) ||
+      !std::isfinite(msg->info.origin.orientation.x) ||
+      !std::isfinite(msg->info.origin.orientation.y) ||
+      !std::isfinite(msg->info.origin.orientation.z) ||
+      !std::isfinite(msg->info.origin.orientation.w) ||
+      msg->data.size() !=
           static_cast<std::size_t>(msg->info.width) * msg->info.height)
     return;
   std::lock_guard<std::mutex> lock(snapshot_mutex_);
   telemetry_.map_received = true;
   telemetry_.map_received_at = ros::WallTime::now();
+  ++telemetry_.map_message_count;
   telemetry_.map_width = msg->info.width;
   telemetry_.map_height = msg->info.height;
   telemetry_.map_resolution = msg->info.resolution;
+  telemetry_.map_origin_x = msg->info.origin.position.x;
+  telemetry_.map_origin_y = msg->info.origin.position.y;
+  telemetry_.map_origin_yaw = yawFromQuaternion(msg->info.origin.orientation);
 }
 
 void MainWindow::coveragePointCallback(
@@ -2018,6 +2838,26 @@ bool MainWindow::imageMessageToQImage(const sensor_msgs::Image& message, QImage*
     *image = wrapped.copy();
     return !image->isNull();
   }
+  if (message.encoding == sensor_msgs::image_encodings::BGRA8)
+  {
+    if (static_cast<std::size_t>(message.step) <
+        static_cast<std::size_t>(message.width) * 4U)
+      return false;
+    // ZED publishes BGRA8. QImage's RGBA8888 byte layout lets rgbSwapped()
+    // correct the channel order before alpha is deliberately discarded.
+    const QImage wrapped(message.data.data(), width, height, step, QImage::Format_RGBA8888);
+    *image = wrapped.rgbSwapped().convertToFormat(QImage::Format_RGB888);
+    return !image->isNull();
+  }
+  if (message.encoding == sensor_msgs::image_encodings::RGBA8)
+  {
+    if (static_cast<std::size_t>(message.step) <
+        static_cast<std::size_t>(message.width) * 4U)
+      return false;
+    const QImage wrapped(message.data.data(), width, height, step, QImage::Format_RGBA8888);
+    *image = wrapped.convertToFormat(QImage::Format_RGB888);
+    return !image->isNull();
+  }
   if (message.encoding == sensor_msgs::image_encodings::MONO8)
   {
     if (message.step < message.width)
@@ -2212,6 +3052,51 @@ void MainWindow::refreshUi()
   const double mode_age = data.mode_status_received
                               ? wallAge(data.mode_status_received_at)
                               : wallAge(data.mode_state_received_at);
+  const bool embedded_map_ready = ensureStaticMapDisplayReady(data);
+  const bool overview_map_ready = static_map_mode_ && rviz_initialized_ &&
+                                  data.map_received && data.map_message_count > 0 &&
+                                  embedded_map_ready;
+  if (rviz_fit_map_button_)
+    rviz_fit_map_button_->setEnabled(overview_map_ready);
+  if (rviz_initial_pose_button_)
+    rviz_initial_pose_button_->setEnabled(overview_map_ready);
+  const bool vehicle_view_ready =
+      overview_map_ready && data.coverage_status_received &&
+      wallAge(data.coverage_status_received_at) <= 2.0 &&
+      data.coverage_status.localized &&
+      tf_buffer_.canTransform("map", "base_link", ros::Time(0));
+  if (rviz_follow_vehicle_button_)
+    rviz_follow_vehicle_button_->setEnabled(vehicle_view_ready);
+  if (rviz_3d_map_button_)
+    rviz_3d_map_button_->setEnabled(overview_map_ready);
+  if (rviz_follow_after_initial_pose_ && vehicle_view_ready &&
+      rviz_attached_tab_index_ == overview_tab_index_ &&
+      setRvizFollowVehicleView(data))
+  {
+    rviz_follow_after_initial_pose_ = false;
+    appendEvent(QStringLiteral(
+        "三维 ICP 已 LOCALIZED；综合页已自动切换到局部跟车视角。"));
+  }
+  updateNavigationPathDisplays(data);
+  if (overview_map_ready && rviz_attached_tab_index_ == overview_tab_index_ &&
+      !overview_3d_map_enabled_ &&
+      overview_fitted_map_count_ != data.map_message_count &&
+      fitRvizMapView(rviz_frame_, data))
+  {
+    overview_fitted_map_count_ = data.map_message_count;
+    if (rviz_map_instruction_ && !overview_initial_pose_tool_active_)
+      rviz_map_instruction_->setText(
+          QStringLiteral("二维地图已完整显示；点击“② 设置初始位姿”后按真实位置拖动车头方向"));
+    appendEvent(QStringLiteral("二维静态地图已加载，综合页 RViz 已自动显示完整地图。"));
+  }
+  if (static_map_mode_ && rviz_initialized_ &&
+      rviz_attached_tab_index_ == coverage_tab_index_ && data.map_received &&
+      embedded_map_ready &&
+      coverage_fitted_map_count_ != data.map_message_count &&
+      fitRvizMapView(rviz_frame_, data))
+  {
+    coverage_fitted_map_count_ = data.map_message_count;
+  }
   if (rviz_initialized_ && rviz_frame_ && rviz_frame_->getManager() &&
       data.odom_received && wallAge(data.odom_received_at) <= 2.0 &&
       !rviz_navigation_fixed_frame_.empty())
@@ -2695,7 +3580,8 @@ void MainWindow::refreshUi()
     coverage_selecting = coverage_selecting_;
   }
   const bool coverage_map_ready = master_online_ && ros_interfaces_ready_ &&
-                                  static_map_mode_ && data.map_received;
+                                  static_map_mode_ && data.map_received &&
+                                  embedded_map_ready;
   const bool coverage_status_fresh = data.coverage_status_received &&
                                      wallAge(data.coverage_status_received_at) <= 2.0;
   const autolabor_coverage::CoverageStatus& coverage = data.coverage_status;
@@ -2706,8 +3592,11 @@ void MainWindow::refreshUi()
                 .arg(data.map_width)
                 .arg(data.map_height)
                 .arg(data.map_resolution, 0, 'f', 2)
-          : (static_map_mode_ ? QStringLiteral("等待 /map")
-                              : QStringLiteral("未加载，功能禁用")));
+          : (static_map_mode_
+                 ? (data.map_received
+                        ? QStringLiteral("等待 RViz 二维地图渲染")
+                        : QStringLiteral("等待 /map"))
+                 : QStringLiteral("未加载，功能禁用")));
   QString coverage_state = QStringLiteral("后端未就绪");
   if (coverage_status_fresh)
   {
@@ -2717,7 +3606,7 @@ void MainWindow::refreshUi()
       { QStringLiteral("READY"), QStringLiteral("轨迹已就绪") },
       { QStringLiteral("GOING_TO_START"), QStringLiteral("前往起点") },
       { QStringLiteral("TRANSITING"), QStringLiteral("转场中") },
-      { QStringLiteral("SWEEPING"), QStringLiteral("覆盖清扫中") },
+      { QStringLiteral("SWEEPING"), QStringLiteral("覆盖路线执行中") },
       { QStringLiteral("WAITING_OBSTACLE"), QStringLiteral("等待动态障碍") },
       { QStringLiteral("PAUSED"), QStringLiteral("已暂停") },
       { QStringLiteral("COMPLETED"), QStringLiteral("已完成") },
@@ -2742,6 +3631,47 @@ void MainWindow::refreshUi()
                 .arg(coverage.total_segments)
                 .arg(coverage.blocked_segments)
           : QStringLiteral("--"));
+  values_["coverage_parameters"]->setText(
+      coverage_status_fresh
+          ? QStringLiteral("宽 %1 m · 间距 %2 m · R≥%3 m")
+                .arg(coverage.operation_width_m, 0, 'f', 2)
+                .arg(coverage.lane_spacing_m, 0, 'f', 2)
+                .arg(coverage.minimum_turning_radius_m, 0, 'f', 2)
+          : QStringLiteral("--"));
+  QString coverage_kinematics = QStringLiteral("--");
+  if (coverage_status_fresh)
+  {
+    if (coverage.kinematics_verified)
+    {
+      coverage_kinematics =
+          QStringLiteral("已核对 · L %1 m · 转角需 %2° / 上限 %3°")
+              .arg(coverage.chassis_wheelbase_m, 0, 'f', 2)
+              .arg(180.0 * coverage.required_steering_angle_rad / kPi, 0, 'f', 1)
+              .arg(180.0 * coverage.chassis_max_steering_angle_rad / kPi,
+                   0, 'f', 1);
+    }
+    else
+    {
+      coverage_kinematics = QStringLiteral("待任务开始时在线核对");
+      if (coverage.chassis_max_steering_angle_rad > 0.0F)
+        coverage_kinematics = QStringLiteral("核对未通过 · 需查看详情");
+    }
+  }
+  values_["coverage_kinematics"]->setText(coverage_kinematics);
+  values_["coverage_kinematics"]->setToolTip(
+      coverage_status_fresh
+          ? QString::fromStdString(coverage.kinematics_detail)
+          : QStringLiteral("等待 /coverage/status"));
+  values_["coverage_avoidance"]->setText(
+      coverage_status_fresh
+          ? (coverage.avoidance_ready
+                 ? QStringLiteral("已就绪 · MID360 + 前后 LD19")
+                 : QStringLiteral("未就绪 · 覆盖启动/恢复禁用"))
+          : QStringLiteral("--"));
+  values_["coverage_avoidance"]->setToolTip(
+      coverage_status_fresh
+          ? QString::fromStdString(coverage.avoidance_detail)
+          : QStringLiteral("等待 /coverage/status"));
   values_["coverage_area"]->setText(
       coverage_status_fresh
           ? QStringLiteral("%1 / %2 m²")
@@ -2754,8 +3684,13 @@ void MainWindow::refreshUi()
           : QStringLiteral("--"));
   values_["coverage_ratio"]->setText(
       coverage_status_fresh
-          ? QStringLiteral("%1 %").arg(100.0 * coverage.coverage_ratio, 0, 'f', 1)
+          ? QStringLiteral("已覆盖估算 %1 / %2 m² · %3 %")
+                .arg(coverage.traversed_area_m2, 0, 'f', 1)
+                .arg(coverage.reachable_area_m2, 0, 'f', 1)
+                .arg(100.0 * coverage.coverage_ratio, 0, 'f', 1)
           : QStringLiteral("--"));
+  values_["coverage_actuator"]->setText(
+      QStringLiteral("未接入 · 仅执行覆盖导航"));
   values_["coverage_detail"]->setText(
       coverage_status_fresh ? QString::fromStdString(coverage.detail)
                             : QStringLiteral("等待 /coverage/status"));
@@ -2765,6 +3700,7 @@ void MainWindow::refreshUi()
                                  !coverage_command_pending_;
   coverage_width_input_->setEnabled(coverage_editable);
   coverage_overlap_input_->setEnabled(coverage_editable);
+  coverage_speed_input_->setEnabled(coverage_editable);
   coverage_reverse_checkbox_->setEnabled(coverage_editable);
   coverage_select_button_->setEnabled(coverage_editable && !coverage_selecting);
   coverage_undo_button_->setEnabled(coverage_selecting && coverage_point_count > 0 &&
@@ -2778,14 +3714,17 @@ void MainWindow::refreshUi()
                                         !coverage_plan_pending_);
   const bool coverage_can_start = coverage_editable && coverage_status_fresh &&
                                   coverage.state == "READY" && coverage.localized &&
+                                  coverage.avoidance_ready &&
                                   !coverage_plan_id_.empty();
   coverage_start_button_->setEnabled(coverage_can_start);
   coverage_start_button_->setToolTip(
       coverage_can_start
-          ? QStringLiteral("后端仍会复核运动门、FOD 仲裁、定位、里程计和 move_base")
+          ? QStringLiteral("后端仍会复核运动门、FOD 仲裁、定位、里程计、障碍融合和 move_base")
           : (!coverage_map_ready
-                 ? QStringLiteral("需要以 --map-set 启动并收到全局地图")
-                 : QStringLiteral("需要先生成轨迹并达到 LOCALIZED")));
+                 ? QStringLiteral("需要显式以 --map-set 启动实验性全局地图模式")
+                 : (coverage_status_fresh && !coverage.avoidance_ready
+                        ? QStringLiteral("需要新鲜 /scan 且前后 LD19 已参与融合")
+                        : QStringLiteral("需要先生成轨迹并达到 LOCALIZED"))));
   // Once a task is active, pause/cancel are safety controls and stay available
   // even if the map topic subsequently drops out.
   coverage_pause_button_->setEnabled(master_online_ && ros_interfaces_ready_ &&
@@ -2808,6 +3747,10 @@ bool MainWindow::relativeGoalReady(const TelemetrySnapshot& data,
   };
   if (!master_online_ || !ros_interfaces_ready_)
     return reject(QStringLiteral("ROS 未连接"));
+  if (data.coverage_status_received &&
+      wallAge(data.coverage_status_received_at) <= 2.0 &&
+      data.coverage_status.active)
+    return reject(QStringLiteral("覆盖清扫正在独占 move_base，不能发送普通目标"));
   if (health.health != Health::Good)
     return reject(QStringLiteral("FAST-LIO 健康度未达到“健康”"));
   if (!data.odom_received || wallAge(data.odom_received_at) > 0.5)
@@ -2923,6 +3866,16 @@ void MainWindow::cancelNavigation()
                              QStringLiteral("ROS master 离线，未发布取消消息。"));
     return;
   }
+  const TelemetrySnapshot data = snapshot();
+  if (data.coverage_status_received &&
+      wallAge(data.coverage_status_received_at) <= 2.0 &&
+      data.coverage_status.active)
+  {
+    QMessageBox::information(
+        this, QStringLiteral("覆盖任务正在执行"),
+        QStringLiteral("普通导航取消会破坏覆盖状态机；请在清扫页使用“取消覆盖清扫”。"));
+    return;
+  }
   actionlib_msgs::GoalID cancel;
   cancel.stamp = ros::Time(0);
   cancel.id.clear();
@@ -2932,11 +3885,12 @@ void MainWindow::cancelNavigation()
 
 void MainWindow::selectCoveragePointTool(bool enabled)
 {
-  if (!coverage_rviz_frame_ || !coverage_rviz_frame_->getManager() ||
-      !coverage_rviz_frame_->getManager()->getToolManager())
+  if (!rviz_frame_ || rviz_attached_tab_index_ != coverage_tab_index_ ||
+      !rviz_frame_->getManager() ||
+      !rviz_frame_->getManager()->getToolManager())
     return;
   rviz::ToolManager* manager =
-      coverage_rviz_frame_->getManager()->getToolManager();
+      rviz_frame_->getManager()->getToolManager();
   const QString wanted = enabled ? QStringLiteral("rviz/PublishPoint")
                                  : QStringLiteral("rviz/MoveCamera");
   for (int index = 0; index < manager->numTools(); ++index)
@@ -2998,7 +3952,9 @@ void MainWindow::beginCoverageSelection()
 {
   const TelemetrySnapshot data = snapshot();
   if (!master_online_ || !ros_interfaces_ready_ || !static_map_mode_ ||
-      !data.map_received || !coverage_rviz_initialized_)
+      !data.map_received || !rviz_initialized_ ||
+      rviz_map_ready_message_count_ != data.map_message_count ||
+      rviz_attached_tab_index_ != coverage_tab_index_)
   {
     QMessageBox::information(
         this, QStringLiteral("无法框定清扫范围"),
@@ -3141,11 +4097,15 @@ void MainWindow::startCoverage()
 {
   if (coverage_plan_id_.empty() || coverage_command_pending_)
     return;
+  const double max_speed_mps = coverage_speed_input_->value();
   const QMessageBox::StandardButton answer = QMessageBox::question(
       this, QStringLiteral("确认开始覆盖清扫"),
       QStringLiteral("无人车将先导航到规划器选择的起点，再逐段执行覆盖轨迹。V1 不会启动"
                      "刷盘、风机或喷淋。请确认现场人员远离车辆、实体急停可用且当前定位"
-                     "与车辆真实位置一致。\n\n是否开始？"),
+                     "与车辆真实位置一致。\n\n本次最高前进速度：%1 m/s（覆盖任务上限 1.60 m/s）。"
+                     "开始前将在线核对 VCU/TEB 运动学参数。"
+                     "\n是否开始？")
+          .arg(max_speed_mps, 0, 'f', 2),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
   if (answer != QMessageBox::Yes)
     return;
@@ -3164,7 +4124,7 @@ void MainWindow::startCoverage()
               QMessageBox::warning(this, QStringLiteral("覆盖任务未启动"), message);
             watcher->deleteLater();
           });
-  watcher->setFuture(QtConcurrent::run([plan_id]() {
+  watcher->setFuture(QtConcurrent::run([plan_id, max_speed_mps]() {
     ros::NodeHandle node;
     ros::ServiceClient client =
         node.serviceClient<autolabor_coverage::StartCoverage>("/coverage/start", false);
@@ -3172,6 +4132,7 @@ void MainWindow::startCoverage()
       return QStringLiteral("ERR|覆盖执行服务未启动");
     autolabor_coverage::StartCoverage call;
     call.request.plan_id = plan_id;
+    call.request.max_speed_mps = max_speed_mps;
     if (!client.call(call))
       return QStringLiteral("ERR|覆盖执行服务调用失败");
     return QString(call.response.accepted ? QStringLiteral("OK|")

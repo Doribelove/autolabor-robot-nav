@@ -1,8 +1,14 @@
-operation_width_m: 0.70
+operation_width_m: 1.00
 overlap_ratio: 0.15
 allow_reverse_transit: true
 reverse_transit_speed_mps: 0.15
-minimum_turning_radius_m: 1.20
+default_max_speed_mps: 0.80
+max_speed_limit_mps: 1.60
+minimum_turning_radius_m: 1.35
+expected_wheelbase_m: 0.65
+expected_max_steering_angle_rad: 0.488692
+steering_angle_margin_rad: 0.034907
+chassis_wheelbase_tolerance_m: 0.02
 footprint_front_m: 0.62
 footprint_rear_m: 0.62
 footprint_half_width_m: 0.45
@@ -14,5 +20,10 @@ segment_retry_count: 3
 final_retry_count: 1
 localization_fresh_sec: 0.75
 watchdog_fresh_sec: 1.0
+avoidance_scan_fresh_sec: 0.5
+dual_lidar_fresh_sec: 1.0
+avoidance_scan_future_tolerance_sec: 0.2
+avoidance_scan_frame: base_link
+require_dual_lidar_for_coverage: true
 goal_timeout_base_sec: 20.0
 goal_timeout_per_meter_sec: 20.0

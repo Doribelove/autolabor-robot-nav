@@ -3,11 +3,14 @@
 import pathlib
 import unittest
 
+import yaml
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SOURCE = (ROOT / "src/fast_lio_map_localizer.cpp").read_text(encoding="utf-8")
 LAUNCH = (ROOT / "launch/known_map_localization.launch").read_text(encoding="utf-8")
 README = (ROOT / "README.md").read_text(encoding="utf-8")
+CONFIG = yaml.safe_load((ROOT / "config/mid360.yaml").read_text(encoding="utf-8"))
 
 
 class KnownMapLocalizerContractTest(unittest.TestCase):
@@ -24,6 +27,23 @@ class KnownMapLocalizerContractTest(unittest.TestCase):
         self.assertIn("initialPoseCallback", SOURCE)
         self.assertIn("WAITING_INITIAL_POSE", SOURCE)
         self.assertIn('required="true"', LAUNCH)
+
+    def test_initial_pose_and_registration_require_fresh_scan_and_odometry(self):
+        self.assertIn("receiptIsFresh", SOURCE)
+        self.assertIn("latest_scan_received_", SOURCE)
+        self.assertIn("latest_odom_received_", SOURCE)
+        self.assertIn('recordFailure(generation, "scan is stale")', SOURCE)
+        self.assertIn('recordFailure(generation, "odometry is stale")', SOURCE)
+
+    def test_localization_requires_consecutive_good_matches(self):
+        self.assertEqual(2, CONFIG["good_matches_required"])
+        self.assertIn('good_matches_required_, 2)', SOURCE)
+        self.assertIn("++good_matches_", SOURCE)
+        self.assertIn("good_matches_ >= good_matches_required_", SOURCE)
+        self.assertIn("last_success_ = ros::Time::now()", SOURCE)
+        timeout_loss = SOURCE.index("if (data_stale || match_expired)")
+        next_publish = SOURCE.index("if (publish_transform)", timeout_loss)
+        self.assertIn("good_matches_ = 0", SOURCE[timeout_loss:next_publish])
 
     def test_has_upstream_attribution_and_no_open3d_runtime(self):
         self.assertIn("HViktorTsoi/FAST_LIO_LOCALIZATION", README)

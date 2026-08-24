@@ -47,7 +47,7 @@ class CommandWatchdog:
         )
         self.status_rate_hz = float(rospy.get_param("~status_rate_hz", 2.0))
         self.max_linear_speed = float(
-            rospy.get_param("~max_linear_speed", 0.30)
+            rospy.get_param("~max_linear_speed", 1.70)
         )
         self.max_angular_speed = float(
             rospy.get_param("~max_angular_speed", 0.60)
@@ -118,8 +118,8 @@ class CommandWatchdog:
             raise ValueError("publish_rate_hz must be between 20 and 100")
         if self.graph_check_rate_hz <= 0.0 or self.status_rate_hz <= 0.0:
             raise ValueError("graph/status rates must be positive")
-        if not 0.0 < self.max_linear_speed <= 0.30:
-            raise ValueError("max_linear_speed must be in (0, 0.30]")
+        if not 0.0 < self.max_linear_speed <= 1.70:
+            raise ValueError("max_linear_speed must be in (0, 1.70]")
         if not 0.0 < self.max_angular_speed <= 1.0:
             raise ValueError("max_angular_speed must be in (0, 1.0]")
         if not 0.25 <= self.shutdown_zero_sec <= 2.0:

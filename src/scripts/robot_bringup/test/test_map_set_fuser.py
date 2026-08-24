@@ -111,20 +111,37 @@ class MapSetFuserTest(unittest.TestCase):
                 {"source": "dual_ld19_only"},
             )
             pcd = root / "map.pcd"
-            write_pcd(pcd, [(9.0, 9.0, -0.756)])
+            write_pcd(pcd, [(9.0, 9.0, -0.4)])
             observations = root / "slice.yaml"
             observations.write_text(
                 yaml.safe_dump({
-                    "schema_version": 1,
+                    "schema_version": 2,
                     "frame_id": "camera_init",
                     "resolution_m": 1.0,
-                    "slice_center_z_m": -0.756,
-                    "slice_half_width_m": 0.10,
+                    "slice_center_z_m": -0.4,
+                    "slice_half_width_m": 0.20,
                     "min_frame_observations": 20,
                     "observed_clouds": 100,
                     "candidate_cells": 2,
+                    "accepted_cells_before_sweep": 2,
                     "accepted_cells": 1,
+                    "moving_self_crop": {
+                        "enabled": True,
+                        "point_frame_id": "base_link",
+                        "point_bounds_xy_m": [-0.75, 0.75, -0.50, 0.50],
+                        "body_to_base_xyz_m": [-0.211, -0.02329, -0.95588],
+                        "exact_time_sync": True,
+                        "point_rejected_count": 3,
+                        "sweep_frame_id": "base_link",
+                        "sweep_bounds_xy_m": [-0.62, 0.62, -0.45, 0.45],
+                        "sweep_linear_step_m": 0.05,
+                        "sweep_angular_step_rad": 0.03490658503988659,
+                        "sweep_pose_samples": 4,
+                        "swept_cells": 1,
+                        "swept_accepted_cells_filtered": 1,
+                    },
                     "cells": [[2, 0, 25]],
+                    "swept_cells": [[1, 1]],
                 }),
                 encoding="utf-8",
             )
@@ -134,8 +151,8 @@ class MapSetFuserTest(unittest.TestCase):
                 slice_observations=str(observations),
                 output_dir=str(fused_dir),
                 map_name="map",
-                slice_center_z=-0.756,
-                slice_half_width=0.10,
+                slice_center_z=-0.4,
+                slice_half_width=0.20,
                 min_points_per_cell=2,
                 resolution=1.0,
             )
@@ -146,6 +163,80 @@ class MapSetFuserTest(unittest.TestCase):
             config = yaml.safe_load((fused_dir / "config.yaml").read_text())
             self.assertEqual("persistent_occupied_union", config["fusion_policy"])
             self.assertEqual(20, config["min_frame_observations"])
+            self.assertTrue(config["moving_self_crop"]["enabled"])
+            self.assertEqual(1, config["swept_accepted_cells_filtered"])
+
+    def test_rejects_legacy_persistent_slice_without_moving_crop_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = pathlib.Path(temporary)
+            observations = root / "legacy_slice.yaml"
+            observations.write_text(
+                yaml.safe_dump({
+                    "schema_version": 1,
+                    "frame_id": "camera_init",
+                    "resolution_m": 1.0,
+                    "slice_center_z_m": -0.4,
+                    "slice_half_width_m": 0.20,
+                    "min_frame_observations": 20,
+                    "observed_clouds": 100,
+                    "accepted_cells": 1,
+                    "cells": [[2, 0, 25]],
+                }),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "moving self-crop evidence"):
+                MODULE.load_slice_observations(
+                    str(observations), 1.0, -0.4, 0.20
+                )
+
+    def test_rejects_schema_without_coordinate_frame(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            observations = pathlib.Path(temporary) / "missing_frame.yaml"
+            observations.write_text(
+                yaml.safe_dump({"schema_version": 2}), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "frame_id"):
+                MODULE.load_slice_observations(
+                    str(observations), 1.0, -0.4, 0.20
+                )
+
+    def test_rejects_accepted_cell_inside_swept_footprint(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            observations = pathlib.Path(temporary) / "overlap_slice.yaml"
+            observations.write_text(
+                yaml.safe_dump({
+                    "schema_version": 2,
+                    "frame_id": "camera_init",
+                    "resolution_m": 1.0,
+                    "slice_center_z_m": -0.4,
+                    "slice_half_width_m": 0.20,
+                    "min_frame_observations": 20,
+                    "observed_clouds": 100,
+                    "accepted_cells_before_sweep": 1,
+                    "accepted_cells": 1,
+                    "moving_self_crop": {
+                        "enabled": True,
+                        "point_frame_id": "base_link",
+                        "point_bounds_xy_m": [-0.75, 0.75, -0.50, 0.50],
+                        "body_to_base_xyz_m": [-0.211, -0.02329, -0.95588],
+                        "exact_time_sync": True,
+                        "sweep_frame_id": "base_link",
+                        "sweep_bounds_xy_m": [-0.62, 0.62, -0.45, 0.45],
+                        "sweep_linear_step_m": 0.05,
+                        "sweep_angular_step_rad": 0.03490658503988659,
+                        "sweep_pose_samples": 4,
+                        "swept_cells": 1,
+                        "swept_accepted_cells_filtered": 0,
+                    },
+                    "cells": [[2, 0, 25]],
+                    "swept_cells": [[2, 0]],
+                }),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "inside the swept footprint"):
+                MODULE.load_slice_observations(
+                    str(observations), 1.0, -0.4, 0.20
+                )
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ UI_CHILD_PATTERN='roslaunch([[:space:]].*)?(autolabor_fod_vision[[:space:]]+zed_
 UI_ROS_NODES=(
   /zed2/zed_node /zed2/zed2_state_publisher /fod_detector
   /fod_image_quality_controller /fod_ground_projector /fod_tracker
-  /autolabor_operator_gui
+  /autolabor_operator_gui /operator_map_display_anchor
 )
 mkdir -p "$RUN_DIR" "$DUAL_HOST_WS/log"
 
@@ -78,6 +78,7 @@ PIDS=()
 CHILD_PID_FILES=()
 CLEANUP_STARTED=0
 self_pid_line=""
+last_started_pid=""
 
 start_process() {
   local log_file="$1" pid child_pid_file
@@ -87,11 +88,33 @@ start_process() {
   child_pid_file="$CHILD_PID_DIR/$pid.pid"
   PIDS+=("$pid")
   CHILD_PID_FILES+=("$child_pid_file")
+  last_started_pid="$pid"
   if ! dual_host_write_pid_file "$child_pid_file" "$pid"; then
     kill -TERM "$pid" 2>/dev/null || true
     wait "$pid" 2>/dev/null || true
     return 1
   fi
+}
+
+wait_for_zed_image() {
+  local vision_pid="$1" vision_log="$2"
+  local deadline=$((SECONDS + ZED_IMAGE_WAIT_SEC))
+  echo "Waiting up to ${ZED_IMAGE_WAIT_SEC}s for the first ZED image on /fod_camera/image_raw..."
+  while ! timeout 3 rostopic echo --noarr -n 1 /fod_camera/image_raw >/dev/null 2>&1; do
+    if ! kill -0 "$vision_pid" 2>/dev/null; then
+      wait "$vision_pid" 2>/dev/null || true
+      echo "ZED/vision launch exited before publishing an image." >&2
+      tail -n 80 "$vision_log" >&2 || true
+      return 1
+    fi
+    if (( SECONDS >= deadline )); then
+      echo "Timed out waiting for a live ZED image; a ROS node name alone is not camera readiness." >&2
+      "$SCRIPT_DIR/zed_camera_check.sh" --wait 0 >&2 || true
+      tail -n 80 "$vision_log" >&2 || true
+      return 1
+    fi
+  done
+  echo "ZED image stream is live on /fod_camera/image_raw."
 }
 
 cleanup() {
@@ -121,12 +144,21 @@ if [[ "$NVIDIA_START_VISION" == true ]]; then
     echo "YOLO weights are missing: $fod_weights" >&2
     exit 5
   }
+  if [[ "$NVIDIA_START_CAMERA" == true ]]; then
+    "$SCRIPT_DIR/zed_camera_check.sh" --wait "$ZED_USB_WAIT_SEC"
+  fi
+  vision_log="$LOG_DIR/vision.log"
   start_process "$LOG_DIR/vision.log" \
     roslaunch autolabor_fod_vision zed_fod_detection.launch \
       start_camera:="$NVIDIA_START_CAMERA" \
+      serial_number:="$NVIDIA_ZED_SERIAL" \
       detector_python:="$NVIDIA_DETECTOR_PYTHON" \
       weights:="$fod_weights" \
       enable_image_quality_controller:=false
+  vision_pid="$last_started_pid"
+  if [[ "$NVIDIA_START_CAMERA" == true ]]; then
+    wait_for_zed_image "$vision_pid" "$vision_log"
+  fi
 fi
 
 if [[ "$NVIDIA_START_QT" == true ]]; then

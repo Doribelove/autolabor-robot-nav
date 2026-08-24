@@ -29,6 +29,17 @@ find_package(Qt5 REQUIRED COMPONENTS
   Widgets
 )
 
+# MapDisplay exposes its loaded texture dimensions only from RViz's default
+# plugin library.  The GUI links it directly so startup can verify that the
+# embedded display (not merely a parallel /map subscriber) is actually ready.
+find_library(RVIZ_DEFAULT_PLUGIN_LIBRARY
+  NAMES rviz_default_plugin
+  HINTS ${catkin_LIBRARY_DIRS}
+)
+if(NOT RVIZ_DEFAULT_PLUGIN_LIBRARY)
+  message(FATAL_ERROR "RViz default plugin library is required")
+endif()
+
 catkin_package(
   CATKIN_DEPENDS
     actionlib_msgs
@@ -66,6 +77,7 @@ add_dependencies(${PROJECT_NAME}_node
 target_link_libraries(${PROJECT_NAME}_node
   Qt5::Concurrent
   Qt5::Widgets
+  ${RVIZ_DEFAULT_PLUGIN_LIBRARY}
   ${catkin_LIBRARIES}
 )
 

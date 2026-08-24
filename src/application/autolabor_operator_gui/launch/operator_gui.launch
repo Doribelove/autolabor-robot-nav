@@ -3,8 +3,6 @@
   <arg name="enable_rviz" default="true"/>
   <arg name="rviz_config"
        default="$(find autolabor_operator_gui)/config/operator_navigation.rviz"/>
-  <arg name="coverage_rviz_config"
-       default="$(find autolabor_operator_gui)/config/coverage_navigation.rviz"/>
   <arg name="navigation_mode_label" default="FAST_LIO"/>
   <arg name="odom_topic" default="/Odometry"/>
   <arg name="cloud_topic" default="/cloud_registered_body"/>
@@ -13,6 +11,23 @@
   <arg name="rviz_navigation_fixed_frame" default="map"/>
   <arg name="static_map_mode" default="false"/>
 
+  <!--
+    map_server publishes an OccupancyGrid but no TF. Before the operator sends
+    /initialpose, the known-map localizer intentionally does not publish
+    map->camera_init, so RViz otherwise rejects the /map message because the
+    map frame does not exist in its TF buffer. This identity leaf only makes
+    the root frame discoverable for rendering; it never connects map to the
+    robot and cannot create a provisional vehicle pose.
+  -->
+  <group if="$(arg static_map_mode)">
+    <node pkg="tf2_ros"
+          type="static_transform_publisher"
+          name="operator_map_display_anchor"
+          args="0 0 0 0 0 0 1 map autolabor_map_display_anchor"
+          output="screen"
+          required="true"/>
+  </group>
+
   <node pkg="autolabor_operator_gui"
         type="autolabor_operator_gui_node"
         name="autolabor_operator_gui"
@@ -20,7 +35,6 @@
         required="true">
     <param name="enable_rviz" value="$(arg enable_rviz)"/>
     <param name="rviz_config" value="$(arg rviz_config)"/>
-    <param name="coverage_rviz_config" value="$(arg coverage_rviz_config)"/>
     <param name="navigation_mode_label" value="$(arg navigation_mode_label)"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="cloud_topic" value="$(arg cloud_topic)"/>

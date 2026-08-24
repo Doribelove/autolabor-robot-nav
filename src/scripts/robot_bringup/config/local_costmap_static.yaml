@@ -12,8 +12,23 @@ local_costmap:
   resolution: 0.10
 
   plugins:
+    # Keep immutable 2-D walls in the rolling local window. Without this
+    # layer TEB only sees live /scan obstacles and may optimize through a wall
+    # that is present exclusively in the known map.
+    - {name: static_layer, type: "costmap_2d::StaticLayer"}
     - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
     - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+
+  static_layer:
+    enabled: true
+    map_topic: /map
+    first_map_only: false
+    subscribe_to_updates: true
+    track_unknown_space: true
+    use_maximum: false
+    trinary_costmap: true
+    lethal_cost_threshold: 65
+    unknown_cost_value: -1
 
   obstacles_layer:
     observation_sources: scan

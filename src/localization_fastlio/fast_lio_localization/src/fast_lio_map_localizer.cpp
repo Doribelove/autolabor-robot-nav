@@ -85,11 +85,26 @@ geometry_msgs::Pose matrixPose(const Matrix& matrix)
 
 double yawFromQuaternion(const geometry_msgs::Quaternion& quaternion)
 {
-  const double sin_yaw = 2.0 * (quaternion.w * quaternion.z +
-                                quaternion.x * quaternion.y);
-  const double cos_yaw = 1.0 - 2.0 * (quaternion.y * quaternion.y +
-                                     quaternion.z * quaternion.z);
+  Eigen::Quaterniond normalized(quaternion.w, quaternion.x, quaternion.y,
+                                quaternion.z);
+  const double norm = normalized.norm();
+  if (!std::isfinite(norm) || norm < 1.0e-9)
+    throw std::runtime_error("initial pose contains an invalid quaternion");
+  normalized.normalize();
+  const double sin_yaw = 2.0 * (normalized.w() * normalized.z() +
+                                normalized.x() * normalized.y());
+  const double cos_yaw = 1.0 - 2.0 * (normalized.y() * normalized.y() +
+                                     normalized.z() * normalized.z());
   return std::atan2(sin_yaw, cos_yaw);
+}
+
+bool receiptIsFresh(const ros::Time& now, const ros::Time& receipt,
+                    double timeout)
+{
+  if (now.isZero() || receipt.isZero())
+    return false;
+  const double age = (now - receipt).toSec();
+  return std::isfinite(age) && age >= 0.0 && age <= timeout;
 }
 
 Cloud::Ptr downsample(const Cloud::ConstPtr& input, double leaf_size)
@@ -190,7 +205,7 @@ private:
     private_nh_.param("min_inliers", min_inliers_, 100);
     private_nh_.param("min_overlap", min_overlap_, 0.30);
     private_nh_.param("max_rmse", max_rmse_, 0.35);
-    private_nh_.param("good_matches_required", good_matches_required_, 1);
+    private_nh_.param("good_matches_required", good_matches_required_, 2);
     private_nh_.param("lost_matches_required", lost_matches_required_, 3);
     private_nh_.param("base_to_body_x", base_to_body_x_, 0.20);
     private_nh_.param("base_to_body_y", base_to_body_y_, 0.0);
@@ -281,13 +296,26 @@ private:
     }
 
     nav_msgs::OdometryConstPtr odometry;
+    bool have_scan = false;
+    ros::Time scan_received;
+    ros::Time odom_received;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       odometry = latest_odom_;
+      have_scan = static_cast<bool>(latest_scan_);
+      scan_received = latest_scan_received_;
+      odom_received = latest_odom_received_;
     }
-    if (!odometry)
+    if (!odometry || !have_scan)
     {
-      ROS_WARN("fast_lio_map_localizer: wait for FAST-LIO odometry before initial pose");
+      ROS_WARN("fast_lio_map_localizer: wait for fresh FAST-LIO scan and odometry before initial pose");
+      return;
+    }
+    const ros::Time now = ros::Time::now();
+    if (!receiptIsFresh(now, scan_received, data_timeout_) ||
+        !receiptIsFresh(now, odom_received, data_timeout_))
+    {
+      ROS_WARN("fast_lio_map_localizer: rejecting initial pose while scan or odometry is stale");
       return;
     }
 
@@ -348,6 +376,7 @@ private:
     nav_msgs::OdometryConstPtr odometry;
     Matrix initial_guess;
     ros::Time scan_received;
+    ros::Time odom_received;
     std::uint64_t generation = 0;
     {
       std::lock_guard<std::mutex> lock(mutex_);
@@ -357,14 +386,19 @@ private:
       odometry = latest_odom_;
       initial_guess = map_to_odom_;
       scan_received = latest_scan_received_;
+      odom_received = latest_odom_received_;
       generation = seed_generation_;
     }
 
     const ros::Time now = ros::Time::now();
-    if (!now.isZero() && !scan_received.isZero() &&
-        (now - scan_received).toSec() > data_timeout_)
+    if (!receiptIsFresh(now, scan_received, data_timeout_))
     {
       recordFailure(generation, "scan is stale");
+      return;
+    }
+    if (!receiptIsFresh(now, odom_received, data_timeout_))
+    {
+      recordFailure(generation, "odometry is stale");
       return;
     }
 
@@ -460,7 +494,7 @@ private:
       rmse_ = rmse;
       ++good_matches_;
       bad_matches_ = 0;
-      last_success_ = now;
+      last_success_ = ros::Time::now();
       if (good_matches_ >= good_matches_required_)
       {
         state_ = "LOCALIZED";
@@ -548,15 +582,16 @@ private:
       if (initial_pose_received_)
       {
         const bool data_stale =
-            (!latest_scan_received_.isZero() &&
-             (now - latest_scan_received_).toSec() > data_timeout_) ||
-            (!latest_odom_received_.isZero() &&
-             (now - latest_odom_received_).toSec() > data_timeout_);
+            !receiptIsFresh(now, latest_scan_received_, data_timeout_) ||
+            !receiptIsFresh(now, latest_odom_received_, data_timeout_);
         const bool match_expired =
-            ever_localized_ && !last_success_.isZero() &&
-            (now - last_success_).toSec() > localization_timeout_;
+            ever_localized_ &&
+            !receiptIsFresh(now, last_success_, localization_timeout_);
         if (data_stale || match_expired)
+        {
           state_ = "LOST";
+          good_matches_ = 0;
+        }
         map_to_odom = map_to_odom_;
         odometry = latest_odom_;
         publish_transform = true;

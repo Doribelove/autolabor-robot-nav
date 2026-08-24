@@ -3,6 +3,9 @@ TebLocalPlannerROS:
   map_frame: camera_init
   global_plan_overwrite_orientation: True
   allow_init_with_backwards_motion: False
+  # Preserve v/omega ratio when either command component reaches its limit so
+  # the downstream Twist-to-steering conversion keeps the planned curvature.
+  use_proportional_saturation: True
   max_global_plan_lookahead_dist: 12.0
   global_plan_viapoint_sep: 0.8
   global_plan_prune_distance: 1.0
@@ -20,7 +23,9 @@ TebLocalPlannerROS:
   min_vel_x_backwards: 0.0
   acc_lim_x: 2.0
   acc_lim_theta: 0.5
-  min_turning_radius: 1.2 # Hardware minimum turning radius.
+  # VCU: L=0.65 m, max steer=28 deg -> theoretical R=1.222 m.  Use 1.35 m
+  # (25.71 deg) so routine tracking retains about 2.29 deg steering margin.
+  min_turning_radius: 1.35
   wheelbase: 0.65
   # M2 driver subscribes /cmd_vel as Twist and converts angular.z velocity to steering.
   # Keep this false so TEB publishes rotational velocity, not steering angle.

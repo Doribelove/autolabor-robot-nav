@@ -1,6 +1,6 @@
 # 双机项目终端交接
 
-更新时间：2026-08-19（Asia/Shanghai）
+更新时间：2026-08-23（Asia/Shanghai）
 
 工作区：`/home/slam/robot_j6m_ws`
 
@@ -27,7 +27,8 @@ cd /home/slam/robot_j6m_ws
 5. 启动 NVIDIA MID360、CAN/M2 和速度看门狗；
 6. 等待 J6M FAST-LIO、避障融合、move_base/TEB、FOD 仲裁；
 7. 启动 ZED、YOLO11、Qt 与嵌入式 RViz；
-8. 运行最终 `--runtime` 健康检查。
+8. 运行最终运行态健康检查；节点、主机归属、参数和 topic 所有权异常仍会阻止启动，
+   暂时缺少传感器消息只打印 `WARN` 并让服务保持运行。
 
 看到以下文字才表示完整启动成功：
 
@@ -36,6 +37,10 @@ Dual-host project is ready and managed by autolabor-dual-host.service.
 ```
 
 此时终端可以直接关闭。完整进程组由用户级 `autolabor-dual-host.service` 托管，不再依赖启动它的终端或图形桌面会话；任一关键进程退出时，服务会同步停止 NVIDIA 与 J6M，避免 FAST-LIO 在 Livox 断流后继续运行。
+
+启动器内部使用 `--runtime --allow-missing-data` 区分“ROS 图已正常建立”和“实时数据
+已经到达”。需要严格验收数据链时仍执行 `./scripts/health_check.sh --runtime`；该命令
+会把任何缺流项打印为 `FAIL` 并返回非零，但不会自行停止已经运行的服务。
 
 每次启动前，脚本会自动识别并清理由本项目运行令牌或严格工作区特征确认的旧进程，所以正常残留不再要求重启主机。它不会猜测进程归属，也不会为了抢占 CAN 串口杀死无关程序。
 
@@ -63,6 +68,22 @@ Dual-host project is ready and managed by autolabor-dual-host.service.
 
 不要只重启 `nvidia_gateway.sh`。Livox 断流而 J6M `/laserMapping` 未同步重置，曾导致 FAST-LIO 位姿发散到数千米。
 
+### 实验性静态地图模式
+
+默认命令仍启动无图 FAST-LIO 基线，不加载历史地图。只有操作员明确选择地图集时才启用
+三维已知地图定位加二维导航：
+
+```bash
+./scripts/start_dual_host.sh --start --map-set global_maps/map_sets/latest
+```
+
+该模式每次冷启动都停在 `WAITING_INITIAL_POSE`，不会复用旧位姿。MID360 点云和
+`/Odometry` 都新鲜后，操作员才可在二维地图上给出车辆真实位置附近的
+`/initialpose`；连续两次 ICP 质量检查通过并达到 `LOCALIZED` 后，导航速度门才放行。
+定位退化、丢失或状态超时会立即输出零速并取消当前 move_base 目标，重新定位后不会
+自动恢复旧目标。map_server 只提供二维地图，实时避障仍使用融合后的 `/scan`，不使用
+AMCL。
+
 ## 当前机器分工
 
 | 模块 | NVIDIA | J6M |
@@ -83,7 +104,8 @@ Dual-host project is ready and managed by autolabor-dual-host.service.
 ```text
 MID360 -> NVIDIA Livox driver -> J6M relay -> FAST-LIO
 FAST-LIO -> /Odometry + registered cloud -> /scan -> move_base
-Qt 相对目标 -> /move_base_simple/goal -> move_base
+Qt/RViz 普通目标 -> /move_base_simple/goal -> /navigation_pause 目标门
+                 -> /navigation_goal/accepted -> move_base
 ZED -> YOLO11 -> /fod/detections -> J6M FOD arbiter
 move_base -> /cmd_vel_navigation -> /cmd_vel_safe
           -> NVIDIA watchdog -> /cmd_vel -> M2/CAN
@@ -98,10 +120,11 @@ move_base -> /cmd_vel_navigation -> /cmd_vel_safe
 - ZED 2：序列号 `23748636`，彩色图、深度和 YOLO 检测实测约 `15 Hz`。
 - MID360 点云、`/Odometry`、`/scan` 实测约 `10 Hz`，IMU 约 `200 Hz`。
 
-接口名称可能在重启后变化；启动器会按下列永久 MAC 自动找回接口并修正 NetworkManager 配置：
+接口名称可能在重启后变化；启动器会按下列永久 MAC 自动找回接口并修正 NetworkManager
+配置。MAC 未命中时还会核对配置中的 USB VID:PID + serial，只有唯一精确匹配才会接受：
 
 ```text
-6C:1F:F7:C4:82:83  ASIX 千兆网卡         -> 扩展坞 RJ45/交换机/J6M
+6C:1F:F7:C4:96:B8  ASIX 千兆网卡         -> 扩展坞 RJ45/交换机/J6M
 50:54:7B:E3:C9:10  MID360 专用 USB 网卡  -> MID360
 ```
 
@@ -141,7 +164,28 @@ Qt 标题应为“Autolabor 无人车操作与诊断台”，并能看到：
 - “综合、FAST-LIO、测试、视觉、清扫、日志”全部页签；
 - “清扫”页具有独立全局地图、车辆、计划/实走轨迹和侧栏状态；无 `--map-set` 时
   框定、参数和开始按钮置灰；静态图模式可多点框定、撤销、随时取消和确认闭合；
-- 中央嵌入式 RViz 网格、MID360 点云和避障扫描；
+- 综合和清扫地图都用亮绿色 Polygon 显示 move_base 实时发布的车辆安全轮廓；当前
+  基础 footprint 为 `1.04 × 0.70 m`，含 `0.10 m` padding 后约为 `1.24 × 0.90 m`，
+  并随 `base_link` 移动；静态地图缺少初始位姿或新鲜里程计/TF 时暂不显示是正常状态；
+- 清扫地图另外显示 `/Odometry` 最近 `120` 个有效位姿采样；有效清扫宽度默认
+  `1.00 m`，重叠 `15%` 时车道中心距 `0.85 m`；速度输入默认 `0.80 m/s`、覆盖任务最大
+  `1.60 m/s`，白色侧栏/工具栏区域必须使用黑色文字；
+- 清扫侧栏分别显示覆盖导航状态、去重后的覆盖面积估算、路线宽度/间距/最小半径、
+  VCU/TEB 在线运动学核对、MID360 + 前后 LD19 障碍感知状态和“清扫机构未接入”，
+  不得把 `SWEEPING` 当作刷盘已运行；
+- 覆盖任务活动时目标门拒绝普通 `/move_base_simple/goal`，Qt 相对目标、普通取消和清扫页
+  `SetGoal` 都不能抢占覆盖管理器的分段 action goal；
+- 中央嵌入式 RViz 网格、MID360 点云、动态 aligned scan 和避障扫描；
+- 路线图例明确区分青色覆盖条带、蓝色全局参考路线、红色当前局部轨迹、绿色覆盖执行
+  记录；没有活动 move_base 目标时蓝/红路线必须清空；
+- 静态地图冷启动时，综合页 RViz 自动以 `map` 为视角目标显示完整二维图，并显示
+  “① 显示整张地图 / ② 设置初始位姿”；第二个按钮只选择 `SetInitialPose` 工具，
+  仍必须由操作员在车辆真实位置按住并沿车头方向拖动；
+- ICP 达到 `LOCALIZED` 后应自动进入“③ 跟随车辆”视角，也可手动点击；Fixed Frame
+  保持 `map`，Target Frame 为 `base_link`，局部代价地图随车居中；
+- 同一控制条的“④ 显示静态三维先验”默认关闭；点击后按需显示
+  `/fast_lio_localization/prior_map` 并切换为可旋转视角，再次点击或进入初始位姿工具
+  会恢复二维全图；
 - 右侧 ZED/YOLO11 实时画面；
 - 局部坐标、速度、FAST-LIO 健康分及事件日志；
 - 综合页 `Δ前向 / Δ左向 / ΔYaw` 相对目标输入。未授权运动时不要点击发送。
@@ -162,14 +206,16 @@ FAST-LIO 健康度读法：
 
 ## 安全状态
 
-当前配置必须保持：
+当前交付配置为：
 
 ```text
-MOTION_ENABLED=false
+MOTION_ENABLED=true
 FOD_MOTION_ENABLED=false
 ```
 
-且 `runtime/motion_authorized.ok` 不应存在。这样 CAN/M2 仍正常显示，但 NVIDIA 看门狗持续输出零速度。
+`runtime/motion_authorized.ok` 已由此前现场确认流程创建并保留，不要在部署、重启或收尾时
+静默删除。主运动门为 true 不等于车辆必然执行：定位未完成、传感器缺流、CAN/急停异常、
+指令过期或节点所有权异常时，现有链路仍应保持零速。
 
 只有车辆架空、人员远离车轮、实体急停可用，并明确要做低速运动测试时，才允许按项目原安全流程临时授权：
 
@@ -179,22 +225,32 @@ FOD_MOTION_ENABLED=false
 
 此前实测出现过 `/cmd_vel` 非零但左右轮速仍为零。下次运动测试必须优先检查 M2 控制模式、VCU 急停/制动输入与 CAN 下行帧，不能把非零 `/cmd_vel` 当作底盘已执行。
 
-## 尚未闭环的可选硬件
+## 前后 LD19 与避障融合
 
-前后 LD19 目前仍保持：
-
-```text
-DUAL_LIDAR_PORTS_CONFIRMED=false
-```
-
-本次接线出现 `/dev/ttyUSB1`～`/dev/ttyUSB4` 四路 FTDI 多串口，但以 `230400` 波特率被动读取均没有持续数据，无法安全判断哪两路是前/后 LD19。因此当前：
+前后物理口已完成确认，当前实际配置为：
 
 ```text
-/avoidance/source_mode = mid360
-/avoidance/dual_lidar_active = false
+DUAL_LIDAR_PORTS_CONFIRMED=true
+front = /dev/serial/by-path/platform-3610000.xhci-usb-0:4.4:1.0-port0
+rear  = /dev/serial/by-path/platform-3610000.xhci-usb-0:4.3:1.0-port0
 ```
 
-MID360 会独立生成 `/scan`，FAST-LIO 与避障仍可正常运行。没有完成逐个拔插识别和前后方向确认前，不得把 `DUAL_LIDAR_PORTS_CONFIRMED` 改为 `true`。
+系统级 `/dev/autolabor/lidar_front`、`lidar_rear` 别名目前没有生成，且本次会话没有
+免密 sudo，未重载 udev；运行配置直接使用上述稳定物理路径，因此不依赖易变的
+`ttyUSBn`。2026-08-23 实际冷启动验收结果为：
+
+```text
+/dual_lidar/front/scan_raw ~= 10 Hz
+/dual_lidar/rear/scan_raw  ~= 10 Hz
+/dual_lidar/scan           ~= 10 Hz
+/mid360/scan               ~= 10 Hz
+/scan                      ~= 10 Hz
+/avoidance/source_mode = mid360+dual_ld19
+/avoidance/dual_lidar_active = true
+```
+
+普通导航保留 MID360 单源降级能力；覆盖任务要求 `/scan` 新鲜且前后 LD19 确实参与，
+任一条件丢失会拒绝启动/恢复，执行中丢失则暂停并取消当前目标，要求人工恢复。
 
 ## Jetson/ZED 注意事项
 
@@ -206,6 +262,24 @@ stat -c '%a %U %G %n' /dev/nvhost-vic
 ```
 
 一键启动器会在启动 ZED 前检查访问权限并拒绝带故障启动。系统已有 `/etc/udev/rules.d/99-tegra-devices.rules`，其预期权限就是 `root:video 0660`。若重启后复发，需要管理员重新应用 udev 权限并重启 `nvargus-daemon`，再执行完整冷启动。
+
+2026-08-23 又确认了一类独立故障：ZED `2b03:f780/f781` 在 udev 稳定前完成冷枚举，
+usbfs 和 hidraw 节点停在 `root:root 0600`，同时视频链路只协商到 `480M`。项目提供：
+
+```bash
+./scripts/install_zed_udev.sh       # 首次安装，需管理员密码
+./scripts/zed_camera_check.sh --wait 0
+```
+
+安装器通过 `autolabor-zed-coldplug.service` 在以后开机后重新应用 ZED 规则；USB 速率
+仍必须由正确的 USB 3.x 端口、线缆和插头接触保证。若检查显示 `480M`，翻面重插
+相机端 Type-C 或改接原生 USB 3.x 口，直到显示 `5000M` 或更高。ROS 中仅有
+`/zed2/zed_node` 不表示相机已打开，必须实际收到 `/fod_camera/image_raw` 和
+`/fod_camera/depth_registered`。
+
+补充：本机 ZED SDK 4 已实测在 f780 为 `5000M`、f781 usbfs 可访问但内核未生成
+hidraw 时仍会报告 `Camera Available`。因此 hidraw 只做可选诊断，不是启动硬门；
+最终仍以 ROS 彩色图和注册深度首帧为准。
 
 ## 日志与诊断
 
@@ -244,7 +318,61 @@ rostopic hz /fod/detections
 rostopic echo /nvidia_cmd_vel_watchdog/status
 ```
 
-## 2026-08-16 最后检查点
+## 2026-08-23 当前运行检查点
+
+- 双机栈已用静态地图 `map_20260822_slice_selfcrop_swept_final` 冷启动，Qt 二维地图状态为
+  `READY;width=733;height=444;resolution=0.1`；当前为 `WAITING_INITIAL_POSE`，必须由操作员
+  按车辆真实位置设置初始位姿。
+- J6M `current` 指向 release `20260823_211926`，远端 ARM64 安装空间包含项目内
+  `teb_local_planner`、覆盖规划器和静态局部代价地图配置，并通过远端静态健康检查。
+- 定位完成后的同轮只读实测曾确认：增强局部点云约 10 Hz、对齐扫描约 0.5 Hz、
+  `/Odometry` 约 10 Hz、局部代价地图更新约 1.8 Hz；最终冷启动未复用该初始位姿。
+- 局部静态代价地图现由 `StaticLayer + ObstacleLayer + InflationLayer` 组成；静态地图未知区
+  在 TEB 可行性检查中按障碍处理，覆盖 Navfn 回退也禁止穿越未知区。TEB 静态地图模式
+  的全局计划前视距离限制为 `8 m`，未来轨迹仅越出滚动局部代价地图窗口（footprint cost
+  `-3`）不再被误判为实体碰撞，当前位置越界仍保持 fail-closed。
+- 覆盖清扫无动作的另外两个触发点已修复：单帧无效 `/scan` 在 `0.5 s` 新鲜窗口内不会
+  锁存永久暂停，持续丢失仍会暂停；普通 `/move_base_simple/goal` 先经过
+  `/navigation_pause` 仲裁，覆盖任务活动或安全暂停时不会抢占覆盖 action goal。
+- Qt 增加局部跟车视角、动态对齐扫描、路线图例和覆盖/清扫状态；无活动目标时会隐藏并
+  清空 TEB 蓝/红路线，防止把历史缓存误认为当前规划。
+- 对时脚本改为复用一条 SSH 会话的纳秒采样与中点校验，本次发布实测偏差 `-3 ms`、往返
+  `5 ms`；覆盖状态已确认 `avoidance_ready=true`。
+- 本地构建、静态健康检查、J6M 远端静态检查和冷启动运行健康检查通过；全量结果为
+  `479` 项测试、0 错误、0 失败。没有发送导航目标或非零速度，最终 `/cmd_vel_navigation`、
+  `/cmd_vel_safe`、`/cmd_vel` 各连续 3 个样本均为零。
+
+## 2026-08-23 较早停机检查点（历史）
+
+- 已使用 `./scripts/start_dual_host.sh --stop` 同步停止双机栈；
+  `autolabor-dual-host.service` 为 `inactive`，J6M 栈未运行，运动授权标记保留。
+- J6M `current` 仍指向 release `20260822_233820`；已部署版本通过远端静态检查。
+- 本地和 J6M 地图均保留为
+  `map_20260822_slice_selfcrop_swept_final`。二维切片为 `Z=-0.4±0.2 m`，
+  已加入随车辆位姿变化的实时自点裁剪和轨迹扫掠 footprint 裁剪；
+  原始 PCD SHA256 保持不变，融合结果与扫掠区域无占据格重叠。
+- 自点裁剪、静态地图融合、定位门、导航与 Qt 合约测试共
+  `441` 项通过，0 错误、0 失败；全量本地构建成功。
+- Qt 黑屏根因已定位为同一进程同时存在两个嵌入式 RViz/Ogre
+  `VisualizationFrame`。源码已改为“综合”和“清扫”共用唯一 RViz 画布，
+  切换页签时移动同一个 frame；合约测试和编译已通过，但该 NVIDIA
+  GUI 最新改动尚未进行实机重启验收，也无需部署到 J6M。
+- 工作树保留了本轮全部 tracked/untracked 进度，未提交、未清理。明日先以
+  `./scripts/start_dual_host.sh --start --map-set global_maps/map_sets/latest` 冷启动，
+  重点验证综合/清扫页连续切换、二维/三维显示、地图自适应和
+  `/coverage/clicked_point`；不发送导航目标或非零速度。
+
+## 2026-08-22 最后检查点
+
+- NVIDIA Release 构建通过；测试汇总 427 项，0 错误、0 失败。
+- J6M `current` 已切换到 `20260822_182346` 并通过远端静态健康检查。
+- 静态地图 `latest` 与 J6M maps/current 已切换到
+  `map_20260822_slice_zm040_hw020_final`；MID360 融合二维切片为
+  `Z=-0.4±0.2 m`，并保留每格至少 20 帧观测过滤。
+- 实验性静态地图模式要求新鲜点云/里程计和连续两次 ICP；失锁会零速并取消旧目标。
+- 默认无图模式保持不变；静态地图模式启动后仍必须由操作员按真实位置发送初值。
+
+## 2026-08-16 历史检查点
 
 - 完整双机运行态健康检查通过：262 项测试，0 失败。
 - Qt、嵌入式 RViz、MID360 点云、ZED 画面和 YOLO 检测均已现场目视确认。
