@@ -22,9 +22,11 @@ from autolabor_coverage.msg import CoverageStatus, EnforcedPath
 from autolabor_coverage.srv import (
     PlanCoverage,
     PlanCoverageResponse,
+    SetEnforcedPath,
     StartCoverage,
     StartCoverageResponse,
 )
+from autolabor_canbus_driver.msg import ChassisMonitorInfo, ChassisStatusInfo
 from autolabor_canbus_driver.srv import ChassisParameterServer
 from geometry_msgs.msg import Point as RosPoint
 from geometry_msgs.msg import PolygonStamped, PoseStamped
@@ -55,7 +57,7 @@ class CoverageManager:
         self.overlap_ratio = float(rospy.get_param("~overlap_ratio", 0.15))
         self.allow_reverse_transit = self._strict_bool("~allow_reverse_transit", True)
         self.reverse_transit_speed = float(
-            rospy.get_param("~reverse_transit_speed_mps", 0.15)
+            rospy.get_param("~reverse_transit_speed_mps", 0.30)
         )
         self.default_max_speed = float(
             rospy.get_param("~default_max_speed_mps", 0.80)
@@ -115,6 +117,15 @@ class CoverageManager:
         self.dual_lidar_fresh_sec = float(
             rospy.get_param("~dual_lidar_fresh_sec", 1.0)
         )
+        self.chassis_status_fresh_sec = float(
+            rospy.get_param("~chassis_status_fresh_sec", 3.0)
+        )
+        self.chassis_odom_fresh_sec = float(
+            rospy.get_param("~chassis_odom_fresh_sec", 1.0)
+        )
+        self.chassis_monitor_fault_latch_sec = float(
+            rospy.get_param("~chassis_monitor_fault_latch_sec", 3.0)
+        )
         self.avoidance_scan_future_tolerance_sec = float(
             rospy.get_param("~avoidance_scan_future_tolerance_sec", 0.2)
         )
@@ -127,10 +138,13 @@ class CoverageManager:
         if not all(math.isfinite(value) and value > 0.0 for value in (
                 self.avoidance_scan_fresh_sec,
                 self.dual_lidar_fresh_sec,
+                self.chassis_status_fresh_sec,
+                self.chassis_odom_fresh_sec,
+                self.chassis_monitor_fault_latch_sec,
                 self.avoidance_scan_future_tolerance_sec,
         )):
             raise ValueError(
-                "coverage obstacle-sensing timeouts must be finite and positive"
+                "coverage sensing and chassis-status timeouts must be finite and positive"
             )
         if not self.avoidance_scan_frame:
             raise ValueError("coverage obstacle scan frame must not be empty")
@@ -140,6 +154,24 @@ class CoverageManager:
         self.goal_timeout_per_meter_sec = float(
             rospy.get_param("~goal_timeout_per_meter_sec", 20.0)
         )
+        self.enforced_path_service_name = str(rospy.get_param(
+            "~enforced_path_service",
+            "/move_base/CoverageGlobalPlanner/set_enforced_path",
+        ))
+        self.entry_position_tolerance = float(rospy.get_param(
+            "~entry_position_tolerance_m", 0.20
+        ))
+        self.entry_yaw_tolerance = float(rospy.get_param(
+            "~entry_yaw_tolerance_rad", 0.20
+        ))
+        if (
+            not self.enforced_path_service_name
+            or not math.isfinite(self.entry_position_tolerance)
+            or not math.isfinite(self.entry_yaw_tolerance)
+            or self.entry_position_tolerance <= 0.0
+            or self.entry_yaw_tolerance <= 0.0
+        ):
+            raise ValueError("coverage entry and planner hand-off parameters are invalid")
         self.state = "IDLE"
         self.detail = "waiting for a static map"
         self.localized = False
@@ -159,12 +191,22 @@ class CoverageManager:
         self.dual_lidar_active = False
         self.dual_lidar_received_wall = 0.0
         self.avoidance_loss_paused = False
+        self.chassis_status = None
+        self.chassis_status_received_wall = 0.0
+        self.chassis_odom_received_wall = 0.0
+        self.chassis_monitor = None
+        self.chassis_monitor_received_wall = 0.0
+        self.chassis_fault_paused = False
         self.mode_goals_allowed = False
         self.mode_state = ""
         self.mode_received_wall = 0.0
         self.odom = None
         self.odom_received_wall = 0.0
         self.active = False
+        self.plan_pending = False
+        self.plan_token = ""
+        self.start_pending = False
+        self.start_token = ""
         self.manual_pause = False
         self.manual_pause_reason = ""
         self.external_pause = False
@@ -226,6 +268,21 @@ class CoverageManager:
             self._dual_lidar_active_callback,
             queue_size=5,
         )
+        self.chassis_status_sub = rospy.Subscriber(
+            "/m2_driver/chassis_info",
+            ChassisStatusInfo,
+            self._chassis_status_callback,
+            queue_size=5,
+        )
+        self.chassis_monitor_sub = rospy.Subscriber(
+            "/m2_driver/chassis_monitor",
+            ChassisMonitorInfo,
+            self._chassis_monitor_callback,
+            queue_size=5,
+        )
+        self.chassis_odom_sub = rospy.Subscriber(
+            "/odom", Odometry, self._chassis_odom_callback, queue_size=10
+        )
         self.mode_sub = rospy.Subscriber(
             "/fod_navigation_mode/status", String, self._mode_callback, queue_size=5
         )
@@ -245,6 +302,9 @@ class CoverageManager:
             "/coverage/cancel", Trigger, self._cancel_service
         )
         self.move_base = actionlib.SimpleActionClient("/move_base", MoveBaseAction)
+        self.enforced_path_client = rospy.ServiceProxy(
+            self.enforced_path_service_name, SetEnforcedPath
+        )
         self.status_timer = rospy.Timer(rospy.Duration(0.5), self._status_timer)
         self.tracking_timer = rospy.Timer(rospy.Duration(0.2), self._tracking_timer)
         self.active_pub.publish(Bool(data=False))
@@ -424,6 +484,115 @@ class CoverageManager:
             self.move_base.cancel_goal()
         return ready
 
+    def _chassis_status_callback(self, message):
+        with self.lock:
+            self.chassis_status = copy.deepcopy(message)
+            self.chassis_status_received_wall = time.monotonic()
+        self._pause_for_chassis_fault()
+
+    def _chassis_monitor_callback(self, message):
+        with self.lock:
+            self.chassis_monitor = copy.deepcopy(message)
+            self.chassis_monitor_received_wall = time.monotonic()
+        self._pause_for_chassis_fault()
+
+    def _chassis_odom_callback(self, _message):
+        with self.lock:
+            self.chassis_odom_received_wall = time.monotonic()
+        self._pause_for_chassis_fault()
+
+    def _chassis_ready_locked(self, now=None):
+        """Return fail-closed readiness for physical M2 command execution."""
+        if now is None:
+            now = time.monotonic()
+        if (
+            self.chassis_odom_received_wall <= 0.0
+            or now - self.chassis_odom_received_wall
+            > self.chassis_odom_fresh_sec
+        ):
+            return False, "M2 VCU feedback odometry is absent or stale"
+        if (
+            self.chassis_status is None
+            or self.chassis_status_received_wall <= 0.0
+            or now - self.chassis_status_received_wall
+            > self.chassis_status_fresh_sec
+        ):
+            return False, "VCU chassis status is absent or stale"
+
+        emergencies = []
+        for field, label in (
+            ("hard_emergency", "hard emergency"),
+            ("soft_emergency", "software emergency"),
+            ("gamepad_emergency", "gamepad/remote emergency"),
+            ("robot_emergency", "robot emergency"),
+        ):
+            if bool(getattr(self.chassis_status, field, True)):
+                emergencies.append(label)
+        if emergencies:
+            return False, "VCU emergency active: {}".format(
+                ", ".join(emergencies)
+            )
+
+        faults = []
+        # ControllerMonitor is an event/fault frame rather than a periodic
+        # health heartbeat on the installed VCU.  A current fault repeats at
+        # high rate, while a healthy controller may publish nothing.  Latch a
+        # received fault for a bounded interval, but do not interpret silence
+        # as a fault after the periodic chassis emergency status is healthy.
+        monitor_recent = (
+            self.chassis_monitor is not None
+            and self.chassis_monitor_received_wall > 0.0
+            and now - self.chassis_monitor_received_wall
+            <= self.chassis_monitor_fault_latch_sec
+        )
+        if monitor_recent:
+            for prefix, label in (
+                ("tcu", "TCU"),
+                ("lecu", "left ECU"),
+                ("recu", "right ECU"),
+            ):
+                if int(getattr(self.chassis_monitor, prefix + "_state", 1)) != 0:
+                    faults.append(label + " emergency")
+                if int(getattr(self.chassis_monitor, prefix + "_timeout", 1)) != 0:
+                    faults.append(label + " communication timeout")
+                if int(getattr(self.chassis_monitor, prefix + "_stuck", 1)) != 0:
+                    faults.append(label + " current over-limit")
+            for prefix, label in (("lecu", "left ECU"), ("recu", "right ECU")):
+                if int(getattr(self.chassis_monitor, prefix + "_brake", 1)) != 0:
+                    faults.append(label + " brake engaged")
+        if faults:
+            return False, "VCU controller fault: {}".format(", ".join(faults))
+
+        monitor_detail = (
+            "latest controller monitor has no fault"
+            if monitor_recent
+            else "no recent controller fault frame"
+        )
+        return True, "VCU emergency status is fresh; {}".format(monitor_detail)
+
+    def _pause_for_chassis_fault(self):
+        cancel_goal = False
+        with self.lock:
+            ready, reason = self._chassis_ready_locked()
+            if (
+                self.active
+                and not ready
+                and not self.cancel_requested
+                and not self.chassis_fault_paused
+            ):
+                self.chassis_fault_paused = True
+                self.manual_pause = True
+                self.state = "PAUSED"
+                self.manual_pause_reason = (
+                    "chassis execution lost: {}; manual resume is required"
+                ).format(reason)
+                self.detail = self.manual_pause_reason
+                cancel_goal = True
+        if cancel_goal:
+            rospy.logwarn("coverage paused: %s", self.manual_pause_reason)
+            self.move_base.cancel_goal()
+        return ready
+
     def _mode_callback(self, message):
         try:
             payload = json.loads(message.data)
@@ -502,9 +671,9 @@ class CoverageManager:
         path.poses = [self._pose(point, yaw, path.header.stamp) for point in points]
         return path
 
-    def _planner(self):
+    def _planner(self, grid=None):
         return CoveragePlanner(
-            self.grid,
+            self.grid if grid is None else grid,
             footprint_front=float(rospy.get_param("~footprint_front_m", 0.62)),
             footprint_rear=float(rospy.get_param("~footprint_rear_m", 0.62)),
             footprint_half_width=float(
@@ -525,11 +694,27 @@ class CoverageManager:
             if self.active:
                 response.message = "cannot replace a plan while coverage is active"
                 return response
-            grid_ready = self.grid is not None
-        if not grid_ready:
-            response.message = "static map is not ready"
-            return response
+            if self.start_pending:
+                response.message = "cannot replace a plan while coverage start is preparing"
+                return response
+            if self.plan_pending:
+                response.message = "another coverage plan is already being prepared"
+                return response
+            if self.grid is None:
+                response.message = "static map is not ready"
+                return response
+            token = uuid.uuid4().hex
+            self.plan_pending = True
+            self.plan_token = token
+            grid = self.grid
+            map_digest = self.map_digest
+            self.state = "PLANNING"
+            self.detail = "validating the selected region against the static map"
+        self._publish_status()
         if request.region.header.frame_id not in ("", "map"):
+            self._finish_plan_failure(
+                token, "coverage region must use the map frame"
+            )
             response.message = "coverage region must use the map frame"
             return response
         operation_width = float(request.operation_width_m)
@@ -539,21 +724,20 @@ class CoverageManager:
         current_yaw = None if current_pose is None else current_pose[1]
         try:
             points = self._points_from_region(request.region)
-            plan = self._planner().plan(
+            # GridMap instances are immutable after construction.  Planning on
+            # this snapshot keeps /scan, localization and map callbacks free,
+            # and the digest is checked again before the plan is committed.
+            plan = self._planner(grid).plan(
                 points, operation_width, overlap_ratio, reachable_seed=current
             )
         except ValueError as error:
             response.message = str(error)
-            with self.lock:
-                if self.plan is not None:
-                    self.state = "READY"
-                    self.detail = "new region rejected; previous plan kept: {}".format(
-                        response.message
-                    )
-                else:
-                    self.state = "IDLE"
-                    self.detail = response.message
-            self._publish_status()
+            self._finish_plan_failure(token, response.message)
+            return response
+        except Exception as error:
+            rospy.logerr("coverage region planning raised an exception: %s", error)
+            response.message = "coverage planning failed: {}".format(error)
+            self._finish_plan_failure(token, response.message)
             return response
         if current is None:
             current = points[0]
@@ -570,26 +754,57 @@ class CoverageManager:
         region.header.stamp = rospy.Time.now()
         planned_path = self._planned_path(route, current)
         with self.lock:
-            self.plan = plan
-            self.plan.swaths = route
-            self.plan_id = plan_id
-            self.plan_map_digest = self.map_digest
-            self.region = region
-            self.operation_width = operation_width
-            self.overlap_ratio = overlap_ratio
-            self.allow_reverse_transit = bool(request.allow_reverse_transit)
-            self.kinematics_verified = False
-            self.kinematics_detail = (
-                "waiting for task-start VCU and TEB verification"
+            owns_planning_generation = (
+                self.plan_pending and self.plan_token == token
             )
-            self.state = "READY"
-            self.detail = "coverage path is ready"
-            self.current_segment = 0
-            self.total_segments = len(route) * 2
-            self.blocked_segments = []
-        self.region_pub.publish(region)
-        self.path_pub.publish(planned_path)
-        self._publish_markers(route, region)
+            if not owns_planning_generation:
+                response.message = "coverage planning was canceled or superseded"
+                commit_plan = False
+            elif (
+                self.active or self.start_pending or self.map_digest != map_digest
+            ):
+                self.plan_pending = False
+                self.plan_token = ""
+                response.message = "static map or task state changed during planning"
+                if self.plan is not None:
+                    self.state = "READY"
+                else:
+                    self.state = "IDLE"
+                self.detail = response.message
+                commit_plan = False
+            else:
+                commit_plan = True
+            if commit_plan:
+                self.plan_pending = False
+                self.plan_token = ""
+                self._reset_execution_locked(clear_progress=True)
+                self.plan = plan
+                self.plan.swaths = route
+                self.plan_id = plan_id
+                self.plan_map_digest = map_digest
+                self.region = region
+                self.operation_width = operation_width
+                self.overlap_ratio = overlap_ratio
+                self.allow_reverse_transit = bool(request.allow_reverse_transit)
+                self.kinematics_verified = False
+                self.kinematics_detail = (
+                    "waiting for task-start VCU and TEB verification"
+                )
+                self.state = "READY"
+                self.detail = "coverage path is ready"
+                self.total_segments = len(route) * 2
+                # Keep plan commit and all latched visualization publications
+                # in the same lifecycle critical section.  A concurrent
+                # cancel can therefore only happen before this generation is
+                # committed or after its preview is fully published and can
+                # be cleared in the correct order.
+                self._clear_visualizations()
+                self.region_pub.publish(region)
+                self.path_pub.publish(planned_path)
+                self._publish_markers(route, region)
+        if not commit_plan:
+            self._publish_status()
+            return response
         self._publish_status()
         response.success = True
         response.message = "coverage plan ready"
@@ -602,6 +817,25 @@ class CoverageManager:
         response.swath_count = len(route)
         response.segment_count = len(route) * 2
         return response
+
+    def _finish_plan_failure(self, token, reason):
+        publish_status = False
+        with self.lock:
+            if not self.plan_pending or self.plan_token != token:
+                return
+            self.plan_pending = False
+            self.plan_token = ""
+            if self.plan is not None and self.plan_map_digest == self.map_digest:
+                self.state = "READY"
+                self.detail = "new region rejected; previous plan kept: {}".format(
+                    reason
+                )
+            else:
+                self.state = "IDLE"
+                self.detail = reason
+            publish_status = True
+        if publish_status:
+            self._publish_status()
 
     def _planned_path(self, route, current):
         path = Path()
@@ -673,104 +907,223 @@ class CoverageManager:
         markers.markers.append(marker)
         self.marker_pub.publish(markers)
 
+    def _reset_execution_locked(self, clear_progress=True):
+        if clear_progress:
+            self.current_segment = 0
+            self.total_segments = 0
+            self.blocked_segments = []
+        self.traversed_distance = 0.0
+        self.covered_cells = set()
+        self.last_tracked_point = None
+        self.executed_path = Path()
+        self.executed_path.header.frame_id = "map"
+
+    def _discard_plan_locked(self, clear_progress=True):
+        """Invalidate one mission generation while the lifecycle lock is held."""
+        self.plan_pending = False
+        self.plan_token = ""
+        self.start_pending = False
+        self.start_token = ""
+        self.plan = None
+        self.plan_id = ""
+        self.plan_map_digest = ""
+        self.region = PolygonStamped()
+        self.region.header.frame_id = "map"
+        self._reset_execution_locked(clear_progress=clear_progress)
+        self.kinematics_verified = False
+        self.kinematics_detail = (
+            "waiting for task-start VCU and TEB verification"
+        )
+        self.worker = None
+
     def _start_service(self, request):
-        with self.lock:
+        try:
             requested_speed = float(request.max_speed_mps)
-            if (
-                not math.isfinite(requested_speed)
-                or requested_speed < 0.10
-                or requested_speed > self.max_speed_limit
-            ):
-                return StartCoverageResponse(
-                    False,
-                    "maximum coverage speed must be in [0.10, {:.2f}] m/s".format(
-                        self.max_speed_limit
-                    ),
-                )
+        except (TypeError, ValueError, OverflowError):
+            requested_speed = float("nan")
+        if (
+            not math.isfinite(requested_speed)
+            or requested_speed < 0.10
+            or requested_speed > self.max_speed_limit
+        ):
+            return StartCoverageResponse(
+                False,
+                "maximum coverage speed must be in [0.10, {:.2f}] m/s".format(
+                    self.max_speed_limit
+                ),
+            )
+
+        with self.lock:
             if self.active:
                 return StartCoverageResponse(False, "coverage is already active")
+            if self.start_pending:
+                return StartCoverageResponse(False, "coverage start is already preparing")
+            if self.plan_pending:
+                return StartCoverageResponse(False, "coverage planning is still in progress")
             if self.plan is None or request.plan_id != self.plan_id:
                 return StartCoverageResponse(False, "coverage plan id is missing or stale")
             if self.plan_map_digest != self.map_digest:
                 return StartCoverageResponse(False, "static map changed after planning")
-            if not self._start_prechecks_locked():
-                return StartCoverageResponse(False, self.detail)
-            if requested_speed > self.chassis_max_speed + 1.0e-6:
-                self.detail = (
-                    "requested coverage speed {:.2f} m/s exceeds live VCU "
-                    "cap {:.2f} m/s"
-                ).format(requested_speed, self.chassis_max_speed)
-                return StartCoverageResponse(False, self.detail)
-            if requested_speed > self.watchdog_max_linear_speed + 1.0e-6:
-                self.detail = (
-                    "requested coverage speed {:.2f} m/s exceeds NVIDIA watchdog "
-                    "cap {:.2f} m/s"
-                ).format(requested_speed, self.watchdog_max_linear_speed)
-                return StartCoverageResponse(False, self.detail)
-            current_pose = self._current_pose()
-            if current_pose is None:
-                return StartCoverageResponse(False, "map to base_link transform is unavailable")
-            current, current_yaw = current_pose
-            try:
-                # Planning is allowed before localization so the operator can
-                # preview a region.  Starting is stricter: recompute against
-                # the vehicle's current known-free connected component so
-                # disconnected rooms and map islands are clipped and reported.
-                replanned = self._planner().plan(
-                    self._points_from_region(self.region),
-                    self.operation_width,
-                    self.overlap_ratio,
-                    reachable_seed=current,
-                )
-            except ValueError as error:
-                self.detail = "coverage start replan failed: {}".format(error)
-                return StartCoverageResponse(False, self.detail)
-            self.plan = replanned
-            self.task_max_speed = requested_speed
-            route = order_swaths(
-                self.plan.swaths,
-                current,
-                self.plan.spacing,
-                self.minimum_turning_radius,
-                current_yaw,
-            )
-            self.plan.swaths = route
-            self.cancel_requested = False
-            self.manual_pause = False
-            self.manual_pause_reason = ""
-            self.avoidance_loss_paused = False
-            self.active = True
-            self.current_segment = 0
-            self.total_segments = len(route) * 2
-            self.blocked_segments = []
-            self.traversed_distance = 0.0
-            self.covered_cells = set()
-            self.last_tracked_point = None
-            self.executed_path = Path()
-            self.executed_path.header.frame_id = "map"
-            self.state = "GOING_TO_START"
-            self.detail = "coverage task accepted at {:.2f} m/s maximum".format(
-                self.task_max_speed
-            )
-            self.worker = threading.Thread(
-                target=self._run_task, args=(copy.deepcopy(route), current), daemon=True
-            )
-            # Advertise mission ownership before the worker can submit its
-            # first move_base goal.  The planner also treats a fresh enforced
-            # path as authoritative to close cross-topic delivery races.
-            self.active_pub.publish(Bool(data=True))
-            self.worker.start()
-        self.path_pub.publish(self._planned_path(route, current))
-        self._publish_markers(route, self.region)
+            token = uuid.uuid4().hex
+            plan_id = self.plan_id
+            map_digest = self.map_digest
+            grid = self.grid
+            region = copy.deepcopy(self.region)
+            operation_width = self.operation_width
+            overlap_ratio = self.overlap_ratio
+            self.start_pending = True
+            self.start_token = token
+            self.state = "PREPARING"
+            self.detail = "checking live safety gates and current-map coverage entry"
         self._publish_status()
-        return StartCoverageResponse(
-            True,
-            "coverage task started at {:.2f} m/s maximum".format(
-                self.task_max_speed
-            ),
+
+        with self.lock:
+            initial_checks_ok = self._start_prechecks_locked(
+                requested_speed, require_kinematics=False
+            )
+            initial_failure = self.detail
+        if not initial_checks_ok:
+            return self._finish_start_failure(token, initial_failure)
+
+        if not self._start_external_prechecks(token):
+            with self.lock:
+                external_failure = self.detail
+            return self._finish_start_failure(token, external_failure)
+
+        current_pose = self._current_pose()
+        if current_pose is None:
+            return self._finish_start_failure(
+                token, "map to base_link transform is unavailable"
+            )
+        reachable_seed = current_pose[0]
+        try:
+            # Planning is allowed before localization so the operator can
+            # preview a region.  Starting is stricter: recompute against the
+            # vehicle's current known-free connected component.  Crucially,
+            # this expensive work runs without self.lock, so /scan and the
+            # dual-lidar freshness callbacks cannot be starved by replanning.
+            replanned = self._planner(grid).plan(
+                self._points_from_region(region),
+                operation_width,
+                overlap_ratio,
+                reachable_seed=reachable_seed,
+            )
+        except ValueError as error:
+            return self._finish_start_failure(
+                token, "coverage start replan failed: {}".format(error)
+            )
+        except Exception as error:
+            rospy.logerr("coverage start replan raised an exception: %s", error)
+            return self._finish_start_failure(
+                token, "coverage start replan raised an exception: {}".format(error)
+            )
+
+        # Use the freshest pose for route entry ordering.  The second state
+        # check below still requires the vehicle to be stopped.
+        current_pose = self._current_pose()
+        if current_pose is None:
+            return self._finish_start_failure(
+                token, "map to base_link transform disappeared during replanning"
+            )
+        current, current_yaw = current_pose
+        route = order_swaths(
+            replanned.swaths,
+            current,
+            replanned.spacing,
+            self.minimum_turning_radius,
+            current_yaw,
+        )
+        replanned.swaths = route
+        planned_path = self._planned_path(route, current)
+        worker = threading.Thread(
+            target=self._run_task,
+            args=(copy.deepcopy(route), current),
+            daemon=True,
         )
 
-    def _start_prechecks_locked(self):
+        failure = ""
+        with self.lock:
+            if not self.start_pending or self.start_token != token:
+                failure = "coverage start was canceled or superseded"
+            elif (
+                self.active
+                or self.plan is None
+                or self.plan_id != plan_id
+                or self.plan_map_digest != map_digest
+                or self.map_digest != map_digest
+            ):
+                failure = "static map or coverage plan changed during start preparation"
+            elif not self._start_prechecks_locked(
+                    requested_speed, require_kinematics=True):
+                failure = self.detail
+            if not failure:
+                self.start_pending = False
+                self.start_token = ""
+                self.plan = replanned
+                self.task_max_speed = requested_speed
+                self.cancel_requested = False
+                self.manual_pause = False
+                self.manual_pause_reason = ""
+                self.avoidance_loss_paused = False
+                self.chassis_fault_paused = False
+                self.active = True
+                self._reset_execution_locked(clear_progress=True)
+                self.total_segments = len(route) * 2
+                self.state = "GOING_TO_START"
+                self.detail = "coverage task accepted at {:.2f} m/s maximum".format(
+                    self.task_max_speed
+                )
+                self.worker = worker
+        if failure:
+            return self._finish_start_failure(token, failure)
+
+        # Advertise mission ownership before the worker can submit its first
+        # move_base goal.  Each segment also performs a synchronous planner
+        # mode hand-off before the action goal is sent.
+        self.active_pub.publish(Bool(data=True))
+        self.path_pub.publish(planned_path)
+        self._publish_markers(route, region)
+        self._publish_status()
+        worker.start()
+        return StartCoverageResponse(
+            True,
+            "coverage task started at {:.2f} m/s maximum".format(requested_speed),
+        )
+
+    def _finish_start_failure(self, token, reason):
+        with self.lock:
+            if self.start_pending and self.start_token == token:
+                self.start_pending = False
+                self.start_token = ""
+                if self.plan is not None and self.plan_map_digest == self.map_digest:
+                    self.state = "READY"
+                else:
+                    self.state = "IDLE"
+                self.detail = reason
+            else:
+                reason = "coverage start was canceled or superseded"
+        rospy.logwarn("coverage start rejected: %s", reason)
+        self._publish_status()
+        return StartCoverageResponse(False, reason)
+
+    def _start_external_prechecks(self, token):
+        if not self.move_base.wait_for_server(rospy.Duration(0.5)):
+            with self.lock:
+                if self.start_pending and self.start_token == token:
+                    self.detail = "move_base action server is unavailable"
+            return False
+        try:
+            rospy.wait_for_service(self.enforced_path_service_name, timeout=0.5)
+        except Exception as error:
+            with self.lock:
+                if self.start_pending and self.start_token == token:
+                    self.detail = (
+                        "coverage global-planner hand-off service is unavailable: {}"
+                    ).format(error)
+            return False
+        return self._verify_kinematics()
+
+    def _start_prechecks_locked(self, requested_speed, require_kinematics):
         now = time.monotonic()
         if self.original_teb is not None:
             self.detail = "TEB parameters from the previous task are not restored"
@@ -799,6 +1152,12 @@ class CoverageManager:
                 avoidance_detail
             )
             return False
+        chassis_ready, chassis_detail = self._chassis_ready_locked(now)
+        if not chassis_ready:
+            self.detail = "chassis execution is not ready: {}".format(
+                chassis_detail
+            )
+            return False
         if self.odom is None or now - self.odom_received_wall > 0.5:
             self.detail = "odometry is not fresh"
             return False
@@ -807,21 +1166,33 @@ class CoverageManager:
         if speed > 0.02:
             self.detail = "vehicle must be stopped before starting coverage"
             return False
-        if not self.move_base.wait_for_server(rospy.Duration(0.5)):
-            self.detail = "move_base action server is unavailable"
+        if requested_speed > self.watchdog_max_linear_speed + 1.0e-6:
+            self.detail = (
+                "requested coverage speed {:.2f} m/s exceeds NVIDIA watchdog "
+                "cap {:.2f} m/s"
+            ).format(requested_speed, self.watchdog_max_linear_speed)
             return False
-        if not self._verify_kinematics_locked():
-            return False
+        if require_kinematics:
+            if not self.kinematics_verified:
+                self.detail = self.kinematics_detail
+                return False
+            if requested_speed > self.chassis_max_speed + 1.0e-6:
+                self.detail = (
+                    "requested coverage speed {:.2f} m/s exceeds live VCU "
+                    "cap {:.2f} m/s"
+                ).format(requested_speed, self.chassis_max_speed)
+                return False
         return True
 
     def _kinematics_failure_locked(self, reason):
-        self.kinematics_verified = False
-        self.kinematics_detail = reason
-        self.detail = reason
+        with self.lock:
+            self.kinematics_verified = False
+            self.kinematics_detail = reason
+            self.detail = reason
         return False
 
-    def _verify_kinematics_locked(self):
-        """Fail closed unless live VCU and TEB Ackermann limits agree."""
+    def _verify_kinematics(self):
+        """Check live VCU/TEB limits without starving subscriber callbacks."""
         try:
             rospy.wait_for_service("/m2_driver/chassis_parameter", timeout=0.5)
             response = rospy.ServiceProxy(
@@ -844,9 +1215,10 @@ class CoverageManager:
             return self._kinematics_failure_locked(
                 "VCU returned invalid wheelbase, steering, or speed limits"
             )
-        self.chassis_wheelbase = wheelbase
-        self.chassis_max_steering_angle = maximum_steering
-        self.chassis_max_speed = maximum_speed
+        with self.lock:
+            self.chassis_wheelbase = wheelbase
+            self.chassis_max_steering_angle = maximum_steering
+            self.chassis_max_speed = maximum_speed
         if abs(wheelbase - self.expected_wheelbase) > self.chassis_wheelbase_tolerance:
             return self._kinematics_failure_locked(
                 "VCU wheelbase {:.3f} m differs from coverage model {:.3f} m".format(
@@ -854,7 +1226,8 @@ class CoverageManager:
                 )
             )
         required_steering = math.atan(wheelbase / self.minimum_turning_radius)
-        self.required_steering_angle = required_steering
+        with self.lock:
+            self.required_steering_angle = required_steering
         if required_steering + self.steering_angle_margin > maximum_steering:
             return self._kinematics_failure_locked(
                 "coverage radius {:.2f} m needs {:.2f} deg steering and does not "
@@ -929,17 +1302,22 @@ class CoverageManager:
             return self._kinematics_failure_locked(
                 "coverage Navfn fallback must reject unknown map cells"
             )
-        self.kinematics_verified = True
-        self.kinematics_detail = (
-            "VCU/TEB verified: L={:.3f} m, R>={:.2f} m, "
-            "steer {:.2f}/{:.2f} deg"
-        ).format(
-            wheelbase,
-            self.minimum_turning_radius,
-            math.degrees(required_steering),
-            math.degrees(maximum_steering),
-        )
+        with self.lock:
+            self.kinematics_verified = True
+            self.kinematics_detail = (
+                "VCU/TEB verified: L={:.3f} m, R>={:.2f} m, "
+                "steer {:.2f}/{:.2f} deg"
+            ).format(
+                wheelbase,
+                self.minimum_turning_radius,
+                math.degrees(required_steering),
+                math.degrees(maximum_steering),
+            )
         return True
+
+    def _verify_kinematics_locked(self):
+        """Compatibility entry point for existing state-machine tests."""
+        return self._verify_kinematics()
 
     def _pause_service(self, request):
         with self.lock:
@@ -960,9 +1338,18 @@ class CoverageManager:
                             avoidance_detail
                         ),
                     )
+                chassis_ready, chassis_detail = self._chassis_ready_locked()
+                if not chassis_ready:
+                    return SetBoolResponse(
+                        False,
+                        "chassis execution must be ready before resume: {}".format(
+                            chassis_detail
+                        ),
+                    )
             self.manual_pause = bool(request.data)
             if not request.data:
                 self.avoidance_loss_paused = False
+                self.chassis_fault_paused = False
                 self.manual_pause_reason = ""
             else:
                 self.manual_pause_reason = "coverage paused by operator"
@@ -975,9 +1362,41 @@ class CoverageManager:
         return SetBoolResponse(True, self.detail)
 
     def _cancel_service(self, _request):
+        clear_inactive = False
         with self.lock:
-            if not self.active:
-                return TriggerResponse(False, "no active coverage task")
+            if self.plan_pending:
+                self.plan_pending = False
+            if self.start_pending:
+                self.start_pending = False
+                self.start_token = ""
+                self._discard_plan_locked(clear_progress=True)
+                self.state = "CANCELED"
+                self.detail = "coverage start canceled before any goal was submitted"
+                canceled_preparation = True
+                clear_inactive = True
+            else:
+                canceled_preparation = False
+            active = self.active
+            if not canceled_preparation and not active:
+                had_plan = self.plan is not None or bool(self.plan_id)
+                self._discard_plan_locked(clear_progress=True)
+                self.state = "IDLE"
+                self.detail = (
+                    "coverage plan canceled; select a new region"
+                    if had_plan else
+                    "no coverage plan is active; stale displays were cleared"
+                )
+                clear_inactive = True
+            detail = self.detail
+            # Keep plan invalidation and the latched DELETEALL publications in
+            # one lifecycle critical section.  Otherwise a newly accepted plan
+            # could be published and then erased by an older cancel request.
+            if clear_inactive:
+                self._clear_visualizations()
+        if clear_inactive:
+            self.active_pub.publish(Bool(data=False))
+            self._publish_status()
+            return TriggerResponse(True, detail)
         self._request_cancel("coverage canceled by operator")
         return TriggerResponse(True, "coverage cancellation requested")
 
@@ -1094,9 +1513,64 @@ class CoverageManager:
             time.sleep(0.1)
         return False
 
+    def _set_enforced_path(self, enforced, coverage_active=True):
+        """Synchronously arm mission ownership and the segment planner mode."""
+        try:
+            response = self.enforced_path_client(
+                coverage_active=coverage_active,
+                enforced_path=enforced,
+            )
+        except Exception as error:
+            rospy.logerr(
+                "coverage planner mode hand-off service failed for segment %d: %s",
+                enforced.segment_index,
+                error,
+            )
+            return False
+        if not response.success:
+            rospy.logerr(
+                "coverage planner rejected segment %d mode hand-off: %s",
+                enforced.segment_index,
+                response.message,
+            )
+            return False
+        # Subsequent topic refreshes keep the plugin's fail-closed freshness
+        # timer alive without changing the synchronously acknowledged mode.
+        self.enforced_path_pub.publish(enforced)
+        return True
+
     def _execute_segment(self, segment, segment_index):
         if not self._wait_while_paused():
             return "canceled"
+        if segment["type"] == "transit":
+            live_pose = self._current_pose()
+            if live_pose is not None:
+                live_point, live_yaw = live_pose
+                position_error = math.hypot(
+                    segment["end"].x - live_point.x,
+                    segment["end"].y - live_point.y,
+                )
+                yaw_error = abs(math.atan2(
+                    math.sin(segment["yaw"] - live_yaw),
+                    math.cos(segment["yaw"] - live_yaw),
+                ))
+                if position_error <= self.entry_position_tolerance:
+                    if yaw_error <= self.entry_yaw_tolerance:
+                        rospy.loginfo(
+                            "coverage transit %d already satisfies entry pose",
+                            segment_index + 1,
+                        )
+                        return "succeeded"
+                    # TEB cannot spin an Ackermann chassis at a fixed point.
+                    # Reject this explicit dependency instead of submitting an
+                    # orientation-only goal that appears to do nothing.
+                    rospy.logwarn(
+                        "coverage transit %d is at the entry position but yaw "
+                        "error %.1f deg exceeds the Ackermann tolerance",
+                        segment_index + 1,
+                        math.degrees(yaw_error),
+                    )
+                    return "blocked"
         if segment["type"] == "sweep":
             # A transit may move several metres while tracking is disabled.
             # Never compare the next swath's first sample with the previous
@@ -1128,7 +1602,8 @@ class CoverageManager:
         enforced.header.stamp = rospy.Time.now()
         if enforced.active:
             enforced.path.header.stamp = enforced.header.stamp
-        self.enforced_path_pub.publish(enforced)
+        if not self._set_enforced_path(enforced):
+            return "failed"
         self.move_base.send_goal(goal)
         while not rospy.is_shutdown():
             self._pause_for_avoidance_loss()
@@ -1204,8 +1679,14 @@ class CoverageManager:
                             "SWEEPING" if segment["type"] == "sweep"
                             else "TRANSITING"
                         )
-                        self.detail = "executing {} segment {} of {}".format(
-                            segment["type"], index + 1, len(segments)
+                        self.detail = (
+                            "executing enforced coverage sweep {} of {}".format(
+                                index + 1, len(segments)
+                            ) if segment["type"] == "sweep" else
+                            "executing point-to-point Navfn transit {} of {}; "
+                            "dynamic replanning and TEB obstacle avoidance are active".format(
+                                index + 1, len(segments)
+                            )
                         )
                 result = "failed"
                 attempts = 0
@@ -1216,8 +1697,14 @@ class CoverageManager:
                                 "SWEEPING" if segment["type"] == "sweep"
                                 else "TRANSITING"
                             )
-                            self.detail = "executing {} segment {} of {}".format(
-                                segment["type"], index + 1, len(segments)
+                            self.detail = (
+                                "executing enforced coverage sweep {} of {}".format(
+                                    index + 1, len(segments)
+                                ) if segment["type"] == "sweep" else
+                                "executing point-to-point Navfn transit {} of {}; "
+                                "dynamic replanning and TEB obstacle avoidance are active".format(
+                                    index + 1, len(segments)
+                                )
                             )
                     result = self._execute_segment(segment, index)
                     if result == "succeeded":
@@ -1233,8 +1720,19 @@ class CoverageManager:
                     if attempts <= self.segment_retry_count:
                         with self.lock:
                             self.state = "WAITING_OBSTACLE"
-                            self.detail = "segment blocked; retry {} of {} in {:.0f}s".format(
-                                attempts, self.segment_retry_count, self.obstacle_wait_sec
+                            segment_label = (
+                                "enforced coverage sweep"
+                                if segment["type"] == "sweep"
+                                else "point-to-point transit route"
+                            )
+                            self.detail = (
+                                "{} has no feasible detour yet; retry {} of {} "
+                                "in {:.0f}s"
+                            ).format(
+                                segment_label,
+                                attempts,
+                                self.segment_retry_count,
+                                self.obstacle_wait_sec,
                             )
                         deadline = time.monotonic() + self.obstacle_wait_sec
                         while time.monotonic() < deadline and not rospy.is_shutdown():
@@ -1277,8 +1775,13 @@ class CoverageManager:
                                 "SWEEPING" if segment["type"] == "sweep"
                                 else "TRANSITING"
                             )
-                            self.detail = "final retry for blocked segment {}".format(
-                                index + 1
+                            self.detail = (
+                                "final retry for enforced coverage sweep {}".format(
+                                    index + 1
+                                ) if segment["type"] == "sweep" else
+                                "final Navfn replan for point-to-point transit {}".format(
+                                    index + 1
+                                )
                             )
                         result = self._execute_segment(segment, index)
                         if result == "paused":
@@ -1316,7 +1819,8 @@ class CoverageManager:
             off.header.frame_id = "map"
             off.plan_id = self.plan_id
             off.active = False
-            self.enforced_path_pub.publish(off)
+            if not self._set_enforced_path(off, coverage_active=False):
+                rospy.logerr("coverage could not synchronously disarm enforced path")
             if not self._restore_teb():
                 terminal_state = "FAILED"
                 cleanup_error = (
@@ -1327,6 +1831,8 @@ class CoverageManager:
                 self.manual_pause = False
                 self.manual_pause_reason = ""
                 self.avoidance_loss_paused = False
+                self.chassis_fault_paused = False
+                self.cancel_requested = False
                 self.state = terminal_state
                 if terminal_state == "COMPLETED":
                     self.detail = "coverage route completed"
@@ -1338,6 +1844,13 @@ class CoverageManager:
                     self.detail = cleanup_error
                 elif not self.detail.startswith("coverage task exception"):
                     self.detail = "coverage task failed"
+                # Invalidate the old generation and clear all latched map
+                # overlays before releasing the lifecycle lock.  A second plan
+                # can therefore never be accepted and then erased by this old
+                # worker's finalizer.  Preserve only segment counters so the
+                # terminal status still reports where/why it ended.
+                self._discard_plan_locked(clear_progress=False)
+                self._clear_visualizations()
             self.active_pub.publish(Bool(data=False))
             self._publish_status()
 
@@ -1346,6 +1859,7 @@ class CoverageManager:
             should_track = self.active and self.state == "SWEEPING" and not (
                 self.manual_pause or self.external_pause
             )
+            tracked_plan_id = self.plan_id
         if not should_track or not self._localization_is_fresh():
             return
         current_pose = self._current_pose()
@@ -1353,6 +1867,14 @@ class CoverageManager:
             return
         point, yaw = current_pose
         with self.lock:
+            # The TF lookup above intentionally runs without the lifecycle
+            # lock.  Recheck the mission generation before appending so a late
+            # timer callback cannot resurrect a green path after terminal
+            # cleanup or after a new plan is prepared.
+            if (not self.active or self.state != "SWEEPING" or
+                    self.plan_id != tracked_plan_id or
+                    self.manual_pause or self.external_pause):
+                return
             segment_start = point
             if self.last_tracked_point is not None:
                 step = math.hypot(point.x - self.last_tracked_point.x,
@@ -1387,6 +1909,7 @@ class CoverageManager:
 
     def _status_timer(self, _event):
         self._pause_for_avoidance_loss()
+        self._pause_for_chassis_fault()
         with self.lock:
             restore_pending = not self.active and self.original_teb is not None
         if restore_pending and self._restore_teb():
@@ -1423,6 +1946,9 @@ class CoverageManager:
             message.chassis_max_speed_mps = self.chassis_max_speed
             message.kinematics_verified = self.kinematics_verified
             message.kinematics_detail = self.kinematics_detail
+            chassis_ready, chassis_detail = self._chassis_ready_locked()
+            message.chassis_ready = chassis_ready
+            message.chassis_detail = chassis_detail
             avoidance_ready, avoidance_detail = self._avoidance_ready_locked()
             message.avoidance_ready = avoidance_ready
             message.avoidance_detail = avoidance_detail

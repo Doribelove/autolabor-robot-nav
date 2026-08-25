@@ -106,6 +106,9 @@ struct TelemetrySnapshot
   std::uint64_t odom_message_count = 0;
   double recent_pose_step_m = 0.0;
   double recent_yaw_step_deg = 0.0;
+  double recent_odom_distance_m = 0.0;
+  double recent_odom_window_seconds = 0.0;
+  std::size_t recent_odom_sample_count = 0;
   double stationary_drift_m = 0.0;
   double stationary_window_seconds = 0.0;
 
@@ -306,6 +309,7 @@ private:
   void applyCameraControlsResult(const CameraControlsResult& result);
   void publishCoverageDraft();
   void selectCoveragePointTool(bool enabled);
+  void resetCoverageUiState(bool clear_plan_id);
   void callCoveragePause(bool paused);
   FastLioHealthResult evaluateFastLioHealth(const TelemetrySnapshot& data) const;
   bool relativeGoalReady(const TelemetrySnapshot& data,
@@ -458,6 +462,10 @@ private:
   bool coverage_selecting_ = false;
   bool coverage_plan_pending_ = false;
   bool coverage_command_pending_ = false;
+  bool coverage_cancel_pending_ = false;
+  bool coverage_cancel_requested_ = false;
+  bool coverage_task_lifecycle_started_ = false;
+  std::uint64_t coverage_plan_generation_ = 0;
   std::vector<geometry_msgs::Point> coverage_draft_points_;
   std::string coverage_plan_id_;
   ros::WallTime last_raw_preview_conversion_;

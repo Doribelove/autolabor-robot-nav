@@ -61,25 +61,108 @@ void CoverageGlobalPlanner::initialize(std::string name,
   private_nh_.param("goal_yaw_match_tolerance", goal_yaw_match_tolerance_, 0.20);
   private_nh_.param("path_timeout", path_timeout_, 1.0);
   fallback_.initialize(name + "_navfn", costmap_ros);
-  active_subscriber_ = private_nh_.subscribe(
-      "/coverage/active", 1, &CoverageGlobalPlanner::activeCallback, this);
   path_subscriber_ = private_nh_.subscribe(
       "/coverage/enforced_path", 1, &CoverageGlobalPlanner::pathCallback, this);
+  // A topic is retained for freshness refreshes, while the service provides a
+  // synchronous mode hand-off before coverage_manager submits a move_base
+  // goal.  This prevents a transit goal from racing the previous sweep path
+  // (and prevents a sweep goal from briefly falling back to Navfn).
+  set_path_service_ = private_nh_.advertiseService(
+      "set_enforced_path", &CoverageGlobalPlanner::setPathCallback, this);
   initialized_ = true;
-}
-
-void CoverageGlobalPlanner::activeCallback(const std_msgs::Bool::ConstPtr& message)
-{
-  std::lock_guard<std::mutex> lock(mutex_);
-  coverage_active_ = message->data;
 }
 
 void CoverageGlobalPlanner::pathCallback(
     const autolabor_coverage::EnforcedPath::ConstPtr& message)
 {
-  std::lock_guard<std::mutex> lock(mutex_);
-  enforced_path_ = *message;
-  enforced_path_received_ = ros::WallTime::now();
+  std::string reason;
+  if (!updateEnforcedPath(*message, reason))
+    ROS_ERROR_THROTTLE(1.0, "coverage rejected enforced-path refresh: %s",
+                       reason.c_str());
+}
+
+bool CoverageGlobalPlanner::setPathCallback(
+    autolabor_coverage::SetEnforcedPath::Request& request,
+    autolabor_coverage::SetEnforcedPath::Response& response)
+{
+  if (!validateEnforcedPath(request.enforced_path, response.message))
+  {
+    response.success = false;
+    return true;
+  }
+  if (request.enforced_path.active && !request.coverage_active)
+  {
+    response.success = false;
+    response.message = "a sweep path cannot be armed without coverage ownership";
+    return true;
+  }
+  {
+    // Mission ownership and planner mode are one transaction.  move_base can
+    // therefore never observe a newly armed sweep with stale ownership (or a
+    // new transit with the previous sweep still armed).
+    std::lock_guard<std::mutex> lock(mutex_);
+    coverage_active_ = request.coverage_active;
+    enforced_path_ = request.enforced_path;
+    enforced_path_received_ = ros::WallTime::now();
+  }
+  response.success = true;
+  if (!request.coverage_active)
+    response.message = "coverage ownership released and Navfn mode restored";
+  else if (request.enforced_path.active)
+    response.message = "coverage ownership and sweep path armed";
+  else
+    response.message = "coverage ownership and Navfn transit mode armed";
+  ROS_INFO("coverage planner hand-off: plan=%s segment=%u mode=%s",
+           request.enforced_path.plan_id.c_str(),
+           request.enforced_path.segment_index + 1,
+           request.coverage_active
+               ? (request.enforced_path.active ? "ENFORCED_SWEEP"
+                                                : "POINT_TO_POINT_NAVFN_TRANSIT")
+               : "ORDINARY_NAVFN");
+  return true;
+}
+
+bool CoverageGlobalPlanner::validateEnforcedPath(
+    const autolabor_coverage::EnforcedPath& message, std::string& reason) const
+{
+  const std::string global_frame = costmap_ros_->getGlobalFrameID();
+  if (message.header.frame_id != global_frame)
+  {
+    reason = "enforced-path header is not in the global costmap frame";
+    return false;
+  }
+  if (message.active &&
+      (message.path.header.frame_id != global_frame ||
+       message.path.poses.size() < 2))
+  {
+    reason = "active enforced path is empty or uses the wrong frame";
+    return false;
+  }
+  return true;
+}
+
+bool CoverageGlobalPlanner::updateEnforcedPath(
+    const autolabor_coverage::EnforcedPath& message, std::string& reason)
+{
+  if (!validateEnforcedPath(message, reason))
+    return false;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    // The topic is only a freshness channel.  Cross-transport scheduling must
+    // not allow a delayed refresh from the previous segment to undo the mode
+    // selected by the synchronous service transaction.
+    if (message.plan_id != enforced_path_.plan_id ||
+        message.segment_index != enforced_path_.segment_index ||
+        message.active != enforced_path_.active)
+    {
+      reason = "refresh does not match the synchronously armed coverage segment";
+      return false;
+    }
+    enforced_path_ = message;
+    enforced_path_received_ = ros::WallTime::now();
+  }
+  reason = message.active ? "sweep path refreshed" : "Navfn transit mode refreshed";
+  return true;
 }
 
 bool CoverageGlobalPlanner::makePlan(
@@ -100,29 +183,40 @@ bool CoverageGlobalPlanner::makePlan(
       age = (ros::WallTime::now() - enforced_path_received_).toSec();
   }
   if (!path.active)
-    return fallback_.makePlan(start, goal, plan);
-  if (age > path_timeout_)
   {
-    if (active)
+    // Coverage ownership only prevents another operator goal from stealing
+    // the mission.  It does not constrain a transit route: Navfn replans over
+    // the live global costmap and TEB remains free to detour around obstacles.
+    ROS_DEBUG_THROTTLE(
+        2.0,
+        "coverage point-to-point transit is using Navfn global planning");
+    return fallback_.makePlan(start, goal, plan);
+  }
+  if (!active)
+  {
+    if (age <= path_timeout_)
     {
-      ROS_ERROR_THROTTLE(1.0, "coverage enforced path is stale; refusing fallback shortcut");
+      ROS_ERROR_THROTTLE(
+          1.0,
+          "coverage sweep path is armed before mission ownership; refusing a shortcut");
       return false;
     }
     return fallback_.makePlan(start, goal, plan);
   }
-  return makeEnforcedPlan(start, goal, plan);
+  if (age > path_timeout_)
+  {
+    ROS_ERROR_THROTTLE(1.0, "coverage enforced path is stale; refusing fallback shortcut");
+    return false;
+  }
+  return makeEnforcedPlan(start, goal, path, plan);
 }
 
 bool CoverageGlobalPlanner::makeEnforcedPlan(
     const geometry_msgs::PoseStamped& start,
     const geometry_msgs::PoseStamped& goal,
+    const autolabor_coverage::EnforcedPath& message,
     std::vector<geometry_msgs::PoseStamped>& plan)
 {
-  autolabor_coverage::EnforcedPath message;
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    message = enforced_path_;
-  }
   const auto& poses = message.path.poses;
   if (poses.size() < 2 || message.path.header.frame_id.empty() ||
       start.header.frame_id != message.path.header.frame_id ||

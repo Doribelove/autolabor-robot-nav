@@ -70,6 +70,7 @@ target_link_libraries(m2_driver ${catkin_LIBRARIES})
 
 if(CATKIN_ENABLE_TESTING)
     catkin_add_gtest(test_m2_twist_steering test/test_m2_twist_steering.cpp)
+    catkin_add_gtest(test_m2_status_polling test/test_m2_status_polling.cpp)
 endif()
 
 install(TARGETS canbus_driver pm1_driver m2_driver

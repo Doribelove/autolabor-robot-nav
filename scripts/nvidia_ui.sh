@@ -144,16 +144,34 @@ if [[ "$NVIDIA_START_VISION" == true ]]; then
     echo "YOLO weights are missing: $fod_weights" >&2
     exit 5
   }
+  fod_model_sha256="${NVIDIA_FOD_MODEL_SHA256:-7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500}"
+  [[ "$fod_model_sha256" =~ ^[[:xdigit:]]{64}$ ]] || {
+    echo "YOLO weights SHA256 is invalid: $fod_model_sha256" >&2
+    exit 5
+  }
+  fod_required_class_names="${NVIDIA_FOD_REQUIRED_CLASS_NAMES:-Metal,Soft,Plastic,Wire,Tool,w}"
+  fod_ultralytics_root="${NVIDIA_FOD_ULTRALYTICS_ROOT:-}"
+  fod_pythonpath="${PYTHONPATH:-}"
+  if [[ -n "$fod_ultralytics_root" ]]; then
+    [[ -r "$fod_ultralytics_root/ultralytics/__init__.py" ]] || {
+      echo "Project-local Ultralytics source is missing: $fod_ultralytics_root" >&2
+      exit 5
+    }
+    fod_pythonpath="$fod_ultralytics_root${fod_pythonpath:+:$fod_pythonpath}"
+  fi
   if [[ "$NVIDIA_START_CAMERA" == true ]]; then
     "$SCRIPT_DIR/zed_camera_check.sh" --wait "$ZED_USB_WAIT_SEC"
   fi
   vision_log="$LOG_DIR/vision.log"
   start_process "$LOG_DIR/vision.log" \
+    env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$fod_pythonpath" \
     roslaunch autolabor_fod_vision zed_fod_detection.launch \
       start_camera:="$NVIDIA_START_CAMERA" \
       serial_number:="$NVIDIA_ZED_SERIAL" \
       detector_python:="$NVIDIA_DETECTOR_PYTHON" \
       weights:="$fod_weights" \
+      expected_model_sha256:="$fod_model_sha256" \
+      required_class_names:="$fod_required_class_names" \
       enable_image_quality_controller:=false
   vision_pid="$last_started_pid"
   if [[ "$NVIDIA_START_CAMERA" == true ]]; then

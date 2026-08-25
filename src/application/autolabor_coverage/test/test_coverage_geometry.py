@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+import itertools
 import math
 import sys
 import unittest
@@ -18,10 +19,160 @@ from autolabor_coverage.coverage_geometry import (  # noqa: E402
     GridMap,
     Point,
     Swath,
+    _optimize_orientations_for_order,
     order_swaths,
     rasterize_swept_cells,
     validate_polygon,
 )
+
+
+def _oracle_heading_delta(first, second):
+    return abs(math.atan2(math.sin(second - first), math.cos(second - first)))
+
+
+def _oracle_connector_cost(current, current_yaw, entry, sweep_yaw,
+                           minimum_turning_radius):
+    distance = math.hypot(current.x - entry.x, current.y - entry.y)
+    if current_yaw is None or not math.isfinite(current_yaw):
+        return distance
+    turn_arc = minimum_turning_radius * _oracle_heading_delta(
+        current_yaw, sweep_yaw)
+    approach_deficit = max(
+        0.0,
+        min(turn_arc, minimum_turning_radius) - distance,
+    )
+    return distance + turn_arc + 10.0 * approach_deficit
+
+
+def _oracle_route_cost(swaths, index_order, directions, current, current_yaw,
+                       minimum_turning_radius):
+    total = 0.0
+    cursor = current
+    cursor_yaw = current_yaw
+    for index, direction in zip(index_order, directions):
+        swath = swaths[index]
+        if direction == 0:
+            entry, exit_point = swath.start, swath.end
+        else:
+            entry, exit_point = swath.end, swath.start
+        sweep_yaw = math.atan2(
+            exit_point.y - entry.y,
+            exit_point.x - entry.x,
+        )
+        total += _oracle_connector_cost(
+            cursor,
+            cursor_yaw,
+            entry,
+            sweep_yaw,
+            minimum_turning_radius,
+        ) + swath.length
+        cursor = exit_point
+        cursor_yaw = sweep_yaw
+    return total
+
+
+def _cyclic_orders(order):
+    order = tuple(order)
+    for offset in range(len(order)):
+        yield order[offset:] + order[:offset]
+
+
+def _allowed_index_orders(base_order):
+    seen = set()
+    for cycle in (tuple(base_order), tuple(reversed(base_order))):
+        for candidate in _cyclic_orders(cycle):
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            yield candidate
+
+
+def _oracle_best(swaths, index_orders, current, current_yaw,
+                 minimum_turning_radius):
+    best = None
+    for index_order in index_orders:
+        for directions in itertools.product((0, 1), repeat=len(index_order)):
+            candidate = (
+                _oracle_route_cost(
+                    swaths,
+                    index_order,
+                    directions,
+                    current,
+                    current_yaw,
+                    minimum_turning_radius,
+                ),
+                tuple(index_order),
+                directions,
+            )
+            if best is None or candidate < best:
+                best = candidate
+    return best
+
+
+def _oracle_greedy_for_order(swaths, index_order, current, current_yaw,
+                             minimum_turning_radius):
+    total = 0.0
+    cursor = current
+    cursor_yaw = current_yaw
+    directions = []
+    for index in index_order:
+        swath = swaths[index]
+        candidates = []
+        for direction in (0, 1):
+            if direction == 0:
+                entry, exit_point = swath.start, swath.end
+            else:
+                entry, exit_point = swath.end, swath.start
+            sweep_yaw = math.atan2(
+                exit_point.y - entry.y,
+                exit_point.x - entry.x,
+            )
+            candidates.append((
+                _oracle_connector_cost(
+                    cursor,
+                    cursor_yaw,
+                    entry,
+                    sweep_yaw,
+                    minimum_turning_radius,
+                ),
+                direction,
+                exit_point,
+                sweep_yaw,
+            ))
+        connector_cost, direction, cursor, cursor_yaw = min(candidates)
+        total += connector_cost + swath.length
+        directions.append(direction)
+    return total, tuple(directions)
+
+
+def _turn_friendly_base_order(swath_count, spacing, minimum_turning_radius):
+    stride = max(1, int(math.ceil(
+        2.0 * minimum_turning_radius / spacing)))
+    return tuple(
+        index
+        for residue in range(stride)
+        for index in range(residue, swath_count, stride)
+    )
+
+
+def _route_signature(route, original_swaths):
+    signature = []
+    used = set()
+    for routed in route:
+        matches = []
+        for index, original in enumerate(original_swaths):
+            if index in used or routed.scan_v != original.scan_v:
+                continue
+            if routed.start == original.start and routed.end == original.end:
+                matches.append((index, 0))
+            elif routed.start == original.end and routed.end == original.start:
+                matches.append((index, 1))
+        if len(matches) != 1:
+            raise AssertionError("route does not map uniquely to the input swaths")
+        used.add(matches[0][0])
+        signature.append(matches[0])
+    return tuple(index for index, _ in signature), tuple(
+        direction for _, direction in signature)
 
 
 class CoverageGeometryTest(unittest.TestCase):
@@ -114,6 +265,128 @@ class CoverageGeometryTest(unittest.TestCase):
         )
         self.assertEqual(Point(-1.0, 0.0), route[0].start)
         self.assertEqual(Point(1.0, 0.0), route[0].end)
+
+    def test_route_avoids_an_orientation_only_ackermann_entry(self):
+        swath = Swath(Point(0.0, 0.0), Point(3.0, 0.0), 0.0, 3.0)
+        route = order_swaths(
+            [swath], Point(0.0, 0.0), 0.85, 1.35, current_yaw=math.pi
+        )
+        self.assertEqual(Point(3.0, 0.0), route[0].start)
+        self.assertEqual(Point(0.0, 0.0), route[0].end)
+
+    def test_route_minimizes_complete_cost_across_allowed_cyclic_orders(self):
+        spacing = 0.85
+        radius = 1.35
+        current = Point(10.0, 4.0)
+        current_yaw = -0.5 * math.pi
+        swaths = [
+            Swath(Point(-3.0, 0.00), Point(7.0, 0.00), 0.00, 10.0),
+            Swath(Point(3.0, 0.85), Point(13.0, 0.85), 0.85, 10.0),
+            Swath(Point(-8.0, 1.70), Point(2.0, 1.70), 1.70, 10.0),
+            Swath(Point(8.0, 2.55), Point(16.0, 2.55), 2.55, 8.0),
+            Swath(Point(4.0, 3.40), Point(12.0, 3.40), 3.40, 8.0),
+        ]
+        base_order = _turn_friendly_base_order(len(swaths), spacing, radius)
+        oracle = _oracle_best(
+            swaths,
+            _allowed_index_orders(base_order),
+            current,
+            current_yaw,
+            radius,
+        )
+        route = order_swaths(
+            swaths, current, spacing, radius, current_yaw=current_yaw)
+        index_order, directions = _route_signature(route, swaths)
+        actual_cost = _oracle_route_cost(
+            swaths, index_order, directions, current, current_yaw, radius)
+
+        self.assertEqual((0, 4, 1, 2, 3), base_order)
+        self.assertEqual((3, 0, 4, 1, 2), oracle[1])
+        self.assertEqual((1, 1, 0, 1, 1), oracle[2])
+        self.assertAlmostEqual(77.34820688593743, oracle[0], places=9)
+        self.assertEqual(oracle[1:], (index_order, directions))
+        self.assertAlmostEqual(oracle[0], actual_cost, places=9)
+
+        old_greedy_cost = _oracle_route_cost(
+            swaths,
+            (4, 1, 2, 3, 0),
+            (1, 0, 1, 0, 1),
+            current,
+            current_yaw,
+            radius,
+        )
+        self.assertAlmostEqual(106.32193720200752, old_greedy_cost, places=9)
+        self.assertLess(actual_cost, old_greedy_cost)
+
+    def test_route_enumerates_reverse_cyclic_orders(self):
+        spacing = 0.85
+        radius = 1.35
+        current = Point(10.0, 2.0)
+        current_yaw = -0.5 * math.pi
+        swaths = [
+            Swath(Point(-9.0, 0.00), Point(-4.0, 0.00), 0.00, 5.0),
+            Swath(Point(-7.0, 0.85), Point(2.0, 0.85), 0.85, 9.0),
+            Swath(Point(-5.0, 1.70), Point(-1.0, 1.70), 1.70, 4.0),
+            Swath(Point(4.0, 2.55), Point(13.0, 2.55), 2.55, 9.0),
+            Swath(Point(0.0, 3.40), Point(10.0, 3.40), 3.40, 10.0),
+        ]
+        base_order = _turn_friendly_base_order(len(swaths), spacing, radius)
+        forward_best = _oracle_best(
+            swaths,
+            _cyclic_orders(base_order),
+            current,
+            current_yaw,
+            radius,
+        )
+        oracle = _oracle_best(
+            swaths,
+            _allowed_index_orders(base_order),
+            current,
+            current_yaw,
+            radius,
+        )
+        route = order_swaths(
+            swaths, current, spacing, radius, current_yaw=current_yaw)
+        index_order, directions = _route_signature(route, swaths)
+        actual_cost = _oracle_route_cost(
+            swaths, index_order, directions, current, current_yaw, radius)
+
+        self.assertEqual((3, 2, 1, 4, 0), oracle[1])
+        self.assertEqual((1, 1, 0, 1, 1), oracle[2])
+        self.assertAlmostEqual(71.54408057301828, oracle[0], places=9)
+        self.assertEqual((4, 1, 2, 3, 0), forward_best[1])
+        self.assertEqual((1, 1, 1, 1, 1), forward_best[2])
+        self.assertAlmostEqual(76.23787531792067, forward_best[0], places=9)
+        self.assertLess(oracle[0], forward_best[0])
+        self.assertEqual(oracle[1:], (index_order, directions))
+        self.assertAlmostEqual(oracle[0], actual_cost, places=9)
+
+    def test_fixed_order_direction_dp_beats_greedy_endpoint_selection(self):
+        radius = 1.35
+        current = Point(7.0, -2.0)
+        current_yaw = -0.5 * math.pi
+        index_order = (1, 2, 0)
+        swaths = [
+            Swath(Point(-10.0, 0.00), Point(-3.0, 0.00), 0.00, 7.0),
+            Swath(Point(1.0, 0.85), Point(7.0, 0.85), 0.85, 6.0),
+            Swath(Point(2.0, 1.70), Point(9.0, 1.70), 1.70, 7.0),
+        ]
+        oracle = _oracle_best(
+            swaths, (index_order,), current, current_yaw, radius)
+        greedy_cost, greedy_directions = _oracle_greedy_for_order(
+            swaths, index_order, current, current_yaw, radius)
+        route, optimized_cost = _optimize_orientations_for_order(
+            swaths, index_order, current, current_yaw, radius)
+        routed_order, directions = _route_signature(route, swaths)
+
+        self.assertEqual((1, 1, 1), oracle[2])
+        self.assertAlmostEqual(38.29670293316519, oracle[0], places=9)
+        self.assertEqual((1, 0, 1), greedy_directions)
+        self.assertAlmostEqual(47.26072941278843, greedy_cost, places=9)
+        self.assertEqual(index_order, routed_order)
+        self.assertEqual(oracle[2], directions)
+        self.assertAlmostEqual(oracle[0], optimized_cost, places=9)
+        self.assertLess(optimized_cost, greedy_cost)
 
     def test_swept_area_cells_are_clipped_and_do_not_double_count(self):
         grid = GridMap(50, 50, 0.1, 0.0, 0.0, [0] * 2500)

@@ -482,79 +482,161 @@ def _entry_cost(current, current_yaw, entry, sweep_yaw, minimum_turning_radius):
     distance = math.hypot(current.x - entry.x, current.y - entry.y)
     if current_yaw is None or not math.isfinite(current_yaw):
         return distance
-    # R*delta is the lower-bound arc length needed to change heading at the
-    # configured Ackermann radius.  It makes route direction heading-aware,
-    # while move_base/TEB remains responsible for the actual connector.
-    return distance + minimum_turning_radius * _heading_delta(
-        current_yaw, sweep_yaw
-    )
+    heading_delta = _heading_delta(current_yaw, sweep_yaw)
+    turn_arc = minimum_turning_radius * heading_delta
+    # R*delta is the lower-bound arc length needed to change heading.  A point
+    # that is already under the vehicle but asks for a different yaw is not a
+    # useful Ackermann entry: it degenerates into an impossible spin-in-place
+    # goal.  Penalize the missing approach distance strongly enough that the
+    # opposite end (or another row) wins whenever a maneuverable alternative
+    # exists; move_base/TEB still owns the actual free-space connector.
+    required_approach = min(turn_arc, minimum_turning_radius)
+    approach_deficit = max(0.0, required_approach - distance)
+    return distance + turn_arc + 10.0 * approach_deficit
+
+
+def _oriented_swath(swath, reverse):
+    if reverse:
+        return Swath(swath.end, swath.start, swath.scan_v, swath.length)
+    return swath
+
+
+def _swath_yaw(swath):
+    return math.atan2(swath.end.y - swath.start.y,
+                      swath.end.x - swath.start.x)
+
+
+def _turn_friendly_index_order(swath_count, spacing, minimum_turning_radius):
+    stride = max(1, int(math.ceil(2.0 * minimum_turning_radius /
+                                  max(spacing, EPSILON))))
+    order = []
+    for residue in range(stride):
+        order.extend(range(residue, swath_count, stride))
+    return order
+
+
+def _candidate_index_orders(base_order):
+    """Yield every cyclic start in both directions without duplicates."""
+    if not base_order:
+        return
+    seen = set()
+    for cycle in (list(base_order), list(reversed(base_order))):
+        for offset in range(len(cycle)):
+            candidate = tuple(cycle[offset:] + cycle[:offset])
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            yield candidate
+
+
+def _prefer_cost(candidate_cost, best_cost):
+    return best_cost is None or candidate_cost < best_cost - EPSILON
+
+
+def _optimize_orientations_for_order(ordered_swaths, index_order, current,
+                                     current_yaw, minimum_turning_radius):
+    """Return the minimum-total-cost directions for one fixed row order.
+
+    Each row has two possible directions.  Dynamic programming avoids the old
+    greedy failure mode in which the locally cheaper endpoint creates a much
+    longer connector to the following row.
+    """
+    if not index_order:
+        return [], 0.0
+
+    first = ordered_swaths[index_order[0]]
+    states = {}
+    for direction in (0, 1):
+        oriented = _oriented_swath(first, direction == 1)
+        yaw = _swath_yaw(oriented)
+        states[direction] = (
+            _entry_cost(current, current_yaw, oriented.start, yaw,
+                        minimum_turning_radius) + oriented.length,
+            (direction,),
+            oriented,
+        )
+
+    for index in index_order[1:]:
+        swath = ordered_swaths[index]
+        next_states = {}
+        for direction in (0, 1):
+            oriented = _oriented_swath(swath, direction == 1)
+            yaw = _swath_yaw(oriented)
+            best = None
+            for previous_direction in (0, 1):
+                previous_cost, previous_choices, previous_swath = states[
+                    previous_direction
+                ]
+                previous_yaw = _swath_yaw(previous_swath)
+                cost = (
+                    previous_cost
+                    + _entry_cost(
+                        previous_swath.end,
+                        previous_yaw,
+                        oriented.start,
+                        yaw,
+                        minimum_turning_radius,
+                    )
+                    + oriented.length
+                )
+                choices = previous_choices + (direction,)
+                if (best is None or _prefer_cost(cost, best[0]) or
+                        (abs(cost - best[0]) <= EPSILON and choices < best[1])):
+                    best = (cost, choices, oriented)
+            next_states[direction] = best
+        states = next_states
+
+    best = None
+    for direction in (0, 1):
+        candidate = states[direction]
+        if (best is None or _prefer_cost(candidate[0], best[0]) or
+                (abs(candidate[0] - best[0]) <= EPSILON and
+                 candidate[1] < best[1])):
+            best = candidate
+
+    directions = best[1]
+    route = [
+        _oriented_swath(ordered_swaths[index], direction == 1)
+        for index, direction in zip(index_order, directions)
+    ]
+    return route, best[0]
 
 
 def order_swaths(swaths, current, spacing, minimum_turning_radius,
                  current_yaw=None):
+    """Minimize complete estimated route cost within turn-friendly orders.
+
+    The selected sweep angle and cross-row stride remain coverage-planner
+    constraints.  Within that family, all cyclic starts and the reverse order
+    are evaluated, and every row direction is optimized jointly.  The cost is
+    the current-to-entry connector, all row lengths, and every inter-row
+    connector under the Ackermann-aware entry heuristic.
+    """
     if not swaths:
         return []
     ordered_by_v = sorted(swaths, key=lambda swath: (
-        round(swath.scan_v / max(spacing, EPSILON)),
+        swath.scan_v,
         min(swath.start.x, swath.end.x),
+        min(swath.start.y, swath.end.y),
+        max(swath.start.x, swath.end.x),
+        max(swath.start.y, swath.end.y),
     ))
-    stride = max(1, int(math.ceil(2.0 * minimum_turning_radius /
-                                  max(spacing, EPSILON))))
-    index_order = []
-    for residue in range(stride):
-        index_order.extend(range(residue, len(ordered_by_v), stride))
+    base_order = _turn_friendly_index_order(
+        len(ordered_by_v), spacing, minimum_turning_radius)
+    best_route = None
+    best_cost = None
     # The region is not a geofence, so move_base may transit through any known
-    # free cells.  Rotate the turn-friendly row sequence to the endpoint nearest
-    # the vehicle; this provides a deterministic, low-cost coverage entry.
-    first_position = min(
-        range(len(index_order)),
-        key=lambda position: min((
-            _entry_cost(
-                current,
-                current_yaw,
-                ordered_by_v[index_order[position]].start,
-                math.atan2(
-                    ordered_by_v[index_order[position]].end.y -
-                    ordered_by_v[index_order[position]].start.y,
-                    ordered_by_v[index_order[position]].end.x -
-                    ordered_by_v[index_order[position]].start.x,
-                ),
-                minimum_turning_radius,
-            ),
-            _entry_cost(
-                current,
-                current_yaw,
-                ordered_by_v[index_order[position]].end,
-                math.atan2(
-                    ordered_by_v[index_order[position]].start.y -
-                    ordered_by_v[index_order[position]].end.y,
-                    ordered_by_v[index_order[position]].start.x -
-                    ordered_by_v[index_order[position]].end.x,
-                ),
-                minimum_turning_radius,
-            ),
-        )),
-    )
-    index_order = index_order[first_position:] + index_order[:first_position]
-    route = []
-    cursor = current
-    cursor_yaw = current_yaw
-    for index in index_order:
-        swath = ordered_by_v[index]
-        forward_yaw = math.atan2(swath.end.y - swath.start.y,
-                                 swath.end.x - swath.start.x)
-        reverse_yaw = math.atan2(swath.start.y - swath.end.y,
-                                 swath.start.x - swath.end.x)
-        start_cost = _entry_cost(
-            cursor, cursor_yaw, swath.start, forward_yaw,
-            minimum_turning_radius)
-        end_cost = _entry_cost(
-            cursor, cursor_yaw, swath.end, reverse_yaw,
-            minimum_turning_radius)
-        if end_cost < start_cost:
-            swath = Swath(swath.end, swath.start, swath.scan_v, swath.length)
-            forward_yaw = reverse_yaw
-        route.append(swath)
-        cursor = swath.end
-        cursor_yaw = forward_yaw
-    return route
+    # free cells.  Compare the complete open route instead of choosing only the
+    # nearest first endpoint and accidentally retaining a long wrap connector.
+    for index_order in _candidate_index_orders(base_order):
+        route, cost = _optimize_orientations_for_order(
+            ordered_by_v,
+            index_order,
+            current,
+            current_yaw,
+            minimum_turning_radius,
+        )
+        if _prefer_cost(cost, best_cost):
+            best_route = route
+            best_cost = cost
+    return best_route
