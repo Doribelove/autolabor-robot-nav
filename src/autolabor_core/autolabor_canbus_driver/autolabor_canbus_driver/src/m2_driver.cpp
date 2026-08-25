@@ -31,21 +31,21 @@ namespace autolabor_driver{
 
         // 查询车辆状态
         reqMsg.msg_type = Autocan::Vcu::BatteryPercent;
-        info_req_queue_.push(reqMsg);
+        telemetry_info_req_queue_.push(reqMsg);
         reqMsg.msg_type = Autocan::Vcu::RemainSec;
-        info_req_queue_.push(reqMsg);
+        telemetry_info_req_queue_.push(reqMsg);
         reqMsg.msg_type = Autocan::Vcu::RemainCapacity;
-        info_req_queue_.push(reqMsg);
+        telemetry_info_req_queue_.push(reqMsg);
         reqMsg.msg_type = Autocan::Vcu::BatteryVoltage;
-        info_req_queue_.push(reqMsg);
+        telemetry_info_req_queue_.push(reqMsg);
         reqMsg.msg_type = Autocan::Vcu::BatteryCurrent;
-        info_req_queue_.push(reqMsg);
+        telemetry_info_req_queue_.push(reqMsg);
         reqMsg.msg_type = Autocan::Vcu::HardEmergency;
-        info_req_queue_.push(reqMsg);
+        safety_info_req_queue_.push(reqMsg);
         reqMsg.msg_type = Autocan::Vcu::SoftEmergency;
-        info_req_queue_.push(reqMsg);
+        safety_info_req_queue_.push(reqMsg);
         reqMsg.msg_type = Autocan::Vcu::GamepadEmergency;
-        info_req_queue_.push(reqMsg);
+        safety_info_req_queue_.push(reqMsg);
     }
 
     void M2Driver::ask_robot_param(const ros::TimerEvent &){
@@ -69,13 +69,32 @@ namespace autolabor_driver{
     }
 
     void M2Driver::ask_robot_info(const ros::TimerEvent &){
+        if (safety_info_req_queue_.empty() || telemetry_info_req_queue_.empty()) {
+            return;
+        }
         autolabor_canbus_driver::CanBusService srv;
-        autolabor_canbus_driver::CanBusMessage nextReq = info_req_queue_.front();
-        srv.request.requests.push_back(nextReq);
-        canbus_client_.call(srv);
-        // 如果需要，将请求放回队尾
-        info_req_queue_.pop();
-        info_req_queue_.push(nextReq);
+        // The VCU reply path was measured at roughly four queries per second.
+        // Use three safety slots (hard/soft/gamepad emergency) and one rotating
+        // telemetry slot per cycle.  At the default 1 Hz safety snapshot rate,
+        // each emergency field is refreshed every second while battery fields
+        // rotate every five seconds.  Every tick still contains exactly one
+        // request, so no serial burst can overrun the VCU.
+        const std::size_t safety_slots = safety_info_req_queue_.size();
+        const bool safety_slot = info_poll_phase_ < safety_slots;
+        std::queue<autolabor_canbus_driver::CanBusMessage>& selected_queue =
+            safety_slot ? safety_info_req_queue_ : telemetry_info_req_queue_;
+        const autolabor_canbus_driver::CanBusMessage next_req =
+            selected_queue.front();
+        srv.request.requests.push_back(next_req);
+        selected_queue.pop();
+        selected_queue.push(next_req);
+        info_poll_phase_ = (info_poll_phase_ + 1) % (safety_slots + 1);
+        if (!canbus_client_.call(srv)) {
+            ROS_WARN_THROTTLE(
+                1.0,
+                "M2 chassis-status query failed; coverage freshness gates "
+                "will remain fail-closed");
+        }
     }
 
     void M2Driver::handle_canbus_msg(const autolabor_canbus_driver::CanBusMessage::ConstPtr &msg) {
@@ -505,7 +524,9 @@ namespace autolabor_driver{
         // 读取参数
         privateNodeHandle.param<std::string>("odom_frame", odom_frame_, std::string("odom"));
         privateNodeHandle.param<std::string>("base_frame", base_frame_, std::string("base_link"));
-        privateNodeHandle.param<int>("poller_rate_hz", poller_rate_hz_,1.0);
+        privateNodeHandle.param<double>("poller_rate_hz", poller_rate_hz_, 1.0);
+        privateNodeHandle.param<double>(
+            "status_query_rate_limit_hz", status_query_rate_limit_hz_, 4.0);
         privateNodeHandle.param<int>("pub_odom_hz", pub_odom_hz_, 10);
         privateNodeHandle.param<bool>("publish_tf", publish_tf_, false);
         privateNodeHandle.param<bool>("is_odom_child_baselink", is_odom_child_baselink_, false);
@@ -533,7 +554,22 @@ namespace autolabor_driver{
         chassis_parameter_server_ = privateNodeHandle.advertiseService("chassis_parameter", &M2Driver::handle_get_chassis_parameters, this);
         // 查询定时器
         ask_parameters_timer_ = nodeHandle.createTimer(ros::Duration(1.0 / 20.0), &M2Driver::ask_robot_param, this);
-        ask_info_timer_ = nodeHandle.createTimer(ros::Duration(1.0 / poller_rate_hz_ ), &M2Driver::ask_robot_info, this);
+        const std::size_t status_query_slots =
+            safety_info_req_queue_.size() + 1;
+        const double status_query_rate_hz = m2_status_query_rate_hz(
+            poller_rate_hz_, status_query_slots, status_query_rate_limit_hz_);
+        if (status_query_rate_hz <= 0.0) {
+            ROS_FATAL("M2 status polling rates must be finite and positive and "
+                      "the status request queues must not be empty");
+            return;
+        }
+        ROS_INFO("M2 chassis status: %.3f requested safety snapshots/s, "
+                 "%.3f paced queries/s (limit %.3f), %zu telemetry fields",
+                 poller_rate_hz_, status_query_rate_hz,
+                 status_query_rate_limit_hz_, telemetry_info_req_queue_.size());
+        ask_info_timer_ = nodeHandle.createTimer(
+            ros::Duration(1.0 / status_query_rate_hz),
+            &M2Driver::ask_robot_info, this);
         // 里程计发送定时器
         send_odom_timer_ = nodeHandle.createTimer(ros::Duration(1.0 / pub_odom_hz_), &M2Driver::send_odom, this);
         // 开启线程循环

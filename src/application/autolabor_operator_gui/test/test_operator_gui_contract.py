@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import os
+import re
 import unittest
 import xml.etree.ElementTree as ElementTree
 
@@ -53,6 +54,151 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("class ScrollSafeDoubleSpinBox", GUI_SOURCE)
         self.assertIn("event->ignore()", GUI_SOURCE)
         self.assertIn("call.request.max_speed_mps = max_speed_mps", GUI_SOURCE)
+        self.assertIn("当前车辆位姿", GUI_SOURCE)
+        self.assertIn("最近位置里程计", GUI_SOURCE)
+        self.assertIn("recent_odom_distance_m", GUI_SOURCE)
+        self.assertIn('lookupTransform("map", "base_link"', GUI_SOURCE)
+        self.assertIn(
+            "QWidget#coverageControls QLabel, QWidget#coverageControls QCheckBox { color: #111827; }",
+            GUI_SOURCE,
+        )
+        self.assertIn("coverage_editable && !coverage_selecting", GUI_SOURCE)
+
+    def test_coverage_cancel_is_available_through_the_whole_lifecycle(self):
+        refresh = GUI_SOURCE[
+            GUI_SOURCE.index("const bool coverage_has_ready_plan") :
+            GUI_SOURCE.index("bool MainWindow::relativeGoalReady")
+        ]
+        for evidence in (
+            "coverage_plan_pending_",
+            'coverage.state == "PLANNING"',
+            "coverage_has_ready_plan",
+            "coverage_start_preparing",
+            "coverage_active",
+            "coverage_cancel_available",
+        ):
+            self.assertIn(evidence, refresh)
+
+        cancel = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::cancelCoverageTask()") :
+            GUI_SOURCE.index("void MainWindow::callSetBoolService")
+        ]
+        self.assertNotIn(
+            "if (coverage_cancel_pending_ || coverage_plan_id_.empty())", cancel
+        )
+        self.assertIn("coverage_plan_pending_", cancel)
+        self.assertIn("active_at_request", cancel)
+        self.assertIn("preparing_at_request", cancel)
+
+    def test_coverage_cancel_has_an_independent_pending_guard(self):
+        self.assertIn("bool coverage_command_pending_ = false;", GUI_HEADER)
+        self.assertIn("bool coverage_cancel_pending_ = false;", GUI_HEADER)
+        cancel = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::cancelCoverageTask()") :
+            GUI_SOURCE.index("void MainWindow::callSetBoolService")
+        ]
+        self.assertIn("if (coverage_cancel_pending_", cancel)
+        self.assertIn("coverage_cancel_pending_ = true;", cancel)
+        self.assertIn("coverage_cancel_pending_ = false;", cancel)
+        self.assertNotIn("if (coverage_command_pending_)\n    return;", cancel)
+
+    def test_coverage_terminal_state_resets_ui_and_allows_second_selection(self):
+        terminal = GUI_SOURCE[
+            GUI_SOURCE.index("const bool coverage_terminal") :
+            GUI_SOURCE.index('values_["coverage_map"]->setText')
+        ]
+        for state in ("COMPLETED", "COMPLETED_PARTIAL", "CANCELED", "FAILED"):
+            self.assertIn('coverage.state == "{}"'.format(state), terminal)
+        self.assertIn("resetCoverageUiState(true);", terminal)
+
+        reset = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::resetCoverageUiState") :
+            GUI_SOURCE.index("void MainWindow::beginCoverageSelection")
+        ]
+        for evidence in (
+            "coverage_selecting_ = false;",
+            "coverage_draft_points_.clear();",
+            "coverage_plan_id_.clear();",
+            "publishCoverageDraft();",
+            "selectCoveragePointTool(false);",
+        ):
+            self.assertIn(evidence, reset)
+
+        begin = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::beginCoverageSelection") :
+            GUI_SOURCE.index("void MainWindow::undoCoveragePoint")
+        ]
+        for evidence in (
+            "coverage_selecting_ = true;",
+            "coverage_draft_points_.clear();",
+            "coverage_cancel_requested_ = false;",
+            "selectCoveragePointTool(true);",
+        ):
+            self.assertIn(evidence, begin)
+        self.assertIn(
+            "coverage_editable && !coverage_selecting &&\n"
+            "                                      !coverage_has_ready_plan",
+            GUI_SOURCE,
+        )
+
+    def test_returning_to_coverage_tab_restores_publish_point_selection(self):
+        attach = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::attachRvizToTab") :
+            GUI_SOURCE.index("void MainWindow::publishMapDisplayStatus")
+        ]
+        for evidence in (
+            "resume_coverage_selection = coverage_selecting_",
+            "resume_coverage_selection ? QStringLiteral(\"rviz/PublishPoint\")",
+            ': QStringLiteral("rviz/MoveCamera")',
+        ):
+            self.assertIn(evidence, attach)
+
+    def test_canceled_plan_callback_cannot_revive_draft_or_plan_id(self):
+        generation_match = re.search(
+            r"std::uint64_t (coverage_plan_[a-z_]*"
+            r"(?:generation|epoch|revision)[a-z_]*)\s*=\s*0;",
+            GUI_HEADER,
+        )
+        self.assertIsNotNone(
+            generation_match,
+            "coverage planning futures need a monotonically invalidated generation",
+        )
+        generation = generation_match.group(1)
+
+        reset = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::resetCoverageUiState") :
+            GUI_SOURCE.index("void MainWindow::beginCoverageSelection")
+        ]
+        self.assertIn("++{};".format(generation), reset)
+
+        confirm = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::confirmCoverageSelection") :
+            GUI_SOURCE.index("void MainWindow::startCoverage")
+        ]
+        request_match = re.search(
+            r"const std::uint64_t (\w+)\s*=\s*(?:\+\+)?{};".format(
+                re.escape(generation)
+            ),
+            confirm,
+        )
+        self.assertIsNotNone(
+            request_match,
+            "each planning future must capture the generation it belongs to",
+        )
+        request_generation = request_match.group(1)
+        callback = confirm[confirm.index("connect(watcher") :]
+        self.assertRegex(
+            callback,
+            r"\[this,\s*watcher,\s*{}\]".format(
+                re.escape(request_generation)
+            ),
+        )
+        stale_guard = "{} != {}".format(request_generation, generation)
+        self.assertIn(stale_guard, callback)
+        guard_at = callback.index(stale_guard)
+        self.assertLess(guard_at, callback.index("coverage_plan_pending_ = false;"))
+        self.assertLess(guard_at, callback.index("coverage_plan_id_ = result.plan_id;"))
+        self.assertLess(guard_at, callback.index("coverage_selecting_ = true;"))
 
     def test_coverage_status_distinguishes_navigation_from_cleaning_hardware(self):
         for evidence in (
@@ -61,12 +207,15 @@ class OperatorGuiContractTest(unittest.TestCase):
             "覆盖路线执行中",
             "路线约束",
             "运动学核对",
+            "底盘执行门",
             "障碍感知",
             "已覆盖估算",
             "未接入 · 仅执行覆盖导航",
             "coverage.kinematics_verified",
             "coverage.lane_spacing_m",
             "coverage.required_steering_angle_rad",
+            "coverage.chassis_ready",
+            "coverage.chassis_detail",
             "coverage.avoidance_ready",
             "coverage.avoidance_detail",
         ):
@@ -109,6 +258,12 @@ class OperatorGuiContractTest(unittest.TestCase):
         for config in (RVIZ_CONFIG, COVERAGE_RVIZ_CONFIG):
             displays = yaml.safe_load(config)["Visualization Manager"]["Displays"]
             by_name = {display.get("Name"): display for display in displays}
+            odometry = by_name["Live vehicle pose and recent trail"]
+            self.assertEqual("rviz/Odometry", odometry["Class"])
+            self.assertEqual("/Odometry", odometry["Topic"])
+            self.assertEqual(120, odometry["Keep"])
+            self.assertIs(True, odometry["Enabled"])
+            self.assertIs(True, odometry["Value"])
             connector = by_name["Coverage connector preview (disabled)"]
             self.assertEqual("/coverage/planned_path", connector["Topic"])
             self.assertIs(False, connector["Enabled"])
@@ -572,6 +727,20 @@ class OperatorGuiContractTest(unittest.TestCase):
                       GUI_SOURCE)
         self.assertIn("QWidget#coverageControls QGroupBox::title { color: #111827; }",
                       GUI_SOURCE)
+
+    def test_light_message_boxes_use_dark_readable_text_and_buttons(self):
+        self.assertIn(
+            "QMessageBox { background: #f4f6f8; color: #111827; }",
+            GUI_SOURCE,
+        )
+        self.assertIn(
+            "QMessageBox QLabel { background: transparent; color: #111827; }",
+            GUI_SOURCE,
+        )
+        self.assertIn(
+            "QMessageBox QPushButton { background: #e5e7eb; color: #111827;",
+            GUI_SOURCE,
+        )
 
     def test_master_probe_commits_state_before_initializing_rviz(self):
         handler = GUI_SOURCE[

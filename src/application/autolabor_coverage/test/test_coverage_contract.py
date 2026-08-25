@@ -29,17 +29,47 @@ class CoverageContractTest(unittest.TestCase):
     def test_sweep_path_is_published_before_the_move_base_goal(self):
         manager = (PACKAGE_ROOT / "scripts" / "coverage_manager.py").read_text(
             encoding="utf-8")
+        handoff_service = (PACKAGE_ROOT / "srv" / "SetEnforcedPath.srv").read_text(
+            encoding="utf-8"
+        )
         first_publish = manager.index("self.enforced_path_pub.publish(enforced)")
         first_goal = manager.index("self.move_base.send_goal(goal)")
         self.assertLess(first_publish, first_goal)
+        synchronous_handoff = manager.index("self._set_enforced_path(enforced)")
+        self.assertLess(synchronous_handoff, first_goal)
+        self.assertIn("coverage_active=coverage_active", manager)
+        self.assertIn("enforced_path=enforced", manager)
+        self.assertIn("coverage_active=False", manager)
+        self.assertIn("bool coverage_active", handoff_service)
         self.assertIn('segment["type"] == "transit"', manager)
         self.assertIn("self.allow_reverse_transit", manager)
         plugin = (PACKAGE_ROOT / "src" / "coverage_global_planner.cpp").read_text(
             encoding="utf-8")
+        self.assertIn('advertiseService(', plugin)
+        self.assertIn('"set_enforced_path"', plugin)
+        self.assertIn("coverage_active_ = request.coverage_active", plugin)
+        self.assertIn("refresh does not match the synchronously armed", plugin)
+        self.assertNotIn('subscribe(\n      "/coverage/active"', plugin)
         self.assertIn("if (!path.active)", plugin)
-        self.assertIn("if (active)", plugin)
+        self.assertIn("if (!active)", plugin)
+        self.assertIn("POINT_TO_POINT_NAVFN_TRANSIT", plugin)
+        self.assertIn("fallback_.makePlan(start, goal, plan)", plugin)
         self.assertIn("goal yaw does not match enforced path endpoint", plugin)
         self.assertIn("world_model.footprintCost", plugin)
+        self.assertIn(
+            "executing point-to-point Navfn transit", manager
+        )
+
+        navigation = (
+            WORKSPACE_ROOT / "src" / "scripts" / "robot_bringup" /
+            "launch" / "navigation_j6m.launch"
+        ).read_text(encoding="utf-8")
+        self.assertIn('<arg name="planner_frequency" default="1.0"/>', navigation)
+        self.assertIn(
+            '<param name="planner_frequency" type="double" '
+            'value="$(arg planner_frequency)"/>',
+            navigation,
+        )
 
     def test_fod_pause_does_not_reissue_a_coverage_endpoint(self):
         bridge = (WORKSPACE_ROOT / "src" / "platform" /
@@ -87,6 +117,7 @@ class CoverageContractTest(unittest.TestCase):
         self.assertIn("float64 max_speed_mps", start_service)
         self.assertEqual(0.80, config["default_max_speed_mps"])
         self.assertEqual(1.60, config["max_speed_limit_mps"])
+        self.assertEqual(0.30, config["reverse_transit_speed_mps"])
         self.assertIn("requested_speed > self.watchdog_max_linear_speed", manager)
         self.assertIn('"max_vel_x": self.task_max_speed', manager)
         self.assertIn('"max_vel_x": configuration.get', manager)
@@ -138,6 +169,8 @@ class CoverageContractTest(unittest.TestCase):
             "chassis_max_speed_mps",
             "kinematics_verified",
             "kinematics_detail",
+            "chassis_ready",
+            "chassis_detail",
             "avoidance_ready",
             "avoidance_detail",
         ):
@@ -162,6 +195,36 @@ class CoverageContractTest(unittest.TestCase):
         self.assertIn("not self.avoidance_loss_paused", manager)
         self.assertIn("self._pause_for_avoidance_loss()", manager)
         self.assertIn("obstacle sensing is not ready", manager)
+
+    def test_coverage_requires_fresh_fault_free_chassis_execution(self):
+        manager = (PACKAGE_ROOT / "scripts" / "coverage_manager.py").read_text(
+            encoding="utf-8"
+        )
+        config = yaml.safe_load(
+            (PACKAGE_ROOT / "config" / "coverage.yaml").read_text(encoding="utf-8")
+        )
+        self.assertEqual(3.0, config["chassis_status_fresh_sec"])
+        self.assertEqual(1.0, config["chassis_odom_fresh_sec"])
+        self.assertEqual(3.0, config["chassis_monitor_fault_latch_sec"])
+        self.assertIn('"/m2_driver/chassis_info"', manager)
+        self.assertIn('"/m2_driver/chassis_monitor"', manager)
+        self.assertIn('"/odom", Odometry', manager)
+        self.assertIn("gamepad_emergency", manager)
+        self.assertIn('(\"tcu\", \"TCU\")', manager)
+        self.assertIn('prefix + "_state"', manager)
+        self.assertIn("chassis execution is not ready", manager)
+        self.assertIn("not self.chassis_fault_paused", manager)
+        self.assertIn("self._pause_for_chassis_fault()", manager)
+        m2_driver = (
+            WORKSPACE_ROOT / "src" / "autolabor_core" /
+            "autolabor_canbus_driver" / "autolabor_canbus_driver" /
+            "src" / "m2_driver.cpp"
+        ).read_text(encoding="utf-8")
+        self.assertIn("three safety slots", m2_driver)
+        self.assertIn("status_query_rate_limit_hz", m2_driver)
+        self.assertIn("m2_status_query_rate_hz", m2_driver)
+        self.assertIn("srv.request.requests.push_back(next_req)", m2_driver)
+        self.assertNotIn("for (std::size_t index = 0;", m2_driver)
 
 
 if __name__ == "__main__":

@@ -22,6 +22,8 @@ float32 chassis_max_steering_angle_rad
 float32 chassis_max_speed_mps
 bool kinematics_verified
 string kinematics_detail
+bool chassis_ready
+string chassis_detail
 bool avoidance_ready
 string avoidance_detail
 string detail

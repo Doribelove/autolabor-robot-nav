@@ -87,7 +87,7 @@ roslaunch autolabor_canbus_driver m2keyboard.launch
 
 - **`odom_frame`**: 用于发布里程计信息的坐标系名称，默认为`"odom"`。这是底盘位置信息的参考坐标系。
 - **`base_frame`**: 底盘的基础坐标系名称，默认为`"base_link"`。这是底盘上各个组件和传感器的相对参考点。
-- **`poller_rate_hz`**: 设置查询CAN总线信息的频率，单位是赫兹（Hz），默认为1Hz。这影响电量及状态数据更新的实时性。
+- **`poller_rate_hz`**: 设置三项急停安全状态的目标轮询频率，默认为 1 Hz。驱动每个周期依次查询硬急停、软急停、手柄急停，再轮询一项电池遥测；每次只发送一个 CAN 查询，并由 `status_query_rate_limit_hz`（默认 4 Hz）限制为 VCU 可持续处理的速率。五项电池遥测在默认配置下各约每 5 秒更新一次。
 - **`publish_tf`**: 是否发布TF变换数据，布尔值，用于控制是否在ROS网络中发布从`odom`到`base_link`的转换，默认关闭。
 
 ### 3.5 话题订阅与发布

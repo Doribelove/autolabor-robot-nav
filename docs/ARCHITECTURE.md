@@ -106,9 +106,10 @@ Qt 清扫页（NVIDIA）
   /coverage/clicked_point → 多边形 /coverage/plan
         ↓
 J6M /coverage_manager
-  静态图裁剪 + 连通域 + 弓字扫描线 + 任务状态机
-        ├─ 转场目标 ── CoverageGlobalPlanner → Navfn
-        └─ 清扫分段 ── CoverageGlobalPlanner → 强制 /coverage/enforced_path
+  静态图快照裁剪 + 连通域 + 弓字扫描线 + 任务状态机
+  start: PREPARING（无锁重规划）→ 最终安全复核 → 原子激活
+        ├─ 同步 set_enforced_path(转场) ── CoverageGlobalPlanner → Navfn
+        └─ 同步 set_enforced_path(扫掠) ── CoverageGlobalPlanner → /coverage/enforced_path
                                 ↓
                          move_base + TEB
                                 ↓
@@ -127,8 +128,36 @@ fail-closed，不允许突然改走最短路。区域本身不是 geofence；转
 `15%`、车道中心距 `0.85 m`。普通导航和覆盖任务默认最高前进速度为 `0.80 m/s`；清扫页
 按任务限制在 `0.10–1.60 m/s`，管理器动态写入 TEB，并在开始前同时核对 NVIDIA 看门狗
 和 VCU 实时上限。VCU/TEB/覆盖模型统一按 `0.65 m` 轴距与 `1.35 m` 最小转弯半径核对，
-强制覆盖路径还检查终点 yaw 和完整车辆 footprint。倒车仅在转场以 `0.15 m/s` 允许 TEB
+强制覆盖路径还检查终点 yaw 和完整车辆 footprint。倒车仅在转场以 `0.30 m/s` 允许 TEB
 尝试；Navfn 转场尚不是带档位的 Reeds-Shepp 规划。
+
+首个条带入口和条带间连接均是普通点到点转场：`EnforcedPath.active=false`，规划插件明确
+调用 Navfn，而不是把预览条带间的直线当作可执行路径。静态模式的全局代价地图也订阅
+实时 `/scan`，move_base 以 `1 Hz` 重做全局路线，TEB 以 `10 Hz` 做局部运动学避障；有可行
+通路时允许离开所选多边形绕障。`EnforcedPath.active=true` 只用于扫掠条带，避免障碍或
+消息竞态让扫掠线被最短路替代。无可行通路时仍保持停车、等待和有限次重试。
+
+规划与启动是两个不同事务。`/coverage/plan` 使用不可变 `GridMap` 快照生成预览，并在提交
+前复核地图摘要；`/coverage/start` 再以当前 `map -> base_link` 为连通域种子重规划。VCU
+service、move_base 等待和几何重规划全部在覆盖状态锁之外执行，使 `/scan`、双 LD19、定位
+与里程计回调不被耗时计算阻塞；激活前在锁内再次核对计划 ID、地图摘要、车辆静止和全部
+新鲜度门。规划和启动分别携带独立代际令牌；`/coverage/cancel` 可撤销 `PLANNING`、
+`READY`、`PREPARING` 或活动任务，旧线程的迟到提交不能覆盖下一轮计划。终态清理在同一
+生命周期锁内失效计划并发布空 Path、空 Polygon 和 Marker `DELETEALL`，确保锁存预览和
+实走轨迹不会残留或误删随后生成的新预览。每个分段先同步调用
+`/move_base/CoverageGlobalPlanner/set_enforced_path`，插件在同一个事务中确认覆盖任务所有权
+和 Navfn/精确路径模式后才发送 action goal；`/coverage/enforced_path` topic 只能对服务
+已确认的同一计划、分段和模式做后续新鲜度刷新。条带排序在由间距和最小转弯半径形成的
+跨行步长顺序中，枚举正反方向的全部循环起点，并用两状态动态规划联合优化每条条带方向；
+目标函数包含首段入场、全部条带长度和全部条带间连接。连接启发式会强惩罚“已在端点但
+要求原地改航向”的 Ackermann 不可行入口；执行器仍会拒绝残余的纯朝向转场，而不会让
+TEB 尝试原地旋转。这是候选族内的总代价最优，不等同于对任意排列或 Navfn 实际路径的
+指数级全局最优证明。
+
+NVIDIA Qt 的综合页和清扫页共用唯一 librviz 画布。实际加载的
+`operator_navigation.rviz` 用 `rviz/Odometry` 保留最近 `120` 个 `/Odometry` 位姿；清扫
+侧栏从同一数据维护最近 `10 s` 窗口，显示样本数、累计里程和年龄，并在全局定位有效时
+额外显示 `map -> base_link` 数值位姿。
 
 静态模式的 rolling local costmap 由 StaticLayer（`/map`）、ObstacleLayer（融合
 `/scan`）和 InflationLayer 叠加，避免 TEB 只看实时雷达而穿过二维已知墙体。静态模式
@@ -143,6 +172,17 @@ TEB 默认值仍为 false。该开关只拒绝 CostmapModel 的 `-2` 未知区�
 失去任一条件只在边沿取消一次当前目标，转入人工暂停；恢复数据不会自动恢复运动。
 单个异常 `/scan` 只会替换最新诊断；最近有效样本仍在 `0.5 s` 窗口内时保持就绪，持续
 异常或缺流超过窗口后才锁存暂停。锁存原因在暂停等待期间保持可见。
+
+覆盖任务还从 NVIDIA M2 驱动订阅 `/m2_driver/chassis_info` 与
+`/m2_driver/chassis_monitor`，并以 M2 `/odom` 作为 10 Hz 物理反馈心跳。反馈里程计超过
+`1 s` 不更新会快速拒绝启动/恢复；M2 驱动按实测 VCU 吞吐以 `4 Hz` 发送单项请求，每秒
+优先完成硬急停、软急停和手柄急停查询，再轮询一项电池遥测。它避免突发请求丢回复，
+安全字段约 `1 Hz`、五项电池字段各约 `0.2 Hz`。组合状态使用 `3 s` 门限，四类急停任一
+置位会立即拒绝。控制器监控是当前
+VCU 固件的事件/故障帧，活动故障会高频重复而健康时可能静默，
+因此只在 `3 s` 窗口内锁存 TCU、左右 ECU 的 emergency、通信超时、电流超限和制动位。
+执行中触发时仅在故障边沿取消一次当前 action goal 并转入人工暂停；故障消失不会自动
+恢复旧目标。`CoverageStatus.chassis_ready/detail` 同时驱动 Qt“底盘执行门”和开始按钮。
 
 `/fod_navigation_mode` 是 `/cmd_vel_safe` 的唯一发布者；NVIDIA 看门狗是 `/cmd_vel` 的唯一发布者。看门狗拒绝 NaN/Inf、非平面指令、超限指令、重复发布者、错误订阅者和过期命令。
 

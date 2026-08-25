@@ -23,6 +23,7 @@
 #include "autolabor_canbus_driver/ChassisMonitorInfo.h"
 #include "autolabor_canbus_driver/ChassisParameter.h"
 #include "autolabor_canbus_driver/ChassisParameterServer.h"
+#include "autolabor_canbus_driver/m2_status_polling.h"
 #include "autolabor_canbus_driver/m2_twist_steering.h"
 
 namespace autolabor_driver {
@@ -67,7 +68,9 @@ namespace autolabor_driver {
 
     private:
         std::queue<autolabor_canbus_driver::CanBusMessage> param_req_queue_;
-        std::queue<autolabor_canbus_driver::CanBusMessage> info_req_queue_;
+        std::queue<autolabor_canbus_driver::CanBusMessage> safety_info_req_queue_;
+        std::queue<autolabor_canbus_driver::CanBusMessage> telemetry_info_req_queue_;
+        std::size_t info_poll_phase_ = 0;
         autolabor_canbus_driver::ChassisStatusInfo chassis_status_info_;
         autolabor_canbus_driver::ChassisMonitorInfo chassis_control_info_;
         autolabor_canbus_driver::ChassisParameter chassis_parameter_;
@@ -75,7 +78,8 @@ namespace autolabor_driver {
         float cur_odom_x_ = 0,cur_odom_y_ = 0,cur_odom_yaw_ = 0;
         float cur_vel_ = 0,cur_left_vel_ = 0,cur_right_vel_ = 0,cur_steer_ = 0;
         ros::Time cur_vel_time_, cur_left_time_, cur_right_time_, cur_steer_time_;
-        int poller_rate_hz_;
+        double poller_rate_hz_;
+        double status_query_rate_limit_hz_;
         int pub_odom_hz_;
         bool is_odom_child_baselink_;
         bool is_pub_control_timeout_;
