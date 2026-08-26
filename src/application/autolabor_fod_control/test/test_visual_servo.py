@@ -55,6 +55,8 @@ CONFIG_PATH = (
 LAUNCH_PATH = (
     pathlib.Path(__file__).resolve().parents[1] / "launch" / "visual_recovery.launch"
 )
+CFG_PATH = pathlib.Path(__file__).resolve().parents[1] / "cfg" / "VisualServo.cfg"
+CMAKE_PATH = pathlib.Path(__file__).resolve().parents[1] / "CMakeLists.txt"
 NODE_SPEC = importlib.util.spec_from_file_location(
     "fod_visual_servo_node_under_test", NODE_PATH
 )
@@ -167,11 +169,19 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         self.assertEqual(config["acquire_max_abs_horizontal_error"], 0.65)
         self.assertEqual(config["max_runtime_horizontal_error"], 0.70)
         self.assertEqual(config["min_confidence"], 0.30)
+        self.assertNotIn("raw_can_query_interval_sec", config)
+        self.assertNotIn("canbus_service", config)
+        self.assertEqual(config["raw_can_timeout_sec"], 8.00)
         self.assertTrue(config["require_depth_for_acquisition"])
         self.assertEqual(config["min_target_depth_m"], 0.35)
         self.assertEqual(config["max_target_depth_m"], 5.0)
         self.assertEqual(config["nearest_depth_hysteresis_m"], 0.10)
         self.assertEqual(config["association_max_anchor_distance_ratio"], 0.18)
+        self.assertEqual(config["duplicate_detection_min_iou"], 0.80)
+        self.assertEqual(
+            config["duplicate_detection_max_anchor_distance_ratio"], 0.02
+        )
+        self.assertEqual(config["duplicate_detection_max_depth_delta_m"], 0.15)
         self.assertEqual(config["early_loss_grace_frames"], 20)
         self.assertEqual(config["early_loss_max_frames"], 60)
         self.assertEqual(config["far_speed_mps"], 0.20)
@@ -188,6 +198,51 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
             item for item in root.findall("arg") if item.get("name") == "min_confidence"
         )
         self.assertEqual(float(launch_arg.get("default")), config["min_confidence"])
+
+    def test_lock_confidence_is_exposed_as_a_bounded_dynamic_parameter(self):
+        cfg = CFG_PATH.read_text(encoding="utf-8")
+        cmake = CMAKE_PATH.read_text(encoding="utf-8")
+        self.assertIn('"min_confidence"', cfg)
+        self.assertRegex(
+            cfg,
+            r'"min_confidence",\s*double_t,[\s\S]*?0\.30,\s*0\.25,\s*0\.95',
+        )
+        self.assertIn("generate_dynamic_reconfigure_options(", cmake)
+        self.assertIn("cfg/VisualServo.cfg", cmake)
+
+    def test_visual_controller_observes_can_but_never_owns_periodic_queries(self):
+        source = NODE_PATH.read_text(encoding="utf-8")
+        self.assertNotIn("CanBusService", source)
+        self.assertNotIn("/canbus_server", source)
+        self.assertNotIn("canbus_proxy", source)
+        self.assertIn("def _check_raw_can(self):", source)
+        self.assertIn('"raw_can_query_owner": self.expected_driver_node', source)
+
+    def test_launch_exposes_the_approved_model_contract(self):
+        with CONFIG_PATH.open(encoding="utf-8") as stream:
+            config = yaml.safe_load(stream)
+        root = ET.parse(str(LAUNCH_PATH)).getroot()
+        launch_args = {
+            item.get("name"): item.get("default") for item in root.findall("arg")
+        }
+        self.assertEqual(
+            config["expected_model_sha256"],
+            launch_args["expected_model_sha256"],
+        )
+        self.assertEqual(
+            config["allowed_class_names"],
+            launch_args["allowed_class_names"].split(","),
+        )
+        node = root.find("node")
+        parameters = {
+            item.get("name"): item.get("value") for item in node.findall("param")
+        }
+        self.assertEqual(
+            "$(arg expected_model_sha256)", parameters["expected_model_sha256"]
+        )
+        self.assertEqual(
+            "$(arg allowed_class_names)", parameters["allowed_class_names"]
+        )
 
     def test_stable_targets_well_left_or_right_of_center_can_be_acquired(self):
         node = self.make_node()
@@ -432,6 +487,49 @@ class TargetPhaseMachineTest(unittest.TestCase):
         self.assertTrue(decision.fault)
         self.assertIn("multiple", decision.fault)
 
+    def test_cross_class_duplicate_boxes_keep_the_same_geometric_lock(self):
+        self.acquire()
+        primary = detection(
+            u=622.0,
+            q=0.51,
+            class_id=2,
+            class_name="paper",
+            confidence=0.75,
+            box_width=100.0,
+            box_height=80.0,
+            depth_m=1.984,
+        )
+        duplicate = detection(
+            u=622.5,
+            q=0.5102,
+            class_id=1,
+            class_name="plastic",
+            confidence=0.31,
+            box_width=102.0,
+            box_height=82.0,
+            depth_m=1.984,
+        )
+        decision = self.step([primary, duplicate], distance=0.01)
+        self.assertFalse(decision.fault)
+        self.assertEqual(decision.state, APPROACH)
+        self.assertIn(decision.target, (primary, duplicate))
+
+    def test_overlapping_boxes_with_different_depths_remain_ambiguous(self):
+        self.acquire()
+        near = detection(u=622.0, q=0.51, depth_m=1.90)
+        far = detection(
+            u=622.5,
+            q=0.5102,
+            class_id=1,
+            class_name="Plastic",
+            box_width=102.0,
+            box_height=82.0,
+            depth_m=2.20,
+        )
+        decision = self.step([near, far], distance=0.01)
+        self.assertTrue(decision.fault)
+        self.assertIn("multiple", decision.fault)
+
     def test_raw_lateral_jump_cannot_hide_behind_pixel_filter_before_loss(self):
         self.arm_bottom_gate()
         # 160 px remains within the association distance on a 1280x1024
@@ -651,19 +749,50 @@ class GraphPolicyTest(unittest.TestCase):
         )
 
 
-class RawCanQuerySchedulingTest(unittest.TestCase):
+class DynamicLockConfidenceTest(unittest.TestCase):
+    @staticmethod
+    def make_node(phase):
+        node = FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
+        node.run_lock = threading.Lock()
+        node.phase = phase
+        node.min_confidence = 0.30
+        node._publish_status = mock.Mock()
+        return node
+
+    def test_stopped_controller_accepts_and_reports_new_threshold(self):
+        node = self.make_node(FOD_NODE.DISABLED)
+        with mock.patch.object(FOD_NODE.rospy, "loginfo"):
+            config = node._dynamic_reconfigure_cb({"min_confidence": 0.35}, 0)
+        self.assertEqual(config["min_confidence"], 0.35)
+        self.assertEqual(node.min_confidence, 0.35)
+        node._publish_status.assert_called_once_with(force=True)
+
+    def test_active_controller_keeps_current_threshold(self):
+        node = self.make_node(FOD_NODE.APPROACH)
+        with mock.patch.object(FOD_NODE.rospy, "logwarn"):
+            config = node._dynamic_reconfigure_cb({"min_confidence": 0.25}, 0)
+        self.assertEqual(config["min_confidence"], 0.30)
+        self.assertEqual(node.min_confidence, 0.30)
+        node._publish_status.assert_not_called()
+
+    def test_non_finite_threshold_is_rejected(self):
+        node = self.make_node(FOD_NODE.ABORT)
+        with mock.patch.object(FOD_NODE.rospy, "logwarn"):
+            config = node._dynamic_reconfigure_cb({"min_confidence": math.nan}, 0)
+        self.assertEqual(config["min_confidence"], 0.30)
+        self.assertEqual(node.min_confidence, 0.30)
+        node._publish_status.assert_not_called()
+
+
+class RawCanObservationTest(unittest.TestCase):
     @staticmethod
     def make_node():
         node = FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
         node.sensor_lock = threading.Lock()
-        node.raw_can_timeout_sec = 2.5
-        node.raw_can_query_interval_sec = 0.2
-        node.last_raw_query_monotonic = 0.0
-        node.raw_can_query_index = 0
-        node.canbus_proxy = mock.Mock()
+        node.raw_can_timeout_sec = 5.0
         node.raw_can_status = {
             msg_type: (9.5, True, 0, "")
-            for msg_type in FOD_NODE.RAW_QUERY_ORDER
+            for msg_type in FOD_NODE.RAW_REQUIRED_TYPES
         }
         node.raw_can_fault_generation = 0
         node.session_raw_can_fault_generation = 0
@@ -672,27 +801,13 @@ class RawCanQuerySchedulingTest(unittest.TestCase):
         node.phase = FOD_NODE.PRECHECK
         return node
 
-    def test_queries_are_single_message_round_robin_not_a_four_item_burst(self):
+    def test_all_fresh_safe_m2_responses_pass_without_sending_a_query(self):
         node = self.make_node()
 
         with mock.patch.object(FOD_NODE.time, "monotonic", return_value=10.0):
-            node._query_and_check_raw_can()
-        with mock.patch.object(FOD_NODE.time, "monotonic", return_value=10.1):
-            node._query_and_check_raw_can()
-        with mock.patch.object(FOD_NODE.time, "monotonic", return_value=10.21):
-            node._query_and_check_raw_can()
+            node._check_raw_can()
 
-        self.assertEqual(node.canbus_proxy.call_count, 2)
-        request_batches = [
-            call.args[0] for call in node.canbus_proxy.call_args_list
-        ]
-        self.assertTrue(all(len(batch) == 1 for batch in request_batches))
-        self.assertEqual(
-            [batch[0].msg_type for batch in request_batches],
-            [FOD_NODE.VCU_HARD_EMERGENCY, FOD_NODE.VCU_SOFT_EMERGENCY],
-        )
-
-    def test_round_robin_monitor_still_aborts_on_an_unsafe_value(self):
+    def test_observer_still_aborts_on_an_unsafe_value(self):
         node = self.make_node()
         node.raw_can_status[FOD_NODE.VCU_HARD_EMERGENCY] = (
             9.9,
@@ -703,17 +818,28 @@ class RawCanQuerySchedulingTest(unittest.TestCase):
 
         with mock.patch.object(FOD_NODE.time, "monotonic", return_value=10.0):
             with self.assertRaisesRegex(FOD_NODE.ControllerAbort, "unsafe"):
-                node._query_and_check_raw_can()
+                node._check_raw_can()
 
-    def test_external_estop_override_neither_queries_nor_requires_can_status(self):
+    def test_observer_aborts_when_an_m2_response_is_stale(self):
+        node = self.make_node()
+        node.raw_can_status[FOD_NODE.VCU_GAMEPAD_EMERGENCY] = (
+            4.9,
+            True,
+            0,
+            "",
+        )
+
+        with mock.patch.object(FOD_NODE.time, "monotonic", return_value=10.0):
+            with self.assertRaisesRegex(FOD_NODE.ControllerAbort, "stale"):
+                node._check_raw_can()
+
+    def test_external_estop_override_does_not_require_can_status(self):
         node = self.make_node()
         node.external_estop_override = True
         node.raw_can_status.clear()
 
         with mock.patch.object(FOD_NODE.time, "monotonic", return_value=10.0):
-            node._query_and_check_raw_can()
-
-        node.canbus_proxy.assert_not_called()
+            node._check_raw_can()
 
 
 class ExternalEstopOverrideTest(unittest.TestCase):
@@ -733,7 +859,6 @@ class ExternalEstopOverrideTest(unittest.TestCase):
         node.chassis_status_topic = "/m2_driver/chassis_info"
         node.control_timeout_topic = "/m2_driver/control_timeout"
         node.canbus_topic = "/canbus_msg"
-        node.canbus_service = "/canbus_server"
         node.chassis_parameter_service = "/m2_driver/chassis_parameter"
         node.cmd_vel_topic = "/cmd_vel"
         node.ackermann_topic = "/ackerman_vel"

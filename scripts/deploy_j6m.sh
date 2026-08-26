@@ -5,6 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DUAL_HOST_WS="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/load_config.sh"
 
+dual_host_validate_fod_model_contract || exit 2
+dual_host_validate_fod_weights || exit 2
+
 target="$(dual_host_select_ssh)" || {
   echo "J6M SSH is unavailable at both configured addresses." >&2
   exit 2
@@ -87,6 +90,7 @@ paths=(
   ./src/localization_fastlio/FAST_LIO
   ./src/localization_fastlio/fast_lio_localization
   ./src/application/autolabor_coverage
+  ./src/application/autolabor_fod_control
   ./src/scripts/robot_bringup
   ./src/platform/autolabor_dual_host
 )
@@ -111,6 +115,7 @@ rsync -a "$DUAL_HOST_CONFIG" \
 
 ssh "$target" "set -eu
   chmod 0755 '$J6M_RUNTIME_BASE/dual_host/bin/'*.sh '$J6M_RUNTIME_BASE/bin/'*.sh
+  grep -Fq 'requested_fod_motion_enabled' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
   '$J6M_RUNTIME_BASE/bin/mount_chroot.sh' >/dev/null
   trap \"'$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null 2>&1 || true\" EXIT
   chroot '$rootfs' /usr/bin/env RELEASE='$stamp' /bin/bash -lc '
@@ -124,13 +129,14 @@ ssh "$target" "set -eu
       -DCATKIN_ENABLE_TESTING=OFF \
       -DCMAKE_INSTALL_PREFIX=/opt/autolabor/dual_host/releases/\"\$RELEASE\"/install \
       -DFAST_LIO_RUNTIME_DIR=/var/lib/autolabor/fast_lio/ \
-      -DCATKIN_WHITELIST_PACKAGES=conventional\\;teb_local_planner\\;fast_lio\\;fast_lio_localization\\;autolabor_coverage\\;robot_bringup\\;autolabor_dual_lidar\\;autolabor_dual_host
+      -DCATKIN_WHITELIST_PACKAGES=conventional\\;teb_local_planner\\;fast_lio\\;fast_lio_localization\\;autolabor_coverage\\;robot_bringup\\;autolabor_fod_control\\;autolabor_dual_lidar\\;autolabor_dual_host
     test -f /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find autolabor_dual_host >/dev/null
     rospack find autolabor_dual_lidar >/dev/null
     rospack find fast_lio_localization >/dev/null
     rospack find autolabor_coverage >/dev/null
+    rospack find autolabor_fod_control >/dev/null
     rospack find robot_bringup >/dev/null
     rospack find teb_local_planner >/dev/null
   '
@@ -158,8 +164,11 @@ ssh "$target" "set -eu
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find map_server >/dev/null
     rospack find autolabor_coverage >/dev/null
+    rospack find autolabor_fod_control >/dev/null
     rospack find teb_local_planner >/dev/null
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_coverage/coverage_manager.py
+    test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_fod_control/fod_visual_servo_node.py
+    test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_fod_control/launch/visual_recovery.launch
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_global_planner.so
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so
     grep -aFq treat_unknown_as_obstacle /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so
@@ -171,6 +180,7 @@ ssh "$target" "set -eu
       exit 1
     fi
     roslaunch --files robot_bringup navigation_j6m.launch use_static_map:=true >/dev/null
+    roslaunch --files autolabor_fod_control visual_recovery.launch >/dev/null
     ln -sfn /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install /opt/autolabor/dual_host/current
   '
   '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"

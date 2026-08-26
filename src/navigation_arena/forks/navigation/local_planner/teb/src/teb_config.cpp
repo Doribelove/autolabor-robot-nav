@@ -133,6 +133,8 @@ void TebConfig::loadRosParamFromNodeHandle(const ros::NodeHandle& nh)
   nh.param("weight_dynamic_obstacle_inflation", optim.weight_dynamic_obstacle_inflation, optim.weight_dynamic_obstacle_inflation);
   nh.param("weight_velocity_obstacle_ratio", optim.weight_velocity_obstacle_ratio, optim.weight_velocity_obstacle_ratio);
   nh.param("weight_viapoint", optim.weight_viapoint, optim.weight_viapoint);
+  nh.param("weight_viapoint_lateral", optim.weight_viapoint_lateral, optim.weight_viapoint_lateral);
+  nh.param("weight_viapoint_heading", optim.weight_viapoint_heading, optim.weight_viapoint_heading);
   nh.param("weight_prefer_rotdir", optim.weight_prefer_rotdir, optim.weight_prefer_rotdir);
   nh.param("weight_adapt_factor", optim.weight_adapt_factor, optim.weight_adapt_factor);
   nh.param("obstacle_cost_exponent", optim.obstacle_cost_exponent, optim.obstacle_cost_exponent);
@@ -258,6 +260,8 @@ void TebConfig::reconfigure(TebLocalPlannerReconfigureConfig& cfg)
   optim.weight_dynamic_obstacle_inflation = cfg.weight_dynamic_obstacle_inflation;
   optim.weight_velocity_obstacle_ratio = cfg.weight_velocity_obstacle_ratio;
   optim.weight_viapoint = cfg.weight_viapoint;
+  optim.weight_viapoint_lateral = cfg.weight_viapoint_lateral;
+  optim.weight_viapoint_heading = cfg.weight_viapoint_heading;
   optim.weight_adapt_factor = cfg.weight_adapt_factor;
   optim.obstacle_cost_exponent = cfg.obstacle_cost_exponent;
   
@@ -296,16 +300,12 @@ void TebConfig::reconfigure(TebLocalPlannerReconfigureConfig& cfg)
     
 void TebConfig::checkParameters() const
 {
-  // positive backward velocity?
-  if (robot.max_vel_x_backwards <= 0)
-    ROS_WARN("TebLocalPlannerROS() Param Warning: Do not choose max_vel_x_backwards to be <=0. Disable backwards driving by increasing the optimization weight for penalyzing backwards driving.");
+  if (robot.max_vel_x_backwards < 0)
+    ROS_WARN("TebLocalPlannerROS() Param Warning: max_vel_x_backwards must not be negative.");
   
   // bounds smaller than penalty epsilon
   if (robot.max_vel_x <= optim.penalty_epsilon)
     ROS_WARN("TebLocalPlannerROS() Param Warning: max_vel_x <= penalty_epsilon. The resulting bound is negative. Undefined behavior... Change at least one of them!");
-  
-  if (robot.max_vel_x_backwards <= optim.penalty_epsilon)
-    ROS_WARN("TebLocalPlannerROS() Param Warning: max_vel_x_backwards <= penalty_epsilon. The resulting bound is negative. Undefined behavior... Change at least one of them!");
   
   if (robot.max_vel_theta <= optim.penalty_epsilon)
     ROS_WARN("TebLocalPlannerROS() Param Warning: max_vel_theta <= penalty_epsilon. The resulting bound is negative. Undefined behavior... Change at least one of them!");

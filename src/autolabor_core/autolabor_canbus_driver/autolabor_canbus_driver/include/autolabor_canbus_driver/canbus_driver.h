@@ -50,7 +50,7 @@ namespace autolabor_driver {
     private:
         bool init();
 
-        void update_parse_data();
+        bool update_parse_data();
 
         uint8_t get_and_check(bool needCheck);
 
@@ -64,6 +64,8 @@ namespace autolabor_driver {
 
         bool canbus_service(autolabor_canbus_driver::CanBusService::Request &req, autolabor_canbus_driver::CanBusService::Response &res);
 
+        bool write_frame(const uint8_t *frame, size_t length, bool query_frame);
+
         inline std::string array_to_string(uint8_t *vp, size_t len) {
             std::stringstream ss;
             for (int i = 0; i < len; i++)
@@ -73,9 +75,8 @@ namespace autolabor_driver {
 
     private:
         std::string port_name_;
-        int baud_rate_, parse_rate_;
+        int baud_rate_, parse_rate_, publisher_queue_size_;
 
-        boost::system::error_code ec_;
         boost::asio::io_service io_service_;
         serial_port_ptr port_;
         boost::mutex mutex_;
@@ -89,6 +90,10 @@ namespace autolabor_driver {
 
         ros::Publisher canbus_msg_pub_;
         ros::ServiceServer canbus_msg_service_;
+
+        uint64_t tx_frame_count_ = 0;
+        uint64_t tx_query_count_ = 0;
+        uint64_t tx_error_count_ = 0;
     };
 }
 

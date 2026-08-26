@@ -6,6 +6,10 @@
   <arg name="start_navigation" default="true"/>
   <arg name="start_fod_arbiter" default="true"/>
   <arg name="fod_motion_enabled" default="false"/>
+  <arg name="fod_model_sha256"
+       default="7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500"/>
+  <arg name="fod_required_class_names"
+       default="Metal,Soft,Plastic,Wire,Tool,w"/>
   <arg name="use_dual_lidar" default="true"/>
   <arg name="max_linear_speed" default="0.80"/>
   <arg name="max_linear_speed_backwards" default="0.30"/>
@@ -112,6 +116,9 @@
 
       <include file="$(find autolabor_fod_control)/launch/visual_recovery.launch">
         <arg name="allow_motion" value="$(arg fod_motion_enabled)"/>
+        <arg name="expected_model_sha256" value="$(arg fod_model_sha256)"/>
+        <arg name="allowed_class_names"
+             value="$(arg fod_required_class_names)"/>
         <arg name="external_estop_override" value="false"/>
         <arg name="cmd_vel_topic" value="/cmd_vel_fod"/>
         <arg name="expected_cmd_vel_subscriber_node" value="/fod_navigation_mode"/>

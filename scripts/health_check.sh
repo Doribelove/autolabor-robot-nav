@@ -39,6 +39,10 @@ case "${STATIC_MAP_ENABLED:-false}" in
   true|false) ;;
   *) echo "Invalid STATIC_MAP_ENABLED in $MAP_MODE_FILE" >&2; exit 2 ;;
 esac
+case "${FOD_MOTION_ENABLED:-false}" in
+  true|false) ;;
+  *) echo "Invalid FOD_MOTION_ENABLED in $MAP_MODE_FILE" >&2; exit 2 ;;
+esac
 
 failures=0
 data_warnings=0
@@ -47,6 +51,17 @@ trap 'rm -f -- "$test_results_output"' EXIT
 pass() { echo "OK   $*"; }
 fail() { echo "FAIL $*" >&2; failures=$((failures + 1)); }
 warn_data() { echo "WARN $*" >&2; data_warnings=$((data_warnings + 1)); }
+
+if dual_host_validate_fod_model_contract; then
+  pass "FOD detector/controller model contract is valid"
+else
+  fail "FOD detector/controller model contract is invalid"
+fi
+if dual_host_validate_fod_weights; then
+  pass "FOD weights match the configured SHA256"
+else
+  fail "FOD weights do not match the configured SHA256"
+fi
 
 required_packages=(
   autolabor_coverage autolabor_dual_host autolabor_dual_lidar autolabor_fod_control
@@ -284,6 +299,29 @@ if [[ "$mode" == --runtime ]]; then
       pass "watchdog motion_enabled matches configuration"
     else
       fail "watchdog motion_enabled does not match configuration"
+    fi
+    if parameter_matches /fod_visual_servo/allow_motion "$FOD_MOTION_ENABLED"; then
+      pass "visual-servo motion gate matches configuration"
+    else
+      fail "visual-servo motion gate does not match configuration"
+    fi
+    if parameter_matches /fod_visual_servo/expected_model_sha256 \
+         "${NVIDIA_FOD_MODEL_SHA256,,}" &&
+       parameter_matches /fod_visual_servo/allowed_class_names \
+         "$NVIDIA_FOD_REQUIRED_CLASS_NAMES"; then
+      pass "visual-servo model contract matches configuration"
+    else
+      fail "visual-servo model contract does not match configuration"
+    fi
+    if [[ "$NVIDIA_START_VISION" == true ]]; then
+      if parameter_matches /fod_detector/expected_model_sha256 \
+           "${NVIDIA_FOD_MODEL_SHA256,,}" &&
+         parameter_matches /fod_detector/required_class_names \
+           "$NVIDIA_FOD_REQUIRED_CLASS_NAMES"; then
+        pass "detector model contract matches configuration"
+      else
+        fail "detector model contract does not match configuration"
+      fi
     fi
     if numeric_parameter_matches /nvidia_cmd_vel_watchdog/max_linear_speed "$CMD_VEL_MAX_LINEAR_SPEED"; then
       pass "watchdog linear cap matches configuration"

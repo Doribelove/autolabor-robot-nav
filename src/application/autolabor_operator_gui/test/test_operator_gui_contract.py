@@ -340,15 +340,41 @@ class OperatorGuiContractTest(unittest.TestCase):
             self.assertIs(True, local_costmap["Value"])
             self.assertGreaterEqual(local_costmap["Alpha"], 0.90)
             self.assertIs(False, local_costmap["Draw Behind"])
+            global_costmaps = [
+                display for display in displays
+                if display.get("Topic") == "/move_base/global_costmap/costmap"
+            ]
+            self.assertEqual(1, len(global_costmaps))
+            global_costmap = global_costmaps[0]
+            self.assertEqual("rviz/Map", global_costmap["Class"])
+            self.assertEqual("costmap", global_costmap["Color Scheme"])
+            self.assertIs(True, global_costmap["Enabled"])
+            self.assertIs(True, global_costmap["Value"])
+            self.assertGreaterEqual(global_costmap["Alpha"], 0.45)
+            self.assertLess(global_costmap["Alpha"], local_costmap["Alpha"])
+            self.assertIs(False, global_costmap["Draw Behind"])
+            self.assertLess(displays.index(global_costmap), displays.index(local_costmap))
 
-        operator_displays = yaml.safe_load(RVIZ_CONFIG)["Visualization Manager"]["Displays"]
-        global_costmaps = [
-            display for display in operator_displays
-            if display.get("Topic") == "/move_base/global_costmap/costmap"
-        ]
-        self.assertEqual(1, len(global_costmaps))
-        self.assertIs(False, global_costmaps[0]["Enabled"])
-        self.assertIs(False, global_costmaps[0]["Value"])
+    def test_overview_exposes_global_costmap_and_map_frame_pose(self):
+        for evidence in (
+            'kGlobalCostmapDisplayName = "Global costmap"',
+            'QStringLiteral("⑤ 隐藏全局代价图")',
+            "setGlobalCostmapDisplayEnabled",
+            '"/move_base/global_costmap/costmap"',
+            "globalCostmapCallback",
+            'QStringLiteral("全局代价图")',
+            'QStringLiteral("map 全局坐标")',
+            'QStringLiteral("map 全局 yaw")',
+            'lookupTransform("map", "base_link", ros::Time(0))',
+            'QStringLiteral("尚未完成全局定位")',
+        ):
+            self.assertIn(evidence, GUI_SOURCE)
+        for evidence in (
+            "global_costmap_subscriber_",
+            "global_costmap_received",
+            "rviz_global_costmap_button_",
+        ):
+            self.assertIn(evidence, GUI_HEADER)
 
     def test_recording_and_three_map_mapping_are_independent(self):
         self.assertTrue(RECORD_ROSBAG.is_file())
@@ -721,12 +747,27 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("${RVIZ_DEFAULT_PLUGIN_LIBRARY}", cmake)
         self.assertIn("embedded_map_ready", GUI_SOURCE)
 
-    def test_light_rviz_and_coverage_sidebar_surfaces_use_dark_text(self):
+    def test_light_rviz_coverage_and_vision_surfaces_use_dark_text(self):
         self.assertIn("QToolBar { background: #f5f5f5; color: #111827;", GUI_SOURCE)
         self.assertIn("QMenu, QAbstractItemView { background: #ffffff; color: #111827;",
                       GUI_SOURCE)
         self.assertIn("QWidget#coverageControls QGroupBox::title { color: #111827; }",
                       GUI_SOURCE)
+        self.assertIn(
+            "QWidget#visionControls QGroupBox::title { color: #111827; }",
+            GUI_SOURCE,
+        )
+        self.assertIn(
+            "QWidget#visionControls QLabel, QWidget#visionControls QCheckBox { color: #111827; }",
+            GUI_SOURCE,
+        )
+        self.assertIn('setObjectName(QStringLiteral("visionControls"))', GUI_SOURCE)
+
+        # Dark/colored visual surfaces retain their own intentional foreground
+        # colors; only the white sidebar groups are switched to dark text.
+        self.assertIn("background:#080d13;border:1px solid #334154", GUI_SOURCE)
+        self.assertIn("color:#718096;font-size:14pt;", GUI_SOURCE)
+        self.assertIn("background:#3d3222;color:#f0cf8a", GUI_SOURCE)
 
     def test_light_message_boxes_use_dark_readable_text_and_buttons(self):
         self.assertIn(
@@ -763,6 +804,25 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("sensor_msgs::image_encodings::RGBA8", GUI_SOURCE)
         self.assertIn("message.width) * 4U", GUI_SOURCE)
         self.assertIn("QImage::Format_RGBA8888", GUI_SOURCE)
+
+    def test_visual_lock_confidence_is_adjustable_only_while_stopped(self):
+        for evidence in (
+            '"/fod_visual_servo/set_parameters"',
+            'parameter.name = "min_confidence"',
+            "visual_lock_confidence_input_->setRange(0.25, 0.95)",
+            "当前目标锁定阈值",
+            "应用阈值",
+            "parseVisualStatus",
+            "visual_status.min_confidence",
+            "visual_lock_confidence_request_pending_",
+            "void MainWindow::applyVisualLockConfidence()",
+            'visual_status.state == QStringLiteral("DISABLED")',
+            'visual_status.state == QStringLiteral("COMPLETE")',
+            'visual_status.state == QStringLiteral("ABORT")',
+            "!visual_status.active",
+            "configDouble(call.response.config, \"min_confidence\"",
+        ):
+            self.assertIn(evidence, GUI_SOURCE + GUI_HEADER)
 
     def test_visual_motion_uses_safe_mode_arbiter_only(self):
         self.assertIn('"/fod_navigation_mode/set_fod_enabled"', GUI_SOURCE)

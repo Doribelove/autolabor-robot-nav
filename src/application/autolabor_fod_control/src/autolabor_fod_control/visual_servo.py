@@ -46,6 +46,9 @@ class AssociationConfig:
     max_anchor_distance_ratio: float = 0.18
     min_area_ratio: float = 0.35
     max_area_ratio: float = 2.80
+    duplicate_min_iou: float = 0.80
+    duplicate_max_anchor_distance_ratio: float = 0.02
+    duplicate_max_depth_delta_m: float = 0.15
 
 
 @dataclass(frozen=True)
@@ -267,6 +270,55 @@ def matching_detections(
         scored.append((score, candidate))
     scored.sort(key=lambda item: item[0], reverse=True)
     return tuple(item[1] for item in scored)
+
+
+def duplicate_observation_group(
+    candidates: Sequence[PixelDetection],
+    image_width: int,
+    image_height: int,
+    config: AssociationConfig,
+) -> bool:
+    """Return true only when every candidate is the same physical footprint.
+
+    Class-aware detector NMS can occasionally publish two nearly identical
+    boxes for one object under different class names. Treating that as two
+    targets makes a locked controller abort even though its geometric target
+    did not change. This gate deliberately requires pairwise high overlap,
+    near-identical anchors, and motion-grade depths that agree; two merely
+    nearby targets therefore remain ambiguous and fail closed.
+    """
+
+    if len(candidates) < 2 or image_width <= 1 or image_height <= 1:
+        return False
+    diagonal = math.hypot(float(image_width), float(image_height))
+    for index, first in enumerate(candidates):
+        if (
+            not first.depth_valid
+            or not math.isfinite(first.depth_m)
+            or first.depth_m <= 0.0
+        ):
+            return False
+        for second in candidates[index + 1 :]:
+            if (
+                not second.depth_valid
+                or not math.isfinite(second.depth_m)
+                or second.depth_m <= 0.0
+            ):
+                return False
+            if intersection_over_union(first, second) < config.duplicate_min_iou:
+                return False
+            anchor_distance_ratio = math.hypot(
+                first.anchor_u - second.anchor_u,
+                first.anchor_v - second.anchor_v,
+            ) / diagonal
+            if anchor_distance_ratio > config.duplicate_max_anchor_distance_ratio:
+                return False
+            if (
+                abs(first.depth_m - second.depth_m)
+                > config.duplicate_max_depth_delta_m
+            ):
+                return False
+    return True
 
 
 def depth_rejection_reason(
@@ -734,6 +786,14 @@ class TargetPhaseMachine:
         if len(matches) == 1:
             return matches[0], ""
         if len(matches) > 1:
+            if duplicate_observation_group(
+                matches, image_width, image_height, self.association
+            ):
+                # matching_detections already ranks continuity with the
+                # previous lock. All alternatives proved to be the same
+                # physical footprint, so retaining its first match cannot
+                # jump to a different geometric target.
+                return matches[0], ""
             return None, "multiple detections match the locked target"
         return None, ""
 

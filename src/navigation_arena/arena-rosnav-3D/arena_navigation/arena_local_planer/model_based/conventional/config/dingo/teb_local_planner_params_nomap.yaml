@@ -81,6 +81,10 @@ TebLocalPlannerROS:
   weight_dynamic_obstacle: 10
   weight_dynamic_obstacle_inflation: 0.2
   weight_viapoint: 8.0
+  # Directional via-point costs stay off for normal point-to-point navigation.
+  # The coverage manager enables and later restores them only for exact sweeps.
+  weight_viapoint_lateral: 0.0
+  weight_viapoint_heading: 0.0
   weight_adapt_factor: 2
 
   # Homotopy Class Planner

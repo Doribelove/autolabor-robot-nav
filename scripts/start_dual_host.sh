@@ -7,6 +7,7 @@ usage() {
   cat <<EOF
 Usage: $0 [--start | --restart | --status | --stop | --foreground]
           [--map-set DIR] [--static-map-source fused|lidar2d]
+          [--authorize-fod-motion]
 
   --start       Start the complete stack as a managed user service (default).
   --restart     Cold-stop both hosts, then start the managed service.
@@ -16,6 +17,11 @@ Usage: $0 [--start | --restart | --status | --stop | --foreground]
   --map-set DIR EXPERIMENTAL opt-in: enable known-map ICP localization.
   --static-map-source
                 Select fused (default) or lidar2d as move_base's static map.
+  --authorize-fod-motion
+                For this managed run only, set FOD_MOTION_ENABLED=true. This
+                still requires the main motion gate, authorization marker,
+                explicit runtime mode request, localization and live safety
+                prechecks; it never enters visual driving automatically.
 
 The default start waits until the complete graph is ready, then returns to the
 shell. Optional sensor messages may be reported as degraded; an enabled ZED
@@ -29,6 +35,7 @@ EOF
 mode=""
 requested_map_set=""
 requested_static_source="fused"
+authorize_fod_motion=false
 while (( $# > 0 )); do
   case "$1" in
     --start|--restart|--status|--stop|--foreground|--supervise)
@@ -46,6 +53,10 @@ while (( $# > 0 )); do
       requested_static_source="$2"
       shift 2
       ;;
+    --authorize-fod-motion)
+      authorize_fod_motion=true
+      shift
+      ;;
     -h|--help) usage; exit 0 ;;
     *) usage >&2; exit 2 ;;
   esac
@@ -54,6 +65,23 @@ mode="${mode:---start}"
 case "$requested_static_source" in fused|lidar2d) ;; *)
   echo "--static-map-source must be fused or lidar2d." >&2; exit 2 ;;
 esac
+if [[ "$mode" == --supervise &&
+      "${DUAL_HOST_FOD_MOTION_OVERRIDE:-}" == true ]]; then
+  authorize_fod_motion=true
+fi
+if [[ "$authorize_fod_motion" == true ]]; then
+  case "$mode" in
+    --start|--restart|--foreground|--supervise) ;;
+    *)
+      echo "--authorize-fod-motion is valid only with --start, --restart or --foreground." >&2
+      exit 2
+      ;;
+  esac
+  export DUAL_HOST_FOD_MOTION_OVERRIDE=true
+elif [[ "$mode" != --supervise ]]; then
+  # Do not accept a hidden inherited authorization on a user-facing command.
+  unset DUAL_HOST_FOD_MOTION_OVERRIDE
+fi
 
 # Catkin setup files inspect the caller's positional parameters when sourced.
 inherited_static_map_enabled="${STATIC_MAP_ENABLED:-}"
@@ -140,6 +168,7 @@ if [[ "$mode" == --status && -r "$MAP_MODE_FILE" ]]; then
   source "$MAP_MODE_FILE"
   export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
   export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
+  export FOD_MOTION_ENABLED
 fi
 
 REQUIRED_NODES=(
@@ -313,6 +342,7 @@ wait_for_managed_service() {
 
 start_managed_service() {
   local token display xauthority dbus_address runtime_dir variable value state deadline
+  local running_fod_motion
   local -a command=(
     systemd-run --user
     --unit="$SERVICE_UNIT"
@@ -335,6 +365,20 @@ start_managed_service() {
     state="$(service_state)"
   fi
   if [[ "$state" == active || "$state" == activating ]]; then
+    if [[ "$authorize_fod_motion" == true ]]; then
+      running_fod_motion="$(
+        (
+          unset FOD_MOTION_ENABLED
+          source "$MAP_MODE_FILE" 2>/dev/null || exit 1
+          printf '%s\n' "${FOD_MOTION_ENABLED:-}"
+        ) || true
+      )"
+      if [[ "$running_fod_motion" != true ]]; then
+        echo "$SERVICE_UNIT is already running without one-run FOD motion authorization." >&2
+        echo "Use '$0 --restart --authorize-fod-motion ...' for a deliberate cold restart." >&2
+        return 1
+      fi
+    fi
     token="$(sed -n '1p' "$SERVICE_TOKEN_FILE" 2>/dev/null || true)"
     if [[ ! "$token" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$ ]]; then
       token="$(sed -n '1p' "$RUN_TOKEN_FILE" 2>/dev/null || true)"
@@ -379,6 +423,9 @@ start_managed_service() {
   command+=(--setenv="STATIC_MAP_FILE=${STATIC_MAP_FILE:-}")
   command+=(--setenv="FAST_LIO_MAP_FILE=${FAST_LIO_MAP_FILE:-}")
   command+=(--setenv="FAST_LIO_INITIAL_BODY_Z=${FAST_LIO_INITIAL_BODY_Z:-0.0}")
+  if [[ "$authorize_fod_motion" == true ]]; then
+    command+=(--setenv="DUAL_HOST_FOD_MOTION_OVERRIDE=true")
+  fi
   if [[ "${DUAL_HOST_NETWORK_PREFLIGHT_DONE:-}" == 1 ]]; then
     command+=(--setenv="DUAL_HOST_NETWORK_PREFLIGHT_DONE=1")
   fi
@@ -433,6 +480,14 @@ if [[ "$mode" == --status ]]; then
   exit $?
 fi
 
+dual_host_validate_fod_model_contract || exit 3
+dual_host_validate_fod_weights || exit 3
+
+if [[ "$authorize_fod_motion" == true && "$MOTION_ENABLED" != true ]]; then
+  echo "--authorize-fod-motion requires MOTION_ENABLED=true in $DUAL_HOST_CONFIG." >&2
+  exit 3
+fi
+
 if [[ "$NVIDIA_START_QT" != true || "$NVIDIA_START_VISION" != true ||
       "$NVIDIA_START_CAMERA" != true ]]; then
   echo "Full bringup requires NVIDIA_START_QT/VISION/CAMERA=true." >&2
@@ -449,6 +504,10 @@ if [[ "$MOTION_ENABLED" == true ]]; then
 elif [[ "$MOTION_ENABLED" != false ]]; then
   echo "MOTION_ENABLED must be literal true or false." >&2
   exit 3
+fi
+if [[ "$authorize_fod_motion" == true ]]; then
+  echo "WARNING: FOD visual motion is authorized for this managed run only." >&2
+  echo "The controller remains disabled until an operator explicitly enters visual driving mode." >&2
 fi
 
 if [[ "$mode" == --restart ]]; then
@@ -508,6 +567,7 @@ export DUAL_HOST_RUN_TOKEN
   printf 'STATIC_MAP_FILE=%q\n' "${STATIC_MAP_FILE:-}"
   printf 'FAST_LIO_MAP_FILE=%q\n' "${FAST_LIO_MAP_FILE:-}"
   printf 'FAST_LIO_INITIAL_BODY_Z=%q\n' "${FAST_LIO_INITIAL_BODY_Z:-0.0}"
+  printf 'FOD_MOTION_ENABLED=%q\n' "$FOD_MOTION_ENABLED"
 } >"$MAP_MODE_FILE.tmp.$$"
 mv -f -- "$MAP_MODE_FILE.tmp.$$" "$MAP_MODE_FILE"
 
@@ -548,6 +608,43 @@ verify_j6m_static_localization_release() {
   "
 }
 
+verify_j6m_visual_model_contract_release() {
+  local remote_host="$1"
+  local current_link="$J6M_RUNTIME_BASE/rootfs/opt/autolabor/dual_host/current"
+  ssh -o BatchMode=yes "$remote_host" "set -eu
+    release=\$(readlink '$current_link')
+    case \"\$release\" in
+      /opt/autolabor/dual_host/releases/*/install) ;;
+      *) echo \"Invalid J6M current release: \$release\" >&2; exit 1 ;;
+    esac
+    install='$J6M_RUNTIME_BASE/rootfs'\"\$release\"
+    controller_launch=\"\$install/share/autolabor_fod_control/launch/visual_recovery.launch\"
+    dual_host_launch=\"\$install/share/autolabor_dual_host/launch/j6m_fastlio_navigation.launch\"
+    stack=\"\$install/lib/autolabor_dual_host/j6m_stack.sh\"
+    test -x \"\$install/lib/autolabor_fod_control/fod_visual_servo_node.py\"
+    grep -Fq 'arg name=\"expected_model_sha256\"' \"\$controller_launch\"
+    grep -Fq 'arg name=\"fod_model_sha256\"' \"\$dual_host_launch\"
+    grep -Fq 'NVIDIA_FOD_MODEL_SHA256' \"\$stack\"
+    grep -Fq 'NVIDIA_FOD_MODEL_SHA256' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
+    grep -Fq 'requested_fod_motion_enabled' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
+  "
+}
+
+sync_j6m_runtime_config() {
+  local remote_host="$1"
+  local remote_dir="$J6M_RUNTIME_BASE/dual_host/config"
+  local remote_temp="$remote_dir/dual_host.env.next.$$"
+  ssh -o BatchMode=yes "$remote_host" "mkdir -p '$remote_dir'"
+  rsync -a --chmod=F600 -- "$DUAL_HOST_CONFIG" "$remote_host:$remote_temp"
+  ssh -o BatchMode=yes "$remote_host" "set -eu
+    trap 'rm -f -- \"$remote_temp\"' EXIT
+    bash -n '$remote_temp'
+    chmod 0600 '$remote_temp'
+    mv -f -- '$remote_temp' '$remote_dir/dual_host.env'
+    trap - EXIT
+  "
+}
+
 if [[ ! -r /dev/nvhost-vic || ! -w /dev/nvhost-vic ]]; then
   echo "Jetson video engine is inaccessible: /dev/nvhost-vic" >&2
   echo "Expected root:video mode 0660; repair the udev permissions before starting ZED." >&2
@@ -565,6 +662,17 @@ target="$(dual_host_select_ssh)" || {
   echo "J6M SSH is unavailable at both configured addresses." >&2
   exit 5
 }
+
+if ! verify_j6m_visual_model_contract_release "$target"; then
+  echo "J6M current release cannot consume the configured visual model contract." >&2
+  echo "Run ./scripts/deploy_j6m.sh successfully before the next cold start." >&2
+  exit 5
+fi
+echo "[3/6] Synchronizing the authoritative runtime/model configuration to J6M..."
+if ! sync_j6m_runtime_config "$target"; then
+  echo "Failed to synchronize $DUAL_HOST_CONFIG to J6M." >&2
+  exit 5
+fi
 
 if [[ "$STATIC_MAP_ENABLED" == true ]]; then
   if ! verify_j6m_static_localization_release "$target"; then
@@ -587,6 +695,7 @@ ssh -o BatchMode=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=3 \
   STATIC_MAP_FILE="${STATIC_MAP_FILE:-}" \
   FAST_LIO_MAP_FILE="${FAST_LIO_MAP_FILE:-}" \
   FAST_LIO_INITIAL_BODY_Z="${FAST_LIO_INITIAL_BODY_Z:-0.0}" \
+  FOD_MOTION_ENABLED="$FOD_MOTION_ENABLED" \
   "$J6M_RUNTIME_BASE/dual_host/bin/start.sh" \
   >"$LOG_DIR/j6m_ssh.log" 2>&1 &
 remote_ssh_pid=$!

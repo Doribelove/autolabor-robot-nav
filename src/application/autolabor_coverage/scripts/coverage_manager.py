@@ -104,6 +104,47 @@ class CoverageManager:
         self.path_sample_spacing = float(
             rospy.get_param("~path_sample_spacing_m", 0.10)
         )
+        self.sweep_viapoint_separation = float(
+            rospy.get_param("~sweep_viapoint_separation_m", 0.30)
+        )
+        self.sweep_weight_viapoint = float(
+            rospy.get_param("~sweep_weight_viapoint", 50.0)
+        )
+        self.sweep_weight_viapoint_lateral = float(
+            rospy.get_param("~sweep_weight_viapoint_lateral", 200.0)
+        )
+        self.sweep_weight_viapoint_heading = float(
+            rospy.get_param("~sweep_weight_viapoint_heading", 100.0)
+        )
+        self.sweep_weight_kinematics_forward_drive = float(
+            rospy.get_param("~sweep_weight_kinematics_forward_drive", 1000.0)
+        )
+        self.sweep_selection_viapoint_cost_scale = float(
+            rospy.get_param("~sweep_selection_viapoint_cost_scale", 5.0)
+        )
+        self.sweep_viapoints_all_candidates = self._strict_bool(
+            "~sweep_viapoints_all_candidates", True
+        )
+        sweep_weights = (
+            self.sweep_weight_viapoint,
+            self.sweep_weight_viapoint_lateral,
+            self.sweep_weight_viapoint_heading,
+            self.sweep_weight_kinematics_forward_drive,
+        )
+        if (
+            not math.isfinite(self.sweep_viapoint_separation)
+            or not 0.05 <= self.sweep_viapoint_separation <= 5.0
+            or not all(math.isfinite(value) and 0.0 <= value <= 1000.0
+                       for value in sweep_weights)
+            or self.sweep_weight_kinematics_forward_drive <= 0.0
+            or not math.isfinite(self.sweep_selection_viapoint_cost_scale)
+            or not 0.0 <= self.sweep_selection_viapoint_cost_scale <= 100.0
+            or (
+                self.sweep_weight_viapoint_lateral == 0.0
+                and self.sweep_weight_viapoint_heading == 0.0
+            )
+        ):
+            raise ValueError("coverage TEB straight-sweep profile is invalid")
         self.obstacle_wait_sec = float(rospy.get_param("~obstacle_wait_sec", 10.0))
         self.segment_retry_count = int(rospy.get_param("~segment_retry_count", 3))
         self.final_retry_count = int(rospy.get_param("~final_retry_count", 1))
@@ -1407,7 +1448,10 @@ class CoverageManager:
         self.move_base.cancel_all_goals()
         self._publish_status()
 
-    def _set_teb(self, backwards):
+    def _set_teb(self, backwards, straight_tracking=False):
+        if not math.isfinite(backwards) or backwards < 0.0:
+            rospy.logerr("coverage requested an invalid TEB reverse limit: %r", backwards)
+            return False
         try:
             import dynamic_reconfigure.client
             client = dynamic_reconfigure.client.Client(
@@ -1423,14 +1467,58 @@ class CoverageManager:
                     ),
                     "xy_goal_tolerance": configuration.get("xy_goal_tolerance", 0.5),
                     "yaw_goal_tolerance": configuration.get("yaw_goal_tolerance", 0.3),
+                    "global_plan_viapoint_sep": configuration.get(
+                        "global_plan_viapoint_sep", 0.8
+                    ),
+                    "weight_viapoint": configuration.get("weight_viapoint", 8.0),
+                    "weight_viapoint_lateral": configuration.get(
+                        "weight_viapoint_lateral", 0.0
+                    ),
+                    "weight_viapoint_heading": configuration.get(
+                        "weight_viapoint_heading", 0.0
+                    ),
+                    "weight_kinematics_forward_drive": configuration.get(
+                        "weight_kinematics_forward_drive", 100.0
+                    ),
+                    "selection_viapoint_cost_scale": configuration.get(
+                        "selection_viapoint_cost_scale", 1.0
+                    ),
+                    "viapoints_all_candidates": configuration.get(
+                        "viapoints_all_candidates", False
+                    ),
                 }
-            client.update_configuration({
+            target = copy.deepcopy(self.original_teb)
+            target.update({
                 "max_vel_x": self.task_max_speed,
                 "max_vel_x_backwards": backwards,
                 "allow_init_with_backwards_motion": backwards > 0.0,
                 "xy_goal_tolerance": 0.20,
                 "yaw_goal_tolerance": 0.20,
             })
+            if straight_tracking:
+                # Exact coverage sweeps need a different optimization objective
+                # from point-to-point transit.  Dense positional via-points plus
+                # the TEB-native tangent edge penalize cross-track and yaw error,
+                # while every homotopy candidate is tied to the same reference.
+                # A zero reverse bound is supported by this fork and clamped at
+                # command output, so stationary commands remain valid without
+                # permitting a coverage sweep to back up.
+                target.update({
+                    "max_vel_x_backwards": 0.0,
+                    "allow_init_with_backwards_motion": False,
+                    "global_plan_viapoint_sep": self.sweep_viapoint_separation,
+                    "weight_viapoint": self.sweep_weight_viapoint,
+                    "weight_viapoint_lateral": self.sweep_weight_viapoint_lateral,
+                    "weight_viapoint_heading": self.sweep_weight_viapoint_heading,
+                    "weight_kinematics_forward_drive": (
+                        self.sweep_weight_kinematics_forward_drive
+                    ),
+                    "selection_viapoint_cost_scale": (
+                        self.sweep_selection_viapoint_cost_scale
+                    ),
+                    "viapoints_all_candidates": self.sweep_viapoints_all_candidates,
+                })
+            client.update_configuration(target)
             return True
         except Exception as error:
             rospy.logerr("coverage could not configure TEB: %s", error)
@@ -1581,7 +1669,8 @@ class CoverageManager:
         backwards = self.reverse_transit_speed if (
             segment["type"] == "transit" and self.allow_reverse_transit
         ) else 0.0
-        if not self._set_teb(backwards):
+        if not self._set_teb(
+                backwards, straight_tracking=segment["type"] == "sweep"):
             return "failed"
         enforced = EnforcedPath()
         enforced.header.frame_id = "map"

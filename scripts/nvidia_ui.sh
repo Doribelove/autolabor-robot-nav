@@ -52,6 +52,9 @@ elif (( $# > 0 )); then
   exit 2
 fi
 
+dual_host_validate_fod_model_contract || exit 2
+[[ "$NVIDIA_START_VISION" != true ]] || dual_host_validate_fod_weights || exit 2
+
 if ! timeout 5 rosparam list >/dev/null 2>&1; then
   echo "J6M ROS master is not reachable at $ROS_MASTER_URI." >&2
   exit 3
@@ -144,12 +147,8 @@ if [[ "$NVIDIA_START_VISION" == true ]]; then
     echo "YOLO weights are missing: $fod_weights" >&2
     exit 5
   }
-  fod_model_sha256="${NVIDIA_FOD_MODEL_SHA256:-7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500}"
-  [[ "$fod_model_sha256" =~ ^[[:xdigit:]]{64}$ ]] || {
-    echo "YOLO weights SHA256 is invalid: $fod_model_sha256" >&2
-    exit 5
-  }
-  fod_required_class_names="${NVIDIA_FOD_REQUIRED_CLASS_NAMES:-Metal,Soft,Plastic,Wire,Tool,w}"
+  fod_model_sha256="${NVIDIA_FOD_MODEL_SHA256,,}"
+  fod_required_class_names="$NVIDIA_FOD_REQUIRED_CLASS_NAMES"
   fod_ultralytics_root="${NVIDIA_FOD_ULTRALYTICS_ROOT:-}"
   fod_pythonpath="${PYTHONPATH:-}"
   if [[ -n "$fod_ultralytics_root" ]]; then

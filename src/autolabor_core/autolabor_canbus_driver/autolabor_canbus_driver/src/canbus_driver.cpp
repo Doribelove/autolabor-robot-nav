@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <autolabor_canbus_driver/canbus_driver.h>
 
 
@@ -23,9 +24,10 @@ namespace autolabor_driver {
             return false;
         }
         port_ = serial_port_ptr(new boost::asio::serial_port(io_service_));
-        port_->open(port_name_, ec_);
-        if (ec_) {
-            ROS_INFO_STREAM("error : port_->open() failed...port_name=" << port_name_ << ", e=" << ec_.message().c_str());
+        boost::system::error_code open_error;
+        port_->open(port_name_, open_error);
+        if (open_error) {
+            ROS_INFO_STREAM("error : port_->open() failed...port_name=" << port_name_ << ", e=" << open_error.message().c_str());
             return false;
         }
         // option settings...
@@ -37,8 +39,20 @@ namespace autolabor_driver {
         return true;
     }
 
-    void CanbusDriver::update_parse_data() {
-        size_t count = boost::asio::read(*port_.get(), boost::asio::buffer(receive_data_, 256), boost::asio::transfer_at_least(1), ec_);
+    bool CanbusDriver::update_parse_data() {
+        boost::system::error_code read_error;
+        size_t count = boost::asio::read(
+            *port_.get(), boost::asio::buffer(receive_data_, 256),
+            boost::asio::transfer_at_least(1), read_error);
+        if (read_error) {
+            ROS_ERROR_THROTTLE(
+                1.0, "CAN serial read failed on %s: %s",
+                port_name_.c_str(), read_error.message().c_str());
+            return false;
+        }
+        if (count == 0) {
+            return false;
+        }
         ROS_DEBUG_STREAM("RECEIVE < " << array_to_string(receive_data_, count) << ">");
         size_t remain_byte_number = parse_end_index_ - parse_start_index_;
         if (remain_byte_number > 0) {
@@ -52,7 +66,7 @@ namespace autolabor_driver {
         point_index_ = point_index_ - parse_start_index_;
         parse_start_index_ = 0;
         parse_end_index_ = count + remain_byte_number;
-
+        return true;
     }
 
     void CanbusDriver::reset_parse_data() {
@@ -84,9 +98,12 @@ namespace autolabor_driver {
 
     void CanbusDriver::parse_msg() {
         ros::Rate loop_rate(parse_rate_);
-        while (true) {
+        while (ros::ok()) {
             bool continue_flag = true;
-            update_parse_data();
+            if (!update_parse_data()) {
+                loop_rate.sleep();
+                continue;
+            }
             while (point_index_ < parse_end_index_ && continue_flag) {
                 switch (state_) {
                     case 0: { // header
@@ -156,6 +173,33 @@ namespace autolabor_driver {
         }
     }
 
+    bool CanbusDriver::write_frame(const uint8_t *frame, size_t length,
+                                   bool query_frame) {
+        boost::system::error_code write_error;
+        const size_t written = boost::asio::write(
+            *port_.get(), boost::asio::buffer(frame, length), write_error);
+        if (write_error || written != length) {
+            ++tx_error_count_;
+            ROS_ERROR_THROTTLE(
+                1.0,
+                "CAN serial write failed on %s: wrote %zu/%zu bytes: %s",
+                port_name_.c_str(), written, length,
+                write_error ? write_error.message().c_str() : "short write");
+            return false;
+        }
+        ++tx_frame_count_;
+        if (query_frame) {
+            ++tx_query_count_;
+        }
+        ROS_INFO_THROTTLE(
+            10.0,
+            "CAN serial TX health: frames=%llu queries=%llu errors=%llu",
+            static_cast<unsigned long long>(tx_frame_count_),
+            static_cast<unsigned long long>(tx_query_count_),
+            static_cast<unsigned long long>(tx_error_count_));
+        return true;
+    }
+
     void CanbusDriver::handle_parse_msg() {
         if (frame_id_ == 0) {
             autolabor_canbus_driver::CanBusMessage msg;
@@ -175,6 +219,7 @@ namespace autolabor_driver {
         if (req.requests.size() > 0) {
             uint8_t service_msg_cache[14];
             for (int i = 0; i < req.requests.size(); i++) {
+                std::fill(service_msg_cache, service_msg_cache + 14, 0);
                 autolabor_canbus_driver::CanBusMessage msg = req.requests[i];
                 int data_tag = msg.payload.size() > 0 ? 1 : 0;
                 service_msg_cache[0] = 0xfe;
@@ -188,14 +233,18 @@ namespace autolabor_driver {
                         service_msg_cache[5 + j] = msg.payload[j];
                     }
                     service_msg_cache[13] = check_data(&service_msg_cache[1], 12);
-                    boost::asio::write(*port_.get(), boost::asio::buffer(service_msg_cache, 14), ec_);
+                    if (!write_frame(service_msg_cache, 14, false)) {
+                        return false;
+                    }
                     ROS_DEBUG_STREAM("SEND < " << array_to_string(service_msg_cache, 14) << ">"
                                               << " NODE_TYPE:" << (int)msg.node_type << ","
                                               << " NODE_SEQ:" << (int)msg.node_seq << ","
                                               << " MSG_TYPE:" << (int)msg.msg_type);
                 } else {
                     service_msg_cache[5] = check_data(&service_msg_cache[1], 4);
-                    boost::asio::write(*port_.get(), boost::asio::buffer(service_msg_cache, 6), ec_);
+                    if (!write_frame(service_msg_cache, 6, true)) {
+                        return false;
+                    }
                     ROS_DEBUG_STREAM("SEND < " << array_to_string(service_msg_cache, 6) << ">"
                                              << " NODE_TYPE:" << (int)msg.node_type << ","
                                              << " NODE_SEQ:" << (int)msg.node_seq << ","
@@ -216,10 +265,17 @@ namespace autolabor_driver {
         private_node.param<std::string>("port_name", port_name_, std::string("/dev/ttyUSB0"));
         private_node.param<int>("baud_rate", baud_rate_, 115200);
         private_node.param<int>("parse_rate", parse_rate_, 100);
+        private_node.param<int>("publisher_queue_size", publisher_queue_size_, 1000);
+
+        if (publisher_queue_size_ < 1 || publisher_queue_size_ > 10000) {
+            ROS_FATAL("publisher_queue_size must be in [1, 10000]");
+            return;
+        }
 
         if (init()) {
             canbus_msg_service_ = node.advertiseService("canbus_server", &CanbusDriver::canbus_service, this);
-            canbus_msg_pub_ = node.advertise<autolabor_canbus_driver::CanBusMessage>("canbus_msg", 10);
+            canbus_msg_pub_ = node.advertise<autolabor_canbus_driver::CanBusMessage>(
+                "canbus_msg", publisher_queue_size_);
             boost::thread parse_thread(boost::bind(&CanbusDriver::parse_msg, this));
         }
         ros::spin();

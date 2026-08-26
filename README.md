@@ -96,6 +96,147 @@ J6M 到交换机、MID360 专用 USB 网卡到 MID360 的链路灯均已亮。�
 ready。可选 LD19 或检测结果短时缺流仍按降级告警处理，但“ZED 节点存在、实际无图”
 不再算启动成功。
 
+### 一键命令总览
+
+以下命令使用绝对路径，可以从任意目录执行。末尾的 `</dev/null` 只表示启动命令不读取
+终端标准输入；完整进程树仍由 transient `autolabor-dual-host.service` 托管，它不会
+跳过模型、定位、运动授权、急停或其他安全检查。
+
+无静态地图、无本次视觉运动授权：
+
+```bash
+/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --start </dev/null
+```
+
+从完全停止状态加载最近静态地图，但不额外授予视觉运动权限：
+
+```bash
+/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --start \
+  --map-set /home/slam/robot_j6m_ws/global_maps/map_sets/latest </dev/null
+```
+
+从完全停止状态加载最近静态地图，并且只为本次托管运行授予 FOD 视觉运动权限：
+
+```bash
+/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --start \
+  --map-set /home/slam/robot_j6m_ws/global_maps/map_sets/latest \
+  --authorize-fod-motion </dev/null
+```
+
+如果双机栈已经运行，必须完整冷重启才能切换为同样的静态地图＋本次视觉授权模式：
+
+```bash
+/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --restart \
+  --map-set /home/slam/robot_j6m_ws/global_maps/map_sets/latest \
+  --authorize-fod-motion </dev/null
+```
+
+查询状态和同步停止两端：
+
+```bash
+/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --status </dev/null
+/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --stop </dev/null
+```
+
+`--authorize-fod-motion` 是一次性运行覆盖：它让本次 NVIDIA/J6M 进程看到
+`FOD_MOTION_ENABLED=true`，但不修改 `config/dual_host.env`。停止本次服务后该覆盖即失效。
+该参数要求持久配置中的 `MOTION_ENABLED=true`，并要求
+`runtime/motion_authorized.ok` 已由现场安全确认流程创建；缺少任一条件时启动会拒绝继续。
+它只授予控制器通过全部预检后输出非零速度的资格，不会自动进入视觉行驶。静态地图模式
+下的 move_base 导航和覆盖清扫仍必须根据车辆真实位置发送 `/initialpose` 并等待
+`LOCALIZED`；视觉伺服本身使用本次启动的局部 `/odom`，不依赖 GPS 或全局定位。
+由操作员在 Qt“视觉行驶模式”中点击“立即单独启动”后，最近有效深度 FOD 不小于
+`5 m`、数据过期、急停或任一控制权/反馈检查失败时都保持零速。“启用智能控制”属于
+可选相机图像质量控制，不是视觉行驶入口。Qt“视觉”页可在控制器停车时将目标锁定阈值调为
+`0.25–0.95`（默认 `0.30`，冷重启恢复默认）。该页只对白色/浅色侧栏使用黑色文字；
+相机画面、彩色按钮和安全告警等有色背景保留原字色。周期性 raw CAN 安全查询只由
+NVIDIA 的 M2 驱动发出：平均尝试率限制为 `3.0 Hz`，周期加入 ±20% 去同步抖动，每项
+安全状态最多重试 4 次后公平轮转；J6M 视觉控制器只监听回包，`8.00 s` 未更新即中止，
+明确的不安全回复仍会立即中止。
+
+### 视觉控制（定点清扫）实车使用
+
+视觉行驶不会随开机或一键启动自动生效。完整条件是：主运动门为
+`MOTION_ENABLED=true`、`runtime/motion_authorized.ok` 存在、本次启动带
+`--authorize-fod-motion`、ZED/YOLO/注册深度/局部 odom/轮角/CAN 安全状态均新鲜，最后
+再由操作员显式进入视觉模式。少一个条件都保持零速。
+
+测试前必须确认车辆架空或位于封闭净空测试区、人员远离车轮、实体急停可用、CAN
+物理端口已确认；当前默认接近和盲区速度均为 `0.20 m/s`。当前视觉命令不经过
+move_base、TEB 或 costmap 障碍规划，MID360/LD19 的导航避障不会替视觉模式绕障或停车，
+因此必须清空车辆前方至少 `7 m`，不能把本功能当作具备避障能力的自主导航。
+
+推荐从完全停止状态启动：
+
+```bash
+/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --start \
+  --map-set /home/slam/robot_j6m_ws/global_maps/map_sets/latest \
+  --authorize-fod-motion </dev/null
+```
+
+若已启动但漏了 `--authorize-fod-motion`，不能在运行中补授权，必须用上文的
+`--restart --map-set ... --authorize-fod-motion` 完整冷重启。启动返回
+`Health check passed (--runtime)` 后，静态定位可能仍为 `WAITING_INITIAL_POSE`：这会阻止
+move_base/覆盖导航，但不会单独阻止视觉伺服，因为视觉阶段只使用局部 `/odom`。不要把
+这种视觉可用性误写成车辆已经完成 `map` 全局定位。
+
+Qt 操作入口：
+
+1. 打开“视觉”页，确认相机、YOLO、深度和视觉控制器状态均在线；
+2. 需要时在停车状态调整“目标锁定置信度”，范围 `0.25–0.95`，默认 `0.30`；
+3. 点击“立即单独启动”进入视觉模式；“启用智能控制”只控制相机图像质量，不会授权行驶；
+4. 需要停车时点击“退出视觉模式并恢复相对导航”。
+
+也可以在 NVIDIA 终端通过模式仲裁器操作。联动模式下不要直接调用
+`/fod_visual_servo/set_enabled`：
+
+```bash
+cd /home/slam/robot_j6m_ws
+source scripts/load_config.sh
+source scripts/setup_env.sh
+
+./scripts/fod_mode.sh status
+./scripts/fod_mode.sh start
+./scripts/fod_mode.sh watch
+./scripts/fod_mode.sh stop
+```
+
+正常状态序列为：
+
+```text
+DISABLED -> PRECHECK -> ACQUIRE -> APPROACH
+         -> EDGE_ARMED -> LOSS_CONFIRM -> STEER_SETTLE
+         -> BLIND_ADVANCE -> FINAL_STOP -> COMPLETE
+```
+
+常用只读监控：
+
+```bash
+rostopic echo /fod_visual_servo/status
+rostopic echo /fod_navigation_mode/status
+rostopic echo /cmd_vel_safe
+rostopic echo /cmd_vel
+```
+
+`/fod_visual_servo/status` 中应重点看 `state/reason`、`raw_can_age_sec`、
+`detection_age_sec`、`odom_age_sec`、`wheel_angle_age_sec`、`target_depth_m`、
+`horizontal_error`、`vertical_fraction` 和实际命令。原始 CAN 四项查询只由
+`/m2_driver` 负责，平均尝试率 `3.0 Hz`、周期抖动 ±20%、每项最多重试 4 次；视觉端
+`8.0 s` 没有新回复会停车，明确急停回复立即停车。同一物体偶尔被模型同时标成两个类别
+时，只有框 IoU 不低于 `0.80`、锚点距离不超过画面对角线 `0.02` 且注册深度相差不超过
+`0.15 m` 才作为同一几何目标继续跟踪；两个真实相邻目标仍按歧义停车。
+
+当前底部门限仍保持 `bottom_fraction=0.88`。如果目标在到达画面底部中央前被车体前缘
+遮挡，状态会以 `target was lost before reaching the bottom gate` 中止；按现场决定通过
+调整相机安装角度保证目标能进入底部门，不要为绕过机械遮挡直接放宽该安全门。任何
+`ABORT` 都会锁存零速；排除原因后先执行 `./scripts/fod_mode.sh stop` 明确退出，再开始下一轮。
+
+整套双机栈停止仍只用统一入口：
+
+```bash
+/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --stop </dev/null
+```
+
 ### 无静态地图启动
 
 日常建图、录包或只需要 FAST-LIO 增量里程计时，使用默认启动：
@@ -182,6 +323,9 @@ fast_lio_localization + map_3d/map.pcd --> map -> camera_init
 导航 footprint 参数；当前基础车体为 `1.04 × 0.70 m`，加 `0.10 m` padding 后外框约为
 `1.24 × 0.90 m`。静态地图冷启动时必须先完成初始位姿，并有新鲜里程计/TF 建立
 `map -> base_link`，车框才会出现在地图中的真实位置；暂时没有数据流时不显示是正常的。
+综合页右侧“FAST-LIO / map 全局定位”栏同时显示里程计局部坐标和只读的
+`map -> base_link` 全局 `X/Y/Yaw`；全局定位未完成、状态过期或 TF 不可用时明确显示等待
+原因，不会把局部里程计坐标冒充为 map 坐标。
 
 初始位姿前 RViz 视角固定在 `map` 并显示全图，不跟随尚未接入全局坐标系的
 `base_link`；因此不应再出现必须盲点位姿的黑色空视图。
@@ -193,6 +337,11 @@ Qt 还会在收到 `/map` 后检查 RViz `MapDisplay` 自身加载的宽、高�
 RViz 在初始化窗口时漏接了 `map_server` 的锁存消息，会自动重新订阅，最多重试 5 次。
 只有 `/autolabor_operator_gui/map_display_status` 报告 `READY`，一键启动的运行态自检
 才会把二维地图判为已渲染，避免仅凭 GUI 自己的地图订阅误报“完整显示”。
+静态模式下 Qt 默认以 `0.55` 透明度显示
+`/move_base/global_costmap/costmap`，并把 `0.90` 透明度的滚动局部代价图放在其上层；
+综合页顶部“⑤ 显示/隐藏全局代价图”可直接切换，不再要求打开 RViz 调试面板。右侧栏
+还显示全局代价图的尺寸、分辨率、消息年龄或缺流原因，从而区分“显示层关闭”和
+“move_base 尚未发布 topic”。
 
 地图上路线颜色固定为：青色是覆盖条带预览，蓝色是传给 TEB 的全局参考路线，红色是
 TEB 当前优化的局部轨迹，绿色是覆盖任务实际执行记录。蓝/红路线仅在 move_base 目标
@@ -281,6 +430,13 @@ Navfn；管理器先同步调用规划插件的 `set_enforced_path` 服务，在
 终点航向。转场可选让 TEB 尝试
 `0.30 m/s` 低速倒车，覆盖直线禁止倒车。
 
+精确扫掠段会临时启用独立的 TEB 直线跟踪代价：参考点间距收紧为 `0.30 m`，位置、
+横向偏差和航向偏差权重分别为 `50/200/100`，前进运动学权重提高到 `1000`，并让所有
+同伦候选都计入参考线代价。TEB 底层原生支持 `max_vel_x_backwards=0`：静止仍是可行解，
+负向速度会被优化器惩罚并在输出端硬截为零。上述参数只用于扫掠直线；Navfn 转场和普通
+点到点导航继续使用原配置，分段切换及任务结束时恢复基线。直线代价不会越过 footprint
+碰撞和障碍安全约束；条带被障碍阻断时仍停车、等待和重试。
+
 “从当前位置去第一条清扫线”和“从上一条清扫线去下一条清扫线”都属于转场，不计入
 覆盖轨迹，也不会把两点间的直线强塞给底盘。转场时 Navfn 每秒依据包含实时 `/scan`
 障碍的全局代价地图重新规划，TEB 以 `10 Hz` 在局部选择满足前轮转向约束的绕行轨迹；
@@ -322,15 +478,17 @@ Navfn；管理器先同步调用规划插件的 `set_enforced_path` 服务，在
 故障会高频重复，健康时可能不发；管理器因此把最新 TCU、左 ECU、右 ECU 的 emergency、
 通信超时、电流超限和制动故障锁存 `3 s`，而不把健康时的静默误判为离线。任务执行中
 出现任一急停或控制器故障会取消当前 move_base 目标并进入人工暂停，状态恢复后也不会
-自动继续旧目标。`/odom` 的 10 Hz 反馈门负责快速识别 VCU/CAN 数据中断；M2 驱动按 VCU
-实测吞吐把请求限制为 `4 Hz`，每秒依次查询硬急停、软急停、手柄急停，再用第 4 个时隙
-轮询一项电池遥测。三个安全请求的标称周期均为 `1 s`，电池请求每项约 `5 s`；VCU 可能
-丢弃个别查询回复，因此组合状态仍使用 `3 s` 新鲜门。现场两轮 30 秒采样的组合状态最大
-间隔分别小于 `2.0 s`，不再出现原先接近 `4 s` 的整批空窗。Qt“底盘执行门”显示具体
-原因，并在未就绪时禁用开始按钮。
+自动继续旧目标。`/odom` 的 10 Hz 反馈门负责快速识别 VCU/CAN 数据中断。周期性状态查询
+只允许 M2 驱动持有；它把平均尝试率限制为 `3.0 Hz`，以 ±20% 周期抖动避免与 VCU 广播
+形成固定相位；硬急停、软急停、手柄急停和整车运行状态各自最多重试 4 次，再发送一项
+轮换电池遥测。视觉控制器不再调用 `/canbus_server`，只监听 `/canbus_msg`，从而进入视觉
+模式不会叠加查询流。组合状态继续使用 `3 s` 新鲜门，视觉原始四项使用 `8 s` 新鲜门；
+该窗口覆盖一次全字段均漏回的有界公平轮询，任何明确不安全回包仍会立即中止。Qt“底盘
+执行门”显示具体原因，并在未就绪时禁用开始按钮。
 
 每次任务开始时，覆盖管理器会把 Qt 选择的前进速度写入 TEB，并核对该值不超过 NVIDIA
-看门狗和 VCU 实时上限；任务结束后恢复原 TEB 配置。清扫地图同时显示当前车辆模型和
+看门狗和 VCU 实时上限；精确扫掠时还应用上面的直线跟踪配置，任务结束后恢复原 TEB
+配置。清扫地图同时显示当前车辆模型和
 最近 `120` 个有效 `/Odometry` 位姿采样，便于观察最近一段行驶轨迹；白色清扫侧栏还显示
 当前 `map -> base_link` 位姿（未完成全局定位时明确标注并回退到里程计坐标系），以及最近
 `10 s` 的里程计样本数、累计距离和消息年龄。Qt 明确区分“覆盖

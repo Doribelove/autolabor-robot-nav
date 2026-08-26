@@ -122,6 +122,38 @@ class CoverageContractTest(unittest.TestCase):
         self.assertIn('"max_vel_x": self.task_max_speed', manager)
         self.assertIn('"max_vel_x": configuration.get', manager)
 
+    def test_exact_sweeps_enable_teb_cross_track_and_heading_costs_only_temporarily(self):
+        manager = (PACKAGE_ROOT / "scripts" / "coverage_manager.py").read_text(
+            encoding="utf-8"
+        )
+        config = yaml.safe_load(
+            (PACKAGE_ROOT / "config" / "coverage.yaml").read_text(encoding="utf-8")
+        )
+        teb_cfg = (
+            WORKSPACE_ROOT / "src" / "navigation_arena" / "forks" /
+            "navigation" / "local_planner" / "teb" / "cfg" /
+            "TebLocalPlannerReconfigure.cfg"
+        ).read_text(encoding="utf-8")
+        teb_edge = (
+            WORKSPACE_ROOT / "src" / "navigation_arena" / "forks" /
+            "navigation" / "local_planner" / "teb" / "include" /
+            "teb_local_planner" / "g2o_types" / "edge_via_point.h"
+        ).read_text(encoding="utf-8")
+
+        self.assertEqual(0.30, config["sweep_viapoint_separation_m"])
+        self.assertEqual(50.0, config["sweep_weight_viapoint"])
+        self.assertEqual(200.0, config["sweep_weight_viapoint_lateral"])
+        self.assertEqual(100.0, config["sweep_weight_viapoint_heading"])
+        self.assertEqual(
+            1000.0, config["sweep_weight_kinematics_forward_drive"]
+        )
+        self.assertIs(True, config["sweep_viapoints_all_candidates"])
+        self.assertIn("weight_viapoint_lateral", teb_cfg)
+        self.assertIn("weight_viapoint_heading", teb_cfg)
+        self.assertIn("class EdgeViaPointDirection", teb_edge)
+        self.assertIn('"max_vel_x_backwards": 0.0', manager)
+        self.assertIn("target = copy.deepcopy(self.original_teb)", manager)
+
     def test_ackermann_limits_match_live_vcu_precheck_and_teb(self):
         manager = (PACKAGE_ROOT / "scripts" / "coverage_manager.py").read_text(
             encoding="utf-8"

@@ -70,7 +70,9 @@ namespace autolabor_driver {
         std::queue<autolabor_canbus_driver::CanBusMessage> param_req_queue_;
         std::queue<autolabor_canbus_driver::CanBusMessage> safety_info_req_queue_;
         std::queue<autolabor_canbus_driver::CanBusMessage> telemetry_info_req_queue_;
-        std::size_t info_poll_phase_ = 0;
+        M2SafetyQueryRetryGate safety_query_retry_;
+        M2QueryIntervalSchedule status_query_schedule_;
+        std::size_t completed_safety_fields_ = 0;
         autolabor_canbus_driver::ChassisStatusInfo chassis_status_info_;
         autolabor_canbus_driver::ChassisMonitorInfo chassis_control_info_;
         autolabor_canbus_driver::ChassisParameter chassis_parameter_;
@@ -80,6 +82,8 @@ namespace autolabor_driver {
         ros::Time cur_vel_time_, cur_left_time_, cur_right_time_, cur_steer_time_;
         double poller_rate_hz_;
         double status_query_rate_limit_hz_;
+        double status_query_jitter_fraction_;
+        int status_query_max_attempts_;
         int pub_odom_hz_;
         bool is_odom_child_baselink_;
         bool is_pub_control_timeout_;

@@ -1,16 +1,28 @@
 <launch>
-    <arg name="port_name" default="/dev/ttyUSB0" />
-    <arg name="publish_tf" default="true" />
+  <arg name="port_name" default="/dev/ttyUSB0"/>
+  <arg name="publish_tf" default="true"/>
 
-    <node name="canbus_driver" pkg="autolabor_canbus_driver" type="canbus_driver" output="screen">
-        <param name="port_name" value="$(arg port_name)" />                 </node>
+  <node name="canbus_driver"
+        pkg="autolabor_canbus_driver"
+        type="canbus_driver"
+    output="screen">
+    <param name="port_name" value="$(arg port_name)"/>
+    <param name="publisher_queue_size" value="1000"/>
+  </node>
 
-    <node name="m2_driver" pkg="autolabor_canbus_driver" type="m2_driver" output="screen" >
-        <param name="odom_frame" value="odom" />                        <param name="base_frame" value="base_link" />                   <param name="poller_rate_hz" value="1" />                       <param name="publish_tf" value="$(arg publish_tf)" />                        
-        
-        <param name="is_odom_child_baselink" value="true" />           
-        <param name="is_simulate_imu" value="false" />                  
-        <param name="is_pub_control_timeout" value="true" />
-    </node>
-
-    </launch>
+  <node name="m2_driver"
+        pkg="autolabor_canbus_driver"
+        type="m2_driver"
+        output="screen">
+    <param name="odom_frame" value="odom"/>
+    <param name="base_frame" value="base_link"/>
+    <param name="poller_rate_hz" value="1.0"/>
+    <param name="status_query_rate_limit_hz" value="3.0"/>
+    <param name="status_query_jitter_fraction" value="0.20"/>
+    <param name="status_query_max_attempts" value="4"/>
+    <param name="publish_tf" value="$(arg publish_tf)"/>
+    <param name="is_odom_child_baselink" value="true"/>
+    <param name="is_simulate_imu" value="false"/>
+    <param name="is_pub_control_timeout" value="true"/>
+  </node>
+</launch>

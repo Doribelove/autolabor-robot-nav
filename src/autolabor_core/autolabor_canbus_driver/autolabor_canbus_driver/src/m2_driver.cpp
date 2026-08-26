@@ -40,12 +40,10 @@ namespace autolabor_driver{
         telemetry_info_req_queue_.push(reqMsg);
         reqMsg.msg_type = Autocan::Vcu::BatteryCurrent;
         telemetry_info_req_queue_.push(reqMsg);
-        reqMsg.msg_type = Autocan::Vcu::HardEmergency;
-        safety_info_req_queue_.push(reqMsg);
-        reqMsg.msg_type = Autocan::Vcu::SoftEmergency;
-        safety_info_req_queue_.push(reqMsg);
-        reqMsg.msg_type = Autocan::Vcu::GamepadEmergency;
-        safety_info_req_queue_.push(reqMsg);
+        for (const uint8_t msg_type : m2_safety_status_types()) {
+            reqMsg.msg_type = msg_type;
+            safety_info_req_queue_.push(reqMsg);
+        }
     }
 
     void M2Driver::ask_robot_param(const ros::TimerEvent &){
@@ -69,26 +67,70 @@ namespace autolabor_driver{
     }
 
     void M2Driver::ask_robot_info(const ros::TimerEvent &){
+        const double next_interval_sec =
+            status_query_schedule_.next_interval_sec();
+        if (next_interval_sec <= 0.0) {
+            ROS_FATAL("M2 status query interval schedule is invalid");
+            ask_info_timer_.stop();
+            return;
+        }
+        // Reset the next deadline on every tick.  The deterministic bounded
+        // jitter prevents the request stream from phase-locking to a VCU
+        // broadcast cycle while retaining a known average attempt rate.
+        ask_info_timer_.setPeriod(ros::Duration(next_interval_sec), true);
         if (safety_info_req_queue_.empty() || telemetry_info_req_queue_.empty()) {
             return;
         }
-        autolabor_canbus_driver::CanBusService srv;
-        // The VCU reply path was measured at roughly four queries per second.
-        // Use three safety slots (hard/soft/gamepad emergency) and one rotating
-        // telemetry slot per cycle.  At the default 1 Hz safety snapshot rate,
-        // each emergency field is refreshed every second while battery fields
-        // rotate every five seconds.  Every tick still contains exactly one
-        // request, so no serial burst can overrun the VCU.
+        // M2 is the sole owner of periodic VCU status queries.  Use four safety
+        // fields (hard/soft/gamepad emergency and common running state).  Keep
+        // retrying the current field until a matching reply arrives, but bound
+        // attempts so one unavailable field cannot starve the other three.
+        // After all four fields advance, spend one tick on rotating telemetry.
+        // Every timer tick still contains at most one request.
         const std::size_t safety_slots = safety_info_req_queue_.size();
-        const bool safety_slot = info_poll_phase_ < safety_slots;
-        std::queue<autolabor_canbus_driver::CanBusMessage>& selected_queue =
-            safety_slot ? safety_info_req_queue_ : telemetry_info_req_queue_;
+        if (safety_query_retry_.should_advance()) {
+            if (safety_query_retry_.exhausted()) {
+                ROS_WARN_THROTTLE(
+                    2.0,
+                    "M2 safety query 0x%02X received no matching reply after "
+                    "%zu attempts; advancing to preserve fair fail-closed polling",
+                    static_cast<unsigned int>(
+                        safety_query_retry_.pending_msg_type()),
+                    safety_query_retry_.attempts());
+            }
+            const autolabor_canbus_driver::CanBusMessage completed_req =
+                safety_info_req_queue_.front();
+            safety_info_req_queue_.pop();
+            safety_info_req_queue_.push(completed_req);
+            ++completed_safety_fields_;
+            safety_query_retry_.reset();
+        }
+
+        autolabor_canbus_driver::CanBusService srv;
+        if (!safety_query_retry_.active() &&
+                completed_safety_fields_ >= safety_slots) {
+            const autolabor_canbus_driver::CanBusMessage telemetry_req =
+                telemetry_info_req_queue_.front();
+            srv.request.requests.push_back(telemetry_req);
+            telemetry_info_req_queue_.pop();
+            telemetry_info_req_queue_.push(telemetry_req);
+            completed_safety_fields_ = 0;
+            if (!canbus_client_.call(srv)) {
+                ROS_WARN_THROTTLE(
+                    1.0,
+                    "M2 chassis-telemetry query failed; cached telemetry will "
+                    "remain unchanged");
+            }
+            return;
+        }
+
         const autolabor_canbus_driver::CanBusMessage next_req =
-            selected_queue.front();
+            safety_info_req_queue_.front();
+        if (!safety_query_retry_.active()) {
+            safety_query_retry_.begin(next_req.msg_type);
+        }
         srv.request.requests.push_back(next_req);
-        selected_queue.pop();
-        selected_queue.push(next_req);
-        info_poll_phase_ = (info_poll_phase_ + 1) % (safety_slots + 1);
+        safety_query_retry_.record_attempt();
         if (!canbus_client_.call(srv)) {
             ROS_WARN_THROTTLE(
                 1.0,
@@ -100,6 +142,20 @@ namespace autolabor_driver{
     void M2Driver::handle_canbus_msg(const autolabor_canbus_driver::CanBusMessage::ConstPtr &msg) {
         if(msg->node_type == Autocan::Vcu::Type)
         {
+            const auto safety_types = m2_safety_status_types();
+            const bool is_safety_status = std::find(
+                safety_types.begin(), safety_types.end(), msg->msg_type
+            ) != safety_types.end();
+            if (is_safety_status && msg->payload.empty()) {
+                ROS_WARN_THROTTLE(
+                    1.0,
+                    "Malformed VCU safety response 0x%02X: empty payload",
+                    static_cast<unsigned int>(msg->msg_type));
+                return;
+            }
+            if (is_safety_status) {
+                safety_query_retry_.observe(msg->msg_type);
+            }
             switch (msg->msg_type) {
                 case Autocan::Vcu::MaxSpeed:
                     chassis_parameter_.max_speed = autolabor::build_from_little_endian<float>(msg->payload.data());
@@ -526,7 +582,11 @@ namespace autolabor_driver{
         privateNodeHandle.param<std::string>("base_frame", base_frame_, std::string("base_link"));
         privateNodeHandle.param<double>("poller_rate_hz", poller_rate_hz_, 1.0);
         privateNodeHandle.param<double>(
-            "status_query_rate_limit_hz", status_query_rate_limit_hz_, 4.0);
+            "status_query_rate_limit_hz", status_query_rate_limit_hz_, 3.0);
+        privateNodeHandle.param<double>(
+            "status_query_jitter_fraction", status_query_jitter_fraction_, 0.20);
+        privateNodeHandle.param<int>(
+            "status_query_max_attempts", status_query_max_attempts_, 4);
         privateNodeHandle.param<int>("pub_odom_hz", pub_odom_hz_, 10);
         privateNodeHandle.param<bool>("publish_tf", publish_tf_, false);
         privateNodeHandle.param<bool>("is_odom_child_baselink", is_odom_child_baselink_, false);
@@ -534,7 +594,7 @@ namespace autolabor_driver{
         sync_timeout_ = 1;  // 超时时间设置为1s
         // can消息访问
         canbus_client_ = nodeHandle.serviceClient<autolabor_canbus_driver::CanBusService>("canbus_server");
-        canbus_msg_subscriber_ = nodeHandle.subscribe("/canbus_msg", 100, &M2Driver::handle_canbus_msg, this);
+        canbus_msg_subscriber_ = nodeHandle.subscribe("/canbus_msg", 1000, &M2Driver::handle_canbus_msg, this);
         // 接收控制指令
         twist_subscriber_ = nodeHandle.subscribe("/cmd_vel", 10, &M2Driver::handle_twist_msg, this);
         ackerman_subscriber_ = nodeHandle.subscribe("/ackerman_vel", 10, &M2Driver::handle_ackerman_msg, this);
@@ -558,17 +618,26 @@ namespace autolabor_driver{
             safety_info_req_queue_.size() + 1;
         const double status_query_rate_hz = m2_status_query_rate_hz(
             poller_rate_hz_, status_query_slots, status_query_rate_limit_hz_);
-        if (status_query_rate_hz <= 0.0) {
+        if (status_query_rate_hz <= 0.0 || status_query_max_attempts_ < 1 ||
+                status_query_max_attempts_ > 10 ||
+                !safety_query_retry_.set_max_attempts(
+                    static_cast<std::size_t>(status_query_max_attempts_)) ||
+                !status_query_schedule_.configure(
+                    status_query_rate_hz, status_query_jitter_fraction_)) {
             ROS_FATAL("M2 status polling rates must be finite and positive and "
-                      "the status request queues must not be empty");
+                      "max attempts must be in [1, 10], with jitter in [0, 0.45]");
             return;
         }
-        ROS_INFO("M2 chassis status: %.3f requested safety snapshots/s, "
-                 "%.3f paced queries/s (limit %.3f), %zu telemetry fields",
+        ROS_INFO("M2 chassis status: %.3f requested rounds/s, %.3f mean paced "
+                 "attempts/s (limit %.3f, jitter +/-%.1f%%), up to %d attempts "
+                 "for each of %zu safety fields, then one of %zu telemetry fields",
                  poller_rate_hz_, status_query_rate_hz,
-                 status_query_rate_limit_hz_, telemetry_info_req_queue_.size());
+                 status_query_rate_limit_hz_,
+                 status_query_jitter_fraction_ * 100.0,
+                 status_query_max_attempts_,
+                 safety_info_req_queue_.size(), telemetry_info_req_queue_.size());
         ask_info_timer_ = nodeHandle.createTimer(
-            ros::Duration(1.0 / status_query_rate_hz),
+            ros::Duration(status_query_schedule_.next_interval_sec()),
             &M2Driver::ask_robot_info, this);
         // 里程计发送定时器
         send_odom_timer_ = nodeHandle.createTimer(ros::Duration(1.0 / pub_odom_hz_), &M2Driver::send_odom, this);

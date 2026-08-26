@@ -24,6 +24,21 @@ EDGE_ARMED → LOSS_CONFIRM → STEER_SETTLE → BLIND_ADVANCE → FINAL_STOP �
 稳定出现，随后 `/fod/detections` 仍按频率更新但连续给出空候选，才允许进入
 盲走。
 
+## 双机版本更换模型
+
+双机运行只维护一份模型契约：NVIDIA 的
+`config/dual_host.env` 中的 `NVIDIA_FOD_WEIGHTS`、
+`NVIDIA_FOD_MODEL_SHA256` 和 `NVIDIA_FOD_REQUIRED_CLASS_NAMES`。权重文件只需
+存在于 NVIDIA；SHA256 和逗号分隔的精确类别名同时提供给 NVIDIA 检测器和 J6M
+视觉伺服。托管冷启动会原子同步配置到 J6M，运行时健康检查也会核对两端参数，
+避免检测器已经换模型而控制器仍使用旧白名单。
+
+首次升级到支持共享契约的版本时，需要停止主链并执行一次
+`scripts/deploy_j6m.sh`，使 `autolabor_fod_control` 进入 J6M 的版本化 release。
+以后换模型不需要重新编译：更新以上三项，确认
+`sha256sum <权重文件>` 与配置一致，再通过统一入口完整冷重启。模型和类别不会
+在运行中热切换；`FOD_MOTION_ENABLED` 仍是独立运动门，换模型不会自动开启运动。
+
 ## 安全边界
 
 - YOLO 不是避障器。第一次及调参试验必须在封闭净空区域进行，人员离开车辆
@@ -48,7 +63,8 @@ EDGE_ARMED → LOSS_CONFIRM → STEER_SETTLE → BLIND_ADVANCE → FINAL_STOP �
   不再检查属于 VCU 安全链的 `/m2_driver/emergency_stop`。
 - ROS Master 只能审计 topic/service 图，不能枚举已连接后绕过 topic、直接调用
   `/canbus_server` 的客户端。因此必须使用可信且无其他底盘/CAN 控制进程的 ROS
-  图；“唯一 `/cmd_vel` 发布者”不代表能隔离恶意或错误的直连 CAN 客户端。
+  图；“唯一 `/cmd_vel` 发布者”不代表能隔离恶意或错误的直连 CAN 客户端。本视觉
+  控制器自身不再连接该服务，周期性 VCU 状态查询只由 NVIDIA 的 M2 驱动负责。
 - `allow_motion:=true` 只是第一重授权。节点启动后只发零速，还必须由操作员
   显式调用 `/fod_visual_servo/set_enabled`。
 - 默认接近和盲走速度均为 `0.20 m/s`。真车测试中，`0.0525 m/s` 只移动
@@ -252,7 +268,7 @@ roslaunch autolabor_fod_control visual_recovery.launch \
 ```
 
 现场 CAN/VCU 状态回复不可靠、并且确有人员全程手持可立即停车的遥控器时，可
-显式使用外部急停覆盖。它会跳过原始 CAN 查询、底盘聚合急停、VCU 控制超时、
+显式使用外部急停覆盖。它会跳过原始 CAN 回包观察、底盘聚合急停、VCU 控制超时、
 CAN 图/服务以及软件急停话题检查；不会跳过相机检测、odom、轮角、唯一
 `/cmd_vel` 发布者、命令租约、速度/转角、进度、距离和绝对运行超时：
 
@@ -291,9 +307,18 @@ rosservice call /fod_visual_servo/set_enabled "data: true"
 目标因测距噪声来回切换。最近目标连续稳定 6 帧后才开始低速前进并通过像素
 误差自动转向，不要求目标预先位于正中央。完成锁定后只按空间关联继续跟随同一
 目标，不会因为另一个 FOD 后来更近而中途换目标。
+多类别模型偶尔会把同一物体同时发布成两个类别。控制器只在所有候选框两两高度
+重叠（默认 IoU 不低于 `0.80`）、锚点距离不超过画面对角线的 `0.02`，且注册深度
+相差不超过 `0.15 m` 时，将它们视为同一物体并继续原几何锁定。仅仅相邻、框重叠
+不足或深度不同的目标仍保持歧义并立即停车，不能用该规则在两个真实物体间跳转。
 控制器默认接受置信度不低于 `0.30` 的目标；现场批准模型对当前小尺寸 Metal
 目标的稳定输出约为 `0.38–0.43`，此前 `0.45` 的二次门槛会错误地把这些检测
 过滤成 `no eligible target`。连续 6 帧确认仍用于抑制单帧误检。
+运行时可在 Qt“视觉”页将这个目标锁定阈值调整为 `0.25–0.95`。
+只有控制器处于 `DISABLED`、`COMPLETE` 或 `ABORT` 停车状态时才会接受修改；
+正在预检或行驶时保留原值。这是本次进程的临时值，冷重启后恢复
+`visual_servo.yaml` 的 `0.30`。检测器本身低于 `0.25` 的结果不会发布，
+因此控制器阈值不能用于绕过检测器下限。
 默认捕获范围是相机中心左右各 `0.65 × 半幅宽`，即画面中央约 65% 的宽度；
 进入闭环后保留 `0.70` 的瞬时跟踪边界。更靠近画面极端边缘的目标仍保持停车，
 状态详情会直接报告横向误差超出捕获范围。目标到达画面底部中央并经连续帧确认
@@ -328,7 +353,8 @@ rosservice call /fod_visual_servo/set_enabled "data: false"
 rostopic echo -n 1 /fod_visual_servo/status
 ```
 
-其中包含当前状态、停止原因、目标类别/置信度、目标深度/MAD/采样数、像素误差、目标纵向比例、
+其中包含当前状态、停止原因、目标类别/置信度、当前锁定阈值、raw CAN 查询所有者/超时、
+目标深度/MAD/采样数、像素误差、目标纵向比例、
 接近路程、盲走路程、实际下发的速度/曲率，以及检测、CameraInfo、odom、
 前轮转角和底盘状态的新鲜度。相同信息也会写入 `/diagnostics`。
 
@@ -340,9 +366,12 @@ rostopic echo -n 1 /fod_visual_servo/status
 - `target was lost before reaching the bottom gate`：目标过早丢失，程序不会盲走；
 - `receipt timeout` / `source stamp age`：相机、推理或底盘反馈断流/陈旧；
 - `raw CAN ... unsafe`：物理、软件、手柄急停或整车运行状态不允许运动；
-- `raw CAN ... response is stale`：底层状态查询没有按时收到回复。默认模式每
-  `0.20s` 只查询一项并轮询四项状态，避免串口桥把四条查询背靠背发送导致 VCU
-  漏回包；`2.50s` 超时覆盖两个以上完整轮询周期。若现场使用独立遥控急停并由
+- `raw CAN ... response is stale`：M2 驱动的底层状态查询没有按时收到回复。M2 是
+  唯一周期查询所有者，以平均 `3.0 Hz`、周期 ±20% 去同步抖动发送请求；硬急停、
+  软急停、手柄急停和整车运行状态各自最多重试 4 次，再轮换一项遥测。视觉控制器
+  只观察回包，不再额外调用 `/canbus_server`。`8.00 s` 新鲜度门覆盖一次全字段均漏回的
+  有界公平轮询，但持续缺失仍会中止；已收到的不安全回复仍会立即锁存并中止，不会等待
+  `8.00 s`。若现场使用独立遥控急停并由
   人员全程值守，可按上面的 `external_estop_override:=true` 明确跳过该安全链；
 - `front steering did not settle`：目标消失后前轮未能在 3 秒内回中；
 - `blind ... deviation/watchdog`：0.5 m 阶段航向、横偏、里程或进度异常。
