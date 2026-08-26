@@ -344,8 +344,7 @@ protected:
    * @brief Saturate the translational and angular velocity to given limits.
    * 
    * The limit of the translational velocity for backwards driving can be changed independently.
-   * Do not choose max_vel_x_backwards <= 0. If no backward driving is desired, change the optimization weight for
-   * penalizing backwards driving instead.
+   * Set max_vel_x_backwards to zero to disable reverse output.
    * @param[in,out] vx The translational velocity that should be saturated.
    * @param[in,out] vy Strafing velocity which can be nonzero for holonomic robots
    * @param[in,out] omega The angular velocity that should be saturated.
@@ -356,6 +355,14 @@ protected:
    */
   void saturateVelocity(double& vx, double& vy, double& omega, double max_vel_x, double max_vel_y,
                         double max_vel_theta, double max_vel_x_backwards) const;
+
+  /**
+   * @brief Testable implementation of saturateVelocity without constructing ROS plugin loaders.
+   * @param use_proportional_saturation Scale all velocity components together if true
+   */
+  static void saturateVelocityCommand(double& vx, double& vy, double& omega, double max_vel_x,
+                                      double max_vel_y, double max_vel_theta,
+                                      double max_vel_x_backwards, bool use_proportional_saturation);
 
   
   /**
@@ -451,5 +458,3 @@ public:
 }; // end namespace teb_local_planner
 
 #endif // TEB_LOCAL_PLANNER_ROS_H_
-
-

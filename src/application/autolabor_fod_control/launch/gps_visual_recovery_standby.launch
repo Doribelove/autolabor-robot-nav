@@ -4,6 +4,9 @@
   <arg name="allow_motion" default="false"/>
   <arg name="external_estop_override" default="false"/>
   <arg name="blind_distance_m" default="0.50"/>
+  <arg name="expected_model_sha256"
+       default="7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500"/>
+  <arg name="allowed_class_names" default="Metal,Soft,Plastic,Wire,Tool,w"/>
   <arg name="gps_cmd_topic" default="/cmd_vel_gps"/>
   <arg name="fod_cmd_topic" default="/cmd_vel_fod"/>
   <arg name="output_cmd_topic" default="/cmd_vel"/>
@@ -19,6 +22,9 @@
     <arg name="external_estop_override"
          value="$(arg external_estop_override)"/>
     <arg name="blind_distance_m" value="$(arg blind_distance_m)"/>
+    <arg name="expected_model_sha256"
+         value="$(arg expected_model_sha256)"/>
+    <arg name="allowed_class_names" value="$(arg allowed_class_names)"/>
     <arg name="cmd_vel_topic" value="$(arg fod_cmd_topic)"/>
     <arg name="expected_cmd_vel_subscriber_node"
          value="/fod_navigation_mode"/>

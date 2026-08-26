@@ -179,6 +179,12 @@ struct TelemetrySnapshot
   double map_origin_x = 0.0;
   double map_origin_y = 0.0;
   double map_origin_yaw = 0.0;
+  bool global_costmap_received = false;
+  ros::WallTime global_costmap_received_at;
+  std::uint64_t global_costmap_message_count = 0;
+  unsigned int global_costmap_width = 0;
+  unsigned int global_costmap_height = 0;
+  double global_costmap_resolution = 0.0;
   bool coverage_status_received = false;
   autolabor_coverage::CoverageStatus coverage_status;
   ros::WallTime coverage_status_received_at;
@@ -212,6 +218,7 @@ private Q_SLOTS:
   void followOverviewVehicle();
   void selectInitialPoseTool();
   void toggleOverview3dMap();
+  void toggleGlobalCostmap();
   void beginCoverageSelection();
   void undoCoveragePoint();
   void cancelCoverageSelection();
@@ -227,6 +234,7 @@ private Q_SLOTS:
   void stopStaticMapping();
   void startFodMode();
   void stopFodMode();
+  void applyVisualLockConfidence();
   void queryCameraControls();
   void applyCameraControls();
   void enableImageQualityControl();
@@ -297,6 +305,7 @@ private:
   bool setRvizFollowVehicleView(const TelemetrySnapshot& data);
   bool setOverview3dMapView(bool enabled,
                             const TelemetrySnapshot& data);
+  bool setGlobalCostmapDisplayEnabled(bool enabled);
   void updateNavigationPathDisplays(const TelemetrySnapshot& data);
   bool selectRvizTool(rviz::VisualizationFrame* frame,
                       const QString& class_id);
@@ -335,6 +344,7 @@ private:
   void visualStatusCallback(const std_msgs::String::ConstPtr& msg);
   void diagnosticsCallback(const diagnostic_msgs::DiagnosticArray::ConstPtr& msg);
   void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
+  void globalCostmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
   void coveragePointCallback(const geometry_msgs::PointStamped::ConstPtr& msg);
   void coverageStatusCallback(
       const autolabor_coverage::CoverageStatus::ConstPtr& msg);
@@ -367,6 +377,7 @@ private:
   ros::Subscriber visual_status_subscriber_;
   ros::Subscriber diagnostics_subscriber_;
   ros::Subscriber map_subscriber_;
+  ros::Subscriber global_costmap_subscriber_;
   ros::Subscriber coverage_point_subscriber_;
   ros::Subscriber coverage_status_subscriber_;
   ros::Publisher relative_goal_publisher_;
@@ -408,6 +419,7 @@ private:
   QPushButton* rviz_initial_pose_button_ = nullptr;
   QPushButton* rviz_follow_vehicle_button_ = nullptr;
   QPushButton* rviz_3d_map_button_ = nullptr;
+  QPushButton* rviz_global_costmap_button_ = nullptr;
   QLabel* rviz_placeholder_ = nullptr;
   rviz::VisualizationFrame* rviz_frame_ = nullptr;
   QWidget* coverage_rviz_host_ = nullptr;
@@ -441,6 +453,8 @@ private:
   QPushButton* overview_fod_stop_button_ = nullptr;
   QPushButton* fod_start_button_ = nullptr;
   QPushButton* fod_stop_button_ = nullptr;
+  QDoubleSpinBox* visual_lock_confidence_input_ = nullptr;
+  QPushButton* visual_lock_confidence_apply_button_ = nullptr;
   QCheckBox* exposure_auto_checkbox_ = nullptr;
   QDoubleSpinBox* exposure_input_ = nullptr;
   QDoubleSpinBox* gain_input_ = nullptr;
@@ -471,6 +485,7 @@ private:
   ros::WallTime last_raw_preview_conversion_;
   ros::WallTime last_debug_preview_conversion_;
   bool mode_request_pending_ = false;
+  bool visual_lock_confidence_request_pending_ = false;
   bool camera_request_pending_ = false;
   Health previous_fastlio_health_ = Health::Idle;
 

@@ -32,6 +32,7 @@ chroot "$ROOTFS" /bin/bash -lc '
     /opt/autolabor/dual_host/current/lib/autolabor_dual_host/cmd_vel_watchdog.py \
     /opt/autolabor/dual_host/current/lib/autolabor_dual_host/move_base_pause_bridge.py \
     /opt/autolabor/dual_host/current/lib/autolabor_coverage/coverage_manager.py \
+    /opt/autolabor/dual_host/current/lib/autolabor_fod_control/fod_visual_servo_node.py \
     /opt/autolabor/dual_host/current/lib/robot_bringup/fused_scan_mapper.py
   executables=(
     /opt/autolabor/dual_host/current/lib/autolabor_dual_lidar/optional_cloud_enhancer
@@ -64,6 +65,7 @@ chroot "$ROOTFS" /bin/bash -lc '
     fi
   done
   roslaunch --files autolabor_dual_host j6m_fastlio_navigation.launch >/dev/null
+  roslaunch --files autolabor_fod_control visual_recovery.launch >/dev/null
   rosmsg md5 livox_ros_driver2/CustomMsg
   rosmsg md5 autolabor_fod_msgs/FodDetectionArray
   rosmsg md5 autolabor_coverage/CoverageStatus

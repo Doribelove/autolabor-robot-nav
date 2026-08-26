@@ -348,6 +348,10 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
             self.assertIn(topic, health)
         self.assertIn("/nvidia_cmd_vel_watchdog/max_linear_speed", health)
         self.assertIn("/nvidia_cmd_vel_watchdog/max_angular_speed", health)
+        self.assertIn("/fod_visual_servo/expected_model_sha256", health)
+        self.assertIn("/fod_visual_servo/allowed_class_names", health)
+        self.assertIn("/fod_detector/expected_model_sha256", health)
+        self.assertIn("/fod_detector/required_class_names", health)
         self.assertIn("/move_base/TebLocalPlannerROS/max_vel_theta", health)
         self.assertIn("--allow-missing-data", health)
         self.assertIn("stack remains running", health)
@@ -363,6 +367,128 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
         self.assertIn("/autolabor_operator_gui/map_display_status", health)
         self.assertIn("'READY;'", health)
         self.assertIn("confirmed the 2-D map texture is loaded", health)
+
+    def test_fod_model_contract_is_shared_and_versioned_on_j6m(self):
+        def script_text(relative_path):
+            with open(
+                os.path.join(WORKSPACE_DIR, relative_path),
+                "r",
+                encoding="utf-8",
+            ) as stream:
+                return stream.read()
+
+        launch = self._launch_text("j6m_fastlio_navigation.launch")
+        stack = script_text(
+            "src/platform/autolabor_dual_host/scripts/j6m_stack.sh"
+        )
+        remote_start = script_text("deploy/j6m/start.sh")
+        managed_start = script_text("scripts/start_dual_host.sh")
+        deploy = script_text("scripts/deploy_j6m.sh")
+        config = script_text("config/dual_host.env.example")
+
+        self.assertIn('arg name="fod_model_sha256"', launch)
+        self.assertIn('arg name="fod_required_class_names"', launch)
+        self.assertIn(
+            'value="$(arg fod_model_sha256)"', launch
+        )
+        self.assertIn(
+            'value="$(arg fod_required_class_names)"', launch
+        )
+        for variable in (
+            "NVIDIA_FOD_MODEL_SHA256",
+            "NVIDIA_FOD_REQUIRED_CLASS_NAMES",
+        ):
+            self.assertIn(variable, config)
+            self.assertIn(variable, stack)
+            self.assertIn(variable, remote_start)
+        self.assertIn("dual_host_validate_fod_model_contract", managed_start)
+        self.assertIn("dual_host_validate_fod_weights", managed_start)
+        self.assertIn("sync_j6m_runtime_config", managed_start)
+        self.assertIn("verify_j6m_visual_model_contract_release", managed_start)
+        self.assertIn("requested_fod_motion_enabled", managed_start)
+        self.assertIn("./src/application/autolabor_fod_control", deploy)
+        self.assertIn(
+            "robot_bringup\\\\;autolabor_fod_control\\\\;autolabor_dual_lidar",
+            deploy,
+        )
+        self.assertIn("rospack find autolabor_fod_control", deploy)
+
+    def test_one_run_fod_motion_authorization_is_explicit_and_documented(self):
+        def script_text(relative_path):
+            with open(
+                os.path.join(WORKSPACE_DIR, relative_path),
+                "r",
+                encoding="utf-8",
+            ) as stream:
+                return stream.read()
+
+        managed_start = script_text("scripts/start_dual_host.sh")
+        load_config = script_text("scripts/load_config.sh")
+        remote_start = script_text("deploy/j6m/start.sh")
+        readme = script_text("README.md")
+
+        self.assertIn("--authorize-fod-motion", managed_start)
+        self.assertIn(
+            '--setenv="DUAL_HOST_FOD_MOTION_OVERRIDE=true"', managed_start
+        )
+        self.assertIn("DUAL_HOST_FOD_MOTION_OVERRIDE", load_config)
+        self.assertIn("requested_fod_motion_enabled", remote_start)
+        self.assertIn("requested_fod_motion_enabled", script_text("scripts/deploy_j6m.sh"))
+        self.assertIn(
+            'FOD_MOTION_ENABLED="$FOD_MOTION_ENABLED"', managed_start
+        )
+        self.assertIn(
+            "printf 'FOD_MOTION_ENABLED=%q\\n'", managed_start
+        )
+        self.assertIn(
+            "/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --start \\",
+            readme,
+        )
+        self.assertIn("--authorize-fod-motion </dev/null", readme)
+        self.assertIn(
+            "/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --stop </dev/null",
+            readme,
+        )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            config = os.path.join(temporary, "dual_host.env")
+            sys_class_net = os.path.join(temporary, "net")
+            os.makedirs(sys_class_net)
+            self._write_text(
+                config,
+                """J6M_IP=192.168.10.100
+NVIDIA_J6M_IP=192.168.10.50
+MOTION_ENABLED=true
+FOD_MOTION_ENABLED=false
+""",
+            )
+            command = r'''set -e
+DUAL_HOST_CONFIG="$1"
+DUAL_HOST_SYS_CLASS_NET_ROOT="$2"
+DUAL_HOST_FOD_MOTION_OVERRIDE=true
+export DUAL_HOST_CONFIG DUAL_HOST_SYS_CLASS_NET_ROOT
+export DUAL_HOST_FOD_MOTION_OVERRIDE
+source "$3"
+printf '%s\n' "$FOD_MOTION_ENABLED"
+'''
+            result = subprocess.run(
+                [
+                    "bash",
+                    "-c",
+                    command,
+                    "bash",
+                    config,
+                    sys_class_net,
+                    os.path.join(WORKSPACE_DIR, "scripts", "load_config.sh"),
+                ],
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual("true\n", result.stdout)
 
     def test_zed_usb_preflight_requires_superspeed(self):
         check = os.path.join(WORKSPACE_DIR, "scripts", "zed_camera_check.sh")

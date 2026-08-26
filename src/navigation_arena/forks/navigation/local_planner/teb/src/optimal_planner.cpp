@@ -680,7 +680,10 @@ void TebOptimalPlanner::AddEdgesDynamicObstacles(double weight_multiplier)
 
 void TebOptimalPlanner::AddEdgesViaPoints()
 {
-  if (cfg_->optim.weight_viapoint==0 || via_points_==NULL || via_points_->empty() )
+  const bool use_position_cost = cfg_->optim.weight_viapoint != 0;
+  const bool use_direction_cost = cfg_->optim.weight_viapoint_lateral != 0 ||
+                                  cfg_->optim.weight_viapoint_heading != 0;
+  if ((!use_position_cost && !use_direction_cost) || via_points_==NULL || via_points_->empty() )
     return; // if weight equals zero skip adding edges!
 
   int start_pose_idx = 0;
@@ -689,10 +692,10 @@ void TebOptimalPlanner::AddEdgesViaPoints()
   if (n<3) // we do not have any degrees of freedom for reaching via-points
     return;
   
-  for (ViaPointContainer::const_iterator vp_it = via_points_->begin(); vp_it != via_points_->end(); ++vp_it)
+  for (std::size_t vp_idx = 0; vp_idx < via_points_->size(); ++vp_idx)
   {
-    
-    int index = teb_.findClosestTrajectoryPose(*vp_it, NULL, start_pose_idx);
+    const Eigen::Vector2d& via_point = via_points_->at(vp_idx);
+    int index = teb_.findClosestTrajectoryPose(via_point, NULL, start_pose_idx);
     if (cfg_->trajectory.via_points_ordered)
       start_pose_idx = index+2; // skip a point to have a DOF inbetween for further via-points
      
@@ -712,14 +715,58 @@ void TebOptimalPlanner::AddEdgesViaPoints()
         continue; // skip via points really close or behind the current robot pose
       }
     }
-    Eigen::Matrix<double,1,1> information;
-    information.fill(cfg_->optim.weight_viapoint);
-    
-    EdgeViaPoint* edge_viapoint = new EdgeViaPoint;
-    edge_viapoint->setVertex(0,teb_.PoseVertex(index));
-    edge_viapoint->setInformation(information);
-    edge_viapoint->setParameters(*cfg_, &(*vp_it));
-    optimizer_->addEdge(edge_viapoint);   
+    if (use_position_cost)
+    {
+      Eigen::Matrix<double,1,1> information;
+      information.fill(cfg_->optim.weight_viapoint);
+
+      EdgeViaPoint* edge_viapoint = new EdgeViaPoint;
+      edge_viapoint->setVertex(0,teb_.PoseVertex(index));
+      edge_viapoint->setInformation(information);
+      edge_viapoint->setParameters(*cfg_, &via_point);
+      optimizer_->addEdge(edge_viapoint);
+    }
+
+    if (use_direction_cost)
+    {
+      Eigen::Vector2d tangent = Eigen::Vector2d::Zero();
+      bool tangent_valid = false;
+      for (std::size_t next = vp_idx + 1; next < via_points_->size(); ++next)
+      {
+        tangent = via_points_->at(next) - via_point;
+        if (tangent.squaredNorm() > 1e-12)
+        {
+          tangent_valid = true;
+          break;
+        }
+      }
+      if (!tangent_valid)
+      {
+        for (std::size_t previous = vp_idx; previous > 0; --previous)
+        {
+          tangent = via_point - via_points_->at(previous - 1);
+          if (tangent.squaredNorm() > 1e-12)
+          {
+            tangent_valid = true;
+            break;
+          }
+        }
+      }
+
+      if (tangent_valid)
+      {
+        Eigen::Matrix<double,2,2> information = Eigen::Matrix<double,2,2>::Zero();
+        information(0,0) = cfg_->optim.weight_viapoint_lateral;
+        information(1,1) = cfg_->optim.weight_viapoint_heading;
+
+        EdgeViaPointDirection* edge_direction = new EdgeViaPointDirection;
+        edge_direction->setVertex(0, teb_.PoseVertex(index));
+        edge_direction->setInformation(information);
+        edge_direction->setParameters(
+            *cfg_, via_point, std::atan2(tangent.y(), tangent.x()));
+        optimizer_->addEdge(edge_direction);
+      }
+    }
   }
 }
 
@@ -1086,7 +1133,8 @@ void TebOptimalPlanner::computeCurrentCost(double obst_cost_scale, double viapoi
     {
       cur_cost *= obst_cost_scale;
     }
-    else if (dynamic_cast<EdgeViaPoint*>(*it) != nullptr)
+    else if (dynamic_cast<EdgeViaPoint*>(*it) != nullptr ||
+             dynamic_cast<EdgeViaPointDirection*>(*it) != nullptr)
     {
       cur_cost *= viapoint_cost_scale;
     }

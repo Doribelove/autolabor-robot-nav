@@ -214,7 +214,10 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             COVERAGE_MANAGER.Point(-1.0, 0.0), 0.0
         )
         configured_reverse_speeds = []
-        manager._set_teb = lambda speed: configured_reverse_speeds.append(speed) or True
+        manager._set_teb = (
+            lambda speed, straight_tracking=False:
+            configured_reverse_speeds.append((speed, straight_tracking)) or True
+        )
         handoffs = []
         manager._set_enforced_path = (
             lambda path, coverage_active=True:
@@ -240,7 +243,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         ):
             result = manager._execute_segment(transit, 0)
         self.assertEqual("succeeded", result)
-        self.assertEqual([0.3], configured_reverse_speeds)
+        self.assertEqual([(0.3, False)], configured_reverse_speeds)
         self.assertEqual(1, len(handoffs))
         enforced, coverage_active = handoffs[0]
         self.assertTrue(coverage_active)
@@ -266,7 +269,10 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         manager.enforced_path_pub = _Publisher()
         manager._wait_while_paused = lambda: True
         configured_reverse_speeds = []
-        manager._set_teb = lambda speed: configured_reverse_speeds.append(speed) or True
+        manager._set_teb = (
+            lambda speed, straight_tracking=False:
+            configured_reverse_speeds.append((speed, straight_tracking)) or True
+        )
         handoffs = []
         manager._set_enforced_path = (
             lambda path, coverage_active=True:
@@ -299,11 +305,79 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         ):
             result = manager._execute_segment(sweep, 1)
         self.assertEqual("succeeded", result)
-        self.assertEqual([0.0], configured_reverse_speeds)
+        self.assertEqual([(0.0, True)], configured_reverse_speeds)
         enforced, coverage_active = handoffs[0]
         self.assertTrue(coverage_active)
         self.assertTrue(enforced.active)
         self.assertEqual(2, len(enforced.path.poses))
+
+    def test_sweep_teb_profile_is_strict_and_transit_restores_baseline(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.original_teb = None
+        manager.task_max_speed = 0.8
+        manager.sweep_viapoint_separation = 0.3
+        manager.sweep_weight_viapoint = 50.0
+        manager.sweep_weight_viapoint_lateral = 200.0
+        manager.sweep_weight_viapoint_heading = 100.0
+        manager.sweep_weight_kinematics_forward_drive = 1000.0
+        manager.sweep_selection_viapoint_cost_scale = 5.0
+        manager.sweep_viapoints_all_candidates = True
+        baseline = {
+            "max_vel_x": 0.8,
+            "max_vel_x_backwards": 0.3,
+            "allow_init_with_backwards_motion": False,
+            "xy_goal_tolerance": 0.5,
+            "yaw_goal_tolerance": 0.3,
+            "global_plan_viapoint_sep": 0.8,
+            "weight_viapoint": 8.0,
+            "weight_viapoint_lateral": 0.0,
+            "weight_viapoint_heading": 0.0,
+            "weight_kinematics_forward_drive": 100.0,
+            "selection_viapoint_cost_scale": 1.0,
+            "viapoints_all_candidates": False,
+        }
+
+        client = mock.Mock()
+        client.get_configuration.return_value = dict(baseline)
+        updates = []
+        client.update_configuration.side_effect = (
+            lambda configuration: updates.append(dict(configuration))
+        )
+        with mock.patch(
+            "dynamic_reconfigure.client.Client", return_value=client
+        ):
+            self.assertTrue(manager._set_teb(0.0, straight_tracking=True))
+            sweep = updates[-1]
+            self.assertEqual(0.0, sweep["max_vel_x_backwards"])
+            self.assertFalse(sweep["allow_init_with_backwards_motion"])
+            self.assertEqual(0.3, sweep["global_plan_viapoint_sep"])
+            self.assertEqual(50.0, sweep["weight_viapoint"])
+            self.assertEqual(200.0, sweep["weight_viapoint_lateral"])
+            self.assertEqual(100.0, sweep["weight_viapoint_heading"])
+            self.assertEqual(1000.0, sweep["weight_kinematics_forward_drive"])
+            self.assertEqual(5.0, sweep["selection_viapoint_cost_scale"])
+            self.assertTrue(sweep["viapoints_all_candidates"])
+
+            self.assertTrue(manager._set_teb(0.3, straight_tracking=False))
+            transit = updates[-1]
+            self.assertEqual(0.3, transit["max_vel_x_backwards"])
+            self.assertTrue(transit["allow_init_with_backwards_motion"])
+            for key in (
+                "global_plan_viapoint_sep",
+                "weight_viapoint",
+                "weight_viapoint_lateral",
+                "weight_viapoint_heading",
+                "weight_kinematics_forward_drive",
+                "selection_viapoint_cost_scale",
+                "viapoints_all_candidates",
+            ):
+                self.assertEqual(baseline[key], transit[key])
+
+            self.assertTrue(manager._restore_teb())
+            self.assertEqual(baseline, updates[-1])
+            self.assertIsNone(manager.original_teb)
 
     def test_start_replan_and_external_checks_do_not_hold_callback_lock(self):
         source = textwrap.dedent(inspect.getsource(

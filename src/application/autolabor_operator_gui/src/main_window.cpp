@@ -1,5 +1,6 @@
 #include <autolabor_operator_gui/main_window.h>
 
+#include <dynamic_reconfigure/DoubleParameter.h>
 #include <dynamic_reconfigure/Reconfigure.h>
 #include <autolabor_coverage/PlanCoverage.h>
 #include <autolabor_coverage/StartCoverage.h>
@@ -74,6 +75,7 @@ constexpr double kFastLioStationaryWindowSeconds = 5.0;
 constexpr double kMapDisplayRefreshIntervalSeconds = 1.0;
 constexpr unsigned int kMapDisplayMaxRefreshAttempts = 5;
 const char* const kStaticMapDisplayName = "Static global map";
+const char* const kGlobalCostmapDisplayName = "Global costmap";
 const char* const kPriorMapDisplayName = "Known 3D global map (optional)";
 const char* const kTebGlobalPlanDisplayName = "TEB global plan";
 const char* const kTebLocalPlanDisplayName = "TEB local plan";
@@ -120,6 +122,8 @@ const char* const kImageQualityControlService =
     "/fod_image_quality_controller/set_enabled";
 const char* const kFodModeService =
     "/fod_navigation_mode/set_fod_enabled";
+const char* const kVisualServoReconfigureService =
+    "/fod_visual_servo/set_parameters";
 
 struct ModeStatusView
 {
@@ -130,6 +134,21 @@ struct ModeStatusView
   QString visual_state;
   QString reason;
   QString command_source;
+};
+
+struct VisualStatusView
+{
+  bool valid = false;
+  bool active = false;
+  QString state;
+  double min_confidence = std::numeric_limits<double>::quiet_NaN();
+};
+
+struct VisualConfidenceResult
+{
+  bool success = false;
+  QString message;
+  double effective = std::numeric_limits<double>::quiet_NaN();
 };
 
 bool configBool(const dynamic_reconfigure::Config& config, const std::string& name,
@@ -150,6 +169,20 @@ bool configInt(const dynamic_reconfigure::Config& config, const std::string& nam
                int* value)
 {
   for (const auto& parameter : config.ints)
+  {
+    if (parameter.name == name)
+    {
+      *value = parameter.value;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool configDouble(const dynamic_reconfigure::Config& config, const std::string& name,
+                  double* value)
+{
+  for (const auto& parameter : config.doubles)
   {
     if (parameter.name == name)
     {
@@ -264,6 +297,24 @@ ModeStatusView parseModeStatus(const std::string& json)
   result.visual_state = object.value(QStringLiteral("visual_state")).toString();
   result.reason = object.value(QStringLiteral("reason")).toString();
   result.command_source = object.value(QStringLiteral("command_source")).toString();
+  return result;
+}
+
+VisualStatusView parseVisualStatus(const std::string& json)
+{
+  VisualStatusView result;
+  QJsonParseError error;
+  const QJsonDocument document =
+      QJsonDocument::fromJson(QByteArray::fromStdString(json), &error);
+  if (error.error != QJsonParseError::NoError || !document.isObject())
+    return result;
+  const QJsonObject object = document.object();
+  result.valid = true;
+  result.active = object.value(QStringLiteral("active")).toBool(false);
+  result.state = object.value(QStringLiteral("state")).toString();
+  result.min_confidence =
+      object.value(QStringLiteral("min_confidence")).toDouble(
+          std::numeric_limits<double>::quiet_NaN());
   return result;
 }
 
@@ -429,6 +480,14 @@ void MainWindow::buildUi()
     QWidget#coverageControls QLabel.metricValue { color: #111827; }
     QWidget#coverageControls QDoubleSpinBox { background: #ffffff; color: #111827; border-color: #94a3b8; }
     QWidget#coverageControls QDoubleSpinBox:disabled { background: #e5e7eb; color: #6b7280; }
+    QScrollArea#visionSide, QWidget#visionControls { background: #f4f6f8; }
+    QWidget#visionControls QGroupBox { background: #ffffff; color: #111827; border-color: #cbd5e1; }
+    QWidget#visionControls QGroupBox::title { color: #111827; }
+    QWidget#visionControls QLabel, QWidget#visionControls QCheckBox { color: #111827; }
+    QWidget#visionControls QLabel.metricName { color: #374151; }
+    QWidget#visionControls QLabel.metricValue { color: #111827; }
+    QWidget#visionControls QDoubleSpinBox { background: #ffffff; color: #111827; border-color: #94a3b8; }
+    QWidget#visionControls QDoubleSpinBox:disabled { background: #e5e7eb; color: #6b7280; }
     QToolBar { background: #f5f5f5; color: #111827; border: 0; }
     QToolBar QToolButton { background: transparent; color: #111827; border: 1px solid transparent; }
     QToolBar QToolButton:hover { background: #dce5ee; border-color: #aab8c5; }
@@ -443,7 +502,7 @@ void MainWindow::buildUi()
     QMessageBox QPushButton:disabled { background: #e5e7eb; color: #6b7280; border-color: #cbd5e1; }
     QFrame#globalMapControls { background: #17212e; border: 1px solid #334154; border-radius: 6px; }
     QLabel#globalMapInstruction { color: #dce5f0; font-size: 11pt; }
-    QPushButton#mapViewButton, QPushButton#initialPoseButton, QPushButton#threeDMapButton { min-height: 36px; font-size: 11pt; padding: 2px 12px; }
+    QPushButton#mapViewButton, QPushButton#initialPoseButton, QPushButton#threeDMapButton, QPushButton#globalCostmapButton { min-height: 36px; font-size: 11pt; padding: 2px 12px; }
     QPushButton#initialPoseButton { background: #287a5a; border-color: #36a876; }
     QPushButton#initialPoseButton:hover { background: #31936c; }
     QPushButton#threeDMapButton { background: #68458d; border-color: #9567bf; }
@@ -628,6 +687,15 @@ QWidget* MainWindow::buildOverviewPage()
   rviz_3d_map_button_->setEnabled(false);
   rviz_3d_map_button_->setToolTip(
       QStringLiteral("显示启动时锁存的已知三维 PCD；它是静态先验，不是实时局部点云"));
+  rviz_global_costmap_button_ =
+      new QPushButton(QStringLiteral("⑤ 隐藏全局代价图"), rviz_map_controls_);
+  rviz_global_costmap_button_->setObjectName(QStringLiteral("globalCostmapButton"));
+  rviz_global_costmap_button_->setCheckable(true);
+  rviz_global_costmap_button_->setChecked(true);
+  rviz_global_costmap_button_->setEnabled(false);
+  rviz_global_costmap_button_->setToolTip(
+      QStringLiteral("显示或隐藏 /move_base/global_costmap/costmap；"
+                     "局部代价图仍以前景高透明度显示"));
   connect(rviz_fit_map_button_, &QPushButton::clicked, this,
           &MainWindow::fitOverviewMapView);
   connect(rviz_initial_pose_button_, &QPushButton::clicked, this,
@@ -636,11 +704,14 @@ QWidget* MainWindow::buildOverviewPage()
           &MainWindow::followOverviewVehicle);
   connect(rviz_3d_map_button_, &QPushButton::clicked, this,
           &MainWindow::toggleOverview3dMap);
+  connect(rviz_global_costmap_button_, &QPushButton::clicked, this,
+          &MainWindow::toggleGlobalCostmap);
   map_controls_layout->addWidget(rviz_map_instruction_, 1);
   map_controls_layout->addWidget(rviz_fit_map_button_);
   map_controls_layout->addWidget(rviz_initial_pose_button_);
   map_controls_layout->addWidget(rviz_follow_vehicle_button_);
   map_controls_layout->addWidget(rviz_3d_map_button_);
+  map_controls_layout->addWidget(rviz_global_costmap_button_);
   rviz_map_controls_->setVisible(false);
   rviz_layout_->addWidget(rviz_map_controls_);
 
@@ -691,13 +762,20 @@ QWidget* MainWindow::buildOverviewPage()
   camera_layout->addWidget(open_vision);
   side_layout->addWidget(camera);
 
-  auto* vehicle = new QGroupBox(QStringLiteral("FAST-LIO 局部定位"), side_content);
+  auto* vehicle = new QGroupBox(QStringLiteral("FAST-LIO / map 全局定位"), side_content);
   auto* vehicle_layout = new QVBoxLayout(vehicle);
   vehicle_layout->addWidget(
       createMetricRow(QStringLiteral("健康度"), &values_["overview_fastlio_health"]));
   vehicle_layout->addWidget(createMetricRow(QStringLiteral("局部坐标"), &values_["overview_xy"]));
   vehicle_layout->addWidget(createMetricRow(QStringLiteral("局部 yaw"), &values_["overview_yaw"],
                                             QStringLiteral("°")));
+  vehicle_layout->addWidget(createMetricRow(QStringLiteral("map 全局坐标"),
+                                            &values_["overview_map_xy"]));
+  vehicle_layout->addWidget(createMetricRow(QStringLiteral("map 全局 yaw"),
+                                            &values_["overview_map_yaw"],
+                                            QStringLiteral("°")));
+  vehicle_layout->addWidget(createMetricRow(QStringLiteral("全局代价图"),
+                                            &values_["overview_global_costmap"]));
   vehicle_layout->addWidget(createMetricRow(QStringLiteral("速度"), &values_["overview_speed"],
                                             QStringLiteral("m/s")));
   side_layout->addWidget(vehicle);
@@ -1025,11 +1103,13 @@ QWidget* MainWindow::buildVisionPage()
   splitter->addWidget(image_panel);
 
   auto* controls_scroll = new QScrollArea(splitter);
+  controls_scroll->setObjectName(QStringLiteral("visionSide"));
   controls_scroll->setWidgetResizable(true);
   controls_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   controls_scroll->setMinimumWidth(430);
   controls_scroll->setMaximumWidth(580);
   auto* controls = new QWidget(controls_scroll);
+  controls->setObjectName(QStringLiteral("visionControls"));
   auto* controls_layout = new QVBoxLayout(controls);
   controls_layout->setContentsMargins(8, 0, 8, 8);
   controls_layout->setSpacing(14);
@@ -1130,6 +1210,36 @@ QWidget* MainWindow::buildVisionPage()
       createMetricRow(QStringLiteral("视觉控制器"), &values_["vision_servo_state"]));
   mode_layout->addWidget(
       createMetricRow(QStringLiteral("状态原因"), &values_["vision_mode_reason"]));
+  mode_layout->addWidget(
+      createMetricRow(QStringLiteral("当前目标锁定阈值"),
+                      &values_["vision_lock_confidence"]));
+  auto* confidence_row = new QWidget(mode);
+  auto* confidence_layout = new QHBoxLayout(confidence_row);
+  confidence_layout->setContentsMargins(0, 0, 0, 0);
+  confidence_layout->setSpacing(8);
+  auto* confidence_label =
+      new QLabel(QStringLiteral("目标锁定置信度"), confidence_row);
+  visual_lock_confidence_input_ =
+      new ScrollSafeDoubleSpinBox(confidence_row);
+  visual_lock_confidence_input_->setDecimals(2);
+  visual_lock_confidence_input_->setRange(0.25, 0.95);
+  visual_lock_confidence_input_->setSingleStep(0.01);
+  visual_lock_confidence_input_->setValue(0.30);
+  visual_lock_confidence_input_->setKeyboardTracking(false);
+  visual_lock_confidence_input_->setToolTip(
+      QStringLiteral("只影响视觉控制器是否锁定已发布目标；检测器低于 0.25 的目标不会发布"));
+  visual_lock_confidence_apply_button_ =
+      new QPushButton(QStringLiteral("应用阈值"), confidence_row);
+  visual_lock_confidence_apply_button_->setToolTip(
+      QStringLiteral("仅在视觉控制器停车时允许修改；重启后恢复配置文件默认值"));
+  visual_lock_confidence_input_->setEnabled(false);
+  visual_lock_confidence_apply_button_->setEnabled(false);
+  connect(visual_lock_confidence_apply_button_, &QPushButton::clicked, this,
+          &MainWindow::applyVisualLockConfidence);
+  confidence_layout->addWidget(confidence_label);
+  confidence_layout->addWidget(visual_lock_confidence_input_, 1);
+  confidence_layout->addWidget(visual_lock_confidence_apply_button_);
+  mode_layout->addWidget(confidence_row);
   fod_start_button_ = new QPushButton(QStringLiteral("立即单独启动"), mode);
   fod_start_button_->setObjectName(QStringLiteral("visionButton"));
   fod_start_button_->setMinimumHeight(58);
@@ -1598,6 +1708,9 @@ void MainWindow::setupRosInterfaces()
   diagnostics_subscriber_ =
       node_->subscribe("/diagnostics", 30, &MainWindow::diagnosticsCallback, this);
   map_subscriber_ = node_->subscribe("/map", 1, &MainWindow::mapCallback, this);
+  global_costmap_subscriber_ = node_->subscribe(
+      "/move_base/global_costmap/costmap", 1,
+      &MainWindow::globalCostmapCallback, this);
   coverage_point_subscriber_ = node_->subscribe(
       "/coverage/clicked_point", 20, &MainWindow::coveragePointCallback, this);
   coverage_status_subscriber_ = node_->subscribe(
@@ -2377,6 +2490,40 @@ void MainWindow::toggleRvizPanels()
                                       : QStringLiteral("显示 RViz 调试面板"));
 }
 
+bool MainWindow::setGlobalCostmapDisplayEnabled(bool enabled)
+{
+  if (!static_map_mode_ || !rviz_initialized_ || !rviz_frame_ ||
+      !rviz_frame_->getManager())
+    return false;
+  rviz::VisualizationManager* manager = rviz_frame_->getManager();
+  rviz::Display* display = findDisplayByName(
+      manager->getRootDisplayGroup(),
+      QString::fromLatin1(kGlobalCostmapDisplayName));
+  if (!display)
+    return false;
+  display->setEnabled(enabled);
+  manager->queueRender();
+  return display->isEnabled() == enabled;
+}
+
+void MainWindow::toggleGlobalCostmap()
+{
+  if (!rviz_global_costmap_button_)
+    return;
+  const bool requested = rviz_global_costmap_button_->isChecked();
+  if (!setGlobalCostmapDisplayEnabled(requested))
+  {
+    rviz_global_costmap_button_->setChecked(!requested);
+    appendEvent(QStringLiteral("全局代价图显示层不可用，请检查 RViz 配置。"), true);
+    return;
+  }
+  rviz_global_costmap_button_->setText(
+      requested ? QStringLiteral("⑤ 隐藏全局代价图")
+                : QStringLiteral("⑤ 显示全局代价图"));
+  appendEvent(requested ? QStringLiteral("已显示全局代价图。")
+                        : QStringLiteral("已隐藏全局代价图；局部代价图保持显示。"));
+}
+
 void MainWindow::setupCoverageRviz()
 {
   if (!coverage_rviz_layout_)
@@ -2418,6 +2565,7 @@ void MainWindow::shutdownRosInterfaces()
   visual_status_subscriber_.shutdown();
   diagnostics_subscriber_.shutdown();
   map_subscriber_.shutdown();
+  global_costmap_subscriber_.shutdown();
   coverage_point_subscriber_.shutdown();
   coverage_status_subscriber_.shutdown();
   relative_goal_publisher_.shutdown();
@@ -2432,6 +2580,7 @@ void MainWindow::shutdownRosInterfaces()
   {
     std::lock_guard<std::mutex> lock(snapshot_mutex_);
     telemetry_.map_received = false;
+    telemetry_.global_costmap_received = false;
     telemetry_.coverage_status_received = false;
   }
   tf_listener_.reset();
@@ -2621,6 +2770,24 @@ void MainWindow::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
   telemetry_.map_origin_x = msg->info.origin.position.x;
   telemetry_.map_origin_y = msg->info.origin.position.y;
   telemetry_.map_origin_yaw = yawFromQuaternion(msg->info.origin.orientation);
+}
+
+void MainWindow::globalCostmapCallback(
+    const nav_msgs::OccupancyGrid::ConstPtr& msg)
+{
+  if (msg->header.frame_id != "map" || msg->info.width == 0 ||
+      msg->info.height == 0 || !std::isfinite(msg->info.resolution) ||
+      msg->info.resolution <= 0.0 ||
+      msg->data.size() !=
+          static_cast<std::size_t>(msg->info.width) * msg->info.height)
+    return;
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  telemetry_.global_costmap_received = true;
+  telemetry_.global_costmap_received_at = ros::WallTime::now();
+  ++telemetry_.global_costmap_message_count;
+  telemetry_.global_costmap_width = msg->info.width;
+  telemetry_.global_costmap_height = msg->info.height;
+  telemetry_.global_costmap_resolution = msg->info.resolution;
 }
 
 void MainWindow::coveragePointCallback(
@@ -3085,12 +3252,17 @@ void MainWindow::refreshUi()
   const FastLioHealthResult fastlio = evaluateFastLioHealth(data);
   const ModeStatusView mode_status =
       data.mode_status_received ? parseModeStatus(data.mode_status) : ModeStatusView();
+  const VisualStatusView visual_status =
+      data.visual_status_received ? parseVisualStatus(data.visual_status)
+                                  : VisualStatusView();
   const QString mode_state = mode_status.valid && !mode_status.state.isEmpty()
                                  ? mode_status.state
                                  : QString::fromStdString(data.mode_state);
   const double mode_age = data.mode_status_received
                               ? wallAge(data.mode_status_received_at)
                               : wallAge(data.mode_state_received_at);
+  const bool coverage_status_fresh = data.coverage_status_received &&
+                                     wallAge(data.coverage_status_received_at) <= 2.0;
   const bool embedded_map_ready = ensureStaticMapDisplayReady(data);
   const bool overview_map_ready = static_map_mode_ && rviz_initialized_ &&
                                   data.map_received && data.map_message_count > 0 &&
@@ -3100,14 +3272,33 @@ void MainWindow::refreshUi()
   if (rviz_initial_pose_button_)
     rviz_initial_pose_button_->setEnabled(overview_map_ready);
   const bool vehicle_view_ready =
-      overview_map_ready && data.coverage_status_received &&
-      wallAge(data.coverage_status_received_at) <= 2.0 &&
+      overview_map_ready && coverage_status_fresh &&
       data.coverage_status.localized &&
       tf_buffer_.canTransform("map", "base_link", ros::Time(0));
   if (rviz_follow_vehicle_button_)
     rviz_follow_vehicle_button_->setEnabled(vehicle_view_ready);
   if (rviz_3d_map_button_)
     rviz_3d_map_button_->setEnabled(overview_map_ready);
+  bool global_costmap_display_available = false;
+  bool global_costmap_display_enabled = false;
+  if (rviz_initialized_ && rviz_frame_ && rviz_frame_->getManager())
+  {
+    rviz::Display* display = findDisplayByName(
+        rviz_frame_->getManager()->getRootDisplayGroup(),
+        QString::fromLatin1(kGlobalCostmapDisplayName));
+    global_costmap_display_available = display != nullptr;
+    global_costmap_display_enabled = display && display->isEnabled();
+  }
+  if (rviz_global_costmap_button_)
+  {
+    rviz_global_costmap_button_->setEnabled(
+        static_map_mode_ && global_costmap_display_available);
+    rviz_global_costmap_button_->setChecked(global_costmap_display_enabled);
+    rviz_global_costmap_button_->setText(
+        global_costmap_display_enabled
+            ? QStringLiteral("⑤ 隐藏全局代价图")
+            : QStringLiteral("⑤ 显示全局代价图"));
+  }
   if (rviz_follow_after_initial_pose_ && vehicle_view_ready &&
       rviz_attached_tab_index_ == overview_tab_index_ &&
       setRvizFollowVehicleView(data))
@@ -3273,6 +3464,66 @@ void MainWindow::refreshUi()
       QStringLiteral("font-size:20pt;font-weight:750;color:%1;")
           .arg(statusColor(fastlio.health)));
   values_["overview_fastlio_summary"]->setText(fastlio.summary);
+
+  QString map_xy = QStringLiteral("仅带地图模式显示");
+  QString map_yaw = QStringLiteral("--");
+  if (static_map_mode_)
+  {
+    if (!data.map_received)
+      map_xy = QStringLiteral("等待 /map");
+    else if (!coverage_status_fresh)
+      map_xy = QStringLiteral("等待全局定位状态");
+    else if (!data.coverage_status.localized)
+      map_xy = QStringLiteral("尚未完成全局定位");
+    else if (!tf_buffer_.canTransform("map", "base_link", ros::Time(0)))
+      map_xy = QStringLiteral("等待 map → base_link");
+    else
+    {
+      try
+      {
+        const geometry_msgs::TransformStamped transform =
+            tf_buffer_.lookupTransform("map", "base_link", ros::Time(0));
+        map_xy = QStringLiteral("%1, %2 m")
+                     .arg(transform.transform.translation.x, 0, 'f', 2)
+                     .arg(transform.transform.translation.y, 0, 'f', 2);
+        map_yaw = numberOrDash(
+            yawFromQuaternion(transform.transform.rotation) * 180.0 / kPi, 1);
+      }
+      catch (...)
+      {
+        map_xy = QStringLiteral("map → base_link 查询失败");
+      }
+    }
+  }
+  values_["overview_map_xy"]->setText(map_xy);
+  values_["overview_map_yaw"]->setText(map_yaw);
+
+  QString global_costmap_state;
+  if (!static_map_mode_)
+    global_costmap_state = QStringLiteral("仅带地图模式显示");
+  else if (!global_costmap_display_available)
+    global_costmap_state = QStringLiteral("RViz 显示层缺失");
+  else if (!data.global_costmap_received)
+    global_costmap_state = global_costmap_display_enabled
+                               ? QStringLiteral("显示层已启用 · 等待 topic")
+                               : QStringLiteral("显示层已隐藏 · 等待 topic");
+  else
+  {
+    const double costmap_age = wallAge(data.global_costmap_received_at);
+    const QString visibility = global_costmap_display_enabled
+                                   ? QStringLiteral("显示中")
+                                   : QStringLiteral("已隐藏");
+    global_costmap_state =
+        QStringLiteral("%1 · %2×%3 @ %4 m · %5")
+            .arg(visibility)
+            .arg(data.global_costmap_width)
+            .arg(data.global_costmap_height)
+            .arg(data.global_costmap_resolution, 0, 'f', 2)
+            .arg(costmap_age <= 3.0 ? ageText(costmap_age)
+                                    : QStringLiteral("数据超时 ") + ageText(costmap_age));
+  }
+  values_["overview_global_costmap"]->setText(global_costmap_state);
+
   if (data.odom_received)
   {
     values_["overview_xy"]->setText(
@@ -3424,7 +3675,9 @@ void MainWindow::refreshUi()
 
   const QString visual_state = !mode_status.visual_state.isEmpty()
                                    ? mode_status.visual_state
-                                   : QString::fromStdString(data.visual_state);
+                                   : (!visual_status.state.isEmpty()
+                                          ? visual_status.state
+                                          : QString::fromStdString(data.visual_state));
   values_["vision_mode_state"]->setText(mode_name);
   values_["vision_navigation_paused"]->setText(
       navigation_paused ? QStringLiteral("已休眠（最终目标保留）")
@@ -3433,6 +3686,38 @@ void MainWindow::refreshUi()
       visual_state.isEmpty() ? QStringLiteral("--") : visual_state);
   values_["vision_mode_reason"]->setText(
       mode_status.reason.isEmpty() ? QStringLiteral("--") : mode_status.reason);
+
+  const bool visual_status_fresh =
+      visual_status.valid && data.visual_status_received &&
+      wallAge(data.visual_status_received_at) <= kFreshModeSeconds;
+  const bool visual_confidence_adjustable =
+      visual_status_fresh && !visual_status.active &&
+      (visual_status.state == QStringLiteral("DISABLED") ||
+       visual_status.state == QStringLiteral("COMPLETE") ||
+       visual_status.state == QStringLiteral("ABORT"));
+  if (visual_status_fresh && std::isfinite(visual_status.min_confidence))
+  {
+    values_["vision_lock_confidence"]->setText(
+        QStringLiteral("%1（%2%）")
+            .arg(visual_status.min_confidence, 0, 'f', 2)
+            .arg(visual_status.min_confidence * 100.0, 0, 'f', 0));
+    if (visual_lock_confidence_input_ &&
+        !visual_lock_confidence_input_->hasFocus() &&
+        !visual_lock_confidence_request_pending_)
+      visual_lock_confidence_input_->setValue(visual_status.min_confidence);
+  }
+  else
+  {
+    values_["vision_lock_confidence"]->setText(QStringLiteral("--"));
+  }
+  const bool visual_confidence_controls_enabled =
+      master_online_ && ros_interfaces_ready_ && visual_confidence_adjustable &&
+      !visual_lock_confidence_request_pending_;
+  if (visual_lock_confidence_input_)
+    visual_lock_confidence_input_->setEnabled(visual_confidence_controls_enabled);
+  if (visual_lock_confidence_apply_button_)
+    visual_lock_confidence_apply_button_->setEnabled(
+        visual_confidence_controls_enabled);
 
   const DiagnosticSnapshot& quality = data.image_quality_diagnostic;
   const double quality_age = wallAge(quality.received_at);
@@ -3621,8 +3906,6 @@ void MainWindow::refreshUi()
   const bool coverage_map_ready = master_online_ && ros_interfaces_ready_ &&
                                   static_map_mode_ && data.map_received &&
                                   embedded_map_ready;
-  const bool coverage_status_fresh = data.coverage_status_received &&
-                                     wallAge(data.coverage_status_received_at) <= 2.0;
   const autolabor_coverage::CoverageStatus& coverage = data.coverage_status;
   const bool coverage_active = data.coverage_status_received && coverage.active;
   if (coverage_active)
@@ -4560,6 +4843,109 @@ void MainWindow::requestFodMode(bool enabled)
       return QStringLiteral("ERR|安全模式仲裁服务调用失败");
     return QString(call.response.success ? QStringLiteral("OK|") : QStringLiteral("ERR|")) +
            QString::fromStdString(call.response.message);
+  }));
+}
+
+void MainWindow::applyVisualLockConfidence()
+{
+  if (!master_online_ || !ros_interfaces_ready_ ||
+      visual_lock_confidence_request_pending_)
+  {
+    if (!master_online_ || !ros_interfaces_ready_)
+      QMessageBox::information(this, QStringLiteral("视觉控制服务不可用"),
+                               QStringLiteral("ROS master 当前离线。"));
+    return;
+  }
+
+  const TelemetrySnapshot data = snapshot();
+  const VisualStatusView visual_status =
+      data.visual_status_received ? parseVisualStatus(data.visual_status)
+                                  : VisualStatusView();
+  const bool status_fresh =
+      visual_status.valid && data.visual_status_received &&
+      wallAge(data.visual_status_received_at) <= kFreshModeSeconds;
+  const bool stopped =
+      status_fresh && !visual_status.active &&
+      (visual_status.state == QStringLiteral("DISABLED") ||
+       visual_status.state == QStringLiteral("COMPLETE") ||
+       visual_status.state == QStringLiteral("ABORT"));
+  if (!stopped)
+  {
+    QMessageBox::warning(
+        this, QStringLiteral("不能修改目标锁定阈值"),
+        QStringLiteral("仅允许在视觉控制器处于 DISABLED、COMPLETE 或 "
+                       "ABORT 停车状态时修改。请先退出视觉行驶模式，"
+                       "并等待状态刷新。"));
+    return;
+  }
+
+  const double requested = visual_lock_confidence_input_->value();
+  visual_lock_confidence_request_pending_ = true;
+  visual_lock_confidence_input_->setEnabled(false);
+  visual_lock_confidence_apply_button_->setEnabled(false);
+
+  auto* watcher = new QFutureWatcher<VisualConfidenceResult>(this);
+  connect(watcher, &QFutureWatcher<VisualConfidenceResult>::finished, this,
+          [this, watcher]() {
+            const VisualConfidenceResult result = watcher->result();
+            visual_lock_confidence_request_pending_ = false;
+            if (result.success)
+            {
+              visual_lock_confidence_input_->setValue(result.effective);
+              appendEvent(
+                  QStringLiteral("目标锁定阈值已设为 %1（%2%）；重启后恢复配置默认值。")
+                      .arg(result.effective, 0, 'f', 2)
+                      .arg(result.effective * 100.0, 0, 'f', 0));
+            }
+            else
+            {
+              appendEvent(QStringLiteral("修改目标锁定阈值：") + result.message,
+                          true);
+              QMessageBox::warning(this, QStringLiteral("目标锁定阈值未修改"),
+                                   result.message);
+            }
+            watcher->deleteLater();
+          });
+  watcher->setFuture(QtConcurrent::run([requested]() {
+    VisualConfidenceResult result;
+    ros::NodeHandle node;
+    ros::ServiceClient client =
+        node.serviceClient<dynamic_reconfigure::Reconfigure>(
+            kVisualServoReconfigureService, false);
+    if (!client.waitForExistence(ros::Duration(1.0)))
+    {
+      result.message = QStringLiteral("视觉控制动态参数服务未启动：%1")
+                           .arg(QString::fromLatin1(
+                               kVisualServoReconfigureService));
+      return result;
+    }
+
+    dynamic_reconfigure::Reconfigure call;
+    dynamic_reconfigure::DoubleParameter parameter;
+    parameter.name = "min_confidence";
+    parameter.value = requested;
+    call.request.config.doubles.push_back(parameter);
+    if (!client.call(call))
+    {
+      result.message = QStringLiteral("视觉控制动态参数服务调用失败");
+      return result;
+    }
+    if (!configDouble(call.response.config, "min_confidence", &result.effective) ||
+        !std::isfinite(result.effective))
+    {
+      result.message = QStringLiteral("视觉控制器未返回有效的目标锁定阈值");
+      return result;
+    }
+    if (std::abs(result.effective - requested) > 0.0005)
+    {
+      result.message =
+          QStringLiteral("控制器保留了原阈值 %1；可能已离开允许修改的停车状态。")
+              .arg(result.effective, 0, 'f', 2);
+      return result;
+    }
+    result.success = true;
+    result.message = QStringLiteral("已应用并回读目标锁定阈值");
+    return result;
   }));
 }
 

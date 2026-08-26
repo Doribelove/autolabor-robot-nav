@@ -17,6 +17,7 @@ requested_static_map_enabled="${STATIC_MAP_ENABLED:-}"
 requested_static_map_file="${STATIC_MAP_FILE:-}"
 requested_fast_lio_map_file="${FAST_LIO_MAP_FILE:-}"
 requested_fast_lio_initial_body_z="${FAST_LIO_INITIAL_BODY_Z:-}"
+requested_fod_motion_enabled="${FOD_MOTION_ENABLED:-}"
 set -a
 source "$ENV_FILE"
 set +a
@@ -32,6 +33,9 @@ STATIC_MAP_ENABLED="${requested_static_map_enabled:-false}"
 STATIC_MAP_FILE="${requested_static_map_file:-}"
 FAST_LIO_MAP_FILE="${requested_fast_lio_map_file:-}"
 FAST_LIO_INITIAL_BODY_Z="${requested_fast_lio_initial_body_z:-0.0}"
+FOD_MOTION_ENABLED="${requested_fod_motion_enabled:-${FOD_MOTION_ENABLED:-false}}"
+NVIDIA_FOD_MODEL_SHA256="${NVIDIA_FOD_MODEL_SHA256-7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500}"
+NVIDIA_FOD_REQUIRED_CLASS_NAMES="${NVIDIA_FOD_REQUIRED_CLASS_NAMES-Metal,Soft,Plastic,Wire,Tool,w}"
 
 [[ -x "$ROOTFS/bin/bash" ]] || { echo "Invalid rootfs: $ROOTFS" >&2; exit 2; }
 chroot "$ROOTFS" /usr/bin/test -r /opt/autolabor/dual_host/current/setup.bash || {
@@ -40,6 +44,10 @@ chroot "$ROOTFS" /usr/bin/test -r /opt/autolabor/dual_host/current/setup.bash ||
 }
 if [[ "$STATIC_MAP_ENABLED" != true && "$STATIC_MAP_ENABLED" != false ]]; then
   echo "STATIC_MAP_ENABLED must be literal true or false." >&2
+  exit 2
+fi
+if [[ "$FOD_MOTION_ENABLED" != true && "$FOD_MOTION_ENABLED" != false ]]; then
+  echo "FOD_MOTION_ENABLED must be literal true or false." >&2
   exit 2
 fi
 if ! ip -o -4 address show dev "$J6M_INTERFACE" |
@@ -109,6 +117,8 @@ chroot "$ROOTFS" /usr/bin/env -i \
   REQUIRE_CAN="$REQUIRE_CAN" \
   USE_DUAL_LIDAR="$USE_DUAL_LIDAR" \
   FOD_MOTION_ENABLED="$FOD_MOTION_ENABLED" \
+  NVIDIA_FOD_MODEL_SHA256="$NVIDIA_FOD_MODEL_SHA256" \
+  NVIDIA_FOD_REQUIRED_CLASS_NAMES="$NVIDIA_FOD_REQUIRED_CLASS_NAMES" \
   NAV_MAX_LINEAR_SPEED="$NAV_MAX_LINEAR_SPEED" \
   NAV_MAX_REVERSE_SPEED="$NAV_MAX_REVERSE_SPEED" \
   CMD_VEL_MAX_ANGULAR_SPEED="$CMD_VEL_MAX_ANGULAR_SPEED" \

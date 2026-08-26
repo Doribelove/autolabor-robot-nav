@@ -112,6 +112,58 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 };
+
+
+/**
+ * @class EdgeViaPointDirection
+ * @brief Penalize cross-track and heading error relative to a local path tangent.
+ *
+ * Unlike EdgeViaPoint, this edge does not penalize progress along the path.
+ * Its first component is signed lateral displacement from the tangent line and
+ * its second component is the normalized yaw error.  Both weights default to
+ * zero in TebConfig, so ordinary TEB behavior is unchanged unless explicitly
+ * enabled by a tracking profile.
+ */
+class EdgeViaPointDirection : public BaseTebUnaryEdge<2, Eigen::Vector3d, VertexPose>
+{
+public:
+  EdgeViaPointDirection()
+  {
+    _measurement.setZero();
+  }
+
+  void computeError()
+  {
+    ROS_ASSERT_MSG(cfg_, "You must call setTebConfig() on EdgeViaPointDirection()");
+    const VertexPose* bandpt = static_cast<const VertexPose*>(_vertices[0]);
+    const double heading = _measurement.z();
+    const double dx = bandpt->x() - _measurement.x();
+    const double dy = bandpt->y() - _measurement.y();
+
+    _error[0] = -std::sin(heading) * dx + std::cos(heading) * dy;
+    _error[1] = g2o::normalize_theta(bandpt->theta() - heading);
+
+    ROS_ASSERT_MSG(
+        std::isfinite(_error[0]) && std::isfinite(_error[1]),
+        "EdgeViaPointDirection::computeError() lateral=%f heading=%f\n",
+        _error[0], _error[1]);
+  }
+
+  void setReference(const Eigen::Vector2d& point, double heading)
+  {
+    _measurement << point.x(), point.y(), heading;
+  }
+
+  void setParameters(const TebConfig& cfg, const Eigen::Vector2d& point,
+                     double heading)
+  {
+    cfg_ = &cfg;
+    setReference(point, heading);
+  }
+
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
   
     
 

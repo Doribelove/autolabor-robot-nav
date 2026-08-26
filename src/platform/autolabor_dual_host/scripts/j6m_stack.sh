@@ -19,6 +19,8 @@ WAIT_FOR_NVIDIA_SEC="${WAIT_FOR_NVIDIA_SEC:-300}"
 REQUIRE_CAN="${REQUIRE_CAN:-true}"
 USE_DUAL_LIDAR="${USE_DUAL_LIDAR:-true}"
 FOD_MOTION_ENABLED="${FOD_MOTION_ENABLED:-false}"
+NVIDIA_FOD_MODEL_SHA256="${NVIDIA_FOD_MODEL_SHA256-7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500}"
+NVIDIA_FOD_REQUIRED_CLASS_NAMES="${NVIDIA_FOD_REQUIRED_CLASS_NAMES-Metal,Soft,Plastic,Wire,Tool,w}"
 NAV_MAX_LINEAR_SPEED="${NAV_MAX_LINEAR_SPEED:-0.80}"
 NAV_MAX_REVERSE_SPEED="${NAV_MAX_REVERSE_SPEED:-0.30}"
 CMD_VEL_MAX_ANGULAR_SPEED="${CMD_VEL_MAX_ANGULAR_SPEED:-0.60}"
@@ -39,6 +41,23 @@ case "$REQUIRE_CAN:$USE_DUAL_LIDAR:$FOD_MOTION_ENABLED:$STATIC_MAP_ENABLED" in
   true:true:true:true|true:true:true:false|true:true:false:true|true:true:false:false|true:false:true:true|true:false:true:false|true:false:false:true|true:false:false:false|false:true:true:true|false:true:true:false|false:true:false:true|false:true:false:false|false:false:true:true|false:false:true:false|false:false:false:true|false:false:false:false) ;;
   *) echo "Boolean environment values must be literal true or false." >&2; exit 2 ;;
 esac
+if [[ ! "$NVIDIA_FOD_MODEL_SHA256" =~ ^[[:xdigit:]]{64}$ ]]; then
+  echo "NVIDIA_FOD_MODEL_SHA256 must be exactly 64 hexadecimal characters." >&2
+  exit 2
+fi
+NVIDIA_FOD_MODEL_SHA256="${NVIDIA_FOD_MODEL_SHA256,,}"
+if ! awk -v value="$NVIDIA_FOD_REQUIRED_CLASS_NAMES" 'BEGIN {
+  count = split(value, items, ",")
+  if (count < 1) exit 1
+  for (item_index = 1; item_index <= count; ++item_index) {
+    name = items[item_index]
+    gsub(/^[[:space:]]+|[[:space:]]+$/, "", name)
+    if (name == "" || seen[name]++) exit 1
+  }
+}' </dev/null; then
+  echo "NVIDIA_FOD_REQUIRED_CLASS_NAMES must be a non-empty, unique comma list." >&2
+  exit 2
+fi
 if [[ "$STATIC_MAP_ENABLED" == true ]]; then
   for required_map in "$STATIC_MAP_FILE" "$FAST_LIO_MAP_FILE"; do
     [[ -s "$required_map" ]] || {
@@ -117,6 +136,8 @@ echo "NVIDIA gateway is ready; starting J6M FAST-LIO navigation."
 roslaunch autolabor_dual_host j6m_fastlio_navigation.launch \
   use_dual_lidar:="$USE_DUAL_LIDAR" \
   fod_motion_enabled:="$FOD_MOTION_ENABLED" \
+  fod_model_sha256:="$NVIDIA_FOD_MODEL_SHA256" \
+  fod_required_class_names:="$NVIDIA_FOD_REQUIRED_CLASS_NAMES" \
   max_linear_speed:="$NAV_MAX_LINEAR_SPEED" \
   max_linear_speed_backwards:="$NAV_MAX_REVERSE_SPEED" \
   max_angular_speed:="$CMD_VEL_MAX_ANGULAR_SPEED" \

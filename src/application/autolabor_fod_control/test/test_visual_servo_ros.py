@@ -15,8 +15,6 @@ from autolabor_canbus_driver.msg import (
     ChassisStatusInfo,
 )
 from autolabor_canbus_driver.srv import (
-    CanBusService,
-    CanBusServiceResponse,
     ChassisParameterServer,
     ChassisParameterServerResponse,
 )
@@ -74,6 +72,9 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             == "test_transient_steer_center_bias_message_is_latched"
         )
         self.transient_fault_injected = False
+        self.raw_status_types = (0x17, 0x18, 0x19, 0x80)
+        self.raw_status_index = 0
+        self.last_raw_status_monotonic = 0.0
         self.states = []
 
         self.detection_pub = rospy.Publisher(
@@ -102,9 +103,6 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.status_sub = rospy.Subscriber(
             "/fod_visual_servo/status", String, self._status_cb, queue_size=20
         )
-        self.canbus_server = rospy.Service(
-            "/canbus_server", CanBusService, self._canbus_service_cb
-        )
         self.parameter_server = rospy.Service(
             "/m2_driver/chassis_parameter",
             ChassisParameterServer,
@@ -131,7 +129,6 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             self.canbus_pub,
         ):
             publisher.unregister()
-        self.canbus_server.shutdown("integration test teardown")
         self.parameter_server.shutdown("integration test teardown")
 
     def _command_cb(self, msg):
@@ -162,69 +159,79 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             if "waiting for synchronized odometry" in reason:
                 self.saw_sync_wait = True
 
-    def _canbus_service_cb(self, request):
+    def _inject_transient_feedback_if_requested(self, travel):
         with self.lock:
-            travel = self.travel_m
+            already_injected = self.transient_fault_injected
         if (
             self.inject_transient_steer_center_bias
-            and not self.transient_fault_injected
+            and not already_injected
             and travel > 0.05
         ):
-            # Create a true one-shot publisher only after _check_graph has run
-            # and while this service keeps the control tick blocked.  Unregister
-            # it before returning so a periodic graph poll cannot be the reason
-            # for ABORT; the message-generation latch itself must catch it.
-            self.transient_fault_injected = True
+            # The controller is no longer a CAN-service client.  Create a true
+            # one-shot bypass publisher and remove it immediately after the
+            # message is delivered; the callback-generation latch must retain it.
             publisher = rospy.Publisher(
                 "/m2_driver/steer_center_bias", Float64, queue_size=1
             )
-            deadline = time.monotonic() + 1.0
+            deadline = time.monotonic() + 0.5
             while (
                 publisher.get_num_connections() < 1
                 and time.monotonic() < deadline
                 and not rospy.is_shutdown()
             ):
-                rospy.sleep(0.01)
+                rospy.sleep(0.005)
             publisher.publish(Float64(data=-0.4))
-            rospy.sleep(0.12)
+            rospy.sleep(0.02)
             publisher.unregister()
+            with self.lock:
+                self.transient_fault_injected = True
+            return
         if (
             self.inject_transient_chassis_emergency
-            and not self.transient_fault_injected
+            and not already_injected
             and travel > 0.05
         ):
-            # The controller's control tick is blocked in this service call,
-            # while its subscriber threads remain live.  Publish unsafe then
-            # safe and leave enough time for both callbacks to run before the
-            # service returns.  The subsequent abort must therefore come from
-            # the generation latch, not from merely sampling the unsafe value.
-            self.transient_fault_injected = True
+            # TCPROS preserves these two messages in order.  The sampled state
+            # is safe again, while the unsafe generation remains latched.
             emergency = ChassisStatusInfo()
             emergency.hard_emergency = True
             self.chassis_pub.publish(emergency)
             self.chassis_pub.publish(ChassisStatusInfo())
-            rospy.sleep(0.12)
-        for query in request.requests:
-            if (
+            with self.lock:
+                self.transient_fault_injected = True
+
+    def _publish_raw_can_status(self, now_monotonic, travel):
+        if now_monotonic - self.last_raw_status_monotonic < 0.10:
+            return
+        msg_type = self.raw_status_types[self.raw_status_index]
+        self.raw_status_index = (self.raw_status_index + 1) % len(
+            self.raw_status_types
+        )
+        self.last_raw_status_monotonic = now_monotonic
+
+        with self.lock:
+            inject_fault = (
                 self.inject_transient_raw_can_fault
                 and not self.transient_fault_injected
                 and travel > 0.05
-                and query.msg_type == 0x17
-            ):
-                unsafe = CanBusMessage()
-                unsafe.node_type = query.node_type
-                unsafe.node_seq = query.node_seq
-                unsafe.msg_type = query.msg_type
-                unsafe.payload = [1]
-                self.canbus_pub.publish(unsafe)
+                and msg_type == 0x17
+            )
+            if inject_fault:
                 self.transient_fault_injected = True
-            response = CanBusMessage()
-            response.node_type = query.node_type
-            response.node_seq = query.node_seq
-            response.msg_type = query.msg_type
-            response.payload = [0x10] if query.msg_type == 0x80 else [0]
-            self.canbus_pub.publish(response)
-        return CanBusServiceResponse()
+        if inject_fault:
+            unsafe = CanBusMessage()
+            unsafe.node_type = 0x10
+            unsafe.node_seq = 0x00
+            unsafe.msg_type = msg_type
+            unsafe.payload = [1]
+            self.canbus_pub.publish(unsafe)
+
+        response = CanBusMessage()
+        response.node_type = 0x10
+        response.node_seq = 0x00
+        response.msg_type = msg_type
+        response.payload = [0x10] if msg_type == 0x80 else [0]
+        self.canbus_pub.publish(response)
 
     @staticmethod
     def _parameter_service_cb(_request):
@@ -300,8 +307,10 @@ class FakeWorldIntegrationTest(unittest.TestCase):
                 self.wheel_pub.publish(Float64(data=float("nan")))
                 self.transient_fault_injected = True
             self.wheel_pub.publish(Float64(data=wheel_angle))
+        self._inject_transient_feedback_if_requested(travel)
         self.chassis_pub.publish(ChassisStatusInfo())
         self.timeout_pub.publish(Bool(data=False))
+        self._publish_raw_can_status(now_monotonic, travel)
 
     def _publish_camera(self, stamp):
         message = CameraInfo()
@@ -390,8 +399,8 @@ class FakeWorldIntegrationTest(unittest.TestCase):
 
     def _enable_controller(self):
         rospy.wait_for_service("/fod_visual_servo/set_enabled", timeout=8.0)
-        # Allow every publisher/subscriber and both services to enter the ROS
-        # master graph before asking the fail-closed PRECHECK to run.
+        # Allow every publisher/subscriber and the chassis-parameter service to
+        # enter the ROS master graph before fail-closed PRECHECK runs.
         deadline = time.monotonic() + 5.0
         while time.monotonic() < deadline and not rospy.is_shutdown():
             if self.detection_pub.get_num_connections() > 0:

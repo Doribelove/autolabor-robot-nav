@@ -23,9 +23,11 @@ from typing import Optional, Tuple
 import rosgraph
 import rospy
 from autolabor_canbus_driver.msg import CanBusMessage, ChassisStatusInfo
-from autolabor_canbus_driver.srv import CanBusService, ChassisParameterServer
+from autolabor_canbus_driver.srv import ChassisParameterServer
+from autolabor_fod_control.cfg import VisualServoConfig
 from autolabor_fod_msgs.msg import FodDetectionArray
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
+from dynamic_reconfigure.server import Server as DynamicReconfigureServer
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import CameraInfo
@@ -74,6 +76,8 @@ MAX_COMMAND_SPEED_MPS = 0.20
 MAX_BLIND_DISTANCE_M = 0.50
 MAX_BLIND_HARD_DISTANCE_M = 0.55
 MAX_STEERING_ANGLE_DEG = 12.0
+MIN_LOCK_CONFIDENCE = 0.25
+MAX_LOCK_CONFIDENCE = 0.95
 
 VCU_NODE_TYPE = 0x10
 VCU_NODE_ID = 0x00
@@ -89,7 +93,6 @@ RAW_REQUIRED_TYPES = {
     VCU_GAMEPAD_EMERGENCY: "gamepad emergency stop",
     VCU_COMMON_STATE: "vehicle running state",
 }
-RAW_QUERY_ORDER = tuple(RAW_REQUIRED_TYPES)
 RAW_OBSERVED_TYPES = dict(RAW_REQUIRED_TYPES)
 RAW_OBSERVED_TYPES[VCU_CONTROLLER_MONITOR] = "controller monitor"
 
@@ -186,7 +189,6 @@ class FodVisualServoNode:
             "~control_timeout_topic", "/m2_driver/control_timeout"
         )
         self.canbus_topic = rospy.get_param("~canbus_topic", "/canbus_msg")
-        self.canbus_service = rospy.get_param("~canbus_service", "/canbus_server")
         self.chassis_parameter_service = rospy.get_param(
             "~chassis_parameter_service", "/m2_driver/chassis_parameter"
         )
@@ -309,10 +311,7 @@ class FodVisualServoNode:
         self.chassis_status_timeout_sec = float(
             rospy.get_param("~chassis_status_timeout_sec", 3.0)
         )
-        self.raw_can_timeout_sec = float(rospy.get_param("~raw_can_timeout_sec", 2.5))
-        self.raw_can_query_interval_sec = float(
-            rospy.get_param("~raw_can_query_interval_sec", 0.20)
-        )
+        self.raw_can_timeout_sec = float(rospy.get_param("~raw_can_timeout_sec", 8.0))
         self.graph_check_interval_sec = float(
             rospy.get_param("~graph_check_interval_sec", 0.50)
         )
@@ -333,6 +332,17 @@ class FodVisualServoNode:
             ),
             min_area_ratio=float(rospy.get_param("~association_min_area_ratio", 0.35)),
             max_area_ratio=float(rospy.get_param("~association_max_area_ratio", 2.80)),
+            duplicate_min_iou=float(
+                rospy.get_param("~duplicate_detection_min_iou", 0.80)
+            ),
+            duplicate_max_anchor_distance_ratio=float(
+                rospy.get_param(
+                    "~duplicate_detection_max_anchor_distance_ratio", 0.02
+                )
+            ),
+            duplicate_max_depth_delta_m=float(
+                rospy.get_param("~duplicate_detection_max_depth_delta_m", 0.15)
+            ),
         )
         machine_config = TargetMachineConfig(
             acquire_frames=int(rospy.get_param("~acquire_frames", 6)),
@@ -501,8 +511,6 @@ class FodVisualServoNode:
         self.raw_can_fault_generation = 0
         self.session_raw_can_fault_generation = 0
         self.last_raw_can_fault_reason = ""
-        self.last_raw_query_monotonic = 0.0
-        self.raw_can_query_index = 0
         self.m2_bypass_event_generation = 0
         self.session_m2_bypass_event_generation = 0
         self.last_m2_bypass_event_topic = ""
@@ -591,7 +599,6 @@ class FodVisualServoNode:
         self.chassis_sub = None
         self.control_timeout_sub = None
         self.canbus_sub = None
-        self.canbus_proxy = None
         if not self.external_estop_override:
             self.chassis_sub = rospy.Subscriber(
                 self.chassis_status_topic,
@@ -610,9 +617,6 @@ class FodVisualServoNode:
                 CanBusMessage,
                 self._raw_canbus_cb,
                 queue_size=100,
-            )
-            self.canbus_proxy = rospy.ServiceProxy(
-                self.canbus_service, CanBusService
             )
 
         m2_bypass_subscribers = [
@@ -655,6 +659,9 @@ class FodVisualServoNode:
         self.enable_service = rospy.Service(
             "~set_enabled", SetBool, self._set_enabled_cb
         )
+        self.dynamic_reconfigure_server = DynamicReconfigureServer(
+            VisualServoConfig, self._dynamic_reconfigure_cb
+        )
 
         self.command_timer = rospy.Timer(
             rospy.Duration(1.0 / self.publish_rate_hz), self._publish_command
@@ -676,11 +683,42 @@ class FodVisualServoNode:
         )
         if self.external_estop_override:
             rospy.logwarn(
-                "EXTERNAL ESTOP OVERRIDE ACTIVE: raw CAN, aggregated chassis "
-                "emergency, VCU command-timeout, CAN graph/service, and ROS "
+                "EXTERNAL ESTOP OVERRIDE ACTIVE: raw CAN observation, aggregated "
+                "chassis emergency, VCU command-timeout, CAN publisher graph, and ROS "
                 "emergency-stop-topic gates are disabled. Keep the attended "
                 "remote emergency stop immediately operable throughout the run."
             )
+
+    def _dynamic_reconfigure_cb(self, config, _level):
+        requested = float(config["min_confidence"])
+        if not math.isfinite(requested):
+            config["min_confidence"] = self.min_confidence
+            rospy.logwarn("Rejected non-finite visual lock confidence")
+            return config
+        requested = max(MIN_LOCK_CONFIDENCE, min(MAX_LOCK_CONFIDENCE, requested))
+        with self.run_lock:
+            if (
+                self.phase not in (DISABLED, COMPLETE, ABORT)
+                and not math.isclose(requested, self.min_confidence, abs_tol=1e-9)
+            ):
+                config["min_confidence"] = self.min_confidence
+                rospy.logwarn(
+                    "Visual lock confidence can only change while stopped; "
+                    "controller state is %s",
+                    self.phase,
+                )
+                return config
+            previous = self.min_confidence
+            self.min_confidence = requested
+            config["min_confidence"] = requested
+            if not math.isclose(previous, requested, abs_tol=1e-9):
+                rospy.loginfo(
+                    "Visual target lock confidence changed from %.3f to %.3f",
+                    previous,
+                    requested,
+                )
+                self._publish_status(force=True)
+        return config
 
     def _validate_parameters(self):
         numeric = {
@@ -709,7 +747,6 @@ class FodVisualServoNode:
             "wheel_angle_timeout_sec": self.wheel_angle_timeout_sec,
             "chassis_status_timeout_sec": self.chassis_status_timeout_sec,
             "raw_can_timeout_sec": self.raw_can_timeout_sec,
-            "raw_can_query_interval_sec": self.raw_can_query_interval_sec,
             "graph_check_interval_sec": self.graph_check_interval_sec,
             "min_acquire_anchor_v_fraction": self.min_acquire_anchor_v_fraction,
             "max_acquire_anchor_v_fraction": self.max_acquire_anchor_v_fraction,
@@ -720,6 +757,15 @@ class FodVisualServoNode:
             ),
             "association_min_area_ratio": self.association_config.min_area_ratio,
             "association_max_area_ratio": self.association_config.max_area_ratio,
+            "duplicate_detection_min_iou": (
+                self.association_config.duplicate_min_iou
+            ),
+            "duplicate_detection_max_anchor_distance_ratio": (
+                self.association_config.duplicate_max_anchor_distance_ratio
+            ),
+            "duplicate_detection_max_depth_delta_m": (
+                self.association_config.duplicate_max_depth_delta_m
+            ),
             "bottom_fraction": self.machine_config.bottom_fraction,
             "bottom_center_tolerance_fraction": (
                 self.machine_config.bottom_center_tolerance_fraction
@@ -783,7 +829,6 @@ class FodVisualServoNode:
             "chassis_status_topic": self.chassis_status_topic,
             "control_timeout_topic": self.control_timeout_topic,
             "canbus_topic": self.canbus_topic,
-            "canbus_service": self.canbus_service,
             "chassis_parameter_service": self.chassis_parameter_service,
             "steer_center_bias_topic": self.steer_center_bias_topic,
             "reset_odom_topic": self.reset_odom_topic,
@@ -813,7 +858,7 @@ class FodVisualServoNode:
             char not in "0123456789abcdef" for char in self.expected_model_sha256
         ):
             raise ValueError("expected_model_sha256 must be exactly 64 hex characters")
-        if not 0.25 <= self.min_confidence <= 0.95:
+        if not MIN_LOCK_CONFIDENCE <= self.min_confidence <= MAX_LOCK_CONFIDENCE:
             raise ValueError("min_confidence must be between 0.25 and 0.95")
         if not 0.30 <= self.min_target_depth_m < self.max_target_depth_m:
             raise ValueError("target depth range is invalid")
@@ -861,19 +906,11 @@ class FodVisualServoNode:
             ),
             ("wheel_angle_timeout_sec", self.wheel_angle_timeout_sec, 0.20, 1.00),
             ("chassis_status_timeout_sec", self.chassis_status_timeout_sec, 1.00, 5.00),
-            ("raw_can_timeout_sec", self.raw_can_timeout_sec, 1.00, 5.00),
-            ("raw_can_query_interval_sec", self.raw_can_query_interval_sec, 0.10, 0.50),
+            ("raw_can_timeout_sec", self.raw_can_timeout_sec, 1.00, 10.00),
             ("graph_check_interval_sec", self.graph_check_interval_sec, 0.20, 1.00),
         ):
             if not low <= value <= high:
                 raise ValueError("%s must be between %.2f and %.2f" % (name, low, high))
-        minimum_raw_can_timeout = (
-            2.0 * len(RAW_QUERY_ORDER) * self.raw_can_query_interval_sec
-        )
-        if self.raw_can_timeout_sec < minimum_raw_can_timeout:
-            raise ValueError(
-                "raw CAN timeout must cover at least two complete query rounds"
-            )
 
         if not 0.05 <= self.min_acquire_anchor_v_fraction < 0.70:
             raise ValueError("min acquisition vertical fraction is invalid")
@@ -893,6 +930,16 @@ class FodVisualServoNode:
             raise ValueError("association minimum area ratio is invalid")
         if not 1.0 < self.association_config.max_area_ratio <= 5.0:
             raise ValueError("association maximum area ratio is invalid")
+        if not 0.60 <= self.association_config.duplicate_min_iou <= 0.95:
+            raise ValueError("duplicate detection IoU gate is invalid")
+        if not (
+            0.001
+            <= self.association_config.duplicate_max_anchor_distance_ratio
+            <= 0.05
+        ):
+            raise ValueError("duplicate detection anchor distance is invalid")
+        if not 0.02 <= self.association_config.duplicate_max_depth_delta_m <= 0.50:
+            raise ValueError("duplicate detection depth delta is invalid")
         if not 0.80 <= self.machine_config.bottom_fraction <= 0.96:
             raise ValueError("bottom_fraction must be between 0.80 and 0.96")
         if not 0.02 <= self.machine_config.bottom_center_tolerance_fraction <= 0.10:
@@ -1424,17 +1471,6 @@ class FodVisualServoNode:
                 "publishers) to exit" % details
             )
 
-        if not self.external_estop_override:
-            canbus_services = self._topic_nodes(services, self.canbus_service)
-            if canbus_services != {self.expected_canbus_node}:
-                raise ControllerAbort(
-                    "%s provider must be exactly %s; current: %s"
-                    % (
-                        self.canbus_service,
-                        self.expected_canbus_node,
-                        self._format_nodes(canbus_services),
-                    )
-                )
         parameter_services = self._topic_nodes(
             services, self.chassis_parameter_service
         )
@@ -1474,32 +1510,13 @@ class FodVisualServoNode:
             )
         self.last_graph_check_monotonic = now
 
-    def _query_and_check_raw_can(self):
+    def _check_raw_can(self):
         if self.external_estop_override:
             return
 
-        now = time.monotonic()
-        if now - self.last_raw_query_monotonic >= self.raw_can_query_interval_sec:
-            # The serial bridge writes every request in one service call
-            # back-to-back.  The VCU can drop replies when all four safety
-            # queries arrive as a burst, so send one query per interval and
-            # rotate through the complete safety set.  Unsafe replies are
-            # still latched immediately by _raw_canbus_cb.
-            msg_type = RAW_QUERY_ORDER[self.raw_can_query_index]
-            request = CanBusMessage()
-            request.node_type = VCU_NODE_TYPE
-            request.node_seq = VCU_NODE_ID
-            request.msg_type = msg_type
-            request.payload = []
-            try:
-                self.canbus_proxy([request])
-            except (rospy.ROSException, rospy.ServiceException) as exc:
-                raise ControllerAbort("raw CAN emergency query failed: %s" % exc)
-            self.raw_can_query_index = (
-                self.raw_can_query_index + 1
-            ) % len(RAW_QUERY_ORDER)
-            self.last_raw_query_monotonic = now
-
+        # The NVIDIA M2 driver is the sole periodic-query owner.  This J6M
+        # controller only observes /canbus_msg, so enabling visual control
+        # cannot increase the VCU request rate or starve either query stream.
         with self.sensor_lock:
             statuses = dict(self.raw_can_status)
             fault_generation = self.raw_can_fault_generation
@@ -1891,7 +1908,7 @@ class FodVisualServoNode:
         if rospy.is_shutdown():
             raise ControllerAbort("ROS is shutting down")
         self._check_graph(force=force_graph)
-        self._query_and_check_raw_can()
+        self._check_raw_can()
         self._check_sensor_health(
             require_new_detection=require_new_detection,
             ignore_control_timeout=ignore_control_timeout,
@@ -3203,6 +3220,9 @@ class FodVisualServoNode:
         return {
             "state": self.phase,
             "reason": self.reason,
+            "min_confidence": round(self.min_confidence, 4),
+            "raw_can_query_owner": self.expected_driver_node,
+            "raw_can_timeout_sec": self.raw_can_timeout_sec,
             "allow_motion": self.allow_motion,
             "external_estop_override": self.external_estop_override,
             "can_vcu_safety_checks_enabled": not self.external_estop_override,

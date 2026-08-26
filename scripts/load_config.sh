@@ -3,6 +3,19 @@
 DUAL_HOST_WS="${DUAL_HOST_WS:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 DUAL_HOST_CONFIG="${DUAL_HOST_CONFIG:-$DUAL_HOST_WS/config/dual_host.env}"
 
+# The managed one-run visual-motion authorization is deliberately separate
+# from dual_host.env.  Only the supported start_dual_host.sh flag should set
+# this exported override; every child that reloads the persistent config must
+# retain the same effective gate for the lifetime of that supervisor.
+_fod_motion_override="${DUAL_HOST_FOD_MOTION_OVERRIDE:-}"
+case "$_fod_motion_override" in
+  ""|true) ;;
+  *)
+    echo "DUAL_HOST_FOD_MOTION_OVERRIDE must be empty or literal true." >&2
+    return 2 2>/dev/null || exit 2
+    ;;
+esac
+
 # Command-line launch selection is exported to child scripts and must take
 # precedence over persistent hardware defaults in dual_host.env.
 _map_enabled_was_set="${STATIC_MAP_ENABLED+x}"
@@ -33,6 +46,7 @@ set +a
 [[ -z "$_map_file_was_set" ]] || STATIC_MAP_FILE="$_map_file_override"
 [[ -z "$_lio_map_was_set" ]] || FAST_LIO_MAP_FILE="$_lio_map_override"
 [[ -z "$_lio_z_was_set" ]] || FAST_LIO_INITIAL_BODY_Z="$_lio_z_override"
+[[ -z "$_fod_motion_override" ]] || FOD_MOTION_ENABLED=true
 
 NVIDIA_J6M_INTERFACE="${NVIDIA_J6M_INTERFACE:-}"
 NVIDIA_LIVOX_INTERFACE="${NVIDIA_LIVOX_INTERFACE:-}"
@@ -51,6 +65,8 @@ DUAL_HOST_NETWORK_POLL_SEC="${DUAL_HOST_NETWORK_POLL_SEC:-1}"
 NVIDIA_ZED_SERIAL="${NVIDIA_ZED_SERIAL:-23748636}"
 ZED_USB_WAIT_SEC="${ZED_USB_WAIT_SEC:-20}"
 ZED_IMAGE_WAIT_SEC="${ZED_IMAGE_WAIT_SEC:-60}"
+NVIDIA_FOD_MODEL_SHA256="${NVIDIA_FOD_MODEL_SHA256-7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500}"
+NVIDIA_FOD_REQUIRED_CLASS_NAMES="${NVIDIA_FOD_REQUIRED_CLASS_NAMES-Metal,Soft,Plastic,Wire,Tool,w}"
 NAV_MAX_LINEAR_SPEED="${NAV_MAX_LINEAR_SPEED:-0.80}"
 NAV_MAX_REVERSE_SPEED="${NAV_MAX_REVERSE_SPEED:-0.30}"
 CMD_VEL_MAX_LINEAR_SPEED="${CMD_VEL_MAX_LINEAR_SPEED:-1.70}"
@@ -61,6 +77,8 @@ STATIC_MAP_SOURCE_MODE="${STATIC_MAP_SOURCE_MODE:-fused}"
 STATIC_MAP_FILE="${STATIC_MAP_FILE:-}"
 FAST_LIO_MAP_FILE="${FAST_LIO_MAP_FILE:-}"
 FAST_LIO_INITIAL_BODY_Z="${FAST_LIO_INITIAL_BODY_Z:-0.0}"
+MOTION_ENABLED="${MOTION_ENABLED:-false}"
+FOD_MOTION_ENABLED="${FOD_MOTION_ENABLED:-false}"
 MAPPING_REQUIRE_DUAL_LIDAR="${MAPPING_REQUIRE_DUAL_LIDAR:-true}"
 MAPPING_TOPIC_WAIT_SEC="${MAPPING_TOPIC_WAIT_SEC:-10}"
 DUAL_LIDAR_CENTER_DISTANCE_M="${DUAL_LIDAR_CENTER_DISTANCE_M:-0.92}"
@@ -72,10 +90,12 @@ export NVIDIA_LIVOX_USB_ID NVIDIA_LIVOX_USB_SERIAL
 export DUAL_HOST_SYS_CLASS_NET_ROOT DUAL_HOST_DEVICE_WAIT_SEC
 export DUAL_HOST_NETWORK_WAIT_SEC DUAL_HOST_NETWORK_POLL_SEC
 export NVIDIA_ZED_SERIAL ZED_USB_WAIT_SEC ZED_IMAGE_WAIT_SEC
+export NVIDIA_FOD_MODEL_SHA256 NVIDIA_FOD_REQUIRED_CLASS_NAMES
 export NAV_MAX_LINEAR_SPEED NAV_MAX_REVERSE_SPEED CMD_VEL_MAX_LINEAR_SPEED
 export CMD_VEL_MAX_ANGULAR_SPEED
 export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
 export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
+export MOTION_ENABLED FOD_MOTION_ENABLED
 export MAPPING_REQUIRE_DUAL_LIDAR MAPPING_TOPIC_WAIT_SEC
 export DUAL_LIDAR_CENTER_DISTANCE_M
 
@@ -234,6 +254,41 @@ unset ROS_HOSTNAME
 
 dual_host_is_bool() {
   [[ "$1" == true || "$1" == false ]]
+}
+
+dual_host_validate_fod_model_contract() {
+  if [[ ! "$NVIDIA_FOD_MODEL_SHA256" =~ ^[[:xdigit:]]{64}$ ]]; then
+    echo "NVIDIA_FOD_MODEL_SHA256 must be exactly 64 hexadecimal characters." >&2
+    return 1
+  fi
+  if ! awk -v value="$NVIDIA_FOD_REQUIRED_CLASS_NAMES" 'BEGIN {
+    count = split(value, items, ",")
+    if (count < 1) exit 1
+    for (item_index = 1; item_index <= count; ++item_index) {
+      name = items[item_index]
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", name)
+      if (name == "" || seen[name]++) exit 1
+    }
+  }' </dev/null; then
+    echo "NVIDIA_FOD_REQUIRED_CLASS_NAMES must be a non-empty, unique comma list." >&2
+    return 1
+  fi
+}
+
+dual_host_validate_fod_weights() {
+  local weights="${NVIDIA_FOD_WEIGHTS:-}" actual_sha256
+  if [[ -z "$weights" || ! -r "$weights" ]]; then
+    echo "NVIDIA_FOD_WEIGHTS is missing or unreadable: ${weights:-<empty>}" >&2
+    return 1
+  fi
+  actual_sha256="$(sha256sum -- "$weights" 2>/dev/null | awk '{print $1}')" || {
+    echo "Unable to calculate SHA256 for $weights." >&2
+    return 1
+  }
+  if [[ "${actual_sha256,,}" != "${NVIDIA_FOD_MODEL_SHA256,,}" ]]; then
+    echo "FOD weights SHA256 mismatch: expected $NVIDIA_FOD_MODEL_SHA256, got $actual_sha256." >&2
+    return 1
+  fi
 }
 
 dual_host_mode_enabled() {

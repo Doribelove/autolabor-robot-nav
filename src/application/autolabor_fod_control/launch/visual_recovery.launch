@@ -10,6 +10,12 @@
   <arg name="blind_distance_m" default="0.50"/>
   <arg name="target_u_offset_px" default="0.0"/>
   <arg name="min_confidence" default="0.30"/>
+  <!-- These two values form the detector/controller model contract.  The
+       dual-host launcher overrides them from config/dual_host.env whenever a
+       different approved model is selected. -->
+  <arg name="expected_model_sha256"
+       default="7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500"/>
+  <arg name="allowed_class_names" default="Metal,Soft,Plastic,Wire,Tool,w"/>
   <arg name="cmd_vel_topic" default="/cmd_vel"/>
   <arg name="expected_cmd_vel_subscriber_node" default="/m2_driver"/>
 
@@ -26,6 +32,9 @@
     <param name="blind_distance_m" value="$(arg blind_distance_m)"/>
     <param name="target_u_offset_px" value="$(arg target_u_offset_px)"/>
     <param name="min_confidence" value="$(arg min_confidence)"/>
+    <param name="expected_model_sha256"
+           value="$(arg expected_model_sha256)"/>
+    <param name="allowed_class_names" value="$(arg allowed_class_names)"/>
     <param name="cmd_vel_topic" value="$(arg cmd_vel_topic)"/>
     <param name="expected_cmd_vel_subscriber_node"
            value="$(arg expected_cmd_vel_subscriber_node)"/>

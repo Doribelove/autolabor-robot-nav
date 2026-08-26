@@ -104,10 +104,11 @@ fast_lio
 fast_lio_localization
 robot_bringup
 autolabor_dual_lidar
+autolabor_fod_control
 autolabor_dual_host
 ```
 
-`autolabor_fod_control`、`livox_ros_driver2` 等当前来自 J6M 基础
+`livox_ros_driver2` 等当前来自 J6M 基础
 `/opt/autolabor/ros/install`。若修改了不在部署白名单中的包，不得声称普通
 `deploy_j6m.sh` 已让修改在 J6M 生效；应先核对依赖，再明确扩展同步路径和白名单，
 或按用户授权更新基础 install。自定义消息有变化时必须保证两端消息定义和 MD5 一致。

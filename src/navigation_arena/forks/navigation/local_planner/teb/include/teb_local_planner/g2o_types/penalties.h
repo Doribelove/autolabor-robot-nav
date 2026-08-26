@@ -95,6 +95,35 @@ inline double penaltyBoundToInterval(const double& var,const double& a, const do
   }
 }
 
+/**
+ * @brief Linear penalty for an asymmetric interval with independent margins.
+ *
+ * This overload is useful when one side of an interval is intentionally zero.
+ * Applying a shared positive epsilon to a zero-width side would move that bound
+ * through zero and make a stationary value costly.
+ * @param var The scalar that should be bounded
+ * @param a lower bound
+ * @param b upper bound
+ * @param lower_epsilon safety margin applied to the lower bound
+ * @param upper_epsilon safety margin applied to the upper bound
+ * @return Penalty / cost value that is nonzero if the constraint is not satisfied
+ */
+inline double penaltyBoundToInterval(const double& var, const double& a,
+                                     const double& b,
+                                     const double& lower_epsilon,
+                                     const double& upper_epsilon)
+{
+  if (var < a + lower_epsilon)
+  {
+    return (-var + (a + lower_epsilon));
+  }
+  if (var <= b - upper_epsilon)
+  {
+    return 0.;
+  }
+  return (var - (b - upper_epsilon));
+}
+
 
 /**
  * @brief Linear penalty function for bounding \c var from below: \f$ a < var \f$
@@ -163,6 +192,26 @@ inline double penaltyBoundToIntervalDerivative(const double& var,const double& a
   {
     return 1;		
   }
+}
+
+/**
+ * @brief Derivative of the asymmetric interval penalty with independent margins.
+ */
+inline double penaltyBoundToIntervalDerivative(const double& var,
+                                               const double& a,
+                                               const double& b,
+                                               const double& lower_epsilon,
+                                               const double& upper_epsilon)
+{
+  if (var < a + lower_epsilon)
+  {
+    return -1;
+  }
+  if (var <= b - upper_epsilon)
+  {
+    return 0.;
+  }
+  return 1;
 }
 
 

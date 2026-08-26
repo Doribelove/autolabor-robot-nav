@@ -1,0 +1,45 @@
+# sweeper_mcp configuration template.
+# Copy to sweeper_mcp.yaml for local use and provide the API key through
+# DEEPSEEK_API_KEY or a local, untracked api_key value.
+
+agent:
+  base_url: "https://api.deepseek.com"
+  api_key: ""
+  model: "deepseek-v4-flash"
+  temperature: 0.2
+  timeout_s: 20.0
+  max_retries: 3
+  max_rounds: 5
+  max_tools_per_round: 4
+  tool_text_limit: 1500
+  window_size: 16
+  enable_planning: true
+  max_plan_steps: 20
+  nav_wait_timeout: 240.0
+  nav_wait_poll: 1.0
+  continue_on_nav_fail: true
+  llm_summary: true
+  verbose: true
+
+mcp:
+  backend_env: "MCP_BACKEND"
+  protocol_versions: ["2024-11-05", "2025-06-18"]
+
+ros:
+  input_topic: "/voice/text"
+  reply_topic: "/voice/agent_reply"
+  goal_topic: "/move_base_simple/goal"
+  goal_frame: "camera_init"
+  gps_goal_topic: "/gps/goal_fix"
+  cancel_topic: "/move_base/cancel"
+  status_topic: "/move_base/status"
+  odom_topic: "/odom"
+  pose_source_topics: ["/gps/odom", "/gps/pose", "/Odometry", "/odom"]
+  chassis_info_topic: "/m2_driver/chassis_info"
+  emergency_stop_topic: "/m2_driver/emergency_stop"
+  fod_mode_service: "/fod_navigation_mode/set_fod_enabled"
+
+sweep:
+  device_ip: "192.168.1.197"
+  device_port: 50003
+  connect_timeout: 5
