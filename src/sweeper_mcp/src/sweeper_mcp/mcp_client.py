@@ -40,7 +40,8 @@ def default_server_cmd():
 
 
 class MCPClient:
-    def __init__(self, server_cmd=None, env=None, server_env_backend=None):
+    def __init__(self, server_cmd=None, env=None, server_env_backend=None,
+                 control_token=""):
         """spawn MCP server 子进程。
 
         Args:
@@ -50,8 +51,18 @@ class MCPClient:
         """
         self._cmd = server_cmd or default_server_cmd()
         child_env = dict(os.environ if env is None else env)
+        # The MCP tool subprocess never calls the cloud model and must not be
+        # able to impersonate the Qt authorization session.  Only the narrow
+        # MCP capability created below is deliberately passed to it.
+        child_env.pop("DEEPSEEK_API_KEY", None)
+        child_env.pop("SWEEPER_AI_SESSION_TOKEN", None)
+        child_env.pop("SWEEPER_ASR_CAPABILITY", None)
+        child_env.pop("SWEEPER_MCP_CONTROL_TOKEN", None)
         if server_env_backend:
             child_env["MCP_BACKEND"] = server_env_backend
+        self._control_token = control_token or ""
+        if self._control_token:
+            child_env["SWEEPER_MCP_CONTROL_TOKEN"] = self._control_token
         self._proc = subprocess.Popen(
             self._cmd,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -73,7 +84,8 @@ class MCPClient:
             except ValueError:
                 continue
             rid = msg.get("id")
-            entry = self._pending.get(rid) if rid is not None else None
+            with self._lock:
+                entry = self._pending.get(rid) if rid is not None else None
             if entry is None:
                 continue
             entry["msg"] = msg
@@ -99,6 +111,8 @@ class MCPClient:
         if not entry["event"].wait(timeout):
             self._pending.pop(rid, None)
             raise MCPClientError(-32000, "请求超时: %s" % method)
+        with self._lock:
+            self._pending.pop(rid, None)
         msg = entry["msg"]
         if "error" in msg:
             err = msg["error"]
@@ -107,19 +121,38 @@ class MCPClient:
 
     def initialize(self, protocol_version="2025-06-18"):
         """MCP 握手，返回 server 的 initialize 结果。"""
-        return self.request("initialize", {
+        result = self.request("initialize", {
             "protocolVersion": protocol_version,
             "capabilities": {},
             "clientInfo": {"name": "sweeper_mcp_client", "version": "0.1.0"},
         })
+        self.notify("notifications/initialized", {})
+        return result
+
+    def notify(self, method, params=None):
+        """Send one JSON-RPC notification; notifications have no response."""
+        request = {"jsonrpc": "2.0", "method": method}
+        if params is not None:
+            request["params"] = params
+        line = json.dumps(request, ensure_ascii=False) + "\n"
+        with self._lock:
+            try:
+                self._proc.stdin.write(line)
+                self._proc.stdin.flush()
+            except Exception as exc:
+                raise MCPClientError(
+                    -32000, "写入 MCP server 通知失败: %s" % exc)
 
     def list_tools(self):
         """返回 tools/list 结果（{tools:[...]}）。"""
         return self.request("tools/list")
 
-    def call_tool(self, name, arguments=None, timeout=30.0):
+    def call_tool(self, name, arguments=None, timeout=30.0, authorised=False):
         """调用工具。isError 不抛异常，返回 {"text": str, "is_error": bool}。"""
-        res = self.request("tools/call", {"name": name, "arguments": arguments or {}}, timeout=timeout)
+        params = {"name": name, "arguments": arguments or {}}
+        if authorised and self._control_token:
+            params["_meta"] = {"controlToken": self._control_token}
+        res = self.request("tools/call", params, timeout=timeout)
         content = res.get("content") or []
         text = content[0]["text"] if content and content[0].get("type") == "text" else ""
         return {"text": text, "is_error": bool(res.get("isError", False))}

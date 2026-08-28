@@ -562,7 +562,16 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.assertEqual(terminal, "ABORT", "state trace: %r" % states)
         self.assertIn("APPROACH", states)
         self.assertNotIn("BLIND_ADVANCE", states)
-        self.assertIn("bypass-control message", reason.lower())
+        # The deliberately short-lived publisher can be rejected by either
+        # safety path: graph polling may see it while it is still registered,
+        # or the message-generation latch may report it after unregistering.
+        # Both outcomes must remain fail-closed and identify the bypass topic.
+        reason_lower = reason.lower()
+        self.assertTrue(
+            "bypass-control message" in reason_lower
+            or "bypass-control publisher is active" in reason_lower,
+            "unexpected bypass-control stop reason: %r" % reason,
+        )
         self.assertIn("steer_center_bias", reason)
         self.assertAlmostEqual(command.linear.x, 0.0, places=6)
         self.assertAlmostEqual(command.angular.z, 0.0, places=6)

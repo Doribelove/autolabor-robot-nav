@@ -46,6 +46,9 @@ FAST-LIO /cloud_registered_body + 可选 LD19
   └─ /cloud_registered_body_enhanced（显示/调试，不反馈给 FAST-LIO）
 
 ZED + YOLO（NVIDIA）── /fod/detections ── J6M FOD 仲裁
+
+麦克风（NVIDIA）── arecord ── 隔离 Whisper large-v3 worker
+  └─ 本地识别文本 ── sweeper_ai 授权门 ── 云端计划 / MCP 工具
 ```
 
 FAST-LIO 始终只使用 MID360 原始点和 IMU，前后二维雷达不会污染定位。move_base 的避障输入是独立的 `/scan`：MID360 是强制主源，LD19 是可超时移除的增强源。
@@ -107,9 +110,10 @@ NVIDIA /m2_driver → USB-CAN → M2 底盘
 ```text
 Qt 清扫页（NVIDIA）
   /coverage/clicked_point → 多边形 /coverage/plan
+  区域库（按 map-set 目录隔离，/map SHA-256 复核）→ /coverage/start_batch
         ↓
 J6M /coverage_manager
-  静态图快照裁剪 + 连通域 + 弓字扫描线 + 任务状态机
+  冻结批次 → 逐区域即时规划 → 静态图裁剪 + 连通域 + 弓字扫描线
   start: PREPARING（无锁重规划）→ 最终安全复核 → 原子激活
         ├─ 同步 set_enforced_path(转场) ── CoverageGlobalPlanner → Navfn
         └─ 同步 set_enforced_path(扫掠) ── CoverageGlobalPlanner → /coverage/enforced_path
@@ -124,6 +128,19 @@ J6M /coverage_manager
 `/navigation_goal/accepted`；move_base 在完整双机启动中只订阅后者。覆盖管理器仍通过
 actionlib 直接拥有自己的分段目标，因而普通目标不能再抢占覆盖任务。
 
+AI 普通导航不走匿名的 simple-goal 路径。NVIDIA 后端先生成唯一显式 GoalID，发布
+`MoveBaseActionGoal` 到 `/navigation_goal/action_request`；J6M `/navigation_pause` 在与覆盖
+所有权相同的互斥锁内校验授权租约、时间、目标和占用状态，统一改写为 J6M 时间后才转发到
+`/move_base/goal`。后端只接受同 ID 的 action 回显和唯一状态。精确取消通过独立的
+`/navigation_goal/cancel_request` 在 J6M 本机转发；若撤销先赢得桥内同一把锁，桥只对从未
+转发的 ID 发布 `/navigation_goal/cancel_ack`。AI 心跳失联、状态为 `LOST` 或闭环确认
+失败时均保留 ID 并重复撤销，不能以“界面已失败”释放目标。
+
+覆盖管理器在发送任一 action 目标前，还使用带代际 token 的同步
+`/navigation_pause/set_coverage_owner` 占有 move_base。该服务与 AI 请求共享同一把锁：覆盖
+先取得所有权时 AI 立即拒绝；AI 先通过时，覆盖 claim 会在返回前精确取消现有 AI ID。
+`/coverage/active` 继续作为锁存状态广播和重启兜底，但不再承担跨 topic 的唯一互斥证明。
+
 `CoverageGlobalPlanner` 是 move_base 的全局规划插件：没有活动覆盖分段时委托 Navfn，
 活动清扫分段时只接受管理器发布且端点匹配的新鲜路径。路径过期且任务仍活动时保持
 fail-closed，不允许突然改走最短路。区域本身不是 geofence；转场由 Navfn 在完整已知
@@ -137,6 +154,31 @@ fail-closed，不允许突然改走最短路。区域本身不是 geofence；转
 全部同伦候选计入参考线代价；转场与普通导航维持基线参数，任务终态恢复。TEB 对零反向
 速度上限提供原生约束：零速可行、负速受罚且输出硬截断，不再依赖小于惩罚缓冲区的无效
 参数组合。
+
+已知清扫区的唯一可写副本位于 NVIDIA 的
+`global_maps/map_sets/<map-set>/coverage_regions/<source_mode>/regions.json`。物理 map-set
+目录是持久化隔离边界；`latest` 等符号链接先规范化到实际目录，因此两个不同 map-set 即使
+具有相同栅格也不会串用。地图摘要由 J6M 针对实际 `OccupancyGrid` 的 frame、宽高、
+分辨率、完整 origin pose 和栅格数据计算并随 `CoverageStatus` 发布，Qt 在目录隔离之外
+继续复核摘要和来源模式。目录内只保存区域定义，使用 UUID、锁和原子替换；规划 ID、轨迹、
+任务进度与运动指令都不持久化。旧集中目录只在其 `map_source` 精确匹配当前规范化 map-set
+时作为只读迁移来源，不能仅凭摘要跨目录迁移。
+
+`/coverage/start_batch` 一次接收用户排序后的不可变区域快照和整批规划参数。管理器始终
+根据每一区域开始时的最新全局位姿即时生成条带顺序，所以跨区移动仍是普通 Navfn + TEB
+点到点转场，不属于覆盖实走轨迹。批次期间 `/coverage/active` 持续锁存为 true，单区
+`active` 只表示当前已有 move_base 分段；这一区分既让跟踪/安全回调保持准确，又消除换区
+间隙被普通目标抢占的窗口。完成和部分完成会推进队列，失败终止；`/coverage/skip_current`
+只跳过当前区；Qt/AI 批次取消优先使用带精确 batch ID 的 `/coverage/cancel_batch`。
+`StartCoverageBatch.client_request_id` 必须为 `coverage-batch-<32hex>` 并原样成为 batch ID：
+同 ID/同 payload 幂等回放，同 ID/不同 payload 拒绝；cancel-before-start tombstone 能阻止
+已取消请求的迟到提交，foreign ID 不改变当前任务。批次仅驻留 J6M 进程内，重启后不自动
+恢复。若启动失败后仍保留了导航 owner，所有清理按一次完整事务串行执行：先确认清理开始
+时捕获的 move_base generation 和精确 `ClientGoalHandle` 已进入可信终态，再关闭覆盖规划器、
+恢复 TEB，最后释放同一 owner token。重复 exact/broad cancel 只返回“清理中”，不会再次执行
+外部副作用；清理期间新 batch ID 不会被写成永久拒绝记录，可在事务结束后用同 ID 重试。
+状态定时器和普通取消也携带捕获的 generation/handle，因此旧 A 回调晚到时既不能取消 B，
+也不能把 B 改写为 `FINALIZING`。
 
 首个条带入口和条带间连接均是普通点到点转场：`EnforcedPath.active=false`，规划插件明确
 调用 Navfn，而不是把预览条带间的直线当作可执行路径。静态模式的全局代价地图也订阅
@@ -193,6 +235,34 @@ VCU 固件的事件/故障帧，活动故障会高频重复而健康时可能静
 
 `/fod_navigation_mode` 是 `/cmd_vel_safe` 的唯一发布者；NVIDIA 看门狗是 `/cmd_vel` 的唯一发布者。看门狗拒绝 NaN/Inf、非平面指令、超限指令、重复发布者、错误订阅者和过期命令。
 
+AI 语音链也不旁路上述控制链。Qt 和 `sweeper_ai` 每次启动都把语音输入、AI 语义解析、
+AI 控制三门以及智能语音会话置为关闭。确认语音授权后可使用保留的“开始录音/停止并识别”
+手动模式，或另行确认“启用智能语音”。智能模式保持一个连续 `arecord` 流，本地能量 VAD
+使用前滚、连续有声帧、约 `0.8 s` 静音和单句最长时限自动切句；采集线程与 `large-v3`
+推理线程分离，句子通过有界队列依次识别。因此它是自动断句后的逐句批量识别，不提供
+partial-token 流式转写。
+
+语音门只允许本地音频采集与 Whisper 推理；解析门决定识别文本能否发送云端；控制门决定
+校验后的计划能否调用改变机器人状态的 MCP 工具。解析门关闭时识别结果仅通过 `AiEvent`
+在 Qt 本地显示，解析门开启时智能语音按有界 FIFO 严格串行提交；控制授权变化会清除尚未
+提交的旧句，防止旧口令事后升级为可执行命令。控制门关闭时云端计划只能预览。Qt 心跳超过
+3 秒、语音撤权、智能模式关闭或 worker 异常都会关闭精确的采集进程、清空队列；session ID
+和代际令牌共同丢弃旧会话的迟到结果。
+
+ASR worker 是 `sweeper_ai` 的本地子进程，以 JSON-lines 协议通信，子进程环境移除 ROS、
+云端密钥、UI 会话令牌和 MCP 控制令牌。它只接受固定 `large-v3`、CUDA、本地 checkpoint
+和显式 ALSA 设备；checkpoint 位于 NVIDIA 的 `runtime/asr/models/large-v3.pt`，运行时
+禁止下载。缺少 CUDA 环境、checkpoint、哈希匹配或真实麦克风任一条件时，ASR 状态为
+不可用且不能打开录音。该链全部位于 NVIDIA，不产生 J6M 构建或发布产物。
+
+AI 的 `navigate_map_pose` 与 Qt 地图设点使用同一个 move_base/TEB 执行器和安全链，但 AI
+使用可端到端追踪的显式 action GoalID，而 Qt 继续使用经过目标门的 simple-goal 入口。AI
+在发布前增加本地安全预检。锁存 `/map` 首次收到后按静态快照持有，不使用接收时间判断过期；其
+frame、尺寸、分辨率、完整 origin pose 和全部栅格生成与覆盖管理器相同的 SHA-256，并与
+新鲜 `CoverageStatus.map_digest` 比对。目标坐标先按 OccupancyGrid origin yaw 逆旋转到栅格
+局部坐标，再检查范围及未知/占用单元；发布边界再次复核定位、覆盖状态和地图代际。只有
+定位、模式、里程计等动态消息继续使用秒级新鲜度。
+
 ## 运行位置
 
 | 功能 | NVIDIA | J6M |
@@ -206,6 +276,7 @@ VCU 固件的事件/故障帧，活动故障会高频重复而健康时可能静
 | 覆盖规划、任务状态机、全局规划插件 |  | 是 |
 | USB-CAN/M2 | 是 |  |
 | ZED、CUDA、YOLO | 是 |  |
+| Qt AI、Whisper large-v3 ASR、MCP 客户端 | 是 |  |
 | FOD 速度仲裁 |  | 是 |
 | 最终速度看门狗 | 是 |  |
 | Qt/RViz | 是 |  |

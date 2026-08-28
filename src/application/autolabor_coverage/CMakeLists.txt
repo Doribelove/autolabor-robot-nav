@@ -29,14 +29,18 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_python_setup()
 
 add_message_files(FILES
+  CoverageRegion.msg
   CoverageStatus.msg
   EnforcedPath.msg
 )
 
 add_service_files(FILES
+  CancelCoverageBatch.srv
   PlanCoverage.srv
+  SetCoverageOwner.srv
   SetEnforcedPath.srv
   StartCoverage.srv
+  StartCoverageBatch.srv
 )
 
 generate_messages(DEPENDENCIES geometry_msgs nav_msgs std_msgs)

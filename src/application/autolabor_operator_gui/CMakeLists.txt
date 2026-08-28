@@ -21,10 +21,12 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   std_srvs
+  sweeper_mcp
   tf2_ros
 )
 
 find_package(Qt5 REQUIRED COMPONENTS
+  Core
   Concurrent
   Widgets
 )
@@ -56,6 +58,7 @@ catkin_package(
     sensor_msgs
     std_msgs
     std_srvs
+    sweeper_mcp
     tf2_ros
 )
 
@@ -64,8 +67,18 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_library(${PROJECT_NAME}_support STATIC
+  src/coverage_region_store.cpp
+  include/autolabor_operator_gui/coverage_region_store.h
+)
+
+target_link_libraries(${PROJECT_NAME}_support
+  Qt5::Core
+)
+
 add_executable(${PROJECT_NAME}_node
   src/main.cpp
+  src/ai_control.cpp
   src/main_window.cpp
   include/autolabor_operator_gui/main_window.h
 )
@@ -75,6 +88,7 @@ add_dependencies(${PROJECT_NAME}_node
 )
 
 target_link_libraries(${PROJECT_NAME}_node
+  ${PROJECT_NAME}_support
   Qt5::Concurrent
   Qt5::Widgets
   ${RVIZ_DEFAULT_PLUGIN_LIBRARY}
@@ -83,6 +97,15 @@ target_link_libraries(${PROJECT_NAME}_node
 
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_operator_gui_contract.py)
+  catkin_add_gtest(test_coverage_region_store
+    test/test_coverage_region_store.cpp
+  )
+  if(TARGET test_coverage_region_store)
+    target_link_libraries(test_coverage_region_store
+      ${PROJECT_NAME}_support
+      Qt5::Core
+    )
+  endif()
 endif()
 
 install(TARGETS ${PROJECT_NAME}_node

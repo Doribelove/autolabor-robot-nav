@@ -45,7 +45,7 @@ catkin_install_python(PROGRAMS
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY config launch
+install(DIRECTORY config launch models
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
@@ -55,4 +55,5 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_image_quality.py)
   catkin_add_nosetests(test/test_projection.py)
   catkin_add_nosetests(test/test_tracking.py)
+  catkin_add_nosetests(test/test_ultralytics_runtime.py)
 endif()

@@ -1,0 +1,11 @@
+std_msgs/Header header
+string request_id
+uint64 sequence
+string kind
+int32 step_index
+string tool
+string state
+string description
+string arguments_json
+string result_json
+float64 duration_ms

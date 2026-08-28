@@ -12,6 +12,10 @@
   <arg name="weights" default="$(find autolabor_fod_vision)/../../yolo/yolo11n.pt"/>
   <arg name="expected_model_sha256" default=""/>
   <arg name="detector_python" default="$(find autolabor_fod_vision)/../../../.venv/fod_yolo/bin/python3"/>
+  <arg name="ultralytics_root"
+       default="$(find autolabor_fod_vision)/../../../ultralytics_yolo11_custom"/>
+  <arg name="require_gam" default="false"/>
+  <arg name="runtime_token" default=""/>
   <arg name="device" default="auto"/>
   <arg name="image_size" default="640"/>
   <arg name="confidence" default="0.25"/>
@@ -49,10 +53,17 @@
         name="fod_detector"
         launch-prefix="$(arg detector_python)"
         output="screen">
+    <env name="AUTOLABOR_FOD_ULTRALYTICS_ROOT"
+         value="$(arg ultralytics_root)"/>
+    <env name="PYTHONPATH"
+         value="$(arg ultralytics_root):$(optenv PYTHONPATH)"/>
     <rosparam command="load" file="$(find autolabor_fod_vision)/config/detector_smoke.yaml"/>
     <param name="weights" value="$(arg weights)"/>
     <param name="expected_model_sha256"
            value="$(arg expected_model_sha256)"/>
+    <param name="ultralytics_root" value="$(arg ultralytics_root)"/>
+    <param name="require_gam" value="$(arg require_gam)"/>
+    <param name="runtime_token" value="$(arg runtime_token)"/>
     <param name="device" value="$(arg device)"/>
     <param name="image_size" value="$(arg image_size)"/>
     <param name="confidence" value="$(arg confidence)"/>

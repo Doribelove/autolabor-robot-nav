@@ -27,3 +27,17 @@ string chassis_detail
 bool avoidance_ready
 string avoidance_detail
 string detail
+string map_digest
+string batch_id
+bool batch_active
+bool batch_cancel_requested
+uint32 batch_current_index
+uint32 batch_total_regions
+uint32 batch_completed_regions
+uint32 batch_partial_regions
+uint32 batch_skipped_regions
+string current_region_id
+string current_region_name
+string last_region_id
+string last_region_name
+string last_region_state

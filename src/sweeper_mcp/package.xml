@@ -1,19 +1,20 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>sweeper_mcp</name>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
   <description>
-    MCP 服务 + LLM 语音自动执行：把清扫车的 ROS 操作(导航/清扫/状态/急停)封装为 MCP 工具，
-    供云端大模型(DeepSeek)通过 function calling 调用，实现"语音 → 执行 → 反馈"闭环。
-    服务端为纯 Python3.8 标准库手写的 stdio + JSON-RPC 轻量 server。
-    内含 AI 语音子模块 sweeper_mcp.voice（ASR：pyaudio 16k 录音 + whisper 识别，2026-08-17
-    由 ai_task_decomposition 迁移合并）。
+    Qt 授权的云端计划与 MCP 工具控制：复用 move_base、覆盖管理器和 FOD 视觉
+    仲裁入口，支持连续指令的完整拆分、严格校验、顺序执行和结果回传。
+    NVIDIA 端通过显式授权的本地 Whisper large-v3 子进程进行 ASR；模型、CUDA
+    Python 环境和麦克风均采用独立、离线且失败关闭的运行边界。
   </description>
 
   <maintainer email="todo@example.com">AI_agent team</maintainer>
   <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
 
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
@@ -22,13 +23,22 @@
   <build_depend>nav_msgs</build_depend>
   <build_depend>actionlib_msgs</build_depend>
 
+  <depend>actionlib</depend>
+  <depend>autolabor_coverage</depend>
+  <depend>move_base_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>tf2_ros</depend>
+
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>actionlib_msgs</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
   <exec_depend>autolabor_canbus_driver</exec_depend>
+  <exec_depend>alsa-utils</exec_depend>
   <exec_depend>python-requests</exec_depend>
   <exec_depend>python-yaml</exec_depend>
+  <exec_depend>rospkg</exec_depend>
 </package>

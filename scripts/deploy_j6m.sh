@@ -139,6 +139,12 @@ ssh "$target" "set -eu
     rospack find autolabor_fod_control >/dev/null
     rospack find robot_bringup >/dev/null
     rospack find teb_local_planner >/dev/null
+    rosmsg md5 autolabor_coverage/CoverageRegion >/dev/null
+    rosmsg md5 autolabor_coverage/CoverageStatus >/dev/null
+    rossrv md5 autolabor_coverage/PlanCoverage >/dev/null
+    rossrv md5 autolabor_coverage/CancelCoverageBatch >/dev/null
+    rossrv md5 autolabor_coverage/SetCoverageOwner >/dev/null
+    rossrv md5 autolabor_coverage/StartCoverageBatch >/dev/null
   '
   '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"
 
@@ -166,6 +172,12 @@ ssh "$target" "set -eu
     rospack find autolabor_coverage >/dev/null
     rospack find autolabor_fod_control >/dev/null
     rospack find teb_local_planner >/dev/null
+    rosmsg md5 autolabor_coverage/CoverageRegion >/dev/null
+    rosmsg md5 autolabor_coverage/CoverageStatus >/dev/null
+    rossrv md5 autolabor_coverage/PlanCoverage >/dev/null
+    rossrv md5 autolabor_coverage/CancelCoverageBatch >/dev/null
+    rossrv md5 autolabor_coverage/SetCoverageOwner >/dev/null
+    rossrv md5 autolabor_coverage/StartCoverageBatch >/dev/null
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_coverage/coverage_manager.py
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_fod_control/fod_visual_servo_node.py
     test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_fod_control/launch/visual_recovery.launch

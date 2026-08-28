@@ -3,6 +3,7 @@
 
 from collections import deque
 import math
+import os
 import threading
 import time
 import traceback
@@ -33,6 +34,14 @@ def _csv_strings(value):
 class DetectorNode:
     def __init__(self):
         weights = str(rospy.get_param("~weights"))
+        ultralytics_root = str(
+            rospy.get_param(
+                "~ultralytics_root",
+                os.environ.get("AUTOLABOR_FOD_ULTRALYTICS_ROOT", ""),
+            )
+        )
+        require_gam = bool(rospy.get_param("~require_gam", False))
+        self.runtime_token = str(rospy.get_param("~runtime_token", ""))
         self.smoke_test_only = bool(rospy.get_param("~smoke_test_only", True))
         required_names = _csv_strings(
             rospy.get_param("~required_class_names", "fod")
@@ -86,6 +95,8 @@ class DetectorNode:
             expected_sha256=str(
                 rospy.get_param("~expected_model_sha256", "")
             ),
+            ultralytics_root=ultralytics_root,
+            require_gam=require_gam,
         )
         available = set(self.detector.names.values())
         missing = [name for name in required_names if name not in available]
@@ -144,14 +155,26 @@ class DetectorNode:
         self.worker = threading.Thread(target=self._worker_loop, daemon=True)
         self.worker.start()
         rospy.on_shutdown(self.shutdown)
+        rospy.set_param(
+            "~ultralytics_import_path", self.detector.ultralytics_path
+        )
+        rospy.set_param(
+            "~ultralytics_version", self.detector.ultralytics_version
+        )
+        rospy.set_param("~gam_layer_count", self.detector.gam_layer_count)
+        rospy.set_param("~ready_token", self.runtime_token)
         rospy.loginfo(
             "FOD detector ready: model=%s task=%s device=%s classes=%s sha256=%s "
+            "ultralytics_version=%s ultralytics_path=%s gam_layers=%d "
             "depth_fusion=%s depth_topic=%s",
             self.detector.model_name,
             self.detector.task,
             self.detector.device,
             ",".join(self.detector.names.values()),
             self.detector.model_sha256,
+            self.detector.ultralytics_version,
+            self.detector.ultralytics_path,
+            self.detector.gam_layer_count,
             self.enable_depth_fusion,
             self.depth_topic,
         )
@@ -245,6 +268,13 @@ class DetectorNode:
             KeyValue("model", self.detector.model_name),
             KeyValue("task", self.detector.task),
             KeyValue("device", self.detector.device),
+            KeyValue(
+                "ultralytics_version", self.detector.ultralytics_version
+            ),
+            KeyValue(
+                "ultralytics_import_path", self.detector.ultralytics_path
+            ),
+            KeyValue("gam_layer_count", str(self.detector.gam_layer_count)),
             KeyValue("classes", ",".join(self.detector.names.values())),
             KeyValue("smoke_test_only", str(self.smoke_test_only)),
             KeyValue("received_frames", str(self.received_frames)),
@@ -416,7 +446,11 @@ def main():
         DetectorNode()
         rospy.spin()
     except Exception as error:
-        rospy.logfatal("FOD detector failed to start: %s", error)
+        rospy.logfatal(
+            "FOD detector failed to start: %s\n%s",
+            error,
+            traceback.format_exc(),
+        )
         raise
 
 

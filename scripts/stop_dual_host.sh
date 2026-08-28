@@ -18,6 +18,7 @@ MANAGED_NVIDIA_ROS_NODES=(
   /zed2/zed_node /zed2/zed2_state_publisher /fod_detector
   /fod_image_quality_controller /fod_ground_projector /fod_tracker
   /autolabor_operator_gui
+  /sweeper_mcp_backend
 )
 
 status=0
@@ -28,7 +29,7 @@ managed_nvidia_node_name() {
     nvidia_cmd_vel_watchdog livox_lidar_publisher2 canbus_driver m2_driver
     ld19_front ld19_rear dual_laser_fusion front_lidar_tf rear_lidar_tf
     zed_node zed2_state_publisher fod_detector fod_image_quality_controller
-    fod_ground_projector fod_tracker autolabor_operator_gui
+    fod_ground_projector fod_tracker autolabor_operator_gui sweeper_mcp_backend
   )
   for node in "${names[@]}"; do
     [[ "$command" == *"__name:=$node"* ]] && return 0

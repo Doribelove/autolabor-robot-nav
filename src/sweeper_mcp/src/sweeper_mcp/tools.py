@@ -1,60 +1,138 @@
 # -*- coding: utf-8 -*-
-"""工具注册表 —— 把清扫车操作定义成 MCP 工具（schema 全中文描述给 LLM 看）。
+"""Strict MCP tool catalogue for the indoor J6M robot.
 
-工具与后端解耦：build_registry(backend) 把每个工具绑定到 backend 上同名方法。
-backend（mock / ros）只需实现同名 handler 方法并返回 ToolResult 即可接入。
-
-约定：
-- tools/call 执行失败返回 ToolResult(is_error=True)，不抛异常（协议层转 isError）。
-- 必填参数缺失在工具层校验，返回 is_error=True 的提示文本。
+The cloud model chooses tools, but every argument is checked locally and every
+mutating tool requires the private capability owned by the authorised Qt AI
+session.  No tool writes ``/cmd_vel`` directly.
 """
+
+import hmac
+import math
 
 
 class ToolResult:
-    """工具执行结果。is_error=True 表示执行失败（对应 MCP result.isError）。"""
-
     def __init__(self, text, is_error=False):
         self.text = text
-        self.is_error = is_error
+        self.is_error = bool(is_error)
 
     def __repr__(self):
-        return "ToolResult(is_error=%s, text=%s)" % (self.is_error, self.text[:60])
+        return "ToolResult(is_error=%s, text=%s)" % (
+            self.is_error, self.text[:60])
+
+
+def _is_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def validate_arguments(arguments, schema, path="arguments"):
+    """Validate the JSON-schema subset used by this package."""
+    expected = schema.get("type")
+    if expected == "object":
+        if not isinstance(arguments, dict):
+            return "%s 必须是对象" % path
+        properties = schema.get("properties", {})
+        missing = [key for key in schema.get("required", [])
+                   if key not in arguments]
+        if missing:
+            return "缺少必填参数: %s" % ", ".join(missing)
+        if schema.get("additionalProperties") is False:
+            extra = sorted(set(arguments) - set(properties))
+            if extra:
+                return "存在未定义参数: %s" % ", ".join(extra)
+        for key, value in arguments.items():
+            if key not in properties:
+                continue
+            error = validate_arguments(value, properties[key],
+                                       "%s.%s" % (path, key))
+            if error:
+                return error
+        return None
+    if expected == "array":
+        if not isinstance(arguments, list):
+            return "%s 必须是数组" % path
+        if len(arguments) < schema.get("minItems", 0):
+            return "%s 数量不能少于 %d" % (path, schema["minItems"])
+        if "maxItems" in schema and len(arguments) > schema["maxItems"]:
+            return "%s 数量不能超过 %d" % (path, schema["maxItems"])
+        if schema.get("uniqueItems"):
+            try:
+                unique = len(set(arguments)) == len(arguments)
+            except TypeError:
+                unique = False
+            if not unique:
+                return "%s 不能包含重复项" % path
+        item_schema = schema.get("items", {})
+        for index, item in enumerate(arguments):
+            error = validate_arguments(item, item_schema,
+                                       "%s[%d]" % (path, index))
+            if error:
+                return error
+        return None
+    if expected == "string":
+        if not isinstance(arguments, str):
+            return "%s 必须是字符串" % path
+        if len(arguments.strip()) < schema.get("minLength", 0):
+            return "%s 不能为空" % path
+    elif expected == "boolean":
+        if not isinstance(arguments, bool):
+            return "%s 必须是布尔值" % path
+    elif expected in ("number", "integer"):
+        if not _is_number(arguments):
+            return "%s 必须是数值" % path
+        if expected == "integer" and int(arguments) != arguments:
+            return "%s 必须是整数" % path
+        if not math.isfinite(float(arguments)):
+            return "%s 必须是有限数值" % path
+        if "minimum" in schema and arguments < schema["minimum"]:
+            return "%s 不能小于 %s" % (path, schema["minimum"])
+        if "maximum" in schema and arguments > schema["maximum"]:
+            return "%s 不能大于 %s" % (path, schema["maximum"])
+    enum = schema.get("enum")
+    if enum is not None and arguments not in enum:
+        return "%s 必须是 %s 之一" % (path, ", ".join(map(str, enum)))
+    return None
 
 
 class Tool:
-    """一个 MCP 工具：name/description/inputSchema + handler。"""
-
-    def __init__(self, name, title, description, input_schema, handler):
+    def __init__(self, name, title, description, input_schema, handler,
+                 mutating=False):
         self.name = name
         self.title = title
         self.description = description
         self.input_schema = input_schema
         self.handler = handler
+        self.mutating = bool(mutating)
 
     def schema_dict(self):
-        """tools/list 返回的 schema（跨版本兼容：name/description/inputSchema 三件套）。"""
-        d = {"name": self.name,
-             "description": self.description,
-             "inputSchema": self.input_schema}
+        result = {
+            "name": self.name,
+            "description": self.description,
+            "inputSchema": self.input_schema,
+        }
         if self.title:
-            d["title"] = self.title
-        return d
+            result["title"] = self.title
+        return result
 
-    def run(self, arguments):
-        """执行工具。参数校验失败或 handler 抛异常 → 返回 is_error 的 ToolResult。"""
-        err = _validate_required(arguments, self.input_schema)
-        if err:
-            return ToolResult(err, True)
+    def run(self, arguments, authorised=False):
+        error = validate_arguments(arguments, self.input_schema)
+        if error:
+            return ToolResult(error, True)
+        if self.mutating and not authorised:
+            return ToolResult(
+                "AI 控制授权未生效；该 MCP 工具只允许当前 Qt 授权会话调用。",
+                True,
+            )
         try:
-            res = self.handler(arguments)
+            result = self.handler(arguments)
         except Exception as exc:
             return ToolResult("工具执行异常: %s" % exc, True)
-        return res if isinstance(res, ToolResult) else ToolResult(str(res))
+        return result if isinstance(result, ToolResult) else ToolResult(str(result))
 
 
 class ToolRegistry:
-    def __init__(self):
+    def __init__(self, control_token=""):
         self._tools = {}
+        self._control_token = control_token or ""
 
     def register(self, tool):
         self._tools[tool.name] = tool
@@ -63,199 +141,182 @@ class ToolRegistry:
         return self._tools.get(name)
 
     def schemas(self):
-        return [t.schema_dict() for t in self._tools.values()]
+        return [tool.schema_dict() for tool in self._tools.values()]
+
+    def is_authorised(self, token):
+        return bool(self._control_token and token and hmac.compare_digest(
+            self._control_token, token))
 
 
-def _validate_required(arguments, input_schema):
-    """校验必填参数，缺失返回错误提示文本，否则 None。"""
-    required = input_schema.get("required", [])
-    missing = [k for k in required if k not in arguments]
-    if missing:
-        return "缺少必填参数: %s" % ", ".join(missing)
-    return None
+EMPTY_SCHEMA = {
+    "type": "object", "properties": {}, "additionalProperties": False,
+}
 
-
-# ---------------- 工具定义 ----------------
 
 TOOL_SPECS = [
     {
         "name": "get_robot_status",
         "title": "查询机器人状态",
-        "description": (
-            "查询清扫车当前状态：电量百分比、急停标志(硬/软/手柄/机器人)、当前位姿"
-            "(本地坐标 x/y 米 + 朝向 yaw 弧度)、清扫装置开关状态、当前导航/回收模式。"
-            "无参数。用于回答'车在哪/还有多少电/清扫开没开'，或在执行动作前先摸底。"
-        ),
-        "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+        "description": "查询电量、急停、定位、位姿、导航所有者和安全门；不改变机器人。",
+        "inputSchema": EMPTY_SCHEMA,
     },
     {
-        "name": "navigate_pose",
-        "title": "导航到本地坐标",
-        "description": (
-            "发布本地坐标目标到 /move_base_simple/goal，让底盘移动到指定位置。"
-            "x/y 是本地坐标系(camera_init)下的坐标(米)，yaw 是目标朝向(弧度 0~2π，"
-            "将转换为标准单位四元数写入 orientation)。本工具异步发布、发布即返回，不等待到达；"
-            "是否到达请用 navigation_status 轮询。仅当你确切知道本地坐标时才用；"
-            "用户说'往前走X米'等相对指令请用 navigate_relative；经纬度目标用 navigate_gps。"
-        ),
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "x": {"type": "number", "description": "本地坐标 x(米)"},
-                "y": {"type": "number", "description": "本地坐标 y(米)"},
-                "yaw": {"type": "number", "description": "目标朝向弧度(0~2π)，默认 0"},
-                "frame_id": {"type": "string", "description": "坐标系，默认 camera_init"},
-            },
-            "required": ["x", "y"],
-            "additionalProperties": False,
-        },
+        "name": "get_navigation_status",
+        "title": "查询导航状态",
+        "description": "查询 AI 当前关联 goal ID 的 move_base 状态；不以历史最新目标代替。",
+        "inputSchema": EMPTY_SCHEMA,
+    },
+    {
+        "name": "list_saved_coverage_regions",
+        "title": "列出已保存清扫区域",
+        "description": "列出与当前静态地图摘要严格匹配的已审核区域名称和 UUID。",
+        "inputSchema": EMPTY_SCHEMA,
+    },
+    {
+        "name": "get_coverage_status",
+        "title": "查询覆盖清扫状态",
+        "description": "查询 J6M 覆盖管理器状态、批次、区域和安全门。",
+        "inputSchema": EMPTY_SCHEMA,
+    },
+    {
+        "name": "get_visual_servo_status",
+        "title": "查询视觉伺服状态",
+        "description": "查询 FOD 模式仲裁与视觉伺服状态；定点清扫在本项目中即该功能。",
+        "inputSchema": EMPTY_SCHEMA,
     },
     {
         "name": "navigate_relative",
-        "title": "按相对位移导航",
+        "title": "车体相对导航",
         "description": (
-            "让底盘相对当前位姿移动 dx/dy 米并旋转 dyaw 弧度。dx=前后位移(正=前进)，"
-            "dy=左右位移(正=向左)，dyaw=旋转弧度(正=逆时针)。工具会读取机器人当前位姿，"
-            "自动换算成目标坐标后发布到 /move_base_simple/goal，异步执行。"
-            "用于'往前走10米/后退/左移/左转90度'等相对指令。"
+            "相对车辆当前朝向导航。forward_m 正值向前，left_m 正值向左，"
+            "delta_yaw_deg 正值逆时针；仍由 move_base/TEB 和现有安全链执行。"
         ),
+        "mutating": True,
         "inputSchema": {
             "type": "object",
             "properties": {
-                "dx": {"type": "number", "description": "前后位移(米)，正=前进，默认 0"},
-                "dy": {"type": "number", "description": "左右位移(米)，正=向左，默认 0"},
-                "dyaw": {"type": "number", "description": "旋转弧度，正=逆时针，默认 0"},
+                "forward_m": {"type": "number", "minimum": -30.0, "maximum": 30.0},
+                "left_m": {"type": "number", "minimum": -30.0, "maximum": 30.0},
+                "delta_yaw_deg": {"type": "number", "minimum": -180.0, "maximum": 180.0},
             },
-            "required": [],
+            "required": ["forward_m", "left_m", "delta_yaw_deg"],
             "additionalProperties": False,
         },
     },
     {
-        "name": "navigate_gps",
-        "title": "导航到 GPS 经纬度",
+        "name": "navigate_map_pose",
+        "title": "地图绝对位姿导航",
         "description": (
-            "发布 GPS 经纬度目标到 /gps/goal_fix，由 gps_goal_node 转成 move_base 目标。"
-            "latitude/longitude 为 WGS84 度，altitude 可选(米)。异步发布即返回。"
-            "用于'去某个经纬度'。"
+            "导航到任意有效的 map 绝对 x/y/yaw；只有三维 ICP LOCALIZED、"
+            "锁存静态地图与覆盖管理器地图摘要一致，且目标位于空闲栅格时可用。"
         ),
+        "mutating": True,
         "inputSchema": {
             "type": "object",
             "properties": {
-                "latitude": {"type": "number", "description": "纬度(度，WGS84)"},
-                "longitude": {"type": "number", "description": "经度(度，WGS84)"},
-                "altitude": {"type": "number", "description": "海拔(米)，可选"},
+                "x_m": {"type": "number"},
+                "y_m": {"type": "number"},
+                "yaw_deg": {"type": "number", "minimum": -180.0, "maximum": 180.0},
             },
-            "required": ["latitude", "longitude"],
+            "required": ["x_m", "y_m", "yaw_deg"],
             "additionalProperties": False,
         },
     },
     {
         "name": "cancel_navigation",
-        "title": "取消导航",
+        "title": "取消普通导航",
         "description": (
-            "取消当前导航目标，底盘就地减速停止。用于'停下/别去了/取消'。"
+            "只显式取消当前 AI 会话持有的普通 move_base GoalID；"
+            "不会取消 Qt 手工目标，也不会用取消全部目标破坏覆盖任务。"
         ),
-        "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+        "mutating": True,
+        "inputSchema": EMPTY_SCHEMA,
     },
     {
-        "name": "navigation_status",
-        "title": "查询导航状态",
+        "name": "start_spot_cleaning",
+        "title": "启动视觉定点清扫",
         "description": (
-            "查询当前导航目标的状态，返回 idle(无目标)/active(执行中)/succeeded(已到达)"
-            "/preempted/aborted/canceled。用于回答'到了吗/走到哪了'。"
+            "请求启动现有 FOD 视觉伺服；原始 tools/call 只确认接管，"
+            "AI 执行器随后轮询到完成。不控制主刷、边刷、风机或喷淋。"
         ),
-        "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+        "mutating": True,
+        "inputSchema": EMPTY_SCHEMA,
     },
     {
-        "name": "emergency_stop",
-        "title": "急停",
+        "name": "stop_spot_cleaning",
+        "title": "停止视觉定点清扫",
+        "description": "退出 FOD 视觉伺服并恢复普通导航安全链。",
+        "mutating": True,
+        "inputSchema": EMPTY_SCHEMA,
+    },
+    {
+        "name": "start_coverage_cleaning",
+        "title": "启动已保存区域覆盖清扫",
         "description": (
-            "触发或解除急停。active=true 立即急停(最高优先级，打断一切动作)，"
-            "active=false 解除急停。检测到碰撞/危险时优先调用。"
+            "按顺序清扫一个或多个 Qt 已保存区域。只能使用当前地图中的精确名称或 UUID，"
+            "不能由模型临时生成多边形。"
         ),
+        "mutating": True,
         "inputSchema": {
             "type": "object",
             "properties": {
-                "active": {"type": "boolean", "description": "true=急停，false=解除"},
-                "reason": {"type": "string", "description": "急停原因说明，可选"},
-            },
-            "required": ["active"],
-            "additionalProperties": False,
-        },
-    },
-    {
-        "name": "sweep_set",
-        "title": "清扫装置开关",
-        "description": (
-            "控制清扫装置(滚刷/吸尘)开关。action 取值 on/off/toggle。"
-            "装置通过 TCP 连接，掉线时返回失败。用于'打开清扫/关闭清扫'。"
-            "注意：这是当前唯一已实现的清扫能力(定点清扫)；全覆盖/循迹清扫请用 sweep_coverage(未实现)。"
-        ),
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "string",
-                    "enum": ["on", "off", "toggle"],
-                    "description": "on=开启，off=关闭，toggle=切换",
+                "regions": {
+                    "type": "array", "items": {"type": "string", "minLength": 1},
+                    "minItems": 1, "maxItems": 20, "uniqueItems": True,
+                },
+                "operation_width_m": {
+                    "type": "number", "minimum": 0.30, "maximum": 3.00,
+                    "default": 1.0,
+                },
+                "overlap_percent": {
+                    "type": "number", "minimum": 0.0, "maximum": 50.0,
+                    "default": 15.0,
+                },
+                "max_speed_mps": {
+                    "type": "number", "minimum": 0.10, "maximum": 1.60,
+                    "default": 0.8,
+                },
+                "allow_reverse_transit": {
+                    "type": "boolean", "default": True,
                 },
             },
-            "required": ["action"],
+            "required": ["regions"],
             "additionalProperties": False,
         },
     },
     {
-        "name": "sweep_coverage",
-        "title": "全覆盖清扫（预留接口，尚未实现）",
-        "description": (
-            "进行全覆盖/按区域/按路线清扫（例如'把整条主路都扫一遍'、'全覆盖清扫A区'）。"
-            "【当前尚未实现】：调用会返回未实现提示。此工具为后续版本预留的接口，"
-            "参数 schema 已按计划定义(area/pattern/duration/width)，实现后无需改动工具定义。"
-            "在未实现前，请勿主动调用它；用户要求'清扫'默认用 sweep_set 打开/关闭清扫装置即可。"
-        ),
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "area": {
-                    "type": "string",
-                    "enum": ["spot", "area", "route"],
-                    "description": "清扫范围：spot=定点，area=区域，route=沿路线（预留）",
-                },
-                "pattern": {
-                    "type": "string",
-                    "enum": ["spiral", "zigzag"],
-                    "description": "全覆盖路径模式：螺旋/弓字（预留）",
-                },
-                "duration": {"type": "number", "description": "清扫时长(秒)，预留"},
-                "width": {"type": "number", "description": "清扫宽度(米)，预留"},
-            },
-            "required": [],
-            "additionalProperties": False,
-        },
+        "name": "pause_coverage",
+        "title": "暂停覆盖清扫",
+        "description": "暂停当前覆盖任务并保持权威覆盖状态。",
+        "mutating": True,
+        "inputSchema": EMPTY_SCHEMA,
     },
     {
-        "name": "set_fod_mode",
-        "title": "切换 GPS↔FOD 回收模式",
-        "description": (
-            "切换机器人导航/回收模式。enabled=true 切换到 FOD 视觉回收模式，"
-            "false 切回 GPS 模式。需要 FOD 模式管理器在线（后补功能，未启用时返回失败）。"
-        ),
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "enabled": {"type": "boolean",
-                            "description": "true=FOD 视觉回收模式，false=GPS 模式"},
-            },
-            "required": ["enabled"],
-            "additionalProperties": False,
-        },
+        "name": "resume_coverage",
+        "title": "恢复覆盖清扫",
+        "description": "在安全门重新核验后恢复当前覆盖任务。",
+        "mutating": True,
+        "inputSchema": EMPTY_SCHEMA,
+    },
+    {
+        "name": "skip_coverage_region",
+        "title": "跳过当前覆盖区域",
+        "description": "跳过批次中的当前区域并进入下一个已审核区域。",
+        "mutating": True,
+        "inputSchema": EMPTY_SCHEMA,
+    },
+    {
+        "name": "cancel_coverage",
+        "title": "取消覆盖清扫",
+        "description": "取消整个当前覆盖任务或区域队列。",
+        "mutating": True,
+        "inputSchema": EMPTY_SCHEMA,
     },
 ]
 
 
-def build_registry(backend):
-    """根据后端实例构建工具注册表（每个工具绑定 backend 同名方法）。"""
-    registry = ToolRegistry()
+def build_registry(backend, control_token=""):
+    registry = ToolRegistry(control_token=control_token)
     for spec in TOOL_SPECS:
         name = spec["name"]
 
@@ -268,5 +329,6 @@ def build_registry(backend):
             description=spec["description"],
             input_schema=spec["inputSchema"],
             handler=_make(name),
+            mutating=spec.get("mutating", False),
         ))
     return registry

@@ -68,7 +68,12 @@ chroot "$ROOTFS" /bin/bash -lc '
   roslaunch --files autolabor_fod_control visual_recovery.launch >/dev/null
   rosmsg md5 livox_ros_driver2/CustomMsg
   rosmsg md5 autolabor_fod_msgs/FodDetectionArray
+  rosmsg md5 autolabor_coverage/CoverageRegion
   rosmsg md5 autolabor_coverage/CoverageStatus
+  rossrv md5 autolabor_coverage/PlanCoverage
+  rossrv md5 autolabor_coverage/CancelCoverageBatch
+  rossrv md5 autolabor_coverage/SetCoverageOwner
+  rossrv md5 autolabor_coverage/StartCoverageBatch
   test ! -e /opt/autolabor/dual_host/current/share/zed_wrapper
   ! command -v nvcc >/dev/null
 '

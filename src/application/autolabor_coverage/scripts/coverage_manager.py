@@ -2,8 +2,10 @@
 """Plan and execute static-map coverage tasks through the existing move_base chain."""
 
 import copy
+import hashlib
 import json
 import math
+import re
 import threading
 import time
 import uuid
@@ -14,16 +16,22 @@ from autolabor_coverage.coverage_geometry import (
     CoveragePlanner,
     GridMap,
     Point,
+    occupancy_grid_digest,
     order_swaths,
     rasterize_swept_cells,
     sample_path,
 )
 from autolabor_coverage.msg import CoverageStatus, EnforcedPath
 from autolabor_coverage.srv import (
+    CancelCoverageBatch,
+    CancelCoverageBatchResponse,
     PlanCoverage,
     PlanCoverageResponse,
     SetEnforcedPath,
+    SetCoverageOwner,
     StartCoverage,
+    StartCoverageBatch,
+    StartCoverageBatchResponse,
     StartCoverageResponse,
 )
 from autolabor_canbus_driver.msg import ChassisMonitorInfo, ChassisStatusInfo
@@ -41,6 +49,15 @@ from visualization_msgs.msg import Marker, MarkerArray
 
 
 TERMINAL_STATES = {"COMPLETED", "COMPLETED_PARTIAL", "CANCELED", "FAILED"}
+REGION_TERMINAL_STATES = TERMINAL_STATES | {"SKIPPED"}
+TRUSTED_MOVE_BASE_TERMINAL_STATES = {
+    GoalStatus.PREEMPTED,
+    GoalStatus.SUCCEEDED,
+    GoalStatus.ABORTED,
+    GoalStatus.REJECTED,
+    GoalStatus.RECALLED,
+}
+_EXPECTED_HANDLE_UNSET = object()
 
 
 class CoverageManager:
@@ -195,9 +212,21 @@ class CoverageManager:
         self.goal_timeout_per_meter_sec = float(
             rospy.get_param("~goal_timeout_per_meter_sec", 20.0)
         )
+        self.move_base_terminal_timeout_sec = float(
+            rospy.get_param("~move_base_terminal_timeout_sec", 2.0)
+        )
+        if (not math.isfinite(self.move_base_terminal_timeout_sec) or
+                self.move_base_terminal_timeout_sec <= 0.0):
+            raise ValueError(
+                "move_base terminal confirmation timeout must be finite and positive"
+            )
         self.enforced_path_service_name = str(rospy.get_param(
             "~enforced_path_service",
             "/move_base/CoverageGlobalPlanner/set_enforced_path",
+        ))
+        self.navigation_owner_service_name = str(rospy.get_param(
+            "~navigation_owner_service",
+            "/navigation_pause/set_coverage_owner",
         ))
         self.entry_position_tolerance = float(rospy.get_param(
             "~entry_position_tolerance_m", 0.20
@@ -207,6 +236,7 @@ class CoverageManager:
         ))
         if (
             not self.enforced_path_service_name
+            or not self.navigation_owner_service_name
             or not math.isfinite(self.entry_position_tolerance)
             or not math.isfinite(self.entry_yaw_tolerance)
             or self.entry_position_tolerance <= 0.0
@@ -248,6 +278,14 @@ class CoverageManager:
         self.plan_token = ""
         self.start_pending = False
         self.start_token = ""
+        self.navigation_owner_token = ""
+        self.navigation_owner_claimed = False
+        self.navigation_owner_releasing = False
+        # Serialize the complete cleanup transaction for an owner retained
+        # after a failed start.  Without this operation-level guard, two
+        # cancel callbacks can both act on global "current" goal/planner state
+        # and the older callback can spill into a newly started mission.
+        self.retained_cleanup_lock = threading.Lock()
         self.manual_pause = False
         self.manual_pause_reason = ""
         self.external_pause = False
@@ -261,6 +299,43 @@ class CoverageManager:
         self.executed_path = Path()
         self.executed_path.header.frame_id = "map"
         self.worker = None
+        # SimpleActionClient only tracks its latest GoalHandle.  Keep a local
+        # monotonically increasing generation and the exact handle captured by
+        # send_goal so cleanup can prove it is observing this manager's same
+        # goal before opening any downstream ownership gate.
+        self.move_base_goal_generation = 0
+        self.move_base_goal_pending = False
+        self.move_base_goal_handle = None
+        self.move_base_goal_terminal_state = GoalStatus.LOST
+        # Batch definitions are immutable snapshots owned by the J6M manager.
+        # Saved/editable region persistence remains a Qt responsibility; this
+        # state only exists for the lifetime of one accepted execution batch.
+        self.batch_id = ""
+        self.batch_token = ""
+        self.batch_start_request_id = ""
+        self.batch_request_records = {}
+        self.batch_map_digest = ""
+        self.batch_active = False
+        self.batch_cancel_requested = False
+        self.batch_skip_requested = False
+        self.batch_abort_detail = ""
+        self.batch_phase = "IDLE"
+        self.batch_region_token = ""
+        self.batch_region_outcome = ""
+        self.batch_current_is_last = False
+        self.batch_regions = []
+        self.batch_current_index = 0
+        self.batch_total_regions = 0
+        self.batch_completed_regions = 0
+        self.batch_partial_regions = 0
+        self.batch_skipped_regions = 0
+        self.current_region_id = ""
+        self.current_region_name = ""
+        self.last_region_id = ""
+        self.last_region_name = ""
+        self.last_region_state = ""
+        self.batch_worker = None
+        self.batch_wake_event = threading.Event()
         self.original_teb = None
         self.kinematics_verified = False
         self.kinematics_detail = "waiting for task-start VCU and TEB verification"
@@ -336,15 +411,29 @@ class CoverageManager:
         self.start_service = rospy.Service(
             "/coverage/start", StartCoverage, self._start_service
         )
+        self.start_batch_service = rospy.Service(
+            "/coverage/start_batch", StartCoverageBatch,
+            self._start_batch_service,
+        )
+        self.cancel_batch_service = rospy.Service(
+            "/coverage/cancel_batch", CancelCoverageBatch,
+            self._cancel_batch_service,
+        )
         self.pause_service = rospy.Service(
             "/coverage/set_paused", SetBool, self._pause_service
         )
         self.cancel_service = rospy.Service(
             "/coverage/cancel", Trigger, self._cancel_service
         )
+        self.skip_current_service = rospy.Service(
+            "/coverage/skip_current", Trigger, self._skip_current_service
+        )
         self.move_base = actionlib.SimpleActionClient("/move_base", MoveBaseAction)
         self.enforced_path_client = rospy.ServiceProxy(
             self.enforced_path_service_name, SetEnforcedPath
+        )
+        self.navigation_owner_client = rospy.ServiceProxy(
+            self.navigation_owner_service_name, SetCoverageOwner
         )
         self.status_timer = rospy.Timer(rospy.Duration(0.5), self._status_timer)
         self.tracking_timer = rospy.Timer(rospy.Duration(0.2), self._tracking_timer)
@@ -368,11 +457,28 @@ class CoverageManager:
                 message.info.origin.position.y,
                 message.data,
             )
-            digest = grid.digest()
+            origin = message.info.origin
+            digest = occupancy_grid_digest(
+                message.header.frame_id,
+                message.info.width,
+                message.info.height,
+                message.info.resolution,
+                (
+                    origin.position.x,
+                    origin.position.y,
+                    origin.position.z,
+                ),
+                (
+                    origin.orientation.x,
+                    origin.orientation.y,
+                    origin.orientation.z,
+                    origin.orientation.w,
+                ),
+                message.data,
+            )
         except ValueError as error:
             rospy.logerr_throttle(2.0, "coverage rejected map: %s", error)
             return
-        changed_while_active = False
         with self.lock:
             previous = self.map_digest
             self.grid = grid
@@ -382,16 +488,23 @@ class CoverageManager:
                 self.plan = None
                 self.plan_id = ""
                 self.plan_map_digest = ""
-                changed_while_active = self.active
+                changed_while_active = self.active or self.batch_active
                 self.detail = "static map changed; coverage plan invalidated"
-                if not self.active:
+                if not changed_while_active:
                     self.state = "IDLE"
+                # Invalidate the old preview while the same lifecycle
+                # generation is locked.  Otherwise a concurrent /plan could
+                # publish a new preview and then have it erased here.
+                self._clear_visualizations()
+                if changed_while_active:
+                    # RLock makes this re-entrant.  Keeping the cancellation
+                    # request in this critical section prevents an old map
+                    # callback from canceling a newer mission generation.
+                    self._request_cancel(
+                        "static map changed during coverage"
+                    )
             elif self.state == "IDLE":
                 self.detail = "static map ready; select a coverage region"
-        if changed_while_active:
-            self._request_cancel("static map changed during coverage")
-        if previous and previous != digest:
-            self._clear_visualizations()
         self._publish_status()
 
     def _localization_callback(self, message):
@@ -732,8 +845,11 @@ class CoverageManager:
     def _plan_service(self, request):
         response = PlanCoverageResponse()
         with self.lock:
-            if self.active:
-                response.message = "cannot replace a plan while coverage is active"
+            response.map_digest = self.map_digest
+            if self.active or self.batch_active:
+                response.message = (
+                    "cannot replace a plan while coverage or a coverage batch is active"
+                )
                 return response
             if self.start_pending:
                 response.message = "cannot replace a plan while coverage start is preparing"
@@ -743,6 +859,12 @@ class CoverageManager:
                 return response
             if self.grid is None:
                 response.message = "static map is not ready"
+                return response
+            if not request.map_digest:
+                response.message = "map digest is required"
+                return response
+            if request.map_digest != self.map_digest:
+                response.message = "map digest does not match the current static map"
                 return response
             token = uuid.uuid4().hex
             self.plan_pending = True
@@ -802,7 +924,8 @@ class CoverageManager:
                 response.message = "coverage planning was canceled or superseded"
                 commit_plan = False
             elif (
-                self.active or self.start_pending or self.map_digest != map_digest
+                self.active or self.batch_active or self.start_pending or
+                self.map_digest != map_digest
             ):
                 self.plan_pending = False
                 self.plan_token = ""
@@ -977,6 +1100,49 @@ class CoverageManager:
         )
         self.worker = None
 
+    def _clear_batch_display_identity_locked(self):
+        """Detach a new standalone mission from the last terminal batch.
+
+        Batch request records remain available for idempotent operation-ID
+        replay/cancel handling.  Only the public status identity and counters
+        are cleared, so a later standalone retained-owner failure cannot be
+        mistaken for the previous batch by a recovering client.
+        """
+        self.batch_id = ""
+        self.batch_token = ""
+        self.batch_start_request_id = ""
+        self.batch_map_digest = ""
+        self.batch_cancel_requested = False
+        self.batch_skip_requested = False
+        self.batch_abort_detail = ""
+        self.batch_phase = "IDLE"
+        self.batch_region_token = ""
+        self.batch_region_outcome = ""
+        self.batch_current_is_last = False
+        self.batch_regions = []
+        self.batch_current_index = 0
+        self.batch_total_regions = 0
+        self.batch_completed_regions = 0
+        self.batch_partial_regions = 0
+        self.batch_skipped_regions = 0
+        self.current_region_id = ""
+        self.current_region_name = ""
+        self.last_region_id = ""
+        self.last_region_name = ""
+        self.last_region_state = ""
+
+    def _clear_never_started_batch_identity_locked(self, batch_id):
+        """Clear a safely settled reservation without touching its replay record."""
+        if (
+            self.batch_id != batch_id
+            or self.batch_active
+            or self.batch_token
+            or self.batch_start_request_id not in ("", batch_id)
+        ):
+            return False
+        self._clear_batch_display_identity_locked()
+        return True
+
     def _start_service(self, request):
         try:
             requested_speed = float(request.max_speed_mps)
@@ -995,8 +1161,15 @@ class CoverageManager:
             )
 
         with self.lock:
-            if self.active:
-                return StartCoverageResponse(False, "coverage is already active")
+            if self._retained_cleanup_in_progress_locked():
+                return StartCoverageResponse(
+                    False,
+                    "a retained coverage cleanup is still in progress",
+                )
+            if self.active or self.batch_active:
+                return StartCoverageResponse(
+                    False, "coverage or a coverage batch is already active"
+                )
             if self.start_pending:
                 return StartCoverageResponse(False, "coverage start is already preparing")
             if self.plan_pending:
@@ -1006,14 +1179,17 @@ class CoverageManager:
             if self.plan_map_digest != self.map_digest:
                 return StartCoverageResponse(False, "static map changed after planning")
             token = uuid.uuid4().hex
+            owner_token = self._new_navigation_owner_token()
             plan_id = self.plan_id
             map_digest = self.map_digest
             grid = self.grid
             region = copy.deepcopy(self.region)
             operation_width = self.operation_width
             overlap_ratio = self.overlap_ratio
+            self._clear_batch_display_identity_locked()
             self.start_pending = True
             self.start_token = token
+            self.cancel_requested = False
             self.state = "PREPARING"
             self.detail = "checking live safety gates and current-map coverage entry"
         self._publish_status()
@@ -1084,10 +1260,39 @@ class CoverageManager:
 
         failure = ""
         with self.lock:
-            if not self.start_pending or self.start_token != token:
+            if (not self.start_pending or self.start_token != token or
+                    self.cancel_requested):
+                failure = "coverage start was canceled or superseded"
+            elif self.active or self.batch_active:
+                failure = "coverage or a coverage batch became active during preparation"
+        if failure:
+            return self._finish_start_failure(token, failure)
+
+        owner_state, owner_detail = self._resolve_navigation_owner_claim(
+            owner_token, "coverage owner claim is pending"
+        )
+        if owner_state == "REJECTED":
+            return self._finish_start_failure(
+                token,
+                "coverage could not claim navigation ownership: {}".format(
+                    owner_detail
+                ),
+            )
+        if owner_state != "READY":
+            return self._retain_failed_navigation_owner_release(
+                owner_token,
+                "coverage navigation owner claim remained unknown: {}".format(
+                    owner_detail
+                ),
+            )
+
+        with self.lock:
+            if (not self.start_pending or self.start_token != token or
+                    self.cancel_requested):
                 failure = "coverage start was canceled or superseded"
             elif (
                 self.active
+                or self.batch_active
                 or self.plan is None
                 or self.plan_id != plan_id
                 or self.plan_map_digest != map_digest
@@ -1100,6 +1305,7 @@ class CoverageManager:
             if not failure:
                 self.start_pending = False
                 self.start_token = ""
+                self.cancel_requested = False
                 self.plan = replanned
                 self.task_max_speed = requested_speed
                 self.cancel_requested = False
@@ -1107,6 +1313,9 @@ class CoverageManager:
                 self.manual_pause_reason = ""
                 self.avoidance_loss_paused = False
                 self.chassis_fault_paused = False
+                self.navigation_owner_token = owner_token
+                self.navigation_owner_claimed = True
+                self.navigation_owner_releasing = False
                 self.active = True
                 self._reset_execution_locked(clear_progress=True)
                 self.total_segments = len(route) * 2
@@ -1116,6 +1325,15 @@ class CoverageManager:
                 )
                 self.worker = worker
         if failure:
+            released, release_detail = self._set_navigation_owner(
+                False, owner_token
+            )
+            if not released:
+                return self._retain_failed_navigation_owner_release(
+                    owner_token,
+                    "coverage start was not committed ({}) and owner release "
+                    "failed: {}".format(failure, release_detail),
+                )
             return self._finish_start_failure(token, failure)
 
         # Advertise mission ownership before the worker can submit its first
@@ -1125,7 +1343,13 @@ class CoverageManager:
         self.path_pub.publish(planned_path)
         self._publish_markers(route, region)
         self._publish_status()
-        worker.start()
+        try:
+            worker.start()
+        except RuntimeError as error:
+            return self._abort_committed_start(
+                owner_token,
+                "coverage worker could not start: {}".format(error),
+            )
         return StartCoverageResponse(
             True,
             "coverage task started at {:.2f} m/s maximum".format(requested_speed),
@@ -1136,6 +1360,7 @@ class CoverageManager:
             if self.start_pending and self.start_token == token:
                 self.start_pending = False
                 self.start_token = ""
+                self.cancel_requested = False
                 if self.plan is not None and self.plan_map_digest == self.map_digest:
                     self.state = "READY"
                 else:
@@ -1146,6 +1371,997 @@ class CoverageManager:
         rospy.logwarn("coverage start rejected: %s", reason)
         self._publish_status()
         return StartCoverageResponse(False, reason)
+
+    def _retain_failed_navigation_owner_release(self, owner_token, reason):
+        """Keep every local gate closed when a claimed token cannot release."""
+        with self.lock:
+            self.start_pending = False
+            self.start_token = ""
+            self.navigation_owner_token = owner_token
+            self.navigation_owner_claimed = True
+            self.navigation_owner_releasing = True
+            self.active = True
+            self.cancel_requested = True
+            self.worker = None
+            self.state = "FAILED"
+            self.detail = reason
+        self.active_pub.publish(Bool(data=True))
+        self._publish_status()
+        rospy.logerr(reason)
+        return StartCoverageResponse(False, reason)
+
+    def _abort_committed_start(self, owner_token, reason):
+        with self.lock:
+            if self.navigation_owner_token == owner_token:
+                self.navigation_owner_releasing = True
+            plan_id = self.plan_id
+        goal_terminal_ok, goal_terminal_detail = (
+            self._confirm_move_base_goal_terminal(cancel=True)
+        )
+        if not goal_terminal_ok:
+            return self._retain_failed_navigation_owner_release(
+                owner_token,
+                "{}; move_base goal is not safely terminal: {}; navigation "
+                "owner retained".format(reason, goal_terminal_detail),
+            )
+        off = EnforcedPath()
+        off.header.frame_id = "map"
+        off.plan_id = plan_id
+        off.active = False
+        handoff_ok = self._set_enforced_path(off, coverage_active=False)
+        teb_restored = self._restore_teb()
+        if not handoff_ok or not teb_restored:
+            cleanup_detail = (
+                "planner ownership could not be restored"
+                if not handoff_ok else
+                "TEB parameters could not be restored"
+            )
+            return self._retain_failed_navigation_owner_release(
+                owner_token,
+                "{}; {}; navigation owner retained".format(
+                    reason, cleanup_detail
+                ),
+            )
+        released, release_detail = self._set_navigation_owner(False, owner_token)
+        if not released:
+            return self._retain_failed_navigation_owner_release(
+                owner_token,
+                "{}; navigation owner release failed: {}".format(
+                    reason, release_detail
+                ),
+            )
+        with self.lock:
+            if self.navigation_owner_token == owner_token:
+                self.navigation_owner_token = ""
+                self.navigation_owner_claimed = False
+                self.navigation_owner_releasing = False
+            self.active = False
+            self.cancel_requested = False
+            self.state = "FAILED"
+            self.detail = reason
+            self._discard_plan_locked(clear_progress=False)
+            self._clear_visualizations()
+            self.active_pub.publish(Bool(data=False))
+            self._publish_status()
+        rospy.logerr(reason)
+        return StartCoverageResponse(False, reason)
+
+    @staticmethod
+    def _validate_batch_regions(regions):
+        if not regions:
+            return "coverage batch must contain at least one region"
+        if len(regions) > 100:
+            return "coverage batch must not contain more than 100 regions"
+        seen_ids = set()
+        for index, item in enumerate(regions):
+            region_id = str(item.id)
+            if not region_id.strip():
+                return "coverage batch region {} has an empty id".format(index + 1)
+            if len(region_id.encode("utf-8")) > 128:
+                return "coverage batch region {} id is too long".format(index + 1)
+            region_name = str(item.name)
+            if not region_name.strip():
+                return "coverage batch region {} has an empty name".format(index + 1)
+            if len(region_name.encode("utf-8")) > 256:
+                return "coverage batch region {} name is too long".format(index + 1)
+            if region_id in seen_ids:
+                return "coverage batch region id is duplicated: {}".format(region_id)
+            seen_ids.add(region_id)
+            if item.region.header.frame_id not in ("", "map"):
+                return "coverage batch regions must use the map frame"
+            points = item.region.polygon.points
+            if len(points) < 3:
+                return "coverage batch region {} needs at least three vertices".format(
+                    index + 1
+                )
+            if len(points) > 4096:
+                return "coverage batch region {} has too many vertices".format(
+                    index + 1
+                )
+            for point in points:
+                if not all(math.isfinite(float(value)) for value in (
+                        point.x, point.y, point.z)):
+                    return "coverage batch region {} has non-finite vertices".format(
+                        index + 1
+                    )
+        return ""
+
+    @staticmethod
+    def _valid_batch_request_id(request_id):
+        return re.fullmatch(
+            r"coverage-batch-[0-9a-f]{32}", str(request_id)
+        ) is not None
+
+    @staticmethod
+    def _batch_request_fingerprint(
+            regions, operation_width, overlap_ratio, allow_reverse,
+            requested_speed, map_digest):
+        """Hash every semantically relevant field of an immutable request."""
+        payload = {
+            "operation_width": float(operation_width).hex(),
+            "overlap_ratio": float(overlap_ratio).hex(),
+            "allow_reverse": bool(allow_reverse),
+            "requested_speed": float(requested_speed).hex(),
+            "map_digest": str(map_digest),
+            "regions": [
+                {
+                    "id": str(item.id),
+                    "name": str(item.name),
+                    "frame_id": str(item.region.header.frame_id),
+                    "points": [
+                        [
+                            float(point.x).hex(),
+                            float(point.y).hex(),
+                            float(point.z).hex(),
+                        ]
+                        for point in item.region.polygon.points
+                    ],
+                }
+                for item in regions
+            ],
+        }
+        encoded = json.dumps(
+            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+        return hashlib.sha256(encoded).hexdigest()
+
+    def _batch_request_records_locked(self):
+        records = getattr(self, "batch_request_records", None)
+        if records is None:
+            records = {}
+            self.batch_request_records = records
+        return records
+
+    def _retained_cleanup_in_progress_locked(self):
+        cleanup_lock = getattr(self, "retained_cleanup_lock", None)
+        return bool(cleanup_lock is not None and cleanup_lock.locked())
+
+    def _retained_cleanup_mutex(self):
+        with self.lock:
+            cleanup_lock = getattr(self, "retained_cleanup_lock", None)
+            if cleanup_lock is None:
+                # Compatibility for old serialized fixtures/process state;
+                # production instances create this in __init__.
+                cleanup_lock = threading.Lock()
+                self.retained_cleanup_lock = cleanup_lock
+            return cleanup_lock
+
+    @staticmethod
+    def _batch_replay_response(response, request_id, record, fingerprint):
+        response.batch_id = request_id
+        recorded_fingerprint = record.get("fingerprint", "")
+        if recorded_fingerprint and recorded_fingerprint != fingerprint:
+            response.message = (
+                "client_request_id was already used with a different payload"
+            )
+            return response
+        state = record.get("state", "REJECTED")
+        if record.get("accepted", False):
+            response.accepted = True
+            response.message = (
+                "coverage batch request was already accepted ({})"
+            ).format(state.lower())
+            return response
+        if state == "STARTING":
+            response.message = (
+                "coverage batch request is still starting; retry the same id"
+            )
+        else:
+            response.message = record.get(
+                "message", "coverage batch request was not accepted"
+            )
+        return response
+
+    def _start_batch_service(self, request):
+        response = StartCoverageBatchResponse()
+        batch_id = str(getattr(request, "client_request_id", ""))
+        response.batch_id = batch_id
+        if not self._valid_batch_request_id(batch_id):
+            response.message = (
+                "client_request_id must match coverage-batch-[0-9a-f]{32}"
+            )
+            return response
+        try:
+            operation_width = float(request.operation_width_m)
+            overlap_ratio = float(request.overlap_ratio)
+            requested_speed = float(request.max_speed_mps)
+        except (TypeError, ValueError, OverflowError):
+            response.message = "coverage batch parameters must be finite numbers"
+            return response
+        if not math.isfinite(operation_width) or not 0.30 <= operation_width <= 3.0:
+            response.message = "operation width must be in [0.30, 3.00] m"
+            return response
+        if not math.isfinite(overlap_ratio) or not 0.0 <= overlap_ratio <= 0.5:
+            response.message = "overlap ratio must be in [0.0, 0.5]"
+            return response
+        if (not math.isfinite(requested_speed) or requested_speed < 0.10 or
+                requested_speed > self.max_speed_limit):
+            response.message = (
+                "maximum coverage speed must be in [0.10, {:.2f}] m/s"
+            ).format(self.max_speed_limit)
+            return response
+        if not request.map_digest:
+            response.message = "map digest is required"
+            return response
+        requested_regions = list(request.regions)
+        validation_error = self._validate_batch_regions(requested_regions)
+        if validation_error:
+            response.message = validation_error
+            return response
+        regions = copy.deepcopy(requested_regions)
+        fingerprint = self._batch_request_fingerprint(
+            regions,
+            operation_width,
+            overlap_ratio,
+            request.allow_reverse_transit,
+            requested_speed,
+            request.map_digest,
+        )
+
+        token = uuid.uuid4().hex
+        reservation_token = uuid.uuid4().hex
+        owner_token = self._new_navigation_owner_token()
+        with self.lock:
+            records = self._batch_request_records_locked()
+            existing = records.get(batch_id)
+            if existing is not None:
+                return self._batch_replay_response(
+                    response, batch_id, existing, fingerprint
+                )
+            # Do not permanently reject a fresh operation ID merely because
+            # an older retained cleanup is between external side effects and
+            # its final local commit.  The client can safely retry this ID.
+            if self._retained_cleanup_in_progress_locked():
+                response.message = (
+                    "a retained coverage cleanup is still in progress; "
+                    "retry the same client_request_id"
+                )
+                return response
+            records[batch_id] = {
+                "fingerprint": fingerprint,
+                "state": "STARTING",
+                "accepted": False,
+                "message": "coverage batch request is starting",
+            }
+            if self.active or self.batch_active or self.batch_worker is not None:
+                response.message = "coverage or a coverage batch is already active"
+                records[batch_id].update(
+                    state="REJECTED", message=response.message
+                )
+                return response
+            if self.plan_pending or self.start_pending:
+                response.message = "coverage planning or start preparation is in progress"
+                records[batch_id].update(
+                    state="REJECTED", message=response.message
+                )
+                return response
+            if self.grid is None:
+                response.message = "static map is not ready"
+                records[batch_id].update(
+                    state="REJECTED", message=response.message
+                )
+                return response
+            if request.map_digest != self.map_digest:
+                response.message = "map digest does not match the current static map"
+                records[batch_id].update(
+                    state="REJECTED", message=response.message
+                )
+                return response
+
+            self.start_pending = True
+            self.start_token = reservation_token
+            self.cancel_requested = False
+            self.batch_start_request_id = batch_id
+            # Expose the exact operation while its owner claim is pending so
+            # broad/UI cancellation cannot mistake active=false for quiescence.
+            self.batch_id = batch_id
+            self.state = "PREPARING"
+            self.detail = "claiming navigation ownership for coverage batch"
+        self._publish_status()
+
+        owner_state, owner_detail = self._resolve_navigation_owner_claim(
+            owner_token, "coverage batch owner claim is pending"
+        )
+        if owner_state != "READY":
+            if owner_state == "UNKNOWN":
+                reason = (
+                    "coverage batch owner claim remained unknown: {}"
+                ).format(owner_detail)
+                with self.lock:
+                    self.start_pending = False
+                    self.start_token = ""
+                    self.batch_start_request_id = ""
+                    self.batch_id = batch_id
+                    self.batch_phase = "FINALIZING"
+                    self.navigation_owner_token = owner_token
+                    self.navigation_owner_claimed = True
+                    self.navigation_owner_releasing = True
+                    self.active = True
+                    self.cancel_requested = True
+                    self.state = "FAILED"
+                    self.detail = reason
+                    record = self._batch_request_records_locked().get(
+                        batch_id, {}
+                    )
+                    record.update(
+                        state="FAILED_RETAINED",
+                        message=reason,
+                        owner_token=owner_token,
+                    )
+                self.active_pub.publish(Bool(data=True))
+                self._publish_status()
+                rospy.logerr(reason)
+                response.message = reason
+                return response
+            with self.lock:
+                record = self._batch_request_records_locked().get(batch_id, {})
+                canceled = record.get("state") in (
+                    "CANCEL_PENDING_BEFORE_START",
+                    "CANCELED_BEFORE_START",
+                )
+                if (self.start_pending and
+                        self.start_token == reservation_token):
+                    self.start_pending = False
+                    self.start_token = ""
+                    self.batch_start_request_id = ""
+                if canceled:
+                    record.update(
+                        state="CANCELED_BEFORE_START",
+                        message="coverage batch was canceled before it started",
+                    )
+                else:
+                    record.update(
+                        state="REJECTED",
+                        message=(
+                            "coverage batch owner claim was rejected with no "
+                            "ownership for this token: {}"
+                        ).format(owner_detail),
+                    )
+                self.state = "READY" if self.plan is not None else "IDLE"
+                self.detail = record["message"]
+                response.message = record.get("message", self.detail)
+                self._clear_never_started_batch_identity_locked(batch_id)
+            self._publish_status()
+            return response
+
+        worker = threading.Thread(
+            target=self._run_batch,
+            args=(token,),
+            daemon=True,
+        )
+        failure = ""
+        with self.lock:
+            record = self._batch_request_records_locked().get(batch_id, {})
+            if (not self.start_pending or
+                    self.start_token != reservation_token):
+                failure = "coverage batch start was canceled or superseded"
+            elif record.get("state") != "STARTING":
+                failure = record.get(
+                    "message", "coverage batch start was canceled"
+                )
+            elif self.active or self.batch_active or self.batch_worker is not None:
+                failure = "coverage or a coverage batch became active during start"
+            elif self.grid is None or request.map_digest != self.map_digest:
+                failure = "static map changed during coverage batch start"
+
+            if not failure:
+                # Explicit batch start supersedes an idle single-region preview.
+                self._discard_plan_locked(clear_progress=True)
+                self._clear_visualizations()
+                self.batch_id = batch_id
+                self.batch_token = token
+                self.batch_map_digest = self.map_digest
+                self.batch_active = True
+                self.batch_cancel_requested = False
+                self.batch_skip_requested = False
+                self.batch_abort_detail = ""
+                self.batch_phase = "PLANNING"
+                self.batch_region_token = uuid.uuid4().hex
+                self.batch_region_outcome = ""
+                self.batch_current_is_last = len(regions) == 1
+                self.batch_regions = regions
+                self.batch_current_index = 1
+                self.batch_total_regions = len(regions)
+                self.batch_completed_regions = 0
+                self.batch_partial_regions = 0
+                self.batch_skipped_regions = 0
+                self.current_region_id = str(regions[0].id)
+                self.current_region_name = str(regions[0].name)
+                self.last_region_id = ""
+                self.last_region_name = ""
+                self.last_region_state = ""
+                self.navigation_owner_token = owner_token
+                self.navigation_owner_claimed = True
+                self.navigation_owner_releasing = False
+                self.active = False
+                self.cancel_requested = False
+                self.manual_pause = False
+                self.manual_pause_reason = ""
+                self.avoidance_loss_paused = False
+                self.chassis_fault_paused = False
+                self.operation_width = operation_width
+                self.overlap_ratio = overlap_ratio
+                self.allow_reverse_transit = bool(request.allow_reverse_transit)
+                self.task_max_speed = requested_speed
+                self.state = "PLANNING"
+                self.detail = "preparing coverage batch region 1 of {}".format(
+                    len(regions)
+                )
+                self.batch_wake_event.clear()
+                self.batch_worker = worker
+                self.start_pending = False
+                self.start_token = ""
+                self.batch_start_request_id = ""
+                record.update(
+                    state="COMMITTED",
+                    message="coverage batch start was committed",
+                )
+
+        if failure:
+            released, release_detail = self._set_navigation_owner(
+                False, owner_token
+            )
+            if not released:
+                reason = "{}; navigation owner release failed: {}".format(
+                    failure, release_detail
+                )
+                with self.lock:
+                    self.start_pending = False
+                    self.start_token = ""
+                    self.batch_start_request_id = ""
+                    self.batch_id = batch_id
+                    self.batch_phase = "FINALIZING"
+                    self.navigation_owner_token = owner_token
+                    self.navigation_owner_claimed = True
+                    self.navigation_owner_releasing = True
+                    self.active = True
+                    self.cancel_requested = True
+                    self.state = "FAILED"
+                    self.detail = reason
+                    record = self._batch_request_records_locked().get(
+                        batch_id, {}
+                    )
+                    record.update(
+                        state="FAILED_RETAINED",
+                        message=reason,
+                        owner_token=owner_token,
+                    )
+                self.active_pub.publish(Bool(data=True))
+                self._publish_status()
+                rospy.logerr(reason)
+                response.message = reason
+                return response
+            with self.lock:
+                if (self.start_pending and
+                        self.start_token == reservation_token):
+                    self.start_pending = False
+                    self.start_token = ""
+                    self.batch_start_request_id = ""
+                    self.state = (
+                        "READY" if self.plan is not None else "IDLE"
+                    )
+                    self.detail = failure
+                record = self._batch_request_records_locked().get(batch_id, {})
+                if record.get("state") == "STARTING":
+                    record.update(state="REJECTED", message=failure)
+                elif (
+                    record.get("state") in (
+                        "CANCEL_PENDING_BEFORE_START",
+                        "CANCELED_BEFORE_START",
+                    )
+                    and not self.active
+                    and not self.batch_active
+                    and self.batch_worker is None
+                    and not self.start_pending
+                ):
+                    record.update(
+                        state="CANCELED_BEFORE_START",
+                        message="coverage batch was canceled before it started",
+                    )
+                    self.state = "READY" if self.plan is not None else "IDLE"
+                    self.detail = record.get("message", failure)
+                self._clear_never_started_batch_identity_locked(batch_id)
+            self._publish_status()
+            with self.lock:
+                response.message = self._batch_request_records_locked().get(
+                    batch_id, {}
+                ).get("message", failure)
+            return response
+
+        # Atomic service ownership is already established before the public
+        # compatibility latch and before the worker can submit any goal.
+        self.active_pub.publish(Bool(data=True))
+        self._publish_status()
+
+        # Per-region self.active is intentionally false during JIT planning and
+        # inter-region gaps, while the public ownership latch remains true.
+        try:
+            worker.start()
+        except RuntimeError as error:
+            self._finalize_batch(
+                token,
+                "FAILED",
+                "coverage batch worker could not start: {}".format(error),
+            )
+            response.message = "coverage batch worker could not start"
+            return response
+        with self.lock:
+            record = self._batch_request_records_locked().get(batch_id, {})
+            record["accepted"] = True
+            if record.get("state") == "COMMITTED":
+                record["state"] = "ACTIVE"
+            record["message"] = "coverage batch accepted"
+        response.accepted = True
+        response.message = "coverage batch accepted"
+        response.batch_id = batch_id
+        return response
+
+    def _batch_interrupt_locked(self, token):
+        if not self.batch_active or self.batch_token != token:
+            return "CANCELED"
+        if self.batch_cancel_requested:
+            return "CANCELED"
+        if self.batch_skip_requested:
+            return "SKIPPED"
+        return ""
+
+    def _commit_batch_region_outcome_locked(self, token, outcome):
+        """Linearize one region result against operator cancel/skip calls."""
+        if not self.batch_active or self.batch_token != token:
+            return "CANCELED"
+        if (
+            self.batch_phase in ("RESULT_COMMITTED", "FINALIZING")
+            and self.batch_region_outcome
+        ):
+            return self.batch_region_outcome
+        # A lifecycle cleanup/planning failure is fail-closed and cannot be
+        # hidden by a concurrent operator request.
+        if outcome == "FAILED":
+            region_state = "FAILED"
+        elif self.batch_cancel_requested:
+            region_state = "CANCELED"
+        elif self.batch_skip_requested or outcome == "SKIPPED":
+            region_state = "SKIPPED"
+        else:
+            region_state = outcome
+        if region_state not in REGION_TERMINAL_STATES:
+            region_state = "FAILED"
+            self.detail = "coverage batch produced an invalid region outcome"
+        self.batch_region_outcome = region_state
+        continues = region_state in (
+            "COMPLETED", "COMPLETED_PARTIAL", "SKIPPED"
+        )
+        self.batch_phase = (
+            "FINALIZING"
+            if self.batch_current_is_last or not continues
+            else "RESULT_COMMITTED"
+        )
+        return region_state
+
+    def _batch_external_prechecks(self, token):
+        if not self.move_base.wait_for_server(rospy.Duration(0.5)):
+            with self.lock:
+                if not self._batch_interrupt_locked(token):
+                    self.detail = "move_base action server is unavailable"
+            return False
+        try:
+            rospy.wait_for_service(self.enforced_path_service_name, timeout=0.5)
+        except Exception as error:
+            with self.lock:
+                if not self._batch_interrupt_locked(token):
+                    self.detail = (
+                        "coverage global-planner hand-off service is unavailable: {}"
+                    ).format(error)
+            return False
+        return self._verify_kinematics()
+
+    def _prepare_batch_region(self, token, item):
+        with self.lock:
+            interrupted = self._batch_interrupt_locked(token)
+            if interrupted:
+                return interrupted, None, None
+            if self.map_digest != self.batch_map_digest:
+                self.batch_cancel_requested = True
+                self.batch_abort_detail = "static map changed during coverage batch"
+                self.cancel_requested = True
+                return "CANCELED", None, None
+            grid = self.grid
+            map_digest = self.batch_map_digest
+            operation_width = self.operation_width
+            overlap_ratio = self.overlap_ratio
+            requested_speed = self.task_max_speed
+            self.state = "PLANNING"
+            self.detail = "planning coverage batch region {} of {}".format(
+                self.batch_current_index, self.batch_total_regions
+            )
+        self._publish_status()
+
+        if not self._wait_while_paused():
+            with self.lock:
+                return (self._batch_interrupt_locked(token) or "CANCELED",
+                        None, None)
+        current_pose = self._current_pose()
+        if current_pose is None:
+            with self.lock:
+                self.detail = "map to base_link transform is unavailable"
+            return "FAILED", None, None
+        current, current_yaw = current_pose
+        try:
+            plan = self._planner(grid).plan(
+                self._points_from_region(item.region),
+                operation_width,
+                overlap_ratio,
+                reachable_seed=current,
+            )
+        except ValueError as error:
+            with self.lock:
+                self.detail = "coverage batch region planning failed: {}".format(error)
+            return "FAILED", None, None
+        except Exception as error:
+            rospy.logerr("coverage batch region planning raised an exception: %s", error)
+            with self.lock:
+                self.detail = (
+                    "coverage batch region planning raised an exception: {}"
+                ).format(error)
+            return "FAILED", None, None
+
+        current_pose = self._current_pose()
+        if current_pose is None:
+            with self.lock:
+                self.detail = (
+                    "map to base_link transform disappeared during batch planning"
+                )
+            return "FAILED", None, None
+        current, current_yaw = current_pose
+        route = order_swaths(
+            plan.swaths,
+            current,
+            plan.spacing,
+            self.minimum_turning_radius,
+            current_yaw,
+        )
+        plan.swaths = route
+        plan_id = uuid.uuid4().hex
+        region = copy.deepcopy(item.region)
+        region.header.frame_id = "map"
+        region.header.stamp = rospy.Time.now()
+        planned_path = self._planned_path(route, current)
+
+        with self.lock:
+            interrupted = self._batch_interrupt_locked(token)
+            if interrupted:
+                return interrupted, None, None
+            if self.map_digest != map_digest:
+                self.batch_cancel_requested = True
+                self.batch_abort_detail = "static map changed during coverage batch"
+                self.cancel_requested = True
+                return "CANCELED", None, None
+            self._reset_execution_locked(clear_progress=True)
+            self.plan = plan
+            self.plan_id = plan_id
+            self.plan_map_digest = map_digest
+            self.region = region
+            self.kinematics_verified = False
+            self.kinematics_detail = (
+                "waiting for task-start VCU and TEB verification"
+            )
+            self.total_segments = len(route) * 2
+            self.state = "PREPARING"
+            self.detail = "checking live safety gates for coverage batch region"
+            self._clear_visualizations()
+            self.region_pub.publish(region)
+            self.path_pub.publish(planned_path)
+            self._publish_markers(route, region)
+        self._publish_status()
+
+        if not self._wait_while_paused():
+            with self.lock:
+                return (self._batch_interrupt_locked(token) or "CANCELED",
+                        None, None)
+        with self.lock:
+            interrupted = self._batch_interrupt_locked(token)
+            if interrupted:
+                return interrupted, None, None
+            if not self._start_prechecks_locked(
+                    requested_speed, require_kinematics=False):
+                return "FAILED", None, None
+        if not self._batch_external_prechecks(token):
+            with self.lock:
+                interrupted = self._batch_interrupt_locked(token)
+            return (interrupted or "FAILED"), None, None
+        with self.lock:
+            interrupted = self._batch_interrupt_locked(token)
+            if interrupted:
+                return interrupted, None, None
+            if self.map_digest != map_digest:
+                self.batch_cancel_requested = True
+                self.batch_abort_detail = "static map changed during coverage batch"
+                self.cancel_requested = True
+                return "CANCELED", None, None
+            if not self._start_prechecks_locked(
+                    requested_speed, require_kinematics=True):
+                return "FAILED", None, None
+            self.active = True
+            self.cancel_requested = False
+            self.batch_phase = "EXECUTING"
+            self.state = "GOING_TO_START"
+            self.detail = (
+                "coverage batch region {} of {} accepted at {:.2f} m/s maximum"
+            ).format(
+                self.batch_current_index,
+                self.batch_total_regions,
+                requested_speed,
+            )
+        self._publish_status()
+        return "READY", route, current
+
+    def _record_batch_region_result(self, token, item, outcome):
+        with self.lock:
+            if not self.batch_active or self.batch_token != token:
+                return "CANCELED", False
+            region_state = self._commit_batch_region_outcome_locked(
+                token, outcome
+            )
+            self.last_region_id = str(item.id)
+            self.last_region_name = str(item.name)
+            self.last_region_state = region_state
+            if region_state == "COMPLETED":
+                self.batch_completed_regions += 1
+            elif region_state == "COMPLETED_PARTIAL":
+                self.batch_partial_regions += 1
+            elif region_state == "SKIPPED":
+                self.batch_skipped_regions += 1
+
+            should_continue = region_state in (
+                "COMPLETED", "COMPLETED_PARTIAL", "SKIPPED"
+            )
+            self.active = False
+            self.batch_current_index = 0
+            self.current_region_id = ""
+            self.current_region_name = ""
+            self._discard_plan_locked(clear_progress=False)
+            self._clear_visualizations()
+            if should_continue:
+                self.batch_skip_requested = False
+                if not self.batch_cancel_requested:
+                    self.cancel_requested = False
+                if not self.batch_current_is_last:
+                    self.batch_phase = "BETWEEN_REGIONS"
+                self.state = "PREPARING"
+                self.detail = (
+                    "coverage batch region {} finished as {}; preparing next region"
+                ).format(item.id, region_state)
+            self.batch_wake_event.clear()
+        self._publish_status()
+        return region_state, should_continue
+
+    def _run_batch(self, token):
+        terminal_state = "FAILED"
+        terminal_detail = "coverage batch failed"
+        try:
+            with self.lock:
+                regions = copy.deepcopy(self.batch_regions)
+            for index, item in enumerate(regions):
+                with self.lock:
+                    interrupted = self._batch_interrupt_locked(token)
+                    if interrupted == "CANCELED":
+                        terminal_state = "CANCELED"
+                        terminal_detail = (
+                            self.batch_abort_detail or "coverage batch canceled"
+                        )
+                        break
+                    self.batch_current_index = index + 1
+                    self.batch_phase = "PLANNING"
+                    self.batch_region_token = uuid.uuid4().hex
+                    self.batch_region_outcome = ""
+                    self.batch_current_is_last = index + 1 == len(regions)
+                    self.current_region_id = str(item.id)
+                    self.current_region_name = str(item.name)
+                    self.state = "PLANNING"
+                    self.detail = "preparing coverage batch region {} of {}".format(
+                        index + 1, len(regions)
+                    )
+                self._publish_status()
+
+                outcome, route, current = self._prepare_batch_region(token, item)
+                if outcome == "READY":
+                    outcome = self._run_task(
+                        route, current, batch_context=True
+                    )
+                with self.lock:
+                    outcome = self._commit_batch_region_outcome_locked(
+                        token, outcome
+                    )
+                region_state, should_continue = self._record_batch_region_result(
+                    token, item, outcome
+                )
+                with self.lock:
+                    cancel_after_result = self.batch_cancel_requested
+                    cancel_detail = self.batch_abort_detail
+                if cancel_after_result:
+                    terminal_state = "CANCELED"
+                    terminal_detail = cancel_detail or "coverage batch canceled"
+                    break
+                if not should_continue:
+                    terminal_state = region_state
+                    with self.lock:
+                        terminal_detail = (
+                            self.batch_abort_detail or self.detail or
+                            "coverage batch stopped"
+                        )
+                    break
+            else:
+                with self.lock:
+                    partial = (
+                        self.batch_partial_regions > 0 or
+                        self.batch_skipped_regions > 0
+                    )
+                terminal_state = "COMPLETED_PARTIAL" if partial else "COMPLETED"
+                terminal_detail = (
+                    "coverage batch completed with partial or skipped regions"
+                    if partial else "coverage batch completed"
+                )
+        except Exception as error:
+            rospy.logerr("coverage batch failed: %s", error)
+            terminal_state = "FAILED"
+            terminal_detail = "coverage batch exception: {}".format(error)
+        finally:
+            self._finalize_batch(token, terminal_state, terminal_detail)
+
+    def _finalize_batch(self, token, terminal_state, terminal_detail):
+        with self.lock:
+            if self.batch_token != token:
+                return
+            finalizing_batch_id = self.batch_id
+            record = self._batch_request_records_locked().get(
+                finalizing_batch_id
+            )
+            if record is not None:
+                record.update(
+                    state="FINALIZING", message=terminal_detail
+                )
+            self.batch_phase = "FINALIZING"
+            self.navigation_owner_releasing = True
+            owner_token = self.navigation_owner_token
+            if self.batch_cancel_requested and terminal_state != "FAILED":
+                terminal_state = "CANCELED"
+                terminal_detail = (
+                    self.batch_abort_detail or "coverage batch canceled"
+                )
+        goal_terminal_ok, goal_terminal_detail = (
+            self._wait_for_move_base_goal_terminal()
+        )
+        handoff_ok = False
+        teb_restored = False
+        if not goal_terminal_ok:
+            terminal_state = "FAILED"
+            terminal_detail = (
+                "coverage batch retained navigation ownership because its "
+                "move_base goal is not safely terminal: {}"
+            ).format(goal_terminal_detail)
+        else:
+            off = EnforcedPath()
+            off.header.frame_id = "map"
+            with self.lock:
+                off.plan_id = self.plan_id
+            off.active = False
+            handoff_ok = self._set_enforced_path(off, coverage_active=False)
+            if not handoff_ok:
+                terminal_state = "FAILED"
+                terminal_detail = (
+                    "coverage batch stopped but planner ownership could not be restored"
+                )
+            teb_restored = self._restore_teb()
+            if not teb_restored:
+                terminal_state = "FAILED"
+                terminal_detail = (
+                    "coverage batch stopped but TEB parameters could not be restored"
+                )
+        released = False
+        if handoff_ok and teb_restored:
+            released, release_detail = self._set_navigation_owner(
+                False, owner_token
+            )
+            if not released:
+                terminal_state = "FAILED"
+                terminal_detail = (
+                    "coverage batch stopped but navigation ownership could not be "
+                    "released: {}"
+                ).format(release_detail)
+        with self.lock:
+            if self.batch_token != token:
+                return
+            # A map update is safety-critical and may arrive while external
+            # cleanup above is in progress.  Re-evaluate its cancellation flag
+            # before committing the terminal batch state.
+            if self.batch_cancel_requested and terminal_state != "FAILED":
+                terminal_state = "CANCELED"
+                terminal_detail = (
+                    self.batch_abort_detail or "coverage batch canceled"
+                )
+            if not released:
+                # The bridge may still hold this exact token.  Preserve both
+                # the service token and the public latch so AI navigation can
+                # never race a failed coverage finalizer.
+                self.active = True
+                self.batch_active = True
+                self.cancel_requested = True
+                self.batch_cancel_requested = True
+                self.batch_phase = "FINALIZING"
+                self.state = "FAILED"
+                self.detail = terminal_detail
+                record = self._batch_request_records_locked().get(
+                    finalizing_batch_id
+                )
+                if record is not None:
+                    record.update(
+                        state="FINALIZING", message=terminal_detail
+                    )
+                self._publish_status()
+                rospy.logerr(terminal_detail)
+                return
+            if self.navigation_owner_token == owner_token:
+                self.navigation_owner_token = ""
+                self.navigation_owner_claimed = False
+                self.navigation_owner_releasing = False
+            self.active = False
+            self.batch_active = False
+            self.batch_token = ""
+            self.batch_start_request_id = ""
+            self.batch_map_digest = ""
+            self.batch_regions = []
+            self.batch_current_index = 0
+            self.current_region_id = ""
+            self.current_region_name = ""
+            self.batch_skip_requested = False
+            self.batch_phase = "IDLE"
+            self.batch_region_token = ""
+            self.batch_region_outcome = ""
+            self.batch_current_is_last = False
+            self.cancel_requested = False
+            self.manual_pause = False
+            self.manual_pause_reason = ""
+            self.avoidance_loss_paused = False
+            self.chassis_fault_paused = False
+            self.plan_pending = False
+            self.plan_token = ""
+            self.start_pending = False
+            self.start_token = ""
+            self.state = terminal_state
+            self.detail = terminal_detail
+            record = self._batch_request_records_locked().get(
+                finalizing_batch_id
+            )
+            if record is not None:
+                record.update(state="TERMINAL", message=terminal_detail)
+            self.batch_cancel_requested = False
+            self._discard_plan_locked(clear_progress=False)
+            self._clear_visualizations()
+            self.batch_worker = None
+            self.batch_abort_detail = ""
+            self.batch_wake_event.set()
+            self.active_pub.publish(Bool(data=False))
+            self._publish_status()
 
     def _start_external_prechecks(self, token):
         if not self.move_base.wait_for_server(rospy.Duration(0.5)):
@@ -1362,7 +2578,7 @@ class CoverageManager:
 
     def _pause_service(self, request):
         with self.lock:
-            if not self.active:
+            if not (self.active or self.batch_active):
                 return SetBoolResponse(False, "no active coverage task")
             if not request.data and not self._localization_is_fresh():
                 return SetBoolResponse(False, "localization must be LOCALIZED before resume")
@@ -1402,19 +2618,498 @@ class CoverageManager:
         self._publish_status()
         return SetBoolResponse(True, self.detail)
 
+    def _cancel_batch_service(self, request):
+        response = CancelCoverageBatchResponse()
+        batch_id = str(getattr(request, "batch_id", ""))
+        response.batch_id = batch_id
+        if not self._valid_batch_request_id(batch_id):
+            response.message = (
+                "batch_id must match coverage-batch-[0-9a-f]{32}"
+            )
+            return response
+
+        cancel_committed = False
+        cancel_goal_generation = None
+        cancel_goal_handle = _EXPECTED_HANDLE_UNSET
+        retained_owner_token = ""
+        with self.lock:
+            records = self._batch_request_records_locked()
+            record = records.get(batch_id)
+            if record is None:
+                records[batch_id] = {
+                    "fingerprint": "",
+                    "state": "CANCELED_BEFORE_START",
+                    "accepted": False,
+                    "message": (
+                        "coverage batch was canceled before it started"
+                    ),
+                }
+                response.success = True
+                response.not_started = True
+                response.message = records[batch_id]["message"]
+                return response
+
+            state = record.get("state", "REJECTED")
+            if state == "STARTING":
+                record.update(
+                    state="CANCEL_PENDING_BEFORE_START",
+                    message=(
+                        "coverage batch cancellation is waiting for the "
+                        "in-flight owner claim to settle"
+                    ),
+                )
+                # Keep the reservation live until the in-flight claim RPC
+                # returns and its same-token compensation is confirmed.  This
+                # prevents another operation from entering the uncertainty
+                # window and being overwritten by the old callback.
+                self.detail = record["message"]
+                response.success = False
+                response.not_started = False
+                response.cancellation_requested = True
+                response.message = record["message"]
+            elif state == "CANCEL_PENDING_BEFORE_START":
+                response.success = False
+                response.not_started = False
+                response.cancellation_requested = True
+                response.message = record.get(
+                    "message",
+                    "coverage batch cancellation is still settling",
+                )
+            elif state in ("CANCELED_BEFORE_START", "REJECTED"):
+                response.success = True
+                response.not_started = True
+                response.message = record.get(
+                    "message", "coverage batch never started"
+                )
+            elif state == "TERMINAL":
+                response.success = True
+                response.message = (
+                    "coverage batch is already terminal; no current task was changed"
+                )
+            elif (
+                state == "FAILED_RETAINED"
+                and self.batch_id == batch_id
+                and self.navigation_owner_token == record.get("owner_token", "")
+            ):
+                retained_owner_token = self.navigation_owner_token
+                response.cancellation_requested = True
+                response.not_started = True
+            elif self.batch_active and self.batch_id == batch_id:
+                self.batch_cancel_requested = True
+                self.batch_abort_detail = (
+                    "coverage batch {} canceled by exact id"
+                ).format(batch_id)
+                self.batch_skip_requested = False
+                self.cancel_requested = True
+                self.plan_pending = False
+                self.plan_token = ""
+                self.start_pending = False
+                self.start_token = ""
+                self.batch_start_request_id = ""
+                self.detail = self.batch_abort_detail
+                self.batch_wake_event.set()
+                record.update(
+                    state="CANCEL_REQUESTED", message=self.detail
+                )
+                cancel_goal_generation = self.move_base_goal_generation
+                cancel_goal_handle = self.move_base_goal_handle
+                response.cancellation_requested = True
+                cancel_committed = True
+            else:
+                response.message = (
+                    "batch id is not the current coverage batch; no task was changed"
+                )
+
+        if retained_owner_token:
+            success, detail = self._finalize_retained_batch_start(
+                batch_id, retained_owner_token
+            )
+            response.success = success
+            response.cancellation_requested = not success
+            response.not_started = True
+            response.message = detail
+            self._publish_status()
+            return response
+        if not cancel_committed:
+            self._publish_status()
+            return response
+
+        cancel_ok, cancel_detail = (
+            self._request_exact_move_base_cancel_or_retain_owner(
+                "exact coverage batch cancellation requested",
+                expected_generation=cancel_goal_generation,
+                expected_handle=cancel_goal_handle,
+            )
+        )
+        response.success = cancel_ok
+        response.message = (
+            "coverage batch cancellation requested; {}"
+        ).format(cancel_detail) if cancel_ok else cancel_detail
+        self._publish_status()
+        return response
+
+    def _finalize_retained_batch_start(self, batch_id, owner_token):
+        """Retry cleanup for a claimed owner whose batch never committed."""
+        cleanup_lock = self._retained_cleanup_mutex()
+        if not cleanup_lock.acquire(False):
+            return False, (
+                "retained coverage batch cleanup is already in progress"
+            )
+        try:
+            with self.lock:
+                record = self._batch_request_records_locked().get(batch_id)
+                if (
+                    record is None
+                    or record.get("state") != "FAILED_RETAINED"
+                    or self.batch_id != batch_id
+                    or self.navigation_owner_token != owner_token
+                    or not self.navigation_owner_releasing
+                ):
+                    return False, (
+                        "retained coverage batch cleanup no longer owns this lifecycle"
+                    )
+                plan_id = self.plan_id
+                goal_generation = self.move_base_goal_generation
+                goal_handle = self.move_base_goal_handle
+
+            goal_terminal_ok, goal_terminal_detail = (
+                self._confirm_move_base_goal_terminal(
+                    cancel=True,
+                    expected_generation=goal_generation,
+                    expected_handle=goal_handle,
+                )
+            )
+            if not goal_terminal_ok:
+                detail = (
+                    "coverage batch never started, but its exact move_base goal "
+                    "is not safely terminal: {}"
+                ).format(goal_terminal_detail)
+                with self.lock:
+                    if (self.batch_id == batch_id and
+                            self.navigation_owner_token == owner_token):
+                        self.state = "FAILED"
+                        self.detail = detail
+                        record = self._batch_request_records_locked().get(batch_id)
+                        if record is not None:
+                            record["message"] = detail
+                return False, detail
+
+            off = EnforcedPath()
+            off.header.frame_id = "map"
+            off.plan_id = plan_id
+            off.active = False
+            if not self._set_enforced_path(off, coverage_active=False):
+                detail = (
+                    "coverage batch never started, but planner ownership "
+                    "could not be restored"
+                )
+                with self.lock:
+                    if (self.batch_id == batch_id and
+                            self.navigation_owner_token == owner_token):
+                        self.state = "FAILED"
+                        self.detail = detail
+                        record = self._batch_request_records_locked().get(batch_id)
+                        if record is not None:
+                            record["message"] = detail
+                return False, detail
+            if not self._restore_teb():
+                detail = (
+                    "coverage batch never started, but TEB parameters "
+                    "could not be restored"
+                )
+                with self.lock:
+                    if (self.batch_id == batch_id and
+                            self.navigation_owner_token == owner_token):
+                        self.state = "FAILED"
+                        self.detail = detail
+                        record = self._batch_request_records_locked().get(batch_id)
+                        if record is not None:
+                            record["message"] = detail
+                return False, detail
+
+            released, release_detail = self._set_navigation_owner(
+                False, owner_token
+            )
+            if not released:
+                detail = (
+                    "coverage batch never started, but its navigation owner "
+                    "is still retained: {}"
+                ).format(release_detail)
+                with self.lock:
+                    if (self.batch_id == batch_id and
+                            self.navigation_owner_token == owner_token):
+                        self.state = "FAILED"
+                        self.detail = detail
+                        record = self._batch_request_records_locked().get(batch_id)
+                        if record is not None:
+                            record["message"] = detail
+                return False, detail
+
+            with self.lock:
+                record = self._batch_request_records_locked().get(batch_id)
+                if (
+                    record is None
+                    or record.get("state") != "FAILED_RETAINED"
+                    or self.batch_id != batch_id
+                    or self.navigation_owner_token != owner_token
+                ):
+                    # The exact token was released, but another callback changed
+                    # local bookkeeping.  Never overwrite that newer lifecycle.
+                    return True, (
+                        "retained navigation owner was released; lifecycle changed"
+                    )
+                record.update(
+                    state="TERMINAL",
+                    message="coverage batch was canceled before it started",
+                )
+                self.navigation_owner_token = ""
+                self.navigation_owner_claimed = False
+                self.navigation_owner_releasing = False
+                self.active = False
+                self.cancel_requested = False
+                self.batch_phase = "IDLE"
+                self.state = "CANCELED"
+                self.detail = record["message"]
+                self._clear_never_started_batch_identity_locked(batch_id)
+                self.active_pub.publish(Bool(data=False))
+            return True, "coverage batch was canceled before it started"
+        finally:
+            cleanup_lock.release()
+
+    def _finalize_retained_single_owner(self, owner_token):
+        """Retry the fail-closed cleanup for an orphaned standalone owner.
+
+        This path is used only after a failed standalone start/finalizer has no
+        worker left to perform cleanup.  Every external operation stays outside
+        ``self.lock`` and the public ownership latch remains asserted until the
+        exact goal, planner mode, TEB parameters, and atomic owner are all
+        confirmed safe in that order.
+        """
+        cleanup_lock = self._retained_cleanup_mutex()
+        if not cleanup_lock.acquire(False):
+            return False, (
+                "retained standalone coverage cleanup is already in progress"
+            )
+        try:
+            with self.lock:
+                if (
+                    self.batch_active
+                    or self.worker is not None
+                    or not self.navigation_owner_releasing
+                    or self.navigation_owner_token != owner_token
+                ):
+                    return False, (
+                        "standalone coverage cleanup is owned by another lifecycle"
+                    )
+                plan_id = self.plan_id
+                goal_generation = self.move_base_goal_generation
+                goal_handle = self.move_base_goal_handle
+
+            goal_terminal_ok, goal_terminal_detail = (
+                self._confirm_move_base_goal_terminal(
+                    cancel=True,
+                    expected_generation=goal_generation,
+                    expected_handle=goal_handle,
+                )
+            )
+            if not goal_terminal_ok:
+                detail = (
+                    "standalone coverage still retains navigation ownership because "
+                    "its exact move_base goal is not safely terminal: {}"
+                ).format(goal_terminal_detail)
+                with self.lock:
+                    if self.navigation_owner_token == owner_token:
+                        self.state = "FAILED"
+                        self.detail = detail
+                return False, detail
+
+            off = EnforcedPath()
+            off.header.frame_id = "map"
+            off.plan_id = plan_id
+            off.active = False
+            if not self._set_enforced_path(off, coverage_active=False):
+                detail = (
+                    "standalone coverage still retains navigation ownership because "
+                    "planner ownership could not be restored"
+                )
+                with self.lock:
+                    if self.navigation_owner_token == owner_token:
+                        self.state = "FAILED"
+                        self.detail = detail
+                return False, detail
+            if not self._restore_teb():
+                detail = (
+                    "standalone coverage still retains navigation ownership because "
+                    "TEB parameters could not be restored"
+                )
+                with self.lock:
+                    if self.navigation_owner_token == owner_token:
+                        self.state = "FAILED"
+                        self.detail = detail
+                return False, detail
+
+            released, release_detail = self._set_navigation_owner(
+                False, owner_token
+            )
+            if not released:
+                detail = (
+                    "standalone coverage navigation ownership is still retained: {}"
+                ).format(release_detail)
+                with self.lock:
+                    if self.navigation_owner_token == owner_token:
+                        self.state = "FAILED"
+                        self.detail = detail
+                return False, detail
+
+            with self.lock:
+                if self.navigation_owner_token != owner_token:
+                    # The exact token has already been released.  Do not mutate
+                    # a newer lifecycle if bookkeeping changed during the RPC.
+                    return True, (
+                        "standalone navigation owner was released; lifecycle changed"
+                    )
+                self.navigation_owner_token = ""
+                self.navigation_owner_claimed = False
+                self.navigation_owner_releasing = False
+                self.active = False
+                self.cancel_requested = False
+                self.manual_pause = False
+                self.manual_pause_reason = ""
+                self.avoidance_loss_paused = False
+                self.chassis_fault_paused = False
+                self.state = "CANCELED"
+                self.detail = (
+                    "failed standalone coverage ownership was safely released"
+                )
+                self._discard_plan_locked(clear_progress=False)
+                self._clear_visualizations()
+                self.active_pub.publish(Bool(data=False))
+            return True, self.detail
+        finally:
+            cleanup_lock.release()
+
     def _cancel_service(self, _request):
         clear_inactive = False
+        cancel_batch = False
+        cancel_pending_start = False
+        reassert_finalizing = False
+        reassert_goal_generation = None
+        reassert_goal_handle = _EXPECTED_HANDLE_UNSET
+        retained_batch_cleanup = None
+        retained_single_owner_token = ""
+        cancel_goal_generation = None
+        cancel_goal_handle = _EXPECTED_HANDLE_UNSET
+        with self.lock:
+            if self.navigation_owner_releasing:
+                record = self._batch_request_records_locked().get(
+                    self.batch_id, {}
+                )
+                retained_batch_start = (
+                    record.get("state") == "FAILED_RETAINED"
+                    and record.get("owner_token", "")
+                    == self.navigation_owner_token
+                )
+                if retained_batch_start:
+                    retained_batch_cleanup = (
+                        self.batch_id, self.navigation_owner_token
+                    )
+                elif (
+                    not self.batch_active
+                    and self.worker is None
+                    and self._valid_navigation_owner_token(
+                        self.navigation_owner_token
+                    )
+                ):
+                    retained_single_owner_token = self.navigation_owner_token
+                else:
+                    reassert_finalizing = True
+                    reassert_goal_generation = self.move_base_goal_generation
+                    reassert_goal_handle = self.move_base_goal_handle
+            elif self.batch_active:
+                self.batch_cancel_requested = True
+                self.batch_abort_detail = "coverage batch canceled by operator"
+                self.batch_skip_requested = False
+                self.cancel_requested = True
+                self.plan_pending = False
+                self.plan_token = ""
+                self.start_pending = False
+                self.start_token = ""
+                self.detail = self.batch_abort_detail
+                self.batch_wake_event.set()
+                cancel_goal_generation = self.move_base_goal_generation
+                cancel_goal_handle = self.move_base_goal_handle
+                cancel_batch = True
+                detail = self.detail
+            else:
+                detail = ""
+        if retained_batch_cleanup is not None:
+            success, detail = self._finalize_retained_batch_start(
+                retained_batch_cleanup[0], retained_batch_cleanup[1]
+            )
+            self._publish_status()
+            return TriggerResponse(success, detail)
+        if retained_single_owner_token:
+            success, detail = self._finalize_retained_single_owner(
+                retained_single_owner_token
+            )
+            self._publish_status()
+            return TriggerResponse(success, detail)
+        if reassert_finalizing:
+            success, detail = self._reassert_move_base_goal_cancel(
+                expected_generation=reassert_goal_generation,
+                expected_handle=reassert_goal_handle,
+            )
+            self._publish_status()
+            return TriggerResponse(success, detail)
+        if cancel_batch:
+            cancel_ok, cancel_detail = (
+                self._request_exact_move_base_cancel_or_retain_owner(
+                    "coverage batch cancellation requested",
+                    expected_generation=cancel_goal_generation,
+                    expected_handle=cancel_goal_handle,
+                )
+            )
+            self._publish_status()
+            if not cancel_ok:
+                return TriggerResponse(False, cancel_detail)
+            return TriggerResponse(True, (
+                "coverage batch cancellation requested; {}"
+            ).format(cancel_detail))
+
         with self.lock:
             if self.plan_pending:
                 self.plan_pending = False
+                self.plan_token = ""
             if self.start_pending:
-                self.start_pending = False
-                self.start_token = ""
-                self._discard_plan_locked(clear_progress=True)
-                self.state = "CANCELED"
-                self.detail = "coverage start canceled before any goal was submitted"
+                self.cancel_requested = True
+                pending_batch_id = getattr(
+                    self, "batch_start_request_id", ""
+                )
+                if self._valid_batch_request_id(pending_batch_id):
+                    record = self._batch_request_records_locked().get(
+                        pending_batch_id
+                    )
+                    if record is not None and record.get("state") == "STARTING":
+                        record.update(
+                            state="CANCEL_PENDING_BEFORE_START",
+                            message=(
+                                "coverage batch cancellation is waiting for the "
+                                "in-flight owner claim to settle"
+                            ),
+                        )
+                    cancel_pending_start = True
+                    self.detail = record.get(
+                        "message", "coverage batch cancellation is pending"
+                    ) if record is not None else (
+                        "coverage batch cancellation is pending"
+                    )
+                else:
+                    cancel_pending_start = True
+                    self.detail = (
+                        "coverage start cancellation is waiting for the "
+                        "in-flight owner claim to settle"
+                    )
                 canceled_preparation = True
-                clear_inactive = True
             else:
                 canceled_preparation = False
             active = self.active
@@ -1434,19 +3129,84 @@ class CoverageManager:
             # could be published and then erased by an older cancel request.
             if clear_inactive:
                 self._clear_visualizations()
+                self.active_pub.publish(Bool(data=False))
+                self._publish_status()
         if clear_inactive:
-            self.active_pub.publish(Bool(data=False))
-            self._publish_status()
             return TriggerResponse(True, detail)
-        self._request_cancel("coverage canceled by operator")
-        return TriggerResponse(True, "coverage cancellation requested")
+        if cancel_pending_start:
+            self._publish_status()
+            return TriggerResponse(False, detail)
+        cancel_ok, cancel_detail = self._request_cancel(
+            "coverage canceled by operator"
+        )
+        if not cancel_ok:
+            return TriggerResponse(False, self.detail)
+        return TriggerResponse(True, (
+            "coverage cancellation requested; {}"
+        ).format(cancel_detail))
+
+    def _skip_current_service(self, _request):
+        with self.lock:
+            if not self.batch_active:
+                return TriggerResponse(False, "no active coverage batch")
+            if self.batch_cancel_requested:
+                return TriggerResponse(False, "coverage batch cancellation is pending")
+            if self.batch_phase in ("RESULT_COMMITTED", "FINALIZING"):
+                return TriggerResponse(
+                    False, "current coverage region result is already committed"
+                )
+            if self.batch_current_index == 0:
+                return TriggerResponse(False, "coverage batch has no current region")
+            if self.batch_skip_requested:
+                return TriggerResponse(True, "current coverage region skip is already pending")
+            self.batch_skip_requested = True
+            self.cancel_requested = True
+            self.plan_pending = False
+            self.plan_token = ""
+            self.start_pending = False
+            self.start_token = ""
+            self.detail = "current coverage batch region skip requested"
+            self.batch_wake_event.set()
+            goal_generation = self.move_base_goal_generation
+            goal_handle = self.move_base_goal_handle
+        cancel_ok, cancel_detail = (
+            self._request_exact_move_base_cancel_or_retain_owner(
+                "current coverage batch region skip requested",
+                expected_generation=goal_generation,
+                expected_handle=goal_handle,
+            )
+        )
+        self._publish_status()
+        if not cancel_ok:
+            return TriggerResponse(False, cancel_detail)
+        return TriggerResponse(True, (
+            "current coverage region skip requested; {}"
+        ).format(cancel_detail))
 
     def _request_cancel(self, reason):
         with self.lock:
             self.cancel_requested = True
             self.detail = reason
-        self.move_base.cancel_all_goals()
+            self.plan_pending = False
+            self.plan_token = ""
+            self.start_pending = False
+            self.start_token = ""
+            if self.batch_active:
+                self.batch_cancel_requested = True
+                self.batch_abort_detail = reason
+                self.batch_skip_requested = False
+                self.batch_wake_event.set()
+            goal_generation = self.move_base_goal_generation
+            goal_handle = self.move_base_goal_handle
+        cancel_ok, cancel_detail = (
+            self._request_exact_move_base_cancel_or_retain_owner(
+                reason,
+                expected_generation=goal_generation,
+                expected_handle=goal_handle,
+            )
+        )
         self._publish_status()
+        return cancel_ok, cancel_detail
 
     def _set_teb(self, backwards, straight_tracking=False):
         if not math.isfinite(backwards) or backwards < 0.0:
@@ -1581,6 +3341,19 @@ class CoverageManager:
             cursor = swath.end
         return segments
 
+    def _lifecycle_wait(self, timeout):
+        """Sleep interruptibly when a batch cancel/skip changes generation."""
+        with self.lock:
+            event = (
+                getattr(self, "batch_wake_event", None)
+                if getattr(self, "batch_active", False) else None
+            )
+        if event is None:
+            time.sleep(timeout)
+            return
+        event.wait(timeout)
+        event.clear()
+
     def _wait_while_paused(self):
         while not rospy.is_shutdown():
             with self.lock:
@@ -1598,8 +3371,131 @@ class CoverageManager:
                         self.detail = "navigation paused by FOD safety arbitration"
             if not paused:
                 return True
-            time.sleep(0.1)
+            self._lifecycle_wait(0.1)
         return False
+
+    @staticmethod
+    def _new_navigation_owner_token():
+        return "coverage-{}".format(uuid.uuid4().hex)
+
+    @staticmethod
+    def _valid_navigation_owner_token(owner_token):
+        prefix = "coverage-"
+        suffix = str(owner_token)[len(prefix):]
+        return (
+            str(owner_token).startswith(prefix)
+            and len(suffix) == 32
+            and all(character in "0123456789abcdef" for character in suffix)
+        )
+
+    def _set_navigation_owner(self, claim, owner_token):
+        """Synchronously claim or release the bridge's atomic ownership gate.
+
+        This method performs a cross-node service call and must therefore never
+        be invoked while ``self.lock`` is held.  Callers snapshot and later
+        revalidate their lifecycle generation around it.
+        """
+        if not self._valid_navigation_owner_token(owner_token):
+            detail = "coverage navigation owner token is invalid"
+            rospy.logerr(detail)
+            self._navigation_owner_last_outcome = (
+                bool(claim), owner_token, "REJECTED"
+            )
+            return False, detail
+        try:
+            rospy.wait_for_service(
+                self.navigation_owner_service_name, timeout=0.5
+            )
+            response = self.navigation_owner_client(
+                claim=bool(claim), owner_token=owner_token
+            )
+        except Exception as error:
+            detail = "coverage navigation owner service failed: {}".format(error)
+            rospy.logerr(detail)
+            self._navigation_owner_last_outcome = (
+                bool(claim), owner_token, "UNKNOWN"
+            )
+            return False, detail
+
+        message = str(getattr(response, "message", ""))
+        current_owner = str(getattr(response, "current_owner_token", ""))
+        claimed = getattr(response, "claimed", None) is True
+        if not getattr(response, "success", False):
+            detail = message or (
+                "coverage navigation owner claim was rejected"
+                if claim else "coverage navigation owner release was rejected"
+            )
+            rospy.logerr(detail)
+            state = (
+                "RETAINED_NOT_READY"
+                if claim and claimed and current_owner == owner_token
+                else "REJECTED"
+            )
+            self._navigation_owner_last_outcome = (
+                bool(claim), owner_token, state
+            )
+            return False, detail
+        if claim:
+            if not claimed or current_owner != owner_token:
+                detail = (
+                    "coverage navigation owner claim returned an inconsistent state"
+                )
+                rospy.logerr(detail)
+                self._navigation_owner_last_outcome = (
+                    True, owner_token, "UNKNOWN"
+                )
+                return False, detail
+        elif claimed or current_owner:
+            detail = (
+                "coverage navigation owner release returned an inconsistent state"
+            )
+            rospy.logerr(detail)
+            self._navigation_owner_last_outcome = (
+                False, owner_token, "UNKNOWN"
+            )
+            return False, detail
+        self._navigation_owner_last_outcome = (
+            bool(claim), owner_token, "READY" if claim else "RELEASED"
+        )
+        return True, message
+
+    def _claim_navigation_owner_once(self, owner_token):
+        """Return READY, RETAINED_NOT_READY, REJECTED, or UNKNOWN."""
+        self._navigation_owner_last_outcome = None
+        success, detail = self._set_navigation_owner(True, owner_token)
+        outcome = self._navigation_owner_last_outcome
+        if (
+            isinstance(outcome, tuple)
+            and len(outcome) == 3
+            and outcome[0] is True
+            and outcome[1] == owner_token
+        ):
+            return outcome[2], detail
+        # Unit-test adapters and downstream overrides historically expose only
+        # the two-value API.  A positive result is still READY; a negative
+        # override is an explicit rejection unless it supplies tri-state data.
+        return ("READY" if success else "REJECTED"), detail
+
+    def _resolve_navigation_owner_claim(self, owner_token, context):
+        """Reconcile an uncertain/retained same-token claim until definitive."""
+        last_detail = "navigation owner claim has not started"
+        while not rospy.is_shutdown():
+            state, last_detail = self._claim_navigation_owner_once(owner_token)
+            if state in ("READY", "REJECTED"):
+                return state, last_detail
+            with self.lock:
+                self.detail = (
+                    "{}; retaining the same navigation owner token while "
+                    "waiting for prior goals to become terminal: {}"
+                ).format(context, last_detail) if state == "RETAINED_NOT_READY" else (
+                    "{}; reconciling an unknown navigation owner RPC outcome "
+                    "with the same token: {}"
+                ).format(context, last_detail)
+            self._publish_status()
+            self._lifecycle_wait(0.1)
+        return "UNKNOWN", (
+            "ROS shutdown before navigation owner claim was reconciled: {}"
+        ).format(last_detail)
 
     def _set_enforced_path(self, enforced, coverage_active=True):
         """Synchronously arm mission ownership and the segment planner mode."""
@@ -1627,9 +3523,242 @@ class CoverageManager:
         self.enforced_path_pub.publish(enforced)
         return True
 
+    def _record_move_base_goal_terminal(self, generation, state):
+        try:
+            state = int(state)
+        except (TypeError, ValueError, OverflowError):
+            state = GoalStatus.LOST
+        trusted = state in TRUSTED_MOVE_BASE_TERMINAL_STATES
+        with self.lock:
+            if self.move_base_goal_generation != generation:
+                return False
+            self.move_base_goal_terminal_state = state
+            if trusted:
+                self.move_base_goal_pending = False
+        return trusted
+
+    def _send_move_base_goal_locked(self, goal):
+        """Send and track one goal while the caller holds the lifecycle lock."""
+        generation = self.move_base_goal_generation + 1
+        self.move_base_goal_generation = generation
+        self.move_base_goal_pending = True
+        self.move_base_goal_handle = None
+        self.move_base_goal_terminal_state = GoalStatus.PENDING
+
+        def done_callback(state, _result):
+            self._record_move_base_goal_terminal(generation, state)
+
+        try:
+            self.move_base.send_goal(goal, done_cb=done_callback)
+        finally:
+            # SimpleActionClient.send_goal returns None; ``gh`` is its tracked
+            # GoalHandle and is assigned synchronously by send_goal.  Capture
+            # it even on an exception because an uncertain partial send must
+            # remain fail-closed rather than be classified as "never sent".
+            self.move_base_goal_handle = getattr(self.move_base, "gh", None)
+        return generation
+
+    def _confirm_move_base_goal_terminal(
+            self, cancel=True, expected_generation=None,
+            expected_handle=_EXPECTED_HANDLE_UNSET):
+        """Confirm the exact tracked goal reached a trusted terminal state.
+
+        SimpleActionClient maps PREEMPTING/RECALLING to ACTIVE/PENDING and
+        reports LOST when it has no trustworthy tracked GoalHandle.  None of
+        those states is sufficient to disarm the planner or release ownership.
+        """
+        with self.lock:
+            generation = self.move_base_goal_generation
+            if (expected_generation is not None and
+                    generation != expected_generation):
+                return False, "move_base goal generation changed"
+            tracked_handle = self.move_base_goal_handle
+            if (expected_handle is not _EXPECTED_HANDLE_UNSET and
+                    tracked_handle is not expected_handle):
+                return False, "move_base goal handle changed"
+            if not self.move_base_goal_pending:
+                return True, "move_base goal was never sent or is already terminal"
+            timeout = self.move_base_terminal_timeout_sec
+
+        if tracked_handle is None:
+            return False, "tracked coverage move_base goal handle is unavailable"
+        current_handle = getattr(self.move_base, "gh", None)
+        if current_handle is not tracked_handle:
+            return False, "move_base is tracking a different goal handle"
+        cancel_exact = getattr(tracked_handle, "cancel", None)
+        if cancel and not callable(cancel_exact):
+            return False, "tracked coverage move_base GoalHandle cannot cancel exactly"
+        deadline = time.monotonic() + timeout
+        last_untrusted_state = None
+        while not rospy.is_shutdown():
+            remaining = deadline - time.monotonic()
+            if remaining <= 0.0:
+                break
+            try:
+                if cancel:
+                    # Cancel the captured ClientGoalHandle itself.  Calling
+                    # SimpleActionClient.cancel_goal() here would act on its
+                    # mutable latest handle and could cancel a newer mission
+                    # if this callback resumed late.
+                    cancel_exact()
+                finished = self.move_base.wait_for_result(
+                    rospy.Duration(min(0.2, remaining))
+                )
+                if not finished:
+                    continue
+                state = int(self.move_base.get_state())
+            except Exception as error:
+                return False, (
+                    "move_base terminal confirmation failed: {}"
+                ).format(error)
+
+            current_handle = getattr(self.move_base, "gh", None)
+            with self.lock:
+                if self.move_base_goal_generation != generation:
+                    return False, "move_base goal generation changed while waiting"
+                if self.move_base_goal_handle is not tracked_handle:
+                    return False, "move_base goal handle changed while waiting"
+                if current_handle is not tracked_handle:
+                    return False, "move_base goal handle changed while waiting"
+            if self._record_move_base_goal_terminal(generation, state):
+                return True, (
+                    "move_base goal reached trusted terminal state {}"
+                ).format(state)
+            last_untrusted_state = state
+            # A malformed/mock client may report DONE immediately forever.
+            # Avoid a busy loop while retaining and repeatedly canceling the
+            # exact handle until the bounded confirmation window expires.
+            time.sleep(min(0.05, max(0.0, deadline - time.monotonic())))
+
+        if last_untrusted_state == GoalStatus.LOST:
+            return False, "move_base reported LOST for the tracked coverage goal"
+        if last_untrusted_state is not None:
+            return False, "move_base goal stopped in untrusted state {}".format(
+                last_untrusted_state
+            )
+        return False, (
+            "move_base goal did not reach a terminal state within {:.2f}s"
+        ).format(timeout)
+
+    def _wait_for_move_base_goal_terminal(self):
+        """Persistently close the tracked action goal before cleanup.
+
+        This runs only in the mission's existing worker/finalizer.  Transient
+        timeouts, LOST, or actionlib exceptions therefore cannot strand the
+        task with no process left to observe a later trustworthy terminal
+        transition.  Ownership remains closed for every failed attempt.
+        """
+        last_detail = "move_base terminal confirmation has not started"
+        while not rospy.is_shutdown():
+            confirmed, last_detail = self._confirm_move_base_goal_terminal(
+                cancel=True
+            )
+            if confirmed:
+                return True, last_detail
+            with self.lock:
+                self.navigation_owner_releasing = True
+                self.state = "FINALIZING"
+                self.detail = (
+                    "coverage is retaining navigation ownership while waiting "
+                    "for the exact move_base goal to stop: {}"
+                ).format(last_detail)
+            self._publish_status()
+            rospy.logerr_throttle(
+                2.0,
+                "coverage still waiting for exact move_base terminal state: %s",
+                last_detail,
+            )
+            self._lifecycle_wait(0.1)
+        return False, "ROS shutdown before move_base terminal confirmation"
+
+    def _reassert_move_base_goal_cancel(
+            self, expected_generation=None,
+            expected_handle=_EXPECTED_HANDLE_UNSET):
+        with self.lock:
+            generation = self.move_base_goal_generation
+            if (expected_generation is not None and
+                    generation != expected_generation):
+                return False, "move_base goal generation changed"
+            tracked_handle = self.move_base_goal_handle
+            if (expected_handle is not _EXPECTED_HANDLE_UNSET and
+                    tracked_handle is not expected_handle):
+                return False, "move_base goal handle changed"
+            if not self.move_base_goal_pending:
+                return True, "coverage move_base goal is already terminal"
+        if tracked_handle is None:
+            return False, "tracked coverage move_base goal handle is unavailable"
+        current_handle = getattr(self.move_base, "gh", None)
+        if current_handle is not tracked_handle:
+            return False, "move_base is tracking a different goal handle"
+        cancel_exact = getattr(tracked_handle, "cancel", None)
+        if not callable(cancel_exact):
+            return False, "tracked coverage move_base GoalHandle cannot cancel exactly"
+        try:
+            cancel_exact()
+        except Exception as error:
+            return False, "exact move_base cancellation failed: {}".format(error)
+        return True, "exact coverage move_base cancellation reasserted"
+
+    def _request_exact_move_base_cancel_or_retain_owner(
+            self, reason, expected_generation=None,
+            expected_handle=_EXPECTED_HANDLE_UNSET):
+        """Cancel only this manager's proven goal, otherwise stay closed."""
+        success, detail = self._reassert_move_base_goal_cancel(
+            expected_generation=expected_generation,
+            expected_handle=expected_handle,
+        )
+        if success:
+            return True, detail
+        with self.lock:
+            if (expected_generation is not None and
+                    self.move_base_goal_generation != expected_generation):
+                # This callback belongs to an older operation.  The exact old
+                # handle was not touched, and it must not put a newer mission
+                # into FINALIZING or overwrite that mission's detail.
+                return False, detail
+            if (expected_handle is not _EXPECTED_HANDLE_UNSET and
+                    self.move_base_goal_handle is not expected_handle):
+                return False, detail
+            self.navigation_owner_releasing = True
+            self.state = "FINALIZING"
+            self.detail = (
+                "{}; coverage is retaining navigation ownership because the "
+                "exact move_base goal cannot be canceled yet: {}"
+            ).format(reason, detail)
+        rospy.logerr("coverage exact move_base cancellation failed: %s", detail)
+        return False, detail
+
+    def _cancel_segment_goal(self, generation, outcome):
+        confirmed, detail = self._confirm_move_base_goal_terminal(
+            cancel=True, expected_generation=generation
+        )
+        if confirmed:
+            return outcome
+        with self.lock:
+            if self.move_base_goal_generation == generation:
+                self.detail = (
+                    "coverage cannot leave the current move_base goal: {}"
+                ).format(detail)
+        rospy.logerr("coverage move_base terminal confirmation failed: %s", detail)
+        return "failed"
+
     def _execute_segment(self, segment, segment_index):
         if not self._wait_while_paused():
             return "canceled"
+        with self.lock:
+            if (self.cancel_requested or not self.active or
+                    self.navigation_owner_releasing):
+                return "canceled"
+            if self.move_base_goal_pending:
+                self.detail = (
+                    "previous coverage move_base goal is not safely terminal"
+                )
+                return "failed"
+            segment_plan_id = self.plan_id
+            owner_token = self.navigation_owner_token
+            if not self._valid_navigation_owner_token(owner_token):
+                self.detail = "coverage navigation ownership is not established"
+                return "failed"
         if segment["type"] == "transit":
             live_pose = self._current_pose()
             if live_pose is not None:
@@ -1674,7 +3803,7 @@ class CoverageManager:
             return "failed"
         enforced = EnforcedPath()
         enforced.header.frame_id = "map"
-        enforced.plan_id = self.plan_id
+        enforced.plan_id = segment_plan_id
         enforced.segment_index = segment_index
         enforced.active = segment["type"] == "sweep"
         if enforced.active:
@@ -1693,7 +3822,67 @@ class CoverageManager:
             enforced.path.header.stamp = enforced.header.stamp
         if not self._set_enforced_path(enforced):
             return "failed"
-        self.move_base.send_goal(goal)
+        # Reassert the same mission token before every action goal.  This is
+        # deliberately outside the lifecycle lock because it crosses ROS node
+        # boundaries; the generation is revalidated below before send_goal.
+        owner_state, owner_detail = self._resolve_navigation_owner_claim(
+            owner_token, "coverage segment owner reassertion is pending"
+        )
+        if owner_state != "READY":
+            with self.lock:
+                if self.navigation_owner_token == owner_token:
+                    self.detail = (
+                        "coverage navigation ownership could not be reasserted: {}"
+                    ).format(owner_detail)
+            return "failed"
+        # Linearize goal submission against cancel/skip/map invalidation.  The
+        # planner hand-off above is synchronous but may yield long enough for a
+        # cancellation request; never submit a stale goal after that request.
+        stale_claim = False
+        compensate_stale_claim = False
+        result = ""
+        goal_generation = None
+        with self.lock:
+            if (
+                self.cancel_requested
+                or not self.active
+                or self.plan_id != segment_plan_id
+                or self.navigation_owner_token != owner_token
+                or self.navigation_owner_releasing
+            ):
+                stale_claim = True
+                # Ordinary cancel/skip keeps the same batch owner until its
+                # unified finalizer.  Compensation is only needed when a
+                # finalizer may already have released this token while the
+                # claim call was in flight, or the lifecycle token changed.
+                compensate_stale_claim = (
+                    self.navigation_owner_releasing
+                    or self.navigation_owner_token != owner_token
+                )
+                result = "canceled"
+            elif self.manual_pause or self.external_pause:
+                result = "paused"
+            else:
+                self.navigation_owner_claimed = True
+                goal_generation = self._send_move_base_goal_locked(goal)
+        if stale_claim and compensate_stale_claim:
+            # A finalizer can release while this service call is in flight; a
+            # delayed idempotent claim could then reacquire the old token.  A
+            # token-scoped compensation prevents that stale generation from
+            # surviving, and never releases a newer owner's different token.
+            released, release_detail = self._set_navigation_owner(
+                False, owner_token
+            )
+            if not released:
+                rospy.logerr(
+                    "stale coverage owner compensation failed: %s",
+                    release_detail,
+                )
+            return result
+        if stale_claim:
+            return result
+        if result:
+            return result
         while not rospy.is_shutdown():
             self._pause_for_avoidance_loss()
             enforced.header.stamp = rospy.Time.now()
@@ -1701,7 +3890,16 @@ class CoverageManager:
                 enforced.path.header.stamp = enforced.header.stamp
             self.enforced_path_pub.publish(enforced)
             if self.move_base.wait_for_result(rospy.Duration(0.2)):
-                state = self.move_base.get_state()
+                state = int(self.move_base.get_state())
+                terminal_trusted = self._record_move_base_goal_terminal(
+                    goal_generation, state
+                )
+                if not terminal_trusted:
+                    with self.lock:
+                        self.detail = (
+                            "move_base returned untrusted terminal state {}"
+                        ).format(state)
+                    return "failed"
                 if state == GoalStatus.SUCCEEDED:
                     return "succeeded"
                 with self.lock:
@@ -1710,16 +3908,20 @@ class CoverageManager:
                     if self.manual_pause or self.external_pause:
                         return "paused"
                 return "blocked" if state in (
-                    GoalStatus.ABORTED, GoalStatus.REJECTED, GoalStatus.LOST
+                    GoalStatus.ABORTED, GoalStatus.REJECTED
                 ) else "failed"
             with self.lock:
                 if self.cancel_requested:
-                    self.move_base.cancel_goal()
-                    return "canceled"
+                    cancel_requested = True
+                else:
+                    cancel_requested = False
                 paused = self.manual_pause or self.external_pause
+            if cancel_requested:
+                return self._cancel_segment_goal(
+                    goal_generation, "canceled"
+                )
             if paused:
-                self.move_base.cancel_goal()
-                return "paused"
+                return self._cancel_segment_goal(goal_generation, "paused")
             if not self._localization_is_fresh():
                 with self.lock:
                     self.manual_pause = True
@@ -1728,14 +3930,19 @@ class CoverageManager:
                         "localization lost; manual resume is required"
                     )
                     self.detail = self.manual_pause_reason
-                self.move_base.cancel_goal()
-                return "paused"
+                return self._cancel_segment_goal(goal_generation, "paused")
             if time.monotonic() - started > timeout:
-                self.move_base.cancel_goal()
-                return "blocked"
+                return self._cancel_segment_goal(goal_generation, "blocked")
         return "canceled"
 
-    def _run_task(self, route, current):
+    def _run_task(self, route, current, batch_context=False):
+        """Execute one region and return its terminal state.
+
+        A standalone task releases move_base ownership and clears its plan in
+        this method.  A batch item deliberately does neither: the batch worker
+        records the item result, prepares the next region, and releases
+        `/coverage/active` only once for the whole immutable batch.
+        """
         terminal_state = "FAILED"
         cleanup_error = ""
         try:
@@ -1829,7 +4036,7 @@ class CoverageManager:
                                 if self.cancel_requested:
                                     result = "canceled"
                                     break
-                            time.sleep(0.1)
+                            self._lifecycle_wait(0.1)
                         if result == "canceled":
                             break
                 if result == "succeeded":
@@ -1903,45 +4110,130 @@ class CoverageManager:
                 self.detail = "coverage task exception: {}".format(error)
             terminal_state = "FAILED"
         finally:
-            self.move_base.cancel_goal()
-            off = EnforcedPath()
-            off.header.frame_id = "map"
-            off.plan_id = self.plan_id
-            off.active = False
-            if not self._set_enforced_path(off, coverage_active=False):
-                rospy.logerr("coverage could not synchronously disarm enforced path")
-            if not self._restore_teb():
+            owner_token = ""
+            owner_released = True
+            owner_release_detail = ""
+            if not batch_context:
+                with self.lock:
+                    self.navigation_owner_releasing = True
+                    owner_token = self.navigation_owner_token
+            goal_terminal_ok, goal_terminal_detail = (
+                self._wait_for_move_base_goal_terminal()
+            )
+            handoff_ok = False
+            teb_restored = False
+            if not goal_terminal_ok:
                 terminal_state = "FAILED"
                 cleanup_error = (
-                    "coverage stopped but TEB parameters could not be restored"
-                )
+                    "coverage retained navigation ownership because its move_base "
+                    "goal is not safely terminal: {}"
+                ).format(goal_terminal_detail)
+            else:
+                off = EnforcedPath()
+                off.header.frame_id = "map"
+                off.plan_id = self.plan_id
+                off.active = False
+                if batch_context:
+                    handoff_ok = self._set_enforced_path(
+                        off, coverage_active=True
+                    )
+                else:
+                    handoff_ok = self._set_enforced_path(
+                        off, coverage_active=False
+                    )
+                if not handoff_ok:
+                    rospy.logerr(
+                        "coverage could not synchronously disarm enforced path"
+                    )
+                    terminal_state = "FAILED"
+                    cleanup_error = (
+                        "coverage stopped but planner ownership could not be restored"
+                    )
+                teb_restored = self._restore_teb()
+                if not teb_restored:
+                    terminal_state = "FAILED"
+                    cleanup_error = (
+                        "coverage stopped but TEB parameters could not be restored"
+                    )
+            if not batch_context:
+                if handoff_ok and teb_restored:
+                    owner_released, owner_release_detail = (
+                        self._set_navigation_owner(False, owner_token)
+                    )
+                    if not owner_released:
+                        terminal_state = "FAILED"
+                        cleanup_error = (
+                            "coverage stopped but navigation ownership could not be "
+                            "released: {}"
+                        ).format(owner_release_detail)
+                else:
+                    # Do not open the atomic owner while the planner may still
+                    # be armed or temporary TEB settings may still be live.
+                    owner_released = False
             with self.lock:
-                self.active = False
                 self.manual_pause = False
                 self.manual_pause_reason = ""
                 self.avoidance_loss_paused = False
                 self.chassis_fault_paused = False
-                self.cancel_requested = False
-                self.state = terminal_state
-                if terminal_state == "COMPLETED":
-                    self.detail = "coverage route completed"
-                elif terminal_state == "COMPLETED_PARTIAL":
-                    self.detail = "coverage completed with blocked segments"
-                elif terminal_state == "CANCELED":
-                    self.detail = "coverage task canceled"
-                elif cleanup_error:
-                    self.detail = cleanup_error
-                elif not self.detail.startswith("coverage task exception"):
-                    self.detail = "coverage task failed"
-                # Invalidate the old generation and clear all latched map
-                # overlays before releasing the lifecycle lock.  A second plan
-                # can therefore never be accepted and then erased by this old
-                # worker's finalizer.  Preserve only segment counters so the
-                # terminal status still reports where/why it ended.
-                self._discard_plan_locked(clear_progress=False)
-                self._clear_visualizations()
-            self.active_pub.publish(Bool(data=False))
-            self._publish_status()
+                if batch_context:
+                    terminal_state = self._commit_batch_region_outcome_locked(
+                        self.batch_token, terminal_state
+                    )
+                    # Region execution is no longer active, but the batch still
+                    # owns move_base through the latched /coverage/active topic.
+                    # Do not expose a whole-task terminal state in this gap.
+                    self.active = False
+                    self.state = "PREPARING"
+                    if cleanup_error:
+                        self.detail = cleanup_error
+                    elif terminal_state == "FAILED" and not self.detail.startswith(
+                            "coverage task exception"):
+                        self.detail = "coverage batch region execution failed"
+                    elif terminal_state == "CANCELED":
+                        self.detail = "coverage batch region execution canceled"
+                    elif terminal_state == "SKIPPED":
+                        self.detail = "coverage batch region skipped by operator"
+                    elif terminal_state == "COMPLETED_PARTIAL":
+                        self.detail = "coverage batch region completed partially"
+                    else:
+                        self.detail = "coverage batch region route completed"
+                else:
+                    self.state = terminal_state
+                    if terminal_state == "COMPLETED":
+                        self.detail = "coverage route completed"
+                    elif terminal_state == "COMPLETED_PARTIAL":
+                        self.detail = "coverage completed with blocked segments"
+                    elif terminal_state == "CANCELED":
+                        self.detail = "coverage task canceled"
+                    elif cleanup_error:
+                        self.detail = cleanup_error
+                    elif not self.detail.startswith("coverage task exception"):
+                        self.detail = "coverage task failed"
+                    if not owner_released:
+                        # Keep both the atomic bridge owner and compatibility
+                        # latch closed until an operator can inspect/restart.
+                        self.active = True
+                        self.cancel_requested = True
+                        self.worker = None
+                        self._publish_status()
+                        rospy.logerr(cleanup_error)
+                    else:
+                        if self.navigation_owner_token == owner_token:
+                            self.navigation_owner_token = ""
+                            self.navigation_owner_claimed = False
+                            self.navigation_owner_releasing = False
+                        self.active = False
+                        self.cancel_requested = False
+                        # Invalidate the old generation and clear all latched map
+                        # overlays before releasing the lifecycle lock.  A second
+                        # plan can therefore never be accepted and then erased by
+                        # this old worker's finalizer.  Preserve only counters so
+                        # terminal status still reports where/why it ended.
+                        self._discard_plan_locked(clear_progress=False)
+                        self._clear_visualizations()
+                        self.active_pub.publish(Bool(data=False))
+                        self._publish_status()
+        return terminal_state
 
     def _tracking_timer(self, _event):
         with self.lock:
@@ -2001,6 +4293,23 @@ class CoverageManager:
         self._pause_for_chassis_fault()
         with self.lock:
             restore_pending = not self.active and self.original_teb is not None
+            unresolved_goal = (
+                self.navigation_owner_releasing
+                and self.move_base_goal_pending
+            )
+            unresolved_generation = self.move_base_goal_generation
+            unresolved_handle = self.move_base_goal_handle
+        if unresolved_goal:
+            cancel_ok, cancel_detail = self._reassert_move_base_goal_cancel(
+                expected_generation=unresolved_generation,
+                expected_handle=unresolved_handle,
+            )
+            if not cancel_ok:
+                rospy.logerr_throttle(
+                    2.0,
+                    "coverage could not reassert exact goal cancellation: %s",
+                    cancel_detail,
+                )
         if restore_pending and self._restore_teb():
             with self.lock:
                 if self.state == "FAILED" and "TEB parameters" in self.detail:
@@ -2041,6 +4350,20 @@ class CoverageManager:
             avoidance_ready, avoidance_detail = self._avoidance_ready_locked()
             message.avoidance_ready = avoidance_ready
             message.avoidance_detail = avoidance_detail
+            message.map_digest = self.map_digest
+            message.batch_id = self.batch_id
+            message.batch_active = self.batch_active
+            message.batch_cancel_requested = self.batch_cancel_requested
+            message.batch_current_index = self.batch_current_index
+            message.batch_total_regions = self.batch_total_regions
+            message.batch_completed_regions = self.batch_completed_regions
+            message.batch_partial_regions = self.batch_partial_regions
+            message.batch_skipped_regions = self.batch_skipped_regions
+            message.current_region_id = self.current_region_id
+            message.current_region_name = self.current_region_name
+            message.last_region_id = self.last_region_id
+            message.last_region_name = self.last_region_name
+            message.last_region_state = self.last_region_state
             if plan is not None:
                 message.requested_area_m2 = plan.requested_area
                 message.reachable_area_m2 = plan.reachable_area

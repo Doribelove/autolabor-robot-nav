@@ -3,6 +3,7 @@ project(autolabor_dual_host)
 
 find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
+  autolabor_coverage
   diagnostic_msgs
   geometry_msgs
   move_base_msgs
@@ -17,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   CATKIN_DEPENDS
     actionlib_msgs
+    autolabor_coverage
     diagnostic_msgs
     geometry_msgs
     move_base_msgs

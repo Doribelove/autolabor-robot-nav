@@ -1,10 +1,10 @@
 from catkin_pkg.python_setup import generate_distutils_setup
 from setuptools import setup
 
-# 把 src/sweeper_mcp 作为 Python 包安装到 devel 命名空间。
-# voice 子模块（AI 语音：asr_audio / asr_recognizer）一并安装。
+# CUDA Whisper 及 large-v3 权重安装在工作区 runtime/asr 的独立虚拟环境；
+# catkin Python 包只安装 ASR 子进程客户端、授权、规划和 MCP 控制代码。
 d = generate_distutils_setup(
-    packages=["sweeper_mcp", "sweeper_mcp.voice"],
+    packages=["sweeper_mcp"],
     package_dir={"": "src"},
 )
 

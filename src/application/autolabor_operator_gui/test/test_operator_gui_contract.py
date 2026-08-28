@@ -12,8 +12,12 @@ import yaml
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = PACKAGE_ROOT.parents[2]
 GUI_SOURCE = (PACKAGE_ROOT / "src" / "main_window.cpp").read_text(encoding="utf-8")
+AI_SOURCE = (PACKAGE_ROOT / "src" / "ai_control.cpp").read_text(encoding="utf-8")
 GUI_HEADER = (
     PACKAGE_ROOT / "include" / "autolabor_operator_gui" / "main_window.h"
+).read_text(encoding="utf-8")
+REGION_STORE_SOURCE = (
+    PACKAGE_ROOT / "src" / "coverage_region_store.cpp"
 ).read_text(encoding="utf-8")
 RVIZ_CONFIG = (PACKAGE_ROOT / "config" / "operator_navigation.rviz").read_text(
     encoding="utf-8"
@@ -36,6 +40,248 @@ VIEW_GLOBAL_MAP = WORKSPACE_ROOT / "scripts" / "view_global_map.sh"
 
 
 class OperatorGuiContractTest(unittest.TestCase):
+    def test_ai_page_is_three_gate_fail_closed_and_supports_manual_debug(self):
+        for evidence in (
+            'buildAiControlPage(), QStringLiteral("AI语音控制")',
+            "授权语音输入",
+            "授权 AI 语义解析",
+            "授权 AI 控制",
+            "开始录音",
+            "语音识别结果",
+            "ASR 模型",
+            "small（速度优先）",
+            "medium（默认）",
+            "large（large-v3，精度优先）",
+            "推理设备",
+            "录音时长",
+            "识别耗时",
+            "ASR 最近错误",
+            "启用智能语音",
+            "智能语音模式",
+            "监听状态",
+            "已识别句数",
+            "待处理句数",
+            "手工调试文本（无需语音授权",
+            "云端请求往返",
+            "AI 分解与执行结果",
+        ):
+            self.assertIn(evidence, GUI_SOURCE)
+        for evidence in (
+            '"/sweeper_ai/set_authorization"',
+            '"/sweeper_ai/set_asr_recording"',
+            '"/sweeper_ai/set_asr_model"',
+            '"/sweeper_ai/set_smart_voice"',
+            '"/sweeper_ai/submit_text"',
+            '"/sweeper_ai/cancel_task"',
+            "sweeper_mcp::SetAsrRecording",
+            "sweeper_mcp::SetAsrModel",
+            "sweeper_mcp::SetSmartVoice",
+            "停止并识别",
+            "call.request.recording = requested_recording",
+            "call.response.capture_id",
+            "call.request.model = model",
+            "call.response.active_model",
+            'call.request.source = "MANUAL"',
+            "data.ai_status.parse_authorized",
+            "data.ai_status.control_authorized",
+            "status.asr_available",
+            "status.asr_model_loaded",
+            "status.asr_audio_duration_s",
+            "status.asr_latency_ms",
+            "status.asr_last_error",
+            "status.smart_voice_enabled",
+            "status.smart_voice_listening",
+            "status.smart_voice_utterance_count",
+            "status.smart_voice_pending_count",
+            "QMessageBox::No",
+        ):
+            self.assertIn(evidence, AI_SOURCE)
+        self.assertNotIn("ASR未接入", GUI_SOURCE + AI_SOURCE)
+        self.assertNotIn("本期占位", GUI_SOURCE + AI_SOURCE)
+        asr_enable = AI_SOURCE[
+            AI_SOURCE.index("const bool asr_can_start") :
+            AI_SOURCE.index("const bool asr_can_stop")
+        ]
+        self.assertIn("status.voice_authorized", asr_enable)
+        self.assertIn("status.ui_session_alive", AI_SOURCE)
+        self.assertIn("status.asr_available", asr_enable)
+        self.assertNotIn("status.parse_authorized", asr_enable)
+        self.assertIn('asr_phase == QStringLiteral("RECORDED")', AI_SOURCE)
+        self.assertIn("recording_or_recorded", AI_SOURCE)
+        self.assertGreaterEqual(AI_SOURCE.count('QStringLiteral("RECOGNIZING")'), 2)
+        self.assertGreaterEqual(AI_SOURCE.count('QStringLiteral("CANCELLING")'), 2)
+        self.assertGreaterEqual(AI_SOURCE.count('QStringLiteral("TRANSCRIBING")'), 2)
+        asr_stop_enable = AI_SOURCE[
+            AI_SOURCE.index("const bool asr_can_stop") :
+            AI_SOURCE.index("ai_asr_record_button_->setEnabled")
+        ]
+        self.assertIn("!asr_busy", asr_stop_enable)
+        toggle_busy_guard = AI_SOURCE[
+            AI_SOURCE.index("const bool asr_busy") :
+            AI_SOURCE.index("ai_asr_request_pending_ = true")
+        ]
+        self.assertIn("if (asr_busy)", toggle_busy_guard)
+        manual_toggle = AI_SOURCE[
+            AI_SOURCE.index("void MainWindow::toggleAiAsrRecording") :
+            AI_SOURCE.index("void MainWindow::toggleAiSmartVoice")
+        ]
+        self.assertIn("data.ai_status.smart_voice_enabled", manual_toggle)
+        self.assertIn("data.ai_status.smart_voice_listening", manual_toggle)
+
+        smart_toggle = AI_SOURCE[
+            AI_SOURCE.index("void MainWindow::toggleAiSmartVoice") :
+            AI_SOURCE.index("void MainWindow::toggleAiParseAuthorization")
+        ]
+        for evidence in (
+            "确认启用智能语音",
+            "持续访问本机麦克风并自动断句",
+            "每句识别文字会自动发送到云端",
+            "可能通过 MCP 工具",
+            "QMessageBox::Yes | QMessageBox::No, QMessageBox::No",
+            "call.request.enabled = requested_enabled",
+            "call.response.session_id",
+        ):
+            self.assertIn(evidence, smart_toggle)
+        self.assertEqual(1, smart_toggle.count("QMessageBox::question"))
+
+        smart_enable = AI_SOURCE[
+            AI_SOURCE.index("const bool smart_voice_can_enable") :
+            AI_SOURCE.index("const bool smart_voice_can_disable")
+        ]
+        self.assertIn("status.voice_authorized", smart_enable)
+        self.assertIn("status.asr_available", smart_enable)
+        self.assertNotIn("status.parse_authorized", smart_enable)
+        self.assertNotIn("status.control_authorized", smart_enable)
+        smart_disable = AI_SOURCE[
+            AI_SOURCE.index("const bool smart_voice_can_disable") :
+            AI_SOURCE.index("ai_smart_voice_button_->setEnabled")
+        ]
+        self.assertIn("service_ready && smart_voice_active", smart_disable)
+        self.assertNotIn("voice_authorized", smart_disable)
+        self.assertNotIn("asr_available", smart_disable)
+        manual_enable = AI_SOURCE[
+            AI_SOURCE.index("ai_asr_record_button_->setEnabled") :
+            AI_SOURCE.index("const bool manual_asr_active")
+        ]
+        self.assertIn("!smart_voice_active", manual_enable)
+        self.assertNotIn("/cmd_vel", AI_SOURCE)
+
+    def test_ai_page_is_scrollable_and_keeps_results_readable(self):
+        page = GUI_SOURCE[
+            GUI_SOURCE.index("QWidget* MainWindow::buildAiControlPage()") :
+            GUI_SOURCE.index("QWidget* MainWindow::buildLogPage()")
+        ]
+        for evidence in (
+            'scroll->setObjectName(QStringLiteral("aiControlScroll"))',
+            "scroll->setWidgetResizable(true)",
+            "scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff)",
+            "scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded)",
+            "content->setMinimumHeight(1390)",
+            'ai_smart_voice_button_->setObjectName(QStringLiteral("smartVoiceButton"))',
+            "splitter->setChildrenCollapsible(false)",
+            "asr->setMinimumSize(470, 465)",
+            'ai_asr_model_combo_->setCurrentIndex(1)',
+            'QStringLiteral("medium")',
+            "asr_error_row->setMinimumHeight(72)",
+            "splitter->setMinimumHeight(455)",
+            "ai_manual_input_->setMinimumHeight(125)",
+            "ai_plan_table_->setMinimumHeight(245)",
+            "ai_final_output_->setMinimumHeight(110)",
+            "ai_events_->setMinimumHeight(135)",
+            "manual_input_label->setWordWrap(true)",
+            "scroll->setWidget(content)",
+        ):
+            self.assertIn(evidence, page)
+        self.assertIn("QScrollArea#aiControlScroll QScrollBar:vertical", GUI_SOURCE)
+        self.assertIn(
+            "QWidget#aiControlContent QLabel.metricValue { font-size: 13pt; }",
+            GUI_SOURCE,
+        )
+
+    def test_white_control_panels_keep_inline_health_text_dark(self):
+        for value_key in ("overview_fastlio_health", "fastlio_score"):
+            update_start = GUI_SOURCE.rindex(
+                'values_["%s"]->setStyleSheet' % value_key)
+            update_end = GUI_SOURCE.index("));", update_start) + 3
+            update = GUI_SOURCE[update_start:update_end]
+            self.assertIn("color:#111827", update)
+            self.assertNotIn("statusColor", update)
+        for evidence in (
+            "sweeper_mcp[[:space:]]+ai_control\\.launch",
+            'SWEEPER_AI_SESSION_TOKEN="$ai_session_token"',
+            'SWEEPER_MCP_BACKEND="${SWEEPER_MCP_BACKEND:-ros}"',
+            'SWEEPER_COVERAGE_REGION_ROOT="${STATIC_MAP_SET:-}"',
+            'SWEEPER_STATIC_MAP_SOURCE_MODE="${STATIC_MAP_SOURCE_MODE:-fused}"',
+            'stat -c \'%a:%u\'',
+            "/sweeper_ai",
+        ):
+            self.assertIn(evidence, NVIDIA_UI_TEXT)
+
+    def test_coverage_batch_close_skip_confirmation_and_storage_guards(self):
+        close_event = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::closeEvent") :
+            GUI_SOURCE.index("void MainWindow::buildUi")
+        ]
+        for evidence in (
+            "data.coverage_status.batch_active",
+            "coverage_batch_start_pending_",
+            "关闭 Qt 不会取消",
+            "QMessageBox::Yes | QMessageBox::No, QMessageBox::No",
+            "event->ignore();",
+        ):
+            self.assertIn(evidence, close_event)
+
+        refresh = GUI_SOURCE[
+            GUI_SOURCE.index("coverage_skip_button_->setEnabled") :
+            GUI_SOURCE.index("const bool coverage_start_preparing")
+        ]
+        self.assertIn("coverage.batch_current_index > 0", refresh)
+        self.assertIn(
+            "coverage.batch_current_index <= coverage.batch_total_regions", refresh
+        )
+        skip = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::skipCurrentCoverageRegion") :
+            GUI_SOURCE.index("void MainWindow::startCoverage()")
+        ]
+        self.assertGreaterEqual(skip.count("batch_current_index == 0"), 2)
+        self.assertIn("batch_current_index != region_index", skip)
+        self.assertIn("current_region_id != region_id", skip)
+        self.assertIn('QStringLiteral("确认跳过当前区域")', skip)
+
+        confirmations = (
+            "确认载入已保存区域",
+            "确认加入清扫队列",
+            "确认从队列移除",
+            "确认调整队列顺序",
+            "确认删除区域记录",
+            "确认取消区域框定",
+            "确认保存已知清扫区",
+            "确认开始队列清扫",
+            "确认开始覆盖清扫",
+            "确认取消覆盖清扫",
+        )
+        for title in confirmations:
+            self.assertIn(title, GUI_SOURCE)
+
+        for evidence in (
+            "QJsonArray context_values",
+            "context_values.append(root)",
+            "context_values.append(legacy_root)",
+            "context_values.append(digest)",
+            "context_values.append(source)",
+            "context_values.append(source_mode)",
+        ):
+            self.assertIn(evidence, GUI_SOURCE)
+        for evidence in (
+            "QDir::isAbsolutePath(root_)",
+            "canonical_root == QDir::rootPath()",
+            "child_info.isSymLink()",
+            "rejectSymlinkFile(path",
+            'QStringLiteral("coverage_regions/%1/regions.json")',
+            "canonical_root != canonical_source",
+        ):
+            self.assertIn(evidence, REGION_STORE_SOURCE)
+
     def test_coverage_page_requires_static_map_and_supports_polygon_editing(self):
         self.assertIn("buildCoveragePage()", GUI_SOURCE)
         self.assertIn("框定覆盖清扫范围", GUI_SOURCE)
@@ -47,6 +293,20 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn('"/coverage/start"', GUI_SOURCE)
         self.assertIn('"/coverage/set_paused"', GUI_SOURCE)
         self.assertIn('"/coverage/cancel"', GUI_SOURCE)
+        self.assertIn('"/coverage/cancel_batch"', GUI_SOURCE)
+        self.assertIn("cancelCoverageBatchExact", GUI_SOURCE)
+        self.assertIn("call.request.client_request_id = batch_request_id", GUI_SOURCE)
+        self.assertIn('QStringLiteral("coverage-batch-")', GUI_SOURCE)
+        self.assertIn("QUuid::createUuid()", GUI_SOURCE)
+        self.assertIn("coverage_terminal_matches_local_batch", GUI_SOURCE)
+        self.assertIn("coverage_status_fresh &&\n                                 !coverage.active", GUI_SOURCE)
+        self.assertIn("coverage_batch_id_.empty() &&", GUI_SOURCE)
+        self.assertIn("!coverage_task_lifecycle_started_", GUI_SOURCE)
+        self.assertIn('QStringLiteral("重试精确取消批次")', GUI_SOURCE)
+        self.assertIn(
+            "retained_batch_at_request\n          ? retained_batch_id_at_request",
+            GUI_SOURCE,
+        )
         self.assertIn("最高前进速度", GUI_SOURCE)
         self.assertIn("coverage_width_input_->setValue(1.00)", GUI_SOURCE)
         self.assertIn("coverage_speed_input_->setRange(0.10, 1.60)", GUI_SOURCE)
@@ -101,6 +361,72 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("coverage_cancel_pending_ = true;", cancel)
         self.assertIn("coverage_cancel_pending_ = false;", cancel)
         self.assertNotIn("if (coverage_command_pending_)\n    return;", cancel)
+
+    def test_retained_and_global_batch_cancellation_identities_are_separate(self):
+        for evidence in (
+            "void cancelGlobalCoverageBatch();",
+            "QPushButton* coverage_global_batch_cancel_button_ = nullptr;",
+            "bool coverage_global_cancel_pending_ = false;",
+        ):
+            self.assertIn(evidence, GUI_HEADER)
+
+        refresh = GUI_SOURCE[
+            GUI_SOURCE.index("const bool coverage_pending_batch_start") :
+            GUI_SOURCE.index("coverage_pause_button_->setText")
+        ]
+        for evidence in (
+            "const bool coverage_pending_batch_start",
+            'coverage.state == "PREPARING"',
+            "!coverage.active && !coverage.batch_active",
+            'coverage.state == "FAILED"',
+            "coverage.active && !coverage.batch_active",
+            "coverage_pending_batch_start || coverage_retained_batch_start",
+            "coverage_batch_id_ = coverage.batch_id;",
+            "coverage_local_global_batch_conflict",
+            "只清理本地保留批次",
+            "不停止全局队列",
+            "按 ID 停止当前全局队列",
+            "不会覆盖或清除本地保留",
+        ):
+            self.assertIn(evidence, refresh)
+
+        local_cancel = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::cancelCoverageTask()") :
+            GUI_SOURCE.index("void MainWindow::cancelGlobalCoverageBatch()")
+        ]
+        self.assertIn("retained_batch_id_at_request", local_cancel)
+        self.assertIn("local_global_batch_conflict_at_request", local_cancel)
+        self.assertIn("requested_batch_id", local_cancel)
+        self.assertIn("retained_batch_id_at_request", local_cancel)
+        self.assertIn("return cancelCoverageBatchExact(requested_batch_id);",
+                      local_cancel)
+
+        global_cancel = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::cancelGlobalCoverageBatch()") :
+            GUI_SOURCE.index("void MainWindow::callSetBoolService")
+        ]
+        self.assertIn("return cancelCoverageBatchExact(global_batch_id);",
+                      global_cancel)
+        self.assertIn("coverage_batch_id_ != retained_local_batch_id",
+                      global_cancel)
+        self.assertNotIn("coverage_batch_id_.clear()", global_cancel)
+        self.assertNotIn("resetCoverageUiState", global_cancel)
+
+    def test_generic_cancel_never_infers_safe_not_started_from_inactive(self):
+        cancel = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::cancelCoverageTask()") :
+            GUI_SOURCE.index("void MainWindow::cancelGlobalCoverageBatch()")
+        ]
+        self.assertIn("confirmed_preparing", cancel)
+        self.assertIn("result.not_started = false;", cancel)
+        self.assertNotIn(
+            "result.not_started = call.response.success && !confirmed_active;",
+            cancel,
+        )
+        self.assertIn(
+            "call.response.success && (confirmed_active || confirmed_preparing)",
+            cancel,
+        )
 
     def test_coverage_terminal_state_resets_ui_and_allows_second_selection(self):
         terminal = GUI_SOURCE[
@@ -189,7 +515,7 @@ class OperatorGuiContractTest(unittest.TestCase):
         callback = confirm[confirm.index("connect(watcher") :]
         self.assertRegex(
             callback,
-            r"\[this,\s*watcher,\s*{}\]".format(
+            r"\[this,\s*watcher,\s*{}(?:,\s*\w+)*\]".format(
                 re.escape(request_generation)
             ),
         )
@@ -747,10 +1073,36 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("${RVIZ_DEFAULT_PLUGIN_LIBRARY}", cmake)
         self.assertIn("embedded_map_ready", GUI_SOURCE)
 
-    def test_light_rviz_coverage_and_vision_surfaces_use_dark_text(self):
+    def test_all_light_control_surfaces_use_dark_text(self):
         self.assertIn("QToolBar { background: #f5f5f5; color: #111827;", GUI_SOURCE)
         self.assertIn("QMenu, QAbstractItemView { background: #ffffff; color: #111827;",
                       GUI_SOURCE)
+        for scope in ("overviewControls", "fastLioControls", "testControls"):
+            self.assertIn(
+                'setObjectName(QStringLiteral("{}"))'.format(scope), GUI_SOURCE
+            )
+            self.assertIn(
+                "QWidget#{} QLabel.metricValue".format(scope), GUI_SOURCE
+            )
+        for scroll in ("overviewSide", "fastLioSide", "testSide"):
+            self.assertIn(
+                'setObjectName(QStringLiteral("{}"))'.format(scroll), GUI_SOURCE
+            )
+        self.assertIn(
+            "QWidget#overviewControls QGroupBox::title, "
+            "QWidget#fastLioControls QGroupBox::title, "
+            "QWidget#testControls QGroupBox::title { color: #111827; }",
+            GUI_SOURCE,
+        )
+        self.assertIn(
+            "QWidget#overviewControls QLabel, QWidget#overviewControls QCheckBox, "
+            "QWidget#fastLioControls QLabel, QWidget#fastLioControls QCheckBox, "
+            "QWidget#testControls QLabel, QWidget#testControls QCheckBox { color: #111827; }",
+            GUI_SOURCE,
+        )
+        self.assertIn("font-size:30pt;font-weight:800;color:#0369a1;", GUI_SOURCE)
+        self.assertIn("color:#475569;padding:10px;font-size:12pt;", GUI_SOURCE)
+        self.assertIn("color:#475569;font-size:12pt;", GUI_SOURCE)
         self.assertIn("QWidget#coverageControls QGroupBox::title { color: #111827; }",
                       GUI_SOURCE)
         self.assertIn(
@@ -764,7 +1116,7 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn('setObjectName(QStringLiteral("visionControls"))', GUI_SOURCE)
 
         # Dark/colored visual surfaces retain their own intentional foreground
-        # colors; only the white sidebar groups are switched to dark text.
+        # colors; only the white control surfaces are switched to dark text.
         self.assertIn("background:#080d13;border:1px solid #334154", GUI_SOURCE)
         self.assertIn("color:#718096;font-size:14pt;", GUI_SOURCE)
         self.assertIn("background:#3d3222;color:#f0cf8a", GUI_SOURCE)

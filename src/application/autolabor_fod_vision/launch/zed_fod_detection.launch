@@ -11,18 +11,23 @@
   <arg name="image_quality_exposure_max_percent" default="100.0"/>
 
   <arg name="weights"
-       default="$(find autolabor_fod_vision)/../../yolo/fod_yolo11n_img640_e300_orig/weights/best.pt"/>
+       default="$(find autolabor_fod_vision)/models/yolo11_gam_best.pt"/>
   <arg name="expected_model_sha256"
-       default="7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500"/>
+       default="c9fb0f7996b229999dd9adc72245c991a9ad61b8c3d395cd76ab41e6ec4c3691"/>
   <arg name="detector_python"
        default="$(find autolabor_fod_vision)/../../../.venv/fod_yolo/bin/python3"/>
   <arg name="image_quality_python" default="$(arg detector_python)"/>
+  <arg name="ultralytics_root"
+       default="$(find autolabor_fod_vision)/../../../ultralytics_yolo11_custom"/>
+  <arg name="require_gam" default="true"/>
+  <arg name="runtime_token" default=""/>
   <arg name="device" default="auto"/>
   <arg name="image_size" default="640"/>
   <arg name="confidence" default="0.25"/>
   <arg name="iou" default="0.45"/>
   <arg name="max_detections" default="100"/>
-  <arg name="required_class_names" default="Metal,Soft,Plastic,Wire,Tool,w"/>
+  <arg name="required_class_names"
+       default="metal,plastic,paper,glass,kitchen_waste"/>
 
   <!-- Keep metric projection off until the physical ZED mount TF is measured. -->
   <arg name="enable_projection" default="false"/>
@@ -64,6 +69,9 @@
     <arg name="weights" value="$(arg weights)"/>
     <arg name="expected_model_sha256" value="$(arg expected_model_sha256)"/>
     <arg name="detector_python" value="$(arg detector_python)"/>
+    <arg name="ultralytics_root" value="$(arg ultralytics_root)"/>
+    <arg name="require_gam" value="$(arg require_gam)"/>
+    <arg name="runtime_token" value="$(arg runtime_token)"/>
     <arg name="device" value="$(arg device)"/>
     <arg name="image_size" value="$(arg image_size)"/>
     <arg name="confidence" value="$(arg confidence)"/>

@@ -9,37 +9,49 @@ agent:
   temperature: 0.2
   timeout_s: 20.0
   max_retries: 3
-  max_rounds: 5
-  max_tools_per_round: 4
   tool_text_limit: 1500
-  window_size: 16
-  enable_planning: true
-  max_plan_steps: 20
+  max_plan_steps: 8
   nav_wait_timeout: 240.0
-  nav_wait_poll: 1.0
-  continue_on_nav_fail: true
-  llm_summary: true
-  verbose: true
+  navigation_cleanup_timeout: 30.0
+  coverage_wait_timeout: 3600.0
+  visual_wait_timeout: 300.0
+  poll_interval: 0.5
 
-mcp:
-  backend_env: "MCP_BACKEND"
-  protocol_versions: ["2024-11-05", "2025-06-18"]
-
-ros:
-  input_topic: "/voice/text"
-  reply_topic: "/voice/agent_reply"
-  goal_topic: "/move_base_simple/goal"
-  goal_frame: "camera_init"
-  gps_goal_topic: "/gps/goal_fix"
-  cancel_topic: "/move_base/cancel"
-  status_topic: "/move_base/status"
-  odom_topic: "/odom"
-  pose_source_topics: ["/gps/odom", "/gps/pose", "/Odometry", "/odom"]
-  chassis_info_topic: "/m2_driver/chassis_info"
-  emergency_stop_topic: "/m2_driver/emergency_stop"
-  fod_mode_service: "/fod_navigation_mode/set_fod_enabled"
-
-sweep:
-  device_ip: "192.168.1.197"
-  device_port: 50003
-  connect_timeout: 5
+# Whisper 只在 NVIDIA 本机运行。worker 和 checkpoint 的默认位置分别是
+# runtime/asr/venv/bin/python3 与 runtime/asr/models/large-v3.pt；可通过
+# SWEEPER_ASR_PYTHON / SWEEPER_ASR_MODEL_DIR 覆盖。运行时绝不下载模型。
+asr:
+  enabled: true
+  # Qt 可在 small / medium / large 之间运行时切换；large 对应 large-v3。
+  model: "medium"
+  device: "cuda"
+  models:
+    small:
+      filename: "small.pt"
+      checkpoint_sha256: "9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794"
+    medium:
+      filename: "medium.pt"
+      checkpoint_sha256: "345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1"
+    large:
+      filename: "large-v3.pt"
+      checkpoint_sha256: "e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb"
+  arecord_path: "/usr/bin/arecord"
+  # auto/空值会在启动时只读枚举 ALSA 采集设备，优先选择 USB 麦克风；
+  # 也可显式填写稳定标识，例如 plughw:CARD=USB,DEV=0。
+  input_device: "auto"
+  language: "zh"
+  initial_prompt: "简体中文"
+  max_audio_seconds: 30.0
+  min_audio_seconds: 0.3
+  min_rms: 0.003
+  startup_timeout_s: 20.0
+  # 智能语音连续监听的本地 VAD/分句参数。worker 内部音频队列与节点侧
+  # 8 条 AI FIFO 相互独立；前者满时整句丢弃，不会稍后补发云端。
+  smart_chunk_ms: 100.0
+  smart_speech_start_ms: 200.0
+  smart_silence_ms: 800.0
+  smart_pre_roll_ms: 300.0
+  smart_min_utterance_s: 0.4
+  smart_max_utterance_s: 15.0
+  smart_queue_limit: 4
+  smart_vad_rms: 0.003

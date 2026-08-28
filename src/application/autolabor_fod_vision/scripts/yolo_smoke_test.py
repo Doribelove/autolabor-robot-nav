@@ -4,6 +4,7 @@
 import argparse
 import json
 from collections import Counter
+import os
 from pathlib import Path
 
 import cv2
@@ -12,9 +13,10 @@ from autolabor_fod_vision.detector import UltralyticsDetector, annotate_image
 
 
 IMAGE_SUFFIXES = {".bmp", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"}
-DEFAULT_WEIGHTS = (
-    Path(__file__).resolve().parents[3] / "yolo" / "yolo11n.pt"
-)
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+WORKSPACE_ROOT = Path(__file__).resolve().parents[4]
+DEFAULT_WEIGHTS = PACKAGE_ROOT / "models" / "yolo11_gam_best.pt"
+DEFAULT_ULTRALYTICS_ROOT = WORKSPACE_ROOT / "ultralytics_yolo11_custom"
 
 
 def parse_args():
@@ -25,6 +27,22 @@ def parse_args():
         "--weights",
         default=str(DEFAULT_WEIGHTS),
         help="Trusted .pt checkpoint",
+    )
+    parser.add_argument(
+        "--ultralytics-root",
+        default=os.environ.get(
+            "AUTOLABOR_FOD_ULTRALYTICS_ROOT",
+            os.environ.get(
+                "NVIDIA_FOD_ULTRALYTICS_ROOT",
+                str(DEFAULT_ULTRALYTICS_ROOT),
+            ),
+        ),
+        help="Project-local root containing ultralytics/__init__.py",
+    )
+    parser.add_argument(
+        "--require-gam",
+        action="store_true",
+        help="Reject a checkpoint that has no GAM_Attention layer",
     )
     parser.add_argument("--source", required=True, help="Image, video, camera path, or index")
     parser.add_argument("--device", default="auto", help="auto, cpu, or CUDA index")
@@ -149,13 +167,19 @@ def main():
         confidence=args.confidence,
         iou=args.iou,
         warmup=True,
+        ultralytics_root=args.ultralytics_root,
+        require_gam=args.require_gam,
     )
     print(
-        "model={} task={} device={} sha256={}".format(
+        "model={} task={} device={} sha256={} ultralytics={} version={} "
+        "gam_layers={}".format(
             detector.model_name,
             detector.task,
             detector.device,
             detector.model_sha256,
+            detector.ultralytics_path,
+            detector.ultralytics_version,
+            detector.gam_layer_count,
         )
     )
     source_path = Path(args.source).expanduser()
