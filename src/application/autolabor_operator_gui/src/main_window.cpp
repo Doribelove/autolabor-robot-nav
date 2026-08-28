@@ -59,6 +59,7 @@
 #include <QKeySequence>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSettings>
 #include <QShortcut>
 #include <QSizePolicy>
 #include <QSplitter>
@@ -747,6 +748,31 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
   ai_session_token_ = QString::fromUtf8(qgetenv("SWEEPER_AI_SESSION_TOKEN"));
   buildUi();
+  loadCoveragePlannerSettings();
+  const auto persist_coverage_parameters = [this]() {
+    persistCoveragePlannerSettings();
+  };
+  for (QDoubleSpinBox* input : {
+           coverage_width_input_,
+           coverage_overlap_input_,
+           coverage_speed_input_,
+           coverage_reverse_speed_input_,
+           coverage_angular_speed_input_,
+           coverage_linear_accel_input_,
+           coverage_angular_accel_input_,
+           coverage_direction_change_penalty_input_,
+           coverage_handoff_penalty_input_,
+       })
+  {
+    connect(input, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+            [persist_coverage_parameters](double) {
+              persist_coverage_parameters();
+            });
+  }
+  connect(coverage_reverse_checkbox_, &QCheckBox::toggled, this,
+          [persist_coverage_parameters](bool) {
+            persist_coverage_parameters();
+          });
 
   connect(&ui_refresh_timer_, &QTimer::timeout, this, &MainWindow::refreshUi);
   ui_refresh_timer_.start(250);
@@ -791,6 +817,88 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
   appendEvent(QStringLiteral("操作台界面已启动；正在后台探测 ROS master。"));
   requestMasterProbe();
+}
+
+void MainWindow::loadCoveragePlannerSettings()
+{
+  QSettings settings;
+  settings.beginGroup(QStringLiteral("coverage/planning_parameters"));
+  const auto load_double = [&settings](const QString& key, double fallback,
+                                       QDoubleSpinBox* input) {
+    bool ok = false;
+    const double value = settings.value(key, fallback).toDouble(&ok);
+    input->setValue(ok && std::isfinite(value) && value >= input->minimum() &&
+                            value <= input->maximum()
+                        ? value
+                        : fallback);
+  };
+  load_double(QStringLiteral("operation_width_m"), 1.00,
+              coverage_width_input_);
+  load_double(QStringLiteral("overlap_percent"), 15.0,
+              coverage_overlap_input_);
+  load_double(QStringLiteral("max_forward_speed_mps"), 0.80,
+              coverage_speed_input_);
+  load_double(QStringLiteral("max_reverse_speed_mps"), 0.30,
+              coverage_reverse_speed_input_);
+  load_double(QStringLiteral("max_angular_speed_rps"), 0.60,
+              coverage_angular_speed_input_);
+  load_double(QStringLiteral("linear_accel_mps2"), 2.00,
+              coverage_linear_accel_input_);
+  load_double(QStringLiteral("angular_accel_rps2"), 0.50,
+              coverage_angular_accel_input_);
+  load_double(QStringLiteral("direction_change_penalty_sec"), 1.00,
+              coverage_direction_change_penalty_input_);
+  load_double(QStringLiteral("segment_handoff_penalty_sec"), 0.50,
+              coverage_handoff_penalty_input_);
+  coverage_reverse_checkbox_->setChecked(
+      settings.value(QStringLiteral("allow_reverse"), true).toBool());
+  settings.endGroup();
+}
+
+void MainWindow::persistCoveragePlannerSettings() const
+{
+  QSettings settings;
+  settings.beginGroup(QStringLiteral("coverage/planning_parameters"));
+  settings.setValue(QStringLiteral("operation_width_m"),
+                    coverage_width_input_->value());
+  settings.setValue(QStringLiteral("overlap_percent"),
+                    coverage_overlap_input_->value());
+  settings.setValue(QStringLiteral("max_forward_speed_mps"),
+                    coverage_speed_input_->value());
+  settings.setValue(QStringLiteral("allow_reverse"),
+                    coverage_reverse_checkbox_->isChecked());
+  settings.setValue(QStringLiteral("max_reverse_speed_mps"),
+                    coverage_reverse_speed_input_->value());
+  settings.setValue(QStringLiteral("max_angular_speed_rps"),
+                    coverage_angular_speed_input_->value());
+  settings.setValue(QStringLiteral("linear_accel_mps2"),
+                    coverage_linear_accel_input_->value());
+  settings.setValue(QStringLiteral("angular_accel_rps2"),
+                    coverage_angular_accel_input_->value());
+  settings.setValue(QStringLiteral("direction_change_penalty_sec"),
+                    coverage_direction_change_penalty_input_->value());
+  settings.setValue(QStringLiteral("segment_handoff_penalty_sec"),
+                    coverage_handoff_penalty_input_->value());
+  settings.endGroup();
+  settings.sync();
+}
+
+CoveragePlanningUiParameters MainWindow::coveragePlanningParameters() const
+{
+  CoveragePlanningUiParameters parameters;
+  parameters.operation_width_m = coverage_width_input_->value();
+  parameters.overlap_ratio = coverage_overlap_input_->value() / 100.0;
+  parameters.max_forward_speed_mps = coverage_speed_input_->value();
+  parameters.allow_reverse = coverage_reverse_checkbox_->isChecked();
+  parameters.max_reverse_speed_mps = coverage_reverse_speed_input_->value();
+  parameters.max_angular_speed_rps = coverage_angular_speed_input_->value();
+  parameters.linear_accel_mps2 = coverage_linear_accel_input_->value();
+  parameters.angular_accel_rps2 = coverage_angular_accel_input_->value();
+  parameters.direction_change_penalty_sec =
+      coverage_direction_change_penalty_input_->value();
+  parameters.segment_handoff_penalty_sec =
+      coverage_handoff_penalty_input_->value();
+  return parameters;
 }
 
 MainWindow::~MainWindow()
@@ -1900,6 +2008,66 @@ QWidget* MainWindow::buildCoveragePage()
   coverage_reverse_checkbox_->setChecked(true);
   coverage_reverse_checkbox_->setEnabled(false);
   parameters_layout->addWidget(coverage_reverse_checkbox_);
+  const auto add_time_parameter =
+      [parameters, parameters_layout](const QString& label, double minimum,
+                                      double maximum, double step,
+                                      double initial, int decimals,
+                                      const QString& suffix,
+                                      const QString& tooltip,
+                                      QDoubleSpinBox** output) {
+        auto* row = new QWidget(parameters);
+        auto* layout = new QHBoxLayout(row);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->addWidget(new QLabel(label, row));
+        auto* input = new ScrollSafeDoubleSpinBox(row);
+        input->setRange(minimum, maximum);
+        input->setDecimals(decimals);
+        input->setSingleStep(step);
+        input->setSuffix(suffix);
+        input->setValue(initial);
+        input->setEnabled(false);
+        input->setToolTip(tooltip);
+        layout->addWidget(input, 1);
+        parameters_layout->addWidget(row);
+        *output = input;
+      };
+  add_time_parameter(
+      QStringLiteral("最高倒车速度"), 0.05, 0.80, 0.05, 0.30, 2,
+      QStringLiteral(" m/s"),
+      QStringLiteral("仅在允许转场倒车时参与时间估算并下发给 TEB"),
+      &coverage_reverse_speed_input_);
+  add_time_parameter(
+      QStringLiteral("最大转弯角速度"), 0.10, 1.00, 0.05, 0.60, 2,
+      QStringLiteral(" rad/s"),
+      QStringLiteral("同时用于转弯时间估算和任务期间的 TEB max_vel_theta"),
+      &coverage_angular_speed_input_);
+  add_time_parameter(
+      QStringLiteral("最大线加速度"), 0.10, 2.00, 0.10, 2.00, 2,
+      QStringLiteral(" m/s²"),
+      QStringLiteral("用于每段加减速时间估算和任务期间的 TEB acc_lim_x"),
+      &coverage_linear_accel_input_);
+  add_time_parameter(
+      QStringLiteral("最大角加速度"), 0.10, 1.00, 0.05, 0.50, 2,
+      QStringLiteral(" rad/s²"),
+      QStringLiteral("用于转向加减速时间估算和任务期间的 TEB acc_lim_theta"),
+      &coverage_angular_accel_input_);
+  add_time_parameter(
+      QStringLiteral("每次换向附加时间"), 0.0, 30.0, 0.1, 1.0, 1,
+      QStringLiteral(" s"),
+      QStringLiteral("规划器对前进/倒车切换加入的经验时间；不直接改变底盘限速"),
+      &coverage_direction_change_penalty_input_);
+  add_time_parameter(
+      QStringLiteral("每段交接附加时间"), 0.0, 30.0, 0.1, 0.5, 1,
+      QStringLiteral(" s"),
+      QStringLiteral("估算 move_base 分段停车、验收和下一段启动的固定耗时"),
+      &coverage_handoff_penalty_input_);
+  auto* persistence_note = new QLabel(
+      QStringLiteral("以上参数修改后会立即保存，并在下次启动 Qt 时作为默认值。"),
+      parameters);
+  persistence_note->setWordWrap(true);
+  persistence_note->setStyleSheet(
+      QStringLiteral("color:#374151;font-size:9pt;"));
+  parameters_layout->addWidget(persistence_note);
   controls_layout->addWidget(parameters);
 
   auto* status = new QGroupBox(QStringLiteral("覆盖任务状态"), controls);
@@ -4893,11 +5061,28 @@ void MainWindow::refreshUi()
           : QStringLiteral("--"));
   values_["coverage_parameters"]->setText(
       coverage_status_fresh
-          ? QStringLiteral("宽 %1 m · 间距 %2 m · R≥%3 m")
+          ? QStringLiteral("宽 %1 · 间距 %2 m · 前/倒 %3/%4 m/s · ω≤%5 · 预计 %6 min")
                 .arg(coverage.operation_width_m, 0, 'f', 2)
                 .arg(coverage.lane_spacing_m, 0, 'f', 2)
-                .arg(coverage.minimum_turning_radius_m, 0, 'f', 2)
+                .arg(coverage.max_forward_speed_mps, 0, 'f', 2)
+                .arg(coverage.allow_reverse_transit
+                         ? QString::number(coverage.max_reverse_speed_mps,
+                                           'f', 2)
+                         : QStringLiteral("禁用"))
+                .arg(coverage.max_angular_speed_rps, 0, 'f', 2)
+                .arg(coverage.estimated_total_time_sec / 60.0, 0, 'f', 1)
           : QStringLiteral("--"));
+  values_["coverage_parameters"]->setToolTip(
+      coverage_status_fresh
+          ? QStringLiteral("R≥%1 m；线加速度≤%2 m/s²；角加速度≤%3 rad/s²；"
+                           "清扫 %4 s + 转场 %5 s；预计倒车转场 %6 次")
+                .arg(coverage.minimum_turning_radius_m, 0, 'f', 2)
+                .arg(coverage.linear_accel_mps2, 0, 'f', 2)
+                .arg(coverage.angular_accel_rps2, 0, 'f', 2)
+                .arg(coverage.estimated_sweep_time_sec, 0, 'f', 1)
+                .arg(coverage.estimated_transit_time_sec, 0, 'f', 1)
+                .arg(coverage.estimated_reverse_transitions)
+          : QStringLiteral("等待 /coverage/status"));
   QString coverage_kinematics = QStringLiteral("--");
   if (coverage_status_fresh)
   {
@@ -4980,10 +5165,19 @@ void MainWindow::refreshUi()
                                        !coverage_active &&
                                        !coverage_batch_active &&
                                        !coverage_backend_busy;
-  coverage_width_input_->setEnabled(coverage_editable);
-  coverage_overlap_input_->setEnabled(coverage_editable);
-  coverage_speed_input_->setEnabled(coverage_editable);
-  coverage_reverse_checkbox_->setEnabled(coverage_editable);
+  const bool coverage_parameters_editable =
+      coverage_editable && !coverage_has_ready_plan;
+  coverage_width_input_->setEnabled(coverage_parameters_editable);
+  coverage_overlap_input_->setEnabled(coverage_parameters_editable);
+  coverage_speed_input_->setEnabled(coverage_parameters_editable);
+  coverage_reverse_checkbox_->setEnabled(coverage_parameters_editable);
+  coverage_reverse_speed_input_->setEnabled(coverage_parameters_editable);
+  coverage_angular_speed_input_->setEnabled(coverage_parameters_editable);
+  coverage_linear_accel_input_->setEnabled(coverage_parameters_editable);
+  coverage_angular_accel_input_->setEnabled(coverage_parameters_editable);
+  coverage_direction_change_penalty_input_->setEnabled(
+      coverage_parameters_editable);
+  coverage_handoff_penalty_input_->setEnabled(coverage_parameters_editable);
   coverage_select_button_->setEnabled(coverage_editable && !coverage_selecting &&
                                       !coverage_has_ready_plan);
   coverage_undo_button_->setEnabled(coverage_selecting && coverage_point_count > 0 &&
@@ -5436,9 +5630,8 @@ void MainWindow::confirmCoverageSelection()
                              QStringLiteral("至少需要三个顶点才能形成覆盖多边形。"));
     return;
   }
-  const double width = coverage_width_input_->value();
-  const double overlap = coverage_overlap_input_->value() / 100.0;
-  const bool allow_reverse = coverage_reverse_checkbox_->isChecked();
+  const CoveragePlanningUiParameters parameters =
+      coveragePlanningParameters();
   const TelemetrySnapshot data = snapshot();
   const bool status_fresh = data.coverage_status_received &&
                             wallAge(data.coverage_status_received_at) <= 2.0;
@@ -5486,11 +5679,16 @@ void MainWindow::confirmCoverageSelection()
               publishCoverageDraft();
               appendEvent(
                   QStringLiteral("覆盖轨迹已生成：%1 条清扫线，可覆盖 %2 / %3 m²，"
-                                 "不可覆盖估算 %4 m²。")
+                                 "不可覆盖估算 %4 m²；预计 %5 min（清扫 %6 s、"
+                                 "转场 %7 s、倒车转场 %8 次）。")
                       .arg(result.swath_count)
                       .arg(result.reachable_area_m2, 0, 'f', 1)
                       .arg(result.requested_area_m2, 0, 'f', 1)
-                      .arg(result.unreachable_area_m2, 0, 'f', 1));
+                      .arg(result.unreachable_area_m2, 0, 'f', 1)
+                      .arg(result.estimated_total_time_sec / 60.0, 0, 'f', 1)
+                      .arg(result.estimated_sweep_time_sec, 0, 'f', 1)
+                      .arg(result.estimated_transit_time_sec, 0, 'f', 1)
+                      .arg(result.estimated_reverse_transitions));
             }
             else
             {
@@ -5505,7 +5703,7 @@ void MainWindow::confirmCoverageSelection()
             watcher->deleteLater();
           });
   watcher->setFuture(QtConcurrent::run(
-      [points, width, overlap, allow_reverse, map_digest]() {
+      [points, parameters, map_digest]() {
     CoveragePlanUiResult result;
     ros::NodeHandle node;
     ros::ServiceClient client =
@@ -5526,9 +5724,18 @@ void MainWindow::confirmCoverageSelection()
       vertex.z = 0.0F;
       call.request.region.polygon.points.push_back(vertex);
     }
-    call.request.operation_width_m = width;
-    call.request.overlap_ratio = overlap;
-    call.request.allow_reverse_transit = allow_reverse;
+    call.request.operation_width_m = parameters.operation_width_m;
+    call.request.overlap_ratio = parameters.overlap_ratio;
+    call.request.allow_reverse_transit = parameters.allow_reverse;
+    call.request.max_speed_mps = parameters.max_forward_speed_mps;
+    call.request.reverse_speed_mps = parameters.max_reverse_speed_mps;
+    call.request.max_angular_speed_rps = parameters.max_angular_speed_rps;
+    call.request.linear_accel_mps2 = parameters.linear_accel_mps2;
+    call.request.angular_accel_rps2 = parameters.angular_accel_rps2;
+    call.request.direction_change_penalty_sec =
+        parameters.direction_change_penalty_sec;
+    call.request.segment_handoff_penalty_sec =
+        parameters.segment_handoff_penalty_sec;
     call.request.map_digest = map_digest;
     if (!client.call(call))
     {
@@ -5548,6 +5755,11 @@ void MainWindow::confirmCoverageSelection()
     result.requested_area_m2 = call.response.requested_area_m2;
     result.reachable_area_m2 = call.response.reachable_area_m2;
     result.unreachable_area_m2 = call.response.unreachable_area_m2;
+    result.estimated_total_time_sec = call.response.estimated_total_time_sec;
+    result.estimated_sweep_time_sec = call.response.estimated_sweep_time_sec;
+    result.estimated_transit_time_sec = call.response.estimated_transit_time_sec;
+    result.estimated_reverse_transitions =
+        call.response.estimated_reverse_transitions;
     result.swath_count = call.response.swath_count;
     return result;
   }));
@@ -5848,24 +6060,27 @@ void MainWindow::startCoverageBatch()
       data.coverage_status.map_digest !=
           coverage_region_store_.mapDigest().toStdString())
     return;
-  const double width = coverage_width_input_->value();
-  const double overlap = coverage_overlap_input_->value() / 100.0;
-  const bool allow_reverse = coverage_reverse_checkbox_->isChecked();
-  const double max_speed_mps = coverage_speed_input_->value();
+  const CoveragePlanningUiParameters parameters =
+      coveragePlanningParameters();
   const std::string map_digest = data.coverage_status.map_digest;
   const QVector<CoverageRegionRecord> queue = coverage_region_queue_;
   const std::uint64_t queue_generation = coverage_batch_generation_;
   const auto answer = QMessageBox::question(
       this, QStringLiteral("确认开始队列清扫"),
       QStringLiteral("将按当前顺序一次下发 %1 个已保存区域。整批共用当前参数："
-                     "清扫宽度 %2 m、重叠率 %3%、最高速度 %4 m/s。"
+                     "清扫宽度 %2 m、重叠率 %3%、前进/倒车上限 %4/%5 m/s、"
+                     "转弯角速度上限 %6 rad/s。"
                      "只有整批结束或取消后才能修改队列。\n\n"
                      "请确认现场人员远离车辆、实体急停可用，且定位与车辆真实位置一致。"
                      "是否开始？")
           .arg(queue.size())
-          .arg(width, 0, 'f', 2)
-          .arg(overlap * 100.0, 0, 'f', 0)
-          .arg(max_speed_mps, 0, 'f', 2),
+          .arg(parameters.operation_width_m, 0, 'f', 2)
+          .arg(parameters.overlap_ratio * 100.0, 0, 'f', 0)
+          .arg(parameters.max_forward_speed_mps, 0, 'f', 2)
+          .arg(parameters.allow_reverse
+                   ? QString::number(parameters.max_reverse_speed_mps, 'f', 2)
+                   : QStringLiteral("禁用"))
+          .arg(parameters.max_angular_speed_rps, 0, 'f', 2),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
   if (answer != QMessageBox::Yes)
     return;
@@ -6012,7 +6227,7 @@ void MainWindow::startCoverageBatch()
             watcher->deleteLater();
           });
   watcher->setFuture(QtConcurrent::run(
-      [queue, width, overlap, allow_reverse, max_speed_mps, map_digest,
+      [queue, parameters, map_digest,
        batch_request_id]() {
         CoverageBatchUiResult result;
         result.batch_id = batch_request_id;
@@ -6029,10 +6244,18 @@ void MainWindow::startCoverageBatch()
         }
         autolabor_coverage::StartCoverageBatch call;
         call.request.client_request_id = batch_request_id;
-        call.request.operation_width_m = width;
-        call.request.overlap_ratio = overlap;
-        call.request.allow_reverse_transit = allow_reverse;
-        call.request.max_speed_mps = max_speed_mps;
+        call.request.operation_width_m = parameters.operation_width_m;
+        call.request.overlap_ratio = parameters.overlap_ratio;
+        call.request.allow_reverse_transit = parameters.allow_reverse;
+        call.request.max_speed_mps = parameters.max_forward_speed_mps;
+        call.request.reverse_speed_mps = parameters.max_reverse_speed_mps;
+        call.request.max_angular_speed_rps = parameters.max_angular_speed_rps;
+        call.request.linear_accel_mps2 = parameters.linear_accel_mps2;
+        call.request.angular_accel_rps2 = parameters.angular_accel_rps2;
+        call.request.direction_change_penalty_sec =
+            parameters.direction_change_penalty_sec;
+        call.request.segment_handoff_penalty_sec =
+            parameters.segment_handoff_penalty_sec;
         call.request.map_digest = map_digest;
         for (const CoverageRegionRecord& record : queue)
         {
@@ -6173,7 +6396,8 @@ void MainWindow::startCoverage()
   if (coverage_plan_id_.empty() || coverage_command_pending_ ||
       !coverage_batch_id_.empty() || coverage_task_lifecycle_started_)
     return;
-  const double max_speed_mps = coverage_speed_input_->value();
+  const CoveragePlanningUiParameters parameters =
+      coveragePlanningParameters();
   const std::string plan_id = coverage_plan_id_;
   const std::string map_digest = coverage_planned_region_map_digest_;
   const std::uint64_t plan_generation = coverage_plan_generation_;
@@ -6181,10 +6405,15 @@ void MainWindow::startCoverage()
       this, QStringLiteral("确认开始覆盖清扫"),
       QStringLiteral("无人车将先导航到规划器选择的起点，再逐段执行覆盖轨迹。V1 不会启动"
                      "刷盘、风机或喷淋。请确认现场人员远离车辆、实体急停可用且当前定位"
-                     "与车辆真实位置一致。\n\n本次最高前进速度：%1 m/s（覆盖任务上限 1.60 m/s）。"
+                     "与车辆真实位置一致。\n\n本次前进/倒车上限：%1/%2 m/s，"
+                     "最大转弯角速度：%3 rad/s。"
                      "开始前将在线核对 VCU/TEB 运动学参数。"
                      "\n是否开始？")
-          .arg(max_speed_mps, 0, 'f', 2),
+          .arg(parameters.max_forward_speed_mps, 0, 'f', 2)
+          .arg(parameters.allow_reverse
+                   ? QString::number(parameters.max_reverse_speed_mps, 'f', 2)
+                   : QStringLiteral("禁用"))
+          .arg(parameters.max_angular_speed_rps, 0, 'f', 2),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
   if (answer != QMessageBox::Yes)
     return;
@@ -6228,7 +6457,7 @@ void MainWindow::startCoverage()
               QMessageBox::warning(this, QStringLiteral("覆盖任务未启动"), message);
             watcher->deleteLater();
           });
-  watcher->setFuture(QtConcurrent::run([plan_id, max_speed_mps]() {
+  watcher->setFuture(QtConcurrent::run([plan_id, parameters]() {
     ros::NodeHandle node;
     ros::ServiceClient client =
         node.serviceClient<autolabor_coverage::StartCoverage>("/coverage/start", false);
@@ -6236,7 +6465,16 @@ void MainWindow::startCoverage()
       return QStringLiteral("ERR|覆盖执行服务未启动");
     autolabor_coverage::StartCoverage call;
     call.request.plan_id = plan_id;
-    call.request.max_speed_mps = max_speed_mps;
+    call.request.max_speed_mps = parameters.max_forward_speed_mps;
+    call.request.allow_reverse_transit = parameters.allow_reverse;
+    call.request.reverse_speed_mps = parameters.max_reverse_speed_mps;
+    call.request.max_angular_speed_rps = parameters.max_angular_speed_rps;
+    call.request.linear_accel_mps2 = parameters.linear_accel_mps2;
+    call.request.angular_accel_rps2 = parameters.angular_accel_rps2;
+    call.request.direction_change_penalty_sec =
+        parameters.direction_change_penalty_sec;
+    call.request.segment_handoff_penalty_sec =
+        parameters.segment_handoff_penalty_sec;
     if (!client.call(call))
       return QStringLiteral("ERR|覆盖执行服务调用失败");
     return QString(call.response.accepted ? QStringLiteral("OK|")

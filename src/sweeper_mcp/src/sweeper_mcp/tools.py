@@ -279,6 +279,30 @@ TOOL_SPECS = [
                 "allow_reverse_transit": {
                     "type": "boolean", "default": True,
                 },
+                "reverse_speed_mps": {
+                    "type": "number", "minimum": 0.05, "maximum": 0.80,
+                    "default": 0.3,
+                },
+                "max_angular_speed_rps": {
+                    "type": "number", "minimum": 0.10, "maximum": 1.00,
+                    "default": 0.6,
+                },
+                "linear_accel_mps2": {
+                    "type": "number", "minimum": 0.10, "maximum": 2.00,
+                    "default": 2.0,
+                },
+                "angular_accel_rps2": {
+                    "type": "number", "minimum": 0.10, "maximum": 1.00,
+                    "default": 0.5,
+                },
+                "direction_change_penalty_sec": {
+                    "type": "number", "minimum": 0.0, "maximum": 30.0,
+                    "default": 1.0,
+                },
+                "segment_handoff_penalty_sec": {
+                    "type": "number", "minimum": 0.0, "maximum": 30.0,
+                    "default": 0.5,
+                },
             },
             "required": ["regions"],
             "additionalProperties": False,

@@ -709,6 +709,8 @@ printf '%s\n' "$FOD_MOTION_ENABLED"
         self.assertIn("matches_configured_identity", helper_text)
         self.assertIn("reset_stuck_mid360_adapter", helper_text)
         self.assertIn("usb_device_has_carrier", helper_text)
+        self.assertIn("usb_device_selector", helper_text)
+        self.assertIn("printf '%03d/%03d", helper_text)
         self.assertIn("AUTOLABOR_MID360_USB_SERIAL", helper_text)
         self.assertIn("install -m 0755", installer_text)
         self.assertIn("AUTOLABOR_J6M_USB_SERIAL", installer_text)

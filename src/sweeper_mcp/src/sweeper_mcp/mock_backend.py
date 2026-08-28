@@ -89,7 +89,13 @@ class MockBackend:
 
     def start_coverage_cleaning(self, regions, operation_width_m=1.0,
                                 overlap_percent=15.0, max_speed_mps=0.8,
-                                allow_reverse_transit=True):
+                                allow_reverse_transit=True,
+                                reverse_speed_mps=0.3,
+                                max_angular_speed_rps=0.6,
+                                linear_accel_mps2=2.0,
+                                angular_accel_rps2=0.5,
+                                direction_change_penalty_sec=1.0,
+                                segment_handoff_penalty_sec=0.5):
         failed = self._record("start_coverage_cleaning", locals())
         if failed:
             return failed

@@ -2,6 +2,13 @@ geometry_msgs/PolygonStamped region
 float32 operation_width_m
 float32 overlap_ratio
 bool allow_reverse_transit
+float64 max_speed_mps
+float64 reverse_speed_mps
+float64 max_angular_speed_rps
+float64 linear_accel_mps2
+float64 angular_accel_rps2
+float64 direction_change_penalty_sec
+float64 segment_handoff_penalty_sec
 string map_digest
 ---
 bool success
@@ -14,4 +21,8 @@ float32 unreachable_area_m2
 float32 sweep_angle_rad
 uint32 swath_count
 uint32 segment_count
+float64 estimated_total_time_sec
+float64 estimated_sweep_time_sec
+float64 estimated_transit_time_sec
+uint32 estimated_reverse_transitions
 string map_digest

@@ -33,6 +33,12 @@ class CoverageContractTest(unittest.TestCase):
             "float32 overlap_ratio",
             "bool allow_reverse_transit",
             "float64 max_speed_mps",
+            "float64 reverse_speed_mps",
+            "float64 max_angular_speed_rps",
+            "float64 linear_accel_mps2",
+            "float64 angular_accel_rps2",
+            "float64 direction_change_penalty_sec",
+            "float64 segment_handoff_penalty_sec",
             "string map_digest",
         ):
             self.assertIn(field, request)
@@ -72,6 +78,23 @@ class CoverageContractTest(unittest.TestCase):
         ).read_text(encoding="utf-8").split("---")
         self.assertIn("string map_digest", plan_request)
         self.assertIn("string map_digest", plan_response)
+        for field in (
+            "float64 max_speed_mps",
+            "float64 reverse_speed_mps",
+            "float64 max_angular_speed_rps",
+            "float64 linear_accel_mps2",
+            "float64 angular_accel_rps2",
+            "float64 direction_change_penalty_sec",
+            "float64 segment_handoff_penalty_sec",
+        ):
+            self.assertIn(field, plan_request)
+        for field in (
+            "estimated_total_time_sec",
+            "estimated_sweep_time_sec",
+            "estimated_transit_time_sec",
+            "estimated_reverse_transitions",
+        ):
+            self.assertIn(field, plan_response)
 
         status = (
             PACKAGE_ROOT / "msg" / "CoverageStatus.msg"
@@ -234,13 +257,31 @@ class CoverageContractTest(unittest.TestCase):
         config = yaml.safe_load(
             (PACKAGE_ROOT / "config" / "coverage.yaml").read_text(encoding="utf-8")
         )
-        self.assertIn("float64 max_speed_mps", start_service)
+        for field in (
+            "float64 max_speed_mps",
+            "bool allow_reverse_transit",
+            "float64 reverse_speed_mps",
+            "float64 max_angular_speed_rps",
+            "float64 linear_accel_mps2",
+            "float64 angular_accel_rps2",
+            "float64 direction_change_penalty_sec",
+            "float64 segment_handoff_penalty_sec",
+        ):
+            self.assertIn(field, start_service)
         self.assertEqual(0.80, config["default_max_speed_mps"])
         self.assertEqual(1.60, config["max_speed_limit_mps"])
         self.assertEqual(0.30, config["reverse_transit_speed_mps"])
-        self.assertIn("requested_speed > self.watchdog_max_linear_speed", manager)
+        self.assertEqual(0.60, config["default_max_angular_speed_rps"])
+        self.assertEqual(2.00, config["default_linear_accel_mps2"])
+        self.assertEqual(0.50, config["default_angular_accel_rps2"])
+        self.assertIn(
+            "requested_motion_speed > self.watchdog_max_linear_speed", manager
+        )
         self.assertIn('"max_vel_x": self.task_max_speed', manager)
         self.assertIn('"max_vel_x": configuration.get', manager)
+        self.assertIn('"max_vel_theta": getattr(', manager)
+        self.assertIn('"acc_lim_x": getattr(', manager)
+        self.assertIn('"acc_lim_theta": getattr(', manager)
 
     def test_exact_sweeps_enable_teb_cross_track_and_heading_costs_only_temporarily(self):
         manager = (PACKAGE_ROOT / "scripts" / "coverage_manager.py").read_text(
@@ -315,6 +356,15 @@ class CoverageContractTest(unittest.TestCase):
             "operation_width_m",
             "lane_spacing_m",
             "minimum_turning_radius_m",
+            "allow_reverse_transit",
+            "max_forward_speed_mps",
+            "max_reverse_speed_mps",
+            "max_angular_speed_rps",
+            "linear_accel_mps2",
+            "angular_accel_rps2",
+            "direction_change_penalty_sec",
+            "segment_handoff_penalty_sec",
+            "estimated_total_time_sec",
             "required_steering_angle_rad",
             "chassis_wheelbase_m",
             "chassis_max_steering_angle_rad",
