@@ -1,6 +1,6 @@
 # 双机项目终端交接
 
-更新时间：2026-08-23（Asia/Shanghai）
+更新时间：2026-08-27（Asia/Shanghai）
 
 工作区：`/home/slam/robot_j6m_ws`
 
@@ -97,7 +97,7 @@ AMCL。
 | ZED、CUDA、YOLO11 | 是 |  |
 | FOD 速度仲裁 |  | 是 |
 | 最终速度看门狗 | 是 |  |
-| Qt/RViz | 是 |  |
+| Qt/RViz、AI/MCP、可切换 Whisper ASR | 是 |  |
 
 主要数据链：
 
@@ -105,7 +105,13 @@ AMCL。
 MID360 -> NVIDIA Livox driver -> J6M relay -> FAST-LIO
 FAST-LIO -> /Odometry + registered cloud -> /scan -> move_base
 Qt/RViz 普通目标 -> /move_base_simple/goal -> /navigation_pause 目标门
-                 -> /navigation_goal/accepted -> move_base
+                 -> sweeper-simple-* /move_base/goal
+Qt AI 显式目标   -> /navigation_goal/action_request -> /navigation_pause
+                 -> /move_base/goal（同 ID 回显/状态闭环）
+Qt AI 精确取消   -> /navigation_goal/cancel_request -> J6M /move_base/cancel
+未转发安全回执   <- /navigation_goal/cancel_ack（只证明该 ID 从未进入 move_base）
+Qt/AI 覆盖启动   -> /coverage/start_batch（客户端 operation ID 原样成为 batch ID）
+覆盖精确取消     -> /coverage/cancel_batch（旧/foreign ID 不影响当前批次）
 ZED -> YOLO11 -> /fod/detections -> J6M FOD arbiter
 move_base -> /cmd_vel_navigation -> /cmd_vel_safe
           -> NVIDIA watchdog -> /cmd_vel -> M2/CAN
@@ -161,9 +167,23 @@ Qt 标题应为“Autolabor 无人车操作与诊断台”，并能看到：
 
 - 顶部 ROS、CAN、FAST-LIO、点云、IMU、避障雷达、导航、控制模式、相机、
   YOLO11 和录包状态卡；
-- “综合、FAST-LIO、测试、视觉、清扫、日志”全部页签；
+- “综合、FAST-LIO、测试、视觉、清扫、AI语音控制、日志”全部页签；
+- “AI语音控制”页的语音输入、AI 语义解析、AI 控制三门和智能语音模式每次启动都默认为
+  关闭；既保留“开始录音/停止并识别”的手动模式，也可另行确认后启用持续监听、VAD 自动
+  断句模式；页面显示 ASR 模型/设备/阶段、监听状态、句数、待处理数、录音时长、识别耗时、
+  识别文本、云端往返和逐步计划；
+- AI 语义解析关闭时 ASR 文本只能本地显示，AI 控制关闭时只允许计划预览；手工文本
+  不需要语音授权，但同样不能绕过解析和控制授权；
 - “清扫”页具有独立全局地图、车辆、计划/实走轨迹和侧栏状态；无 `--map-set` 时
   框定、参数和开始按钮置灰；静态图模式可多点框定、撤销、随时取消和确认闭合；
+- 规划成功后可用中文或英文命名并“保存为已知清扫区”；相同实际地图再次启动时可从
+  “选择已保存区域 / 管理队列”载入、排队、移除或删除，所有有状态操作都有确认框；
+- 区域库保存在对应 `map_sets/<map-set>/coverage_regions/<source_mode>/regions.json`，按
+  规范化 map-set 目录严格隔离并用 J6M 实际 `/map` 的完整 SHA-256 复核；只保存多边形
+  定义，不保存 plan ID、轨迹或自动运动状态；地图摘要或 MapDisplay 未就绪时相关按钮
+  必须禁用；
+- 多区域队列由 J6M 一次接收并逐区即时规划；完成/部分完成继续，失败停止，“跳过当前
+  区域”和“取消整批”语义分开，批次换区间 `/coverage/active` 仍保持任务所有权；
 - 综合和清扫地图都用亮绿色 Polygon 显示 move_base 实时发布的车辆安全轮廓；当前
   基础 footprint 为 `1.04 × 0.70 m`，含 `0.10 m` padding 后约为 `1.24 × 0.90 m`，
   并随 `base_link` 移动；静态地图缺少初始位姿或新鲜里程计/TF 时暂不显示是正常状态；
@@ -204,6 +224,60 @@ FAST-LIO 健康度读法：
 - 内部协方差不是绝对真值误差，最终精度仍要用已知点或闭环复位测试。
 
 录包卡默认灰色“未录制”，需要时由操作员手动开始。
+
+## AI 语音与 ASR
+
+ASR 使用 NVIDIA 本机 OpenAI Whisper `small / medium / large`，默认 `medium`，其中
+`large` 对应 `large-v3`；原始音频不上传云端。首次准备在
+NVIDIA 执行：
+
+```bash
+cd /home/slam/robot_j6m_ws
+bash ./scripts/install_whisper_asr.sh
+```
+
+安装器创建 `runtime/asr/venv`，固定 Whisper commit，并将校验通过的三套 checkpoint
+原子落到 `runtime/asr/models/{small.pt,medium.pt,large-v3.pt}`。运行时不允许下载。
+实际配置位于权限必须为
+`0600` 的 `src/sweeper_mcp/config/sweeper_mcp.yaml`；其中 `input_device: auto`（空值
+等价）会只读枚举实体 ALSA capture 端点并优先选择 USB 麦克风，也可显式填写稳定设备
+标识。设备枚举不打开麦克风，实际采集仍受 Qt 语音授权控制。
+
+自动发现会排除 Jetson APE 和 Pulse monitor/null 端点，并优先选择实体 USB capture。
+当前已验证 AB17X USB Audio 可被只读枚举为稳定 ALSA card ID `Audio`；连接存在时会选择
+`plughw:CARD=Audio,DEV=0`，枚举过程不打开设备。麦克风拔出时 ASR fail-closed 为
+`UNAVAILABLE`，不会猜用 APE、monitor 或临时 card 编号。
+
+确认语音授权后有两种互斥流程：手动模式仍为“开始录音 → 停止并识别”；智能模式还需点击
+“启用智能语音”并确认，之后持续监听并在约 `0.8 s` 静音后自动形成一句、使用当前所选模型
+识别。它不输出边说边更新的 partial token；每句需完成断句和本地批量推理后才可能请求云端。
+解析门关闭时文字只在 Qt 本地显示；解析门开启后智能句子进入有界 FIFO 串行处理；控制门
+关闭仍只展示计划。授权变化会清理未提交旧句，关闭智能模式、撤销语音授权、Qt 心跳超时或
+worker 异常都会停止采集、清空队列并丢弃旧 session/capture 的迟到结果。ASR worker 没有
+ROS、云端密钥或 MCP 控制能力，任何模式都不能绕过项目原有安全门。
+
+本链的源码、模型、CUDA venv、Qt 和 AI 节点全部属于 NVIDIA。只修改 ASR/AI/Qt 时执行
+本机构建和静态检查，不运行 `deploy_j6m.sh`，也不切换 J6M `current`；只有另行修改 J6M
+包、J6M launch/config 或两端共享消息时才走 J6M release 流程。
+
+AI 的地图坐标导航不再把锁存 `/map` 当作两秒动态话题。NVIDIA MCP 后端长期缓存一次有效
+OccupancyGrid，使用与 J6M 覆盖管理器相同的完整地图摘要确认身份；每个任意 x/y/yaw 目标
+仍须通过新鲜 `LOCALIZED`、新鲜 CoverageStatus、摘要一致、地图原点旋转、范围和占用检查，
+且发布前复核地图未切换。“地图坐标原点”固定为 `(0,0,0°)`；其他未保存名称不得由模型
+猜测坐标。
+
+AI 不再从 `/move_base/goal` 的“最近目标”猜 GoalID。每次导航由 NVIDIA 生成唯一
+`sweeper-ai-<uuid>`，J6M 桥校验并按本机时间转发；只有同 ID 的 action 回显、唯一状态和
+完整目标位姿均一致才算接受。闭环缺失或 `LOST` 会进入持续精确撤销，GoalID 在安全终态
+确认前不会释放，J6M 的 AI 心跳租约也会在 NVIDIA 后端失联时继续撤销。因此 Qt 中若显示
+“撤销确认中”，不能把它理解为目标已经停止，也不能继续发下一条 AI 导航。
+
+AI 覆盖批次在 NVIDIA 后端还有独立提交锁：从首次 CoverageStatus/区域库预检、预分配
+`coverage-batch-<uuid>`、调用 `/coverage/start_batch`，一直覆盖到响应丢失后的 exact
+tombstone/取消收敛。第二个并发 start 或 cancel 在这段窗口内不会进入 ROS 服务，因此已被
+J6M 接受的 A 不会被 B 的拒绝补偿清空 `_ai_batch_id`。J6M 端对失败后保留的 owner 也采用
+单事务清理并绑定清理开始时的 move_base generation 和精确 GoalHandle；旧 A 的重复取消、
+状态定时器或迟到线程不能操作随后启动的 B。
 
 ## 安全状态
 
@@ -272,7 +346,9 @@ usbfs 和 hidraw 节点停在 `root:root 0600`，同时视频链路只协商到 
 ./scripts/zed_camera_check.sh --wait 0
 ```
 
-安装器通过 `autolabor-zed-coldplug.service` 在以后开机后重新应用 ZED 规则；USB 速率
+安装器通过 `autolabor-zed-coldplug.service` 在以后开机首轮 udev 稳定后、
+NetworkManager 启动前加载 ASIX/WCH、FTDI、CH341、UVC 驱动并重新应用本车设备规则；
+MID360 专用 WCH 网卡在精确 USB ID+序列号匹配且仍无载波时只重置一次。USB 速率
 仍必须由正确的 USB 3.x 端口、线缆和插头接触保证。若检查显示 `480M`，翻面重插
 相机端 Type-C 或改接原生 USB 3.x 口，直到显示 `5000M` 或更高。ROS 中仅有
 `/zed2/zed_node` 不表示相机已打开，必须实际收到 `/fod_camera/image_raw` 和

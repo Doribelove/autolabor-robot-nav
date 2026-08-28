@@ -1,0 +1,18 @@
+<launch>
+  <!-- API credentials are read directly from a local 0600 file.  Never load
+       the YAML with rosparam: the ROS master runs on J6M and is network-visible. -->
+  <!-- The same protected YAML contains non-secret ASR settings.  The AI node
+       owns a local worker subprocess; no second ROS node or microphone opens
+       before the Qt voice gate is explicitly authorised.  Worker/model path
+       environment overrides are inherited from the NVIDIA launcher. -->
+  <node pkg="sweeper_mcp"
+        type="sweeper_ai_node.py"
+        name="sweeper_ai"
+        output="screen"
+        required="true">
+    <!-- These cover accidental Hugging Face/Transformers fallback paths.  The
+         OpenAI Whisper worker separately rejects a missing local checkpoint. -->
+    <env name="HF_HUB_OFFLINE" value="1"/>
+    <env name="TRANSFORMERS_OFFLINE" value="1"/>
+  </node>
+</launch>

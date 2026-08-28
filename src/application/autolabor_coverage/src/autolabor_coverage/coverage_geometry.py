@@ -10,9 +10,62 @@ from dataclasses import dataclass
 from collections import deque
 import hashlib
 import math
+import struct
 
 
 EPSILON = 1.0e-9
+
+
+def occupancy_grid_digest(frame_id, width, height, resolution,
+                          origin_position, origin_orientation, data):
+    """Return a portable identity for a complete OccupancyGrid.
+
+    ROS serialization contains a changing header timestamp, so it cannot be
+    hashed directly for saved-region identity.  This canonical representation
+    intentionally includes every spatial field that changes the meaning of a
+    cell plus the complete signed-int8 payload, while excluding only sequence
+    and timestamp metadata.
+    """
+    frame = str(frame_id).encode("utf-8")
+    width = int(width)
+    height = int(height)
+    resolution = float(resolution)
+    position = tuple(float(value) for value in origin_position)
+    orientation = tuple(float(value) for value in origin_orientation)
+    values = tuple(int(value) for value in data)
+    if width <= 0 or height <= 0:
+        raise ValueError("map dimensions must be positive")
+    if len(position) != 3 or len(orientation) != 4:
+        raise ValueError("map origin pose must contain position and quaternion")
+    if not all(math.isfinite(value) for value in
+               (resolution,) + position + orientation):
+        raise ValueError("map metadata must be finite")
+    if resolution <= 0.0:
+        raise ValueError("map resolution must be positive")
+    if len(values) != width * height:
+        raise ValueError("map data length does not match dimensions")
+    if any(value < -1 or value > 100 for value in values):
+        raise ValueError("map occupancy values must be in [-1, 100]")
+
+    digest = hashlib.sha256()
+    digest.update(b"autolabor-occupancy-grid-v1\0")
+    digest.update(struct.pack("<I", len(frame)))
+    digest.update(frame)
+    digest.update(struct.pack(
+        "<IIdddddddd",
+        width,
+        height,
+        resolution,
+        position[0],
+        position[1],
+        position[2],
+        orientation[0],
+        orientation[1],
+        orientation[2],
+        orientation[3],
+    ))
+    digest.update(bytes(value & 0xFF for value in values))
+    return digest.hexdigest()
 
 
 @dataclass(frozen=True)

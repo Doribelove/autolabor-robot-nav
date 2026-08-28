@@ -27,8 +27,10 @@ def create_backend(name):
     if name == "mock":
         from sweeper_mcp.mock_backend import MockBackend
         return MockBackend()
-    from sweeper_mcp.ros_backend import ROSBackend
-    return ROSBackend()
+    if name == "ros":
+        from sweeper_mcp.ros_backend import ROSBackend
+        return ROSBackend()
+    raise ValueError("MCP_BACKEND must be ros or mock")
 
 
 def main():
@@ -37,7 +39,8 @@ def main():
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     backend_name = os.environ.get("MCP_BACKEND", "ros")
     backend = create_backend(backend_name)
-    registry = build_registry(backend)
+    registry = build_registry(
+        backend, control_token=os.environ.get("SWEEPER_MCP_CONTROL_TOKEN", ""))
     serve_stdio(registry)
     return 0
 

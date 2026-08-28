@@ -1,33 +1,13 @@
-<?xml version="1.0"?>
 <launch>
-  <!-- 仿真语音闭环演示：标准 Gazebo 世界 + 语音 Agent(大模型)。
+  <!-- Safe UI/plan demo. The mock backend cannot publish robot commands. -->
+  <arg name="start_operator_gui" default="true"/>
+  <arg name="enable_rviz" default="false"/>
 
-       与标准启动 (gazebo_sim_navigation.launch) 相同的世界/定位/导航配置，
-       唯一区别：把滚动最终目标设到原点 (goal_dx=0) —— 滚动管理器一启动即完成、
-       机器人原地待命，之后完全由语音/文本指令驱动：收到就移动，到达目标停下，
-       等待下一条命令。
-
-       启动：
-         roslaunch sweeper_mcp sim_voice_demo.launch            # headless，无窗口
-         roslaunch sweeper_mcp sim_voice_demo.launch gui:=true  # 显示 RViz
-       验证：
-         python3 scripts/test_sim_voice.py                      # 自动发指令并校验
-  -->
-  <arg name="headless" default="true"/>
-  <arg name="gui" default="false"/>
-  <arg name="start_operator_gui" default="false"/>
-
-  <!-- 标准仿真世界（gps_sim_adapter + move_base/TEB + 滚动目标管理器） -->
-  <include file="$(find robot_bringup)/launch/gazebo_sim_navigation.launch">
-    <arg name="headless" value="$(arg headless)"/>
-    <arg name="gui" value="$(arg gui)"/>
-    <arg name="start_operator_gui" value="$(arg start_operator_gui)"/>
-    <arg name="goal_dx" value="0.0"/>
-    <arg name="goal_dy" value="0.0"/>
+  <env name="SWEEPER_MCP_BACKEND" value="mock"/>
+  <include file="$(find sweeper_mcp)/launch/ai_control.launch"/>
+  <include if="$(arg start_operator_gui)"
+           file="$(find autolabor_operator_gui)/launch/operator_gui.launch">
+    <arg name="enable_rviz" value="$(arg enable_rviz)"/>
+    <arg name="static_map_mode" value="false"/>
   </include>
-
-  <!-- 语音 Agent：订阅 /voice/text → DeepSeek(function calling) → MCP 工具执行 → /voice/agent_reply -->
-  <node name="voice_agent" pkg="sweeper_mcp" type="voice_agent_node.py" output="screen">
-    <rosparam file="$(find sweeper_mcp)/config/sweeper_mcp.yaml" command="load"/>
-  </node>
 </launch>

@@ -6,7 +6,7 @@
 - 复用：网络异常 / HTTP 429 / 5xx 指数退避重试；HTTP 4xx 不重试直接抛
 - function calling 时**不用** response_format=json_object（会与 tools 冲突）
 
-api_key 从环境变量 DEEPSEEK_API_KEY 读取（或构造时传入），绝不落盘。
+api_key 从构造参数或 DEEPSEEK_API_KEY 读取，不写日志、不进入 ROS 参数。
 """
 
 import json
@@ -42,6 +42,9 @@ class OpenAIClient:
         self.temperature = temperature
         self.timeout_s = timeout_s
         self.max_retries = max_retries
+        self.last_metrics = {
+            "rtt_ms": 0.0, "http_status": 0, "request_id": "", "usage": {},
+        }
 
     def chat(self, messages, tools=None, tool_choice="auto"):
         """调用 /v1/chat/completions，返回 assistant message dict。
@@ -66,6 +69,10 @@ class OpenAIClient:
             "model": self.model,
             "messages": messages,
             "temperature": self.temperature,
+            # DeepSeek V4 defaults to thinking mode.  The control agent uses
+            # deterministic non-thinking tool calls as explicitly selected by
+            # the operator.
+            "thinking": {"type": "disabled"},
         }
         if tools:
             payload["tools"] = tools
@@ -73,13 +80,29 @@ class OpenAIClient:
 
         last_err = None
         for attempt in range(1, self.max_retries + 1):
+            started = time.monotonic()
             try:
                 resp = requests.post(url, headers=headers, json=payload, timeout=self.timeout_s)
             except requests.RequestException as exc:
+                self.last_metrics = {
+                    "rtt_ms": (time.monotonic() - started) * 1000.0,
+                    "http_status": 0, "request_id": "", "usage": {},
+                }
                 last_err = exc
                 logger.warning("LLM 请求异常(第 %d/%d 次): %s", attempt, self.max_retries, exc)
                 self._backoff(attempt)
                 continue
+
+            try:
+                body = resp.json()
+            except ValueError:
+                body = None
+            self.last_metrics = {
+                "rtt_ms": (time.monotonic() - started) * 1000.0,
+                "http_status": int(resp.status_code),
+                "request_id": resp.headers.get("x-request-id", ""),
+                "usage": body.get("usage", {}) if isinstance(body, dict) else {},
+            }
 
             if resp.status_code == 429 or resp.status_code >= 500:
                 last_err = LLMRequestError("HTTP %s 限流或服务端错误: %s" % (
@@ -91,7 +114,9 @@ class OpenAIClient:
             if resp.status_code != 200:
                 raise LLMRequestError("HTTP %s: %s" % (resp.status_code, resp.text[:300]))
 
-            return self._extract_message(resp.json())
+            if body is None:
+                raise LLMResponseError("HTTP 200 但响应不是有效 JSON")
+            return self._extract_message(body)
 
         raise LLMRequestError("LLM 调用重试 %d 次仍失败: %s" % (self.max_retries, last_err))
 

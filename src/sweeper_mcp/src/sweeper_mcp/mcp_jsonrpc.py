@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 SUPPORTED_VERSIONS = {"2024-11-05", "2025-06-18"}
 LATEST_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "sweeper_mcp", "version": "0.1.0"}
+SERVER_INFO = {"name": "sweeper_mcp", "version": "0.3.0"}
 
 # JSON-RPC 错误码
 INVALID_REQUEST = -32600
@@ -86,13 +86,15 @@ def dispatch(req, registry):
     if method == "tools/call":
         name = params.get("name")
         arguments = params.get("arguments") or {}
+        metadata = params.get("_meta") or {}
+        control_token = metadata.get("controlToken", "")
         tool = registry.get(name)
         if tool is None:
             raise MCPError(INVALID_PARAMS, "Unknown tool: %s" % name)
         # 日志走 stderr（stdout 只准协议帧），供终端查看"server 收到的每一次工具调用"
         logger.info("[MCP] tools/call → %s(%s)", name,
                     json.dumps(arguments, ensure_ascii=False)[:300])
-        res = tool.run(arguments)
+        res = tool.run(arguments, authorised=registry.is_authorised(control_token))
         logger.info("[MCP] tools/call ← %s | isError=%s | %s", name, res.is_error,
                     res.text[:200])
         return _result(rid, {

@@ -10,25 +10,34 @@
 
 ## 重要边界
 
-`/home/slam/robot_ws/src/yolo/yolo11n.pt` 和 `yolo11s.pt` 是 COCO 通用
-权重，只用于验证 CUDA、媒体读取和 ROS 推理链路。赵工提供的生产候选权重
-位于：
+生产模型由自定义 YOLO11-GAM 库训练，不能使用 pip 安装的官方 Ultralytics
+反序列化。训练源工作树和项目内运行副本分别位于：
 
 ```text
-/home/slam/robot_ws/src/yolo/fod_yolo11n_img640_e300_orig/weights/best.pt
-SHA256 7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500
+/home/slam/yolo11/yolo11_GAM/ultralytics
+/home/slam/robot_j6m_ws/ultralytics_yolo11_custom/ultralytics
 ```
 
-模型的实际类别为 `Metal`、`Soft`、`Plastic`、`Wire`、`Tool`、`w`。生产
-launch 会在反序列化前校验上述 SHA256、逐项校验类别并关闭
-`smoke_test_only`；其中 `w` 的业务含义仍需向模型提供方确认。
+生产权重从原文件逐字节复制到视觉 ROS 包，便于工作空间换路径部署：
+
+```text
+源文件：/home/slam/yolo11/all5/run_gam/best.pt
+项目内：src/application/autolabor_fod_vision/models/yolo11_gam_best.pt
+SHA256：c9fb0f7996b229999dd9adc72245c991a9ad61b8c3d395cd76ab41e6ec4c3691
+类别：metal, plastic, paper, glass, kitchen_waste
+```
+
+生产启动会先校验 SHA256，再强制检查 Ultralytics 的真实 `__file__` 位于项目
+副本、`GAM_Attention` 可导入且模型中至少存在一层 GAM。导入路径、版本和 GAM
+层数会写入启动日志、`/fod_detector` 私有参数和 `/diagnostics`。任何一项不符
+都会在 Qt 启动前明确失败，不会静默回退到 pip 官方包。
 
 `.pt` 会经过 Python pickle 反序列化，只加载可信来源并核对 SHA256。
 
 ## 安装
 
 ```bash
-cd /home/slam/robot_ws
+cd /home/slam/robot_j6m_ws
 ./scripts/setup_fod_yolo_env.sh
 catkin_make --pkg autolabor_fod_msgs autolabor_fod_vision -j2
 source devel/setup.bash
@@ -40,20 +49,31 @@ source devel/setup.bash
 独立环境复用本机已经验证过的 CUDA PyTorch，FOD 自身依赖固定为：
 
 ```text
-/home/slam/robot_ws/.venv/fod_yolo
+/home/slam/robot_ws/.venv/fod_yolo（当前由 NVIDIA_DETECTOR_PYTHON 配置复用）
 torch 2.0.0+nv23.05 + Jetson CUDA 11.4
 torchvision 0.15.1
-ultralytics 8.3.0
+ultralytics 8.4.7（项目内 yolo11_GAM 源码，非 pip 运行包）
 numpy 1.24.4
 opencv-python 4.10.0.84
 ```
 
 该环境通过 `--system-site-packages` 复用 ROS 基础库；Jetson ARM64 版
-PyTorch/Torchvision 及 Ultralytics、NumPy 和 OpenCV 安装在独立环境中，
-不会写入系统 Python 或已有的 `rosnav` 环境。
+PyTorch/Torchvision、NumPy 和 OpenCV 安装在独立环境中。Ultralytics 代码不再
+从 PyPI 安装，启动器把项目副本置于 `PYTHONPATH` 首位并校验真实来源。
 
 ROS 的 `catkin_install_python` 使用系统解释器，因此 YOLO 节点在 launch
 中通过 `launch-prefix` 明确使用上述 Python；无需修改整个工作区的 Python。
+
+`config/dual_host.env` 支持相对工作空间或绝对路径，推荐保持：
+
+```text
+NVIDIA_FOD_WEIGHTS=src/application/autolabor_fod_vision/models/yolo11_gam_best.pt
+NVIDIA_FOD_ULTRALYTICS_ROOT=ultralytics_yolo11_custom
+```
+
+相机回调只替换一个“最新帧”槽位，单独工作线程串行执行模型并用互斥锁保护
+Ultralytics predictor；来不及处理的旧帧会丢弃而不会排队拖慢 Qt。输出接口仍为
+`/fod/detections`、`/fod/debug/image` 和 `/diagnostics`。
 
 ## 无 ROS 冒烟测试
 

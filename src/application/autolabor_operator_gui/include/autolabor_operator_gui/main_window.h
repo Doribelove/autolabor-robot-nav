@@ -5,6 +5,7 @@
 #include <actionlib_msgs/GoalStatusArray.h>
 #include <autolabor_canbus_driver/CanBusMessage.h>
 #include <autolabor_coverage/CoverageStatus.h>
+#include <autolabor_operator_gui/coverage_region_store.h>
 #include <autolabor_fod_msgs/FodDetectionArray.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -18,6 +19,8 @@
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <std_msgs/String.h>
+#include <sweeper_mcp/AiControlStatus.h>
+#include <sweeper_mcp/AiEvent.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
@@ -39,12 +42,14 @@
 
 class QCloseEvent;
 class QCheckBox;
+class QComboBox;
 class QDoubleSpinBox;
 class QFrame;
 class QLabel;
 class QPlainTextEdit;
 class QPushButton;
 class QTabWidget;
+class QTableWidget;
 class QVBoxLayout;
 
 namespace rviz
@@ -91,10 +96,81 @@ struct CoveragePlanUiResult
   bool success = false;
   QString message;
   std::string plan_id;
+  std::string map_digest;
   double requested_area_m2 = 0.0;
   double reachable_area_m2 = 0.0;
   double unreachable_area_m2 = 0.0;
   unsigned int swath_count = 0;
+};
+
+struct CoverageBatchUiResult
+{
+  bool success = false;
+  bool cleanup_safe = false;
+  bool cancellation_requested = false;
+  bool not_started = false;
+  bool outcome_uncertain = false;
+  QString message;
+  std::string batch_id;
+};
+
+struct CoverageBatchCancelUiResult
+{
+  bool transport_ok = false;
+  bool success = false;
+  bool cancellation_requested = false;
+  bool not_started = false;
+  QString message;
+  std::string batch_id;
+};
+
+struct AiAuthorizationUiResult
+{
+  bool transport_ok = false;
+  bool accepted = false;
+  bool voice_authorized = false;
+  bool parse_authorized = false;
+  bool control_authorized = false;
+  QString message;
+};
+
+struct AiSubmitUiResult
+{
+  bool transport_ok = false;
+  bool accepted = false;
+  QString request_id;
+  QString message;
+};
+
+struct AiCancelUiResult
+{
+  bool transport_ok = false;
+  bool accepted = false;
+  QString message;
+};
+
+struct AsrRecordingUiResult
+{
+  bool transport_ok = false;
+  bool accepted = false;
+  QString capture_id;
+  QString message;
+};
+
+struct AsrModelUiResult
+{
+  bool transport_ok = false;
+  bool accepted = false;
+  QString active_model;
+  QString message;
+};
+
+struct SmartVoiceUiResult
+{
+  bool transport_ok = false;
+  bool accepted = false;
+  QString session_id;
+  QString message;
 };
 
 struct TelemetrySnapshot
@@ -188,6 +264,9 @@ struct TelemetrySnapshot
   bool coverage_status_received = false;
   autolabor_coverage::CoverageStatus coverage_status;
   ros::WallTime coverage_status_received_at;
+  bool ai_status_received = false;
+  sweeper_mcp::AiControlStatus ai_status;
+  ros::WallTime ai_status_received_at;
 };
 
 class MainWindow : public QMainWindow
@@ -223,9 +302,24 @@ private Q_SLOTS:
   void undoCoveragePoint();
   void cancelCoverageSelection();
   void confirmCoverageSelection();
+  void saveCoverageRegion();
+  void manageSavedCoverageRegions();
   void startCoverage();
+  void startCoverageBatch();
   void toggleCoveragePause();
+  void skipCurrentCoverageRegion();
   void cancelCoverageTask();
+  void cancelGlobalCoverageBatch();
+  void toggleAiVoiceAuthorization();
+  void toggleAiParseAuthorization();
+  void toggleAiControlAuthorization();
+  void toggleAiAsrRecording();
+  void toggleAiSmartVoice();
+  void selectAiAsrModel(int index);
+  void submitAiManualText();
+  void cancelAiTask();
+  void clearAiDisplay();
+  void sendAiHeartbeat();
   void sendForwardRelativeGoal();
   void sendRelativeGoal();
   void cancelNavigation();
@@ -283,6 +377,7 @@ private:
   QWidget* buildTestPage();
   QWidget* buildVisionPage();
   QWidget* buildCoveragePage();
+  QWidget* buildAiControlPage();
   QWidget* buildPlaceholderPage(const QString& title, const QString& subtitle,
                                 const QStringList& planned_items);
   QWidget* buildLogPage();
@@ -319,7 +414,14 @@ private:
   void publishCoverageDraft();
   void selectCoveragePointTool(bool enabled);
   void resetCoverageUiState(bool clear_plan_id);
+  bool updateCoverageRegionStore(const TelemetrySnapshot& data,
+                                 bool coverage_status_fresh);
+  bool loadCoverageRegionDraft(const CoverageRegionRecord& record);
   void callCoveragePause(bool paused);
+  void requestAiAuthorization(const std::string& gate, bool enabled,
+                              bool heartbeat = false);
+  void refreshAiUi(const TelemetrySnapshot& data);
+  void applyAiEvent(const sweeper_mcp::AiEvent& event);
   FastLioHealthResult evaluateFastLioHealth(const TelemetrySnapshot& data) const;
   bool relativeGoalReady(const TelemetrySnapshot& data,
                          const FastLioHealthResult& health,
@@ -348,6 +450,8 @@ private:
   void coveragePointCallback(const geometry_msgs::PointStamped::ConstPtr& msg);
   void coverageStatusCallback(
       const autolabor_coverage::CoverageStatus::ConstPtr& msg);
+  void aiStatusCallback(const sweeper_mcp::AiControlStatus::ConstPtr& msg);
+  void aiEventCallback(const sweeper_mcp::AiEvent::ConstPtr& msg);
 
   TelemetrySnapshot snapshot() const;
   static double wallAge(const ros::WallTime& stamp);
@@ -380,6 +484,8 @@ private:
   ros::Subscriber global_costmap_subscriber_;
   ros::Subscriber coverage_point_subscriber_;
   ros::Subscriber coverage_status_subscriber_;
+  ros::Subscriber ai_status_subscriber_;
+  ros::Subscriber ai_event_subscriber_;
   ros::Publisher relative_goal_publisher_;
   ros::Publisher cancel_publisher_;
   ros::Publisher coverage_draft_publisher_;
@@ -400,9 +506,14 @@ private:
   std::string rviz_config_path_;
   std::string rviz_startup_fixed_frame_ = "map";
   std::string rviz_navigation_fixed_frame_ = "map";
+  std::string static_map_source_;
+  std::string static_map_source_mode_ = "fused";
+  std::string coverage_region_root_;
+  std::string coverage_region_legacy_root_;
   QTimer master_probe_timer_;
   QFutureWatcher<MasterProbeResult> master_probe_watcher_;
   QTimer ui_refresh_timer_;
+  QTimer ai_heartbeat_timer_;
 
   std::map<QString, StatusCard> status_cards_;
   std::map<QString, QLabel*> values_;
@@ -410,6 +521,7 @@ private:
   QTabWidget* tabs_ = nullptr;
   int overview_tab_index_ = -1;
   int coverage_tab_index_ = -1;
+  int ai_tab_index_ = -1;
   int rviz_attached_tab_index_ = -1;
   QWidget* rviz_host_ = nullptr;
   QVBoxLayout* rviz_layout_ = nullptr;
@@ -427,6 +539,29 @@ private:
   QLabel* coverage_rviz_placeholder_ = nullptr;
   QPlainTextEdit* overview_events_ = nullptr;
   QPlainTextEdit* log_events_ = nullptr;
+  QPlainTextEdit* ai_transcript_ = nullptr;
+  QPlainTextEdit* ai_manual_input_ = nullptr;
+  QPlainTextEdit* ai_final_output_ = nullptr;
+  QPlainTextEdit* ai_events_ = nullptr;
+  QTableWidget* ai_plan_table_ = nullptr;
+  QComboBox* ai_asr_model_combo_ = nullptr;
+  QPushButton* ai_voice_auth_button_ = nullptr;
+  QPushButton* ai_parse_auth_button_ = nullptr;
+  QPushButton* ai_control_auth_button_ = nullptr;
+  QPushButton* ai_asr_record_button_ = nullptr;
+  QPushButton* ai_smart_voice_button_ = nullptr;
+  QPushButton* ai_submit_button_ = nullptr;
+  QPushButton* ai_cancel_button_ = nullptr;
+  QPushButton* ai_clear_button_ = nullptr;
+  QString ai_session_token_;
+  bool ai_authorization_request_pending_ = false;
+  bool ai_asr_request_pending_ = false;
+  bool ai_asr_model_request_pending_ = false;
+  bool ai_smart_voice_request_pending_ = false;
+  bool ai_submit_pending_ = false;
+  bool ai_cancel_pending_ = false;
+  bool ai_heartbeat_pending_ = false;
+  std::deque<sweeper_mcp::AiEvent> ai_event_queue_;
   QPushButton* rviz_panels_button_ = nullptr;
   std::uint64_t overview_fitted_map_count_ = 0;
   std::uint64_t coverage_fitted_map_count_ = 0;
@@ -470,18 +605,36 @@ private:
   QPushButton* coverage_undo_button_ = nullptr;
   QPushButton* coverage_selection_cancel_button_ = nullptr;
   QPushButton* coverage_confirm_button_ = nullptr;
+  QPushButton* coverage_save_region_button_ = nullptr;
+  QPushButton* coverage_manage_regions_button_ = nullptr;
   QPushButton* coverage_start_button_ = nullptr;
+  QPushButton* coverage_start_batch_button_ = nullptr;
   QPushButton* coverage_pause_button_ = nullptr;
+  QPushButton* coverage_skip_button_ = nullptr;
   QPushButton* coverage_cancel_button_ = nullptr;
+  QPushButton* coverage_global_batch_cancel_button_ = nullptr;
+  QLabel* coverage_queue_summary_ = nullptr;
   bool coverage_selecting_ = false;
   bool coverage_plan_pending_ = false;
   bool coverage_command_pending_ = false;
+  bool coverage_batch_start_pending_ = false;
+  bool coverage_skip_pending_ = false;
   bool coverage_cancel_pending_ = false;
+  bool coverage_global_cancel_pending_ = false;
   bool coverage_cancel_requested_ = false;
   bool coverage_task_lifecycle_started_ = false;
   std::uint64_t coverage_plan_generation_ = 0;
+  std::uint64_t coverage_batch_generation_ = 0;
   std::vector<geometry_msgs::Point> coverage_draft_points_;
+  std::string coverage_draft_source_region_id_;
+  std::vector<geometry_msgs::Point> coverage_planned_region_points_;
+  std::string coverage_planned_region_map_digest_;
+  std::string coverage_planned_region_source_id_;
   std::string coverage_plan_id_;
+  std::string coverage_batch_id_;
+  CoverageRegionStore coverage_region_store_;
+  QVector<CoverageRegionRecord> coverage_region_queue_;
+  QString coverage_region_context_key_;
   ros::WallTime last_raw_preview_conversion_;
   ros::WallTime last_debug_preview_conversion_;
   bool mode_request_pending_ = false;

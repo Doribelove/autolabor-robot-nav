@@ -1,10 +1,5 @@
-<?xml version="1.0"?>
 <launch>
-  <!-- 语音 Agent 节点：订阅 /voice/text → LLM(function calling) → MCP 工具执行 → 发布 /voice/agent_reply
-       键盘输入节点(keyboard_input)作为测试发布者，正式语音节点同话题无缝替换。 -->
-  <node name="voice_agent" pkg="sweeper_mcp" type="voice_agent_node.py" output="screen">
-    <rosparam file="$(find sweeper_mcp)/config/sweeper_mcp.yaml" command="load"/>
-  </node>
-
-  <node name="keyboard_input" pkg="sweeper_mcp" type="keyboard_input.py" output="screen"/>
+  <!-- Backward-compatible name. Credentials are never uploaded to rosparam;
+       interaction is only accepted from the authorised Qt session. -->
+  <include file="$(find sweeper_mcp)/launch/ai_control.launch"/>
 </launch>

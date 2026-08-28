@@ -10,6 +10,10 @@
   <arg name="rviz_startup_fixed_frame" default="map"/>
   <arg name="rviz_navigation_fixed_frame" default="map"/>
   <arg name="static_map_mode" default="false"/>
+  <arg name="static_map_set" default=""/>
+  <arg name="static_map_source_mode" default="fused"/>
+  <arg name="coverage_region_root" default=""/>
+  <arg name="coverage_region_legacy_root" default=""/>
 
   <!--
     map_server publishes an OccupancyGrid but no TF. Before the operator sends
@@ -44,5 +48,12 @@
     <param name="rviz_navigation_fixed_frame"
            value="$(arg rviz_navigation_fixed_frame)"/>
     <param name="static_map_mode" value="$(arg static_map_mode)"/>
+    <param name="static_map_set" value="$(arg static_map_set)"/>
+    <param name="static_map_source_mode"
+           value="$(arg static_map_source_mode)"/>
+    <param name="coverage_region_root"
+           value="$(arg coverage_region_root)"/>
+    <param name="coverage_region_legacy_root"
+           value="$(arg coverage_region_legacy_root)"/>
   </node>
 </launch>

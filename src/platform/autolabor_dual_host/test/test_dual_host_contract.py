@@ -329,6 +329,97 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
         self.assertIn("CMD_VEL_MAX_LINEAR_SPEED=1.70", example_text)
         self.assertIn("CMD_VEL_MAX_ANGULAR_SPEED=0.60", example_text)
 
+    def test_ai_navigation_uses_explicit_goal_id_through_j6m_safety_bridge(self):
+        launch = self._launch_text("j6m_fastlio_navigation.launch")
+        bridge_path = os.path.join(
+            WORKSPACE_DIR,
+            "src/platform/autolabor_dual_host/scripts/move_base_pause_bridge.py",
+        )
+        backend_path = os.path.join(
+            WORKSPACE_DIR,
+            "src/sweeper_mcp/src/sweeper_mcp/ros_backend.py",
+        )
+        fod_manager_path = os.path.join(
+            WORKSPACE_DIR,
+            "src/application/autolabor_fod_control/scripts/"
+            "fod_navigation_mode_manager.py",
+        )
+        coverage_owner_service_path = os.path.join(
+            WORKSPACE_DIR,
+            "src/application/autolabor_coverage/srv/SetCoverageOwner.srv",
+        )
+        dual_host_cmake_path = os.path.join(
+            WORKSPACE_DIR,
+            "src/platform/autolabor_dual_host/CMakeLists.txt",
+        )
+        dual_host_package_path = os.path.join(
+            WORKSPACE_DIR,
+            "src/platform/autolabor_dual_host/package.xml",
+        )
+        with open(bridge_path, "r", encoding="utf-8") as stream:
+            bridge = stream.read()
+        with open(backend_path, "r", encoding="utf-8") as stream:
+            backend = stream.read()
+        with open(fod_manager_path, "r", encoding="utf-8") as stream:
+            fod_manager = stream.read()
+        with open(coverage_owner_service_path, "r", encoding="utf-8") as stream:
+            coverage_owner_service = stream.read()
+        with open(dual_host_cmake_path, "r", encoding="utf-8") as stream:
+            dual_host_cmake = stream.read()
+        with open(dual_host_package_path, "r", encoding="utf-8") as stream:
+            dual_host_package = stream.read()
+
+        for evidence in (
+            '<param name="action_goal_request_topic" value="/navigation_goal/action_request"/>',
+            '<param name="action_goal_topic" value="/move_base/goal"/>',
+            '<param name="action_status_topic" value="/move_base/status"/>',
+            '<param name="required_action_server_node" value="/move_base"/>',
+            '<param name="require_coverage_state" type="bool" value="$(arg use_static_map)"/>',
+            '<param name="coverage_owner_service" value="/navigation_pause/set_coverage_owner"/>',
+            '<param name="action_cancel_ack_topic" value="/navigation_goal/cancel_ack"/>',
+            '<param name="coverage_claim_cancel_timeout_sec" type="double" value="2.0"/>',
+            '/navigation_goal/legacy_simple_input_disabled',
+        ):
+            self.assertIn(evidence, launch)
+        self.assertIn("MoveBaseActionGoal", bridge)
+        self.assertIn("_action_goal_request_callback", bridge)
+        self.assertIn("AI_GOAL_ID_RE.fullmatch", bridge)
+        self.assertIn("_publish_cancel_goal_id", bridge)
+        self.assertIn("_action_output_ready", bridge)
+        self.assertIn("_set_coverage_owner", bridge)
+        self.assertIn("_submit_simple_action_locked", bridge)
+        self.assertIn("SIMPLE_GOAL_ID_RE", bridge)
+        self.assertIn('acknowledgement.text = "not_forwarded"', bridge)
+        self.assertIn(
+            "self.coverage_owner_token or self.coverage_topic_active", bridge)
+        self.assertEqual(
+            [
+                "bool claim",
+                "string owner_token",
+                "---",
+                "bool success",
+                "bool claimed",
+                "string current_owner_token",
+                "string message",
+            ],
+            coverage_owner_service.splitlines(),
+        )
+        self.assertIn("autolabor_coverage", dual_host_cmake)
+        self.assertIn("<depend>autolabor_coverage</depend>", dual_host_package)
+        self.assertIn('"action_request": "/navigation_goal/action_request"', backend)
+        self.assertIn('goal_id = "sweeper-ai-%s" % uuid.uuid4().hex', backend)
+        self.assertIn(
+            'self._topics["ai_heartbeat"], GoalID, queue_size=1', backend)
+        self.assertIn("_wait_cancel_confirmation", backend)
+        self.assertIn('anonymous=False', backend)
+        # Actionizing Qt goals does not bypass FOD pause or velocity ownership:
+        # the manager observes every /move_base/goal and remains the sole
+        # /cmd_vel_safe publisher in this launch.
+        self.assertIn('"~move_base_goal_topic", "/move_base/goal"', fod_manager)
+        self.assertIn("self._move_base_goal_cb", fod_manager)
+        self.assertIn(
+            '<param name="output_cmd_topic" value="/cmd_vel_safe"/>', launch)
+
     def test_runtime_health_checks_data_host_placement_and_live_limits(self):
         health_path = os.path.join(WORKSPACE_DIR, "scripts", "health_check.sh")
         with open(health_path, "r", encoding="utf-8") as stream:
@@ -367,6 +458,41 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
         self.assertIn("/autolabor_operator_gui/map_display_status", health)
         self.assertIn("'READY;'", health)
         self.assertIn("confirmed the 2-D map texture is loaded", health)
+
+    def test_static_health_enforces_local_large_v3_without_opening_audio(self):
+        health_path = os.path.join(WORKSPACE_DIR, "scripts", "health_check.sh")
+        with open(health_path, "r", encoding="utf-8") as stream:
+            health = stream.read()
+
+        start = health.index('ASR_LARGE_V3_SHA256="')
+        end = health.index("if dual_host_validate_fod_model_contract", start)
+        asr_check = health[start:end]
+        for evidence in (
+            "ASR_LARGE_V3_SHA256",
+            "e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb",
+            "SWEEPER_AI_CONFIG",
+            "asr.enabled must be a boolean",
+            "asr.model must be large-v3",
+            "asr.device must be cuda",
+            "model_sha256",
+            "checkpoint_sha256",
+            "runtime/asr/venv/bin/python3",
+            "runtime/asr/models/large-v3.pt",
+            "import whisper",
+            'torch.version.cuda == "11.4"',
+            "torch.cuda.is_available()",
+            "sha256sum",
+            "no physical microphone input_device is configured",
+            "device was not opened",
+        ):
+            self.assertIn(evidence, asr_check)
+        self.assertNotIn("whisper.load_model", asr_check)
+        self.assertNotIn("arecord ", asr_check)
+        self.assertNotIn("pyaudio", asr_check.lower())
+        self.assertIn(
+            'if [[ "$mode" == --static ]]; then\n  check_nvidia_asr_static_contract',
+            health,
+        )
 
     def test_fod_model_contract_is_shared_and_versioned_on_j6m(self):
         def script_text(relative_path):
@@ -557,11 +683,16 @@ printf '%s\n' "$FOD_MOTION_ENABLED"
         service = os.path.join(
             WORKSPACE_DIR, "deploy", "autolabor-zed-coldplug.service"
         )
+        helper = os.path.join(
+            WORKSPACE_DIR, "deploy", "autolabor-usb-coldplug.sh"
+        )
         installer = os.path.join(WORKSPACE_DIR, "scripts", "install_zed_udev.sh")
         with open(rule, "r", encoding="utf-8") as stream:
             rule_text = stream.read()
         with open(service, "r", encoding="utf-8") as stream:
             service_text = stream.read()
+        with open(helper, "r", encoding="utf-8") as stream:
+            helper_text = stream.read()
         with open(installer, "r", encoding="utf-8") as stream:
             installer_text = stream.read()
 
@@ -570,8 +701,18 @@ printf '%s\n' "$FOD_MOTION_ENABLED"
         self.assertIn('ATTR{idProduct}=="f781"', rule_text)
         self.assertIn('GROUP="video"', rule_text)
         self.assertIn("After=systemd-udevd.service systemd-udev-trigger.service", service_text)
-        self.assertIn("--attr-match=idVendor=2b03", service_text)
-        self.assertIn("--subsystem-match=hidraw", service_text)
+        self.assertIn("Before=NetworkManager.service", service_text)
+        self.assertIn("EnvironmentFile=/etc/default/autolabor-usb-coldplug", service_text)
+        self.assertIn("ExecStart=/usr/local/sbin/autolabor-usb-coldplug", service_text)
+        for module in ("ax88179_178a", "cdc_ether", "ftdi_sio", "ch341", "uvcvideo"):
+            self.assertIn(module, helper_text)
+        self.assertIn("matches_configured_identity", helper_text)
+        self.assertIn("reset_stuck_mid360_adapter", helper_text)
+        self.assertIn("usb_device_has_carrier", helper_text)
+        self.assertIn("AUTOLABOR_MID360_USB_SERIAL", helper_text)
+        self.assertIn("install -m 0755", installer_text)
+        self.assertIn("AUTOLABOR_J6M_USB_SERIAL", installer_text)
+        self.assertIn("AUTOLABOR_MID360_USB_SERIAL", installer_text)
         self.assertIn("systemctl enable autolabor-zed-coldplug.service", installer_text)
         self.assertIn("systemctl restart autolabor-zed-coldplug.service", installer_text)
 
@@ -653,6 +794,15 @@ printf '%s\n' "$FOD_MOTION_ENABLED"
         )
         self.assertIn("/var/lib/autolabor/fast_lio/Log", remote_health)
         self.assertIn("grep -aFq /var/lib/autolabor/fast_lio/", remote_health)
+        for interface in (
+            "rosmsg md5 autolabor_coverage/CoverageRegion",
+            "rosmsg md5 autolabor_coverage/CoverageStatus",
+            "rossrv md5 autolabor_coverage/PlanCoverage",
+            "rossrv md5 autolabor_coverage/CancelCoverageBatch",
+            "rossrv md5 autolabor_coverage/StartCoverageBatch",
+        ):
+            self.assertIn(interface, deploy)
+            self.assertIn(interface, remote_health)
 
     def test_persistent_can_fault_logging_is_throttled(self):
         driver_path = os.path.join(
@@ -702,6 +852,58 @@ printf '%s\n' "$FOD_MOTION_ENABLED"
         self.assertIn("udevadm trigger --subsystem-match=tty", installer)
         self.assertIn("FRONT_LIDAR_PORT=/dev/autolabor/lidar_front", example)
         self.assertIn("REAR_LIDAR_PORT=/dev/autolabor/lidar_rear", example)
+
+    def test_nvidia_ui_binds_saved_regions_to_the_selected_static_map(self):
+        with open(
+            os.path.join(WORKSPACE_DIR, "scripts", "nvidia_ui.sh"),
+            "r",
+            encoding="utf-8",
+        ) as stream:
+            ui_text = stream.read()
+        for launch_argument in (
+            'static_map_set:="${STATIC_MAP_SET:-}"',
+            'static_map_source_mode:="${STATIC_MAP_SOURCE_MODE:-fused}"',
+            'coverage_region_root:="${STATIC_MAP_SET:-}"',
+            'coverage_region_legacy_root:="$DUAL_HOST_WS/global_maps/coverage_regions"',
+        ):
+            self.assertIn(launch_argument, ui_text)
+
+        launch_path = os.path.join(
+            WORKSPACE_DIR,
+            "src/application/autolabor_operator_gui/launch/operator_gui.launch",
+        )
+        launch_root = ET.parse(launch_path).getroot()
+        argument_names = {
+            item.attrib.get("name") for item in launch_root.findall("arg")
+        }
+        self.assertTrue(
+            {
+                "static_map_set",
+                "static_map_source_mode",
+                "coverage_region_root",
+                "coverage_region_legacy_root",
+            }
+            <= argument_names
+        )
+        gui_node = launch_root.find("node[@pkg='autolabor_operator_gui']")
+        self.assertIsNotNone(gui_node)
+        parameters = {
+            item.attrib.get("name"): item.attrib.get("value")
+            for item in gui_node.findall("param")
+        }
+        self.assertEqual("$(arg static_map_set)", parameters.get("static_map_set"))
+        self.assertEqual(
+            "$(arg static_map_source_mode)",
+            parameters.get("static_map_source_mode"),
+        )
+        self.assertEqual(
+            "$(arg coverage_region_root)",
+            parameters.get("coverage_region_root"),
+        )
+        self.assertEqual(
+            "$(arg coverage_region_legacy_root)",
+            parameters.get("coverage_region_legacy_root"),
+        )
 
     def test_shutdown_is_synchronous_and_verifies_residuals(self):
         def script_text(relative_path):

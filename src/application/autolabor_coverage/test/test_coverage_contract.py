@@ -12,6 +12,123 @@ WORKSPACE_ROOT = PACKAGE_ROOT.parents[2]
 
 
 class CoverageContractTest(unittest.TestCase):
+    def test_batch_interfaces_and_single_plan_map_identity_are_generated(self):
+        coverage_region = (
+            PACKAGE_ROOT / "msg" / "CoverageRegion.msg"
+        ).read_text(encoding="utf-8").splitlines()
+        self.assertEqual([
+            "string id",
+            "string name",
+            "geometry_msgs/PolygonStamped region",
+        ], coverage_region)
+
+        start_batch = (
+            PACKAGE_ROOT / "srv" / "StartCoverageBatch.srv"
+        ).read_text(encoding="utf-8")
+        request, response = start_batch.split("---")
+        for field in (
+            "string client_request_id",
+            "autolabor_coverage/CoverageRegion[] regions",
+            "float32 operation_width_m",
+            "float32 overlap_ratio",
+            "bool allow_reverse_transit",
+            "float64 max_speed_mps",
+            "string map_digest",
+        ):
+            self.assertIn(field, request)
+        for field in ("bool accepted", "string message", "string batch_id"):
+            self.assertIn(field, response)
+
+        cancel_request, cancel_response = (
+            PACKAGE_ROOT / "srv" / "CancelCoverageBatch.srv"
+        ).read_text(encoding="utf-8").split("---")
+        self.assertEqual(
+            ["string batch_id"], cancel_request.strip().splitlines()
+        )
+        self.assertEqual([
+            "bool success",
+            "bool cancellation_requested",
+            "bool not_started",
+            "string message",
+            "string batch_id",
+        ], cancel_response.strip().splitlines())
+
+        owner_request, owner_response = (
+            PACKAGE_ROOT / "srv" / "SetCoverageOwner.srv"
+        ).read_text(encoding="utf-8").split("---")
+        self.assertEqual(
+            ["bool claim", "string owner_token"],
+            owner_request.strip().splitlines(),
+        )
+        self.assertEqual([
+            "bool success",
+            "bool claimed",
+            "string current_owner_token",
+            "string message",
+        ], owner_response.strip().splitlines())
+
+        plan_request, plan_response = (
+            PACKAGE_ROOT / "srv" / "PlanCoverage.srv"
+        ).read_text(encoding="utf-8").split("---")
+        self.assertIn("string map_digest", plan_request)
+        self.assertIn("string map_digest", plan_response)
+
+        status = (
+            PACKAGE_ROOT / "msg" / "CoverageStatus.msg"
+        ).read_text(encoding="utf-8")
+        for field in (
+            "map_digest", "batch_id", "batch_active",
+            "batch_cancel_requested", "batch_current_index",
+            "batch_total_regions", "batch_completed_regions",
+            "batch_partial_regions", "batch_skipped_regions",
+            "current_region_id", "current_region_name",
+            "last_region_id", "last_region_name", "last_region_state",
+        ):
+            self.assertIn(field, status)
+
+        cmake = (PACKAGE_ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
+        self.assertIn("CoverageRegion.msg", cmake)
+        self.assertIn("StartCoverageBatch.srv", cmake)
+        self.assertIn("CancelCoverageBatch.srv", cmake)
+        self.assertIn("SetCoverageOwner.srv", cmake)
+
+    def test_batch_manager_owns_move_base_across_region_gaps(self):
+        manager = (PACKAGE_ROOT / "scripts" / "coverage_manager.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('"/coverage/start_batch"', manager)
+        self.assertIn('"/coverage/cancel_batch"', manager)
+        self.assertIn('"/coverage/skip_current"', manager)
+        self.assertIn("self.active or self.batch_active", manager)
+        self.assertIn("off, coverage_active=True", manager)
+        self.assertIn("off, coverage_active=False", manager)
+        self.assertIn("self.active_pub.publish(Bool(data=True))", manager)
+        self.assertIn("self.batch_cancel_requested = True", manager)
+        self.assertIn("self.batch_skip_requested = True", manager)
+        self.assertIn("self.map_digest != self.batch_map_digest", manager)
+        self.assertIn("self.batch_current_index = 0", manager)
+        self.assertNotIn("cancel_all_goals(", manager)
+
+    def test_manager_uses_atomic_navigation_owner_for_every_goal(self):
+        manager = (PACKAGE_ROOT / "scripts" / "coverage_manager.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('"/navigation_pause/set_coverage_owner"', manager)
+        self.assertIn("SetCoverageOwner", manager)
+        self.assertIn('return "coverage-{}".format(uuid.uuid4().hex)', manager)
+        self.assertIn("self._resolve_navigation_owner_claim(", manager)
+        self.assertIn("self._set_navigation_owner(False, owner_token)", manager)
+        self.assertIn("self.navigation_owner_releasing = True", manager)
+        reclaim = manager.index(
+            "owner_state, owner_detail = self._resolve_navigation_owner_claim(",
+            manager.index("def _execute_segment"),
+        )
+        send_goal = manager.index(
+            "self._send_move_base_goal_locked(goal)",
+            manager.index("def _execute_segment"),
+        )
+        self.assertLess(reclaim, send_goal)
+
     def test_plugin_and_static_map_launch_are_wired(self):
         plugin = ElementTree.parse(
             str(PACKAGE_ROOT / "coverage_global_planner_plugin.xml")
@@ -33,7 +150,7 @@ class CoverageContractTest(unittest.TestCase):
             encoding="utf-8"
         )
         first_publish = manager.index("self.enforced_path_pub.publish(enforced)")
-        first_goal = manager.index("self.move_base.send_goal(goal)")
+        first_goal = manager.index("self._send_move_base_goal_locked(goal)")
         self.assertLess(first_publish, first_goal)
         synchronous_handoff = manager.index("self._set_enforced_path(enforced)")
         self.assertLess(synchronous_handoff, first_goal)
@@ -77,9 +194,11 @@ class CoverageContractTest(unittest.TestCase):
                   "move_base_pause_bridge.py").read_text(encoding="utf-8")
         self.assertIn('"/coverage/active"', bridge)
         self.assertIn("not self.coverage_active", bridge)
-        self.assertIn("self.paused or self.coverage_active", bridge)
+        self.assertIn("if not (is_known_ai or is_bridge_simple)", bridge)
+        self.assertIn("Coverage segments are also foreign here", bridge)
         self.assertIn("simple navigation goal rejected: coverage owns move_base", bridge)
-        self.assertIn('"/navigation_goal/accepted"', bridge)
+        self.assertIn('"/navigation_goal/legacy_simple_input_disabled"', bridge)
+        self.assertIn("_submit_simple_action_locked", bridge)
 
         navigation = (WORKSPACE_ROOT / "src" / "scripts" / "robot_bringup" /
                       "launch" / "navigation_j6m.launch").read_text(encoding="utf-8")
@@ -88,7 +207,8 @@ class CoverageContractTest(unittest.TestCase):
                             "j6m_fastlio_navigation.launch").read_text(encoding="utf-8")
         self.assertIn('from="/move_base_simple/goal"', navigation)
         self.assertIn("$(arg move_base_simple_goal_topic)", navigation)
-        self.assertIn("/navigation_goal/accepted", dual_host_launch)
+        self.assertIn(
+            "/navigation_goal/legacy_simple_input_disabled", dual_host_launch)
 
     def test_j6m_deploy_builds_and_verifies_coverage_package(self):
         deploy = (WORKSPACE_ROOT / "scripts" / "deploy_j6m.sh").read_text(
@@ -252,7 +372,7 @@ class CoverageContractTest(unittest.TestCase):
             "autolabor_canbus_driver" / "autolabor_canbus_driver" /
             "src" / "m2_driver.cpp"
         ).read_text(encoding="utf-8")
-        self.assertIn("three safety slots", m2_driver)
+        self.assertIn("Use four safety", m2_driver)
         self.assertIn("status_query_rate_limit_hz", m2_driver)
         self.assertIn("m2_status_query_rate_hz", m2_driver)
         self.assertIn("srv.request.requests.push_back(next_req)", m2_driver)

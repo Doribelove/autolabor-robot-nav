@@ -1,22 +1,18 @@
 #!/bin/bash
 # ============================================================================
-# 启动 sweeper_mcp 的 MCP stdio server（供外部 MCP host 调用，如 Claude Code /
-# Claude Desktop / 任意 MCP 客户端）。
-#
-# MCP host 侧注册命令填（Windows 换 cmd.exe 路径）：
-#   bash -c 'source /opt/ros/noetic/setup.bash \
-#          && source /mnt/storage/robot_project/autorobot/autolabor-robot-nav/devel/setup.bash \
-#          && exec /mnt/storage/robot_project/autorobot/autolabor-robot-nav/src/sweeper_mcp/scripts/start_mcp_server.sh'
+# 启动 sweeper_mcp 的 MCP stdio server，供协议检查或外部只读 MCP host 使用。
 #
 # 参数:
 #   mock        离线模式（MCP_BACKEND=mock，不碰 ROS，用于联调协议/工具 schema）
-#   ros         真实 ROS（默认，需先 source ROS 环境 & 起仿真/真车）
+#   ros         真实 ROS 只读查询（默认，需先 source ROS 环境）
 #   --no-source 不 source 环境（已 source 过时用）
 #
 # 说明:
-#   - server 要 import rospy、连 ROS master，所以必须先 source ROS 环境；
+#   - 独立外部 host 不持有 Qt 会话的私有能力令牌，所有变更类工具必然拒绝；
+#   - 机器人控制只允许 scripts/nvidia_ui.sh 托管的 sweeper_ai 节点发起；
+#   - ros 模式要 import rospy、连 ROS master，所以必须先 source ROS 环境；
 #   - 运行期间在终端逐行收发 JSON-RPC（stdio），别在终端输入其他内容；
-#   - 更多连调方式见 ../README.md 第 4.7 节。
+#   - 更多连调方式见 ../README.md。
 # ============================================================================
 set -u
 

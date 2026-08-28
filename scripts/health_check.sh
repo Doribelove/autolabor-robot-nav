@@ -50,7 +50,185 @@ test_results_output="$(mktemp /tmp/robot_j6m_test_results.XXXXXX)"
 trap 'rm -f -- "$test_results_output"' EXIT
 pass() { echo "OK   $*"; }
 fail() { echo "FAIL $*" >&2; failures=$((failures + 1)); }
+warn() { echo "WARN $*" >&2; }
 warn_data() { echo "WARN $*" >&2; data_warnings=$((data_warnings + 1)); }
+
+ASR_SMALL_SHA256="9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794"
+ASR_MEDIUM_SHA256="345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1"
+ASR_LARGE_V3_SHA256="e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb"
+
+check_nvidia_asr_static_contract() {
+  local ai_config asr_config_state asr_enabled asr_input_state
+  local asr_python asr_model_dir model_entry model_name model_file
+  local expected_model_sha256 actual_model_sha256 model_path
+  ai_config="${SWEEPER_AI_CONFIG:-$DUAL_HOST_WS/src/sweeper_mcp/config/sweeper_mcp.yaml}"
+
+  if [[ ! -e "$ai_config" ]]; then
+    pass "NVIDIA ASR static check skipped (private AI YAML is absent)"
+    return 0
+  fi
+  if [[ ! -f "$ai_config" || -L "$ai_config" || ! -r "$ai_config" ]]; then
+    fail "private AI YAML is not a readable regular file: $ai_config"
+    return 0
+  fi
+
+  asr_config_state="$(
+    AI_CONFIG_PATH="$ai_config" \
+      ASR_SMALL_SHA256="$ASR_SMALL_SHA256" \
+      ASR_MEDIUM_SHA256="$ASR_MEDIUM_SHA256" \
+      ASR_LARGE_SHA256="$ASR_LARGE_V3_SHA256" \
+      python3 - <<'PY'
+import os
+import sys
+
+import yaml
+
+path = os.environ["AI_CONFIG_PATH"]
+expected_models = {
+    "small": ("small.pt", os.environ["ASR_SMALL_SHA256"]),
+    "medium": ("medium.pt", os.environ["ASR_MEDIUM_SHA256"]),
+    "large": ("large-v3.pt", os.environ["ASR_LARGE_SHA256"]),
+}
+try:
+    with open(path, "r", encoding="utf-8") as stream:
+        root = yaml.safe_load(stream) or {}
+except (OSError, yaml.YAMLError) as exc:
+    print("invalid\tinvalid")
+    print("ASR YAML parse failed: {}".format(exc), file=sys.stderr)
+    raise SystemExit(2)
+
+if not isinstance(root, dict):
+    print("invalid\tinvalid")
+    print("ASR YAML root must be an object", file=sys.stderr)
+    raise SystemExit(2)
+asr = root.get("asr") or {}
+if not isinstance(asr, dict):
+    print("invalid\tinvalid")
+    print("ASR YAML section must be an object", file=sys.stderr)
+    raise SystemExit(2)
+
+enabled = asr.get("enabled", False)
+if not isinstance(enabled, bool):
+    print("invalid\tinvalid")
+    print("asr.enabled must be a boolean", file=sys.stderr)
+    raise SystemExit(2)
+if not enabled:
+    print("false\tdisabled")
+    raise SystemExit(0)
+
+errors = []
+if asr.get("model") != "medium":
+    errors.append("asr.model must default to medium")
+if asr.get("device") != "cuda":
+    errors.append("asr.device must be cuda")
+models = asr.get("models")
+if not isinstance(models, dict):
+    errors.append("asr.models must define small, medium, and large")
+    models = {}
+for name, (filename, expected_sha256) in expected_models.items():
+    entry = models.get(name)
+    if not isinstance(entry, dict):
+        errors.append("asr.models.{} must be an object".format(name))
+        continue
+    if entry.get("filename") != filename:
+        errors.append("asr.models.{}.filename must be {}".format(
+            name, filename))
+    actual_sha256 = str(entry.get("checkpoint_sha256", "")).strip().lower()
+    if actual_sha256 != expected_sha256:
+        errors.append("asr.models.{} checkpoint SHA-256 mismatch".format(name))
+input_device = asr.get("input_device", "")
+if not isinstance(input_device, str):
+    errors.append("asr.input_device must be a string")
+    input_state = "invalid"
+else:
+    normalized_input = input_device.strip().lower()
+    input_state = (
+        "auto" if normalized_input in ("", "auto") else "configured"
+    )
+
+if errors:
+    print("invalid\t{}".format(input_state))
+    for error in errors:
+        print(error, file=sys.stderr)
+    raise SystemExit(2)
+print("true\t{}".format(input_state))
+PY
+  )"
+  if [[ $? -ne 0 ]]; then
+    fail "private AI YAML has an invalid selectable ASR contract"
+    return 0
+  fi
+  IFS=$'\t' read -r asr_enabled asr_input_state <<<"$asr_config_state"
+  if [[ "$asr_enabled" == false ]]; then
+    pass "NVIDIA ASR is disabled in the private AI YAML"
+    return 0
+  fi
+  if [[ "$asr_enabled" != true ]]; then
+    fail "private AI YAML returned an invalid ASR enabled state"
+    return 0
+  fi
+  pass "private AI YAML defaults to medium and pins small/medium/large checkpoints"
+
+  asr_python="${SWEEPER_ASR_PYTHON:-$DUAL_HOST_WS/runtime/asr/venv/bin/python3}"
+  asr_model_dir="${SWEEPER_ASR_MODEL_DIR:-$DUAL_HOST_WS/runtime/asr/models}"
+
+  if [[ -x "$asr_python" ]]; then
+    pass "isolated NVIDIA ASR Python is executable"
+    if "$asr_python" -c 'import whisper' >/dev/null 2>&1; then
+      pass "OpenAI Whisper imports from the isolated ASR environment"
+    else
+      fail "OpenAI Whisper cannot import from the isolated ASR environment"
+    fi
+    if "$asr_python" - <<'PY' >/dev/null 2>&1
+import torch
+
+assert torch.version.cuda == "11.4"
+assert torch.cuda.is_available()
+PY
+    then
+      pass "isolated ASR PyTorch has available CUDA 11.4"
+    else
+      fail "isolated ASR PyTorch does not have available CUDA 11.4"
+    fi
+  else
+    fail "isolated NVIDIA ASR Python is missing or not executable: $asr_python"
+  fi
+
+  for model_entry in \
+    "small:small.pt:$ASR_SMALL_SHA256" \
+    "medium:medium.pt:$ASR_MEDIUM_SHA256" \
+    "large:large-v3.pt:$ASR_LARGE_V3_SHA256"; do
+    IFS=: read -r model_name model_file expected_model_sha256 <<<"$model_entry"
+    model_path="$asr_model_dir/$model_file"
+    if [[ -f "$model_path" && ! -L "$model_path" && -r "$model_path" ]]; then
+      actual_model_sha256="$(sha256sum -- "$model_path" | awk '{print $1}')"
+      if [[ "${actual_model_sha256,,}" == "$expected_model_sha256" ]]; then
+        pass "local Whisper $model_name checkpoint matches the fixed SHA256"
+      else
+        fail "local Whisper $model_name checkpoint SHA256 does not match"
+      fi
+    else
+      fail "local Whisper $model_name checkpoint is missing or invalid: $model_path"
+    fi
+  done
+
+  if [[ "$asr_input_state" == auto ]]; then
+    capture_devices="$(
+      /usr/bin/arecord -l 2>/dev/null |
+        grep -E '^card[[:space:]]+[0-9]+:' |
+        grep -Evi 'auto_null|monitor|null|NVIDIA Jetson AGX Orin APE|tegra-dlink|ADSP-FE' || true
+    )"
+    if [[ -n "$capture_devices" ]]; then
+      pass "ASR automatic ALSA capture discovery found a microphone candidate (device was not opened)"
+    else
+      warn "ASR uses automatic capture discovery, but no physical microphone candidate is currently enumerated"
+    fi
+  elif [[ "$asr_input_state" == configured ]]; then
+    pass "ASR input_device is configured (device was not opened)"
+  else
+    fail "private AI YAML returned an invalid ASR input_device state"
+  fi
+}
 
 if dual_host_validate_fod_model_contract; then
   pass "FOD detector/controller model contract is valid"
@@ -62,11 +240,31 @@ if dual_host_validate_fod_weights; then
 else
   fail "FOD weights do not match the configured SHA256"
 fi
+if [[ -r "$NVIDIA_FOD_ULTRALYTICS_ROOT/ultralytics/__init__.py" ]]; then
+  fod_ultralytics_package_root="$(
+    readlink -f -- "$NVIDIA_FOD_ULTRALYTICS_ROOT/ultralytics"
+  )"
+elif [[ "${NVIDIA_FOD_ULTRALYTICS_ROOT##*/}" == ultralytics &&
+        -r "$NVIDIA_FOD_ULTRALYTICS_ROOT/__init__.py" ]]; then
+  fod_ultralytics_package_root="$(
+    readlink -f -- "$NVIDIA_FOD_ULTRALYTICS_ROOT"
+  )"
+else
+  fod_ultralytics_package_root=""
+fi
+if [[ -n "$fod_ultralytics_package_root" &&
+      -r "$fod_ultralytics_package_root/nn/modules/attention.py" ]] &&
+   grep -Fq 'class GAM_Attention' \
+     "$fod_ultralytics_package_root/nn/modules/attention.py"; then
+  pass "project-local Ultralytics contains the GAM runtime"
+else
+  fail "project-local Ultralytics GAM runtime is missing"
+fi
 
 required_packages=(
   autolabor_coverage autolabor_dual_host autolabor_dual_lidar autolabor_fod_control
   autolabor_fod_msgs autolabor_operator_gui fast_lio fast_lio_localization livox_ros_driver2
-  robot_bringup teb_local_planner zed_wrapper map_server
+  robot_bringup sweeper_mcp teb_local_planner zed_wrapper map_server
 )
 for package in "${required_packages[@]}"; do
   if rospack find "$package" >/dev/null 2>&1; then
@@ -77,10 +275,15 @@ for package in "${required_packages[@]}"; do
 done
 
 if roslaunch --files autolabor_dual_host nvidia_gateway.launch >/dev/null 2>&1 &&
-   roslaunch --files autolabor_dual_host j6m_fastlio_navigation.launch >/dev/null 2>&1; then
+   roslaunch --files autolabor_dual_host j6m_fastlio_navigation.launch >/dev/null 2>&1 &&
+   roslaunch --files sweeper_mcp ai_control.launch >/dev/null 2>&1; then
   pass "dual-host launch files resolve"
 else
   fail "dual-host launch files do not resolve"
+fi
+
+if [[ "$mode" == --static ]]; then
+  check_nvidia_asr_static_contract
 fi
 
 if catkin_test_results "$DUAL_HOST_WS/build/test_results" >"$test_results_output" 2>&1; then
@@ -192,7 +395,7 @@ if [[ "$mode" == --runtime ]]; then
     fi
     [[ "$NVIDIA_START_VISION" != true ]] || nvidia_nodes+=(/fod_detector)
     [[ "$NVIDIA_START_CAMERA" != true ]] || nvidia_nodes+=(/zed2/zed_node)
-    [[ "$NVIDIA_START_QT" != true ]] || nvidia_nodes+=(/autolabor_operator_gui)
+    [[ "$NVIDIA_START_QT" != true ]] || nvidia_nodes+=(/autolabor_operator_gui /sweeper_ai)
     if [[ "$STATIC_MAP_ENABLED" == true && "$NVIDIA_START_QT" == true ]]; then
       nvidia_nodes+=(/operator_map_display_anchor)
     fi
@@ -235,6 +438,7 @@ if [[ "$mode" == --runtime ]]; then
     fi
     [[ "$REQUIRE_CAN" == false ]] || runtime_topics+=(/odom)
     [[ "$NVIDIA_START_VISION" != true ]] || runtime_topics+=(/fod/detections)
+    [[ "$NVIDIA_START_QT" != true ]] || runtime_topics+=(/sweeper_ai/status)
     if [[ "$NVIDIA_START_CAMERA" == true ]]; then
       critical_runtime_topics+=(/fod_camera/image_raw /fod_camera/depth_registered)
       runtime_topics+=("${critical_runtime_topics[@]}")
@@ -321,6 +525,25 @@ if [[ "$mode" == --runtime ]]; then
         pass "detector model contract matches configuration"
       else
         fail "detector model contract does not match configuration"
+      fi
+      fod_runtime_import_path="$(
+        timeout 5 rosparam get /fod_detector/ultralytics_import_path \
+          2>/dev/null || true
+      )"
+      fod_runtime_gam_layers="$(
+        timeout 5 rosparam get /fod_detector/gam_layer_count \
+          2>/dev/null || true
+      )"
+      if [[ -n "$fod_ultralytics_package_root" &&
+            "$fod_runtime_import_path" == "$fod_ultralytics_package_root"/* ]]; then
+        pass "detector imports project-local Ultralytics ($fod_runtime_import_path)"
+      else
+        fail "detector Ultralytics import is outside the configured project copy (${fod_runtime_import_path:-unavailable})"
+      fi
+      if [[ "$fod_runtime_gam_layers" =~ ^[1-9][0-9]*$ ]]; then
+        pass "detector checkpoint contains GAM_Attention ($fod_runtime_gam_layers layer(s))"
+      else
+        fail "detector checkpoint did not report a GAM_Attention layer"
       fi
     fi
     if numeric_parameter_matches /nvidia_cmd_vel_watchdog/max_linear_speed "$CMD_VEL_MAX_LINEAR_SPEED"; then

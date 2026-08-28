@@ -20,6 +20,7 @@ from autolabor_coverage.coverage_geometry import (  # noqa: E402
     Point,
     Swath,
     _optimize_orientations_for_order,
+    occupancy_grid_digest,
     order_swaths,
     rasterize_swept_cells,
     validate_polygon,
@@ -192,6 +193,39 @@ class CoverageGeometryTest(unittest.TestCase):
     def rectangle():
         return [Point(2.0, 2.0), Point(9.0, 2.0),
                 Point(9.0, 7.0), Point(2.0, 7.0)]
+
+    def test_occupancy_grid_digest_covers_complete_spatial_identity(self):
+        arguments = dict(
+            frame_id="map",
+            width=2,
+            height=2,
+            resolution=0.05,
+            origin_position=(1.0, 2.0, 3.0),
+            origin_orientation=(0.0, 0.0, 0.0, 1.0),
+            data=(0, -1, 100, 0),
+        )
+        baseline = occupancy_grid_digest(**arguments)
+        self.assertEqual(64, len(baseline))
+        self.assertEqual(baseline, occupancy_grid_digest(**arguments))
+        mutations = (
+            ("frame_id", "other_map"),
+            ("width", 1),
+            ("height", 4),
+            ("resolution", 0.10),
+            ("origin_position", (1.0, 2.0, 3.1)),
+            ("origin_orientation", (0.0, 0.0, 0.1, 0.995)),
+            ("data", (0, -1, 99, 0)),
+        )
+        for field, value in mutations:
+            with self.subTest(field=field):
+                changed = dict(arguments)
+                changed[field] = value
+                # Keep dimensions/payload length valid in dimension subtests.
+                if field in ("width", "height"):
+                    changed["data"] = tuple(0 for _ in range(
+                        changed["width"] * changed["height"]
+                    ))
+                self.assertNotEqual(baseline, occupancy_grid_digest(**changed))
 
     def test_free_rectangle_generates_footprint_safe_swaths(self):
         planner = CoveragePlanner(self.grid_with_obstacle())
