@@ -1150,7 +1150,13 @@ class ROSBackend:
 
     def start_coverage_cleaning(self, regions, operation_width_m=1.0,
                                 overlap_percent=15.0, max_speed_mps=0.8,
-                                allow_reverse_transit=True):
+                                allow_reverse_transit=True,
+                                reverse_speed_mps=0.3,
+                                max_angular_speed_rps=0.6,
+                                linear_accel_mps2=2.0,
+                                angular_accel_rps2=0.5,
+                                direction_change_penalty_sec=1.0,
+                                segment_handoff_penalty_sec=0.5):
         if not self._coverage_submit_lock.acquire(False):
             return ToolResult(
                 "另一个 AI 覆盖批次正在提交或收敛，当前请求未发送。",
@@ -1163,6 +1169,12 @@ class ROSBackend:
                 overlap_percent=overlap_percent,
                 max_speed_mps=max_speed_mps,
                 allow_reverse_transit=allow_reverse_transit,
+                reverse_speed_mps=reverse_speed_mps,
+                max_angular_speed_rps=max_angular_speed_rps,
+                linear_accel_mps2=linear_accel_mps2,
+                angular_accel_rps2=angular_accel_rps2,
+                direction_change_penalty_sec=direction_change_penalty_sec,
+                segment_handoff_penalty_sec=segment_handoff_penalty_sec,
             )
         finally:
             self._coverage_submit_lock.release()
@@ -1170,7 +1182,10 @@ class ROSBackend:
     def _start_coverage_cleaning_serialized(
             self, regions, operation_width_m=1.0,
             overlap_percent=15.0, max_speed_mps=0.8,
-            allow_reverse_transit=True):
+            allow_reverse_transit=True, reverse_speed_mps=0.3,
+            max_angular_speed_rps=0.6, linear_accel_mps2=2.0,
+            angular_accel_rps2=0.5, direction_change_penalty_sec=1.0,
+            segment_handoff_penalty_sec=0.5):
         self._ensure()
         status = self._wait_snapshot("coverage", 2.0, 2.5)
         if status is None:
@@ -1251,6 +1266,12 @@ class ROSBackend:
             request.overlap_ratio = overlap_percent / 100.0
             request.allow_reverse_transit = bool(allow_reverse_transit)
             request.max_speed_mps = max_speed_mps
+            request.reverse_speed_mps = reverse_speed_mps
+            request.max_angular_speed_rps = max_angular_speed_rps
+            request.linear_accel_mps2 = linear_accel_mps2
+            request.angular_accel_rps2 = angular_accel_rps2
+            request.direction_change_penalty_sec = direction_change_penalty_sec
+            request.segment_handoff_penalty_sec = segment_handoff_penalty_sec
             request.map_digest = status.map_digest
             for item in selected:
                 region = CoverageRegion()

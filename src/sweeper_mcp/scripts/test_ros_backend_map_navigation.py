@@ -85,6 +85,12 @@ class _StartCoverageBatchRequest:
         self.overlap_ratio = 0.0
         self.allow_reverse_transit = False
         self.max_speed_mps = 0.0
+        self.reverse_speed_mps = 0.0
+        self.max_angular_speed_rps = 0.0
+        self.linear_accel_mps2 = 0.0
+        self.angular_accel_rps2 = 0.0
+        self.direction_change_penalty_sec = 0.0
+        self.segment_handoff_penalty_sec = 0.0
         self.map_digest = ""
         self.regions = []
 
@@ -414,6 +420,13 @@ def test_coverage_start_uses_client_generated_operation_id():
     assert requests[0].client_request_id == payload["batch_id"]
     assert payload["batch_id"].startswith("coverage-batch-")
     assert len(payload["batch_id"]) == len("coverage-batch-") + 32
+    assert requests[0].max_speed_mps == 0.8
+    assert requests[0].reverse_speed_mps == 0.3
+    assert requests[0].max_angular_speed_rps == 0.6
+    assert requests[0].linear_accel_mps2 == 2.0
+    assert requests[0].angular_accel_rps2 == 0.5
+    assert requests[0].direction_change_penalty_sec == 1.0
+    assert requests[0].segment_handoff_penalty_sec == 0.5
     assert backend._ai_batch_id == payload["batch_id"]
 
 

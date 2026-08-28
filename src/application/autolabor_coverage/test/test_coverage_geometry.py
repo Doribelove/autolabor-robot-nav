@@ -16,10 +16,12 @@ sys.path.append(str(PACKAGE_ROOT / "src"))
 
 from autolabor_coverage.coverage_geometry import (  # noqa: E402
     CoveragePlanner,
+    CoverageTimeParameters,
     GridMap,
     Point,
     Swath,
     _optimize_orientations_for_order,
+    estimate_route_time,
     occupancy_grid_digest,
     order_swaths,
     rasterize_swept_cells,
@@ -421,6 +423,134 @@ class CoverageGeometryTest(unittest.TestCase):
         self.assertEqual(oracle[2], directions)
         self.assertAlmostEqual(oracle[0], optimized_cost, places=9)
         self.assertLess(optimized_cost, greedy_cost)
+
+    def test_time_estimate_uses_rest_to_rest_motion_limits(self):
+        route = [Swath(Point(0.0, 0.0), Point(2.0, 0.0), 0.0, 2.0)]
+        parameters = CoverageTimeParameters(
+            max_forward_speed_mps=1.0,
+            max_reverse_speed_mps=0.3,
+            max_angular_speed_rps=0.6,
+            linear_accel_mps2=1.0,
+            angular_accel_rps2=0.5,
+            allow_reverse=False,
+            direction_change_penalty_sec=0.0,
+            segment_handoff_penalty_sec=0.0,
+        )
+        estimate = estimate_route_time(
+            route, Point(0.0, 0.0), 0.0, 1.35, parameters)
+        self.assertAlmostEqual(3.0, estimate.total_time_sec, places=9)
+        self.assertAlmostEqual(3.0, estimate.sweep_time_sec, places=9)
+        self.assertAlmostEqual(0.0, estimate.transit_time_sec, places=9)
+
+    def test_time_estimate_selects_reverse_only_when_allowed(self):
+        route = [Swath(Point(-4.0, 0.0), Point(-1.0, 0.0), 0.0, 3.0)]
+        common = dict(
+            max_forward_speed_mps=0.8,
+            max_reverse_speed_mps=0.5,
+            max_angular_speed_rps=0.6,
+            linear_accel_mps2=1.0,
+            angular_accel_rps2=0.5,
+            direction_change_penalty_sec=0.5,
+            segment_handoff_penalty_sec=0.0,
+        )
+        reversing = estimate_route_time(
+            route,
+            Point(0.0, 0.0),
+            0.0,
+            1.35,
+            CoverageTimeParameters(allow_reverse=True, **common),
+        )
+        forward_only = estimate_route_time(
+            route,
+            Point(0.0, 0.0),
+            0.0,
+            1.35,
+            CoverageTimeParameters(allow_reverse=False, **common),
+        )
+        self.assertEqual(1, reversing.reverse_transitions)
+        self.assertEqual(0, forward_only.reverse_transitions)
+        self.assertLess(reversing.total_time_sec, forward_only.total_time_sec)
+
+    def test_time_route_search_matches_complete_small_route_oracle(self):
+        radius = 1.35
+        current = Point(6.0, -2.0)
+        current_yaw = 0.75 * math.pi
+        parameters = CoverageTimeParameters(
+            max_forward_speed_mps=0.9,
+            max_reverse_speed_mps=0.25,
+            max_angular_speed_rps=0.55,
+            linear_accel_mps2=1.2,
+            angular_accel_rps2=0.45,
+            allow_reverse=True,
+            direction_change_penalty_sec=1.3,
+            segment_handoff_penalty_sec=0.4,
+        )
+        swaths = [
+            Swath(Point(-7.0, 0.0), Point(-1.0, 0.0), 0.0, 6.0),
+            Swath(Point(2.0, 0.9), Point(8.0, 0.9), 0.9, 6.0),
+            Swath(Point(-3.0, 1.8), Point(4.0, 1.8), 1.8, 7.0),
+            Swath(Point(7.0, 2.7), Point(12.0, 2.7), 2.7, 5.0),
+        ]
+        oracle = None
+        for index_order in itertools.permutations(range(len(swaths))):
+            for directions in itertools.product((0, 1), repeat=len(swaths)):
+                route = []
+                for index, direction in zip(index_order, directions):
+                    swath = swaths[index]
+                    route.append(
+                        swath if direction == 0 else
+                        Swath(swath.end, swath.start, swath.scan_v,
+                              swath.length)
+                    )
+                estimate = estimate_route_time(
+                    route, current, current_yaw, radius, parameters)
+                signature = (index_order, directions)
+                candidate = (estimate.total_time_sec, signature)
+                if oracle is None or candidate < oracle:
+                    oracle = candidate
+
+        route, estimate = order_swaths(
+            swaths,
+            current,
+            0.9,
+            radius,
+            current_yaw=current_yaw,
+            time_parameters=parameters,
+            return_estimate=True,
+            time_search_beam_width=512,
+        )
+        signature = _route_signature(route, swaths)
+        self.assertEqual(oracle[1], signature)
+        self.assertAlmostEqual(oracle[0], estimate.total_time_sec, places=9)
+
+    def test_static_connector_distance_accounts_for_obstacle_detour(self):
+        grid = self.grid_with_obstacle((50, 0, 60, 70, 100))
+        start = Point(4.0, 2.0)
+        end = Point(7.0, 2.0)
+        distance = grid.shortest_known_free_distance(start, end)
+        self.assertIsNotNone(distance)
+        self.assertGreater(distance, math.hypot(end.x - start.x,
+                                                end.y - start.y))
+
+    def test_planner_selects_and_reports_seconds_based_route(self):
+        parameters = CoverageTimeParameters()
+        plan = CoveragePlanner(self.grid_with_obstacle()).plan(
+            self.rectangle(),
+            1.0,
+            0.15,
+            route_origin=Point(1.5, 1.5),
+            route_yaw=0.0,
+            time_parameters=parameters,
+            time_search_beam_width=64,
+        )
+        self.assertGreater(plan.estimated_total_time_sec, 0.0)
+        self.assertGreater(plan.estimated_sweep_time_sec, 0.0)
+        self.assertGreater(plan.estimated_transit_time_sec, 0.0)
+        self.assertAlmostEqual(plan.score, plan.estimated_total_time_sec)
+        self.assertEqual(
+            plan.estimated_total_time_sec,
+            plan.estimated_sweep_time_sec + plan.estimated_transit_time_sec,
+        )
 
     def test_swept_area_cells_are_clipped_and_do_not_double_count(self):
         grid = GridMap(50, 50, 0.1, 0.0, 0.0, [0] * 2500)

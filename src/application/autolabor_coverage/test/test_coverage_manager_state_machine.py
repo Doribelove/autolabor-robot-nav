@@ -1923,8 +1923,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
                 angle=0.0,
             )
 
-        def plan(_points, _width, _overlap, reachable_seed=None):
-            del reachable_seed
+        def plan(_points, _width, _overlap, reachable_seed=None, **_kwargs):
+            del reachable_seed, _kwargs
             with planner_call_lock:
                 planner_calls[0] += 1
                 call_index = planner_calls[0]
@@ -2013,7 +2013,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         )
         replanned = SimpleNamespace(swaths=[], spacing=0.85)
         manager._planner = lambda _grid: SimpleNamespace(
-            plan=lambda _points, _width, _overlap, reachable_seed=None: replanned
+            plan=lambda _points, _width, _overlap, reachable_seed=None,
+                        **_kwargs: replanned
         )
 
         external_check_entered = threading.Event()
@@ -2087,7 +2088,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         )
         replanned = SimpleNamespace(swaths=[], spacing=0.85)
         manager._planner = lambda _grid: SimpleNamespace(
-            plan=lambda _points, _width, _overlap, reachable_seed=None: replanned
+            plan=lambda _points, _width, _overlap, reachable_seed=None,
+                        **_kwargs: replanned
         )
         claim_entered = threading.Event()
         release_claim = threading.Event()
@@ -2170,7 +2172,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         )
         replanned = SimpleNamespace(swaths=[], spacing=0.85)
         manager._planner = lambda _grid: SimpleNamespace(
-            plan=lambda _points, _width, _overlap, reachable_seed=None: replanned
+            plan=lambda _points, _width, _overlap, reachable_seed=None,
+                        **_kwargs: replanned
         )
         manager._resolve_navigation_owner_claim = (
             lambda _owner_token, _context:

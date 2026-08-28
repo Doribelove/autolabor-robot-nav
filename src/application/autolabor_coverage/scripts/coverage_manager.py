@@ -14,10 +14,10 @@ import actionlib
 from actionlib_msgs.msg import GoalStatus
 from autolabor_coverage.coverage_geometry import (
     CoveragePlanner,
+    CoverageTimeParameters,
     GridMap,
     Point,
     occupancy_grid_digest,
-    order_swaths,
     rasterize_swept_cells,
     sample_path,
 )
@@ -82,11 +82,72 @@ class CoverageManager:
         self.max_speed_limit = float(
             rospy.get_param("~max_speed_limit_mps", 1.60)
         )
+        self.max_reverse_speed_limit = float(
+            rospy.get_param("~max_reverse_speed_limit_mps", 0.80)
+        )
+        self.default_max_angular_speed = float(
+            rospy.get_param("~default_max_angular_speed_rps", 0.60)
+        )
+        self.max_angular_speed_limit = float(
+            rospy.get_param("~max_angular_speed_limit_rps", 1.00)
+        )
+        self.default_linear_accel = float(
+            rospy.get_param("~default_linear_accel_mps2", 2.00)
+        )
+        self.linear_accel_limit = float(
+            rospy.get_param("~linear_accel_limit_mps2", 2.00)
+        )
+        self.default_angular_accel = float(
+            rospy.get_param("~default_angular_accel_rps2", 0.50)
+        )
+        self.angular_accel_limit = float(
+            rospy.get_param("~angular_accel_limit_rps2", 1.00)
+        )
+        self.direction_change_penalty = float(
+            rospy.get_param("~direction_change_penalty_sec", 1.00)
+        )
+        self.segment_handoff_penalty = float(
+            rospy.get_param("~segment_handoff_penalty_sec", 0.50)
+        )
+        self.time_search_beam_width = int(
+            rospy.get_param("~time_search_beam_width", 128)
+        )
         if not 0.10 <= self.default_max_speed <= self.max_speed_limit <= 1.70:
             raise ValueError(
                 "coverage speed limits must satisfy 0.10 <= default <= limit <= 1.70"
             )
-        self.task_max_speed = self.default_max_speed
+        if not 0.05 <= self.reverse_transit_speed <= self.max_reverse_speed_limit <= 1.70:
+            raise ValueError(
+                "coverage reverse limits must satisfy 0.05 <= default <= limit <= 1.70"
+            )
+        if not 0.10 <= self.default_max_angular_speed <= self.max_angular_speed_limit <= 1.50:
+            raise ValueError(
+                "coverage angular-speed limits must satisfy 0.10 <= default <= limit <= 1.50"
+            )
+        if not 0.10 <= self.default_linear_accel <= self.linear_accel_limit <= 3.00:
+            raise ValueError(
+                "coverage linear-acceleration limits must satisfy 0.10 <= default <= limit <= 3.00"
+            )
+        if not 0.10 <= self.default_angular_accel <= self.angular_accel_limit <= 2.00:
+            raise ValueError(
+                "coverage angular-acceleration limits must satisfy 0.10 <= default <= limit <= 2.00"
+            )
+        if not 8 <= self.time_search_beam_width <= 4096:
+            raise ValueError("coverage time-search beam width must be in [8, 4096]")
+        self.default_time_parameters = CoverageTimeParameters(
+            max_forward_speed_mps=self.default_max_speed,
+            max_reverse_speed_mps=self.reverse_transit_speed,
+            max_angular_speed_rps=self.default_max_angular_speed,
+            linear_accel_mps2=self.default_linear_accel,
+            angular_accel_rps2=self.default_angular_accel,
+            allow_reverse=self.allow_reverse_transit,
+            direction_change_penalty_sec=self.direction_change_penalty,
+            segment_handoff_penalty_sec=self.segment_handoff_penalty,
+        )
+        self._validate_time_parameters(self.default_time_parameters)
+        self.plan_time_parameters = None
+        self.task_time_parameters = self.default_time_parameters
+        self._apply_time_parameters_locked(self.default_time_parameters)
         self.minimum_turning_radius = float(
             rospy.get_param("~minimum_turning_radius_m", 1.35)
         )
@@ -447,6 +508,131 @@ class CoverageManager:
             raise ValueError("{} must be a YAML boolean".format(name))
         return value
 
+    def _validate_time_parameters(self, parameters):
+        parameters.validate()
+        max_speed_limit = getattr(self, "max_speed_limit", 1.60)
+        max_reverse_speed_limit = getattr(
+            self, "max_reverse_speed_limit", 0.80
+        )
+        max_angular_speed_limit = getattr(
+            self, "max_angular_speed_limit", 1.00
+        )
+        linear_accel_limit = getattr(self, "linear_accel_limit", 2.00)
+        angular_accel_limit = getattr(self, "angular_accel_limit", 1.00)
+        if not 0.10 <= parameters.max_forward_speed_mps <= max_speed_limit:
+            raise ValueError(
+                "maximum forward speed must be in [0.10, {:.2f}] m/s".format(
+                    max_speed_limit
+                )
+            )
+        if not 0.05 <= parameters.max_reverse_speed_mps <= max_reverse_speed_limit:
+            raise ValueError(
+                "maximum reverse speed must be in [0.05, {:.2f}] m/s".format(
+                    max_reverse_speed_limit
+                )
+            )
+        if not 0.10 <= parameters.max_angular_speed_rps <= max_angular_speed_limit:
+            raise ValueError(
+                "maximum angular speed must be in [0.10, {:.2f}] rad/s".format(
+                    max_angular_speed_limit
+                )
+            )
+        if not 0.10 <= parameters.linear_accel_mps2 <= linear_accel_limit:
+            raise ValueError(
+                "linear acceleration must be in [0.10, {:.2f}] m/s^2".format(
+                    linear_accel_limit
+                )
+            )
+        if not 0.10 <= parameters.angular_accel_rps2 <= angular_accel_limit:
+            raise ValueError(
+                "angular acceleration must be in [0.10, {:.2f}] rad/s^2".format(
+                    angular_accel_limit
+                )
+            )
+        if parameters.direction_change_penalty_sec > 30.0:
+            raise ValueError("direction-change penalty must be in [0, 30] s")
+        if parameters.segment_handoff_penalty_sec > 30.0:
+            raise ValueError("segment handoff penalty must be in [0, 30] s")
+        return parameters
+
+    def _time_parameters_from_request(self, request):
+        defaults = getattr(
+            self, "default_time_parameters", CoverageTimeParameters()
+        )
+        try:
+            parameters = CoverageTimeParameters(
+                max_forward_speed_mps=float(getattr(
+                    request, "max_speed_mps", defaults.max_forward_speed_mps
+                )),
+                max_reverse_speed_mps=float(getattr(
+                    request, "reverse_speed_mps", defaults.max_reverse_speed_mps
+                )),
+                max_angular_speed_rps=float(getattr(
+                    request, "max_angular_speed_rps",
+                    defaults.max_angular_speed_rps
+                )),
+                linear_accel_mps2=float(getattr(
+                    request, "linear_accel_mps2", defaults.linear_accel_mps2
+                )),
+                angular_accel_rps2=float(getattr(
+                    request, "angular_accel_rps2", defaults.angular_accel_rps2
+                )),
+                allow_reverse=bool(getattr(
+                    request, "allow_reverse_transit", defaults.allow_reverse
+                )),
+                direction_change_penalty_sec=float(
+                    getattr(
+                        request,
+                        "direction_change_penalty_sec",
+                        defaults.direction_change_penalty_sec,
+                    )
+                ),
+                segment_handoff_penalty_sec=float(
+                    getattr(
+                        request,
+                        "segment_handoff_penalty_sec",
+                        defaults.segment_handoff_penalty_sec,
+                    )
+                ),
+            )
+        except (AttributeError, TypeError, ValueError, OverflowError) as error:
+            raise ValueError(
+                "coverage time-model parameters must be finite numbers: {}".format(
+                    error
+                )
+            )
+        return self._validate_time_parameters(parameters)
+
+    @staticmethod
+    def _time_parameters_match(first, second):
+        if first is None or second is None or first.allow_reverse != second.allow_reverse:
+            return False
+        fields = (
+            "max_forward_speed_mps",
+            "max_reverse_speed_mps",
+            "max_angular_speed_rps",
+            "linear_accel_mps2",
+            "angular_accel_rps2",
+            "direction_change_penalty_sec",
+            "segment_handoff_penalty_sec",
+        )
+        return all(
+            math.isclose(getattr(first, field), getattr(second, field),
+                         rel_tol=1.0e-9, abs_tol=1.0e-9)
+            for field in fields
+        )
+
+    def _apply_time_parameters_locked(self, parameters):
+        self.task_time_parameters = parameters
+        self.task_max_speed = parameters.max_forward_speed_mps
+        self.allow_reverse_transit = parameters.allow_reverse
+        self.reverse_transit_speed = parameters.max_reverse_speed_mps
+        self.task_max_angular_speed = parameters.max_angular_speed_rps
+        self.task_linear_accel = parameters.linear_accel_mps2
+        self.task_angular_accel = parameters.angular_accel_rps2
+        self.direction_change_penalty = parameters.direction_change_penalty_sec
+        self.segment_handoff_penalty = parameters.segment_handoff_penalty_sec
+
     def _map_callback(self, message):
         try:
             grid = GridMap(
@@ -488,6 +674,7 @@ class CoverageManager:
                 self.plan = None
                 self.plan_id = ""
                 self.plan_map_digest = ""
+                self.plan_time_parameters = None
                 changed_while_active = self.active or self.batch_active
                 self.detail = "static map changed; coverage plan invalidated"
                 if not changed_while_active:
@@ -844,6 +1031,13 @@ class CoverageManager:
 
     def _plan_service(self, request):
         response = PlanCoverageResponse()
+        try:
+            time_parameters = self._time_parameters_from_request(request)
+        except ValueError as error:
+            response.message = str(error)
+            with self.lock:
+                response.map_digest = self.map_digest
+            return response
         with self.lock:
             response.map_digest = self.map_digest
             if self.active or self.batch_active:
@@ -887,11 +1081,21 @@ class CoverageManager:
         current_yaw = None if current_pose is None else current_pose[1]
         try:
             points = self._points_from_region(request.region)
+            route_origin = current if current is not None else points[0]
             # GridMap instances are immutable after construction.  Planning on
             # this snapshot keeps /scan, localization and map callbacks free,
             # and the digest is checked again before the plan is committed.
             plan = self._planner(grid).plan(
-                points, operation_width, overlap_ratio, reachable_seed=current
+                points,
+                operation_width,
+                overlap_ratio,
+                reachable_seed=current,
+                route_origin=route_origin,
+                route_yaw=current_yaw,
+                time_parameters=time_parameters,
+                time_search_beam_width=getattr(
+                    self, "time_search_beam_width", 128
+                ),
             )
         except ValueError as error:
             response.message = str(error)
@@ -904,13 +1108,7 @@ class CoverageManager:
             return response
         if current is None:
             current = points[0]
-        route = order_swaths(
-            plan.swaths,
-            current,
-            plan.spacing,
-            self.minimum_turning_radius,
-            current_yaw,
-        )
+        route = plan.swaths
         plan_id = uuid.uuid4().hex
         region = copy.deepcopy(request.region)
         region.header.frame_id = "map"
@@ -946,16 +1144,19 @@ class CoverageManager:
                 self.plan.swaths = route
                 self.plan_id = plan_id
                 self.plan_map_digest = map_digest
+                self.plan_time_parameters = time_parameters
                 self.region = region
                 self.operation_width = operation_width
                 self.overlap_ratio = overlap_ratio
-                self.allow_reverse_transit = bool(request.allow_reverse_transit)
+                self._apply_time_parameters_locked(time_parameters)
                 self.kinematics_verified = False
                 self.kinematics_detail = (
                     "waiting for task-start VCU and TEB verification"
                 )
                 self.state = "READY"
-                self.detail = "coverage path is ready"
+                self.detail = (
+                    "coverage path is ready; estimated {:.1f} s total"
+                ).format(getattr(plan, "estimated_total_time_sec", 0.0))
                 self.total_segments = len(route) * 2
                 # Keep plan commit and all latched visualization publications
                 # in the same lifecycle critical section.  A concurrent
@@ -980,6 +1181,18 @@ class CoverageManager:
         response.sweep_angle_rad = plan.angle
         response.swath_count = len(route)
         response.segment_count = len(route) * 2
+        response.estimated_total_time_sec = getattr(
+            plan, "estimated_total_time_sec", 0.0
+        )
+        response.estimated_sweep_time_sec = getattr(
+            plan, "estimated_sweep_time_sec", 0.0
+        )
+        response.estimated_transit_time_sec = getattr(
+            plan, "estimated_transit_time_sec", 0.0
+        )
+        response.estimated_reverse_transitions = (
+            getattr(plan, "estimated_reverse_transitions", 0)
+        )
         return response
 
     def _finish_plan_failure(self, token, reason):
@@ -1091,6 +1304,7 @@ class CoverageManager:
         self.plan = None
         self.plan_id = ""
         self.plan_map_digest = ""
+        self.plan_time_parameters = None
         self.region = PolygonStamped()
         self.region.header.frame_id = "map"
         self._reset_execution_locked(clear_progress=clear_progress)
@@ -1145,20 +1359,13 @@ class CoverageManager:
 
     def _start_service(self, request):
         try:
-            requested_speed = float(request.max_speed_mps)
-        except (TypeError, ValueError, OverflowError):
-            requested_speed = float("nan")
-        if (
-            not math.isfinite(requested_speed)
-            or requested_speed < 0.10
-            or requested_speed > self.max_speed_limit
-        ):
+            time_parameters = self._time_parameters_from_request(request)
+        except ValueError as error:
             return StartCoverageResponse(
                 False,
-                "maximum coverage speed must be in [0.10, {:.2f}] m/s".format(
-                    self.max_speed_limit
-                ),
+                str(error),
             )
+        requested_speed = time_parameters.max_forward_speed_mps
 
         with self.lock:
             if self._retained_cleanup_in_progress_locked():
@@ -1178,6 +1385,14 @@ class CoverageManager:
                 return StartCoverageResponse(False, "coverage plan id is missing or stale")
             if self.plan_map_digest != self.map_digest:
                 return StartCoverageResponse(False, "static map changed after planning")
+            planned_parameters = getattr(self, "plan_time_parameters", None)
+            if (planned_parameters is not None and
+                    not self._time_parameters_match(
+                        time_parameters, planned_parameters)):
+                return StartCoverageResponse(
+                    False,
+                    "planning parameters changed after preview; regenerate the coverage path",
+                )
             token = uuid.uuid4().hex
             owner_token = self._new_navigation_owner_token()
             plan_id = self.plan_id
@@ -1212,7 +1427,7 @@ class CoverageManager:
             return self._finish_start_failure(
                 token, "map to base_link transform is unavailable"
             )
-        reachable_seed = current_pose[0]
+        reachable_seed, route_yaw = current_pose
         try:
             # Planning is allowed before localization so the operator can
             # preview a region.  Starting is stricter: recompute against the
@@ -1224,6 +1439,12 @@ class CoverageManager:
                 operation_width,
                 overlap_ratio,
                 reachable_seed=reachable_seed,
+                route_origin=reachable_seed,
+                route_yaw=route_yaw,
+                time_parameters=time_parameters,
+                time_search_beam_width=getattr(
+                    self, "time_search_beam_width", 128
+                ),
             )
         except ValueError as error:
             return self._finish_start_failure(
@@ -1235,22 +1456,17 @@ class CoverageManager:
                 token, "coverage start replan raised an exception: {}".format(error)
             )
 
-        # Use the freshest pose for route entry ordering.  The second state
-        # check below still requires the vehicle to be stopped.
+        # Use the freshest pose as the advertised path/executor origin.  The
+        # final state check below still requires the vehicle to be stopped;
+        # route optimization used the pose captured immediately before this
+        # unlocked planning call.
         current_pose = self._current_pose()
         if current_pose is None:
             return self._finish_start_failure(
                 token, "map to base_link transform disappeared during replanning"
             )
-        current, current_yaw = current_pose
-        route = order_swaths(
-            replanned.swaths,
-            current,
-            replanned.spacing,
-            self.minimum_turning_radius,
-            current_yaw,
-        )
-        replanned.swaths = route
+        current, _ = current_pose
+        route = replanned.swaths
         planned_path = self._planned_path(route, current)
         worker = threading.Thread(
             target=self._run_task,
@@ -1307,7 +1523,8 @@ class CoverageManager:
                 self.start_token = ""
                 self.cancel_requested = False
                 self.plan = replanned
-                self.task_max_speed = requested_speed
+                self.plan_time_parameters = time_parameters
+                self._apply_time_parameters_locked(time_parameters)
                 self.cancel_requested = False
                 self.manual_pause = False
                 self.manual_pause_reason = ""
@@ -1495,13 +1712,26 @@ class CoverageManager:
     @staticmethod
     def _batch_request_fingerprint(
             regions, operation_width, overlap_ratio, allow_reverse,
-            requested_speed, map_digest):
+            requested_speed, map_digest, reverse_speed=0.30,
+            max_angular_speed=0.60, linear_accel=2.00,
+            angular_accel=0.50, direction_change_penalty=1.00,
+            segment_handoff_penalty=0.50):
         """Hash every semantically relevant field of an immutable request."""
         payload = {
             "operation_width": float(operation_width).hex(),
             "overlap_ratio": float(overlap_ratio).hex(),
             "allow_reverse": bool(allow_reverse),
             "requested_speed": float(requested_speed).hex(),
+            "reverse_speed": float(reverse_speed).hex(),
+            "max_angular_speed": float(max_angular_speed).hex(),
+            "linear_accel": float(linear_accel).hex(),
+            "angular_accel": float(angular_accel).hex(),
+            "direction_change_penalty": float(
+                direction_change_penalty
+            ).hex(),
+            "segment_handoff_penalty": float(
+                segment_handoff_penalty
+            ).hex(),
             "map_digest": str(map_digest),
             "regions": [
                 {
@@ -1584,21 +1814,20 @@ class CoverageManager:
         try:
             operation_width = float(request.operation_width_m)
             overlap_ratio = float(request.overlap_ratio)
-            requested_speed = float(request.max_speed_mps)
         except (TypeError, ValueError, OverflowError):
             response.message = "coverage batch parameters must be finite numbers"
             return response
+        try:
+            time_parameters = self._time_parameters_from_request(request)
+        except ValueError as error:
+            response.message = str(error)
+            return response
+        requested_speed = time_parameters.max_forward_speed_mps
         if not math.isfinite(operation_width) or not 0.30 <= operation_width <= 3.0:
             response.message = "operation width must be in [0.30, 3.00] m"
             return response
         if not math.isfinite(overlap_ratio) or not 0.0 <= overlap_ratio <= 0.5:
             response.message = "overlap ratio must be in [0.0, 0.5]"
-            return response
-        if (not math.isfinite(requested_speed) or requested_speed < 0.10 or
-                requested_speed > self.max_speed_limit):
-            response.message = (
-                "maximum coverage speed must be in [0.10, {:.2f}] m/s"
-            ).format(self.max_speed_limit)
             return response
         if not request.map_digest:
             response.message = "map digest is required"
@@ -1616,6 +1845,16 @@ class CoverageManager:
             request.allow_reverse_transit,
             requested_speed,
             request.map_digest,
+            reverse_speed=time_parameters.max_reverse_speed_mps,
+            max_angular_speed=time_parameters.max_angular_speed_rps,
+            linear_accel=time_parameters.linear_accel_mps2,
+            angular_accel=time_parameters.angular_accel_rps2,
+            direction_change_penalty=(
+                time_parameters.direction_change_penalty_sec
+            ),
+            segment_handoff_penalty=(
+                time_parameters.segment_handoff_penalty_sec
+            ),
         )
 
         token = uuid.uuid4().hex
@@ -1801,8 +2040,8 @@ class CoverageManager:
                 self.chassis_fault_paused = False
                 self.operation_width = operation_width
                 self.overlap_ratio = overlap_ratio
-                self.allow_reverse_transit = bool(request.allow_reverse_transit)
-                self.task_max_speed = requested_speed
+                self.plan_time_parameters = None
+                self._apply_time_parameters_locked(time_parameters)
                 self.state = "PLANNING"
                 self.detail = "preparing coverage batch region 1 of {}".format(
                     len(regions)
@@ -1990,6 +2229,7 @@ class CoverageManager:
             operation_width = self.operation_width
             overlap_ratio = self.overlap_ratio
             requested_speed = self.task_max_speed
+            time_parameters = self.task_time_parameters
             self.state = "PLANNING"
             self.detail = "planning coverage batch region {} of {}".format(
                 self.batch_current_index, self.batch_total_regions
@@ -2012,6 +2252,12 @@ class CoverageManager:
                 operation_width,
                 overlap_ratio,
                 reachable_seed=current,
+                route_origin=current,
+                route_yaw=current_yaw,
+                time_parameters=time_parameters,
+                time_search_beam_width=getattr(
+                    self, "time_search_beam_width", 128
+                ),
             )
         except ValueError as error:
             with self.lock:
@@ -2032,15 +2278,8 @@ class CoverageManager:
                     "map to base_link transform disappeared during batch planning"
                 )
             return "FAILED", None, None
-        current, current_yaw = current_pose
-        route = order_swaths(
-            plan.swaths,
-            current,
-            plan.spacing,
-            self.minimum_turning_radius,
-            current_yaw,
-        )
-        plan.swaths = route
+        current, _ = current_pose
+        route = plan.swaths
         plan_id = uuid.uuid4().hex
         region = copy.deepcopy(item.region)
         region.header.frame_id = "map"
@@ -2060,6 +2299,7 @@ class CoverageManager:
             self.plan = plan
             self.plan_id = plan_id
             self.plan_map_digest = map_digest
+            self.plan_time_parameters = time_parameters
             self.region = region
             self.kinematics_verified = False
             self.kinematics_detail = (
@@ -2423,21 +2663,25 @@ class CoverageManager:
         if speed > 0.02:
             self.detail = "vehicle must be stopped before starting coverage"
             return False
-        if requested_speed > self.watchdog_max_linear_speed + 1.0e-6:
+        requested_motion_speed = max(
+            requested_speed,
+            self.reverse_transit_speed if self.allow_reverse_transit else 0.0,
+        )
+        if requested_motion_speed > self.watchdog_max_linear_speed + 1.0e-6:
             self.detail = (
-                "requested coverage speed {:.2f} m/s exceeds NVIDIA watchdog "
+                "requested forward/reverse speed {:.2f} m/s exceeds NVIDIA watchdog "
                 "cap {:.2f} m/s"
-            ).format(requested_speed, self.watchdog_max_linear_speed)
+            ).format(requested_motion_speed, self.watchdog_max_linear_speed)
             return False
         if require_kinematics:
             if not self.kinematics_verified:
                 self.detail = self.kinematics_detail
                 return False
-            if requested_speed > self.chassis_max_speed + 1.0e-6:
+            if requested_motion_speed > self.chassis_max_speed + 1.0e-6:
                 self.detail = (
-                    "requested coverage speed {:.2f} m/s exceeds live VCU "
+                    "requested forward/reverse speed {:.2f} m/s exceeds live VCU "
                     "cap {:.2f} m/s"
-                ).format(requested_speed, self.chassis_max_speed)
+                ).format(requested_motion_speed, self.chassis_max_speed)
                 return False
         return True
 
@@ -3247,10 +3491,20 @@ class CoverageManager:
                         "viapoints_all_candidates", False
                     ),
                 }
+                for key in ("max_vel_theta", "acc_lim_x", "acc_lim_theta"):
+                    if key in configuration:
+                        self.original_teb[key] = configuration[key]
             target = copy.deepcopy(self.original_teb)
             target.update({
                 "max_vel_x": self.task_max_speed,
                 "max_vel_x_backwards": backwards,
+                "max_vel_theta": getattr(
+                    self, "task_max_angular_speed", 0.60
+                ),
+                "acc_lim_x": getattr(self, "task_linear_accel", 2.00),
+                "acc_lim_theta": getattr(
+                    self, "task_angular_accel", 0.50
+                ),
                 "allow_init_with_backwards_motion": backwards > 0.0,
                 "xy_goal_tolerance": 0.20,
                 "yaw_goal_tolerance": 0.20,
@@ -4336,6 +4590,21 @@ class CoverageManager:
             message.operation_width_m = self.operation_width
             message.lane_spacing_m = self.operation_width * (1.0 - self.overlap_ratio)
             message.minimum_turning_radius_m = self.minimum_turning_radius
+            parameters = getattr(
+                self, "task_time_parameters", CoverageTimeParameters()
+            )
+            message.allow_reverse_transit = parameters.allow_reverse
+            message.max_forward_speed_mps = parameters.max_forward_speed_mps
+            message.max_reverse_speed_mps = parameters.max_reverse_speed_mps
+            message.max_angular_speed_rps = parameters.max_angular_speed_rps
+            message.linear_accel_mps2 = parameters.linear_accel_mps2
+            message.angular_accel_rps2 = parameters.angular_accel_rps2
+            message.direction_change_penalty_sec = (
+                parameters.direction_change_penalty_sec
+            )
+            message.segment_handoff_penalty_sec = (
+                parameters.segment_handoff_penalty_sec
+            )
             message.required_steering_angle_rad = self.required_steering_angle
             message.chassis_wheelbase_m = self.chassis_wheelbase
             message.chassis_max_steering_angle_rad = (
@@ -4365,6 +4634,18 @@ class CoverageManager:
             message.last_region_name = self.last_region_name
             message.last_region_state = self.last_region_state
             if plan is not None:
+                message.estimated_total_time_sec = getattr(
+                    plan, "estimated_total_time_sec", 0.0
+                )
+                message.estimated_sweep_time_sec = getattr(
+                    plan, "estimated_sweep_time_sec", 0.0
+                )
+                message.estimated_transit_time_sec = (
+                    getattr(plan, "estimated_transit_time_sec", 0.0)
+                )
+                message.estimated_reverse_transitions = (
+                    getattr(plan, "estimated_reverse_transitions", 0)
+                )
                 message.requested_area_m2 = plan.requested_area
                 message.reachable_area_m2 = plan.reachable_area
                 message.unreachable_area_m2 = plan.unreachable_area

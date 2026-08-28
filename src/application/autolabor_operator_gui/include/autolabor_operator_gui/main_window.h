@@ -100,7 +100,25 @@ struct CoveragePlanUiResult
   double requested_area_m2 = 0.0;
   double reachable_area_m2 = 0.0;
   double unreachable_area_m2 = 0.0;
+  double estimated_total_time_sec = 0.0;
+  double estimated_sweep_time_sec = 0.0;
+  double estimated_transit_time_sec = 0.0;
+  unsigned int estimated_reverse_transitions = 0;
   unsigned int swath_count = 0;
+};
+
+struct CoveragePlanningUiParameters
+{
+  double operation_width_m = 1.00;
+  double overlap_ratio = 0.15;
+  double max_forward_speed_mps = 0.80;
+  bool allow_reverse = true;
+  double max_reverse_speed_mps = 0.30;
+  double max_angular_speed_rps = 0.60;
+  double linear_accel_mps2 = 2.00;
+  double angular_accel_rps2 = 0.50;
+  double direction_change_penalty_sec = 1.00;
+  double segment_handoff_penalty_sec = 0.50;
 };
 
 struct CoverageBatchUiResult
@@ -414,6 +432,9 @@ private:
   void publishCoverageDraft();
   void selectCoveragePointTool(bool enabled);
   void resetCoverageUiState(bool clear_plan_id);
+  void loadCoveragePlannerSettings();
+  void persistCoveragePlannerSettings() const;
+  CoveragePlanningUiParameters coveragePlanningParameters() const;
   bool updateCoverageRegionStore(const TelemetrySnapshot& data,
                                  bool coverage_status_fresh);
   bool loadCoverageRegionDraft(const CoverageRegionRecord& record);
@@ -600,6 +621,12 @@ private:
   QDoubleSpinBox* coverage_width_input_ = nullptr;
   QDoubleSpinBox* coverage_overlap_input_ = nullptr;
   QDoubleSpinBox* coverage_speed_input_ = nullptr;
+  QDoubleSpinBox* coverage_reverse_speed_input_ = nullptr;
+  QDoubleSpinBox* coverage_angular_speed_input_ = nullptr;
+  QDoubleSpinBox* coverage_linear_accel_input_ = nullptr;
+  QDoubleSpinBox* coverage_angular_accel_input_ = nullptr;
+  QDoubleSpinBox* coverage_direction_change_penalty_input_ = nullptr;
+  QDoubleSpinBox* coverage_handoff_penalty_input_ = nullptr;
   QCheckBox* coverage_reverse_checkbox_ = nullptr;
   QPushButton* coverage_select_button_ = nullptr;
   QPushButton* coverage_undo_button_ = nullptr;

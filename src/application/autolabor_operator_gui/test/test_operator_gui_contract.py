@@ -311,9 +311,29 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("coverage_width_input_->setValue(1.00)", GUI_SOURCE)
         self.assertIn("coverage_speed_input_->setRange(0.10, 1.60)", GUI_SOURCE)
         self.assertIn("coverage_speed_input_->setValue(0.80)", GUI_SOURCE)
+        self.assertIn("最高倒车速度", GUI_SOURCE)
+        self.assertIn("最大转弯角速度", GUI_SOURCE)
+        self.assertIn("最大线加速度", GUI_SOURCE)
+        self.assertIn("最大角加速度", GUI_SOURCE)
+        self.assertIn("每次换向附加时间", GUI_SOURCE)
+        self.assertIn("每段交接附加时间", GUI_SOURCE)
+        self.assertIn("QSettings settings", GUI_SOURCE)
+        self.assertIn("persistCoveragePlannerSettings", GUI_SOURCE)
+        self.assertIn('QStringLiteral("coverage/planning_parameters")', GUI_SOURCE)
         self.assertIn("class ScrollSafeDoubleSpinBox", GUI_SOURCE)
         self.assertIn("event->ignore()", GUI_SOURCE)
-        self.assertIn("call.request.max_speed_mps = max_speed_mps", GUI_SOURCE)
+        self.assertIn(
+            "call.request.max_speed_mps = parameters.max_forward_speed_mps",
+            GUI_SOURCE,
+        )
+        self.assertIn(
+            "call.request.reverse_speed_mps = parameters.max_reverse_speed_mps",
+            GUI_SOURCE,
+        )
+        self.assertIn(
+            "call.request.max_angular_speed_rps = parameters.max_angular_speed_rps",
+            GUI_SOURCE,
+        )
         self.assertIn("当前车辆位姿", GUI_SOURCE)
         self.assertIn("最近位置里程计", GUI_SOURCE)
         self.assertIn("recent_odom_distance_m", GUI_SOURCE)
