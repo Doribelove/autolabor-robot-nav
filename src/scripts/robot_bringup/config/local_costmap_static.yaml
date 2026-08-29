@@ -41,7 +41,9 @@ local_costmap:
       clearing: true
       obstacle_range: 10.0
       raytrace_range: 11.0
-      min_obstacle_height: -1.0
+      # /scan is already filtered to 0.25-0.80 m before planar projection.
+      # Include its map-frame plane when static localization has a vertical offset.
+      min_obstacle_height: -2.0
       max_obstacle_height: 3.0
       inf_is_valid: true
 

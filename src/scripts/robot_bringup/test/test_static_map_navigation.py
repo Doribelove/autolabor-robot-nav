@@ -163,7 +163,28 @@ class StaticMapNavigationContractTest(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual("/scan", common["obstacles_layer"]["scan"]["topic"])
+        local = yaml.safe_load(
+            (PACKAGE_ROOT / "config/local_costmap_static.yaml").read_text(
+                encoding="utf-8"
+            )
+        )["local_costmap"]
+        scan_launch = ElementTree.parse(
+            str(PACKAGE_ROOT / "launch/scan_mid360_avoidance.launch")
+        ).getroot()
+        scan_arguments = {
+            item.attrib["name"]: item.attrib.get("default")
+            for item in scan_launch.findall("arg")
+        }
+
+        self.assertEqual("0.25", scan_arguments["min_height"])
+        self.assertEqual("0.8", scan_arguments["max_height"])
+        for scan in (
+            common["obstacles_layer"]["scan"],
+            local["obstacles_layer"]["scan"],
+        ):
+            self.assertEqual("LaserScan", scan["data_type"])
+            self.assertEqual("/scan", scan["topic"])
+            self.assertEqual(-2.0, scan["min_obstacle_height"])
 
     def test_indoor_navigation_default_forward_speed_is_point_eight(self):
         launch_path = PACKAGE_ROOT / "launch" / "navigation_j6m.launch"
