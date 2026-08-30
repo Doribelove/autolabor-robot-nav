@@ -128,6 +128,45 @@
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner_navfn/allow_unknown"
            type="bool" value="false"/>
+    <!-- Ordinary goals still use Navfn.  Coverage-owned transit goals use a
+         short-horizon Hybrid A* lattice with the same M2 curvature limit as
+         TEB; unknown/lethal cells and the complete footprint are rejected. -->
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_minimum_turning_radius"
+           type="double" value="1.35"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_motion_step"
+           type="double" value="0.30"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_collision_check_step"
+           type="double" value="0.10"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_state_resolution"
+           type="double" value="0.15"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_heading_bins"
+           type="int" value="72"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_steering_samples"
+           type="int" value="5"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_max_expansions"
+           type="int" value="80000"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_planning_timeout"
+           type="double" value="1.50"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_heuristic_weight"
+           type="double" value="1.05"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_steering_penalty"
+           type="double" value="0.04"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_steering_change_penalty"
+           type="double" value="0.10"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_obstacle_cost_scale"
+           type="double" value="0.25"/>
     <param name="TebLocalPlannerROS/min_vel_x" type="double" value="$(arg min_vel_x)"/>
     <param name="TebLocalPlannerROS/min_vel_x_backwards" type="double" value="$(arg min_vel_x_backwards)"/>
     <param name="TebLocalPlannerROS/penalty_epsilon" type="double" value="$(arg penalty_epsilon)"/>

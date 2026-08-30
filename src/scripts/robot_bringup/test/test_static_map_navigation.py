@@ -125,6 +125,13 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         self.assertIn(
             'name="CoverageGlobalPlanner_navfn/allow_unknown"', text
         )
+        self.assertIn(
+            'name="CoverageGlobalPlanner/hybrid_minimum_turning_radius"',
+            text,
+        )
+        self.assertIn(
+            'name="CoverageGlobalPlanner/hybrid_planning_timeout"', text
+        )
         self.assertNotIn('pkg="amcl"', text)
 
     def test_static_navigation_rejects_unknown_without_changing_nomap_default(self):

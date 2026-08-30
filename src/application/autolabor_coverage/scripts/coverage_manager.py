@@ -21,7 +21,7 @@ from autolabor_coverage.coverage_geometry import (
     rasterize_swept_cells,
     sample_path,
 )
-from autolabor_coverage.msg import CoverageStatus, EnforcedPath
+from autolabor_coverage.msg import CoverageStatus, EnforcedPath, TransitProfile
 from autolabor_coverage.srv import (
     CancelCoverageBatch,
     CancelCoverageBatchResponse,
@@ -223,6 +223,38 @@ class CoverageManager:
             )
         ):
             raise ValueError("coverage TEB straight-sweep profile is invalid")
+        self.hybrid_transit_viapoint_separation = float(rospy.get_param(
+            "~hybrid_transit_viapoint_separation_m", 0.30
+        ))
+        self.hybrid_transit_weight_viapoint = float(rospy.get_param(
+            "~hybrid_transit_weight_viapoint", 15.0
+        ))
+        self.hybrid_transit_weight_kinematics_forward_drive = float(
+            rospy.get_param(
+                "~hybrid_transit_weight_kinematics_forward_drive", 5.0
+            )
+        )
+        self.hybrid_transit_selection_viapoint_cost_scale = float(
+            rospy.get_param(
+                "~hybrid_transit_selection_viapoint_cost_scale", 2.0
+            )
+        )
+        self.hybrid_transit_viapoints_all_candidates = self._strict_bool(
+            "~hybrid_transit_viapoints_all_candidates", True
+        )
+        if (
+            not 0.05 <= self.hybrid_transit_viapoint_separation <= 5.0
+            or not 0.0 <= self.hybrid_transit_weight_viapoint <= 1000.0
+            or not 0.0 <= self.hybrid_transit_weight_kinematics_forward_drive <= 1000.0
+            or not 0.0 <= self.hybrid_transit_selection_viapoint_cost_scale <= 100.0
+            or not all(math.isfinite(value) for value in (
+                self.hybrid_transit_viapoint_separation,
+                self.hybrid_transit_weight_viapoint,
+                self.hybrid_transit_weight_kinematics_forward_drive,
+                self.hybrid_transit_selection_viapoint_cost_scale,
+            ))
+        ):
+            raise ValueError("coverage Hybrid A* TEB transit profile is invalid")
         self.obstacle_wait_sec = float(rospy.get_param("~obstacle_wait_sec", 10.0))
         self.segment_retry_count = int(rospy.get_param("~segment_retry_count", 3))
         self.final_retry_count = int(rospy.get_param("~final_retry_count", 1))
@@ -2763,6 +2795,10 @@ class CoverageManager:
             local_costmap_height = float(rospy.get_param(
                 "/move_base/local_costmap/height"
             ))
+            hybrid_radius = float(rospy.get_param(
+                "/move_base/CoverageGlobalPlanner/"
+                "hybrid_minimum_turning_radius"
+            ))
             navfn_allow_unknown = rospy.get_param(
                 "/move_base/CoverageGlobalPlanner_navfn/allow_unknown"
             )
@@ -2779,6 +2815,12 @@ class CoverageManager:
                 abs(teb_wheelbase - wheelbase) > self.chassis_wheelbase_tolerance):
             return self._kinematics_failure_locked(
                 "TEB wheelbase does not match the live VCU"
+            )
+        if (not math.isfinite(hybrid_radius) or
+                abs(hybrid_radius - self.minimum_turning_radius) > 1.0e-6):
+            return self._kinematics_failure_locked(
+                "Hybrid A* minimum turning radius does not match the "
+                "coverage model"
             )
         if type(proportional) is not bool or not proportional:
             return self._kinematics_failure_locked(
@@ -2801,12 +2843,12 @@ class CoverageManager:
             )
         if type(navfn_allow_unknown) is not bool or navfn_allow_unknown:
             return self._kinematics_failure_locked(
-                "coverage Navfn fallback must reject unknown map cells"
+                "ordinary Navfn navigation must reject unknown map cells"
             )
         with self.lock:
             self.kinematics_verified = True
             self.kinematics_detail = (
-                "VCU/TEB verified: L={:.3f} m, R>={:.2f} m, "
+                "VCU/Hybrid A*/TEB verified: L={:.3f} m, R={:.2f} m, "
                 "steer {:.2f}/{:.2f} deg"
             ).format(
                 wheelbase,
@@ -3490,6 +3532,12 @@ class CoverageManager:
                     "viapoints_all_candidates": configuration.get(
                         "viapoints_all_candidates", False
                     ),
+                    "global_plan_overwrite_orientation": configuration.get(
+                        "global_plan_overwrite_orientation", True
+                    ),
+                    "via_points_ordered": configuration.get(
+                        "via_points_ordered", False
+                    ),
                 }
                 for key in ("max_vel_theta", "acc_lim_x", "acc_lim_theta"):
                     if key in configuration:
@@ -3544,6 +3592,31 @@ class CoverageManager:
                         self.sweep_selection_viapoint_cost_scale
                     ),
                     "viapoints_all_candidates": self.sweep_viapoints_all_candidates,
+                })
+            else:
+                # Hybrid A* has already selected a curvature-feasible vehicle
+                # orientation and, when enabled, explicit reverse cusps.  Keep
+                # those orientations instead of replacing them with Navfn-like
+                # path tangents, and retain the ordered connector as a soft
+                # guide while TEB reacts to live local obstacles.
+                target.update({
+                    "global_plan_overwrite_orientation": False,
+                    "via_points_ordered": True,
+                    "global_plan_viapoint_sep": (
+                        self.hybrid_transit_viapoint_separation
+                    ),
+                    "weight_viapoint": self.hybrid_transit_weight_viapoint,
+                    "weight_kinematics_forward_drive": (
+                        self.hybrid_transit_weight_kinematics_forward_drive
+                        if backwards > 0.0 else
+                        self.original_teb["weight_kinematics_forward_drive"]
+                    ),
+                    "selection_viapoint_cost_scale": (
+                        self.hybrid_transit_selection_viapoint_cost_scale
+                    ),
+                    "viapoints_all_candidates": (
+                        self.hybrid_transit_viapoints_all_candidates
+                    ),
                 })
             client.update_configuration(target)
             return True
@@ -3766,10 +3839,39 @@ class CoverageManager:
 
     def _set_enforced_path(self, enforced, coverage_active=True):
         """Synchronously arm mission ownership and the segment planner mode."""
+        transit_profile = TransitProfile()
+        transit_profile.allow_reverse = bool(getattr(
+            self, "allow_reverse_transit", True
+        ))
+        transit_profile.max_forward_speed_mps = float(getattr(
+            self, "task_max_speed", 0.80
+        ))
+        transit_profile.max_reverse_speed_mps = float(getattr(
+            self, "reverse_transit_speed", 0.30
+        ))
+        transit_profile.max_angular_speed_rps = float(getattr(
+            self, "task_max_angular_speed", 0.60
+        ))
+        transit_profile.linear_accel_mps2 = float(getattr(
+            self, "task_linear_accel", 2.00
+        ))
+        transit_profile.angular_accel_rps2 = float(getattr(
+            self, "task_angular_accel", 0.50
+        ))
+        transit_profile.direction_change_penalty_sec = float(getattr(
+            self, "direction_change_penalty", 1.00
+        ))
+        transit_profile.goal_position_tolerance_m = float(getattr(
+            self, "entry_position_tolerance", 0.30
+        ))
+        transit_profile.goal_yaw_tolerance_rad = float(getattr(
+            self, "entry_yaw_tolerance", 0.40
+        ))
         try:
             response = self.enforced_path_client(
                 coverage_active=coverage_active,
                 enforced_path=enforced,
+                transit_profile=transit_profile,
             )
         except Exception as error:
             rospy.logerr(
@@ -4050,18 +4152,20 @@ class CoverageManager:
                             math.degrees(self.entry_yaw_tolerance),
                         )
                         return "succeeded"
-                    # TEB cannot spin an Ackermann chassis at a fixed point.
-                    # Reject this explicit dependency instead of submitting an
-                    # orientation-only goal that appears to do nothing.
-                    rospy.logwarn(
+                    # Navfn + TEB could not resolve this orientation-only
+                    # endpoint without an in-place spin, so the old executor
+                    # rejected it here.  Hybrid A* can deliberately leave the
+                    # tolerance disc and return with a curvature-feasible
+                    # forward/reverse maneuver; let the global planner decide
+                    # whether the surrounding free space is sufficient.
+                    rospy.loginfo(
                         "coverage transit %d is at the entry position but yaw "
-                        "error %.1f deg exceeds the %.1f deg Ackermann "
-                        "entry tolerance",
+                        "error %.1f deg exceeds the %.1f deg entry tolerance; "
+                        "requesting a Hybrid A* orientation maneuver",
                         segment_index + 1,
                         math.degrees(yaw_error),
                         math.degrees(self.entry_yaw_tolerance),
                     )
-                    return "blocked"
         if segment["type"] == "sweep":
             # A transit may move several metres while tracking is disabled.
             # Never compare the next swath's first sample with the previous
@@ -4088,9 +4192,9 @@ class CoverageManager:
             self.goal_timeout_per_meter_sec * segment["length"]
         )
         started = time.monotonic()
-        # Publish the exact sweep before move_base accepts the goal.  Without
-        # this ordering its first planner cycle could observe an inactive path
-        # and use the Navfn fallback to shortcut a coverage swath.
+        # Arm the exact sweep or Hybrid A* transit mode before move_base accepts
+        # the goal.  Without this ordering its first planner cycle could still
+        # observe the previous segment mode and execute the wrong path class.
         enforced.header.stamp = rospy.Time.now()
         if enforced.active:
             enforced.path.header.stamp = enforced.header.stamp
@@ -4253,8 +4357,8 @@ class CoverageManager:
                             "executing enforced coverage sweep {} of {}".format(
                                 index + 1, len(segments)
                             ) if segment["type"] == "sweep" else
-                            "executing point-to-point Navfn transit {} of {}; "
-                            "dynamic replanning and TEB obstacle avoidance are active".format(
+                            "executing kinematic Hybrid A* transit {} of {}; "
+                            "live global replanning and TEB obstacle avoidance are active".format(
                                 index + 1, len(segments)
                             )
                         )
@@ -4271,8 +4375,8 @@ class CoverageManager:
                                 "executing enforced coverage sweep {} of {}".format(
                                     index + 1, len(segments)
                                 ) if segment["type"] == "sweep" else
-                                "executing point-to-point Navfn transit {} of {}; "
-                                "dynamic replanning and TEB obstacle avoidance are active".format(
+                                "executing kinematic Hybrid A* transit {} of {}; "
+                                "live global replanning and TEB obstacle avoidance are active".format(
                                     index + 1, len(segments)
                                 )
                             )
@@ -4349,7 +4453,7 @@ class CoverageManager:
                                 "final retry for enforced coverage sweep {}".format(
                                     index + 1
                                 ) if segment["type"] == "sweep" else
-                                "final Navfn replan for point-to-point transit {}".format(
+                                "final Hybrid A* replan for kinematic transit {}".format(
                                     index + 1
                                 )
                             )

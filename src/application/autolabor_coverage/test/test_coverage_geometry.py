@@ -20,6 +20,7 @@ from autolabor_coverage.coverage_geometry import (  # noqa: E402
     GridMap,
     Point,
     Swath,
+    _dubins_path_components,
     _optimize_orientations_for_order,
     estimate_route_time,
     occupancy_grid_digest,
@@ -441,6 +442,36 @@ class CoverageGeometryTest(unittest.TestCase):
         self.assertAlmostEqual(3.0, estimate.total_time_sec, places=9)
         self.assertAlmostEqual(3.0, estimate.sweep_time_sec, places=9)
         self.assertAlmostEqual(0.0, estimate.transit_time_sec, places=9)
+
+    def test_dubins_proxy_respects_m2_turning_radius(self):
+        radius = 1.35
+        straight = _dubins_path_components(
+            Point(0.0, 0.0), 0.0,
+            Point(4.0, 0.0), 0.0,
+            radius,
+        )
+        quarter_turn = _dubins_path_components(
+            Point(0.0, 0.0), 0.0,
+            Point(radius, radius), 0.5 * math.pi,
+            radius,
+        )
+        self.assertIsNotNone(straight)
+        self.assertAlmostEqual(4.0, straight[0], places=9)
+        self.assertAlmostEqual(0.0, straight[1], places=9)
+        self.assertIsNotNone(quarter_turn)
+        self.assertAlmostEqual(0.5 * math.pi * radius,
+                               quarter_turn[0], places=8)
+        self.assertAlmostEqual(quarter_turn[0], quarter_turn[1], places=8)
+
+    def test_dubins_proxy_penalizes_close_opposite_heading_entry(self):
+        radius = 1.35
+        components = _dubins_path_components(
+            Point(0.0, 0.0), 0.0,
+            Point(0.85, 0.0), math.pi,
+            radius,
+        )
+        self.assertIsNotNone(components)
+        self.assertGreater(components[0], 2.0 * radius)
 
     def test_time_estimate_selects_reverse_only_when_allowed(self):
         route = [Swath(Point(-4.0, 0.0), Point(-1.0, 0.0), 0.0, 3.0)]

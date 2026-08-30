@@ -55,6 +55,7 @@ chroot "$ROOTFS" /bin/bash -lc '
     /opt/autolabor/dual_host/current/lib/fast_lio/fastlio_mapping
   shared_libraries=(
     /opt/autolabor/dual_host/current/lib/libcoverage_global_planner.so
+    /opt/autolabor/dual_host/current/lib/libcoverage_hybrid_astar.so
     /opt/autolabor/dual_host/current/lib/libgps_geofence_layer.so
   )
   for library in "${shared_libraries[@]}"; do
@@ -73,9 +74,11 @@ chroot "$ROOTFS" /bin/bash -lc '
   rosmsg md5 autolabor_fod_msgs/FodDetectionArray
   rosmsg md5 autolabor_coverage/CoverageRegion
   rosmsg md5 autolabor_coverage/CoverageStatus
+  rosmsg md5 autolabor_coverage/TransitProfile
   rossrv md5 autolabor_coverage/PlanCoverage
   rossrv md5 autolabor_coverage/CancelCoverageBatch
   rossrv md5 autolabor_coverage/SetCoverageOwner
+  rossrv md5 autolabor_coverage/SetEnforcedPath
   rossrv md5 autolabor_coverage/StartCoverageBatch
   test ! -e /opt/autolabor/dual_host/current/share/zed_wrapper
   ! command -v nvcc >/dev/null

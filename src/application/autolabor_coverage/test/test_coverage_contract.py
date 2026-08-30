@@ -159,6 +159,7 @@ class CoverageContractTest(unittest.TestCase):
         planner = plugin.find("class")
         self.assertEqual("autolabor_coverage/CoverageGlobalPlanner",
                          planner.attrib["name"])
+        self.assertIn("Hybrid A*", planner.find("description").text)
         navigation = (WORKSPACE_ROOT / "src" / "scripts" / "robot_bringup" /
                       "launch" / "navigation_j6m.launch").read_text(encoding="utf-8")
         self.assertIn("$(find autolabor_coverage)/launch/coverage.launch", navigation)
@@ -179,8 +180,13 @@ class CoverageContractTest(unittest.TestCase):
         self.assertLess(synchronous_handoff, first_goal)
         self.assertIn("coverage_active=coverage_active", manager)
         self.assertIn("enforced_path=enforced", manager)
+        self.assertIn("transit_profile=transit_profile", manager)
         self.assertIn("coverage_active=False", manager)
         self.assertIn("bool coverage_active", handoff_service)
+        self.assertIn(
+            "autolabor_coverage/TransitProfile transit_profile",
+            handoff_service,
+        )
         self.assertIn('segment["type"] == "transit"', manager)
         self.assertIn("self.allow_reverse_transit", manager)
         plugin = (PACKAGE_ROOT / "src" / "coverage_global_planner.cpp").read_text(
@@ -192,12 +198,14 @@ class CoverageContractTest(unittest.TestCase):
         self.assertNotIn('subscribe(\n      "/coverage/active"', plugin)
         self.assertIn("if (!path.active)", plugin)
         self.assertIn("if (!active)", plugin)
-        self.assertIn("POINT_TO_POINT_NAVFN_TRANSIT", plugin)
+        self.assertIn("KINEMATIC_HYBRID_ASTAR_TRANSIT", plugin)
+        self.assertIn("hybrid_planner_.makePlan", plugin)
+        self.assertIn("refusing Navfn fallback", plugin)
         self.assertIn("fallback_.makePlan(start, goal, plan)", plugin)
         self.assertIn("goal yaw does not match enforced path endpoint", plugin)
         self.assertIn("world_model.footprintCost", plugin)
         self.assertIn(
-            "executing point-to-point Navfn transit", manager
+            "executing kinematic Hybrid A* transit", manager
         )
 
         navigation = (
@@ -246,6 +254,7 @@ class CoverageContractTest(unittest.TestCase):
                       deploy)
         self.assertIn("rospack find autolabor_coverage", deploy)
         self.assertIn("libcoverage_global_planner.so", deploy)
+        self.assertIn("libcoverage_hybrid_astar.so", deploy)
 
     def test_task_speed_is_bounded_and_applied_through_teb(self):
         start_service = (PACKAGE_ROOT / "srv" / "StartCoverage.srv").read_text(
@@ -355,8 +364,40 @@ class CoverageContractTest(unittest.TestCase):
         self.assertIn("TEB minimum turning radius is below", manager)
         self.assertIn("treat_unknown_as_obstacle", manager)
         self.assertIn("CoverageGlobalPlanner_navfn/allow_unknown", manager)
+        self.assertIn("hybrid_minimum_turning_radius", manager)
         self.assertIn('"allow_init_with_backwards_motion": backwards > 0.0',
                       manager)
+
+    def test_hybrid_transit_profile_and_launch_contract(self):
+        profile = (
+            PACKAGE_ROOT / "msg" / "TransitProfile.msg"
+        ).read_text(encoding="utf-8").splitlines()
+        self.assertEqual([
+            "bool allow_reverse",
+            "float64 max_forward_speed_mps",
+            "float64 max_reverse_speed_mps",
+            "float64 max_angular_speed_rps",
+            "float64 linear_accel_mps2",
+            "float64 angular_accel_rps2",
+            "float64 direction_change_penalty_sec",
+            "float64 goal_position_tolerance_m",
+            "float64 goal_yaw_tolerance_rad",
+        ], profile)
+        navigation = (
+            WORKSPACE_ROOT / "src" / "scripts" / "robot_bringup" /
+            "launch" / "navigation_j6m.launch"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            'name="CoverageGlobalPlanner/hybrid_minimum_turning_radius"',
+            navigation,
+        )
+        self.assertIn(
+            'name="CoverageGlobalPlanner/hybrid_planning_timeout"',
+            navigation,
+        )
+        self.assertIn(
+            'name="CoverageGlobalPlanner_navfn/allow_unknown"', navigation
+        )
 
     def test_status_reports_route_and_verified_chassis_constraints(self):
         status = (PACKAGE_ROOT / "msg" / "CoverageStatus.msg").read_text(
