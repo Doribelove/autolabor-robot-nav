@@ -58,6 +58,17 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         self.assertTrue(global_config["static_map"])
         self.assertFalse(local_config["static_map"])
         self.assertTrue(local_config["rolling_window"])
+        self.assertEqual(20.0, local_config["width"])
+        self.assertEqual(20.0, local_config["height"])
+        self.assertEqual(0.10, local_config["resolution"])
+        self.assertEqual(
+            10.0,
+            local_config["obstacles_layer"]["scan"]["obstacle_range"],
+        )
+        self.assertEqual(
+            11.0,
+            local_config["obstacles_layer"]["scan"]["raytrace_range"],
+        )
         local_plugins = {
             plugin["name"]: plugin["type"] for plugin in local_config["plugins"]
         }
@@ -66,13 +77,30 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         )
         self.assertEqual("/map", local_config["static_layer"]["map_topic"])
         self.assertTrue(local_config["static_layer"]["track_unknown_space"])
+        for config in (global_config, local_config):
+            self.assertEqual(-1, config["static_layer"]["unknown_cost_value"])
+            self.assertEqual(
+                "unknown_space_guard_layer", config["plugins"][-1]["name"]
+            )
+            self.assertEqual(
+                "robot_bringup/UnknownSpaceGuardLayer",
+                config["plugins"][-1]["type"],
+            )
+            self.assertTrue(config["unknown_space_guard_layer"]["enabled"])
+            self.assertEqual(
+                "/map", config["unknown_space_guard_layer"]["map_topic"]
+            )
 
     def test_navigation_uses_map_server_and_localization_velocity_gate_without_amcl(self):
         launch_path = PACKAGE_ROOT / "launch" / "navigation_j6m.launch"
         root = ElementTree.parse(str(launch_path)).getroot()
         text = launch_path.read_text(encoding="utf-8")
-        arguments = {item.attrib["name"] for item in root.findall("arg")}
-        self.assertTrue({"use_static_map", "map_file"} <= arguments)
+        arguments = {
+            item.attrib["name"]: item.attrib.get("default")
+            for item in root.findall("arg")
+        }
+        self.assertTrue({"use_static_map", "map_file"} <= set(arguments))
+        self.assertEqual("8.0", arguments["static_teb_lookahead_dist"])
         self.assertIn('pkg="map_server" type="map_server"', text)
         self.assertIn('type="localization_cmd_vel_gate.py"', text)
         self.assertIn('<param name="cancel_topic" value="/move_base/cancel"/>', text)
@@ -84,7 +112,13 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         self.assertIn(
             'name="TebLocalPlannerROS/max_global_plan_lookahead_dist"', text
         )
-        self.assertIn('type="double" value="8.0"', text)
+        self.assertIn(
+            'type="double" value="$(arg static_teb_lookahead_dist)"', text
+        )
+        self.assertIn(
+            'name="TebLocalPlannerROS/control_look_ahead_poses"', text
+        )
+        self.assertIn('type="int" value="2"', text)
         self.assertIn(
             'name="TebLocalPlannerROS/treat_unknown_as_obstacle"', text
         )

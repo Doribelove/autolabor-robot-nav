@@ -12,6 +12,9 @@ global_costmap:
     - {name: static_layer, type: "costmap_2d::StaticLayer"}
     - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
     - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+    # Keep the raw map's -1 cells at NO_INFORMATION (255) even after live
+    # obstacle-layer clearing. Navfn is configured with allow_unknown=false.
+    - {name: unknown_space_guard_layer, type: "robot_bringup/UnknownSpaceGuardLayer"}
 
   static_layer:
     enabled: true
@@ -32,3 +35,7 @@ global_costmap:
     enabled: true
     cost_scaling_factor: 3.0
     inflation_radius: 1.2
+
+  unknown_space_guard_layer:
+    enabled: true
+    map_topic: /map

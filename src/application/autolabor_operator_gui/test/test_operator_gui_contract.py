@@ -320,6 +320,25 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("QSettings settings", GUI_SOURCE)
         self.assertIn("persistCoveragePlannerSettings", GUI_SOURCE)
         self.assertIn('QStringLiteral("coverage/planning_parameters")', GUI_SOURCE)
+        for setting in (
+            "operation_width_m",
+            "overlap_percent",
+            "max_forward_speed_mps",
+            "allow_reverse",
+            "max_reverse_speed_mps",
+            "max_angular_speed_rps",
+            "linear_accel_mps2",
+            "angular_accel_rps2",
+            "direction_change_penalty_sec",
+            "segment_handoff_penalty_sec",
+        ):
+            self.assertGreaterEqual(GUI_SOURCE.count(setting), 2)
+        self.assertIn("settings.sync()", GUI_SOURCE)
+        self.assertIn("&QDoubleSpinBox::valueChanged", GUI_SOURCE)
+        self.assertIn("&QCheckBox::toggled", GUI_SOURCE)
+        self.assertIn("修改后立即保存为下次默认值", GUI_SOURCE)
+        self.assertIn("下一次生成/启动清扫任务直接", GUI_SOURCE)
+        self.assertIn("需取消后重新规划", GUI_SOURCE)
         self.assertIn("class ScrollSafeDoubleSpinBox", GUI_SOURCE)
         self.assertIn("event->ignore()", GUI_SOURCE)
         self.assertIn(
@@ -827,6 +846,9 @@ class OperatorGuiContractTest(unittest.TestCase):
             GUI_SOURCE.index("void MainWindow::updateNavigationPathDisplays")
         ]
         self.assertNotIn("ros::Duration", follow_view)
+        self.assertIn("Match the 20 x 20 m rolling local costmap", follow_view)
+        self.assertIn("22.0", follow_view)
+        self.assertNotIn("6.6", follow_view)
 
     def test_navigation_path_legend_and_stale_path_clearing_are_explicit(self):
         for evidence in (
@@ -1046,7 +1068,21 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("QTabWidget::currentChanged", GUI_SOURCE)
         self.assertIn("QTimer::singleShot(0, this", GUI_SOURCE)
         self.assertIn("void MainWindow::attachRvizToTab", GUI_SOURCE)
-        self.assertIn("rviz_frame_->setParent(target_host, Qt::Widget);", GUI_SOURCE)
+        self.assertIn("void MainWindow::positionRvizOverlay", GUI_SOURCE)
+        self.assertIn("positionRvizOverlay(int tab_index)", GUI_HEADER)
+        self.assertIn("new rviz::VisualizationFrame(tabs_)", GUI_SOURCE)
+        self.assertNotIn("rviz_frame_->setParent(", GUI_SOURCE)
+        self.assertIn("anchor->mapTo(tabs_, QPoint(0, 0))", GUI_SOURCE)
+        self.assertIn("rviz_frame_->setGeometry(target_geometry)", GUI_SOURCE)
+        self.assertIn(
+            "positionRvizOverlay(tabs_->currentIndex());", GUI_SOURCE
+        )
+        attach = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::attachRvizToTab") :
+            GUI_SOURCE.index("void MainWindow::publishMapDisplayStatus")
+        ]
+        self.assertNotIn("removeWidget", attach)
+        self.assertNotIn("deleteLater", attach)
         setup_ros = GUI_SOURCE[
             GUI_SOURCE.index("void MainWindow::setupRosInterfaces()") :
             GUI_SOURCE.index("void MainWindow::setupEmbeddedRviz()")

@@ -23,11 +23,29 @@
   <arg name="runtime_token" default=""/>
   <arg name="device" default="auto"/>
   <arg name="image_size" default="640"/>
-  <arg name="confidence" default="0.25"/>
+  <!-- Expose the complete operator-requested 0.20-0.60 CLIP validation band. -->
+  <arg name="confidence" default="0.20"/>
   <arg name="iou" default="0.45"/>
   <arg name="max_detections" default="100"/>
   <arg name="required_class_names"
        default="metal,plastic,paper,glass,kitchen_waste"/>
+
+  <arg name="enable_clip_filter" default="true"/>
+  <arg name="clip_python_root"
+       default="$(find autolabor_fod_vision)/../../../runtime/fod_clip/python"/>
+  <arg name="clip_weights"
+       default="$(find autolabor_fod_vision)/models/clip/ViT-B-32.pt"/>
+  <arg name="clip_expected_model_sha256"
+       default="40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af"/>
+  <arg name="clip_model_name" default="ViT-B/32"/>
+  <arg name="clip_source_commit"
+       default="d05afc436d78f1c48dc0dbf8e5980a9d471f35f6"/>
+  <arg name="clip_device" default="auto"/>
+  <arg name="clip_warmup" default="true"/>
+  <arg name="clip_low_confidence" default="0.20"/>
+  <arg name="clip_high_confidence" default="0.60"/>
+  <arg name="clip_positive_probability" default="0.50"/>
+  <arg name="clip_crop_padding_fraction" default="0.10"/>
 
   <!-- Keep metric projection off until the physical ZED mount TF is measured. -->
   <arg name="enable_projection" default="false"/>
@@ -81,6 +99,21 @@
     <arg name="required_class_names" value="$(arg required_class_names)"/>
     <arg name="enable_depth_fusion" value="true"/>
     <arg name="depth_topic" value="/fod_camera/depth_registered"/>
+    <arg name="enable_clip_filter" value="$(arg enable_clip_filter)"/>
+    <arg name="clip_python_root" value="$(arg clip_python_root)"/>
+    <arg name="clip_weights" value="$(arg clip_weights)"/>
+    <arg name="clip_expected_model_sha256"
+         value="$(arg clip_expected_model_sha256)"/>
+    <arg name="clip_model_name" value="$(arg clip_model_name)"/>
+    <arg name="clip_source_commit" value="$(arg clip_source_commit)"/>
+    <arg name="clip_device" value="$(arg clip_device)"/>
+    <arg name="clip_warmup" value="$(arg clip_warmup)"/>
+    <arg name="clip_low_confidence" value="$(arg clip_low_confidence)"/>
+    <arg name="clip_high_confidence" value="$(arg clip_high_confidence)"/>
+    <arg name="clip_positive_probability"
+         value="$(arg clip_positive_probability)"/>
+    <arg name="clip_crop_padding_fraction"
+         value="$(arg clip_crop_padding_fraction)"/>
     <arg name="enable_projection" value="$(arg enable_projection)"/>
     <arg name="base_frame" value="$(arg base_frame)"/>
     <arg name="tracking_frame" value="$(arg tracking_frame)"/>

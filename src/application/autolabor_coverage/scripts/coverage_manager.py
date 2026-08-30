@@ -290,10 +290,10 @@ class CoverageManager:
             "/navigation_pause/set_coverage_owner",
         ))
         self.entry_position_tolerance = float(rospy.get_param(
-            "~entry_position_tolerance_m", 0.20
+            "~entry_position_tolerance_m", 0.30
         ))
         self.entry_yaw_tolerance = float(rospy.get_param(
-            "~entry_yaw_tolerance_rad", 0.20
+            "~entry_yaw_tolerance_rad", 0.40
         ))
         if (
             not self.enforced_path_service_name
@@ -3495,6 +3495,19 @@ class CoverageManager:
                     if key in configuration:
                         self.original_teb[key] = configuration[key]
             target = copy.deepcopy(self.original_teb)
+            # A point-to-point transit only has to deliver the Ackermann
+            # chassis to a maneuverable swath entry.  Requiring the same
+            # tight terminal yaw as an exact sweep makes TEB chase an
+            # orientation-only correction after the position is already met,
+            # which this chassis cannot realize by spinning in place.  Keep
+            # exact sweep completion strict, but make transit completion match
+            # the manager's explicit entry acceptance gate.
+            goal_position_tolerance = (
+                0.20 if straight_tracking else self.entry_position_tolerance
+            )
+            goal_yaw_tolerance = (
+                0.20 if straight_tracking else self.entry_yaw_tolerance
+            )
             target.update({
                 "max_vel_x": self.task_max_speed,
                 "max_vel_x_backwards": backwards,
@@ -3506,8 +3519,8 @@ class CoverageManager:
                     self, "task_angular_accel", 0.50
                 ),
                 "allow_init_with_backwards_motion": backwards > 0.0,
-                "xy_goal_tolerance": 0.20,
-                "yaw_goal_tolerance": 0.20,
+                "xy_goal_tolerance": goal_position_tolerance,
+                "yaw_goal_tolerance": goal_yaw_tolerance,
             })
             if straight_tracking:
                 # Exact coverage sweeps need a different optimization objective
@@ -4028,8 +4041,13 @@ class CoverageManager:
                 if position_error <= self.entry_position_tolerance:
                     if yaw_error <= self.entry_yaw_tolerance:
                         rospy.loginfo(
-                            "coverage transit %d already satisfies entry pose",
+                            "coverage transit %d already satisfies entry pose: "
+                            "position %.3f <= %.3f m, yaw %.1f <= %.1f deg",
                             segment_index + 1,
+                            position_error,
+                            self.entry_position_tolerance,
+                            math.degrees(yaw_error),
+                            math.degrees(self.entry_yaw_tolerance),
                         )
                         return "succeeded"
                     # TEB cannot spin an Ackermann chassis at a fixed point.
@@ -4037,9 +4055,11 @@ class CoverageManager:
                     # orientation-only goal that appears to do nothing.
                     rospy.logwarn(
                         "coverage transit %d is at the entry position but yaw "
-                        "error %.1f deg exceeds the Ackermann tolerance",
+                        "error %.1f deg exceeds the %.1f deg Ackermann "
+                        "entry tolerance",
                         segment_index + 1,
                         math.degrees(yaw_error),
+                        math.degrees(self.entry_yaw_tolerance),
                     )
                     return "blocked"
         if segment["type"] == "sweep":

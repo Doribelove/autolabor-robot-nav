@@ -55,6 +55,7 @@ chroot "$ROOTFS" /bin/bash -lc '
     /opt/autolabor/dual_host/current/lib/fast_lio/fastlio_mapping
   shared_libraries=(
     /opt/autolabor/dual_host/current/lib/libcoverage_global_planner.so
+    /opt/autolabor/dual_host/current/lib/libgps_geofence_layer.so
   )
   for library in "${shared_libraries[@]}"; do
     test -r "$library"
@@ -64,6 +65,8 @@ chroot "$ROOTFS" /bin/bash -lc '
       exit 1
     fi
   done
+  grep -aFq UnknownSpaceGuardLayer \
+    /opt/autolabor/dual_host/current/lib/libgps_geofence_layer.so
   roslaunch --files autolabor_dual_host j6m_fastlio_navigation.launch >/dev/null
   roslaunch --files autolabor_fod_control visual_recovery.launch >/dev/null
   rosmsg md5 livox_ros_driver2/CustomMsg

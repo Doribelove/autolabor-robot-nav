@@ -4,6 +4,7 @@
   <arg name="localization_source" default="gps"/>
   <arg name="start_rviz" default="false"/>
   <arg name="planner_frequency" default="1.0"/>
+  <arg name="static_teb_lookahead_dist" default="8.0"/>
   <arg name="goal_slowdown_enabled" default="$(eval arg('localization_source') == 'gps')"/>
   <arg name="goal_speed_cap_enabled" default="false"/>
   <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
@@ -114,7 +115,13 @@
          footprint repeatedly straddling the moving costmap boundary. -->
     <param if="$(arg use_static_map)"
            name="TebLocalPlannerROS/max_global_plan_lookahead_dist"
-           type="double" value="8.0"/>
+           type="double" value="$(arg static_teb_lookahead_dist)"/>
+    <!-- Extract the command across two optimized trajectory intervals rather
+         than reacting to a single 10 Hz step.  This damps alternating small
+         yaw corrections without adding a dead zone or weakening obstacles. -->
+    <param if="$(arg use_static_map)"
+           name="TebLocalPlannerROS/control_look_ahead_poses"
+           type="int" value="2"/>
     <param if="$(arg use_static_map)"
            name="TebLocalPlannerROS/treat_unknown_as_obstacle"
            type="bool" value="true"/>

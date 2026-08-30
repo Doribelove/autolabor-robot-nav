@@ -215,16 +215,30 @@ NVIDIA Qt 的综合页和清扫页共用唯一 librviz 画布。实际加载的
 侧栏从同一数据维护最近 `10 s` 窗口，显示样本数、累计里程和年龄，并在全局定位有效时
 额外显示 `map -> base_link` 数值位姿。清扫规划控件的每次修改都立即写入 NVIDIA 当前用户
 的 Qt `QSettings`（组 `coverage/planning_parameters`），下次启动作为默认值；计划进入
-`READY` 后整组控件锁定，取消并重规划后才可修改。该偏好是操作台全局用户配置，不属于
-按 map-set 隔离的已知区域 JSON，也不会静默改写 J6M 的 `coverage.yaml`。
+`READY` 后整组控件锁定，取消并重规划后才可修改。NVIDIA 上的 AI 覆盖入口在省略某个
+规划字段时，也会在每次任务提交前读取这份 QSettings；显式字段仅覆盖自身，因此 Qt 与
+AI 不再维护两套漂移的默认参数。该偏好是操作台全局用户配置，不属于按 map-set 隔离的
+已知区域 JSON，也不会静默改写 J6M 的 `coverage.yaml`。
 
 静态模式的 rolling local costmap 由 StaticLayer（`/map`）、ObstacleLayer（融合
-`/scan`）和 InflationLayer 叠加，避免 TEB 只看实时雷达而穿过二维已知墙体。静态模式
-还单独启用 `treat_unknown_as_obstacle=true` 和 Navfn `allow_unknown=false`；无图模式的
-TEB 默认值仍为 false。该开关只拒绝 CostmapModel 的 `-2` 未知区；`-3` 未来足迹超出
-滚动局部窗口不是碰撞，但当前姿态超窗仍拒绝。静态 TEB 视野为 `8.0 m`，在 `20 m`
-局部窗口内保留边界裕量。Qt 中蓝色为 TEB 接收的全局参考路线，红色为当前局部优化轨迹；
-两者只在 move_base 目标活动期间启用，终态会清掉 RViz 缓存。
+`/scan`）、InflationLayer 和最终 UnknownSpaceGuardLayer 叠加，避免 TEB 只看实时雷达而
+穿过二维已知墙体。ObstacleLayer 的 LaserScan ray clearing 只能清除该动态层自己标记的
+障碍，不能降低 StaticLayer 已从 `/map` 写入的占用代价；因此建图时写进静态地图的临时
+障碍不会因现场射线变空而自动消失。这不是消息更新滞后，正确处理方式是修订对应 map-set
+的静态地图；若让实时射线无条件覆盖静态层，也会把真实墙体清成可通行，当前安全架构明确
+禁止这种做法。最终保护层还以原始 `/map` 为不可变掩码，把 `-1` 格和地图外格恢复为
+`NO_INFORMATION=255`，所以不能通过 ray clearing 开辟静态未知区。静态模式还单独启用
+`treat_unknown_as_obstacle=true` 和 Navfn
+`allow_unknown=false`；无图模式的 TEB 默认值仍为 false。该开关拒绝 CostmapModel 的
+`-2` 未知区；`-3` 未来足迹超出滚动局部窗口不是碰撞，但当前位置超窗仍拒绝。静态
+local costmap 为 `20.0 × 20.0 m`、`0.10 m` 分辨率；障碍标记/射线清除距离恢复为
+`10.0/11.0 m`。静态 TEB 前视为 `8.0 m`，低于覆盖安全门要求的
+`0.85 × 10.0 = 8.5 m` 上限。move_base 的 `1 Hz` 全局重规划和 TEB 的 `10 Hz` 局部优化
+保持不变，前视距离只影响每次局部优化纳入的全局路径长度，不控制重规划频率。静态模式的
+`control_look_ahead_poses=2` 让控制指令跨两个已优化轨迹间隔取平均，降低单个控制周期追逐
+微小航向误差造成的左右反向修正，但不增加航向死区，也不削弱障碍代价。Qt 中蓝色为 TEB
+接收的全局参考路线，红色为当前局部优化轨迹；两者只在 move_base 目标活动期间启用，终态
+会清掉 RViz 缓存。
 
 覆盖任务比普通导航多一层障碍链 fail-closed：`/scan` 必须具有新鲜时间戳、正确
 `base_link` 帧和有效几何，同时 `/avoidance/dual_lidar_active` 必须新鲜且为 true。

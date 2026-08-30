@@ -411,6 +411,7 @@ private:
   void setupEmbeddedRviz();
   void setupCoverageRviz();
   void attachRvizToTab(int tab_index);
+  void positionRvizOverlay(int tab_index);
   bool ensureStaticMapDisplayReady(const TelemetrySnapshot& data);
   void publishMapDisplayStatus(const std::string& status);
   bool fitRvizMapView(rviz::VisualizationFrame* frame,

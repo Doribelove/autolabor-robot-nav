@@ -87,15 +87,15 @@ class MockBackend:
         self.visual = {"state": "RELATIVE_NAV_ACTIVE", "ai_owned": False}
         return self._result(self.visual)
 
-    def start_coverage_cleaning(self, regions, operation_width_m=1.0,
-                                overlap_percent=15.0, max_speed_mps=0.8,
-                                allow_reverse_transit=True,
-                                reverse_speed_mps=0.3,
-                                max_angular_speed_rps=0.6,
-                                linear_accel_mps2=2.0,
-                                angular_accel_rps2=0.5,
-                                direction_change_penalty_sec=1.0,
-                                segment_handoff_penalty_sec=0.5):
+    def start_coverage_cleaning(self, regions, operation_width_m=None,
+                                overlap_percent=None, max_speed_mps=None,
+                                allow_reverse_transit=None,
+                                reverse_speed_mps=None,
+                                max_angular_speed_rps=None,
+                                linear_accel_mps2=None,
+                                angular_accel_rps2=None,
+                                direction_change_penalty_sec=None,
+                                segment_handoff_penalty_sec=None):
         failed = self._record("start_coverage_cleaning", locals())
         if failed:
             return failed

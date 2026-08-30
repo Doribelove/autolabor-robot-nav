@@ -53,11 +53,13 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPlainTextEdit>
+#include <QPoint>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QKeySequence>
 #include <QPushButton>
+#include <QRect>
 #include <QScrollArea>
 #include <QSettings>
 #include <QShortcut>
@@ -1125,12 +1127,17 @@ void MainWindow::buildUi()
   ai_tab_index_ = tabs_->addTab(buildAiControlPage(), QStringLiteral("AI语音控制"));
   tabs_->addTab(buildLogPage(), QStringLiteral("日志"));
   connect(tabs_, &QTabWidget::currentChanged, this, [this](int index) {
-    if (!master_online_ || !ros_interfaces_ready_ || !enable_rviz_)
-      return;
     // Qt/Ogre cannot reliably create a native render window below a hidden
     // QTabWidget page on Jetson/X11.  Defer construction until the selected
     // page has completed its visibility/layout event.
     if (index != overview_tab_index_ && index != coverage_tab_index_)
+    {
+      if (rviz_frame_)
+        rviz_frame_->hide();
+      rviz_attached_tab_index_ = -1;
+      return;
+    }
+    if (!master_online_ || !ros_interfaces_ready_ || !enable_rviz_)
       return;
     QTimer::singleShot(0, this, [this, index]() {
       if (!tabs_ || tabs_->currentIndex() != index || !master_online_ ||
@@ -1896,7 +1903,7 @@ QWidget* MainWindow::buildCoveragePage()
   coverage_rviz_placeholder_->setStyleSheet(
       QStringLiteral("background:#0b1119;border:1px solid #2b3a4e;border-radius:8px;"
                      "color:#718096;font-size:14pt;"));
-  coverage_rviz_layout_->addWidget(coverage_rviz_placeholder_);
+  coverage_rviz_layout_->addWidget(coverage_rviz_placeholder_, 1);
   coverage_rviz_host_->setMinimumWidth(650);
   splitter->addWidget(coverage_rviz_host_);
 
@@ -2000,7 +2007,8 @@ QWidget* MainWindow::buildCoveragePage()
   coverage_speed_input_->setValue(0.80);
   coverage_speed_input_->setEnabled(false);
   coverage_speed_input_->setToolTip(
-      QStringLiteral("默认 0.80 m/s；覆盖任务限 1.60 m/s，并在开始前实时核对 VCU 上限"));
+      QStringLiteral("出厂回退 0.80 m/s；修改后立即保存为下次默认值。覆盖任务限 "
+                     "1.60 m/s，并在开始前实时核对 VCU 上限"));
   speed_layout->addWidget(coverage_speed_input_, 1);
   parameters_layout->addWidget(speed_row);
   coverage_reverse_checkbox_ = new QCheckBox(
@@ -2062,7 +2070,9 @@ QWidget* MainWindow::buildCoveragePage()
       QStringLiteral("估算 move_base 分段停车、验收和下一段启动的固定耗时"),
       &coverage_handoff_penalty_input_);
   auto* persistence_note = new QLabel(
-      QStringLiteral("以上参数修改后会立即保存，并在下次启动 Qt 时作为默认值。"),
+      QStringLiteral("以上参数修改后立即保存，下一次生成/启动清扫任务直接"
+                     "使用，下次启动 Qt 仍作为默认值。已生成的轨迹参数已"
+                     "锁定，需取消后重新规划。"),
       parameters);
   persistence_note->setWordWrap(true);
   persistence_note->setStyleSheet(
@@ -2527,8 +2537,6 @@ void MainWindow::handleMasterProbeFinished()
     {
       if (rviz_panels_button_)
         rviz_panels_button_->setEnabled(false);
-      rviz_layout_->removeWidget(rviz_frame_);
-      coverage_rviz_layout_->removeWidget(rviz_frame_);
       delete rviz_frame_;
       rviz_frame_ = nullptr;
       rviz_initialized_ = false;
@@ -2549,26 +2557,12 @@ void MainWindow::handleMasterProbeFinished()
       if (rviz_map_instruction_)
         rviz_map_instruction_->setText(
             QStringLiteral("全局地图加载后：先显示全图，再按车辆真实位置设置初始位姿"));
-      const QString placeholder_style =
-          QStringLiteral("background:#0b1119;border:1px solid #2b3a4e;border-radius:8px;"
-                         "color:#718096;font-size:14pt;");
-      if (!rviz_placeholder_)
-      {
-        rviz_placeholder_ = new QLabel(
-            QStringLiteral("ROS master 已恢复，正在重新加载 RViz……"), rviz_host_);
-        rviz_placeholder_->setAlignment(Qt::AlignCenter);
-        rviz_placeholder_->setStyleSheet(placeholder_style);
-        rviz_layout_->addWidget(rviz_placeholder_, 1);
-      }
-      if (!coverage_rviz_placeholder_)
-      {
-        coverage_rviz_placeholder_ = new QLabel(
-            QStringLiteral("ROS master 已恢复，正在重新加载清扫地图……"),
-            coverage_rviz_host_);
-        coverage_rviz_placeholder_->setAlignment(Qt::AlignCenter);
-        coverage_rviz_placeholder_->setStyleSheet(placeholder_style);
-        coverage_rviz_layout_->addWidget(coverage_rviz_placeholder_, 1);
-      }
+      if (rviz_placeholder_)
+        rviz_placeholder_->setText(
+            QStringLiteral("ROS master 已恢复，正在重新加载 RViz……"));
+      if (coverage_rviz_placeholder_)
+        coverage_rviz_placeholder_->setText(
+            QStringLiteral("ROS master 已恢复，正在重新加载清扫地图……"));
     }
     appendEvent(QStringLiteral("ROS master 已连接，正在注册界面订阅与发布接口。"));
     setupRosInterfaces();
@@ -2688,7 +2682,7 @@ void MainWindow::setupRosInterfaces()
 
 void MainWindow::setupEmbeddedRviz()
 {
-  if (!rviz_layout_ || !coverage_rviz_layout_)
+  if (!tabs_ || !rviz_layout_ || !coverage_rviz_layout_)
     return;
   const int active_tab = tabs_ ? tabs_->currentIndex() : overview_tab_index_;
   if (active_tab != overview_tab_index_ && active_tab != coverage_tab_index_)
@@ -2707,19 +2701,16 @@ void MainWindow::setupEmbeddedRviz()
       placeholder->setText(QStringLiteral("已通过 enable_rviz:=false 禁用嵌入式 RViz"));
     return;
   }
-  QWidget* target_host = active_tab == coverage_tab_index_
-                             ? coverage_rviz_host_
-                             : rviz_host_;
-  QVBoxLayout* target_layout = active_tab == coverage_tab_index_
-                                   ? coverage_rviz_layout_
-                                   : rviz_layout_;
   try
   {
     // Keep exactly one VisualizationFrame/VisualizationManager in this
-    // process.  Multiple managers share Ogre::Root and the hidden coverage
-    // frame used to make both native render surfaces intermittently black.
-    rviz_frame_ = new rviz::VisualizationFrame(target_host);
+    // process.  Its native Ogre render surface also keeps one stable Qt
+    // parent for its whole lifetime.  Reparenting that native surface between
+    // tab pages invalidates Ogre render-queue objects and caused the observed
+    // PassGroupRenderableMap assertion/pure-virtual aborts.
+    rviz_frame_ = new rviz::VisualizationFrame(tabs_);
     rviz_frame_->setWindowFlags(Qt::Widget);
+    positionRvizOverlay(active_tab);
     rviz_frame_->setSplashPath(QString());
     rviz_frame_->setShowChooseNewMaster(false);
     rviz_frame_->initialize(QString::fromStdString(rviz_config_path_));
@@ -2762,29 +2753,15 @@ void MainWindow::setupEmbeddedRviz()
       rviz_frame_->menuBar()->hide();
     if (rviz_frame_->statusBar())
       rviz_frame_->statusBar()->hide();
-    if (active_tab == overview_tab_index_ && rviz_placeholder_)
-    {
-      rviz_layout_->removeWidget(rviz_placeholder_);
-      rviz_placeholder_->deleteLater();
-      rviz_placeholder_ = nullptr;
-    }
-    if (active_tab == coverage_tab_index_ && coverage_rviz_placeholder_)
-    {
-      coverage_rviz_layout_->removeWidget(coverage_rviz_placeholder_);
-      coverage_rviz_placeholder_->deleteLater();
-      coverage_rviz_placeholder_ = nullptr;
-    }
-    target_layout->addWidget(rviz_frame_, 1);
-    rviz_frame_->show();
-    target_layout->activate();
+    rviz_initialized_ = true;
+    rviz_attached_tab_index_ = active_tab;
+    positionRvizOverlay(active_tab);
     if (rviz_frame_->getManager() && rviz_frame_->getManager()->getRenderPanel())
     {
       rviz_frame_->getManager()->getRenderPanel()->show();
       rviz_frame_->getManager()->getRenderPanel()->update();
       rviz_frame_->getManager()->queueRender();
     }
-    rviz_initialized_ = true;
-    rviz_attached_tab_index_ = active_tab;
     overview_fitted_map_count_ = 0;
     coverage_fitted_map_count_ = 0;
     rviz_map_refresh_message_count_ = 0;
@@ -2825,41 +2802,53 @@ void MainWindow::setupEmbeddedRviz()
   }
 }
 
+void MainWindow::positionRvizOverlay(int tab_index)
+{
+  if (!tabs_ || !rviz_frame_ ||
+      (tab_index != overview_tab_index_ && tab_index != coverage_tab_index_) ||
+      tabs_->currentIndex() != tab_index)
+  {
+    if (rviz_frame_ && rviz_initialized_)
+      rviz_frame_->hide();
+    return;
+  }
+
+  QLabel* anchor = tab_index == coverage_tab_index_
+                       ? coverage_rviz_placeholder_
+                       : rviz_placeholder_;
+  if (!anchor || !anchor->isVisible() || anchor->width() < 2 ||
+      anchor->height() < 2)
+  {
+    if (rviz_initialized_)
+      rviz_frame_->hide();
+    return;
+  }
+
+  const QRect target_geometry(anchor->mapTo(tabs_, QPoint(0, 0)),
+                              anchor->size());
+  const bool geometry_changed = rviz_frame_->geometry() != target_geometry;
+  const bool was_hidden = !rviz_frame_->isVisible();
+  if (geometry_changed)
+    rviz_frame_->setGeometry(target_geometry);
+  if (!rviz_initialized_)
+    return;
+  if (was_hidden)
+    rviz_frame_->show();
+  if (geometry_changed || was_hidden)
+    rviz_frame_->raise();
+}
+
 void MainWindow::attachRvizToTab(int tab_index)
 {
   if (!rviz_initialized_ || !rviz_frame_ ||
-      (tab_index != overview_tab_index_ && tab_index != coverage_tab_index_) ||
-      rviz_attached_tab_index_ == tab_index)
+      (tab_index != overview_tab_index_ && tab_index != coverage_tab_index_))
     return;
 
-  QWidget* target_host = tab_index == coverage_tab_index_
-                             ? coverage_rviz_host_
-                             : rviz_host_;
-  QVBoxLayout* target_layout = tab_index == coverage_tab_index_
-                                   ? coverage_rviz_layout_
-                                   : rviz_layout_;
-  if (!target_host || !target_layout)
+  const bool tab_changed = rviz_attached_tab_index_ != tab_index;
+  positionRvizOverlay(tab_index);
+  rviz_frame_->raise();
+  if (!tab_changed)
     return;
-
-  rviz_frame_->hide();
-  rviz_layout_->removeWidget(rviz_frame_);
-  coverage_rviz_layout_->removeWidget(rviz_frame_);
-  if (tab_index == overview_tab_index_ && rviz_placeholder_)
-  {
-    rviz_layout_->removeWidget(rviz_placeholder_);
-    rviz_placeholder_->deleteLater();
-    rviz_placeholder_ = nullptr;
-  }
-  if (tab_index == coverage_tab_index_ && coverage_rviz_placeholder_)
-  {
-    coverage_rviz_layout_->removeWidget(coverage_rviz_placeholder_);
-    coverage_rviz_placeholder_->deleteLater();
-    coverage_rviz_placeholder_ = nullptr;
-  }
-  rviz_frame_->setParent(target_host, Qt::Widget);
-  target_layout->addWidget(rviz_frame_, 1);
-  rviz_frame_->show();
-  target_layout->activate();
   rviz_attached_tab_index_ = tab_index;
   overview_fitted_map_count_ = 0;
   coverage_fitted_map_count_ = 0;
@@ -4217,6 +4206,8 @@ MainWindow::FastLioHealthResult MainWindow::evaluateFastLioHealth(
 
 void MainWindow::refreshUi()
 {
+  if (rviz_initialized_ && tabs_)
+    positionRvizOverlay(tabs_->currentIndex());
   const TelemetrySnapshot data = snapshot();
   refreshAiUi(data);
   const FastLioHealthResult fastlio = evaluateFastLioHealth(data);

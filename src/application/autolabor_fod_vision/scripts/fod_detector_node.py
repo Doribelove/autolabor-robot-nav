@@ -15,6 +15,11 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from geometry_msgs.msg import Point32
 from sensor_msgs.msg import Image, RegionOfInterest
 
+from autolabor_fod_vision.clip_filter import (
+    ClipDetectionFilter,
+    ClipFilterStats,
+    OfficialClipRuntime,
+)
 from autolabor_fod_vision.detector import UltralyticsDetector, annotate_image
 from autolabor_fod_vision.depth_fusion import estimate_detection_depth
 
@@ -29,6 +34,14 @@ def _csv_strings(value):
     if isinstance(value, list):
         return [str(item).strip() for item in value if str(item).strip()]
     return [item.strip() for item in str(value).split(",") if item.strip()]
+
+
+def _prompt_strings(value, name):
+    values = value if isinstance(value, list) else [value]
+    prompts = [str(item).strip() for item in values if str(item).strip()]
+    if not prompts:
+        raise ValueError("{} must contain at least one prompt".format(name))
+    return prompts
 
 
 class DetectorNode:
@@ -112,6 +125,53 @@ class DetectorNode:
                 ", ".join(missing),
             )
 
+        self.enable_clip_filter = bool(
+            rospy.get_param("~enable_clip_filter", False)
+        )
+        self.clip_filter = None
+        self.clip_runtime = None
+        if self.enable_clip_filter:
+            positive_prompts = _prompt_strings(
+                rospy.get_param("~clip_positive_prompts"),
+                "clip_positive_prompts",
+            )
+            negative_prompts = _prompt_strings(
+                rospy.get_param("~clip_negative_prompts"),
+                "clip_negative_prompts",
+            )
+            self.clip_runtime = OfficialClipRuntime(
+                weights=str(rospy.get_param("~clip_weights")),
+                expected_sha256=str(
+                    rospy.get_param("~clip_expected_model_sha256")
+                ),
+                clip_python_root=str(rospy.get_param("~clip_python_root")),
+                positive_prompts=positive_prompts,
+                negative_prompts=negative_prompts,
+                model_name=str(
+                    rospy.get_param("~clip_model_name", "ViT-B/32")
+                ),
+                source_commit=str(
+                    rospy.get_param("~clip_source_commit", "")
+                ),
+                device=str(rospy.get_param("~clip_device", "auto")),
+                warmup=bool(rospy.get_param("~clip_warmup", True)),
+            )
+            self.clip_filter = ClipDetectionFilter(
+                self.clip_runtime,
+                low_confidence=float(
+                    rospy.get_param("~clip_low_confidence", 0.20)
+                ),
+                high_confidence=float(
+                    rospy.get_param("~clip_high_confidence", 0.60)
+                ),
+                positive_probability=float(
+                    rospy.get_param("~clip_positive_probability", 0.50)
+                ),
+                crop_padding_fraction=float(
+                    rospy.get_param("~clip_crop_padding_fraction", 0.10)
+                ),
+            )
+
         self.detection_pub = rospy.Publisher(
             "/fod/detections", FodDetectionArray, queue_size=1
         )
@@ -130,6 +190,7 @@ class DetectorNode:
         self.processed_frames = 0
         self.dropped_frames = 0
         self.last_inference_ms = 0.0
+        self.last_clip_stats = ClipFilterStats()
         self.last_error = ""
         self.received_depth_frames = 0
         self.synchronized_depth_frames = 0
@@ -162,6 +223,14 @@ class DetectorNode:
             "~ultralytics_version", self.detector.ultralytics_version
         )
         rospy.set_param("~gam_layer_count", self.detector.gam_layer_count)
+        rospy.set_param("~clip_filter_active", self.enable_clip_filter)
+        if self.clip_runtime is not None:
+            rospy.set_param(
+                "~clip_import_path", self.clip_runtime.clip_import_path
+            )
+            rospy.set_param(
+                "~clip_model_sha256", self.clip_runtime.weights_sha256
+            )
         rospy.set_param("~ready_token", self.runtime_token)
         rospy.loginfo(
             "FOD detector ready: model=%s task=%s device=%s classes=%s sha256=%s "
@@ -178,6 +247,22 @@ class DetectorNode:
             self.enable_depth_fusion,
             self.depth_topic,
         )
+        if self.clip_runtime is not None:
+            rospy.loginfo(
+                "CLIP post-filter ready: model=%s device=%s weights_sha256=%s "
+                "source_commit=%s import_path=%s gates=<%.2f/%.2f> "
+                "positive_probability=%.2f prompts=%d+%d",
+                self.clip_runtime.model_name,
+                self.clip_runtime.device,
+                self.clip_runtime.weights_sha256,
+                self.clip_runtime.source_commit or "unknown",
+                self.clip_runtime.clip_import_path,
+                self.clip_filter.low_confidence,
+                self.clip_filter.high_confidence,
+                self.clip_filter.positive_probability,
+                len(self.clip_runtime.positive_prompts),
+                len(self.clip_runtime.negative_prompts),
+            )
 
     def _image_callback(self, message):
         with self._condition:
@@ -281,6 +366,28 @@ class DetectorNode:
             KeyValue("processed_frames", str(self.processed_frames)),
             KeyValue("dropped_frames", str(self.dropped_frames)),
             KeyValue("last_inference_ms", "{:.2f}".format(self.last_inference_ms)),
+            KeyValue("clip_filter_enabled", str(self.enable_clip_filter)),
+            KeyValue(
+                "clip_candidates", str(self.last_clip_stats.clip_candidates)
+            ),
+            KeyValue(
+                "clip_high_confidence_kept",
+                str(self.last_clip_stats.high_confidence_kept),
+            ),
+            KeyValue("clip_kept", str(self.last_clip_stats.clip_kept)),
+            KeyValue("clip_dropped", str(self.last_clip_stats.clip_dropped)),
+            KeyValue(
+                "clip_low_confidence_dropped",
+                str(self.last_clip_stats.low_confidence_dropped),
+            ),
+            KeyValue(
+                "clip_invalid_crop_dropped",
+                str(self.last_clip_stats.invalid_crop_dropped),
+            ),
+            KeyValue(
+                "last_clip_inference_ms",
+                "{:.2f}".format(self.last_clip_stats.clip_inference_ms),
+            ),
             KeyValue("depth_fusion_enabled", str(self.enable_depth_fusion)),
             KeyValue("depth_topic", self.depth_topic),
             KeyValue("received_depth_frames", str(self.received_depth_frames)),
@@ -299,6 +406,25 @@ class DetectorNode:
                 str(self.last_depth_valid_detections),
             ),
         ]
+        if self.clip_runtime is not None:
+            status.values.extend(
+                [
+                    KeyValue("clip_model", self.clip_runtime.model_name),
+                    KeyValue("clip_device", self.clip_runtime.device),
+                    KeyValue(
+                        "clip_weights_sha256",
+                        self.clip_runtime.weights_sha256,
+                    ),
+                    KeyValue(
+                        "clip_source_commit",
+                        self.clip_runtime.source_commit or "unknown",
+                    ),
+                    KeyValue(
+                        "clip_import_path",
+                        self.clip_runtime.clip_import_path,
+                    ),
+                ]
+            )
         array = DiagnosticArray()
         array.header.stamp = rospy.Time.now()
         array.status = [status]
@@ -308,6 +434,16 @@ class DetectorNode:
         image = self.bridge.imgmsg_to_cv2(image_message, desired_encoding="bgr8")
         result = self.detector.predict(image)
         self.last_inference_ms = result.inference_ms
+        detections = result.detections
+        if self.clip_filter is not None:
+            clip_result = self.clip_filter.filter(image, detections)
+            detections = clip_result.detections
+            self.last_clip_stats = clip_result.stats
+        else:
+            self.last_clip_stats = ClipFilterStats(
+                input_count=len(detections),
+                output_count=len(detections),
+            )
         depth_message, depth_delta = self._matching_depth_message(image_message)
         depth_image = None
         depth_error = ""
@@ -330,7 +466,7 @@ class DetectorNode:
                 depth_error = str(error)
 
         valid_depth_detections = 0
-        for item in result.detections:
+        for item in detections:
             if depth_image is None:
                 continue
             estimate = estimate_detection_depth(
@@ -376,7 +512,7 @@ class DetectorNode:
             output.depth_header = depth_message.header
         output.detections = [
             self._to_ros_detection(item, image.shape[1], image.shape[0])
-            for item in result.detections
+            for item in detections
         ]
         self.detection_pub.publish(output)
 
@@ -391,8 +527,10 @@ class DetectorNode:
                 banner += " | DEPTH {}".format(
                     "SYNC" if depth_synchronized else "MISSING"
                 )
+            if self.enable_clip_filter:
+                banner += " | CLIP"
             debug = annotate_image(
-                image, result.detections, result.inference_ms, banner
+                image, detections, result.inference_ms, banner
             )
             debug_message = self.bridge.cv2_to_imgmsg(debug, encoding="bgr8")
             debug_message.header = image_message.header
@@ -406,6 +544,8 @@ class DetectorNode:
                 diagnostic_text += ": " + depth_error
         elif not self.enable_depth_fusion:
             diagnostic_text = "inference active; depth fusion disabled"
+        if self.enable_clip_filter:
+            diagnostic_text = "YOLO and CLIP filtering active; " + diagnostic_text
         self._publish_diagnostic(diagnostic_level, diagnostic_text)
 
     def _worker_loop(self):

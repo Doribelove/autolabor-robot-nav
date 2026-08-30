@@ -26,6 +26,23 @@
   <arg name="enable_depth_fusion" default="false"/>
   <arg name="depth_topic" default="/fod_camera/depth_registered"/>
 
+  <arg name="enable_clip_filter" default="false"/>
+  <arg name="clip_python_root"
+       default="$(find autolabor_fod_vision)/../../../runtime/fod_clip/python"/>
+  <arg name="clip_weights"
+       default="$(find autolabor_fod_vision)/models/clip/ViT-B-32.pt"/>
+  <arg name="clip_expected_model_sha256"
+       default="40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af"/>
+  <arg name="clip_model_name" default="ViT-B/32"/>
+  <arg name="clip_source_commit"
+       default="d05afc436d78f1c48dc0dbf8e5980a9d471f35f6"/>
+  <arg name="clip_device" default="auto"/>
+  <arg name="clip_warmup" default="true"/>
+  <arg name="clip_low_confidence" default="0.20"/>
+  <arg name="clip_high_confidence" default="0.60"/>
+  <arg name="clip_positive_probability" default="0.50"/>
+  <arg name="clip_crop_padding_fraction" default="0.10"/>
+
   <arg name="enable_projection" default="false"/>
   <arg name="base_frame" default="base_link"/>
   <arg name="tracking_frame" default="camera_init"/>
@@ -56,8 +73,9 @@
     <env name="AUTOLABOR_FOD_ULTRALYTICS_ROOT"
          value="$(arg ultralytics_root)"/>
     <env name="PYTHONPATH"
-         value="$(arg ultralytics_root):$(optenv PYTHONPATH)"/>
+         value="$(arg clip_python_root):$(arg ultralytics_root):$(optenv PYTHONPATH)"/>
     <rosparam command="load" file="$(find autolabor_fod_vision)/config/detector_smoke.yaml"/>
+    <rosparam command="load" file="$(find autolabor_fod_vision)/config/clip_filter.yaml"/>
     <param name="weights" value="$(arg weights)"/>
     <param name="expected_model_sha256"
            value="$(arg expected_model_sha256)"/>
@@ -73,6 +91,21 @@
     <param name="required_class_names" value="$(arg required_class_names)"/>
     <param name="enable_depth_fusion" value="$(arg enable_depth_fusion)"/>
     <param name="depth_topic" value="$(arg depth_topic)"/>
+    <param name="enable_clip_filter" value="$(arg enable_clip_filter)"/>
+    <param name="clip_python_root" value="$(arg clip_python_root)"/>
+    <param name="clip_weights" value="$(arg clip_weights)"/>
+    <param name="clip_expected_model_sha256"
+           value="$(arg clip_expected_model_sha256)"/>
+    <param name="clip_model_name" value="$(arg clip_model_name)"/>
+    <param name="clip_source_commit" value="$(arg clip_source_commit)"/>
+    <param name="clip_device" value="$(arg clip_device)"/>
+    <param name="clip_warmup" value="$(arg clip_warmup)"/>
+    <param name="clip_low_confidence" value="$(arg clip_low_confidence)"/>
+    <param name="clip_high_confidence" value="$(arg clip_high_confidence)"/>
+    <param name="clip_positive_probability"
+           value="$(arg clip_positive_probability)"/>
+    <param name="clip_crop_padding_fraction"
+           value="$(arg clip_crop_padding_fraction)"/>
   </node>
 
   <group if="$(arg enable_projection)">

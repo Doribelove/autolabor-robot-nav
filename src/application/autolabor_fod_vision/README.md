@@ -18,14 +18,20 @@
 /home/slam/robot_j6m_ws/ultralytics_yolo11_custom/ultralytics
 ```
 
-生产权重从原文件逐字节复制到视觉 ROS 包，便于工作空间换路径部署：
+当前 YOLO 权重位于视觉 ROS 包内，便于工作空间换路径部署。旧生产权重仍保留，
+当前运行配置使用 `best6.pt`：
 
 ```text
-源文件：/home/slam/yolo11/all5/run_gam/best.pt
-项目内：src/application/autolabor_fod_vision/models/yolo11_gam_best.pt
-SHA256：c9fb0f7996b229999dd9adc72245c991a9ad61b8c3d395cd76ab41e6ec4c3691
+训练源文件：/home/slam/yolo11/all6/run_gam/weights/best.pt
+项目内：src/application/autolabor_fod_vision/models/best6.pt
+部署 SHA256：5efaafa1503db11c2ba261b4429389d96335b4eef4d0fc44d6ca41e7431f2d0f
 类别：metal, plastic, paper, glass, kitchen_waste
 ```
+
+训练 checkpoint 曾把 5 个 Albumentations 训练增强对象保存在 `model.args` 中，
+生产环境无法在不安装整套训练依赖时反序列化。部署副本只移除了这些不参与前向推理的
+对象；处理前后的 `state_dict` 参数摘要一致。旧的
+`models/yolo11_gam_best.pt` 没有删除或覆盖。
 
 生产启动会先校验 SHA256，再强制检查 Ultralytics 的真实 `__file__` 位于项目
 副本、`GAM_Attention` 可导入且模型中至少存在一层 GAM。导入路径、版本和 GAM
@@ -39,6 +45,7 @@ SHA256：c9fb0f7996b229999dd9adc72245c991a9ad61b8c3d395cd76ab41e6ec4c3691
 ```bash
 cd /home/slam/robot_j6m_ws
 ./scripts/setup_fod_yolo_env.sh
+./scripts/install_fod_clip.sh
 catkin_make --pkg autolabor_fod_msgs autolabor_fod_vision -j2
 source devel/setup.bash
 ```
@@ -70,6 +77,39 @@ ROS 的 `catkin_install_python` 使用系统解释器，因此 YOLO 节点在 la
 NVIDIA_FOD_WEIGHTS=src/application/autolabor_fod_vision/models/yolo11_gam_best.pt
 NVIDIA_FOD_ULTRALYTICS_ROOT=ultralytics_yolo11_custom
 ```
+
+## YOLO 后置 CLIP 误检过滤
+
+ZED 生产入口在 YOLO 完成推理后启用独立 CLIP 过滤器；
+`detector.py` 中的 YOLO 加载、预测、NMS 和结果转换逻辑不变。规则严格为：
+
+- YOLO 置信度 `> 0.60`：直接保留，不调用 CLIP；
+- YOLO 置信度 `< 0.20`：直接丢弃，不调用 CLIP；
+- `0.20 <= confidence <= 0.60`：裁剪检测框并在单次批量 CLIP 前向中校验。
+
+生产 ZED launch 将 YOLO 输出下限设为 `0.20`，使完整校验区间都能进入后处理。
+CLIP 正向概率默认至少为 `0.50` 才保留。所有文本特征只在节点启动时计算一次；
+模型固定为 `eval`、关闭参数梯度，并始终使用 `torch.inference_mode()`，不训练或更新
+任何权重。中间置信度框在同一帧内合并成一个 batch，以减少 GPU 调用次数。
+
+使用 OpenAI 官方公开的 `ViT-B/32` 权重和固定源码提交：
+
+```text
+源码安装：runtime/fod_clip/python/clip
+源码提交：d05afc436d78f1c48dc0dbf8e5980a9d471f35f6
+官方权重：src/application/autolabor_fod_vision/models/clip/ViT-B-32.pt
+权重 SHA256：40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af
+提示配置：src/application/autolabor_fod_vision/config/clip_filter.yaml
+后处理代码：src/application/autolabor_fod_vision/src/autolabor_fod_vision/clip_filter.py
+```
+
+安装器只把官方 CLIP Python 源码写入本工作空间的 Git 忽略运行目录，不修改
+`/home/slam/robot_ws` 的既有虚拟环境；权重和源码提交都经过固定哈希/提交校验。
+长中文描述按五类垃圾语义和负向物体组拆成短 prompt，避免超过官方 CLIP 的
+77-token 上限；每组先平均再形成正/负两个归一化文本原型。
+
+节点在 `/diagnostics` 报告 CLIP 模型、源码路径、权重哈希、候选数、保留/丢弃数和
+单次批量前向耗时。权重、官方源码或依赖缺失时生产节点拒绝启动，不会静默跳过过滤。
 
 相机回调只替换一个“最新帧”槽位，单独工作线程串行执行模型并用互斥锁保护
 Ultralytics predictor；来不及处理的旧帧会丢弃而不会排队拖慢 Qt。输出接口仍为
