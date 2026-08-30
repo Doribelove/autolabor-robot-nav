@@ -59,10 +59,16 @@ def test_initialize_and_tool_catalogue():
         by_name = {item["name"]: item for item in tools}
         coverage_properties = by_name[
             "start_coverage_cleaning"]["inputSchema"]["properties"]
-        assert coverage_properties["operation_width_m"]["default"] == 1.0
-        assert coverage_properties["overlap_percent"]["default"] == 15.0
-        assert coverage_properties["max_speed_mps"]["default"] == 0.8
-        assert coverage_properties["allow_reverse_transit"]["default"] is True
+        for property_name in (
+                "operation_width_m", "overlap_percent", "max_speed_mps",
+                "allow_reverse_transit", "reverse_speed_mps",
+                "max_angular_speed_rps", "linear_accel_mps2",
+                "angular_accel_rps2", "direction_change_penalty_sec",
+                "segment_handoff_penalty_sec"):
+            assert "default" not in coverage_properties[property_name]
+            assert "Qt" in coverage_properties[property_name]["description"]
+        assert "即时保存的整组规划参数" in by_name[
+            "start_coverage_cleaning"]["description"]
         assert "只显式取消当前 AI 会话" in by_name[
             "cancel_navigation"]["description"]
         for item in tools:

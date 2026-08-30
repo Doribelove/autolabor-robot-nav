@@ -20,7 +20,7 @@ find_package(roscpp REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES gps_geofence_layer
-  CATKIN_DEPENDS costmap_2d livox_ros_driver2 message_filters pluginlib roscpp sensor_msgs std_msgs
+  CATKIN_DEPENDS costmap_2d livox_ros_driver2 message_filters nav_msgs pluginlib roscpp sensor_msgs std_msgs
 )
 
 include_directories(
@@ -28,7 +28,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(gps_geofence_layer src/gps_geofence_layer.cpp)
+add_library(gps_geofence_layer
+  src/gps_geofence_layer.cpp
+  src/unknown_space_guard_layer.cpp
+)
 target_link_libraries(gps_geofence_layer ${catkin_LIBRARIES})
 
 add_executable(pointcloud_self_filter src/pointcloud_self_filter.cpp)
@@ -49,6 +52,10 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(test_gps_geofence_geometry test/test_gps_geofence_geometry.cpp)
   if(TARGET test_gps_geofence_geometry)
     target_link_libraries(test_gps_geofence_geometry gps_geofence_layer ${catkin_LIBRARIES})
+  endif()
+  catkin_add_gtest(test_unknown_space_guard test/test_unknown_space_guard.cpp)
+  if(TARGET test_unknown_space_guard)
+    target_link_libraries(test_unknown_space_guard gps_geofence_layer ${catkin_LIBRARIES})
   endif()
   catkin_add_gtest(test_moving_self_crop test/test_moving_self_crop.cpp)
   catkin_add_nosetests(test/test_gps_geofence_recorder.py)

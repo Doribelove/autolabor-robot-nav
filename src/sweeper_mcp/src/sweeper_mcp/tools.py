@@ -254,7 +254,8 @@ TOOL_SPECS = [
         "title": "启动已保存区域覆盖清扫",
         "description": (
             "按顺序清扫一个或多个 Qt 已保存区域。只能使用当前地图中的精确名称或 UUID，"
-            "不能由模型临时生成多边形。"
+            "不能由模型临时生成多边形。未显式提供的规划参数使用 Qt 清扫页当前即时"
+            "保存的整组规划参数。"
         ),
         "mutating": True,
         "inputSchema": {
@@ -266,42 +267,43 @@ TOOL_SPECS = [
                 },
                 "operation_width_m": {
                     "type": "number", "minimum": 0.30, "maximum": 3.00,
-                    "default": 1.0,
+                    "description": "省略时使用 Qt 当前清扫宽度。",
                 },
                 "overlap_percent": {
                     "type": "number", "minimum": 0.0, "maximum": 50.0,
-                    "default": 15.0,
+                    "description": "省略时使用 Qt 当前重叠率。",
                 },
                 "max_speed_mps": {
                     "type": "number", "minimum": 0.10, "maximum": 1.60,
-                    "default": 0.8,
+                    "description": "省略时使用 Qt 当前最大前进速度。",
                 },
                 "allow_reverse_transit": {
-                    "type": "boolean", "default": True,
+                    "type": "boolean",
+                    "description": "省略时使用 Qt 当前允许倒车选项。",
                 },
                 "reverse_speed_mps": {
                     "type": "number", "minimum": 0.05, "maximum": 0.80,
-                    "default": 0.3,
+                    "description": "省略时使用 Qt 当前最大倒车速度。",
                 },
                 "max_angular_speed_rps": {
                     "type": "number", "minimum": 0.10, "maximum": 1.00,
-                    "default": 0.6,
+                    "description": "省略时使用 Qt 当前最大角速度。",
                 },
                 "linear_accel_mps2": {
                     "type": "number", "minimum": 0.10, "maximum": 2.00,
-                    "default": 2.0,
+                    "description": "省略时使用 Qt 当前最大线加速度。",
                 },
                 "angular_accel_rps2": {
                     "type": "number", "minimum": 0.10, "maximum": 1.00,
-                    "default": 0.5,
+                    "description": "省略时使用 Qt 当前最大角加速度。",
                 },
                 "direction_change_penalty_sec": {
                     "type": "number", "minimum": 0.0, "maximum": 30.0,
-                    "default": 1.0,
+                    "description": "省略时使用 Qt 当前换向附加时间。",
                 },
                 "segment_handoff_penalty_sec": {
                     "type": "number", "minimum": 0.0, "maximum": 30.0,
-                    "default": 0.5,
+                    "description": "省略时使用 Qt 当前分段交接附加时间。",
                 },
             },
             "required": ["regions"],

@@ -1,0 +1,26 @@
+# OpenAI CLIP ViT-B/32 post-filter. Prompts are written in natural English for
+# the original OpenAI model and split into short semantic descriptions so none
+# exceeds CLIP's 77-token context window. Prompt features are encoded once at
+# startup and averaged per positive/negative class.
+clip_positive_prompts:
+  - "litter lying on the ground"
+  - "plastic litter on the ground, including plastic bottles, plastic bags, plastic boxes, and plastic packaging"
+  - "a discarded glass bottle or pieces of broken glass on the ground"
+  - "metal litter on the ground, including beverage cans, metal bottles, and metal fragments"
+  - "paper litter on the ground, including tissues, cardboard boxes, paper bags, scraps of paper, and newspapers"
+  - "a discarded cigarette pack or cigarette butt on the ground"
+  - "food waste on the ground, including fruit pits and food scraps"
+
+clip_negative_prompts:
+  - "a reflection, surface texture, or shadow on the ground"
+  - "a suitcase, shoes worn by a person, clothing, trousers, or patterns printed on them"
+  - "a chair, sofa, trash can, door handle, or storage rack"
+
+# Strict boundary behavior requested by the operator:
+#   confidence > 0.60  -> keep without CLIP
+#   confidence < 0.20  -> drop without CLIP
+#   otherwise          -> run CLIP once in the frame batch
+clip_low_confidence: 0.20
+clip_high_confidence: 0.60
+clip_positive_probability: 0.50
+clip_crop_padding_fraction: 0.10

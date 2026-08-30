@@ -14,10 +14,15 @@ local_costmap:
   plugins:
     # Keep immutable 2-D walls in the rolling local window. Without this
     # layer TEB only sees live /scan obstacles and may optimize through a wall
-    # that is present exclusively in the known map.
+    # that is present exclusively in the known map. Occupied cells baked into
+    # /map are intentionally authoritative; scan ray clearing cannot decide
+    # whether one is a removed temporary object or a real wall.
     - {name: static_layer, type: "costmap_2d::StaticLayer"}
     - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
     - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+    # Run last: LaserScan ray clearing must never convert static-map unknown
+    # or coordinates outside the source map into traversable local cells.
+    - {name: unknown_space_guard_layer, type: "robot_bringup/UnknownSpaceGuardLayer"}
 
   static_layer:
     enabled: true
@@ -51,3 +56,7 @@ local_costmap:
     enabled: true
     cost_scaling_factor: 10.0
     inflation_radius: 1.2
+
+  unknown_space_guard_layer:
+    enabled: true
+    map_topic: /map

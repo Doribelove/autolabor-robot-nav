@@ -12,6 +12,7 @@ import json
 import math
 import os
 import sys
+import tempfile
 import threading
 import time
 from types import SimpleNamespace
@@ -389,6 +390,9 @@ def _coverage_start_backend(rospy_impl):
     coverage.avoidance_ready = True
     backend, _published = _backend(grid=grid, coverage=coverage)
     backend._rospy = rospy_impl
+    # Individual tests opt in to a temporary Qt settings file.  Never inherit
+    # the developer machine's live operator preferences in offline tests.
+    backend._operator_settings_file = ""
     backend._load_regions = lambda _digest: [{
         "id": "region-a",
         "name": "A区",
@@ -428,6 +432,59 @@ def test_coverage_start_uses_client_generated_operation_id():
     assert requests[0].direction_change_penalty_sec == 1.0
     assert requests[0].segment_handoff_penalty_sec == 0.5
     assert backend._ai_batch_id == payload["batch_id"]
+
+
+def test_coverage_start_uses_complete_latest_qt_parameter_set():
+    requests = []
+
+    def start(request):
+        requests.append(request)
+        return SimpleNamespace(
+            accepted=True,
+            message="accepted",
+            batch_id=request.client_request_id,
+        )
+
+    with tempfile.TemporaryDirectory() as directory:
+        settings = os.path.join(directory, "Autolabor Operator Console.conf")
+        with open(settings, "w", encoding="utf-8") as stream:
+            stream.write(
+                "[coverage]\n"
+                "planning_parameters\\operation_width_m=1.2\n"
+                "planning_parameters\\overlap_percent=5\n"
+                "planning_parameters\\max_forward_speed_mps=1.2\n"
+                "planning_parameters\\allow_reverse=false\n"
+                "planning_parameters\\max_reverse_speed_mps=0.25\n"
+                "planning_parameters\\max_angular_speed_rps=0.55\n"
+                "planning_parameters\\linear_accel_mps2=1.5\n"
+                "planning_parameters\\angular_accel_rps2=0.4\n"
+                "planning_parameters\\direction_change_penalty_sec=1.5\n"
+                "planning_parameters\\segment_handoff_penalty_sec=0.75\n"
+            )
+        rospy_impl = _CoverageServiceRospy(
+            start,
+            lambda _batch_id: AssertionError("cancel must not be called"),
+        )
+        backend = _coverage_start_backend(rospy_impl)
+        backend._operator_settings_file = settings
+        with mock.patch.dict(sys.modules, _coverage_service_modules()):
+            result = backend.start_coverage_cleaning(["A区"])
+
+    assert not result.is_error, result.text
+    request = requests[0]
+    assert request.operation_width_m == 1.2
+    assert request.overlap_ratio == 0.05
+    assert request.max_speed_mps == 1.2
+    assert request.allow_reverse_transit is False
+    assert request.reverse_speed_mps == 0.25
+    assert request.max_angular_speed_rps == 0.55
+    assert request.linear_accel_mps2 == 1.5
+    assert request.angular_accel_rps2 == 0.4
+    assert request.direction_change_penalty_sec == 1.5
+    assert request.segment_handoff_penalty_sec == 0.75
+    payload = json.loads(result.text)
+    assert payload["planning_parameters"]["max_speed_mps"] == 1.2
+    assert payload["planning_parameters"]["allow_reverse_transit"] is False
 
 
 def test_lost_coverage_start_response_tombstones_exact_operation_id():

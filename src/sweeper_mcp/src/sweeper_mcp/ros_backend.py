@@ -8,6 +8,7 @@ manager and visual spot cleaning goes through the FOD mode arbiter.  It never
 publishes velocity or emergency-release commands.
 """
 
+import configparser
 import json
 import math
 import os
@@ -71,6 +72,15 @@ class ROSBackend:
             "SWEEPER_COVERAGE_REGION_LEGACY_ROOT", "").strip()
         self._source_mode = os.environ.get(
             "SWEEPER_STATIC_MAP_SOURCE_MODE", "fused")
+        self._operator_settings_file = os.environ.get(
+            "SWEEPER_OPERATOR_SETTINGS_FILE", "").strip()
+        if not self._operator_settings_file:
+            config_root = os.environ.get("XDG_CONFIG_HOME", "").strip()
+            if not config_root:
+                config_root = os.path.join(os.path.expanduser("~"), ".config")
+            self._operator_settings_file = os.path.join(
+                config_root, "Autolabor", "Autolabor Operator Console.conf"
+            )
         self._lock = threading.RLock()
         self._ready = False
         self._rospy = None
@@ -1148,15 +1158,15 @@ class ROSBackend:
                         for item in regions],
         }))
 
-    def start_coverage_cleaning(self, regions, operation_width_m=1.0,
-                                overlap_percent=15.0, max_speed_mps=0.8,
-                                allow_reverse_transit=True,
-                                reverse_speed_mps=0.3,
-                                max_angular_speed_rps=0.6,
-                                linear_accel_mps2=2.0,
-                                angular_accel_rps2=0.5,
-                                direction_change_penalty_sec=1.0,
-                                segment_handoff_penalty_sec=0.5):
+    def start_coverage_cleaning(self, regions, operation_width_m=None,
+                                overlap_percent=None, max_speed_mps=None,
+                                allow_reverse_transit=None,
+                                reverse_speed_mps=None,
+                                max_angular_speed_rps=None,
+                                linear_accel_mps2=None,
+                                angular_accel_rps2=None,
+                                direction_change_penalty_sec=None,
+                                segment_handoff_penalty_sec=None):
         if not self._coverage_submit_lock.acquire(False):
             return ToolResult(
                 "另一个 AI 覆盖批次正在提交或收敛，当前请求未发送。",
@@ -1180,13 +1190,56 @@ class ROSBackend:
             self._coverage_submit_lock.release()
 
     def _start_coverage_cleaning_serialized(
-            self, regions, operation_width_m=1.0,
-            overlap_percent=15.0, max_speed_mps=0.8,
-            allow_reverse_transit=True, reverse_speed_mps=0.3,
-            max_angular_speed_rps=0.6, linear_accel_mps2=2.0,
-            angular_accel_rps2=0.5, direction_change_penalty_sec=1.0,
-            segment_handoff_penalty_sec=0.5):
+            self, regions, operation_width_m=None,
+            overlap_percent=None, max_speed_mps=None,
+            allow_reverse_transit=None, reverse_speed_mps=None,
+            max_angular_speed_rps=None, linear_accel_mps2=None,
+            angular_accel_rps2=None, direction_change_penalty_sec=None,
+            segment_handoff_penalty_sec=None):
         self._ensure()
+        defaults = self._coverage_operator_defaults()
+        operation_width_m = (
+            defaults["operation_width_m"]
+            if operation_width_m is None else operation_width_m
+        )
+        overlap_percent = (
+            defaults["overlap_percent"]
+            if overlap_percent is None else overlap_percent
+        )
+        max_speed_mps = (
+            defaults["max_speed_mps"]
+            if max_speed_mps is None else max_speed_mps
+        )
+        allow_reverse_transit = (
+            defaults["allow_reverse_transit"]
+            if allow_reverse_transit is None else allow_reverse_transit
+        )
+        reverse_speed_mps = (
+            defaults["reverse_speed_mps"]
+            if reverse_speed_mps is None else reverse_speed_mps
+        )
+        max_angular_speed_rps = (
+            defaults["max_angular_speed_rps"]
+            if max_angular_speed_rps is None else max_angular_speed_rps
+        )
+        linear_accel_mps2 = (
+            defaults["linear_accel_mps2"]
+            if linear_accel_mps2 is None else linear_accel_mps2
+        )
+        angular_accel_rps2 = (
+            defaults["angular_accel_rps2"]
+            if angular_accel_rps2 is None else angular_accel_rps2
+        )
+        direction_change_penalty_sec = (
+            defaults["direction_change_penalty_sec"]
+            if direction_change_penalty_sec is None
+            else direction_change_penalty_sec
+        )
+        segment_handoff_penalty_sec = (
+            defaults["segment_handoff_penalty_sec"]
+            if segment_handoff_penalty_sec is None
+            else segment_handoff_penalty_sec
+        )
         status = self._wait_snapshot("coverage", 2.0, 2.5)
         if status is None:
             return ToolResult("/coverage/status 未就绪。", True)
@@ -1333,8 +1386,94 @@ class ROSBackend:
             "accepted": True, "state": "active",
             "batch_id": batch_id,
             "regions": [item["name"] for item in selected],
+            "planning_parameters": {
+                "operation_width_m": operation_width_m,
+                "overlap_percent": overlap_percent,
+                "max_speed_mps": max_speed_mps,
+                "allow_reverse_transit": bool(allow_reverse_transit),
+                "reverse_speed_mps": reverse_speed_mps,
+                "max_angular_speed_rps": max_angular_speed_rps,
+                "linear_accel_mps2": linear_accel_mps2,
+                "angular_accel_rps2": angular_accel_rps2,
+                "direction_change_penalty_sec": direction_change_penalty_sec,
+                "segment_handoff_penalty_sec": segment_handoff_penalty_sec,
+            },
             "message": response.message,
         }))
+
+    def _coverage_operator_defaults(self):
+        """Read the complete Qt planner preference set for omitted AI args.
+
+        Qt writes QSettings synchronously on every planning-control change.
+        The MCP backend runs on the same NVIDIA host, so reading that file at
+        mission submission avoids a second, drifting set of AI defaults.  Each
+        field is range-checked independently and falls back closed to the
+        shipped value if the file is absent or partially malformed.
+        """
+        defaults = {
+            "operation_width_m": 1.0,
+            "overlap_percent": 15.0,
+            "max_speed_mps": 0.8,
+            "allow_reverse_transit": True,
+            "reverse_speed_mps": 0.3,
+            "max_angular_speed_rps": 0.6,
+            "linear_accel_mps2": 2.0,
+            "angular_accel_rps2": 0.5,
+            "direction_change_penalty_sec": 1.0,
+            "segment_handoff_penalty_sec": 0.5,
+        }
+        path = self._operator_settings_file
+        if not path:
+            return defaults
+        parser = configparser.ConfigParser(interpolation=None)
+        try:
+            with open(path, "r", encoding="utf-8") as stream:
+                parser.read_file(stream)
+        except (OSError, configparser.Error, UnicodeError):
+            return defaults
+        if not parser.has_section("coverage"):
+            return defaults
+
+        numeric = {
+            "operation_width_m": ("operation_width_m", 0.30, 3.00),
+            "overlap_percent": ("overlap_percent", 0.0, 50.0),
+            "max_speed_mps": ("max_forward_speed_mps", 0.10, 1.60),
+            "reverse_speed_mps": ("max_reverse_speed_mps", 0.05, 0.80),
+            "max_angular_speed_rps": (
+                "max_angular_speed_rps", 0.10, 1.00
+            ),
+            "linear_accel_mps2": ("linear_accel_mps2", 0.10, 2.00),
+            "angular_accel_rps2": ("angular_accel_rps2", 0.10, 1.00),
+            "direction_change_penalty_sec": (
+                "direction_change_penalty_sec", 0.0, 30.0
+            ),
+            "segment_handoff_penalty_sec": (
+                "segment_handoff_penalty_sec", 0.0, 30.0
+            ),
+        }
+        for output_key, (settings_key, minimum, maximum) in numeric.items():
+            option = "planning_parameters\\" + settings_key
+            try:
+                value = float(parser.get("coverage", option))
+            except (configparser.Error, TypeError, ValueError, OverflowError):
+                continue
+            if math.isfinite(value) and minimum <= value <= maximum:
+                # QSettings may serialize a spin-box value such as 1.2 as
+                # 1.2000000000000002.  Preserve UI precision without exposing
+                # that binary artefact in service requests or tool status.
+                defaults[output_key] = round(value, 9)
+
+        try:
+            raw_reverse = parser.get(
+                "coverage", "planning_parameters\\allow_reverse"
+            ).strip().lower()
+        except configparser.Error:
+            raw_reverse = ""
+        if raw_reverse in ("1", "true", "yes", "on"):
+            defaults["allow_reverse_transit"] = True
+        elif raw_reverse in ("0", "false", "no", "off"):
+            defaults["allow_reverse_transit"] = False
+        return defaults
 
     def _cancel_coverage_batch_exact(self, batch_id):
         """Cancel/tombstone one operation ID and classify the confirmation."""

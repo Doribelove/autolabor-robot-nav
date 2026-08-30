@@ -51,6 +51,7 @@ install(DIRECTORY config launch models
 
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_camera_info.py)
+  catkin_add_nosetests(test/test_clip_filter.py)
   catkin_add_nosetests(test/test_depth_fusion.py)
   catkin_add_nosetests(test/test_image_quality.py)
   catkin_add_nosetests(test/test_projection.py)

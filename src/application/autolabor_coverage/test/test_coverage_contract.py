@@ -274,6 +274,8 @@ class CoverageContractTest(unittest.TestCase):
         self.assertEqual(0.60, config["default_max_angular_speed_rps"])
         self.assertEqual(2.00, config["default_linear_accel_mps2"])
         self.assertEqual(0.50, config["default_angular_accel_rps2"])
+        self.assertEqual(0.30, config["entry_position_tolerance_m"])
+        self.assertEqual(0.40, config["entry_yaw_tolerance_rad"])
         self.assertIn(
             "requested_motion_speed > self.watchdog_max_linear_speed", manager
         )
@@ -282,6 +284,14 @@ class CoverageContractTest(unittest.TestCase):
         self.assertIn('"max_vel_theta": getattr(', manager)
         self.assertIn('"acc_lim_x": getattr(', manager)
         self.assertIn('"acc_lim_theta": getattr(', manager)
+        self.assertIn(
+            "0.20 if straight_tracking else self.entry_position_tolerance",
+            manager,
+        )
+        self.assertIn(
+            "0.20 if straight_tracking else self.entry_yaw_tolerance",
+            manager,
+        )
 
     def test_exact_sweeps_enable_teb_cross_track_and_heading_costs_only_temporarily(self):
         manager = (PACKAGE_ROOT / "scripts" / "coverage_manager.py").read_text(

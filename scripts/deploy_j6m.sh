@@ -183,7 +183,9 @@ ssh "$target" "set -eu
     test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_fod_control/launch/visual_recovery.launch
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_global_planner.so
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so
+    test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libgps_geofence_layer.so
     grep -aFq treat_unknown_as_obstacle /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so
+    grep -aFq UnknownSpaceGuardLayer /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libgps_geofence_layer.so
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/fast_lio/fastlio_mapping
     grep -aFq /var/lib/autolabor/fast_lio/ /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/fast_lio/fastlio_mapping
     if ldd /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/lib/map_server/map_server | grep -q not.found; then

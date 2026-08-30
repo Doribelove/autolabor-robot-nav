@@ -1332,6 +1332,39 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             ("goal",),
         ], submission_events)
 
+    def test_transit_accepts_a_moderate_ackermann_entry_error(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.lock = threading.RLock()
+        self._seed_move_base_goal_tracking(manager)
+        manager.plan_id = "test-plan"
+        manager.cancel_requested = False
+        manager.active = True
+        manager.navigation_owner_token = "coverage-{}".format("a" * 32)
+        manager.navigation_owner_releasing = False
+        manager.entry_position_tolerance = 0.30
+        manager.entry_yaw_tolerance = 0.40
+        manager._wait_while_paused = lambda: True
+        manager._current_pose = lambda: (
+            COVERAGE_MANAGER.Point(0.28, 0.0), 0.35
+        )
+        manager._set_teb = mock.Mock(return_value=True)
+        transit = {
+            "type": "transit",
+            "swath_index": 0,
+            "start": COVERAGE_MANAGER.Point(1.0, 0.0),
+            "end": COVERAGE_MANAGER.Point(0.0, 0.0),
+            "yaw": 0.0,
+            "length": 1.0,
+            "path": None,
+        }
+
+        result = manager._execute_segment(transit, 0)
+
+        self.assertEqual("succeeded", result)
+        manager._set_teb.assert_not_called()
+
     def test_sweep_arms_only_its_exact_coverage_path(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
             COVERAGE_MANAGER.CoverageManager
@@ -1635,6 +1668,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         )
         manager.original_teb = None
         manager.task_max_speed = 0.8
+        manager.entry_position_tolerance = 0.30
+        manager.entry_yaw_tolerance = 0.40
         manager.sweep_viapoint_separation = 0.3
         manager.sweep_weight_viapoint = 50.0
         manager.sweep_weight_viapoint_lateral = 200.0
@@ -1670,6 +1705,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             sweep = updates[-1]
             self.assertEqual(0.0, sweep["max_vel_x_backwards"])
             self.assertFalse(sweep["allow_init_with_backwards_motion"])
+            self.assertEqual(0.20, sweep["xy_goal_tolerance"])
+            self.assertEqual(0.20, sweep["yaw_goal_tolerance"])
             self.assertEqual(0.3, sweep["global_plan_viapoint_sep"])
             self.assertEqual(50.0, sweep["weight_viapoint"])
             self.assertEqual(200.0, sweep["weight_viapoint_lateral"])
@@ -1682,6 +1719,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             transit = updates[-1]
             self.assertEqual(0.3, transit["max_vel_x_backwards"])
             self.assertTrue(transit["allow_init_with_backwards_motion"])
+            self.assertEqual(0.30, transit["xy_goal_tolerance"])
+            self.assertEqual(0.40, transit["yaw_goal_tolerance"])
             for key in (
                 "global_plan_viapoint_sep",
                 "weight_viapoint",
@@ -2711,7 +2750,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         )
 
     def _verify_kinematics(
-        self, manager, response, teb_radius=1.35, teb_lookahead=8.0
+        self, manager, response, teb_radius=1.35, teb_lookahead=8.0,
+        local_costmap_width=20.0, local_costmap_height=20.0
     ):
         parameters = {
             "/move_base/TebLocalPlannerROS/min_turning_radius": teb_radius,
@@ -2720,8 +2760,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             "/move_base/TebLocalPlannerROS/cmd_angle_instead_rotvel": False,
             "/move_base/TebLocalPlannerROS/treat_unknown_as_obstacle": True,
             "/move_base/TebLocalPlannerROS/max_global_plan_lookahead_dist": teb_lookahead,
-            "/move_base/local_costmap/width": 20.0,
-            "/move_base/local_costmap/height": 20.0,
+            "/move_base/local_costmap/width": local_costmap_width,
+            "/move_base/local_costmap/height": local_costmap_height,
             "/move_base/CoverageGlobalPlanner_navfn/allow_unknown": False,
         }
         proxy = mock.Mock(return_value=response)
@@ -2763,7 +2803,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
     def test_teb_lookahead_must_fit_inside_rolling_costmap_margin(self):
         manager = self._kinematics_manager()
         self.assertFalse(self._verify_kinematics(
-            manager, self._chassis_response(), teb_lookahead=12.0
+            manager, self._chassis_response(), teb_lookahead=8.6
         ))
         self.assertFalse(manager.kinematics_verified)
         self.assertIn("lookahead", manager.detail)
