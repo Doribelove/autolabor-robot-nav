@@ -3,6 +3,8 @@
 
 #include <autolabor_coverage/EnforcedPath.h>
 #include <autolabor_coverage/SetEnforcedPath.h>
+#include <autolabor_coverage/TransitProfile.h>
+#include <autolabor_coverage/hybrid_a_star.h>
 #include <costmap_2d/costmap_2d_ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_core/base_global_planner.h>
@@ -49,6 +51,9 @@ private:
   ros::Subscriber path_subscriber_;
   ros::ServiceServer set_path_service_;
   navfn::NavfnROS fallback_;
+  HybridAStarPlanner hybrid_planner_;
+  HybridAStarConfig hybrid_config_;
+  HybridAStarProfile transit_profile_;
   costmap_2d::Costmap2DROS* costmap_ros_ = nullptr;
   autolabor_coverage::EnforcedPath enforced_path_;
   ros::WallTime enforced_path_received_;

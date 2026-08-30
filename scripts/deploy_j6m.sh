@@ -141,9 +141,11 @@ ssh "$target" "set -eu
     rospack find teb_local_planner >/dev/null
     rosmsg md5 autolabor_coverage/CoverageRegion >/dev/null
     rosmsg md5 autolabor_coverage/CoverageStatus >/dev/null
+    rosmsg md5 autolabor_coverage/TransitProfile >/dev/null
     rossrv md5 autolabor_coverage/PlanCoverage >/dev/null
     rossrv md5 autolabor_coverage/CancelCoverageBatch >/dev/null
     rossrv md5 autolabor_coverage/SetCoverageOwner >/dev/null
+    rossrv md5 autolabor_coverage/SetEnforcedPath >/dev/null
     rossrv md5 autolabor_coverage/StartCoverageBatch >/dev/null
   '
   '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"
@@ -174,14 +176,17 @@ ssh "$target" "set -eu
     rospack find teb_local_planner >/dev/null
     rosmsg md5 autolabor_coverage/CoverageRegion >/dev/null
     rosmsg md5 autolabor_coverage/CoverageStatus >/dev/null
+    rosmsg md5 autolabor_coverage/TransitProfile >/dev/null
     rossrv md5 autolabor_coverage/PlanCoverage >/dev/null
     rossrv md5 autolabor_coverage/CancelCoverageBatch >/dev/null
     rossrv md5 autolabor_coverage/SetCoverageOwner >/dev/null
+    rossrv md5 autolabor_coverage/SetEnforcedPath >/dev/null
     rossrv md5 autolabor_coverage/StartCoverageBatch >/dev/null
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_coverage/coverage_manager.py
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_fod_control/fod_visual_servo_node.py
     test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_fod_control/launch/visual_recovery.launch
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_global_planner.so
+    test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_hybrid_astar.so
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libgps_geofence_layer.so
     grep -aFq treat_unknown_as_obstacle /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so

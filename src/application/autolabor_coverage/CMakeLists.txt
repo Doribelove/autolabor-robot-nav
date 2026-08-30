@@ -32,6 +32,7 @@ add_message_files(FILES
   CoverageRegion.msg
   CoverageStatus.msg
   EnforcedPath.msg
+  TransitProfile.msg
 )
 
 add_service_files(FILES
@@ -47,7 +48,7 @@ generate_messages(DEPENDENCIES geometry_msgs nav_msgs std_msgs)
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES coverage_global_planner
+  LIBRARIES coverage_global_planner coverage_hybrid_astar
   CATKIN_DEPENDS
     actionlib autolabor_canbus_driver base_local_planner costmap_2d
     dynamic_reconfigure geometry_msgs message_runtime
@@ -57,13 +58,17 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
+add_library(coverage_hybrid_astar src/hybrid_a_star.cpp)
+add_dependencies(coverage_hybrid_astar ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(coverage_hybrid_astar ${catkin_LIBRARIES})
+
 add_library(coverage_global_planner src/coverage_global_planner.cpp)
 add_dependencies(coverage_global_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(coverage_global_planner ${catkin_LIBRARIES})
+target_link_libraries(coverage_global_planner coverage_hybrid_astar ${catkin_LIBRARIES})
 
 catkin_install_python(PROGRAMS scripts/coverage_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-install(TARGETS coverage_global_planner
+install(TARGETS coverage_global_planner coverage_hybrid_astar
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 install(DIRECTORY include/${PROJECT_NAME}/
@@ -74,6 +79,10 @@ install(FILES coverage_global_planner_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(test_hybrid_a_star test/test_hybrid_a_star.cpp)
+  if(TARGET test_hybrid_a_star)
+    target_link_libraries(test_hybrid_a_star coverage_hybrid_astar ${catkin_LIBRARIES})
+  endif()
   catkin_add_nosetests(test/test_coverage_geometry.py)
   catkin_add_nosetests(test/test_coverage_contract.py)
   catkin_add_nosetests(test/test_coverage_manager_state_machine.py)

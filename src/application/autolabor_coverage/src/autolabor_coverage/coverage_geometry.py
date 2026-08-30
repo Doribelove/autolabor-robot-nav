@@ -787,11 +787,10 @@ def _entry_cost(current, current_yaw, entry, sweep_yaw, minimum_turning_radius):
     heading_delta = _heading_delta(current_yaw, sweep_yaw)
     turn_arc = minimum_turning_radius * heading_delta
     # R*delta is the lower-bound arc length needed to change heading.  A point
-    # that is already under the vehicle but asks for a different yaw is not a
-    # useful Ackermann entry: it degenerates into an impossible spin-in-place
-    # goal.  Penalize the missing approach distance strongly enough that the
-    # opposite end (or another row) wins whenever a maneuverable alternative
-    # exists; move_base/TEB still owns the actual free-space connector.
+    # that is already under the vehicle but asks for a different yaw requires
+    # an outward Ackermann maneuver, so the legacy distance-only objective
+    # must not treat it as a zero-cost entry.  The seconds-based production
+    # objective below uses the complete Dubins proxy instead.
     required_approach = min(turn_arc, minimum_turning_radius)
     approach_deficit = max(0.0, required_approach - distance)
     return distance + turn_arc + 10.0 * approach_deficit
@@ -806,6 +805,121 @@ def _motion_time(distance, maximum_speed, acceleration):
     if distance >= ramp_distance:
         return distance / maximum_speed + maximum_speed / acceleration
     return 2.0 * math.sqrt(distance / acceleration)
+
+
+def _mod2pi(angle):
+    return angle % (2.0 * math.pi)
+
+
+def _dubins_path_components(start, start_yaw, end, end_yaw,
+                            minimum_turning_radius):
+    """Return shortest forward-only Dubins (total, turning) lengths.
+
+    The result is an obstacle-free curvature lower bound.  The caller combines
+    it with the known-free grid distance, so ordering accounts for both static
+    detours and the M2 minimum turning radius without running a factorial
+    number of Hybrid A* searches inside the route beam.
+    """
+    delta_x = (end.x - start.x) / minimum_turning_radius
+    delta_y = (end.y - start.y) / minimum_turning_radius
+    distance = math.hypot(delta_x, delta_y)
+    theta = math.atan2(delta_y, delta_x) if distance > EPSILON else 0.0
+    alpha = _mod2pi(start_yaw - theta)
+    beta = _mod2pi(end_yaw - theta)
+    sine_alpha = math.sin(alpha)
+    sine_beta = math.sin(beta)
+    cosine_alpha = math.cos(alpha)
+    cosine_beta = math.cos(beta)
+    cosine_delta = math.cos(alpha - beta)
+    candidates = []
+
+    def add_csc(first, straight, last):
+        if all(math.isfinite(value) and value >= -EPSILON
+               for value in (first, straight, last)):
+            candidates.append((
+                max(0.0, first) + max(0.0, straight) + max(0.0, last),
+                max(0.0, first) + max(0.0, last),
+            ))
+
+    def add_ccc(first, middle, last):
+        if all(math.isfinite(value) and value >= -EPSILON
+               for value in (first, middle, last)):
+            total = max(0.0, first) + max(0.0, middle) + max(0.0, last)
+            candidates.append((total, total))
+
+    # LSL
+    temporary = distance + sine_alpha - sine_beta
+    squared = (2.0 + distance * distance - 2.0 * cosine_delta +
+               2.0 * distance * (sine_alpha - sine_beta))
+    if squared >= -EPSILON:
+        angle = math.atan2(cosine_beta - cosine_alpha, temporary)
+        add_csc(_mod2pi(-alpha + angle), math.sqrt(max(0.0, squared)),
+                _mod2pi(beta - angle))
+
+    # RSR
+    temporary = distance - sine_alpha + sine_beta
+    squared = (2.0 + distance * distance - 2.0 * cosine_delta +
+               2.0 * distance * (-sine_alpha + sine_beta))
+    if squared >= -EPSILON:
+        angle = math.atan2(cosine_alpha - cosine_beta, temporary)
+        add_csc(_mod2pi(alpha - angle), math.sqrt(max(0.0, squared)),
+                _mod2pi(-beta + angle))
+
+    # LSR
+    squared = (-2.0 + distance * distance + 2.0 * cosine_delta +
+               2.0 * distance * (sine_alpha + sine_beta))
+    if squared >= -EPSILON:
+        straight = math.sqrt(max(0.0, squared))
+        angle = (math.atan2(-cosine_alpha - cosine_beta,
+                            distance + sine_alpha + sine_beta) -
+                 math.atan2(-2.0, straight))
+        add_csc(_mod2pi(-alpha + angle), straight,
+                _mod2pi(-beta + angle))
+
+    # RSL
+    squared = (distance * distance - 2.0 + 2.0 * cosine_delta -
+               2.0 * distance * (sine_alpha + sine_beta))
+    if squared >= -EPSILON:
+        straight = math.sqrt(max(0.0, squared))
+        angle = (math.atan2(cosine_alpha + cosine_beta,
+                            distance - sine_alpha - sine_beta) -
+                 math.atan2(2.0, straight))
+        add_csc(_mod2pi(alpha - angle), straight,
+                _mod2pi(beta - angle))
+
+    # RLR
+    value = ((6.0 - distance * distance + 2.0 * cosine_delta +
+              2.0 * distance * (sine_alpha - sine_beta)) / 8.0)
+    if -1.0 - EPSILON <= value <= 1.0 + EPSILON:
+        middle = _mod2pi(2.0 * math.pi - math.acos(
+            max(-1.0, min(1.0, value))))
+        first = _mod2pi(
+            alpha - math.atan2(cosine_alpha - cosine_beta,
+                               distance - sine_alpha + sine_beta) +
+            0.5 * middle
+        )
+        last = _mod2pi(alpha - beta - first + middle)
+        add_ccc(first, middle, last)
+
+    # LRL
+    value = ((6.0 - distance * distance + 2.0 * cosine_delta +
+              2.0 * distance * (-sine_alpha + sine_beta)) / 8.0)
+    if -1.0 - EPSILON <= value <= 1.0 + EPSILON:
+        middle = _mod2pi(2.0 * math.pi - math.acos(
+            max(-1.0, min(1.0, value))))
+        first = _mod2pi(
+            -alpha - math.atan2(cosine_alpha - cosine_beta,
+                                distance + sine_alpha - sine_beta) +
+            0.5 * middle
+        )
+        last = _mod2pi(beta - alpha - first + middle)
+        add_ccc(first, middle, last)
+
+    if not candidates:
+        return None
+    total, turning = min(candidates, key=lambda value: (value[0], value[1]))
+    return (total * minimum_turning_radius,
+            turning * minimum_turning_radius)
 
 
 def _entry_time(current, current_yaw, entry, sweep_yaw,
@@ -827,36 +941,45 @@ def _entry_time(current, current_yaw, entry, sweep_yaw,
             False,
         )
 
-    bearing = (
-        math.atan2(entry.y - current.y, entry.x - current.x)
-        if direct_distance > EPSILON else sweep_yaw
-    )
-
     def candidate(reverse):
         speed = (parameters.max_reverse_speed_mps
                  if reverse else parameters.max_forward_speed_mps)
-        travel_heading = bearing + (math.pi if reverse else 0.0)
-        heading_change = (
-            _heading_delta(current_yaw, travel_heading)
-            + _heading_delta(travel_heading, sweep_yaw)
+        virtual_offset = math.pi if reverse else 0.0
+        components = _dubins_path_components(
+            current,
+            current_yaw + virtual_offset,
+            entry,
+            sweep_yaw + virtual_offset,
+            minimum_turning_radius,
         )
+        if components is None:
+            return float("inf"), reverse
+        kinematic_distance, turning_distance = components
+        combined_distance = max(path_distance, kinematic_distance)
+        turning_distance = min(turning_distance, combined_distance)
+        straight_distance = max(0.0, combined_distance - turning_distance)
         angular_speed = min(
             parameters.max_angular_speed_rps,
             speed / minimum_turning_radius,
         )
-        required_approach = min(
-            minimum_turning_radius * heading_change,
-            minimum_turning_radius,
+        straight_time = _motion_time(
+            straight_distance,
+            speed,
+            parameters.linear_accel_mps2,
         )
-        approach_deficit = max(0.0, required_approach - direct_distance)
+        turning_linear_time = _motion_time(
+            turning_distance,
+            speed,
+            parameters.linear_accel_mps2,
+        )
+        turning_angular_time = _motion_time(
+            turning_distance / minimum_turning_radius,
+            angular_speed,
+            parameters.angular_accel_rps2,
+        )
         duration = (
-            _motion_time(path_distance, speed, parameters.linear_accel_mps2)
-            + _motion_time(
-                heading_change,
-                angular_speed,
-                parameters.angular_accel_rps2,
-            )
-            + 10.0 * approach_deficit / speed
+            straight_time
+            + max(turning_linear_time, turning_angular_time)
             + parameters.segment_handoff_penalty_sec
         )
         if reverse:

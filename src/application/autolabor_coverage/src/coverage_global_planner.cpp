@@ -40,6 +40,38 @@ double yawError(double first, double second)
                             std::cos(second - first)));
 }
 
+HybridAStarProfile hybridProfile(
+    const autolabor_coverage::TransitProfile& message)
+{
+  HybridAStarProfile profile;
+  profile.allow_reverse = message.allow_reverse;
+  profile.max_forward_speed = message.max_forward_speed_mps;
+  profile.max_reverse_speed = message.max_reverse_speed_mps;
+  profile.max_angular_speed = message.max_angular_speed_rps;
+  profile.linear_acceleration = message.linear_accel_mps2;
+  profile.angular_acceleration = message.angular_accel_rps2;
+  profile.direction_change_penalty = message.direction_change_penalty_sec;
+  profile.goal_position_tolerance = message.goal_position_tolerance_m;
+  profile.goal_yaw_tolerance = message.goal_yaw_tolerance_rad;
+  return profile;
+}
+
+bool validHybridProfile(const HybridAStarProfile& profile)
+{
+  const auto positive = [](double value) {
+    return std::isfinite(value) && value > 0.0;
+  };
+  return positive(profile.max_forward_speed) &&
+         positive(profile.max_angular_speed) &&
+         positive(profile.linear_acceleration) &&
+         positive(profile.angular_acceleration) &&
+         positive(profile.goal_position_tolerance) &&
+         positive(profile.goal_yaw_tolerance) &&
+         std::isfinite(profile.direction_change_penalty) &&
+         profile.direction_change_penalty >= 0.0 &&
+         (!profile.allow_reverse || positive(profile.max_reverse_speed));
+}
+
 }  // namespace
 
 CoverageGlobalPlanner::CoverageGlobalPlanner(std::string name,
@@ -60,6 +92,28 @@ void CoverageGlobalPlanner::initialize(std::string name,
   private_nh_.param("goal_match_tolerance", goal_match_tolerance_, 0.35);
   private_nh_.param("goal_yaw_match_tolerance", goal_yaw_match_tolerance_, 0.20);
   private_nh_.param("path_timeout", path_timeout_, 1.0);
+  private_nh_.param("hybrid_minimum_turning_radius",
+                    hybrid_config_.minimum_turning_radius, 1.35);
+  private_nh_.param("hybrid_motion_step", hybrid_config_.motion_step, 0.30);
+  private_nh_.param("hybrid_collision_check_step",
+                    hybrid_config_.collision_check_step, 0.10);
+  private_nh_.param("hybrid_state_resolution",
+                    hybrid_config_.state_resolution, 0.15);
+  private_nh_.param("hybrid_heading_bins", hybrid_config_.heading_bins, 72);
+  private_nh_.param("hybrid_steering_samples",
+                    hybrid_config_.steering_samples, 5);
+  private_nh_.param("hybrid_max_expansions",
+                    hybrid_config_.max_expansions, 80000);
+  private_nh_.param("hybrid_planning_timeout",
+                    hybrid_config_.planning_timeout, 1.50);
+  private_nh_.param("hybrid_heuristic_weight",
+                    hybrid_config_.heuristic_weight, 1.05);
+  private_nh_.param("hybrid_steering_penalty",
+                    hybrid_config_.steering_penalty, 0.04);
+  private_nh_.param("hybrid_steering_change_penalty",
+                    hybrid_config_.steering_change_penalty, 0.10);
+  private_nh_.param("hybrid_obstacle_cost_scale",
+                    hybrid_config_.obstacle_cost_scale, 0.25);
   fallback_.initialize(name + "_navfn", costmap_ros);
   path_subscriber_ = private_nh_.subscribe(
       "/coverage/enforced_path", 1, &CoverageGlobalPlanner::pathCallback, this);
@@ -96,6 +150,15 @@ bool CoverageGlobalPlanner::setPathCallback(
     response.message = "a sweep path cannot be armed without coverage ownership";
     return true;
   }
+  const HybridAStarProfile requested_profile = hybridProfile(
+      request.transit_profile);
+  if (request.coverage_active && !request.enforced_path.active &&
+      !validHybridProfile(requested_profile))
+  {
+    response.success = false;
+    response.message = "coverage Hybrid A* transit profile is invalid";
+    return true;
+  }
   {
     // Mission ownership and planner mode are one transaction.  move_base can
     // therefore never observe a newly armed sweep with stale ownership (or a
@@ -103,6 +166,8 @@ bool CoverageGlobalPlanner::setPathCallback(
     std::lock_guard<std::mutex> lock(mutex_);
     coverage_active_ = request.coverage_active;
     enforced_path_ = request.enforced_path;
+    if (request.coverage_active && !request.enforced_path.active)
+      transit_profile_ = requested_profile;
     enforced_path_received_ = ros::WallTime::now();
   }
   response.success = true;
@@ -111,13 +176,13 @@ bool CoverageGlobalPlanner::setPathCallback(
   else if (request.enforced_path.active)
     response.message = "coverage ownership and sweep path armed";
   else
-    response.message = "coverage ownership and Navfn transit mode armed";
+    response.message = "coverage ownership and Hybrid A* transit mode armed";
   ROS_INFO("coverage planner hand-off: plan=%s segment=%u mode=%s",
            request.enforced_path.plan_id.c_str(),
            request.enforced_path.segment_index + 1,
            request.coverage_active
                ? (request.enforced_path.active ? "ENFORCED_SWEEP"
-                                                : "POINT_TO_POINT_NAVFN_TRANSIT")
+                                                : "KINEMATIC_HYBRID_ASTAR_TRANSIT")
                : "ORDINARY_NAVFN");
   return true;
 }
@@ -161,7 +226,8 @@ bool CoverageGlobalPlanner::updateEnforcedPath(
     enforced_path_ = message;
     enforced_path_received_ = ros::WallTime::now();
   }
-  reason = message.active ? "sweep path refreshed" : "Navfn transit mode refreshed";
+  reason = message.active ? "sweep path refreshed" :
+                            "Hybrid A* transit mode refreshed";
   return true;
 }
 
@@ -173,24 +239,48 @@ bool CoverageGlobalPlanner::makePlan(
   if (!initialized_)
     return false;
   autolabor_coverage::EnforcedPath path;
+  HybridAStarProfile transit_profile;
   bool active = false;
   double age = std::numeric_limits<double>::infinity();
   {
     std::lock_guard<std::mutex> lock(mutex_);
     active = coverage_active_;
     path = enforced_path_;
+    transit_profile = transit_profile_;
     if (!enforced_path_received_.isZero())
       age = (ros::WallTime::now() - enforced_path_received_).toSec();
   }
   if (!path.active)
   {
-    // Coverage ownership only prevents another operator goal from stealing
-    // the mission.  It does not constrain a transit route: Navfn replans over
-    // the live global costmap and TEB remains free to detour around obstacles.
-    ROS_DEBUG_THROTTLE(
+    if (!active)
+    {
+      ROS_DEBUG_THROTTLE(2.0, "ordinary navigation is using Navfn");
+      return fallback_.makePlan(start, goal, plan);
+    }
+    if (age > path_timeout_)
+    {
+      ROS_ERROR_THROTTLE(
+          1.0, "coverage Hybrid A* transit hand-off is stale; refusing Navfn fallback");
+      return false;
+    }
+    costmap_2d::Costmap2D snapshot(*costmap_ros_->getCostmap());
+    HybridAStarStatistics statistics;
+    std::string reason;
+    if (!hybrid_planner_.makePlan(
+            &snapshot, costmap_ros_->getRobotFootprint(), start, goal,
+            hybrid_config_, transit_profile, plan, statistics, reason))
+    {
+      ROS_WARN_THROTTLE(1.0, "coverage Hybrid A* transit failed: %s",
+                        reason.c_str());
+      return false;
+    }
+    ROS_INFO_THROTTLE(
         2.0,
-        "coverage point-to-point transit is using Navfn global planning");
-    return fallback_.makePlan(start, goal, plan);
+        "coverage Hybrid A* transit: poses=%zu expansions=%zu cost=%.2fs "
+        "reverse=%.2fm switches=%u",
+        plan.size(), statistics.expansions, statistics.estimated_time,
+        statistics.reverse_distance, statistics.direction_changes);
+    return true;
   }
   if (!active)
   {
