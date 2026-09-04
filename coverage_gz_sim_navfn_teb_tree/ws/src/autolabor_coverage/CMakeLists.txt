@@ -1,0 +1,102 @@
+cmake_minimum_required(VERSION 3.0.2)
+project(autolabor_coverage)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(catkin REQUIRED COMPONENTS
+  actionlib
+  autolabor_canbus_driver
+  base_local_planner
+  costmap_2d
+  dynamic_reconfigure
+  geometry_msgs
+  message_generation
+  move_base_msgs
+  nav_core
+  nav_msgs
+  navfn
+  pluginlib
+  roscpp
+  rospy
+  sensor_msgs
+  std_msgs
+  std_srvs
+  tf2_ros
+  visualization_msgs
+)
+
+catkin_python_setup()
+
+add_message_files(FILES
+  CoveragePlanningParameters.msg
+  CoverageRegion.msg
+  CoverageStatus.msg
+  EnforcedPath.msg
+  HybridTransitionRequest.msg
+  HybridTransitionResult.msg
+  TransitProfile.msg
+)
+
+add_service_files(FILES
+  CancelCoverageBatch.srv
+  PlanCoverage.srv
+  PrecomputeTransitions.srv
+  SetCoverageOwner.srv
+  SetCoveragePlanningDefaults.srv
+  SetEnforcedPath.srv
+  SetNavigationProfile.srv
+  StartCoverage.srv
+  StartCoverageBatch.srv
+)
+
+generate_messages(DEPENDENCIES geometry_msgs nav_msgs std_msgs)
+
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES coverage_global_planner coverage_hybrid_astar
+  CATKIN_DEPENDS
+    actionlib autolabor_canbus_driver base_local_planner costmap_2d
+    dynamic_reconfigure geometry_msgs message_runtime
+    move_base_msgs nav_core nav_msgs navfn pluginlib roscpp rospy sensor_msgs
+    std_msgs std_srvs tf2_ros visualization_msgs
+)
+
+include_directories(include ${catkin_INCLUDE_DIRS})
+
+add_library(coverage_hybrid_astar src/hybrid_a_star.cpp src/reeds_shepp.cpp)
+add_dependencies(coverage_hybrid_astar ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(coverage_hybrid_astar ${catkin_LIBRARIES})
+
+add_library(coverage_global_planner src/coverage_global_planner.cpp)
+add_dependencies(coverage_global_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(coverage_global_planner coverage_hybrid_astar ${catkin_LIBRARIES})
+
+catkin_install_python(PROGRAMS
+  scripts/coverage_manager.py
+  scripts/hybrid_teb_command_mux.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(TARGETS coverage_global_planner coverage_hybrid_astar
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+install(DIRECTORY config launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(FILES coverage_global_planner_plugin.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(test_hybrid_a_star test/test_hybrid_a_star.cpp)
+  if(TARGET test_hybrid_a_star)
+    target_link_libraries(test_hybrid_a_star coverage_hybrid_astar ${catkin_LIBRARIES})
+  endif()
+  add_executable(hybrid_a_star_benchmark test/hybrid_a_star_benchmark.cpp)
+  target_link_libraries(hybrid_a_star_benchmark coverage_hybrid_astar ${catkin_LIBRARIES})
+  install(TARGETS hybrid_a_star_benchmark
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+  catkin_add_nosetests(test/test_coverage_geometry.py)
+  catkin_add_nosetests(test/test_coverage_contract.py)
+  catkin_add_nosetests(test/test_coverage_manager_state_machine.py)
+  catkin_add_nosetests(test/test_hybrid_teb_command_mux.py)
+endif()

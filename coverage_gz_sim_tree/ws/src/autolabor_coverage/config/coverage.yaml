@@ -15,6 +15,9 @@ direction_change_penalty_sec: 0.50
 segment_handoff_penalty_sec: 0.50
 default_transit_replan_period_sec: 1.00
 time_search_beam_width: 128
+# The first Navfn + TEB target must stay near the shortest known-free endpoint;
+# only the remaining line order is allowed to trade distance for easier turns.
+route_first_entry_distance_slack_m: 0.30
 # Production architecture: never precompute a mission-wide executable path.
 # Every region's first swath is one ordinary Navfn + TEB action.  Only later
 # line-to-line transitions are planned from the live pose by direct Hybrid A*.
@@ -134,7 +137,6 @@ sweep_entry_recovery_reverse_cost_speed_mps: 0.80
 sweep_entry_recovery_forward_cost_speed_mps: 0.20
 sweep_entry_recovery_direction_change_penalty_sec: 0.15
 sweep_entry_recovery_max_path_length_m: 4.00
-sweep_entry_recovery_max_forward_distance_m: 1.20
 sweep_entry_recovery_goal_position_tolerance_m: 0.30
 sweep_entry_recovery_goal_yaw_tolerance_rad: 0.349066
 sweep_entry_alignment_radius_m: 2.00

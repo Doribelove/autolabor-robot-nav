@@ -21,7 +21,6 @@ from autolabor_coverage.coverage_geometry import (
     Point,
     estimate_transition_time,
     occupancy_grid_digest,
-    order_adjacent_boustrophedon,
     order_swaths,
     rasterize_swept_cells,
     sample_path,
@@ -257,6 +256,9 @@ class CoverageManager:
         self.time_search_beam_width = int(
             rospy.get_param("~time_search_beam_width", 128)
         )
+        self.route_first_entry_distance_slack = float(
+            rospy.get_param("~route_first_entry_distance_slack_m", 0.30)
+        )
         if not 0.10 <= self.default_max_speed <= self.max_speed_limit <= 1.70:
             raise ValueError(
                 "coverage speed limits must satisfy 0.10 <= default <= limit <= 1.70"
@@ -279,6 +281,10 @@ class CoverageManager:
             )
         if not 8 <= self.time_search_beam_width <= 4096:
             raise ValueError("coverage time-search beam width must be in [8, 4096]")
+        if not 0.0 <= self.route_first_entry_distance_slack <= 2.0:
+            raise ValueError(
+                "coverage first-entry distance slack must be in [0, 2] m"
+            )
         self.default_time_parameters = CoverageTimeParameters(
             max_forward_speed_mps=self.default_max_speed,
             max_reverse_speed_mps=self.reverse_transit_speed,
@@ -748,9 +754,6 @@ class CoverageManager:
         self.sweep_entry_recovery_max_path_length = float(rospy.get_param(
             "~sweep_entry_recovery_max_path_length_m", 4.00
         ))
-        self.sweep_entry_recovery_max_forward_distance = float(rospy.get_param(
-            "~sweep_entry_recovery_max_forward_distance_m", 1.20
-        ))
         self.sweep_entry_recovery_goal_position_tolerance = float(
             rospy.get_param(
                 "~sweep_entry_recovery_goal_position_tolerance_m", 0.30
@@ -776,7 +779,6 @@ class CoverageManager:
             self.sweep_entry_recovery_forward_cost_speed,
             self.sweep_entry_recovery_direction_change_penalty,
             self.sweep_entry_recovery_max_path_length,
-            self.sweep_entry_recovery_max_forward_distance,
             self.sweep_entry_recovery_goal_position_tolerance,
             self.sweep_entry_recovery_goal_yaw_tolerance,
             self.sweep_entry_alignment_radius,
@@ -844,9 +846,6 @@ class CoverageManager:
                 self.sweep_entry_recovery_direction_change_penalty
             ) <= 5.00
             or not 1.00 <= self.sweep_entry_recovery_max_path_length <= 10.00
-            or not 0.0 <= (
-                self.sweep_entry_recovery_max_forward_distance
-            ) <= 5.00
             or not 0.05 <= (
                 self.sweep_entry_recovery_goal_position_tolerance
             ) <= self.entry_position_tolerance
@@ -1911,18 +1910,18 @@ class CoverageManager:
                            route_yaw, time_parameters):
         """Plan lanes without building a full static connector graph online.
 
-        The production architecture evaluates four sweep angles with a
+        The legacy precompute architecture evaluates four sweep angles with a
         seconds-based permutation beam whose edge weights run static-map A*
-        queries.  That is appropriate before cached Hybrid trajectories are
-        selected, but it duplicates global planning in either online mode and
+        queries.  That duplicates global planning in either online mode and
         made the nine-row C region spend nearly three simulated minutes
-        motionless.  Both on-demand modes first select the sweep angle with
-        the deterministic geometric planner.  The 1 Hz comparison retains
-        the bounded obstacle-free time beam; the direct architecture keeps
-        physical neighbours consecutive and evaluates only the two scan
-        orders and two alternating direction parities.  Neither route-level
-        step constructs an executable connector.  Every connector is still
-        collision/kinematic planned from the live pose at execution time.
+        motionless.  Both on-demand modes instead select the sweep angle with
+        the deterministic geometric planner, then run one bounded time beam
+        over that angle's lines.  The first entry uses the static known-free
+        distance because it is executed by Navfn + TEB; later edges use the
+        obstacle-free curvature proxy because they are executed by live
+        Hybrid A*.  The beam may skip physical neighbours when that reduces
+        the complete route cost.  No route-level step constructs or caches an
+        executable connector.
         """
         lightweight = bool(
             getattr(self, "online_hybrid_without_precompute", False)
@@ -1946,36 +1945,45 @@ class CoverageManager:
                 routing_time_parameters = self._transit_time_parameters(
                     time_parameters
                 )
-            if bool(getattr(self, "direct_hybrid_to_final_goal", False)):
-                plan.swaths, estimate = order_adjacent_boustrophedon(
-                    plan.swaths,
-                    route_origin,
-                    self.minimum_turning_radius,
-                    route_yaw,
-                    routing_time_parameters,
-                    return_estimate=True,
-                )
-            else:
-                plan.swaths, estimate = order_swaths(
-                    plan.swaths,
-                    route_origin,
+            direct_to_final = bool(getattr(
+                self, "direct_hybrid_to_final_goal", False
+            ))
+            plan.swaths, estimate = order_swaths(
+                plan.swaths,
+                route_origin,
+                float(getattr(
+                    plan,
+                    "spacing",
+                    operation_width * (1.0 - overlap_ratio),
+                )),
+                self.minimum_turning_radius,
+                current_yaw=route_yaw,
+                time_parameters=routing_time_parameters,
+                # Long-range obstacle topology is needed only for the first
+                # Navfn entry.  Later Hybrid edges stay path-free here and are
+                # planned from live pose immediately before execution.
+                connector_distance=None,
+                first_entry_connector_distance=(
+                    route_planner.connector_distance
+                    if direct_to_final else None
+                ),
+                # Treat starts within one estimated second as equivalent, then
+                # choose the lowest complete route time.  Before that, keep
+                # the first endpoint within 0.30 m of the shortest known-free
+                # entry path.  This preserves the operator-visible rule that
+                # a nearby end of a long swath must beat its remote end while
+                # still letting the beam choose among essentially tied rows.
+                first_entry_slack_sec=1.0 if direct_to_final else None,
+                first_entry_distance_slack_m=(
                     float(getattr(
-                        plan,
-                        "spacing",
-                        operation_width * (1.0 - overlap_ratio),
-                    )),
-                    self.minimum_turning_radius,
-                    current_yaw=route_yaw,
-                    time_parameters=routing_time_parameters,
-                    # Long-range obstacle topology remains the responsibility
-                    # of rolling Navfn.  No connector-distance callback keeps
-                    # this route-level step independent of grid A*.
-                    connector_distance=None,
-                    return_estimate=True,
-                    time_search_beam_width=getattr(
-                        self, "time_search_beam_width", 128
-                    ),
-                )
+                        self, "route_first_entry_distance_slack", 0.30
+                    )) if direct_to_final else None
+                ),
+                return_estimate=True,
+                time_search_beam_width=getattr(
+                    self, "time_search_beam_width", 128
+                ),
+            )
             plan.score = estimate.total_time_sec
             plan.estimated_total_time_sec = estimate.total_time_sec
             plan.estimated_sweep_time_sec = estimate.sweep_time_sec
@@ -2645,16 +2653,19 @@ class CoverageManager:
         path_length = self._hybrid_path_length(result.path)
         reverse_distance = float(result.reverse_distance_m)
         forward_distance = max(0.0, path_length - reverse_distance)
-        if entry_alignment and (
-                path_length > float(getattr(
-                    self, "sweep_entry_recovery_max_path_length", 4.00
-                )) + 1.0e-6
-                or forward_distance > float(getattr(
-                    self, "sweep_entry_recovery_max_forward_distance", 1.20
-                )) + 1.0e-6):
+        # The final Hybrid goal is already a 0.30 m / 20 degree region and the
+        # sweep hand-off independently checks the live 0.40 m / 25 degree
+        # pose.  Rejecting every recovery with more than 1.20 m of forward
+        # travel therefore discarded valid straight and ordinary arc entries,
+        # including the path observed on the real robot.  Keep only the local
+        # recovery envelope here; collision, unknown-space, curvature and goal
+        # region validity remain enforced by Hybrid A* and the hand-off gate.
+        if entry_alignment and path_length > float(getattr(
+                self, "sweep_entry_recovery_max_path_length", 4.00
+        )) + 1.0e-6:
             return None, False, (
-                "entry-alignment Hybrid path was rejected as a forward "
-                "detour: total {:.2f}m, forward {:.2f}m, reverse {:.2f}m"
+                "entry-alignment Hybrid path exceeds the local recovery "
+                "envelope: total {:.2f}m, forward {:.2f}m, reverse {:.2f}m"
             ).format(path_length, forward_distance, reverse_distance)
         try:
             planned_goal = self._hybrid_path_point(result.planned_goal)
@@ -5641,6 +5652,11 @@ class CoverageManager:
                 # it can only reject the same colliding trajectory and stop.
                 # Dense, ordered via-points keep the local trajectory attached
                 # to Navfn while still allowing obstacle-aware smoothing.
+                # Keep max_global_plan_lookahead_dist from original_teb: a
+                # first-swath/inter-region entry is ordinary point-to-point
+                # navigation and must use the same horizon as an ordinary
+                # Navfn + TEB goal.  Only the Hybrid fixed-gear branch above
+                # is allowed to shorten that horizon.
                 target.update({
                     "max_number_classes": 1,
                     "include_costmap_obstacles": True,
@@ -5649,9 +5665,6 @@ class CoverageManager:
                     ),
                     "no_outer_iterations": (
                         self.hybrid_transit_outer_iterations
-                    ),
-                    "max_global_plan_lookahead_dist": (
-                        self.hybrid_transit_lookahead_distance
                     ),
                     "global_plan_overwrite_orientation": True,
                     "via_points_ordered": True,

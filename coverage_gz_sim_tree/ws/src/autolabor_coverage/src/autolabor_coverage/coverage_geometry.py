@@ -1182,7 +1182,10 @@ def _optimize_orientations_for_order(ordered_swaths, index_order, current,
 
 def _optimize_route_for_time(ordered_swaths, current, current_yaw,
                              minimum_turning_radius, time_parameters,
-                             connector_distance=None, beam_width=128):
+                             connector_distance=None, beam_width=128,
+                             first_entry_connector_distance=None,
+                             first_entry_slack_sec=None,
+                             first_entry_distance_slack_m=None):
     """Jointly search row order and direction using a bounded time beam.
 
     Exact permutation search grows factorially.  This deterministic beam keeps
@@ -1208,6 +1211,11 @@ def _optimize_route_for_time(ordered_swaths, current, current_yaw,
     ]
 
     states = []
+    first_connector_distance = (
+        first_entry_connector_distance
+        if first_entry_connector_distance is not None
+        else connector_distance
+    )
     for index in range(count):
         for direction in (0, 1):
             swath = oriented[index][direction]
@@ -1219,21 +1227,59 @@ def _optimize_route_for_time(ordered_swaths, current, current_yaw,
                 yaw,
                 minimum_turning_radius,
                 time_parameters,
-                connector_distance,
+                first_connector_distance,
             )
+            direct_entry_distance = math.hypot(
+                current.x - swath.start.x,
+                current.y - swath.start.y,
+            )
+            first_entry_distance = direct_entry_distance
+            if first_connector_distance is not None:
+                first_entry_distance = max(
+                    direct_entry_distance,
+                    float(first_connector_distance(current, swath.start)),
+                )
             states.append((
                 entry_time + sweep_times[index],
                 1 << index,
                 ((index, direction),),
                 index,
                 direction,
+                entry_time,
+                first_entry_distance,
             ))
-    states.sort(key=lambda state: (state[0], state[2]))
+    if first_entry_distance_slack_m is not None:
+        distance_slack = max(0.0, float(first_entry_distance_slack_m))
+        minimum_entry_distance = min(state[6] for state in states)
+        # A first-line entry is an independent Navfn + TEB navigation task.
+        # Restrict it to the genuinely nearby endpoint basin before the beam
+        # is allowed to trade entry distance against later Hybrid turns.  The
+        # time filter alone can otherwise choose another lateral row whose
+        # kinematic proxy differs by less than one second, even when the
+        # nearest endpoint is already inside the hand-off tolerance.
+        states = [
+            state for state in states
+            if state[6] <= minimum_entry_distance + distance_slack + EPSILON
+        ]
+    if first_entry_slack_sec is not None:
+        slack = max(0.0, float(first_entry_slack_sec))
+        minimum_entry_time = min(state[5] for state in states)
+        # The first action is a real Navfn + TEB navigation task, not a
+        # Hybrid line-to-line connector.  Keep only starts whose estimated
+        # Navfn entry is effectively tied with the best one before optimizing
+        # the remaining route.  This prevents a small downstream saving from
+        # sending the vehicle to the remote end of a boundary swath.
+        states = [
+            state for state in states
+            if state[5] <= minimum_entry_time + slack + EPSILON
+        ]
+    states.sort(key=lambda state: (state[0], state[5], state[2]))
     states = states[:beam_width]
 
     for _ in range(1, count):
         next_states = {}
-        for cost, used, route, previous_index, previous_direction in states:
+        for (cost, used, route, previous_index, previous_direction,
+             first_entry_time, first_entry_distance) in states:
             previous = oriented[previous_index][previous_direction]
             previous_yaw = _swath_yaw(previous)
             for index in range(count):
@@ -1259,6 +1305,8 @@ def _optimize_route_for_time(ordered_swaths, current, current_yaw,
                         candidate_route,
                         index,
                         direction,
+                        first_entry_time,
+                        first_entry_distance,
                     )
                     key = (candidate[1], index, direction)
                     old = next_states.get(key)
@@ -1267,19 +1315,23 @@ def _optimize_route_for_time(ordered_swaths, current, current_yaw,
                              candidate_route < old[2])):
                         next_states[key] = candidate
         states = sorted(
-            next_states.values(), key=lambda state: (state[0], state[2])
+            next_states.values(),
+            key=lambda state: (state[0], state[5], state[2]),
         )[:beam_width]
         if not states:
             return [], float("inf")
 
-    best = min(states, key=lambda state: (state[0], state[2]))
+    best = min(states, key=lambda state: (state[0], state[5], state[2]))
     return [oriented[index][direction] for index, direction in best[2]], best[0]
 
 
 def order_swaths(swaths, current, spacing, minimum_turning_radius,
                  current_yaw=None, time_parameters=None,
                  connector_distance=None, return_estimate=False,
-                 time_search_beam_width=128):
+                 time_search_beam_width=128,
+                 first_entry_connector_distance=None,
+                 first_entry_slack_sec=None,
+                 first_entry_distance_slack_m=None):
     """Order and orient every swath against a complete-route objective.
 
     With time parameters, a bounded deterministic beam jointly chooses the
@@ -1307,6 +1359,9 @@ def order_swaths(swaths, current, spacing, minimum_turning_radius,
             time_parameters,
             connector_distance=connector_distance,
             beam_width=time_search_beam_width,
+            first_entry_connector_distance=first_entry_connector_distance,
+            first_entry_slack_sec=first_entry_slack_sec,
+            first_entry_distance_slack_m=first_entry_distance_slack_m,
         )
         estimate = estimate_route_time(
             best_route,

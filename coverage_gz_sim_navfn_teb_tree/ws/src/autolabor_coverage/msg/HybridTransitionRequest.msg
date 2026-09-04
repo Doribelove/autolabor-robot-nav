@@ -1,0 +1,7 @@
+uint32 candidate_index
+uint32 transition_index
+geometry_msgs/PoseStamped start
+geometry_msgs/PoseStamped goal
+bool rolling
+float64 rolling_horizon_m
+bool accept_goal_region

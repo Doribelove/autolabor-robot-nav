@@ -349,6 +349,127 @@ class CoverageGeometryTest(unittest.TestCase):
         ))
         self.assertGreater(estimate.total_time_sec, 0.0)
 
+    def test_navigation_aware_route_keeps_first_entry_near_vehicle(self):
+        parameters = CoverageTimeParameters(
+            max_forward_speed_mps=0.80,
+            max_reverse_speed_mps=0.30,
+            max_angular_speed_rps=0.60,
+            linear_accel_mps2=1.00,
+            angular_accel_rps2=0.50,
+            allow_reverse=True,
+            direction_change_penalty_sec=0.50,
+            segment_handoff_penalty_sec=0.50,
+        )
+        swaths = [
+            Swath(Point(-1.0, 0.00), Point(11.0, 0.00), 0.00, 12.0),
+            Swath(Point(-1.0, 0.85), Point(8.0, 0.85), 0.85, 9.0),
+            Swath(Point(-4.0, 1.70), Point(6.0, 1.70), 1.70, 10.0),
+            Swath(Point(-1.0, 2.55), Point(5.5, 2.55), 2.55, 6.5),
+        ]
+        current = Point(-1.0, 4.10)
+        unconstrained = order_swaths(
+            swaths,
+            current,
+            0.85,
+            1.35,
+            current_yaw=-0.38,
+            time_parameters=parameters,
+            time_search_beam_width=512,
+        )
+        route = order_swaths(
+            swaths,
+            current,
+            0.85,
+            1.35,
+            current_yaw=-0.38,
+            time_parameters=parameters,
+            time_search_beam_width=512,
+            first_entry_slack_sec=1.0,
+            first_entry_distance_slack_m=0.30,
+        )
+        unconstrained_entry = math.hypot(
+            unconstrained[0].start.x - current.x,
+            unconstrained[0].start.y - current.y,
+        )
+        selected_entry = math.hypot(
+            route[0].start.x - current.x,
+            route[0].start.y - current.y,
+        )
+        self.assertGreater(unconstrained_entry, 7.0)
+        self.assertAlmostEqual(1.55, selected_entry, places=9)
+
+    def test_navigation_aware_route_can_skip_rows_for_easier_turns(self):
+        parameters = CoverageTimeParameters(
+            max_forward_speed_mps=0.80,
+            max_reverse_speed_mps=0.30,
+            max_angular_speed_rps=0.60,
+            linear_accel_mps2=1.00,
+            angular_accel_rps2=0.50,
+            allow_reverse=True,
+            direction_change_penalty_sec=0.50,
+            segment_handoff_penalty_sec=0.50,
+        )
+        swaths = [
+            Swath(Point(0.0, y), Point(8.0, y), y, 8.0)
+            for y in (0.0, 0.85, 1.70, 2.55)
+        ]
+        route, estimate = order_swaths(
+            swaths,
+            Point(-1.0, 0.0),
+            0.85,
+            1.35,
+            current_yaw=0.0,
+            time_parameters=parameters,
+            return_estimate=True,
+            time_search_beam_width=512,
+            first_entry_slack_sec=1.0,
+            first_entry_distance_slack_m=0.30,
+        )
+        self.assertEqual(
+            [0.0, 2.55, 0.85, 1.70],
+            [swath.scan_v for swath in route],
+        )
+        self.assertAlmostEqual(80.239281949869, estimate.total_time_sec)
+
+    def test_first_entry_distance_basin_beats_lateral_route_saving(self):
+        parameters = CoverageTimeParameters()
+        swaths = [
+            Swath(Point(x, 0.0), Point(x, 12.0), x, 12.0)
+            for x in (0.0, 0.85, 1.70, 2.55)
+        ]
+        current = Point(0.17, -0.20)
+        time_only = order_swaths(
+            swaths,
+            current,
+            0.85,
+            1.35,
+            current_yaw=0.5 * math.pi,
+            time_parameters=parameters,
+            time_search_beam_width=512,
+            first_entry_slack_sec=1.0,
+        )
+        distance_bounded = order_swaths(
+            swaths,
+            current,
+            0.85,
+            1.35,
+            current_yaw=0.5 * math.pi,
+            time_parameters=parameters,
+            time_search_beam_width=512,
+            first_entry_slack_sec=1.0,
+            first_entry_distance_slack_m=0.30,
+        )
+
+        self.assertEqual(0.85, time_only[0].scan_v)
+        self.assertEqual(0.0, distance_bounded[0].scan_v)
+        self.assertLess(
+            math.hypot(
+                distance_bounded[0].start.x - current.x,
+                distance_bounded[0].start.y - current.y,
+            ),
+            0.30,
+        )
+
     def test_route_avoids_an_orientation_only_ackermann_entry(self):
         swath = Swath(Point(0.0, 0.0), Point(3.0, 0.0), 0.0, 3.0)
         route = order_swaths(

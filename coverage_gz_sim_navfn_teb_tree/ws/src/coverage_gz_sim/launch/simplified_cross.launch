@@ -1,0 +1,21 @@
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="run_label" default="simplified_cross_region_diagnostic"/>
+  <arg name="result_dir"/>
+
+  <!-- Reproduce the exact A-completion pose from the first comparison bag and
+       execute C only.  This isolates the 53 m rolling global connector while
+       retaining the same map, robot, planner, and C coverage task. -->
+  <include file="$(find coverage_gz_sim)/launch/baseline.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="run_label" value="$(arg run_label)"/>
+    <arg name="result_dir" value="$(arg result_dir)"/>
+    <arg name="initial_x" value="17.2250206759"/>
+    <arg name="initial_y" value="-35.2757006389"/>
+    <arg name="initial_yaw" value="1.536"/>
+    <arg name="region_order" value="[C区]"/>
+    <arg name="online_hybrid_without_precompute" value="true"/>
+    <arg name="hybrid_replan_every_cycle" value="true"/>
+    <arg name="teb_reinitialize_on_global_plan" value="true"/>
+  </include>
+</launch>
