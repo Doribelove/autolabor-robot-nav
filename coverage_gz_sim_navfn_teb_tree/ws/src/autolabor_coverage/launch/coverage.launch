@@ -1,0 +1,32 @@
+<launch>
+  <arg name="config_file" default="$(find autolabor_coverage)/config/coverage.yaml"/>
+  <arg name="factory_defaults_file"
+       default="$(find autolabor_coverage)/config/coverage_factory_defaults.yaml"/>
+  <arg name="teb_command_topic" default="/cmd_vel_teb"/>
+  <arg name="command_topic" default="/cmd_vel_unlocalized"/>
+  <arg name="odom_topic" default="/odom"/>
+  <arg name="use_tf_pose" default="true"/>
+  <node pkg="autolabor_coverage" type="hybrid_teb_command_mux.py"
+        name="hybrid_teb_command_mux" output="screen" required="true">
+    <param name="enabled" type="bool" value="true"/>
+    <param name="use_tf_pose" type="bool" value="$(arg use_tf_pose)"/>
+    <param name="global_frame" value="map"/>
+    <param name="robot_base_frame" value="base_link"/>
+    <param name="teb_command_topic" value="$(arg teb_command_topic)"/>
+    <param name="command_topic" value="$(arg command_topic)"/>
+    <param name="odom_topic" value="$(arg odom_topic)"/>
+    <param name="enforced_path_topic" value="/coverage/enforced_path"/>
+    <param name="tracking_error_topic" value="/coverage/hybrid_tracking_error"/>
+    <param name="safety_topic"
+           value="/move_base/CoverageGlobalPlanner/hybrid_path_safe"/>
+    <param name="command_timeout" value="0.40"/>
+    <param name="safety_timeout" value="1.50"/>
+    <param name="minimum_turning_radius" value="1.35"/>
+  </node>
+  <node pkg="autolabor_coverage" type="coverage_manager.py"
+        name="coverage_manager" output="screen" required="true">
+    <rosparam file="$(arg config_file)" command="load"/>
+    <param name="config_file" value="$(arg config_file)"/>
+    <param name="factory_defaults_file" value="$(arg factory_defaults_file)"/>
+  </node>
+</launch>

@@ -854,3 +854,29 @@ rostopic echo /nvidia_cmd_vel_watchdog/status
   完整证据见
   `docs/COVERAGE_REAL_ROBOT_EXPERIMENT_20260904.md`。`MOTION_ENABLED=true` 与已有运动授权
   标记未被改写，受限低速实车验收仍未通过。
+
+## 2026-09-04 线序恢复、入口门修正与 Navfn+TEB 对照（已部署，待实车验收）
+
+- 当前权威源码与 `coverage_gz_sim_tree` 再次逐文件同步：线序恢复为允许跨行的确定性 time
+  beam，首入口先限制在静态已知自由最短距离 `+0.30 m` 的端点候选带；入口恢复删除旧版
+  “累计前进不得超过 1.20 m”后置门，仍保留 4.0 m 总长、footprint/未知区、1.35 m 曲率
+  和最终入口区域合同。
+- 新建隔离对照树 `coverage_gz_sim_navfn_teb_tree`，除把所有区内换线改为 Navfn + TEB、
+  将该 TEB 前视改为 8 m 外，与当前仿真保持一致。同一 latest 地图、同一区域、同一初值和
+  同一 `[0,3,1,2]` 线序下，当前 Hybrid+TEB 三次主连接为
+  `8.500/11.498/14.500 s`；计入一次 21.000 s 的入口恢复后总计 55.498 s。Navfn+TEB
+  对照总计 308.510 s、停车 166.184 s、局部路径相对全局路径 P95 最大偏差 1.040 m，且
+  有 7 次速度反号未先归零，故没有把对照逻辑或 8 m 前视带入生产。
+- 本机 23 包 Release 构建通过；覆盖包 Python 160 项和 C++ 7 项定向测试通过，工作区
+  测试汇总 936 项、0 错误、0 失败、0 跳过；静态健康检查通过，仅提示本机当前没有枚举
+  到物理麦克风。
+- 已通过 J6M ARM64 chroot 原生构建并原子部署 release `20260904_140758`；`current`
+  只读核对指向该 release，远端安装态静态健康检查通过。安装态 `coverage_manager.py`、
+  `coverage.yaml`、`coverage_geometry.py` 的 SHA-256 分别为
+  `b61d9b5d3e232c92a7f457b44b9f75ab095849aa9ccd2aa539a9fe1acd3c77ed`、
+  `e043b412f81ad08be6bfc05224beb6c0e8b1a19d710ab6b8d648ca43d0c11565`、
+  `4cd832aaca0a8691a666fb915949042aa5097f65c325905e83e62205dd716307`，与本地一致；时钟
+  中点偏差 `-3 ms`。
+- 部署后 NVIDIA supervisor、ROS master 和 J6M 主链保持停止，未发送初始位姿、导航目标
+  或非零速度。`MOTION_ENABLED=true`、`FOD_MOTION_ENABLED=true` 和已有运动授权标记均
+  保留；新 release 尚未做 Qt 目视、运行态 topic 归属或受限低速实车验收。

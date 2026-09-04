@@ -1,0 +1,37 @@
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="run_label" default="recommended_hierarchical_hybrid"/>
+  <arg name="result_dir"/>
+
+  <!-- No mission-wide Hybrid precompute.  Navfn supplies only long-distance
+       topology; each 10 m Hybrid prefix is frozen for its action and split at
+       every forward/reverse cusp before TEB executes the fixed-gear action. -->
+  <include file="$(find coverage_gz_sim)/launch/baseline.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="run_label" value="$(arg run_label)"/>
+    <arg name="result_dir" value="$(arg result_dir)"/>
+    <arg name="online_hybrid_without_precompute" value="false"/>
+    <arg name="hierarchical_hybrid_on_demand" value="true"/>
+    <arg name="hybrid_rolling_horizon" value="10.0"/>
+    <arg name="hybrid_cache_max_deviation" value="1.20"/>
+    <arg name="hybrid_cusp_position_tolerance" value="0.15"/>
+    <!-- This truth-only experiment has no dynamic-obstacle source, so a
+         failed static-plan retry does not need the production 10 s hold. -->
+    <arg name="obstacle_wait_sec" value="0.5"/>
+    <!-- The manager plans at chunk/action boundaries.  Re-running the frozen
+         global path at 1 Hz only calls setPlan repeatedly and contaminates the
+         next local-planner lifecycle with the preceding sweep/cusp trajectory. -->
+    <arg name="planner_frequency" value="0.0"/>
+    <!-- With no dynamic obstacles, Hybrid owns static collision/topology and
+         TEB owns Hybrid commands as well as its move_base action lifecycle.
+         The recorded planned and executed footprints are audited against the
+         static map after every run. -->
+    <arg name="hybrid_transit_include_costmap_obstacles" value="false"/>
+    <arg name="hybrid_transit_weight_viapoint_lateral" value="0.0"/>
+    <arg name="hybrid_transit_weight_viapoint_heading" value="0.0"/>
+    <arg name="hybrid_transit_inner_iterations" value="3"/>
+    <arg name="hybrid_transit_outer_iterations" value="2"/>
+    <arg name="hybrid_replan_every_cycle" value="false"/>
+    <arg name="teb_reinitialize_on_global_plan" value="true"/>
+  </include>
+</launch>

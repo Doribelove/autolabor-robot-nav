@@ -1691,7 +1691,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertEqual([], selected.alternative_plans)
         self.assertEqual(0.0, selected.estimated_total_time_sec)
 
-    def test_direct_hybrid_route_preserves_adjacent_boustrophedon_rows(self):
+    def test_direct_hybrid_route_uses_navigation_aware_time_beam(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
             COVERAGE_MANAGER.CoverageManager
         )
@@ -1729,7 +1729,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
 
         with mock.patch.object(
             COVERAGE_MANAGER,
-            "order_adjacent_boustrophedon",
+            "order_swaths",
             return_value=([oriented], estimate),
         ) as reorder:
             selected = manager._plan_region_route(
@@ -1747,6 +1747,18 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertEqual([oriented], selected.swaths)
         self.assertEqual(7.0, selected.estimated_total_time_sec)
         self.assertTrue(reorder.call_args.kwargs["return_estimate"])
+        self.assertIsNone(reorder.call_args.kwargs["connector_distance"])
+        self.assertIs(
+            planner.connector_distance,
+            reorder.call_args.kwargs["first_entry_connector_distance"],
+        )
+        self.assertEqual(
+            1.0, reorder.call_args.kwargs["first_entry_slack_sec"]
+        )
+        self.assertEqual(
+            0.30,
+            reorder.call_args.kwargs["first_entry_distance_slack_m"],
+        )
 
     def test_hybrid_transition_is_split_at_each_signed_gear_cusp(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
@@ -3436,7 +3448,10 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             self.assertTrue(entry["include_costmap_obstacles"])
             self.assertEqual(3, entry["no_inner_iterations"])
             self.assertEqual(2, entry["no_outer_iterations"])
-            self.assertEqual(3.0, entry["max_global_plan_lookahead_dist"])
+            # First-swath/inter-region entry is ordinary Navfn + TEB and must
+            # retain the normal navigation horizon instead of borrowing the
+            # shorter Hybrid fixed-gear horizon.
+            self.assertEqual(8.0, entry["max_global_plan_lookahead_dist"])
             self.assertTrue(entry["global_plan_overwrite_orientation"])
             self.assertTrue(entry["via_points_ordered"])
             self.assertEqual(0.3, entry["global_plan_viapoint_sep"])
