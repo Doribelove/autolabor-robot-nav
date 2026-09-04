@@ -4,14 +4,25 @@
   <arg name="localization_source" default="gps"/>
   <arg name="start_rviz" default="false"/>
   <arg name="planner_frequency" default="1.0"/>
-  <arg name="static_teb_lookahead_dist" default="8.0"/>
+  <arg name="static_teb_lookahead_dist" default="4.0"/>
   <arg name="goal_slowdown_enabled" default="$(eval arg('localization_source') == 'gps')"/>
   <arg name="goal_speed_cap_enabled" default="false"/>
   <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
   <arg name="output_cmd_vel_topic" default="/cmd_vel"/>
   <arg name="use_static_map" default="false"/>
+  <!-- FAST-LIO /Odometry owns the global pose/TF chain but its twist is zero.
+       In static-map mode TEB must use the M2 wheel odometry twist, otherwise
+       every 10 Hz optimization cycle incorrectly starts from rest and the
+       acceleration edge holds a straight command near 0.6 m/s. -->
+  <arg name="teb_odom_topic"
+       default="$(eval '/odom' if arg('use_static_map') else arg('odom_topic'))"/>
   <arg name="localization_gate_input_topic" default="/cmd_vel_unlocalized"/>
   <arg name="cmd_vel_topic" default="$(eval arg('localization_gate_input_topic') if arg('use_static_map') else ('/cmd_vel_navigation' if arg('goal_slowdown_enabled') else arg('output_cmd_vel_topic')))"/>
+  <!-- Static-map move_base always feeds the fail-closed Hybrid/TEB mux.  The
+       mux output then passes through the unchanged localization gate. -->
+  <arg name="teb_command_topic" default="/cmd_vel_teb"/>
+  <arg name="move_base_cmd_vel_topic"
+       default="$(eval arg('teb_command_topic') if arg('use_static_map') else arg('cmd_vel_topic'))"/>
   <arg name="xy_goal_tolerance" default="$(eval 0.3 if arg('localization_source') == 'gps' else 0.5)"/>
   <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
   <arg name="max_vel_x" default="0.8"/>
@@ -56,7 +67,12 @@
       <param name="status_timeout" value="0.5"/>
       <param name="command_timeout" value="0.5"/>
     </node>
-    <include file="$(find autolabor_coverage)/launch/coverage.launch"/>
+    <include file="$(find autolabor_coverage)/launch/coverage.launch">
+      <arg name="teb_command_topic" value="$(arg teb_command_topic)"/>
+      <arg name="command_topic" value="$(arg localization_gate_input_topic)"/>
+      <arg name="odom_topic" value="$(arg teb_odom_topic)"/>
+      <arg name="use_tf_pose" value="true"/>
+    </include>
   </group>
 
   <group if="$(arg gps_geofence_enabled)">
@@ -72,9 +88,12 @@
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <remap from="/move_base_simple/goal" to="$(arg move_base_simple_goal_topic)"/>
-    <remap from="/move_base/cmd_vel" to="$(arg cmd_vel_topic)"/>
-    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
-    <remap from="odom" to="$(arg odom_topic)"/>
+    <remap from="/move_base/cmd_vel" to="$(arg move_base_cmd_vel_topic)"/>
+    <remap from="cmd_vel" to="$(arg move_base_cmd_vel_topic)"/>
+    <!-- Use the same resolved velocity source as the TEB parameter below.
+         Remapping to odom_topic here would silently rewrite the absolute
+         static-map /odom parameter back to FAST-LIO /Odometry. -->
+    <remap from="odom" to="$(arg teb_odom_topic)"/>
 
     <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="local_costmap"/>
     <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="global_costmap"/>
@@ -99,7 +118,7 @@
     <param name="recovery_behavior_enabled" type="bool" value="false"/>
     <param name="clearing_rotation_allowed" type="bool" value="false"/>
 
-    <param name="TebLocalPlannerROS/odom_topic" value="$(arg odom_topic)"/>
+    <param name="TebLocalPlannerROS/odom_topic" value="$(arg teb_odom_topic)"/>
     <param name="TebLocalPlannerROS/xy_goal_tolerance" type="double" value="$(arg xy_goal_tolerance)"/>
     <param name="TebLocalPlannerROS/yaw_goal_tolerance" type="double" value="$(arg yaw_goal_tolerance)"/>
     <param name="TebLocalPlannerROS/max_vel_x" type="double" value="$(arg max_vel_x)"/>
@@ -128,9 +147,9 @@
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner_navfn/allow_unknown"
            type="bool" value="false"/>
-    <!-- Ordinary goals still use Navfn.  Coverage-owned transit goals use a
-         short-horizon Hybrid A* lattice with the same M2 curvature limit as
-         TEB; unknown/lethal cells and the complete footprint are rejected. -->
+    <!-- Ordinary point-to-point goals and every region's first swath use one
+         Navfn + TEB action.  Only later same-region inter-swath transitions
+         request direct live-pose Hybrid A* connectors. -->
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner/hybrid_minimum_turning_radius"
            type="double" value="1.35"/>
@@ -154,7 +173,7 @@
            type="int" value="80000"/>
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner/hybrid_planning_timeout"
-           type="double" value="1.50"/>
+           type="double" value="3.00"/>
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner/hybrid_heuristic_weight"
            type="double" value="1.05"/>
@@ -167,6 +186,49 @@
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner/hybrid_obstacle_cost_scale"
            type="double" value="0.25"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_use_obstacle_heuristic"
+           type="bool" value="true"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_use_nonholonomic_heuristic"
+           type="bool" value="true"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_use_analytic_expansion"
+           type="bool" value="true"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_analytic_improvement_timeout"
+           type="double" value="0.05"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_analytic_gearchange_improvement_timeout"
+           type="double" value="0.08"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_analytic_connector_improvement_timeout"
+           type="double" value="0.08"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_analytic_expansion_interval"
+           type="int" value="200"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_cache_max_deviation"
+           type="double" value="0.60"/>
+    <!-- The Hybrid TEB command mux uses this plugin's 1 Hz fail-closed safety
+         permit. Check 3 m of the manager-owned connector so the permit drops
+         before the vehicle can consume its stopping margin; only the manager
+         may replace an invalid connector. TEB remains the local controller. -->
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_cache_collision_check_horizon"
+           type="double" value="3.00"/>
+    <!-- A valid direct Hybrid connector remains immutable.  The 1 Hz planner
+         cycle validates/reuses it and searches again only after invalidation;
+         unconditional 1 Hz Hybrid search remains a simulation comparison. -->
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_online_kinematic_horizon"
+           type="double" value="12.00"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_replan_every_cycle"
+           type="bool" value="false"/>
+    <param if="$(arg use_static_map)"
+           name="TebLocalPlannerROS/reinitialize_on_global_plan"
+           type="bool" value="false"/>
     <param name="TebLocalPlannerROS/min_vel_x" type="double" value="$(arg min_vel_x)"/>
     <param name="TebLocalPlannerROS/min_vel_x_backwards" type="double" value="$(arg min_vel_x_backwards)"/>
     <param name="TebLocalPlannerROS/penalty_epsilon" type="double" value="$(arg penalty_epsilon)"/>

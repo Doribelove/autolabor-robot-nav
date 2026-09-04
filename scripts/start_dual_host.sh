@@ -627,6 +627,8 @@ verify_j6m_visual_model_contract_release() {
     grep -Fq 'NVIDIA_FOD_MODEL_SHA256' \"\$stack\"
     grep -Fq 'NVIDIA_FOD_MODEL_SHA256' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
     grep -Fq 'requested_fod_motion_enabled' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
+    grep -Fq 'requested_fod_model_sha256' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
+    grep -Fq 'requested_fod_required_class_names' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
   "
 }
 
@@ -696,6 +698,8 @@ ssh -o BatchMode=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=3 \
   FAST_LIO_MAP_FILE="${FAST_LIO_MAP_FILE:-}" \
   FAST_LIO_INITIAL_BODY_Z="${FAST_LIO_INITIAL_BODY_Z:-0.0}" \
   FOD_MOTION_ENABLED="$FOD_MOTION_ENABLED" \
+  NVIDIA_FOD_MODEL_SHA256="$NVIDIA_FOD_MODEL_SHA256" \
+  NVIDIA_FOD_REQUIRED_CLASS_NAMES="$NVIDIA_FOD_REQUIRED_CLASS_NAMES" \
   "$J6M_RUNTIME_BASE/dual_host/bin/start.sh" \
   >"$LOG_DIR/j6m_ssh.log" 2>&1 &
 remote_ssh_pid=$!

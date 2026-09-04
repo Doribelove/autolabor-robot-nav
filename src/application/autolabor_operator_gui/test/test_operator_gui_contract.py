@@ -317,6 +317,11 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("最大角加速度", GUI_SOURCE)
         self.assertIn("每次换向附加时间", GUI_SOURCE)
         self.assertIn("每段交接附加时间", GUI_SOURCE)
+        self.assertIn("异常重规划重试间隔", GUI_SOURCE)
+        self.assertIn("首线入场、异常修正和清扫线转场倒车", GUI_SOURCE)
+        self.assertIn("首线 Navfn+TEB；后续相邻线直接 Hybrid A*", GUI_SOURCE)
+        self.assertIn("status.transition_max_forward_speed_mps", GUI_SOURCE)
+        self.assertIn("转场前视 %11 m", GUI_SOURCE)
         self.assertIn("QSettings settings", GUI_SOURCE)
         self.assertIn("persistCoveragePlannerSettings", GUI_SOURCE)
         self.assertIn('QStringLiteral("coverage/planning_parameters")', GUI_SOURCE)
@@ -331,13 +336,14 @@ class OperatorGuiContractTest(unittest.TestCase):
             "angular_accel_rps2",
             "direction_change_penalty_sec",
             "segment_handoff_penalty_sec",
+            "transit_replan_period_sec",
         ):
             self.assertGreaterEqual(GUI_SOURCE.count(setting), 2)
         self.assertIn("settings.sync()", GUI_SOURCE)
         self.assertIn("&QDoubleSpinBox::valueChanged", GUI_SOURCE)
         self.assertIn("&QCheckBox::toggled", GUI_SOURCE)
-        self.assertIn("修改后立即保存为下次默认值", GUI_SOURCE)
-        self.assertIn("下一次生成/启动清扫任务直接", GUI_SOURCE)
+        self.assertIn("任一参数修改后会经 400 ms 防抖", GUI_SOURCE)
+        self.assertIn("应用到首线入场 Navfn+TEB 与清扫", GUI_SOURCE)
         self.assertIn("需取消后重新规划", GUI_SOURCE)
         self.assertIn("class ScrollSafeDoubleSpinBox", GUI_SOURCE)
         self.assertIn("event->ignore()", GUI_SOURCE)
@@ -353,6 +359,16 @@ class OperatorGuiContractTest(unittest.TestCase):
             "call.request.max_angular_speed_rps = parameters.max_angular_speed_rps",
             GUI_SOURCE,
         )
+        self.assertGreaterEqual(
+            GUI_SOURCE.count("transit_replan_period_sec ="), 4
+        )
+        self.assertIn("SetCoveragePlanningDefaults", GUI_SOURCE)
+        self.assertIn('"/coverage/set_planning_defaults"', GUI_SOURCE)
+        self.assertIn("call.request.restore_factory_defaults", GUI_SOURCE)
+        self.assertIn("scheduleNavigationProfileApply", GUI_SOURCE)
+        self.assertIn("恢复默认参数", GUI_SOURCE)
+        self.assertIn("已应用并写入 J6M coverage.yaml", GUI_SOURCE)
+        self.assertIn("coverage_planning_defaults_ready", GUI_SOURCE)
         self.assertIn("当前车辆位姿", GUI_SOURCE)
         self.assertIn("最近位置里程计", GUI_SOURCE)
         self.assertIn("recent_odom_distance_m", GUI_SOURCE)
@@ -594,6 +610,7 @@ class OperatorGuiContractTest(unittest.TestCase):
         for required in (
             "Topic: /map",
             "Topic: /coverage/planned_path",
+            "Topic: /coverage/hybrid_transition_path",
             "Topic: /coverage/executed_path",
             "Marker Topic: /coverage/ui_markers",
             "Marker Topic: /coverage/markers",
@@ -612,6 +629,7 @@ class OperatorGuiContractTest(unittest.TestCase):
 
         for required in (
             "Topic: /coverage/planned_path",
+            "Topic: /coverage/hybrid_transition_path",
             "Topic: /coverage/executed_path",
             "Marker Topic: /coverage/ui_markers",
             "Marker Topic: /coverage/markers",
@@ -633,6 +651,12 @@ class OperatorGuiContractTest(unittest.TestCase):
             self.assertEqual("/coverage/planned_path", connector["Topic"])
             self.assertIs(False, connector["Enabled"])
             self.assertIs(False, connector["Value"])
+            hybrid = by_name["Complete Hybrid A* transition"]
+            self.assertEqual(
+                "/coverage/hybrid_transition_path", hybrid["Topic"]
+            )
+            self.assertIs(True, hybrid["Enabled"])
+            self.assertIs(True, hybrid["Value"])
             for path_name in ("TEB global plan", "TEB local plan"):
                 self.assertIs(False, by_name[path_name]["Enabled"])
                 self.assertIs(False, by_name[path_name]["Value"])
@@ -855,6 +879,7 @@ class OperatorGuiContractTest(unittest.TestCase):
             "路线图例：青色＝覆盖条带预览",
             "蓝色＝全局参考路线",
             "红色＝当前局部轨迹",
+            "橙色＝完整Hybrid A*转场",
             "绿色＝覆盖执行记录",
             'kTebGlobalPlanDisplayName = "TEB global plan"',
             'kTebLocalPlanDisplayName = "TEB local plan"',
@@ -1202,7 +1227,12 @@ class OperatorGuiContractTest(unittest.TestCase):
         )
 
     def test_camera_yolo_and_runtime_imaging_controls_are_integrated(self):
-        for topic in ("/fod_camera/image_raw", "/fod/debug/image", "/fod/detections"):
+        for topic in (
+            "/fod_camera/image_raw",
+            "/fod/debug/image",
+            "/fod/detections",
+            "/fod/vision/results",
+        ):
             self.assertIn(topic, GUI_SOURCE)
         self.assertIn("dynamic_reconfigure::Reconfigure", GUI_SOURCE)
         self.assertIn('"/zed2/zed_node/set_parameters"', GUI_SOURCE)
@@ -1213,24 +1243,125 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("message.width) * 4U", GUI_SOURCE)
         self.assertIn("QImage::Format_RGBA8888", GUI_SOURCE)
 
-    def test_visual_lock_confidence_is_adjustable_only_while_stopped(self):
+    def test_visual_backend_selector_uses_exact_models_and_safe_cold_restart(self):
+        launch_path = PACKAGE_ROOT / "launch" / "operator_gui.launch"
+        ElementTree.parse(str(launch_path))
+        launch = launch_path.read_text(encoding="utf-8")
+        switch_handler = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::switchVisionBackend()") :
+            GUI_SOURCE.index("void MainWindow::applyVisualLockConfidence()")
+        ]
+        refresh = GUI_SOURCE[
+            GUI_SOURCE.index("const bool navigation_status_fresh") :
+            GUI_SOURCE.index("const DiagnosticSnapshot& quality")
+        ]
         for evidence in (
-            '"/fod_visual_servo/set_parameters"',
-            'parameter.name = "min_confidence"',
-            "visual_lock_confidence_input_->setRange(0.25, 0.95)",
-            "当前目标锁定阈值",
-            "应用阈值",
-            "parseVisualStatus",
-            "visual_status.min_confidence",
+            "视觉识别模型切换",
+            "visionModelCombo",
+            "LocateAnything-3B（单类 trash，识别显示）",
+            "YOLO11-GAM（best6.pt，五类实时检测）",
+            "detect and classify（trash 检测 + 五材质分类）",
+            "应用选择并完整冷重启",
+            "--restart-managed",
+            "QMessageBox::Yes | QMessageBox::No, QMessageBox::No",
+            "不会继承本次 --authorize-fod-motion",
+        ):
+            self.assertIn(evidence, GUI_SOURCE)
+        for safety_evidence in (
+            "coverage_status_fresh",
+            "navigation_status_fresh",
+            "move_base_goal_active",
+            "vehicle_stopped_for_model_switch",
+            'mode_state == QStringLiteral("GPS_ACTIVE")',
+            "visual_confidence_adjustable",
+        ):
+            self.assertIn(safety_evidence, refresh)
+        self.assertIn('QStringLiteral("--restart-managed")', switch_handler)
+        start_call = switch_handler[
+            switch_handler.index("vision_model_switch_process_.start(") :
+        ]
+        self.assertNotIn('QStringLiteral("--authorize-fod-motion")', start_call)
+        for evidence in (
+            'arg name="configured_vision_backend"',
+            'arg name="vision_backend_switch_script"',
+            'param name="configured_vision_backend"',
+            'param name="vision_backend_switch_script"',
+        ):
+            self.assertIn(evidence, launch)
+        self.assertIn('configured_vision_backend:="$fod_backend"', NVIDIA_UI_TEXT)
+        self.assertIn(
+            'vision_backend_switch_script:="$SCRIPT_DIR/switch_fod_backend.sh"',
+            NVIDIA_UI_TEXT,
+        )
+
+    def test_vision_preview_is_raw_zed_with_backend_specific_freshness(self):
+        self.assertIn(
+            "constexpr double kFreshVisionResultSeconds = 0.35;", GUI_SOURCE
+        )
+        callback = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::visionResultsCallback") :
+            GUI_SOURCE.index("void MainWindow::modeStateCallback")
+        ]
+        refresh = GUI_SOURCE[
+            GUI_SOURCE.index("const bool raw_preview_fresh") :
+            GUI_SOURCE.index("const QString visual_state")
+        ]
+        for evidence in (
+            "backend != configured_vision_backend_",
+            "sourceStampAge(msg->header.stamp)",
+            "visionResultAgeAccepted(backend, source_age)",
+            "rejected_vision_results",
+        ):
+            self.assertIn(evidence, callback)
+        for evidence in (
+            "bool visionResultFreshnessRequired(const QString& backend)",
+            'backend != QStringLiteral("locateanything")',
+            "visionResultAgeAccepted(vision_results_backend, vision_results_age)",
+            "vision_results_async_display ||",
+            "异步结果（源帧年龄 %2，仅显示）",
+            "异步推理正常 · 源帧 %1（不限时）",
+        ):
+            self.assertIn(evidence, GUI_SOURCE)
+        for evidence in (
+            "selected_preview = data.raw_preview",
+            "drawVisionResults(selected_preview, data.vision_results)",
+            "data.raw_preview_stamp",
+            "data.vision_results.header.stamp",
+            "D:%2 C:%3 depth:%4",
+            "object:%2 track:%3",
+            "world:%8",
+        ):
+            self.assertIn(evidence, GUI_SOURCE if evidence.startswith("D:") else refresh)
+        self.assertNotIn("selected_preview = data.debug_image", refresh)
+
+    def test_global_detection_confidence_routes_to_active_detector_backend(self):
+        for evidence in (
+            '"/fod_detector/set_detection_confidence"',
+            'parameter.name = "detector_confidence"',
+            "visual_lock_confidence_input_->setRange(0.05, 0.95)",
+            "当前全局检测阈值",
+            "应用到当前模型",
+            "detector_confidence_supported",
+            "detector_diagnostic_fresh",
+            "detector_backend_matches",
             "visual_lock_confidence_request_pending_",
             "void MainWindow::applyVisualLockConfidence()",
             'visual_status.state == QStringLiteral("DISABLED")',
             'visual_status.state == QStringLiteral("COMPLETE")',
             'visual_status.state == QStringLiteral("ABORT")',
             "!visual_status.active",
-            "configDouble(call.response.config, \"min_confidence\"",
+            "configDouble(call.response.config, \"detector_confidence\"",
+            "configBool(call.response.config, \"supported\"",
+            "configBool(call.response.config, \"accepted\"",
+            "result.backend_id != expected_backend",
+            "LocateAnything 不提供可校准的逐框置信度",
         ):
             self.assertIn(evidence, GUI_SOURCE + GUI_HEADER)
+        handler = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::applyVisualLockConfidence()") :
+            GUI_SOURCE.index("void MainWindow::queryCameraControls()")
+        ]
+        self.assertNotIn('"/fod_visual_servo/set_parameters"', handler)
 
     def test_visual_motion_uses_safe_mode_arbiter_only(self):
         self.assertIn('"/fod_navigation_mode/set_fod_enabled"', GUI_SOURCE)

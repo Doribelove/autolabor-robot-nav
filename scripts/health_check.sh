@@ -236,29 +236,75 @@ else
   fail "FOD detector/controller model contract is invalid"
 fi
 if dual_host_validate_fod_weights; then
-  pass "FOD weights match the configured SHA256"
+  pass "FOD $NVIDIA_FOD_BACKEND artifacts match the configured SHA256 contract"
 else
-  fail "FOD weights do not match the configured SHA256"
+  fail "FOD $NVIDIA_FOD_BACKEND artifacts do not match the configured SHA256 contract"
 fi
-if [[ -r "$NVIDIA_FOD_ULTRALYTICS_ROOT/ultralytics/__init__.py" ]]; then
-  fod_ultralytics_package_root="$(
-    readlink -f -- "$NVIDIA_FOD_ULTRALYTICS_ROOT/ultralytics"
-  )"
-elif [[ "${NVIDIA_FOD_ULTRALYTICS_ROOT##*/}" == ultralytics &&
-        -r "$NVIDIA_FOD_ULTRALYTICS_ROOT/__init__.py" ]]; then
-  fod_ultralytics_package_root="$(
-    readlink -f -- "$NVIDIA_FOD_ULTRALYTICS_ROOT"
-  )"
-else
-  fod_ultralytics_package_root=""
-fi
-if [[ -n "$fod_ultralytics_package_root" &&
-      -r "$fod_ultralytics_package_root/nn/modules/attention.py" ]] &&
-   grep -Fq 'class GAM_Attention' \
-     "$fod_ultralytics_package_root/nn/modules/attention.py"; then
-  pass "project-local Ultralytics contains the GAM runtime"
-else
-  fail "project-local Ultralytics GAM runtime is missing"
+fod_ultralytics_package_root=""
+if [[ "$NVIDIA_FOD_BACKEND" == yolo ||
+      "$NVIDIA_FOD_BACKEND" == detect_and_classify ]]; then
+  if [[ -r "$NVIDIA_FOD_ULTRALYTICS_ROOT/ultralytics/__init__.py" ]]; then
+    fod_ultralytics_package_root="$(
+      readlink -f -- "$NVIDIA_FOD_ULTRALYTICS_ROOT/ultralytics"
+    )"
+  elif [[ "${NVIDIA_FOD_ULTRALYTICS_ROOT##*/}" == ultralytics &&
+          -r "$NVIDIA_FOD_ULTRALYTICS_ROOT/__init__.py" ]]; then
+    fod_ultralytics_package_root="$(
+      readlink -f -- "$NVIDIA_FOD_ULTRALYTICS_ROOT"
+    )"
+  fi
+  if [[ -n "$fod_ultralytics_package_root" &&
+        -r "$fod_ultralytics_package_root/nn/modules/attention.py" ]] &&
+     grep -Fq 'class GAM_Attention' \
+       "$fod_ultralytics_package_root/nn/modules/attention.py"; then
+    pass "configured Ultralytics contains the retained GAM runtime"
+  else
+    fail "configured Ultralytics GAM runtime is missing"
+  fi
+  if [[ "$NVIDIA_FOD_BACKEND" == detect_and_classify ]]; then
+    if env PYTHONDONTWRITEBYTECODE=1 \
+         PYTHONPATH="$NVIDIA_FOD_ULTRALYTICS_ROOT:${PYTHONPATH:-}" \
+         "$NVIDIA_DETECTOR_PYTHON" - <<'PY' >/dev/null 2>&1
+import lap
+import torch
+import ultralytics
+
+assert torch.cuda.is_available()
+assert ultralytics.__version__
+assert lap.__version__
+PY
+    then
+      pass "detect_and_classify imports custom Ultralytics, CUDA, and persistent BoT-SORT dependency"
+    else
+      fail "detect_and_classify CUDA/Ultralytics/lap runtime is unavailable"
+    fi
+  fi
+elif [[ "$NVIDIA_FOD_BACKEND" == locateanything ]]; then
+  locate_cache_root="$NVIDIA_LOCATEANYTHING_MODEL_ROOT/.cache"
+  if env PYTHONDONTWRITEBYTECODE=1 \
+       PYTHONPATH="${PYTHONPATH:-}" \
+       HF_HOME="$locate_cache_root/huggingface" \
+       HUGGINGFACE_HUB_CACHE="$locate_cache_root/huggingface/hub" \
+       TRANSFORMERS_CACHE="$locate_cache_root/huggingface/transformers" \
+       TORCH_HOME="$locate_cache_root/torch" \
+       XDG_CACHE_HOME="$locate_cache_root/xdg" \
+       CUDA_CACHE_PATH="$locate_cache_root/cuda" \
+       "$NVIDIA_LOCATEANYTHING_WORKER_PYTHON" - <<'PY' >/dev/null 2>&1
+import torch
+import transformers
+
+from autolabor_fod_vision.locateanything_runtime import LocateAnythingDetector
+
+assert torch.cuda.is_available()
+assert tuple(torch.cuda.get_device_capability(0)) >= (8, 0)
+assert LocateAnythingDetector
+assert transformers.__version__
+PY
+  then
+    pass "LocateAnything isolated worker imports with compatible NVIDIA CUDA"
+  else
+    fail "LocateAnything isolated worker or NVIDIA CUDA runtime is unavailable"
+  fi
 fi
 
 required_packages=(
@@ -310,10 +356,15 @@ if [[ "$mode" == --network || "$mode" == --runtime ]]; then
   fi
 fi
 
+topic_publishers() {
+  local topic="$1"
+  rostopic info "$topic" 2>/dev/null |
+    awk '/^Publishers:/{inside=1; next} /^Subscribers:/{inside=0} inside && /^ \*/ {print $2}'
+}
+
 publisher_owner() {
   local topic="$1" expected="$2" publishers
-  publishers="$(rostopic info "$topic" 2>/dev/null |
-    awk '/^Publishers:/{inside=1; next} /^Subscribers:/{inside=0} inside && /^ \*/ {print $2}')"
+  publishers="$(topic_publishers "$topic")"
   [[ "$publishers" == "$expected" ]]
 }
 
@@ -371,11 +422,54 @@ parameter_matches() {
 numeric_parameter_matches() {
   local parameter="$1" expected="$2" actual
   actual="$(timeout 5 rosparam get "$parameter" 2>/dev/null)" || return 1
+  numeric_values_match "$actual" "$expected"
+}
+
+numeric_values_match() {
+  local actual="$1" expected="$2"
+  [[ -n "$actual" && -n "$expected" ]] || return 1
   awk -v actual="$actual" -v expected="$expected" 'BEGIN {
     difference = actual - expected
     if (difference < 0) difference = -difference
     exit !(difference <= 0.000001)
   }'
+}
+
+numeric_value_within_cap() {
+  local actual="$1" cap="$2"
+  [[ -n "$actual" && -n "$cap" ]] || return 1
+  awk -v actual="$actual" -v cap="$cap" 'BEGIN {
+    exit !(actual >= 0.0 && actual <= cap + 0.000001)
+  }'
+}
+
+locateanything_expected_query_count() {
+  local package_root config_path
+  package_root="$(rospack find autolabor_fod_vision 2>/dev/null)" || return 1
+  config_path="$package_root/config/locateanything.yaml"
+  LOCATEANYTHING_CONFIG_PATH="$config_path" python3 - <<'PY'
+import os
+
+import yaml
+
+from autolabor_fod_vision.locateanything_runtime import parse_categories
+
+path = os.environ["LOCATEANYTHING_CONFIG_PATH"]
+with open(path, "r", encoding="utf-8") as stream:
+    root = yaml.safe_load(stream) or {}
+if not isinstance(root, dict):
+    raise SystemExit("LocateAnything YAML root must be an object")
+categories = parse_categories(root.get("locateanything_categories", []))
+query_count = sum(len(category.grounding_prompts) for category in categories)
+if query_count < 1:
+    raise SystemExit("LocateAnything YAML must define at least one query")
+print(query_count)
+PY
+}
+
+message_scalar_field() {
+  local message="$1" field="$2"
+  awk -v wanted="$field:" '$1 == wanted {print $2; exit}' <<<"$message"
 }
 
 if [[ "$mode" == --runtime ]]; then
@@ -386,8 +480,8 @@ if [[ "$mode" == --runtime ]]; then
     j6m_nodes=(/laserMapping /avoidance_scan_fusion /move_base /fod_navigation_mode)
     runtime_nodes=("${nvidia_nodes[@]}" "${j6m_nodes[@]}")
     if [[ "$STATIC_MAP_ENABLED" != false ]]; then
-      j6m_nodes+=(/map_server /fast_lio_map_localizer /fast_lio_localization_cmd_vel_gate /coverage_manager)
-      runtime_nodes+=(/map_server /fast_lio_map_localizer /fast_lio_localization_cmd_vel_gate /coverage_manager)
+      j6m_nodes+=(/map_server /fast_lio_map_localizer /fast_lio_localization_cmd_vel_gate /coverage_manager /hybrid_teb_command_mux)
+      runtime_nodes+=(/map_server /fast_lio_map_localizer /fast_lio_localization_cmd_vel_gate /coverage_manager /hybrid_teb_command_mux)
     fi
     if [[ "$REQUIRE_CAN" != false ]]; then
       nvidia_nodes+=(/canbus_driver /m2_driver)
@@ -526,24 +620,92 @@ if [[ "$mode" == --runtime ]]; then
       else
         fail "detector model contract does not match configuration"
       fi
-      fod_runtime_import_path="$(
-        timeout 5 rosparam get /fod_detector/ultralytics_import_path \
-          2>/dev/null || true
-      )"
-      fod_runtime_gam_layers="$(
-        timeout 5 rosparam get /fod_detector/gam_layer_count \
-          2>/dev/null || true
-      )"
-      if [[ -n "$fod_ultralytics_package_root" &&
-            "$fod_runtime_import_path" == "$fod_ultralytics_package_root"/* ]]; then
-        pass "detector imports project-local Ultralytics ($fod_runtime_import_path)"
+      if parameter_matches /fod_detector/backend "$NVIDIA_FOD_BACKEND"; then
+        pass "detector backend matches configuration ($NVIDIA_FOD_BACKEND)"
       else
-        fail "detector Ultralytics import is outside the configured project copy (${fod_runtime_import_path:-unavailable})"
+        fail "detector backend does not match configuration"
       fi
-      if [[ "$fod_runtime_gam_layers" =~ ^[1-9][0-9]*$ ]]; then
-        pass "detector checkpoint contains GAM_Attention ($fod_runtime_gam_layers layer(s))"
+      if [[ "$NVIDIA_FOD_BACKEND" == yolo ]]; then
+        fod_runtime_import_path="$(
+          timeout 5 rosparam get /fod_detector/ultralytics_import_path \
+            2>/dev/null || true
+        )"
+        fod_runtime_gam_layers="$(
+          timeout 5 rosparam get /fod_detector/gam_layer_count \
+            2>/dev/null || true
+        )"
+        if [[ -n "$fod_ultralytics_package_root" &&
+              "$fod_runtime_import_path" == "$fod_ultralytics_package_root"/* ]]; then
+          pass "detector imports retained project-local Ultralytics ($fod_runtime_import_path)"
+        else
+          fail "detector Ultralytics import is outside the configured project copy (${fod_runtime_import_path:-unavailable})"
+        fi
+        if [[ "$fod_runtime_gam_layers" =~ ^[1-9][0-9]*$ ]]; then
+          pass "detector checkpoint contains GAM_Attention ($fod_runtime_gam_layers layer(s))"
+        else
+          fail "detector checkpoint did not report a GAM_Attention layer"
+        fi
+      elif [[ "$NVIDIA_FOD_BACKEND" == locateanything ]]; then
+        locateanything_expected_queries="$(
+          locateanything_expected_query_count 2>/dev/null || true
+        )"
+        locateanything_actual_queries="$(
+          timeout 5 rosparam get /fod_detector/semantic_query_count \
+            2>/dev/null || true
+        )"
+        if parameter_matches /fod_detector/runtime_path \
+             "$NVIDIA_LOCATEANYTHING_MODEL_ROOT"; then
+          pass "detector uses the external LocateAnything model directory"
+        else
+          fail "detector LocateAnything runtime path does not match configuration"
+        fi
+        if [[ ! "$locateanything_expected_queries" =~ ^[1-9][0-9]*$ ]]; then
+          fail "cannot derive the LocateAnything query count from its YAML"
+        elif parameter_matches /fod_detector/motion_eligible false &&
+           parameter_matches /fod_detector/clip_filter_active true &&
+           parameter_matches /fod_detector/source_pre_resize_enabled false &&
+           [[ "$locateanything_actual_queries" == \
+              "$locateanything_expected_queries" ]]; then
+          pass "LocateAnything recognition-only gate, native input, ${locateanything_expected_queries} configured queries, and CLIP exclusion filter are active"
+        else
+          fail "LocateAnything recognition-only/native-input/query/CLIP runtime contract is not active (queries: runtime=${locateanything_actual_queries:-unavailable}, configured=${locateanything_expected_queries})"
+        fi
+        if parameter_matches /fod_vision_result_adapter/display_depth_enabled true &&
+           parameter_matches /fod_vision_result_adapter/display_depth_motion_isolated true &&
+           parameter_matches /fod_vision_result_adapter/depth_buffer_size 120 &&
+           parameter_matches /fod_vision_result_adapter/depth_aggregation median &&
+           parameter_matches /fod_vision_result_adapter/depth_cluster_method \
+             organized_point_cloud_geometry; then
+          pass "LocateAnything Qt-only synchronized point-cloud depth fusion is active"
+        else
+          fail "LocateAnything Qt-only synchronized point-cloud depth fusion contract is not active"
+        fi
       else
-        fail "detector checkpoint did not report a GAM_Attention layer"
+        fod_runtime_import_path="$(
+          timeout 5 rosparam get /fod_detector/ultralytics_import_path \
+            2>/dev/null || true
+        )"
+        fod_runtime_gam_layers="$(
+          timeout 5 rosparam get /fod_detector/gam_layer_count \
+            2>/dev/null || true
+        )"
+        if [[ -n "$fod_ultralytics_package_root" &&
+              "$fod_runtime_import_path" == "$fod_ultralytics_package_root"/* ]]; then
+          pass "detect_and_classify imports the configured yolo11_GAM Ultralytics"
+        else
+          fail "detect_and_classify Ultralytics import path is unexpected (${fod_runtime_import_path:-unavailable})"
+        fi
+        if [[ "$fod_runtime_gam_layers" =~ ^[1-9][0-9]*$ ]] &&
+           parameter_matches /fod_detector/detector_task detect &&
+           parameter_matches /fod_detector/classifier_task classify &&
+           parameter_matches /fod_detector/classifier_probability_dimensions 5 &&
+           parameter_matches /fod_detector/model_load_count_detector 1 &&
+           parameter_matches /fod_detector/model_load_count_classifier 1 &&
+           parameter_matches /fod_detector/motion_eligible false; then
+          pass "detect_and_classify model/task/load-once and recognition-only gates are active"
+        else
+          fail "detect_and_classify runtime contract is incomplete"
+        fi
       fi
     fi
     if numeric_parameter_matches /nvidia_cmd_vel_watchdog/max_linear_speed "$CMD_VEL_MAX_LINEAR_SPEED"; then
@@ -556,15 +718,87 @@ if [[ "$mode" == --runtime ]]; then
     else
       fail "watchdog angular cap does not match configuration"
     fi
-    if numeric_parameter_matches /move_base/TebLocalPlannerROS/max_vel_x "$NAV_MAX_LINEAR_SPEED"; then
-      pass "TEB linear cap matches navigation configuration"
+    teb_linear_cap="$(
+      timeout 5 rosparam get /move_base/TebLocalPlannerROS/max_vel_x \
+        2>/dev/null || true
+    )"
+    teb_angular_cap="$(
+      timeout 5 rosparam get /move_base/TebLocalPlannerROS/max_vel_theta \
+        2>/dev/null || true
+    )"
+    if [[ "$STATIC_MAP_ENABLED" == true ]]; then
+      # NAV_MAX_* is only the cold-start bootstrap profile.  In static-map
+      # coverage mode the operator may atomically persist a different profile
+      # from Qt; coverage_manager then applies that profile to TEB through
+      # dynamic_reconfigure.  Treat the live coverage status as the runtime
+      # authority, while still requiring every requested envelope to remain
+      # inside the NVIDIA watchdog's final command caps.
+      coverage_status_message="$(
+        timeout 5 rostopic echo --noarr -n 1 /coverage/status \
+          2>/dev/null || true
+      )"
+      coverage_active="$(
+        message_scalar_field "$coverage_status_message" active
+      )"
+      coverage_linear_cap="$(
+        message_scalar_field "$coverage_status_message" max_forward_speed_mps
+      )"
+      coverage_angular_cap="$(
+        message_scalar_field "$coverage_status_message" max_angular_speed_rps
+      )"
+      transition_linear_cap="$(
+        message_scalar_field \
+          "$coverage_status_message" transition_max_forward_speed_mps
+      )"
+      transition_reverse_cap="$(
+        message_scalar_field \
+          "$coverage_status_message" transition_max_reverse_speed_mps
+      )"
+      transition_angular_cap="$(
+        message_scalar_field \
+          "$coverage_status_message" transition_max_angular_speed_rps
+      )"
+
+      if numeric_values_match "$teb_linear_cap" "$coverage_linear_cap"; then
+        pass "TEB linear cap matches Qt coverage planning parameters"
+      elif [[ "$coverage_active" == true ]] &&
+           numeric_value_within_cap "$teb_linear_cap" "$coverage_linear_cap"; then
+        pass "TEB linear cap is within the active Qt coverage planning limit"
+      elif numeric_values_match "$teb_linear_cap" "$NAV_MAX_LINEAR_SPEED"; then
+        pass "TEB linear cap matches the navigation bootstrap configuration"
+      else
+        fail "TEB linear cap matches neither Qt coverage nor bootstrap configuration"
+      fi
+      if numeric_values_match "$teb_angular_cap" "$coverage_angular_cap"; then
+        pass "TEB angular cap matches Qt coverage planning parameters"
+      elif [[ "$coverage_active" == true ]] &&
+           numeric_value_within_cap "$teb_angular_cap" "$coverage_angular_cap"; then
+        pass "TEB angular cap is within the active Qt coverage planning limit"
+      elif numeric_values_match "$teb_angular_cap" "$NAV_MAX_ANGULAR_SPEED"; then
+        pass "TEB angular cap matches the navigation bootstrap configuration"
+      else
+        fail "TEB angular cap matches neither Qt coverage nor bootstrap configuration"
+      fi
+      if numeric_value_within_cap "$coverage_linear_cap" "$CMD_VEL_MAX_LINEAR_SPEED" &&
+         numeric_value_within_cap "$transition_linear_cap" "$CMD_VEL_MAX_LINEAR_SPEED" &&
+         numeric_value_within_cap "$transition_reverse_cap" "$CMD_VEL_MAX_LINEAR_SPEED" &&
+         numeric_value_within_cap "$coverage_angular_cap" "$CMD_VEL_MAX_ANGULAR_SPEED" &&
+         numeric_value_within_cap "$transition_angular_cap" "$CMD_VEL_MAX_ANGULAR_SPEED"; then
+        pass "Qt coverage and transition caps are within NVIDIA watchdog limits"
+      else
+        fail "Qt coverage or transition cap exceeds the NVIDIA watchdog envelope"
+      fi
     else
-      fail "TEB linear cap does not match navigation configuration"
-    fi
-    if numeric_parameter_matches /move_base/TebLocalPlannerROS/max_vel_theta "$CMD_VEL_MAX_ANGULAR_SPEED"; then
-      pass "TEB angular cap matches NVIDIA watchdog"
-    else
-      fail "TEB angular cap does not match NVIDIA watchdog"
+      if numeric_values_match "$teb_linear_cap" "$NAV_MAX_LINEAR_SPEED"; then
+        pass "TEB linear cap matches navigation configuration"
+      else
+        fail "TEB linear cap does not match navigation configuration"
+      fi
+      if numeric_values_match "$teb_angular_cap" "$NAV_MAX_ANGULAR_SPEED"; then
+        pass "TEB angular cap matches navigation configuration"
+      else
+        fail "TEB angular cap does not match navigation configuration"
+      fi
     fi
     if [[ "$STATIC_MAP_ENABLED" == true ]]; then
       if parameter_matches /fast_lio_map_localizer/good_matches_required 2; then
@@ -577,6 +811,41 @@ if [[ "$mode" == --runtime ]]; then
         pass "localization gate monitors and cancels move_base goals"
       else
         fail "localization gate move_base goal/cancel topics do not match"
+      fi
+      if publisher_owner /cmd_vel_teb /move_base; then
+        pass "/cmd_vel_teb is owned by /move_base"
+      else
+        fail "/cmd_vel_teb owner is not exactly /move_base"
+      fi
+      if publisher_owner /cmd_vel_unlocalized /hybrid_teb_command_mux; then
+        pass "/cmd_vel_unlocalized is owned by /hybrid_teb_command_mux"
+      else
+        fail "/cmd_vel_unlocalized owner is not exactly /hybrid_teb_command_mux"
+      fi
+      if parameter_matches /hybrid_teb_command_mux/use_tf_pose true &&
+         parameter_matches /hybrid_teb_command_mux/global_frame map &&
+         parameter_matches /hybrid_teb_command_mux/robot_base_frame base_link &&
+         parameter_matches /hybrid_teb_command_mux/safety_topic /move_base/CoverageGlobalPlanner/hybrid_path_safe; then
+        pass "Hybrid TEB mux uses the localized pose and planner safety permit"
+      else
+        fail "Hybrid TEB mux pose/safety contract does not match"
+      fi
+      hybrid_safety_topic=/move_base/CoverageGlobalPlanner/hybrid_path_safe
+      if publisher_owner "$hybrid_safety_topic" /move_base; then
+        pass "Hybrid path safety permit is owned by /move_base"
+      else
+        hybrid_safety_publishers="$(topic_publishers "$hybrid_safety_topic")"
+        localization_status="$(
+          timeout 2 rostopic echo --noarr -n 1 \
+            /fast_lio/localization_status 2>/dev/null |
+            awk '/^data: / {sub(/^data: /, ""); gsub(/^"|"$/, ""); print; exit}'
+        )"
+        if [[ -z "$hybrid_safety_publishers" &&
+              "$localization_status" == state=WAITING_INITIAL_POSE\;* ]]; then
+          pass "Hybrid path safety permit is fail-closed until initial localization initializes move_base"
+        else
+          fail "Hybrid path safety permit owner is not exactly /move_base"
+        fi
       fi
     fi
 

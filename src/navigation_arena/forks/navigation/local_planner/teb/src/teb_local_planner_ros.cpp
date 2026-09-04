@@ -69,7 +69,8 @@ namespace teb_local_planner
 TebLocalPlannerROS::TebLocalPlannerROS() : costmap_ros_(NULL), tf_(NULL), costmap_model_(NULL),
                                            costmap_converter_loader_("costmap_converter", "costmap_converter::BaseCostmapToPolygons"),
                                            dynamic_recfg_(NULL), custom_via_points_active_(false), goal_reached_(false), no_infeasible_plans_(0),
-                                           last_preferred_rotdir_(RotType::none), initialized_(false)
+                                           last_preferred_rotdir_(RotType::none), initialized_(false),
+                                           reinitialize_on_global_plan_(false)
 {
 }
 
@@ -80,7 +81,22 @@ TebLocalPlannerROS::~TebLocalPlannerROS()
 
 void TebLocalPlannerROS::reconfigureCB(TebLocalPlannerReconfigureConfig& config, uint32_t level)
 {
+  const int previous_motion_direction = cfg_.robot.motion_direction_mode;
   cfg_.reconfigure(config);
+  if (planner_ && motionDirectionChangeRequiresReinitialization(
+                      previous_motion_direction,
+                      cfg_.robot.motion_direction_mode))
+  {
+    // Adjacent cusp goals are normally closer than force_reinit_new_goal_dist.
+    // Without this explicit reset, TEB hot-starts the new fixed-gear action
+    // from the elastic band on the other side of the cusp and repeatedly
+    // produces a command with the obsolete sign.
+    planner_->clearPlanner();
+    no_infeasible_plans_ = 0;
+    ROS_INFO("TebLocalPlannerROS: motion direction changed from %d to %d; "
+             "discarding the previous warm-start band.",
+             previous_motion_direction, cfg_.robot.motion_direction_mode);
+  }
   ros::NodeHandle nh("~/" + name_);
   // create robot footprint/contour model for optimization
   RobotFootprintModelPtr robot_model = getRobotFootprintFromParamServer(nh);
@@ -98,6 +114,7 @@ void TebLocalPlannerROS::initialize(std::string name, tf2_ros::Buffer* tf, costm
 	        
     // get parameters of TebConfig via the nodehandle and override the default config
     cfg_.loadRosParamFromNodeHandle(nh);       
+    nh.param("reinitialize_on_global_plan", reinitialize_on_global_plan_, false);
     
     // reserve some memory for obstacles
     obstacles_.reserve(500);
@@ -205,6 +222,15 @@ bool TebLocalPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& 
     ROS_ERROR("teb_local_planner has not been initialized, please call initialize() before using this planner");
     return false;
   }
+
+  // A warm-start is useful when the global path is stable, but a planner that
+  // replaces its complete rolling path at 1 Hz can otherwise keep deforming an
+  // obsolete band until it contains loops far longer than the local horizon.
+  // Make the behavior explicit so ordinary move_base use retains the upstream
+  // temporal warm-start while online Hybrid mode initializes from each fresh
+  // curvature-feasible reference.
+  if (reinitialize_on_global_plan_)
+    planner_->clearPlanner();
 
   // store the global plan
   global_plan_.clear();
@@ -407,7 +433,19 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   }
 
   // Get the velocity command for this sampling interval
-  if (!planner_->getVelocityCommand(cmd_vel.twist.linear.x, cmd_vel.twist.linear.y, cmd_vel.twist.angular.z, cfg_.trajectory.control_look_ahead_poses))
+  // A reverse fixed-gear Hybrid action already supplies a signed,
+  // curvature-feasible reference path.  Do not extract its command across
+  // multiple optimized poses: near a stop/cusp the soft TEB graph can contain
+  // a tiny local fold even though its immediate edge still has the requested
+  // reverse sign.  Looking across that fold can turn a valid reverse edge into
+  // a forward aggregate and reinitialize the same trajectory every cycle.
+  // Forward/sweep actions keep the configured look-ahead: that horizon lets
+  // an Ackermann chassis merge onto a line when the first optimized edge is a
+  // tiny backward numerical fold but the aggregate motion is forward.
+  const int command_look_ahead_poses =
+      cfg_.robot.motion_direction_mode < 0
+          ? 1 : cfg_.trajectory.control_look_ahead_poses;
+  if (!planner_->getVelocityCommand(cmd_vel.twist.linear.x, cmd_vel.twist.linear.y, cmd_vel.twist.angular.z, command_look_ahead_poses))
 
   {
     planner_->clearPlanner();
@@ -419,9 +457,33 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
     return mbf_msgs::ExePathResult::NO_VALID_CMD;
   }
   
+  // Validate the raw optimized sign before saturation.  In a forward-only
+  // profile max_vel_x_backwards is zero, and saturation would otherwise turn
+  // an invalid negative command into -0.0 and hide a permanent planner stall
+  // from the fixed-gear guard.
+  if (!enforceMotionDirectionCommand(
+          cmd_vel.twist.linear.x, cmd_vel.twist.linear.y,
+          cmd_vel.twist.angular.z, cfg_.robot.motion_direction_mode))
+  {
+    planner_->clearPlanner();
+    ROS_WARN("TebLocalPlannerROS: optimized command violated the fixed-gear contract. Resetting planner...");
+    ++no_infeasible_plans_;
+    time_last_infeasible_plan_ = ros::Time::now();
+    last_cmd_ = cmd_vel.twist;
+    message = "teb_local_planner fixed-gear command violation";
+    return mbf_msgs::ExePathResult::NO_VALID_CMD;
+  }
+
   // Saturate velocity, if the optimization results violates the constraints (could be possible due to soft constraints).
   saturateVelocity(cmd_vel.twist.linear.x, cmd_vel.twist.linear.y, cmd_vel.twist.angular.z,
                    cfg_.robot.max_vel_x, cfg_.robot.max_vel_y, cfg_.robot.max_vel_theta, cfg_.robot.max_vel_x_backwards);
+
+  if (!cfg_.robot.cmd_angle_instead_rotvel)
+  {
+    enforceMinimumTurningRadiusCommand(
+        cmd_vel.twist.linear.x, cfg_.robot.min_turning_radius,
+        cmd_vel.twist.angular.z);
+  }
 
   // convert rot-vel to steering angle if desired (carlike robot).
   // The min_turning_radius is allowed to be slighly smaller since it is a soft-constraint
@@ -477,25 +539,78 @@ void TebLocalPlannerROS::updateObstacleContainerWithCostmap()
   if (cfg_.obstacles.include_costmap_obstacles)
   {
     Eigen::Vector2d robot_orient = robot_pose_.orientationUnitVec();
+    // The local costmap may contain large solid walls.  Turning every lethal
+    // cell (including the wall interior) into a separate TEB obstacle makes
+    // optimization cost scale with occupied area instead of with the boundary
+    // that can actually constrain the robot.  The transformed global plan is
+    // already bounded by max_global_plan_lookahead_dist, so retain only nearby
+    // boundary cells with enough margin for the footprint and inflation cost.
+    // isTrajectoryFeasible() still checks the resulting trajectory against the
+    // complete costmap below, hence this is an optimizer input reduction rather
+    // than a relaxation of collision checking.
+    const double relevant_obstacle_distance = std::max(
+        4.0,
+        cfg_.trajectory.max_global_plan_lookahead_dist +
+            cfg_.obstacles.inflation_dist + robot_circumscribed_radius + 1.0);
+    const double relevant_obstacle_distance_sq =
+        relevant_obstacle_distance * relevant_obstacle_distance;
+    const double full_resolution_distance =
+        robot_circumscribed_radius + cfg_.obstacles.inflation_dist + 0.5;
+    const double full_resolution_distance_sq =
+        full_resolution_distance * full_resolution_distance;
+    const unsigned int boundary_sample_stride = std::max(
+        1u, static_cast<unsigned int>(
+                std::ceil(0.30 / costmap_->getResolution())));
+    const unsigned int size_x = costmap_->getSizeInCellsX();
+    const unsigned int size_y = costmap_->getSizeInCellsY();
+    std::size_t accepted_obstacles = 0;
     
-    for (unsigned int i=0; i<costmap_->getSizeInCellsX()-1; ++i)
+    for (unsigned int i = 0; i < size_x; ++i)
     {
-      for (unsigned int j=0; j<costmap_->getSizeInCellsY()-1; ++j)
+      for (unsigned int j = 0; j < size_y; ++j)
       {
         if (costmap_->getCost(i,j) == costmap_2d::LETHAL_OBSTACLE)
         {
+          const bool interior =
+              i > 0 && j > 0 && i + 1 < size_x && j + 1 < size_y &&
+              costmap_->getCost(i - 1, j) == costmap_2d::LETHAL_OBSTACLE &&
+              costmap_->getCost(i + 1, j) == costmap_2d::LETHAL_OBSTACLE &&
+              costmap_->getCost(i, j - 1) == costmap_2d::LETHAL_OBSTACLE &&
+              costmap_->getCost(i, j + 1) == costmap_2d::LETHAL_OBSTACLE;
+          if (interior)
+            continue;
+
           Eigen::Vector2d obs;
           costmap_->mapToWorld(i,j,obs.coeffRef(0), obs.coeffRef(1));
             
           // check if obstacle is interesting (e.g. not far behind the robot)
           Eigen::Vector2d obs_dir = obs-robot_pose_.position();
+          const double obstacle_distance_sq = obs_dir.squaredNorm();
+          if (obstacle_distance_sq > relevant_obstacle_distance_sq)
+            continue;
+          // A 0.30 m representation is sufficient for distant static wall
+          // boundaries and avoids hundreds of nearly identical point costs.
+          // Preserve the native map resolution around the complete robot and
+          // its inflation buffer, where command optimization is most safety
+          // sensitive.  The hash prevents diagonal grid edges from aliasing
+          // with a simple row/column modulus.
+          const unsigned int sample_hash =
+              (i * 73856093u) ^ (j * 19349663u);
+          if (obstacle_distance_sq > full_resolution_distance_sq &&
+              sample_hash % boundary_sample_stride != 0u)
+            continue;
           if ( obs_dir.dot(robot_orient) < 0 && obs_dir.norm() > cfg_.obstacles.costmap_obstacles_behind_robot_dist  )
             continue;
             
           obstacles_.push_back(ObstaclePtr(new PointObstacle(obs)));
+          ++accepted_obstacles;
         }
       }
     }
+    ROS_DEBUG_THROTTLE(1.0,
+                       "TEB retained %zu nearby costmap boundary obstacles "
+                       "within %.2f m",
+                       accepted_obstacles, relevant_obstacle_distance);
   }
 }
 
@@ -915,6 +1030,41 @@ void TebLocalPlannerROS::saturateVelocityCommand(double& vx, double& vy, double&
     vy *= ratio_y;
     omega *= ratio_omega;
   }
+}
+
+
+bool TebLocalPlannerROS::enforceMotionDirectionCommand(
+    double& vx, double& vy, double& omega, int motion_direction_mode)
+{
+  const bool invalid = motion_direction_mode < -1 ||
+      motion_direction_mode > 1 ||
+      (motion_direction_mode > 0 && vx < -1.0e-6) ||
+      (motion_direction_mode < 0 && vx > 1.0e-6);
+  if (!invalid)
+    return true;
+  vx = 0.0;
+  vy = 0.0;
+  omega = 0.0;
+  return false;
+}
+
+
+bool TebLocalPlannerROS::motionDirectionChangeRequiresReinitialization(
+    int previous_mode, int requested_mode)
+{
+  return previous_mode != requested_mode;
+}
+
+
+void TebLocalPlannerROS::enforceMinimumTurningRadiusCommand(
+    double vx, double min_turning_radius, double& omega)
+{
+  if (!std::isfinite(vx) || !std::isfinite(omega) ||
+      !std::isfinite(min_turning_radius) || min_turning_radius <= 0.0)
+    return;
+  const double maximum_omega = std::abs(vx) / min_turning_radius;
+  if (std::abs(omega) > maximum_omega)
+    omega = std::copysign(maximum_omega, omega);
 }
      
      

@@ -64,7 +64,8 @@ def test_initialize_and_tool_catalogue():
                 "allow_reverse_transit", "reverse_speed_mps",
                 "max_angular_speed_rps", "linear_accel_mps2",
                 "angular_accel_rps2", "direction_change_penalty_sec",
-                "segment_handoff_penalty_sec"):
+                "segment_handoff_penalty_sec",
+                "transit_replan_period_sec"):
             assert "default" not in coverage_properties[property_name]
             assert "Qt" in coverage_properties[property_name]["description"]
         assert "即时保存的整组规划参数" in by_name[

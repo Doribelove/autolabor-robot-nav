@@ -1,0 +1,83 @@
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="run_label" default="recommended_fault_test"/>
+  <arg name="result_dir"/>
+  <arg name="initial_x" default="15.30"/>
+  <arg name="initial_y" default="-35.51"/>
+  <arg name="initial_yaw" default="-1.676"/>
+  <arg name="fault_scenario" default="sweep_overshoot"/>
+  <arg name="target_region" default="A区"/>
+  <arg name="target_segment" default="4"/>
+  <arg name="overshoot_trigger_distance" default="0.18"/>
+  <arg name="overshoot_distance" default="0.45"/>
+  <arg name="overshoot_hold_speed" default="0.55"/>
+  <arg name="entry_lateral_offset" default="0.22"/>
+  <arg name="entry_yaw_offset" default="0.18"/>
+  <arg name="entry_injection_phase" default="pre_sweep"/>
+  <arg name="entry_trigger_distance" default="0.30"/>
+  <arg name="region_order" default="[A区]"/>
+  <arg name="sweep_entry_recovery_enabled" default="true"/>
+  <arg name="maximum_wall_time" default="420.0"/>
+
+  <include file="$(find coverage_gz_sim)/launch/baseline.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="run_label" value="$(arg run_label)"/>
+    <arg name="result_dir" value="$(arg result_dir)"/>
+    <arg name="initial_x" value="$(arg initial_x)"/>
+    <arg name="initial_y" value="$(arg initial_y)"/>
+    <arg name="initial_yaw" value="$(arg initial_yaw)"/>
+    <arg name="online_hybrid_without_precompute" value="false"/>
+    <arg name="hierarchical_hybrid_on_demand" value="true"/>
+    <arg name="direct_hybrid_to_final_goal" value="true"/>
+    <arg name="entry_navfn_single_topology" value="true"/>
+    <arg name="hybrid_execute_unsplit_cusps" value="false"/>
+    <arg name="hybrid_rolling_horizon" value="10.0"/>
+    <arg name="hybrid_rolling_plan_timeout" value="4.0"/>
+    <arg name="hybrid_cache_max_deviation" value="0.60"/>
+    <arg name="hybrid_cusp_position_tolerance" value="0.25"/>
+    <arg name="obstacle_wait_sec" value="0.5"/>
+    <arg name="planner_frequency" value="1.0"/>
+    <arg name="teb_global_plan_lookahead" value="4.0"/>
+    <arg name="hybrid_planning_timeout" value="3.0"/>
+    <arg name="hybrid_analytic_improvement_timeout" value="0.05"/>
+    <arg name="hybrid_analytic_gearchange_improvement_timeout" value="0.08"/>
+    <arg name="hybrid_analytic_connector_improvement_timeout" value="0.08"/>
+    <arg name="hybrid_transit_include_costmap_obstacles" value="false"/>
+    <arg name="hybrid_transit_weight_viapoint_lateral" value="100.0"/>
+    <arg name="hybrid_transit_weight_viapoint_heading" value="50.0"/>
+    <arg name="hybrid_transit_inner_iterations" value="3"/>
+    <arg name="hybrid_transit_outer_iterations" value="2"/>
+    <arg name="hybrid_transit_lookahead" value="2.0"/>
+    <arg name="hybrid_transit_max_forward_speed" value="0.0"/>
+    <arg name="hybrid_transit_max_reverse_speed" value="0.0"/>
+    <arg name="hybrid_transit_max_angular_speed" value="0.0"/>
+    <arg name="hybrid_transit_linear_accel" value="0.0"/>
+    <arg name="hybrid_transit_angular_accel" value="0.0"/>
+    <arg name="navigation_command_topic" value="/cmd_vel_nominal"/>
+    <arg name="hybrid_replan_every_cycle" value="false"/>
+    <arg name="teb_reinitialize_on_global_plan" value="false"/>
+    <arg name="direction_change_penalty" value="0.50"/>
+    <arg name="segment_handoff_penalty" value="0.50"/>
+    <arg name="region_order" value="$(arg region_order)"/>
+    <arg name="sweep_entry_recovery_enabled"
+         value="$(arg sweep_entry_recovery_enabled)"/>
+    <arg name="maximum_wall_time" value="$(arg maximum_wall_time)"/>
+  </include>
+
+  <node pkg="coverage_gz_sim" type="navigation_fault_injector.py"
+        name="navigation_fault_injector" output="screen" required="true">
+    <param name="scenario" value="$(arg fault_scenario)"/>
+    <param name="target_region" value="$(arg target_region)"/>
+    <param name="target_segment" value="$(arg target_segment)"/>
+    <param name="overshoot_trigger_distance_m"
+           value="$(arg overshoot_trigger_distance)"/>
+    <param name="overshoot_distance_m" value="$(arg overshoot_distance)"/>
+    <param name="overshoot_hold_speed_mps" value="$(arg overshoot_hold_speed)"/>
+    <param name="entry_lateral_offset_m" value="$(arg entry_lateral_offset)"/>
+    <param name="entry_yaw_offset_rad" value="$(arg entry_yaw_offset)"/>
+    <param name="entry_injection_phase" value="$(arg entry_injection_phase)"/>
+    <param name="entry_trigger_distance_m"
+           value="$(arg entry_trigger_distance)"/>
+    <param name="result_dir" value="$(arg result_dir)"/>
+  </node>
+</launch>

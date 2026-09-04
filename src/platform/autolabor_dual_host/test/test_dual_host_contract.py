@@ -327,7 +327,8 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
             example_text = stream.read()
         self.assertIn("NAV_MAX_LINEAR_SPEED=0.80", example_text)
         self.assertIn("CMD_VEL_MAX_LINEAR_SPEED=1.70", example_text)
-        self.assertIn("CMD_VEL_MAX_ANGULAR_SPEED=0.60", example_text)
+        self.assertIn("NAV_MAX_ANGULAR_SPEED=0.60", example_text)
+        self.assertIn("CMD_VEL_MAX_ANGULAR_SPEED=1.00", example_text)
 
     def test_ai_navigation_uses_explicit_goal_id_through_j6m_safety_bridge(self):
         launch = self._launch_text("j6m_fastlio_navigation.launch")
@@ -444,6 +445,18 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
         self.assertIn("/fod_detector/expected_model_sha256", health)
         self.assertIn("/fod_detector/required_class_names", health)
         self.assertIn("/move_base/TebLocalPlannerROS/max_vel_theta", health)
+        self.assertIn("message_scalar_field", health)
+        self.assertIn("max_forward_speed_mps", health)
+        self.assertIn("transition_max_forward_speed_mps", health)
+        self.assertIn("transition_max_reverse_speed_mps", health)
+        self.assertIn("transition_max_angular_speed_rps", health)
+        self.assertIn(
+            "TEB linear cap matches Qt coverage planning parameters", health
+        )
+        self.assertIn(
+            "Qt coverage and transition caps are within NVIDIA watchdog limits",
+            health,
+        )
         self.assertIn("--allow-missing-data", health)
         self.assertIn("stack remains running", health)
         self.assertIn("critical_runtime_topics", health)
@@ -458,36 +471,61 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
         self.assertIn("/autolabor_operator_gui/map_display_status", health)
         self.assertIn("'READY;'", health)
         self.assertIn("confirmed the 2-D map texture is loaded", health)
+        self.assertIn("topic_publishers", health)
+        self.assertIn("state=WAITING_INITIAL_POSE", health)
+        self.assertIn(
+            "Hybrid path safety permit is fail-closed until initial "
+            "localization initializes move_base",
+            health,
+        )
+        self.assertIn("locateanything_expected_query_count", health)
+        self.assertIn(
+            "from autolabor_fod_vision.locateanything_runtime import "
+            "parse_categories",
+            health,
+        )
+        self.assertIn("locateanything_expected_queries", health)
+        self.assertIn("locateanything_actual_queries", health)
+        self.assertNotIn(
+            "parameter_matches /fod_detector/semantic_query_count 7", health
+        )
 
-    def test_static_health_enforces_local_large_v3_without_opening_audio(self):
+    def test_static_health_enforces_selectable_whisper_without_opening_audio(self):
         health_path = os.path.join(WORKSPACE_DIR, "scripts", "health_check.sh")
         with open(health_path, "r", encoding="utf-8") as stream:
             health = stream.read()
 
-        start = health.index('ASR_LARGE_V3_SHA256="')
+        start = health.index('ASR_SMALL_SHA256="')
         end = health.index("if dual_host_validate_fod_model_contract", start)
         asr_check = health[start:end]
         for evidence in (
+            "ASR_SMALL_SHA256",
+            "9ecf779972d90ba49c06d968637d720dd632c55bbf19d441fb42bf17a411e794",
+            "ASR_MEDIUM_SHA256",
+            "345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1",
             "ASR_LARGE_V3_SHA256",
             "e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb",
             "SWEEPER_AI_CONFIG",
             "asr.enabled must be a boolean",
-            "asr.model must be large-v3",
+            "asr.model must default to medium",
             "asr.device must be cuda",
-            "model_sha256",
+            "asr.models must define small, medium, and large",
             "checkpoint_sha256",
             "runtime/asr/venv/bin/python3",
-            "runtime/asr/models/large-v3.pt",
+            "runtime/asr/models",
+            "small.pt",
+            "medium.pt",
+            "large-v3.pt",
             "import whisper",
             'torch.version.cuda == "11.4"',
             "torch.cuda.is_available()",
             "sha256sum",
-            "no physical microphone input_device is configured",
+            "/usr/bin/arecord -l",
             "device was not opened",
         ):
             self.assertIn(evidence, asr_check)
         self.assertNotIn("whisper.load_model", asr_check)
-        self.assertNotIn("arecord ", asr_check)
+        self.assertNotIn("arecord -D", asr_check)
         self.assertNotIn("pyaudio", asr_check.lower())
         self.assertIn(
             'if [[ "$mode" == --static ]]; then\n  check_nvidia_asr_static_contract',
@@ -532,12 +570,79 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
         self.assertIn("sync_j6m_runtime_config", managed_start)
         self.assertIn("verify_j6m_visual_model_contract_release", managed_start)
         self.assertIn("requested_fod_motion_enabled", managed_start)
+        self.assertIn("requested_fod_model_sha256", remote_start)
+        self.assertIn("requested_fod_required_class_names", remote_start)
+        self.assertIn(
+            'NVIDIA_FOD_MODEL_SHA256="$NVIDIA_FOD_MODEL_SHA256"',
+            managed_start,
+        )
+        self.assertIn(
+            'NVIDIA_FOD_REQUIRED_CLASS_NAMES="$NVIDIA_FOD_REQUIRED_CLASS_NAMES"',
+            managed_start,
+        )
         self.assertIn("./src/application/autolabor_fod_control", deploy)
         self.assertIn(
             "robot_bringup\\\\;autolabor_fod_control\\\\;autolabor_dual_lidar",
             deploy,
         )
         self.assertIn("rospack find autolabor_fod_control", deploy)
+
+    def test_fod_backend_switch_is_exact_atomic_and_fail_closed(self):
+        def script_text(relative_path):
+            path = os.path.join(WORKSPACE_DIR, relative_path)
+            with open(path, "r", encoding="utf-8") as stream:
+                return stream.read()
+
+        switch_path = os.path.join(
+            WORKSPACE_DIR, "scripts", "switch_fod_backend.sh"
+        )
+        switch = script_text("scripts/switch_fod_backend.sh")
+        load_config = script_text("scripts/load_config.sh")
+        example = script_text("config/dual_host.env.example")
+        restart = switch[
+            switch.index("perform_staged_restart()") :
+            switch.index("target_contract\n", switch.index("perform_staged_restart()"))
+        ]
+        best6_sha = (
+            "5efaafa1503db11c2ba261b4429389d96335b4eef4d0fc44d6ca41e7431f2d0f"
+        )
+        two_stage_detector_sha = (
+            "711b6bb4b4debebcf993f033f23e7e641a02dd279254779f8dafed11b6a79233"
+        )
+        two_stage_classifier_sha = (
+            "d0cce9310e184e8acd7a6142face16d39aadc9a6e5405b18694346f2315899e9"
+        )
+
+        self.assertTrue(os.access(switch_path, os.X_OK))
+        for contract in (switch, load_config, example):
+            self.assertIn("models/best6.pt", contract)
+            self.assertIn(best6_sha, contract)
+            self.assertIn("detect_and_classify", contract)
+            self.assertIn(two_stage_detector_sha, contract)
+            self.assertIn(two_stage_classifier_sha, contract)
+            self.assertIn(
+                "metal,plastic,paper,glass,kitchen_waste", contract
+            )
+        for evidence in (
+            'case "$backend" in',
+            "dual_host_validate_fod_model_contract",
+            "dual_host_validate_fod_weights",
+            'mv -f -- "$staged_real" "$CONFIG_PATH"',
+            "systemd-run --user",
+            '--setenv="DUAL_HOST_CONFIG=$CONFIG_PATH"',
+            'source "$DUAL_HOST_WS/runtime/run/map_mode.env"',
+            '"/fod_navigation_mode/state"',
+            '"/fod_visual_servo/state"',
+            '"/coverage/active"',
+            '"/move_base/status"',
+            '"/cmd_vel_safe"',
+            '"/cmd_vel"',
+            'local -a restart_args=(--restart)',
+        ):
+            self.assertIn(evidence, switch)
+        self.assertIn('restart_args+=(--map-set "$perform_map_set"', restart)
+        self.assertNotIn("restart_args+=(--authorize-fod-motion", restart)
+        self.assertIn("one-run FOD motion authorization", switch)
 
     def test_one_run_fod_motion_authorization_is_explicit_and_documented(self):
         def script_text(relative_path):
@@ -760,6 +865,9 @@ printf '%s\n' "$FOD_MOTION_ENABLED"
             deploy,
         )
         self.assertIn("./src/application/autolabor_coverage", deploy)
+        self.assertIn(
+            "install/lib/autolabor_coverage/hybrid_teb_command_mux.py", deploy
+        )
         self.assertIn("rospack find autolabor_coverage", deploy)
         self.assertNotIn("./lib/amcl", deploy)
         self.assertIn("rospack find map_server", deploy)
@@ -796,11 +904,23 @@ printf '%s\n' "$FOD_MOTION_ENABLED"
         )
         self.assertIn("/var/lib/autolabor/fast_lio/Log", remote_health)
         self.assertIn("grep -aFq /var/lib/autolabor/fast_lio/", remote_health)
+        self.assertIn(
+            "/opt/autolabor/dual_host/current/lib/autolabor_coverage/"
+            "hybrid_teb_command_mux.py",
+            remote_health,
+        )
         for interface in (
             "rosmsg md5 autolabor_coverage/CoverageRegion",
+            "rosmsg md5 autolabor_coverage/CoveragePlanningParameters",
             "rosmsg md5 autolabor_coverage/CoverageStatus",
+            "rosmsg md5 autolabor_coverage/EnforcedPath",
+            "rosmsg md5 autolabor_coverage/HybridTransitionRequest",
+            "rosmsg md5 autolabor_coverage/HybridTransitionResult",
             "rossrv md5 autolabor_coverage/PlanCoverage",
+            "rossrv md5 autolabor_coverage/PrecomputeTransitions",
             "rossrv md5 autolabor_coverage/CancelCoverageBatch",
+            "rossrv md5 autolabor_coverage/SetNavigationProfile",
+            "rossrv md5 autolabor_coverage/SetCoveragePlanningDefaults",
             "rossrv md5 autolabor_coverage/StartCoverageBatch",
         ):
             self.assertIn(interface, deploy)

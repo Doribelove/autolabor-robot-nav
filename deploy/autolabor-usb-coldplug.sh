@@ -119,13 +119,19 @@ usb_device_has_carrier() {
   return 1
 }
 
-usb_device_node() {
+usb_device_selector() {
   local device_path="$1" bus dev
   [[ -r "$device_path/busnum" && -r "$device_path/devnum" ]] || return 1
   bus="$(tr -d '[:space:]' <"$device_path/busnum")"
   dev="$(tr -d '[:space:]' <"$device_path/devnum")"
   [[ "$bus" =~ ^[0-9]+$ && "$dev" =~ ^[0-9]+$ ]] || return 1
-  printf '%s/%03d/%03d\n' "$USB_DEV_ROOT" "$((10#$bus))" "$((10#$dev))"
+  printf '%03d/%03d\n' "$((10#$bus))" "$((10#$dev))"
+}
+
+usb_device_node() {
+  local device_path="$1" selector
+  selector="$(usb_device_selector "$device_path")" || return 1
+  printf '%s/%s\n' "$USB_DEV_ROOT" "$selector"
 }
 
 reset_stuck_mid360_adapter() {

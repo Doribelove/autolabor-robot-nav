@@ -226,7 +226,8 @@ protected:
 
   /**
     * @brief Update internal obstacle vector based on occupied costmap cells
-    * @remarks All occupied cells will be added as point obstacles.
+    * @remarks Nearby boundary cells are added as point obstacles; the complete
+    * costmap remains authoritative for trajectory feasibility checking.
     * @remarks All previous obstacles are cleared.
     * @sa updateObstacleContainerWithCostmapConverter
     * @todo Include temporal coherence among obstacle msgs (id vector)
@@ -364,6 +365,34 @@ protected:
                                       double max_vel_y, double max_vel_theta,
                                       double max_vel_x_backwards, bool use_proportional_saturation);
 
+  /**
+   * @brief Enforce an action-level longitudinal gear after optimization.
+   * @return true if the command already matched the requested gear
+   */
+  static bool enforceMotionDirectionCommand(double& vx, double& vy,
+                                            double& omega,
+                                            int motion_direction_mode);
+
+  /**
+   * @brief Return true when a dynamic fixed-gear change invalidates a warm-start band.
+   *
+   * A band optimized for the preceding side of a cusp must never be reused
+   * after the action changes between forward, automatic and reverse motion.
+   */
+  static bool motionDirectionChangeRequiresReinitialization(
+      int previous_mode, int requested_mode);
+
+  /**
+   * @brief Project a twist command onto the hard carlike curvature bound.
+   *
+   * TEB's turning-radius edge is a soft optimization constraint.  A physical
+   * Ackermann base cannot execute the residual near-zero-v/high-omega command,
+   * so the final Twist contract must enforce |omega| <= |vx| / radius.
+   */
+  static void enforceMinimumTurningRadiusCommand(double vx,
+                                                 double min_turning_radius,
+                                                 double& omega);
+
   
   /**
    * @brief Convert translational and rotational velocities to a steering angle of a carlike robot
@@ -450,6 +479,7 @@ private:
     
   // flags
   bool initialized_; //!< Keeps track about the correct initialization of this class
+  bool reinitialize_on_global_plan_; //!< Discard a warm-start band whenever a continuously replanned global path is installed
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -26,18 +26,24 @@ EDGE_ARMED → LOSS_CONFIRM → STEER_SETTLE → BLIND_ADVANCE → FINAL_STOP �
 
 ## 双机版本更换模型
 
-双机运行只维护一份模型契约：NVIDIA 的
-`config/dual_host.env` 中的 `NVIDIA_FOD_WEIGHTS`、
-`NVIDIA_FOD_MODEL_SHA256` 和 `NVIDIA_FOD_REQUIRED_CLASS_NAMES`。权重文件只需
-存在于 NVIDIA；SHA256 和逗号分隔的精确类别名同时提供给 NVIDIA 检测器和 J6M
+双机运行只维护一份活动模型契约：NVIDIA 的
+`config/dual_host.env` 中的 `NVIDIA_FOD_BACKEND`、后端专用模型 SHA256 和
+`NVIDIA_FOD_REQUIRED_CLASS_NAMES`。模型文件只需存在于 NVIDIA；活动 SHA256 和
+逗号分隔的精确类别名同时提供给 NVIDIA 检测器和 J6M
 视觉伺服。托管冷启动会原子同步配置到 J6M，运行时健康检查也会核对两端参数，
 避免检测器已经换模型而控制器仍使用旧白名单。
 
 首次升级到支持共享契约的版本时，需要停止主链并执行一次
 `scripts/deploy_j6m.sh`，使 `autolabor_fod_control` 进入 J6M 的版本化 release。
-以后换模型不需要重新编译：更新以上三项，确认
-`sha256sum <权重文件>` 与配置一致，再通过统一入口完整冷重启。模型和类别不会
+以后换模型不需要重新编译：更新活动后端契约并完成对应清单/权重校验，再通过
+统一入口完整冷重启。模型和类别不会
 在运行中热切换；`FOD_MOTION_ENABLED` 仍是独立运动门，换模型不会自动开启运动。
+
+当前外部 LocateAnything 后端不提供校准的逐框置信度且延迟为数秒，因此 NVIDIA
+适配器发布 `confidence=0`、不填充逐框运动深度，并报告
+`/fod_detector/motion_eligible=false`。即使 J6M 的功能门原先为 true，这些识别框
+也不能通过既有进入门；需要视觉行驶时必须切回已验收的 YOLO，或先完成新模型的
+独立标注校准、实时性和真车安全验收。
 
 ## 安全边界
 

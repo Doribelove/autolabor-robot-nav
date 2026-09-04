@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 import math
-from typing import Sequence, Tuple
+from typing import Iterable, Optional, Sequence, Tuple
 
 import cv2
 import numpy as np
@@ -15,6 +15,49 @@ class DepthEstimate:
     mad_m: float
     sample_count: int
     valid_fraction: float
+
+
+def nearest_synchronized_message(
+    messages: Iterable[object],
+    source_stamp_sec: float,
+    source_frame: str,
+    tolerance_sec: float,
+) -> Tuple[Optional[object], float]:
+    """Return the sensor message nearest to one RGB source timestamp.
+
+    The helper intentionally requires the same optical frame and never falls
+    back to the newest message.  It is ROS-import-free so the timestamp
+    matching contract can be unit-tested with lightweight message doubles.
+    """
+
+    if (
+        not math.isfinite(float(source_stamp_sec))
+        or float(source_stamp_sec) <= 0.0
+        or not str(source_frame)
+        or not math.isfinite(float(tolerance_sec))
+        or float(tolerance_sec) < 0.0
+    ):
+        return None, float("nan")
+
+    nearest = None
+    nearest_delta = float("inf")
+    for message in messages:
+        try:
+            if str(message.header.frame_id) != str(source_frame):
+                continue
+            stamp_sec = float(message.header.stamp.to_sec())
+        except (AttributeError, TypeError, ValueError):
+            continue
+        if not math.isfinite(stamp_sec) or stamp_sec <= 0.0:
+            continue
+        delta = abs(stamp_sec - float(source_stamp_sec))
+        if delta < nearest_delta:
+            nearest = message
+            nearest_delta = delta
+
+    if nearest is None or nearest_delta > float(tolerance_sec):
+        return None, float("nan")
+    return nearest, float(nearest_delta)
 
 
 def _invalid(sample_count: int = 0, valid_fraction: float = 0.0) -> DepthEstimate:

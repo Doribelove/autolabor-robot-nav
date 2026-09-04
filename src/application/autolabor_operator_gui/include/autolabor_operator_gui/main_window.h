@@ -7,6 +7,7 @@
 #include <autolabor_coverage/CoverageStatus.h>
 #include <autolabor_operator_gui/coverage_region_store.h>
 #include <autolabor_fod_msgs/FodDetectionArray.h>
+#include <autolabor_fod_msgs/FodVisionDetectionArray.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
@@ -115,10 +116,20 @@ struct CoveragePlanningUiParameters
   bool allow_reverse = true;
   double max_reverse_speed_mps = 0.30;
   double max_angular_speed_rps = 0.60;
-  double linear_accel_mps2 = 2.00;
+  double linear_accel_mps2 = 1.00;
   double angular_accel_rps2 = 0.50;
-  double direction_change_penalty_sec = 1.00;
+  double direction_change_penalty_sec = 0.50;
   double segment_handoff_penalty_sec = 0.50;
+  double transit_replan_period_sec = 1.00;
+};
+
+struct NavigationProfileApplyResult
+{
+  bool success = false;
+  bool restore_factory_defaults = false;
+  QString message;
+  std::uint64_t generation = 0;
+  CoveragePlanningUiParameters effective;
 };
 
 struct CoverageBatchUiResult
@@ -234,8 +245,11 @@ struct TelemetrySnapshot
   std::size_t camera_width = 0;
   std::size_t camera_height = 0;
   std::string camera_encoding;
+  ros::Time camera_stamp;
+  std::string camera_frame_id;
   ros::WallTime camera_received_at;
   QImage raw_preview;
+  ros::Time raw_preview_stamp;
   ros::WallTime raw_preview_received_at;
 
   bool debug_image_received = false;
@@ -246,6 +260,12 @@ struct TelemetrySnapshot
   autolabor_fod_msgs::FodDetectionArray detections;
   ros::WallTime detections_received_at;
   TimedScalar detection_fps;
+
+  bool vision_results_received = false;
+  autolabor_fod_msgs::FodVisionDetectionArray vision_results;
+  ros::WallTime vision_results_received_at;
+  TimedScalar vision_results_fps;
+  std::uint64_t rejected_vision_results = 0;
 
   bool mode_state_received = false;
   std::string mode_state;
@@ -346,6 +366,7 @@ private Q_SLOTS:
   void stopStaticMapping();
   void startFodMode();
   void stopFodMode();
+  void switchVisionBackend();
   void applyVisualLockConfidence();
   void queryCameraControls();
   void applyCameraControls();
@@ -355,6 +376,9 @@ private Q_SLOTS:
   void handleRecorderError(QProcess::ProcessError error);
   void handleMapperFinished(int exit_code, QProcess::ExitStatus exit_status);
   void handleMapperError(QProcess::ProcessError error);
+  void handleVisionModelSwitchFinished(int exit_code,
+                                       QProcess::ExitStatus exit_status);
+  void handleVisionModelSwitchError(QProcess::ProcessError error);
 private:
   struct StatusCard
   {
@@ -436,6 +460,12 @@ private:
   void loadCoveragePlannerSettings();
   void persistCoveragePlannerSettings() const;
   CoveragePlanningUiParameters coveragePlanningParameters() const;
+  void applyEffectiveCoveragePlanningParameters(
+      const CoveragePlanningUiParameters& parameters);
+  void scheduleNavigationProfileApply();
+  void applyNavigationProfileIfNeeded();
+  void handleNavigationProfileApplied();
+  void restoreFactoryCoveragePlanningDefaults();
   bool updateCoverageRegionStore(const TelemetrySnapshot& data,
                                  bool coverage_status_fresh);
   bool loadCoverageRegionDraft(const CoverageRegionRecord& record);
@@ -462,6 +492,8 @@ private:
   void cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg);
   void debugImageCallback(const sensor_msgs::Image::ConstPtr& msg);
   void detectionsCallback(const autolabor_fod_msgs::FodDetectionArray::ConstPtr& msg);
+  void visionResultsCallback(
+      const autolabor_fod_msgs::FodVisionDetectionArray::ConstPtr& msg);
   void modeStateCallback(const std_msgs::String::ConstPtr& msg);
   void modeStatusCallback(const std_msgs::String::ConstPtr& msg);
   void visualStateCallback(const std_msgs::String::ConstPtr& msg);
@@ -497,6 +529,7 @@ private:
   ros::Subscriber camera_image_subscriber_;
   ros::Subscriber debug_image_subscriber_;
   ros::Subscriber detections_subscriber_;
+  ros::Subscriber vision_results_subscriber_;
   ros::Subscriber mode_state_subscriber_;
   ros::Subscriber mode_status_subscriber_;
   ros::Subscriber visual_state_subscriber_;
@@ -532,10 +565,19 @@ private:
   std::string static_map_source_mode_ = "fused";
   std::string coverage_region_root_;
   std::string coverage_region_legacy_root_;
+  QString configured_vision_backend_;
+  QString vision_backend_switch_script_;
   QTimer master_probe_timer_;
   QFutureWatcher<MasterProbeResult> master_probe_watcher_;
   QTimer ui_refresh_timer_;
   QTimer ai_heartbeat_timer_;
+  QTimer navigation_profile_apply_timer_;
+  QFutureWatcher<NavigationProfileApplyResult> navigation_profile_apply_watcher_;
+  std::uint64_t navigation_profile_generation_ = 0;
+  bool navigation_profile_dirty_ = false;
+  bool navigation_profile_synced_ = false;
+  bool navigation_profile_factory_restore_pending_ = false;
+  QString navigation_profile_last_error_;
 
   std::map<QString, StatusCard> status_cards_;
   std::map<QString, QLabel*> values_;
@@ -602,6 +644,9 @@ private:
   QLabel* overview_camera_preview_ = nullptr;
   QLabel* vision_camera_preview_ = nullptr;
   QPlainTextEdit* vision_detections_ = nullptr;
+  QComboBox* vision_model_combo_ = nullptr;
+  QPushButton* vision_model_switch_button_ = nullptr;
+  QLabel* vision_model_switch_hint_ = nullptr;
   QDoubleSpinBox* relative_forward_input_ = nullptr;
   QDoubleSpinBox* relative_left_input_ = nullptr;
   QDoubleSpinBox* relative_yaw_input_ = nullptr;
@@ -628,7 +673,10 @@ private:
   QDoubleSpinBox* coverage_angular_accel_input_ = nullptr;
   QDoubleSpinBox* coverage_direction_change_penalty_input_ = nullptr;
   QDoubleSpinBox* coverage_handoff_penalty_input_ = nullptr;
+  QDoubleSpinBox* coverage_transit_replan_input_ = nullptr;
   QCheckBox* coverage_reverse_checkbox_ = nullptr;
+  QPushButton* coverage_restore_defaults_button_ = nullptr;
+  QLabel* coverage_parameter_sync_status_ = nullptr;
   QPushButton* coverage_select_button_ = nullptr;
   QPushButton* coverage_undo_button_ = nullptr;
   QPushButton* coverage_selection_cancel_button_ = nullptr;
@@ -666,6 +714,7 @@ private:
   ros::WallTime last_raw_preview_conversion_;
   ros::WallTime last_debug_preview_conversion_;
   bool mode_request_pending_ = false;
+  bool vision_model_switch_pending_ = false;
   bool visual_lock_confidence_request_pending_ = false;
   bool camera_request_pending_ = false;
   Health previous_fastlio_health_ = Health::Idle;
@@ -676,6 +725,7 @@ private:
   QProcess mapper_;
   bool mapper_error_ = false;
   bool mapper_stop_requested_ = false;
+  QProcess vision_model_switch_process_;
 };
 
 }  // namespace autolabor_operator_gui

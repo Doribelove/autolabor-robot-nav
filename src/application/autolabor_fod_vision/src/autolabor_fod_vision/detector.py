@@ -13,6 +13,8 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import cv2
 import numpy as np
 
+from .confidence_control import validate_detection_confidence
+
 
 @dataclass
 class Detection:
@@ -123,6 +125,10 @@ def import_ultralytics(ultralytics_root: str = ""):
 
 
 class UltralyticsDetector:
+    backend = "yolo"
+    motion_eligible = True
+    confidence_calibrated = True
+
     def __init__(
         self,
         weights: str,
@@ -168,13 +174,15 @@ class UltralyticsDetector:
         self.ultralytics_version = str(
             getattr(ultralytics, "__version__", "unknown")
         )
+        self.runtime_path = self.ultralytics_path
+        self.runtime_version = self.ultralytics_version
         self.device = (
             "0" if device == "auto" and torch.cuda.is_available() else
             "cpu" if device == "auto" else str(device)
         )
         self.half = bool(half and self.device != "cpu" and torch.cuda.is_available())
         self.image_size = int(image_size)
-        self.confidence = float(confidence)
+        self.confidence = validate_detection_confidence(confidence)
         self.iou = float(iou)
         self.max_detections = int(max_detections)
         self.classes = list(classes) if classes else None
@@ -226,11 +234,12 @@ class UltralyticsDetector:
         # Ultralytics reuses predictor state internally.  Serialize access even
         # if a future caller adds another ROS callback or service thread.
         with self._predict_lock:
+            confidence = self.confidence
             start = perf_counter()
             result = self.model.predict(
                 source=image_bgr,
                 imgsz=self.image_size,
-                conf=self.confidence,
+                conf=confidence,
                 iou=self.iou,
                 max_det=self.max_detections,
                 classes=self.classes,
@@ -285,6 +294,19 @@ class UltralyticsDetector:
             return InferenceResult(
                 detections=detections, inference_ms=elapsed_ms
             )
+
+    def set_confidence(self, confidence: float) -> None:
+        value = validate_detection_confidence(confidence)
+        with self._predict_lock:
+            self.confidence = value
+
+    def get_confidence(self) -> float:
+        with self._predict_lock:
+            return float(self.confidence)
+
+    def shutdown(self) -> None:
+        """Match the lifecycle interface used by subprocess-backed detectors."""
+        return None
 
 
 def annotate_image(

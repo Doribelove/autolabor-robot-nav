@@ -32,6 +32,7 @@ chroot "$ROOTFS" /bin/bash -lc '
     /opt/autolabor/dual_host/current/lib/autolabor_dual_host/cmd_vel_watchdog.py \
     /opt/autolabor/dual_host/current/lib/autolabor_dual_host/move_base_pause_bridge.py \
     /opt/autolabor/dual_host/current/lib/autolabor_coverage/coverage_manager.py \
+    /opt/autolabor/dual_host/current/lib/autolabor_coverage/hybrid_teb_command_mux.py \
     /opt/autolabor/dual_host/current/lib/autolabor_fod_control/fod_visual_servo_node.py \
     /opt/autolabor/dual_host/current/lib/robot_bringup/fused_scan_mapper.py
   executables=(
@@ -49,6 +50,13 @@ chroot "$ROOTFS" /bin/bash -lc '
       exit 1
     fi
   done
+  test -r /opt/autolabor/dual_host/current/share/autolabor_coverage/config/coverage.yaml
+  test -r /opt/autolabor/dual_host/current/share/autolabor_coverage/config/coverage_factory_defaults.yaml
+  test -x /opt/autolabor/dual_host/current/lib/autolabor_coverage/hybrid_teb_command_mux.py
+  grep -Fq "hybrid_path_safe" \
+    /opt/autolabor/dual_host/current/share/autolabor_coverage/launch/coverage.launch
+  grep -Fq "hybrid_cache_collision_check_horizon" \
+    /opt/autolabor/dual_host/current/share/robot_bringup/launch/navigation_j6m.launch
   test -d /var/lib/autolabor/fast_lio/Log
   test -d /var/lib/autolabor/fast_lio/PCD
   grep -aFq /var/lib/autolabor/fast_lio/ \
@@ -73,12 +81,19 @@ chroot "$ROOTFS" /bin/bash -lc '
   rosmsg md5 livox_ros_driver2/CustomMsg
   rosmsg md5 autolabor_fod_msgs/FodDetectionArray
   rosmsg md5 autolabor_coverage/CoverageRegion
+  rosmsg md5 autolabor_coverage/CoveragePlanningParameters
   rosmsg md5 autolabor_coverage/CoverageStatus
+  rosmsg md5 autolabor_coverage/EnforcedPath
+  rosmsg md5 autolabor_coverage/HybridTransitionRequest
+  rosmsg md5 autolabor_coverage/HybridTransitionResult
   rosmsg md5 autolabor_coverage/TransitProfile
   rossrv md5 autolabor_coverage/PlanCoverage
+  rossrv md5 autolabor_coverage/PrecomputeTransitions
   rossrv md5 autolabor_coverage/CancelCoverageBatch
   rossrv md5 autolabor_coverage/SetCoverageOwner
   rossrv md5 autolabor_coverage/SetEnforcedPath
+  rossrv md5 autolabor_coverage/SetNavigationProfile
+  rossrv md5 autolabor_coverage/SetCoveragePlanningDefaults
   rossrv md5 autolabor_coverage/StartCoverageBatch
   test ! -e /opt/autolabor/dual_host/current/share/zed_wrapper
   ! command -v nvcc >/dev/null

@@ -759,11 +759,20 @@ void TebOptimalPlanner::AddEdgesViaPoints()
         information(0,0) = cfg_->optim.weight_viapoint_lateral;
         information(1,1) = cfg_->optim.weight_viapoint_heading;
 
+        double reference_heading = std::atan2(tangent.y(), tangent.x());
+        // Via-point tangents describe path travel, whereas TEB pose headings
+        // describe the vehicle's forward axis.  They coincide for a forward
+        // fixed-gear action but differ by pi while reversing.  Without this
+        // conversion the heading edge fights the reverse kinematics edge and
+        // can fold the first optimized pose forward at every replan.
+        if (cfg_->robot.motion_direction_mode < 0)
+          reference_heading = g2o::normalize_theta(reference_heading + M_PI);
+
         EdgeViaPointDirection* edge_direction = new EdgeViaPointDirection;
         edge_direction->setVertex(0, teb_.PoseVertex(index));
         edge_direction->setInformation(information);
         edge_direction->setParameters(
-            *cfg_, via_point, std::atan2(tangent.y(), tangent.x()));
+            *cfg_, via_point, reference_heading);
         optimizer_->addEdge(edge_direction);
       }
     }

@@ -75,18 +75,75 @@ DUAL_HOST_NETWORK_POLL_SEC="${DUAL_HOST_NETWORK_POLL_SEC:-1}"
 NVIDIA_ZED_SERIAL="${NVIDIA_ZED_SERIAL:-23748636}"
 ZED_USB_WAIT_SEC="${ZED_USB_WAIT_SEC:-20}"
 ZED_IMAGE_WAIT_SEC="${ZED_IMAGE_WAIT_SEC:-60}"
-NVIDIA_FOD_WEIGHTS="${NVIDIA_FOD_WEIGHTS:-src/application/autolabor_fod_vision/models/yolo11_gam_best.pt}"
+NVIDIA_FOD_BACKEND="${NVIDIA_FOD_BACKEND:-yolo}"
+NVIDIA_FOD_WEIGHTS="${NVIDIA_FOD_WEIGHTS:-src/application/autolabor_fod_vision/models/best6.pt}"
 NVIDIA_FOD_ULTRALYTICS_ROOT="${NVIDIA_FOD_ULTRALYTICS_ROOT:-ultralytics_yolo11_custom}"
+NVIDIA_LOCATEANYTHING_MODEL_ROOT="${NVIDIA_LOCATEANYTHING_MODEL_ROOT:-/home/slam/LocateAnything}"
+NVIDIA_LOCATEANYTHING_MANIFEST="${NVIDIA_LOCATEANYTHING_MANIFEST:-$NVIDIA_LOCATEANYTHING_MODEL_ROOT/.runtime/deployment_manifest.json}"
+NVIDIA_LOCATEANYTHING_WORKER_PYTHON="${NVIDIA_LOCATEANYTHING_WORKER_PYTHON:-${NVIDIA_DETECTOR_PYTHON:-/home/slam/robot_ws/.venv/fod_yolo/bin/python3}}"
+NVIDIA_DETECT_CLASSIFY_ULTRALYTICS_ROOT="${NVIDIA_DETECT_CLASSIFY_ULTRALYTICS_ROOT:-/home/slam/yolo11/yolo11_GAM}"
+NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS="${NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS:-/home/slam/yolo11/detect_classify/detect/trash_yolo11s_gam/best.pt}"
+NVIDIA_DETECT_CLASSIFY_DETECTOR_SHA256="${NVIDIA_DETECT_CLASSIFY_DETECTOR_SHA256:-711b6bb4b4debebcf993f033f23e7e641a02dd279254779f8dafed11b6a79233}"
+NVIDIA_DETECT_CLASSIFY_DETECTOR_CLASS_NAMES="${NVIDIA_DETECT_CLASSIFY_DETECTOR_CLASS_NAMES:-trash}"
+NVIDIA_DETECT_CLASSIFY_CLASSIFIER_WEIGHTS="${NVIDIA_DETECT_CLASSIFY_CLASSIFIER_WEIGHTS:-/home/slam/yolo11/detect_classify/classify/material_yolo11s_cls/best.pt}"
+NVIDIA_DETECT_CLASSIFY_CLASSIFIER_SHA256="${NVIDIA_DETECT_CLASSIFY_CLASSIFIER_SHA256:-d0cce9310e184e8acd7a6142face16d39aadc9a6e5405b18694346f2315899e9}"
+NVIDIA_DETECT_CLASSIFY_CLASSIFIER_CLASS_NAMES="${NVIDIA_DETECT_CLASSIFY_CLASSIFIER_CLASS_NAMES:-metal,plastic,paper,glass,kitchen_waste}"
 NVIDIA_FOD_WEIGHTS="$(dual_host_resolve_workspace_path "$NVIDIA_FOD_WEIGHTS")"
 NVIDIA_FOD_ULTRALYTICS_ROOT="$(
   dual_host_resolve_workspace_path "$NVIDIA_FOD_ULTRALYTICS_ROOT"
 )"
-NVIDIA_FOD_MODEL_SHA256="${NVIDIA_FOD_MODEL_SHA256-c9fb0f7996b229999dd9adc72245c991a9ad61b8c3d395cd76ab41e6ec4c3691}"
-NVIDIA_FOD_REQUIRED_CLASS_NAMES="${NVIDIA_FOD_REQUIRED_CLASS_NAMES-metal,plastic,paper,glass,kitchen_waste}"
+NVIDIA_LOCATEANYTHING_MODEL_ROOT="$(
+  dual_host_resolve_workspace_path "$NVIDIA_LOCATEANYTHING_MODEL_ROOT"
+)"
+NVIDIA_LOCATEANYTHING_MANIFEST="$(
+  dual_host_resolve_workspace_path "$NVIDIA_LOCATEANYTHING_MANIFEST"
+)"
+NVIDIA_DETECT_CLASSIFY_ULTRALYTICS_ROOT="$(
+  dual_host_resolve_workspace_path "$NVIDIA_DETECT_CLASSIFY_ULTRALYTICS_ROOT"
+)"
+NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS="$(
+  dual_host_resolve_workspace_path "$NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS"
+)"
+NVIDIA_DETECT_CLASSIFY_CLASSIFIER_WEIGHTS="$(
+  dual_host_resolve_workspace_path "$NVIDIA_DETECT_CLASSIFY_CLASSIFIER_WEIGHTS"
+)"
+NVIDIA_YOLO_MODEL_SHA256="${NVIDIA_YOLO_MODEL_SHA256:-5efaafa1503db11c2ba261b4429389d96335b4eef4d0fc44d6ca41e7431f2d0f}"
+NVIDIA_LOCATEANYTHING_MODEL_SHA256="${NVIDIA_LOCATEANYTHING_MODEL_SHA256:-a6a8903c529cd769270599fab141eb84f5d1d09d063fe2d1933ddf4ac8f11a15}"
+NVIDIA_YOLO_REQUIRED_CLASS_NAMES="${NVIDIA_YOLO_REQUIRED_CLASS_NAMES:-metal,plastic,paper,glass,kitchen_waste}"
+NVIDIA_LOCATEANYTHING_REQUIRED_CLASS_NAMES="${NVIDIA_LOCATEANYTHING_REQUIRED_CLASS_NAMES:-trash}"
+case "$NVIDIA_FOD_BACKEND" in
+  yolo)
+    NVIDIA_FOD_MODEL_SHA256="$NVIDIA_YOLO_MODEL_SHA256"
+    NVIDIA_FOD_REQUIRED_CLASS_NAMES="$NVIDIA_YOLO_REQUIRED_CLASS_NAMES"
+    ;;
+  locateanything)
+    NVIDIA_FOD_MODEL_SHA256="$NVIDIA_LOCATEANYTHING_MODEL_SHA256"
+    NVIDIA_FOD_REQUIRED_CLASS_NAMES="$NVIDIA_LOCATEANYTHING_REQUIRED_CLASS_NAMES"
+    ;;
+  detect_and_classify)
+    NVIDIA_FOD_WEIGHTS="$NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS"
+    NVIDIA_FOD_ULTRALYTICS_ROOT="$NVIDIA_DETECT_CLASSIFY_ULTRALYTICS_ROOT"
+    NVIDIA_FOD_MODEL_SHA256="$NVIDIA_DETECT_CLASSIFY_DETECTOR_SHA256"
+    NVIDIA_FOD_REQUIRED_CLASS_NAMES="$NVIDIA_DETECT_CLASSIFY_CLASSIFIER_CLASS_NAMES"
+    ;;
+  *)
+    NVIDIA_FOD_MODEL_SHA256="${NVIDIA_FOD_MODEL_SHA256:-}"
+    NVIDIA_FOD_REQUIRED_CLASS_NAMES="${NVIDIA_FOD_REQUIRED_CLASS_NAMES:-}"
+    ;;
+esac
 NAV_MAX_LINEAR_SPEED="${NAV_MAX_LINEAR_SPEED:-0.80}"
 NAV_MAX_REVERSE_SPEED="${NAV_MAX_REVERSE_SPEED:-0.30}"
+NAV_MAX_ANGULAR_SPEED="${NAV_MAX_ANGULAR_SPEED:-0.60}"
 CMD_VEL_MAX_LINEAR_SPEED="${CMD_VEL_MAX_LINEAR_SPEED:-1.70}"
-CMD_VEL_MAX_ANGULAR_SPEED="${CMD_VEL_MAX_ANGULAR_SPEED:-0.60}"
+CMD_VEL_MAX_ANGULAR_SPEED="${CMD_VEL_MAX_ANGULAR_SPEED:-1.00}"
+if ! awk -v nav="$NAV_MAX_ANGULAR_SPEED" \
+         -v cap="$CMD_VEL_MAX_ANGULAR_SPEED" 'BEGIN {
+  exit !(nav ~ /^[0-9]+([.][0-9]+)?$/ && cap ~ /^[0-9]+([.][0-9]+)?$/ &&
+         nav > 0.0 && cap > 0.0 && nav <= cap)
+}' </dev/null; then
+  echo "NAV_MAX_ANGULAR_SPEED must be positive and no greater than CMD_VEL_MAX_ANGULAR_SPEED." >&2
+  return 2 2>/dev/null || exit 2
+fi
 STATIC_MAP_ENABLED="${STATIC_MAP_ENABLED:-false}"
 STATIC_MAP_SET="${STATIC_MAP_SET:-}"
 STATIC_MAP_SOURCE_MODE="${STATIC_MAP_SOURCE_MODE:-fused}"
@@ -106,9 +163,22 @@ export NVIDIA_LIVOX_USB_ID NVIDIA_LIVOX_USB_SERIAL
 export DUAL_HOST_SYS_CLASS_NET_ROOT DUAL_HOST_DEVICE_WAIT_SEC
 export DUAL_HOST_NETWORK_WAIT_SEC DUAL_HOST_NETWORK_POLL_SEC
 export NVIDIA_ZED_SERIAL ZED_USB_WAIT_SEC ZED_IMAGE_WAIT_SEC
-export NVIDIA_FOD_WEIGHTS NVIDIA_FOD_ULTRALYTICS_ROOT
+export NVIDIA_FOD_BACKEND NVIDIA_FOD_WEIGHTS NVIDIA_FOD_ULTRALYTICS_ROOT
+export NVIDIA_LOCATEANYTHING_MODEL_ROOT NVIDIA_LOCATEANYTHING_MANIFEST
+export NVIDIA_LOCATEANYTHING_WORKER_PYTHON
+export NVIDIA_DETECT_CLASSIFY_ULTRALYTICS_ROOT
+export NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS
+export NVIDIA_DETECT_CLASSIFY_DETECTOR_SHA256
+export NVIDIA_DETECT_CLASSIFY_DETECTOR_CLASS_NAMES
+export NVIDIA_DETECT_CLASSIFY_CLASSIFIER_WEIGHTS
+export NVIDIA_DETECT_CLASSIFY_CLASSIFIER_SHA256
+export NVIDIA_DETECT_CLASSIFY_CLASSIFIER_CLASS_NAMES
+export NVIDIA_YOLO_MODEL_SHA256 NVIDIA_LOCATEANYTHING_MODEL_SHA256
+export NVIDIA_YOLO_REQUIRED_CLASS_NAMES
+export NVIDIA_LOCATEANYTHING_REQUIRED_CLASS_NAMES
 export NVIDIA_FOD_MODEL_SHA256 NVIDIA_FOD_REQUIRED_CLASS_NAMES
-export NAV_MAX_LINEAR_SPEED NAV_MAX_REVERSE_SPEED CMD_VEL_MAX_LINEAR_SPEED
+export NAV_MAX_LINEAR_SPEED NAV_MAX_REVERSE_SPEED NAV_MAX_ANGULAR_SPEED
+export CMD_VEL_MAX_LINEAR_SPEED
 export CMD_VEL_MAX_ANGULAR_SPEED
 export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
 export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
@@ -274,6 +344,13 @@ dual_host_is_bool() {
 }
 
 dual_host_validate_fod_model_contract() {
+  case "$NVIDIA_FOD_BACKEND" in
+    yolo|locateanything|detect_and_classify) ;;
+    *)
+      echo "NVIDIA_FOD_BACKEND must be yolo, locateanything, or detect_and_classify." >&2
+      return 1
+      ;;
+  esac
   if [[ ! "$NVIDIA_FOD_MODEL_SHA256" =~ ^[[:xdigit:]]{64}$ ]]; then
     echo "NVIDIA_FOD_MODEL_SHA256 must be exactly 64 hexadecimal characters." >&2
     return 1
@@ -290,10 +367,138 @@ dual_host_validate_fod_model_contract() {
     echo "NVIDIA_FOD_REQUIRED_CLASS_NAMES must be a non-empty, unique comma list." >&2
     return 1
   fi
+  if [[ "$NVIDIA_FOD_BACKEND" == detect_and_classify ]]; then
+    if [[ "$NVIDIA_DETECT_CLASSIFY_DETECTOR_CLASS_NAMES" != trash ]]; then
+      echo "The two-stage detector class contract must be exactly trash." >&2
+      return 1
+    fi
+    if [[ "$NVIDIA_FOD_REQUIRED_CLASS_NAMES" != \
+          "$NVIDIA_DETECT_CLASSIFY_CLASSIFIER_CLASS_NAMES" ]]; then
+      echo "The active two-stage material class order does not match its classifier contract." >&2
+      return 1
+    fi
+  fi
 }
 
 dual_host_validate_fod_weights() {
   local weights="${NVIDIA_FOD_WEIGHTS:-}" actual_sha256
+  if [[ "$NVIDIA_FOD_BACKEND" == locateanything ]]; then
+    if [[ ! -x "$NVIDIA_LOCATEANYTHING_WORKER_PYTHON" ]]; then
+      echo "LocateAnything worker Python is not executable: $NVIDIA_LOCATEANYTHING_WORKER_PYTHON" >&2
+      return 1
+    fi
+    LOCATEANYTHING_MODEL_ROOT="$NVIDIA_LOCATEANYTHING_MODEL_ROOT" \
+      LOCATEANYTHING_MANIFEST="$NVIDIA_LOCATEANYTHING_MANIFEST" \
+      LOCATEANYTHING_EXPECTED_SHA256="${NVIDIA_FOD_MODEL_SHA256,,}" \
+      python3 - <<'PY'
+import hashlib
+import json
+import os
+from pathlib import Path
+import sys
+
+root = Path(os.environ["LOCATEANYTHING_MODEL_ROOT"]).resolve()
+manifest = Path(os.environ["LOCATEANYTHING_MANIFEST"]).resolve()
+expected_manifest_sha = os.environ["LOCATEANYTHING_EXPECTED_SHA256"]
+
+def fail(message):
+    print(message, file=sys.stderr)
+    raise SystemExit(1)
+
+if not root.is_dir():
+    fail("LocateAnything model root is missing: {}".format(root))
+if not manifest.is_file():
+    fail("LocateAnything deployment manifest is missing: {}".format(manifest))
+try:
+    manifest.relative_to(root)
+except ValueError:
+    fail("LocateAnything deployment manifest must be inside the model root")
+
+payload = manifest.read_bytes()
+actual_manifest_sha = hashlib.sha256(payload).hexdigest()
+if actual_manifest_sha != expected_manifest_sha:
+    fail(
+        "LocateAnything manifest SHA256 mismatch: expected {}, got {}".format(
+            expected_manifest_sha, actual_manifest_sha
+        )
+    )
+try:
+    data = json.loads(payload.decode("utf-8"))
+except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+    fail("LocateAnything deployment manifest is invalid: {}".format(exc))
+if not isinstance(data, dict) or data.get("schema_version") != 1:
+    fail("LocateAnything deployment manifest schema must be 1")
+if data.get("repo_id") != "nvidia/LocateAnything-3B":
+    fail("LocateAnything deployment manifest has the wrong repo_id")
+revision = str(data.get("revision", ""))
+if len(revision) != 40 or any(c not in "0123456789abcdef" for c in revision):
+    fail("LocateAnything deployment manifest has an invalid revision")
+entries = data.get("files")
+if not isinstance(entries, list) or not entries:
+    fail("LocateAnything deployment manifest has no files")
+
+seen = set()
+for entry in entries:
+    if not isinstance(entry, dict):
+        fail("LocateAnything deployment manifest has a non-object file entry")
+    relative = str(entry.get("path", ""))
+    expected_sha = str(entry.get("sha256", "")).lower()
+    expected_size = entry.get("size")
+    if not relative or relative in seen or Path(relative).is_absolute() or ".." in Path(relative).parts:
+        fail("LocateAnything deployment manifest has an unsafe or duplicate path: {}".format(relative))
+    if len(expected_sha) != 64 or any(c not in "0123456789abcdef" for c in expected_sha):
+        fail("LocateAnything deployment manifest has an invalid SHA256 for {}".format(relative))
+    if not isinstance(expected_size, int) or expected_size < 1:
+        fail("LocateAnything deployment manifest has an invalid size for {}".format(relative))
+    path = (root / relative).resolve()
+    try:
+        path.relative_to(root)
+    except ValueError:
+        fail("LocateAnything model file escapes the model root: {}".format(relative))
+    if not path.is_file() or path.stat().st_size != expected_size:
+        fail("LocateAnything model file is missing or has the wrong size: {}".format(path))
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        while True:
+            chunk = stream.read(4 * 1024 * 1024)
+            if not chunk:
+                break
+            digest.update(chunk)
+    if digest.hexdigest() != expected_sha:
+        fail("LocateAnything model file SHA256 mismatch: {}".format(path))
+    seen.add(relative)
+
+required = {
+    "config.json", "model.safetensors.index.json",
+    "model-00001-of-00002.safetensors", "model-00002-of-00002.safetensors",
+    "tokenizer_config.json", "preprocessor_config.json", "processor_config.json",
+    "modeling_locateanything.py", "processing_locateanything.py",
+}
+missing = sorted(required - seen)
+if missing:
+    fail("LocateAnything deployment manifest omits: {}".format(", ".join(missing)))
+PY
+    return $?
+  fi
+  if [[ "$NVIDIA_FOD_BACKEND" == detect_and_classify ]]; then
+    local detector_actual classifier_actual
+    if [[ ! -r "$NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS" ||
+          ! -r "$NVIDIA_DETECT_CLASSIFY_CLASSIFIER_WEIGHTS" ]]; then
+      echo "Two-stage detector or classifier weights are missing." >&2
+      return 1
+    fi
+    detector_actual="$(sha256sum -- "$NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS" | awk '{print $1}')" || return 1
+    classifier_actual="$(sha256sum -- "$NVIDIA_DETECT_CLASSIFY_CLASSIFIER_WEIGHTS" | awk '{print $1}')" || return 1
+    if [[ "${detector_actual,,}" != "${NVIDIA_DETECT_CLASSIFY_DETECTOR_SHA256,,}" ]]; then
+      echo "Two-stage detector SHA256 mismatch: expected $NVIDIA_DETECT_CLASSIFY_DETECTOR_SHA256, got $detector_actual." >&2
+      return 1
+    fi
+    if [[ "${classifier_actual,,}" != "${NVIDIA_DETECT_CLASSIFY_CLASSIFIER_SHA256,,}" ]]; then
+      echo "Two-stage classifier SHA256 mismatch: expected $NVIDIA_DETECT_CLASSIFY_CLASSIFIER_SHA256, got $classifier_actual." >&2
+      return 1
+    fi
+    return 0
+  fi
   if [[ -z "$weights" || ! -r "$weights" ]]; then
     echo "NVIDIA_FOD_WEIGHTS is missing or unreadable: ${weights:-<empty>}" >&2
     return 1

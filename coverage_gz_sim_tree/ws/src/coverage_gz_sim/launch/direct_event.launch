@@ -1,0 +1,83 @@
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="run_label" default="direct_hybrid_event_replan"/>
+  <arg name="result_dir"/>
+  <arg name="map_yaml"
+       default="/home/slam/robot_j6m_ws/global_maps/map_sets/latest/map_fused_2d/map.yaml"/>
+  <arg name="regions_file"
+       default="/home/slam/robot_j6m_ws/global_maps/map_sets/latest/coverage_regions/fused/regions.json"/>
+  <arg name="initial_x" default="16.65"/>
+  <arg name="initial_y" default="-39.30"/>
+  <arg name="initial_yaw" default="0.0"/>
+  <arg name="region_order" default="[A区]"/>
+  <arg name="maximum_wall_time" default="600.0"/>
+  <arg name="hybrid_replan_every_cycle" default="false"/>
+  <arg name="direction_change_penalty" default="0.50"/>
+  <arg name="teb_global_plan_lookahead" default="4.0"/>
+
+  <!-- The two variants include this exact launch file.  Their only runtime
+       difference is hybrid_replan_every_cycle: false validates/reuses the
+       current path at 1 Hz and performs a Hybrid search only after an event;
+       true performs a new Hybrid search on every 1 Hz planner cycle. -->
+  <include file="$(find coverage_gz_sim)/launch/baseline.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="run_label" value="$(arg run_label)"/>
+    <arg name="result_dir" value="$(arg result_dir)"/>
+    <arg name="map_yaml" value="$(arg map_yaml)"/>
+    <arg name="regions_file" value="$(arg regions_file)"/>
+    <arg name="initial_x" value="$(arg initial_x)"/>
+    <arg name="initial_y" value="$(arg initial_y)"/>
+    <arg name="initial_yaw" value="$(arg initial_yaw)"/>
+    <arg name="region_order" value="$(arg region_order)"/>
+    <arg name="maximum_wall_time" value="$(arg maximum_wall_time)"/>
+
+    <arg name="online_hybrid_without_precompute" value="false"/>
+    <arg name="hierarchical_hybrid_on_demand" value="true"/>
+    <arg name="direct_hybrid_to_final_goal" value="true"/>
+    <arg name="entry_navfn_single_topology" value="true"/>
+    <arg name="hybrid_execute_unsplit_cusps" value="false"/>
+    <arg name="hybrid_cache_max_deviation" value="0.60"/>
+    <!-- Long-distance first-entry navigation plans only one bounded 10 m
+         kinematic prefix at a time.  The latest map's narrow junction can
+         exhaust the generic 1.5 s service bound, so give that foreground
+         request 3 s; 1 Hz/event replans retain their separate 0.8 s cap. -->
+    <arg name="hybrid_planning_timeout" value="3.0"/>
+    <arg name="hybrid_rolling_plan_timeout" value="4.0"/>
+    <arg name="hybrid_cusp_position_tolerance" value="0.25"/>
+    <arg name="obstacle_wait_sec" value="0.5"/>
+    <arg name="planner_frequency" value="1.0"/>
+    <!-- Four metres is enough context for the 7-15 m straight swaths and
+         avoids optimizing almost an entire short sweep at once.  Ordinary
+         inter-region and Hybrid profiles are independently bounded to 3 m. -->
+    <arg name="teb_global_plan_lookahead"
+         value="$(arg teb_global_plan_lookahead)"/>
+    <arg name="hybrid_replan_every_cycle"
+         value="$(arg hybrid_replan_every_cycle)"/>
+    <arg name="hybrid_analytic_improvement_timeout" value="0.05"/>
+    <arg name="hybrid_analytic_gearchange_improvement_timeout" value="0.08"/>
+    <arg name="hybrid_analytic_connector_improvement_timeout" value="0.08"/>
+    <arg name="teb_reinitialize_on_global_plan" value="false"/>
+
+    <arg name="hybrid_transit_include_costmap_obstacles" value="false"/>
+    <arg name="hybrid_transit_weight_viapoint_lateral" value="100.0"/>
+    <arg name="hybrid_transit_weight_viapoint_heading" value="50.0"/>
+    <arg name="hybrid_transit_inner_iterations" value="3"/>
+    <arg name="hybrid_transit_outer_iterations" value="2"/>
+    <arg name="hybrid_transit_lookahead" value="2.0"/>
+    <arg name="transition_tracking_heading_tolerance" value="0.40"/>
+    <arg name="hybrid_transit_max_forward_speed" value="0.00"/>
+    <arg name="hybrid_transit_max_reverse_speed" value="0.00"/>
+    <arg name="hybrid_transit_max_angular_speed" value="0.00"/>
+    <arg name="hybrid_transit_linear_accel" value="0.00"/>
+    <arg name="hybrid_transit_angular_accel" value="0.00"/>
+    <arg name="plant_linear_accel" value="1.00"/>
+
+    <!-- The planning penalty approximates the measured zero-speed hand-off
+         without making a 6-7 m no-cusp reverse arc look cheaper than a short
+         three-point turn.  Transit limits are 1.30/0.80 m/s; sweep limits
+         remain 0.80/0.30 m/s. -->
+    <arg name="direction_change_penalty"
+         value="$(arg direction_change_penalty)"/>
+    <arg name="segment_handoff_penalty" value="0.50"/>
+  </include>
+</launch>

@@ -10,6 +10,7 @@
   <arg name="image_quality_target_median" default="115.0"/>
   <arg name="image_quality_exposure_max_percent" default="100.0"/>
 
+  <arg name="backend" default="yolo"/>
   <arg name="weights"
        default="$(find autolabor_fod_vision)/models/yolo11_gam_best.pt"/>
   <arg name="expected_model_sha256"
@@ -29,6 +30,18 @@
   <arg name="max_detections" default="100"/>
   <arg name="required_class_names"
        default="metal,plastic,paper,glass,kitchen_waste"/>
+  <arg name="locateanything_model_root" default="/home/slam/LocateAnything"/>
+  <arg name="locateanything_manifest"
+       default="/home/slam/LocateAnything/.runtime/deployment_manifest.json"/>
+  <arg name="locateanything_worker_python" default="$(arg detector_python)"/>
+  <arg name="two_stage_detector_weights"
+       default="/home/slam/yolo11/detect_classify/detect/trash_yolo11s_gam/best.pt"/>
+  <arg name="two_stage_detector_sha256"
+       default="711b6bb4b4debebcf993f033f23e7e641a02dd279254779f8dafed11b6a79233"/>
+  <arg name="two_stage_classifier_weights"
+       default="/home/slam/yolo11/detect_classify/classify/material_yolo11s_cls/best.pt"/>
+  <arg name="two_stage_classifier_sha256"
+       default="d0cce9310e184e8acd7a6142face16d39aadc9a6e5405b18694346f2315899e9"/>
 
   <arg name="enable_clip_filter" default="true"/>
   <arg name="clip_python_root"
@@ -84,6 +97,7 @@
 
   <include file="$(find autolabor_fod_vision)/launch/perception.launch">
     <arg name="start_source" value="false"/>
+    <arg name="backend" value="$(arg backend)"/>
     <arg name="weights" value="$(arg weights)"/>
     <arg name="expected_model_sha256" value="$(arg expected_model_sha256)"/>
     <arg name="detector_python" value="$(arg detector_python)"/>
@@ -97,6 +111,20 @@
     <arg name="max_detections" value="$(arg max_detections)"/>
     <arg name="smoke_test_only" value="false"/>
     <arg name="required_class_names" value="$(arg required_class_names)"/>
+    <arg name="locateanything_model_root"
+         value="$(arg locateanything_model_root)"/>
+    <arg name="locateanything_manifest"
+         value="$(arg locateanything_manifest)"/>
+    <arg name="locateanything_worker_python"
+         value="$(arg locateanything_worker_python)"/>
+    <arg name="two_stage_detector_weights"
+         value="$(arg two_stage_detector_weights)"/>
+    <arg name="two_stage_detector_sha256"
+         value="$(arg two_stage_detector_sha256)"/>
+    <arg name="two_stage_classifier_weights"
+         value="$(arg two_stage_classifier_weights)"/>
+    <arg name="two_stage_classifier_sha256"
+         value="$(arg two_stage_classifier_sha256)"/>
     <arg name="enable_depth_fusion" value="true"/>
     <arg name="depth_topic" value="/fod_camera/depth_registered"/>
     <arg name="enable_clip_filter" value="$(arg enable_clip_filter)"/>

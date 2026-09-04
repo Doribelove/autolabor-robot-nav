@@ -305,6 +305,10 @@ TOOL_SPECS = [
                     "type": "number", "minimum": 0.0, "maximum": 30.0,
                     "description": "省略时使用 Qt 当前分段交接附加时间。",
                 },
+                "transit_replan_period_sec": {
+                    "type": "number", "minimum": 1.0, "maximum": 10.0,
+                    "description": "省略时使用 Qt 当前清扫线间转场重规划间隔。",
+                },
             },
             "required": ["regions"],
             "additionalProperties": False,

@@ -14,6 +14,9 @@
   <arg name="static_map_source_mode" default="fused"/>
   <arg name="coverage_region_root" default=""/>
   <arg name="coverage_region_legacy_root" default=""/>
+  <arg name="configured_vision_backend" default="yolo"/>
+  <arg name="vision_backend_switch_script"
+       default="/home/slam/robot_j6m_ws/scripts/switch_fod_backend.sh"/>
 
   <!--
     map_server publishes an OccupancyGrid but no TF. Before the operator sends
@@ -55,5 +58,9 @@
            value="$(arg coverage_region_root)"/>
     <param name="coverage_region_legacy_root"
            value="$(arg coverage_region_legacy_root)"/>
+    <param name="configured_vision_backend"
+           value="$(arg configured_vision_backend)"/>
+    <param name="vision_backend_switch_script"
+           value="$(arg vision_backend_switch_script)"/>
   </node>
 </launch>
