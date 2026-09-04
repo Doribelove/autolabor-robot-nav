@@ -216,6 +216,9 @@ Qt 标题应为“Autolabor 无人车操作与诊断台”，并能看到：
 - 同一控制条的“④ 显示静态三维先验”默认关闭；点击后按需显示
   `/fast_lio_localization/prior_map` 并切换为可旋转视角，再次点击或进入初始位姿工具
   会恢复二维全图；
+- 无图模式综合页显示独立的“显示历史点云图”选项；默认关闭，点击后按需订阅
+  `/static_mapping/history_cloud`，实时显示本次建图已经达到持久观测门槛的完整体素地图。
+  关闭选项或切入清扫页后必须取消显示和数据订阅；该功能不修改原建图启停、融合与保存逻辑；
 - 右侧 ZED/YOLO11 实时画面；
 - 局部坐标、速度、FAST-LIO 健康分及事件日志；
 - 综合页 `Δ前向 / Δ左向 / ΔYaw` 相对目标输入。未授权运动时不要点击发送。
@@ -930,3 +933,23 @@ rostopic echo /nvidia_cmd_vel_watchdog/status
   完成轮日志位于 `/map/autolabor_runtime/logs/dual_host/20260904_174939/f2d8a0e4-a845-11f1-9d2c-5e9bc489939f/`。
   完整判读见 `docs/COVERAGE_REAL_ROBOT_EXPERIMENT_20260904.md`。本次只更新文档，没有修改、
   构建或部署程序；J6M `current` 仍为 release `20260904_163527`。
+
+## 2026-09-04 建图历史点云按需显示（本机已构建，待冷重启目视）
+
+- 保留 `0904-fast-replan`，从其新建 `0904-history-cloud-display`。Qt 无图模式综合页新增
+  默认关闭的“显示历史点云图”；打开时才启用 RViz 的 `Mapping history cloud` 显示，关闭
+  或进入清扫页会解除订阅。
+- NVIDIA 本机 `voxel_cloud_mapper` 新增非锁存话题 `/static_mapping/history_cloud`，仅在存在
+  订阅者时最多 `1 Hz` 生成完整历史体素快照。预览和最终 `map.pcd` 共用
+  `persistentPoints()`，所以 `min_frame_observations`、坐标/强度均值完全一致；RViz 每帧
+  替换旧快照，不无限缓存原始雷达帧。原建图启停脚本、二维融合和保存判定未修改。
+- NVIDIA 完整工作区构建通过；`robot_bringup` 与 `autolabor_operator_gui` 定向测试通过，
+  工作区结果汇总 `949` 项、0 错误、0 失败、0 跳过；静态健康检查通过，唯一警告为当前
+  未枚举物理麦克风。隔离 ROS master 合成运行验证发布了 4 个历史快照，其中达到三帧
+  门槛后的 2 个快照包含正确的 `camera_init` 点和 `observations` 字段，最终 PCD 同为 1 点。
+- 20:38 只读检查发现 20:16 开始的建图会话仍在运行，输出目标为
+  `global_maps/map_sets/map_20260904_201657`。为避免中断和提前保存，本轮没有冷重启、没有
+  停止该会话，也没有部署 J6M；正在运行的旧 Qt/建图进程尚不具备新选项。应等该会话由
+  操作员正常结束后，通过统一入口完整冷重启，再进行按钮与真实点云目视验收。
+- J6M 实际 `current` 只读核对为 release `20260904_190343`；本轮没有发送初始位姿、导航
+  目标或非零速度，`MOTION_ENABLED=true` 与已有运动授权标记均未改写。

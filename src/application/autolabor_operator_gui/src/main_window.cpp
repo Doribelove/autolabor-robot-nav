@@ -106,6 +106,7 @@ constexpr unsigned int kMapDisplayMaxRefreshAttempts = 5;
 const char* const kStaticMapDisplayName = "Static global map";
 const char* const kGlobalCostmapDisplayName = "Global costmap";
 const char* const kPriorMapDisplayName = "Known 3D global map (optional)";
+const char* const kMappingHistoryCloudDisplayName = "Mapping history cloud";
 const char* const kTebGlobalPlanDisplayName = "TEB global plan";
 const char* const kTebLocalPlanDisplayName = "TEB local plan";
 
@@ -1693,6 +1694,34 @@ QWidget* MainWindow::buildOverviewPage()
   rviz_map_controls_->setVisible(false);
   rviz_layout_->addWidget(rviz_map_controls_);
 
+  rviz_history_controls_ = new QFrame(rviz_host_);
+  rviz_history_controls_->setObjectName(QStringLiteral("mappingHistoryControls"));
+  auto* history_controls_layout = new QHBoxLayout(rviz_history_controls_);
+  history_controls_layout->setContentsMargins(10, 6, 10, 6);
+  history_controls_layout->setSpacing(8);
+  rviz_history_instruction_ = new QLabel(
+      QStringLiteral("无图建图模式：历史图按最终 PCD 的持久体素规则实时更新"),
+      rviz_history_controls_);
+  rviz_history_instruction_->setObjectName(
+      QStringLiteral("mappingHistoryInstruction"));
+  rviz_history_instruction_->setWordWrap(true);
+  rviz_history_cloud_button_ =
+      new QPushButton(QStringLiteral("显示历史点云图"), rviz_history_controls_);
+  rviz_history_cloud_button_->setObjectName(
+      QStringLiteral("mappingHistoryCloudButton"));
+  rviz_history_cloud_button_->setCheckable(true);
+  rviz_history_cloud_button_->setChecked(false);
+  rviz_history_cloud_button_->setEnabled(false);
+  rviz_history_cloud_button_->setToolTip(
+      QStringLiteral("点击后订阅本次建图累计的持久体素地图；默认关闭，约 1 Hz 更新，"
+                     "不会改变建图和保存逻辑"));
+  connect(rviz_history_cloud_button_, &QPushButton::clicked, this,
+          &MainWindow::toggleMappingHistoryCloud);
+  history_controls_layout->addWidget(rviz_history_instruction_, 1);
+  history_controls_layout->addWidget(rviz_history_cloud_button_);
+  rviz_history_controls_->setVisible(false);
+  rviz_layout_->addWidget(rviz_history_controls_);
+
   auto* route_legend = new QLabel(
       QStringLiteral("路线图例：青色＝覆盖条带预览 · 蓝色＝全局参考路线 · "
                      "红色＝当前局部轨迹 · 橙色＝完整Hybrid A*转场 · "
@@ -3028,6 +3057,7 @@ void MainWindow::handleMasterProbeFinished()
       overview_initial_pose_tool_active_ = false;
       rviz_follow_after_initial_pose_ = false;
       overview_3d_map_enabled_ = false;
+      mapping_history_cloud_enabled_ = false;
       if (rviz_follow_vehicle_button_)
         rviz_follow_vehicle_button_->setEnabled(false);
       if (rviz_3d_map_button_)
@@ -3035,6 +3065,12 @@ void MainWindow::handleMasterProbeFinished()
         rviz_3d_map_button_->setChecked(false);
         rviz_3d_map_button_->setEnabled(false);
         rviz_3d_map_button_->setText(QStringLiteral("④ 显示静态三维先验"));
+      }
+      if (rviz_history_cloud_button_)
+      {
+        rviz_history_cloud_button_->setChecked(false);
+        rviz_history_cloud_button_->setEnabled(false);
+        rviz_history_cloud_button_->setText(QStringLiteral("显示历史点云图"));
       }
       if (rviz_map_instruction_)
         rviz_map_instruction_->setText(
@@ -3074,6 +3110,8 @@ void MainWindow::setupRosInterfaces()
   node_->param("static_map_mode", static_map_mode_, false);
   if (rviz_map_controls_)
     rviz_map_controls_->setVisible(static_map_mode_ && enable_rviz_);
+  if (rviz_history_controls_)
+    rviz_history_controls_->setVisible(!static_map_mode_ && enable_rviz_);
   const std::string default_rviz =
       ros::package::getPath("autolabor_operator_gui") + "/config/operator_navigation.rviz";
   node_->param<std::string>(
@@ -3278,10 +3316,16 @@ void MainWindow::setupEmbeddedRviz()
     rviz_map_refresh_at_ = ros::WallTime();
     rviz_follow_after_initial_pose_ = false;
     overview_3d_map_enabled_ = false;
+    mapping_history_cloud_enabled_ = false;
     if (rviz_3d_map_button_)
     {
       rviz_3d_map_button_->setChecked(false);
       rviz_3d_map_button_->setText(QStringLiteral("④ 显示静态三维先验"));
+    }
+    if (rviz_history_cloud_button_)
+    {
+      rviz_history_cloud_button_->setChecked(false);
+      rviz_history_cloud_button_->setText(QStringLiteral("显示历史点云图"));
     }
     appendEvent(
         (active_tab == coverage_tab_index_
@@ -3362,6 +3406,8 @@ void MainWindow::attachRvizToTab(int tab_index)
   coverage_fitted_map_count_ = 0;
 
   const TelemetrySnapshot data = snapshot();
+  if (tab_index == coverage_tab_index_)
+    setMappingHistoryCloudVisible(false);
   if (tab_index == coverage_tab_index_ && data.map_received)
   {
     setOverview3dMapView(false, data);
@@ -3792,6 +3838,56 @@ void MainWindow::toggleOverview3dMap()
                   ? QStringLiteral("已开启三维先验地图显示并切换到可旋转视角；"
                                    "若点云尚未出现，请等待定位器的锁存地图。")
                   : QStringLiteral("已隐藏三维先验地图，并恢复完整二维地图视角。"));
+}
+
+bool MainWindow::setMappingHistoryCloudVisible(bool enabled)
+{
+  if (!rviz_initialized_ || !rviz_frame_ || !rviz_frame_->getManager() ||
+      (enabled && static_map_mode_))
+    return false;
+  rviz::VisualizationManager* manager = rviz_frame_->getManager();
+  rviz::Display* history = findDisplayByName(
+      manager->getRootDisplayGroup(),
+      QString::fromLatin1(kMappingHistoryCloudDisplayName));
+  if (!history)
+    return false;
+
+  history->setEnabled(enabled);
+  mapping_history_cloud_enabled_ = enabled;
+  if (rviz_history_cloud_button_)
+  {
+    rviz_history_cloud_button_->setChecked(enabled);
+    rviz_history_cloud_button_->setText(
+        enabled ? QStringLiteral("隐藏历史点云图")
+                : QStringLiteral("显示历史点云图"));
+  }
+  if (rviz_history_instruction_)
+  {
+    rviz_history_instruction_->setText(
+        enabled
+            ? QStringLiteral("历史点云图正在按需更新；当前帧点云仍会叠加显示")
+            : QStringLiteral("无图建图模式：历史图按最终 PCD 的持久体素规则实时更新"));
+  }
+  manager->queueRender();
+  return true;
+}
+
+void MainWindow::toggleMappingHistoryCloud()
+{
+  const bool requested =
+      rviz_history_cloud_button_ && rviz_history_cloud_button_->isChecked();
+  if (!setMappingHistoryCloudVisible(requested))
+  {
+    if (rviz_history_cloud_button_)
+      rviz_history_cloud_button_->setChecked(mapping_history_cloud_enabled_);
+    QMessageBox::warning(
+        this, QStringLiteral("历史点云图不可用"),
+        QStringLiteral("请使用无图模式启动并等待内嵌 RViz 加载完成。"));
+    return;
+  }
+  appendEvent(requested
+                  ? QStringLiteral("已开启本次建图的历史点云图实时显示。")
+                  : QStringLiteral("已关闭历史点云图显示和预览数据传输。"));
 }
 
 void MainWindow::fitOverviewMapView()
@@ -4784,15 +4880,31 @@ void MainWindow::refreshUi()
     rviz_follow_vehicle_button_->setEnabled(vehicle_view_ready);
   if (rviz_3d_map_button_)
     rviz_3d_map_button_->setEnabled(overview_map_ready);
+  bool history_cloud_display_available = false;
   bool global_costmap_display_available = false;
   bool global_costmap_display_enabled = false;
   if (rviz_initialized_ && rviz_frame_ && rviz_frame_->getManager())
   {
+    rviz::Display* history = findDisplayByName(
+        rviz_frame_->getManager()->getRootDisplayGroup(),
+        QString::fromLatin1(kMappingHistoryCloudDisplayName));
+    history_cloud_display_available = history != nullptr;
+    if (history)
+      mapping_history_cloud_enabled_ = history->isEnabled();
     rviz::Display* display = findDisplayByName(
         rviz_frame_->getManager()->getRootDisplayGroup(),
         QString::fromLatin1(kGlobalCostmapDisplayName));
     global_costmap_display_available = display != nullptr;
     global_costmap_display_enabled = display && display->isEnabled();
+  }
+  if (rviz_history_cloud_button_)
+  {
+    rviz_history_cloud_button_->setEnabled(
+        !static_map_mode_ && history_cloud_display_available);
+    rviz_history_cloud_button_->setChecked(mapping_history_cloud_enabled_);
+    rviz_history_cloud_button_->setText(
+        mapping_history_cloud_enabled_ ? QStringLiteral("隐藏历史点云图")
+                                       : QStringLiteral("显示历史点云图"));
   }
   if (rviz_global_costmap_button_)
   {

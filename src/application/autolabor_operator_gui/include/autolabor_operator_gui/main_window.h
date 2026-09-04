@@ -335,6 +335,7 @@ private Q_SLOTS:
   void followOverviewVehicle();
   void selectInitialPoseTool();
   void toggleOverview3dMap();
+  void toggleMappingHistoryCloud();
   void toggleGlobalCostmap();
   void beginCoverageSelection();
   void undoCoveragePoint();
@@ -443,6 +444,7 @@ private:
   bool setRvizFollowVehicleView(const TelemetrySnapshot& data);
   bool setOverview3dMapView(bool enabled,
                             const TelemetrySnapshot& data);
+  bool setMappingHistoryCloudVisible(bool enabled);
   bool setGlobalCostmapDisplayEnabled(bool enabled);
   void updateNavigationPathDisplays(const TelemetrySnapshot& data);
   bool selectRvizTool(rviz::VisualizationFrame* frame,
@@ -596,6 +598,9 @@ private:
   QPushButton* rviz_follow_vehicle_button_ = nullptr;
   QPushButton* rviz_3d_map_button_ = nullptr;
   QPushButton* rviz_global_costmap_button_ = nullptr;
+  QFrame* rviz_history_controls_ = nullptr;
+  QLabel* rviz_history_instruction_ = nullptr;
+  QPushButton* rviz_history_cloud_button_ = nullptr;
   QLabel* rviz_placeholder_ = nullptr;
   rviz::VisualizationFrame* rviz_frame_ = nullptr;
   QWidget* coverage_rviz_host_ = nullptr;
@@ -637,6 +642,7 @@ private:
   bool overview_initial_pose_tool_active_ = false;
   bool rviz_follow_after_initial_pose_ = false;
   bool overview_3d_map_enabled_ = false;
+  bool mapping_history_cloud_enabled_ = false;
   QPushButton* forward_goal_button_ = nullptr;
   QPushButton* record_button_ = nullptr;
   QPushButton* static_map_start_button_ = nullptr;
