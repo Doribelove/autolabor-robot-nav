@@ -9,6 +9,7 @@ import yaml
 PACKAGE = Path(__file__).resolve().parents[1]
 CONFIG = PACKAGE / "config" / "detector_smoke.yaml"
 LAUNCH = PACKAGE / "launch" / "perception.launch"
+ZED_LAUNCH = PACKAGE / "launch" / "zed_fod_detection.launch"
 ADAPTER = PACKAGE / "scripts" / "fod_vision_result_adapter_node.py"
 
 
@@ -17,6 +18,7 @@ class LegacyDisplayDepthContractTest(unittest.TestCase):
     def setUpClass(cls):
         cls.config = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
         cls.launch_source = LAUNCH.read_text(encoding="utf-8")
+        cls.zed_launch_source = ZED_LAUNCH.read_text(encoding="utf-8")
         cls.adapter_source = ADAPTER.read_text(encoding="utf-8")
 
     def test_bounded_source_history_and_median_cluster_are_configured(self):
@@ -71,6 +73,27 @@ class LegacyDisplayDepthContractTest(unittest.TestCase):
         self.assertIn('name="display_depth/enabled"', self.launch_source)
         self.assertIn('name="display_depth/depth_topic"', self.launch_source)
         self.assertIn('name="display_depth/camera_info_topic"', self.launch_source)
+
+    def test_locateanything_uses_only_the_long_display_depth_history(self):
+        self.assertIn(
+            'arg name="enable_detector_depth_fusion"', self.launch_source
+        )
+        self.assertIn('arg name="enable_display_depth"', self.launch_source)
+        self.assertIn(
+            'value="$(arg enable_detector_depth_fusion)"', self.launch_source
+        )
+        self.assertIn(
+            'value="$(arg enable_display_depth)"', self.launch_source
+        )
+        self.assertIn(
+            "default=\"$(eval arg('backend') != 'locateanything')\"",
+            self.zed_launch_source,
+        )
+        self.assertIn(
+            '<arg name="enable_display_depth" default="true"/>',
+            self.zed_launch_source,
+        )
+        self.assertEqual(self.config["display_depth"]["buffer_size"], 120)
 
 
 if __name__ == "__main__":

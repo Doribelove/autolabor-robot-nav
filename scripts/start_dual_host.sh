@@ -7,7 +7,7 @@ usage() {
   cat <<EOF
 Usage: $0 [--start | --restart | --status | --stop | --foreground]
           [--map-set DIR] [--static-map-source fused|lidar2d]
-          [--authorize-fod-motion]
+          [--authorize-fod-motion] [--visual-only]
 
   --start       Start the complete stack as a managed user service (default).
   --restart     Cold-stop both hosts, then start the managed service.
@@ -22,6 +22,9 @@ Usage: $0 [--start | --restart | --status | --stop | --foreground]
                 still requires the main motion gate, authorization marker,
                 explicit runtime mode request, localization and live safety
                 prechecks; it never enters visual driving automatically.
+  --visual-only Start only the J6M ROS master plus NVIDIA ZED, vision and Qt.
+                MID360, FAST-LIO, navigation, CAN and all motion outputs stay
+                disabled. This cannot be combined with a map or motion grant.
 
 The default start waits until the complete graph is ready, then returns to the
 shell. Optional sensor messages may be reported as degraded; an enabled ZED
@@ -36,6 +39,7 @@ mode=""
 requested_map_set=""
 requested_static_source="fused"
 authorize_fod_motion=false
+visual_only=false
 while (( $# > 0 )); do
   case "$1" in
     --start|--restart|--status|--stop|--foreground|--supervise)
@@ -57,6 +61,10 @@ while (( $# > 0 )); do
       authorize_fod_motion=true
       shift
       ;;
+    --visual-only)
+      visual_only=true
+      shift
+      ;;
     -h|--help) usage; exit 0 ;;
     *) usage >&2; exit 2 ;;
   esac
@@ -68,6 +76,10 @@ esac
 if [[ "$mode" == --supervise &&
       "${DUAL_HOST_FOD_MOTION_OVERRIDE:-}" == true ]]; then
   authorize_fod_motion=true
+fi
+if [[ "$mode" == --supervise &&
+      "${DUAL_HOST_VISUAL_ONLY_OVERRIDE:-}" == true ]]; then
+  visual_only=true
 fi
 if [[ "$authorize_fod_motion" == true ]]; then
   case "$mode" in
@@ -82,6 +94,22 @@ elif [[ "$mode" != --supervise ]]; then
   # Do not accept a hidden inherited authorization on a user-facing command.
   unset DUAL_HOST_FOD_MOTION_OVERRIDE
 fi
+if [[ "$visual_only" == true ]]; then
+  case "$mode" in
+    --start|--restart|--foreground|--supervise) ;;
+    *)
+      echo "--visual-only is valid only with --start, --restart or --foreground." >&2
+      exit 2
+      ;;
+  esac
+  if [[ "$authorize_fod_motion" == true || -n "$requested_map_set" ]]; then
+    echo "--visual-only cannot be combined with --authorize-fod-motion or --map-set." >&2
+    exit 2
+  fi
+  export DUAL_HOST_VISUAL_ONLY_OVERRIDE=true
+elif [[ "$mode" != --supervise ]]; then
+  unset DUAL_HOST_VISUAL_ONLY_OVERRIDE
+fi
 
 # Catkin setup files inspect the caller's positional parameters when sourced.
 inherited_static_map_enabled="${STATIC_MAP_ENABLED:-}"
@@ -94,6 +122,14 @@ set --
 source "$SCRIPT_DIR/load_config.sh"
 source "$SCRIPT_DIR/setup_env.sh"
 source "$SCRIPT_DIR/network_prepare.sh"
+
+prepare_runtime_network() {
+  if [[ "$visual_only" == true ]]; then
+    dual_host_prepare_j6m_network
+  else
+    dual_host_prepare_network
+  fi
+}
 
 if [[ "$mode" == --supervise && -n "$inherited_static_map_enabled" ]]; then
   STATIC_MAP_ENABLED="$inherited_static_map_enabled"
@@ -169,22 +205,29 @@ if [[ "$mode" == --status && -r "$MAP_MODE_FILE" ]]; then
   export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
   export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
   export FOD_MOTION_ENABLED
+  visual_only="${VISUAL_ONLY:-false}"
 fi
 
-REQUIRED_NODES=(
-  /laserMapping
-  /relay_livox_imu
-  /relay_livox_lidar
-  /livox_custom_to_pointcloud
-  /mid360_pointcloud_to_laserscan
-  /avoidance_scan_fusion
-  /move_base
-  /navigation_pause
-  /optional_cloud_enhancer
-  /fod_navigation_mode
-  /fod_visual_servo
-  /nvidia_cmd_vel_watchdog
-)
+REQUIRED_NODES=()
+if [[ "$visual_only" == false ]]; then
+  REQUIRED_NODES=(
+    /laserMapping
+    /relay_livox_imu
+    /relay_livox_lidar
+    /livox_custom_to_pointcloud
+    /mid360_pointcloud_to_laserscan
+    /avoidance_scan_fusion
+    /move_base
+    /navigation_pause
+    /optional_cloud_enhancer
+    /fod_navigation_mode
+    /fod_visual_servo
+    /nvidia_cmd_vel_watchdog
+  )
+elif [[ "$visual_only" != true ]]; then
+  echo "VISUAL_ONLY must be literal true or false." >&2
+  exit 3
+fi
 
 if [[ "$STATIC_MAP_ENABLED" == true ]]; then
   REQUIRED_NODES+=(/map_server /fast_lio_map_localizer /fast_lio_localization_cmd_vel_gate)
@@ -193,15 +236,17 @@ elif [[ "$STATIC_MAP_ENABLED" != false ]]; then
   exit 3
 fi
 
-if dual_host_mode_enabled "$NVIDIA_START_LIVOX"; then
+if [[ "$visual_only" == false ]] && dual_host_mode_enabled "$NVIDIA_START_LIVOX"; then
   REQUIRED_NODES+=(/livox_lidar_publisher2)
 fi
-if [[ "$CAN_PORT_CONFIRMED" == true ]] &&
+if [[ "$visual_only" == false && "$CAN_PORT_CONFIRMED" == true ]] &&
    dual_host_mode_enabled "$NVIDIA_START_CAN" "$CAN_PORT"; then
   REQUIRED_NODES+=(/canbus_driver /m2_driver)
 fi
 if [[ "$NVIDIA_START_VISION" == true ]]; then
   REQUIRED_NODES+=(/fod_detector)
+  [[ "$NVIDIA_FOD_BACKEND" == detect_and_classify ]] || \
+    REQUIRED_NODES+=(/fod_vision_result_adapter)
 fi
 if [[ "$NVIDIA_START_CAMERA" == true ]]; then
   REQUIRED_NODES+=(/zed2/zed_node)
@@ -232,6 +277,56 @@ runtime_ready() {
   [[ -z "$(missing_runtime_nodes)" ]]
 }
 
+visual_only_runtime_check() {
+  local node_list topic value status=0
+  node_list="$(timeout 8 rosnode list 2>/dev/null)" || {
+    echo "Visual-only runtime cannot reach the J6M ROS master." >&2
+    return 1
+  }
+  for topic in /fod_camera/image_raw /fod_camera/depth_registered; do
+    if timeout 12 rostopic echo --noarr -n 1 "$topic" >/dev/null 2>&1; then
+      echo "PASS: $topic is live."
+    else
+      echo "FAIL: $topic has no fresh message." >&2
+      status=1
+    fi
+  done
+  for topic in /livox_lidar_publisher2 /laserMapping /move_base \
+               /fod_navigation_mode /fod_visual_servo /nvidia_cmd_vel_watchdog \
+               /canbus_driver /m2_driver; do
+    if grep -Fxq "$topic" <<<"$node_list"; then
+      echo "FAIL: navigation/motion node is active in visual-only mode: $topic" >&2
+      status=1
+    fi
+  done
+  for topic in /cmd_vel /cmd_vel_safe; do
+    if timeout 3 rostopic info "$topic" 2>/dev/null |
+       sed -n '/^Publishers:/,/^Subscribers:/p' | grep -q '^ \* '; then
+      echo "FAIL: $topic has a publisher in visual-only mode." >&2
+      status=1
+    else
+      echo "PASS: $topic has no publisher."
+    fi
+  done
+  if [[ "$NVIDIA_FOD_BACKEND" == locateanything ]]; then
+    value="$(timeout 3 rosparam get /fod_detector/enable_depth_fusion 2>/dev/null || true)"
+    if [[ "$value" == false ]]; then
+      echo "PASS: LocateAnything detector 45-frame depth fusion is disabled."
+    else
+      echo "FAIL: LocateAnything detector depth fusion is ${value:-unavailable}." >&2
+      status=1
+    fi
+    value="$(timeout 3 rosparam get /fod_vision_result_adapter/display_depth_enabled 2>/dev/null || true)"
+    if [[ "$value" == true ]]; then
+      echo "PASS: Qt display depth fusion remains enabled."
+    else
+      echo "FAIL: Qt display depth fusion is ${value:-unavailable}." >&2
+      status=1
+    fi
+  fi
+  return "$status"
+}
+
 show_runtime_status() {
   local missing health_policy="${1:-strict}"
   missing="$(missing_runtime_nodes)"
@@ -240,12 +335,16 @@ show_runtime_status() {
     sed 's/^/  - /' <<<"$missing" >&2
     return 1
   fi
-  if [[ "$health_policy" == allow-missing-data ]]; then
+  if [[ "$visual_only" == true ]]; then
+    visual_only_runtime_check
+  elif [[ "$health_policy" == allow-missing-data ]]; then
     "$SCRIPT_DIR/health_check.sh" --runtime --allow-missing-data
   else
     "$SCRIPT_DIR/health_check.sh" --runtime
   fi
-  if [[ "$STATIC_MAP_ENABLED" == true ]]; then
+  if [[ "$visual_only" == true ]]; then
+    echo "Runtime mode: visual-only maintenance (MID360/navigation/motion disabled)"
+  elif [[ "$STATIC_MAP_ENABLED" == true ]]; then
     echo "Selected map set: ${STATIC_MAP_SET:-unknown} (${STATIC_MAP_SOURCE_MODE:-fused})"
     timeout 3 rostopic echo -n 1 /fast_lio/localization_status 2>/dev/null |
       sed -n 's/^data: /FAST-LIO map localization /p' || true
@@ -342,7 +441,7 @@ wait_for_managed_service() {
 
 start_managed_service() {
   local token display xauthority dbus_address runtime_dir variable value state deadline
-  local running_fod_motion
+  local running_fod_motion running_visual_only
   local -a command=(
     systemd-run --user
     --unit="$SERVICE_UNIT"
@@ -365,6 +464,18 @@ start_managed_service() {
     state="$(service_state)"
   fi
   if [[ "$state" == active || "$state" == activating ]]; then
+    running_visual_only="$(
+      (
+        unset VISUAL_ONLY
+        source "$MAP_MODE_FILE" 2>/dev/null || exit 1
+        printf '%s\n' "${VISUAL_ONLY:-false}"
+      ) || true
+    )"
+    if [[ "$running_visual_only" != "$visual_only" ]]; then
+      echo "$SERVICE_UNIT is already running in visual_only=${running_visual_only:-unknown} mode." >&2
+      echo "Use '$0 --restart$([[ "$visual_only" == true ]] && printf ' --visual-only')' for a deliberate mode change." >&2
+      return 1
+    fi
     if [[ "$authorize_fod_motion" == true ]]; then
       running_fod_motion="$(
         (
@@ -425,6 +536,9 @@ start_managed_service() {
   command+=(--setenv="FAST_LIO_INITIAL_BODY_Z=${FAST_LIO_INITIAL_BODY_Z:-0.0}")
   if [[ "$authorize_fod_motion" == true ]]; then
     command+=(--setenv="DUAL_HOST_FOD_MOTION_OVERRIDE=true")
+  fi
+  if [[ "$visual_only" == true ]]; then
+    command+=(--setenv="DUAL_HOST_VISUAL_ONLY_OVERRIDE=true")
   fi
   if [[ "${DUAL_HOST_NETWORK_PREFLIGHT_DONE:-}" == 1 ]]; then
     command+=(--setenv="DUAL_HOST_NETWORK_PREFLIGHT_DONE=1")
@@ -511,8 +625,8 @@ if [[ "$authorize_fod_motion" == true ]]; then
 fi
 
 if [[ "$mode" == --restart ]]; then
-  echo "Self-checking and repairing the two dedicated Ethernet links before restart..."
-  dual_host_prepare_network
+  echo "Self-checking and repairing the required Ethernet links before restart..."
+  prepare_runtime_network
   export DUAL_HOST_NETWORK_PREFLIGHT_DONE=1
   echo "Checking ZED USB 3.x transport and access before restart..."
   "$SCRIPT_DIR/zed_camera_check.sh" --wait "$ZED_USB_WAIT_SEC"
@@ -521,8 +635,8 @@ if [[ "$mode" == --restart ]]; then
   start_managed_service
   exit $?
 elif [[ "$mode" == --start ]]; then
-  echo "Self-checking and repairing the two dedicated Ethernet links before start..."
-  dual_host_prepare_network
+  echo "Self-checking and repairing the required Ethernet links before start..."
+  prepare_runtime_network
   export DUAL_HOST_NETWORK_PREFLIGHT_DONE=1
   echo "Checking ZED USB 3.x transport and access before start..."
   "$SCRIPT_DIR/zed_camera_check.sh" --wait "$ZED_USB_WAIT_SEC"
@@ -538,11 +652,11 @@ if [[ ! "${DUAL_HOST_RUN_TOKEN:-}" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$ ]]; t
 fi
 export DUAL_HOST_RUN_TOKEN
 
-echo "[1/6] Self-checking and repairing the two dedicated Ethernet links..."
+echo "[1/6] Self-checking and repairing the required Ethernet links..."
 if [[ "${DUAL_HOST_NETWORK_PREFLIGHT_DONE:-}" == 1 ]]; then
   echo "The invoking start command completed the initial network preflight."
 else
-  dual_host_prepare_network
+  prepare_runtime_network
 fi
 
 echo "Checking ZED USB 3.x transport and access..."
@@ -555,8 +669,8 @@ fi
 echo "[2/6] Preparing a clean dual-host cold start..."
 "$SCRIPT_DIR/stop_dual_host.sh"
 
-echo "Rechecking both Ethernet links after the synchronized stop..."
-dual_host_prepare_network
+echo "Rechecking the required Ethernet links after the synchronized stop..."
+prepare_runtime_network
 
 write_single_line_file "$RUN_TOKEN_FILE" "$DUAL_HOST_RUN_TOKEN"
 export DUAL_HOST_RUN_TOKEN
@@ -568,6 +682,7 @@ export DUAL_HOST_RUN_TOKEN
   printf 'FAST_LIO_MAP_FILE=%q\n' "${FAST_LIO_MAP_FILE:-}"
   printf 'FAST_LIO_INITIAL_BODY_Z=%q\n' "${FAST_LIO_INITIAL_BODY_Z:-0.0}"
   printf 'FOD_MOTION_ENABLED=%q\n' "$FOD_MOTION_ENABLED"
+  printf 'VISUAL_ONLY=%q\n' "$visual_only"
 } >"$MAP_MODE_FILE.tmp.$$"
 mv -f -- "$MAP_MODE_FILE.tmp.$$" "$MAP_MODE_FILE"
 
@@ -632,6 +747,22 @@ verify_j6m_visual_model_contract_release() {
   "
 }
 
+verify_j6m_visual_only_release() {
+  local remote_host="$1"
+  local current_link="$J6M_RUNTIME_BASE/rootfs/opt/autolabor/dual_host/current"
+  ssh -o BatchMode=yes "$remote_host" "set -eu
+    release=\$(readlink '$current_link')
+    case \"\$release\" in
+      /opt/autolabor/dual_host/releases/*/install) ;;
+      *) echo \"Invalid J6M current release: \$release\" >&2; exit 1 ;;
+    esac
+    install='$J6M_RUNTIME_BASE/rootfs'\"\$release\"
+    stack=\"\$install/lib/autolabor_dual_host/j6m_stack.sh\"
+    grep -Fq 'VISUAL_ONLY' \"\$stack\"
+    grep -Fq 'requested_visual_only' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
+  "
+}
+
 sync_j6m_runtime_config() {
   local remote_host="$1"
   local remote_dir="$J6M_RUNTIME_BASE/dual_host/config"
@@ -670,6 +801,11 @@ if ! verify_j6m_visual_model_contract_release "$target"; then
   echo "Run ./scripts/deploy_j6m.sh successfully before the next cold start." >&2
   exit 5
 fi
+if [[ "$visual_only" == true ]] && ! verify_j6m_visual_only_release "$target"; then
+  echo "J6M current release does not support managed visual-only maintenance." >&2
+  echo "Run ./scripts/deploy_j6m.sh successfully before visual-only startup." >&2
+  exit 5
+fi
 echo "[3/6] Synchronizing the authoritative runtime/model configuration to J6M..."
 if ! sync_j6m_runtime_config "$target"; then
   echo "Failed to synchronize $DUAL_HOST_CONFIG to J6M." >&2
@@ -698,6 +834,7 @@ ssh -o BatchMode=yes -o ServerAliveInterval=10 -o ServerAliveCountMax=3 \
   FAST_LIO_MAP_FILE="${FAST_LIO_MAP_FILE:-}" \
   FAST_LIO_INITIAL_BODY_Z="${FAST_LIO_INITIAL_BODY_Z:-0.0}" \
   FOD_MOTION_ENABLED="$FOD_MOTION_ENABLED" \
+  VISUAL_ONLY="$visual_only" \
   NVIDIA_FOD_MODEL_SHA256="$NVIDIA_FOD_MODEL_SHA256" \
   NVIDIA_FOD_REQUIRED_CLASS_NAMES="$NVIDIA_FOD_REQUIRED_CLASS_NAMES" \
   "$J6M_RUNTIME_BASE/dual_host/bin/start.sh" \
@@ -720,8 +857,13 @@ while ! ros_master_reachable; do
   sleep 0.5
 done
 
-echo "[5/6] Starting NVIDIA MID360/CAN, then ZED/YOLO/Qt..."
-"$SCRIPT_DIR/start_nvidia.sh" >"$LOG_DIR/nvidia.log" 2>&1 &
+if [[ "$visual_only" == true ]]; then
+  echo "[5/6] Starting NVIDIA ZED/vision/Qt only; MID360, CAN and navigation stay off..."
+  "$SCRIPT_DIR/nvidia_ui.sh" >"$LOG_DIR/nvidia.log" 2>&1 &
+else
+  echo "[5/6] Starting NVIDIA MID360/CAN, then ZED/YOLO/Qt..."
+  "$SCRIPT_DIR/start_nvidia.sh" >"$LOG_DIR/nvidia.log" 2>&1 &
+fi
 nvidia_pid=$!
 
 ready_deadline=$((SECONDS + WAIT_FOR_NVIDIA_SEC + 120))
@@ -753,14 +895,23 @@ done
 
 sleep 3
 echo "[6/6] Running the final runtime health check..."
-"$SCRIPT_DIR/health_check.sh" --runtime --allow-missing-data
+if [[ "$visual_only" == true ]]; then
+  visual_only_runtime_check
+else
+  "$SCRIPT_DIR/health_check.sh" --runtime --allow-missing-data
+fi
 
 ready_temporary="$READY_FILE.tmp.$$"
 printf '%s\n' "$DUAL_HOST_RUN_TOKEN" >"$ready_temporary"
 mv -f -- "$ready_temporary" "$READY_FILE"
 
 echo
-echo "Dual-host project is ready; Qt is open with the full module console."
+if [[ "$visual_only" == true ]]; then
+  echo "Visual-only maintenance is ready; ZED, recognition and Qt are running."
+  echo "MID360, FAST-LIO, navigation, CAN and motion outputs are disabled."
+else
+  echo "Dual-host project is ready; Qt is open with the full module console."
+fi
 echo "Motion gates: MOTION_ENABLED=$MOTION_ENABLED, FOD_MOTION_ENABLED=$FOD_MOTION_ENABLED"
 echo "Supervisor logs: $LOG_DIR"
 if [[ "$mode" == --supervise ]]; then

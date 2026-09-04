@@ -11,6 +11,11 @@
   <arg name="image_quality_exposure_max_percent" default="100.0"/>
 
   <arg name="backend" default="yolo"/>
+  <!-- LocateAnything is recognition-only. Disable its redundant detector-side
+       45-frame depth history while retaining the 120-frame display history. -->
+  <arg name="enable_detector_depth_fusion"
+       default="$(eval arg('backend') != 'locateanything')"/>
+  <arg name="enable_display_depth" default="true"/>
   <arg name="weights"
        default="$(find autolabor_fod_vision)/models/yolo11_gam_best.pt"/>
   <arg name="expected_model_sha256"
@@ -125,7 +130,9 @@
          value="$(arg two_stage_classifier_weights)"/>
     <arg name="two_stage_classifier_sha256"
          value="$(arg two_stage_classifier_sha256)"/>
-    <arg name="enable_depth_fusion" value="true"/>
+    <arg name="enable_detector_depth_fusion"
+         value="$(arg enable_detector_depth_fusion)"/>
+    <arg name="enable_display_depth" value="$(arg enable_display_depth)"/>
     <arg name="depth_topic" value="/fod_camera/depth_registered"/>
     <arg name="enable_clip_filter" value="$(arg enable_clip_filter)"/>
     <arg name="clip_python_root" value="$(arg clip_python_root)"/>

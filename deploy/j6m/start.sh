@@ -20,6 +20,7 @@ requested_fast_lio_initial_body_z="${FAST_LIO_INITIAL_BODY_Z:-}"
 requested_fod_motion_enabled="${FOD_MOTION_ENABLED:-}"
 requested_fod_model_sha256="${NVIDIA_FOD_MODEL_SHA256:-}"
 requested_fod_required_class_names="${NVIDIA_FOD_REQUIRED_CLASS_NAMES:-}"
+requested_visual_only="${VISUAL_ONLY:-}"
 set -a
 source "$ENV_FILE"
 set +a
@@ -38,6 +39,7 @@ FAST_LIO_INITIAL_BODY_Z="${requested_fast_lio_initial_body_z:-0.0}"
 FOD_MOTION_ENABLED="${requested_fod_motion_enabled:-${FOD_MOTION_ENABLED:-false}}"
 NVIDIA_FOD_MODEL_SHA256="${requested_fod_model_sha256:-${NVIDIA_FOD_MODEL_SHA256-7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500}}"
 NVIDIA_FOD_REQUIRED_CLASS_NAMES="${requested_fod_required_class_names:-${NVIDIA_FOD_REQUIRED_CLASS_NAMES-Metal,Soft,Plastic,Wire,Tool,w}}"
+VISUAL_ONLY="${requested_visual_only:-false}"
 NAV_MAX_LINEAR_SPEED="${NAV_MAX_LINEAR_SPEED:-0.80}"
 NAV_MAX_REVERSE_SPEED="${NAV_MAX_REVERSE_SPEED:-0.30}"
 NAV_MAX_ANGULAR_SPEED="${NAV_MAX_ANGULAR_SPEED:-0.60}"
@@ -55,6 +57,16 @@ fi
 if [[ "$FOD_MOTION_ENABLED" != true && "$FOD_MOTION_ENABLED" != false ]]; then
   echo "FOD_MOTION_ENABLED must be literal true or false." >&2
   exit 2
+fi
+if [[ "$VISUAL_ONLY" != true && "$VISUAL_ONLY" != false ]]; then
+  echo "VISUAL_ONLY must be literal true or false." >&2
+  exit 2
+fi
+if [[ "$VISUAL_ONLY" == true ]]; then
+  FOD_MOTION_ENABLED=false
+  STATIC_MAP_ENABLED=false
+  STATIC_MAP_FILE=""
+  FAST_LIO_MAP_FILE=""
 fi
 if ! ip -o -4 address show dev "$J6M_INTERFACE" |
     awk '{print $4}' | grep -Fxq "$J6M_IP/24"; then
@@ -141,11 +153,16 @@ chroot "$ROOTFS" /usr/bin/env -i \
   STATIC_MAP_FILE="$STATIC_MAP_FILE" \
   FAST_LIO_MAP_FILE="$FAST_LIO_MAP_FILE" \
   FAST_LIO_INITIAL_BODY_Z="$FAST_LIO_INITIAL_BODY_Z" \
+  VISUAL_ONLY="$VISUAL_ONLY" \
   /bin/bash -lc 'exec /opt/autolabor/dual_host/current/lib/autolabor_dual_host/j6m_stack.sh' \
   >"$RUNTIME_BASE/logs/dual_host/$stamp/console.log" 2>&1 &
 child_pid=$!
 dual_host_write_pid_file "$PID_FILE" "$child_pid"
-echo "J6M master/waiter started (PID $child_pid)."
-echo "Now start scripts/nvidia_gateway.sh on NVIDIA."
+echo "J6M master/waiter started (PID $child_pid, visual_only=$VISUAL_ONLY)."
+if [[ "$VISUAL_ONLY" == true ]]; then
+  echo "Visual-only maintenance is active; J6M navigation will not start."
+else
+  echo "Now start scripts/nvidia_gateway.sh on NVIDIA."
+fi
 echo "Log: $RUNTIME_BASE/logs/dual_host/$stamp/console.log"
 wait "$child_pid"

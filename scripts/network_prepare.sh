@@ -296,3 +296,11 @@ dual_host_prepare_network() {
   dual_host_wait_for_peer MID360 "$NVIDIA_LIVOX_INTERFACE" "$MID360_IP"
   dual_host_wait_for_full_network_check
 }
+
+# Visual maintenance needs only the control link to J6M, which owns roscore.
+# The MID360 identity, carrier, profile and peer are intentionally untouched.
+dual_host_prepare_j6m_network() {
+  dual_host_wait_for_network_role NVIDIA_J6M J6M
+  dual_host_prepare_profile NVIDIA_J6M J6M "$NVIDIA_J6M_CONNECTION" "$NVIDIA_J6M_IP"
+  dual_host_wait_for_peer J6M "$NVIDIA_J6M_INTERFACE" "$J6M_IP"
+}
