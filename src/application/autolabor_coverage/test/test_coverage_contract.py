@@ -426,7 +426,8 @@ class CoverageContractTest(unittest.TestCase):
         self.assertEqual(
             50.0, config["hybrid_transit_weight_viapoint_heading"]
         )
-        self.assertEqual(3.0, config["hybrid_no_progress_timeout_sec"])
+        self.assertEqual(2.0, config["hybrid_no_progress_timeout_sec"])
+        self.assertEqual(2.0, config["obstacle_wait_sec"])
         self.assertEqual(0.20, config["hybrid_cusp_yaw_tolerance_rad"])
         self.assertEqual(0.60, config["hybrid_cusp_max_forward_speed_mps"])
         self.assertEqual(0.30, config["hybrid_cusp_join_max_skip_m"])
