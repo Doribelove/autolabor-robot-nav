@@ -286,15 +286,56 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
         with open(start_path, "r", encoding="utf-8") as stream:
             start = stream.read()
         supervisor = start[start.index('echo "[1/6] Self-checking'):]
-        first_prepare = supervisor.index("dual_host_prepare_network")
+        first_prepare = supervisor.index("prepare_runtime_network")
         first_stop = supervisor.index('"$SCRIPT_DIR/stop_dual_host.sh"')
-        second_prepare = supervisor.index("dual_host_prepare_network", first_stop)
+        second_prepare = supervisor.index("prepare_runtime_network", first_stop)
         self.assertLess(first_prepare, first_stop)
         self.assertGreater(second_prepare, first_stop)
         start_branch = start[start.index('elif [[ "$mode" == --start ]]'):]
         self.assertLess(
-            start_branch.index("dual_host_prepare_network"),
+            start_branch.index("prepare_runtime_network"),
             start_branch.index("start_managed_service"),
+        )
+
+    def test_visual_only_mode_keeps_navigation_and_motion_fail_closed(self):
+        def script_text(relative_path):
+            with open(
+                os.path.join(WORKSPACE_DIR, relative_path),
+                "r",
+                encoding="utf-8",
+            ) as stream:
+                return stream.read()
+
+        managed_start = script_text("scripts/start_dual_host.sh")
+        load_config = script_text("scripts/load_config.sh")
+        network_prepare = script_text("scripts/network_prepare.sh")
+        remote_start = script_text("deploy/j6m/start.sh")
+        j6m_stack = script_text(
+            "src/platform/autolabor_dual_host/scripts/j6m_stack.sh"
+        )
+
+        self.assertIn("--visual-only", managed_start)
+        self.assertIn("DUAL_HOST_VISUAL_ONLY_OVERRIDE", managed_start)
+        self.assertIn("dual_host_prepare_j6m_network", managed_start)
+        self.assertIn('"$SCRIPT_DIR/nvidia_ui.sh"', managed_start)
+        self.assertIn("dual_host_prepare_j6m_network()", network_prepare)
+        self.assertIn("DUAL_HOST_VISUAL_ONLY_OVERRIDE", load_config)
+        for disabled_assignment in (
+            "NVIDIA_START_LIVOX=false",
+            "NVIDIA_START_CAN=false",
+            "NVIDIA_START_DUAL_LIDAR=false",
+            "MOTION_ENABLED=false",
+            "FOD_MOTION_ENABLED=false",
+        ):
+            self.assertIn(disabled_assignment, load_config)
+        self.assertIn("requested_visual_only", remote_start)
+        self.assertIn('VISUAL_ONLY="$VISUAL_ONLY"', remote_start)
+        self.assertIn('if [[ "$VISUAL_ONLY" == true ]]', j6m_stack)
+        visual_branch = j6m_stack.index('if [[ "$VISUAL_ONLY" == true ]]')
+        gateway_wait = j6m_stack.index("until gateway_ready")
+        self.assertLess(visual_branch, gateway_wait)
+        self.assertIn(
+            "navigation, FAST-LIO and motion control are inhibited", j6m_stack
         )
 
     def test_nvidia_owns_only_final_driver_topic(self):

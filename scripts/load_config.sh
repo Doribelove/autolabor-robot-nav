@@ -16,6 +16,18 @@ case "$_fod_motion_override" in
     ;;
 esac
 
+# A visual-only run is an explicit, one-run maintenance mode owned by
+# start_dual_host.sh.  It must never inherit the persistent motion or sensor
+# gateway settings from dual_host.env.
+_visual_only_override="${DUAL_HOST_VISUAL_ONLY_OVERRIDE:-}"
+case "$_visual_only_override" in
+  ""|true) ;;
+  *)
+    echo "DUAL_HOST_VISUAL_ONLY_OVERRIDE must be empty or literal true." >&2
+    return 2 2>/dev/null || exit 2
+    ;;
+esac
+
 # Command-line launch selection is exported to child scripts and must take
 # precedence over persistent hardware defaults in dual_host.env.
 _map_enabled_was_set="${STATIC_MAP_ENABLED+x}"
@@ -47,6 +59,17 @@ set +a
 [[ -z "$_lio_map_was_set" ]] || FAST_LIO_MAP_FILE="$_lio_map_override"
 [[ -z "$_lio_z_was_set" ]] || FAST_LIO_INITIAL_BODY_Z="$_lio_z_override"
 [[ -z "$_fod_motion_override" ]] || FOD_MOTION_ENABLED=true
+if [[ "$_visual_only_override" == true ]]; then
+  NVIDIA_START_LIVOX=false
+  NVIDIA_START_CAN=false
+  NVIDIA_START_DUAL_LIDAR=false
+  MOTION_ENABLED=false
+  FOD_MOTION_ENABLED=false
+  STATIC_MAP_ENABLED=false
+  STATIC_MAP_SET=""
+  STATIC_MAP_FILE=""
+  FAST_LIO_MAP_FILE=""
+fi
 
 dual_host_resolve_workspace_path() {
   local value="$1"
@@ -183,6 +206,8 @@ export CMD_VEL_MAX_ANGULAR_SPEED
 export STATIC_MAP_ENABLED STATIC_MAP_SET STATIC_MAP_SOURCE_MODE STATIC_MAP_FILE
 export FAST_LIO_MAP_FILE FAST_LIO_INITIAL_BODY_Z
 export MOTION_ENABLED FOD_MOTION_ENABLED
+export NVIDIA_START_LIVOX NVIDIA_START_CAN NVIDIA_START_DUAL_LIDAR
+export DUAL_HOST_VISUAL_ONLY_OVERRIDE
 export MAPPING_REQUIRE_DUAL_LIDAR MAPPING_TOPIC_WAIT_SEC
 export DUAL_LIDAR_CENTER_DISTANCE_M
 

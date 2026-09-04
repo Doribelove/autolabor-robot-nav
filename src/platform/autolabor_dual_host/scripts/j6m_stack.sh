@@ -45,9 +45,10 @@ STATIC_MAP_ENABLED="${STATIC_MAP_ENABLED:-false}"
 STATIC_MAP_FILE="${STATIC_MAP_FILE:-}"
 FAST_LIO_MAP_FILE="${FAST_LIO_MAP_FILE:-}"
 FAST_LIO_INITIAL_BODY_Z="${FAST_LIO_INITIAL_BODY_Z:-0.0}"
+VISUAL_ONLY="${VISUAL_ONLY:-false}"
 
-case "$REQUIRE_CAN:$USE_DUAL_LIDAR:$FOD_MOTION_ENABLED:$STATIC_MAP_ENABLED" in
-  true:true:true:true|true:true:true:false|true:true:false:true|true:true:false:false|true:false:true:true|true:false:true:false|true:false:false:true|true:false:false:false|false:true:true:true|false:true:true:false|false:true:false:true|false:true:false:false|false:false:true:true|false:false:true:false|false:false:false:true|false:false:false:false) ;;
+case "$REQUIRE_CAN:$USE_DUAL_LIDAR:$FOD_MOTION_ENABLED:$STATIC_MAP_ENABLED:$VISUAL_ONLY" in
+  true:true:true:true:true|true:true:true:true:false|true:true:true:false:true|true:true:true:false:false|true:true:false:true:true|true:true:false:true:false|true:true:false:false:true|true:true:false:false:false|true:false:true:true:true|true:false:true:true:false|true:false:true:false:true|true:false:true:false:false|true:false:false:true:true|true:false:false:true:false|true:false:false:false:true|true:false:false:false:false|false:true:true:true:true|false:true:true:true:false|false:true:true:false:true|false:true:true:false:false|false:true:false:true:true|false:true:false:true:false|false:true:false:false:true|false:true:false:false:false|false:false:true:true:true|false:false:true:true:false|false:false:true:false:true|false:false:true:false:false|false:false:false:true:true|false:false:false:true:false|false:false:false:false:true|false:false:false:false:false) ;;
   *) echo "Boolean environment values must be literal true or false." >&2; exit 2 ;;
 esac
 if [[ ! "$NVIDIA_FOD_MODEL_SHA256" =~ ^[[:xdigit:]]{64}$ ]]; then
@@ -108,6 +109,15 @@ until timeout 2 rosparam list >/dev/null 2>&1; do
   sleep 0.2
 done
 echo "J6M ROS master is ready at $ROS_MASTER_URI (started_here=$STARTED_MASTER)."
+
+if [[ "$VISUAL_ONLY" == true ]]; then
+  echo "Visual-only maintenance mode: navigation, FAST-LIO and motion control are inhibited."
+  while timeout 2 rosparam list >/dev/null 2>&1; do
+    sleep 1
+  done
+  echo "ROS master became unavailable during visual-only maintenance." >&2
+  exit 4
+fi
 
 node_exists() {
   rosnode list 2>/dev/null | grep -Fxq "$1"

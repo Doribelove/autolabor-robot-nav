@@ -38,7 +38,14 @@
        default="d0cce9310e184e8acd7a6142face16d39aadc9a6e5405b18694346f2315899e9"/>
   <arg name="two_stage_tracker_config"
        default="$(find autolabor_fod_vision)/config/botsort_detect_and_classify.yaml"/>
+  <!-- Retain the legacy aggregate switch for direct callers, while allowing
+       production launch files to keep display-only depth independent from
+       detector-side motion depth. -->
   <arg name="enable_depth_fusion" default="false"/>
+  <arg name="enable_detector_depth_fusion"
+       default="$(arg enable_depth_fusion)"/>
+  <arg name="enable_display_depth"
+       default="$(arg enable_depth_fusion)"/>
   <arg name="depth_topic" default="/fod_camera/depth_registered"/>
   <arg name="camera_info_topic" default="/fod_camera/camera_info"/>
 
@@ -115,7 +122,8 @@
              value="$(arg locateanything_manifest)"/>
       <param name="locateanything_worker_python"
              value="$(arg locateanything_worker_python)"/>
-      <param name="enable_depth_fusion" value="$(arg enable_depth_fusion)"/>
+      <param name="enable_depth_fusion"
+             value="$(arg enable_detector_depth_fusion)"/>
       <param name="depth_topic" value="$(arg depth_topic)"/>
       <param name="enable_clip_filter" value="$(arg enable_clip_filter)"/>
       <param name="clip_python_root" value="$(arg clip_python_root)"/>
@@ -140,7 +148,8 @@
           output="screen">
       <rosparam command="load" file="$(find autolabor_fod_vision)/config/detector_smoke.yaml"/>
       <param name="backend_id" value="$(arg backend)"/>
-      <param name="display_depth/enabled" value="$(arg enable_depth_fusion)"/>
+      <param name="display_depth/enabled"
+             value="$(arg enable_display_depth)"/>
       <param name="display_depth/depth_topic" value="$(arg depth_topic)"/>
       <param name="display_depth/camera_info_topic" value="$(arg camera_info_topic)"/>
     </node>

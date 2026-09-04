@@ -118,6 +118,7 @@ ssh "$target" "set -eu
   grep -Fq 'requested_fod_motion_enabled' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
   grep -Fq 'requested_fod_model_sha256' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
   grep -Fq 'requested_fod_required_class_names' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
+  grep -Fq 'requested_visual_only' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
   '$J6M_RUNTIME_BASE/bin/mount_chroot.sh' >/dev/null
   trap \"'$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null 2>&1 || true\" EXIT
   chroot '$rootfs' /usr/bin/env RELEASE='$stamp' /bin/bash -lc '

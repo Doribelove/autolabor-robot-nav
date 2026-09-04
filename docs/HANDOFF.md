@@ -903,3 +903,30 @@ rostopic echo /nvidia_cmd_vel_watchdog/status
   非零速度。`MOTION_ENABLED=true`、`FOD_MOTION_ENABLED=true` 和已有运动授权标记均保留。
   当前 MID360 物理链路无载波，导致部署前运行检查中的 Livox、FAST-LIO 和融合 `/scan`
   数据超时；新 release 尚未做静态地图冷启动、Qt 目视或实车运动验收。
+
+## 2026-09-04 17:32/17:56 新 release 实车观察（已记录，未修改源码）
+
+- release `20260904_163527` 已用 latest fused 地图完成托管冷启动、Qt/RViz、ZED 图像/深度、
+  节点归属和运行态健康检查。两轮操作员参数仍为前进 1.10 m/s、倒车 0.30 m/s、角速度
+  0.40 rad/s，不属于不高于 0.30 m/s 的受限低速验收。
+- 17:32 任务 `6b4f07ba88a340e3b46533d98a3fb82a` 在第 2 条实际清扫线执行期间遇到一批
+  行人；TEB 持续不可行并由 move_base `ABORTED`。车辆已在该线另一端附近，距原入口约
+  8.7--8.9 m，横向约 0.02--0.04 m、航向约 2°。状态机在 action 异常终态先返回
+  `blocked`，没有再运行已有的有向 sweep 完成检查；随后每次恢复都错误地要求返回原入口，
+  8.70 m全倒车候选被 4.0 m局部恢复包络正确拒绝。行人离开后重复恢复仍无效，任务暂停
+  于 4/6 段、约 65% 覆盖。不要通过扩大 4.0 m门限绕过该漏洞；待修的是终态完成复核和
+  按可信有向进度恢复剩余 sweep。
+- 该任务暂停并归零后，约 17:38:49 ZED 节点以 `-6`（SIGABRT）退出。ZED 的 required
+  launch、`nvidia_ui.sh` 的 `wait -n` 和上层统一生命周期产生连锁停机；Qt 自身无崩溃栈，
+  现场“Qt 闪退”不是障碍标记造成。重启前检查 ZED 仍为 5000M USB 3.x、内存充足，现有
+  日志不足以确定 SIGABRT 内因。是否把非导航视觉故障与导航/Qt 生命周期分级仍是待评审项。
+- 完整冷启动后的 17:56 对照任务 `c333dac1fb1945b0a360858452f4b2a3` 执行 3 条线、6 段，
+  约 100.16 s 完成，`blocked_segments=0`；首入口约 7.96 s，两次转场约 21.69/32.55 s。
+  第二次转场有一次紧邻车体预测足迹 `cost=-1`，2.0 s无进展门正确取消并从实时位姿重算；
+  `/scan` 同时短暂不新鲜约 1.3 s，随后自动恢复。另记录 36 次 TEB 固定档位反号候选被
+  安全门归零，多集中在清扫终点和换档附近，未阻止完成。
+- 本轮 rosbag 为 `rosbags/coverage_experiment_20260904_restart_1754.bag`；第一轮 J6M 日志
+  位于 `/map/autolabor_runtime/logs/dual_host/20260904_172739/e00b44ba-a842-11f1-8e63-5e9bc489939f/`，
+  完成轮日志位于 `/map/autolabor_runtime/logs/dual_host/20260904_174939/f2d8a0e4-a845-11f1-9d2c-5e9bc489939f/`。
+  完整判读见 `docs/COVERAGE_REAL_ROBOT_EXPERIMENT_20260904.md`。本次只更新文档，没有修改、
+  构建或部署程序；J6M `current` 仍为 release `20260904_163527`。
