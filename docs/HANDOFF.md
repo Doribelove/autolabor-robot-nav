@@ -880,3 +880,26 @@ rostopic echo /nvidia_cmd_vel_watchdog/status
 - 部署后 NVIDIA supervisor、ROS master 和 J6M 主链保持停止，未发送初始位姿、导航目标
   或非零速度。`MOTION_ENABLED=true`、`FOD_MOTION_ENABLED=true` 和已有运动授权标记均
   保留；新 release 尚未做 Qt 目视、运行态 topic 归属或受限低速实车验收。
+
+## 2026-09-04 0904 快照与异常恢复响应缩短（已部署，主栈停止）
+
+- 修改前的完整工作树已固化到分支 `0904`、提交 `a25fdb4`；后续修改位于
+  `0904-fast-replan`，代码提交为 `678fdd9`。
+- Hybrid 连续无进展判定从 `3.0 s / 0.10 m` 缩短为 `2.0 s / 0.10 m`；分段 action
+  异常取消并确认终态后的固定等待从 `10.0 s` 缩短为 `2.0 s`。最多 3 次重试、精确取消、
+  1 Hz 当前路径安全校验、碰撞/未知区、1.35 m 曲率、固定档位和入口验收门均保持不变。
+  生产模式仍是事件触发重算，不会每秒替换一条仍安全的 Hybrid 路径。
+- 同次发布还包含三次实车实验后修正的首线入场 TEB 前视：Navfn + TEB 首线继承普通导航
+  `4.0 m` 基线，区内 Hybrid 固定档位继续使用 `2.0 m`。
+- 生产与隔离仿真镜像各通过 117 项覆盖状态机和 15 项覆盖合同；静态导航合同 13 项通过。
+  NVIDIA 23 包 Release 构建通过，项目静态健康检查汇总 936 项、0 错误、0 失败、0 跳过，
+  唯一警告为未枚举物理麦克风。
+- J6M 已在 ARM64 chroot 原生构建并原子切换到 release `20260904_163527`；远端静态健康
+  检查通过，时钟中点偏差 `-3 ms`。安装态 `coverage_manager.py` 与 `coverage.yaml`
+  SHA-256 分别为 `9441bc772d34669f12315c33263466fef2bf9d5e13ba1c6a9c518eea415d8bf2` 和
+  `737a492d848a3eef36ce387ac6c4f450694b755d546b7ee4a0900e6de8b94b9e`，与本地一致；YAML
+  回读两项参数均为 `2.0`。
+- 部署前统一入口已完整停栈，发布后 J6M PID 记录为空；没有发送初始位姿、导航目标或
+  非零速度。`MOTION_ENABLED=true`、`FOD_MOTION_ENABLED=true` 和已有运动授权标记均保留。
+  当前 MID360 物理链路无载波，导致部署前运行检查中的 Livox、FAST-LIO 和融合 `/scan`
+  数据超时；新 release 尚未做静态地图冷启动、Qt 目视或实车运动验收。
