@@ -261,6 +261,28 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         self.assertIn("--odom-topic /Odometry", MAPPING_SESSION)
         self.assertIn("map_set_fuser.py", MAPPING_SESSION)
 
+    def test_history_cloud_preview_is_subscriber_gated_and_matches_saved_pcd(self):
+        for evidence in (
+            'param<std::string>("history_topic", history_topic_',
+            '"/static_mapping/history_cloud"',
+            'param<double>("history_publish_period", history_publish_period_, 1.0)',
+            "history_publisher_.getNumSubscribers() == 0U",
+            "ros::WallTime::now()",
+            "publishHistoryCloudIfRequested(cloud->header.stamp)",
+            "modifier.setPointCloud2Fields(",
+            'sensor_msgs::PointCloud2Iterator<std::uint32_t> observations(',
+        ):
+            self.assertIn(evidence, VOXEL_MAPPER_SOURCE)
+        # Preview and the final PCD intentionally share exactly one persistent
+        # voxel extraction path, rather than accumulating raw RViz scan history.
+        self.assertIn("std::vector<PcdPoint> persistentPoints() const", VOXEL_MAPPER_SOURCE)
+        self.assertGreaterEqual(
+            VOXEL_MAPPER_SOURCE.count(
+                "const std::vector<PcdPoint> points = persistentPoints();"
+            ),
+            2,
+        )
+
     def test_mid360_static_slice_defaults_are_consistent(self):
         for script in (MAPPING_SESSION, OFFLINE_MAPPING):
             self.assertIn(

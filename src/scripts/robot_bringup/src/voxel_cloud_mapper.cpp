@@ -4,6 +4,7 @@
 #include <message_filters/synchronizer.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/PointField.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <std_msgs/String.h>
 
@@ -104,6 +105,9 @@ public:
     private_nh_.param<std::string>("output_file", output_file_, std::string());
     private_nh_.param<std::string>("slice_observations_file", slice_observations_file_,
                                    std::string());
+    private_nh_.param<std::string>("history_topic", history_topic_,
+                                   "/static_mapping/history_cloud");
+    private_nh_.param<double>("history_publish_period", history_publish_period_, 1.0);
     private_nh_.param<double>("voxel_size", voxel_size_, 0.10);
     private_nh_.param<int>("min_frame_observations", min_frame_observations_, 3);
     private_nh_.param<double>("max_point_range", max_point_range_, 20.0);
@@ -142,11 +146,15 @@ public:
           !(slice_sweep_angular_step_ > 0.0) ||
           !std::isfinite(body_to_base_x_) || !std::isfinite(body_to_base_y_) ||
           !std::isfinite(body_to_base_z_))) ||
-        normalizedFrame(odom_child_frame_).empty())
+        normalizedFrame(odom_child_frame_).empty() || history_topic_.empty() ||
+        !(history_publish_period_ > 0.0) ||
+        !std::isfinite(history_publish_period_))
       throw std::runtime_error("invalid voxel mapper parameters");
     odom_child_frame_ = normalizedFrame(odom_child_frame_);
 
     status_publisher_ = nh_.advertise<std_msgs::String>("/static_mapping/pointcloud_status", 1, true);
+    history_publisher_ =
+        nh_.advertise<sensor_msgs::PointCloud2>(history_topic_, 1, false);
     odom_subscriber_.subscribe(nh_, odom_topic_, queue_size_);
     cloud_subscriber_.subscribe(nh_, input_topic_, queue_size_);
     synchronizer_.reset(new Synchronizer(SyncPolicy(queue_size_), odom_subscriber_,
@@ -160,7 +168,10 @@ public:
                     << min_frame_observations_ << " frames, range <= "
                     << max_point_range_ << " m; persistent slice >= "
                     << slice_min_frame_observations_ << " frames; moving self-crop "
-                    << (slice_self_crop_enabled_ ? "enabled" : "disabled") << ")");
+                    << (slice_self_crop_enabled_ ? "enabled" : "disabled")
+                    << "; requested history preview <= "
+                    << 1.0 / history_publish_period_ << " Hz on "
+                    << history_topic_ << ")");
   }
 
   ~VoxelCloudMapper()
@@ -191,6 +202,74 @@ private:
       if (candidate.name == field)
         return true;
     return false;
+  }
+
+  std::vector<PcdPoint> persistentPoints() const
+  {
+    std::vector<PcdPoint> points;
+    points.reserve(voxels_.size());
+    for (const auto& entry : voxels_)
+    {
+      const Voxel& voxel = entry.second;
+      if (voxel.frame_observations <
+          static_cast<std::uint32_t>(min_frame_observations_))
+        continue;
+      const double divisor = static_cast<double>(voxel.point_count);
+      points.push_back(PcdPoint{static_cast<float>(voxel.x / divisor),
+                               static_cast<float>(voxel.y / divisor),
+                               static_cast<float>(voxel.z / divisor),
+                               static_cast<float>(voxel.intensity / divisor),
+                               voxel.frame_observations});
+    }
+    return points;
+  }
+
+  void publishHistoryCloudIfRequested(const ros::Time& stamp)
+  {
+    // Building a complete snapshot can be expensive.  Hidden RViz displays
+    // unsubscribe, so keep the normal mapping path free of preview work and
+    // publish at most one full, replace-in-place history map per period.
+    if (history_publisher_.getNumSubscribers() == 0U)
+      return;
+    const ros::WallTime now = ros::WallTime::now();
+    if (!last_history_publish_at_.isZero() &&
+        (now - last_history_publish_at_).toSec() < history_publish_period_)
+      return;
+    last_history_publish_at_ = now;
+
+    const std::vector<PcdPoint> points = persistentPoints();
+    sensor_msgs::PointCloud2 message;
+    message.header.stamp = stamp;
+    message.header.frame_id = frame_id_;
+    sensor_msgs::PointCloud2Modifier modifier(message);
+    modifier.setPointCloud2Fields(
+        5, "x", 1, sensor_msgs::PointField::FLOAT32,
+        "y", 1, sensor_msgs::PointField::FLOAT32,
+        "z", 1, sensor_msgs::PointField::FLOAT32,
+        "intensity", 1, sensor_msgs::PointField::FLOAT32,
+        "observations", 1, sensor_msgs::PointField::UINT32);
+    modifier.resize(points.size());
+    sensor_msgs::PointCloud2Iterator<float> x(message, "x");
+    sensor_msgs::PointCloud2Iterator<float> y(message, "y");
+    sensor_msgs::PointCloud2Iterator<float> z(message, "z");
+    sensor_msgs::PointCloud2Iterator<float> intensity(message, "intensity");
+    sensor_msgs::PointCloud2Iterator<std::uint32_t> observations(
+        message, "observations");
+    for (const PcdPoint& point : points)
+    {
+      *x = point.x;
+      *y = point.y;
+      *z = point.z;
+      *intensity = point.intensity;
+      *observations = point.observations;
+      ++x;
+      ++y;
+      ++z;
+      ++intensity;
+      ++observations;
+    }
+    message.is_dense = true;
+    history_publisher_.publish(message);
   }
 
   void cloudCallback(const nav_msgs::OdometryConstPtr& odometry,
@@ -309,6 +388,7 @@ private:
     for (const GridKey& cell : slice_cells_seen)
       ++slice_frame_observations_[cell];
     ++clouds_;
+    publishHistoryCloudIfRequested(cloud->header.stamp);
     ROS_INFO_STREAM_THROTTLE(10.0, "voxel_cloud_mapper: " << clouds_ << " clouds, "
                                                            << voxels_.size() << " voxels");
   }
@@ -487,21 +567,7 @@ private:
       return;
     saved_ = true;
     publishStatus("SAVING");
-    std::vector<PcdPoint> points;
-    points.reserve(voxels_.size());
-    for (const auto& entry : voxels_)
-    {
-      const Voxel& voxel = entry.second;
-      if (voxel.frame_observations <
-          static_cast<std::uint32_t>(min_frame_observations_))
-        continue;
-      const double divisor = static_cast<double>(voxel.point_count);
-      points.push_back(PcdPoint{static_cast<float>(voxel.x / divisor),
-                               static_cast<float>(voxel.y / divisor),
-                               static_cast<float>(voxel.z / divisor),
-                               static_cast<float>(voxel.intensity / divisor),
-                               voxel.frame_observations});
-    }
+    const std::vector<PcdPoint> points = persistentPoints();
     if (points.empty())
     {
       publishStatus("FAILED_EMPTY");
@@ -557,13 +623,16 @@ private:
   message_filters::Subscriber<nav_msgs::Odometry> odom_subscriber_;
   std::unique_ptr<Synchronizer> synchronizer_;
   ros::Publisher status_publisher_;
+  ros::Publisher history_publisher_;
   std::string input_topic_;
   std::string odom_topic_;
   std::string output_file_;
   std::string slice_observations_file_;
+  std::string history_topic_ = "/static_mapping/history_cloud";
   std::string frame_id_;
   std::string odom_child_frame_ = "body";
   double voxel_size_ = 0.10;
+  double history_publish_period_ = 1.0;
   int min_frame_observations_ = 3;
   double max_point_range_ = 20.0;
   double slice_center_z_ = -0.4;
@@ -590,6 +659,7 @@ private:
   std::uint64_t range_rejected_points_ = 0;
   std::uint64_t slice_self_crop_rejected_points_ = 0;
   std::uint64_t slice_sweep_pose_samples_ = 0;
+  ros::WallTime last_history_publish_at_;
   bool have_last_sweep_pose_ = false;
   bool saved_ = false;
 };

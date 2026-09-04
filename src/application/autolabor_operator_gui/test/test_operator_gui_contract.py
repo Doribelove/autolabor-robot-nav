@@ -933,6 +933,33 @@ class OperatorGuiContractTest(unittest.TestCase):
             GUI_SOURCE.count("if (!setOverview3dMapView(false, data))"), 2
         )
 
+    def test_mapping_history_cloud_is_explicit_on_demand_and_replace_in_place(self):
+        name = "Name: Mapping history cloud"
+        name_at = RVIZ_CONFIG.index(name)
+        block_start = RVIZ_CONFIG.rfind("\n    - ", 0, name_at)
+        block_end = RVIZ_CONFIG.find("\n    - ", name_at)
+        history_cloud = RVIZ_CONFIG[block_start:block_end]
+        for evidence in (
+            "Class: rviz/PointCloud2",
+            "Topic: /static_mapping/history_cloud",
+            "Decay Time: 0",
+            "Queue Size: 1",
+            "Enabled: false",
+            "Value: false",
+        ):
+            self.assertIn(evidence, history_cloud)
+
+        for evidence in (
+            "显示历史点云图",
+            "隐藏历史点云图",
+            "rviz_history_cloud_button_->setCheckable(true)",
+            "setMappingHistoryCloudVisible",
+            'kMappingHistoryCloudDisplayName = "Mapping history cloud"',
+            "history->setEnabled(enabled)",
+            "!static_map_mode_ && history_cloud_display_available",
+        ):
+            self.assertIn(evidence, GUI_SOURCE + GUI_HEADER)
+
     def test_launch_defaults_to_fast_lio_streams(self):
         launch_root = ElementTree.parse(
             str(PACKAGE_ROOT / "launch" / "operator_gui.launch")

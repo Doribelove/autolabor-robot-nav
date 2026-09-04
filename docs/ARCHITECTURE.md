@@ -72,6 +72,11 @@ FAST-LIO 始终只使用 MID360 原始点和 IMU，前后二维雷达不会污�
 MID360 高度切片与同时间戳 `/Odometry` 精确配对，逐帧在 `base_link` 删除车体自点；
 保存切片观测前，再减去含 padding 的导航 footprint 沿建图轨迹扫过的全部相交栅格。
 该裁剪只影响融合二维图，完整三维 PCD 仍用于已知地图 ICP 定位。
+建图节点还提供默认关闭的 `/static_mapping/history_cloud` 预览：Qt 综合页点击
+“显示历史点云图”后，RViz 才建立订阅，NVIDIA 本机建图节点最多 `1 Hz` 发布一次当前完整
+持久体素快照；关闭选项即停止预览计算和传输。快照与最终 `map.pcd` 共用
+`min_frame_observations` 筛选和体素均值，RViz 使用 `Decay Time=0` 直接替换上一帧，避免
+无限缓存原始 `/cloud_registered`。该预览不参与建图启停、二维融合或最终保存判定。
 
 不传 `--map-set` 时启动器保持无图 FAST-LIO 模式。已知地图定位属于实验性显式
 可选项；传入地图集后，FAST-LIO 仍按
@@ -92,6 +97,8 @@ Qt/RViz 默认显示 `/cloud_registered_body_enhanced`，并在静态定位模�
 综合页可由“④ 显示静态三维先验”按需订阅 J6M 上锁存发布的
 `/fast_lio_localization/prior_map`。该显示默认关闭，开启时使用 `map` 固定坐标系和
 Orbit 视角；关闭或进入初始位姿工具时恢复二维 TopDownOrtho 全图。清扫页仍保持纯二维。
+无图建图模式则显示独立的“显示历史点云图”选项，它只控制上述本机历史体素快照显示；
+切到清扫页会自动关闭订阅，不会把预览链带入导航模式。
 
 综合页和清扫页不再依赖全局 `robot_description` 生成车体；两者直接用
 `rviz/Polygon` 显示 `/move_base/local_costmap/footprint`。这个 Polygon 是

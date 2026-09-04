@@ -37,6 +37,10 @@ RabbitMQ。界面本身从不发布 `/cmd_vel`。
   该显示默认关闭，因此无图模式和现有二维导航基线不变，也不会默认跨机拉取先验 PCD。
 - `/fast_lio_localization/aligned_scan` 作为动态匹配点云显示；静态先验 PCD 与动态点云在
   名称上明确区分，避免把锁存先验误判成“局部点云停止更新”。
+- 无图建图模式下，综合页提供默认关闭的“显示历史点云图”。开启后 RViz 按需订阅
+  `/static_mapping/history_cloud`：建图节点最多 `1 Hz` 发布当前完整的持久体素快照，内容与
+  最终 `map.pcd` 共用观测门槛和体素均值；关闭后节点不再生成预览快照。它不会改变原有
+  “录入静态地图/结束静态地图录入”脚本、二维融合或保存逻辑。
 - 综合页和清扫页都以亮绿色二维矩形显示
   `/move_base/local_costmap/footprint`。该轮廓直接来自 move_base 当前 costmap：
   基础车体为 `1.04 × 0.70 m`，叠加 `0.10 m` footprint padding 后，实际显示并参与
