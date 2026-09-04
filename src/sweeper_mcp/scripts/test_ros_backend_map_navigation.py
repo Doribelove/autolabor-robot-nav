@@ -92,6 +92,7 @@ class _StartCoverageBatchRequest:
         self.angular_accel_rps2 = 0.0
         self.direction_change_penalty_sec = 0.0
         self.segment_handoff_penalty_sec = 0.0
+        self.transit_replan_period_sec = 0.0
         self.map_digest = ""
         self.regions = []
 
@@ -427,10 +428,11 @@ def test_coverage_start_uses_client_generated_operation_id():
     assert requests[0].max_speed_mps == 0.8
     assert requests[0].reverse_speed_mps == 0.3
     assert requests[0].max_angular_speed_rps == 0.6
-    assert requests[0].linear_accel_mps2 == 2.0
+    assert requests[0].linear_accel_mps2 == 1.0
     assert requests[0].angular_accel_rps2 == 0.5
     assert requests[0].direction_change_penalty_sec == 1.0
     assert requests[0].segment_handoff_penalty_sec == 0.5
+    assert requests[0].transit_replan_period_sec == 1.0
     assert backend._ai_batch_id == payload["batch_id"]
 
 
@@ -460,6 +462,7 @@ def test_coverage_start_uses_complete_latest_qt_parameter_set():
                 "planning_parameters\\angular_accel_rps2=0.4\n"
                 "planning_parameters\\direction_change_penalty_sec=1.5\n"
                 "planning_parameters\\segment_handoff_penalty_sec=0.75\n"
+                "planning_parameters\\transit_replan_period_sec=2.5\n"
             )
         rospy_impl = _CoverageServiceRospy(
             start,
@@ -482,6 +485,7 @@ def test_coverage_start_uses_complete_latest_qt_parameter_set():
     assert request.angular_accel_rps2 == 0.4
     assert request.direction_change_penalty_sec == 1.5
     assert request.segment_handoff_penalty_sec == 0.75
+    assert request.transit_replan_period_sec == 2.5
     payload = json.loads(result.text)
     assert payload["planning_parameters"]["max_speed_mps"] == 1.2
     assert payload["planning_parameters"]["allow_reverse_transit"] is False

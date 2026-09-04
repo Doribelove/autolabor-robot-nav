@@ -1166,7 +1166,8 @@ class ROSBackend:
                                 linear_accel_mps2=None,
                                 angular_accel_rps2=None,
                                 direction_change_penalty_sec=None,
-                                segment_handoff_penalty_sec=None):
+                                segment_handoff_penalty_sec=None,
+                                transit_replan_period_sec=None):
         if not self._coverage_submit_lock.acquire(False):
             return ToolResult(
                 "另一个 AI 覆盖批次正在提交或收敛，当前请求未发送。",
@@ -1185,6 +1186,7 @@ class ROSBackend:
                 angular_accel_rps2=angular_accel_rps2,
                 direction_change_penalty_sec=direction_change_penalty_sec,
                 segment_handoff_penalty_sec=segment_handoff_penalty_sec,
+                transit_replan_period_sec=transit_replan_period_sec,
             )
         finally:
             self._coverage_submit_lock.release()
@@ -1195,7 +1197,8 @@ class ROSBackend:
             allow_reverse_transit=None, reverse_speed_mps=None,
             max_angular_speed_rps=None, linear_accel_mps2=None,
             angular_accel_rps2=None, direction_change_penalty_sec=None,
-            segment_handoff_penalty_sec=None):
+            segment_handoff_penalty_sec=None,
+            transit_replan_period_sec=None):
         self._ensure()
         defaults = self._coverage_operator_defaults()
         operation_width_m = (
@@ -1239,6 +1242,11 @@ class ROSBackend:
             defaults["segment_handoff_penalty_sec"]
             if segment_handoff_penalty_sec is None
             else segment_handoff_penalty_sec
+        )
+        transit_replan_period_sec = (
+            defaults["transit_replan_period_sec"]
+            if transit_replan_period_sec is None
+            else transit_replan_period_sec
         )
         status = self._wait_snapshot("coverage", 2.0, 2.5)
         if status is None:
@@ -1325,6 +1333,7 @@ class ROSBackend:
             request.angular_accel_rps2 = angular_accel_rps2
             request.direction_change_penalty_sec = direction_change_penalty_sec
             request.segment_handoff_penalty_sec = segment_handoff_penalty_sec
+            request.transit_replan_period_sec = transit_replan_period_sec
             request.map_digest = status.map_digest
             for item in selected:
                 region = CoverageRegion()
@@ -1397,6 +1406,7 @@ class ROSBackend:
                 "angular_accel_rps2": angular_accel_rps2,
                 "direction_change_penalty_sec": direction_change_penalty_sec,
                 "segment_handoff_penalty_sec": segment_handoff_penalty_sec,
+                "transit_replan_period_sec": transit_replan_period_sec,
             },
             "message": response.message,
         }))
@@ -1417,10 +1427,11 @@ class ROSBackend:
             "allow_reverse_transit": True,
             "reverse_speed_mps": 0.3,
             "max_angular_speed_rps": 0.6,
-            "linear_accel_mps2": 2.0,
+            "linear_accel_mps2": 1.0,
             "angular_accel_rps2": 0.5,
             "direction_change_penalty_sec": 1.0,
             "segment_handoff_penalty_sec": 0.5,
+            "transit_replan_period_sec": 1.0,
         }
         path = self._operator_settings_file
         if not path:
@@ -1449,6 +1460,9 @@ class ROSBackend:
             ),
             "segment_handoff_penalty_sec": (
                 "segment_handoff_penalty_sec", 0.0, 30.0
+            ),
+            "transit_replan_period_sec": (
+                "transit_replan_period_sec", 1.0, 10.0
             ),
         }
         for output_key, (settings_key, minimum, maximum) in numeric.items():

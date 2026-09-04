@@ -9,6 +9,7 @@
   <arg name="loop" default="true"/>
   <arg name="start_source" default="true"/>
 
+  <arg name="backend" default="yolo"/>
   <arg name="weights" default="$(find autolabor_fod_vision)/../../yolo/yolo11n.pt"/>
   <arg name="expected_model_sha256" default=""/>
   <arg name="detector_python" default="$(find autolabor_fod_vision)/../../../.venv/fod_yolo/bin/python3"/>
@@ -18,13 +19,28 @@
   <arg name="runtime_token" default=""/>
   <arg name="device" default="auto"/>
   <arg name="image_size" default="640"/>
-  <arg name="confidence" default="0.25"/>
+  <arg name="confidence" default="0.20"/>
   <arg name="iou" default="0.45"/>
   <arg name="max_detections" default="100"/>
   <arg name="smoke_test_only" default="true"/>
   <arg name="required_class_names" default="fod"/>
+  <arg name="locateanything_model_root" default="/home/slam/LocateAnything"/>
+  <arg name="locateanything_manifest"
+       default="/home/slam/LocateAnything/.runtime/deployment_manifest.json"/>
+  <arg name="locateanything_worker_python" default="$(arg detector_python)"/>
+  <arg name="two_stage_detector_weights"
+       default="/home/slam/yolo11/detect_classify/detect/trash_yolo11s_gam/best.pt"/>
+  <arg name="two_stage_detector_sha256"
+       default="711b6bb4b4debebcf993f033f23e7e641a02dd279254779f8dafed11b6a79233"/>
+  <arg name="two_stage_classifier_weights"
+       default="/home/slam/yolo11/detect_classify/classify/material_yolo11s_cls/best.pt"/>
+  <arg name="two_stage_classifier_sha256"
+       default="d0cce9310e184e8acd7a6142face16d39aadc9a6e5405b18694346f2315899e9"/>
+  <arg name="two_stage_tracker_config"
+       default="$(find autolabor_fod_vision)/config/botsort_detect_and_classify.yaml"/>
   <arg name="enable_depth_fusion" default="false"/>
   <arg name="depth_topic" default="/fod_camera/depth_registered"/>
+  <arg name="camera_info_topic" default="/fod_camera/camera_info"/>
 
   <arg name="enable_clip_filter" default="false"/>
   <arg name="clip_python_root"
@@ -65,50 +81,102 @@
     </node>
   </group>
 
-  <node pkg="autolabor_fod_vision"
-        type="fod_detector_node.py"
-        name="fod_detector"
-        launch-prefix="$(arg detector_python)"
-        output="screen">
-    <env name="AUTOLABOR_FOD_ULTRALYTICS_ROOT"
-         value="$(arg ultralytics_root)"/>
-    <env name="PYTHONPATH"
-         value="$(arg clip_python_root):$(arg ultralytics_root):$(optenv PYTHONPATH)"/>
-    <rosparam command="load" file="$(find autolabor_fod_vision)/config/detector_smoke.yaml"/>
-    <rosparam command="load" file="$(find autolabor_fod_vision)/config/clip_filter.yaml"/>
-    <param name="weights" value="$(arg weights)"/>
-    <param name="expected_model_sha256"
-           value="$(arg expected_model_sha256)"/>
-    <param name="ultralytics_root" value="$(arg ultralytics_root)"/>
-    <param name="require_gam" value="$(arg require_gam)"/>
-    <param name="runtime_token" value="$(arg runtime_token)"/>
-    <param name="device" value="$(arg device)"/>
-    <param name="image_size" value="$(arg image_size)"/>
-    <param name="confidence" value="$(arg confidence)"/>
-    <param name="iou" value="$(arg iou)"/>
-    <param name="max_detections" value="$(arg max_detections)"/>
-    <param name="smoke_test_only" value="$(arg smoke_test_only)"/>
-    <param name="required_class_names" value="$(arg required_class_names)"/>
-    <param name="enable_depth_fusion" value="$(arg enable_depth_fusion)"/>
-    <param name="depth_topic" value="$(arg depth_topic)"/>
-    <param name="enable_clip_filter" value="$(arg enable_clip_filter)"/>
-    <param name="clip_python_root" value="$(arg clip_python_root)"/>
-    <param name="clip_weights" value="$(arg clip_weights)"/>
-    <param name="clip_expected_model_sha256"
-           value="$(arg clip_expected_model_sha256)"/>
-    <param name="clip_model_name" value="$(arg clip_model_name)"/>
-    <param name="clip_source_commit" value="$(arg clip_source_commit)"/>
-    <param name="clip_device" value="$(arg clip_device)"/>
-    <param name="clip_warmup" value="$(arg clip_warmup)"/>
-    <param name="clip_low_confidence" value="$(arg clip_low_confidence)"/>
-    <param name="clip_high_confidence" value="$(arg clip_high_confidence)"/>
-    <param name="clip_positive_probability"
-           value="$(arg clip_positive_probability)"/>
-    <param name="clip_crop_padding_fraction"
-           value="$(arg clip_crop_padding_fraction)"/>
-  </node>
+  <group unless="$(eval arg('backend') == 'detect_and_classify')">
+    <node pkg="autolabor_fod_vision"
+          type="fod_detector_node.py"
+          name="fod_detector"
+          launch-prefix="$(arg detector_python)"
+          output="screen">
+      <env name="AUTOLABOR_FOD_ULTRALYTICS_ROOT"
+           value="$(arg ultralytics_root)"/>
+      <env name="YOLO_AUTOINSTALL" value="false"/>
+      <env name="PYTHONPATH"
+           value="$(arg clip_python_root):$(arg ultralytics_root):$(optenv PYTHONPATH)"/>
+      <rosparam command="load" file="$(find autolabor_fod_vision)/config/detector_smoke.yaml"/>
+      <rosparam command="load" file="$(find autolabor_fod_vision)/config/clip_filter.yaml"/>
+      <rosparam command="load" file="$(find autolabor_fod_vision)/config/locateanything.yaml"/>
+      <param name="backend" value="$(arg backend)"/>
+      <param name="weights" value="$(arg weights)"/>
+      <param name="expected_model_sha256"
+             value="$(arg expected_model_sha256)"/>
+      <param name="ultralytics_root" value="$(arg ultralytics_root)"/>
+      <param name="require_gam" value="$(arg require_gam)"/>
+      <param name="runtime_token" value="$(arg runtime_token)"/>
+      <param name="device" value="$(arg device)"/>
+      <param name="image_size" value="$(arg image_size)"/>
+      <param name="confidence" value="$(arg confidence)"/>
+      <param name="iou" value="$(arg iou)"/>
+      <param name="max_detections" value="$(arg max_detections)"/>
+      <param name="smoke_test_only" value="$(arg smoke_test_only)"/>
+      <param name="required_class_names" value="$(arg required_class_names)"/>
+      <param name="locateanything_model_root"
+             value="$(arg locateanything_model_root)"/>
+      <param name="locateanything_manifest"
+             value="$(arg locateanything_manifest)"/>
+      <param name="locateanything_worker_python"
+             value="$(arg locateanything_worker_python)"/>
+      <param name="enable_depth_fusion" value="$(arg enable_depth_fusion)"/>
+      <param name="depth_topic" value="$(arg depth_topic)"/>
+      <param name="enable_clip_filter" value="$(arg enable_clip_filter)"/>
+      <param name="clip_python_root" value="$(arg clip_python_root)"/>
+      <param name="clip_weights" value="$(arg clip_weights)"/>
+      <param name="clip_expected_model_sha256"
+             value="$(arg clip_expected_model_sha256)"/>
+      <param name="clip_model_name" value="$(arg clip_model_name)"/>
+      <param name="clip_source_commit" value="$(arg clip_source_commit)"/>
+      <param name="clip_device" value="$(arg clip_device)"/>
+      <param name="clip_warmup" value="$(arg clip_warmup)"/>
+      <param name="clip_low_confidence" value="$(arg clip_low_confidence)"/>
+      <param name="clip_high_confidence" value="$(arg clip_high_confidence)"/>
+      <param name="clip_positive_probability"
+             value="$(arg clip_positive_probability)"/>
+      <param name="clip_crop_padding_fraction"
+             value="$(arg clip_crop_padding_fraction)"/>
+    </node>
 
-  <group if="$(arg enable_projection)">
+    <node pkg="autolabor_fod_vision"
+          type="fod_vision_result_adapter_node.py"
+          name="fod_vision_result_adapter"
+          output="screen">
+      <rosparam command="load" file="$(find autolabor_fod_vision)/config/detector_smoke.yaml"/>
+      <param name="backend_id" value="$(arg backend)"/>
+      <param name="display_depth/enabled" value="$(arg enable_depth_fusion)"/>
+      <param name="display_depth/depth_topic" value="$(arg depth_topic)"/>
+      <param name="display_depth/camera_info_topic" value="$(arg camera_info_topic)"/>
+    </node>
+  </group>
+
+  <group if="$(eval arg('backend') == 'detect_and_classify')">
+    <node pkg="autolabor_fod_vision"
+          type="fod_detect_and_classify_node.py"
+          name="fod_detector"
+          launch-prefix="$(arg detector_python)"
+          output="screen"
+          required="true">
+      <env name="AUTOLABOR_FOD_ULTRALYTICS_ROOT"
+           value="$(arg ultralytics_root)"/>
+      <env name="YOLO_AUTOINSTALL" value="false"/>
+      <env name="PYTHONPATH"
+           value="$(arg ultralytics_root):$(optenv PYTHONPATH)"/>
+      <rosparam command="load"
+                file="$(find autolabor_fod_vision)/config/detect_and_classify.yaml"/>
+      <param name="ultralytics_root" value="$(arg ultralytics_root)"/>
+      <param name="runtime_token" value="$(arg runtime_token)"/>
+      <param name="device" value="$(arg device)"/>
+      <param name="two_stage_tracker_config"
+             value="$(arg two_stage_tracker_config)"/>
+      <param name="detect_and_classify/detector/model"
+             value="$(arg two_stage_detector_weights)"/>
+      <param name="detect_and_classify/detector/expected_sha256"
+             value="$(arg two_stage_detector_sha256)"/>
+      <param name="detect_and_classify/classifier/model"
+             value="$(arg two_stage_classifier_weights)"/>
+      <param name="detect_and_classify/classifier/expected_sha256"
+             value="$(arg two_stage_classifier_sha256)"/>
+    </node>
+  </group>
+
+  <group if="$(eval arg('enable_projection') == 'true' and arg('backend') != 'detect_and_classify')">
     <node pkg="autolabor_fod_vision"
           type="fod_ground_projector_node.py"
           name="fod_ground_projector"

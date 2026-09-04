@@ -23,7 +23,16 @@ NVIDIA_FOD_MODEL_SHA256="${NVIDIA_FOD_MODEL_SHA256-7bf99d4c61343e8cdb37289f2eece
 NVIDIA_FOD_REQUIRED_CLASS_NAMES="${NVIDIA_FOD_REQUIRED_CLASS_NAMES-Metal,Soft,Plastic,Wire,Tool,w}"
 NAV_MAX_LINEAR_SPEED="${NAV_MAX_LINEAR_SPEED:-0.80}"
 NAV_MAX_REVERSE_SPEED="${NAV_MAX_REVERSE_SPEED:-0.30}"
-CMD_VEL_MAX_ANGULAR_SPEED="${CMD_VEL_MAX_ANGULAR_SPEED:-0.60}"
+NAV_MAX_ANGULAR_SPEED="${NAV_MAX_ANGULAR_SPEED:-0.60}"
+CMD_VEL_MAX_ANGULAR_SPEED="${CMD_VEL_MAX_ANGULAR_SPEED:-1.00}"
+if ! awk -v nav="$NAV_MAX_ANGULAR_SPEED" \
+         -v cap="$CMD_VEL_MAX_ANGULAR_SPEED" 'BEGIN {
+  exit !(nav ~ /^[0-9]+([.][0-9]+)?$/ && cap ~ /^[0-9]+([.][0-9]+)?$/ &&
+         nav > 0.0 && cap > 0.0 && nav <= cap)
+}' </dev/null; then
+  echo "Navigation angular speed must be positive and no greater than the watchdog cap." >&2
+  exit 2
+fi
 MID360_SENSOR_X="${MID360_SENSOR_X:-0.20}"
 MID360_SENSOR_Y="${MID360_SENSOR_Y:-0.0}"
 MID360_SENSOR_Z="${MID360_SENSOR_Z:-1.0}"
@@ -140,7 +149,7 @@ roslaunch autolabor_dual_host j6m_fastlio_navigation.launch \
   fod_required_class_names:="$NVIDIA_FOD_REQUIRED_CLASS_NAMES" \
   max_linear_speed:="$NAV_MAX_LINEAR_SPEED" \
   max_linear_speed_backwards:="$NAV_MAX_REVERSE_SPEED" \
-  max_angular_speed:="$CMD_VEL_MAX_ANGULAR_SPEED" \
+  max_angular_speed:="$NAV_MAX_ANGULAR_SPEED" \
   mid360_sensor_x:="$MID360_SENSOR_X" \
   mid360_sensor_y:="$MID360_SENSOR_Y" \
   mid360_sensor_z:="$MID360_SENSOR_Z" \

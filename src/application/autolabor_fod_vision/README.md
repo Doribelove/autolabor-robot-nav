@@ -2,15 +2,125 @@
 
 这是一个与底盘控制隔离的 ROS Noetic 感知旁路，覆盖硬件到位前可以完成的三部分：
 
-1. 独立 Ultralytics/YOLO/CUDA 环境；
+1. 可切换的 YOLO11-GAM、LocateAnything-3B 与两阶段
+   `detect_and_classify` CUDA 推理后端；
 2. 图片、视频和笔记本 V4L2 摄像头推理；
 3. ROS 图像、检测、地面投影、多目标跟踪和调试接口。
 
 本包没有 `/cmd_vel` 发布者，不会接管无人车。
 
+## detect and classify 两阶段实时后端
+
+Qt 显示名为 `detect and classify`，内部标识为 `detect_and_classify`。它使用同一份
+`/home/slam/yolo11/yolo11_GAM/ultralytics`，先以单类 YOLO11-GAM 检测
+`trash`，再将 bbox 每边扩展 20% 后直接把 NumPy crop 批量交给 YOLO11-cls：
+
+```text
+检测权重：/home/slam/yolo11/detect_classify/detect/trash_yolo11s_gam/best.pt
+检测 SHA256：711b6bb4b4debebcf993f033f23e7e641a02dd279254779f8dafed11b6a79233
+分类权重：/home/slam/yolo11/detect_classify/classify/material_yolo11s_cls/best.pt
+分类 SHA256：d0cce9310e184e8acd7a6142face16d39aadc9a6e5405b18694346f2315899e9
+分类顺序：metal, plastic, paper, glass, kitchen_waste
+配置：config/detect_and_classify.yaml
+```
+
+两阶段 detector 默认使用 `imgsz=1024`、`conf=0.20`。运行时可通过统一服务
+`/fod_detector/set_detection_confidence` 修改真实检测阈值，服务会回读当前
+`backend_id`、能力标志和实际生效值；全局值保存在 ROS 参数
+`/fod/vision/detector_confidence`。YOLO11-GAM 与两阶段后端支持实时修改，
+LocateAnything 因不输出可校准逐框置信度而明确拒绝，不会用占位分数伪装支持。
+
+RGB 回调只替换容量为 1 的最新帧槽位；独立非 daemon 推理线程读取最新帧，检测器和
+分类器在激活时各加载一次、预热后常驻，退出时先 join 线程再释放模型。crop 不落盘。
+BoT-SORT 使用稀疏光流相机运动补偿；最多 5 次、相隔 5 个推理帧的清晰 crop 概率按
+置信度加权投票，历史绑定世界 `object_id` 而不是易变的 `track_id`。重关联使用源时刻
+世界位置的一对一匈牙利匹配，尺寸、时间、外观以及可用的分类概率作为辅助条件。
+
+节点只使用与 RGB 源帧在 20 ms 容差内匹配的注册深度和 CameraInfo，并且只查询该源
+时间戳的 `map`（后备 `odom`）TF。bbox 内缩后的有效深度按局部深度层和像素连通性
+聚类，依据中心/底部一致性、覆盖率、紧致度和离散度选簇，不按“最近簇”直接取值。
+无可靠簇、贴地纸屑不可分离、TF 缺失或数据超时时，深度/世界坐标保持无效并显示
+`N/A`；不会沿用旧深度。当前 ZED 安装外参尚未完成现场测量验收，因此生产实景中的
+世界坐标可能为 `N/A`，不得把测试 TF 当作实车外参。
+
+深度计算缓存绑定 `object_id`：连续取得 5 个有效聚类结果后，以 MAD 剔除明显异常值并
+对内点求平均，随后跳过逐帧注册深度解码和逐框聚类；默认每 12 个推理帧复核一次，bbox
+面积或外观明显变化时也会立即复核。未复核的帧仍向 Qt 发布 `depth:N/A`，缓存平均值只
+用于 object 状态和变化判定，不会被伪装成当前 RGB 帧的深度。复核明显变化或连续两次
+失败会清空深度与世界点缓存并重新采样。
+
+同一 RGB 源帧最多查询一次源时间戳 TF，矩阵由该帧全部框共享；每个 object 取得 3 个
+有效世界点后做异常值剔除并锁定世界位置，后续不再为该稳定 object 查询 TF。连续 10 个
+需要 TF 的源帧均查询失败时退避 2 秒再重试，不会永久关闭 TF，也不会改查当前时刻。
+
+结构化 UI 结果发布到：
+
+```text
+/fod/vision/results  autolabor_fod_msgs/FodVisionDetectionArray
+```
+
+每个数组和检测都带 `backend_id`；Qt 始终以 `/fod_camera/image_raw` 为底图，只在结果
+后端匹配、源时间戳新鲜且与当前原图接近时叠加框。原有 `/fod/detections` 消息 MD5 未
+修改；新后端只向该旧控制接口发布空数组并使用不受支持的 task 标识，所以在完成实车
+验收前保持 fail-closed、`motion_eligible=false`。
+
+选择契约可在不改配置、不启动相机和车辆的情况下检查：
+
+```bash
+./scripts/switch_fod_backend.sh --backend detect_and_classify --check-only
+```
+
+## LocateAnything 临时识别后端
+
+当前 `config/dual_host.env` 选择 `NVIDIA_FOD_BACKEND=locateanything`。模型只部署
+在 NVIDIA 的 `/home/slam/LocateAnything`，不会复制进本工作空间或 J6M release：
+
+```text
+来源：nvidia/LocateAnything-3B
+固定提交：c32291ca5e996f5a7a485845b4f57a233936bba0
+模型根目录：/home/slam/LocateAnything
+部署清单：/home/slam/LocateAnything/.runtime/deployment_manifest.json
+清单 SHA256：a6a8903c529cd769270599fab141eb84f5d1d09d063fe2d1933ddf4ac8f11a15
+活动 LocateAnything 类别：trash（地面上需要清扫的垃圾）
+```
+
+下载的模型、处理器和 tokenizer 文件，以及运行时产生的 Hugging Face、Torch、
+CUDA、临时文件、Python bytecode 与 worker 日志，均位于该模型根目录下的
+`.cache/` 或 `.runtime/`。启动前会逐文件校验部署清单，网络被强制设为离线；模型
+文件缺失、大小或 SHA256 不符时拒绝启动。
+
+LocateAnything 在本机 JetPack 5 / Python 3.8 / PyTorch 2.0 环境中由隔离 worker
+加载，ROS 节点本身不导入大模型。兼容层只处理该固定 checkpoint 的 Qwen2、eager
+attention 与 BF16 位置插值差异，不修改下载的官方源码或权重，也不会退回在线模型。
+
+活动语义在 `config/locateanything.yaml` 中拆成纸团、纸张、瓶子、包装袋、易拉罐和
+厨余垃圾六条独立的短查询，并统一映射为 `trash`。人体、人体局部、衣物、鞋、椅子、
+地面反光、阴影、接缝和纹理不会作为 LocateAnything 查询；所有候选框改由同一节点内
+常驻的 CLIP 以一帧一个 batch 做正/负后过滤。`locateanything_max_image_side=0` 表示
+禁用 worker 的预缩放，直接把 `/fod_camera/image_raw` 的原始尺寸交给 checkpoint 必需的
+图像处理器。
+
+该 checkpoint 不提供经过校准的逐框置信度，实测推理延迟约为数秒，不能满足现有
+视觉伺服的新鲜度要求。因此适配器只发布地面垃圾的识别/调试框，统一使用
+`confidence=0`，并且不向运动候选填充逐框深度；`/fod_detector/motion_eligible`
+固定为 `false`。Qt 适配器独立保留 120 个唯一时间戳的有界注册深度和 CameraInfo
+缓冲（ZED 在当前别名上重复发布的 CameraInfo 会按时间戳去重），只接受与检测 RGB
+源帧同 optical frame、时间差不超过 60 ms 的组合。它在 bbox 内缩区域按
+局部深度层和像素连通性形成有组织点云候选，以中心/底边一致性、覆盖率、紧致度和
+离散度选簇，再以百分位和 MAD 去除飞点后显示深度中位数；没有可靠簇时显示 `N/A`。
+这条深度只写入 `/fod/vision/results`，不回写 J6M 订阅的 `/fod/detections`，所以不会
+改变现有 fail-closed 运动链。
+
+原有 YOLO 权重、Ultralytics-GAM 代码、Python 环境和 YOLO 专用 CLIP 阈值均保留。
+需要恢复时可在 Qt“视觉”页右侧选择 YOLO11-GAM（`best6.pt`），再点击
+“应用选择并完整冷重启”；也可在停机状态下把 `NVIDIA_FOD_BACKEND` 改回 `yolo` 后
+通过统一入口完整冷重启。两种入口都不需要重新下载或部署 YOLO；Qt 入口还会同步
+NVIDIA/J6M 活动模型契约、保留地图模式，并主动清除一次性的视觉运动授权。
+LocateAnything 上游许可证仅允许非商业研究用途，投入其他用途前必须先确认许可。
+
 ## 重要边界
 
-生产模型由自定义 YOLO11-GAM 库训练，不能使用 pip 安装的官方 Ultralytics
+保留的生产 YOLO 模型由自定义 YOLO11-GAM 库训练，不能使用 pip 安装的官方 Ultralytics
 反序列化。训练源工作树和项目内运行副本分别位于：
 
 ```text
@@ -33,7 +143,7 @@
 对象；处理前后的 `state_dict` 参数摘要一致。旧的
 `models/yolo11_gam_best.pt` 没有删除或覆盖。
 
-生产启动会先校验 SHA256，再强制检查 Ultralytics 的真实 `__file__` 位于项目
+选择 YOLO 后，生产启动会先校验 SHA256，再强制检查 Ultralytics 的真实 `__file__` 位于项目
 副本、`GAM_Attention` 可导入且模型中至少存在一层 GAM。导入路径、版本和 GAM
 层数会写入启动日志、`/fod_detector` 私有参数和 `/diagnostics`。任何一项不符
 都会在 Qt 启动前明确失败，不会静默回退到 pip 官方包。
@@ -78,7 +188,7 @@ NVIDIA_FOD_WEIGHTS=src/application/autolabor_fod_vision/models/yolo11_gam_best.p
 NVIDIA_FOD_ULTRALYTICS_ROOT=ultralytics_yolo11_custom
 ```
 
-## YOLO 后置 CLIP 误检过滤
+## 检测后置 CLIP 误检过滤
 
 ZED 生产入口在 YOLO 完成推理后启用独立 CLIP 过滤器；
 `detector.py` 中的 YOLO 加载、预测、NMS 和结果转换逻辑不变。规则严格为：
@@ -110,10 +220,13 @@ CLIP 正向概率默认至少为 `0.50` 才保留。所有文本特征只在节�
 
 节点在 `/diagnostics` 报告 CLIP 模型、源码路径、权重哈希、候选数、保留/丢弃数和
 单次批量前向耗时。权重、官方源码或依赖缺失时生产节点拒绝启动，不会静默跳过过滤。
+LocateAnything 的逐框置信度固定为未校准的零，因此不走上述 YOLO 置信度门，而是把
+每个有效候选框送入一次批量 CLIP 校验；其正负短语和保留阈值使用独立的
+`locateanything_clip_*` 配置，不改变 YOLO11-GAM 的既有过滤行为。
 
 相机回调只替换一个“最新帧”槽位，单独工作线程串行执行模型并用互斥锁保护
-Ultralytics predictor；来不及处理的旧帧会丢弃而不会排队拖慢 Qt。输出接口仍为
-`/fod/detections`、`/fod/debug/image` 和 `/diagnostics`。
+Ultralytics predictor；来不及处理的旧帧会丢弃而不会排队拖慢 Qt。旧后端输出适配为
+`/fod/detections`、`/fod/debug/image`、`/fod/vision/results` 和 `/diagnostics`。
 
 ## 无 ROS 冒烟测试
 
@@ -170,6 +283,7 @@ rqt_image_view /fod/debug/image
 /fod_camera/camera_info     sensor_msgs/CameraInfo
 /fod_camera/depth_registered sensor_msgs/Image (32FC1, metres)
 /fod/detections             autolabor_fod_msgs/FodDetectionArray
+/fod/vision/results         autolabor_fod_msgs/FodVisionDetectionArray
 /fod/debug/image            sensor_msgs/Image
 /diagnostics                diagnostic_msgs/DiagnosticArray
 ```
@@ -253,7 +367,7 @@ rostopic echo /fod/detections
 rostopic hz /fod/detections
 ```
 
-默认置信度阈值为 `0.25`。现场已知没有 FOD 却出现低置信度框时，可先用
+默认置信度阈值为 `0.20`。现场已知没有 FOD 却出现低置信度框时，可先用
 `confidence:=0.4` 重新启动；正式阈值应通过有标注的现场测试集确定，而
 不是只观察单幅画面。
 

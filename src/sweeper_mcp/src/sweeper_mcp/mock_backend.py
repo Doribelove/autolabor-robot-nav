@@ -95,7 +95,8 @@ class MockBackend:
                                 linear_accel_mps2=None,
                                 angular_accel_rps2=None,
                                 direction_change_penalty_sec=None,
-                                segment_handoff_penalty_sec=None):
+                                segment_handoff_penalty_sec=None,
+                                transit_replan_period_sec=None):
         failed = self._record("start_coverage_cleaning", locals())
         if failed:
             return failed

@@ -92,6 +92,20 @@ class ClipDetectionFilterTest(unittest.TestCase):
         self.assertEqual(result.stats.invalid_crop_dropped, 1)
         self.assertEqual(runtime.calls, [])
 
+    def test_uncalibrated_detector_sends_every_valid_box_to_clip(self):
+        runtime = FakeRuntime([0.90, 0.10])
+        candidates = [detection(0.0), detection(0.95)]
+        result = ClipDetectionFilter(
+            runtime,
+            use_confidence_gate=False,
+        ).filter(self.image, candidates)
+
+        self.assertEqual(result.detections, [candidates[0]])
+        self.assertEqual(result.stats.clip_candidates, 2)
+        self.assertEqual(result.stats.high_confidence_kept, 0)
+        self.assertEqual(result.stats.low_confidence_dropped, 0)
+        self.assertEqual(len(runtime.calls), 1)
+
     def test_rejects_invalid_threshold_order(self):
         with self.assertRaises(ValueError):
             ClipDetectionFilter(FakeRuntime([]), 0.7, 0.6)

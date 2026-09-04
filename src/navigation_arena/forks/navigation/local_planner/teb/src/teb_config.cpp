@@ -71,6 +71,7 @@ void TebConfig::loadRosParamFromNodeHandle(const ros::NodeHandle& nh)
   nh.param("control_look_ahead_poses", trajectory.control_look_ahead_poses, trajectory.control_look_ahead_poses);
   
   // Robot
+  nh.param("motion_direction_mode", robot.motion_direction_mode, robot.motion_direction_mode);
   nh.param("max_vel_x", robot.max_vel_x, robot.max_vel_x);
   nh.param("max_vel_x_backwards", robot.max_vel_x_backwards, robot.max_vel_x_backwards);
   nh.param("max_vel_y", robot.max_vel_y, robot.max_vel_y);
@@ -203,6 +204,7 @@ void TebConfig::reconfigure(TebLocalPlannerReconfigureConfig& cfg)
   trajectory.publish_feedback = cfg.publish_feedback;
   
   // Robot     
+  robot.motion_direction_mode = cfg.motion_direction_mode;
   robot.max_vel_x = cfg.max_vel_x;
   robot.max_vel_x_backwards = cfg.max_vel_x_backwards;
   robot.max_vel_y = cfg.max_vel_y;
@@ -300,6 +302,8 @@ void TebConfig::reconfigure(TebLocalPlannerReconfigureConfig& cfg)
     
 void TebConfig::checkParameters() const
 {
+  if (robot.motion_direction_mode < -1 || robot.motion_direction_mode > 1)
+    ROS_WARN("TebLocalPlannerROS() Param Warning: motion_direction_mode must be -1, 0, or 1.");
   if (robot.max_vel_x_backwards < 0)
     ROS_WARN("TebLocalPlannerROS() Param Warning: max_vel_x_backwards must not be negative.");
   

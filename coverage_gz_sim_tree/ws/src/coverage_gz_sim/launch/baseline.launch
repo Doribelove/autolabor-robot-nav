@@ -1,0 +1,265 @@
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="run_label" default="baseline_current_architecture"/>
+  <arg name="result_dir"/>
+  <arg name="map_yaml"
+       default="/home/slam/robot_j6m_ws/global_maps/map_sets/latest/map_fused_2d/map.yaml"/>
+  <arg name="regions_file"
+       default="/home/slam/robot_j6m_ws/global_maps/map_sets/latest/coverage_regions/fused/regions.json"/>
+  <arg name="initial_x" default="16.65"/>
+  <arg name="initial_y" default="-39.30"/>
+  <arg name="initial_yaw" default="0.0"/>
+  <arg name="online_hybrid_without_precompute" default="false"/>
+  <arg name="hierarchical_hybrid_on_demand" default="false"/>
+  <arg name="direct_hybrid_to_final_goal" default="false"/>
+  <arg name="entry_navfn_single_topology" default="false"/>
+  <arg name="hybrid_execute_unsplit_cusps" default="false"/>
+  <arg name="hybrid_rolling_horizon" default="10.0"/>
+  <arg name="hybrid_rolling_plan_timeout" default="3.0"/>
+  <arg name="hybrid_cache_max_deviation" default="0.60"/>
+  <arg name="hybrid_cusp_position_tolerance" default="0.25"/>
+  <arg name="obstacle_wait_sec" default="10.0"/>
+  <arg name="planner_frequency" default="1.0"/>
+  <arg name="teb_global_plan_lookahead" default="8.0"/>
+  <arg name="hybrid_transit_include_costmap_obstacles" default="true"/>
+  <arg name="hybrid_transit_weight_viapoint_lateral" default="100.0"/>
+  <arg name="hybrid_transit_weight_viapoint_heading" default="50.0"/>
+  <arg name="hybrid_transit_inner_iterations" default="3"/>
+  <arg name="hybrid_transit_outer_iterations" default="2"/>
+  <arg name="hybrid_transit_lookahead" default="3.0"/>
+  <arg name="navigation_command_topic" default="/cmd_vel_sim"/>
+  <arg name="hybrid_transit_max_forward_speed" default="0.0"/>
+  <arg name="hybrid_transit_max_reverse_speed" default="0.0"/>
+  <arg name="hybrid_transit_max_angular_speed" default="0.0"/>
+  <arg name="hybrid_transit_linear_accel" default="0.0"/>
+  <arg name="hybrid_transit_angular_accel" default="0.0"/>
+  <arg name="plant_linear_accel" default="1.00"/>
+  <arg name="hybrid_replan_every_cycle" default="false"/>
+  <arg name="hybrid_analytic_improvement_timeout" default="0.20"/>
+  <arg name="hybrid_analytic_gearchange_improvement_timeout" default="0.65"/>
+  <arg name="hybrid_analytic_connector_improvement_timeout" default="0.50"/>
+  <arg name="hybrid_planning_timeout" default="1.50"/>
+  <arg name="teb_reinitialize_on_global_plan" default="false"/>
+  <arg name="sweep_entry_recovery_enabled" default="true"/>
+  <arg name="sweep_entry_recovery_progress_limit" default="0.75"/>
+  <arg name="sweep_entry_recovery_confirmation_samples" default="3"/>
+  <arg name="transition_tracking_heading_tolerance" default="0.40"/>
+  <arg name="region_order" default="[A区, C区]"/>
+  <arg name="direction_change_penalty" default="1.00"/>
+  <arg name="segment_handoff_penalty" default="0.50"/>
+  <arg name="maximum_wall_time" default="900.0"/>
+
+  <param name="use_sim_time" value="true"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find coverage_gz_sim)/worlds/coverage_empty.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="true"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <node pkg="gazebo_ros" type="spawn_model" name="spawn_m2_sim"
+        args="-urdf -file $(find coverage_gz_sim)/urdf/m2_sim.urdf -model m2_sim -x $(arg initial_x) -y $(arg initial_y) -z 0.20 -Y $(arg initial_yaw)"
+        output="screen"/>
+
+  <node pkg="map_server" type="map_server" name="map_server"
+        args="$(arg map_yaml)" output="screen">
+    <param name="frame_id" value="map"/>
+  </node>
+
+  <node pkg="coverage_gz_sim" type="m2_truth_sim.py" name="m2_truth_sim"
+        output="screen" required="true">
+    <param name="initial_x" value="$(arg initial_x)"/>
+    <param name="initial_y" value="$(arg initial_y)"/>
+    <param name="initial_yaw" value="$(arg initial_yaw)"/>
+    <param name="wheelbase" value="0.65"/>
+    <param name="minimum_turning_radius" value="1.35"/>
+    <param name="maximum_steering_angle" value="0.488692"/>
+    <param name="maximum_speed" value="1.60"/>
+    <param name="linear_accel" value="$(arg plant_linear_accel)"/>
+  </node>
+
+  <node pkg="coverage_gz_sim" type="sim_support.py"
+        name="coverage_sim_support" output="screen" required="true"/>
+
+  <node pkg="move_base" type="move_base" name="move_base"
+        output="screen" required="true">
+    <remap from="/move_base/cmd_vel" to="/cmd_vel_teb"/>
+    <remap from="cmd_vel" to="/cmd_vel_teb"/>
+    <remap from="odom" to="/odom"/>
+    <rosparam file="$(find coverage_gz_sim)/config/costmap_common.yaml"
+              command="load" ns="global_costmap"/>
+    <rosparam file="$(find coverage_gz_sim)/config/costmap_common.yaml"
+              command="load" ns="local_costmap"/>
+    <rosparam file="$(find coverage_gz_sim)/config/global_costmap.yaml"
+              command="load"/>
+    <rosparam file="$(find coverage_gz_sim)/config/local_costmap.yaml"
+              command="load"/>
+    <rosparam file="$(find coverage_gz_sim)/config/teb_sim.yaml"
+              command="load"/>
+
+    <param name="base_local_planner"
+           value="teb_local_planner/TebLocalPlannerROS"/>
+    <param name="base_global_planner"
+           value="autolabor_coverage/CoverageGlobalPlanner"/>
+    <param name="controller_frequency" value="10.0"/>
+    <param name="controller_patience" value="10.0"/>
+    <param name="planner_frequency" value="$(arg planner_frequency)"/>
+    <param name="planner_patience" value="5.0"/>
+    <param name="recovery_behavior_enabled" value="false"/>
+    <param name="clearing_rotation_allowed" value="false"/>
+    <param name="shutdown_costmaps" value="false"/>
+
+    <param name="TebLocalPlannerROS/odom_topic" value="/odom"/>
+    <param name="TebLocalPlannerROS/min_turning_radius" value="1.35"/>
+    <param name="TebLocalPlannerROS/wheelbase" value="0.65"/>
+    <param name="TebLocalPlannerROS/cmd_angle_instead_rotvel" value="false"/>
+    <param name="TebLocalPlannerROS/use_proportional_saturation" value="true"/>
+    <param name="TebLocalPlannerROS/treat_unknown_as_obstacle" value="true"/>
+    <param name="TebLocalPlannerROS/feasibility_check_no_poses" value="50"/>
+    <param name="TebLocalPlannerROS/max_global_plan_lookahead_dist"
+           value="$(arg teb_global_plan_lookahead)"/>
+    <param name="TebLocalPlannerROS/control_look_ahead_poses" value="2"/>
+    <param name="TebLocalPlannerROS/reinitialize_on_global_plan"
+           value="$(arg teb_reinitialize_on_global_plan)"/>
+
+    <param name="CoverageGlobalPlanner_navfn/allow_unknown" value="false"/>
+    <param name="CoverageGlobalPlanner/hybrid_minimum_turning_radius" value="1.35"/>
+    <param name="CoverageGlobalPlanner/hybrid_motion_step" value="0.30"/>
+    <param name="CoverageGlobalPlanner/hybrid_collision_check_step" value="0.10"/>
+    <param name="CoverageGlobalPlanner/hybrid_state_resolution" value="0.15"/>
+    <param name="CoverageGlobalPlanner/hybrid_heading_bins" value="72"/>
+    <param name="CoverageGlobalPlanner/hybrid_steering_samples" value="5"/>
+    <param name="CoverageGlobalPlanner/hybrid_max_expansions" value="80000"/>
+    <param name="CoverageGlobalPlanner/hybrid_planning_timeout"
+           value="$(arg hybrid_planning_timeout)"/>
+    <param name="CoverageGlobalPlanner/hybrid_heuristic_weight" value="1.05"/>
+    <param name="CoverageGlobalPlanner/hybrid_steering_penalty" value="0.04"/>
+    <param name="CoverageGlobalPlanner/hybrid_steering_change_penalty" value="0.10"/>
+    <param name="CoverageGlobalPlanner/hybrid_obstacle_cost_scale" value="0.25"/>
+    <param name="CoverageGlobalPlanner/hybrid_analytic_improvement_timeout"
+           value="$(arg hybrid_analytic_improvement_timeout)"/>
+    <param name="CoverageGlobalPlanner/hybrid_analytic_gearchange_improvement_timeout"
+           value="$(arg hybrid_analytic_gearchange_improvement_timeout)"/>
+    <param name="CoverageGlobalPlanner/hybrid_analytic_connector_improvement_timeout"
+           value="$(arg hybrid_analytic_connector_improvement_timeout)"/>
+    <param name="CoverageGlobalPlanner/hybrid_cache_max_deviation"
+           value="$(arg hybrid_cache_max_deviation)"/>
+    <param name="CoverageGlobalPlanner/hybrid_cache_collision_check_horizon" value="1.50"/>
+    <param name="CoverageGlobalPlanner/hybrid_online_kinematic_horizon" value="12.0"/>
+    <param name="CoverageGlobalPlanner/hybrid_replan_every_cycle"
+           value="$(arg hybrid_replan_every_cycle)"/>
+  </node>
+
+  <!-- TEB is the only feedback controller in every navigation phase.  This
+       node is only a fail-closed output mux; it never computes path-following
+       velocity and therefore cannot become a second local planner. -->
+  <node pkg="autolabor_coverage" type="hybrid_teb_command_mux.py"
+        name="hybrid_teb_command_mux" output="screen" required="true">
+    <param name="enabled" value="true"/>
+    <param name="use_tf_pose" value="true"/>
+    <param name="global_frame" value="map"/>
+    <param name="robot_base_frame" value="base_link"/>
+    <param name="teb_command_topic" value="/cmd_vel_teb"/>
+    <param name="command_topic" value="$(arg navigation_command_topic)"/>
+    <param name="odom_topic" value="/odom"/>
+    <param name="enforced_path_topic" value="/coverage/enforced_path"/>
+    <param name="tracking_error_topic"
+           value="/coverage_gz_sim/hybrid_tracking_error"/>
+    <param name="safety_topic"
+           value="/move_base/CoverageGlobalPlanner/hybrid_path_safe"/>
+    <param name="command_timeout" value="0.40"/>
+    <param name="safety_timeout" value="1.50"/>
+    <param name="minimum_turning_radius" value="1.35"/>
+  </node>
+
+  <node pkg="autolabor_coverage" type="coverage_manager.py"
+        name="coverage_manager" output="screen" required="true">
+    <rosparam file="$(find coverage_gz_sim)/config/coverage_sim.yaml" command="load"/>
+    <param name="config_file" value="$(find coverage_gz_sim)/config/coverage_sim.yaml"/>
+    <param name="factory_defaults_file"
+           value="$(find coverage_gz_sim)/config/coverage_sim.yaml"/>
+    <param name="navigation_owner_service"
+           value="/navigation_goal/set_coverage_owner"/>
+    <param name="online_hybrid_without_precompute"
+           value="$(arg online_hybrid_without_precompute)"/>
+    <param name="hierarchical_hybrid_on_demand"
+           value="$(arg hierarchical_hybrid_on_demand)"/>
+    <param name="direct_hybrid_to_final_goal"
+           value="$(arg direct_hybrid_to_final_goal)"/>
+    <param name="entry_navfn_single_topology"
+           value="$(arg entry_navfn_single_topology)"/>
+    <param name="hybrid_execute_unsplit_cusps"
+           value="$(arg hybrid_execute_unsplit_cusps)"/>
+    <param name="hybrid_transit_max_forward_speed_mps"
+           value="$(arg hybrid_transit_max_forward_speed)"/>
+    <param name="hybrid_transit_max_reverse_speed_mps"
+           value="$(arg hybrid_transit_max_reverse_speed)"/>
+    <param name="hybrid_transit_max_angular_speed_rps"
+           value="$(arg hybrid_transit_max_angular_speed)"/>
+    <param name="hybrid_transit_linear_accel_mps2"
+           value="$(arg hybrid_transit_linear_accel)"/>
+    <param name="hybrid_transit_angular_accel_rps2"
+           value="$(arg hybrid_transit_angular_accel)"/>
+    <param name="hybrid_rolling_horizon_m"
+           value="$(arg hybrid_rolling_horizon)"/>
+    <param name="hybrid_rolling_plan_timeout_sec"
+           value="$(arg hybrid_rolling_plan_timeout)"/>
+    <param name="hybrid_rolling_max_chunks" value="64"/>
+    <param name="hybrid_cusp_position_tolerance_m"
+           value="$(arg hybrid_cusp_position_tolerance)"/>
+    <param name="obstacle_wait_sec" value="$(arg obstacle_wait_sec)"/>
+    <param name="hybrid_transit_include_costmap_obstacles"
+           value="$(arg hybrid_transit_include_costmap_obstacles)"/>
+    <param name="hybrid_transit_weight_viapoint_lateral"
+           value="$(arg hybrid_transit_weight_viapoint_lateral)"/>
+    <param name="hybrid_transit_weight_viapoint_heading"
+           value="$(arg hybrid_transit_weight_viapoint_heading)"/>
+    <param name="hybrid_transit_inner_iterations"
+           value="$(arg hybrid_transit_inner_iterations)"/>
+    <param name="hybrid_transit_outer_iterations"
+           value="$(arg hybrid_transit_outer_iterations)"/>
+    <param name="hybrid_transit_lookahead_dist_m"
+           value="$(arg hybrid_transit_lookahead)"/>
+    <param name="sweep_entry_recovery_enabled"
+           value="$(arg sweep_entry_recovery_enabled)"/>
+    <param name="sweep_entry_recovery_progress_limit_m"
+           value="$(arg sweep_entry_recovery_progress_limit)"/>
+    <param name="sweep_entry_recovery_confirmation_samples"
+           value="$(arg sweep_entry_recovery_confirmation_samples)"/>
+    <param name="transition_tracking_heading_tolerance_rad"
+           value="$(arg transition_tracking_heading_tolerance)"/>
+  </node>
+
+  <node pkg="coverage_gz_sim" type="coverage_monitor.py"
+        name="coverage_monitor" output="screen">
+    <param name="result_dir" value="$(arg result_dir)"/>
+    <param name="minimum_turning_radius" value="1.35"/>
+  </node>
+
+  <node pkg="rosbag" type="record" name="navigation_bag"
+        args="-O $(arg result_dir)/navigation.bag /coverage/status /coverage/enforced_path /coverage/hybrid_transition_path /coverage/planned_path /coverage/executed_path /move_base/TebLocalPlannerROS/global_plan /move_base/TebLocalPlannerROS/local_plan /move_base/goal /move_base/result /move_base/feedback /cmd_vel_teb /cmd_vel_nominal /cmd_vel_sim /coverage_gz_sim/hybrid_tracking_error /coverage_gz_sim/fault_event /coverage_gz_sim/inject_pose_offset /odom /m2_driver/wheel_angle /tf /tf_static /rosout"
+        output="screen"/>
+
+  <node pkg="coverage_gz_sim" type="start_batch.py"
+        name="coverage_batch_runner" output="screen" required="true">
+    <param name="run_label" value="$(arg run_label)"/>
+    <param name="result_dir" value="$(arg result_dir)"/>
+    <param name="regions_file" value="$(arg regions_file)"/>
+    <rosparam param="region_order" subst_value="true">$(arg region_order)</rosparam>
+    <param name="operation_width" value="1.00"/>
+    <param name="overlap_ratio" value="0.15"/>
+    <param name="maximum_speed" value="0.80"/>
+    <param name="reverse_speed" value="0.30"/>
+    <param name="maximum_angular_speed" value="0.60"/>
+    <param name="linear_accel" value="1.00"/>
+    <param name="angular_accel" value="0.50"/>
+    <param name="direction_change_penalty"
+           value="$(arg direction_change_penalty)"/>
+    <param name="segment_handoff_penalty"
+           value="$(arg segment_handoff_penalty)"/>
+    <param name="maximum_wall_time" value="$(arg maximum_wall_time)"/>
+  </node>
+</launch>

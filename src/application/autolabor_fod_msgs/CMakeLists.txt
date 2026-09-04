@@ -17,6 +17,8 @@ add_message_files(
   FodTarget.msg
   FodTrack.msg
   FodTrackArray.msg
+  FodVisionDetection.msg
+  FodVisionDetectionArray.msg
 )
 
 generate_messages(

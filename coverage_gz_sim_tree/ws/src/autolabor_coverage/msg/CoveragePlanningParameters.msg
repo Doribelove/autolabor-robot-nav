@@ -1,0 +1,11 @@
+float64 operation_width_m
+float64 overlap_ratio
+bool allow_reverse
+float64 max_forward_speed_mps
+float64 max_reverse_speed_mps
+float64 max_angular_speed_rps
+float64 linear_accel_mps2
+float64 angular_accel_rps2
+float64 direction_change_penalty_sec
+float64 segment_handoff_penalty_sec
+float64 transit_replan_period_sec

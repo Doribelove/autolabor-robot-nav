@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Latest-frame YOLO inference with registered ZED depth fusion."""
+"""Latest-frame selectable FOD inference with registered ZED depth fusion."""
 
 from collections import deque
 import math
@@ -12,6 +12,7 @@ import rospy
 from autolabor_fod_msgs.msg import FodDetection, FodDetectionArray
 from cv_bridge import CvBridge
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
+from dynamic_reconfigure.srv import Reconfigure
 from geometry_msgs.msg import Point32
 from sensor_msgs.msg import Image, RegionOfInterest
 
@@ -20,8 +21,18 @@ from autolabor_fod_vision.clip_filter import (
     ClipFilterStats,
     OfficialClipRuntime,
 )
+from autolabor_fod_vision.confidence_control import (
+    CONFIDENCE_SERVICE,
+    GLOBAL_CONFIDENCE_PARAM,
+    DetectionConfidenceController,
+    validate_detection_confidence,
+)
 from autolabor_fod_vision.detector import UltralyticsDetector, annotate_image
 from autolabor_fod_vision.depth_fusion import estimate_detection_depth
+from autolabor_fod_vision.locateanything_runtime import (
+    LocateAnythingDetector,
+    parse_categories,
+)
 
 
 def _csv_ints(value):
@@ -46,7 +57,9 @@ def _prompt_strings(value, name):
 
 class DetectorNode:
     def __init__(self):
-        weights = str(rospy.get_param("~weights"))
+        self.backend = str(rospy.get_param("~backend", "yolo")).strip().lower()
+        if self.backend not in ("yolo", "locateanything"):
+            raise ValueError("backend must be yolo or locateanything")
         ultralytics_root = str(
             rospy.get_param(
                 "~ultralytics_root",
@@ -60,6 +73,16 @@ class DetectorNode:
             rospy.get_param("~required_class_names", "fod")
         )
         self.debug_every_n = max(1, int(rospy.get_param("~debug_every_n", 1)))
+        self.enable_clip_filter = bool(
+            rospy.get_param("~enable_clip_filter", False)
+        )
+        if self.enable_clip_filter and self.backend not in (
+            "yolo",
+            "locateanything",
+        ):
+            raise ValueError(
+                "CLIP filtering is supported only for YOLO and LocateAnything"
+            )
         self.enable_depth_fusion = bool(
             rospy.get_param("~enable_depth_fusion", False)
         )
@@ -93,24 +116,99 @@ class DetectorNode:
             raise ValueError("depth_min_valid_fraction must be in [0, 1]")
         if not 0.0 <= self.depth_bbox_inset_fraction < 0.5:
             raise ValueError("depth_bbox_inset_fraction must be in [0, 0.5)")
-        classes = _csv_ints(rospy.get_param("~classes", ""))
         self.bridge = CvBridge()
-        self.detector = UltralyticsDetector(
-            weights=weights,
-            device=str(rospy.get_param("~device", "auto")),
-            image_size=int(rospy.get_param("~image_size", 640)),
-            confidence=float(rospy.get_param("~confidence", 0.25)),
-            iou=float(rospy.get_param("~iou", 0.45)),
-            max_detections=int(rospy.get_param("~max_detections", 100)),
-            classes=classes,
-            half=bool(rospy.get_param("~half", True)),
-            warmup=bool(rospy.get_param("~warmup", True)),
-            expected_sha256=str(
-                rospy.get_param("~expected_model_sha256", "")
-            ),
-            ultralytics_root=ultralytics_root,
-            require_gam=require_gam,
+        expected_sha256 = str(rospy.get_param("~expected_model_sha256", ""))
+        max_detections = int(rospy.get_param("~max_detections", 100))
+        configured_confidence = validate_detection_confidence(
+            rospy.get_param("~confidence", 0.20)
         )
+        try:
+            initial_confidence = validate_detection_confidence(
+                rospy.get_param(
+                    GLOBAL_CONFIDENCE_PARAM, configured_confidence
+                )
+            )
+        except (TypeError, ValueError) as error:
+            rospy.logwarn(
+                "Ignoring invalid global detector confidence: %s; using %.2f",
+                error,
+                configured_confidence,
+            )
+            initial_confidence = configured_confidence
+        if self.backend == "yolo":
+            self.detector = UltralyticsDetector(
+                weights=str(rospy.get_param("~weights")),
+                device=str(rospy.get_param("~device", "auto")),
+                image_size=int(rospy.get_param("~image_size", 640)),
+                confidence=initial_confidence,
+                iou=float(rospy.get_param("~iou", 0.45)),
+                max_detections=max_detections,
+                classes=_csv_ints(rospy.get_param("~classes", "")),
+                half=bool(rospy.get_param("~half", True)),
+                warmup=bool(rospy.get_param("~warmup", True)),
+                expected_sha256=expected_sha256,
+                ultralytics_root=ultralytics_root,
+                require_gam=require_gam,
+            )
+        else:
+            categories = parse_categories(
+                rospy.get_param("~locateanything_categories", [])
+            )
+            if {category.class_name for category in categories} != set(
+                required_names
+            ):
+                raise RuntimeError(
+                    "LocateAnything categories must exactly match required_class_names"
+                )
+            self.detector = LocateAnythingDetector(
+                model_root=str(rospy.get_param("~locateanything_model_root")),
+                manifest_path=str(
+                    rospy.get_param("~locateanything_manifest")
+                ),
+                expected_sha256=expected_sha256,
+                worker_python=str(
+                    rospy.get_param("~locateanything_worker_python")
+                ),
+                categories=categories,
+                generation_mode=str(
+                    rospy.get_param(
+                        "~locateanything_generation_mode", "hybrid"
+                    )
+                ),
+                max_new_tokens=int(
+                    rospy.get_param("~locateanything_max_new_tokens", 128)
+                ),
+                temperature=float(
+                    rospy.get_param("~locateanything_temperature", 0.0)
+                ),
+                max_image_side=int(
+                    rospy.get_param("~locateanything_max_image_side", 0)
+                ),
+                max_detections=max_detections,
+                jpeg_quality=int(
+                    rospy.get_param("~locateanything_jpeg_quality", 95)
+                ),
+                min_box_area_fraction=float(
+                    rospy.get_param(
+                        "~locateanything_min_box_area_fraction", 0.00005
+                    )
+                ),
+                max_box_area_fraction=float(
+                    rospy.get_param(
+                        "~locateanything_max_box_area_fraction", 0.75
+                    )
+                ),
+                startup_timeout_sec=float(
+                    rospy.get_param(
+                        "~locateanything_startup_timeout_sec", 420.0
+                    )
+                ),
+                inference_timeout_sec=float(
+                    rospy.get_param(
+                        "~locateanything_inference_timeout_sec", 180.0
+                    )
+                ),
+            )
         available = set(self.detector.names.values())
         missing = [name for name in required_names if name not in available]
         if missing and not self.smoke_test_only:
@@ -124,20 +222,44 @@ class DetectorNode:
                 "SMOKE TEST ONLY: model has no required class(es) %s",
                 ", ".join(missing),
             )
-
-        self.enable_clip_filter = bool(
-            rospy.get_param("~enable_clip_filter", False)
+        self.motion_depth_enabled = bool(
+            getattr(self.detector, "motion_eligible", True)
+            and getattr(self.detector, "confidence_calibrated", True)
         )
+        confidence_setter = (
+            self.detector.set_confidence
+            if self.backend == "yolo"
+            else None
+        )
+        self.confidence_control = DetectionConfidenceController(
+            self.backend, initial_confidence, confidence_setter
+        )
+        self.confidence_service = rospy.Service(
+            CONFIDENCE_SERVICE,
+            Reconfigure,
+            self._set_detection_confidence,
+        )
+        rospy.set_param(
+            GLOBAL_CONFIDENCE_PARAM, self.confidence_control.current
+        )
+        if self.confidence_control.supported:
+            rospy.set_param("~confidence", self.confidence_control.current)
+
         self.clip_filter = None
         self.clip_runtime = None
         if self.enable_clip_filter:
+            clip_param_prefix = (
+                "locateanything_clip_"
+                if self.backend == "locateanything"
+                else "clip_"
+            )
             positive_prompts = _prompt_strings(
-                rospy.get_param("~clip_positive_prompts"),
-                "clip_positive_prompts",
+                rospy.get_param("~{}positive_prompts".format(clip_param_prefix)),
+                "{}positive_prompts".format(clip_param_prefix),
             )
             negative_prompts = _prompt_strings(
-                rospy.get_param("~clip_negative_prompts"),
-                "clip_negative_prompts",
+                rospy.get_param("~{}negative_prompts".format(clip_param_prefix)),
+                "{}negative_prompts".format(clip_param_prefix),
             )
             self.clip_runtime = OfficialClipRuntime(
                 weights=str(rospy.get_param("~clip_weights")),
@@ -165,11 +287,18 @@ class DetectorNode:
                     rospy.get_param("~clip_high_confidence", 0.60)
                 ),
                 positive_probability=float(
-                    rospy.get_param("~clip_positive_probability", 0.50)
+                    rospy.get_param(
+                        "~{}positive_probability".format(clip_param_prefix),
+                        0.50,
+                    )
                 ),
                 crop_padding_fraction=float(
-                    rospy.get_param("~clip_crop_padding_fraction", 0.10)
+                    rospy.get_param(
+                        "~{}crop_padding_fraction".format(clip_param_prefix),
+                        0.10,
+                    )
                 ),
+                use_confidence_gate=self.backend == "yolo",
             )
 
         self.detection_pub = rospy.Publisher(
@@ -216,6 +345,10 @@ class DetectorNode:
         self.worker = threading.Thread(target=self._worker_loop, daemon=True)
         self.worker.start()
         rospy.on_shutdown(self.shutdown)
+        rospy.set_param("~backend", self.detector.backend)
+        rospy.set_param("~runtime_path", self.detector.runtime_path)
+        rospy.set_param("~runtime_version", self.detector.runtime_version)
+        rospy.set_param("~motion_eligible", self.motion_depth_enabled)
         rospy.set_param(
             "~ultralytics_import_path", self.detector.ultralytics_path
         )
@@ -223,6 +356,29 @@ class DetectorNode:
             "~ultralytics_version", self.detector.ultralytics_version
         )
         rospy.set_param("~gam_layer_count", self.detector.gam_layer_count)
+        if getattr(self.detector, "worker_log", ""):
+            rospy.set_param("~worker_log", self.detector.worker_log)
+        if self.backend == "locateanything":
+            rospy.set_param(
+                "~semantic_prompt_preloaded",
+                bool(self.detector.semantic_prompt_preloaded),
+            )
+            rospy.set_param(
+                "~semantic_prompt_sha256",
+                self.detector.semantic_prompt_sha256,
+            )
+            rospy.set_param(
+                "~semantic_prompt_token_count",
+                int(self.detector.semantic_prompt_token_count),
+            )
+            rospy.set_param(
+                "~semantic_query_count",
+                int(self.detector.semantic_query_count),
+            )
+            rospy.set_param(
+                "~source_pre_resize_enabled",
+                bool(self.detector.max_image_side > 0),
+            )
         rospy.set_param("~clip_filter_active", self.enable_clip_filter)
         if self.clip_runtime is not None:
             rospy.set_param(
@@ -233,20 +389,44 @@ class DetectorNode:
             )
         rospy.set_param("~ready_token", self.runtime_token)
         rospy.loginfo(
-            "FOD detector ready: model=%s task=%s device=%s classes=%s sha256=%s "
-            "ultralytics_version=%s ultralytics_path=%s gam_layers=%d "
-            "depth_fusion=%s depth_topic=%s",
+            "FOD detector ready: backend=%s model=%s task=%s device=%s "
+            "classes=%s sha256=%s runtime_version=%s runtime_path=%s "
+            "motion_eligible=%s depth_fusion=%s depth_topic=%s "
+            "detector_confidence=%s confidence_service=%s",
+            self.detector.backend,
             self.detector.model_name,
             self.detector.task,
             self.detector.device,
             ",".join(self.detector.names.values()),
             self.detector.model_sha256,
-            self.detector.ultralytics_version,
-            self.detector.ultralytics_path,
-            self.detector.gam_layer_count,
+            self.detector.runtime_version,
+            self.detector.runtime_path,
+            self.motion_depth_enabled,
             self.enable_depth_fusion,
             self.depth_topic,
+            (
+                "{:.2f}".format(self.confidence_control.current)
+                if self.confidence_control.supported
+                else "unsupported"
+            ),
+            rospy.resolve_name(CONFIDENCE_SERVICE),
         )
+        if self.backend == "locateanything":
+            rospy.loginfo(
+                "LocateAnything semantic prompt preloaded=%s queries=%d "
+                "tokens=%d source_pre_resize=%s sha256=%s",
+                self.detector.semantic_prompt_preloaded,
+                self.detector.semantic_query_count,
+                self.detector.semantic_prompt_token_count,
+                self.detector.max_image_side > 0,
+                self.detector.semantic_prompt_sha256,
+            )
+        if not self.motion_depth_enabled:
+            rospy.logwarn(
+                "FOD backend %s publishes recognition boxes only: per-box "
+                "confidence is uncalibrated and depth is withheld from motion gates",
+                self.detector.backend,
+            )
         if self.clip_runtime is not None:
             rospy.loginfo(
                 "CLIP post-filter ready: model=%s device=%s weights_sha256=%s "
@@ -263,6 +443,23 @@ class DetectorNode:
                 len(self.clip_runtime.positive_prompts),
                 len(self.clip_runtime.negative_prompts),
             )
+
+    def _set_detection_confidence(self, request):
+        previous = self.confidence_control.current
+        response = self.confidence_control.service_response(request)
+        rospy.set_param(
+            GLOBAL_CONFIDENCE_PARAM, self.confidence_control.current
+        )
+        if self.confidence_control.supported:
+            rospy.set_param("~confidence", self.confidence_control.current)
+        if abs(self.confidence_control.current - previous) > 1e-9:
+            rospy.loginfo(
+                "FOD detector confidence changed %.3f -> %.3f for backend=%s",
+                previous,
+                self.confidence_control.current,
+                self.backend,
+            )
+        return response
 
     def _image_callback(self, message):
         with self._condition:
@@ -350,9 +547,13 @@ class DetectorNode:
         status.level = level
         status.message = text
         status.values = [
+            KeyValue("backend", self.detector.backend),
             KeyValue("model", self.detector.model_name),
             KeyValue("task", self.detector.task),
             KeyValue("device", self.detector.device),
+            KeyValue("runtime_version", self.detector.runtime_version),
+            KeyValue("runtime_path", self.detector.runtime_path),
+            KeyValue("motion_eligible", str(self.motion_depth_enabled)),
             KeyValue(
                 "ultralytics_version", self.detector.ultralytics_version
             ),
@@ -362,10 +563,73 @@ class DetectorNode:
             KeyValue("gam_layer_count", str(self.detector.gam_layer_count)),
             KeyValue("classes", ",".join(self.detector.names.values())),
             KeyValue("smoke_test_only", str(self.smoke_test_only)),
+            KeyValue(
+                "detector_confidence_supported",
+                str(self.confidence_control.supported),
+            ),
+            KeyValue(
+                "detector_confidence",
+                "{:.3f}".format(self.confidence_control.current),
+            ),
+            KeyValue(
+                "detector_confidence_service",
+                rospy.resolve_name(CONFIDENCE_SERVICE),
+            ),
             KeyValue("received_frames", str(self.received_frames)),
             KeyValue("processed_frames", str(self.processed_frames)),
             KeyValue("dropped_frames", str(self.dropped_frames)),
             KeyValue("last_inference_ms", "{:.2f}".format(self.last_inference_ms)),
+            KeyValue(
+                "locateanything_ignored_boxes",
+                str(getattr(self.detector, "last_ignored_boxes", 0)),
+            ),
+            KeyValue(
+                "worker_log", str(getattr(self.detector, "worker_log", ""))
+            ),
+            KeyValue(
+                "semantic_prompt_preloaded",
+                str(
+                    getattr(
+                        self.detector, "semantic_prompt_preloaded", False
+                    )
+                ),
+            ),
+            KeyValue(
+                "semantic_prompt_sha256",
+                str(getattr(self.detector, "semantic_prompt_sha256", "")),
+            ),
+            KeyValue(
+                "semantic_prompt_token_count",
+                str(
+                    getattr(
+                        self.detector, "semantic_prompt_token_count", 0
+                    )
+                ),
+            ),
+            KeyValue(
+                "semantic_query_count",
+                str(getattr(self.detector, "semantic_query_count", 0)),
+            ),
+            KeyValue(
+                "locateanything_max_image_side",
+                str(getattr(self.detector, "max_image_side", "N/A")),
+            ),
+            KeyValue(
+                "last_prompt_tensor_cache_hit",
+                str(
+                    getattr(
+                        self.detector, "last_prompt_tensor_cache_hit", False
+                    )
+                ),
+            ),
+            KeyValue(
+                "prompt_tensor_cache_entries",
+                str(
+                    getattr(
+                        self.detector, "prompt_tensor_cache_entries", 0
+                    )
+                ),
+            ),
             KeyValue("clip_filter_enabled", str(self.enable_clip_filter)),
             KeyValue(
                 "clip_candidates", str(self.last_clip_stats.clip_candidates)
@@ -389,6 +653,7 @@ class DetectorNode:
                 "{:.2f}".format(self.last_clip_stats.clip_inference_ms),
             ),
             KeyValue("depth_fusion_enabled", str(self.enable_depth_fusion)),
+            KeyValue("motion_depth_enabled", str(self.motion_depth_enabled)),
             KeyValue("depth_topic", self.depth_topic),
             KeyValue("received_depth_frames", str(self.received_depth_frames)),
             KeyValue(
@@ -467,7 +732,7 @@ class DetectorNode:
 
         valid_depth_detections = 0
         for item in detections:
-            if depth_image is None:
+            if depth_image is None or not self.motion_depth_enabled:
                 continue
             estimate = estimate_detection_depth(
                 depth_image,
@@ -529,6 +794,8 @@ class DetectorNode:
                 )
             if self.enable_clip_filter:
                 banner += " | CLIP"
+            if not self.motion_depth_enabled:
+                banner += " | RECOGNITION ONLY"
             debug = annotate_image(
                 image, detections, result.inference_ms, banner
             )
@@ -537,7 +804,17 @@ class DetectorNode:
             self.debug_pub.publish(debug_message)
         diagnostic_level = DiagnosticStatus.OK
         diagnostic_text = "inference and depth fusion active"
-        if self.enable_depth_fusion and not depth_synchronized:
+        if not self.motion_depth_enabled:
+            diagnostic_level = DiagnosticStatus.WARN
+            diagnostic_text = (
+                "recognition active; uncalibrated confidence and depth are "
+                "withheld from motion gates"
+            )
+            if self.enable_depth_fusion and not depth_synchronized:
+                diagnostic_text += "; registered depth unavailable"
+                if depth_error:
+                    diagnostic_text += ": " + depth_error
+        elif self.enable_depth_fusion and not depth_synchronized:
             diagnostic_level = DiagnosticStatus.WARN
             diagnostic_text = "inference active; registered depth unavailable"
             if depth_error:
@@ -545,7 +822,7 @@ class DetectorNode:
         elif not self.enable_depth_fusion:
             diagnostic_text = "inference active; depth fusion disabled"
         if self.enable_clip_filter:
-            diagnostic_text = "YOLO and CLIP filtering active; " + diagnostic_text
+            diagnostic_text = "detector and CLIP filtering active; " + diagnostic_text
         self._publish_diagnostic(diagnostic_level, diagnostic_text)
 
     def _worker_loop(self):
@@ -572,12 +849,14 @@ class DetectorNode:
             self._condition.notify_all()
         with self._depth_condition:
             self._depth_condition.notify_all()
+        if hasattr(self, "detector"):
+            self.detector.shutdown()
         if (
             hasattr(self, "worker")
             and self.worker.is_alive()
             and threading.current_thread() is not self.worker
         ):
-            self.worker.join(timeout=2.0)
+            self.worker.join(timeout=5.0)
 
 
 def main():

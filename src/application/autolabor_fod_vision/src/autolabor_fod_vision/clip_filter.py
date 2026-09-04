@@ -1,8 +1,8 @@
-"""Official OpenAI CLIP post-filter for YOLO detections.
+"""Official OpenAI CLIP post-filter for detector candidates.
 
-The YOLO adapter remains responsible only for object detection.  This module
-receives the completed YOLO detections, applies the requested confidence gate,
-and batches only the ambiguous crops through a frozen CLIP model.
+The primary adapter remains responsible only for object detection. This module
+can either confidence-gate calibrated YOLO detections or validate every
+uncalibrated LocateAnything crop through one batched frozen CLIP model.
 """
 
 from dataclasses import dataclass
@@ -275,7 +275,7 @@ class OfficialClipRuntime:
 
 
 class ClipDetectionFilter:
-    """Confidence gate plus batched CLIP validation for ambiguous boxes."""
+    """Optional confidence gate plus batched CLIP candidate validation."""
 
     def __init__(
         self,
@@ -284,12 +284,14 @@ class ClipDetectionFilter:
         high_confidence: float = 0.60,
         positive_probability: float = 0.50,
         crop_padding_fraction: float = 0.10,
+        use_confidence_gate: bool = True,
     ):
         self.runtime = runtime
         self.low_confidence = float(low_confidence)
         self.high_confidence = float(high_confidence)
         self.positive_probability = float(positive_probability)
         self.crop_padding_fraction = float(crop_padding_fraction)
+        self.use_confidence_gate = bool(use_confidence_gate)
         if not 0.0 <= self.low_confidence <= self.high_confidence <= 1.0:
             raise ValueError("CLIP confidence gates must satisfy 0 <= low <= high <= 1")
         if not 0.0 <= self.positive_probability <= 1.0:
@@ -336,7 +338,14 @@ class ClipDetectionFilter:
 
         for index, detection in enumerate(detections):
             confidence = float(detection.confidence)
-            if not math.isfinite(confidence):
+            if not self.use_confidence_gate:
+                crop = self._crop(image_bgr, detection)
+                if crop is None:
+                    invalid_dropped += 1
+                else:
+                    candidate_indices.append(index)
+                    candidate_crops.append(crop)
+            elif not math.isfinite(confidence):
                 invalid_dropped += 1
             elif confidence > self.high_confidence:
                 keep[index] = True

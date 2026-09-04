@@ -123,48 +123,92 @@ wait_for_zed_image() {
 
 wait_for_fod_detector() {
   local vision_pid="$1" vision_log="$2" runtime_token="$3"
-  local expected_root="$4" wait_sec="${FOD_DETECTOR_WAIT_SEC:-90}"
-  local deadline ready_token actual_path
+  local expected_backend="$4" expected_root="$5" default_wait_sec=90
+  local wait_sec deadline ready_token actual_backend actual_path motion_eligible
+  local detector_task classifier_task probability_dimensions detector_loads classifier_loads
+  [[ "$expected_backend" != locateanything ]] || default_wait_sec=480
+  [[ "$expected_backend" != detect_and_classify ]] || default_wait_sec=180
+  wait_sec="${FOD_DETECTOR_WAIT_SEC:-$default_wait_sec}"
   [[ "$wait_sec" =~ ^[1-9][0-9]*$ ]] || {
     echo "FOD_DETECTOR_WAIT_SEC must be a positive integer." >&2
     return 1
   }
   deadline=$((SECONDS + wait_sec))
-  echo "Waiting up to ${wait_sec}s for the GAM detector model to load..."
+  echo "Waiting up to ${wait_sec}s for the ${expected_backend} detector to load..."
   while true; do
     ready_token="$(
       timeout 2 rosparam get /fod_detector/ready_token 2>/dev/null || true
     )"
     if [[ "$ready_token" == "$runtime_token" ]]; then
+      actual_backend="$(
+        timeout 2 rosparam get /fod_detector/backend 2>/dev/null || true
+      )"
       actual_path="$(
-        timeout 2 rosparam get /fod_detector/ultralytics_import_path \
+        timeout 2 rosparam get /fod_detector/runtime_path \
           2>/dev/null || true
       )"
-      case "$actual_path" in
-        "$expected_root"/ultralytics/*)
-          echo "FOD detector loaded the model with Ultralytics: $actual_path"
+      if [[ "$actual_backend" != "$expected_backend" ]]; then
+        echo "FOD detector reported backend ${actual_backend:-<empty>}, expected $expected_backend." >&2
+        tail -n 120 "$vision_log" >&2 || true
+        return 1
+      fi
+      if [[ "$expected_backend" == yolo ]]; then
+        case "$actual_path" in
+          "$expected_root"/ultralytics/*)
+            echo "FOD detector loaded YOLO from the project runtime: $actual_path"
+            return 0
+            ;;
+          *)
+            echo "FOD detector reported an unexpected YOLO runtime path: ${actual_path:-<empty>}" >&2
+            tail -n 120 "$vision_log" >&2 || true
+            return 1
+            ;;
+        esac
+      fi
+      motion_eligible="$(
+        timeout 2 rosparam get /fod_detector/motion_eligible 2>/dev/null || true
+      )"
+      if [[ "$expected_backend" == detect_and_classify ]]; then
+        detector_task="$(timeout 2 rosparam get /fod_detector/detector_task 2>/dev/null || true)"
+        classifier_task="$(timeout 2 rosparam get /fod_detector/classifier_task 2>/dev/null || true)"
+        probability_dimensions="$(timeout 2 rosparam get /fod_detector/classifier_probability_dimensions 2>/dev/null || true)"
+        detector_loads="$(timeout 2 rosparam get /fod_detector/model_load_count_detector 2>/dev/null || true)"
+        classifier_loads="$(timeout 2 rosparam get /fod_detector/model_load_count_classifier 2>/dev/null || true)"
+        if [[ "$actual_path" == "$expected_root" &&
+              "$motion_eligible" == false &&
+              "$detector_task" == detect &&
+              "$classifier_task" == classify &&
+              "$probability_dimensions" == 5 &&
+              "$detector_loads" == 1 && "$classifier_loads" == 1 ]]; then
+          echo "FOD detector loaded detect_and_classify from $actual_path (two models loaded once; recognition-only gate active)."
           return 0
-          ;;
-        *)
-          echo "FOD detector reported an unexpected Ultralytics path: ${actual_path:-<empty>}" >&2
-          tail -n 120 "$vision_log" >&2 || true
-          return 1
-          ;;
-      esac
-    fi
-    if ! kill -0 "$vision_pid" 2>/dev/null; then
-      wait "$vision_pid" 2>/dev/null || true
-      echo "ZED/vision launch exited before the GAM model became ready." >&2
+        fi
+        echo "detect_and_classify reported an unexpected runtime/model lifecycle contract: path=${actual_path:-<empty>} motion_eligible=${motion_eligible:-<empty>} tasks=${detector_task:-<empty>}+${classifier_task:-<empty>} probs=${probability_dimensions:-<empty>} loads=${detector_loads:-<empty>}+${classifier_loads:-<empty>}" >&2
+        tail -n 120 "$vision_log" >&2 || true
+        return 1
+      fi
+      if [[ "$actual_path" == "$expected_root" &&
+            "$motion_eligible" == false ]]; then
+        echo "FOD detector loaded LocateAnything from $actual_path (recognition-only safety gate active)."
+        return 0
+      fi
+      echo "LocateAnything detector reported an unexpected runtime or motion gate: path=${actual_path:-<empty>} motion_eligible=${motion_eligible:-<empty>}" >&2
       tail -n 120 "$vision_log" >&2 || true
       return 1
     fi
-    if grep -Fq "FOD detector failed to start:" "$vision_log" 2>/dev/null; then
-      echo "GAM detector model loading failed; see the detailed error below." >&2
+    if ! kill -0 "$vision_pid" 2>/dev/null; then
+      wait "$vision_pid" 2>/dev/null || true
+      echo "ZED/vision launch exited before the detector became ready." >&2
+      tail -n 120 "$vision_log" >&2 || true
+      return 1
+    fi
+    if grep -Eq "FOD detector failed to start:|detect_and_classify failed to start:" "$vision_log" 2>/dev/null; then
+      echo "FOD detector model loading failed; see the detailed error below." >&2
       tail -n 120 "$vision_log" >&2 || true
       return 1
     fi
     if (( SECONDS >= deadline )); then
-      echo "Timed out waiting for the GAM detector model to load." >&2
+      echo "Timed out waiting for the FOD detector model to load." >&2
       tail -n 120 "$vision_log" >&2 || true
       return 1
     fi
@@ -188,38 +232,46 @@ trap 'exit 130' INT TERM
 mkdir -p "$CHILD_PID_DIR"
 dual_host_write_pid_file "$PID_FILE" "$$"
 self_pid_line="$(sed -n '1p' "$PID_FILE")"
+fod_backend="$NVIDIA_FOD_BACKEND"
 
 if [[ "$NVIDIA_START_VISION" == true ]]; then
   [[ -x "$NVIDIA_DETECTOR_PYTHON" ]] || {
-    echo "YOLO Python is missing: $NVIDIA_DETECTOR_PYTHON" >&2
+    echo "FOD detector Python is missing: $NVIDIA_DETECTOR_PYTHON" >&2
     exit 5
   }
-  fod_weights="${NVIDIA_FOD_WEIGHTS:-$DUAL_HOST_WS/src/application/autolabor_fod_vision/models/yolo11_gam_best.pt}"
-  [[ -r "$fod_weights" ]] || {
-    echo "YOLO weights are missing: $fod_weights" >&2
-    exit 5
-  }
+  fod_weights="${NVIDIA_FOD_WEIGHTS:-$DUAL_HOST_WS/src/application/autolabor_fod_vision/models/best6.pt}"
   fod_model_sha256="${NVIDIA_FOD_MODEL_SHA256,,}"
   fod_required_class_names="$NVIDIA_FOD_REQUIRED_CLASS_NAMES"
   fod_ultralytics_config="${NVIDIA_FOD_ULTRALYTICS_ROOT:-$DUAL_HOST_WS/ultralytics_yolo11_custom}"
   fod_pythonpath="${PYTHONPATH:-}"
-  if [[ -r "$fod_ultralytics_config/ultralytics/__init__.py" ]]; then
-    fod_ultralytics_root="$(readlink -f -- "$fod_ultralytics_config")"
-  elif [[ "${fod_ultralytics_config##*/}" == ultralytics &&
-          -r "$fod_ultralytics_config/__init__.py" ]]; then
-    fod_ultralytics_package="$(readlink -f -- "$fod_ultralytics_config")"
-    fod_ultralytics_root="${fod_ultralytics_package%/ultralytics}"
-  else
-    echo "Project-local Ultralytics source is missing: $fod_ultralytics_config" >&2
-    echo "Expected a root containing ultralytics/__init__.py or that package directory itself." >&2
-    exit 5
-  fi
-  fod_pythonpath="$fod_ultralytics_root${fod_pythonpath:+:$fod_pythonpath}"
-  if ! ultralytics_probe="$(
-    env PYTHONDONTWRITEBYTECODE=1 \
-      PYTHONPATH="$fod_pythonpath" \
-      AUTOLABOR_FOD_ULTRALYTICS_ROOT="$fod_ultralytics_root" \
-      "$NVIDIA_DETECTOR_PYTHON" - <<'PY'
+  fod_ultralytics_root="$fod_ultralytics_config"
+  fod_runtime_root=""
+  fod_require_gam=false
+  fod_enable_clip_filter=false
+  fod_device=auto
+  locate_cache_root="$NVIDIA_LOCATEANYTHING_MODEL_ROOT/.cache"
+  if [[ "$fod_backend" == yolo ]]; then
+    [[ -r "$fod_weights" ]] || {
+      echo "YOLO weights are missing: $fod_weights" >&2
+      exit 5
+    }
+    if [[ -r "$fod_ultralytics_config/ultralytics/__init__.py" ]]; then
+      fod_ultralytics_root="$(readlink -f -- "$fod_ultralytics_config")"
+    elif [[ "${fod_ultralytics_config##*/}" == ultralytics &&
+            -r "$fod_ultralytics_config/__init__.py" ]]; then
+      fod_ultralytics_package="$(readlink -f -- "$fod_ultralytics_config")"
+      fod_ultralytics_root="${fod_ultralytics_package%/ultralytics}"
+    else
+      echo "Project-local Ultralytics source is missing: $fod_ultralytics_config" >&2
+      echo "Expected a root containing ultralytics/__init__.py or that package directory itself." >&2
+      exit 5
+    fi
+    fod_pythonpath="$fod_ultralytics_root${fod_pythonpath:+:$fod_pythonpath}"
+    if ! ultralytics_probe="$(
+      env PYTHONDONTWRITEBYTECODE=1 YOLO_AUTOINSTALL=false \
+        PYTHONPATH="$fod_pythonpath" \
+        AUTOLABOR_FOD_ULTRALYTICS_ROOT="$fod_ultralytics_root" \
+        "$NVIDIA_DETECTOR_PYTHON" - <<'PY'
 import os
 from pathlib import Path
 
@@ -240,11 +292,131 @@ print(
     )
 )
 PY
-  )"; then
-    echo "Project-local Ultralytics preflight failed." >&2
-    exit 5
+    )"; then
+      echo "Project-local Ultralytics preflight failed." >&2
+      exit 5
+    fi
+    printf '%s\n' "$ultralytics_probe"
+    fod_runtime_root="$fod_ultralytics_root"
+    fod_require_gam=true
+    fod_enable_clip_filter=true
+  elif [[ "$fod_backend" == locateanything ]]; then
+    [[ -d "$NVIDIA_LOCATEANYTHING_MODEL_ROOT" ]] || {
+      echo "LocateAnything model root is missing: $NVIDIA_LOCATEANYTHING_MODEL_ROOT" >&2
+      exit 5
+    }
+    [[ -r "$NVIDIA_LOCATEANYTHING_MANIFEST" ]] || {
+      echo "LocateAnything manifest is missing: $NVIDIA_LOCATEANYTHING_MANIFEST" >&2
+      exit 5
+    }
+    [[ -x "$NVIDIA_LOCATEANYTHING_WORKER_PYTHON" ]] || {
+      echo "LocateAnything worker Python is missing: $NVIDIA_LOCATEANYTHING_WORKER_PYTHON" >&2
+      exit 5
+    }
+    mkdir -p \
+      "$locate_cache_root/huggingface" \
+      "$locate_cache_root/torch" \
+      "$locate_cache_root/xdg" \
+      "$locate_cache_root/cuda" \
+      "$NVIDIA_LOCATEANYTHING_MODEL_ROOT/.runtime/logs"
+    if ! locateanything_probe="$(
+      env PYTHONDONTWRITEBYTECODE=1 \
+        PYTHONPATH="$fod_pythonpath" \
+        HF_HOME="$locate_cache_root/huggingface" \
+        HUGGINGFACE_HUB_CACHE="$locate_cache_root/huggingface/hub" \
+        TRANSFORMERS_CACHE="$locate_cache_root/huggingface/transformers" \
+        TORCH_HOME="$locate_cache_root/torch" \
+        XDG_CACHE_HOME="$locate_cache_root/xdg" \
+        CUDA_CACHE_PATH="$locate_cache_root/cuda" \
+        "$NVIDIA_LOCATEANYTHING_WORKER_PYTHON" - <<'PY'
+import torch
+import transformers
+
+from autolabor_fod_vision.locateanything_runtime import LocateAnythingDetector
+
+if not torch.cuda.is_available():
+    raise SystemExit("LocateAnything preflight requires CUDA")
+capability = torch.cuda.get_device_capability(0)
+if tuple(capability) < (8, 0):
+    raise SystemExit("LocateAnything requires CUDA compute capability 8.0+")
+print(
+    "LocateAnything preflight: torch={} transformers={} cuda={} device={} facade={}".format(
+        torch.__version__,
+        transformers.__version__,
+        torch.version.cuda,
+        torch.cuda.get_device_name(0),
+        LocateAnythingDetector.__name__,
+    )
+)
+PY
+    )"; then
+      echo "LocateAnything CUDA/runtime preflight failed." >&2
+      exit 5
+    fi
+    printf '%s\n' "$locateanything_probe"
+    fod_runtime_root="$NVIDIA_LOCATEANYTHING_MODEL_ROOT"
+    fod_enable_clip_filter=true
+  else
+    [[ "$fod_backend" == detect_and_classify ]] || {
+      echo "Unsupported FOD backend: $fod_backend" >&2
+      exit 5
+    }
+    fod_ultralytics_config="$NVIDIA_DETECT_CLASSIFY_ULTRALYTICS_ROOT"
+    fod_weights="$NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS"
+    fod_model_sha256="${NVIDIA_DETECT_CLASSIFY_DETECTOR_SHA256,,}"
+    fod_required_class_names="$NVIDIA_DETECT_CLASSIFY_CLASSIFIER_CLASS_NAMES"
+    [[ -r "$NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS" &&
+       -r "$NVIDIA_DETECT_CLASSIFY_CLASSIFIER_WEIGHTS" ]] || {
+      echo "detect_and_classify detector or classifier weights are missing." >&2
+      exit 5
+    }
+    if [[ -r "$fod_ultralytics_config/ultralytics/__init__.py" ]]; then
+      fod_ultralytics_root="$(readlink -f -- "$fod_ultralytics_config")"
+    elif [[ "${fod_ultralytics_config##*/}" == ultralytics &&
+            -r "$fod_ultralytics_config/__init__.py" ]]; then
+      fod_ultralytics_package="$(readlink -f -- "$fod_ultralytics_config")"
+      fod_ultralytics_root="${fod_ultralytics_package%/ultralytics}"
+    else
+      echo "yolo11_GAM Ultralytics source is missing: $fod_ultralytics_config" >&2
+      exit 5
+    fi
+    fod_pythonpath="$fod_ultralytics_root${fod_pythonpath:+:$fod_pythonpath}"
+    if ! two_stage_probe="$(
+      env PYTHONDONTWRITEBYTECODE=1 YOLO_AUTOINSTALL=false \
+        PYTHONPATH="$fod_pythonpath" \
+        AUTOLABOR_FOD_ULTRALYTICS_ROOT="$fod_ultralytics_root" \
+        "$NVIDIA_DETECTOR_PYTHON" - <<'PY'
+import os
+from pathlib import Path
+
+import lap
+import torch
+import ultralytics
+from ultralytics.nn.modules import GAM_Attention
+
+expected = Path(os.environ["AUTOLABOR_FOD_ULTRALYTICS_ROOT"]).resolve() / "ultralytics"
+actual = Path(ultralytics.__file__).resolve()
+actual.relative_to(expected)
+if not torch.cuda.is_available():
+    raise SystemExit("detect_and_classify requires CUDA")
+print(
+    "detect_and_classify preflight: ultralytics={} path={} GAM={} torch={} cuda={} device={}".format(
+        ultralytics.__version__, actual, GAM_Attention.__name__, torch.__version__,
+        torch.version.cuda, torch.cuda.get_device_name(0)
+    )
+)
+PY
+    )"; then
+      echo "detect_and_classify custom Ultralytics/CUDA preflight failed." >&2
+      exit 5
+    fi
+    printf '%s\n' "$two_stage_probe"
+    dual_host_validate_fod_weights || exit 5
+    fod_runtime_root="$fod_ultralytics_root"
+    fod_require_gam=true
+    fod_enable_clip_filter=false
+    fod_device=cuda:0
   fi
-  printf '%s\n' "$ultralytics_probe"
   fod_runtime_token="$(python3 -c 'import secrets; print(secrets.token_hex(16))')"
   [[ -n "$fod_runtime_token" ]] || {
     echo "Failed to create the FOD detector runtime token." >&2
@@ -254,26 +426,50 @@ PY
     "$SCRIPT_DIR/zed_camera_check.sh" --wait "$ZED_USB_WAIT_SEC"
   fi
   vision_log="$LOG_DIR/vision.log"
+  fod_launch_env=(
+    env PYTHONDONTWRITEBYTECODE=1 YOLO_AUTOINSTALL=false PYTHONPATH="$fod_pythonpath"
+    AUTOLABOR_FOD_ULTRALYTICS_ROOT="$fod_ultralytics_root"
+  )
+  if [[ "$fod_backend" == locateanything ]]; then
+    fod_launch_env+=(
+      HF_HOME="$locate_cache_root/huggingface"
+      HUGGINGFACE_HUB_CACHE="$locate_cache_root/huggingface/hub"
+      TRANSFORMERS_CACHE="$locate_cache_root/huggingface/transformers"
+      TORCH_HOME="$locate_cache_root/torch"
+      XDG_CACHE_HOME="$locate_cache_root/xdg"
+      CUDA_CACHE_PATH="$locate_cache_root/cuda"
+    )
+  fi
   start_process "$LOG_DIR/vision.log" \
-    env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$fod_pythonpath" \
-      AUTOLABOR_FOD_ULTRALYTICS_ROOT="$fod_ultralytics_root" \
+    "${fod_launch_env[@]}" \
     roslaunch autolabor_fod_vision zed_fod_detection.launch \
       start_camera:="$NVIDIA_START_CAMERA" \
       serial_number:="$NVIDIA_ZED_SERIAL" \
+      backend:="$fod_backend" \
       detector_python:="$NVIDIA_DETECTOR_PYTHON" \
       ultralytics_root:="$fod_ultralytics_root" \
-      require_gam:=true \
+      require_gam:="$fod_require_gam" \
       runtime_token:="$fod_runtime_token" \
+      device:="$fod_device" \
       weights:="$fod_weights" \
       expected_model_sha256:="$fod_model_sha256" \
       required_class_names:="$fod_required_class_names" \
+      locateanything_model_root:="$NVIDIA_LOCATEANYTHING_MODEL_ROOT" \
+      locateanything_manifest:="$NVIDIA_LOCATEANYTHING_MANIFEST" \
+      locateanything_worker_python:="$NVIDIA_LOCATEANYTHING_WORKER_PYTHON" \
+      two_stage_detector_weights:="$NVIDIA_DETECT_CLASSIFY_DETECTOR_WEIGHTS" \
+      two_stage_detector_sha256:="$NVIDIA_DETECT_CLASSIFY_DETECTOR_SHA256" \
+      two_stage_classifier_weights:="$NVIDIA_DETECT_CLASSIFY_CLASSIFIER_WEIGHTS" \
+      two_stage_classifier_sha256:="$NVIDIA_DETECT_CLASSIFY_CLASSIFIER_SHA256" \
+      enable_clip_filter:="$fod_enable_clip_filter" \
       enable_image_quality_controller:=false
   vision_pid="$last_started_pid"
   if [[ "$NVIDIA_START_CAMERA" == true ]]; then
     wait_for_zed_image "$vision_pid" "$vision_log"
   fi
   wait_for_fod_detector \
-    "$vision_pid" "$vision_log" "$fod_runtime_token" "$fod_ultralytics_root"
+    "$vision_pid" "$vision_log" "$fod_runtime_token" \
+    "$fod_backend" "$fod_runtime_root"
 fi
 
 if [[ "$NVIDIA_START_QT" == true ]]; then
@@ -351,6 +547,8 @@ PY
       static_map_source_mode:="${STATIC_MAP_SOURCE_MODE:-fused}" \
       coverage_region_root:="${STATIC_MAP_SET:-}" \
       coverage_region_legacy_root:="$DUAL_HOST_WS/global_maps/coverage_regions" \
+      configured_vision_backend:="$fod_backend" \
+      vision_backend_switch_script:="$SCRIPT_DIR/switch_fod_backend.sh" \
       rviz_startup_fixed_frame:="$rviz_fixed_frame" \
       rviz_navigation_fixed_frame:="$rviz_fixed_frame"
 fi

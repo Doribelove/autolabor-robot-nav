@@ -31,6 +31,14 @@ VID:PID + serial 的唯一精确匹配；网络自愈必须在首次 J6M 远程�
 节点名/入口命令全部匹配的兼容来源。UID 不同、命令不在白名单或仅仅占用串口的
 进程不会被信号终止；这种不确定情况会列出 PID 并安全失败。
 
+Qt 视觉页的后端选择不是进程内热切换。它只在视觉控制、覆盖任务、move_base 目标和
+车辆运动均确认停止时，把已校验的模型/类别契约原子写入运行配置，并由独立 user
+systemd transient unit 执行完整双机冷重启。该 unit 不属于即将停止的 Qt 进程树；
+重启参数复用当前地图模式，但不复用一次性的 `--authorize-fod-motion`。YOLO 选项固定为
+`best6.pt`，LocateAnything 选项固定为外部模型目录和唯一 `trash` 类；第三个
+`detect_and_classify` 选项固定为 yolo11_GAM 单类检测权重与五分类权重，并在实车
+验收前保持 recognition-only。
+
 ## 数据链
 
 ```text
@@ -45,7 +53,12 @@ MID360 ── J6M 水平切片 ── /mid360/scan ─────────�
 FAST-LIO /cloud_registered_body + 可选 LD19
   └─ /cloud_registered_body_enhanced（显示/调试，不反馈给 FAST-LIO）
 
-ZED + YOLO（NVIDIA）── /fod/detections ── J6M FOD 仲裁
+ZED + 可切换视觉后端（NVIDIA）── /fod/detections ── J6M FOD 仲裁
+      ├─ YOLO11-GAM：保留的实时/深度融合路径
+      ├─ /home/slam/LocateAnything：识别框；motion_eligible=false
+      └─ detect_and_classify：trash→五材质、同步深度、object_id；motion_eligible=false
+
+ZED 原图 + 当前 backend_id 的 /fod/vision/results ── Qt 实时叠加/结果列表
 
 麦克风（NVIDIA）── arecord ── 隔离 Whisper large-v3 worker
   └─ 本地识别文本 ── sweeper_ai 授权门 ── 云端计划 / MCP 工具
@@ -113,14 +126,17 @@ Qt 清扫页（NVIDIA）
   区域库（按 map-set 目录隔离，/map SHA-256 复核）→ /coverage/start_batch
         ↓
 J6M /coverage_manager
-  冻结批次 → 逐区域即时规划 → 静态图裁剪 + 连通域 + 弓字扫描线 + 秒级时间优化
-  start: PREPARING（无锁重规划）→ 最终安全复核 → 原子激活
-        ├─ 同步 set_enforced_path(转场+运动参数) ── CoverageGlobalPlanner → Hybrid A*
-        └─ 同步 set_enforced_path(扫掠) ── CoverageGlobalPlanner → /coverage/enforced_path
+  冻结批次 → 逐区域即时规划 → 静态图裁剪 + 连通域 + 弓字扫描线
+  任务层：几何选角 + 无路径 Dubins 秒级代理联合排序/定向
+  start: PREPARING（无锁重规划）→ 最终安全复核；不预计算任务级可执行轨迹
+        ├─ 每个区域首线入场 ── Navfn 全局路径 → TEB（一个普通导航 action）
+        ├─ 同一区域线间转场 ── 实时位姿 → 一次直接 Hybrid A*
+        │                       → 按 cusp 拆固定档位 action → TEB
+        └─ 清扫直线 ── 入场硬门 → /coverage/enforced_path 强制路径
                                 ↓
-                         move_base + TEB
+                     /cmd_vel_unlocalized
                                 ↓
-             原有 FOD 仲裁、跨机看门狗与 M2 控制链
+               定位门、FOD 仲裁、跨机看门狗与 M2 控制链
 ```
 
 普通点到点入口使用独立的目标门：Qt/RViz 发布 `/move_base_simple/goal`，J6M
@@ -141,26 +157,24 @@ AI 普通导航不走匿名的 simple-goal 路径。NVIDIA 后端先生成唯一
 先取得所有权时 AI 立即拒绝；AI 先通过时，覆盖 claim 会在返回前精确取消现有 AI ID。
 `/coverage/active` 继续作为锁存状态广播和重启兜底，但不再承担跨 topic 的唯一互斥证明。
 
-`CoverageGlobalPlanner` 是 move_base 的三模式全局规划插件：没有覆盖所有权时把普通点到点
-目标委托 Navfn；覆盖所有权有效且当前分段是转场时使用 Hybrid A*；活动扫掠分段只接受
-管理器发布且端点匹配的新鲜强制路径。模式交接或路径过期且任务仍活动时保持 fail-closed，
-不允许静默退回 Navfn。区域本身不是 geofence；转场可在完整已知自由地图中绕行。覆盖
-管理器只在静态地图模式启动。覆盖默认有效宽度 `1.00 m`、重叠率
-`15%`、车道中心距 `0.85 m`。普通导航和覆盖任务默认最高前进速度为 `0.80 m/s`；清扫页
-按任务限制在 `0.10–1.60 m/s`，管理器动态写入 TEB，并在开始前同时核对 NVIDIA 看门狗
-和 VCU 实时上限。Qt 还下发倒车速度、最大角速度、线/角加速度、换向附加时间和分段交接
-附加时间；这些值既参与秒级路线估算，也通过同步 `TransitProfile` 交给 Hybrid A*，相关
-运动上限还会临时写入 TEB。VCU/Hybrid A*/TEB/覆盖模型
-统一按 `0.65 m` 轴距与 `1.35 m` 最小转弯半径核对，强制覆盖路径还检查终点 yaw 和完整
-车辆 footprint。Hybrid A* 状态包含 `(x,y,yaw,档位,转向档)`，使用恒曲率运动原语、完整
-footprint 碰撞检查和未知区拒绝；倒车只允许用于转场。精确
-扫掠段把 TEB 参考点间距动态设为
-`0.30 m`，位置/横向/航向代价权重设为 `50/200/100`，前进运动学权重设为 `1000`，并让
-全部同伦候选计入参考线代价；Hybrid A* 转场关闭 TEB 的全局路径朝向覆盖，启用有序
-via-point 并降低允许倒车时的纯前进偏好，使车辆朝向/倒车语义能传到局部优化，同时保留
-实时障碍绕行能力；普通导航维持基线参数，任务终态恢复。TEB 对零反向
-速度上限提供原生约束：零速可行、负速受罚且输出硬截断，不再依赖小于惩罚缓冲区的无效
-参数组合。
+`CoverageGlobalPlanner` 是 move_base 的四模式全局规划插件：普通点到点和每个区域首线
+入场委托 Navfn；同一区域线间转场由管理器从实时位姿直接请求到最终入口的一条 Hybrid A*
+连接；活动扫掠只接受端点、任务 generation 和所有权均匹配的新鲜强制路径。模式交接、
+路径过期或规划失败时保持 fail-closed。Hybrid 阶段插件只校验管理器路径并发布新鲜安全
+许可，不另建 TEB 看不到的第二条路径；许可失效时命令 mux 立即输出零速，随后由管理器从
+实时位姿到最终入口整段重算。区域不是 geofence，转场可在完整已知自由地图中绕行；覆盖
+管理器只在静态地图模式启动。
+
+覆盖默认有效宽度为 `1.00 m`、重叠率 `15%`。管理器与 VCU、Hybrid A*、全局规划器和
+TEB 统一核对 `0.65 m` 轴距与 `1.35 m` 最小转弯半径。Hybrid 状态包含
+`(x,y,yaw,档位,转向档)`，用恒曲率运动原语并以 `0.10 m` 间距检查完整 footprint；
+未知、致命和地图外格均拒绝。线间完整带符号路径由管理器按 cusp 拆为固定档位 action；
+每个 action 都由 TEB 闭环跟踪，换档前必须由新鲜 M2 `/odom` 确认零速。TEB fork 通过
+`motion_direction_mode=-1/0/+1` 对倒车/自动/前进作硬约束，输出 mux 不计算跟踪速度，只做
+许可、新鲜度、固定档位和曲率安全检查。TEB 输出仍硬限制
+`|omega| <= |v| / 1.35`，避免普通导航与清扫阶段因软优化约束残留原地角速度。详细参数、
+入口恢复和验证边界见
+[全覆盖导航当前架构](COVERAGE_NAVIGATION_ARCHITECTURE_20260903.md)。
 
 已知清扫区的唯一可写副本位于 NVIDIA 的
 `global_maps/map_sets/<map-set>/coverage_regions/<source_mode>/regions.json`。物理 map-set
@@ -172,8 +186,10 @@ via-point 并降低允许倒车时的纯前进偏好，使车辆朝向/倒车语
 时作为只读迁移来源，不能仅凭摘要跨目录迁移。
 
 `/coverage/start_batch` 一次接收用户排序后的不可变区域快照和整批规划参数。管理器始终
-根据每一区域开始时的最新全局位姿即时生成条带顺序，所以跨区移动也使用覆盖专用
-Hybrid A* + TEB 点到点转场，不属于覆盖实走轨迹。批次期间 `/coverage/active` 持续锁存
+根据每一区域开始时的最新全局位姿即时生成条带顺序；从上一区域到下一区域的首线入口也
+与一个独立区域的首线相同，使用 Navfn + TEB 普通导航，不预先生成跨区域完整轨迹，且
+不属于覆盖实走轨迹。批次期间
+`/coverage/active` 持续锁存
 为 true，单区
 `active` 只表示当前已有 move_base 分段；这一区分既让跟踪/安全回调保持准确，又消除换区
 间隙被普通目标抢占的窗口。完成和部分完成会推进队列，失败终止；`/coverage/skip_current`
@@ -188,12 +204,26 @@ Hybrid A* + TEB 点到点转场，不属于覆盖实走轨迹。批次期间 `/c
 状态定时器和普通取消也携带捕获的 generation/handle，因此旧 A 回调晚到时既不能取消 B，
 也不能把 B 改写为 `FINALIZING`。
 
-首个条带入口和条带间连接均是覆盖专用点到点转场：`EnforcedPath.active=false` 且覆盖
-所有权为 true 时，规划插件调用 Hybrid A*，而不是把预览条带间的直线当作可执行路径。
-静态模式的全局代价地图也订阅实时 `/scan`，move_base 以 `1 Hz` 重做带曲率/档位约束的
-全局路线，TEB 以 `10 Hz` 做局部运动学避障；有可行
-通路时允许离开所选多边形绕障。`EnforcedPath.active=true` 只用于扫掠条带，避免障碍或
-消息竞态让扫掠线被最短路替代。无可行通路时仍保持停车、等待和有限次重试。
+每个区域首线使用 `MODE_COVERAGE_NAVFN`；同一区域后续换行使用
+`MODE_HYBRID_TRANSIT`；只有清扫条带使用 `MODE_ENFORCED_SWEEP`。任务层先用不生成连接
+路径的 Dubins 秒级代理确定清扫线顺序和方向。首线是一个 Navfn + TEB action；真实线间
+转场从实时位姿直接 Hybrid A* 到最终下一入口，不再加 Navfn 拓扑层。完整带符号连接按
+cusp 拆为固定档位 action；每段由 TEB 闭环跟踪，实测停车后才提交下一档位。全局插件默认只以 1 Hz 校验未来 3.0 m costmap 并
+发布 1.5 s 新鲜度的安全许可；action 阻断、许可失效、连续路径偏离或入口超差时，才精确
+取消当前 generation 并由管理器从实时位姿重算，插件不无条件替换仍有效的连接。
+每个正常 cusp 停车后还会检查实测位姿到下一缓存段的同档切向续接：只在前 0.30 m 内、
+弦切向误差不超过 0.10 rad 且续接半径不小于 1.35 m 时复用后缀；否则丢弃整个旧后缀并
+从实测位姿到原最终清扫入口整段重算。cusp 本身不是异常，也不会无条件启动 Hybrid 搜索。
+TEB 对倒车固定档位的方向 via-point 使用“路径切向 + π”的车辆航向，倒车命令只从首个
+优化边提取；前进/清扫维持两个 pose 的命令前视。原始速度在饱和前先过固定档位符号硬门，
+避免反向候选被夹成 `-0.0` 后形成不可见的持续停车。
+
+固定路径连续 3 个样本横向偏离超过 `0.35 m` 或局部航向偏离超过 `0.40 rad` 时，
+管理器只取消当前任务 generation 的 action，确认 terminal 和零速后重算。距清扫入口
+不超过 `2.0 m` 的重试使用倒车优先入口代价，并拒绝总长超过 `4.0 m` 或累计前进超过
+`1.20 m` 的“大幅前进绕行”。失败不会跳过依赖清扫线。普通导航/首线/扫掠仍由 TEB 以
+`10 Hz` 做局部优化；Hybrid 阶段由 1 Hz costmap 安全许可、定位门、FOD 和看门狗共同
+fail-closed。动态障碍下的跟踪效果不属于本轮仿真验收范围。
 
 规划与启动是两个不同事务。`/coverage/plan` 使用不可变 `GridMap` 快照生成预览，并在提交
 前复核地图摘要；`/coverage/start` 再以当前 `map -> base_link` 为连通域种子重规划。VCU
@@ -203,23 +233,33 @@ service、move_base 等待和几何重规划全部在覆盖状态锁之外执行
 `READY`、`PREPARING` 或活动任务，旧线程的迟到提交不能覆盖下一轮计划。终态清理在同一
 生命周期锁内失效计划并发布空 Path、空 Polygon 和 Marker `DELETEALL`，确保锁存预览和
 实走轨迹不会残留或误删随后生成的新预览。每个分段先同步调用
-`/move_base/CoverageGlobalPlanner/set_enforced_path`，插件在同一个事务中确认覆盖任务所有权
-和 Hybrid A*/精确路径模式后才发送 action goal；`/coverage/enforced_path` topic 只能对服务
-已确认的同一计划、分段和模式做后续新鲜度刷新。规划器先对全部扫掠角度快速估时，再对
-最好的三个角度运行宽度 `128` 的确定性 beam search，联合选择第一条线、任意后续条带顺序
-及每条线方向。覆盖完整度为硬优先级；其后的目标函数严格使用秒：静态已知自由格 A* 距离
-与无障碍 Dubins 最短曲率长度的较大值、
-三角形/梯形线加减速、受最小半径和最大角速度约束的转向时间、倒车换向及 move_base 分段
-交接附加时间。这样排序阶段能廉价考虑所有候选的静态绕行和最小转弯半径，而不需要在
-beam search 内反复运行成千上万次 Hybrid A*；执行阶段再用实时全局代价图做完整运动学搜索。
-若车辆已经落在入口位置容差内但航向仍超差，管理器不再要求 TEB 原地旋转，也不提前判定
-阻塞，而是让 Hybrid A* 搜索“驶离后再以正确航向返回”的运动学调整；周边空间不足时才
-由规划无解进入等待和有限重试。
+`/move_base/CoverageGlobalPlanner/set_enforced_path`，插件在同一事务中确认任务所有权、
+计划代际、单档许可和精确路径模式后才允许发送 action goal；topic 只能刷新服务已确认的
+同一分段。规划器先按几何完整度选择清扫角度，再对已选清扫线运行宽度 `128` 的确定性
+beam search。排序目标使用无障碍 Dubins 最短曲率长度、三角形/梯形加减速、最小半径、
+最大角速度以及换档/停车交接的秒级代价；不调用静态 A*、不运行 Hybrid A*、也不生成连接
+轨迹。真实静态连通性和运动学可行性在转场执行前由滚动规划处理。
 
-TEB 原始优化 cost 是障碍、可行性和参考线等不同量纲残差的加权和，不作为秒数直接进入
-排序。规划复用与执行一致的速度、加速度和曲率上限；真实转场由带档位 Hybrid A* + 在线
-TEB 决定，动态障碍和局部同伦会改变实际耗时。因此 beam search 结果是受限搜索下的最短预计时间，不是
-任意排列、动态代价地图和 TEB 轨迹的数学全局最优证明。
+Hybrid A* 的 Reeds–Shepp 解析候选、反向二维障碍启发式和格点搜索均保留；解析段与格点段
+现在都以 `0.10 m` 稠密输出，避免相邻发布姿态跨过碰撞检查采样。普通转场必须以连续
+曲率路径到达目标；最终入口与入口恢复显式请求 `0.30 m / 0.349066 rad（20°）` 的目标
+区域，在第一个最低代价可行格点停车，避免为了数学中心点追加大圆。实际交接使用原清扫
+入口的 `0.40 m` 位置、`0.40 m` 横向和 `0.436332 rad（25°）` 航向外层合同；中间 cusp
+仍使用 `0.25 m / 0.20 rad`，没有随最终入口一起放宽。TEB 的多量纲优化 cost 不参与任务秒级排序；动态障碍和
+实际控制会改变耗时，所以结果仍是受限搜索下的预计最短时间，而不是任意排列和动态环境的
+数学全局最优证明。
+
+清扫线完成保留 TEB 的零末端速度约束和正常 action 成功判定，同时增加只作用于扫掠段的
+“越过出口”补充门，解决前进-only 车辆略过点目标后无法倒回容差圈的问题。补充门不是简单
+放大距离容差：它必须先在本清扫线入口 `0.45 m` 范围内且航向正确时激活，连续观察车辆沿
+有向线推进至少 `90%`，拒绝大于 `0.50 m` 的单次定位跳变，再要求当前位置越过出口法平面
+`0.02 m`、横向误差不超过 `0.30 m`、航向误差不超过 `0.35 rad`，并由新鲜 M2 `/odom`
+连续两次确认平面速度不高于 `0.08 m/s`。出口平面使用
+`(当前位置-出口)·(入口-出口)<0` 判断；入口历史、连续进度、横向/航向和物理零速共同避免
+从终点旁边经过、从终点附近启动或定位跳变造成提前完成。确认后只精确取消本段 action，
+再进入下一条 Hybrid 转场；倒车换向点和任务末端同样保持零速。所有 Hybrid 最终入口
+使用相同思想的有向入口补充门：必须连续接近并越过入口平面、满足横向与
+航向限制且停车，不能因为从入口旁边经过就开始清扫线。
 
 NVIDIA Qt 的综合页和清扫页共用唯一 librviz 画布。实际加载的
 `operator_navigation.rviz` 用 `rviz/Odometry` 保留最近 `120` 个 `/Odometry` 位姿；清扫
@@ -229,7 +269,14 @@ NVIDIA Qt 的综合页和清扫页共用唯一 librviz 画布。实际加载的
 `READY` 后整组控件锁定，取消并重规划后才可修改。NVIDIA 上的 AI 覆盖入口在省略某个
 规划字段时，也会在每次任务提交前读取这份 QSettings；显式字段仅覆盖自身，因此 Qt 与
 AI 不再维护两套漂移的默认参数。该偏好是操作台全局用户配置，不属于按 map-set 隔离的
-已知区域 JSON，也不会静默改写 J6M 的 `coverage.yaml`。
+已知区域 JSON。任一参数修改经 400 ms 防抖后通过
+`/coverage/set_planning_defaults` 发送完整快照；J6M 先验证并暂存当前 release 的
+`coverage.yaml`，再动态更新并回读 TEB，最后原子替换 YAML 和提交覆盖管理器默认值。
+任一步失败都会保留旧 YAML/管理器值并回滚 TEB，Qt 则保持未同步状态并禁止覆盖规划和
+启动。Qt 重连后重新下发 QSettings，所以 release 切换不会静默丢失操作员默认值。
+`coverage_factory_defaults.yaml` 是独立只读出厂基线；“恢复默认参数”成功后才反向更新 Qt
+控件与 QSettings。旧 `/coverage/set_navigation_profile` 只作为兼容适配器保留并转入同一
+持久化事务。
 
 静态模式的 rolling local costmap 由 StaticLayer（`/map`）、ObstacleLayer（融合
 `/scan`）、InflationLayer 和最终 UnknownSpaceGuardLayer 叠加，避免 TEB 只看实时雷达而
@@ -243,13 +290,15 @@ AI 不再维护两套漂移的默认参数。该偏好是操作台全局用户�
 `allow_unknown=false`；无图模式的 TEB 默认值仍为 false。该开关拒绝 CostmapModel 的
 `-2` 未知区；`-3` 未来足迹超出滚动局部窗口不是碰撞，但当前位置超窗仍拒绝。静态
 local costmap 为 `20.0 × 20.0 m`、`0.10 m` 分辨率；障碍标记/射线清除距离恢复为
-`10.0/11.0 m`。静态 TEB 前视为 `8.0 m`，低于覆盖安全门要求的
-`0.85 × 10.0 = 8.5 m` 上限。move_base 的 `1 Hz` 全局重规划和 TEB 的 `10 Hz` 局部优化
-保持不变，前视距离只影响每次局部优化纳入的全局路径长度，不控制重规划频率。静态模式的
+`10.0/11.0 m`。静态 TEB 普通导航/入场/扫掠基线前视为 `4.0 m`；move_base 的 `1 Hz`
+全局重规划和 TEB 的 `10 Hz` 局部优化保持不变。清扫线间 Hybrid action 的 TEB 前视
+临时使用 `2.0 m`，且 TEB 是唯一局部速度控制器；结束或切到其他段立即恢复。
+前视距离只影响 TEB 每次局部优化纳入的全局路径长度，不控制 Hybrid 搜索频率。静态模式的
 `control_look_ahead_poses=2` 让控制指令跨两个已优化轨迹间隔取平均，降低单个控制周期追逐
-微小航向误差造成的左右反向修正，但不增加航向死区，也不削弱障碍代价。Qt 中蓝色为 TEB
-接收的全局参考路线，红色为当前局部优化轨迹；两者只在 move_base 目标活动期间启用，终态
-会清掉 RViz 缓存。
+微小航向误差造成的左右反向修正，但不增加航向死区，也不削弱障碍代价。Qt 中橙色为当前
+直接 Hybrid A* 连接（含全部档位段），蓝色为 move_base 接收的当前全局参考路线，红色为
+TEB 当前局部优化轨迹；Hybrid 阶段红线就是实际局部控制轨迹。这些临时路径
+只在相应目标活动期间启用，终态会清掉 RViz 缓存。
 
 覆盖任务比普通导航多一层障碍链 fail-closed：`/scan` 必须具有新鲜时间戳、正确
 `base_link` 帧和有效几何，同时 `/avoidance/dual_lidar_active` 必须新鲜且为 true。

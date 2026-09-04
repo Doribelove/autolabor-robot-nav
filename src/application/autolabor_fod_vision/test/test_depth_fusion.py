@@ -5,10 +5,54 @@ import unittest
 
 import numpy as np
 
-from autolabor_fod_vision.depth_fusion import estimate_detection_depth
+from autolabor_fod_vision.depth_fusion import (
+    estimate_detection_depth,
+    nearest_synchronized_message,
+)
+
+
+class _Stamp:
+    def __init__(self, value):
+        self.value = value
+
+    def to_sec(self):
+        return self.value
+
+
+class _Message:
+    def __init__(self, stamp, frame_id):
+        self.header = type("Header", (), {})()
+        self.header.stamp = _Stamp(stamp)
+        self.header.frame_id = frame_id
 
 
 class DepthFusionTest(unittest.TestCase):
+    def test_timestamp_match_selects_source_frame_not_latest_sensor_frame(self):
+        messages = [
+            _Message(10.00, "camera"),
+            _Message(10.04, "camera"),
+            _Message(14.00, "camera"),
+        ]
+        selected, delta = nearest_synchronized_message(
+            messages, 10.01, "camera", 0.06
+        )
+
+        self.assertIs(selected, messages[0])
+        self.assertAlmostEqual(delta, 0.01, places=6)
+
+    def test_timestamp_match_rejects_wrong_frame_and_out_of_tolerance(self):
+        wrong_frame, wrong_delta = nearest_synchronized_message(
+            [_Message(10.00, "other_camera")], 10.00, "camera", 0.06
+        )
+        stale, stale_delta = nearest_synchronized_message(
+            [_Message(10.20, "camera")], 10.00, "camera", 0.06
+        )
+
+        self.assertIsNone(wrong_frame)
+        self.assertTrue(math.isnan(wrong_delta))
+        self.assertIsNone(stale)
+        self.assertTrue(math.isnan(stale_delta))
+
     def test_detect_box_uses_inset_median_and_rejects_invalid_pixels(self):
         depth = np.full((80, 100), 6.0, dtype=np.float32)
         depth[20:61, 25:76] = 2.25

@@ -5,6 +5,7 @@
 #include <autolabor_coverage/CancelCoverageBatch.h>
 #include <autolabor_coverage/CoverageRegion.h>
 #include <autolabor_coverage/PlanCoverage.h>
+#include <autolabor_coverage/SetCoveragePlanningDefaults.h>
 #include <autolabor_coverage/StartCoverage.h>
 #include <autolabor_coverage/StartCoverageBatch.h>
 #include <rviz/default_plugin/map_display.h>
@@ -41,8 +42,10 @@
 #include <QDir>
 #include <QDockWidget>
 #include <QDoubleSpinBox>
+#include <QFileInfo>
 #include <QFrame>
 #include <QFuture>
+#include <QFontMetrics>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHeaderView>
@@ -52,6 +55,8 @@
 #include <QListWidget>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPainter>
+#include <QPen>
 #include <QPlainTextEdit>
 #include <QPoint>
 #include <QJsonArray>
@@ -62,6 +67,7 @@
 #include <QRect>
 #include <QScrollArea>
 #include <QSettings>
+#include <QSignalBlocker>
 #include <QShortcut>
 #include <QSizePolicy>
 #include <QSplitter>
@@ -88,6 +94,7 @@ namespace
 constexpr double kPi = 3.14159265358979323846;
 constexpr double kFreshCameraSeconds = 1.5;
 constexpr double kFreshDetectionSeconds = 1.5;
+constexpr double kFreshVisionResultSeconds = 0.35;
 constexpr double kFreshModeSeconds = 2.0;
 constexpr double kFastLioFreshOdomSeconds = 0.30;
 constexpr double kFastLioFreshCloudSeconds = 0.30;
@@ -101,6 +108,75 @@ const char* const kGlobalCostmapDisplayName = "Global costmap";
 const char* const kPriorMapDisplayName = "Known 3D global map (optional)";
 const char* const kTebGlobalPlanDisplayName = "TEB global plan";
 const char* const kTebLocalPlanDisplayName = "TEB local plan";
+
+NavigationProfileApplyResult applyNavigationProfile(
+    const CoveragePlanningUiParameters& parameters,
+    std::uint64_t generation,
+    bool restore_factory_defaults)
+{
+  NavigationProfileApplyResult result;
+  result.generation = generation;
+  result.restore_factory_defaults = restore_factory_defaults;
+  ros::NodeHandle node;
+  ros::ServiceClient client =
+      node.serviceClient<autolabor_coverage::SetCoveragePlanningDefaults>(
+          "/coverage/set_planning_defaults", false);
+  if (!client.waitForExistence(ros::Duration(1.0)))
+  {
+    result.message = QStringLiteral("J6M 规划参数持久化服务尚未就绪");
+    return result;
+  }
+  autolabor_coverage::SetCoveragePlanningDefaults call;
+  call.request.restore_factory_defaults = restore_factory_defaults;
+  call.request.parameters.operation_width_m = parameters.operation_width_m;
+  call.request.parameters.overlap_ratio = parameters.overlap_ratio;
+  call.request.parameters.allow_reverse = parameters.allow_reverse;
+  call.request.parameters.max_forward_speed_mps =
+      parameters.max_forward_speed_mps;
+  call.request.parameters.max_reverse_speed_mps =
+      parameters.max_reverse_speed_mps;
+  call.request.parameters.max_angular_speed_rps =
+      parameters.max_angular_speed_rps;
+  call.request.parameters.linear_accel_mps2 = parameters.linear_accel_mps2;
+  call.request.parameters.angular_accel_rps2 = parameters.angular_accel_rps2;
+  call.request.parameters.direction_change_penalty_sec =
+      parameters.direction_change_penalty_sec;
+  call.request.parameters.segment_handoff_penalty_sec =
+      parameters.segment_handoff_penalty_sec;
+  call.request.parameters.transit_replan_period_sec =
+      parameters.transit_replan_period_sec;
+  if (!client.call(call))
+  {
+    result.message = QStringLiteral("J6M 规划参数持久化服务调用失败");
+    return result;
+  }
+  result.success = call.response.success;
+  result.message = QString::fromStdString(call.response.message);
+  if (result.success)
+  {
+    result.effective.operation_width_m =
+        call.response.effective.operation_width_m;
+    result.effective.overlap_ratio = call.response.effective.overlap_ratio;
+    result.effective.allow_reverse = call.response.effective.allow_reverse;
+    result.effective.max_forward_speed_mps =
+        call.response.effective.max_forward_speed_mps;
+    result.effective.max_reverse_speed_mps =
+        call.response.effective.max_reverse_speed_mps;
+    result.effective.max_angular_speed_rps =
+        call.response.effective.max_angular_speed_rps;
+    result.effective.linear_accel_mps2 =
+        call.response.effective.linear_accel_mps2;
+    result.effective.angular_accel_rps2 =
+        call.response.effective.angular_accel_rps2;
+    result.effective.direction_change_penalty_sec =
+        call.response.effective.direction_change_penalty_sec;
+    result.effective.segment_handoff_penalty_sec =
+        call.response.effective.segment_handoff_penalty_sec;
+    result.effective.transit_replan_period_sec =
+        call.response.effective.transit_replan_period_sec;
+  }
+  return result;
+}
 
 CoverageBatchCancelUiResult cancelCoverageBatchExact(
     const std::string& batch_id)
@@ -176,6 +252,47 @@ protected:
     event->ignore();
   }
 };
+
+bool coverageParametersWithinWatchdog(
+    const CoveragePlanningUiParameters& parameters,
+    const autolabor_coverage::CoverageStatus& status,
+    QString* reason = nullptr)
+{
+  const double requested_linear = std::max(
+      std::max(parameters.max_forward_speed_mps,
+               parameters.allow_reverse ? parameters.max_reverse_speed_mps
+                                        : 0.0),
+      std::max(static_cast<double>(status.transition_max_forward_speed_mps),
+               parameters.allow_reverse
+                   ? static_cast<double>(
+                         status.transition_max_reverse_speed_mps)
+                   : 0.0));
+  if (status.watchdog_max_linear_speed_mps > 0.0F &&
+      requested_linear > status.watchdog_max_linear_speed_mps + 1.0e-6)
+  {
+    if (reason)
+      *reason = QStringLiteral("当前清扫/系统转场速度 %1 m/s 超过实时指令看门狗上限 %2 m/s")
+                    .arg(requested_linear, 0, 'f', 2)
+                    .arg(status.watchdog_max_linear_speed_mps, 0, 'f', 2);
+    return false;
+  }
+  const double requested_angular = std::max(
+      parameters.max_angular_speed_rps,
+      static_cast<double>(status.transition_max_angular_speed_rps));
+  if (status.watchdog_max_angular_speed_rps > 0.0F &&
+      requested_angular >
+          status.watchdog_max_angular_speed_rps + 1.0e-6)
+  {
+    if (reason)
+      *reason = QStringLiteral("当前清扫/系统转场角速度 %1 rad/s 超过实时指令看门狗上限 %2 rad/s")
+                    .arg(requested_angular, 0, 'f', 2)
+                    .arg(status.watchdog_max_angular_speed_rps, 0, 'f', 2);
+    return false;
+  }
+  if (reason)
+    reason->clear();
+  return true;
+}
 
 class CoverageRegionManagerDialog final : public QDialog
 {
@@ -516,8 +633,8 @@ const char* const kImageQualityControlService =
     "/fod_image_quality_controller/set_enabled";
 const char* const kFodModeService =
     "/fod_navigation_mode/set_fod_enabled";
-const char* const kVisualServoReconfigureService =
-    "/fod_visual_servo/set_parameters";
+const char* const kFodDetectionConfidenceService =
+    "/fod_detector/set_detection_confidence";
 
 struct ModeStatusView
 {
@@ -542,6 +659,7 @@ struct VisualConfidenceResult
 {
   bool success = false;
   QString message;
+  QString backend_id;
   double effective = std::numeric_limits<double>::quiet_NaN();
 };
 
@@ -577,6 +695,20 @@ bool configDouble(const dynamic_reconfigure::Config& config, const std::string& 
                   double* value)
 {
   for (const auto& parameter : config.doubles)
+  {
+    if (parameter.name == name)
+    {
+      *value = parameter.value;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool configString(const dynamic_reconfigure::Config& config,
+                  const std::string& name, std::string* value)
+{
+  for (const auto& parameter : config.strs)
   {
     if (parameter.name == name)
     {
@@ -726,6 +858,105 @@ bool textIsTrue(const QString& value)
          value == QStringLiteral("1");
 }
 
+QString visionBackendDisplayName(const QString& backend)
+{
+  if (backend == QStringLiteral("locateanything"))
+    return QStringLiteral("LocateAnything-3B");
+  if (backend == QStringLiteral("yolo"))
+    return QStringLiteral("YOLO11-GAM（best6.pt）");
+  if (backend == QStringLiteral("detect_and_classify"))
+    return QStringLiteral("detect and classify");
+  return QStringLiteral("未知后端");
+}
+
+bool visionResultFreshnessRequired(const QString& backend)
+{
+  // LocateAnything is an intentionally slow, recognition-only backend. Its
+  // results remain useful for operator display even though they cannot meet
+  // the real-time freshness contract retained for the other backends.
+  return backend != QStringLiteral("locateanything");
+}
+
+bool visionResultAgeAccepted(const QString& backend, double source_age)
+{
+  return std::isfinite(source_age) &&
+         (!visionResultFreshnessRequired(backend) ||
+          source_age <= kFreshVisionResultSeconds);
+}
+
+double sourceStampAge(const ros::Time& stamp)
+{
+  if (stamp.isZero())
+    return std::numeric_limits<double>::infinity();
+  const ros::Time now = ros::Time::now();
+  if (now.isZero())
+    return std::numeric_limits<double>::infinity();
+  const double age = (now - stamp).toSec();
+  if (!std::isfinite(age) || age < -0.02)
+    return std::numeric_limits<double>::infinity();
+  return std::max(0.0, age);
+}
+
+QImage drawVisionResults(
+    const QImage& raw,
+    const autolabor_fod_msgs::FodVisionDetectionArray& results)
+{
+  if (raw.isNull() || results.image_width == 0 || results.image_height == 0)
+    return raw;
+  QImage output = raw.convertToFormat(QImage::Format_ARGB32);
+  QPainter painter(&output);
+  painter.setRenderHint(QPainter::Antialiasing, true);
+  const double scale_x = static_cast<double>(output.width()) /
+                         static_cast<double>(results.image_width);
+  const double scale_y = static_cast<double>(output.height()) /
+                         static_cast<double>(results.image_height);
+  QFont font = painter.font();
+  font.setPointSize(10);
+  font.setBold(true);
+  painter.setFont(font);
+  painter.setPen(QPen(QColor(45, 235, 105), 2));
+  for (const auto& detection : results.detections)
+  {
+    if (detection.backend_id != results.backend_id)
+      continue;
+    const QRectF box(
+        detection.bbox.x_offset * scale_x,
+        detection.bbox.y_offset * scale_y,
+        std::max(1.0, detection.bbox.width * scale_x),
+        std::max(1.0, detection.bbox.height * scale_y));
+    painter.setPen(QPen(QColor(45, 235, 105), 2));
+    painter.drawRect(box);
+    const QString classify_confidence =
+        std::isfinite(detection.classify_confidence)
+            ? QString::number(detection.classify_confidence, 'f', 2)
+            : QStringLiteral("N/A");
+    const QString depth =
+        detection.depth_valid && std::isfinite(detection.depth_m)
+            ? QStringLiteral("%1m").arg(detection.depth_m, 0, 'f', 2)
+            : QStringLiteral("N/A");
+    const QString label =
+        QStringLiteral("%1 D:%2 C:%3 depth:%4")
+            .arg(QString::fromStdString(detection.material_class))
+            .arg(detection.detect_confidence, 0, 'f', 2)
+            .arg(classify_confidence)
+            .arg(depth);
+    const QFontMetrics metrics(font);
+    const QRect text_bounds = metrics.boundingRect(label).adjusted(-5, -3, 5, 3);
+    const double label_y = std::max(0.0, box.top() - text_bounds.height());
+    const QRectF background(
+        std::max(0.0, box.left()), label_y,
+        std::min(static_cast<double>(output.width()) - std::max(0.0, box.left()),
+                 static_cast<double>(text_bounds.width())),
+        static_cast<double>(text_bounds.height()));
+    painter.fillRect(background, QColor(0, 0, 0, 190));
+    painter.setPen(Qt::white);
+    painter.drawText(background.adjusted(4, 1, -2, -1),
+                     Qt::AlignLeft | Qt::AlignVCenter, label);
+  }
+  painter.end();
+  return output;
+}
+
 double updateRateEstimate(double previous_rate, const ros::WallTime& previous_stamp,
                           const ros::WallTime& now)
 {
@@ -764,17 +995,29 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
            coverage_angular_accel_input_,
            coverage_direction_change_penalty_input_,
            coverage_handoff_penalty_input_,
+           coverage_transit_replan_input_,
        })
   {
     connect(input, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-            [persist_coverage_parameters](double) {
+            [this, persist_coverage_parameters](double) {
               persist_coverage_parameters();
+              scheduleNavigationProfileApply();
             });
   }
   connect(coverage_reverse_checkbox_, &QCheckBox::toggled, this,
-          [persist_coverage_parameters](bool) {
+          [this, persist_coverage_parameters](bool) {
             persist_coverage_parameters();
+            scheduleNavigationProfileApply();
           });
+  connect(coverage_restore_defaults_button_, &QPushButton::clicked,
+          this, &MainWindow::restoreFactoryCoveragePlanningDefaults);
+
+  navigation_profile_apply_timer_.setSingleShot(true);
+  connect(&navigation_profile_apply_timer_, &QTimer::timeout,
+          this, &MainWindow::applyNavigationProfileIfNeeded);
+  connect(&navigation_profile_apply_watcher_,
+          &QFutureWatcher<NavigationProfileApplyResult>::finished,
+          this, &MainWindow::handleNavigationProfileApplied);
 
   connect(&ui_refresh_timer_, &QTimer::timeout, this, &MainWindow::refreshUi);
   ui_refresh_timer_.start(250);
@@ -816,6 +1059,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     if (!output.isEmpty())
       appendEvent(output, true);
   });
+  connect(&vision_model_switch_process_,
+          QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
+          &MainWindow::handleVisionModelSwitchFinished);
+  connect(&vision_model_switch_process_, &QProcess::errorOccurred, this,
+          &MainWindow::handleVisionModelSwitchError);
 
   appendEvent(QStringLiteral("操作台界面已启动；正在后台探测 ROS master。"));
   requestMasterProbe();
@@ -844,14 +1092,16 @@ void MainWindow::loadCoveragePlannerSettings()
               coverage_reverse_speed_input_);
   load_double(QStringLiteral("max_angular_speed_rps"), 0.60,
               coverage_angular_speed_input_);
-  load_double(QStringLiteral("linear_accel_mps2"), 2.00,
+  load_double(QStringLiteral("linear_accel_mps2"), 1.00,
               coverage_linear_accel_input_);
   load_double(QStringLiteral("angular_accel_rps2"), 0.50,
               coverage_angular_accel_input_);
-  load_double(QStringLiteral("direction_change_penalty_sec"), 1.00,
+  load_double(QStringLiteral("direction_change_penalty_sec"), 0.50,
               coverage_direction_change_penalty_input_);
   load_double(QStringLiteral("segment_handoff_penalty_sec"), 0.50,
               coverage_handoff_penalty_input_);
+  load_double(QStringLiteral("transit_replan_period_sec"), 1.00,
+              coverage_transit_replan_input_);
   coverage_reverse_checkbox_->setChecked(
       settings.value(QStringLiteral("allow_reverse"), true).toBool());
   settings.endGroup();
@@ -881,6 +1131,8 @@ void MainWindow::persistCoveragePlannerSettings() const
                     coverage_direction_change_penalty_input_->value());
   settings.setValue(QStringLiteral("segment_handoff_penalty_sec"),
                     coverage_handoff_penalty_input_->value());
+  settings.setValue(QStringLiteral("transit_replan_period_sec"),
+                    coverage_transit_replan_input_->value());
   settings.endGroup();
   settings.sync();
 }
@@ -900,7 +1152,149 @@ CoveragePlanningUiParameters MainWindow::coveragePlanningParameters() const
       coverage_direction_change_penalty_input_->value();
   parameters.segment_handoff_penalty_sec =
       coverage_handoff_penalty_input_->value();
+  parameters.transit_replan_period_sec =
+      coverage_transit_replan_input_->value();
   return parameters;
+}
+
+void MainWindow::applyEffectiveCoveragePlanningParameters(
+    const CoveragePlanningUiParameters& parameters)
+{
+  const QSignalBlocker width_blocker(coverage_width_input_);
+  const QSignalBlocker overlap_blocker(coverage_overlap_input_);
+  const QSignalBlocker speed_blocker(coverage_speed_input_);
+  const QSignalBlocker reverse_enabled_blocker(coverage_reverse_checkbox_);
+  const QSignalBlocker reverse_speed_blocker(coverage_reverse_speed_input_);
+  const QSignalBlocker angular_speed_blocker(coverage_angular_speed_input_);
+  const QSignalBlocker linear_accel_blocker(coverage_linear_accel_input_);
+  const QSignalBlocker angular_accel_blocker(coverage_angular_accel_input_);
+  const QSignalBlocker direction_penalty_blocker(
+      coverage_direction_change_penalty_input_);
+  const QSignalBlocker handoff_penalty_blocker(
+      coverage_handoff_penalty_input_);
+  const QSignalBlocker retry_blocker(coverage_transit_replan_input_);
+  coverage_width_input_->setValue(parameters.operation_width_m);
+  coverage_overlap_input_->setValue(100.0 * parameters.overlap_ratio);
+  coverage_speed_input_->setValue(parameters.max_forward_speed_mps);
+  coverage_reverse_checkbox_->setChecked(parameters.allow_reverse);
+  coverage_reverse_speed_input_->setValue(parameters.max_reverse_speed_mps);
+  coverage_angular_speed_input_->setValue(parameters.max_angular_speed_rps);
+  coverage_linear_accel_input_->setValue(parameters.linear_accel_mps2);
+  coverage_angular_accel_input_->setValue(parameters.angular_accel_rps2);
+  coverage_direction_change_penalty_input_->setValue(
+      parameters.direction_change_penalty_sec);
+  coverage_handoff_penalty_input_->setValue(
+      parameters.segment_handoff_penalty_sec);
+  coverage_transit_replan_input_->setValue(
+      parameters.transit_replan_period_sec);
+}
+
+void MainWindow::scheduleNavigationProfileApply()
+{
+  navigation_profile_synced_ = false;
+  if (!navigation_profile_factory_restore_pending_)
+  {
+    navigation_profile_dirty_ = true;
+    ++navigation_profile_generation_;
+  }
+  if (!static_map_mode_ || !ros_interfaces_ready_)
+    return;
+  navigation_profile_apply_timer_.start(400);
+}
+
+void MainWindow::applyNavigationProfileIfNeeded()
+{
+  if ((!navigation_profile_dirty_ &&
+       !navigation_profile_factory_restore_pending_) || !static_map_mode_ ||
+      !ros_interfaces_ready_ || !master_online_ || !ros::ok())
+    return;
+  if (navigation_profile_apply_watcher_.isRunning())
+    return;
+  const CoveragePlanningUiParameters parameters =
+      coveragePlanningParameters();
+  const std::uint64_t generation = navigation_profile_generation_;
+  const bool restore_factory_defaults =
+      navigation_profile_factory_restore_pending_;
+  if (!restore_factory_defaults)
+    navigation_profile_dirty_ = false;
+  navigation_profile_apply_watcher_.setFuture(QtConcurrent::run(
+      [parameters, generation, restore_factory_defaults]() {
+        return applyNavigationProfile(parameters, generation,
+                                      restore_factory_defaults);
+      }));
+}
+
+void MainWindow::handleNavigationProfileApplied()
+{
+  const NavigationProfileApplyResult result =
+      navigation_profile_apply_watcher_.result();
+  if (result.generation != navigation_profile_generation_)
+  {
+    navigation_profile_dirty_ = true;
+    navigation_profile_synced_ = false;
+  }
+  else if (result.success)
+  {
+    applyEffectiveCoveragePlanningParameters(result.effective);
+    persistCoveragePlannerSettings();
+    navigation_profile_dirty_ = false;
+    navigation_profile_factory_restore_pending_ = false;
+    navigation_profile_synced_ = true;
+    navigation_profile_last_error_.clear();
+    if (result.restore_factory_defaults)
+      appendEvent(QStringLiteral(
+          "规划参数已恢复出厂值，并同步到 Qt、J6M 运行态和当前 release 的 coverage.yaml。"));
+    else
+      appendEvent(
+          QStringLiteral("全部规划参数已同步：Qt 当前值已应用到普通点到点、"
+                         "首线入场、覆盖规划和转场，并写入 J6M 当前 release "
+                         "的 coverage.yaml；Hybrid 异常重规划重试间隔 %1 s。")
+              .arg(coverage_transit_replan_input_->value(), 0, 'f', 1));
+  }
+  else
+  {
+    navigation_profile_synced_ = false;
+    if (result.restore_factory_defaults)
+      navigation_profile_factory_restore_pending_ = false;
+    navigation_profile_dirty_ = true;
+    if (navigation_profile_last_error_ != result.message)
+    {
+      navigation_profile_last_error_ = result.message;
+      appendEvent(QStringLiteral("规划参数尚未完成事务同步：") + result.message,
+                  true);
+    }
+  }
+  if ((navigation_profile_dirty_ ||
+       navigation_profile_factory_restore_pending_) &&
+      static_map_mode_ && ros_interfaces_ready_)
+    navigation_profile_apply_timer_.start(result.success ? 0 : 1500);
+}
+
+void MainWindow::restoreFactoryCoveragePlanningDefaults()
+{
+  if (!static_map_mode_ || !master_online_ || !ros_interfaces_ready_ ||
+      navigation_profile_apply_watcher_.isRunning())
+    return;
+  const auto answer = QMessageBox::question(
+      this, QStringLiteral("确认恢复默认规划参数"),
+      QStringLiteral(
+          "将恢复以下出厂值，并同时覆盖 Qt 保存值、J6M 运行参数和当前 "
+          "coverage.yaml：\n\n"
+          "有效清扫宽度 1.00 m；重叠率 15%；允许倒车；\n"
+          "前进/倒车速度 0.80/0.30 m/s；最大角速度 0.60 rad/s；\n"
+          "线/角加速度 1.00/0.50；换向/交接附加时间 1.00/0.50 s；\n"
+          "异常重规划重试间隔 1.00 s。\n\n是否继续？"),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+  if (answer != QMessageBox::Yes)
+    return;
+  navigation_profile_apply_timer_.stop();
+  navigation_profile_dirty_ = false;
+  navigation_profile_synced_ = false;
+  navigation_profile_factory_restore_pending_ = true;
+  navigation_profile_last_error_.clear();
+  ++navigation_profile_generation_;
+  navigation_profile_apply_timer_.start(0);
+  appendEvent(QStringLiteral("正在请求 J6M 事务性恢复出厂规划参数……"));
 }
 
 MainWindow::~MainWindow()
@@ -908,6 +1302,9 @@ MainWindow::~MainWindow()
   master_probe_timer_.stop();
   ui_refresh_timer_.stop();
   ai_heartbeat_timer_.stop();
+  navigation_profile_apply_timer_.stop();
+  if (navigation_profile_apply_watcher_.isRunning())
+    navigation_profile_apply_watcher_.waitForFinished();
   if (recorder_.state() != QProcess::NotRunning)
   {
     recorder_.terminate();
@@ -919,6 +1316,12 @@ MainWindow::~MainWindow()
     mapper_.terminate();
     if (!mapper_.waitForFinished(120000))
       mapper_.kill();
+  }
+  if (vision_model_switch_process_.state() != QProcess::NotRunning)
+  {
+    vision_model_switch_process_.terminate();
+    if (!vision_model_switch_process_.waitForFinished(10000))
+      vision_model_switch_process_.kill();
   }
   shutdownRosInterfaces();
   if (spinner_)
@@ -1004,6 +1407,7 @@ void MainWindow::buildUi()
     QPushButton:pressed { background: #1d4d71; }
     QPushButton:disabled { background: #293442; color: #6f7b8a; border-color: #3a4655; }
     QPushButton#dangerButton { background: #813a42; border-color: #b34d57; }
+    QPushButton#warningButton { background: #9a5a12; border-color: #d28a2c; }
     QPushButton#visionButton { background: #94621f; border-color: #c98a32; }
     QPushButton#recordButton { background: #74425d; border-color: #a25b80; }
     QPushButton#smartVoiceButton { background: #176d73; border-color: #2aa5ad; min-height: 52px; }
@@ -1045,6 +1449,9 @@ void MainWindow::buildUi()
     QWidget#visionControls QLabel.metricValue { color: #111827; }
     QWidget#visionControls QDoubleSpinBox { background: #ffffff; color: #111827; border-color: #94a3b8; }
     QWidget#visionControls QDoubleSpinBox:disabled { background: #e5e7eb; color: #6b7280; }
+    QWidget#visionControls QComboBox { background: #ffffff; color: #111827; border: 1px solid #94a3b8; border-radius: 5px; padding: 7px 9px; }
+    QWidget#visionControls QComboBox:disabled { background: #e5e7eb; color: #6b7280; }
+    QWidget#visionControls QComboBox QAbstractItemView { background: #ffffff; color: #111827; selection-background-color: #dbeafe; selection-color: #111827; }
     QToolBar { background: #f5f5f5; color: #111827; border: 0; }
     QToolBar QToolButton { background: transparent; color: #111827; border: 1px solid transparent; }
     QToolBar QToolButton:hover { background: #dce5ee; border-color: #aab8c5; }
@@ -1107,7 +1514,7 @@ void MainWindow::buildUi()
     { "ros", "ROS" },         { "can", "CAN" },       { "fastlio", "FAST-LIO" },
     { "cloud", "点云" },      { "imu", "IMU" },       { "scan", "避障雷达" },
     { "nav", "导航" },        { "mode", "控制模式" }, { "camera", "相机" },
-    { "yolo", "YOLO11" },     { "record", "录包" }
+    { "yolo", "视觉模型" },   { "record", "录包" }
   };
   for (const auto& card : cards)
     cards_layout->addWidget(createStatusCard(QString::fromLatin1(card.first),
@@ -1288,7 +1695,8 @@ QWidget* MainWindow::buildOverviewPage()
 
   auto* route_legend = new QLabel(
       QStringLiteral("路线图例：青色＝覆盖条带预览 · 蓝色＝全局参考路线 · "
-                     "红色＝当前局部轨迹 · 绿色＝覆盖执行记录"),
+                     "红色＝当前局部轨迹 · 橙色＝完整Hybrid A*转场 · "
+                     "绿色＝覆盖执行记录"),
       rviz_host_);
   route_legend->setWordWrap(true);
   route_legend->setStyleSheet(
@@ -1319,10 +1727,10 @@ QWidget* MainWindow::buildOverviewPage()
   side_layout->setContentsMargins(10, 0, 10, 8);
   side_layout->setSpacing(14);
 
-  auto* camera = new QGroupBox(QStringLiteral("相机 / YOLO11 实时画面"), side_content);
+  auto* camera = new QGroupBox(QStringLiteral("相机 / 视觉识别实时画面"), side_content);
   auto* camera_layout = new QVBoxLayout(camera);
   overview_camera_preview_ = new QLabel(
-      QStringLiteral("等待 /fod_camera/image_raw\n或 /fod/debug/image"), camera);
+      QStringLiteral("等待 /fod_camera/image_raw"), camera);
   overview_camera_preview_->setAlignment(Qt::AlignCenter);
   overview_camera_preview_->setMinimumHeight(210);
   overview_camera_preview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1651,13 +2059,13 @@ QWidget* MainWindow::buildVisionPage()
   auto* image_layout = new QVBoxLayout(image_panel);
   image_layout->setContentsMargins(0, 0, 8, 0);
   image_layout->setSpacing(8);
-  auto* image_title = new QLabel(QStringLiteral("YOLO11 标注画面（识别未就绪时回退到相机原图）"),
+  auto* image_title = new QLabel(QStringLiteral("ZED 实时原图（按源时间戳叠加当前模型结果）"),
                                  image_panel);
   image_title->setStyleSheet(
       QStringLiteral("font-size:15pt;font-weight:700;color:#dce7f4;padding:4px;"));
   image_layout->addWidget(image_title);
   vision_camera_preview_ = new QLabel(
-      QStringLiteral("等待 /fod/debug/image 或 /fod_camera/image_raw"), image_panel);
+      QStringLiteral("等待 /fod_camera/image_raw"), image_panel);
   vision_camera_preview_->setAlignment(Qt::AlignCenter);
   vision_camera_preview_->setMinimumSize(640, 480);
   vision_camera_preview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1674,7 +2082,7 @@ QWidget* MainWindow::buildVisionPage()
   vision_detections_->setReadOnly(true);
   vision_detections_->setMaximumBlockCount(100);
   vision_detections_->setMinimumHeight(150);
-  vision_detections_->setPlaceholderText(QStringLiteral("尚未收到 /fod/detections"));
+  vision_detections_->setPlaceholderText(QStringLiteral("尚未收到 /fod/vision/results"));
   detections_layout->addWidget(vision_detections_);
   image_layout->addWidget(detections_group);
   splitter->addWidget(image_panel);
@@ -1691,14 +2099,59 @@ QWidget* MainWindow::buildVisionPage()
   controls_layout->setContentsMargins(8, 0, 8, 8);
   controls_layout->setSpacing(14);
 
-  auto* health = new QGroupBox(QStringLiteral("相机与 YOLO11 状态"), controls);
+  auto* model_switch = new QGroupBox(QStringLiteral("视觉识别模型切换"), controls);
+  auto* model_switch_layout = new QVBoxLayout(model_switch);
+  model_switch_layout->addWidget(
+      createMetricRow(QStringLiteral("当前运行后端"),
+                      &values_["vision_backend_running"]));
+  vision_model_combo_ = new QComboBox(model_switch);
+  vision_model_combo_->setObjectName(QStringLiteral("visionModelCombo"));
+  vision_model_combo_->addItem(
+      QStringLiteral("LocateAnything-3B（单类 trash，识别显示）"),
+      QStringLiteral("locateanything"));
+  vision_model_combo_->addItem(
+      QStringLiteral("YOLO11-GAM（best6.pt，五类实时检测）"),
+      QStringLiteral("yolo"));
+  vision_model_combo_->addItem(
+      QStringLiteral("detect and classify（trash 检测 + 五材质分类）"),
+      QStringLiteral("detect_and_classify"));
+  configured_vision_backend_ =
+      QString::fromUtf8(qgetenv("NVIDIA_FOD_BACKEND")).trimmed();
+  if (configured_vision_backend_ != QStringLiteral("yolo") &&
+      configured_vision_backend_ != QStringLiteral("locateanything") &&
+      configured_vision_backend_ != QStringLiteral("detect_and_classify"))
+    configured_vision_backend_ = QStringLiteral("yolo");
+  const int configured_model_index =
+      vision_model_combo_->findData(configured_vision_backend_);
+  if (configured_model_index >= 0)
+    vision_model_combo_->setCurrentIndex(configured_model_index);
+  vision_model_switch_button_ =
+      new QPushButton(QStringLiteral("应用选择并完整冷重启"), model_switch);
+  vision_model_switch_button_->setObjectName(QStringLiteral("warningButton"));
+  vision_model_switch_button_->setMinimumHeight(48);
+  connect(vision_model_switch_button_, &QPushButton::clicked, this,
+          &MainWindow::switchVisionBackend);
+  vision_model_switch_hint_ = new QLabel(
+      QStringLiteral("切换会同步 NVIDIA/J6M 模型契约并完整冷重启；"
+                     "静态地图模式会保留，一次性的视觉运动授权不会继承。"),
+      model_switch);
+  vision_model_switch_hint_->setWordWrap(true);
+  vision_model_switch_hint_->setStyleSheet(
+      QStringLiteral("color:#92400e;background:#fef3c7;border:1px solid #f59e0b;"
+                     "border-radius:6px;padding:8px;font-size:10pt;"));
+  model_switch_layout->addWidget(vision_model_combo_);
+  model_switch_layout->addWidget(vision_model_switch_button_);
+  model_switch_layout->addWidget(vision_model_switch_hint_);
+  controls_layout->addWidget(model_switch);
+
+  auto* health = new QGroupBox(QStringLiteral("相机与视觉模型状态"), controls);
   auto* health_layout = new QVBoxLayout(health);
   health_layout->addWidget(
       createMetricRow(QStringLiteral("相机流"), &values_["vision_camera_status"]));
   health_layout->addWidget(
       createMetricRow(QStringLiteral("分辨率 / 编码"), &values_["vision_camera_format"]));
   health_layout->addWidget(
-      createMetricRow(QStringLiteral("YOLO 状态"), &values_["vision_yolo_status"]));
+      createMetricRow(QStringLiteral("识别状态"), &values_["vision_yolo_status"]));
   health_layout->addWidget(
       createMetricRow(QStringLiteral("模型"), &values_["vision_model"]));
   health_layout->addWidget(
@@ -1788,27 +2241,27 @@ QWidget* MainWindow::buildVisionPage()
   mode_layout->addWidget(
       createMetricRow(QStringLiteral("状态原因"), &values_["vision_mode_reason"]));
   mode_layout->addWidget(
-      createMetricRow(QStringLiteral("当前目标锁定阈值"),
+      createMetricRow(QStringLiteral("当前全局检测阈值"),
                       &values_["vision_lock_confidence"]));
   auto* confidence_row = new QWidget(mode);
   auto* confidence_layout = new QHBoxLayout(confidence_row);
   confidence_layout->setContentsMargins(0, 0, 0, 0);
   confidence_layout->setSpacing(8);
   auto* confidence_label =
-      new QLabel(QStringLiteral("目标锁定置信度"), confidence_row);
+      new QLabel(QStringLiteral("检测置信度阈值"), confidence_row);
   visual_lock_confidence_input_ =
       new ScrollSafeDoubleSpinBox(confidence_row);
   visual_lock_confidence_input_->setDecimals(2);
-  visual_lock_confidence_input_->setRange(0.25, 0.95);
+  visual_lock_confidence_input_->setRange(0.05, 0.95);
   visual_lock_confidence_input_->setSingleStep(0.01);
-  visual_lock_confidence_input_->setValue(0.30);
+  visual_lock_confidence_input_->setValue(0.20);
   visual_lock_confidence_input_->setKeyboardTracking(false);
   visual_lock_confidence_input_->setToolTip(
-      QStringLiteral("只影响视觉控制器是否锁定已发布目标；检测器低于 0.25 的目标不会发布"));
+      QStringLiteral("直接修改当前视觉后端的真实检测 conf；不改变五分类器置信度"));
   visual_lock_confidence_apply_button_ =
-      new QPushButton(QStringLiteral("应用阈值"), confidence_row);
+      new QPushButton(QStringLiteral("应用到当前模型"), confidence_row);
   visual_lock_confidence_apply_button_->setToolTip(
-      QStringLiteral("仅在视觉控制器停车时允许修改；重启后恢复配置文件默认值"));
+      QStringLiteral("通过统一 /fod_detector 服务实时应用；视觉行驶活动时禁止修改"));
   visual_lock_confidence_input_->setEnabled(false);
   visual_lock_confidence_apply_button_->setEnabled(false);
   connect(visual_lock_confidence_apply_button_, &QPushButton::clicked, this,
@@ -1888,7 +2341,8 @@ QWidget* MainWindow::buildCoveragePage()
   coverage_rviz_layout_->setContentsMargins(0, 0, 0, 0);
   auto* route_legend = new QLabel(
       QStringLiteral("路线图例：青色＝覆盖条带预览 · 蓝色＝全局参考路线 · "
-                     "红色＝当前局部轨迹 · 绿色＝覆盖执行记录"),
+                     "红色＝当前局部轨迹 · 橙色＝完整Hybrid A*转场 · "
+                     "绿色＝覆盖执行记录"),
       coverage_rviz_host_);
   route_legend->setWordWrap(true);
   route_legend->setStyleSheet(
@@ -2007,12 +2461,13 @@ QWidget* MainWindow::buildCoveragePage()
   coverage_speed_input_->setValue(0.80);
   coverage_speed_input_->setEnabled(false);
   coverage_speed_input_->setToolTip(
-      QStringLiteral("出厂回退 0.80 m/s；修改后立即保存为下次默认值。覆盖任务限 "
-                     "1.60 m/s，并在开始前实时核对 VCU 上限"));
+      QStringLiteral("出厂回退 0.80 m/s；修改后立即保存并应用于首线入场和"
+                     "覆盖清扫。相邻清扫线间的直接 Hybrid 转场使用独立的"
+                     "系统速度包络，并在开始前一并核对 VCU/看门狗上限"));
   speed_layout->addWidget(coverage_speed_input_, 1);
   parameters_layout->addWidget(speed_row);
   coverage_reverse_checkbox_ = new QCheckBox(
-      QStringLiteral("仅在转场允许 TEB 尝试低速倒车"), parameters);
+      QStringLiteral("允许首线入场、异常修正和清扫线转场倒车"), parameters);
   coverage_reverse_checkbox_->setChecked(true);
   coverage_reverse_checkbox_->setEnabled(false);
   parameters_layout->addWidget(coverage_reverse_checkbox_);
@@ -2042,37 +2497,64 @@ QWidget* MainWindow::buildCoveragePage()
   add_time_parameter(
       QStringLiteral("最高倒车速度"), 0.05, 0.80, 0.05, 0.30, 2,
       QStringLiteral(" m/s"),
-      QStringLiteral("仅在允许转场倒车时参与时间估算并下发给 TEB"),
+      QStringLiteral("允许倒车时下发给首线入场 Navfn+TEB；清扫线间 Hybrid "
+                     "转场使用状态栏显示的独立系统倒车上限"),
       &coverage_reverse_speed_input_);
   add_time_parameter(
       QStringLiteral("最大转弯角速度"), 0.10, 1.00, 0.05, 0.60, 2,
       QStringLiteral(" rad/s"),
-      QStringLiteral("同时用于转弯时间估算和任务期间的 TEB max_vel_theta"),
+      QStringLiteral("用于时间估算并实时下发为全局导航 TEB max_vel_theta"),
       &coverage_angular_speed_input_);
   add_time_parameter(
-      QStringLiteral("最大线加速度"), 0.10, 2.00, 0.10, 2.00, 2,
+      QStringLiteral("最大线加速度"), 0.10, 2.00, 0.10, 1.00, 2,
       QStringLiteral(" m/s²"),
-      QStringLiteral("用于每段加减速时间估算和任务期间的 TEB acc_lim_x"),
+      QStringLiteral("用于每段加减速估算并实时下发为全局导航 TEB acc_lim_x"),
       &coverage_linear_accel_input_);
   add_time_parameter(
       QStringLiteral("最大角加速度"), 0.10, 1.00, 0.05, 0.50, 2,
       QStringLiteral(" rad/s²"),
-      QStringLiteral("用于转向加减速时间估算和任务期间的 TEB acc_lim_theta"),
+      QStringLiteral("用于转向估算并实时下发为全局导航 TEB acc_lim_theta"),
       &coverage_angular_accel_input_);
   add_time_parameter(
-      QStringLiteral("每次换向附加时间"), 0.0, 30.0, 0.1, 1.0, 1,
+      QStringLiteral("每次换向附加时间"), 0.0, 30.0, 0.1, 0.5, 1,
       QStringLiteral(" s"),
       QStringLiteral("规划器对前进/倒车切换加入的经验时间；不直接改变底盘限速"),
       &coverage_direction_change_penalty_input_);
   add_time_parameter(
       QStringLiteral("每段交接附加时间"), 0.0, 30.0, 0.1, 0.5, 1,
       QStringLiteral(" s"),
-      QStringLiteral("估算 move_base 分段停车、验收和下一段启动的固定耗时"),
+      QStringLiteral("估算相邻任务段停车、验收和下一段启动的固定耗时；Hybrid "
+                     "在每个 cusp 拆成固定档位 move_base action"),
       &coverage_handoff_penalty_input_);
+  add_time_parameter(
+      QStringLiteral("异常重规划重试间隔"), 1.0, 10.0, 0.5, 1.0, 1,
+      QStringLiteral(" s"),
+      QStringLiteral("有效的清扫线间 Hybrid 路径保持不变；仅在路径受阻或车辆"
+                     "明显偏离且上次搜索失败后，控制再次尝试的最短间隔。普通"
+                     "点到点和首线入场的 Navfn 仍按 move_base 1 Hz 重规划"),
+      &coverage_transit_replan_input_);
+  coverage_restore_defaults_button_ =
+      new QPushButton(QStringLiteral("恢复默认参数"), parameters);
+  coverage_restore_defaults_button_->setEnabled(false);
+  coverage_restore_defaults_button_->setToolTip(
+      QStringLiteral("恢复只读出厂基线，并在 J6M 成功确认后更新 Qt 保存值"));
+  parameters_layout->addWidget(coverage_restore_defaults_button_);
+  coverage_parameter_sync_status_ = new QLabel(
+      QStringLiteral("参数同步状态：等待 J6M"), parameters);
+  coverage_parameter_sync_status_->setWordWrap(true);
+  coverage_parameter_sync_status_->setStyleSheet(
+      QStringLiteral("color:#92400e;font-size:9pt;"));
+  parameters_layout->addWidget(coverage_parameter_sync_status_);
   auto* persistence_note = new QLabel(
-      QStringLiteral("以上参数修改后立即保存，下一次生成/启动清扫任务直接"
-                     "使用，下次启动 Qt 仍作为默认值。已生成的轨迹参数已"
-                     "锁定，需取消后重新规划。"),
+      QStringLiteral("任一参数修改后会经 400 ms 防抖，事务性应用到 J6M 运行态"
+                     "并直接写入当前 release 的 coverage.yaml；速度、倒车、"
+                     "角速度和加速度应用到首线入场 Navfn+TEB 与清扫；"
+                     "异常重规划重试间隔只作用于清扫线间 Hybrid A*，该阶段"
+                     "全局参考前视固定为 2 m，并由 TEB 闭环跟踪；安全 mux 只"
+                     "校验许可、指令新鲜度、固定档位和曲率。全部参数"
+                     "都会立即保存，下次启动 Qt "
+                     "会再次下发并作为默认值。服务未确认同步时禁止生成或启动"
+                     "覆盖任务；已生成的轨迹参数已锁定，需取消后重新规划。"),
       parameters);
   persistence_note->setWordWrap(true);
   persistence_note->setStyleSheet(
@@ -2456,7 +2938,7 @@ QWidget* MainWindow::buildLogPage()
   auto* explanation = new QTextBrowser(page);
   explanation->setHtml(QStringLiteral(
       "<h2>操作台运行原则</h2>"
-      "<p>界面整合 RViz、FAST-LIO、相机、YOLO11 与安全模式控制；导航和底盘安全链仍由"
+      "<p>界面整合 RViz、FAST-LIO、相机、视觉识别与安全模式控制；导航和底盘安全链仍由"
       "现有 ROS 节点执行。</p>"
       "<ul><li>ROS master 或任何业务节点缺失时，界面仍会打开并显示离线状态。</li>"
       "<li>界面只发布局部 PoseStamped 目标和取消 GoalID，从不发布 <code>/cmd_vel</code>。</li>"
@@ -2610,6 +3092,26 @@ void MainWindow::setupRosInterfaces()
   node_->param<std::string>("coverage_region_root", coverage_region_root_, "");
   node_->param<std::string>("coverage_region_legacy_root",
                             coverage_region_legacy_root_, "");
+  std::string configured_vision_backend = configured_vision_backend_.toStdString();
+  std::string vision_backend_switch_script = vision_backend_switch_script_.toStdString();
+  node_->param<std::string>("configured_vision_backend",
+                            configured_vision_backend,
+                            configured_vision_backend.empty()
+                                ? "yolo"
+                                : configured_vision_backend);
+  node_->param<std::string>(
+      "vision_backend_switch_script", vision_backend_switch_script,
+      "/home/slam/robot_j6m_ws/scripts/switch_fod_backend.sh");
+  configured_vision_backend_ = QString::fromStdString(configured_vision_backend);
+  vision_backend_switch_script_ =
+      QString::fromStdString(vision_backend_switch_script);
+  if (vision_model_combo_ && !vision_model_switch_pending_)
+  {
+    const int model_index =
+        vision_model_combo_->findData(configured_vision_backend_);
+    if (model_index >= 0)
+      vision_model_combo_->setCurrentIndex(model_index);
+  }
   coverage_region_store_.setRoot(QString::fromStdString(coverage_region_root_));
   coverage_region_store_.setLegacyRoot(
       QString::fromStdString(coverage_region_legacy_root_));
@@ -2634,6 +3136,8 @@ void MainWindow::setupRosInterfaces()
       node_->subscribe("/fod/debug/image", 1, &MainWindow::debugImageCallback, this);
   detections_subscriber_ =
       node_->subscribe("/fod/detections", 2, &MainWindow::detectionsCallback, this);
+  vision_results_subscriber_ = node_->subscribe(
+      "/fod/vision/results", 1, &MainWindow::visionResultsCallback, this);
   mode_state_subscriber_ = node_->subscribe(
       "/fod_navigation_mode/state", 10, &MainWindow::modeStateCallback, this);
   mode_status_subscriber_ = node_->subscribe(
@@ -2670,6 +3174,10 @@ void MainWindow::setupRosInterfaces()
                               : "DISABLED");
   ros_interfaces_ready_ = true;
   appendEvent(QStringLiteral("ROS 接口已注册；FAST-LIO 健康监测开始采样。"));
+  if (static_map_mode_)
+    scheduleNavigationProfileApply();
+  else
+    navigation_profile_apply_timer_.stop();
   // Build only the RViz belonging to the visible tab.  Creating the coverage
   // VisualizationFrame while its tab is hidden produces an unexposed native
   // Ogre surface on Jetson/X11 and can leave both embedded views black.
@@ -3495,6 +4003,7 @@ void MainWindow::shutdownRosInterfaces()
   camera_image_subscriber_.shutdown();
   debug_image_subscriber_.shutdown();
   detections_subscriber_.shutdown();
+  vision_results_subscriber_.shutdown();
   mode_state_subscriber_.shutdown();
   mode_status_subscriber_.shutdown();
   visual_state_subscriber_.shutdown();
@@ -3784,13 +4293,11 @@ void MainWindow::cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg)
     telemetry_.camera_width = msg->width;
     telemetry_.camera_height = msg->height;
     telemetry_.camera_encoding = msg->encoding;
+    telemetry_.camera_stamp = msg->header.stamp;
+    telemetry_.camera_frame_id = msg->header.frame_id;
     telemetry_.camera_received_at = now;
-    const bool debug_is_fresh = telemetry_.debug_image_received &&
-                                !telemetry_.debug_image.isNull() &&
-                                wallAge(telemetry_.debug_image_received_at) <= 1.0;
-    if (!debug_is_fresh &&
-        (last_raw_preview_conversion_.isZero() ||
-         (now - last_raw_preview_conversion_).toSec() >= 0.20))
+    if (last_raw_preview_conversion_.isZero() ||
+        (now - last_raw_preview_conversion_).toSec() >= 0.20)
     {
       last_raw_preview_conversion_ = now;
       convert_preview = true;
@@ -3803,6 +4310,7 @@ void MainWindow::cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg)
     return;
   std::lock_guard<std::mutex> lock(snapshot_mutex_);
   telemetry_.raw_preview = preview;
+  telemetry_.raw_preview_stamp = msg->header.stamp;
   telemetry_.raw_preview_received_at = now;
 }
 
@@ -3853,6 +4361,41 @@ void MainWindow::detectionsCallback(
   telemetry_.detections_received_at = now;
 }
 
+void MainWindow::visionResultsCallback(
+    const autolabor_fod_msgs::FodVisionDetectionArray::ConstPtr& msg)
+{
+  const QString backend = QString::fromStdString(msg->backend_id);
+  const double source_age = sourceStampAge(msg->header.stamp);
+  bool payload_consistent = !backend.isEmpty();
+  for (const auto& detection : msg->detections)
+    payload_consistent = payload_consistent && detection.backend_id == msg->backend_id;
+  const ros::WallTime now = ros::WallTime::now();
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  if (backend != configured_vision_backend_ || !payload_consistent ||
+      !visionResultAgeAccepted(backend, source_age))
+  {
+    ++telemetry_.rejected_vision_results;
+    return;
+  }
+  if (telemetry_.vision_results_received)
+  {
+    const double interval =
+        (now - telemetry_.vision_results_received_at).toSec();
+    if (interval > 0.001 && interval < 5.0)
+    {
+      const double sample_fps = 1.0 / interval;
+      const double filtered_fps = telemetry_.vision_results_fps.received
+                                      ? 0.80 * telemetry_.vision_results_fps.value +
+                                            0.20 * sample_fps
+                                      : sample_fps;
+      telemetry_.vision_results_fps = { true, filtered_fps, now };
+    }
+  }
+  telemetry_.vision_results_received = true;
+  telemetry_.vision_results = *msg;
+  telemetry_.vision_results_received_at = now;
+}
+
 void MainWindow::modeStateCallback(const std_msgs::String::ConstPtr& msg)
 {
   std::lock_guard<std::mutex> lock(snapshot_mutex_);
@@ -3892,7 +4435,8 @@ void MainWindow::diagnosticsCallback(const diagnostic_msgs::DiagnosticArray::Con
   for (const auto& status : msg->status)
   {
     DiagnosticSnapshot* output = nullptr;
-    if (status.name.find("fod_vision/detector") != std::string::npos)
+    if (status.name.find("fod_vision/detector") != std::string::npos ||
+        status.name.find("fod_vision/detect_and_classify") != std::string::npos)
       output = &telemetry_.detector_diagnostic;
     else if (status.name.find("fod_vision/image_quality_controller") !=
              std::string::npos)
@@ -4392,15 +4936,28 @@ void MainWindow::refreshUi()
     setStatus("camera", Health::Good, QStringLiteral("在线"),
               QStringLiteral("%1×%2").arg(data.camera_width).arg(data.camera_height));
 
-  const double detections_age = wallAge(data.detections_received_at);
-  if (!data.detections_received)
-    setStatus("yolo", Health::Idle, QStringLiteral("未启动"), QStringLiteral("YOLO11"));
-  else if (detections_age > kFreshDetectionSeconds)
-    setStatus("yolo", Health::Bad, QStringLiteral("超时"), ageText(detections_age));
+  const double vision_results_age =
+      data.vision_results_received
+          ? sourceStampAge(data.vision_results.header.stamp)
+          : std::numeric_limits<double>::infinity();
+  const QString vision_results_backend =
+      data.vision_results_received
+          ? QString::fromStdString(data.vision_results.backend_id)
+          : QString();
+  const bool vision_results_age_accepted =
+      data.vision_results_received &&
+      visionResultAgeAccepted(vision_results_backend, vision_results_age);
+  const bool vision_results_async_display =
+      data.vision_results_received &&
+      !visionResultFreshnessRequired(vision_results_backend);
+  if (!data.vision_results_received)
+    setStatus("yolo", Health::Idle, QStringLiteral("未启动"), QStringLiteral("视觉模型"));
+  else if (!vision_results_age_accepted)
+    setStatus("yolo", Health::Bad, QStringLiteral("结果过期"), ageText(vision_results_age));
   else
     setStatus("yolo", Health::Good,
-              QStringLiteral("%1 目标").arg(data.detections.detections.size()),
-              QStringLiteral("%1 ms").arg(data.detections.inference_ms, 0, 'f', 1));
+              QStringLiteral("%1 目标").arg(data.vision_results.detections.size()),
+              QStringLiteral("%1 ms").arg(data.vision_results.total_latency_ms, 0, 'f', 1));
 
   if (mapper_.state() != QProcess::NotRunning && mapper_stop_requested_)
     setStatus("record", Health::Warning, QStringLiteral("地图保存中"),
@@ -4533,28 +5090,41 @@ void MainWindow::refreshUi()
       navigation_paused ? QStringLiteral("休眠 / 目标保留")
                         : QStringLiteral("运行 / 可接收目标"));
 
-  const bool debug_preview_fresh = !data.debug_image.isNull() &&
-                                   wallAge(data.debug_image_received_at) <=
-                                       kFreshDetectionSeconds;
   const bool raw_preview_fresh = !data.raw_preview.isNull() &&
                                  wallAge(data.raw_preview_received_at) <=
                                      kFreshCameraSeconds;
   QImage selected_preview;
   QString preview_source = QStringLiteral("无新鲜画面");
-  if (debug_preview_fresh)
-  {
-    selected_preview = data.debug_image;
-    preview_source = QStringLiteral("YOLO11 标注 /fod/debug/image");
-  }
-  else if (raw_preview_fresh)
+  if (raw_preview_fresh)
   {
     selected_preview = data.raw_preview;
-    preview_source = QStringLiteral("相机原图 /fod_camera/image_raw");
+    preview_source = QStringLiteral("ZED 实时原图 /fod_camera/image_raw");
+    const double stamp_delta =
+        data.raw_preview_stamp.isZero() || !data.vision_results_received
+            ? std::numeric_limits<double>::infinity()
+            : std::abs((data.raw_preview_stamp -
+                        data.vision_results.header.stamp).toSec());
+    const bool source_stamp_alignment_accepted =
+        vision_results_async_display ||
+        stamp_delta <= kFreshVisionResultSeconds;
+    if (vision_results_age_accepted && source_stamp_alignment_accepted &&
+        vision_results_backend == configured_vision_backend_)
+    {
+      selected_preview = drawVisionResults(selected_preview, data.vision_results);
+      preview_source =
+          vision_results_async_display
+              ? QStringLiteral("ZED 实时原图 + %1 异步结果（源帧年龄 %2，仅显示）")
+                    .arg(visionBackendDisplayName(configured_vision_backend_))
+                    .arg(ageText(vision_results_age))
+              : QStringLiteral("ZED 实时原图 + %1 结果（源帧年龄 %2）")
+                    .arg(visionBackendDisplayName(configured_vision_backend_))
+                    .arg(ageText(vision_results_age));
+    }
   }
   updateImageLabel(overview_camera_preview_, selected_preview,
-                   QStringLiteral("等待相机或 YOLO11 新鲜画面"));
+                   QStringLiteral("等待 ZED 实时原图"));
   updateImageLabel(vision_camera_preview_, selected_preview,
-                   QStringLiteral("等待 /fod/debug/image 或 /fod_camera/image_raw"));
+                   QStringLiteral("等待 /fod_camera/image_raw"));
   values_["vision_image_source"]->setText(preview_source);
 
   values_["vision_camera_status"]->setText(
@@ -4571,64 +5141,125 @@ void MainWindow::refreshUi()
                 .arg(QString::fromStdString(data.camera_encoding))
           : QStringLiteral("--"));
   values_["vision_yolo_status"]->setText(
-      !data.detections_received
+      !data.vision_results_received
           ? QStringLiteral("未收到")
-          : (detections_age <= kFreshDetectionSeconds
-                 ? QStringLiteral("推理正常 · %1").arg(ageText(detections_age))
-                 : QStringLiteral("推理超时 · %1").arg(ageText(detections_age))));
+          : (vision_results_age_accepted
+                 ? (vision_results_async_display
+                        ? QStringLiteral("异步推理正常 · 源帧 %1（不限时）")
+                              .arg(ageText(vision_results_age))
+                        : QStringLiteral("推理正常 · 源帧 %1")
+                              .arg(ageText(vision_results_age)))
+                 : QStringLiteral("结果过期 · 源帧 %1").arg(ageText(vision_results_age))));
   values_["vision_model"]->setText(
-      data.detections_received ? QString::fromStdString(data.detections.model_name)
-                               : QStringLiteral("--"));
+      data.vision_results_received
+          ? QString::fromStdString(data.vision_results.model_name)
+          : QStringLiteral("--"));
+  values_["vision_backend_running"]->setText(
+      vision_results_age_accepted
+          ? visionBackendDisplayName(vision_results_backend)
+          : visionBackendDisplayName(configured_vision_backend_));
   values_["vision_inference"]->setText(
-      data.detections_received ? numberOrDash(data.detections.inference_ms, 1)
-                               : QStringLiteral("--"));
+      data.vision_results_received
+          ? numberOrDash(data.vision_results.total_latency_ms, 1)
+          : QStringLiteral("--"));
   values_["vision_fps"]->setText(
-      data.detection_fps.received ? numberOrDash(data.detection_fps.value, 1)
-                                  : QStringLiteral("--"));
+      data.vision_results_fps.received
+          ? numberOrDash(data.vision_results_fps.value, 1)
+          : QStringLiteral("--"));
   values_["vision_detection_count"]->setText(
-      data.detections_received ? QString::number(data.detections.detections.size())
-                               : QStringLiteral("--"));
+      data.vision_results_received
+          ? QString::number(data.vision_results.detections.size())
+          : QStringLiteral("--"));
 
   if (vision_detections_)
   {
-    if (!data.detections_received)
-    {
-      vision_detections_->setPlainText(QStringLiteral("尚未收到 /fod/detections"));
-    }
-    else if (data.detections.detections.empty())
+    if (!data.vision_results_received)
     {
       vision_detections_->setPlainText(
-          QStringLiteral("当前帧未检测到目标\n模型：%1\n推理：%2 ms")
-              .arg(QString::fromStdString(data.detections.model_name))
-              .arg(data.detections.inference_ms, 0, 'f', 1));
+          QStringLiteral("尚未收到当前 backend 的 /fod/vision/results\n"
+                         "已拒绝不匹配或过期结果：%1")
+              .arg(static_cast<qulonglong>(data.rejected_vision_results)));
+    }
+    else if (!vision_results_age_accepted)
+    {
+      vision_detections_->setPlainText(
+          QStringLiteral("结果已过期，不绘制也不用于控制\nbackend：%1\n源帧年龄：%2")
+              .arg(QString::fromStdString(data.vision_results.backend_id))
+              .arg(ageText(vision_results_age)));
+    }
+    else if (data.vision_results.detections.empty())
+    {
+      vision_detections_->setPlainText(
+          QStringLiteral("当前帧未检测到目标\nbackend：%1\n模型：%2\n"
+                         "检测：%3 ms · 分类：%4 ms · 总处理：%5 ms\n"
+                         "源帧年龄：%6")
+              .arg(QString::fromStdString(data.vision_results.backend_id))
+              .arg(QString::fromStdString(data.vision_results.model_name))
+              .arg(data.vision_results.detector_inference_ms, 0, 'f', 1)
+              .arg(data.vision_results.classifier_inference_ms, 0, 'f', 1)
+              .arg(data.vision_results.total_latency_ms, 0, 'f', 1)
+              .arg(ageText(vision_results_age)));
     }
     else
     {
       QStringList lines;
-      lines << (data.detections.depth_synchronized
-                    ? QStringLiteral("ZED 深度：已同步（时差 %1 ms）")
-                          .arg(data.detections.depth_sync_delta_sec * 1000.0, 0, 'f', 1)
-                    : QStringLiteral("ZED 深度：未同步，视觉伺服禁止选目标"));
-      const std::size_t shown = std::min<std::size_t>(12, data.detections.detections.size());
+      lines <<
+          (vision_results_async_display
+               ? QStringLiteral("backend：%1 · 源帧年龄：%2 · 异步结果不限时（仅显示） · D/C 分开显示")
+                     .arg(vision_results_backend)
+                     .arg(ageText(vision_results_age))
+               : QStringLiteral("backend：%1 · 源帧年龄：%2 · D/C 分开显示")
+                     .arg(vision_results_backend)
+                     .arg(ageText(vision_results_age)));
+      lines << (data.vision_results.depth_synchronized
+                    ? QStringLiteral("ZED 深度：源时间戳匹配（时差 %1 ms）")
+                          .arg(data.vision_results.depth_sync_delta_sec * 1000.0, 0, 'f', 1)
+                    : QStringLiteral("ZED 深度：未匹配，全部显示 N/A"));
+      const std::size_t shown = std::min<std::size_t>(
+          12, data.vision_results.detections.size());
       for (std::size_t index = 0; index < shown; ++index)
       {
-        const auto& detection = data.detections.detections[index];
+        const auto& detection = data.vision_results.detections[index];
         const QString depth = detection.depth_valid && std::isfinite(detection.depth_m)
-                                  ? QStringLiteral("%1 m").arg(detection.depth_m, 0, 'f', 2)
-                                  : QStringLiteral("无有效深度");
-        lines << QStringLiteral("%1. %2  置信度 %3%  深度 %4  框 [%5, %6, %7 × %8]")
+                                  ? QStringLiteral("%1m").arg(detection.depth_m, 0, 'f', 2)
+                                  : QStringLiteral("N/A");
+        const QString classify_confidence =
+            std::isfinite(detection.classify_confidence)
+                ? QString::number(detection.classify_confidence, 'f', 2)
+                : QStringLiteral("N/A");
+        const QString world =
+            detection.world_position_valid &&
+                    std::isfinite(detection.world_position.x) &&
+                    std::isfinite(detection.world_position.y) &&
+                    std::isfinite(detection.world_position.z)
+                ? QStringLiteral("%1 (%2,%3,%4)m")
+                      .arg(QString::fromStdString(detection.world_frame))
+                      .arg(detection.world_position.x, 0, 'f', 2)
+                      .arg(detection.world_position.y, 0, 'f', 2)
+                      .arg(detection.world_position.z, 0, 'f', 2)
+                : QStringLiteral("N/A");
+        const QString object_id =
+            detection.object_id > 0
+                ? QString::number(static_cast<qulonglong>(detection.object_id))
+                : QStringLiteral("N/A");
+        const QString track_id =
+            detection.track_id > 0
+                ? QString::number(detection.track_id)
+                : QStringLiteral("N/A");
+        lines << QStringLiteral("%1. object:%2 track:%3 %4 D:%5 C:%6 depth:%7 world:%8 state:%9")
                      .arg(index + 1)
-                     .arg(QString::fromStdString(detection.class_name))
-                     .arg(detection.confidence * 100.0, 0, 'f', 1)
+                     .arg(object_id)
+                     .arg(track_id)
+                     .arg(QString::fromStdString(detection.material_class))
+                     .arg(detection.detect_confidence, 0, 'f', 2)
+                     .arg(classify_confidence)
                      .arg(depth)
-                     .arg(detection.bbox.x_offset)
-                     .arg(detection.bbox.y_offset)
-                     .arg(detection.bbox.width)
-                     .arg(detection.bbox.height);
+                     .arg(world)
+                     .arg(QString::fromStdString(detection.state));
       }
-      if (shown < data.detections.detections.size())
+      if (shown < data.vision_results.detections.size())
         lines << QStringLiteral("……另有 %1 个目标")
-                     .arg(data.detections.detections.size() - shown);
+                     .arg(data.vision_results.detections.size() - shown);
       vision_detections_->setPlainText(lines.join(QLatin1Char('\n')));
     }
   }
@@ -4655,29 +5286,132 @@ void MainWindow::refreshUi()
       (visual_status.state == QStringLiteral("DISABLED") ||
        visual_status.state == QStringLiteral("COMPLETE") ||
        visual_status.state == QStringLiteral("ABORT"));
-  if (visual_status_fresh && std::isfinite(visual_status.min_confidence))
+  const bool detector_diagnostic_fresh =
+      data.detector_diagnostic.received &&
+      wallAge(data.detector_diagnostic.received_at) <= 3.0;
+  QString detector_backend =
+      diagnosticValue(data.detector_diagnostic, "backend_id", QString());
+  if (detector_backend.isEmpty())
+    detector_backend =
+        diagnosticValue(data.detector_diagnostic, "backend", QString());
+  const bool detector_backend_matches =
+      detector_backend == configured_vision_backend_;
+  const bool detector_confidence_supported =
+      detector_diagnostic_fresh && detector_backend_matches &&
+      textIsTrue(diagnosticValue(data.detector_diagnostic,
+                                 "detector_confidence_supported",
+                                 QStringLiteral("false")));
+  bool detector_confidence_valid = false;
+  const double detector_confidence =
+      diagnosticValue(data.detector_diagnostic, "detector_confidence", QString())
+          .toDouble(&detector_confidence_valid);
+  if (detector_confidence_supported && detector_confidence_valid &&
+      std::isfinite(detector_confidence))
   {
     values_["vision_lock_confidence"]->setText(
         QStringLiteral("%1（%2%）")
-            .arg(visual_status.min_confidence, 0, 'f', 2)
-            .arg(visual_status.min_confidence * 100.0, 0, 'f', 0));
+            .arg(detector_confidence, 0, 'f', 2)
+            .arg(detector_confidence * 100.0, 0, 'f', 0));
     if (visual_lock_confidence_input_ &&
         !visual_lock_confidence_input_->hasFocus() &&
         !visual_lock_confidence_request_pending_)
-      visual_lock_confidence_input_->setValue(visual_status.min_confidence);
+      visual_lock_confidence_input_->setValue(detector_confidence);
   }
+  else if (detector_diagnostic_fresh && detector_backend_matches &&
+           !detector_confidence_supported)
+    values_["vision_lock_confidence"]->setText(
+        QStringLiteral("N/A（当前模型无逐框置信度）"));
   else
   {
     values_["vision_lock_confidence"]->setText(QStringLiteral("--"));
   }
+  const bool confidence_change_safe =
+      !visual_status_fresh || visual_confidence_adjustable;
   const bool visual_confidence_controls_enabled =
-      master_online_ && ros_interfaces_ready_ && visual_confidence_adjustable &&
-      !visual_lock_confidence_request_pending_;
+      master_online_ && ros_interfaces_ready_ && detector_confidence_supported &&
+      confidence_change_safe && !visual_lock_confidence_request_pending_;
   if (visual_lock_confidence_input_)
     visual_lock_confidence_input_->setEnabled(visual_confidence_controls_enabled);
   if (visual_lock_confidence_apply_button_)
     visual_lock_confidence_apply_button_->setEnabled(
         visual_confidence_controls_enabled);
+
+  bool move_base_goal_active = false;
+  for (const actionlib_msgs::GoalStatus& status : data.navigation.status_list)
+  {
+    if (status.status == actionlib_msgs::GoalStatus::PENDING ||
+        status.status == actionlib_msgs::GoalStatus::ACTIVE ||
+        status.status == actionlib_msgs::GoalStatus::PREEMPTING ||
+        status.status == actionlib_msgs::GoalStatus::RECALLING)
+    {
+      move_base_goal_active = true;
+      break;
+    }
+  }
+  const bool coverage_backend_active =
+      coverage_status_fresh &&
+      (data.coverage_status.active || data.coverage_status.batch_active);
+  const bool navigation_status_fresh =
+      data.navigation_received &&
+      wallAge(data.navigation_received_at) <= 2.0;
+  const double switch_odom_age = wallAge(data.odom_received_at);
+  const auto& switch_linear = data.odom.twist.twist.linear;
+  const auto& switch_angular = data.odom.twist.twist.angular;
+  const double switch_linear_speed =
+      std::sqrt(switch_linear.x * switch_linear.x +
+                switch_linear.y * switch_linear.y +
+                switch_linear.z * switch_linear.z);
+  const double switch_angular_speed =
+      std::sqrt(switch_angular.x * switch_angular.x +
+                switch_angular.y * switch_angular.y +
+                switch_angular.z * switch_angular.z);
+  const bool vehicle_stopped_for_model_switch =
+      data.odom_received && switch_odom_age <= 0.5 &&
+      std::isfinite(switch_linear_speed) &&
+      std::isfinite(switch_angular_speed) && switch_linear_speed <= 0.02 &&
+      switch_angular_speed <= 0.05;
+  const QString selected_vision_backend =
+      vision_model_combo_ ? vision_model_combo_->currentData().toString()
+                          : QString();
+  const bool model_target_changed =
+      !selected_vision_backend.isEmpty() &&
+      selected_vision_backend != configured_vision_backend_;
+  const bool model_switch_runtime_safe =
+      master_online_ && ros_interfaces_ready_ && mode_is_fresh &&
+      mode_state == QStringLiteral("GPS_ACTIVE") && visual_confidence_adjustable &&
+      coverage_status_fresh && navigation_status_fresh &&
+      !coverage_backend_active && !move_base_goal_active &&
+      vehicle_stopped_for_model_switch;
+  if (vision_model_combo_)
+    vision_model_combo_->setEnabled(!vision_model_switch_pending_);
+  if (vision_model_switch_button_)
+    vision_model_switch_button_->setEnabled(
+        !vision_model_switch_pending_ && model_target_changed &&
+        model_switch_runtime_safe && !vision_backend_switch_script_.isEmpty());
+  if (vision_model_switch_hint_ && !vision_model_switch_pending_)
+  {
+    QString switch_hint;
+    if (!model_target_changed)
+      switch_hint = QStringLiteral("当前已经使用所选模型。");
+    else if (!mode_is_fresh || mode_state != QStringLiteral("GPS_ACTIVE") ||
+             !visual_confidence_adjustable)
+      switch_hint = QStringLiteral("请先退出视觉行驶模式，等待视觉控制器确认停车。");
+    else if (!coverage_status_fresh || !navigation_status_fresh)
+      switch_hint = QStringLiteral("等待新鲜的覆盖任务与 move_base 状态，暂不允许切换模型。");
+    else if (coverage_backend_active)
+      switch_hint = QStringLiteral("覆盖清扫任务仍在活动，不能切换模型。");
+    else if (move_base_goal_active)
+      switch_hint = QStringLiteral("move_base 仍有活动目标，请先取消目标并等待停车。");
+    else if (!vehicle_stopped_for_model_switch)
+      switch_hint = QStringLiteral("等待新鲜里程计确认车辆线速度和角速度均为零。");
+    else if (vision_backend_switch_script_.isEmpty())
+      switch_hint = QStringLiteral("模型切换脚本未配置。");
+    else
+      switch_hint = QStringLiteral(
+          "已满足切换条件。应用后完整冷重启并保留地图模式；"
+          "一次性的视觉运动授权不会继承。");
+    vision_model_switch_hint_->setText(switch_hint);
+  }
 
   const DiagnosticSnapshot& quality = data.image_quality_diagnostic;
   const double quality_age = wallAge(quality.received_at);
@@ -4866,6 +5600,15 @@ void MainWindow::refreshUi()
                                   static_map_mode_ && data.map_received &&
                                   embedded_map_ready;
   const autolabor_coverage::CoverageStatus& coverage = data.coverage_status;
+  QString coverage_parameter_cap_reason;
+  const bool coverage_parameters_within_cap =
+      !coverage_status_fresh || coverageParametersWithinWatchdog(
+          coveragePlanningParameters(), coverage,
+          &coverage_parameter_cap_reason);
+  const bool coverage_planning_defaults_ready =
+      navigation_profile_synced_ && !navigation_profile_dirty_ &&
+      !navigation_profile_factory_restore_pending_ &&
+      !navigation_profile_apply_watcher_.isRunning();
   const bool coverage_store_ready =
       coverage_map_ready && updateCoverageRegionStore(data, coverage_status_fresh);
   const bool coverage_map_identity_ready =
@@ -5052,7 +5795,7 @@ void MainWindow::refreshUi()
           : QStringLiteral("--"));
   values_["coverage_parameters"]->setText(
       coverage_status_fresh
-          ? QStringLiteral("宽 %1 · 间距 %2 m · 前/倒 %3/%4 m/s · ω≤%5 · 预计 %6 min")
+          ? QStringLiteral("宽 %1 · 间距 %2 m · 清扫前/倒 %3/%4 · 转场前/倒 %5/%6 m/s · 预计 %7 min")
                 .arg(coverage.operation_width_m, 0, 'f', 2)
                 .arg(coverage.lane_spacing_m, 0, 'f', 2)
                 .arg(coverage.max_forward_speed_mps, 0, 'f', 2)
@@ -5060,19 +5803,32 @@ void MainWindow::refreshUi()
                          ? QString::number(coverage.max_reverse_speed_mps,
                                            'f', 2)
                          : QStringLiteral("禁用"))
-                .arg(coverage.max_angular_speed_rps, 0, 'f', 2)
+                .arg(coverage.transition_max_forward_speed_mps, 0, 'f', 2)
+                .arg(coverage.allow_reverse_transit
+                         ? QString::number(
+                               coverage.transition_max_reverse_speed_mps,
+                               'f', 2)
+                         : QStringLiteral("禁用"))
                 .arg(coverage.estimated_total_time_sec / 60.0, 0, 'f', 1)
           : QStringLiteral("--"));
   values_["coverage_parameters"]->setToolTip(
       coverage_status_fresh
-          ? QStringLiteral("R≥%1 m；线加速度≤%2 m/s²；角加速度≤%3 rad/s²；"
-                           "清扫 %4 s + 转场 %5 s；预计倒车转场 %6 次")
+          ? QStringLiteral("架构：首线 Navfn+TEB；后续相邻线直接 Hybrid A*+TEB，"
+                           "按 cusp 拆固定档位 action、事件触发整段重搜。R≥%1 m；清扫线/角加速度≤%2/%3；"
+                           "转场线/角加速度≤%4/%5；转场 ω≤%6 rad/s；"
+                           "清扫 %7 s + 转场 %8 s；预计倒车转场 %9 次；"
+                           "Hybrid 异常重规划重试间隔 %10 s；转场前视 %11 m")
                 .arg(coverage.minimum_turning_radius_m, 0, 'f', 2)
                 .arg(coverage.linear_accel_mps2, 0, 'f', 2)
                 .arg(coverage.angular_accel_rps2, 0, 'f', 2)
+                .arg(coverage.transition_linear_accel_mps2, 0, 'f', 2)
+                .arg(coverage.transition_angular_accel_rps2, 0, 'f', 2)
+                .arg(coverage.transition_max_angular_speed_rps, 0, 'f', 2)
                 .arg(coverage.estimated_sweep_time_sec, 0, 'f', 1)
                 .arg(coverage.estimated_transit_time_sec, 0, 'f', 1)
                 .arg(coverage.estimated_reverse_transitions)
+                .arg(coverage.transit_replan_period_sec, 0, 'f', 1)
+                .arg(coverage.transition_lookahead_dist_m, 0, 'f', 1)
           : QStringLiteral("等待 /coverage/status"));
   QString coverage_kinematics = QStringLiteral("--");
   if (coverage_status_fresh)
@@ -5157,7 +5913,9 @@ void MainWindow::refreshUi()
                                        !coverage_batch_active &&
                                        !coverage_backend_busy;
   const bool coverage_parameters_editable =
-      coverage_editable && !coverage_has_ready_plan;
+      coverage_editable && !coverage_has_ready_plan &&
+      !navigation_profile_apply_watcher_.isRunning() &&
+      !navigation_profile_factory_restore_pending_;
   coverage_width_input_->setEnabled(coverage_parameters_editable);
   coverage_overlap_input_->setEnabled(coverage_parameters_editable);
   coverage_speed_input_->setEnabled(coverage_parameters_editable);
@@ -5169,6 +5927,52 @@ void MainWindow::refreshUi()
   coverage_direction_change_penalty_input_->setEnabled(
       coverage_parameters_editable);
   coverage_handoff_penalty_input_->setEnabled(coverage_parameters_editable);
+  coverage_transit_replan_input_->setEnabled(coverage_parameters_editable);
+  coverage_restore_defaults_button_->setEnabled(
+      coverage_editable && !coverage_has_ready_plan && master_online_ &&
+      ros_interfaces_ready_ && !navigation_profile_apply_watcher_.isRunning());
+  if (coverage_parameter_sync_status_)
+  {
+    if (!static_map_mode_)
+    {
+      coverage_parameter_sync_status_->setText(
+          QStringLiteral("参数同步状态：仅全局地图模式可用"));
+      coverage_parameter_sync_status_->setStyleSheet(
+          QStringLiteral("color:#6b7280;font-size:9pt;"));
+    }
+    else if (navigation_profile_apply_watcher_.isRunning() ||
+             navigation_profile_factory_restore_pending_)
+    {
+      coverage_parameter_sync_status_->setText(
+          navigation_profile_factory_restore_pending_
+              ? QStringLiteral("参数同步状态：正在事务性恢复出厂值……")
+              : QStringLiteral("参数同步状态：正在写入 J6M coverage.yaml……"));
+      coverage_parameter_sync_status_->setStyleSheet(
+          QStringLiteral("color:#1d4ed8;font-size:9pt;"));
+    }
+    else if (coverage_planning_defaults_ready)
+    {
+      coverage_parameter_sync_status_->setText(
+          QStringLiteral("参数同步状态：已应用并写入 J6M coverage.yaml"));
+      coverage_parameter_sync_status_->setStyleSheet(
+          QStringLiteral("color:#047857;font-size:9pt;"));
+    }
+    else if (!navigation_profile_last_error_.isEmpty())
+    {
+      coverage_parameter_sync_status_->setText(
+          QStringLiteral("参数同步状态：失败，覆盖规划/启动已锁定 · ") +
+          navigation_profile_last_error_);
+      coverage_parameter_sync_status_->setStyleSheet(
+          QStringLiteral("color:#b91c1c;font-size:9pt;"));
+    }
+    else
+    {
+      coverage_parameter_sync_status_->setText(
+          QStringLiteral("参数同步状态：等待 J6M 确认，覆盖规划/启动已锁定"));
+      coverage_parameter_sync_status_->setStyleSheet(
+          QStringLiteral("color:#92400e;font-size:9pt;"));
+    }
+  }
   coverage_select_button_->setEnabled(coverage_editable && !coverage_selecting &&
                                       !coverage_has_ready_plan);
   coverage_undo_button_->setEnabled(coverage_selecting && coverage_point_count > 0 &&
@@ -5180,7 +5984,15 @@ void MainWindow::refreshUi()
   coverage_confirm_button_->setEnabled(coverage_map_identity_ready &&
                                         coverage_selecting &&
                                         coverage_point_count >= 3 &&
-                                        !coverage_plan_pending_);
+                                        !coverage_plan_pending_ &&
+                                        coverage_planning_defaults_ready &&
+                                        coverage_parameters_within_cap);
+  coverage_confirm_button_->setToolTip(
+      !coverage_planning_defaults_ready
+          ? QStringLiteral("等待规划参数成功同步到 J6M coverage.yaml")
+          : coverage_parameters_within_cap
+          ? QStringLiteral("确认多边形并生成覆盖轨迹")
+          : coverage_parameter_cap_reason);
   const bool coverage_snapshot_can_save =
       coverage_map_identity_ready && coverage_has_ready_plan &&
       coverage_planned_region_points_.size() >= 3 &&
@@ -5198,6 +6010,8 @@ void MainWindow::refreshUi()
       !coverage_cancel_requested_);
   const bool coverage_can_start = coverage_editable && !coverage_selecting &&
                                   coverage_status_fresh &&
+                                  coverage_planning_defaults_ready &&
+                                  coverage_parameters_within_cap &&
                                   coverage.state == "READY" && coverage.localized &&
                                   coverage.chassis_ready &&
                                   coverage.avoidance_ready &&
@@ -5206,26 +6020,36 @@ void MainWindow::refreshUi()
   coverage_start_button_->setToolTip(
       coverage_can_start
           ? QStringLiteral("后端仍会复核运动门、VCU、FOD 仲裁、定位、里程计、障碍融合和 move_base")
-          : (!coverage_map_ready
+          : (!coverage_planning_defaults_ready
+                 ? QStringLiteral("等待规划参数成功同步到 J6M coverage.yaml")
+                 : (!coverage_parameters_within_cap
+                 ? coverage_parameter_cap_reason
+                 : (!coverage_map_ready
                  ? QStringLiteral("需要显式以 --map-set 启动实验性全局地图模式")
                  : (coverage_status_fresh && !coverage.chassis_ready
                         ? QString::fromStdString(coverage.chassis_detail)
                         : (coverage_status_fresh && !coverage.avoidance_ready
                                ? QStringLiteral("需要新鲜 /scan 且前后 LD19 已参与融合")
-                               : QStringLiteral("需要先生成轨迹并达到 LOCALIZED")))));
+                               : QStringLiteral("需要先生成轨迹并达到 LOCALIZED")))))));
   const bool coverage_batch_can_start =
       coverage_editable && !coverage_selecting && !coverage_has_ready_plan &&
       !coverage_region_queue_.isEmpty() && coverage_status_fresh &&
+      coverage_planning_defaults_ready &&
+      coverage_parameters_within_cap &&
       coverage.localized && coverage.chassis_ready && coverage.avoidance_ready;
   coverage_start_batch_button_->setEnabled(coverage_batch_can_start);
   coverage_start_batch_button_->setToolTip(
       coverage_batch_can_start
           ? QStringLiteral("整批只确认一次；后端按当前队列顺序执行")
-          : (!coverage_map_identity_ready
+          : (!coverage_planning_defaults_ready
+                 ? QStringLiteral("等待规划参数成功同步到 J6M coverage.yaml")
+                 : (!coverage_parameters_within_cap
+                 ? coverage_parameter_cap_reason
+                 : (!coverage_map_identity_ready
                  ? QStringLiteral("需要地图、地图摘要、区域库和 MapDisplay 全部就绪")
                  : (coverage_region_queue_.isEmpty()
                         ? QStringLiteral("请先从已保存区域加入至少一个队列项")
-                        : QStringLiteral("需要定位、底盘和障碍感知全部就绪"))));
+                        : QStringLiteral("需要定位、底盘和障碍感知全部就绪"))))));
   // Once a task is active, pause/cancel are safety controls and stay available
   // even if the map topic subsequently drops out.
   coverage_pause_button_->setEnabled(master_online_ && ros_interfaces_ready_ &&
@@ -5606,6 +6430,15 @@ void MainWindow::confirmCoverageSelection()
 {
   if (!coverage_batch_id_.empty() || coverage_task_lifecycle_started_)
     return;
+  if (!navigation_profile_synced_ || navigation_profile_dirty_ ||
+      navigation_profile_factory_restore_pending_ ||
+      navigation_profile_apply_watcher_.isRunning())
+  {
+    QMessageBox::warning(
+        this, QStringLiteral("覆盖轨迹尚未生成"),
+        QStringLiteral("请等待全部规划参数成功应用并写入 J6M coverage.yaml。"));
+    return;
+  }
   std::vector<geometry_msgs::Point> points;
   std::string source_region_id;
   {
@@ -5626,6 +6459,14 @@ void MainWindow::confirmCoverageSelection()
   const TelemetrySnapshot data = snapshot();
   const bool status_fresh = data.coverage_status_received &&
                             wallAge(data.coverage_status_received_at) <= 2.0;
+  QString parameter_cap_reason;
+  if (status_fresh && !coverageParametersWithinWatchdog(
+          parameters, data.coverage_status, &parameter_cap_reason))
+  {
+    QMessageBox::warning(this, QStringLiteral("规划参数超过安全上限"),
+                         parameter_cap_reason);
+    return;
+  }
   const std::string map_digest = status_fresh
                                      ? data.coverage_status.map_digest
                                      : std::string();
@@ -5727,6 +6568,8 @@ void MainWindow::confirmCoverageSelection()
         parameters.direction_change_penalty_sec;
     call.request.segment_handoff_penalty_sec =
         parameters.segment_handoff_penalty_sec;
+    call.request.transit_replan_period_sec =
+        parameters.transit_replan_period_sec;
     call.request.map_digest = map_digest;
     if (!client.call(call))
     {
@@ -6037,6 +6880,15 @@ void MainWindow::manageSavedCoverageRegions()
 
 void MainWindow::startCoverageBatch()
 {
+  if (!navigation_profile_synced_ || navigation_profile_dirty_ ||
+      navigation_profile_factory_restore_pending_ ||
+      navigation_profile_apply_watcher_.isRunning())
+  {
+    QMessageBox::warning(
+        this, QStringLiteral("清扫队列未启动"),
+        QStringLiteral("请等待全部规划参数成功应用并写入 J6M coverage.yaml。"));
+    return;
+  }
   const TelemetrySnapshot data = snapshot();
   const bool status_fresh = data.coverage_status_received &&
                             wallAge(data.coverage_status_received_at) <= 2.0;
@@ -6053,6 +6905,14 @@ void MainWindow::startCoverageBatch()
     return;
   const CoveragePlanningUiParameters parameters =
       coveragePlanningParameters();
+  QString parameter_cap_reason;
+  if (!coverageParametersWithinWatchdog(
+          parameters, data.coverage_status, &parameter_cap_reason))
+  {
+    QMessageBox::warning(this, QStringLiteral("清扫队列未启动"),
+                         parameter_cap_reason);
+    return;
+  }
   const std::string map_digest = data.coverage_status.map_digest;
   const QVector<CoverageRegionRecord> queue = coverage_region_queue_;
   const std::uint64_t queue_generation = coverage_batch_generation_;
@@ -6247,6 +7107,8 @@ void MainWindow::startCoverageBatch()
             parameters.direction_change_penalty_sec;
         call.request.segment_handoff_penalty_sec =
             parameters.segment_handoff_penalty_sec;
+        call.request.transit_replan_period_sec =
+            parameters.transit_replan_period_sec;
         call.request.map_digest = map_digest;
         for (const CoverageRegionRecord& record : queue)
         {
@@ -6387,8 +7249,29 @@ void MainWindow::startCoverage()
   if (coverage_plan_id_.empty() || coverage_command_pending_ ||
       !coverage_batch_id_.empty() || coverage_task_lifecycle_started_)
     return;
+  if (!navigation_profile_synced_ || navigation_profile_dirty_ ||
+      navigation_profile_factory_restore_pending_ ||
+      navigation_profile_apply_watcher_.isRunning())
+  {
+    QMessageBox::warning(
+        this, QStringLiteral("覆盖任务未启动"),
+        QStringLiteral("请等待全部规划参数成功应用并写入 J6M coverage.yaml。"));
+    return;
+  }
   const CoveragePlanningUiParameters parameters =
       coveragePlanningParameters();
+  const TelemetrySnapshot parameter_state = snapshot();
+  QString parameter_cap_reason;
+  if (parameter_state.coverage_status_received &&
+      wallAge(parameter_state.coverage_status_received_at) <= 2.0 &&
+      !coverageParametersWithinWatchdog(
+          parameters, parameter_state.coverage_status,
+          &parameter_cap_reason))
+  {
+    QMessageBox::warning(this, QStringLiteral("覆盖任务未启动"),
+                         parameter_cap_reason);
+    return;
+  }
   const std::string plan_id = coverage_plan_id_;
   const std::string map_digest = coverage_planned_region_map_digest_;
   const std::uint64_t plan_generation = coverage_plan_generation_;
@@ -6466,6 +7349,8 @@ void MainWindow::startCoverage()
         parameters.direction_change_penalty_sec;
     call.request.segment_handoff_penalty_sec =
         parameters.segment_handoff_penalty_sec;
+    call.request.transit_replan_period_sec =
+        parameters.transit_replan_period_sec;
     if (!client.call(call))
       return QStringLiteral("ERR|覆盖执行服务调用失败");
     return QString(call.response.accepted ? QStringLiteral("OK|")
@@ -6895,6 +7780,153 @@ void MainWindow::requestFodMode(bool enabled)
   }));
 }
 
+void MainWindow::switchVisionBackend()
+{
+  if (!vision_model_combo_ || !vision_model_switch_button_ ||
+      vision_model_switch_pending_ ||
+      vision_model_switch_process_.state() != QProcess::NotRunning)
+    return;
+
+  const QString target_backend =
+      vision_model_combo_->currentData().toString().trimmed();
+  if (target_backend != QStringLiteral("yolo") &&
+      target_backend != QStringLiteral("locateanything") &&
+      target_backend != QStringLiteral("detect_and_classify"))
+  {
+    QMessageBox::warning(this, QStringLiteral("模型选择无效"),
+                         QStringLiteral("请选择 YOLO11-GAM、LocateAnything-3B 或 detect and classify。"));
+    return;
+  }
+  if (target_backend == configured_vision_backend_)
+  {
+    QMessageBox::information(
+        this, QStringLiteral("无需切换"),
+        QStringLiteral("当前已经使用 %1。")
+            .arg(visionBackendDisplayName(target_backend)));
+    return;
+  }
+
+  const QFileInfo switch_script(vision_backend_switch_script_);
+  if (!switch_script.isAbsolute() || !switch_script.isFile() ||
+      !switch_script.isExecutable())
+  {
+    QMessageBox::warning(
+        this, QStringLiteral("模型切换脚本不可用"),
+        QStringLiteral("未找到可执行脚本：%1")
+            .arg(vision_backend_switch_script_.isEmpty()
+                     ? QStringLiteral("<未配置>")
+                     : vision_backend_switch_script_));
+    return;
+  }
+  if (!vision_model_switch_button_->isEnabled())
+  {
+    QMessageBox::warning(
+        this, QStringLiteral("当前不能切换模型"),
+        vision_model_switch_hint_
+            ? vision_model_switch_hint_->text()
+            : QStringLiteral("请先取消任务、退出视觉行驶模式并等待车辆停车。"));
+    return;
+  }
+
+  QString target_detail;
+  if (target_backend == QStringLiteral("yolo"))
+    target_detail = QStringLiteral(
+        "YOLO11 + GAM，权重 best6.pt，输出 metal / plastic / paper / glass / "
+        "kitchen_waste 五类。");
+  else if (target_backend == QStringLiteral("locateanything"))
+    target_detail = QStringLiteral(
+        "LocateAnything-3B，语义 prompt 输出唯一 trash 类；该后端保持 "
+        "recognition-only，不参与视觉运动。");
+  else
+    target_detail = QStringLiteral(
+        "detect and classify：单类 YOLO11-GAM 检测 trash，再由 YOLO11-cls "
+        "输出五种材质；分类投票绑定世界 object_id。该后端在实车验收前保持 "
+        "recognition-only，不参与视觉运动。");
+  const QMessageBox::StandardButton answer = QMessageBox::question(
+      this, QStringLiteral("确认切换视觉识别模型"),
+      QStringLiteral("将从 %1 切换到 %2。\n\n%3\n\n"
+                     "系统会同步 NVIDIA/J6M 模型契约并执行完整冷重启；当前导航目标会取消，"
+                     "Qt 会关闭后自动重新打开，当前静态地图模式会保留。"
+                     "为避免授权跨代，新一轮不会继承本次 --authorize-fod-motion。\n\n"
+                     "是否继续？")
+          .arg(visionBackendDisplayName(configured_vision_backend_),
+               visionBackendDisplayName(target_backend), target_detail),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+  if (answer != QMessageBox::Yes)
+    return;
+
+  vision_model_switch_pending_ = true;
+  vision_model_combo_->setEnabled(false);
+  vision_model_switch_button_->setEnabled(false);
+  vision_model_switch_hint_->setText(
+      QStringLiteral("正在校验模型、停车状态和跨机契约；通过后安排完整冷重启……"));
+  appendEvent(QStringLiteral("正在申请将视觉模型切换为 %1；不会继承一次性视觉运动授权。")
+                  .arg(visionBackendDisplayName(target_backend)),
+              true);
+
+  vision_model_switch_process_.setWorkingDirectory(
+      QDir(switch_script.absolutePath()).absoluteFilePath(QStringLiteral("..")));
+  vision_model_switch_process_.setProcessChannelMode(QProcess::SeparateChannels);
+  vision_model_switch_process_.start(
+      vision_backend_switch_script_,
+      { QStringLiteral("--backend"), target_backend,
+        QStringLiteral("--restart-managed") });
+}
+
+void MainWindow::handleVisionModelSwitchFinished(
+    int exit_code, QProcess::ExitStatus exit_status)
+{
+  const QString standard_output =
+      QString::fromLocal8Bit(vision_model_switch_process_.readAllStandardOutput()).trimmed();
+  const QString standard_error =
+      QString::fromLocal8Bit(vision_model_switch_process_.readAllStandardError()).trimmed();
+  const bool normal = exit_status == QProcess::NormalExit && exit_code == 0;
+  if (!normal)
+  {
+    vision_model_switch_pending_ = false;
+    const QString detail = !standard_error.isEmpty()
+                               ? standard_error
+                               : (!standard_output.isEmpty()
+                                      ? standard_output
+                                      : QStringLiteral("切换脚本异常退出（状态 %1）")
+                                            .arg(exit_code));
+    if (vision_model_switch_hint_)
+      vision_model_switch_hint_->setText(detail);
+    appendEvent(QStringLiteral("视觉模型切换未安排：") + detail, true);
+    QMessageBox::warning(this, QStringLiteral("视觉模型未切换"), detail);
+    return;
+  }
+
+  if (standard_output.contains(QStringLiteral("UNCHANGED|")))
+  {
+    vision_model_switch_pending_ = false;
+    if (vision_model_switch_hint_)
+      vision_model_switch_hint_->setText(QStringLiteral("当前已经使用所选模型。"));
+    return;
+  }
+  if (vision_model_switch_hint_)
+    vision_model_switch_hint_->setText(
+        QStringLiteral("切换任务已交给独立服务；即将完整冷重启，Qt 会自动重新打开。"));
+  appendEvent(QStringLiteral("视觉模型切换已安排；等待完整冷重启。") +
+                  (standard_output.isEmpty()
+                       ? QString()
+                       : QStringLiteral(" ") + standard_output),
+              true);
+}
+
+void MainWindow::handleVisionModelSwitchError(QProcess::ProcessError error)
+{
+  if (!vision_model_switch_pending_ || error == QProcess::UnknownError)
+    return;
+  vision_model_switch_pending_ = false;
+  const QString detail = QStringLiteral("无法运行模型切换脚本：%1")
+                             .arg(vision_model_switch_process_.errorString());
+  if (vision_model_switch_hint_)
+    vision_model_switch_hint_->setText(detail);
+  appendEvent(detail, true);
+  QMessageBox::warning(this, QStringLiteral("视觉模型未切换"), detail);
+}
+
 void MainWindow::applyVisualLockConfidence()
 {
   if (!master_online_ || !ros_interfaces_ready_ ||
@@ -6918,17 +7950,41 @@ void MainWindow::applyVisualLockConfidence()
       (visual_status.state == QStringLiteral("DISABLED") ||
        visual_status.state == QStringLiteral("COMPLETE") ||
        visual_status.state == QStringLiteral("ABORT"));
-  if (!stopped)
+  if (status_fresh && !stopped)
   {
     QMessageBox::warning(
-        this, QStringLiteral("不能修改目标锁定阈值"),
-        QStringLiteral("仅允许在视觉控制器处于 DISABLED、COMPLETE 或 "
-                       "ABORT 停车状态时修改。请先退出视觉行驶模式，"
-                       "并等待状态刷新。"));
+        this, QStringLiteral("不能修改检测置信度阈值"),
+        QStringLiteral("视觉行驶控制器仍处于活动状态。请先退出视觉行驶模式，"
+                       "等待 DISABLED、COMPLETE 或 ABORT 停车状态。"));
+    return;
+  }
+
+  const bool detector_diagnostic_fresh =
+      data.detector_diagnostic.received &&
+      wallAge(data.detector_diagnostic.received_at) <= 3.0;
+  QString diagnostic_backend =
+      diagnosticValue(data.detector_diagnostic, "backend_id", QString());
+  if (diagnostic_backend.isEmpty())
+    diagnostic_backend =
+        diagnosticValue(data.detector_diagnostic, "backend", QString());
+  const bool confidence_supported =
+      detector_diagnostic_fresh &&
+      diagnostic_backend == configured_vision_backend_ &&
+      textIsTrue(diagnosticValue(data.detector_diagnostic,
+                                 "detector_confidence_supported",
+                                 QStringLiteral("false")));
+  if (!confidence_supported)
+  {
+    QMessageBox::warning(
+        this, QStringLiteral("当前模型不能调整检测置信度"),
+        diagnostic_backend == QStringLiteral("locateanything")
+            ? QStringLiteral("LocateAnything 不提供可校准的逐框置信度，不能伪造阈值生效。")
+            : QStringLiteral("尚未收到当前视觉后端的阈值能力与回读状态。"));
     return;
   }
 
   const double requested = visual_lock_confidence_input_->value();
+  const QString expected_backend = configured_vision_backend_;
   visual_lock_confidence_request_pending_ = true;
   visual_lock_confidence_input_->setEnabled(false);
   visual_lock_confidence_apply_button_->setEnabled(false);
@@ -6942,58 +7998,81 @@ void MainWindow::applyVisualLockConfidence()
             {
               visual_lock_confidence_input_->setValue(result.effective);
               appendEvent(
-                  QStringLiteral("目标锁定阈值已设为 %1（%2%）；重启后恢复配置默认值。")
+                  QStringLiteral("%1 检测阈值已设为 %2（%3%），当前 ROS master 内全局生效。")
+                      .arg(visionBackendDisplayName(result.backend_id))
                       .arg(result.effective, 0, 'f', 2)
                       .arg(result.effective * 100.0, 0, 'f', 0));
             }
             else
             {
-              appendEvent(QStringLiteral("修改目标锁定阈值：") + result.message,
+              appendEvent(QStringLiteral("修改检测置信度阈值：") + result.message,
                           true);
-              QMessageBox::warning(this, QStringLiteral("目标锁定阈值未修改"),
+              QMessageBox::warning(this, QStringLiteral("检测置信度阈值未修改"),
                                    result.message);
             }
             watcher->deleteLater();
           });
-  watcher->setFuture(QtConcurrent::run([requested]() {
+  watcher->setFuture(QtConcurrent::run([requested, expected_backend]() {
     VisualConfidenceResult result;
     ros::NodeHandle node;
     ros::ServiceClient client =
         node.serviceClient<dynamic_reconfigure::Reconfigure>(
-            kVisualServoReconfigureService, false);
+            kFodDetectionConfidenceService, false);
     if (!client.waitForExistence(ros::Duration(1.0)))
     {
-      result.message = QStringLiteral("视觉控制动态参数服务未启动：%1")
+      result.message = QStringLiteral("检测器阈值服务未启动：%1")
                            .arg(QString::fromLatin1(
-                               kVisualServoReconfigureService));
+                               kFodDetectionConfidenceService));
       return result;
     }
 
     dynamic_reconfigure::Reconfigure call;
     dynamic_reconfigure::DoubleParameter parameter;
-    parameter.name = "min_confidence";
+    parameter.name = "detector_confidence";
     parameter.value = requested;
     call.request.config.doubles.push_back(parameter);
     if (!client.call(call))
     {
-      result.message = QStringLiteral("视觉控制动态参数服务调用失败");
+      result.message = QStringLiteral("检测器阈值服务调用失败");
       return result;
     }
-    if (!configDouble(call.response.config, "min_confidence", &result.effective) ||
+    bool supported = false;
+    bool accepted = false;
+    std::string backend_id;
+    std::string backend_message;
+    configString(call.response.config, "message", &backend_message);
+    if (!configBool(call.response.config, "supported", &supported) ||
+        !configBool(call.response.config, "accepted", &accepted) ||
+        !configString(call.response.config, "backend_id", &backend_id) ||
+        !configDouble(call.response.config, "detector_confidence", &result.effective) ||
         !std::isfinite(result.effective))
     {
-      result.message = QStringLiteral("视觉控制器未返回有效的目标锁定阈值");
+      result.message = QStringLiteral("检测器未返回完整的阈值能力与回读结果");
+      return result;
+    }
+    result.backend_id = QString::fromStdString(backend_id);
+    if (result.backend_id != expected_backend)
+    {
+      result.message = QStringLiteral("后端回读不一致：期望 %1，实际 %2")
+                           .arg(expected_backend, result.backend_id);
+      return result;
+    }
+    if (!supported || !accepted)
+    {
+      result.message = backend_message.empty()
+                           ? QStringLiteral("当前后端不支持实时检测阈值")
+                           : QString::fromStdString(backend_message);
       return result;
     }
     if (std::abs(result.effective - requested) > 0.0005)
     {
       result.message =
-          QStringLiteral("控制器保留了原阈值 %1；可能已离开允许修改的停车状态。")
+          QStringLiteral("检测器回读阈值为 %1，与请求值不一致。")
               .arg(result.effective, 0, 'f', 2);
       return result;
     }
     result.success = true;
-    result.message = QStringLiteral("已应用并回读目标锁定阈值");
+    result.message = QStringLiteral("已应用并回读真实检测阈值");
     return result;
   }));
 }

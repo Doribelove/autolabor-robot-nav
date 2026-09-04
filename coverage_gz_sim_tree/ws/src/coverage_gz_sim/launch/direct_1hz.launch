@@ -1,0 +1,31 @@
+<launch>
+  <arg name="gui" default="false"/>
+  <arg name="run_label" default="direct_hybrid_unconditional_1hz"/>
+  <arg name="result_dir"/>
+  <arg name="map_yaml"
+       default="/home/slam/robot_j6m_ws/global_maps/map_sets/latest/map_fused_2d/map.yaml"/>
+  <arg name="regions_file"
+       default="/home/slam/robot_j6m_ws/global_maps/map_sets/latest/coverage_regions/fused/regions.json"/>
+  <arg name="initial_x" default="16.65"/>
+  <arg name="initial_y" default="-39.30"/>
+  <arg name="initial_yaw" default="0.0"/>
+  <arg name="region_order" default="[A区]"/>
+  <arg name="maximum_wall_time" default="600.0"/>
+
+  <!-- Deliberately one-bit A/B branch: all geometry, controller, speed,
+       acceleration, map, tolerances and lifecycle settings come from
+       direct_event.launch unchanged. -->
+  <include file="$(find coverage_gz_sim)/launch/direct_event.launch">
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="run_label" value="$(arg run_label)"/>
+    <arg name="result_dir" value="$(arg result_dir)"/>
+    <arg name="map_yaml" value="$(arg map_yaml)"/>
+    <arg name="regions_file" value="$(arg regions_file)"/>
+    <arg name="initial_x" value="$(arg initial_x)"/>
+    <arg name="initial_y" value="$(arg initial_y)"/>
+    <arg name="initial_yaw" value="$(arg initial_yaw)"/>
+    <arg name="region_order" value="$(arg region_order)"/>
+    <arg name="maximum_wall_time" value="$(arg maximum_wall_time)"/>
+    <arg name="hybrid_replan_every_cycle" value="true"/>
+  </include>
+</launch>

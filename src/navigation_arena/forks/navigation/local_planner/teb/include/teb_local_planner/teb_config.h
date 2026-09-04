@@ -92,6 +92,7 @@ public:
   //! Robot related parameters
   struct Robot
   {
+    int motion_direction_mode; //!< -1 reverse-only, 0 automatic, 1 forward-only
     double max_vel_x; //!< Maximum translational velocity of the robot
     double max_vel_x_backwards; //!< Maximum translational velocity of the robot for driving backwards
     double max_vel_y; //!< Maximum strafing velocity of the robot (should be zero for non-holonomic robots!)
@@ -269,6 +270,7 @@ public:
     
     // Robot
 
+    robot.motion_direction_mode = 0;
     robot.max_vel_x = 0.4;
     robot.max_vel_x_backwards = 0.2;
     robot.max_vel_y = 0.0;

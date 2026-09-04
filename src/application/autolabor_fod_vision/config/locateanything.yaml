@@ -1,0 +1,104 @@
+# NVIDIA LocateAnything-3B open-vocabulary FOD recognition.
+#
+# The upstream checkpoint is licensed for non-commercial research use.  It
+# does not expose calibrated per-box confidence.  The adapter therefore emits
+# confidence=0 and withholds per-box depth from J6M motion gates.  These boxes
+# are for recognition/debug display until a labelled on-robot calibration and
+# latency acceptance test exists.
+locateanything_generation_mode: hybrid
+locateanything_max_new_tokens: 128
+locateanything_temperature: 0.0
+# Zero disables the adapter's pre-inference resize. The native
+# /fod_camera/image_raw frame is passed to LocateAnything unchanged; the
+# checkpoint's mandatory tensor preprocessing still runs internally.
+locateanything_max_image_side: 0
+locateanything_jpeg_quality: 95
+locateanything_min_box_area_fraction: 0.00005
+locateanything_max_box_area_fraction: 0.75
+locateanything_startup_timeout_sec: 420.0
+locateanything_inference_timeout_sec: 180.0
+
+locateanything_categories:
+  # Retained five-class configuration for reference and YOLO switch-back:
+  # - class_id: 0
+  #   class_name: metal
+  #   prompt: metal trash or metallic litter lying on the ground
+  #   aliases:
+  #     - metal trash
+  #     - metallic litter
+  #     - metal can
+  # - class_id: 1
+  #   class_name: plastic
+  #   prompt: plastic trash or plastic litter lying on the ground
+  #   aliases:
+  #     - plastic trash
+  #     - plastic litter
+  #     - plastic bag
+  #     - plastic bottle
+  # - class_id: 2
+  #   class_name: paper
+  #   prompt: paper trash or paper litter lying on the ground
+  #   aliases:
+  #     - paper trash
+  #     - paper litter
+  #     - tissue paper
+  #     - cardboard
+  # - class_id: 3
+  #   class_name: glass
+  #   prompt: glass trash or broken glass lying on the ground
+  #   aliases:
+  #     - glass trash
+  #     - broken glass
+  #     - glass bottle
+  # - class_id: 4
+  #   class_name: kitchen_waste
+  #   prompt: food scraps or kitchen waste lying on the ground
+  #   aliases:
+  #     - food scraps
+  #     - kitchen waste
+  #     - food waste
+
+  - class_id: 0
+    class_name: trash
+    # LocateAnything treats every query as a positive target. Keep exclusions
+    # out of this list and let the CLIP post-filter reject them below.
+    prompt: a crumpled paper ball lying on the floor
+    query_prompts:
+      - a crumpled paper ball lying on the floor
+      - a sheet of waste paper lying on the floor
+      - a discarded bottle lying on the floor
+      - a discarded packaging bag lying on the floor
+      - a discarded beverage can lying on the floor
+      - food waste lying on the floor
+    aliases:
+    - trash
+    - litter
+    - garbage
+    - waste
+    - debris
+    - rubbish
+
+# LocateAnything has no calibrated box confidence, so every candidate is
+# checked by CLIP in one frame batch. These negative phrases are post-filter
+# references; they are never sent to the grounding model as objects to locate.
+locateanything_clip_positive_prompts:
+  - a crumpled paper ball lying on the floor
+  - a sheet of waste paper lying on the floor
+  - a discarded bottle lying on the floor
+  - a discarded packaging bag lying on the floor
+  - a discarded beverage can lying on the floor
+  - food waste lying on the floor
+
+locateanything_clip_negative_prompts:
+  - a person
+  - a human body part
+  - clothing worn by a person
+  - shoes worn by a person
+  - a chair
+  - a reflection on the floor
+  - glare on the floor
+  - a floor pattern or tile seam
+  - a floor surface texture or shadow
+
+locateanything_clip_positive_probability: 0.50
+locateanything_clip_crop_padding_fraction: 0.10

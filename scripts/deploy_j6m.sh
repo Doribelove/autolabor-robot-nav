@@ -116,6 +116,8 @@ rsync -a "$DUAL_HOST_CONFIG" \
 ssh "$target" "set -eu
   chmod 0755 '$J6M_RUNTIME_BASE/dual_host/bin/'*.sh '$J6M_RUNTIME_BASE/bin/'*.sh
   grep -Fq 'requested_fod_motion_enabled' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
+  grep -Fq 'requested_fod_model_sha256' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
+  grep -Fq 'requested_fod_required_class_names' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
   '$J6M_RUNTIME_BASE/bin/mount_chroot.sh' >/dev/null
   trap \"'$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null 2>&1 || true\" EXIT
   chroot '$rootfs' /usr/bin/env RELEASE='$stamp' /bin/bash -lc '
@@ -140,12 +142,19 @@ ssh "$target" "set -eu
     rospack find robot_bringup >/dev/null
     rospack find teb_local_planner >/dev/null
     rosmsg md5 autolabor_coverage/CoverageRegion >/dev/null
+    rosmsg md5 autolabor_coverage/CoveragePlanningParameters >/dev/null
     rosmsg md5 autolabor_coverage/CoverageStatus >/dev/null
+    rosmsg md5 autolabor_coverage/EnforcedPath >/dev/null
+    rosmsg md5 autolabor_coverage/HybridTransitionRequest >/dev/null
+    rosmsg md5 autolabor_coverage/HybridTransitionResult >/dev/null
     rosmsg md5 autolabor_coverage/TransitProfile >/dev/null
     rossrv md5 autolabor_coverage/PlanCoverage >/dev/null
+    rossrv md5 autolabor_coverage/PrecomputeTransitions >/dev/null
     rossrv md5 autolabor_coverage/CancelCoverageBatch >/dev/null
     rossrv md5 autolabor_coverage/SetCoverageOwner >/dev/null
     rossrv md5 autolabor_coverage/SetEnforcedPath >/dev/null
+    rossrv md5 autolabor_coverage/SetNavigationProfile >/dev/null
+    rossrv md5 autolabor_coverage/SetCoveragePlanningDefaults >/dev/null
     rossrv md5 autolabor_coverage/StartCoverageBatch >/dev/null
   '
   '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"
@@ -175,14 +184,24 @@ ssh "$target" "set -eu
     rospack find autolabor_fod_control >/dev/null
     rospack find teb_local_planner >/dev/null
     rosmsg md5 autolabor_coverage/CoverageRegion >/dev/null
+    rosmsg md5 autolabor_coverage/CoveragePlanningParameters >/dev/null
     rosmsg md5 autolabor_coverage/CoverageStatus >/dev/null
+    rosmsg md5 autolabor_coverage/EnforcedPath >/dev/null
+    rosmsg md5 autolabor_coverage/HybridTransitionRequest >/dev/null
+    rosmsg md5 autolabor_coverage/HybridTransitionResult >/dev/null
     rosmsg md5 autolabor_coverage/TransitProfile >/dev/null
     rossrv md5 autolabor_coverage/PlanCoverage >/dev/null
+    rossrv md5 autolabor_coverage/PrecomputeTransitions >/dev/null
     rossrv md5 autolabor_coverage/CancelCoverageBatch >/dev/null
     rossrv md5 autolabor_coverage/SetCoverageOwner >/dev/null
     rossrv md5 autolabor_coverage/SetEnforcedPath >/dev/null
+    rossrv md5 autolabor_coverage/SetNavigationProfile >/dev/null
+    rossrv md5 autolabor_coverage/SetCoveragePlanningDefaults >/dev/null
     rossrv md5 autolabor_coverage/StartCoverageBatch >/dev/null
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_coverage/coverage_manager.py
+    test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_coverage/hybrid_teb_command_mux.py
+    test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_coverage/config/coverage.yaml
+    test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_coverage/config/coverage_factory_defaults.yaml
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_fod_control/fod_visual_servo_node.py
     test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_fod_control/launch/visual_recovery.launch
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_global_planner.so

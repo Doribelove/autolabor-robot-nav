@@ -211,7 +211,10 @@ public:
     // turning-radius constraint so carlike robots honor
     // weight_kinematics_forward_drive just like differential-drive robots.
     Eigen::Vector2d angle_vec ( cos(conf1->theta()), sin(conf1->theta()) );
-    _error[1] = penaltyBoundFromBelow(deltaS.dot(angle_vec), 0, 0);
+    const double longitudinal_displacement = deltaS.dot(angle_vec);
+    _error[1] = cfg_->robot.motion_direction_mode < 0
+        ? penaltyBoundFromBelow(-longitudinal_displacement, 0, 0)
+        : penaltyBoundFromBelow(longitudinal_displacement, 0, 0);
 
     // limit minimum turning radius
     double angle_diff = g2o::normalize_theta( conf2->theta() - conf1->theta() );

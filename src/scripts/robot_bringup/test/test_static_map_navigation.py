@@ -100,7 +100,38 @@ class StaticMapNavigationContractTest(unittest.TestCase):
             for item in root.findall("arg")
         }
         self.assertTrue({"use_static_map", "map_file"} <= set(arguments))
-        self.assertEqual("8.0", arguments["static_teb_lookahead_dist"])
+        self.assertEqual(
+            "$(eval '/odom' if arg('use_static_map') else arg('odom_topic'))",
+            arguments["teb_odom_topic"],
+        )
+        self.assertEqual("4.0", arguments["static_teb_lookahead_dist"])
+        self.assertEqual("/cmd_vel_teb", arguments["teb_command_topic"])
+        self.assertEqual(
+            "$(eval arg('teb_command_topic') if arg('use_static_map') else arg('cmd_vel_topic'))",
+            arguments["move_base_cmd_vel_topic"],
+        )
+        move_base = root.find("./node[@name='move_base']")
+        self.assertIsNotNone(move_base)
+        move_base_parameters = {
+            item.attrib["name"]: item.attrib.get("value")
+            for item in move_base.findall("param")
+        }
+        move_base_remaps = {
+            item.attrib["from"]: item.attrib.get("to")
+            for item in move_base.findall("remap")
+        }
+        self.assertEqual(
+            "$(arg teb_odom_topic)",
+            move_base_remaps["odom"],
+        )
+        self.assertEqual(
+            "$(arg move_base_cmd_vel_topic)",
+            move_base_remaps["cmd_vel"],
+        )
+        self.assertEqual(
+            "$(arg teb_odom_topic)",
+            move_base_parameters["TebLocalPlannerROS/odom_topic"],
+        )
         self.assertIn('pkg="map_server" type="map_server"', text)
         self.assertIn('type="localization_cmd_vel_gate.py"', text)
         self.assertIn('<param name="cancel_topic" value="/move_base/cancel"/>', text)
@@ -132,7 +163,80 @@ class StaticMapNavigationContractTest(unittest.TestCase):
         self.assertIn(
             'name="CoverageGlobalPlanner/hybrid_planning_timeout"', text
         )
+        self.assertIn(
+            'name="CoverageGlobalPlanner/hybrid_cache_collision_check_horizon"',
+            text,
+        )
         self.assertNotIn('pkg="amcl"', text)
+
+    def test_static_coverage_mux_preserves_localization_gate_and_live_tf_pose(self):
+        navigation = (
+            PACKAGE_ROOT / "launch" / "navigation_j6m.launch"
+        ).read_text(encoding="utf-8")
+        coverage_launch_path = (
+            WORKSPACE_ROOT / "src" / "application" /
+            "autolabor_coverage" / "launch" / "coverage.launch"
+        )
+        coverage_launch = coverage_launch_path.read_text(encoding="utf-8")
+        coverage_config = yaml.safe_load(
+            (
+                WORKSPACE_ROOT / "src" / "application" /
+                "autolabor_coverage" / "config" / "coverage.yaml"
+            ).read_text(encoding="utf-8")
+        )
+        self.assertIn(
+            '<arg name="command_topic" value="$(arg localization_gate_input_topic)"/>',
+            navigation,
+        )
+        self.assertIn(
+            '<arg name="teb_command_topic" value="$(arg teb_command_topic)"/>',
+            navigation,
+        )
+        self.assertIn(
+            'type="hybrid_teb_command_mux.py"', coverage_launch
+        )
+        self.assertIn(
+            'name="hybrid_teb_command_mux" output="screen" required="true"',
+            coverage_launch,
+        )
+        self.assertIn(
+            '<param name="use_tf_pose" type="bool" value="$(arg use_tf_pose)"/>',
+            coverage_launch,
+        )
+        self.assertIn(
+            '<param name="command_topic" value="$(arg command_topic)"/>',
+            coverage_launch,
+        )
+        self.assertIn(
+            'value="/move_base/CoverageGlobalPlanner/hybrid_path_safe"',
+            coverage_launch,
+        )
+        self.assertIn(
+            '<param name="safety_timeout" value="1.50"/>',
+            coverage_launch,
+        )
+        self.assertIn('type="double" value="3.00"', navigation)
+        self.assertTrue(coverage_config["hierarchical_hybrid_on_demand"])
+        self.assertTrue(coverage_config["direct_hybrid_to_final_goal"])
+        self.assertTrue(coverage_config["entry_navfn_single_topology"])
+        self.assertFalse(coverage_config["hybrid_execute_unsplit_cusps"])
+        self.assertFalse(coverage_config["online_hybrid_without_precompute"])
+        self.assertEqual(1.35, coverage_config["minimum_turning_radius_m"])
+        self.assertEqual(
+            2.0, coverage_config["hybrid_transit_lookahead_dist_m"]
+        )
+
+    def test_static_teb_cruise_objective_can_reach_the_dynamic_speed_ceiling(self):
+        teb = yaml.safe_load(
+            (
+                WORKSPACE_ROOT / "src" / "navigation_arena" /
+                "arena-rosnav-3D" / "arena_navigation" /
+                "arena_local_planer" / "model_based" / "conventional" /
+                "config" / "dingo" / "teb_local_planner_params_nomap.yaml"
+            ).read_text(encoding="utf-8")
+        )["TebLocalPlannerROS"]
+        self.assertEqual(12.0, teb["weight_optimaltime"])
+        self.assertEqual(10.0, teb["weight_acc_lim_x"])
 
     def test_static_navigation_rejects_unknown_without_changing_nomap_default(self):
         self.assertIn("bool treat_unknown_as_obstacle", TEB_CONFIG_HEADER)

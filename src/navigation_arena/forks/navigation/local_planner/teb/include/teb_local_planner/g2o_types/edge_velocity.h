@@ -111,12 +111,17 @@ public:
     
     const double omega = angle_diff / deltaT->estimate();
   
-    const double backwards_epsilon = std::min(
-        cfg_->optim.penalty_epsilon,
-        std::max(0.0, cfg_->robot.max_vel_x_backwards));
+    const double minimum_velocity = cfg_->robot.motion_direction_mode > 0
+        ? 0.0 : -cfg_->robot.max_vel_x_backwards;
+    const double maximum_velocity = cfg_->robot.motion_direction_mode < 0
+        ? 0.0 : cfg_->robot.max_vel_x;
+    const double backwards_epsilon = minimum_velocity < 0.0
+        ? std::min(cfg_->optim.penalty_epsilon, -minimum_velocity) : 0.0;
+    const double forwards_epsilon = maximum_velocity > 0.0
+        ? std::min(cfg_->optim.penalty_epsilon, maximum_velocity) : 0.0;
     _error[0] = penaltyBoundToInterval(
-        vel, -cfg_->robot.max_vel_x_backwards, cfg_->robot.max_vel_x,
-        backwards_epsilon, cfg_->optim.penalty_epsilon);
+        vel, minimum_velocity, maximum_velocity,
+        backwards_epsilon, forwards_epsilon);
     _error[1] = penaltyBoundToInterval(omega, cfg_->robot.max_vel_theta,cfg_->optim.penalty_epsilon);
 
     ROS_ASSERT_MSG(std::isfinite(_error[0]), "EdgeVelocity::computeError() _error[0]=%f _error[1]=%f\n",_error[0],_error[1]);
@@ -263,12 +268,17 @@ public:
     double vy = r_dy / deltaT->estimate();
     double omega = g2o::normalize_theta(conf2->theta() - conf1->theta()) / deltaT->estimate();
     
-    const double backwards_epsilon = std::min(
-        cfg_->optim.penalty_epsilon,
-        std::max(0.0, cfg_->robot.max_vel_x_backwards));
+    const double minimum_velocity = cfg_->robot.motion_direction_mode > 0
+        ? 0.0 : -cfg_->robot.max_vel_x_backwards;
+    const double maximum_velocity = cfg_->robot.motion_direction_mode < 0
+        ? 0.0 : cfg_->robot.max_vel_x;
+    const double backwards_epsilon = minimum_velocity < 0.0
+        ? std::min(cfg_->optim.penalty_epsilon, -minimum_velocity) : 0.0;
+    const double forwards_epsilon = maximum_velocity > 0.0
+        ? std::min(cfg_->optim.penalty_epsilon, maximum_velocity) : 0.0;
     _error[0] = penaltyBoundToInterval(
-        vx, -cfg_->robot.max_vel_x_backwards, cfg_->robot.max_vel_x,
-        backwards_epsilon, cfg_->optim.penalty_epsilon);
+        vx, minimum_velocity, maximum_velocity,
+        backwards_epsilon, forwards_epsilon);
     _error[1] = penaltyBoundToInterval(vy, cfg_->robot.max_vel_y, 0.0); // we do not apply the penalty epsilon here, since the velocity could be close to zero
     _error[2] = penaltyBoundToInterval(omega, cfg_->robot.max_vel_theta,cfg_->optim.penalty_epsilon);
 

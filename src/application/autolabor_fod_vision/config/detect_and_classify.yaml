@@ -1,0 +1,104 @@
+detect_and_classify:
+  enabled: true
+
+  runtime:
+    frame_queue_size: 1
+    drop_old_frames: true
+    target_fps: 8
+    minimum_fps: 5
+    max_frame_age_ms: 150
+    max_result_age_ms: 350
+    warmup_frames: 3
+
+  ground_roi:
+    enabled: false
+    coordinate_mode: normalized
+    polygon: []
+    crop_to_bounds: true
+    mask_outside: true
+
+  detector:
+    model: /home/slam/yolo11/detect_classify/detect/trash_yolo11s_gam/best.pt
+    expected_sha256: 711b6bb4b4debebcf993f033f23e7e641a02dd279254779f8dafed11b6a79233
+    imgsz: 1024
+    conf: 0.20
+    iou: 0.60
+    max_det: 50
+    half: true
+    context: 0.20
+
+  classifier:
+    model: /home/slam/yolo11/detect_classify/classify/material_yolo11s_cls/best.pt
+    expected_sha256: d0cce9310e184e8acd7a6142face16d39aadc9a6e5405b18694346f2315899e9
+    class_names: [metal, plastic, paper, glass, kitchen_waste]
+    imgsz: 224
+    half: true
+    max_live_batch: 8
+    vote_window: 5
+    reclassify_interval_frames: 5
+    minimum_stable_votes: 3
+    stable_confidence: 0.55
+    appearance_change_threshold: 0.35
+    minimum_crop_sharpness: 18.0
+
+  tracking:
+    enabled: true
+    tracker: botsort
+    use_camera_motion_compensation: true
+    track_buffer_frames: 45
+
+  depth:
+    enabled: true
+    topic: /fod_camera/depth_registered
+    camera_info_topic: /fod_camera/camera_info
+    require_timestamp_match: true
+    # ZED publishes RGB/depth at 30 Hz with the same capture stamp.  Twenty
+    # milliseconds is below one 33.3 ms frame period and prevents adjacent-frame reuse.
+    timestamp_tolerance_ms: 20
+    wait_ms: 35
+    buffer_size: 45
+    camera_info_buffer_size: 45
+    min_m: 0.30
+    max_m: 15.0
+    bbox_inset_fraction: 0.10
+    min_samples: 24
+    min_valid_fraction: 0.12
+    aggregation: median
+    invalid_display: N/A
+    # Bind the robust cache to object_id, not the transient tracker ID.  Five
+    # valid clustered observations are required before per-frame clustering is
+    # suppressed; a scheduled validation or a large box/appearance change
+    # forces a fresh source-stamped measurement.
+    lock_valid_samples: 5
+    lock_min_inliers: 3
+    lock_outlier_mad_scale: 3.0
+    lock_outlier_min_m: 0.08
+    validation_interval_frames: 12
+    validation_max_abs_change_m: 0.15
+    validation_max_relative_change: 0.10
+    validation_failures_before_reacquire: 2
+    bbox_area_change_ratio: 0.40
+
+  transform:
+    require_source_timestamp: true
+    per_source_frame_lookup_cache: true
+    target_frame: map
+    fallback_target_frame: odom
+    timeout_ms: 30
+    # A source-stamped transform is looked up once per RGB frame and shared by
+    # every box in that frame.  Three valid world samples lock an object pose.
+    # Ten consecutive failed frame lookups trigger a short retry backoff rather
+    # than permanently disabling TF.
+    world_lock_samples: 3
+    world_outlier_mad_scale: 3.0
+    world_outlier_min_m: 0.08
+    max_consecutive_failures: 10
+    failure_backoff_sec: 2.0
+
+  object_identity:
+    enabled: true
+    coordinate_frame: map
+    use_one_to_one_assignment: true
+    max_world_distance_m: 0.30
+    object_memory_timeout_sec: 30.0
+    inherit_classification_history: true
