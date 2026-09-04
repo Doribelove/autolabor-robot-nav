@@ -473,7 +473,7 @@ class CoverageManager:
             "~hybrid_rolling_max_chunks", 64
         ))
         self.hybrid_no_progress_timeout = float(rospy.get_param(
-            "~hybrid_no_progress_timeout_sec", 3.0
+            "~hybrid_no_progress_timeout_sec", 2.0
         ))
         self.hybrid_no_progress_distance = float(rospy.get_param(
             "~hybrid_no_progress_distance_m", 0.10
@@ -553,7 +553,11 @@ class CoverageManager:
             or self.hybrid_transit_angular_accel > self.angular_accel_limit
         ):
             raise ValueError("coverage Hybrid A* TEB transit profile is invalid")
-        self.obstacle_wait_sec = float(rospy.get_param("~obstacle_wait_sec", 10.0))
+        # A blocked/invalid transition is already canceled and made terminal
+        # before this retry delay starts.  Keep one full 1 Hz global-planner
+        # validation cycle, but do not park for the historical 10 seconds
+        # before planning again from the live pose.
+        self.obstacle_wait_sec = float(rospy.get_param("~obstacle_wait_sec", 2.0))
         self.segment_retry_count = int(rospy.get_param("~segment_retry_count", 3))
         self.final_retry_count = int(rospy.get_param("~final_retry_count", 1))
         self.localization_fresh_sec = float(
