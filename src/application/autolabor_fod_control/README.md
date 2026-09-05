@@ -50,7 +50,9 @@ EDGE_ARMED → LOSS_CONFIRM → STEER_SETTLE → BLIND_ADVANCE → FINAL_STOP �
 - YOLO 不是避障器。第一次及调参试验必须在封闭净空区域进行，人员离开车辆
   前方，操作员全程手持物理急停。
 - 运动候选必须有同步的 ZED 注册深度，并通过距离、有效像素数、有效比例和
-  MAD 离散度门限。锁定目标仍可见但其深度质量失效时立即进入 `ABORT`。
+  MAD 离散度门限。锁定目标仍可见但其深度质量短暂失效时，前四个连续帧保留
+  图像几何跟踪；同一锁定目标连续第五帧深度不合格时进入 `ABORT`。任一有效深度帧、
+  真正的目标丢失或不匹配目标都会清零该连续计数。
 - 单独运行本页后半部分的 `visual_recovery.launch` 时，只能启动纯 CAN/M2
   底盘；不要同时启动 move_base、GPS 导航、速度限制器、键盘遥控、rqt topic
   publisher 或任何 `rostopic pub /cmd_vel`。

@@ -277,6 +277,34 @@ def _invalid_depth(reason: str, count: int = 0, fraction: float = 0.0):
     )
 
 
+def _depth_cluster_score(
+    component_fraction: float,
+    compactness: float,
+    center_distance: float,
+    center_coverage: float,
+    mad_m: float,
+    median_depth_m: float,
+) -> float:
+    """Rank a current-frame depth component by monotonic geometric support."""
+    area_score = min(1.0, max(0.0, float(component_fraction)) / 0.70)
+    compactness_score = min(1.0, max(0.0, float(compactness)))
+    normalized_center_distance = max(0.0, float(center_distance)) / 0.30
+    centroid_score = math.exp(-(normalized_center_distance**2))
+    center_coverage_score = min(1.0, max(0.0, float(center_coverage)))
+    # A surrounding background ring can have a centroid at the box center even
+    # though none of its pixels cover the detected object.  Give actual support
+    # inside the center window substantially more weight than centroid position.
+    center_score = 0.20 * centroid_score + 0.80 * center_coverage_score
+    dispersion_scale = max(0.015, 0.015 * max(0.0, float(median_depth_m)))
+    dispersion_score = math.exp(-max(0.0, float(mad_m)) / dispersion_scale)
+    return (
+        0.30 * area_score
+        + 0.25 * compactness_score
+        + 0.35 * center_score
+        + 0.10 * dispersion_score
+    )
+
+
 def estimate_clustered_depth(
     depth_m: np.ndarray,
     bbox: BBox,
@@ -291,7 +319,7 @@ def estimate_clustered_depth(
     """Choose a spatially connected 3-D candidate, never simply the nearest layer.
 
     Candidate components are built from locally coherent registered-depth bands.
-    Ranking uses center/bottom-center agreement, pixel support, compactness and
+    Ranking uses monotonic pixel support, center coverage, compactness and
     dispersion.  Absolute range is intentionally absent from the score.
     """
     if depth_m.ndim != 2:
@@ -352,8 +380,12 @@ def estimate_clustered_depth(
     target_center = np.asarray(
         [0.5 * (region_width - 1), 0.5 * (region_height - 1)], dtype=np.float64
     )
-    target_bottom = np.asarray(
-        [0.5 * (region_width - 1), 0.82 * (region_height - 1)], dtype=np.float64
+    center_left = max(0, int(math.floor(0.30 * region_width)))
+    center_top = max(0, int(math.floor(0.30 * region_height)))
+    center_right = min(region_width, int(math.ceil(0.70 * region_width)))
+    center_bottom = min(region_height, int(math.ceil(0.70 * region_height)))
+    center_valid_count = int(
+        np.count_nonzero(valid[center_top:center_bottom, center_left:center_right])
     )
     diagonal = max(1.0, math.hypot(region_width, region_height))
     best = None
@@ -387,16 +419,25 @@ def estimate_clustered_depth(
             if kept_values.size < minimum_samples:
                 continue
             centroid = np.asarray([float(np.mean(columns)), float(np.mean(rows))])
-            center_distance = min(
-                float(np.linalg.norm(centroid - target_center)),
-                float(np.linalg.norm(centroid - target_bottom)),
-            ) / diagonal
+            center_distance = float(np.linalg.norm(centroid - target_center)) / diagonal
             component_fraction = float(kept_values.size) / float(valid_count)
             component_width = max(1, int(stats[component, cv2.CC_STAT_WIDTH]))
             component_height = max(1, int(stats[component, cv2.CC_STAT_HEIGHT]))
             compactness = min(
                 1.0,
                 float(kept_values.size) / float(component_width * component_height),
+            )
+            center_coverage = (
+                float(
+                    np.count_nonzero(
+                        kept_mask[
+                            center_top:center_bottom, center_left:center_right
+                        ]
+                    )
+                )
+                / float(center_valid_count)
+                if center_valid_count > 0
+                else 0.0
             )
             touches = sum(
                 (
@@ -420,16 +461,14 @@ def estimate_clustered_depth(
                 and not separated
                 and mad <= max(0.012, 0.006 * median)
             )
-            support_score = max(0.0, 1.0 - abs(component_fraction - 0.30) / 0.45)
-            dispersion_score = max(0.0, 1.0 - mad / max(0.02, 0.025 * median))
-            score = (
-                0.45 * max(0.0, 1.0 - center_distance / 0.55)
-                + 0.22 * support_score
-                + 0.18 * compactness
-                + 0.15 * dispersion_score
-                + (0.08 if separated else 0.0)
-                - (0.40 if plane_like else 0.0)
-            )
+            score = _depth_cluster_score(
+                component_fraction,
+                compactness,
+                center_distance,
+                center_coverage,
+                mad,
+                median,
+            ) - (0.40 if plane_like else 0.0)
             candidate = (
                 score,
                 plane_like,

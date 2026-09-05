@@ -701,8 +701,9 @@ if [[ "$mode" == --runtime ]]; then
            parameter_matches /fod_detector/classifier_probability_dimensions 5 &&
            parameter_matches /fod_detector/model_load_count_detector 1 &&
            parameter_matches /fod_detector/model_load_count_classifier 1 &&
-           parameter_matches /fod_detector/motion_eligible false; then
-          pass "detect_and_classify model/task/load-once and recognition-only gates are active"
+           parameter_matches /fod_detector/detect_and_classify/motion/enabled true &&
+           parameter_matches /fod_detector/motion_eligible true; then
+          pass "detect_and_classify model/task/load-once and synchronized-depth motion gates are active"
         else
           fail "detect_and_classify runtime contract is incomplete"
         fi

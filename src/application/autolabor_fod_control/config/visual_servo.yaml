@@ -62,6 +62,11 @@ min_depth_valid_fraction: 0.20
 max_depth_mad_m: 0.35
 max_depth_sync_delta_sec: 0.08
 nearest_depth_hysteresis_m: 0.10
+# A locked target may briefly lose motion-grade registered depth because of
+# normal stereo/depth jitter. Keep tracking it from its image geometry for four
+# consecutive rejected frames, and stop on the fifth. Any valid-depth frame or
+# a frame that does not spatially match the locked target resets this counter.
+locked_depth_invalid_abort_frames: 5
 
 # Explicit hardware authorization is supplied by the launch argument and is
 # false by default.  A SetBool(true) service call is still required afterwards.
@@ -80,10 +85,10 @@ command_lease_sec: 0.25
 stop_publish_sec: 1.0
 
 # Sensor and graph watchdogs.
-detection_timeout_sec: 0.35
+detection_timeout_sec: 0.50
 camera_info_timeout_sec: 0.60
 odom_timeout_sec: 0.60
-source_stamp_timeout_sec: 0.80
+source_stamp_timeout_sec: 0.50
 detection_odom_sync_tolerance_sec: 0.20
 wheel_angle_timeout_sec: 0.60
 chassis_status_timeout_sec: 3.0

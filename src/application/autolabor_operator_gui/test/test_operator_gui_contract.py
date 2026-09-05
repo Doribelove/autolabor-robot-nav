@@ -1321,13 +1321,23 @@ class OperatorGuiContractTest(unittest.TestCase):
             NVIDIA_UI_TEXT,
         )
 
-    def test_vision_preview_is_raw_zed_with_backend_specific_freshness(self):
+    def test_vision_preview_latches_latest_completed_debug_frame(self):
         self.assertIn(
-            "constexpr double kFreshVisionResultSeconds = 0.35;", GUI_SOURCE
+            "constexpr double kFreshVisionResultSeconds = 0.50;", GUI_SOURCE
         )
+        age_gate = GUI_SOURCE[
+            GUI_SOURCE.index("bool visionResultAgeAccepted") :
+            GUI_SOURCE.index("double sourceStampAge")
+        ]
+        self.assertIn("source_age <= kFreshVisionResultSeconds", age_gate)
+        self.assertNotIn("kFreshDetectAndClassifyResultSeconds", GUI_SOURCE)
         callback = GUI_SOURCE[
             GUI_SOURCE.index("void MainWindow::visionResultsCallback") :
             GUI_SOURCE.index("void MainWindow::modeStateCallback")
+        ]
+        debug_callback = GUI_SOURCE[
+            GUI_SOURCE.index("void MainWindow::debugImageCallback") :
+            GUI_SOURCE.index("void MainWindow::detectionsCallback")
         ]
         refresh = GUI_SOURCE[
             GUI_SOURCE.index("const bool raw_preview_fresh") :
@@ -1344,22 +1354,27 @@ class OperatorGuiContractTest(unittest.TestCase):
             "bool visionResultFreshnessRequired(const QString& backend)",
             'backend != QStringLiteral("locateanything")',
             "visionResultAgeAccepted(vision_results_backend, vision_results_age)",
-            "vision_results_async_display ||",
-            "异步结果（源帧年龄 %2，仅显示）",
             "异步推理正常 · 源帧 %1（不限时）",
         ):
             self.assertIn(evidence, GUI_SOURCE)
         for evidence in (
-            "selected_preview = data.raw_preview",
-            "drawVisionResults(selected_preview, data.vision_results)",
-            "data.raw_preview_stamp",
-            "data.vision_results.header.stamp",
-            "D:%2 C:%3 depth:%4",
-            "object:%2 track:%3",
-            "world:%8",
+            "telemetry_.debug_image = preview",
+            "telemetry_.debug_image_stamp = msg->header.stamp",
+            "msg->header.stamp < telemetry_.debug_image_stamp",
         ):
-            self.assertIn(evidence, GUI_SOURCE if evidence.startswith("D:") else refresh)
-        self.assertNotIn("selected_preview = data.debug_image", refresh)
+            self.assertIn(evidence, debug_callback)
+        for evidence in (
+            "const QImage overview_preview = raw_preview_fresh ? data.raw_preview : QImage()",
+            "data.debug_image_received && !data.debug_image.isNull()",
+            "recognition_preview_available ? data.debug_image : QImage()",
+            "sourceStampAge(data.debug_image_stamp)",
+            "最新完成识别结果帧 · 源帧 %2 · 完成于 %3 前 · 保持至下一帧",
+            "等待首帧识别结果 /fod/debug/image",
+        ):
+            self.assertIn(evidence, refresh)
+        self.assertNotIn("drawVisionResults", refresh)
+        self.assertNotIn("data.vision_results.header.stamp", refresh)
+        self.assertIn("最新完成识别结果帧（保持至下一帧完成）", GUI_SOURCE)
 
     def test_global_detection_confidence_routes_to_active_detector_backend(self):
         for evidence in (

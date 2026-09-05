@@ -263,6 +263,9 @@ class FodVisualServoNode:
         self.nearest_depth_hysteresis_m = float(
             rospy.get_param("~nearest_depth_hysteresis_m", 0.10)
         )
+        self.locked_depth_invalid_abort_frames = int(
+            rospy.get_param("~locked_depth_invalid_abort_frames", 5)
+        )
         self.allow_motion = strict_bool_param("~allow_motion", False)
         self.external_estop_override = strict_bool_param(
             "~external_estop_override", False
@@ -293,14 +296,14 @@ class FodVisualServoNode:
         self.stop_publish_sec = float(rospy.get_param("~stop_publish_sec", 1.0))
 
         self.detection_timeout_sec = float(
-            rospy.get_param("~detection_timeout_sec", 0.35)
+            rospy.get_param("~detection_timeout_sec", 0.50)
         )
         self.camera_info_timeout_sec = float(
             rospy.get_param("~camera_info_timeout_sec", 0.60)
         )
         self.odom_timeout_sec = float(rospy.get_param("~odom_timeout_sec", 0.60))
         self.source_stamp_timeout_sec = float(
-            rospy.get_param("~source_stamp_timeout_sec", 0.80)
+            rospy.get_param("~source_stamp_timeout_sec", 0.50)
         )
         self.detection_odom_sync_tolerance_sec = float(
             rospy.get_param("~detection_odom_sync_tolerance_sec", 0.20)
@@ -528,6 +531,7 @@ class FodVisualServoNode:
         self.horizontal_error_value = None
         self.vertical_fraction_value = None
         self.target_visible = False
+        self.locked_depth_invalid_frames = 0
         self.approach_path_m = 0.0
         self.approach_last_odom = None
         self.approach_motion_started_monotonic = None
@@ -874,6 +878,10 @@ class FodVisualServoNode:
             raise ValueError("max_depth_sync_delta_sec is invalid")
         if not 0.0 <= self.nearest_depth_hysteresis_m <= 0.50:
             raise ValueError("nearest_depth_hysteresis_m is invalid")
+        if not 1 <= self.locked_depth_invalid_abort_frames <= 30:
+            raise ValueError(
+                "locked_depth_invalid_abort_frames must be between 1 and 30"
+            )
         if abs(self.target_u_offset_px) > 0.15 * self.expected_image_width:
             raise ValueError("target_u_offset_px exceeds the conservative calibration range")
         if not 5.0 <= self.precheck_timeout_sec <= 60.0:
@@ -2132,6 +2140,7 @@ class FodVisualServoNode:
         self.horizontal_error_value = None
         self.vertical_fraction_value = None
         self.target_visible = False
+        self.locked_depth_invalid_frames = 0
         self.approach_path_m = 0.0
         self.approach_last_odom = None
         self.approach_motion_started_monotonic = None
@@ -2461,6 +2470,70 @@ class FodVisualServoNode:
             )
         return candidates, ""
 
+    def _candidates_with_locked_depth_grace(self, frame):
+        """Retain one locked target through bounded registered-depth jitter."""
+
+        candidates = tuple(frame.candidates)
+        if (
+            self.phase == ACQUIRE
+            or not self.require_depth_for_acquisition
+            or self.machine.locked is None
+        ):
+            self.locked_depth_invalid_frames = 0
+            return candidates, ""
+
+        valid_matches = matching_detections(
+            self.machine.locked,
+            candidates,
+            frame.width,
+            frame.height,
+            self.association_config,
+        )
+        if valid_matches:
+            self.locked_depth_invalid_frames = 0
+            return candidates, ""
+
+        rejected_matches = matching_detections(
+            self.machine.locked,
+            frame.depth_rejected,
+            frame.width,
+            frame.height,
+            self.association_config,
+        )
+        if not rejected_matches:
+            # Only a depth-rejected observation of the same spatial target
+            # contributes to the consecutive counter. A true dropout or an
+            # unrelated rejected object follows the normal loss state machine.
+            self.locked_depth_invalid_frames = 0
+            return candidates, ""
+
+        self.locked_depth_invalid_frames += 1
+        rejection_reason = "invalid depth"
+        for rejected, reason in zip(frame.depth_rejected, frame.depth_rejections):
+            if rejected in rejected_matches:
+                rejection_reason = reason
+                break
+        if (
+            self.locked_depth_invalid_frames
+            >= self.locked_depth_invalid_abort_frames
+        ):
+            raise ControllerAbort(
+                "locked target lost motion-grade registered depth for %d "
+                "consecutive frames: %s"
+                % (self.locked_depth_invalid_frames, rejection_reason)
+            )
+
+        return (
+            candidates + rejected_matches,
+            "locked target registered depth invalid %d/%d; retaining visual "
+            "lock: %s"
+            % (
+                self.locked_depth_invalid_frames,
+                self.locked_depth_invalid_abort_frames,
+                rejection_reason,
+            ),
+        )
+
     def _process_detection_events(self):
         frames = self._take_detection_events()
         for frame in frames:
@@ -2482,29 +2555,14 @@ class FodVisualServoNode:
                 LOSS_CONFIRM,
             ):
                 continue
-            if (
-                self.phase != ACQUIRE
-                and self.require_depth_for_acquisition
-                and self.machine.locked is not None
-                and frame.depth_rejected
-            ):
-                rejected_matches = matching_detections(
-                    self.machine.locked,
-                    frame.depth_rejected,
-                    frame.width,
-                    frame.height,
-                    self.association_config,
-                )
-                if rejected_matches:
-                    raise ControllerAbort(
-                        "locked target lost motion-grade registered depth: %s"
-                        % (frame.depth_rejections[0] if frame.depth_rejections else "invalid depth")
-                    )
             acquisition_reason = ""
+            depth_grace_reason = ""
             if self.phase == ACQUIRE:
                 candidates, acquisition_reason = self._acquisition_candidates(frame)
             else:
-                candidates = frame.candidates
+                candidates, depth_grace_reason = (
+                    self._candidates_with_locked_depth_grace(frame)
+                )
             if (
                 self.phase in (EDGE_ARMED, LOSS_CONFIRM)
                 and not candidates
@@ -2528,7 +2586,7 @@ class FodVisualServoNode:
             if decision.acquired:
                 self._start_approach_odometry()
             self.phase = decision.state
-            self.reason = acquisition_reason or decision.reason
+            self.reason = depth_grace_reason or acquisition_reason or decision.reason
             self.target_visible = bool(candidates) and self.phase in (
                 APPROACH,
                 EDGE_ARMED,
@@ -3231,6 +3289,10 @@ class FodVisualServoNode:
             "completed": self.phase == COMPLETE,
             "target_visible": self.target_visible,
             "target_locked": target is not None,
+            "locked_depth_invalid_frames": self.locked_depth_invalid_frames,
+            "locked_depth_invalid_abort_frames": (
+                self.locked_depth_invalid_abort_frames
+            ),
             "target_class": target.class_name if target is not None else "",
             "target_confidence": round(target.confidence, 4) if target is not None else None,
             "target_depth_m": (

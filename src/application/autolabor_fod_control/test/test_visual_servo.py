@@ -176,6 +176,7 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         self.assertEqual(config["min_target_depth_m"], 0.35)
         self.assertEqual(config["max_target_depth_m"], 5.0)
         self.assertEqual(config["nearest_depth_hysteresis_m"], 0.10)
+        self.assertEqual(config["locked_depth_invalid_abort_frames"], 5)
         self.assertEqual(config["association_max_anchor_distance_ratio"], 0.18)
         self.assertEqual(config["duplicate_detection_min_iou"], 0.80)
         self.assertEqual(
@@ -187,6 +188,8 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         self.assertEqual(config["far_speed_mps"], 0.20)
         self.assertEqual(config["near_speed_mps"], 0.20)
         self.assertEqual(config["approach_min_command_speed_mps"], 0.20)
+        self.assertEqual(config["detection_timeout_sec"], 0.50)
+        self.assertEqual(config["source_stamp_timeout_sec"], 0.50)
         self.assertEqual(config["max_linear_acceleration_mps2"], 4.00)
         self.assertEqual(config["blind_speed_mps"], 0.20)
 
@@ -782,6 +785,164 @@ class DynamicLockConfidenceTest(unittest.TestCase):
         self.assertEqual(config["min_confidence"], 0.30)
         self.assertEqual(node.min_confidence, 0.30)
         node._publish_status.assert_not_called()
+
+
+class LockedDepthGraceTest(unittest.TestCase):
+    @staticmethod
+    def make_node(phase=FOD_NODE.APPROACH):
+        node = FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
+        node.phase = phase
+        node.require_depth_for_acquisition = True
+        node.locked_depth_invalid_abort_frames = 5
+        node.locked_depth_invalid_frames = 0
+        node.association_config = AssociationConfig()
+        node.machine = TargetPhaseMachine(TargetMachineConfig(), node.association_config)
+        node.machine.state = phase
+        node.machine.locked = detection()
+        node.machine.filtered_u = TARGET_U
+        node.machine.filtered_v = 0.50 * (HEIGHT - 1)
+        node.machine.acquired_v_fraction = 0.50
+        node.machine.maximum_v_fraction = 0.50
+        return node
+
+    @staticmethod
+    def frame(*, valid=tuple(), rejected=tuple(), reasons=tuple()):
+        return SimpleNamespace(
+            candidates=valid,
+            depth_rejected=rejected,
+            depth_rejections=reasons,
+            width=WIDTH,
+            height=HEIGHT,
+        )
+
+    def test_first_four_matching_invalid_depth_frames_retain_visual_lock(self):
+        node = self.make_node()
+        invalid = detection(depth_valid=False, depth_m=math.nan)
+        frame = self.frame(
+            rejected=(invalid,),
+            reasons=("detection[0] Metal: registered depth is unavailable",),
+        )
+
+        for expected_count in range(1, 5):
+            candidates, reason = node._candidates_with_locked_depth_grace(frame)
+            self.assertEqual(candidates, (invalid,))
+            self.assertEqual(node.locked_depth_invalid_frames, expected_count)
+            self.assertIn("%d/5" % expected_count, reason)
+
+    def test_fifth_matching_invalid_depth_frame_aborts(self):
+        node = self.make_node()
+        invalid = detection(depth_valid=False, depth_m=math.nan)
+        frame = self.frame(
+            rejected=(invalid,),
+            reasons=("detection[0] Metal: registered depth is unavailable",),
+        )
+
+        for _ in range(4):
+            node._candidates_with_locked_depth_grace(frame)
+        with self.assertRaisesRegex(
+            FOD_NODE.ControllerAbort, "for 5 consecutive frames"
+        ):
+            node._candidates_with_locked_depth_grace(frame)
+
+    def test_detection_pipeline_keeps_moving_through_four_then_aborts(self):
+        node = self.make_node()
+        node.target_u_px = TARGET_U
+        node.approach_path_m = 0.20
+        node.horizontal_error_value = None
+        node.vertical_fraction_value = None
+        node.target_visible = True
+        node._start_approach_odometry = mock.Mock()
+        node._hard_stop = mock.Mock()
+        node._pause_approach_watchdog = mock.Mock()
+        invalid = detection(depth_valid=False, depth_m=math.nan)
+        frame = SimpleNamespace(
+            candidates=tuple(),
+            depth_rejected=(invalid,),
+            depth_rejections=(
+                "detection[0] Metal: registered depth is unavailable",
+            ),
+            observations=(invalid,),
+            width=WIDTH,
+            height=HEIGHT,
+            stamp_sec=100.0,
+            error="",
+        )
+        node._take_detection_events = mock.Mock(return_value=(frame,))
+
+        for expected_count in range(1, 5):
+            node._process_detection_events()
+            self.assertEqual(node.phase, FOD_NODE.APPROACH)
+            self.assertTrue(node.target_visible)
+            self.assertEqual(node.locked_depth_invalid_frames, expected_count)
+
+        with self.assertRaisesRegex(
+            FOD_NODE.ControllerAbort, "for 5 consecutive frames"
+        ):
+            node._process_detection_events()
+
+    def test_edge_armed_depth_jitter_does_not_look_like_disappearance(self):
+        node = self.make_node(FOD_NODE.EDGE_ARMED)
+        armed = detection(q=0.90)
+        node.machine.locked = armed
+        node.machine.filtered_u = armed.anchor_u
+        node.machine.filtered_v = armed.anchor_v
+        node.machine.acquired_v_fraction = 0.50
+        node.machine.maximum_v_fraction = 0.90
+        invalid = detection(q=0.90, depth_valid=False, depth_m=math.nan)
+        frame = self.frame(
+            rejected=(invalid,),
+            reasons=("detection[0] Metal: registered depth is unavailable",),
+        )
+
+        candidates, _reason = node._candidates_with_locked_depth_grace(frame)
+        decision = node.machine.process_frame(
+            candidates=candidates,
+            image_width=WIDTH,
+            image_height=HEIGHT,
+            target_u=TARGET_U,
+            approach_distance_m=0.20,
+            frame_stamp=100.0,
+        )
+
+        self.assertEqual(decision.state, EDGE_ARMED)
+        self.assertFalse(decision.fault)
+        self.assertEqual(node.locked_depth_invalid_frames, 1)
+
+    def test_valid_or_nonmatching_frame_resets_invalid_depth_counter(self):
+        node = self.make_node()
+        invalid = detection(depth_valid=False, depth_m=math.nan)
+        invalid_frame = self.frame(
+            rejected=(invalid,),
+            reasons=("detection[0] Metal: registered depth is unavailable",),
+        )
+        node._candidates_with_locked_depth_grace(invalid_frame)
+        node._candidates_with_locked_depth_grace(invalid_frame)
+
+        valid = detection(depth_valid=True, depth_m=1.8)
+        candidates, reason = node._candidates_with_locked_depth_grace(
+            self.frame(valid=(valid,))
+        )
+        self.assertEqual(candidates, (valid,))
+        self.assertEqual(reason, "")
+        self.assertEqual(node.locked_depth_invalid_frames, 0)
+
+        node._candidates_with_locked_depth_grace(invalid_frame)
+        unrelated = detection(
+            u=TARGET_U + 0.40 * WIDTH,
+            depth_valid=False,
+            depth_m=math.nan,
+        )
+        candidates, reason = node._candidates_with_locked_depth_grace(
+            self.frame(
+                rejected=(unrelated,),
+                reasons=(
+                    "detection[0] Metal: registered depth is unavailable",
+                ),
+            )
+        )
+        self.assertEqual(candidates, tuple())
+        self.assertEqual(reason, "")
+        self.assertEqual(node.locked_depth_invalid_frames, 0)
 
 
 class RawCanObservationTest(unittest.TestCase):

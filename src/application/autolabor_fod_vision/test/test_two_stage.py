@@ -6,6 +6,7 @@ import unittest
 import numpy as np
 
 from autolabor_fod_vision.two_stage import (
+    _depth_cluster_score,
     DepthClusterEstimate,
     LatestFrameSlot,
     MATERIAL_CLASSES,
@@ -38,6 +39,22 @@ class LatestFrameSlotTest(unittest.TestCase):
 
 
 class CropAndDepthTest(unittest.TestCase):
+    def test_depth_cluster_score_rewards_more_supported_compact_centered_components(self):
+        baseline = _depth_cluster_score(0.23, 0.75, 0.12, 0.45, 0.008, 1.0)
+        more_support = _depth_cluster_score(0.63, 0.75, 0.12, 0.45, 0.008, 1.0)
+        more_compact = _depth_cluster_score(0.23, 0.95, 0.12, 0.45, 0.008, 1.0)
+        more_centered = _depth_cluster_score(0.23, 0.75, 0.02, 0.85, 0.008, 1.0)
+
+        self.assertGreater(more_support, baseline)
+        self.assertGreater(more_compact, baseline)
+        self.assertGreater(more_centered, baseline)
+
+    def test_depth_cluster_area_score_saturates_without_penalizing_large_components(self):
+        at_saturation = _depth_cluster_score(0.70, 0.80, 0.05, 0.80, 0.005, 1.0)
+        above_saturation = _depth_cluster_score(0.95, 0.80, 0.05, 0.80, 0.005, 1.0)
+
+        self.assertAlmostEqual(at_saturation, above_saturation)
+
     def test_context_crop_expands_twenty_percent_in_memory(self):
         image = np.zeros((100, 120, 3), dtype=np.uint8)
         crop, bounds = context_crop(image, (40, 30, 80, 70), 0.20)

@@ -254,6 +254,7 @@ struct TelemetrySnapshot
 
   bool debug_image_received = false;
   QImage debug_image;
+  ros::Time debug_image_stamp;
   ros::WallTime debug_image_received_at;
 
   bool detections_received = false;
@@ -718,7 +719,6 @@ private:
   QVector<CoverageRegionRecord> coverage_region_queue_;
   QString coverage_region_context_key_;
   ros::WallTime last_raw_preview_conversion_;
-  ros::WallTime last_debug_preview_conversion_;
   bool mode_request_pending_ = false;
   bool vision_model_switch_pending_ = false;
   bool visual_lock_confidence_request_pending_ = false;

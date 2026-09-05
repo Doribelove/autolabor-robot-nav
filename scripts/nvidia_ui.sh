@@ -126,6 +126,7 @@ wait_for_fod_detector() {
   local expected_backend="$4" expected_root="$5" default_wait_sec=90
   local wait_sec deadline ready_token actual_backend actual_path motion_eligible
   local detector_task classifier_task probability_dimensions detector_loads classifier_loads
+  local motion_configured
   [[ "$expected_backend" != locateanything ]] || default_wait_sec=480
   [[ "$expected_backend" != detect_and_classify ]] || default_wait_sec=180
   wait_sec="${FOD_DETECTOR_WAIT_SEC:-$default_wait_sec}"
@@ -174,13 +175,15 @@ wait_for_fod_detector() {
         probability_dimensions="$(timeout 2 rosparam get /fod_detector/classifier_probability_dimensions 2>/dev/null || true)"
         detector_loads="$(timeout 2 rosparam get /fod_detector/model_load_count_detector 2>/dev/null || true)"
         classifier_loads="$(timeout 2 rosparam get /fod_detector/model_load_count_classifier 2>/dev/null || true)"
+        motion_configured="$(timeout 2 rosparam get /fod_detector/detect_and_classify/motion/enabled 2>/dev/null || true)"
         if [[ "$actual_path" == "$expected_root" &&
-              "$motion_eligible" == false &&
+              "$motion_eligible" == true &&
+              "$motion_configured" == true &&
               "$detector_task" == detect &&
               "$classifier_task" == classify &&
               "$probability_dimensions" == 5 &&
               "$detector_loads" == 1 && "$classifier_loads" == 1 ]]; then
-          echo "FOD detector loaded detect_and_classify from $actual_path (two models loaded once; recognition-only gate active)."
+          echo "FOD detector loaded detect_and_classify from $actual_path (two models loaded once; synchronized-depth motion output active)."
           return 0
         fi
         echo "detect_and_classify reported an unexpected runtime/model lifecycle contract: path=${actual_path:-<empty>} motion_eligible=${motion_eligible:-<empty>} tasks=${detector_task:-<empty>}+${classifier_task:-<empty>} probs=${probability_dimensions:-<empty>} loads=${detector_loads:-<empty>}+${classifier_loads:-<empty>}" >&2
