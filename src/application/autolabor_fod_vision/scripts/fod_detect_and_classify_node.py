@@ -16,6 +16,7 @@ import numpy as np
 import rospy
 import tf2_ros
 from autolabor_fod_msgs.msg import (
+    FodDetection,
     FodDetectionArray,
     FodVisionDetection,
     FodVisionDetectionArray,
@@ -23,7 +24,7 @@ from autolabor_fod_msgs.msg import (
 from cv_bridge import CvBridge
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from dynamic_reconfigure.srv import Reconfigure
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, Point32
 from sensor_msgs.msg import CameraInfo, Image, RegionOfInterest
 from tf.transformations import quaternion_matrix
 
@@ -95,10 +96,10 @@ class DetectAndClassifyNode:
         self.target_fps = float(self._p("runtime/target_fps", 8.0))
         self.minimum_fps = float(self._p("runtime/minimum_fps", 5.0))
         self.max_frame_age_sec = float(
-            self._p("runtime/max_frame_age_ms", 150.0)
+            self._p("runtime/max_frame_age_ms", 500.0)
         ) / 1000.0
         self.max_result_age_sec = float(
-            self._p("runtime/max_result_age_ms", 350.0)
+            self._p("runtime/max_result_age_ms", 500.0)
         ) / 1000.0
         self.warmup_frames = int(self._p("runtime/warmup_frames", 3))
         if self.target_fps <= 0.0 or self.minimum_fps <= 0.0:
@@ -133,8 +134,37 @@ class DetectAndClassifyNode:
                     expected_materials, MATERIAL_CLASSES
                 )
             )
+        required_materials_value = rospy.get_param(
+            "~required_class_names", ""
+        )
+        if isinstance(required_materials_value, list):
+            required_materials = tuple(
+                str(value).strip()
+                for value in required_materials_value
+                if str(value).strip()
+            )
+        else:
+            required_materials = tuple(
+                value.strip()
+                for value in str(required_materials_value).split(",")
+                if value.strip()
+            )
+        if required_materials != MATERIAL_CLASSES:
+            raise RuntimeError(
+                "required motion classes {} do not match classifier order {}".format(
+                    required_materials, MATERIAL_CLASSES
+                )
+            )
 
         self.depth_enabled = bool(self._p("depth/enabled", True))
+        require_depth_timestamp_match = self._p(
+            "depth/require_timestamp_match", True
+        )
+        if type(require_depth_timestamp_match) is not bool:
+            raise ValueError(
+                "depth.require_timestamp_match must be a YAML boolean"
+            )
+        self.require_depth_timestamp_match = require_depth_timestamp_match
         self.depth_topic = str(
             self._p("depth/topic", "/fod_camera/depth_registered")
         )
@@ -180,6 +210,19 @@ class DetectAndClassifyNode:
             raise ValueError("depth lock inlier count is inconsistent")
         if self.depth_validation_interval_frames < 1:
             raise ValueError("depth validation interval must be positive")
+
+        motion_enabled = self._p("motion/enabled", False)
+        if type(motion_enabled) is not bool:
+            raise ValueError("motion.enabled must be a YAML boolean")
+        self.motion_enabled = motion_enabled
+        if self.motion_enabled and not self.depth_enabled:
+            raise ValueError(
+                "detect_and_classify motion requires registered depth"
+            )
+        if self.motion_enabled and not self.require_depth_timestamp_match:
+            raise ValueError(
+                "detect_and_classify motion requires source-stamped depth matching"
+            )
 
         self.transform_target = str(self._p("transform/target_frame", "map"))
         self.transform_fallback = str(
@@ -380,9 +423,10 @@ class DetectAndClassifyNode:
         self.results_pub = rospy.Publisher(
             "/fod/vision/results", FodVisionDetectionArray, queue_size=1
         )
-        # The new backend is recognition-only until attended vehicle acceptance.
-        # It publishes an empty legacy array with an unsupported task string so
-        # every existing motion gate remains fail-closed.
+        # Motion output remains fail-closed per frame: only confirmed material
+        # classifications are projected into the legacy interface, and the
+        # controller independently rejects every candidate without current,
+        # source-stamped registered depth.
         self.legacy_pub = rospy.Publisher(
             "/fod/detections", FodDetectionArray, queue_size=1
         )
@@ -437,7 +481,7 @@ class DetectAndClassifyNode:
         rospy.set_param("~backend", BACKEND_ID)
         rospy.set_param("~runtime_path", self.runtime.runtime_path)
         rospy.set_param("~runtime_version", self.runtime.runtime_version)
-        rospy.set_param("~motion_eligible", False)
+        rospy.set_param("~motion_eligible", self.motion_enabled)
         rospy.set_param("~ultralytics_import_path", self.runtime.ultralytics_path)
         rospy.set_param("~ultralytics_version", self.runtime.ultralytics_version)
         rospy.set_param("~gam_layer_count", self.runtime.gam_layer_count)
@@ -458,7 +502,7 @@ class DetectAndClassifyNode:
         rospy.loginfo(
             "detect_and_classify ready: ultralytics=%s version=%s detector=%s "
             "detector_sha=%s classifier=%s classifier_sha=%s GAM=%d classes=%s "
-            "queue=1 target_fps=%.1f ground_roi=%s motion_eligible=false "
+            "queue=1 target_fps=%.1f ground_roi=%s motion_eligible=%s "
             "detector_confidence=%.2f confidence_service=%s",
             self.runtime.ultralytics_path,
             self.runtime.ultralytics_version,
@@ -470,6 +514,7 @@ class DetectAndClassifyNode:
             ",".join(MATERIAL_CLASSES),
             self.target_fps,
             self.ground_roi_enabled,
+            self.motion_enabled,
             self.confidence_control.current,
             rospy.resolve_name(CONFIDENCE_SERVICE),
         )
@@ -527,9 +572,16 @@ class DetectAndClassifyNode:
             self._sensor_condition.notify_all()
 
     @staticmethod
-    def _nearest(messages, stamp_sec: float, tolerance_sec: float):
+    def _nearest(
+        messages,
+        stamp_sec: float,
+        tolerance_sec: float,
+        required_frame: str,
+    ):
         compatible = []
         for message in messages:
+            if str(message.header.frame_id) != required_frame:
+                continue
             candidate = _finite_stamp(message)
             if math.isfinite(candidate):
                 compatible.append((abs(candidate - stamp_sec), message))
@@ -550,11 +602,13 @@ class DetectAndClassifyNode:
                     self._depth_messages,
                     frame.stamp_sec,
                     self.depth_tolerance_sec,
+                    frame.frame_id,
                 )
                 camera_info, info_delta = self._nearest(
                     self._camera_info_messages,
                     frame.stamp_sec,
                     self.depth_tolerance_sec,
+                    frame.frame_id,
                 )
                 if depth is not None and camera_info is not None:
                     return depth, camera_info, max(depth_delta, info_delta)
@@ -695,6 +749,50 @@ class DetectAndClassifyNode:
             do_rectify=False,
         )
 
+    def _legacy_detection(
+        self,
+        detection,
+        target,
+        estimate: DepthClusterEstimate,
+        width: int,
+        height: int,
+    ):
+        if target.stable_material not in MATERIAL_CLASSES:
+            return None
+        detect_confidence = float(detection.confidence)
+        classify_confidence = float(target.classify_confidence)
+        if not all(
+            math.isfinite(value)
+            and 0.0 <= value <= 1.0
+            for value in (detect_confidence, classify_confidence)
+        ):
+            return None
+
+        roi = self._roi_for_box(detection.bbox, width, height)
+        message = FodDetection()
+        message.class_id = MATERIAL_CLASSES.index(target.stable_material)
+        message.class_name = str(target.stable_material)
+        # Require both stages to be confident; a high score from one model may
+        # never hide a weak score from the other model at the motion gate.
+        message.confidence = min(detect_confidence, classify_confidence)
+        message.bbox = roi
+        message.anchor_px = Point32(
+            x=float(
+                min(
+                    width - 1,
+                    roi.x_offset + 0.5 * max(0, roi.width - 1),
+                )
+            ),
+            y=float(min(height - 1, roi.y_offset + roi.height - 1)),
+            z=0.0,
+        )
+        message.depth_valid = bool(estimate.valid)
+        message.depth_m = float(estimate.depth_m)
+        message.depth_mad_m = float(estimate.mad_m)
+        message.depth_sample_count = int(estimate.sample_count)
+        message.depth_valid_fraction = float(estimate.valid_fraction)
+        return message
+
     def _publish_diagnostic(self, level: int, message: str) -> None:
         now = rospy.Time.now()
         elapsed = max(1e-6, time.monotonic() - self.last_publish_monotonic)
@@ -777,7 +875,7 @@ class DetectAndClassifyNode:
             "world_lock_events": str(self.world_lock_events),
             "instantaneous_publish_fps": "{:.3f}".format(instantaneous_fps),
             "ground_roi_enabled": str(self.ground_roi_enabled),
-            "motion_eligible": "False",
+            "motion_eligible": str(self.motion_enabled),
             "temporary_jpg_writes": "0",
             "cuda_memory_allocated_bytes": str(cuda_memory["allocated"]),
             "cuda_memory_reserved_bytes": str(cuda_memory["reserved"]),
@@ -868,6 +966,8 @@ class DetectAndClassifyNode:
             should_sample = bool(
                 self.depth_enabled
                 and (
+                    self.motion_enabled
+                    or
                     known_target is None
                     or self.object_map.should_sample_depth(
                         known_target,
@@ -898,6 +998,27 @@ class DetectAndClassifyNode:
             if depth_message is not None and camera_info is not None:
                 try:
                     depth_array = self._decode_depth(depth_message)
+                    if depth_array.shape != image_bgr.shape[:2]:
+                        raise ValueError(
+                            "registered depth is {}x{}, RGB is {}x{}".format(
+                                depth_array.shape[1],
+                                depth_array.shape[0],
+                                image_bgr.shape[1],
+                                image_bgr.shape[0],
+                            )
+                        )
+                    if (
+                        int(camera_info.width) != int(frame.message.width)
+                        or int(camera_info.height) != int(frame.message.height)
+                    ):
+                        raise ValueError(
+                            "CameraInfo is {}x{}, RGB is {}x{}".format(
+                                camera_info.width,
+                                camera_info.height,
+                                frame.message.width,
+                                frame.message.height,
+                            )
+                        )
                     self.depth_synchronized_frames += 1
                 except Exception as error:
                     self.last_error = "depth decode failed: {}".format(error)
@@ -1169,10 +1290,35 @@ class DetectAndClassifyNode:
         legacy.image_height = int(frame.message.height)
         legacy.model_name = self.runtime.model_name
         legacy.model_sha256 = self.runtime.detector_model_sha256
-        legacy.model_task = BACKEND_ID
+        legacy.model_task = "detect"
         legacy.inference_ms = float(processing_ms)
-        legacy.depth_synchronized = False
-        legacy.depth_sync_delta_sec = float("nan")
+        depth_synchronized = bool(
+            depth_array is not None
+            and depth_message is not None
+            and camera_info is not None
+        )
+        legacy.depth_synchronized = depth_synchronized
+        legacy.depth_sync_delta_sec = (
+            float(sync_delta) if depth_synchronized else float("nan")
+        )
+        if depth_synchronized:
+            legacy.depth_header = depth_message.header
+        legacy.detections = [
+            message
+            for message in (
+                self._legacy_detection(
+                    detection,
+                    target,
+                    estimate,
+                    int(frame.message.width),
+                    int(frame.message.height),
+                )
+                for detection, target, estimate in zip(
+                    detections, targets, depth_estimates
+                )
+            )
+            if message is not None
+        ]
 
         self.results_pub.publish(result)
         self.legacy_pub.publish(legacy)
@@ -1192,7 +1338,11 @@ class DetectAndClassifyNode:
         )
         self._publish_diagnostic(
             DiagnosticStatus.OK,
-            "detect_and_classify running; results are recognition-only",
+            (
+                "detect_and_classify running; synchronized motion output enabled"
+                if self.motion_enabled
+                else "detect_and_classify running; recognition-only"
+            ),
         )
         self.last_publish_monotonic = time.monotonic()
 

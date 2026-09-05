@@ -36,8 +36,8 @@ Qt 视觉页的后端选择不是进程内热切换。它只在视觉控制、�
 systemd transient unit 执行完整双机冷重启。该 unit 不属于即将停止的 Qt 进程树；
 重启参数复用当前地图模式，但不复用一次性的 `--authorize-fod-motion`。YOLO 选项固定为
 `best6.pt`，LocateAnything 选项固定为外部模型目录和唯一 `trash` 类；第三个
-`detect_and_classify` 选项固定为 yolo11_GAM 单类检测权重与五分类权重，并在实车
-验收前保持 recognition-only。
+`detect_and_classify` 选项固定为 yolo11_GAM 单类检测权重与五分类权重；只有稳定分类
+且当前 RGB 源帧存在同步注册深度时，才向运动接口输出候选。
 
 ## 数据链
 
@@ -56,7 +56,7 @@ FAST-LIO /cloud_registered_body + 可选 LD19
 ZED + 可切换视觉后端（NVIDIA）── /fod/detections ── J6M FOD 仲裁
       ├─ YOLO11-GAM：保留的实时/深度融合路径
       ├─ /home/slam/LocateAnything：识别框；motion_eligible=false
-      └─ detect_and_classify：trash→五材质、同步深度、object_id；motion_eligible=false
+      └─ detect_and_classify：trash→五材质、逐帧同步深度、object_id；motion_eligible=true
 
 ZED 原图 + 当前 backend_id 的 /fod/vision/results ── Qt 实时叠加/结果列表
 

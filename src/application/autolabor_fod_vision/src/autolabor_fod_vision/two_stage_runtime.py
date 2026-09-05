@@ -93,8 +93,8 @@ class TwoStageUltralyticsRuntime:
     """Loads both checkpoints once, warms them, and keeps both GPU models alive."""
 
     backend = "detect_and_classify"
-    motion_eligible = False
-    confidence_calibrated = False
+    motion_eligible = True
+    confidence_calibrated = True
 
     def __init__(
         self,

@@ -45,7 +45,6 @@
 #include <QFileInfo>
 #include <QFrame>
 #include <QFuture>
-#include <QFontMetrics>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHeaderView>
@@ -55,8 +54,6 @@
 #include <QListWidget>
 #include <QMenuBar>
 #include <QMessageBox>
-#include <QPainter>
-#include <QPen>
 #include <QPlainTextEdit>
 #include <QPoint>
 #include <QJsonArray>
@@ -94,7 +91,7 @@ namespace
 constexpr double kPi = 3.14159265358979323846;
 constexpr double kFreshCameraSeconds = 1.5;
 constexpr double kFreshDetectionSeconds = 1.5;
-constexpr double kFreshVisionResultSeconds = 0.35;
+constexpr double kFreshVisionResultSeconds = 0.50;
 constexpr double kFreshModeSeconds = 2.0;
 constexpr double kFastLioFreshOdomSeconds = 0.30;
 constexpr double kFastLioFreshCloudSeconds = 0.30;
@@ -898,66 +895,6 @@ double sourceStampAge(const ros::Time& stamp)
   return std::max(0.0, age);
 }
 
-QImage drawVisionResults(
-    const QImage& raw,
-    const autolabor_fod_msgs::FodVisionDetectionArray& results)
-{
-  if (raw.isNull() || results.image_width == 0 || results.image_height == 0)
-    return raw;
-  QImage output = raw.convertToFormat(QImage::Format_ARGB32);
-  QPainter painter(&output);
-  painter.setRenderHint(QPainter::Antialiasing, true);
-  const double scale_x = static_cast<double>(output.width()) /
-                         static_cast<double>(results.image_width);
-  const double scale_y = static_cast<double>(output.height()) /
-                         static_cast<double>(results.image_height);
-  QFont font = painter.font();
-  font.setPointSize(10);
-  font.setBold(true);
-  painter.setFont(font);
-  painter.setPen(QPen(QColor(45, 235, 105), 2));
-  for (const auto& detection : results.detections)
-  {
-    if (detection.backend_id != results.backend_id)
-      continue;
-    const QRectF box(
-        detection.bbox.x_offset * scale_x,
-        detection.bbox.y_offset * scale_y,
-        std::max(1.0, detection.bbox.width * scale_x),
-        std::max(1.0, detection.bbox.height * scale_y));
-    painter.setPen(QPen(QColor(45, 235, 105), 2));
-    painter.drawRect(box);
-    const QString classify_confidence =
-        std::isfinite(detection.classify_confidence)
-            ? QString::number(detection.classify_confidence, 'f', 2)
-            : QStringLiteral("N/A");
-    const QString depth =
-        detection.depth_valid && std::isfinite(detection.depth_m)
-            ? QStringLiteral("%1m").arg(detection.depth_m, 0, 'f', 2)
-            : QStringLiteral("N/A");
-    const QString label =
-        QStringLiteral("%1 D:%2 C:%3 depth:%4")
-            .arg(QString::fromStdString(detection.material_class))
-            .arg(detection.detect_confidence, 0, 'f', 2)
-            .arg(classify_confidence)
-            .arg(depth);
-    const QFontMetrics metrics(font);
-    const QRect text_bounds = metrics.boundingRect(label).adjusted(-5, -3, 5, 3);
-    const double label_y = std::max(0.0, box.top() - text_bounds.height());
-    const QRectF background(
-        std::max(0.0, box.left()), label_y,
-        std::min(static_cast<double>(output.width()) - std::max(0.0, box.left()),
-                 static_cast<double>(text_bounds.width())),
-        static_cast<double>(text_bounds.height()));
-    painter.fillRect(background, QColor(0, 0, 0, 190));
-    painter.setPen(Qt::white);
-    painter.drawText(background.adjusted(4, 1, -2, -1),
-                     Qt::AlignLeft | Qt::AlignVCenter, label);
-  }
-  painter.end();
-  return output;
-}
-
 double updateRateEstimate(double previous_rate, const ros::WallTime& previous_stamp,
                           const ros::WallTime& now)
 {
@@ -1756,7 +1693,7 @@ QWidget* MainWindow::buildOverviewPage()
   side_layout->setContentsMargins(10, 0, 10, 8);
   side_layout->setSpacing(14);
 
-  auto* camera = new QGroupBox(QStringLiteral("相机 / 视觉识别实时画面"), side_content);
+  auto* camera = new QGroupBox(QStringLiteral("相机实时画面"), side_content);
   auto* camera_layout = new QVBoxLayout(camera);
   overview_camera_preview_ = new QLabel(
       QStringLiteral("等待 /fod_camera/image_raw"), camera);
@@ -2088,13 +2025,13 @@ QWidget* MainWindow::buildVisionPage()
   auto* image_layout = new QVBoxLayout(image_panel);
   image_layout->setContentsMargins(0, 0, 8, 0);
   image_layout->setSpacing(8);
-  auto* image_title = new QLabel(QStringLiteral("ZED 实时原图（按源时间戳叠加当前模型结果）"),
+  auto* image_title = new QLabel(QStringLiteral("最新完成识别结果帧（保持至下一帧完成）"),
                                  image_panel);
   image_title->setStyleSheet(
       QStringLiteral("font-size:15pt;font-weight:700;color:#dce7f4;padding:4px;"));
   image_layout->addWidget(image_title);
   vision_camera_preview_ = new QLabel(
-      QStringLiteral("等待 /fod_camera/image_raw"), image_panel);
+      QStringLiteral("等待首帧识别结果 /fod/debug/image"), image_panel);
   vision_camera_preview_->setAlignment(Qt::AlignCenter);
   vision_camera_preview_->setMinimumSize(640, 480);
   vision_camera_preview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -4413,25 +4350,20 @@ void MainWindow::cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg)
 void MainWindow::debugImageCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
   const ros::WallTime now = ros::WallTime::now();
-  bool convert_preview = false;
-  {
-    std::lock_guard<std::mutex> lock(snapshot_mutex_);
-    telemetry_.debug_image_received = true;
-    telemetry_.debug_image_received_at = now;
-    if (last_debug_preview_conversion_.isZero() ||
-        (now - last_debug_preview_conversion_).toSec() >= 0.10)
-    {
-      last_debug_preview_conversion_ = now;
-      convert_preview = true;
-    }
-  }
-  if (!convert_preview)
-    return;
   QImage preview;
   if (!imageMessageToQImage(*msg, &preview))
     return;
   std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  if (telemetry_.debug_image_received && !msg->header.stamp.isZero() &&
+      !telemetry_.debug_image_stamp.isZero() &&
+      msg->header.stamp < telemetry_.debug_image_stamp)
+  {
+    return;
+  }
+  telemetry_.debug_image_received = true;
   telemetry_.debug_image = preview;
+  telemetry_.debug_image_stamp = msg->header.stamp;
+  telemetry_.debug_image_received_at = now;
 }
 
 void MainWindow::detectionsCallback(
@@ -5205,38 +5137,27 @@ void MainWindow::refreshUi()
   const bool raw_preview_fresh = !data.raw_preview.isNull() &&
                                  wallAge(data.raw_preview_received_at) <=
                                      kFreshCameraSeconds;
-  QImage selected_preview;
-  QString preview_source = QStringLiteral("无新鲜画面");
-  if (raw_preview_fresh)
-  {
-    selected_preview = data.raw_preview;
-    preview_source = QStringLiteral("ZED 实时原图 /fod_camera/image_raw");
-    const double stamp_delta =
-        data.raw_preview_stamp.isZero() || !data.vision_results_received
-            ? std::numeric_limits<double>::infinity()
-            : std::abs((data.raw_preview_stamp -
-                        data.vision_results.header.stamp).toSec());
-    const bool source_stamp_alignment_accepted =
-        vision_results_async_display ||
-        stamp_delta <= kFreshVisionResultSeconds;
-    if (vision_results_age_accepted && source_stamp_alignment_accepted &&
-        vision_results_backend == configured_vision_backend_)
-    {
-      selected_preview = drawVisionResults(selected_preview, data.vision_results);
-      preview_source =
-          vision_results_async_display
-              ? QStringLiteral("ZED 实时原图 + %1 异步结果（源帧年龄 %2，仅显示）")
-                    .arg(visionBackendDisplayName(configured_vision_backend_))
-                    .arg(ageText(vision_results_age))
-              : QStringLiteral("ZED 实时原图 + %1 结果（源帧年龄 %2）")
-                    .arg(visionBackendDisplayName(configured_vision_backend_))
-                    .arg(ageText(vision_results_age));
-    }
-  }
-  updateImageLabel(overview_camera_preview_, selected_preview,
+  const QImage overview_preview = raw_preview_fresh ? data.raw_preview : QImage();
+  const bool recognition_preview_available =
+      data.debug_image_received && !data.debug_image.isNull();
+  const double recognition_source_age = sourceStampAge(data.debug_image_stamp);
+  const double recognition_completed_age =
+      recognition_preview_available
+          ? wallAge(data.debug_image_received_at)
+          : std::numeric_limits<double>::infinity();
+  const QImage recognition_preview =
+      recognition_preview_available ? data.debug_image : QImage();
+  const QString preview_source =
+      recognition_preview_available
+          ? QStringLiteral("%1 最新完成识别结果帧 · 源帧 %2 · 完成于 %3 前 · 保持至下一帧")
+                .arg(visionBackendDisplayName(configured_vision_backend_))
+                .arg(ageText(recognition_source_age))
+                .arg(ageText(recognition_completed_age))
+          : QStringLiteral("等待首帧识别结果 /fod/debug/image");
+  updateImageLabel(overview_camera_preview_, overview_preview,
                    QStringLiteral("等待 ZED 实时原图"));
-  updateImageLabel(vision_camera_preview_, selected_preview,
-                   QStringLiteral("等待 /fod_camera/image_raw"));
+  updateImageLabel(vision_camera_preview_, recognition_preview,
+                   QStringLiteral("等待首帧识别结果 /fod/debug/image"));
   values_["vision_image_source"]->setText(preview_source);
 
   values_["vision_camera_status"]->setText(

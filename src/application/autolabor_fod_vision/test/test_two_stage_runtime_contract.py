@@ -9,6 +9,7 @@ import yaml
 
 PACKAGE = Path(__file__).resolve().parents[1]
 CONFIG = PACKAGE / "config" / "detect_and_classify.yaml"
+LAUNCH = PACKAGE / "launch" / "perception.launch"
 NODE = PACKAGE / "scripts" / "fod_detect_and_classify_node.py"
 RUNTIME = PACKAGE / "src" / "autolabor_fod_vision" / "two_stage_runtime.py"
 
@@ -27,6 +28,7 @@ class TwoStageRuntimeContractTest(unittest.TestCase):
         cls.config = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))[
             "detect_and_classify"
         ]
+        cls.launch_source = LAUNCH.read_text(encoding="utf-8")
         cls.node_source = NODE.read_text(encoding="utf-8")
         cls.runtime_source = RUNTIME.read_text(encoding="utf-8")
 
@@ -34,8 +36,9 @@ class TwoStageRuntimeContractTest(unittest.TestCase):
         runtime = self.config["runtime"]
         self.assertEqual(runtime["frame_queue_size"], 1)
         self.assertTrue(runtime["drop_old_frames"])
-        self.assertEqual(runtime["max_frame_age_ms"], 150)
-        self.assertEqual(runtime["max_result_age_ms"], 350)
+        self.assertEqual(runtime["max_frame_age_ms"], 500)
+        self.assertEqual(runtime["max_result_age_ms"], 500)
+        self.assertIs(self.config["motion"]["enabled"], True)
         self.assertIs(self.config["ground_roi"]["enabled"], False)
         self.assertEqual(self.config["detector"]["conf"], 0.20)
 
@@ -61,6 +64,22 @@ class TwoStageRuntimeContractTest(unittest.TestCase):
         self.assertNotIn("predict(", callback)
         self.assertNotIn("imgmsg_to_cv2", callback)
         self.assertIn('self.load_counts = {"detector": 0, "classifier": 0}', self.runtime_source)
+
+    def test_launch_exposes_generic_detector_contract_params(self):
+        two_stage_group = self.launch_source[
+            self.launch_source.index(
+                "<group if=\"$(eval arg('backend') == 'detect_and_classify')\">"
+            ) : self.launch_source.index(
+                "<group if=\"$(eval arg('enable_projection')"
+            )
+        ]
+        for evidence in (
+            '<param name="expected_model_sha256"',
+            'value="$(arg expected_model_sha256)"',
+            '<param name="required_class_names"',
+            'value="$(arg required_class_names)"',
+        ):
+            self.assertIn(evidence, two_stage_group)
 
     def test_detector_confidence_is_runtime_adjustable_through_global_service(self):
         for text in (
@@ -89,10 +108,33 @@ class TwoStageRuntimeContractTest(unittest.TestCase):
             "rospy.Time.from_sec(stamp_sec)",
             "depth_tolerance_sec",
             'BACKEND_ID = "detect_and_classify"',
-            'legacy.model_task = BACKEND_ID',
-            'legacy.depth_synchronized = False',
+            'legacy.model_task = "detect"',
+            "legacy.depth_synchronized = depth_synchronized",
+            "legacy.depth_header = depth_message.header",
+            "legacy.detections = [",
+            'rospy.set_param("~motion_eligible", self.motion_enabled)',
         ):
             self.assertIn(text, self.node_source)
+
+    def test_motion_projection_is_fresh_depth_and_two_stage_confidence_gated(self):
+        process_source = self.node_source[
+            self.node_source.index("def _process_frame") :
+            self.node_source.index("def _worker_loop")
+        ]
+        projection_source = self.node_source[
+            self.node_source.index("def _legacy_detection") :
+            self.node_source.index("def _publish_diagnostic")
+        ]
+        self.assertIn("self.motion_enabled", process_source)
+        self.assertIn("self._matching_sensor_bundle(frame)", process_source)
+        self.assertIn("depth_array is not None", process_source)
+        self.assertIn("target.stable_material not in MATERIAL_CLASSES", projection_source)
+        self.assertIn(
+            "message.confidence = min(detect_confidence, classify_confidence)",
+            projection_source,
+        )
+        self.assertIn("message.depth_valid = bool(estimate.valid)", projection_source)
+        self.assertIn("message.depth_valid_fraction", projection_source)
 
     def test_object_depth_and_tf_cache_contract(self):
         depth = self.config["depth"]

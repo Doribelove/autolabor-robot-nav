@@ -1,13 +1,20 @@
 detect_and_classify:
   enabled: true
 
+  motion:
+    # Motion candidates are emitted only for stable material votes and carry
+    # fresh registered depth from the same source-stamped RGB frame.
+    enabled: true
+
   runtime:
     frame_queue_size: 1
     drop_old_frames: true
     target_fps: 8
     minimum_fps: 5
-    max_frame_age_ms: 150
-    max_result_age_ms: 350
+    # Keep detector input, backend publication, Qt display, and visual-servo
+    # source-frame freshness on one 500 ms contract.
+    max_frame_age_ms: 500
+    max_result_age_ms: 500
     warmup_frames: 3
 
   ground_roi:

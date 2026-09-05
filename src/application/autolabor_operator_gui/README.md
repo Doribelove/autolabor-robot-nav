@@ -103,7 +103,7 @@ RabbitMQ。界面本身从不发布 `/cmd_vel`。
 - “视觉”页右侧可选择 LocateAnything-3B（单类 `trash`）、YOLO11-GAM
   （固定权重 `best6.pt`）或 `detect and classify`（单类 trash 检测后五材质分类）。
   主画面始终来自实时 `/fod_camera/image_raw`。YOLO11-GAM 和
-  `detect_and_classify` 只叠加当前 `backend_id` 且源时间戳不超过 350 ms 的
+  `detect_and_classify` 只叠加当前 `backend_id` 且源时间戳不超过 500 ms 的
   `/fod/vision/results`；LocateAnything 是高延迟、仅识别显示后端，其结果不设新鲜度
   限制，但界面会显示真实源帧年龄并标注“异步结果（仅显示）”，不得用于运动控制。
   下方逐目标显示 object/track ID、D/C、同步深度、世界坐标、状态与源帧年龄。应用按钮仅在视觉控制器停车、覆盖任务和 move_base 目标
