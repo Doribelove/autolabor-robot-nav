@@ -960,6 +960,28 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
   connect(&ui_refresh_timer_, &QTimer::timeout, this, &MainWindow::refreshUi);
   ui_refresh_timer_.start(250);
 
+  // Paint fresh preview images without running all navigation/diagnostic UI
+  // work at video rate. QImages share storage; copy only preview fields.
+  connect(&bpu_preview_timer_, &QTimer::timeout, this, [this]() {
+    if (!tabs_ || !isVisible() || isMinimized() ||
+        (tabs_->currentIndex() != overview_tab_index_ &&
+         tabs_->currentIndex() != bpu_tab_index_))
+      return;
+    TelemetrySnapshot preview;
+    {
+      std::lock_guard<std::mutex> lock(snapshot_mutex_);
+      preview.raw_preview = telemetry_.raw_preview;
+      preview.raw_preview_stamp = telemetry_.raw_preview_stamp;
+      preview.bpu_preview = telemetry_.bpu_preview;
+      preview.bpu_preview_stamp = telemetry_.bpu_preview_stamp;
+      preview.bpu_preview_status = telemetry_.bpu_preview_status;
+      preview.bpu_preview_status_at = telemetry_.bpu_preview_status_at;
+    }
+    refreshBpuPreview(preview);
+  });
+  bpu_preview_timer_.setTimerType(Qt::PreciseTimer);
+  bpu_preview_timer_.start(33);
+
   connect(&master_probe_timer_, &QTimer::timeout, this, &MainWindow::requestMasterProbe);
   connect(&master_probe_watcher_, &QFutureWatcher<MasterProbeResult>::finished, this,
           &MainWindow::handleMasterProbeFinished);
@@ -1038,7 +1060,7 @@ void MainWindow::loadCoveragePlannerSettings()
               coverage_direction_change_penalty_input_);
   load_double(QStringLiteral("segment_handoff_penalty_sec"), 0.50,
               coverage_handoff_penalty_input_);
-  load_double(QStringLiteral("transit_replan_period_sec"), 1.00,
+  load_double(QStringLiteral("transit_replan_period_sec"), 0.50,
               coverage_transit_replan_input_);
   coverage_reverse_checkbox_->setChecked(
       settings.value(QStringLiteral("allow_reverse"), true).toBool());
@@ -1186,7 +1208,7 @@ void MainWindow::handleNavigationProfileApplied()
       appendEvent(
           QStringLiteral("全部规划参数已同步：Qt 当前值已应用到普通点到点、"
                          "首线入场、覆盖规划和转场，并写入 J6M 当前 release "
-                         "的 coverage.yaml；Hybrid 异常重规划重试间隔 %1 s。")
+                         "的 coverage.yaml；覆盖异常重规划重试等待 %1 s。")
               .arg(coverage_transit_replan_input_->value(), 0, 'f', 1));
   }
   else
@@ -1221,7 +1243,7 @@ void MainWindow::restoreFactoryCoveragePlanningDefaults()
           "有效清扫宽度 1.00 m；重叠率 15%；允许倒车；\n"
           "前进/倒车速度 0.80/0.30 m/s；最大角速度 0.60 rad/s；\n"
           "线/角加速度 1.00/0.50；换向/交接附加时间 1.00/0.50 s；\n"
-          "异常重规划重试间隔 1.00 s。\n\n是否继续？"),
+          "异常重规划重试等待 0.50 s。\n\n是否继续？"),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
   if (answer != QMessageBox::Yes)
     return;
@@ -1470,6 +1492,7 @@ void MainWindow::buildUi()
   tabs_->addTab(buildVisionPage(), QStringLiteral("视觉"));
   coverage_tab_index_ = tabs_->addTab(buildCoveragePage(), QStringLiteral("清扫"));
   ai_tab_index_ = tabs_->addTab(buildAiControlPage(), QStringLiteral("AI语音控制"));
+  bpu_tab_index_ = tabs_->addTab(buildBpuPreviewPage(), QStringLiteral("BPU 预览"));
   tabs_->addTab(buildLogPage(), QStringLiteral("日志"));
   connect(tabs_, &QTabWidget::currentChanged, this, [this](int index) {
     // Qt/Ogre cannot reliably create a native render window below a hidden
@@ -1693,10 +1716,10 @@ QWidget* MainWindow::buildOverviewPage()
   side_layout->setContentsMargins(10, 0, 10, 8);
   side_layout->setSpacing(14);
 
-  auto* camera = new QGroupBox(QStringLiteral("相机实时画面"), side_content);
+  auto* camera = new QGroupBox(QStringLiteral("J6M BPU 检测画面（仅显示）"), side_content);
   auto* camera_layout = new QVBoxLayout(camera);
   overview_camera_preview_ = new QLabel(
-      QStringLiteral("等待 /fod_camera/image_raw"), camera);
+      QStringLiteral("等待 /fod/bpu_preview/image"), camera);
   overview_camera_preview_->setAlignment(Qt::AlignCenter);
   overview_camera_preview_->setMinimumHeight(210);
   overview_camera_preview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1704,9 +1727,19 @@ QWidget* MainWindow::buildOverviewPage()
       QStringLiteral("background:#080d13;border:1px solid #334154;border-radius:6px;"
                      "color:#718096;font-size:11pt;"));
   camera_layout->addWidget(overview_camera_preview_, 1);
-  auto* open_vision = new QPushButton(QStringLiteral("打开视觉识别与相机控制"), camera);
+  overview_bpu_status_ = new QLabel(QStringLiteral("等待 BPU 预览桥接器"), camera);
+  overview_bpu_status_->setTextFormat(Qt::PlainText);
+  overview_bpu_status_->setWordWrap(true);
+  camera_layout->addWidget(overview_bpu_status_);
+  auto* camera_buttons = new QHBoxLayout();
+  auto* open_bpu = new QPushButton(QStringLiteral("BPU 大画面"), camera);
+  connect(open_bpu, &QPushButton::clicked, this,
+          [this]() { tabs_->setCurrentIndex(bpu_tab_index_); });
+  camera_buttons->addWidget(open_bpu);
+  auto* open_vision = new QPushButton(QStringLiteral("相机与原视觉控制"), camera);
   connect(open_vision, &QPushButton::clicked, this, [this]() { tabs_->setCurrentIndex(3); });
-  camera_layout->addWidget(open_vision);
+  camera_buttons->addWidget(open_vision);
+  camera_layout->addLayout(camera_buttons);
   side_layout->addWidget(camera);
 
   auto* vehicle = new QGroupBox(QStringLiteral("FAST-LIO / map 全局定位"), side_content);
@@ -2011,6 +2044,108 @@ QWidget* MainWindow::buildTestPage()
   scroll->setWidgetResizable(true);
   scroll->setWidget(page);
   return scroll;
+}
+
+QWidget* MainWindow::buildBpuPreviewPage()
+{
+  auto* page = new QWidget(this);
+  page->setObjectName(QStringLiteral("bpuPreviewPage"));
+  auto* layout = new QVBoxLayout(page);
+  layout->setContentsMargins(16, 12, 16, 14);
+  auto* notice = new QLabel(
+      QStringLiteral("J6M BPU · FCOS 通用物体预览（不是五材质分类）\n"
+                     "仅显示，不参与避障、导航或视觉运动控制；正式视觉后端不变。"
+                     "离开综合/BPU预览页或最小化窗口后暂停 BPU 预览计算。"), page);
+  notice->setWordWrap(true);
+  notice->setStyleSheet(QStringLiteral("color:#92400e;background:#fef3c7;padding:10px;"));
+  layout->addWidget(notice);
+  auto* panels = new QHBoxLayout();
+  const auto add_panel = [page, panels](const QString& title, QLabel** preview,
+                                       QLabel** status) {
+    auto* group = new QGroupBox(title, page);
+    auto* box = new QVBoxLayout(group);
+    *preview = new QLabel(QStringLiteral("等待图像"), group);
+    (*preview)->setAlignment(Qt::AlignCenter);
+    (*preview)->setMinimumSize(320, 240);
+    (*preview)->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    (*preview)->setStyleSheet(QStringLiteral("background:#080d13;color:#dce7f4;"));
+    box->addWidget(*preview, 1);
+    *status = new QLabel(group);
+    (*status)->setWordWrap(true);
+    (*status)->setMinimumHeight(80);
+    box->addWidget(*status);
+    panels->addWidget(group, 1);
+  };
+  add_panel(QStringLiteral("ZED 实时画面（复用导航相机）"),
+            &bpu_live_preview_, &bpu_live_status_);
+  add_panel(QStringLiteral("BPU 已完成结果（保留对应源帧）"),
+            &bpu_result_preview_, &bpu_result_status_);
+  layout->addLayout(panels, 1);
+  return page;
+}
+
+void MainWindow::refreshBpuPreview(const TelemetrySnapshot& data)
+{
+  const bool overview_visible = tabs_ && tabs_->currentIndex() == overview_tab_index_;
+  const bool bpu_page_visible = tabs_ && tabs_->currentIndex() == bpu_tab_index_;
+  const bool visible = (overview_visible || bpu_page_visible) && isVisible() && !isMinimized();
+  const bool wanted = visible && ros_interfaces_ready_ && node_;
+  if (wanted && !bpu_preview_subscribed_)
+  {
+    bpu_preview_subscriber_ = node_->subscribe(
+        "/fod/bpu_preview/image", 1, &MainWindow::bpuPreviewCallback, this);
+    bpu_preview_status_subscriber_ = node_->subscribe(
+        "/fod/bpu_preview/status", 1, &MainWindow::bpuPreviewStatusCallback, this);
+    bpu_preview_subscribed_ = true;
+  }
+  else if (!wanted && bpu_preview_subscribed_)
+  {
+    bpu_preview_subscriber_.shutdown();
+    bpu_preview_status_subscriber_.shutdown();
+    bpu_preview_subscribed_ = false;
+  }
+  if (!visible)
+    return;
+  // Retain the last image but label its age. Never put old boxes on new RGB.
+  // Avoid rescaling/uploading the same image at every UI timer tick.
+  const auto update = [this](QLabel* label, const QImage& image) {
+    if (label->property("bpuImageKey").toLongLong() != image.cacheKey() ||
+        label->property("bpuImageSize").toSize() != label->size())
+    {
+      updateImageLabel(label, image, QStringLiteral("等待图像 / 桥接器未启动"));
+      label->setProperty("bpuImageKey", image.cacheKey());
+      label->setProperty("bpuImageSize", label->size());
+    }
+  };
+  if (overview_visible)
+    update(overview_camera_preview_, data.bpu_preview);
+  if (bpu_page_visible)
+  {
+    update(bpu_live_preview_, data.raw_preview);
+    update(bpu_result_preview_, data.bpu_preview);
+  }
+  const double camera_age = sourceStampAge(data.raw_preview_stamp);
+  const double result_age = sourceStampAge(data.bpu_preview_stamp);
+  bpu_live_status_->setText(
+      data.raw_preview.isNull() ? QStringLiteral("等待 /fod_camera/image_raw")
+      : QStringLiteral("%1 · 源帧 %2\n相机连续更新，不等待 BPU。")
+            .arg(camera_age <= 3.0 ? QStringLiteral("相机在线")
+                                   : QStringLiteral("相机断流/时间异常，保留旧画面"))
+            .arg(ageText(camera_age)));
+  const QString bridge = wallAge(data.bpu_preview_status_at) <= 3.0
+      ? QString::fromStdString(data.bpu_preview_status)
+      : QStringLiteral("桥接器未连接/状态超时；使用实验目录的 Qt BPU 启动入口");
+  const QString result_status =
+      QStringLiteral("%1\n%2 · %3")
+          .arg(bridge)
+          .arg(data.bpu_preview.isNull() ? QStringLiteral("等待首帧")
+                                        : QStringLiteral("结果源帧 %1").arg(ageText(result_age)))
+          .arg(result_age <= 3.0 ? QStringLiteral("仅显示，不可用于控制")
+                                 : QStringLiteral("旧结果，不代表当前场景"));
+  if (overview_visible)
+    overview_bpu_status_->setText(result_status);
+  if (bpu_page_visible)
+    bpu_result_status_->setText(result_status);
 }
 
 QWidget* MainWindow::buildVisionPage()
@@ -2493,11 +2628,11 @@ QWidget* MainWindow::buildCoveragePage()
                      "在每个 cusp 拆成固定档位 move_base action"),
       &coverage_handoff_penalty_input_);
   add_time_parameter(
-      QStringLiteral("异常重规划重试间隔"), 1.0, 10.0, 0.5, 1.0, 1,
+      QStringLiteral("异常重规划重试等待"), 0.0, 10.0, 0.1, 0.5, 1,
       QStringLiteral(" s"),
-      QStringLiteral("有效的清扫线间 Hybrid 路径保持不变；仅在路径受阻或车辆"
-                     "明显偏离且上次搜索失败后，控制再次尝试的最短间隔。普通"
-                     "点到点和首线入场的 Navfn 仍按 move_base 1 Hz 重规划"),
+      QStringLiteral("覆盖任务段因受阻、偏离或无进展而失败后，下一次尝试前的"
+                     "固定等待；0 s 表示旧 action 确认结束后立即重试。清扫线间"
+                     "转场会从实时位姿重新执行 Hybrid A*"),
       &coverage_transit_replan_input_);
   coverage_restore_defaults_button_ =
       new QPushButton(QStringLiteral("恢复默认参数"), parameters);
@@ -2515,7 +2650,8 @@ QWidget* MainWindow::buildCoveragePage()
       QStringLiteral("任一参数修改后会经 400 ms 防抖，事务性应用到 J6M 运行态"
                      "并直接写入当前 release 的 coverage.yaml；速度、倒车、"
                      "角速度和加速度应用到首线入场 Navfn+TEB 与清扫；"
-                     "异常重规划重试间隔只作用于清扫线间 Hybrid A*，该阶段"
+                     "异常重规划重试等待应用于覆盖任务段的有界失败重试；清扫线"
+                     "间转场会从实时位姿重新执行 Hybrid A*。该阶段"
                      "全局参考前视固定为 2 m，并由 TEB 闭环跟踪；安全 mux 只"
                      "校验许可、指令新鲜度、固定档位和曲率。全部参数"
                      "都会立即保存，下次启动 Qt "
@@ -3056,6 +3192,7 @@ void MainWindow::setupRosInterfaces()
   node_->param<std::string>("rviz_config", rviz_config_path_, default_rviz);
   node_->param<std::string>("odom_topic", odom_topic_, "/Odometry");
   node_->param<std::string>("cloud_topic", cloud_topic_, "/cloud_registered_body");
+  node_->param<std::string>("cloud_point_count_topic", cloud_point_count_topic_, "");
   node_->param<std::string>("imu_topic", imu_topic_, "/livox/imu");
   node_->param<std::string>(
       "rviz_startup_fixed_frame", rviz_startup_fixed_frame_, "map");
@@ -3076,7 +3213,7 @@ void MainWindow::setupRosInterfaces()
                                 : configured_vision_backend);
   node_->param<std::string>(
       "vision_backend_switch_script", vision_backend_switch_script,
-      "/home/slam/robot_j6m_ws/scripts/switch_fod_backend.sh");
+      "/home/slam/robot_j6m_ws_optimized_20260905/scripts/switch_fod_backend.sh");
   configured_vision_backend_ = QString::fromStdString(configured_vision_backend);
   vision_backend_switch_script_ =
       QString::fromStdString(vision_backend_switch_script);
@@ -3099,7 +3236,10 @@ void MainWindow::setupRosInterfaces()
   }
 
   odom_subscriber_ = node_->subscribe(odom_topic_, 20, &MainWindow::odomCallback, this);
-  cloud_subscriber_ = node_->subscribe(cloud_topic_, 10, &MainWindow::cloudCallback, this);
+  if (cloud_point_count_topic_.empty())
+    cloud_subscriber_ = node_->subscribe(cloud_topic_, 10, &MainWindow::cloudCallback, this);
+  else
+    cloud_subscriber_ = node_->subscribe(cloud_point_count_topic_, 10, &MainWindow::cloudPointCountCallback, this);
   imu_subscriber_ = node_->subscribe(imu_topic_, 200, &MainWindow::imuCallback, this);
   can_subscriber_ = node_->subscribe("/canbus_msg", 100, &MainWindow::canCallback, this);
   scan_subscriber_ = node_->subscribe("/scan", 10, &MainWindow::scanCallback, this);
@@ -3148,6 +3288,10 @@ void MainWindow::setupRosInterfaces()
                               ? "WAITING_RVIZ"
                               : "DISABLED");
   ros_interfaces_ready_ = true;
+  bool initial_bpu_preview = false;
+  node_->param("initial_bpu_preview", initial_bpu_preview, false);
+  if (initial_bpu_preview && tabs_)
+    tabs_->setCurrentIndex(bpu_tab_index_);
   appendEvent(QStringLiteral("ROS 接口已注册；FAST-LIO 健康监测开始采样。"));
   if (static_map_mode_)
     scheduleNavigationProfileApply();
@@ -4035,6 +4179,9 @@ void MainWindow::shutdownRosInterfaces()
   navigation_subscriber_.shutdown();
   camera_image_subscriber_.shutdown();
   debug_image_subscriber_.shutdown();
+  bpu_preview_subscriber_.shutdown();
+  bpu_preview_status_subscriber_.shutdown();
+  bpu_preview_subscribed_ = false;
   detections_subscriber_.shutdown();
   vision_results_subscriber_.shutdown();
   mode_state_subscriber_.shutdown();
@@ -4175,14 +4322,23 @@ void MainWindow::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 
 void MainWindow::cloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
 {
+  recordCloudSample(static_cast<std::size_t>(msg->width) * static_cast<std::size_t>(msg->height));
+}
+
+void MainWindow::cloudPointCountCallback(const std_msgs::UInt64::ConstPtr& msg)
+{
+  recordCloudSample(static_cast<std::size_t>(msg->data));
+}
+
+void MainWindow::recordCloudSample(const std::size_t point_count)
+{
   const ros::WallTime now = ros::WallTime::now();
   std::lock_guard<std::mutex> lock(snapshot_mutex_);
   telemetry_.cloud_rate_hz =
       updateRateEstimate(telemetry_.cloud_rate_hz, telemetry_.cloud_received_at, now);
   telemetry_.cloud_received = true;
   telemetry_.cloud_received_at = now;
-  telemetry_.cloud_point_count =
-      static_cast<std::size_t>(msg->width) * static_cast<std::size_t>(msg->height);
+  telemetry_.cloud_point_count = point_count;
   ++telemetry_.cloud_message_count;
 }
 
@@ -4364,6 +4520,32 @@ void MainWindow::debugImageCallback(const sensor_msgs::Image::ConstPtr& msg)
   telemetry_.debug_image = preview;
   telemetry_.debug_image_stamp = msg->header.stamp;
   telemetry_.debug_image_received_at = now;
+}
+
+void MainWindow::bpuPreviewCallback(const sensor_msgs::Image::ConstPtr& msg)
+{
+  // Dedicated display-only message; no changes to production detection state.
+  if (msg->header.frame_id != "bpu_preview_demo_only" ||
+      msg->width == 0 || msg->width > 1920 || msg->height == 0 || msg->height > 1080 ||
+      sourceStampAge(msg->header.stamp) > 3.0)
+    return;
+  QImage preview;
+  if (!imageMessageToQImage(*msg, &preview))
+    return;
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  if (msg->header.stamp <= telemetry_.bpu_preview_stamp)
+    return;
+  telemetry_.bpu_preview = preview;
+  telemetry_.bpu_preview_stamp = msg->header.stamp;
+}
+
+void MainWindow::bpuPreviewStatusCallback(const std_msgs::String::ConstPtr& msg)
+{
+  if (msg->data.size() > 512)
+    return;
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  telemetry_.bpu_preview_status = msg->data;
+  telemetry_.bpu_preview_status_at = ros::WallTime::now();
 }
 
 void MainWindow::detectionsCallback(
@@ -4781,6 +4963,7 @@ void MainWindow::refreshUi()
   if (rviz_initialized_ && tabs_)
     positionRvizOverlay(tabs_->currentIndex());
   const TelemetrySnapshot data = snapshot();
+  refreshBpuPreview(data);
   refreshAiUi(data);
   const FastLioHealthResult fastlio = evaluateFastLioHealth(data);
   const ModeStatusView mode_status =
@@ -5134,10 +5317,6 @@ void MainWindow::refreshUi()
       navigation_paused ? QStringLiteral("休眠 / 目标保留")
                         : QStringLiteral("运行 / 可接收目标"));
 
-  const bool raw_preview_fresh = !data.raw_preview.isNull() &&
-                                 wallAge(data.raw_preview_received_at) <=
-                                     kFreshCameraSeconds;
-  const QImage overview_preview = raw_preview_fresh ? data.raw_preview : QImage();
   const bool recognition_preview_available =
       data.debug_image_received && !data.debug_image.isNull();
   const double recognition_source_age = sourceStampAge(data.debug_image_stamp);
@@ -5154,8 +5333,6 @@ void MainWindow::refreshUi()
                 .arg(ageText(recognition_source_age))
                 .arg(ageText(recognition_completed_age))
           : QStringLiteral("等待首帧识别结果 /fod/debug/image");
-  updateImageLabel(overview_camera_preview_, overview_preview,
-                   QStringLiteral("等待 ZED 实时原图"));
   updateImageLabel(vision_camera_preview_, recognition_preview,
                    QStringLiteral("等待首帧识别结果 /fod/debug/image"));
   values_["vision_image_source"]->setText(preview_source);
@@ -5850,7 +6027,7 @@ void MainWindow::refreshUi()
                            "按 cusp 拆固定档位 action、事件触发整段重搜。R≥%1 m；清扫线/角加速度≤%2/%3；"
                            "转场线/角加速度≤%4/%5；转场 ω≤%6 rad/s；"
                            "清扫 %7 s + 转场 %8 s；预计倒车转场 %9 次；"
-                           "Hybrid 异常重规划重试间隔 %10 s；转场前视 %11 m")
+                           "覆盖异常重规划重试等待 %10 s；转场前视 %11 m")
                 .arg(coverage.minimum_turning_radius_m, 0, 'f', 2)
                 .arg(coverage.linear_accel_mps2, 0, 'f', 2)
                 .arg(coverage.angular_accel_rps2, 0, 'f', 2)

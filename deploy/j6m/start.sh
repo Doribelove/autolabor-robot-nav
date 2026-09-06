@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/process_control.sh"
 
-RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/autolabor_runtime}"
+RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_optimized_20260905}"
 ROOTFS="${J6M_ROOTFS:-$RUNTIME_BASE/rootfs}"
 ENV_FILE="${DUAL_HOST_ENV_FILE:-$RUNTIME_BASE/dual_host/config/dual_host.env}"
 PID_FILE="$RUNTIME_BASE/dual_host/run/j6m_stack.pid"
@@ -24,6 +24,8 @@ requested_visual_only="${VISUAL_ONLY:-}"
 set -a
 source "$ENV_FILE"
 set +a
+[[ "$RUNTIME_BASE" == /map/robot_j6m_optimized_20260905 &&
+   "$ROOTFS" == /map/robot_j6m_optimized_20260905/rootfs ]] || exit 2
 MID360_SENSOR_X="${MID360_SENSOR_X:-0.20}"
 MID360_SENSOR_Y="${MID360_SENSOR_Y:-0.0}"
 MID360_SENSOR_Z="${MID360_SENSOR_Z:-0.9}"
@@ -45,6 +47,7 @@ NAV_MAX_REVERSE_SPEED="${NAV_MAX_REVERSE_SPEED:-0.30}"
 NAV_MAX_ANGULAR_SPEED="${NAV_MAX_ANGULAR_SPEED:-0.60}"
 CMD_VEL_MAX_ANGULAR_SPEED="${CMD_VEL_MAX_ANGULAR_SPEED:-1.00}"
 
+"$RUNTIME_BASE/bin/prepare_isolated_rootfs.sh" >/dev/null
 [[ -x "$ROOTFS/bin/bash" ]] || { echo "Invalid rootfs: $ROOTFS" >&2; exit 2; }
 chroot "$ROOTFS" /usr/bin/test -r /opt/autolabor/dual_host/current/setup.bash || {
   echo "Dual-host overlay is not deployed in the J6M rootfs." >&2

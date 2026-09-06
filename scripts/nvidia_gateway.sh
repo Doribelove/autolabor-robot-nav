@@ -121,7 +121,7 @@ fi
 
 if ! timeout 5 rosparam list >/dev/null 2>&1; then
   echo "J6M ROS master is not reachable at $ROS_MASTER_URI." >&2
-  echo "Start /map/autolabor_runtime/dual_host/bin/start.sh on J6M first." >&2
+  echo "Start /map/robot_j6m_optimized_20260905/dual_host/bin/start.sh on J6M first." >&2
   exit 5
 fi
 

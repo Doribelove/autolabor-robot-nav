@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -180,36 +181,67 @@ private:
       return;
     }
 
-    sensor_msgs::PointCloud2 output = *cloud;
+    // Validate the organized layout before allocating or traversing its rows.
+    // A short/overlapping row used to silently duplicate points into the output.
+    const size_t row_bytes = static_cast<size_t>(cloud->width) * cloud->point_step;
+    const size_t source_point_count = static_cast<size_t>(cloud->height) * cloud->width;
+    if (row_bytes > cloud->row_step ||
+        (cloud->height > 0 &&
+         (static_cast<size_t>(cloud->height - 1) * cloud->row_step + row_bytes > cloud->data.size())) ||
+        source_point_count + scan->ranges.size() >
+            std::numeric_limits<uint32_t>::max() / cloud->point_step)
+    {
+      ROS_WARN_THROTTLE(5.0, "optional_cloud_enhancer: malformed MID360 PointCloud2 layout");
+      publishPassthrough(cloud);
+      return;
+    }
+
+    const auto valid_range = [&scan](const float range) {
+      return std::isfinite(range) && range > 0.0f && !(range < scan->range_min || range > scan->range_max);
+    };
+    // This cloud is a display-only branch. Continue checking scan freshness,
+    // TF/layout and publishing diagnostics even when no viewer needs the bytes.
+    if (cloud_publisher_.getNumSubscribers() == 0)
+    {
+      publishActive(std::any_of(scan->ranges.begin(), scan->ranges.end(), valid_range));
+      return;
+    }
+
+    sensor_msgs::PointCloud2 output;
+    output.header = cloud->header;
+    output.fields = cloud->fields;
+    output.is_bigendian = cloud->is_bigendian;
+    output.point_step = cloud->point_step;
+    output.is_dense = cloud->is_dense;
     output.height = 1;
     output.width = 0;
     output.row_step = 0;
-    output.data.clear();
-
-    const size_t source_point_count = static_cast<size_t>(cloud->height) * cloud->width;
-    output.data.reserve(cloud->data.size() + scan->ranges.size() * cloud->point_step);
+    output.data.reserve((source_point_count + scan->ranges.size()) * cloud->point_step);
+    output.data.resize(source_point_count * cloud->point_step);
     for (uint32_t row = 0; row < cloud->height; ++row)
     {
       const size_t row_offset = static_cast<size_t>(row) * cloud->row_step;
-      for (uint32_t col = 0; col < cloud->width; ++col)
+      if (row_bytes > 0)
       {
-        const size_t point_offset = row_offset + static_cast<size_t>(col) * cloud->point_step;
-        if (point_offset + cloud->point_step > cloud->data.size())
-        {
-          ROS_WARN_THROTTLE(5.0, "optional_cloud_enhancer: malformed MID360 PointCloud2 layout");
-          publishPassthrough(cloud);
-          return;
-        }
-        output.data.insert(output.data.end(), cloud->data.begin() + point_offset,
-                           cloud->data.begin() + point_offset + cloud->point_step);
+        std::memcpy(output.data.data() + static_cast<size_t>(row) * row_bytes,
+                    cloud->data.data() + row_offset, row_bytes);
       }
     }
 
+    tf2::Matrix3x3 rotation_matrix;
+    tf2::Vector3 translation_vector;
+    if (!frames_match)
+    {
+      const auto& rotation = scan_to_cloud.transform.rotation;
+      const auto& translation = scan_to_cloud.transform.translation;
+      rotation_matrix = tf2::Matrix3x3(tf2::Quaternion(rotation.x, rotation.y, rotation.z, rotation.w));
+      translation_vector = tf2::Vector3(translation.x, translation.y, translation.z);
+    }
     size_t added_points = 0;
     for (size_t index = 0; index < scan->ranges.size(); ++index)
     {
       const float range = scan->ranges[index];
-      if (!std::isfinite(range) || range <= 0.0f || range < scan->range_min || range > scan->range_max)
+      if (!valid_range(range))
       {
         continue;
       }
@@ -220,12 +252,8 @@ private:
       float z = static_cast<float>(lidar_z_);
       if (!frames_match)
       {
-        const auto& rotation = scan_to_cloud.transform.rotation;
-        const auto& translation = scan_to_cloud.transform.translation;
-        const tf2::Quaternion quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
         const tf2::Vector3 transformed =
-            tf2::Matrix3x3(quaternion) * tf2::Vector3(x, y, z) +
-            tf2::Vector3(translation.x, translation.y, translation.z);
+            rotation_matrix * tf2::Vector3(x, y, z) + translation_vector;
         x = static_cast<float>(transformed.x());
         y = static_cast<float>(transformed.y());
         z = static_cast<float>(transformed.z());

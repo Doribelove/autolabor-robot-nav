@@ -473,7 +473,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         manager.lock = threading.RLock()
         manager.segment_retry_count = 0
         manager.final_retry_count = 1
-        manager.obstacle_wait_sec = 0.0
+        manager.transit_replan_period = 0.0
         manager.cancel_requested = False
         self._seed_lifecycle_state(
             manager, current_segment=0, total_segments=0, blocked_segments=[]
@@ -4929,6 +4929,424 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             self.assertFalse(manager._wait_while_paused())
         self.assertEqual("PAUSED", manager.state)
         self.assertEqual(manager.manual_pause_reason, manager.detail)
+
+
+class CoverageSweepResumeTest(unittest.TestCase):
+    """Run the real sweep worker with scripted action/pose/clock boundaries."""
+
+    def setUp(self):
+        self.now = 100.0
+        patches = [mock.patch.object(
+            COVERAGE_MANAGER.time, "monotonic", side_effect=lambda: self.now
+        ), mock.patch.object(
+            COVERAGE_MANAGER.rospy.Time, "now",
+            return_value=COVERAGE_MANAGER.rospy.Time(100.0),
+        ), mock.patch.object(
+            COVERAGE_MANAGER.rospy, "is_shutdown", return_value=False
+        )]
+        for patch in patches:
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def _fixture(self, jobs, length=10.0, delay=0.5):
+        point = COVERAGE_MANAGER.Point
+        sweep = {
+            "type": "sweep", "swath_index": 1,
+            "start": point(0.0, 0.0), "end": point(length, 0.0),
+            "yaw": 0.0, "length": length,
+        }
+        manager, _ = CoverageManagerStateMachineTest()._manager([sweep], [])
+        real = COVERAGE_MANAGER.CoverageManager
+        manager._execute_segment = real._execute_segment.__get__(manager)
+        manager._prepare_sweep_entry = real._prepare_sweep_entry.__get__(manager)
+        manager._execute_sweep_entry_recovery = mock.Mock(
+            side_effect=AssertionError("interrupted sweep must not return to entry")
+        )
+        manager.transit_replan_period = delay
+        manager.path_sample_spacing = 0.10
+        manager.allow_reverse_transit = True
+        manager.reverse_transit_speed = 0.3
+        manager.entry_position_tolerance = 0.4
+        manager.entry_yaw_tolerance = 0.436332
+        manager.goal_timeout_base_sec = 20.0
+        manager.goal_timeout_per_meter_sec = 20.0
+        manager._test_pose = (point(0.0, 0.0), 0.0)
+        manager._test_speed = 0.0
+        manager._test_localized = True
+        manager._current_pose = lambda: manager._test_pose
+        manager._current_chassis_linear_speed = lambda: manager._test_speed
+        manager._localization_is_fresh = lambda: manager._test_localized
+        manager._avoidance_ready_locked = lambda: (True, "ready")
+        manager._chassis_ready_locked = lambda: (True, "ready")
+        manager._test_teb = []
+        manager._set_teb = lambda backwards, straight_tracking=False: (
+            manager._test_teb.append((backwards, straight_tracking)) or True
+        )
+        manager._test_paths = []
+        manager._set_enforced_path = lambda path, coverage_active=True: (
+            manager._test_paths.append(copy.deepcopy(path)) or True
+        )
+        manager._test_pauses = []
+
+        def wait_paused():
+            if manager.manual_pause or manager.external_pause:
+                manager._test_pauses.append((
+                    manager.manual_pause_reason, len(manager.move_base.goals)
+                ))
+                return False  # Model operator cancel after inspecting the pause.
+            return True
+
+        manager._wait_while_paused = wait_paused
+        manager._test_wait_hook = lambda: None
+
+        def wait(seconds):
+            self.now += seconds
+            manager._test_wait_hook()
+
+        manager._lifecycle_wait = wait
+        sweep["path"] = manager._path_for_points(
+            COVERAGE_MANAGER.sample_path(sweep["start"], sweep["end"], 0.1), 0.0
+        )
+        clock = self
+
+        class ScriptedMoveBase(_SuccessfulMoveBase):
+            def send_goal(self, goal, **kwargs):
+                super().send_goal(goal, **kwargs)
+                index = len(self.goals) - 1
+                if index >= len(jobs):
+                    raise AssertionError("unexpected extra sweep goal")
+                positions, self.terminal = jobs[index]
+                self.positions = list(positions)
+                self.state = COVERAGE_MANAGER.GoalStatus.ACTIVE
+                self.goal_times.append(clock.now)
+
+            def wait_for_result(self, timeout):
+                clock.now += timeout.to_sec()
+                if self.state == COVERAGE_MANAGER.GoalStatus.PREEMPTED:
+                    return True
+                if self.positions:
+                    position = self.positions.pop(0)
+                    manager._test_pose = (
+                        (point(*position[:2]), position[2])
+                        if isinstance(position, tuple) else (point(position, 0.0), 0.0)
+                    )
+                if not self.positions:
+                    self.state = self.terminal
+                    return True
+                return False
+
+            def get_state(self):
+                return self.state
+
+            def cancel_goal(self):
+                self.cancel_count += 1
+                self.state = COVERAGE_MANAGER.GoalStatus.PREEMPTED
+
+        manager.move_base = ScriptedMoveBase()
+        manager.move_base.goal_times = []
+        return manager, sweep
+
+    @staticmethod
+    def _approach(end=4.0):
+        return [round(0.4 * i, 3) for i in range(1, round(end / 0.4) + 1)]
+
+    def test_abort_mid_swath_resumes_forward_suffix_with_original_history(self):
+        manager, sweep = self._fixture([
+            (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+            (self._approach(10.0)[10:], COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+        ])
+        original_path = copy.deepcopy(sweep["path"])
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        self.assertEqual(2, len(manager.move_base.goals))
+        self.assertEqual(original_path, sweep["path"])
+        self.assertEqual(0.0, sweep["start"].x)
+        self.assertEqual(10.0, sweep["end"].x)
+        self.assertTrue(sweep["_sweep_execution"]["tracker"]["armed"])
+        paths = [p.path for p in manager._test_paths if p.active]
+        self.assertEqual(0.0, paths[0].poses[0].pose.position.x)
+        self.assertAlmostEqual(4.0, paths[1].poses[0].pose.position.x)
+        self.assertEqual(10.0, paths[1].poses[-1].pose.position.x)
+        self.assertTrue(all(p.pose.position.x >= 4.0 for p in paths[1].poses))
+        self.assertEqual([(0.0, True), (0.0, True)], manager._test_teb)
+        self.assertEqual([], manager._test_pauses)
+
+    def test_persistent_obstacle_outlives_retry_budget_then_clears(self):
+        manager, _ = self._fixture([
+            (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+        ] + [([], COVERAGE_MANAGER.GoalStatus.ABORTED)] * 5 + [
+            (self._approach(10.0)[10:], COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+        ])
+        manager.segment_retry_count = 1
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        self.assertEqual(7, len(manager.move_base.goals))
+        self.assertEqual([], manager._test_pauses)
+        for earlier, later in zip(manager.move_base.goal_times[1:],
+                                  manager.move_base.goal_times[2:]):
+            self.assertGreaterEqual(later - earlier, 0.5)
+
+    def test_second_interruption_advances_suffix_without_resetting_tracker(self):
+        manager, sweep = self._fixture([
+            (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+            ([4.4, 4.8, 5.2], COVERAGE_MANAGER.GoalStatus.ABORTED),
+            (self._approach(10.0)[13:], COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+        ])
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        starts = [p.path.poses[0].pose.position.x
+                  for p in manager._test_paths if p.active]
+        self.assertEqual([0.0, 4.0, 5.2], starts)
+        self.assertGreaterEqual(sweep["_sweep_execution"]["tracker"]["max_along"], 5.2)
+
+    def test_historical_abort_at_far_exit_completes_without_reverse_action(self):
+        manager, _ = self._fixture([
+            (self._approach(8.4) + [8.83], COVERAGE_MANAGER.GoalStatus.ABORTED),
+        ], length=8.5)
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        self.assertEqual(1, len(manager.move_base.goals))
+        self.assertEqual([], manager._test_pauses)
+
+    def test_braking_samples_after_abort_preserve_exit_completion(self):
+        manager, _ = self._fixture([
+            (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+        ], length=4.1)
+        manager._test_speed = 0.2
+        braking = [4.08, 4.16, 4.16]
+
+        def brake():
+            x = braking.pop(0) if braking else 4.16
+            manager._test_pose = (COVERAGE_MANAGER.Point(x, 0.0), 0.0)
+            if not braking:
+                manager._test_speed = 0.0
+
+        manager._test_wait_hook = brake
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        self.assertEqual(1, len(manager.move_base.goals))
+
+    def test_near_exit_still_executes_remainder_and_exact_goal_has_valid_path(self):
+        for stopped_at in (3.6, 4.0):
+            with self.subTest(stopped_at=stopped_at):
+                manager, _ = self._fixture([
+                    (self._approach(stopped_at), COVERAGE_MANAGER.GoalStatus.ABORTED),
+                    ([4.0], COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+                ], length=4.0)
+                self.assertEqual("COMPLETED", manager._run_task([], None))
+                paths = [p.path for p in manager._test_paths if p.active]
+                self.assertEqual(2, len(paths))
+                self.assertGreaterEqual(len(paths[1].poses), 2)
+                self.assertLess(paths[1].poses[0].pose.position.x, 4.0)
+                self.assertEqual(4.0, paths[1].poses[-1].pose.position.x)
+
+    def test_zero_delay_keeps_physical_stop_confirmation(self):
+        manager, _ = self._fixture([
+            (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+            (self._approach(10.0)[10:], COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+        ], delay=0.0)
+        manager._test_speed = 0.2
+        waits = []
+
+        def brake():
+            waits.append(self.now)
+            if len(waits) >= 3:
+                manager._test_speed = 0.0
+
+        manager._test_wait_hook = brake
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        self.assertGreaterEqual(len(waits), 4)
+
+    def test_terminal_pose_jump_does_not_manufacture_completion_or_resume(self):
+        manager, _ = self._fixture([
+            (self._approach() + [10.1], COVERAGE_MANAGER.GoalStatus.ABORTED),
+        ])
+        self.assertEqual("CANCELED", manager._run_task([], None))
+        self.assertEqual(1, len(manager.move_base.goals))
+        self.assertIn("history is untrusted", manager._test_pauses[0][0])
+
+    def test_waiting_pose_outside_corridor_requires_manual_inspection(self):
+        for pose in ((4.0, 0.31, 0.0), (4.0, 0.0, 0.36)):
+            with self.subTest(pose=pose):
+                manager, _ = self._fixture([
+                    (self._approach() + [pose], COVERAGE_MANAGER.GoalStatus.ABORTED),
+                ])
+                self.assertEqual("CANCELED", manager._run_task([], None))
+                self.assertEqual(1, len(manager.move_base.goals))
+                self.assertIn("corridor", manager._test_pauses[0][0])
+
+    def test_missing_nonfinite_or_moving_odom_prevents_resubmission(self):
+        for speed in (None, float("nan"), 0.2):
+            with self.subTest(speed=speed):
+                manager, _ = self._fixture([
+                    (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+                ])
+                manager._test_speed = speed
+                self.assertEqual("CANCELED", manager._run_task([], None))
+                self.assertEqual(1, len(manager.move_base.goals))
+                self.assertIn("stable stop", manager._test_pauses[0][0])
+
+    def test_cancel_and_replaced_mission_interrupt_obstacle_wait(self):
+        for field, value in (("cancel_requested", True),
+                             ("plan_id", "replacement-plan"),
+                             ("navigation_owner_token", "replacement-owner")):
+            with self.subTest(field=field):
+                manager, _ = self._fixture([
+                    (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+                ])
+                manager._test_wait_hook = lambda: setattr(manager, field, value)
+                self.assertEqual("CANCELED", manager._run_task([], None))
+                self.assertEqual(1, len(manager.move_base.goals))
+
+    def test_manual_external_and_safety_pauses_are_not_automatically_cleared(self):
+        for fault in ("manual", "external", "localization", "scan", "chassis"):
+            with self.subTest(fault=fault):
+                manager, _ = self._fixture([
+                    (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+                ])
+
+                def interrupt():
+                    if fault == "manual":
+                        manager.manual_pause = True
+                        manager.manual_pause_reason = "operator paused"
+                    elif fault == "external":
+                        manager.external_pause = True
+                    elif fault == "localization":
+                        manager._test_localized = False
+                    elif fault == "scan":
+                        manager._avoidance_ready_locked = lambda: (False, "stale scan")
+                    else:
+                        manager._chassis_ready_locked = lambda: (False, "chassis fault")
+
+                manager._test_wait_hook = interrupt
+                self.assertEqual("CANCELED", manager._run_task([], None))
+                self.assertEqual(1, len(manager.move_base.goals))
+                self.assertTrue(manager._test_pauses)
+
+    def test_explicit_manual_resume_uses_retained_mid_swath_position(self):
+        manager, _ = self._fixture([
+            (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+            (self._approach(10.0)[10:], COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+        ])
+
+        def pause():
+            manager.manual_pause = True
+            manager.manual_pause_reason = "operator paused"
+            manager._test_wait_hook = lambda: None
+
+        def resume():
+            if manager.manual_pause:
+                self.assertEqual(1, len(manager.move_base.goals))
+                self.now += 30.0
+                manager.manual_pause = False  # Explicit operator resume.
+            return True
+
+        manager._test_wait_hook = pause
+        manager._wait_while_paused = resume
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        paths = [p.path for p in manager._test_paths if p.active]
+        self.assertAlmostEqual(4.0, paths[1].poses[0].pose.position.x)
+
+    def test_resume_suffix_uses_directed_geometry_for_rotated_offset_swaths(self):
+        for yaw in (math.pi / 2.0, math.pi, -2.2):
+            with self.subTest(yaw=yaw):
+                def pose(along):
+                    return (12.0 + along * math.cos(yaw),
+                            -7.0 + along * math.sin(yaw), yaw)
+
+                manager, sweep = self._fixture([
+                    ([pose(x) for x in self._approach()],
+                     COVERAGE_MANAGER.GoalStatus.ABORTED),
+                    ([pose(x) for x in self._approach(10.0)[10:]],
+                     COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+                ])
+                sweep["start"] = COVERAGE_MANAGER.Point(*pose(0.0)[:2])
+                sweep["end"] = COVERAGE_MANAGER.Point(*pose(10.0)[:2])
+                sweep["yaw"] = yaw
+                sweep["path"] = manager._path_for_points(
+                    COVERAGE_MANAGER.sample_path(sweep["start"], sweep["end"], 0.1), yaw
+                )
+                manager._test_pose = (sweep["start"], yaw)
+                self.assertEqual("COMPLETED", manager._run_task([], None))
+                paths = [p.path for p in manager._test_paths if p.active]
+                resumed = paths[1].poses[0].pose.position
+                self.assertAlmostEqual(pose(4.0)[0], resumed.x)
+                self.assertAlmostEqual(pose(4.0)[1], resumed.y)
+
+    def test_goal_submission_rechecks_faults_after_owner_service_yields(self):
+        for fault in ("cancel", "manual", "pose", "missing_tf", "speed", "localization"):
+            with self.subTest(fault=fault):
+                manager, _ = self._fixture([
+                    (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+                ])
+
+                def claim(claimed, _token):
+                    if claimed and len(manager.move_base.goals) == 1:
+                        if fault == "cancel":
+                            manager.cancel_requested = True
+                        elif fault == "manual":
+                            manager.manual_pause = True
+                            manager.manual_pause_reason = "operator paused"
+                        elif fault == "pose":
+                            manager._test_pose = (COVERAGE_MANAGER.Point(6.0, 0.0), 0.0)
+                        elif fault == "missing_tf":
+                            manager._test_pose = None
+                        elif fault == "speed":
+                            manager._test_speed = 0.2
+                        else:
+                            manager._test_localized = False
+                    return True, "ok"
+
+                manager._set_navigation_owner = claim
+                self.assertEqual("CANCELED", manager._run_task([], None))
+                self.assertEqual(1, len(manager.move_base.goals))
+
+    def test_untrusted_old_goal_must_not_be_replaced(self):
+        manager, sweep = self._fixture([
+            (self._approach(), COVERAGE_MANAGER.GoalStatus.ABORTED),
+        ])
+        self.assertEqual("blocked", manager._execute_segment(sweep, 0))
+        manager.move_base_goal_pending = True
+        manager.move_base_goal_terminal_state = COVERAGE_MANAGER.GoalStatus.LOST
+        self.assertEqual("failed", manager._prepare_sweep_entry(sweep, 0))
+        self.assertEqual(1, len(manager.move_base.goals))
+
+    def test_missing_entrance_history_is_not_rearmed_at_interrupted_position(self):
+        manager, _ = self._fixture([
+            ([2.4, 2.8, 3.2], COVERAGE_MANAGER.GoalStatus.ABORTED),
+        ])
+
+        def lose_entrance(_backwards, _straight):
+            manager._test_pose = (COVERAGE_MANAGER.Point(2.0, 0.0), 0.0)
+            return True
+
+        manager._set_teb = lose_entrance
+        self.assertEqual("CANCELED", manager._run_task([], None))
+        self.assertEqual(1, len(manager.move_base.goals))
+        self.assertIn("history is untrusted", manager._test_pauses[0][0])
+
+    def test_timeout_cancels_exact_action_then_resumes_remaining_line(self):
+        manager, _ = self._fixture([
+            (self._approach(), COVERAGE_MANAGER.GoalStatus.ACTIVE),
+            (self._approach(10.0)[10:], COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+        ])
+        manager.goal_timeout_base_sec = 0.55
+        manager.goal_timeout_per_meter_sec = 0.0
+        wait = manager.move_base.wait_for_result
+
+        def pending_until_timeout(timeout):
+            terminal = wait(timeout)
+            return terminal and manager.move_base.state != COVERAGE_MANAGER.GoalStatus.ACTIVE
+
+        manager.move_base.wait_for_result = pending_until_timeout
+        # Allow sufficient time for the second goal after the first timed out.
+        original_wait = manager._lifecycle_wait
+
+        def retry_wait(seconds):
+            manager.goal_timeout_base_sec = 20.0
+            original_wait(seconds)
+
+        manager._lifecycle_wait = retry_wait
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        self.assertEqual(2, len(manager.move_base.goals))
+        self.assertEqual(1, manager.move_base.cancel_count)
+        paths = [p.path for p in manager._test_paths if p.active]
+        self.assertAlmostEqual(4.0, paths[1].poses[0].pose.position.x)
 
 
 if __name__ == "__main__":

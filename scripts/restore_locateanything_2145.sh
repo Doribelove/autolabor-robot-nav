@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WORKSPACE="/home/slam/robot_j6m_ws"
+WORKSPACE="/home/slam/robot_j6m_ws_optimized_20260905"
 ARCHIVE="${WORKSPACE}/.codex_snapshots/locateanything_20260903_2145.tar.gz"
 EXPECTED_SHA256="b9104ab6c96e84391cb32f5c815b62f82c43cc287de22dd95fea3e063b196fe8"
-SERVICE="autolabor-dual-host.service"
+SERVICE="autolabor-optimized-20260905.service"
 
 usage() {
     cat <<'EOF'

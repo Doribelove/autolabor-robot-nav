@@ -1,0 +1,17 @@
+<launch>
+  <arg name="camera_fps" default="15.0"/>
+  <!-- Stationary display fixture only. No CAN, localization, planner or YOLO. -->
+  <include file="$(env DUAL_HOST_WS)/experiments/j6m_bpu_20260905/live_camera.launch">
+    <arg name="camera_fps" value="$(arg camera_fps)"/>
+  </include>
+  <group>
+    <remap from="/fod_camera/image_raw"
+           to="/bpu_preview_zed/zed_node/rgb/image_rect_color"/>
+    <include file="$(find autolabor_operator_gui)/launch/operator_gui.launch">
+      <arg name="enable_rviz" value="false"/>
+      <arg name="initial_bpu_preview" value="true"/>
+      <arg name="configured_vision_backend" value="detect_and_classify"/>
+      <arg name="navigation_mode_label" value="静止 BPU 显示测试 · 导航未启动"/>
+    </include>
+  </group>
+</launch>

@@ -1,11 +1,13 @@
 <launch>
   <!-- The GUI is optional and does not start or replace the existing bringup stack. -->
   <arg name="enable_rviz" default="true"/>
+  <arg name="initial_bpu_preview" default="false"/>
   <arg name="rviz_config"
        default="$(find autolabor_operator_gui)/config/operator_navigation.rviz"/>
   <arg name="navigation_mode_label" default="FAST_LIO"/>
   <arg name="odom_topic" default="/Odometry"/>
   <arg name="cloud_topic" default="/cloud_registered_body"/>
+  <arg name="cloud_point_count_topic" default=""/>
   <arg name="imu_topic" default="/livox/imu"/>
   <arg name="rviz_startup_fixed_frame" default="map"/>
   <arg name="rviz_navigation_fixed_frame" default="map"/>
@@ -16,7 +18,7 @@
   <arg name="coverage_region_legacy_root" default=""/>
   <arg name="configured_vision_backend" default="yolo"/>
   <arg name="vision_backend_switch_script"
-       default="/home/slam/robot_j6m_ws/scripts/switch_fod_backend.sh"/>
+       default="/home/slam/robot_j6m_ws_optimized_20260905/scripts/switch_fod_backend.sh"/>
 
   <!--
     map_server publishes an OccupancyGrid but no TF. Before the operator sends
@@ -41,10 +43,12 @@
         output="screen"
         required="true">
     <param name="enable_rviz" value="$(arg enable_rviz)"/>
+    <param name="initial_bpu_preview" value="$(arg initial_bpu_preview)"/>
     <param name="rviz_config" value="$(arg rviz_config)"/>
     <param name="navigation_mode_label" value="$(arg navigation_mode_label)"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="cloud_topic" value="$(arg cloud_topic)"/>
+    <param name="cloud_point_count_topic" value="$(arg cloud_point_count_topic)"/>
     <param name="imu_topic" value="$(arg imu_topic)"/>
     <param name="rviz_startup_fixed_frame"
            value="$(arg rviz_startup_fixed_frame)"/>

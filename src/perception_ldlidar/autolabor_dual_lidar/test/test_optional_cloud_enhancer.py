@@ -147,6 +147,72 @@ class OptionalCloudEnhancerContract(unittest.TestCase):
         self.assertAlmostEqual(points[1][3], 9.0, places=5)
         self.wait_status(True)
 
+    def test_05_organized_cloud_padding_is_not_copied_as_points(self):
+        source = self.make_cloud()
+        point = bytes(source.data)
+        source.height = 2
+        source.width = 2
+        source.row_step = 2 * source.point_step + 8
+        source.data = point * 2 + b'padding!' + point * 2 + b'padding!'
+        self.scan_pub.publish(self.make_scan())
+        time.sleep(0.03)
+        self.cloud_pub.publish(source)
+        output = self.wait_cloud()
+        self.assertEqual((output.height, output.width), (1, 5))
+        self.assertEqual(bytes(output.data[:4 * source.point_step]), point * 4)
+        self.assertEqual(output.row_step, 5 * source.point_step)
+        self.assertEqual(output.fields, source.fields)
+
+    def test_06_overlapping_rows_are_rejected_without_corrupting_input(self):
+        source = self.make_cloud()
+        source.height = 2
+        source.row_step = 0
+        self.scan_pub.publish(self.make_scan())
+        time.sleep(0.03)
+        self.cloud_pub.publish(source)
+        output = self.wait_cloud()
+        self.assertEqual((output.height, output.width, output.row_step),
+                         (source.height, source.width, source.row_step))
+        self.assertEqual(bytes(output.data), bytes(source.data))
+        self.assertEqual(output.header.stamp, source.header.stamp)
+        self.wait_status(False)
+
+    def test_07_truncated_cloud_is_unchanged_passthrough(self):
+        source = self.make_cloud()
+        source.data = source.data[:-1]
+        self.scan_pub.publish(self.make_scan())
+        time.sleep(0.03)
+        self.cloud_pub.publish(source)
+        output = self.wait_cloud()
+        self.assertEqual((output.height, output.width, output.row_step),
+                         (source.height, source.width, source.row_step))
+        self.assertEqual(bytes(output.data), bytes(source.data))
+        self.assertEqual(output.header.stamp, source.header.stamp)
+        self.wait_status(False)
+
+    def test_08_diagnostics_continue_without_viewer_and_reconnect_works(self):
+        cls = type(self)
+        cls.cloud_sub.unregister()
+        time.sleep(0.1)
+        try:
+            self.scan_pub.publish(self.make_scan())
+            time.sleep(0.03)
+            self.cloud_pub.publish(self.make_cloud())
+            self.wait_status(True)
+            with self.condition:
+                self.statuses.clear()
+            time.sleep(0.25)
+            self.cloud_pub.publish(self.make_cloud())
+            self.wait_status(False)
+        finally:
+            cls.cloud_sub = rospy.Subscriber(
+                '/test/enhanced_cloud', PointCloud2, cls._cloud_callback)
+        time.sleep(0.1)
+        self.scan_pub.publish(self.make_scan())
+        time.sleep(0.03)
+        output = self.publish_cloud_until_received()
+        self.assertEqual(output.width, 2)
+
 
 if __name__ == "__main__":
     rostest.rosrun(

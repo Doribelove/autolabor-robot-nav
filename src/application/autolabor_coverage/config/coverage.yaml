@@ -13,7 +13,9 @@ default_angular_accel_rps2: 0.50
 angular_accel_limit_rps2: 1.00
 direction_change_penalty_sec: 0.50
 segment_handoff_penalty_sec: 0.50
-default_transit_replan_period_sec: 1.00
+# Qt-controlled wait after a failed coverage segment before its next attempt.
+# Zero retries immediately after the old action is confirmed terminal.
+default_transit_replan_period_sec: 0.50
 time_search_beam_width: 128
 # The first Navfn + TEB target must stay near the shortest known-free endpoint;
 # only the remaining line order is allowed to trade distance for easier turns.
@@ -84,7 +86,6 @@ hybrid_transit_linear_accel_mps2: 0.00
 hybrid_transit_angular_accel_rps2: 0.00
 hybrid_no_progress_timeout_sec: 2.0
 hybrid_no_progress_distance_m: 0.10
-obstacle_wait_sec: 2.0
 segment_retry_count: 3
 final_retry_count: 1
 localization_fresh_sec: 0.75

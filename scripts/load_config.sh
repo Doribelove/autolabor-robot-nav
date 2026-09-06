@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ "${ROBOT_OPTIMIZED_SANDBOX:-}" != 1 ]]; then
+  echo "Use scripts/optimized.sh: this candidate requires read-only isolation of the original workspace." >&2
+  return 2 2>/dev/null || exit 2
+fi
+
 DUAL_HOST_WS="${DUAL_HOST_WS:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 DUAL_HOST_CONFIG="${DUAL_HOST_CONFIG:-$DUAL_HOST_WS/config/dual_host.env}"
 

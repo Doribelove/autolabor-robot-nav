@@ -83,7 +83,7 @@ bool validHybridProfile(const HybridAStarProfile& profile)
 
 bool validReplanPeriod(double value)
 {
-  return std::isfinite(value) && value >= 1.0 && value <= 10.0;
+  return std::isfinite(value) && value >= 0.0 && value <= 10.0;
 }
 
 bool selectRollingGoal(

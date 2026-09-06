@@ -20,6 +20,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <std_msgs/String.h>
+#include <std_msgs/UInt64.h>
 #include <sweeper_mcp/AiControlStatus.h>
 #include <sweeper_mcp/AiEvent.h>
 #include <tf2_ros/buffer.h>
@@ -120,7 +121,7 @@ struct CoveragePlanningUiParameters
   double angular_accel_rps2 = 0.50;
   double direction_change_penalty_sec = 0.50;
   double segment_handoff_penalty_sec = 0.50;
-  double transit_replan_period_sec = 1.00;
+  double transit_replan_period_sec = 0.50;
 };
 
 struct NavigationProfileApplyResult
@@ -256,6 +257,12 @@ struct TelemetrySnapshot
   QImage debug_image;
   ros::Time debug_image_stamp;
   ros::WallTime debug_image_received_at;
+
+  // Experimental display channel: never enters the FOD result/control contract.
+  QImage bpu_preview;
+  ros::Time bpu_preview_stamp;
+  std::string bpu_preview_status;
+  ros::WallTime bpu_preview_status_at;
 
   bool detections_received = false;
   autolabor_fod_msgs::FodDetectionArray detections;
@@ -420,6 +427,8 @@ private:
   QWidget* buildFastLioPage();
   QWidget* buildTestPage();
   QWidget* buildVisionPage();
+  QWidget* buildBpuPreviewPage();
+  void refreshBpuPreview(const TelemetrySnapshot& data);
   QWidget* buildCoveragePage();
   QWidget* buildAiControlPage();
   QWidget* buildPlaceholderPage(const QString& title, const QString& subtitle,
@@ -488,12 +497,16 @@ private:
 
   void odomCallback(const nav_msgs::Odometry::ConstPtr& msg);
   void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg);
+  void cloudPointCountCallback(const std_msgs::UInt64::ConstPtr& msg);
+  void recordCloudSample(std::size_t point_count);
   void imuCallback(const sensor_msgs::Imu::ConstPtr& msg);
   void canCallback(const autolabor_canbus_driver::CanBusMessage::ConstPtr& msg);
   void scanCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
   void navigationCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
   void cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg);
   void debugImageCallback(const sensor_msgs::Image::ConstPtr& msg);
+  void bpuPreviewCallback(const sensor_msgs::Image::ConstPtr& msg);
+  void bpuPreviewStatusCallback(const std_msgs::String::ConstPtr& msg);
   void detectionsCallback(const autolabor_fod_msgs::FodDetectionArray::ConstPtr& msg);
   void visionResultsCallback(
       const autolabor_fod_msgs::FodVisionDetectionArray::ConstPtr& msg);
@@ -531,6 +544,9 @@ private:
   ros::Subscriber navigation_subscriber_;
   ros::Subscriber camera_image_subscriber_;
   ros::Subscriber debug_image_subscriber_;
+  ros::Subscriber bpu_preview_subscriber_;
+  ros::Subscriber bpu_preview_status_subscriber_;
+  bool bpu_preview_subscribed_ = false;
   ros::Subscriber detections_subscriber_;
   ros::Subscriber vision_results_subscriber_;
   ros::Subscriber mode_state_subscriber_;
@@ -560,6 +576,7 @@ private:
   std::string navigation_mode_label_ = "FAST_LIO";
   std::string odom_topic_ = "/Odometry";
   std::string cloud_topic_ = "/cloud_registered_body";
+  std::string cloud_point_count_topic_;
   std::string imu_topic_ = "/livox/imu";
   std::string rviz_config_path_;
   std::string rviz_startup_fixed_frame_ = "map";
@@ -573,6 +590,7 @@ private:
   QTimer master_probe_timer_;
   QFutureWatcher<MasterProbeResult> master_probe_watcher_;
   QTimer ui_refresh_timer_;
+  QTimer bpu_preview_timer_;
   QTimer ai_heartbeat_timer_;
   QTimer navigation_profile_apply_timer_;
   QFutureWatcher<NavigationProfileApplyResult> navigation_profile_apply_watcher_;
@@ -589,6 +607,7 @@ private:
   int overview_tab_index_ = -1;
   int coverage_tab_index_ = -1;
   int ai_tab_index_ = -1;
+  int bpu_tab_index_ = -1;
   int rviz_attached_tab_index_ = -1;
   QWidget* rviz_host_ = nullptr;
   QVBoxLayout* rviz_layout_ = nullptr;
@@ -649,7 +668,12 @@ private:
   QPushButton* static_map_start_button_ = nullptr;
   QPushButton* static_map_stop_button_ = nullptr;
   QLabel* overview_camera_preview_ = nullptr;
+  QLabel* overview_bpu_status_ = nullptr;
   QLabel* vision_camera_preview_ = nullptr;
+  QLabel* bpu_live_preview_ = nullptr;
+  QLabel* bpu_result_preview_ = nullptr;
+  QLabel* bpu_live_status_ = nullptr;
+  QLabel* bpu_result_status_ = nullptr;
   QPlainTextEdit* vision_detections_ = nullptr;
   QComboBox* vision_model_combo_ = nullptr;
   QPushButton* vision_model_switch_button_ = nullptr;

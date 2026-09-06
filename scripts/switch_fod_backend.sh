@@ -342,7 +342,7 @@ schedule_restart() {
     value="${!variable:-}"
     [[ -z "$value" ]] || systemd_command+=(--setenv="$variable=$value")
   done
-  systemd_command+=("${restart_command[@]}")
+  systemd_command+=("$SCRIPT_DIR/optimized.sh" run "${restart_command[@]}")
   "${systemd_command[@]}"
   printf 'SCHEDULED|%s|%s\n' "$backend" "$unit"
 }
@@ -401,7 +401,7 @@ perform_staged_restart() {
   else
     restart_status=$?
     live_backend="$(timeout 3 rosparam get /fod_detector/backend 2>/dev/null || true)"
-    if systemctl --user is-active autolabor-dual-host.service >/dev/null 2>&1 &&
+    if systemctl --user is-active autolabor-optimized-20260905.service >/dev/null 2>&1 &&
        [[ "$live_backend" == "$PREVIOUS_BACKEND" ]]; then
       mv -f -- "$rollback" "$CONFIG_PATH"
       echo "Cold restart failed before the old managed stack stopped; configuration was restored." >&2

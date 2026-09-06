@@ -5,6 +5,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DUAL_HOST_WS="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/load_config.sh"
 
+case "${1:-}" in
+  --help|-h) echo 'Usage: optimized.sh deploy (builds a new isolated J6M release)'; exit 0 ;;
+  '') ;;
+  *) echo 'Unknown deployment argument; nothing was changed.' >&2; exit 2 ;;
+esac
+(( $# == 0 )) || exit 2
+
+# All rsync --relative source paths below must resolve from this workspace.
+cd "$DUAL_HOST_WS"
+mkdir -p "$DUAL_HOST_WS/runtime"
+exec 9>"$DUAL_HOST_WS/runtime/deploy.lock"
+flock -n 9 || { echo 'Another candidate deployment is running.' >&2; exit 3; }
+deployment_start_seconds=$SECONDS
+
 dual_host_validate_fod_model_contract || exit 2
 dual_host_validate_fod_weights || exit 2
 
@@ -13,8 +27,13 @@ target="$(dual_host_select_ssh)" || {
   exit 2
 }
 stamp="$(date +%Y%m%d_%H%M%S)"
+build_id="${J6M_BUILD_CACHE_ID:-$stamp}"
+[[ "$build_id" =~ ^[0-9]{8}_[0-9]{6}$ ]] || exit 2
 rootfs="$J6M_RUNTIME_BASE/rootfs"
-remote_build="$rootfs/opt/autolabor/dual_host/build_ws.$stamp"
+[[ "$J6M_RUNTIME_BASE" == /map/robot_j6m_optimized_20260905 ]] || {
+  echo 'Refusing deployment outside the isolated runtime.' >&2; exit 2;
+}
+remote_build="$rootfs/opt/autolabor/dual_host/build_ws.$build_id"
 remote_install="$rootfs/opt/autolabor/dual_host/releases/$stamp/install"
 navigation_runtime="${J6M_NAVIGATION_RUNTIME_SOURCE:-${BASE_ROBOT_WS:-/home/slam/robot_ws}/.deps/sysroot/opt/ros/noetic}"
 navigation_sysroot="${navigation_runtime%/opt/ros/noetic}"
@@ -76,6 +95,13 @@ for system_library in "${navigation_system_libraries[@]}"; do
 done
 
 ssh "$target" "set -eu
+  test ! -L '$J6M_RUNTIME_BASE'
+  mkdir -p '$J6M_RUNTIME_BASE/bin'"
+rsync -a "$DUAL_HOST_WS/deploy/j6m/prepare_isolated_rootfs.sh" \
+  "$target:$J6M_RUNTIME_BASE/bin/"
+ssh "$target" "'$J6M_RUNTIME_BASE/bin/prepare_isolated_rootfs.sh'"
+
+ssh "$target" "set -eu
   test -x '$rootfs/bin/bash'
   test -f '$rootfs/opt/autolabor/ros/install/setup.bash'
   test ! -f '$J6M_RUNTIME_BASE/dual_host/run/j6m_stack.pid'
@@ -108,6 +134,7 @@ rsync -a \
   "$target:$J6M_RUNTIME_BASE/dual_host/bin/"
 rsync -a \
   "$DUAL_HOST_WS/deploy/j6m/mount_chroot.sh" \
+  "$DUAL_HOST_WS/deploy/j6m/prepare_isolated_rootfs.sh" \
   "$DUAL_HOST_WS/deploy/j6m/unmount_chroot.sh" \
   "$target:$J6M_RUNTIME_BASE/bin/"
 rsync -a "$DUAL_HOST_CONFIG" \
@@ -121,12 +148,12 @@ ssh "$target" "set -eu
   grep -Fq 'requested_visual_only' '$J6M_RUNTIME_BASE/dual_host/bin/start.sh'
   '$J6M_RUNTIME_BASE/bin/mount_chroot.sh' >/dev/null
   trap \"'$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null 2>&1 || true\" EXIT
-  chroot '$rootfs' /usr/bin/env RELEASE='$stamp' /bin/bash -lc '
+  chroot '$rootfs' /usr/bin/env RELEASE='$stamp' BUILD_ID='$build_id' /bin/bash -lc '
     set -eo pipefail
     source /opt/ros/noetic/setup.bash
     source /opt/autolabor/ros/install/setup.bash
     set -u
-    cd /opt/autolabor/dual_host/build_ws.\"\$RELEASE\"
+    cd /opt/autolabor/dual_host/build_ws.\"\$BUILD_ID\"
     catkin_make install -j2 -l2 \
       -DCMAKE_BUILD_TYPE=Release \
       -DCATKIN_ENABLE_TESTING=OFF \
@@ -225,4 +252,5 @@ ssh "$target" "set -eu
   '$J6M_RUNTIME_BASE/bin/unmount_chroot.sh' >/dev/null"
 
 echo "Deployed J6M dual-host release $stamp through $target."
+echo "Candidate deployment elapsed: $((SECONDS - deployment_start_seconds)) seconds (native build cache $build_id)."
 echo "Run: ssh -t $target $J6M_RUNTIME_BASE/dual_host/bin/health_check.sh"

@@ -31,8 +31,10 @@
   <group if="$(arg publish_fod_aliases)">
     <remap from="/$(arg camera_name)/$(arg node_name)/rgb/image_rect_color"
            to="/fod_camera/image_raw"/>
-    <remap from="/$(arg camera_name)/$(arg node_name)/rgb/camera_info"
-           to="/fod_camera/camera_info"/>
+    <!-- CameraPublisher derives /fod_camera/camera_info AFTER image remapping.
+         Remapping rgb/camera_info as well also attaches the unused RGB-gray
+         publisher, causing redundant gray retrieval and duplicate intrinsics.
+         Keep its native info endpoint for optional low-level gray consumers. -->
     <remap from="/$(arg camera_name)/$(arg node_name)/depth/depth_registered"
            to="/fod_camera/depth_registered"/>
     <include file="$(find zed_wrapper)/launch/zed2.launch">

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/autolabor_runtime}"
+RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_optimized_20260905}"
 ROOTFS="${J6M_ROOTFS:-$RUNTIME_BASE/rootfs}"
+[[ "$RUNTIME_BASE" == /map/robot_j6m_optimized_20260905 &&
+   "$ROOTFS" == /map/robot_j6m_optimized_20260905/rootfs ]] || exit 2
 
 [[ "$(id -u)" == 0 ]] || { echo "health_check.sh must run as root on J6M." >&2; exit 2; }
 cleanup() {

@@ -100,7 +100,7 @@ class CoverageTimeParameters:
     allow_reverse: bool = True
     direction_change_penalty_sec: float = 0.50
     segment_handoff_penalty_sec: float = 0.50
-    transit_replan_period_sec: float = 1.00
+    transit_replan_period_sec: float = 0.50
 
     def validate(self):
         positive = (
@@ -121,8 +121,8 @@ class CoverageTimeParameters:
         if type(self.allow_reverse) is not bool:
             raise ValueError("coverage reverse permission must be boolean")
         if (not math.isfinite(self.transit_replan_period_sec) or
-                not 1.0 <= self.transit_replan_period_sec <= 10.0):
-            raise ValueError("coverage transit replan period must be in [1, 10] s")
+                not 0.0 <= self.transit_replan_period_sec <= 10.0):
+            raise ValueError("coverage transit retry wait must be in [0, 10] s")
         return self
 
 

@@ -2,9 +2,11 @@
 
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from autolabor_fod_vision.locateanything_runtime import (
     LocateAnythingCategory,
@@ -321,6 +323,7 @@ class LocateAnythingInputSizingTest(unittest.TestCase):
 
 
 class LocateAnythingWorkerEnvironmentTest(unittest.TestCase):
+    @patch.dict(os.environ, {"LOCATEANYTHING_CACHE_ROOT": "", "LOCATEANYTHING_RUNTIME_ROOT": ""})
     def test_every_managed_cache_log_and_temporary_path_stays_in_model_root(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory).resolve()
@@ -349,6 +352,26 @@ class LocateAnythingWorkerEnvironmentTest(unittest.TestCase):
                 self.assertTrue(path.is_dir(), key)
             self.assertEqual(environment["TRANSFORMERS_OFFLINE"], "1")
             self.assertEqual(environment["HF_HUB_OFFLINE"], "1")
+
+    def test_isolated_outputs_do_not_create_files_in_model_root(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            model = root / "read_only_model"
+            model.mkdir()
+            candidate = root / "candidate"
+            detector = object.__new__(LocateAnythingDetector)
+            detector.model_root = str(model)
+            with patch.dict(os.environ, {
+                "LOCATEANYTHING_CACHE_ROOT": str(candidate / "cache"),
+                "LOCATEANYTHING_RUNTIME_ROOT": str(candidate / "runtime"),
+            }):
+                environment = detector._worker_environment()
+                self.assertEqual(detector._output_directory("runtime"), candidate / "runtime")
+                for key in ("HF_HOME", "HF_MODULES_CACHE", "CUDA_CACHE_PATH",
+                            "TRITON_CACHE_DIR", "TMPDIR", "PYTHONPYCACHEPREFIX"):
+                    Path(environment[key]).relative_to(candidate)
+                    self.assertTrue(Path(environment[key]).is_dir())
+            self.assertEqual(list(model.iterdir()), [])
 
 
 if __name__ == "__main__":

@@ -133,7 +133,7 @@ RabbitMQ。界面本身从不发布 `/cmd_vel`。
 ## 编译
 
 ```bash
-cd /home/slam/robot_j6m_ws
+cd /home/slam/robot_j6m_ws_optimized_20260905
 source /opt/ros/noetic/setup.bash
 catkin_make -DCATKIN_WHITELIST_PACKAGES=autolabor_operator_gui -j2
 source devel/setup.bash
@@ -144,7 +144,7 @@ source devel/setup.bash
 完整双机项目推荐只使用工作区一键入口：
 
 ```bash
-cd /home/slam/robot_j6m_ws
+cd /home/slam/robot_j6m_ws_optimized_20260905
 ./scripts/start_dual_host.sh
 # 或加载地图集：
 ./scripts/start_dual_host.sh --start --map-set global_maps/map_sets/latest
@@ -154,7 +154,7 @@ cd /home/slam/robot_j6m_ws
 
 ```bash
 source /opt/ros/noetic/setup.bash
-source /home/slam/robot_j6m_ws/devel/setup.bash
+source /home/slam/robot_j6m_ws_optimized_20260905/devel/setup.bash
 roslaunch autolabor_operator_gui operator_gui.launch
 ```
 

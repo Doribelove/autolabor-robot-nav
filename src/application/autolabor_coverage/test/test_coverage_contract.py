@@ -10,7 +10,7 @@ import yaml
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = Path(os.environ.get(
-    "AUTOLABOR_SOURCE_WORKSPACE", "/home/slam/robot_j6m_ws"
+    "AUTOLABOR_SOURCE_WORKSPACE", "/home/slam/robot_j6m_ws_optimized_20260905"
 )).resolve()
 
 
@@ -417,7 +417,7 @@ class CoverageContractTest(unittest.TestCase):
         self.assertEqual(0.60, config["default_max_angular_speed_rps"])
         self.assertEqual(1.00, config["default_linear_accel_mps2"])
         self.assertEqual(0.50, config["default_angular_accel_rps2"])
-        self.assertEqual(1.00, config["default_transit_replan_period_sec"])
+        self.assertEqual(0.50, config["default_transit_replan_period_sec"])
         self.assertEqual(2.00, config["hybrid_transit_lookahead_dist_m"])
         self.assertEqual(0.25, config["hybrid_cusp_position_tolerance_m"])
         self.assertEqual(
@@ -427,7 +427,7 @@ class CoverageContractTest(unittest.TestCase):
             50.0, config["hybrid_transit_weight_viapoint_heading"]
         )
         self.assertEqual(2.0, config["hybrid_no_progress_timeout_sec"])
-        self.assertEqual(2.0, config["obstacle_wait_sec"])
+        self.assertNotIn("obstacle_wait_sec", config)
         self.assertEqual(0.20, config["hybrid_cusp_yaw_tolerance_rad"])
         self.assertEqual(0.60, config["hybrid_cusp_max_forward_speed_mps"])
         self.assertEqual(0.30, config["hybrid_cusp_join_max_skip_m"])
