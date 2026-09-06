@@ -1,0 +1,18 @@
+<launch>
+  <arg name="navigation_enabled" default="false"/>
+  <arg name="target_frame" default="camera_init"/>
+  <arg name="cloud_topic" default="/cloud_registered_body"/>
+  <arg name="sensor_x" default="0.20"/>
+  <arg name="sensor_y" default="0.0"/>
+  <arg name="sensor_z" default="1.0"/>
+  <node pkg="autolabor_bpu_perception" type="centerpoint_node.py" name="centerpoint_mid360" output="screen">
+    <param name="cloud_topic" value="$(arg cloud_topic)"/>
+    <rosparam param="sensor_in_base_m" subst_value="true">[$(arg sensor_x), $(arg sensor_y), $(arg sensor_z)]</rosparam>
+    <param name="max_fps" value="5.0"/>
+    <param name="maximum_age_sec" value="0.35"/>
+  </node>
+  <node pkg="autolabor_bpu_perception" type="obstacle_adapter_node.py" name="centerpoint_obstacle_adapter" output="screen">
+    <param name="navigation_enabled" value="$(arg navigation_enabled)"/>
+    <param name="target_frame" value="$(arg target_frame)"/>
+  </node>
+</launch>

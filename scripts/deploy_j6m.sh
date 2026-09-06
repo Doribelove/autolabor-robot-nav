@@ -117,6 +117,7 @@ paths=(
   ./src/localization_fastlio/fast_lio_localization
   ./src/application/autolabor_coverage
   ./src/application/autolabor_fod_control
+  ./src/application/autolabor_bpu_perception
   ./src/scripts/robot_bringup
   ./src/platform/autolabor_dual_host
 )
@@ -159,7 +160,7 @@ ssh "$target" "set -eu
       -DCATKIN_ENABLE_TESTING=OFF \
       -DCMAKE_INSTALL_PREFIX=/opt/autolabor/dual_host/releases/\"\$RELEASE\"/install \
       -DFAST_LIO_RUNTIME_DIR=/var/lib/autolabor/fast_lio/ \
-      -DCATKIN_WHITELIST_PACKAGES=conventional\\;teb_local_planner\\;fast_lio\\;fast_lio_localization\\;autolabor_coverage\\;robot_bringup\\;autolabor_fod_control\\;autolabor_dual_lidar\\;autolabor_dual_host
+      -DCATKIN_WHITELIST_PACKAGES=conventional\\;teb_local_planner\\;fast_lio\\;fast_lio_localization\\;autolabor_coverage\\;robot_bringup\\;autolabor_fod_control\\;autolabor_bpu_perception\\;autolabor_dual_lidar\\;autolabor_dual_host
     test -f /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find autolabor_dual_host >/dev/null
@@ -167,6 +168,8 @@ ssh "$target" "set -eu
     rospack find fast_lio_localization >/dev/null
     rospack find autolabor_coverage >/dev/null
     rospack find autolabor_fod_control >/dev/null
+    rospack find autolabor_bpu_perception >/dev/null
+    rosmsg md5 autolabor_bpu_perception/DetectedObjects >/dev/null
     rospack find robot_bringup >/dev/null
     rospack find teb_local_planner >/dev/null
     rosmsg md5 autolabor_coverage/CoverageRegion >/dev/null

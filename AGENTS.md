@@ -1,5 +1,19 @@
 # 独立优化候选版约束（2026-09-05）
 
+2026-09-06 双感知接入最新：用户已确认 ZED 左目相对 MID360 前0.42 m、右0.14 m、等高，
+光轴水平向下41°，无偏航/侧倾。先完成 GitHub 修改前备份分支和标签（e0cbf76），
+本地 runtime/backups/before_dual_perception_20260906 保留独立解压副本、归档和 bundle；
+2531个文件校验一致。已部署新 J6M ROS current=20260906_152402，新增 FCOS RGB-D 与
+CenterPoint ROS 包、独立双模型常驻服务。候选 BPU_PERCEPTION_ENABLED=true，随下次正常
+UI 启动伴随链路。主运动 true、FOD=false、1.60上限和已有授权标记保留。
+真实 QUALITY 深度+Qt+合成 CenterPoint 并行实测 FCOS约10–14 Hz；997项测试通过。
+MID360现场网口无载波、不可达，真实点云验收未完成，不能把263帧合成ROS数据写成MID360实测。
+CenterPoint仅候选观察；发现旧TEB自定义障碍物保留旧帧及TF失败单位变换问题，本版明确拒绝
+开启学习型障碍物控制入口。COCO/nuScenes不是五材质垃圾模型，正式后端未替换，未验收GPU节省。
+本轮没有启动完整导航、发送初值/目标/速度；最后相机、Qt、远端测试节点和私有BPU服务均退出，
+原版/候选导航服务均inactive，无当前运行态LOCALIZED/watchdog结论。详见 DUAL_PERCEPTION_20260906.md。
+此记录优先于下方历史存活状态，不自动重启导航，也不删除或重新索取已完成的历史主运动授权。
+
 2026-09-06 12:39 最新：本轮 FCOS 性能优化已部署到 J6M 私有实验，候选 Qt 已构建。
 旧桥 0.5 Hz 改为默认上限 30 Hz、模型常驻；独立 15 Hz 相机实测 14.90 Hz，
 30 Hz RGB 相机实测 28.22 Hz、结果源帧年龄均值 84.57 ms。正常导航相机仍为 15 Hz，

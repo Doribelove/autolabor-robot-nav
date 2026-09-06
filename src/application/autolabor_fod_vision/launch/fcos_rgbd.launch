@@ -1,0 +1,16 @@
+<launch>
+  <arg name="detector_python" default="/home/slam/robot_ws/.venv/fod_yolo/bin/python3"/>
+  <arg name="image_topic" default="/fod_camera/image_raw"/>
+  <arg name="depth_topic" default="/fod_camera/depth_registered"/>
+  <arg name="info_topic" default="/fod_camera/camera_info"/>
+  <arg name="max_fps" default="15.0"/>
+  <node pkg="autolabor_fod_vision" type="fcos_rgbd_node.py" name="fcos_rgbd"
+        launch-prefix="$(arg detector_python)" output="screen">
+    <param name="image_topic" value="$(arg image_topic)"/>
+    <param name="depth_topic" value="$(arg depth_topic)"/>
+    <param name="info_topic" value="$(arg info_topic)"/>
+    <param name="max_fps" value="$(arg max_fps)"/>
+    <param name="mount_config" value="$(find autolabor_bpu_perception)/config/zed_mount.yaml"/>
+    <param name="classes_config" value="$(find autolabor_bpu_perception)/config/coco_classes.yaml"/>
+  </node>
+</launch>

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(autolabor_fod_vision)
 
 find_package(catkin REQUIRED COMPONENTS
+  autolabor_bpu_perception
   autolabor_fod_msgs
   cv_bridge
   diagnostic_msgs
@@ -20,6 +21,7 @@ catkin_python_setup()
 
 catkin_package(
   CATKIN_DEPENDS
+  autolabor_bpu_perception
   autolabor_fod_msgs
   cv_bridge
   diagnostic_msgs
@@ -35,6 +37,7 @@ catkin_package(
 )
 
 catkin_install_python(PROGRAMS
+  scripts/fcos_rgbd_node.py
   scripts/fod_detect_and_classify_node.py
   scripts/fod_detector_node.py
   scripts/fod_ground_projector_node.py
@@ -52,6 +55,7 @@ install(DIRECTORY config launch models
 )
 
 if(CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(test/test_bpu_rgbd.py)
   catkin_add_nosetests(test/test_camera_info.py)
   catkin_add_nosetests(test/test_clip_filter.py)
   catkin_add_nosetests(test/test_confidence_control.py)

@@ -1,0 +1,38 @@
+<launch>
+  <arg name="mid360" default="false"/>
+  <arg name="qt" default="false"/>
+  <arg name="cam_pos_x"/>
+  <arg name="cam_pos_y"/>
+  <arg name="cam_pos_z"/>
+  <arg name="cam_roll"/>
+  <arg name="cam_pitch"/>
+  <arg name="cam_yaw"/>
+  <include file="$(find robot_bringup)/launch/zed2_camera.launch">
+    <arg name="camera_name" value="perception_zed"/>
+    <arg name="depth_mode" value="QUALITY"/>
+    <arg name="cam_pos_x" value="$(arg cam_pos_x)"/>
+    <arg name="cam_pos_y" value="$(arg cam_pos_y)"/>
+    <arg name="cam_pos_z" value="$(arg cam_pos_z)"/>
+    <arg name="cam_roll" value="$(arg cam_roll)"/>
+    <arg name="cam_pitch" value="$(arg cam_pitch)"/>
+    <arg name="cam_yaw" value="$(arg cam_yaw)"/>
+  </include>
+  <param name="/perception_zed/zed_node/pos_tracking/pos_tracking_enabled" value="false"/>
+  <param name="/perception_zed/zed_node/general/pub_frame_rate" value="15.0"/>
+  <param name="/perception_zed/zed_node/general/grab_frame_rate" value="15" type="int"/>
+  <param name="/perception_zed/zed_node/sensors/publish_imu_tf" value="false"/>
+  <include file="$(find autolabor_fod_vision)/launch/fcos_rgbd.launch"/>
+  <group if="$(arg mid360)">
+    <remap from="/livox/lidar" to="/gateway/livox/lidar"/>
+    <remap from="/livox/imu" to="/gateway/livox/imu"/>
+    <include file="$(find robot_bringup)/launch/livox_mid360.launch">
+      <arg name="user_config_path" value="$(find autolabor_dual_host)/config/livox_mid360_nvidia.json"/>
+    </include>
+  </group>
+  <include if="$(arg qt)" file="$(find autolabor_operator_gui)/launch/operator_gui.launch">
+    <arg name="enable_rviz" value="false"/>
+    <arg name="initial_bpu_preview" value="true"/>
+    <arg name="configured_vision_backend" value="detect_and_classify"/>
+    <arg name="navigation_mode_label" value="双感知静止测试 · 导航未启动"/>
+  </include>
+</launch>
