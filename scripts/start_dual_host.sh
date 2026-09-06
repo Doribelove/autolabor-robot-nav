@@ -29,7 +29,7 @@ Usage: $0 [--start | --restart | --status | --stop | --foreground]
 The default start waits until the complete graph is ready, then returns to the
 shell. Optional sensor messages may be reported as degraded; an enabled ZED
 camera must publish live image and depth data. The stack remains owned by
-autolabor-dual-host.service;
+autolabor-optimized-20260905.service;
 closing this terminal or restarting the graphical desktop cannot orphan its ROS
 children.
 EOF
@@ -123,11 +123,22 @@ source "$SCRIPT_DIR/load_config.sh"
 source "$SCRIPT_DIR/setup_env.sh"
 source "$SCRIPT_DIR/network_prepare.sh"
 
+# Apply the shared-master ownership guard even to the foreground/supervisor
+# implementation, not only to the public optimized.sh start entry point.
+case "$mode" in
+  --start|--restart|--foreground|--supervise)
+    "$SCRIPT_DIR/verify_master_owner.sh" --allow-absent || exit 3 ;;
+esac
+
 prepare_runtime_network() {
+  # Candidate runs may inspect existing network profiles, never change them.
+  # Keep the full two-link readiness gate before any remote lifecycle action.
   if [[ "$visual_only" == true ]]; then
-    dual_host_prepare_j6m_network
+    dual_host_wait_for_network_role NVIDIA_J6M J6M
+    dual_host_interface_has_address "$NVIDIA_J6M_INTERFACE" "$NVIDIA_J6M_IP" || return 1
+    dual_host_wait_for_peer J6M "$NVIDIA_J6M_INTERFACE" "$J6M_IP"
   else
-    dual_host_prepare_network
+    "$SCRIPT_DIR/network_check.sh"
   fi
 }
 
@@ -196,7 +207,7 @@ READY_FILE="$RUN_DIR/dual_host.ready"
 RUN_TOKEN_FILE="$RUN_DIR/nvidia_run.token"
 SERVICE_TOKEN_FILE="$RUN_DIR/service_run.token"
 MAP_MODE_FILE="$RUN_DIR/map_mode.env"
-SERVICE_UNIT="autolabor-dual-host.service"
+SERVICE_UNIT="autolabor-optimized-20260905.service"
 mkdir -p "$RUN_DIR" "$DUAL_HOST_WS/log"
 
 if [[ "$mode" == --status && -r "$MAP_MODE_FILE" ]]; then
@@ -556,7 +567,7 @@ start_managed_service() {
     esac
     [[ -z "$value" ]] || command+=(--setenv="$variable=$value")
   done
-  command+=("$SCRIPT_DIR/start_dual_host.sh" --supervise)
+  command+=("$SCRIPT_DIR/optimized.sh" run "$SCRIPT_DIR/start_dual_host.sh" --supervise)
 
   echo "Starting $SERVICE_UNIT; this command will return after structural runtime checks pass..."
   write_single_line_file "$SERVICE_TOKEN_FILE" "$token"

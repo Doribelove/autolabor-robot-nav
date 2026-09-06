@@ -316,7 +316,15 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
 
         self.assertIn("--visual-only", managed_start)
         self.assertIn("DUAL_HOST_VISUAL_ONLY_OVERRIDE", managed_start)
-        self.assertIn("dual_host_prepare_j6m_network", managed_start)
+        # The isolated candidate must validate the existing link without
+        # rewriting shared NetworkManager profiles, including visual-only mode.
+        network_gate = managed_start.split("prepare_runtime_network() {", 1)[1].split("\n}", 1)[0]
+        self.assertIn("dual_host_wait_for_network_role NVIDIA_J6M J6M", network_gate)
+        self.assertIn('dual_host_interface_has_address "$NVIDIA_J6M_INTERFACE" "$NVIDIA_J6M_IP"', network_gate)
+        self.assertIn('dual_host_wait_for_peer J6M "$NVIDIA_J6M_INTERFACE" "$J6M_IP"', network_gate)
+        self.assertIn('"$SCRIPT_DIR/network_check.sh"', network_gate)
+        self.assertNotIn("dual_host_prepare_j6m_network", network_gate)
+        self.assertNotIn("nmcli", network_gate)
         self.assertIn('"$SCRIPT_DIR/nvidia_ui.sh"', managed_start)
         self.assertIn("dual_host_prepare_j6m_network()", network_prepare)
         self.assertIn("DUAL_HOST_VISUAL_ONLY_OVERRIDE", load_config)
@@ -713,12 +721,12 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
             "printf 'FOD_MOTION_ENABLED=%q\\n'", managed_start
         )
         self.assertIn(
-            "/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --start \\",
+            "/home/slam/robot_j6m_ws_optimized_20260905/scripts/optimized.sh start \\",
             readme,
         )
         self.assertIn("--authorize-fod-motion </dev/null", readme)
         self.assertIn(
-            "/home/slam/robot_j6m_ws/scripts/start_dual_host.sh --stop </dev/null",
+            "/home/slam/robot_j6m_ws_optimized_20260905/scripts/optimized.sh stop </dev/null",
             readme,
         )
 

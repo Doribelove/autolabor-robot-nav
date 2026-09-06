@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ "${ROBOT_OPTIMIZED_SANDBOX:-}" != 1 ]]; then
+  echo "Use scripts/optimized.sh run bash to enter the isolated candidate environment." >&2
+  return 2 2>/dev/null || exit 2
+fi
+
 DUAL_HOST_WS="${DUAL_HOST_WS:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 BASE_ROBOT_WS="${BASE_ROBOT_WS:-$(cd "$DUAL_HOST_WS/.." && pwd)/robot_ws}"
 BASE_DEPS="${BASE_DEPS:-$BASE_ROBOT_WS/.deps}"

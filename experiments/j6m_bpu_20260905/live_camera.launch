@@ -1,0 +1,18 @@
+<launch>
+  <arg name="camera_fps" default="15.0"/>
+  <!-- Explicitly requested camera-only preview on a private localhost master.
+       No CAN, navigation, YOLO, FOD control or production topic aliases. -->
+  <include file="$(find robot_bringup)/launch/zed2_camera.launch">
+    <arg name="camera_name" value="bpu_preview_zed"/>
+    <arg name="serial_number" value="23748636"/>
+    <arg name="publish_fod_aliases" value="false"/>
+    <arg name="depth_mode" value="NONE"/>
+    <arg name="publish_tf" value="false"/>
+    <arg name="publish_map_tf" value="false"/>
+  </include>
+  <!-- RGB-only settings apply to this isolated preview, not the normal stack. -->
+  <param name="/bpu_preview_zed/zed_node/pos_tracking/pos_tracking_enabled" value="false"/>
+  <param name="/bpu_preview_zed/zed_node/general/pub_frame_rate" value="$(arg camera_fps)"/>
+  <param name="/bpu_preview_zed/zed_node/general/grab_frame_rate" value="$(eval 30 if float(arg('camera_fps')) > 15 else 15)" type="int"/>
+  <param name="/bpu_preview_zed/zed_node/sensors/publish_imu_tf" value="false"/>
+</launch>

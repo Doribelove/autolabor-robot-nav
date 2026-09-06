@@ -7,10 +7,12 @@ DUAL_HOST_STOP_TERM_SEC="${J6M_STOP_TERM_SEC:-5}"
 DUAL_HOST_STOP_KILL_SEC="${J6M_STOP_KILL_SEC:-2}"
 source "$SCRIPT_DIR/process_control.sh"
 
-RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/autolabor_runtime}"
+RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_optimized_20260905}"
 PID_FILE="$RUNTIME_BASE/dual_host/run/j6m_stack.pid"
 LAUNCHER_PID_FILE="$RUNTIME_BASE/dual_host/run/j6m_launcher.pid"
 ROOTFS="${J6M_ROOTFS:-$RUNTIME_BASE/rootfs}"
+[[ "$RUNTIME_BASE" == /map/robot_j6m_optimized_20260905 &&
+   "$ROOTFS" == /map/robot_j6m_optimized_20260905/rootfs ]] || exit 2
 LAUNCHER_PATTERN="(^|[[:space:]])${RUNTIME_BASE}/dual_host/bin/start\\.sh([[:space:]]|$)"
 
 [[ "$(id -u)" == 0 ]] || { echo "stop.sh must run as root on J6M." >&2; exit 2; }

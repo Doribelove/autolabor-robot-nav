@@ -251,7 +251,7 @@ class CoverageManager:
             rospy.get_param("~segment_handoff_penalty_sec", 0.50)
         )
         self.default_transit_replan_period = float(
-            rospy.get_param("~default_transit_replan_period_sec", 1.00)
+            rospy.get_param("~default_transit_replan_period_sec", 0.50)
         )
         self.time_search_beam_width = int(
             rospy.get_param("~time_search_beam_width", 128)
@@ -553,11 +553,6 @@ class CoverageManager:
             or self.hybrid_transit_angular_accel > self.angular_accel_limit
         ):
             raise ValueError("coverage Hybrid A* TEB transit profile is invalid")
-        # A blocked/invalid transition is already canceled and made terminal
-        # before this retry delay starts.  Keep one full 1 Hz global-planner
-        # validation cycle, but do not park for the historical 10 seconds
-        # before planning again from the live pose.
-        self.obstacle_wait_sec = float(rospy.get_param("~obstacle_wait_sec", 2.0))
         self.segment_retry_count = int(rospy.get_param("~segment_retry_count", 3))
         self.final_retry_count = int(rospy.get_param("~final_retry_count", 1))
         self.localization_fresh_sec = float(
@@ -3022,6 +3017,9 @@ class CoverageManager:
 
     def _prepare_sweep_entry(self, sweep, segment_index):
         """Keep TRANSITING until the swath entrance is physically acquired."""
+        execution = sweep.get("_sweep_execution")
+        if execution is not None and execution["goal_submitted"]:
+            return self._prepare_sweep_resume(sweep, segment_index)
         current_pose = self._current_pose()
         if current_pose is None:
             with self.lock:
@@ -6756,13 +6754,166 @@ class CoverageManager:
             "entry_deviation_samples": 0,
         }
 
+    def _pause_sweep_resume(self, reason):
+        with self.lock:
+            if self.cancel_requested:
+                return "canceled"
+            if not self.manual_pause:
+                self.manual_pause_reason = (
+                    "sweep progress retained but cannot resume: {}; "
+                    "manual inspection is required"
+                ).format(reason)
+            self.manual_pause = True
+            self.state = "PAUSED"
+            self.detail = self.manual_pause_reason
+        return "paused"
+
+    def _sweep_resume_guard(self, execution):
+        """Do not turn a canceled task or a safety pause into an auto-retry."""
+        with self.lock:
+            if (
+                self.cancel_requested or not self.active
+                or self.navigation_owner_releasing
+                or execution["plan_id"] != self.plan_id
+                or execution["owner_token"] != self.navigation_owner_token
+            ):
+                return "canceled"
+            if self.move_base_goal_pending:
+                self.detail = "cannot resume sweep before its old goal is terminal"
+                return "failed"
+            if self.manual_pause or self.external_pause:
+                return "paused"
+        self._pause_for_avoidance_loss()
+        self._pause_for_chassis_fault()
+        with self.lock:
+            if self.cancel_requested:
+                return "canceled"
+            if self.manual_pause or self.external_pause:
+                return "paused"
+        if not self._localization_is_fresh():
+            return self._pause_sweep_resume("localization is stale or lost")
+        return "ready"
+
+    def _prepare_sweep_resume(self, sweep, segment_index):
+        """Settle and rejoin only the unexecuted suffix of this exact swath.
+
+        The original endpoints and tracker never change. In particular, a new
+        action does not manufacture entrance history at its shortened start.
+        Keep sampling during braking and retry waits so an ABORTED result at
+        the exit can still satisfy the existing directed completion contract.
+        """
+        execution = sweep["_sweep_execution"]
+        tracker = execution["tracker"]
+        tracker["pass_samples"] = 0
+        stop_deadline = time.monotonic() + float(getattr(
+            self, "transition_completion_stop_timeout", 3.0
+        ))
+        retry_deadline = time.monotonic() + (
+            self.transit_replan_period if execution.pop("retry_wait", False)
+            else 0.0
+        )
+        stopped_samples = 0
+        while not rospy.is_shutdown():
+            guarded = self._sweep_resume_guard(execution)
+            if guarded != "ready":
+                return guarded
+            live_pose = self._current_pose()
+            if live_pose is None:
+                return self._pause_sweep_resume("map to base_link is unavailable")
+            speed = self._current_chassis_linear_speed()
+            complete, geometry = self._observe_sweep_completion(
+                sweep, tracker, live_pose[0], live_pose[1], speed
+            )
+            pose_error = self._sweep_resume_pose_error(tracker, geometry)
+            if pose_error:
+                return self._pause_sweep_resume(pose_error)
+            stopped = (
+                speed is not None and math.isfinite(float(speed))
+                and abs(float(speed)) <= min(
+                    float(getattr(self, "transition_completion_stop_speed", 0.08)),
+                    float(getattr(self, "sweep_completion_max_linear_speed", 0.08)),
+                )
+            )
+            stopped_samples = stopped_samples + 1 if stopped else 0
+            if stopped_samples >= 2:
+                # Repeat the lifecycle check after TF/odom reads, which can
+                # yield to cancel, skip, map invalidation or a safety callback.
+                guarded = self._sweep_resume_guard(execution)
+                if guarded != "ready":
+                    return guarded
+                if complete:
+                    rospy.loginfo(
+                        "coverage sweep %d completed after interruption at "
+                        "%.3f/%.3fm using its retained entrance history",
+                        segment_index + 1, geometry["along"], geometry["length"],
+                    )
+                    return "succeeded"
+                if time.monotonic() >= retry_deadline:
+                    # Keep a nonempty forward path at the goal itself. Its
+                    # unchanged move_base goal can then succeed normally; do
+                    # not weaken the directed exit-plane completion test.
+                    along = min(max(0.0, geometry["along"]),
+                                geometry["length"] - min(
+                                    1.0e-4, geometry["length"] * 0.5))
+                    ratio = along / geometry["length"]
+                    start = Point(
+                        sweep["start"].x + ratio * (
+                            sweep["end"].x - sweep["start"].x),
+                        sweep["start"].y + ratio * (
+                            sweep["end"].y - sweep["start"].y),
+                    )
+                    execution["resume_path"] = self._path_for_points(
+                        sample_path(start, sweep["end"], getattr(
+                            self, "path_sample_spacing", 0.10
+                        )), sweep["yaw"],
+                    )
+                    return "ready"
+            elif time.monotonic() >= stop_deadline:
+                return self._pause_sweep_resume(
+                    "fresh physical /odom did not confirm a stable stop"
+                )
+            with self.lock:
+                if not (self.manual_pause or self.external_pause):
+                    self.state = "WAITING_OBSTACLE"
+                    self.detail = (
+                        "sweep {} interrupted at {:.2f}/{:.2f}m; retaining "
+                        "progress and waiting to retry the remaining line"
+                    ).format(segment_index + 1, geometry["along"],
+                             geometry["length"])
+            self._lifecycle_wait(float(getattr(
+                self, "sweep_completion_poll_period", 0.05
+            )))
+        return "canceled"
+
+    def _sweep_resume_pose_error(self, tracker, geometry):
+        if geometry is None or not tracker["armed"] or tracker["invalidated"]:
+            return "continuous entrance-to-current-pose history is untrusted"
+        if (
+            geometry["cross_track"] > float(getattr(
+                self, "sweep_completion_cross_track_tolerance", 0.30
+            ))
+            or geometry["heading_error"] > float(getattr(
+                self, "sweep_completion_heading_tolerance", 0.35
+            ))
+            or geometry["along"] < -float(getattr(
+                self, "sweep_completion_start_gate", 0.45
+            ))
+            or geometry["along"] < tracker["max_along"] - float(getattr(
+                self, "sweep_completion_max_sample_step", 0.50
+            ))
+        ):
+            return "the live pose is outside the retained sweep corridor"
+        return ""
+
     def _observe_sweep_entry_recovery(self, segment, tracker, point, yaw):
         """Detect a persistent, early sweep-entry acquisition failure.
 
         The normal connector acceptance tolerance remains the desired hand-off
         pose.  This guard uses the wider sweep acquisition gate as a hard
         boundary: small disturbances are left to straight-line tracking, while
-        a pose outside that basin is replanned kinematically.  Restricting the
+        a pose outside that basin pauses the started sweep for inspection.
+        Kinematic entrance recovery is reserved for pre-start acquisition.
+        Restricting the
         test to the first part of the swath prevents normal accumulated
         cross-track error later in a sweep from being mistaken for an entry
         failure.
@@ -7585,7 +7736,20 @@ class CoverageManager:
                     live_pose[1],
                 )
         elif segment["type"] == "sweep":
-            sweep_completion_tracker = self._new_sweep_completion_tracker()
+            execution = segment.get("_sweep_execution")
+            if execution is None:
+                execution = {
+                    "plan_id": segment_plan_id,
+                    "owner_token": owner_token,
+                    "goal_submitted": False,
+                    "tracker": self._new_sweep_completion_tracker(),
+                }
+                segment["_sweep_execution"] = execution
+            if execution["goal_submitted"]:
+                guarded = self._sweep_resume_guard(execution)
+                if guarded != "ready":
+                    return guarded
+            sweep_completion_tracker = execution["tracker"]
             live_pose = self._current_pose()
             if live_pose is not None:
                 self._observe_sweep_completion(
@@ -7594,6 +7758,12 @@ class CoverageManager:
                     live_pose[0],
                     live_pose[1],
                 )
+            if sweep_completion_tracker["invalidated"]:
+                return self._pause_sweep_resume(
+                    "pose continuity was lost before sweep goal submission"
+                )
+            if execution.get("resume_path") is not None:
+                enforced.path = copy.deepcopy(execution["resume_path"])
         # Arm the exact sweep or Hybrid A* transit mode before move_base accepts
         # the goal.  Without this ordering its first planner cycle could still
         # observe the previous segment mode and execute the wrong path class.
@@ -7632,6 +7802,36 @@ class CoverageManager:
         compensate_stale_claim = False
         result = ""
         goal_generation = None
+        resume_guard = "ready"
+        if segment["type"] == "sweep" and execution["goal_submitted"]:
+            resume_guard = self._sweep_resume_guard(execution)
+            if resume_guard == "ready":
+                # Planner/owner service calls can block after preparation.
+                # Recheck the live pose and physical stop before submitting
+                # the resumed goal; never rely only on the earlier TF sample.
+                live_pose = self._current_pose()
+                speed = self._current_chassis_linear_speed()
+                geometry = None
+                if live_pose is not None:
+                    _, geometry = self._observe_sweep_completion(
+                        segment, execution["tracker"],
+                        live_pose[0], live_pose[1], speed,
+                    )
+                pose_error = self._sweep_resume_pose_error(
+                    execution["tracker"], geometry
+                )
+                if pose_error:
+                    resume_guard = self._pause_sweep_resume(pose_error)
+                elif (
+                    speed is None or not math.isfinite(float(speed))
+                    or abs(float(speed)) > min(
+                        float(getattr(self, "transition_completion_stop_speed", 0.08)),
+                        float(getattr(self, "sweep_completion_max_linear_speed", 0.08)),
+                    )
+                ):
+                    resume_guard = self._pause_sweep_resume(
+                        "physical stop was lost before sweep goal submission"
+                    )
         with self.lock:
             if (
                 self.cancel_requested
@@ -7652,9 +7852,13 @@ class CoverageManager:
                 result = "canceled"
             elif self.manual_pause or self.external_pause:
                 result = "paused"
+            elif resume_guard != "ready":
+                result = resume_guard
             else:
                 self.navigation_owner_claimed = True
                 goal_generation = self._send_move_base_goal_locked(goal)
+                if segment["type"] == "sweep":
+                    execution["goal_submitted"] = True
         if stale_claim and compensate_stale_claim:
             # A finalizer can release while this service call is in flight; a
             # delayed idempotent claim could then reacquire the old token.  A
@@ -7699,13 +7903,13 @@ class CoverageManager:
                             "move_base returned untrusted terminal state {}"
                         ).format(state)
                     return "failed"
-                if state == GoalStatus.SUCCEEDED:
-                    return "succeeded"
                 with self.lock:
                     if self.cancel_requested:
                         return "canceled"
                     if self.manual_pause or self.external_pause:
                         return "paused"
+                if state == GoalStatus.SUCCEEDED:
+                    return "succeeded"
                 return "blocked" if state in (
                     GoalStatus.ABORTED, GoalStatus.REJECTED
                 ) else "failed"
@@ -7744,35 +7948,10 @@ class CoverageManager:
                         )
                     )
                     if needs_entry_recovery:
-                        rospy.logwarn(
-                            "coverage sweep %d entry left its acquisition "
-                            "basin: start distance %.3fm, along %.3fm, "
-                            "cross-track %.3fm, heading error %.1fdeg; "
-                            "canceling before rolling Hybrid recovery",
-                            segment_index + 1,
-                            entry_geometry["start_distance"],
-                            entry_geometry["along"],
-                            entry_geometry["cross_track"],
-                            math.degrees(entry_geometry["heading_error"]),
+                        outcome = self._pause_sweep_resume(
+                            "the active sweep left its entry acquisition corridor"
                         )
-                        outcome = self._cancel_segment_goal(
-                            goal_generation, "entry-recovery"
-                        )
-                        if outcome != "entry-recovery":
-                            return outcome
-                        if not self._wait_for_transition_stop():
-                            with self.lock:
-                                if self.cancel_requested:
-                                    return "canceled"
-                                self.manual_pause = True
-                                self.state = "PAUSED"
-                                self.manual_pause_reason = (
-                                    "sweep entry recovery canceled its goal but "
-                                    "physical /odom did not confirm zero speed"
-                                )
-                                self.detail = self.manual_pause_reason
-                            return "paused"
-                        return "entry-recovery"
+                        return self._cancel_segment_goal(goal_generation, outcome)
                     sweep_complete, completion_geometry = (
                         self._observe_sweep_completion(
                             segment,
@@ -7782,6 +7961,11 @@ class CoverageManager:
                             self._current_chassis_linear_speed(),
                         )
                     )
+                    if sweep_completion_tracker["invalidated"]:
+                        outcome = self._pause_sweep_resume(
+                            "localization jump invalidated the sweep history"
+                        )
+                        return self._cancel_segment_goal(goal_generation, outcome)
                 if sweep_complete:
                     rospy.loginfo(
                         "coverage sweep %d completed by directed exit-plane "
@@ -8139,6 +8323,17 @@ class CoverageManager:
                         continue
                     if result in ("canceled", "failed"):
                         break
+                    execution = segment.get("_sweep_execution")
+                    if (
+                        segment["type"] == "sweep" and result == "blocked"
+                        and execution is not None and execution["goal_submitted"]
+                    ):
+                        # A normal obstruction does not consume connector
+                        # retries or skip the unfinished swath. The next
+                        # preparation confirms stop/continuity and retries only
+                        # its remaining forward line, using the Qt delay.
+                        execution["retry_wait"] = True
+                        continue
                     attempts += 1
                     if (
                         segment["type"] == "transit"
@@ -8196,14 +8391,19 @@ class CoverageManager:
                             )
                             self.detail = (
                                 "{} has no feasible detour yet; retry {} of {} "
-                                "in {:.0f}s"
+                                "in {:.1f}s"
                             ).format(
                                 segment_label,
                                 attempts,
                                 self.segment_retry_count,
-                                self.obstacle_wait_sec,
+                                self.transit_replan_period,
                             )
-                        deadline = time.monotonic() + self.obstacle_wait_sec
+                        # This Qt-controlled value is frozen with the active
+                        # task profile. Zero means retry immediately after the
+                        # old action reaches a trusted terminal state.
+                        deadline = (
+                            time.monotonic() + self.transit_replan_period
+                        )
                         while time.monotonic() < deadline and not rospy.is_shutdown():
                             with self.lock:
                                 if self.cancel_requested:

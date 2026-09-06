@@ -40,6 +40,54 @@ VIEW_GLOBAL_MAP = WORKSPACE_ROOT / "scripts" / "view_global_map.sh"
 
 
 class OperatorGuiContractTest(unittest.TestCase):
+    def test_bpu_preview_is_separate_demand_driven_and_display_only(self):
+        self.assertIn('buildBpuPreviewPage(), QStringLiteral("BPU 预览")', GUI_SOURCE)
+        block = GUI_SOURCE.split('void MainWindow::refreshBpuPreview(', 1)[1].split(
+            'QWidget* MainWindow::buildVisionPage()', 1)[0]
+        for evidence in ('isMinimized()', 'bpu_tab_index_',
+                         '"/fod/bpu_preview/image", 1',
+                         'bpu_preview_subscriber_.shutdown()',
+                         'image.cacheKey()', 'data.raw_preview',
+                         'data.bpu_preview', '旧结果，不代表当前场景'):
+            self.assertIn(evidence, block)
+        callback = GUI_SOURCE.split('void MainWindow::bpuPreviewCallback(', 1)[1].split(
+            'void MainWindow::detectionsCallback(', 1)[0]
+        for evidence in ('"bpu_preview_demo_only"',
+                         'sourceStampAge(msg->header.stamp) > 3.0',
+                         'msg->header.stamp <= telemetry_.bpu_preview_stamp',
+                         'msg->width > 1920', 'msg->height > 1080'):
+            self.assertIn(evidence, callback)
+        for forbidden in ('advertise', '.publish(', 'telemetry_.detections',
+                          'telemetry_.vision_results', 'cmd_vel', 'move_base'):
+            self.assertNotIn(forbidden, block + callback)
+
+    def test_bpu_preview_does_not_replace_production_backend_or_default_page(self):
+        block = GUI_SOURCE.split('QWidget* MainWindow::buildVisionPage()', 1)[1].split(
+            'QWidget* MainWindow::buildCoveragePage()', 1)[0]
+        self.assertNotIn('QStringLiteral("j6m_fcos")', block)
+        launch = ElementTree.parse(PACKAGE_ROOT / 'launch/operator_gui.launch').getroot()
+        arg = launch.find("arg[@name='initial_bpu_preview']")
+        self.assertEqual(arg.attrib['default'], 'false')
+
+    def test_overview_displays_only_bpu_results_and_keeps_original_vision_controls(self):
+        page = GUI_SOURCE.split('QWidget* MainWindow::buildOverviewPage()', 1)[1].split(
+            'QWidget* MainWindow::buildFastLioPage()', 1)[0]
+        for evidence in ('J6M BPU 检测画面（仅显示）', '等待 /fod/bpu_preview/image',
+                         'overview_bpu_status_', 'BPU 大画面', '相机与原视觉控制'):
+            self.assertIn(evidence, page)
+        block = GUI_SOURCE.split('void MainWindow::refreshBpuPreview(', 1)[1].split(
+            'QWidget* MainWindow::buildVisionPage()', 1)[0]
+        for evidence in ('(overview_visible || bpu_page_visible)',
+                         'tabs_->currentIndex() == overview_tab_index_',
+                         'update(overview_camera_preview_, data.bpu_preview)',
+                         'overview_bpu_status_->setText(result_status)'):
+            self.assertIn(evidence, block)
+        refresh = GUI_SOURCE.split('void MainWindow::refreshUi()', 1)[1].split(
+            'void MainWindow::', 1)[0]
+        self.assertIn('refreshBpuPreview(data)', refresh)
+        self.assertNotIn('updateImageLabel(overview_camera_preview_', refresh)
+        self.assertNotIn('const QImage overview_preview', refresh)
+
     def test_ai_page_is_three_gate_fail_closed_and_supports_manual_debug(self):
         for evidence in (
             'buildAiControlPage(), QStringLiteral("AI语音控制")',
@@ -317,7 +365,12 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("最大角加速度", GUI_SOURCE)
         self.assertIn("每次换向附加时间", GUI_SOURCE)
         self.assertIn("每段交接附加时间", GUI_SOURCE)
-        self.assertIn("异常重规划重试间隔", GUI_SOURCE)
+        self.assertIn("异常重规划重试等待", GUI_SOURCE)
+        self.assertIn(
+            'QStringLiteral("异常重规划重试等待"), 0.0, 10.0, 0.1, 0.5, 1',
+            GUI_SOURCE,
+        )
+        self.assertIn("0 s 表示旧 action 确认结束后立即重试", GUI_SOURCE)
         self.assertIn("首线入场、异常修正和清扫线转场倒车", GUI_SOURCE)
         self.assertIn("首线 Navfn+TEB；后续相邻线直接 Hybrid A*", GUI_SOURCE)
         self.assertIn("status.transition_max_forward_speed_mps", GUI_SOURCE)
@@ -1340,7 +1393,7 @@ class OperatorGuiContractTest(unittest.TestCase):
             GUI_SOURCE.index("void MainWindow::detectionsCallback")
         ]
         refresh = GUI_SOURCE[
-            GUI_SOURCE.index("const bool raw_preview_fresh") :
+            GUI_SOURCE.index("const bool recognition_preview_available") :
             GUI_SOURCE.index("const QString visual_state")
         ]
         for evidence in (
@@ -1364,7 +1417,6 @@ class OperatorGuiContractTest(unittest.TestCase):
         ):
             self.assertIn(evidence, debug_callback)
         for evidence in (
-            "const QImage overview_preview = raw_preview_fresh ? data.raw_preview : QImage()",
             "data.debug_image_received && !data.debug_image.isNull()",
             "recognition_preview_available ? data.debug_image : QImage()",
             "sourceStampAge(data.debug_image_stamp)",

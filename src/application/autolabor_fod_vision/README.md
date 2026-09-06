@@ -126,7 +126,7 @@ LocateAnything 上游许可证仅允许非商业研究用途，投入其他用�
 
 ```text
 /home/slam/yolo11/yolo11_GAM/ultralytics
-/home/slam/robot_j6m_ws/ultralytics_yolo11_custom/ultralytics
+/home/slam/robot_j6m_ws_optimized_20260905/ultralytics_yolo11_custom/ultralytics
 ```
 
 当前 YOLO 权重位于视觉 ROS 包内，便于工作空间换路径部署。旧生产权重仍保留，
@@ -154,7 +154,7 @@ LocateAnything 上游许可证仅允许非商业研究用途，投入其他用�
 ## 安装
 
 ```bash
-cd /home/slam/robot_j6m_ws
+cd /home/slam/robot_j6m_ws_optimized_20260905
 ./scripts/setup_fod_yolo_env.sh
 ./scripts/install_fod_clip.sh
 catkin_make --pkg autolabor_fod_msgs autolabor_fod_vision -j2

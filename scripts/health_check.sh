@@ -280,7 +280,7 @@ PY
     fi
   fi
 elif [[ "$NVIDIA_FOD_BACKEND" == locateanything ]]; then
-  locate_cache_root="$NVIDIA_LOCATEANYTHING_MODEL_ROOT/.cache"
+  locate_cache_root="$DUAL_HOST_WS/runtime/isolated/cache/locateanything"
   if env PYTHONDONTWRITEBYTECODE=1 \
        PYTHONPATH="${PYTHONPATH:-}" \
        HF_HOME="$locate_cache_root/huggingface" \

@@ -92,7 +92,7 @@ SHA-256、来源模式和 map-set 规范路径必须全部匹配。旧的
 首次安装仅在 NVIDIA 执行：
 
 ```bash
-cd /home/slam/robot_j6m_ws
+cd /home/slam/robot_j6m_ws_optimized_20260905
 bash ./scripts/install_whisper_asr.sh
 ```
 

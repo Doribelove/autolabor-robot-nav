@@ -469,10 +469,16 @@ class LocateAnythingDetector:
         self.prompt_tensor_cache_entries = 0
         self._start_worker(manifest)
 
+    def _output_directory(self, kind: str) -> Path:
+        # Weights/manifests remain read-only. An isolated deployment may route
+        # all mutable worker state elsewhere; legacy standalone defaults remain.
+        override = os.environ.get("LOCATEANYTHING_{}_ROOT".format(kind.upper()))
+        return Path(override) if override else Path(self.model_root) / ("." + kind)
+
     def _worker_environment(self) -> Dict[str, str]:
         environment = dict(os.environ)
-        cache = Path(self.model_root) / ".cache"
-        runtime = Path(self.model_root) / ".runtime"
+        cache = self._output_directory("cache")
+        runtime = self._output_directory("runtime")
         directories = {
             "HF_HOME": cache / "huggingface",
             "HUGGINGFACE_HUB_CACHE": cache / "huggingface" / "hub",
@@ -497,7 +503,7 @@ class LocateAnythingDetector:
         return environment
 
     def _start_worker(self, manifest: VerifiedManifest) -> None:
-        runtime = Path(self.model_root) / ".runtime"
+        runtime = self._output_directory("runtime")
         log_dir = runtime / "logs"
         log_dir.mkdir(parents=True, exist_ok=True)
         stamp = time.strftime("%Y%m%d_%H%M%S")

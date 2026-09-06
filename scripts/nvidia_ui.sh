@@ -252,7 +252,7 @@ if [[ "$NVIDIA_START_VISION" == true ]]; then
   fod_require_gam=false
   fod_enable_clip_filter=false
   fod_device=auto
-  locate_cache_root="$NVIDIA_LOCATEANYTHING_MODEL_ROOT/.cache"
+  locate_cache_root="$DUAL_HOST_WS/runtime/isolated/cache/locateanything"
   if [[ "$fod_backend" == yolo ]]; then
     [[ -r "$fod_weights" ]] || {
       echo "YOLO weights are missing: $fod_weights" >&2
@@ -321,7 +321,7 @@ PY
       "$locate_cache_root/torch" \
       "$locate_cache_root/xdg" \
       "$locate_cache_root/cuda" \
-      "$NVIDIA_LOCATEANYTHING_MODEL_ROOT/.runtime/logs"
+      "$DUAL_HOST_WS/runtime/isolated/locateanything/logs"
     if ! locateanything_probe="$(
       env PYTHONDONTWRITEBYTECODE=1 \
         PYTHONPATH="$fod_pythonpath" \
@@ -544,6 +544,7 @@ PY
       navigation_mode_label:=J6M_FAST_LIO \
       odom_topic:=/Odometry \
       cloud_topic:=/cloud_registered_body \
+      cloud_point_count_topic:=/fast_lio/body_point_count \
       imu_topic:=/livox/imu \
       static_map_mode:="$STATIC_MAP_ENABLED" \
       static_map_set:="${STATIC_MAP_SET:-}" \

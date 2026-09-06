@@ -182,6 +182,14 @@ def _route_signature(route, original_swaths):
 
 
 class CoverageGeometryTest(unittest.TestCase):
+    def test_transit_retry_wait_accepts_zero_and_defaults_to_half_second(self):
+        self.assertEqual(0.50, CoverageTimeParameters().transit_replan_period_sec)
+        self.assertIsNotNone(
+            CoverageTimeParameters(transit_replan_period_sec=0.0).validate()
+        )
+        with self.assertRaises(ValueError):
+            CoverageTimeParameters(transit_replan_period_sec=-0.01).validate()
+
     @staticmethod
     def grid_with_obstacle(obstacle=None):
         width = 120

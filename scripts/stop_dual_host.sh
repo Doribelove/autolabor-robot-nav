@@ -129,7 +129,13 @@ elif [[ -n "$stop_mode" ]]; then
 fi
 
 echo "[1/6] Cancelling the active navigation goal and pausing navigation..."
-if timeout 4 rosparam list >/dev/null 2>&1; then
+candidate_graph_owned=false
+if "$SCRIPT_DIR/verify_master_owner.sh"; then
+  candidate_graph_owned=true
+else
+  echo "No confirmed candidate-owned ROS master; skipping all shared-graph mutations."
+fi
+if [[ "$candidate_graph_owned" == true ]] && timeout 4 rosparam list >/dev/null 2>&1; then
   if ! timeout 6 rostopic pub -1 /move_base/cancel actionlib_msgs/GoalID '{}' >/dev/null 2>&1; then
     echo "No move_base cancel subscriber responded; continuing with bounded process shutdown." >&2
   fi
@@ -147,7 +153,7 @@ echo "[3/6] Recovering only provenance-verified NVIDIA orphan processes..."
 recover_managed_nvidia_orphans || status=$?
 
 echo "[4/6] Removing only unreachable registrations from the managed NVIDIA node whitelist..."
-if timeout 4 rosparam list >/dev/null 2>&1; then
+if [[ "$candidate_graph_owned" == true ]] && timeout 4 rosparam list >/dev/null 2>&1; then
   cleanup_args=(--host "$NVIDIA_J6M_IP" --fail-if-live)
   for node in "${MANAGED_NVIDIA_ROS_NODES[@]}"; do
     cleanup_args+=(--node "$node")

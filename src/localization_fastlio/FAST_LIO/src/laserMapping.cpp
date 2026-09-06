@@ -53,6 +53,7 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/io/pcd_io.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <std_msgs/UInt64.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
 #include <geometry_msgs/Vector3.h>
@@ -530,7 +531,8 @@ void publish_frame_world(const ros::Publisher & pubLaserCloudFull)
     }
 }
 
-void publish_frame_body(const ros::Publisher & pubLaserCloudFull_body)
+void publish_frame_body(const ros::Publisher & pubLaserCloudFull_body,
+                        const ros::Publisher & pubBodyPointCount)
 {
     int size = feats_undistort->points.size();
     PointCloudXYZI::Ptr laserCloudIMUBody(new PointCloudXYZI(size, 1));
@@ -546,6 +548,11 @@ void publish_frame_body(const ros::Publisher & pubLaserCloudFull_body)
     laserCloudmsg.header.stamp = ros::Time().fromSec(lidar_end_time);
     laserCloudmsg.header.frame_id = "body";
     pubLaserCloudFull_body.publish(laserCloudmsg);
+    // Emit only when the same processed body cloud has actually been published.
+    // Qt needs its cadence and point count, not a second full cloud transfer.
+    std_msgs::UInt64 point_count;
+    point_count.data = static_cast<uint64_t>(laserCloudmsg.width) * laserCloudmsg.height;
+    pubBodyPointCount.publish(point_count);
     publish_count -= PUBFRAME_PERIOD;
 }
 
@@ -864,6 +871,8 @@ int main(int argc, char** argv)
             ("/cloud_registered", 100000);
     ros::Publisher pubLaserCloudFull_body = nh.advertise<sensor_msgs::PointCloud2>
             ("/cloud_registered_body", 100000);
+    ros::Publisher pubBodyPointCount = nh.advertise<std_msgs::UInt64>
+            ("/fast_lio/body_point_count", 10);
     ros::Publisher pubLaserCloudEffect = nh.advertise<sensor_msgs::PointCloud2>
             ("/cloud_effected", 100000);
     ros::Publisher pubLaserCloudMap = nh.advertise<sensor_msgs::PointCloud2>
@@ -993,7 +1002,7 @@ int main(int argc, char** argv)
             /******* Publish points *******/
             if (path_en)                         publish_path(pubPath);
             if (scan_pub_en || pcd_save_en)      publish_frame_world(pubLaserCloudFull);
-            if (scan_pub_en && scan_body_pub_en) publish_frame_body(pubLaserCloudFull_body);
+            if (scan_pub_en && scan_body_pub_en) publish_frame_body(pubLaserCloudFull_body, pubBodyPointCount);
             // publish_effect_world(pubLaserCloudEffect);
             // publish_map(pubLaserCloudMap);
 

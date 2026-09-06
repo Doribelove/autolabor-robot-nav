@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/autolabor_runtime}"
+RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_optimized_20260905}"
 ROOTFS="${J6M_ROOTFS:-$RUNTIME_BASE/rootfs}"
+[[ "$RUNTIME_BASE" == /map/robot_j6m_optimized_20260905 &&
+   "$ROOTFS" == /map/robot_j6m_optimized_20260905/rootfs ]] || exit 2
 BASE="$ROOTFS/opt/autolabor/dual_host"
 
 [[ "$(id -u)" == 0 ]] || { echo "rollback.sh must run as root on J6M." >&2; exit 2; }
@@ -26,5 +28,10 @@ release="${1:-}"
   echo "Unknown release: $release" >&2
   exit 4
 }
-ln -sfn "$BASE/releases/$release/install" "$BASE/current"
+# The link is consumed inside chroot: a host-side $ROOTFS prefix is invalid.
+# Replace the link atomically, retaining the previously installed release.
+next_link="$BASE/current.next.$$"
+trap '[[ ! -L "$next_link" ]] || unlink "$next_link"' EXIT
+ln -s "/opt/autolabor/dual_host/releases/$release/install" "$next_link"
+mv -Tf -- "$next_link" "$BASE/current"
 echo "J6M dual-host overlay switched to release $release."
