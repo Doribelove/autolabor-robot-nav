@@ -443,10 +443,13 @@ PY
       CUDA_CACHE_PATH="$locate_cache_root/cuda"
     )
   fi
+  zed_mount_text="$(python3 "$SCRIPT_DIR/zed_mount_args.py")"
+  mapfile -t zed_mount_args <<< "$zed_mount_text"
   start_process "$LOG_DIR/vision.log" \
     "${fod_launch_env[@]}" \
     roslaunch autolabor_fod_vision zed_fod_detection.launch \
       start_camera:="$NVIDIA_START_CAMERA" \
+      "${zed_mount_args[@]}" \
       serial_number:="$NVIDIA_ZED_SERIAL" \
       backend:="$fod_backend" \
       detector_python:="$NVIDIA_DETECTOR_PYTHON" \
@@ -473,6 +476,14 @@ PY
   wait_for_fod_detector \
     "$vision_pid" "$vision_log" "$fod_runtime_token" \
     "$fod_backend" "$fod_runtime_root"
+fi
+
+case "${BPU_PERCEPTION_ENABLED:-false}" in
+  true|false) ;;
+  *) echo 'BPU_PERCEPTION_ENABLED must be true or false.' >&2; exit 2 ;;
+esac
+if [[ "${BPU_PERCEPTION_ENABLED:-false}" == true ]]; then
+  start_process "$LOG_DIR/perception.log" python3 "$SCRIPT_DIR/perception_companion.py"
 fi
 
 if [[ "$NVIDIA_START_QT" == true ]]; then

@@ -1,0 +1,7 @@
+<launch>
+  <!-- Sensor processing only: no CAN, navigation, FOD arbiter or goal server. -->
+  <node pkg="topic_tools" type="relay" name="relay_livox_lidar" args="/gateway/livox/lidar /livox/lidar"/>
+  <node pkg="topic_tools" type="relay" name="relay_livox_imu" args="/gateway/livox/imu /livox/imu"/>
+  <include file="$(find robot_bringup)/launch/fast_lio.launch"/>
+  <include file="$(find autolabor_bpu_perception)/launch/centerpoint.launch"/>
+</launch>

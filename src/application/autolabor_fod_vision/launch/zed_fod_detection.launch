@@ -4,6 +4,12 @@
   <arg name="serial_number" default="23748636"/>
   <arg name="camera_name" default="zed2"/>
   <arg name="node_name" default="zed_node"/>
+  <arg name="cam_pos_x" default="0.0"/>
+  <arg name="cam_pos_y" default="0.0"/>
+  <arg name="cam_pos_z" default="0.0"/>
+  <arg name="cam_roll" default="0.0"/>
+  <arg name="cam_pitch" default="0.0"/>
+  <arg name="cam_yaw" default="0.0"/>
 
   <arg name="enable_image_quality_controller" default="false"/>
   <arg name="image_quality_monitor_only" default="false"/>
@@ -78,6 +84,12 @@
       <arg name="publish_tf" value="false"/>
       <arg name="publish_map_tf" value="false"/>
       <arg name="publish_fod_aliases" value="true"/>
+      <arg name="cam_pos_x" value="$(arg cam_pos_x)"/>
+      <arg name="cam_pos_y" value="$(arg cam_pos_y)"/>
+      <arg name="cam_pos_z" value="$(arg cam_pos_z)"/>
+      <arg name="cam_roll" value="$(arg cam_roll)"/>
+      <arg name="cam_pitch" value="$(arg cam_pitch)"/>
+      <arg name="cam_yaw" value="$(arg cam_yaw)"/>
     </include>
   </group>
 
