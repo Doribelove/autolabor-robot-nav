@@ -1,0 +1,7 @@
+<launch>
+  <test test-name="rviz_callback_isolation" pkg="autolabor_operator_gui"
+        type="test_rviz_callback_isolation" time-limit="90"
+        args="--gtest_filter=-*RealRenderingStress">
+    <env name="QT_QPA_PLATFORM" value="offscreen"/>
+  </test>
+</launch>

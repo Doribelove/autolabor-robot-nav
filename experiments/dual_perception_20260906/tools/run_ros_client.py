@@ -8,7 +8,7 @@ import subprocess
 import sys
 import time
 
-LAB=Path('/map/robot_j6m_optimized_20260905/bpu_perception_20260906')
+LAB=Path(__file__).resolve().parents[1]
 ROOT=LAB.parent/'rootfs'
 
 

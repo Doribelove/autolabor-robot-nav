@@ -663,6 +663,7 @@ class OperatorGuiContractTest(unittest.TestCase):
         for required in (
             "Topic: /map",
             "Topic: /coverage/planned_path",
+            "Topic: /coverage/first_entry_path",
             "Topic: /coverage/hybrid_transition_path",
             "Topic: /coverage/executed_path",
             "Marker Topic: /coverage/ui_markers",
@@ -682,6 +683,7 @@ class OperatorGuiContractTest(unittest.TestCase):
 
         for required in (
             "Topic: /coverage/planned_path",
+            "Topic: /coverage/first_entry_path",
             "Topic: /coverage/hybrid_transition_path",
             "Topic: /coverage/executed_path",
             "Marker Topic: /coverage/ui_markers",
@@ -704,6 +706,15 @@ class OperatorGuiContractTest(unittest.TestCase):
             self.assertEqual("/coverage/planned_path", connector["Topic"])
             self.assertIs(False, connector["Enabled"])
             self.assertIs(False, connector["Value"])
+            entry_preview = by_name[
+                "First-entry Navfn preview (display only)"
+            ]
+            self.assertEqual(
+                "/coverage/first_entry_path", entry_preview["Topic"]
+            )
+            self.assertEqual("40; 120; 255", entry_preview["Color"])
+            self.assertIs(True, entry_preview["Enabled"])
+            self.assertIs(True, entry_preview["Value"])
             hybrid = by_name["Complete Hybrid A* transition"]
             self.assertEqual(
                 "/coverage/hybrid_transition_path", hybrid["Topic"]

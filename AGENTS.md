@@ -1,5 +1,90 @@
 # 导航优化专用候选版约束（2026-09-07）
 
+本日收工保存：用户要求将当前全部进度保存到 Git 分支，供明日验收；当前分支为
+`feature/navigation-optimization-20260907`。验收流程与证据归档说明见
+`docs/ACCEPTANCE_HANDOFF_20260908.md`。此保存操作不启动程序、不改变现场运动设置。
+
+2026-09-07 22:46 仿真验证最新：按用户要求，首入口修复已完成隔离 ROS 场景验证，15 项
+集成检查通过。独立网络/PID namespace 只含 lo；运行真实 move_base、Navfn、TEB 插件、
+覆盖管理器和导航所有权桥，用合成地图/TF/状态输入。旧 release 20260907_212100 的
+管理器生成 307 点后约 7 ms 被空消息覆盖，晚订阅者为 0 点；修复版连续 3 次保留
+307 点，绕墙场景保留 462 点/23.272 m。取消、换图、新批次替换、规划中取消和 Navfn
+封闭无路检查通过，0 个 move_base/Hybrid goal、没有 cmd_vel 消息。仿真进程已全部结束。
+本轮新增仿真工具和原因报告，未改业务代码、未重新部署或启动实车。候选 current 仍为
+20260907_214928；用户主动断开底盘及雷达供电，实车服务继续停止。此结果不等于 Qt/Ogre
+实际渲染、TEB 行驶、J6M Hybrid CPU 或实车验收。详见 `FIRST_ENTRY_SIMULATION_20260907.md`。
+
+本轮随后现场确认：用户已主动断开小车底盘供电，雷达因此无电，要求先汇报工作进度。
+这解释了下述 MID360 无载波，不能继续误报为待查网线故障。停止恢复启动和待连接的监控器；
+当前程序保持停止，修复已部署但实机回归未完成。待用户恢复供电并继续实验后再统一启动。
+
+2026-09-07 22:08 最新：用户覆盖实验复现首入口预览仍为空。批次因主运动门 false
+失败时，`_record_batch_region_result` 先清掉路径和 plan_map_digest，导致后续 finalizer
+保留逻辑失效，上一轮修复未闭环。本轮已在两级清理中统一保留判定，预览独立记录地图摘要
+和批次令牌；取消、跳过、执行过、地图变化和旧批次均不保留。先复现再修复的回归通过；
+206 项针对性测试、AGX Release 构建、静态检查、J6M 原生部署及板端静态检查通过。
+候选 current=`20260907_214928`，板端管理器与本地 SHA256 一致。
+完整双机栈已统一停净，但带原静态地图恢复启动退出 1：MID360 网卡
+`50:54:7B:E3:C9:10`（本次 eth0）无物理载波，192.168.1.112 不通；J6M 双向通信正常。
+当前原版/候选均 inactive、MainPID=0，J6M 11311 无监听、候选 PID 记录空。已请求现场
+检查雷达供电与网线；不要称程序已恢复。链路恢复后完整冷启动，再由操作员给真实新初值。
+两个运动门仍 false，助手未发送初值、目标或非零速度。21:39:44–21:44:37 实验快照最终
+命令 14149 条、左右轮 14625/14622 条全零；没有 Hybrid action，CPU 仅为空闲基线。
+另捕获 7 条 VCU ControlTimeout 日志，后续 60 秒未复现，根因未定，不能称无故障。
+详见 `COVERAGE_CPU_EXPERIMENT_20260907.md` 与 `validation/coverage_live_20260907/`。
+
+2026-09-07 21:27 首线入场预览修复最新：用户要求修复“当前位置到第一条清扫线入口没有
+规划路径”。根因是旧实现只在运动安全预检通过后提交首个 move_base 目标，主运动门为 false
+时预检提前拒绝，因此 Navfn 从未运行，Qt 也没有独立的真实入场路径 topic。候选现增加
+`/coverage/first_entry_path`：覆盖几何和实时位姿确定后，通过插件只读
+`/move_base/CoverageGlobalPlanner/make_navfn_plan` 查询 Navfn，校验 map 坐标及首尾位置，
+Qt 以深蓝色常显；执行前失败时保留供检查，新任务、地图变化或取消会清空。该服务不发送
+action 目标。插件内所有 Navfn 调用现由同一互斥锁串行，避免预览、move_base 规划和 Hybrid
+拓扑查询并发访问同一 NavfnROS 实例。AGX Release 构建、204 项针对性测试、283 项汇总检查、
+J6M ARM64 原生部署和板端静态健康均通过；J6M 候选 release 为 `20260907_212100`。统一入口
+带原静态地图冷启动返回 0，服务 active/MainPID=2724377，Qt PID=2731384，地图 READY。
+当前新会话为 WAITING_INITIAL_POSE；move_base 插件及其预览服务会在操作员按真实位置设置
+初值后初始化，尚缺同一区域的真实首入口路径回归。不要复用旧初值。`MOTION_ENABLED=false`、
+`FOD_MOTION_ENABLED=false`、候选授权标记不存在，10 条最终速度全零；助手未发送初值、目标
+或非零速度。详见 `COVERAGE_CPU_EXPERIMENT_20260907.md`。
+
+2026-09-07 Qt 闪退修复最新：用户已授权修复，已在本候选完成实现、构建与完整冷启动。
+实际 GUI 回归先复现全局 AsyncSpinner 抢走 RViz GUI 队列回调；已改私有业务队列。
+真实 Ogre 压测又复现删除后第二次建窗的纹理错误/SIGSEGV，现 ROS master 恢复仅重置
+显示缓存并重新注册本进程 ROS 端点，保留同一原生窗口与 manager。ZED 项目启动入口
+同时关闭位置跟踪和会隐式开启跟踪的深度稳定，QUALITY RGB-D 保留。283 项汇总测试、
+1000 次实际页签切换与 5 次真实渲染重连均通过，未改故障级联停机或运动安全策略。
+共享 robot_bringup 已随 J6M 原生 release `20260907_191248` 发布，板端静态健康通过。
+统一入口带原静态地图启动与严格 runtime 均返回 0；候选 active/MainPID=2161491，
+Qt PID=2169173、地图 READY（1311x670、0.10 m），ZED PID=2167341、诊断跟踪 INACTIVE。
+19:16:13 起 60 秒观测 faults=[]，2907 条最终速度及左右轮反馈全零。当前新会话仍
+WAITING_INITIAL_POSE，需要操作员按真实位置设置初值；不要复用旧初值。两个运动门
+保持 false，候选授权标记仍不存在，助手未发真实初值、目标或非零速度。麦克风仍未枚举。
+原工作区未改，CenterPoint 仍只观察。详见 `QT_CRASH_FIX_20260907.md`，短时通过不等于
+小时级老化、ToDesk 热重启/显示热插拔或实车移动验收。
+
+2026-09-07 17:48 最新：用户准备继续实验时 Qt 消失。只读日志确认不是 Qt/Ogre 自身断言：
+ZED 先报告位置跟踪发散并重置里程计，随后必需节点 `/zed2/zed_node` 以 `-11`（SIGSEGV）退出；
+其 roslaunch 关闭了视觉链，UI 伴随进程也随生命周期退出。已按统一入口带原静态地图做完整冷重启，
+不是单独拉起 Qt；命令退出码 0，服务 active/MainPID=1667551，195 项检查和严格 runtime 检查
+均通过，Qt 地图 `READY`（1311x670、0.10 m），ZED、正式检测、双 BPU 感知、导航与覆盖节点
+均在线。新会话当前 `WAITING_INITIAL_POSE`，须由操作员按真实位置重新设置初值；不要复用旧会话
+初值。`MOTION_ENABLED=false`、`FOD_MOTION_ENABLED=false`，watchdog inactive，10 条最终
+`/cmd_vel` 样本全零。助手未发送初值、目标或非零速度。J6M `current` 仍为
+`20260907_170157`，本轮没有重新构建或部署。
+
+2026-09-07 17:10 最新：用户要求打开本目录的静态地图完整功能 Qt；MID360 物理链路恢复后，
+已修复独立候选遗漏的 BPU 私有路径迁移和 `live_protocol.py` 运行依赖。旧候选遗留 BPU worker
+仅按其 `service_manager.py` 的 PID/启动身份记录精确停止；旧工作区源码未修改。AGX 全量 Release
+构建、BPU 包 21 项测试、195 项静态检查、J6M 原生部署及板端静态健康检查通过；J6M `current`
+现为 release `20260907_170157`。候选统一入口带
+`map_20260829_221335_gimp_cleaned` 启动返回 0，服务 active/MainPID=1443773，Qt 地图
+`READY`（1311x670、0.10 m），严格 runtime 健康检查通过；FCOS BPU 结果约 7--10 Hz、
+CenterPoint 约 5 Hz。当前是本次冷启动的 `WAITING_INITIAL_POSE`，必须由操作员按车辆真实位置
+设置初值；不要复用历史初值。`MOTION_ENABLED=false`、`FOD_MOTION_ENABLED=false`、候选运动
+授权标记仍不存在，10 条最终 `/cmd_vel` 样本全零；助手未发送初值、目标或非零速度。当前未枚举
+实体麦克风，Qt/AI 节点在线但语音采集不可用。CenterPoint 仍仅候选观察，不接入导航控制。
+
 2026-09-07 最新：本目录是独立工作树
 `/home/slam/robot_j6m_ws_navigation_20260907`，分支
 `feature/navigation-optimization-20260907`。开工时完整保留了

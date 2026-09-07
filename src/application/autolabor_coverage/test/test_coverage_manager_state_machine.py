@@ -415,6 +415,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         manager.batch_region_token = ""
         manager.batch_region_outcome = ""
         manager.batch_current_is_last = False
+        manager.batch_region_execution_started = False
         manager.batch_regions = []
         manager.batch_current_index = 0
         manager.batch_total_regions = 0
@@ -429,6 +430,9 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         manager.batch_worker = None
         manager.batch_wake_event = threading.Event()
         manager.path_pub = _Publisher()
+        manager.first_entry_path = COVERAGE_MANAGER.Path()
+        manager.first_entry_path.header.frame_id = "map"
+        manager.first_entry_path_pub = _Publisher()
         manager.hybrid_transition_path_pub = _Publisher()
         manager.executed_path_pub = _Publisher()
         manager.region_pub = _Publisher()
@@ -448,6 +452,10 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
 
         self.assertTrue(manager.path_pub.messages)
         self.assertEqual([], list(manager.path_pub.messages[-1].poses))
+        self.assertTrue(manager.first_entry_path_pub.messages)
+        self.assertEqual(
+            [], list(manager.first_entry_path_pub.messages[-1].poses)
+        )
         self.assertTrue(manager.hybrid_transition_path_pub.messages)
         self.assertEqual(
             [], list(manager.hybrid_transition_path_pub.messages[-1].poses)
@@ -465,6 +473,85 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             COVERAGE_MANAGER.Marker.DELETEALL,
             marker_array.markers[0].action,
         )
+
+    def test_first_entry_preview_uses_navfn_make_plan_and_normalizes_map_frame(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.first_entry_plan_service_name = (
+            "/move_base/CoverageGlobalPlanner/make_navfn_plan"
+        )
+        manager.first_entry_plan_wait_timeout_sec = 1.0
+        manager.first_entry_plan_tolerance = 0.0
+        manager.entry_position_tolerance = 0.40
+        response_path = COVERAGE_MANAGER.Path()
+        start = COVERAGE_MANAGER.PoseStamped()
+        start.pose.position.x = 1.02
+        start.pose.position.y = 2.01
+        goal = COVERAGE_MANAGER.PoseStamped()
+        goal.pose.position.x = 4.0
+        goal.pose.position.y = 5.0
+        response_path.poses = [start, goal]
+        manager.first_entry_plan_client = mock.Mock(
+            return_value=SimpleNamespace(plan=response_path)
+        )
+        route = [SimpleNamespace(
+            start=COVERAGE_MANAGER.Point(4.0, 5.0),
+            end=COVERAGE_MANAGER.Point(6.0, 5.0),
+        )]
+
+        with mock.patch.object(
+            COVERAGE_MANAGER.rospy.Time,
+            "now",
+            return_value=COVERAGE_MANAGER.rospy.Time(1.0),
+        ), mock.patch.object(
+            COVERAGE_MANAGER.rospy, "wait_for_service"
+        ) as wait:
+            result = manager._first_entry_navfn_preview(
+                COVERAGE_MANAGER.Point(1.0, 2.0), 0.25, route
+            )
+
+        wait.assert_called_once_with(
+            "/move_base/CoverageGlobalPlanner/make_navfn_plan", timeout=1.0
+        )
+        request = manager.first_entry_plan_client.call_args.args[0]
+        self.assertEqual("map", request.start.header.frame_id)
+        self.assertEqual("map", request.goal.header.frame_id)
+        self.assertAlmostEqual(4.0, request.goal.pose.position.x)
+        self.assertAlmostEqual(5.0, request.goal.pose.position.y)
+        self.assertAlmostEqual(1.0, request.goal.pose.orientation.w)
+        self.assertEqual("map", result.header.frame_id)
+        self.assertEqual(2, len(result.poses))
+        self.assertTrue(all(pose.header.frame_id == "map" for pose in result.poses))
+
+    def test_visualization_cleanup_can_keep_failed_preexecution_entry_preview(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.path_pub = _Publisher()
+        manager.first_entry_path_pub = _Publisher()
+        manager.hybrid_transition_path_pub = _Publisher()
+        manager.executed_path_pub = _Publisher()
+        manager.region_pub = _Publisher()
+        manager.marker_pub = _Publisher()
+        preview = COVERAGE_MANAGER.Path()
+        preview.header.frame_id = "map"
+        preview.poses.append(COVERAGE_MANAGER.PoseStamped())
+        manager._publish_first_entry_path(preview)
+
+        with mock.patch.object(
+            COVERAGE_MANAGER.rospy.Time,
+            "now",
+            return_value=COVERAGE_MANAGER.rospy.Time(1.0),
+        ):
+            manager._clear_visualizations(preserve_first_entry_path=True)
+
+            self.assertEqual(1, len(manager.first_entry_path_pub.messages))
+            self.assertEqual(1, len(manager.first_entry_path.poses))
+            self.assertEqual([], list(manager.path_pub.messages[-1].poses))
+            manager._clear_visualizations()
+        self.assertEqual(2, len(manager.first_entry_path_pub.messages))
+        self.assertEqual([], list(manager.first_entry_path.poses))
 
     def _manager(self, segments, results, restore=True):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
@@ -1343,6 +1430,71 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertEqual([True, False], [
             message.data for message in manager.active_pub.messages
         ])
+
+    def _batch_with_entry_preview_failure(self):
+        manager, _prepared, executed = self._batch_manager([])
+        preview = COVERAGE_MANAGER.Path()
+        preview.header.frame_id = "map"
+        pose = COVERAGE_MANAGER.PoseStamped()
+        pose.pose.position.x = 2.0
+        preview.poses.append(pose)
+
+        def prepare(_token, _item):
+            manager._publish_first_entry_path(preview)
+            manager.detail = "main motion gate is disabled"
+            return "FAILED", None, None
+
+        manager._prepare_batch_region = prepare
+        return manager, preview, executed
+
+    def test_batch_preexecution_failure_retains_entry_through_both_cleanup_stages(self):
+        manager, preview, executed = self._batch_with_entry_preview_failure()
+        self._run_batch_sync(manager)
+        self.assertEqual("FAILED", manager.state)
+        self.assertEqual("main motion gate is disabled", manager.detail)
+        self.assertEqual([], executed)
+        self.assertFalse(manager.batch_active)
+        self.assertFalse(manager.navigation_owner_claimed)
+        self.assertIsNone(manager.plan)
+        self.assertEqual("", manager.plan_map_digest)
+        self.assertEqual(preview, manager.first_entry_path)
+        # No intermediate empty publication may replace the latched preview.
+        self.assertEqual([preview], manager.first_entry_path_pub.messages)
+
+    def test_batch_entry_retention_rejects_execution_cancel_skip_and_stale_origin(self):
+        for case in ("executed", "cancel", "skip", "changed_map", "old_batch",
+                     "cancel_during_release", "map_during_release"):
+            with self.subTest(case=case):
+                manager, _preview, _executed = self._batch_with_entry_preview_failure()
+                prepare = manager._prepare_batch_region
+
+                def changed_prepare(token, item):
+                    result = prepare(token, item)
+                    if case == "executed":
+                        manager.batch_region_execution_started = True
+                    elif case == "cancel":
+                        manager.batch_cancel_requested = True
+                    elif case == "skip":
+                        manager.batch_skip_requested = True
+                    elif case == "changed_map":
+                        manager.map_digest = "different-map"
+                    elif case == "old_batch":
+                        manager.first_entry_path_batch_token = "previous-batch"
+                    return result
+
+                def release(_claim, _token):
+                    if case == "cancel_during_release":
+                        manager.batch_cancel_requested = True
+                    elif case == "map_during_release":
+                        manager.map_digest = "different-map"
+                    return True, "ok"
+
+                manager._prepare_batch_region = changed_prepare
+                manager._set_navigation_owner = release
+                self._run_batch_sync(manager)
+                self.assertEqual([], manager.first_entry_path.poses)
+                self.assertEqual([], manager.first_entry_path_pub.messages[-1].poses)
+                self.assertIsNone(manager.plan)
 
     def test_batch_release_failure_preserves_owner_and_public_latch(self):
         manager, prepared, executed = self._batch_manager([

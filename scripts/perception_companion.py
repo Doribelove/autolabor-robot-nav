@@ -10,7 +10,7 @@ import subprocess
 import time
 
 WS=Path(__file__).resolve().parents[1]
-REMOTE='/map/robot_j6m_optimized_20260905/bpu_perception_20260906/tools/'
+REMOTE='/map/robot_j6m_navigation_20260907/bpu_perception_20260906/tools/'
 SSH=['ssh','-T','-o','BatchMode=yes','-o','ConnectTimeout=4','root@192.168.10.100']
 
 

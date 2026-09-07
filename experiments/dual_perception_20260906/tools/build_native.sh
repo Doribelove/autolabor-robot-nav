@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
-lab=/map/robot_j6m_optimized_20260905/bpu_perception_20260906
-reference=/map/robot_j6m_optimized_20260905/bpu_lab_20260905
+lab="$(realpath "$(dirname "$0")/..")"
+reference="$(dirname "$lab")/bpu_lab_20260905"
 sysroot=/map/autolabor_runtime/rootfs
-[[ "$(uname -m)" == aarch64 && "$(realpath "$(dirname "$0")/..")" == "$lab" ]] || exit 2
+[[ "$(uname -m)" == aarch64 && "$(basename "$lab")" == bpu_perception_20260906 ]] || exit 2
 mkdir -p "$lab/bin" "$lab/build/tmp" "$lab/build/compiler_lib"
 export TMPDIR="$lab/build/tmp"
 for dependency in libisl.so.22 libmpc.so.3 libopcodes-2.34-system.so libbfd-2.34-system.so libctf.so.0; do

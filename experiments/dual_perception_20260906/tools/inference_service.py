@@ -13,8 +13,8 @@ import sys
 import threading
 import time
 
-LAB=Path('/map/robot_j6m_optimized_20260905/bpu_perception_20260906')
-REFERENCE=Path('/map/robot_j6m_optimized_20260905/bpu_lab_20260905')
+LAB=Path(__file__).resolve().parents[1]
+REFERENCE=LAB.parent/'bpu_lab_20260905'
 RUNTIME=str(REFERENCE/'vendor/runtime_4_9_2/lib')+':/usr/hobot/lib'
 sys.path[:0]=[str(LAB/'python'),str(REFERENCE/'vendor/python311'),str(REFERENCE/'tools')]
 FCOS_SHA='1daacc7dfde181b65872c47f4fe5db84fd31f19d3ad56aa1fa1d902bb5ffd7fa'

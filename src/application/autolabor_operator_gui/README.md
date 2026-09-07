@@ -4,6 +4,12 @@ ROS Noetic、Qt5 Widgets 与 `librviz` 构成的双机真车操作界面。当�
 FAST-LIO 增量定位或固定三维地图定位，不接入 GNSS、WGS84 目标或
 RabbitMQ。界面本身从不发布 `/cmd_vel`。
 
+2026-09-07 闪退修复：业务订阅使用独立 ROS 回调队列，后台线程不再消费 RViz 的
+GUI 更新队列。一个进程只创建一次原生 RViz 渲染窗口；ROS master 恢复时重新注册
+现有 topic 并恢复输入连接，不删除重建 Ogre 上下文。地图自动重订阅和实际尺寸
+READY 判定保留。Qt 事件同步写入 `gui.log`，优化构建保留调试符号。
+详见工作区根目录 `QT_CRASH_FIX_20260907.md`。
+
 ## 已集成功能
 
 - 顶栏显示 ROS、CAN、FAST-LIO、注册点云、IMU、避障雷达、move_base、控制模式、

@@ -101,6 +101,12 @@ require_dual_lidar_for_coverage: true
 goal_timeout_base_sec: 20.0
 goal_timeout_per_meter_sec: 20.0
 enforced_path_service: /move_base/CoverageGlobalPlanner/set_enforced_path
+# Display-only Navfn query from the live pose to the first swath entrance.  It
+# never submits a move_base goal and remains available when execution prechecks
+# reject a batch before motion starts.
+first_entry_plan_service: /move_base/CoverageGlobalPlanner/make_navfn_plan
+first_entry_plan_wait_timeout_sec: 1.0
+first_entry_plan_tolerance_m: 0.0
 hybrid_precompute_service: /move_base/CoverageGlobalPlanner/precompute_transitions
 hybrid_plan_action: /move_base/CoverageGlobalPlanner/plan_hybrid_transitions
 hybrid_precompute_timeout_sec: 60.0

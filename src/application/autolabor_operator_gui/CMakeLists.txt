@@ -76,18 +76,18 @@ target_link_libraries(${PROJECT_NAME}_support
   Qt5::Core
 )
 
-add_executable(${PROJECT_NAME}_node
-  src/main.cpp
+add_library(${PROJECT_NAME}_window STATIC
+  src/ros_graph_reconnect.cpp
   src/ai_control.cpp
   src/main_window.cpp
   include/autolabor_operator_gui/main_window.h
 )
 
-add_dependencies(${PROJECT_NAME}_node
+add_dependencies(${PROJECT_NAME}_window
   ${catkin_EXPORTED_TARGETS}
 )
 
-target_link_libraries(${PROJECT_NAME}_node
+target_link_libraries(${PROJECT_NAME}_window
   ${PROJECT_NAME}_support
   Qt5::Concurrent
   Qt5::Widgets
@@ -95,7 +95,19 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
 
+add_executable(${PROJECT_NAME}_node src/main.cpp)
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME}_window)
+# Keep optimized field builds useful for post-mortem backtraces.
+target_compile_options(${PROJECT_NAME}_window PRIVATE -g -fno-omit-frame-pointer)
+target_compile_options(${PROJECT_NAME}_node PRIVATE -g -fno-omit-frame-pointer)
+
 if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  add_rostest_gtest(test_rviz_callback_isolation
+    test/rviz_callback_isolation.test
+    test/test_rviz_callback_isolation.cpp
+  )
+  target_link_libraries(test_rviz_callback_isolation ${PROJECT_NAME}_window)
   catkin_add_nosetests(test/test_operator_gui_contract.py)
   catkin_add_gtest(test_coverage_region_store
     test/test_coverage_region_store.cpp

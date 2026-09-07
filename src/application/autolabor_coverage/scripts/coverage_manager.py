@@ -59,6 +59,7 @@ from geometry_msgs.msg import Point as RosPoint
 from geometry_msgs.msg import PolygonStamped, PoseStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
+from nav_msgs.srv import GetPlan, GetPlanRequest
 import rospy
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Bool, String
@@ -616,6 +617,16 @@ class CoverageManager:
             "~enforced_path_service",
             "/move_base/CoverageGlobalPlanner/set_enforced_path",
         ))
+        self.first_entry_plan_service_name = str(rospy.get_param(
+            "~first_entry_plan_service",
+            "/move_base/CoverageGlobalPlanner/make_navfn_plan",
+        ))
+        self.first_entry_plan_wait_timeout_sec = float(rospy.get_param(
+            "~first_entry_plan_wait_timeout_sec", 1.0
+        ))
+        self.first_entry_plan_tolerance = float(rospy.get_param(
+            "~first_entry_plan_tolerance_m", 0.0
+        ))
         self.hybrid_precompute_service_name = str(rospy.get_param(
             "~hybrid_precompute_service",
             "/move_base/CoverageGlobalPlanner/precompute_transitions",
@@ -804,8 +815,13 @@ class CoverageManager:
         )
         if (
             not self.enforced_path_service_name
+            or not self.first_entry_plan_service_name
             or not self.hybrid_precompute_service_name
             or not self.navigation_owner_service_name
+            or not math.isfinite(self.first_entry_plan_wait_timeout_sec)
+            or not 0.1 <= self.first_entry_plan_wait_timeout_sec <= 10.0
+            or not math.isfinite(self.first_entry_plan_tolerance)
+            or not 0.0 <= self.first_entry_plan_tolerance <= 1.0
             or not math.isfinite(self.entry_position_tolerance)
             or not math.isfinite(self.entry_yaw_tolerance)
             or self.entry_position_tolerance <= 0.0
@@ -920,6 +936,10 @@ class CoverageManager:
         self.last_tracked_point = None
         self.executed_path = Path()
         self.executed_path.header.frame_id = "map"
+        self.first_entry_path = Path()
+        self.first_entry_path.header.frame_id = "map"
+        self.first_entry_path_map_digest = ""
+        self.first_entry_path_batch_token = ""
         self.worker = None
         # SimpleActionClient only tracks its latest GoalHandle.  Keep a local
         # monotonically increasing generation and the exact handle captured by
@@ -945,6 +965,7 @@ class CoverageManager:
         self.batch_region_token = ""
         self.batch_region_outcome = ""
         self.batch_current_is_last = False
+        self.batch_region_execution_started = False
         self.batch_regions = []
         self.batch_current_index = 0
         self.batch_total_regions = 0
@@ -980,6 +1001,9 @@ class CoverageManager:
         )
         self.path_pub = rospy.Publisher(
             "/coverage/planned_path", Path, queue_size=1, latch=True
+        )
+        self.first_entry_path_pub = rospy.Publisher(
+            "/coverage/first_entry_path", Path, queue_size=1, latch=True
         )
         self.hybrid_transition_path_pub = rospy.Publisher(
             "/coverage/hybrid_transition_path", Path, queue_size=1, latch=True
@@ -1065,6 +1089,9 @@ class CoverageManager:
             self._set_planning_defaults_service,
         )
         self.move_base = actionlib.SimpleActionClient("/move_base", MoveBaseAction)
+        self.first_entry_plan_client = rospy.ServiceProxy(
+            self.first_entry_plan_service_name, GetPlan
+        )
         self.enforced_path_client = rospy.ServiceProxy(
             self.enforced_path_service_name, SetEnforcedPath
         )
@@ -1897,6 +1924,126 @@ class CoverageManager:
         path.poses = [self._pose(point, yaw, path.header.stamp) for point in points]
         return path
 
+    def _first_entry_navfn_preview(self, current, current_yaw, route):
+        """Ask move_base's inactive Navfn topology for a display-only entry path."""
+        if not route:
+            raise RuntimeError("coverage route has no first swath")
+        entry = route[0].start
+        sweep_yaw = math.atan2(
+            route[0].end.y - entry.y,
+            route[0].end.x - entry.x,
+        )
+        stamp = rospy.Time.now()
+        request = GetPlanRequest()
+        request.start = self._pose(current, current_yaw, stamp)
+        request.goal = self._pose(entry, sweep_yaw, stamp)
+        request.tolerance = float(getattr(
+            self, "first_entry_plan_tolerance", 0.0
+        ))
+        service_name = getattr(
+            self,
+            "first_entry_plan_service_name",
+            "/move_base/CoverageGlobalPlanner/make_navfn_plan",
+        )
+        try:
+            rospy.wait_for_service(
+                service_name,
+                timeout=float(getattr(
+                    self, "first_entry_plan_wait_timeout_sec", 1.0
+                )),
+            )
+            response = self.first_entry_plan_client(request)
+        except Exception as error:
+            raise RuntimeError(
+                "Navfn make_plan service is unavailable: {}".format(error)
+            )
+        try:
+            path = copy.deepcopy(response.plan)
+        except Exception as error:
+            raise RuntimeError(
+                "Navfn make_plan returned no usable plan: {}".format(error)
+            )
+        if path.header.frame_id not in ("", "map"):
+            raise RuntimeError(
+                "Navfn returned the first-entry path in frame {}".format(
+                    path.header.frame_id
+                )
+            )
+        if not path.poses:
+            raise RuntimeError("Navfn found no path to the first swath entry")
+        for index, stamped_pose in enumerate(path.poses):
+            if stamped_pose.header.frame_id not in ("", "map"):
+                raise RuntimeError(
+                    "Navfn first-entry pose {} uses frame {}".format(
+                        index, stamped_pose.header.frame_id
+                    )
+                )
+            position = stamped_pose.pose.position
+            if not all(math.isfinite(value) for value in (
+                    float(position.x), float(position.y), float(position.z))):
+                raise RuntimeError(
+                    "Navfn first-entry path contains a non-finite position"
+                )
+        start_position = path.poses[0].pose.position
+        start_error = math.hypot(
+            float(start_position.x) - float(current.x),
+            float(start_position.y) - float(current.y),
+        )
+        start_tolerance = max(
+            1.0, 2.0 * float(getattr(self, "entry_position_tolerance", 0.40))
+        )
+        if start_error > start_tolerance:
+            raise RuntimeError(
+                "Navfn first-entry path starts {:.2f} m from the live pose".format(
+                    start_error
+                )
+            )
+        end_position = path.poses[-1].pose.position
+        end_error = math.hypot(
+            float(end_position.x) - float(entry.x),
+            float(end_position.y) - float(entry.y),
+        )
+        if end_error > float(getattr(self, "entry_position_tolerance", 0.40)):
+            raise RuntimeError(
+                "Navfn first-entry path ends {:.2f} m from the swath entry".format(
+                    end_error
+                )
+            )
+        path.header.frame_id = "map"
+        path.header.stamp = stamp
+        for stamped_pose in path.poses:
+            stamped_pose.header.frame_id = "map"
+            stamped_pose.header.stamp = stamp
+        return path
+
+    def _publish_first_entry_path(self, path):
+        self.first_entry_path = copy.deepcopy(path)
+        # Preview provenance must outlive the executable plan's invalidation.
+        # Clearing a preview also clears its provenance, so a later batch or
+        # map cannot accidentally retain an earlier task's path.
+        self.first_entry_path_map_digest = (
+            getattr(self, "map_digest", "") if path.poses else ""
+        )
+        self.first_entry_path_batch_token = (
+            getattr(self, "batch_token", "") if path.poses else ""
+        )
+        publisher = getattr(self, "first_entry_path_pub", None)
+        if publisher is not None:
+            publisher.publish(copy.deepcopy(path))
+
+    def _retain_failed_batch_entry_preview_locked(self, outcome):
+        return (
+            outcome == "FAILED"
+            and not self.batch_cancel_requested
+            and not self.batch_skip_requested
+            and not getattr(self, "batch_region_execution_started", False)
+            and bool(getattr(self, "first_entry_path", Path()).poses)
+            and bool(getattr(self, "first_entry_path_map_digest", ""))
+            and self.first_entry_path_map_digest == self.map_digest
+            and bool(self.batch_token)
+            and getattr(self, "first_entry_path_batch_token", "") == self.batch_token
+        )
+
     def _planner(self, grid=None):
         return CoveragePlanner(
             self.grid if grid is None else grid,
@@ -2133,6 +2280,20 @@ class CoverageManager:
         region.header.frame_id = "map"
         region.header.stamp = rospy.Time.now()
         planned_path = self._planned_path(route, current)
+        first_entry_path = None
+        first_entry_error = ""
+        if current_pose is not None:
+            try:
+                first_entry_path = self._first_entry_navfn_preview(
+                    current_pose[0], current_pose[1], route
+                )
+            except RuntimeError as error:
+                first_entry_error = str(error)
+                rospy.logwarn(
+                    "coverage geometry is ready but its first-entry Navfn "
+                    "preview is unavailable: %s",
+                    error,
+                )
         with self.lock:
             owns_planning_generation = (
                 self.plan_pending and self.plan_token == token
@@ -2176,6 +2337,10 @@ class CoverageManager:
                 self.detail = (
                     "coverage path is ready; estimated {:.1f} s total"
                 ).format(getattr(plan, "estimated_total_time_sec", 0.0))
+                if first_entry_error:
+                    self.detail += (
+                        "; first-entry Navfn preview unavailable: {}"
+                    ).format(first_entry_error)
                 self.total_segments = len(route) * 2
                 # Keep plan commit and all latched visualization publications
                 # in the same lifecycle critical section.  A concurrent
@@ -2185,6 +2350,8 @@ class CoverageManager:
                 self._clear_visualizations()
                 self.region_pub.publish(region)
                 self.path_pub.publish(planned_path)
+                if first_entry_path is not None:
+                    self._publish_first_entry_path(first_entry_path)
                 self._publish_markers(route, region)
         if not commit_plan:
             self._publish_status()
@@ -3206,11 +3373,13 @@ class CoverageManager:
         array.markers.append(lines)
         self.marker_pub.publish(array)
 
-    def _clear_visualizations(self):
+    def _clear_visualizations(self, preserve_first_entry_path=False):
         path = Path()
         path.header.frame_id = "map"
         path.header.stamp = rospy.Time.now()
         self.path_pub.publish(path)
+        if not preserve_first_entry_path:
+            self._publish_first_entry_path(copy.deepcopy(path))
         self._publish_hybrid_transition_path()
         self.executed_path_pub.publish(copy.deepcopy(path))
         region = PolygonStamped()
@@ -3272,6 +3441,7 @@ class CoverageManager:
         self.batch_region_token = ""
         self.batch_region_outcome = ""
         self.batch_current_is_last = False
+        self.batch_region_execution_started = False
         self.batch_regions = []
         self.batch_current_index = 0
         self.batch_total_regions = 0
@@ -3344,6 +3514,7 @@ class CoverageManager:
             region = copy.deepcopy(self.region)
             operation_width = self.operation_width
             overlap_ratio = self.overlap_ratio
+            preview_route = copy.deepcopy(getattr(self.plan, "swaths", []))
             self._clear_batch_display_identity_locked()
             self.start_pending = True
             self.start_token = token
@@ -3351,6 +3522,33 @@ class CoverageManager:
             self.state = "PREPARING"
             self.detail = "checking live safety gates and current-map coverage entry"
         self._publish_status()
+
+        # An operator may have created the geometric plan before localization.
+        # Once a live pose exists, populate the display-only Navfn route before
+        # any execution gate can reject this start request.
+        preview_pose = None
+        if preview_route and self._localization_is_fresh():
+            preview_pose = self._current_pose()
+        if preview_pose is not None and preview_route:
+            try:
+                early_first_entry_path = self._first_entry_navfn_preview(
+                    preview_pose[0], preview_pose[1], preview_route
+                )
+            except RuntimeError as error:
+                rospy.logwarn(
+                    "coverage start could not refresh its first-entry Navfn "
+                    "preview before safety checks: %s",
+                    error,
+                )
+            else:
+                with self.lock:
+                    if (
+                        self.start_pending
+                        and self.start_token == token
+                        and self.plan_id == plan_id
+                        and self.map_digest == map_digest
+                    ):
+                        self._publish_first_entry_path(early_first_entry_path)
 
         with self.lock:
             initial_checks_ok = self._start_prechecks_locked(
@@ -3426,6 +3624,17 @@ class CoverageManager:
         planned_path = self._planned_path(
             route, current, transition_paths=transition_paths
         )
+        first_entry_path = None
+        if route:
+            try:
+                first_entry_path = self._first_entry_navfn_preview(
+                    current, current_yaw, route
+                )
+            except RuntimeError as error:
+                return self._finish_start_failure(
+                    token,
+                    "coverage first-entry Navfn preview failed: {}".format(error),
+                )
         has_hybrid_paths = bool(
             transition_paths and any(
                 path is not None for path in transition_paths
@@ -3526,6 +3735,8 @@ class CoverageManager:
         # mode hand-off before the action goal is sent.
         self.active_pub.publish(Bool(data=True))
         self.path_pub.publish(planned_path)
+        if first_entry_path is not None:
+            self._publish_first_entry_path(first_entry_path)
         self._publish_markers(route, region)
         self._publish_status()
         try:
@@ -4283,6 +4494,16 @@ class CoverageManager:
         planned_path = self._planned_path(
             route, current, transition_paths=transition_paths
         )
+        try:
+            first_entry_path = self._first_entry_navfn_preview(
+                current, current_yaw, route
+            )
+        except RuntimeError as error:
+            with self.lock:
+                self.detail = (
+                    "coverage batch first-entry Navfn preview failed: {}"
+                ).format(error)
+            return "FAILED", None, None
 
         with self.lock:
             interrupted = self._batch_interrupt_locked(token)
@@ -4304,11 +4525,13 @@ class CoverageManager:
                 "waiting for task-start VCU and TEB verification"
             )
             self.total_segments = len(route) * 2
+            self.batch_region_execution_started = False
             self.state = "PREPARING"
             self.detail = "checking live safety gates for coverage batch region"
             self._clear_visualizations()
             self.region_pub.publish(region)
             self.path_pub.publish(planned_path)
+            self._publish_first_entry_path(first_entry_path)
             self._publish_markers(route, region)
         self._publish_status()
 
@@ -4340,6 +4563,7 @@ class CoverageManager:
                     requested_speed, require_kinematics=True):
                 return "FAILED", None, None
             self.active = True
+            self.batch_region_execution_started = True
             self.cancel_requested = False
             self.batch_phase = "EXECUTING"
             self.state = "GOING_TO_START"
@@ -4377,8 +4601,11 @@ class CoverageManager:
             self.batch_current_index = 0
             self.current_region_id = ""
             self.current_region_name = ""
+            preserve_entry = self._retain_failed_batch_entry_preview_locked(
+                region_state
+            )
             self._discard_plan_locked(clear_progress=False)
-            self._clear_visualizations()
+            self._clear_visualizations(preserve_first_entry_path=preserve_entry)
             if should_continue:
                 self.batch_skip_requested = False
                 if not self.batch_cancel_requested:
@@ -4572,6 +4799,12 @@ class CoverageManager:
                 self.navigation_owner_token = ""
                 self.navigation_owner_claimed = False
                 self.navigation_owner_releasing = False
+            # Recheck after external cleanup and before clearing cancellation
+            # and batch identity.  The executable plan was already discarded
+            # by the region-result stage; use the preview's own provenance.
+            preserve_first_entry_path = self._retain_failed_batch_entry_preview_locked(
+                terminal_state
+            )
             self.active = False
             self.batch_active = False
             self.batch_token = ""
@@ -4604,7 +4837,9 @@ class CoverageManager:
                 record.update(state="TERMINAL", message=terminal_detail)
             self.batch_cancel_requested = False
             self._discard_plan_locked(clear_progress=False)
-            self._clear_visualizations()
+            self._clear_visualizations(
+                preserve_first_entry_path=preserve_first_entry_path
+            )
             self.batch_worker = None
             self.batch_abort_detail = ""
             self.batch_wake_event.set()

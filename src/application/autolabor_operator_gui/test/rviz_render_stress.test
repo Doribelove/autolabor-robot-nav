@@ -1,0 +1,9 @@
+<launch>
+  <!-- Run manually on an available X11/OpenGL display. rostest owns a private
+       local master; this fixture never connects to the physical robot. -->
+  <test test-name="rviz_render_stress" pkg="autolabor_operator_gui"
+        type="test_rviz_callback_isolation" time-limit="240"
+        args="--gtest_filter=*RealRenderingStress">
+    <env name="AUTOLABOR_RVIZ_STRESS" value="1"/>
+  </test>
+</launch>

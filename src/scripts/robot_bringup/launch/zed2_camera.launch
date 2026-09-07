@@ -4,7 +4,10 @@
 
     The ZED wrapper can publish map->odom and odom->base_link by default.
     Both transforms are disabled here to avoid conflicting with the robot's
-    existing localization stack. The odometry topics remain available.
+    existing localization stack. FAST-LIO owns localization; this entry point
+    only needs RGB-D. Both explicit tracking and depth-stabilization-triggered
+    tracking are disabled by default (ZED SDK divergence/SIGSEGV, 2026-09-07).
+    The native zed_wrapper launch retains its tracking defaults for diagnostics.
   -->
   <arg name="camera_name" default="zed2"/>
   <arg name="node_name" default="zed_node"/>
@@ -24,6 +27,8 @@
   <arg name="cam_yaw" default="0.0"/>
 
   <arg name="depth_mode" default="QUALITY"/>
+  <arg name="depth_stabilization" default="0"/>
+  <arg name="pos_tracking_enabled" default="false"/>
   <arg name="publish_tf" default="false"/>
   <arg name="publish_map_tf" default="false"/>
   <arg name="two_d_mode" default="false"/>
@@ -70,6 +75,10 @@
          value="$(arg serial_number)" type="int"/>
   <param name="/$(arg camera_name)/$(arg node_name)/depth/depth_mode"
          value="$(arg depth_mode)"/>
+  <param name="/$(arg camera_name)/$(arg node_name)/depth/depth_stabilization"
+         value="$(arg depth_stabilization)" type="int"/>
+  <param name="/$(arg camera_name)/$(arg node_name)/pos_tracking/pos_tracking_enabled"
+         value="$(arg pos_tracking_enabled)" type="bool"/>
   <param name="/$(arg camera_name)/$(arg node_name)/pos_tracking/publish_tf"
          value="$(arg publish_tf)" type="bool"/>
   <param name="/$(arg camera_name)/$(arg node_name)/pos_tracking/publish_map_tf"

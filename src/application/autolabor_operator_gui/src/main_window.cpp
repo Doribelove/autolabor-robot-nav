@@ -1,4 +1,5 @@
 #include <autolabor_operator_gui/main_window.h>
+#include <autolabor_operator_gui/ros_graph_reconnect.h>
 
 #include <dynamic_reconfigure/DoubleParameter.h>
 #include <dynamic_reconfigure/Reconfigure.h>
@@ -37,6 +38,7 @@
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDateTime>
+#include <QDebug>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
@@ -64,6 +66,7 @@
 #include <QRect>
 #include <QScrollArea>
 #include <QSettings>
+#include <QScopedValueRollback>
 #include <QSignalBlocker>
 #include <QShortcut>
 #include <QSizePolicy>
@@ -1259,10 +1262,14 @@ void MainWindow::restoreFactoryCoveragePlanningDefaults()
 
 MainWindow::~MainWindow()
 {
+  shutting_down_ = true;
   master_probe_timer_.stop();
   ui_refresh_timer_.stop();
+  bpu_preview_timer_.stop();
   ai_heartbeat_timer_.stop();
   navigation_profile_apply_timer_.stop();
+  if (master_probe_watcher_.isRunning())
+    master_probe_watcher_.waitForFinished();
   if (navigation_profile_apply_watcher_.isRunning())
     navigation_profile_apply_watcher_.waitForFinished();
   if (recorder_.state() != QProcess::NotRunning)
@@ -1283,9 +1290,60 @@ MainWindow::~MainWindow()
     if (!vision_model_switch_process_.waitForFinished(10000))
       vision_model_switch_process_.kill();
   }
-  shutdownRosInterfaces();
   if (spinner_)
     spinner_->stop();
+  shutdownRosInterfaces();
+  // QObject deletes children after C++ members have been destroyed. Dispose
+  // RViz now, while our slots/state and ROS are still valid, with rendering off.
+  destroyEmbeddedRviz();
+}
+
+void MainWindow::destroyEmbeddedRviz()
+{
+  rviz_initialized_ = false;
+  rviz_attached_tab_index_ = -1;
+  auto* frame = rviz_frame_;
+  rviz_frame_ = nullptr;
+  if (!frame)
+    return;
+  if (auto* manager = frame->getManager())
+  {
+    manager->stopUpdate();
+    if (manager->getToolManager())
+      disconnect(manager->getToolManager(), nullptr, this, nullptr);
+  }
+  delete frame;
+}
+
+bool MainWindow::reconnectEmbeddedRviz()
+{
+  if (shutting_down_ || rviz_initializing_ || !rviz_initialized_ || !rviz_frame_)
+    return false;
+  auto* manager = rviz_frame_->getManager();
+  if (!manager)
+    return false;
+  QScopedValueRollback<bool> reconnecting(rviz_initializing_, true);
+  manager->stopUpdate();
+  publishMapDisplayStatus("RECONNECTING");
+  manager->resetTime();
+  overview_fitted_map_count_ = 0;
+  coverage_fitted_map_count_ = 0;
+  rviz_map_refresh_message_count_ = 0;
+  rviz_map_ready_message_count_ = 0;
+  rviz_map_refresh_attempts_ = 0;
+  rviz_map_refresh_at_ = ros::WallTime();
+  overview_initial_pose_tool_active_ = false;
+  rviz_follow_after_initial_pose_ = false;
+  selectRvizTool(rviz_frame_, QStringLiteral("rviz/MoveCamera"));
+  std::string error;
+  const bool restored = restoreRosGraphRegistration(&error);
+  manager->startUpdate();
+  manager->queueRender();
+  appendEvent(restored
+                  ? QStringLiteral("RViz ROS 连接已恢复，原生渲染窗口保持不变。")
+                  : QStringLiteral("RViz ROS 重连失败：") + QString::fromStdString(error),
+              !restored);
+  return restored;
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -1495,6 +1553,10 @@ void MainWindow::buildUi()
   bpu_tab_index_ = tabs_->addTab(buildBpuPreviewPage(), QStringLiteral("BPU 预览"));
   tabs_->addTab(buildLogPage(), QStringLiteral("日志"));
   connect(tabs_, &QTabWidget::currentChanged, this, [this](int index) {
+    qInfo() << "[rviz_lifecycle] tab" << index
+            << "initialized" << rviz_initialized_;
+    if (shutting_down_ || rviz_initializing_)
+      return;
     // Qt/Ogre cannot reliably create a native render window below a hidden
     // QTabWidget page on Jetson/X11.  Defer construction until the selected
     // page has completed its visibility/layout event.
@@ -3082,6 +3144,7 @@ void MainWindow::appendEvent(const QString& text, bool warning)
   const QString prefix = QDateTime::currentDateTime().toString(QStringLiteral("HH:mm:ss")) +
                          (warning ? QStringLiteral("  [警告] ") : QStringLiteral("  "));
   const QString line = prefix + text;
+  qInfo().noquote() << "[operator_event]" << line;
   if (overview_events_)
     overview_events_->appendPlainText(line);
   if (log_events_)
@@ -3090,7 +3153,8 @@ void MainWindow::appendEvent(const QString& text, bool warning)
 
 void MainWindow::requestMasterProbe()
 {
-  if (master_probe_watcher_.isRunning() || !ros::ok())
+  if (shutting_down_ || rviz_initializing_ ||
+      master_probe_watcher_.isRunning() || !ros::ok())
     return;
   master_probe_watcher_.setFuture(QtConcurrent::run([]() {
     MasterProbeResult result;
@@ -3101,6 +3165,8 @@ void MainWindow::requestMasterProbe()
 
 void MainWindow::handleMasterProbeFinished()
 {
+  if (shutting_down_ || rviz_initializing_)
+    return;
   const MasterProbeResult result = master_probe_watcher_.result();
   const bool was_online = previous_probe_online_;
   const bool restored = result.online && !was_online;
@@ -3114,49 +3180,14 @@ void MainWindow::handleMasterProbeFinished()
 
   if (restored)
   {
-    // A restarted ROS master invalidates RViz's old topic registrations. Rebuild
-    // the embedded frame after connectivity returns so its displays subscribe
-    // against the new master instead of remaining on a frozen last frame.
-    if (rviz_initialized_ && rviz_frame_)
-    {
-      if (rviz_panels_button_)
-        rviz_panels_button_->setEnabled(false);
-      delete rviz_frame_;
-      rviz_frame_ = nullptr;
-      rviz_initialized_ = false;
-      rviz_attached_tab_index_ = -1;
-      overview_fitted_map_count_ = 0;
-      coverage_fitted_map_count_ = 0;
-      overview_initial_pose_tool_active_ = false;
-      rviz_follow_after_initial_pose_ = false;
-      overview_3d_map_enabled_ = false;
-      mapping_history_cloud_enabled_ = false;
-      if (rviz_follow_vehicle_button_)
-        rviz_follow_vehicle_button_->setEnabled(false);
-      if (rviz_3d_map_button_)
-      {
-        rviz_3d_map_button_->setChecked(false);
-        rviz_3d_map_button_->setEnabled(false);
-        rviz_3d_map_button_->setText(QStringLiteral("④ 显示静态三维先验"));
-      }
-      if (rviz_history_cloud_button_)
-      {
-        rviz_history_cloud_button_->setChecked(false);
-        rviz_history_cloud_button_->setEnabled(false);
-        rviz_history_cloud_button_->setText(QStringLiteral("显示历史点云图"));
-      }
-      if (rviz_map_instruction_)
-        rviz_map_instruction_->setText(
-            QStringLiteral("全局地图加载后：先显示全图，再按车辆真实位置设置初始位姿"));
-      if (rviz_placeholder_)
-        rviz_placeholder_->setText(
-            QStringLiteral("ROS master 已恢复，正在重新加载 RViz……"));
-      if (coverage_rviz_placeholder_)
-        coverage_rviz_placeholder_->setText(
-            QStringLiteral("ROS master 已恢复，正在重新加载清扫地图……"));
-    }
+    // The process-wide Ogre render system cannot reliably create a second
+    // native window on this driver. Keep the frame/manager for the whole
+    // process lifetime and re-register its existing ROS endpoints instead.
+    const bool reconnect_rviz = rviz_initialized_ && rviz_frame_;
     appendEvent(QStringLiteral("ROS master 已连接，正在注册界面订阅与发布接口。"));
     setupRosInterfaces();
+    if (reconnect_rviz && !reconnectEmbeddedRviz())
+      previous_probe_online_ = false;  // Retry on the next successful probe.
   }
   else if (lost)
   {
@@ -3166,18 +3197,21 @@ void MainWindow::handleMasterProbeFinished()
 
 void MainWindow::setupRosInterfaces()
 {
-  if (!master_online_ || !ros::ok())
+  if (shutting_down_ || rviz_initializing_ || !master_online_ || !ros::ok())
     return;
-  // Starting a spinner calls ros::start(), which registers /rosout. Delay it until the
-  // master is reachable; otherwise that registration retries forever before the Qt
-  // window can become interactive.
-  if (!spinner_)
-  {
-    spinner_.reset(new ros::AsyncSpinner(2));
-    spinner_->start();
-  }
+  if (spinner_)
+    spinner_->stop();
   shutdownRosInterfaces();
+  telemetry_queue_.clear();
+  // RViz 1.14 getUpdateQueue() returns ros::getGlobalCallbackQueue(), and
+  // onUpdate() calls ros::spinOnce() in the GUI thread. A default AsyncSpinner
+  // steals those callbacks and races MapDisplay/Path/Ogre updates and teardown.
+  // Bind EVERY application subscription (including TF/BPU) to a private queue.
   node_.reset(new ros::NodeHandle("~"));
+  node_->setCallbackQueue(&telemetry_queue_);
+  if (!spinner_)
+    spinner_.reset(new ros::AsyncSpinner(2, &telemetry_queue_));
+  spinner_->start();
   tf_listener_.reset(new tf2_ros::TransformListener(tf_buffer_, *node_, false));
   node_->param("enable_rviz", enable_rviz_, true);
   node_->param("static_map_mode", static_map_mode_, false);
@@ -3309,7 +3343,8 @@ void MainWindow::setupRosInterfaces()
 
 void MainWindow::setupEmbeddedRviz()
 {
-  if (!tabs_ || !rviz_layout_ || !coverage_rviz_layout_)
+  if (shutting_down_ || rviz_initializing_ ||
+      !tabs_ || !rviz_layout_ || !coverage_rviz_layout_)
     return;
   const int active_tab = tabs_ ? tabs_->currentIndex() : overview_tab_index_;
   if (active_tab != overview_tab_index_ && active_tab != coverage_tab_index_)
@@ -3330,11 +3365,14 @@ void MainWindow::setupEmbeddedRviz()
   }
   try
   {
+    // initialize() processes nested Qt events while plugins are loading. A
+    // tab change must not construct a second manager before this one commits.
+    QScopedValueRollback<bool> initializing(rviz_initializing_, true);
+    qInfo() << "[rviz_lifecycle] initializing";
     // Keep exactly one VisualizationFrame/VisualizationManager in this
     // process.  Its native Ogre render surface also keeps one stable Qt
-    // parent for its whole lifetime.  Reparenting that native surface between
-    // tab pages invalidates Ogre render-queue objects and caused the observed
-    // PassGroupRenderableMap assertion/pure-virtual aborts.
+    // parent for its whole lifetime. Keep this native-window constraint in
+    // addition to isolating application callbacks from RViz's GUI queue.
     rviz_frame_ = new rviz::VisualizationFrame(tabs_);
     rviz_frame_->setWindowFlags(Qt::Widget);
     positionRvizOverlay(active_tab);
@@ -3420,13 +3458,7 @@ void MainWindow::setupEmbeddedRviz()
   catch (const std::exception& error)
   {
     appendEvent(QStringLiteral("RViz 加载失败：") + QString::fromLocal8Bit(error.what()), true);
-    if (rviz_frame_)
-    {
-      rviz_frame_->deleteLater();
-      rviz_frame_ = nullptr;
-    }
-    rviz_initialized_ = false;
-    rviz_attached_tab_index_ = -1;
+    destroyEmbeddedRviz();
     QLabel* placeholder = active_tab == coverage_tab_index_
                               ? coverage_rviz_placeholder_
                               : rviz_placeholder_;
@@ -4960,6 +4992,8 @@ MainWindow::FastLioHealthResult MainWindow::evaluateFastLioHealth(
 
 void MainWindow::refreshUi()
 {
+  if (shutting_down_ || rviz_initializing_)
+    return;
   if (rviz_initialized_ && tabs_)
     positionRvizOverlay(tabs_->currentIndex());
   const TelemetrySnapshot data = snapshot();

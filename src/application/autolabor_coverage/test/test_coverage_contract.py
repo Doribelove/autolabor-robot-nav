@@ -411,6 +411,10 @@ class CoverageContractTest(unittest.TestCase):
         planner_plugin = (
             PACKAGE_ROOT / "src" / "coverage_global_planner.cpp"
         ).read_text(encoding="utf-8")
+        planner_header = (
+            PACKAGE_ROOT / "include" / "autolabor_coverage" /
+            "coverage_global_planner.h"
+        ).read_text(encoding="utf-8")
         config = yaml.safe_load(
             (PACKAGE_ROOT / "config" / "coverage.yaml").read_text(encoding="utf-8")
         )
@@ -473,6 +477,12 @@ class CoverageContractTest(unittest.TestCase):
             config["hybrid_plan_action"],
         )
         self.assertEqual(0.30, config["route_first_entry_distance_slack_m"])
+        self.assertEqual(
+            "/move_base/CoverageGlobalPlanner/make_navfn_plan",
+            config["first_entry_plan_service"],
+        )
+        self.assertEqual(1.0, config["first_entry_plan_wait_timeout_sec"])
+        self.assertEqual(0.0, config["first_entry_plan_tolerance_m"])
         self.assertTrue(config["hierarchical_hybrid_on_demand"])
         self.assertTrue(config["direct_hybrid_to_final_goal"])
         self.assertTrue(config["entry_navfn_single_topology"])
@@ -482,6 +492,11 @@ class CoverageContractTest(unittest.TestCase):
         self.assertEqual(0.0, config["hybrid_transit_max_reverse_speed_mps"])
         self.assertEqual(0.0, config["hybrid_transit_max_angular_speed_rps"])
         self.assertIn("/coverage/hybrid_transition_path", manager)
+        self.assertIn("/coverage/first_entry_path", manager)
+        self.assertIn("_first_entry_navfn_preview", manager)
+        self.assertIn("GetPlanRequest", manager)
+        self.assertIn("make_navfn_plan", planner_plugin)
+        self.assertIn("navfn_mutex_", planner_header)
         self.assertIn("_observe_transition_completion", manager)
         self.assertIn("_replan_remaining_hybrid_transition", manager)
         self.assertIn("check_join_after_completion", manager)

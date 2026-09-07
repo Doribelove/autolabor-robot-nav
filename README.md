@@ -5,8 +5,24 @@
 `robot_j6m_ws_optimized_20260905` 的源码和当前地图；原工作区不在本目录内，也没有被清理、
 重置或修改。J6M 使用独立运行根 `/map/robot_j6m_navigation_20260907`，不会覆盖
 `/map/robot_j6m_optimized_20260905` 的 release 链。本次部署后的 J6M `current` 指向
-`20260907_141331`，完整实现、验证结果和运行边界见
+`20260907_214928`，完整实现、验证结果和运行边界见
 [NAVIGATION_OPTIMIZATION_20260907.md](NAVIGATION_OPTIMIZATION_20260907.md)。
+
+2026-09-07 收工：首入口预览修复已部署，206 项针对性测试和 15 项隔离 ROS 集成检查通过。
+用户已断开底盘及雷达供电，完整程序保持停止。明日验收步骤、当前版本、剩余问题和
+证据恢复方式见 [验收交接](docs/ACCEPTANCE_HANDOFF_20260908.md)。实车首入口显示、
+TEB 行驶和 J6M Hybrid 转场 CPU 尚待验收。
+
+历史记录 2026-09-07 Qt 闪退修复已构建并冷启动生效：隔离业务/RViz 回调队列，ROS 重连保留原生
+渲染窗口；ZED 关闭位置跟踪及隐式开启跟踪的深度稳定。283 项汇总检查与真实 Ogre 的
+1000 次页签切换、5 次重连测试通过。当前候选 active/MainPID=2161491，Qt 地图 READY，
+SDK 跟踪 INACTIVE；60 秒最终指令与轮速全零。新会话仍 WAITING_INITIAL_POSE，需操作员
+重新设置真实初值，两个运动门保持 false。详见 [Qt 闪退修复记录](QT_CRASH_FIX_20260907.md)。
+
+历史记录 2026-09-07 17:48：ZED 必需节点以 SIGSEGV 退出并带停 UI 伴随链后，已通过统一入口完成一次
+完整冷重启。当前服务 active/MainPID=1667551，Qt 静态地图 `READY`，严格 runtime 检查通过；
+新会话为 `WAITING_INITIAL_POSE`，需要操作员按车辆真实位置重新设置初值。主运动与 FOD 运动门
+均为 `false`，10 条最终速度样本全零。当前没有实体麦克风，AI 节点在线但语音采集不可用。
 
 ## 2026-09-07 导航优化
 
@@ -740,11 +756,15 @@ RViz 在初始化窗口时漏接了 `map_server` 的锁存消息，会自动重�
 还显示全局代价图的尺寸、分辨率、消息年龄或缺流原因，从而区分“显示层关闭”和
 “move_base 尚未发布 topic”。
 
-地图上路线颜色固定为：青色是覆盖条带预览，橙色是当前直接 Hybrid A* 完整连接
-（包含全部前进、倒车和换档段），蓝色是当前交给 move_base 的全局参考路线，红色是 TEB
+地图上路线颜色固定为：青色是覆盖条带预览，深蓝色是从车辆实时位姿到首条清扫线入口的
+Navfn 只读预览，橙色是当前直接 Hybrid A* 完整连接（包含全部前进、倒车和换档段），
+浅蓝色是当前交给 move_base 的全局参考路线，红色是 TEB
 当前优化的局部轨迹，绿色是覆盖任务实际执行记录。Hybrid 阶段的速度权威同样是 TEB；
-安全 mux 只执行 fail-closed 检查，不计算路径跟踪速度。橙/蓝/红路线只在相应目标活动期间显示，终止或取消后 Qt 会清空
-RViz 缓存，避免旧路线残留。静态
+安全 mux 只执行 fail-closed 检查，不计算路径跟踪速度。深蓝色预览由
+`/move_base/CoverageGlobalPlanner/make_navfn_plan` 生成，不提交 action 目标；若批次在实际
+执行前被运动门拒绝，它会保留
+供操作员检查，开始新任务、地图变化或取消时清空。橙/浅蓝/红路线只在相应目标活动期间
+显示，终止或取消后 Qt 会清空 RViz 缓存，避免旧路线残留。静态
 模式的滚动局部代价地图同时加载二维静态层和实时 `/scan` 障碍层；TEB 最终可行性检查
 扩展到局部时域最多前 51 个姿态，并将静态障碍和未知区 footprint 判为不可行。预测
 足迹仅超出滚动窗口时不再误报碰撞，但当前姿态位于窗口外仍保持 fail-closed；静态模式
@@ -825,9 +845,10 @@ move_base。按钮置灰时先看右侧“全局地图、底盘执行门、障�
    `Publish Point`，可在全局地图上连续点选 `3–4096` 个顶点。
 3. 可使用“撤销一点”逐点修改，或随时“取消框定”。点击“确认区域并生成轨迹”后，
    首尾自动闭合；自交、重复边、面积过小和非有限坐标都会被拒绝。
-4. 检查青色覆盖条带、可覆盖面积、不可覆盖估算和预计总时间。界面不再把条带之间的
-   直线连接画成可执行路径；开始执行后，橙线显示当前直接 Hybrid A* 完整连接，蓝线显示
-   move_base 的当前全局参考，红线显示 TEB 实时局部轨迹。每个区域第一条线和跨区后的新
+4. 检查青色覆盖条带、可覆盖面积、不可覆盖估算和预计总时间。定位可用时，深蓝线显示
+   Navfn 从车辆实时位姿到首条清扫线入口的只读预览；界面不再把条带之间的直线连接画成
+   可执行路径。开始执行后，橙线显示当前直接 Hybrid A* 完整连接，浅蓝线显示 move_base
+   的当前全局参考，红线显示 TEB 实时局部轨迹。每个区域第一条线和跨区后的新
    区域首线使用一个 Navfn + TEB 普通导航 action；只有同一区域换行使用直接 Hybrid A*，
    按 cusp 拆为固定档位 action 后仍由 TEB 闭环跟踪。默认有效
    宽度为 `1.00 m`、重叠率 `15%`，所以默认车道中心距为 `0.85 m`。规划参数还包括前进
@@ -1133,6 +1154,7 @@ source /home/slam/robot_j6m_ws/scripts/setup_env.sh
 rostopic echo -n 1 /coverage/status
 rostopic echo -n 1 /coverage/active
 rostopic info /coverage/planned_path
+rostopic echo -n 1 /coverage/first_entry_path
 rostopic echo -n 1 /coverage/hybrid_transition_path
 rostopic info /coverage/executed_path
 ```

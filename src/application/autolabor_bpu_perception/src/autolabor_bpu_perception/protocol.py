@@ -94,7 +94,7 @@ class Client:
         if remote:
             self.child=subprocess.Popen(['ssh','-T','-o','BatchMode=yes','-o','ConnectTimeout=4',
                 'root@192.168.10.100','python3','-u',
-                '/map/robot_j6m_optimized_20260905/bpu_perception_20260906/tools/stdio_relay.py'],
+                '/map/robot_j6m_navigation_20260907/bpu_perception_20260906/tools/stdio_relay.py'],
                 stdin=subprocess.PIPE,stdout=subprocess.PIPE,bufsize=0)
             self.reader,self.writer=self.child.stdout,self.child.stdin
         else:

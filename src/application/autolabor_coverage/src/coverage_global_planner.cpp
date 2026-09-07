@@ -329,6 +329,8 @@ void CoverageGlobalPlanner::initialize(std::string name,
   precompute_service_ = private_nh_.advertiseService(
       "precompute_transitions", &CoverageGlobalPlanner::precomputeCallback,
       this);
+  navfn_preview_service_ = private_nh_.advertiseService(
+      "make_navfn_plan", &CoverageGlobalPlanner::navfnPreviewCallback, this);
   hybrid_action_server_.reset(new actionlib::SimpleActionServer<
       autolabor_coverage::PlanHybridTransitionsAction>(
           private_nh_, "plan_hybrid_transitions",
@@ -346,6 +348,47 @@ void CoverageGlobalPlanner::publishHybridPathSafety(bool safe)
   std_msgs::Bool message;
   message.data = safe;
   hybrid_path_safe_publisher_.publish(message);
+}
+
+bool CoverageGlobalPlanner::makeNavfnPlan(
+    const geometry_msgs::PoseStamped& start,
+    const geometry_msgs::PoseStamped& goal,
+    std::vector<geometry_msgs::PoseStamped>& plan)
+{
+  std::lock_guard<std::mutex> lock(navfn_mutex_);
+  return fallback_.makePlan(start, goal, plan);
+}
+
+bool CoverageGlobalPlanner::makeNavfnPlanWithTolerance(
+    const geometry_msgs::PoseStamped& start,
+    const geometry_msgs::PoseStamped& goal,
+    double tolerance,
+    std::vector<geometry_msgs::PoseStamped>& plan)
+{
+  std::lock_guard<std::mutex> lock(navfn_mutex_);
+  return fallback_.makePlan(start, goal, tolerance, plan);
+}
+
+bool CoverageGlobalPlanner::navfnPreviewCallback(
+    nav_msgs::GetPlan::Request& request,
+    nav_msgs::GetPlan::Response& response)
+{
+  response.plan.header.frame_id = request.start.header.frame_id;
+  response.plan.header.stamp = ros::Time::now();
+  std::vector<geometry_msgs::PoseStamped> plan;
+  if (!initialized_ || !makeNavfnPlanWithTolerance(
+          request.start, request.goal, request.tolerance, plan))
+  {
+    ROS_WARN("coverage display-only Navfn preview found no path");
+    return true;
+  }
+  response.plan.poses = std::move(plan);
+  for (geometry_msgs::PoseStamped& pose : response.plan.poses)
+  {
+    pose.header.frame_id = response.plan.header.frame_id;
+    pose.header.stamp = response.plan.header.stamp;
+  }
+  return true;
 }
 
 void CoverageGlobalPlanner::pathCallback(
@@ -744,7 +787,7 @@ bool CoverageGlobalPlanner::computeTransitions(
     {
       std::vector<geometry_msgs::PoseStamped> topology;
       bool reaches_final_goal = false;
-      if (!fallback_.makePlan(transition.start, transition.goal, topology) ||
+      if (!makeNavfnPlan(transition.start, transition.goal, topology) ||
           !selectRollingGoal(
               topology, transition.rolling_horizon_m, planning_goal,
               reaches_final_goal, reason))
@@ -920,7 +963,7 @@ bool CoverageGlobalPlanner::makePlan(
       return false;
     }
     ROS_DEBUG_THROTTLE(2.0, "ordinary navigation is using Navfn");
-    return fallback_.makePlan(start, goal, plan);
+    return makeNavfnPlan(start, goal, plan);
   }
   if (age > path_timeout_)
   {
@@ -936,7 +979,7 @@ bool CoverageGlobalPlanner::makePlan(
     case autolabor_coverage::EnforcedPath::MODE_COVERAGE_NAVFN:
       ROS_DEBUG_THROTTLE(
           2.0, "coverage entry/inter-region navigation is using Navfn + TEB");
-      return fallback_.makePlan(start, goal, plan);
+      return makeNavfnPlan(start, goal, plan);
     case autolabor_coverage::EnforcedPath::MODE_HYBRID_TRANSIT:
       return makeHybridPlan(start, goal, path, transit_profile,
                             hybrid_replan_period, plan);
@@ -1072,7 +1115,7 @@ bool CoverageGlobalPlanner::makeHybridPlan(
         goal.pose.position.y - start.pose.position.y);
     if (direct_distance > hybrid_online_kinematic_horizon_)
     {
-      if (!fallback_.makePlan(start, goal, topology_plan) ||
+      if (!makeNavfnPlan(start, goal, topology_plan) ||
           topology_plan.size() < 2)
       {
         reason = "online topology guide has no known-free path";

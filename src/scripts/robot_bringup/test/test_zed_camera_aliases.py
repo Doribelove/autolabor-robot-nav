@@ -38,6 +38,25 @@ class ZedCameraAliases(unittest.TestCase):
         self.assertEqual(defaults['publish_map_tf'], 'false')
         self.assertEqual(defaults['depth_mode'], 'QUALITY')
 
+    def test_rgbd_disables_explicit_and_depth_triggered_tracking(self):
+        defaults = {node.attrib['name']: node.attrib.get('default')
+                    for node in self.root.findall('arg')}
+        self.assertEqual(defaults['pos_tracking_enabled'], 'false')
+        self.assertEqual(defaults['depth_stabilization'], '0')
+        # These must be final overrides AFTER either included vendor launch
+        # loads common.yaml (tracking=true, depth_stabilization=1).
+        children = list(self.root)
+        last_group = max(i for i, node in enumerate(children) if node.tag == 'group')
+        for suffix, argument, value_type in (
+                ('pos_tracking/pos_tracking_enabled', 'pos_tracking_enabled', 'bool'),
+                ('depth/depth_stabilization', 'depth_stabilization', 'int')):
+            parameter = self.root.find(
+                "param[@name='/$(arg camera_name)/$(arg node_name)/" + suffix + "']")
+            self.assertIsNotNone(parameter)
+            self.assertEqual(parameter.attrib['value'], '$(arg ' + argument + ')')
+            self.assertEqual(parameter.attrib['type'], value_type)
+            self.assertGreater(children.index(parameter), last_group)
+
 
 if __name__ == '__main__':
     unittest.main()

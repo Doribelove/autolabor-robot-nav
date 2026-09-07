@@ -15,6 +15,7 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
+#include <ros/callback_queue.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/LaserScan.h>
@@ -389,6 +390,7 @@ private Q_SLOTS:
                                        QProcess::ExitStatus exit_status);
   void handleVisionModelSwitchError(QProcess::ProcessError error);
 private:
+  friend class RvizCallbackIsolationTest;
   struct StatusCard
   {
     QFrame* frame = nullptr;
@@ -423,6 +425,8 @@ private:
   };
 
   void buildUi();
+  void destroyEmbeddedRviz();
+  bool reconnectEmbeddedRviz();
   QWidget* buildOverviewPage();
   QWidget* buildFastLioPage();
   QWidget* buildTestPage();
@@ -534,6 +538,9 @@ private:
   TelemetrySnapshot telemetry_;
   std::deque<OdomHealthSample> odom_health_history_;
 
+  // Must outlive the node and spinner. RViz owns the global update queue and
+  // services it in the Qt thread; never spin that queue in our worker threads.
+  ros::CallbackQueue telemetry_queue_;
   std::unique_ptr<ros::NodeHandle> node_;
   std::unique_ptr<ros::AsyncSpinner> spinner_;
   ros::Subscriber odom_subscriber_;
@@ -571,6 +578,8 @@ private:
   bool previous_probe_online_ = false;
   bool ros_interfaces_ready_ = false;
   bool rviz_initialized_ = false;
+  bool rviz_initializing_ = false;
+  bool shutting_down_ = false;
   bool enable_rviz_ = true;
   bool static_map_mode_ = false;
   std::string navigation_mode_label_ = "FAST_LIO";

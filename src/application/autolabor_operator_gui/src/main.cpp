@@ -22,9 +22,12 @@ int main(int argc, char** argv)
   application_font.setPointSizeF(13.0);
   application.setFont(application_font);
 
-  autolabor_operator_gui::MainWindow window;
-  window.showMaximized();
-  const int result = application.exec();
+  int result = 0;
+  {
+    autolabor_operator_gui::MainWindow window;
+    window.showMaximized();
+    result = application.exec();
+  }  // Join application callbacks and destroy RViz before shutting ROS down.
 
   ros::shutdown();
   return result;

@@ -7,10 +7,11 @@
 - 来源：`robot_j6m_ws_optimized_20260905` 在开工时的源码状态，包含当时已有的 tracked 和
   untracked 修改；原工作区未清理、重置或修改。
 - J6M 独立运行根：`/map/robot_j6m_navigation_20260907`
-- J6M 原生 ARM64 release：`20260907_141331`
-- `current`：`/opt/autolabor/dual_host/releases/20260907_141331/install`
+- J6M 原生 ARM64 release：`20260907_212100`
+- 候选 `current`：`/opt/autolabor/dual_host/releases/20260907_212100/install`
 
-部署没有启动导航、恢复旧目标或执行车辆运动。新工作区没有
+最初的 `20260907_141331` 部署没有启动导航、恢复旧目标或执行车辆运动；17:10 追加修复后
+已按下文记录启动完整 Qt。新工作区没有
 `runtime/motion_authorized.ok`，本机和 J6M 配置中的 `MOTION_ENABLED`、
 `FOD_MOTION_ENABLED` 均为 `false`。
 
@@ -59,11 +60,46 @@ action 在 move_base 插件内的独立执行线程运行，因此 move_base 的
 - 静态健康检查：通过；FOD 模型、CUDA、ASR 三套 checkpoint、ROS 包和 launch 均可解析。
 - J6M：在板端 `catkin_make install -j2 -l2` 原生构建，action MD5、共享库依赖、launch 展开、
   6x6/10x10 二进制标记和安装配置全部通过。
-- 部署后：`current=20260907_141331`，`/map` 尚余约 4.0 GiB；11311 无监听，move_base、
-  coverage_manager、FAST-LIO 均未运行。
+- 17:48 冷重启后：`current=20260907_170157`，候选 supervisor active/MainPID=1667551，
+  Qt 地图 `READY`，move_base、coverage_manager、FAST-LIO、ZED、双 BPU 感知链均在线，
+  195 项检查及严格 runtime 检查通过。
 
 没有做实车运动、真实转场耗时或复杂障碍场景的性能验收。首次动态验证需由现场重新完成本候选版
 的运动授权、真实初始位姿和安全条件，再通过 README 顶部的统一启动入口进行。
+
+## 17:10 完整 Qt 启动与 BPU 独立路径修复
+
+首次启动发现本候选复制了 BPU 调用代码，但 AGX companion、共享协议和 J6M 私有工具仍硬编码
+旧候选 `/map/robot_j6m_optimized_20260905`。新候选只挂载自己的 chroot，导致 CenterPoint ROS
+客户端退出，并由 UI 生命周期的 `wait -n` 正常收掉 ZED、检测器、AI 和 Qt。将 BPU 私有工具改为
+相对当前运行根解析，并把所需 vendor runtime、FCOS HBM、原生库和 Python 工具复制到
+`/map/robot_j6m_navigation_20260907`；第二次独立测试又发现资产清单遗漏直接依赖
+`live_protocol.py`，补齐后双模型服务 `ready=true`，模型哈希与既有验收值一致。
+
+旧候选遗留 BPU worker 只通过其 `service_manager.py` 中的 PID/启动身份记录精确停止；没有宽泛
+杀进程或修改旧工作区源码。修复后完成 BPU 包 21 项测试、AGX 全量 Release 构建、195 项静态
+检查、J6M 原生部署和板端静态健康检查。统一静态地图启动返回 0，服务 MainPID=1443773；Qt
+报告 `READY;width=1311;height=670;resolution=0.100000`。完整链路实测 FCOS BPU topic 约
+7--10 Hz、CenterPoint 约 5 Hz；该短窗口只证明链路存活，不是感知精度或持续性能验收。
+
+本次冷启动当前为 `WAITING_INITIAL_POSE`，尚未由操作员提交真实初值。两个运动门均为 `false`、
+候选没有运动授权标记，10 条最终 `/cmd_vel` 样本全零；助手没有发布初值、目标或非零速度。
+当前未枚举实体麦克风，Qt、AI/MCP 仍在线，但 ASR 采集不可用。CenterPoint 保持候选观察，学习型
+障碍物控制入口仍关闭。
+
+## 17:48 Qt 伴随链退出与完整冷重启
+
+用户准备继续实验时发现 Qt 已关闭。最新 `vision.log` 显示 ZED 先报告位置跟踪发散并重新初始化
+里程计，随后必需节点 `/zed2/zed_node` 以退出码 `-11`（SIGSEGV）死亡。该必需节点触发其
+roslaunch 关闭视觉链；UI 启动器采用伴随生命周期，因此 Qt 同时退出。日志中未出现 Qt/Ogre
+自身断言，不能把本次现象写成 Qt 直接崩溃。
+
+按候选统一入口带 `map_20260829_221335_gimp_cleaned` 执行完整冷重启，未单独重启 Qt。命令
+退出码 0，服务 active/MainPID=1667551；195 项检查及严格 runtime 检查通过，地图状态为
+`READY;width=1311;height=670;resolution=0.100000`。ZED、正式检测器、Qt、AI、FAST-LIO、
+move_base、覆盖管理和双 BPU 感知节点均在线。新会话定位为 `WAITING_INITIAL_POSE`，watchdog
+报告 `motion_enabled=false`、`active=false`，10 条最终 `/cmd_vel` 样本全零。助手未发送初值、
+目标或非零速度。本轮只做故障诊断与重启，没有构建、部署或改变 J6M `current`。
 
 ## 本地回退版本
 

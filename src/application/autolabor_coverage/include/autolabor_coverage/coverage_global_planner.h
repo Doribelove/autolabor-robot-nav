@@ -11,6 +11,7 @@
 #include <costmap_2d/costmap_2d_ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_core/base_global_planner.h>
+#include <nav_msgs/GetPlan.h>
 #include <navfn/navfn_ros.h>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
@@ -44,6 +45,17 @@ private:
   bool precomputeCallback(
       autolabor_coverage::PrecomputeTransitions::Request& request,
       autolabor_coverage::PrecomputeTransitions::Response& response);
+  bool navfnPreviewCallback(nav_msgs::GetPlan::Request& request,
+                            nav_msgs::GetPlan::Response& response);
+  bool makeNavfnPlan(
+      const geometry_msgs::PoseStamped& start,
+      const geometry_msgs::PoseStamped& goal,
+      std::vector<geometry_msgs::PoseStamped>& plan);
+  bool makeNavfnPlanWithTolerance(
+      const geometry_msgs::PoseStamped& start,
+      const geometry_msgs::PoseStamped& goal,
+      double tolerance,
+      std::vector<geometry_msgs::PoseStamped>& plan);
   void planHybridExecute(
       const autolabor_coverage::PlanHybridTransitionsGoalConstPtr& goal);
   bool computeTransitions(
@@ -103,6 +115,7 @@ private:
   ros::Subscriber path_subscriber_;
   ros::ServiceServer set_path_service_;
   ros::ServiceServer precompute_service_;
+  ros::ServiceServer navfn_preview_service_;
   std::unique_ptr<actionlib::SimpleActionServer<
       autolabor_coverage::PlanHybridTransitionsAction>> hybrid_action_server_;
   ros::Publisher hybrid_path_safe_publisher_;
@@ -123,6 +136,7 @@ private:
   ros::WallTime hybrid_last_search_;
   bool hybrid_last_search_failed_ = false;
   std::mutex mutex_;
+  std::mutex navfn_mutex_;
 };
 
 }  // namespace autolabor_coverage

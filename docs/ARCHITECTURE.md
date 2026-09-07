@@ -136,6 +136,7 @@ J6M /coverage_manager
   冻结批次 → 逐区域即时规划 → 静态图裁剪 + 连通域 + 弓字扫描线
   任务层：几何选角 + 无路径 Dubins 秒级代理联合排序/定向
   start: PREPARING（无锁重规划）→ 最终安全复核；不预计算任务级可执行轨迹
+        ├─ 首线只读预览 ── CoverageGlobalPlanner/make_navfn_plan → /coverage/first_entry_path
         ├─ 每个区域首线入场 ── Navfn 全局路径 → TEB（一个普通导航 action）
         ├─ 同一区域线间转场 ── 实时位姿 → 一次直接 Hybrid A*
         │                       → 按 cusp 拆固定档位 action → TEB
@@ -173,6 +174,12 @@ AI 普通导航不走匿名的 simple-goal 路径。NVIDIA 后端先生成唯一
 `0–10 s` 重试等待参数，默认 `0.5 s`，其中 `0 s` 表示立即重试。区域不是 geofence，
 转场可在完整已知自由地图中绕行；覆盖
 管理器只在静态地图模式启动。
+
+首线几何和实时位姿确定后，覆盖管理器先通过
+`/move_base/CoverageGlobalPlanner/make_navfn_plan` 查询普通 Navfn 拓扑，
+校验返回路径的 `map` 坐标系及首尾位置，再锁存到 `/coverage/first_entry_path`。该查询只用于
+显示，不占有 action 目标，也不绕过运动门。批次在实际执行前被安全预检拒绝时保留这条路径，
+便于区分“Navfn 无路”和“路线存在但执行未授权”；新任务、地图变化和显式取消会清空它。
 
 清扫中断后的进度保存在当前分段的执行上下文中，并绑定原计划与导航所有权 token；
 新任务/区域会创建新的上下文，不支持节点重启后自动恢复。可信异常终态或超时取消后，

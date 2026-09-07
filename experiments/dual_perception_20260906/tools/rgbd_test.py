@@ -94,7 +94,7 @@ def main():
                     rospy.Subscriber('/cloud_registered_body',PointCloud2,lambda m:cloud_stamps.append(m.header.stamp.to_sec()),queue_size=1),
                     rospy.Subscriber('/perception/centerpoint/obstacles_candidate',ObstacleArrayMsg,lambda m:obstacle_counts.append(len(m.obstacles)),queue_size=1)])
                 remote=subprocess.Popen(['ssh','-T','-o','BatchMode=yes','root@192.168.10.100','python3','-u',
-                    '/map/robot_j6m_optimized_20260905/bpu_perception_20260906/tools/run_ros_client.py','replay' if args.replay else 'sensors'],
+                    '/map/robot_j6m_navigation_20260907/bpu_perception_20260906/tools/run_ros_client.py','replay' if args.replay else 'sensors'],
                     stdin=subprocess.PIPE,stdout=log,stderr=subprocess.STDOUT)
                 children.append(remote)
             if args.replay:

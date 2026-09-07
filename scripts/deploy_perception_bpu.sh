@@ -3,14 +3,15 @@
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/load_config.sh"
-[[ "${ROBOT_OPTIMIZED_SANDBOX:-}" == 1 && "$DUAL_HOST_WS" == /home/slam/robot_j6m_ws_optimized_20260905 ]] || exit 2
+[[ "${ROBOT_OPTIMIZED_SANDBOX:-}" == 1 && "$DUAL_HOST_WS" == /home/slam/robot_j6m_ws_navigation_20260907 ]] || exit 2
 (( $# == 0 )) || { echo 'Usage: optimized.sh run scripts/deploy_perception_bpu.sh'; exit 2; }
 cd "$DUAL_HOST_WS"
 exec 9>runtime/deploy_perception_bpu.lock
 flock -n 9 || { echo 'Another private BPU deployment is active.' >&2; exit 3; }
 python3 - <<'PY'
 import socket,subprocess
-for unit in ('autolabor-dual-host.service','autolabor-optimized-20260905.service'):
+for unit in ('autolabor-dual-host.service','autolabor-optimized-20260905.service',
+             'autolabor-navigation-20260907.service'):
     state=subprocess.check_output(['systemctl','--user','show',unit,'-p','ActiveState','--value'],text=True).strip()
     if state not in ('inactive','failed'):raise RuntimeError('Stop the owned navigation stack before BPU deployment')
 for host,port in [('127.0.0.1',11311),('127.0.0.1',11571),('192.168.10.100',11311)]:
@@ -35,10 +36,36 @@ if not target.exists():
 if hashlib.sha256(target.read_bytes()).hexdigest()!=manifest['sha256']:raise RuntimeError('CenterPoint model SHA mismatch')
 print('Pinned CenterPoint HBM verified:',manifest['revision'])
 PY
-remote=/map/robot_j6m_optimized_20260905/bpu_perception_20260906
+remote_base=/map/robot_j6m_navigation_20260907
+remote="$remote_base/bpu_perception_20260906"
+reference="$remote_base/bpu_lab_20260905"
+legacy_reference=/map/robot_j6m_optimized_20260905/bpu_lab_20260905
 target=root@192.168.10.100
 ssh -o BatchMode=yes -o ConnectTimeout=4 "$target" "set -eu
-  test -d /map/robot_j6m_optimized_20260905/bpu_lab_20260905/vendor/runtime_4_9_2/lib
+  if ! test -d '$reference/vendor/runtime_4_9_2/lib' ||
+     ! test -d '$reference/vendor/python311' ||
+     ! test -d '$reference/vendor/ucp_include' ||
+     ! test -f '$reference/models/fcos_nash_m/model.hbm' ||
+     ! test -f '$reference/bin/libfcos_resident.so' ||
+     ! test -f '$reference/tools/resident_fcos.py' ||
+     ! test -f '$reference/tools/decode_fcos_demo.py' ||
+     ! test -f '$reference/tools/live_protocol.py'; then
+    test -d '$legacy_reference/vendor/runtime_4_9_2/lib'
+    test -d '$legacy_reference/vendor/python311'
+    test -d '$legacy_reference/vendor/ucp_include'
+    test -f '$legacy_reference/models/fcos_nash_m/model.hbm'
+    test -f '$legacy_reference/bin/libfcos_resident.so'
+    mkdir -p '$reference/vendor' '$reference/models' '$reference/bin' '$reference/tools'
+    cp -a '$legacy_reference/vendor/runtime_4_9_2' '$reference/vendor/'
+    cp -a '$legacy_reference/vendor/python311' '$reference/vendor/'
+    cp -a '$legacy_reference/vendor/ucp_include' '$reference/vendor/'
+    cp -a '$legacy_reference/models/fcos_nash_m' '$reference/models/'
+    cp -a '$legacy_reference/bin/libfcos_resident.so' '$reference/bin/'
+    cp -a '$legacy_reference/tools/resident_fcos.py' '$reference/tools/'
+    cp -a '$legacy_reference/tools/decode_fcos_demo.py' '$reference/tools/'
+    cp -a '$legacy_reference/tools/live_protocol.py' '$reference/tools/'
+  fi
+  touch '$reference/preview_worker.lock'
   if test -f '$remote/tools/service_manager.py'; then python3 '$remote/tools/service_manager.py' stop; fi
   mkdir -p '$remote/tools' '$remote/python/autolabor_bpu_perception' '$remote/models/centerpoint_nash_m'"
 rsync -a experiments/dual_perception_20260906/tools/ "$target:$remote/tools/"

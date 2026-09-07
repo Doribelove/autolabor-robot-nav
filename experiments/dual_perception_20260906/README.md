@@ -2,7 +2,7 @@
 
 总架构、实测、限制和回退说明见 [DUAL_PERCEPTION_20260906.md](../../DUAL_PERCEPTION_20260906.md)。
 
-本目录的原生服务只允许部署到 J6M `/map/robot_j6m_optimized_20260905/bpu_perception_20260906`。
+本目录的原生服务只允许部署到 J6M `/map/robot_j6m_navigation_20260907/bpu_perception_20260906`。
 先按 `scripts/deploy_perception_bpu.sh` 核验固定模型和依赖，再编译 J6M 原生库。
 这里的参考模型不能作为自动捡拾或已验收的导航障碍物输入。
 
