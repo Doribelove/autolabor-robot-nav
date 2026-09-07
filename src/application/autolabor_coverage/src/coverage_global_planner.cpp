@@ -4,12 +4,18 @@
 #include <costmap_2d/cost_values.h>
 #include <costmap_2d/footprint.h>
 #include <pluginlib/class_list_macros.h>
+#include <boost/bind.hpp>
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <future>
 #include <limits>
+#include <memory>
 #include <stdexcept>
+#include <thread>
 #include <utility>
 
 namespace autolabor_coverage
@@ -24,6 +30,77 @@ costmap_2d::Costmap2D snapshotCostmap(
   std::lock_guard<costmap_2d::Costmap2D::mutex_t> lock(*live->getMutex());
   return costmap_2d::Costmap2D(*live);
 }
+
+bool cropCostmapWindow(const costmap_2d::Costmap2D& source,
+                       const geometry_msgs::PoseStamped& start,
+                       const geometry_msgs::PoseStamped& goal,
+                       const std::vector<geometry_msgs::Point>& footprint,
+                       double window_size,
+                       costmap_2d::Costmap2D& output,
+                       std::string& reason)
+{
+  const double resolution = source.getResolution();
+  if (!std::isfinite(window_size) || window_size <= 0.0 ||
+      !std::isfinite(resolution) || resolution <= 0.0)
+  {
+    reason = "Hybrid A* search window is invalid";
+    return false;
+  }
+  double footprint_radius = 0.0;
+  for (const geometry_msgs::Point& point : footprint)
+    footprint_radius = std::max(footprint_radius, std::hypot(point.x, point.y));
+  const double padding = footprint_radius + resolution;
+  const double minimum_x = std::min(start.pose.position.x, goal.pose.position.x);
+  const double maximum_x = std::max(start.pose.position.x, goal.pose.position.x);
+  const double minimum_y = std::min(start.pose.position.y, goal.pose.position.y);
+  const double maximum_y = std::max(start.pose.position.y, goal.pose.position.y);
+  if (maximum_x - minimum_x + 2.0 * padding > window_size + 1.0e-9 ||
+      maximum_y - minimum_y + 2.0 * padding > window_size + 1.0e-9)
+  {
+    reason = "Hybrid A* endpoints do not fit inside the bounded search window";
+    return false;
+  }
+
+  const unsigned int cells = std::max(
+      1u, static_cast<unsigned int>(std::ceil(window_size / resolution)));
+  const double actual_size = static_cast<double>(cells) * resolution;
+  const double desired_origin_x = 0.5 * (minimum_x + maximum_x) -
+                                  0.5 * actual_size;
+  const double desired_origin_y = 0.5 * (minimum_y + maximum_y) -
+                                  0.5 * actual_size;
+  const double origin_x = source.getOriginX() + resolution * std::floor(
+      (desired_origin_x - source.getOriginX()) / resolution);
+  const double origin_y = source.getOriginY() + resolution * std::floor(
+      (desired_origin_y - source.getOriginY()) / resolution);
+  output.resizeMap(cells, cells, resolution, origin_x, origin_y);
+  output.resetMap(0, 0, cells, cells);
+  for (unsigned int y = 0; y < cells; ++y)
+  {
+    for (unsigned int x = 0; x < cells; ++x)
+    {
+      double world_x = 0.0;
+      double world_y = 0.0;
+      output.mapToWorld(x, y, world_x, world_y);
+      unsigned int source_x = 0;
+      unsigned int source_y = 0;
+      const unsigned char cost = source.worldToMap(
+          world_x, world_y, source_x, source_y)
+              ? source.getCost(source_x, source_y)
+              : costmap_2d::NO_INFORMATION;
+      output.setCost(x, y, cost);
+    }
+  }
+  reason.clear();
+  return true;
+}
+
+struct HybridSearchAttempt
+{
+  bool success = false;
+  std::vector<geometry_msgs::PoseStamped> path;
+  HybridAStarStatistics statistics;
+  std::string reason;
+};
 
 bool normalizedYaw(const geometry_msgs::Quaternion& quaternion, double& yaw)
 {
@@ -204,6 +281,20 @@ void CoverageGlobalPlanner::initialize(std::string name,
                     0.50);
   private_nh_.param("hybrid_analytic_expansion_interval",
                     hybrid_config_.analytic_expansion_interval, 200);
+  private_nh_.param("hybrid_primary_window_size",
+                    hybrid_primary_window_size_, 6.0);
+  private_nh_.param("hybrid_fallback_window_size",
+                    hybrid_fallback_window_size_, 10.0);
+  private_nh_.param("hybrid_primary_window_timeout",
+                    hybrid_primary_window_timeout_, 0.75);
+  private_nh_.param("hybrid_fallback_window_timeout",
+                    hybrid_fallback_window_timeout_, 1.25);
+  private_nh_.param("hybrid_parallel_searches",
+                    hybrid_parallel_searches_, 2);
+  private_nh_.param("hybrid_parallel_heuristic_weight",
+                    hybrid_parallel_heuristic_weight_, 1.35);
+  private_nh_.param("hybrid_parallel_improvement_timeout",
+                    hybrid_parallel_improvement_timeout_, 0.10);
   const auto positive = [](double value) {
     return std::isfinite(value) && value > 0.0;
   };
@@ -211,7 +302,17 @@ void CoverageGlobalPlanner::initialize(std::string name,
       !positive(goal_yaw_match_tolerance_) || !positive(path_timeout_) ||
       !positive(hybrid_cache_max_deviation_) ||
       !positive(hybrid_cache_collision_check_horizon_) ||
-      !positive(hybrid_online_kinematic_horizon_))
+      !positive(hybrid_online_kinematic_horizon_) ||
+      !positive(hybrid_primary_window_size_) ||
+      !positive(hybrid_fallback_window_size_) ||
+      hybrid_fallback_window_size_ <= hybrid_primary_window_size_ ||
+      !positive(hybrid_primary_window_timeout_) ||
+      !positive(hybrid_fallback_window_timeout_) ||
+      hybrid_parallel_searches_ < 1 || hybrid_parallel_searches_ > 2 ||
+      !std::isfinite(hybrid_parallel_heuristic_weight_) ||
+      hybrid_parallel_heuristic_weight_ < 1.0 ||
+      hybrid_parallel_heuristic_weight_ > 3.0 ||
+      !positive(hybrid_parallel_improvement_timeout_))
   {
     throw std::invalid_argument(
         "CoverageGlobalPlanner cache and hand-off parameters must be positive");
@@ -228,6 +329,12 @@ void CoverageGlobalPlanner::initialize(std::string name,
   precompute_service_ = private_nh_.advertiseService(
       "precompute_transitions", &CoverageGlobalPlanner::precomputeCallback,
       this);
+  hybrid_action_server_.reset(new actionlib::SimpleActionServer<
+      autolabor_coverage::PlanHybridTransitionsAction>(
+          private_nh_, "plan_hybrid_transitions",
+          boost::bind(&CoverageGlobalPlanner::planHybridExecute, this, _1),
+          false));
+  hybrid_action_server_->start();
   hybrid_path_safe_publisher_ = private_nh_.advertise<std_msgs::Bool>(
       "hybrid_path_safe", 1, true);
   publishHybridPathSafety(false);
@@ -328,16 +435,260 @@ bool CoverageGlobalPlanner::precomputeCallback(
     autolabor_coverage::PrecomputeTransitions::Request& request,
     autolabor_coverage::PrecomputeTransitions::Response& response)
 {
-  const HybridAStarProfile base_profile = hybridProfile(request.transit_profile);
-  if (request.plan_id.empty() || request.transitions.empty() ||
-      !validHybridProfile(base_profile) ||
-      !validReplanPeriod(request.transit_profile.replan_period_sec) ||
-      !std::isfinite(request.total_timeout_sec) ||
-      request.total_timeout_sec <= 0.0)
+  response.success = computeTransitions(
+      request.plan_id, request.transitions, request.transit_profile,
+      request.total_timeout_sec, response.results, response.message,
+      std::function<bool()>(),
+      std::function<void(
+          const autolabor_coverage::HybridTransitionRequest&,
+          std::uint8_t, const std::string&)>());
+  return true;
+}
+
+void CoverageGlobalPlanner::planHybridExecute(
+    const autolabor_coverage::PlanHybridTransitionsGoalConstPtr& goal)
+{
+  autolabor_coverage::PlanHybridTransitionsResult action_result;
+  const ros::WallTime started = ros::WallTime::now();
+  const auto canceled = [this]() {
+    return !ros::ok() || hybrid_action_server_->isPreemptRequested();
+  };
+  const auto feedback = [this, started](
+      const autolabor_coverage::HybridTransitionRequest& transition,
+      std::uint8_t stage, const std::string& stage_name) {
+    autolabor_coverage::PlanHybridTransitionsFeedback message;
+    message.candidate_index = transition.candidate_index;
+    message.transition_index = transition.transition_index;
+    message.search_stage = stage;
+    message.stage_name = stage_name;
+    message.elapsed_sec = (ros::WallTime::now() - started).toSec();
+    hybrid_action_server_->publishFeedback(message);
+  };
+  action_result.success = computeTransitions(
+      goal->plan_id, goal->transitions, goal->transit_profile,
+      goal->total_timeout_sec, action_result.results, action_result.message,
+      canceled, feedback);
+  if (canceled())
   {
-    response.success = false;
-    response.message = "Hybrid transition precompute request is invalid";
-    return true;
+    action_result.success = false;
+    action_result.message = "Hybrid transition planning was canceled";
+    hybrid_action_server_->setPreempted(action_result, action_result.message);
+  }
+  else if (!action_result.success)
+  {
+    hybrid_action_server_->setAborted(action_result, action_result.message);
+  }
+  else
+  {
+    hybrid_action_server_->setSucceeded(action_result, action_result.message);
+  }
+}
+
+bool CoverageGlobalPlanner::makeStagedHybridPlan(
+    const costmap_2d::Costmap2D& snapshot,
+    const std::vector<geometry_msgs::Point>& footprint,
+    const geometry_msgs::PoseStamped& start,
+    const geometry_msgs::PoseStamped& goal,
+    const HybridAStarConfig& config,
+    const HybridAStarProfile& profile,
+    const ros::WallTime& batch_deadline,
+    const std::function<bool()>& cancel_requested,
+    const std::function<void(std::uint8_t, const std::string&)>& feedback,
+    std::vector<geometry_msgs::PoseStamped>& plan,
+    HybridAStarStatistics& statistics,
+    std::string& reason) const
+{
+  struct Stage
+  {
+    double size;
+    double timeout;
+    const char* name;
+    bool full;
+  };
+  const Stage stages[] = {
+      {hybrid_primary_window_size_, hybrid_primary_window_timeout_,
+       "6x6 local search", false},
+      {hybrid_fallback_window_size_, hybrid_fallback_window_timeout_,
+       "10x10 fallback search", false},
+      {0.0, config.planning_timeout, "full-map fallback search", true},
+  };
+  std::string last_reason;
+  for (std::uint8_t stage_index = 0; stage_index < 3; ++stage_index)
+  {
+    if (cancel_requested && cancel_requested())
+    {
+      reason = "Hybrid A* planning canceled";
+      return false;
+    }
+    const double batch_remaining =
+        (batch_deadline - ros::WallTime::now()).toSec();
+    if (batch_remaining <= 0.0)
+    {
+      reason = "Hybrid A* staged planning timeout: batch deadline reached";
+      return false;
+    }
+    const Stage& stage = stages[stage_index];
+    if (feedback)
+      feedback(stage_index + 1, stage.name);
+
+    costmap_2d::Costmap2D local_map;
+    costmap_2d::Costmap2D* search_map = nullptr;
+    if (stage.full)
+    {
+      search_map = const_cast<costmap_2d::Costmap2D*>(&snapshot);
+    }
+    else
+    {
+      std::string crop_reason;
+      if (!cropCostmapWindow(snapshot, start, goal, footprint, stage.size,
+                             local_map, crop_reason))
+      {
+        last_reason = std::string(stage.name) + ": " + crop_reason;
+        continue;
+      }
+      search_map = &local_map;
+    }
+
+    HybridAStarConfig stage_config = config;
+    stage_config.planning_timeout = std::max(
+        0.05, std::min(stage.timeout, batch_remaining));
+    const int lane_count = std::max(1, hybrid_parallel_searches_);
+    std::atomic<bool> stop_lanes(false);
+    std::vector<std::future<HybridSearchAttempt>> futures;
+    futures.reserve(static_cast<std::size_t>(lane_count));
+    for (int lane = 0; lane < lane_count; ++lane)
+    {
+      HybridAStarConfig lane_config = stage_config;
+      if (lane > 0)
+      {
+        lane_config.heuristic_weight = std::max(
+            lane_config.heuristic_weight,
+            hybrid_parallel_heuristic_weight_);
+      }
+      futures.push_back(std::async(
+          std::launch::async,
+          [this, search_map, &footprint, &start, &goal, lane_config,
+           &profile, &stop_lanes, &cancel_requested]() {
+            HybridSearchAttempt attempt;
+            const auto lane_canceled = [&]() {
+              return stop_lanes.load(std::memory_order_relaxed) ||
+                  (cancel_requested && cancel_requested());
+            };
+            attempt.success = hybrid_planner_.makePlan(
+                search_map, footprint, start, goal, lane_config, profile,
+                attempt.path, attempt.statistics, attempt.reason,
+                lane_canceled);
+            return attempt;
+          }));
+    }
+
+    std::vector<HybridSearchAttempt> attempts(
+        static_cast<std::size_t>(lane_count));
+    std::vector<bool> completed(static_cast<std::size_t>(lane_count), false);
+    int remaining_lanes = lane_count;
+    bool found = false;
+    ros::WallTime first_success;
+    while (remaining_lanes > 0)
+    {
+      for (int lane = 0; lane < lane_count; ++lane)
+      {
+        if (completed[static_cast<std::size_t>(lane)] ||
+            futures[static_cast<std::size_t>(lane)].wait_for(
+                std::chrono::milliseconds(0)) != std::future_status::ready)
+          continue;
+        attempts[static_cast<std::size_t>(lane)] =
+            futures[static_cast<std::size_t>(lane)].get();
+        completed[static_cast<std::size_t>(lane)] = true;
+        --remaining_lanes;
+        if (attempts[static_cast<std::size_t>(lane)].success && !found)
+        {
+          found = true;
+          first_success = ros::WallTime::now();
+        }
+      }
+      if (remaining_lanes == 0)
+        break;
+      if ((cancel_requested && cancel_requested()) ||
+          ros::WallTime::now() >= batch_deadline ||
+          (found &&
+           (ros::WallTime::now() - first_success).toSec() >=
+               hybrid_parallel_improvement_timeout_))
+        stop_lanes.store(true, std::memory_order_relaxed);
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+    stop_lanes.store(true, std::memory_order_relaxed);
+    for (int lane = 0; lane < lane_count; ++lane)
+    {
+      if (!completed[static_cast<std::size_t>(lane)])
+        attempts[static_cast<std::size_t>(lane)] =
+            futures[static_cast<std::size_t>(lane)].get();
+    }
+    if (cancel_requested && cancel_requested())
+    {
+      reason = "Hybrid A* planning canceled";
+      return false;
+    }
+
+    std::size_t total_expansions = 0;
+    std::string stage_reason;
+    const HybridSearchAttempt* selected = nullptr;
+    for (const HybridSearchAttempt& attempt : attempts)
+    {
+      total_expansions += attempt.statistics.expansions;
+      if (attempt.success &&
+          (!selected || attempt.statistics.direction_changes <
+                            selected->statistics.direction_changes ||
+           (attempt.statistics.direction_changes ==
+                selected->statistics.direction_changes &&
+            attempt.statistics.estimated_time <
+                selected->statistics.estimated_time)))
+        selected = &attempt;
+      if (!attempt.reason.empty())
+        stage_reason = attempt.reason;
+    }
+    if (selected)
+    {
+      plan = selected->path;
+      statistics = selected->statistics;
+      statistics.expansions = total_expansions;
+      reason = std::string(stage.name) + ": " + selected->reason;
+      return true;
+    }
+    if (ros::WallTime::now() >= batch_deadline)
+    {
+      reason = std::string(stage.name) +
+          ": Hybrid A* staged planning timeout at batch deadline";
+      return false;
+    }
+    last_reason = std::string(stage.name) + ": " +
+        (stage_reason.empty() ? "Hybrid A* found no path" : stage_reason);
+  }
+  reason = last_reason.empty()
+      ? "Hybrid A* exhausted 6x6, 10x10 and full-map searches"
+      : last_reason;
+  return false;
+}
+
+bool CoverageGlobalPlanner::computeTransitions(
+    const std::string& plan_id,
+    const std::vector<autolabor_coverage::HybridTransitionRequest>& transitions,
+    const autolabor_coverage::TransitProfile& transit_profile,
+    double total_timeout_sec,
+    std::vector<autolabor_coverage::HybridTransitionResult>& results,
+    std::string& message,
+    const std::function<bool()>& cancel_requested,
+    const std::function<void(
+        const autolabor_coverage::HybridTransitionRequest&,
+        std::uint8_t, const std::string&)>& feedback)
+{
+  const HybridAStarProfile base_profile = hybridProfile(transit_profile);
+  if (plan_id.empty() || transitions.empty() ||
+      !validHybridProfile(base_profile) ||
+      !validReplanPeriod(transit_profile.replan_period_sec) ||
+      !std::isfinite(total_timeout_sec) || total_timeout_sec <= 0.0)
+  {
+    message = "Hybrid transition planning request is invalid";
+    return false;
   }
   const std::string frame = costmap_ros_->getGlobalFrameID();
   // This service can run while the layered costmap update thread is writing.
@@ -345,11 +696,17 @@ bool CoverageGlobalPlanner::precomputeCallback(
   costmap_2d::Costmap2D snapshot = snapshotCostmap(costmap_ros_);
   const auto footprint = costmap_ros_->getRobotFootprint();
   const ros::WallTime deadline = ros::WallTime::now() +
-      ros::WallDuration(request.total_timeout_sec);
+      ros::WallDuration(total_timeout_sec);
   std::size_t successes = 0;
-  response.results.reserve(request.transitions.size());
-  for (const auto& transition : request.transitions)
+  results.clear();
+  results.reserve(transitions.size());
+  for (const auto& transition : transitions)
   {
+    if (cancel_requested && cancel_requested())
+    {
+      message = "Hybrid transition planning was canceled";
+      return false;
+    }
     HybridAStarProfile profile = base_profile;
     profile.accept_goal_region = transition.accept_goal_region;
     autolabor_coverage::HybridTransitionResult result;
@@ -365,7 +722,7 @@ bool CoverageGlobalPlanner::precomputeCallback(
       result.outcome =
           autolabor_coverage::HybridTransitionResult::OUTCOME_TIMEOUT;
       result.reason = "Hybrid transition precompute batch deadline reached";
-      response.results.push_back(std::move(result));
+      results.push_back(std::move(result));
       continue;
     }
     if (transition.start.header.frame_id != frame ||
@@ -377,7 +734,7 @@ bool CoverageGlobalPlanner::precomputeCallback(
       result.outcome =
           autolabor_coverage::HybridTransitionResult::OUTCOME_INVALID;
       result.reason = "Hybrid transition endpoints use the wrong frame";
-      response.results.push_back(std::move(result));
+      results.push_back(std::move(result));
       continue;
     }
 
@@ -396,7 +753,7 @@ bool CoverageGlobalPlanner::precomputeCallback(
             autolabor_coverage::HybridTransitionResult::OUTCOME_NO_PATH;
         result.reason = reason.empty()
             ? "rolling Navfn topology has no known-free path" : reason;
-        response.results.push_back(std::move(result));
+        results.push_back(std::move(result));
         continue;
       }
       result.reaches_final_goal = reaches_final_goal;
@@ -410,9 +767,15 @@ bool CoverageGlobalPlanner::precomputeCallback(
         bounded_config.planning_timeout, remaining);
     HybridAStarStatistics statistics;
     std::vector<geometry_msgs::PoseStamped> path;
-    if (hybrid_planner_.makePlan(
-            &snapshot, footprint, transition.start, planning_goal,
-            bounded_config, profile, path, statistics, reason))
+    const auto stage_feedback = [&](std::uint8_t stage,
+                                    const std::string& stage_name) {
+      if (feedback)
+        feedback(transition, stage, stage_name);
+    };
+    if (makeStagedHybridPlan(
+            snapshot, footprint, transition.start, planning_goal,
+            bounded_config, profile, deadline, cancel_requested,
+            stage_feedback, path, statistics, reason))
     {
       result.outcome =
           autolabor_coverage::HybridTransitionResult::OUTCOME_SUCCESS;
@@ -442,11 +805,10 @@ bool CoverageGlobalPlanner::precomputeCallback(
     }
     result.expansions = statistics.expansions;
     result.reason = reason;
-    response.results.push_back(std::move(result));
+    results.push_back(std::move(result));
   }
-  response.success = true;
-  response.message = "precomputed " + std::to_string(successes) + " of " +
-      std::to_string(request.transitions.size()) + " Hybrid transitions";
+  message = "planned " + std::to_string(successes) + " of " +
+      std::to_string(transitions.size()) + " Hybrid transitions";
   return true;
 }
 

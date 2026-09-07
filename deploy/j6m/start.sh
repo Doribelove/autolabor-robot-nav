@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/process_control.sh"
 
-RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_optimized_20260905}"
+RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_navigation_20260907}"
 ROOTFS="${J6M_ROOTFS:-$RUNTIME_BASE/rootfs}"
 ENV_FILE="${DUAL_HOST_ENV_FILE:-$RUNTIME_BASE/dual_host/config/dual_host.env}"
 PID_FILE="$RUNTIME_BASE/dual_host/run/j6m_stack.pid"
@@ -24,8 +24,8 @@ requested_visual_only="${VISUAL_ONLY:-}"
 set -a
 source "$ENV_FILE"
 set +a
-[[ "$RUNTIME_BASE" == /map/robot_j6m_optimized_20260905 &&
-   "$ROOTFS" == /map/robot_j6m_optimized_20260905/rootfs ]] || exit 2
+[[ "$RUNTIME_BASE" == /map/robot_j6m_navigation_20260907 &&
+   "$ROOTFS" == /map/robot_j6m_navigation_20260907/rootfs ]] || exit 2
 MID360_SENSOR_X="${MID360_SENSOR_X:-0.20}"
 MID360_SENSOR_Y="${MID360_SENSOR_Y:-0.0}"
 MID360_SENSOR_Z="${MID360_SENSOR_Z:-0.9}"

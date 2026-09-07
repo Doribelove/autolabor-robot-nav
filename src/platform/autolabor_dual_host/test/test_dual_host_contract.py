@@ -721,12 +721,12 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
             "printf 'FOD_MOTION_ENABLED=%q\\n'", managed_start
         )
         self.assertIn(
-            "/home/slam/robot_j6m_ws_optimized_20260905/scripts/optimized.sh start \\",
+            "/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh start \\",
             readme,
         )
         self.assertIn("--authorize-fod-motion </dev/null", readme)
         self.assertIn(
-            "/home/slam/robot_j6m_ws_optimized_20260905/scripts/optimized.sh stop </dev/null",
+            "/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh stop </dev/null",
             readme,
         )
 

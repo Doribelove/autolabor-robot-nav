@@ -2,7 +2,7 @@
 # All candidate commands run with the original workspace and dependencies read-only.
 set -euo pipefail
 candidate_ws="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
-if [[ "$candidate_ws" != /home/slam/robot_j6m_ws_optimized_20260905 ]]; then
+if [[ "$candidate_ws" != /home/slam/robot_j6m_ws_navigation_20260907 ]]; then
   echo "Unexpected candidate directory; audit paths before relocating this version." >&2
   exit 2
 fi
@@ -14,22 +14,30 @@ case "${1:-}" in
   start|stop|status|restart)
     operation="$1"; shift
     if [[ "$operation" == start || "$operation" == restart ]]; then
-      original_state="$(systemctl --user show autolabor-dual-host.service -p ActiveState --value 2>/dev/null || true)"
-      case "$original_state" in
-        active|activating|deactivating)
-          echo 'Original supervisor is active. Stop it using its own documented stop command first.' >&2
-          exit 3 ;;
-      esac
-      # Inspect original PID records before the candidate launcher may attempt
-      # remote cleanup. Never signal a process merely because a port is busy.
+      for foreign_unit in autolabor-dual-host.service autolabor-optimized-20260905.service; do
+        foreign_state="$(systemctl --user show "$foreign_unit" -p ActiveState --value 2>/dev/null || true)"
+        case "$foreign_state" in
+          active|activating|deactivating)
+            echo "Foreign supervisor $foreign_unit is $foreign_state; stop it with its own documented command first." >&2
+            exit 3 ;;
+        esac
+      done
+      # Inspect both older runtime generations before the navigation candidate
+      # launcher may attempt remote cleanup. Never signal a process merely
+      # because a port is busy.
       ssh -o BatchMode=yes -o ConnectTimeout=4 root@192.168.10.100 '
-        for record in /map/autolabor_runtime/dual_host/run/j6m_stack.pid /map/autolabor_runtime/dual_host/run/j6m_launcher.pid; do
+        for record in \
+          /map/autolabor_runtime/dual_host/run/j6m_stack.pid \
+          /map/autolabor_runtime/dual_host/run/j6m_launcher.pid \
+          /map/robot_j6m_optimized_20260905/dual_host/run/j6m_stack.pid \
+          /map/robot_j6m_optimized_20260905/dual_host/run/j6m_launcher.pid; do
           test -f "$record" || continue
           line=$(head -n 1 "$record")
           pid=${line%%:*}
+          pid=${pid%%[[:space:]]*}
           case "$pid" in ""|*[!0-9]*) exit 3;; esac
           if kill -0 "$pid" 2>/dev/null; then
-            echo "Original J6M process is present: $pid; stop original stack first." >&2
+            echo "Foreign J6M process from $record is present: $pid; stop its stack first." >&2
             exit 3
           fi
         done

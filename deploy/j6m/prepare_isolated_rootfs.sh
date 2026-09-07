@@ -2,7 +2,7 @@
 # Create only the candidate runtime. Share the existing Ubuntu userland read-only.
 set -euo pipefail
 base_root=/map/autolabor_runtime/rootfs
-candidate_base=/map/robot_j6m_optimized_20260905
+candidate_base=/map/robot_j6m_navigation_20260907
 candidate_root="$candidate_base/rootfs"
 [[ "$(id -u)" == 0 ]] || exit 2
 [[ -x "$base_root/usr/bin/bash" ]] || exit 2

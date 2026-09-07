@@ -21,7 +21,7 @@ FAST-LIO: camera_init -> body (high-rate odometry)
                           |
 current /cloud_registered + prior PCD + /initialpose
                           |
-coarse ICP -> fine ICP -> map -> camera_init
+local fine ICP -> quality gate -> optional coarse/fine fallback -> map -> camera_init
                           |
                     map -> body /localization
 ```
@@ -30,6 +30,11 @@ The point cloud published by FAST-LIO is already expressed in `camera_init`.
 ICP therefore estimates `map_T_camera_init` directly. An RViz 2-D initial pose
 is interpreted as the base pose; the configured MID360/base offset and current
 FAST-LIO odometry are used to derive the initial map-to-odometry transform.
+The localizer first refines that operator seed with a tight correspondence
+radius.  It only enters the broad coarse-to-fine search when local refinement
+does not satisfy the existing inlier, overlap, and RMSE gates.  This prevents a
+good nearby seed from being pulled into a similar aisle several metres away
+while retaining rough-pose recovery for genuinely distant seeds.
 
 Velocity is permitted only while `/fast_lio/localization_status` starts with
 `state=LOCALIZED;`. Failed ICP, stale scan/odometry, or an expired successful

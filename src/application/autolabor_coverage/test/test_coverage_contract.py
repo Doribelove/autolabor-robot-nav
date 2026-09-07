@@ -10,7 +10,7 @@ import yaml
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = Path(os.environ.get(
-    "AUTOLABOR_SOURCE_WORKSPACE", "/home/slam/robot_j6m_ws_optimized_20260905"
+    "AUTOLABOR_SOURCE_WORKSPACE", "/home/slam/robot_j6m_ws_navigation_20260907"
 )).resolve()
 
 
@@ -73,6 +73,17 @@ class CoverageContractTest(unittest.TestCase):
             precompute_response,
         )
 
+        action = (
+            PACKAGE_ROOT / "action" / "PlanHybridTransitions.action"
+        ).read_text(encoding="utf-8")
+        for field in (
+            "autolabor_coverage/HybridTransitionRequest[] transitions",
+            "autolabor_coverage/HybridTransitionResult[] results",
+            "uint8 search_stage",
+            "string stage_name",
+        ):
+            self.assertIn(field, action)
+
         status = (
             PACKAGE_ROOT / "msg" / "CoverageStatus.msg"
         ).read_text(encoding="utf-8")
@@ -88,6 +99,7 @@ class CoverageContractTest(unittest.TestCase):
             "HybridTransitionRequest.msg",
             "HybridTransitionResult.msg",
             "PrecomputeTransitions.srv",
+            "PlanHybridTransitions.action",
         ):
             self.assertIn(generated_interface, cmake)
 
@@ -104,6 +116,9 @@ class CoverageContractTest(unittest.TestCase):
             "hybrid_analytic_connector_improvement_timeout",
             "hybrid_analytic_expansion_interval",
             "hybrid_cache_max_deviation",
+            "hybrid_primary_window_size",
+            "hybrid_fallback_window_size",
+            "hybrid_parallel_searches",
         ):
             self.assertIn(parameter, navigation)
         self.assertNotIn("hybrid_block_persistence", navigation)
@@ -452,7 +467,11 @@ class CoverageContractTest(unittest.TestCase):
         )
         self.assertEqual(0.60, config["transition_completion_start_gate_m"])
         self.assertEqual(0.60, config["transition_completion_max_overshoot_m"])
-        self.assertEqual(3.00, config["hybrid_recovery_timeout_sec"])
+        self.assertEqual(5.00, config["hybrid_recovery_timeout_sec"])
+        self.assertEqual(
+            "/move_base/CoverageGlobalPlanner/plan_hybrid_transitions",
+            config["hybrid_plan_action"],
+        )
         self.assertEqual(0.30, config["route_first_entry_distance_slack_m"])
         self.assertTrue(config["hierarchical_hybrid_on_demand"])
         self.assertTrue(config["direct_hybrid_to_final_goal"])
@@ -475,6 +494,8 @@ class CoverageContractTest(unittest.TestCase):
         self.assertIn("hybrid_execute_unsplit_cusps", manager)
         self.assertIn('"motion_direction_mode": (', manager)
         self.assertIn("request.accept_goal_region = direct_to_final", manager)
+        self.assertIn("PlanHybridTransitionsAction", manager)
+        self.assertIn("_call_hybrid_planner", manager)
         self.assertIn(
             "requested_motion_speed > self.watchdog_max_linear_speed", manager
         )

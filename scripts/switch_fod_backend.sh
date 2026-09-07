@@ -401,7 +401,7 @@ perform_staged_restart() {
   else
     restart_status=$?
     live_backend="$(timeout 3 rosparam get /fod_detector/backend 2>/dev/null || true)"
-    if systemctl --user is-active autolabor-optimized-20260905.service >/dev/null 2>&1 &&
+    if systemctl --user is-active autolabor-navigation-20260907.service >/dev/null 2>&1 &&
        [[ "$live_backend" == "$PREVIOUS_BACKEND" ]]; then
       mv -f -- "$rollback" "$CONFIG_PATH"
       echo "Cold restart failed before the old managed stack stopped; configuration was restored." >&2

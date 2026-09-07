@@ -46,7 +46,7 @@ def main():
             any(c not in 'abcdefghijklmnopqrstuvwxyz0123456789_-' for c in args.label)):
         parser.error('Use 5..30 seconds and a lowercase filename label.')
     root = Path(__file__).resolve().parents[1]
-    if (str(root) != '/home/slam/robot_j6m_ws_optimized_20260905' or
+    if (str(root) != '/home/slam/robot_j6m_ws_navigation_20260907' or
             os.environ.get('ROBOT_OPTIMIZED_SANDBOX') != '1'):
         raise RuntimeError('Use the candidate isolation entry.')
     output = root / 'validation' / ('input_inspection_' + args.label)
