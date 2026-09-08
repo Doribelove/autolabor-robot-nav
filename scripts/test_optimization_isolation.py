@@ -75,7 +75,8 @@ class IsolationTests(unittest.TestCase):
             cases = (
                 ('', '', [], False),
                 ('', '', ['--allow-absent'], True),
-                (listener, '/map/robot_j6m_optimized_20260905/rootfs', [], True),
+                (listener, '/map/robot_j6m_navigation_20260907/rootfs', [], True),
+                (listener, '/map/robot_j6m_optimized_20260905/rootfs', [], False),
                 (listener, '/map/autolabor_runtime/rootfs', [], False),
                 (listener, '/map/autolabor_runtime/rootfs', ['--allow-absent'], False),
                 ('LISTEN 0 128 *:11311 *:*', '', ['--allow-absent'], False),
@@ -100,7 +101,9 @@ class IsolationTests(unittest.TestCase):
         loop = script.split('for pid_file in ', 1)[1].split('\ntargets=(', 1)[0]
         with tempfile.TemporaryDirectory(dir=str(ROOT / 'validation')) as directory:
             record = Path(directory) / 'stack.pid'
-            for value in (str(os.getpid()), str(os.getpid()) + ':987654321'):
+            for value in (str(os.getpid()),
+                          str(os.getpid()) + ' 987654321',
+                          str(os.getpid()) + ':987654321'):
                 record.write_text(value + '\n')
                 code = 'set -euo pipefail\npid_files=("' + str(record) + '")\nfor pid_file in ' + loop
                 result = subprocess.run(['bash'], input=code.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -138,7 +141,7 @@ class IsolationTests(unittest.TestCase):
             env.pop('J6M_RUNTIME_BASE', None)
             env.pop('J6M_ROOTFS', None)
             # Redirect the entire fixture, including the strict path assertion.
-            code = script.replace('/map/robot_j6m_optimized_20260905', directory)
+            code = script.replace('/map/robot_j6m_navigation_20260907', directory)
             for requested, expected in ((release, 0), ('20260905_999999', 4)):
                 result = subprocess.run(['bash', '-s', '--', requested], env=env,
                                         input=code.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)

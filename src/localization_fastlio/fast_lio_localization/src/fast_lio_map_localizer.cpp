@@ -196,6 +196,7 @@ private:
     private_nh_.param("coarse_iterations", coarse_iterations_, 20);
     private_nh_.param("fine_scan_voxel_size", fine_scan_voxel_size_, 0.10);
     private_nh_.param("fine_map_voxel_size", fine_map_voxel_size_, 0.40);
+    private_nh_.param("local_max_correspondence", local_max_correspondence_, 0.50);
     private_nh_.param("fine_max_correspondence", fine_max_correspondence_, 1.0);
     private_nh_.param("fine_iterations", fine_iterations_, 30);
     private_nh_.param("submap_radius", submap_radius_, 60.0);
@@ -230,6 +231,8 @@ private:
     if (!(map_voxel_size_ > 0.0) || !(coarse_scan_voxel_size_ > 0.0) ||
         !(coarse_map_voxel_size_ > 0.0) || !(fine_scan_voxel_size_ > 0.0) ||
         !(fine_map_voxel_size_ > 0.0) || !(coarse_max_correspondence_ > 0.0) ||
+        !(local_max_correspondence_ > 0.0) ||
+        !(local_max_correspondence_ <= fine_max_correspondence_) ||
         !(fine_max_correspondence_ > 0.0))
       throw std::runtime_error("ICP scale parameters must be positive");
     if (!(submap_radius_ > fine_max_correspondence_) ||
@@ -443,43 +446,83 @@ private:
       return;
     }
 
-    Cloud::Ptr source_coarse = downsample(source_fine, coarse_scan_voxel_size_);
-    Cloud::Ptr target_coarse = downsample(target_fine, coarse_map_voxel_size_);
-    pcl::IterativeClosestPoint<Point, Point> coarse_icp;
-    configureIcp(coarse_icp, coarse_iterations_, coarse_max_correspondence_);
-    coarse_icp.setInputSource(source_coarse);
-    coarse_icp.setInputTarget(target_coarse);
-    Cloud coarse_aligned;
-    coarse_icp.align(coarse_aligned, initial_guess);
-    if (!coarse_icp.hasConverged())
-    {
-      recordFailure(generation, "coarse ICP did not converge");
-      return;
-    }
-
-    pcl::IterativeClosestPoint<Point, Point> fine_icp;
-    configureIcp(fine_icp, fine_iterations_, fine_max_correspondence_);
-    fine_icp.setInputSource(source_fine);
-    fine_icp.setInputTarget(target_fine);
     Cloud::Ptr aligned(new Cloud());
-    fine_icp.align(*aligned, coarse_icp.getFinalTransformation());
-    if (!fine_icp.hasConverged() || !finiteMatrix(fine_icp.getFinalTransformation()))
-    {
-      recordFailure(generation, "fine ICP did not converge");
-      return;
-    }
-
+    Matrix final_transformation = Matrix::Identity();
     int inliers = 0;
     double overlap = 0.0;
     double rmse = std::numeric_limits<double>::infinity();
-    evaluateAlignment(aligned, target_fine, inliers, overlap, rmse);
-    const bool accepted = inliers >= min_inliers_ && overlap >= min_overlap_ &&
-                          std::isfinite(rmse) && rmse <= max_rmse_;
+    std::string method = "local";
+
+    // An operator-provided pose is normally already close to the correct map basin.
+    // Refine it with a tight correspondence radius before attempting the broad
+    // coarse search.  In repetitive indoor geometry the old unconditional 5 m
+    // coarse stage could pull a good seed several metres into a different aisle.
+    pcl::IterativeClosestPoint<Point, Point> local_icp;
+    configureIcp(local_icp, fine_iterations_, local_max_correspondence_);
+    local_icp.setInputSource(source_fine);
+    local_icp.setInputTarget(target_fine);
+    local_icp.align(*aligned, initial_guess);
+    bool accepted = false;
+    std::ostringstream local_result;
+    if (local_icp.hasConverged() && finiteMatrix(local_icp.getFinalTransformation()))
+    {
+      evaluateAlignment(aligned, target_fine, local_max_correspondence_, inliers,
+                        overlap, rmse);
+      accepted = alignmentAccepted(inliers, overlap, rmse);
+      local_result << "local inliers=" << inliers << " overlap=" << overlap
+                   << " rmse=" << rmse;
+      if (accepted)
+        final_transformation = local_icp.getFinalTransformation();
+    }
+    else
+    {
+      local_result << "local ICP did not converge";
+    }
+
+    if (!accepted)
+    {
+      method = "coarse_to_fine";
+      Cloud::Ptr source_coarse = downsample(source_fine, coarse_scan_voxel_size_);
+      Cloud::Ptr target_coarse = downsample(target_fine, coarse_map_voxel_size_);
+      pcl::IterativeClosestPoint<Point, Point> coarse_icp;
+      configureIcp(coarse_icp, coarse_iterations_, coarse_max_correspondence_);
+      coarse_icp.setInputSource(source_coarse);
+      coarse_icp.setInputTarget(target_coarse);
+      Cloud coarse_aligned;
+      coarse_icp.align(coarse_aligned, initial_guess);
+      if (!coarse_icp.hasConverged() ||
+          !finiteMatrix(coarse_icp.getFinalTransformation()))
+      {
+        recordFailure(generation, local_result.str() + "; coarse ICP did not converge",
+                      inliers, overlap, rmse);
+        return;
+      }
+
+      pcl::IterativeClosestPoint<Point, Point> fine_icp;
+      configureIcp(fine_icp, fine_iterations_, fine_max_correspondence_);
+      fine_icp.setInputSource(source_fine);
+      fine_icp.setInputTarget(target_fine);
+      aligned.reset(new Cloud());
+      fine_icp.align(*aligned, coarse_icp.getFinalTransformation());
+      if (!fine_icp.hasConverged() ||
+          !finiteMatrix(fine_icp.getFinalTransformation()))
+      {
+        recordFailure(generation, local_result.str() + "; fine ICP did not converge",
+                      inliers, overlap, rmse);
+        return;
+      }
+      evaluateAlignment(aligned, target_fine, fine_max_correspondence_, inliers,
+                        overlap, rmse);
+      accepted = alignmentAccepted(inliers, overlap, rmse);
+      if (accepted)
+        final_transformation = fine_icp.getFinalTransformation();
+    }
+
     if (!accepted)
     {
       std::ostringstream reason;
-      reason << "quality rejected: inliers=" << inliers << " overlap=" << overlap
-             << " rmse=" << rmse;
+      reason << local_result.str() << "; coarse-to-fine quality rejected: inliers="
+             << inliers << " overlap=" << overlap << " rmse=" << rmse;
       recordFailure(generation, reason.str(), inliers, overlap, rmse);
       return;
     }
@@ -488,7 +531,7 @@ private:
       std::lock_guard<std::mutex> lock(mutex_);
       if (generation != seed_generation_)
         return;
-      map_to_odom_ = fine_icp.getFinalTransformation();
+      map_to_odom_ = final_transformation;
       inliers_ = inliers;
       overlap_ = overlap;
       rmse_ = rmse;
@@ -507,8 +550,9 @@ private:
     }
     publishCloud(submap_publisher_, target_fine, map_frame_, now);
     publishCloud(aligned_scan_publisher_, aligned, map_frame_, scan_message->header.stamp);
-    ROS_INFO_STREAM("fast_lio_map_localizer: accepted ICP overlap=" << overlap
-                    << " rmse=" << rmse << " inliers=" << inliers);
+    ROS_INFO_STREAM("fast_lio_map_localizer: accepted " << method
+                    << " ICP overlap=" << overlap << " rmse=" << rmse
+                    << " inliers=" << inliers);
   }
 
   void configureIcp(pcl::IterativeClosestPoint<Point, Point>& icp, int iterations,
@@ -521,14 +565,21 @@ private:
     icp.setRANSACOutlierRejectionThreshold(correspondence);
   }
 
+  bool alignmentAccepted(int inliers, double overlap, double rmse) const
+  {
+    return inliers >= min_inliers_ && overlap >= min_overlap_ &&
+           std::isfinite(rmse) && rmse <= max_rmse_;
+  }
+
   void evaluateAlignment(const Cloud::ConstPtr& aligned,
-                         const Cloud::ConstPtr& target, int& inliers,
+                         const Cloud::ConstPtr& target,
+                         double maximum_correspondence, int& inliers,
                          double& overlap, double& rmse) const
   {
     pcl::KdTreeFLANN<Point> tree;
     tree.setInputCloud(target);
-    const float maximum_squared =
-        static_cast<float>(fine_max_correspondence_ * fine_max_correspondence_);
+    const float maximum_squared = static_cast<float>(maximum_correspondence *
+                                                      maximum_correspondence);
     double squared_sum = 0.0;
     std::vector<int> indices(1);
     std::vector<float> squared_distances(1);
@@ -725,6 +776,7 @@ private:
   int coarse_iterations_ = 20;
   double fine_scan_voxel_size_ = 0.10;
   double fine_map_voxel_size_ = 0.40;
+  double local_max_correspondence_ = 0.50;
   double fine_max_correspondence_ = 1.00;
   int fine_iterations_ = 30;
   double submap_radius_ = 60.0;

@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(catkin REQUIRED COMPONENTS
   actionlib
+  actionlib_msgs
   autolabor_canbus_driver
   base_local_planner
   costmap_2d
@@ -38,6 +39,10 @@ add_message_files(FILES
   TransitProfile.msg
 )
 
+add_action_files(FILES
+  PlanHybridTransitions.action
+)
+
 add_service_files(FILES
   CancelCoverageBatch.srv
   PlanCoverage.srv
@@ -50,13 +55,13 @@ add_service_files(FILES
   StartCoverageBatch.srv
 )
 
-generate_messages(DEPENDENCIES geometry_msgs nav_msgs std_msgs)
+generate_messages(DEPENDENCIES actionlib_msgs geometry_msgs nav_msgs std_msgs)
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES coverage_global_planner coverage_hybrid_astar
   CATKIN_DEPENDS
-    actionlib autolabor_canbus_driver base_local_planner costmap_2d
+    actionlib actionlib_msgs autolabor_canbus_driver base_local_planner costmap_2d
     dynamic_reconfigure geometry_msgs message_runtime
     move_base_msgs nav_core nav_msgs navfn pluginlib roscpp rospy sensor_msgs
     std_msgs std_srvs tf2_ros visualization_msgs

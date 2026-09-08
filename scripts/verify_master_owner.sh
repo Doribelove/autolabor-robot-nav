@@ -20,7 +20,7 @@ pids="$(printf '%s\n' "$listeners" | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' | s
 [[ -n "$pids" ]] || { echo 'Cannot identify J6M ROS master owner.' >&2; exit 3; }
 for pid in $pids; do
   root="$(readlink "/proc/$pid/root")"
-  [[ "$root" == /map/robot_j6m_optimized_20260905/rootfs ]] || {
+  [[ "$root" == /map/robot_j6m_navigation_20260907/rootfs ]] || {
     echo "ROS master PID $pid is outside the candidate; refusing shared-graph changes." >&2
     exit 3
   }

@@ -6,6 +6,7 @@
 #include <geometry_msgs/PoseStamped.h>
 
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -69,7 +70,9 @@ public:
                 const HybridAStarProfile& profile,
                 std::vector<geometry_msgs::PoseStamped>& plan,
                 HybridAStarStatistics& statistics,
-                std::string& reason) const;
+                std::string& reason,
+                const std::function<bool()>& cancel_requested =
+                    std::function<bool()>()) const;
 };
 
 }  // namespace autolabor_coverage

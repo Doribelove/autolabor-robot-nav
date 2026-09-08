@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_optimized_20260905}"
+RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_navigation_20260907}"
 ROOTFS="${J6M_ROOTFS:-$RUNTIME_BASE/rootfs}"
-[[ "$RUNTIME_BASE" == /map/robot_j6m_optimized_20260905 &&
-   "$ROOTFS" == /map/robot_j6m_optimized_20260905/rootfs ]] || exit 2
+[[ "$RUNTIME_BASE" == /map/robot_j6m_navigation_20260907 &&
+   "$ROOTFS" == /map/robot_j6m_navigation_20260907/rootfs ]] || exit 2
 BASE="$ROOTFS/opt/autolabor/dual_host"
 
 [[ "$(id -u)" == 0 ]] || { echo "rollback.sh must run as root on J6M." >&2; exit 2; }

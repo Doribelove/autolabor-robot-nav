@@ -30,7 +30,7 @@ stamp="$(date +%Y%m%d_%H%M%S)"
 build_id="${J6M_BUILD_CACHE_ID:-$stamp}"
 [[ "$build_id" =~ ^[0-9]{8}_[0-9]{6}$ ]] || exit 2
 rootfs="$J6M_RUNTIME_BASE/rootfs"
-[[ "$J6M_RUNTIME_BASE" == /map/robot_j6m_optimized_20260905 ]] || {
+[[ "$J6M_RUNTIME_BASE" == /map/robot_j6m_navigation_20260907 ]] || {
   echo 'Refusing deployment outside the isolated runtime.' >&2; exit 2;
 }
 remote_build="$rootfs/opt/autolabor/dual_host/build_ws.$build_id"
@@ -178,6 +178,7 @@ ssh "$target" "set -eu
     rosmsg md5 autolabor_coverage/EnforcedPath >/dev/null
     rosmsg md5 autolabor_coverage/HybridTransitionRequest >/dev/null
     rosmsg md5 autolabor_coverage/HybridTransitionResult >/dev/null
+    rosmsg md5 autolabor_coverage/PlanHybridTransitionsAction >/dev/null
     rosmsg md5 autolabor_coverage/TransitProfile >/dev/null
     rossrv md5 autolabor_coverage/PlanCoverage >/dev/null
     rossrv md5 autolabor_coverage/PrecomputeTransitions >/dev/null
@@ -220,6 +221,7 @@ ssh "$target" "set -eu
     rosmsg md5 autolabor_coverage/EnforcedPath >/dev/null
     rosmsg md5 autolabor_coverage/HybridTransitionRequest >/dev/null
     rosmsg md5 autolabor_coverage/HybridTransitionResult >/dev/null
+    rosmsg md5 autolabor_coverage/PlanHybridTransitionsAction >/dev/null
     rosmsg md5 autolabor_coverage/TransitProfile >/dev/null
     rossrv md5 autolabor_coverage/PlanCoverage >/dev/null
     rossrv md5 autolabor_coverage/PrecomputeTransitions >/dev/null
@@ -237,6 +239,9 @@ ssh "$target" "set -eu
     test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_fod_control/launch/visual_recovery.launch
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_global_planner.so
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_hybrid_astar.so
+    grep -aFq \"6x6 local search\" /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_global_planner.so
+    grep -aFq \"10x10 fallback search\" /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_global_planner.so
+    grep -Fq "hybrid_plan_action:" /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_coverage/config/coverage.yaml
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libgps_geofence_layer.so
     grep -aFq treat_unknown_as_obstacle /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libteb_local_planner.so

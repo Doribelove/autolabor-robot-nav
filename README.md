@@ -1,4 +1,171 @@
-# robot_j6m_ws 独立优化候选版（2026-09-05）
+# robot_j6m_ws 导航优化专用候选版（2026-09-07）
+
+本目录是独立工作树 `/home/slam/robot_j6m_ws_navigation_20260907`，Git 分支为
+`feature/navigation-optimization-20260907`。它复制了 2026-09-07 开工时
+`robot_j6m_ws_optimized_20260905` 的源码和当前地图；原工作区不在本目录内，也没有被清理、
+重置或修改。J6M 使用独立运行根 `/map/robot_j6m_navigation_20260907`，不会覆盖
+`/map/robot_j6m_optimized_20260905` 的 release 链。本次部署后的 J6M `current` 指向
+`20260907_141331`，完整实现、验证结果和运行边界见
+[NAVIGATION_OPTIMIZATION_20260907.md](NAVIGATION_OPTIMIZATION_20260907.md)。
+
+## 2026-09-07 导航优化
+
+覆盖转场的 Hybrid A* 已从 move_base 内的同步服务调用改为可取消的 action 任务。
+搜索在 action 执行线程内运行，move_base 的 ROS 回调可以继续处理状态、取消和新的重规划请求；
+覆盖管理器每 50 ms 检查取消、任务代次和总截止时间。新规划或任务取消会撤销旧搜索，等待其退出
+后再提交下一次搜索，旧结果不会覆盖新任务。
+
+每次搜索先从同一份代价地图快照裁出 `6 m × 6 m` 窗口，失败后扩大为
+`10 m × 10 m`，仍失败才搜索完整地图。三层超时分别为 `0.75 s`、`1.25 s`、`3.00 s`，
+滚动/恢复调用的总预算为 `5.00 s`。每一层同时启动两条独立 Hybrid A* 搜索：一条使用
+`1.05` 启发权重，另一条使用 `1.35`；首条可行路径出现后保留 `0.10 s` 比较窗口，优先选择
+换向次数更少、预计执行时间更短的路径。搜索主循环、障碍启发式和解析连接都响应取消请求。
+
+move_base 在后台搜索期间继续执行现有安全路径或保持等待状态；后台超时只让本次 action 返回
+明确的 timeout/no-path 结果，由覆盖状态机按现有恢复策略处理，不会冻结 move_base 主回调。
+旧 `precompute_transitions` 服务仅为兼容测试和旧客户端保留，正式覆盖管理器使用
+`/move_base/CoverageGlobalPlanner/plan_hybrid_transitions` action。
+
+本机全量构建、静态检查和 J6M 原生部署使用：
+
+```bash
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh build
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh check --static
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh deploy
+ssh root@192.168.10.100 /map/robot_j6m_navigation_20260907/dual_host/bin/health_check.sh
+```
+
+部署命令只在 J6M 的 ARM64 chroot 中编译新 release 并原子切换本候选版的 `current`，不会启动
+车辆。当前工作树没有复制 `runtime/motion_authorized.ok`，并将新候选版配置保持为
+`MOTION_ENABLED=false`，不能把部署或静态检查当成实车导航验收。
+
+## 当前完整程序：一键启动、重启和停止
+
+本节为 **2026-09-07 导航候选版的操作入口**。所有命令都在 **AGX / NVIDIA 主机的
+`slam` 用户终端**执行，可以从任意目录复制运行。使用
+`/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh`，它负责候选版隔离和
+两机生命周期管理；下方历史章节中的 `/home/slam/robot_j6m_ws`、`robot_ws` 路径属于旧版本。
+
+当前网络为 AGX `192.168.10.50` ↔ J6M `192.168.10.100`，MID360 使用独立的
+`192.168.1.50` ↔ `192.168.1.112` 链路。启动前给两台计算机、交换机、MID360 和
+USB 扩展坞供电，保持 CAN、前后 LD19、ZED 原有接线，并登录 AGX 图形桌面。
+当前配置文件为 [config/dual_host.env](config/dual_host.env)。
+
+### 1. 一键启动完整程序（加载当前静态地图）
+
+从已停止状态启动导航、感知和 Qt 操作台：
+
+```bash
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh start \
+  --map-set /home/slam/robot_j6m_ws_navigation_20260907/global_maps/map_sets/map_20260829_221335_gimp_cleaned </dev/null
+```
+
+这一条命令会检查两条网络和 ZED USB 3.x 连接，同步 J6M 时间、运行配置和选定地图，
+启动 J6M ROS master，再联动拉起以下模块并执行启动检查：
+
+| AGX / NVIDIA | J6M |
+|---|---|
+| MID360 驱动、USB-CAN/M2、前后 LD19、最终速度看门狗 | Livox relay、FAST-LIO、已知地图定位、融合避障 `/scan` |
+| ZED RGB/深度、当前 `detect_and_classify` 检测/分类后端 | map_server、move_base/TEB、覆盖清扫管理、FOD 仲裁 |
+| Qt/RViz、AI/MCP 和已配置的本地 ASR | 原生常驻 BPU 双模型服务、CenterPoint 候选感知 |
+| FCOS RGB-D 桥与 BPU 结果显示 | FCOS 的 BPU 推理 |
+
+当前 `BPU_PERCEPTION_ENABLED=true`，BPU 感知随完整程序启动并持续运行，无需另开限时演示。
+CenterPoint 仍为候选观察链，学习型障碍物控制接入保持关闭。
+
+等待启动命令返回 `0`，并看到以下完整成功提示后再操作 Qt：
+
+```text
+Dual-host project is ready and managed by autolabor-navigation-20260907.service.
+```
+
+服务托管成功后可以关闭启动终端；`</dev/null` 只是关闭命令的标准输入。
+Qt 窗口出现本身不代表启动检查已通过。
+
+### 2. 一键完整重启（保留当前地图选择）
+
+程序已经运行、Qt 异常或需要重新初始化整套链路时执行：
+
+```bash
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh restart \
+  --map-set /home/slam/robot_j6m_ws_navigation_20260907/global_maps/map_sets/map_20260829_221335_gimp_cleaned </dev/null
+```
+
+它会先检查连接，再同步停止旧实例并冷启动两端。每次重启都显式带上 `--map-set`；
+单独执行 `restart` 会进入无图 FAST-LIO 模式，不会自动沿用上次地图。
+运行期间切换地图也使用 `restart`，不要只重启 Qt、NVIDIA 网关或某个传感器节点。
+
+上面固定使用当前这套地图。以后要加载最近一次完整建图结果，可把 `--map-set` 后的路径
+换成 `/home/slam/robot_j6m_ws_navigation_20260907/global_maps/map_sets/latest`；
+`latest` 会随新地图保存而变化。
+
+### 3. 一键停止完整程序
+
+```bash
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh stop </dev/null
+```
+
+停止流程取消当前导航并暂停导航，关闭 AGX 的 Qt/视觉/感知伴随进程和硬件网关，
+关闭 J6M 导航及本次 BPU 服务，并校验进程归属、ROS 注册和 CAN 端口释放。
+等待命令返回 `0`，并看到：
+
+```text
+Dual-host shutdown complete: managed NVIDIA PID records, ROS registrations, CAN ownership and the J6M stack are clear.
+```
+
+完整停机可能需要数分钟；等待它返回后再启动。不要同时执行多个启停命令。
+正常关闭 Qt 也会触发主栈退出；需要明确确认两端均已停止时，以本节 `stop` 的结果为准。
+若停止返回非零，先查看它报告的残留或远端不可达原因，不能把窗口消失当作两端已停止。
+上述命令只重启/停止项目进程，不重启两台计算机；若以后完成本候选版的现场授权，启停流程
+不会自行清除其授权标记。
+
+### 4. 状态、运行检查和日志
+
+完整运行状态与严格数据流检查（检查本身不会停止服务）：
+
+```bash
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh status </dev/null
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh check --runtime </dev/null
+```
+
+轻量服务状态和最近日志：
+
+```bash
+systemctl --user show autolabor-navigation-20260907.service -p ActiveState -p MainPID
+journalctl _SYSTEMD_USER_UNIT=autolabor-navigation-20260907.service -n 100 --no-pager
+```
+
+AGX 日志在本目录 `log/dual_host_launcher_*/`、`log/nvidia_ui_*/` 和 `log/ros/`；
+J6M 日志在 `/map/robot_j6m_navigation_20260907/logs/`。
+启动失败时按日志排查网络、传感器或检查失败项，再使用完整重启入口；不要绕过检查或手改 ready 标记。
+服务停止后，`status` 因 ROS master/节点已退出而返回非零属于预期；停止是否成功以
+`stop` 返回值及上述服务状态为准。
+
+### 5. 静态地图启动后的操作
+
+每次完整冷启动都需要本次车辆的真实初始位姿。在启动命令返回成功、Qt 地图显示
+`READY` 后，由操作员点击“② 设置初始位姿”，在地图上按车辆实际位置和车头朝向拖动，
+等待定位状态变为 `LOCALIZED` 后再发起新任务。本次已完成初值且定位正常时无需重复设置。
+程序不会自动复用旧初值或恢复旧导航目标。
+
+当前配置中的主运动门为 `MOTION_ENABLED=false`、最终线速上限 `1.60 m/s`，
+默认导航前进/倒车上限为 `0.80/0.30 m/s`；`FOD_MOTION_ENABLED=false`。
+本独立工作树没有运动授权标记；完整程序可保持零速启动，但不能执行车辆运动，首次运动前需要
+现场重新满足本候选版的授权条件。
+FOD 运动需另外明确授权，日常启动不要追加
+`--authorize-fod-motion`；语音采集、AI 解析和 AI 控制仍按 Qt 内各自的授权流程操作。
+
+仅在建图或明确需要无图增量里程计时，使用以下独立模式：
+
+```bash
+# 已停止时，无图启动
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh start </dev/null
+
+# 已运行时，完整重启切换到无图模式
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh restart </dev/null
+```
+
+## 历史变更记录（保留当时状态，日常启停以上节为准）
 
 2026-09-06 双感知接入：修改前已保存 GitHub 备份分支/标签和本地完整源码副本。
 已按用户确认的左目安装几何接入 FCOS＋ZED 深度、J6M CenterPoint 候选链路；
@@ -20,7 +187,7 @@ J6M 候选导航 release 仍为 20260905_160700。下方运行会话描述均为
 随后已收到初始位姿并实测 LOCALIZED，没有自动发车。见 [运动授权记录](MOTION_AUTHORIZATION_20260906.md)。
 下方 false/等待现场确认的描述为历史状态。
 
-本目录为 `/home/slam/robot_j6m_ws_optimized_20260905`，原项目不应改动。
+本目录为 `/home/slam/robot_j6m_ws_navigation_20260907`，原项目不应改动。
 23:21：已再次按要求关闭旧 Qt，带原静态地图冷重启 Qt/导航并恢复持续 BPU，地图与框图已显示。
 静止检查通过，当前等待新的初始位姿；最新状态见
 [静态地图重启记录](STATIC_QT_RESTART_20260905.md)。
@@ -59,15 +226,15 @@ J6M 候选导航 release 仍为 20260905_160700。下方运行会话描述均为
 [BPU 实验阶段结果](experiments/j6m_bpu_20260905/RESULTS.md)。本轮没有重启相机或导航。
 
 ```bash
-/home/slam/robot_j6m_ws_optimized_20260905/scripts/optimized.sh start \
-  --map-set /home/slam/robot_j6m_ws_optimized_20260905/global_maps/map_sets/latest
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh start \
+  --map-set /home/slam/robot_j6m_ws_navigation_20260907/global_maps/map_sets/latest
 ```
 
 仅当另外授权本次 FOD 运动且已完成其安全检查时，才在上面的启动命令末尾加
 `--authorize-fod-motion </dev/null`；此参数不绕过现场运动授权门，也不跨重启继承。
 
 ```bash
-/home/slam/robot_j6m_ws_optimized_20260905/scripts/optimized.sh stop </dev/null
+/home/slam/robot_j6m_ws_navigation_20260907/scripts/optimized.sh stop </dev/null
 ```
 
 ---

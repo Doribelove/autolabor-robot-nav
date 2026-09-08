@@ -168,7 +168,8 @@ class ObstacleHeuristic
 {
 public:
   ObstacleHeuristic(const costmap_2d::Costmap2D* costmap,
-                    double goal_x, double goal_y, bool enabled)
+                    double goal_x, double goal_y, bool enabled,
+                    const std::function<bool()>& cancel_requested)
     : costmap_(costmap)
   {
     if (!enabled || !costmap_)
@@ -194,6 +195,11 @@ public:
     const std::array<int, 8> delta_y{{-1, -1, -1, 0, 0, 1, 1, 1}};
     while (!queue.empty())
     {
+      if (cancel_requested && cancel_requested())
+      {
+        canceled_ = true;
+        return;
+      }
       const Entry current = queue.top();
       queue.pop();
       if (current.first > distances_[current.second] + kEpsilon)
@@ -240,6 +246,11 @@ public:
     return ready_;
   }
 
+  bool canceled() const
+  {
+    return canceled_;
+  }
+
   double distance(double x, double y) const
   {
     if (!ready_)
@@ -261,6 +272,7 @@ private:
   unsigned int width_ = 0;
   unsigned int height_ = 0;
   bool ready_ = false;
+  bool canceled_ = false;
   std::vector<double> distances_;
 };
 
@@ -350,10 +362,16 @@ bool HybridAStarPlanner::makePlan(
     const HybridAStarProfile& profile,
     std::vector<geometry_msgs::PoseStamped>& plan,
     HybridAStarStatistics& statistics,
-    std::string& reason) const
+    std::string& reason,
+    const std::function<bool()>& cancel_requested) const
 {
   plan.clear();
   statistics = HybridAStarStatistics();
+  if (cancel_requested && cancel_requested())
+  {
+    reason = "Hybrid A* planning canceled";
+    return false;
+  }
   if (!costmap || footprint.size() < 3)
   {
     reason = "Hybrid A* requires a costmap and polygon footprint";
@@ -455,6 +473,8 @@ bool HybridAStarPlanner::makePlan(
         config.minimum_turning_radius);
     for (const ReedsSheppPath& path : paths)
     {
+      if (cancel_requested && cancel_requested())
+        return best;
       double x = source_x;
       double y = source_y;
       double yaw = source_yaw;
@@ -509,6 +529,8 @@ bool HybridAStarPlanner::makePlan(
                            config.minimum_turning_radius;
         while (remaining > kEpsilon && collision_free)
         {
+          if (cancel_requested && cancel_requested())
+            return best;
           const double distance = std::min(config.motion_step, remaining);
           const double signed_distance = gear * distance;
           const int checks = std::max(1, static_cast<int>(std::ceil(
@@ -610,6 +632,11 @@ bool HybridAStarPlanner::makePlan(
         start.pose.position.x, start.pose.position.y, start_yaw, 0, 0.0,
         goal.pose.position.x, goal.pose.position.y, goal_yaw);
   }
+  if (cancel_requested && cancel_requested())
+  {
+    reason = "Hybrid A* planning canceled";
+    return false;
+  }
   auto useAnalyticCandidate = [&](const AnalyticCandidate& candidate,
                                   const std::string& selected_reason) {
     plan = candidate.poses;
@@ -684,7 +711,13 @@ bool HybridAStarPlanner::makePlan(
 
   const ObstacleHeuristic obstacle_heuristic(
       costmap, goal.pose.position.x, goal.pose.position.y,
-      config.use_obstacle_heuristic);
+      config.use_obstacle_heuristic, cancel_requested);
+  if (obstacle_heuristic.canceled() ||
+      (cancel_requested && cancel_requested()))
+  {
+    reason = "Hybrid A* planning canceled";
+    return false;
+  }
   if (ros::WallTime::now() > search_deadline)
   {
     if (has_direct_incumbent && !profile.accept_goal_region)
@@ -861,6 +894,11 @@ bool HybridAStarPlanner::makePlan(
   while (!frontier.empty() &&
          statistics.expansions < static_cast<std::size_t>(config.max_expansions))
   {
+    if (cancel_requested && cancel_requested())
+    {
+      reason = "Hybrid A* planning canceled";
+      break;
+    }
     if (ros::WallTime::now() > search_deadline)
     {
       reason = "Hybrid A* planning timeout";
@@ -1065,6 +1103,11 @@ bool HybridAStarPlanner::makePlan(
 
   if (goal_node < 0)
   {
+    if (cancel_requested && cancel_requested())
+    {
+      reason = "Hybrid A* planning canceled";
+      return false;
+    }
     if (analytic_incumbent.valid)
     {
       return useSearchAnalyticCandidate(

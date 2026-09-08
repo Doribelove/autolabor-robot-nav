@@ -3213,7 +3213,7 @@ void MainWindow::setupRosInterfaces()
                                 : configured_vision_backend);
   node_->param<std::string>(
       "vision_backend_switch_script", vision_backend_switch_script,
-      "/home/slam/robot_j6m_ws_optimized_20260905/scripts/switch_fod_backend.sh");
+      "/home/slam/robot_j6m_ws_navigation_20260907/scripts/switch_fod_backend.sh");
   configured_vision_backend_ = QString::fromStdString(configured_vision_backend);
   vision_backend_switch_script_ =
       QString::fromStdString(vision_backend_switch_script);

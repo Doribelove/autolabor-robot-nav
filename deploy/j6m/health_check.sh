@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_optimized_20260905}"
+RUNTIME_BASE="${J6M_RUNTIME_BASE:-/map/robot_j6m_navigation_20260907}"
 ROOTFS="${J6M_ROOTFS:-$RUNTIME_BASE/rootfs}"
-[[ "$RUNTIME_BASE" == /map/robot_j6m_optimized_20260905 &&
-   "$ROOTFS" == /map/robot_j6m_optimized_20260905/rootfs ]] || exit 2
+[[ "$RUNTIME_BASE" == /map/robot_j6m_navigation_20260907 &&
+   "$ROOTFS" == /map/robot_j6m_navigation_20260907/rootfs ]] || exit 2
 
 [[ "$(id -u)" == 0 ]] || { echo "health_check.sh must run as root on J6M." >&2; exit 2; }
 cleanup() {
@@ -59,6 +59,20 @@ chroot "$ROOTFS" /bin/bash -lc '
     /opt/autolabor/dual_host/current/share/autolabor_coverage/launch/coverage.launch
   grep -Fq "hybrid_cache_collision_check_horizon" \
     /opt/autolabor/dual_host/current/share/robot_bringup/launch/navigation_j6m.launch
+  grep -Fq "name=\"CoverageGlobalPlanner/hybrid_primary_window_size\"" \
+    /opt/autolabor/dual_host/current/share/robot_bringup/launch/navigation_j6m.launch
+  grep -Fq "value=\"6.00\"" \
+    /opt/autolabor/dual_host/current/share/robot_bringup/launch/navigation_j6m.launch
+  grep -Fq "name=\"CoverageGlobalPlanner/hybrid_fallback_window_size\"" \
+    /opt/autolabor/dual_host/current/share/robot_bringup/launch/navigation_j6m.launch
+  grep -Fq "value=\"10.00\"" \
+    /opt/autolabor/dual_host/current/share/robot_bringup/launch/navigation_j6m.launch
+  grep -Fq "hybrid_plan_action:" \
+    /opt/autolabor/dual_host/current/share/autolabor_coverage/config/coverage.yaml
+  grep -aFq "6x6 local search" \
+    /opt/autolabor/dual_host/current/lib/libcoverage_global_planner.so
+  grep -aFq "10x10 fallback search" \
+    /opt/autolabor/dual_host/current/lib/libcoverage_global_planner.so
   test -d /var/lib/autolabor/fast_lio/Log
   test -d /var/lib/autolabor/fast_lio/PCD
   grep -aFq /var/lib/autolabor/fast_lio/ \
@@ -88,6 +102,7 @@ chroot "$ROOTFS" /bin/bash -lc '
   rosmsg md5 autolabor_coverage/EnforcedPath
   rosmsg md5 autolabor_coverage/HybridTransitionRequest
   rosmsg md5 autolabor_coverage/HybridTransitionResult
+  rosmsg md5 autolabor_coverage/PlanHybridTransitionsAction
   rosmsg md5 autolabor_coverage/TransitProfile
   rossrv md5 autolabor_coverage/PlanCoverage
   rossrv md5 autolabor_coverage/PrecomputeTransitions

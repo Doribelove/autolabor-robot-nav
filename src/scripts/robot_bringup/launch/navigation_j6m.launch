@@ -170,10 +170,31 @@
            type="int" value="5"/>
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner/hybrid_max_expansions"
-           type="int" value="80000"/>
+           type="int" value="120000"/>
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner/hybrid_planning_timeout"
            type="double" value="3.00"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_primary_window_size"
+           type="double" value="6.00"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_fallback_window_size"
+           type="double" value="10.00"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_primary_window_timeout"
+           type="double" value="0.75"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_fallback_window_timeout"
+           type="double" value="1.25"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_parallel_searches"
+           type="int" value="2"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_parallel_heuristic_weight"
+           type="double" value="1.35"/>
+    <param if="$(arg use_static_map)"
+           name="CoverageGlobalPlanner/hybrid_parallel_improvement_timeout"
+           type="double" value="0.10"/>
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner/hybrid_heuristic_weight"
            type="double" value="1.05"/>

@@ -29,7 +29,7 @@ Usage: $0 [--start | --restart | --status | --stop | --foreground]
 The default start waits until the complete graph is ready, then returns to the
 shell. Optional sensor messages may be reported as degraded; an enabled ZED
 camera must publish live image and depth data. The stack remains owned by
-autolabor-optimized-20260905.service;
+autolabor-navigation-20260907.service;
 closing this terminal or restarting the graphical desktop cannot orphan its ROS
 children.
 EOF
@@ -207,7 +207,7 @@ READY_FILE="$RUN_DIR/dual_host.ready"
 RUN_TOKEN_FILE="$RUN_DIR/nvidia_run.token"
 SERVICE_TOKEN_FILE="$RUN_DIR/service_run.token"
 MAP_MODE_FILE="$RUN_DIR/map_mode.env"
-SERVICE_UNIT="autolabor-optimized-20260905.service"
+SERVICE_UNIT="autolabor-navigation-20260907.service"
 mkdir -p "$RUN_DIR" "$DUAL_HOST_WS/log"
 
 if [[ "$mode" == --status && -r "$MAP_MODE_FILE" ]]; then

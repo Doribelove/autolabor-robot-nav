@@ -15,12 +15,21 @@ CONFIG = yaml.safe_load((ROOT / "config/mid360.yaml").read_text(encoding="utf-8"
 
 class KnownMapLocalizerContractTest(unittest.TestCase):
     def test_uses_multiscale_icp_and_map_to_odom(self):
-        self.assertGreaterEqual(SOURCE.count("IterativeClosestPoint"), 2)
+        self.assertGreaterEqual(SOURCE.count("IterativeClosestPoint"), 3)
         self.assertIn("coarse_max_correspondence_", SOURCE)
+        self.assertIn("local_max_correspondence_", SOURCE)
         self.assertIn("fine_max_correspondence_", SOURCE)
         self.assertIn("map_to_odom_", SOURCE)
         self.assertIn('transform.header.frame_id = map_frame_', SOURCE)
         self.assertIn('transform.child_frame_id = odom_frame_', SOURCE)
+
+    def test_refines_a_nearby_operator_seed_before_broad_coarse_search(self):
+        self.assertEqual(0.5, CONFIG["local_max_correspondence"])
+        local = SOURCE.index("local_icp.align")
+        coarse = SOURCE.index("coarse_icp.align")
+        self.assertLess(local, coarse)
+        self.assertIn("if (!accepted)", SOURCE[local:coarse])
+        self.assertIn("alignmentAccepted", SOURCE)
 
     def test_requires_prior_map_and_initial_pose(self):
         self.assertIn('private_nh_.param<std::string>("map_file"', SOURCE)

@@ -31,6 +31,8 @@ from autolabor_coverage.msg import (
     EnforcedPath,
     HybridTransitionRequest,
     HybridTransitionResult,
+    PlanHybridTransitionsAction,
+    PlanHybridTransitionsGoal,
     TransitProfile,
 )
 from autolabor_coverage.srv import (
@@ -618,6 +620,10 @@ class CoverageManager:
             "~hybrid_precompute_service",
             "/move_base/CoverageGlobalPlanner/precompute_transitions",
         ))
+        self.hybrid_plan_action_name = str(rospy.get_param(
+            "~hybrid_plan_action",
+            "/move_base/CoverageGlobalPlanner/plan_hybrid_transitions",
+        ))
         self.hybrid_precompute_timeout_sec = float(rospy.get_param(
             "~hybrid_precompute_timeout_sec", 60.0
         ))
@@ -1065,6 +1071,10 @@ class CoverageManager:
         self.hybrid_precompute_client = rospy.ServiceProxy(
             self.hybrid_precompute_service_name, PrecomputeTransitions
         )
+        self.hybrid_plan_client = actionlib.SimpleActionClient(
+            self.hybrid_plan_action_name, PlanHybridTransitionsAction
+        )
+        self.hybrid_action_lock = threading.Lock()
         self.navigation_owner_client = rospy.ServiceProxy(
             self.navigation_owner_service_name, SetCoverageOwner
         )
@@ -2230,6 +2240,73 @@ class CoverageManager:
             swath.end.x - swath.start.x,
         )
 
+    def _wait_for_hybrid_planner(self, timeout):
+        """Wait for the non-blocking action server, retaining test compatibility."""
+        client = getattr(self, "hybrid_plan_client", None)
+        if client is None:
+            rospy.wait_for_service(self.hybrid_precompute_service_name,
+                                   timeout=timeout)
+            return
+        if not client.wait_for_server(rospy.Duration(float(timeout))):
+            raise RuntimeError(
+                "Hybrid planning action is unavailable: {}".format(
+                    self.hybrid_plan_action_name
+                )
+            )
+
+    def _hybrid_plan_feedback(self, feedback):
+        with self.lock:
+            if self.cancel_requested:
+                return
+            self.detail = "Hybrid A* {} ({:.1f}s)".format(
+                feedback.stage_name, float(feedback.elapsed_sec)
+            )
+
+    def _call_hybrid_planner(self, plan_id, transitions, transit_profile,
+                             total_timeout_sec):
+        """Run one cancellable action while ROS callbacks remain responsive."""
+        client = getattr(self, "hybrid_plan_client", None)
+        if client is None:
+            return self.hybrid_precompute_client(
+                plan_id=plan_id,
+                transitions=transitions,
+                transit_profile=transit_profile,
+                total_timeout_sec=total_timeout_sec,
+            )
+        goal = PlanHybridTransitionsGoal()
+        goal.plan_id = plan_id
+        goal.transitions = transitions
+        goal.transit_profile = transit_profile
+        goal.total_timeout_sec = float(total_timeout_sec)
+        wait_deadline = time.monotonic() + float(total_timeout_sec) + 1.0
+        action_lock = getattr(self, "hybrid_action_lock", None)
+        if action_lock is None:
+            action_lock = threading.Lock()
+            self.hybrid_action_lock = action_lock
+        with action_lock:
+            client.send_goal(goal, feedback_cb=self._hybrid_plan_feedback)
+            while not rospy.is_shutdown():
+                with self.lock:
+                    canceled = self.cancel_requested or (
+                        self.active and self.plan_id != plan_id
+                    )
+                if canceled:
+                    client.cancel_goal()
+                    client.wait_for_result(rospy.Duration(0.50))
+                    raise RuntimeError("Hybrid planning action was canceled")
+                if client.wait_for_result(rospy.Duration(0.05)):
+                    break
+                if time.monotonic() >= wait_deadline:
+                    client.cancel_goal()
+                    client.wait_for_result(rospy.Duration(0.50))
+                    raise RuntimeError(
+                        "Hybrid planning action exceeded its bounded deadline"
+                    )
+            result = client.get_result()
+        if result is None:
+            raise RuntimeError("Hybrid planning action returned no result")
+        return result
+
     def _precompute_hybrid_candidates(self, plan, current, current_yaw,
                                       time_parameters, planner, plan_id):
         """Rescore up to four routes with real entry/inter-swath Hybrid paths.
@@ -2286,9 +2363,7 @@ class CoverageManager:
             selected.alternative_plans = []
             return selected
         try:
-            rospy.wait_for_service(
-                self.hybrid_precompute_service_name, timeout=0.5
-            )
+            self._wait_for_hybrid_planner(timeout=0.5)
         except Exception as error:
             raise RuntimeError(
                 "Hybrid transition precompute service is unavailable: {}".format(
@@ -2332,7 +2407,7 @@ class CoverageManager:
             if not active_requests:
                 break
             try:
-                response = self.hybrid_precompute_client(
+                response = self._call_hybrid_planner(
                     plan_id=plan_id,
                     transitions=active_requests,
                     transit_profile=self._transit_profile(),
@@ -2482,9 +2557,7 @@ class CoverageManager:
             if self.cancel_requested or not self.active:
                 return None, "coverage transition replan was canceled"
         try:
-            rospy.wait_for_service(
-                self.hybrid_precompute_service_name, timeout=0.5
-            )
+            self._wait_for_hybrid_planner(timeout=0.5)
         except Exception as error:
             return None, "Hybrid recovery service is unavailable: {}".format(
                 error
@@ -2497,7 +2570,7 @@ class CoverageManager:
         request.goal = self._pose(transition_goal, float(transition_goal_yaw))
         request.accept_goal_region = True
         try:
-            response = self.hybrid_precompute_client(
+            response = self._call_hybrid_planner(
                 plan_id=plan_id,
                 transitions=[request],
                 # This is deliberately the task-level profile, not the old
@@ -2584,9 +2657,7 @@ class CoverageManager:
             if self.cancel_requested or not self.active:
                 return None, False, "rolling Hybrid transition was canceled"
         try:
-            rospy.wait_for_service(
-                self.hybrid_precompute_service_name, timeout=0.5
-            )
+            self._wait_for_hybrid_planner(timeout=0.5)
         except Exception as error:
             return None, False, (
                 "rolling Hybrid service is unavailable: {}"
@@ -2619,7 +2690,7 @@ class CoverageManager:
             else self._transit_profile()
         )
         try:
-            response = self.hybrid_precompute_client(
+            response = self._call_hybrid_planner(
                 plan_id=plan_id,
                 transitions=[request],
                 transit_profile=transit_profile,

@@ -343,7 +343,7 @@ class StaticMapNavigationContractTest(unittest.TestCase):
             for item in scan_launch.findall("arg")
         }
 
-        self.assertEqual("0.25", scan_arguments["min_height"])
+        self.assertEqual("0.40", scan_arguments["min_height"])
         self.assertEqual("0.8", scan_arguments["max_height"])
         for scan in (
             common["obstacles_layer"]["scan"],

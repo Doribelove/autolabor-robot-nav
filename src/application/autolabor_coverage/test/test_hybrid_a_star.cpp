@@ -279,6 +279,23 @@ TEST(HybridAStarPlanner, RejectsDisconnectedKnownSpaceWithoutLatticeExpansion)
   EXPECT_NE(std::string::npos, reason.find("no known-free 2-D connection"));
 }
 
+TEST(HybridAStarPlanner, HonorsCancellationBeforeSearch)
+{
+  costmap_2d::Costmap2D costmap(
+      100, 100, 0.10, -5.0, -5.0, costmap_2d::FREE_SPACE);
+  autolabor_coverage::HybridAStarPlanner planner;
+  autolabor_coverage::HybridAStarStatistics statistics;
+  std::vector<geometry_msgs::PoseStamped> plan;
+  std::string reason;
+
+  EXPECT_FALSE(planner.makePlan(
+      &costmap, footprint(), pose(-1.0, 0.0, 0.0),
+      pose(1.0, 0.0, 0.0), testConfig(), testProfile(),
+      plan, statistics, reason, []() { return true; }));
+  EXPECT_EQ("Hybrid A* planning canceled", reason);
+  EXPECT_TRUE(plan.empty());
+}
+
 int main(int argc, char** argv)
 {
   ros::Time::init();
