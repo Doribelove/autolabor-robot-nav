@@ -2843,7 +2843,9 @@ class CoverageManager:
         )
         request.rolling = not direct_to_final
         request.rolling_horizon_m = float(self.hybrid_rolling_horizon)
-        entry_alignment = bool(segment.get("entry_recovery", False))
+        entry_alignment = self._refresh_entry_recovery(
+            segment, current, current_yaw, transition_goal, transition_goal_yaw
+        )
         # For the direct line-to-line architecture the true target is the
         # sweep-entry pose region, not its mathematical centre. Intermediate
         # legacy rolling waypoints remain exact because they are not hand-off
@@ -2971,6 +2973,8 @@ class CoverageManager:
                 current, current_yaw, final_goal, final_yaw
             )
             if entry_ready:
+                segment["entry_recovery"] = False
+                segment.pop("_entry_recovery_reference", None)
                 if self._wait_for_transition_stop():
                     return "succeeded"
                 with self.lock:
@@ -3016,22 +3020,22 @@ class CoverageManager:
             replan_from_measured_cusp = False
             for part_index, part in enumerate(parts):
                 outcome = self._execute_segment(part, segment_index)
+                if part.get("_entry_recovery_reference") is not None:
+                    segment["_entry_recovery_reference"] = part[
+                        "_entry_recovery_reference"
+                    ]
+                elif part.get("_transition_completion_tracker", {}).get(
+                        "invalidated", False):
+                    segment.pop("_entry_recovery_reference", None)
                 if outcome != "succeeded":
                     late_pose = self._current_pose()
-                    if late_pose is not None and math.hypot(
-                            float(final_goal.x) - float(late_pose[0].x),
-                            float(final_goal.y) - float(late_pose[0].y),
-                    ) <= float(getattr(
-                            self, "sweep_entry_alignment_radius", 2.00
-                    )):
-                        # A disturbance can arrive after the final fixed-gear
-                        # action was armed but before its terminal callback.
-                        # Promote the next retry to the bounded entry-acquisition
-                        # profile instead of replanning a full forward loop.
-                        segment["entry_recovery"] = True
+                    if late_pose is not None and self._refresh_entry_recovery(
+                            segment, late_pose[0], late_pose[1],
+                            final_goal, final_yaw):
                         rospy.logwarn(
-                            "coverage rolling transition failed near its swath "
-                            "entry; the retry will acquire the entry goal region"
+                            "coverage final approach overshot its swath entry "
+                            "outside the hand-off tolerance; applying bounded "
+                            "entry recovery on the next retry"
                         )
                     return outcome
                 if part_index + 1 < len(parts):
@@ -3130,6 +3134,81 @@ class CoverageManager:
             ).format(self.hybrid_rolling_max_chunks)
         return "blocked"
 
+    def _refresh_entry_recovery(self, segment, point, yaw, goal, goal_yaw):
+        """Classify a retry; never use this as a sweep-start acceptance gate."""
+        ready, geometry = self._transition_entry_ready(point, yaw, goal, goal_yaw)
+        reference = segment.get("_entry_recovery_reference")
+        allowed = False
+        if reference and not ready:
+            same_goal = (
+                reference["plan_id"] == getattr(self, "plan_id", "")
+                and math.hypot(reference["goal"][0] - float(goal.x),
+                               reference["goal"][1] - float(goal.y)) <= 1.0e-6
+                and abs(math.atan2(
+                    math.sin(reference["goal"][2] - float(goal_yaw)),
+                    math.cos(reference["goal"][2] - float(goal_yaw)),
+                )) <= 1.0e-6
+            )
+            tangent_x, tangent_y = reference["tangent"]
+            overshoot = (
+                (float(point.x) - float(goal.x)) * tangent_x
+                + (float(point.y) - float(goal.y)) * tangent_y
+            )
+            allowed = (
+                same_goal
+                and geometry["position_error"] <= float(getattr(
+                    self, "sweep_entry_alignment_radius", 2.00
+                ))
+                and overshoot >= float(getattr(
+                    self, "transition_completion_pass_margin", 0.02
+                ))
+            )
+        segment["entry_recovery"] = bool(allowed)
+        if not allowed:
+            segment.pop("_entry_recovery_reference", None)
+        return bool(allowed)
+
+    def _observe_entry_overshoot(self, segment, tracker, geometry, point, yaw):
+        """Keep evidence only for a continuously approached final entrance.
+
+        The plane is anchored at the actual sweep entrance, not Hybrid's
+        inner-region sample or an intermediate cusp. Its normal follows
+        path travel order, including reverse approaches.
+        """
+        if segment.get("type") == "entry":
+            goal, goal_yaw = segment["end"], segment["yaw"]
+        elif (
+            segment.get("entry_goal_region", False)
+            and int(segment.get("transition_part", 0)) + 1
+                == int(segment.get("transition_part_count", 1))
+        ):
+            goal = segment.get("entry_handoff_goal")
+            goal_yaw = segment.get("entry_handoff_yaw")
+        else:
+            return
+        segment.pop("_entry_recovery_reference", None)
+        if (goal is None or goal_yaw is None or geometry is None
+                or not tracker.get("armed", False)
+                or tracker.get("invalidated", False)):
+            return
+        tangent_x, tangent_y = geometry["terminal_tangent"]
+        along = ((float(point.x) - float(goal.x)) * tangent_x
+                 + (float(point.y) - float(goal.y)) * tangent_y)
+        if along <= 0.0:
+            tracker["entry_approached_before_plane"] = True
+        if (
+            tracker.get("entry_approached_before_plane", False)
+            and geometry["progress_ratio"] >= float(getattr(
+                self, "transition_completion_min_progress_ratio", 0.85
+            ))
+        ):
+            segment["_entry_recovery_reference"] = {
+                "plan_id": getattr(self, "plan_id", ""),
+                "goal": (float(goal.x), float(goal.y), float(goal_yaw)),
+                "tangent": (tangent_x, tangent_y),
+            }
+            self._refresh_entry_recovery(segment, point, yaw, goal, goal_yaw)
+
     def _transition_entry_ready(self, point, yaw, final_goal, final_yaw):
         """Evaluate the authoritative final swath-entry hand-off region."""
         position_error = math.hypot(
@@ -3194,7 +3273,9 @@ class CoverageManager:
             ),
             "path": None,
             "gear": 0,
-            "entry_recovery": True,
+            # A failed pre-start pose check alone is ordinary acquisition.
+            # Only this entry's measured final approach enables recovery.
+            "_entry_recovery_reference": sweep.get("_entry_recovery_reference"),
             "transition_goal": Point(
                 float(sweep["start"].x), float(sweep["start"].y)
             ),
@@ -3211,9 +3292,13 @@ class CoverageManager:
             "pose with rolling Hybrid A*",
             segment_index + 1,
         )
-        return self._execute_rolling_hybrid_transition(
+        outcome = self._execute_rolling_hybrid_transition(
             recovery, segment_index
         )
+        sweep["_entry_recovery_reference"] = recovery.get(
+            "_entry_recovery_reference"
+        )
+        return outcome
 
     def _sweep_entry_handoff_geometry(self, sweep, point, yaw):
         """Evaluate the live pose before a sweep is allowed to start.
@@ -7525,6 +7610,7 @@ class CoverageManager:
             "terminal_cross": terminal_cross,
             "heading_error": heading_error,
             "path_heading_error": path_heading_error,
+            "terminal_tangent": (tangent_x, tangent_y),
         }
 
     @staticmethod
@@ -7541,10 +7627,12 @@ class CoverageManager:
 
     def _observe_transition_completion(self, segment, tracker, point, yaw):
         """Recognize a continuously approached cusp or swath-entry plane."""
+        segment["_transition_completion_tracker"] = tracker
         geometry = self._transition_completion_geometry(
             segment, point, yaw
         )
         if geometry is None or tracker.get("invalidated", False):
+            segment.pop("_entry_recovery_reference", None)
             return False, geometry
 
         cross_tolerance = float(getattr(
@@ -7617,6 +7705,7 @@ class CoverageManager:
                 tracker["last_point"] = (float(point.x), float(point.y))
                 tracker["last_progress"] = geometry["progress"]
                 tracker["max_progress"] = geometry["progress"]
+            self._observe_entry_overshoot(segment, tracker, geometry, point, yaw)
             geometry.update({
                 "armed": tracker.get("armed", False),
                 "invalidated": False,
@@ -7638,6 +7727,7 @@ class CoverageManager:
                 self, "transition_completion_max_sample_step", 0.50)):
             tracker["invalidated"] = True
             tracker["pass_samples"] = 0
+            segment.pop("_entry_recovery_reference", None)
             geometry.update({
                 "armed": True,
                 "invalidated": True,
@@ -7772,6 +7862,7 @@ class CoverageManager:
                 self, "transition_completion_confirmation_samples", 2
             ))
         )
+        self._observe_entry_overshoot(segment, tracker, geometry, point, yaw)
         return (
             tracker["pass_samples"] >= confirmation_samples,
             geometry,
@@ -8214,6 +8305,18 @@ class CoverageManager:
                         return "canceled"
                     if self.manual_pause or self.external_pause:
                         return "paused"
+                # A terminal callback can arrive before the next periodic pose
+                # sample. Preserve final-approach evidence without changing
+                # action success or the independent sweep hand-off gate.
+                if (transition_completion_tracker is not None
+                        and (segment["type"] == "entry"
+                             or segment.get("entry_goal_region", False))):
+                    terminal_pose = self._current_pose()
+                    if terminal_pose is not None:
+                        self._observe_transition_completion(
+                            segment, transition_completion_tracker,
+                            terminal_pose[0], terminal_pose[1],
+                        )
                 if state == GoalStatus.SUCCEEDED:
                     return "succeeded"
                 return "blocked" if state in (
@@ -8759,6 +8862,11 @@ class CoverageManager:
                         continue
                     break
                 if result == "succeeded":
+                    if (index + 1 < len(segments)
+                            and segments[index + 1]["type"] == "sweep"):
+                        segments[index + 1]["_entry_recovery_reference"] = (
+                            segment.get("_entry_recovery_reference")
+                        )
                     with self.lock:
                         if index in self.blocked_segments:
                             self.blocked_segments.remove(index)

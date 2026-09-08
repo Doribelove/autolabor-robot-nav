@@ -2364,6 +2364,178 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertEqual(3.0, captured["total_timeout_sec"])
         self.assertEqual(3, len(replanned[0]["transition_path"].poses))
 
+    def test_entry_recovery_accepts_four_meter_budget_and_rejects_excess(self):
+        configured_limit = yaml.safe_load(
+            (PACKAGE_ROOT / "config" / "coverage.yaml").read_text()
+        )["sweep_entry_recovery_max_path_length_m"]
+        self.assertEqual(4.0, configured_limit)
+        # Exercise both the deployed configuration and the no-parameter
+        # fallback. Ordinary transit must not inherit the recovery budget.
+        for limit, length, recovery, accepted in (
+            (configured_limit, 3.9, True, True),
+            (configured_limit, 4.0, True, True),
+            (configured_limit, 4.01, True, False),
+            (None, 4.0, True, True),
+            (None, 4.01, True, False),
+            (configured_limit, 4.2, False, True),
+            (configured_limit, 10.01, False, True),
+        ):
+            with self.subTest(limit=limit, length=length, recovery=recovery):
+                manager = COVERAGE_MANAGER.CoverageManager.__new__(
+                    COVERAGE_MANAGER.CoverageManager
+                )
+                manager.lock = threading.RLock()
+                manager.plan_id = "entry-budget-test"
+                manager.active = True
+                manager.cancel_requested = False
+                manager.direct_hybrid_to_final_goal = True
+                manager.hybrid_rolling_horizon = 10.0
+                manager.hybrid_rolling_plan_timeout = 5.0
+                if limit is not None:
+                    manager.sweep_entry_recovery_max_path_length = limit
+                start = COVERAGE_MANAGER.Point(0.0, 0.0)
+                goal = COVERAGE_MANAGER.Point(-0.5, 0.0)
+                manager._current_pose = lambda: (start, 0.0)
+                manager._wait_for_hybrid_planner = mock.Mock()
+                manager._entry_recovery_planning_profile = mock.Mock()
+                manager._entry_goal_region_planning_profile = mock.Mock()
+                manager._allocate_hybrid_path_generation = mock.Mock(
+                    return_value=1
+                )
+                # Path conversion is a separate contract; verify it is only
+                # reached after this admission check accepts the candidate.
+                manager._hybrid_transition_segments = mock.Mock(
+                    return_value=[{}]
+                )
+                result = COVERAGE_MANAGER.HybridTransitionResult()
+                result.outcome = result.OUTCOME_SUCCESS
+                result.reaches_final_goal = True
+                stamp = COVERAGE_MANAGER.rospy.Time(100.0)
+                result.path.poses = [
+                    manager._pose(point, 0.0, stamp)
+                    for point in (
+                        start, COVERAGE_MANAGER.Point((length - 0.5) / 2, 0.0),
+                        goal,
+                    )
+                ]
+                result.planned_goal = result.path.poses[-1]
+                manager._call_hybrid_planner = mock.Mock(return_value=
+                    SimpleNamespace(success=True, results=[result])
+                )
+                with mock.patch.object(
+                    COVERAGE_MANAGER.rospy.Time, "now", return_value=stamp
+                ):
+                    parts, reaches_goal, detail = (
+                        manager._plan_next_rolling_hybrid_chunk({
+                            "transition_goal": goal,
+                            "transition_goal_yaw": 0.0,
+                            "_entry_recovery_reference": {
+                                "plan_id": manager.plan_id,
+                                "goal": (-0.5, 0.0, 0.0),
+                                "tangent": (1.0, 0.0),
+                            } if recovery else None,
+                        })
+                    )
+                self.assertEqual(accepted, parts is not None, detail)
+                self.assertEqual(accepted, reaches_goal, detail)
+                self.assertEqual(
+                    int(accepted),
+                    manager._hybrid_transition_segments.call_count,
+                )
+                if not accepted:
+                    self.assertIn("exceeds the local recovery envelope", detail)
+                self.assertEqual(int(recovery),
+                                 manager._entry_recovery_planning_profile.call_count)
+                self.assertEqual(int(not recovery),
+                                 manager._entry_goal_region_planning_profile.call_count)
+
+    def _entry_overshoot_fixture(self, reverse=False, endpoint=0.0):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        self._seed_transition_completion_parameters(manager)
+        manager.entry_position_tolerance = 0.40
+        manager.plan_id = "overshoot-plan"
+        path = COVERAGE_MANAGER.Path()
+        sign = -1 if reverse else 1
+        path.poses = [manager._pose(
+            COVERAGE_MANAGER.Point(x, 0.0), 0.0, COVERAGE_MANAGER.rospy.Time(0)
+        ) for x in (-sign, endpoint)]
+        segment = {
+            "type": "transit", "path": path,
+            "transition_part": 0, "transition_part_count": 1,
+            "entry_goal_region": True,
+            "entry_handoff_goal": COVERAGE_MANAGER.Point(0.0, 0.0),
+            "entry_handoff_yaw": 0.0,
+        }
+        return manager, segment, manager._new_transition_completion_tracker()
+
+    def test_entry_recovery_requires_tracked_final_overshoot_outside_tolerance(self):
+        for reverse in (False, True):
+            for offset, yaw, expected in (
+                (-0.1, 0.6, False),  # Bad heading before the actual entrance.
+                (0.2, 0.0, False),   # Overshot but already acceptable.
+                (0.4, 0.0, False),   # Inclusive position tolerance boundary.
+                (0.4001, 0.0, True),
+                (0.1, 0.436332, False),  # Inclusive heading boundary.
+                (0.1, 0.436333, True),
+            ):
+                with self.subTest(reverse=reverse, offset=offset, yaw=yaw):
+                    manager, part, tracker = self._entry_overshoot_fixture(reverse)
+                    sign = -1 if reverse else 1
+                    for x in (-1.0, -0.7, -0.4, -0.1, 0.0):
+                        manager._observe_transition_completion(
+                            part, tracker, COVERAGE_MANAGER.Point(sign * x, 0), 0
+                        )
+                    point = COVERAGE_MANAGER.Point(sign * offset, 0)
+                    manager._observe_transition_completion(part, tracker, point, yaw)
+                    self.assertEqual(expected, manager._refresh_entry_recovery(
+                        part, point, yaw, part["entry_handoff_goal"], 0.0
+                    ))
+
+    def test_entry_recovery_rejects_cusp_spawn_jump_and_inner_endpoint(self):
+        for case in ("cusp", "spawn", "jump", "inner-endpoint"):
+            with self.subTest(case=case):
+                manager, part, tracker = self._entry_overshoot_fixture(
+                    endpoint=-0.3 if case == "inner-endpoint" else 0.0
+                )
+                if case == "cusp":
+                    part["transition_part_count"] = 2
+                points = {
+                    "cusp": (-1, -0.7, -0.4, -0.1, 0.2, 0.45),
+                    "spawn": (0.45, 0.46),
+                    "jump": (-1, 0.45),
+                    "inner-endpoint": (-1, -0.7, -0.4, -0.15),
+                }[case]
+                for x in points:
+                    manager._observe_transition_completion(
+                        part, tracker, COVERAGE_MANAGER.Point(x, 0),
+                        0.6 if case == "inner-endpoint" and x == -0.15 else 0.0,
+                    )
+                self.assertIsNone(part.get("_entry_recovery_reference"))
+
+    def test_entry_recovery_evidence_expires_after_reentry_or_leaving_local_area(self):
+        for x, yaw, goal, plan_id in (
+            (0.2, 0.0, 0.0, "overshoot-plan"),
+            (-0.5, 0.0, 0.0, "overshoot-plan"),
+            (2.01, 0.0, 0.0, "overshoot-plan"),
+            (0.5, 0.0, -0.1, "overshoot-plan"),
+            (0.5, 0.0, 0.0, "new-plan"),
+        ):
+            with self.subTest(x=x, goal=goal, plan_id=plan_id):
+                manager, part, tracker = self._entry_overshoot_fixture()
+                for sample in (-1, -0.7, -0.4, -0.1, 0.2, 0.45):
+                    manager._observe_transition_completion(
+                        part, tracker, COVERAGE_MANAGER.Point(sample, 0), 0
+                    )
+                self.assertIsNotNone(part.get("_entry_recovery_reference"))
+                manager.plan_id = plan_id
+                self.assertFalse(manager._refresh_entry_recovery(
+                    part, COVERAGE_MANAGER.Point(x, 0), yaw,
+                    COVERAGE_MANAGER.Point(goal, 0), 0,
+                ))
+                self.assertIsNone(part.get("_entry_recovery_reference"))
+
     def test_cusp_suffix_rebase_accepts_same_gear_radius_join(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
             COVERAGE_MANAGER.CoverageManager
@@ -2931,8 +3103,116 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertAlmostEqual(0.0, recovery["transition_goal"].x)
         self.assertAlmostEqual(0.0, recovery["transition_goal"].y)
         self.assertAlmostEqual(0.0, recovery["transition_goal_yaw"])
-        self.assertTrue(recovery["entry_recovery"])
+        self.assertFalse(recovery.get("entry_recovery", False))
+        self.assertIsNone(recovery.get("_entry_recovery_reference"))
         self.assertEqual("TRANSITING", manager.state)
+
+    def test_near_entry_execution_failure_does_not_enable_recovery(self):
+        manager, _part, _tracker = self._entry_overshoot_fixture()
+        manager.lock = threading.RLock()
+        manager.hybrid_rolling_max_chunks = 1
+        # The 17:36/18:01 failures were about 1.6 m from the entrance.
+        manager._current_pose = lambda: (COVERAGE_MANAGER.Point(-1.66, 0), 1.0)
+        segment = {
+            "type": "rolling_transit", "entry_recovery": True,
+            "transition_goal": COVERAGE_MANAGER.Point(0, 0),
+            "transition_goal_yaw": 0.0,
+        }
+        manager._plan_next_rolling_hybrid_chunk = mock.Mock(
+            return_value=([{}], True, "ok")
+        )
+        manager._execute_segment = mock.Mock(return_value="blocked")
+        manager._publish_hybrid_transition_path = mock.Mock()
+        self.assertEqual("blocked", manager._execute_rolling_hybrid_transition(
+            segment, 3
+        ))
+        self.assertFalse(segment["entry_recovery"])
+
+    def test_accepted_entry_still_enters_sweeping_with_stale_recovery_marker(self):
+        for x, y, yaw in ((-0.2, 0.1, 0.1), (0.2, 0.1, 0.1), (0.4, 0, 0)):
+            with self.subTest(x=x, y=y):
+                sweep = {
+                    "type": "sweep", "swath_index": 0,
+                    "start": COVERAGE_MANAGER.Point(0, 0),
+                    "end": COVERAGE_MANAGER.Point(4, 0), "yaw": 0.0,
+                    "entry_recovery": True,
+                }
+                manager, executed = self._manager([sweep], ["succeeded"])
+                manager._current_pose = lambda: (COVERAGE_MANAGER.Point(x, y), yaw)
+                manager._prepare_sweep_entry = (
+                    COVERAGE_MANAGER.CoverageManager._prepare_sweep_entry.__get__(manager)
+                )
+                manager._execute_sweep_entry_recovery = mock.Mock(
+                    side_effect=AssertionError("accepted entrance must start sweeping")
+                )
+                original_execute = manager._execute_segment
+                def execute(segment, index):
+                    self.assertEqual("SWEEPING", manager.state)
+                    return original_execute(segment, index)
+                manager._execute_segment = execute
+                self._run(manager)
+                self.assertEqual(["sweep"], executed)
+                self.assertEqual("COMPLETED", manager.state)
+
+    def test_rolling_entry_acceptance_precedes_recovery_and_planning(self):
+        manager, part, tracker = self._entry_overshoot_fixture()
+        manager.lock = threading.RLock()
+        manager.hybrid_rolling_max_chunks = 1
+        for x in (-1, -0.7, -0.4, -0.1, 0.2, 0.45):
+            manager._observe_transition_completion(
+                part, tracker, COVERAGE_MANAGER.Point(x, 0), 0
+            )
+        segment = {
+            "type": "rolling_transit", "entry_recovery": True,
+            "_entry_recovery_reference": part["_entry_recovery_reference"],
+            "transition_goal": COVERAGE_MANAGER.Point(0, 0),
+            "transition_goal_yaw": 0.0,
+        }
+        manager._current_pose = lambda: (COVERAGE_MANAGER.Point(0.2, 0), 0)
+        manager._wait_for_transition_stop = mock.Mock(return_value=True)
+        manager._plan_next_rolling_hybrid_chunk = mock.Mock()
+        self.assertEqual("succeeded", manager._execute_rolling_hybrid_transition(
+            segment, 3
+        ))
+        manager._plan_next_rolling_hybrid_chunk.assert_not_called()
+        self.assertFalse(segment["entry_recovery"])
+
+    def test_final_overshoot_evidence_reaches_the_dependent_sweep(self):
+        manager, part, tracker = self._entry_overshoot_fixture()
+        for x in (-1, -0.7, -0.4, -0.1, 0.2, 0.45):
+            manager._observe_transition_completion(
+                part, tracker, COVERAGE_MANAGER.Point(x, 0), 0
+            )
+        reference = part["_entry_recovery_reference"]
+        connector = {"type": "rolling_transit", "_entry_recovery_reference": reference}
+        sweep = {"type": "sweep"}
+        worker, executed = self._manager([connector, sweep], ["succeeded", "succeeded"])
+        self._run(worker)
+        self.assertIs(reference, sweep["_entry_recovery_reference"])
+        self.assertEqual(["rolling_transit", "sweep"], executed)
+
+    def test_prestart_acquisition_reuses_only_proven_entry_overshoot(self):
+        manager, part, tracker = self._entry_overshoot_fixture()
+        for x in (-1, -0.7, -0.4, -0.1, 0.2, 0.45):
+            manager._observe_transition_completion(
+                part, tracker, COVERAGE_MANAGER.Point(x, 0), 0
+            )
+        manager.lock = threading.RLock()
+        manager.hierarchical_hybrid_on_demand = True
+        manager._current_pose = lambda: (COVERAGE_MANAGER.Point(0.45, 0), 0)
+        sweep = {
+            "swath_index": 1, "start": COVERAGE_MANAGER.Point(0, 0), "yaw": 0,
+            "_entry_recovery_reference": part["_entry_recovery_reference"],
+        }
+        def plan(recovery, index):
+            self.assertEqual(2, index)
+            self.assertTrue(manager._refresh_entry_recovery(
+                recovery, *manager._current_pose(),
+                recovery["transition_goal"], recovery["transition_goal_yaw"],
+            ))
+            return "blocked"
+        manager._execute_rolling_hybrid_transition = plan
+        self.assertEqual("blocked", manager._execute_sweep_entry_recovery(sweep, 2))
 
     def test_rolling_transition_replans_full_goal_after_measured_cusp(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
@@ -5221,6 +5501,31 @@ class CoverageSweepResumeTest(unittest.TestCase):
         self.assertTrue(all(p.pose.position.x >= 4.0 for p in paths[1].poses))
         self.assertEqual([(0.0, True), (0.0, True)], manager._test_teb)
         self.assertEqual([], manager._test_pauses)
+
+    def test_final_entry_terminal_callback_preserves_late_overshoot_evidence(self):
+        for status, outcome in ((COVERAGE_MANAGER.GoalStatus.SUCCEEDED, "succeeded"),
+                                (COVERAGE_MANAGER.GoalStatus.ABORTED, "blocked")):
+            with self.subTest(status=status):
+                manager, _sweep = self._fixture([
+                    ([-0.7, (-0.4, 0, 0.45), (-0.1, 0, 0.45),
+                      (0.35, 0, 0.45)], status),
+                ])
+                CoverageManagerStateMachineTest._seed_transition_completion_parameters(manager)
+                manager._test_pose = (COVERAGE_MANAGER.Point(-1, 0), 0)
+                part = {
+                    "type": "transit", "start": COVERAGE_MANAGER.Point(-1, 0),
+                    "end": COVERAGE_MANAGER.Point(0, 0), "yaw": 0, "length": 1,
+                    "entry_goal_region": True,
+                    "entry_handoff_goal": COVERAGE_MANAGER.Point(0, 0),
+                    "entry_handoff_yaw": 0,
+                    "path": manager._path_for_points([
+                        COVERAGE_MANAGER.Point(-1, 0), COVERAGE_MANAGER.Point(0, 0),
+                    ], 0),
+                }
+                self.assertEqual(outcome, manager._execute_segment(part, 1))
+                self.assertTrue(part["entry_recovery"])
+                self.assertIsNotNone(part.get("_entry_recovery_reference"))
+                self.assertEqual(0, manager.move_base.cancel_count)
 
     def test_persistent_obstacle_outlives_retry_budget_then_clears(self):
         manager, _ = self._fixture([
