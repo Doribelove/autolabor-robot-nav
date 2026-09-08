@@ -1,0 +1,176 @@
+{
+  "kind": "synthetic geometry replay; no detector inference or live sensor",
+  "platform": "Linux-5.10.192-tegra-aarch64-with-glibc2.29",
+  "python": "/home/slam/robot_ws/.venv/fod_yolo/bin/python3",
+  "opencv": "4.10.0",
+  "numpy": "1.24.4",
+  "config": {
+    "enabled": true,
+    "max_depth_m": 8.0,
+    "ground_seed_height_m": 0.18,
+    "ground_tolerance_m": 0.025,
+    "ground_max_tilt_deg": 12.0,
+    "candidate_max_height_m": 0.45,
+    "candidate_max_span_m": 0.6,
+    "environment_min_top_m": 0.7,
+    "environment_min_height_span_m": 0.5,
+    "environment_min_width_m": 0.85,
+    "confirm_frames": 3,
+    "confirm_duration_sec": 0.12,
+    "maximum_gap_sec": 0.25,
+    "association_iou": 0.65,
+    "max_geometry_objects": 24,
+    "budget_ms": 20.0
+  },
+  "filter_sha256": "2b0c30a746f25b2c28f291c407985b7fe537ccb34d2a3f55045909621878bab7",
+  "benchmark": {
+    "2": {
+      "filter": {
+        "samples": 40,
+        "median_ms": 8.88584999847808,
+        "p95_ms": 9.118015594503959,
+        "maximum_ms": 9.174958999210503
+      },
+      "existing_depth_fusion": {
+        "samples": 10,
+        "median_ms": 7.8837869950803,
+        "p95_ms": 8.109566197526874,
+        "maximum_ms": 8.225919998949394
+      },
+      "mean_budget_unknown": 0.0
+    },
+    "12": {
+      "filter": {
+        "samples": 40,
+        "median_ms": 21.694880997529253,
+        "p95_ms": 21.998822996465606,
+        "maximum_ms": 22.06914399721427
+      },
+      "existing_depth_fusion": {
+        "samples": 10,
+        "median_ms": 45.544261498434935,
+        "p95_ms": 46.46712240137276,
+        "maximum_ms": 47.04383700300241
+      },
+      "mean_budget_unknown": 6.0
+    },
+    "24": {
+      "filter": {
+        "samples": 40,
+        "median_ms": 22.278106000158004,
+        "p95_ms": 22.5475990519044,
+        "maximum_ms": 22.595839996938594
+      },
+      "existing_depth_fusion": {
+        "samples": 10,
+        "median_ms": 90.44363199791405,
+        "p95_ms": 90.71147929753351,
+        "maximum_ms": 90.78883699839935
+      },
+      "mean_budget_unknown": 18.0
+    },
+    "100": {
+      "filter": {
+        "samples": 40,
+        "median_ms": 20.797619497898268,
+        "p95_ms": 21.35634329642926,
+        "maximum_ms": 21.476941998116672
+      },
+      "existing_depth_fusion": {
+        "samples": 10,
+        "median_ms": 375.18378849927103,
+        "p95_ms": 376.2938773990754,
+        "maximum_ms": 376.5269450013875
+      },
+      "mean_budget_unknown": 96.0
+    }
+  },
+  "example": {
+    "schema_version": 1,
+    "source_stamp": 102.93333333333334,
+    "filter_sha256": "2b0c30a746f25b2c28f291c407985b7fe537ccb34d2a3f55045909621878bab7",
+    "implementation_sha256": "13bbf1866acc8229b53be7d1a64fb0b325371dd67b31d45c2ee06443620a8fdf",
+    "enabled": true,
+    "ground": {
+      "valid": true,
+      "normal": [
+        -1.1022069072576292e-09,
+        -6.93303426745885e-12,
+        0.9999999999999999
+      ],
+      "offset_m": 3.632112500811606e-09,
+      "samples": 4008,
+      "residual_m": 1.8763027970772658e-08
+    },
+    "decisions": [
+      {
+        "evidence": "environment",
+        "reason": "tall_structure",
+        "metrics": {
+          "valid_fraction": 1.0,
+          "foreground_samples": 1550,
+          "foreground_fraction": 0.7553606237816765,
+          "dominance": 1.0,
+          "background_separation_fraction": 0.9722580645161291,
+          "height_low_m": 0.09690306818422174,
+          "height_top_m": 0.7999999987331554,
+          "height_span_m": 0.7030969305489336,
+          "span_x_m": 0.251294166705903,
+          "span_y_m": 0.33536341586112983,
+          "aspect_ratio_px": 0.6235294117647059
+        },
+        "state": "environment",
+        "bbox": [
+          336.0,
+          18.0,
+          442.0,
+          188.0
+        ],
+        "object_id": 1,
+        "class_id": 58,
+        "class_name": "potted plant",
+        "confidence": 0.7,
+        "rejection_streak": 3,
+        "streak_start": 100.0
+      },
+      {
+        "evidence": "candidate",
+        "reason": "small_floor_object",
+        "metrics": {
+          "valid_fraction": 1.0,
+          "foreground_samples": 799,
+          "foreground_fraction": 0.8322916666666667,
+          "dominance": 1.0,
+          "background_separation_fraction": 0.9574468085106383,
+          "height_low_m": 0.05432420529389942,
+          "height_top_m": 0.2799999923310563,
+          "height_span_m": 0.2256757870371569,
+          "span_x_m": 0.07842137313089315,
+          "span_y_m": 0.0936179906845093,
+          "aspect_ratio_px": 0.4166666666666667
+        },
+        "state": "candidate",
+        "bbox": [
+          291.0,
+          129.0,
+          311.0,
+          177.0
+        ],
+        "object_id": 2,
+        "class_id": 28,
+        "class_name": "suitcase",
+        "confidence": 0.7,
+        "rejection_streak": 0,
+        "streak_start": 102.93333333333334
+      }
+    ],
+    "counts": {
+      "candidate": 1,
+      "uncertain": 0,
+      "environment": 1
+    },
+    "elapsed_ms": 8.87290600076085,
+    "motion_eligible": false
+  },
+  "stress_note": "12/24/100 object runs duplicate ROIs for bounded-work stress, not accuracy"
+}

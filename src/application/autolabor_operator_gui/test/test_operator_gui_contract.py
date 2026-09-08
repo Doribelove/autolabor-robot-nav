@@ -45,7 +45,8 @@ class OperatorGuiContractTest(unittest.TestCase):
         block = GUI_SOURCE.split('void MainWindow::refreshBpuPreview(', 1)[1].split(
             'QWidget* MainWindow::buildVisionPage()', 1)[0]
         for evidence in ('isMinimized()', 'bpu_tab_index_',
-                         '"/fod/bpu_preview/image", 1',
+                         '"/fod/bpu_preview/image"',
+                         '"/perception/fcos/raw_preview"',
                          'bpu_preview_subscriber_.shutdown()',
                          'image.cacheKey()', 'data.raw_preview',
                          'data.bpu_preview', '旧结果，不代表当前场景'):
@@ -55,6 +56,7 @@ class OperatorGuiContractTest(unittest.TestCase):
         for evidence in ('"bpu_preview_demo_only"',
                          'sourceStampAge(msg->header.stamp) > 3.0',
                          'msg->header.stamp <= telemetry_.bpu_preview_stamp',
+                         '"bpu_preview_raw_only") != bpu_show_raw_',
                          'msg->width > 1920', 'msg->height > 1080'):
             self.assertIn(evidence, callback)
         for forbidden in ('advertise', '.publish(', 'telemetry_.detections',

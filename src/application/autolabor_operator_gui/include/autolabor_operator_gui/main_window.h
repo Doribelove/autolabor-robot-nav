@@ -554,6 +554,7 @@ private:
   ros::Subscriber bpu_preview_subscriber_;
   ros::Subscriber bpu_preview_status_subscriber_;
   bool bpu_preview_subscribed_ = false;
+  bool bpu_show_raw_ = false;  // GUI writes and callback reads under snapshot_mutex_.
   ros::Subscriber detections_subscriber_;
   ros::Subscriber vision_results_subscriber_;
   ros::Subscriber mode_state_subscriber_;

@@ -1,5 +1,11 @@
 # robot_j6m_ws 导航优化专用候选版（2026-09-07）
 
+2026-09-08 本地垃圾误框优化版现保存在 **`feature/litter-perception-optimization-20260908`**。
+本机后处理与 Qt 已加入几何筛选和原始框对照；待确认目标仍显示。程序保持停止，供操作员
+次日启动验收；J6M 模型和 release 未变。完整原因分析、适用范围、验证及验收命令见
+[垃圾识别优化交接](docs/LITTER_PERCEPTION_OPTIMIZATION_20260908.md)。
+原 `feature/navigation-optimization-20260907` 分支保留 `99e8ac9`，下述为其历史记录。
+
 本目录是独立工作树 `/home/slam/robot_j6m_ws_navigation_20260907`，Git 分支为
 `feature/navigation-optimization-20260907`。它复制了 2026-09-07 开工时
 `robot_j6m_ws_optimized_20260905` 的源码和当前地图；原工作区不在本目录内，也没有被清理、

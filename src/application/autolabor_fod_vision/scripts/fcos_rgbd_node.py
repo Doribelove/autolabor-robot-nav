@@ -32,6 +32,7 @@ from autolabor_bpu_perception.protocol import Client
 from autolabor_fod_vision.bpu_rgbd import Preprocessor,source_boxes,estimate_boxes,FCOS_SHA
 from autolabor_fod_vision.depth_fusion import nearest_synchronized_message
 from autolabor_fod_vision.two_stage import LatestFrameSlot
+from autolabor_fod_vision.litter_filter import FilterConfig,LitterFilter
 
 
 class FcosRgbd:
@@ -43,6 +44,7 @@ class FcosRgbd:
         self.mount_file=Path(rospy.get_param('~mount_config'))
         self.mount=zed_mount(yaml.safe_load(self.mount_file.read_text()))
         self.classes=yaml.safe_load(Path(rospy.get_param('~classes_config')).read_text())['names']
+        self.litter_filter=LitterFilter(FilterConfig(**rospy.get_param('~litter_filter',{})))
         self.slot=LatestFrameSlot();self.result_slot=LatestFrameSlot();self.lock=threading.Lock()
         self.depth=deque(maxlen=20);self.info=deque(maxlen=20)
         self.bridge=CvBridge();self.preprocessor=Preprocessor();self.tracker=ImageTracker()
@@ -51,6 +53,9 @@ class FcosRgbd:
         self.tf_buffer=tf2_ros.Buffer(cache_time=rospy.Duration(3))
         self.tf_listener=tf2_ros.TransformListener(self.tf_buffer)
         self.pub=rospy.Publisher('/perception/fcos/objects',DetectedObjects,queue_size=1)
+        self.candidate_pub=rospy.Publisher('/perception/fcos/litter_candidates',DetectedObjects,queue_size=1)
+        self.audit_pub=rospy.Publisher('/perception/fcos/filter_audit',String,queue_size=1)
+        self.raw_image_pub=rospy.Publisher('/perception/fcos/raw_preview',Image,queue_size=1)
         self.image_pub=rospy.Publisher('/fod/bpu_preview/image',Image,queue_size=1)
         self.status_pub=rospy.Publisher('/fod/bpu_preview/status',String,queue_size=1)
         self.diagnostic_pub=rospy.Publisher('/perception/fcos/status',String,queue_size=1)
@@ -81,8 +86,13 @@ class FcosRgbd:
             empty=DetectedObjects();empty.header.stamp=rospy.Time.from_sec(self.last_stamp)
             empty.header.frame_id='base_link';empty.session_id=self.session
             empty.model_name='fcos_efficientnetb3';empty.model_sha256=FCOS_SHA
-            empty.valid=False;empty.calibrated=True;empty.motion_eligible=False
+            empty.valid=False;empty.calibrated=False;empty.motion_eligible=False
             empty.detail='No fresh RGB-D inference result';self.pub.publish(empty)
+            self.candidate_pub.publish(empty)
+            self.audit_pub.publish(String(data=json.dumps(dict(schema_version=1,valid=False,
+                session_id=self.session,source_stamp=self.last_stamp,motion_eligible=False,
+                implementation_sha256=self.litter_filter.implementation_sha256,
+                filter_sha256=self.litter_filter.config.digest,detail=empty.detail,decisions=[]))))
 
     def report(self,detail,**extra):
         status=dict(session_id=self.session,processed=self.processed,expired=self.expired,
@@ -91,8 +101,9 @@ class FcosRgbd:
         text=json.dumps(status,allow_nan=False)
         self.diagnostic_pub.publish(String(data=text))
         if 'source_age_ms' in extra:
-            display='FCOS + ZED 深度 · 已处理 %d 帧 · 有效定位 %d 次 · 帧龄 %.0f ms' % (
-                self.processed,self.depth_valid,extra['source_age_ms'])
+            counts=extra.get('filter_counts',{})
+            display='地面候选 %d · 待确认 %d · 环境框隐藏 %d · 帧龄 %.0f ms' % (
+                counts.get('candidate',0),counts.get('uncertain',0),counts.get('environment',0),extra['source_age_ms'])
         else:
             display='FCOS 深度链路等待恢复：'+str(detail)
         self.status_pub.publish(String(data=display))
@@ -149,7 +160,7 @@ class FcosRgbd:
         with self.lock:
             depth,_=nearest_synchronized_message(self.depth,stamp,frame.header.frame_id,.02)
             info,_=nearest_synchronized_message(self.info,stamp,frame.header.frame_id,.02)
-        estimates=None
+        estimates=None;array=None
         if depth is not None and info is not None and (info.width,info.height)==(frame.width,frame.height):
             array=self.bridge.imgmsg_to_cv2(depth,desired_encoding='passthrough')
             if depth.encoding=='32FC1':array=np.asarray(array,dtype=np.float32)
@@ -182,7 +193,14 @@ class FcosRgbd:
             translation=np.array([transform.translation.x,transform.translation.y,transform.translation.z])
             message.header.frame_id='map'
         except (tf2_ros.LookupException,tf2_ros.ConnectivityException,tf2_ros.ExtrapolationException):pass
+        audit=self.litter_filter.process(boxes,array,info.K if info is not None else None,
+            self.mount,message.calibrated,stamp)
+        audit.update(valid=True,session_id=self.session,source_frame=frame.header.frame_id,
+            source_stamp_ns=frame.header.stamp.to_nsec())
         display=image.copy() if self.image_pub.get_num_connections() else None
+        raw_display=image.copy() if self.raw_image_pub.get_num_connections() else None
+        candidates=copy.deepcopy(message)
+        candidates.detail='Small floor object observations, including uncertain; see /perception/fcos/filter_audit'
         for index,d in enumerate(boxes):
             item=DetectedObject();item.object_id=d['object_id'];item.class_id=d['class_id']
             item.class_name=d['class_name'];item.confidence=d['confidence'];item.bbox=d['bbox']
@@ -196,23 +214,34 @@ class FcosRgbd:
                     item.depth_m=estimate.depth_m;item.depth_mad_m=estimate.mad_m;item.depth_samples=estimate.sample_count
                     label='%s #%d Z:%.2fm'%(item.class_name,item.object_id,item.depth_m)
             message.objects.append(item)
-            if display is not None:
+            decision=audit['decisions'][index]
+            if decision['state']!='environment':candidates.objects.append(item)
+            for target,raw in ((raw_display,True),(display,False)):
+                if target is None or (not raw and decision['state']=='environment'):continue
                 x1,y1,x2,y2=map(int,d['bbox'])
-                color=(0,220,0) if item.position_valid else (0,180,255)
-                cv2.rectangle(display,(x1,y1),(x2,y2),color,2)
-                cv2.putText(display,label,(x1,max(18,y1-5)),cv2.FONT_HERSHEY_SIMPLEX,.45,color,1)
+                color=(0,220,0) if (item.position_valid if raw else decision['state']=='candidate') else (0,180,255)
+                text=label if raw else ('FLOOR' if decision['state']=='candidate' else 'REVIEW')+' '+label
+                cv2.rectangle(target,(x1,y1),(x2,y2),color,2)
+                cv2.putText(target,text,(x1,max(18,y1-5)),cv2.FONT_HERSHEY_SIMPLEX,.45,color,1)
+        audit_text=json.dumps(audit,allow_nan=False,separators=(',',':'))
         # Depth clustering/TF also consume time: recheck at the publication boundary.
         age=rospy.Time.now().to_sec()-stamp
-        if not fresh(stamp,rospy.Time.now().to_sec(),self.maximum_age):self.expired+=1;return
-        message.latency_ms=age*1000;self.pub.publish(message)
+        if not fresh(stamp,rospy.Time.now().to_sec(),self.maximum_age):
+            self.expired+=1;self.litter_filter.previous=[];return
+        message.latency_ms=age*1000;candidates.latency_ms=age*1000
+        self.pub.publish(message);self.candidate_pub.publish(candidates)
+        self.audit_pub.publish(String(data=audit_text))
         self.depth_matches+=int(estimates is not None)
         self.depth_valid+=sum(o.position_valid for o in message.objects)
         self.processed+=1;self.last_result=time.monotonic()
-        if display is not None:
-            preview=self.bridge.cv2_to_imgmsg(display,encoding='bgr8');preview.header=copy.deepcopy(frame.header)
-            preview.header.frame_id='bpu_preview_demo_only';self.image_pub.publish(preview)
+        for target,publisher in ((display,self.image_pub),(raw_display,self.raw_image_pub)):
+            if target is not None:
+                preview=self.bridge.cv2_to_imgmsg(target,encoding='bgr8');preview.header=copy.deepcopy(frame.header)
+                preview.header.frame_id='bpu_preview_raw_only' if publisher is self.raw_image_pub else 'bpu_preview_demo_only'
+                publisher.publish(preview)
         self.report(message.detail,source_age_ms=age*1000,infer_ms=result['timing']['vendor_infer_ms'],
-            fusion_ms=(time.monotonic()-started)*1000,**result['client_timing'])
+            fusion_ms=(time.monotonic()-started)*1000,filter_ms=audit['elapsed_ms'],
+            filter_counts=audit['counts'],filter_sha256=audit['filter_sha256'],**result['client_timing'])
 
     def stop(self):
         self.slot.stop();self.result_slot.stop();self.worker.join(timeout=3);self.fusion_worker.join(timeout=3)

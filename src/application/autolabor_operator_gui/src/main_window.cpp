@@ -2115,12 +2115,24 @@ QWidget* MainWindow::buildBpuPreviewPage()
   auto* layout = new QVBoxLayout(page);
   layout->setContentsMargins(16, 12, 16, 14);
   auto* notice = new QLabel(
-      QStringLiteral("J6M BPU · FCOS 通用物体预览（不是五材质分类）\n"
-                     "仅显示，不参与避障、导航或视觉运动控制；正式视觉后端不变。"
-                     "离开综合/BPU预览页或最小化窗口后暂停 BPU 预览计算。"), page);
+      QStringLiteral("J6M BPU · 地面小件候选筛选\n"
+                     "绿色 FLOOR：几何符合；橙色 REVIEW：待确认，仍保留。类别名称仅作参考。"
+                     "连续确认的高大环境物隐藏，可勾选原始框对照。仅供观察，不表示已确认可清扫。"), page);
   notice->setWordWrap(true);
   notice->setStyleSheet(QStringLiteral("color:#92400e;background:#fef3c7;padding:10px;"));
   layout->addWidget(notice);
+  auto* raw_boxes = new QCheckBox(QStringLiteral("显示原始检测框（综合页同步切换）"), page);
+  raw_boxes->setObjectName(QStringLiteral("bpuRawBoxesCheckbox"));
+  layout->addWidget(raw_boxes);
+  connect(raw_boxes, &QCheckBox::toggled, this, [this](bool checked) {
+    bpu_preview_subscriber_.shutdown();
+    bpu_preview_status_subscriber_.shutdown();
+    bpu_preview_subscribed_ = false;
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    bpu_show_raw_ = checked;
+    telemetry_.bpu_preview = QImage();
+    telemetry_.bpu_preview_stamp = ros::Time();
+  });
   auto* panels = new QHBoxLayout();
   const auto add_panel = [page, panels](const QString& title, QLabel** preview,
                                        QLabel** status) {
@@ -2155,7 +2167,8 @@ void MainWindow::refreshBpuPreview(const TelemetrySnapshot& data)
   if (wanted && !bpu_preview_subscribed_)
   {
     bpu_preview_subscriber_ = node_->subscribe(
-        "/fod/bpu_preview/image", 1, &MainWindow::bpuPreviewCallback, this);
+        bpu_show_raw_ ? "/perception/fcos/raw_preview" : "/fod/bpu_preview/image",
+        1, &MainWindow::bpuPreviewCallback, this);
     bpu_preview_status_subscriber_ = node_->subscribe(
         "/fod/bpu_preview/status", 1, &MainWindow::bpuPreviewStatusCallback, this);
     bpu_preview_subscribed_ = true;
@@ -4557,7 +4570,8 @@ void MainWindow::debugImageCallback(const sensor_msgs::Image::ConstPtr& msg)
 void MainWindow::bpuPreviewCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
   // Dedicated display-only message; no changes to production detection state.
-  if (msg->header.frame_id != "bpu_preview_demo_only" ||
+  if ((msg->header.frame_id != "bpu_preview_demo_only" &&
+       msg->header.frame_id != "bpu_preview_raw_only") ||
       msg->width == 0 || msg->width > 1920 || msg->height == 0 || msg->height > 1080 ||
       sourceStampAge(msg->header.stamp) > 3.0)
     return;
@@ -4565,6 +4579,9 @@ void MainWindow::bpuPreviewCallback(const sensor_msgs::Image::ConstPtr& msg)
   if (!imageMessageToQImage(*msg, &preview))
     return;
   std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  // Drop callbacks queued before a view switch, even at the same source stamp.
+  if ((msg->header.frame_id == "bpu_preview_raw_only") != bpu_show_raw_)
+    return;
   if (msg->header.stamp <= telemetry_.bpu_preview_stamp)
     return;
   telemetry_.bpu_preview = preview;
