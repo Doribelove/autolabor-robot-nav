@@ -222,10 +222,14 @@ def test_worker_uses_exact_bounded_arecord_argv_and_returns_metrics():
             assert 0.05 <= result["audio_duration_s"] <= 30.0
             assert result["rms"] > config["min_rms"]
             assert result["asr_latency_ms"] >= 0.0
+            assert result["model_load_ms"] >= 0.0
+            assert result["decode_ms"] >= 0.0
+            assert result["model_was_loaded"] is False
             assert result["model_loaded"] is True
             assert len(model.calls) == 1
             assert model.calls[0][1]["language"] == "zh"
             assert model.calls[0][1]["fp16"] is True
+            assert model.calls[0][1]["without_timestamps"] is True
 
             argv, kwargs = commands[0]
             assert argv[0] == arecord_path
@@ -1374,6 +1378,81 @@ def test_json_server_waits_for_concurrent_broken_pipe_shutdown_completion():
         serve_thread.join(2.0)
     assert not serve_thread.is_alive()
     assert worker.shutdown_calls == 1
+
+
+def test_prepare_model_loads_and_warms_without_opening_microphone():
+    with tempfile.TemporaryDirectory() as directory:
+        arecord_path = os.path.join(directory, "fake_arecord")
+        _fake_arecord(arecord_path, amplitude=1200)
+        model = _FakeModel(text="")
+        worker = WhisperAsrWorker(
+            _worker_config(directory, arecord_path),
+            cuda_probe=lambda: True,
+            model_loader=lambda _path: model,
+            text_converter=lambda text: text,
+        )
+        try:
+            result = worker.prepare_model()
+            assert result["prepared"] is True
+            assert result["model_loaded"] is True
+            assert result["recording"] is False
+            assert result["state"] == "READY"
+            assert result["model_prepare_ms"] >= 0.0
+            assert result["model_load_ms"] >= 0.0
+            assert result["warmup_ms"] >= 0.0
+            assert len(model.calls) == 1
+            audio, options = model.calls[0]
+            assert len(audio) == 8000
+            assert options["without_timestamps"] is True
+        finally:
+            worker.shutdown()
+
+
+def test_cancel_during_model_prepare_discards_warmup_and_unloads_model():
+    with tempfile.TemporaryDirectory() as directory:
+        arecord_path = os.path.join(directory, "fake_arecord")
+        _fake_arecord(arecord_path, amplitude=1200)
+        entered = threading.Event()
+        release = threading.Event()
+
+        class BlockingWarmupModel(_FakeModel):
+            def transcribe(self, audio, **kwargs):
+                self.calls.append((audio, kwargs))
+                entered.set()
+                release.wait(3.0)
+                return {"text": ""}
+
+        model = BlockingWarmupModel()
+        worker = WhisperAsrWorker(
+            _worker_config(directory, arecord_path),
+            cuda_probe=lambda: True,
+            model_loader=lambda _path: model,
+            text_converter=lambda text: text,
+        )
+        outcome = {}
+
+        def prepare():
+            try:
+                worker.prepare_model()
+            except Exception as exc:
+                outcome["error"] = exc
+
+        thread = threading.Thread(target=prepare)
+        thread.start()
+        try:
+            assert entered.wait(1.0)
+            cancelled = worker.cancel({"unload_model": True})
+            assert cancelled["state"] == "CANCELLING"
+            release.set()
+            thread.join(2.0)
+            assert not thread.is_alive()
+            assert isinstance(outcome.get("error"), _WORKER_MODULE.WorkerRequestError)
+            assert outcome["error"].code == "CANCELLED"
+            assert worker.status()["model_loaded"] is False
+        finally:
+            release.set()
+            thread.join(2.0)
+            worker.shutdown()
 
 
 if __name__ == "__main__":

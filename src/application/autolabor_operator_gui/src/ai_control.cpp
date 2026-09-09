@@ -213,6 +213,7 @@ void MainWindow::selectAiAsrModel(int index)
                     data.ai_status.smart_voice_enabled ||
                     data.ai_status.smart_voice_listening ||
                     phase == QStringLiteral("STARTING") ||
+                    phase == QStringLiteral("LOADING") ||
                     phase == QStringLiteral("RECORDING") ||
                     phase == QStringLiteral("RECORDED") ||
                     phase == QStringLiteral("STOPPING") ||

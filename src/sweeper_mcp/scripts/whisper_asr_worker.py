@@ -258,6 +258,7 @@ class WhisperAsrWorker(object):
         self._audio_duration_s = 0.0
         self._last_rms = 0.0
         self._asr_latency_ms = 0.0
+        self._model_prepare_ms = 0.0
         self._model_name = DEFAULT_MODEL_NAME
         self._checkpoint_path = ""
         self._checkpoint_sha256 = ""
@@ -281,7 +282,7 @@ class WhisperAsrWorker(object):
         self._smart_terminal_state = "SMART_STOPPED"
         self._smart_chunk_ms = 100.0
         self._smart_speech_start_ms = 200.0
-        self._smart_silence_ms = 800.0
+        self._smart_silence_ms = 600.0
         self._smart_pre_roll_ms = 300.0
         self._smart_min_utterance_s = 0.4
         self._smart_max_utterance_s = 15.0
@@ -384,7 +385,7 @@ class WhisperAsrWorker(object):
                 self._config, "smart_speech_start_ms", 200.0,
                 smart_chunk_ms, 5000.0)
             smart_silence_ms = _numeric_config(
-                self._config, "smart_silence_ms", 800.0,
+                self._config, "smart_silence_ms", 600.0,
                 smart_chunk_ms, 10000.0)
             smart_pre_roll_ms = _numeric_config(
                 self._config, "smart_pre_roll_ms", 300.0, 0.0, 5000.0)
@@ -506,6 +507,7 @@ class WhisperAsrWorker(object):
                 "audio_duration_s": float(duration),
                 "rms": float(self._last_rms),
                 "asr_latency_ms": float(self._asr_latency_ms),
+                "model_prepare_ms": float(self._model_prepare_ms),
                 "max_record_seconds": float(self._max_audio_seconds),
                 "error": self._error,
             }
@@ -668,21 +670,17 @@ class WhisperAsrWorker(object):
         self._emit_status()
 
         started_at = time.monotonic()
+        model_was_loaded = self._model is not None
         try:
+            load_started_at = time.monotonic()
             model = self._load_model()
+            model_load_ms = (time.monotonic() - load_started_at) * 1000.0
             import numpy as np
             audio = np.frombuffer(pcm, dtype="<i2").astype(np.float32)
             audio /= 32768.0
-            output = model.transcribe(
-                audio,
-                language=self._language,
-                task="transcribe",
-                fp16=True,
-                verbose=False,
-                initial_prompt=self._initial_prompt or None,
-                condition_on_previous_text=False,
-                temperature=0.0,
-            )
+            decode_started_at = time.monotonic()
+            output = self._transcribe_audio(model, audio)
+            decode_ms = (time.monotonic() - decode_started_at) * 1000.0
             transcript = self._text_converter(
                 str((output or {}).get("text", ""))).strip()
             latency_ms = (time.monotonic() - started_at) * 1000.0
@@ -710,6 +708,9 @@ class WhisperAsrWorker(object):
                 "audio_duration_s": float(audio_duration_s),
                 "rms": float(rms),
                 "asr_latency_ms": float(latency_ms),
+                "model_load_ms": float(model_load_ms),
+                "decode_ms": float(decode_ms),
+                "model_was_loaded": bool(model_was_loaded),
                 "model": self._model_name,
                 "device": DEVICE_NAME,
                 "model_loaded": self._model is not None,
@@ -749,6 +750,9 @@ class WhisperAsrWorker(object):
             "audio_duration_s": float(audio_duration_s),
             "rms": float(rms),
             "asr_latency_ms": 0.0,
+            "model_load_ms": 0.0,
+            "decode_ms": 0.0,
+            "model_was_loaded": self._model is not None,
             "model": self._model_name,
             "device": DEVICE_NAME,
             "model_loaded": self._model is not None,
@@ -1048,6 +1052,7 @@ class WhisperAsrWorker(object):
                     "pcm": pcm,
                     "audio_duration_s": audio_duration_s,
                     "rms": rms,
+                    "queued_at": time.monotonic(),
                 })
                 self._smart_condition.notify_all()
         if dropped is not None:
@@ -1076,10 +1081,18 @@ class WhisperAsrWorker(object):
 
     def _recognize_smart_utterance(self, item):
         started_at = time.monotonic()
+        queue_wait_ms = max(
+            0.0,
+            (started_at - float(item.get("queued_at", started_at))) * 1000.0)
+        model_was_loaded = self._model is not None
+        model_load_ms = 0.0
+        decode_ms = 0.0
         transcript = ""
         failure = ""
         try:
+            load_started_at = time.monotonic()
             model = self._load_model()
+            model_load_ms = (time.monotonic() - load_started_at) * 1000.0
             with self._lock:
                 if (item["generation"] != self._capture_generation or
                         not self._smart_listening or
@@ -1091,16 +1104,9 @@ class WhisperAsrWorker(object):
             import numpy as np
             audio = np.frombuffer(item["pcm"], dtype="<i2").astype(np.float32)
             audio /= 32768.0
-            output = model.transcribe(
-                audio,
-                language=self._language,
-                task="transcribe",
-                fp16=True,
-                verbose=False,
-                initial_prompt=self._initial_prompt or None,
-                condition_on_previous_text=False,
-                temperature=0.0,
-            )
+            decode_started_at = time.monotonic()
+            output = self._transcribe_audio(model, audio)
+            decode_ms = (time.monotonic() - decode_started_at) * 1000.0
             transcript = self._text_converter(
                 str((output or {}).get("text", ""))).strip()
         except WorkerRequestError:
@@ -1156,6 +1162,10 @@ class WhisperAsrWorker(object):
                         "audio_duration_s": float(item["audio_duration_s"]),
                         "rms": float(item["rms"]),
                         "asr_latency_ms": float(latency_ms),
+                        "queue_wait_ms": float(queue_wait_ms),
+                        "model_load_ms": float(model_load_ms),
+                        "decode_ms": float(decode_ms),
+                        "model_was_loaded": bool(model_was_loaded),
                         "accepted": bool(transcript),
                         "model": self._model_name,
                         "device": DEVICE_NAME,
@@ -1285,6 +1295,99 @@ class WhisperAsrWorker(object):
         self._emit_status(status)
         return status
 
+    def prepare_model(self, params=None):
+        """Load and exercise Whisper before the microphone can be opened.
+
+        The reservation is short and revocable.  Model allocation and the
+        silent warm-up deliberately run outside ``_operation_lock`` so a
+        concurrent authorization revoke can issue ``cancel`` immediately.
+        """
+        del params
+        with self._operation_lock:
+            with self._smart_condition:
+                if not self._ready:
+                    raise WorkerRequestError("ASR_UNAVAILABLE", self._error)
+                if self._shutdown_event.is_set():
+                    raise WorkerRequestError(
+                        "SHUTDOWN", "ASR worker is shutting down")
+                if (self._recording or self._capture_id or
+                        self._smart_listening or self._state == "RECORDED"):
+                    raise WorkerRequestError(
+                        "ASR_BUSY", "ASR capture is active")
+                if self._inference_active:
+                    raise WorkerRequestError(
+                        "ASR_BUSY", "ASR inference or preparation is active")
+                if self._model is not None:
+                    self._state = "READY"
+                    self._error = ""
+                    status = self.status()
+                    status["prepared"] = True
+                    return status
+                generation = self._capture_generation
+                self._inference_active = True
+                self._state = "LOADING"
+                self._error = ""
+        self._emit_status()
+
+        started_at = time.monotonic()
+        model_load_ms = 0.0
+        warmup_ms = 0.0
+        try:
+            load_started_at = time.monotonic()
+            model = self._load_model()
+            model_load_ms = (time.monotonic() - load_started_at) * 1000.0
+            import numpy as np
+            warmup_audio = np.zeros(SAMPLE_RATE // 2, dtype=np.float32)
+            warmup_started_at = time.monotonic()
+            self._transcribe_audio(model, warmup_audio)
+            warmup_ms = (time.monotonic() - warmup_started_at) * 1000.0
+            prepare_ms = (time.monotonic() - started_at) * 1000.0
+            with self._smart_condition:
+                cancelled = bool(
+                    generation != self._capture_generation or
+                    self._shutdown_event.is_set())
+                self._inference_active = False
+                self._model_prepare_ms = prepare_ms
+                if cancelled:
+                    self._state = "CANCELLED"
+                    self._error = "ASR model preparation was cancelled"
+                else:
+                    self._state = "READY"
+                    self._error = ""
+                self._smart_condition.notify_all()
+            self._unload_if_requested()
+            self._emit_status()
+            if cancelled:
+                raise WorkerRequestError(
+                    "CANCELLED", "ASR model preparation was cancelled")
+            status = self.status()
+            status.update({
+                "prepared": True,
+                "model_load_ms": float(model_load_ms),
+                "warmup_ms": float(warmup_ms),
+                "model_prepare_ms": float(prepare_ms),
+            })
+            return status
+        except WorkerRequestError:
+            raise
+        except Exception as exc:
+            with self._smart_condition:
+                cancelled = generation != self._capture_generation
+                self._inference_active = False
+                self._model_prepare_ms = (
+                    time.monotonic() - started_at) * 1000.0
+                self._state = "CANCELLED" if cancelled else "ERROR"
+                self._error = (
+                    "ASR model preparation was cancelled" if cancelled else
+                    str(exc))
+                error = self._error
+                self._smart_condition.notify_all()
+            self._unload_if_requested()
+            self._emit_status()
+            if cancelled:
+                raise WorkerRequestError("CANCELLED", error)
+            raise WorkerRequestError("MODEL_PREPARE_FAILED", error)
+
     def shutdown(self):
         self._shutdown_event.set()
         with self._operation_lock:
@@ -1346,6 +1449,19 @@ class WhisperAsrWorker(object):
                 _validate_model(model, self._model_name)
                 self._model = model
             return self._model
+
+    def _transcribe_audio(self, model, audio):
+        return model.transcribe(
+            audio,
+            language=self._language,
+            task="transcribe",
+            fp16=True,
+            verbose=False,
+            initial_prompt=self._initial_prompt or None,
+            condition_on_previous_text=False,
+            temperature=0.0,
+            without_timestamps=True,
+        )
 
     def _unload_if_requested(self):
         with self._lock:
@@ -1576,11 +1692,14 @@ class JsonLineServer(object):
             self._write_error(
                 request_id, "INVALID_PARAMS", "params must be an object")
             return
-        if method == "stop_recording":
+        if method in ("stop_recording", "prepare_model"):
+            function = (self.worker.stop_recording if method == "stop_recording"
+                        else self.worker.prepare_model)
             threading.Thread(
                 target=self._run_request,
-                args=(request_id, self.worker.stop_recording, params),
-                name="asr-stop-transcribe",
+                args=(request_id, function, params),
+                name=("asr-stop-transcribe" if method == "stop_recording"
+                      else "asr-model-prepare"),
                 daemon=True,
             ).start()
             return

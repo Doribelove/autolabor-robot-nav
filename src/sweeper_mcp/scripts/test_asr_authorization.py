@@ -724,6 +724,42 @@ def test_switching_worker_events_cannot_overwrite_public_asr_state():
     assert node._asr_phase == "READY"
 
 
+def test_voice_authorization_prewarms_model_without_opening_microphone():
+    node = _bare_node()
+    client = FakeAsrClient(method_results={
+        "prepare_model": {
+            "ready": True,
+            "state": "READY",
+            "model": "medium",
+            "device": "cuda",
+            "model_loaded": True,
+            "recording": False,
+            "model_load_ms": 1200.0,
+            "warmup_ms": 300.0,
+            "model_prepare_ms": 1500.0,
+            "error": "",
+        },
+    })
+    node._asr_client = client
+    response = node._set_authorization(SimpleNamespace(
+        session_token=node._session_token, gate="voice", enabled=True))
+    assert response.accepted
+    assert "预热" in response.message
+    deadline = time.monotonic() + 1.0
+    while time.monotonic() < deadline and not any(
+            call[0] == "prepare_model" for call in client.calls):
+        time.sleep(0.01)
+    assert any(call[0] == "prepare_model" for call in client.calls)
+    deadline = time.monotonic() + 1.0
+    while time.monotonic() < deadline and node._asr_phase != "READY":
+        time.sleep(0.01)
+    assert node._asr_model_loaded is True
+    assert node._asr_recording is False
+    assert node._asr_phase == "READY"
+    assert any(kind == "ASR_MODEL" and fields.get("state") == "PREPARED"
+               for kind, fields in node.events)
+
+
 if __name__ == "__main__":
     tests = [value for name, value in sorted(globals().items())
              if name.startswith("test_")]

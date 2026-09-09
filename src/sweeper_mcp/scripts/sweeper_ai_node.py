@@ -156,7 +156,7 @@ class SweeperAiNode:
             "smart_speech_start_ms": float(asr.get(
                 "smart_speech_start_ms", 200.0)),
             "smart_silence_ms": float(asr.get(
-                "smart_silence_ms", 800.0)),
+                "smart_silence_ms", 600.0)),
             "smart_pre_roll_ms": float(asr.get(
                 "smart_pre_roll_ms", 300.0)),
             "smart_min_utterance_s": float(asr.get(
@@ -298,6 +298,7 @@ class SweeperAiNode:
         """Start the isolated worker without opening the microphone."""
         client = None
         diagnostic = ""
+        prepare_request = None
         try:
             if not self._asr_python:
                 raise RuntimeError("ASR Python 未配置")
@@ -318,10 +319,15 @@ class SweeperAiNode:
                 self._asr_phase = str(
                     (status or {}).get("state", "READY")).upper()
                 self._asr_last_error = ""
+                if self._voice_authorized and not self._asr_model_loaded:
+                    self._asr_phase = "LOADING"
+                    prepare_request = (self._asr_client, self._asr_epoch)
             client = None  # ownership moved to self._asr_client
             rospy.loginfo(
                 "ASR worker ready; model=%s device=%s checkpoint=%s",
                 self._asr_model, self._asr_device, self._asr_model_path)
+            if prepare_request is not None:
+                self._prepare_asr_async(*prepare_request)
         except Exception as exc:
             rospy.logerr("ASR worker unavailable: %s", exc)
             diagnostic = str(exc)
@@ -404,7 +410,7 @@ class SweeperAiNode:
                 self._asr_capture_id or self._asr_recording or
                 self._smart_voice_enabled or self._smart_voice_listening or
                 self._asr_phase in (
-                    "STARTING", "RECORDING", "RECORDED", "STOPPING",
+                    "STARTING", "LOADING", "RECORDING", "RECORDED", "STOPPING",
                     "TRANSCRIBING", "RECOGNIZING", "CANCELLING",
                     "SMART_STARTING", "SMART_LISTENING", "SMART_STOPPING"))
             if busy:
@@ -440,6 +446,7 @@ class SweeperAiNode:
         self._publish_status()
 
         candidate = None
+        prepare_request = None
         try:
             candidate = self._new_asr_client(new_config, generation)
             status = candidate.start() or {}
@@ -459,12 +466,17 @@ class SweeperAiNode:
                 self._asr_phase = str(status.get("state", "READY")).upper()
                 self._asr_last_error = ""
                 self._asr_switching = False
+                if self._voice_authorized and not self._asr_model_loaded:
+                    self._asr_phase = "LOADING"
+                    prepare_request = (self._asr_client, self._asr_epoch)
             candidate = None
             if old_client is not None:
                 old_client.close()
             message = "ASR 模型已切换为 %s" % requested_model
             self._emit("ASR_MODEL", state="READY", description=message)
             self._publish_status()
+            if prepare_request is not None:
+                self._prepare_asr_async(*prepare_request)
             return SetAsrModelResponse(True, message, requested_model)
         except Exception as exc:
             if candidate is not None:
@@ -640,7 +652,7 @@ class SweeperAiNode:
             if (self._asr_capture_id or self._asr_recording or
                     self._asr_switching or
                     self._asr_phase in (
-                        "STARTING", "RECORDING", "RECORDED", "STOPPING",
+                        "STARTING", "LOADING", "RECORDING", "RECORDED", "STOPPING",
                         "TRANSCRIBING", "RECOGNIZING", "CANCELLING",
                         "SWITCHING")):
                 return SetSmartVoiceResponse(
@@ -842,6 +854,12 @@ class SweeperAiNode:
                 "rms": float(payload.get("rms") or 0.0),
                 "asr_latency_ms": float(
                     payload.get("asr_latency_ms") or 0.0),
+                "queue_wait_ms": float(
+                    payload.get("queue_wait_ms") or 0.0),
+                "model_load_ms": float(
+                    payload.get("model_load_ms") or 0.0),
+                "decode_ms": float(payload.get("decode_ms") or 0.0),
+                "model_was_loaded": bool(payload.get("model_was_loaded", False)),
             }
             self._asr_audio_duration_s = metrics["audio_duration_s"]
             self._asr_latency_ms = metrics["asr_latency_ms"]
@@ -950,13 +968,65 @@ class SweeperAiNode:
         threading.Thread(
             target=cancel_worker, name="sweeper-asr-cancel", daemon=True).start()
 
+    def _prepare_asr_async(self, client, epoch):
+        """Warm the authorized model without opening the microphone."""
+        if client is None:
+            return
+
+        def prepare_worker():
+            try:
+                status = client.request("prepare_model", timeout=600.0) or {}
+                with self._lock:
+                    current = bool(
+                        epoch == self._asr_epoch and
+                        client is self._asr_client and
+                        self._voice_authorized and
+                        self._heartbeat_fresh())
+                    if not current:
+                        return
+                    self._apply_asr_status_locked(status)
+                    if not self._asr_model_loaded:
+                        raise RuntimeError(
+                            str(status.get("error") or "ASR 模型预热后仍未加载"))
+                    self._asr_phase = "READY"
+                    self._asr_last_error = ""
+                    metrics = {
+                        "model": self._asr_model,
+                        "model_load_ms": float(
+                            status.get("model_load_ms") or 0.0),
+                        "warmup_ms": float(status.get("warmup_ms") or 0.0),
+                        "model_prepare_ms": float(
+                            status.get("model_prepare_ms") or 0.0),
+                    }
+                self._emit(
+                    "ASR_MODEL", state="PREPARED",
+                    description="本地 %s 模型已预热，可开始语音识别" %
+                                self._asr_model,
+                    result_json=json.dumps(metrics, ensure_ascii=False),
+                    duration_ms=metrics["model_prepare_ms"])
+            except Exception as exc:
+                with self._lock:
+                    if (epoch != self._asr_epoch or
+                            client is not self._asr_client or
+                            not self._voice_authorized):
+                        return
+                    self._asr_phase = "ERROR"
+                    self._asr_last_error = "ASR 模型预热失败: %s" % exc
+                    error = self._asr_last_error
+                self._emit("ASR_MODEL", state="ERROR", description=error)
+            self._publish_status()
+
+        threading.Thread(
+            target=prepare_worker, name="sweeper-asr-prepare",
+            daemon=True).start()
+
     def _revoke_asr_locked(self, reason):
         self._asr_epoch += 1
         epoch = self._asr_epoch
         active = bool(self._asr_recording or self._asr_capture_id or
                       self._asr_model_loaded or
                       self._asr_phase in (
-                          "STARTING", "RECORDING", "STOPPING",
+                          "STARTING", "LOADING", "RECORDING", "STOPPING",
                           "TRANSCRIBING", "RECOGNIZING"))
         self._asr_capture_id = ""
         self._asr_recording = False
@@ -989,7 +1059,7 @@ class SweeperAiNode:
                     False, "智能语音监听已启用，不能开始手动录音", "")
             if (self._asr_switching or self._asr_capture_id or
                     self._asr_recording or self._asr_phase in (
-                    "STARTING", "STOPPING", "TRANSCRIBING", "RECOGNIZING",
+                    "STARTING", "LOADING", "STOPPING", "TRANSCRIBING", "RECOGNIZING",
                     "CANCELLING", "SWITCHING")):
                 return SetAsrRecordingResponse(
                     False, "ASR 当前正忙", self._asr_capture_id)
@@ -1084,6 +1154,10 @@ class SweeperAiNode:
                     "audio_duration_s": self._asr_audio_duration_s,
                     "rms": float(result.get("rms", 0.0)),
                     "asr_latency_ms": self._asr_latency_ms,
+                    "model_load_ms": float(result.get("model_load_ms", 0.0)),
+                    "decode_ms": float(result.get("decode_ms", 0.0)),
+                    "model_was_loaded": bool(
+                        result.get("model_was_loaded", False)),
                     "model": self._asr_model,
                     "device": self._asr_device,
                 }
@@ -1148,6 +1222,7 @@ class SweeperAiNode:
         should_cancel = False
         asr_cancel = None
         smart_stop = None
+        asr_prepare = None
         cleared_pending = 0
         cleared_reason = ""
         with self._lock:
@@ -1159,8 +1234,17 @@ class SweeperAiNode:
                     return self._auth_response(False, "Qt 会话心跳未就绪")
                 self._voice_authorized = bool(request.enabled)
                 if request.enabled:
-                    message = ("语音输入已授权；麦克风仍保持关闭，需另行点击"
-                               "开始录音或启用智能语音")
+                    if (self._asr_available and self._asr_client is not None and
+                            not self._asr_model_loaded and
+                            self._asr_phase != "LOADING"):
+                        self._asr_phase = "LOADING"
+                        self._asr_last_error = ""
+                        asr_prepare = (self._asr_client, self._asr_epoch)
+                        message = ("语音输入已授权；正在预热本地 %s 模型，"
+                                   "完成前麦克风保持关闭" % self._asr_model)
+                    else:
+                        message = ("语音输入已授权；麦克风仍保持关闭，需另行点击"
+                                   "开始录音或启用智能语音")
                 else:
                     smart_stop = self._revoke_smart_voice_locked(
                         "语音输入授权已关闭")
@@ -1201,6 +1285,8 @@ class SweeperAiNode:
                 return self._auth_response(False, "未知授权门: %s" % gate)
         if should_cancel:
             self._runner.cancel()
+        if asr_prepare is not None:
+            self._prepare_asr_async(*asr_prepare)
         if smart_stop is not None and smart_stop[3]:
             stopped, stop_error = self._stop_smart_worker(
                 smart_stop, "语音输入授权已关闭")
