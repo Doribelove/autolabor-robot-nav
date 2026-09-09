@@ -10,7 +10,7 @@ import yaml
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE_ROOT = Path(os.environ.get(
-    "AUTOLABOR_SOURCE_WORKSPACE", "/home/slam/robot_j6m_ws_navigation_20260907"
+    "AUTOLABOR_SOURCE_WORKSPACE", str(PACKAGE_ROOT.parents[2])
 )).resolve()
 
 

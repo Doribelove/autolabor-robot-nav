@@ -1,0 +1,8 @@
+# ENFORCED_SWEEP lethal-obstacle check distance in meters, along the remaining
+# line from the live vehicle pose. Initially covers the entrance's forward
+# portion; advances with the vehicle on every planner cycle. Full padded
+# footprints are checked inside this horizon, including their forward extent.
+# Positive finite value required. Loaded at startup; restart after changing.
+# The full sweep endpoint/path, TEB collision checks, and unknown/boundary
+# rejection are retained. Hybrid transitions use their separate 3 m horizon.
+sweep_collision_check_horizon: 5.0

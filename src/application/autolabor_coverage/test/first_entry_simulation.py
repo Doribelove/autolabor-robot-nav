@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Actual ROS nodes in synthetic scenes; run only through the namespace wrapper."""
 import collections
+import argparse
 import copy
 import datetime
 import hashlib
@@ -18,6 +19,10 @@ import uuid
 import xmlrpc.client
 
 WS = Path(__file__).resolve().parents[4]
+parser = argparse.ArgumentParser()
+parser.add_argument('--baseline', type=Path,
+                    help='Optional historical manager used to reproduce the old preview bug')
+args = parser.parse_args()
 ROOT = WS / 'validation/first_entry_simulation_20260907'
 RUN = ROOT / datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 RUN.mkdir(parents=True)
@@ -311,15 +316,19 @@ try:
     rospy.wait_for_service('/navigation_pause/set_coverage_owner', timeout=15)
     start_batch = rospy.ServiceProxy('/coverage/start_batch',StartCoverageBatch)
     cancel = rospy.ServiceProxy('/coverage/cancel',Trigger)
-    baseline = ROOT / 'baseline_coverage_manager.py'
-    assert hashlib.sha256(baseline.read_bytes()).hexdigest() == '9959a2c17574628a1af012481f77004be9f6e33b62a2341d128d6340439306aa'
+    baseline = args.baseline or ROOT / 'baseline_coverage_manager.py'
     current = WS / 'src/application/autolabor_coverage/scripts/coverage_manager.py'
-    event('identity', baseline_sha256=hashlib.sha256(baseline.read_bytes()).hexdigest(),
-          current_sha256=hashlib.sha256(current.read_bytes()).hexdigest(), master=os.environ['ROS_MASTER_URI'])
-    manager = start_manager(baseline, 'manager_baseline')
-    run_batch('baseline_path_is_erased', expected_preview=False)
-    stop(manager)
-    time.sleep(.5)
+    event('identity', current_sha256=hashlib.sha256(current.read_bytes()).hexdigest(),
+          master=os.environ['ROS_MASTER_URI'])
+    if args.baseline is not None or baseline.is_file():
+        assert hashlib.sha256(baseline.read_bytes()).hexdigest() == '9959a2c17574628a1af012481f77004be9f6e33b62a2341d128d6340439306aa'
+        event('baseline_identity', sha256=hashlib.sha256(baseline.read_bytes()).hexdigest())
+        manager = start_manager(baseline, 'manager_baseline')
+        run_batch('baseline_path_is_erased', expected_preview=False)
+        stop(manager)
+        time.sleep(.5)
+    else:
+        event('historical_baseline_not_supplied', note='Current implementation checks still run')
     manager = start_manager(current, 'manager_fixed')
     for index in range(3):
         run_batch('fixed_open_%d' % index, hold_sec=2.1 if index == 2 else .25)

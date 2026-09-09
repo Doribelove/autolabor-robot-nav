@@ -92,6 +92,8 @@ install(FILES coverage_global_planner_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
+  option(AUTOLABOR_COVERAGE_WORKSPACE_CONTRACT_TESTS
+    "Run contracts that require the complete robot deployment workspace" ON)
   catkin_add_gtest(test_hybrid_a_star test/test_hybrid_a_star.cpp)
   if(TARGET test_hybrid_a_star)
     target_link_libraries(test_hybrid_a_star coverage_hybrid_astar ${catkin_LIBRARIES})
@@ -101,7 +103,9 @@ if(CATKIN_ENABLE_TESTING)
   install(TARGETS hybrid_a_star_benchmark
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
   catkin_add_nosetests(test/test_coverage_geometry.py)
-  catkin_add_nosetests(test/test_coverage_contract.py)
+  if(AUTOLABOR_COVERAGE_WORKSPACE_CONTRACT_TESTS)
+    catkin_add_nosetests(test/test_coverage_contract.py)
+  endif()
   catkin_add_nosetests(test/test_coverage_manager_state_machine.py)
   catkin_add_nosetests(test/test_hybrid_teb_command_mux.py)
 endif()

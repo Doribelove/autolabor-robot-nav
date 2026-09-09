@@ -106,6 +106,7 @@ private:
   double goal_match_tolerance_ = 0.35;
   double goal_yaw_match_tolerance_ = 0.20;
   double path_timeout_ = 1.0;
+  double sweep_collision_check_horizon_ = 5.0;
   double hybrid_cache_max_deviation_ = 0.60;
   double hybrid_cache_collision_check_horizon_ = 3.00;
   double hybrid_online_kinematic_horizon_ = 12.0;

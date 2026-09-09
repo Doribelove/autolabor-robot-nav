@@ -1,5 +1,47 @@
 # 导航优化专用候选版约束（2026-09-07）
 
+2026-09-09 覆盖导航开源准备：用户明确要求在源项目补齐架构/测试/提交步骤，再提交到
+其新建公开仓库 `https://github.com/cl4mat/autolabor-coverage-navigation.git`。现有 origin
+属于 Doribelove，不是用户目标，不向它推送，也不改原远端。独立白名单导出包含覆盖包、
+定制 TEB、底盘接口/驱动和所有权桥；不复制原 Git 历史、运行资产、地图、凭据或授权。
+源文档和公开模板见 `docs/COVERAGE_OPEN_SOURCE.md`、`distribution/coverage_navigation/`，
+出口为 `scripts/export_coverage_navigation.py`。README/简介已说明四轮前轮转向、阿克曼
+运动学、自选区域以及区域外需留入场/转弯/换向自由空间；区域不是硬边界。
+干净官方 Noetic/Focal ARM64 容器 Release 构建通过；245 项独立单元检查、36 项清扫
+插件及 14 项首入口场景通过，原工作区 15 项源码契约也通过。Catkin 原汇总264含嵌套
+C++重复，独立 XML 为221，另桥24，勿夸大。验证详见公开模板 docs/VALIDATION.md。
+运行算法和实车配置未改、未重启/部署 J6M、未恢复实验；已有5米修复一并纳入源码保存。
+目标仓库已确认公开且为空。现有 SSH 身份 Doribelove 被 GitHub 明确拒绝目标写入；
+需要 cl4mat 授权后才能远端推送及更新 About，不能声称已公开提交。发布工作与验证记录
+位于 `runtime/coverage_publication_20260909/`，本地身份按用户提供的 cl4mat 账号设置，
+不改全局 Git/SSH 配置。原主门 true/FOD=false/1.60 与授权保持，后续不得自动恢复运动。
+
+2026-09-09 11:22 实验记录最新：操作员已自行启动本候选并设置本次初值，实测 LOCALIZED，
+J6M current 为 `20260909_003347`，运行参数清扫前方 5.0 m / 入口恢复 4.0 m。
+本组 3 轮均最终 COMPLETED；第三轮先因 VCU robot emergency 暂停 17.5 秒，再因
+转场执行重试耗尽暂停 21.5 秒，恢复后完成，不能算无人干预通过。清扫实测均速
+1.08/0.98/0.91 m/s；71 次 Hybrid 请求得到 69 条有效路径、2 次目标外廓无效，无搜索
+超时。第三轮换向接续缓存失效 25 次，规划有路径但仍出现执行无进展；不是 CPU 持续满载。
+用户宣布实验结束后，被动监测于 11:22:19 正常退出，未发控制指令、修改运动设置或停机。
+本次未改业务代码/构建/部署/提交；主门 true/FOD=false/1.60 上限及原授权保留。
+不要将下方凌晨停止或等待初值当成现状，也不要自动恢复旧实验。
+报告 `docs/HYBRID_CPU_EXPERIMENT_20260909.md`，原始数据
+`validation/coverage_live_20260909/20260909_110209/`，含整板/进程/线程 CPU、动作、速度与 perf。
+
+2026-09-09 00:36 部署最新：用户要求先保存当前代码到 0908，再把清扫碰撞检查限制为
+可配置的前方 5 米并部署 J6M。修改前代码/交接已提交到本地分支 `0908`，提交
+`9c69b7d`，未推送；本轮修复仍留在该分支工作树，未额外提交。
+新增 coverage_global_planner.yaml 的 sweep_collision_check_horizon=5.0，ENFORCED_SWEEP
+每次从实时位置沿剩余清扫线检查前方窗口，完整外廓/TEB/未知空间/边界检查保留；
+覆盖入口准入、状态机、Hybrid 3 m 和 entry_recovery 4 m 均未改。本机 Release、193 项
+覆盖 Python 测试、36 项真实插件隔离检查及静态检查通过。J6M 原生发布
+`20260909_003347`，板端静态检查、安装/编译源哈希、安装库及 launch 展开 5.0 m 均通过。
+原任务停机前为 PAUSED，已保存快照并统一停净。MID360 固定网口无载波、底盘与雷达
+反馈此前已长时间中断；当前完整导航 inactive/MainPID=0，未恢复启动/旧任务。
+无当前实机运行态/移动验收结论，需现场链路恢复后完整启动并设置新的真实初值。
+主门 true/FOD=false/1.60 上限和授权保留，私有配置未改。被动记录器已随原服务结束。
+详见 docs/SWEEP_COLLISION_HORIZON_20260909.md、validation/sweep_horizon_fix_latest.txt。
+
 2026-09-08 22:14 当前清扫停滞只读审计：本次操作员初值已设置，LOCALIZED，不能再
 沿用下方 WAITING_INITIAL_POSE。当前计划 a902200d614d4f0cbe9dd285f59208fc，第 8/8 段，
 79.9652%，active=true、paused=false；SWEEPING 和短暂 WAITING_OBSTACLE 循环，指令及

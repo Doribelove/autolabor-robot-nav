@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ws=/home/slam/robot_j6m_ws_navigation_20260907
+ws="$(cd "$(dirname "$0")/../../../.." && pwd)"
 if [[ ${ROBOT_OPTIMIZED_SANDBOX:-0} != 1 ]]; then
   exec "$ws/scripts/optimized.sh" run bash "$0" "$@"
 fi

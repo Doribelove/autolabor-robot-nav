@@ -235,6 +235,8 @@ void CoverageGlobalPlanner::initialize(std::string name,
   private_nh_.param("goal_match_tolerance", goal_match_tolerance_, 0.35);
   private_nh_.param("goal_yaw_match_tolerance", goal_yaw_match_tolerance_, 0.20);
   private_nh_.param("path_timeout", path_timeout_, 1.0);
+  private_nh_.param("sweep_collision_check_horizon",
+                    sweep_collision_check_horizon_, 5.0);
   private_nh_.param("hybrid_cache_max_deviation",
                     hybrid_cache_max_deviation_, 0.60);
   private_nh_.param("hybrid_cache_collision_check_horizon",
@@ -300,6 +302,7 @@ void CoverageGlobalPlanner::initialize(std::string name,
   };
   if (!positive(goal_match_tolerance_) ||
       !positive(goal_yaw_match_tolerance_) || !positive(path_timeout_) ||
+      !positive(sweep_collision_check_horizon_) ||
       !positive(hybrid_cache_max_deviation_) ||
       !positive(hybrid_cache_collision_check_horizon_) ||
       !positive(hybrid_online_kinematic_horizon_) ||
@@ -340,6 +343,8 @@ void CoverageGlobalPlanner::initialize(std::string name,
   hybrid_path_safe_publisher_ = private_nh_.advertise<std_msgs::Bool>(
       "hybrid_path_safe", 1, true);
   publishHybridPathSafety(false);
+  ROS_INFO("coverage sweep collision check horizon: %.2fm",
+           sweep_collision_check_horizon_);
   initialized_ = true;
 }
 
@@ -984,7 +989,13 @@ bool CoverageGlobalPlanner::makePlan(
       return makeHybridPlan(start, goal, path, transit_profile,
                             hybrid_replan_period, plan);
     case autolabor_coverage::EnforcedPath::MODE_ENFORCED_SWEEP:
-      return makeEnforcedPlan(start, goal, path, plan);
+      // A distant stale obstacle must not prevent entering a clear swath.
+      // Re-anchor the check at the live start on every planner cycle so an
+      // obstacle becomes blocking as it enters the forward horizon. Keep
+      // the full remaining line for TEB and the existing sweep endpoint.
+      return makeEnforcedPlan(start, goal, path, plan,
+                              std::numeric_limits<double>::infinity(),
+                              sweep_collision_check_horizon_);
     default:
       ROS_ERROR_THROTTLE(
           1.0, "coverage ownership has an invalid or ordinary planner mode");
@@ -1348,7 +1359,15 @@ bool CoverageGlobalPlanner::makeEnforcedPlan(
     if (check_lethal &&
         (cost == costmap_2d::LETHAL_OBSTACLE || footprint_cost == -1.0))
     {
-      if (std::isfinite(maximum_lethal_check_distance))
+      if (message.planner_mode ==
+          autolabor_coverage::EnforcedPath::MODE_ENFORCED_SWEEP)
+      {
+        ROS_WARN_THROTTLE(
+            1.0, "coverage sweep path is blocked %.2fm ahead "
+                 "(%.2fm collision check horizon)",
+            distance_from_start, maximum_lethal_check_distance);
+      }
+      else if (std::isfinite(maximum_lethal_check_distance))
       {
         ROS_WARN_THROTTLE(
             1.0,

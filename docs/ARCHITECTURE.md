@@ -1,5 +1,11 @@
 # 双机架构说明
 
+覆盖导航独立公开版的组件、状态机、并行搜索和距离约束见
+[覆盖算法架构](../distribution/coverage_navigation/repository/docs/ARCHITECTURE.md)。
+导出范围、依赖与提交方法见 [公开发布流程](COVERAGE_OPEN_SOURCE.md)，公开版构建/测试
+入口见 [测试文档](../distribution/coverage_navigation/repository/docs/TESTING.md)。
+下文继续描述完整实车双机系统，不等同于独立算法仓库必须安装的组件。
+
 ## 物理网络
 
 ```text
@@ -174,6 +180,15 @@ AI 普通导航不走匿名的 simple-goal 路径。NVIDIA 后端先生成唯一
 `0–10 s` 重试等待参数，默认 `0.5 s`，其中 `0 s` 表示立即重试。区域不是 geofence，
 转场可在完整已知自由地图中绕行；覆盖
 管理器只在静态地图模式启动。
+
+清扫强制路径的致命障碍检查范围由
+`autolabor_coverage/config/coverage_global_planner.yaml` 中
+`sweep_collision_check_horizon` 控制，默认 `5.0 m`，启动时加载且必须为有限正数。
+首次执行覆盖入口前方；之后每次规划从实时车辆位置沿剩余清扫线重新累计距离，
+检查窗口随车推进。窗口内采用完整带 padding 的车体外廓，近端障碍仍拒绝路径；
+窗口外的远端致命障碍暂不拒绝整条线，避免超出清除范围的历史记录把车困在入口。
+完整剩余清扫线和原终点仍交给 TEB；未知空间、地图边界以及 TEB 局部碰撞检查保留。
+此参数独立于 Hybrid 转场 3 m 检查范围及入口恢复 4 m 路径总长限制。
 
 首线几何和实时位姿确定后，覆盖管理器先通过
 `/move_base/CoverageGlobalPlanner/make_navfn_plan` 查询普通 Navfn 拓扑，

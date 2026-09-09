@@ -147,6 +147,9 @@
     <param if="$(arg use_static_map)"
            name="CoverageGlobalPlanner_navfn/allow_unknown"
            type="bool" value="false"/>
+    <rosparam if="$(arg use_static_map)" command="load"
+              file="$(find autolabor_coverage)/config/coverage_global_planner.yaml"
+              ns="CoverageGlobalPlanner"/>
     <!-- Ordinary point-to-point goals and every region's first swath use one
          Navfn + TEB action.  Only later same-region inter-swath transitions
          request direct live-pose Hybrid A* connectors. -->

@@ -1,0 +1,19 @@
+name: build-and-planner-tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  noetic:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build standalone ROS workspace
+        run: docker build -t coverage-navigation:test .
+      - name: Unit tests
+        run: docker run --rm --network none coverage-navigation:test
+      - name: Real plugin synthetic scenes
+        run: |
+          docker run --rm --network none coverage-navigation:test bash tools/run_demo.sh sweep
+          docker run --rm --network none coverage-navigation:test bash tools/run_demo.sh sweep --horizon 2
+          docker run --rm --network none coverage-navigation:test bash tools/run_demo.sh preview
