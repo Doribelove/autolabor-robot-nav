@@ -4,6 +4,12 @@
 本源项目的 `origin` 是其他账号的整机仓库，不作为本次发布目标，也不修改其远端配置。
 权威修改仍在本工作区完成；公开仓库通过白名单导出生成独立历史，不推送原整机历史。
 
+实际发布结果：源项目准备提交 `5ddce5d`；独立仓库 main
+`0350307f9a41e140c3fc5a73a8dc4ec00c00541b` 已推送。授权账号核对为 cl4mat，远端
+哈希和 About 简介核对通过；HTTPS 全新克隆验证通过。GitHub Actions run
+[34325629265](https://github.com/cl4mat/autolabor-coverage-navigation/actions/runs/34325629265)
+完成干净 Noetic 构建、单元测试和真实插件合成场景，结论 success。
+
 ## 提交哪些文件
 
 导出清单是 `distribution/coverage_navigation/manifest.json`：

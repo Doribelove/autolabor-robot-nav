@@ -1,5 +1,18 @@
 # 导航优化专用候选版约束（2026-09-07）
 
+2026-09-09 覆盖导航已公开发布：源项目发布准备提交为 `5ddce5d`，独立公开仓库 main
+为 `0350307f9a41e140c3fc5a73a8dc4ec00c00541b`，目标
+`https://github.com/cl4mat/autolabor-coverage-navigation`。GitHub 授权账号已核对为
+cl4mat，远端哈希与本地发布提交一致，About 简介已更新；HTTPS 全新克隆后几何示例及
+26 项测试通过。GitHub Actions `build-and-planner-tests` run 34325629265 成功：干净
+x86_64 Noetic 容器构建、单元测试和真实插件合成场景均通过。此前本地 ARM64 干净容器
+验证为245项独立单元检查、36项清扫插件及14项首入口场景通过。仓库公开版包含覆盖包、
+定制 TEB、底盘接口和所有权桥；不包含整机历史、运行资产、地图、凭据或运动授权。
+本次未启动/部署/控制实车，运动设置未改。源项目原 origin 未修改或推送。
+完整发布方法见 docs/COVERAGE_OPEN_SOURCE.md；本地证据在
+runtime/coverage_publication_20260909/。工作树随后出现两个与本任务无关、未跟踪的 ASR
+脚本，未纳入提交，不要清理或误称工作树完全干净。
+
 2026-09-09 覆盖导航开源准备：用户明确要求在源项目补齐架构/测试/提交步骤，再提交到
 其新建公开仓库 `https://github.com/cl4mat/autolabor-coverage-navigation.git`。现有 origin
 属于 Doribelove，不是用户目标，不向它推送，也不改原远端。独立白名单导出包含覆盖包、

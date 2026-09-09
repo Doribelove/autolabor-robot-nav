@@ -3,6 +3,8 @@
 覆盖导航独立开源发布目标为用户指定的 `cl4mat/autolabor-coverage-navigation`。
 提交清单、源项目文档、克隆构建及发布步骤见 [公开发布流程](docs/COVERAGE_OPEN_SOURCE.md)。
 公开副本由白名单导出，保留定制 TEB/底盘接口和测试；不复制整机运行资产或原 Git 历史。
+当前公开 main 为 `0350307`，GitHub Actions 的 Noetic 构建、单元测试和真实插件合成
+场景均通过；公开仓库地址：<https://github.com/cl4mat/autolabor-coverage-navigation>。
 
 **2026-09-09 11:22：三轮操作员实车实验已记录完成。** 清扫均速为
 1.08/0.98/0.91 m/s；J6M 整机采样峰值 56.9%，Hybrid 搜索时 move_base 峰值约 195%
