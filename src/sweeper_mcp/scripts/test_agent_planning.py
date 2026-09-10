@@ -12,7 +12,8 @@ _PKG_SRC = os.path.abspath(os.path.join(
 if _PKG_SRC not in sys.path:
     sys.path.insert(0, _PKG_SRC)
 
-from sweeper_mcp.agent import AgentError, AgentRunner  # noqa: E402
+from sweeper_mcp.agent import (AgentError, AgentRunner,
+                               _decode_plan_arguments)  # noqa: E402
 from sweeper_mcp.mock_backend import MockBackend  # noqa: E402
 from sweeper_mcp.tools import ToolResult, build_registry  # noqa: E402
 
@@ -39,6 +40,83 @@ class FakeLLM:
                 },
             }]}
         return {"content": "离线执行总结。"}
+
+
+class RawPlanLLM:
+    def __init__(self, arguments):
+        self.arguments = list(arguments)
+        self.calls = 0
+        self.messages = []
+        self.last_metrics = {
+            "rtt_ms": 12.5, "http_status": 200,
+            "request_id": "offline-raw", "usage": {},
+        }
+
+    def chat(self, messages, tools=None, tool_choice=None):
+        self.messages = list(messages)
+        assert tools
+        assert tool_choice["function"]["name"] == "submit_plan"
+        value = self.arguments[min(self.calls, len(self.arguments) - 1)]
+        self.calls += 1
+        return {"tool_calls": [{
+            "id": "raw-plan-%d" % self.calls,
+            "type": "function",
+            "function": {"name": "submit_plan", "arguments": value},
+        }]}
+
+
+def test_plan_argument_decoder_accepts_only_bounded_format_repairs():
+    document = {"steps": [], "answer": "无需动作"}
+    strict = json.dumps(document, ensure_ascii=False)
+    variants = [
+        document,
+        "```json\n%s\n```" % strict,
+        "计划如下：\n%s\n请执行。" % strict,
+        strict[:-1] + ",}",
+        json.dumps(strict, ensure_ascii=False),
+    ]
+    for value in variants:
+        decoded, _repair = _decode_plan_arguments(value)
+        assert decoded == document
+
+    for value in [
+            '{"steps": [}',
+            '{"steps": []} {"steps": []}',
+            '{"steps": [], "answer": "unterminated}',
+    ]:
+        try:
+            _decode_plan_arguments(value)
+            assert False, "ambiguous or incomplete JSON must remain rejected"
+        except ValueError:
+            pass
+
+
+def test_malformed_plan_json_retries_once_then_uses_valid_complete_plan():
+    valid = json.dumps({"steps": [], "answer": "已理解，无需动作"},
+                       ensure_ascii=False)
+    llm = RawPlanLLM(['{"steps": [}', valid])
+    runner = AgentRunner(
+        llm=llm, mcp=LocalMCP(),
+        cloud_authorization_checker=lambda: True)
+    result = runner.run("只是测试解析", execute=False)
+    assert result["state"] == "ANSWERED"
+    assert llm.calls == 2
+    assert "单个严格 JSON 对象" in llm.messages[-1]["content"]
+    assert runner.mcp.backend.calls == []
+
+
+def test_two_malformed_plan_json_responses_fail_closed_without_execution():
+    llm = RawPlanLLM(['{"steps": [}', '{"steps": [}'])
+    runner = AgentRunner(
+        llm=llm, mcp=LocalMCP(),
+        cloud_authorization_checker=lambda: True)
+    try:
+        runner.run("只是测试解析", execute=True)
+        assert False, "two malformed plans must fail"
+    except AgentError as exc:
+        assert "不是有效 JSON" in str(exc)
+    assert llm.calls == 2
+    assert runner.mcp.backend.calls == []
 
 
 class LocalMCP:

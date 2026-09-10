@@ -7,6 +7,7 @@ waits for that subsystem's terminal result before considering the next step.
 """
 
 import json
+import logging
 import re
 import threading
 import time
@@ -17,6 +18,9 @@ from sweeper_mcp.navigation_grounding import navigation_error, unresolved_refere
 from sweeper_mcp.region_catalog import (compact_catalog, coverage_region_ambiguity_error,
                                         coverage_region_error, reference_map)
 from sweeper_mcp.tools import TOOL_SPECS, validate_arguments
+
+
+logger = logging.getLogger(__name__)
 
 
 class AgentError(Exception):
@@ -147,6 +151,141 @@ def _sanitize_text(text, limit=1500):
     value = re.sub(r"\bsk-[A-Za-z0-9_-]{8,}\b", "[REDACTED]", value)
     value = re.sub(r"(/home|/map)/[^\s\"']+", "[LOCAL_PATH]", value)
     return value[:limit]
+
+
+def _remove_json_trailing_commas(text):
+    """Remove only commas immediately before ]/}, never commas in strings."""
+    output = []
+    in_string = False
+    escaped = False
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if in_string:
+            output.append(char)
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            index += 1
+            continue
+        if char == '"':
+            in_string = True
+            output.append(char)
+            index += 1
+            continue
+        if char == ",":
+            lookahead = index + 1
+            while lookahead < len(text) and text[lookahead].isspace():
+                lookahead += 1
+            if lookahead < len(text) and text[lookahead] in "]}":
+                index += 1
+                continue
+        output.append(char)
+        index += 1
+    return "".join(output)
+
+
+def _single_json_object_text(text):
+    """Extract one balanced top-level object with only textual wrappers."""
+    start = text.find("{")
+    if start < 0:
+        return ""
+    depth = 0
+    in_string = False
+    escaped = False
+    end = -1
+    for index in range(start, len(text)):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                end = index + 1
+                break
+            if depth < 0:
+                return ""
+    if end < 0 or in_string:
+        return ""
+    wrappers = text[:start] + text[end:]
+    # Never discard another possible JSON value while repairing a plan.
+    if any(char in wrappers for char in "{}[]"):
+        return ""
+    return text[start:end]
+
+
+def _decode_plan_arguments(arguments):
+    """Decode bounded, common tool-call JSON deviations.
+
+    Every accepted result still passes the exact plan schema and per-tool
+    argument validation below.  This deliberately does not repair missing
+    braces, quotes, values or other ambiguous content.
+    """
+    if isinstance(arguments, dict):
+        return arguments, "object"
+    if not isinstance(arguments, str):
+        raise ValueError("arguments is not a string or object")
+    raw = arguments.strip().lstrip("\ufeff")
+    if not raw:
+        raise ValueError("arguments is empty")
+
+    candidates = [(raw, "strict")]
+    fenced = re.match(
+        r"\A```(?:json)?\s*(.*?)\s*```\Z", raw,
+        flags=re.IGNORECASE | re.DOTALL)
+    if fenced:
+        candidates.append((fenced.group(1).strip(), "code_fence"))
+    extracted = _single_json_object_text(raw)
+    if extracted and extracted != raw:
+        candidates.append((extracted, "text_wrapper"))
+
+    tried = set()
+    last_error = None
+    for candidate, repair in candidates:
+        variants = [(candidate, repair)]
+        without_trailing = _remove_json_trailing_commas(candidate)
+        if without_trailing != candidate:
+            variants.append((without_trailing, repair + "+trailing_comma"))
+        for value, variant in variants:
+            if value in tried:
+                continue
+            tried.add(value)
+            try:
+                document = json.loads(value)
+            except ValueError as exc:
+                last_error = exc
+                try:
+                    document = json.loads(value, strict=False)
+                except ValueError as relaxed_exc:
+                    last_error = relaxed_exc
+                    continue
+                variant += "+literal_control"
+            if isinstance(document, str):
+                nested = document.strip()
+                if nested == value or nested in tried:
+                    continue
+                tried.add(nested)
+                try:
+                    document = json.loads(nested)
+                except ValueError as exc:
+                    last_error = exc
+                    continue
+                variant += "+double_encoded"
+            return document, variant
+    raise ValueError(str(last_error or "no complete JSON object"))
 
 
 class AgentRunner:
@@ -313,9 +452,12 @@ class AgentRunner:
                 if attempt or not self._cloud_authorised():
                     raise
                 # Retry only planning, before any tool execution.
-                messages.append({"role": "user", "content":
-                                 "上次本地整计划校验失败：%s 请重新提交完整合法的 submit_plan。"
-                                 "需要补充时 steps 必须为空，动作理解放 understood_sequence。" % exc})
+                correction = (
+                    "上次本地整计划校验失败：%s 请根据最初的用户指令，从头重新提交一次"
+                    "完整合法的 submit_plan；不要解释、不要 Markdown、不要代码围栏或注释，"
+                    "arguments 必须是使用双引号且无结尾多余逗号的单个严格 JSON 对象。"
+                    "需要补充时 steps 必须为空，动作理解放 understood_sequence。" % exc)
+                messages.append({"role": "user", "content": correction})
 
     def _validate_plan_response(self, response):
         calls = response.get("tool_calls") or []
@@ -323,10 +465,18 @@ class AgentRunner:
             "name") == "submit_plan"]
         if len(matching) != 1:
             raise AgentError("云端未返回唯一的 submit_plan，已拒绝执行。")
+        raw_arguments = matching[0]["function"].get("arguments")
         try:
-            document = json.loads(matching[0]["function"].get("arguments") or "{}")
-        except (TypeError, ValueError):
+            document, repair = _decode_plan_arguments(raw_arguments)
+        except (TypeError, ValueError) as exc:
+            logger.warning(
+                "Rejected malformed submit_plan arguments: %s | raw=%s",
+                exc, _sanitize_text(raw_arguments, 800))
             raise AgentError("云端计划不是有效 JSON。")
+        if repair != "strict":
+            logger.warning(
+                "Normalized submit_plan arguments (%s); exact schema validation follows",
+                repair)
         if not isinstance(document, dict) or set(document) - {
                 "steps", "answer", "needs_clarification", "understood_sequence"}:
             raise AgentError("云端计划包含未定义字段。")
