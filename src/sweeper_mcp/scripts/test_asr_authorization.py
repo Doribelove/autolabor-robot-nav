@@ -102,6 +102,12 @@ def _bare_node():
     node._smart_voice_utterance_count = 0
     node._smart_voice_pending = deque()
     node._smart_voice_seen = set()
+    node._voice_buffer = _MODULE.VoiceTurnBuffer()
+    node._smart_activity = {}
+    node._smart_activity_at = 0.0
+    node._smart_completed = set()
+    node._smart_processed_index = 0
+    node._voice_accept_after = 0.0
     node.events = []
     node._emit = lambda kind, **fields: node.events.append((kind, fields))
     node._publish_status = lambda: None
@@ -482,7 +488,12 @@ def test_smart_queue_is_bounded_fifo_and_cloud_requests_are_serial():
 
     for index in range(1, 11):
         node._handle_smart_transcript(_smart_event(
-            "serial-session", index, "指令%d" % index))
+            "serial-session", index, "清扫区域%d" % index))
+        # Ten separate completed speech turns, not ten contiguous fragments.
+        node._voice_buffer.last_end = time.monotonic() - 5.0
+        node._voice_buffer.updated = time.monotonic() - 1.0
+        node._smart_activity_at = time.monotonic()
+        node._poll_voice_turn()
     assert len(node._smart_voice_pending) == _MODULE.SMART_VOICE_QUEUE_LIMIT
     assert sum(1 for kind, fields in node.events
                if kind == "SMART_VOICE" and
@@ -499,12 +510,12 @@ def test_smart_queue_is_bounded_fifo_and_cloud_requests_are_serial():
     node._begin_request = begin_request
     node._task_active = False
     assert node._dispatch_next_smart_voice()
-    assert dispatched == [("指令1", "ASR", False)]
+    assert dispatched == [("清扫区域1", "ASR", False)]
     assert not node._dispatch_next_smart_voice()
-    assert dispatched == [("指令1", "ASR", False)]
+    assert dispatched == [("清扫区域1", "ASR", False)]
     node._task_active = False
     assert node._dispatch_next_smart_voice()
-    assert dispatched[-1] == ("指令2", "ASR", False)
+    assert dispatched[-1] == ("清扫区域2", "ASR", False)
 
 
 def test_smart_queue_drops_expired_commands_before_dispatch():
@@ -530,6 +541,48 @@ def test_smart_queue_drops_expired_commands_before_dispatch():
     assert cloud_calls == []
     assert any(kind == "SMART_VOICE" and fields.get("state") == "DROPPED"
                for kind, fields in node.events)
+
+
+def test_smart_turn_waits_for_all_captured_fragments_and_activity():
+    node = _bare_node()
+    node._voice_authorized = node._parse_authorized = True
+    node._smart_voice_enabled = node._smart_voice_listening = True
+    node._smart_voice_session_id = "joined"
+    calls = []
+    node._begin_request = lambda text, *a, **kw: calls.append(text) or (True, "r", "")
+    node._handle_smart_transcript(_smart_event("joined", 1, "清扫A区"))
+    node._voice_buffer.last_end = time.monotonic() - 10
+    node._voice_buffer.updated = time.monotonic() - 1
+    node._asr_event({"event": "smart_activity", "result": {
+        "session_id": "joined", "captured_utterances": 2,
+        "speech_active": False, "last_speech_at": time.monotonic() - 5}})
+    node._poll_voice_turn()
+    assert not calls
+    node._handle_smart_transcript(_smart_event("joined", 2, "然后清扫B区"))
+    node._voice_buffer.last_end = time.monotonic() - 5
+    node._voice_buffer.updated = time.monotonic() - 1
+    node._poll_voice_turn()
+    assert calls == ["清扫A区，然后清扫B区"]
+    node._poll_voice_turn()
+    assert len(calls) == 1
+
+
+def test_old_activity_cannot_flush_or_block_current_draft():
+    node = _bare_node()
+    node._smart_voice_enabled = True
+    node._smart_voice_session_id = "current"
+    node._asr_event({"event": "smart_activity", "result": {
+        "session_id": "old", "captured_utterances": 999}})
+    assert node._smart_activity == {}
+
+
+def test_parse_revoke_clears_draft_not_just_ready_queue():
+    node = _bare_node()
+    node._parse_authorized = True
+    node._voice_buffer.add("清扫A区然后", time.monotonic(), time.monotonic())
+    node._set_authorization(SimpleNamespace(
+        session_token=node._session_token, gate="parse", enabled=False))
+    assert not node._voice_buffer.parts
 
 
 def test_parse_revoke_clears_unsubmitted_smart_queue():

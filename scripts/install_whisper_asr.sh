@@ -186,6 +186,7 @@ fi
   numba==0.58.1 \
   numpy==1.24.4 \
   opencc-python-reimplemented==0.1.7 \
+  webrtcvad==2.0.10 \
   sympy==1.13.3 \
   tiktoken==0.7.0 \
   tqdm==4.66.5 \

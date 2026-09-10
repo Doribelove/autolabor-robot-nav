@@ -14,6 +14,8 @@
 #include <QTabWidget>
 #include <QTemporaryDir>
 #include <QThread>
+#include <QPlainTextEdit>
+#include <QTableWidget>
 
 #include <atomic>
 #include <chrono>
@@ -95,6 +97,32 @@ protected:
       std::this_thread::sleep_for(std::chrono::milliseconds(5));
     EXPECT_TRUE(window_->snapshot().cloud_received);
     EXPECT_EQ(6471U, window_->snapshot().cloud_point_count);
+  }
+
+  void verifyVoiceDraftAndClarification()
+  {
+    sweeper_mcp::AiEvent event;
+    event.kind = "SMART_VOICE";
+    event.state = "WAITING";
+    event.result_json = u8R"({"draft":"先清扫A区，然后"})";
+    window_->applyAiEvent(event);
+    ASSERT_NE(nullptr, window_->ai_transcript_);
+    EXPECT_EQ(QStringLiteral("[等待说完] 先清扫A区，然后"),
+              window_->ai_transcript_->toPlainText());
+    event.kind = "PLAN";
+    event.state = "VALIDATED";
+    event.result_json = u8R"({"steps":[],"needs_clarification":true,"understood_sequence":["清扫A区","回到未指定的位置"]})";
+    window_->applyAiEvent(event);
+    ASSERT_NE(nullptr, window_->ai_plan_table_);
+    ASSERT_EQ(2, window_->ai_plan_table_->rowCount());
+    EXPECT_EQ(QStringLiteral("--"), window_->ai_plan_table_->item(0, 2)->text());
+    EXPECT_EQ(QStringLiteral("理解草稿·待补充，未执行"),
+              window_->ai_plan_table_->item(1, 4)->text());
+    event.kind = "TRANSCRIPT";
+    event.state = "SMART_TURN";
+    event.description = u8"先清扫A区，然后清扫B区";
+    window_->applyAiEvent(event);
+    EXPECT_EQ(QStringLiteral("先清扫A区，然后清扫B区"), window_->ai_transcript_->toPlainText());
   }
 
   void pump(int milliseconds)
@@ -285,6 +313,11 @@ TEST_F(RvizCallbackIsolationTest, ReconnectPreservesQueueSeparation)
 TEST_F(RvizCallbackIsolationTest, ActualTelemetrySubscriptionUsesPrivateWorker)
 {
   verifyTelemetryDelivery();
+}
+
+TEST_F(RvizCallbackIsolationTest, VoiceDraftAndClarificationAreNotExecutableSteps)
+{
+  verifyVoiceDraftAndClarification();
 }
 
 TEST_F(RvizCallbackIsolationTest, RestoresEndpointsForgottenByMaster)

@@ -164,6 +164,7 @@ def _worker_config(directory, arecord_path, model="medium"):
         "min_rms": 0.003,
         "language": "zh",
         "initial_prompt": "简体中文",
+        "vad_backend": "energy",  # synthetic constant-amplitude fixtures
     }
 
 
@@ -180,6 +181,26 @@ def _smart_worker_config(directory, arecord_path, queue_limit=4):
         "smart_vad_rms": 0.01,
     })
     return config
+
+
+def test_transcription_quality_rejects_nan_punctuation_and_hallucination():
+    reject = WhisperAsrWorker._transcript_rejection
+    assert reject({}, "!!!!!!!!")
+    assert reject({"segments": [{"avg_logprob": float("nan")}]}, "清扫A区")
+    assert reject({"segments": [{"no_speech_prob": 0.98, "avg_logprob": -1.5}]}, "字幕君")
+    assert reject({}, "声音" * 12)
+    assert not reject({"segments": [{"no_speech_prob": 0.05, "avg_logprob": -0.1}]}, "停止")
+    assert not reject({}, "先清扫A区然后去B区")
+
+
+def test_non_speech_pcm_is_rejected_before_inference():
+    worker = WhisperAsrWorker.__new__(WhisperAsrWorker)
+    class Unvoiced:
+        def is_speech(self, frame, rate):
+            assert len(frame) == 320 and rate == 16000
+            return False
+    worker._vad_factory = Unvoiced
+    assert "insufficient voiced" in worker._audio_rejection(b"\0" * 32000)
 
 
 def _wait_for(predicate, timeout=3.0, description="condition"):

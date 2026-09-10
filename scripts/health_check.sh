@@ -174,6 +174,11 @@ PY
 
   if [[ -x "$asr_python" ]]; then
     pass "isolated NVIDIA ASR Python is executable"
+    if "$asr_python" -c 'import webrtcvad; webrtcvad.Vad(2)' >/dev/null 2>&1; then
+      pass "WebRTC speech gate imports from the isolated ASR environment"
+    else
+      fail "WebRTC speech gate is missing; run install_whisper_asr.sh"
+    fi
     if "$asr_python" -c 'import whisper' >/dev/null 2>&1; then
       pass "OpenAI Whisper imports from the isolated ASR environment"
     else

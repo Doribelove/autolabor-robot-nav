@@ -27,6 +27,7 @@ class FakeLLM:
         self.calls = 0
 
     def chat(self, _messages, tools=None, tool_choice=None):
+        self.messages = _messages
         self.calls += 1
         if tools:
             assert tool_choice["function"]["name"] == "submit_plan"
@@ -58,6 +59,34 @@ class LocalMCP:
         assert tool is not None
         result = tool.run(arguments or {}, authorised=authorised)
         return {"text": result.text, "is_error": result.is_error}
+
+
+def test_clarification_retains_context_and_never_executes_partial_plan():
+    llm = FakeLLM({"steps": [], "answer": "清扫哪个区域？", "needs_clarification": True})
+    runner = AgentRunner(llm=llm, mcp=LocalMCP())
+    result = runner.run("请清扫那个区域", execute=False)
+    assert result["state"] == "NEEDS_CLARIFICATION"
+    assert runner.awaiting_reply()
+    llm.document = {"steps": [], "answer": "已收到前大厅"}
+    runner.run("前大厅", execute=False)
+    assert llm.messages[-3]["content"] == "请清扫那个区域"
+    assert "清扫哪个区域" in llm.messages[-2]["content"]
+    assert llm.messages[-1]["content"] == "前大厅"
+    runner.reset_context()
+    runner.run("清扫B区", execute=False)
+    assert len(llm.messages) == 2
+
+
+def test_clarification_cannot_carry_executable_steps():
+    llm = FakeLLM({"steps": [{"tool": "start_spot_cleaning", "arguments": {},
+                               "description": "清扫"}],
+                   "answer": "需要补充", "needs_clarification": True})
+    runner = AgentRunner(llm=llm, mcp=LocalMCP())
+    try:
+        runner.run("如果有垃圾就清扫", execute=False)
+        assert False, "partial executable clarification must be rejected"
+    except AgentError:
+        pass
 
 
 class ScriptedNavigationBackend(MockBackend):
@@ -396,7 +425,7 @@ def test_continuous_sentence_executes_strictly_in_order():
             "x_m": 3.0, "y_m": 2.0, "yaw_deg": 90.0,
         }, "再到地图位置"),
     ]}, backend=backend, events=events)
-    result = runner.run("先向前一米，再去地图坐标三二朝北", execute=True)
+    result = runner.run("先向前一米，再去地图坐标(3,2)，朝向90度", execute=True)
     assert result["state"] == "SUCCEEDED", result
     assert [item["tool"] for item in result["results"]] == [
         "navigate_relative", "navigate_map_pose"]
@@ -417,7 +446,7 @@ def test_accepted_navigation_polls_active_then_succeeded():
         }),
     ]}, backend=backend, events=events)
 
-    result = runner.run("导航到地图坐标八零", execute=True)
+    result = runner.run("导航到地图坐标(8,0)", execute=True)
 
     assert result["state"] == "SUCCEEDED", result
     assert result["results"][0]["ok"] is True
@@ -438,7 +467,7 @@ def test_initial_navigation_error_fails_without_status_polling():
         }),
     ]}, backend=backend, events=events)
 
-    result = runner.run("导航到地图坐标八零", execute=True)
+    result = runner.run("导航到地图坐标(8,0)", execute=True)
 
     assert result["state"] == "FAILED", result
     assert result["results"][0]["ok"] is False
@@ -455,7 +484,7 @@ def test_post_publish_navigation_error_waits_for_exact_cancel_confirmation():
         }),
     ]}, backend=backend, events=events)
 
-    result = runner.run("导航到地图坐标八零", execute=True)
+    result = runner.run("导航到地图坐标(8,0)", execute=True)
 
     assert result["state"] == "FAILED", result
     detail = json.loads(result["results"][0]["detail"])
@@ -481,7 +510,7 @@ def test_navigation_cleanup_keeps_run_lock_through_same_goal_recalling():
     def execute():
         try:
             outcome["result"] = runner.run(
-                "导航到地图坐标八零", execute=True)
+                "导航到地图坐标(8,0)", execute=True)
         except Exception as exc:  # pragma: no cover - surfaced below
             outcome["error"] = exc
 
@@ -519,7 +548,7 @@ def test_lost_navigation_enters_cleanup_instead_of_releasing_goal():
         }),
     ]}, backend=backend, events=events)
 
-    result = runner.run("导航到地图坐标八零", execute=True)
+    result = runner.run("导航到地图坐标(8,0)", execute=True)
 
     assert result["state"] == "FAILED", result
     detail = json.loads(result["results"][0]["detail"])
@@ -542,7 +571,7 @@ def test_navigation_status_error_waits_for_exact_cancel_confirmation():
         }),
     ]}, backend=backend, events=events)
 
-    result = runner.run("导航到地图坐标八零", execute=True)
+    result = runner.run("导航到地图坐标(8,0)", execute=True)
 
     assert result["state"] == "FAILED", result
     detail = json.loads(result["results"][0]["detail"])
@@ -565,7 +594,7 @@ def test_operator_cancel_waits_for_same_goal_safe_state():
     ]}, backend=backend, events=events)
     backend.cancel_callback = runner.cancel
 
-    result = runner.run("导航到地图坐标八零", execute=True)
+    result = runner.run("导航到地图坐标(8,0)", execute=True)
 
     assert result["state"] == "CANCELLED", result
     assert result["results"][0]["ok"] is False
@@ -583,7 +612,7 @@ def test_foreign_navigation_status_cannot_complete_current_step():
         }),
     ]}, backend=backend)
 
-    result = runner.run("导航到地图坐标八零", execute=True)
+    result = runner.run("导航到地图坐标(8,0)", execute=True)
 
     assert result["state"] == "FAILED", result
     detail = json.loads(result["results"][0]["detail"])
@@ -667,7 +696,7 @@ def test_failure_stops_remaining_steps():
         }),
         _step("get_robot_status", {}),
     ]}, backend=backend)
-    result = runner.run("先移动，再查状态", execute=True)
+    result = runner.run("先向前一米，再查状态", execute=True)
     assert result["state"] == "FAILED"
     assert len(result["results"]) == 1
     assert [item[0] for item in backend.calls] == ["navigate_relative"]
@@ -680,7 +709,7 @@ def test_revoked_control_fails_closed_before_tool_call():
             "forward_m": 1.0, "left_m": 0.0, "delta_yaw_deg": 0.0,
         }),
     ]}, backend=backend, authorised=False)
-    result = runner.run("向前", execute=True)
+    result = runner.run("向前一米", execute=True)
     assert result["state"] == "CANCELLED"
     assert backend.calls == []
 

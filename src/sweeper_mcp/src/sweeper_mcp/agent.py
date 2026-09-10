@@ -13,6 +13,8 @@ import time
 
 from sweeper_mcp.llm import OpenAIClient
 from sweeper_mcp.mcp_client import MCPClient
+from sweeper_mcp.navigation_grounding import navigation_error
+from sweeper_mcp.region_catalog import compact_catalog, coverage_region_error, reference_map
 from sweeper_mcp.tools import TOOL_SPECS, validate_arguments
 
 
@@ -31,10 +33,41 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
 2. “定点清扫”表示现有 FOD 视觉伺服，不代表主刷、边刷、风机或喷淋。
 3. 区域覆盖只能引用系统提供的已保存区域名称或 UUID，禁止生成临时多边形。
 4. 参数不明确时返回空 steps 并在 answer 中要求用户补充，禁止编造坐标、区域或距离。
-5. 连续语句必须逐动作拆分，保持“先、再、然后、最后”的顺序。
+5. 连续语句按独立任务拆分并保留先后顺序，不按动词数量机械拆分。高层任务内部的入场不另拆导航。
 6. 只能调用 submit_plan 一次。不要在 answer 中声称动作已经完成。
 7. “地图原点”或“地图坐标原点”明确表示 map 位姿 x=0、y=0、yaw=0；“起点、基地、
    充电点”等名称不等同于地图原点，系统未提供精确坐标时必须要求用户补充。
+8. 输入可能由用户自然停顿后的多个片段合并；连词、指代和“不是X，是Y”应结合本轮完整表达理解。
+9. 历史对话仅用于补齐待答问题、解析指代。历史状态为 PREVIEW/SUCCEEDED/FAILED 的任务
+   不得重新执行或声称已完成。当前明确的新指令优先，不能擅自把上一轮任务附加进来。
+10. 缺少必要信息或整条指令包含当前工具无法表达的动作/条件分支时，返回
+    needs_clarification=true、steps=[]，在 understood_sequence 中逐项保留完整动作顺序
+    （包括暂不支持的动作），在 answer 说明具体缺项并提出补充问题。
+    不得把“如果有垃圾才清扫”改为无条件清扫，也不得悄悄省略中间动作后执行其他动作。
+    用户只有在正在回答明确问题时，“是/好的/某区域”等短语才可用于补充，不代表开启控制授权。
+11. “到某区域去，在那里清扫一下”“去A区然后清扫那里”表示区域覆盖任务：
+    只调用 start_coverage_cleaning(regions=[对应已保存区域])。覆盖系统自己规划从当前位置到入口，
+    不能先 navigate_map_pose/navigate_relative，再清扫，也不能用 start_spot_cleaning 替代区域覆盖。
+    口语简称在上下文唯一明确时映射为目录中的精确名称/UUID；有多个候选或无匹配时要求补充。
+12. 单独“到前门去”“去A区”等区域目标不是导航点；无明确点位时询问坐标，不能自行变成清扫。
+    本系统没有命名导航点目录，清扫区域目录也不提供导航坐标，禁止从名字、中心、入口或机器人状态猜坐标。
+    map 导航只接受用户明确的 x/y 或地图原点；未指定朝向时 yaw_deg=0。
+    相对导航必须明确方向和距离/转角。“往前一点”“去附近”不满足条件。
+    如果用户明确要求“先到地图坐标(1,2)，再清扫A区”，才保留独立导航和清扫两个任务。
+13. 当前区域目录是每次规划时动态查询的，不得记忆或写死示例区域。用户说出的区域可以不与
+    目录逐字一致：应结合地点主体、方位及其自然同义表达、通用建筑词/后缀的省略或替换、
+    上下文指代，在本轮完整目录中做语义候选匹配。推理示例：如果本轮目录新增
+    “研究院后大厅”，且没有其他后部候选，“到研究院后面清扫一下”可匹配该区域；
+    这只是可替换的示例，不是固定区域、固定短语或别名表。
+    选择前必须枚举目录中所有共享同一地点主体和方位的候选。如果用户省略了用于区分候选的
+    功能/部位词（如门、门厅、大厅、走廊、房间、广场），则这些候选都仍然合理；不能偏爱
+    名称更短、排列更早或更像示例的一项，也不能声称它是唯一候选。
+    匹配优先级为：地点主体和用户明确说出的方位是硬约束，功能/部位词是软约束。
+    名称中带有与用户明确方位冲突的候选必须排除；不能因为都含“门/大厅”等通用词而忽略
+    前、后、左、右、东、西、南、北或侧向等方位差异。
+    只有一个明显合理候选时，regions 必须填写该候选在目录中的原始精确名称或 UUID；
+    若有两个以上近似候选、地点主体/方位冲突或信心不足，必须要求用户从候选中确认。
+    禁止把用户的近似说法直接填入 regions，也禁止因目录变化沿用上一轮候选。
 """
 
 NAV_TOOLS = {"navigate_relative", "navigate_map_pose"}
@@ -79,6 +112,8 @@ def _plan_tool(tool_names):
                         },
                     },
                     "answer": {"type": "string"},
+                    "needs_clarification": {"type": "boolean"},
+                    "understood_sequence": {"type": "array", "items": {"type": "string"}},
                 },
                 "required": ["steps"],
                 "additionalProperties": False,
@@ -102,7 +137,8 @@ class AgentRunner:
                  control_token="", max_plan_steps=8, nav_wait_timeout=240.0,
                  navigation_cleanup_timeout=30.0,
                  coverage_wait_timeout=3600.0, visual_wait_timeout=300.0,
-                 poll_interval=0.5, tool_text_limit=1500, llm=None, mcp=None,
+                 poll_interval=0.5, tool_text_limit=1500,
+                 region_catalog_limit=6000, llm=None, mcp=None,
                  event_callback=None, authorization_checker=None,
                  cloud_authorization_checker=None, **_ignored):
         self.llm = llm or OpenAIClient(
@@ -123,11 +159,19 @@ class AgentRunner:
         self.visual_wait_timeout = float(visual_wait_timeout)
         self.poll_interval = float(poll_interval)
         self.tool_text_limit = int(tool_text_limit)
+        self.region_catalog_limit = int(region_catalog_limit)
+        if self.region_catalog_limit < 512 or self.region_catalog_limit > 50000:
+            raise ValueError("region_catalog_limit must be between 512 and 50000")
         self.event_callback = event_callback
         self.authorization_checker = authorization_checker
         self.cloud_authorization_checker = cloud_authorization_checker
         self._cancel = threading.Event()
         self._run_lock = threading.Lock()
+        self._context_lock = threading.RLock()
+        self._history = []
+        self._context_generation = 0
+        self._region_context = None
+        self._region_references = {}
         self._active_tool = ""
         self._tools = None
         self._specs = _spec_map()
@@ -176,10 +220,26 @@ class AgentRunner:
         try:
             result = self.mcp.call_tool("list_saved_coverage_regions", {})
             if result.get("is_error"):
-                return "当前已保存区域不可用。"
-            return "当前已保存区域（只允许精确引用）：%s" % _sanitize_text(
-                result.get("text"), self.tool_text_limit)
+                raise RuntimeError(str(result.get("text", "当前已保存区域不可用")))
+            catalog = str(result.get("text", ""))
+            rendered = compact_catalog(catalog, self.region_catalog_limit)
+            references = reference_map(catalog) if rendered else {}
+            with self._context_lock:
+                if self._region_context is not None and catalog != self._region_context:
+                    self.reset_context()
+                self._region_context = catalog
+                self._region_references = references
+            if not rendered:
+                return ("当前动态区域目录为空、格式无效或超过完整展示上限；"
+                        "不得规划区域清扫，必须要求用户检查区域配置。")
+            return ("本轮动态区域目录（用户口语可近似表达；计划参数只能填写下列原始精确"
+                    "名称或 UUID）：%s" % rendered)
         except Exception as exc:
+            with self._context_lock:
+                if self._region_context is not None:
+                    self.reset_context()
+                self._region_context = None
+                self._region_references = {}
             return "当前已保存区域查询失败：%s" % exc
 
     def plan(self, text):
@@ -188,19 +248,52 @@ class AgentRunner:
             raise AgentCancelled("AI parse authorization was revoked")
         tools = self.list_tools()
         names = [item["name"] for item in tools]
+        context = self._context()
         prompt = "%s\n%s\n\n可用 MCP 工具：\n%s" % (
-            SYSTEM_PROMPT, self._context(), _tool_description(tools))
-        messages = [
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": text},
-        ]
+            SYSTEM_PROMPT, context, _tool_description(tools))
+        messages = [{"role": "system", "content": prompt}]
+        with self._context_lock:
+            self._history = [row for row in self._history if time.monotonic() - row["at"] < 60.0][-3:]
+            for row in self._history:
+                messages.extend([
+                    {"role": "user", "content": row["text"]},
+                    {"role": "assistant", "content": row["reply"]},
+                ])
+            region_references = dict(self._region_references)
+        messages.append({"role": "user", "content": text})
+        # Only unresolved clarification may contribute earlier user evidence.
+        # Never ground a new point using an executed/previewed plan or a model reply.
+        evidence = [text]
+        with self._context_lock:
+            for row in reversed(self._history):
+                if row["state"] != "NEEDS_CLARIFICATION":
+                    break
+                evidence.insert(0, row["text"])
         planning_tool = _plan_tool(names)
-        response = self.llm.chat(
-            messages, tools=[planning_tool],
-            tool_choice={"type": "function", "function": {"name": "submit_plan"}},
-        )
-        self._check_cancelled()
-        self._cloud_event("PLAN")
+        for attempt in range(2):
+            response = self.llm.chat(
+                messages, tools=[planning_tool],
+                tool_choice={"type": "function", "function": {"name": "submit_plan"}},
+            )
+            self._check_cancelled()
+            self._cloud_event("PLAN" if attempt == 0 else "PLAN_FORMAT_RETRY")
+            try:
+                plan = self._validate_plan_response(response)
+                error = coverage_region_error(plan, region_references)
+                if not error:
+                    error = navigation_error(plan, evidence)
+                if error:
+                    raise AgentError(error)
+                return plan
+            except AgentError as exc:
+                if attempt or not self._cloud_authorised():
+                    raise
+                # Retry only planning, before any tool execution.
+                messages.append({"role": "user", "content":
+                                 "上次本地整计划校验失败：%s 请重新提交完整合法的 submit_plan。"
+                                 "需要补充时 steps 必须为空，动作理解放 understood_sequence。" % exc})
+
+    def _validate_plan_response(self, response):
         calls = response.get("tool_calls") or []
         matching = [call for call in calls if call.get("function", {}).get(
             "name") == "submit_plan"]
@@ -210,10 +303,20 @@ class AgentRunner:
             document = json.loads(matching[0]["function"].get("arguments") or "{}")
         except (TypeError, ValueError):
             raise AgentError("云端计划不是有效 JSON。")
-        if not isinstance(document, dict) or set(document) - {"steps", "answer"}:
+        if not isinstance(document, dict) or set(document) - {
+                "steps", "answer", "needs_clarification", "understood_sequence"}:
             raise AgentError("云端计划包含未定义字段。")
         steps = document.get("steps")
         answer = document.get("answer", "")
+        clarification = document.get("needs_clarification", False)
+        sequence = document.get("understood_sequence", [])
+        if (not isinstance(sequence, list) or len(sequence) > 32 or
+                any(not isinstance(s, str) or not s.strip() or len(s) > 1000 for s in sequence)):
+            raise AgentError("understood_sequence 必须是最多32项的非空描述字符串数组。")
+        if not isinstance(clarification, bool):
+            raise AgentError("needs_clarification 必须是布尔值。")
+        if clarification and (steps or not isinstance(answer, str) or not answer.strip()):
+            raise AgentError("需要补充的计划必须 steps 为空且说明待补充内容。")
         if not isinstance(steps, list):
             raise AgentError("云端计划 steps 不是数组。")
         if len(steps) > self.max_plan_steps:
@@ -241,9 +344,42 @@ class AgentRunner:
             })
         if not isinstance(answer, str):
             raise AgentError("云端计划 answer 必须是字符串。")
-        return {"steps": validated, "answer": answer.strip()}
+        plan = {"steps": validated, "answer": answer.strip()}
+        if clarification:
+            plan["needs_clarification"] = True
+        if sequence:
+            plan["understood_sequence"] = sequence
+        return plan
+
+    def reset_context(self):
+        with self._context_lock:
+            self._history = []
+            self._context_generation += 1
+
+    def awaiting_reply(self):
+        with self._context_lock:
+            return bool(self._history and
+                        time.monotonic() - self._history[-1]["at"] < 60.0 and
+                        self._history[-1]["state"] == "NEEDS_CLARIFICATION")
 
     def run(self, text, execute=False):
+        with self._context_lock:
+            generation = self._context_generation
+        result = self._run(text, execute)
+        with self._context_lock:
+            if generation == self._context_generation:
+                self._history.append({
+                    "at": time.monotonic(), "text": text[:4000],
+                    "state": result["state"],
+                    "reply": json.dumps({"state": result["state"],
+                                         "plan": result.get("plan", {}),
+                                         "answer": result.get("answer", "")},
+                                        ensure_ascii=False)[:6000],
+                })
+                self._history = self._history[-3:]
+        return result
+
+    def _run(self, text, execute=False):
         if not self._run_lock.acquire(False):
             raise AgentError("已有 AI 请求正在处理。")
         self._cancel.clear()
@@ -257,7 +393,8 @@ class AgentRunner:
             )
             if not plan["steps"]:
                 return {
-                    "state": "ANSWERED", "plan": plan, "results": [],
+                    "state": "NEEDS_CLARIFICATION" if plan.get("needs_clarification") else "ANSWERED",
+                    "plan": plan, "results": [],
                     "answer": plan["answer"] or "该请求不需要机器人工具。",
                     "total_ms": (time.monotonic() - started) * 1000.0,
                 }

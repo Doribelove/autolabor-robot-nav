@@ -282,12 +282,13 @@ class WhisperAsrWorker(object):
         self._smart_terminal_state = "SMART_STOPPED"
         self._smart_chunk_ms = 100.0
         self._smart_speech_start_ms = 200.0
-        self._smart_silence_ms = 600.0
+        self._smart_silence_ms = 1000.0
         self._smart_pre_roll_ms = 300.0
         self._smart_min_utterance_s = 0.4
         self._smart_max_utterance_s = 15.0
         self._smart_queue_limit = 4
         self._smart_vad_rms = self._min_rms
+        self._vad_factory = None
         self._configure()
         self._smart_inference_thread = threading.Thread(
             target=self._smart_inference_loop,
@@ -385,7 +386,7 @@ class WhisperAsrWorker(object):
                 self._config, "smart_speech_start_ms", 200.0,
                 smart_chunk_ms, 5000.0)
             smart_silence_ms = _numeric_config(
-                self._config, "smart_silence_ms", 600.0,
+                self._config, "smart_silence_ms", 1000.0,
                 smart_chunk_ms, 10000.0)
             smart_pre_roll_ms = _numeric_config(
                 self._config, "smart_pre_roll_ms", 300.0, 0.0, 5000.0)
@@ -405,6 +406,12 @@ class WhisperAsrWorker(object):
                 raise ValueError("smart_queue_limit must be an integer between 1 and 32")
             smart_vad_rms = _numeric_config(
                 self._config, "smart_vad_rms", min_rms, 0.000001, 1.0)
+            vad_backend = self._config.get("vad_backend", "webrtc")
+            if vad_backend == "webrtc":
+                import webrtcvad
+                self._vad_factory = lambda: webrtcvad.Vad(2)
+            elif vad_backend != "energy":
+                raise ValueError("vad_backend must be webrtc or energy")
 
             # Hash the multi-gigabyte checkpoint only after all inexpensive
             # capture/configuration checks have passed.
@@ -655,6 +662,8 @@ class WhisperAsrWorker(object):
             elif rms < self._min_rms:
                 rejection_reason = (
                     "audio RMS %.6f is below %.6f" % (rms, self._min_rms))
+            if not rejection_reason:
+                rejection_reason = self._audio_rejection(pcm)
 
             if not rejection_reason:
                 with self._lock:
@@ -683,6 +692,9 @@ class WhisperAsrWorker(object):
             decode_ms = (time.monotonic() - decode_started_at) * 1000.0
             transcript = self._text_converter(
                 str((output or {}).get("text", ""))).strip()
+            quality_error = self._transcript_rejection(output, transcript, rms, self._initial_prompt)
+            if quality_error:
+                transcript = ""
             latency_ms = (time.monotonic() - started_at) * 1000.0
             with self._lock:
                 cancelled = generation != self._capture_generation
@@ -714,7 +726,7 @@ class WhisperAsrWorker(object):
                 "model": self._model_name,
                 "device": DEVICE_NAME,
                 "model_loaded": self._model is not None,
-                "error": "" if transcript else "Whisper returned empty text",
+                "error": quality_error or ("" if transcript else "Whisper returned empty text"),
             }
             self._emit({"event": "result", "result": result})
             self._emit_status()
@@ -940,6 +952,8 @@ class WhisperAsrWorker(object):
         silence_run = []
         buffered = b""
         stream = process.stdout
+        vad = self._vad_factory() if self._vad_factory else None
+        last_speech_at = 0.0
         try:
             while stream is not None:
                 data = stream.read(max(1, chunk_bytes - len(buffered)))
@@ -957,6 +971,18 @@ class WhisperAsrWorker(object):
                             process is not self._smart_proc):
                         return
                 is_speech = self._pcm_rms(chunk) >= self._smart_vad_rms
+                if vad is not None:
+                    is_speech = self._voiced_fraction(chunk, vad) >= 0.4 and is_speech
+                if is_speech:
+                    last_speech_at = time.monotonic()
+                # This clock is shared by local worker/node processes. Activity
+                # must reach the node before the next delayed ASR result.
+                self._emit({"event": "smart_activity", "result": {
+                    "session_id": session_id,
+                    "speech_active": bool(is_speech or utterance is not None),
+                    "last_speech_at": last_speech_at,
+                    "captured_utterances": self._smart_utterance_count,
+                }})
                 if utterance is None:
                     if is_speech:
                         speech_run.append(chunk)
@@ -982,7 +1008,8 @@ class WhisperAsrWorker(object):
                     continue
 
                 pcm = b"".join(utterance)[:max_utterance_bytes]
-                self._queue_smart_utterance(generation, session_id, pcm)
+                self._queue_smart_utterance(
+                    generation, session_id, pcm, last_speech_at)
                 if reached_silence and pre_roll_limit:
                     pre_roll = deque(
                         silence_run[-pre_roll_limit:], maxlen=pre_roll_limit)
@@ -1015,15 +1042,72 @@ class WhisperAsrWorker(object):
                 "smart arecord exited unexpectedly%s" % (
                     "" if return_code is None else " with status %s" % return_code))
 
-    def _queue_smart_utterance(self, generation, session_id, pcm):
+    @staticmethod
+    def _voiced_fraction(pcm, vad):
+        frame_bytes = SAMPLE_RATE * SAMPLE_BYTES // 100  # WebRTC 10 ms frames
+        frames = [pcm[i:i + frame_bytes] for i in range(0, len(pcm), frame_bytes)
+                  if len(pcm[i:i + frame_bytes]) == frame_bytes]
+        return sum(vad.is_speech(frame, SAMPLE_RATE) for frame in frames) / float(max(1, len(frames)))
+
+    def _audio_rejection(self, pcm):
+        if self._vad_factory is None:
+            return ""
+        # WebRTC alone can call stationary broadband noise "voiced". Inspect
+        # 20 ms windows; speech normally has either spectral structure or a
+        # changing amplitude envelope. Ignore the deliberate silent padding.
+        import numpy as np
+        samples = np.frombuffer(pcm, dtype="<i2").astype(np.float32) / 32768.0
+        count = len(samples) // 320
+        if count >= 8:
+            frames = samples[:count * 320].reshape(-1, 320)
+            energies = np.sqrt(np.mean(frames * frames, axis=1))
+            active = energies > max(float(np.percentile(energies, 90)) * 0.3, 1e-6)
+            if int(np.sum(active)) >= 8:
+                power = np.abs(np.fft.rfft(frames[active] * np.hanning(320), axis=1)) ** 2 + 1e-12
+                flatness = np.exp(np.mean(np.log(power), axis=1)) / np.mean(power, axis=1)
+                variation = float(np.std(energies[active]) / np.mean(energies[active]))
+                if float(np.median(flatness)) > 0.45 and variation < 0.25:
+                    return "stationary broadband noise"
+        fraction = self._voiced_fraction(pcm, self._vad_factory())
+        voiced_s = fraction * len(pcm) / float(SAMPLE_RATE * SAMPLE_BYTES)
+        if voiced_s < 0.16 or fraction < 0.15:
+            return "insufficient voiced audio (%.3fs, %.1f%%)" % (voiced_s, fraction * 100)
+        return ""
+
+    @staticmethod
+    def _transcript_rejection(output, transcript, rms=None, initial_prompt=""):
+        if not any(c.isalnum() for c in transcript):
+            return "empty or punctuation-only transcription"
+        if re.search(r"(.{1,8})\1{5,}", transcript):
+            return "repetitive transcription"
+        plain = "".join(c for c in transcript if c.isalnum())
+        prompt = "".join(c for c in initial_prompt if c.isalnum())
+        if rms is not None and rms < 0.03 and plain and plain in prompt:
+            return "low-energy copy of ASR prompt"
+        if (rms is not None and rms < 0.015 and plain in {
+                "声音", "声音不足", "音频编号录音", "字幕君", "谢谢观看", "感谢观看"}):
+            return "low-energy hallucination phrase"
+        for segment in (output or {}).get("segments", []):
+            values = [segment.get(k, 0.0) for k in
+                      ("avg_logprob", "no_speech_prob", "compression_ratio")]
+            if not all(isinstance(v, (int, float)) and math.isfinite(v) for v in values):
+                return "non-finite ASR confidence"
+            logprob, no_speech, compression = values
+            if compression > 3.0 or (no_speech > 0.6 and logprob < -0.8):
+                return "low-confidence or repetitive ASR segment"
+        return ""
+
+    def _queue_smart_utterance(self, generation, session_id, pcm, ended_at=None):
         audio_duration_s = len(pcm) / float(
             SAMPLE_RATE * CHANNELS * SAMPLE_BYTES)
         rms = self._pcm_rms(pcm)
-        # The consecutive start gate already proved real speech.  Do not
-        # compare whole-utterance RMS with the VAD threshold again: configured
-        # trailing silence intentionally lowers that aggregate RMS and would
-        # otherwise reject quiet but valid speech.
+        # Trailing silence lowers RMS; use voiced duration/proportion instead.
         if audio_duration_s < self._smart_min_utterance_s:
+            return False
+        rejection = self._audio_rejection(pcm)
+        if rejection:
+            self._emit({"event": "smart_filtered", "result": {
+                "session_id": session_id, "reason": rejection}})
             return False
         dropped = None
         with self._smart_condition:
@@ -1053,6 +1137,7 @@ class WhisperAsrWorker(object):
                     "audio_duration_s": audio_duration_s,
                     "rms": rms,
                     "queued_at": time.monotonic(),
+                    "ended_at": ended_at or time.monotonic(),
                 })
                 self._smart_condition.notify_all()
         if dropped is not None:
@@ -1089,6 +1174,7 @@ class WhisperAsrWorker(object):
         decode_ms = 0.0
         transcript = ""
         failure = ""
+        quality_error = ""
         try:
             load_started_at = time.monotonic()
             model = self._load_model()
@@ -1109,6 +1195,8 @@ class WhisperAsrWorker(object):
             decode_ms = (time.monotonic() - decode_started_at) * 1000.0
             transcript = self._text_converter(
                 str((output or {}).get("text", ""))).strip()
+            quality_error = self._transcript_rejection(
+                output, transcript, item["rms"], self._initial_prompt)
         except WorkerRequestError:
             pass
         except Exception as exc:
@@ -1159,6 +1247,7 @@ class WhisperAsrWorker(object):
                         "utterance_id": item["utterance_id"],
                         "utterance_index": int(item["utterance_index"]),
                         "transcript": transcript,
+                        "ended_at": float(item.get("ended_at", started_at)),
                         "audio_duration_s": float(item["audio_duration_s"]),
                         "rms": float(item["rms"]),
                         "asr_latency_ms": float(latency_ms),
@@ -1166,12 +1255,15 @@ class WhisperAsrWorker(object):
                         "model_load_ms": float(model_load_ms),
                         "decode_ms": float(decode_ms),
                         "model_was_loaded": bool(model_was_loaded),
-                        "accepted": bool(transcript),
+                        "accepted": bool(transcript) and not quality_error,
+                        "confidence": [{k: segment.get(k) for k in
+                                        ("avg_logprob", "no_speech_prob", "compression_ratio")}
+                                       for segment in (output or {}).get("segments", [])],
                         "model": self._model_name,
                         "device": DEVICE_NAME,
                         "model_loaded": self._model is not None,
                         "error": (
-                            "" if transcript else "Whisper returned empty text"),
+                            quality_error or ("" if transcript else "Whisper returned empty text")),
                     }
                     transcript_event = {
                         "event": "smart_transcript", "result": result}

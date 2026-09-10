@@ -680,6 +680,16 @@ void MainWindow::applyAiEvent(const sweeper_mcp::AiEvent& event)
   const QString description = QString::fromStdString(event.description);
   if (kind == QStringLiteral("TRANSCRIPT") && ai_transcript_)
     ai_transcript_->setPlainText(description);
+  if (kind == QStringLiteral("SMART_VOICE") && ai_transcript_ &&
+      (state == QStringLiteral("BUFFERING") || state == QStringLiteral("WAITING") ||
+       state == QStringLiteral("END") || state == QStringLiteral("IGNORED")))
+  {
+    const QJsonDocument draft = QJsonDocument::fromJson(
+        QByteArray::fromStdString(event.result_json));
+    const QString text = draft.object().value(QStringLiteral("draft")).toString();
+    if (!text.isEmpty())
+      ai_transcript_->setPlainText(QStringLiteral("[等待说完] ") + text);
+  }
   if (kind == QStringLiteral("PLAN") && ai_plan_table_)
   {
     QJsonParseError error;
@@ -707,6 +717,23 @@ void MainWindow::applyAiEvent(const sweeper_mcp::AiEvent& event)
         for (int column = 0; column < columns.size(); ++column)
           ai_plan_table_->setItem(row, column,
                                   new QTableWidgetItem(columns.at(column)));
+      }
+      if (steps.isEmpty() && document.object().value(
+              QStringLiteral("needs_clarification")).toBool())
+      {
+        const QJsonArray sequence = document.object().value(
+            QStringLiteral("understood_sequence")).toArray();
+        ai_plan_table_->setRowCount(sequence.size());
+        for (int row = 0; row < sequence.size(); ++row)
+        {
+          const QStringList columns = {
+            QString::number(row + 1), sequence.at(row).toString(),
+            QStringLiteral("--"), QStringLiteral("--"),
+            QStringLiteral("理解草稿·待补充，未执行"), QStringLiteral("--")};
+          for (int column = 0; column < columns.size(); ++column)
+            ai_plan_table_->setItem(row, column,
+                                    new QTableWidgetItem(columns.at(column)));
+        }
       }
     }
   }

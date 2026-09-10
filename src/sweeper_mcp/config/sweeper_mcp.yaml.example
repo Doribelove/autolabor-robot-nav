@@ -10,6 +10,7 @@ agent:
   timeout_s: 20.0
   max_retries: 3
   tool_text_limit: 1500
+  region_catalog_limit: 6000
   max_plan_steps: 8
   nav_wait_timeout: 240.0
   navigation_cleanup_timeout: 30.0
@@ -49,9 +50,15 @@ asr:
   # 8 条 AI FIFO 相互独立；前者满时整句丢弃，不会稍后补发云端。
   smart_chunk_ms: 100.0
   smart_speech_start_ms: 200.0
-  smart_silence_ms: 600.0
+  smart_segment_silence_ms: 1000.0
   smart_pre_roll_ms: 300.0
   smart_min_utterance_s: 0.4
   smart_max_utterance_s: 15.0
   smart_queue_limit: 4
   smart_vad_rms: 0.003
+  # WebRTC human-speech gate plus ASR confidence checks; energy is for fixture replay only.
+  vad_backend: "webrtc"
+  # Acoustic segments are assembled into conversational turns before cloud planning.
+  turn_quiet_s: 1.5
+  turn_incomplete_s: 4.0
+  turn_fragment_ttl_s: 6.0

@@ -17,6 +17,7 @@ import yaml
 
 from sweeper_mcp.agent import AgentRunner
 from sweeper_mcp.asr_client import AsrClient
+from sweeper_mcp.voice_turns import VoiceTurnBuffer
 from sweeper_mcp.msg import AiControlStatus, AiEvent
 from sweeper_mcp.srv import (
     CancelAiTask, CancelAiTaskResponse,
@@ -107,10 +108,20 @@ class SweeperAiNode:
         self._smart_voice_utterance_count = 0
         self._smart_voice_pending = deque()
         self._smart_voice_seen = set()
+        self._voice_buffer = VoiceTurnBuffer()
+        self._smart_activity = {}
+        self._smart_activity_at = 0.0
+        self._smart_completed = set()
+        self._smart_processed_index = 0
+        self._voice_accept_after = 0.0
 
         config, config_error = self._load_config()
         agent = config.get("agent", {}) if isinstance(config, dict) else {}
         asr = config.get("asr", {}) if isinstance(config, dict) else {}
+        self._voice_buffer = VoiceTurnBuffer(
+            quiet_s=float(asr.get("turn_quiet_s", 1.5)),
+            incomplete_s=float(asr.get("turn_incomplete_s", 4.0)),
+            fragment_ttl_s=float(asr.get("turn_fragment_ttl_s", 6.0)))
         self._model = str(agent.get("model", "deepseek-v4-flash"))
         api_key = os.environ.get("DEEPSEEK_API_KEY", "") or str(
             agent.get("api_key", ""))
@@ -140,6 +151,7 @@ class SweeperAiNode:
                 os.path.abspath(legacy_model_path))
         self._asr_common_config = {
             "device": self._asr_device,
+            "vad_backend": str(asr.get("vad_backend", "webrtc")),
             "arecord_path": str(asr.get("arecord_path", "/usr/bin/arecord")),
             "input_device": str(asr.get("input_device", "")),
             "sample_rate": int(asr.get("sample_rate", 16000)),
@@ -156,7 +168,7 @@ class SweeperAiNode:
             "smart_speech_start_ms": float(asr.get(
                 "smart_speech_start_ms", 200.0)),
             "smart_silence_ms": float(asr.get(
-                "smart_silence_ms", 600.0)),
+                "smart_segment_silence_ms", 1000.0)),
             "smart_pre_roll_ms": float(asr.get(
                 "smart_pre_roll_ms", 300.0)),
             "smart_min_utterance_s": float(asr.get(
@@ -211,6 +223,7 @@ class SweeperAiNode:
             visual_wait_timeout=float(agent.get("visual_wait_timeout", 300.0)),
             poll_interval=float(agent.get("poll_interval", 0.5)),
             tool_text_limit=int(agent.get("tool_text_limit", 1500)),
+            region_catalog_limit=int(agent.get("region_catalog_limit", 6000)),
             backend=backend,
             control_token=self._control_capability,
             event_callback=self._agent_event,
@@ -218,6 +231,7 @@ class SweeperAiNode:
             cloud_authorization_checker=self._cloud_authorized,
         )
         self._timer = rospy.Timer(rospy.Duration(1.0), self._watchdog)
+        self._voice_timer = rospy.Timer(rospy.Duration(0.1), self._poll_voice_turn)
         rospy.on_shutdown(self._shutdown)
         self._publish_status()
         if self._asr_enabled:
@@ -503,6 +517,19 @@ class SweeperAiNode:
             return SetAsrModelResponse(False, message, active_model)
 
     def _asr_event(self, event):
+        if isinstance(event, dict) and event.get("event") in ("smart_activity", "smart_filtered"):
+            payload = event.get("result") or {}
+            with self._lock:
+                if (not self._smart_voice_enabled or
+                        payload.get("session_id") != self._smart_voice_session_id):
+                    return
+                if event["event"] == "smart_activity":
+                    self._smart_activity = dict(payload)
+                    self._smart_activity_at = time.monotonic()
+                else:
+                    self._emit("SMART_VOICE", state="FILTERED",
+                               description="已忽略疑似非语音：" + str(payload.get("reason", "")))
+            return
         if isinstance(event, dict) and event.get("event") == "smart_transcript":
             self._handle_smart_transcript(event)
             return
@@ -550,6 +577,7 @@ class SweeperAiNode:
                 self._smart_voice_session_id = ""
                 self._smart_voice_pending.clear()
                 self._smart_voice_seen.clear()
+                self._reset_voice_context()
             if (isinstance(event, dict) and event.get("error") and
                     not payload.get("error")):
                 self._asr_last_error = str(event.get("error"))
@@ -586,6 +614,9 @@ class SweeperAiNode:
                 "reason": str(payload.get(
                     "reason", "ASR worker 智能语音队列已满")),
             }
+            self._complete_voice_fragment(utterance_index)
+            self._smart_voice_pending.clear()
+            self._reset_voice_context()
             self._emit(
                 "SMART_VOICE", state="QUEUE_FULL",
                 description="本地 ASR 队列已满，本句已丢弃且不会发送云端",
@@ -614,6 +645,7 @@ class SweeperAiNode:
             self._smart_voice_session_id = ""
             self._smart_voice_pending.clear()
             self._smart_voice_seen.clear()
+            self._reset_voice_context()
             self._asr_phase = state
             self._asr_last_error = error
         self._emit(
@@ -667,6 +699,11 @@ class SweeperAiNode:
             self._smart_voice_utterance_count = 0
             self._smart_voice_pending.clear()
             self._smart_voice_seen.clear()
+            self._reset_voice_context()
+            self._smart_activity = {}
+            self._smart_activity_at = 0.0
+            self._smart_completed.clear()
+            self._smart_processed_index = 0
             self._asr_phase = "SMART_STARTING"
             self._asr_last_error = ""
         self._publish_status()
@@ -737,6 +774,7 @@ class SweeperAiNode:
         self._smart_voice_session_id = ""
         self._smart_voice_pending.clear()
         self._smart_voice_seen.clear()
+        self._reset_voice_context()
         if active:
             self._asr_phase = "SMART_STOPPING"
             self._asr_last_error = reason
@@ -833,6 +871,9 @@ class SweeperAiNode:
             if len(self._smart_voice_seen) >= 4096:
                 self._smart_voice_seen.clear()
             self._smart_voice_seen.add(utterance_key)
+            self._complete_voice_fragment(utterance_index)
+            if float(payload.get("ended_at", time.monotonic())) < self._voice_accept_after:
+                return
             if not transcript or not bool(payload.get("accepted", True)):
                 self._emit(
                     "SMART_VOICE", state="EMPTY",
@@ -840,6 +881,7 @@ class SweeperAiNode:
                                     "智能语音未识别到可用文本"))
                 return
             if len(transcript) > 4000:
+                self._reset_voice_context()
                 self._emit(
                     "SMART_VOICE", state="REJECTED",
                     description="智能语音文本超过 4000 字符，已拒绝")
@@ -875,21 +917,63 @@ class SweeperAiNode:
                     description="识别文本仅本地显示；AI 语义解析未授权")
                 self._publish_status()
                 return
+            now = time.monotonic()
+            awaiting = getattr(self._runner, "awaiting_reply", lambda: False)()
+            state = self._voice_buffer.add(
+                transcript, payload.get("ended_at", now), now, awaiting)
+            self._emit("SMART_VOICE", state=state,
+                       description=("已忽略语气词" if state == "IGNORED" else
+                                    "语音草稿（等待说完）：" + self._voice_buffer.text),
+                       result_json=json.dumps({"draft": self._voice_buffer.text}, ensure_ascii=False))
+        self._publish_status()
+
+    def _reset_voice_context(self):
+        self._voice_buffer.clear()
+        self._voice_accept_after = time.monotonic()
+        reset = getattr(self._runner, "reset_context", None)
+        if reset:
+            reset()
+
+    def _complete_voice_fragment(self, index):
+        if index <= self._smart_processed_index:
+            return
+        self._smart_completed.add(index)
+        while self._smart_processed_index + 1 in self._smart_completed:
+            self._smart_processed_index += 1
+            self._smart_completed.remove(self._smart_processed_index)
+
+    def _poll_voice_turn(self, _event=None):
+        with self._lock:
+            if not (self._smart_voice_enabled and self._smart_voice_listening and
+                    self._voice_authorized and self._parse_authorized and
+                    self._heartbeat_fresh()):
+                return
+            now = time.monotonic()
+            activity = self._smart_activity
+            busy = (now - self._smart_activity_at > 1.0 or
+                    activity.get("speech_active", False) or
+                    int(activity.get("captured_utterances", 0)) > self._smart_processed_index)
+            turn = self._voice_buffer.poll(
+                now, float(activity.get("last_speech_at", 0.0)), busy)
+            if turn is None:
+                return
+            if turn["state"] != "READY":
+                self._emit("SMART_VOICE", state=turn["state"],
+                           description="未完成的语音片段已过期，请重新说出完整指令")
+                return
             if len(self._smart_voice_pending) >= SMART_VOICE_QUEUE_LIMIT:
-                self._emit(
-                    "SMART_VOICE", state="QUEUE_FULL",
-                    description="智能语音队列已满，本句未发送云端")
-                self._publish_status()
+                self._reset_voice_context()
+                self._emit("SMART_VOICE", state="QUEUE_FULL",
+                           description="智能语音队列已满，本轮未发送云端")
                 return
             self._smart_voice_pending.append({
-                "epoch": epoch,
-                "session_id": session_id,
-                "utterance_id": utterance_id,
-                "utterance_index": utterance_index,
-                "transcript": transcript,
-                "enqueued_at": time.monotonic(),
+                "epoch": self._smart_voice_epoch,
+                "session_id": self._smart_voice_session_id,
+                "utterance_id": str(uuid.uuid4()),
+                "utterance_index": self._smart_processed_index,
+                "transcript": turn["text"], "enqueued_at": now,
             })
-        self._publish_status()
+            self._emit("TRANSCRIPT", state="SMART_TURN", description=turn["text"])
         self._dispatch_next_smart_voice()
 
     def _dispatch_next_smart_voice(self):
@@ -1259,12 +1343,15 @@ class SweeperAiNode:
                                                self._last_error or "云端配置不可用")
                 if request.enabled and not self._heartbeat_fresh():
                     return self._auth_response(False, "Qt 会话心跳未就绪")
+                if bool(request.enabled) != self._parse_authorized:
+                    self._reset_voice_context()
                 self._parse_authorized = bool(request.enabled)
                 if not request.enabled:
                     self._control_authorized = False
                     should_cancel = self._task_active
                     cleared_pending = len(self._smart_voice_pending)
                     self._smart_voice_pending.clear()
+                    self._reset_voice_context()
                     cleared_reason = "AI 解析授权关闭"
                 message = "AI 语义解析已%s" % ("授权" if request.enabled else "关闭")
             elif gate == "control":
@@ -1278,6 +1365,7 @@ class SweeperAiNode:
                 if control_changed:
                     cleared_pending = len(self._smart_voice_pending)
                     self._smart_voice_pending.clear()
+                    self._reset_voice_context()
                     cleared_reason = "AI 控制授权状态变化"
                 should_cancel = not request.enabled and self._task_active
                 message = "AI 控制已%s" % ("授权" if request.enabled else "关闭")
