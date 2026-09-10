@@ -1437,8 +1437,9 @@ class OperatorGuiContractTest(unittest.TestCase):
             "等待首帧识别结果 /fod/debug/image",
         ):
             self.assertIn(evidence, refresh)
-        self.assertNotIn("drawVisionResults", refresh)
-        self.assertNotIn("data.vision_results.header.stamp", refresh)
+        preview_refresh = refresh.split('values_["vision_camera_status"]')[0]
+        self.assertNotIn("drawVisionResults", preview_refresh)
+        self.assertNotIn("data.vision_results.header.stamp", preview_refresh)
         self.assertIn("最新完成识别结果帧（保持至下一帧完成）", GUI_SOURCE)
 
     def test_global_detection_confidence_routes_to_active_detector_backend(self):

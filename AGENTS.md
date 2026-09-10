@@ -1,5 +1,51 @@
 # 导航优化专用候选版约束（2026-09-07）
 
+2026-09-10 FOD持久运动授权最新：用户明确“运动授权打开，后续Qt打开要能实现全部功能”。
+主门true及已有motion_authorized.ok保留，将本目录私有配置FOD_MOTION_ENABLED从false
+改为true，并同步J6M本候选配置；两端SHA256一致。此为用户要求的持久配置，下次正常
+完整启动无需额外--authorize-fod-motion；不能再按下方历史false在收尾撤回。没有改公开
+launch默认值、速度上限、急停/定位/传感器/唯一速度源保护，也未自动开启麦克风或AI
+控制授权。两端配置读取及板端安装launch展开验证allow_motion=true、external_estop_override=false
+通过；只是启动参数验证，没有运行态或实车移动验收。Qt由用户自行启动，两服务仍
+inactive/MainPID=0，J6M current仍20260910_233119，无导航运行PID/11311监听；未发初值/
+目标/速度，本轮无需重新构建部署。完整启动后须操作员给本次真实初值并等LOCALIZED，
+语音/解析/AI控制继续通过Qt各自授权入口使用。备份及证据位于
+`runtime/fod_motion_authorization_20260910_DgGBPN/`；板端原配置保留为
+`dual_host/config/dual_host.env.before_fod_motion_20260910_DgGBPN`。未提交/推送。
+
+2026-09-10 待清扫垃圾部署最新：用户明确“部署，部署后告知，我再打开Qt”。已通过本目录
+统一deploy入口在J6M原生安装release `20260910_233119`，退出0、53秒，current已从
+`20260909_003347`切换到该版本。新增共享消息包随release安装；板端静态健康通过，
+5个消息/服务MD5与本机一致，11个关键源码/配置/接口文件哈希一致（两节点忽略catkin
+改写的shebang）。板端实际安装的协调器/视觉控制节点导入及launch节点展开通过，包含
+`/pending_litter_cleaner`；未启动ROS节点。两服务最新仍inactive/MainPID=0，J6M11311
+无监听、无本导航运行PID记录。主门true、FOD=false保留，未开Qt、未发初值/目标/速度，
+由用户自行通过本工作区统一入口完整启动；不要自动打开Qt或开启FOD运动门。本机Qt
+已构建，本轮未再改业务逻辑、提交或推送，未进行实车移动验收。证据位于
+`validation/pending_litter_cleaning_20260910/deploy*.log`与`deploy_verification.json`，
+部署记录已追加到`docs/PENDING_LITTER_CLEANING_20260910.md`。下方“未部署”属前一阶段。
+
+2026-09-10 待清扫垃圾合并/控制最新（本地未部署）：按用户要求，将独立视觉工作树
+`feature/vision-map-localization-0908` 的 Qt 待清扫界面及地图定位/消息依赖合入本目录
+`0909`；来源工作树未改。本地新增独立 pending_litter_cleaner：普通 move_base 导航到
+距所选点 1.50m 的朝向目标位姿，等待确切 GoalID 完成及禁止旧目标重发，再经原 FOD
+仲裁器交接视觉。仅此入口启用选定 ID/map 坐标绑定和前方参考点轨迹 10cm 完成判据；
+倒车、零速漂移、方向切换段不计，且要求停车确认。普通视觉/智能语音保留原 0.50m
+消失后流程；覆盖、move_base/TEB、导航所有权桥和底盘驱动移动逻辑未改。GPS_ACTIVE
+本身不作为成功，必须匹配本次新序号、ID、坐标和前向覆盖证据；取消末端竞争也拒绝
+提交成功。Qt 异步服务/中止反馈/精确删除已接通，旧锁存结果不会删除新任务点。
+相机参数同步 Vision 中用户确认的前0.42/右0.13/低0.03m、42°；清扫参考点0.52m仍需
+现场核对，不能把代码10cm判据当物理精度验收。Release及最终Qt重链通过，控制90项、
+地图/Qt契约75项（含检测解释器包装，内部15项不重复计）、依赖24项、Qt页面12项、
+注册/存储20项及隔离真实视觉控制节点10项通过；静态健康通过。隔离测试只有lo和合成
+传感器，无实车ROS连接；选点约0.20m消失后前进即完成，横偏30cm触发行程门而不完成。
+证据 `validation/pending_litter_cleaning_20260910/`，报告
+`docs/PENDING_LITTER_CLEANING_20260910.md`。两服务最新只读均inactive/MainPID=0，J6M
+导航current仍`20260909_003347`，本轮未部署、未开真实Qt、未发初值/目标/速度。主门true、
+FOD=false保留，私有配置/授权及真实区域未改。部署脚本已补齐新消息包白名单和服务/
+安装检查，仅本地语法校验，未实际部署。新源码未提交/推送；后续须先部署共享
+消息及J6M控制代码再完整启动。用户要求修改后先询问是否打开Qt，不能自动启动/放开FOD。
+
 2026-09-10 19:40 云端计划格式修复/断电恢复最新：现场智能语音请求 HTTP 200，但两次
 `submit_plan.arguments` 均非合法 JSON，本地在计划阶段拒绝，覆盖 IDLE、控制授权 false，
 没有执行动作。旧解析只接受裸 JSON 字符串。现增加有边界的兼容解析：对象参数、唯一完整

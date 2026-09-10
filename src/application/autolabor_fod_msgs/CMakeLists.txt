@@ -19,6 +19,14 @@ add_message_files(
   FodTrackArray.msg
   FodVisionDetection.msg
   FodVisionDetectionArray.msg
+  FodMapPosition.msg
+  FodMapPositionArray.msg
+)
+
+add_service_files(
+  FILES
+  SetFodCleaningTarget.srv
+  StartPendingLitterCleaning.srv
 )
 
 generate_messages(

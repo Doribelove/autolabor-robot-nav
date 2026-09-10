@@ -9,6 +9,7 @@ import unittest
 
 import rospy
 import rostest
+import tf2_ros
 from autolabor_canbus_driver.msg import (
     CanBusMessage,
     ChassisParameter,
@@ -18,8 +19,11 @@ from autolabor_canbus_driver.srv import (
     ChassisParameterServer,
     ChassisParameterServerResponse,
 )
-from autolabor_fod_msgs.msg import FodDetection, FodDetectionArray
-from geometry_msgs.msg import Point32, Twist
+from autolabor_fod_msgs.msg import (
+    FodDetection, FodDetectionArray, FodVisionDetection, FodVisionDetectionArray,
+)
+from autolabor_fod_msgs.srv import SetFodCleaningTarget, SetFodCleaningTargetRequest
+from geometry_msgs.msg import Point32, TransformStamped, Twist
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import CameraInfo, RegionOfInterest
 from std_msgs.msg import Bool, Float64, String
@@ -39,6 +43,12 @@ WHEELBASE = 0.65
 class FakeWorldIntegrationTest(unittest.TestCase):
     def setUp(self):
         self.lock = threading.Lock()
+        self.selected_case = self._testMethodName.startswith("test_selected_")
+        self.selected_x = 1.30
+        self.selected_y = 0.30 if "lateral_miss" in self._testMethodName else 0.0
+        self.latest_status = {}
+        self.metric_pub = rospy.Publisher("/fod/vision/results", FodVisionDetectionArray, queue_size=5)
+        self.tf_broadcaster = tf2_ros.TransformBroadcaster()
         self.x = 0.0
         self.y = 0.0
         self.yaw = 0.0
@@ -127,6 +137,7 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             self.chassis_pub,
             self.timeout_pub,
             self.canbus_pub,
+            self.metric_pub,
         ):
             publisher.unregister()
         self.parameter_server.shutdown("integration test teardown")
@@ -151,10 +162,12 @@ class FakeWorldIntegrationTest(unittest.TestCase):
 
     def _status_cb(self, msg):
         try:
-            reason = str(json.loads(msg.data).get("reason", ""))
+            payload = json.loads(msg.data)
+            reason = str(payload.get("reason", ""))
         except (TypeError, ValueError):
             return
         with self.lock:
+            self.latest_status = payload
             self.latest_reason = reason
             if "waiting for synchronized odometry" in reason:
                 self.saw_sync_wait = True
@@ -357,7 +370,7 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             if off_center_case:
                 initial_offset = -0.58 * 0.5 * WIDTH
             else:
-                initial_offset = 80.0
+                initial_offset = 0.0 if self.selected_case else 80.0
             u = CX + initial_offset * max(0.0, 1.0 - travel / 0.25)
             v = q * (HEIGHT - 1)
             item = FodDetection()
@@ -382,6 +395,26 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             with self.lock:
                 if self.loss_pose is None:
                     self.loss_pose = (x, y, yaw)
+        if self.selected_case:
+            metric = FodVisionDetectionArray()
+            metric.header = message.header
+            metric.image_width, metric.image_height = WIDTH, HEIGHT
+            metric.backend_id = "detect_and_classify"
+            metric.detector_model_sha256 = MODEL_SHA
+            for pixel in message.detections:
+                target = FodVisionDetection()
+                target.backend_id = metric.backend_id
+                target.object_id = 42
+                target.track_id = 7
+                target.material_class = "metal"
+                target.detect_confidence = 0.9
+                target.bbox = pixel.bbox
+                target.world_position_valid = True
+                target.world_frame = "map"
+                target.world_position.x, target.world_position.y = self.selected_x, self.selected_y
+                target.state = "CONFIRMED"
+                metric.detections.append(target)
+            self.metric_pub.publish(metric)
         self.detection_pub.publish(message)
 
     def _publish_odometry(self, stamp, x, y, yaw, linear_x, angular_z):
@@ -396,6 +429,14 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         message.twist.twist.linear.x = linear_x
         message.twist.twist.angular.z = angular_z
         self.odom_pub.publish(message)
+        if self.selected_case:
+            transform = TransformStamped()
+            transform.header.stamp = stamp
+            transform.header.frame_id = "map"
+            transform.child_frame_id = "base_link"
+            transform.transform.translation.x, transform.transform.translation.y = x, y
+            transform.transform.rotation = message.pose.pose.orientation
+            self.tf_broadcaster.sendTransform(transform)
 
     def _enable_controller(self):
         rospy.wait_for_service("/fod_visual_servo/set_enabled", timeout=8.0)
@@ -407,6 +448,16 @@ class FakeWorldIntegrationTest(unittest.TestCase):
                 break
             rospy.sleep(0.05)
         rospy.sleep(0.8)
+        if self.selected_case:
+            request = SetFodCleaningTargetRequest()
+            request.object_id = 42
+            request.target_frame = "map"
+            request.target_position.x, request.target_position.y = self.selected_x, self.selected_y
+            request.observed_at = rospy.Time.now()
+            request.label = "a"
+            response = rospy.ServiceProxy(
+                "/fod_visual_servo/set_cleaning_target", SetFodCleaningTarget)(request)
+            self.assertTrue(response.success, response.message)
         response = rospy.ServiceProxy(
             "/fod_visual_servo/set_enabled", SetBool
         )(True)
@@ -462,6 +513,28 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.assertGreaterEqual(forward, 0.495)
         self.assertLessEqual(forward, 0.55)
         self.assertLessEqual(abs(lateral), 0.08)
+
+    def test_selected_target_completes_on_coordinate_before_legacy_half_meter(self):
+        self._enable_controller()
+        terminal = self._wait_for_terminal_state(25.0)
+        with self.lock:
+            status = dict(self.latest_status)
+        self.assertEqual(terminal, "COMPLETE", status)
+        proof = status["last_cleaning_completion"]
+        self.assertEqual(proof["object_id"], "42")
+        self.assertTrue(proof["covered"])
+        self.assertLessEqual(proof["minimum_distance_m"], 0.10)
+        self.assertGreater(proof["eligible_segments"], 0)
+        self.assertLess(status["blind_forward_m"], 0.40)
+
+    def test_selected_lateral_miss_does_not_complete_at_legacy_distance(self):
+        self._enable_controller()
+        terminal = self._wait_for_terminal_state(25.0)
+        with self.lock:
+            status = dict(self.latest_status)
+        self.assertEqual(terminal, "ABORT", status)
+        self.assertFalse(status["cleaning_coordinate_covered"])
+        self.assertIn("hard limit", status["reason"])
 
     def test_off_center_target_is_acquired_and_steered_toward(self):
         self._enable_controller()

@@ -22,6 +22,7 @@ from autolabor_fod_control.visual_servo import (
     STEER_SETTLE,
     AssociationConfig,
     BlindDistanceTracker,
+    ForwardCoverageTracker,
     MotionLease,
     PixelDetection,
     TerminalSensorFence,
@@ -37,9 +38,11 @@ from autolabor_fod_control.visual_servo import (
     interpolate_planar_pose,
     matching_detections,
     nearest_depth_target,
+    pure_pursuit_curvature,
     renew_motion_lease_now,
     terminal_feedback_is_fresh,
     terminal_sensor_fence_unchanged,
+    target_relative_geometry,
     validate_detection,
 )
 
@@ -151,6 +154,7 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         node.target_u_px = TARGET_U
         node.require_depth_for_acquisition = True
         node.nearest_depth_hysteresis_m = 0.10
+        node.staged_target = None
         node.association_config = AssociationConfig()
         node.machine = TargetPhaseMachine(TargetMachineConfig(), node.association_config)
         return node
@@ -189,6 +193,8 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         self.assertEqual(config["near_speed_mps"], 0.20)
         self.assertEqual(config["approach_min_command_speed_mps"], 0.20)
         self.assertEqual(config["detection_timeout_sec"], 0.50)
+        self.assertEqual(config["metric_results_timeout_sec"], 0.60)
+        self.assertEqual(config["cleaning_coverage_tolerance_m"], 0.10)
         self.assertEqual(config["source_stamp_timeout_sec"], 0.50)
         self.assertEqual(config["max_linear_acceleration_mps2"], 4.00)
         self.assertEqual(config["blind_speed_mps"], 0.20)
@@ -563,7 +569,104 @@ class TargetPhaseMachineTest(unittest.TestCase):
         self.assertEqual(matches, (jittered,))
 
 
+class MetricIdentityBindingTest(unittest.TestCase):
+    def test_metric_requirements_are_exclusive_to_selected_pending_litter(self):
+        node = FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
+        node.staged_target = None
+        node._check_metric_health({"metric": None})
+        self.assertIsNone(node._update_forward_coverage(None, 0.05))
+        node.staged_target = SimpleNamespace(object_id=42)
+        with self.assertRaisesRegex(FOD_NODE.ControllerAbort, "no metric"):
+            node._check_metric_health({"metric": None})
+
+    @staticmethod
+    def metric_for(pixel, object_id=42, x=3.0, y=4.0):
+        return FOD_NODE.MetricTarget(
+            object_id=object_id,
+            track_id=7,
+            class_name=pixel.class_name,
+            confidence=pixel.confidence,
+            x=x,
+            y=y,
+            z=0.0,
+            world_frame="map",
+            bbox_x=pixel.x,
+            bbox_y=pixel.y,
+            bbox_width=pixel.width,
+            bbox_height=pixel.height,
+            state="CONFIRMED",
+        )
+
+    @staticmethod
+    def make_node(targets):
+        node = FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
+        node.sensor_lock = threading.Lock()
+        node.metric_sync_tolerance_sec = 0.002
+        node.metric_bbox_min_iou = 0.90
+        node.metric_frames = (
+            FOD_NODE.MetricFrame(
+                sequence=1,
+                receipt_monotonic=9.0,
+                stamp_sec=100.0,
+                width=WIDTH,
+                height=HEIGHT,
+                targets=tuple(targets),
+                error="",
+            ),
+        )
+        return node
+
+    def test_pixel_binds_to_one_source_stamped_metric_identity(self):
+        pixel = detection()
+        node = self.make_node((self.metric_for(pixel),))
+        frame = SimpleNamespace(stamp_sec=100.0)
+        self.assertEqual(node._metric_target_for_pixel(frame, pixel).object_id, 42)
+
+    def test_missing_or_duplicate_metric_identity_fails_closed(self):
+        pixel = detection()
+        frame = SimpleNamespace(stamp_sec=100.0)
+        with self.assertRaisesRegex(FOD_NODE.ControllerAbort, "0 metric"):
+            self.make_node(tuple())._metric_target_for_pixel(frame, pixel)
+        targets = (self.metric_for(pixel, 42), self.metric_for(pixel, 43))
+        with self.assertRaisesRegex(FOD_NODE.ControllerAbort, "2 metric"):
+            self.make_node(targets)._metric_target_for_pixel(frame, pixel)
+
+    def test_selected_object_and_map_position_cannot_silently_change(self):
+        pixel = detection()
+        node = self.make_node(tuple())
+        node.metric_max_selected_position_delta_m = 0.25
+        node.metric_max_position_jump_m = 0.10
+        node.locked_metric_target = None
+        node.staged_target = FOD_NODE.StagedTarget(
+            object_id=42,
+            x=3.0,
+            y=4.0,
+            frame="map",
+            observed_at_sec=99.0,
+            label="a",
+            expires_monotonic=20.0,
+        )
+        with mock.patch.object(FOD_NODE.time, "monotonic", return_value=10.0):
+            node._validate_selected_metric_target(self.metric_for(pixel, 42, 3.1, 4.0))
+            with self.assertRaisesRegex(FOD_NODE.ControllerAbort, "identity"):
+                node._validate_selected_metric_target(self.metric_for(pixel, 43))
+            with self.assertRaisesRegex(FOD_NODE.ControllerAbort, "position changed"):
+                node._validate_selected_metric_target(
+                    self.metric_for(pixel, 42, 3.26, 4.0)
+                )
+
+
 class BlindOdometryAndLeaseTest(unittest.TestCase):
+    def test_direction_change_segment_is_not_forward_coverage(self):
+        tracker = ForwardCoverageTracker(
+            target_x=0.54, target_y=0.0, reference_offset_m=0.52,
+            tolerance_m=0.01, start_x=0.0, start_y=0.0, start_yaw=0.0,
+            start_linear_x=0.20,
+        )
+        progress = tracker.update(0.04, 0.0, 0.0, -0.10, 0.05)
+        self.assertFalse(progress.covered)
+        self.assertEqual(progress.eligible_segments, 0)
+
     def test_first_loss_pose_is_interpolated_at_its_source_timestamp(self):
         ratio, x, y, yaw = interpolate_planar_pose(
             10.0,
@@ -612,6 +715,101 @@ class BlindOdometryAndLeaseTest(unittest.TestCase):
         self.assertAlmostEqual(progress.path_m, 0.50)
         self.assertAlmostEqual(progress.forward_m, 0.0)
         self.assertFalse(blind_goal_reached(progress, 0.50))
+
+    def test_front_cleaning_reference_covers_target_on_forward_segment(self):
+        tracker = ForwardCoverageTracker(
+            target_x=1.0,
+            target_y=0.06,
+            reference_offset_m=0.52,
+            tolerance_m=0.10,
+            start_x=0.0,
+            start_y=0.0,
+            start_yaw=0.0,
+            start_linear_x=0.0,
+        )
+        progress = tracker.update(0.60, 0.0, 0.0, 0.20, 0.70)
+        self.assertTrue(progress.covered)
+        self.assertAlmostEqual(progress.minimum_distance_m, 0.06)
+        self.assertEqual(progress.eligible_segments, 1)
+
+    def test_reverse_crossing_never_counts_as_cleaning(self):
+        tracker = ForwardCoverageTracker(
+            target_x=0.75,
+            target_y=0.0,
+            reference_offset_m=0.52,
+            tolerance_m=0.10,
+            start_x=0.60,
+            start_y=0.0,
+            start_yaw=0.0,
+            start_linear_x=0.0,
+        )
+        progress = tracker.update(0.0, 0.0, 0.0, -0.20, 0.70)
+        self.assertFalse(progress.covered)
+        self.assertEqual(progress.eligible_segments, 0)
+        self.assertAlmostEqual(progress.reverse_path_m, 0.60)
+
+    def test_sparse_forward_samples_cannot_skip_over_target(self):
+        tracker = ForwardCoverageTracker(
+            target_x=0.82,
+            target_y=0.0,
+            reference_offset_m=0.52,
+            tolerance_m=0.10,
+            start_x=0.0,
+            start_y=0.0,
+            start_yaw=0.0,
+            start_linear_x=0.20,
+        )
+        progress = tracker.update(0.60, 0.0, 0.0, 0.20, 0.70)
+        self.assertTrue(progress.covered)
+        self.assertAlmostEqual(progress.minimum_distance_m, 0.0)
+
+    def test_lateral_miss_outside_ten_centimeters_is_rejected(self):
+        tracker = ForwardCoverageTracker(
+            target_x=0.82,
+            target_y=0.101,
+            reference_offset_m=0.52,
+            tolerance_m=0.10,
+            start_x=0.0,
+            start_y=0.0,
+            start_yaw=0.0,
+            start_linear_x=0.20,
+        )
+        progress = tracker.update(0.60, 0.0, 0.0, 0.20, 0.70)
+        self.assertFalse(progress.covered)
+        self.assertAlmostEqual(progress.minimum_distance_m, 0.101)
+
+    def test_stationary_jitter_without_positive_speed_does_not_count(self):
+        tracker = ForwardCoverageTracker(
+            target_x=0.525,
+            target_y=0.0,
+            reference_offset_m=0.52,
+            tolerance_m=0.10,
+            start_x=0.0,
+            start_y=0.0,
+            start_yaw=0.0,
+            start_linear_x=0.0,
+        )
+        progress = tracker.update(0.005, 0.0, 0.0, 0.0, 0.01)
+        self.assertFalse(progress.covered)
+        self.assertEqual(progress.eligible_segments, 0)
+
+    def test_metric_geometry_and_curvature_are_vehicle_relative(self):
+        distance, forward, lateral, bearing = target_relative_geometry(
+            10.0, 20.0, math.pi / 2.0, 9.5, 22.0
+        )
+        self.assertAlmostEqual(distance, math.hypot(2.0, 0.5))
+        self.assertAlmostEqual(forward, 2.0)
+        self.assertAlmostEqual(lateral, 0.5)
+        self.assertAlmostEqual(bearing, math.atan2(0.5, 2.0))
+        self.assertAlmostEqual(
+            pure_pursuit_curvature(forward, lateral, 0.50),
+            1.0 / 4.25,
+        )
+
+    def test_metric_curvature_is_bounded_and_rejects_target_behind(self):
+        self.assertEqual(pure_pursuit_curvature(0.10, 1.0, 0.40), 0.40)
+        with self.assertRaises(ValueError):
+            pure_pursuit_curvature(-0.10, 0.0, 0.40)
 
     def test_command_lease_fails_closed_before_point_three_seconds(self):
         lease = MotionLease(lease_sec=0.25)
@@ -803,6 +1001,10 @@ class LockedDepthGraceTest(unittest.TestCase):
         node.machine.filtered_v = 0.50 * (HEIGHT - 1)
         node.machine.acquired_v_fraction = 0.50
         node.machine.maximum_v_fraction = 0.50
+        node._metric_target_for_pixel = mock.Mock(
+            return_value=SimpleNamespace(object_id=17, x=1.0, y=2.0)
+        )
+        node._validate_selected_metric_target = mock.Mock()
         return node
 
     @staticmethod
@@ -1014,6 +1216,7 @@ class ExternalEstopOverrideTest(unittest.TestCase):
         node.master = mock.Mock()
         node.master.getPid.return_value = 42
         node.detections_topic = "/fod/detections"
+        node.metric_results_topic = "/fod/vision/results"
         node.camera_info_topic = "/fod_camera/camera_info"
         node.odom_topic = "/odom"
         node.wheel_angle_topic = "/m2_driver/wheel_angle"
@@ -1042,6 +1245,7 @@ class ExternalEstopOverrideTest(unittest.TestCase):
         node.master.getSystemState.return_value = (
             [
                 ("/fod/detections", ["/fod_detector"]),
+                ("/fod/vision/results", ["/fod_detector"]),
                 ("/fod_camera/camera_info", ["/fod_camera/driver"]),
                 ("/odom", ["/m2_driver"]),
                 ("/m2_driver/wheel_angle", ["/m2_driver"]),
@@ -1070,18 +1274,22 @@ class ExternalEstopOverrideTest(unittest.TestCase):
         node.external_estop_override = True
         node.phase = FOD_NODE.ACQUIRE
         node.session_detection_floor = 0
+        node.session_metric_floor = 0
+        node.session_invalid_metric_generation = 0
         node.session_invalid_camera_generation = 0
         node.session_invalid_odom_generation = 0
         node.session_invalid_wheel_generation = 0
         node.session_chassis_fault_generation = 0
         node.session_m2_bypass_event_generation = 0
         node.detection_timeout_sec = 0.35
+        node.metric_results_timeout_sec = 0.60
         node.camera_info_timeout_sec = 0.60
         node.odom_timeout_sec = 0.60
         node.wheel_angle_timeout_sec = 0.60
         node.max_measured_speed_mps = 0.30
         node.max_steering_angle_deg = 12.0
         node.detections_topic = "/fod/detections"
+        node.metric_results_topic = "/fod/vision/results"
         node.camera_info_topic = "/fod_camera/camera_info"
         node.odom_topic = "/odom"
         node.wheel_angle_topic = "/m2_driver/wheel_angle"
@@ -1096,6 +1304,8 @@ class ExternalEstopOverrideTest(unittest.TestCase):
         node._sensor_snapshot = mock.Mock(
             return_value={
                 "detection": valid_sample,
+                "metric": valid_sample,
+                "invalid_metric_generation": 0,
                 "camera": valid_sample,
                 "invalid_camera_generation": 0,
                 "odom": odom,
@@ -1127,6 +1337,7 @@ class ExternalEstopOverrideTest(unittest.TestCase):
         node = FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
         node.external_estop_override = True
         node.sensor_lock = threading.Lock()
+        node.latest_metric = SimpleNamespace(error="")
         node.latest_camera = SimpleNamespace(error="")
         node.latest_odom = SimpleNamespace(receipt_monotonic=10.0)
         node.latest_wheel_angle = 0.0
@@ -1138,6 +1349,7 @@ class ExternalEstopOverrideTest(unittest.TestCase):
         node.latest_chassis_status = None
         node.raw_can_status = {}
         node.invalid_camera_generation = 1
+        node.invalid_metric_generation = 0
         node.invalid_odom_generation = 2
         node.invalid_wheel_generation = 3
         node.chassis_fault_generation = 4
@@ -1156,11 +1368,15 @@ class ExternalEstopOverrideTest(unittest.TestCase):
         node.final_stop_started_monotonic = 9.0
         node.final_stop_timeout_sec = 3.0
         node.detection_timeout_sec = 0.35
+        node.metric_results_timeout_sec = 0.60
         node.camera_info_timeout_sec = 0.60
         node.odom_timeout_sec = 0.60
         node.wheel_angle_timeout_sec = 0.60
         node.source_stamp_timeout_sec = 0.80
         node.latest_detection = SimpleNamespace(
+            error="", receipt_monotonic=9.9, stamp_sec=100.0
+        )
+        node.latest_metric = SimpleNamespace(
             error="", receipt_monotonic=9.9, stamp_sec=100.0
         )
         node.latest_camera = SimpleNamespace(
@@ -1192,6 +1408,8 @@ class TerminalSensorFenceTest(unittest.TestCase):
             odom_sequence=100,
             wheel_sequence=200,
             detection_sequence=300,
+            metric_sequence=400,
+            invalid_metric_generation=0,
             invalid_camera_generation=1,
             invalid_odom_generation=2,
             invalid_wheel_generation=3,
@@ -1210,6 +1428,8 @@ class TerminalSensorFenceTest(unittest.TestCase):
             "odom_sequence": 101,
             "wheel_sequence": 201,
             "detection_sequence": 301,
+            "metric_sequence": 401,
+            "invalid_metric_generation": 1,
             "invalid_camera_generation": 2,
             "invalid_odom_generation": 3,
             "invalid_wheel_generation": 4,

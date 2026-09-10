@@ -1,6 +1,7 @@
 # Topics and expected production graph. This controller is intentionally tied
 # to the real ZED 2 + M2 chain; simulation must use a separate configuration.
 detections_topic: /fod/detections
+metric_results_topic: /fod/vision/results
 camera_info_topic: /fod_camera/camera_info
 odom_topic: /odom
 cmd_vel_topic: /cmd_vel
@@ -36,6 +37,8 @@ expected_camera_frame: zed2_left_camera_optical_frame
 expected_odom_frame: odom
 expected_base_frame: base_link
 expected_model_sha256: 7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500
+expected_metric_backend: detect_and_classify
+expected_metric_frame: map
 
 # The production model has material/tool classes, not a class literally named
 # "fod".  A higher threshold than the detector's display threshold is used for
@@ -86,6 +89,16 @@ stop_publish_sec: 1.0
 
 # Sensor and graph watchdogs.
 detection_timeout_sec: 0.50
+metric_results_timeout_sec: 0.60
+# Pixel and metric results share the exact camera source stamp. The tiny
+# tolerance only absorbs serialization precision; it does not pair nearby
+# frames. Boxes must also form a unique high-overlap identity match.
+metric_sync_tolerance_sec: 0.002
+metric_bbox_min_iou: 0.90
+metric_max_position_jump_m: 0.10
+metric_max_selected_position_delta_m: 0.25
+map_tf_timeout_sec: 0.60
+staged_target_timeout_sec: 30.0
 camera_info_timeout_sec: 0.60
 odom_timeout_sec: 0.60
 source_stamp_timeout_sec: 0.50
@@ -169,9 +182,21 @@ approach_progress_step_m: 0.02
 max_measured_speed_mps: 0.30
 max_pose_step_m: 0.05
 
+# The cleaning apparatus reference is in front of base_link. A selected map
+# coordinate is frozen into wheel odometry at visual lock, then tested against
+# every front-reference line segment. Only geometrically forward segments with
+# positive measured velocity count. The tolerance is hard-capped in code at
+# 0.10 m; reverse traversal and zero-speed pose jitter never mark completion.
+cleaning_reference_offset_m: 0.52
+cleaning_coverage_tolerance_m: 0.10
+cleaning_min_forward_step_m: 0.001
+cleaning_min_forward_speed_mps: 0.02
+
 # After a centered target moves down and disappears at the image bottom,
-# command zero until steering/chassis settle. Then travel exactly 0.50 m from
-# wheel odometry so the FOD passes beneath the vehicle and through the roller.
+# command zero until steering/chassis settle. Pending-litter tasks continue
+# until the front reference covers the selected coordinate; direct visual/voice
+# recovery retains its existing blind_distance_m completion condition.
+# blind_hard_distance_m remains the absolute post-loss path safety limit for both.
 settle_wheel_angle_deg: 2.0
 settle_speed_mps: 0.03
 settle_confirm_sec: 0.30

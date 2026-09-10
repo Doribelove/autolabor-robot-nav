@@ -2,6 +2,7 @@
   <!-- The GUI is optional and does not start or replace the existing bringup stack. -->
   <arg name="enable_rviz" default="true"/>
   <arg name="initial_bpu_preview" default="false"/>
+  <arg name="initial_vision_page" default="false"/>
   <arg name="rviz_config"
        default="$(find autolabor_operator_gui)/config/operator_navigation.rviz"/>
   <arg name="navigation_mode_label" default="FAST_LIO"/>
@@ -16,9 +17,12 @@
   <arg name="static_map_source_mode" default="fused"/>
   <arg name="coverage_region_root" default=""/>
   <arg name="coverage_region_legacy_root" default=""/>
+  <arg name="pending_litter_persist" default="false"/>
+  <arg name="pending_litter_store_root"
+       default="$(find autolabor_operator_gui)/../../../runtime/pending_litter"/>
   <arg name="configured_vision_backend" default="yolo"/>
   <arg name="vision_backend_switch_script"
-       default="/home/slam/robot_j6m_ws_navigation_20260907/scripts/switch_fod_backend.sh"/>
+       default=""/>
 
   <!--
     map_server publishes an OccupancyGrid but no TF. Before the operator sends
@@ -44,6 +48,7 @@
         required="true">
     <param name="enable_rviz" value="$(arg enable_rviz)"/>
     <param name="initial_bpu_preview" value="$(arg initial_bpu_preview)"/>
+    <param name="initial_vision_page" value="$(arg initial_vision_page)"/>
     <param name="rviz_config" value="$(arg rviz_config)"/>
     <param name="navigation_mode_label" value="$(arg navigation_mode_label)"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
@@ -62,6 +67,8 @@
            value="$(arg coverage_region_root)"/>
     <param name="coverage_region_legacy_root"
            value="$(arg coverage_region_legacy_root)"/>
+    <param name="pending_litter_persist" value="$(arg pending_litter_persist)"/>
+    <param name="pending_litter_store_root" value="$(arg pending_litter_store_root)"/>
     <param name="configured_vision_backend"
            value="$(arg configured_vision_backend)"/>
     <param name="vision_backend_switch_script"

@@ -69,6 +69,7 @@ include_directories(
 
 add_library(${PROJECT_NAME}_support STATIC
   src/coverage_region_store.cpp
+  src/pending_litter_registry.cpp
   include/autolabor_operator_gui/coverage_region_store.h
 )
 
@@ -80,6 +81,8 @@ add_library(${PROJECT_NAME}_window STATIC
   src/ros_graph_reconnect.cpp
   src/ai_control.cpp
   src/main_window.cpp
+  src/pending_litter_page.cpp
+  src/pending_litter_integration.cpp
   include/autolabor_operator_gui/main_window.h
 )
 
@@ -118,6 +121,13 @@ if(CATKIN_ENABLE_TESTING)
       Qt5::Core
     )
   endif()
+  catkin_add_gtest(test_pending_litter_registry test/test_pending_litter_registry.cpp)
+  if(TARGET test_pending_litter_registry)
+    target_link_libraries(test_pending_litter_registry ${PROJECT_NAME}_support Qt5::Core)
+  endif()
+  add_rostest_gtest(test_pending_litter_page
+    test/pending_litter_page.test test/test_pending_litter_page.cpp)
+  target_link_libraries(test_pending_litter_page ${PROJECT_NAME}_window)
 endif()
 
 install(TARGETS ${PROJECT_NAME}_node

@@ -1,6 +1,11 @@
 detect_and_classify:
   enabled: true
 
+  map_localization:
+    enabled: true
+    # Requires fresh LOCALIZED plus source-stamped map->base_link TF.
+    localization_status_topic: /fast_lio/localization_status
+
   motion:
     # Motion candidates are emitted only for stable material votes and carry
     # fresh registered depth from the same source-stamped RGB frame.
@@ -90,7 +95,7 @@ detect_and_classify:
     require_source_timestamp: true
     per_source_frame_lookup_cache: true
     target_frame: map
-    fallback_target_frame: odom
+    fallback_target_frame: ""
     timeout_ms: 30
     # A source-stamped transform is looked up once per RGB frame and shared by
     # every box in that frame.  Three valid world samples lock an object pose.

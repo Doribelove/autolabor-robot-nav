@@ -1,11 +1,15 @@
-# User supplied 2026-09-06. Missing measurements are NOT zero-filled.
+# Left RGB optical centre, updated by user 2026-09-09: MID360-relative (0.42,-0.13,-0.03) m.
+# Registered depth already uses this left frame. Reported 0.121 m stereo baseline
+# is handled by ZED calibration; do NOT translate the registered points again.
 confirmed: true
 reference: left_camera
+# Coordinate bridge matching the existing FAST-LIO body->base_link TF.
+# This is not a ground-height measurement and is removed from radar-local output.
 mid360_in_base_m: [0.20, 0.0, 1.0]
 forward_m: 0.42
-right_m: 0.14
-up_m: 0.0
-pitch_down_deg: 41.0
-reported_angle_deg: 41.0
+right_m: 0.13
+up_m: -0.03
+pitch_down_deg: 42.0
+reported_angle_deg: 42.0
 yaw_left_deg: 0.0
 roll_deg: 0.0

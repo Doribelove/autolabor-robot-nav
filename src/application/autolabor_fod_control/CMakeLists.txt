@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   std_srvs
+  tf2_ros
 )
 
 catkin_python_setup()
@@ -38,11 +39,13 @@ catkin_package(
   sensor_msgs
   std_msgs
   std_srvs
+  tf2_ros
 )
 
 catkin_install_python(PROGRAMS
   scripts/fod_navigation_mode_manager.py
   scripts/fod_visual_servo_node.py
+  scripts/pending_litter_cleaner_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
@@ -57,6 +60,7 @@ install(DIRECTORY config launch
 
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_mode_manager.py)
+  catkin_add_nosetests(test/test_pending_litter.py)
   catkin_add_nosetests(test/test_visual_servo.py)
   find_package(rostest REQUIRED)
   add_rostest(test/fod_navigation_mode.test)

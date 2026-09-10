@@ -1548,6 +1548,8 @@ void MainWindow::buildUi()
   tabs_->addTab(buildFastLioPage(), QStringLiteral("FAST-LIO"));
   tabs_->addTab(buildTestPage(), QStringLiteral("测试"));
   tabs_->addTab(buildVisionPage(), QStringLiteral("视觉"));
+  pending_litter_page_ = new PendingLitterPage(tabs_);
+  tabs_->addTab(pending_litter_page_, QStringLiteral("待清扫垃圾"));
   coverage_tab_index_ = tabs_->addTab(buildCoveragePage(), QStringLiteral("清扫"));
   ai_tab_index_ = tabs_->addTab(buildAiControlPage(), QStringLiteral("AI语音控制"));
   bpu_tab_index_ = tabs_->addTab(buildBpuPreviewPage(), QStringLiteral("BPU 预览"));
@@ -3251,6 +3253,14 @@ void MainWindow::setupRosInterfaces()
   node_->param<std::string>("coverage_region_root", coverage_region_root_, "");
   node_->param<std::string>("coverage_region_legacy_root",
                             coverage_region_legacy_root_, "");
+  std::string pending_litter_root;
+  bool pending_litter_persist = false;
+  node_->param<std::string>("pending_litter_store_root", pending_litter_root,
+      ros::package::getPath("autolabor_operator_gui") + "/../../../runtime/pending_litter");
+  node_->param("pending_litter_persist", pending_litter_persist, false);
+  pending_litter_page_->configure(QDir::cleanPath(QString::fromStdString(pending_litter_root)),
+      QString::fromStdString(static_map_source_ + ":" + static_map_source_mode_),
+      pending_litter_persist);
   std::string configured_vision_backend = configured_vision_backend_.toStdString();
   std::string vision_backend_switch_script = vision_backend_switch_script_.toStdString();
   node_->param<std::string>("configured_vision_backend",
@@ -3260,7 +3270,7 @@ void MainWindow::setupRosInterfaces()
                                 : configured_vision_backend);
   node_->param<std::string>(
       "vision_backend_switch_script", vision_backend_switch_script,
-      "/home/slam/robot_j6m_ws_navigation_20260907/scripts/switch_fod_backend.sh");
+      "");
   configured_vision_backend_ = QString::fromStdString(configured_vision_backend);
   vision_backend_switch_script_ =
       QString::fromStdString(vision_backend_switch_script);
@@ -3300,6 +3310,14 @@ void MainWindow::setupRosInterfaces()
       node_->subscribe("/fod/detections", 2, &MainWindow::detectionsCallback, this);
   vision_results_subscriber_ = node_->subscribe(
       "/fod/vision/results", 1, &MainWindow::visionResultsCallback, this);
+  vision_positions_subscriber_ = node_->subscribe(
+      "/fod/vision/map_positions", 32, &MainWindow::visionPositionsCallback, this);
+  pending_litter_completed_subscriber_ = node_->subscribe(
+      "/pending_litter_cleaner/completed_object_id", 10,
+      &MainWindow::pendingLitterCompletedCallback, this);
+  pending_litter_status_subscriber_ = node_->subscribe(
+      "/pending_litter_cleaner/status", 10,
+      &MainWindow::pendingLitterStatusCallback, this);
   mode_state_subscriber_ = node_->subscribe(
       "/fod_navigation_mode/state", 10, &MainWindow::modeStateCallback, this);
   mode_status_subscriber_ = node_->subscribe(
@@ -3339,6 +3357,12 @@ void MainWindow::setupRosInterfaces()
   node_->param("initial_bpu_preview", initial_bpu_preview, false);
   if (initial_bpu_preview && tabs_)
     tabs_->setCurrentIndex(bpu_tab_index_);
+  bool initial_vision_page = false;
+  node_->param("initial_vision_page", initial_vision_page, false);
+  if (initial_vision_page && tabs_)
+    for (int index = 0; index < tabs_->count(); ++index)
+      if (tabs_->tabText(index) == QStringLiteral("视觉"))
+        tabs_->setCurrentIndex(index);
   appendEvent(QStringLiteral("ROS 接口已注册；FAST-LIO 健康监测开始采样。"));
   if (static_map_mode_)
     scheduleNavigationProfileApply();
@@ -4229,6 +4253,9 @@ void MainWindow::shutdownRosInterfaces()
   bpu_preview_subscribed_ = false;
   detections_subscriber_.shutdown();
   vision_results_subscriber_.shutdown();
+  vision_positions_subscriber_.shutdown();
+  pending_litter_completed_subscriber_.shutdown();
+  pending_litter_status_subscriber_.shutdown();
   mode_state_subscriber_.shutdown();
   mode_status_subscriber_.shutdown();
   visual_state_subscriber_.shutdown();
@@ -4252,6 +4279,13 @@ void MainWindow::shutdownRosInterfaces()
   {
     std::lock_guard<std::mutex> lock(snapshot_mutex_);
     telemetry_.map_received = false;
+    pending_litter_map_.reset();
+    pending_litter_inputs_.clear();
+    pending_litter_completed_ids_.clear();
+    pending_litter_status_updates_.clear();
+    PendingLitterInput reset;
+    reset.reset = true;
+    pending_litter_inputs_.push_back(reset);
     telemetry_.global_costmap_received = false;
     telemetry_.coverage_status_received = false;
     telemetry_.ai_status_received = false;
@@ -4453,6 +4487,8 @@ void MainWindow::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
   telemetry_.map_origin_x = msg->info.origin.position.x;
   telemetry_.map_origin_y = msg->info.origin.position.y;
   telemetry_.map_origin_yaw = yawFromQuaternion(msg->info.origin.orientation);
+  pending_litter_map_ = msg;
+  enqueuePendingLitterInput({msg, {}, ros::WallTime::now(), ros::Time::now(), false});
 }
 
 void MainWindow::globalCostmapCallback(
@@ -4653,6 +4689,51 @@ void MainWindow::visionResultsCallback(
   telemetry_.vision_results_received = true;
   telemetry_.vision_results = *msg;
   telemetry_.vision_results_received_at = now;
+}
+
+void MainWindow::visionPositionsCallback(
+    const autolabor_fod_msgs::FodMapPositionArray::ConstPtr& msg)
+{
+  // Feed every detector result frame (including empty/invalid frames) to the
+  // registry; UI refresh ticks must never be counted as new observations.
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    if (configured_vision_backend_ == QStringLiteral("detect_and_classify"))
+      enqueuePendingLitterInput({{}, msg, ros::WallTime::now(), ros::Time::now(), false});
+  }
+  if (msg->backend_id != "detect_and_classify" || msg->header.frame_id != "map" ||
+      msg->header.stamp.isZero() || msg->header.stamp != msg->source_header.stamp ||
+      msg->positions.size() > 100 || sourceStampAge(msg->header.stamp) > 0.5)
+    return;
+  const ros::WallTime now = ros::WallTime::now();
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  if (configured_vision_backend_ != QStringLiteral("detect_and_classify"))
+    return;
+  // The two topics may arrive in either order. Keep a bounded set of source
+  // frames, but only display coordinates matching the current detection frame.
+  telemetry_.vision_position_frames.emplace_back(*msg, now);
+  while (telemetry_.vision_position_frames.size() > 4)
+    telemetry_.vision_position_frames.pop_front();
+}
+
+void MainWindow::pendingLitterCompletedCallback(
+    const std_msgs::UInt64::ConstPtr& msg)
+{
+  if (!msg || msg->data == 0) return;
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  pending_litter_completed_ids_.push_back(msg->data);
+  while (pending_litter_completed_ids_.size() > 100)
+    pending_litter_completed_ids_.pop_front();
+}
+
+void MainWindow::pendingLitterStatusCallback(
+    const std_msgs::String::ConstPtr& msg)
+{
+  if (!msg || msg->data.size() > 8192) return;
+  std::lock_guard<std::mutex> lock(snapshot_mutex_);
+  pending_litter_status_updates_.push_back(msg->data);
+  while (pending_litter_status_updates_.size() > 100)
+    pending_litter_status_updates_.pop_front();
 }
 
 void MainWindow::modeStateCallback(const std_msgs::String::ConstPtr& msg)
@@ -5014,6 +5095,7 @@ void MainWindow::refreshUi()
   if (rviz_initialized_ && tabs_)
     positionRvizOverlay(tabs_->currentIndex());
   const TelemetrySnapshot data = snapshot();
+  refreshPendingLitter();
   refreshBpuPreview(data);
   refreshAiUi(data);
   const FastLioHealthResult fastlio = evaluateFastLioHealth(data);
@@ -5478,6 +5560,21 @@ void MainWindow::refreshUi()
                     : QStringLiteral("ZED 深度：未匹配，全部显示 N/A"));
       const std::size_t shown = std::min<std::size_t>(
           12, data.vision_results.detections.size());
+      const autolabor_fod_msgs::FodMapPositionArray* position_frame = nullptr;
+      if (data.vision_results.depth_synchronized && vision_results_age <= 0.5 &&
+          wallAge(data.vision_results_received_at) <= 0.5)
+      {
+        for (auto frame = data.vision_position_frames.rbegin();
+             frame != data.vision_position_frames.rend(); ++frame)
+          if (frame->first.backend_id == data.vision_results.backend_id &&
+              frame->first.source_header.stamp == data.vision_results.header.stamp &&
+              frame->first.source_header.frame_id == data.vision_results.header.frame_id &&
+              wallAge(frame->second) <= 0.5)
+          {
+            position_frame = &frame->first;
+            break;
+          }
+      }
       for (std::size_t index = 0; index < shown; ++index)
       {
         const auto& detection = data.vision_results.detections[index];
@@ -5488,17 +5585,32 @@ void MainWindow::refreshUi()
             std::isfinite(detection.classify_confidence)
                 ? QString::number(detection.classify_confidence, 'f', 2)
                 : QStringLiteral("N/A");
-        const QString world =
-            detection.world_position_valid &&
+        const QString global_position =
+            detection.world_position_valid && detection.world_frame == "map" &&
+                    detection.depth_valid && data.vision_results.depth_synchronized &&
+                    vision_results_age <= 0.5 &&
+                    wallAge(data.vision_results_received_at) <= 0.5 &&
                     std::isfinite(detection.world_position.x) &&
-                    std::isfinite(detection.world_position.y) &&
-                    std::isfinite(detection.world_position.z)
-                ? QStringLiteral("%1 (%2,%3,%4)m")
+                    std::isfinite(detection.world_position.y)
+                ? QStringLiteral("%1 (%2,%3)m")
                       .arg(QString::fromStdString(detection.world_frame))
-                      .arg(detection.world_position.x, 0, 'f', 2)
-                      .arg(detection.world_position.y, 0, 'f', 2)
-                      .arg(detection.world_position.z, 0, 'f', 2)
-                : QStringLiteral("N/A");
+                      .arg(detection.world_position.x, 0, 'f', 3)
+                      .arg(detection.world_position.y, 0, 'f', 3)
+                : QStringLiteral("map N/A");
+        QString local_position = QStringLiteral("MID360 N/A");
+        if (position_frame && detection.depth_valid)
+          for (const auto& point : position_frame->positions)
+            if (point.object_id == detection.object_id && point.track_id == detection.track_id &&
+                point.local_position_valid && point.local_frame == "mid360" &&
+                point.local_status == "OK" && std::isfinite(point.local_position.x) &&
+                std::isfinite(point.local_position.y))
+            {
+              local_position = QStringLiteral("MID360 (%1,%2)m")
+                                   .arg(point.local_position.x, 0, 'f', 3)
+                                   .arg(point.local_position.y, 0, 'f', 3);
+              break;
+            }
+        const QString position = QStringLiteral("%1 | %2").arg(global_position, local_position);
         const QString object_id =
             detection.object_id > 0
                 ? QString::number(static_cast<qulonglong>(detection.object_id))
@@ -5507,7 +5619,7 @@ void MainWindow::refreshUi()
             detection.track_id > 0
                 ? QString::number(detection.track_id)
                 : QStringLiteral("N/A");
-        lines << QStringLiteral("%1. object:%2 track:%3 %4 D:%5 C:%6 depth:%7 world:%8 state:%9")
+        lines << QStringLiteral("%1. object:%2 track:%3 %4 D:%5 C:%6 depth:%7 position:%8 state:%9")
                      .arg(index + 1)
                      .arg(object_id)
                      .arg(track_id)
@@ -5515,7 +5627,7 @@ void MainWindow::refreshUi()
                      .arg(detection.detect_confidence, 0, 'f', 2)
                      .arg(classify_confidence)
                      .arg(depth)
-                     .arg(world)
+                     .arg(position)
                      .arg(QString::fromStdString(detection.state));
       }
       if (shown < data.vision_results.detections.size())

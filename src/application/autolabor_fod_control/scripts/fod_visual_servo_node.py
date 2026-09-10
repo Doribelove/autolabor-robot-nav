@@ -22,10 +22,15 @@ from typing import Optional, Tuple
 
 import rosgraph
 import rospy
+import tf2_ros
 from autolabor_canbus_driver.msg import CanBusMessage, ChassisStatusInfo
 from autolabor_canbus_driver.srv import ChassisParameterServer
 from autolabor_fod_control.cfg import VisualServoConfig
-from autolabor_fod_msgs.msg import FodDetectionArray
+from autolabor_fod_msgs.msg import FodDetectionArray, FodVisionDetectionArray
+from autolabor_fod_msgs.srv import (
+    SetFodCleaningTarget,
+    SetFodCleaningTargetResponse,
+)
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from dynamic_reconfigure.server import Server as DynamicReconfigureServer
 from geometry_msgs.msg import Twist
@@ -33,6 +38,8 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import CameraInfo
 from std_msgs.msg import Bool, Empty, Float64, String
 from std_srvs.srv import SetBool, SetBoolResponse
+
+from autolabor_fod_control.pending_litter import map_target_to_wheel_odom
 
 from autolabor_fod_control.visual_servo import (
     ACQUIRE,
@@ -43,6 +50,7 @@ from autolabor_fod_control.visual_servo import (
     STEER_SETTLE,
     AssociationConfig,
     BlindDistanceTracker,
+    ForwardCoverageTracker,
     MotionLease,
     PixelDetection,
     TerminalSensorFence,
@@ -75,6 +83,7 @@ ABORT = "ABORT"
 MAX_COMMAND_SPEED_MPS = 0.20
 MAX_BLIND_DISTANCE_M = 0.50
 MAX_BLIND_HARD_DISTANCE_M = 0.55
+MAX_CLEANING_COVERAGE_TOLERANCE_M = 0.10
 MAX_STEERING_ANGLE_DEG = 12.0
 MIN_LOCK_CONFIDENCE = 0.25
 MAX_LOCK_CONFIDENCE = 0.95
@@ -112,7 +121,48 @@ class DetectionFrame:
     candidates: Tuple[PixelDetection, ...]
     depth_rejected: Tuple[PixelDetection, ...] = tuple()
     depth_rejections: Tuple[str, ...] = tuple()
+    metric_targets: Tuple["MetricTarget", ...] = tuple()
+    metric_error: str = ""
     error: str = ""
+
+
+@dataclass(frozen=True)
+class MetricTarget:
+    object_id: int
+    track_id: int
+    class_name: str
+    confidence: float
+    x: float
+    y: float
+    z: float
+    world_frame: str
+    bbox_x: float
+    bbox_y: float
+    bbox_width: float
+    bbox_height: float
+    state: str
+
+
+@dataclass(frozen=True)
+class MetricFrame:
+    sequence: int
+    receipt_monotonic: float
+    stamp_sec: float
+    width: int
+    height: int
+    targets: Tuple[MetricTarget, ...]
+    error: str = ""
+
+
+@dataclass(frozen=True)
+class StagedTarget:
+    object_id: int
+    x: float
+    y: float
+    frame: str
+    observed_at_sec: float
+    label: str
+    expires_monotonic: float
 
 
 @dataclass(frozen=True)
@@ -173,6 +223,9 @@ def parse_class_names(value):
 class FodVisualServoNode:
     def __init__(self):
         self.detections_topic = rospy.get_param("~detections_topic", "/fod/detections")
+        self.metric_results_topic = rospy.get_param(
+            "~metric_results_topic", "/fod/vision/results"
+        )
         self.camera_info_topic = rospy.get_param(
             "~camera_info_topic", "/fod_camera/camera_info"
         )
@@ -231,6 +284,12 @@ class FodVisualServoNode:
         self.expected_model_sha256 = str(
             rospy.get_param("~expected_model_sha256", "")
         ).strip().lower()
+        self.expected_metric_backend = str(
+            rospy.get_param("~expected_metric_backend", "detect_and_classify")
+        ).strip()
+        self.expected_metric_frame = str(
+            rospy.get_param("~expected_metric_frame", "map")
+        ).strip()
 
         self.allowed_class_names = parse_class_names(
             rospy.get_param(
@@ -297,6 +356,27 @@ class FodVisualServoNode:
 
         self.detection_timeout_sec = float(
             rospy.get_param("~detection_timeout_sec", 0.50)
+        )
+        self.metric_results_timeout_sec = float(
+            rospy.get_param("~metric_results_timeout_sec", 0.60)
+        )
+        self.metric_sync_tolerance_sec = float(
+            rospy.get_param("~metric_sync_tolerance_sec", 0.002)
+        )
+        self.metric_bbox_min_iou = float(
+            rospy.get_param("~metric_bbox_min_iou", 0.90)
+        )
+        self.metric_max_position_jump_m = float(
+            rospy.get_param("~metric_max_position_jump_m", 0.10)
+        )
+        self.metric_max_selected_position_delta_m = float(
+            rospy.get_param("~metric_max_selected_position_delta_m", 0.25)
+        )
+        self.map_tf_timeout_sec = float(
+            rospy.get_param("~map_tf_timeout_sec", 0.60)
+        )
+        self.staged_target_timeout_sec = float(
+            rospy.get_param("~staged_target_timeout_sec", 30.0)
         )
         self.camera_info_timeout_sec = float(
             rospy.get_param("~camera_info_timeout_sec", 0.60)
@@ -425,6 +505,18 @@ class FodVisualServoNode:
             rospy.get_param("~max_measured_speed_mps", 0.30)
         )
         self.max_pose_step_m = float(rospy.get_param("~max_pose_step_m", 0.05))
+        self.cleaning_reference_offset_m = float(
+            rospy.get_param("~cleaning_reference_offset_m", 0.52)
+        )
+        self.cleaning_coverage_tolerance_m = float(
+            rospy.get_param("~cleaning_coverage_tolerance_m", 0.10)
+        )
+        self.cleaning_min_forward_step_m = float(
+            rospy.get_param("~cleaning_min_forward_step_m", 0.001)
+        )
+        self.cleaning_min_forward_speed_mps = float(
+            rospy.get_param("~cleaning_min_forward_speed_mps", 0.02)
+        )
 
         self.settle_wheel_angle_deg = float(
             rospy.get_param("~settle_wheel_angle_deg", 2.0)
@@ -481,6 +573,13 @@ class FodVisualServoNode:
         self.detection_sequence = 0
         self.last_detection_stamp = None
         self.detection_queue_overflow = False
+        self.latest_metric = None
+        self.metric_frames = deque(maxlen=100)
+        self.metric_sequence = 0
+        self.last_metric_stamp = None
+        self.invalid_metric_generation = 0
+        self.session_invalid_metric_generation = 0
+        self.session_metric_floor = 0
         self.latest_camera = None
         self.invalid_camera_generation = 0
         self.session_invalid_camera_generation = 0
@@ -532,6 +631,15 @@ class FodVisualServoNode:
         self.vertical_fraction_value = None
         self.target_visible = False
         self.locked_depth_invalid_frames = 0
+        self.pending_metric_object_id = None
+        self.locked_metric_target = None
+        self.metric_target_distance_m = None
+        self.metric_target_bearing_deg = None
+        self.staged_target = None
+        self.coverage_tracker = None
+        self.coverage_progress = None
+        self.coverage_last_odom_sequence = 0
+        self.last_cleaning_completion = {}
         self.approach_path_m = 0.0
         self.approach_last_odom = None
         self.approach_motion_started_monotonic = None
@@ -576,6 +684,8 @@ class FodVisualServoNode:
         self.motion_lease = MotionLease(self.command_lease_sec)
         self.master = rosgraph.Master(rospy.get_name())
         self.master_pid = self.master.getPid()
+        self.tf_buffer = tf2_ros.Buffer(cache_time=rospy.Duration(10.0))
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
         self.cmd_pub = rospy.Publisher(self.cmd_vel_topic, Twist, queue_size=1)
         self.state_pub = rospy.Publisher("~state", String, queue_size=1, latch=True)
@@ -590,6 +700,12 @@ class FodVisualServoNode:
             FodDetectionArray,
             self._detection_cb,
             queue_size=50,
+        )
+        self.metric_sub = rospy.Subscriber(
+            self.metric_results_topic,
+            FodVisionDetectionArray,
+            self._metric_results_cb,
+            queue_size=20,
         )
         self.camera_sub = rospy.Subscriber(
             self.camera_info_topic, CameraInfo, self._camera_cb, queue_size=20
@@ -662,6 +778,11 @@ class FodVisualServoNode:
         )
         self.enable_service = rospy.Service(
             "~set_enabled", SetBool, self._set_enabled_cb
+        )
+        self.cleaning_target_service = rospy.Service(
+            "~set_cleaning_target",
+            SetFodCleaningTarget,
+            self._set_cleaning_target_cb,
         )
         self.dynamic_reconfigure_server = DynamicReconfigureServer(
             VisualServoConfig, self._dynamic_reconfigure_cb
@@ -742,6 +863,15 @@ class FodVisualServoNode:
             "command_lease_sec": self.command_lease_sec,
             "stop_publish_sec": self.stop_publish_sec,
             "detection_timeout_sec": self.detection_timeout_sec,
+            "metric_results_timeout_sec": self.metric_results_timeout_sec,
+            "metric_sync_tolerance_sec": self.metric_sync_tolerance_sec,
+            "metric_bbox_min_iou": self.metric_bbox_min_iou,
+            "metric_max_position_jump_m": self.metric_max_position_jump_m,
+            "metric_max_selected_position_delta_m": (
+                self.metric_max_selected_position_delta_m
+            ),
+            "map_tf_timeout_sec": self.map_tf_timeout_sec,
+            "staged_target_timeout_sec": self.staged_target_timeout_sec,
             "camera_info_timeout_sec": self.camera_info_timeout_sec,
             "odom_timeout_sec": self.odom_timeout_sec,
             "source_stamp_timeout_sec": self.source_stamp_timeout_sec,
@@ -800,6 +930,10 @@ class FodVisualServoNode:
             "approach_progress_step_m": self.approach_progress_step_m,
             "max_measured_speed_mps": self.max_measured_speed_mps,
             "max_pose_step_m": self.max_pose_step_m,
+            "cleaning_reference_offset_m": self.cleaning_reference_offset_m,
+            "cleaning_coverage_tolerance_m": self.cleaning_coverage_tolerance_m,
+            "cleaning_min_forward_step_m": self.cleaning_min_forward_step_m,
+            "cleaning_min_forward_speed_mps": self.cleaning_min_forward_speed_mps,
             "settle_wheel_angle_deg": self.settle_wheel_angle_deg,
             "settle_speed_mps": self.settle_speed_mps,
             "settle_confirm_sec": self.settle_confirm_sec,
@@ -825,6 +959,7 @@ class FodVisualServoNode:
 
         required_absolute_topics = {
             "detections_topic": self.detections_topic,
+            "metric_results_topic": self.metric_results_topic,
             "camera_info_topic": self.camera_info_topic,
             "odom_topic": self.odom_topic,
             "cmd_vel_topic": self.cmd_vel_topic,
@@ -862,6 +997,10 @@ class FodVisualServoNode:
             char not in "0123456789abcdef" for char in self.expected_model_sha256
         ):
             raise ValueError("expected_model_sha256 must be exactly 64 hex characters")
+        if self.expected_metric_backend != "detect_and_classify":
+            raise ValueError("metric backend must be detect_and_classify")
+        if self.expected_metric_frame != "map":
+            raise ValueError("metric target frame must be map")
         if not MIN_LOCK_CONFIDENCE <= self.min_confidence <= MAX_LOCK_CONFIDENCE:
             raise ValueError("min_confidence must be between 0.25 and 0.95")
         if not 0.30 <= self.min_target_depth_m < self.max_target_depth_m:
@@ -903,6 +1042,18 @@ class FodVisualServoNode:
 
         for name, value, low, high in (
             ("detection_timeout_sec", self.detection_timeout_sec, 0.15, 0.60),
+            ("metric_results_timeout_sec", self.metric_results_timeout_sec, 0.20, 1.00),
+            ("metric_sync_tolerance_sec", self.metric_sync_tolerance_sec, 0.0001, 0.01),
+            ("metric_bbox_min_iou", self.metric_bbox_min_iou, 0.70, 1.00),
+            ("metric_max_position_jump_m", self.metric_max_position_jump_m, 0.03, 0.30),
+            (
+                "metric_max_selected_position_delta_m",
+                self.metric_max_selected_position_delta_m,
+                0.05,
+                0.50,
+            ),
+            ("map_tf_timeout_sec", self.map_tf_timeout_sec, 0.20, 1.50),
+            ("staged_target_timeout_sec", self.staged_target_timeout_sec, 5.0, 60.0),
             ("camera_info_timeout_sec", self.camera_info_timeout_sec, 0.20, 1.50),
             ("odom_timeout_sec", self.odom_timeout_sec, 0.20, 1.00),
             ("source_stamp_timeout_sec", self.source_stamp_timeout_sec, 0.30, 2.00),
@@ -919,6 +1070,15 @@ class FodVisualServoNode:
         ):
             if not low <= value <= high:
                 raise ValueError("%s must be between %.2f and %.2f" % (name, low, high))
+
+        if not 0.0 <= self.cleaning_reference_offset_m <= 1.0:
+            raise ValueError("cleaning reference offset must be between 0 and 1m")
+        if not 0.01 <= self.cleaning_coverage_tolerance_m <= MAX_CLEANING_COVERAGE_TOLERANCE_M:
+            raise ValueError("cleaning coverage tolerance exceeds the 0.10m limit")
+        if not 0.0 <= self.cleaning_min_forward_step_m <= 0.01:
+            raise ValueError("cleaning minimum forward step is invalid")
+        if not 0.0 <= self.cleaning_min_forward_speed_mps <= 0.05:
+            raise ValueError("cleaning minimum forward speed is invalid")
 
         if not 0.05 <= self.min_acquire_anchor_v_fraction < 0.70:
             raise ValueError("min acquisition vertical fraction is invalid")
@@ -1055,6 +1215,153 @@ class FodVisualServoNode:
         if not 1.0 <= self.final_stop_timeout_sec <= 8.0:
             raise ValueError("final stop timeout is invalid")
 
+    def _uses_selected_target(self):
+        # The 10cm/map-coordinate contract belongs only to the pending-litter
+        # entry point. Direct visual/voice recovery retains its existing path.
+        return getattr(self, "staged_target", None) is not None
+
+    def _set_cleaning_target_cb(self, request):
+        with self.run_lock:
+            if request.clear:
+                if self.phase not in (DISABLED, COMPLETE, ABORT):
+                    return SetFodCleaningTargetResponse(
+                        False, "cannot clear the selected target while control is active"
+                    )
+                self.staged_target = None
+                return SetFodCleaningTargetResponse(True, "selected target cleared")
+            if self.phase != DISABLED:
+                return SetFodCleaningTargetResponse(
+                    False, "selected target can only be staged while disabled"
+                )
+            try:
+                object_id = int(request.object_id)
+                x = float(request.target_position.x)
+                y = float(request.target_position.y)
+                z = float(request.target_position.z)
+                observed_at = float(request.observed_at.to_sec())
+                label = str(request.label).strip()
+                if object_id <= 0:
+                    raise ValueError("object_id must be positive")
+                if request.target_frame != self.expected_metric_frame:
+                    raise ValueError("selected target must use the map frame")
+                if not all(math.isfinite(value) for value in (x, y, z, observed_at)):
+                    raise ValueError("selected target contains a non-finite value")
+                if observed_at <= 0.0 or not label or len(label) > 32:
+                    raise ValueError("selected target identity is invalid")
+            except (TypeError, ValueError) as exc:
+                return SetFodCleaningTargetResponse(False, str(exc))
+            self.staged_target = StagedTarget(
+                object_id=object_id,
+                x=x,
+                y=y,
+                frame=self.expected_metric_frame,
+                observed_at_sec=observed_at,
+                label=label,
+                expires_monotonic=time.monotonic() + self.staged_target_timeout_sec,
+            )
+            return SetFodCleaningTargetResponse(
+                True,
+                "selected target {} staged at map ({:.3f},{:.3f})".format(
+                    label, x, y
+                ),
+            )
+
+    def _metric_results_cb(self, msg):
+        receipt = time.monotonic()
+        stamp_sec = float(msg.header.stamp.to_sec())
+        width = int(msg.image_width)
+        height = int(msg.image_height)
+        errors = []
+        if not math.isfinite(stamp_sec) or stamp_sec <= 0.0:
+            errors.append("metric result source stamp is missing or invalid")
+        if width != self.expected_image_width or height != self.expected_image_height:
+            errors.append("metric result image dimensions do not match the controller")
+        if msg.header.frame_id != self.expected_camera_frame:
+            errors.append("metric result camera frame is invalid")
+        if str(msg.backend_id) != self.expected_metric_backend:
+            errors.append("metric result backend is not detect_and_classify")
+        if str(msg.detector_model_sha256).strip().lower() != self.expected_model_sha256:
+            errors.append("metric result detector SHA256 does not match")
+
+        targets = []
+        for index, item in enumerate(msg.detections):
+            if not item.world_position_valid:
+                continue
+            values = (
+                item.detect_confidence,
+                item.world_position.x,
+                item.world_position.y,
+                item.world_position.z,
+                item.bbox.x_offset,
+                item.bbox.y_offset,
+                item.bbox.width,
+                item.bbox.height,
+            )
+            if not all(math.isfinite(float(value)) for value in values):
+                errors.append("metric detection[%d] contains a non-finite value" % index)
+                continue
+            if int(item.object_id) <= 0:
+                errors.append("metric detection[%d] has no object identity" % index)
+                continue
+            if str(item.backend_id) != self.expected_metric_backend:
+                errors.append("metric detection[%d] backend mismatch" % index)
+                continue
+            if str(item.world_frame) != self.expected_metric_frame:
+                errors.append("metric detection[%d] is not in map frame" % index)
+                continue
+            if item.bbox.width <= 0 or item.bbox.height <= 0:
+                errors.append("metric detection[%d] has an invalid box" % index)
+                continue
+            state = str(item.state)
+            if state in ("CLEANED", "EXPIRED", "LOST"):
+                continue
+            targets.append(
+                MetricTarget(
+                    object_id=int(item.object_id),
+                    track_id=int(item.track_id),
+                    class_name=str(item.material_class),
+                    confidence=float(item.detect_confidence),
+                    x=float(item.world_position.x),
+                    y=float(item.world_position.y),
+                    z=float(item.world_position.z),
+                    world_frame=str(item.world_frame),
+                    bbox_x=float(item.bbox.x_offset),
+                    bbox_y=float(item.bbox.y_offset),
+                    bbox_width=float(item.bbox.width),
+                    bbox_height=float(item.bbox.height),
+                    state=state,
+                )
+            )
+
+        with self.sensor_lock:
+            if (
+                self.last_metric_stamp is not None
+                and math.isfinite(stamp_sec)
+                and stamp_sec <= self.last_metric_stamp
+            ):
+                errors.append("metric result source stamp did not increase")
+            if math.isfinite(stamp_sec) and stamp_sec > 0.0:
+                self.last_metric_stamp = max(
+                    stamp_sec,
+                    self.last_metric_stamp
+                    if self.last_metric_stamp is not None
+                    else stamp_sec,
+                )
+            self.metric_sequence += 1
+            frame = MetricFrame(
+                sequence=self.metric_sequence,
+                receipt_monotonic=receipt,
+                stamp_sec=stamp_sec,
+                width=width,
+                height=height,
+                targets=tuple(targets),
+                error="; ".join(errors),
+            )
+            if frame.error:
+                self.invalid_metric_generation += 1
+            self.metric_frames.append(frame)
+            self.latest_metric = frame
+
     def _detection_cb(self, msg):
         receipt = time.monotonic()
         errors = []
@@ -1160,6 +1467,20 @@ class FodVisualServoNode:
                         candidates.append(detection)
 
         with self.sensor_lock:
+            metric_matches = [
+                metric
+                for metric in self.metric_frames
+                if abs(metric.stamp_sec - stamp_sec) <= self.metric_sync_tolerance_sec
+            ]
+            if len(metric_matches) == 1:
+                metric_targets = metric_matches[0].targets
+                metric_error = metric_matches[0].error
+            elif not metric_matches:
+                metric_targets = tuple()
+                metric_error = "matching source-stamped metric result is unavailable"
+            else:
+                metric_targets = tuple()
+                metric_error = "metric result source-stamp match is ambiguous"
             if (
                 math.isfinite(stamp_sec)
                 and stamp_sec > 0.0
@@ -1188,6 +1509,8 @@ class FodVisualServoNode:
                 candidates=tuple(candidates),
                 depth_rejected=tuple(depth_rejected),
                 depth_rejections=tuple(depth_rejections),
+                metric_targets=tuple(metric_targets),
+                metric_error=metric_error,
                 error="; ".join(errors),
             )
             if len(self.detection_queue) == self.detection_queue.maxlen:
@@ -1432,6 +1755,10 @@ class FodVisualServoNode:
             (self.odom_topic, self.expected_driver_node),
             (self.wheel_angle_topic, self.expected_driver_node),
         ]
+        if self._uses_selected_target():
+            expected_publishers.append(
+                (self.metric_results_topic, self.expected_detector_node)
+            )
         if not self.external_estop_override:
             expected_publishers.extend(
                 (
@@ -1571,6 +1898,8 @@ class FodVisualServoNode:
         with self.sensor_lock:
             return {
                 "detection": self.latest_detection,
+                "metric": self.latest_metric,
+                "invalid_metric_generation": self.invalid_metric_generation,
                 "camera": self.latest_camera,
                 "invalid_camera_generation": self.invalid_camera_generation,
                 "odom": self.latest_odom,
@@ -1600,6 +1929,10 @@ class FodVisualServoNode:
             odom_sequence=self.odom_sequence,
             wheel_sequence=self.wheel_sequence,
             detection_sequence=self.detection_sequence,
+            metric_sequence=self.metric_sequence if self._uses_selected_target() else 0,
+            invalid_metric_generation=(
+                self.invalid_metric_generation if self._uses_selected_target() else 0
+            ),
             invalid_camera_generation=self.invalid_camera_generation,
             invalid_odom_generation=self.invalid_odom_generation,
             invalid_wheel_generation=self.invalid_wheel_generation,
@@ -1634,12 +1967,15 @@ class FodVisualServoNode:
             raise ControllerAbort("terminal commit has no final-stop deadline")
 
         detection = self.latest_detection
+        metric = self.latest_metric
         camera = self.latest_camera
         odom = self.latest_odom
         wheel_angle = self.latest_wheel_angle
         wheel_receipt = self.latest_wheel_angle_monotonic
         if detection is None or detection.error:
             raise ControllerAbort("terminal commit lacks valid detections")
+        if self._uses_selected_target() and (metric is None or metric.error):
+            raise ControllerAbort("terminal commit lacks valid metric results")
         if camera is None or camera.error:
             raise ControllerAbort("terminal commit lacks valid CameraInfo")
         if odom is None:
@@ -1655,6 +1991,10 @@ class FodVisualServoNode:
             (odom.receipt_monotonic, self.odom_timeout_sec),
             (wheel_receipt, self.wheel_angle_timeout_sec),
         ]
+        source_stamps = [detection.stamp_sec, camera.stamp_sec, odom.stamp_sec]
+        if self._uses_selected_target():
+            receipt_limits.append((metric.receipt_monotonic, self.metric_results_timeout_sec))
+            source_stamps.append(metric.stamp_sec)
         if not self.external_estop_override:
             chassis = self.latest_chassis_status
             chassis_receipt = self.latest_chassis_status_monotonic
@@ -1696,11 +2036,7 @@ class FodVisualServoNode:
             now_monotonic=now_monotonic,
             now_source_time=now_source_time,
             receipt_limits=receipt_limits,
-            source_stamps=(
-                detection.stamp_sec,
-                camera.stamp_sec,
-                odom.stamp_sec,
-            ),
+            source_stamps=source_stamps,
             source_timeout=self.source_stamp_timeout_sec,
             absolute_deadlines=(
                 self.mode_deadline_monotonic,
@@ -1715,9 +2051,12 @@ class FodVisualServoNode:
         """Atomically verify current safety samples and capture generation floors."""
 
         with self.sensor_lock:
+            metric = self.latest_metric
             camera = self.latest_camera
             odom = self.latest_odom
             wheel_receipt = self.latest_wheel_angle_monotonic
+            if self._uses_selected_target() and (metric is None or metric.error):
+                raise ControllerAbort("cannot arm with invalid metric results")
             if camera is None or camera.error:
                 raise ControllerAbort("cannot arm with invalid CameraInfo")
             if odom is None or (
@@ -1750,6 +2089,7 @@ class FodVisualServoNode:
 
             # Any callback after this atomic capture advances its generation
             # above the floor and will be visible once ACQUIRE becomes active.
+            self.session_invalid_metric_generation = self.invalid_metric_generation
             self.session_invalid_camera_generation = self.invalid_camera_generation
             self.session_invalid_odom_generation = self.invalid_odom_generation
             self.session_invalid_wheel_generation = self.invalid_wheel_generation
@@ -1758,6 +2098,31 @@ class FodVisualServoNode:
             self.session_m2_bypass_event_generation = (
                 self.m2_bypass_event_generation
             )
+
+    def _check_metric_health(self, snapshot, require_new_detection=False):
+        if not self._uses_selected_target():
+            return
+        metric = snapshot["metric"]
+        if metric is None:
+            raise ControllerAbort("no metric detection results have been received")
+        if metric.error:
+            raise ControllerAbort("invalid metric result stream: %s" % metric.error)
+        if (
+            self.phase != PRECHECK
+            and snapshot["invalid_metric_generation"]
+            > self.session_invalid_metric_generation
+        ):
+            raise ControllerAbort(
+                "an invalid metric result was observed during the active session"
+            )
+        metric_age = time.monotonic() - metric.receipt_monotonic
+        if metric_age > self.metric_results_timeout_sec:
+            raise ControllerAbort(
+                "%s receipt timeout %.3fs" % (self.metric_results_topic, metric_age)
+            )
+        self._source_age_check("metric results", metric.stamp_sec)
+        if require_new_detection and metric.sequence <= self.session_metric_floor:
+            raise ControllerAbort("waiting for a new metric result after enable")
 
     def _check_sensor_health(self, require_new_detection=False, ignore_control_timeout=False):
         now = time.monotonic()
@@ -1779,6 +2144,8 @@ class FodVisualServoNode:
             raise ControllerAbort("detection processing queue overflowed")
         if snapshot["odom_overflow"]:
             raise ControllerAbort("odometry processing queue overflowed")
+
+        self._check_metric_health(snapshot, require_new_detection)
 
         camera = snapshot["camera"]
         if camera is None:
@@ -2050,6 +2417,7 @@ class FodVisualServoNode:
             self._hard_stop()
             with self.run_lock:
                 self._reset_session(DISABLED, "motion disabled by operator")
+                self.staged_target = None
                 self._publish_status(force=True)
             return SetBoolResponse(success=True, message="visual servo disabled; cmd_vel is zero")
 
@@ -2072,8 +2440,18 @@ class FodVisualServoNode:
                     ),
                 )
             now = time.monotonic()
+            if (
+                self.staged_target is not None
+                and now > self.staged_target.expires_monotonic
+            ):
+                self.staged_target = None
+                return SetBoolResponse(
+                    success=False,
+                    message="selected pending-litter target expired before enable",
+                )
             with self.sensor_lock:
                 self.session_detection_floor = self.detection_sequence
+                self.session_metric_floor = self.metric_sequence
                 self.detection_queue.clear()
                 self.odom_queue.clear()
                 self.detection_queue_overflow = False
@@ -2081,6 +2459,7 @@ class FodVisualServoNode:
                 self.control_timeout_seen = False
                 self.session_invalid_odom_generation = self.invalid_odom_generation
                 self.session_invalid_wheel_generation = self.invalid_wheel_generation
+                self.session_invalid_metric_generation = self.invalid_metric_generation
                 self.session_invalid_camera_generation = self.invalid_camera_generation
                 self.session_chassis_fault_generation = self.chassis_fault_generation
                 self.session_raw_can_fault_generation = self.raw_can_fault_generation
@@ -2141,6 +2520,13 @@ class FodVisualServoNode:
         self.vertical_fraction_value = None
         self.target_visible = False
         self.locked_depth_invalid_frames = 0
+        self.pending_metric_object_id = None
+        self.locked_metric_target = None
+        self.metric_target_distance_m = None
+        self.metric_target_bearing_deg = None
+        self.coverage_tracker = None
+        self.coverage_progress = None
+        self.coverage_last_odom_sequence = 0
         self.approach_path_m = 0.0
         self.approach_last_odom = None
         self.approach_motion_started_monotonic = None
@@ -2383,6 +2769,7 @@ class FodVisualServoNode:
                     "approach odometry jump %.3fm exceeds %.3fm"
                     % (step, self.max_pose_step_m)
                 )
+            self._update_forward_coverage(state, self.max_pose_step_m)
             self.approach_path_m += step
             previous = state
             if self.approach_path_m >= self.approach_next_progress_m:
@@ -2396,6 +2783,184 @@ class FodVisualServoNode:
                 "target did not reach the bottom gate within %.2fm"
                 % self.max_approach_distance_m
             )
+
+    @staticmethod
+    def _bbox_iou(pixel, metric):
+        left = max(pixel.x, metric.bbox_x)
+        top = max(pixel.y, metric.bbox_y)
+        right = min(pixel.x + pixel.width, metric.bbox_x + metric.bbox_width)
+        bottom = min(pixel.y + pixel.height, metric.bbox_y + metric.bbox_height)
+        intersection = max(0.0, right - left) * max(0.0, bottom - top)
+        union = (
+            pixel.width * pixel.height
+            + metric.bbox_width * metric.bbox_height
+            - intersection
+        )
+        return intersection / union if union > 0.0 else 0.0
+
+    def _metric_frame_for_detection(self, frame):
+        # The detector publishes the metric result first, but the two topics
+        # use independent TCPROS callback threads. Resolve the pair at consume
+        # time as well as callback time so harmless callback scheduling cannot
+        # turn a valid frame into a false mismatch.
+        with self.sensor_lock:
+            matches = tuple(
+                item
+                for item in self.metric_frames
+                if abs(item.stamp_sec - frame.stamp_sec)
+                <= self.metric_sync_tolerance_sec
+            )
+        if len(matches) != 1:
+            raise ControllerAbort(
+                "metric result source-stamp match is %s"
+                % ("missing" if not matches else "ambiguous")
+            )
+        if matches[0].error:
+            raise ControllerAbort(
+                "source-stamped metric result is invalid: %s" % matches[0].error
+            )
+        return matches[0]
+
+    def _metric_target_for_pixel(self, frame, pixel):
+        metric_frame = self._metric_frame_for_detection(frame)
+        matches = tuple(
+            target
+            for target in metric_frame.targets
+            if self._bbox_iou(pixel, target) >= self.metric_bbox_min_iou
+        )
+        if len(matches) != 1:
+            raise ControllerAbort(
+                "pixel target has %d metric identity matches (requires exactly one)"
+                % len(matches)
+            )
+        return matches[0]
+
+    def _validate_selected_metric_target(self, target):
+        staged = self.staged_target
+        if staged is not None:
+            if time.monotonic() > staged.expires_monotonic:
+                raise ControllerAbort("selected pending-litter target expired")
+            if target.object_id != staged.object_id:
+                raise ControllerAbort(
+                    "visual target identity %d differs from selected object %d"
+                    % (target.object_id, staged.object_id)
+                )
+            delta = math.hypot(target.x - staged.x, target.y - staged.y)
+            if delta > self.metric_max_selected_position_delta_m:
+                raise ControllerAbort(
+                    "selected target map position changed %.3fm, limit %.3fm"
+                    % (delta, self.metric_max_selected_position_delta_m)
+                )
+        locked = self.locked_metric_target
+        if locked is not None:
+            if target.object_id != locked.object_id:
+                raise ControllerAbort(
+                    "visual target identity changed from %d to %d"
+                    % (locked.object_id, target.object_id)
+                )
+            jump = math.hypot(target.x - locked.x, target.y - locked.y)
+            if jump > self.metric_max_position_jump_m:
+                raise ControllerAbort(
+                    "locked target map position jumped %.3fm, limit %.3fm"
+                    % (jump, self.metric_max_position_jump_m)
+                )
+
+    def _initialize_forward_coverage(self, metric_target):
+        with self.sensor_lock:
+            odom = self.latest_odom
+        if odom is None:
+            raise ControllerAbort("cannot initialize cleaning coverage without odometry")
+        try:
+            transform = self.tf_buffer.lookup_transform(
+                self.expected_metric_frame,
+                self.expected_base_frame,
+                rospy.Time(0),
+                rospy.Duration(self.map_tf_timeout_sec),
+            )
+            stamp_sec = float(transform.header.stamp.to_sec())
+            age = rospy.Time.now().to_sec() - stamp_sec
+            if (
+                not math.isfinite(stamp_sec)
+                or stamp_sec <= 0.0
+                or age < -0.20
+                or age > self.map_tf_timeout_sec
+            ):
+                raise ValueError("map-to-base transform is stale or invalid")
+            translation = transform.transform.translation
+            robot_map_yaw = quaternion_to_yaw(
+                transform.transform.rotation.x,
+                transform.transform.rotation.y,
+                transform.transform.rotation.z,
+                transform.transform.rotation.w,
+            )
+            target_map_x = (
+                self.staged_target.x
+                if self.staged_target is not None
+                else metric_target.x
+            )
+            target_map_y = (
+                self.staged_target.y
+                if self.staged_target is not None
+                else metric_target.y
+            )
+            target_odom_x, target_odom_y = map_target_to_wheel_odom(
+                float(translation.x),
+                float(translation.y),
+                robot_map_yaw,
+                target_map_x,
+                target_map_y,
+                odom.x,
+                odom.y,
+                odom.yaw,
+            )
+        except Exception as exc:
+            raise ControllerAbort(
+                "failed to freeze selected map target in wheel odometry: %s" % exc
+            )
+
+        dx = target_map_x - float(translation.x)
+        dy = target_map_y - float(translation.y)
+        self.metric_target_distance_m = math.hypot(dx, dy)
+        self.metric_target_bearing_deg = math.degrees(
+            math.atan2(
+                -math.sin(robot_map_yaw) * dx + math.cos(robot_map_yaw) * dy,
+                math.cos(robot_map_yaw) * dx + math.sin(robot_map_yaw) * dy,
+            )
+        )
+        self.coverage_tracker = ForwardCoverageTracker(
+            target_x=target_odom_x,
+            target_y=target_odom_y,
+            reference_offset_m=self.cleaning_reference_offset_m,
+            tolerance_m=self.cleaning_coverage_tolerance_m,
+            start_x=odom.x,
+            start_y=odom.y,
+            start_yaw=odom.yaw,
+            start_linear_x=odom.linear_x,
+            min_forward_step_m=self.cleaning_min_forward_step_m,
+            min_forward_speed_mps=self.cleaning_min_forward_speed_mps,
+        )
+        self.coverage_progress = self.coverage_tracker.progress()
+        self.coverage_last_odom_sequence = odom.sequence
+
+    def _update_forward_coverage(self, state, max_pose_step_m):
+        if not self._uses_selected_target():
+            return None
+        if self.coverage_tracker is None:
+            raise ControllerAbort("selected-target coverage tracker is not initialized")
+        if state.sequence <= self.coverage_last_odom_sequence:
+            return self.coverage_progress
+        try:
+            self.coverage_progress = self.coverage_tracker.update(
+                state.x,
+                state.y,
+                state.yaw,
+                state.linear_x,
+                max_pose_step_m,
+            )
+        except ValueError as exc:
+            raise ControllerAbort("cleaning coverage odometry is invalid: %s" % exc)
+        self.coverage_last_odom_sequence = state.sequence
+        return self.coverage_progress
 
     def _acquisition_candidates(self, frame):
         if not frame.candidates:
@@ -2413,6 +2978,25 @@ class FodVisualServoNode:
                     % (best_confidence, self.min_confidence),
                 )
         candidates = frame.candidates
+        if candidates and self.staged_target is not None:
+            selected = []
+            for candidate in candidates:
+                try:
+                    target = self._metric_target_for_pixel(frame, candidate)
+                except ControllerAbort as exc:
+                    if "source-stamp match is missing" in str(exc):
+                        return tuple(), "waiting for source-stamped metric identity"
+                    raise
+                if target.object_id == self.staged_target.object_id:
+                    self._validate_selected_metric_target(target)
+                    selected.append(candidate)
+            if len(selected) != 1:
+                return (
+                    tuple(),
+                    "selected pending-litter object %d is not uniquely visible"
+                    % self.staged_target.object_id,
+                )
+            candidates = tuple(selected)
         if len(candidates) > 1 and getattr(
             self, "require_depth_for_acquisition", False
         ):
@@ -2572,6 +3156,30 @@ class FodVisualServoNode:
                     "FOD is still visible below the motion-confidence threshold; "
                     "blind advance is inhibited"
                 )
+            pending_metric = None
+            if self._uses_selected_target() and self.phase == ACQUIRE and len(candidates) == 1:
+                try:
+                    pending_metric = self._metric_target_for_pixel(
+                        frame, candidates[0]
+                    )
+                except ControllerAbort as exc:
+                    if "source-stamp match is missing" in str(exc):
+                        candidates = tuple()
+                        acquisition_reason = (
+                            "waiting for source-stamped metric identity"
+                        )
+                    else:
+                        raise
+                if pending_metric is not None:
+                    self._validate_selected_metric_target(pending_metric)
+                    if (
+                        self.pending_metric_object_id is not None
+                        and pending_metric.object_id
+                        != self.pending_metric_object_id
+                    ):
+                        self.machine.pending = None
+                        self.machine.pending_hits = 0
+                    self.pending_metric_object_id = pending_metric.object_id
             previous_state = self.machine.state
             decision = self.machine.process_frame(
                 candidates=candidates,
@@ -2583,7 +3191,21 @@ class FodVisualServoNode:
             )
             if decision.fault:
                 raise ControllerAbort(decision.fault)
+            frame_metric_target = None
+            if self._uses_selected_target() and decision.target is not None and candidates:
+                frame_metric_target = self._metric_target_for_pixel(
+                    frame, decision.target
+                )
+                self._validate_selected_metric_target(frame_metric_target)
             if decision.acquired:
+                if self._uses_selected_target():
+                    if frame_metric_target is None:
+                        raise ControllerAbort(
+                            "target acquired without a unique metric identity"
+                        )
+                    self.locked_metric_target = frame_metric_target
+                    self.pending_metric_object_id = frame_metric_target.object_id
+                    self._initialize_forward_coverage(frame_metric_target)
                 self._start_approach_odometry()
             self.phase = decision.state
             self.reason = depth_grace_reason or acquisition_reason or decision.reason
@@ -2855,6 +3477,7 @@ class FodVisualServoNode:
                 )
             except ValueError as exc:
                 raise ControllerAbort("blind odometry is invalid: %s" % exc)
+            self._update_forward_coverage(state, dynamic_step_limit)
             self.blind_last_odom_state = state
             self.blind_progress = progress
             if progress.path_m > self.blind_hard_distance_m:
@@ -2903,6 +3526,31 @@ class FodVisualServoNode:
                 % (progress.path_m, self.preblind_max_displacement_m)
             )
         return progress
+
+    def _enter_final_stop(self, now, reason):
+        if self._uses_selected_target() and (
+            self.coverage_progress is None or not self.coverage_progress.covered
+        ):
+            raise ControllerAbort(
+                "FINAL_STOP requires forward cleaning-coordinate coverage"
+            )
+        self._hard_stop()
+        self.phase = FINAL_STOP
+        self.reason = str(reason)
+        self.final_stop_started_monotonic = now
+        with self.sensor_lock:
+            self.final_stop_last_odom_sequence = self.odom_sequence
+            self.final_stop_last_wheel_sequence = self.wheel_sequence
+            self.final_stop_seen_unstopped_odom_sequence = (
+                self.last_final_unstopped_odom_sequence
+            )
+            self.final_stop_seen_uncentered_wheel_sequence = (
+                self.last_uncentered_wheel_sequence
+            )
+        self.final_stop_good_start_odom_stamp = None
+        self.final_stop_good_start_wheel_receipt = None
+        self.final_stop_good_start_path_m = None
+        rospy.logwarn("FOD visual servo state -> FINAL_STOP: %s", self.reason)
 
     def _settle_tick(self):
         self._hard_stop()
@@ -2995,6 +3643,14 @@ class FodVisualServoNode:
             and wheel_confirmed
             and odom_queue_drained
         ):
+            if self.coverage_progress is not None and self.coverage_progress.covered:
+                self._enter_final_stop(
+                    now,
+                    "selected coordinate already covered by a forward cleaning "
+                    "segment within %.3fm; confirming full stop"
+                    % self.coverage_progress.minimum_distance_m,
+                )
+                return
             self.blind_drive_started_monotonic = now
             self.blind_last_progress_monotonic = now
             completed_steps = int(
@@ -3009,6 +3665,12 @@ class FodVisualServoNode:
             )
             self._transition(
                 BLIND_ADVANCE,
+                ("steering centered; advancing until the front cleaning trajectory "
+                "covers the selected coordinate within %.2fm (%.2fm post-loss hard limit)"
+                % (
+                    self.cleaning_coverage_tolerance_m,
+                    self.blind_hard_distance_m,
+                )) if self._uses_selected_target() else
                 "steering centered; advancing 0.50m to carry the FOD through the roller",
             )
             return
@@ -3055,27 +3717,20 @@ class FodVisualServoNode:
         )
         if progress is None:
             raise ControllerAbort("blind advance lost its synchronized odometry baseline")
-        if blind_goal_reached(progress, self.blind_distance_m):
-            self._hard_stop()
-            self.phase = FINAL_STOP
-            self.reason = (
-                "roller pass distance 0.50m reached; confirming full stop while "
+        coverage = self.coverage_progress
+        if not self._uses_selected_target() and blind_goal_reached(progress, self.blind_distance_m):
+            self._enter_final_stop(
+                now, "roller pass distance 0.50m reached; confirming full stop while "
                 "enforcing 0.55m hard limit"
             )
-            self.final_stop_started_monotonic = now
-            with self.sensor_lock:
-                self.final_stop_last_odom_sequence = self.odom_sequence
-                self.final_stop_last_wheel_sequence = self.wheel_sequence
-                self.final_stop_seen_unstopped_odom_sequence = (
-                    self.last_final_unstopped_odom_sequence
-                )
-                self.final_stop_seen_uncentered_wheel_sequence = (
-                    self.last_uncentered_wheel_sequence
-                )
-            self.final_stop_good_start_odom_stamp = None
-            self.final_stop_good_start_wheel_receipt = None
-            self.final_stop_good_start_path_m = None
-            rospy.logwarn("FOD visual servo state -> FINAL_STOP: %s", self.reason)
+            return
+        if coverage is not None and coverage.covered:
+            self._enter_final_stop(
+                now,
+                "front cleaning trajectory covered the selected coordinate at "
+                "minimum distance %.3fm; confirming full stop"
+                % coverage.minimum_distance_m,
+            )
             return
 
         drive_elapsed = now - self.blind_drive_started_monotonic
@@ -3088,11 +3743,24 @@ class FodVisualServoNode:
         ):
             raise ControllerAbort("blind odometry progress watchdog expired")
 
-        self.reason = "post-loss net forward %.3f/%.3fm (path %.3fm)" % (
-            progress.forward_m,
-            self.blind_distance_m,
-            progress.path_m,
+        minimum_distance = (
+            coverage.minimum_distance_m
+            if coverage is not None and math.isfinite(coverage.minimum_distance_m)
+            else float("nan")
         )
+        self.reason = (
+            "post-loss net forward %.3fm (path %.3fm); selected-coordinate "
+            "minimum distance %.3f/%.3fm"
+        ) % (
+            progress.forward_m,
+            progress.path_m,
+            minimum_distance,
+            self.cleaning_coverage_tolerance_m,
+        )
+        if not self._uses_selected_target():
+            self.reason = "post-loss net forward %.3f/%.3fm (path %.3fm)" % (
+                progress.forward_m, self.blind_distance_m, progress.path_m
+            )
         self._set_motion(self.blind_speed_mps, 0.0)
 
     def _final_stop_tick(self):
@@ -3104,9 +3772,17 @@ class FodVisualServoNode:
         if self.final_stop_started_monotonic is None:
             self.final_stop_started_monotonic = now
         if now - self.final_stop_started_monotonic > self.final_stop_timeout_sec:
-            raise ControllerAbort("vehicle did not stop after reaching the blind distance")
-        if progress.forward_m < self.blind_distance_m - 0.005:
+            raise ControllerAbort(
+                "vehicle did not stop after covering the selected coordinate"
+            )
+        if not self._uses_selected_target() and progress.forward_m < self.blind_distance_m - 0.005:
             raise ControllerAbort("vehicle rolled backward after reaching blind distance")
+        if self._uses_selected_target() and (
+            self.coverage_progress is None or not self.coverage_progress.covered
+        ):
+            raise ControllerAbort(
+                "selected-coordinate coverage evidence was lost before COMPLETE"
+            )
         with self.sensor_lock:
             wheel_angle = self.latest_wheel_angle
             wheel_receipt = self.latest_wheel_angle_monotonic
@@ -3192,6 +3868,10 @@ class FodVisualServoNode:
                 odom_sequence=odom.sequence,
                 wheel_sequence=wheel_sequence,
                 detection_sequence=self.last_processed_detection_sequence,
+                metric_sequence=self.metric_sequence if self._uses_selected_target() else 0,
+                invalid_metric_generation=(
+                    self.session_invalid_metric_generation if self._uses_selected_target() else 0
+                ),
                 invalid_camera_generation=self.session_invalid_camera_generation,
                 invalid_odom_generation=self.session_invalid_odom_generation,
                 invalid_wheel_generation=self.session_invalid_wheel_generation,
@@ -3221,10 +3901,29 @@ class FodVisualServoNode:
                     self._check_terminal_commit_health_locked()
                     self.phase = COMPLETE
                     self.reason = (
+                        "selected litter %d covered by forward cleaning trajectory "
+                        "within %.3fm and vehicle stopped: net forward %.3fm, "
+                        "path %.3fm"
+                        % (
+                            self.locked_metric_target.object_id,
+                            self.coverage_progress.minimum_distance_m,
+                            progress.forward_m,
+                            progress.path_m,
+                        )
+                    ) if self._uses_selected_target() else (
                         "FOD passed the roller; recovery complete and stopped: "
-                        "net forward %.3fm, "
-                        "path %.3fm" % (progress.forward_m, progress.path_m)
+                        "net forward %.3fm, path %.3fm" % (progress.forward_m, progress.path_m)
                     )
+                    if self._uses_selected_target():
+                        self.last_cleaning_completion = {
+                            "sequence": self.last_cleaning_completion.get("sequence", 0) + 1,
+                            "object_id": str(self.staged_target.object_id),
+                            "target_x": self.staged_target.x,
+                            "target_y": self.staged_target.y,
+                            "covered": True,
+                            "minimum_distance_m": self.coverage_progress.minimum_distance_m,
+                            "eligible_segments": self.coverage_progress.eligible_segments,
+                        }
                     self.target_visible = False
                     completed = True
                 else:
@@ -3260,6 +3959,7 @@ class FodVisualServoNode:
             command_expired_reason = self.motion_lease.expired_reason
         with self.sensor_lock:
             detection = self.latest_detection
+            metric = self.latest_metric
             camera = self.latest_camera
             odom = self.latest_odom
             wheel = self.latest_wheel_angle
@@ -3269,6 +3969,9 @@ class FodVisualServoNode:
         target = self.machine.locked
         blind_distance = self.blind_progress.path_m if self.blind_progress else 0.0
         blind_forward = self.blind_progress.forward_m if self.blind_progress else 0.0
+        metric_target = self.locked_metric_target
+        staged_target = self.staged_target
+        coverage = self.coverage_progress
         raw_can_ages = {
             RAW_OBSERVED_TYPES.get(msg_type, "0x%02X" % msg_type): round(
                 max(0.0, now - value[0]), 3
@@ -3287,8 +3990,70 @@ class FodVisualServoNode:
             "active": self.phase
             not in (DISABLED, PRECHECK, COMPLETE, ABORT),
             "completed": self.phase == COMPLETE,
+            "last_cleaning_completion": self.last_cleaning_completion,
             "target_visible": self.target_visible,
             "target_locked": target is not None,
+            "metric_target_object_id": (
+                metric_target.object_id
+                if metric_target is not None
+                else (
+                    staged_target.object_id if staged_target is not None else 0
+                )
+            ),
+            "metric_target_map_x": (
+                round(staged_target.x, 4)
+                if staged_target is not None
+                else (
+                    round(metric_target.x, 4)
+                    if metric_target is not None
+                    else None
+                )
+            ),
+            "metric_target_map_y": (
+                round(staged_target.y, 4)
+                if staged_target is not None
+                else (
+                    round(metric_target.y, 4)
+                    if metric_target is not None
+                    else None
+                )
+            ),
+            "metric_target_initial_distance_m": (
+                round(self.metric_target_distance_m, 4)
+                if self.metric_target_distance_m is not None
+                else None
+            ),
+            "metric_target_initial_bearing_deg": (
+                round(self.metric_target_bearing_deg, 3)
+                if self.metric_target_bearing_deg is not None
+                else None
+            ),
+            "cleaning_reference_offset_m": self.cleaning_reference_offset_m,
+            "cleaning_coverage_tolerance_m": (
+                self.cleaning_coverage_tolerance_m
+            ),
+            "cleaning_coordinate_covered": (
+                coverage.covered if coverage is not None else False
+            ),
+            "cleaning_minimum_distance_m": (
+                round(coverage.minimum_distance_m, 4)
+                if coverage is not None
+                and math.isfinite(coverage.minimum_distance_m)
+                else None
+            ),
+            "cleaning_forward_path_m": (
+                round(coverage.forward_path_m, 4)
+                if coverage is not None
+                else 0.0
+            ),
+            "cleaning_reverse_path_m_ignored": (
+                round(coverage.reverse_path_m, 4)
+                if coverage is not None
+                else 0.0
+            ),
+            "cleaning_eligible_forward_segments": (
+                coverage.eligible_segments if coverage is not None else 0
+            ),
             "locked_depth_invalid_frames": self.locked_depth_invalid_frames,
             "locked_depth_invalid_abort_frames": (
                 self.locked_depth_invalid_abort_frames
@@ -3337,6 +4102,8 @@ class FodVisualServoNode:
             "blind_distance_m": round(blind_distance, 4),
             "blind_forward_m": round(blind_forward, 4),
             "blind_target_m": self.blind_distance_m,
+            "selected_coordinate_completion": self._uses_selected_target(),
+            "blind_hard_limit_m": self.blind_hard_distance_m,
             "command_linear_x_mps": round(command_speed, 4),
             "command_curvature_per_m": round(command_curvature, 5),
             "command_angular_z_radps": round(command_speed * command_curvature, 5),
@@ -3345,6 +4112,11 @@ class FodVisualServoNode:
             "detection_age_sec": (
                 round(max(0.0, now - detection.receipt_monotonic), 3)
                 if detection is not None
+                else None
+            ),
+            "metric_results_age_sec": (
+                round(max(0.0, now - metric.receipt_monotonic), 3)
+                if metric is not None
                 else None
             ),
             "camera_info_age_sec": (

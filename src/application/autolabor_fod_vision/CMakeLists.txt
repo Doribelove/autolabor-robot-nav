@@ -55,6 +55,8 @@ install(DIRECTORY config launch models
 )
 
 if(CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(test/test_map_localization.py)
+  catkin_add_nosetests(test/test_map_runtime.py)
   catkin_add_nosetests(test/test_bpu_rgbd.py)
   catkin_add_nosetests(test/test_litter_filter.py)
   catkin_add_nosetests(test/test_litter_filter_runtime.py)

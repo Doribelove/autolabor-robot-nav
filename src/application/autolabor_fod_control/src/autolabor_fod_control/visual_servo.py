@@ -87,6 +87,17 @@ class BlindProgress:
 
 
 @dataclass(frozen=True)
+class ForwardCoverageProgress:
+    """Evidence that the front cleaning reference crossed one world point."""
+
+    covered: bool
+    minimum_distance_m: float
+    forward_path_m: float
+    reverse_path_m: float
+    eligible_segments: int
+
+
+@dataclass(frozen=True)
 class ConfirmationWindow:
     """State of one feedback stream's continuous-safe confirmation window."""
 
@@ -103,6 +114,8 @@ class TerminalSensorFence:
     odom_sequence: int
     wheel_sequence: int
     detection_sequence: int
+    metric_sequence: int
+    invalid_metric_generation: int
     invalid_camera_generation: int
     invalid_odom_generation: int
     invalid_wheel_generation: int
@@ -493,6 +506,199 @@ def local_displacement(
     forward = math.cos(start_yaw) * dx + math.sin(start_yaw) * dy
     lateral = -math.sin(start_yaw) * dx + math.cos(start_yaw) * dy
     return forward, lateral
+
+
+def target_relative_geometry(
+    vehicle_x: float,
+    vehicle_y: float,
+    vehicle_yaw: float,
+    target_x: float,
+    target_y: float,
+) -> Tuple[float, float, float, float]:
+    """Return target distance, forward, lateral and bearing in vehicle frame."""
+
+    if not _finite((vehicle_x, vehicle_y, vehicle_yaw, target_x, target_y)):
+        raise ValueError("target geometry inputs must be finite")
+    forward, lateral = local_displacement(
+        vehicle_x, vehicle_y, vehicle_yaw, target_x, target_y
+    )
+    distance = math.hypot(forward, lateral)
+    bearing = math.atan2(lateral, forward)
+    return distance, forward, lateral, bearing
+
+
+def pure_pursuit_curvature(
+    forward_m: float, lateral_m: float, max_curvature: float
+) -> float:
+    """Compute bounded forward-only pure-pursuit curvature for a point target."""
+
+    if not _finite((forward_m, lateral_m, max_curvature)):
+        raise ValueError("pure-pursuit inputs must be finite")
+    if forward_m <= 0.0:
+        raise ValueError("pure-pursuit target must be in front of the vehicle")
+    if max_curvature <= 0.0:
+        raise ValueError("pure-pursuit maximum curvature must be positive")
+    distance_squared = forward_m * forward_m + lateral_m * lateral_m
+    if distance_squared <= 1e-9:
+        raise ValueError("pure-pursuit target is too close")
+    curvature = 2.0 * lateral_m / distance_squared
+    return max(-max_curvature, min(max_curvature, curvature))
+
+
+def _point_to_segment_distance(
+    point_x: float,
+    point_y: float,
+    start_x: float,
+    start_y: float,
+    end_x: float,
+    end_y: float,
+) -> float:
+    segment_x = end_x - start_x
+    segment_y = end_y - start_y
+    length_squared = segment_x * segment_x + segment_y * segment_y
+    if length_squared <= 1e-12:
+        return math.hypot(point_x - start_x, point_y - start_y)
+    ratio = (
+        (point_x - start_x) * segment_x
+        + (point_y - start_y) * segment_y
+    ) / length_squared
+    ratio = max(0.0, min(1.0, ratio))
+    nearest_x = start_x + ratio * segment_x
+    nearest_y = start_y + ratio * segment_y
+    return math.hypot(point_x - nearest_x, point_y - nearest_y)
+
+
+class ForwardCoverageTracker:
+    """Track a front-mounted cleaning point and ignore reverse traversal.
+
+    The target is considered covered only when an odometry segment is both
+    geometrically forward and backed by a positive measured wheel-odometry
+    speed.  Point-to-segment distance makes the result independent of odometry
+    sample spacing.
+    """
+
+    def __init__(
+        self,
+        target_x: float,
+        target_y: float,
+        reference_offset_m: float,
+        tolerance_m: float,
+        start_x: float,
+        start_y: float,
+        start_yaw: float,
+        start_linear_x: float,
+        min_forward_step_m: float = 0.001,
+        min_forward_speed_mps: float = 0.02,
+    ):
+        values = (
+            target_x,
+            target_y,
+            reference_offset_m,
+            tolerance_m,
+            start_x,
+            start_y,
+            start_yaw,
+            start_linear_x,
+            min_forward_step_m,
+            min_forward_speed_mps,
+        )
+        if not _finite(values):
+            raise ValueError("forward coverage tracker inputs must be finite")
+        if reference_offset_m < 0.0:
+            raise ValueError("cleaning reference offset must be non-negative")
+        if tolerance_m <= 0.0:
+            raise ValueError("cleaning coverage tolerance must be positive")
+        if min_forward_step_m < 0.0 or min_forward_speed_mps < 0.0:
+            raise ValueError("forward evidence thresholds must be non-negative")
+        self.target_x = float(target_x)
+        self.target_y = float(target_y)
+        self.reference_offset_m = float(reference_offset_m)
+        self.tolerance_m = float(tolerance_m)
+        self.min_forward_step_m = float(min_forward_step_m)
+        self.min_forward_speed_mps = float(min_forward_speed_mps)
+        self.last_x = float(start_x)
+        self.last_y = float(start_y)
+        self.last_yaw = float(start_yaw)
+        self.last_linear_x = float(start_linear_x)
+        self.last_reference_x, self.last_reference_y = self._reference_point(
+            start_x, start_y, start_yaw
+        )
+        self.covered = False
+        self.minimum_distance_m = math.inf
+        self.forward_path_m = 0.0
+        self.reverse_path_m = 0.0
+        self.eligible_segments = 0
+
+    def _reference_point(self, x: float, y: float, yaw: float) -> Tuple[float, float]:
+        return (
+            float(x) + self.reference_offset_m * math.cos(float(yaw)),
+            float(y) + self.reference_offset_m * math.sin(float(yaw)),
+        )
+
+    def progress(self) -> ForwardCoverageProgress:
+        return ForwardCoverageProgress(
+            covered=self.covered,
+            minimum_distance_m=self.minimum_distance_m,
+            forward_path_m=self.forward_path_m,
+            reverse_path_m=self.reverse_path_m,
+            eligible_segments=self.eligible_segments,
+        )
+
+    def update(
+        self,
+        x: float,
+        y: float,
+        yaw: float,
+        linear_x: float,
+        max_pose_step_m: float,
+    ) -> ForwardCoverageProgress:
+        if not _finite((x, y, yaw, linear_x, max_pose_step_m)):
+            raise ValueError("forward coverage odometry is non-finite")
+        if max_pose_step_m <= 0.0:
+            raise ValueError("forward coverage pose-step limit must be positive")
+        pose_step = math.hypot(x - self.last_x, y - self.last_y)
+        if pose_step > max_pose_step_m:
+            raise ValueError(
+                "odometry pose jump %.3f m exceeds %.3f m"
+                % (pose_step, max_pose_step_m)
+            )
+        signed_step, _ = local_displacement(
+            self.last_x, self.last_y, self.last_yaw, x, y
+        )
+        if signed_step > 0.0:
+            self.forward_path_m += signed_step
+        elif signed_step < 0.0:
+            self.reverse_path_m += -signed_step
+
+        reference_x, reference_y = self._reference_point(x, y, yaw)
+        forward_evidence = (
+            signed_step > 0.0
+            and signed_step >= self.min_forward_step_m
+            and min(self.last_linear_x, float(linear_x)) >= 0.0
+            and max(self.last_linear_x, float(linear_x))
+            >= max(1e-6, self.min_forward_speed_mps)
+        )
+        if forward_evidence:
+            distance = _point_to_segment_distance(
+                self.target_x,
+                self.target_y,
+                self.last_reference_x,
+                self.last_reference_y,
+                reference_x,
+                reference_y,
+            )
+            self.minimum_distance_m = min(self.minimum_distance_m, distance)
+            self.eligible_segments += 1
+            if distance <= self.tolerance_m:
+                self.covered = True
+
+        self.last_x = float(x)
+        self.last_y = float(y)
+        self.last_yaw = float(yaw)
+        self.last_linear_x = float(linear_x)
+        self.last_reference_x = reference_x
+        self.last_reference_y = reference_y
+        return self.progress()
 
 
 def interpolate_planar_pose(
