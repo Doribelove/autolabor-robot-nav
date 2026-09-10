@@ -63,10 +63,16 @@ def main():
     rear = {"id": "synthetic-rear-hall", "name": "研究院后大厅"}
     rear_door = {"id": "synthetic-rear-door", "name": "研究院后门厅"}
     west = {"id": "synthetic-rd-west", "name": "研发楼西侧大厅"}
+    north = {"id": "synthetic-innovation-north-hall", "name": "创新中心北大厅"}
+    north_door = {"id": "synthetic-innovation-north-lobby", "name": "创新中心北门厅"}
+    east_lobby = {"id": "synthetic-library-east-lobby", "name": "图书馆东侧门厅"}
     cases = [
         ("new_rear_colloquial", "到研究院后面清扫一下", [rear], "研究院后大厅"),
         ("new_rear_variant", "麻烦把研究院后边那块打扫一下", [rear], "研究院后大厅"),
         ("unrelated_new_name", "去研发楼西边扫一下", [west], "研发楼西侧大厅"),
+        ("generic_door_to_unique_hall", "清扫创新中心北门区域", [north], "创新中心北大厅"),
+        ("generic_door_hall_paraphrase", "到图书馆东边门的大厅清扫", [east_lobby], "图书馆东侧门厅"),
+        ("generic_same_direction_candidates", "清扫创新中心北门区域", [north, north_door], None),
         ("ambiguous_rear", "到研究院后面清扫一下", [rear, rear_door], None),
         ("unknown_place", "去研究院楼顶清扫一下", [rear], None),
         ("region_is_not_waypoint", "到研究院后面去，不清扫", [rear], None),

@@ -89,6 +89,17 @@ def test_clarification_cannot_carry_executable_steps():
         pass
 
 
+def test_visual_search_and_clean_is_one_native_spot_cleaning_capability():
+    runner = _runner({"steps": [
+        _step("navigate_map_pose", {"x_m": 0, "y_m": 0, "yaw_deg": 0}),
+        _step("start_spot_cleaning", {}),
+    ]})
+    result = runner.run("返回地图原点，看看周围有没有垃圾，有垃圾就清扫", execute=False)
+    assert [step["tool"] for step in result["plan"]["steps"]] == [
+        "navigate_map_pose", "start_spot_cleaning"]
+    assert runner.mcp.backend.calls == []
+
+
 class ScriptedNavigationBackend(MockBackend):
     """Deterministic navigation handshake without ROS or worker threads."""
 

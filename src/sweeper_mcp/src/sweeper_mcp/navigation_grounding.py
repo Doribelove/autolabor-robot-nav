@@ -45,7 +45,7 @@ def _yaw(suffix):
 def map_targets(text):
     text = unicodedata.normalize("NFKC", text).lower()
     targets = []
-    if re.search(r"地图(?:坐标)?原点", text):
+    if re.search(r"(?:地图(?:坐标)?(?:上面|上|中|里面|里)?的?)?(?:原点|零点)", text):
         targets.append((0.0, 0.0, 0.0))
     patterns = [
         r"(?<![a-z])x(?:_m)?\s*[:=为是]?\s*(" + NUMBER + r")\s*(?:米)?[\s,、]+y(?:_m)?\s*[:=为是]?\s*(" + NUMBER + r")",
@@ -55,6 +55,22 @@ def map_targets(text):
         for match in re.finditer(pattern + NUMBER_END, text):
             targets.append((number(match[1]), number(match[2]), _yaw(text[match.end():])))
     return targets
+
+
+_UNSAVED_RETURN_POINT = re.compile(
+    r"(?:回|返回|回到).{0,5}(?:现在(?:这个|那个)?点|当前(?:这个|那个)?(?:点|位置)|"
+    r"刚才(?:这个|那个)?(?:点|位置)|说话时(?:的)?(?:点|位置))")
+
+
+def unresolved_reference_error(plan, text):
+    """Do not silently omit a requested return to an uncaptured transient point."""
+    value = unicodedata.normalize("NFKC", str(text or "")).lower()
+    if (_UNSAVED_RETURN_POINT.search(value) and
+            (plan.get("steps") or not plan.get("needs_clarification"))):
+        return ("用户要求返回当前/刚才/说话时的位置，但本系统没有保存该瞬时点位。"
+                "不得跳过这一步后执行后续动作；请返回 needs_clarification=true、steps=[]，"
+                "保留完整 understood_sequence，并只询问该点的 map 坐标。原点则默认是地图原点。")
+    return ""
 
 
 def relative_targets(text):

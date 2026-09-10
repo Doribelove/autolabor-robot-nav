@@ -13,8 +13,9 @@ import time
 
 from sweeper_mcp.llm import OpenAIClient
 from sweeper_mcp.mcp_client import MCPClient
-from sweeper_mcp.navigation_grounding import navigation_error
-from sweeper_mcp.region_catalog import compact_catalog, coverage_region_error, reference_map
+from sweeper_mcp.navigation_grounding import navigation_error, unresolved_reference_error
+from sweeper_mcp.region_catalog import (compact_catalog, coverage_region_ambiguity_error,
+                                        coverage_region_error, reference_map)
 from sweeper_mcp.tools import TOOL_SPECS, validate_arguments
 
 
@@ -31,11 +32,16 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
 约束：
 1. 不使用 GPS、经纬度或 WGS84。本项目只有车体相对导航和 map 绝对位姿导航。
 2. “定点清扫”表示现有 FOD 视觉伺服，不代表主刷、边刷、风机或喷淋。
+   “看看/检查/搜索周围有没有垃圾，有垃圾就清扫”“发现垃圾就清理”等说法也是启动一次
+   FOD 视觉伺服的自然表达，必须直接调用一次 start_spot_cleaning。这里的“有垃圾就”描述
+   视觉能力自身的目标发现与接管语义，不是需要大模型另行实现的条件分支，也不是无条件
+   执行覆盖清扫；视觉后端没有满足接管条件的新鲜目标时会自行拒绝/结束。
 3. 区域覆盖只能引用系统提供的已保存区域名称或 UUID，禁止生成临时多边形。
 4. 参数不明确时返回空 steps 并在 answer 中要求用户补充，禁止编造坐标、区域或距离。
 5. 连续语句按独立任务拆分并保留先后顺序，不按动词数量机械拆分。高层任务内部的入场不另拆导航。
 6. 只能调用 submit_plan 一次。不要在 answer 中声称动作已经完成。
-7. “地图原点”或“地图坐标原点”明确表示 map 位姿 x=0、y=0、yaw=0；“起点、基地、
+7. “原点、零点”默认就是地图原点，和“地图原点、地图坐标原点、地图上面的原点、
+   地图零点”一样明确表示 map 位姿 x=0、y=0、yaw=0；“起点、基地、
    充电点”等名称不等同于地图原点，系统未提供精确坐标时必须要求用户补充。
 8. 输入可能由用户自然停顿后的多个片段合并；连词、指代和“不是X，是Y”应结合本轮完整表达理解。
 9. 历史对话仅用于补齐待答问题、解析指代。历史状态为 PREVIEW/SUCCEEDED/FAILED 的任务
@@ -43,7 +49,8 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
 10. 缺少必要信息或整条指令包含当前工具无法表达的动作/条件分支时，返回
     needs_clarification=true、steps=[]，在 understood_sequence 中逐项保留完整动作顺序
     （包括暂不支持的动作），在 answer 说明具体缺项并提出补充问题。
-    不得把“如果有垃圾才清扫”改为无条件清扫，也不得悄悄省略中间动作后执行其他动作。
+    任意条件不得改成无条件动作，也不得悄悄省略中间动作后执行其他动作；但第2条所述
+    “检测到垃圾就由视觉伺服清扫”是 start_spot_cleaning 已封装的能力，不属于缺失条件分支。
     用户只有在正在回答明确问题时，“是/好的/某区域”等短语才可用于补充，不代表开启控制授权。
 11. “到某区域去，在那里清扫一下”“去A区然后清扫那里”表示区域覆盖任务：
     只调用 start_coverage_cleaning(regions=[对应已保存区域])。覆盖系统自己规划从当前位置到入口，
@@ -65,9 +72,21 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
     匹配优先级为：地点主体和用户明确说出的方位是硬约束，功能/部位词是软约束。
     名称中带有与用户明确方位冲突的候选必须排除；不能因为都含“门/大厅”等通用词而忽略
     前、后、左、右、东、西、南、北或侧向等方位差异。
+    “区域、片区、那块、附近”只是范围泛称，不用于否定候选。“门、门口、入口、门前、
+    门区域”常指对应入口一带；“厅、大厅、前厅、门厅、入口大厅、门的大厅”常指同一入口
+    连通的室内区域。地点主体和方位一致、且只有一个候选时，这两组部位说法应视为可兼容的
+    口语表达，必须直接选唯一候选，不得仅因“门”和“大厅/门厅”没有逐字相同而要求确认。
+    通用例子：目录只有“某建筑北大厅”时，“某建筑北门区域”应匹配它；目录只有“某建筑
+    东侧门厅”时，“某建筑东边门的大厅”应匹配它。例子中的建筑和方位均可替换。
+    只有同一地点主体和方位下确有两个以上合理区域，或用户用“不是大厅、只到门外”等明确
+    排除/边界表达时，功能/部位差异才构成歧义。如果答复中已经判断某项是唯一符合主体和
+    方位的候选，就不得再为名称表面差异索要确认。
     只有一个明显合理候选时，regions 必须填写该候选在目录中的原始精确名称或 UUID；
     若有两个以上近似候选、地点主体/方位冲突或信心不足，必须要求用户从候选中确认。
     禁止把用户的近似说法直接填入 regions，也禁止因目录变化沿用上一轮候选。
+14. 即使整条长指令因其他不支持的动作或条件分支而必须返回空 steps，也要在
+    understood_sequence 中把上述唯一区域匹配写成目录原名；answer 只能询问真正缺失或不支持
+    的部分，不能再次询问已经唯一匹配的区域。
 """
 
 NAV_TOOLS = {"navigate_relative", "navigate_map_pose"}
@@ -280,6 +299,11 @@ class AgentRunner:
             try:
                 plan = self._validate_plan_response(response)
                 error = coverage_region_error(plan, region_references)
+                if not error:
+                    error = coverage_region_ambiguity_error(
+                        plan, "\n".join(evidence), self._region_context)
+                if not error:
+                    error = unresolved_reference_error(plan, "\n".join(evidence))
                 if not error:
                     error = navigation_error(plan, evidence)
                 if error:

@@ -56,12 +56,20 @@ def main():
                 actions.append(step["tool"])
         return actions
     checks = {
-        "whole_reference_retains_unsupported_conditions": rows[0].get("result", {}).get("state") == "NEEDS_CLARIFICATION",
+        "whole_reference_rejects_unsaved_current_point": rows[0].get("result", {}).get("state") == "NEEDS_CLARIFICATION",
         "question_waits_for_region": rows[1].get("result", {}).get("state") == "NEEDS_CLARIFICATION",
         "short_answer_resolves_pending_request": expanded(rows[2]) == ["clean:研究院大楼前大厅"],
         "supported_regions_in_order": expanded(rows[3])[:4] == ["clean:A", "clean:B", "clean:研究院大楼前大厅", "clean:研究院大楼侧门厅"],
         "supported_returns_to_map_origin_last": bool(expanded(rows[3])) and expanded(rows[3])[-1] in ("map:[0, 0, 0]", "map:[0.0, 0.0, 0.0]"),
     }
+    whole_sequence = "\n".join(rows[0].get("result", {}).get(
+        "plan", {}).get("understood_sequence", []))
+    checks.update({
+        "whole_reference_resolves_front_hall": "研究院大楼前大厅" in whole_sequence,
+        "whole_reference_resolves_side_lobby": "研究院大楼侧门厅" in whole_sequence,
+        "whole_reference_understands_visual_servo": (
+            "start_spot_cleaning" in whole_sequence or "视觉伺服" in whole_sequence),
+    })
     gate = worker_module.WhisperAsrWorker.__new__(worker_module.WhisperAsrWorker)
     gate._vad_factory = lambda: webrtcvad.Vad(2)
     with wave.open(args.wav, "rb") as stream:

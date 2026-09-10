@@ -6,7 +6,8 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from test_agent_planning import AgentError, FakeLLM, LocalMCP, _runner, _step
 from sweeper_mcp.agent import AgentRunner, SYSTEM_PROMPT
-from sweeper_mcp.navigation_grounding import map_targets, relative_targets
+from sweeper_mcp.navigation_grounding import (map_targets, relative_targets,
+                                              unresolved_reference_error)
 
 
 def map_step(x=8, y=0, yaw=0):
@@ -74,6 +75,11 @@ def test_numbers_in_region_name_or_repeat_count_are_not_a_point():
 
 def test_origin_and_numeric_notations():
     assert map_targets("最后返回地图原点") == [(0, 0, 0)]
+    assert map_targets("回到地图上面的原点") == [(0, 0, 0)]
+    assert map_targets("先回地图零点") == [(0, 0, 0)]
+    assert map_targets("回到原点") == [(0, 0, 0)]
+    assert map_targets("回零点") == [(0, 0, 0)]
+    assert map_targets("回到起点") == []
     assert map_targets("到地图坐标（负一点五，二），朝向90度") == [(-1.5, 2, 90)]
     assert map_targets("map x=3, y=-2, yaw_deg=45") == [(3, -2, 45)]
     assert map_targets("地图坐标八零") == []  # no X/Y separator; ask instead of guessing
@@ -129,3 +135,13 @@ def test_retry_can_replace_ungrounded_navigation_with_single_coverage():
     assert [s["tool"] for s in result["plan"]["steps"]] == ["start_coverage_cleaning"]
     assert runner.llm.calls == 2
     assert runner.mcp.backend.calls == []
+
+
+def test_unsaved_current_point_cannot_be_silently_omitted():
+    bad = {"steps": [_step("start_spot_cleaning", {})]}
+    assert "不得跳过" in unresolved_reference_error(
+        bad, "回到现在那个点看看垃圾，有就清扫")
+    clarification = {"steps": [], "needs_clarification": True,
+                     "answer": "请提供该点坐标"}
+    assert unresolved_reference_error(
+        clarification, "回到说话时的位置") == ""

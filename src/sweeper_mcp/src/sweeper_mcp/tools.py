@@ -236,7 +236,9 @@ TOOL_SPECS = [
         "name": "start_spot_cleaning",
         "title": "启动视觉定点清扫",
         "description": (
-            "请求启动现有 FOD 视觉伺服；原始 tools/call 只确认接管，"
+            "请求启动现有 FOD 视觉伺服；适用于‘查看/搜索周围垃圾，有垃圾就清扫’。"
+            "目标检测与是否满足接管条件由该能力内部完成，不需要大模型构造条件分支；"
+            "原始 tools/call 只确认接管，"
             "AI 执行器随后轮询到完成。不控制主刷、边刷、风机或喷淋。"
         ),
         "mutating": True,

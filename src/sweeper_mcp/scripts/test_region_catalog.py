@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from sweeper_mcp.agent import AgentError, AgentRunner, SYSTEM_PROMPT
 from sweeper_mcp.mock_backend import MockBackend
 from sweeper_mcp.region_catalog import (compact_catalog, coverage_region_error,
-                                        reference_map)
+                                        coverage_region_ambiguity_error, reference_map)
 from sweeper_mcp.tools import ToolResult
 from test_agent_planning import FakeLLM, LocalMCP, _step
 
@@ -46,6 +46,16 @@ def test_invalid_or_oversized_catalog_fails_closed():
     assert "目录不可用" in coverage_region_error(plan, {})
 
 
+def test_same_place_sibling_requires_user_discriminator_or_clarification():
+    text = catalog(("north-hall", "创新中心北大厅"), ("north-door", "创新中心北门厅"))
+    hall = {"steps": [_step("start_coverage_cleaning", {"regions": ["创新中心北大厅"]})]}
+    door = {"steps": [_step("start_coverage_cleaning", {"regions": ["创新中心北门厅"]})]}
+    assert "多个目录候选" in coverage_region_ambiguity_error(hall, "清扫创新中心北边", text)
+    assert "多个目录候选" in coverage_region_ambiguity_error(hall, "清扫创新中心北门区域", text)
+    assert coverage_region_ambiguity_error(door, "清扫创新中心北门区域", text) == ""
+    assert coverage_region_ambiguity_error(hall, "清扫创新中心北大厅", text) == ""
+
+
 class DynamicCatalogBackend(MockBackend):
     def list_saved_coverage_regions(self):
         return ToolResult(catalog(("rear-id", "研究院后大厅")), False)
@@ -78,3 +88,9 @@ def test_system_prompt_is_generic_and_dynamic_not_a_fixed_alias_list():
     assert "不是固定区域、固定短语或别名表" in SYSTEM_PROMPT
     assert "不能偏爱" in SYSTEM_PROMPT
     assert "地点主体和用户明确说出的方位是硬约束" in SYSTEM_PROMPT
+    assert "范围泛称" in SYSTEM_PROMPT
+    assert "门”和“大厅/门厅”没有逐字相同" in SYSTEM_PROMPT
+    assert "例子中的建筑和方位均可替换" in SYSTEM_PROMPT
+    assert "只到门外" in SYSTEM_PROMPT
+    assert "已经唯一匹配的区域" in SYSTEM_PROMPT
+    assert "视觉能力自身的目标发现与接管语义" in SYSTEM_PROMPT
