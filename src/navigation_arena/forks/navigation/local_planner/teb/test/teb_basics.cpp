@@ -25,7 +25,9 @@ public:
   using teb_local_planner::TebLocalPlannerROS::saturateVelocityCommand;
   using teb_local_planner::TebLocalPlannerROS::enforceMotionDirectionCommand;
   using teb_local_planner::TebLocalPlannerROS::enforceMinimumTurningRadiusCommand;
+  using teb_local_planner::TebLocalPlannerROS::extractCoverageActionSequence;
   using teb_local_planner::TebLocalPlannerROS::motionDirectionChangeRequiresReinitialization;
+  using teb_local_planner::TebLocalPlannerROS::updateFixedGearRecoveryState;
 };
 
 } // namespace
@@ -264,6 +266,87 @@ TEST(TEBVelocity, FixedGearChangeInvalidatesWarmStartBand)
       motionDirectionChangeRequiresReinitialization(-1, 1));
   EXPECT_TRUE(TestableTebLocalPlannerROS::
       motionDirectionChangeRequiresReinitialization(0, -1));
+}
+
+TEST(TEBVelocity, CoverageActionSequenceUsesReservedNamespace)
+{
+  std::vector<geometry_msgs::PoseStamped> plan(2);
+  std::uint32_t sequence = 0;
+  EXPECT_FALSE(TestableTebLocalPlannerROS::extractCoverageActionSequence(
+      {}, sequence));
+
+  plan.back().header.seq = 42u;
+  EXPECT_FALSE(TestableTebLocalPlannerROS::extractCoverageActionSequence(
+      plan, sequence));
+
+  plan.back().header.seq = 0xC1234567u;
+  EXPECT_TRUE(TestableTebLocalPlannerROS::extractCoverageActionSequence(
+      plan, sequence));
+  EXPECT_EQ(0xC1234567u, sequence);
+}
+
+TEST(TEBVelocity, FixedGearRecoveryResetsOnceAndRequiresStableSolutions)
+{
+  bool recovery_active = false;
+  unsigned int stable_cycles = 0;
+  bool reset_planner = false;
+
+  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      false, false, 3, recovery_active, stable_cycles, reset_planner));
+  EXPECT_TRUE(recovery_active);
+  EXPECT_TRUE(reset_planner);
+
+  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      false, false, 3, recovery_active, stable_cycles, reset_planner));
+  EXPECT_FALSE(reset_planner);
+
+  // A numerically valid zero is safe but does not prove that the rebuilt band
+  // has settled on the requested direction.
+  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      true, false, 3, recovery_active, stable_cycles, reset_planner));
+  EXPECT_EQ(0u, stable_cycles);
+
+  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      true, true, 3, recovery_active, stable_cycles, reset_planner));
+  EXPECT_EQ(1u, stable_cycles);
+  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      true, true, 3, recovery_active, stable_cycles, reset_planner));
+  EXPECT_EQ(2u, stable_cycles);
+  EXPECT_TRUE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      true, true, 3, recovery_active, stable_cycles, reset_planner));
+  EXPECT_FALSE(recovery_active);
+  EXPECT_EQ(0u, stable_cycles);
+
+  // Once released, a new violation starts a new episode and permits exactly
+  // one fresh-band reset again.
+  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      false, false, 3, recovery_active, stable_cycles, reset_planner));
+  EXPECT_TRUE(reset_planner);
+}
+
+TEST(TEBVelocity, FixedGearRecoveryDoesNotReleaseAlternatingOrZeroSolutions)
+{
+  bool active = false;
+  unsigned int count = 0;
+  bool reset = false;
+  ASSERT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      false, false, 5, active, count, reset));
+  ASSERT_TRUE(reset);
+  for (int episode = 0; episode < 10; ++episode)
+  {
+    for (int good = 0; good < 4; ++good)
+    {
+      EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+          true, true, 5, active, count, reset));
+      EXPECT_FALSE(reset);
+    }
+    // Either another wrong sign or a zero interrupts the consecutive evidence.
+    EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+        episode % 2 == 0, false, 5, active, count, reset));
+    EXPECT_TRUE(active);
+    EXPECT_FALSE(reset);
+    EXPECT_EQ(0u, count);
+  }
 }
 
 TEST(TEBVelocity, TwistCommandHonorsHardAckermannTurningRadius)

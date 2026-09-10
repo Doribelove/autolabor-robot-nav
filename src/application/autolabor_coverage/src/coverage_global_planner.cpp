@@ -23,6 +23,24 @@ namespace autolabor_coverage
 namespace
 {
 
+// PoseStamped is the only per-plan metadata preserved by move_base when it
+// hands a BaseGlobalPlanner result to a BaseLocalPlanner.  Reserve the high
+// two bits of Header.seq and use the remainder as a coverage-action counter.
+// Each synchronous path installation advances it, including a resume of the
+// same swath. Repeated 1 Hz validation and topic lease refresh keep it stable.
+// TEB uses this marker to discard an old elastic band exactly once at an
+// action boundary instead of clearing it on every controller cycle.
+constexpr std::uint32_t kCoverageActionSequencePrefix = 0xC0000000u;
+constexpr std::uint32_t kCoverageActionSequencePayload = 0x3FFFFFFFu;
+
+void stampCoverageActionSequence(
+    const autolabor_coverage::EnforcedPath& message,
+    std::vector<geometry_msgs::PoseStamped>& plan)
+{
+  for (geometry_msgs::PoseStamped& pose : plan)
+    pose.header.seq = message.path.header.seq;
+}
+
 costmap_2d::Costmap2D snapshotCostmap(
     costmap_2d::Costmap2DROS* costmap_ros)
 {
@@ -447,13 +465,17 @@ bool CoverageGlobalPlanner::setPathCallback(
         "coverage Hybrid A* transit profile or replan period is invalid";
     return true;
   }
+  std::uint32_t action_sequence;
   {
     // Mission ownership and planner mode are one transaction.  move_base can
     // therefore never observe a newly armed sweep with stale ownership (or a
     // new transit with the previous sweep still armed).
     std::lock_guard<std::mutex> lock(mutex_);
     coverage_active_ = request.coverage_active;
+    action_sequence = kCoverageActionSequencePrefix |
+        ((enforced_path_.path.header.seq + 1u) & kCoverageActionSequencePayload);
     enforced_path_ = request.enforced_path;
+    enforced_path_.path.header.seq = action_sequence;
     if (hybrid)
     {
       transit_profile_ = requested_profile;
@@ -472,10 +494,10 @@ bool CoverageGlobalPlanner::setPathCallback(
                           hybrid ? "KINEMATIC_HYBRID_ASTAR_TRANSIT" :
                                    "ENFORCED_SWEEP";
   response.message = std::string("coverage planner mode armed: ") + mode_name;
-  ROS_INFO("coverage planner hand-off: plan=%s segment=%u mode=%s",
+  ROS_INFO("coverage planner hand-off: plan=%s segment=%u mode=%s action=%u",
            request.enforced_path.plan_id.c_str(),
            request.enforced_path.segment_index + 1,
-           mode_name);
+           mode_name, action_sequence);
   return true;
 }
 
@@ -1216,6 +1238,7 @@ bool CoverageGlobalPlanner::makeHybridPlan(
   }
   if (!still_current)
     return false;
+  stampCoverageActionSequence(message, replanned);
   plan = std::move(replanned);
   ROS_INFO(
       "coverage Hybrid A* %s replan (%.1fs retry cooldown): "
@@ -1388,7 +1411,10 @@ bool CoverageGlobalPlanner::makeEnforcedPlan(
       continue;
     plan.push_back(std::move(pose));
   }
-  return plan.size() >= 2;
+  if (plan.size() < 2)
+    return false;
+  stampCoverageActionSequence(message, plan);
+  return true;
 }
 
 }  // namespace autolabor_coverage

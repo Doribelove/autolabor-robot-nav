@@ -339,6 +339,16 @@ class CoverageContractTest(unittest.TestCase):
         self.assertIn("if (!hybrid_replan_every_cycle_)", plugin)
         self.assertIn("single path authority", plugin)
         self.assertIn("distance_from_start <=", plugin)
+        self.assertIn("kCoverageActionSequencePrefix", plugin)
+        self.assertIn("stampCoverageActionSequence(message, plan)", plugin)
+        teb_controller = (
+            WORKSPACE_ROOT / "src" / "navigation_arena" / "forks" /
+            "navigation" / "local_planner" / "teb" / "src" /
+            "teb_local_planner_ros.cpp"
+        ).read_text(encoding="utf-8")
+        self.assertIn("extractCoverageActionSequence", teb_controller)
+        self.assertIn("updateFixedGearRecoveryState", teb_controller)
+        self.assertIn("resetFixedGearActionState(true)", teb_controller)
         self.assertIn("Hybrid transition made less than", manager)
         self.assertIn(
             "executing cached Hybrid A* swath transition", manager

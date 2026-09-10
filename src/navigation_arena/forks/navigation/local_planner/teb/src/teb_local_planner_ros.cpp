@@ -64,13 +64,23 @@ PLUGINLIB_EXPORT_CLASS(teb_local_planner::TebLocalPlannerROS, mbf_costmap_core::
 
 namespace teb_local_planner
 {
+
+namespace
+{
+constexpr unsigned int kFixedGearStableCyclesRequired = 5;
+constexpr double kFixedGearStableSpeed = 1.0e-3;
+}
   
 
 TebLocalPlannerROS::TebLocalPlannerROS() : costmap_ros_(NULL), tf_(NULL), costmap_model_(NULL),
                                            costmap_converter_loader_("costmap_converter", "costmap_converter::BaseCostmapToPolygons"),
                                            dynamic_recfg_(NULL), custom_via_points_active_(false), goal_reached_(false), no_infeasible_plans_(0),
                                            last_preferred_rotdir_(RotType::none), initialized_(false),
-                                           reinitialize_on_global_plan_(false)
+                                           reinitialize_on_global_plan_(false),
+                                           fixed_gear_action_sequence_valid_(false),
+                                           fixed_gear_action_sequence_(0),
+                                           fixed_gear_recovery_active_(false),
+                                           fixed_gear_stable_cycle_count_(0)
 {
 }
 
@@ -81,6 +91,7 @@ TebLocalPlannerROS::~TebLocalPlannerROS()
 
 void TebLocalPlannerROS::reconfigureCB(TebLocalPlannerReconfigureConfig& config, uint32_t level)
 {
+  boost::mutex::scoped_lock state_lock(planner_state_mutex_);
   const int previous_motion_direction = cfg_.robot.motion_direction_mode;
   cfg_.reconfigure(config);
   if (planner_ && motionDirectionChangeRequiresReinitialization(
@@ -91,10 +102,10 @@ void TebLocalPlannerROS::reconfigureCB(TebLocalPlannerReconfigureConfig& config,
     // Without this explicit reset, TEB hot-starts the new fixed-gear action
     // from the elastic band on the other side of the cusp and repeatedly
     // produces a command with the obsolete sign.
-    planner_->clearPlanner();
-    no_infeasible_plans_ = 0;
+    resetFixedGearActionState(true);
+    fixed_gear_action_sequence_valid_ = false;
     ROS_INFO("TebLocalPlannerROS: motion direction changed from %d to %d; "
-             "discarding the previous warm-start band.",
+             "discarding the previous band and oscillation history.",
              previous_motion_direction, cfg_.robot.motion_direction_mode);
   }
   ros::NodeHandle nh("~/" + name_);
@@ -216,6 +227,7 @@ void TebLocalPlannerROS::initialize(std::string name, tf2_ros::Buffer* tf, costm
 
 bool TebLocalPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan)
 {
+  boost::mutex::scoped_lock state_lock(planner_state_mutex_);
   // check if plugin is initialized
   if(!initialized_)
   {
@@ -231,6 +243,41 @@ bool TebLocalPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& 
   // curvature-feasible reference.
   if (reinitialize_on_global_plan_)
     planner_->clearPlanner();
+
+  // move_base calls setPlan again whenever the global planner refreshes its
+  // path.  A refresh is not a new action and should retain its warm start.
+  // Coverage paths
+  // carry a stable action marker in PoseStamped::header.seq, so reset the band
+  // and oscillation preference only when that marker actually changes.
+  if (cfg_.robot.motion_direction_mode != 0)
+  {
+    std::uint32_t action_sequence = 0;
+    if (extractCoverageActionSequence(orig_global_plan, action_sequence))
+    {
+      if (!fixed_gear_action_sequence_valid_ ||
+          action_sequence != fixed_gear_action_sequence_)
+      {
+        const bool replacing_action = fixed_gear_action_sequence_valid_;
+        resetFixedGearActionState(true);
+        ROS_INFO("TebLocalPlannerROS: %s fixed-gear coverage action %u; "
+                 "initializing one fresh elastic band.",
+                 replacing_action ? "switching to" : "received",
+                 action_sequence);
+      }
+      fixed_gear_action_sequence_valid_ = true;
+      fixed_gear_action_sequence_ = action_sequence;
+    }
+    else
+    {
+      fixed_gear_action_sequence_valid_ = false;
+    }
+  }
+  else
+  {
+    fixed_gear_action_sequence_valid_ = false;
+    fixed_gear_recovery_active_ = false;
+    fixed_gear_stable_cycle_count_ = 0;
+  }
 
   // store the global plan
   global_plan_.clear();
@@ -261,6 +308,7 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
                                                      geometry_msgs::TwistStamped &cmd_vel,
                                                      std::string &message)
 {
+  boost::mutex::scoped_lock state_lock(planner_state_mutex_);
   // check if plugin initialized
   if(!initialized_)
   {
@@ -300,6 +348,7 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   {
     ROS_WARN("Could not transform the global plan to the frame of the controller");
     message = "Could not transform the global plan to the frame of the controller";
+    fixed_gear_stable_cycle_count_ = 0;
     return mbf_msgs::ExePathResult::INTERNAL_ERROR;
   }
 
@@ -335,6 +384,7 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   {
     ROS_WARN("Transformed plan is empty. Cannot determine a local plan.");
     message = "Transformed plan is empty";
+    fixed_gear_stable_cycle_count_ = 0;
     return mbf_msgs::ExePathResult::INVALID_PATH;
   }
               
@@ -383,6 +433,7 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   bool success = planner_->plan(transformed_plan, &robot_vel_, cfg_.goal_tolerance.free_goal_vel);
   if (!success)
   {
+    fixed_gear_stable_cycle_count_ = 0;
     planner_->clearPlanner(); // force reinitialization for next time
     ROS_WARN("teb_local_planner was not able to obtain a local plan for the current setting.");
     
@@ -396,6 +447,7 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   // Check for divergence
   if (planner_->hasDiverged())
   {
+    fixed_gear_stable_cycle_count_ = 0;
     cmd_vel.twist.linear.x = cmd_vel.twist.linear.y = cmd_vel.twist.angular.z = 0;
 
     // Reset everything to start again with the initialization of new trajectories.
@@ -419,6 +471,7 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   bool feasible = planner_->isTrajectoryFeasible(costmap_model_.get(), footprint_spec_, robot_inscribed_radius_, robot_circumscribed_radius, cfg_.trajectory.feasibility_check_no_poses);
   if (!feasible)
   {
+    fixed_gear_stable_cycle_count_ = 0;
     cmd_vel.twist.linear.x = cmd_vel.twist.linear.y = cmd_vel.twist.angular.z = 0;
 
     // now we reset everything to start again with the initialization of new trajectories.
@@ -448,6 +501,7 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   if (!planner_->getVelocityCommand(cmd_vel.twist.linear.x, cmd_vel.twist.linear.y, cmd_vel.twist.angular.z, command_look_ahead_poses))
 
   {
+    fixed_gear_stable_cycle_count_ = 0;
     planner_->clearPlanner();
     ROS_WARN("TebLocalPlannerROS: velocity command invalid. Resetting planner...");
     ++no_infeasible_plans_; // increase number of infeasible solutions in a row
@@ -461,16 +515,54 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   // profile max_vel_x_backwards is zero, and saturation would otherwise turn
   // an invalid negative command into -0.0 and hide a permanent planner stall
   // from the fixed-gear guard.
-  if (!enforceMotionDirectionCommand(
+  const double raw_fixed_gear_vx = cmd_vel.twist.linear.x;
+  const double raw_fixed_gear_omega = cmd_vel.twist.angular.z;
+  const bool fixed_gear_command_valid = enforceMotionDirectionCommand(
           cmd_vel.twist.linear.x, cmd_vel.twist.linear.y,
-          cmd_vel.twist.angular.z, cfg_.robot.motion_direction_mode))
+          cmd_vel.twist.angular.z, cfg_.robot.motion_direction_mode);
+  const bool fixed_gear_directional_solution =
+      fixed_gear_command_valid &&
+      ((cfg_.robot.motion_direction_mode > 0 &&
+        raw_fixed_gear_vx > kFixedGearStableSpeed) ||
+       (cfg_.robot.motion_direction_mode < 0 &&
+        raw_fixed_gear_vx < -kFixedGearStableSpeed));
+  bool reset_fixed_gear_planner = false;
+  const bool release_fixed_gear_command =
+      cfg_.robot.motion_direction_mode == 0 ||
+      updateFixedGearRecoveryState(
+          fixed_gear_command_valid, fixed_gear_directional_solution,
+          kFixedGearStableCyclesRequired, fixed_gear_recovery_active_,
+          fixed_gear_stable_cycle_count_, reset_fixed_gear_planner);
+  if (!fixed_gear_command_valid || !release_fixed_gear_command)
   {
-    planner_->clearPlanner();
-    ROS_WARN("TebLocalPlannerROS: optimized command violated the fixed-gear contract. Resetting planner...");
+    cmd_vel.twist.linear.x = cmd_vel.twist.linear.y =
+        cmd_vel.twist.angular.z = 0.0;
+    if (reset_fixed_gear_planner)
+    {
+      planner_->clearPlanner();
+      ROS_WARN("TebLocalPlannerROS: optimized command violated fixed gear "
+               "(mode=%d, vx=%.4f, omega=%.4f); resetting the band once and "
+               "holding zero until %u stable same-direction solutions.",
+               cfg_.robot.motion_direction_mode, raw_fixed_gear_vx,
+               raw_fixed_gear_omega, kFixedGearStableCyclesRequired);
+    }
+    else
+    {
+      ROS_WARN_THROTTLE(
+          1.0,
+          "TebLocalPlannerROS: fixed-gear stabilization is holding zero "
+          "(mode=%d, raw vx=%.4f, stable=%u/%u); the band will not be "
+          "repeatedly reset.",
+          cfg_.robot.motion_direction_mode, raw_fixed_gear_vx,
+          fixed_gear_stable_cycle_count_,
+          kFixedGearStableCyclesRequired);
+    }
     ++no_infeasible_plans_;
     time_last_infeasible_plan_ = ros::Time::now();
     last_cmd_ = cmd_vel.twist;
-    message = "teb_local_planner fixed-gear command violation";
+    message = fixed_gear_command_valid
+        ? "teb_local_planner fixed-gear command stabilization"
+        : "teb_local_planner fixed-gear command violation";
     return mbf_msgs::ExePathResult::NO_VALID_CMD;
   }
 
@@ -522,6 +614,7 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
 
 bool TebLocalPlannerROS::isGoalReached()
 {
+  boost::mutex::scoped_lock state_lock(planner_state_mutex_);
   if (goal_reached_)
   {
     ROS_INFO("GOAL Reached!");
@@ -1053,6 +1146,77 @@ bool TebLocalPlannerROS::motionDirectionChangeRequiresReinitialization(
     int previous_mode, int requested_mode)
 {
   return previous_mode != requested_mode;
+}
+
+
+bool TebLocalPlannerROS::extractCoverageActionSequence(
+    const std::vector<geometry_msgs::PoseStamped>& plan,
+    std::uint32_t& sequence)
+{
+  if (plan.empty())
+    return false;
+  constexpr std::uint32_t kCoverageActionSequenceMask = 0xC0000000u;
+  constexpr std::uint32_t kCoverageActionSequencePrefix = 0xC0000000u;
+  const std::uint32_t candidate = plan.back().header.seq;
+  if ((candidate & kCoverageActionSequenceMask) !=
+      kCoverageActionSequencePrefix)
+    return false;
+  sequence = candidate;
+  return true;
+}
+
+
+bool TebLocalPlannerROS::updateFixedGearRecoveryState(
+    bool command_valid, bool stable_directional_solution,
+    unsigned int stable_cycles_required,
+    bool& recovery_active, unsigned int& stable_cycle_count,
+    bool& reset_planner)
+{
+  reset_planner = false;
+  stable_cycles_required = std::max(1u, stable_cycles_required);
+  if (!command_valid)
+  {
+    stable_cycle_count = 0;
+    if (!recovery_active)
+    {
+      recovery_active = true;
+      reset_planner = true;
+    }
+    return false;
+  }
+  if (!recovery_active)
+  {
+    stable_cycle_count = 0;
+    return true;
+  }
+  if (!stable_directional_solution)
+  {
+    stable_cycle_count = 0;
+    return false;
+  }
+  ++stable_cycle_count;
+  if (stable_cycle_count < stable_cycles_required)
+    return false;
+  recovery_active = false;
+  stable_cycle_count = 0;
+  return true;
+}
+
+
+void TebLocalPlannerROS::resetFixedGearActionState(bool clear_planner)
+{
+  if (clear_planner && planner_)
+    planner_->clearPlanner();
+  no_infeasible_plans_ = 0;
+  time_last_infeasible_plan_ = ros::Time();
+  failure_detector_.clear();
+  last_preferred_rotdir_ = RotType::none;
+  time_last_oscillation_ = ros::Time();
+  last_cmd_ = geometry_msgs::Twist();
+  fixed_gear_recovery_active_ = false;
+  fixed_gear_stable_cycle_count_ = 0;
+  if (planner_)
+    planner_->setPreferredTurningDir(last_preferred_rotdir_);
 }
 
 

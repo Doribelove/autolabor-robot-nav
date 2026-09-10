@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ws="$(cd "$(dirname "$0")/../../../.." && pwd)"
+if [[ ${ROBOT_OPTIMIZED_SANDBOX:-0} != 1 ]]; then
+  exec "$ws/scripts/optimized.sh" run bash "$0" "$@"
+fi
+# Synthetic goals and commands cannot reach any real ROS graph or device.
+exec bwrap --unshare-net --unshare-pid --die-with-parent \
+  --ro-bind / / --bind "$ws" "$ws" --tmpfs /tmp --proc /proc --dev /dev \
+  --chdir "$ws" -- bash -c '
+    source scripts/setup_env.sh
+    unset ROS_HOSTNAME
+    export ROS_MASTER_URI=http://127.0.0.1:11494 ROS_IP=127.0.0.1
+    exec python3 -u src/application/autolabor_coverage/test/fixed_gear_handoff_simulation.py
+  '
