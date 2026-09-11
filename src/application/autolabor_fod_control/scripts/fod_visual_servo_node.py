@@ -40,6 +40,7 @@ from std_msgs.msg import Bool, Empty, Float64, String
 from std_srvs.srv import SetBool, SetBoolResponse
 
 from autolabor_fod_control.pending_litter import map_target_to_wheel_odom
+from autolabor_fod_control.visual_session import VisualSessionReceipt
 
 from autolabor_fod_control.visual_servo import (
     ACQUIRE,
@@ -163,6 +164,8 @@ class StagedTarget:
     observed_at_sec: float
     label: str
     expires_monotonic: float
+    completion_policy: str = ""
+    request_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -640,6 +643,7 @@ class FodVisualServoNode:
         self.coverage_progress = None
         self.coverage_last_odom_sequence = 0
         self.last_cleaning_completion = {}
+        self.visual_session = VisualSessionReceipt()
         self.approach_path_m = 0.0
         self.approach_last_odom = None
         self.approach_motion_started_monotonic = None
@@ -1216,9 +1220,11 @@ class FodVisualServoNode:
             raise ValueError("final stop timeout is invalid")
 
     def _uses_selected_target(self):
-        # The 10cm/map-coordinate contract belongs only to the pending-litter
-        # entry point. Direct visual/voice recovery retains its existing path.
+        # Selection is independent of the tail's completion policy.
         return getattr(self, "staged_target", None) is not None
+
+    def _requires_coordinate_coverage(self):
+        return self._uses_selected_target() and self.staged_target.completion_policy != "visual_servo"
 
     def _set_cleaning_target_cb(self, request):
         with self.run_lock:
@@ -1240,6 +1246,12 @@ class FodVisualServoNode:
                 z = float(request.target_position.z)
                 observed_at = float(request.observed_at.to_sec())
                 label = str(request.label).strip()
+                policy = str(request.completion_policy)
+                token = str(request.request_id)
+                if policy not in ("", "visual_servo"):
+                    raise ValueError("unknown selected-target completion policy")
+                if policy == "visual_servo" and (not token or len(token) > 64):
+                    raise ValueError("visual completion requires a bounded mission token")
                 if object_id <= 0:
                     raise ValueError("object_id must be positive")
                 if request.target_frame != self.expected_metric_frame:
@@ -1258,6 +1270,8 @@ class FodVisualServoNode:
                 observed_at_sec=observed_at,
                 label=label,
                 expires_monotonic=time.monotonic() + self.staged_target_timeout_sec,
+                completion_policy=policy,
+                request_id=token,
             )
             return SetFodCleaningTargetResponse(
                 True,
@@ -2474,6 +2488,7 @@ class FodVisualServoNode:
                 self.machine_config, self.association_config
             )
             self.phase = PRECHECK
+            self._visual_receipt().begin()
             if self.external_estop_override:
                 self.reason = (
                     "running visual, odometry, wheel, and ROS control-chain "
@@ -2562,6 +2577,7 @@ class FodVisualServoNode:
         self.settle_good_start_wheel_receipt = None
 
     def _reset_session(self, phase, reason):
+        self._visual_receipt().disable()
         self.phase = phase
         self.reason = reason
         self.machine = TargetPhaseMachine(
@@ -2589,6 +2605,7 @@ class FodVisualServoNode:
         if self.phase != ABORT:
             rospy.logerr("FOD visual servo ABORT: %s", reason)
         self.phase = ABORT
+        self._visual_receipt().abort()
         self.reason = str(reason)
         self.target_visible = False
 
@@ -2838,9 +2855,10 @@ class FodVisualServoNode:
     def _validate_selected_metric_target(self, target):
         staged = self.staged_target
         if staged is not None:
-            if time.monotonic() > staged.expires_monotonic:
+            if (time.monotonic() > staged.expires_monotonic and
+                    (staged.completion_policy != "visual_servo" or self.locked_metric_target is None)):
                 raise ControllerAbort("selected pending-litter target expired")
-            if target.object_id != staged.object_id:
+            if staged.completion_policy != "visual_servo" and target.object_id != staged.object_id:
                 raise ControllerAbort(
                     "visual target identity %d differs from selected object %d"
                     % (target.object_id, staged.object_id)
@@ -2943,7 +2961,7 @@ class FodVisualServoNode:
         self.coverage_last_odom_sequence = odom.sequence
 
     def _update_forward_coverage(self, state, max_pose_step_m):
-        if not self._uses_selected_target():
+        if not self._requires_coordinate_coverage():
             return None
         if self.coverage_tracker is None:
             raise ControllerAbort("selected-target coverage tracker is not initialized")
@@ -2987,7 +3005,15 @@ class FodVisualServoNode:
                     if "source-stamp match is missing" in str(exc):
                         return tuple(), "waiting for source-stamped metric identity"
                     raise
-                if target.object_id == self.staged_target.object_id:
+                matches = target.object_id == self.staged_target.object_id
+                if self.staged_target.completion_policy == "visual_servo":
+                    # A tracked detection ID can legitimately change during
+                    # the drive. Rebind only one stable target near the saved
+                    # map point; two plausible objects remain ambiguous.
+                    matches = (target.state == "CONFIRMED" and math.hypot(
+                        target.x-self.staged_target.x, target.y-self.staged_target.y
+                    ) <= self.metric_max_selected_position_delta_m)
+                if matches:
                     self._validate_selected_metric_target(target)
                     selected.append(candidate)
             if len(selected) != 1:
@@ -3205,7 +3231,8 @@ class FodVisualServoNode:
                         )
                     self.locked_metric_target = frame_metric_target
                     self.pending_metric_object_id = frame_metric_target.object_id
-                    self._initialize_forward_coverage(frame_metric_target)
+                    if self._requires_coordinate_coverage():
+                        self._initialize_forward_coverage(frame_metric_target)
                 self._start_approach_odometry()
             self.phase = decision.state
             self.reason = depth_grace_reason or acquisition_reason or decision.reason
@@ -3528,7 +3555,7 @@ class FodVisualServoNode:
         return progress
 
     def _enter_final_stop(self, now, reason):
-        if self._uses_selected_target() and (
+        if self._requires_coordinate_coverage() and (
             self.coverage_progress is None or not self.coverage_progress.covered
         ):
             raise ControllerAbort(
@@ -3670,7 +3697,7 @@ class FodVisualServoNode:
                 % (
                     self.cleaning_coverage_tolerance_m,
                     self.blind_hard_distance_m,
-                )) if self._uses_selected_target() else
+                )) if self._requires_coordinate_coverage() else
                 "steering centered; advancing 0.50m to carry the FOD through the roller",
             )
             return
@@ -3718,7 +3745,7 @@ class FodVisualServoNode:
         if progress is None:
             raise ControllerAbort("blind advance lost its synchronized odometry baseline")
         coverage = self.coverage_progress
-        if not self._uses_selected_target() and blind_goal_reached(progress, self.blind_distance_m):
+        if not self._requires_coordinate_coverage() and blind_goal_reached(progress, self.blind_distance_m):
             self._enter_final_stop(
                 now, "roller pass distance 0.50m reached; confirming full stop while "
                 "enforcing 0.55m hard limit"
@@ -3757,7 +3784,7 @@ class FodVisualServoNode:
             minimum_distance,
             self.cleaning_coverage_tolerance_m,
         )
-        if not self._uses_selected_target():
+        if not self._requires_coordinate_coverage():
             self.reason = "post-loss net forward %.3f/%.3fm (path %.3fm)" % (
                 progress.forward_m, self.blind_distance_m, progress.path_m
             )
@@ -3775,9 +3802,9 @@ class FodVisualServoNode:
             raise ControllerAbort(
                 "vehicle did not stop after covering the selected coordinate"
             )
-        if not self._uses_selected_target() and progress.forward_m < self.blind_distance_m - 0.005:
+        if not self._requires_coordinate_coverage() and progress.forward_m < self.blind_distance_m - 0.005:
             raise ControllerAbort("vehicle rolled backward after reaching blind distance")
-        if self._uses_selected_target() and (
+        if self._requires_coordinate_coverage() and (
             self.coverage_progress is None or not self.coverage_progress.covered
         ):
             raise ControllerAbort(
@@ -3910,20 +3937,11 @@ class FodVisualServoNode:
                             progress.forward_m,
                             progress.path_m,
                         )
-                    ) if self._uses_selected_target() else (
+                    ) if self._requires_coordinate_coverage() else (
                         "FOD passed the roller; recovery complete and stopped: "
                         "net forward %.3fm, path %.3fm" % (progress.forward_m, progress.path_m)
                     )
-                    if self._uses_selected_target():
-                        self.last_cleaning_completion = {
-                            "sequence": self.last_cleaning_completion.get("sequence", 0) + 1,
-                            "object_id": str(self.staged_target.object_id),
-                            "target_x": self.staged_target.x,
-                            "target_y": self.staged_target.y,
-                            "covered": True,
-                            "minimum_distance_m": self.coverage_progress.minimum_distance_m,
-                            "eligible_segments": self.coverage_progress.eligible_segments,
-                        }
+                    self._record_cleaning_completion(progress)
                     self.target_visible = False
                     completed = True
                 else:
@@ -3950,6 +3968,35 @@ class FodVisualServoNode:
                 odom_queue_drained,
             )
         )
+
+    def _visual_receipt(self):
+        # Metadata only. Laziness also supports isolated __new__ test fixtures;
+        # without a real begin() there can never be a completion receipt.
+        if not hasattr(self, "visual_session"):
+            self.visual_session = VisualSessionReceipt()
+        return self.visual_session
+
+    def _record_cleaning_completion(self, progress):
+        # Called only inside the existing stopped/sensor-fenced COMPLETE
+        # commit. Preserved across disable so the coordinator cannot miss it.
+        self._visual_receipt().complete()
+        if not self._uses_selected_target():
+            return
+        staged = self.staged_target
+        evidence = {
+            "sequence": self.last_cleaning_completion.get("sequence", 0) + 1,
+            "object_id": str(staged.object_id),
+            "acquired_object_id": str(self.locked_metric_target.object_id),
+            "target_x": staged.x, "target_y": staged.y,
+            "completion_policy": staged.completion_policy,
+            "request_id": staged.request_id, "stopped": True,
+            "forward_m": progress.forward_m, "path_m": progress.path_m,
+            "blind_target_m": self.blind_distance_m,
+        }
+        if self._requires_coordinate_coverage():
+            evidence.update(covered=True, minimum_distance_m=self.coverage_progress.minimum_distance_m,
+                            eligible_segments=self.coverage_progress.eligible_segments)
+        self.last_cleaning_completion = evidence
 
     def _status_dictionary(self):
         now = time.monotonic()
@@ -3979,6 +4026,11 @@ class FodVisualServoNode:
             for msg_type, value in raw_status.items()
         }
         return {
+            "pending_target_protocol": 2,
+            "ai_completion_protocol": 1,
+            "visual_session": self._visual_receipt().status(),
+            "completion_policy": staged_target.completion_policy if staged_target else "",
+            "pending_request_id": staged_target.request_id if staged_target else "",
             "state": self.phase,
             "reason": self.reason,
             "min_confidence": round(self.min_confidence, 4),
@@ -4102,7 +4154,7 @@ class FodVisualServoNode:
             "blind_distance_m": round(blind_distance, 4),
             "blind_forward_m": round(blind_forward, 4),
             "blind_target_m": self.blind_distance_m,
-            "selected_coordinate_completion": self._uses_selected_target(),
+            "selected_coordinate_completion": self._requires_coordinate_coverage(),
             "blind_hard_limit_m": self.blind_hard_distance_m,
             "command_linear_x_mps": round(command_speed, 4),
             "command_curvature_per_m": round(command_curvature, 5),

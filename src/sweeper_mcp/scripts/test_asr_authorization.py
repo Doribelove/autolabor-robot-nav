@@ -114,6 +114,36 @@ def _bare_node():
     return node
 
 
+def test_critical_plan_evidence_is_logged_with_request_identity_and_redaction():
+    from unittest.mock import patch
+    node = _bare_node()
+    node._event_sequence = 0
+    node._request_id = "request-for-audit"
+    messages = []
+    node._event_pub = SimpleNamespace(publish=messages.append)
+    with patch.object(_MODULE.rospy, "loginfo") as log, patch.object(
+            _MODULE.rospy.Time, "now", return_value=_MODULE.rospy.Time(1)):
+        SweeperAiNode._emit(node, "PLAN_REJECTED", state="REJECTED",
+                           description="test sk-abcdefghijklmno",
+                           result_json='{"steps": []}')
+        assert log.call_count == 1
+        payload = log.call_args[0][1]
+        assert "request-for-audit" in payload and "PLAN_REJECTED" in payload
+        assert "sk-abcdefghijklmno" not in payload and "REDACTED" in payload
+    assert messages[0].request_id == "request-for-audit"
+
+
+def test_status_tick_has_no_control_or_recorder_side_effects():
+    node = _bare_node()
+    node._last_heartbeat = 0.0
+    published = []
+    node._publish_status = lambda: published.append(True)
+    node._runner.cancel = lambda: (_ for _ in ()).throw(AssertionError("unexpected cancel"))
+    node._status_tick(None)
+    assert published == [True]
+    assert node.events == []
+
+
 def _smart_event(session_id, index, transcript="清扫 A 区"):
     return {
         "event": "smart_transcript",
@@ -161,12 +191,15 @@ def test_asr_requires_both_voice_and_parse_before_cloud_submission():
     assert not accepted and "语音" in message
 
 
-def test_all_cloud_input_requires_a_fresh_qt_heartbeat():
+def test_cloud_authorization_does_not_expire_with_qt_heartbeat():
     node = _bare_node()
     node._parse_authorized = True
     node._last_heartbeat = time.monotonic() - 10.0
-    accepted, _request_id, message = node._begin_request("状态", "MANUAL")
-    assert not accepted and "心跳" in message
+    assert node._cloud_authorized()
+    node._control_authorized = True
+    assert node._execution_authorized()
+    node._last_heartbeat = 0.0
+    assert not node._cloud_authorized()
 
 
 def test_recording_needs_voice_but_not_parse_authorization():
@@ -283,7 +316,7 @@ def test_smart_voice_defaults_off_and_requires_all_start_gates():
     request.session_token = node._session_token
     assert not node._set_smart_voice(request).accepted
     node._voice_authorized = True
-    node._last_heartbeat = time.monotonic() - 10.0
+    node._last_heartbeat = 0.0
     assert not node._set_smart_voice(request).accepted
     node._last_heartbeat = time.monotonic()
     node._asr_available = False
@@ -640,7 +673,7 @@ def test_voice_revoke_stops_current_smart_session_and_clears_queue():
     assert node._asr_client.calls[0][0] == "stop_smart_listening"
 
 
-def test_heartbeat_expiry_invalidates_smart_session_before_async_stop():
+def test_ui_delay_never_cancels_task_or_revokes_smart_session():
     node = _bare_node()
     node._voice_authorized = True
     node._parse_authorized = True
@@ -653,15 +686,14 @@ def test_heartbeat_expiry_invalidates_smart_session_before_async_stop():
     stop_requests = []
     node._stop_smart_worker_async = lambda request, reason: stop_requests.append(
         (request, reason))
-    node._watchdog(None)
-    assert not node._voice_authorized
-    assert not node._parse_authorized
-    assert not node._control_authorized
-    assert not node._smart_voice_enabled
-    assert not node._smart_voice_listening
-    assert list(node._smart_voice_pending) == []
-    assert len(stop_requests) == 1
-    assert stop_requests[0][0][1] == "stale-heartbeat"
+    node._task_active = True
+    cancelled = []
+    node._runner.cancel = lambda: cancelled.append(True)
+    node._status_tick(None)
+    assert node._voice_authorized and node._parse_authorized and node._control_authorized
+    assert node._smart_voice_enabled and node._smart_voice_listening
+    assert len(node._smart_voice_pending) == 1
+    assert cancelled == [] and stop_requests == []
 
 
 def test_task_completion_automatically_checks_next_smart_utterance():

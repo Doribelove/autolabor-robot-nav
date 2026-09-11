@@ -178,6 +178,65 @@ def _backend(grid=None, coverage=None, map_age_s=0.0):
     return backend, published
 
 
+def test_return_digest_is_checked_before_goal_publication():
+    backend, published = _backend()
+    assert backend.navigate_map_pose(0.25, 1.25, 30, "b" * 64).is_error
+    assert backend.navigate_map_pose(0.25, 1.25, 30, "invalid").is_error
+    assert published == []
+
+
+def _capture_fixture(age=0.1):
+    backend, published = _backend()
+    class Stamp:
+        def __init__(self, seconds=0): self.seconds = seconds
+        def to_sec(self): return self.seconds
+        def __sub__(self, other): return Stamp(self.seconds - other.seconds)
+        @staticmethod
+        def now(): return Stamp(1000)
+    transform = SimpleNamespace(
+        header=SimpleNamespace(frame_id="map", stamp=Stamp(1000 - age)),
+        child_frame_id="base_link", transform=SimpleNamespace(
+            translation=SimpleNamespace(x=1.25, y=2.5, z=0),
+            rotation=_pose(0, 0, yaw_deg=45).orientation))
+    backend._rospy = SimpleNamespace(Time=Stamp, Duration=lambda x: x, is_shutdown=lambda: False)
+    backend._tf_buffer = SimpleNamespace(lookup_transform=lambda *args: transform)
+    return backend, transform, published
+
+
+def test_request_pose_uses_map_tf_and_preserves_heading_without_motion():
+    backend, _transform, published = _capture_fixture()
+    pose, error = backend._capture_map_pose()
+    assert not error and pose["frame_id"] == "map"
+    assert pose["x_m"] == 1.25 and pose["y_m"] == 2.5
+    assert abs(pose["yaw_deg"] - 45) < 1e-8
+    assert pose["map_digest"] == backend._map_snapshot()[1]
+    assert published == []
+
+
+def test_request_pose_rejects_stale_future_wrong_frame_and_invalid_quaternion():
+    for age in (1.0, -1.0):
+        backend, _, published = _capture_fixture(age)
+        pose, error = backend._capture_map_pose()
+        assert pose is None and error and published == []
+    for field, value in [("frame", "camera_init"), ("rotation", 0.0), ("position", float("nan"))]:
+        backend, transform, published = _capture_fixture()
+        if field == "frame": transform.header.frame_id = value
+        if field == "rotation": transform.transform.rotation.w = value
+        if field == "position": transform.transform.translation.x = value
+        pose, error = backend._capture_map_pose()
+        assert pose is None and error and published == []
+
+
+def test_map_switch_during_pose_lookup_rejects_mixed_snapshot():
+    backend, transform, published = _capture_fixture()
+    def switched(*_args):
+        backend._cache("map")(_grid(origin_x=10))
+        return transform
+    backend._tf_buffer.lookup_transform = switched
+    pose, error = backend._capture_map_pose()
+    assert pose is None and error and published == []
+
+
 def _assert_rejected_without_publish(backend, published, x=0.25, y=1.25):
     result = backend.navigate_map_pose(x, y, 30.0)
     assert result.is_error, result

@@ -455,6 +455,10 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             request.target_position.x, request.target_position.y = self.selected_x, self.selected_y
             request.observed_at = rospy.Time.now()
             request.label = "a"
+            if self._testMethodName == "test_selected_standard_visual_uses_roller_completion":
+                request.object_id = 999  # new live ID 42 must rebind near the map point
+                request.completion_policy = "visual_servo"
+                request.request_id = "selected-standard-test"
             response = rospy.ServiceProxy(
                 "/fod_visual_servo/set_cleaning_target", SetFodCleaningTarget)(request)
             self.assertTrue(response.success, response.message)
@@ -474,6 +478,20 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             rospy.sleep(0.05)
         if state in ("COMPLETE", "ABORT"):
             rospy.sleep(0.10)
+            with self.lock:
+                status = dict(self.latest_status)
+            self.assertEqual(status.get("ai_completion_protocol"), 1)
+            session = status["visual_session"]
+            self.assertRegex(session["session_id"], r"^[0-9a-f]{32}$")
+            self.assertEqual(session["result"], state)
+            receipt = session["last_completion"]
+            if state == "COMPLETE":
+                self.assertEqual(receipt["session_id"], session["session_id"])
+                self.assertEqual(receipt["sequence"], session["sequence"])
+                self.assertGreater(receipt["sequence"], 0)
+                self.assertTrue(receipt["stopped"])
+            else:
+                self.assertNotEqual(receipt.get("session_id"), session["session_id"])
         return state
 
     def test_complete_recovery_loop(self):
@@ -513,6 +531,32 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.assertGreaterEqual(forward, 0.495)
         self.assertLessEqual(forward, 0.55)
         self.assertLessEqual(abs(lateral), 0.08)
+        with self.lock:
+            proof = dict(self.latest_status["visual_session"])
+        response = rospy.ServiceProxy("/fod_visual_servo/set_enabled", SetBool)(False)
+        self.assertTrue(response.success, response.message)
+        rospy.sleep(0.25)
+        with self.lock:
+            disabled = dict(self.latest_status)
+        self.assertEqual(disabled["state"], "DISABLED")
+        self.assertFalse(disabled["active"])
+        self.assertEqual(disabled["visual_session"], proof)
+
+    def test_selected_standard_visual_uses_roller_completion(self):
+        self._enable_controller()
+        self.assertEqual(self._wait_for_terminal_state(25.0), "COMPLETE")
+        with self.lock:
+            status = dict(self.latest_status)
+        proof = status['last_cleaning_completion']
+        self.assertEqual(proof['object_id'], '999')
+        self.assertEqual(proof['acquired_object_id'], '42')
+        self.assertEqual(proof['completion_policy'], 'visual_servo')
+        self.assertEqual(proof['request_id'], 'selected-standard-test')
+        self.assertTrue(proof['stopped'])
+        self.assertGreaterEqual(proof['forward_m'], .495)
+        self.assertLessEqual(proof['path_m'], .55)
+        self.assertFalse(status['selected_coordinate_completion'])
+        self.assertNotIn('minimum_distance_m', proof)
 
     def test_selected_target_completes_on_coordinate_before_legacy_half_meter(self):
         self._enable_controller()

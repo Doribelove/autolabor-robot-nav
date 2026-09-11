@@ -27,7 +27,9 @@ SPEC.loader.exec_module(NODE)
 class PendingLitterCompletionTest(unittest.TestCase):
     def setUp(self):
         self.proof = dict(sequence=3, object_id="42", target_x=1.0, target_y=2.0,
-                          covered=True, minimum_distance_m=0.09, eligible_segments=2)
+                          covered=True, minimum_distance_m=0.09, eligible_segments=2,
+                          completion_policy="visual_servo", request_id="mission-a", stopped=True,
+                          forward_m=0.51, path_m=0.52, acquired_object_id="99", blind_target_m=0.5)
 
     def test_only_new_exact_target_forward_coverage_is_accepted(self):
         self.assertTrue(matches_cleaning_completion(self.proof, 2, 42, 1.0, 2.0))
@@ -44,7 +46,7 @@ class PendingLitterCompletionTest(unittest.TestCase):
     def make_node(self):
         node = NODE.PendingLitterCleaner.__new__(NODE.PendingLitterCleaner)
         node.lock = threading.RLock()
-        node.active = SimpleNamespace(object_id=42, target_x=1.0, target_y=2.0)
+        node.active = SimpleNamespace(object_id=42, target_x=1.0, target_y=2.0, request_id="mission-a")
         node.visual_completion_floor = 2
         node.visual_completion_seen = False
         node.mode_state = "GPS_ACTIVE"
@@ -85,10 +87,14 @@ class PendingLitterCompletionTest(unittest.TestCase):
         node.cancel_event = threading.Event()
         node.goal_id = "owned-goal"
         node.stand_off_m = 1.5
+        node.min_visual_start_distance_m = 1.0
+        node.max_visual_start_distance_m = 2.0
+        node.max_visual_start_bearing_deg = 35.0
+        node.visual_staged = node.visual_mode_requested = True
         node._map_pose = lambda: (0.0, 0.0, 0.0)
         for method in ("_submit_stand_off_goal", "_set_state", "_stage_visual_target",
                        "_enable_visual_mode", "_wait_visual_complete", "_cancel_exact_goal",
-                       "_disable_visual_mode", "_clear_visual_target", "_publish_status"):
+                       "_disable_visual_mode", "_clear_visual_target", "_publish_status", "_wait_stopped"):
             setattr(node, method, mock.Mock())
         node.completed_pub = mock.Mock()
         calls = []

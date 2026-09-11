@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   diagnostic_msgs
   dynamic_reconfigure
   geometry_msgs
+  map_msgs
   move_base_msgs
   nav_msgs
   rosgraph
@@ -32,6 +33,7 @@ catkin_package(
   diagnostic_msgs
   dynamic_reconfigure
   geometry_msgs
+  map_msgs
   move_base_msgs
   nav_msgs
   rosgraph
@@ -61,6 +63,7 @@ install(DIRECTORY config launch
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_mode_manager.py)
   catkin_add_nosetests(test/test_pending_litter.py)
+  catkin_add_nosetests(test/test_pending_navigation.py)
   catkin_add_nosetests(test/test_visual_servo.py)
   find_package(rostest REQUIRED)
   add_rostest(test/fod_navigation_mode.test)

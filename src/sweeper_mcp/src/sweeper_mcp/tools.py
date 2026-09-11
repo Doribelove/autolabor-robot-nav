@@ -158,7 +158,11 @@ TOOL_SPECS = [
         "name": "get_robot_status",
         "title": "查询机器人状态",
         "description": "查询电量、急停、定位、位姿、导航所有者和安全门；不改变机器人。",
-        "inputSchema": EMPTY_SCHEMA,
+        "inputSchema": {
+            "type": "object",
+            "properties": {"capture_map_pose": {"type": "boolean"}},
+            "additionalProperties": False,
+        },
     },
     {
         "name": "get_navigation_status",
@@ -207,7 +211,7 @@ TOOL_SPECS = [
         "name": "navigate_map_pose",
         "title": "地图绝对位姿导航",
         "description": (
-            "导航到用户明确指定的 map 绝对 x/y/yaw 点位，不能把模糊区域名转换成点；只有三维 ICP LOCALIZED、"
+            "导航到用户明确指定或本轮可信位置快照提供的 map 绝对 x/y/yaw 点位，不能把模糊区域名转换成点；只有三维 ICP LOCALIZED、"
             "锁存静态地图与覆盖管理器地图摘要一致，且目标位于空闲栅格时可用。"
         ),
         "mutating": True,
@@ -217,6 +221,7 @@ TOOL_SPECS = [
                 "x_m": {"type": "number"},
                 "y_m": {"type": "number"},
                 "yaw_deg": {"type": "number", "minimum": -180.0, "maximum": 180.0},
+                "expected_map_digest": {"type": "string", "minLength": 64},
             },
             "required": ["x_m", "y_m", "yaw_deg"],
             "additionalProperties": False,

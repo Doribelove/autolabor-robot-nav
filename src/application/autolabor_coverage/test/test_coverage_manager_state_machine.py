@@ -578,9 +578,9 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         manager.move_base = _MoveBase()
         manager.enforced_path_pub = _Publisher()
         manager._segments = lambda _route, _current: segments
-        # A connector that exhausts retries now pauses instead of skipping its
-        # dependent swath.  Tests without an operator resume model cancel that
-        # pause deterministically.
+        # Explicit safety/operator pauses still require a resume.  Hybrid
+        # connector retry exhaustion is exercised separately and must not
+        # invoke this fallback.
         manager._wait_while_paused = lambda: False
         manager._restore_teb = lambda: restore
         manager._set_enforced_path = lambda _path, coverage_active=True: True
@@ -3157,6 +3157,10 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
     def test_rolling_entry_acceptance_precedes_recovery_and_planning(self):
         manager, part, tracker = self._entry_overshoot_fixture()
         manager.lock = threading.RLock()
+        manager.manual_pause = False
+        manager.external_pause = False
+        manager.cancel_requested = False
+        manager.active = True
         manager.hybrid_rolling_max_chunks = 1
         for x in (-1, -0.7, -0.4, -0.1, 0.2, 0.45):
             manager._observe_transition_completion(
@@ -3308,6 +3312,10 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             COVERAGE_MANAGER.CoverageManager
         )
         manager.lock = threading.RLock()
+        manager.manual_pause = False
+        manager.external_pause = False
+        manager.cancel_requested = False
+        manager.active = True
         manager.entry_position_tolerance = 0.40
         manager.entry_yaw_tolerance = 0.436332
         # The final entry basin is deliberately wider than an intermediate
@@ -4866,37 +4874,114 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
 
     def test_sweep_is_not_executed_when_its_transit_remains_blocked(self):
         manager, executed = self._manager(
-            self._swath_segments(), ["blocked", "blocked"]
+            self._swath_segments(), ["blocked", "blocked", "canceled"]
         )
         self._run(manager)
-        self.assertEqual(["transit"], executed)
+        self.assertEqual(["transit", "transit", "transit"], executed)
         self.assertEqual("CANCELED", manager.state)
         self.assertEqual([0], manager.blocked_segments)
+        self.assertFalse(manager.manual_pause)
 
-    def test_failed_entry_alignment_pauses_same_sweep_without_advancing(self):
+    def test_failed_entry_alignment_keeps_retrying_without_advancing(self):
         sweep = {"type": "sweep", "swath_index": 0}
         later_transition = {"type": "rolling_transit", "swath_index": 1}
         manager, executed = self._manager(
             [sweep, later_transition], []
         )
+        manager.segment_retry_count = 1
         manager._prepare_sweep_entry = lambda _segment, _index: (
             "entry-recovery"
         )
-        manager._execute_sweep_entry_recovery = (
-            lambda _segment, _index: "blocked"
-        )
-        pause_reasons = []
-        manager._wait_while_paused = lambda: (
-            pause_reasons.append(manager.manual_pause_reason) or False
-        )
+        recovery_attempts = []
+
+        def recover(_segment, _index):
+            recovery_attempts.append(True)
+            return "blocked" if len(recovery_attempts) < 4 else "canceled"
+
+        manager._execute_sweep_entry_recovery = recover
 
         self._run(manager)
 
         self.assertEqual([], executed)
         self.assertEqual("CANCELED", manager.state)
         self.assertEqual([0], manager.blocked_segments)
-        self.assertEqual(1, len(pause_reasons))
-        self.assertIn("sweep-entry Hybrid alignment", pause_reasons[0])
+        self.assertEqual(4, len(recovery_attempts))
+        self.assertFalse(manager.manual_pause)
+
+    def test_hybrid_retry_budget_exhaustion_continues_until_success(self):
+        manager, executed = self._manager(
+            self._swath_segments(),
+            ["blocked", "blocked", "succeeded", "succeeded"],
+        )
+        manager.segment_retry_count = 1
+
+        self._run(manager)
+
+        self.assertEqual(
+            ["transit", "transit", "transit", "sweep"], executed
+        )
+        self.assertEqual("COMPLETED", manager.state)
+        self.assertEqual([], manager.blocked_segments)
+        self.assertFalse(manager.manual_pause)
+
+    def test_transition_stop_timeout_waits_then_continues_automatically(self):
+        manager, _ = self._manager([], [])
+        manager._wait_for_transition_stop = mock.Mock(
+            side_effect=[False, True]
+        )
+        manager._pause_for_avoidance_loss = mock.Mock(return_value=True)
+        manager._pause_for_chassis_fault = mock.Mock(return_value=True)
+        manager._localization_is_fresh = mock.Mock(return_value=True)
+
+        result = manager._await_transition_stop_for_automatic_continuation(
+            "test transition has not stopped"
+        )
+
+        self.assertEqual("stopped", result)
+        self.assertEqual(2, manager._wait_for_transition_stop.call_count)
+        self.assertEqual("TRANSITING", manager.state)
+        self.assertFalse(manager.manual_pause)
+
+    def test_transition_stop_wait_preserves_real_safety_pause(self):
+        manager, _ = self._manager([], [])
+        manager._wait_for_transition_stop = mock.Mock(return_value=False)
+        manager._pause_for_avoidance_loss = mock.Mock(return_value=True)
+
+        def chassis_fault():
+            manager.manual_pause = True
+            manager.manual_pause_reason = "chassis execution lost"
+            manager.state = "PAUSED"
+            return False
+
+        manager._pause_for_chassis_fault = chassis_fault
+        manager._localization_is_fresh = mock.Mock(return_value=True)
+
+        result = manager._await_transition_stop_for_automatic_continuation(
+            "test transition has not stopped"
+        )
+
+        self.assertEqual("paused", result)
+        self.assertEqual("PAUSED", manager.state)
+        self.assertTrue(manager.manual_pause)
+
+    def test_confirmed_stop_does_not_override_concurrent_operator_pause(self):
+        manager, _ = self._manager([], [])
+
+        def stop_after_pause():
+            manager.manual_pause = True
+            manager.manual_pause_reason = "coverage paused by operator"
+            manager.state = "PAUSED"
+            return True
+
+        manager._wait_for_transition_stop = stop_after_pause
+
+        result = manager._await_transition_stop_for_automatic_continuation(
+            "test transition has not stopped"
+        )
+
+        self.assertEqual("paused", result)
+        self.assertEqual("PAUSED", manager.state)
+        self.assertTrue(manager.manual_pause)
 
     def test_final_transit_retry_unlocks_its_dependent_sweep(self):
         manager, executed = self._manager(

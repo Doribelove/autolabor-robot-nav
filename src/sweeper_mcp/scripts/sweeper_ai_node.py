@@ -120,6 +120,7 @@ class SweeperAiNode:
         asr = config.get("asr", {}) if isinstance(config, dict) else {}
         self._voice_buffer = VoiceTurnBuffer(
             quiet_s=float(asr.get("turn_quiet_s", 1.5)),
+            command_quiet_s=float(asr.get("turn_command_quiet_s", 3.0)),
             incomplete_s=float(asr.get("turn_incomplete_s", 4.0)),
             fragment_ttl_s=float(asr.get("turn_fragment_ttl_s", 6.0)))
         self._model = str(agent.get("model", "deepseek-v4-flash"))
@@ -230,7 +231,7 @@ class SweeperAiNode:
             authorization_checker=self._execution_authorized,
             cloud_authorization_checker=self._cloud_authorized,
         )
-        self._timer = rospy.Timer(rospy.Duration(1.0), self._watchdog)
+        self._timer = rospy.Timer(rospy.Duration(1.0), self._status_tick)
         self._voice_timer = rospy.Timer(rospy.Duration(0.1), self._poll_voice_turn)
         rospy.on_shutdown(self._shutdown)
         self._publish_status()
@@ -411,9 +412,9 @@ class SweeperAiNode:
                 False, "ASR 模型必须是 small、medium 或 large",
                 self._asr_model)
         with self._lock:
-            if not self._heartbeat_fresh():
+            if not self._session_ready():
                 return SetAsrModelResponse(
-                    False, "Qt 会话心跳未就绪", self._asr_model)
+                    False, "Qt 会话认证未就绪", self._asr_model)
             if not self._asr_enabled:
                 return SetAsrModelResponse(
                     False, "ASR 已在配置中禁用", self._asr_model)
@@ -605,7 +606,7 @@ class SweeperAiNode:
                     not self._smart_voice_listening or
                     session_id != self._smart_voice_session_id or
                     not self._voice_authorized or
-                    not self._heartbeat_fresh()):
+                    not self._session_ready()):
                 return
             result = {
                 "session_id": session_id,
@@ -669,9 +670,9 @@ class SweeperAiNode:
 
     def _start_smart_voice(self):
         with self._lock:
-            if not self._heartbeat_fresh():
+            if not self._session_ready():
                 return SetSmartVoiceResponse(
-                    False, "Qt 会话心跳未就绪", "")
+                    False, "Qt 会话认证未就绪", "")
             if not self._voice_authorized:
                 return SetSmartVoiceResponse(
                     False, "语音输入尚未授权", "")
@@ -719,7 +720,7 @@ class SweeperAiNode:
                         session_id != self._smart_voice_session_id or
                         not self._smart_voice_enabled or
                         not self._voice_authorized or
-                        not self._heartbeat_fresh()):
+                        not self._session_ready()):
                     raise RuntimeError("智能语音启动期间授权已撤销")
                 if returned_session != session_id:
                     raise RuntimeError("ASR worker 智能语音会话不匹配")
@@ -862,7 +863,7 @@ class SweeperAiNode:
                     not self._smart_voice_listening or
                     session_id != self._smart_voice_session_id or
                     not self._voice_authorized or
-                    not self._heartbeat_fresh()):
+                    not self._session_ready()):
                 return
             epoch = self._smart_voice_epoch
             utterance_key = utterance_id or "index:%d" % utterance_index
@@ -946,7 +947,7 @@ class SweeperAiNode:
         with self._lock:
             if not (self._smart_voice_enabled and self._smart_voice_listening and
                     self._voice_authorized and self._parse_authorized and
-                    self._heartbeat_fresh()):
+                    self._session_ready()):
                 return
             now = time.monotonic()
             activity = self._smart_activity
@@ -1004,7 +1005,7 @@ class SweeperAiNode:
                         item["session_id"] != self._smart_voice_session_id or
                         not self._voice_authorized or
                         not self._parse_authorized or
-                        not self._heartbeat_fresh()):
+                        not self._session_ready()):
                     continue
                 accepted, request_id, message = self._begin_request(
                     item["transcript"], "ASR", emit_transcript=False)
@@ -1065,7 +1066,7 @@ class SweeperAiNode:
                         epoch == self._asr_epoch and
                         client is self._asr_client and
                         self._voice_authorized and
-                        self._heartbeat_fresh())
+                        self._session_ready())
                     if not current:
                         return
                     self._apply_asr_status_locked(status)
@@ -1129,9 +1130,9 @@ class SweeperAiNode:
 
     def _start_asr_recording(self):
         with self._lock:
-            if not self._heartbeat_fresh():
+            if not self._session_ready():
                 return SetAsrRecordingResponse(
-                    False, "Qt 会话心跳未就绪", "")
+                    False, "Qt 会话认证未就绪", "")
             if not self._voice_authorized:
                 return SetAsrRecordingResponse(
                     False, "语音输入尚未授权", "")
@@ -1163,7 +1164,7 @@ class SweeperAiNode:
             with self._lock:
                 if (epoch != self._asr_epoch or
                         not self._voice_authorized or
-                        not self._heartbeat_fresh()):
+                        not self._session_ready()):
                     raise RuntimeError("录音启动期间授权已撤销")
                 self._apply_asr_status_locked(status)
                 if not self._asr_recording:
@@ -1188,9 +1189,9 @@ class SweeperAiNode:
 
     def _stop_asr_recording(self):
         with self._lock:
-            if not self._heartbeat_fresh():
+            if not self._session_ready():
                 return SetAsrRecordingResponse(
-                    False, "Qt 会话心跳未就绪", "")
+                    False, "Qt 会话认证未就绪", "")
             if not self._voice_authorized:
                 return SetAsrRecordingResponse(
                     False, "语音输入尚未授权", "")
@@ -1224,7 +1225,7 @@ class SweeperAiNode:
                     epoch == self._asr_epoch and
                     capture_id == self._asr_capture_id and
                     returned_capture == capture_id and
-                    self._voice_authorized and self._heartbeat_fresh())
+                    self._voice_authorized and self._session_ready())
                 if not still_authorized:
                     return
                 self._apply_asr_status_locked(result)
@@ -1232,7 +1233,7 @@ class SweeperAiNode:
                 self._asr_recording = False
                 self._asr_phase = "READY"
                 parse_now = bool(
-                    self._parse_authorized and self._heartbeat_fresh())
+                    self._parse_authorized and self._session_ready())
                 metrics = {
                     "capture_id": capture_id,
                     "audio_duration_s": self._asr_audio_duration_s,
@@ -1287,17 +1288,22 @@ class SweeperAiNode:
     def _token_valid(self, token):
         return bool(token and hmac.compare_digest(token, self._session_token))
 
-    def _heartbeat_fresh(self):
-        return time.monotonic() - self._last_heartbeat <= 3.0
+    def _session_ready(self):
+        # Compatibility handshake for the existing Qt protocol: this is now a
+        # one-time authenticated session handshake, NOT a timed control lease.
+        # A delayed UI/service callback must never revoke an accepted mission.
+        # Explicit revocation, node shutdown and the J6M backend-loss lease
+        # remain independent and unchanged.
+        return self._last_heartbeat > 0.0
 
     def _execution_authorized(self):
         with self._lock:
             return bool(self._parse_authorized and self._control_authorized and
-                        self._heartbeat_fresh())
+                        self._session_ready())
 
     def _cloud_authorized(self):
         with self._lock:
-            return bool(self._parse_authorized and self._heartbeat_fresh())
+            return bool(self._parse_authorized and self._session_ready())
 
     def _set_authorization(self, request):
         if not self._token_valid(request.session_token):
@@ -1314,8 +1320,8 @@ class SweeperAiNode:
                 self._last_heartbeat = time.monotonic()
                 return self._auth_response(True, "heartbeat")
             if gate == "voice":
-                if request.enabled and not self._heartbeat_fresh():
-                    return self._auth_response(False, "Qt 会话心跳未就绪")
+                if request.enabled and not self._session_ready():
+                    return self._auth_response(False, "Qt 会话认证未就绪")
                 self._voice_authorized = bool(request.enabled)
                 if request.enabled:
                     if (self._asr_available and self._asr_client is not None and
@@ -1341,8 +1347,8 @@ class SweeperAiNode:
                 if request.enabled and not self._cloud_configured:
                     return self._auth_response(False,
                                                self._last_error or "云端配置不可用")
-                if request.enabled and not self._heartbeat_fresh():
-                    return self._auth_response(False, "Qt 会话心跳未就绪")
+                if request.enabled and not self._session_ready():
+                    return self._auth_response(False, "Qt 会话认证未就绪")
                 if bool(request.enabled) != self._parse_authorized:
                     self._reset_voice_context()
                 self._parse_authorized = bool(request.enabled)
@@ -1357,8 +1363,8 @@ class SweeperAiNode:
             elif gate == "control":
                 if request.enabled and not self._parse_authorized:
                     return self._auth_response(False, "请先授权 AI 语义解析")
-                if request.enabled and not self._heartbeat_fresh():
-                    return self._auth_response(False, "Qt 会话心跳未就绪")
+                if request.enabled and not self._session_ready():
+                    return self._auth_response(False, "Qt 会话认证未就绪")
                 control_changed = (
                     bool(request.enabled) != self._control_authorized)
                 self._control_authorized = bool(request.enabled)
@@ -1420,8 +1426,8 @@ class SweeperAiNode:
 
     def _begin_request(self, text, source, emit_transcript=True):
         with self._lock:
-            if not self._heartbeat_fresh():
-                return False, "", "Qt 会话心跳未就绪"
+            if not self._session_ready():
+                return False, "", "Qt 会话认证未就绪"
             if not self._parse_authorized:
                 return False, "", "AI 语义解析尚未授权"
             if source == "ASR" and not self._voice_authorized:
@@ -1436,7 +1442,7 @@ class SweeperAiNode:
             self._total_steps = 0
             self._last_error = ""
             self._final_text = ""
-            execute = self._control_authorized and self._heartbeat_fresh()
+            execute = self._control_authorized and self._session_ready()
         if emit_transcript:
             self._emit("TRANSCRIPT", state=source, description=text)
         self._publish_status()
@@ -1550,6 +1556,17 @@ class SweeperAiNode:
         message.arguments_json = str(fields.get("arguments_json", ""))
         message.result_json = str(fields.get("result_json", ""))
         message.duration_ms = float(fields.get("duration_ms", 0.0))
+        if kind in {"REQUEST", "TRANSCRIPT", "PLAN", "PLAN_REJECTED", "STEP", "AUTH", "FINAL", "ERROR"}:
+            # Persist critical evidence (not periodic progress, audio or config)
+            # so a closed Qt window cannot erase the only plan/cancel record.
+            from sweeper_mcp.agent import _sanitize_text
+            rospy.loginfo("AI_EVENT %s", _sanitize_text(json.dumps({
+                "request_id": request_id, "sequence": sequence, "kind": kind,
+                "step_index": message.step_index, "tool": message.tool,
+                "state": message.state, "description": message.description,
+                "arguments_json": message.arguments_json, "result_json": message.result_json,
+                "duration_ms": message.duration_ms,
+            }, ensure_ascii=False), 24000))
         self._event_pub.publish(message)
 
     def _publish_status(self):
@@ -1559,7 +1576,7 @@ class SweeperAiNode:
             message.voice_authorized = self._voice_authorized
             message.parse_authorized = self._parse_authorized
             message.control_authorized = self._control_authorized
-            message.ui_session_alive = self._heartbeat_fresh()
+            message.ui_session_alive = self._session_ready()
             message.cloud_configured = self._cloud_configured
             message.task_active = self._task_active
             message.request_id = self._request_id
@@ -1589,31 +1606,8 @@ class SweeperAiNode:
             message.smart_voice_pending_count = len(self._smart_voice_pending)
         self._status_pub.publish(message)
 
-    def _watchdog(self, _event):
-        should_cancel = False
-        revoked = False
-        asr_cancel = None
-        smart_stop = None
-        with self._lock:
-            if ((self._voice_authorized or self._parse_authorized or
-                 self._control_authorized) and
-                    not self._heartbeat_fresh()):
-                self._voice_authorized = False
-                self._parse_authorized = False
-                self._control_authorized = False
-                should_cancel = self._task_active
-                self._last_error = "Qt 会话心跳超时，授权已全部撤销"
-                smart_stop = self._revoke_smart_voice_locked(self._last_error)
-                asr_cancel = self._revoke_asr_locked(self._last_error)
-                revoked = True
-        if should_cancel:
-            self._runner.cancel()
-        if asr_cancel is not None and asr_cancel[1]:
-            self._cancel_asr_async(asr_cancel[0], self._last_error)
-        if smart_stop is not None and smart_stop[3]:
-            self._stop_smart_worker_async(smart_stop, self._last_error)
-        if revoked:
-            self._emit("AUTH", state="REVOKED", description=self._last_error)
+    def _status_tick(self, _event):
+        # Telemetry only. Qt scheduling jitter is not a cancellation request.
         self._publish_status()
 
     def _shutdown(self):

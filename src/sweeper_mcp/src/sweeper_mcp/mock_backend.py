@@ -4,6 +4,7 @@
 import json
 import threading
 import time
+import uuid
 
 from sweeper_mcp.tools import ToolResult
 
@@ -35,8 +36,9 @@ class MockBackend:
             target["state"] = terminal
         threading.Thread(target=worker, daemon=True).start()
 
-    def get_robot_status(self):
-        self._record("get_robot_status")
+    def get_robot_status(self, capture_map_pose=False):
+        if not capture_map_pose:
+            self._record("get_robot_status")
         return self._result({"battery_percent": 86, "position": {"x": 0, "y": 0}})
 
     def get_navigation_status(self):
@@ -63,7 +65,7 @@ class MockBackend:
         self._finish(self.nav, "succeeded")
         return self._result(self.nav)
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg, expected_map_digest=""):
         failed = self._record("navigate_map_pose", locals())
         if failed:
             return failed
@@ -79,12 +81,22 @@ class MockBackend:
         failed = self._record("start_spot_cleaning")
         if failed:
             return failed
-        self.visual = {"state": "FOD_ACTIVE", "ai_owned": True}
-        self._finish(self.visual, "RELATIVE_NAV_ACTIVE")
+        session_id = uuid.uuid4().hex
+        self.visual = {"state": "FOD_ACTIVE", "ai_owned": True,
+                       "ai_completion_protocol": 1, "visual_session_id": session_id,
+                       "visual_result": "RUNNING", "visual_active": True, "visual_state": "ACQUIRE",
+                       "completion_baseline": 0, "completion": {}}
+        def finish():
+            time.sleep(self.delay)
+            if self.visual.get("visual_session_id") == session_id and self.visual.get("visual_result") == "RUNNING":
+                self.visual.update(state="RELATIVE_NAV_ACTIVE", visual_result="COMPLETE", visual_active=False, visual_state="DISABLED",
+                                   completion=dict(session_id=session_id, sequence=1, stopped=True, result="COMPLETE"))
+        threading.Thread(target=finish, daemon=True).start()
         return self._result(self.visual)
 
     def stop_spot_cleaning(self):
-        self.visual = {"state": "RELATIVE_NAV_ACTIVE", "ai_owned": False}
+        self.visual.update(state="RELATIVE_NAV_ACTIVE", ai_owned=False,
+                           visual_result="CANCELLED", visual_active=False, visual_state="DISABLED")
         return self._result(self.visual)
 
     def start_coverage_cleaning(self, regions, operation_width_m=None,

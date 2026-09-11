@@ -57,7 +57,7 @@ void MainWindow::toggleAiAsrRecording()
       ai_session_token_.isEmpty())
   {
     QMessageBox::warning(this, QStringLiteral("ASR 后端未连接"),
-                         QStringLiteral("Qt 会话心跳或 ASR 控制服务尚未就绪。"));
+                         QStringLiteral("Qt 会话认证或 ASR 控制服务尚未就绪。"));
     return;
   }
   if (data.ai_status.smart_voice_enabled ||
@@ -201,7 +201,7 @@ void MainWindow::selectAiAsrModel(int index)
     restore_combo(active_model.isEmpty() ? QStringLiteral("medium")
                                          : active_model);
     QMessageBox::warning(this, QStringLiteral("ASR 后端未连接"),
-                         QStringLiteral("Qt 会话心跳或 ASR 模型服务尚未就绪。"));
+                         QStringLiteral("Qt 会话认证或 ASR 模型服务尚未就绪。"));
     return;
   }
   if (requested_model == active_model)
@@ -305,7 +305,7 @@ void MainWindow::toggleAiSmartVoice()
       ai_session_token_.isEmpty())
   {
     QMessageBox::warning(this, QStringLiteral("智能语音后端未连接"),
-                         QStringLiteral("Qt 会话心跳或智能语音服务尚未就绪。"));
+                         QStringLiteral("Qt 会话认证或智能语音服务尚未就绪。"));
     return;
   }
 
@@ -525,6 +525,11 @@ void MainWindow::requestAiAuthorization(const std::string& gate, bool enabled,
 void MainWindow::sendAiHeartbeat()
 {
   if (!master_online_ || !ros_interfaces_ready_ || ai_session_token_.isEmpty())
+    return;
+  // The legacy "heartbeat" RPC now establishes the authenticated session once.
+  // A GUI refresh delay must not be able to cancel an accepted robot mission.
+  const TelemetrySnapshot data = snapshot();
+  if (data.ai_status_received && data.ai_status.ui_session_alive)
     return;
   requestAiAuthorization("heartbeat", true, true);
 }
@@ -785,7 +790,7 @@ void MainWindow::refreshAiUi(const TelemetrySnapshot& data)
   values_["ai_backend"]->setText(
       fresh ? QString::fromStdString(status.backend) +
                   (status.ui_session_alive ? QStringLiteral(" · 在线 · 会话正常")
-                                           : QStringLiteral(" · 在线 · 等待心跳"))
+                                           : QStringLiteral(" · 在线 · 等待会话认证"))
             : QStringLiteral("离线"));
   values_["ai_model"]->setText(
       fresh ? QString::fromStdString(status.model) +

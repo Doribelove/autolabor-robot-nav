@@ -56,6 +56,29 @@ def test_same_place_sibling_requires_user_discriminator_or_clarification():
     assert coverage_region_ambiguity_error(hall, "清扫创新中心北大厅", text) == ""
 
 
+def test_generic_area_never_defaults_to_first_catalog_entry():
+    text = catalog(("a-id", "A"), ("north-id", "创新中心北大厅"))
+    plan = {"steps": [_step("start_coverage_cleaning", {"regions": ["A"]})]}
+    for instruction in ("先去区域清扫，再回到现在的位置进行视觉清扫", "清扫某个区域后回到原地"):
+        assert "未指定" in coverage_region_ambiguity_error(plan, instruction, text)
+    assert not coverage_region_ambiguity_error(plan, "先去区域清扫\nA区", text)
+    named = {"steps": [_step("start_coverage_cleaning", {"regions": ["创新中心北大厅"]})]}
+    assert not coverage_region_ambiguity_error(named, "到创新中心北门区域清扫", text)
+
+
+def test_generic_area_invented_cloud_selection_is_rejected_before_any_action():
+    backend = MockBackend()
+    runner = AgentRunner(llm=FakeLLM({"steps": [_step("start_coverage_cleaning", {"regions": ["A区"]})]}),
+                         mcp=LocalMCP(backend), cloud_authorization_checker=lambda: True)
+    try:
+        runner.run("先去区域清扫，再回到现在的位置进行视觉清扫", execute=True)
+    except AgentError as exc:
+        assert "未指定" in str(exc), str(exc)
+    else:
+        raise AssertionError("invented area must be rejected atomically")
+    assert backend.calls == []
+
+
 class DynamicCatalogBackend(MockBackend):
     def list_saved_coverage_regions(self):
         return ToolResult(catalog(("rear-id", "研究院后大厅")), False)

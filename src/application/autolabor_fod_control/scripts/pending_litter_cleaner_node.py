@@ -12,9 +12,12 @@ import json
 import math
 import threading
 import time
+import uuid
+import copy
 from typing import Optional
 
 import rospy
+import rosgraph
 import tf2_ros
 from actionlib_msgs.msg import GoalID, GoalStatus, GoalStatusArray
 from autolabor_fod_msgs.srv import (
@@ -24,11 +27,16 @@ from autolabor_fod_msgs.srv import (
     StartPendingLitterCleaningResponse,
 )
 from geometry_msgs.msg import PoseStamped
+from move_base_msgs.msg import MoveBaseActionGoal
+from nav_msgs.msg import OccupancyGrid, Odometry
+from nav_msgs.srv import GetPlan, GetPlanRequest
+from map_msgs.msg import OccupancyGridUpdate
 from std_msgs.msg import String, UInt64
 from std_srvs.srv import SetBool, Trigger, TriggerResponse
 
 from autolabor_fod_control.pending_litter import (
-    matches_cleaning_completion, newest_goal_id, stand_off_pose,
+    approach_candidates, footprint_is_free, goal_subscriber_error,
+    matches_visual_completion, target_geometry,
 )
 
 
@@ -48,6 +56,7 @@ class Mission:
     target_y: float
     observed_at: rospy.Time
     label: str
+    request_id: str = ""
 
 
 class PendingLitterCleaner:
@@ -77,8 +86,17 @@ class PendingLitterCleaner:
         )
         self.stand_off_m = float(rospy.get_param("~stand_off_m", 1.50))
         self.max_visual_start_distance_m = float(
-            rospy.get_param("~max_visual_start_distance_m", 2.20)
+            rospy.get_param("~max_visual_start_distance_m", 2.00)
         )
+        self.min_visual_start_distance_m = float(rospy.get_param("~min_visual_start_distance_m", 1.00))
+        self.expected_bridge_node = rospy.get_param("~expected_bridge_node", "/navigation_pause")
+        self.allowed_goal_observers = rospy.get_param(
+            "~allowed_goal_observers", ["/autolabor_operator_gui", "/rviz"])
+        self.plan_service = rospy.get_param("~plan_service", "/move_base/make_plan")
+        self.costmap_topic = rospy.get_param("~costmap_topic", "/move_base/global_costmap/costmap")
+        self.costmap_timeout_sec = float(rospy.get_param("~costmap_timeout_sec", 3.0))
+        self.planning_timeout_sec = float(rospy.get_param("~planning_timeout_sec", 8.0))
+        self.master = rosgraph.Master(rospy.get_name())
         self.max_visual_start_bearing_deg = float(
             rospy.get_param("~max_visual_start_bearing_deg", 35.0)
         )
@@ -121,6 +139,15 @@ class PendingLitterCleaner:
         self.last_completed_object_id = 0
         self.visual_completion_floor = None
         self.visual_completion_seen = False
+        self.costmap = None
+        self.costmap_receipt = None
+        self.expected_pose = None
+        self.accepted_goal_ids = set()
+        self.visual_staged = False
+        self.visual_mode_requested = False
+        self.current_distance_m = None
+        self.current_bearing_deg = None
+        self.odom_samples = []
 
         self.tf_buffer = tf2_ros.Buffer(cache_time=rospy.Duration(10.0))
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -154,6 +181,11 @@ class PendingLitterCleaner:
             self._action_status_cb,
             queue_size=10,
         )
+        self.action_goal_sub = rospy.Subscriber("/move_base/goal", MoveBaseActionGoal, self._action_goal_cb, queue_size=10)
+        self.costmap_sub = rospy.Subscriber(self.costmap_topic, OccupancyGrid, self._costmap_cb, queue_size=1)
+        self.costmap_update_sub = rospy.Subscriber(self.costmap_topic + "_updates", OccupancyGridUpdate,
+                                                  self._costmap_update_cb, queue_size=10)
+        self.odom_sub = rospy.Subscriber("/odom", Odometry, self._odom_cb, queue_size=50)
         self.start_service = rospy.Service(
             "~start_cleaning",
             StartPendingLitterCleaning,
@@ -204,6 +236,80 @@ class PendingLitterCleaner:
             raise ValueError("visual start distance must include the stand-off pose")
         if self.max_visual_start_bearing_deg > 45.0:
             raise ValueError("visual start bearing exceeds the camera capture envelope")
+        if not (1.0 <= self.min_visual_start_distance_m <= self.stand_off_m <= self.max_visual_start_distance_m <= 2.0):
+            raise ValueError("pending-litter handoff must stay within 1–2m")
+        if (not isinstance(self.allowed_goal_observers, list) or
+                any(not isinstance(n, str) or not n.startswith('/') for n in self.allowed_goal_observers)):
+            raise ValueError("goal observers must be explicit absolute node names")
+        if not all(math.isfinite(v) and v > 0 for v in (self.costmap_timeout_sec, self.planning_timeout_sec)):
+            raise ValueError("invalid pending-litter timeouts")
+
+    def _costmap_cb(self, message):
+        if (message.header.frame_id != self.map_frame or message.info.resolution <= 0 or
+                len(message.data) != message.info.width * message.info.height):
+            return
+        with self.lock:
+            self.costmap = copy.deepcopy(message)
+            self.costmap.data = list(message.data)
+            self.costmap_receipt = time.monotonic()
+
+    def _costmap_update_cb(self, message):
+        with self.lock:
+            grid = self.costmap
+            if (grid is None or message.header.frame_id != self.map_frame or
+                    message.x + message.width > grid.info.width or
+                    message.y + message.height > grid.info.height or
+                    len(message.data) != message.width * message.height):
+                return
+            for row in range(message.height):
+                offset = (message.y + row) * grid.info.width + message.x
+                grid.data[offset:offset+message.width] = message.data[row*message.width:(row+1)*message.width]
+            grid.header.stamp = message.header.stamp
+            self.costmap_receipt = time.monotonic()
+
+    def _odom_cb(self, message):
+        now, stamp = time.monotonic(), message.header.stamp.to_sec()
+        speed = message.twist.twist
+        values = (stamp, speed.linear.x, speed.linear.y, speed.angular.z,
+                  message.pose.pose.position.x, message.pose.pose.position.y)
+        safe = (all(math.isfinite(v) for v in values) and
+                -0.2 <= rospy.Time.now().to_sec()-stamp <= 0.5 and
+                message.child_frame_id == self.base_frame and
+                math.hypot(speed.linear.x, speed.linear.y) <= 0.03 and abs(speed.angular.z) <= 0.03)
+        with self.lock:
+            if (not safe or (self.odom_samples and
+                    (stamp <= self.odom_samples[-1][1] or now-self.odom_samples[-1][0] > 0.5))):
+                self.odom_samples = []
+            if safe:
+                self.odom_samples.append((now, stamp, values[-2], values[-1]))
+                self.odom_samples = self.odom_samples[-50:]
+
+    def _action_goal_cb(self, message):
+        # Match our actual pose and sequence, not a difference of global ID
+        # sets that could accidentally adopt a concurrent manual Qt goal.
+        caller = getattr(message, '_connection_header', {}).get('callerid')
+        with self.lock:
+            expected = self.expected_pose
+            actual = message.goal.target_pose
+            if (caller != self.expected_bridge_node or expected is None or
+                    actual.header.seq != expected.header.seq or
+                    actual.header.frame_id != expected.header.frame_id or
+                    actual.pose != expected.pose):
+                return
+            if message.goal_id.id:
+                self.accepted_goal_ids.add(str(message.goal_id.id))
+                if len(self.accepted_goal_ids) == 1:
+                    # Keep exact cleanup ownership even if the bridge's
+                    # status acknowledgement is delayed or lost afterward.
+                    self.goal_id = str(message.goal_id.id)
+
+    def _goal_route_error(self):
+        try:
+            _publishers, subscribers, _services = self.master.getSystemState()
+            nodes = next((nodes for topic, nodes in subscribers if topic == self.simple_goal_topic), [])
+            return goal_subscriber_error(nodes, self.expected_bridge_node, self.allowed_goal_observers)
+        except Exception as exc:
+            return "无法核对导航执行桥：{}".format(exc)
 
     def _navigation_status_cb(self, message):
         try:
@@ -232,9 +338,10 @@ class PendingLitterCleaner:
             self.visual_status = payload
             self.visual_status_receipt = time.monotonic()
             mission = self.active
-            if mission is not None and matches_cleaning_completion(
+            if mission is not None and matches_visual_completion(
                 payload.get("last_cleaning_completion"), self.visual_completion_floor,
                 mission.object_id, mission.target_x, mission.target_y,
+                mission.request_id,
             ):
                 self.visual_completion_seen = True
 
@@ -275,8 +382,8 @@ class PendingLitterCleaner:
             return "pending-litter cleaning refuses external-estop override"
         if self.visual_status.get("state") != "DISABLED":
             return "visual servo is not in DISABLED standby"
-        if self.goal_pub.get_num_connections() != 1:
-            return "move_base simple-goal bridge is not the unique subscriber"
+        if self.visual_status.get("pending_target_protocol") != 2:
+            return "待清扫视觉接口版本不匹配，请部署两端新版程序"
         return ""
 
     @staticmethod
@@ -338,12 +445,17 @@ class PendingLitterCleaner:
                     "selected target is %.2fm away, above %.2fm limit"
                     % (distance, self.max_target_distance_m)
                 )
+            route_error = self._goal_route_error()
+            if route_error:
+                raise ValueError(route_error)
         except (TypeError, ValueError, RuntimeError) as exc:
+            rospy.logwarn("pending-litter start rejected: %s", exc)
             return StartPendingLitterCleaningResponse(False, str(exc))
 
         with self.lock:
             error = self._preflight_locked()
             if error:
+                rospy.logwarn("pending-litter start rejected: %s", error)
                 return StartPendingLitterCleaningResponse(False, error)
             self.generation += 1
             mission = Mission(
@@ -353,14 +465,19 @@ class PendingLitterCleaner:
                 target_y,
                 request.observed_at,
                 label,
+                uuid.uuid4().hex,
             )
             self.active = mission
             self.goal_id = ""
             self.visual_completion_floor = None
             self.visual_completion_seen = False
+            self.visual_staged = False
+            self.visual_mode_requested = False
+            self.expected_pose = None
+            self.accepted_goal_ids.clear()
             self.cancel_event.clear()
-            self.state = HANDOFF if distance <= self.stand_off_m else NAVIGATING
-            self.reason = "pending-litter mission accepted"
+            self.state = NAVIGATING
+            self.reason = "清扫目标已接受，正在检查附近接近位姿"
         threading.Thread(
             target=self._run_mission,
             args=(mission,),
@@ -386,6 +503,7 @@ class PendingLitterCleaner:
             self.state = state
             self.reason = str(reason)
         self._publish_status()
+        rospy.loginfo("pending-litter %s %s: %s", mission.request_id, state, reason)
         return True
 
     def _wait(self, mission, predicate, timeout, failure):
@@ -402,23 +520,20 @@ class PendingLitterCleaner:
     def _submit_stand_off_goal(self, mission):
         if not self._still_active(mission):
             raise RuntimeError("mission canceled before stand-off submission")
-        robot_x, robot_y, _robot_yaw = self._map_pose()
-        goal_x, goal_y, goal_yaw, _distance = stand_off_pose(
-            robot_x,
-            robot_y,
-            mission.target_x,
-            mission.target_y,
-            self.stand_off_m,
-        )
+        message = self._choose_approach_goal(mission)
+        self._assert_navigation_available()
+        error = self._goal_route_error()
+        if error:
+            raise RuntimeError(error)
         with self.lock:
-            previous_ids = tuple(self.navigation_status.get("issued_simple_goal_ids", []))
-        message = PoseStamped()
-        message.header.stamp = rospy.Time.now()
-        message.header.frame_id = self.map_frame
-        message.pose.position.x = goal_x
-        message.pose.position.y = goal_y
-        message.pose.orientation.z = math.sin(0.5 * goal_yaw)
-        message.pose.orientation.w = math.cos(0.5 * goal_yaw)
+            if not self._still_active(mission):
+                raise RuntimeError("mission canceled before goal publication")
+            message.header.stamp = rospy.Time.now()
+            # rospy assigns the top-level Header.seq during serialization.
+            # Keep the actual message (not a pre-serialization copy) so our
+            # observer matches the sequence that the bridge really receives.
+            self.expected_pose = message
+            self.accepted_goal_ids.clear()
         self.goal_pub.publish(message)
 
         # Resolve the exact ID even if cancellation arrives in the tiny window
@@ -428,13 +543,9 @@ class PendingLitterCleaner:
         goal_id = None
         while time.monotonic() < deadline and not rospy.is_shutdown():
             with self.lock:
-                if not self._fresh(self.navigation_status_receipt):
-                    current = tuple()
-                else:
-                    current = tuple(
-                        self.navigation_status.get("issued_simple_goal_ids", [])
-                    )
-            goal_id = newest_goal_id(previous_ids, current)
+                ids = tuple(self.accepted_goal_ids)
+                issued = self.navigation_status.get("issued_simple_goal_ids", [])
+                goal_id = ids[0] if len(ids) == 1 and ids[0] in issued else None
             if goal_id is not None:
                 break
             self.cancel_event.wait(0.05)
@@ -450,7 +561,7 @@ class PendingLitterCleaner:
         self._set_state(
             mission,
             NAVIGATING,
-            "moving to {:.2f}m stand-off pose with exact goal {}".format(
+            "普通导航中：垃圾附近 {:.2f}m 接近点，目标 {}".format(
                 self.stand_off_m, goal_id
             ),
         )
@@ -463,7 +574,11 @@ class PendingLitterCleaner:
             GoalStatus.LOST,
         }
 
+        proximity_cancelled = False
+
         def finished():
+            nonlocal proximity_cancelled
+            self._assert_navigation_available(own_goal_id=goal_id)
             with self.lock:
                 statuses = tuple(self.action_statuses.get(goal_id, ()))
                 fresh = self._fresh(self.action_status_receipt)
@@ -472,10 +587,17 @@ class PendingLitterCleaner:
             status = statuses[0]
             if status == GoalStatus.SUCCEEDED:
                 return True
+            if proximity_cancelled and status in (GoalStatus.PREEMPTED, GoalStatus.RECALLED):
+                return True
             if status in terminal_failure:
                 raise RuntimeError(
                     "stand-off move_base goal ended with status {}".format(status)
                 )
+            distance, bearing = self._target_geometry(mission)
+            if (not proximity_cancelled and self._within_handoff(distance, bearing)
+                    and distance <= self.stand_off_m + 0.10):
+                proximity_cancelled = True
+                self._cancel_exact_goal(goal_id)
             return None
 
         self._wait(
@@ -510,6 +632,118 @@ class PendingLitterCleaner:
             "navigation bridge did not retire stand-off replay ownership",
         )
 
+    def _assert_navigation_available(self, own_goal_id=""):
+        with self.lock:
+            if not self._fresh(self.navigation_status_receipt):
+                raise RuntimeError("导航所有权状态过期，停止当前清扫任务")
+            status = self.navigation_status
+            foreign = set(status.get("active_ordinary_goal_ids", [])) - {own_goal_id}
+            if (status.get("paused") or status.get("coverage_active") or
+                    status.get("coverage_owner_claimed") or status.get("active_explicit_goal_ids") or foreign):
+                raise RuntimeError("导航已暂停或被其他任务占用，不抢占其他任务")
+            if (not own_goal_id and status.get("retained_reissue_allowed")):
+                raise RuntimeError("导航仍保留可重发目标，不能交接视觉")
+
+    def _target_geometry(self, mission):
+        distance, bearing = target_geometry(self._map_pose(), mission.target_x, mission.target_y)
+        with self.lock:
+            self.current_distance_m, self.current_bearing_deg = distance, bearing
+        return distance, bearing
+
+    def _within_handoff(self, distance, bearing):
+        return (self.min_visual_start_distance_m <= distance <= self.max_visual_start_distance_m
+                and abs(bearing) <= self.max_visual_start_bearing_deg)
+
+    def _pose_message(self, pose):
+        message = PoseStamped()
+        message.header.frame_id = self.map_frame
+        message.header.stamp = rospy.Time.now()
+        message.pose.position.x, message.pose.position.y = pose[:2]
+        message.pose.orientation.z, message.pose.orientation.w = math.sin(pose[2]/2), math.cos(pose[2]/2)
+        return message
+
+    def _planning_grid(self):
+        with self.lock:
+            if (self.costmap is None or self.costmap_receipt is None or
+                    time.monotonic()-self.costmap_receipt > self.costmap_timeout_sec or
+                    not -0.2 <= rospy.Time.now().to_sec()-self.costmap.header.stamp.to_sec() <= self.costmap_timeout_sec):
+                raise RuntimeError("全局代价地图未就绪或过期，无法选择接近点")
+            return copy.deepcopy(self.costmap)
+
+    def _footprint(self):
+        raw = rospy.get_param("/move_base/global_costmap/footprint", [])
+        if isinstance(raw, str):
+            raw = json.loads(raw)
+        padding = float(rospy.get_param("/move_base/global_costmap/footprint_padding", 0.01))
+        if not math.isfinite(padding) or padding < 0 or len(raw) < 3:
+            raise RuntimeError("导航车体外廓参数无效")
+        return [(float(x)+math.copysign(padding, x), float(y)+math.copysign(padding, y)) for x,y in raw]
+
+    def _query_plan(self, mission, request, timeout):
+        # The read-only service can outlive the caller if ROS transport stalls.
+        # Its late result cannot publish a goal or enable motion.
+        result, done = [], threading.Event()
+        def query():
+            try:
+                result.append(rospy.ServiceProxy(self.plan_service, GetPlan)(request))
+            except Exception as exc:
+                result.append(exc)
+            finally:
+                done.set()
+        threading.Thread(target=query, daemon=True).start()
+        self._wait(mission, lambda: True if done.is_set() else None, timeout, "接近点规划查询超时")
+        if isinstance(result[0], Exception):
+            raise RuntimeError("接近点规划失败：{}".format(result[0]))
+        return result[0].plan
+
+    def _choose_approach_goal(self, mission):
+        robot_pose = self._map_pose()
+        footprint = self._footprint()
+        rospy.wait_for_service(self.plan_service, timeout=2.0)
+        deadline = time.monotonic()+self.planning_timeout_sec
+        for pose in approach_candidates(robot_pose, mission.target_x, mission.target_y, self.stand_off_m):
+            if not self._still_active(mission):
+                raise RuntimeError("mission canceled during approach planning")
+            self._assert_navigation_available()
+            remaining = deadline-time.monotonic()
+            if remaining <= 0:
+                break
+            if not footprint_is_free(self._planning_grid(), pose, footprint):
+                continue
+            request = GetPlanRequest()
+            request.start = self._pose_message(self._map_pose())
+            request.goal = self._pose_message(pose)
+            request.tolerance = 0.0
+            plan = self._query_plan(mission, request, remaining)
+            if plan.header.frame_id != self.map_frame or len(plan.poses) < 2:
+                continue
+            if any(p.header.frame_id != self.map_frame or not all(math.isfinite(v) for v in
+                   (p.pose.position.x, p.pose.position.y)) for p in plan.poses):
+                continue
+            first, last = plan.poses[0].pose.position, plan.poses[-1].pose.position
+            start = request.start.pose.position
+            if math.hypot(first.x-start.x, first.y-start.y) > 0.30 or math.hypot(last.x-pose[0], last.y-pose[1]) > 0.15:
+                continue
+            if not footprint_is_free(self._planning_grid(), pose, footprint):
+                continue
+            return request.goal
+        raise RuntimeError("垃圾附近没有找到车体可停靠且导航可达的接近点（1–2m范围）")
+
+    def _wait_stopped(self, mission):
+        with self.lock:
+            self.odom_samples = []
+        def stopped():
+            self._assert_navigation_available()
+            with self.lock:
+                samples = tuple(self.odom_samples)
+            if len(samples) < 2 or time.monotonic()-samples[-1][0] > 0.5:
+                return None
+            if (samples[-1][1]-samples[0][1] >= 0.30 and
+                    max(math.hypot(p[2]-samples[-1][2], p[3]-samples[-1][3]) for p in samples) <= 0.02):
+                return True
+            return None
+        self._wait(mission, stopped, 5.0, "未收到连续新鲜的停车反馈，未启用视觉")
+
     def _stage_visual_target(self, mission):
         if not self._still_active(mission):
             raise RuntimeError("mission canceled before visual-target staging")
@@ -528,7 +762,7 @@ class PendingLitterCleaner:
             -math.sin(robot_yaw) * dx + math.cos(robot_yaw) * dy,
             math.cos(robot_yaw) * dx + math.sin(robot_yaw) * dy,
         ))
-        if distance > self.max_visual_start_distance_m:
+        if not self.min_visual_start_distance_m <= distance <= self.max_visual_start_distance_m:
             raise RuntimeError(
                 "stand-off finished but target remains %.2fm away" % distance
             )
@@ -546,16 +780,21 @@ class PendingLitterCleaner:
         request.target_frame = self.map_frame
         request.observed_at = mission.observed_at
         request.label = mission.label
+        request.completion_policy = "visual_servo"
+        request.request_id = mission.request_id
         response = rospy.ServiceProxy(
             self.visual_target_service, SetFodCleaningTarget
         )(request)
         if not response.success:
             raise RuntimeError("visual target rejected: {}".format(response.message))
+        self.visual_staged = True
 
     def _enable_visual_mode(self, mission):
         if not self._still_active(mission):
             raise RuntimeError("mission canceled before FOD handoff")
         rospy.wait_for_service(self.mode_service, timeout=2.0)
+        self._assert_navigation_available()
+        self.visual_mode_requested = True
         response = rospy.ServiceProxy(self.mode_service, SetBool)(True)
         if not response.success:
             raise RuntimeError("FOD mode handoff rejected: {}".format(response.message))
@@ -631,23 +870,21 @@ class PendingLitterCleaner:
         try:
             if not self._still_active(mission):
                 raise RuntimeError("mission canceled before execution")
-            robot_x, robot_y, _robot_yaw = self._map_pose()
-            distance = math.hypot(
-                mission.target_x - robot_x, mission.target_y - robot_y
-            )
-            if distance > self.stand_off_m:
+            distance, bearing = self._target_geometry(mission)
+            if not self._within_handoff(distance, bearing):
                 self._submit_stand_off_goal(mission)
             self._set_state(
                 mission,
                 HANDOFF,
-                "stand-off reached; validating selected target for visual servo",
+                "已到垃圾附近，等待停车并交接视觉伺服",
             )
+            self._wait_stopped(mission)
             self._stage_visual_target(mission)
             self._enable_visual_mode(mission)
             self._set_state(
                 mission,
                 VISUAL_SERVO,
-                "visual servo owns final approach; completion requires a forward 0.10m coordinate hit",
+                "视觉伺服已接管：重新确认所选垃圾，按原视觉流程接近和清扫",
             )
             self._wait_visual_complete(mission)
             if not self._still_active(mission):
@@ -658,7 +895,7 @@ class PendingLitterCleaner:
                 if self.cancel_event.is_set():
                     raise RuntimeError("mission canceled at completion commit")
                 self.state = COMPLETE
-                self.reason = "selected litter was covered by the forward cleaning trajectory"
+                self.reason = "所选垃圾已完成本轮视觉清扫，车辆已停车"
                 self.last_completed_object_id = mission.object_id
                 self.active = None
                 self.goal_id = ""
@@ -668,8 +905,10 @@ class PendingLitterCleaner:
             with self.lock:
                 goal_id = self.goal_id if self.active == mission else ""
             self._cancel_exact_goal(goal_id)
-            self._disable_visual_mode()
-            self._clear_visual_target()
+            if self.visual_mode_requested:
+                self._disable_visual_mode()
+            if self.visual_staged:
+                self._clear_visual_target()
             with self.lock:
                 if self.active != mission:
                     return
@@ -677,6 +916,7 @@ class PendingLitterCleaner:
                 self.reason = str(exc)
                 self.active = None
                 self.goal_id = ""
+            rospy.logwarn("pending-litter %s aborted: %s", mission.request_id, exc)
             self._publish_status()
 
     def _cancel_cb(self, _request):
@@ -690,8 +930,10 @@ class PendingLitterCleaner:
             self.reason = "pending-litter cancellation requested; retiring exact ownership"
         if goal_id:
             self._cancel_exact_goal(goal_id)
-        self._disable_visual_mode()
-        self._clear_visual_target()
+        # The worker retires only this mission's visual resources. Do not
+        # disable an unrelated manual visual task while merely navigating.
+        if self.visual_mode_requested:
+            self._disable_visual_mode()
         self._publish_status()
         return TriggerResponse(True, "pending-litter mission cancellation requested")
 
@@ -712,6 +954,12 @@ class PendingLitterCleaner:
                 "target_y": mission.target_y if mission is not None else None,
                 "goal_id": self.goal_id,
                 "stand_off_m": self.stand_off_m,
+                "request_id": mission.request_id if mission else "",
+                "distance_m": self.current_distance_m,
+                "bearing_deg": self.current_bearing_deg,
+                "navigation_goal_x": self.expected_pose.pose.position.x if self.expected_pose else None,
+                "navigation_goal_y": self.expected_pose.pose.position.y if self.expected_pose else None,
+                "completion_policy": "visual_servo",
                 "last_completed_object_id": self.last_completed_object_id,
                 "last_completed_object_id_text": str(self.last_completed_object_id),
                 "publishes_velocity": False,

@@ -2,6 +2,7 @@ std_msgs/Header header
 bool voice_authorized
 bool parse_authorized
 bool control_authorized
+# Compatibility field: authenticated UI session established, not a timed heartbeat lease.
 bool ui_session_alive
 bool cloud_configured
 bool task_active

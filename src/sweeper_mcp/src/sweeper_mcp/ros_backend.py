@@ -18,6 +18,7 @@ import uuid
 
 from autolabor_coverage.coverage_geometry import occupancy_grid_digest
 from sweeper_mcp.tools import ToolResult
+from sweeper_mcp.visual_completion import session_id_valid, sequence_valid, visual_completed
 
 
 def _json(data):
@@ -92,6 +93,10 @@ class ROSBackend:
         self._ai_goal_id = ""
         self._ai_batch_id = ""
         self._ai_visual_owned = False
+        self._ai_visual_session_id = ""
+        self._ai_visual_baseline = 0
+        self._visual_submit_lock = threading.Lock()
+        self._visual_start_timeout = 2.0
         self._goal_submit_lock = threading.Lock()
         self._coverage_submit_lock = threading.Lock()
         self._goal_confirmation_timeout = 3.0
@@ -125,8 +130,11 @@ class ROSBackend:
         from move_base_msgs.msg import MoveBaseActionGoal
         from nav_msgs.msg import OccupancyGrid, Odometry
         from std_msgs.msg import String
+        import tf2_ros
 
         self._rospy = rospy
+        self._tf_buffer = tf2_ros.Buffer(cache_time=rospy.Duration(5.0))
+        self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)
         self._types = {
             "GoalID": GoalID,
             "GoalStatus": GoalStatus,
@@ -644,6 +652,9 @@ class ROSBackend:
 
     def _publish_owned_goal(self, frame_id, x, y, yaw_rad,
                             expected_map_digest=""):
+        with self._lock:
+            if self._ai_visual_owned:
+                return ToolResult("AI视觉会话尚未确认完成/退出，不能提交后续导航。", True)
         if not self._goal_submit_lock.acquire(False):
             return ToolResult("另一个 AI 导航目标正在提交，当前目标未发送。", True)
         try:
@@ -774,7 +785,40 @@ class ROSBackend:
 
     # ---- read-only tools ---------------------------------------------------------
 
-    def get_robot_status(self):
+    def _capture_map_pose(self):
+        """Read a localized map->base_link pose, never camera_init odometry.
+
+        No navigation goal is sent. The map is checked on both sides of TF
+        lookup so an asynchronous map switch cannot create a mixed snapshot.
+        """
+        reason, _grid, digest = self._map_navigation_context(wait=True)
+        if reason:
+            return None, reason
+        try:
+            transform = self._tf_buffer.lookup_transform(
+                "map", "base_link", self._rospy.Time(0), self._rospy.Duration(1.0))
+            age = (self._rospy.Time.now() - transform.header.stamp).to_sec()
+            if (transform.header.frame_id != "map" or transform.child_frame_id != "base_link"
+                    or transform.header.stamp.to_sec() <= 0 or not -0.1 <= age <= 0.5):
+                return None, "map->base_link 位姿不是新鲜的本轮定位结果"
+            point, rotation = transform.transform.translation, transform.transform.rotation
+            values = [point.x, point.y, point.z, rotation.x, rotation.y, rotation.z, rotation.w]
+            if (not all(math.isfinite(v) for v in values)
+                    or abs(sum(v * v for v in values[3:]) - 1.0) > 0.01):
+                return None, "定位位姿数值或四元数无效"
+            reason, _grid, _digest = self._map_navigation_context(expected_digest=digest)
+            if reason:
+                return None, reason
+            return {
+                "frame_id": "map", "x_m": float(point.x), "y_m": float(point.y),
+                "yaw_deg": math.degrees(_yaw(rotation)), "map_digest": digest,
+                "stamp": transform.header.stamp.to_sec(), "age_sec": age,
+                "localized": True,
+            }, ""
+        except Exception as exc:
+            return None, "无法读取 map->base_link 定位位姿: %s" % exc
+
+    def get_robot_status(self, capture_map_pose=False):
         self._ensure()
         odom = self._snapshot("odom", 2.0)
         chassis = self._snapshot("chassis", 2.0)
@@ -795,6 +839,8 @@ class ROSBackend:
                                     (coverage.active or coverage.batch_active)),
             "navigation": json.loads(self.get_navigation_status().text),
         }
+        if capture_map_pose:
+            result["map_pose"], result["map_pose_error"] = self._capture_map_pose()
         if odom is not None:
             result["position"] = {
                 "frame_id": odom.header.frame_id,
@@ -937,13 +983,27 @@ class ROSBackend:
         visual = self._parse_json_message(self._snapshot("visual", 2.0))
         with self._lock:
             owned = self._ai_visual_owned
-        return ToolResult(_json({
+            expected_id = self._ai_visual_session_id
+            baseline = self._ai_visual_baseline
+        session = visual.get("visual_session", {})
+        if not isinstance(session, dict):
+            session = {}
+        result = {
             "state": _public_mode_state(mode.get("state", "UNAVAILABLE")),
             "reason": mode.get("reason", ""),
-            "visual_state": mode.get("visual_state", visual.get("state", "")),
-            "visual_active": visual.get("active", False),
+            "visual_state": visual.get("state", "UNAVAILABLE"),
+            "visual_active": visual.get("active"),
             "ai_owned": owned,
-        }))
+            "ai_completion_protocol": visual.get("ai_completion_protocol"),
+            "visual_session_id": session.get("session_id", ""),
+            "visual_result": session.get("result", "UNAVAILABLE"),
+            "completion": session.get("last_completion", {}),
+        }
+        if owned and visual_completed(result, expected_id, baseline):
+            with self._lock:
+                if self._ai_visual_session_id == expected_id:
+                    self._ai_visual_owned = False
+        return ToolResult(_json(result))
 
     # ---- navigation tools --------------------------------------------------------
 
@@ -965,7 +1025,7 @@ class ROSBackend:
         return self._publish_owned_goal(
             odom.header.frame_id, target_x, target_y, target_yaw)
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg, expected_map_digest=""):
         try:
             x_m = float(x_m)
             y_m = float(y_m)
@@ -974,7 +1034,11 @@ class ROSBackend:
             return ToolResult("地图目标坐标和朝向必须是数值。", True)
         if not all(math.isfinite(value) for value in (x_m, y_m, yaw_deg)):
             return ToolResult("地图目标坐标和朝向必须是有限值。", True)
-        reason, grid, digest = self._map_navigation_context(wait=True)
+        if expected_map_digest and (len(expected_map_digest) != 64 or
+                                    any(c not in "0123456789abcdef" for c in expected_map_digest)):
+            return ToolResult("返回点的地图摘要无效。", True)
+        reason, grid, digest = self._map_navigation_context(
+            wait=True, expected_digest=expected_map_digest)
         if reason:
             return ToolResult(reason + "。", True)
         resolution = float(grid.info.resolution)
@@ -1168,6 +1232,9 @@ class ROSBackend:
                                 direction_change_penalty_sec=None,
                                 segment_handoff_penalty_sec=None,
                                 transit_replan_period_sec=None):
+        with self._lock:
+            if self._ai_visual_owned:
+                return ToolResult("AI视觉会话尚未确认完成/退出，不能启动覆盖。", True)
         if not self._coverage_submit_lock.acquire(False):
             return ToolResult(
                 "另一个 AI 覆盖批次正在提交或收敛，当前请求未发送。",
@@ -1619,40 +1686,94 @@ class ROSBackend:
 
     def start_spot_cleaning(self):
         self._ensure()
+        if not self._visual_submit_lock.acquire(False):
+            return ToolResult("已有视觉请求正在提交。", True)
+        try:
+            return self._start_spot_cleaning_locked()
+        finally:
+            self._visual_submit_lock.release()
+
+    def _start_spot_cleaning_locked(self):
+        with self._lock:
+            if self._ai_visual_owned:
+                return ToolResult("上次AI视觉会话尚未确认退出，请先停止该会话。", True)
         if self._coverage_busy():
             return ToolResult("覆盖清扫正在独占导航，不能启动视觉伺服。", True)
         mode = self._parse_json_message(
             self._wait_snapshot("mode", 2.0, 2.5))
         if mode.get("state") != "GPS_ACTIVE":
             return ToolResult("视觉伺服只能从相对导航模式启动。", True)
+        visual = self._parse_json_message(self._wait_snapshot("visual", 2.0, 2.5))
+        previous = visual.get("visual_session", {})
+        if (type(visual.get("ai_completion_protocol")) is not int or visual["ai_completion_protocol"] != 1
+                or not isinstance(previous, dict)
+                or not sequence_valid(previous.get("sequence"))
+                or visual.get("active") is not False or visual.get("state") != "DISABLED"):
+            return ToolResult("视觉完成回执协议未就绪或视觉未停用，请部署配套J6M版本；未请求启动。", True)
+        previous_id = previous.get("session_id", "")
+        baseline = previous["sequence"]
         from std_srvs.srv import SetBool
         service = "/fod_navigation_mode/set_fod_enabled"
+        start_error = ""
         try:
             self._rospy.wait_for_service(service, timeout=2.0)
+        except Exception as exc:
+            return ToolResult("视觉模式服务未就绪，未请求启动: %s" % exc, True)
+        try:
+            with self._lock:
+                self._ai_visual_owned = True
+                self._ai_visual_session_id = ""
             response = self._rospy.ServiceProxy(service, SetBool)(True)
         except Exception as exc:
-            return ToolResult("视觉模式服务调用失败: %s" % exc, True)
-        if not response.success:
+            start_error = "视觉模式服务调用失败或响应丢失: %s" % exc
+            response = None
+        if response is not None and not response.success:
+            with self._lock:
+                self._ai_visual_owned = False
             return ToolResult(response.message, True)
-        deadline = time.monotonic() + 2.0
+        if response is not None and "already active" in response.message.lower():
+            with self._lock:
+                self._ai_visual_owned = False
+            return ToolResult("另一会话已接管视觉，本次未取得新会话。", True)
+        deadline = time.monotonic() + self._visual_start_timeout
         state = "GPS_ACTIVE"
+        new_visual = {}
+        new_session = {}
         while time.monotonic() < deadline:
             state = self._parse_json_message(
                 self._snapshot("mode", 2.0)).get("state", "UNAVAILABLE")
-            if state != "GPS_ACTIVE":
+            new_visual = self._parse_json_message(self._snapshot("visual", 2.0))
+            new_session = new_visual.get("visual_session", {})
+            if (isinstance(new_session, dict) and session_id_valid(new_session.get("session_id"))
+                    and new_session["session_id"] != previous_id
+                    and state in {"ENTERING_FOD", "FOD_ACTIVE", "FOD_COMPLETE_STOP", "RETURNING_GPS",
+                                  "FOD_ABORTED", "FAULT_STOP", "GPS_ACTIVE"}):
                 break
             time.sleep(0.05)
-        if state == "GPS_ACTIVE":
+        session_id = new_session.get("session_id", "") if isinstance(new_session, dict) else ""
+        if not session_id_valid(session_id) or session_id == previous_id:
+            # A successful no-target response plus fresh idle state is a
+            # completed no-op. Lost service replies without session evidence
+            # remain blocked; do not silently authorize a later navigation.
+            if (not start_error and state == "GPS_ACTIVE" and new_visual.get("state") == "DISABLED"
+                    and new_visual.get("active") is False):
+                with self._lock:
+                    self._ai_visual_owned = False
             return ToolResult(
-                response.message or "附近没有满足接管条件的新鲜 FOD 目标，未执行定点清扫。",
+                start_error or "视觉服务返回后未确认本次新会话；可能没有接管目标或状态已丢失，不能认为已清扫。",
                 True,
             )
         with self._lock:
             self._ai_visual_owned = True
+            self._ai_visual_session_id = session_id
+            self._ai_visual_baseline = baseline
+        if state == "UNAVAILABLE" and not start_error:
+            start_error = "已记录视觉会话，但模式状态缺失；不能确认启动成功。"
         return ToolResult(_json({
-            "accepted": True, "state": _public_mode_state(state),
-            "message": response.message,
-        }))
+            "accepted": not bool(start_error), "state": _public_mode_state(state),
+            "visual_session_id": session_id, "completion_baseline": baseline,
+            "message": start_error or response.message,
+        }), bool(start_error))
 
     def stop_spot_cleaning(self):
         self._ensure()
@@ -1660,6 +1781,11 @@ class ROSBackend:
             owned = self._ai_visual_owned
         if not owned:
             return ToolResult("当前视觉任务不属于本 AI 会话。", True)
+        visual = self._parse_json_message(self._snapshot("visual", 2.0))
+        session = visual.get("visual_session", {})
+        if (not session_id_valid(self._ai_visual_session_id) or not isinstance(session, dict)
+                or session.get("session_id") != self._ai_visual_session_id):
+            return ToolResult("视觉状态缺失或会话已变化，未停止其他操作者的视觉任务。", True)
         from std_srvs.srv import SetBool
         service = "/fod_navigation_mode/set_fod_enabled"
         try:

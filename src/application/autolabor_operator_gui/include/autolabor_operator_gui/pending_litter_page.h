@@ -83,6 +83,7 @@ private:
   bool current_position_valid_ = false;
   bool cleaning_request_busy_ = false;
   bool cleaning_mission_requested_ = false;
+  bool cleaning_terminal_seen_ = false;
   ros::Time map_changed_at_;
   ros::WallTime last_frame_received_;
   PendingLitterMapView* map_view_ = nullptr;

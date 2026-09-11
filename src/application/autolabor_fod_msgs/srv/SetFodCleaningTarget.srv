@@ -5,6 +5,11 @@ geometry_msgs/Point target_position
 string target_frame
 time observed_at
 string label
+# Empty retains the legacy 10cm coordinate-coverage contract. "visual_servo"
+# selects by map position, then uses the ordinary pixel/roller completion flow.
+string completion_policy
+# Nonempty unique mission token required for visual_servo completion evidence.
+string request_id
 ---
 bool success
 string message

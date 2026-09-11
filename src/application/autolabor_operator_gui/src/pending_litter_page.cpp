@@ -33,6 +33,26 @@ constexpr const char* kStartCleaningService =
     "/pending_litter_cleaner/start_cleaning";
 constexpr const char* kCancelCleaningService = "/pending_litter_cleaner/cancel";
 
+QString cleaningReason(const QString& reason)
+{
+  const QMap<QString, QString> translations{
+    {"ordinary navigation is paused", QStringLiteral("普通导航已暂停，请先在原控制入口解除暂停")},
+    {"coverage cleaning owns move_base", QStringLiteral("覆盖清扫正在占用导航")},
+    {"an AI navigation goal is active", QStringLiteral("AI 导航任务正在执行")},
+    {"another ordinary navigation goal is active", QStringLiteral("其他点到点导航正在执行")},
+    {"navigation ownership status is missing or stale", QStringLiteral("导航状态未就绪或过期")},
+    {"move_base action status is not ready", QStringLiteral("点到点导航服务尚未就绪")},
+    {"FOD command arbiter is not in GPS_ACTIVE", QStringLiteral("车辆尚未处于普通导航模式")},
+    {"visual-servo status is missing or stale", QStringLiteral("视觉伺服状态未就绪或过期")},
+    {"FOD visual motion authorization is disabled", QStringLiteral("FOD 运动授权未开启")},
+    {"visual servo is not in DISABLED standby", QStringLiteral("视觉伺服尚未回到待机状态")},
+    {"mission canceled", QStringLiteral("任务已取消")},
+    {"stand-off navigation exceeded its time limit", QStringLiteral("接近点导航超时")},
+    {"visual cleaning exceeded its time limit", QStringLiteral("视觉清扫超时")},
+  };
+  return translations.value(reason, reason);
+}
+
 double mapYaw(const geometry_msgs::Quaternion& q)
 {
   return std::atan2(2.0 * (q.w * q.z + q.x * q.y),
@@ -191,7 +211,7 @@ PendingLitterPage::PendingLitterPage(QWidget* parent) : QWidget(parent)
   clean_button_ = new QPushButton(QStringLiteral("清扫"), cleaning);
   clean_button_->setObjectName(QStringLiteral("cleanLitterButton"));
   clean_button_->setToolTip(QStringLiteral(
-      "先由现有导航到达垃圾附近，再由视觉伺服前进覆盖所选地图坐标；仅10cm内的前进轨迹算清扫完成"));
+      "使用普通点到点导航到距垃圾约1.5m的可达接近点，停车后交给原视觉伺服完成清扫"));
   cancel_clean_button_ = new QPushButton(QStringLiteral("取消清扫"), cleaning);
   cancel_clean_button_->setObjectName(QStringLiteral("cancelLitterCleaningButton"));
   cleaning_buttons->addWidget(return_button_);
@@ -199,7 +219,7 @@ PendingLitterPage::PendingLitterPage(QWidget* parent) : QWidget(parent)
   cleaning_buttons->addWidget(cancel_clean_button_);
   cleaning_layout->addLayout(cleaning_buttons);
   cleaning_notice_ = new QLabel(QStringLiteral(
-      "选择已确认点后启动：普通导航到附近，随后视觉伺服接管；倒车经过不计为清扫。"), cleaning);
+      "普通导航到垃圾附近1–2m并停车，再由视觉伺服清扫；导航到达本身不算清扫完成。"), cleaning);
   cleaning_notice_->setObjectName(QStringLiteral("cleaningLitterNotice"));
   cleaning_notice_->setWordWrap(true);
   cleaning_layout->addWidget(cleaning_notice_);
@@ -267,14 +287,16 @@ PendingLitterPage::PendingLitterPage(QWidget* parent) : QWidget(parent)
       if (result.transport_ok && result.accepted)
         cleaning_mission_requested_ = false;
     }
-    else if (result.transport_ok && result.accepted)
+    else if (result.transport_ok && result.accepted && !cleaning_terminal_seen_)
     {
       cleaning_mission_requested_ = true;
     }
-    cleaning_notice_->setText(
+    if (!cleaning_terminal_seen_ || result.cancel_request) cleaning_notice_->setText(
         (result.transport_ok && result.accepted ? QStringLiteral("已接受：")
                                                 : QStringLiteral("未启动："))
-        + result.message);
+        + cleaningReason(result.message));
+    ROS_INFO_STREAM("pending-litter UI service result: accepted=" << result.accepted
+                    << " transport=" << result.transport_ok << " " << result.message.toStdString());
     updateButtons();
   });
   updateButtons();
@@ -293,6 +315,7 @@ void PendingLitterPage::startCleaningRequest()
     return;
   }
   cleaning_request_busy_ = true;
+  cleaning_terminal_seen_ = false;
   cleaning_notice_->setText(QStringLiteral("正在提交所选点位，等待清扫后端确认……"));
   updateButtons();
   cleaning_watcher_->setFuture(QtConcurrent::run([point]() {
@@ -345,8 +368,9 @@ void PendingLitterPage::markCleaned(quint64 object_id)
     }
   cleaning_mission_requested_ = false;
   cleaning_request_busy_ = false;
+  cleaning_terminal_seen_ = true;
   cleaning_notice_->setText(QStringLiteral(
-      "清扫完成：车头清扫轨迹已以前进方式在10cm内覆盖所选垃圾坐标。"));
+      "清扫完成：所选垃圾已完成视觉伺服清扫，车辆已停车。"));
   redrawPoints();
   updateStatus();
 }
@@ -360,16 +384,22 @@ void PendingLitterPage::updateCleaningStatus(const QString& json_status)
   if (!object.value(QStringLiteral("active")).isBool() ||
       !object.value(QStringLiteral("state")).isString()) return;
   const QString state = object.value(QStringLiteral("state")).toString();
-  const QString reason = object.value(QStringLiteral("reason")).toString();
+  const QString reason = cleaningReason(object.value(QStringLiteral("reason")).toString());
+  const QMap<QString, QString> phases{{"NAVIGATING", QStringLiteral("普通导航接近")},
+      {"HANDOFF", QStringLiteral("停车交接")}, {"VISUAL_SERVO", QStringLiteral("视觉伺服清扫")}};
   const bool active = object.value(QStringLiteral("active")).toBool(false);
   if (active)
   {
     cleaning_mission_requested_ = true;
-    cleaning_notice_->setText(QStringLiteral("清扫任务 %1：%2").arg(state, reason));
+    QString details;
+    if (object.value("distance_m").isDouble())
+      details = QStringLiteral("（距垃圾 %1m）").arg(object.value("distance_m").toDouble(), 0, 'f', 2);
+    cleaning_notice_->setText(QStringLiteral("%1%2：%3").arg(phases.value(state, state), details, reason));
   }
   else if (state == QStringLiteral("ABORT"))
   {
     cleaning_mission_requested_ = false;
+    cleaning_terminal_seen_ = true;
     cleaning_notice_->setText(QStringLiteral("清扫已中止：%1").arg(reason));
   }
   else if (state == QStringLiteral("IDLE"))

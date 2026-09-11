@@ -656,6 +656,74 @@ class MetricIdentityBindingTest(unittest.TestCase):
                 )
 
 
+class SelectedVisualPolicyTest(unittest.TestCase):
+    def node(self):
+        node = MetricIdentityBindingTest.make_node(tuple())
+        node.staged_target = FOD_NODE.StagedTarget(42, 3., 4., 'map', 99., 'a', 1e12,
+                                                 'visual_servo', 'request-a')
+        node.metric_max_selected_position_delta_m = .25
+        node.metric_max_position_jump_m = .10
+        node.locked_metric_target = None
+        node.require_depth_for_acquisition = False
+        node.target_u_px = TARGET_U
+        node.min_acquire_anchor_v_fraction = 0.
+        node.max_acquire_anchor_v_fraction = 1.
+        node.acquire_max_abs_horizontal_error = 1.
+        node.last_cleaning_completion = {'sequence':2}
+        node.blind_distance_m = .5
+        return node
+
+    def test_new_detection_id_can_rebind_only_near_selected_coordinate(self):
+        node = self.node()
+        pixel = detection()
+        near = MetricIdentityBindingTest.metric_for(pixel, 77, 3.05, 4.)
+        node._metric_target_for_pixel = lambda *_: near
+        frame = SimpleNamespace(candidates=(pixel,), width=WIDTH, height=HEIGHT)
+        candidates, _ = node._acquisition_candidates(frame)
+        self.assertEqual(candidates, (pixel,))
+        self.assertFalse(node._requires_coordinate_coverage())
+        far = replace(near, x=3.5)
+        node._metric_target_for_pixel = lambda *_: far
+        self.assertEqual(node._acquisition_candidates(frame)[0], tuple())
+
+    def test_two_nearby_targets_are_ambiguous_even_when_one_has_original_id(self):
+        node = self.node()
+        pixels = (detection(), detection(u=TARGET_U+100))
+        node._metric_target_for_pixel = lambda frame, p: MetricIdentityBindingTest.metric_for(
+            p, 42 if p == pixels[0] else 77, 3., 4.)
+        candidates, reason = node._acquisition_candidates(SimpleNamespace(candidates=pixels))
+        self.assertEqual(candidates, tuple())
+        self.assertIn('not uniquely visible', reason)
+
+    def test_locked_identity_still_cannot_jump(self):
+        node = self.node()
+        pixel = detection()
+        node.locked_metric_target = MetricIdentityBindingTest.metric_for(pixel, 77, 3., 4.)
+        with self.assertRaisesRegex(FOD_NODE.ControllerAbort, 'identity changed'):
+            node._validate_selected_metric_target(MetricIdentityBindingTest.metric_for(pixel, 78, 3., 4.))
+
+    def test_visual_completion_records_session_without_coordinate_gate(self):
+        node = self.node()
+        node.locked_metric_target = MetricIdentityBindingTest.metric_for(detection(), 77, 3., 4.)
+        node._record_cleaning_completion(SimpleNamespace(forward_m=.51, path_m=.52))
+        proof = node.last_cleaning_completion
+        self.assertEqual(proof['sequence'], 3)
+        self.assertEqual(proof['object_id'], '42')
+        self.assertEqual(proof['acquired_object_id'], '77')
+        self.assertEqual(proof['request_id'], 'request-a')
+        self.assertTrue(proof['stopped'])
+        self.assertNotIn('minimum_distance_m', proof)
+
+    def test_legacy_selected_policy_and_ordinary_visual_are_unchanged(self):
+        node = self.node()
+        node.staged_target = replace(node.staged_target, completion_policy='')
+        self.assertTrue(node._requires_coordinate_coverage())
+        node.staged_target = None
+        self.assertFalse(node._requires_coordinate_coverage())
+        node._record_cleaning_completion(SimpleNamespace(forward_m=.51, path_m=.52))
+        self.assertEqual(node.last_cleaning_completion, {'sequence':2})
+
+
 class BlindOdometryAndLeaseTest(unittest.TestCase):
     def test_direction_change_segment_is_not_forward_coverage(self):
         tracker = ForwardCoverageTracker(

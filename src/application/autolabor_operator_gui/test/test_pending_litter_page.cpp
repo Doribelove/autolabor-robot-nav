@@ -250,7 +250,8 @@ TEST(PendingLitterPage, CleaningColumnKeepsIdentityAndCompletionRemovesExactObje
   for (int i = 5; i < 10; ++i) consume(page, frameAt(i));
   EXPECT_EQ(2, pending->count()); EXPECT_EQ(1, cleaning->count());
   EXPECT_EQ(0, cleaning->currentRow());
-  EXPECT_TRUE(clean->toolTip().contains("10cm"));
+  EXPECT_TRUE(clean->toolTip().contains("1.5m"));
+  EXPECT_FALSE(clean->toolTip().contains("10cm"));
   const quint64 cleaning_object_id = page.points()[1].object_id;
   ASSERT_NE(quint64(0), cleaning_object_id);
   page.markCleaned(cleaning_object_id);

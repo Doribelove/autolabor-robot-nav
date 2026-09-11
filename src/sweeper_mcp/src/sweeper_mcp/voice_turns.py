@@ -12,6 +12,8 @@ ACKS = {"是", "对", "好的", "好", "可以", "不是", "不对"}
 END_MARKERS = {"说完了", "我说完了", "指令说完了"}
 ACTION = re.compile(r"清扫|打扫|扫[ABCabc区]|导航|返回|回到|前进|后退|左转|右转|移动|查询|查看|看一下|看下|有没有|停止|取消|暂停|继续|恢复|跳过|去|到")
 UNFINISHED = re.compile(r"(?:然后|再|再到|再去|先去|先|到|去|在|之后|以后|接着|如果|如果有|的话|帮我|帮我把|请你|把|以及|还有|不是|而是)$")
+MOTION_ACTION = re.compile(r"清扫|打扫|导航|返回|回到|回来|前进|后退|左转|右转|移动|去|到")
+SEQUENCE_CUE = re.compile(r"(?:^|[，,])(?:请你?|麻烦你?|帮我)?(?:先|首先|第一步)|然后|之后|以后|接着|最后|再(?:回|返|去|到|清扫|打扫|导航)|(?:清扫|打扫).{0,24}后")
 
 
 def text_kind(text, awaiting_reply=False):
@@ -34,12 +36,15 @@ def text_kind(text, awaiting_reply=False):
 
 class VoiceTurnBuffer:
     def __init__(self, quiet_s=1.5, incomplete_s=4.0, fragment_ttl_s=6.0,
-                 max_age_s=60.0, max_chars=4000):
-        values = (quiet_s, incomplete_s, fragment_ttl_s, max_age_s)
+                 max_age_s=60.0, max_chars=4000, command_quiet_s=3.0):
+        values = (quiet_s, incomplete_s, fragment_ttl_s, max_age_s, command_quiet_s)
         if not all(math.isfinite(float(x)) and float(x) > 0 for x in values):
             raise ValueError("voice turn timeouts must be finite and positive")
         if not quiet_s <= incomplete_s <= fragment_ttl_s <= max_age_s:
             raise ValueError("voice turn timeout order is invalid")
+        if not quiet_s <= command_quiet_s <= incomplete_s:
+            raise ValueError("command quiet time must be between quiet and incomplete time")
+        self.command_quiet_s = float(command_quiet_s)
         self.quiet_s, self.incomplete_s = float(quiet_s), float(incomplete_s)
         self.fragment_ttl_s, self.max_age_s = float(fragment_ttl_s), float(max_age_s)
         self.max_chars = int(max_chars)
@@ -99,6 +104,10 @@ class VoiceTurnBuffer:
                 return {"state": "EXPIRED", "text": ""}
             return None
         delay = self.incomplete_s if kind == "fragment" else self.quiet_s
+        if kind not in ("command", "reply") and MOTION_ACTION.search(self.text):
+            delay = max(delay, self.command_quiet_s)
+            if SEQUENCE_CUE.search(self.text):
+                delay = max(delay, self.incomplete_s)
         if not self.force and (quiet < delay or now - self.updated < 0.25):
             return None
         value = self.text

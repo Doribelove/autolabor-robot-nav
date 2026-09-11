@@ -105,6 +105,22 @@ def coverage_region_ambiguity_error(plan, user_text, catalog_text):
     an explicit place marker such as ``门`` may select the sole matching sibling.
     """
     rows = catalog_rows(catalog_text)
+    # A bare placeholder is not permission to choose the first saved region.
+    # Keep this narrow: named/semantic area matching still belongs to the LLM,
+    # and an unresolved clarification may supply the missing name in evidence.
+    generic_target = re.search(
+        r"(?:去|到|清扫|打扫|清理|清洁)\s*(?:某个|某|一个|那个|这个)?区域"
+        r"(?:去|进行|执行|做|里|清扫|打扫|清洁|一下|后|，|,|；|;|$)", user_text)
+    has_coverage = any(step.get("tool") == "start_coverage_cleaning" for step in plan.get("steps", []))
+    if generic_target and has_coverage:
+        semantic_text = _semantic_stem(user_text)
+        has_reference = any(
+            _normal(row["id"]) in _normal(user_text) or
+            bool(_semantic_stem(row["name"])) and _semantic_stem(row["name"]) in semantic_text
+            for row in rows)
+        if not has_reference:
+            return ("用户只说了泛指的区域，未指定哪一个已保存区域。必须返回 "
+                    "needs_clarification=true、steps=[]，不能默认选择目录第一项；请询问区域名称。")
     if len(rows) < 2:
         return ""
     normal_text = _normal(user_text)

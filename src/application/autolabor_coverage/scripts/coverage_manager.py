@@ -2975,14 +2975,15 @@ class CoverageManager:
             if entry_ready:
                 segment["entry_recovery"] = False
                 segment.pop("_entry_recovery_reference", None)
-                if self._wait_for_transition_stop():
-                    return "succeeded"
-                with self.lock:
-                    self.detail = (
-                        "vehicle entered the sweep-entry region but did not "
-                        "physically stop before the hand-off"
+                stop_outcome = (
+                    self._await_transition_stop_for_automatic_continuation(
+                        "vehicle entered the sweep-entry region before "
+                        "physical stop"
                     )
-                return "blocked"
+                )
+                if stop_outcome == "stopped":
+                    return "succeeded"
+                return stop_outcome
             before = Point(float(current.x), float(current.y))
             with self.lock:
                 self.state = "TRANSITING"
@@ -3056,14 +3057,14 @@ class CoverageManager:
                             )
                         )
                         if entry_ready:
-                            if not self._wait_for_transition_stop():
-                                with self.lock:
-                                    self.detail = (
-                                        "vehicle entered the sweep-entry "
-                                        "region after a fixed-gear part but "
-                                        "did not physically stop"
-                                    )
-                                return "blocked"
+                            stop_outcome = (
+                                self._await_transition_stop_for_automatic_continuation(
+                                    "vehicle entered the sweep-entry region "
+                                    "after a fixed-gear part before physical stop"
+                                )
+                            )
+                            if stop_outcome != "stopped":
+                                return stop_outcome
                             rospy.loginfo(
                                 "coverage accepted final sweep-entry region "
                                 "after fixed-gear part %d/%d: position %.3fm, "
@@ -7896,6 +7897,65 @@ class CoverageManager:
             )))
         return False
 
+    def _await_transition_stop_for_automatic_continuation(self, reason):
+        """Keep a failed connector stopped before automatically continuing.
+
+        A transition action may be canceled after it leaves its fixed-gear
+        path, or it may enter the hand-off region before physical odometry has
+        settled.  Replanning while the chassis is still moving would splice a
+        new path onto an untrusted state.  A stop timeout therefore changes to
+        a bounded-poll wait, not an operator pause: safety/lifecycle pauses are
+        still honored, and a fresh replan starts as soon as two stopped odom
+        samples are observed.
+        """
+        waiting_logged = False
+        while not rospy.is_shutdown():
+            if self._wait_for_transition_stop():
+                with self.lock:
+                    if self.cancel_requested or not self.active:
+                        return "canceled"
+                    if self.manual_pause or self.external_pause:
+                        return "paused"
+                    self.state = "TRANSITING"
+                    self.detail = (
+                        "physical stop confirmed; continuing the coverage "
+                        "transition automatically"
+                    )
+                return "stopped"
+
+            self._pause_for_avoidance_loss()
+            self._pause_for_chassis_fault()
+            with self.lock:
+                if self.cancel_requested or not self.active:
+                    return "canceled"
+                if self.manual_pause or self.external_pause:
+                    return "paused"
+            if not self._localization_is_fresh():
+                with self.lock:
+                    if self.cancel_requested or not self.active:
+                        return "canceled"
+                    self.manual_pause = True
+                    self.state = "PAUSED"
+                    self.manual_pause_reason = (
+                        "localization lost while waiting for a transition "
+                        "stop; manual resume is required"
+                    )
+                    self.detail = self.manual_pause_reason
+                return "paused"
+
+            with self.lock:
+                self.state = "WAITING_OBSTACLE"
+                waiting_detail = (
+                    "{}; waiting for fresh physical /odom to confirm a "
+                    "stable stop, then coverage will continue automatically"
+                ).format(reason)
+                self.detail = waiting_detail
+            if not waiting_logged:
+                rospy.logwarn("coverage transition continuing automatically: %s",
+                              waiting_detail)
+                waiting_logged = True
+        return "canceled"
+
     def _complete_transition_boundary(self, goal_generation, geometry,
                                       segment_index):
         outcome = self._cancel_segment_goal(
@@ -7903,7 +7963,10 @@ class CoverageManager:
         )
         if outcome != "boundary-crossed":
             return outcome
-        if self._wait_for_transition_stop():
+        stop_outcome = self._await_transition_stop_for_automatic_continuation(
+            "connector boundary was accepted before physical stop"
+        )
+        if stop_outcome == "stopped":
             rospy.loginfo(
                 "coverage connector %d accepted by directed boundary: "
                 "progress %.1f%%, terminal %.3fm, cross %.3fm, yaw %.1fdeg",
@@ -7914,17 +7977,7 @@ class CoverageManager:
                 math.degrees(geometry["heading_error"]),
             )
             return "succeeded"
-        with self.lock:
-            if self.cancel_requested:
-                return "canceled"
-            self.manual_pause = True
-            self.state = "PAUSED"
-            self.manual_pause_reason = (
-                "connector boundary crossed but physical /odom did not confirm "
-                "zero speed; inspect the chassis before resuming"
-            )
-            self.detail = self.manual_pause_reason
-        return "paused"
+        return stop_outcome
 
     def _execute_segment(self, segment, segment_index):
         if not self._wait_while_paused():
@@ -8440,19 +8493,14 @@ class CoverageManager:
                     )
                     if outcome != "path-deviation":
                         return outcome
-                    if self._wait_for_transition_stop():
-                        return "blocked"
-                    with self.lock:
-                        if self.cancel_requested:
-                            return "canceled"
-                        self.manual_pause = True
-                        self.state = "PAUSED"
-                        self.manual_pause_reason = (
-                            "Hybrid path deviation canceled its action but "
-                            "physical /odom did not confirm zero speed"
+                    stop_outcome = (
+                        self._await_transition_stop_for_automatic_continuation(
+                            "Hybrid path deviation canceled the stale action"
                         )
-                        self.detail = self.manual_pause_reason
-                    return "paused"
+                    )
+                    if stop_outcome == "stopped":
+                        return "blocked"
+                    return stop_outcome
                 if boundary_complete:
                     return self._complete_transition_boundary(
                         goal_generation,
@@ -8827,13 +8875,64 @@ class CoverageManager:
                         segment["type"] == "sweep"
                         and entry_recovery_attempts > 0
                     )
-                    if segment["type"] in (
-                        "entry", "transit", "rolling_transit"
-                    ) or entry_alignment_blocked:
-                        # Never skip the dependent swath.  A connector that is
-                        # still infeasible after bounded retries pauses the same
-                        # segment until the operator cancels or explicitly
-                        # resumes it after conditions change.
+                    automatic_transition_retry = (
+                        segment["type"] in ("transit", "rolling_transit")
+                        or entry_alignment_blocked
+                    )
+                    if automatic_transition_retry:
+                        # A connector owns its dependent swath.  Exhausting
+                        # one finite retry window must neither skip that swath
+                        # nor require a Qt resume click.  Retain the segment,
+                        # start a fresh retry window, and continue until the
+                        # route changes, a lifecycle/safety pause occurs, or
+                        # the operator cancels the task.
+                        with self.lock:
+                            if index not in self.blocked_segments:
+                                self.blocked_segments.append(index)
+                            self.state = "WAITING_OBSTACLE"
+                            retry_label = (
+                                "sweep-entry Hybrid alignment"
+                                if entry_alignment_blocked else (
+                                    "rolling Hybrid A* transition"
+                                    if segment["type"] == "rolling_transit"
+                                    else "Hybrid A* transition"
+                                )
+                            )
+                            retry_detail = (
+                                "{} exhausted one retry window; retaining its "
+                                "dependent swath and continuing automatic "
+                                "replanning in {:.1f}s"
+                            ).format(
+                                retry_label,
+                                self.transit_replan_period,
+                            )
+                            self.detail = retry_detail
+                        rospy.logwarn("coverage %s", retry_detail)
+                        attempts = 0
+                        entry_recovery_attempts = 0
+                        deadline = (
+                            time.monotonic() + self.transit_replan_period
+                        )
+                        while (time.monotonic() < deadline
+                               and not rospy.is_shutdown()):
+                            with self.lock:
+                                if self.cancel_requested:
+                                    result = "canceled"
+                                    break
+                            self._lifecycle_wait(0.1)
+                        if result == "canceled":
+                            break
+                        with self.lock:
+                            retry_paused = self.manual_pause or self.external_pause
+                        if retry_paused and not self._wait_while_paused():
+                            result = "canceled"
+                            break
+                        continue
+
+                    if segment["type"] == "entry":
+                        # A first-entry Navfn route still requires explicit
+                        # inspection after its bounded retries.  Continuous
+                        # retry applies to Hybrid swath transitions above.
                         with self.lock:
                             if index not in self.blocked_segments:
                                 self.blocked_segments.append(index)

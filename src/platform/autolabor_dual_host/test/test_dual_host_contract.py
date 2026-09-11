@@ -630,11 +630,20 @@ dual_host_prepare_profile NVIDIA_J6M J6M matrix-eth2 192.168.10.50
             managed_start,
         )
         self.assertIn("./src/application/autolabor_fod_control", deploy)
-        self.assertIn(
-            "robot_bringup\\\\;autolabor_fod_control\\\\;autolabor_dual_lidar",
-            deploy,
-        )
+        whitelist = next(line for line in deploy.splitlines()
+                         if "-DCATKIN_WHITELIST_PACKAGES=" in line)
+        packages = whitelist.split("=", 1)[1].replace("\\", "").split(";")
+        for package in ("robot_bringup", "autolabor_fod_control", "autolabor_fod_msgs",
+                        "autolabor_dual_lidar"):
+            self.assertIn(package, packages)
         self.assertIn("rospack find autolabor_fod_control", deploy)
+
+    def test_pending_visual_interface_is_checked_before_remote_deployment(self):
+        with open(os.path.join(WORKSPACE_DIR, "scripts/deploy_j6m.sh")) as stream:
+            deploy = stream.read()
+        self.assertIn('"completion_policy", "request_id"', deploy)
+        self.assertLess(deploy.index('pending_target_md5='), deploy.index('target="$(dual_host_select_ssh)'))
+        self.assertEqual(deploy.count('grep -Fxq $pending_target_md5'), 2)
 
     def test_fod_backend_switch_is_exact_atomic_and_fail_closed(self):
         def script_text(relative_path):

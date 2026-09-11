@@ -14,10 +14,12 @@ import time
 
 from sweeper_mcp.llm import OpenAIClient
 from sweeper_mcp.mcp_client import MCPClient
-from sweeper_mcp.navigation_grounding import navigation_error, unresolved_reference_error
+from sweeper_mcp.navigation_grounding import (navigation_error, unresolved_reference_error,
+    current_return_reference, valid_return_anchor, matches_return_anchor)
 from sweeper_mcp.region_catalog import (compact_catalog, coverage_region_ambiguity_error,
                                         coverage_region_error, reference_map)
 from sweeper_mcp.tools import TOOL_SPECS, validate_arguments
+from sweeper_mcp.visual_completion import session_id_valid, sequence_valid, visual_completed
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,8 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
    执行覆盖清扫；视觉后端没有满足接管条件的新鲜目标时会自行拒绝/结束。
 3. 区域覆盖只能引用系统提供的已保存区域名称或 UUID，禁止生成临时多边形。
 4. 参数不明确时返回空 steps 并在 answer 中要求用户补充，禁止编造坐标、区域或距离。
+   “先去区域清扫”没有指定区域；没有本轮或待补充上下文中的地点依据时必须询问哪一区域，
+   不能默认选目录第一项，也不能从可信返回点反推出清扫区域。
 5. 连续语句按独立任务拆分并保留先后顺序，不按动词数量机械拆分。高层任务内部的入场不另拆导航。
 6. 只能调用 submit_plan 一次。不要在 answer 中声称动作已经完成。
 7. “原点、零点”默认就是地图原点，和“地图原点、地图坐标原点、地图上面的原点、
@@ -62,7 +66,7 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
     口语简称在上下文唯一明确时映射为目录中的精确名称/UUID；有多个候选或无匹配时要求补充。
 12. 单独“到前门去”“去A区”等区域目标不是导航点；无明确点位时询问坐标，不能自行变成清扫。
     本系统没有命名导航点目录，清扫区域目录也不提供导航坐标，禁止从名字、中心、入口或机器人状态猜坐标。
-    map 导航只接受用户明确的 x/y 或地图原点；未指定朝向时 yaw_deg=0。
+    map 导航接受用户明确的 x/y、地图原点或下述本轮可信返回点；普通数字点未指定朝向时 yaw_deg=0。
     相对导航必须明确方向和距离/转角。“往前一点”“去附近”不满足条件。
     如果用户明确要求“先到地图坐标(1,2)，再清扫A区”，才保留独立导航和清扫两个任务。
 13. 当前区域目录是每次规划时动态查询的，不得记忆或写死示例区域。用户说出的区域可以不与
@@ -91,6 +95,20 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
 14. 即使整条长指令因其他不支持的动作或条件分支而必须返回空 steps，也要在
     understood_sequence 中把上述唯一区域匹配写成目录原名；answer 只能询问真正缺失或不支持
     的部分，不能再次询问已经唯一匹配的区域。
+15. “当前/现在的位置、现在这个点、说话时的位置、这里、原位”在返回指令中指本轮接收
+    指令时记录的机器人位置，不是执行到返回步骤时再查询的位置，也不是地图原点。
+    系统若提供本轮可信返回点，必须原样使用其 x_m/y_m/yaw_deg（保留原车头朝向），
+    不得猜测或要求用户再次报坐标；没有可信快照才询问，且整单不执行。“我现在的位置”
+    指人的位置，不等同于机器人位置；未保存的“刚才位置”也不能用新位置冒充。
+    按指代语义理解，不要求固定词序：“原地/现在这儿/这个位置/机器人目前停着的位置”
+    以及“记住现在的位置，完成后回来”都引用本轮机器人起始位姿。系统可以为每个新请求
+    提供一次只读起始位姿，但只有用户要求返回该位置时才可用它作导航目标；不能将它当成
+    任意区域、基地、人的位置或未记录历史点。唯一匹配的区域不因返回点问题再次追问。
+16. 连续独立动作必须逐项保留：例如“先去某个已保存区域清扫，再回到现在的位置，
+    进行视觉清扫”应为 start_coverage_cleaning → navigate_map_pose(本轮返回点)
+    → start_spot_cleaning，不能把最后两项吞掉或合并成覆盖清扫。区域仅是动态目录示例。
+    本地会等待覆盖任务完整结束并释放导航所有权，再执行返回导航；同一目标成功后才
+    开启视觉伺服。不要另外添加开始前的区域导航，也不要在返回途中开启视觉。
 """
 
 NAV_TOOLS = {"navigate_relative", "navigate_map_pose"}
@@ -406,18 +424,53 @@ class AgentRunner:
             raise AgentCancelled("AI parse authorization was revoked")
         tools = self.list_tools()
         names = [item["name"] for item in tools]
+        # Capture before the cloud call or any mutating step. Never resolve
+        # "now" when navigation finally starts after a long coverage mission.
+        anchor, anchor_error = None, ""
+        # Snapshot availability must not depend on a closed list of phrases.
+        # Only an unresolved reply may inherit the original request's snapshot.
+        with self._context_lock:
+            recent = [row for row in self._history if time.monotonic() - row["at"] < 60.0]
+            if recent and recent[-1]["state"] == "NEEDS_CLARIFICATION" and not current_return_reference(text):
+                anchor = recent[-1].get("return_anchor")
+        if anchor is None and not re.fullmatch(r"\s*(?:停止|停|取消|暂停|停止清扫|取消任务)[。！!\s]*", text):
+            try:
+                snapshot = self.mcp.call_tool("get_robot_status", {"capture_map_pose": True})
+                data = json.loads(snapshot.get("text", "{}"))
+                if not snapshot.get("is_error") and valid_return_anchor(data.get("map_pose")):
+                    anchor = dict(data["map_pose"])
+                else:
+                    anchor_error = str(data.get("map_pose_error", "定位未就绪，未记录本轮返回点"))
+            except Exception as exc:
+                anchor_error = str(exc)
         context = self._context()
-        prompt = "%s\n%s\n\n可用 MCP 工具：\n%s" % (
-            SYSTEM_PROMPT, context, _tool_description(tools))
-        messages = [{"role": "system", "content": prompt}]
+        messages = []
         with self._context_lock:
             self._history = [row for row in self._history if time.monotonic() - row["at"] < 60.0][-3:]
+            if not current_return_reference(text) and self._history and self._history[-1]["state"] == "NEEDS_CLARIFICATION":
+                anchor = self._history[-1].get("return_anchor")
             for row in self._history:
                 messages.extend([
                     {"role": "user", "content": row["text"]},
                     {"role": "assistant", "content": row["reply"]},
                 ])
             region_references = dict(self._region_references)
+        if anchor:
+            catalog = self._decode(self._region_context or "")
+            if catalog.get("map_digest") != anchor["map_digest"]:
+                anchor, anchor_error = None, "记录返回点后地图已变更或当前地图目录不可用"
+        anchor_context = ("本轮可信返回点（来自本机已定位 map->base_link，不是模型猜测）：" +
+                          json.dumps(anchor, ensure_ascii=False)) if anchor else (
+                              "本轮未记录可信返回点：" + (anchor_error or "起始位姿不可用"))
+        if ((not anchor or not current_return_reference(text)) and
+                unresolved_reference_error({"steps": [], "needs_clarification": False}, text)):
+            anchor_context += ("\n本轮硬性预检结论：用户要求的返回位置没有可信记录。submit_plan 必须"
+                               "严格填写 needs_clarification=true、steps=[]、非空 answer；所有拟议动作"
+                               "只能放入 understood_sequence，绝不能同时填写覆盖或视觉等任何 steps。"
+                               "即使上文提供了机器人位姿，也不能冒充人的位置或未保存的历史位置。")
+        prompt = "%s\n%s\n%s\n\n可用 MCP 工具：\n%s" % (
+            SYSTEM_PROMPT, context, anchor_context, _tool_description(tools))
+        messages.insert(0, {"role": "system", "content": prompt})
         messages.append({"role": "user", "content": text})
         # Only unresolved clarification may contribute earlier user evidence.
         # Never ground a new point using an executed/previewed plan or a model reply.
@@ -429,6 +482,7 @@ class AgentRunner:
                 evidence.insert(0, row["text"])
         planning_tool = _plan_tool(names)
         for attempt in range(2):
+            plan = None
             response = self.llm.chat(
                 messages, tools=[planning_tool],
                 tool_choice={"type": "function", "function": {"name": "submit_plan"}},
@@ -442,13 +496,24 @@ class AgentRunner:
                     error = coverage_region_ambiguity_error(
                         plan, "\n".join(evidence), self._region_context)
                 if not error:
-                    error = unresolved_reference_error(plan, "\n".join(evidence))
+                    error = unresolved_reference_error(plan, "\n".join(evidence), anchor)
                 if not error:
-                    error = navigation_error(plan, evidence)
+                    error = navigation_error(plan, evidence, anchor)
                 if error:
                     raise AgentError(error)
+                for step in plan["steps"]:
+                    supplied_digest = step["arguments"].get("expected_map_digest")
+                    if supplied_digest and (not anchor or supplied_digest != anchor["map_digest"]):
+                        raise AgentError("云端不得自行生成返回点的地图摘要。")
+                    if anchor and matches_return_anchor(step, anchor):
+                        step["arguments"]["expected_map_digest"] = anchor["map_digest"]
+                if anchor and (any(current_return_reference(item) for item in evidence) or plan.get("needs_clarification")):
+                    plan["return_anchor"] = dict(anchor)
                 return plan
             except AgentError as exc:
+                self._emit("PLAN_REJECTED", state="REJECTED", description=str(exc),
+                           result_json=json.dumps({"candidate_plan": plan,
+                                                   "cloud_response": response}, ensure_ascii=False))
                 if attempt or not self._cloud_authorised():
                     raise
                 # Retry only planning, before any tool execution.
@@ -545,6 +610,7 @@ class AgentRunner:
                 self._history.append({
                     "at": time.monotonic(), "text": text[:4000],
                     "state": result["state"],
+                    "return_anchor": result.get("plan", {}).get("return_anchor"),
                     "reply": json.dumps({"state": result["state"],
                                          "plan": result.get("plan", {}),
                                          "answer": result.get("answer", "")},
@@ -590,6 +656,12 @@ class AgentRunner:
                 self._check_cancelled()
                 if step["mutating"] and (not execute or not self._authorised()):
                     raise AgentCancelled("AI control authorization was revoked")
+                if step["mutating"] and plan.get("return_anchor"):
+                    status = self.mcp.call_tool("get_coverage_status", {})
+                    current_map = self._decode(status.get("text", ""))
+                    if (status.get("is_error") or current_map.get("map_digest") != plan["return_anchor"]["map_digest"]
+                            or current_map.get("localized") is not True):
+                        raise AgentError("返回点所属地图或定位状态已失效，未执行本步及后续动作。")
                 self._active_tool = step["tool"]
                 self._emit(
                     "STEP", step_index=index, tool=step["tool"],
@@ -605,6 +677,8 @@ class AgentRunner:
                 ok = not response.get("is_error", False)
                 if ok:
                     ok, detail = self._wait_if_async(step["tool"], detail)
+                elif step["tool"] in VISUAL_START_TOOLS and self._decode(detail).get("visual_session_id"):
+                    ok, detail = self._visual_failure(detail)
                 elif step["tool"] in NAV_TOOLS:
                     failure_document = self._decode(detail)
                     if (failure_document.get("goal_id") or
@@ -644,8 +718,7 @@ class AgentRunner:
                 "FAILED" if failure else "SUCCEEDED")
             if cancelled:
                 answer = (
-                    "AI 任务已取消；当前导航目标已等待同一 GoalID 的安全状态确认，"
-                    "剩余步骤未执行。"
+                    "AI 任务已取消，剩余步骤未执行；各工具的退出/停车是否确认请以步骤结果为准。"
                 )
             else:
                 answer = self._summarise(text, plan, results, state)
@@ -690,12 +763,18 @@ class AgentRunner:
                         "duration_ms": (
                             time.monotonic() - step_started) * 1000.0,
                     })
+            elif self._active_tool in VISUAL_START_TOOLS:
+                # cancel() can race the enable reply, before the backend knows
+                # the new visual ID. Retry exact cleanup after it is returned.
+                _ok, cleanup_detail = self._visual_failure("AI视觉任务收到取消/撤权请求")
+                results.append({"tool": self._active_tool, "ok": False,
+                                "detail": cleanup_detail,
+                                "duration_ms": (time.monotonic() - locals().get("step_started", started)) * 1000.0})
             return {
                 "state": "CANCELLED", "plan": locals().get("plan", {"steps": []}),
                 "results": results,
                 "answer": (
-                    "AI 任务已取消；如目标已经提交，系统已等待同一 GoalID "
-                    "进入安全状态，剩余步骤未执行。"
+                    "AI 任务已取消，剩余步骤未执行；各工具的退出/停车是否确认请以步骤结果为准。"
                 ),
                 "total_ms": (time.monotonic() - started) * 1000.0,
             }
@@ -1156,28 +1235,48 @@ class AgentRunner:
             time.sleep(self.poll_interval)
 
     def _poll_visual(self, initial):
-        initial_state = self._decode(initial).get("state", "")
-        seen_active = initial_state not in ("", "RELATIVE_NAV_ACTIVE")
+        started = self._decode(initial)
+        expected_id = started.get("visual_session_id")
+        baseline = started.get("completion_baseline")
+        if not session_id_valid(expected_id) or not sequence_valid(baseline):
+            return self._visual_failure("视觉请求缺少本次会话/完成基线，不能监督完成，后续步骤未执行")
         deadline = time.monotonic() + self.visual_wait_timeout
+        failure = "等待视觉定点清扫完成超时"
         while time.monotonic() < deadline:
             self._check_cancelled()
-            response = self.mcp.call_tool("get_visual_servo_status", {}, timeout=10.0)
+            try:
+                response = self.mcp.call_tool("get_visual_servo_status", {}, timeout=10.0)
+            except Exception as exc:
+                failure = "视觉状态传输异常: " + _sanitize_text(str(exc))
+                break
             data = self._decode(response.get("text"))
             state = data.get("state", "UNAVAILABLE")
-            seen_active = seen_active or state not in (
-                "UNAVAILABLE", "RELATIVE_NAV_ACTIVE")
             self._emit("PROGRESS", tool="visual", state=state,
                        result_json=_sanitize_text(response.get("text")))
-            if seen_active and state == "RELATIVE_NAV_ACTIVE":
+            if (response.get("is_error") or data.get("visual_session_id") != expected_id
+                    or state == "UNAVAILABLE" or data.get("ai_completion_protocol") != 1):
+                failure = "视觉状态查询失败或会话已变化，不能认定本次完成"
+                break
+            if state in {"FOD_ABORTED", "FAULT_STOP"} or data.get("visual_result") in {"ABORT", "CANCELLED"}:
+                failure = "视觉会话中止或取消: " + _sanitize_text(response.get("text"))
+                break
+            if visual_completed(data, expected_id, baseline):
                 return True, _sanitize_text(response.get("text"))
-            if state in {"FOD_ABORTED", "FAULT_STOP"}:
-                return False, _sanitize_text(response.get("text"))
+            if state == "RELATIVE_NAV_ACTIVE":
+                failure = "已退出视觉但缺少本次完成/停车证据，后续步骤未执行"
+                break
             time.sleep(self.poll_interval)
+        return self._visual_failure(failure)
+
+    def _visual_failure(self, failure):
         try:
-            self.mcp.call_tool("stop_spot_cleaning", {}, authorised=True)
-        except Exception:
-            pass
-        return False, "等待视觉定点清扫完成超时；已请求退出 AI 视觉会话。"
+            response = self.mcp.call_tool("stop_spot_cleaning", {}, authorised=True)
+            cleanup = _sanitize_text(response.get("text", ""))
+            if response.get("is_error"):
+                cleanup = "退出未确认: " + cleanup
+        except Exception as exc:
+            cleanup = "退出请求异常: " + _sanitize_text(str(exc))
+        return False, failure + "；本AI视觉会话退出结果: " + cleanup
 
     def cancel(self):
         self._cancel.set()

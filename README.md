@@ -1,5 +1,33 @@
 # robot_j6m_ws 导航优化专用候选版（2026-09-07）
 
+2026-09-12 01:20 当前工作空间已按双机职责完成部署：J6M运行包发布为
+`20260912_011633`，板端静态健康、关键文件哈希和共享服务MD5检查通过；NVIDIA侧Qt、
+AI/MCP、视觉及其余工作空间包已重新完成Release构建并更新当前`devel`。部署后两端保持
+停止，未发初值、任务或速度，尚未进行实车验收。部署证据见
+`validation/full_workspace_deploy_20260912/release_20260912_011633/`。当前源码仍有未提交
+修改，部署成功不等于已经生成Git版本。
+
+2026-09-12 AI连续任务修复：已修复返回点漏采集、动作前半句过早提交、视觉退出误报完成，
+新增有界3/4秒续句和本视觉会话完成/停车回执。最低原话“清扫A区后回到当前点进行视觉清扫”
+先记录map位姿，再覆盖A、返回记录点、开启视觉；最终真实云端25/25、隔离场景47/47、
+真实视觉节点合成传感器11/11通过，非实车/真实音频验收。完整15个MCP工具和控制流程见
+[AI语音控制与本地ASR](#ai-语音控制与本地-asr)，详见
+[修复报告](docs/AI_CONTROL_REPAIR_20260912.md)。新视觉回执现已随J6M
+`20260912_011633`配套部署，仍需完整启动和实车验收。以下日期记录为历史快照，不代表
+当前机器人运行状态。
+
+2026-09-11 深夜AI修复：删除Qt心跳超3秒自动撤权/取消，保留底盘及真实控制后端失联
+保护；连续指令可先冻结可信地图位姿，再依次执行区域覆盖、返回该点、视觉清扫。
+本地回归和12项云端计划测试通过，尚未启动实车验证；正常生效需完整启动同版本Qt和AI。
+今天两轮日志的不同失败原因及修复边界见[AI控制审计与修复](docs/AI_CONTROL_AUDIT_FIX_20260911.md)。
+
+2026-09-11 待清扫垃圾新版已在 `robot_j6m_ws_vision_0911` 完成，本机构建与隔离测试
+通过，现已部署J6M `20260911_160159` 并按用户要求带原静态地图完整启动，运行检查通过。
+点击清扫后复用普通点导航到垃圾附近约1.5m，停车后由原视觉伺服完成清扫；综合页、
+其他导航和覆盖移动逻辑保持不变。当前等待本次真实初值，底盘报告遥控/机器人急停，
+需操作员确认现场安全；未进行实车清扫验收。新接口、验证范围和部署说明见
+[待清扫可部署版本](docs/PENDING_LITTER_READY_20260911.md)。
+
 2026-09-10 待清扫垃圾本地候选：Vision Qt 已合入 `0909`，所选垃圾采用普通导航到近处、
 视觉伺服接管，再按前方清扫参考点的前进轨迹在 10 cm 内覆盖坐标判定完成；倒车不计。
 普通视觉/语音与覆盖导航原移动流程保留。构建和隔离测试通过，已部署到 J6M
@@ -680,65 +708,212 @@ rostopic echo /cmd_vel
 
 ### AI 语音控制与本地 ASR
 
-Qt“AI语音控制”页使用 NVIDIA 本机的 OpenAI Whisper，不把原始音频上传
-云端。`sweeper_ai` 通过隔离的 JSON-lines 子进程托管 ASR worker；worker 没有 ROS、
-DeepSeek 密钥、Qt 会话令牌或 MCP 控制能力。Qt 可在 `small`、`medium`、`large` 三档
-切换，默认 `medium`；界面中的 `large` 对应官方 `large-v3`。checkpoint 位于：
+以下以2026-09-12本工作区`robot_j6m_ws_vision_0911`源码为准。AI/MCP、Qt和ASR在NVIDIA，
+覆盖管理器、move_base/TEB和FOD仲裁/视觉控制在J6M。AI复用已有控制入口，不直接发速度，
+不修改Qt综合页手动导航逻辑。专项说明见[sweeper_mcp说明](src/sweeper_mcp/README.md)。
+
+#### 三项授权与会话
+
+三项授权和智能监听每次冷启动都默认关闭，相互独立：
+
+| 授权 | 作用 | 关闭时 |
+|---|---|---|
+| 语音输入 | 允许本地ASR，授权后先异步加载/静音预热模型；录音仍需另行开始 | 麦克风不开启；撤权停止采集并废弃迟到识别，手工文字不受此门限制 |
+| AI语义解析 | 允许向云端发送识别文字/手工文字及脱敏任务结果 | 文本只在本地显示，不调用云端；撤权取消当前AI任务并关闭控制授权 |
+| AI控制 | 允许已校验计划调用变更类MCP工具 | 仅预览，不执行机器人动作；撤权取消当前AI所属任务 |
+
+Qt与AI节点每次启动使用随机私有会话令牌；变更类MCP调用另需节点内部能力令牌。
+2026-09-11已删除“Qt心跳超过3秒自动撤销全部授权并取消任务”的逻辑。兼容的`heartbeat`
+接口只作一次性认证，`ui_session_alive`表示会话已认证；Qt确认后不再周期调用。
+状态发布定时器不再执行超时取消。主动取消、主动撤权、节点关闭清理仍保留。
+
+这不等于删除底盘速度看门狗、急停、定位、传感器、避障、主运动/FOD授权或J6M对真正
+AI导航后端失联的GoalID租约保护。关闭Qt仍由统一生命周期关闭AI和主链；不能只换新Qt
+而继续连接旧AI节点。AI授权不会替操作员解除急停，也不会给冷启动系统发送初始位姿。
+
+#### 本地ASR、合句和上下文
+
+Qt使用NVIDIA本机Whisper，不上传原始音频；`sweeper_ai`通过JSON-lines托管隔离ASR worker。
+worker没有ROS、云端密钥、Qt令牌或MCP控制能力。模型可选`small`、`medium`、`large`，
+默认`medium`，`large`对应`large-v3`。本工作区checkpoint：
 
 ```text
-/home/slam/robot_j6m_ws/runtime/asr/models/small.pt
-/home/slam/robot_j6m_ws/runtime/asr/models/medium.pt
-/home/slam/robot_j6m_ws/runtime/asr/models/large-v3.pt
+runtime/asr/models/small.pt
+runtime/asr/models/medium.pt
+runtime/asr/models/large-v3.pt
 ```
 
-首次安装只在 NVIDIA 执行，安装器会创建 `runtime/asr/venv`，复制并校验适配当前
-JetPack 的 CUDA PyTorch wheel，固定 Whisper Git commit，再把模型先下载到 `.partial`；
-三套 checkpoint 都只有 SHA-256 校验通过才原子改名。运行时缺少或损坏目标模型时切换
-失败并保留当前 worker，绝不
-联网补下载：
+首次安装创建`runtime/asr/venv`，使用适配JetPack的CUDA PyTorch和固定Whisper版本；模型
+下载到`.partial`，SHA256通过后才原子改名。运行中的worker不会联网补下载缺失模型。
 
 ```bash
-cd /home/slam/robot_j6m_ws
-bash ./scripts/install_whisper_asr.sh
+./scripts/optimized.sh run bash scripts/install_whisper_asr.sh
 ```
 
-真实 AI/ASR 配置仍写在 Git 忽略的 `src/sweeper_mcp/config/sweeper_mcp.yaml`，文件必须由
-当前用户持有且权限为 `0600`。`input_device: auto`（空值也等价）会在 worker 启动时
-只读枚举 ALSA capture 端点，优先选择 USB 麦克风，并使用稳定的 ALSA card ID 生成
-`plughw:CARD=<id>,DEV=<n>`；枚举不会打开麦克风。仍可显式配置设备，且不会把
-`auto_null.monitor`、Jetson APE fabric 端点当成实体麦克风。实际采集仍必须经过 Qt
-语音授权。
+私有配置为Git忽略的`src/sweeper_mcp/config/sweeper_mcp.yaml`，必须由当前用户持有且
+权限0600；禁止将含密钥的配置`rosparam load`到共享master。`input_device: auto`或空值
+只读枚举ALSA capture，优先USB麦克风，使用稳定card ID；不选择monitor或Jetson APE虚拟端点。
 
-每次启动后三项授权和智能语音模式都默认关闭。操作员先确认“授权语音输入”，再在两种
-互斥模式中选择。模型下拉框不需要语音授权，但只能在未录音、未监听和未识别时切换：
+手动录音为“开始录音→停止并识别”；智能语音需另行确认启用，二者互斥。模型仅在录音、
+监听、识别均空闲时切换。LOADING预热阶段不允许开麦。
 
-1. 手动录音：点击“开始录音”，说完后点击“停止并识别”；只采集两次点击之间的音频。
-2. 智能语音：另行点击“启用智能语音”并在默认选择“否”的确认框中确认。此后持续监听，
-   本地能量 VAD 自动判断起句和停顿，停顿约 `0.8 s` 后形成一句并交给当前所选模型；无需为
-   每句话手动开始或结束。关闭智能语音后立即停止采集并废弃该会话的排队及迟到结果。
-3. 未授权“AI 语义解析”时，两种模式的识别文字都只在本机显示；授权后，智能语音识别出的
-   每句非空文本进入有界 FIFO，由云端逐句拆解并严格串行处理。
-4. 未授权“AI 控制”时，只显示完整计划和解析结果；三项授权均满足且 Qt 心跳新鲜时，
-   MCP 变更类工具才可能按顺序执行，并继续受定位、急停、CAN、避障和运动门限制。授权状态
-   变化会清除尚未提交的旧语音，避免旧口令在之后获得更高权限。
+智能语音先做能量/WebRTC人声检测、平稳噪声/置信度/重复输出过滤，再按约1秒静音切出
+音频段；识别后交给`VoiceTurnBuffer`合句，不是partial-token流式转写。默认时序：
 
-智能语音是“持续监听 + 自动断句 + 逐句批量识别”，不是边说边显示 partial token 的流式
-Whisper。正常情况下，从说完到开始云端请求还需等待断句静音以及当前模型的本地推理时间。
+- 普通查询/澄清补答等待1.5秒；运动/清扫动作句等待3秒；带“先/然后/之后”等连续动作
+  或未完尾部等待4秒；孤立短片段6秒过期。对应`turn_quiet_s/turn_command_quiet_s/turn_incomplete_s/turn_fragment_ttl_s`。
+- 等后续采集及已采集片段识别完成，语气词不作为指令；“停止/取消/暂停”等短指令不因字数被过滤。
+- 可说“说完了”提交草稿；最近3轮、60秒上下文支持区域补答，已执行任务不作为待执行步骤重放。
+- 完整轮次进入最多8条FIFO，前一任务结束后再处理下一条；排队超过30秒的语音作为陈旧指令丢弃。
+- 停止监听、撤销语音/解析授权、取消任务或节点关闭清除相应草稿/排队结果；控制授权变化也清空
+  未派发语音，避免旧预览口令在事后升级为执行。
 
-手工输入不需要语音授权，但发送云端仍需要 AI 语义解析授权，实际控制仍需要 AI 控制
-授权。撤销语音授权、关闭 Qt 或心跳超时会停止手动录音或智能监听，并丢弃迟到结果。ASR、Qt、AI
-规划和 MCP 客户端都只运行在 NVIDIA；仅修改这些组件时重新构建 NVIDIA 工作区即可，
-无需执行 `deploy_j6m.sh` 或切换 J6M release。
+2026-09-12修复了完整动作前半句在1.6/2.5秒停顿后提前派发的问题。等待有明确上限，
+不是无限录音；超过3/4秒的停顿仍可能成为新轮次。此为合句策略，不代表Whisper识别准确率提升。
 
-AI 地图绝对导航支持用户明确提供的任意 `map` x/y/yaw，以及固定语义的“地图坐标原点”
-`(0,0,0°)`。`/map` 是锁存静态数据，只要求成功接收并保持有效缓存，不使用秒级消息新鲜度；
-执行前改为核对本地完整 OccupancyGrid 摘要与新鲜 `/coverage/status.map_digest`，再检查
-`LOCALIZED`、地图范围、原点旋转和占用栅格，并在发布导航请求前复核地图未切换。AI 使用
-预先生成唯一 GoalID 的 `/navigation_goal/action_request`，由 J6M 安全桥
-改写本机时间后转发到 `/move_base/goal`；只有同 ID 的 action 回显和唯一状态均匹配才算
-接受，精确撤销和心跳租约也只作用于该 AI ID。Qt/RViz 手工设点仍保留原 simple-goal 入口。
-动态定位、控制模式、里程计和覆盖状态仍保留各自的新鲜度安全门。未提供精确坐标
-的“基地、充电点、起点”等名称不能由云端自行编造。
+#### MCP工具全表：5个只读、10个变更
+
+权威定义为[tools.py](src/sweeper_mcp/src/sweeper_mcp/tools.py)，ROS实现为
+[ros_backend.py](src/sweeper_mcp/src/sweeper_mcp/ros_backend.py)。无参数工具必须传`{}`。
+所有工具拒绝未知字段、错误类型和非有限数；变更工具需要AI控制能力令牌。
+
+| 工具 | 类型 | 参数 | 实际功能/边界 |
+|---|---|---|---|
+| `get_robot_status` | 只读 | 可选`capture_map_pose: bool`，默认false | 查询机器人/安全状态；true时额外采集可信map位姿，不发送目标 |
+| `get_navigation_status` | 只读 | `{}` | 查询AI持有的确切GoalID，兼顾该目标监督；不以别人最新目标代替 |
+| `list_saved_coverage_regions` | 只读 | `{}` | 查询当前地图匹配的区域名称与UUID |
+| `get_coverage_status` | 只读 | `{}` | 查询覆盖状态、批次、归属、地图摘要及定位/底盘/避障就绪 |
+| `get_visual_servo_status` | 只读 | `{}` | 查询模式、视觉状态/活动标志、AI归属、完成协议、本次session ID/result及持久完成回执 |
+| `navigate_relative` | 变更 | 必填`forward_m,left_m,delta_yaw_deg` | 以新鲜里程计及车头方向换算目标，交给move_base/TEB；前/左各[-30,30]m，角度[-180,180]° |
+| `navigate_map_pose` | 变更 | 必填`x_m,y_m,yaw_deg`；可选`expected_map_digest` | 导航到明确map点；yaw[-180,180]°，位置须在有效空闲地图内；摘要用于冻结返回点的地图绑定 |
+| `cancel_navigation` | 变更 | `{}` | 只精确取消当前AI GoalID，不取消Qt手动目标或覆盖全部目标 |
+| `start_spot_cleaning` | 变更 | `{}` | 检查完成协议后经原FOD仲裁启动，记录新会话ID及完成序号基线；无目标接管不算完成 |
+| `stop_spot_cleaning` | 变更 | `{}` | 新鲜状态必须仍匹配AI持有的视觉会话；经原仲裁器停车/退出，不停止其他会话 |
+| `start_coverage_cleaning` | 变更 | 必填`regions`；其余见下表 | 经`/coverage/start_batch`顺序清扫已保存区域，包含入场导航 |
+| `pause_coverage` | 变更 | `{}` | 经`/coverage/set_paused=true`暂停AI当前覆盖批次 |
+| `resume_coverage` | 变更 | `{}` | 经`/coverage/set_paused=false`请求恢复，仍受安全条件检查 |
+| `skip_coverage_region` | 变更 | `{}` | 经`/coverage/skip_current`跳过AI当前批次的本区域 |
+| `cancel_coverage` | 变更 | `{}` | 经`/coverage/cancel_batch`按确切batch ID取消AI整批区域队列 |
+
+`regions`为1–20个不重复的现有区域精确名称或UUID，禁止云端编造多边形。覆盖规划可选参数
+省略时使用Qt清扫页即时保存的参数；下表是MCP输入范围，不是最终底盘放行速度：
+
+| 可选参数 | 含义/输入范围 |
+|---|---|
+| `operation_width_m` | 清扫宽度0.30–3.00m |
+| `overlap_percent` | 重叠率0–50% |
+| `max_speed_mps` | 最大前进速度0.10–1.60m/s |
+| `allow_reverse_transit` | 是否允许转场倒车，布尔值 |
+| `reverse_speed_mps` | 最大倒车速度0.05–0.80m/s |
+| `max_angular_speed_rps` | 最大角速度0.10–1.00rad/s |
+| `linear_accel_mps2` | 最大线加速度0.10–2.00m/s² |
+| `angular_accel_rps2` | 最大角加速度0.10–1.00rad/s² |
+| `direction_change_penalty_sec` | 换向附加时间0–30秒 |
+| `segment_handoff_penalty_sec` | 分段交接附加时间0–30秒 |
+| `transit_replan_period_sec` | 转场重规划间隔1–10秒 |
+
+工具总数不含`submit_plan`：它是云端提交计划的函数接口，不是第16个机器人MCP工具。
+没有GPS/经纬度、直接`cmd_vel`、急停释放、主刷/边刷/风机/喷淋开关或旧TCP设备控制工具。
+“视觉清扫/视觉伺服/查看周围垃圾，有垃圾就清扫”对应`start_spot_cleaning`，不表示上述
+清扫机械部件已经受AI独立控制。
+
+#### 计划生成、返回点记录与区域理解
+
+手工文字或已合并语音进入同一个`AgentRunner`，基本流程为：
+
+```text
+完整请求 → 尝试只读记录机器人位姿 + 动态区域目录 → 云端唯一submit_plan
+       → 本地整份校验 → 无控制授权则预览 / 有授权则顺序执行与终态等待
+```
+
+`submit_plan`必须唯一，`steps`每项包含`tool,arguments,description`。默认最多8步，超限整单
+拒绝，不截断执行；缺信息必须`needs_clarification=true,steps=[]`，拟议动作只能写入
+`understood_sequence`。参数允许有边界的JSON格式归一化，但不补猜缺失值/括号，不接受
+截断或多个对象；失败最多要求云端重新提交一次完整计划，重试之前零动作。
+
+区域每轮从当前地图完整目录读取。通用提示按地点主体、明确方位和语义匹配；唯一匹配
+输出精确名称/UUID，多候选或冲突要求澄清。没有为某张地图硬编码前门/大厅别名；新增
+区域下次请求参与匹配，目录变化清除旧区域上下文。“去某区域，在那里清扫”只生成覆盖
+任务，不额外先导航到模糊区域中心。点导航必须有用户明确坐标、地图原点或可信位置记录。
+单独“原点/零点”默认map(0,0,0°)；“基地/充电点”等没有坐标时不得编造。
+
+最低验收原话：**“清扫A区后回到当前点进行视觉清扫”**。完整行为顺序为：
+
+1. 请求云端和执行动作前，`get_robot_status(capture_map_pose=true)`查询并记录一次当前位置
+   和朝向。真实配置名称为`A`时，“A区”应匹配到`A`，不新建区域。
+2. `start_coverage_cleaning(regions=["A"])`；等该批次完成并释放覆盖/导航所有权。
+3. `navigate_map_pose(x_m=记录值,y_m=记录值,yaw_deg=记录值,expected_map_digest=记录摘要)`；
+   等同一个GoalID成功。
+4. `start_spot_cleaning()`开启视觉伺服。
+
+第一步是本地固定前置动作，云端计划显示后面三个动作。记录来自已LOCALIZED的
+`map→base_link`，TF年龄不超过0.5秒（允许未来0.1秒偏差），数值/四元数有效且采集前后
+地图摘要一致；不能用camera_init相对里程计代替。返回保留原朝向，绝不在覆盖后重新取点。
+语音记录时刻是完整请求进入规划时，不是录音起始时刻；未完成澄清补答可保留本轮记录，
+新独立任务不复用旧预览/执行记录。人的位置、未保存历史点、缺定位仍要求补充。
+
+每个新请求在云端规划前尝试采集可用位姿，不再依赖少数返回关键词；独立短停止/取消指令
+跳过此采集，澄清补答沿用原记录。通用指代规则支持“回来/现在这儿/原地/机器人目前停着的
+位置”等。快照存在不代表所有位置都已知，人的位置、未记录的历史位置仍须补充。
+未指定名称的“去区域清扫”也不得默认选择目录第一项。
+
+#### 执行、失败处理与日志
+
+普通导航使用NVIDIA预分配GoalID，经`/navigation_goal/action_request`进入J6M安全桥；同ID
+目标回显、坐标系/完整位姿及状态须匹配。取消经`/navigation_goal/cancel_request`，未知或
+LOST不当作已经停车，未确认精确取消前保留执行锁。AI监督同一目标时才续J6M租约，
+独立存活的定时器不能伪造监督。Qt综合页仍使用原simple-goal入口，功能未改。
+
+地图绝对导航核对锁存`/map`与新鲜覆盖状态的完整地图摘要、LOCALIZED、旋转原点、目标
+范围和空闲栅格，发布前再复核。`expected_map_digest`在后端要求64位小写十六进制，
+由本地绑定返回点，不允许云端随意生成。含返回点的计划每个变更步骤前再核对原地图和定位。
+
+覆盖启动预分配batch ID，响应丢失仍按该ID取消/等待，而非直接释放控制权。只有COMPLETED
+且active/batch_active均false才进入下一步；FAILED、CANCELED、COMPLETED_PARTIAL不算整步成功。
+导航、覆盖异常等待其精确安全终结，不得误取消或误接续其他操作者任务。
+
+视觉工具仍经原FOD仲裁接管，检测/停车/避障/运动门不变。J6M视觉状态新增
+`ai_completion_protocol=1`及`visual_session={session_id,result,sequence,last_completion}`。
+每次实际启用生成新ID；只在原传感器复核与停车确认通过的COMPLETE提交处生成递增回执，
+退出DISABLED后保留。ABORT/取消不生成完成回执，下一会话不能消费上一轮回执。
+
+AI启动记录新会话ID及启动前序号；必须看到同ID、新序号、COMPLETE、stopped=true、
+视觉active=false且仲裁恢复导航模式，才认为成功并放行下一步。状态丢失、查询报错、
+手动退出、ABORT、旧回执/会话替换均不能作为成功。失败尝试退出本AI会话；退出未确认或
+启动响应丢失且归属不明时保留占用门，禁止后续AI导航/覆盖，不能假称已停车或擅停外部任务。
+仅服务发现失败且尚未发请求时不留下占用；已确认的无目标空操作也不算清扫成功。
+状态异常需操作员通过原统一流程排查，不能靠重新发AI任务绕过。原5cm停车确认门未放宽。
+
+关键REQUEST、TRANSCRIPT、PLAN、PLAN_REJECTED、STEP、AUTH、FINAL事件按request_id写入
+AI日志，包含输入、计划、工具参数、结果、拒绝原因和耗时；敏感形态脱敏，不记录原始音频
+或私有密钥。核查`log/nvidia_ui_<会话>/ai.log`及`log/ros/<会话>/sweeper_ai-*.log`。
+9月11日旧日志未完整保存原话和计划，不能倒推所有动作都属于同一AI请求。
+
+#### 最新验证与部署边界
+
+2026-09-12上述三类问题已修复，并补充泛指区域不得默认选择、人的位置不得用机器人快照
+冒充、视觉启动回执到达前取消需补做本会话退出。最终验证：
+
+- 真实云端25/25：基础12、扩展返回表达8、最低原话重复5；平均2.00秒、最长2.70秒，
+  均一次响应。当前目录真实，map位姿合成；只规划，无机器人动作。
+- 隔离执行/异常/停顿47/47：含18份最终云端三段计划回放、10组停顿、17个控制场景和
+  2个视觉后第四步对照。正常完成才继续，未完成/中止/取消不继续。
+- AI/MCP/ASR单测206、视觉控制单测84、Qt源码契约52均通过；真实视觉节点配合合成传感器
+  的11项隔离ROS测试通过，验证普通/选定目标完成、回执跨停用保留和原故障保护。
+- Release、静态检查、视觉包暂存安装及新模块导入通过。静态输出639为已有catkin结果汇总，
+  不是本轮新测639项；各层测试不累加作实车验收。
+
+方法和完整边界见[修复报告](docs/AI_CONTROL_REPAIR_20260912.md)。原49场景42通过、7失败
+及本轮中间失败均保留，参见[原模拟报告](docs/AI_CONTROL_SIMULATION_20260912.md)。
+脚本：[simulate_ai_control.py](scripts/simulate_ai_control.py)、
+[check_ai_return_plans.py](scripts/check_ai_return_plans.py)。
+
+本次改了NVIDIA AI代码及J6M视觉结果元数据，未改视觉运动策略/停车阈值，也未改综合页、
+导航桥、覆盖/TEB或底盘逻辑。必须配套部署J6M后统一重启，旧板端无完成协议时AI会拒绝
+启用视觉；不能只重开Qt认为新版全部生效。共享ROS服务定义本轮未变。
+本轮未部署、未启停实车/Qt、未发真实目标/速度、未做录音播放或Whisper模型实测，
+未改私有配置/授权/真实区域、未提交或推送。最后一次板端历史核对为`20260911_160159`，
+旧master曾仍监听；本轮未重新核对运行状态，后续启停须按统一流程确认两端旧会话停净。
 
 ### 无静态地图启动
 

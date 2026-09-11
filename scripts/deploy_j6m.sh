@@ -22,6 +22,19 @@ deployment_start_seconds=$SECONDS
 dual_host_validate_fod_model_contract || exit 2
 dual_host_validate_fod_weights || exit 2
 
+# The pending-litter handoff service changed on 2026-09-11. Refuse a stale
+# NVIDIA generated interface before any remote write, then compare the native
+# J6M install to this exact interface before switching current.
+pending_target_md5="$(
+  source "$SCRIPT_DIR/setup_env.sh"
+  python3 -c 'from autolabor_fod_msgs.srv import SetFodCleaningTarget, SetFodCleaningTargetRequest; assert {"completion_policy", "request_id"}.issubset(SetFodCleaningTargetRequest.__slots__), "Rebuild NVIDIA before deploying pending-litter changes"; print(SetFodCleaningTarget._md5sum)'
+)"
+[[ "$pending_target_md5" =~ ^[0-9a-f]{32}$ ]] || exit 2
+pending_source_md5="$(source "$SCRIPT_DIR/setup_env.sh"; rossrv md5 autolabor_fod_msgs/SetFodCleaningTarget)"
+[[ "$pending_target_md5" == "$pending_source_md5" ]] || {
+  echo 'Pending-litter source/generated service mismatch; rebuild NVIDIA first.' >&2; exit 2;
+}
+
 target="$(dual_host_select_ssh)" || {
   echo "J6M SSH is unavailable at both configured addresses." >&2
   exit 2
@@ -171,7 +184,7 @@ ssh "$target" "set -eu
     rospack find autolabor_fod_control >/dev/null
     rospack find autolabor_bpu_perception >/dev/null
     rosmsg md5 autolabor_fod_msgs/FodMapPositionArray >/dev/null
-    rossrv md5 autolabor_fod_msgs/SetFodCleaningTarget >/dev/null
+    rossrv md5 autolabor_fod_msgs/SetFodCleaningTarget | grep -Fxq $pending_target_md5
     rossrv md5 autolabor_fod_msgs/StartPendingLitterCleaning >/dev/null
     rosmsg md5 autolabor_bpu_perception/DetectedObjects >/dev/null
     rospack find robot_bringup >/dev/null
@@ -217,7 +230,9 @@ ssh "$target" "set -eu
     source /opt/autolabor/dual_host/releases/\"\$RELEASE\"/install/setup.bash
     rospack find map_server >/dev/null
     rosmsg md5 autolabor_fod_msgs/FodMapPositionArray >/dev/null
-    rossrv md5 autolabor_fod_msgs/SetFodCleaningTarget >/dev/null
+    rossrv md5 autolabor_fod_msgs/SetFodCleaningTarget | grep -Fxq $pending_target_md5
+    rospack find map_msgs >/dev/null
+    python3 -c \"import map_msgs.msg; import autolabor_fod_control.pending_litter; import autolabor_fod_control.visual_session\"
     rossrv md5 autolabor_fod_msgs/StartPendingLitterCleaning >/dev/null
     rospack find autolabor_coverage >/dev/null
     rospack find autolabor_fod_control >/dev/null
