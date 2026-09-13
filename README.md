@@ -5,6 +5,8 @@
 ## 目录速览
 
 - `scripts/bringup.sh`：导航一键启动主入口。
+- `scripts/operator_all_in_one.sh`：GPS 导航、相机/YOLO11、RabbitMQ 和 Qt
+  一体化启动入口。
 - `scripts/operator_gui.sh`：启动 Qt 操作与诊断台（内嵌 RViz）。
 - `scripts/keyboard_drive.sh`：只启动底盘和键盘遥控，用于底盘测试，不启动导航。
 - `scripts/rabbitmq_gps_goal_bridge.py`：RabbitMQ 到 ROS GPS 目标的桥接脚本。
@@ -340,11 +342,25 @@ GPS_HEADING_SOURCE=gps_course ./scripts/bringup.sh gps
 
 ## Qt 操作与诊断台
 
-第一版界面已包含内嵌 RViz，以及 ROS、CAN、GNSS、双天线航向、雷达、
-`move_base`、RabbitMQ 和录包状态。分页可查看 GPS/局部坐标、现有
-静态漂移指标、RabbitMQ 缓存目标与消息计数，并提供车头正前方
-`8m` GPS 测试、取消导航、重置静态误差和一键 `mode1` 录包。相机/
-YOLO 与清扫装置页面已预留，后续可按独立 ROS 接口接入。
+当前界面已把内嵌 RViz、相机/YOLO11、实时双天线航向、GPS 目标输入、
+RabbitMQ、GPS/视觉控制模式和录包放到同一个操作台。内嵌 RViz 工具栏的
+`2D Nav Goal` 发布 `/move_base_simple/goal`；综合页也可直接输入 WGS84
+纬度、经度并发送到 `/gps/goal_fix`。视觉页显示标注画面、结构化检测结果、
+推理状态，并提供海康相机曝光/增益和图像质量控制入口。
+
+推荐用一条命令启动完整 GPS 导航、相机/YOLO11、RabbitMQ 和 Qt：
+
+```bash
+cd /home/robot/robot_ws
+./scripts/operator_all_in_one.sh 0.3 cruise
+```
+
+脚本会关闭原独立 RViz，并等待完整导航 readiness gate。正常就绪后启动其余
+模块；如果 CAN、GNSS 或导航节点提前失败，则自动进入“降级操作台”并仍然打开
+Qt，离线项显示故障且运动入口继续被安全门控。YOLO 环境缺失同样只跳过视觉侧，
+不会阻止 Qt。关闭 Qt 窗口或在该终端按 `Ctrl+C` 会停止这次一键入口启动的整套
+进程。RabbitMQ 或视觉侧不需要自动启动时可分别设置
+`OPERATOR_START_RABBITMQ=false`、`OPERATOR_START_VISION=false`。
 
 首次编译：
 
@@ -355,7 +371,7 @@ catkin_make -DCATKIN_WHITELIST_PACKAGES=''
 source devel/setup.bash
 ```
 
-使用内嵌 RViz 时，先只禁用原 launch 中的独立 RViz，其他原有节点不变：
+原来的分终端方式仍然保留：
 
 ```bash
 # 终端 1：原导航流程，仅不再额外打开独立 RViz
@@ -369,9 +385,15 @@ NAV_START_RVIZ=false ./scripts/bringup.sh gps 0.3 cruise
 所以旧流程完全保留。Qt 界面不发布 `/cmd_vel`；CAN、GNSS、雷达、
 导航或 RabbitMQ 节点缺失时只显示离线，不会阻止界面启动。
 内嵌 RViz 默认以地图为主，可用右侧按钮显示 Displays 调试面板；
-它不提供绕过前置检查的 `2D Nav Goal`，人工任意点目标仍使用原独立 RViz。
+`2D Nav Goal` 适合发送 `camera_init` 局部地图目标，经纬度目标使用综合页的
+GPS 输入框。
 RabbitMQ 桥接原有终端 `1/2` 确认流程仍可独立使用；界面另外使用
 `/rabbitmq_bridge/publish_latest` 和 `/rabbitmq_bridge/clear_latest` 服务。
+
+视觉页的“立即单独启动”不会直接调用视觉伺服或发布速度。它通过
+`/fod_navigation_mode/set_fod_enabled` 先让 GPS 路线休眠并保留最终经纬度，
+取消当前滚动子目标、确认车辆停车后才把底盘控制交给视觉模块。视觉完成后自动
+恢复 GPS；异常时保持停车，需点击“退出视觉模式并恢复 GPS”明确恢复。
 
 如果已经单独启动静态误差监视节点，可避免重复启动：
 

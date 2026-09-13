@@ -4,6 +4,55 @@ Date: 2026-07-23
 
 This file records the current GPS navigation development state for the Autolabor M2 robot in `/home/robot/robot_ws`.
 
+## 2026-07-23 Integrated Qt Navigation and Vision Console
+
+`autolabor_operator_gui` now provides one combined operator view for embedded
+RViz, WGS84 GPS goal entry, live dual-antenna heading, Hikrobot camera controls,
+YOLO11 annotated images/detections, RabbitMQ targets, and GPS/FOD mode status.
+The embedded RViz has restored `rviz/SetGoal` on
+`/move_base_simple/goal`. The heading display explicitly uses the receiver
+convention `0deg=north`, clockwise positive.
+
+The visual page subscribes `/fod_camera/image_raw`, `/fod/debug/image`, and
+`/fod/detections`; it reads/sets the existing Hikrobot exposure/gain services
+and can enable/disable the existing ROI image-quality controller. Its
+`立即单独启动` button never calls the visual servo directly. It calls only
+`/fod_navigation_mode/set_fod_enabled`, so the existing fail-closed sequence
+pauses and retains the GPS route, blocks GPS commands, cancels the current
+rolling subgoal, confirms the stopped chassis, and only then transfers command
+ownership to FOD. The button requires fresh camera/detection data and a visible
+detection. GPS target buttons are disabled while the mode manager reports GPS
+paused.
+
+The new complete launcher is:
+
+```bash
+cd /home/robot/robot_ws
+./scripts/operator_all_in_one.sh 0.3 cruise
+```
+
+It forces `NAV_START_RVIZ=false` and waits for the exact full bringup readiness
+message. On success it starts camera/YOLO, the image-quality controller,
+RabbitMQ bridge, and Qt. If navigation exits before readiness, the wrapper
+starts or reuses a ROS master and continues in degraded-console mode so Qt
+still opens; the GUI readiness gates keep motion controls unavailable. A
+missing YOLO Python environment similarly disables only the visual sidecar.
+`OPERATOR_START_VISION=false`, `OPERATOR_START_CAMERA=false`, and
+`OPERATOR_START_RABBITMQ=false` keep those parts optional. Closing Qt or
+pressing Ctrl+C stops all processes started by this wrapper; runtime logs are
+under `log/operator_all_in_one_*`.
+
+Verification for this Qt increment:
+
+- The complete 73-package workspace builds with the catkin whitelist cleared.
+- Six operator-console contract tests pass.
+- Headless Qt startup/shutdown succeeds without leaving a ROS master behind.
+- Synthetic BGR camera/debug images, heading/mode messages, and a structured
+  FOD detection exercised the new callbacks without a process failure.
+- Physical RViz clicking, camera service changes, and GPS/FOD vehicle handoff
+  still require an attended low-speed vehicle test with the physical stop in
+  hand.
+
 ## 2026-07-23 Local Checkpoint and Next Session
 
 The current development branch is `pre-safety-runtime`. This checkpoint
