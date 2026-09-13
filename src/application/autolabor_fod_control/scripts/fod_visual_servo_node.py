@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 """Pixel visual servo for recovering one detected FOD.
 
-This node is intentionally not auto-started by the perception launch.  It owns
-``/cmd_vel`` only after a dedicated launch is started, and non-zero motion also
-requires both ``~allow_motion:=true`` and an explicit SetBool(true) call.  Its
-normal mode is fail-closed on CAN/VCU safety feedback; an explicit
+This node is intentionally not auto-started by the perception launch. In
+standalone mode it publishes ``/cmd_vel``; the integrated GPS/FOD launch routes
+its configured output through the sole chassis-command arbiter. Non-zero motion
+also requires both ``~allow_motion:=true`` and an explicit SetBool(true) call.
+Its normal mode is fail-closed on CAN/VCU safety feedback; an explicit
 ``~external_estop_override:=true`` delegates those checks to an attended
 external emergency-stop operator while retaining the visual, odometry, wheel,
 command-ownership, lease, distance, and absolute-time guards.
@@ -204,6 +205,9 @@ class FodVisualServoNode:
         )
         self.expected_driver_node = rospy.get_param(
             "~expected_driver_node", "/m2_driver"
+        )
+        self.expected_cmd_vel_subscriber_node = rospy.get_param(
+            "~expected_cmd_vel_subscriber_node", self.expected_driver_node
         )
         self.expected_canbus_node = rospy.get_param(
             "~expected_canbus_node", "/canbus_driver"
@@ -760,6 +764,9 @@ class FodVisualServoNode:
             "expected_detector_node": self.expected_detector_node,
             "expected_camera_node": self.expected_camera_node,
             "expected_driver_node": self.expected_driver_node,
+            "expected_cmd_vel_subscriber_node": (
+                self.expected_cmd_vel_subscriber_node
+            ),
             "expected_canbus_node": self.expected_canbus_node,
         }.items():
             if not isinstance(value, str) or not value.startswith("/"):
@@ -1339,17 +1346,19 @@ class FodVisualServoNode:
             )
 
         command_subscribers = self._topic_nodes(subscribers, self.cmd_vel_topic)
-        if self.expected_driver_node not in command_subscribers:
+        if self.expected_cmd_vel_subscriber_node not in command_subscribers:
             raise ControllerAbort(
                 "%s is not connected to %s; subscribers: %s"
                 % (
                     self.cmd_vel_topic,
-                    self.expected_driver_node,
+                    self.expected_cmd_vel_subscriber_node,
                     self._format_nodes(command_subscribers),
                 )
             )
         if self.cmd_pub.get_num_connections() < 1:
-            raise ControllerAbort("cmd_vel publisher is not connected to the M2 driver")
+            raise ControllerAbort(
+                "cmd_vel publisher is not connected to the expected command consumer"
+            )
         if (
             not self.external_estop_override
             and rospy.get_param(

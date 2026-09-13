@@ -25,6 +25,10 @@ emergency_stop_topic: /m2_driver/emergency_stop
 expected_detector_node: /fod_detector
 expected_camera_node: /fod_camera/driver
 expected_driver_node: /m2_driver
+# Standalone mode sends directly to the driver. The integrated GPS/FOD launch
+# overrides this with /fod_navigation_mode while keeping /m2_driver as the
+# odometry, wheel, chassis-status, and parameter-service authority.
+expected_cmd_vel_subscriber_node: /m2_driver
 expected_canbus_node: /canbus_driver
 expected_image_width: 1280
 expected_image_height: 1024

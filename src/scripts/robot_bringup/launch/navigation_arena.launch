@@ -5,8 +5,10 @@
   <arg name="start_rviz" default="true"/>
   <arg name="planner_frequency" default="1.0"/>
   <arg name="goal_slowdown_enabled" default="$(eval arg('localization_source') == 'gps')"/>
+  <arg name="goal_speed_cap_enabled" default="false"/>
   <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
-  <arg name="cmd_vel_topic" default="$(eval '/cmd_vel_navigation' if arg('goal_slowdown_enabled') else '/cmd_vel')"/>
+  <arg name="output_cmd_vel_topic" default="/cmd_vel"/>
+  <arg name="cmd_vel_topic" default="$(eval '/cmd_vel_navigation' if arg('goal_slowdown_enabled') else arg('output_cmd_vel_topic'))"/>
   <arg name="xy_goal_tolerance" default="$(eval 0.3 if arg('localization_source') == 'gps' else 0.5)"/>
   <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
   <arg name="max_vel_x" default="1.2"/>
@@ -50,12 +52,13 @@
         name="gps_goal_speed_limiter"
         output="screen">
     <param name="input_cmd_topic" value="$(arg cmd_vel_topic)"/>
-    <param name="output_cmd_topic" value="/cmd_vel"/>
+    <param name="output_cmd_topic" value="$(arg output_cmd_vel_topic)"/>
     <param name="odom_topic" value="$(arg odom_topic)"/>
     <param name="goal_topic" value="/move_base/current_goal"/>
     <param name="action_goal_topic" value="/move_base/goal"/>
     <param name="cancel_topic" value="/move_base/cancel"/>
     <param name="status_topic" value="/move_base/status"/>
+    <param name="speed_cap_enabled" type="bool" value="$(arg goal_speed_cap_enabled)"/>
     <param name="comfortable_decel" type="double" value="$(arg goal_slowdown_decel)"/>
     <param name="hard_stop_distance" type="double" value="$(arg goal_slowdown_hard_stop_distance)"/>
     <param name="planner_xy_goal_tolerance" type="double" value="$(arg xy_goal_tolerance)"/>

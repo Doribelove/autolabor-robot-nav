@@ -30,13 +30,21 @@ TebLocalPlannerROS:
   # normal tracking does not sit on the mechanical limit.
   min_turning_radius: 1.35
   acc_lim_x: 2.5
-  # Limit how quickly the optimizer can reverse a correction.  This remains a
-  # TEB planning constraint; the chassis driver keeps its hardware limits.
-  acc_lim_theta: 0.45
+  # Build the first useful steering curvature promptly instead of spending
+  # several reference intervals at a few tenths of a metre per second.  Keep
+  # this below the former 0.8 rad/s^2 tune: the 0.85 rad/s steady-yaw cap,
+  # two-pose command averaging, stable global route and high acceleration
+  # weight below still suppress rapid left/right corrections at cruise speed.
+  # On a straight trajectory omega and angular acceleration remain zero, so
+  # this does not lower the requested full-speed linear cruise command.
+  acc_lim_theta: 0.70
 
   weight_max_vel_x: 5.0
   weight_max_vel_theta: 30.0
   weight_acc_lim_x: 20.0
+  # Enforce the quicker but still bounded yaw-acceleration limit strongly.
+  # Do not lower this merely to obtain faster turns: that would let the
+  # optimizer buy abrupt steering reversals and can reintroduce snaking.
   weight_acc_lim_theta: 250.0
   weight_kinematics_turning_radius: 1000.0
   # A very high via-point/time pressure made the optimizer snap back across

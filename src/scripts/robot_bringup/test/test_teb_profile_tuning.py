@@ -22,6 +22,35 @@ MOVE_BASE_TEB_LAUNCH = (
     / "move_base"
     / "move_base_teb_nomap.launch"
 )
+GLOBAL_COSTMAP_CONFIG = (
+    WORKSPACE_ROOT
+    / "src"
+    / "navigation_arena"
+    / "arena-rosnav-3D"
+    / "arena_navigation"
+    / "arena_local_planer"
+    / "model_based"
+    / "conventional"
+    / "config"
+    / "dingo"
+    / "global_costmap_params_nomap.yaml"
+)
+LONG_RANGE_GOAL_LAUNCH = (
+    WORKSPACE_ROOT
+    / "src"
+    / "application"
+    / "gps_module"
+    / "launch"
+    / "gps_long_range_goal.launch"
+)
+FOD_CONTROL_ROOT = (
+    WORKSPACE_ROOT / "src" / "application" / "autolabor_fod_control"
+)
+FOD_INTEGRATED_LAUNCH = (
+    FOD_CONTROL_ROOT / "launch" / "gps_visual_recovery_standby.launch"
+)
+FOD_VISUAL_LAUNCH = FOD_CONTROL_ROOT / "launch" / "visual_recovery.launch"
+FOD_MODE_SCRIPT = WORKSPACE_ROOT / "scripts" / "fod_mode.sh"
 
 
 class GpsTebProfileCurvatureTest(unittest.TestCase):
@@ -90,9 +119,18 @@ class GpsCruiseLateralStabilityTest(unittest.TestCase):
             self.cruise["min_vel_theta"],
             -self.cruise["max_vel_theta"],
         )
-        self.assertLessEqual(self.cruise["acc_lim_theta"], 0.45)
+        self.assertAlmostEqual(self.cruise["acc_lim_theta"], 0.70)
+        self.assertGreaterEqual(self.cruise["weight_acc_lim_theta"], 250.0)
+        self.assertGreaterEqual(self.cruise["min_turning_radius"], 1.35)
+        self.assertIs(self.cruise["use_proportional_saturation"], True)
         self.assertLessEqual(self.cruise["weight_viapoint"], 6.0)
         self.assertLessEqual(self.cruise["weight_optimaltime"], 4.0)
+
+    def test_quicker_turn_entry_does_not_cap_full_speed_straight_cruise(self):
+        # max_vel_x remains the final bringup argument.  The overlay changes
+        # only how quickly bounded yaw curvature may build.
+        self.assertNotIn("max_vel_x", self.cruise)
+        self.assertGreater(self.cruise["acc_lim_theta"], 0.45)
 
     def test_cruise_reduces_moving_gps_filter_lag_only_for_that_profile(self):
         cruise_start = self.script.index("    cruise)\n")
@@ -176,6 +214,7 @@ class GpsGoalDistanceConfigurationTest(unittest.TestCase):
         }
         self.assertIn("0.3", arguments["xy_goal_tolerance"])
         self.assertEqual(arguments["goal_slowdown_hard_stop_distance"], "0.2")
+        self.assertEqual(arguments["goal_speed_cap_enabled"], "false")
         self.assertEqual(arguments["goal_near_commit_distance"], "1.0")
         self.assertEqual(arguments["goal_near_timeout"], "15.0")
         self.assertEqual(arguments["goal_near_max_regression"], "0.5")
@@ -198,6 +237,10 @@ class GpsGoalDistanceConfigurationTest(unittest.TestCase):
         self.assertEqual(parameters["action_goal_topic"], "/move_base/goal")
         self.assertEqual(parameters["status_topic"], "/move_base/status")
         self.assertEqual(
+            parameters["speed_cap_enabled"],
+            "$(arg goal_speed_cap_enabled)",
+        )
+        self.assertEqual(
             parameters["near_goal_commit_distance"],
             "$(arg goal_near_commit_distance)",
         )
@@ -217,9 +260,17 @@ class GpsGoalDistanceConfigurationTest(unittest.TestCase):
             'GPS_GOAL_HARD_STOP_DISTANCE="${GPS_GOAL_HARD_STOP_DISTANCE:-0.2}"',
             script,
         )
+        self.assertIn(
+            'GPS_GOAL_SPEED_CAP_ENABLED="${GPS_GOAL_SPEED_CAP_ENABLED:-false}"',
+            script,
+        )
         self.assertIn('xy_goal_tolerance:="$GPS_XY_GOAL_TOLERANCE"', script)
         self.assertIn(
             'goal_slowdown_hard_stop_distance:="$GPS_GOAL_HARD_STOP_DISTANCE"',
+            script,
+        )
+        self.assertIn(
+            'goal_speed_cap_enabled:="$GPS_GOAL_SPEED_CAP_ENABLED"',
             script,
         )
         self.assertIn(
@@ -231,6 +282,92 @@ class GpsGoalDistanceConfigurationTest(unittest.TestCase):
             'goal_near_max_regression:="$GPS_GOAL_NEAR_MAX_REGRESSION"',
             script,
         )
+
+
+class GpsLongRangeGoalConfigurationTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.script = BRINGUP_SCRIPT.read_text(encoding="utf-8")
+        cls.launch_root = ElementTree.parse(str(LONG_RANGE_GOAL_LAUNCH)).getroot()
+        cls.launch_args = {
+            element.attrib["name"]: element.attrib.get("default")
+            for element in cls.launch_root.findall("arg")
+        }
+
+    def test_rolling_goal_defaults_leave_global_costmap_margin(self):
+        with GLOBAL_COSTMAP_CONFIG.open(encoding="utf-8") as stream:
+            global_costmap = yaml.safe_load(stream)["global_costmap"]
+        half_width = min(
+            global_costmap["width"],
+            global_costmap["height"],
+        ) / 2.0
+
+        self.assertIs(global_costmap["rolling_window"], True)
+        self.assertEqual(self.launch_args["lookahead_distance"], "15.0")
+        self.assertEqual(self.launch_args["advance_distance"], "5.0")
+        self.assertEqual(self.launch_args["max_lookahead_distance"], "18.0")
+        self.assertLess(float(self.launch_args["lookahead_distance"]), half_width)
+        self.assertLess(
+            float(self.launch_args["max_lookahead_distance"]),
+            half_width,
+        )
+
+    def test_launch_owns_final_gps_input_and_move_base_action_output(self):
+        node = self.launch_root.find("node")
+        self.assertEqual(node.attrib["name"], "gps_long_range_goal_manager")
+        self.assertEqual(node.attrib["required"], "true")
+        parameters = {
+            element.attrib["name"]: element.attrib.get("value")
+            for element in node.findall("param")
+        }
+        self.assertEqual(parameters["goal_fix_topic"], "/gps/goal_fix")
+        self.assertEqual(parameters["odom_topic"], "$(arg odom_topic)")
+        self.assertEqual(parameters["action_goal_topic"], "/move_base/goal")
+        self.assertEqual(
+            parameters["lookahead_distance"],
+            "$(arg lookahead_distance)",
+        )
+        self.assertEqual(
+            parameters["advance_distance"],
+            "$(arg advance_distance)",
+        )
+
+    def test_gps_bringup_enables_and_validates_rolling_goals(self):
+        self.assertIn(
+            'GPS_LONG_RANGE_GOAL_ENABLED="${GPS_LONG_RANGE_GOAL_ENABLED:-true}"',
+            self.script,
+        )
+        self.assertIn(
+            'GPS_LONG_RANGE_LOOKAHEAD_DISTANCE="${GPS_LONG_RANGE_LOOKAHEAD_DISTANCE:-15.0}"',
+            self.script,
+        )
+        self.assertIn(
+            'GPS_LONG_RANGE_ADVANCE_DISTANCE="${GPS_LONG_RANGE_ADVANCE_DISTANCE:-5.0}"',
+            self.script,
+        )
+        self.assertIn(
+            'start_launch "GPS long-range goal manager" gps_module gps_long_range_goal.launch',
+            self.script,
+        )
+        self.assertIn(
+            'check_single_topic_subscriber "/gps/goal_fix" "/gps_long_range_goal_manager"',
+            self.script,
+        )
+        self.assertIn(
+            'check_topic_route "/move_base/goal" "/gps_long_range_goal_manager" "/move_base"',
+            self.script,
+        )
+        self.assertIn(
+            "advance < lookahead",
+            self.script,
+        )
+        self.assertIn(
+            "lookahead <= maximum",
+            self.script,
+        )
+
+    def test_clean_start_stops_old_rolling_goal_manager(self):
+        self.assertIn("    /gps_long_range_goal_manager\n", self.script)
 
 
 class BringupCommandRouteSafetyTest(unittest.TestCase):
@@ -328,6 +465,128 @@ class BringupCommandRouteSafetyTest(unittest.TestCase):
         self.assertIn(
             'heading_recovery_samples:="$GPS_HEADING_RECOVERY_SAMPLES"',
             self.script,
+        )
+
+
+class GpsFodModeIntegrationTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.script = BRINGUP_SCRIPT.read_text(encoding="utf-8")
+        cls.integrated_root = ElementTree.parse(
+            str(FOD_INTEGRATED_LAUNCH)
+        ).getroot()
+        cls.navigation_root = ElementTree.parse(
+            str(NAVIGATION_LAUNCH)
+        ).getroot()
+
+    def test_navigation_output_can_be_routed_through_the_mode_manager(self):
+        arguments = {
+            element.attrib["name"]: element.attrib.get("default")
+            for element in self.navigation_root.findall("arg")
+        }
+        self.assertEqual(arguments["output_cmd_vel_topic"], "/cmd_vel")
+        self.assertIn(
+            "arg('output_cmd_vel_topic')",
+            arguments["cmd_vel_topic"],
+        )
+        limiter = next(
+            node
+            for node in self.navigation_root.findall("node")
+            if node.attrib.get("name") == "gps_goal_speed_limiter"
+        )
+        parameters = {
+            element.attrib["name"]: element.attrib.get("value")
+            for element in limiter.findall("param")
+        }
+        self.assertEqual(
+            parameters["output_cmd_topic"],
+            "$(arg output_cmd_vel_topic)",
+        )
+
+    def test_integrated_launch_has_one_external_chassis_publisher(self):
+        include = self.integrated_root.find("include")
+        include_args = {
+            element.attrib["name"]: element.attrib.get("value")
+            for element in include.findall("arg")
+        }
+        self.assertEqual(include_args["cmd_vel_topic"], "$(arg fod_cmd_topic)")
+        self.assertEqual(
+            include_args["expected_cmd_vel_subscriber_node"],
+            "/fod_navigation_mode",
+        )
+
+        manager = next(
+            node
+            for node in self.integrated_root.findall("node")
+            if node.attrib.get("name") == "fod_navigation_mode"
+        )
+        parameters = {
+            element.attrib["name"]: element.attrib.get("value")
+            for element in manager.findall("param")
+        }
+        self.assertEqual(parameters["gps_cmd_topic"], "$(arg gps_cmd_topic)")
+        self.assertEqual(parameters["fod_cmd_topic"], "$(arg fod_cmd_topic)")
+        self.assertEqual(
+            parameters["output_cmd_topic"],
+            "$(arg output_cmd_topic)",
+        )
+
+    def test_gps_bringup_defaults_to_safe_fod_standby_routes(self):
+        self.assertIn(
+            'FOD_RECOVERY_STANDBY_ENABLED="${FOD_RECOVERY_STANDBY_ENABLED:-true}"',
+            self.script,
+        )
+        self.assertIn(
+            'GPS_OUTPUT_CMD_VEL_TOPIC="/cmd_vel_gps"',
+            self.script,
+        )
+        self.assertIn(
+            'output_cmd_vel_topic:="$GPS_OUTPUT_CMD_VEL_TOPIC"',
+            self.script,
+        )
+        self.assertIn(
+            'check_cmd_vel_route "/cmd_vel_gps" "/gps_goal_speed_limiter" "/fod_navigation_mode"',
+            self.script,
+        )
+        self.assertIn(
+            'check_cmd_vel_route "/cmd_vel_fod" "/fod_visual_servo" "/fod_navigation_mode"',
+            self.script,
+        )
+        self.assertIn(
+            'check_cmd_vel_route "/cmd_vel" "/fod_navigation_mode" "/m2_driver"',
+            self.script,
+        )
+
+    def test_retained_route_pause_and_operator_command_are_wired(self):
+        long_range_root = ElementTree.parse(str(LONG_RANGE_GOAL_LAUNCH)).getroot()
+        long_range_parameters = {
+            element.attrib["name"]: element.attrib.get("value")
+            for element in long_range_root.find("node").findall("param")
+        }
+        self.assertEqual(
+            long_range_parameters["pause_service"],
+            "$(arg pause_service)",
+        )
+        cli = FOD_MODE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            'MODE_SERVICE="/fod_navigation_mode/set_fod_enabled"',
+            cli,
+        )
+        self.assertNotIn(
+            'rosservice call /fod_visual_servo/set_enabled',
+            cli,
+        )
+
+    def test_standalone_visual_launch_keeps_direct_driver_default(self):
+        root = ElementTree.parse(str(FOD_VISUAL_LAUNCH)).getroot()
+        arguments = {
+            element.attrib["name"]: element.attrib.get("default")
+            for element in root.findall("arg")
+        }
+        self.assertEqual(arguments["cmd_vel_topic"], "/cmd_vel")
+        self.assertEqual(
+            arguments["expected_cmd_vel_subscriber_node"],
+            "/m2_driver",
         )
 
 

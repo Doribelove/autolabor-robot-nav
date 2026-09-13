@@ -179,6 +179,14 @@ class GpsTestTasks:
             "~converted_goal_topic",
             "/move_base_simple/goal",
         )
+        self.long_range_final_goal_topic = rospy.get_param(
+            "~long_range_final_goal_topic",
+            "/gps/long_range/final_goal",
+        )
+        self.action_goal_topic = rospy.get_param(
+            "~action_goal_topic",
+            "/move_base/goal",
+        )
         self.cancel_topic = rospy.get_param("~cancel_topic", "/move_base/cancel")
         self.marker_topic = rospy.get_param("~marker_topic", "/gps/test_fence_markers")
         self.marker_frame_id = rospy.get_param("~marker_frame_id", "camera_init")
@@ -218,6 +226,9 @@ class GpsTestTasks:
         self.converted_goal_condition = threading.Condition()
         self.converted_goal_sequence = 0
         self.recent_converted_goals = deque(maxlen=20)
+        self.navigation_route_mode = None
+        self.active_converted_goal_topic = None
+        self.navigation_route_description = None
 
         self.goal_pub = rospy.Publisher(self.goal_fix_topic, NavSatFix, queue_size=10)
         self.cancel_pub = rospy.Publisher(self.cancel_topic, GoalID, queue_size=10)
@@ -233,6 +244,14 @@ class GpsTestTasks:
             self.converted_goal_topic,
             PoseStamped,
             self.converted_goal_cb,
+            callback_args=self.converted_goal_topic,
+            queue_size=20,
+        )
+        self.long_range_final_goal_sub = rospy.Subscriber(
+            self.long_range_final_goal_topic,
+            PoseStamped,
+            self.converted_goal_cb,
+            callback_args=self.long_range_final_goal_topic,
             queue_size=20,
         )
         self.monitor_timer = rospy.Timer(
@@ -245,10 +264,7 @@ class GpsTestTasks:
         self.load_fence()
         try:
             self.wait_for_navigation_route(timeout=1.0)
-            print(
-                "[联动检查] 已连接：%s -> /gps_goal -> %s -> /move_base"
-                % (self.goal_fix_topic, self.converted_goal_topic)
-            )
+            print("[联动检查] 已连接：%s" % self.navigation_route_description)
         except RuntimeError as exc:
             if rospy.is_shutdown():
                 raise
@@ -260,11 +276,12 @@ class GpsTestTasks:
         self.latest_odom_received_monotonic = time.monotonic()
         self.odom_sequence += 1
 
-    def converted_goal_cb(self, msg):
+    def converted_goal_cb(self, msg, topic):
         with self.converted_goal_condition:
             self.converted_goal_sequence += 1
             self.recent_converted_goals.append({
                 "sequence": self.converted_goal_sequence,
+                "topic": topic,
                 "frame_id": msg.header.frame_id,
                 "x": float(msg.pose.position.x),
                 "y": float(msg.pose.position.y),
@@ -308,25 +325,7 @@ class GpsTestTasks:
 
         publisher_map = topic_node_map(publishers)
         subscriber_map = topic_node_map(subscribers)
-        checks = (
-            (
-                subscriber_map,
-                self.goal_fix_topic,
-                "/gps_goal",
-                "%s 缺少 /gps_goal 订阅" % self.goal_fix_topic,
-            ),
-            (
-                publisher_map,
-                self.converted_goal_topic,
-                "/gps_goal",
-                "%s 缺少 /gps_goal 发布" % self.converted_goal_topic,
-            ),
-            (
-                subscriber_map,
-                self.converted_goal_topic,
-                "/move_base",
-                "%s 缺少 /move_base 订阅" % self.converted_goal_topic,
-            ),
+        common_checks = (
             (
                 publisher_map,
                 self.odom_topic,
@@ -340,11 +339,103 @@ class GpsTestTasks:
                 "/move_base/status 缺少 /move_base 发布",
             ),
         )
-        return [
+        manager_node = "/gps_long_range_goal_manager"
+        manager_present = (
+            contains_node(
+                subscriber_map.get(self.goal_fix_topic, set()),
+                manager_node,
+            )
+            or contains_node(
+                publisher_map.get(self.long_range_final_goal_topic, set()),
+                manager_node,
+            )
+            or contains_node(
+                publisher_map.get(self.action_goal_topic, set()),
+                manager_node,
+            )
+        )
+
+        if manager_present:
+            self.navigation_route_mode = "long_range"
+            self.active_converted_goal_topic = self.long_range_final_goal_topic
+            self.navigation_route_description = (
+                "%s -> %s -> %s -> /move_base"
+                % (
+                    self.goal_fix_topic,
+                    manager_node,
+                    self.action_goal_topic,
+                )
+            )
+            route_checks = (
+                (
+                    subscriber_map,
+                    self.goal_fix_topic,
+                    manager_node,
+                    "%s 缺少 %s 订阅" % (self.goal_fix_topic, manager_node),
+                ),
+                (
+                    publisher_map,
+                    self.long_range_final_goal_topic,
+                    manager_node,
+                    "%s 缺少 %s 发布"
+                    % (self.long_range_final_goal_topic, manager_node),
+                ),
+                (
+                    publisher_map,
+                    self.action_goal_topic,
+                    manager_node,
+                    "%s 缺少 %s 发布" % (self.action_goal_topic, manager_node),
+                ),
+                (
+                    subscriber_map,
+                    self.action_goal_topic,
+                    "/move_base",
+                    "%s 缺少 /move_base 订阅" % self.action_goal_topic,
+                ),
+            )
+        else:
+            self.navigation_route_mode = "direct"
+            self.active_converted_goal_topic = self.converted_goal_topic
+            self.navigation_route_description = (
+                "%s -> /gps_goal -> %s -> /move_base"
+                % (self.goal_fix_topic, self.converted_goal_topic)
+            )
+            route_checks = (
+                (
+                    subscriber_map,
+                    self.goal_fix_topic,
+                    "/gps_goal",
+                    "%s 缺少 /gps_goal 订阅" % self.goal_fix_topic,
+                ),
+                (
+                    publisher_map,
+                    self.converted_goal_topic,
+                    "/gps_goal",
+                    "%s 缺少 /gps_goal 发布" % self.converted_goal_topic,
+                ),
+                (
+                    subscriber_map,
+                    self.converted_goal_topic,
+                    "/move_base",
+                    "%s 缺少 /move_base 订阅" % self.converted_goal_topic,
+                ),
+            )
+
+        checks = route_checks + common_checks
+        missing = [
             message
             for topic_map, topic, node, message in checks
             if not contains_node(topic_map.get(topic, set()), node)
         ]
+        if manager_present and contains_node(
+            subscriber_map.get(self.goal_fix_topic, set()),
+            "/gps_goal",
+        ):
+            missing.append(
+                "%s 同时被 /gps_long_range_goal_manager 和旧 /gps_goal 订阅，"
+                "存在重复导航执行器" % self.goal_fix_topic
+            )
+        return missing
 
     def wait_for_navigation_route(self, timeout=None):
         timeout = self.goal_route_timeout if timeout is None else float(timeout)
@@ -373,7 +464,8 @@ class GpsTestTasks:
                     if goal["sequence"] <= baseline_sequence:
                         break
                     if (
-                        goal["frame_id"] == self.marker_frame_id
+                        goal["topic"] == self.active_converted_goal_topic
+                        and goal["frame_id"] == self.marker_frame_id
                         and math.hypot(goal["x"] - x, goal["y"] - y)
                         <= self.goal_delivery_tolerance
                     ):
@@ -384,8 +476,12 @@ class GpsTestTasks:
                 self.converted_goal_condition.wait(timeout=min(0.1, remaining))
         raise RuntimeError(
             "目标已发送到 %s，但 %.1f 秒内未在 %s 收到对应目标；"
-            "无人车不会启动，请检查 /gps_goal，且不要重复盲发。"
-            % (self.goal_fix_topic, self.goal_delivery_timeout, self.converted_goal_topic)
+            "无人车不会启动，请检查当前 GPS 目标管理节点，且不要重复盲发。"
+            % (
+                self.goal_fix_topic,
+                self.goal_delivery_timeout,
+                self.active_converted_goal_topic,
+            )
         )
 
     def pose_snapshot(self):
@@ -472,7 +568,7 @@ class GpsTestTasks:
         converted = self.wait_for_converted_goal(x, y, converted_goal_baseline)
         print("[联动成功] %s 已转换为 %s: x=%.3f y=%.3f frame=%s" % (
             self.goal_fix_topic,
-            self.converted_goal_topic,
+            self.active_converted_goal_topic,
             converted["x"],
             converted["y"],
             converted["frame_id"],
@@ -975,7 +1071,7 @@ class GpsTestTasks:
         ))
         print("[联动成功] %s 已转换为 %s: x=%.3f y=%.3f frame=%s" % (
             self.goal_fix_topic,
-            self.converted_goal_topic,
+            self.active_converted_goal_topic,
             converted["x"],
             converted["y"],
             converted["frame_id"],
