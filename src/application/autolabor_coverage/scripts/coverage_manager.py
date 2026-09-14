@@ -2,6 +2,7 @@
 """Plan and execute static-map coverage tasks through the existing move_base chain."""
 
 import copy
+from contextlib import nullcontext
 import hashlib
 import json
 import math
@@ -734,6 +735,23 @@ class CoverageManager:
         self.sweep_completion_max_linear_speed = float(rospy.get_param(
             "~sweep_completion_max_linear_speed_mps", 0.08
         ))
+        # A map-frame pose step contains both physical motion and any update
+        # to map->odom.  At the configured 1.6 m/s sweep speed, a fixed 0.50 m
+        # sample bound is too close to one delayed 5 Hz tracking interval.
+        # Correlate large map steps with the simultaneously observed physical
+        # /odom displacement before treating them as localization jumps.
+        self.pose_continuity_odom_residual_tolerance = float(rospy.get_param(
+            "~pose_continuity_odom_residual_tolerance_m", 0.30
+        ))
+        self.pose_continuity_speed_margin = float(rospy.get_param(
+            "~pose_continuity_speed_margin_mps", 0.50
+        ))
+        self.pose_continuity_distance_margin = float(rospy.get_param(
+            "~pose_continuity_distance_margin_m", 0.15
+        ))
+        self.pause_coast_tracking_timeout = float(rospy.get_param(
+            "~pause_coast_tracking_timeout_sec", 5.0
+        ))
         # A localization/control disturbance can occur in the small hand-off
         # window after the connector has been accepted but before the sweep
         # controller has acquired the line.  TEB is intentionally forbidden
@@ -790,6 +808,10 @@ class CoverageManager:
             self.sweep_completion_max_sample_step,
             self.sweep_completion_poll_period,
             self.sweep_completion_max_linear_speed,
+            self.pose_continuity_odom_residual_tolerance,
+            self.pose_continuity_speed_margin,
+            self.pose_continuity_distance_margin,
+            self.pause_coast_tracking_timeout,
             self.sweep_entry_recovery_progress_limit,
             self.sweep_entry_recovery_reverse_cost_speed,
             self.sweep_entry_recovery_forward_cost_speed,
@@ -859,6 +881,12 @@ class CoverageManager:
             or not 1 <= self.sweep_completion_confirmation_samples <= 5
             or not 0.02 <= self.sweep_completion_poll_period <= 0.20
             or not 0.01 <= self.sweep_completion_max_linear_speed <= 0.20
+            or not 0.05 <= (
+                self.pose_continuity_odom_residual_tolerance
+            ) <= 0.75
+            or not 0.0 <= self.pose_continuity_speed_margin <= 1.50
+            or not 0.0 <= self.pose_continuity_distance_margin <= 0.50
+            or not 1.0 <= self.pause_coast_tracking_timeout <= 10.0
             or not 0.20 <= self.sweep_entry_recovery_progress_limit <= 2.00
             or not 1 <= self.sweep_entry_recovery_confirmation_samples <= 10
             or not 0.10 <= self.sweep_entry_recovery_reverse_cost_speed <= 2.00
@@ -934,6 +962,12 @@ class CoverageManager:
         self.traversed_distance = 0.0
         self.covered_cells = set()
         self.last_tracked_point = None
+        self.last_tracked_yaw = None
+        self.last_tracked_odom = None
+        self.last_tracked_wall = 0.0
+        self.pause_coast_tracking = False
+        self.pause_coast_deadline = 0.0
+        self.pause_coast_stopped_samples = 0
         self.executed_path = Path()
         self.executed_path.header.frame_id = "map"
         self.first_entry_path = Path()
@@ -1901,6 +1935,172 @@ class CoverageManager:
         if not all(math.isfinite(value) for value in values):
             return None
         return math.hypot(values[0], values[1])
+
+    def _current_chassis_odom_pose_snapshot(self):
+        """Return a fresh physical /odom pose for map-step correlation.
+
+        This is deliberately independent of map->base_link.  Comparing the
+        two lets a delayed high-speed tracking sample be distinguished from a
+        map-frame correction that has no matching physical displacement.
+        """
+        lock = getattr(self, "lock", None)
+        with lock if lock is not None else nullcontext():
+            message = copy.deepcopy(getattr(self, "chassis_odom", None))
+            received_wall = float(getattr(
+                self, "chassis_odom_received_wall", 0.0
+            ))
+            fresh_sec = float(getattr(self, "chassis_odom_fresh_sec", 1.0))
+        if (
+            message is None
+            or received_wall <= 0.0
+            or time.monotonic() - received_wall > fresh_sec
+        ):
+            return None
+        pose = message.pose.pose
+        values = (
+            float(pose.position.x),
+            float(pose.position.y),
+            float(pose.orientation.x),
+            float(pose.orientation.y),
+            float(pose.orientation.z),
+            float(pose.orientation.w),
+        )
+        if not all(math.isfinite(value) for value in values):
+            return None
+        yaw = math.atan2(
+            2.0 * (values[5] * values[4] + values[2] * values[3]),
+            1.0 - 2.0 * (values[3] * values[3] + values[4] * values[4]),
+        )
+        if not math.isfinite(yaw):
+            return None
+        stamp = 0.0
+        try:
+            stamp = float(message.header.stamp.to_sec())
+        except (AttributeError, TypeError, ValueError):
+            pass
+        return {
+            "x": values[0],
+            "y": values[1],
+            "yaw": yaw,
+            "received_wall": received_wall,
+            "stamp": stamp,
+        }
+
+    def _pose_step_continuity_evidence(
+            self, previous_point, previous_yaw, previous_odom,
+            previous_wall, point, yaw, maximum_sample_step):
+        """Explain a map-frame step with physical odometry when necessary."""
+        now = time.monotonic()
+        map_dx = float(point.x) - float(previous_point.x)
+        map_dy = float(point.y) - float(previous_point.y)
+        map_step = math.hypot(map_dx, map_dy)
+        evidence = {
+            "continuous": map_step <= float(maximum_sample_step),
+            "odom_supported": False,
+            "reason": "",
+            "map_step": map_step,
+            "odom_step": None,
+            "map_odom_residual": None,
+            "physical_limit": None,
+            "elapsed": max(0.0, now - float(previous_wall or 0.0)),
+            "current_odom": self._current_chassis_odom_pose_snapshot(),
+            "wall": now,
+        }
+        if evidence["continuous"]:
+            return evidence
+        current_odom = evidence["current_odom"]
+        if previous_odom is None or current_odom is None:
+            evidence["reason"] = "fresh paired physical /odom is unavailable"
+            return evidence
+        previous_stamp = float(previous_odom.get("stamp", 0.0))
+        current_stamp = float(current_odom.get("stamp", 0.0))
+        if (
+            previous_stamp > 0.0 and current_stamp > 0.0
+            and current_stamp + 1.0e-6 < previous_stamp
+        ):
+            evidence["reason"] = "physical /odom timestamp moved backwards"
+            return evidence
+        odom_dx = current_odom["x"] - previous_odom["x"]
+        odom_dy = current_odom["y"] - previous_odom["y"]
+        odom_step = math.hypot(odom_dx, odom_dy)
+        evidence["odom_step"] = odom_step
+        elapsed = max(
+            evidence["elapsed"],
+            current_odom["received_wall"] - previous_odom["received_wall"],
+            0.02,
+        )
+        evidence["elapsed"] = elapsed
+        speed_limit = max(
+            float(getattr(self, "task_max_speed", 0.0)),
+            float(getattr(self, "watchdog_max_linear_speed", 0.0)),
+            float(getattr(self, "max_speed_limit", 1.60)),
+            float(getattr(self, "reverse_transit_speed", 0.0)),
+        )
+        physical_limit = (
+            (speed_limit + float(getattr(
+                self, "pose_continuity_speed_margin", 0.50
+            ))) * elapsed
+            + float(getattr(
+                self, "pose_continuity_distance_margin", 0.15
+            ))
+        )
+        evidence["physical_limit"] = physical_limit
+        if odom_step > physical_limit:
+            evidence["reason"] = (
+                "physical /odom step {:.3f}m exceeds its {:.3f}m speed "
+                "envelope"
+            ).format(odom_step, physical_limit)
+            return evidence
+
+        # Estimate the previous map<-odom rotation from the two body yaws and
+        # rotate the independent physical displacement into the map frame.
+        map_from_odom_yaw = (
+            float(previous_yaw) - float(previous_odom["yaw"])
+        )
+        cosine = math.cos(map_from_odom_yaw)
+        sine = math.sin(map_from_odom_yaw)
+        predicted_dx = cosine * odom_dx - sine * odom_dy
+        predicted_dy = sine * odom_dx + cosine * odom_dy
+        residual = math.hypot(
+            map_dx - predicted_dx,
+            map_dy - predicted_dy,
+        )
+        evidence["map_odom_residual"] = residual
+        evidence["odom_supported"] = residual <= float(getattr(
+            self, "pose_continuity_odom_residual_tolerance", 0.30
+        ))
+        if not evidence["odom_supported"]:
+            evidence["reason"] = (
+                "map/odom displacement residual {:.3f}m exceeds {:.3f}m"
+            ).format(
+                residual,
+                float(getattr(
+                    self, "pose_continuity_odom_residual_tolerance", 0.30
+                )),
+            )
+        evidence["continuous"] = evidence["odom_supported"]
+        return evidence
+
+    @staticmethod
+    def _pose_continuity_failure_detail(evidence):
+        if not evidence:
+            return "map pose continuity has no diagnostic evidence"
+        return "map pose step {:.3f}m is untrusted: {}".format(
+            float(evidence.get("map_step", 0.0)),
+            evidence.get("reason") or "physical /odom did not confirm it",
+        )
+
+    def _remember_completion_pose(self, tracker, point, yaw, evidence=None):
+        tracker["last_point"] = (float(point.x), float(point.y))
+        tracker["last_pose_yaw"] = float(yaw)
+        if evidence is None:
+            tracker["last_odom"] = self._current_chassis_odom_pose_snapshot()
+            tracker["last_pose_wall"] = time.monotonic()
+        else:
+            tracker["last_odom"] = evidence.get("current_odom")
+            tracker["last_pose_wall"] = float(evidence.get(
+                "wall", time.monotonic()
+            ))
 
     @staticmethod
     def _points_from_region(region):
@@ -3486,6 +3686,12 @@ class CoverageManager:
         self.traversed_distance = 0.0
         self.covered_cells = set()
         self.last_tracked_point = None
+        self.last_tracked_yaw = None
+        self.last_tracked_odom = None
+        self.last_tracked_wall = 0.0
+        self.pause_coast_tracking = False
+        self.pause_coast_deadline = 0.0
+        self.pause_coast_stopped_samples = 0
         self.executed_path = Path()
         self.executed_path.header.frame_id = "map"
 
@@ -7139,7 +7345,12 @@ class CoverageManager:
         return {
             "armed": False,
             "invalidated": False,
+            "invalidated_reason": "",
+            "invalidation_evidence": None,
             "last_point": None,
+            "last_pose_yaw": None,
+            "last_odom": None,
+            "last_pose_wall": 0.0,
             "last_along": None,
             "max_along": float("-inf"),
             "pass_samples": 0,
@@ -7213,12 +7424,6 @@ class CoverageManager:
             if live_pose is None:
                 return self._pause_sweep_resume("map to base_link is unavailable")
             speed = self._current_chassis_linear_speed()
-            complete, geometry = self._observe_sweep_completion(
-                sweep, tracker, live_pose[0], live_pose[1], speed
-            )
-            pose_error = self._sweep_resume_pose_error(tracker, geometry)
-            if pose_error:
-                return self._pause_sweep_resume(pose_error)
             stopped = (
                 speed is not None and math.isfinite(float(speed))
                 and abs(float(speed)) <= min(
@@ -7227,6 +7432,41 @@ class CoverageManager:
                 )
             )
             stopped_samples = stopped_samples + 1 if stopped else 0
+            if tracker.get("invalidated", False):
+                geometry = self._sweep_completion_geometry(
+                    sweep, live_pose[0], live_pose[1]
+                )
+                if stopped_samples >= 2:
+                    revalidation_error = self._revalidate_sweep_tracker(
+                        sweep, tracker, live_pose[0], live_pose[1], geometry
+                    )
+                    if revalidation_error:
+                        return self._pause_sweep_resume(revalidation_error)
+                    rospy.logwarn(
+                        "coverage sweep %d rebuilt its retained progress at "
+                        "%.3f/%.3fm after a stopped, odom-correlated manual "
+                        "resume",
+                        segment_index + 1,
+                        geometry["along"],
+                        geometry["length"],
+                    )
+                elif time.monotonic() >= stop_deadline:
+                    return self._pause_sweep_resume(
+                        "fresh physical /odom did not confirm a stable stop"
+                    )
+            if not tracker.get("invalidated", False):
+                complete, geometry = self._observe_sweep_completion(
+                    sweep, tracker, live_pose[0], live_pose[1], speed
+                )
+                pose_error = (
+                    tracker.get("invalidated_reason")
+                    if tracker.get("invalidated", False) else
+                    self._sweep_resume_pose_error(tracker, geometry)
+                )
+                if pose_error:
+                    return self._pause_sweep_resume(pose_error)
+            else:
+                complete = False
             if stopped_samples >= 2:
                 # Repeat the lifecycle check after TF/odom reads, which can
                 # yield to cancel, skip, map invalidation or a safety callback.
@@ -7277,13 +7517,84 @@ class CoverageManager:
             )))
         return "canceled"
 
+    def _revalidate_sweep_tracker(
+            self, sweep, tracker, point, yaw, geometry=None):
+        """Rebuild a stopped sweep tracker only from correlated live evidence.
+
+        Manual resume is the operator's request to inspect the retained task,
+        not permission to invent its missing history.  The original entrance
+        record remains mandatory.  A rejected map sample can be cleared only
+        when physical /odom explains all motion since the last trusted sample
+        and the stopped vehicle is still moving forward in the exact swath
+        corridor.
+        """
+        if not tracker.get("armed", False) or tracker.get("last_point") is None:
+            return "the original sweep entrance was never confirmed"
+        if geometry is None:
+            geometry = self._sweep_completion_geometry(sweep, point, yaw)
+        if geometry is None:
+            return "the retained sweep geometry is unavailable"
+        cross_tolerance = self._sweep_resume_cross_track_tolerance(
+            tracker, geometry
+        )
+        if (
+            geometry["cross_track"] > cross_tolerance
+            or geometry["heading_error"] > float(getattr(
+                self, "sweep_completion_heading_tolerance", 0.35
+            ))
+            or geometry["along"] < float(tracker["max_along"]) - float(getattr(
+                self, "sweep_completion_max_sample_step", 0.50
+            ))
+        ):
+            return "the stopped vehicle is outside the retained sweep corridor"
+        previous_x, previous_y = tracker["last_point"]
+        evidence = self._pose_step_continuity_evidence(
+            Point(previous_x, previous_y),
+            float(tracker.get("last_pose_yaw", yaw)),
+            tracker.get("last_odom"),
+            float(tracker.get("last_pose_wall", 0.0)),
+            point,
+            yaw,
+            -1.0,
+        )
+        if not evidence["odom_supported"]:
+            return self._pose_continuity_failure_detail(evidence)
+        tracker["invalidated"] = False
+        tracker["invalidated_reason"] = ""
+        tracker["invalidation_evidence"] = None
+        tracker["pass_samples"] = 0
+        self._remember_completion_pose(tracker, point, yaw, evidence)
+        tracker["last_along"] = geometry["along"]
+        tracker["max_along"] = max(
+            float(tracker["max_along"]), geometry["along"]
+        )
+        return ""
+
+    def _sweep_resume_cross_track_tolerance(self, tracker, geometry):
+        """Use the admitted entry tolerance until the swath is acquired."""
+        tolerance = float(getattr(
+            self, "sweep_completion_cross_track_tolerance", 0.30
+        ))
+        if (
+            geometry is not None
+            and max(
+                float(geometry.get("along", float("inf"))),
+                float(tracker.get("max_along", float("-inf"))),
+            ) <= float(getattr(self, "sweep_completion_start_gate", 0.45))
+        ):
+            tolerance = max(
+                tolerance,
+                float(getattr(self, "entry_position_tolerance", 0.40)),
+            )
+        return tolerance
+
     def _sweep_resume_pose_error(self, tracker, geometry):
         if geometry is None or not tracker["armed"] or tracker["invalidated"]:
             return "continuous entrance-to-current-pose history is untrusted"
         if (
-            geometry["cross_track"] > float(getattr(
-                self, "sweep_completion_cross_track_tolerance", 0.30
-            ))
+            geometry["cross_track"] > self._sweep_resume_cross_track_tolerance(
+                tracker, geometry
+            )
             or geometry["heading_error"] > float(getattr(
                 self, "sweep_completion_heading_tolerance", 0.35
             ))
@@ -7382,14 +7693,23 @@ class CoverageManager:
                 float(getattr(self, "entry_yaw_tolerance", 0.436332)),
             )
             if (
+                # The manager has already admitted this same pose to the
+                # sweep with entry_position_tolerance.  Reuse that exact
+                # contract here so a 0.30/0.40 m split cannot start motion
+                # without arming its completion record.
                 start_distance <= float(getattr(
-                    self, "sweep_completion_start_gate", 0.45
+                    self, "entry_position_tolerance", 0.40
                 ))
-                and geometry["cross_track"] <= cross_tolerance
+                and geometry["cross_track"] <= max(
+                    cross_tolerance,
+                    float(getattr(
+                        self, "entry_position_tolerance", 0.40
+                    )),
+                )
                 and geometry["heading_error"] <= start_heading_tolerance
             ):
                 tracker["armed"] = True
-                tracker["last_point"] = (float(point.x), float(point.y))
+                self._remember_completion_pose(tracker, point, yaw)
                 tracker["last_along"] = geometry["along"]
                 tracker["max_along"] = geometry["along"]
             geometry["armed"] = tracker.get("armed", False)
@@ -7404,20 +7724,46 @@ class CoverageManager:
             float(point.x) - previous_x,
             float(point.y) - previous_y,
         )
-        if sample_step > float(getattr(
-                self, "sweep_completion_max_sample_step", 0.50)):
+        maximum_sample_step = float(getattr(
+            self, "sweep_completion_max_sample_step", 0.50
+        ))
+        evidence = self._pose_step_continuity_evidence(
+            Point(previous_x, previous_y),
+            float(tracker.get("last_pose_yaw", yaw)),
+            tracker.get("last_odom"),
+            float(tracker.get("last_pose_wall", 0.0)),
+            point,
+            yaw,
+            maximum_sample_step,
+        )
+        if sample_step > maximum_sample_step and not evidence["continuous"]:
             # A single TF jump must never be allowed to manufacture the
-            # entrance-to-exit history needed for completion.  The existing
-            # tracking timer will independently latch the mission PAUSED.
+            # entrance-to-exit history needed for completion.  The active
+            # segment loop converts this tracker invalidation into an exact
+            # action cancel and a manual-inspection pause.
             tracker["invalidated"] = True
+            tracker["invalidated_reason"] = (
+                self._pose_continuity_failure_detail(evidence)
+            )
+            tracker["invalidation_evidence"] = evidence
             tracker["pass_samples"] = 0
             geometry["armed"] = True
             geometry["invalidated"] = True
             geometry["sample_step"] = sample_step
             return False, geometry
+        if sample_step > maximum_sample_step:
+            rospy.logwarn_throttle(
+                2.0,
+                "coverage accepted %.3fm map pose step: physical /odom "
+                "%.3fm, map/odom residual %.3fm over %.3fs",
+                sample_step,
+                evidence["odom_step"],
+                evidence["map_odom_residual"],
+                evidence["elapsed"],
+            )
 
         previous_along = float(tracker["last_along"])
-        tracker["last_point"] = (float(point.x), float(point.y))
+        self._remember_completion_pose(tracker, point, yaw, evidence)
         tracker["last_along"] = geometry["along"]
         tracker["max_along"] = max(
             float(tracker["max_along"]), geometry["along"]
@@ -7619,7 +7965,12 @@ class CoverageManager:
         return {
             "armed": False,
             "invalidated": False,
+            "invalidated_reason": "",
+            "invalidation_evidence": None,
             "last_point": None,
+            "last_pose_yaw": None,
+            "last_odom": None,
+            "last_pose_wall": 0.0,
             "last_progress": None,
             "max_progress": float("-inf"),
             "pass_samples": 0,
@@ -7703,7 +8054,7 @@ class CoverageManager:
                 )
             ):
                 tracker["armed"] = True
-                tracker["last_point"] = (float(point.x), float(point.y))
+                self._remember_completion_pose(tracker, point, yaw)
                 tracker["last_progress"] = geometry["progress"]
                 tracker["max_progress"] = geometry["progress"]
             self._observe_entry_overshoot(segment, tracker, geometry, point, yaw)
@@ -7724,9 +8075,24 @@ class CoverageManager:
             float(point.x) - previous_x,
             float(point.y) - previous_y,
         )
-        if sample_step > float(getattr(
-                self, "transition_completion_max_sample_step", 0.50)):
+        maximum_sample_step = float(getattr(
+            self, "transition_completion_max_sample_step", 0.50
+        ))
+        evidence = self._pose_step_continuity_evidence(
+            Point(previous_x, previous_y),
+            float(tracker.get("last_pose_yaw", yaw)),
+            tracker.get("last_odom"),
+            float(tracker.get("last_pose_wall", 0.0)),
+            point,
+            yaw,
+            maximum_sample_step,
+        )
+        if sample_step > maximum_sample_step and not evidence["continuous"]:
             tracker["invalidated"] = True
+            tracker["invalidated_reason"] = (
+                self._pose_continuity_failure_detail(evidence)
+            )
+            tracker["invalidation_evidence"] = evidence
             tracker["pass_samples"] = 0
             segment.pop("_entry_recovery_reference", None)
             geometry.update({
@@ -7737,9 +8103,19 @@ class CoverageManager:
                 "requires_replan": False,
             })
             return False, geometry
+        if sample_step > maximum_sample_step:
+            rospy.logwarn_throttle(
+                2.0,
+                "coverage transition accepted %.3fm map pose step: physical "
+                "/odom %.3fm, map/odom residual %.3fm over %.3fs",
+                sample_step,
+                evidence["odom_step"],
+                evidence["map_odom_residual"],
+                evidence["elapsed"],
+            )
 
         previous_progress = float(tracker["last_progress"])
-        tracker["last_point"] = (float(point.x), float(point.y))
+        self._remember_completion_pose(tracker, point, yaw, evidence)
         tracker["last_progress"] = geometry["progress"]
         tracker["max_progress"] = max(
             float(tracker["max_progress"]), geometry["progress"]
@@ -8063,6 +8439,12 @@ class CoverageManager:
             # localization jump.
             with self.lock:
                 self.last_tracked_point = None
+                self.last_tracked_yaw = None
+                self.last_tracked_odom = None
+                self.last_tracked_wall = 0.0
+                self.pause_coast_tracking = False
+                self.pause_coast_deadline = 0.0
+                self.pause_coast_stopped_samples = 0
         if (segment["type"] == "transit" and
                 not getattr(self, "online_hybrid_without_precompute", False) and
                 (segment.get("path") is None or
@@ -8210,7 +8592,8 @@ class CoverageManager:
                 )
             if sweep_completion_tracker["invalidated"]:
                 return self._pause_sweep_resume(
-                    "pose continuity was lost before sweep goal submission"
+                    sweep_completion_tracker.get("invalidated_reason")
+                    or "pose continuity was lost before sweep goal submission"
                 )
             if execution.get("resume_path") is not None:
                 enforced.path = copy.deepcopy(execution["resume_path"])
@@ -8425,7 +8808,8 @@ class CoverageManager:
                     )
                     if sweep_completion_tracker["invalidated"]:
                         outcome = self._pause_sweep_resume(
-                            "localization jump invalidated the sweep history"
+                            sweep_completion_tracker.get("invalidated_reason")
+                            or "localization jump invalidated the sweep history"
                         )
                         return self._cancel_segment_goal(goal_generation, outcome)
                 if sweep_complete:
@@ -8467,8 +8851,12 @@ class CoverageManager:
                         self.manual_pause = True
                         self.state = "PAUSED"
                         self.manual_pause_reason = (
-                            "localization jump detected while approaching a "
-                            "connector boundary; manual resume is required"
+                            "{} while approaching a connector boundary; "
+                            "manual resume is required"
+                        ).format(
+                            transition_completion_tracker.get(
+                                "invalidated_reason"
+                            ) or "localization jump detected"
                         )
                         self.detail = self.manual_pause_reason
                     return self._cancel_segment_goal(
@@ -9164,57 +9552,172 @@ class CoverageManager:
         return terminal_state
 
     def _tracking_timer(self, _event):
+        now = time.monotonic()
         with self.lock:
-            should_track = self.active and self.state == "SWEEPING" and not (
+            normal_tracking = self.active and self.state == "SWEEPING" and not (
                 self.manual_pause or self.external_pause
             )
+            paused_after_sweep = (
+                self.active
+                and self.state == "PAUSED"
+                and self.last_tracked_point is not None
+            )
+            if (
+                paused_after_sweep
+                and not getattr(self, "pause_coast_tracking", False)
+                and float(getattr(
+                    self, "pause_coast_deadline", 0.0
+                )) <= 0.0
+                and now - float(getattr(
+                    self, "last_tracked_wall", 0.0
+                )) <= 1.0
+            ):
+                self.pause_coast_tracking = True
+                self.pause_coast_deadline = now + float(getattr(
+                    self, "pause_coast_tracking_timeout", 5.0
+                ))
+                self.pause_coast_stopped_samples = 0
+            coast_tracking = (
+                paused_after_sweep
+                and bool(getattr(self, "pause_coast_tracking", False))
+                and now <= float(getattr(self, "pause_coast_deadline", 0.0))
+            )
+            if normal_tracking:
+                self.pause_coast_tracking = False
+                self.pause_coast_deadline = 0.0
+                self.pause_coast_stopped_samples = 0
+            elif (
+                getattr(self, "pause_coast_tracking", False)
+                and now > float(getattr(
+                    self, "pause_coast_deadline", 0.0
+                ))
+            ):
+                # Keep the nonzero deadline as a one-shot latch.  Otherwise a
+                # recent last sample would reopen another five-second window
+                # and could absorb later remote-control motion.
+                self.pause_coast_tracking = False
             tracked_plan_id = self.plan_id
-        if not should_track or not self._localization_is_fresh():
+        if (
+            not (normal_tracking or coast_tracking)
+            or not self._localization_is_fresh()
+        ):
             return
         current_pose = self._current_pose()
         if current_pose is None:
             return
         point, yaw = current_pose
+        speed = self._current_chassis_linear_speed()
+        publish_path = None
         with self.lock:
             # The TF lookup above intentionally runs without the lifecycle
             # lock.  Recheck the mission generation before appending so a late
             # timer callback cannot resurrect a green path after terminal
             # cleanup or after a new plan is prepared.
-            if (not self.active or self.state != "SWEEPING" or
-                    self.plan_id != tracked_plan_id or
-                    self.manual_pause or self.external_pause):
+            if not self.active or self.plan_id != tracked_plan_id:
+                return
+            live_normal_tracking = self.state == "SWEEPING" and not (
+                self.manual_pause or self.external_pause
+            )
+            live_coast_tracking = (
+                self.state == "PAUSED"
+                and bool(getattr(self, "pause_coast_tracking", False))
+                and time.monotonic() <= float(getattr(
+                    self, "pause_coast_deadline", 0.0
+                ))
+            )
+            if not (live_normal_tracking or live_coast_tracking):
                 return
             segment_start = point
+            evidence = None
             if self.last_tracked_point is not None:
                 step = math.hypot(point.x - self.last_tracked_point.x,
                                   point.y - self.last_tracked_point.y)
-                if step > 0.5:
-                    self.manual_pause = True
-                    self.state = "PAUSED"
-                    self.manual_pause_reason = (
-                        "localization jump detected; manual resume is required"
-                    )
-                    self.detail = self.manual_pause_reason
-                    self.move_base.cancel_goal()
-                    return
-                if step < 0.02:
-                    return
-                self.traversed_distance += step
-                segment_start = self.last_tracked_point
-            if self.grid is not None and self.region.polygon.points:
-                self.covered_cells.update(rasterize_swept_cells(
-                    self.grid,
-                    self._points_from_region(self.region),
-                    segment_start,
+                evidence = self._pose_step_continuity_evidence(
+                    self.last_tracked_point,
+                    float(getattr(self, "last_tracked_yaw", yaw)),
+                    getattr(self, "last_tracked_odom", None),
+                    float(getattr(self, "last_tracked_wall", 0.0)),
                     point,
-                    self.operation_width,
-                ))
-            self.last_tracked_point = point
-            pose = self._pose(point, yaw)
-            self.executed_path.header.stamp = pose.header.stamp
-            self.executed_path.poses.append(pose)
-            path = copy.deepcopy(self.executed_path)
-        self.executed_path_pub.publish(path)
+                    yaw,
+                    float(getattr(
+                        self, "sweep_completion_max_sample_step", 0.50
+                    )),
+                )
+                if not evidence["continuous"]:
+                    if live_normal_tracking:
+                        rospy.logwarn_throttle(
+                            2.0,
+                            "coverage execution rejected a map pose sample "
+                            "(%s); the exact sweep tracker will stop the "
+                            "active goal",
+                            self._pose_continuity_failure_detail(evidence),
+                        )
+                    step = 0.0
+                elif evidence["map_step"] > float(getattr(
+                        self, "sweep_completion_max_sample_step", 0.50)):
+                    rospy.logwarn_throttle(
+                        2.0,
+                        "coverage execution accepted %.3fm map pose step: "
+                        "physical /odom %.3fm, residual %.3fm over %.3fs",
+                        evidence["map_step"],
+                        evidence["odom_step"],
+                        evidence["map_odom_residual"],
+                        evidence["elapsed"],
+                    )
+                if step < 0.02:
+                    segment_start = None
+                else:
+                    self.traversed_distance += step
+                    segment_start = self.last_tracked_point
+            if segment_start is not None:
+                if self.grid is not None and self.region.polygon.points:
+                    self.covered_cells.update(rasterize_swept_cells(
+                        self.grid,
+                        self._points_from_region(self.region),
+                        segment_start,
+                        point,
+                        self.operation_width,
+                    ))
+                pose = self._pose(point, yaw)
+                self.executed_path.header.stamp = pose.header.stamp
+                self.executed_path.poses.append(pose)
+                publish_path = copy.deepcopy(self.executed_path)
+            if evidence is None:
+                self.last_tracked_odom = (
+                    self._current_chassis_odom_pose_snapshot()
+                )
+                self.last_tracked_wall = time.monotonic()
+            elif evidence["continuous"]:
+                self.last_tracked_odom = evidence["current_odom"]
+                self.last_tracked_wall = evidence["wall"]
+            if evidence is None or evidence["continuous"]:
+                self.last_tracked_point = point
+                self.last_tracked_yaw = yaw
+
+            if live_coast_tracking:
+                stopped = (
+                    speed is not None and math.isfinite(float(speed))
+                    and abs(float(speed)) <= min(
+                        float(getattr(
+                            self, "transition_completion_stop_speed", 0.08
+                        )),
+                        float(getattr(
+                            self, "sweep_completion_max_linear_speed", 0.08
+                        )),
+                    )
+                )
+                self.pause_coast_stopped_samples = (
+                    int(getattr(self, "pause_coast_stopped_samples", 0)) + 1
+                    if stopped else 0
+                )
+                if self.pause_coast_stopped_samples >= 2:
+                    self.pause_coast_tracking = False
+                    rospy.loginfo(
+                        "coverage recorded the post-cancel braking path until "
+                        "physical /odom confirmed a stable stop"
+                    )
+        if publish_path is not None:
+            self.executed_path_pub.publish(publish_path)
 
     def _status_timer(self, _event):
         self._pause_for_avoidance_loss()

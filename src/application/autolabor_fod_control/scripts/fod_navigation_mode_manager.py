@@ -112,7 +112,7 @@ class FodNavigationModeManager:
             "~require_output_driver", True
         )
         self.fod_entry_distance_m = float(
-            rospy.get_param("~fod_entry_distance_m", 5.0)
+            rospy.get_param("~fod_entry_distance_m", 8.0)
         )
         self.fod_no_detection_timeout_sec = float(
             rospy.get_param("~fod_no_detection_timeout_sec", 1.0)

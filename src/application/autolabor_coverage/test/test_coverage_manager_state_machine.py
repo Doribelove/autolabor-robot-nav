@@ -100,6 +100,16 @@ class _PendingUntilCanceledMoveBase(_SuccessfulMoveBase):
 
 
 class CoverageManagerStateMachineTest(unittest.TestCase):
+    @staticmethod
+    def _physical_odom(x, y, yaw, stamp):
+        message = COVERAGE_MANAGER.Odometry()
+        message.header.stamp = COVERAGE_MANAGER.rospy.Time(stamp)
+        message.pose.pose.position.x = x
+        message.pose.pose.position.y = y
+        message.pose.pose.orientation.z = math.sin(0.5 * yaw)
+        message.pose.pose.orientation.w = math.cos(0.5 * yaw)
+        return message
+
     def test_status_publish_uses_transition_angular_accel_rps2(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
             COVERAGE_MANAGER.CoverageManager
@@ -3024,6 +3034,370 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertTrue(completed)
         self.assertGreaterEqual(geometry["progress_ratio"], 1.0)
 
+    def test_sweep_tracker_uses_the_same_entry_tolerance_as_handoff(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.entry_position_tolerance = 0.40
+        manager.entry_yaw_tolerance = math.radians(25.0)
+        manager.sweep_completion_start_gate = 0.45
+        manager.sweep_completion_cross_track_tolerance = 0.30
+        manager.sweep_completion_heading_tolerance = 0.35
+        segment = {
+            "start": COVERAGE_MANAGER.Point(0.0, 0.0),
+            "end": COVERAGE_MANAGER.Point(4.0, 0.0),
+        }
+        tracker = manager._new_sweep_completion_tracker()
+
+        completed, geometry = manager._observe_sweep_completion(
+            segment,
+            tracker,
+            COVERAGE_MANAGER.Point(0.0, 0.339),
+            0.0,
+            0.0,
+        )
+
+        self.assertFalse(completed)
+        self.assertTrue(tracker["armed"])
+        self.assertAlmostEqual(0.339, geometry["cross_track"])
+
+        # That admitted offset remains resumable while the vehicle is still
+        # acquiring the entrance.  Once it has progressed down the swath, the
+        # ordinary 0.30 m tracking-quality corridor applies.
+        tracker["max_along"] = 0.20
+        geometry = manager._sweep_completion_geometry(
+            segment, COVERAGE_MANAGER.Point(0.20, 0.339), 0.0
+        )
+        self.assertEqual("", manager._sweep_resume_pose_error(
+            tracker, geometry
+        ))
+        tracker["max_along"] = 1.00
+        geometry = manager._sweep_completion_geometry(
+            segment, COVERAGE_MANAGER.Point(1.00, 0.339), 0.0
+        )
+        self.assertIn(
+            "outside the retained sweep corridor",
+            manager._sweep_resume_pose_error(tracker, geometry),
+        )
+
+    def test_large_map_step_is_accepted_when_physical_odom_explains_it(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.chassis_odom = self._physical_odom(0.36, 0.0, 0.0, 10.2)
+        manager.chassis_odom_received_wall = 100.2
+        manager.chassis_odom_fresh_sec = 1.0
+        manager.task_max_speed = 1.6
+        manager.watchdog_max_linear_speed = 1.6
+        manager.pose_continuity_odom_residual_tolerance = 0.30
+        manager.pose_continuity_speed_margin = 0.50
+        manager.pose_continuity_distance_margin = 0.15
+        previous_odom = {
+            "x": 0.0,
+            "y": 0.0,
+            "yaw": 0.0,
+            "received_wall": 100.0,
+            "stamp": 10.0,
+        }
+
+        with mock.patch.object(
+            COVERAGE_MANAGER.time, "monotonic", return_value=100.2
+        ):
+            evidence = manager._pose_step_continuity_evidence(
+                COVERAGE_MANAGER.Point(0.0, 0.0),
+                0.0,
+                previous_odom,
+                100.0,
+                COVERAGE_MANAGER.Point(0.55, 0.0),
+                0.0,
+                0.50,
+            )
+
+        self.assertTrue(evidence["continuous"])
+        self.assertTrue(evidence["odom_supported"])
+        self.assertAlmostEqual(0.36, evidence["odom_step"])
+        self.assertAlmostEqual(0.19, evidence["map_odom_residual"])
+
+    def test_large_map_step_without_matching_odom_remains_a_jump(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.chassis_odom = self._physical_odom(0.20, 0.0, 0.0, 10.2)
+        manager.chassis_odom_received_wall = 100.2
+        manager.chassis_odom_fresh_sec = 1.0
+        manager.task_max_speed = 1.6
+        manager.watchdog_max_linear_speed = 1.6
+        manager.pose_continuity_odom_residual_tolerance = 0.30
+        manager.pose_continuity_speed_margin = 0.50
+        manager.pose_continuity_distance_margin = 0.15
+        previous_odom = {
+            "x": 0.0,
+            "y": 0.0,
+            "yaw": 0.0,
+            "received_wall": 100.0,
+            "stamp": 10.0,
+        }
+
+        with mock.patch.object(
+            COVERAGE_MANAGER.time, "monotonic", return_value=100.2
+        ):
+            evidence = manager._pose_step_continuity_evidence(
+                COVERAGE_MANAGER.Point(0.0, 0.0),
+                0.0,
+                previous_odom,
+                100.0,
+                COVERAGE_MANAGER.Point(1.0, 0.0),
+                0.0,
+                0.50,
+            )
+
+        self.assertFalse(evidence["continuous"])
+        self.assertFalse(evidence["odom_supported"])
+        self.assertAlmostEqual(0.80, evidence["map_odom_residual"])
+
+    def test_sweep_tracker_accepts_large_map_step_with_matching_odom(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.lock = threading.RLock()
+        manager.entry_position_tolerance = 0.40
+        manager.entry_yaw_tolerance = math.radians(25.0)
+        manager.chassis_odom_fresh_sec = 1.0
+        manager.task_max_speed = 1.6
+        manager.watchdog_max_linear_speed = 1.6
+        manager.pose_continuity_odom_residual_tolerance = 0.30
+        manager.pose_continuity_speed_margin = 0.50
+        manager.pose_continuity_distance_margin = 0.15
+        manager.sweep_completion_max_sample_step = 0.50
+        segment = {
+            "start": COVERAGE_MANAGER.Point(0.0, 0.0),
+            "end": COVERAGE_MANAGER.Point(4.0, 0.0),
+        }
+        tracker = manager._new_sweep_completion_tracker()
+        manager.chassis_odom = self._physical_odom(0.0, 0.0, 0.0, 10.0)
+        manager.chassis_odom_received_wall = 100.0
+        with mock.patch.object(
+            COVERAGE_MANAGER.time, "monotonic", return_value=100.0
+        ):
+            manager._observe_sweep_completion(
+                segment, tracker, COVERAGE_MANAGER.Point(0.0, 0.0), 0.0
+            )
+
+        manager.chassis_odom = self._physical_odom(0.36, 0.0, 0.0, 10.2)
+        manager.chassis_odom_received_wall = 100.2
+        with mock.patch.object(
+            COVERAGE_MANAGER.time, "monotonic", return_value=100.2
+        ), mock.patch.object(
+            COVERAGE_MANAGER.rospy, "logwarn_throttle"
+        ):
+            completed, geometry = manager._observe_sweep_completion(
+                segment, tracker, COVERAGE_MANAGER.Point(0.55, 0.0), 0.0
+            )
+
+        self.assertFalse(completed)
+        self.assertFalse(tracker["invalidated"])
+        self.assertAlmostEqual(0.55, tracker["max_along"])
+        self.assertAlmostEqual(0.55, geometry["sample_step"])
+
+    def test_sweep_tracker_invalidates_large_map_step_without_matching_odom(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.lock = threading.RLock()
+        manager.entry_position_tolerance = 0.40
+        manager.entry_yaw_tolerance = math.radians(25.0)
+        manager.chassis_odom_fresh_sec = 1.0
+        manager.task_max_speed = 1.6
+        manager.watchdog_max_linear_speed = 1.6
+        manager.pose_continuity_odom_residual_tolerance = 0.30
+        manager.pose_continuity_speed_margin = 0.50
+        manager.pose_continuity_distance_margin = 0.15
+        manager.sweep_completion_max_sample_step = 0.50
+        segment = {
+            "start": COVERAGE_MANAGER.Point(0.0, 0.0),
+            "end": COVERAGE_MANAGER.Point(4.0, 0.0),
+        }
+        tracker = manager._new_sweep_completion_tracker()
+        manager.chassis_odom = self._physical_odom(0.0, 0.0, 0.0, 10.0)
+        manager.chassis_odom_received_wall = 100.0
+        with mock.patch.object(
+            COVERAGE_MANAGER.time, "monotonic", return_value=100.0
+        ):
+            manager._observe_sweep_completion(
+                segment, tracker, COVERAGE_MANAGER.Point(0.0, 0.0), 0.0
+            )
+
+        manager.chassis_odom = self._physical_odom(0.20, 0.0, 0.0, 10.2)
+        manager.chassis_odom_received_wall = 100.2
+        with mock.patch.object(
+            COVERAGE_MANAGER.time, "monotonic", return_value=100.2
+        ):
+            completed, geometry = manager._observe_sweep_completion(
+                segment, tracker, COVERAGE_MANAGER.Point(1.0, 0.0), 0.0
+            )
+
+        self.assertFalse(completed)
+        self.assertTrue(tracker["invalidated"])
+        self.assertTrue(geometry["invalidated"])
+        self.assertAlmostEqual(
+            0.80,
+            tracker["invalidation_evidence"]["map_odom_residual"],
+        )
+
+    def test_stopped_manual_resume_revalidates_odom_correlated_sweep(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.chassis_odom = self._physical_odom(2.0, 0.0, 0.0, 12.0)
+        manager.chassis_odom_received_wall = 102.0
+        manager.chassis_odom_fresh_sec = 1.0
+        manager.task_max_speed = 1.6
+        manager.watchdog_max_linear_speed = 1.6
+        manager.pose_continuity_odom_residual_tolerance = 0.30
+        manager.pose_continuity_speed_margin = 0.50
+        manager.pose_continuity_distance_margin = 0.15
+        manager.sweep_completion_cross_track_tolerance = 0.30
+        manager.sweep_completion_heading_tolerance = 0.35
+        manager.sweep_completion_max_sample_step = 0.50
+        segment = {
+            "start": COVERAGE_MANAGER.Point(0.0, 0.0),
+            "end": COVERAGE_MANAGER.Point(4.0, 0.0),
+        }
+        tracker = manager._new_sweep_completion_tracker()
+        tracker.update({
+            "armed": True,
+            "invalidated": True,
+            "invalidated_reason": "map pose is not explained by physical odom",
+            "last_point": (0.0, 0.0),
+            "last_pose_yaw": 0.0,
+            "last_odom": {
+                "x": 0.0,
+                "y": 0.0,
+                "yaw": 0.0,
+                "received_wall": 100.0,
+                "stamp": 10.0,
+            },
+            "last_pose_wall": 100.0,
+            "last_along": 0.0,
+            "max_along": 0.0,
+        })
+        point = COVERAGE_MANAGER.Point(2.18, 0.05)
+        geometry = manager._sweep_completion_geometry(segment, point, 0.0)
+
+        with mock.patch.object(
+            COVERAGE_MANAGER.time, "monotonic", return_value=102.0
+        ):
+            error = manager._revalidate_sweep_tracker(
+                segment, tracker, point, 0.0, geometry
+            )
+
+        self.assertEqual("", error)
+        self.assertFalse(tracker["invalidated"])
+        self.assertAlmostEqual(2.18, tracker["max_along"])
+
+    def test_manual_resume_revalidation_rejects_pose_outside_sweep_corridor(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.chassis_odom = self._physical_odom(2.0, 0.45, 0.0, 12.0)
+        manager.chassis_odom_received_wall = 102.0
+        manager.chassis_odom_fresh_sec = 1.0
+        manager.sweep_completion_cross_track_tolerance = 0.30
+        manager.sweep_completion_heading_tolerance = 0.35
+        manager.sweep_completion_max_sample_step = 0.50
+        manager.sweep_completion_start_gate = 0.45
+        manager.entry_position_tolerance = 0.40
+        segment = {
+            "start": COVERAGE_MANAGER.Point(0.0, 0.0),
+            "end": COVERAGE_MANAGER.Point(4.0, 0.0),
+        }
+        tracker = manager._new_sweep_completion_tracker()
+        tracker.update({
+            "armed": True,
+            "invalidated": True,
+            "last_point": (0.0, 0.0),
+            "last_pose_yaw": 0.0,
+            "last_odom": {
+                "x": 0.0,
+                "y": 0.0,
+                "yaw": 0.0,
+                "received_wall": 100.0,
+                "stamp": 10.0,
+            },
+            "last_pose_wall": 100.0,
+            "last_along": 0.0,
+            "max_along": 1.0,
+        })
+        point = COVERAGE_MANAGER.Point(2.0, 0.45)
+
+        error = manager._revalidate_sweep_tracker(
+            segment,
+            tracker,
+            point,
+            0.0,
+            manager._sweep_completion_geometry(segment, point, 0.0),
+        )
+
+        self.assertIn("outside the retained sweep corridor", error)
+        self.assertTrue(tracker["invalidated"])
+
+    def test_paused_tracking_records_braking_until_two_stopped_samples(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager
+        )
+        manager.lock = threading.RLock()
+        manager.active = True
+        manager.state = "PAUSED"
+        manager.manual_pause = True
+        manager.external_pause = False
+        manager.plan_id = "test-plan"
+        manager.last_tracked_point = COVERAGE_MANAGER.Point(0.0, 0.0)
+        manager.last_tracked_yaw = 0.0
+        manager.last_tracked_odom = None
+        manager.last_tracked_wall = 100.0
+        manager.pause_coast_tracking = True
+        manager.pause_coast_deadline = 105.0
+        manager.pause_coast_stopped_samples = 0
+        manager.sweep_completion_max_sample_step = 0.50
+        manager.transition_completion_stop_speed = 0.08
+        manager.sweep_completion_max_linear_speed = 0.08
+        manager.grid = None
+        manager.traversed_distance = 0.0
+        manager.covered_cells = set()
+        manager.operation_width = 1.0
+        manager.executed_path = COVERAGE_MANAGER.Path()
+        manager.executed_path.header.frame_id = "map"
+        manager.executed_path_pub = _Publisher()
+        manager._localization_is_fresh = lambda: True
+        poses = iter([
+            (COVERAGE_MANAGER.Point(0.20, 0.0), 0.0),
+            (COVERAGE_MANAGER.Point(0.40, 0.0), 0.0),
+            (COVERAGE_MANAGER.Point(0.40, 0.0), 0.0),
+            (COVERAGE_MANAGER.Point(0.60, 0.0), 0.0),
+        ])
+        speeds = iter([0.5, 0.0, 0.0, 0.5])
+        manager._current_pose = lambda: next(poses)
+        manager._current_chassis_linear_speed = lambda: next(speeds)
+
+        with mock.patch.object(
+            COVERAGE_MANAGER.time, "monotonic", return_value=100.2
+        ), mock.patch.object(
+            COVERAGE_MANAGER.rospy.Time,
+            "now",
+            return_value=COVERAGE_MANAGER.rospy.Time(100.2),
+        ):
+            manager._tracking_timer(None)
+            manager._tracking_timer(None)
+            manager._tracking_timer(None)
+            # The completed braking window is one-shot.  A later manual
+            # movement must not reopen it while the task remains paused.
+            manager._tracking_timer(None)
+
+        self.assertEqual(2, len(manager.executed_path.poses))
+        self.assertEqual(2, len(manager.executed_path_pub.messages))
+        self.assertFalse(manager.pause_coast_tracking)
+        self.assertEqual(2, manager.pause_coast_stopped_samples)
+
     def test_sweep_entry_recovery_requires_persistent_early_large_error(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
             COVERAGE_MANAGER.CoverageManager
@@ -5700,7 +6074,52 @@ class CoverageSweepResumeTest(unittest.TestCase):
         ])
         self.assertEqual("CANCELED", manager._run_task([], None))
         self.assertEqual(1, len(manager.move_base.goals))
-        self.assertIn("history is untrusted", manager._test_pauses[0][0])
+        self.assertIn("map pose step", manager._test_pauses[0][0])
+
+    def test_first_manual_resume_revalidates_caught_up_physical_odom(self):
+        manager, _ = self._fixture([
+            (self._approach() + [10.1], COVERAGE_MANAGER.GoalStatus.ABORTED),
+            ([], COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+        ])
+        resumed = [False]
+
+        def odom_snapshot():
+            map_x = manager._test_pose[0].x
+            # The first stopped inspection models the historical delayed
+            # sample: map has advanced, while the paired wheel odom has not
+            # arrived yet.  After one operator resume request and a bounded
+            # wait, odom catches up and explains the entire displacement.
+            odom_x = 4.0 if map_x > 4.5 and not resumed[0] else map_x
+            return {
+                "x": odom_x,
+                "y": 0.0,
+                "yaw": 0.0,
+                "received_wall": self.now,
+                "stamp": self.now,
+            }
+
+        def resume_once():
+            if not (manager.manual_pause or manager.external_pause):
+                return True
+            manager._test_pauses.append((
+                manager.manual_pause_reason, len(manager.move_base.goals)
+            ))
+            self.now += 4.0
+            resumed[0] = True
+            manager.manual_pause = False
+            manager.manual_pause_reason = ""
+            return True
+
+        manager._current_chassis_odom_pose_snapshot = odom_snapshot
+        manager._wait_while_paused = resume_once
+
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        self.assertTrue(resumed[0])
+        self.assertEqual(1, len(manager._test_pauses), manager._test_pauses)
+        self.assertEqual(2, len(manager.move_base.goals))
+        tracker = manager._segments([], None)[0]["_sweep_execution"]["tracker"]
+        self.assertFalse(tracker["invalidated"])
+        self.assertGreaterEqual(tracker["max_along"], 10.0)
 
     def test_waiting_pose_outside_corridor_requires_manual_inspection(self):
         for pose in ((4.0, 0.31, 0.0), (4.0, 0.0, 0.36)):

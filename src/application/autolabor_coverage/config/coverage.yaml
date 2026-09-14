@@ -136,6 +136,16 @@ sweep_completion_max_sample_step_m: 0.50
 sweep_completion_confirmation_samples: 2
 sweep_completion_poll_period_sec: 0.05
 sweep_completion_max_linear_speed_mps: 0.08
+# A large map->base_link sample is accepted only when the corresponding
+# physical /odom displacement explains it within this residual.  The speed
+# and distance margins cover timestamp skew and controller quantization, not
+# an arbitrary map-frame teleport.
+pose_continuity_odom_residual_tolerance_m: 0.30
+pose_continuity_speed_margin_mps: 0.50
+pose_continuity_distance_margin_m: 0.15
+# After a goal is canceled, keep recording the physical braking trajectory
+# until two stopped samples arrive, subject to this hard time bound.
+pause_coast_tracking_timeout_sec: 5.0
 sweep_entry_recovery_enabled: true
 sweep_entry_recovery_progress_limit_m: 0.75
 sweep_entry_recovery_confirmation_samples: 3

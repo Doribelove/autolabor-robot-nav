@@ -990,7 +990,9 @@ class ROSBackend:
             session = {}
         result = {
             "state": _public_mode_state(mode.get("state", "UNAVAILABLE")),
-            "reason": mode.get("reason", ""),
+            "reason": visual.get("reason") or mode.get("reason", ""),
+            "mode_reason": mode.get("reason", ""),
+            "visual_reason": visual.get("reason", ""),
             "visual_state": visual.get("state", "UNAVAILABLE"),
             "visual_active": visual.get("active"),
             "ai_owned": owned,
@@ -1737,11 +1739,12 @@ class ROSBackend:
             return ToolResult("另一会话已接管视觉，本次未取得新会话。", True)
         deadline = time.monotonic() + self._visual_start_timeout
         state = "GPS_ACTIVE"
+        new_mode = {}
         new_visual = {}
         new_session = {}
         while time.monotonic() < deadline:
-            state = self._parse_json_message(
-                self._snapshot("mode", 2.0)).get("state", "UNAVAILABLE")
+            new_mode = self._parse_json_message(self._snapshot("mode", 2.0))
+            state = new_mode.get("state", "UNAVAILABLE")
             new_visual = self._parse_json_message(self._snapshot("visual", 2.0))
             new_session = new_visual.get("visual_session", {})
             if (isinstance(new_session, dict) and session_id_valid(new_session.get("session_id"))
@@ -1755,14 +1758,30 @@ class ROSBackend:
             # A successful no-target response plus fresh idle state is a
             # completed no-op. Lost service replies without session evidence
             # remain blocked; do not silently authorize a later navigation.
-            if (not start_error and state == "GPS_ACTIVE" and new_visual.get("state") == "DISABLED"
-                    and new_visual.get("active") is False):
+            confirmed_idle = (not start_error and state == "GPS_ACTIVE"
+                              and new_visual.get("state") == "DISABLED"
+                              and new_visual.get("active") is False)
+            if confirmed_idle:
                 with self._lock:
                     self._ai_visual_owned = False
-            return ToolResult(
-                start_error or "视觉服务返回后未确认本次新会话；可能没有接管目标或状态已丢失，不能认为已清扫。",
-                True,
-            )
+            service_message = response.message if response is not None else ""
+            # KEEP_GPS acknowledges the request without enabling a controller.
+            # Idle alone (or a lost reply) is not proof that it never started.
+            not_started = confirmed_idle and "GPS remains active" in service_message
+            message = (start_error or (
+                "仲裁器保持导航模式，未启动本次视觉清扫；未确认清扫完成。" if not_started else
+                "视觉服务返回后未确认本次新会话，不能认定已启动或已清扫。"))
+            if service_message:
+                message += " 服务返回: " + service_message
+            return ToolResult(_json({
+                "accepted": False,
+                "execution_state": "not_started" if not_started else "start_unconfirmed",
+                "message": message, "service_message": service_message,
+                "state": _public_mode_state(state),
+                "mode_reason": new_mode.get("reason", ""),
+                "visual_state": new_visual.get("state", "UNAVAILABLE"),
+                "visual_reason": new_visual.get("reason", ""),
+            }), True)
         with self._lock:
             self._ai_visual_owned = True
             self._ai_visual_session_id = session_id
@@ -1771,6 +1790,7 @@ class ROSBackend:
             start_error = "已记录视觉会话，但模式状态缺失；不能确认启动成功。"
         return ToolResult(_json({
             "accepted": not bool(start_error), "state": _public_mode_state(state),
+            "execution_state": "started", "service_message": response.message if response is not None else "",
             "visual_session_id": session_id, "completion_baseline": baseline,
             "message": start_error or response.message,
         }), bool(start_error))

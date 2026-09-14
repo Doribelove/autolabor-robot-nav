@@ -15,6 +15,7 @@ import yaml
 
 from autolabor_fod_control.visual_servo import (
     ACQUIRE,
+    BLIND_ADVANCE,
     APPROACH,
     EDGE_ARMED,
     LOSS_CONFIRM,
@@ -171,14 +172,14 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         with CONFIG_PATH.open(encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
         self.assertEqual(config["acquire_max_abs_horizontal_error"], 0.65)
-        self.assertEqual(config["max_runtime_horizontal_error"], 0.70)
+        self.assertNotIn("max_runtime_horizontal_error", config)
         self.assertEqual(config["min_confidence"], 0.30)
         self.assertNotIn("raw_can_query_interval_sec", config)
         self.assertNotIn("canbus_service", config)
         self.assertEqual(config["raw_can_timeout_sec"], 8.00)
         self.assertTrue(config["require_depth_for_acquisition"])
         self.assertEqual(config["min_target_depth_m"], 0.35)
-        self.assertEqual(config["max_target_depth_m"], 5.0)
+        self.assertEqual(config["max_target_depth_m"], 8.0)
         self.assertEqual(config["nearest_depth_hysteresis_m"], 0.10)
         self.assertEqual(config["locked_depth_invalid_abort_frames"], 5)
         self.assertEqual(config["association_max_anchor_distance_ratio"], 0.18)
@@ -187,8 +188,8 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
             config["duplicate_detection_max_anchor_distance_ratio"], 0.02
         )
         self.assertEqual(config["duplicate_detection_max_depth_delta_m"], 0.15)
-        self.assertEqual(config["early_loss_grace_frames"], 20)
-        self.assertEqual(config["early_loss_max_frames"], 60)
+        self.assertNotIn("early_loss_grace_frames", config)
+        self.assertNotIn("early_loss_max_frames", config)
         self.assertEqual(config["far_speed_mps"], 0.20)
         self.assertEqual(config["near_speed_mps"], 0.20)
         self.assertEqual(config["approach_min_command_speed_mps"], 0.20)
@@ -361,212 +362,256 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         self.assertGreater(curvature, 0.0)
 
 
+class ApprovedBottomGateTest(unittest.TestCase):
+    @staticmethod
+    def configured_node():
+        with CONFIG_PATH.open(encoding="utf-8") as stream:
+            config = yaml.safe_load(stream)
+        node = FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
+        for name, value in config.items():
+            setattr(node, name, value)
+        node.machine_config = TargetMachineConfig(**{
+            name: config.get("pixel_filter_alpha" if name == "filter_alpha" else name, field.default)
+            for name, field in TargetMachineConfig.__dataclass_fields__.items()
+        })
+        node.association_config = AssociationConfig()
+        node.m2_bypass_topics = [node.steer_center_bias_topic, node.reset_odom_topic,
+                                 node.brake_set_topic, node.emergency_stop_topic]
+        return node
+
+    def test_simple_production_completion_parameters(self):
+        node = self.configured_node()
+        node._validate_parameters()
+        self.assertEqual(node.machine_config.loss_confirm_frames, 10)
+        self.assertEqual(node.blind_distance_m, 0.30)
+        self.assertEqual((node.far_speed_mps, node.blind_speed_mps), (0.20, 0.20))
+
+
+class ApprovedVisualRangeAndStopTest(unittest.TestCase):
+    def test_all_launch_distance_defaults_match_production_yaml(self):
+        config = ApprovedBottomGateTest.configured_node()
+        for path in (LAUNCH_PATH, LAUNCH_PATH.with_name("gps_visual_recovery_standby.launch")):
+            root = ET.parse(str(path)).getroot()
+            self.assertEqual(float(root.find("arg[@name='blind_distance_m']").get("default")),
+                             config.blind_distance_m, str(path))
+
+    def test_depth_range_includes_eight_metres_but_not_more(self):
+        node = ApprovedBottomGateTest.configured_node()
+        for depth, accepted in ((0.349, False), (0.35, True), (5.7, True),
+                                (8.0, True), (8.000001, False)):
+            with self.subTest(depth=depth):
+                reason = depth_rejection_reason(
+                    detection(depth_m=depth), node.min_target_depth_m,
+                    node.max_target_depth_m, node.min_depth_sample_count,
+                    node.min_depth_valid_fraction, node.max_depth_mad_m)
+                self.assertEqual(not reason, accepted)
+
+    def test_launch_entry_limits_match_visual_depth_range(self):
+        config = ApprovedBottomGateTest.configured_node()
+        standby = ET.parse(str(LAUNCH_PATH.with_name("gps_visual_recovery_standby.launch"))).getroot()
+        entry_arg = standby.find("arg[@name='fod_entry_distance_m']")
+        self.assertEqual(float(entry_arg.get("default")), config.max_target_depth_m)
+        integrated = ET.parse(str(CONFIG_PATH.parents[3] / "platform" / "autolabor_dual_host" /
+                                  "launch" / "j6m_fastlio_navigation.launch")).getroot()
+        entry_param = integrated.find(".//node[@name='fod_navigation_mode']/param[@name='fod_entry_distance_m']")
+        self.assertIsNotNone(entry_param)
+        self.assertEqual(float(entry_param.get("value")), config.max_target_depth_m)
+
+
 class TargetPhaseMachineTest(unittest.TestCase):
     def setUp(self):
-        self.config = TargetMachineConfig(
-            acquire_frames=3,
-            bottom_fraction=0.88,
-            bottom_center_tolerance_fraction=0.05,
-            bottom_confirm_frames=3,
-            min_approach_distance_m=0.10,
-            min_vertical_progress_fraction=0.06,
-            loss_confirm_frames=5,
-            loss_confirm_min_sec=0.20,
-            early_loss_grace_frames=2,
-            early_loss_max_frames=4,
-            filter_alpha=0.35,
-        )
-        self.machine = TargetPhaseMachine(self.config, AssociationConfig())
+        self.machine = TargetPhaseMachine(TargetMachineConfig())
         self.stamp = 1.0
 
-    def step(self, candidates, distance=0.0, dt=0.05):
+    def step(self, candidates, distance=0.0, dt=0.10):
         self.stamp += dt
-        return self.machine.process_frame(
-            candidates,
-            WIDTH,
-            HEIGHT,
-            TARGET_U,
-            distance,
-            self.stamp,
-        )
+        return self.machine.process_frame(candidates, WIDTH, HEIGHT, TARGET_U,
+                                          distance, self.stamp)
 
-    def acquire(self):
-        decision = None
-        for _ in range(self.config.acquire_frames):
-            decision = self.step([detection()])
-        self.assertEqual(decision.state, APPROACH)
+    def lock(self, target=None):
+        target = target or detection()
+        for _ in range(6):
+            decision = self.step((target,))
         self.assertTrue(decision.acquired)
-        return decision
+        return target
 
-    def arm_bottom_gate(self):
-        self.acquire()
-        decision = None
-        # Move down in small spatially-associated increments, then hold long
-        # enough for both the pixel EMA and consecutive bottom gate.
-        for index in range(1, 19):
-            q = 0.50 + index * (0.42 / 18.0)
-            decision = self.step([detection(q=q)], distance=0.20)
-        for _ in range(8):
-            decision = self.step([detection(q=0.92)], distance=0.20)
-        self.assertEqual(decision.state, EDGE_ARMED)
-        return decision
+    def test_no_acquired_target_never_completes(self):
+        for _ in range(100):
+            self.assertEqual(self.step(()).state, ACQUIRE)
 
-    def test_requires_consecutive_unique_frames_to_acquire(self):
-        first = self.step([detection()])
-        ambiguous = self.step([detection(), detection(u=850.0)])
-        self.assertEqual(first.state, ACQUIRE)
-        self.assertEqual(ambiguous.state, ACQUIRE)
-        self.assertIn("multiple", ambiguous.reason)
-        self.assertIsNone(ambiguous.target)
+    def test_exactly_ten_missing_frames_at_any_image_position(self):
+        for q in (0.25, 0.5, 0.86, 0.99):
+            for offset in (-200, 0, 200):
+                with self.subTest(q=q, offset=offset):
+                    self.machine.reset()
+                    self.lock(detection(q=q, u=TARGET_U + offset))
+                    for count in range(1, 11):
+                        decision = self.step(())
+                        self.assertFalse(decision.fault)
+                        self.assertEqual(self.machine.missing_frames, count)
+                        self.assertEqual(decision.state,
+                                         LOSS_CONFIRM if count < 10 else BLIND_ADVANCE)
 
-    def test_early_loss_stops_and_never_enters_blind_transition(self):
-        self.acquire()
-        decision = None
-        for expected_missing in range(1, self.config.early_loss_grace_frames + 1):
-            decision = self.step([], distance=0.02)
+    def test_nine_misses_then_reappearance_resets_counter(self):
+        target = self.lock()
+        for _ in range(9):
+            self.step(())
+        self.assertEqual(self.step((target,)).state, APPROACH)
+        self.assertEqual(self.machine.missing_frames, 0)
+        for _ in range(9):
+            self.assertEqual(self.step(()).state, LOSS_CONFIRM)
+        self.assertEqual(self.step(()).state, BLIND_ADVANCE)
+
+    def test_visible_low_confidence_or_invalid_depth_is_not_loss(self):
+        target = self.lock()
+        for _ in range(30):
+            decision = self.step((replace(target, depth_valid=False,
+                                           depth_m=math.nan, confidence=0.1),))
             self.assertEqual(decision.state, APPROACH)
-            self.assertIn("briefly missing %d/" % expected_missing, decision.reason)
-            self.assertFalse(decision.enter_steer_settle)
+            self.assertEqual(self.machine.missing_frames, 0)
 
-        decision = self.step([], distance=0.02)
-        self.assertEqual(decision.state, REACQUIRE)
-        self.assertFalse(decision.enter_steer_settle)
-        for _ in range(
-            self.config.early_loss_max_frames
-            - self.config.early_loss_grace_frames
-            - 1
-        ):
-            decision = self.step([], distance=0.02)
-        self.assertTrue(decision.fault)
-        self.assertNotEqual(decision.state, STEER_SETTLE)
+    def test_other_distant_object_does_not_replace_lock_or_block_loss(self):
+        target = self.lock(detection(u=100))
+        other = detection(u=1100)
+        for _ in range(10):
+            decision = self.step((other,))
+        self.assertEqual(decision.state, BLIND_ADVANCE)
+        self.assertEqual(decision.target, target)
 
-    def test_nonmatching_visible_target_stops_without_dropout_grace(self):
-        self.acquire()
-        decision = self.step([detection(u=1000.0)], distance=0.02)
-        self.assertEqual(decision.state, REACQUIRE)
-        self.assertIn("stopped for reacquisition", decision.reason)
+    def test_no_extra_time_gate(self):
+        self.lock()
+        for _ in range(10):
+            decision = self.step((), dt=0.001)
+        self.assertEqual(decision.state, BLIND_ADVANCE)
 
-    def test_bottom_gate_and_five_fresh_empty_frames_enable_settle(self):
-        self.arm_bottom_gate()
-        decision = self.step([], distance=0.20, dt=0.06)
-        self.assertEqual(decision.state, LOSS_CONFIRM)
-        self.assertFalse(decision.enter_steer_settle)
-        for _ in range(3):
-            decision = self.step([], distance=0.20, dt=0.06)
-            self.assertFalse(decision.enter_steer_settle)
-        decision = self.step([], distance=0.20, dt=0.06)
-        self.assertEqual(decision.state, STEER_SETTLE)
-        self.assertTrue(decision.enter_steer_settle)
-
-    def test_single_bottom_dropout_can_reacquire_same_target(self):
-        self.arm_bottom_gate()
-        self.assertEqual(self.step([], distance=0.20).state, LOSS_CONFIRM)
-        reacquired = self.step([detection(q=0.92)], distance=0.20)
-        self.assertEqual(reacquired.state, EDGE_ARMED)
-        self.assertFalse(reacquired.fault)
-
-    def test_prearm_dropout_resets_consecutive_bottom_frames(self):
-        self.acquire()
-        # alpha=0.35 needs a gradual descent before bottom-ready frames.
-        for index in range(1, 19):
-            q = 0.50 + index * (0.42 / 18.0)
-            self.step([detection(q=q)], distance=0.20)
-        self.machine.bottom_hits = self.config.bottom_confirm_frames - 1
-        lost = self.step([], distance=0.20)
-        self.assertEqual(lost.state, APPROACH)
-        self.assertIn("briefly missing", lost.reason)
-        self.assertEqual(self.machine.bottom_hits, 0)
-        recovered = self.step([detection(q=0.92)], distance=0.20)
-        self.assertEqual(recovered.state, APPROACH)
-        self.assertEqual(self.machine.bottom_hits, 1)
-
-    def test_distant_interference_does_not_replace_locked_target(self):
-        self.acquire()
-        locked = detection(u=625.0, q=0.51)
-        interference = detection(u=1000.0, q=0.30, class_id=2, class_name="Plastic")
-        decision = self.step([interference, locked], distance=0.01)
+    def test_large_box_growth_retains_the_target(self):
+        self.lock()
+        decision = self.step((detection(box_width=400, box_height=200),))
         self.assertEqual(decision.state, APPROACH)
-        self.assertAlmostEqual(decision.target.anchor_u, locked.anchor_u)
-
-    def test_two_plausible_matches_abort_instead_of_switching(self):
-        self.acquire()
-        left = detection(u=605.0, q=0.51)
-        right = detection(u=635.0, q=0.51)
-        decision = self.step([left, right], distance=0.01)
-        self.assertTrue(decision.fault)
-        self.assertIn("multiple", decision.fault)
-
-    def test_cross_class_duplicate_boxes_keep_the_same_geometric_lock(self):
-        self.acquire()
-        primary = detection(
-            u=622.0,
-            q=0.51,
-            class_id=2,
-            class_name="paper",
-            confidence=0.75,
-            box_width=100.0,
-            box_height=80.0,
-            depth_m=1.984,
-        )
-        duplicate = detection(
-            u=622.5,
-            q=0.5102,
-            class_id=1,
-            class_name="plastic",
-            confidence=0.31,
-            box_width=102.0,
-            box_height=82.0,
-            depth_m=1.984,
-        )
-        decision = self.step([primary, duplicate], distance=0.01)
         self.assertFalse(decision.fault)
-        self.assertEqual(decision.state, APPROACH)
-        self.assertIn(decision.target, (primary, duplicate))
 
-    def test_overlapping_boxes_with_different_depths_remain_ambiguous(self):
-        self.acquire()
-        near = detection(u=622.0, q=0.51, depth_m=1.90)
-        far = detection(
-            u=622.5,
-            q=0.5102,
-            class_id=1,
-            class_name="Plastic",
-            box_width=102.0,
-            box_height=82.0,
-            depth_m=2.20,
-        )
-        decision = self.step([near, far], distance=0.01)
-        self.assertTrue(decision.fault)
-        self.assertIn("multiple", decision.fault)
+    def test_pending_acquisition_still_needs_six_frames(self):
+        for _ in range(5):
+            self.assertEqual(self.step((detection(),)).state, ACQUIRE)
+        self.assertEqual(self.step((detection(),)).state, APPROACH)
 
-    def test_raw_lateral_jump_cannot_hide_behind_pixel_filter_before_loss(self):
-        self.arm_bottom_gate()
-        # 160 px remains within the association distance on a 1280x1024
-        # image, while EMA(alpha=.35) moves only 56 px.  Safety gating must use
-        # the raw observation as well as the filtered control value.
-        jumped = self.step([detection(u=TARGET_U + 160.0, q=0.92)], distance=0.20)
-        self.assertTrue(jumped.fault)
-        self.assertIn("laterally", jumped.fault)
+    def test_pass_is_one_way_after_tenth_frame(self):
+        target = self.lock()
+        for _ in range(10):
+            self.step(())
+        self.assertEqual(self.step((target,)).state, BLIND_ADVANCE)
 
-    def test_raw_out_of_gate_frames_do_not_accumulate_bottom_confirmation(self):
-        self.acquire()
-        for index in range(1, 19):
-            q = 0.50 + index * (0.42 / 18.0)
-            self.step([detection(q=q)], distance=0.20)
-        for offset in (70.0, -70.0, 70.0, -70.0):
-            decision = self.step(
-                [detection(u=TARGET_U + offset, q=0.92)], distance=0.20
+    def test_recorded_1605_five_bottom_frames_no_longer_need_six(self):
+        # Recorded seq 2063--2067; pure target logic replay, not vehicle replay.
+        def frame(u, v):
+            self.stamp += 0.13
+            candidates = () if u is None else (
+                replace(detection(), x=u-30, y=v-30, width=60, height=30,
+                        anchor_u=u, anchor_v=v),)
+            return self.machine.process_frame(
+                candidates, 640, 360, 317.458, 1.05, self.stamp)
+        for _ in range(6):
+            frame(279, 326)
+        for u, v in ((279, 326), (280, 337), (276.5, 355),
+                     (271.5, 359), (273.5, 359)):
+            frame(u, v)
+        for _ in range(10):
+            decision = frame(None, None)
+        self.assertEqual(decision.state, BLIND_ADVANCE)
+        self.assertFalse(decision.fault)
+
+
+class AreaIndependentAssociationTest(unittest.TestCase):
+    @staticmethod
+    def recorded_targets():
+        # Actual /fod/detections frames from 2026-09-12 15:11:16--17,
+        # seq 17936/17938/17939/17940. The last three touch the image bottom.
+        boxes = ((306, 282, 58, 37), (259, 292, 113, 68),
+                 (255, 296, 119, 64), (264, 304, 119, 56))
+        depths = (0.7530065775, 0.7028478384, 0.6910436153, 0.6604517102)
+        return tuple(
+            PixelDetection(
+                class_id=0, class_name="paper", confidence=0.47,
+                x=x, y=y, width=width, height=height,
+                anchor_u=x + (width - 1) / 2.0,
+                anchor_v=y + height - 1,
+                depth_valid=True, depth_m=depth, depth_mad_m=0.008,
+                depth_sample_count=879, depth_valid_fraction=0.74,
             )
-            self.assertNotEqual(decision.state, EDGE_ARMED)
-            self.assertEqual(self.machine.bottom_hits, 0)
-
-    def test_matching_can_survive_brief_class_jitter_without_target_jump(self):
-        original = detection()
-        jittered = detection(u=623.0, q=0.505, class_id=4, class_name="Tool")
-        matches = matching_detections(
-            original, [jittered], WIDTH, HEIGHT, AssociationConfig()
+            for (x, y, width, height), depth in zip(boxes, depths)
         )
-        self.assertEqual(matches, (jittered,))
+
+    def recorded_machine(self):
+        # Seed only the phase machine from the last accepted live observation.
+        # This is not a full sensor/vehicle replay or proof of physical cleaning.
+        config = ApprovedBottomGateTest.configured_node().machine_config
+        machine = TargetPhaseMachine(config, AssociationConfig())
+        machine.state = APPROACH
+        machine.locked = self.recorded_targets()[0]
+        machine.filtered_u = 332.892
+        machine.filtered_v = 300.132
+        machine.acquired_v_fraction = 0.52368
+        machine.maximum_v_fraction = 0.83602
+        return machine
+
+    def test_area_ratio_parameters_are_removed_from_production(self):
+        with CONFIG_PATH.open(encoding="utf-8") as stream:
+            config = yaml.safe_load(stream)
+        for name in ("min_area_ratio", "max_area_ratio"):
+            self.assertNotIn(name, AssociationConfig.__dataclass_fields__)
+            self.assertNotIn("association_" + name, config)
+            self.assertNotIn("association_" + name, NODE_PATH.read_text())
+
+    def test_size_growth_and_shrinkage_do_not_break_a_spatial_match(self):
+        original = detection()
+        for scale in (0.10, 0.50, 2.0, 4.0):
+            with self.subTest(scale=scale):
+                candidate = detection(box_width=100.0 * scale,
+                                      box_height=80.0 * scale)
+                validate_detection(candidate, WIDTH, HEIGHT)
+                self.assertEqual(matching_detections(
+                    original, (candidate,), WIDTH, HEIGHT, AssociationConfig()
+                ), (candidate,))
+
+    def test_recorded_bottom_boxes_all_match_the_last_locked_target(self):
+        previous, *candidates = self.recorded_targets()
+        for candidate in candidates:
+            with self.subTest(box=(candidate.width, candidate.height)):
+                self.assertEqual(matching_detections(
+                    previous, (candidate,), 640, 360, AssociationConfig()
+                ), (candidate,))
+
+    def test_size_change_does_not_admit_a_distant_unrelated_target(self):
+        original = detection(u=200.0, q=0.30)
+        for scale in (0.25, 3.0):
+            with self.subTest(scale=scale):
+                candidate = detection(u=1000.0, q=0.75,
+                                      box_width=100.0 * scale,
+                                      box_height=80.0 * scale)
+                self.assertEqual(matching_detections(
+                    original, (candidate,), WIDTH, HEIGHT, AssociationConfig()
+                ), ())
+
+    def test_different_sizes_do_not_resolve_two_plausible_targets(self):
+        machine = self.recorded_machine()
+        previous, enlarged, *_ = self.recorded_targets()
+        decision = machine.process_frame((previous, enlarged), 640, 360,
+                                         317.459, 0.75, 1.0)
+        self.assertIn("multiple detections", decision.fault)
+        self.assertFalse(decision.enter_steer_settle)
+
+    def test_recorded_three_bottom_frames_followed_by_ten_misses_start_pass(self):
+        machine = self.recorded_machine()
+        for index, target in enumerate(self.recorded_targets()[1:]):
+            decision = machine.process_frame((target,), 640, 360, 317.459,
+                                             0.75, 1.0 + index * 0.13)
+            self.assertEqual(decision.state, APPROACH)
+            self.assertFalse(decision.fault)
+        for index in range(10):
+            decision = machine.process_frame((), 640, 360, 317.459,
+                                             0.99, 2.0 + index * 0.13)
+        self.assertEqual(decision.state, BLIND_ADVANCE)
+        self.assertFalse(decision.fault)
 
 
 class MetricIdentityBindingTest(unittest.TestCase):
@@ -711,7 +756,7 @@ class SelectedVisualPolicyTest(unittest.TestCase):
         self.assertEqual(proof['object_id'], '42')
         self.assertEqual(proof['acquired_object_id'], '77')
         self.assertEqual(proof['request_id'], 'request-a')
-        self.assertTrue(proof['stopped'])
+        self.assertFalse(proof['stopped'])  # Zero command is not physical-stop proof.
         self.assertNotIn('minimum_distance_m', proof)
 
     def test_legacy_selected_policy_and_ordinary_visual_are_unchanged(self):
@@ -1114,7 +1159,7 @@ class LockedDepthGraceTest(unittest.TestCase):
         ):
             node._candidates_with_locked_depth_grace(frame)
 
-    def test_detection_pipeline_keeps_moving_through_four_then_aborts(self):
+    def test_detection_pipeline_tracks_visible_target_without_depth_abort(self):
         node = self.make_node()
         node.target_u_px = TARGET_U
         node.approach_path_m = 0.20
@@ -1139,16 +1184,12 @@ class LockedDepthGraceTest(unittest.TestCase):
         )
         node._take_detection_events = mock.Mock(return_value=(frame,))
 
-        for expected_count in range(1, 5):
+        for _ in range(30):
             node._process_detection_events()
             self.assertEqual(node.phase, FOD_NODE.APPROACH)
             self.assertTrue(node.target_visible)
-            self.assertEqual(node.locked_depth_invalid_frames, expected_count)
-
-        with self.assertRaisesRegex(
-            FOD_NODE.ControllerAbort, "for 5 consecutive frames"
-        ):
-            node._process_detection_events()
+            self.assertEqual(node.machine.missing_frames, 0)
+        node._hard_stop.assert_not_called()
 
     def test_edge_armed_depth_jitter_does_not_look_like_disappearance(self):
         node = self.make_node(FOD_NODE.EDGE_ARMED)

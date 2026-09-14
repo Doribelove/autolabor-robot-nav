@@ -308,7 +308,7 @@ class FodVisualServoNode:
             rospy.get_param("~min_target_depth_m", 0.35)
         )
         self.max_target_depth_m = float(
-            rospy.get_param("~max_target_depth_m", 5.0)
+            rospy.get_param("~max_target_depth_m", 8.0)
         )
         self.min_depth_sample_count = int(
             rospy.get_param("~min_depth_sample_count", 20)
@@ -416,8 +416,6 @@ class FodVisualServoNode:
             max_anchor_distance_ratio=float(
                 rospy.get_param("~association_max_anchor_distance_ratio", 0.18)
             ),
-            min_area_ratio=float(rospy.get_param("~association_min_area_ratio", 0.35)),
-            max_area_ratio=float(rospy.get_param("~association_max_area_ratio", 2.80)),
             duplicate_min_iou=float(
                 rospy.get_param("~duplicate_detection_min_iou", 0.80)
             ),
@@ -432,27 +430,7 @@ class FodVisualServoNode:
         )
         machine_config = TargetMachineConfig(
             acquire_frames=int(rospy.get_param("~acquire_frames", 6)),
-            bottom_fraction=float(rospy.get_param("~bottom_fraction", 0.88)),
-            bottom_center_tolerance_fraction=float(
-                rospy.get_param("~bottom_center_tolerance_fraction", 0.05)
-            ),
-            bottom_confirm_frames=int(rospy.get_param("~bottom_confirm_frames", 6)),
-            min_approach_distance_m=float(
-                rospy.get_param("~min_approach_distance_m", 0.10)
-            ),
-            min_vertical_progress_fraction=float(
-                rospy.get_param("~min_vertical_progress_fraction", 0.06)
-            ),
-            loss_confirm_frames=int(rospy.get_param("~loss_confirm_frames", 5)),
-            loss_confirm_min_sec=float(
-                rospy.get_param("~loss_confirm_min_sec", 0.20)
-            ),
-            early_loss_grace_frames=int(
-                rospy.get_param("~early_loss_grace_frames", 20)
-            ),
-            early_loss_max_frames=int(
-                rospy.get_param("~early_loss_max_frames", 60)
-            ),
+            loss_confirm_frames=int(rospy.get_param("~loss_confirm_frames", 10)),
             filter_alpha=float(rospy.get_param("~pixel_filter_alpha", 0.35)),
         )
         self.machine_config = machine_config
@@ -465,9 +443,6 @@ class FodVisualServoNode:
         )
         self.max_steering_angle_deg = float(
             rospy.get_param("~max_steering_angle_deg", 12.0)
-        )
-        self.max_runtime_horizontal_error = float(
-            rospy.get_param("~max_runtime_horizontal_error", 0.70)
         )
         self.far_speed_mps = float(rospy.get_param("~far_speed_mps", 0.20))
         self.near_speed_mps = float(rospy.get_param("~near_speed_mps", 0.20))
@@ -491,9 +466,6 @@ class FodVisualServoNode:
         )
         self.max_curvature_rate_per_sec = float(
             rospy.get_param("~max_curvature_rate_per_sec", 0.80)
-        )
-        self.max_approach_distance_m = float(
-            rospy.get_param("~max_approach_distance_m", 6.0)
         )
         self.approach_no_motion_timeout_sec = float(
             rospy.get_param("~approach_no_motion_timeout_sec", 3.0)
@@ -525,13 +497,8 @@ class FodVisualServoNode:
             rospy.get_param("~settle_wheel_angle_deg", 2.0)
         )
         self.settle_speed_mps = float(rospy.get_param("~settle_speed_mps", 0.03))
-        self.settle_confirm_sec = float(rospy.get_param("~settle_confirm_sec", 0.30))
-        self.settle_timeout_sec = float(rospy.get_param("~settle_timeout_sec", 3.0))
-        self.preblind_max_displacement_m = float(
-            rospy.get_param("~preblind_max_displacement_m", 0.05)
-        )
         self.blind_speed_mps = float(rospy.get_param("~blind_speed_mps", 0.20))
-        self.blind_distance_m = float(rospy.get_param("~blind_distance_m", 0.50))
+        self.blind_distance_m = float(rospy.get_param("~blind_distance_m", 0.30))
         self.blind_hard_distance_m = float(
             rospy.get_param("~blind_hard_distance_m", 0.55)
         )
@@ -545,23 +512,8 @@ class FodVisualServoNode:
         self.blind_progress_step_m = float(
             rospy.get_param("~blind_progress_step_m", 0.01)
         )
-        self.blind_max_heading_change_deg = float(
-            rospy.get_param("~blind_max_heading_change_deg", 4.0)
-        )
-        self.blind_max_lateral_deviation_m = float(
-            rospy.get_param("~blind_max_lateral_deviation_m", 0.08)
-        )
-        self.final_stop_confirm_sec = float(
-            rospy.get_param("~final_stop_confirm_sec", 0.50)
-        )
         self.final_stop_speed_mps = float(
             rospy.get_param("~final_stop_speed_mps", 0.01)
-        )
-        self.final_stop_max_drift_m = float(
-            rospy.get_param("~final_stop_max_drift_m", 0.005)
-        )
-        self.final_stop_timeout_sec = float(
-            rospy.get_param("~final_stop_timeout_sec", 3.0)
         )
 
         self._validate_parameters()
@@ -893,8 +845,6 @@ class FodVisualServoNode:
             "association_max_anchor_distance_ratio": (
                 self.association_config.max_anchor_distance_ratio
             ),
-            "association_min_area_ratio": self.association_config.min_area_ratio,
-            "association_max_area_ratio": self.association_config.max_area_ratio,
             "duplicate_detection_min_iou": (
                 self.association_config.duplicate_min_iou
             ),
@@ -904,21 +854,11 @@ class FodVisualServoNode:
             "duplicate_detection_max_depth_delta_m": (
                 self.association_config.duplicate_max_depth_delta_m
             ),
-            "bottom_fraction": self.machine_config.bottom_fraction,
-            "bottom_center_tolerance_fraction": (
-                self.machine_config.bottom_center_tolerance_fraction
-            ),
-            "min_approach_distance_m": self.machine_config.min_approach_distance_m,
-            "min_vertical_progress_fraction": (
-                self.machine_config.min_vertical_progress_fraction
-            ),
-            "loss_confirm_min_sec": self.machine_config.loss_confirm_min_sec,
             "pixel_filter_alpha": self.machine_config.filter_alpha,
             "steering_sign": self.steering_sign,
             "curvature_gain": self.curvature_gain,
             "horizontal_deadband": self.horizontal_deadband,
             "max_steering_angle_deg": self.max_steering_angle_deg,
-            "max_runtime_horizontal_error": self.max_runtime_horizontal_error,
             "far_speed_mps": self.far_speed_mps,
             "near_speed_mps": self.near_speed_mps,
             "slow_start_fraction": self.slow_start_fraction,
@@ -928,7 +868,6 @@ class FodVisualServoNode:
             "approach_min_command_speed_mps": self.approach_min_command_speed_mps,
             "max_linear_acceleration_mps2": self.max_linear_acceleration_mps2,
             "max_curvature_rate_per_sec": self.max_curvature_rate_per_sec,
-            "max_approach_distance_m": self.max_approach_distance_m,
             "approach_no_motion_timeout_sec": self.approach_no_motion_timeout_sec,
             "approach_no_progress_timeout_sec": self.approach_no_progress_timeout_sec,
             "approach_progress_step_m": self.approach_progress_step_m,
@@ -940,9 +879,6 @@ class FodVisualServoNode:
             "cleaning_min_forward_speed_mps": self.cleaning_min_forward_speed_mps,
             "settle_wheel_angle_deg": self.settle_wheel_angle_deg,
             "settle_speed_mps": self.settle_speed_mps,
-            "settle_confirm_sec": self.settle_confirm_sec,
-            "settle_timeout_sec": self.settle_timeout_sec,
-            "preblind_max_displacement_m": self.preblind_max_displacement_m,
             "blind_speed_mps": self.blind_speed_mps,
             "blind_distance_m": self.blind_distance_m,
             "blind_hard_distance_m": self.blind_hard_distance_m,
@@ -950,12 +886,7 @@ class FodVisualServoNode:
             "blind_no_motion_timeout_sec": self.blind_no_motion_timeout_sec,
             "blind_no_progress_timeout_sec": self.blind_no_progress_timeout_sec,
             "blind_progress_step_m": self.blind_progress_step_m,
-            "blind_max_heading_change_deg": self.blind_max_heading_change_deg,
-            "blind_max_lateral_deviation_m": self.blind_max_lateral_deviation_m,
-            "final_stop_confirm_sec": self.final_stop_confirm_sec,
             "final_stop_speed_mps": self.final_stop_speed_mps,
-            "final_stop_max_drift_m": self.final_stop_max_drift_m,
-            "final_stop_timeout_sec": self.final_stop_timeout_sec,
         }
         for name, value in numeric.items():
             if not math.isfinite(value):
@@ -1098,10 +1029,6 @@ class FodVisualServoNode:
             raise ValueError("association_min_iou is invalid")
         if not 0.02 <= self.association_config.max_anchor_distance_ratio <= 0.25:
             raise ValueError("association anchor distance is invalid")
-        if not 0.10 <= self.association_config.min_area_ratio < 1.0:
-            raise ValueError("association minimum area ratio is invalid")
-        if not 1.0 < self.association_config.max_area_ratio <= 5.0:
-            raise ValueError("association maximum area ratio is invalid")
         if not 0.60 <= self.association_config.duplicate_min_iou <= 0.95:
             raise ValueError("duplicate detection IoU gate is invalid")
         if not (
@@ -1112,26 +1039,8 @@ class FodVisualServoNode:
             raise ValueError("duplicate detection anchor distance is invalid")
         if not 0.02 <= self.association_config.duplicate_max_depth_delta_m <= 0.50:
             raise ValueError("duplicate detection depth delta is invalid")
-        if not 0.80 <= self.machine_config.bottom_fraction <= 0.96:
-            raise ValueError("bottom_fraction must be between 0.80 and 0.96")
-        if not 0.02 <= self.machine_config.bottom_center_tolerance_fraction <= 0.10:
-            raise ValueError("bottom center tolerance is invalid")
-        if not 3 <= self.machine_config.bottom_confirm_frames <= 20:
-            raise ValueError("bottom_confirm_frames must be between 3 and 20")
-        if not 0.05 <= self.machine_config.min_approach_distance_m <= 0.50:
-            raise ValueError("minimum approach distance is invalid")
-        if not 0.02 <= self.machine_config.min_vertical_progress_fraction <= 0.25:
-            raise ValueError("minimum vertical progress is invalid")
-        if not 3 <= self.machine_config.loss_confirm_frames <= 15:
-            raise ValueError("loss_confirm_frames must be between 3 and 15")
-        if not 0.10 <= self.machine_config.loss_confirm_min_sec <= 1.0:
-            raise ValueError("loss_confirm_min_sec is invalid")
-        if not 0 <= self.machine_config.early_loss_grace_frames <= 30:
-            raise ValueError("early_loss_grace_frames must be between 0 and 30")
-        if not 3 <= self.machine_config.early_loss_max_frames <= 100:
-            raise ValueError("early_loss_max_frames must be between 3 and 100")
-        if self.machine_config.early_loss_grace_frames >= self.machine_config.early_loss_max_frames:
-            raise ValueError("early loss grace must be below the loss fault threshold")
+        if not 1 <= self.machine_config.loss_confirm_frames <= 100:
+            raise ValueError("loss_confirm_frames must be between 1 and 100")
         if not 0.05 <= self.machine_config.filter_alpha <= 1.0:
             raise ValueError("pixel_filter_alpha is invalid")
 
@@ -1143,12 +1052,6 @@ class FodVisualServoNode:
             raise ValueError("horizontal_deadband is invalid")
         if not 2.0 <= self.max_steering_angle_deg <= MAX_STEERING_ANGLE_DEG:
             raise ValueError("max steering angle exceeds the 12 degree safety limit")
-        if not 0.30 <= self.max_runtime_horizontal_error <= 1.0:
-            raise ValueError("runtime horizontal error gate is invalid")
-        if self.acquire_max_abs_horizontal_error > self.max_runtime_horizontal_error:
-            raise ValueError(
-                "acquisition horizontal gate must not exceed the runtime gate"
-            )
         if not 0.02 <= self.near_speed_mps <= self.far_speed_mps:
             raise ValueError("near_speed_mps must be positive and no greater than far speed")
         if self.far_speed_mps > MAX_COMMAND_SPEED_MPS:
@@ -1165,8 +1068,6 @@ class FodVisualServoNode:
             raise ValueError("linear acceleration limit is invalid")
         if not 0.10 <= self.max_curvature_rate_per_sec <= 2.0:
             raise ValueError("curvature rate limit is invalid")
-        if not 0.5 <= self.max_approach_distance_m <= 10.0:
-            raise ValueError("max approach distance is invalid")
         if not 1.0 <= self.approach_no_motion_timeout_sec <= 6.0:
             raise ValueError("approach no-motion timeout is invalid")
         if not 0.5 <= self.approach_no_progress_timeout_sec <= 5.0:
@@ -1182,12 +1083,6 @@ class FodVisualServoNode:
             raise ValueError("settle wheel angle is invalid")
         if not 0.01 <= self.settle_speed_mps <= 0.05:
             raise ValueError("settle speed is invalid")
-        if not 0.20 <= self.settle_confirm_sec <= 1.0:
-            raise ValueError("settle confirmation duration is invalid")
-        if not 1.0 <= self.settle_timeout_sec <= 8.0:
-            raise ValueError("settle timeout is invalid")
-        if not 0.02 <= self.preblind_max_displacement_m <= 0.15:
-            raise ValueError("preblind displacement limit is invalid")
         if not 0.03 <= self.blind_speed_mps <= MAX_COMMAND_SPEED_MPS:
             raise ValueError("blind_speed_mps must be between 0.03 and 0.20")
         if not 0.05 <= self.blind_distance_m <= MAX_BLIND_DISTANCE_M:
@@ -1204,20 +1099,6 @@ class FodVisualServoNode:
             raise ValueError("blind no-progress timeout is invalid")
         if not 0.005 <= self.blind_progress_step_m <= 0.05:
             raise ValueError("blind progress step is invalid")
-        if not 1.0 <= self.blind_max_heading_change_deg <= 8.0:
-            raise ValueError("blind heading limit is invalid")
-        if not 0.03 <= self.blind_max_lateral_deviation_m <= 0.20:
-            raise ValueError("blind lateral limit is invalid")
-        if not 0.20 <= self.final_stop_confirm_sec <= 1.50:
-            raise ValueError("final stop confirmation duration is invalid")
-        if not 0.005 <= self.final_stop_speed_mps <= 0.02:
-            raise ValueError("final stop speed threshold is invalid")
-        if self.final_stop_speed_mps >= self.settle_speed_mps:
-            raise ValueError("final stop speed threshold must be below settle speed")
-        if not 0.002 <= self.final_stop_max_drift_m <= 0.01:
-            raise ValueError("final stop drift limit is invalid")
-        if not 1.0 <= self.final_stop_timeout_sec <= 8.0:
-            raise ValueError("final stop timeout is invalid")
 
     def _uses_selected_target(self):
         # Selection is independent of the tail's completion policy.
@@ -1977,8 +1858,6 @@ class FodVisualServoNode:
             raise ControllerAbort("operator disable request inhibits COMPLETE")
         if self.mode_deadline_monotonic is None:
             raise ControllerAbort("terminal commit has no mode deadline")
-        if self.final_stop_started_monotonic is None:
-            raise ControllerAbort("terminal commit has no final-stop deadline")
 
         detection = self.latest_detection
         metric = self.latest_metric
@@ -2042,8 +1921,7 @@ class FodVisualServoNode:
 
         # Sample both clocks at the last practical point before phase commit.
         # terminal_feedback_is_fresh also rechecks the absolute mode and
-        # FINAL_STOP deadlines, which the earlier tick-level checks may no
-        # longer satisfy after a scheduler pause.
+        # mode deadline after any scheduler pause.
         now_source_time = rospy.Time.now().to_sec()
         now_monotonic = time.monotonic()
         if not terminal_feedback_is_fresh(
@@ -2054,7 +1932,6 @@ class FodVisualServoNode:
             source_timeout=self.source_stamp_timeout_sec,
             absolute_deadlines=(
                 self.mode_deadline_monotonic,
-                self.final_stop_started_monotonic + self.final_stop_timeout_sec,
             ),
         ):
             raise ControllerAbort(
@@ -2629,6 +2506,7 @@ class FodVisualServoNode:
     def _control_tick_locked(self):
         if self.phase in (DISABLED, COMPLETE, ABORT):
             self._hard_stop()
+            self._confirm_completion_stopped()
             return
 
         now = time.monotonic()
@@ -2688,7 +2566,7 @@ class FodVisualServoNode:
 
         self._check_health()
 
-        if self.phase in (APPROACH, REACQUIRE, EDGE_ARMED):
+        if self.phase in (APPROACH, REACQUIRE, EDGE_ARMED, LOSS_CONFIRM):
             self._update_approach_odometry()
         elif self.phase == ACQUIRE:
             self._discard_odom_events()
@@ -2699,14 +2577,8 @@ class FodVisualServoNode:
             self._command_visual_approach()
         elif self.phase in (ACQUIRE, REACQUIRE, LOSS_CONFIRM):
             self._hard_stop()
-            if self.phase == LOSS_CONFIRM:
-                self._update_preblind_odometry()
-        elif self.phase == STEER_SETTLE:
-            self._settle_tick()
         elif self.phase == BLIND_ADVANCE:
             self._blind_advance_tick()
-        elif self.phase == FINAL_STOP:
-            self._final_stop_tick()
         else:
             raise ControllerAbort("controller entered unknown active state %r" % self.phase)
 
@@ -2795,11 +2667,6 @@ class FodVisualServoNode:
                 while self.approach_path_m >= self.approach_next_progress_m:
                     self.approach_next_progress_m += self.approach_progress_step_m
         self.approach_last_odom = previous
-        if self.approach_path_m > self.max_approach_distance_m:
-            raise ControllerAbort(
-                "target did not reach the bottom gate within %.2fm"
-                % self.max_approach_distance_m
-            )
 
     @staticmethod
     def _bbox_iou(pixel, metric):
@@ -3150,11 +3017,9 @@ class FodVisualServoNode:
             if frame.error:
                 raise ControllerAbort("invalid detection frame: %s" % frame.error)
 
-            if self.phase in (STEER_SETTLE, BLIND_ADVANCE, FINAL_STOP):
-                if frame.observations:
-                    raise ControllerAbort(
-                        "FOD remained/reappeared after blind-zone disappearance was confirmed"
-                    )
+            if self.phase == BLIND_ADVANCE:
+                # Ten-frame confirmation has finished. Complete this short pass;
+                # later detections are not a new failure condition.
                 continue
 
             if self.phase not in (
@@ -3170,18 +3035,9 @@ class FodVisualServoNode:
             if self.phase == ACQUIRE:
                 candidates, acquisition_reason = self._acquisition_candidates(frame)
             else:
-                candidates, depth_grace_reason = (
-                    self._candidates_with_locked_depth_grace(frame)
-                )
-            if (
-                self.phase in (EDGE_ARMED, LOSS_CONFIRM)
-                and not candidates
-                and frame.observations
-            ):
-                raise ControllerAbort(
-                    "FOD is still visible below the motion-confidence threshold; "
-                    "blind advance is inhibited"
-                )
+                # Depth/confidence select the initial target only. A visible
+                # locked object with poor stereo depth is NOT an absent object.
+                candidates = frame.observations
             pending_metric = None
             if self._uses_selected_target() and self.phase == ACQUIRE and len(candidates) == 1:
                 try:
@@ -3218,7 +3074,7 @@ class FodVisualServoNode:
             if decision.fault:
                 raise ControllerAbort(decision.fault)
             frame_metric_target = None
-            if self._uses_selected_target() and decision.target is not None and candidates:
+            if self._uses_selected_target() and decision.target is not None and candidates and (decision.acquired or self._requires_coordinate_coverage()):
                 frame_metric_target = self._metric_target_for_pixel(
                     frame, decision.target
                 )
@@ -3251,27 +3107,8 @@ class FodVisualServoNode:
             if self.phase in (REACQUIRE, LOSS_CONFIRM, STEER_SETTLE):
                 self._hard_stop()
                 self._pause_approach_watchdog()
-            if self.phase == LOSS_CONFIRM and previous_state == EDGE_ARMED:
-                self._start_blind_measurement(frame.stamp_sec)
-            if self.phase == EDGE_ARMED and previous_state == LOSS_CONFIRM:
-                self._cancel_blind_measurement()
-            if self.phase == STEER_SETTLE and previous_state != STEER_SETTLE:
-                # The camera runs faster than odometry, so the first sample
-                # after the loss timestamp may still be pending.  Keep zero
-                # command and let STEER_SETTLE wait for the interpolation.
-                self._ensure_blind_measurement_baseline()
-                self.settle_started_monotonic = time.monotonic()
-                with self.sensor_lock:
-                    self.settle_last_odom_sequence = self.odom_sequence
-                    self.settle_last_wheel_sequence = self.wheel_sequence
-                    self.settle_seen_unstopped_odom_sequence = (
-                        self.last_unstopped_odom_sequence
-                    )
-                    self.settle_seen_uncentered_wheel_sequence = (
-                        self.last_uncentered_wheel_sequence
-                    )
-                self.settle_good_start_odom_stamp = None
-                self.settle_good_start_wheel_receipt = None
+            if self.phase == BLIND_ADVANCE and previous_state != BLIND_ADVANCE:
+                self._begin_forward_pass()
             if self.phase != previous_state:
                 rospy.logwarn(
                     "FOD visual servo state -> %s: %s", self.phase, self.reason
@@ -3291,11 +3128,6 @@ class FodVisualServoNode:
             self.expected_image_width,
         )
         q = self.machine.filtered_v / float(self.expected_image_height - 1)
-        if abs(error) > self.max_runtime_horizontal_error:
-            raise ControllerAbort(
-                "locked target horizontal error %.3f exceeds %.3f"
-                % (error, self.max_runtime_horizontal_error)
-            )
         speed = max(
             self.approach_min_command_speed_mps,
             approach_speed(
@@ -3336,104 +3168,26 @@ class FodVisualServoNode:
             raise ControllerAbort("visual-approach odometry progress watchdog expired")
         self._set_motion(speed, curvature)
 
-    def _start_blind_measurement(self, loss_stamp_sec):
-        if not math.isfinite(loss_stamp_sec) or loss_stamp_sec <= 0.0:
-            raise ControllerAbort("first-loss detection stamp is invalid")
-        self.pending_loss_stamp_sec = float(loss_stamp_sec)
-        self.pending_loss_monotonic = time.monotonic()
-        self.blind_tracker = None
-        self.blind_progress = None
-        self.blind_last_odom_state = None
-        self.blind_started_monotonic = self.pending_loss_monotonic
-        self.blind_drive_started_monotonic = None
-        self.blind_last_progress_monotonic = None
+    def _begin_forward_pass(self):
+        # Start at confirmation, not at the first missing image. Travel during
+        # the ten-frame wait does not subtract from the requested extra 0.30 m.
+        now = time.monotonic()
+        with self.sensor_lock:
+            odom = self.latest_odom
+            self.odom_queue.clear()
+        if odom is None:
+            raise ControllerAbort("forward pass needs odometry")
+        self.blind_tracker = BlindDistanceTracker(odom.x, odom.y, odom.yaw)
+        self.blind_progress = self.blind_tracker.update(
+            odom.x, odom.y, odom.yaw, self.max_pose_step_m)
+        self.blind_last_odom_state = odom
+        self.last_processed_odom_sequence = odom.sequence
+        self.blind_started_monotonic = now
+        self.blind_drive_started_monotonic = now
+        self.blind_last_progress_monotonic = now
         self.blind_motion_seen = False
         self.blind_next_progress_m = self.blind_progress_step_m
         self.blind_max_forward_m = 0.0
-        self.blind_seen_uncentered_wheel_sequence = 0
-        self._ensure_blind_measurement_baseline()
-
-    def _ensure_blind_measurement_baseline(self):
-        if self.blind_tracker is not None:
-            return True
-        if self.pending_loss_stamp_sec is None or self.pending_loss_monotonic is None:
-            raise ControllerAbort("blind baseline has no first-loss timestamp")
-        target_stamp = self.pending_loss_stamp_sec
-        with self.sensor_lock:
-            history = list(self.odom_history)
-        before = None
-        after = None
-        for state in history:
-            if state.stamp_sec <= target_stamp:
-                before = state
-            if state.stamp_sec >= target_stamp:
-                after = state
-                break
-        if before is None:
-            raise ControllerAbort(
-                "odometry history does not bracket the first-loss timestamp"
-            )
-        if after is None:
-            waited = time.monotonic() - self.pending_loss_monotonic
-            if waited <= self.detection_odom_sync_tolerance_sec:
-                return False
-            raise ControllerAbort(
-                "no odometry sample arrived after first loss within %.3fs"
-                % self.detection_odom_sync_tolerance_sec
-            )
-        before_gap = target_stamp - before.stamp_sec
-        after_gap = after.stamp_sec - target_stamp
-        if (
-            before_gap > self.detection_odom_sync_tolerance_sec
-            or after_gap > self.detection_odom_sync_tolerance_sec
-        ):
-            raise ControllerAbort(
-                "detection/odometry first-loss sync gap is too large: -%.3fs/+%.3fs"
-                % (before_gap, after_gap)
-            )
-
-        try:
-            ratio, baseline_x, baseline_y, baseline_yaw = interpolate_planar_pose(
-                before.stamp_sec,
-                before.x,
-                before.y,
-                before.yaw,
-                after.stamp_sec,
-                after.x,
-                after.y,
-                after.yaw,
-                target_stamp,
-            )
-        except ValueError as exc:
-            raise ControllerAbort("first-loss odometry interpolation failed: %s" % exc)
-        baseline = OdomState(
-            sequence=before.sequence,
-            receipt_monotonic=time.monotonic(),
-            stamp_sec=target_stamp,
-            x=baseline_x,
-            y=baseline_y,
-            yaw=baseline_yaw,
-            linear_x=before.linear_x + ratio * (after.linear_x - before.linear_x),
-            angular_z=before.angular_z + ratio * (after.angular_z - before.angular_z),
-            frame_id=before.frame_id,
-            child_frame_id=before.child_frame_id,
-        )
-        self.blind_tracker = BlindDistanceTracker(
-            baseline.x, baseline.y, baseline.yaw
-        )
-        self.blind_progress = self.blind_tracker.update(
-            baseline.x, baseline.y, baseline.yaw, self.max_pose_step_m
-        )
-        self.blind_last_odom_state = baseline
-        self.last_processed_odom_sequence = before.sequence
-        with self.sensor_lock:
-            self.odom_queue.clear()
-            for state in self.odom_history:
-                if state.sequence > before.sequence:
-                    self.odom_queue.append(state)
-        self.pending_loss_stamp_sec = None
-        self.pending_loss_monotonic = None
-        return True
 
     def _cancel_blind_measurement(self):
         with self.sensor_lock:
@@ -3456,8 +3210,8 @@ class FodVisualServoNode:
             self.last_processed_odom_sequence = odom.sequence
 
     def _update_blind_odometry(self, speed_limit=None, track_progress=False):
-        if not self._ensure_blind_measurement_baseline():
-            return None
+        if self.blind_tracker is None:
+            raise ControllerAbort("forward pass has no odometry baseline")
         now = time.monotonic()
         for state in self._take_odom_events():
             if abs(state.linear_x) > self.max_measured_speed_mps:
@@ -3522,199 +3276,12 @@ class FodVisualServoNode:
             self.blind_max_forward_m = max(
                 self.blind_max_forward_m, progress.forward_m
             )
-            if abs(progress.lateral_m) > self.blind_max_lateral_deviation_m:
-                raise ControllerAbort(
-                    "post-disappearance lateral deviation %.3fm exceeds %.3fm"
-                    % (
-                        progress.lateral_m,
-                        self.blind_max_lateral_deviation_m,
-                    )
-                )
-            heading_change_deg = abs(math.degrees(progress.yaw_change_rad))
-            if heading_change_deg > self.blind_max_heading_change_deg:
-                raise ControllerAbort(
-                    "post-disappearance heading changed %.2fdeg, limit %.2fdeg"
-                    % (heading_change_deg, self.blind_max_heading_change_deg)
-                )
             if track_progress and progress.forward_m >= self.blind_next_progress_m:
                 self.blind_motion_seen = True
                 self.blind_last_progress_monotonic = now
                 while progress.forward_m >= self.blind_next_progress_m:
                     self.blind_next_progress_m += self.blind_progress_step_m
         return self.blind_progress
-
-    def _update_preblind_odometry(self):
-        progress = self._update_blind_odometry()
-        if progress is None:
-            return None
-        if progress.path_m > self.preblind_max_displacement_m:
-            raise ControllerAbort(
-                "vehicle moved %.3fm while confirming loss/settling steering; limit %.3fm"
-                % (progress.path_m, self.preblind_max_displacement_m)
-            )
-        return progress
-
-    def _enter_final_stop(self, now, reason):
-        if self._requires_coordinate_coverage() and (
-            self.coverage_progress is None or not self.coverage_progress.covered
-        ):
-            raise ControllerAbort(
-                "FINAL_STOP requires forward cleaning-coordinate coverage"
-            )
-        self._hard_stop()
-        self.phase = FINAL_STOP
-        self.reason = str(reason)
-        self.final_stop_started_monotonic = now
-        with self.sensor_lock:
-            self.final_stop_last_odom_sequence = self.odom_sequence
-            self.final_stop_last_wheel_sequence = self.wheel_sequence
-            self.final_stop_seen_unstopped_odom_sequence = (
-                self.last_final_unstopped_odom_sequence
-            )
-            self.final_stop_seen_uncentered_wheel_sequence = (
-                self.last_uncentered_wheel_sequence
-            )
-        self.final_stop_good_start_odom_stamp = None
-        self.final_stop_good_start_wheel_receipt = None
-        self.final_stop_good_start_path_m = None
-        rospy.logwarn("FOD visual servo state -> FINAL_STOP: %s", self.reason)
-
-    def _settle_tick(self):
-        self._hard_stop()
-        progress = self._update_preblind_odometry()
-        now = time.monotonic()
-        if self.settle_started_monotonic is None:
-            self.settle_started_monotonic = now
-        if now - self.settle_started_monotonic > self.settle_timeout_sec:
-            raise ControllerAbort("front steering did not settle before blind advance")
-        if progress is None:
-            # A detection frame can arrive just ahead of the odometry sample
-            # that brackets its source timestamp.  The vehicle is already
-            # commanded to zero; remain fail-closed during the bounded sync
-            # window instead of treating that normal publisher skew as a
-            # missing-feedback fault.
-            waiting_reason = "waiting for synchronized odometry after first target loss"
-            if self.reason != waiting_reason:
-                self.reason = waiting_reason
-                self._publish_status(force=True)
-            else:
-                self.reason = waiting_reason
-            return
-        with self.sensor_lock:
-            wheel_angle = self.latest_wheel_angle
-            wheel_receipt = self.latest_wheel_angle_monotonic
-            wheel_sequence = self.wheel_sequence
-            latest_odom_sequence = self.odom_sequence
-            last_unstopped_odom_sequence = self.last_unstopped_odom_sequence
-            last_uncentered_wheel_sequence = self.last_uncentered_wheel_sequence
-        # Use the last odometry sample that was actually consumed by the
-        # post-loss distance tracker.  Reading latest_odom directly here could
-        # certify a sample whose displacement has not yet passed the hard-limit
-        # checks above.
-        odom = self.blind_last_odom_state
-        if wheel_angle is None or odom is None:
-            raise ControllerAbort("steering settle lacks wheel-angle or odometry feedback")
-        if wheel_receipt is None:
-            raise ControllerAbort("steering settle lacks timestamped wheel feedback")
-
-        centered = abs(math.degrees(wheel_angle)) <= self.settle_wheel_angle_deg
-        stopped = abs(odom.linear_x) <= self.settle_speed_mps
-        odom_window = advance_confirmation_window(
-            self.settle_last_odom_sequence,
-            self.settle_seen_unstopped_odom_sequence,
-            self.settle_good_start_odom_stamp,
-            odom.sequence,
-            odom.stamp_sec,
-            stopped,
-            last_unstopped_odom_sequence,
-        )
-        wheel_window = advance_confirmation_window(
-            self.settle_last_wheel_sequence,
-            self.settle_seen_uncentered_wheel_sequence,
-            self.settle_good_start_wheel_receipt,
-            wheel_sequence,
-            wheel_receipt,
-            centered,
-            last_uncentered_wheel_sequence,
-        )
-        self.settle_last_odom_sequence = odom_window.last_sequence
-        self.settle_seen_unstopped_odom_sequence = (
-            odom_window.seen_unsafe_sequence
-        )
-        self.settle_good_start_odom_stamp = odom_window.start_time
-        self.settle_last_wheel_sequence = wheel_window.last_sequence
-        self.settle_seen_uncentered_wheel_sequence = (
-            wheel_window.seen_unsafe_sequence
-        )
-        self.settle_good_start_wheel_receipt = wheel_window.start_time
-        new_odom = odom_window.new_sample
-        new_wheel = wheel_window.new_sample
-
-        odom_confirmed = (
-            self.settle_good_start_odom_stamp is not None
-            and odom.stamp_sec - self.settle_good_start_odom_stamp
-            >= self.settle_confirm_sec
-        )
-        wheel_confirmed = (
-            self.settle_good_start_wheel_receipt is not None
-            and wheel_receipt - self.settle_good_start_wheel_receipt
-            >= self.settle_confirm_sec
-        )
-        # At least one newly received sample must trigger the transition.  This
-        # prevents a control timer from repeatedly reusing a cached stopped
-        # sample until the wall-clock confirmation interval happens to elapse.
-        odom_queue_drained = odom.sequence == latest_odom_sequence
-        if (
-            (new_odom or new_wheel)
-            and odom_confirmed
-            and wheel_confirmed
-            and odom_queue_drained
-        ):
-            if self.coverage_progress is not None and self.coverage_progress.covered:
-                self._enter_final_stop(
-                    now,
-                    "selected coordinate already covered by a forward cleaning "
-                    "segment within %.3fm; confirming full stop"
-                    % self.coverage_progress.minimum_distance_m,
-                )
-                return
-            self.blind_drive_started_monotonic = now
-            self.blind_last_progress_monotonic = now
-            completed_steps = int(
-                max(0.0, progress.forward_m) / self.blind_progress_step_m
-            )
-            self.blind_next_progress_m = (
-                completed_steps + 1
-            ) * self.blind_progress_step_m
-            self.blind_motion_seen = progress.forward_m >= self.blind_progress_step_m
-            self.blind_seen_uncentered_wheel_sequence = (
-                last_uncentered_wheel_sequence
-            )
-            self._transition(
-                BLIND_ADVANCE,
-                ("steering centered; advancing until the front cleaning trajectory "
-                "covers the selected coordinate within %.2fm (%.2fm post-loss hard limit)"
-                % (
-                    self.cleaning_coverage_tolerance_m,
-                    self.blind_hard_distance_m,
-                )) if self._requires_coordinate_coverage() else
-                "steering centered; advancing 0.50m to carry the FOD through the roller",
-            )
-            return
-
-        drift = progress.forward_m if progress is not None else 0.0
-        self.reason = (
-            "settling steering: wheel=%+.2fdeg speed=%+.3fm/s drift=%.3fm "
-            "fresh_odom=%s fresh_wheel=%s odom_queue_drained=%s"
-            % (
-                math.degrees(wheel_angle),
-                odom.linear_x,
-                drift,
-                new_odom,
-                new_wheel,
-                odom_queue_drained,
-            )
-        )
 
     def _blind_advance_tick(self):
         if (
@@ -3727,17 +3294,6 @@ class FodVisualServoNode:
         now = time.monotonic()
         if now - self.blind_started_monotonic > self.blind_timeout_sec:
             raise ControllerAbort("post-disappearance advance exceeded its time limit")
-        with self.sensor_lock:
-            last_uncentered_wheel_sequence = self.last_uncentered_wheel_sequence
-        if (
-            last_uncentered_wheel_sequence
-            > self.blind_seen_uncentered_wheel_sequence
-        ):
-            raise ControllerAbort(
-                "front wheel left the %.2fdeg straight-ahead gate during blind advance"
-                % self.settle_wheel_angle_deg
-            )
-
         progress = self._update_blind_odometry(
             speed_limit=self.blind_speed_mps + 0.08,
             track_progress=True,
@@ -3746,18 +3302,10 @@ class FodVisualServoNode:
             raise ControllerAbort("blind advance lost its synchronized odometry baseline")
         coverage = self.coverage_progress
         if not self._requires_coordinate_coverage() and blind_goal_reached(progress, self.blind_distance_m):
-            self._enter_final_stop(
-                now, "roller pass distance 0.50m reached; confirming full stop while "
-                "enforcing 0.55m hard limit"
-            )
+            self._complete_forward_pass(progress)
             return
         if coverage is not None and coverage.covered:
-            self._enter_final_stop(
-                now,
-                "front cleaning trajectory covered the selected coordinate at "
-                "minimum distance %.3fm; confirming full stop"
-                % coverage.minimum_distance_m,
-            )
+            self._complete_forward_pass(progress)
             return
 
         drive_elapsed = now - self.blind_drive_started_monotonic
@@ -3790,184 +3338,67 @@ class FodVisualServoNode:
             )
         self._set_motion(self.blind_speed_mps, 0.0)
 
-    def _final_stop_tick(self):
+    def _complete_forward_pass(self, progress):
         self._hard_stop()
-        progress = self._update_blind_odometry()
-        if progress is None:
-            raise ControllerAbort("final stop lost its synchronized odometry baseline")
-        now = time.monotonic()
-        if self.final_stop_started_monotonic is None:
-            self.final_stop_started_monotonic = now
-        if now - self.final_stop_started_monotonic > self.final_stop_timeout_sec:
-            raise ControllerAbort(
-                "vehicle did not stop after covering the selected coordinate"
-            )
-        if not self._requires_coordinate_coverage() and progress.forward_m < self.blind_distance_m - 0.005:
-            raise ControllerAbort("vehicle rolled backward after reaching blind distance")
-        if self._requires_coordinate_coverage() and (
-            self.coverage_progress is None or not self.coverage_progress.covered
-        ):
-            raise ControllerAbort(
-                "selected-coordinate coverage evidence was lost before COMPLETE"
-            )
-        with self.sensor_lock:
-            wheel_angle = self.latest_wheel_angle
-            wheel_receipt = self.latest_wheel_angle_monotonic
-            wheel_sequence = self.wheel_sequence
-            latest_odom_sequence = self.odom_sequence
-            last_unstopped_odom_sequence = self.last_final_unstopped_odom_sequence
-            last_uncentered_wheel_sequence = self.last_uncentered_wheel_sequence
         odom = self.blind_last_odom_state
-        if wheel_angle is None or odom is None:
-            raise ControllerAbort("final stop lacks wheel-angle or odometry feedback")
-        if wheel_receipt is None:
-            raise ControllerAbort("final stop lacks timestamped wheel feedback")
+        expected_fence = TerminalSensorFence(
+            odom_sequence=odom.sequence,
+            wheel_sequence=self.wheel_sequence,
+            detection_sequence=self.last_processed_detection_sequence,
+            metric_sequence=self.metric_sequence if self._uses_selected_target() else 0,
+            invalid_metric_generation=(
+                self.session_invalid_metric_generation if self._uses_selected_target() else 0
+            ),
+            invalid_camera_generation=self.session_invalid_camera_generation,
+            invalid_odom_generation=self.session_invalid_odom_generation,
+            invalid_wheel_generation=self.session_invalid_wheel_generation,
+            chassis_fault_generation=self.session_chassis_fault_generation,
+            raw_can_fault_generation=self.session_raw_can_fault_generation,
+            m2_bypass_event_generation=(
+                self.session_m2_bypass_event_generation
+            ),
+            control_timeout_seen=False,
+            detection_queue_size=0,
+            odom_queue_size=0,
+            detection_queue_overflow=False,
+            odom_queue_overflow=False,
+        )
 
-        centered = abs(math.degrees(wheel_angle)) <= self.settle_wheel_angle_deg
-        stopped = abs(odom.linear_x) <= self.final_stop_speed_mps
-        previous_odom_start = self.final_stop_good_start_odom_stamp
-        odom_window = advance_confirmation_window(
-            self.final_stop_last_odom_sequence,
-            self.final_stop_seen_unstopped_odom_sequence,
-            self.final_stop_good_start_odom_stamp,
-            odom.sequence,
-            odom.stamp_sec,
-            stopped,
-            last_unstopped_odom_sequence,
-        )
-        wheel_window = advance_confirmation_window(
-            self.final_stop_last_wheel_sequence,
-            self.final_stop_seen_uncentered_wheel_sequence,
-            self.final_stop_good_start_wheel_receipt,
-            wheel_sequence,
-            wheel_receipt,
-            centered,
-            last_uncentered_wheel_sequence,
-        )
-        self.final_stop_last_odom_sequence = odom_window.last_sequence
-        self.final_stop_seen_unstopped_odom_sequence = (
-            odom_window.seen_unsafe_sequence
-        )
-        self.final_stop_good_start_odom_stamp = odom_window.start_time
-        if self.final_stop_good_start_odom_stamp is None:
-            self.final_stop_good_start_path_m = None
-        elif self.final_stop_good_start_odom_stamp != previous_odom_start:
-            self.final_stop_good_start_path_m = progress.path_m
-        self.final_stop_last_wheel_sequence = wheel_window.last_sequence
-        self.final_stop_seen_uncentered_wheel_sequence = (
-            wheel_window.seen_unsafe_sequence
-        )
-        self.final_stop_good_start_wheel_receipt = wheel_window.start_time
-        new_odom = odom_window.new_sample
-        new_wheel = wheel_window.new_sample
-
-        final_stop_drift_m = (
-            progress.path_m - self.final_stop_good_start_path_m
-            if self.final_stop_good_start_path_m is not None
-            else 0.0
-        )
-        if final_stop_drift_m > self.final_stop_max_drift_m:
-            # Even a velocity estimate just below the threshold must not be
-            # called stopped while pose continues to creep.  Restart the
-            # confirmation window at the newest fully checked odom sample.
-            self.final_stop_good_start_odom_stamp = odom.stamp_sec
-            self.final_stop_good_start_path_m = progress.path_m
-            final_stop_drift_m = 0.0
-
-        odom_confirmed = (
-            self.final_stop_good_start_odom_stamp is not None
-            and odom.stamp_sec - self.final_stop_good_start_odom_stamp
-            >= self.final_stop_confirm_sec
-        )
-        wheel_confirmed = (
-            self.final_stop_good_start_wheel_receipt is not None
-            and wheel_receipt - self.final_stop_good_start_wheel_receipt
-            >= self.final_stop_confirm_sec
-        )
-        odom_queue_drained = odom.sequence == latest_odom_sequence
-        if (
-            (new_odom or new_wheel)
-            and odom_confirmed
-            and wheel_confirmed
-            and odom_queue_drained
-        ):
-            expected_fence = TerminalSensorFence(
-                odom_sequence=odom.sequence,
-                wheel_sequence=wheel_sequence,
-                detection_sequence=self.last_processed_detection_sequence,
-                metric_sequence=self.metric_sequence if self._uses_selected_target() else 0,
-                invalid_metric_generation=(
-                    self.session_invalid_metric_generation if self._uses_selected_target() else 0
-                ),
-                invalid_camera_generation=self.session_invalid_camera_generation,
-                invalid_odom_generation=self.session_invalid_odom_generation,
-                invalid_wheel_generation=self.session_invalid_wheel_generation,
-                chassis_fault_generation=self.session_chassis_fault_generation,
-                raw_can_fault_generation=self.session_raw_can_fault_generation,
-                m2_bypass_event_generation=(
-                    self.session_m2_bypass_event_generation
-                ),
-                control_timeout_seen=False,
-                detection_queue_size=0,
-                odom_queue_size=0,
-                detection_queue_overflow=False,
-                odom_queue_overflow=False,
-            )
-            # COMPLETE is terminal and subsequent ticks intentionally stop
-            # processing feedback.  Recheck every relevant callback sequence,
-            # sticky fault generation, and queue under the callback lock, then
-            # commit the phase under that same lock.  A callback either lands
-            # before this boundary and forces another FINAL_STOP tick, or lands
-            # after the terminal outcome; it can never be silently skipped in
-            # the TOCTOU gap between a stale snapshot and COMPLETE.
-            with self.sensor_lock:
-                current_fence = self._terminal_sensor_fence_locked()
-                if terminal_sensor_fence_unchanged(
-                    expected_fence, current_fence
-                ):
-                    self._check_terminal_commit_health_locked()
-                    self.phase = COMPLETE
-                    self.reason = (
-                        "selected litter %d covered by forward cleaning trajectory "
-                        "within %.3fm and vehicle stopped: net forward %.3fm, "
-                        "path %.3fm"
-                        % (
-                            self.locked_metric_target.object_id,
-                            self.coverage_progress.minimum_distance_m,
-                            progress.forward_m,
-                            progress.path_m,
-                        )
-                    ) if self._requires_coordinate_coverage() else (
-                        "FOD passed the roller; recovery complete and stopped: "
-                        "net forward %.3fm, path %.3fm" % (progress.forward_m, progress.path_m)
-                    )
-                    self._record_cleaning_completion(progress)
-                    self.target_visible = False
-                    completed = True
-                else:
-                    completed = False
-            if completed:
-                rospy.logwarn("FOD visual servo COMPLETE: %s", self.reason)
+        # Retain the existing atomic cancellation/fault fence, not a geometric
+        # or stop-drift completion gate.
+        with self.sensor_lock:
+            if not terminal_sensor_fence_unchanged(
+                    expected_fence, self._terminal_sensor_fence_locked()):
                 return
-            self.reason = (
-                "final stop received new feedback at the completion boundary; "
-                "verifying it before COMPLETE"
-            )
+            self._check_terminal_commit_health_locked()
+            self.phase = COMPLETE
+            self.reason = ("target absent for %d frames; forward %.3f/%.3fm; "
+                           "cleaning complete, stop requested") % (
+                self.machine_config.loss_confirm_frames, progress.forward_m,
+                self.blind_distance_m)
+            self.completed_odom_sequence = odom.sequence
+            self._record_cleaning_completion(progress)
+            self.target_visible = False
+        rospy.logwarn("FOD visual servo COMPLETE: %s", self.reason)
+
+    def _confirm_completion_stopped(self):
+        # Cleaning is already COMPLETE. This only supplies truthful stop
+        # feedback to existing AI/pending consumers; it cannot fail completion.
+        # The unchanged mode manager still owns physical stopping and handoff.
+        receipt = self._visual_receipt()
+        if receipt.result != "COMPLETE" or receipt.last_completion.get("stopped"):
             return
-        self.reason = (
-            "final stop: speed=%+.3fm/s wheel=%+.2fdeg forward=%.3fm path=%.3fm "
-            "stop_drift=%.4fm fresh_odom=%s fresh_wheel=%s odom_queue_drained=%s"
-            % (
-                odom.linear_x,
-                math.degrees(wheel_angle),
-                progress.forward_m,
-                progress.path_m,
-                final_stop_drift_m,
-                new_odom,
-                new_wheel,
-                odom_queue_drained,
-            )
-        )
+        with self.sensor_lock:
+            odom = self.latest_odom
+            if (odom is None or
+                    odom.sequence <= getattr(self, "completed_odom_sequence", odom.sequence) or
+                    time.monotonic() - odom.receipt_monotonic > self.odom_timeout_sec or
+                    not 0 <= rospy.Time.now().to_sec() - odom.stamp_sec <= self.source_stamp_timeout_sec or
+                    abs(odom.linear_x) > 0.03 or abs(odom.angular_z) > 0.05):
+                return
+            receipt.last_completion["stopped"] = True
+            if self.last_cleaning_completion:
+                self.last_cleaning_completion["stopped"] = True
 
     def _visual_receipt(self):
         # Metadata only. Laziness also supports isolated __new__ test fixtures;
@@ -3977,9 +3408,8 @@ class FodVisualServoNode:
         return self.visual_session
 
     def _record_cleaning_completion(self, progress):
-        # Called only inside the existing stopped/sensor-fenced COMPLETE
-        # commit. Preserved across disable so the coordinator cannot miss it.
-        self._visual_receipt().complete()
+        # Completion and physical stop are separate facts. Preserve across disable.
+        self._visual_receipt().complete(stopped=False)
         if not self._uses_selected_target():
             return
         staged = self.staged_target
@@ -3989,7 +3419,7 @@ class FodVisualServoNode:
             "acquired_object_id": str(self.locked_metric_target.object_id),
             "target_x": staged.x, "target_y": staged.y,
             "completion_policy": staged.completion_policy,
-            "request_id": staged.request_id, "stopped": True,
+            "request_id": staged.request_id, "stopped": False,
             "forward_m": progress.forward_m, "path_m": progress.path_m,
             "blind_target_m": self.blind_distance_m,
         }

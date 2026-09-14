@@ -16,6 +16,7 @@ REACQUIRE = "REACQUIRE"
 EDGE_ARMED = "EDGE_ARMED"
 LOSS_CONFIRM = "LOSS_CONFIRM"
 STEER_SETTLE = "STEER_SETTLE"
+BLIND_ADVANCE = "BLIND_ADVANCE"
 
 
 @dataclass(frozen=True)
@@ -44,8 +45,6 @@ class PixelDetection:
 class AssociationConfig:
     min_iou: float = 0.05
     max_anchor_distance_ratio: float = 0.18
-    min_area_ratio: float = 0.35
-    max_area_ratio: float = 2.80
     duplicate_min_iou: float = 0.80
     duplicate_max_anchor_distance_ratio: float = 0.02
     duplicate_max_depth_delta_m: float = 0.15
@@ -59,7 +58,7 @@ class TargetMachineConfig:
     bottom_confirm_frames: int = 6
     min_approach_distance_m: float = 0.10
     min_vertical_progress_fraction: float = 0.06
-    loss_confirm_frames: int = 5
+    loss_confirm_frames: int = 10
     loss_confirm_min_sec: float = 0.20
     early_loss_grace_frames: int = 20
     early_loss_max_frames: int = 60
@@ -265,9 +264,9 @@ def matching_detections(
     diagonal = math.hypot(float(image_width), float(image_height))
     scored = []
     for candidate in candidates:
-        ratio = candidate.area / previous.area if previous.area > 0.0 else math.inf
-        if ratio < config.min_area_ratio or ratio > config.max_area_ratio:
-            continue
+        # Perspective, detector-box changes and image-edge clipping can change
+        # box area sharply. Associate by spatial continuity, not an area ratio;
+        # multiple plausible matches are still handled as ambiguous by callers.
         distance_ratio = math.hypot(
             candidate.anchor_u - previous.anchor_u,
             candidate.anchor_v - previous.anchor_v,
@@ -936,7 +935,7 @@ def renew_motion_lease_now(
 
 
 class TargetPhaseMachine:
-    """Lock one object and make blind-zone entry a one-way guarded transition."""
+    """Lock one object, count consecutive missing frames, then request a pass."""
 
     def __init__(
         self,
@@ -1063,157 +1062,27 @@ class TargetPhaseMachine:
             self.reason = "target locked; visual approach active"
             return self._decision(acquired=True)
 
-        if self.state not in (
-            APPROACH,
-            REACQUIRE,
-            EDGE_ARMED,
-            LOSS_CONFIRM,
-        ):
+        if self.state not in (APPROACH, LOSS_CONFIRM):
             return self._decision()
 
         matched, ambiguity = self._associate(candidates, image_width, image_height)
         if ambiguity:
             return self._decision(fault=ambiguity)
-
         if matched is not None:
             self._update_locked(matched)
-            q = self.filtered_v / float(image_height - 1)
-            raw_q = matched.anchor_v / float(image_height - 1)
-            self.maximum_v_fraction = max(self.maximum_v_fraction, q)
             self.missing_frames = 0
-            self.loss_started_stamp = None
-
-            if self.state == LOSS_CONFIRM:
-                center_error_px = abs(self.filtered_u - target_u)
-                raw_center_error_px = abs(matched.anchor_u - target_u)
-                if (
-                    q < self.config.bottom_fraction
-                    or raw_q < self.config.bottom_fraction
-                    or center_error_px
-                    > self.config.bottom_center_tolerance_fraction * image_width
-                    or raw_center_error_px
-                    > self.config.bottom_center_tolerance_fraction * image_width
-                ):
-                    return self._decision(
-                        fault="target reappeared outside the armed bottom-center gate"
-                    )
-                self.state = EDGE_ARMED
-                self.reason = "target reacquired before blind transition"
-                return self._decision()
-
-            if self.state == REACQUIRE:
-                self.state = APPROACH
-                self.reason = "locked target reacquired"
-
-            center_error_px = abs(self.filtered_u - target_u)
-            raw_center_error_px = abs(matched.anchor_u - target_u)
-            vertical_progress = q - self.acquired_v_fraction
-            ready = (
-                q >= self.config.bottom_fraction
-                and raw_q >= self.config.bottom_fraction
-                and center_error_px
-                <= self.config.bottom_center_tolerance_fraction * image_width
-                and raw_center_error_px
-                <= self.config.bottom_center_tolerance_fraction * image_width
-                and approach_distance_m >= self.config.min_approach_distance_m
-                and vertical_progress >= self.config.min_vertical_progress_fraction
-            )
-            if ready:
-                self.bottom_hits += 1
-            else:
-                self.bottom_hits = 0
-
-            if self.state == EDGE_ARMED:
-                # EMA is useful for smooth steering, but the last real pixel
-                # observation must independently remain in the blind-entry
-                # gate.  Otherwise a single large raw jump could be hidden by
-                # filtering immediately before disappearance.
-                if raw_q < self.config.bottom_fraction:
-                    return self._decision(
-                        fault="armed target moved upward out of the bottom gate"
-                    )
-                if raw_center_error_px > (
-                    self.config.bottom_center_tolerance_fraction * image_width
-                ):
-                    return self._decision(
-                        fault="armed target moved laterally out of the safe gate"
-                    )
-                self.reason = "bottom gate armed; waiting for expected disappearance"
-                return self._decision()
-
-            if self.bottom_hits >= self.config.bottom_confirm_frames:
-                self.state = EDGE_ARMED
-                self.reason = "bottom gate armed; waiting for expected disappearance"
-            else:
-                self.reason = "visual approach active"
+            self.state = APPROACH
+            self.reason = "target visible; disappearance counter reset"
             return self._decision()
 
-        # No spatial match.  A fresh detector frame reached this branch, so it
-        # represents target absence rather than detector-topic timeout.
-        if self.state == APPROACH:
-            # A dropout may be tolerated for steering continuity, but it must
-            # never count as part of the consecutive bottom-entry proof.
-            self.bottom_hits = 0
-            if not candidates:
-                self.missing_frames += 1
-                if self.missing_frames <= self.config.early_loss_grace_frames:
-                    self.reason = (
-                        "target briefly missing %d/%d; holding visual command"
-                        % (
-                            self.missing_frames,
-                            self.config.early_loss_grace_frames,
-                        )
-                    )
-                    return self._decision()
-            else:
-                # A different visible object is not a detector dropout and
-                # must stop immediately rather than using the grace window.
-                self.missing_frames = 1
-            self.state = REACQUIRE
-            self.reason = "target lost before bottom gate; stopped for reacquisition"
-            return self._decision()
-
-        if self.state == REACQUIRE:
-            self.missing_frames += 1
-            if self.missing_frames >= self.config.early_loss_max_frames:
-                return self._decision(
-                    fault="target was lost before reaching the bottom gate"
-                )
-            self.reason = "waiting to reacquire locked target %d/%d" % (
-                self.missing_frames,
-                self.config.early_loss_max_frames,
-            )
-            return self._decision()
-
-        if self.state == EDGE_ARMED:
-            if candidates:
-                return self._decision(
-                    fault="locked target disappeared while another target remained visible"
-                )
-            self.state = LOSS_CONFIRM
-            self.missing_frames = 1
-            self.loss_started_stamp = frame_stamp
-            self.reason = "expected bottom disappearance; confirming with fresh frames"
-            return self._decision()
-
-        if self.state == LOSS_CONFIRM:
-            if candidates:
-                return self._decision(
-                    fault="another target appeared during blind-zone confirmation"
-                )
-            self.missing_frames += 1
-            elapsed = max(0.0, frame_stamp - self.loss_started_stamp)
-            if (
-                self.missing_frames >= self.config.loss_confirm_frames
-                and elapsed >= self.config.loss_confirm_min_sec
-            ):
-                self.state = STEER_SETTLE
-                self.reason = "target disappearance confirmed; settling steering"
-                return self._decision(enter_steer_settle=True)
-            self.reason = "confirming disappearance %d/%d" % (
-                self.missing_frames,
-                self.config.loss_confirm_frames,
-            )
-            return self._decision()
-
+        # One call represents one fresh detector frame, never a control tick.
+        # Any image position qualifies; other objects do not replace this lock.
+        self.missing_frames += 1
+        self.state = LOSS_CONFIRM
+        self.reason = "confirming disappearance %d/%d" % (
+            self.missing_frames, self.config.loss_confirm_frames)
+        if self.missing_frames >= self.config.loss_confirm_frames:
+            self.state = BLIND_ADVANCE
+            self.reason = "target absent for %d frames; beginning forward pass" % (
+                self.config.loss_confirm_frames)
         return self._decision()

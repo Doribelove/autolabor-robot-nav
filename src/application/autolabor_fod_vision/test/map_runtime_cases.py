@@ -133,6 +133,52 @@ class MapRuntimeTest(unittest.TestCase):
         self.assertFalse(result.map_stable)
         self.assertEqual(result.odom_frame, 'camera_init')
 
+    def prepare_flat_paper(self):
+        self.depth[:] = 0.90
+        self.node.motion_enabled = True  # Transport is mocked; no ROS/robot I/O.
+        self.node.runtime.classify = lambda crops: (
+            [np.array([.01, .01, .96, .01, .01]) for _ in crops], .1)
+        for _ in range(16):
+            result = self.run_frame()
+        return result
+
+    def test_flat_paper_keeps_current_depth_and_map_and_motion_outputs(self):
+        result = self.prepare_flat_paper()
+        point = result.positions[0]
+        self.assertEqual(point.material_class, 'paper')
+        self.assertTrue(point.position_valid, point.status)
+        self.assertTrue(point.local_position_valid, point.local_status)
+        self.assertAlmostEqual(point.depth_m, 0.90, places=5)
+        targets = list(self.node.object_map.objects.values())
+        self.assertTrue(any(t.depth_locked and t.world_locked for t in targets))
+        self.assertTrue(all(not t.depth_separated_from_background for t in targets))
+        legacy = self.publishers['/fod/detections'].messages[-1]
+        self.assertTrue(legacy.depth_synchronized)
+        self.assertEqual(len(legacy.detections), 1)
+        self.assertEqual(legacy.detections[0].class_name, 'paper')
+        self.assertTrue(legacy.detections[0].depth_valid)
+        self.assertAlmostEqual(legacy.detections[0].depth_m, 0.90, places=5)
+
+    def test_flat_paper_invalid_depth_does_not_reuse_locked_measurement(self):
+        self.prepare_flat_paper()
+        self.depth[:] = np.nan
+        point = self.run_frame().positions[0]
+        self.assertFalse(point.position_valid)
+        self.assertFalse(point.local_position_valid)
+        self.assertTrue(point.status.startswith('DEPTH_UNAVAILABLE'))
+        legacy = self.publishers['/fod/detections'].messages[-1]
+        self.assertTrue(all(not d.depth_valid for d in legacy.detections))
+
+    def test_flat_paper_wrong_timestamp_still_rejected(self):
+        self.prepare_flat_paper()
+        self.node._depth_messages.clear()
+        point = self.run_frame(depth_delta=.08).positions[0]
+        self.assertFalse(point.position_valid)
+        self.assertFalse(point.local_position_valid)
+        legacy = self.publishers['/fod/detections'].messages[-1]
+        self.assertFalse(legacy.depth_synchronized)
+        self.assertTrue(all(not d.depth_valid for d in legacy.detections))
+
     def test_locked_object_recomputed_after_robot_translation(self):
         for _ in range(7):result=self.run_frame()
         self.assertTrue(any(t.world_locked for t in self.node.object_map.objects.values()))

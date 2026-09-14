@@ -56,10 +56,10 @@ min_confidence: 0.30
 # that same object instead of jumping to a different FOD.
 require_depth_for_acquisition: true
 min_target_depth_m: 0.35
-# GPS remains in control until the mode manager sees the nearest FOD strictly
-# inside 5 m. Keep visual acquisition on the same range so a farther object
+# GPS remains in control until the mode manager sees the nearest FOD at or
+# within 8 m. Keep visual acquisition on the same range so a farther object
 # cannot replace the target while the vehicle is stopping for handoff.
-max_target_depth_m: 5.0
+max_target_depth_m: 8.0
 min_depth_sample_count: 20
 min_depth_valid_fraction: 0.20
 max_depth_mad_m: 0.35
@@ -126,8 +126,8 @@ acquire_max_abs_horizontal_error: 0.65
 acquire_frames: 6
 association_min_iou: 0.05
 association_max_anchor_distance_ratio: 0.18
-association_min_area_ratio: 0.35
-association_max_area_ratio: 2.80
+# No box-area ratio gate: perspective and bottom-edge clipping change size.
+# Spatial matching and rejection of ambiguous multiple targets remain active.
 # Class-aware YOLO NMS can occasionally emit the same physical object twice
 # with different class names. Collapse only a pairwise high-overlap group
 # whose anchors and registered depths also agree. Nearby or depth-separated
@@ -137,19 +137,10 @@ duplicate_detection_max_anchor_distance_ratio: 0.02
 duplicate_detection_max_depth_delta_m: 0.15
 pixel_filter_alpha: 0.35
 
-bottom_fraction: 0.88
-bottom_center_tolerance_fraction: 0.05
-bottom_confirm_frames: 6
-min_approach_distance_m: 0.10
-min_vertical_progress_fraction: 0.06
-loss_confirm_frames: 5
-loss_confirm_min_sec: 0.20
-# The live detector can drop a locked target for more than ten consecutive
-# frames.  Hold the last visual command for at most 20 empty frames (about
-# 1.0 s at 20 Hz, or 0.20 m at the hard speed limit), then stop and allow
-# reacquisition until 60 total misses (about 3.0 s) before latching ABORT.
-early_loss_grace_frames: 20
-early_loss_max_frames: 60
+# Completion: ten consecutive fresh frames without the locked target,
+# then measure an additional 0.30 m forward from current odometry.
+# No bottom/center/area/minimum-approach/time gate. Reappearance resets count.
+loss_confirm_frames: 10
 
 # Ackermann-compatible pixel controller.  With the current forward camera,
 # image-right requires ROS negative yaw, hence steering_sign=-1.
@@ -157,7 +148,6 @@ steering_sign: -1.0
 curvature_gain: 0.65
 horizontal_deadband: 0.025
 max_steering_angle_deg: 12.0
-max_runtime_horizontal_error: 0.70
 far_speed_mps: 0.20
 near_speed_mps: 0.20
 slow_start_fraction: 0.65
@@ -175,7 +165,6 @@ approach_min_command_speed_mps: 0.20
 # intermediate command remains below its measured start deadband.
 max_linear_acceleration_mps2: 4.00
 max_curvature_rate_per_sec: 0.80
-max_approach_distance_m: 6.0
 approach_no_motion_timeout_sec: 3.0
 approach_no_progress_timeout_sec: 2.0
 approach_progress_step_m: 0.02
@@ -192,26 +181,16 @@ cleaning_coverage_tolerance_m: 0.10
 cleaning_min_forward_step_m: 0.001
 cleaning_min_forward_speed_mps: 0.02
 
-# After a centered target moves down and disappears at the image bottom,
-# command zero until steering/chassis settle. Pending-litter tasks continue
-# until the front reference covers the selected coordinate; direct visual/voice
-# recovery retains its existing blind_distance_m completion condition.
-# blind_hard_distance_m remains the absolute post-loss path safety limit for both.
+# Once loss is confirmed, immediately command a straight forward pass.
+# These three feedback counters are retained for source compatibility only;
+# wheel centering and final-stop velocity are NOT cleaning completion gates.
 settle_wheel_angle_deg: 2.0
 settle_speed_mps: 0.03
-settle_confirm_sec: 0.30
-settle_timeout_sec: 3.0
-preblind_max_displacement_m: 0.05
+final_stop_speed_mps: 0.01
 blind_speed_mps: 0.20
-blind_distance_m: 0.50
+blind_distance_m: 0.30
 blind_hard_distance_m: 0.55
 blind_timeout_sec: 12.0
 blind_no_motion_timeout_sec: 2.0
 blind_no_progress_timeout_sec: 1.50
 blind_progress_step_m: 0.01
-blind_max_heading_change_deg: 4.0
-blind_max_lateral_deviation_m: 0.08
-final_stop_confirm_sec: 0.50
-final_stop_speed_mps: 0.01
-final_stop_max_drift_m: 0.005
-final_stop_timeout_sec: 3.0

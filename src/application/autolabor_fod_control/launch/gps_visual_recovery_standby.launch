@@ -3,7 +3,7 @@
        mode manager is the sole /cmd_vel publisher. -->
   <arg name="allow_motion" default="false"/>
   <arg name="external_estop_override" default="false"/>
-  <arg name="blind_distance_m" default="0.50"/>
+  <arg name="blind_distance_m" default="0.30"/>
   <arg name="expected_model_sha256"
        default="7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500"/>
   <arg name="allowed_class_names" default="Metal,Soft,Plastic,Wire,Tool,w"/>
@@ -14,7 +14,7 @@
   <arg name="detections_topic" default="/fod/detections"/>
   <arg name="gps_pause_service" default="/gps/long_range/set_paused"/>
   <arg name="transition_timeout_sec" default="12.0"/>
-  <arg name="fod_entry_distance_m" default="5.0"/>
+  <arg name="fod_entry_distance_m" default="8.0"/>
   <arg name="fod_no_detection_timeout_sec" default="1.0"/>
 
   <include file="$(find autolabor_fod_control)/launch/visual_recovery.launch">

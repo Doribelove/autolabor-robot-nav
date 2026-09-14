@@ -1475,9 +1475,13 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn('"/fod_navigation_mode/set_fod_enabled"', GUI_SOURCE)
         self.assertNotIn("advertise<geometry_msgs::Twist>", GUI_SOURCE)
         self.assertNotIn('"/fod_visual_servo/set_enabled"', GUI_SOURCE)
-        self.assertIn("小于 5 m", GUI_SOURCE)
+        self.assertIn("距离 ≤8 m", GUI_SOURCE)
+        self.assertNotIn("小于 5 m", GUI_SOURCE)
+        self.assertNotIn("FOD 在 5 m 外", GUI_SOURCE)
         self.assertIn("连续 1 秒", GUI_SOURCE)
-        self.assertIn("直行 0.5 m", GUI_SOURCE)
+        self.assertIn("连续 10 帧", GUI_SOURCE)
+        self.assertIn("前进 0.3 m", GUI_SOURCE)
+        self.assertNotIn("直行 0.5 m", GUI_SOURCE)
 
     def test_manifest_declares_health_interfaces_without_remote_messages(self):
         root = ElementTree.parse(str(PACKAGE_ROOT / "package.xml")).getroot()

@@ -174,7 +174,7 @@ class FodNavigationModeRosTest(unittest.TestCase):
 
     def test_abort_stays_stopped_and_complete_resumes_gps(self):
         with self.lock:
-            type(self).detection_depth_m = 6.0
+            type(self).detection_depth_m = 8.000001
             type(self).publish_detection = True
         rospy.sleep(0.15)
         response = self.mode_proxy(True)
@@ -200,7 +200,7 @@ class FodNavigationModeRosTest(unittest.TestCase):
             self.assertEqual(self.visual_requests, [])
 
         with self.lock:
-            type(self).detection_depth_m = 2.0
+            type(self).detection_depth_m = 8.0
             type(self).publish_detection = True
         rospy.sleep(0.15)
         response = self.mode_proxy(True)

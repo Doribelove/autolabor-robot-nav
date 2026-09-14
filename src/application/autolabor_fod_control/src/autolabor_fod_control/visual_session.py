@@ -22,14 +22,14 @@ class VisualSessionReceipt:
         if self.session_id and self.result not in ("COMPLETE", "ABORT"):
             self.result = "CANCELLED"
 
-    def complete(self):
-        # Called ONLY at the existing sensor-fenced, stopped COMPLETE commit.
+    def complete(self, stopped=True):
+        # Sensor-fenced cleaning result. A zero command alone is not stopped.
         if not self.session_id or self.result != "RUNNING":
             return
         self.sequence += 1
         self.result = "COMPLETE"
         self.last_completion = dict(session_id=self.session_id, sequence=self.sequence,
-                                    result="COMPLETE", stopped=True)
+                                    result="COMPLETE", stopped=stopped)
 
     def status(self):
         return dict(session_id=self.session_id, result=self.result,

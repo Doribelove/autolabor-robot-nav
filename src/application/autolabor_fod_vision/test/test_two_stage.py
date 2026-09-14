@@ -104,7 +104,7 @@ class CropAndDepthTest(unittest.TestCase):
         self.assertAlmostEqual(estimate.depth_m, 1.75, places=2)
         self.assertLess(estimate.mad_m, 0.01)
 
-    def test_flat_surface_without_separable_object_is_invalid(self):
+    def test_flat_surface_without_separable_object_has_valid_depth(self):
         depth = np.full((80, 100), 2.5, dtype=np.float32)
         estimate = estimate_clustered_depth(
             depth,
@@ -113,9 +113,63 @@ class CropAndDepthTest(unittest.TestCase):
             inset_fraction=0.0,
             minimum_samples=20,
         )
+        self.assertTrue(estimate.valid, estimate.reason)
+        self.assertIn("planar surface accepted", estimate.reason)
+        self.assertAlmostEqual(estimate.depth_m, 2.5)
+        self.assertAlmostEqual(estimate.mad_m, 0.0)
+        self.assertFalse(estimate.separated_from_background)
+        self.assertTrue(all(math.isfinite(v) for v in estimate.camera_point))
+
+    def test_flat_depth_with_missing_pixels_and_outliers_remains_measurable(self):
+        depth = np.full((80, 100), 0.90, dtype=np.float32)
+        depth[::3, ::3] = np.nan
+        depth[::7, ::7] = np.inf
+        depth[20, 20] = 0.01
+        depth[30, 30] = 99.0
+        for aggregation in ('median', 'mean'):
+            with self.subTest(aggregation=aggregation):
+                estimate = estimate_clustered_depth(
+                    depth, (10, 10, 90, 70),
+                    [100.0, 0.0, 50.0, 0.0, 100.0, 40.0, 0.0, 0.0, 1.0],
+                    aggregation=aggregation,
+                )
+                self.assertTrue(estimate.valid, estimate.reason)
+                self.assertAlmostEqual(estimate.depth_m, 0.90, places=5)
+                self.assertGreater(estimate.sample_count, 1000)
+                self.assertTrue(all(math.isfinite(v) for v in estimate.camera_point))
+
+    def test_allowing_flat_depth_does_not_accept_invalid_or_out_of_range_values(self):
+        for value in (np.nan, np.inf, -np.inf, 0.0, 0.29, 15.01):
+            with self.subTest(value=value):
+                estimate = estimate_clustered_depth(
+                    np.full((80, 100), value, dtype=np.float32),
+                    (10, 10, 90, 70),
+                    [100.0, 0.0, 50.0, 0.0, 100.0, 40.0, 0.0, 0.0, 1.0],
+                )
+                self.assertFalse(estimate.valid)
+                self.assertIn('too few valid depth samples', estimate.reason)
+                self.assertTrue(math.isnan(estimate.depth_m))
+
+    def test_allowing_flat_depth_preserves_minimum_valid_fraction(self):
+        depth = np.full((80, 100), np.nan, dtype=np.float32)
+        depth[25:30, 25:35] = 1.0  # Enough points, but not enough box coverage.
+        estimate = estimate_clustered_depth(
+            depth, (10, 10, 90, 70),
+            [100.0, 0.0, 50.0, 0.0, 100.0, 40.0, 0.0, 0.0, 1.0],
+        )
         self.assertFalse(estimate.valid)
-        self.assertIn("flat surface", estimate.reason)
-        self.assertTrue(math.isnan(estimate.depth_m))
+        self.assertIn('valid depth fraction is too low', estimate.reason)
+
+    def test_allowing_flat_depth_preserves_intrinsics_and_shape_checks(self):
+        depth = np.full((80, 100), 1.0, dtype=np.float32)
+        matrix = [100.0, 0.0, 50.0, 0.0, 100.0, 40.0, 0.0, 0.0, 1.0]
+        bad_matrix = list(matrix)
+        bad_matrix[0] = 0.0
+        for image, intrinsics in ((depth, bad_matrix), (depth[:, :, None], matrix),
+                                  (depth, matrix[:8])):
+            with self.subTest(shape=image.shape, matrix=intrinsics):
+                estimate = estimate_clustered_depth(image, (10, 10, 90, 70), intrinsics)
+                self.assertFalse(estimate.valid)
 
     def test_mean_aggregation_returns_three_dimensional_camera_point(self):
         depth = np.full((120, 160), 3.0, dtype=np.float32)

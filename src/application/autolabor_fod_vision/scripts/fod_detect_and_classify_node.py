@@ -1250,32 +1250,10 @@ class DetectAndClassifyNode:
                     targets[index], probability, appearance, self.frame_index
                 )
 
-        # A paper-like class without a separable local depth cluster must never
-        # acquire a distance/world identity from the ground plane.  Apply this
-        # before updating either persistent cache.
+        # Thin litter can share the ground's depth. Material/flatness must not
+        # invalidate an otherwise valid current-frame measurement or its cache.
+        # Keep the normal depth validity, timestamp and transform checks below.
         for index, target in enumerate(targets):
-            estimate = depth_estimates[index]
-            if (
-                target.stable_material == "paper"
-                and estimate.valid
-                and not estimate.separated_from_background
-            ):
-                depth_estimates[index] = DepthClusterEstimate(
-                    valid=False,
-                    sample_count=estimate.sample_count,
-                    valid_fraction=estimate.valid_fraction,
-                    reason="paper is not separable from the local ground surface",
-                )
-                world_positions[index] = None
-                world_frames[index] = ""
-                self.object_map.clear_depth_lock(target, clear_world=True)
-            if (
-                target.stable_material == "paper"
-                and target.depth_locked
-                and not target.depth_separated_from_background
-            ):
-                self.object_map.clear_depth_lock(target, clear_world=True)
-
             estimate = depth_estimates[index]
             target.depth_valid = bool(estimate.valid)
             target.depth_m = float(estimate.depth_m)

@@ -320,7 +320,9 @@ def estimate_clustered_depth(
 
     Candidate components are built from locally coherent registered-depth bands.
     Ranking uses monotonic pixel support, center coverage, compactness and
-    dispersion.  Absolute range is intentionally absent from the score.
+    dispersion. Absolute range and flatness are intentionally absent from the
+    score: a detector-confirmed object can be thin and flush with the ground.
+    Flatness remains diagnostic information, not a reason to discard depth.
     """
     if depth_m.ndim != 2:
         return _invalid_depth("depth image is not single-channel")
@@ -468,7 +470,7 @@ def estimate_clustered_depth(
                 center_coverage,
                 mad,
                 median,
-            ) - (0.40 if plane_like else 0.0)
+            )
             candidate = (
                 score,
                 plane_like,
@@ -483,12 +485,6 @@ def estimate_clustered_depth(
     if best is None:
         return _invalid_depth("no spatially coherent depth cluster", valid_count, valid_fraction)
     _, plane_like, separated, rows, columns, kept_values, mad = best
-    if plane_like:
-        return _invalid_depth(
-            "candidate is indistinguishable from a locally flat surface",
-            int(kept_values.size),
-            valid_fraction,
-        )
     aggregate = float(np.median(kept_values) if aggregation == "median" else np.mean(kept_values))
     global_u = left + columns.astype(np.float64) * stride
     global_v = top + rows.astype(np.float64) * stride
@@ -516,7 +512,8 @@ def estimate_clustered_depth(
         center_v=float(np.median(global_v)),
         camera_point=point,
         separated_from_background=bool(separated),
-        reason="cluster selected by geometry",
+        reason=("planar surface accepted; cluster selected by geometry"
+                if plane_like else "cluster selected by geometry"),
     )
 
 

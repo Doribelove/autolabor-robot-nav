@@ -1242,6 +1242,7 @@ class AgentRunner:
             return self._visual_failure("视觉请求缺少本次会话/完成基线，不能监督完成，后续步骤未执行")
         deadline = time.monotonic() + self.visual_wait_timeout
         failure = "等待视觉定点清扫完成超时"
+        last_status = {}
         while time.monotonic() < deadline:
             self._check_cancelled()
             try:
@@ -1250,6 +1251,7 @@ class AgentRunner:
                 failure = "视觉状态传输异常: " + _sanitize_text(str(exc))
                 break
             data = self._decode(response.get("text"))
+            last_status = data
             state = data.get("state", "UNAVAILABLE")
             self._emit("PROGRESS", tool="visual", state=state,
                        result_json=_sanitize_text(response.get("text")))
@@ -1258,25 +1260,52 @@ class AgentRunner:
                 failure = "视觉状态查询失败或会话已变化，不能认定本次完成"
                 break
             if state in {"FOD_ABORTED", "FAULT_STOP"} or data.get("visual_result") in {"ABORT", "CANCELLED"}:
-                failure = "视觉会话中止或取消: " + _sanitize_text(response.get("text"))
+                controller_aborted = (data.get("visual_state") == "ABORT"
+                                      or data.get("visual_result") in {"ABORT", "CANCELLED"})
+                reason = (data.get("visual_reason") if controller_aborted else data.get("mode_reason"))
+                reason = reason or data.get("reason") or "控制器未给出具体原因"
+                failure = "视觉会话中止或取消: " + _sanitize_text(reason)
                 break
             if visual_completed(data, expected_id, baseline):
                 return True, _sanitize_text(response.get("text"))
-            if state == "RELATIVE_NAV_ACTIVE":
+            # Mode and visual receipt arrive on independent topics. A genuine
+            # COMPLETE may precede its stopped receipt; keep polling within the
+            # existing task timeout instead of failing this completed cleaning.
+            if state == "RELATIVE_NAV_ACTIVE" and data.get("visual_result") != "COMPLETE":
                 failure = "已退出视觉但缺少本次完成/停车证据，后续步骤未执行"
                 break
             time.sleep(self.poll_interval)
-        return self._visual_failure(failure)
+        return self._visual_failure(failure, expected_id, last_status)
 
-    def _visual_failure(self, failure):
+    def _visual_failure(self, failure, session_id="", status=None):
+        document = self._decode(failure)
+        session_id = session_id or document.get("visual_session_id", "")
+        cleanup_state = "exit_unconfirmed"
         try:
             response = self.mcp.call_tool("stop_spot_cleaning", {}, authorised=True)
             cleanup = _sanitize_text(response.get("text", ""))
             if response.get("is_error"):
                 cleanup = "退出未确认: " + cleanup
+            else:
+                # A service acknowledgement is not a physical stop receipt.
+                cleanup_state = "exit_requested"
         except Exception as exc:
             cleanup = "退出请求异常: " + _sanitize_text(str(exc))
-        return False, failure + "；本AI视觉会话退出结果: " + cleanup
+        evidence = {}
+        for key in ("state", "visual_state", "visual_result", "visual_session_id",
+                    "visual_reason", "mode_reason"):
+            if status and key in status:
+                evidence[key] = _sanitize_text(status[key], 400)
+        # Bound individual strings, not serialized JSON: cutting the closing
+        # brace would discard the execution-state evidence in the final summary.
+        return False, json.dumps({
+            "execution_state": "started_not_completed" if session_id_valid(session_id) else "start_unconfirmed",
+            "message": _sanitize_text(document.get("message") or failure, 600),
+            "visual_session_id": session_id if session_id_valid(session_id) else "",
+            "cleanup_state": cleanup_state, "cleanup_detail": _sanitize_text(cleanup, 400),
+            # Capture controller evidence before cleanup replaces ABORT with DISABLED.
+            "visual_status": evidence,
+        }, ensure_ascii=False)
 
     def cancel(self):
         self._cancel.set()
@@ -1295,6 +1324,27 @@ class AgentRunner:
                 pass
 
     def _summarise(self, original, plan, results, state):
+        if state == "FAILED" and results and results[-1]["tool"] in VISUAL_START_TOOLS:
+            # An LLM must not reinterpret "not completed" as "never executed".
+            # Keep this safety-relevant outcome deterministic and evidence-based.
+            last = results[-1]
+            data = self._decode(last["detail"])
+            outcome = {
+                "not_started": "视觉清扫未启动",
+                "started_not_completed": "视觉清扫已启动，但未完成",
+                "start_unconfirmed": "视觉启动结果未确认，不能认定已清扫",
+            }.get(data.get("execution_state"), "视觉清扫未确认完成")
+            reason = _sanitize_text(data.get("message") or last["detail"], 600)
+            answer = "已完成 %d 步；%s。原因：%s" % (
+                sum(1 for item in results if item["ok"]), outcome, reason)
+            if data.get("cleanup_state") == "exit_unconfirmed":
+                answer += "；退出未确认，请检查步骤详情及车辆状态"
+            elif data.get("cleanup_state") == "exit_requested":
+                answer += "；已请求退出本 AI 视觉会话，服务应答不代表清扫完成或物理停车已确认"
+            remaining = max(0, len(plan["steps"]) - len(results))
+            if remaining:
+                answer += "；后续 %d 步未执行" % remaining
+            return answer + "。"
         safe_results = [{
             "tool": item["tool"], "ok": item["ok"],
             "detail": _sanitize_text(item["detail"], self.tool_text_limit),

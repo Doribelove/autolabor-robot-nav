@@ -78,8 +78,8 @@ class StopConfirmationInputTest(unittest.TestCase):
 
 
 class FodEntryGateTest(unittest.TestCase):
-    def test_nearest_target_strictly_inside_five_metres_enters_fod(self):
-        gate = FodEntryGate(5.0, 1.0)
+    def test_nearest_target_inside_eight_metres_enters_fod(self):
+        gate = FodEntryGate(8.0, 1.0)
         gate.update((4.8, 2.1, 3.0), 10.0)
 
         decision = gate.evaluate(10.1, 10.0)
@@ -87,13 +87,25 @@ class FodEntryGateTest(unittest.TestCase):
         self.assertEqual(decision.action, ENTER_FOD)
         self.assertAlmostEqual(decision.nearest_depth_m, 2.1)
 
-    def test_target_at_or_beyond_five_metres_keeps_gps(self):
-        for depth in (5.0, 7.5):
+    def test_target_at_eight_metres_enters_fod(self):
+        gate = FodEntryGate(8.0, 1.0)
+        gate.update((8.0,), 20.0)
+        self.assertEqual(gate.evaluate(20.1, 20.0).action, ENTER_FOD)
+
+    def test_target_beyond_eight_metres_keeps_gps(self):
+        for depth in (8.000001, 9.0):
             with self.subTest(depth=depth):
-                gate = FodEntryGate(5.0, 1.0)
+                gate = FodEntryGate(8.0, 1.0)
                 gate.update((depth,), 20.0)
                 decision = gate.evaluate(20.1, 20.0)
                 self.assertEqual(decision.action, KEEP_GPS)
+
+    def test_inclusive_boundary_uses_configured_distance(self):
+        gate = FodEntryGate(5.0, 1.0)
+        gate.update((5.0,), 20.0)
+        self.assertEqual(gate.evaluate(20.1, 20.0).action, ENTER_FOD)
+        gate.update((5.000001,), 20.2)
+        self.assertEqual(gate.evaluate(20.3, 20.0).action, KEEP_GPS)
 
     def test_one_second_without_valid_depth_keeps_gps(self):
         gate = FodEntryGate(5.0, 1.0)

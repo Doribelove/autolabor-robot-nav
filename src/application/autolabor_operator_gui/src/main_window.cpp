@@ -5933,7 +5933,7 @@ void MainWindow::refreshUi()
     button->setEnabled(can_start_fod);
     button->setToolTip(
         can_start_fod
-            ? QStringLiteral("最近 FOD 小于 5 m 时接管；5 m 外或 1 秒无识别时保持相对导航")
+            ? QStringLiteral("最近 FOD 距离 ≤8 m 时接管；超过 8 m 或 1 秒无识别时保持相对导航")
             : QStringLiteral("需要相对导航活动且模式仲裁服务在线"));
   }
   for (QPushButton* button : { overview_fod_stop_button_, fod_stop_button_ })
@@ -8086,9 +8086,9 @@ void MainWindow::startFodMode()
 
   const QMessageBox::StandardButton answer = QMessageBox::question(
       this, QStringLiteral("确认进入视觉行驶模式"),
-      QStringLiteral("系统只会在最近有效深度 FOD 小于 5 m 时暂停相对导航并切入视觉控制；"
-                     "FOD 在 5 m 外或连续 1 秒没有识别信息时继续原局部路线。目标沿车体中线"
-                     "从图像下方消失后，再直行 0.5 m 通过滚轴并自动恢复相对导航。"
+      QStringLiteral("系统只会在最近有效深度 FOD 距离 ≤8 m 时暂停相对导航并切入视觉控制；"
+                     "FOD 超过 8 m 或连续 1 秒没有识别信息时继续原局部路线。"
+                     "锁定目标连续 10 帧未再出现后，再前进 0.3 m 即判清扫成功，停车后恢复导航。"
                      "\n\n是否开始判定？"),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
   if (answer != QMessageBox::Yes)
@@ -8119,7 +8119,7 @@ void MainWindow::requestFodMode(bool enabled)
                                overview_fod_stop_button_, fod_stop_button_ })
     if (button)
       button->setEnabled(false);
-  appendEvent(enabled ? QStringLiteral("正在检查最近 FOD 距离；满足小于 5 m 才切入视觉模式……")
+  appendEvent(enabled ? QStringLiteral("正在检查最近 FOD 距离；满足 ≤8 m 才切入视觉模式……")
                       : QStringLiteral("正在请求退出视觉模式并安全恢复相对导航……"),
               enabled);
 

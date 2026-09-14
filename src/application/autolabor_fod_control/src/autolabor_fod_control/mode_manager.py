@@ -28,7 +28,7 @@ class FodEntryDecision:
 
 
 class FodEntryGate:
-    """Allow GPS/FOD handoff only for a recent target strictly inside range."""
+    """Allow GPS/FOD handoff only for a recent target at or within range."""
 
     def __init__(self, entry_distance_m, no_detection_timeout_sec):
         self.entry_distance_m = float(entry_distance_m)
@@ -75,7 +75,7 @@ class FodEntryGate:
             age = now - self.latest_valid_receipt_monotonic
             if 0.0 <= age <= self.no_detection_timeout_sec:
                 depth = self.latest_nearest_depth_m
-                if depth < self.entry_distance_m:
+                if depth <= self.entry_distance_m:
                     return FodEntryDecision(
                         ENTER_FOD,
                         "nearest FOD %.3fm is within the %.3fm entry distance"

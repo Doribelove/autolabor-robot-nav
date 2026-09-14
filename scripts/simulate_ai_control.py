@@ -25,6 +25,12 @@ from sweeper_mcp.ros_backend import ROSBackend
 from sweeper_mcp.voice_turns import VoiceTurnBuffer
 from autolabor_fod_control.visual_session import VisualSessionReceipt
 
+VISUAL_LOG_FAULTS = {
+    "visual_detection_stamp_stale": "detections source stamp age is invalid: 0.518s",
+    "visual_edge_candidate_rejected": (
+        "FOD is still visible below the motion-confidence threshold; blind advance is inhibited"),
+}
+
 
 class ScenarioBackend(MockBackend):
     def __init__(self, fault=""):
@@ -142,6 +148,7 @@ class ScenarioBackend(MockBackend):
         count = self.polls["visual"]
         state, visual_state, active = "FOD_ACTIVE", "APPROACH", True
         reason = "synthetic visual tracking"
+        visual_reason = reason
         if count >= 3:
             state, visual_state, active = "GPS_ACTIVE", "COMPLETE", False
             if self.fault == "visual_abort": state, visual_state = "FOD_ABORTED", "ABORT"
@@ -152,11 +159,15 @@ class ScenarioBackend(MockBackend):
                 visual_state, reason = "IDLE", "visual disabled without completion"
             elif self.fault == "mode_return_while_visual_active":
                 visual_state, active = "APPROACH", True
+            elif self.fault in VISUAL_LOG_FAULTS:
+                state, visual_state = "FOD_ABORTED", "ABORT"
+                reason = "visual controller aborted; GPS remains paused until an explicit stop/return command"
+                visual_reason = VISUAL_LOG_FAULTS[self.fault]
             if visual_state == "COMPLETE": self.visual_receipt.complete()
             elif visual_state == "ABORT": self.visual_receipt.abort()
             elif not active: self.visual_receipt.disable()
         data = (dict(state=state, visual_state=visual_state, reason=reason)
-                if key == "mode" else dict(state=visual_state, active=active,
+                if key == "mode" else dict(state=visual_state, active=active, reason=visual_reason,
                     ai_completion_protocol=1, visual_session=self.visual_receipt.status()))
         return SimpleNamespace(data=json.dumps(data))
 
@@ -231,11 +242,17 @@ def execution_case(fault, cloud_row=None, followup=False):
         "mode_return_without_completion": ("FAILED", 3),
         "mode_return_while_visual_active": ("FAILED", 3),
         "visual_tool_error": ("FAILED", 3),
+        "visual_detection_stamp_stale": ("FAILED", 3),
+        "visual_edge_candidate_rejected": ("FAILED", 3),
         "cancel_visual": ("CANCELLED", 3), "cancel_visual_start": ("CANCELLED", 3),
     }[fault]
     if followup:
         expected = ("SUCCEEDED", 4) if fault == "normal" else ("FAILED", 3)
     ok = result["state"] == expected[0] and len(names) == expected[1] and backend.capture_count == 1
+    if fault in VISUAL_LOG_FAULTS:
+        answer = result.get("answer", "")
+        ok = (ok and "已启动，但未完成" in answer and VISUAL_LOG_FAULTS[fault] in answer
+              and "未执行清扫" not in answer and backend.visual_receipt.result == "ABORT")
     if fault in {"cancel_visual", "cancel_visual_start"}:
         ok = ok and backend.visual_receipt.result == "CANCELLED" and backend.stage == "visual_cancelled"
         if fault == "cancel_visual_start":
@@ -298,6 +315,11 @@ def main():
         row["case"] = "completed_visual_allows_fourth_navigation"
         rows.append(row)
         print(json.dumps(row, ensure_ascii=False), flush=True)
+        for fault in VISUAL_LOG_FAULTS:
+            row = execution_case(fault, followup=True)
+            row["case"] = fault + "_preserves_reason_and_blocks_fourth_navigation"
+            rows.append(row)
+            print(json.dumps(row, ensure_ascii=False), flush=True)
     for cloud_log in args.cloud_log:
         for line in Path(cloud_log).read_text().splitlines():
             saved = json.loads(line)
