@@ -44,7 +44,9 @@ def main():
         if source.suffix.lower() in {'.bag','.pcd','.pt','.onnx','.bin','.env','.pem','.key','.pyc'}:
             raise ValueError('Private or binary asset in export: '+str(relative))
         data = source.read_bytes()
-        if len(data)>5*1024*1024:
+        gif_demo = relative.parts[:1] == ('assets',) and source.suffix.lower() == '.gif'
+        size_limit = 30*1024*1024 if gif_demo else 5*1024*1024
+        if len(data)>size_limit:
             raise ValueError('Unexpected large file: '+str(relative))
         if re.search(rb'-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}',data):
             raise ValueError('Credential pattern in export: '+str(relative))

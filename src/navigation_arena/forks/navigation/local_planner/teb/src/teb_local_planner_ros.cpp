@@ -126,6 +126,7 @@ void TebLocalPlannerROS::initialize(std::string name, tf2_ros::Buffer* tf, costm
     // get parameters of TebConfig via the nodehandle and override the default config
     cfg_.loadRosParamFromNodeHandle(nh);       
     nh.param("reinitialize_on_global_plan", reinitialize_on_global_plan_, false);
+    nh.setParam("yaw_free_goal_protocol", 1);
     
     // reserve some memory for obstacles
     obstacles_.reserve(500);
@@ -191,6 +192,11 @@ void TebLocalPlannerROS::initialize(std::string name, tf2_ros::Buffer* tf, costm
     
     // init the odom helper to receive the robot's velocity from odom messages
     odom_helper_.setOdomTopic(cfg_.odom_topic);
+    // Upstream OdometryHelperRos discards Header.stamp. Keep a stamped copy
+    // for the new positional-arrival stop gate without altering ordinary goals.
+    ros::NodeHandle odom_nh;
+    goal_odom_sub_ = odom_nh.subscribe<nav_msgs::Odometry>(
+        cfg_.odom_topic, 1, &TebLocalPlannerROS::goalOdometryCallback, this);
 
     // setup dynamic reconfigure
     dynamic_recfg_ = boost::make_shared< dynamic_reconfigure::Server<TebLocalPlannerReconfigureConfig> >(nh);
@@ -224,6 +230,13 @@ void TebLocalPlannerROS::initialize(std::string name, tf2_ros::Buffer* tf, costm
 }
 
 
+
+void TebLocalPlannerROS::goalOdometryCallback(const nav_msgs::Odometry::ConstPtr& message)
+{
+  boost::mutex::scoped_lock lock(goal_odom_mutex_);
+  goal_odom_ = *message;
+  goal_odom_received_ = ros::WallTime::now();
+}
 
 bool TebLocalPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan)
 {
@@ -278,6 +291,19 @@ bool TebLocalPlannerROS::setPlan(const std::vector<geometry_msgs::PoseStamped>& 
     fixed_gear_recovery_active_ = false;
     fixed_gear_stable_cycle_count_ = 0;
   }
+
+  // Only an ordinary plan uniformly stamped by the global planner can opt
+  // out of terminal yaw. Recompute for each plan, including fixed-yaw goals.
+  const bool yaw_free = cfg_.robot.motion_direction_mode == 0 &&
+      !orig_global_plan.empty() &&
+      (orig_global_plan.front().header.seq & 0xC0000000u) == 0x80000000u &&
+      std::all_of(orig_global_plan.begin(), orig_global_plan.end(),
+          [&](const geometry_msgs::PoseStamped& p) {
+            return p.header.seq == orig_global_plan.front().header.seq;
+          });
+  if (yaw_free != yaw_free_goal_)
+    planner_->clearPlanner();
+  yaw_free_goal_ = yaw_free;
 
   // store the global plan
   global_plan_.clear();
@@ -365,8 +391,26 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   double dx = global_goal.pose.position.x - robot_pose_.x();
   double dy = global_goal.pose.position.y - robot_pose_.y();
   double delta_orient = g2o::normalize_theta( tf2::getYaw(global_goal.pose.orientation) - robot_pose_.theta() );
+  const bool free_heading = yaw_free_goal_ && cfg_.robot.motion_direction_mode == 0;
+  if (free_heading && std::hypot(dx, dy) < cfg_.goal_tolerance.xy_goal_tolerance &&
+      (!cfg_.goal_tolerance.complete_global_plan || via_points_.empty()))
+  {
+    // Brake at the positional goal without turning to a fabricated yaw.
+    // Fresh physical odometry must confirm a stop, even if free_goal_vel is set.
+    boost::mutex::scoped_lock odom_lock(goal_odom_mutex_);
+    const double age = (ros::Time::now() - goal_odom_.header.stamp).toSec();
+    const auto& velocity = goal_odom_.twist.twist;
+    goal_reached_ = !goal_odom_.header.stamp.isZero() && age >= -0.1 && age <= 0.5 &&
+        !goal_odom_received_.isZero() && (ros::WallTime::now()-goal_odom_received_).toSec() <= 0.5 &&
+        std::isfinite(velocity.linear.x) && std::isfinite(velocity.linear.y) &&
+        std::isfinite(velocity.angular.z) &&
+        base_local_planner::stopped(goal_odom_, cfg_.goal_tolerance.theta_stopped_vel,
+                                   cfg_.goal_tolerance.trans_stopped_vel) &&
+        (!cfg_.goal_tolerance.complete_global_plan || via_points_.empty());
+    return mbf_msgs::ExePathResult::SUCCESS; // cmd_vel is already zero
+  }
   if(fabs(std::sqrt(dx*dx+dy*dy)) < cfg_.goal_tolerance.xy_goal_tolerance
-    && fabs(delta_orient) < cfg_.goal_tolerance.yaw_goal_tolerance
+    && !free_heading && fabs(delta_orient) < cfg_.goal_tolerance.yaw_goal_tolerance
     && (!cfg_.goal_tolerance.complete_global_plan || via_points_.size() == 0)
     && (base_local_planner::stopped(base_odom, cfg_.goal_tolerance.theta_stopped_vel, cfg_.goal_tolerance.trans_stopped_vel)
         || cfg_.goal_tolerance.free_goal_vel))
@@ -392,7 +436,27 @@ uint32_t TebLocalPlannerROS::computeVelocityCommands(const geometry_msgs::PoseSt
   robot_goal_.x() = transformed_plan.back().pose.position.x;
   robot_goal_.y() = transformed_plan.back().pose.position.y;
   // Overwrite goal orientation if needed
-  if (cfg_.trajectory.global_plan_overwrite_orientation)
+  if (free_heading && goal_idx == static_cast<int>(global_plan_.size()) - 1)
+  {
+    // Choose the approach direction from the path. The arrival gate above
+    // accepts any final heading; the request quaternion imposes no end turn.
+    double heading = robot_pose_.theta();
+    for (int i = static_cast<int>(transformed_plan.size()) - 2; i >= 0; --i)
+    {
+      const double gx = robot_goal_.x() - transformed_plan[i].pose.position.x;
+      const double gy = robot_goal_.y() - transformed_plan[i].pose.position.y;
+      if (std::hypot(gx, gy) > 0.10)
+      {
+        heading = std::atan2(gy, gx);
+        break;
+      }
+    }
+    robot_goal_.theta() = heading;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, heading);
+    tf2::convert(q, transformed_plan.back().pose.orientation);
+  }
+  else if (cfg_.trajectory.global_plan_overwrite_orientation)
   {
     robot_goal_.theta() = estimateLocalGoalOrientation(global_plan_, transformed_plan.back(), goal_idx, tf_plan_to_global);
     // overwrite/update goal orientation of the transformed plan with the actual goal (enable using the plan as initialization)

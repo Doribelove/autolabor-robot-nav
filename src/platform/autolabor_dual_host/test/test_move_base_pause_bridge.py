@@ -34,6 +34,65 @@ class _Publisher:
 
 
 class MoveBasePauseBridgeTest(unittest.TestCase):
+    def test_cancel_during_policy_registration_cannot_be_followed_by_goal_publish(self):
+        bridge = self._bridge()
+        request = self._action_request()
+        request.goal.target_pose.header.seq = bridge.YAW_FREE_REQUEST
+        entered, release = threading.Event(), threading.Event()
+        def register(*args):
+            entered.set()
+            release.wait(2.)
+            return SimpleNamespace(success=True)
+        with mock.patch.object(BRIDGE.rospy, "get_param", return_value=1), \
+                mock.patch.object(BRIDGE.rospy, "wait_for_service"), \
+                mock.patch.object(BRIDGE.rospy, "ServiceProxy", return_value=register):
+            worker = threading.Thread(target=bridge._action_goal_request_callback, args=(request,))
+            worker.start()
+            self.assertTrue(entered.wait(1.))
+            # This callback must run while service I/O is blocked.
+            bridge._action_cancel_request_callback(GoalID(id=request.goal_id.id))
+            release.set()
+            worker.join(1.)
+            self.assertFalse(worker.is_alive())
+        self.assertFalse(bridge.action_goal_pub.messages)
+        self.assertIn(request.goal_id.id, bridge._cancel_requested_goal_ids)
+
+    def test_yaw_free_policy_is_bound_before_forwarding_with_same_stamp(self):
+        bridge = self._bridge()
+        request = self._action_request()
+        request.goal.target_pose.header.seq = bridge.YAW_FREE_REQUEST
+        captured = []
+        def register(goal_id, goal, free):
+            self.assertFalse(bridge.action_goal_pub.messages)
+            captured.append((goal_id, goal, free))
+            return SimpleNamespace(success=True)
+        with mock.patch.object(BRIDGE.rospy, "get_param", return_value=1), \
+                mock.patch.object(BRIDGE.rospy, "wait_for_service"), \
+                mock.patch.object(BRIDGE.rospy, "ServiceProxy", return_value=register):
+            bridge._action_goal_request_callback(request)
+        self.assertEqual(len(bridge.action_goal_pub.messages), 1)
+        sent = bridge.action_goal_pub.messages[0]
+        self.assertEqual(captured[0][0], sent.goal_id.id)
+        self.assertEqual(captured[0][1], sent.goal.target_pose)
+        self.assertTrue(captured[0][2])
+
+    def test_missing_policy_or_old_teb_cannot_forward_yaw_free_goal(self):
+        for protocol in (0, 1):
+            bridge = self._bridge()
+            request = self._action_request()
+            request.goal.target_pose.header.seq = bridge.YAW_FREE_REQUEST
+            with mock.patch.object(BRIDGE.rospy, "get_param", return_value=protocol), \
+                    mock.patch.object(BRIDGE.rospy, "wait_for_service", side_effect=RuntimeError("missing")):
+                bridge._action_goal_request_callback(request)
+            self.assertFalse(bridge.action_goal_pub.messages)
+
+    def test_fixed_yaw_request_does_not_change_any_goal_policy(self):
+        bridge = self._bridge()
+        with mock.patch.object(BRIDGE.rospy, "ServiceProxy") as proxy:
+            bridge._action_goal_request_callback(self._action_request())
+            proxy.assert_not_called()
+        self.assertEqual(len(bridge.action_goal_pub.messages), 1)
+
     def setUp(self):
         self.now = rospy.Time.from_sec(100.0)
         self.time_patch = mock.patch.object(
@@ -47,6 +106,7 @@ class MoveBasePauseBridgeTest(unittest.TestCase):
     def _bridge():
         bridge = BRIDGE.MoveBasePauseBridge.__new__(BRIDGE.MoveBasePauseBridge)
         bridge.lock = threading.RLock()
+        bridge._action_submit_lock = threading.Lock()
         bridge.paused = False
         bridge.coverage_topic_active = False
         bridge.coverage_owner_token = ""

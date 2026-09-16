@@ -1046,7 +1046,12 @@ class CoverageManager:
             "/coverage/executed_path", Path, queue_size=1, latch=True
         )
         self.marker_pub = rospy.Publisher(
-            "/coverage/markers", MarkerArray, queue_size=1, latch=True
+            # Keep both a freshly published plan and an immediately following
+            # DELETEALL in the outbound queue.  With a one-message queue, a
+            # fast preflight failure could replace the ADD before RViz ever
+            # received it, making the generated sweep geometry disappear from
+            # the operator's history even though planning succeeded.
+            "/coverage/markers", MarkerArray, queue_size=2, latch=True
         )
         self.enforced_path_pub = rospy.Publisher(
             "/coverage/enforced_path", EnforcedPath, queue_size=1

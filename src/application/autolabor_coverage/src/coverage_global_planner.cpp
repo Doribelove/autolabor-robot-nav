@@ -14,6 +14,7 @@
 #include <future>
 #include <limits>
 #include <memory>
+#include <regex>
 #include <stdexcept>
 #include <thread>
 #include <utility>
@@ -32,6 +33,9 @@ namespace
 // action boundary instead of clearing it on every controller cycle.
 constexpr std::uint32_t kCoverageActionSequencePrefix = 0xC0000000u;
 constexpr std::uint32_t kCoverageActionSequencePayload = 0x3FFFFFFFu;
+// High bits 10 identify an ordinary plan with no terminal yaw requirement.
+// This marker is generated only after matching a synchronous per-goal policy.
+constexpr std::uint32_t kYawFreePlanPrefix = 0x80000000u;
 
 void stampCoverageActionSequence(
     const autolabor_coverage::EnforcedPath& message,
@@ -352,6 +356,9 @@ void CoverageGlobalPlanner::initialize(std::string name,
       this);
   navfn_preview_service_ = private_nh_.advertiseService(
       "make_navfn_plan", &CoverageGlobalPlanner::navfnPreviewCallback, this);
+  ordinary_goal_policy_service_ = private_nh_.advertiseService(
+      "set_ordinary_goal_policy", &CoverageGlobalPlanner::setOrdinaryGoalPolicyCallback, this);
+  private_nh_.setParam("yaw_free_goal_protocol", 1);
   hybrid_action_server_.reset(new actionlib::SimpleActionServer<
       autolabor_coverage::PlanHybridTransitionsAction>(
           private_nh_, "plan_hybrid_transitions",
@@ -959,6 +966,37 @@ bool CoverageGlobalPlanner::updateEnforcedPath(
   return true;
 }
 
+bool CoverageGlobalPlanner::setOrdinaryGoalPolicyCallback(
+    autolabor_coverage::SetOrdinaryGoalPolicy::Request& request,
+    autolabor_coverage::SetOrdinaryGoalPolicy::Response& response)
+{
+  const auto& p = request.goal.pose.position;
+  const auto& q = request.goal.pose.orientation;
+  const double age = (ros::Time::now() - request.goal.header.stamp).toSec();
+  const double norm = q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w;
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (!std::regex_match(request.goal_id, std::regex("sweeper-ai-[0-9a-f]{32}")) ||
+      request.goal.header.frame_id != "map" ||
+      request.goal.header.frame_id != costmap_ros_->getGlobalFrameID() ||
+      request.goal.header.stamp.isZero() || age < -0.1 || age > 2.0 ||
+      !std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z) ||
+      !std::isfinite(norm) || std::abs(norm-1.0) > 1e-3 ||
+      std::abs(q.x) > 1e-6 || std::abs(q.y) > 1e-6 || std::abs(p.z) > 1e-6 ||
+      coverage_active_ || request.goal.header.stamp <= ordinary_policy_goal_.header.stamp)
+  {
+    response.success = false;
+    response.message = "ordinary goal policy rejected: invalid goal, timestamp or ownership";
+    return true;
+  }
+  ordinary_policy_goal_ = request.goal;
+  ordinary_policy_yaw_free_ = request.yaw_free;
+  ordinary_policy_sequence_ = kYawFreePlanPrefix |
+      ((ordinary_policy_sequence_ + 1u) & kCoverageActionSequencePayload);
+  response.success = true;
+  response.message = "ordinary goal policy bound to exact map pose and timestamp";
+  return true;
+}
+
 bool CoverageGlobalPlanner::makePlan(
     const geometry_msgs::PoseStamped& start,
     const geometry_msgs::PoseStamped& goal,
@@ -970,10 +1008,19 @@ bool CoverageGlobalPlanner::makePlan(
   HybridAStarProfile transit_profile;
   double hybrid_replan_period = 1.0;
   bool active = false;
+  bool yaw_free = false;
+  std::uint32_t yaw_free_sequence = 0;
   double age = std::numeric_limits<double>::infinity();
   {
     std::lock_guard<std::mutex> lock(mutex_);
     active = coverage_active_;
+    // move_base drops Header.seq during TF conversion, but a map->map
+    // transform retains the stamp and pose. Never match by coordinates alone.
+    yaw_free = ordinary_policy_yaw_free_ &&
+        goal.header.stamp == ordinary_policy_goal_.header.stamp &&
+        goal.header.frame_id == ordinary_policy_goal_.header.frame_id &&
+        goal.pose == ordinary_policy_goal_.pose;
+    yaw_free_sequence = ordinary_policy_sequence_;
     path = enforced_path_;
     transit_profile = transit_profile_;
     hybrid_replan_period = hybrid_replan_period_;
@@ -990,7 +1037,11 @@ bool CoverageGlobalPlanner::makePlan(
       return false;
     }
     ROS_DEBUG_THROTTLE(2.0, "ordinary navigation is using Navfn");
-    return makeNavfnPlan(start, goal, plan);
+    const bool success = makeNavfnPlan(start, goal, plan);
+    if (success && yaw_free)
+      for (auto& pose : plan)
+        pose.header.seq = yaw_free_sequence;
+    return success;
   }
   if (age > path_timeout_)
   {

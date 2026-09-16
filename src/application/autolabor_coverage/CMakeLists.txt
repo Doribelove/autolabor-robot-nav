@@ -51,6 +51,7 @@ add_service_files(FILES
   SetCoveragePlanningDefaults.srv
   SetEnforcedPath.srv
   SetNavigationProfile.srv
+  SetOrdinaryGoalPolicy.srv
   StartCoverage.srv
   StartCoverageBatch.srv
 )

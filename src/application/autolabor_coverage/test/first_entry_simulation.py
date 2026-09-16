@@ -216,6 +216,11 @@ def start_manager(script, name):
     map_pub.publish(scene)
     wait(lambda: latest('/coverage/status') is not None and latest('/coverage/status').localized
          and latest('/coverage/status').map_ready, 'manager map/localization')
+    # Each latched visualization publisher establishes its own ROS TCP
+    # connection.  The status connection being ready does not prove that the
+    # marker connection is ready; let the one-time handshakes settle before a
+    # deliberately fast precheck failure publishes ADD followed by DELETEALL.
+    time.sleep(.5)
     return proc
 
 try:

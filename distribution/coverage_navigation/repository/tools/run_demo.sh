@@ -6,7 +6,8 @@ if (( $# )); then shift; fi
 case "$kind" in
   sweep) port=11493; script=sweep_collision_simulation.py ;;
   preview) port=11491; script=first_entry_simulation.py ;;
-  *) echo 'Usage: bash tools/run_demo.sh sweep|preview [test options]' >&2; exit 2 ;;
+  yaw-free) port=11494; script=yaw_free_goal_simulation.py ;;
+  *) echo 'Usage: bash tools/run_demo.sh sweep|preview|yaw-free [test options]' >&2; exit 2 ;;
 esac
 # These fixtures assert loopback is the only interface. A --network none Docker
 # container already satisfies this; a workstation needs its own network/PID ns.

@@ -23,6 +23,7 @@ import rosgraph
 import rospy
 from actionlib_msgs.msg import GoalID, GoalStatus, GoalStatusArray
 from autolabor_coverage.srv import SetCoverageOwner, SetCoverageOwnerResponse
+from autolabor_coverage.srv import SetOrdinaryGoalPolicy
 from geometry_msgs.msg import PoseStamped
 from move_base_msgs.msg import MoveBaseActionGoal
 from std_msgs.msg import Bool, String
@@ -30,6 +31,8 @@ from std_srvs.srv import SetBool, SetBoolResponse
 
 
 class MoveBasePauseBridge:
+    # Nested headers are not overwritten by rospy's top-level sequence counter.
+    YAW_FREE_REQUEST = 0xA14F0001
     AI_GOAL_ID_RE = re.compile(r"^sweeper-ai-[0-9a-f]{32}$")
     SIMPLE_GOAL_ID_RE = re.compile(r"^sweeper-simple-[0-9a-f]{32}$")
     COVERAGE_OWNER_TOKEN_RE = re.compile(r"^coverage-[0-9a-f]{32}$")
@@ -37,6 +40,7 @@ class MoveBasePauseBridge:
     MAX_TRACKED_SIMPLE_GOALS = 10000
 
     def __init__(self):
+        rospy.set_param("~yaw_free_goal_protocol", 1)
         self.action_goal_topic = rospy.resolve_name(rospy.get_param(
             "~action_goal_topic", "/move_base/goal"
         ))
@@ -100,6 +104,7 @@ class MoveBasePauseBridge:
             "~required_action_server_node", "/move_base"
         ))
         self.lock = threading.RLock()
+        self._action_submit_lock = threading.Lock()
         self.paused = False
         self.retained_pose = None
         self.retained_goal_id = ""
@@ -307,6 +312,9 @@ class MoveBasePauseBridge:
                 return "AI action goal rejected: future ROS timestamp"
 
             target = message.goal.target_pose
+            if (target.header.seq == self.YAW_FREE_REQUEST and
+                    target.header.frame_id != "map"):
+                return "AI yaw-free goal rejected: target must already be in map"
             if not str(target.header.frame_id).strip():
                 return "AI action goal rejected: empty target frame"
             position = target.pose.position
@@ -388,8 +396,68 @@ class MoveBasePauseBridge:
                 )
         return ""
 
+    def _prepare_action_policy(self, message):
+        # No ownership lock across service I/O: pause/cancel/lease callbacks
+        # must remain responsive even if the planner service hangs.
+        bridge_stamp = rospy.Time.now()
+        message.header.stamp = bridge_stamp
+        message.goal_id.stamp = bridge_stamp
+        message.goal.target_pose.header.stamp = bridge_stamp
+        if message.goal.target_pose.header.seq != self.YAW_FREE_REQUEST:
+            return ""
+        try:
+            if rospy.get_param("/move_base/TebLocalPlannerROS/yaw_free_goal_protocol", 0) != 1:
+                return "AI yaw-free goal rejected: TEB policy protocol unavailable"
+            service = "/move_base/CoverageGlobalPlanner/set_ordinary_goal_policy"
+            rospy.wait_for_service(service, timeout=1.0)
+            finished, outcome = threading.Event(), []
+            def register():
+                try:
+                    outcome.append(rospy.ServiceProxy(service, SetOrdinaryGoalPolicy)(
+                        message.goal_id.id, message.goal.target_pose, True))
+                except Exception as exc:
+                    outcome.append(exc)
+                finally:
+                    finished.set()
+            threading.Thread(target=register, daemon=True).start()
+            if not finished.wait(1.0):
+                return "AI yaw-free goal policy timed out; goal not sent"
+            response = outcome[0]
+            if isinstance(response, Exception):
+                raise response
+            if not response.success:
+                return "AI yaw-free goal rejected: " + response.message
+        except Exception as exc:
+            return "AI yaw-free goal policy unavailable: " + str(exc)
+        return ""
+
     def _action_goal_request_callback(self, message):
+        if not self._action_submit_lock.acquire(False):
+            self._forward_action_goal_request(message, "AI goal submission is already pending")
+            return
+        try:
+            message = copy.deepcopy(message)
+            error = self._validate_action_request(message)
+            if not error:
+                with self.lock:
+                    identifier = message.goal_id.id
+                    eligible = (self.action_status_received and self.coverage_state_received
+                        and not self.coverage_active and not self.paused
+                        and identifier not in self._cancel_requested_goal_ids
+                        and not self._active_explicit_goal_ids
+                        and identifier not in self._explicit_goal_ids
+                        and not self._explicit_goal_tracking_saturated)
+                error = (self._prepare_action_policy(message) if eligible else
+                         "AI goal preflight ownership was unavailable")
+            # Recheck the complete ownership/cancellation gate after service
+            # return. A timed-out late policy is inert: its goal is never sent.
+            self._forward_action_goal_request(message, error)
+        finally:
+            self._action_submit_lock.release()
+
+    def _forward_action_goal_request(self, message, policy_error=""):
         validation_error = self._validate_action_request(message)
+        message = copy.deepcopy(message)
         output_error = "" if validation_error else self._action_output_ready()
         accepted = None
         not_forwarded_ack = False
@@ -411,6 +479,10 @@ class MoveBasePauseBridge:
                 reason = "AI action goal rejected: this goal ID was already canceled"
             elif self._active_explicit_goal_ids:
                 reason = "AI action goal rejected: another AI goal is still active"
+            elif goal_id in self._explicit_goal_ids:
+                reason = "AI action goal rejected: duplicate explicit goal ID"
+            elif policy_error:
+                reason = policy_error
             elif not self._remember_explicit_goal_id_locked(goal_id):
                 reason = "AI action goal rejected: duplicate explicit goal ID"
             else:
@@ -419,10 +491,7 @@ class MoveBasePauseBridge:
                 # all action timestamps are normalized to J6M time.  This
                 # prevents a slightly future remote stamp from making a later
                 # local coverage goal look older to SimpleActionServer.
-                bridge_stamp = rospy.Time.now()
-                accepted.header.stamp = bridge_stamp
-                accepted.goal_id.stamp = bridge_stamp
-                accepted.goal.target_pose.header.stamp = bridge_stamp
+                # Timestamp and per-goal policy were bound synchronously above.
                 self.last_action_request_id = goal_id
                 self.retained_pose = copy.deepcopy(accepted.goal.target_pose)
                 self.retained_goal_id = goal_id
@@ -869,6 +938,7 @@ class MoveBasePauseBridge:
                 "coverage_state_received": self.coverage_state_received,
                 "require_coverage_state": self.require_coverage_state,
                 "action_request_version": 2,
+                "yaw_free_goal_protocol": 1,
                 "last_action_request_id": self.last_action_request_id,
                 "active_explicit_goal_ids": sorted(
                     self._active_explicit_goal_ids),

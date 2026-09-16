@@ -8,6 +8,35 @@
 算法由多边形生成清扫线，Navfn 首次入场，分层并行 Hybrid A* 完成线间转场，
 定制 TEB 跟踪固定挡位路径，覆盖管理器处理暂停、取消、换向及续扫。
 
+## 实车演示
+
+<table>
+  <tr>
+    <td><img src="assets/coverage-navigation-demo.gif" alt="覆盖导航实车演示：Qt规划轨迹与车辆现场画面"></td>
+    <td><img src="assets/obstacle-interaction-demo.gif" alt="覆盖导航实车演示：近场人员场景与车辆现场画面"></td>
+  </tr>
+  <tr>
+    <td align="center">覆盖规划、转场与清扫轨迹</td>
+    <td align="center">近场人员场景下的导航表现</td>
+  </tr>
+</table>
+
+演示画面将Qt中的规划/执行轨迹与现场车辆同步展示。动图只用于说明一次实车运行现象；
+不同地图、底盘标定、障碍物和传感器配置仍需独立验收。
+
+## 当前版本改进
+
+* 每次覆盖动作携带稳定序号；同挡位新段、同线恢复及挡位异常会清理旧TEB优化历史，
+  错误挡位期间保持零速，连续得到明确同向可行解后才重新放行。
+* Hybrid/TEB无进展、转场路径偏离和停车确认超时会保留原任务并继续重规划；操作员暂停、
+  取消、定位失效、避障失效和底盘故障仍优先中断。
+* 清扫线障碍检查只检查车辆前方的可配置窗口，默认5 m；入口对准恢复的4 m限制仅在
+  已确认越过入口且仍在入口容差之外时触发。
+* 清扫进度把map位姿变化与物理`/odom`相关，暂停后继续记录制动轨迹；满足停车、走廊和
+  里程连续性证据时，第一次手动恢复即可从剩余清扫线继续。
+* 配套普通导航支持按单个目标选择“只约束位置、不约束终点朝向”；固定朝向目标和覆盖
+  目标保持原有判据，该策略不会变成全局容差。
+
 ## 适用条件与区域选择
 
 * 底盘能用前轮转向的阿克曼/自行车运动学模型描述；本实现没有验证四轮独立转向、
@@ -53,11 +82,13 @@ docker build -t coverage-navigation:local .
 docker run --rm --network none coverage-navigation:local
 docker run --rm --network none coverage-navigation:local bash tools/run_demo.sh sweep
 docker run --rm --network none coverage-navigation:local bash tools/run_demo.sh preview
+docker run --rm --network none coverage-navigation:local bash tools/run_demo.sh yaw-free
 ```
 
 构建会编译仓库中的定制 TEB。单元测试容器默认执行 `tools/test.sh`；另外两个命令
 运行真实 move_base/规划插件与合成地图：分别验证 5 米清扫碰撞窗口，以及首入口预览、
-取消和换图。网络隔离后只有 lo，示例内部创建私有 ROS master，不连接实车 ROS 图。
+取消和换图；`yaw-free`验证单目标自由终点朝向协议、停车门及固定朝向隔离。网络隔离后
+只有 lo，示例内部创建私有 ROS master，不连接实车 ROS 图。
 
 如需保留示例结果，在运行时追加 `-v "$PWD/validation:/coverage_ws/validation"`；
 Linux Docker 默认用户为 root，生成目录可能需要本机调整所有者。
@@ -74,6 +105,7 @@ bash tools/build.sh
 bash tools/test.sh
 bash tools/run_demo.sh sweep
 bash tools/run_demo.sh preview
+bash tools/run_demo.sh yaw-free
 ```
 
 构建默认两任务，可用 `BUILD_JOBS` 调整。测试细节、源工作区专用检查和证据边界见
@@ -98,8 +130,9 @@ bash tools/run_demo.sh preview
 ## 当前实现边界
 
 单元测试、规划插件合成场景与实车结果分别报告；示例通过不等于新底盘实车通过。
-已知换向点接续/执行无进展问题及未记录获选搜索线程的问题没有在此发布准备中修复。
-详见 [KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)。
+当前自动重试会在障碍长期存在时持续等待，需由操作员取消或由安全状态中断；并行Hybrid
+搜索仍未记录最终获选lane/TID。其他边界和现场观测见
+[KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)。
 
 架构见 [ARCHITECTURE.md](docs/ARCHITECTURE.md)，配置和实车接口见
 [PORTING.md](docs/PORTING.md)。原始项目代码按现有 MIT 声明整理；TEB、Reeds–Shepp

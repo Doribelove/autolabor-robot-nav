@@ -5,6 +5,7 @@
 #include <autolabor_coverage/PlanHybridTransitionsAction.h>
 #include <autolabor_coverage/PrecomputeTransitions.h>
 #include <autolabor_coverage/SetEnforcedPath.h>
+#include <autolabor_coverage/SetOrdinaryGoalPolicy.h>
 #include <autolabor_coverage/TransitProfile.h>
 #include <autolabor_coverage/hybrid_a_star.h>
 #include <actionlib/server/simple_action_server.h>
@@ -39,6 +40,13 @@ public:
                 std::vector<geometry_msgs::PoseStamped>& plan) override;
 
 private:
+  bool setOrdinaryGoalPolicyCallback(
+      autolabor_coverage::SetOrdinaryGoalPolicy::Request& request,
+      autolabor_coverage::SetOrdinaryGoalPolicy::Response& response);
+  geometry_msgs::PoseStamped ordinary_policy_goal_;
+  bool ordinary_policy_yaw_free_ = false;
+  std::uint32_t ordinary_policy_sequence_ = 0;
+  ros::ServiceServer ordinary_goal_policy_service_;
   void pathCallback(const autolabor_coverage::EnforcedPath::ConstPtr& message);
   bool setPathCallback(autolabor_coverage::SetEnforcedPath::Request& request,
                        autolabor_coverage::SetEnforcedPath::Response& response);

@@ -510,6 +510,12 @@ private:
   // flags
   bool initialized_; //!< Keeps track about the correct initialization of this class
   bool reinitialize_on_global_plan_; //!< Discard a warm-start band whenever a continuously replanned global path is installed
+  bool yaw_free_goal_ = false; //!< Per-plan ordinary goal policy, never a global tolerance
+  void goalOdometryCallback(const nav_msgs::Odometry::ConstPtr& message);
+  ros::Subscriber goal_odom_sub_;
+  boost::mutex goal_odom_mutex_;
+  nav_msgs::Odometry goal_odom_;
+  ros::WallTime goal_odom_received_;
   bool fixed_gear_action_sequence_valid_; //!< True after receiving a coverage action marker
   std::uint32_t fixed_gear_action_sequence_; //!< Stable ID of the current coverage action
   bool fixed_gear_recovery_active_; //!< Hold zero after a wrong-sign optimized command
