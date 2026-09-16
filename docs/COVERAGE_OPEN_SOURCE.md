@@ -1,14 +1,15 @@
-# 覆盖导航公开发布流程（2026-09-09）
+# 覆盖导航公开发布流程（更新于 2026-09-16）
 
 目标：`https://github.com/cl4mat/autolabor-coverage-navigation.git`，由用户明确提供。
 本源项目的 `origin` 是其他账号的整机仓库，不作为本次发布目标，也不修改其远端配置。
 权威修改仍在本工作区完成；公开仓库通过白名单导出生成独立历史，不推送原整机历史。
 
-实际发布结果：源项目准备提交 `5ddce5d`；独立仓库 main
-`0350307f9a41e140c3fc5a73a8dc4ec00c00541b` 已推送。授权账号核对为 cl4mat，远端
-哈希和 About 简介核对通过；HTTPS 全新克隆验证通过。GitHub Actions run
-[34325629265](https://github.com/cl4mat/autolabor-coverage-navigation/actions/runs/34325629265)
-完成干净 Noetic 构建、单元测试和真实插件合成场景，结论 success。
+最新发布结果：覆盖源码及公开模板保存在源项目提交 `eb874bc`；独立仓库 main
+`7aa94c0ad4b5bf394be1a739fe9b936d0220e64e` 已推送。该版本包含覆盖连续性恢复、自动转场
+续试、固定挡位 TEB 动作隔离、单目标自由终点朝向，以及 README 首页的两张实车演示 GIF。
+GitHub Actions run
+[35097040480](https://github.com/cl4mat/autolabor-coverage-navigation/actions/runs/35097040480)
+由推送自动触发；本记录写入时仍在运行，不提前标为通过。
 
 ## 提交哪些文件
 
@@ -52,6 +53,7 @@ build/devel/install、个人环境变量文件、SSH 凭据、运动授权标记
    docker run --rm --network none coverage-navigation:local
    docker run --rm --network none coverage-navigation:local bash tools/run_demo.sh sweep
    docker run --rm --network none coverage-navigation:local bash tools/run_demo.sh preview
+   docker run --rm --network none coverage-navigation:local bash tools/run_demo.sh yaw-free
    ```
 
 4. 检查生成物、依赖、许可证和验证记录；在源项目明确 `git add` 本次相关文件后提交。
@@ -93,6 +95,7 @@ build/devel/install、个人环境变量文件、SSH 凭据、运动授权标记
 ## 验证和当前边界
 
 发布验证结果写入公开模板 `docs/VALIDATION.md`，完整日志留本地
-`runtime/coverage_publication_20260909/`。不把本地验证当成远端 CI，不把合成示例当成
-新机器人实车验收。现有 5 米清扫窗口修复随代码导出，4 米恢复触发及入口准入保持现状。
-换向接续、短 cusp 终态复核、执行无进展和获选搜索线程记录缺项仍列为已知问题。
+`runtime/coverage_publication_20260916/`。不把本地验证当成远端 CI，不把合成示例当成
+新机器人实车验收。5 米清扫窗口、入口外且越过入口后才启用的 4 米恢复限制、map/odom
+连续性恢复及无限轮次安全重试均随代码导出。长期障碍需人工取消、晚到 GoalHandle 回调和
+获选搜索 lane/TID 记录缺项仍列为已知问题。
