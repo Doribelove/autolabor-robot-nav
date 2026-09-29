@@ -6,19 +6,22 @@
   <arg name="planner_frequency" default="1.0"/>
   <arg name="goal_slowdown_enabled" default="$(eval arg('localization_source') == 'gps')"/>
   <arg name="goal_speed_cap_enabled" default="false"/>
-  <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
+  <!-- TEB reads measured twist from this topic; localization pose still comes
+       from TF. FAST_LIO /Odometry leaves twist at zero, so use chassis /odom. -->
+  <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/odom')"/>
   <arg name="output_cmd_vel_topic" default="/cmd_vel"/>
   <arg name="cmd_vel_topic" default="$(eval '/cmd_vel_navigation' if arg('goal_slowdown_enabled') else arg('output_cmd_vel_topic'))"/>
   <arg name="xy_goal_tolerance" default="$(eval 0.3 if arg('localization_source') == 'gps' else 0.5)"/>
   <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
-  <arg name="max_vel_x" default="1.2"/>
-  <arg name="max_vel_x_backwards" default="1.2"/>
+  <arg name="max_vel_x" default="$(eval 1.6 if arg('localization_source') == 'gps' else 1.2)"/>
+  <arg name="max_vel_x_backwards" default="$(eval arg('max_vel_x') if arg('localization_source') == 'gps' else 1.2)"/>
   <arg name="min_vel_x" default="0.0"/>
   <arg name="min_vel_x_backwards" default="0.0"/>
   <arg name="penalty_epsilon" default="$(eval 0.03 if arg('localization_source') == 'gps' else 0.1)"/>
-  <arg name="weight_kinematics_forward_drive" default="$(eval 20.0 if arg('localization_source') == 'gps' else 500.0)"/>
+  <arg name="weight_kinematics_forward_drive" default="$(eval 5.0 if arg('localization_source') == 'gps' else 500.0)"/>
   <arg name="teb_profile_file" default=""/>
   <arg name="goal_slowdown_decel" default="0.4"/>
+  <arg name="goal_approach_time" default="0.0"/>
   <arg name="goal_slowdown_min_speed" default="0.15"/>
   <arg name="goal_slowdown_hard_stop_distance" default="0.2"/>
   <arg name="goal_slowdown_cmd_timeout" default="0.5"/>
@@ -46,6 +49,29 @@
     <arg name="teb_profile_file" value="$(arg teb_profile_file)"/>
   </include>
 
+  <!-- Explicit low-speed collection keeps its existing acceleration tune.
+       This overlay does not override the requested speed, footprint, or
+       collision checks. -->
+  <rosparam if="$(eval arg('localization_source') == 'gps' and float(arg('max_vel_x')) &lt;= 0.5)"
+            command="load" file="$(find robot_bringup)/config/navigation_low_speed.yaml"
+            ns="/move_base/TebLocalPlannerROS"/>
+
+  <!-- One physical outline for global planning, local collision checks and TEB.
+       Load after the planner/profile includes so legacy model sizes cannot win. -->
+  <rosparam command="load" file="$(find robot_bringup)/config/vehicle_footprint.yaml"
+            param="/move_base/global_costmap/footprint"/>
+  <rosparam command="load" file="$(find robot_bringup)/config/vehicle_footprint.yaml"
+            param="/move_base/local_costmap/footprint"/>
+  <param name="/move_base/TebLocalPlannerROS/footprint_model/type" value="polygon"/>
+  <rosparam command="load" file="$(find robot_bringup)/config/vehicle_footprint.yaml"
+            param="/move_base/TebLocalPlannerROS/footprint_model/vertices"/>
+
+  <node name="vehicle_outline" pkg="robot_bringup" type="vehicle_outline.py" output="screen">
+    <param name="frame_id" value="base_link"/>
+    <rosparam command="load" file="$(find robot_bringup)/config/vehicle_footprint.yaml"
+              param="footprint"/>
+  </node>
+
   <node if="$(arg goal_slowdown_enabled)"
         pkg="robot_bringup"
         type="gps_goal_speed_limiter.py"
@@ -60,6 +86,7 @@
     <param name="status_topic" value="/move_base/status"/>
     <param name="speed_cap_enabled" type="bool" value="$(arg goal_speed_cap_enabled)"/>
     <param name="comfortable_decel" type="double" value="$(arg goal_slowdown_decel)"/>
+    <param name="approach_time" type="double" value="$(arg goal_approach_time)"/>
     <param name="hard_stop_distance" type="double" value="$(arg goal_slowdown_hard_stop_distance)"/>
     <param name="planner_xy_goal_tolerance" type="double" value="$(arg xy_goal_tolerance)"/>
     <param name="min_approach_speed" type="double" value="$(arg goal_slowdown_min_speed)"/>

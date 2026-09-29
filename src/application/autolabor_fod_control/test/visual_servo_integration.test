@@ -16,11 +16,8 @@
     <param name="expected_cmd_vel_subscriber_node" value="/fake_world"/>
     <param name="expected_canbus_node" value="/fake_world"/>
     <param name="acquire_frames" value="3"/>
-    <param name="bottom_confirm_frames" value="3"/>
-    <param name="loss_confirm_frames" value="4"/>
-    <param name="loss_confirm_min_sec" value="0.12"/>
+    <param name="select_nearest_by_depth" value="true"/>
     <param name="detection_odom_sync_tolerance_sec" value="0.30"/>
-    <param name="settle_confirm_sec" value="0.20"/>
     <param name="final_stop_confirm_sec" value="0.30"/>
     <param name="status_rate_hz" value="10.0"/>
     <param name="precheck_timeout_sec" value="10.0"/>
@@ -31,5 +28,5 @@
         pkg="autolabor_fod_control"
         type="test_visual_servo_ros.py"
         name="fake_world"
-        time-limit="70.0"/>
+        time-limit="85.0"/>
 </launch>

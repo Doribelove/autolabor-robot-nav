@@ -1,0 +1,40 @@
+# ZED 2 / SDK 4.2: native 720p for the existing FOD pixel and CameraInfo contract.
+# The launch arguments below this overlay set the acquisition/publication rates.
+general:
+  grab_resolution: HD720
+  self_calib: true
+  gpu_id: -1
+
+# Native ZED units, shared by both sensors. Automatic exposure/gain is a single
+# switch on ZED 2; manual exposure and gain are 0..100, not microseconds/dB.
+auto_exposure_gain: true
+exposure: 100
+gain: 100
+auto_whitebalance: true
+whitebalance_temperature: 42
+brightness: 4
+contrast: 4
+hue: 0
+saturation: 4
+sharpness: 4
+gamma: 8
+
+# Keep registered depth available on demand. Without a depth subscriber or
+# positional tracking, this wrapper skips depth computation in RGB-only use.
+depth:
+  depth_stabilization: 0
+  openni_depth_mode: false
+  enable_fill_mode: false
+depth_confidence: 50
+depth_texture_conf: 100
+point_cloud_freq: 10.0
+
+# GNSS/LiDAR supplies navigation pose. Disabling TF alone does not disable the
+# wrapper's otherwise-always-on VIO, depth and area-memory computation.
+pos_tracking:
+  pos_tracking_enabled: false
+  area_memory: false
+mapping:
+  mapping_enabled: false
+object_detection:
+  od_enabled: false

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Latest-frame YOLO inference node with explicit smoke-test safeguards."""
 
+import json
 import threading
 import traceback
 
@@ -9,9 +10,13 @@ from autolabor_fod_msgs.msg import FodDetection, FodDetectionArray
 from cv_bridge import CvBridge
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from geometry_msgs.msg import Point32
-from sensor_msgs.msg import Image, RegionOfInterest
+from sensor_msgs.msg import CameraInfo, Image, RegionOfInterest
+from std_msgs.msg import String
 
 from autolabor_fod_vision.detector import UltralyticsDetector, annotate_image
+from autolabor_fod_vision.preview_tracking import PreviewStabilizer
+from autolabor_fod_vision.detection_roi import DetectionRoi, mark_recovery_region
+from autolabor_fod_vision.depth import RegisteredDepthFusion, DetectionTracker
 
 
 def _csv_ints(value):
@@ -36,6 +41,25 @@ class DetectorNode:
         self.debug_every_n = max(1, int(rospy.get_param("~debug_every_n", 1)))
         classes = _csv_ints(rospy.get_param("~classes", ""))
         self.bridge = CvBridge()
+        self.depth_enabled = bool(rospy.get_param("~use_registered_depth", False))
+        self.depth_fusion = RegisteredDepthFusion() if self.depth_enabled else None
+        self.detection_tracker = DetectionTracker() if self.depth_enabled else None
+        self.selected_track_id = 0
+        self.recovery_overlay = None
+        self.depth_box_count = 0
+        self.depth_error = ""
+        self.detector_profile = str(rospy.get_param("~detector_profile", "original"))
+        self.roi = DetectionRoi(rospy.get_param("~roi_top_fraction", 0.0),
+                                rospy.get_param("~roi_bottom_fraction", 1.0))
+        self.preview_stabilizer = (
+            PreviewStabilizer(
+                alpha=float(rospy.get_param("~preview_smoothing_alpha", 0.65)),
+                hold_sec=float(rospy.get_param("~preview_hold_sec", 0.30)),
+            ) if bool(rospy.get_param("~stabilize_preview", False)) else None
+        )
+        self.current_box_count = 0
+        self.preview_box_count = 0
+        self.preview_held_count = 0
         self.detector = UltralyticsDetector(
             weights=weights,
             device=str(rospy.get_param("~device", "auto")),
@@ -46,6 +70,7 @@ class DetectorNode:
             classes=classes,
             half=bool(rospy.get_param("~half", True)),
             warmup=bool(rospy.get_param("~warmup", True)),
+            agnostic_nms=bool(rospy.get_param("~agnostic_nms", False)),
             expected_sha256=str(
                 rospy.get_param("~expected_model_sha256", "")
             ),
@@ -81,6 +106,14 @@ class DetectorNode:
         self.dropped_frames = 0
         self.last_inference_ms = 0.0
         self.last_error = ""
+        if self.depth_enabled:
+            self.depth_subscriber = rospy.Subscriber(
+                "/fod_camera/depth_registered", Image, self._depth_callback,
+                queue_size=1, buff_size=16 * 1024 * 1024)
+            self.info_subscriber = rospy.Subscriber(
+                "/fod_camera/camera_info", CameraInfo, self._info_callback, queue_size=1)
+        self.selection_subscriber = rospy.Subscriber(
+            "/fod_visual_servo/status", String, self._selection_callback, queue_size=1)
         self.subscriber = rospy.Subscriber(
             "/fod_camera/image_raw",
             Image,
@@ -100,6 +133,29 @@ class DetectorNode:
             self.detector.model_sha256,
         )
 
+    def _depth_callback(self, message):
+        try:
+            depth = self.bridge.imgmsg_to_cv2(message, desired_encoding="passthrough")
+            self.depth_fusion.add_depth(message.header.stamp.to_sec(),
+                                        message.header.frame_id, depth, message.encoding)
+            self.depth_error = ""
+        except (ValueError, TypeError, RuntimeError) as exc:
+            self.depth_error = str(exc)
+            rospy.logwarn_throttle(5.0, "FOD depth unavailable: %s", exc)
+
+    def _info_callback(self, message):
+        self.depth_fusion.set_camera(message.header.stamp.to_sec(), message.header.frame_id,
+                                     message.width, message.height, message.P)
+
+    def _selection_callback(self, message):
+        try:
+            state = json.loads(message.data)
+            self.selected_track_id = int(state.get("target_track_id", 0)) if state.get("active") else 0
+            self.recovery_overlay = state
+        except (ValueError, TypeError, AttributeError):
+            self.selected_track_id = 0
+            self.recovery_overlay = None
+
     def _image_callback(self, message):
         with self._condition:
             self.received_frames += 1
@@ -113,6 +169,10 @@ class DetectorNode:
         message.class_id = detection.class_id
         message.class_name = detection.class_name
         message.confidence = detection.confidence
+        message.track_id = detection.track_id
+        message.depth_valid = detection.depth_valid
+        message.depth_m = detection.depth_m
+        message.range_m = detection.range_m
         x1 = max(0, min(width - 1, int(round(detection.xmin))))
         y1 = max(0, min(height - 1, int(round(detection.ymin))))
         x2 = max(x1, min(width - 1, int(round(detection.xmax))))
@@ -155,6 +215,17 @@ class DetectorNode:
             KeyValue("processed_frames", str(self.processed_frames)),
             KeyValue("dropped_frames", str(self.dropped_frames)),
             KeyValue("last_inference_ms", "{:.2f}".format(self.last_inference_ms)),
+            KeyValue("detector_profile", self.detector_profile),
+            KeyValue("confidence_threshold", str(self.detector.confidence)),
+            KeyValue("image_size", str(self.detector.image_size)),
+            KeyValue("current_box_count", str(self.current_box_count)),
+            KeyValue("preview_box_count", str(self.preview_box_count)),
+            KeyValue("preview_held_count", str(self.preview_held_count)),
+            KeyValue("roi_top_fraction", str(self.roi.top)),
+            KeyValue("roi_bottom_fraction", str(self.roi.bottom)),
+            KeyValue("registered_depth_enabled", str(self.depth_enabled)),
+            KeyValue("depth_box_count", str(self.depth_box_count)),
+            KeyValue("depth_error", self.depth_error),
         ]
         array = DiagnosticArray()
         array.header.stamp = rospy.Time.now()
@@ -163,8 +234,30 @@ class DetectorNode:
 
     def _process(self, image_message):
         image = self.bridge.imgmsg_to_cv2(image_message, desired_encoding="bgr8")
-        result = self.detector.predict(image)
+        result = self.roi.predict(self.detector, image)
+        if self.depth_fusion is not None:
+            result.detections = self.depth_fusion.enrich(
+                result.detections, image_message.header.stamp.to_sec(),
+                image_message.header.frame_id, image.shape[1], image.shape[0])
+            result.detections = self.detection_tracker.update(
+                result.detections, image_message.header.stamp.to_sec(),
+                (image_message.header.frame_id, image.shape[1], image.shape[0]))
+        self.depth_box_count = sum(d.depth_valid for d in result.detections)
         self.last_inference_ms = result.inference_ms
+        self.current_box_count = len(result.detections)
+        preview_detections = result.detections
+        held_for_sec = None
+        if self.preview_stabilizer is not None:
+            preview = self.preview_stabilizer.update(
+                result.detections, image_message.header.stamp.to_sec(),
+                (image.shape[1], image.shape[0]),
+            )
+            preview_detections = [box.detection for box in preview]
+            held_for_sec = [box.held_for_sec for box in preview]
+        self.preview_box_count = len(preview_detections)
+        self.preview_held_count = sum(age > 0.0 for age in (held_for_sec or []))
+        # Control receives only this frame's actual model results, with original
+        # scores and geometry. Preview smoothing/holds never enter this topic.
         output = FodDetectionArray()
         output.header = image_message.header
         output.image_width = image.shape[1]
@@ -187,8 +280,12 @@ class DetectorNode:
                 else self.detector.model_name
             )
             debug = annotate_image(
-                image, result.detections, result.inference_ms, banner
+                image, preview_detections, result.inference_ms,
+                banner + " / " + self.detector_profile, held_for_sec=held_for_sec,
+                selected_track_id=self.selected_track_id,
             )
+            debug = self.roi.mark_preview(debug)
+            debug = mark_recovery_region(debug, self.recovery_overlay)
             debug_message = self.bridge.cv2_to_imgmsg(debug, encoding="bgr8")
             debug_message.header = image_message.header
             self.debug_pub.publish(debug_message)

@@ -48,6 +48,8 @@ class VisualizationFrame;
 namespace autolabor_operator_gui
 {
 
+class ZedCameraPanel;
+
 struct MasterProbeResult
 {
   bool online = false;
@@ -334,6 +336,8 @@ private:
   QLabel* overview_camera_preview_ = nullptr;
   QLabel* vision_camera_preview_ = nullptr;
   QPlainTextEdit* vision_detections_ = nullptr;
+  QTabWidget* camera_controls_tabs_ = nullptr;
+  ZedCameraPanel* zed_camera_panel_ = nullptr;
   QDoubleSpinBox* gps_latitude_input_ = nullptr;
   QDoubleSpinBox* gps_longitude_input_ = nullptr;
   QPushButton* manual_goal_button_ = nullptr;

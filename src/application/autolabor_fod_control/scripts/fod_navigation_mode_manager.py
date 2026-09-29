@@ -4,6 +4,9 @@
 
 import json
 import math
+from pathlib import Path
+import subprocess
+import sys
 import threading
 import time
 
@@ -15,12 +18,15 @@ from move_base_msgs.msg import MoveBaseActionGoal
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 from std_srvs.srv import SetBool, SetBoolResponse
+from autolabor_fod_msgs.msg import FodDetectionArray
+from autolabor_fod_control.visual_servo import PixelDetection, validate_detection
 
 from autolabor_fod_control.mode_manager import (
     FOD_SOURCE,
     GPS_SOURCE,
     STOP_SOURCE,
     CommandArbiter,
+    final_goal_distance,
     stopped_sample_is_valid,
 )
 
@@ -58,6 +64,27 @@ class FodNavigationModeManager:
         self.gps_pause_service = rospy.get_param(
             "~gps_pause_service", "/gps/long_range/set_paused"
         )
+        # Indoor LiDAR navigation has no retained WGS84 route. The existing
+        # command arbitration, goal cancellation and stopped-vehicle handoff
+        # still apply; only the absent GPS route service is skipped.
+        self.retain_gps_route = _strict_bool_param("~retain_gps_route", True)
+        self.gps_route_status_topic = rospy.get_param(
+            "~gps_route_status_topic", "/gps/long_range/status")
+        self.gps_pose_topic = rospy.get_param("~gps_pose_topic", "/gps/odom")
+        self.recovery_radius_m = float(rospy.get_param("~recovery_radius_m", 5.0))
+        self.detections_topic = rospy.get_param("~detections_topic", "/fod/detections")
+        self.select_nearest_by_depth = _strict_bool_param(
+            "/fod_visual_servo/select_nearest_by_depth", False)
+        self.min_confidence = float(rospy.get_param(
+            "/fod_visual_servo/min_confidence", 0.30))
+        self.allowed_class_names = set(rospy.get_param(
+            "/fod_visual_servo/allowed_class_names", ["Metal", "Soft", "Plastic", "Wire", "Tool", "w"]))
+        self.sweep_enabled = _strict_bool_param("~sweep_enabled", True)
+        self.sweep_auto_stop = _strict_bool_param("~sweep_auto_stop", True)
+        self.sweep_script = rospy.get_param(
+            "~sweep_script", str(Path(__file__).resolve().parents[4] / "scripts/sweep_test.py"))
+        self.sweep_ip = rospy.get_param("~sweep_ip", "192.168.0.197")
+        self.sweep_port = int(rospy.get_param("~sweep_port", 50003))
         self.move_base_goal_topic = rospy.get_param(
             "~move_base_goal_topic", "/move_base/goal"
         )
@@ -119,10 +146,23 @@ class FodNavigationModeManager:
         self.latest_linear_x = None
         self.latest_angular_z = None
         self.last_output_reason = "waiting for first GPS command"
-        self.auto_return_started = False
         self.fault_worker_started = False
+        self.recovery_armed = False
+        self.proximity_worker_started = False
+        self.gps_route = {}
+        self.gps_pose = None
+        self.gps_pose_receipt = None
+        self.gps_pose_stamp = None
+        self.sweep_started_for_recovery = False
+        self.sweep_start_requested = False
+        self.recovery_sweep_ready = False
+        self.sweep_status = "not requested"
+        self.fod_target_present = False
+        self.detection_receipt = None
+        self.detection_stamp = None
 
         self.master = rosgraph.Master(rospy.get_name())
+        self.master_lock = threading.Lock()
         self.master_pid = self.master.getPid()
 
         self.cmd_pub = rospy.Publisher(
@@ -154,6 +194,12 @@ class FodNavigationModeManager:
             self._move_base_goal_cb,
             queue_size=10,
         )
+        self.gps_route_sub = rospy.Subscriber(
+            self.gps_route_status_topic, String, self._gps_route_cb, queue_size=10)
+        self.gps_pose_sub = rospy.Subscriber(
+            self.gps_pose_topic, Odometry, self._gps_pose_cb, queue_size=10)
+        self.detections_sub = rospy.Subscriber(
+            self.detections_topic, FodDetectionArray, self._detections_cb, queue_size=1)
         self.mode_service = rospy.Service(
             "~set_fod_enabled", SetBool, self._set_fod_enabled_cb
         )
@@ -193,6 +239,9 @@ class FodNavigationModeManager:
             "gps_pause_service": self.gps_pause_service,
             "move_base_goal_topic": self.move_base_goal_topic,
             "move_base_cancel_topic": self.move_base_cancel_topic,
+            "gps_route_status_topic": self.gps_route_status_topic,
+            "gps_pose_topic": self.gps_pose_topic,
+            "detections_topic": self.detections_topic,
             "expected_driver_node": self.expected_driver_node,
             "expected_visual_node": self.expected_visual_node,
             "expected_gps_limiter_node": self.expected_gps_limiter_node,
@@ -218,6 +267,7 @@ class FodNavigationModeManager:
             "transition_timeout_sec": self.transition_timeout_sec,
             "service_wait_timeout_sec": self.service_wait_timeout_sec,
             "graph_check_rate_hz": self.graph_check_rate_hz,
+            "recovery_radius_m": self.recovery_radius_m,
         }
         for name, value in positive.items():
             if not math.isfinite(value) or value <= 0.0:
@@ -241,9 +291,12 @@ class FodNavigationModeManager:
 
     def _output_route_error(self):
         try:
-            if self.master.getPid() != self.master_pid:
-                return "ROS master was replaced"
-            publishers, subscribers, _services = self.master.getSystemState()
+            # rosgraph.Master shares an XML-RPC HTTP connection. Timer and
+            # handoff workers must not use it concurrently (Request-sent).
+            with self.master_lock:
+                if self.master.getPid() != self.master_pid:
+                    return "ROS master was replaced"
+                publishers, subscribers, _services = self.master.getSystemState()
         except Exception as exc:
             return "cannot inspect ROS command graph: {}".format(exc)
         output_publishers = self._topic_nodes(publishers, self.output_cmd_topic)
@@ -315,6 +368,211 @@ class FodNavigationModeManager:
                 self.latest_linear_x = None
                 self.latest_angular_z = None
 
+    def _gps_route_cb(self, msg):
+        try:
+            route = json.loads(msg.data)
+            if not isinstance(route, dict):
+                return
+        except (ValueError, TypeError):
+            return
+        finish_gps_recovery = False
+        with self.lock:
+            arrived = (route.get("state") == "COMPLETE"
+                       and self.gps_route.get("active", False))
+            self.gps_route = route
+            if (self.recovery_armed and self.mode == GPS_ACTIVE
+                    and not route.get("active", False)
+                    and (arrived or route.get("state") in ("CANCELED", "ABORTED", "SUPERSEDED"))):
+                self.recovery_armed = False
+                self.reason = "GPS target ended; camera recovery finished"
+                finish_gps_recovery = True
+        if finish_gps_recovery:
+            threading.Thread(target=self._finish_gps_recovery_worker,
+                             name="fod-gps-sweep-finish", daemon=True).start()
+        self._maybe_start_recovery()
+
+    def _finish_gps_recovery_worker(self):
+        with self.transition_lock:
+            with self.lock:
+                # A newer operator request may already own this same sweeper.
+                if self.mode != GPS_ACTIVE or self.recovery_armed:
+                    return
+            self._stop_recovery_sweep()
+            self._publish_status(force=True)
+
+    def _gps_pose_cb(self, msg):
+        with self.lock:
+            p = msg.pose.pose.position
+            self.gps_pose = (p.x, p.y, msg.header.frame_id)
+            self.gps_pose_stamp = msg.header.stamp.to_sec()
+            self.gps_pose_receipt = time.monotonic()
+        self._maybe_start_recovery()
+
+    def _detections_cb(self, msg):
+        present = False
+        for item in msg.detections:
+            detection = PixelDetection(
+                item.class_id, item.class_name, float(item.confidence),
+                item.bbox.x_offset, item.bbox.y_offset, item.bbox.width,
+                item.bbox.height, item.anchor_px.x, item.anchor_px.y,
+                track_id=item.track_id, depth_valid=item.depth_valid,
+                depth_m=item.depth_m, range_m=item.range_m)
+            try:
+                validate_detection(detection, msg.image_width, msg.image_height)
+            except ValueError:
+                continue
+            if (detection.class_name in self.allowed_class_names
+                    and detection.confidence >= self.min_confidence
+                    and (not self.select_nearest_by_depth or
+                         (detection.depth_valid and detection.track_id > 0))):
+                present = True
+                break
+        with self.lock:
+            self.fod_target_present = present
+            self.detection_receipt = time.monotonic()
+            self.detection_stamp = msg.header.stamp.to_sec()
+        self._maybe_start_recovery()
+
+    def _has_fod_locked(self):
+        if not self.fod_target_present or self.detection_receipt is None:
+            return False
+        # Presence follows the latest real frame, without an interruption
+        # timeout. A subsequent empty frame still clears the target normally.
+        return True
+
+    def _recovery_distance_locked(self):
+        if self.gps_pose is None or self.gps_pose_receipt is None:
+            return None
+        age = time.monotonic() - self.gps_pose_receipt
+        source_age = rospy.Time.now().to_sec() - self.gps_pose_stamp
+        if not (0.0 <= age <= self.odom_timeout_sec
+                and 0.0 <= source_age <= self.odom_timeout_sec):
+            return None
+        return final_goal_distance(self.gps_route, *self.gps_pose)
+
+    def _maybe_start_recovery(self):
+        with self.lock:
+            if (self.shutdown_event.is_set() or not self.recovery_armed
+                    or self.mode != GPS_ACTIVE or self.proximity_worker_started):
+                return
+            distance = self._recovery_distance_locked()
+            if distance is None or distance >= self.recovery_radius_m:
+                return
+            # Start the sweeper once on entry to the GPS target area, even
+            # without a camera/detection stream. GPS keeps command ownership.
+            if (self.sweep_start_requested
+                    and not (self.recovery_sweep_ready and self._has_fod_locked())):
+                return
+            self.proximity_worker_started = True
+        threading.Thread(target=self._proximity_recovery_worker,
+                         name="fod-goal-proximity", daemon=True).start()
+
+    def _proximity_recovery_worker(self):
+        try:
+            with self.transition_lock:
+                with self.lock:
+                    # Recheck after acquiring the transition lock: the operator
+                    # may have canceled recovery or replaced the GPS target.
+                    distance = self._recovery_distance_locked()
+                    if (not self.recovery_armed or self.mode != GPS_ACTIVE
+                            or self.shutdown_event.is_set() or distance is None
+                            or distance >= self.recovery_radius_m):
+                        return
+                    start_sweep = not self.sweep_start_requested
+                    self.sweep_start_requested = True
+                if start_sweep:
+                    with self.lock:
+                        self.sweep_status = "正在启动清扫装置"
+                    self._publish_status(force=True)
+                    success, message = self._set_sweep(True)
+                    with self.lock:
+                        self.recovery_sweep_ready = success
+                        self.reason = ("sweeper started; GPS navigation continues until FOD is visible"
+                                       if success else "sweeper start failed; GPS navigation continues: " + message)
+                    if not success:
+                        rospy.logerr("%s", self.reason)
+                        # Do not pause GPS or retry a failed toggle on every
+                        # pose callback. Cancel/re-enable retries the request.
+                        return
+                with self.lock:
+                    interrupted = (not self.recovery_armed or self.mode != GPS_ACTIVE
+                                   or self.shutdown_event.is_set())
+                if interrupted:
+                    self._stop_recovery_sweep()
+                    return
+                with self.lock:
+                    # GPS may have reached/replaced the goal while the TCP
+                    # transaction was in flight. Recheck before visual takeover.
+                    distance = self._recovery_distance_locked()
+                    if (distance is None or distance >= self.recovery_radius_m
+                            or not self.recovery_sweep_ready or not self._has_fod_locked()):
+                        return
+                    self.recovery_armed = False  # One recovery per button press.
+                success, message = self._enter_fod_mode()
+                if not success:
+                    self._stop_recovery_sweep()
+                (rospy.loginfo if success else rospy.logerr)("%s", message)
+        finally:
+            with self.lock:
+                self.proximity_worker_started = False
+            self._publish_status(force=True)
+
+    def _set_sweep(self, enabled):
+        if not self.sweep_enabled:
+            return True, "automatic sweeper control disabled"
+        try:
+            result = subprocess.run(
+                [sys.executable, self.sweep_script, "on" if enabled else "off",
+                 "--json", "--ip", self.sweep_ip, "--port", str(self.sweep_port)],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=20.0)
+            reply = json.loads(result.stdout)
+            if not isinstance(reply, dict):
+                raise ValueError("invalid sweeper response")
+            success = result.returncode == 0 and reply.get("success") is True
+            message = str(reply.get("message", "sweeper returned no status"))
+            with self.lock:
+                if enabled and reply.get("previous_state") == 0:
+                    # Also remember an uncertain toggle so abort cleanup can
+                    # query and turn it off without blindly toggling again.
+                    self.sweep_started_for_recovery = True
+                if not enabled and success:
+                    self.sweep_started_for_recovery = False
+                self.sweep_status = message
+            return success, message
+        except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+            with self.lock:
+                self.sweep_status = "sweeper command failed: {}".format(exc)
+            return False, self.sweep_status
+
+    def _stop_recovery_sweep(self):
+        with self.lock:
+            owned = self.sweep_started_for_recovery and self.sweep_auto_stop
+            self.recovery_sweep_ready = False
+        if owned:
+            success, message = self._set_sweep(False)
+            if not success:
+                rospy.logerr("Recovery sweeper stop not confirmed: %s", message)
+
+    def _sweep_abort_worker(self):
+        with self.transition_lock:
+            with self.lock:
+                if self.mode not in (FOD_ABORTED, FOD_COMPLETE_STOP):
+                    return
+            self._stop_recovery_sweep()
+
+    def _resume_waiting_for_target(self):
+        success, message = self._return_to_gps(
+            "FOD disappeared before visual handoff", keep_sweep=True)
+        if success:
+            with self.lock:
+                self.recovery_armed = True
+                self.reason = "camera recovery armed; no visible FOD, GPS continues with sweeping"
+            self._publish_status(force=True)
+            message = self.reason
+        else:
+            self._stop_recovery_sweep()
+        return success, message
+
     def _move_base_goal_cb(self, msg):
         with self.lock:
             permitted = self.allow_move_base_goals
@@ -331,18 +589,17 @@ class FodNavigationModeManager:
 
     def _visual_state_cb(self, msg):
         state = str(msg.data).strip().upper()
-        start_auto_return = False
+        stop_sweep = False
         with self.lock:
             self.visual_state = state
             if state == "COMPLETE" and self.mode == FOD_ACTIVE:
                 self.mode = FOD_COMPLETE_STOP
-                self.reason = "visual recovery completed; preparing GPS resume"
+                self.reason = "one FOD recovery completed; stopped until an explicit operator request"
+                self.recovery_armed = False
                 self.command_source = STOP_SOURCE
                 self.allow_move_base_goals = False
                 self._publish_zero_locked("visual COMPLETE transition stop")
-                if not self.auto_return_started:
-                    self.auto_return_started = True
-                    start_auto_return = True
+                stop_sweep = True
             elif state == "ABORT" and self.mode in (ENTERING_FOD, FOD_ACTIVE):
                 self.mode = FOD_ABORTED
                 self.reason = (
@@ -352,14 +609,11 @@ class FodNavigationModeManager:
                 self.command_source = STOP_SOURCE
                 self.allow_move_base_goals = False
                 self._publish_zero_locked("visual ABORT stop")
+                stop_sweep = True
         self._publish_status(force=True)
-        if start_auto_return:
-            worker = threading.Thread(
-                target=self._automatic_return_worker,
-                name="fod-auto-gps-return",
-                daemon=True,
-            )
-            worker.start()
+        if stop_sweep:
+            threading.Thread(target=self._sweep_abort_worker,
+                             name="fod-sweep-abort", daemon=True).start()
 
     def _call_set_bool(self, service_name, enabled):
         try:
@@ -374,10 +628,18 @@ class FodNavigationModeManager:
     def _fault_stop_worker(self):
         with self.transition_lock:
             self._call_set_bool(self.visual_enable_service, False)
-            success, _message = self._call_set_bool(self.gps_pause_service, True)
+            self._stop_recovery_sweep()
+            success, _message = self._pause_navigation_route(True)
             if success:
                 with self.lock:
                     self.gps_paused = True
+
+    def _pause_navigation_route(self, paused):
+        if self.retain_gps_route:
+            return self._call_set_bool(self.gps_pause_service, paused)
+        # Local move_base goals are canceled by the existing handoff. There is
+        # no stored GPS route to pause/resume or artificial GPS origin to set.
+        return True, "Indoor local navigation has no retained GPS route"
 
     def _graph_watchdog(self, _event=None):
         if self.shutdown_event.is_set():
@@ -390,6 +652,7 @@ class FodNavigationModeManager:
             if self.mode == FAULT_STOP and self.reason == graph_error:
                 return
             self.mode = FAULT_STOP
+            self.recovery_armed = False
             self.reason = graph_error
             self.command_source = STOP_SOURCE
             self.allow_move_base_goals = False
@@ -467,7 +730,7 @@ class FodNavigationModeManager:
         with self.lock:
             self.arbiter.clear(FOD_SOURCE)
 
-        success, message = self._call_set_bool(self.gps_pause_service, True)
+        success, message = self._pause_navigation_route(True)
         if not success:
             reason = (
                 "GPS pause failed or was uncertain: {}; chassis remains stopped"
@@ -491,12 +754,34 @@ class FodNavigationModeManager:
             self._set_mode(FOD_ABORTED, reason, STOP_SOURCE, False)
             return False, reason
 
+        with self.lock:
+            target_missing = self.retain_gps_route and not self._has_fod_locked()
+        if target_missing:
+            return self._resume_waiting_for_target()
+
+        success, message = self._set_sweep(True)
+        if not success:
+            reason = "recovery sweeper could not start: {}".format(message)
+            self._set_mode(FOD_ABORTED, reason, STOP_SOURCE, False)
+            self._stop_recovery_sweep()
+            return False, reason
+        with self.lock:
+            still_entering = self.mode == ENTERING_FOD and not self.shutdown_event.is_set()
+        if not still_entering:
+            self._stop_recovery_sweep()
+            return False, "visual handoff interrupted"
+        with self.lock:
+            target_missing = self.retain_gps_route and not self._has_fod_locked()
+        if target_missing:
+            return self._resume_waiting_for_target()
+
         success, message = self._call_set_bool(self.visual_enable_service, True)
         if not success:
             reason = "visual controller enable failed: {}; GPS remains paused".format(
                 message
             )
             self._set_mode(FOD_ABORTED, reason, STOP_SOURCE, False)
+            self._stop_recovery_sweep()
             return False, reason
 
         with self.lock:
@@ -508,14 +793,15 @@ class FodNavigationModeManager:
             )
             self.command_source = FOD_SOURCE
             self.allow_move_base_goals = False
-            self.auto_return_started = False
         self._publish_status(force=True)
         return True, (
-            "FOD recovery enabled; GPS is paused and will resume automatically "
-            "only after visual COMPLETE"
+            "Single FOD recovery enabled; GPS stays paused after visual COMPLETE "
+            "until an explicit operator return command"
         )
 
-    def _return_to_gps(self, reason_prefix):
+    def _return_to_gps(self, reason_prefix, keep_sweep=False):
+        with self.lock:
+            self.recovery_armed = False
         self._set_mode(
             RETURNING_GPS,
             "{}; disabling visual motion and confirming stop".format(reason_prefix),
@@ -524,6 +810,8 @@ class FodNavigationModeManager:
         )
 
         success, message = self._call_set_bool(self.visual_enable_service, False)
+        if not keep_sweep:
+            self._stop_recovery_sweep()
         if not success:
             reason = "cannot return to GPS because visual disable failed: {}".format(
                 message
@@ -550,7 +838,7 @@ class FodNavigationModeManager:
             # the current position. Permit that one while chassis output stays
             # hard-stopped until the service succeeds.
             self.allow_move_base_goals = True
-        success, message = self._call_set_bool(self.gps_pause_service, False)
+        success, message = self._pause_navigation_route(False)
         if not success:
             with self.lock:
                 self.allow_move_base_goals = False
@@ -561,7 +849,6 @@ class FodNavigationModeManager:
 
         with self.lock:
             self.gps_paused = False
-            self.auto_return_started = False
             self.fault_worker_started = False
         self._set_mode(
             GPS_ACTIVE,
@@ -570,17 +857,6 @@ class FodNavigationModeManager:
             True,
         )
         return True, "GPS navigation resumed; visual controller is in standby"
-
-    def _automatic_return_worker(self):
-        with self.transition_lock:
-            with self.lock:
-                if self.mode != FOD_COMPLETE_STOP:
-                    return
-            success, message = self._return_to_gps("visual recovery COMPLETE")
-            if success:
-                rospy.logwarn("%s", message)
-            else:
-                rospy.logerr("%s", message)
 
     def _set_fod_enabled_cb(self, request):
         with self.transition_lock:
@@ -600,13 +876,28 @@ class FodNavigationModeManager:
                             "to return/reset first"
                         ).format(mode),
                     )
+                if self.retain_gps_route:
+                    with self.lock:
+                        if not self.recovery_armed:
+                            self.sweep_start_requested = False
+                            self.recovery_sweep_ready = False
+                        self.recovery_armed = True
+                        self.reason = "camera recovery armed; start sweeping inside {:.1f} m of final GPS goal, switch to visual only with FOD".format(self.recovery_radius_m)
+                    self._publish_status(force=True)
+                    self._maybe_start_recovery()
+                    return SetBoolResponse(success=True, message=self.reason)
                 success, message = self._enter_fod_mode()
                 return SetBoolResponse(success=success, message=message)
 
             if mode == GPS_ACTIVE:
+                with self.lock:
+                    self.recovery_armed = False
+                    self.reason = "camera recovery disabled; normal GPS navigation"
+                self._stop_recovery_sweep()
+                self._publish_status(force=True)
                 return SetBoolResponse(
                     success=True,
-                    message="GPS navigation is already active",
+                    message="pending camera recovery canceled; GPS navigation continues",
                 )
             success, message = self._return_to_gps(
                 "explicit operator request to leave FOD mode"
@@ -648,6 +939,15 @@ class FodNavigationModeManager:
                 "command_source": self.command_source,
                 "output_reason": self.last_output_reason,
                 "gps_paused": self.gps_paused,
+                "retain_gps_route": self.retain_gps_route,
+                "recovery_armed": self.recovery_armed,
+                "recovery_radius_m": self.recovery_radius_m,
+                "final_goal_distance_m": self._recovery_distance_locked(),
+                "fod_target_available": self._has_fod_locked(),
+                "sweep_status": self.sweep_status,
+                "sweep_started_for_recovery": self.sweep_started_for_recovery,
+                "sweep_start_requested": self.sweep_start_requested,
+                "recovery_sweep_ready": self.recovery_sweep_ready,
                 "visual_state": self.visual_state,
                 "move_base_goals_allowed": self.allow_move_base_goals,
                 "odom_age_sec": None if odom_age is None else round(odom_age, 3),
@@ -678,6 +978,7 @@ class FodNavigationModeManager:
             return
         self.shutdown_event.set()
         with self.lock:
+            self.recovery_armed = False
             self.command_source = STOP_SOURCE
             self.allow_move_base_goals = False
             self.arbiter.clear()
@@ -688,6 +989,7 @@ class FodNavigationModeManager:
             except rospy.ROSException:
                 break
             time.sleep(1.0 / self.publish_rate_hz)
+        self._stop_recovery_sweep()
 
 
 def main():

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+import os
+import subprocess
 import unittest
 import xml.etree.ElementTree as ElementTree
 
@@ -111,7 +113,7 @@ class GpsCruiseLateralStabilityTest(unittest.TestCase):
             cls.cruise = yaml.safe_load(stream)["TebLocalPlannerROS"]
         cls.script = BRINGUP_SCRIPT.read_text(encoding="utf-8")
 
-    def test_cruise_uses_damped_path_correction_limits(self):
+    def test_cruise_uses_prompt_turn_entry_with_bounded_path_correction(self):
         self.assertEqual(self.cruise["control_look_ahead_poses"], 2)
         self.assertGreaterEqual(self.cruise["global_plan_viapoint_sep"], 1.5)
         self.assertLessEqual(self.cruise["max_vel_theta"], 0.85)
@@ -119,8 +121,8 @@ class GpsCruiseLateralStabilityTest(unittest.TestCase):
             self.cruise["min_vel_theta"],
             -self.cruise["max_vel_theta"],
         )
-        self.assertAlmostEqual(self.cruise["acc_lim_theta"], 0.70)
-        self.assertGreaterEqual(self.cruise["weight_acc_lim_theta"], 250.0)
+        self.assertAlmostEqual(self.cruise["acc_lim_theta"], 1.2)
+        self.assertAlmostEqual(self.cruise["weight_acc_lim_theta"], 60.0)
         self.assertGreaterEqual(self.cruise["min_turning_radius"], 1.35)
         self.assertIs(self.cruise["use_proportional_saturation"], True)
         self.assertLessEqual(self.cruise["weight_viapoint"], 6.0)
@@ -350,7 +352,7 @@ class GpsLongRangeGoalConfigurationTest(unittest.TestCase):
             self.script,
         )
         self.assertIn(
-            'check_single_topic_subscriber "/gps/goal_fix" "/gps_long_range_goal_manager"',
+            'check_gps_goal_route "/gps/goal_fix" "/gps_long_range_goal_manager"',
             self.script,
         )
         self.assertIn(
@@ -395,7 +397,7 @@ class BringupCommandRouteSafetyTest(unittest.TestCase):
 
     def test_fast_lio_prefers_system_libusb_without_changing_other_launches(self):
         self.assertIn(
-            'FAST_LIO_SYSTEM_LIBRARY_DIR="${FAST_LIO_SYSTEM_LIBRARY_DIR:-/lib/x86_64-linux-gnu}"',
+            'FAST_LIO_SYSTEM_LIBRARY_DIR="${FAST_LIO_SYSTEM_LIBRARY_DIR:-/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)}"',
             self.script,
         )
         self.assertIn(
@@ -466,6 +468,65 @@ class BringupCommandRouteSafetyTest(unittest.TestCase):
             'heading_recovery_samples:="$GPS_HEADING_RECOVERY_SAMPLES"',
             self.script,
         )
+
+
+class BringupRouteBehaviorTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        script = BRINGUP_SCRIPT.read_text(encoding="utf-8")
+        cls.helpers = script[
+            script.index("check_topic_route() {"):script.index("check_service_provider() {")
+        ]
+
+    def check_route(self, command, publishers, subscribers):
+        fixture = "Type: geometry_msgs/Twist\n\nPublishers:\n"
+        fixture += "".join(" * %s (http://localhost:1234/)\n" % name for name in publishers)
+        fixture += "\nSubscribers:\n"
+        fixture += "".join(" * %s (http://localhost:1234/)\n" % name for name in subscribers)
+        # Run only the helper functions, never the bringup entry point or ROS.
+        script = "set -euo pipefail\n" + self.helpers + """
+rostopic() { printf '%s\\n' "$M2_ROUTE_FIXTURE"; }
+sleep() { SECONDS=$((SECONDS + 2)); }
+""" + command
+        return subprocess.run(
+            ["bash"], input=script, text=True, capture_output=True, timeout=5,
+            env=dict(os.environ, M2_ROUTE_FIXTURE=fixture),
+        )
+
+    def test_goal_input_accepts_recorders_and_test_menu(self):
+        result = self.check_route(
+            'check_gps_goal_route /gps/goal_fix /gps_long_range_goal_manager 1',
+            ["/gps_goal_publisher"],
+            ["/gps_long_range_goal_manager", "/record_123", "/gps_test_tasks"],
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_goal_input_rejects_two_active_goal_converters(self):
+        result = self.check_route(
+            'check_gps_goal_route /gps/goal_fix /gps_long_range_goal_manager 1',
+            ["/gps_goal_publisher"], ["/gps_long_range_goal_manager", "/gps_goal"],
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Expected one GPS goal converter", result.stderr)
+
+    def test_goal_input_requires_expected_manager(self):
+        result = self.check_route(
+            'check_gps_goal_route /gps/goal_fix /gps_long_range_goal_manager 1',
+            [], ["/gps_goal", "/record_123"],
+        )
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_command_route_accepts_passive_listeners_but_not_competing_publishers(self):
+        for publishers, expected_code in [
+            (["/fod_navigation_mode"], 0),
+            (["/fod_navigation_mode", "/old_teleop"], 1),
+        ]:
+            with self.subTest(publishers=publishers):
+                result = self.check_route(
+                    'check_cmd_vel_route /cmd_vel /fod_navigation_mode /m2_driver 1',
+                    publishers, ["/m2_driver", "/record_123"],
+                )
+                self.assertEqual(result.returncode, expected_code, result.stderr)
 
 
 class GpsFodModeIntegrationTest(unittest.TestCase):

@@ -43,7 +43,7 @@ class OperatorGuiContractTest(unittest.TestCase):
             self.assertIn(topic, GUI_SOURCE)
         self.assertIn("hikrobot_mvs_camera::GetImagingControls", GUI_SOURCE)
         self.assertIn("hikrobot_mvs_camera::SetImagingControls", GUI_SOURCE)
-        self.assertIn("立即单独启动", GUI_SOURCE)
+        self.assertIn("启动相机控制回收", GUI_SOURCE)
 
     def test_visual_motion_uses_safe_mode_arbiter_only(self):
         self.assertIn(
@@ -65,7 +65,7 @@ class OperatorGuiContractTest(unittest.TestCase):
     def test_all_in_one_opens_gui_before_navigation_readiness(self):
         self.assertTrue(os.access(str(ALL_IN_ONE), os.X_OK))
         self.assertIn("TERMINAL_MODE=same NAV_START_RVIZ=false", ALL_IN_ONE_TEXT)
-        bringup = ALL_IN_ONE_TEXT.index('"$SCRIPT_DIR/bringup.sh" gps')
+        bringup = ALL_IN_ONE_TEXT.index('"$SCRIPT_DIR/bringup.sh" "${NAVIGATION_ARGS[@]}"')
         vision = ALL_IN_ONE_TEXT.index(
             "roslaunch autolabor_fod_vision hikrobot_fod_detection.launch"
         )
@@ -91,7 +91,7 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("continuing in degraded-console mode", ALL_IN_ONE_TEXT)
         self.assertIn("ensure_ros_master", ALL_IN_ONE_TEXT)
         failure_start = ALL_IN_ONE_TEXT.index(
-            "WARNING: GPS bringup exited before it became ready"
+            "WARNING: $OPERATOR_NAVIGATION_MODE bringup exited before it became ready"
         )
         failure_end = ALL_IN_ONE_TEXT.index("    break", failure_start)
         failure_branch = ALL_IN_ONE_TEXT[failure_start:failure_end]

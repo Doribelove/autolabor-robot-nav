@@ -8,6 +8,18 @@
 
 本包没有 `/cmd_vel` 发布者，不会接管无人车。
 
+Jetson ZED 完整启动现已默认消费 `/fod_camera/depth_registered` 和原生
+CameraInfo，向每个真实检测框附加 `track_id`、`depth_valid`、`depth_m`
+（光轴深度）和 `range_m`（距相机直线距离，米）。彩色和注册深度按原图时间戳
+配对，中央框区域的有效深度取中位数；无可靠深度时仍输出识别框，距离无效，
+不把缺失测距当成最近目标。Qt 同时显示编号与距离，当前锁定目标标注 TARGET。
+控制使用独立检测跟踪编号，预览的平滑/保留框不参与控制。
+
+ZED 相机回收每次只选择最近的一个有效目标，锁定后不因其他目标的距离或
+置信度变化而切换，完成后停车。启动和测距说明见工作区 `ZED_PERFORMANCE.md`。
+`FodDetection` 消息增加字段后需重新生成消息并重编译 Qt，本机已按此部署；
+模型、类别和原 ROI 不变。
+
 ## 重要边界
 
 `/home/robot/robot_ws/src/yolo/yolo11n.pt` 和 `yolo11s.pt` 是 COCO 通用
@@ -192,17 +204,31 @@ rostopic echo /fod/detections
 rostopic hz /fod/detections
 ```
 
-默认置信度阈值为 `0.25`。现场已知没有 FOD 却出现低置信度框时，可先用
-`confidence:=0.4` 重新启动；正式阈值应通过有标注的现场测试集确定，而
-不是只观察单幅画面。
+2026-09-28 按用户机场场景需求，生产相机 launch 默认采用
+`detector_profile:=airport_recall`：置信度 `0.10`、推理尺寸 `960`、NMS IoU
+`0.60`、跨类别 NMS。保留原 `Metal/Soft/Plastic/Wire/Tool/w` 六类和模型权重。
+`detector_profile:=original` 恢复检测阈值 `0.25`、尺寸 `640`、IoU `0.45`，
+并关闭预览稳定化；显式 `confidence:=...` 等参数仍优先。
+
+预览对相邻帧匹配框做位置平滑和类别投票，短暂漏检最多保留 `0.30 s`，以黄色
+虚线和 `hold` 标注。`/fod/detections` 仍只发布当前帧模型实际检测，置信度、
+框和时间戳不被预览缓存抬高或替换；清扫控制不会收到补画的历史框。
+Qt 目标计数来自当前检测，因此可以少于预览中包括保留框在内的数量。
+
+**用户明确要求排除地面小石头。当前模型没有石头类别，也尚未使用现场石头负样本
+验证或微调；上述召回配置是调试配置，不代表已具备石头排除能力。** 需用原六类
+FOD 标注数据和机场石头背景负样本训练、验证；不应把增加框数等同于有效召回提升。
+不按尺寸或灰色外观一刀切删除小目标，以免同时丢弃小金属件和细线。
+实际结果及待补数据见工作区根目录 `FOD_RECOGNITION_TUNING.md`。
 
 该 launch 目前只做识别和画框。虽然相机已经发布标定后的
 `/fod_camera/camera_info`，但在得到并验证
 `base_link -> fod_camera_optical_frame` 安装外参 TF 前，不会输出可信的
 地面坐标。
 
-需要在检测结果之上显式接管真车、将单个 FOD 引导到画面底部并在其消失后按
-底盘里程计前进 0.5 m 时，使用独立的 `autolabor_fod_control` 包。它不会由
+需要在检测结果之上显式接管真车、将最近的单个 FOD 引导到中下回收区，并在其
+消失后按底盘里程计连续前进 0.8 m 时，使用独立的 `autolabor_fod_control` 包。
+控制器在线时，预览显示其实际回收区域，目标进入后从黄框变绿框。它不会由
 本 launch 自动启动；完整的控制源隔离、安全检查和启动步骤见
 `src/application/autolabor_fod_control/README.md`。
 

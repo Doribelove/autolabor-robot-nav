@@ -1,8 +1,121 @@
 # Current GPS Development Handoff
 
-Date: 2026-07-23
+Date: 2026-09-27
 
 This file records the current GPS navigation development state for the Autolabor M2 robot in `/home/robot/robot_ws`.
+
+## 2026-09-27 Dual-Antenna GNSS Onboarding and UI Startup
+
+The current agent/operator guide is
+[AGENT_GNSS_ONBOARDING.md](AGENT_GNSS_ONBOARDING.md). It covers the complete
+dual-antenna GNSS startup, device mapping, heading conventions, TF ownership,
+rolling GPS goals, command routing, operation and targeted troubleshooting.
+AGENTS and the root README link to it. The Qt README now matches the current
+wrapper: navigation initializes in the background while Qt and optional
+perception/bridge processes start; an open window does not prove navigation
+readiness. This task changed documentation only.
+
+The user clarified that no devices are connected and that the present task
+is project onboarding plus opening the interface. Missing hardware is
+expected in this session. The guide includes a dedicated no-hardware path:
+
+```bash
+cd /home/robot/robot_ws
+./scripts/operator_gui.sh
+```
+
+The earlier all-in-one session was stopped through its normal cleanup handler
+and replaced with this standalone Qt entry, which needs no robot devices.
+GNSS, laser and navigation displays remain offline until a later hardware
+session; no full hardware-navigation readiness is claimed.
+
+Before that clarification, at 21:12 Asia/Shanghai, complete startup had been
+attempted using the existing command:
+
+```bash
+cd /home/robot/robot_ws
+./scripts/operator_all_in_one.sh 0.3 cruise
+```
+
+Runtime logs:
+`log/operator_all_in_one_20260927_211205/`.
+
+Observed result of that earlier attempt:
+
+- The Qt console opened; ROS master, camera retry, detector, image-quality
+  controller, GPS static-error monitor and RabbitMQ bridge nodes were present.
+- GNSS bringup exited before CAN startup with
+  `Device does not exist: /dev/ttyUSB0`. It did **not** print
+  `Robot bringup is running in gps mode.` No `/m2_driver`,
+  `/gps_localization` or `/move_base` was running.
+- Neither default USB serial device was enumerated. Ethernet `enp8s0` was
+  down, with no `192.168.1.50` host address. The Hikrobot driver reported no
+  camera and kept retrying. RabbitMQ status was `connected=false`,
+  `connection_state=connecting`, with no cached target at the time sampled.
+- The wrapper kept Qt open in its existing degraded mode until it was
+  intentionally stopped for the standalone UI launch above. In a future
+  hardware session, connect/power CAN, GNSS and MID360 and then use the
+  complete entry. Camera connectivity is additionally needed for perception.
+  Inspect actual serial identities before overriding port names; a failed
+  bringup does not automatically restart when a device is later connected.
+
+Validation: shell syntax, local documentation links, whitespace checks and
+offline ROS launch resolution for GPS navigation, Qt and vision passed.
+The actual launch confirmed the expected hardware absence. No target,
+visual-recovery request or cleaning-device command was sent.
+
+## 2026-09-13 GNSS Startup and Resource Cleanup
+
+The original `./scripts/bringup.sh gps [speed] [cruise|obstacle]` entry and
+GPS/FOD command routes are unchanged. Current operating instructions are in
+[Autolabor-M2实操实验记录.md](Autolabor-M2实操实验记录.md); older sections below
+record historical increments, not additional startup or acceptance steps.
+
+- GNSS serial ingestion no longer sleeps after each GGA/RMC fix. Only position
+  output is rate-limited; heading and RMC motion updates are consumed promptly.
+  This removes self-induced backlog when both position sentences run at 10 Hz.
+- GPS goal routing permits passive subscribers such as rosbag and the test
+  menu, while still rejecting both project goal converters running together.
+  Command publisher exclusivity is retained in the shared route helper.
+- Removed duplicate TF/topic waits; topic discovery queries the ROS graph
+  once per polling cycle. Removed the no-map launch's unused `viz_path` node,
+  which requests an unavailable `map -> base_link` transform.
+- FAST_LIO skips world-cloud conversion without subscribers and no longer
+  allocates an unused 500,000-point buffer. Body-cloud output, deskew, mapping
+  and requested PCD saving are preserved.
+- FAST_LIO explicitly links PCL's discovered system libusb, fixing the link
+  failure caused by the MVS SDK's older library. Existing per-process runtime
+  library selection is retained; system/camera configuration is untouched.
+
+Verification: 70 relevant Python tests, five offline launch-resolution cases,
+shell syntax and diff checks pass. `fastlio_mapping` rebuilt successfully;
+its libraries resolve under the existing bringup environment. No hardware
+navigation was started. The serial defect is confirmed in offline tests, but
+the current vehicle's S-shaped trajectory is not declared resolved.
+
+## 2026-09-13 Straight-Line / Zero-Velocity Audit
+
+See [NAVIGATION_STRAIGHT_LINE_AUDIT.md](NAVIGATION_STRAIGHT_LINE_AUDIT.md)
+for the source audit and offline bag evidence. FAST_LIO does not publish
+chassis Twist commands, but its `/Odometry` leaves twist unpopulated. The
+FAST_LIO navigation defaults incorrectly used that topic as TEB velocity
+feedback. Navigation launch defaults now use chassis `/odom` for FAST_LIO
+velocity feedback while retaining the existing localization TF and GPS-goal
+pose source. GPS navigation still uses `/gps/odom`.
+
+The dingo base TEB configuration now enables proportional velocity saturation,
+matching the setting already present in both GPS overlays. This also preserves
+command curvature in FAST_LIO and direct base-configuration launches. No new
+nodes, gates, watchdogs or command relays were added.
+
+The existing 26 profile/startup tests and seven offline launch-resolution cases
+pass. An offline command-selection check confirms that standby FOD zeros do
+not replace the selected GPS command. The available July 3 bag contains seven
+mid-motion zero commands, all matching TEB infeasibility warnings within 0.6ms,
+with `/move_base` as the only recorded `/cmd_vel` publisher. It predates the
+current GPS fixes and does not establish the cause of the user's present
+GNSS symptom. No vehicle run was performed; the incident's launch command and
+matching recording are still needed to identify its cause.
 
 ## 2026-07-23 Integrated Qt Navigation and Vision Console
 

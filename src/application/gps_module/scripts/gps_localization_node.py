@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import math
+import threading
 
 import rospy
 import serial
@@ -452,6 +453,74 @@ def yaw_from_quaternion(q):
     return euler_from_quaternion([q.x, q.y, q.z, q.w])[2]
 
 
+class HeadingContinuation:
+    """Integrate measured chassis yaw between fixed GNSS heading anchors.
+
+    The anchor age is never refreshed by wheel data. A missing wheel interval
+    invalidates continuation until another accepted GNSS heading arrives.
+    Queries are read-only, so repeated pose/TF calculations cannot integrate
+    the same motion twice.
+    """
+
+    def __init__(self, timeout=3.0, wheel_timeout=0.5):
+        self.timeout = timeout
+        self.wheel_timeout = wheel_timeout
+        self.lock = threading.Lock()
+        self.anchor_stamp = None
+        self.yaw = None
+        self.yaw_stamp = None
+        self.wheel_stamp = None
+        self.wheel_rate = None
+        self.continuous = False
+
+    def observe_wheel(self, stamp, rate):
+        with self.lock:
+            if not math.isfinite(stamp) or not math.isfinite(rate):
+                self.continuous = False
+                self.wheel_stamp = None
+                self.wheel_rate = None
+                return
+            if self.wheel_stamp is not None and stamp <= self.wheel_stamp:
+                if stamp < self.wheel_stamp:
+                    self.continuous = False
+                    self.wheel_stamp = stamp
+                    self.wheel_rate = rate
+                return
+            if self.continuous:
+                dt = stamp - self.yaw_stamp
+                if (dt < 0.0 or stamp - self.wheel_stamp > self.wheel_timeout):
+                    self.continuous = False
+                else:
+                    self.yaw = math.atan2(
+                        math.sin(self.yaw + 0.5 * (self.wheel_rate + rate) * dt),
+                        math.cos(self.yaw + 0.5 * (self.wheel_rate + rate) * dt),
+                    )
+                    self.yaw_stamp = stamp
+            self.wheel_stamp = stamp
+            self.wheel_rate = rate
+
+    def observe_heading(self, stamp, yaw):
+        with self.lock:
+            self.anchor_stamp = stamp
+            self.yaw = yaw
+            self.yaw_stamp = stamp
+            self.continuous = (
+                math.isfinite(yaw)
+                and self.wheel_stamp is not None
+                and 0.0 <= stamp - self.wheel_stamp <= self.wheel_timeout
+            )
+
+    def predict(self, stamp):
+        with self.lock:
+            if (not self.continuous or self.timeout <= 0.0
+                    or not 0.0 <= stamp - self.anchor_stamp <= self.timeout
+                    or not 0.0 <= stamp - self.wheel_stamp <= self.wheel_timeout
+                    or stamp < self.yaw_stamp):
+                return None
+            yaw = self.yaw + self.wheel_rate * (stamp - self.yaw_stamp)
+            return math.atan2(math.sin(yaw), math.cos(yaw))
+
+
 class GpsLocalizationNode:
     def __init__(self):
         self.port = rospy.get_param("~port", "/dev/ttyUSB1")
@@ -511,6 +580,17 @@ class GpsLocalizationNode:
             "~wheel_twist_timeout",
             rospy.get_param("~wheel_twist_timeout", 0.5),
             minimum=0.0,
+        )
+        self.heading_continuation_timeout = validate_float_parameter(
+            "~heading_continuation_timeout",
+            rospy.get_param("~heading_continuation_timeout", 3.0),
+            minimum=0.0,
+        )
+        self.heading_continuation = HeadingContinuation(
+            self.heading_continuation_timeout,
+            # Continuation always needs bounded wheel measurement intervals,
+            # even if a legacy configuration disabled twist expiry with zero.
+            self.wheel_twist_timeout or 0.5,
         )
         self.rmc_speed_timeout = validate_float_parameter(
             "~rmc_speed_timeout",
@@ -608,15 +688,6 @@ class GpsLocalizationNode:
         self.odom_pub = rospy.Publisher(self.odom_topic, Odometry, queue_size=10)
         self.fix_pub = rospy.Publisher(self.fix_topic, NavSatFix, queue_size=10)
         self.heading_pub = rospy.Publisher(self.heading_topic, Float64, queue_size=10)
-        self.wheel_odom_sub = None
-        if self.use_wheel_odom or self.use_wheel_twist:
-            self.wheel_odom_sub = rospy.Subscriber(
-                self.wheel_odom_topic,
-                Odometry,
-                self.wheel_odom_cb,
-                queue_size=10,
-            )
-
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
 
         self.last_x = None
@@ -645,6 +716,12 @@ class GpsLocalizationNode:
         self.local_x = None
         self.local_y = None
         self.local_yaw = self.initial_yaw
+
+        self.wheel_odom_sub = None
+        if self.use_wheel_odom or self.use_wheel_twist:
+            self.wheel_odom_sub = rospy.Subscriber(
+                self.wheel_odom_topic, Odometry, self.wheel_odom_cb, queue_size=10
+            )
 
         self.ser = serial.Serial(self.port, self.baud_rate, timeout=self.serial_timeout)
         rospy.loginfo(
@@ -695,6 +772,9 @@ class GpsLocalizationNode:
             self.latest_wheel_odom_stamp = msg.header.stamp
         else:
             self.latest_wheel_odom_stamp = rospy.Time.now()
+        self.heading_continuation.observe_wheel(
+            self.latest_wheel_odom_stamp.to_sec(), msg.twist.twist.angular.z
+        )
 
     def heading_is_usable(self, heading):
         return heading_solution_is_usable(
@@ -734,6 +814,7 @@ class GpsLocalizationNode:
             wheel_yaw_rate,
         )
         self.latest_navigation_heading_yaw = heading_yaw
+        self.heading_continuation.observe_heading(stamp.to_sec(), heading_yaw)
 
         if guard_state == "rejected":
             rospy.logwarn(
@@ -818,6 +899,22 @@ class GpsLocalizationNode:
             self.heading_required_solution_status,
             self.heading_required_position_types,
         )
+        if state in ("ok", "stale"):
+            continued_yaw = self.heading_continuation.predict(stamp.to_sec())
+            if continued_yaw is not None:
+                # If wheel feedback disappears before the fixed sample's
+                # original expiry, hold the most recent navigation yaw rather
+                # than jumping backwards to that sample's older orientation.
+                self.latest_navigation_heading_yaw = continued_yaw
+                if state == "stale":
+                    rospy.logwarn_throttle(
+                        1.0,
+                        "Dual-antenna heading continuation using measured chassis yaw: "
+                        "fixed heading age=%.3f sec, limit=%.1f sec",
+                        stamp.to_sec() - sample_sec,
+                        self.heading_continuation_timeout,
+                    )
+                return continued_yaw
         if self.heading_source in STRICT_DUAL_ANTENNA_HEADING_SOURCES:
             if state == "missing":
                 rospy.logwarn_throttle(2.0, "Waiting for a valid dual-antenna heading")
@@ -1107,7 +1204,12 @@ class GpsLocalizationNode:
         self.tf_broadcaster.sendTransform(tf_msg)
 
     def spin(self):
-        rate = rospy.Rate(self.publish_rate)
+        # Limit ROS position output, not serial ingestion. GGA and RMC may
+        # each arrive at 10 Hz; sleeping after either sentence backlogs the
+        # shared stream, including the dual-antenna heading messages.
+        publish_period = 1.0 / self.publish_rate
+        next_publish_sec = None
+        previous_sample_sec = None
         while not rospy.is_shutdown():
             raw = self.ser.readline().decode("utf-8", errors="ignore").strip()
             heading = parse_uniheadinga(raw)
@@ -1115,7 +1217,11 @@ class GpsLocalizationNode:
                 self.handle_heading(heading, rospy.Time.now())
                 continue
 
-            parsed = parse_nmea_fix(raw)
+            try:
+                parsed = parse_nmea_fix(raw)
+            except (ValueError, IndexError):
+                rospy.logwarn_throttle(2.0, "Ignoring malformed GNSS position sentence")
+                continue
             if parsed is None:
                 continue
 
@@ -1138,6 +1244,27 @@ class GpsLocalizationNode:
                 altitude = self.last_altitude
             else:
                 self.last_altitude = altitude
+
+            # Consume every RMC speed/course and altitude update above, even
+            # when this position is between output slots. Keep a fixed cadence
+            # with 1% timing slack (1 ms at 10 Hz) so input jitter does not
+            # halve the output rate. This never sleeps or delays serial input.
+            sample_sec = stamp.to_sec()
+            if previous_sample_sec is not None and sample_sec < previous_sample_sec:
+                next_publish_sec = None
+            previous_sample_sec = sample_sec
+            if (
+                next_publish_sec is not None
+                and sample_sec < next_publish_sec - 0.01 * publish_period
+            ):
+                continue
+            if next_publish_sec is None:
+                next_publish_sec = sample_sec + publish_period
+            else:
+                elapsed_slots = max(
+                    1, math.floor((sample_sec - next_publish_sec) / publish_period) + 1
+                )
+                next_publish_sec += elapsed_slots * publish_period
 
             # /gps/fix remains available for diagnostics and goal conversion
             # even while strict heading policy suppresses navigation pose.
@@ -1169,7 +1296,6 @@ class GpsLocalizationNode:
                     2.0,
                     "Suppressing GPS navigation pose/odom/TF until a fresh, valid dual-antenna heading is available",
                 )
-                rate.sleep()
                 continue
 
             gps_yaw, gps_linear_speed, gps_angular_speed = self.update_motion(
@@ -1194,7 +1320,6 @@ class GpsLocalizationNode:
                 linear_speed,
                 gps_angular_speed,
             )
-            rate.sleep()
 
     def close(self):
         try:

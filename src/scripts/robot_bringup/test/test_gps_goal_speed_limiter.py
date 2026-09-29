@@ -75,6 +75,19 @@ class GoalSpeedCapTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             LIMITER.validate_goal_distances(0.31, 0.3)
 
+    def test_collection_approach_slows_before_front_overhang_reaches_target(self):
+        distances = (1.7, 1.1, 0.8, 0.5, 0.2)
+        expected = (0.5, 0.3, 0.2, 0.15, 0.0)
+        for distance, speed in zip(distances, expected):
+            with self.subTest(distance=distance):
+                self.assertAlmostEqual(
+                    LIMITER.goal_speed_cap(distance, 0.25, 0.2, 0.15, 3.0), speed)
+
+    def test_approach_time_rejects_invalid_values(self):
+        for value in (-1.0, math.inf, math.nan):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                LIMITER.goal_speed_cap(1.0, 0.25, 0.2, 0.15, value)
+
 
 class CurvaturePreservingSpeedLimitTest(unittest.TestCase):
     def test_yaw_rate_scales_with_forward_speed(self):
@@ -131,12 +144,15 @@ class GoalLimiterOutputTest(unittest.TestCase):
         limiter.arrival_latched = False
         limiter.near_goal_started_time = None
         limiter.near_goal_closest_distance = None
+        limiter.near_goal_last_progress_time = None
+        limiter.near_goal_progress_pose = None
         limiter.last_cancel_stamp = rospy.Time()
         limiter.blocked_goal_ids = OrderedDict()
         limiter.cmd_timeout = 0.5
         limiter.odom_timeout = 1.0
         limiter.speed_cap_enabled = True
         limiter.comfortable_decel = 0.4
+        limiter.approach_time = 0.0
         limiter.hard_stop_distance = 0.2
         limiter.min_approach_speed = 0.15
         limiter.near_goal_commit_distance = 1.0
@@ -197,6 +213,30 @@ class GoalLimiterOutputTest(unittest.TestCase):
         self.assertEqual(limiter.cmd_pub.messages[-1], command)
         self.assertFalse(limiter.stop_latched)
         self.assertFalse(limiter.arrival_latched)
+
+    def test_collection_approach_scales_speed_and_yaw_at_front_contact_distance(self):
+        command = Twist()
+        command.linear.x = 0.5
+        command.angular.z = -0.2
+        limiter, now = self.limiter_at_distance(0.8, command)
+        limiter.approach_time = 3.0
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+        output = limiter.cmd_pub.messages[-1]
+        self.assertAlmostEqual(output.linear.x, 0.2)
+        self.assertAlmostEqual(output.angular.z, -0.08)
+
+    def test_collection_approach_does_not_raise_slow_commands_or_limit_reverse(self):
+        for speed in (0.0, 0.1, -0.5):
+            with self.subTest(speed=speed):
+                command = Twist()
+                command.linear.x = speed
+                command.angular.z = speed * 0.4
+                limiter, now = self.limiter_at_distance(0.8, command)
+                limiter.approach_time = 3.0
+                with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+                    limiter.timer_callback(None)
+                self.assertEqual(limiter.cmd_pub.messages[-1], command)
 
     def test_disabled_speed_cap_keeps_hard_stop_latch(self):
         command = Twist()
@@ -317,25 +357,25 @@ class GoalLimiterOutputTest(unittest.TestCase):
 
         self.assertEqual(limiter.cmd_pub.messages, [Twist()])
 
-    def test_moving_away_after_near_goal_commit_latches_stop(self):
+    def test_reverse_maneuver_can_increase_distance_beyond_old_regression_limit(self):
         command = Twist()
-        command.linear.x = 0.3
+        command.linear.x = -0.3
         limiter, now = self.limiter_at_distance(0.9, command)
         with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
             limiter.timer_callback(None)
 
-        later = rospy.Time.from_sec(10.2)
-        limiter.current_goal.pose.position.x = 1.41
-        limiter.latest_cmd = copy.deepcopy(command)
-        limiter.latest_cmd_time = later
-        limiter.latest_odom_time = later
-        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=later):
-            limiter.timer_callback(None)
+        for second in range(1, 21):
+            later = now + rospy.Duration.from_sec(second)
+            limiter.latest_odom.pose.pose.position.x = -second * 0.1
+            limiter.latest_odom.twist.twist.linear.x = -0.1
+            limiter.latest_cmd_time = later
+            limiter.latest_odom_time = later
+            with mock.patch.object(LIMITER.rospy.Time, "now", return_value=later):
+                limiter.timer_callback(None)
+            self.assertFalse(limiter.stop_latched)
+            self.assertEqual(limiter.cmd_pub.messages[-1], command)
 
-        self.assertTrue(limiter.stop_latched)
-        self.assertEqual(limiter.cmd_pub.messages[-1], Twist())
-
-    def test_near_goal_timeout_latches_stop_even_after_some_progress(self):
+    def test_actual_progress_restarts_idle_timer(self):
         command = Twist()
         command.linear.x = 0.3
         limiter, now = self.limiter_at_distance(0.9, command)
@@ -343,15 +383,71 @@ class GoalLimiterOutputTest(unittest.TestCase):
             limiter.timer_callback(None)
 
         later = rospy.Time.from_sec(25.1)
-        limiter.current_goal.pose.position.x = 0.4
+        limiter.latest_odom.pose.pose.position.x = 0.4
+        limiter.latest_odom.twist.twist.linear.x = 0.1
         limiter.latest_cmd = copy.deepcopy(command)
         limiter.latest_cmd_time = later
         limiter.latest_odom_time = later
         with mock.patch.object(LIMITER.rospy.Time, "now", return_value=later):
             limiter.timer_callback(None)
 
+        self.assertFalse(limiter.stop_latched)
+        self.assertGreater(limiter.cmd_pub.messages[-1].linear.x, 0.0)
+
+        stopped = later + rospy.Duration.from_sec(15.1)
+        limiter.latest_odom.twist.twist.linear.x = 0.0
+        limiter.latest_cmd_time = stopped
+        limiter.latest_odom_time = stopped
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=stopped):
+            limiter.timer_callback(None)
+        self.assertTrue(limiter.stop_latched)
+
+    def test_turning_arc_progress_is_not_a_final_approach_deadline(self):
+        command = Twist()
+        command.linear.x = 0.1
+        command.angular.z = 0.1
+        limiter, now = self.limiter_at_distance(0.9, command)
+        for second in range(21):
+            stamp = now + rospy.Duration.from_sec(second)
+            # Radial distance stays fixed while the car changes orientation.
+            q = limiter.latest_odom.pose.pose.orientation
+            q.z, q.w = math.sin(second * 0.05), math.cos(second * 0.05)
+            limiter.latest_odom.twist.twist.angular.z = 0.1
+            limiter.latest_cmd_time = limiter.latest_odom_time = stamp
+            with mock.patch.object(LIMITER.rospy.Time, "now", return_value=stamp):
+                limiter.timer_callback(None)
+            self.assertFalse(limiter.stop_latched)
+
+    def test_commands_and_small_position_jitter_do_not_mask_stall(self):
+        command = Twist()
+        command.linear.x = 0.3
+        limiter, now = self.limiter_at_distance(0.9, command)
+        for second in range(17):
+            stamp = now + rospy.Duration.from_sec(second)
+            limiter.latest_odom.pose.pose.position.x = 0.01 * (second % 2)
+            limiter.latest_cmd_time = limiter.latest_odom_time = stamp
+            with mock.patch.object(LIMITER.rospy.Time, "now", return_value=stamp):
+                limiter.timer_callback(None)
         self.assertTrue(limiter.stop_latched)
         self.assertEqual(limiter.cmd_pub.messages[-1], Twist())
+
+    def test_localization_outage_does_not_consume_maneuver_timeout(self):
+        command = Twist()
+        command.linear.x = 0.3
+        limiter, now = self.limiter_at_distance(0.9, command)
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=now):
+            limiter.timer_callback(None)
+        lost = now + rospy.Duration.from_sec(20.0)
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=lost):
+            limiter.timer_callback(None)
+        self.assertEqual(limiter.cmd_pub.messages[-1], Twist())
+        self.assertFalse(limiter.stop_latched)
+        recovered = lost + rospy.Duration.from_sec(0.1)
+        limiter.latest_cmd_time = limiter.latest_odom_time = recovered
+        with mock.patch.object(LIMITER.rospy.Time, "now", return_value=recovered):
+            limiter.timer_callback(None)
+        self.assertFalse(limiter.stop_latched)
+        self.assertGreater(limiter.cmd_pub.messages[-1].linear.x, 0.0)
 
 
 class ActionGoalIdentityTest(unittest.TestCase):

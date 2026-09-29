@@ -16,11 +16,12 @@ IMAGE_SUFFIXES = {".bmp", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"}
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="YOLO/CUDA smoke test; current COCO weights are not FOD acceptance data."
+        description="YOLO/CUDA smoke test; offline inference is not camera acceptance."
     )
     parser.add_argument(
         "--weights",
-        default="/home/robot/robot_ws/src/yolo/yolo11n.pt",
+        default=str(Path(__file__).resolve().parents[3] / "yolo" /
+                    "fod_yolo11n_img640_e300_orig/weights/best.pt"),
         help="Trusted .pt checkpoint",
     )
     parser.add_argument("--source", required=True, help="Image, video, camera path, or index")

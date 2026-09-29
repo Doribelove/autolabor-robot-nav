@@ -1,5 +1,8 @@
 <launch>
+  <arg name="retain_gps_route" default="true"/>
+  <arg name="mock_sweep_port" default="50193"/>
   <param name="/use_sim_time" value="false"/>
+  <param name="/fod_visual_servo/select_nearest_by_depth" value="true"/>
 
   <node pkg="autolabor_fod_control"
         type="fod_navigation_mode_manager.py"
@@ -10,9 +13,16 @@
     <param name="fod_cmd_topic" value="/test/cmd_vel_fod"/>
     <param name="output_cmd_topic" value="/test/cmd_vel"/>
     <param name="odom_topic" value="/test/odom"/>
+    <param name="gps_pose_topic" value="/test/gps/odom"/>
+    <param name="gps_route_status_topic" value="/test/gps/route_status"/>
+    <param name="detections_topic" value="/test/detections"/>
+    <param name="sweep_ip" value="127.0.0.1"/>
+    <param name="sweep_port" value="$(arg mock_sweep_port)"/>
+    <param name="status_rate_hz" value="10.0"/>
     <param name="visual_state_topic" value="/test/fod/state"/>
     <param name="visual_enable_service" value="/test/fod/set_enabled"/>
     <param name="gps_pause_service" value="/test/gps/set_paused"/>
+    <param name="retain_gps_route" value="$(arg retain_gps_route)"/>
     <param name="move_base_goal_topic" value="/test/move_base/goal"/>
     <param name="move_base_cancel_topic" value="/test/move_base/cancel"/>
     <param name="require_output_driver" value="false"/>
@@ -28,5 +38,8 @@
         pkg="autolabor_fod_control"
         type="test_fod_navigation_mode_ros.py"
         name="fake_mode_world"
-        time-limit="30.0"/>
+        time-limit="60.0">
+    <param name="retain_gps_route" value="$(arg retain_gps_route)"/>
+    <param name="sweep_port" value="$(arg mock_sweep_port)"/>
+  </test>
 </launch>

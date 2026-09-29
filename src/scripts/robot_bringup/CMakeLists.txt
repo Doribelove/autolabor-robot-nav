@@ -9,6 +9,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   sensor_msgs
+  tf2
+  tf2_ros
+  visualization_msgs
 )
 
 catkin_package()
@@ -29,10 +32,11 @@ catkin_install_python(PROGRAMS
   scripts/autolabor_cmd_test.py
   scripts/autolabor_keyboard_teleop.py
   scripts/gps_goal_speed_limiter.py
+  scripts/vehicle_outline.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY launch
+install(DIRECTORY launch config
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

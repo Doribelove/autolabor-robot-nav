@@ -1,0 +1,7 @@
+<launch>
+  <!-- Native dynamic_reconfigure mock only; no cameras, navigation or CAN. -->
+  <test test-name="zed_camera_panel" pkg="autolabor_operator_gui"
+        type="test_zed_camera_panel" time-limit="35.0">
+    <env name="QT_QPA_PLATFORM" value="offscreen"/>
+  </test>
+</launch>

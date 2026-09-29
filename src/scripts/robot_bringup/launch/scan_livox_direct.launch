@@ -11,6 +11,9 @@
   <include file="$(find robot_bringup)/launch/livox_mid360.launch"/>
 
   <node name="pointcloud_self_filter" pkg="robot_bringup" type="pointcloud_self_filter" output="screen">
+    <param name="footprint_frame" value="base_link"/>
+    <rosparam command="load" file="$(find robot_bringup)/config/vehicle_footprint.yaml"
+              param="self_footprint"/>
     <param name="input_topic" value="$(arg input_cloud)"/>
     <param name="output_topic" value="$(arg filtered_cloud)"/>
     <param name="remove_above_z" value="$(arg remove_above_z)"/>

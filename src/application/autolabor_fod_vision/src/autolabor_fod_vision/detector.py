@@ -22,6 +22,10 @@ class Detection:
     anchor_u: float
     anchor_v: float
     mask: List[Tuple[float, float]] = field(default_factory=list)
+    track_id: int = 0
+    depth_valid: bool = False
+    depth_m: float = 0.0
+    range_m: float = 0.0
 
 
 @dataclass
@@ -49,6 +53,27 @@ def _name_for_class(names, class_id: int) -> str:
     return str(class_id)
 
 
+def _tensorrt_numpy_compat():
+    """JetPack 5's TRT 8 uses np.bool, removed in this YOLO env's NumPy 1.24."""
+    import tensorrt as trt
+
+    if trt.__version__.startswith("8.") and "bool" not in np.__dict__:
+        types = {
+            trt.float32: np.float32, trt.float16: np.float16,
+            trt.int8: np.int8, trt.int32: np.int32,
+            trt.bool: np.bool_, trt.uint8: np.uint8,
+        }
+
+        def nptype(data_type):
+            if data_type not in types:
+                raise TypeError("Unsupported TensorRT data type: {}".format(data_type))
+            return types[data_type]
+
+        # Scope the compatibility shim to this inference process. Do not
+        # downgrade shared NumPy or modify the installed JetPack bindings.
+        trt.nptype = nptype
+
+
 class UltralyticsDetector:
     def __init__(
         self,
@@ -62,6 +87,7 @@ class UltralyticsDetector:
         half: bool = True,
         warmup: bool = True,
         expected_sha256: str = "",
+        agnostic_nms: bool = False,
     ):
         weights_path = Path(weights).expanduser().resolve()
         if not weights_path.is_file():
@@ -85,6 +111,8 @@ class UltralyticsDetector:
         import torch
         from ultralytics import YOLO
 
+        if weights_path.suffix == ".engine":
+            _tensorrt_numpy_compat()
         self.weights = str(weights_path)
         self.model_name = weights_path.name
         self.device = (
@@ -96,6 +124,7 @@ class UltralyticsDetector:
         self.confidence = float(confidence)
         self.iou = float(iou)
         self.max_detections = int(max_detections)
+        self.agnostic_nms = bool(agnostic_nms)
         self.classes = list(classes) if classes else None
         self.model = YOLO(self.weights)
         self.task = str(getattr(self.model, "task", "unknown"))
@@ -113,19 +142,32 @@ class UltralyticsDetector:
                     self.task
                 )
             )
+        # TensorRT engines have a build-time input shape. Use that shape for
+        # letterboxing and warmup instead of silently padding a thin ground ROI
+        # into a square. The .pt path retains its existing automatic rectangle.
+        self.inference_shape = self.image_size
+        if weights_path.suffix == ".engine":
+            backend = self.model.predictor.model  # created while reading names
+            shape = tuple(int(size) for size in backend.bindings["images"].shape)
+            if len(shape) != 4 or shape[:2] != (1, 3) or min(shape[2:]) <= 0:
+                raise ValueError("unsupported TensorRT image binding: {}".format(shape))
+            self.inference_shape = shape[2:]
         if warmup:
-            blank = np.zeros((self.image_size, self.image_size, 3), dtype=np.uint8)
+            height, width = (self.inference_shape if isinstance(self.inference_shape, tuple)
+                             else (self.image_size, self.image_size))
+            blank = np.zeros((height, width, 3), dtype=np.uint8)
             self.predict(blank)
 
     def predict(self, image_bgr: np.ndarray) -> InferenceResult:
         start = perf_counter()
         result = self.model.predict(
             source=image_bgr,
-            imgsz=self.image_size,
+            imgsz=self.inference_shape,
             conf=self.confidence,
             iou=self.iou,
             max_det=self.max_detections,
             classes=self.classes,
+            agnostic_nms=self.agnostic_nms,
             device=self.device,
             half=self.half,
             verbose=False,
@@ -180,15 +222,30 @@ def annotate_image(
     detections: Sequence[Detection],
     inference_ms: float,
     banner: str,
+    held_for_sec: Optional[Sequence[float]] = None,
+    selected_track_id: int = 0,
 ) -> np.ndarray:
     output = image_bgr.copy()
-    for detection in detections:
+    for index, detection in enumerate(detections):
+        held = held_for_sec[index] if held_for_sec is not None else 0.0
         x1 = max(0, int(round(detection.xmin)))
         y1 = max(0, int(round(detection.ymin)))
         x2 = min(output.shape[1] - 1, int(round(detection.xmax)))
         y2 = min(output.shape[0] - 1, int(round(detection.ymax)))
-        color = (50, 220, 50)
-        cv2.rectangle(output, (x1, y1), (x2, y2), color, 2)
+        color = (0, 200, 255) if held > 0.0 else (50, 220, 50)
+        selected = selected_track_id > 0 and detection.track_id == selected_track_id
+        if selected:
+            color = (255, 220, 0)
+        if held > 0.0:
+            # A dashed amber box is a short preview hold, not a fresh YOLO hit.
+            for x in range(x1, x2 + 1, 12):
+                cv2.line(output, (x, y1), (min(x + 6, x2), y1), color, 2)
+                cv2.line(output, (x, y2), (min(x + 6, x2), y2), color, 2)
+            for y in range(y1, y2 + 1, 12):
+                cv2.line(output, (x1, y), (x1, min(y + 6, y2)), color, 2)
+                cv2.line(output, (x2, y), (x2, min(y + 6, y2)), color, 2)
+        else:
+            cv2.rectangle(output, (x1, y1), (x2, y2), color, 2)
         cv2.circle(
             output,
             (int(round(detection.anchor_u)), int(round(detection.anchor_v))),
@@ -200,6 +257,13 @@ def annotate_image(
             polygon = np.asarray(detection.mask, dtype=np.int32).reshape((-1, 1, 2))
             cv2.polylines(output, [polygon], True, (255, 180, 0), 2)
         label = "{} {:.2f}".format(detection.class_name, detection.confidence)
+        if detection.track_id:
+            label = "#{} ".format(detection.track_id) + label
+            label += " {:.2f}m".format(detection.range_m) if detection.depth_valid else " depth --"
+        if selected:
+            label = "TARGET " + label
+        if held > 0.0:
+            label += " hold {:.1f}s".format(held)
         cv2.putText(
             output,
             label,

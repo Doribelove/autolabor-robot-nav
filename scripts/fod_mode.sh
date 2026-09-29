@@ -10,8 +10,8 @@ STATUS_TOPIC="/fod_navigation_mode/status"
 usage() {
   echo "Usage: $0 start|stop|status|watch"
   echo
-  echo "  start   pause the retained GPS route, stop, then enable FOD recovery"
-  echo "  stop    disable FOD recovery and resume the retained GPS route"
+  echo "  start   arm recovery; start sweeping below 5m, use visual control only with FOD"
+  echo "  stop    cancel pending recovery or leave visual mode and resume GPS"
   echo "  status  print one GPS/FOD mode-manager status message"
   echo "  watch   continuously display the mode-manager status"
 }
@@ -46,7 +46,7 @@ case "$1" in
       echo "$MODE_SERVICE is unavailable. Start GPS bringup first." >&2
       exit 3
     fi
-    echo "Requesting FOD recovery. GPS output is blocked before the vehicle-stop check."
+    echo "Requesting camera recovery. Below 5m starts sweeping; GPS continues without FOD, visual takes over with FOD. Indoor mode enters directly."
     call_mode_service true
     ;;
   stop)

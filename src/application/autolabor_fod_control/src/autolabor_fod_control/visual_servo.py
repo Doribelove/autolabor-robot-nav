@@ -12,10 +12,8 @@ from typing import Optional, Sequence, Tuple
 
 ACQUIRE = "ACQUIRE"
 APPROACH = "APPROACH"
-REACQUIRE = "REACQUIRE"
-EDGE_ARMED = "EDGE_ARMED"
-LOSS_CONFIRM = "LOSS_CONFIRM"
-STEER_SETTLE = "STEER_SETTLE"
+TRACK_WAIT = "TRACK_WAIT"
+BLIND_ADVANCE = "BLIND_ADVANCE"
 
 
 @dataclass(frozen=True)
@@ -29,6 +27,10 @@ class PixelDetection:
     height: float
     anchor_u: float
     anchor_v: float
+    track_id: int = 0
+    depth_valid: bool = False
+    depth_m: float = 0.0
+    range_m: float = 0.0
 
     @property
     def area(self) -> float:
@@ -46,16 +48,43 @@ class AssociationConfig:
 @dataclass(frozen=True)
 class TargetMachineConfig:
     acquire_frames: int = 6
-    bottom_fraction: float = 0.88
-    bottom_center_tolerance_fraction: float = 0.05
-    bottom_confirm_frames: int = 6
-    min_approach_distance_m: float = 0.10
-    min_vertical_progress_fraction: float = 0.06
-    loss_confirm_frames: int = 5
-    loss_confirm_min_sec: float = 0.20
-    early_loss_grace_frames: int = 20
-    early_loss_max_frames: int = 60
+    recovery_region_top_fraction: float = 0.50
+    recovery_region_width_fraction: float = 0.60
+    tracking_loss_grace_sec: float = 0.30
     filter_alpha: float = 0.35
+    roi_top_fraction: float = 0.0
+    roi_bottom_fraction: float = 1.0
+    select_nearest_by_depth: bool = False
+
+    def __post_init__(self):
+        if not 0.0 <= self.roi_top_fraction < self.roi_bottom_fraction <= 1.0:
+            raise ValueError("visual ROI must satisfy 0 <= top < bottom <= 1")
+        if not 0.0 <= self.recovery_region_top_fraction < 1.0:
+            raise ValueError("recovery region top must be within the ground ROI")
+        if not 0.0 < self.recovery_region_width_fraction <= 1.0:
+            raise ValueError("recovery region width must be within the image")
+        if not 0.0 <= self.tracking_loss_grace_sec <= 0.50:
+            raise ValueError("tracking loss grace must be between 0 and 0.50 seconds")
+
+    def recovery_region(self, image_width, image_height, target_u):
+        half_width = self.recovery_region_width_fraction * image_width * 0.5
+        top = self.roi_top_fraction + self.recovery_region_top_fraction * (
+            self.roi_bottom_fraction - self.roi_top_fraction)
+        return (max(0.0, target_u - half_width), top * (image_height - 1),
+                min(image_width - 1.0, target_u + half_width),
+                self.roi_bottom_fraction * (image_height - 1))
+
+    def in_recovery_region(self, detection, image_width, image_height, target_u):
+        left, top, right, bottom = self.recovery_region(image_width, image_height, target_u)
+        return (left <= detection.anchor_u <= right
+                and top <= detection.anchor_v <= bottom + 1.0)
+
+    def vertical_fraction(self, anchor_v, image_height):
+        # Full-frame coordinates remain authoritative on ROS topics. Only
+        # approach speed and acquisition use the visible ground band.
+        q = anchor_v / float(image_height - 1)
+        return (q - self.roi_top_fraction) / (
+            self.roi_bottom_fraction - self.roi_top_fraction)
 
 
 @dataclass(frozen=True)
@@ -66,7 +95,7 @@ class TargetDecision:
     filtered_u: Optional[float]
     filtered_v: Optional[float]
     acquired: bool = False
-    enter_steer_settle: bool = False
+    enter_blind_advance: bool = False
     fault: str = ""
 
 
@@ -197,6 +226,11 @@ def validate_detection(
     )
     if not _finite(values):
         raise ValueError("detection contains a non-finite value")
+    if detection.depth_valid and (
+        not _finite((detection.depth_m, detection.range_m))
+        or min(detection.depth_m, detection.range_m) <= 0.0
+    ):
+        raise ValueError("detection depth is marked valid but has no positive finite distance")
     if not 0.0 <= detection.confidence <= 1.0:
         raise ValueError("detection confidence is outside [0, 1]")
     if detection.width <= 0.0 or detection.height <= 0.0:
@@ -502,22 +536,21 @@ def advance_confirmation_window(
 
 
 class MotionLease:
-    """Fail closed when the healthy control loop stops renewing a command."""
+    """Retain a command until an explicit stop or the task's absolute deadline.
 
-    def __init__(self, lease_sec: float):
-        if not math.isfinite(lease_sec) or lease_sec <= 0.0:
-            raise ValueError("lease_sec must be finite and positive")
-        self.lease_sec = float(lease_sec)
+    There is no control-update/heartbeat expiry. A delayed control tick does
+    not erase the last command or prevent its next update.
+    """
+
+    def __init__(self):
         self.linear_x = 0.0
         self.curvature = 0.0
-        self.lease_deadline = None
         self.absolute_deadline = None
         self.expired_reason = ""
 
     def stop(self) -> None:
         self.linear_x = 0.0
         self.curvature = 0.0
-        self.lease_deadline = None
         self.absolute_deadline = None
 
     def set(
@@ -536,14 +569,10 @@ class MotionLease:
             raise ValueError("motion command has no live absolute deadline")
         if self.expired_reason:
             raise RuntimeError(self.expired_reason)
-        # The command timer normally detects lease expiry in sample().  Check
-        # the old deadlines here as well so a delayed control loop cannot race
-        # the timer and resurrect a command by renewing it after expiry.
+        # The task deadline remains fixed even after a delayed update.
         if self.linear_x > 0.0:
             if self.absolute_deadline is None or now >= self.absolute_deadline:
                 self.expired_reason = "absolute motion deadline expired"
-            elif self.lease_deadline is None or now >= self.lease_deadline:
-                self.expired_reason = "control heartbeat lease expired"
             if self.expired_reason:
                 self.stop()
                 raise RuntimeError(self.expired_reason)
@@ -553,7 +582,6 @@ class MotionLease:
         self.linear_x = float(linear_x)
         self.curvature = float(curvature)
         self.absolute_deadline = float(absolute_deadline)
-        self.lease_deadline = min(now + self.lease_sec, absolute_deadline)
 
     def sample(self, now: float) -> Tuple[float, float, str]:
         if not math.isfinite(now):
@@ -561,8 +589,6 @@ class MotionLease:
         if self.linear_x > 0.0:
             if self.absolute_deadline is None or now >= self.absolute_deadline:
                 self.expired_reason = "absolute motion deadline expired"
-            elif self.lease_deadline is None or now >= self.lease_deadline:
-                self.expired_reason = "control heartbeat lease expired"
             if self.expired_reason:
                 self.stop()
         return self.linear_x, self.curvature, self.expired_reason
@@ -588,7 +614,7 @@ def renew_motion_lease_now(
 
 
 class TargetPhaseMachine:
-    """Lock one object and make blind-zone entry a one-way guarded transition."""
+    """Lock one object, then finish one measured advance after its loss."""
 
     def __init__(
         self,
@@ -607,11 +633,9 @@ class TargetPhaseMachine:
         self.locked = None
         self.filtered_u = None
         self.filtered_v = None
-        self.acquired_v_fraction = None
-        self.maximum_v_fraction = None
-        self.bottom_hits = 0
         self.missing_frames = 0
         self.loss_started_stamp = None
+        self.recovery_ready = False
 
     def _decision(self, **kwargs) -> TargetDecision:
         return TargetDecision(
@@ -638,6 +662,11 @@ class TargetPhaseMachine:
         image_width: int,
         image_height: int,
     ) -> Tuple[Optional[PixelDetection], str]:
+        if self.config.select_nearest_by_depth:
+            matches = self.target_candidates(candidates)
+            if len(matches) > 1:
+                return None, "duplicate observations for the locked target ID"
+            return (matches[0] if matches else None), ""
         matches = matching_detections(
             self.locked, candidates, image_width, image_height, self.association
         )
@@ -646,6 +675,12 @@ class TargetPhaseMachine:
         if len(matches) > 1:
             return None, "multiple detections match the locked target"
         return None, ""
+
+    def target_candidates(self, candidates):
+        """Keep the selected identity through approach, loss and blind travel."""
+        if not self.config.select_nearest_by_depth or self.locked is None:
+            return tuple(candidates)
+        return tuple(d for d in candidates if d.track_id == self.locked.track_id)
 
     def _update_locked(self, target: PixelDetection) -> None:
         self.locked = target
@@ -666,11 +701,21 @@ class TargetPhaseMachine:
             return self._decision(fault="target state-machine input is invalid")
 
         if self.state == ACQUIRE:
+            if self.config.select_nearest_by_depth:
+                eligible = [d for d in candidates if d.track_id > 0 and d.depth_valid
+                            and math.isfinite(d.range_m) and d.range_m > 0]
+                # Choose nearest once, then confirm that same object across
+                # frames. Range/confidence jitter must not alternate targets.
+                pending = next((d for d in eligible if self.pending is not None
+                                and d.track_id == self.pending.track_id), None)
+                chosen = pending or min(eligible, key=lambda d: (d.range_m, d.track_id), default=None)
+                candidates = (chosen,) if chosen is not None else ()
             if len(candidates) != 1:
                 self.pending = None
                 self.pending_hits = 0
                 self.reason = (
-                    "no eligible target"
+                    ("waiting for a target with valid registered depth"
+                     if self.config.select_nearest_by_depth else "no eligible target")
                     if not candidates
                     else "multiple eligible targets; motion remains inhibited"
                 )
@@ -680,13 +725,11 @@ class TargetPhaseMachine:
                 self.pending = candidate
                 self.pending_hits = 1
             else:
-                matches = matching_detections(
-                    self.pending,
-                    (candidate,),
-                    image_width,
-                    image_height,
-                    self.association,
-                )
+                if self.config.select_nearest_by_depth:
+                    matches = (candidate,) if candidate.track_id == self.pending.track_id else ()
+                else:
+                    matches = matching_detections(
+                        self.pending, (candidate,), image_width, image_height, self.association)
                 if len(matches) == 1:
                     self.pending = candidate
                     self.pending_hits += 1
@@ -701,163 +744,48 @@ class TargetPhaseMachine:
                 return self._decision()
             self.locked = self.pending
             self._set_filtered(self.locked, reset=True)
-            self.acquired_v_fraction = self.filtered_v / float(image_height - 1)
-            self.maximum_v_fraction = self.acquired_v_fraction
+            self.recovery_ready = self.config.in_recovery_region(
+                self.locked, image_width, image_height, target_u)
             self.state = APPROACH
             self.reason = "target locked; visual approach active"
             return self._decision(acquired=True)
 
-        if self.state not in (
-            APPROACH,
-            REACQUIRE,
-            EDGE_ARMED,
-            LOSS_CONFIRM,
-        ):
+        if self.state not in (APPROACH, TRACK_WAIT):
             return self._decision()
 
+        candidates = self.target_candidates(candidates)
         matched, ambiguity = self._associate(candidates, image_width, image_height)
         if ambiguity:
             return self._decision(fault=ambiguity)
 
         if matched is not None:
             self._update_locked(matched)
-            q = self.filtered_v / float(image_height - 1)
-            raw_q = matched.anchor_v / float(image_height - 1)
-            self.maximum_v_fraction = max(self.maximum_v_fraction, q)
+            self.recovery_ready = self.recovery_ready or self.config.in_recovery_region(
+                matched, image_width, image_height, target_u)
             self.missing_frames = 0
             self.loss_started_stamp = None
-
-            if self.state == LOSS_CONFIRM:
-                center_error_px = abs(self.filtered_u - target_u)
-                raw_center_error_px = abs(matched.anchor_u - target_u)
-                if (
-                    q < self.config.bottom_fraction
-                    or raw_q < self.config.bottom_fraction
-                    or center_error_px
-                    > self.config.bottom_center_tolerance_fraction * image_width
-                    or raw_center_error_px
-                    > self.config.bottom_center_tolerance_fraction * image_width
-                ):
-                    return self._decision(
-                        fault="target reappeared outside the armed bottom-center gate"
-                    )
-                self.state = EDGE_ARMED
-                self.reason = "target reacquired before blind transition"
-                return self._decision()
-
-            if self.state == REACQUIRE:
+            if self.state == TRACK_WAIT:
                 self.state = APPROACH
-                self.reason = "locked target reacquired"
-
-            center_error_px = abs(self.filtered_u - target_u)
-            raw_center_error_px = abs(matched.anchor_u - target_u)
-            vertical_progress = q - self.acquired_v_fraction
-            ready = (
-                q >= self.config.bottom_fraction
-                and raw_q >= self.config.bottom_fraction
-                and center_error_px
-                <= self.config.bottom_center_tolerance_fraction * image_width
-                and raw_center_error_px
-                <= self.config.bottom_center_tolerance_fraction * image_width
-                and approach_distance_m >= self.config.min_approach_distance_m
-                and vertical_progress >= self.config.min_vertical_progress_fraction
-            )
-            if ready:
-                self.bottom_hits += 1
+                self.reason = "same locked target reacquired; resuming visual approach"
             else:
-                self.bottom_hits = 0
-
-            if self.state == EDGE_ARMED:
-                # EMA is useful for smooth steering, but the last real pixel
-                # observation must independently remain in the blind-entry
-                # gate.  Otherwise a single large raw jump could be hidden by
-                # filtering immediately before disappearance.
-                if raw_q < self.config.bottom_fraction:
-                    return self._decision(
-                        fault="armed target moved upward out of the bottom gate"
-                    )
-                if raw_center_error_px > (
-                    self.config.bottom_center_tolerance_fraction * image_width
-                ):
-                    return self._decision(
-                        fault="armed target moved laterally out of the safe gate"
-                    )
-                self.reason = "bottom gate armed; waiting for expected disappearance"
-                return self._decision()
-
-            if self.bottom_hits >= self.config.bottom_confirm_frames:
-                self.state = EDGE_ARMED
-                self.reason = "bottom gate armed; waiting for expected disappearance"
-            else:
-                self.reason = "visual approach active"
+                self.reason = ("target entered recovery region; disappearance will start recovery"
+                               if self.recovery_ready else "approaching recovery region")
             return self._decision()
 
-        # No spatial match.  A fresh detector frame reached this branch, so it
-        # represents target absence rather than detector-topic timeout.
-        if self.state == APPROACH:
-            # A dropout may be tolerated for steering continuity, but it must
-            # never count as part of the consecutive bottom-entry proof.
-            self.bottom_hits = 0
-            if not candidates:
-                self.missing_frames += 1
-                if self.missing_frames <= self.config.early_loss_grace_frames:
-                    self.reason = (
-                        "target briefly missing %d/%d; holding visual command"
-                        % (
-                            self.missing_frames,
-                            self.config.early_loss_grace_frames,
-                        )
-                    )
-                    return self._decision()
-            else:
-                # A different visible object is not a detector dropout and
-                # must stop immediately rather than using the grace window.
-                self.missing_frames = 1
-            self.state = REACQUIRE
-            self.reason = "target lost before bottom gate; stopped for reacquisition"
-            return self._decision()
-
-        if self.state == REACQUIRE:
-            self.missing_frames += 1
-            if self.missing_frames >= self.config.early_loss_max_frames:
-                return self._decision(
-                    fault="target was lost before reaching the bottom gate"
-                )
-            self.reason = "waiting to reacquire locked target %d/%d" % (
-                self.missing_frames,
-                self.config.early_loss_max_frames,
-            )
-            return self._decision()
-
-        if self.state == EDGE_ARMED:
-            if candidates:
-                return self._decision(
-                    fault="locked target disappeared while another target remained visible"
-                )
-            self.state = LOSS_CONFIRM
-            self.missing_frames = 1
+        # The region is latched for this identity, so edge jitter never disarms
+        # it. Its first absence commits one odometry-only crossing; subsequent
+        # boxes cannot restart distance, select another object or veto finish.
+        self.missing_frames += 1
+        if self.recovery_ready:
+            self.state = BLIND_ADVANCE
             self.loss_started_stamp = frame_stamp
-            self.reason = "expected bottom disappearance; confirming with fresh frames"
-            return self._decision()
-
-        if self.state == LOSS_CONFIRM:
-            if candidates:
-                return self._decision(
-                    fault="another target appeared during blind-zone confirmation"
-                )
-            self.missing_frames += 1
-            elapsed = max(0.0, frame_stamp - self.loss_started_stamp)
-            if (
-                self.missing_frames >= self.config.loss_confirm_frames
-                and elapsed >= self.config.loss_confirm_min_sec
-            ):
-                self.state = STEER_SETTLE
-                self.reason = "target disappearance confirmed; settling steering"
-                return self._decision(enter_steer_settle=True)
-            self.reason = "confirming disappearance %d/%d" % (
-                self.missing_frames,
-                self.config.loss_confirm_frames,
-            )
-            return self._decision()
-
+            self.reason = "recovery-region target disappeared; completing one measured crossing"
+            return self._decision(enter_blind_advance=True)
+        if self.loss_started_stamp is None:
+            self.loss_started_stamp = frame_stamp
+        if frame_stamp - self.loss_started_stamp < self.config.tracking_loss_grace_sec:
+            self.reason = "brief target dropout before recovery region; retaining approach"
+        else:
+            self.state = TRACK_WAIT
+            self.reason = "target lost outside recovery region; waiting for the same target"
         return self._decision()

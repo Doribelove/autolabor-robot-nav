@@ -51,7 +51,7 @@ min_confidence: 0.30
 allow_motion: false
 # Opt-in only: delegate raw CAN, aggregated chassis emergency, VCU timeout, CAN
 # graph/service, and ROS emergency-stop-topic safety gates to an attended remote
-# stop operator.  Visual, odom, wheel, controller-ownership, lease, distance,
+# stop operator.  Visual, odom, wheel, controller-ownership, distance,
 # and absolute-time checks remain active.
 external_estop_override: false
 precheck_timeout_sec: 15.0
@@ -59,11 +59,13 @@ mode_timeout_sec: 75.0
 publish_rate_hz: 20.0
 control_rate_hz: 20.0
 status_rate_hz: 2.0
-command_lease_sec: 0.25
+# Control updates do not expire the last command. Explicit stop and the
+# overall task deadline still clear it.
 stop_publish_sec: 1.0
 
 # Sensor and graph watchdogs.
-detection_timeout_sec: 0.35
+# Detection receipt/source age does not stop recovery. CameraInfo and chassis
+# feedback retain their separate checks below.
 camera_info_timeout_sec: 0.60
 odom_timeout_sec: 0.60
 source_stamp_timeout_sec: 0.80
@@ -78,12 +80,12 @@ raw_can_timeout_sec: 2.50
 raw_can_query_interval_sec: 0.20
 graph_check_interval_sec: 0.50
 
-# Target lock and blind-zone gate.  target_u is CameraInfo.cx plus this offset.
+# Target lock. target_u is CameraInfo.cx plus this offset.
 # Positive offset moves the desired pickup line to the right in the image.
 use_camera_principal_point: true
 target_u_offset_px: 0.0
 min_acquire_anchor_v_fraction: 0.20
-max_acquire_anchor_v_fraction: 0.80
+max_acquire_anchor_v_fraction: 1.0
 # Accept targets across the central 65% of the image width. Keep a small
 # margin inside the runtime gate so pixel jitter cannot acquire and then
 # immediately abort at the edge.
@@ -95,19 +97,12 @@ association_min_area_ratio: 0.35
 association_max_area_ratio: 2.80
 pixel_filter_alpha: 0.35
 
-bottom_fraction: 0.88
-bottom_center_tolerance_fraction: 0.05
-bottom_confirm_frames: 6
-min_approach_distance_m: 0.10
-min_vertical_progress_fraction: 0.06
-loss_confirm_frames: 5
-loss_confirm_min_sec: 0.20
-# The live detector can drop a locked target for more than ten consecutive
-# frames.  Hold the last visual command for at most 20 empty frames (about
-# 1.0 s at 20 Hz, or 0.20 m at the hard speed limit), then stop and allow
-# reacquisition until 60 total misses (about 3.0 s) before latching ABORT.
-early_loss_grace_frames: 20
-early_loss_max_frames: 60
+# Recovery area: middle/lower half of the visible ground band, central 60% width.
+# Entry is latched for the selected target. Its first subsequent loss commits
+# one 0.80 m odometry-only crossing, even if boxes/camera frames later disappear.
+recovery_region_top_fraction: 0.50
+recovery_region_width_fraction: 0.60
+tracking_loss_grace_sec: 0.30
 
 # Ackermann-compatible pixel controller.  With the current forward camera,
 # image-right requires ROS negative yaw, hence steering_sign=-1.
@@ -116,8 +111,8 @@ curvature_gain: 0.65
 horizontal_deadband: 0.025
 max_steering_angle_deg: 12.0
 max_runtime_horizontal_error: 0.70
-far_speed_mps: 0.20
-near_speed_mps: 0.20
+far_speed_mps: 0.60
+near_speed_mps: 0.60
 slow_start_fraction: 0.65
 near_start_fraction: 0.82
 lateral_slowdown_error: 0.45
@@ -126,36 +121,32 @@ minimum_lateral_speed_scale: 0.35
 # 0.12 m/s minimum can turn the front wheel without starting sustained chassis
 # motion (the 0.12 m/s run accumulated only 0.0106 m in three seconds).  Use
 # the 0.20 m/s command already proven to start this chassis during straight-line
-# calibration.  Distance, steering, lease and absolute-time limits remain active.
+# calibration. Distance, steering and absolute-time limits remain active.
 approach_min_command_speed_mps: 0.20
-# At the 20 Hz control rate this reaches the low 0.20 m/s hard speed limit in
-# one tick. A slow ramp is ineffective on the physical chassis because every
-# intermediate command remains below its measured start deadband.
+# At 20 Hz the first increment reaches the established 0.20 m/s starting
+# command; subsequent increments reach the requested 0.60 m/s in three ticks.
 max_linear_acceleration_mps2: 4.00
 max_curvature_rate_per_sec: 0.80
 max_approach_distance_m: 6.0
 approach_no_motion_timeout_sec: 3.0
 approach_no_progress_timeout_sec: 2.0
 approach_progress_step_m: 0.02
-max_measured_speed_mps: 0.30
-max_pose_step_m: 0.05
+max_measured_speed_mps: 0.80
+max_pose_step_m: 0.10
 
-# After confirmed disappearance, command zero until the steering and chassis
-# have settled.  Then travel exactly 0.50 m from wheel odometry.
-settle_wheel_angle_deg: 2.0
-settle_speed_mps: 0.03
-settle_confirm_sec: 0.30
-settle_timeout_sec: 3.0
-preblind_max_displacement_m: 0.05
-blind_speed_mps: 0.20
-blind_distance_m: 0.50
-blind_hard_distance_m: 0.55
+# Continue from first disappearance after recovery-area entry. Stop command
+# at 0.80 m from its source pose; camera feedback is no longer required.
+# No intermediate stop/steering-settle or 0.15 m displacement cutoff.
+# Final stop uses stationary odometry and pose drift; wheel centering is not
+# required for a stationary vehicle to complete its recovery.
+blind_speed_mps: 0.60
+blind_distance_m: 0.80
+blind_hard_distance_m: 0.90
 blind_timeout_sec: 12.0
 blind_no_motion_timeout_sec: 2.0
 blind_no_progress_timeout_sec: 1.50
 blind_progress_step_m: 0.01
-blind_max_heading_change_deg: 4.0
-blind_max_lateral_deviation_m: 0.08
+# Heading change and lateral displacement are reported, without abort limits.
 final_stop_confirm_sec: 0.50
 final_stop_speed_mps: 0.01
 final_stop_max_drift_m: 0.005

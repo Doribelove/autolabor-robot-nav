@@ -3,19 +3,28 @@
        mode manager is the sole /cmd_vel publisher. -->
   <arg name="allow_motion" default="false"/>
   <arg name="external_estop_override" default="false"/>
-  <arg name="blind_distance_m" default="0.50"/>
+  <arg name="blind_distance_m" default="0.80"/>
   <arg name="gps_cmd_topic" default="/cmd_vel_gps"/>
   <arg name="fod_cmd_topic" default="/cmd_vel_fod"/>
   <arg name="output_cmd_topic" default="/cmd_vel"/>
   <arg name="odom_topic" default="/odom"/>
   <arg name="gps_pause_service" default="/gps/long_range/set_paused"/>
   <arg name="transition_timeout_sec" default="12.0"/>
+  <arg name="retain_gps_route" default="true"/>
+  <arg name="camera_driver" default="hikrobot"/>
+  <arg name="expected_model_sha256"
+       default="$(optenv FOD_RECOVERY_EXPECTED_MODEL_SHA256)"/>
+  <arg name="recovery_radius_m" default="5.0"/>
+  <arg name="sweep_enabled" default="true"/>
+  <arg name="sweep_auto_stop" default="true"/>
 
   <include file="$(find autolabor_fod_control)/launch/visual_recovery.launch">
     <arg name="allow_motion" value="$(arg allow_motion)"/>
     <arg name="external_estop_override"
          value="$(arg external_estop_override)"/>
     <arg name="blind_distance_m" value="$(arg blind_distance_m)"/>
+    <arg name="camera_driver" value="$(arg camera_driver)"/>
+    <arg name="expected_model_sha256" value="$(arg expected_model_sha256)"/>
     <arg name="cmd_vel_topic" value="$(arg fod_cmd_topic)"/>
     <arg name="expected_cmd_vel_subscriber_node"
          value="/fod_navigation_mode"/>
@@ -35,6 +44,10 @@
     <param name="visual_enable_service"
            value="/fod_visual_servo/set_enabled"/>
     <param name="gps_pause_service" value="$(arg gps_pause_service)"/>
+    <param name="retain_gps_route" value="$(arg retain_gps_route)"/>
+    <param name="recovery_radius_m" value="$(arg recovery_radius_m)"/>
+    <param name="sweep_enabled" value="$(arg sweep_enabled)"/>
+    <param name="sweep_auto_stop" value="$(arg sweep_auto_stop)"/>
     <param name="transition_timeout_sec"
            type="double"
            value="$(arg transition_timeout_sec)"/>

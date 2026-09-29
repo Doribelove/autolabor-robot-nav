@@ -14,6 +14,7 @@ import datetime
 import json
 import math
 import os
+from pathlib import Path
 import sys
 import threading
 import time
@@ -27,7 +28,7 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool, Float64
 
 
-DEFAULT_OUTPUT_DIR = "/home/robot/robot_ws/test_results"
+DEFAULT_OUTPUT_DIR = str(Path(__file__).resolve().parents[4] / "test_results")
 MAX_CALIBRATION_SPEED_MPS = 0.30
 MAX_EXTERNAL_ESTOP_CALIBRATION_SPEED_MPS = 0.50
 MAX_MEASURED_SPEED_MPS = 0.50

@@ -19,23 +19,30 @@ add_service_files(
 
 generate_messages()
 
+set(MVS_ROOT "/opt/MVS" CACHE PATH "Hikrobot MVS SDK installation")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+  set(MVS_LIBRARY_SUFFIX "aarch64")
+else()
+  set(MVS_LIBRARY_SUFFIX "64")
+endif()
+
 find_path(MVS_INCLUDE_DIR
   NAMES MvCameraControl.h
-  PATHS /opt/MVS/include
+  PATHS "${MVS_ROOT}/include"
   NO_DEFAULT_PATH
 )
 
 find_library(MVS_CAMERA_CONTROL_LIBRARY
   NAMES MvCameraControl
-  PATHS /opt/MVS/lib/64
+  PATHS "${MVS_ROOT}/lib/${MVS_LIBRARY_SUFFIX}"
   NO_DEFAULT_PATH
 )
 
 if(NOT MVS_INCLUDE_DIR OR NOT MVS_CAMERA_CONTROL_LIBRARY)
   message(FATAL_ERROR
     "Hikrobot MVS SDK was not found. Expected "
-    "/opt/MVS/include/MvCameraControl.h and "
-    "/opt/MVS/lib/64/libMvCameraControl.so."
+    "${MVS_ROOT}/include/MvCameraControl.h and "
+    "${MVS_ROOT}/lib/${MVS_LIBRARY_SUFFIX}/libMvCameraControl.so."
   )
 endif()
 
@@ -56,6 +63,9 @@ include_directories(
 add_executable(hikrobot_mvs_camera_node
   src/hikrobot_mvs_camera_node.cpp
 )
+target_compile_definitions(hikrobot_mvs_camera_node PRIVATE
+  AUTOLABOR_MVS_ROOT="${MVS_ROOT}"
+)
 
 add_dependencies(hikrobot_mvs_camera_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
@@ -67,9 +77,10 @@ target_link_libraries(hikrobot_mvs_camera_node
   ${MVS_CAMERA_CONTROL_LIBRARY}
 )
 
+get_filename_component(MVS_LIBRARY_DIR "${MVS_CAMERA_CONTROL_LIBRARY}" DIRECTORY)
 set_target_properties(hikrobot_mvs_camera_node PROPERTIES
-  BUILD_RPATH "/opt/MVS/lib/64"
-  INSTALL_RPATH "/opt/MVS/lib/64"
+  BUILD_RPATH "${MVS_LIBRARY_DIR}"
+  INSTALL_RPATH "${MVS_LIBRARY_DIR}"
 )
 
 install(TARGETS hikrobot_mvs_camera_node

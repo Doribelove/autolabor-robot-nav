@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 
 import math
+from concurrent.futures import ThreadPoolExecutor
+import importlib.util
 from pathlib import Path
 import sys
+import threading
+import time
 import unittest
+from unittest import mock
 
 
 PACKAGE_SRC = Path(__file__).resolve().parents[1] / "src"
@@ -14,8 +19,37 @@ from autolabor_fod_control.mode_manager import (  # noqa: E402
     GPS_SOURCE,
     STOP_SOURCE,
     CommandArbiter,
+    final_goal_distance,
     stopped_sample_is_valid,
 )
+
+
+class FinalGoalDistanceTest(unittest.TestCase):
+    def setUp(self):
+        self.route = dict(active=True, paused=False, state="ACTIVE_INTERMEDIATE",
+                          frame_id="camera_init", final_x=13.0, final_y=24.0,
+                          subgoal_x=10.1, subgoal_y=20.0)
+
+    def test_uses_final_target_not_nearby_rolling_subgoal(self):
+        self.assertEqual(final_goal_distance(self.route, 10, 20, "/camera_init"), 5.0)
+        self.assertGreater(final_goal_distance(self.route, 9.99, 20, "camera_init"), 5.0)
+
+    def test_replaced_final_target_is_used(self):
+        self.route.update(final_x=100, final_y=20)
+        self.assertEqual(final_goal_distance(self.route, 10, 20, "camera_init"), 90)
+
+    def test_invalid_or_inactive_routes_cannot_trigger(self):
+        for change in ({"paused": True}, {"active": False, "state": "CANCELED"},
+                       {"active": False, "state": "ABORTED"}, {"final_x": math.nan},
+                       {"final_y": None}, {"frame_id": "odom"}):
+            with self.subTest(change=change):
+                self.assertIsNone(final_goal_distance(dict(self.route, **change), 10, 20, "camera_init"))
+        self.assertIsNone(final_goal_distance({}, 10, 20, "camera_init"))
+        self.assertIsNone(final_goal_distance(self.route, math.inf, 20, "camera_init"))
+
+    def test_arrived_final_target_can_still_be_recovered(self):
+        self.route.update(active=False, state="COMPLETE")
+        self.assertEqual(final_goal_distance(self.route, 13, 24, "camera_init"), 0)
 
 
 class CommandArbiterTest(unittest.TestCase):
@@ -71,6 +105,66 @@ class StopConfirmationInputTest(unittest.TestCase):
         self.assertFalse(
             stopped_sample_is_valid(0.0, math.nan, 0.1, 0.6, 0.03, 0.05)
         )
+
+
+class ConcurrentGraphQueryTest(unittest.TestCase):
+    def test_delayed_completion_worker_cannot_stop_a_new_recovery(self):
+        path=Path(__file__).resolve().parents[1]/"scripts/fod_navigation_mode_manager.py"
+        spec=importlib.util.spec_from_file_location("single_completion_test",path)
+        module=importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        node=module.FodNavigationModeManager.__new__(module.FodNavigationModeManager)
+        node.lock=threading.RLock()
+        node.transition_lock=threading.Lock()
+        node._stop_recovery_sweep=mock.Mock()
+        for mode in (module.GPS_ACTIVE,module.FOD_ACTIVE,module.ENTERING_FOD):
+            node.mode=mode
+            node._sweep_abort_worker()
+        node._stop_recovery_sweep.assert_not_called()
+        node.mode=module.FOD_COMPLETE_STOP
+        node._sweep_abort_worker()
+        node._stop_recovery_sweep.assert_called_once()
+
+    def test_timer_and_handoff_queries_do_not_share_a_busy_connection(self):
+        path = Path(__file__).resolve().parents[1] / "scripts/fod_navigation_mode_manager.py"
+        spec = importlib.util.spec_from_file_location("mode_manager_node_test", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        class SingleConnectionMaster:
+            def __init__(self):
+                self.busy = threading.Lock()
+
+            def call(self, result):
+                if not self.busy.acquire(blocking=False):
+                    raise RuntimeError("Request-sent")
+                try:
+                    time.sleep(0.005)
+                    return result
+                finally:
+                    self.busy.release()
+
+            def getPid(self):
+                return self.call(123)
+
+            def getSystemState(self):
+                return self.call(([], [], []))
+
+        node = module.FodNavigationModeManager.__new__(module.FodNavigationModeManager)
+        node.master = SingleConnectionMaster()
+        node.master_pid = 123
+        node.master_lock = threading.Lock()
+        node.output_cmd_topic = "/test/cmd_vel"
+        node.require_output_driver = False
+        node.gps_cmd_topic = "/test/gps_cmd"
+        node.fod_cmd_topic = "/test/fod_cmd"
+        node.expected_gps_limiter_node = "/fake_gps"
+        node.expected_move_base_node = "/fake_move_base"
+        node.expected_visual_node = "/fake_visual"
+        with mock.patch.object(module.rospy, "get_name", return_value="/mode_test"):
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                results = list(pool.map(lambda _: node._output_route_error(), range(12)))
+        self.assertEqual(results, [""] * 12)
 
 
 if __name__ == "__main__":

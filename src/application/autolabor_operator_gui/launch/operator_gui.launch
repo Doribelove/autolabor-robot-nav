@@ -1,6 +1,7 @@
 <launch>
   <!-- The GUI is optional and does not start or replace the existing bringup stack. -->
   <arg name="enable_rviz" default="true"/>
+  <arg name="camera_driver" default="zed"/>
   <arg name="start_gps_error_monitor" default="true"/>
   <arg name="rviz_config"
        default="$(find autolabor_operator_gui)/config/operator_navigation.rviz"/>
@@ -11,6 +12,7 @@
         output="screen"
         required="true">
     <param name="enable_rviz" value="$(arg enable_rviz)"/>
+    <param name="camera_driver" value="$(arg camera_driver)"/>
     <param name="rviz_config" value="$(arg rviz_config)"/>
   </node>
 

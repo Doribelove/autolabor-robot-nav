@@ -1,0 +1,54 @@
+完整导航启动和关停命令
+更新日期：2026-09-29
+适用：Jetson AGX Orin 64GB 单主机，双天线 GNSS + 激光雷达 + ZED 2 / YOLO + Qt。
+项目目录：/home/slam/robot_ws_agx
+
+一、启动完整导航
+
+在 Jetson 图形桌面打开终端，复制下面整段命令执行：
+
+cd /home/slam/robot_ws_agx
+export ROS_MASTER_URI=http://127.0.0.1:11311
+unset ROS_IP ROS_HOSTNAME
+export CAN_PORT=/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_B400CG51-if00-port0
+export GPS_PORT=/dev/serial/by-id/usb-FTDI_USB_Serial_Converter_FTENXGO4-if00-port0
+export GPS_BAUD_RATE=115200
+export GPS_HEADING_SOURCE=dual_antenna
+export OPERATOR_NAVIGATION_MODE=gps
+export OPERATOR_CAMERA_DRIVER=zed
+./scripts/operator_all_in_one.sh 1.6 cruise
+
+说明：
+1. 脚本会加载 ROS 和工作区环境，并启动完整导航及 Qt，无需另开 roscore。
+2. 1.6 是 GPS 导航速度上限，单位 m/s；相机回收使用独立的 0.6 m/s 配置。
+3. 启动后，在 Qt 中发送 GPS 目标；需要自动回收时点击“启动相机控制回收”。
+4. 看到“gps navigation is ready”表示导航启动完成。Qt 打开本身不代表 GNSS 已就绪。
+5. 上述为室外双天线模式，GNSS 定位和航向需要有效信号。
+
+二、关停完整导航
+
+方法 A：在启动导航的那个终端按 Ctrl+C，等待脚本完成退出。
+方法 B：正常关闭 Qt 主窗口，也会触发整套程序的退出。
+方法 C：若找不到原终端，在新终端执行下面这条命令：
+
+pkill -TERM -f '(^|/)[b]ash (\./scripts/|/home/slam/robot_ws_agx/scripts/)operator_all_in_one\.sh([[:space:]]|$)'
+
+该命令通知一体化启动器正常退出，由它依次关停本次启动的导航、相机、
+YOLO、GPS 消息桥及 Qt 等进程。无需手动逐个结束节点。
+等待原终端完成停止输出、返回命令提示符后再重新启动。
+如果命令没有匹配到进程，表示没有找到采用上述方式启动的一体化启动器。
+
+清扫装置：若之前在 Qt 中手动开启，请在关停导航前点击“停止清扫”，
+也可以在另一个终端执行：
+
+cd /home/slam/robot_ws_agx
+./scripts/sweep_test.py off
+
+相机回收自动开启的清扫装置由回收流程管理；手动开启的清扫装置需要单独关闭。
+
+三、重启
+
+先按第二节关停并等待退出，再执行第一节的完整启动命令。
+不要在旧程序退出之前重复启动。
+
+本文件仅提供操作命令；生成此文件时没有执行启动或关停操作。

@@ -14,15 +14,16 @@ CAN_PORT="${CAN_PORT:-/dev/ttyUSB0}"
 GPS_PORT="${GPS_PORT:-/dev/ttyUSB1}"
 GPS_BAUD_RATE="${GPS_BAUD_RATE:-115200}"
 FAST_LIO_GPS_YAW_OFFSET_DEG="${FAST_LIO_GPS_YAW_OFFSET_DEG:-0.0}"
-FAST_LIO_SYSTEM_LIBRARY_DIR="${FAST_LIO_SYSTEM_LIBRARY_DIR:-/lib/x86_64-linux-gnu}"
-GPS_NAV_MAX_VEL_X="${GPS_NAV_MAX_VEL_X:-1.5}"
-GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-1.0}"
+FAST_LIO_SYSTEM_LIBRARY_DIR="${FAST_LIO_SYSTEM_LIBRARY_DIR:-/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)}"
+GPS_NAV_MAX_VEL_X="${GPS_NAV_MAX_VEL_X:-1.6}"
+GPS_NAV_MAX_VEL_X_BACKWARDS="${GPS_NAV_MAX_VEL_X_BACKWARDS:-$GPS_NAV_MAX_VEL_X}"
 GPS_USE_WHEEL_ODOM="${GPS_USE_WHEEL_ODOM:-false}"
 GPS_USE_WHEEL_TWIST="${GPS_USE_WHEEL_TWIST:-true}"
 GPS_WHEEL_TWIST_TIMEOUT="${GPS_WHEEL_TWIST_TIMEOUT:-0.5}"
 GPS_RMC_SPEED_TIMEOUT="${GPS_RMC_SPEED_TIMEOUT:-1.0}"
 GPS_HEADING_SOURCE="${GPS_HEADING_SOURCE:-dual_antenna}"
 GPS_HEADING_TIMEOUT="${GPS_HEADING_TIMEOUT:-1.0}"
+GPS_HEADING_CONTINUATION_TIMEOUT="${GPS_HEADING_CONTINUATION_TIMEOUT:-3.0}"
 GPS_ODOM_STARTUP_TIMEOUT="${GPS_ODOM_STARTUP_TIMEOUT:-120.0}"
 GPS_HEADING_REQUIRED_SOLUTION_STATUS="${GPS_HEADING_REQUIRED_SOLUTION_STATUS:-SOL_COMPUTED}"
 GPS_HEADING_REQUIRED_POSITION_TYPES="${GPS_HEADING_REQUIRED_POSITION_TYPES:-NARROW_INT}"
@@ -47,6 +48,7 @@ GPS_XY_GOAL_TOLERANCE="${GPS_XY_GOAL_TOLERANCE:-0.3}"
 GPS_GOAL_SLOWDOWN_ENABLED="${GPS_GOAL_SLOWDOWN_ENABLED:-true}"
 GPS_GOAL_SPEED_CAP_ENABLED="${GPS_GOAL_SPEED_CAP_ENABLED:-false}"
 GPS_GOAL_COMFORTABLE_DECEL="${GPS_GOAL_COMFORTABLE_DECEL:-0.4}"
+GPS_GOAL_APPROACH_TIME="${GPS_GOAL_APPROACH_TIME:-0.0}"
 GPS_GOAL_MIN_APPROACH_SPEED="${GPS_GOAL_MIN_APPROACH_SPEED:-0.15}"
 GPS_GOAL_HARD_STOP_DISTANCE="${GPS_GOAL_HARD_STOP_DISTANCE:-0.2}"
 GPS_GOAL_CMD_TIMEOUT="${GPS_GOAL_CMD_TIMEOUT:-0.5}"
@@ -64,8 +66,9 @@ GPS_LONG_RANGE_MOVE_BASE_STATUS_TIMEOUT="${GPS_LONG_RANGE_MOVE_BASE_STATUS_TIMEO
 GPS_LONG_RANGE_UPDATE_RATE="${GPS_LONG_RANGE_UPDATE_RATE:-10.0}"
 FOD_RECOVERY_STANDBY_ENABLED="${FOD_RECOVERY_STANDBY_ENABLED:-true}"
 FOD_RECOVERY_EXTERNAL_ESTOP_OVERRIDE="${FOD_RECOVERY_EXTERNAL_ESTOP_OVERRIDE:-false}"
-FOD_RECOVERY_BLIND_DISTANCE_M="${FOD_RECOVERY_BLIND_DISTANCE_M:-0.50}"
+FOD_RECOVERY_BLIND_DISTANCE_M="${FOD_RECOVERY_BLIND_DISTANCE_M:-0.80}"
 FOD_RECOVERY_TRANSITION_TIMEOUT="${FOD_RECOVERY_TRANSITION_TIMEOUT:-12.0}"
+FOD_CAMERA_DRIVER="${FOD_CAMERA_DRIVER:-${OPERATOR_CAMERA_DRIVER:-hikrobot}}"
 FILTER_REMOVE_ABOVE_Z="${FILTER_REMOVE_ABOVE_Z:-0.1}"
 FILTER_NEAR_RADIUS="${FILTER_NEAR_RADIUS:-0.4}"
 FILTER_NEAR_MIN_Z="${FILTER_NEAR_MIN_Z:--0.1}"
@@ -80,11 +83,12 @@ usage() {
   echo "Usage:"
   echo "  $0 fast_lio"
   echo "  $0 fast_lio_gps"
+  echo "  $0 fast_lio_indoor [max_speed_mps] # LiDAR navigation without GNSS"
   echo "  $0 gps [max_speed_mps] [cruise|obstacle]"
   echo "  $0 --print-gps-yaw"
   echo
   echo "Examples:"
-  echo "  $0 gps                       # 1.5 m/s, high-speed cruise TEB profile"
+  echo "  $0 gps                       # 1.6 m/s forward/reverse, cruise TEB profile"
   echo "  $0 gps 2.0 cruise            # open-road high-speed cruise profile"
   echo "  $0 gps 1.0 obstacle          # dense static-obstacle avoidance profile"
   echo
@@ -96,9 +100,9 @@ usage() {
   echo "  GPS_PORT=/dev/ttyUSB1"
   echo "  GPS_BAUD_RATE=115200"
   echo "  FAST_LIO_GPS_YAW_OFFSET_DEG=0.0"
-  echo "  FAST_LIO_SYSTEM_LIBRARY_DIR=/lib/x86_64-linux-gnu # isolate FAST_LIO from the MVS SDK libusb"
-  echo "  GPS_NAV_MAX_VEL_X=1.5       # overridden by the optional gps speed argument"
-  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.0 # never raised by the gps speed argument"
+  echo "  FAST_LIO_SYSTEM_LIBRARY_DIR=$FAST_LIO_SYSTEM_LIBRARY_DIR # isolate FAST_LIO from the MVS SDK libusb"
+  echo "  GPS_NAV_MAX_VEL_X=1.6       # overridden by the optional gps speed argument"
+  echo "  GPS_NAV_MAX_VEL_X_BACKWARDS=1.6 # defaults to forward limit; speed argument can lower it"
   echo "  GPS_TEB_PROFILE=cruise|obstacle # used when the third argument is omitted"
   echo "  GPS_USE_WHEEL_ODOM=false        # gps mode uses GPS position directly by default"
   echo "  GPS_USE_WHEEL_TWIST=true        # publish fresh signed chassis twist in /gps/odom"
@@ -106,6 +110,7 @@ usage() {
   echo "  GPS_RMC_SPEED_TIMEOUT=1.0       # s; discard cached RMC speed/course after this"
   echo "  GPS_HEADING_SOURCE=dual_antenna"
   echo "  GPS_HEADING_TIMEOUT=1.0"
+  echo "  GPS_HEADING_CONTINUATION_TIMEOUT=3.0 # s from last fixed heading; measured wheel yaw only (0 disables)"
   echo "  GPS_ODOM_STARTUP_TIMEOUT=120.0  # s; wait for strict dual-antenna heading to become fixed"
   echo "  GPS_HEADING_REQUIRED_SOLUTION_STATUS=SOL_COMPUTED"
   echo "  GPS_HEADING_REQUIRED_POSITION_TYPES=NARROW_INT"
@@ -128,11 +133,12 @@ usage() {
   echo "  GPS_GOAL_SLOWDOWN_ENABLED=true   # keep the GPS command safety relay enabled"
   echo "  GPS_GOAL_SPEED_CAP_ENABLED=false # do not add a forward-speed cap near the final goal"
   echo "  GPS_GOAL_COMFORTABLE_DECEL=0.4   # m/s^2; used only when the speed cap is enabled"
+  echo "  GPS_GOAL_APPROACH_TIME=0.0      # s; optional proportional terminal approach (0 disables)"
   echo "  GPS_GOAL_MIN_APPROACH_SPEED=0.15 # m/s outside the limiter hard-stop radius"
   echo "  GPS_GOAL_HARD_STOP_DISTANCE=0.2  # m; must be below TEB goal tolerance"
-  echo "  GPS_GOAL_NEAR_COMMIT_DISTANCE=1.0 # m; arm bounded final approach"
-  echo "  GPS_GOAL_NEAR_TIMEOUT=15.0        # s; lock stopped if final approach never completes"
-  echo "  GPS_GOAL_NEAR_MAX_REGRESSION=0.5 # m; lock stopped if vehicle moves away after commit"
+  echo "  GPS_GOAL_NEAR_COMMIT_DISTANCE=1.0 # m; start tracking final maneuver progress"
+  echo "  GPS_GOAL_NEAR_TIMEOUT=15.0        # s without measured movement/turn progress"
+  echo "  GPS_GOAL_NEAR_MAX_REGRESSION=0.5 # m; maneuver log threshold, no distance-based stop"
   echo "  GPS_LONG_RANGE_GOAL_ENABLED=true  # roll distant GPS targets through bounded move_base goals"
   echo "  GPS_LONG_RANGE_LOOKAHEAD_DISTANCE=15.0 # m; rolling subgoal horizon"
   echo "  GPS_LONG_RANGE_ADVANCE_DISTANCE=5.0    # m; replace an intermediate goal this early"
@@ -140,7 +146,7 @@ usage() {
   echo "  GPS_LONG_RANGE_MAX_FINAL_DISTANCE=1000.0 # m; reject likely coordinate mistakes beyond this"
   echo "  FOD_RECOVERY_STANDBY_ENABLED=true # start safe GPS/FOD arbiter and disabled visual controller"
   echo "  FOD_RECOVERY_EXTERNAL_ESTOP_OVERRIDE=false # keep CAN/VCU safety gates active"
-  echo "  FOD_RECOVERY_BLIND_DISTANCE_M=0.50 # m; post-loss straight crossing distance"
+  echo "  FOD_RECOVERY_BLIND_DISTANCE_M=0.80 # m; post-loss straight crossing distance"
   echo "  FOD_RECOVERY_TRANSITION_TIMEOUT=12.0 # s; maximum wait for confirmed chassis stop"
   echo "  FILTER_REMOVE_ABOVE_Z=0.1"
   echo "  FILTER_NEAR_RADIUS=0.4"
@@ -172,7 +178,7 @@ min_number() {
 }
 
 clamp_gps_speed_to_chassis_limit() {
-  [[ "$MODE" == "gps" ]] || return 0
+  [[ "$MODE" == "gps" || "$MODE" == "fast_lio_indoor" ]] || return 0
 
   local service_name="/m2_driver/chassis_parameter"
   local deadline=$((SECONDS + 15))
@@ -606,12 +612,13 @@ check_topic_route() {
   local expected_publisher="${2:-}"
   local expected_subscriber="${3:-}"
   local timeout="${4:-10}"
+  local route_kind="${5:-data}"
   local deadline=$((SECONDS + timeout))
-  local info=""
-  local publishers=""
-  local subscribers=""
-  local publisher_ok=0
-  local subscriber_ok=0
+  local info="" publishers="" subscribers=""
+  local publisher_ok=0 subscriber_ok=0
+  local publisher_count=0 goal_converter_count=0
+  local poll_period=0.2
+  [[ "$route_kind" != "command" ]] || poll_period=0.5
 
   while (( SECONDS < deadline )); do
     info="$(rostopic info "$topic" 2>/dev/null || true)"
@@ -634,88 +641,42 @@ check_topic_route() {
     if [[ -z "$expected_subscriber" ]] || grep -Fxq "$expected_subscriber" <<<"$subscribers"; then
       subscriber_ok=1
     fi
+    case "$route_kind" in
+      command)
+        publisher_count="$(grep -c '^/' <<<"$publishers" || true)"
+        (( publisher_count == 1 )) || publisher_ok=0
+        ;;
+      gps_goal)
+        # Count the project's goal converters, not passive listeners such as
+        # rosbag, the test menu and diagnostics.
+        goal_converter_count="$(grep -Ec '^/(gps_goal|gps_long_range_goal_manager)$' <<<"$subscribers" || true)"
+        (( goal_converter_count == 1 )) || subscriber_ok=0
+        ;;
+    esac
     if (( publisher_ok && subscriber_ok )); then
       return 0
     fi
-    sleep 0.2
+    sleep "$poll_period"
   done
 
   echo "ROS topic route is not connected on $topic." >&2
   echo "Expected publisher: ${expected_publisher:-any}; subscriber: ${expected_subscriber:-any}." >&2
+  if [[ "$route_kind" == "command" ]]; then
+    echo "Expected exactly one publisher ($expected_publisher)." >&2
+  elif [[ "$route_kind" == "gps_goal" ]]; then
+    echo "Expected one GPS goal converter; passive subscribers are allowed." >&2
+  fi
   echo "Observed publishers: ${publishers:-none}" >&2
   echo "Observed subscribers: ${subscribers:-none}" >&2
   return 1
 }
 
-check_single_topic_subscriber() {
-  local topic="$1"
-  local expected_subscriber="$2"
-  local timeout="${3:-10}"
-  local deadline=$((SECONDS + timeout))
-  local info=""
-  local subscribers=""
-  local subscriber_count=0
-
-  while (( SECONDS < deadline )); do
-    info="$(rostopic info "$topic" 2>/dev/null || true)"
-    subscribers="$(awk '
-      /^Subscribers:/ { section = "subscribers"; next }
-      section == "subscribers" && /^[[:space:]]*\*/ { print $2 }
-    ' <<<"$info")"
-    subscriber_count="$(grep -c '^/' <<<"$subscribers" || true)"
-    if (( subscriber_count == 1 )) &&
-       grep -Fxq "$expected_subscriber" <<<"$subscribers"; then
-      return 0
-    fi
-    sleep 0.2
-  done
-
-  echo "GPS goal input route is not exclusive on $topic." >&2
-  echo "Expected exactly one subscriber: $expected_subscriber." >&2
-  echo "Observed subscribers: ${subscribers:-none}" >&2
-  return 1
+check_gps_goal_route() {
+  check_topic_route "$1" "" "$2" "${3:-10}" gps_goal
 }
 
 check_cmd_vel_route() {
-  local topic="${1:-/cmd_vel}"
-  local expected_publisher="${2:-/move_base}"
-  local expected_subscriber="${3:-/m2_driver}"
-  local timeout="${4:-10}"
-  local deadline=$((SECONDS + timeout))
-  local info=""
-  local publishers=""
-  local subscribers=""
-  local publisher_count=0
-
-  while (( SECONDS < deadline )); do
-    info="$(rostopic info "$topic" 2>/dev/null || true)"
-    publishers="$(awk '
-      /^Publishers:/ { section = "publishers"; next }
-      /^Subscribers:/ { section = "subscribers"; next }
-      section == "publishers" && /^[[:space:]]*\*/ { print $2 }
-    ' <<<"$info")"
-    subscribers="$(awk '
-      /^Publishers:/ { section = "publishers"; next }
-      /^Subscribers:/ { section = "subscribers"; next }
-      section == "subscribers" && /^[[:space:]]*\*/ { print $2 }
-    ' <<<"$info")"
-    publisher_count="$(grep -c '^/' <<<"$publishers" || true)"
-    if (( publisher_count == 1 )) &&
-       grep -Fxq "$expected_publisher" <<<"$publishers" &&
-       grep -Fxq "$expected_subscriber" <<<"$subscribers"; then
-      return 0
-    fi
-    sleep 0.5
-  done
-
-  echo "Command velocity route is not connected on $topic." >&2
-  echo "Expected exactly one publisher ($expected_publisher) and subscriber $expected_subscriber." >&2
-  echo "Observed publishers: ${publishers:-none}" >&2
-  echo "Observed subscribers: ${subscribers:-none}" >&2
-  if [[ -n "$info" ]]; then
-    echo "$info" >&2
-  fi
-  return 1
+  check_topic_route "${1:-/cmd_vel}" "${2:-/move_base}" "${3:-/m2_driver}" "${4:-10}" command
 }
 
 check_service_provider() {
@@ -750,7 +711,7 @@ if (( $# > 3 )); then
 fi
 
 case "$MODE" in
-  fast_lio|fast_lio_gps|gps) ;;
+  fast_lio|fast_lio_gps|fast_lio_indoor|gps) ;;
   print-gps-yaw|--print-gps-yaw)
     GPS_INITIAL_YAW="$(resolve_gps_initial_yaw)"
     echo "$GPS_INITIAL_YAW"
@@ -788,7 +749,7 @@ if [[ "$MODE" == "gps" ]]; then
     cruise)
       GPS_TEB_PROFILE_FILE="$ROBOT_WS/config/teb_profiles/gps_cruise.yaml"
       GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-0.03}"
-      GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-100.0}"
+      GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-5.0}"
       GPS_HEADING_JUMP_GUARD_ENABLED="${GPS_HEADING_JUMP_GUARD_ENABLED:-false}"
       GPS_POSITION_FILTER_ALPHA="${GPS_POSITION_FILTER_ALPHA:-0.70}"
       GPS_GLOBAL_PLANNER_FREQUENCY="${GPS_GLOBAL_PLANNER_FREQUENCY:-0.0}"
@@ -796,7 +757,7 @@ if [[ "$MODE" == "gps" ]]; then
     obstacle)
       GPS_TEB_PROFILE_FILE="$ROBOT_WS/config/teb_profiles/gps_obstacle.yaml"
       GPS_TEB_PENALTY_EPSILON="${GPS_TEB_PENALTY_EPSILON:-0.03}"
-      GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-60.0}"
+      GPS_TEB_FORWARD_DRIVE_WEIGHT="${GPS_TEB_FORWARD_DRIVE_WEIGHT:-5.0}"
       GPS_HEADING_JUMP_GUARD_ENABLED="${GPS_HEADING_JUMP_GUARD_ENABLED:-false}"
       GPS_POSITION_FILTER_ALPHA="${GPS_POSITION_FILTER_ALPHA:-0.25}"
       GPS_GLOBAL_PLANNER_FREQUENCY="${GPS_GLOBAL_PLANNER_FREQUENCY:-1.0}"
@@ -810,8 +771,8 @@ if [[ "$MODE" == "gps" ]]; then
 fi
 
 if [[ -n "$GPS_NAV_MAX_SPEED_ARG" ]]; then
-  if [[ "$MODE" != "gps" ]]; then
-    echo "The optional max_speed_mps argument is only supported in gps mode." >&2
+  if [[ "$MODE" != "gps" && "$MODE" != "fast_lio_indoor" ]]; then
+    echo "The optional max_speed_mps argument is supported in gps and fast_lio_indoor modes." >&2
     usage >&2
     exit 1
   fi
@@ -929,6 +890,10 @@ if [[ "$MODE" == "gps" ]]; then
       echo "Invalid GPS_GOAL_MIN_APPROACH_SPEED: $GPS_GOAL_MIN_APPROACH_SPEED" >&2
       exit 1
     fi
+    if ! is_nonnegative_number "$GPS_GOAL_APPROACH_TIME"; then
+      echo "Invalid GPS_GOAL_APPROACH_TIME: $GPS_GOAL_APPROACH_TIME" >&2
+      exit 1
+    fi
     if ! is_positive_number "$GPS_GOAL_CMD_TIMEOUT"; then
       echo "Invalid GPS_GOAL_CMD_TIMEOUT: $GPS_GOAL_CMD_TIMEOUT" >&2
       exit 1
@@ -984,8 +949,8 @@ if [[ "$MODE" == "gps" ]]; then
     fi
     if ! is_positive_number "$FOD_RECOVERY_BLIND_DISTANCE_M" ||
        ! awk -v distance="$FOD_RECOVERY_BLIND_DISTANCE_M" \
-         'BEGIN { exit !(distance <= 0.50) }'; then
-      echo "Invalid FOD_RECOVERY_BLIND_DISTANCE_M: $FOD_RECOVERY_BLIND_DISTANCE_M (use 0 < distance <= 0.50)" >&2
+         'BEGIN { exit !(distance <= 0.80) }'; then
+      echo "Invalid FOD_RECOVERY_BLIND_DISTANCE_M: $FOD_RECOVERY_BLIND_DISTANCE_M (use 0 < distance <= 0.80)" >&2
       exit 2
     fi
     if ! is_positive_number "$FOD_RECOVERY_TRANSITION_TIMEOUT"; then
@@ -1036,9 +1001,9 @@ if [[ "$MODE" == "gps" ]]; then
   echo "==> GPS goal distances: TEB tolerance=$GPS_XY_GOAL_TOLERANCE m, relay hard stop=$GPS_GOAL_HARD_STOP_DISTANCE m"
   echo "==> GPS TEB forward-drive weight: $GPS_TEB_FORWARD_DRIVE_WEIGHT"
   if [[ "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
-    echo "==> GPS goal safety relay: enabled; near-goal fence=$GPS_GOAL_NEAR_COMMIT_DISTANCE m/$GPS_GOAL_NEAR_TIMEOUT s/$GPS_GOAL_NEAR_MAX_REGRESSION m regression"
+    echo "==> GPS goal safety relay: enabled; near-goal zone=$GPS_GOAL_NEAR_COMMIT_DISTANCE m, no-progress timeout=$GPS_GOAL_NEAR_TIMEOUT s"
     if [[ "$GPS_GOAL_SPEED_CAP_ENABLED" == "true" ]]; then
-      echo "==> GPS terminal speed cap: enabled; decel=$GPS_GOAL_COMFORTABLE_DECEL m/s^2, minimum approach=$GPS_GOAL_MIN_APPROACH_SPEED m/s"
+      echo "==> GPS terminal speed cap: enabled; decel=$GPS_GOAL_COMFORTABLE_DECEL m/s^2, approach time=$GPS_GOAL_APPROACH_TIME s, minimum approach=$GPS_GOAL_MIN_APPROACH_SPEED m/s"
     else
       echo "==> GPS terminal speed cap: disabled; final-approach TEB commands pass through unchanged"
     fi
@@ -1085,7 +1050,7 @@ start_launch "CAN chassis driver" robot_bringup can.launch port_name:="$CAN_PORT
 wait_topics "/canbus_msg" 30.0
 clamp_gps_speed_to_chassis_limit
 
-if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
+if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" || "$MODE" == "fast_lio_indoor" ]]; then
   start_launch "Livox MID360 driver" robot_bringup livox_mid360.launch
   wait_topics "/livox/lidar,/livox/imu" 45.0
 
@@ -1101,26 +1066,39 @@ if [[ "$MODE" == "fast_lio" || "$MODE" == "fast_lio_gps" ]]; then
   check_tf "camera_init" "base_link" 30.0
   wait_topics "/scan" 45.0
 
-  make_writable "$GPS_PORT"
-  start_launch "GPS fix reader for FAST_LIO goals" robot_bringup gps_localization.launch \
-    port:="$GPS_PORT" \
-    baud_rate:="$GPS_BAUD_RATE" \
-    use_wheel_twist:="$GPS_USE_WHEEL_TWIST" \
-    wheel_twist_timeout:="$GPS_WHEEL_TWIST_TIMEOUT" \
-    rmc_speed_timeout:="$GPS_RMC_SPEED_TIMEOUT" \
-    broadcast_tf:=false
-  wait_topics "/gps/fix" 60.0
+  FAST_LIO_NAV_ARGS=()
+  if [[ "$MODE" == "fast_lio_indoor" ]]; then
+    echo "==> Indoor LiDAR navigation: FAST_LIO supplies pose; GNSS goals are not started"
+    FAST_LIO_NAV_ARGS+=(max_vel_x:="$GPS_NAV_MAX_VEL_X" max_vel_x_backwards:="$GPS_NAV_MAX_VEL_X_BACKWARDS")
+    if [[ "$FOD_RECOVERY_STANDBY_ENABLED" == "true" ]]; then
+      start_launch "Indoor navigation/FOD recovery mode arbiter" autolabor_fod_control gps_visual_recovery_standby.launch \
+        allow_motion:=true retain_gps_route:=false camera_driver:="$FOD_CAMERA_DRIVER" \
+        external_estop_override:="$FOD_RECOVERY_EXTERNAL_ESTOP_OVERRIDE" \
+        blind_distance_m:="$FOD_RECOVERY_BLIND_DISTANCE_M" \
+        transition_timeout_sec:="$FOD_RECOVERY_TRANSITION_TIMEOUT"
+      FAST_LIO_NAV_ARGS+=(output_cmd_vel_topic:=/cmd_vel_gps)
+    fi
+  else
+    make_writable "$GPS_PORT"
+    start_launch "GPS fix reader for FAST_LIO goals" robot_bringup gps_localization.launch \
+      port:="$GPS_PORT" \
+      baud_rate:="$GPS_BAUD_RATE" \
+      use_wheel_twist:="$GPS_USE_WHEEL_TWIST" \
+      wheel_twist_timeout:="$GPS_WHEEL_TWIST_TIMEOUT" \
+      rmc_speed_timeout:="$GPS_RMC_SPEED_TIMEOUT" \
+      broadcast_tf:=false
+    wait_topics "/gps/fix" 60.0
 
-  start_launch "GPS goal converter for FAST_LIO" gps_module gps_goal.launch \
-    frame_id:=camera_init \
-    odom_topic:=/Odometry \
-    goal_yaw_mode:=bearing \
-    yaw_offset_deg:="$FAST_LIO_GPS_YAW_OFFSET_DEG"
+    start_launch "GPS goal converter for FAST_LIO" gps_module gps_goal.launch \
+      frame_id:=camera_init \
+      odom_topic:=/Odometry \
+      goal_yaw_mode:=bearing \
+      yaw_offset_deg:="$FAST_LIO_GPS_YAW_OFFSET_DEG"
+  fi
 
-  check_tf "camera_init" "base_link" 10.0
   start_launch "Arena navigation" robot_bringup navigation_arena.launch \
     localization_source:=fast_lio \
-    start_rviz:="$NAV_START_RVIZ"
+    start_rviz:="$NAV_START_RVIZ" "${FAST_LIO_NAV_ARGS[@]}"
 else
   make_writable "$GPS_PORT"
   start_launch "Livox MID360 driver" robot_bringup livox_mid360.launch
@@ -1150,6 +1128,7 @@ else
     rmc_speed_timeout:="$GPS_RMC_SPEED_TIMEOUT" \
     heading_source:="$GPS_HEADING_SOURCE" \
     heading_timeout:="$GPS_HEADING_TIMEOUT" \
+    heading_continuation_timeout:="$GPS_HEADING_CONTINUATION_TIMEOUT" \
     heading_required_solution_status:="$GPS_HEADING_REQUIRED_SOLUTION_STATUS" \
     heading_required_position_types:="$GPS_HEADING_REQUIRED_POSITION_TYPES" \
     heading_jump_guard_enabled:="$GPS_HEADING_JUMP_GUARD_ENABLED" \
@@ -1162,7 +1141,6 @@ else
     heading_min_speed:="$GPS_HEADING_MIN_SPEED" \
     min_course_distance:="$GPS_MIN_COURSE_DISTANCE" \
     initial_yaw:="$GPS_INITIAL_YAW"
-  wait_topics "/gps/fix,/gps/pose,/gps/odom" 60.0
   echo "==> waiting up to $GPS_ODOM_STARTUP_TIMEOUT s for GPS odom; required heading quality: $GPS_HEADING_REQUIRED_SOLUTION_STATUS + $GPS_HEADING_REQUIRED_POSITION_TYPES"
   if ! check_odom "/gps/odom" "camera_init" "base_link" "$GPS_ODOM_STARTUP_TIMEOUT"; then
     echo "GPS localization did not become navigation-ready." >&2
@@ -1195,12 +1173,12 @@ else
     GPS_OUTPUT_CMD_VEL_TOPIC="/cmd_vel_gps"
     start_launch "GPS/FOD recovery mode arbiter" autolabor_fod_control gps_visual_recovery_standby.launch \
       allow_motion:=true \
+      camera_driver:="$FOD_CAMERA_DRIVER" \
       external_estop_override:="$FOD_RECOVERY_EXTERNAL_ESTOP_OVERRIDE" \
       blind_distance_m:="$FOD_RECOVERY_BLIND_DISTANCE_M" \
       transition_timeout_sec:="$FOD_RECOVERY_TRANSITION_TIMEOUT"
   fi
 
-  check_tf "camera_init" "base_link" 10.0
   start_launch "Arena navigation" robot_bringup navigation_arena.launch \
     localization_source:=gps \
     start_rviz:="$NAV_START_RVIZ" \
@@ -1209,6 +1187,7 @@ else
     goal_slowdown_enabled:="$GPS_GOAL_SLOWDOWN_ENABLED" \
     goal_speed_cap_enabled:="$GPS_GOAL_SPEED_CAP_ENABLED" \
     goal_slowdown_decel:="$GPS_GOAL_COMFORTABLE_DECEL" \
+    goal_approach_time:="$GPS_GOAL_APPROACH_TIME" \
     goal_slowdown_min_speed:="$GPS_GOAL_MIN_APPROACH_SPEED" \
     goal_slowdown_hard_stop_distance:="$GPS_GOAL_HARD_STOP_DISTANCE" \
     goal_slowdown_cmd_timeout:="$GPS_GOAL_CMD_TIMEOUT" \
@@ -1226,17 +1205,21 @@ fi
 
 wait_topics "/move_base/status" 45.0
 wait_topics "/move_base/local_costmap/costmap,/move_base/global_costmap/costmap" 45.0
-if [[ "$MODE" == "gps" && "$GPS_LONG_RANGE_GOAL_ENABLED" == "true" ]]; then
-  check_single_topic_subscriber "/gps/goal_fix" "/gps_long_range_goal_manager" 10
+if [[ "$MODE" == "fast_lio_indoor" ]]; then
+  check_topic_route "/move_base_simple/goal" "" "/move_base" 10
+elif [[ "$MODE" == "gps" && "$GPS_LONG_RANGE_GOAL_ENABLED" == "true" ]]; then
+  check_gps_goal_route "/gps/goal_fix" "/gps_long_range_goal_manager" 10
   check_topic_route "/move_base/goal" "/gps_long_range_goal_manager" "/move_base" 10
 else
   check_topic_route "/gps/goal_fix" "" "/gps_goal" 10
   check_topic_route "/move_base_simple/goal" "/gps_goal" "/move_base" 10
 fi
-if [[ "$MODE" == "gps" && "$FOD_RECOVERY_STANDBY_ENABLED" == "true" ]]; then
-  check_service_provider "/gps/long_range/set_paused" "/gps_long_range_goal_manager" 10
+if [[ ( "$MODE" == "gps" || "$MODE" == "fast_lio_indoor" ) && "$FOD_RECOVERY_STANDBY_ENABLED" == "true" ]]; then
+  if [[ "$MODE" == "gps" ]]; then
+    check_service_provider "/gps/long_range/set_paused" "/gps_long_range_goal_manager" 10
+  fi
   check_service_provider "/fod_navigation_mode/set_fod_enabled" "/fod_navigation_mode" 10
-  if [[ "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
+  if [[ "$MODE" == "gps" && "$GPS_GOAL_SLOWDOWN_ENABLED" == "true" ]]; then
     check_cmd_vel_route "/cmd_vel_navigation" "/move_base" "/gps_goal_speed_limiter" 10
     check_cmd_vel_route "/cmd_vel_gps" "/gps_goal_speed_limiter" "/fod_navigation_mode" 10
   else
@@ -1251,7 +1234,7 @@ else
   check_cmd_vel_route "/cmd_vel" "/move_base" "/m2_driver" 10
 fi
 echo "Robot bringup is running in $MODE mode."
-if [[ "$MODE" == "gps" && "$FOD_RECOVERY_STANDBY_ENABLED" == "true" ]]; then
+if [[ ( "$MODE" == "gps" || "$MODE" == "fast_lio_indoor" ) && "$FOD_RECOVERY_STANDBY_ENABLED" == "true" ]]; then
   echo "FOD mode command: $ROBOT_WS/scripts/fod_mode.sh start"
   echo "FOD/GPS status:  $ROBOT_WS/scripts/fod_mode.sh status"
 fi

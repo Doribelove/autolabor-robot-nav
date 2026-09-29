@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   autolabor_fod_msgs
   autolabor_operator_msgs
   diagnostic_msgs
+  dynamic_reconfigure
   hikrobot_mvs_camera
   nav_msgs
   roscpp
@@ -34,6 +35,7 @@ catkin_package(
     autolabor_fod_msgs
     autolabor_operator_msgs
     diagnostic_msgs
+    dynamic_reconfigure
     hikrobot_mvs_camera
     nav_msgs
     roscpp
@@ -52,7 +54,11 @@ include_directories(
 add_executable(${PROJECT_NAME}_node
   src/main.cpp
   src/main_window.cpp
+  src/sweep_panel.cpp
+  src/zed_camera_panel.cpp
   include/autolabor_operator_gui/main_window.h
+  include/autolabor_operator_gui/sweep_panel.h
+  include/autolabor_operator_gui/zed_camera_panel.h
 )
 
 add_dependencies(${PROJECT_NAME}_node
@@ -67,6 +73,25 @@ target_link_libraries(${PROJECT_NAME}_node
 
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_operator_gui_contract.py)
+  find_package(Qt5 REQUIRED COMPONENTS Test)
+  add_executable(test_sweep_panel
+    test/test_sweep_panel.cpp
+    src/sweep_panel.cpp
+    include/autolabor_operator_gui/sweep_panel.h
+  )
+  target_compile_definitions(test_sweep_panel PRIVATE TEST_WORKSPACE="${CMAKE_SOURCE_DIR}/..")
+  target_link_libraries(test_sweep_panel Qt5::Widgets Qt5::Test)
+  add_test(NAME operator_sweep_panel COMMAND test_sweep_panel)
+  set_tests_properties(operator_sweep_panel PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+  add_executable(test_zed_camera_panel
+    test/test_zed_camera_panel.cpp
+    src/zed_camera_panel.cpp
+    include/autolabor_operator_gui/zed_camera_panel.h
+  )
+  add_dependencies(test_zed_camera_panel ${catkin_EXPORTED_TARGETS})
+  target_link_libraries(test_zed_camera_panel Qt5::Widgets Qt5::Concurrent Qt5::Test ${catkin_LIBRARIES})
+  find_package(rostest REQUIRED)
+  add_rostest(test/zed_camera_panel.test DEPENDENCIES test_zed_camera_panel)
 endif()
 
 install(TARGETS ${PROJECT_NAME}_node

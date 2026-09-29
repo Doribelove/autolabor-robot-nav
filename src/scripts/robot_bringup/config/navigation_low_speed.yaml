@@ -1,0 +1,12 @@
+# Applied after the regular GPS profile only for speeds <= 0.5 m/s.
+# A target behind the car must be allowed to initialize a reverse path.
+allow_init_with_backwards_motion: true
+weight_kinematics_forward_drive: 5.0
+
+# 0 -> 0.5 m/s takes about 0.63 s at this planning bound. The former 2.5
+# m/s^2 cruise value also implied unrealistically late braking for collection.
+acc_lim_x: 0.8
+acc_lim_theta: 0.8
+# Keep angular acceleration penalized, without the high-speed profile's 250
+# weight dominating low-speed curved starts and direction changes.
+weight_acc_lim_theta: 60.0

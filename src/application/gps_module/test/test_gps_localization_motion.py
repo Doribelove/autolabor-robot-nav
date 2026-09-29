@@ -5,6 +5,7 @@ import math
 import pathlib
 from types import SimpleNamespace
 import unittest
+from unittest import mock
 
 
 MODULE_PATH = (
@@ -105,6 +106,7 @@ class HeadingPolicyTest(unittest.TestCase):
         node.heading_required_solution_status = "SOL_COMPUTED"
         node.heading_required_position_types = {"NARROW_INT"}
         node.heading_source = "dual_antenna"
+        node.heading_continuation = GPS_LOCALIZATION.HeadingContinuation()
 
         yaw = node.latest_heading_yaw(
             GPS_LOCALIZATION.rospy.Time.from_sec(10.1)
@@ -119,11 +121,129 @@ class WheelOdomTimestampTest(unittest.TestCase):
             GPS_LOCALIZATION.GpsLocalizationNode
         )
         source_stamp = GPS_LOCALIZATION.rospy.Time.from_sec(12.5)
-        message = SimpleNamespace(header=SimpleNamespace(stamp=source_stamp))
+        node.heading_continuation = GPS_LOCALIZATION.HeadingContinuation()
+        message = GPS_LOCALIZATION.Odometry()
+        message.header.stamp = source_stamp
 
         node.wheel_odom_cb(message)
 
         self.assertEqual(node.latest_wheel_odom_stamp, source_stamp)
+
+
+class HeadingContinuationTest(unittest.TestCase):
+    def anchored(self, yaw=0.0, rate=0.2):
+        bridge = GPS_LOCALIZATION.HeadingContinuation(3.0, 0.5)
+        bridge.observe_wheel(10.0, rate)
+        bridge.observe_heading(10.0, yaw)
+        return bridge
+
+    def test_startup_still_requires_fixed_heading(self):
+        bridge = GPS_LOCALIZATION.HeadingContinuation()
+        bridge.observe_wheel(10.0, 0.2)
+        self.assertIsNone(bridge.predict(10.1))
+
+    def test_turning_during_dropout_integrates_until_anchor_deadline(self):
+        for rate in (-0.2, 0.2):
+            bridge = self.anchored(rate=rate)
+            for tick in range(1, 32):
+                stamp = 10.0 + tick * 0.1
+                bridge.observe_wheel(stamp, rate)
+                if tick <= 30:
+                    self.assertAlmostEqual(bridge.predict(stamp), rate * tick * 0.1)
+                else:
+                    self.assertIsNone(bridge.predict(stamp))
+
+    def test_pose_and_tf_queries_do_not_double_integrate(self):
+        bridge = self.anchored()
+        bridge.observe_wheel(10.2, 0.2)
+        self.assertAlmostEqual(bridge.predict(10.3), 0.06)
+        self.assertAlmostEqual(bridge.predict(10.3), 0.06)
+        bridge.observe_wheel(10.4, 0.2)
+        self.assertAlmostEqual(bridge.predict(10.4), 0.08)
+
+    def test_stale_wheel_data_and_missing_interval_cannot_resume_prediction(self):
+        bridge = self.anchored()
+        self.assertIsNone(bridge.predict(10.51))
+        bridge.observe_wheel(10.6, 0.2)
+        bridge.observe_wheel(10.7, 0.2)
+        self.assertIsNone(bridge.predict(10.7))
+        bridge.observe_heading(10.7, 0.15)
+        self.assertAlmostEqual(bridge.predict(10.8), 0.17)
+
+    def test_repeated_wheel_stamp_does_not_renew_freshness(self):
+        bridge = self.anchored()
+        for _ in range(10):
+            bridge.observe_wheel(10.0, 0.2)
+        self.assertIsNone(bridge.predict(10.6))
+
+    def test_invalid_or_backward_wheel_sample_breaks_continuity(self):
+        for stamp, rate in ((10.2, float("nan")), (9.9, 0.2)):
+            bridge = self.anchored()
+            bridge.observe_wheel(stamp, rate)
+            bridge.observe_wheel(10.3, 0.2)
+            self.assertIsNone(bridge.predict(10.3))
+
+    def test_invalid_wheel_data_cannot_reanchor_using_old_wheel_sample(self):
+        bridge = self.anchored()
+        bridge.observe_wheel(10.2, float("nan"))
+        bridge.observe_heading(10.2, 0.04)
+        self.assertIsNone(bridge.predict(10.3))
+
+    def test_angle_wrap_and_new_fixed_heading(self):
+        bridge = self.anchored(yaw=math.pi - 0.02)
+        bridge.observe_wheel(10.2, 0.2)
+        self.assertAlmostEqual(bridge.predict(10.2), -math.pi + 0.02)
+        bridge.observe_heading(10.2, -math.pi + 0.01)
+        self.assertAlmostEqual(bridge.predict(10.3), -math.pi + 0.03)
+
+    def test_disabled_continuation_returns_no_prediction(self):
+        bridge = self.anchored()
+        bridge.timeout = 0.0
+        self.assertIsNone(bridge.predict(10.1))
+
+    @mock.patch.object(GPS_LOCALIZATION.rospy, "logwarn_throttle")
+    def test_node_keeps_fixed_anchor_age_when_float_heading_arrives(self, _log):
+        node = GPS_LOCALIZATION.GpsLocalizationNode.__new__(
+            GPS_LOCALIZATION.GpsLocalizationNode)
+        node.heading_source = "dual_antenna"
+        node.heading_required_solution_status = "SOL_COMPUTED"
+        node.heading_required_position_types = {"NARROW_INT"}
+        node.heading_timeout = 1.0
+        node.heading_continuation_timeout = 3.0
+        node.heading_continuation = self.anchored()
+        node.latest_heading = HeadingPolicyTest.valid_heading()
+        node.latest_heading_stamp = GPS_LOCALIZATION.rospy.Time.from_sec(10.0)
+        node.latest_navigation_heading_yaw = 0.0
+        floating = dict(node.latest_heading, position_type="NARROW_FLOAT",
+                        baseline_length_m=1.064)
+        for tick in range(1, 32):
+            stamp = GPS_LOCALIZATION.rospy.Time.from_sec(10.0 + tick * 0.1)
+            node.heading_continuation.observe_wheel(stamp.to_sec(), 0.2)
+            node.handle_heading(floating, stamp)
+            yaw = node.latest_heading_yaw(stamp)
+            if tick <= 30:
+                self.assertAlmostEqual(yaw, 0.02 * tick)
+            else:
+                self.assertIsNone(yaw)
+        self.assertEqual(node.latest_heading_stamp.to_sec(), 10.0)
+
+    @mock.patch.object(GPS_LOCALIZATION.rospy, "logwarn_throttle")
+    def test_losing_wheel_feedback_does_not_rewind_a_recent_heading(self, _log):
+        node = GPS_LOCALIZATION.GpsLocalizationNode.__new__(
+            GPS_LOCALIZATION.GpsLocalizationNode)
+        node.heading_source = "dual_antenna"
+        node.heading_required_solution_status = "SOL_COMPUTED"
+        node.heading_required_position_types = {"NARROW_INT"}
+        node.heading_timeout = 1.0
+        node.heading_continuation_timeout = 3.0
+        node.heading_continuation = self.anchored()
+        node.latest_heading = HeadingPolicyTest.valid_heading()
+        node.latest_heading_stamp = GPS_LOCALIZATION.rospy.Time.from_sec(10.0)
+        node.latest_navigation_heading_yaw = 0.0
+        stamp = GPS_LOCALIZATION.rospy.Time.from_sec
+        self.assertAlmostEqual(node.latest_heading_yaw(stamp(10.4)), 0.08)
+        self.assertAlmostEqual(node.latest_heading_yaw(stamp(10.7)), 0.08)
+        self.assertIsNone(node.latest_heading_yaw(stamp(11.1)))
 
 
 class ParameterValidationTest(unittest.TestCase):
@@ -401,6 +521,107 @@ class NodeMotionSelectionTest(unittest.TestCase):
 
         self.assertAlmostEqual(linear_speed, -0.8)
         self.assertAlmostEqual(angular_speed, 0.3)
+
+
+class SerialStreamCadenceTest(unittest.TestCase):
+    GGA = "$GNGGA,120000.0,3000.0000,N,10400.0000,E,4,20,0.8,10.0,M,0.0,M,,*00"
+    RMC = "$GNRMC,120000.0,A,3000.0000,N,10400.0000,E,1.0,90.0,010126,,,A*00"
+    HEADING = "#UNIHEADINGA,COM1;SOL_COMPUTED,NARROW_INT,0.6,90.0,0.0,0.0,0.1,0.1*00"
+
+    def run_stream(self, events, heading_yaw=0.0):
+        node = GPS_LOCALIZATION.GpsLocalizationNode.__new__(
+            GPS_LOCALIZATION.GpsLocalizationNode
+        )
+        node.publish_rate = 10.0
+        node.origin_lat, node.origin_lon = 30.0, 104.0
+        node.last_altitude = 0.0
+        node.last_gps_speed = node.last_gps_course_deg = node.last_rmc_stamp = None
+        node.rmc_speed_timeout = 1.0
+        node.heading_source = "dual_antenna"
+        node.handle_heading = mock.Mock()
+        node.publish_fix = mock.Mock()
+        node.publish_pose_and_tf = mock.Mock()
+        node.latest_wheel_twist = lambda _stamp: (0.5, 0.0)
+        node.filter_position = lambda x, y, _speed: (x, y)
+        node.latest_heading_yaw = lambda _stamp: heading_yaw
+        node.update_motion = lambda *_args: (0.0, 0.5, 0.0)
+        node.antenna_to_base_position = lambda x, y, _yaw: (x, y)
+        node.update_local_pose_from_wheel_odom = lambda *_args: None
+        clock = SimpleNamespace(now=0.0, index=0, ages=[])
+
+        def readline():
+            arrival, sentence = events[clock.index]
+            clock.now = max(clock.now, arrival)
+            clock.index += 1
+            clock.ages.append(clock.now - arrival)
+            return (sentence + "\r\n").encode("ascii")
+
+        node.ser = SimpleNamespace(readline=readline)
+        ros_time = GPS_LOCALIZATION.rospy.Time
+        with mock.patch.object(GPS_LOCALIZATION, "rospy") as ros:
+            ros.Time.now.side_effect = lambda: ros_time.from_sec(clock.now)
+            ros.is_shutdown.side_effect = lambda: clock.index == len(events)
+            # Emulate the former loop sleep so a regression would backlog input.
+            ros.Rate.return_value.sleep.side_effect = lambda: setattr(
+                clock, "now", clock.now + 1.0 / node.publish_rate
+            )
+            node.spin()
+        return node, clock
+
+    def test_gga_and_rmc_at_ten_hz_do_not_backlog_heading(self):
+        events = []
+        for index in range(50):
+            events.extend([
+                (index * 0.1, self.GGA),
+                (index * 0.1 + 0.02, self.RMC),
+                (index * 0.1 + 0.04, self.HEADING),
+            ])
+        node, clock = self.run_stream(events)
+
+        self.assertEqual(clock.index, 150)
+        self.assertLess(max(clock.ages), 0.001)
+        self.assertEqual(node.handle_heading.call_count, 50)
+        self.assertGreaterEqual(node.publish_pose_and_tf.call_count, 49)
+        self.assertLessEqual(node.publish_pose_and_tf.call_count, 50)
+
+    def test_throttled_rmc_still_updates_speed_course_and_timestamp(self):
+        node, _ = self.run_stream([(0.0, self.GGA), (0.02, self.RMC)])
+
+        self.assertEqual(node.publish_fix.call_count, 1)
+        self.assertAlmostEqual(node.last_gps_speed, 0.514444)
+        self.assertEqual(node.last_gps_course_deg, 90.0)
+        self.assertAlmostEqual(node.last_rmc_stamp.to_sec(), 0.02)
+        self.assertEqual(node.last_altitude, 10.0)
+
+    def test_input_jitter_does_not_halve_position_output(self):
+        events = [
+            (index * 0.1 + (0.0001 if index % 2 == 0 else 0.0), self.GGA)
+            for index in range(100)
+        ]
+        node, clock = self.run_stream(events)
+
+        self.assertLess(max(clock.ages), 0.001)
+        self.assertGreaterEqual(node.publish_pose_and_tf.call_count, 98)
+        self.assertLessEqual(node.publish_pose_and_tf.call_count, 100)
+
+    def test_bad_sentence_does_not_stop_following_positions(self):
+        malformed = self.GGA.replace("3000.0000", "invalid")
+        node, _ = self.run_stream([
+            (0.0, self.GGA), (0.02, malformed), (0.1, self.GGA)
+        ])
+
+        self.assertEqual(node.publish_pose_and_tf.call_count, 2)
+
+    def test_missing_heading_keeps_fix_output_without_blocking_serial(self):
+        node, clock = self.run_stream([
+            (0.0, self.GGA), (0.02, self.RMC), (0.04, self.HEADING),
+            (0.1, self.GGA),
+        ], heading_yaw=None)
+
+        self.assertEqual(node.publish_fix.call_count, 2)
+        node.publish_pose_and_tf.assert_not_called()
+        node.handle_heading.assert_called_once()
+        self.assertLess(max(clock.ages), 0.001)
 
 
 if __name__ == "__main__":

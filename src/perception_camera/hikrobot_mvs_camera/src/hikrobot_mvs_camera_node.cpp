@@ -94,7 +94,7 @@ public:
       private_nh_(std::move(private_nh)),
       image_transport_(nh_)
   {
-    private_nh_.param<std::string>("mvs_root", mvs_root_, "/opt/MVS");
+    private_nh_.param<std::string>("mvs_root", mvs_root_, AUTOLABOR_MVS_ROOT);
     private_nh_.param<std::string>("serial_number", serial_number_, "");
     private_nh_.param<std::string>("transport", transport_, "usb");
     private_nh_.param<std::string>("camera_name", camera_name_, "camera");

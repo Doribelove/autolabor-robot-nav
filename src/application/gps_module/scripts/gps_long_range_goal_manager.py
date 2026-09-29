@@ -411,6 +411,8 @@ class GpsLongRangeGoalManager:
 
     def _publish_route_status_locked(self, current_x=None, current_y=None):
         payload = {
+            "frame_id": self.frame_id,
+            "route_id": self.route_token or "",
             "active": self.route_active,
             "paused": self.paused,
             "state": self.route_state,

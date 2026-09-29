@@ -1,0 +1,7 @@
+<launch>
+  <arg name="driver_executable" default=""/>
+  <test test-name="canbus_serial_receive" pkg="autolabor_canbus_driver"
+        type="test_canbus_serial_receive.py" time-limit="20">
+    <param name="driver_executable" value="$(arg driver_executable)"/>
+  </test>
+</launch>

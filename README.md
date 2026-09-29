@@ -2,6 +2,14 @@
 
 本工作空间是 ROS Noetic/catkin 项目，核心功能是 Autolabor 底盘、Livox MID360、FAST_LIO、GPS 和 Arena `move_base + TEB` 的真车无地图导航。
 
+当前双天线 GNSS 使用与 agent 接手请先读 [双天线 GNSS 完整导航上手](AGENT_GNSS_ONBOARDING.md)。无设备查看界面用 `./scripts/operator_gui.sh`；完整操作台入口为 `./scripts/operator_all_in_one.sh 1.6 cruise`；原 GNSS 导航入口为 `./scripts/bringup.sh gps [速度] [cruise|obstacle]`。下文同时保留其他模式资料，GNSS 操作按专门指南执行。
+
+Jetson AGX Orin 64GB / Ubuntu 20.04 单主机迁移请读 [迁移指南](AGX_MIGRATION_GUIDE.md)，目标机 Codex 执行 [完整迁移指令](AGX_CODEX_PROMPT.md)。
+
+2026-09-29 AGX 当前版本保存在 `agx-orin-20260929` 分支。下载与恢复见
+[GitHub 版本说明](AGX_GITHUB_BACKUP.md)，现场直接复制使用
+[完整启动和关停命令](AGX_START_STOP.txt)，详细操作见 [AGX 启动说明](AGX_STARTUP.md)。
+
 ## 目录速览
 
 - `scripts/bringup.sh`：导航一键启动主入口。
@@ -60,6 +68,8 @@ MVS SDK 自带的旧版 `libusb-1.0.so.0` 会覆盖 Ubuntu 系统 libusb，而
 FAST_LIO 依赖的 PCL 需要新版符号。`bringup.sh` 只在 FAST_LIO 子进程中
 优先加载系统库；相机及其他 ROS 节点的动态库环境保持不变。因此不需要
 修改原来的导航命令，也不要在整个桌面会话中全局覆盖 `LD_LIBRARY_PATH`。
+FAST_LIO 构建目标也显式链接 PCL 找到的系统 libusb，避免重新编译时误选
+MVS 的旧库；无需为此修改相机配置。
 
 终端 1 正常启动导航：
 
@@ -102,6 +112,11 @@ roslaunch autolabor_fod_vision hikrobot_fod_detection.launch start_camera:=true
 - TEB 输出控制：`/cmd_vel`
 
 这是推荐的一键启动模式。定位来自 FAST_LIO；GPS 不发布定位 TF，只用于接收经纬度目标并转换成局部导航目标。因此 RabbitMQ 桥接脚本可以直接配合这个模式使用。
+
+TEB 的实际速度反馈使用底盘 `/odom`；FAST_LIO 的 `/Odometry` 仅用于位姿，
+其未填写的 `twist` 不能作为车辆速度。基础 TEB 配置已启用线速度与角速度
+同比例限幅，以保持规划曲率。零速度来源、历史录包证据及修复范围见
+[直线行驶核查记录](NAVIGATION_STRAIGHT_LINE_AUDIT.md)。
 
 ### 2. FAST_LIO GPS 兼容模式
 

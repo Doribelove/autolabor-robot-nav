@@ -70,4 +70,6 @@ target_link_libraries(m2_driver ${catkin_LIBRARIES})
 
 if(CATKIN_ENABLE_TESTING)
     catkin_add_gtest(test_m2_twist_steering test/test_m2_twist_steering.cpp)
+    find_package(rostest REQUIRED)
+    add_rostest(test/canbus_serial_receive.test DEPENDENCIES canbus_driver)
 endif()

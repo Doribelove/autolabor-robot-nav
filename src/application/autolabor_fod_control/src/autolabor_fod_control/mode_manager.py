@@ -9,6 +9,27 @@ FOD_SOURCE = "FOD"
 STOP_SOURCE = "STOP"
 
 
+def final_goal_distance(route, x, y, frame_id):
+    """Distance to the accepted final GPS target, never the rolling subgoal.
+
+    Completed routes remain available for an operator who enables recovery
+    after arrival. Canceled, aborted and superseded routes cannot trigger it.
+    """
+    if not isinstance(route, dict) or route.get("paused", False):
+        return None
+    if not route.get("active", False) and route.get("state") != "COMPLETE":
+        return None
+    if not frame_id or frame_id.lstrip("/") != str(route.get("frame_id", "")).lstrip("/"):
+        return None
+    try:
+        gx, gy = float(route["final_x"]), float(route["final_y"])
+        if not all(math.isfinite(v) for v in (gx, gy, x, y)):
+            return None
+    except (KeyError, TypeError, ValueError):
+        return None
+    return math.hypot(gx - x, gy - y)
+
+
 @dataclass(frozen=True)
 class TimedCommand:
     linear_x: float

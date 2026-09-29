@@ -1,0 +1,43 @@
+<launch>
+  <arg name="sweep_port" default="50194"/>
+  <arg name="seed" default="1"/>
+  <arg name="case_filter" default=""/>
+  <arg name="results_file" default="/tmp/fod_full_recovery_results.json"/>
+  <param name="/use_sim_time" value="false"/>
+  <param name="/fake_world/is_pub_control_timeout" value="true"/>
+
+  <node pkg="autolabor_fod_control" type="fod_visual_servo_node.py"
+        name="fod_visual_servo" output="screen">
+    <rosparam command="load" file="$(find autolabor_fod_control)/config/visual_servo.yaml"/>
+    <rosparam command="load" file="$(find autolabor_fod_control)/config/visual_camera_zed2.yaml"/>
+    <rosparam command="load" file="$(find autolabor_fod_control)/../../../config/fod_zed_ground_roi.yaml"/>
+    <param name="allow_motion" value="true"/>
+    <param name="expected_detector_node" value="/fake_world"/>
+    <param name="expected_camera_node" value="/fake_world"/>
+    <param name="expected_driver_node" value="/fake_world"/>
+    <param name="expected_canbus_node" value="/fake_world"/>
+    <param name="cmd_vel_topic" value="/cmd_vel_fod"/>
+    <param name="expected_cmd_vel_subscriber_node" value="/fod_navigation_mode"/>
+    <param name="status_rate_hz" value="10.0"/>
+  </node>
+
+  <node pkg="autolabor_fod_control" type="fod_navigation_mode_manager.py"
+        name="fod_navigation_mode" output="screen">
+    <param name="expected_driver_node" value="/fake_world"/>
+    <param name="expected_gps_limiter_node" value="/fake_world"/>
+    <param name="sweep_ip" value="127.0.0.1"/>
+    <param name="sweep_port" value="$(arg sweep_port)"/>
+    <!-- The fixture starts after the manager; the actual command/odom link is
+         exercised by every trajectory, while launch startup may be unordered. -->
+    <param name="require_output_driver" value="false"/>
+    <param name="status_rate_hz" value="10.0"/>
+  </node>
+
+  <test test-name="full_recovery" pkg="autolabor_fod_control"
+        type="test_full_recovery_ros.py" name="fake_world" time-limit="800.0">
+    <param name="sweep_port" value="$(arg sweep_port)"/>
+    <param name="seed" value="$(arg seed)"/>
+    <param name="case_filter" value="$(arg case_filter)"/>
+    <param name="results_file" value="$(arg results_file)"/>
+  </test>
+</launch>

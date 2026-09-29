@@ -26,6 +26,7 @@ catkin_package(
 
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_steer_center_calibration.py)
+  catkin_add_nosetests(test/test_wait_for_topics.py)
 endif()
 
 catkin_install_python(PROGRAMS

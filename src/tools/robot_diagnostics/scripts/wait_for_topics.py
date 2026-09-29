@@ -8,12 +8,6 @@ import rosgraph
 import rospy
 
 
-def topic_exists(topic_name):
-    master = rosgraph.Master("/wait_for_topics")
-    published = master.getPublishedTopics("")
-    return any(name == topic_name for name, _topic_type in published)
-
-
 def main():
     rospy.init_node("wait_for_topics", anonymous=True)
     topics = rospy.get_param("~topics", [])
@@ -29,16 +23,17 @@ def main():
 
     deadline = time.time() + timeout
     pending = set(topics)
+    master = rosgraph.Master(rospy.get_name())
     while pending and not rospy.is_shutdown():
-        for topic in list(pending):
-            try:
-                ready = topic_exists(topic)
-            except Exception as exc:
-                rospy.logwarn_throttle(2.0, "Waiting for ROS master/topics: %s", exc)
-                ready = False
-            if ready:
-                rospy.loginfo("Topic ready: %s", topic)
-                pending.remove(topic)
+        try:
+            published = {name for name, _topic_type in master.getPublishedTopics("")}
+        except Exception as exc:
+            rospy.logwarn_throttle(2.0, "Waiting for ROS master/topics: %s", exc)
+            published = set()
+        ready = pending & published
+        for topic in sorted(ready):
+            rospy.loginfo("Topic ready: %s", topic)
+        pending.difference_update(ready)
         if not pending:
             break
         if time.time() > deadline:

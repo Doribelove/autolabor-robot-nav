@@ -219,7 +219,11 @@ namespace autolabor_driver {
 
         if (init()) {
             canbus_msg_service_ = node.advertiseService("canbus_server", &CanbusDriver::canbus_service, this);
-            canbus_msg_pub_ = node.advertise<autolabor_canbus_driver::CanBusMessage>("canbus_msg", 10);
+            // One 256-byte serial read can contain 18 data frames (or 42
+            // short frames). Parsing publishes that batch before ROS flushes
+            // the connection, so a 10-message queue drops valid telemetry,
+            // including the infrequent emergency/status query replies.
+            canbus_msg_pub_ = node.advertise<autolabor_canbus_driver::CanBusMessage>("canbus_msg", 100);
             boost::thread parse_thread(boost::bind(&CanbusDriver::parse_msg, this));
         }
         ros::spin();

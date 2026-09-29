@@ -6,6 +6,7 @@ import math
 import threading
 import time
 import unittest
+from collections import deque
 
 import rospy
 import rostest
@@ -45,11 +46,29 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.yaw = 0.0
         self.travel_m = 0.0
         self.command = Twist()
+        self.command_history = deque(maxlen=100)
+        self.actual_linear_x = 0.0
+        self.simulate_chassis_inertia = (
+            self._testMethodName in (
+                "test_continuous_eighty_cm_with_chassis_inertia",
+                "test_early_loss_and_returning_boxes_complete_one_crossing",
+            )
+        )
+        self.first_zero_forward_m = None
+        self.early_loss_case = (
+            self._testMethodName == "test_early_loss_and_returning_boxes_complete_one_crossing"
+        )
+        self.loss_at_travel_m = 0.15 if self.early_loss_case else 0.50
+        self.first_loss_stamp = None
+        self.selected_target_ids = set()
+        self.last_visible_fraction = None
+        self.intermediate_zero_commands = []
         self.minimum_angular_command = 0.0
         self.maximum_angular_command = 0.0
         self.maximum_linear_command = 0.0
         self.loss_pose = None
         self.loss_odom_release_monotonic = None
+        self.pending_odom = []
         self.detection_frame_count = 0
         self.saw_sync_wait = False
         self.latest_reason = ""
@@ -136,6 +155,14 @@ class FakeWorldIntegrationTest(unittest.TestCase):
     def _command_cb(self, msg):
         with self.lock:
             self.command = msg
+            self.command_history.append((time.monotonic(), msg))
+            if self.loss_pose is not None:
+                forward, _ = local_displacement(
+                    *self.loss_pose, self.x, self.y)
+                if abs(msg.linear.x) < 1e-6 and self.first_zero_forward_m is None:
+                    self.first_zero_forward_m = forward
+                if forward < 0.795 and abs(msg.linear.x) < 1e-6:
+                    self.intermediate_zero_commands.append(forward)
             self.minimum_angular_command = min(
                 self.minimum_angular_command, float(msg.angular.z)
             )
@@ -153,11 +180,16 @@ class FakeWorldIntegrationTest(unittest.TestCase):
 
     def _status_cb(self, msg):
         try:
-            reason = str(json.loads(msg.data).get("reason", ""))
+            status = json.loads(msg.data)
+            reason = str(status.get("reason", ""))
         except (TypeError, ValueError):
             return
         with self.lock:
             self.latest_reason = reason
+            if status.get("target_locked"):
+                self.selected_target_ids.add(status["target_track_id"])
+            if status.get("target_visible"):
+                self.last_visible_fraction = status["vertical_fraction"]
             if "waiting for synchronized odometry" in reason:
                 self.saw_sync_wait = True
 
@@ -246,6 +278,14 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         with self.lock:
             commanded_linear_x = float(self.command.linear.x)
             commanded_angular_z = float(self.command.angular.z)
+            if self.simulate_chassis_inertia:
+                delayed = [command for stamp, command in self.command_history
+                           if stamp <= now_monotonic - 0.12]
+                if delayed:
+                    commanded_linear_x = delayed[-1].linear.x
+                    commanded_angular_z = delayed[-1].angular.z
+                else:
+                    commanded_linear_x = commanded_angular_z = 0.0
             # Model both physical M2 observations: 0.12 m/s can turn the front
             # wheel yet fails to produce sustained odometry, while 0.20 m/s
             # has already started the same chassis in straight calibration.
@@ -255,6 +295,16 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             else:
                 linear_x = commanded_linear_x
                 angular_z = commanded_angular_z
+            if self.simulate_chassis_inertia:
+                # Measured chassis motion cannot change instantaneously with
+                # a Twist: include 120 ms response and 1 m/s^2 acceleration /
+                # braking, rather than hiding the real stop-and-restart bug.
+                target_linear_x = linear_x
+                self.actual_linear_x += max(-dt, min(
+                    dt, target_linear_x - self.actual_linear_x))
+                linear_x = self.actual_linear_x
+                angular_z = (commanded_angular_z * linear_x / commanded_linear_x
+                             if abs(commanded_linear_x) > 1e-5 else 0.0)
             self.yaw += angular_z * dt
             self.x += linear_x * math.cos(self.yaw) * dt
             self.y += linear_x * math.sin(self.yaw) * dt
@@ -267,12 +317,12 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         stamp = rospy.Time.now()
         self._publish_camera(stamp)
         self._publish_detection(stamp, travel, x, y, yaw)
-        visible = travel < 0.50
+        visible = travel < self.loss_at_travel_m
         publish_odom = True
         with self.lock:
             if not visible and self.loss_odom_release_monotonic is None:
                 # Keep the first-loss source stamp ahead of odometry long
-                # enough for LOSS_CONFIRM -> STEER_SETTLE to happen first.
+                # enough for APPROACH -> BLIND_ADVANCE to happen first.
                 # This exercises the bounded pending interpolation path that a
                 # same-timer detector/odom simulation would otherwise miss.
                 self.loss_odom_release_monotonic = now_monotonic + 0.24
@@ -284,7 +334,17 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         if self.freeze_odom_after_loss and not visible:
             publish_odom = False
         if publish_odom:
+            # Model delayed delivery with original source timestamps, rather
+            # than silently dropping every sample across the braking event.
+            # Otherwise interpolation of the 0.24 s gap invents a different
+            # loss pose (centimetres at 0.6 m/s) and invalidates the assertion
+            # against this world's exact first-loss position.
+            for sample in self.pending_odom:
+                self._publish_odometry(*sample)
+            self.pending_odom.clear()
             self._publish_odometry(stamp, x, y, yaw, linear_x, angular_z)
+        elif not self.freeze_odom_after_loss:
+            self.pending_odom.append((stamp, x, y, yaw, linear_x, angular_z))
         wheel_angle = (
             math.atan(angular_z * WHEELBASE / linear_x)
             if abs(linear_x) > 1e-5
@@ -323,15 +383,21 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         message.model_task = "detect"
         message.inference_ms = 20.0
         self.detection_frame_count += 1
-        visible = travel < 0.50
+        visible = travel < self.loss_at_travel_m
+        if not visible and self.first_loss_stamp is None:
+            self.first_loss_stamp = stamp.to_sec()
+        # Reproduce the real abort: loss while still near mid-image, followed
+        # by the same box blinking back after loss confirmation, with two
+        # unrelated objects still visible. Finish once, without switching IDs.
+        returning_box = (self.early_loss_case and self.first_loss_stamp is not None
+                         and stamp.to_sec() - self.first_loss_stamp > 0.40
+                         and self.detection_frame_count % 3 == 0)
         off_center_case = (
             self._testMethodName
             == "test_off_center_target_is_acquired_and_steered_toward"
         )
-        # After the six-frame acquisition, remove twelve consecutive frames.
-        # The robot must start through its physical deadband, retain the last
-        # visual command, and associate the substantially moved target when it
-        # returns. Later isolated drops exercise the same hold path repeatedly.
+        # Intermittent loss during off-centre steering must complete the same
+        # one-shot advance; returning boxes must not abort or extend it.
         simulate_dropout = off_center_case and travel < 0.20 and (
             8 <= self.detection_frame_count <= 19
             or (
@@ -339,8 +405,10 @@ class FakeWorldIntegrationTest(unittest.TestCase):
                 and self.detection_frame_count % 8 == 0
             )
         )
-        if visible and not simulate_dropout:
+        if (visible and not simulate_dropout) or returning_box:
             q = 0.50 + 0.42 * min(1.0, travel / 0.35)
+            if self.early_loss_case:
+                q = 0.50 + min(0.10, travel * 0.2)
             if off_center_case:
                 initial_offset = -0.58 * 0.5 * WIDTH
             else:
@@ -351,6 +419,10 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             item.class_id = 0
             item.class_name = "Metal"
             item.confidence = 0.90
+            item.track_id = 1
+            item.depth_valid = True
+            item.depth_m = 1.0
+            item.range_m = 1.1
             item.bbox = RegionOfInterest(
                 x_offset=int(round(u - 50.0)),
                 y_offset=int(round(v - 80.0)),
@@ -364,6 +436,20 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             with self.lock:
                 if self.loss_pose is None:
                     self.loss_pose = (x, y, yaw)
+        if self.early_loss_case:
+            for identity, u in ((2, CX - 200), (3, CX + 200)):
+                item = FodDetection()
+                item.class_id = 0
+                item.class_name = "Metal"
+                item.confidence = .95
+                item.track_id = identity
+                item.depth_valid = True
+                item.depth_m = 2.0
+                item.range_m = 2.1
+                item.bbox = RegionOfInterest(
+                    x_offset=int(u - 30), y_offset=430, width=60, height=80)
+                item.anchor_px = Point32(x=u, y=510.0)
+                message.detections.append(item)
         self.detection_pub.publish(message)
 
     def _publish_odometry(self, stamp, x, y, yaw, linear_x, angular_z):
@@ -389,6 +475,17 @@ class FakeWorldIntegrationTest(unittest.TestCase):
                 break
             rospy.sleep(0.05)
         rospy.sleep(0.8)
+        # Each test recreates the fake VCU. Seed its healthy initial state so
+        # a prior test's aged round-robin replies cannot cause an unrelated
+        # PRECHECK/APPROACH timeout before this test injects its intended fault.
+        for msg_type in (0x17, 0x18, 0x19, 0x80):
+            response = CanBusMessage()
+            response.node_type = 0x10
+            response.node_seq = 0x00
+            response.msg_type = msg_type
+            response.payload = [0x10] if msg_type == 0x80 else [0]
+            self.canbus_pub.publish(response)
+        rospy.sleep(0.1)
         response = rospy.ServiceProxy(
             "/fod_visual_servo/set_enabled", SetBool
         )(True)
@@ -424,13 +521,14 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.assertEqual(states[-1], "COMPLETE", "state trace: %r" % states)
         self.assertIn("APPROACH", states)
         self.assertNotIn("REACQUIRE", states)
-        self.assertIn("LOSS_CONFIRM", states)
-        self.assertIn("STEER_SETTLE", states)
+        self.assertIn("BLIND_ADVANCE", states)
+        self.assertNotIn("STEER_SETTLE", states)
         self.assertIn("BLIND_ADVANCE", states)
         self.assertIn("FINAL_STOP", states)
         self.assertTrue(saw_sync_wait, "delayed-odom synchronization path was not exercised")
         self.assertLess(minimum_angular, -1e-4)
-        self.assertLessEqual(maximum_linear, 0.20 + 1e-6)
+        self.assertLessEqual(maximum_linear, 0.60 + 1e-6)
+        self.assertGreaterEqual(maximum_linear, 0.59)
         self.assertAlmostEqual(command.linear.x, 0.0, places=6)
         self.assertAlmostEqual(command.angular.z, 0.0, places=6)
         self.assertIsNotNone(loss_pose)
@@ -441,9 +539,36 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             end_pose[0],
             end_pose[1],
         )
-        self.assertGreaterEqual(forward, 0.495)
-        self.assertLessEqual(forward, 0.55)
+        self.assertGreaterEqual(forward, 0.795)
+        self.assertLessEqual(forward, 0.90)
         self.assertLessEqual(abs(lateral), 0.08)
+        self.assertFalse(self.intermediate_zero_commands,
+                         "unexpected stop before completing 0.80 m")
+
+    def test_continuous_eighty_cm_with_chassis_inertia(self):
+        self._enable_controller()
+        terminal = self._wait_for_terminal_state(25.0)
+        with self.lock:
+            states = list(self.states)
+            reason = self.latest_reason
+            loss_pose = self.loss_pose
+            end_pose = (self.x, self.y)
+            intermediate_stops = list(self.intermediate_zero_commands)
+            command = self.command
+        self.assertEqual(terminal, "COMPLETE", "%r: %s" % (states, reason))
+        self.assertNotIn("STEER_SETTLE", states)
+        self.assertFalse(intermediate_stops, intermediate_stops)
+        self.assertIn("BLIND_ADVANCE", states)
+        forward, lateral = local_displacement(*loss_pose, *end_pose)
+        self.assertGreaterEqual(forward, 0.795)
+        # The command stops at 0.80 m; this model has 120 ms transport delay
+        # plus finite deceleration. Check both the trigger and actual rest,
+        # rather than calling normal post-command braking a visual abort.
+        self.assertGreaterEqual(self.first_zero_forward_m, .795)
+        self.assertLessEqual(self.first_zero_forward_m, .835)
+        self.assertLessEqual(forward - self.first_zero_forward_m, .065)
+        self.assertLessEqual(abs(lateral), 0.08)
+        self.assertEqual(command.linear.x, 0.0)
 
     def test_off_center_target_is_acquired_and_steered_toward(self):
         self._enable_controller()
@@ -460,6 +585,29 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         # An image-left target must produce positive ROS yaw while advancing.
         self.assertGreater(maximum_angular, 1e-4)
 
+    def test_early_loss_and_returning_boxes_complete_one_crossing(self):
+        self._enable_controller()
+        terminal = self._wait_for_terminal_state(25.0)
+        with self.lock:
+            states = list(self.states)
+            reason = self.latest_reason
+            forward, lateral = local_displacement(*self.loss_pose, self.x, self.y)
+            stopped = list(self.intermediate_zero_commands)
+            ids = set(self.selected_target_ids)
+            last_visible = self.last_visible_fraction
+        self.assertEqual(terminal, "COMPLETE", "%r: %s" % (states, reason))
+        self.assertEqual(ids, {1})
+        self.assertLess(last_visible, .70)
+        self.assertNotIn("EDGE_ARMED", states)
+        self.assertNotIn("REACQUIRE", states)
+        self.assertEqual(states.count("BLIND_ADVANCE"), 1)
+        self.assertFalse(stopped, stopped)
+        self.assertGreaterEqual(forward, .795)
+        self.assertGreaterEqual(self.first_zero_forward_m, .795)
+        self.assertLessEqual(self.first_zero_forward_m, .835)
+        self.assertLessEqual(forward - self.first_zero_forward_m, .065)
+        self.assertLessEqual(abs(lateral), .08)
+
     def test_stale_wheel_feedback_cannot_authorize_blind_motion(self):
         self._enable_controller()
         terminal = self._wait_for_terminal_state(18.0)
@@ -469,8 +617,8 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             command = self.command
             reason = self.latest_reason
         self.assertEqual(terminal, "ABORT", "state trace: %r" % states)
-        self.assertIn("STEER_SETTLE", states)
-        self.assertNotIn("BLIND_ADVANCE", states)
+        self.assertIn("BLIND_ADVANCE", states)
+        self.assertNotIn("COMPLETE", states)
         self.assertIn("wheel", reason.lower())
         self.assertAlmostEqual(command.linear.x, 0.0, places=6)
         self.assertAlmostEqual(command.angular.z, 0.0, places=6)
@@ -484,8 +632,8 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             command = self.command
             reason = self.latest_reason
         self.assertEqual(terminal, "ABORT", "state trace: %r" % states)
-        self.assertIn("STEER_SETTLE", states)
-        self.assertNotIn("BLIND_ADVANCE", states)
+        self.assertIn("BLIND_ADVANCE", states)
+        self.assertNotIn("COMPLETE", states)
         self.assertIn("odom", reason.lower())
         self.assertAlmostEqual(command.linear.x, 0.0, places=6)
         self.assertAlmostEqual(command.angular.z, 0.0, places=6)

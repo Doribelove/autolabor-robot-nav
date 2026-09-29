@@ -10,6 +10,7 @@
   <arg name="broadcast_tf" default="true"/>
   <arg name="heading_source" default="dual_antenna"/>
   <arg name="heading_timeout" default="1.0"/>
+  <arg name="heading_continuation_timeout" default="3.0"/>
   <arg name="heading_required_solution_status" default="SOL_COMPUTED"/>
   <arg name="heading_required_position_types" default="NARROW_INT"/>
   <arg name="gps_antenna_offset_x" default="-0.3"/>
@@ -58,6 +59,7 @@
     <param name="broadcast_tf" value="$(arg broadcast_tf)"/>
     <param name="heading_source" value="$(arg heading_source)"/>
     <param name="heading_timeout" value="$(arg heading_timeout)"/>
+    <param name="heading_continuation_timeout" value="$(arg heading_continuation_timeout)"/>
     <param name="heading_required_solution_status" value="$(arg heading_required_solution_status)"/>
     <param name="heading_required_position_types" value="$(arg heading_required_position_types)"/>
     <param name="gps_antenna_offset_x" value="$(arg gps_antenna_offset_x)"/>
