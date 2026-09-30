@@ -1,0 +1,25 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-C3
+preregistration_id: v3_scope_v3_06_c3_qualification_preregistration_1
+status: frozen_before_any_v3_06_c3_outcome_or_release
+fresh_population:
+  seeds: [6521, 6522, 6523, 6524, 6525, 6526]
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  methods: [sparse_control, minimal_v040]
+  exact_episodes: 36
+  attempts_per_identity: 1
+qualification_gate:
+  relative_restricted_time_reduction_min: 0.02
+  treatment_goal_success_rate_min: 0.95
+  positive_pair_fraction_min: 0.50
+  shared_planner_latency_p99_max_ms: 20.0
+  all_shared_safety_and_replay_gates: true
+failure_policy:
+  preserve_all_outcomes: true
+  no_retry_resume_or_seed_replacement: true
+  no_formal_claim_from_qualification_data: true
+budget:
+  simulation_units: 36
+  training_steps: 0
+  hardware_runs: 0

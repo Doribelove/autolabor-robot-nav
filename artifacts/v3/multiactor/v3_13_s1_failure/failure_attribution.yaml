@@ -1,0 +1,55 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-S1-D1
+status: terminal_sequential_collection_integrity_gate_fail
+execution_release_sha256: f5f52f9ad600214ce4305da7b33cb2934ed56b245ee945c7da6df764188b1831
+collection_summary_sha256: 2ab9e051abd35560b36f85720965909b6428701f22e505f9b0e3c13ab7aecbf3
+authorized_units: 32
+consumed_units: 32
+completed_units: 32
+forfeited_units: 0
+attempts_per_identity: 1
+retry_resume_replacement_or_selective_exclusion_observed: false
+complete_action_support_rate: 1.0
+episode_collection_pass_count: 31
+episode_collection_fail_count: 1
+failed_checks:
+- branch_modes_assertive
+- paired_decision_actor_coordinate
+- paired_decision_actor_speed
+maximum_decision_ego_x_range_m: 0.016001174946416175
+maximum_decision_actor_coordinate_range_m: 0.06954788517599964
+maximum_decision_actor_speed_range_mps: 0.141591172568021
+unique_ambiguous_identity:
+  seed: 7224
+  block_index: 4
+  scene_id: occluded_staggered_corridor
+  pre_action_wait_s: 5.0
+  forced_candidate_id: spatial_right_v120
+  ambiguous_tracks:
+  - track_id: 1
+    mode: ERROR:MODE_AMBIGUOUS
+    coordinate_speed_mps: 0.7778780058239165
+    assertive_lower_bound_mps: 0.778912499986
+    shortfall_to_assertive_mps: 0.0010344941620834547
+attribution:
+  primary: branch decisions were triggered relative to a variable warmup-gate time
+  secondary: the instantaneous backward derivative is phase-sensitive at the fail-closed
+    observable-mode boundary
+  process_or_gazebo_crash: false
+  candidate_execution_failure: false
+  support_population_missing: false
+  posthoc_gate_lowering_allowed: false
+prospective_single_repair:
+  fixed_absolute_sim_clock_branch_barrier: true
+  causal_windowed_actor_speed_estimate: true
+  all_original_matching_thresholds_retained: true
+  fresh_seed_and_budget_required: true
+  S1_identity_or_seed_reuse_forbidden: true
+assertive_recovery_predictor_fit_authorized: false
+policy_or_ranker_training_authorized: false
+actual_teb_comparison_authorized: false
+perception_claim_authorized: false
+performance_claim_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

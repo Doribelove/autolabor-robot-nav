@@ -1,0 +1,39 @@
+schema_version: "1.0"
+stage: V3-22-P1
+title: thesis_ready_figures_tables_and_result_narrative
+mode: pure_offline
+inputs:
+  primary_characterization: artifacts/v3/thesis/v3_21_f1_execution/formal_characterization_assessment.yaml
+  canonical_episodes: artifacts/v3/thesis/v3_21_f1_execution/canonical_episodes.csv
+  method_summary: artifacts/v3/thesis/v3_21_f1_execution/method_summary.csv
+  comparison_summary: artifacts/v3/thesis/v3_21_f1_execution/comparison_summary.csv
+  block_results: artifacts/v3/thesis/v3_21_f1_execution/block_results.csv
+  stratum_results: artifacts/v3/thesis/v3_21_f1_execution/stratum_results.csv
+  primary_review: artifacts/v3/thesis/v3_21_f1_execution/independent_result_review.yaml
+  historical_actual_teb_result: artifacts/v3/actual_teb/v3_11_f1_assessment/formal_assessment.yaml
+outputs:
+  figure_formats: [pdf, svg, png]
+  table_format: latex_booktabs
+  narrative_languages: [zh, en]
+  deterministic: true
+statistics:
+  independent_unit: paired_scene_seed_block
+  restricted_failure_time_s: 22.0
+  paired_bootstrap_resamples: 20000
+  confidence_interval: two_sided_95_percent
+  multiplicity_adjustment: holm
+claim_policy:
+  preserve_historical_v3_11_formal_positive: true
+  characterize_v3_21_as_formal_positive: false
+  v3_21_result_label: complete_failure_inclusive_characterization_with_one_protocol_deviation
+  do_not_pool_v3_11_and_v3_21: true
+  disclose_v3_21_nonreplication_vs_actual_teb: true
+  disclose_v3_21_ablation_effect: true
+  perception_ood_formal_safety_deployment_real_vehicle_claims: false
+authority:
+  ros_gazebo_execution: false
+  training: false
+  hardware: false
+  online_parameter_writes: false
+  filesystem_scope: thesis_workspace_only
+

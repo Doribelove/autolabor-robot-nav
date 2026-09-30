@@ -1,0 +1,31 @@
+{
+  "revision": "r2",
+  "status": "author_offline_temporal_regressions_pass_independent_review_pending",
+  "changed": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator.py",
+      "old_sha256": "6065e7d094a45d0ce41a279618803a019a5ac89a496ed6c8096597e49758c80b",
+      "new_sha256": "1574d381a0cf4e6fc98f0702e91c0b36173035302448a50e35faf29379211b42"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_coordinator.py",
+      "old_sha256": "b978b03047b33e7ba40bc3cc0a4ff16ad60d853eab90c77c9a1aedce05d9297f",
+      "new_sha256": "5967a11239976c6642e7c11aae93c8d25ff628ff687f1c9c7e1cc636cddf2729"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+      "old_sha256": "0aac24213d6df95b8ec2ccbf72bf82f08dab6ec6d6bd0001da0573d8c84756d9",
+      "new_sha256": "1f2bb1da971fc2536dd0243562bb523d14875bff52b40b6193541544b1dc9959"
+    }
+  ],
+  "unchanged_other_files": 5,
+  "repairs": {
+    "terminal": "first write immutable; subsequent faults retained separately as late_faults/count",
+    "odom_transport": "strictly increasing source stamps queued in ingress order until local clock covers; preserve exact stamps; future lead>200ms, stale dequeue>200ms, overflow1000, nonfinite or source regression fail closed",
+    "deadline": "request zero at declared clock deadline; timeout only on ordered actual odometry source watermark>=deadline, allowing earlier delayed goal packet to decide completion"
+  },
+  "tests_passed": 42,
+  "numeric_thresholds_unchanged": true,
+  "ros_started": false,
+  "execution_allocations": 0
+}

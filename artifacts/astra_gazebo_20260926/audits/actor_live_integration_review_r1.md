@@ -1,0 +1,9 @@
+# Actor live R1 生命周期修补
+
+R1组件测试通过；无ROS执行。当前共同环境为`astra_common_environment_v4_routegate_ego_clock_fault_guard_z0_evidence`，输入为`scenes/development_a02_live_v2/diagnostic_blocks.csv`。12输入继承同一A02的6几何/seed/参数，不新增独立几何。live_v1与其plugin/helper原字节快照完整保留。
+
+historical_audit独立审查指出：ego失踪后直接return可能导致复现时补积分整个缺失区间；Load到首次update之间的clock回退原来没有锚。R1修复在Load即锚定source clock；初始机器人尚未spawn允许继续等待且保持start姿态，已观察机器人失踪则永久gate_fault；时钟回退包括首次ego出现前也永久fault，后续恢复时间/重现ego不得重新启动。
+
+新增上述边界测试通过；原有delay锁存、无preactivation位移、部分physics-step裁剪、SE2时间序列、4500次旧reaction精确等价和5个派生输入测试仍通过。旧V3 actor源码/header与source_snapshot逐字节一致。原反应规则未修改、未引入actor噪声。response_enable_time仍是继承的绝对simtime阈值，当前默认0；新相对时序专指activation gate_delay。
+
+root需重新编译并绑定最终plugin/header；D01若出现`AstraReactiveActorPlugin gate_fault`应判环境/基础设施无效并保留失败，不能作为正常算法负样本。其余actual-vs-reserved RNG映射见`actor_live_parameter_mapping_r1.json`；未用future streams非执行阻断。完整非identity planner/map/evaluator桥接仍未实现，派生脚本对此显式拒绝。

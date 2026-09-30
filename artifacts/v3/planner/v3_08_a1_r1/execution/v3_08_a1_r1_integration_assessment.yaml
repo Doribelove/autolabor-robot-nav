@@ -1,0 +1,48 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-08-A1-R1
+status: spatial_planner_simulation_integration_fail
+formal_result: false
+execution:
+  authorized_units: 18
+  consumed_units: 18
+  completed_units: 18
+  retry_units: 0
+metrics:
+  episode_count: 18
+  goal_success_rate: 0.9444444444444444
+  selected_candidate_accepted_rate: 1.0
+  certified_stop_available_rate: 1.0
+  exact_core_replay_rate: 1.0
+  cautious_hesitant_first_spatial_rate: 1.0
+  assertive_spatial_selection_count: 0
+  assertive_cleared_straight_recovery_rate: 0.8333333333333334
+  minimum_conservative_clearance_m: 0.36676680624978064
+  conservative_clearance_violation_count: 0
+  maximum_segment_boundary_ego_position_jump_m: 0.006000000000000227
+  maximum_segment_boundary_actor_position_jump_m: 0.006750000307134574
+  maximum_selected_trajectory_trace_error_m: 6.711281474104222e-10
+  planner_latency_p99_ms: 15.692239
+  nonfinite_metric_count: 0
+  evaluator_policy_leak_count: 0
+  decision_count: 148
+gates:
+  episode_count_pass: true
+  goal_pass: false
+  selected_pass: true
+  stop_pass: true
+  replay_pass: true
+  spatial_activation_pass: true
+  assertive_fail_closed_pass: true
+  assertive_recovery_pass: false
+  clearance_pass: true
+  boundary_pass: true
+  trace_pass: true
+  latency_pass: true
+  finite_pass: true
+  no_hidden_policy_leak_pass: true
+overall_pass: false
+qualified_for_fresh_performance_evaluation: false
+performance_claim_authorized: false
+runtime_ready: false
+real_vehicle_authorized: false

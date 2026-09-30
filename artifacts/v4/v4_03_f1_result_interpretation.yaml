@@ -1,0 +1,36 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-03-F1
+status: bounded_training_negative_terminal
+date: "2026-08-07"
+training_report:
+  path: artifacts/v4/v4_03_f1_seed4102/training_report.yaml
+  sha256: a701f7b2e172287a50d926d1f3f9aafecac4b7bbe161cc1b08fafd43187d93a6
+selected_checkpoint:
+  path: artifacts/v4/v4_03_f1_seed4102/best_model.pt
+  sha256: 239b36fd88a7ef74955e4acb7d453bc41f0b000db54db6e294601edf58f91c29
+training_seed: 4102
+training_environment_steps: 150000
+validation_seed_range_inclusive: [421200, 421399]
+result:
+  validation_checkpoint_count: 15
+  analytic_mean_restricted_elapsed_s: 7.82625
+  learned_mean_restricted_elapsed_s: 7.82625
+  paired_relative_time_reduction_mean: 0.0
+  analytic_goal_rate: 1.0
+  learned_goal_rate: 1.0
+  contact_count: 0
+  mask_violation_count: 0
+  heldout_fast_backend_time_reduction_gate_pass: false
+  learned_optimization_demonstrated: false
+diagnosis: >-
+  Masked PPO converged to the analytic choices at every validation checkpoint.
+  The 0.25 s time improvements exposed by the counterfactual audit are small
+  relative to the frozen smoothness and switching terms, so validation return
+  does not prefer the lower-time counterfactual actions.
+next_action: preregister_exactly_one_reward_metric_alignment_factor
+prohibitions:
+  - do_not_enter_gazebo_from_f1
+  - do_not_claim_reinforcement_learning_benefit
+  - do_not_reuse_f1_validation_seeds
+  - do_not_extend_f1_training_budget

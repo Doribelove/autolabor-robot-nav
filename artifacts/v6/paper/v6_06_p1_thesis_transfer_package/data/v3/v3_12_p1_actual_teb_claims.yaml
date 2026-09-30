@@ -1,0 +1,38 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-12-P1
+status: actual_teb_paper_claim_boundary_frozen
+formal_source_stage: V3-11-F1-ANALYSIS-R1
+formal_result: true
+performance_improvement_demonstrated: true
+qualified_claim: Within 30 fresh paired blocks from three frozen single-reactive-actor
+  Gazebo templates and cautious/hesitant policies, V3 spatial-safe reduced restricted
+  gate-to-goal time by 12.9288% relative to actual TebLocalPlannerROS 0.8.4; the one-sided
+  97.5% paired-bootstrap lower bound was 12.7253%. Both methods achieved 100% goal
+  success and no contact state was observed.
+qualified_scope:
+  paired_blocks: 30
+  episodes: 60
+  scenes:
+  - open_crossing_90
+  - wide_corridor_crossing_70
+  - bounded_corridor_crossing_110
+  actor_policies:
+  - cautious
+  - hesitant
+  comparison: v3_spatial_safe_vs_actual_TebLocalPlannerROS_0_8_4
+  shared_vehicle: autolabor_m2_ackermann_simulation
+  shared_command_boundary: /cmd_vel_navigation
+  shared_oracle_actor_track: true
+forbidden_extrapolations:
+  perception_robustness: false
+  multi_actor_generalization: false
+  out_of_distribution_generalization: false
+  formal_collision_free_guarantee: false
+  learned_policy_or_reinforcement_learning_benefit: false
+  deployment_ready: false
+  real_vehicle_ready: false
+analysis_repair_disclosure:
+  preserved: true
+  type: namespace_only string-label injection after I0 NameError
+  statistic_threshold_or_execution_evidence_changed: false

@@ -1,0 +1,55 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R1-PREFLIGHT
+status: terminal_semantic_no_safe_candidate_failure
+authorized_units: 2
+consumed_units: 1
+completed_units: 0
+forfeited_units: 1
+consumed_identity:
+  actor_policies_evaluator_only:
+  - hesitant
+  - hesitant
+  attempt: 1
+  block_index: 1
+  method: v3_13_analytic
+  scene_id: crossing_and_oncoming
+  seed: 7330
+  sequence: 1
+Gazebo_semantic_execution_reached: true
+actual_TEB_unit_started: false
+observed_failure: NO_SAFE_CANDIDATE_OR_CERTIFIED_STOP
+known_localization: failure occurred during V3 recovery replanning at or after the
+  12.5 s barrier
+instrumentation_gap: terminal runtime did not persist the failing snapshot and per-candidate
+  rejection codes
+next_safe_entry:
+  new_stage_and_fresh_diagnostic_seed_required: true
+  read_only_failure_snapshot_and_rejection_instrumentation: true
+  planner_predictor_actor_TEB_or_gate_change_authorized: false
+retry_resume_or_seed_reuse_authorized: false
+qualification_seed_consumed: false
+resources:
+- path: artifacts/v3/multiactor/v3_13_q1_r1_preflight_readiness/execution_release.yaml
+  sha256: 0488d139ce7f5761a93d9a1f222b3579445212b09cb74f8618757dcd5996eac1
+- path: artifacts/v3/multiactor/v3_13_q1_r1_preflight_readiness/independent_review.yaml
+  sha256: 5e861234c03860c1373a9576547864dac6971becf251bd19ac4aa704ab221573
+- path: artifacts/v3/multiactor/v3_13_q1_r1_preflight/exact_schedule.yaml
+  sha256: 649958edd494cdecb1e4cd353d12d1909be1ab876e54fc0b6240a8b0c66c640b
+- path: artifacts/v3/multiactor/v3_13_q1_r1_preflight/attempt_journal.jsonl
+  sha256: bf3ce6409b1b06f784e42d98ae54c61eed70b06fa175a43632b6aa1c8390d60d
+- path: artifacts/v3/multiactor/v3_13_q1_r1_preflight/episodes/001_01_7330_v3_13_analytic/world.sdf
+  sha256: fb843568a0e2227ef9156c3a1b5ceece668521b6f3e91ba7a794150a52776aeb
+- path: artifacts/v3/multiactor/v3_13_q1_r1_preflight/episodes/001_01_7330_v3_13_analytic/scene_spec.yaml
+  sha256: 20b865a0ab70daef58a24b12d02e80f24cee2420a0151d46782fdebbd9b1e869
+- path: artifacts/v3/multiactor/v3_13_q1_r1_preflight/episodes/001_01_7330_v3_13_analytic/actor_specs.yaml
+  sha256: ba01b11f5c715f319b74fb3894482f2b7837c802df2c61c6ac2c2e65bf6439c1
+- path: artifacts/v3/multiactor/v3_13_q1_r1_preflight/episodes/001_01_7330_v3_13_analytic/roslaunch.log
+  sha256: 4aac75fb5ad42a6863ce75f0ad2e0b0919aabb100849615c6efd2aeb2ea50e94
+- path: src/tools/thesis_experiment/scripts/freeze_v3_13_q1_r1_preflight_failure.py
+  sha256: d897954544774ab5cd7d8f68efe32fd1701bb115ed3053c8e6cd195583dd003c
+- path: src/tools/thesis_experiment/scripts/review_v3_13_q1_r1_preflight_failure.py
+  sha256: d0e2265496c2656ceaad574e12b3b93234364a2c1e6d035e5c310bef46369446
+policy_or_ranker_training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false

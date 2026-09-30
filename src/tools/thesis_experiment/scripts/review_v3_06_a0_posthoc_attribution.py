@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+"""Independent replay review for V3-06-A0."""
+
+import argparse
+import hashlib
+import importlib.util
+from pathlib import Path
+
+import yaml
+
+
+W = Path("/home/robot/robot_ws_base_rl")
+BUILDER = (
+    W
+    / "src/tools/thesis_experiment/scripts/"
+    "build_v3_06_a0_posthoc_attribution.py"
+)
+
+
+def load_builder():
+    spec = importlib.util.spec_from_file_location(
+        "v3_06_a0_builder_review", BUILDER
+    )
+    value = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(value)
+    return value
+
+
+def sha(payload):
+    return hashlib.sha256(payload).hexdigest()
+
+
+def write_once(path, payload):
+    if path.exists():
+        if path.read_bytes() != payload:
+            raise RuntimeError("refusing overwrite: {}".format(path))
+    else:
+        path.write_bytes(payload)
+
+
+def review(builder):
+    outputs = builder.build()
+    for path, payload in outputs.items():
+        builder.core.require(
+            (W / path).is_file() and (W / path).read_bytes() == payload,
+            "builder replay differs: {}".format(path),
+        )
+    report = yaml.safe_load(outputs[builder.REPORT])
+    closure = yaml.safe_load(outputs[builder.CLOSURE])
+    for item in closure["resources"]:
+        payload = (W / item["path"]).read_bytes()
+        builder.core.require(
+            sha(payload) == item["sha256"]
+            and len(payload) == item["size_bytes"],
+            "resource receipt differs: {}".format(item["path"]),
+        )
+    metrics = report["metrics"]
+    effect = report["effect_gate_gap"]
+    builder.core.require(
+        report["overall_pass"] is True
+        and all(report["integrity_gates"].values())
+        and report["analysis_kind"] == "posthoc_pure_offline_descriptive"
+        and metrics["v3_failure_count"] == 6
+        and metrics["fixed_v120_failure_count"] == 8
+        and metrics["paired_outcome_partition"][
+            "fixed_v120_only_success"
+        ]
+        == 0
+        and effect["observed_point_relative_reduction"] < 0.05
+        and report["claim"]["new_performance_improvement"] is False
+        and report["next_single_factor_direction"]["learning_activated"]
+        is False,
+        "V3-06-A0 attribution disposition differs",
+    )
+    return {
+        "schema_version": "1.0",
+        "architecture_generation": "v3",
+        "stage": "V3-06-A0",
+        "review_id": "v3_06_a0_independent_review_1",
+        "status": "v3_06_a0_posthoc_attribution_review_pass",
+        "report_sha256": sha(outputs[builder.REPORT]),
+        "paired_csv_sha256": sha(outputs[builder.PAIRED_CSV]),
+        "failure_csv_sha256": sha(outputs[builder.FAILURE_CSV]),
+        "evidence_freeze_sha256": sha(outputs[builder.EVIDENCE_FREEZE]),
+        "dependency_resource_count": len(closure["resources"]),
+        "receipt_count_replayed": metrics["receipt_count"],
+        "decision_count_replayed": (
+            metrics["v3_decision_count"]
+            + metrics["fixed_v120_decision_count"]
+        ),
+        "upstream_negative_result_preserved": True,
+        "new_confirmatory_claim": False,
+        "simulation_authorized": False,
+        "training_authorized": False,
+        "real_vehicle_authorized": False,
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    builder = load_builder()
+    value = review(builder)
+    payload = builder.yaml_bytes(value)
+    output = W / builder.INDEPENDENT_REVIEW
+    terminal_resources = [
+        builder.REPORT,
+        builder.PAIRED_CSV,
+        builder.FAILURE_CSV,
+        builder.CLOSURE,
+        builder.EVIDENCE_FREEZE,
+        builder.INDEPENDENT_REVIEW,
+    ]
+    if args.check:
+        builder.core.require(
+            output.is_file() and output.read_bytes() == payload,
+            "review differs",
+        )
+        expected = (
+            "\n".join(
+                "{}  {}".format(
+                    sha((W / item).read_bytes()), item.as_posix()
+                )
+                for item in terminal_resources
+            )
+            + "\n"
+        ).encode("utf-8")
+        builder.core.require(
+            (W / builder.TERMINAL_FREEZE).read_bytes() == expected,
+            "terminal freeze differs",
+        )
+    else:
+        write_once(output, payload)
+        freeze = (
+            "\n".join(
+                "{}  {}".format(
+                    sha((W / item).read_bytes()), item.as_posix()
+                )
+                for item in terminal_resources
+            )
+            + "\n"
+        ).encode("utf-8")
+        write_once(W / builder.TERMINAL_FREEZE, freeze)
+    print(
+        "status={} review_sha256={}".format(value["status"], sha(payload))
+    )
+
+
+if __name__ == "__main__":
+    main()

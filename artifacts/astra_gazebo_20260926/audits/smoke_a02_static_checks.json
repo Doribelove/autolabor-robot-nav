@@ -1,0 +1,31 @@
+{
+  "checks": {
+    "at_or_before_never_future": true,
+    "camera_full_corridor_fov": true,
+    "new_seed": true,
+    "native_resolution": true
+  },
+  "passed": true,
+  "frame_association_fixture": {
+    "run_id": "fixture",
+    "receipt_sim_time_s": 3.0,
+    "model_receipt_sim_time_s": 1.0,
+    "models": {
+      "source": "before"
+    },
+    "link_receipt_sim_time_s": 1.0,
+    "links": {
+      "source": "before"
+    },
+    "scan_stamp_s": 1.0,
+    "odom_stamp_s": 1.0,
+    "odom_pose": {
+      "source": "before"
+    },
+    "joint_stamp_s": 1.0,
+    "joint_positions_rad": {
+      "source": "before"
+    },
+    "association": "latest source at or before camera stamp; model/link are /clock receipt-time approximations, bounded below"
+  }
+}

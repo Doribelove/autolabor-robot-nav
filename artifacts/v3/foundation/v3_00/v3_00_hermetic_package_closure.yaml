@@ -1,0 +1,58 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-00
+status: source_package_resolution_and_future_environment_design_pass
+offline_only: true
+execution_ready: false
+execution_authorized: false
+current_runtime_environment_snapshot_created: false
+required_package_count: 6
+required_packages:
+- package_name: v3_scope_planner
+  source_root: src/application/v3_scope_planner
+  package_xml_path: src/application/v3_scope_planner/package.xml
+  package_xml_sha256: bc7aea01cc92bb2b2df0b9de2be62ceb9a05da17f6a9381d2ff47842aebee93b
+- package_name: thesis_experiment
+  source_root: src/tools/thesis_experiment
+  package_xml_path: src/tools/thesis_experiment/package.xml
+  package_xml_sha256: cd1fb30521464608db8cd3a6231ec053bd8ca30f5fa7ed3b66c7cb604d600fb1
+- package_name: m2_gazebo
+  source_root: src/simulation/m2_gazebo
+  package_xml_path: src/simulation/m2_gazebo/package.xml
+  package_xml_sha256: e555a96302c3e140f98526e229b6baf1ef65ccc8a564c03846c7087c94a83522
+- package_name: nav_world_model
+  source_root: src/perception/nav_world_model
+  package_xml_path: src/perception/nav_world_model/package.xml
+  package_xml_sha256: aecae311acbe48bb6993851ee87bbfcccda4b8834502385bea6dc6dc1d6009c8
+- package_name: teb_mode_manager
+  source_root: src/application/teb_mode_manager
+  package_xml_path: src/application/teb_mode_manager/package.xml
+  package_xml_sha256: 372417b403bf3178dad4c7eb2b10d9a81be66e5cf72ec4e878d623cd290a2673
+- package_name: gps_module
+  source_root: src/application/gps_module
+  package_xml_path: src/application/gps_module/package.xml
+  package_xml_sha256: f254377e10eb7e0e9409ddb1296665f5dcc12289626a9a2d83dafb8e0950ae46
+future_environment_policy:
+  process_start: env_i_non_login_shell
+  required_source_order:
+  - /opt/ros/noetic/setup.bash
+  - /home/robot/robot_ws_base_rl/devel/setup.bash
+  required_bound_environment_keys:
+  - PATH
+  - PYTHONPATH
+  - ROS_PACKAGE_PATH
+  - CMAKE_PREFIX_PATH
+  - LD_LIBRARY_PATH
+  - ROS_DISTRO
+  credential_keys_in_child_environment_allowed: false
+  source_script_path_and_sha_required: true
+  executable_path_and_sha_required: true
+  package_resolution_probe_required_before_consumption: true
+  package_resolution_failure_may_cross_consumption_boundary: false
+future_release_missing_bindings:
+- exact_source_script_receipts
+- exact_environment_key_value_receipts
+- exact_executable_receipts
+- launch_file_receipts
+- package_lookup_receipts
+- runtime_ports_and_process_ownership

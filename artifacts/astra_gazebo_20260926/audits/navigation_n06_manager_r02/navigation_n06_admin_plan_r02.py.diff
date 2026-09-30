@@ -1,0 +1,62 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan_r02.py
+@@ -13,7 +13,7 @@
+ import shutil
+ import tempfile
+ 
+-import navigation_n06_integrity as q
++import navigation_n06_integrity_r02 as q
+ 
+ FIELDS={
+  'seed_registry.csv':q.REGISTRY_FIELDS,
+@@ -57,8 +57,8 @@
+     for index,row in enumerate(rows):
+         name=row['run_id'];rec=receipts.get(name)
+         if row['status']=='consumed':
+-            if rec is None or rec.get('release_sha256')!=release_sha or any(not q.same_typed(rec[k],row[k]) for k in ('run_id','seed','method','attempt')):raise ValueError('consumed receipt identity missing')
+-            if type(rec.get('integrity_pass'))is not bool:raise ValueError('receipt integrity must be bool')
++            if rec is None:raise ValueError('consumed receipt identity missing')
++            q.validate_terminal_receipt(rec,row,release_sha)
+             if not q.same_typed(row.get('integrity_pass'),rec['integrity_pass']) or not q.same_typed(row.get('task_outcome'),rec['task_outcome']):raise ValueError('ledger and receipt outcomes disagree')
+             if first_failed is not None:raise ValueError('consumed after infrastructure failure')
+             if not rec['integrity_pass']:first_failed=index
+@@ -99,6 +99,7 @@
+             item=receipt_bindings.get(row['run_id'])
+             if item!=row['receipt']:raise ValueError('receipt is not ledger-bound')
+             receipts[row['run_id']]=q.json_bound(item);resources.append(item)
++            resources.extend(q.validate_terminal_receipt(receipts[row['run_id']],row,ledger['release_sha256']))
+     for item in resources:q.read_bound(item)
+     before={name:q.regular_bytes(stage/name) for name in FIELDS}
+     after=projected_tables(before,ledger,receipts,ledger['release_sha256'])
+@@ -141,7 +142,12 @@
+     directory=Path(manifest_binding['path']).parent
+     with (directory/'commit.lock').open('a') as lock:
+         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+-        for item in manifest['resources']:q.read_bound(item)
++        def recheck_inputs():
++            # Include the review/plan themselves; a crash or source drift after
++            # an earlier table replacement must never publish completion.
++            q.read_bound(manifest_binding);q.read_bound(review_binding)
++            for item in manifest['resources']:q.read_bound(item)
++        recheck_inputs()
+         targets=[]
+         for row in manifest['tables']:
+             target=Path(row['target']);before=q.regular_bytes(directory/row['before_file']);after=q.regular_bytes(directory/row['after_file'])
+@@ -155,13 +161,15 @@
+         done=directory/'completion.json'
+         if done.exists():
+             if q.regular_bytes(done)!=q.json_bytes(completion) or any(actual!=row['after_sha256'] for _,row,_,actual in targets):raise ValueError('completed transaction changed')
+-            return completion
++            recheck_inputs();return completion
+         for target,row,after,actual in targets:
+             # Recheck immediately before each replacement. The all-target
+             # precheck above prevents overwriting after known foreign edits.
+-            actual=q.digest(q.regular_bytes(target))
++            recheck_inputs();actual=q.digest(q.regular_bytes(target))
+             if actual not in (row['before_sha256'],row['after_sha256']):raise ValueError('concurrent administrative writer')
+             if actual==row['before_sha256']:q.publish(target,after,replace=True)
++            recheck_inputs()
+             q.publish(directory/'progress.json',{'last_verified_target':str(target),'after_sha256':row['after_sha256']},replace=True)
+         if any(q.digest(q.regular_bytes(target))!=row['after_sha256'] for target,row,_,_ in targets):raise ValueError('post-commit table changed')
++        recheck_inputs()
+         q.publish(done,completion);return completion

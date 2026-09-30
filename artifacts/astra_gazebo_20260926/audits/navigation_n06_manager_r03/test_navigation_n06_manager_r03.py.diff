@@ -1,0 +1,141 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager_r02.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager_r03.py
+@@ -14,30 +14,40 @@
+ from unittest.mock import patch,Mock
+ 
+ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+-import navigation_n06_integrity_r02 as q
+-import navigation_n06_process_r02 as process
+-import navigation_n06_admin_plan_r02 as admin
+-import run_navigation_n06_manager_r02 as manager
+-
+-_RECEIPT_FIXTURES=tempfile.TemporaryDirectory(prefix='n06-r02-assessment-fixtures-')
+-_RECEIPT_COUNTER=0
++import navigation_n06_integrity_r03 as q
++import navigation_n06_process_r03 as process
++import navigation_n06_admin_plan_r03 as admin
++import run_navigation_n06_manager_r03 as manager
+ 
+ def csv_document(fields,rows=()):
+     out=io.StringIO(newline='');writer=csv.DictWriter(out,fieldnames=fields,lineterminator='\r\n');writer.writeheader();writer.writerows(rows);return out.getvalue().encode()
+ 
+ def receipt(row,ok=True,outcome='timeout'):
+-    global _RECEIPT_COUNTER
+-    assessment=None
++    root=q.STAGE/'runs'/row['run_id'];root.mkdir(parents=True,exist_ok=True);report=None
+     if ok:
+-        _RECEIPT_COUNTER+=1;path=Path(_RECEIPT_FIXTURES.name)/('%04d.json'%_RECEIPT_COUNTER)
+-        q.publish(path,dict(schema='astra_navigation_assessment_v1',stage=q.NAME,run_id=row['run_id'],seed=row['seed'],method=row['method'],
+-            capture_integrity_pass=True,task={'task_phase':outcome},integrity_checks={'synthetic_check':True}))
+-        assessment=q.binding(path)
+-    return dict(stage=q.NAME,run_id=row['run_id'],seed=row['seed'],method=row['method'],attempt=1,release_sha256='1'*64,
+-        integrity_pass=ok,task_outcome=outcome if ok else None,error=None if ok else 'injected transport failure',administrative_metadata={},
+-        assessment=assessment,roslaunch_exit_code=0 if ok else None)
+-
+-class IntegrityTests(unittest.TestCase):
++        identity=dict(stage=q.NAME,run_id=row['run_id'],seed=row['seed'],method=row['method'])
++        contract=q.strict_json((q.prepared_api.PREPARED/row['run_id']/'contract.json').read_bytes())
++        (root/'fixture.bag').write_bytes(b'synthetic fixture bytes, never replayed as evidence')
++        (root/'world.sdf').write_bytes(q.read_bound(contract['world']));(root/'robot_description_runtime.xml').write_bytes(q.read_bound(contract['robot_description']))
++        for name in ('converted_robot.sdf','conversion_manifest.json'):(root/name).write_bytes(b'synthetic shape-only fixture; not conversion qualification')
++        (root/'collector_raw.json').write_bytes(q.json_bytes(identity));(root/'collector_report.json').write_bytes(q.json_bytes(dict(identity,**{'pass':True})))
++        (root/'run_closure.json').write_bytes(q.json_bytes(dict(schema='astra_p04_run_closure_v1',stage=q.NAME,run_id=row['run_id'])))
++        (root/'process.json').write_bytes(q.json_bytes({'pid':987654,'pgid':987654,'start_ticks':'synthetic'}))
++        sweep_sources=[q.binding(root/name) for name in ('fixture.bag','world.sdf','robot_description_runtime.xml','run_closure.json','converted_robot.sdf','conversion_manifest.json')]
++        sweep_sources += [q.binding(q.prepared_api.WORKSPACE/'scripts/astra_gazebo'/name) for name in ('dense_sweep_n05.py','dense_sweep.py','geometry.py','evaluate_episode_n05.py','event_actor_contract_n05.py')]
++        (root/'sweep_evaluation').mkdir(exist_ok=True);sweep=root/'sweep_evaluation/report.json';sweep.write_bytes(q.json_bytes({'schema':'astra_p04_engineering_sweep_v1','integrity_pass':True,'source_bindings':sweep_sources}))
++        report=dict(identity,schema='astra_navigation_assessment_v1',capture_integrity_pass=True,task={'task_phase':outcome},
++            integrity_checks={key:True for key in q.ASSESSMENT_CHECKS},source_bindings={name:q.binding(root/name) for name in q.ASSESSMENT_SOURCES},sweep_report=q.binding(sweep))
++        (root/'assessment.json').write_bytes(q.json_bytes(report))
++    unit=dict(row,contract=q.binding(q.prepared_api.PREPARED/row['run_id']/'contract.json'))
++    return manager.terminal_receipt(unit,'1'*64,report=report,error=None if ok else 'injected transport failure',exit_code=0 if ok else None,root=root,started='synthetic',elapsed=0.)
++
++class TempStageCase(unittest.TestCase):
++    def setUp(self):
++        self.stage_temp=tempfile.TemporaryDirectory();self.stage_patch=patch.object(q,'STAGE',Path(self.stage_temp.name));self.stage_patch.start()
++    def tearDown(self):self.stage_patch.stop();self.stage_temp.cleanup()
++
++class IntegrityTests(TempStageCase):
+     def test_typed_bool_not_integer_and_nested_types(self):
+         self.assertFalse(q.same_typed(True,1));self.assertFalse(q.same_typed({'x':[1]},{'x':[True]}));self.assertFalse(q.same_typed(6,6.))
+         self.assertTrue(q.same_typed({'x':[1,False]},{'x':[1,False]}))
+@@ -261,10 +271,46 @@
+             result=dense.authenticate_conversion(path,value['input_urdf']['path'],value['converted_sdf']['path'],{},diagnostic=True)
+         self.assertTrue(result['pass'],result['issues']);self.assertTrue(result['diagnostic_only']);self.assertFalse(result['runtime_converter_correspondence_qualified'])
+ 
+-class ReceiptSemanticsTests(unittest.TestCase):
++class ReceiptSemanticsTests(TempStageCase):
++    def test_metadata_identity_override_and_unbound_paths_or_hashes_rejected(self):
++        row=q.prepared_api.schedule()[0];base=receipt(row)
++        changes=[('run_id','historical_duplicate'),('receipt_path','/tmp/foreign_receipt'),('report_path','/tmp/unbound_report'),('raw_path','/tmp/raw'),
++            ('heartbeat_path','/tmp/heartbeat'),('cwd','/tmp'),('bindings_sha256','9'*64),('code_sha256','9'*64),('config_sha256','9'*64),
++            ('model_sha256','9'*64),('pid',True),('command_json','["/bin/false"]')]
++        for key,value in changes:
++            r=copy.deepcopy(base);r['administrative_metadata'][key]=value
++            with self.subTest(key=key),self.assertRaises(ValueError):q.validate_terminal_receipt(r,row,'1'*64)
++    def test_success_assessment_requires_canonical_path_full_checks_sources_and_sweep(self):
++        row=q.prepared_api.schedule()[0];r=receipt(row);path=Path(r['assessment']['path']);original=q.json_bound(r['assessment'])
++        other=q.STAGE/'foreign_assessment.json';q.publish(other,original);r['assessment']=q.binding(other)
++        with self.assertRaisesRegex(ValueError,'canonical run path'):q.validate_terminal_receipt(r,row,'1'*64)
++        mutations=[('synthetic_checks',lambda d:d.update(integrity_checks={'synthetic_check':True}),'exact integrity checks'),
++            ('missing_sources',lambda d:d.pop('source_bindings'),'complete source bindings'),
++            ('missing_source',lambda d:d['source_bindings'].pop('fixture.bag'),'complete source bindings'),
++            ('missing_sweep',lambda d:d.pop('sweep_report'),'bound sweep'),
++            ('foreign_source',lambda d:d['source_bindings']['fixture.bag'].update(path='/tmp/not_this_run'),'source canonical')]
++        for name,mutate,message in mutations:
++            d=copy.deepcopy(original);mutate(d);path.write_bytes(q.json_bytes(d));r['assessment']=q.binding(path)
++            with self.subTest(name=name),self.assertRaisesRegex(ValueError,message):q.validate_terminal_receipt(r,row,'1'*64)
++    def test_collector_identity_and_completion_are_joined_to_assessment(self):
++        row=q.prepared_api.schedule()[0];r=receipt(row);report=q.json_bound(r['assessment']);p=Path(report['source_bindings']['collector_report.json']['path'])
++        value=q.json_bound(report['source_bindings']['collector_report.json']);value['pass']=False;p.write_bytes(q.json_bytes(value))
++        report['source_bindings']['collector_report.json']=q.binding(p);a=Path(r['assessment']['path']);a.write_bytes(q.json_bytes(report));r['assessment']=q.binding(a)
++        with self.assertRaisesRegex(ValueError,'collector completion'):q.validate_terminal_receipt(r,row,'1'*64)
++    def test_sweep_sources_and_frozen_world_cannot_be_rebound_to_incomplete_artifacts(self):
++        row=q.prepared_api.schedule()[0];r=receipt(row);report=q.json_bound(r['assessment']);a=Path(r['assessment']['path'])
++        sweep=Path(report['sweep_report']['path']);value=q.json_bound(report['sweep_report']);value['source_bindings'].pop()
++        sweep.write_bytes(q.json_bytes(value));report['sweep_report']=q.binding(sweep);a.write_bytes(q.json_bytes(report));r['assessment']=q.binding(a)
++        with self.assertRaisesRegex(ValueError,'sweep source roster'):q.validate_terminal_receipt(r,row,'1'*64)
++        r=receipt(row);report=q.json_bound(r['assessment']);world=Path(report['source_bindings']['world.sdf']['path']);world.write_text('<sdf/>')
++        report['source_bindings']['world.sdf']=q.binding(world);a.write_bytes(q.json_bytes(report));r['assessment']=q.binding(a)
++        with self.assertRaisesRegex(ValueError,'world/URDF differs'):q.validate_terminal_receipt(r,row,'1'*64)
++    def test_prelaunch_infrastructure_receipt_without_assessment_remains_valid(self):
++        row=q.prepared_api.schedule()[0];r=receipt(row,False)
++        self.assertEqual(q.validate_terminal_receipt(r,row,'1'*64),[])
+     def test_negative_assessment_is_valid_infrastructure_failure_without_error(self):
+         row=q.prepared_api.schedule()[0];r=receipt(row);path=Path(r['assessment']['path']);report=q.json_bound(r['assessment'])
+-        report['capture_integrity_pass']=False;report['integrity_checks']['synthetic_check']=False;path.write_bytes(q.json_bytes(report))
++        report['capture_integrity_pass']=False;report['integrity_checks']['passive_source_geometry_complete']=False;path.write_bytes(q.json_bytes(report))
+         r.update(integrity_pass=False,assessment=q.binding(path))
+         self.assertTrue(q.validate_terminal_receipt(r,row,'1'*64))
+     def test_positive_assessment_with_later_error_retains_negative_overall_integrity(self):
+@@ -279,7 +325,7 @@
+     def journal(self):
+         with tempfile.TemporaryDirectory() as temp:
+             root=Path(temp);queue=root/'queue';queue.mkdir();events=queue/'events';events.mkdir()
+-            with patch.multiple(manager,STAGE=root,QUEUE=queue,LEDGER=queue/'ledger.json',EVENTS=events):yield root
++            with patch.multiple(manager,STAGE=root,QUEUE=queue,LEDGER=queue/'ledger.json',EVENTS=events),patch.object(q,'STAGE',root):yield root
+     def test_event_survives_ledger_pointer_write_failure(self):
+         with self.journal():
+             state=q.initial_state('1'*64,q.prepared_api.schedule());original=q.publish
+@@ -329,7 +375,7 @@
+             self.assertEqual(out['host_shell_exit_status'],'unknown');self.assertEqual(q.strict_json(manager.LEDGER.read_bytes())['consumed_units'],0)
+     def test_worker_crash_after_consume_closes_missing_receipt_and_retires_tail(self):
+         with self.journal() as root:
+-            (root/'runs').mkdir();rows=q.prepared_api.schedule();units=[dict(r,contract={'sha256':'2'*64}) for r in rows]
++            (root/'runs').mkdir();rows=q.prepared_api.schedule();units=[dict(r,contract=q.binding(q.prepared_api.PREPARED/r['run_id']/'contract.json')) for r in rows]
+             state=q.initial_state('1'*64,rows);manager.persist(state,'allocate');q.consume(state,0);manager.persist(state,'consume')
+             result=manager.reconcile_worker_exit({'release_binding':{'sha256':'1'*64},'rows':rows,'prepared':{'units':units}},-9)
+             self.assertEqual(result['missing_receipts_closed'],[rows[0]['run_id']]);state=q.strict_json(manager.LEDGER.read_bytes())
+@@ -455,8 +501,11 @@
+             rows=copy.deepcopy(self.receipts);rows[self.rows[0]['run_id']][key]=value
+             with self.subTest(key=key),self.assertRaises(ValueError):admin.projected_tables(self.before,self.state,rows,self.sha)
+         report=q.json_bound(original['assessment']);report['seed']+=1
+-        path=self.stage/'wrong_assessment.json';q.publish(path,report);rows=copy.deepcopy(self.receipts);rows[self.rows[0]['run_id']]['assessment']=q.binding(path)
++        path=Path(original['assessment']['path']);path.write_bytes(q.json_bytes(report));rows=copy.deepcopy(self.receipts);rows[self.rows[0]['run_id']]['assessment']=q.binding(path)
+         with self.assertRaisesRegex(ValueError,'assessment identity'):admin.projected_tables(self.before,self.state,rows,self.sha)
++    def test_identity_override_is_rejected_before_new_historical_duplicate_row(self):
++        rows=copy.deepcopy(self.receipts);rows[self.rows[0]['run_id']]['administrative_metadata']['run_id']='historical_duplicate'
++        with self.assertRaisesRegex(ValueError,'identity overrides'):admin.projected_tables(self.before,self.state,rows,self.sha)
+     def test_unknown_third_table_version_rejects_before_other_write(self):
+         plan,review=self.plan();(self.stage/'EXPERIMENTS.csv').write_bytes(self.before['EXPERIMENTS.csv']+b'foreign\n')
+         with self.assertRaises(ValueError):admin.apply_reviewed_plan(plan,review)

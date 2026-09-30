@@ -1,0 +1,41 @@
+schema_version: '1.0'
+stage: pilot
+research_round: R2
+status: preregistered_before_outcome_access
+simulation_only: true
+purpose: variance and power only; tuning forbidden
+blocks: 20
+episodes: 80
+seed_range:
+- 196601
+- 196620
+methods:
+- pct_scope_rl
+- analytic_prior
+- actual_teb
+- dwa
+candidate_variant: r2_candidate_v060
+single_change_from_formal_r1: actions_4_5_target_speed_0.4_to_0.6_mps
+primary_metric: failure_inclusive_restricted_time_s
+episode_cap_s: 22.0
+failure_accounting: all timeout, contact, nonarrival, method-system failure score
+  22 s; no retry or replacement
+comparisons:
+- actual_teb
+- dwa
+effect_threshold: 0.08
+interval: two-sided 97.5% paired bootstrap
+bootstrap_samples: 100000
+bootstrap_seeds:
+  actual_teb: 20261981
+  dwa: 20261982
+power_target: 0.8
+formal_block_selection: ceil max requirement to multiple of 20; floor 160; cap 200
+pilot_may_inform_tuning: false
+formal_round_2_seed_range:
+- 198001
+- 198200
+schedule_path: artifacts/gazebo_pct_teb_dwa_benchmark/pilot/pilot_r2/pilot_r2_schedule.csv
+schedule_sha256: c5b45767a75655bb93117328973883df3cd166d37ac95b969af49c03ec80148c
+hardware_authorized: false
+real_vehicle_authorized: false

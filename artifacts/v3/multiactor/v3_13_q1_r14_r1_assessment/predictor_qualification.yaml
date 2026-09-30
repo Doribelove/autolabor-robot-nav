@@ -1,0 +1,98 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R14-R1
+status: fresh_stage_repair_progress_predictor_qualification_pass
+predictor_sha256: 0e0d067b647a39a909fc3daadd5abd5d5938cf2e135b62f582dd45731889ee96
+trajectory_count: 80
+global_simultaneous_trajectory_coverage: 1.0
+mean_trajectory_rmse_m: 0.11821120112658859
+maximum_trajectory_rmse_m: 0.4087224732083172
+terminal_full_width_at_7s_m: 1.7200000000000002
+scene_statistics:
+- scene_id: crossing_and_oncoming
+  trajectory_count: 40
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.11619341604178528
+  maximum_trajectory_rmse_m: 0.4087224732083172
+- scene_id: occluded_staggered_corridor
+  trajectory_count: 40
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.12022898621139173
+  maximum_trajectory_rmse_m: 0.3660535388469076
+candidate_statistics:
+- candidate_id: spatial_left_v120
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.1216304461859021
+  maximum_trajectory_rmse_m: 0.20298859878933936
+- candidate_id: spatial_right_v120
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.14544658842948888
+  maximum_trajectory_rmse_m: 0.26917533317796616
+- candidate_id: straight_v120
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.21870271716545692
+  maximum_trajectory_rmse_m: 0.4087224732083172
+- candidate_id: certified_stop_v000
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.0787232158634427
+  maximum_trajectory_rmse_m: 0.13627835192961874
+- candidate_id: recovery_evasive_right_v120_r2
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.026553037988652013
+  maximum_trajectory_rmse_m: 0.043327838148253625
+matching_metrics:
+  complete_action_support_rate: 1.0
+  minimum_behavior_propensity: 0.2
+  maximum_branch_clock_absolute_error_s: 0.007999999999999119
+  maximum_decision_ego_x_range_m: 0.016001174946416175
+  maximum_decision_actor_coordinate_range_m: 0.019305056195997317
+  maximum_decision_actor_speed_range_mps: 0.00849292006400404
+gate_checks:
+  collection_gate: true
+  global_coverage: true
+  every_scene_coverage: true
+  every_candidate_coverage: true
+  mean_rmse: true
+  maximum_rmse: true
+  terminal_width: true
+  hidden_label_feature_count: true
+  progress_candidate_every_block_static_clearance: true
+qualification_pass: true
+direct_actual_TEB_execution_authorized: false
+perception_execution_authorized: false
+policy_or_ranker_training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false
+progress_candidate_static_statistics:
+- block_index: 1
+  scene_id: occluded_staggered_corridor
+  minimum_trace_static_clearance_m: 0.11949784310687628
+- block_index: 2
+  scene_id: occluded_staggered_corridor
+  minimum_trace_static_clearance_m: 0.11907341432664365
+- block_index: 3
+  scene_id: crossing_and_oncoming
+  minimum_trace_static_clearance_m: 0.31913389486229127
+- block_index: 4
+  scene_id: crossing_and_oncoming
+  minimum_trace_static_clearance_m: 0.31943242413961825
+- block_index: 5
+  scene_id: occluded_staggered_corridor
+  minimum_trace_static_clearance_m: 0.11926359392272268
+- block_index: 6
+  scene_id: occluded_staggered_corridor
+  minimum_trace_static_clearance_m: 0.11942532510587411
+- block_index: 7
+  scene_id: crossing_and_oncoming
+  minimum_trace_static_clearance_m: 0.3186872349842591
+- block_index: 8
+  scene_id: crossing_and_oncoming
+  minimum_trace_static_clearance_m: 0.3187341296494892
+minimum_progress_candidate_static_clearance_m: 0.11907341432664365
+released_summary_stage_compatibility_repaired: true
+progress_recovery_planner_integration_design_authorized: true

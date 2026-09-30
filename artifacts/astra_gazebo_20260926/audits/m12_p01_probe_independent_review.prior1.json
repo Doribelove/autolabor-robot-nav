@@ -1,0 +1,412 @@
+{
+  "status": "independent_synthetic_assessor_false_pass_defects",
+  "synthetic_only": true,
+  "no_simulation_started": true,
+  "cases": [
+    {
+      "name": "valid_analytic_baseline",
+      "expected_pass": true,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": false,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "normal_wheel_ground_reverse_order",
+      "expected_pass": true,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": false,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "base_ground_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "steer_ground_rejected_reverse",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "wheel_obstacle_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "robot_self_collision_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "dense_missing_step_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "dense_duplicate_stamp_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "dense_cross_topic_stamp_offset_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "links_matches_dense_same_stamp",
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "dense_body_payload_empty_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "dense_models_complete_roster_and_shapes",
+        "dense_links_complete_roster_and_shapes",
+        "models_matches_dense_same_stamp",
+        "links_matches_dense_same_stamp",
+        "target_fields_and_Ackermann_geometry",
+        "actual_joint_positions_agree_with_dense_source_pose"
+      ],
+      "metrics_excerpt": {},
+      "claim": "An every-step timestamp shell is not body truth."
+    },
+    {
+      "name": "dense_same_stamp_body_mismatch_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "models_matches_dense_same_stamp",
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Dense and low-rate source-stamp-identical poses must agree."
+    },
+    {
+      "name": "dense_ros_seconds_disagree_with_ns_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Header seconds/nanoseconds encode the same source stamp."
+    },
+    {
+      "name": "dense_named_pose_length_mismatch_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "dense_links_complete_roster_and_shapes",
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "actual_joint_values_nonsense_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry",
+        "actual_joint_positions_agree_with_dense_source_pose"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Actual joint_states contents must be independently coherent with actual link state."
+    },
+    {
+      "name": "target_left_right_missing_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Target schema requires all four named fields."
+    },
+    {
+      "name": "target_left_right_geometry_wrong_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "target_speed_above_effective_max_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "target_acceleration_violation_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "target_slew_violation_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "actual_derivative_not_used_for_internal_gate",
+      "expected_pass": null,
+      "expected_gate": {
+        "internal_accel_limit": true
+      },
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": false,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Actual motion derivative must never be renamed or tested as internal target."
+    },
+    {
+      "name": "actual_twist_inconsistent_with_truth_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Independent target gate should pass; odom velocity truth consistency must reject the false measurement."
+    },
+    {
+      "name": "target_nan_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "all_numeric_finite"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "actual_slew_overlimit_cannot_pass",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "links_complete_roster_and_shapes",
+        "links_matches_dense_same_stamp",
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "dense_nonfinite_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "all_numeric_finite"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "command_loss_extra_publication_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    }
+  ],
+  "case_count": 25,
+  "passing_fixture_count": 22,
+  "source_resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p01.py",
+      "sha256": "af5a4926563da27c38dcf79aa38ca1970115db755ba3da969ae5d796df9c320a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p01.yaml",
+      "sha256": "5c45c7cafcf44a32f3c636f157b61b7a34a6a544eaacf96e9bd9498ca7a4ad39"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_dense_evidence_plugin.cpp",
+      "sha256": "c8afae8ad317304bf2e5bd6688442105fc001d8ed9559034f3b1912ef4007f17"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_m12_physics_p01.py",
+      "sha256": "e540e293511ceebf305d8ede615baf5ccfe30a45ad489953361679ee18625705"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_probe_q02.py",
+      "sha256": "164ebbf2734401278100f781be1a015e8029d43163da666592b302bdd84730a4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q02/probe_raw.json",
+      "sha256": "5d7da0185dc60d9f9219a614a1e3d3ca74964fc5fe4e529c536d4e5a9697ae7e"
+    }
+  ],
+  "test_script_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_physical_actuation_probe_p01.py",
+  "test_script_sha256": "4eb55556c0b88cdc5b6616f0381cedc13e9841fa1e2b890b083bc4d56400bfca",
+  "commands": [
+    "workspace/.venv/bin/python workspace/scripts/astra_gazebo/tests/test_physical_actuation_probe_p01.py"
+  ],
+  "working_directory": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926",
+  "prior_tool_errors": [
+    {
+      "command": "cat workspace/src/simulation/m2_gazebo/test/test_astra_actuation_probe.py",
+      "error": "No such file or directory; used independent new test file as assigned."
+    }
+  ],
+  "all_motion_phases_unchanged": true,
+  "frozen_original_gates_unchanged": true
+}

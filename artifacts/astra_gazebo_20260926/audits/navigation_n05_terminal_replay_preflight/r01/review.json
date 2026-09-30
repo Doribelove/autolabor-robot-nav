@@ -1,0 +1,174 @@
+{
+  "schema": "astra_navigation_n05_terminal_replay_static_review_v1",
+  "status": "r01_preexecution_static_review_requires_revision",
+  "independent_review": true,
+  "reviewed_source_sha256": "9962a00e55520df6eff6dfdf651175abb6f60cad5f840ea7db05bc3ed2e3187c",
+  "source_snapshot": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r01/source_snapshot.py",
+    "sha256": "9962a00e55520df6eff6dfdf651175abb6f60cad5f840ea7db05bc3ed2e3187c"
+  },
+  "scope": "Preexecution source check plus synthetic actual-function counterexamples; no N05 matrix conclusion",
+  "positive_findings": [
+    "Planar map_xy formula is correct, retaining full yaw, unlike earlier N04 r01 mixed-frame distance.",
+    "Intentional half-open[start,end) integer comparison and exact terminal odometry selection are correct once source bindings/schema invariants are enforced.",
+    "Sample closed assessment summary fields exist; treatment Selection.audit uses original_analytic as script expects.",
+    "Main refuses active ledger and output overwrite; no ROS/main invocation on real N05 performed.",
+    "Frozen algorithm failures with capture integrity true stay in rows; no outcome filtering by success."
+  ],
+  "issues": [
+    {
+      "id": "binding_chain",
+      "lines": [
+        37,
+        39,
+        40,
+        41,
+        106,
+        107
+      ],
+      "priority": "repair_before_final_replay",
+      "finding": "Ledger\u2192receipt SHA is checked, but receipt.report\u2192assessment and receipt.artifacts\u2192bag/raw/contract are not. Recording current hashes at output does not establish original closure.",
+      "demonstrated": "Synthetic replacement assessment changed valid_completed/time while immutable receipt hash stayed unchanged; replay accepted it, including completed=True with task=timeout.",
+      "repair": "Validate exact existing closed receipt report/artifact bindings and identities before parsing; cross-check task/raw terminal consistency. No new outcome threshold."
+    },
+    {
+      "id": "window_and_odom",
+      "lines": [
+        53,
+        54,
+        59,
+        60
+      ],
+      "priority": "repair_before_final_replay",
+      "finding": "int() coercion and upper cap alone accept negative duration; raw gate/start, end/task terminal and terminal frame/uniqueness are not tied.",
+      "demonstrated": "Synthetic end<start returned a zero-trace row; frame_id=map was accepted as odom.",
+      "repair": "Type-sensitive integer stamps, raw start/gate and end/assessment source equality, expected odom/base_link frame and exactly one terminal stamp. Treat any intentionally allowed zero-duration early fault explicitly; never divide by a fabricated nonzero denominator."
+    },
+    {
+      "id": "treatment_audit_coverage",
+      "lines": [
+        73,
+        74,
+        79
+      ],
+      "priority": "repair_before_final_replay",
+      "finding": "Missing treatment preview_selection_audit silently returns zero mechanism counts; current subset check does not authenticate declared method/schema or tie audit mask to candidate mask.",
+      "demonstrated": "One treatment candidate with no audit was accepted and counted, moving sums zero.",
+      "repair": "Require version/method-correct audit on every treatment candidate and expected absence on control; validate8boolean masks, equality to raw candidate mask, full preview payload/formula and chosen-index eligibility with declared empty-mask stop exception. Preserve original raw arrays; no recomputed rounded surrogate."
+    },
+    {
+      "id": "drop_metric",
+      "lines": [
+        69,
+        70,
+        99
+      ],
+      "priority": "label_or_fix",
+      "finding": "Boolean transaction_deadline_dropped is counted but unused. Returned drop_ticks is stop_reason equality, a different definition.",
+      "demonstrated": "Synthetic boolean=True plus prepublish_input_health_drop yielded returned drop_ticks0.",
+      "repair": "Emit separate explicitly named boolean and reason counts or use the intended boolean. Do not silently interchange them."
+    },
+    {
+      "id": "matrix_and_empty_summary",
+      "lines": [
+        115,
+        116,
+        118,
+        119,
+        129,
+        139,
+        155
+      ],
+      "priority": "repair_before_final_replay",
+      "finding": "main validates only ledger terminal/release file hash/24rows; exact release/prepared schedule and status partition are absent. all([]) reports scoped safety true, and0trace pair gives division-by-zero.",
+      "demonstrated": "Wholly synthetic24unscheduled integrity-failed dictionaries with {} release were accepted, reporting all_safety_scoped_pass=True with0valid.",
+      "repair": "Bind release/prepared design and exact24 identities/order/pair parent/replicate; enumerate consumed failures, retired and incomplete blocks with receipt hashes/reasons. Empty safety summary must be unavailable/false with explicit denominator; zero-trace fractions must be unavailable and retain failure."
+    },
+    {
+      "id": "pair_interpretation",
+      "lines": [
+        132,
+        138,
+        139,
+        158
+      ],
+      "priority": "explicit_scope",
+      "finding": "Scene ID alone is weaker than paired common parent/bundle/replicate. Terminal distance compares each run at its own terminal, and stop fraction is message-weighted under different cadence.",
+      "repair": "Verify exact paired scene/input identity using bound schedule; label own-terminal endpoint contrast and per-trace frequency as descriptive only. These are not equal-elapsed state effects or duration-weighted stopping fractions; report incomplete pairs explicitly."
+    }
+  ],
+  "synthetic_results": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r01/fixture_results.json",
+    "sha256": "9e9a54e35210985fa5d5311f8ee53fae0ef776dfd7a5dc7342575bf188132f13"
+  },
+  "actual_schema_check": {
+    "run_id": "astra_navigation_n05_b00_astra_analytic_route_v1",
+    "only_closed_receipt_and_ledger_identified_row_read": true,
+    "observed_keys": [
+      "schema",
+      "stage",
+      "run_id",
+      "seed",
+      "method",
+      "capture_integrity_pass",
+      "safety_within_declared_engineering_scope_pass",
+      "valid_completed",
+      "restricted_goal_time_s",
+      "failure_inclusive",
+      "task",
+      "integrity_checks",
+      "safety_checks",
+      "physical_status_audit",
+      "actor_gate_audit",
+      "contact_audit",
+      "contact_issues",
+      "sweep_report",
+      "source_bindings",
+      "visual_review",
+      "image_coverage",
+      "planner_input_mask_or_decision_integrity_assessed",
+      "formal_safety",
+      "real_continuous_physical_safety",
+      "navigation_performance_claim"
+    ],
+    "required_summary_fields_present": true,
+    "outcome_aggregation_performed": false
+  },
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r01/source_snapshot.py",
+      "sha256": "9962a00e55520df6eff6dfdf651175abb6f60cad5f840ea7db05bc3ed2e3187c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r01/fixtures.py",
+      "sha256": "4397d351a11a07e582825be7a6670bd0af370ea19d7c2dadfe0a7d6dcadd4000"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r01/fixture_results.json",
+      "sha256": "9e9a54e35210985fa5d5311f8ee53fae0ef776dfd7a5dc7342575bf188132f13"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r01/fixtures_attempt01.log",
+      "sha256": "9e9a54e35210985fa5d5311f8ee53fae0ef776dfd7a5dc7342575bf188132f13"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_preview_selection_n05.py",
+      "sha256": "bb6afca768c421f70929b1215dcfe00791b7caaf870bcd72bc7e603869cc343c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n05_b00_astra_analytic_route_v1/receipt.json",
+      "sha256": "b6624f6b1073f06911d1903071fa23a6b316afacb0bd8db4818daa5fb45713a2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n05_b00_astra_analytic_route_v1/assessment.json",
+      "sha256": "688d3c2edbcd264173953bfc3132a0f18da05f134c9b99136d38a5405dd663e1"
+    }
+  ],
+  "active_ledger_status_observed": "active",
+  "live_logs_or_incomplete_bags_read": false,
+  "ROS_started": false,
+  "new_execution": false,
+  "N05_actual_fault_claim": false,
+  "all_matrix_result": false,
+  "author_or_runtime_sources_modified": false
+}

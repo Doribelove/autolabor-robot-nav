@@ -1,0 +1,33 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-05-A0
+preregistration_id: v3_scope_v3_05_a0_formal_paired_evaluation_1
+date: "2026-07-24"
+status: frozen_before_any_v3_05_outcome_or_release
+contract: config/thesis_experiments/v3/v3_05_a0_formal_paired_evaluation_contract.yaml
+fresh_population:
+  seeds: [6401, 6402, 6403, 6404, 6405, 6406, 6407, 6408, 6409, 6410,
+          6411, 6412, 6413, 6414, 6415, 6416, 6417, 6418, 6419, 6420,
+          6421, 6422, 6423, 6424, 6425, 6426, 6427, 6428, 6429, 6430]
+  geometry_blocks: 30
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  methods: [v3_analytic, fixed_v120_shielded, fixed_v080_shielded]
+  exact_episodes: 270
+  attempts_per_identity: 1
+  retries: 0
+statistics:
+  primary_baseline_frozen_before_outcomes: fixed_v120_shielded
+  secondary_reference_is_descriptive_only: true
+  failure_time_assignment_s: 10.0
+  bootstrap_resamples: 20000
+  bootstrap_seed: 30505
+  one_sided_alpha: 0.05
+  positive_gate_point_lower: [0.05, 0.02]
+authority:
+  simulation_requires_separate_authorization: true
+  training: false
+  model_write: false
+  move_base: false
+  cmd_vel_publish: false
+  hardware_device_access: false
+  real_vehicle: false

@@ -1,0 +1,53 @@
+schema_version: "1.0"
+stage: V5-01-R1
+date: "2026-08-08"
+status: preregistered_component_probe_repair
+
+predecessor:
+  stage: V5-01
+  terminal_status: v5_01_sensor_backend_component_audit_fail
+  failed_gate: history_direction_accuracy_minimum_0_80
+  observed_high_dimensional_history_ridge_accuracy: 0.7666666666666667
+  diagnostic_latest_frame_ridge_accuracy: 0.9166666666666666
+  predecessor_must_remain_immutable: true
+
+single_repair:
+  factor: direction_identifiability_probe
+  old: ridge_on_flattened_6x72_scan_tensor
+  new: ridge_on_latest_72_beam_frame_selected_from_the_6_frame_history_input
+  rationale: >-
+    The flattened probe has 433 fitted coefficients for 160 training examples
+    and can underperform a contained lower-dimensional probe. A deployable
+    temporal policy is free to ignore unhelpful frames, so the gate asks
+    whether its sensor input contains direction information, not whether a
+    particular overparameterized linear estimator can exploit every frame.
+  fresh_probe_train_test_seeds: [887000, 887279]
+  fresh_safety_and_regret_seed_range_inclusive: [888000, 891124]
+
+frozen_without_change:
+  - sensor_environment
+  - scene_families
+  - action_set
+  - hard_shield
+  - reward
+  - actor_architecture
+  - critic_architecture
+  - all_gate_thresholds
+  - eligible_training_seeds
+  - validation_seeds
+  - formal_seeds
+
+gates:
+  latest_frame_direction_accuracy_minimum: 0.80
+  safe_multiaction_state_fraction_minimum: 0.25
+  analytic_sequential_regret_block_fraction_minimum: 0.20
+  contact_count_maximum: 0
+  mask_violation_count_maximum: 0
+  actor_leakage_audit_required: true
+
+authority:
+  eligible_training_authorized_only_if_all_gates_pass: true
+  gazebo_authorized: false
+  real_vehicle_authorized: false
+  online_teb_write_authorized: false
+

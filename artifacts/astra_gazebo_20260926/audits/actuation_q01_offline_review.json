@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "stage": "astra_actuation_q01_offline",
+  "utc": "2026-09-26T07:42:39.216772+00:00",
+  "status": "offline_component_and_runner_review_pass_for_fresh_actuation_q01_only",
+  "execution_performed": false,
+  "ROS_started": false,
+  "seeds_consumed": 0,
+  "performance_evidence": false,
+  "checks": {
+    "python_ast_parse": true,
+    "schedule_exactly36s": true,
+    "explicit_no_default_execution_seed": true,
+    "world_fixture_validates": true,
+    "effective_URDF_validates": true,
+    "pure_offline_fixtures": true,
+    "wrong_accel_rejected": true,
+    "wrong_seed_rejected": true,
+    "rotated_ground_rejected": true
+  },
+  "synthetic_fixtures": {
+    "purpose": "synthetic offline assessor/failure-injection fixtures only",
+    "checks": {
+      "ideal_synthetic_fixture_pass": true,
+      "non_ground_contact_fails": true,
+      "actual_front_joint_overlimit_fails": true,
+      "dropped_truth_packet_fails": true,
+      "duplicate_source_stamp_fails": true,
+      "command_loss_extra_publisher_fails": true,
+      "nonfinite_state_fails": true
+    },
+    "pass": true,
+    "details": {
+      "ideal_failed_checks": [],
+      "synthetic_turn_yaw_changes": {
+        "turn_positive": 2.3623592544395136,
+        "turn_negative": -1.578065042884961,
+        "saturation_positive": 1.7670452180704899,
+        "saturation_negative": -1.6477809063169615
+      },
+      "synthetic_actual_front_left_rad": {
+        "count": 1801,
+        "min": -0.408888847705126,
+        "max": 0.6254458521086819,
+        "mean": 0.03331834553366457,
+        "p95": 0.5561875043596047,
+        "maximum_absolute": 0.6254458521086819
+      },
+      "synthetic_actual_center_slew_radps": {
+        "count": 1800,
+        "min": -0.7500000000000305,
+        "max": 0.7500000000000305,
+        "mean": -1.2039751911490588e-16,
+        "p95": 0.7499999999999466,
+        "maximum_absolute": 0.7500000000000305
+      }
+    }
+  },
+  "effective_configuration_fixture": {
+    "plugin": {
+      "wheelbase": 0.65,
+      "track": 0.6,
+      "wheelRadius": 0.15,
+      "maxSpeed": 2.778,
+      "maxSteer": 0.4964,
+      "commandTimeout": 0.5,
+      "updateRate": 50.0,
+      "speedTimeConstant": 0.22,
+      "steeringTimeConstant": 0.18,
+      "maxAcceleration": 0.6,
+      "maxDeceleration": 0.9,
+      "maxBrakeDeceleration": 0.9,
+      "maxEmergencyDeceleration": 0.9,
+      "maxSteeringRate": 0.75,
+      "commandDelay": 0.0,
+      "commandJitter": 0.0
+    },
+    "front_joint_limits": {
+      "front_left_steer_joint": {
+        "lower": -0.7446,
+        "upper": 0.7446,
+        "velocity": 2.0
+      },
+      "front_right_steer_joint": {
+        "lower": -0.7446,
+        "upper": 0.7446,
+        "velocity": 2.0
+      }
+    },
+    "robot_description_sha256": "bf010d86f28323ab4c8284c7a450911759ffec774178b447f679d98a1c3328da",
+    "seed": 260926004
+  },
+  "world_fixture_check": {
+    "world_sha256": "580355948c889f4e9238e9ed17d924bcd265754e3f60cc898011b5029a351dff",
+    "expected_runtime_models": [
+      "ground_plane",
+      "autolabor_m2"
+    ]
+  },
+  "source_sha256": {
+    "workspace/src/simulation/m2_gazebo/scripts/astra_actuation_probe.py": "5c8027192340704529247408f4c6bb5c0d66be72b39cb525e192134a9025d00a",
+    "contracts/actuation_q01.yaml": "8b7077b908c97a3b3b04b1916d79d2d5cefbd71051809ac332a6968450f0cbee",
+    "workspace/src/simulation/m2_gazebo/src/m2_ackermann_plugin.cpp": "6819c1252ba0955cb7a1eb973f0bc5d53edd27e1986caf284b7ad68620ec7ed4",
+    "workspace/src/simulation/m2_gazebo/include/m2_gazebo/ackermann_kinematics.h": "fd47813987561dd6ad0acf03f8c0f734070aaeceb663d5950b6566af904baae0",
+    "workspace/src/simulation/m2_gazebo/include/m2_gazebo/actuator_dynamics.h": "a3cb5469ad0bcbc304227ebb8a44d33a485fa226e4bb3ee21660be8ad3cc082c",
+    "workspace/src/simulation/m2_gazebo/src/astra_evidence_plugin.cpp": "2f9587d552d741196ab39c5d92e0654d8eef7d492248ef2edc4faa10409800d3",
+    "workspace/src/simulation/m2_gazebo/launch/spawn_m2.launch": "0d631e03100a9b874373270b56f58690294c6bc168a2bf1f086319e24bc96193",
+    "workspace/src/simulation/m2_gazebo/urdf/m2.urdf.xacro": "d6d36ade1cc5dcc12e35203b953e2daa5346698a2b3fa0c761474548b204b44c",
+    "workspace/src/simulation/m2_gazebo/urdf/m2_base.xacro": "6a772b077c68a0926499d076d837c6419f066a69543c7bd685b12357d8d08f10",
+    "workspace/src/simulation/m2_gazebo/urdf/m2_gazebo.xacro": "e0ed81151ff08708530aa4eb21f178b529605a4684982ff3305fb1b1b8c13cc9",
+    "workspace/src/simulation/m2_gazebo/urdf/m2_sensors.xacro": "073c004f2c38ab0c49d2dff5ee23a0806ea3c5e5d719b9eb945ac7a931ea1593",
+    "workspace/scripts/astra_gazebo/run_actuation_qualification.py": "90aacb0037a319b2b14e63be1f1499465dfb2c64f10acbf35c6897e819e910c1"
+  },
+  "actual_commands": [
+    {
+      "argv": [
+        "/opt/ros/noetic/lib/xacro/xacro",
+        "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2.urdf.xacro",
+        "enable_actuator_dynamics:=true",
+        "dynamics_seed:=260926004",
+        "max_acceleration:=0.6",
+        "max_deceleration:=0.9",
+        "max_brake_deceleration:=0.9",
+        "max_emergency_deceleration:=0.9",
+        "max_steering_rate:=0.75"
+      ],
+      "environment_override": {
+        "ROS_PACKAGE_PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src:/opt/ros/noetic/share"
+      },
+      "exit_code": 0,
+      "stderr": "",
+      "stdout_sha256": "bf010d86f28323ab4c8284c7a450911759ffec774178b447f679d98a1c3328da"
+    },
+    {
+      "description": "Python import via spec_from_file_location; validate_world; validate_effective_urdf; offline_fixtures; wrong_accel/wrong_seed/rotated_ground rejection",
+      "exit_code": 0,
+      "fixture_seed_is_synthetic_only": 260926004
+    }
+  ],
+  "initial_tool_errors_preserved": [
+    {
+      "command": "rg source physics instrumentation followed by cat artifacts/astra_gazebo_20260926/contracts/physics_q01.yaml",
+      "exit_code": 1,
+      "stderr": "cat: artifacts/astra_gazebo_20260926/contracts/physics_q01.yaml: 没有那个文件或目录",
+      "effect": "read-only discovery; root physics fixture contract had not yet been created; no simulation or files modified"
+    },
+    {
+      "command": "ls -l workspace/devel/lib/m2_gazebo/astra_actuation_probe.py",
+      "exit_code": 2,
+      "stderr": "No such file or directory",
+      "resolution": "Read-only roslib.packages.find_node with isolated ROS_PACKAGE_PATH resolved executable source scripts/astra_actuation_probe.py; catkin devel relay absence is not a launch blocker"
+    }
+  ],
+  "integration_interface": {
+    "parameters": [
+      "output",
+      "contract_path",
+      "world_path",
+      "seed",
+      "run_id"
+    ],
+    "outputs": [
+      "probe_raw.jsonl",
+      "probe_raw.json",
+      "probe_report.json"
+    ],
+    "script_executable": true,
+    "launch_and_runner_owner": "root",
+    "world_source": "contract world_fixture.sdf, structural equality enforced",
+    "fresh_identity": "provided at runtime, never use synthetic fixture seed by implication"
+  },
+  "qualification_limits": [
+    "Offline assessor/component tests are not a Gazebo qualification result.",
+    "Whole-world contact detector must have root-qualified physics fixture before live actuation.",
+    "Center internal slew0.75/accel0.6/brake0.9 and actual front URDF angle/velocity limits are separate gates.",
+    "Actual link center slew tolerance0.10 and joint-rate tolerance0.20 are declared sampling tolerances, not changes to driver limits.",
+    "Model pose secants20ms/100ms and odom derivatives are separately reported; no physical jerk or friction guarantee.",
+    "Only command-zero braking and existing commandTimeout are exercised; dedicated brake/emergency topics are not driven.",
+    "World/launch/contract/source hashes must be bound before root starts fresh execution.",
+    "All ground contact pairs are retained separately; this probe does not independently qualify wheel-only ground contact topology or general roll-over protection."
+  ],
+  "runner_review": {
+    "utc": "2026-09-26T07:45:10.819276+00:00",
+    "reviewed_sha256": "90aacb0037a319b2b14e63be1f1499465dfb2c64f10acbf35c6897e819e910c1",
+    "checks": {
+      "isolated_workspace_guard": true,
+      "exclusive_queue_lock": true,
+      "existing_identity_rejected": true,
+      "fresh_seed_explicit": true,
+      "allocated_before_preparation": true,
+      "all_preparation_errors_terminally_charged": true,
+      "world_from_frozen_contract": true,
+      "effective_actuator_parameter_launch_mapping": true,
+      "spawn_all_zero": true,
+      "existing_navigation_relay": true,
+      "probe_all_required_parameters": true,
+      "actual_contract_copy_and_launch_in_bindings_and_code_blobs": true,
+      "bag_full_declared_topics": true,
+      "loopback_ports_prechecked": true,
+      "owned_process_cleanup_inherited_from_reviewed_common": true,
+      "wallcap_and_exitcode_gate": true,
+      "nonempty_probe_pass_and_bag_topic_roster_required": true,
+      "raw_sha_receipt_retained": true,
+      "physics_evidence_q01_prior_pass": true,
+      "roslib_resolves_executable_probe_without_devel_proxy": true
+    },
+    "prior_pending_issue": "Actual copied actuation_contract.yaml was initially missing from bindings; root added and archives exact bytes before execution",
+    "common_runner_sha256": "d2366690628b1b46e574ad0801c5035173a922d3c78a4ed8a993123f708c7ccb",
+    "prior_physics_receipt_sha256": "0779a5e97c268428c413df245f84ec2d60d9160febb5cb7ab706c62092c878c0",
+    "no_live_execution_by_reviewer": true
+  }
+}

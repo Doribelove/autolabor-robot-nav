@@ -1,0 +1,22 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n05.launch
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n06.launch
+@@ -29,7 +29,7 @@
+     <param name="bundle" value="$(arg bundle)" /><param name="bundle_sha256" value="$(arg bundle_sha256)" />
+     <param name="publish_map_to_odom" value="true" />
+   </node>
+-  <node pkg="m2_gazebo" type="astra_navigation_coordinator_n05.py" name="astra_navigation_coordinator" output="screen">
++  <node pkg="m2_gazebo" type="astra_navigation_coordinator_n06.py" name="astra_navigation_coordinator" output="screen">
+     <param name="run_id" value="$(arg run_id)" /><param name="seed" value="$(arg seed)" />
+     <param name="method" value="$(arg method)" /><param name="bundle" value="$(arg bundle)" /><param name="bundle_sha256" value="$(arg bundle_sha256)" />
+   </node>
+@@ -42,8 +42,8 @@
+       <remap from="/cmd_vel_navigation" to="/astra/method_cmd" />
+     </node>
+   </group>
+-  <group if="$(eval arg('method') == 'astra_analytic_preview_eligible_n05')">
+-    <node pkg="m2_gazebo" type="astra_route_preview_runtime_n05.py" name="astra_route_runtime" output="screen" launch-prefix="$(env THESIS_WS)/.venv/bin/python">
++  <group if="$(eval arg('method') == 'astra_analytic_lookahead_1p2_n06')">
++    <node pkg="m2_gazebo" type="astra_route_lookahead_runtime_n06.py" name="astra_route_runtime" output="screen" launch-prefix="$(env THESIS_WS)/.venv/bin/python">
+       <param name="run_id" value="$(arg run_id)" /><param name="seed" value="$(arg seed)" /><param name="method" value="$(arg method)" />
+       <param name="bundle" value="$(arg bundle)" /><param name="bundle_sha256" value="$(arg bundle_sha256)" />
+       <param name="checkpoint_metadata" value="$(arg checkpoint_metadata)" /><param name="checkpoint_metadata_sha256" value="$(arg checkpoint_metadata_sha256)" />

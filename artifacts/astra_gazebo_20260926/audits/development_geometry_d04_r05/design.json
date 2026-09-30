@@ -1,0 +1,59 @@
+{
+  "schema": "astra_d04_r05_joint_allocation_design_v1",
+  "stage_id": "astra_gazebo_20260926",
+  "allocation_version": "allocation_v1",
+  "authorization": "root approved explicit D04 r05 edge convention before any filtering",
+  "execution_authorized": false,
+  "seed_allocation_authorized": false,
+  "parents_per_family": 4,
+  "family_order": ["static_avoidance", "single_crossing", "head_on_yield", "sequential_interaction", "occluded_emergence", "width_change_corridor"],
+  "joint_payload": {
+    "encoding": "UTF-8, no BOM, no trailing newline",
+    "components": ["stage_id", "canonical_parent_geometry_id", "actor_parameter_cell_id", "allocation_version"],
+    "delimiter": "|",
+    "delimiter_in_component": "rejected",
+    "digest": "SHA256 full lowercase hexadecimal",
+    "bucket": "unsigned integer of first16 hexadecimal digest characters modulo100",
+    "bins_half_open": {"train": [0, 60], "development": [60, 80], "validation": [80, 90], "final_test": [90, 100]}
+  },
+  "actor_cell": {
+    "zero_actors": "fixed actor_none_v1; no invented unused actor parameters; sentinel is not a mutable actor-policy ownership group",
+    "single_actor": "actor_ plus first24 hexadecimal SHA256 of existing canonical sorted compact JSON cell with policy,speed_cell,response_distance_cell,margin_cell,delay_cell",
+    "multiple_actors": "actor_tuple_v1_ plus full SHA256 of compact UTF-8 JSON ordered [[benchmark_actor_1,actual_cell_id], ...]; actor roles and ordering must match actual scene actor_geometry",
+    "multi_actor_atomic_cell_ownership": "each constituent actor cell inherits one split; tuple hashing cannot bypass atomic ownership"
+  },
+  "parent_group_priority": {
+    "existing_parent": "preserve immutable prior split ownership; joint hash must agree with that split or combination is rejected; never relabel r04",
+    "near_duplicate": "same owner as registered canonical group; D04 r05 rejects replacement candidates within frozen near-duplicate cells, plus retained two-cell development distinctness gate",
+    "new_parent": "first eligible nonduplicate actual parent/cell joint hash assigns group owner; all future cells, rigid transforms and cosmetic variants must retain that owner",
+    "actor_cell": "prior ownership is preserved; a new atomic cell obtains selected joint split once; conflicting ownership is rejected",
+    "all_selected_pairs": "joint hash=development AND parent owner=development AND every actual atomic actor cell owner=development",
+    "forbidden": "random split of episode rows; selecting another no-actor sentinel; relabelling a prior parent; moving a rejected combination to development"
+  },
+  "finite_input_enumeration": {
+    "rng_or_seed_use": false,
+    "existing_candidates": "existing r04 parents considered first, unchanged geometry",
+    "new_static_grid": {"x": [-1.4,-0.8,-0.2,0.4,1.0,1.6,2.2], "y": [-0.5,0.0,0.5], "length": [0.55,0.95,1.35], "width": [0.5,0.8,1.05], "corridor_half_width": [2.5,2.9,3.2]},
+    "new_width_grid": {"topology": ["symmetric_throat","offset_throat","two_stage_throat"], "wide_half": [1.8,2.2,2.6], "narrow_half": [0.9,1.2,1.5], "shift": [-0.5,0.0,0.5], "length": [1.4,2.4,3.4], "center": [-1.6,-0.4,0.8,2.0]},
+    "actor_cells": "deterministic finite Cartesian product of actual frozen discrete parameter cells; policy role order cycles cautious/hesitant/assertive; no stochastic draw or new seed",
+    "maximum_actual_joint_cell_trials_per_dynamic_parent": 50000,
+    "counterexamples": "retain all rejected joint payload/digest/bucket/ownership reasons; retain every failed geometry/raster/guide artifact and numeric gate; never overwrite r04"
+  },
+  "offline_gates": {
+    "margin_m": 0.33,
+    "actor_sweep_static_gap_m": 0.05,
+    "central_steering_limit_rad": 0.4964,
+    "central_steering_slew_limit_radps": 0.75,
+    "occlusion_initial_visible_fraction_max": 0.2,
+    "occlusion_revealed_visible_fraction_min": 0.8,
+    "static_n06_raster_resolution_m": 0.05,
+    "map_bounds_xyxy": [-20,-15,20,15],
+    "raster_export": "frozen static_map_export.make_artifacts, static geometry only; no carving",
+    "shared_guide": "frozen common_route.build_bundle clearance radius1.0; check resulting exact occupied/unknown pixel union against full conservative footprint, all segments and corner heading transitions",
+    "witness_after_raster": "recheck native static witness against exact occupied/unknown raster union with original interval deduction; if negative, retain failure and seek another already declared finite witness profile, never reduce margin",
+    "no_Ackermann_claim_from_Astar": true,
+    "N06_release_if_any_required_check_fails": false
+  },
+  "prior_split_contract_sha256": "to_be_bound_in_source_manifest_without_modifying_contract",
+  "outputs": "24 geometry/actual-cell combinations plus four static shared-map bundles and complete failure evidence; no ROS, execution seeds, new global registry or final outcomes"
+}

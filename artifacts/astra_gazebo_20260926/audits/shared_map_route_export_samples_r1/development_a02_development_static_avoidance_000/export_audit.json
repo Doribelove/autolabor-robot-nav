@@ -1,0 +1,71 @@
+{
+  "schema": "astra_common_static_map_export_v1",
+  "source_world_sha256": "3e2000cfdad0b582d813a62ac9cb55e35964baa1ac13aea4673c1612c0a5e743",
+  "scene_id": "core_static_avoidance",
+  "parent_geometry_id": "geom_92aa7d2fd756ec846462658b",
+  "map_frame_id": "map",
+  "map_frame_equals_world": true,
+  "resolution_m": 0.05,
+  "bounds_xyxy": [
+    -20.0,
+    -15.0,
+    20.0,
+    15.0
+  ],
+  "width": 800,
+  "height": 600,
+  "bounds_policy": "explicit known static-prior domain; default world-aligned40m x30m, never inferred from actor position or narrow route box",
+  "pixel_values": {
+    "occupied": 0,
+    "free": 254,
+    "unknown": 205
+  },
+  "occupied_cell_count": 4100,
+  "unknown_cell_count": 2796,
+  "robot_height_band_m": [
+    0.01,
+    0.7
+  ],
+  "static_collision_components": [
+    "benchmark_wall_-1::body::collision",
+    "benchmark_wall_1::body::collision",
+    "benchmark_block_1::body::collision"
+  ],
+  "omitted_models_or_collisions": [
+    {
+      "model": "ground_plane",
+      "collision": "ground_plane::link::collision",
+      "reason": "ground support plane below body band"
+    },
+    {
+      "model": "astra_evidence_camera",
+      "reason": "collision-free model"
+    }
+  ],
+  "maximum_primitive_outward_error_m": 0.0,
+  "raster_outward_distance_bound_m": 0.07071067811865477,
+  "collision_to_total_occupied_union_outward_bound_m": 0.07071067811865477,
+  "inflation_or_point_carving_applied": false,
+  "map_image_sha256": "ff72c51eb5b0a1138eb5aecbbd13ce43aa06597271732e6ea2770ba1faf7de25",
+  "map_yaml_sha256": "23b05d01bb73aae18c0512a2bdab6da6837c8e07594c97b52b21a12b172afed7",
+  "status": "offline_common_static_prior_only_not_live_fairness_qualification",
+  "global_route_integrated": false,
+  "old_R2_runtime_unchanged": true,
+  "limits": [
+    "A synthetic known static prior shared identically is not online actor truth.",
+    "A tilted primitive intersecting the height band uses its full XY projection; the raster bound applies to that projection, not an exact height-clipped cross-section.",
+    "Static map PGM bytes alone do not make runtime consumption or global paths equal.",
+    "Unknown and outside-map policy must be occupied/fail-closed for every consumer.",
+    "No Ackermann feasibility, route availability, navigation performance or safety claim follows from export."
+  ],
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02/development_a02_development_static_avoidance_000/replicate_00/scene_manifest.yaml",
+      "sha256": "ab8d25551f0de5972b81f5a7667bb0572c7cf5ca83b79724827508079875447d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02/development_a02_development_static_avoidance_000/replicate_00/world.sdf",
+      "sha256": "3e2000cfdad0b582d813a62ac9cb55e35964baa1ac13aea4673c1612c0a5e743"
+    }
+  ]
+}

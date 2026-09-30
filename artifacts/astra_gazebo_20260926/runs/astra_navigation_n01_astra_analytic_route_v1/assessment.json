@@ -1,0 +1,195 @@
+{
+  "schema": "astra_navigation_assessment_v1",
+  "stage": "astra_navigation_n01",
+  "run_id": "astra_navigation_n01_astra_analytic_route_v1",
+  "seed": 260926026,
+  "method": "astra_analytic_route_v1",
+  "capture_integrity_pass": true,
+  "safety_within_declared_engineering_scope_pass": true,
+  "valid_completed": true,
+  "restricted_goal_time_s": 8.562,
+  "failure_inclusive": true,
+  "task": {
+    "task_phase": "complete",
+    "terminal_reason": "actual_base_goal",
+    "terminal_source_ns": 16040000000,
+    "terminal_time_authority": "first_actual_odom_header_meeting_base_goal",
+    "raw_geometric_arrival_source_ns": 16022000000,
+    "raw_geometric_arrival_time_s": 8.562,
+    "coordinator_goal_time_s": 8.58,
+    "goal_position_tolerance_m": 0.25,
+    "goal_yaw_tolerance_rad": 0.25,
+    "actual_geometry_period_ns": 2000000,
+    "goal_geometry_contract_pass": true,
+    "issues": [],
+    "failure_restricted_time_s": 22.0,
+    "raw_geometry_is_safety_qualification": false
+  },
+  "integrity_checks": {
+    "collector_complete": true,
+    "passive_source_geometry_complete": true,
+    "contact_source_coverage": true,
+    "contact_message_contract": true,
+    "contact_metadata_complete": true,
+    "physical_status_message_contract": true,
+    "physical_status_source_coverage": true,
+    "goal_source_contract": true
+  },
+  "safety_checks": {
+    "positive_engineering_clearance": true,
+    "no_illegal_robot_contact": true,
+    "no_actor_environment_contact": true,
+    "no_physical_backend_fault_timeout_brake_emergency": true
+  },
+  "physical_status_audit": {
+    "pass": true,
+    "message_contract_pass": true,
+    "no_fault_timeout_brake_emergency": true,
+    "coverage": {
+      "pass": true,
+      "invalid_source_stamp_count": 0,
+      "expected_count": 430,
+      "observed_count": 430,
+      "first_ns": 7460000000,
+      "last_ns": 16040000000,
+      "missing_count": 0,
+      "duplicate_count": 0,
+      "source_order_increasing": true
+    },
+    "issues": []
+  },
+  "contact_audit": {
+    "empty_packet_count_in_window": 0,
+    "observed_contact_clock_epochs": [
+      0
+    ],
+    "packet_count": 8139,
+    "source_minus_packet_alignment": "contact source may precede packet by 0..one physics step",
+    "packet_minus_source_time_min_s": -1.7763568394002505e-15,
+    "packet_minus_source_time_max_s": 0.0,
+    "contact_absence_interpretation": "No recorded illegal contact is not collision-free proof; require packet coverage, geometry and backend qualification.",
+    "illegal_robot_contacts_count": 0,
+    "illegal_robot_contacts_examples": [],
+    "wheel_ground_support_contacts_count": 16952,
+    "wheel_ground_support_contacts_examples": [
+      {
+        "packet_stamp_s": 7.46,
+        "contact_source_time_s": 7.46,
+        "collision1": "autolabor_m2::rear_left_wheel_link::rear_left_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 3.3761795778519677e-07,
+        "wheel_link": "rear_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.46,
+        "contact_source_time_s": 7.46,
+        "collision1": "autolabor_m2::front_right_wheel_link::front_right_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 3.7425707603289116e-06,
+        "wheel_link": "front_right_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.46,
+        "contact_source_time_s": 7.46,
+        "collision1": "autolabor_m2::front_left_wheel_link::front_left_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 3.7555822038626285e-06,
+        "wheel_link": "front_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.46,
+        "contact_source_time_s": 7.46,
+        "collision1": "autolabor_m2::rear_right_wheel_link::rear_right_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 2.4739152973407563e-07,
+        "wheel_link": "rear_right_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.462,
+        "contact_source_time_s": 7.462,
+        "collision1": "autolabor_m2::rear_left_wheel_link::rear_left_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 3.366409737637355e-07,
+        "wheel_link": "rear_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.462,
+        "contact_source_time_s": 7.462,
+        "collision1": "autolabor_m2::front_right_wheel_link::front_right_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 3.7371655782769686e-06,
+        "wheel_link": "front_right_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.462,
+        "contact_source_time_s": 7.462,
+        "collision1": "autolabor_m2::front_left_wheel_link::front_left_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 3.7501373682802264e-06,
+        "wheel_link": "front_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.462,
+        "contact_source_time_s": 7.462,
+        "collision1": "autolabor_m2::rear_right_wheel_link::rear_right_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 2.465271860818685e-07,
+        "wheel_link": "rear_right_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.464,
+        "contact_source_time_s": 7.464,
+        "collision1": "autolabor_m2::rear_left_wheel_link::rear_left_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 3.355263318571833e-07,
+        "wheel_link": "rear_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.464,
+        "contact_source_time_s": 7.464,
+        "collision1": "autolabor_m2::front_right_wheel_link::front_right_wheel_link_collision",
+        "collision2": "ground_plane::body::shape",
+        "maximum_depth_m": 3.737222745603397e-06,
+        "wheel_link": "front_right_wheel_link"
+      }
+    ],
+    "actor_environment_contacts_count": 0,
+    "actor_environment_contacts_examples": []
+  },
+  "contact_issues": [],
+  "sweep_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_astra_analytic_route_v1/sweep_evaluation/report.json",
+    "sha256": "80cf71dee1ce22747d1612920d09dd6a71d067f7166c7225b477d17addd8c21b"
+  },
+  "source_bindings": {
+    "fixture.bag": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_astra_analytic_route_v1/fixture.bag",
+      "sha256": "f360a31153df06035880a3e79452eabf8cb19b3a50fc2156f7544c48c45b9af4"
+    },
+    "world.sdf": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_astra_analytic_route_v1/world.sdf",
+      "sha256": "96ecfcbf61d3418e9aeb0df78e5df54ebd93c5943e582718607225acea9f473e"
+    },
+    "robot_description_runtime.xml": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_astra_analytic_route_v1/robot_description_runtime.xml",
+      "sha256": "154831b9664adad16163d42e3baeb46409712325bce4a000bfdd244cf837096d"
+    },
+    "collector_raw.json": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_astra_analytic_route_v1/collector_raw.json",
+      "sha256": "60c149099a188f8ecbd54194b7620e3a1899f0d3f0dd4ed3fb9793fe423dc65b"
+    },
+    "collector_report.json": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_astra_analytic_route_v1/collector_report.json",
+      "sha256": "aee6210e3a465523249f0543b4c96a8d0ef8c5bb5bc518be7d2a5ea58a44fc6e"
+    },
+    "run_closure.json": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_astra_analytic_route_v1/run_closure.json",
+      "sha256": "380e3df2a4cd9170175484ec406c8662dba8ebb0eeffd1a29c19d9ce6622ad7c"
+    }
+  },
+  "visual_review": "pending independent inspection of native PNGs",
+  "planner_input_mask_or_decision_integrity_assessed": false,
+  "formal_safety": false,
+  "real_continuous_physical_safety": false,
+  "navigation_performance_claim": false
+}

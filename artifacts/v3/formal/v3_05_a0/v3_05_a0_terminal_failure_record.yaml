@@ -1,0 +1,50 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-05-A0
+status: terminal_infrastructure_failure_incomplete_formal_matrix
+date: "2026-07-24"
+execution:
+  authorized_units: 270
+  consumed_units: 206
+  completed_units: 205
+  failed_consumed_units: 1
+  forfeited_units: 64
+  retry_units: 0
+  resume_allowed: false
+failed_identity:
+  sequence: 206
+  unit_id: v3_05_a0_formal_6423_hesitant_fixed_v120_shielded
+  seed: 6423
+  attempt: 1
+  phase: observation_prefix
+failure:
+  category: gazebo_master_port_collision_with_os_ephemeral_range
+  process_return_code: 255
+  marker_created: false
+  raw_trace_created: false
+  planner_invoked: false
+  semantic_episode_started: false
+  gazebo_error: "Unable to start server[bind: Address already in use]"
+  attributed_cause: >-
+    The frozen runner allocated GAZEBO_MASTER_URI port as
+    15000 + sequence*100 (+ decision index). Sequence 206 requested port
+    35600, inside the Linux ephemeral port interval. A prior client socket
+    occupied that address, so gzserver could not bind. The execution process
+    exited fail-closed and no failed-unit outcome was created.
+preserved_resources:
+  release_sha256: 34deadce230ef4c0de0c018a5576035ba74b88724cba3eaa89b8cf29826ede79
+  authorization_sha256: a38663d88243c7b0bb614ca8cc2aabb64eed623af2b4e9fcd969dcc767549d1c
+  journal_sha256: f4f871bc1398329997162e34066fe814f2d49813b18d0a575c1c6b7fb1817c42
+  failing_gzserver_log_sha256: 34b8d0707d7bbf729d52dcbdd2f8140d3f32ce39142db0e0bbc464d03948cddf
+  failing_world_sha256: 2edc25549cbc84cbb23c07db2261b0a37db937bd8f1b71a69b657b973eb239fc
+claim_boundary:
+  complete_paired_matrix: false
+  formal_result: false
+  performance_improvement_demonstrated: false
+  partial_outcome_inference_allowed: false
+  safety_or_deployment_claim: false
+  real_vehicle_ready: false
+next_safe_entry: >-
+  A pure-offline single-factor master-port allocation repair constrained
+  below the OS ephemeral range, followed by a new independent release,
+  entirely fresh seeds and budget, and separate simulation authorization.

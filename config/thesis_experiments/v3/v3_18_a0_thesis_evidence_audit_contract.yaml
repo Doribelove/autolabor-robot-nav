@@ -1,0 +1,42 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-18-A0
+purpose: pure_offline_thesis_experiment_and_architecture_audit
+status: frozen_before_audit_output
+scope:
+  workspace: /home/robot/robot_ws_base_rl
+  stable_real_robot_workspace_read_or_write: false
+  generations: [V1_T11_T12, V2_FAM_TEB, V3_SCOPE]
+  required_terminal_studies:
+    - T12_Residual_SAC
+    - V2_04G_P1
+    - V3_05_B0
+    - V3_09_F1
+    - V3_11_F1
+    - V3_14_S1
+    - V3_16_S1
+comparability_policy:
+  pool_only_within_identical_population_and_execution_contract: true
+  cross_stage_values_are_context_only: true
+  qualification_and_preflight_excluded_from_formal_statistics: true
+  high_frequency_samples_are_not_independent_units: true
+standard_dataset:
+  row_unit: one_executed_episode_or_one_declared_offline_unit
+  required_identity_fields: [stage, sequence, block_id, attempt, seed, scene_id, method]
+  required_outcome_fields: [completed, goal_success, restricted_time_s, contact_count]
+  required_integrity_fields: [contract_sha256, release_sha256, report_sha256, scientific_inclusion]
+future_experiment_gap:
+  required_same_population_methods:
+    - v3_spatial_safe
+    - actual_teb
+    - fixed_v120_shielded
+    - v3_no_candidate_conditioning
+  simulation_only: true
+  fresh_seed_required: true
+  qualification_before_evidence: true
+authority:
+  execution_authorized: false
+  training_authorized: false
+  hardware_access_authorized: false
+  real_vehicle_authorized: false
+

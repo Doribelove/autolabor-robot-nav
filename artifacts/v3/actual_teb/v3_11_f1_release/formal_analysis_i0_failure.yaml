@@ -1,0 +1,30 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-11-F1-ANALYSIS-I0
+status: preserved_offline_analysis_implementation_failure
+formal_execution_release_sha256: b21835d5d55a55fd130aae836c609fd117481b9d4cd54155ba8fc78b57dc9ea6
+formal_execution_summary_sha256: 9843ce28763e1f836b3230545b00b614019486ab89564d7063d247e1cb1fc2a4
+analysis_release_sha256: 61342983f229dd739a4f0330cebaecc94b0ea981be8982d3f0915bc1d6f69929
+assessor_path: src/tools/thesis_experiment/scripts/assess_v3_11_f1_actual_teb_formal.py
+assessor_sha256: 050d86f230b647d94fd2f697f9e18d33bb2856548efbc73e7c3957e808e81bc3
+failure:
+  exception_type: NameError
+  exception_message: name 'cautious' is not defined
+  source_expression: 'supported_actor_policies: [cautious, hesitant]'
+  phase: claim_scope_metadata_construction_after_raw_replay_and_bootstrap
+  assessment_written: false
+  evidence_freeze_written: false
+  formal_execution_evidence_modified: false
+  statistic_or_threshold_modified: false
+repair_boundary:
+  permitted_change: inject the two intended string-valued metadata labels into the frozen module namespace
+  injected_values:
+    cautious: cautious
+    hesitant: hesitant
+  forbidden_changes:
+  - formal execution evidence
+  - paired-block construction
+  - bootstrap implementation, seed, replicates or quantile
+  - safety, task or meaningful-effect thresholds
+  - method, scene, actor, planner or baseline behavior
+  - selective exclusion, retry or simulation rerun

@@ -1,0 +1,71 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-14-S1
+status: v3_14_s1_preflight_pass
+contract_sha256: 2aff4c1e74ec8afc2a29c7e2b74a7e9c7018dea46bb1dcba26244cd532550fd3
+authorized_units: 5
+consumed_units: 5
+completed_units: 5
+forfeited_units: 0
+matched_context_blocks: 1
+complete_action_support_rate: 1.0
+minimum_behavior_propensity: 0.2
+maximum_branch_clock_absolute_error_s: 0.007999999999999119
+maximum_decision_ego_x_range_m: 0.0
+maximum_decision_actor_coordinate_range_m: 0.04280613902399644
+maximum_decision_actor_speed_range_mps: 0.0015565868736018285
+contact_state_count_retained: 0
+gate_checks:
+  completed_units_exact: true
+  complete_action_support: true
+  minimum_propensity: true
+  all_processes_complete: true
+  all_clean_exit: true
+  all_collection_pass: true
+  all_finite: true
+  all_assertive_at_branch: true
+  branch_clock: true
+  paired_ego_x: true
+  paired_actor_coordinate: true
+  paired_actor_speed: true
+  trace_samples: true
+  trace_duration: true
+  r3_terminal_guard_execution: true
+  r3_boundary_atomic_execution: true
+  all_action_bindings: true
+collection_gate_pass: true
+blocks:
+- block_index: 1
+  seed: 7719
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only:
+  - hesitant
+  - hesitant
+  row_count: 5
+  full_action_support: true
+  minimum_behavior_propensity: 0.2
+  maximum_branch_clock_absolute_error_s: 0.007999999999999119
+  decision_ego_x_range_m: 0.0
+  actor_ranges:
+  - track_id: 1
+    coordinate_range_m: 0.04280613902399644
+    speed_range_mps: 0.0015565868736018285
+  - track_id: 2
+    coordinate_range_m: 0.04134188392399096
+    speed_range_mps: 0.0015033412336009633
+  all_assertive_at_branch: true
+  all_collection_pass: true
+  all_finite: true
+  contact_state_count_retained: 0
+policy_or_ranker_training_steps: 0
+actual_TEB_execution_authorized: false
+hardware_accessed: false
+real_vehicle_used: false
+static_outcomes_retained: true
+minimum_trace_static_clearance_m: 0.2557632593696857
+r3_terminal_guard_execution_rate: 1.0
+r3_boundary_atomic_execution_rate: 1.0
+runtime_component_stage: V3-13-Q1-R19-R5
+predictor_fit_authorized: false
+phase: preflight
+non_scientific_preflight: true

@@ -1,0 +1,31 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-11-F1
+status: immutable_preexecution_analysis_release
+formal_execution_release_sha256: b21835d5d55a55fd130aae836c609fd117481b9d4cd54155ba8fc78b57dc9ea6
+analysis_method: raw paired replay; Python random.Random(31100) Mersenne Twister;
+  200000 block-bootstrap replicates; lower order statistic at floor(0.025*200000)
+post_execution_analysis_change_authorized: false
+selective_exclusion_authorized: false
+resources:
+- path: src/tools/thesis_experiment/scripts/assess_v3_11_f1_actual_teb_formal.py
+  sha256: 050d86f230b647d94fd2f697f9e18d33bb2856548efbc73e7c3957e808e81bc3
+  size_bytes: 31644
+- path: src/tools/thesis_experiment/scripts/review_v3_11_f1_actual_teb_formal.py
+  sha256: 930cadaf5864e5d60ad7aeab6c5c2006ee17944c0e89b22323e3e23a79c947f3
+  size_bytes: 5756
+- path: config/thesis_experiments/v3/v3_11_f1_actual_teb_formal_contract.yaml
+  sha256: 2f142590e81fa32af4dfde37d4aa442f1abb17973959cbad8893dc080214e53d
+  size_bytes: 8347
+- path: experiments/manifests/v3/v3_11_f1_actual_teb_formal_release.yaml
+  sha256: b21835d5d55a55fd130aae836c609fd117481b9d4cd54155ba8fc78b57dc9ea6
+  size_bytes: 1515
+- path: experiments/manifests/v3/v3_11_f1_actual_teb_simulation_authorization.yaml
+  sha256: 26a2173f11b32185409721e4027c419f87dd02e6afe965c0dfe790350705f0c2
+  size_bytes: 1180
+- path: artifacts/v3/actual_teb/v3_11_f1_release/exact_schedule.yaml
+  sha256: 0b84b742469ebf693b0e6ec9837e505035b4ac42b0305bfc0c0762346214d57e
+  size_bytes: 8027
+- path: artifacts/v3/actual_teb/v3_11_f1_release/dependency_freeze.yaml
+  sha256: 79c8225588af2a381571457417a9450177152ffc2bec832c1eb559b45484b661
+  size_bytes: 4435

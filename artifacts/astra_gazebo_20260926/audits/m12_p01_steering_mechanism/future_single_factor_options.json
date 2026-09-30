@@ -1,0 +1,38 @@
+{
+  "status": "offline_future_control_options_no_execution_or_source_change",
+  "preserved_actual_center_gate_radps": 0.85,
+  "preserved_reference_center_rate_radps": 0.75,
+  "minimal_single_factor": {
+    "parameter": "steeringKd",
+    "control": 4.0,
+    "candidate": 6.0,
+    "all_other_parameters_fixed": true,
+    "candidate_qualified": false,
+    "required_evaluation": "whole original11phase schedule, actual50Hz world-link gate plus dense500Hz diagnostics, tracking/torque/contact/clock/source integrity",
+    "caveat": "Derivative feedforward gain also grows; improvement not guaranteed"
+  },
+  "alternative_controller": {
+    "scope": "new independent architecture factor; not combined with Kd test",
+    "outer": "bounded joint/center velocity reference derived from position error",
+    "inner": "measured angular velocity feedback through bounded joint torque",
+    "reference": "actual inverse Ackermann center-rate Jacobian",
+    "prerequisites": [
+      "effective inertia/disturbance envelope",
+      "tracking and latency qualification",
+      "dense pose-source derivative assessment",
+      "same actual .85 gate and finite torque limits"
+    ],
+    "forbidden_shortcuts": [
+      "direct joint/body pose or velocity writes",
+      "posthoc rate clipping",
+      "relaxed frozen threshold",
+      "claiming target rate implies actual bound"
+    ]
+  },
+  "inputs_unchanged": [
+    "P01 raw and report",
+    "P01 physical driver8b5d45c0",
+    "P02 dynamics/driverda1f1a39"
+  ],
+  "mechanism_evidence_sha256": "631cf352333283611bc9429c2fbd145ed1a2d6d9aa6195d87f1ecb003c26c845"
+}

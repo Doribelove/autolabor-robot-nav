@@ -1,0 +1,61 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-14-I1
+stage_purpose: pure_offline_schedule_launch_runtime_action_binding_integrity_closure
+status: preregistered_pure_offline
+historical_failure:
+  stage: V3-13-Q1-R19-R6
+  terminal_failure_path: artifacts/v3/multiactor/v3_13_q1_r19_r6_terminal_binding_failure.yaml
+  terminal_failure_sha256: 776a28e76b2421856b7bd3b5ebe52ca80dfae3a03b69a68e4d96cd2154e9ad29
+  independent_review_path: artifacts/v3/multiactor/v3_13_q1_r19_r6_terminal_binding_failure_review.yaml
+  independent_review_sha256: b683c0c0e8fc5a3deb296b96eb38a017b875cdca69548ec290bdc00b6eafe483
+  matrix_runner_path: src/tools/thesis_experiment/scripts/run_v3_13_q1_r19_r6_tolerance_repaired_support.py
+  matrix_runner_sha256: d4f7cb811259f1e4765b0c9df501d933d7ed1fd1f94a8f4240e34226ff24a6c9
+  delegated_preflight_runner_path: src/tools/thesis_experiment/scripts/run_v3_13_q1_r19_r5_r1_propensity_preflight.py
+  delegated_preflight_runner_sha256: 82d21e197df1a9097b86b82b9f003794c4f3215bb7ef7b73df1375e58322c911
+frozen_candidate_bank:
+  candidate_ids:
+  - spatial_left_v120
+  - spatial_right_v120
+  - straight_v120
+  - certified_stop_v000
+  - recovery_evasive_right_v120_r3
+  behavior_propensity_each: 0.20
+  legacy_action_horizon_s: 7.0
+  r3_action_horizon_s: 7.55
+required_fail_closed_assertions:
+  before_unit_consumption:
+  - schedule row candidate ID equals the unique roslaunch forced_candidate_id override
+  - schedule seed, scene, block, propensity and candidate-specific horizon equal launch overrides
+  - missing or duplicate identity overrides are rejected
+  after_runtime_report_before_unit_complete:
+  - schedule row candidate ID equals runtime report candidate ID
+  - schedule seed, scene and block equal runtime report identity
+  before_scientific_inclusion:
+  - both preconsumption and runtime receipts pass
+  mismatch_action:
+  - stop the stage immediately
+  - retain the failing identity and raw report
+  - exclude the unit and stage from predictor fitting or inference
+  - forfeit remaining bounded units
+historical_preservation:
+  modify_or_rehash_R19_R6: false
+  reuse_R18_or_R19_identity_seed_budget: false
+  repair_and_rerun_R19_R6: false
+future_stage_requirements:
+  new_independent_stage_identity: true
+  fresh_seed_roster_and_nonrecyclable_budget: true
+  separate_execution_release_and_review: true
+  row_derived_launch_binding_only: true
+  preconsumption_full_schedule_binding_replay: true
+  postruntime_binding_gate: true
+authority:
+  offline_only: true
+  execution_authorized: false
+  evidence_budget_authorized: 0
+  predictor_fit_authorized: false
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

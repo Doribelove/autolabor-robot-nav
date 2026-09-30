@@ -1,0 +1,448 @@
+{
+  "status": "offline_driver_ingress_measurement_review_pass",
+  "independent_probe_review": true,
+  "independent_manager_review": true,
+  "reviewer": "historical_audit; independent from probe/manager author root",
+  "reviewed_probe_sha256": "d19bed1dddc202c6eacf9230de6d53126d34a94ed54ec4f6e6053d3bfa0c1c29",
+  "reviewed_manager_sha256": "2dac51996951377ac5e23a27b1354098ade69b6bbb0cbbc63d23747be8e50420",
+  "numeric_thresholds_unchanged": true,
+  "physical_numeric_thresholds_unchanged": true,
+  "total_gate_count": 122,
+  "check_names": [
+    "accelerate_actual_steady_steering",
+    "accelerate_command_count",
+    "accelerate_steady_speed",
+    "actual_center_angle_limit",
+    "actual_center_slew_with_declared_sampling_tolerance",
+    "actual_front_Ackermann_pair_agreement",
+    "actual_front_joint_URDF_angle_limits",
+    "actual_front_left_steer_joint_URDF_velocity_limit",
+    "actual_front_right_steer_joint_URDF_velocity_limit",
+    "actual_joint_positions_agree_with_dense_source_pose",
+    "actual_odom_twist_agrees_with_dense_base_link",
+    "all_numeric_finite",
+    "all_source_stamp_ns_and_seconds_agree",
+    "backend_status_approximately_50Hz",
+    "backend_status_bounded_source_gap",
+    "backend_status_covers_schedule",
+    "backend_status_source_strictly_monotonic",
+    "command_loss_actual_stopped",
+    "command_loss_model_stopped",
+    "command_loss_no_driver_receipt_after_drain",
+    "command_loss_no_probe_publication",
+    "commanded_brake_actual_stopped",
+    "commanded_brake_command_count",
+    "commanded_brake_model_stopped",
+    "commanded_efforts_approximately_50Hz",
+    "commanded_efforts_bounded_source_gap",
+    "commanded_efforts_covers_schedule",
+    "commanded_efforts_finite_limits_not_reaction",
+    "commanded_efforts_source_strictly_monotonic",
+    "contacts_bounded_source_gap",
+    "contacts_covers_schedule",
+    "contacts_source_strictly_monotonic",
+    "dense_links_complete_roster_and_shapes",
+    "dense_links_covers_schedule",
+    "dense_links_every_physics_step",
+    "dense_model_link_exact_source_join",
+    "dense_models_complete_roster_and_shapes",
+    "dense_models_covers_schedule",
+    "dense_models_every_physics_step",
+    "dense_source_metadata",
+    "final_paused_source_watermark_drained",
+    "inside_empty_fixture",
+    "internal_accel_limit",
+    "internal_brake_limit",
+    "internal_target_center_angle_limit",
+    "internal_target_center_slew_limit",
+    "isolated_command_events_match_integer_schedule",
+    "isolated_command_source_identity_and_completion",
+    "joints_approximately_50Hz",
+    "joints_bounded_source_gap",
+    "joints_covers_schedule",
+    "joints_source_strictly_monotonic",
+    "links_approximately_50Hz",
+    "links_bounded_source_gap",
+    "links_complete_roster_and_shapes",
+    "links_covers_schedule",
+    "links_matches_dense_same_stamp",
+    "links_source_strictly_monotonic",
+    "model_odom_xy_agreement",
+    "model_odom_yaw_agreement",
+    "models_approximately_50Hz",
+    "models_bounded_source_gap",
+    "models_complete_roster_and_shapes",
+    "models_covers_schedule",
+    "models_links_exact_source_stamp_join",
+    "models_matches_dense_same_stamp",
+    "models_source_strictly_monotonic",
+    "no_callback_errors",
+    "no_non_ground_robot_contacts",
+    "odom_approximately_50Hz",
+    "odom_bounded_source_gap",
+    "odom_covers_schedule",
+    "odom_source_join_age",
+    "odom_source_strictly_monotonic",
+    "only_wheels_may_contact_ground",
+    "physical_backend_metadata",
+    "physical_backend_never_faulted",
+    "physical_command_ingress_matches_source_commands",
+    "physical_command_ingress_source_schema_and_order",
+    "physical_status_source_exact_target_odom_join",
+    "physical_status_source_schema",
+    "physics_source_metadata",
+    "reaccelerate_brake_actual_steady_steering",
+    "reaccelerate_brake_command_count",
+    "reaccelerate_brake_steady_speed",
+    "reaccelerate_loss_actual_steady_steering",
+    "reaccelerate_loss_command_count",
+    "reaccelerate_loss_steady_speed",
+    "recorder_connections_ready_before_unpause",
+    "recorder_warmup_before_start",
+    "saturation_negative_actual_steady_steering",
+    "saturation_negative_command_count",
+    "saturation_negative_steady_speed",
+    "saturation_negative_yaw_excitation",
+    "saturation_positive_actual_steady_steering",
+    "saturation_positive_command_count",
+    "saturation_positive_steady_speed",
+    "saturation_positive_yaw_excitation",
+    "schedule_start_marker_matches_trigger",
+    "spawn_pose_matches_fixture",
+    "stationary_actual_stopped",
+    "stationary_command_count",
+    "stationary_model_stopped",
+    "target_fields_and_Ackermann_geometry",
+    "target_speed_and_instantaneous_reference_limits",
+    "targets_approximately_50Hz",
+    "targets_bounded_source_gap",
+    "targets_covers_schedule",
+    "targets_source_strictly_monotonic",
+    "turn_negative_actual_steady_steering",
+    "turn_negative_command_count",
+    "turn_negative_steady_speed",
+    "turn_negative_yaw_excitation",
+    "turn_positive_actual_steady_steering",
+    "turn_positive_command_count",
+    "turn_positive_steady_speed",
+    "turn_positive_yaw_excitation",
+    "unique_expected_model_roster",
+    "within_phase_command_deadline",
+    "zero_speed_yaw_actual_stopped",
+    "zero_speed_yaw_command_count",
+    "zero_speed_yaw_model_stopped"
+  ],
+  "created_utc": "2026-09-26T10:25:48.005213+00:00",
+  "offline_only": true,
+  "ROS_Gazebo_started": false,
+  "build_started": false,
+  "P05_simulation_claim": false,
+  "no_P05_allocation_or_release_at_review": true,
+  "tests": {
+    "independent": 68,
+    "author_probe_reexecuted": 53,
+    "author_manager_reexecuted": 55,
+    "total_current_source_pass": 176,
+    "logs": {
+      "independent_tests_r01.log": 68,
+      "author_probe_tests_final.log": 53,
+      "author_manager_tests_final.log": 55
+    }
+  },
+  "resolved_initial_findings": [
+    {
+      "finding": "Driver ingress after authoritative paused-world time passed initial assessor.",
+      "initial_evidence": {
+        "pass": true,
+        "failed": [],
+        "driver_ns": 37102000000,
+        "paused_watermark_ns": 37100000000
+      },
+      "resolution": "All driver source stamps must be on the 2 ms physics grid and at or before the stable paused world watermark; independent future/offgrid fixtures now rejected."
+    },
+    {
+      "finding": "Callback parsing failure could append raw.callback_errors after active=False.",
+      "initial_evidence": {
+        "active": false,
+        "callback_errors_appended_after_close": 1
+      },
+      "resolution": "Exact protected callback parsing, recording and exception paths now run under the same RLock with active checked before parsing; pending-thread and post-close decode fixtures prove no mutation."
+    },
+    {
+      "finding": "The remaining headerless receipt-clock matching gate still made observation latency affect qualification.",
+      "initial_evidence": {
+        "pass": false,
+        "failed": [
+          "command_relay_observed"
+        ],
+        "relay_match_fraction": 0.953125
+      },
+      "resolution": "Obsolete command_relay_observed gate removed. Its old fraction, 0.98 threshold and pass boolean remain explicitly diagnostic. The ordered source-to-driver exact count/payload/causal join requires 100% matching."
+    }
+  ],
+  "roster_change": {
+    "relative_to_P02": {
+      "old_count": 120,
+      "added": [
+        "final_paused_source_watermark_drained",
+        "physical_command_ingress_source_schema_and_order",
+        "physical_command_ingress_matches_source_commands",
+        "command_loss_no_driver_receipt_after_drain"
+      ],
+      "removed": [
+        "command_loss_no_relay_publication_after_drain",
+        "command_relay_observed"
+      ],
+      "new_count": 122
+    },
+    "relative_to_initial_unreleased_P05": "123 -> 122 solely by deleting obsolete headerless relay qualification; initial 123-gate bytes and counterexamples retained."
+  },
+  "numeric_evidence": {
+    "all_six_gates_config_equal_frozen_P02": true,
+    "all_six_phase_schedules_equal_frozen_P02": true,
+    "all_six_world_fixtures_equal_frozen_P02": true,
+    "physical_core_AST_exactly_P04": true,
+    "every_common_gate_condition_AST_equal": true,
+    "all_unchanged_pure_helpers_AST_equal": true,
+    "analytic_common_numeric_metrics_equal": true,
+    "command_loss_grace_s": 0.12,
+    "within_phase_command_gap_s": 0.075,
+    "settled_tail_s": 0.75,
+    "pause_drain_wall_budget_s": 5.0,
+    "actual_center_slew_limit_radps": 0.85,
+    "numeric_thresholds_unchanged_interpretation": "All inherited configuration values and physical formulas/thresholds remain unchanged. Source evidence supersedes two clock-dependent qualification gates; the old 0.98 relay-match threshold survives only as a diagnostic."
+  },
+  "runtime_audit": {
+    "actual_finally_AST_executed_with_fake_services": true,
+    "fake_faults": [
+      "pause and properties service errors",
+      "unpaused world",
+      "changing world source time",
+      "off-grid service time",
+      "service timeout",
+      "fixed 5 s deadline including source-join computation",
+      "10 streams missing tail/interior/duplicate/future",
+      "missing command-source completion",
+      "missing source terminal event",
+      "missing/delayed/duplicate/future/off-grid actual driver terminal",
+      "each of four source joins false",
+      "initial failure preservation"
+    ],
+    "concurrent_callback_close_tests": [
+      "parse and record run under RLock",
+      "exception path under same RLock",
+      "callbacks after active=False skipped",
+      "thread pending on close lock cannot parse or mutate raw"
+    ],
+    "actual_driver_in_loss_negative_retained": true,
+    "driver_terminal_source_expected": true
+  },
+  "remaining_clock_semantics": {
+    "loss_qualification": "Gazebo World::SimTime driver ingress, not local /clock",
+    "source_matching": "Strict ordered formal+terminal one-to-one; same payload; ingress no earlier than source event; no added tight latency threshold",
+    "headerless_cmd_vel_callback_times": "Diagnostic only, including old match fraction and in-loss list",
+    "legacy_backend_fault_Bool": "Receipt-gap statistics diagnostic only; any explicitly observed true remains a failure independent of receipt timing",
+    "warmup_and_control_wallcaps": "Existing startup /clock duration and monotonic wallcaps retained; do not measure command execution latency",
+    "schedule_marker_receipt_time": "Marker value is checked; local receipt timestamp is diagnostic"
+  },
+  "closure": {
+    "all450_inherited_active_resources_match": true,
+    "old420_roster_inherited": true,
+    "only_replacements": [
+      "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/CMakeLists.txt",
+      "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/package.xml"
+    ],
+    "old_P02_P03_P04_negative_identities_and_budgets_unchanged": true,
+    "fresh_exact_six_order": [
+      [
+        260926017,
+        4.0
+      ],
+      [
+        260926017,
+        6.0
+      ],
+      [
+        260926018,
+        6.0
+      ],
+      [
+        260926018,
+        4.0
+      ],
+      [
+        260926019,
+        4.0
+      ],
+      [
+        260926019,
+        6.0
+      ]
+    ],
+    "physical_negatives_continue": true,
+    "any_infrastructure_failure_stops_and_retires_unrun": true,
+    "treatment_promotion_requires_full_six_and_three_all_gate_pass_treatments": true,
+    "no_retry_resume_identity_reuse": true
+  },
+  "driver_review_separation": {
+    "driver_author": "historical_audit (this reviewer)",
+    "independent_driver_reviewer": "root",
+    "separate_bound_root_report": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physics_p05_driver_root_review.json",
+    "self_driver_review_claimed_independent": false
+  },
+  "limitations": [
+    "All fixture results are synthetic/offline, not simulator evidence or a real-time schedulability guarantee.",
+    "P05 source callback timing records actual driver receipt and queue acceptance, not force application or the relay publication instant.",
+    "Pass requires subsequent fresh source-bound simulation evidence; old P02/P03/P04 failures remain failures.",
+    "Integer nanoseconds implement declared membership boundaries exactly; formulas use the same native 20 ms actual world-link sample grid and unchanged derivative calculations."
+  ],
+  "commands": [
+    "/usr/bin/python3 -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/test_independent_runtime.py /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/test_independent_ingress.py /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/test_independent_manager.py",
+    "/usr/bin/python3 -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_physical_actuation_probe_p05.py",
+    "/usr/bin/python3 -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_m12_physics_p05.py",
+    "/usr/bin/python3 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/audit_source_and_closure.py",
+    "/usr/bin/python3 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/finalize_review.py"
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p05.py",
+      "sha256": "d19bed1dddc202c6eacf9230de6d53126d34a94ed54ec4f6e6053d3bfa0c1c29"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_m12_physics_p05.py",
+      "sha256": "2dac51996951377ac5e23a27b1354098ade69b6bbb0cbbc63d23747be8e50420"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_design.yaml",
+      "sha256": "f0d887084ea08c92ee44190f5b40d4c78636195f6dfe7dc7671d3a4496a59114"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/queue/m12_physics_p05_schedule.json",
+      "sha256": "df056ad4ca724f3af61fd39acbe96e551bbe9f7de93d01e5417154b78ed3474a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/queue/m12_physics_p05_budget_design.json",
+      "sha256": "5274bccfe84c6741214fccc4f9ceed6274e4476f96eacbe76fe30ac61d191d27"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physics_p05_driver_root_review.json",
+      "sha256": "39644f06fa262f58dbc7c40304239bc746a2135b459615eeae0a9c0c1e759621"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s017_kd4.yaml",
+      "sha256": "06873d1e31a0eb66028910334c062ea6230c2372712d865d00e1ead1dcaa6db2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s017_kd6.yaml",
+      "sha256": "e7b6035cd65f2c23aaacf74e3c4271abfb89f29af676c0040abbb493d34fa8a2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s018_kd6.yaml",
+      "sha256": "1565a593b552630056d1633e50cd7d1d6a4d86900288e279e33ec3c24933420c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s018_kd4.yaml",
+      "sha256": "5bd7e03c46616eb02c5d40fd038f83fdaeeaa9caefe4112e2019033fd372fb18"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s019_kd4.yaml",
+      "sha256": "f869b862fb31a07485dbe39eecbb92a94b98ea8a95cff8aad1a1b29f13ed2850"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s019_kd6.yaml",
+      "sha256": "03a9076d4ffd4aa04c71d826c9c1b72baaf72f090cc79e4bdb53f96adc30edf2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/probe_review_initial_snapshot.py",
+      "sha256": "2d890b82472436282949c865c664094c9516c159033f19a02d6c134073dd9a6a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/manager_review_initial_snapshot.py",
+      "sha256": "26cfdd5e6b6255be83630f99e05593f7fbac748c66cf59979eaeb6b1837a909f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/initial_counterexamples.py",
+      "sha256": "47bdf9b4e84db5b541d6ba9d058ffbcd846c2f1a351d553aff01956b0789e98c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/initial_counterexamples.json",
+      "sha256": "da5113da8c7ddcfd4bccb04709ab955805c5677d13421063ff4e8acb1813e5d0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/initial_counterexamples.log",
+      "sha256": "3694c61ba69b2eaba63431772f7e12793ffaea9bdce9d8426ea4c6cc126a41f0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/test_independent_runtime.py",
+      "sha256": "5ad90751befc1f37b7d650302386caa114453f4e338cb95926ab5b84f9e10473"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/test_independent_ingress.py",
+      "sha256": "1a0933767c6ab2a96607c7d825d964382af4daf1367cb0645e7bf02c48ec6d9a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/test_independent_manager.py",
+      "sha256": "54c8409537d837480e49769bab2b300aa6160fee7c7346d0b45b5e1b003b7019"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/independent_tests_r01.log",
+      "sha256": "8a8052ed9d95b618198a514a5a525edd659e1e6ea4ffba3c26a07c219f2dd5df"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/author_probe_tests.log",
+      "sha256": "9d37997d78201712052dc3499d7339ca91f0d4a28b69837c2b3f9054cb0f6c55"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/author_manager_tests.log",
+      "sha256": "82de388f662500fcb05542ecfd31e67cc37f94ad5884de8e392012190fdd021b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/author_probe_tests_final.log",
+      "sha256": "3ef5b3ea581e5009983f89534253dbb17ccb49675c1e6921a2970283c7ca4a5c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/author_manager_tests_final.log",
+      "sha256": "f569435f57f058b4dbd80d05f9010ed739f1655e1b1d4019cde030faa19953e3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/analytic_numeric_identity.json",
+      "sha256": "9e9c8c6c797c52e129f47e2dd92d9c2aca43963630685f8dbf4057ae11bdc7ae"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/analytic_phase_membership_comparison.json",
+      "sha256": "e2bc411981acb41b7c6f9ae2d66f9304633e8f81f54dd561b643e78a821d4f39"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/audit_source_and_closure.py",
+      "sha256": "c564b37bf5425b087cab852b74da7c2bde27557c832acb3c856011b916568cf1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/source_and_closure_review.json",
+      "sha256": "8b5eaf5de3724e74edddd024f966b8b1aa93124c42457c833070930937db4d4c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/source_and_closure_r01.log",
+      "sha256": "b1ebc5ca3566452e73e1ce000d3623b6faeb1a8894c260c2ce113a1a85fc3c51"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/inherited_450_active_bindings.json",
+      "sha256": "a3d8c3bb28e6494acd458eccc3cc28e701f3e28dc341cfeb2cc0d5ce297b2594"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/initial_probe_diff_from_p04.patch",
+      "sha256": "00c8ec7fd383bdb16144c1e2f5da7a9a67e41fe2d587bae699eb9a4801a356ee"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/probe_final_diff_from_p04.patch",
+      "sha256": "f78f544e1acdbf5e33593f3c000edb4d63b25f9d51832efdcca3789b5fa08a8e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/tool_errors.log",
+      "sha256": "aee2c88acf739bdeb58228326ab535f556b296f80ffa5935426af74ebc110a72"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/finalize_review.py",
+      "sha256": "fc2a6adcbe589cac6ccb43c202bb4fd0efd0de3c338a5ac3c65222074a051990"
+    }
+  ]
+}

@@ -1,0 +1,274 @@
+{
+  "status": "offline_batch_and_availability_repair_complete_independent_review_pending",
+  "schema": "astra_sensor_tracks_v2_implementation_report",
+  "scope": {
+    "ROS_started": false,
+    "Gazebo_started": false,
+    "seeds_consumed": 0,
+    "training_steps": 0,
+    "final_outcomes_accessed": false,
+    "frozen_v1_modified": false,
+    "existing_runtime_or_launch_modified": false,
+    "full_planner_qualification": false,
+    "live_deadline_qualified": false,
+    "learned_predictor_qualified": false,
+    "physical_safety_certified": false
+  },
+  "source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+    "sha256": "4975d9cdd91cc9c182f6ec36967a61084ff4e65f71493305f8d68a8b028e6bd6",
+    "bytes": 11955
+  },
+  "tests": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_v2.py",
+    "sha256": "b25156f9f26de13f78a74e12e41c20468c8dde7e5d266d9bab853f0b85d781a3",
+    "bytes": 10354
+  },
+  "design": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/design.md",
+    "sha256": "d9d120139f789d72a49eb3505092e5fcc5ca42f9b40b43f87dbbffeab1d7c3d1",
+    "bytes": 7275
+  },
+  "author_tests": {
+    "passed": 47,
+    "command": "/usr/bin/python3 -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_v2.py",
+    "result": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/test_results.txt",
+      "sha256": "d6b2e5480cc67fc817963549e5bc2d3a6b97df042b218312ec777ad494bf854a",
+      "bytes": 106
+    }
+  },
+  "public_guards": [
+    "HardOccupancy(snapshot, now_ns)",
+    "BatchHardOccupancy(snapshot, now_ns)",
+    "SensorTracks.occupancy(now_ns)",
+    "SensorTracks.batch_occupancy(now_ns)",
+    "prediction_request(...,decision_ns=...)"
+  ],
+  "availability_condition": "decision/query >= snapshot.accepted_now_ns AND unchanged source-age <=200000000ns",
+  "unchanged_semantics": [
+    "all v1 support entries retained",
+    "same1.35m/s expansion; noCV shrinking",
+    "same tracking and association functions inherited",
+    "same valid candidate request schema/hash/bytes",
+    "same base-reference full-body polygon vertices and poses",
+    "external0.33m margin/static/interval checks unchanged",
+    "no existing runtime imports v2 automatically"
+  ],
+  "arithmetic": {
+    "backend": "batched AABB candidate pruning then actual convex polygon point distances",
+    "query_tile": 32,
+    "maximum_pair_tensor_rows": 1024,
+    "numerical_conservative_subtraction_m": 1e-10,
+    "geometric_occupancy_removed": false,
+    "repeated_geometry_cache_is_optional_exact_reuse": true
+  },
+  "comparison": {
+    "author_random_and_boundary_tests": 47,
+    "paired_actual_nine_component_hull_queries_per_environment": 992,
+    "all_distances_no_greater_than_v1_with_declared_numeric_subtraction": true,
+    "formal_numeric_proof": false
+  },
+  "timing": {
+    "reports": [
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/timing_system_r2.json",
+        "sha256": "602900442bf39101800272e6a0bb9624755316904df99f6acb8da70471a072e7",
+        "bytes": 20824
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/timing_venv_r2.json",
+        "sha256": "e4dbb4752ce086ef06fd50c21a2bb21cc2b2fb7f4cb06caf8f39c5f1b1d85500",
+        "bytes": 20882
+      }
+    ],
+    "benchmark": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/benchmark.py",
+      "sha256": "c57c6dd0556072564a4818e509de0ba94fc04a0914f142b56979c631c7bab020",
+      "bytes": 6179
+    },
+    "trials_per_workload_per_environment": 20,
+    "counterbalanced": true,
+    "constructor_and_query_included": true,
+    "environments": {
+      "system": {
+        "executable": "/usr/bin/python3",
+        "numpy": "1.21.0",
+        "whole_max_ms": 18.454657,
+        "all_measured_below20ms": true,
+        "all_measured_below50ms": true,
+        "workloads": [
+          {
+            "name": "original_repeated_geometry",
+            "v1": {
+              "count": 20,
+              "median_ms": 95.98219950000001,
+              "p95_ms": 101.3433113,
+              "max_ms": 102.108257
+            },
+            "v2": {
+              "count": 20,
+              "median_ms": 1.901306,
+              "p95_ms": 2.69593085,
+              "max_ms": 2.884332
+            }
+          },
+          {
+            "name": "distinct_full_domain_rotations",
+            "v1": {
+              "count": 20,
+              "median_ms": 100.06233950000001,
+              "p95_ms": 100.92047935,
+              "max_ms": 103.598099
+            },
+            "v2": {
+              "count": 20,
+              "median_ms": 17.355015,
+              "p95_ms": 18.29674515,
+              "max_ms": 18.454657
+            }
+          },
+          {
+            "name": "distinct_candidate_like_near_route",
+            "v1": {
+              "count": 20,
+              "median_ms": 98.6468155,
+              "p95_ms": 102.42926684999999,
+              "max_ms": 103.074865
+            },
+            "v2": {
+              "count": 20,
+              "median_ms": 15.673729000000002,
+              "p95_ms": 16.586157500000002,
+              "max_ms": 16.647404
+            }
+          },
+          {
+            "name": "distinct_27s_lost_mixed_ages",
+            "v1": {
+              "count": 20,
+              "median_ms": 84.9434815,
+              "p95_ms": 86.2337433,
+              "max_ms": 87.798228
+            },
+            "v2": {
+              "count": 20,
+              "median_ms": 13.305306999999999,
+              "p95_ms": 14.1675073,
+              "max_ms": 14.174904
+            }
+          }
+        ]
+      },
+      "venv": {
+        "executable": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+        "numpy": "1.24.4",
+        "whole_max_ms": 18.791615,
+        "all_measured_below20ms": true,
+        "all_measured_below50ms": true,
+        "workloads": [
+          {
+            "name": "original_repeated_geometry",
+            "v1": {
+              "count": 20,
+              "median_ms": 93.657725,
+              "p95_ms": 95.97077895000001,
+              "max_ms": 97.458022
+            },
+            "v2": {
+              "count": 20,
+              "median_ms": 1.6329004999999999,
+              "p95_ms": 2.38689955,
+              "max_ms": 2.417842
+            }
+          },
+          {
+            "name": "distinct_full_domain_rotations",
+            "v1": {
+              "count": 20,
+              "median_ms": 96.1613005,
+              "p95_ms": 97.17424869999999,
+              "max_ms": 97.297496
+            },
+            "v2": {
+              "count": 20,
+              "median_ms": 16.019179,
+              "p95_ms": 16.351819300000002,
+              "max_ms": 18.791615
+            }
+          },
+          {
+            "name": "distinct_candidate_like_near_route",
+            "v1": {
+              "count": 20,
+              "median_ms": 95.0994935,
+              "p95_ms": 100.01369475,
+              "max_ms": 100.289874
+            },
+            "v2": {
+              "count": 20,
+              "median_ms": 13.479558,
+              "p95_ms": 14.48247445,
+              "max_ms": 14.495954
+            }
+          },
+          {
+            "name": "distinct_27s_lost_mixed_ages",
+            "v1": {
+              "count": 20,
+              "median_ms": 81.26905149999999,
+              "p95_ms": 83.11747265000001,
+              "max_ms": 86.59857
+            },
+            "v2": {
+              "count": 20,
+              "median_ms": 11.60944,
+              "p95_ms": 12.51803325,
+              "max_ms": 12.611594
+            }
+          }
+        ]
+      }
+    },
+    "worst_measured_ms": 18.791615,
+    "scope": "measured offline occupancy construction/query kernel; scanning/tracking and rest of planner excluded; not WCET or live qualification"
+  },
+  "inherited_frozen": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v1.py",
+      "sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b",
+      "bytes": 27029
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/implementation_report.json",
+      "sha256": "2130e888e0d9d13701581524a64dcb350af97e6a6e5937653888f8f1c0506739",
+      "bytes": 9555
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/timing.json",
+      "sha256": "0d324f4e40fa7d967dfb1db4923a7a51dcd156c3687c7965dac16fa93e3f14f7",
+      "bytes": 6992
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/review_v1_limited.json",
+      "sha256": "bfe76fe70536d28628930dec46aee4447b56775b155390b4bfe45bf875899033",
+      "bytes": 9083
+    }
+  ],
+  "preserved_negatives": {
+    "unpruned_v1_query_ms": 879.565325,
+    "pruned_v1_query_ms": 57.427209,
+    "v1_availability_counterexample": "independent report bound above",
+    "v2_benchmark_summary_failure": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/development_r0/benchmark_failure.json",
+    "v2_first_success_max_ms": 22.633955,
+    "v2_first_success_snapshot": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/development_r1"
+  },
+  "limitations": [
+    "uncalibrated sensor association/detection/extent limitations unchanged",
+    "no learned candidate-conditioned prediction or fitted/calibrated model",
+    "full planner may exceed50ms after tracking/static/inference/transport are included",
+    "only declared valid convex full-body hull API; no silent adaptation of concave or holed shapes",
+    "1e-10m numerical subtraction is tested engineering conservatism, not formal numerical proof",
+    "M08 mechanism promotion/heldout coverage/time-or-width gates remain pending"
+  ]
+}

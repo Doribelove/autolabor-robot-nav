@@ -1,0 +1,38 @@
+--- reviewed_r0_node
++++ reviewed_r1_node
+@@ -201,8 +201,19 @@
+             except Exception:
+                 return False
+             previous = self.last_runtime_scan_stamp_s
++            previous_failures = self.scan_transform_failure_count
++            stamp_s = message.header.stamp.to_sec()
++            append_due = previous is None or stamp_s-previous >= .20
+             # Exact parent resampling, world transform, float .20s history rule.
+             r1.BenchmarkEpisode._scan(self, message)
++            # The immutable parent catches a second TF/resampling/append error
++            # after refreshing its raw scan timestamp. A precheck alone cannot
++            # certify that the actual observation was committed. Fail closed;
++            # do not dequeue, refresh readiness, or retry indefinitely.
++            if self.scan_transform_failure_count != previous_failures or (append_due and self.last_runtime_scan_stamp_s != stamp_s):
++                lifecycle.fault('frozen_scan_history_append_failed')
++                self.emit_zero()
++                raise LifecycleFault('frozen_scan_history_append_failed')
+             if self.last_runtime_scan_stamp_s != previous:
+                 ingress.appended(message.header.stamp.to_nsec())
+             return True
+@@ -223,6 +234,7 @@
+                 state=state, ready=ready, reason=lifecycle.fault_reason,
+                 gate_source_ns=None if lifecycle.gate is None else lifecycle.gate['source_ns'],
+                 accepted_runtime_scan_ns=list(ingress.accepted_scan_ns),
++                committed_history_age_s=None if not ingress.accepted_scan_ns else (rospy.Time.now().to_nsec()-ingress.accepted_scan_ns[-1])/1e9,
+                 route_use='audit_only', full_polyline_consumed=False, late_faults=list(lifecycle.late_faults)))
+ 
+         def ready(self):
+@@ -231,6 +243,7 @@
+             health = self.input_health(now/1e9)
+             return bool(ingress.first_positive_ns is not None and now-ingress.first_positive_ns >= 20_000_000
+                 and ingress.history_ready() and lifecycle.coordinator_seen and inputs_ready()
++                and 0 <= now-ingress.accepted_scan_ns[-1] <= MAX_AGE_NS
+                 and not health.failures(.20))
+ 
+         def wait_ready(self):

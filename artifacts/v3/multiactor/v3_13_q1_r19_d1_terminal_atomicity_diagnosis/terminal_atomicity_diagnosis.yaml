@@ -1,0 +1,138 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R19-D1
+status: offline_terminal_boundary_atomicity_diagnosis_pass
+checks:
+  r3_episode_count: true
+  observed_guard_counts: true
+  every_final_pose_would_trigger_guard: true
+  failures_exactly_at_horizon: true
+  break_precedes_command_in_source: true
+  all_r3_dynamic_safe: true
+  all_r3_static_safe: true
+  all_r3_contact_free: true
+rows:
+- block_index: 1
+  seed: 7669
+  scene_id: occluded_staggered_corridor
+  observed_guard_activation_count: 1
+  trace_duration_s: 7.6
+  final_common_goal_distance_m: 0.0834056438343723
+  final_candidate_terminal_distance_m: 0.08561203421527198
+  final_terminal_plane_progress_m: 0.08559773926803985
+  final_terminal_window: true
+  final_pose_would_trigger_frozen_guard: true
+  minimum_dynamic_clearance_m: 1.8431632511953175
+  minimum_static_clearance_m: 0.055315585779311505
+  contact_state_count: 0
+- block_index: 2
+  seed: 7670
+  scene_id: occluded_staggered_corridor
+  observed_guard_activation_count: 1
+  trace_duration_s: 7.6
+  final_common_goal_distance_m: 0.11830932286908205
+  final_candidate_terminal_distance_m: 0.10469202623762128
+  final_terminal_plane_progress_m: 0.10463962759140472
+  final_terminal_window: true
+  final_pose_would_trigger_frozen_guard: true
+  minimum_dynamic_clearance_m: 1.7881341269355229
+  minimum_static_clearance_m: 0.055850066783750485
+  contact_state_count: 0
+- block_index: 3
+  seed: 7671
+  scene_id: crossing_and_oncoming
+  observed_guard_activation_count: 2
+  trace_duration_s: 7.6
+  final_common_goal_distance_m: 0.10502396624627137
+  final_candidate_terminal_distance_m: 0.10726070490796748
+  final_terminal_plane_progress_m: 0.10723961477372852
+  final_terminal_window: true
+  final_pose_would_trigger_frozen_guard: true
+  minimum_dynamic_clearance_m: 0.18683155349693736
+  minimum_static_clearance_m: 0.25584445441726755
+  contact_state_count: 0
+- block_index: 4
+  seed: 7672
+  scene_id: crossing_and_oncoming
+  observed_guard_activation_count: 1
+  trace_duration_s: 7.6
+  final_common_goal_distance_m: 0.1364772385685871
+  final_candidate_terminal_distance_m: 0.12289407118983994
+  final_terminal_plane_progress_m: 0.12278727273865626
+  final_terminal_window: true
+  final_pose_would_trigger_frozen_guard: true
+  minimum_dynamic_clearance_m: 0.05935638672068744
+  minimum_static_clearance_m: 0.25492858993982437
+  contact_state_count: 0
+- block_index: 5
+  seed: 7673
+  scene_id: occluded_staggered_corridor
+  observed_guard_activation_count: 0
+  trace_duration_s: 7.550000000000001
+  final_common_goal_distance_m: 0.021320930573692408
+  final_candidate_terminal_distance_m: 0.022273848140988543
+  final_terminal_plane_progress_m: 0.021964287512424456
+  final_terminal_window: true
+  final_pose_would_trigger_frozen_guard: true
+  minimum_dynamic_clearance_m: 1.8790197985965031
+  minimum_static_clearance_m: 0.05653028457637754
+  contact_state_count: 0
+- block_index: 6
+  seed: 7674
+  scene_id: occluded_staggered_corridor
+  observed_guard_activation_count: 1
+  trace_duration_s: 7.6
+  final_common_goal_distance_m: 0.08101367002091348
+  final_candidate_terminal_distance_m: 0.08320946688119274
+  final_terminal_plane_progress_m: 0.08319791921212982
+  final_terminal_window: true
+  final_pose_would_trigger_frozen_guard: true
+  minimum_dynamic_clearance_m: 1.8840490407097423
+  minimum_static_clearance_m: 0.0560634439369474
+  contact_state_count: 0
+- block_index: 7
+  seed: 7675
+  scene_id: crossing_and_oncoming
+  observed_guard_activation_count: 0
+  trace_duration_s: 7.550000000000001
+  final_common_goal_distance_m: 0.05550308700411469
+  final_candidate_terminal_distance_m: 0.041679556217370274
+  final_terminal_plane_progress_m: 0.04162228450409756
+  final_terminal_window: true
+  final_pose_would_trigger_frozen_guard: true
+  minimum_dynamic_clearance_m: 0.19439715735317908
+  minimum_static_clearance_m: 0.2556954396585511
+  contact_state_count: 0
+- block_index: 8
+  seed: 7676
+  scene_id: crossing_and_oncoming
+  observed_guard_activation_count: 1
+  trace_duration_s: 7.6
+  final_common_goal_distance_m: 0.10222867960338024
+  final_candidate_terminal_distance_m: 0.0885821800904425
+  final_terminal_plane_progress_m: 0.0885587472018906
+  final_terminal_window: true
+  final_pose_would_trigger_frozen_guard: true
+  minimum_dynamic_clearance_m: 0.13217413663304334
+  minimum_static_clearance_m: 0.2570889653005859
+  contact_state_count: 0
+aggregate:
+  observed_guard_activation_rate: 0.75
+  offline_final_pose_guard_rate: 1.0
+  minimum_dynamic_clearance_m: 0.05935638672068744
+  minimum_static_clearance_m: 0.055315585779311505
+  maximum_final_common_goal_distance_m: 0.1364772385685871
+confirmed_cause: At an exact 7.55 s final sample the inherited loop exits before evaluating
+  the frozen terminal guard. Both guard-zero final poses satisfy the guard; 7.60 s
+  traces received the extra control evaluation.
+repair_boundary:
+  evaluate_terminal_guard_atomically_at_horizon_boundary: true
+  publish_only_zero_command_at_or_after_horizon: true
+  geometry_actor_model_threshold_and_horizon_changes: 0
+  fresh_stage_and_seed_required: true
+R19_remains_failed: true
+R19_predictor_fit_authorized: false
+actual_TEB_execution_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

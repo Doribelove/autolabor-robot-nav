@@ -1,0 +1,415 @@
+{
+  "status": "independent_measurement_protocol_checks_pass_physical_qualification_failed",
+  "checks": {
+    "original_frozen_report_replay_exact": true,
+    "source_status_formal_50Hz_exact_ns": true,
+    "source_status_same_formal_ns_as_actual_odom_and_target": true,
+    "source_status_all_no_backend_fault": true,
+    "status_and_event_shared_bag_payload_exact": true,
+    "status_and_event_bag_covers_formal_window": true,
+    "all_ten_body_topic_formal_bag_coverage": true,
+    "every_formal_clock_step_2ms": true,
+    "clock_covers_inclusive_formal_start_and_end": true,
+    "commands_strictly_increasing_source_ns": true,
+    "commands_at_most_one_per_slot": true,
+    "commands_slots_and_source_time_consistent": true,
+    "all_commands_match_integer_phase_and_values": true,
+    "no_source_command_in_integer_loss": true,
+    "no_raw_relay_after_loss_drain_grace": true,
+    "no_bag_navigation_or_relay_after_loss_drain_grace": true,
+    "max_same_phase_command_gap_within_frozen75ms": true,
+    "exactly_one_safe_terminal_zero_at_or_after_end": true,
+    "marker_exact_trigger_identity": true,
+    "source_full_status_sequence": true,
+    "recorder_all26_actual_connections_before_unpause": true,
+    "recorder_all26_topics_present_in_closed_bag": true,
+    "warmup_precedes_running_and_schedule": true,
+    "frozen_physical_failure_preserved": true
+  },
+  "count": 24,
+  "passed": 24,
+  "run_id": "m12_physics_p02",
+  "seed": 260926008,
+  "formal_start_ns": 1108000000,
+  "formal_end_ns": 37108000000,
+  "loss_start_ns": 33108000000,
+  "frozen_assessor_checks": 120,
+  "frozen_assessor_pass_count": 119,
+  "frozen_failed_checks": [
+    "actual_center_slew_with_declared_sampling_tolerance"
+  ],
+  "phase_counts": [
+    {
+      "phase": "stationary",
+      "start_ns": 1108000000,
+      "end_ns": 3108000000,
+      "commands": 40,
+      "nominal_commands": 40
+    },
+    {
+      "phase": "accelerate",
+      "start_ns": 3108000000,
+      "end_ns": 7108000000,
+      "commands": 80,
+      "nominal_commands": 80
+    },
+    {
+      "phase": "turn_positive",
+      "start_ns": 7108000000,
+      "end_ns": 10108000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "turn_negative",
+      "start_ns": 10108000000,
+      "end_ns": 13108000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "saturation_positive",
+      "start_ns": 13108000000,
+      "end_ns": 16108000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "saturation_negative",
+      "start_ns": 16108000000,
+      "end_ns": 19108000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "zero_speed_yaw",
+      "start_ns": 19108000000,
+      "end_ns": 22108000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "reaccelerate_brake",
+      "start_ns": 22108000000,
+      "end_ns": 26108000000,
+      "commands": 80,
+      "nominal_commands": 80
+    },
+    {
+      "phase": "commanded_brake",
+      "start_ns": 26108000000,
+      "end_ns": 29108000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "reaccelerate_loss",
+      "start_ns": 29108000000,
+      "end_ns": 33108000000,
+      "commands": 80,
+      "nominal_commands": 80
+    },
+    {
+      "phase": "command_loss",
+      "start_ns": 33108000000,
+      "end_ns": 37108000000,
+      "commands": 0,
+      "nominal_commands": 0
+    }
+  ],
+  "formal_source_command_count": 640,
+  "maximum_missed_slots_field": 0,
+  "source_command_gaps_ns": {
+    "count": 639,
+    "minimum": 50000000,
+    "maximum": 50000000
+  },
+  "same_phase_source_command_gaps_ns": {
+    "count": 630,
+    "minimum": 50000000,
+    "maximum": 50000000
+  },
+  "relay_bag_gaps_ns": {
+    "count": 639,
+    "minimum": 48000000,
+    "maximum": 52000000
+  },
+  "event_lateness_ns": {
+    "count": 640,
+    "minimum": 0,
+    "maximum": 0
+  },
+  "source_status_formal_count": 1800,
+  "source_status_formal_gaps_ns": {
+    "count": 1799,
+    "minimum": 20000000,
+    "maximum": 20000000
+  },
+  "formal_clock_count": 18001,
+  "formal_clock_gaps_ns": {
+    "count": 18000,
+    "minimum": 2000000,
+    "maximum": 2000000
+  },
+  "status_event_bag_crosschecks": {
+    "/m2_driver/physical_status": {
+      "raw_count": 1857,
+      "bag_count": 1857,
+      "shared": 1857,
+      "payload_mismatch_keys": [],
+      "raw_only_keys": [],
+      "bag_only_keys": [],
+      "formal_raw_only_keys": [],
+      "formal_bag_only_keys": []
+    },
+    "/astra_fixture/command_source_status": {
+      "raw_count": 3,
+      "bag_count": 3,
+      "shared": 2,
+      "payload_mismatch_keys": [],
+      "raw_only_keys": [
+        [
+          0,
+          1
+        ]
+      ],
+      "bag_only_keys": [
+        [
+          0,
+          2
+        ]
+      ],
+      "formal_raw_only_keys": [],
+      "formal_bag_only_keys": []
+    },
+    "/astra_fixture/command_event": {
+      "raw_count": 670,
+      "bag_count": 666,
+      "shared": 666,
+      "payload_mismatch_keys": [],
+      "raw_only_keys": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "bag_only_keys": [],
+      "formal_raw_only_keys": [],
+      "formal_bag_only_keys": []
+    }
+  },
+  "source_status_history": [
+    {
+      "ns": 0,
+      "t": 0.0,
+      "frame": "",
+      "seq": 1,
+      "statuses": [
+        {
+          "name": "astra_actuation_command_source",
+          "hardware_id": "simulation-only",
+          "level": 0,
+          "message": "bootstrap",
+          "values": {
+            "state": "bootstrap",
+            "run_id": "m12_physics_p02",
+            "seed": "260926008",
+            "contract_sha256": "0015576bb4d8a087e2fdbeb8919d7050b9561719050292db31d394e7404dc3c2",
+            "reason": "",
+            "start_ns": ""
+          },
+          "value_count": 6
+        }
+      ]
+    },
+    {
+      "ns": 1008000000,
+      "t": 1.008,
+      "frame": "",
+      "seq": 3,
+      "statuses": [
+        {
+          "name": "astra_actuation_command_source",
+          "hardware_id": "simulation-only",
+          "level": 0,
+          "message": "running",
+          "values": {
+            "state": "running",
+            "run_id": "m12_physics_p02",
+            "seed": "260926008",
+            "contract_sha256": "0015576bb4d8a087e2fdbeb8919d7050b9561719050292db31d394e7404dc3c2",
+            "reason": "",
+            "start_ns": "1108000000"
+          },
+          "value_count": 6
+        }
+      ]
+    },
+    {
+      "ns": 37108000000,
+      "t": 37.108,
+      "frame": "",
+      "seq": 4,
+      "statuses": [
+        {
+          "name": "astra_actuation_command_source",
+          "hardware_id": "simulation-only",
+          "level": 0,
+          "message": "complete",
+          "values": {
+            "state": "complete",
+            "run_id": "m12_physics_p02",
+            "seed": "260926008",
+            "contract_sha256": "0015576bb4d8a087e2fdbeb8919d7050b9561719050292db31d394e7404dc3c2",
+            "reason": "",
+            "start_ns": "1108000000"
+          },
+          "value_count": 6
+        }
+      ]
+    }
+  ],
+  "trigger_response": {
+    "contract_sha256": "0015576bb4d8a087e2fdbeb8919d7050b9561719050292db31d394e7404dc3c2",
+    "run_id": "m12_physics_p02",
+    "seed": 260926008,
+    "start_ns": 1108000000
+  },
+  "recorder_barrier": {
+    "required": [
+      "/astra/physics_contacts",
+      "/astra/physics_links",
+      "/astra/physics_metadata",
+      "/astra/physics_models",
+      "/astra/world_links",
+      "/astra/world_models",
+      "/astra_fixture/command_event",
+      "/astra_fixture/command_source_status",
+      "/astra_fixture/schedule_start_ns",
+      "/clock",
+      "/cmd_vel",
+      "/cmd_vel_navigation",
+      "/joint_states",
+      "/m2_driver/actuator_commanded_effort",
+      "/m2_driver/actuator_target",
+      "/m2_driver/applied_speed",
+      "/m2_driver/command_activation_latency",
+      "/m2_driver/control_timeout",
+      "/m2_driver/physical_backend_fault",
+      "/m2_driver/physical_metadata",
+      "/m2_driver/physical_status",
+      "/m2_driver/wheel_angle",
+      "/odom",
+      "/scan",
+      "/tf",
+      "/tf_static"
+    ],
+    "connected": [
+      "/astra/physics_contacts",
+      "/astra/physics_links",
+      "/astra/physics_metadata",
+      "/astra/physics_models",
+      "/astra/world_links",
+      "/astra/world_models",
+      "/astra_fixture/command_event",
+      "/astra_fixture/command_source_status",
+      "/astra_fixture/schedule_start_ns",
+      "/clock",
+      "/cmd_vel",
+      "/cmd_vel_navigation",
+      "/joint_states",
+      "/m2_driver/actuator_commanded_effort",
+      "/m2_driver/actuator_target",
+      "/m2_driver/applied_speed",
+      "/m2_driver/command_activation_latency",
+      "/m2_driver/control_timeout",
+      "/m2_driver/physical_backend_fault",
+      "/m2_driver/physical_metadata",
+      "/m2_driver/physical_status",
+      "/m2_driver/wheel_angle",
+      "/odom",
+      "/scan",
+      "/tf",
+      "/tf_static"
+    ],
+    "missing": [],
+    "node": "/fixture_bag",
+    "uri": "http://127.0.0.1:40783/",
+    "wall_monotonic_s": 9377.259824155
+  },
+  "warmup": {
+    "start_ns": 0,
+    "end_ns": 1000000000
+  },
+  "bag_loss_messages": {
+    "/cmd_vel_navigation": [],
+    "/cmd_vel": []
+  },
+  "bag_loss_after_drain": {
+    "/cmd_vel_navigation": [],
+    "/cmd_vel": []
+  },
+  "terminal_command": [
+    {
+      "ns": 37108000000,
+      "t": 37.108,
+      "frame": "",
+      "seq": 670,
+      "phase": "terminal_zero",
+      "v": 0.0,
+      "w": 0.0,
+      "wall_monotonic_s": 9414.410100723,
+      "scheduled_ns": 37108000000,
+      "lateness_ns": 0,
+      "missed_slots": 0
+    }
+  ],
+  "raw_source_physics_time_basis": "backend_status/model/link/odom/target have explicit source headers; command event stamps are sampled just before Python publish; Bool and relay observations remain receiver-clock quantities.",
+  "measurement_subset_scope": "Post-run independent measurement/protocol evidence supports evaluating a fresh controller candidate with these instruments. It is not an overall P02 qualification pass and is not a navigation, safety, or real-vehicle result.",
+  "inputs": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p02.py",
+      "sha256": "68dd16ef4bf5a8ac85bafc8996e52c48f3c145c6a9dc88f490aa3e2d2fbfbe00"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p02/probe_raw.json",
+      "sha256": "10fcd56a400728a8ed706d94afd89efa723da74970532856b772978a39b7177d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p02/probe_report.json",
+      "sha256": "13da9c90f1e8a4728109b949c6a2ff969053348c0b8b60d7dea537ac0ccc6ede"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p02/receipt.json",
+      "sha256": "641a678f844212d662badda1cf7ea144b606298f6635a0529f1dc4096548fbbb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p02/fixture.bag",
+      "sha256": "794515dda94f4b6d653bfde5e3e0b13374c7e913d49fcc9c5d93da7c784c931b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p02/bindings.json",
+      "sha256": "d9af4fc0b900b8732c0c600b66e6eb4aeab55bd0ad66ee32278639956adb4a09"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_raw_independent/independent_raw_diagnosis.json",
+      "sha256": "48183e9b240ceb31fccb89a40af9d62a232f136b9210e64f0b53159de28c99db"
+    }
+  ],
+  "command": "/usr/bin/python3 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_raw_independent/audit_protocol.py",
+  "script_sha256": "2dc656952cbc3d5229ca121c40dc730ccb776f573fb3fa5ff42f96354ab059b8",
+  "no_ROS_started": true,
+  "no_run_files_changed": true
+}

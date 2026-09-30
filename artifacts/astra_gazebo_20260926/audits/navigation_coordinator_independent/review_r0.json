@@ -1,0 +1,176 @@
+{
+  "status": "independent_navigation_coordinator_r0_blocked_three_reproduced_races",
+  "independent_review": true,
+  "runtime_ready": false,
+  "no_ROS": true,
+  "sources": {
+    "purpose": "Pre-repair bytes actually executed by independent offline fixtures; not runtime edits",
+    "files": [
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/navigation_coordinator.py",
+        "sha256": "6065e7d094a45d0ce41a279618803a019a5ac89a496ed6c8096597e49758c80b",
+        "reported_sha256": "6065e7d094a45d0ce41a279618803a019a5ac89a496ed6c8096597e49758c80b"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_coordinator.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/test_navigation_coordinator.py",
+        "sha256": "b978b03047b33e7ba40bc3cc0a4ff16ad60d853eab90c77c9a1aedce05d9297f",
+        "reported_sha256": "b978b03047b33e7ba40bc3cc0a4ff16ad60d853eab90c77c9a1aedce05d9297f"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_coordinated_route_adapter.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/test_coordinated_route_adapter.py",
+        "sha256": "885af40634558aaab38843c26f23b513511afd2f79e4ae29630d45b08976ffd8",
+        "reported_sha256": "885af40634558aaab38843c26f23b513511afd2f79e4ae29630d45b08976ffd8"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_navigation_coordinator.py",
+        "sha256": "0aac24213d6df95b8ec2ccbf72bf82f08dab6ec6d6bd0001da0573d8c84756d9",
+        "reported_sha256": "0aac24213d6df95b8ec2ccbf72bf82f08dab6ec6d6bd0001da0573d8c84756d9"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_coordinated_runtime.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_route_coordinated_runtime.py",
+        "sha256": "d3675f6153152dce54c41809c6da1172ea7168ebb4ca5e66f994110021641f96",
+        "reported_sha256": "d3675f6153152dce54c41809c6da1172ea7168ebb4ca5e66f994110021641f96"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_frozen_r2_coordinated.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_frozen_r2_coordinated.py",
+        "sha256": "79acb6aba8a9477fb781b03b13daa0fa19e7566a5bca69aaf7cf240200bee0ad",
+        "reported_sha256": "79acb6aba8a9477fb781b03b13daa0fa19e7566a5bca69aaf7cf240200bee0ad"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_smoke.launch",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_common_navigation_smoke.launch",
+        "sha256": "3cf62fa9ff4a8ee9b60ad10941b118f664d7ac645ea43066e2012b7981052534",
+        "reported_sha256": "3cf62fa9ff4a8ee9b60ad10941b118f664d7ac645ea43066e2012b7981052534"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_navigation_common_footprint.yaml",
+        "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e",
+        "reported_sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e"
+      }
+    ]
+  },
+  "actual_fixture_results": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/actual_race_results_r0.json",
+    "sha256": "1ba847644f4cc84ad2e8d8ecfd8b6c82e3c063528b0a45ba66cce7f63f6bee1c",
+    "case_count": 8,
+    "fixture_scope": "actual frozen pure core plus complete actual coordinator node; generated ROS messages real, ROS transport/services/time offline fake; no master/Gazebo/process created"
+  },
+  "findings": [
+    {
+      "id": "NC01",
+      "severity": "blocking",
+      "issue": "First task terminal can be overwritten by later faults",
+      "evidence": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/navigation_coordinator.py",
+        "line": 48
+      },
+      "actual_code_cases": [
+        "late_fault_after_complete",
+        "late_fault_after_timeout",
+        "late_fault_after_stopped",
+        "full_actual_node_method_fault",
+        "full_actual_node_paused_clock_stall"
+      ],
+      "mechanism": "fault guards only fault; valid complete/timeout/stopped become fault and lose original terminal source/reason. Full actual node fixture first emits complete then overwrites after late fault or simulated >5s paused clock wall stall.",
+      "required_repair": "First terminal immutable; preserve subsequent diagnostics separately; public output stays zero."
+    },
+    {
+      "id": "NC02",
+      "severity": "blocking",
+      "issue": "Cross-topic local clock lag makes valid source odometry a permanent fault",
+      "evidence": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/navigation_coordinator.py",
+        "line": 105
+      },
+      "actual_code_cases": [
+        "valid_odom_callback_two_ms_before_local_clock"
+      ],
+      "mechanism": "Source header5.002s arrives before local /clock5.000s. output sees -2ms age and permanently faults. Independent ROS topic callback order has no global-order guarantee.",
+      "required_repair": "Hold future source messages until visible clock covers their source stamp, maintain ordered source processing and unchanged200ms freshness; no threshold widening."
+    },
+    {
+      "id": "NC03",
+      "severity": "blocking",
+      "issue": "Publisher clock deadline races delayed source goal observation",
+      "evidence": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/navigation_coordinator.py",
+        "line": 113
+      },
+      "actual_code_cases": [
+        "goal_before_clock_poll",
+        "goal_after_clock_poll"
+      ],
+      "mechanism": "Same valid odom source29.000s reaches goal before declared29.020s deadline; deliver-before-poll gives complete, deliver-after-poll gives timeout although previous28.980s odom is within200ms.",
+      "required_repair": "Ordered actual odom source reaching deadline adjudicates timeout; publisher clock only freshness/watchdog. Keep inclusive/exclusive original boundary and zero on faults."
+    }
+  ],
+  "deployment_semantics": [
+    {
+      "scope": "New coordinated route",
+      "findings": [
+        "Actual subscribed inputs are LaserScan, Odometry, actual JointState, shared OccupancyGrid/path and gate; no Gazebo oracle subscriptions.",
+        "Every accepted scan uses exact source TF and planar projection with full quaternion rotation. Future scans remain in pending queue; expired scans fault.",
+        "Physical backend URDF identity is accepted but not qualification; rollout accel/brake/slew model and visible-point occupancy expansion are assumptions, not proven safety."
+      ],
+      "sources": [
+        {
+          "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_route_coordinated_runtime.py",
+          "line": 122
+        },
+        {
+          "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_route_coordinated_runtime.py",
+          "line": 117
+        }
+      ]
+    },
+    {
+      "scope": "Frozen R2 wrapper",
+      "findings": [
+        "Inherited model_states remains bootstrap prerequisite and robot_world_pose drives internal goal break; wrapper does not make entire loop sensor-only.",
+        "Policy pose uses odometry, scan history transforms use source timestamps; separate input_health TF request is latest(0), and future ages clamp to0.",
+        "Wrapper keeps algorithm/weights but replaces execution wait/warmup; does not consume shared route and retains legacy wall/outside-domain semantics.",
+        "R2 terminal internal report stays diagnostic; shared source coordinator/evaluator owns formal outcome."
+      ],
+      "sources": [
+        {
+          "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+          "line": 222
+        },
+        {
+          "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+          "line": 232
+        },
+        {
+          "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+          "line": 361
+        },
+        {
+          "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+          "line": 436
+        }
+      ]
+    },
+    {
+      "scope": "Private command timing",
+      "findings": [
+        "Headerless Twist has receipt timestamps only; command_floor excludes callbacks already received pre-ack, not proof of post-ack generation for unseen queued messages.",
+        "Current identity explicitly says generation_source_unknown. Retain that limitation and avoid stronger queue-history claim."
+      ],
+      "sources": [
+        {
+          "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/navigation_coordinator.py",
+          "line": 67
+        }
+      ]
+    }
+  ],
+  "requested_repair_authority": "Parent authorized designagent explicit prerelease r2; auditor did not mutate runtime files.",
+  "script_sha256": "f8fcbb33709e4f1e0c7bd6753b37d261ca21902f96c292ce787435acd544b838"
+}

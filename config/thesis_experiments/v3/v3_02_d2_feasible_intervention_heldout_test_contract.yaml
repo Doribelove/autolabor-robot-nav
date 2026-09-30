@@ -1,0 +1,108 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-D2
+stage_purpose: acceleration_feasible_common_prefix_frozen_predictor_heldout_test
+contract_id: v3_scope_v3_02_d2_feasible_intervention_heldout_test_1
+status: preregistered_before_test_release
+frozen_model:
+  path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+  calibration_report_sha256: 90b9b57c7204b3391012a467f458c9951afe29f4fbd02283ee9e605ef61d447a
+  model_freeze_sha256: 01f01994d0c47dad603f9c77663710a791b71feab09524b43b85ece81b3428d0
+  independent_review_sha256: df0c56635b76fe6a22d3c3aa6c832cf00c9811073d9b08a3b8de9c90d1023255
+  conformal_radius_m: 0.379024806626
+  conformal_score: actual_mode_absolute_residual
+  feature_basis: complete_quadratic_10_features
+  feasible_generator_id: v3_02_d1_straight_acceleration_limited_1
+  refit_or_recalibration_allowed: false
+scope:
+  scene_family: parameterized_crossing
+  common_decision_state_required: true
+  acceleration_feasible_interventions_required: true
+  certified_stop_support_required: true
+  planner_evaluation: false
+  performance_improvement_claim: false
+authority_boundary:
+  simulation_requires_separate_release_and_authorization: true
+  model_write_allowed: false
+  test_outcome_access_before_release_allowed: false
+  prior_seed_or_outcome_reuse_allowed: false
+  move_base_authorized: false
+  real_vehicle_authorized: false
+experimental_unit:
+  policies: [cautious, assertive, hesitant]
+  ego_interventions:
+    - {candidate_id: certified_stop_v000, speed_mps: 0.00, certified_stop: true}
+    - {candidate_id: feasible_v060, speed_mps: 0.60, certified_stop: false}
+    - {candidate_id: feasible_v080, speed_mps: 0.80, certified_stop: false}
+    - {candidate_id: feasible_v100, speed_mps: 1.00, certified_stop: false}
+    - {candidate_id: feasible_v120, speed_mps: 1.20, certified_stop: false}
+  scenario_blocks:
+    - {block_id: test_6281, role: held_out_test, seed: 6281, angle_deg: 78.0, actor_start_distance_m: 3.05, actor_base_speed_mps: 0.90}
+    - {block_id: test_6282, role: held_out_test, seed: 6282, angle_deg: 102.0, actor_start_distance_m: 2.95, actor_base_speed_mps: 1.10}
+    - {block_id: test_6283, role: held_out_test, seed: 6283, angle_deg: 88.0, actor_start_distance_m: 3.30, actor_base_speed_mps: 1.00}
+  attempts_per_identity: 1
+  schedule_rows: 45
+  evidence_budget_units: 45
+  retry_allowed: false
+  resume_allowed: false
+scene:
+  duration_s: 8.0
+  sample_period_s: 0.05
+  max_step_size_s: 0.005
+  real_time_update_rate_hz: 0
+  observation_time_s: 0.50
+  prediction_absolute_times_s: [1.5, 2.5, 3.5, 4.5]
+  conflict_point_m: [0.0, 0.0]
+  ego:
+    model_name: ego_probe
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    endpoint_pose_m_rad: [3.0, 0.0, 0.0]
+    footprint_m: [1.13, 0.73, 0.55]
+    maximum_speed_mps: 1.20
+    common_prefix: {duration_s: 0.50, speed_mps: 0.80, end_x_m: -2.60}
+    feasible_branch:
+      generator_id: v3_02_d1_straight_acceleration_limited_1
+      initial_speed_mps: 0.80
+      maximum_acceleration_mps2: 0.60
+      maximum_deceleration_mps2: 0.80
+      ramp_waypoint_period_s: 0.05
+      zero_speed_is_terminal_hold: true
+  actor:
+    model_name: reactive_actor
+    endpoint_after_conflict_m: 3.50
+    size_m: [0.45, 0.45, 1.70]
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+heldout_gates:
+  episode_count: 45
+  point_count: 180
+  common_prefix_actor_coordinate_spread_max_m: 0.005
+  common_prefix_actor_speed_spread_max_mps: 0.02
+  maximum_ego_trace_position_error_m: 0.006
+  maximum_planned_acceleration_mps2: 0.61
+  maximum_planned_deceleration_mps2: 0.81
+  stop_terminal_position_error_m: 0.006
+  stop_terminal_motion_after_1_5_s_m: 0.006
+  marginal_coverage_min: 0.90
+  per_horizon_coverage_min: 0.80
+  mean_full_envelope_width_max_m: 4.50
+  actual_mode_mae_max_m: 0.50
+  candidate_sensitivity_min_m: 0.20
+  physical_coordinate_violation_count_max: 0
+  hidden_policy_runtime_input: false
+  exact_raw_replay_required: true
+failure_policy:
+  retain_negative_result: true
+  no_model_update_after_test: true
+  no_seed_replacement_or_retry: true
+  no_gate_change: true
+claim_if_pass: >-
+  The frozen acceleration-feasible common-prefix predictor, including the
+  certified-stop intervention, passed all preregistered data-integrity and
+  prediction gates on fresh parameterized-crossing blocks.
+forbidden_claims:
+  - general_scene_prediction
+  - navigation_safety
+  - performance_improvement
+  - real_vehicle_readiness

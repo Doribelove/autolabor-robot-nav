@@ -1,0 +1,566 @@
+{
+  "run_id": "actuation_q03",
+  "seed": 260926006,
+  "method": "measurement_fixture",
+  "split": "bootstrap_smoke",
+  "status": "completed",
+  "pass": false,
+  "report": {
+    "pass": false,
+    "pipeline_only": true,
+    "vehicle_operation_authorized": false,
+    "seed": 260926006,
+    "run_id": "actuation_q03",
+    "raw_sha256": "ae45c2b30705d66a57dd1e595e7f3888fc3300acb980abc5f970a410d222b83b",
+    "raw_stream_sha256": "da420dc7406d193b2d6c8a3cd3ff9ddd85b55f1b19404b01c80b12d07953e8a1",
+    "terminal_exception": null,
+    "checks": {
+      "all_numeric_finite": true,
+      "no_callback_errors": true,
+      "models_source_strictly_monotonic": true,
+      "models_covers_schedule": true,
+      "models_bounded_source_gap": true,
+      "models_approximately_50Hz": true,
+      "links_source_strictly_monotonic": true,
+      "links_covers_schedule": true,
+      "links_bounded_source_gap": true,
+      "links_approximately_50Hz": true,
+      "odom_source_strictly_monotonic": true,
+      "odom_covers_schedule": true,
+      "odom_bounded_source_gap": true,
+      "odom_approximately_50Hz": true,
+      "joints_source_strictly_monotonic": true,
+      "joints_covers_schedule": true,
+      "joints_bounded_source_gap": true,
+      "joints_approximately_50Hz": true,
+      "contacts_source_strictly_monotonic": true,
+      "contacts_covers_schedule": true,
+      "contacts_bounded_source_gap": true,
+      "physics_source_metadata": true,
+      "unique_expected_model_roster": true,
+      "models_links_exact_source_stamp_join": true,
+      "spawn_pose_matches_fixture": true,
+      "inside_empty_fixture": true,
+      "actual_front_joint_URDF_angle_limits": true,
+      "actual_center_angle_limit": true,
+      "actual_front_Ackermann_pair_agreement": true,
+      "actual_front_left_steer_joint_URDF_velocity_limit": true,
+      "actual_front_right_steer_joint_URDF_velocity_limit": true,
+      "actual_center_slew_with_declared_sampling_tolerance": false,
+      "odom_source_join_age": true,
+      "model_odom_xy_agreement": true,
+      "model_odom_yaw_agreement": true,
+      "internal_accel_limit": true,
+      "internal_brake_limit": true,
+      "published_center_slew_limit": true,
+      "published_center_angle_limit": true,
+      "no_non_ground_robot_contacts": true,
+      "stationary_command_count": true,
+      "stationary_internal_stopped": true,
+      "stationary_model_stopped": true,
+      "accelerate_command_count": true,
+      "accelerate_steady_speed": true,
+      "accelerate_actual_steady_steering": true,
+      "turn_positive_command_count": true,
+      "turn_positive_steady_speed": true,
+      "turn_positive_actual_steady_steering": true,
+      "turn_positive_yaw_excitation": true,
+      "turn_negative_command_count": true,
+      "turn_negative_steady_speed": true,
+      "turn_negative_actual_steady_steering": true,
+      "turn_negative_yaw_excitation": true,
+      "saturation_positive_command_count": true,
+      "saturation_positive_steady_speed": true,
+      "saturation_positive_actual_steady_steering": true,
+      "saturation_positive_yaw_excitation": true,
+      "saturation_negative_command_count": true,
+      "saturation_negative_steady_speed": true,
+      "saturation_negative_actual_steady_steering": true,
+      "saturation_negative_yaw_excitation": true,
+      "zero_speed_yaw_command_count": true,
+      "zero_speed_yaw_internal_stopped": true,
+      "zero_speed_yaw_model_stopped": true,
+      "reaccelerate_brake_command_count": true,
+      "reaccelerate_brake_steady_speed": true,
+      "reaccelerate_brake_actual_steady_steering": true,
+      "commanded_brake_command_count": true,
+      "commanded_brake_internal_stopped": true,
+      "commanded_brake_model_stopped": true,
+      "reaccelerate_loss_command_count": true,
+      "reaccelerate_loss_steady_speed": true,
+      "reaccelerate_loss_actual_steady_steering": true,
+      "command_loss_no_probe_publication": true,
+      "command_loss_no_relay_publication_after_drain": true,
+      "command_loss_internal_stopped": true,
+      "command_loss_model_stopped": true,
+      "command_relay_observed": true,
+      "within_phase_command_deadline": true
+    },
+    "metrics": {
+      "models_dt_s": {
+        "count": 1800,
+        "min": 0.01999999999999602,
+        "max": 0.020000000000003126,
+        "mean": 0.02,
+        "p95": 0.020000000000003126,
+        "maximum_absolute": 0.020000000000003126
+      },
+      "links_dt_s": {
+        "count": 1800,
+        "min": 0.01999999999999602,
+        "max": 0.020000000000003126,
+        "mean": 0.02,
+        "p95": 0.020000000000003126,
+        "maximum_absolute": 0.020000000000003126
+      },
+      "odom_dt_s": {
+        "count": 1799,
+        "min": 0.01999999999999602,
+        "max": 0.020000000000003126,
+        "mean": 0.019999999999999997,
+        "p95": 0.020000000000003126,
+        "maximum_absolute": 0.020000000000003126
+      },
+      "joints_dt_s": {
+        "count": 1799,
+        "min": 0.01999999999999602,
+        "max": 0.020000000000003126,
+        "mean": 0.019999999999999997,
+        "p95": 0.020000000000003126,
+        "maximum_absolute": 0.020000000000003126
+      },
+      "contacts_dt_s": {
+        "count": 18000,
+        "min": 0.001999999999995339,
+        "max": 0.0020000000000024443,
+        "mean": 0.0020000000000001015,
+        "p95": 0.0020000000000024443,
+        "maximum_absolute": 0.0020000000000024443
+      },
+      "actual_front_left_rad": {
+        "count": 1801,
+        "min": -0.4163582124325,
+        "max": 0.6280961937608187,
+        "mean": 0.03350107403100158,
+        "p95": 0.5602334967329229,
+        "maximum_absolute": 0.6280961937608187
+      },
+      "actual_front_right_rad": {
+        "count": 1801,
+        "min": -0.6281629091660018,
+        "max": 0.4155655693818893,
+        "mean": -0.016004073983328516,
+        "p95": 0.38252691298629543,
+        "maximum_absolute": 0.6281629091660018
+      },
+      "actual_center_rad": {
+        "count": 1801,
+        "min": -0.5014590712397864,
+        "max": 0.5005905817501549,
+        "mean": 0.008436215162685652,
+        "p95": 0.45419102959945407,
+        "maximum_absolute": 0.5014590712397864
+      },
+      "actual_front_curvature_disagreement_inv_m": {
+        "count": 1801,
+        "min": 3.766723517839056e-10,
+        "max": 0.02307902404073936,
+        "mean": 0.004876105265792227,
+        "p95": 0.017177499198601787,
+        "maximum_absolute": 0.02307902404073936
+      },
+      "actual_front_left_steer_joint_rate_radps": {
+        "count": 1800,
+        "min": -1.3256828143454351,
+        "max": 1.228748040788434,
+        "mean": 2.605452478256066e-07,
+        "p95": 0.5718218998262865,
+        "maximum_absolute": 1.3256828143454351
+      },
+      "actual_front_right_steer_joint_rate_radps": {
+        "count": 1800,
+        "min": -1.1963672000637713,
+        "max": 1.3712814439826266,
+        "mean": 5.507693637952905e-08,
+        "p95": 0.5879032943532595,
+        "maximum_absolute": 1.3712814439826266
+      },
+      "actual_center_rate_radps": {
+        "count": 1800,
+        "min": -1.0073952057044138,
+        "max": 0.9562461833727786,
+        "mean": 1.5781057249839333e-07,
+        "p95": 0.6668945850674507,
+        "maximum_absolute": 1.0073952057044138
+      },
+      "truth_latest_odom_source_age_s": {
+        "count": 1801,
+        "min": 0.001999999999995339,
+        "max": 0.0020000000000024443,
+        "mean": 0.0019999999999999658,
+        "p95": 0.0020000000000024443,
+        "maximum_absolute": 0.0020000000000024443
+      },
+      "truth_odom_xy_error_m": {
+        "count": 1801,
+        "min": 1.7608916320791727e-06,
+        "max": 0.0002012140930545018,
+        "mean": 9.275619235272143e-05,
+        "p95": 0.00015540596872258957,
+        "maximum_absolute": 0.0002012140930545018
+      },
+      "truth_odom_yaw_error_rad": {
+        "count": 1801,
+        "min": 7.938212198688177e-09,
+        "max": 0.00025414857071148766,
+        "mean": 2.621960718305437e-05,
+        "p95": 0.00011277171671553175,
+        "maximum_absolute": 0.00025414857071148766
+      },
+      "internal_acceleration_mps2": {
+        "count": 1799,
+        "min": -0.9000000000001799,
+        "max": 0.6000000000000133,
+        "mean": 6.785077417622166e-08,
+        "p95": 0.6000000000000133,
+        "maximum_absolute": 0.9000000000001799
+      },
+      "internal_jerk_mps3": {
+        "count": 1798,
+        "min": -45.001301554861186,
+        "max": 30.008881677426402,
+        "mean": -3.230455839491817e-07,
+        "p95": 0.2843130326322701,
+        "maximum_absolute": 45.001301554861186
+      },
+      "published_center_steering_rate_radps": {
+        "count": 1799,
+        "min": -0.7500000000000222,
+        "max": 0.7500000000000222,
+        "mean": 6.887208979887019e-17,
+        "p95": 0.7499999999999494,
+        "maximum_absolute": 0.7500000000000222
+      },
+      "actual_pose_derivatives_20ms": {
+        "stride": 1,
+        "interval_midpoint_speed_mps": {
+          "count": 1800,
+          "min": 1.4058815076738251e-12,
+          "max": 1.2037343998947707,
+          "mean": 0.780601857118686,
+          "p95": 1.2009685658580636,
+          "maximum_absolute": 1.2037343998947707
+        },
+        "interval_yaw_rate_radps": {
+          "count": 1800,
+          "min": -1.005325335129336,
+          "max": 1.003953614235086,
+          "mean": 0.017749289730928895,
+          "p95": 0.8962481373865985,
+          "maximum_absolute": 1.005325335129336
+        },
+        "acceleration_of_interval_speed_mps2": {
+          "count": 1799,
+          "min": -1.1962625752021245,
+          "max": 0.8679802291207992,
+          "mean": 7.667037367318032e-08,
+          "p95": 0.6000672806763147,
+          "maximum_absolute": 1.1962625752021245
+        },
+        "jerk_of_interval_acceleration_mps3": {
+          "count": 1798,
+          "min": -45.140238094341285,
+          "max": 30.336235284950597,
+          "mean": -3.2879198064248286e-07,
+          "p95": 9.845295442678513,
+          "maximum_absolute": 45.140238094341285
+        },
+        "interpretation": "Unsigned planar pose secants at explicit source times; impulsive pose-setting and discretization affect derivatives; no physical acceleration/jerk compliance claim."
+      },
+      "actual_pose_derivatives_100ms": {
+        "stride": 5,
+        "interval_midpoint_speed_mps": {
+          "count": 360,
+          "min": 1.4303458948441395e-12,
+          "max": 1.200721339308871,
+          "mean": 0.7804958660137815,
+          "p95": 1.2000413671788566,
+          "maximum_absolute": 1.200721339308871
+        },
+        "interval_yaw_rate_radps": {
+          "count": 360,
+          "min": -1.0002604200047207,
+          "max": 1.0005127926680792,
+          "mean": 0.017749289730929343,
+          "p95": 0.8925002387032342,
+          "maximum_absolute": 1.0005127926680792
+        },
+        "acceleration_of_interval_speed_mps2": {
+          "count": 359,
+          "min": -0.9120057107388493,
+          "max": 0.6076844619212087,
+          "mean": 9.133470585908754e-08,
+          "p95": 0.6001462285577189,
+          "maximum_absolute": 0.9120057107388493
+        },
+        "jerk_of_interval_acceleration_mps3": {
+          "count": 358,
+          "min": -5.40568571181594,
+          "max": 3.6150253525977174,
+          "mean": -4.808720560429294e-07,
+          "p95": 0.5780407491685786,
+          "maximum_absolute": 5.40568571181594
+        },
+        "interpretation": "Unsigned planar pose secants at explicit source times; impulsive pose-setting and discretization affect derivatives; no physical acceleration/jerk compliance claim."
+      },
+      "robot_ground_contact_pair_count": 58927,
+      "robot_non_ground_contact_pair_count": 0,
+      "first_non_ground_contacts": [],
+      "phases": {
+        "stationary": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": -3.3822922405141194e-06,
+            "max": -3.3820705132560105e-06,
+            "mean": -3.382188921868021e-06,
+            "p95": -3.3820852758715912e-06,
+            "maximum_absolute": 3.3822922405141194e-06
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "p95": 0.0,
+            "maximum_absolute": 0.0
+          },
+          "tail_model_path_m": 4.0992315805511095e-12,
+          "tail_model_yaw_variation_rad": 6.235830731651597e-12
+        },
+        "accelerate": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": -0.00010371145495468833,
+            "max": 2.0539919119369902e-05,
+            "mean": -7.244772295788917e-05,
+            "p95": 1.92211641542208e-05,
+            "maximum_absolute": 0.00010371145495468833
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 1.19984189103072,
+            "max": 1.1999945279784932,
+            "mean": 1.1999536328131009,
+            "p95": 1.1999934368787344,
+            "maximum_absolute": 1.1999945279784932
+          }
+        },
+        "turn_positive": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": 0.4452712223505992,
+            "max": 0.45392663916199094,
+            "mean": 0.4493415678395873,
+            "p95": 0.45362856416162184,
+            "maximum_absolute": 0.45392663916199094
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 1.1999999998108704,
+            "max": 1.1999999999934543,
+            "mean": 1.1999999999445359,
+            "p95": 1.1999999999921493,
+            "maximum_absolute": 1.1999999999934543
+          },
+          "actual_phase_yaw_change_rad": 2.3624301624137254
+        },
+        "turn_negative": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": -0.45384938785813,
+            "max": -0.44481909939615516,
+            "mean": -0.4493016345616145,
+            "p95": -0.4458390377066552,
+            "maximum_absolute": 0.45384938785813
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 1.1999999999999988,
+            "max": 1.1999999999999988,
+            "mean": 1.1999999999999982,
+            "p95": 1.1999999999999988,
+            "maximum_absolute": 1.1999999999999988
+          },
+          "actual_phase_yaw_change_rad": -1.5781535255322172
+        },
+        "saturation_positive": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": 0.49122796555028675,
+            "max": 0.49747238069590266,
+            "mean": 0.49366600701095964,
+            "p95": 0.4967207601833169,
+            "maximum_absolute": 0.49747238069590266
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 1.1999999999999988,
+            "max": 1.1999999999999988,
+            "mean": 1.1999999999999982,
+            "p95": 1.1999999999999988,
+            "maximum_absolute": 1.1999999999999988
+          },
+          "actual_phase_yaw_change_rad": 1.7670981765626865
+        },
+        "saturation_negative": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": -0.5013907162816457,
+            "max": -0.4914479725657249,
+            "mean": -0.4972102583897685,
+            "p95": -0.493243438570124,
+            "maximum_absolute": 0.5013907162816457
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 1.1999999999999988,
+            "max": 1.1999999999999988,
+            "mean": 1.1999999999999982,
+            "p95": 1.1999999999999988,
+            "maximum_absolute": 1.1999999999999988
+          },
+          "actual_phase_yaw_change_rad": -1.6478092304333463
+        },
+        "zero_speed_yaw": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": -1.6967964976998724e-05,
+            "max": 5.996632931231221e-06,
+            "mean": -7.201698753365347e-07,
+            "p95": 2.3458513855981454e-06,
+            "maximum_absolute": 1.6967964976998724e-05
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 3.7329955675461884e-05,
+            "max": 0.0010786143306860817,
+            "mean": 0.00031631546578766116,
+            "p95": 0.0008992978456872282,
+            "maximum_absolute": 0.0010786143306860817
+          },
+          "tail_model_path_m": 0.0002180674444566857,
+          "tail_model_yaw_variation_rad": 3.0243270007224154e-06
+        },
+        "reaccelerate_brake": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": 0.0006403191030204552,
+            "max": 0.00312656995427145,
+            "mean": 0.002395379438201527,
+            "p95": 0.002652284944000778,
+            "maximum_absolute": 0.00312656995427145
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 1.1998419357443622,
+            "max": 1.1999945295259955,
+            "mean": 1.1999536459258662,
+            "p95": 1.1999934387348028,
+            "maximum_absolute": 1.1999945295259955
+          }
+        },
+        "commanded_brake": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": 2.3892319808075463e-06,
+            "max": 5.638119071371972e-06,
+            "mean": 3.187614624913705e-06,
+            "p95": 5.583609604160881e-06,
+            "maximum_absolute": 5.638119071371972e-06
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 3.732889206841985e-05,
+            "max": 0.001078583598750375,
+            "mean": 0.0003163064533109297,
+            "p95": 0.0008992722228461546,
+            "maximum_absolute": 0.001078583598750375
+          },
+          "tail_model_path_m": 0.00021802270633319406,
+          "tail_model_yaw_variation_rad": 3.447939341594264e-06
+        },
+        "reaccelerate_loss": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": 0.0006447623696255343,
+            "max": 0.0030242790221493665,
+            "mean": 0.002202953625086059,
+            "p95": 0.002665824820805731,
+            "maximum_absolute": 0.0030242790221493665
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 1.199841935743088,
+            "max": 1.1999945295259515,
+            "mean": 1.1999536459254925,
+            "p95": 1.19999343873475,
+            "maximum_absolute": 1.1999945295259515
+          }
+        },
+        "command_loss": {
+          "tail_samples": 38,
+          "actual_center_rad": {
+            "count": 37,
+            "min": 1.2784320886638513e-06,
+            "max": 1.4594956134468587e-05,
+            "mean": 2.6552507885530236e-06,
+            "p95": 2.4445113111677605e-06,
+            "maximum_absolute": 1.4594956134468587e-05
+          },
+          "internal_tail_speed_mps": {
+            "count": 38,
+            "min": 2.441270873303655e-06,
+            "max": 7.053825008323603e-05,
+            "mean": 2.0686114393393028e-05,
+            "p95": 5.8811471842814884e-05,
+            "maximum_absolute": 7.053825008323603e-05
+          },
+          "tail_model_path_m": 1.4770905701837217e-05,
+          "tail_model_yaw_variation_rad": 2.0071360410378603e-06
+        }
+      },
+      "relay_match_fraction": 1.0
+    },
+    "assessment_incomplete": false,
+    "scope": "one simulator-only actuator/execution qualification, not navigation performance or real-vehicle safety",
+    "limits": [
+      "Actual model pose derivatives and Gazebo body twists differ under SetWorldPose.",
+      "Internal acceleration and slew bounds are not formal bounds on physical contact-driven motion.",
+      "Ground contacts are retained separately, not classified as obstacle collisions.",
+      "No physical jerk limit was preregistered or retrofitted."
+    ]
+  },
+  "error": null,
+  "exit_code": 0,
+  "missing_bag_topics": [],
+  "bindings_sha256": "242119d87151750da75a7819ac6cdc07d81efa2946d32f5852ae5304a0e7ce2d",
+  "ended_utc": "2026-09-26T08:04:15.053186+00:00",
+  "wall_elapsed_s": 43.472903539999606,
+  "performance_evidence": false,
+  "probe_report.json_sha256": "7bea02295285031b8e313046f5f0ac37741755ec722a691738b77e8af9bb06a1",
+  "probe_raw.json_sha256": "ae45c2b30705d66a57dd1e595e7f3888fc3300acb980abc5f970a410d222b83b",
+  "probe_raw.jsonl_sha256": "da420dc7406d193b2d6c8a3cd3ff9ddd85b55f1b19404b01c80b12d07953e8a1",
+  "fixture.bag_sha256": "b484024c9cbe12d25df7579d1d818c4e0979070fcf2315241e0611aec1a5d134",
+  "fixture.launch_sha256": "4a3cd1560ae52940d25d5c2a758449e154f5936e3b87c83211bd7dade47a5930",
+  "actuation_contract.yaml_sha256": "81b6af5ba6044c149c3caaf0f01f114a7c8eff39dd9784926dcf9fb2cb296264"
+}

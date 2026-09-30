@@ -1,0 +1,38 @@
+{
+  "source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11/source_r01_before_independent_underflow_fix.py",
+    "sha256": "b8a84ae4cc4ad5284263cebd25a858062214d01c6b726d78f28e4f080d8cc1fa"
+  },
+  "gamma": 1e-200,
+  "lambda": 1e-200,
+  "reference_duration_s": 1.0,
+  "intervals_ns": [
+    [
+      1000000000,
+      1100000000
+    ],
+    [
+      1100000000,
+      1200000000
+    ]
+  ],
+  "rewards": [
+    0.0,
+    1.0
+  ],
+  "critic_values": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "pg_masks": [
+    true,
+    false
+  ],
+  "terminal": "goal",
+  "actual_first_advantage": 0.0,
+  "independent_expected_first_advantage": 9.999999999999948e-41,
+  "cause": "gamma*lambda underflows before fractional-duration exponent; commonly proposed discount values unaffected",
+  "scope": "pure numerical supported-domain edge, not observed training failure",
+  "initial_tests_r0_log_note": "Despite its filename, tests_r0.log ran already-repaired r02 due to root edit during initial r0 archive SHA assertion; original archive mismatch was fail-closed. See explicit replay_original_negative.log for frozen r0 replay."
+}

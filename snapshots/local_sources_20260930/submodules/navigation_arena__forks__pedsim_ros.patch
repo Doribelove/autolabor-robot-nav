@@ -1,0 +1,30 @@
+diff --git a/2ndparty/spencer_tracking_rviz_plugin/src/additional_topic_subscriber.h b/2ndparty/spencer_tracking_rviz_plugin/src/additional_topic_subscriber.h
+index af5dfd52156dcd9e8daf8cf1988d8bacc6517427..eab7f546bd59dfa94425df4078078c110b5d4840 100644
+--- a/2ndparty/spencer_tracking_rviz_plugin/src/additional_topic_subscriber.h
++++ b/2ndparty/spencer_tracking_rviz_plugin/src/additional_topic_subscriber.h
+@@ -60,7 +60,7 @@ namespace rviz
+ /** @brief Helper superclass for AdditionalTopicSubscriber, needed because
+  * Qt's moc and c++ templates don't work nicely together.  Not
+  * intended to be used directly. */
+-class _AdditionalTopicSubscriber: QObject
++class _AdditionalTopicSubscriber: public QObject
+ {
+ Q_OBJECT
+ public:
+diff --git a/pedsim_gazebo_plugin/CMakeLists.txt b/pedsim_gazebo_plugin/CMakeLists.txt
+index 33fd347c71116525c29a65de447cac620c1ee52a..37f48e68a24fb031359cabb2c3ed9c70bcb5e8f5 100644
+--- a/pedsim_gazebo_plugin/CMakeLists.txt
++++ b/pedsim_gazebo_plugin/CMakeLists.txt
+@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 2.8.3)
+ project(pedsim_gazebo_plugin)
+ 
+ ## Compile as C++11, supported in ROS Kinetic and newer
+- add_compile_options(-std=c++11)
+-
++##add_compile_options(-std=c++11)
++set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_CXX_STANDARD_REQUIRED ON)
++set(CMAKE_CXX_EXTENSIONS OFF)
+ ## Find catkin macros and libraries
+ ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+ ## is used, also find other catkin packages

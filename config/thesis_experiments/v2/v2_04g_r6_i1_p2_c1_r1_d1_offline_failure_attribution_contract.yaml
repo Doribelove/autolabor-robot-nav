@@ -1,0 +1,125 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P2-C1-R1-D1
+contract_id: fam_teb_v2_04g_p2_c1_r1_d1_offline_failure_attribution_1
+status: offline_failure_attribution_preregistered
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps_authorized: 0
+real_vehicle_use_forbidden: true
+
+objective: >-
+  Freeze every P2-C1-R1 terminal artifact, replay all completed raw evidence,
+  distinguish the primary failure from its downstream symptom, and permit at
+  most one subsequent preregistered execution-integrity amendment.  D1 may not
+  modify or rerun C1-R1, start ROS/Gazebo, consume a seed, or make a performance
+  claim.
+
+frozen_sources:
+  C1_R1_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_p2_c1_r1_execution_release.yaml
+    sha256: 1926726a2b08faf10a7b460ace53f01c1123b070da8e65a8be4900985f86f9cc
+  preexecution_audit:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_release_readiness/v2_04g_p2_c1_r1_postrelease_preexecution_audit.yaml
+    sha256: 35d09975ae81b10fb8bd60729a491d9f452e7bf0de13b5cb621baf82254fcd34
+  stage_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/p2_c1_r1_stage_report.yaml
+    sha256: 92f837f7c22855b5d9d57de53bd718815ad89fa606f576c996c42cccd09974b5
+  failure_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/p2_c1_r1_failure_index.yaml
+    sha256: 534da5caae2f5d4abcba5f00f8c976f6a7bda9fe665d8ecc1ffc8d3889cded78
+  completed_journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/journals/sequence_0001.yaml
+    sha256: 18407ff6f0ae6ad551ddd3f5e11c4ebfbead4db95fb852afebff33c74a7fb6e4
+  failure_journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/journals/sequence_0002_terminal_integrity_failure.yaml
+    sha256: 622aefc65e92eb3b56a3d9a355b9a989bcc52cbeeb222e08aff59cff179749c5
+  completed_raw_trace:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/attempts/0001__braking_v125__v2-04g-p2-q1-qual-braking-v125-s5331/raw/raw_trace.yaml
+    sha256: 92c4f5dd44265de6250ecbac84cbecae7175f2cf183cdc1f65ec55a50019e244
+  failed_base_log:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/attempts/0002__high_speed_to_conflict_overlay_transition_v125__v2-04g-p2-q1-qual-high-speed-to-conflict-overlay-transition-v125-s5332/work/base_launch.log
+    sha256: 7b3f13f0a24d716fd7ab98e23cf42ae2d8b229dbb9295e5b9c451177bad94fdb
+  failed_unpause_log:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/attempts/0002__high_speed_to_conflict_overlay_transition_v125__v2-04g-p2-q1-qual-high-speed-to-conflict-overlay-transition-v125-s5332/work/unpause.log
+    sha256: 6918c9d84dc8772136110486fda257feb7c62ec6504141497d64b100f395d3af
+  supervisor_implementation:
+    path: src/application/teb_mode_manager/scripts/r6_rule_context_supervisor_node.py
+    sha256: 201def549c5e4f22d12693d9e3adf53bf350a32ce8562c1672f02a901d042f5b
+  supervisor_estimator_implementation:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/r6_relative_ttc_supervisor.py
+    sha256: da7ebfbe361137da603c2b7767ef3040ae91751603097dd14b70225ac44a1b83
+
+terminal_accounting_expected:
+  authorized_units: 342
+  consumed_units: 2
+  completed_units: 1
+  skipped_units: 0
+  forfeited_units: 340
+  release_retry_resume_or_reuse_allowed: false
+  completed_sequence: 1
+  terminal_failure_sequence: 2
+  held_out_test_accessed: false
+
+attribution_hypotheses:
+  primary:
+    id: runtime_evidence_profile_identity_domain_mismatch
+    evidence_requirements:
+      - failed_base_log_contains_R6_attempt_profile_identity_is_invalid
+      - planned_runtime_profile_is_qualification_overlay_v125
+      - supervisor_profile_allowlist_excludes_that_identity
+      - aligned_supervisor_config_requires_r6_semantics_circle_contact
+      - required_supervisor_exit_precedes_the_unpause_service_symptom
+  rejected_as_primary:
+    - random_Gazebo_unpause_flake
+    - compiled_scene_timeout_mismatch
+    - direct_probe_fixed_startup_config_lookup
+    - collision_or_emergency_outcome
+
+completed_raw_replay_requirements:
+  sequence_1_must_replay_from_bound_raw_receipt: true
+  expected_probe: braking
+  expected_candidate_speed_mps: 1.25
+  required_pass: true
+  collision: false
+  emergency: false
+  normal_projection_rate: 0.0
+  summary_fields_without_raw_replay_trusted: false
+
+next_factor_boundary:
+  maximum_new_factor_count: 1
+  factor_id: separate_runtime_semantic_profile_from_evidence_candidate_identity_v1
+  source: C1_R1_sequence_2_raw_process_trace
+  allowed_change: >-
+    Bind supervisor, transaction, activation listener and transaction control
+    to the frozen runtime semantic alias r6_semantics_circle_contact while
+    retaining the actual candidate/method identity only in schedule, journal,
+    raw trace and assessment records.
+  behavioral_TEB_parameter_change: false
+  scene_threshold_estimator_safety_or_evaluator_change: false
+  fresh_seed_required: true
+  old_seed_5331_or_5332_reuse_allowed: false
+  execution_requires_new_design_review_release_budget_and_authorization: true
+
+claim_boundary:
+  allowed:
+    - C1_R1_terminal_execution_integrity_result
+    - completed_braking_probe_replay
+    - primary_and_derivative_failure_attribution
+    - one_next_offline_factor_recommendation
+  forbidden:
+    - performance_effect_or_candidate_selection
+    - safety_generalization
+    - held_out_test_or_formal_improvement_claim
+    - deployment_or_real_vehicle_claim
+
+forbidden_side_effects:
+  start_ROS_or_Gazebo: true
+  modify_delete_rerun_or_resume_C1_R1: true
+  access_held_out_test_outcomes: true
+  authorize_execution_or_training: true
+  modify_stable_workspace_real_vehicle_CAN_or_hardware: true

@@ -1,0 +1,55 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-03-F2
+status: single_factor_preregistered_before_execution
+date: "2026-08-07"
+parent_contract: v4_00_architecture_contract.yaml
+trigger:
+  prior_stage: V4-03-F1
+  prior_result: zero_validation_time_improvement_after_150000_steps
+  diagnosis: reward_primary_metric_misalignment_at_one_decision_resolution
+single_factor:
+  name: elapsed_time_reward_coefficient
+  baseline_per_s: -0.12
+  candidate_per_s: -0.40
+  rationale: >-
+    Make one saved 0.25 s decision worth 0.10 return so that the
+    failure-inclusive elapsed-time primary endpoint dominates the frozen 0.01
+    switch cost and typical speed-change cost. This changes no safety logic.
+frozen_nonfactors:
+  actor_response:
+    cautious_yield_memory_s: 2.50
+    hesitant_yield_memory_s: 1.50
+  action_ids_and_candidate_kinematics: frozen
+  hard_reachable_occupancy_mask: frozen
+  certified_stop_fallback: frozen
+  observation_features: frozen
+  progress_reward_per_m: 1.0
+  speed_change_reward_per_mps: -0.015
+  action_switch_reward: -0.01
+  goal_reward: 6.0
+  timeout_reward: -2.0
+  ppo_algorithm_and_hyperparameters: frozen
+  primary_metric_and_all_gates: frozen
+  simulation_only_claim_boundary: frozen
+training:
+  seeds: [4103, 4104]
+  maximum_steps_per_seed: 150000
+  checkpoint_validation_seed_range_inclusive: [422200, 422399]
+  selection: highest_mean_validation_return_subject_to_task_and_safety_gates
+  both_seed_directions_must_be_positive: true
+  cross_seed_mean_time_reduction_minimum: 0.03
+budget:
+  maximum_training_environment_steps: 300000
+  consumed_from_global_factor_rounds: 2
+  formal_gazebo_units: 0
+  remaining_global_training_steps_after_completion: 50000
+authorization:
+  bounded_training: true
+  gazebo: false
+  real_vehicle: false
+prohibitions:
+  - no_reward_grid_search
+  - no_f1_validation_seed_reuse
+  - no_formal_test_outcome_access
+  - no_gate_change_after_training

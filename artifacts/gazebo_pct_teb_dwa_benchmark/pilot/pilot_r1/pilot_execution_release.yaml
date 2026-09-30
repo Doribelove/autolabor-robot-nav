@@ -1,0 +1,76 @@
+schema_version: '1.0'
+stage: pilot
+status: unique_pilot_execution_release
+execution_authorized: true
+simulation_only: true
+real_vehicle_authorized: false
+training_authorized: false
+schedule_path: artifacts/gazebo_pct_teb_dwa_benchmark/pilot/pilot_r1/pilot_schedule.csv
+schedule_sha256: b68ed50a659e8cf3bd412921d5fd0e5fe2929d827b2dda66342dc3c98510a3be
+preregistration_path: artifacts/gazebo_pct_teb_dwa_benchmark/pilot/pilot_r1/pilot_preregistration.yaml
+preregistration_sha256: a77027743be292d20363a33858ee1b4c692e06f6b53135db56ca847198e5703f
+resource_bindings:
+- path: scripts/gazebo_pct_teb_dwa_benchmark/run_frozen_matrix.py
+  sha256: 1fa81bf4feffdc6de1e7edeacb8ab2b43430ed220eab125a0f08f7d775ec2aca
+- path: scripts/gazebo_pct_teb_dwa_benchmark/run_development_matrix.py
+  sha256: 9be7a3b128ad84af5ff949a2d54b74694a364b87392255eae316781652104d52
+- path: src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py
+  sha256: d3b95b30164c92426ec1784c05dcd67b09f54a7f89043a3d349962df049a1bba
+- path: src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py
+  sha256: af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9
+- path: src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/asymmetric_ppo.py
+  sha256: b17462537c8836a31fafbcd900c82fdd85bb55124c44dd98bb90418e5a74407f
+- path: src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py
+  sha256: 3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7
+- path: src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/sensor_env.py
+  sha256: e4839f424353245aac218509c6cb3418fc7929da0dacdb6ae7b5396153697e14
+- path: src/application/v3_scope_planner/src/v3_scope_planner/execution_core.py
+  sha256: 6aef3146a5360179ea49cea2dda31383ad0935389dfa874191b3df27d2f780e0
+- path: src/simulation/m2_gazebo/launch/m2_pct_teb_dwa_benchmark_episode.launch
+  sha256: a898fb04748638dd2c6d13e26ca211525ae14e843d0c16989319179ec4e983b6
+- path: src/simulation/m2_gazebo/launch/spawn_m2.launch
+  sha256: 0d631e03100a9b874373270b56f58690294c6bc168a2bf1f086319e24bc96193
+- path: src/simulation/m2_gazebo/urdf/m2.urdf.xacro
+  sha256: d6d36ade1cc5dcc12e35203b953e2daa5346698a2b3fa0c761474548b204b44c
+- path: src/application/v5_e2e_scope_rl/config/pct_teb_dwa_benchmark_development.yaml
+  sha256: c503cee6b20b768a9240e8f4abafe51db68f2e8dbd8dbf075a0559c699b707a7
+- path: src/simulation/m2_gazebo/config/benchmark_move_base.yaml
+  sha256: bfe31f64af3b3590b007448e2792762a41a74ad4d119ae2cae3cfa57f9b758ca
+- path: src/simulation/m2_gazebo/config/costmap_common.yaml
+  sha256: 432592eb268dc14157dd23cc4f3d2f263a731f88ccf08e5aad022a77b0f019b9
+- path: src/simulation/m2_gazebo/config/local_costmap.yaml
+  sha256: 7937cb8523dcc538b81cd6351d129f207d9be625873fb354349693434f349d19
+- path: src/simulation/m2_gazebo/config/global_costmap.yaml
+  sha256: e7b3458073a90d6998be390fd1ceee8e75afc67765bbf1a3543d0906b241af78
+- path: src/simulation/m2_gazebo/config/benchmark_teb_v0.yaml
+  sha256: ce9fd94f306a86fe821f9c4732cb0894b8974cf39e45ecf6ab573f72b7e04606
+- path: src/simulation/m2_gazebo/config/benchmark_dwa_v0.yaml
+  sha256: efb8c37d540927f4bee2b97435c141d07751d8c623b8db6f5c7d44d990967921
+- path: src/navigation_arena/forks/navigation/local_planner/teb/teb_local_planner_plugin.xml
+  sha256: cd6446bbb030cafb4813825f0043dd2e6d6f706420c1978476b6ba98f42c8db7
+- path: artifacts/gazebo_pct_teb_dwa_benchmark/pilot/pilot_r1/pilot_preregistration.yaml
+  sha256: a77027743be292d20363a33858ee1b4c692e06f6b53135db56ca847198e5703f
+external_resource_bindings:
+- path: /home/robot/robot_ws_base_rl/devel/lib/libteb_local_planner.so
+  sha256: 7d17474e7901821d7f69bf10cdb909e4445f9010e32ee045452ad42c6ba1883e
+- path: /opt/ros/noetic/lib/libdwa_local_planner.so
+  sha256: 58b10f4a57c0007ce89319edee58d72b2d6c59a56f6f769968b6652fafc24dcf
+method_bindings:
+  pct_scope_rl:
+    path: artifacts/gazebo_pct_teb_dwa_benchmark/development/training/pct_benchmark_r1_seed9701/actor_final.pt
+    sha256: deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8
+  analytic_prior:
+    path: null
+    sha256: none
+  actual_teb:
+    path: src/simulation/m2_gazebo/config/benchmark_teb_v0.yaml
+    sha256: ce9fd94f306a86fe821f9c4732cb0894b8974cf39e45ecf6ab573f72b7e04606
+  dwa:
+    path: src/simulation/m2_gazebo/config/benchmark_dwa_v0.yaml
+    sha256: efb8c37d540927f4bee2b97435c141d07751d8c623b8db6f5c7d44d990967921
+budget:
+  authorized_blocks: 20
+  authorized_episodes: 80
+  attempts_per_identity: 1
+formal_seed_access_authorized: false
+stable_workspace_authorized: false

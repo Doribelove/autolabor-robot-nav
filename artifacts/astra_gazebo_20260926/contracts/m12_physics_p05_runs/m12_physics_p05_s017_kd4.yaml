@@ -1,0 +1,367 @@
+schema_version: 1
+stage: astra_m12_physics_p05
+purpose: paired_single_factor_steering_gain_after_source_timed_driver_ingress_measurement_repair
+navigation_performance_evidence: false
+vehicle_operation_authorized: false
+training_authorized: false
+execution_status: offline_design_pending_build_and_independent_review
+seed: 260926017
+seed_rule: positive integer supplied by root from a fresh namespace identity; no default
+  or reuse
+maximum_episodes: 1
+retry_allowed: false
+preserve_all_failures: true
+entry_prerequisite: root must qualify and bind the current astra physics evidence
+  plugin before execution
+command_topic: /cmd_vel_navigation
+relay_output_topic: /cmd_vel
+publish_period_s: 0.05
+readiness_wall_s: 30.0
+wall_cap_s: 180.0
+clock_stall_wall_s: 10.0
+settled_tail_s: 0.75
+model_name: autolabor_m2
+required_topics:
+- /astra/world_models
+- /astra/world_links
+- /astra/physics_contacts
+- /astra/physics_metadata
+- /odom
+- /joint_states
+- /cmd_vel
+- /astra/physics_models
+- /astra/physics_links
+- /m2_driver/actuator_target
+- /m2_driver/physical_backend_fault
+- /m2_driver/physical_metadata
+- /m2_driver/actuator_commanded_effort
+- /m2_driver/physical_status
+- /astra_fixture/schedule_start_ns
+- /astra_fixture/command_event
+- /astra_fixture/command_source_status
+- /m2_driver/command_ingress
+effective_plugin_parameters:
+  wheelbase: 0.65
+  track: 0.6
+  wheelRadius: 0.15
+  maxSpeed: 2.778
+  maxSteer: 0.4964
+  commandTimeout: 0.5
+  speedTimeConstant: 0.22
+  steeringTimeConstant: 0.18
+  maxAcceleration: 0.6
+  maxDeceleration: 0.9
+  maxBrakeDeceleration: 0.9
+  maxEmergencyDeceleration: 0.9
+  maxSteeringRate: 0.75
+  commandDelay: 0.0
+  commandJitter: 0.0
+  publishRate: 50.0
+  expectedMass: 79.6
+  wheelKp: 4.0
+  wheelKi: 2.0
+  wheelIntegralTorqueLimit: 1.5
+  wheelDriveTorqueLimit: 8.0
+  wheelBrakeTorqueLimit: 12.0
+  steeringKp: 60.0
+  steeringKd: 4.0
+  steeringTorqueLimit: 20.0
+  wheelJointDamping: 0.05
+  wheelJointFriction: 0.01
+effective_boolean_parameters:
+  publishTf: true
+front_joint_names:
+- front_left_steer_joint
+- front_right_steer_joint
+front_link_names:
+- front_left_steer_link
+- front_right_steer_link
+phase_schedule:
+- name: stationary
+  duration_s: 2.0
+  speed_mps: 0.0
+  center_steering_request_rad: 0.0
+- name: accelerate
+  duration_s: 4.0
+  speed_mps: 1.2
+  center_steering_request_rad: 0.0
+- name: turn_positive
+  duration_s: 3.0
+  speed_mps: 1.2
+  center_steering_request_rad: 0.45
+- name: turn_negative
+  duration_s: 3.0
+  speed_mps: 1.2
+  center_steering_request_rad: -0.45
+- name: saturation_positive
+  duration_s: 3.0
+  speed_mps: 1.2
+  center_steering_request_rad: 0.65
+- name: saturation_negative
+  duration_s: 3.0
+  speed_mps: 1.2
+  center_steering_request_rad: -0.65
+- name: zero_speed_yaw
+  duration_s: 3.0
+  speed_mps: 0.0
+  yaw_rate_request_radps: 0.6
+- name: reaccelerate_brake
+  duration_s: 4.0
+  speed_mps: 1.2
+  center_steering_request_rad: 0.0
+- name: commanded_brake
+  duration_s: 3.0
+  speed_mps: 0.0
+  center_steering_request_rad: 0.0
+- name: reaccelerate_loss
+  duration_s: 4.0
+  speed_mps: 1.2
+  center_steering_request_rad: 0.0
+- name: command_loss
+  duration_s: 4.0
+  publish: false
+total_schedule_s: 36.0
+world_fixture:
+  physics_type: ode
+  max_step_s: 0.002
+  state_hz: 50.0
+  spawn_xyz_rpy:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  ground_model: ground_plane
+  ground_size_m:
+  - 100
+  - 100
+  fixed_world_models:
+  - ground_plane
+  actors: 0
+  walls: 0
+  gravity_mps2:
+  - 0
+  - 0
+  - -9.81
+  runtime_xy_abort_radius_m: 40.0
+  sdf: "<sdf version=\"1.6\"><world name=\"astra_m12_physics_p02\">\n  <gravity>0\
+    \ 0 -9.81</gravity>\n  <physics name=\"physics\" type=\"ode\"><max_step_size>0.002</max_step_size><real_time_update_rate>500</real_time_update_rate></physics>\n\
+    \  <light name=\"sun\" type=\"directional\"><pose>0 0 10 0 0 0</pose><diffuse>0.8\
+    \ 0.8 0.8 1</diffuse><direction>-0.5 0.1 -0.9</direction></light>\n  <model name=\"\
+    ground_plane\"><static>true</static><link name=\"link\">\n    <collision name=\"\
+    collision\"><geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry></collision>\n\
+    \    <visual name=\"visual\"><geometry><plane><normal>0 0 1</normal><size>100\
+    \ 100</size></plane></geometry></visual>\n  </link></model>\n  <plugin name=\"\
+    astra_evidence\" filename=\"libastra_dense_evidence_plugin.so\"><state_hz>50</state_hz></plugin>\n\
+    </world></sdf>\n"
+gates:
+  minimum_packet_frequency_hz: 49.0
+  maximum_packet_frequency_hz: 51.0
+  maximum_state_gap_s: 0.022000001
+  maximum_contact_gap_s: 0.004000001
+  source_model_link_join_fraction: 1.0
+  finite_all_numeric_records: true
+  model_roster_exact: true
+  maximum_non_ground_robot_contacts: 0
+  published_limit_numeric_tolerance: 1.0e-06
+  actual_front_joint_angle_tolerance_rad: 0.01
+  actual_front_joint_rate_tolerance_radps: 0.2
+  actual_center_steering_tolerance_rad: 0.015
+  actual_center_slew_tolerance_radps: 0.1
+  steady_actual_steering_error_rad: 0.03
+  actual_front_pair_curvature_disagreement_inv_m: 0.08
+  model_to_latest_odom_xy_error_m: 0.005
+  model_to_latest_odom_yaw_error_rad: 0.005
+  latest_odom_source_age_s: 0.022000001
+  moving_tail_speed_error_mps: 0.04
+  stopped_tail_speed_mps: 0.02
+  stopped_tail_model_displacement_m: 0.025
+  stopped_tail_model_yaw_change_rad: 0.02
+  minimum_turn_yaw_excitation_rad: 1.0
+  command_loss_relay_drain_grace_s: 0.12
+  minimum_matched_relay_fraction: 0.98
+  maximum_publish_gap_s: 0.075
+  minimum_phase_command_count_fraction: 0.95
+  actual_pose_derivative_preregistered_physical_acceleration_gate: null
+  actual_pose_derivative_preregistered_physical_jerk_gate: null
+gate_rationale:
+  excitation: 0.45rad produces about0.7431/m curvature; 3s permits slew reversal1.2s
+    plus settling and at least1rad actual yaw excitation
+  saturation: requests plus/minus0.65rad exceed configured0.4964rad; actual front
+    limits are independently read from effective URDF, not set equal to center limit
+  front_angle_tolerance: 0.01rad actual-joint and0.015rad center tolerances are fixed
+    solver/link-estimation diagnostic tolerances, not actuator limit changes
+  actual_rate_tolerance: one2ms physics step within20ms source intervals is10percent
+    sampling phase; center0.10rad/s and front0.20rad/s fixed diagnostic tolerance,
+    strict internal0.75rad/s still checked separately
+  command_stop: from1.2m/s, rate-limited braking takes1.333s plus first-order tail;3s
+    command brake and4s command loss including0.5s timeout leave a settled0.75s tail
+  source_sampling: 50Hz means0.020s; one0.002s physics step margin permits state gap0.022s;
+    contact gap permits at most one missed500Hz packet
+  position_agreement: 5mm exceeds two physics steps at1.2m/s=4.8mm; yaw5mrad exceeds
+    two steps at approximately1rad/s; this is a measurement-consistency gate, not
+    general safety accuracy
+  phase_counts: 95percent command coverage and75ms maximum gap detect missed20Hz sends;
+    loss interval deliberately contains no sends
+  derivatives: Actual physical odom and pose derivatives are measured separately.
+    Only target derivatives are checked against internal .6/.9/.75 limits; force tracking
+    effects remain actual observations.
+integration_required_parameters:
+- output
+- contract_path
+- world_path
+- seed
+- run_id
+- recording_topics
+integration_outputs:
+- probe_raw.jsonl
+- probe_raw.json
+- probe_report.json
+integration_notes:
+- root must launch paused with spawnxyz allzero, exact effective parameters, existing
+  command relay, evidence plugin and raw rosbag recorder
+- probe unpauses only after effective URDF/world validation and publisher/subscriber
+  readiness
+- probe records failures before assessment; wall cap uses time.monotonic and cannot
+  be blocked by paused simulated time
+- no retry and no overwriting outputs; root owns cleanup, terminal receipt, seed registry
+  and preservation
+bootstrap_repair:
+  predecessor: actuation_q01
+  predecessor_terminal_failure: lazy_relay_connection_readiness_deadlock_before_unpause
+  only_change: publish zero while paused to prime relay before connection gate
+  motion_schedule_and_all_gates_unchanged: true
+  predecessor_identity_not_reusable: true
+physical_backend_contract:
+  driver_library: libastra_physical_ackermann_p02_plugin.so
+  actuation: finite wheel torques plus finite steering torques only
+  forbidden_control_operations:
+  - SetWorldPose
+  - SetPosition
+  - SetVelocity
+  - SetLinearVel
+  - SetAngularVel
+  odom_and_joint_states: actual simulation state; odom includes lateral body velocity
+  actuator_target_names:
+  - speed
+  - center_steering
+  - front_left_steering
+  - front_right_steering
+  target_topic: /m2_driver/actuator_target
+  target_position_units:
+  - m/s
+  - rad
+  - rad
+  - rad
+  reference_limits_source: unchanged Q02 limits checked on actuator_target only
+  actual_steering_limits: unchanged Q02 actual physical angle/slew gates
+  ground_contact_exception: only four wheel links; nonwheel-ground contact fails
+  dense_truth_period_ns: 2000000
+  common_reference_point: base_link at axle midpoint; expected nonslip vy=(wheelbase/2)*yaw_rate
+  actual_acceleration_and_jerk: reported independently, no new retrospective gate
+  scope: measurement and actuation qualification only; not navigation or continuous
+    safety qualification
+  controller_reference_update: every2ms physics step; published50Hz; target.velocity
+    is last2ms derivative, not20ms secant
+physical_control_parameter_binding: All controller gains and torque limits included
+  in effective_plugin_parameters, matched to expanded URDF before unpause; wheel mu1=mu2=1.0
+  recorded in expanded URDF.
+measurement_repair:
+  predecessor: m12_physics_p01
+  physical_dynamics_and_gains_unchanged: true
+  motion_schedule_and_numeric_gates_unchanged: true
+  fault_status_qualification: DiagnosticArray source-stamped50Hz plus noERROR; old
+    Bool receipt intervals diagnostic only
+  command_schedule: separate lightweight process, integer nanosecond phase boundaries
+    and50ms publish period; dense collector never controls publish timing
+  retained_failures:
+  - P01 Bool receipt gap .12s vs.06 bound
+  - P01 heavy callback control gap .16s vs.075
+  - P01 float phase boundary command at loss start
+  - P01 actual center slew above.85 in independent diagnostic continuation
+  no_retroactive_change_to_P01: true
+command_source_protocol:
+  node_script: astra_actuation_command_source_p05.py
+  start_service: /astra_fixture/start
+  start_lead_ns: 100000000
+  schedule_start_topic: /astra_fixture/schedule_start_ns
+  command_event_topic: /astra_fixture/command_event
+  source_status_topic: /astra_fixture/command_source_status
+  period_ns: 50000000
+  start_once: true
+  paused_bootstrap_zero_commands_outside_evidence_schedule: true
+  end_safe_zero_at_or_after_end_only: true
+  remain_alive_after_schedule: Until root probe finishes and roslaunch shutdown; do
+    not end required node on normal schedule completion.
+run_id: m12_physics_p05_s017_kd4
+recorder_protocol:
+  node: /fixture_bag
+  readiness: connected incoming TCPROS getBusInfo for every explicit recording topic
+    before unpause
+  warmup_sim_s: 1.0
+  post_pause_drain_wall_s: 5.0
+  purpose: avoid P01 early bag loss; all warmup evidence retained and separate from
+    formal36s
+paired_pilot:
+  sequence: 1
+  pair: 1
+  pair_position: 1
+  arm: control
+terminal_collection_protocol:
+  version: p04_paused_world_source_watermark_v1
+  integrity_gate: final_paused_source_watermark_drained
+  authoritative_source: /gazebo/get_world_properties after /gazebo/pause_physics
+  pause_confirmation: /gazebo/get_physics_properties pause=true and unchanged max_step_size
+  stable_world_query_count: 2
+  post_pause_drain_wall_s: 5.0
+  periods_ns:
+    models: 20000000
+    links: 20000000
+    odom: 20000000
+    joints: 20000000
+    targets: 20000000
+    backend_status: 20000000
+    commanded_efforts: 20000000
+    dense_models: 2000000
+    dense_links: 2000000
+    contacts: 2000000
+  require_final_source_slot_for_every_stream: true
+  no_trimming_interpolation_or_timeout_extension: true
+  inherited_120_checks_and_numeric_physical_gates_unchanged: true
+  expected_complete_report_check_count: 121
+  prior_raw_fixture_use_only: true
+command_ingress_protocol:
+  topic: /m2_driver/command_ingress
+  stamp: same World::SimTime read used by original command enqueue
+  interpretation: source-timed driver callback receipt and queue acceptance, not actual
+    force activation or relay publisher timestamp
+  input_topic_value: cmd_vel
+  disposition: accepted_queued
+  exact_values:
+  - input_topic
+  - requested_linear_x
+  - requested_angular_z
+  - accepted
+  - disposition
+  - backend_fault
+  - activation_time_s
+  local_headerless_probe_receipt_clock: retained diagnostic only
+  source_command_join: formal+terminal exact count, same ordered payload, no receipt
+    before source event
+  loss_grace_s: 0.12
+  phase_membership: integer nanoseconds, original half-open phase and tail intervals;
+    formal full window inclusive
+  new_integrity_checks:
+  - physical_command_ingress_source_schema_and_order
+  - physical_command_ingress_matches_source_commands
+  replaced_check:
+    old: command_loss_no_relay_publication_after_drain
+    new: command_loss_no_driver_receipt_after_drain
+  all_numeric_thresholds_unchanged: true
+  removed_weak_gate: command_relay_observed; duplicate-value/local-callback-clock
+    matching remains diagnostic only, replaced by strict complete ordered source-ingress
+    join
+  source_epoch: all actual ingress ns on2msphysicsgrid and <=paused source watermark
+  callback_closure: parse+record+error handling under callback RLock, ignore all work
+    after active=false

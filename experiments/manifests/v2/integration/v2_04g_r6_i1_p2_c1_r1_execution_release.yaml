@@ -1,0 +1,70 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P2-C1-R1
+release_id: fam_teb_v2_04g_p2_c1_r1_unique_342_unit_max_release_20260724_1
+status: unique_342_unit_max_calibration_simulation_release
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_authorized: true
+authorized_evidence_units_max: 342
+attempt_per_identity: 1
+retry_resume_replacement_or_seed_substitution_allowed: false
+training_allowed: false
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+predecessor_terminal_freeze:
+  old_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_p2_c1_execution_release.yaml
+    sha256: bf370b51e19a91fd13ccf2684d4217590c675042c51fa2b26e95bd4db3bd5266
+  old_preexecution_audit:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_release_readiness/v2_04g_p2_c1_postrelease_preexecution_audit.yaml
+    sha256: bb0b367fb2ce0f548388b7c942c9dc288d0f9b76417eb9f51288adb09436c83d
+  execute_called: false
+  consumed_evidence_units: 0
+  forfeited_authority_units: 342
+  release_reuse_allowed: false
+schedule:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_release_readiness/v2_04g_p2_c1_r1_exact_342_schedule.yaml
+  sha256: 9ba3ac0954914b2e630092ea235a36e235fc363fa701bce6adb04eb78fd37b37
+command_plan:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_release_readiness/v2_04g_p2_c1_r1_exact_342_command_plan.yaml
+  sha256: c79aeb39990105e1c2ae71ab05e91971427cb99b836a64a2d5e5b356d15c0e20
+contract:
+  path: config/thesis_experiments/v2/v2_04g_r6_i1_p2_c1_r1_exact_calibration_execution_contract.yaml
+  sha256: 05dec710fc20daac3218b5a3ee6dc5244c675997d7a4afc597a862b9a635d1ed
+authorization:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i1_p2_c1_r1_simulation_authorization.yaml
+  sha256: d698829391ed70a4ecfead33bf1dfa60f1bcd33e121d6a58b05e41f97f976040
+dependency_closure:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_release_readiness/p2_c1_r1_execution_dependency_closure.yaml
+  sha256: 2dae23d80fb385c1fb8c015866a56b20a89f861610fad36a19a1c7435302f5a6
+offline_review:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_release_readiness/v2_04g_p2_c1_r1_offline_review.yaml
+  sha256: c4c6d42ff13c48a926778fa7a472d21a338546a5bb10535708f9b636570b42b0
+runner:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p2_c1_r1_exact_runner.py
+  sha256: e736d9e6573193d4b923ca5fe57a02b2ae5599cc9b360d2b7fadb5d0842b7d77
+raw_replay_adapter:
+  path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_p2_q1_replay.py
+  sha256: 6fa42113399a0d1cd43771bb421ca41a3b37c59a6aa0250566b05d1993db3863
+assessor:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p2_c1_r1_assess.py
+  sha256: 4d673e0c735cd62447c2d4d9c941a35f1599d0a0e2d8606131fad02726f72a77
+launch_surface:
+  path: src/simulation/m2_gazebo/launch/m2_v2_04g_p2_q1_execution.launch
+  sha256: b685fcf1771d287ddc06f4577265dd3588932377743edae20a0dc7ccb3a272b0
+resource_caps:
+  serial_concurrency: 1
+  per_identity_hard_wall_cap_s: 240
+  stage_hard_wall_cap_h: 20
+  canonical_artifact_cap_bytes: 1073741824
+  minimum_free_disk_before_execution_bytes: 4294967296
+claim_boundary:
+  schedule_row_digest: 8afc95eef6af349f155c5442b4990e9b0eb3cf86b9ccf1c554e6cd0e0f116062
+  command_plan_digest: e030dd211c3f306624bfa84e7dcf4faa5cf13a7695585509cd8cb25e8355ee75
+  population: fresh_unobserved_calibration_seeds_5301_5330_and_qualification_seeds_5331_5342
+  held_out_test_seed_access_forbidden: [5401, 5490]
+  performance_improvement_claim_forbidden: true
+  calibration_selection_only: true
+  real_vehicle_or_deployment_claim_forbidden: true

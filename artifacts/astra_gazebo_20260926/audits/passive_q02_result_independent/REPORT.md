@@ -1,0 +1,7 @@
+Q02首回合seed260926015在解除暂停前因ELF库存检查异常终止，1 consumed / 1 retired(seed260926016)，attempt1，不可复跑。730项发布资源、活动字节与回合归档全匹配，12项回执artifact哈希一致。
+
+`elf_inventory`先拒绝任何绝对映射路径末尾的`(deleted)`，之后才作目标ELF角色分类；因此非ELF临时共享映射也会误触发。原实际proc maps未在异常前保存，无法识别本次具体路径或断言它必为非ELF。独立synthetic夹具调用原函数AST证明该结构，但不伪装为运行观测。
+
+原raw仅有bootstrap零命令与已成功spawn记录；source_stamps、physical_status、ingress、images为空，未调用unpause/start服务，没有formal窗口或bag文件。因此没有物理/几何资格和原生图片可审。原overall ratio按名义10秒/实际wall计算，在本次没有源时间窗口时不是实测RTF，保留原数字但禁止据此解释吞吐。清理记录为空且两端口释放。
+
+原失败、collector后续ELF等待错误/关闭时pause不可用、预算及所有数据保持不变；后继仅用新身份修复映射分类与先存原始maps的诊断链。

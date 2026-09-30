@@ -1,0 +1,10 @@
+import hashlib,json
+from pathlib import Path
+D=Path(__file__).resolve().parent;S=D.parents[1];a=json.loads((D/'budget_binding_audit.json').read_bytes());f=json.loads((D/'figures_status.json').read_bytes())
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+lines=['# P07 独立结果审计','', '六回合按冻结顺序完成，6 consumed / 0 retired，均为 attempt1。653 项发布资源及六回合各 658 项输入绑定的活动文件、归档字节全部匹配，原 122 门评估精确回放。每回合另通过 28 项独立源协议与 15 项完整暂停水位审计。','', '| Seed | Kd4 原生20ms峰(rad/s) | Kd6 原生20ms峰(rad/s) | Kd4/Kd6通过门数 |','|---|---:|---:|---:|']
+for r in a['pairs']:lines.append('| {} | {:.12f} | {:.12f} | {}/{} |'.format(r['seed'],r['control_peak_radps'],r['treatment_peak_radps'],r['control_pass_count'],r['treatment_pass_count']))
+lines+=['','Kd6 三回合均通过122/122，仅获得本冻结仿真执行资格。Kd4 seed024/025均保留唯一 `actual_center_slew_with_declared_sampling_tolerance` 失败，未改变门槛或结果。','', '正式36秒内，50Hz数据精确20ms、500Hz数据精确2ms，所有10条完整源流与已闭合bag的有序源stamp和payload一致。每回合640个正式命令加1个terminal zero与driver源时间接收逐一因果对应，实际接收延迟0–2ms；32–36秒失联段符合原门，尾包达到实际暂停服务水位，未按formal end截断原raw。','', '| 回合 | 2ms描述性峰(rad/s) | 实际暂停水位(ns) |','|---|---:|---:|']
+for r in a['rows']:lines.append('| {} | {:.12f} | {} |'.format(r['run_id'],r['actual_dense_2ms_peak_radps_diagnostic'],r['source_watermark_ns']))
+lines+=['','20ms资格不能外推为每physicsstep的连续速率约束：Kd6 seed023的2ms峰0.855810774468仍高于0.85，已保留。非地接触和非车轮地面接触计数均0，只表示这些完整源消息中未见相应接触。','', '种子024/025每个arm的归一化源时间转向、实际/target速度、50Hz和500Hz模型轨迹逐行完全相同。它们是固定几何、无噪声/无抖动设置下的重复执行资格单位，不是独立几何或一般性能统计样本。比较详见 `deterministic_pair_trace_comparison.json`。','', 'PHY05按结果前冻结的三control峰中位规则选择seed024，峰并列按seed，不受treatment影响。所有六回合峰和全部移动相位稳态误差点均呈现。最终r03为170×220mm PDF/SVG及原生600dpi PNG，中文图注/LaTex/源数据CSV/全部SHA/实际view_image质量检查齐全。原PHY01–04均保持not_complete。','', '结果审计SHA：`'+sha(D/'budget_binding_audit.json')+'`。','PHY05 PDF：`'+f['PHY05']['pdf_path']+'`，SHA `'+f['PHY05']['pdf_sha256']+'`。','', '审计初次只读路径猜测和finalizer的manifest后缀错误记录于tool_errors.log，并保留原脚本/报告/log；仅修正审计代码，所有冻结运行证据不变。图r01缺字与r02标记压门线及修订产物完整保留。未启动ROS/Gazebo、未改变运行进程、未改全局figure manifest/plan。']
+(D/'REPORT.md').write_text('\n'.join(lines)+'\n');print(sha(D/'REPORT.md'))

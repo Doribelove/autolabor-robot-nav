@@ -1,0 +1,95 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R4
+stage_purpose: pure_offline_recovery_only_candidate_geometry_closure
+status: zero_authority_offline_design
+upstream:
+  d0_contract_path: config/thesis_experiments/v3/v3_13_d0_multiactor_foundation_contract.yaml
+  d0_contract_sha256: 7fbcdc34b526bd63d93475452bf6f46b6a27a2d28fbaa9c5156d96d3bdd88d05
+  s3_predictor_path: artifacts/v3/multiactor/v3_13_s3_predictor/candidate_conditioned_recovery_predictor.yaml
+  s3_predictor_sha256: 94449b8a1a645754c88c1781a5b7ac8fd869adaa5b79c69d81aa4e6abc33b621
+  r2_diagnostic_path: artifacts/v3/multiactor/v3_13_q1_r2_diagnostic/offline_root_cause.yaml
+  r2_diagnostic_sha256: d651b8af11641272d064bc217ea5812c8325fce76830a7e1922c8f4644ceecce
+  r2_episode_path: artifacts/v3/multiactor/v3_13_q1_r2_diagnostic/episodes/001_01_7331_v3_13_analytic/episode_report.yaml
+  r2_episode_sha256: ef8732ad69ceeaddb4eb5e8b612ba75ba6859c98f41b5e7d0e8a6c787b01a669
+  r3_negative_freeze_path: artifacts/v3/multiactor/v3_13_q1_r3_assessment/evidence_freeze.yaml
+  r3_negative_freeze_sha256: 2502a41fcc1b935674b0dc71e46e30a18cf56a4fa0726d531bf6b13a76ed3d03
+single_architectural_factor:
+  factor: append_exactly_one_recovery_only_evasive_candidate
+  legacy_candidate_count: 4
+  prospective_candidate_count: 5
+  legacy_candidate_bytes_and_order_unchanged: true
+  safety_tube_clearance_thresholds_unchanged: true
+  actor_predictor_unchanged_and_not_qualified_for_new_candidate: true
+  analytic_ranker_weights_unchanged: true
+  scene_population_unchanged: true
+candidate_extension:
+  generator_id: v3_13_q1_r4_recovery_bank_1
+  candidate_id: recovery_evasive_right_v120
+  kind: spatial
+  direction: -1
+  target_speed_mps: 1.20
+  certified_stop: false
+  recovery_only: true
+  eligible_after_certified_stop_prefix_only: true
+  longitudinal_acceleration_limit_mps2: 1.00
+  steering_peak_rad: 0.34
+  steering_rate_limit_radps: 0.50
+  outbound_x_range_m: [-2.6, 1.4]
+  return_x_range_m: [1.4, 5.4]
+  horizon_s: 7.0
+  sample_period_s: 0.05
+hardware_envelope:
+  source_urdf_path: src/simulation/m2_gazebo/urdf/m2.urdf.xacro
+  source_urdf_sha256: d6d36ade1cc5dcc12e35203b953e2daa5346698a2b3fa0c761474548b204b44c
+  source_gazebo_xacro_path: src/simulation/m2_gazebo/urdf/m2_gazebo.xacro
+  source_gazebo_xacro_sha256: e0ed81151ff08708530aa4eb21f178b529605a4684982ff3305fb1b1b8c13cc9
+  wheelbase_m: 0.65
+  maximum_steering_angle_rad: 0.4964
+  maximum_curvature_inv_m: 0.834
+  maximum_acceleration_mps2: 1.20
+  maximum_steering_rate_radps: 0.80
+  envelope_is_simulation_candidate_not_real_vehicle_calibration: true
+offline_design_replay:
+  source_snapshot: frozen_R2_late_recovery_seed7331
+  actor_response_surrogate: frozen_S3_assertive_spatial_right_head
+  surrogate_is_geometry_design_only: true
+  surrogate_is_not_candidate_specific_support_or_qualification: true
+  selected_pair_was_fixed_before_any_new_simulator_unit: true
+offline_geometry_gates:
+  exactly_one_candidate_appended: true
+  legacy_candidate_digest_change_count_max: 0
+  kinematic_validation_failure_count_max: 0
+  maximum_acceleration_mps2_max: 1.00
+  maximum_steering_angle_rad_max: 0.34
+  maximum_steering_rate_radps_max: 0.50
+  maximum_curvature_inv_m_max: 0.545
+  R2_surrogate_dynamic_clearance_m_min: 0.03
+  R2_corridor_static_clearance_m_min: 0.05
+  initial_context_extension_count_max: 0
+downstream:
+  if_all_offline_gates_pass: one_fresh_non_evidence_critical_scene_clone_preflight
+  simulator_preflight_authorized_by_this_contract: false
+  predictor_fit_authorized: false
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  pure_offline_design_authorized: true
+  ros_or_gazebo_execution_authorized: false
+  evidence_seed_consumption_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - one prospective recovery-only trajectory is kinematically inside the existing M2 simulation envelope
+  - legacy four-action candidate geometry is unchanged
+  forbidden:
+  - the new candidate has identified actor-response support
+  - the new candidate is safe in simulation or on hardware
+  - actual TEB qualification or performance
+  - perception robustness
+  - learned policy benefit
+  - deployment readiness

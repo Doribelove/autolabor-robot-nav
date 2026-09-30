@@ -1,0 +1,46 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-C2-I1
+stage_purpose: pure_offline_assessment_evidence_freeze_integrity_repair
+contract_id: v3_scope_v3_02_c2_i1_assessment_integrity_repair_1
+date: "2026-07-24"
+status: post_failure_pure_offline_repair_frozen
+parent:
+  stage: V3-02-C2
+  simulation_units_authorized: 36
+  simulation_units_consumed: 36
+  simulation_units_completed: 36
+  retry_units: 0
+  rerun_allowed: false
+failure:
+  phase: post_assessment_evidence_freeze_materialization
+  exception: "NameError: name 'contract' is not defined"
+  cause: >-
+    The generic assessment main function attempted to add the contract-selected
+    frozen model to the evidence manifest without loading contract into the
+    main-function scope.
+  assessment_was_already_materialized: true
+  immutable_assessment_path: artifacts/v3/prediction/v3_02_c2/execution/v3_02_c2_heldout_assessment.yaml
+  immutable_assessment_sha256: 843a3bc76ee54d1bd7304ca5b88a3a641f32e8f5b1a5dd2d3eaeab942d2768e3
+single_factor_repair:
+  factor_count: 1
+  factor_id: assessment_manifest_contract_scope
+  failed_value: contract_not_loaded_in_main_scope
+  repaired_value: contract_loaded_once_before_deterministic_assessment_replay
+  model_bytes_changed: false
+  raw_evidence_changed: false
+  schedule_changed: false
+  metrics_changed: false
+  gate_thresholds_changed: false
+  simulation_rerun: false
+required_checks:
+  rebuilt_assessment_must_equal_immutable_assessment: true
+  evidence_manifest_must_bind_contract_selected_model: true
+  all_36_raw_trace_hashes_must_replay: true
+  independent_result_review_required: true
+authority:
+  pure_offline_only: true
+  simulation_authorized: false
+  training_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_modification_authorized: false

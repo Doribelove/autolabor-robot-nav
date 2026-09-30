@@ -1,0 +1,169 @@
+family: head_on_yield
+topology: symmetric_corridor
+corridor_half_width_m: 2.3461359193562097
+static_boxes: []
+static_circles: []
+actor_geometry:
+- start:
+  - 4.1496
+  - -0.8914
+  end:
+  - -5.5
+  - -0.8914
+  conflict:
+  - 0.0
+  - -0.8914
+route:
+  start:
+  - -4.0
+  - 0.0
+  - 0.0
+  goal:
+  - 5.0
+  - 0.0
+  - 0.0
+  spawn:
+  - -5.4
+  - 0.0
+  - 0.0
+  length_m: 9.0
+  frame: world
+  transform_implemented: yaw_zero_only
+layout_id: development_a02_development_head_on_yield_000
+parent_geometry_id: geom_aa5282184b66c54363fc92a8
+canonical_geometry_sha256: ed6dafc1bdd6275955227e3cf0663fcbe41719ebc0e5c872103f2356820da060
+split: development
+geometry_seed: 260982785
+initial_geometry_qc:
+  illegal_initial_intersections: []
+  horizontal_initial_geometry_pass: true
+  robot_instances: 1
+  actor_count: 1
+  robot_initial_centered_wheel_envelope: within_1.04_by_0.70_chassis_projection
+  wheel_ground_and_vertical_collision_qc: pending_live_physics
+  navigation_feasibility: pending_independent_Ackermann_path_qualification
+  occlusion_and_conflict_semantic_qualification: pending_geometric_ray_and_timing_audit
+offline_semantics:
+  minimum_actor_swept_static_clearance_m: 1.09473591935621
+  actor_swept_static_pairs:
+  - actor_index: 0
+    static_name: wall_-1
+    distance_m: 1.09473591935621
+    intersection: false
+  - actor_index: 0
+    static_name: wall_1
+    distance_m: 2.87753591935621
+    intersection: false
+  actor_swept_static_pass: true
+schema_version: astra_scene_1.0
+scene_id: core_head_on_yield
+seed: 263817307
+replicate: 0
+actors:
+- start:
+  - 4.1496
+  - -0.8914
+  end:
+  - -5.5
+  - -0.8914
+  conflict:
+  - 0.0
+  - -0.8914
+  policy: cautious
+  base_speed_mps: 1.0
+  response_distance_m: 3.4000000000000004
+  response_time_margin_s: 1.0
+  gate_delay_s: 0.6000000000000001
+  parameter_cell_id: actor_0d46dbdbf978ea2823e16034
+  model_name: benchmark_actor_1
+  radius_m: 0.36
+  collision_shape: box
+  collision_length_m: 0.72
+  collision_width_m: 0.72
+  collision_height_m: 1.0
+  initial_pose_xyz_rpy:
+  - 4.1496
+  - -0.8914
+  - 0.5
+  - 0.0
+  - 0.0
+  - 3.141592653589793
+  response_seed: 263874453
+  initial_gate_delay_supported_by_legacy_plugin: false
+  nominal_arrival_difference_s: -0.8503999999999996
+rng_substreams:
+  actor_parameters: 263446918
+  actor_response: 263219536
+  sensor_noise: 263793329
+  actuator: 263595663
+actor_policy_input_to_planners: false
+gazebo_model_states_evaluator_only: true
+episode_cap_s: 22.0
+robot_collision_reference:
+  link: chassis_link
+  center_xyz_m:
+  - 0.0
+  - 0.0
+  - 0.27
+  length_m: 1.04
+  width_m: 0.7
+  height_m: 0.32
+  spawn_xyz_rpy:
+  - -5.4
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  vertical_spawn_qualification: z0 new common environment; live support/contact qualification
+    pending
+generator_version: astra_scene_generator_v2
+generator_sha256: aa9cbb38f3cee3a5ab41a9848756cf7e8055de2c78d851f07cbdd0e62dbd8046
+readiness:
+  static_initial_horizontal_qc: true
+  live_physics_qc: false
+  navigation_feasibility: false
+  occlusion_semantics: false
+  gate_relative_actor_delay: false
+  named_rng_wired_to_all_live_plugins: false
+  final_execution: false
+  actor_swept_static_geometry: true
+  initial_lidar_occlusion: true
+  offline_geometric_reveal: true
+generator_v1_dependency_sha256: 1a6bd7f4f4a53b65481cb955c599fe067c66331b8d5542ea5ecb150d305c37ff
+environment_version: astra_common_environment_v2_z0_source_stamped_physics_evidence
+expected_models:
+- ground_plane
+- benchmark_wall_-1
+- benchmark_wall_1
+- benchmark_actor_1
+- astra_evidence_camera
+- autolabor_m2
+evidence_camera:
+  pose_xyz_rpy:
+  - 0
+  - 0
+  - 19
+  - 0
+  - 1.5707963267948966
+  - 1.5707963267948966
+  width: 2560
+  height: 1440
+  horizontal_fov_rad: 1.05
+  update_hz: 2
+  projection: perspective
+  topic: /astra/camera/image_raw
+physics_evidence:
+  plugin: libastra_evidence_plugin.so
+  world_state_hz: 50
+  model_topic: /astra/world_models
+  link_topic: /astra/world_links
+  world_state_message_type: gazebo_msgs/WorldState
+  source_stamp: WorldUpdateEnd
+  contact_topic: /astra/physics_contacts
+  contact_rate: every_physics_step_including_empty
+  metadata_topic: /astra/physics_metadata
+  twist_semantics: Gazebo internal velocity; derive pose velocity separately for SetWorldPose
+    models
+  force_wrench_fields: not_populated_do_not_interpret_as_measured_force
+  live_topic_qualification: pending

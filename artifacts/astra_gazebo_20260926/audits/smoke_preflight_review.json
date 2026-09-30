@@ -1,0 +1,217 @@
+{
+  "schema_version": "1.0",
+  "reviewer": "historical_audit subagent",
+  "review_time_utc": "2026-09-26T06:59:57.321540+00:00",
+  "scope": "new bootstrap four-method static corridor seed260926001, old R2 behavior, no performance evidence",
+  "status": "bootstrap_preflight_review_pass_with_declared_limitations",
+  "simulation_executed": false,
+  "code_modified": false,
+  "source_hashes": {
+    "scripts/astra_gazebo/run_smoke.py": "bb5818c29db218b5d329c57f7309bf6858f5080c008a7a8eada59e70403e2206",
+    "src/simulation/m2_gazebo/scripts/astra_evidence_monitor.py": "adc0993d4ad382238b34ab0d7a809f99782ece00abba226dba2aeba46a0a5890",
+    "src/simulation/m2_gazebo/launch/astra_smoke_episode.launch": "961177787bda95a16c3a3577138c3c11e69249c51d338b5a3c8fca4169c8cd85"
+  },
+  "actual_offline_checks": {
+    "python_AST_parse": "pass for runner and monitor",
+    "render_new_seed": "pass; only called render, never execute",
+    "world_sha256": "08786c334e0167f627b8a9bb5343e915e931f0907fb20d0cad6c8f83bb733526",
+    "generated_world_models": 4,
+    "expected_after_robot_spawn": 5,
+    "camera_native_pixels": [
+      2560,
+      1440
+    ],
+    "camera_projection": "perspective",
+    "old_actor_count": 0,
+    "camera_has_collision_geometry": false,
+    "cleanup_setsids_and_escalation_fixture": "pass"
+  },
+  "findings": [
+    {
+      "id": "S01",
+      "priority": "blocking",
+      "file": "scripts/astra_gazebo/run_smoke.py",
+      "lines": "129-147,149-160",
+      "issue": "Attempt directory is created before the exception/receipt boundary. Renderer, binding, git diff, port reservation, or ledger errors produce a partial identity without durable failed receipt.",
+      "required": "All operations after identity allocation must finalize a receipt with explicit preflight/not-started status. No automatic rerun of partial identity."
+    },
+    {
+      "id": "S02",
+      "priority": "blocking",
+      "file": "scripts/astra_gazebo/run_smoke.py",
+      "lines": "111-121",
+      "issue": "After leader exit, remaining process group receives SIGTERM without waiting, escalating, or verifying isolation ports. Cleanup can return while Gazebo children remain.",
+      "required": "Wait on actual owned group membership and identity, escalate to SIGKILL if needed, confirm no owned descendants/occupied ports before next row. Preserve final cleanup result."
+    },
+    {
+      "id": "S03",
+      "priority": "high",
+      "file": "scripts/astra_gazebo/run_smoke.py",
+      "lines": "94-108",
+      "issue": "Runtime dependency binding is incomplete: Python executable recorded as path only; no environment manifest/lock binding; omitted move_base and several Gazebo sensor/API plugin binaries; TEB runtime plugin path resolution not demonstrated.",
+      "required": "Bind environment manifest and actual executable/library/module provenance for this smoke, or explicitly mark incomplete closure and avoid a full dependency integrity pass."
+    },
+    {
+      "id": "S04",
+      "priority": "high",
+      "file": "scripts/astra_gazebo/run_smoke.py",
+      "lines": "157-170,194-195",
+      "issue": "If report exists after KeyboardInterrupt or wall timeout, status becomes completed; loop can start next method.",
+      "required": "Interruption/timeout remains a terminal queue reason regardless of report presence; finalize evidence and stop schedule."
+    },
+    {
+      "id": "S05",
+      "priority": "medium",
+      "file": "src/simulation/m2_gazebo/launch/astra_smoke_episode.launch",
+      "lines": "14-18",
+      "issue": "Passive monitor death or no camera frames does not affect episode completion; all_four_completed is only report presence, not successful capture or simulation validation.",
+      "required": "Separate execution_complete, navigation_pass, capture_complete, machine_qc and human_qc. Do not claim smoke pass from all_four_completed alone."
+    },
+    {
+      "id": "S06",
+      "priority": "medium",
+      "file": "scripts/astra_gazebo/run_smoke.py",
+      "lines": "126-128",
+      "issue": "Existing receipt is accepted without validating identity, bindings, report hash, or retained evidence.",
+      "required": "Validate recorded identity/evidence before idempotent reuse; never restart corrupted historical attempt."
+    },
+    {
+      "id": "S07",
+      "priority": "observation",
+      "file": "src/simulation/m2_gazebo/scripts/astra_evidence_monitor.py",
+      "lines": "127-148",
+      "issue": "Legacy spawn z=0.02 and repeated SetWorldPose may yield wheel bottom around +0.02m; QC correctly requires <=0.01m, so bootstrap may expose floating geometry.",
+      "required": "Measure live link/visual evidence, retain failed QC, introduce any physical correction under a new identity/version; do not loosen QC merely for pass."
+    },
+    {
+      "id": "S08",
+      "priority": "observation",
+      "file": "src/simulation/m2_gazebo/scripts/astra_evidence_monitor.py",
+      "lines": "105-148",
+      "issue": "Images retain exact sensor stamp and receipt-time model/link context separately, which is correct provenance; callback delay can make latest odom/scan newer than image and machine checks then fail.",
+      "required": "Do not claim exact synchronization from receipt-time states; use bounded timestamped queues or offline association for later stronger evidence."
+    }
+  ],
+  "limitations": [
+    "Static review and pure render only; no live ROS launch or image observed.",
+    "Hashes identify reviewed snapshot; fixes require rereview."
+  ],
+  "revision_history": [
+    {
+      "review_time_utc": "2026-09-26T06:56:52.853294+00:00",
+      "status": "changes_requested_before_execution",
+      "source_hashes": {
+        "scripts/astra_gazebo/run_smoke.py": "21b15a878537246fec614259d0650b35d09d2c9bcbf80a75bd9abe6e41ff7a6d",
+        "src/simulation/m2_gazebo/scripts/astra_evidence_monitor.py": "f5effe64c582b38f6628346bc1c039db5bcd58aff32e66cb91518dfe48e73481",
+        "src/simulation/m2_gazebo/launch/astra_smoke_episode.launch": "961177787bda95a16c3a3577138c3c11e69249c51d338b5a3c8fca4169c8cd85"
+      },
+      "findings": [
+        {
+          "id": "S01",
+          "priority": "blocking",
+          "file": "scripts/astra_gazebo/run_smoke.py",
+          "lines": "129-147,149-160",
+          "issue": "Attempt directory is created before the exception/receipt boundary. Renderer, binding, git diff, port reservation, or ledger errors produce a partial identity without durable failed receipt.",
+          "required": "All operations after identity allocation must finalize a receipt with explicit preflight/not-started status. No automatic rerun of partial identity."
+        },
+        {
+          "id": "S02",
+          "priority": "blocking",
+          "file": "scripts/astra_gazebo/run_smoke.py",
+          "lines": "111-121",
+          "issue": "After leader exit, remaining process group receives SIGTERM without waiting, escalating, or verifying isolation ports. Cleanup can return while Gazebo children remain.",
+          "required": "Wait on actual owned group membership and identity, escalate to SIGKILL if needed, confirm no owned descendants/occupied ports before next row. Preserve final cleanup result."
+        },
+        {
+          "id": "S03",
+          "priority": "high",
+          "file": "scripts/astra_gazebo/run_smoke.py",
+          "lines": "94-108",
+          "issue": "Runtime dependency binding is incomplete: Python executable recorded as path only; no environment manifest/lock binding; omitted move_base and several Gazebo sensor/API plugin binaries; TEB runtime plugin path resolution not demonstrated.",
+          "required": "Bind environment manifest and actual executable/library/module provenance for this smoke, or explicitly mark incomplete closure and avoid a full dependency integrity pass."
+        },
+        {
+          "id": "S04",
+          "priority": "high",
+          "file": "scripts/astra_gazebo/run_smoke.py",
+          "lines": "157-170,194-195",
+          "issue": "If report exists after KeyboardInterrupt or wall timeout, status becomes completed; loop can start next method.",
+          "required": "Interruption/timeout remains a terminal queue reason regardless of report presence; finalize evidence and stop schedule."
+        },
+        {
+          "id": "S05",
+          "priority": "medium",
+          "file": "src/simulation/m2_gazebo/launch/astra_smoke_episode.launch",
+          "lines": "14-18",
+          "issue": "Passive monitor death or no camera frames does not affect episode completion; all_four_completed is only report presence, not successful capture or simulation validation.",
+          "required": "Separate execution_complete, navigation_pass, capture_complete, machine_qc and human_qc. Do not claim smoke pass from all_four_completed alone."
+        },
+        {
+          "id": "S06",
+          "priority": "medium",
+          "file": "scripts/astra_gazebo/run_smoke.py",
+          "lines": "126-128",
+          "issue": "Existing receipt is accepted without validating identity, bindings, report hash, or retained evidence.",
+          "required": "Validate recorded identity/evidence before idempotent reuse; never restart corrupted historical attempt."
+        },
+        {
+          "id": "S07",
+          "priority": "observation",
+          "file": "src/simulation/m2_gazebo/scripts/astra_evidence_monitor.py",
+          "lines": "127-148",
+          "issue": "Legacy spawn z=0.02 and repeated SetWorldPose may yield wheel bottom around +0.02m; QC correctly requires <=0.01m, so bootstrap may expose floating geometry.",
+          "required": "Measure live link/visual evidence, retain failed QC, introduce any physical correction under a new identity/version; do not loosen QC merely for pass."
+        },
+        {
+          "id": "S08",
+          "priority": "observation",
+          "file": "src/simulation/m2_gazebo/scripts/astra_evidence_monitor.py",
+          "lines": "105-148",
+          "issue": "Images retain exact sensor stamp and receipt-time model/link context separately, which is correct provenance; callback delay can make latest odom/scan newer than image and machine checks then fail.",
+          "required": "Do not claim exact synchronization from receipt-time states; use bounded timestamped queues or offline association for later stronger evidence."
+        }
+      ]
+    }
+  ],
+  "cleanup_fixture": {
+    "status": "pass",
+    "parent_exited_before_cleanup": true,
+    "setsid_child_count": 2,
+    "child_pgids_different_from_parent": true,
+    "SIGTERM_resistant_child_included": true,
+    "SIGKILL_escalation_demonstrated": true,
+    "remaining_owned_live_processes": 0,
+    "unrelated_control_survived": true,
+    "wall_seconds": 5.116777836999972,
+    "cleanup_payload": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/non_ros_fixture_only_20260926/cleanup.json",
+      "data": {
+        "utc": "2026-09-26T06:59:57.317989+00:00",
+        "owned_live_processes": [],
+        "ports_14820_14821_released": true,
+        "scope": "exact run environment markers, not global process names"
+      }
+    },
+    "ROS_started": false,
+    "Gazebo_started": false,
+    "reviewed_runner_sha256": "bb5818c29db218b5d329c57f7309bf6858f5080c008a7a8eada59e70403e2206"
+  },
+  "resolved_findings": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05"
+  ],
+  "remaining_nonblocking_findings": [
+    "S06",
+    "S07",
+    "S08"
+  ],
+  "scope_exclusions": [
+    "Not formal experiment approval or performance/safety success.",
+    "Receipt identity/hash revalidation remains needed before any resume; this first fresh smoke starts with absent run directories.",
+    "Live wheel/TF/image checks and actual visual QC remain to be observed; zero or invalid capture does not pass validation.",
+    "No transitive dynamic-library or whole-Python-environment closure claim is made."
+  ]
+}

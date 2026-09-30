@@ -1,0 +1,58 @@
+{
+  "status": "independent_content_addressed_archive_filesystem_review_pass",
+  "pass": true,
+  "independent_review": true,
+  "reviewed_source_sha256": "621df289dc6a6732a6c79c9c95859179624045b668b1ff43d585dfcb78c355b4",
+  "checks": {
+    "all9_real_fs_cases_pass": true,
+    "readonly_source_alias_rejected_without_change": true,
+    "current_matches_tested_snapshot": true
+  },
+  "actual_cases": 10,
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/bound_archive.py",
+      "sha256": "621df289dc6a6732a6c79c9c95859179624045b668b1ff43d585dfcb78c355b4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/bound_archive_independent/bound_archive_r0.py",
+      "sha256": "18c27af56e6772574a494734dfce7eb7d52ce0dafa2953d36e552cbda51e2449"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/bound_archive_independent/bound_archive_r1.py",
+      "sha256": "621df289dc6a6732a6c79c9c95859179624045b668b1ff43d585dfcb78c355b4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/bound_archive_independent/actual_filesystem_findings.json",
+      "sha256": "048de6e96151f0dd5c98fcc3371c624994c93ba46b070bba2ef55ee2d6c8696d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/bound_archive_independent/actual_filesystem_findings_r1.json",
+      "sha256": "f996385e31003654bfc4be3b81dc5a9975b9d3b65c26ae800b4c34ed09023162"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/bound_archive_independent/readonly_alias_result.json",
+      "sha256": "dc387779c991709c2ac06270ec9740a4ddf127469f25191b91e0997c30ba1082"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/bound_archive_independent/check_actual_filesystem.py",
+      "sha256": "2fc9da7dc558e0b835734a390601d2e70e5b2cc195e2427a9a60f80319af65b5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/bound_archive_independent/check_actual_filesystem_r1.py",
+      "sha256": "18f133392642940214667889a0f1a9b6db3cb479b12e9b4ce81a2cfc894d1846"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/bound_archive_independent/check_actual_filesystem_r01.log",
+      "sha256": "048de6e96151f0dd5c98fcc3371c624994c93ba46b070bba2ef55ee2d6c8696d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/bound_archive_independent/check_actual_filesystem_r02.log",
+      "sha256": "ce4b804a8ca40511c5d2372843d5482f791eb27cf0f7fc50da4461b61a9b2268"
+    }
+  ],
+  "scope": "Trusted study directories and accidental corruption detection; not hostile same-UID writer proof. Source symlinks intentionally resolved, archive final symlinks rejected. Directory ancestors assumed controlled. Hardlinks require same filesystem; error propagates without overwriting evidence.",
+  "preserved_negative": "r0 accepted source alias/writable existing archive and distinct local inode; FIFO blocked. r1 rejects each.",
+  "actual_storage": "8 concurrent runs: same CAS inode, 9 links, 688128 logical bytes, 168 shared blocks; independent source inode.",
+  "no_ROS": true
+}

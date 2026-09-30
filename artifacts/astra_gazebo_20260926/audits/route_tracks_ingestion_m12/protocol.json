@@ -1,0 +1,33 @@
+{
+  "additional_ratio_of_medians": "reported descriptively, not substituted for paired gate",
+  "cache": "one tile; drop old before native query",
+  "deadline_gate_separate": "all observed full-chain times <= 50ms; no live or WCET qualification",
+  "dense_regression_fixture": "maximum1440_dense_new_scan",
+  "dense_regression_gate": "median paired fractional full-chain slowdown <= 0.05",
+  "environment": "source frozen astra_env.sh then explicit interpreter; user site disabled; numerical libraries single-thread; no torch/GPU",
+  "eps": 0.0,
+  "factor": "only32-row lazy tiled exact KD neighborhood retrieval",
+  "interpreter": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python",
+  "no_ROS_no_training_no_old_edits": true,
+  "order": "even trial M08 then M12, odd M12 then M08; sequential cases sparse then dense",
+  "paired_trials_per_case": 10,
+  "predicate": "original hypot and np.linalg.norm within1e-12 of gap",
+  "primary_fixture": "combined1440_sparse_reobserved_and2048_retained",
+  "primary_gate": "median paired fractional reduction in full-chain latency >= 0.05",
+  "protected_source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_ingestion_m08.py",
+    "sha256": "97b739bb8b165a652e44e2695a2298bf5fa0ea87ba3e80a67a40f4b39644ffc2"
+  },
+  "radius": "original gap+1e-9",
+  "return_sorted": true,
+  "schema": "astra_m12_lazy_kd_offline_protocol_v1",
+  "semantic_equality": "all snapshot fields except processing_ns plus observation dtype/shape/data, masks, rollouts, full clearances, prediction audit, selected action and command exactly equal",
+  "setup_excluded": "fresh core/URDF construction and prior retained support ingestion exactly as old benchmark",
+  "source_candidate": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_ingestion_m12.py",
+    "sha256": "026e2f7d62a125c70a8c1da813948618dbb71830a267dff4e6f71893e60c8668"
+  },
+  "tile_rows": 32,
+  "timing_started": false,
+  "workers": 1
+}

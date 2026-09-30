@@ -1,0 +1,32 @@
+{
+  "status": "mandatory_future_primary_matrix_readiness_prerequisites",
+  "scope": "N01 clear-fixture integration can retain explicitly disclosed frozen-R2 limitations; this document is not execution authorization or a runtime edit.",
+  "requirements": [
+    {
+      "id": "R2-LIFECYCLE-TRUTH",
+      "required_before_primary_matrix": true,
+      "observed_code": "pct_teb_dwa_benchmark_episode.py robot_world_pose uses /gazebo/model_states; execute_sensor calls common_metrics_step then goal_state and breaks before policy action generation. New wrapper overrides only wait_ready/warmup, so this truth-dependent stop still executes.",
+      "required_new_adapter": "A separately versioned lifecycle-only R2 adapter must derive readiness/stop/goal from shared coordinator and actual source-stamped odometry, while keeping action-selection algorithm and checkpoint bytes immutable. Simulator oracle model/actor data must be isolated to diagnostics/evaluation and cannot terminate or select deployment commands.",
+      "current_claim_limit": "Do not call all four methods strict sensor-only end to end. Shared coordinator formal timestamps do not erase inherited R2 internal truth-dependent early stop.",
+      "old_R2_unchanged": true
+    },
+    {
+      "id": "R2-FIXED-ROUTE-FAIRNESS",
+      "required_before_primary_matrix": true,
+      "observed_code": "Frozen R2 consumes raster-decomposed static boxes and an implicit x-route, not the shared global path; implicit +/-20m walls and outside-map semantics also differ.",
+      "required_new_design": "Before a primary comparison, preregister and independently review either a semantically comparable fixed-route adapter for R2 or an explicitly narrower comparator population/claim that preserves the limitation. Prove actual input consumption, not only identical provider publication.",
+      "current_claim_limit": "N01 is clear-fixture integration only; it does not qualify a fully shared-route primary comparison.",
+      "old_R2_unchanged": true
+    },
+    {
+      "id": "PRIVATE-TWIST-TIME",
+      "required_before_primary_matrix": true,
+      "observed_code": "Private Twist is headerless; coordinator timestamps callback receipt and explicitly sets generation_source_ns null.",
+      "required_new_design": "Any primary claim requiring generated-after-gate command timing needs source/gate-bound command evidence or a narrowly declared receipt-time protocol. Current counter cannot prove the generation time of a message still queued before its callback.",
+      "current_claim_limit": "Do not claim all queued pre-ack publications are rejected; only already received commands are discarded."
+    }
+  ],
+  "parent_instruction": "Explicitly requested by root after independent deployment-semantic review; no quiet modification of frozen R2.",
+  "no_runtime_files_modified": true,
+  "no_ROS": true
+}

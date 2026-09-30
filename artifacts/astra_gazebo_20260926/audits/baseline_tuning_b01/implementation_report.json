@@ -1,0 +1,716 @@
+{
+  "schema": "astra_baseline_b01_offline_design_implementation_v1",
+  "status": "offline_initial_baseline_tuning_design_ready_for_independent_review",
+  "author_role": "historical_audit acting as B01 design/config author; not an independent approval of its own configuration implementation",
+  "independent_review": false,
+  "offline_checks_pass": true,
+  "check_count": 14,
+  "checks": {
+    "12_coarse_each_with_current_effective_anchor": true,
+    "24_configs_exact_current_hash": true,
+    "12_source_confirmed_active_fingerprints_each": true,
+    "all_contract_levels_included": true,
+    "all144_cfg_axis_types_ranges_checked": true,
+    "byte_identical_regeneration_pass": true,
+    "fixed_speed_request_caps_compound_footprint_and_kinematics": true,
+    "actual_reference_P05_parameters_preserved": true,
+    "source_inert_or_censored_axes_not_counted_as_unique": true,
+    "converter5Hz_dt_point2_not_false10Hz_claim": true,
+    "converter_component_and_load_order_not_qualified_by_YAML": true,
+    "dev_validation_split_and_equal_budget_proposal": true,
+    "all_failures_included_no_baseline_suppression": true,
+    "no_seeds_release_ROS_benchmark_or_final_access": true
+  },
+  "configs_per_planner": 12,
+  "total_configs": 24,
+  "actual_reference_driver_parameters": {
+    "wheelbase": 0.65,
+    "track": 0.6,
+    "wheelRadius": 0.15,
+    "maxSpeed": 2.778,
+    "maxSteer": 0.4964,
+    "maxAcceleration": 0.6,
+    "maxDeceleration": 0.9,
+    "maxSteeringRate": 0.75,
+    "commandTimeout": 0.5,
+    "publishRate": 50.0,
+    "commandDelay": 0.0,
+    "commandJitter": 0.0,
+    "wheelDriveTorqueLimit": 8.0,
+    "wheelBrakeTorqueLimit": 12.0,
+    "steeringTorqueLimit": 20.0,
+    "steeringKp": 60.0,
+    "steeringKd": 6.0
+  },
+  "ELF_files": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libteb_local_planner.so",
+      "sha256": "ae63785d2eb0c440010009531936e25aac889a901a4ad4a7e51af4e18fde2af4",
+      "role": "workspaceTEB_source0.8.4",
+      "build_id": "2243683348c87d29b5c0f8bb286fd50c2c9db805",
+      "scope": "installed/current file identity only; future actual-process mapping required"
+    },
+    {
+      "path": "/opt/ros/noetic/lib/libdwa_local_planner.so",
+      "sha256": "58b10f4a57c0007ce89319edee58d72b2d6c59a56f6f769968b6652fafc24dcf",
+      "role": "installedDWA1.17.3",
+      "build_id": "b638959c609672e86238ee919f1c6b7e2a21d954",
+      "scope": "installed/current file identity only; future actual-process mapping required"
+    },
+    {
+      "path": "/opt/ros/noetic/lib/libcostmap_converter.so",
+      "sha256": "12a9dc5822654b65945cc974405ac63b510be84376404db514a2739504c8775d",
+      "role": "installedconverter0.0.13",
+      "build_id": "c7087c2be0a043926a52f0b0f91003f29d48e2d5",
+      "scope": "installed/current file identity only; future actual-process mapping required"
+    }
+  ],
+  "coarse_design": {
+    "teb": {
+      "space_size": 972,
+      "distance": "First maximize uncovered axis levels; then mean squared range-normalized distance over source-confirmed active axes: maximize nearest-selected distance, then lower marginal occupancy, then sumdistance, then SHA256 lexical max. No claim of orthogonality or exact marginal balance.",
+      "active_uniqueness_axes": [
+        "dt_ref",
+        "min_obstacle_dist",
+        "inflation_dist",
+        "weight_obstacle",
+        "homotopy",
+        "dynamic_scan_converter"
+      ],
+      "excluded_from_distance_and_uniqueness": [
+        "lookahead_m"
+      ],
+      "level_counts": {
+        "dt_ref": {
+          "0.15": 5,
+          "0.25": 1,
+          "0.35": 6
+        },
+        "min_obstacle_dist": {
+          "0.25": 6,
+          "0.33": 1,
+          "0.4": 5
+        },
+        "inflation_dist": {
+          "0.45": 5,
+          "0.6": 1,
+          "0.8": 6
+        },
+        "weight_obstacle": {
+          "40": 5,
+          "80": 1,
+          "160": 6
+        },
+        "lookahead_m": {
+          "6": 4,
+          "8": 4,
+          "10": 4
+        },
+        "homotopy": {
+          "False": 4,
+          "True": 8
+        },
+        "dynamic_scan_converter": {
+          "False": 4,
+          "True": 8
+        }
+      },
+      "outside_grid_anchor_values": {},
+      "minimum_squared_active_distance": 0.32868102796674226,
+      "trace": [
+        {
+          "step": 0,
+          "selection": "current_effective_anchor",
+          "minimum_squared_active_distance": null
+        },
+        {
+          "step": 1,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 7,
+          "minimum_squared_active_distance": 0.5509032501889645,
+          "marginal_occupancy_penalty": 0,
+          "tie_sha256": "e4f1cc7ff88360f6c0c77f46920d4ba4109be699d02cff244e1a136384f6efe6"
+        },
+        {
+          "step": 2,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 5,
+          "minimum_squared_active_distance": 0.460427059712774,
+          "marginal_occupancy_penalty": 2,
+          "tie_sha256": "fab9d0431942d1827fbd327e9424475fc498d5b0d75c1ddb5a414ba756cc7a0d"
+        },
+        {
+          "step": 3,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.37312547241118676,
+          "marginal_occupancy_penalty": 8,
+          "tie_sha256": "dbc14877270e330a2b36d43e529df9b071e5fa7dff976920a07e5aa9905f53a7"
+        },
+        {
+          "step": 4,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.36042705971277406,
+          "marginal_occupancy_penalty": 10,
+          "tie_sha256": "5bab197a32f7ac86182705b8ebbe5ec4b83bab4289414cb3aa5acc3cfd650ee6"
+        },
+        {
+          "step": 5,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.3333333333333333,
+          "marginal_occupancy_penalty": 13,
+          "tie_sha256": "72d8bdf218cf4a02e6fb307bb9141a10d804a86051b91fa399594e32b7db8932"
+        },
+        {
+          "step": 6,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.3333333333333333,
+          "marginal_occupancy_penalty": 17,
+          "tie_sha256": "8095a4377a4453a2aa3fa510950969b8ee1dbc60cb3b8f911757ef4ff8c402e8"
+        },
+        {
+          "step": 7,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.3333333333333333,
+          "marginal_occupancy_penalty": 21,
+          "tie_sha256": "bc94d9e37a28044ce5fcf2429e91f76f003ee2c4fd83a64b8bf171293ab2a67e"
+        },
+        {
+          "step": 8,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.3333333333333333,
+          "marginal_occupancy_penalty": 23,
+          "tie_sha256": "b5a1e48692982a11ec46420eec2a8766ddcd2c422a0b517f423c5327b5fde071"
+        },
+        {
+          "step": 9,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.3333333333333333,
+          "marginal_occupancy_penalty": 29,
+          "tie_sha256": "e9918ca0b2e35a25a9b8bef6dac7ea74899f34d3e62d2535a95b99498e062fe9"
+        },
+        {
+          "step": 10,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.3333333333333333,
+          "marginal_occupancy_penalty": 31,
+          "tie_sha256": "8fc9945de249a9ab433b74f176fdf865ab73c630663cad2f077195799d4dfb90"
+        },
+        {
+          "step": 11,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.32868102796674226,
+          "marginal_occupancy_penalty": 32,
+          "tie_sha256": "2bfc5210c8b7354ddbad49a71610219f65b9fe90467a60f74eb7f8c7dd80e3f4"
+        }
+      ]
+    },
+    "dwa": {
+      "space_size": 972,
+      "distance": "First maximize uncovered axis levels; then mean squared range-normalized distance over source-confirmed active axes: maximize nearest-selected distance, then lower marginal occupancy, then sumdistance, then SHA256 lexical max. No claim of orthogonality or exact marginal balance.",
+      "active_uniqueness_axes": [
+        "sim_time",
+        "vx_samples",
+        "vth_samples",
+        "occdist_scale",
+        "path_distance_bias",
+        "goal_distance_bias"
+      ],
+      "excluded_from_distance_and_uniqueness": [
+        "stop_time_buffer"
+      ],
+      "level_counts": {
+        "sim_time": {
+          "2.0": 5,
+          "3.0": 2,
+          "4.0": 5
+        },
+        "vx_samples": {
+          "18": 6,
+          "30": 6
+        },
+        "vth_samples": {
+          "36": 6,
+          "60": 6
+        },
+        "occdist_scale": {
+          "0.1": 4,
+          "0.2": 1,
+          "0.4": 6
+        },
+        "path_distance_bias": {
+          "16": 7,
+          "32": 1,
+          "48": 4
+        },
+        "goal_distance_bias": {
+          "16": 4,
+          "24": 1,
+          "32": 6
+        },
+        "stop_time_buffer": {
+          "0.3": 3,
+          "0.5": 4,
+          "0.7": 4
+        }
+      },
+      "outside_grid_anchor_values": {
+        "occdist_scale": 0.15,
+        "goal_distance_bias": 20.0,
+        "stop_time_buffer": 0.4
+      },
+      "minimum_squared_active_distance": 0.26504629629629634,
+      "trace": [
+        {
+          "step": 0,
+          "selection": "current_effective_anchor",
+          "minimum_squared_active_distance": null
+        },
+        {
+          "step": 1,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 7,
+          "minimum_squared_active_distance": 0.6261574074074074,
+          "marginal_occupancy_penalty": 0,
+          "tie_sha256": "f73c8db5ca5b7031c8e57e367d2968b5aff90ce5b045d320a57c3d8e89cb6acf"
+        },
+        {
+          "step": 2,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 5,
+          "minimum_squared_active_distance": 0.43171296296296297,
+          "marginal_occupancy_penalty": 2,
+          "tie_sha256": "cb9d4e92db0b2a6364c58b3eabb37d64dbcf22b6e297244aeb3955abcb71f46d"
+        },
+        {
+          "step": 3,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 3,
+          "minimum_squared_active_distance": 0.26504629629629634,
+          "marginal_occupancy_penalty": 5,
+          "tie_sha256": "e291f92297578c28c95a6cf43aa913e80c37bc747f2c9a7ae5712524257ffa10"
+        },
+        {
+          "step": 4,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.45949074074074076,
+          "marginal_occupancy_penalty": 9,
+          "tie_sha256": "c9f2eab2a3ee6f9b5133ca1bd504f22ca4ca016598a11daa2ed47eb9a954b2b6"
+        },
+        {
+          "step": 5,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.37615740740740744,
+          "marginal_occupancy_penalty": 12,
+          "tie_sha256": "b453a6c202c40e3f46a20c71e86a2c48712b094acf8a6877568f0e0d4fe10bad"
+        },
+        {
+          "step": 6,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.33449074074074076,
+          "marginal_occupancy_penalty": 14,
+          "tie_sha256": "8819a4c3b47af19afc51e775ec2726b4a2d684be9752aaa4fec1d60523ee16e7"
+        },
+        {
+          "step": 7,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.3333333333333333,
+          "marginal_occupancy_penalty": 17,
+          "tie_sha256": "9a7d473db80ad688879f6339c9a01179a3a460d282f0f9e1061ac136ef1e29a1"
+        },
+        {
+          "step": 8,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.3333333333333333,
+          "marginal_occupancy_penalty": 21,
+          "tie_sha256": "b14ba0f6eefca647b0701ab7645281d496dbea90cbd302f83671825de8c06f64"
+        },
+        {
+          "step": 9,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.3333333333333333,
+          "marginal_occupancy_penalty": 26,
+          "tie_sha256": "67a6dfa21e43d4c670a01b9d8771bc3a20db62cdc38e2322ca8e8a493ba242f1"
+        },
+        {
+          "step": 10,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.2928240740740741,
+          "marginal_occupancy_penalty": 29,
+          "tie_sha256": "eaf47cc66fb5db58a51cc164127398443295809195913fe4ee2a22d367ea8c91"
+        },
+        {
+          "step": 11,
+          "selection": "level_coverage_then_deterministic_greedy_maximin",
+          "new_axis_levels_covered": 0,
+          "minimum_squared_active_distance": 0.28240740740740744,
+          "marginal_occupancy_penalty": 30,
+          "tie_sha256": "9974fa51f128e90a6d7c3635c629442d9ebe55c4d02773b3899a0f287f77f8b6"
+        }
+      ]
+    }
+  },
+  "configuration_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/candidate_manifest.json",
+    "sha256": "90a72b98bbe06a3c09938d2bb2cda97a20ff38e17444937ea6f8af0e40cad047"
+  },
+  "selection_and_budget_proposal": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/design.yaml",
+    "sha256": "6e3d53044b5f0f6251a066e49ff4bf2abdc6aa4247145eaabfdc9dfe231acb89"
+  },
+  "source_effect_evidence": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/source_effect_findings.json",
+    "sha256": "c94af0482c10240236dddb1ecace38de168bf8e416318b5d234269664ecbe3fb"
+  },
+  "execution_authorized": false,
+  "authorized_episodes": 0,
+  "seeds_allocated": [],
+  "runtime_ready": false,
+  "converter_runtime_qualified": false,
+  "final_outcomes_read": false,
+  "source_resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/README.md",
+      "sha256": "6e1e7c05dfb20dff5bb4f84cdd9a6e5227bcad39bc1d96bfbe48f356629a1f77"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/candidate_manifest.json",
+      "sha256": "90a72b98bbe06a3c09938d2bb2cda97a20ff38e17444937ea6f8af0e40cad047"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/commands.json",
+      "sha256": "a9779e42aea308ed4a4cd8e969d42852e63bc39d179c8c247d1b3f9c27d5068e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/design.yaml",
+      "sha256": "6e3d53044b5f0f6251a066e49ff4bf2abdc6aa4247145eaabfdc9dfe231acb89"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/dwa_coarse.csv",
+      "sha256": "238af27c8ead20d4747a2e9e8abb3adfe2cbf01a41c266ecabf26c5229c43d12"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/error_history.json",
+      "sha256": "308ca11f2ecdf437e9544cb678c07a7712095d4e9daafe25cf90fc634ed3fea4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/finish_report.py",
+      "sha256": "1e7b1331f71068b3134e9f861aa88e9a79b7d8c8da973a3c1a8c11a0b3214b0e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/generate.py",
+      "sha256": "b43cb783c91f6cd0f7f8f031c379f47d2767b181a7a3e36fa8f5202071272276"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/generate_quota_deadend_r01.py",
+      "sha256": "6af79a0ac30658346e7b549cf82f36912f02dbbf5b51abbc70cbdbb8f24ad019"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/generate_r01.log",
+      "sha256": "2a0b0a3c8b5ef588de0e46eb5b40430fd26b3cc14293d93f13ed54fd38f0779f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/generate_r02.log",
+      "sha256": "04f4ab40604f537744774180c62b4c15504bdb57922a0ac733bfd6e9eed1bf29"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/generate_r03.log",
+      "sha256": "004d8f781a9a4942e76c6e13cb92ebd9f21bda7cc4518441d8ef96c14b84911d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/generate_uncovered_level_r02.py",
+      "sha256": "758c63cd0168e5f4f940d46aa83fdc996ab1eda5ac457136c73ad81242279935"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/installedDWA1.17.3_readelf.txt",
+      "sha256": "10e4756fea5f25b22b8b459fe7476db0f9707deb15fa258ae61314f2a5e3d50c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/installedconverter0.0.13_readelf.txt",
+      "sha256": "7f689e953821c7db27734f88978731fd5cfa372cccd034e89c5c73429c9afbc2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/regeneration_check_r01.log",
+      "sha256": "7c3c061a635a32876d9fd568ebb8d4244cab11ffae92bd73f9f4a6ef296675a5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/source_effect_findings.json",
+      "sha256": "c94af0482c10240236dddb1ecace38de168bf8e416318b5d234269664ecbe3fb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/teb_coarse.csv",
+      "sha256": "9be6fe0a86485323a1870acf25ed019c6ef3d703d58148f175c89f28f79eeba1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/workspaceTEB_source0.8.4_readelf.txt",
+      "sha256": "6009bf71afc922e678c5337f022b3abe247c2d91ae8b9e862cc7083fbed2b770"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/local_planner_limits/__init__.py",
+      "sha256": "75ecf8fff826e3c7b167edd4892c0c082563adbb95095dcba53c1b8d5afe5be3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/simple_trajectory_generator.cpp",
+      "sha256": "584e776487561956f6fb678c034d9c4f9dc5799452943e1bcd79bf1b8d080860"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/cfg/DWAPlanner.cfg",
+      "sha256": "8bbcd114563167be6be98c5d00a669cd5a14edacfa18805b1b6e22214318681e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner_ros.cpp",
+      "sha256": "6bbeb37938dee0e43d21d3b2a5649ef8c6630297c3d583121a6325cff8a1eef0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_scenes_independent/review.json",
+      "sha256": "9fb563ce18c19f8bf133364c736d8a6e466650afd1002587a1c61e9f1be84192"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/mechanism_plan.yaml",
+      "sha256": "472e7d38f506e539574b9ff85a971e39ef9d1867f0c611234313aa146ab3b227"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n04_development_r01/reference_robot/converted_robot.sdf",
+      "sha256": "a1859bff1624cc687295603a48d5770821191d7409563c6d1636e0c1de79f912"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libteb_local_planner.so",
+      "sha256": "ae63785d2eb0c440010009531936e25aac889a901a4ad4a7e51af4e18fde2af4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator_n02.py",
+      "sha256": "28ef7728770280e20281d2a702016c482541e6b0db0b5b5e0cab512f94d27d72"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/cfg/TebLocalPlannerReconfigure.cfg",
+      "sha256": "200f9683b8cb2dcec44fc80c99d8fdf17473bda5624c1d3d9133c7e7bd187095"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/include/teb_local_planner/teb_config.h",
+      "sha256": "da63e58a1b5e7c3a3f09bbb486d3a587428df2dd3db98d6d91ad040853b67880"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/package.xml",
+      "sha256": "d969c73b6ca75f6649a482f6b69bd9957ffaad424738b730c9b62d90ddc9554c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/optimal_planner.cpp",
+      "sha256": "304a2dbc7d8294c45dd7f5d8ace352d5ba016039b33d6474de342efaf099acb5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_config.cpp",
+      "sha256": "2f3573b588076d560e003817036a9a3011ab8bedfb32ee23c03c21a81efbc4ca"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_00_anchor.yaml",
+      "sha256": "f6050e56b675b5bdf63031b1357f0fca52c9db5c0530ac63863bdb2c7bba5e03"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_01.yaml",
+      "sha256": "20358a41e64bd7b8e5864bc99826bad008b64d2a6c6e5f8ffdcec0f31c2194b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_02.yaml",
+      "sha256": "b9f8a100e835609398b853840b3389edffbb3ccec03e91b28ec14d79edc6dac4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_03.yaml",
+      "sha256": "b31e3037c845a9bbb82c86c6547425b6178f45ccbad4292899ec7016a2c9c0e5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_04.yaml",
+      "sha256": "351a0bb216abbf36202dede8aaf73f8daf0bc5e380c216b987e8814ff18fd578"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_05.yaml",
+      "sha256": "796b8acc4987687149fc0c41c9c069fa9bbef4e16436449f5f700b248b6a6553"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_06.yaml",
+      "sha256": "91262094516b2c07fb266a4b7f659d73c513a7adf77c8b17a51de2c2ba907e19"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_07.yaml",
+      "sha256": "abf4d02bd284e2f2e8e4c978b8d98e3499c53dc4a0d746fcebe841f002b54b7e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_08.yaml",
+      "sha256": "6c836ff69108ef88e8545eccf514bb0f713987c8c268322b2cb3d189daddbee7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_09.yaml",
+      "sha256": "13facd31d10effa8fb467fffe4f55a48e59dcba9e39c1c67823ae84d909f203d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_10.yaml",
+      "sha256": "80abb30c7140a625662eeb8acb043a2cca62e1868c97c77ca8838b1c697b1688"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_11.yaml",
+      "sha256": "378d2d8abfdfc90d1f349c0c70cf30124b45be97aef02d6dbffd88157aab9f57"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_00_anchor.yaml",
+      "sha256": "d17151e3075c27f3261a58de40cd160b9377bab94bdcb562328a0be85e955c56"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_01.yaml",
+      "sha256": "832a0fb20a55d18edafb46cb5efbf0cf5cdd21a07b2366858542239695d23aea"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_02.yaml",
+      "sha256": "f7558310de53022481d4f68e970c8d99a6ccb15c615cf972a424ecf77a51a6c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_03.yaml",
+      "sha256": "edae7defa55d16525a99e081dbf110cf27a14839db26534dd37de3ef48d25d9d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_04.yaml",
+      "sha256": "3ffa20c1f0d104701d424e3436b1448eedb628d23405ed75ae082b9056b8ea89"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_05.yaml",
+      "sha256": "393226308b1c3a931864f5c3ca73258ee43fa40bcc6502dee693a5afce1763e0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_06.yaml",
+      "sha256": "3b9f28a4c9ae23dc9fce4edfcf7e5183a6f05d15d3e4124cfe34a27e0bbdea2b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_07.yaml",
+      "sha256": "2e21618a8918b27ba4bfea49159a8720d97c79feebb3578e10a5fac8e0684a5f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_08.yaml",
+      "sha256": "6cec0e95aaa9658a018c00d26f62a23131ddb8cf9c87192bc53fa00e7b888cff"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_09.yaml",
+      "sha256": "98cf018dba04e1af760e72c37a80cedd88c84a41a3c378cc8fda2eb1ef94d736"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_10.yaml",
+      "sha256": "604f33f46b3e2bb1c55ac382ec9e98b71bcbbdc4b0b2de408a0430f87b139825"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_11.yaml",
+      "sha256": "d1585d197d9fdc70884993a0cba983ac1b345e61d18a78d6191c7c510e4f179c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_common_map_route.yaml",
+      "sha256": "ba342dcfbaef35c855826d96f55ea7eaf66c9c0f34c587a7b04aeafb5d69c8b7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+      "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml",
+      "sha256": "9624d5a0c331d218909fc325fd467c42a202f40dc672935ad0daecd30fdd3cab"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_move_base.yaml",
+      "sha256": "bfe31f64af3b3590b007448e2792762a41a74ad4d119ae2cae3cfa57f9b758ca"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_teb_v0.yaml",
+      "sha256": "ce9fd94f306a86fe821f9c4732cb0894b8974cf39e45ecf6ab573f72b7e04606"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/costmap_common.yaml",
+      "sha256": "432592eb268dc14157dd23cc4f3d2f263a731f88ccf08e5aad022a77b0f019b9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/local_costmap.yaml",
+      "sha256": "7937cb8523dcc538b81cd6351d129f207d9be625873fb354349693434f349d19"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/ackermann_kinematics.h",
+      "sha256": "fd47813987561dd6ad0acf03f8c0f734070aaeceb663d5950b6566af904baae0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/actuator_dynamics.h",
+      "sha256": "a3cb5469ad0bcbc304227ebb8a44d33a485fa226e4bb3ee21660be8ad3cc082c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/spawn_m2_physical_p05.launch",
+      "sha256": "671ae2ac49e7541bde68b860920a5896c3ec2f42f6c1259b0cdb380b2ce67630"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p05_plugin.cpp",
+      "sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255"
+    },
+    {
+      "path": "/opt/ros/noetic/include/costmap_converter/costmap_converter_interface.h",
+      "sha256": "fbe8bd0a1ca09c2c4ed22c7e777a5091a2715724c774bec01a86b43131396ded"
+    },
+    {
+      "path": "/opt/ros/noetic/include/costmap_converter/costmap_to_dynamic_obstacles/costmap_to_dynamic_obstacles.h",
+      "sha256": "93e31d8ed8bc54c88410fcc3d65b94bc81abd06964a75ba0437a5abec6d8fe53"
+    },
+    {
+      "path": "/opt/ros/noetic/include/dwa_local_planner/dwa_planner.h",
+      "sha256": "3a629172b6a481f106f356a9e7bbd5565e9de13c230782ff59e90d6bd03b447f"
+    },
+    {
+      "path": "/opt/ros/noetic/include/pluginlib/class_loader_imp.hpp",
+      "sha256": "5c1ffb2f79f9b9aff1aa017aadff90946bf7039efd03ce7ecab19404f8b9d000"
+    },
+    {
+      "path": "/opt/ros/noetic/lib/libcostmap_converter.so",
+      "sha256": "12a9dc5822654b65945cc974405ac63b510be84376404db514a2739504c8775d"
+    },
+    {
+      "path": "/opt/ros/noetic/lib/libdwa_local_planner.so",
+      "sha256": "58b10f4a57c0007ce89319edee58d72b2d6c59a56f6f769968b6652fafc24dcf"
+    },
+    {
+      "path": "/opt/ros/noetic/share/costmap_converter/cfg/dynamic_reconfigure/CostmapToDynamicObstacles.cfg",
+      "sha256": "669f95e30543df11c790b19ae77e9242b576d5e913ff87b6475287986552d034"
+    },
+    {
+      "path": "/opt/ros/noetic/share/costmap_converter/package.xml",
+      "sha256": "83a86eb387983de00d60a26d6d1336e0da1fac6621b2194d16e79a64555b9469"
+    },
+    {
+      "path": "/opt/ros/noetic/share/costmap_converter/plugins.xml",
+      "sha256": "11030a83417683b0bce39fa21acf1fa51cc3063ea44ec03ce828c370d60fe41c"
+    },
+    {
+      "path": "/opt/ros/noetic/share/dwa_local_planner/package.xml",
+      "sha256": "6224205a722d69a3d37a270f3f70ebc73a294d3f1b55b940044fdc7ef90e835a"
+    },
+    {
+      "path": "/opt/ros/noetic/share/teb_local_planner/package.xml",
+      "sha256": "d18bc1a8f7f03b0ed89aed8551add22b227fad79cf672e3d92e7fefa972cf22e"
+    }
+  ]
+}

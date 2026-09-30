@@ -1,0 +1,51 @@
+{
+  "checks": {
+    "all_three_odometry_gates_first_actual_crossing": true,
+    "all_three_terminal_first_actual_odom_goal": true,
+    "all_three_20ms_odom_source_grids": true,
+    "actual_TEB_saved_process_and_plugins_bound": true
+  },
+  "pass": true,
+  "rows": [
+    {
+      "method": "astra_analytic_route_v1",
+      "first_actual_odom_gate_ns": 7460000000,
+      "declared_gate_ns": 7460000000,
+      "gate_exact": true,
+      "first_actual_odom_goal_ns": 16040000000,
+      "declared_terminal_ns": 16040000000,
+      "goal_exact": true,
+      "odom_source_stamps_strict_20ms_full": true
+    },
+    {
+      "method": "actual_teb_common_route",
+      "first_actual_odom_gate_ns": 7460000000,
+      "declared_gate_ns": 7460000000,
+      "gate_exact": true,
+      "first_actual_odom_goal_ns": 15280000000,
+      "declared_terminal_ns": 15280000000,
+      "goal_exact": true,
+      "odom_source_stamps_strict_20ms_full": true
+    },
+    {
+      "method": "frozen_r2_v060_shared_activation",
+      "first_actual_odom_gate_ns": 7460000000,
+      "declared_gate_ns": 7460000000,
+      "gate_exact": true,
+      "first_actual_odom_goal_ns": 16420000000,
+      "declared_terminal_ns": 16420000000,
+      "goal_exact": true,
+      "odom_source_stamps_strict_20ms_full": true
+    }
+  ],
+  "TEB_baseline": {
+    "actual_final_mapped_modules_exact": true,
+    "raw_map_binding_exact": true,
+    "same_bootstrap_pid_starttick": true,
+    "actual_parameter_classes_exact": true,
+    "mapped_archive_module_SHA_exact": true
+  },
+  "DWA_limitation": "Final move_base ELF inventory absent in failed DWA attempt; no completed actual-plugin runtime closure. Bootstrap process and configured DWA parameter exist; they do not substitute final mappings.",
+  "scope": "First formal native geometry goal is 500Hz; coordinator goal is first qualifying actual 50Hz odometry source, and both times remain distinct.",
+  "script_SHA": "b3cf497e7a74d42b2dd0744f2c948027b5408b7e7aed3e9d830d0656e16d4394"
+}

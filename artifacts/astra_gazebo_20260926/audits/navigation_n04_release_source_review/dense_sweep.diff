@@ -1,0 +1,20 @@
+--- artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/dense_sweep_p04.py
++++ artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/dense_sweep_n04.py
+@@ -21,7 +21,7 @@
+ 
+ import dense_sweep as core
+ from geometry import Pose3, RobotCollisionModel, compound_clearance, project_box, project_cylinder
+-from evaluate_episode import WorldCollisions
++from evaluate_episode_n04 import WorldCollisions
+ 
+ PROFILE = {
+     'name': 'astra_p03_engineering_numeric_v1',
+@@ -815,7 +815,7 @@
+     args=parser.parse_args()
+     if args.output.exists():raise FileExistsError('output exists; preserve earlier evidence')
+     sources=[args.bag,args.world,args.urdf,args.closure,args.converted_sdf,args.conversion_manifest,
+-      Path(__file__),Path(core.__file__),Path(__file__).with_name('geometry.py'),Path(__file__).with_name('evaluate_episode.py')]
++      Path(__file__),Path(core.__file__),Path(__file__).with_name('geometry.py'),Path(__file__).with_name('evaluate_episode_n04.py'),Path(__file__).with_name('event_actor_contract_n04.py')]
+     before=[binding(p) for p in sources]
+     if args.diagnostic_from_p03_closure:
+         import dense_sweep_p03 as predecessor

@@ -1,0 +1,30 @@
+schema_version: "1.0"
+stage: V6-06-P1-R1
+name: thesis_transfer_visual_layout_repair
+date: "2026-08-08"
+status: authorized_pure_offline_presentation_repair
+
+predecessor:
+  stage: V6-06-P1
+  integrated_pdf_sha256: 6c25bee7ffccaf6cc09dd01a9fe8784f264a4a28196e94c939f1b4e2eea7837d
+  independent_review_sha256: 57ecee463cc36022a60f1cb715cee0c52597b743dcdf37058a2287584d3576b9
+  scientific_content_passed: true
+
+repair_scope:
+  - split_cover_title_to_avoid_orphan_line
+  - shorten_running_header_to_avoid_overlap
+  - break_primary_interval_line_to_avoid_right_margin_overflow
+
+invariants:
+  evidence_bytes_changed: false
+  result_values_changed: false
+  claims_changed: false
+  figures_or_tables_changed: false
+  real_vehicle_status: pending_no_evidence
+  simulation_execution: false
+  training: false
+  hardware_access: false
+  stable_workspace_modification: false
+
+output_root: artifacts/v6/paper/v6_06_p1_r1_thesis_transfer_package
+

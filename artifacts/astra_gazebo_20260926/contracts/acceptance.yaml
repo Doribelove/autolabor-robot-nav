@@ -1,0 +1,133 @@
+schema_version: '1.0'
+stage_id: astra_gazebo_20260926
+status: independent_design_proposal_pending_root_review_and_freeze
+execution_release: false
+new_final_outcomes_read: false
+authority_source: CODEX_ASTRA_LONG_RUN_20260926.md
+hardware_motion_authorized: false
+contract_type: acceptance
+targets_may_be_reduced_after_outcome_access: false
+primary_population:
+  families:
+  - static_avoidance
+  - single_crossing
+  - head_on_yield
+  - sequential_interaction
+  - occluded_emergence
+  - width_change_corridor
+  equal_family_weight: 0.16666666666666666
+  minimum_independent_layouts_per_family: 20
+  minimum_execution_seeds_per_layout: 3
+  minimum_paired_blocks: 360
+  minimum_primary_methods: 5
+  minimum_primary_episodes: 1800
+  layout_count_subject_to_power_increase: true
+task:
+  overall_valid_completion_rate_minimum: 0.95
+  each_family_valid_completion_rate_minimum: 0.9
+  geometric_arrival_reported_separately: true
+  valid_completion_requires:
+  - geometric_arrival
+  - zero_physical_contact
+  - zero_conservative_clearance_violation
+  - execution_integrity_pass
+  confidence_intervals_required: true
+  point_pass_is_not_population_guarantee: true
+safety:
+  new_pct_physical_contact_episode_count_maximum: 0
+  new_pct_mask_violation_count_maximum: 0
+  new_pct_conservative_clearance_violation_count_maximum: 0
+  new_pct_minimum_conservative_clearance_m: 0.0
+  zero_observed_events_rate_interval_required: true
+  formal_safety_claim_authorized: false
+  physical_clearance_definition: signed_minimum_distance_of_actual_projected_collision_geometry_at_measured_world_pose
+  conservative_clearance_definition: physical_clearance_minus_frozen_safety_margin_with_separate_time_alignment_bound
+  safety_margin_m: 0.33
+  evaluator_version: astra_exact_geometry_v1_pending_independent_geometry_review
+  legacy_clearance_also_reported_descriptively: true
+  geometry_checks_required:
+  - oriented_boxes
+  - compound_robot_collision_envelope
+  - actor_square_not_inscribed_circle
+  - static_shapes
+  - swept_inter_sample_bound
+  - independent_reference_fixtures
+  all_methods_share_evaluator: true
+efficiency:
+  metric: failure_inclusive_restricted_time_s
+  comparators:
+  - actual_teb
+  - actual_dwa
+  relative_reduction_point_minimum_each: 0.08
+  multiplicity_adjusted_paired_lower_bound_strictly_greater_than_each: 0.0
+  completion_difference_noninferiority_margin_each: -0.05
+  completion_difference_adjusted_lower_bound_minimum_each: -0.05
+  both_comparators_required_for_program_target_pass: true
+  old_pct_priority_order:
+  - zero_new_safety_violations
+  - no_completion_rate_point_decrease
+  - reduced_timeout_count
+  - positive_time_reduction
+  old_pct_time_gain_cannot_override_safety_or_task_regression: true
+timing:
+  planning_period_s: 0.25
+  control_period_s: 0.05
+  actor_inference_deadline_s: 0.02
+  full_control_cycle_p99_deadline_s: 0.05
+  deadline_miss_rate_maximum: 0.001
+  stale_output_must_be_discarded: true
+  stop_fallback_required: true
+  target_hardware_benchmark_status: pending_no_target_hardware_evidence
+  surrogate_hardware_must_be_identified: true
+  episode_latency_cannot_substitute_full_control_cycle_latency: true
+faults:
+  required:
+  - missing_scan
+  - delayed_scan
+  - tf_failure
+  - localization_jump
+  - model_exception
+  - nan_output
+  - all_candidates_rejected
+  - inference_timeout
+  - command_loss
+  - emergency_stop
+  - process_exit
+  simulation_or_offline_injection_required: true
+  real_hardware_injection_authorized: false
+evidence:
+  all_attempts_retained: true
+  history_read_only: true
+  train_development_validation_final_disjoint: true
+  all_promoted_stochastic_training_schemes_minimum_independent_seeds: 5
+  all_seed_learning_curves_and_failures_retained: true
+  independent_final_recomputation_required: true
+  minimum_nonduplicative_candidate_figure_groups_target: 30
+  real_gazebo_screenshots_required: true
+  each_delivered_image_actually_viewed_required: true
+  machine_visual_and_actual_size_qc_required: true
+delivery:
+  required:
+  - versioned_best_candidate
+  - reproducible_environment
+  - queue_and_recovery
+  - complete_core_results
+  - separate_stress_ood_results
+  - fair_baseline_search
+  - ablations
+  - training_seed_stability
+  - independent_final_review
+  - real_vehicle_transfer_package
+  - thesis_update_package
+  - figure_atlas
+  - one_command_entries_clean_environment_test
+  simulation_validated: pending
+  shadow_validated: pending
+  hardware_validated: pending
+nonachievement_closure:
+  allowed_only_after_applicable_mechanisms_actually_assessed: true
+  minimum_recent_distinct_evidence_based_candidates_without_preregistered_validation_improvement: 5
+  alternative: all_preregistered_applicable_mechanisms_exhausted_with_itemwise_evidence
+  independent_review_no_remaining_high_value_feasible_direction_required: true
+  must_state_targets_not_achieved: true
+  documentation_or_smoke_alone_sufficient: false

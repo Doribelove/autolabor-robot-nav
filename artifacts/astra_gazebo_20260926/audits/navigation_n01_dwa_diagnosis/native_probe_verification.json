@@ -1,0 +1,93 @@
+{
+  "pass": true,
+  "checks": [
+    "all_1212_requested_native_cases_completed",
+    "positive_zero_acc_inverts_bounds",
+    "positive_one_requested_sample_still_has_two_and_nonzero_trajectory",
+    "negative_zero_acc_inverts_bounds",
+    "negative_one_requested_sample_still_has_two_and_nonzero_trajectory",
+    "zero_vy_control_single_zero",
+    "all_393_actual_odom_nonzero_with_acc0",
+    "acc06_not_a_sufficient_fix_for_all_actual_odom",
+    "acc25_zero_only_for_all_393_actual_odom",
+    "acc25_above_domain_still_admits_nonzero_trajectory",
+    "acc25_negative_outside_still_admits_nonzero_trajectory",
+    "command_7706000000_unique_raw_odom_float32_vy",
+    "command_7706000000_native_nonzero_sample_accepted",
+    "command_7864000000_unique_raw_odom_float32_vy",
+    "command_7864000000_native_nonzero_sample_accepted",
+    "command_7872000000_unique_raw_odom_float32_vy",
+    "command_7872000000_native_nonzero_sample_accepted"
+  ],
+  "check_count": 17,
+  "native_cases": 1212,
+  "actual_raw_matches": [
+    {
+      "command_bag_receipt_ns": 7706000000,
+      "command_vy": 1.2670447176788002e-05,
+      "matching_odom": {
+        "source_ns": 7480000000,
+        "bag_receipt_ns": 7480000000,
+        "vx": 0.784074716030415,
+        "vy": 1.2670447233572088e-05,
+        "wz": -2.4653239072892418e-06
+      },
+      "match_is_not_a_planner_generation_timestamp": true
+    },
+    {
+      "command_bag_receipt_ns": 7864000000,
+      "command_vy": 0.00045139779103919864,
+      "matching_odom": {
+        "source_ns": 7700000000,
+        "bag_receipt_ns": 7700000000,
+        "vx": 0.5882826143373889,
+        "vy": 0.00045139777794571515,
+        "wz": -0.0009960793428317142
+      },
+      "match_is_not_a_planner_generation_timestamp": true
+    },
+    {
+      "command_bag_receipt_ns": 7872000000,
+      "command_vy": 0.0002892707707360387,
+      "matching_odom": {
+        "source_ns": 7860000000,
+        "bag_receipt_ns": 7860000000,
+        "vx": 0.44857972679135477,
+        "vy": 0.0002892707832461651,
+        "wz": 0.003960829556623413
+      },
+      "match_is_not_a_planner_generation_timestamp": true
+    }
+  ],
+  "inputs": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe_inputs.txt",
+      "sha256": "c3ad7c7b79db875bcebf1678c0a60822b2b50f32d835059325791f05316cccff"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe_output.jsonl",
+      "sha256": "5960823975a36aff01ffd436da0d1403ba874c37f9c44a2f08af1f2f9687d70d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/source_odometry.jsonl",
+      "sha256": "7e371f265084dee1c8f0e9a454e612c87fcb63cf38da73697ac570cbc75af325"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/initial_timing.json",
+      "sha256": "250ca9eb26fbdbf2d4b9833b9a3d971f7813b459617ed7c36cd3db8941f8f19b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_dynamic_window_probe.cpp",
+      "sha256": "a99d3b25543c10146d5dc40b818ec978a7a5ffd8cbffade6d27d56f502ef58f1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_dynamic_window_probe",
+      "sha256": "b15934f4f7f9133654f054487fa9d14b98e3e025ab88761a6692d9f24e40101c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe.maps.txt",
+      "sha256": "f2018230be1d45d6a87d24a296e6bc3e60c99cbc43903040d55fbae8f81228d8"
+    }
+  ],
+  "qualification": "offline generator mechanism only; no costmap winner or live repair qualification"
+}

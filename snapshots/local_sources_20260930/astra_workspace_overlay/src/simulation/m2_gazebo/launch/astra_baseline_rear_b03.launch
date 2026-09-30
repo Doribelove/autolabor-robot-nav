@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Source draft only: new collector/stage/actor metadata/release required.
+       The collector alone owns spawn/unpause/pause; no lifecycle calls here. -->
+  <arg name="world"/><arg name="run_id"/><arg name="seed"/><arg name="method"/>
+  <arg name="bundle"/><arg name="bundle_sha256"/><arg name="steering_kd"/>
+  <arg name="contract_path"/><arg name="contract_sha256"/><arg name="output"/>
+  <arg name="bag_path"/><arg name="bag_topics"/><arg name="collector_script"/>
+  <arg name="gui" default="false"/>
+  <arg name="python_executable" default="$(env THESIS_WS)/.venv_train_cuda/bin/python"/>
+  <arg name="teb_config" default="$(find m2_gazebo)/config/benchmark_teb_v0.yaml"/>
+  <arg name="dwa_config" default="$(find m2_gazebo)/config/benchmark_dwa_nonholonomic_r1.yaml"/>
+  <param name="use_sim_time" value="true"/><param name="/m2_gazebo/simulation_only" value="true"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/><arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="true"/><arg name="use_sim_time" value="true"/>
+    <arg name="extra_gazebo_args" value="--seed $(arg seed)"/><arg name="server_required" value="true"/>
+  </include>
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find m2_gazebo)/urdf/m2_physical_p05.urdf.xacro' dynamics_seed:=$(arg seed) steering_kd:=$(arg steering_kd)"/>
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="m2_robot_state_publisher" output="screen"><param name="publish_frequency" value="30.0"/></node>
+  <node pkg="topic_tools" type="relay" name="navigation_command_relay" args="/cmd_vel_navigation /cmd_vel" output="screen"/>
+  <node pkg="m2_gazebo" type="astra_common_route_provider.py" name="astra_common_route_provider" output="screen" launch-prefix="$(arg python_executable)">
+    <param name="bundle" value="$(arg bundle)"/><param name="bundle_sha256" value="$(arg bundle_sha256)"/><param name="publish_map_to_odom" value="true"/>
+  </node>
+  <node pkg="m2_gazebo" type="astra_baseline_rear_adapter_b03.py" name="astra_baseline_rear_adapter_b03" required="true" output="screen" launch-prefix="$(arg python_executable)">
+    <param name="run_id" value="$(arg run_id)"/><param name="seed" value="$(arg seed)"/><param name="method" value="$(arg method)"/>
+    <param name="bundle" value="$(arg bundle)"/><param name="bundle_sha256" value="$(arg bundle_sha256)"/>
+  </node>
+  <node pkg="m2_gazebo" type="astra_navigation_coordinator_b03.py" name="astra_navigation_coordinator" output="screen" launch-prefix="$(arg python_executable)">
+    <param name="run_id" value="$(arg run_id)"/><param name="seed" value="$(arg seed)"/><param name="method" value="$(arg method)"/>
+    <param name="bundle" value="$(arg bundle)"/><param name="bundle_sha256" value="$(arg bundle_sha256)"/>
+  </node>
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <rosparam file="$(find m2_gazebo)/config/benchmark_move_base.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="local_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find m2_gazebo)/config/local_costmap.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/global_costmap.yaml" command="load"/>
+    <param name="base_local_planner" value="$(eval {'actual_teb_rear_reference_b03':'teb_local_planner/TebLocalPlannerROS','dwa_rear_reference_b03':'dwa_local_planner/DWAPlannerROS'}[arg('method')])"/>
+    <rosparam if="$(eval arg('method') == 'actual_teb_rear_reference_b03')" file="$(arg teb_config)" command="load"/>
+    <rosparam if="$(eval arg('method') == 'dwa_rear_reference_b03')" file="$(arg dwa_config)" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/astra_common_map_route.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/astra_navigation_common_footprint.yaml" command="load"/>
+    <rosparam file="$(find m2_gazebo)/config/astra_baseline_rear_b03.yaml" command="load"/>
+    <remap from="cmd_vel" to="/astra/method_cmd"/>
+    <remap from="odom" to="/astra/rear_odom"/>
+  </node>
+  <node pkg="rosbag" type="record" name="fixture_bag" output="screen" args="--lz4 --buffsize=128 -O $(arg bag_path) $(arg bag_topics)"/>
+  <node pkg="m2_gazebo" type="$(arg collector_script)" name="astra_navigation_collector" required="true" output="screen" launch-prefix="$(arg python_executable)">
+    <param name="contract_path" value="$(arg contract_path)"/><param name="contract_sha256" value="$(arg contract_sha256)"/><param name="output" value="$(arg output)"/>
+  </node>
+</launch>

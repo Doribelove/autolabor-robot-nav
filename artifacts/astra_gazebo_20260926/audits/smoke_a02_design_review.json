@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0",
+  "stage": "smoke_a02",
+  "reviewer": "independent_design_audit_agent",
+  "status": "independent_static_component_review_pass_for_new_bounded_smoke_only",
+  "checks": {
+    "contract_source_hashes_match": true,
+    "a01_diagnosis_binding_match": true,
+    "python_syntax_compile": true,
+    "xml_parse": true,
+    "spawn_z_zero": true,
+    "sim_clock_required": true,
+    "a02_monitor_selected": true,
+    "frozen_r2_variant_selected": true,
+    "planner_groups_and_r2_params_unchanged": true,
+    "learning_planning_config_model_snapshot_bytes_unchanged": true,
+    "camera_sdf_manifest_identical": true,
+    "camera_wall_top_extents_fit_statically": true,
+    "render_model_roster_unique": true,
+    "initial_horizontal_clearance_positive": true,
+    "association_excludes_future_samples": true,
+    "association_preserves_past_geometry": true,
+    "missing_past_state_explicitly_empty": true,
+    "wheel_cylinder_support_extreme_orientation_fixtures": true,
+    "monitor_passive_no_vehicle_writes": true,
+    "a01_cleanup_record_clean": true,
+    "a01_no_live_owned_process_now": true,
+    "a01_evidence_hashes_intact": true,
+    "a01_terminal_negative_preserved": true,
+    "fresh_a02_seed_not_consumed": true,
+    "a02_runs_absent": true,
+    "fresh_schedule_no_overwrite_guards": true,
+    "loopback_and_owned_cleanup_only": true,
+    "durable_code_blob_bindings": true,
+    "simulator_ports_not_listening_now": true,
+    "raw_bag_topic_roster_declared": true,
+    "raw_bag_record_binary_bound": true,
+    "raw_bag_info_nonempty_and_sha_recorded": true,
+    "missing_capture_stops_queue": true,
+    "fourth_episode_missing_bag_cannot_pass_final_gate": true,
+    "recorder_path_is_within_episode_report_root": true,
+    "monitor_association_source_unchanged_since_component_tests": true
+  },
+  "smoke_execution_eligible": true,
+  "scientific_performance_eligible": false,
+  "visual_qc_eligible_before_runtime": false,
+  "fresh_seed": 260926002,
+  "maximum_episodes": 4,
+  "retry": false,
+  "scope": "No ROS/Gazebo launched. Renderer imported without execution. Pure AST-extracted frame association and analytic cylinder fixtures executed.",
+  "source_bindings": [
+    {
+      "path": "workspace/scripts/astra_gazebo/run_smoke_a02.py",
+      "sha256": "d2366690628b1b46e574ad0801c5035173a922d3c78a4ed8a993123f708c7ccb"
+    },
+    {
+      "path": "workspace/src/simulation/m2_gazebo/scripts/astra_evidence_monitor_a02.py",
+      "sha256": "d50a733244e09f570ed4243aef4ba210317c451d3383feacbd725a3ab505253f"
+    },
+    {
+      "path": "workspace/src/simulation/m2_gazebo/launch/astra_smoke_a02_episode.launch",
+      "sha256": "36cc5b57281b9e1c71245a38758d0af00e07d5337d8389a4e3abbb3359eb2767"
+    },
+    {
+      "path": "contracts/smoke_a02_repair.yaml",
+      "sha256": "ac3dffd1151ee1a3167af76641f929e8b14cff03f78c2bfa6bf60084348c83a5"
+    },
+    {
+      "path": "audits/smoke_a01_diagnosis.json",
+      "sha256": "c406fefa92c9e45da6f99b9802738c336424269c40d7e4df53e1471dc1cb539e"
+    },
+    {
+      "path": "runs/smoke_a01_01_pct_scope_rl/cleanup.json",
+      "sha256": "fc0725c5caee29712e4b11d682ce7b2a14df36953d33feb54008ad60c9bafbd9"
+    }
+  ],
+  "inherited_frozen_files": [
+    {
+      "path": "src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+      "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73"
+    },
+    {
+      "path": "src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_r2_episode.py",
+      "sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe"
+    },
+    {
+      "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+      "sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9"
+    },
+    {
+      "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/asymmetric_ppo.py",
+      "sha256": "b17462537c8836a31fafbcd900c82fdd85bb55124c44dd98bb90418e5a74407f"
+    },
+    {
+      "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+      "sha256": "3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7"
+    },
+    {
+      "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/sensor_env.py",
+      "sha256": "e4839f424353245aac218509c6cb3418fc7929da0dacdb6ae7b5396153697e14"
+    },
+    {
+      "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/directional_safety.py",
+      "sha256": "e9116b32e0b52d9b704ed943c14142e79e5081216b5485aee229168c5fa89d71"
+    },
+    {
+      "path": "src/simulation/m2_gazebo/config/benchmark_teb_v0.yaml",
+      "sha256": "ce9fd94f306a86fe821f9c4732cb0894b8974cf39e45ecf6ab573f72b7e04606"
+    },
+    {
+      "path": "src/simulation/m2_gazebo/config/benchmark_dwa_v0.yaml",
+      "sha256": "efb8c37d540927f4bee2b97435c141d07751d8c623b8db6f5c7d44d990967921"
+    },
+    {
+      "path": "artifacts/gazebo_pct_teb_dwa_benchmark/development/training/pct_benchmark_r1_seed9701/actor_final.pt",
+      "sha256": "deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8"
+    }
+  ],
+  "component_measurements": {
+    "camera_projected_span_at_wall_top_m": [
+      16.218162304102226,
+      9.1227162960575
+    ],
+    "required_wall_extents_m": [
+      16.0,
+      4.9
+    ],
+    "initial_horizontal_clearance_m": 2.0,
+    "ports_not_listening": {
+      "14820": true,
+      "14821": true
+    }
+  },
+  "review_invocation_note": "An earlier read-only audit invocation referenced nonexistent sensor_actor.py and exited before writing this report; corrected to actual asymmetric_ppo.py and expanded dependency roster. No experiment was run. A compatibility-only inspection used unavailable Python3.8 ast.unparse and exited; the final gate was instead executed from its AST with all-capture and fourth-capture-missing fixtures.",
+  "limitations": [
+    "Model/link states have receipt /clock times, not source stamps: latest at-or-before bounds an approximation, not exact frame/state synchronization.",
+    "Runtime must verify frame/scan/odom/TF/link/wheel gates; static coverage is not visual approval.",
+    "world_odom_position_error_m is recorded but not currently a pass threshold; full TF reference/yaw alignment is not proved.",
+    "Legacy chassis-only contact coverage and SetWorldPose driver remain; this is clear-corridor pipeline smoke, not compound physical safety or friction qualification.",
+    "No delivered image has been viewed in this offline review. Root must inspect actual A02 frames and final-size renderings.",
+    "Reviewed files must remain byte-identical until launch; code blobs and bindings preserve exact inputs.",
+    "bag messages>0 proves a readable nonempty bag, not every mandatory topic or complete episode coverage; actual per-topic counts/timestamps must be audited after execution."
+  ],
+  "pre_bag_review_sha256": "f20e3bacf9ce32323278144b34c0d19738864da403c452805a731ef6cd7e1764",
+  "bag_gate_review": {
+    "all_four_capture_fixture": true,
+    "fourth_capture_missing_fixture": false,
+    "raw_recorder_sha256": "4d1ed41a8f3a1e97108876bbad4ca820491630ea382e2c6429ea428d366e6036",
+    "required_declared_topics": [
+      "/clock",
+      "/cmd_vel",
+      "/cmd_vel_navigation",
+      "/gazebo/link_states",
+      "/gazebo/model_states",
+      "/joint_states",
+      "/m2_gazebo/contacts",
+      "/odom",
+      "/scan",
+      "/tf",
+      "/tf_static"
+    ],
+    "runtime_topic_coverage_status": "pending_actual_bag_info_and_stamp_coverage"
+  }
+}

@@ -1,0 +1,209 @@
+{
+  "schema": "astra_n04_static_analytic_mechanism_diagnosis_v1",
+  "status": "closed_trace_descriptive_diagnosis_complete_no_causal_effect_estimate",
+  "run_id": "astra_navigation_n04_b00_astra_analytic_route_v1",
+  "seed": 263001001,
+  "task_outcome": "timeout_22s",
+  "capture_integrity_pass": true,
+  "engineering_safety_pass": true,
+  "runtime_or_threshold_changed": false,
+  "new_simulator_episode": false,
+  "bag_replay_or_full_planner_benchmark": false,
+  "observed": {
+    "rows": {
+      "trace": 439,
+      "candidate": 88
+    },
+    "reason_counts": {
+      "None": 106,
+      "transaction_deadline_drop": 15,
+      "backup_revalidation_failed": 206,
+      "backup_stop_requested": 111,
+      "episode_time_limit": 1
+    },
+    "all_dynamic_counts_zero": true,
+    "all_mask_empty_decisions": 41,
+    "rank_reconstruction_matches": 88,
+    "selected_moving_negative_preview": 19,
+    "selected_moving_negative_preview_and_positive_moving_alternative": 3,
+    "executed_at_first_control_despite_negative_preview": 16
+  },
+  "endpoint": {
+    "base_xy_m": [
+      -0.6216573039799362,
+      1.7172430729544712
+    ],
+    "heading_rad": 0.783345588021942,
+    "guide_lateral_m": 0.5422430729544705,
+    "guide_heading_error_deg": 44.88239609385101,
+    "raster_all_steering_envelope_clearance_m": -0.0004045191078131949,
+    "physical_wall_same_envelope_clearance_m": 0.01853310505144551,
+    "logged_backup_clearances_m": [
+      -0.001308050546712645,
+      -0.0028170834064955995,
+      -0.0028170834064955995,
+      -0.0028170834064955995,
+      -0.0028808364147508442,
+      -0.0028170834064955995,
+      -0.0028808364147508442,
+      -0.0028170834064955995
+    ]
+  },
+  "primary_hypothesis": {
+    "label": "static_preview_soft_rank_admits_progress_toward_backup_support_trap",
+    "statement": "Backup-only eligibility permits a moving action whose full preview fails the unchanged geometric margin to win on route progress. Guide-following and physical tracking then enter an upper-wall pose where delayed braking checks reject most/all available forward-only actions. The trace supports this mechanism; no paired intervention establishes causality or separates tracking, rank, guide curvature and timing contributions.",
+    "direct_support": [
+      "All88 recorded dynamic counts are0, so dynamic occupancy expansion is absent in these decisions.",
+      "19 selected moving actions have negative full preview;16 produce a nonzero first control,3 have a nonnegative-preview moving alternative within the existing backup mask.",
+      "The first empty mask at11.008s has safe instantaneous geometric state but invalid hold+brake trajectories.",
+      "Later actual pose approaches upper raster wall with large heading error;backup margin approaches and crosses0."
+    ],
+    "alternative_or_mediating_factors": [
+      "The shared A* guide has heading kinks and no Ackermann feasibility qualification.",
+      "Fixed pure-pursuit lookahead0.7m and actual physical steering/velocity lag may contribute; no counterfactual was replayed.",
+      "15 measured transaction deadline zeros may perturb trajectory; counts do not estimate their causal effect.",
+      "All-steering/tilt hull,0.33m margin,raster outward rounding and delayed-braking motion deduction are conservative assumptions, not observed physical collision.",
+      "Eight forward/stop actions supply no reverse recovery or independent steering-at-rest control."
+    ]
+  },
+  "proposed_single_factor": {
+    "new_identity_required": true,
+    "implementation_status": "proposal_only",
+    "name": "analytic_static_full_preview_selection_eligibility_v1",
+    "changes": "Analytic selection eligibility only; preserve original observation action_mask as backup-valid mask and expose separate selection_eligibility.",
+    "moving_eligibility": "backup_mask[a] and full_preview_clearance[a] >= 0 for a>0",
+    "stop_policy": "Retain backup_stop eligibility/command-time revalidation. Select highest unchanged prior among eligible actions including original stop if backup-valid; if none, output existing fail-closed stop.",
+    "full_preview_value": "Use the existing recorded candidate feature candidates[a,3] >=0; positive normalizer3 preserves sign and all tested values are far from float32 underflow. No rerollout or changed prediction model.",
+    "frozen": [
+      "0.33m margin",
+      "all-steering9-component16-plane envelope",
+      "8 actions/speeds/offsets",
+      "candidate generator/lookahead/dynamics/horizons",
+      "response hold0.35s and backup revalidation20Hz",
+      "prior coefficients and tie ordering",
+      "sensor/static inputs",
+      "50ms transaction and20ms actor budgets",
+      "physical driver"
+    ],
+    "not_combined_with": "M08 tracking/occupancy factor or actor training",
+    "hypothesis": "Fewer negative-preview moving selections before upper-wall approach may preserve future backup support.",
+    "falsifiers": [
+      "Early eligible moving support remains empty despite clear observed state.",
+      "The new selector stops earlier and still times out.",
+      "Physical tracking/guide curvature causes the same upper-wall support collapse despite nonnegative selected previews."
+    ],
+    "future_evidence": "Separately reviewed fresh paired development runs, identical factor-free inputs/budgets, failure-inclusive outcomes; no claim that the3 logged alternatives would succeed."
+  },
+  "M08_implication": "M08 inherits step/rollout and the same prior/backup-only eligibility. Extra tracks cannot repair this static action-support mechanism by themselves. Do not train before measuring usable execution support.",
+  "code_references": {
+    "route_candidate_core.py": {
+      "full_envelope": [
+        89,
+        137
+      ],
+      "guide_controller": [
+        199,
+        224
+      ],
+      "preview_backup": [
+        226,
+        237
+      ],
+      "verify": [
+        248,
+        263
+      ],
+      "build_mask_prior": [
+        265,
+        281
+      ],
+      "select": [
+        284,
+        295
+      ],
+      "command_backup": [
+        297,
+        306
+      ]
+    },
+    "route_candidate_core_m08.py": {
+      "legacy_subclass": 29,
+      "same_preview_and_prior": [
+        114,
+        130
+      ]
+    }
+  },
+  "limitations": [
+    "Feature float32 rounding makes reconstructed scores approximate; all88 chosen IDs nevertheless match.",
+    "Trace command counts are not independent time fractions or causal effects.",
+    "Terminal endpoint poses are observed actual initial preview states, not a replay or simulator truth from a new run.",
+    "R2 and TEB success demonstrate world traversability, not exact same guide-consumer semantics or a feasible frozen8-candidate policy.",
+    "No current source, margin, stop protocol or selection was changed.",
+    "Six geometric pose checks are not full trajectory replay or actual articulated compound clearance.",
+    "R2/actualTEB success establishes scene traversability under their consumers, not route-core policy feasibility.",
+    "The declared source deadline at29.460s is the outcome authority; a later local episode_time_limit trace is diagnostic."
+  ],
+  "bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_static_analytic_diagnosis/extract.py",
+      "sha256": "3ad9694ed7b9ceb264be6d53ca829de219c92129d92a5f7003fbade15e91cba6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_static_analytic_diagnosis/pose_geometry.py",
+      "sha256": "7bc5fe8bacf26eec3ea7e5d494b34f9aa7c0ff6a54896a406df717201486bef5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_static_analytic_diagnosis/decision_summary.json",
+      "sha256": "905f797144c7927e3732f1d603c437ab29ad6917f22c40dcf30af7f411ade5b1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_static_analytic_diagnosis/decision_rows.json",
+      "sha256": "8e8861006dff0be6e9ae2cbff9c8471b2d5c733f9c7974f9ede5daa6a2639c93"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_static_analytic_diagnosis/decision_table.csv",
+      "sha256": "3c1258013afb3d002d041474280862d4e24c019323706024e77ab0287b2815d3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_static_analytic_diagnosis/pose_geometry.json",
+      "sha256": "e575c524b32af0bb4c243b94eab4b48e7f698c3c8c5bc10327b238c6eba1a3c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+      "sha256": "a6f2bae1e63ddf14822a7a2d5151e20fbe4ad51ea80525ea388bd38fe6b9b1df"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/trace.json",
+      "sha256": "664816c98df03a9166e9d9e46f5ae3a06eeb9d22a12ced7a3a58b75f6adcf946"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/candidates.json",
+      "sha256": "81100cfd5eb324e9daa0a1479b68484e86f73f81361dacd5af25de766d99a3c5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/diagnosis.json",
+      "sha256": "ed1f14811f096667d0f49cbb5cffb63fa05dd1fa0f1cae123514b00654f47e86"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/contract.json",
+      "sha256": "24e6e85ddb4d9913b8329253a7f376efa2bffbec4d1cd0441ecbd9c511dd1e8b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/assessment.json",
+      "sha256": "ef8d710153d964e4a63da35eb09277b97092994d62ede3b1c6115ca71a3c2d96"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/scene_manifest.yaml",
+      "sha256": "a77ee87b02bdcd6bca0535937c4a5dd90fba5ab1f1e25cc9578769502929c978"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n04_development_r01/development_a02_development_static_avoidance_000/replicate_00/common_bundle/common_route.json",
+      "sha256": "f656cd114285e064e75b9753caa5e2ad3f05c9a8335b1745a8eaebc3e6ce5edc"
+    }
+  ]
+}

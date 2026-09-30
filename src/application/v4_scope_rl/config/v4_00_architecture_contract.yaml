@@ -1,0 +1,149 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-00
+name: V4-SCOPE-RL
+status: preregistered_architecture_foundation
+created_date: "2026-08-07"
+
+scope:
+  independent_successor_to_v3: true
+  historical_v2_v3_evidence_read_only: true
+  simulation_and_offline_only: true
+  real_vehicle_forbidden: true
+  stable_workspace_forbidden: /home/robot/robot_ws
+  allowed_workspace: /home/robot/robot_ws_base_rl
+  command_boundary_if_later_integrated: /cmd_vel_navigation
+
+research_question:
+  primary: >-
+    Does a safety-masked sequential policy reduce failure-inclusive restricted
+    gate-to-goal time relative to the frozen V3 analytic ranker without
+    degrading task success or the frozen hard-safety gates?
+  secondary: >-
+    How does the learned policy compare with actual TebLocalPlannerROS 0.8.4
+    under the same fresh paired simulator blocks?
+  learning_claim_requires_direct_v3_superiority: true
+  teb_only_superiority_is_insufficient: true
+
+architecture:
+  immutable_order:
+    - scene_snapshot
+    - ackermann_candidate_generator
+    - frozen_reachable_occupancy_predictor
+    - hard_candidate_verifier
+    - boolean_safe_action_mask
+    - masked_policy_over_candidate_ids
+    - activation_time_revalidation
+    - trajectory_tracker
+    - cmd_vel_navigation
+  policy_cannot_modify:
+    - candidate_geometry
+    - candidate_kinematics
+    - reachable_occupancy
+    - safety_thresholds
+    - fallback_logic
+  fallback_order:
+    - certified_stop
+    - actual_teb_fallback_after_health_failure_only
+
+decision_process:
+  replanning_period_s: 0.25
+  maximum_episode_decisions: 72
+  observation_contract:
+    global_features:
+      - normalized_time
+      - ego_progress
+      - ego_lateral_position
+      - ego_yaw
+      - ego_speed
+      - previous_target_speed
+      - actor_coordinate
+      - actor_speed
+      - actor_acceleration_estimate
+      - ego_actor_eta_difference
+      - previous_action
+      - consecutive_stop_count
+    per_candidate_features:
+      - verifier_acceptance
+      - projected_progress
+      - conservative_clearance
+      - acceleration_cost
+      - lateral_excursion
+  actions:
+    - {id: 0, name: certified_stop, target_speed_mps: 0.0, lateral_offset_m: 0.0}
+    - {id: 1, name: straight_v040, target_speed_mps: 0.4, lateral_offset_m: 0.0}
+    - {id: 2, name: straight_v080, target_speed_mps: 0.8, lateral_offset_m: 0.0}
+    - {id: 3, name: straight_v120, target_speed_mps: 1.2, lateral_offset_m: 0.0}
+    - {id: 4, name: spatial_left_v100, target_speed_mps: 1.0, lateral_offset_m: 1.15}
+    - {id: 5, name: spatial_right_v100, target_speed_mps: 1.0, lateral_offset_m: -1.15}
+  invariant: at_least_certified_stop_is_available
+
+reward:
+  safety_is_not_a_reward_tradeoff: true
+  components:
+    progress_per_m: 1.0
+    elapsed_per_s: -0.12
+    speed_change_per_mps: -0.015
+    action_switch: -0.01
+    goal: 6.0
+    timeout: -2.0
+  forbidden:
+    - positive_reward_for_near_collision
+    - learned_safety_penalty_in_place_of_hard_verifier
+    - post_test_reward_tuning
+
+learning:
+  algorithm: masked_ppo
+  implementation: local_pytorch_reference
+  maximum_training_environment_steps: 600000
+  training_seeds: [4101, 4102, 4103, 4104]
+  validation_seeds: [4201, 4202, 4203, 4204]
+  checkpoint_selection: highest_validation_failure_inclusive_return_subject_to_safety_and_task_gates
+  test_outcomes_for_checkpoint_selection_forbidden: true
+  old_v2_v3_outcomes_for_fitting_forbidden: true
+
+learning_value_gate:
+  required_before_full_budget:
+    safe_multiaction_state_fraction_minimum: 0.20
+    analytic_sequential_regret_fraction_minimum: 0.05
+    heldout_fast_backend_time_reduction_minimum: 0.03
+    both_training_seed_directions_positive: true
+  on_failure: stop_learning_claim_and_export_negative_result
+
+global_budget:
+  factor_rounds_maximum: 3
+  training_environment_steps_maximum: 600000
+  gazebo_episode_units_maximum: 240
+  retired_budget_is_not_recyclable: true
+  retry_after_semantic_execution_forbidden: true
+  fresh_seed_replacement_forbidden: true
+
+evaluation:
+  methods:
+    - v4_masked_ppo
+    - frozen_v3_analytic
+    - actual_teb_0_8_4
+    - v4_imitation_control
+  qualification_blocks: 8
+  formal_fresh_blocks: 30
+  paired_block_unit: scene_actor_policy_seed
+  primary_metric: failure_inclusive_restricted_gate_to_goal_time
+  safety_gates:
+    contact_count_maximum: 0
+    conservative_clearance_minimum_m: 0.0
+    mask_violation_count_maximum: 0
+    activation_revalidation_failure_maximum: 0
+  task_gate:
+    v4_goal_success_noninferior_to_v3: true
+  efficiency_gate:
+    paired_relative_time_reduction_vs_v3_point_minimum: 0.05
+    one_sided_95_percent_block_bootstrap_lower_minimum: 0.0
+  report_negative_and_mixed_results: true
+
+claim_boundary:
+  perception: false
+  multi_actor_ood: false
+  formal_safety: false
+  deployment_ready: false
+  real_vehicle_ready: false
+  positive_optimization_may_only_be_claimed_if_all_frozen_gates_pass: true

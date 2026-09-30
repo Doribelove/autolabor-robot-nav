@@ -1,0 +1,106 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-01-R2
+contract_id: v3_scope_v3_01_r2_jitter_repair_1
+status: single_factor_repair_preregistered_before_simulation
+parent_terminal_result:
+  report: artifacts/v3/data_qualification/v3_01_r1/execution/v3_01_r1_terminal_result.yaml
+  parent_stage_resumable: false
+single_factor_repair:
+  factor_count: 1
+  factor_id: actor_response_margin_seed_jitter_fraction
+  parent_value: 0.10
+  repaired_value: 0.0
+  all_scene_actor_policy_dynamics_recorder_and_gates_unchanged: true
+scope:
+  scene_family: crossing
+  qualification_only: true
+  deterministic_actor_fixture_only: true
+  stochastic_actor_calibration: false
+  formal_performance_result: false
+  planner_evaluation: false
+  training: false
+authority_boundary:
+  offline_implementation_authorized: true
+  simulation_requires_separate_release_and_authorization: true
+  ros_required: false
+  move_base_authorized: false
+  training_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_modification_allowed: false
+experimental_unit:
+  policies: [cautious, assertive, hesitant]
+  ego_interventions:
+    - {candidate_id: probe_v060, speed_mps: 0.60}
+    - {candidate_id: probe_v080, speed_mps: 0.80}
+    - {candidate_id: probe_v100, speed_mps: 1.00}
+    - {candidate_id: probe_v120, speed_mps: 1.20}
+  fresh_seeds: [6121, 6122, 6123]
+  attempts_per_identity: 1
+  schedule_rows: 36
+  evidence_budget_units: 36
+  retry_allowed: false
+  resume_allowed: false
+  failed_unit_recyclable: false
+scene:
+  world: deterministic_gazebo_classic_crossing_v1
+  duration_s: 8.0
+  sample_period_s: 0.05
+  max_step_size_s: 0.005
+  real_time_update_rate_hz: 0
+  conflict_point_m: [0.0, 0.0]
+  ego:
+    model_name: ego_probe
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    endpoint_m_rad: [3.0, 0.0, 0.0]
+    footprint_m: [1.13, 0.73, 0.55]
+    wheelbase_m: 0.65
+    max_speed_mps: 1.20
+    intervention_is_straight_ackermann_feasible: true
+  actor:
+    model_name: reactive_actor
+    initial_pose_m_rad: [0.0, -3.0, 1.5707963267948966]
+    endpoint_m_rad: [0.0, 3.0, 1.5707963267948966]
+    size_m: [0.45, 0.45, 1.70]
+    base_speed_mps: 1.0
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+runtime_firewall:
+  actor_may_observe:
+    - ego_world_pose
+    - ego_pose_history_derived_closing_speed
+    - conflict_point
+    - simulation_time
+  actor_may_not_observe:
+    - candidate_id
+    - candidate_speed_parameter
+    - schedule_row
+    - evaluator_scene_role
+    - future_ego_truth
+qualification_gates:
+  all_36_attempt_1_units_complete: true
+  clone_initial_position_tolerance_m: 0.01
+  ego_crossing_time_absolute_error_max_s: 0.10
+  minimum_actor_position_spread_at_4s_m: 0.20
+  minimum_distinct_response_signatures_per_policy_seed: 2
+  maximum_pre_intervention_actor_position_spread_m: 0.02
+  maximum_cross_seed_response_spread_m: 0.20
+  no_nan_or_nonmonotonic_time: true
+  raw_trace_hash_replay_exact: true
+  independent_assessment_replay_required: true
+failure_policy:
+  persist_first_failure: true
+  stop_stage_on_infrastructure_failure: true
+  do_not_retry_identity: true
+  repair_requires_new_stage_and_fresh_identity: true
+  do_not_weaken_gate_after_observing_result: true
+claim_if_pass: >-
+  The deterministic crossing actor fixture passed the cloned-intervention
+  response and repeatability gates for crossing-family data generation.
+forbidden_claims:
+  - stochastic_actor_calibrated
+  - general_multi_family_identifiability
+  - predictor_accuracy
+  - planner_safety
+  - navigation_performance_improvement
+  - real_vehicle_readiness

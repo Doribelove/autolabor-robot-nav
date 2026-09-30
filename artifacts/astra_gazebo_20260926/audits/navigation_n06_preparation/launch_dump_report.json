@@ -1,0 +1,756 @@
+{
+  "ROS_started": false,
+  "environment": {
+    "THESIS_WS": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace",
+    "python_executable": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python"
+  },
+  "execution_authorized": false,
+  "scope": "roslaunch parse/parameter expansion only; no nodes, services, seed registration or simulation",
+  "status": "all8_exact_offline_launch_dumps_pass",
+  "units": [
+    {
+      "actual_source_world_geometry_bound": "4f1812c59806cba1b0967982046762158d9e0aaecd3174a18cb6f8e17d060e89",
+      "method": "astra_analytic_route_v1",
+      "nodes": [
+        {
+          "args": "-u   -e ode --seed 263003001 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n06_prepared_r01/astra_navigation_n06_b000_control/world.sdf",
+          "launch_prefix": null,
+          "name": "gazebo",
+          "package": "gazebo_ros",
+          "remap_args": [],
+          "required": true,
+          "type": "gzserver"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "m2_robot_state_publisher",
+          "package": "robot_state_publisher",
+          "remap_args": [],
+          "required": false,
+          "type": "robot_state_publisher"
+        },
+        {
+          "args": "/cmd_vel_navigation /cmd_vel",
+          "launch_prefix": null,
+          "name": "navigation_command_relay",
+          "package": "topic_tools",
+          "remap_args": [],
+          "required": false,
+          "type": "relay"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_common_route_provider",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_common_route_provider.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_coordinator",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_navigation_coordinator_n06.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+          "name": "astra_route_runtime",
+          "package": "m2_gazebo",
+          "remap_args": [
+            [
+              "/cmd_vel_navigation",
+              "/astra/method_cmd"
+            ]
+          ],
+          "required": false,
+          "type": "astra_route_coordinated_runtime.py"
+        },
+        {
+          "args": "--lz4 --buffsize=128 -O /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n06_b000_control/fixture.bag /astra/p03/pre_models /astra/p03/pre_links /astra/p03/end_models /astra/p03/end_links /astra/p03/step_status /astra/physics_contacts /astra/p03/runtime_metadata /astra/physics_metadata /astra/world_models /astra/world_links /clock /odom /joint_states /m2_driver/physical_status /m2_driver/physical_metadata /m2_driver/command_ingress /m2_driver/actuator_target /m2_driver/actuator_commanded_effort /cmd_vel_navigation /cmd_vel /astra/navigation/identity /astra/navigation/status /astra/navigation/gate /astra/navigation/command_trace /scan /tf /tf_static /map /astra/common_route/path /astra/method_cmd /astra/method/status /astra/common_route/identity /astra/common_route/served_path /astra/route_runtime/identity /astra/route_runtime/status /astra/route_runtime/trace /astra/route_runtime/candidates ",
+          "launch_prefix": null,
+          "name": "fixture_bag",
+          "package": "rosbag",
+          "remap_args": [],
+          "required": false,
+          "type": "record"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_collector",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": true,
+          "type": "astra_navigation_collector_n06.py"
+        }
+      ],
+      "params": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_preparation/launch_dump_attempt02/astra_navigation_n06_b000_control/params.yaml",
+        "sha256": "a46b7f04652df4e5a5ca4753ac6bd578e7761c048332df76baae40bc670a28f3"
+      },
+      "passed": true,
+      "physics_seed": 263003001,
+      "resolved_method_script": "astra_route_coordinated_runtime.py",
+      "run_id": "astra_navigation_n06_b000_control",
+      "seed": 263003001,
+      "steering_kd": 6.0
+    },
+    {
+      "actual_source_world_geometry_bound": "4f1812c59806cba1b0967982046762158d9e0aaecd3174a18cb6f8e17d060e89",
+      "method": "astra_analytic_lookahead_1p2_n06",
+      "nodes": [
+        {
+          "args": "-u   -e ode --seed 263003001 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n06_prepared_r01/astra_navigation_n06_b000_treatment/world.sdf",
+          "launch_prefix": null,
+          "name": "gazebo",
+          "package": "gazebo_ros",
+          "remap_args": [],
+          "required": true,
+          "type": "gzserver"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "m2_robot_state_publisher",
+          "package": "robot_state_publisher",
+          "remap_args": [],
+          "required": false,
+          "type": "robot_state_publisher"
+        },
+        {
+          "args": "/cmd_vel_navigation /cmd_vel",
+          "launch_prefix": null,
+          "name": "navigation_command_relay",
+          "package": "topic_tools",
+          "remap_args": [],
+          "required": false,
+          "type": "relay"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_common_route_provider",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_common_route_provider.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_coordinator",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_navigation_coordinator_n06.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+          "name": "astra_route_runtime",
+          "package": "m2_gazebo",
+          "remap_args": [
+            [
+              "/cmd_vel_navigation",
+              "/astra/method_cmd"
+            ]
+          ],
+          "required": false,
+          "type": "astra_route_lookahead_runtime_n06.py"
+        },
+        {
+          "args": "--lz4 --buffsize=128 -O /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n06_b000_treatment/fixture.bag /astra/p03/pre_models /astra/p03/pre_links /astra/p03/end_models /astra/p03/end_links /astra/p03/step_status /astra/physics_contacts /astra/p03/runtime_metadata /astra/physics_metadata /astra/world_models /astra/world_links /clock /odom /joint_states /m2_driver/physical_status /m2_driver/physical_metadata /m2_driver/command_ingress /m2_driver/actuator_target /m2_driver/actuator_commanded_effort /cmd_vel_navigation /cmd_vel /astra/navigation/identity /astra/navigation/status /astra/navigation/gate /astra/navigation/command_trace /scan /tf /tf_static /map /astra/common_route/path /astra/method_cmd /astra/method/status /astra/common_route/identity /astra/common_route/served_path /astra/route_runtime/identity /astra/route_runtime/status /astra/route_runtime/trace /astra/route_runtime/candidates ",
+          "launch_prefix": null,
+          "name": "fixture_bag",
+          "package": "rosbag",
+          "remap_args": [],
+          "required": false,
+          "type": "record"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_collector",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": true,
+          "type": "astra_navigation_collector_n06.py"
+        }
+      ],
+      "params": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_preparation/launch_dump_attempt02/astra_navigation_n06_b000_treatment/params.yaml",
+        "sha256": "32c1775fbf18639918c639a0206e31ea9cdb5560b915339673c07ef2e8f28db2"
+      },
+      "passed": true,
+      "physics_seed": 263003001,
+      "resolved_method_script": "astra_route_lookahead_runtime_n06.py",
+      "run_id": "astra_navigation_n06_b000_treatment",
+      "seed": 263003001,
+      "steering_kd": 6.0
+    },
+    {
+      "actual_source_world_geometry_bound": "c22c2fa00f3545d80e612f8ddfbe6c54f9300fdecd3740c0d1b4d64f78cdb3cf",
+      "method": "astra_analytic_lookahead_1p2_n06",
+      "nodes": [
+        {
+          "args": "-u   -e ode --seed 263003002 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n06_prepared_r01/astra_navigation_n06_b001_treatment/world.sdf",
+          "launch_prefix": null,
+          "name": "gazebo",
+          "package": "gazebo_ros",
+          "remap_args": [],
+          "required": true,
+          "type": "gzserver"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "m2_robot_state_publisher",
+          "package": "robot_state_publisher",
+          "remap_args": [],
+          "required": false,
+          "type": "robot_state_publisher"
+        },
+        {
+          "args": "/cmd_vel_navigation /cmd_vel",
+          "launch_prefix": null,
+          "name": "navigation_command_relay",
+          "package": "topic_tools",
+          "remap_args": [],
+          "required": false,
+          "type": "relay"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_common_route_provider",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_common_route_provider.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_coordinator",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_navigation_coordinator_n06.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+          "name": "astra_route_runtime",
+          "package": "m2_gazebo",
+          "remap_args": [
+            [
+              "/cmd_vel_navigation",
+              "/astra/method_cmd"
+            ]
+          ],
+          "required": false,
+          "type": "astra_route_lookahead_runtime_n06.py"
+        },
+        {
+          "args": "--lz4 --buffsize=128 -O /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n06_b001_treatment/fixture.bag /astra/p03/pre_models /astra/p03/pre_links /astra/p03/end_models /astra/p03/end_links /astra/p03/step_status /astra/physics_contacts /astra/p03/runtime_metadata /astra/physics_metadata /astra/world_models /astra/world_links /clock /odom /joint_states /m2_driver/physical_status /m2_driver/physical_metadata /m2_driver/command_ingress /m2_driver/actuator_target /m2_driver/actuator_commanded_effort /cmd_vel_navigation /cmd_vel /astra/navigation/identity /astra/navigation/status /astra/navigation/gate /astra/navigation/command_trace /scan /tf /tf_static /map /astra/common_route/path /astra/method_cmd /astra/method/status /astra/common_route/identity /astra/common_route/served_path /astra/route_runtime/identity /astra/route_runtime/status /astra/route_runtime/trace /astra/route_runtime/candidates ",
+          "launch_prefix": null,
+          "name": "fixture_bag",
+          "package": "rosbag",
+          "remap_args": [],
+          "required": false,
+          "type": "record"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_collector",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": true,
+          "type": "astra_navigation_collector_n06.py"
+        }
+      ],
+      "params": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_preparation/launch_dump_attempt02/astra_navigation_n06_b001_treatment/params.yaml",
+        "sha256": "2833558b8e4e3991e11f7770711cf00b9db25c397a39f237dadb810640cffe51"
+      },
+      "passed": true,
+      "physics_seed": 263003002,
+      "resolved_method_script": "astra_route_lookahead_runtime_n06.py",
+      "run_id": "astra_navigation_n06_b001_treatment",
+      "seed": 263003002,
+      "steering_kd": 6.0
+    },
+    {
+      "actual_source_world_geometry_bound": "c22c2fa00f3545d80e612f8ddfbe6c54f9300fdecd3740c0d1b4d64f78cdb3cf",
+      "method": "astra_analytic_route_v1",
+      "nodes": [
+        {
+          "args": "-u   -e ode --seed 263003002 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n06_prepared_r01/astra_navigation_n06_b001_control/world.sdf",
+          "launch_prefix": null,
+          "name": "gazebo",
+          "package": "gazebo_ros",
+          "remap_args": [],
+          "required": true,
+          "type": "gzserver"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "m2_robot_state_publisher",
+          "package": "robot_state_publisher",
+          "remap_args": [],
+          "required": false,
+          "type": "robot_state_publisher"
+        },
+        {
+          "args": "/cmd_vel_navigation /cmd_vel",
+          "launch_prefix": null,
+          "name": "navigation_command_relay",
+          "package": "topic_tools",
+          "remap_args": [],
+          "required": false,
+          "type": "relay"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_common_route_provider",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_common_route_provider.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_coordinator",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_navigation_coordinator_n06.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+          "name": "astra_route_runtime",
+          "package": "m2_gazebo",
+          "remap_args": [
+            [
+              "/cmd_vel_navigation",
+              "/astra/method_cmd"
+            ]
+          ],
+          "required": false,
+          "type": "astra_route_coordinated_runtime.py"
+        },
+        {
+          "args": "--lz4 --buffsize=128 -O /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n06_b001_control/fixture.bag /astra/p03/pre_models /astra/p03/pre_links /astra/p03/end_models /astra/p03/end_links /astra/p03/step_status /astra/physics_contacts /astra/p03/runtime_metadata /astra/physics_metadata /astra/world_models /astra/world_links /clock /odom /joint_states /m2_driver/physical_status /m2_driver/physical_metadata /m2_driver/command_ingress /m2_driver/actuator_target /m2_driver/actuator_commanded_effort /cmd_vel_navigation /cmd_vel /astra/navigation/identity /astra/navigation/status /astra/navigation/gate /astra/navigation/command_trace /scan /tf /tf_static /map /astra/common_route/path /astra/method_cmd /astra/method/status /astra/common_route/identity /astra/common_route/served_path /astra/route_runtime/identity /astra/route_runtime/status /astra/route_runtime/trace /astra/route_runtime/candidates ",
+          "launch_prefix": null,
+          "name": "fixture_bag",
+          "package": "rosbag",
+          "remap_args": [],
+          "required": false,
+          "type": "record"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_collector",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": true,
+          "type": "astra_navigation_collector_n06.py"
+        }
+      ],
+      "params": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_preparation/launch_dump_attempt02/astra_navigation_n06_b001_control/params.yaml",
+        "sha256": "4d699abfa205f8f80ce61347bbd3873d07562c3e35514f405ea220014680d198"
+      },
+      "passed": true,
+      "physics_seed": 263003002,
+      "resolved_method_script": "astra_route_coordinated_runtime.py",
+      "run_id": "astra_navigation_n06_b001_control",
+      "seed": 263003002,
+      "steering_kd": 6.0
+    },
+    {
+      "actual_source_world_geometry_bound": "02696d1b06cafbe434c395969458a5a0390ad5020281527e52d13bc27f97bddf",
+      "method": "astra_analytic_route_v1",
+      "nodes": [
+        {
+          "args": "-u   -e ode --seed 263003003 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n06_prepared_r01/astra_navigation_n06_b002_control/world.sdf",
+          "launch_prefix": null,
+          "name": "gazebo",
+          "package": "gazebo_ros",
+          "remap_args": [],
+          "required": true,
+          "type": "gzserver"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "m2_robot_state_publisher",
+          "package": "robot_state_publisher",
+          "remap_args": [],
+          "required": false,
+          "type": "robot_state_publisher"
+        },
+        {
+          "args": "/cmd_vel_navigation /cmd_vel",
+          "launch_prefix": null,
+          "name": "navigation_command_relay",
+          "package": "topic_tools",
+          "remap_args": [],
+          "required": false,
+          "type": "relay"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_common_route_provider",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_common_route_provider.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_coordinator",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_navigation_coordinator_n06.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+          "name": "astra_route_runtime",
+          "package": "m2_gazebo",
+          "remap_args": [
+            [
+              "/cmd_vel_navigation",
+              "/astra/method_cmd"
+            ]
+          ],
+          "required": false,
+          "type": "astra_route_coordinated_runtime.py"
+        },
+        {
+          "args": "--lz4 --buffsize=128 -O /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n06_b002_control/fixture.bag /astra/p03/pre_models /astra/p03/pre_links /astra/p03/end_models /astra/p03/end_links /astra/p03/step_status /astra/physics_contacts /astra/p03/runtime_metadata /astra/physics_metadata /astra/world_models /astra/world_links /clock /odom /joint_states /m2_driver/physical_status /m2_driver/physical_metadata /m2_driver/command_ingress /m2_driver/actuator_target /m2_driver/actuator_commanded_effort /cmd_vel_navigation /cmd_vel /astra/navigation/identity /astra/navigation/status /astra/navigation/gate /astra/navigation/command_trace /scan /tf /tf_static /map /astra/common_route/path /astra/method_cmd /astra/method/status /astra/common_route/identity /astra/common_route/served_path /astra/route_runtime/identity /astra/route_runtime/status /astra/route_runtime/trace /astra/route_runtime/candidates ",
+          "launch_prefix": null,
+          "name": "fixture_bag",
+          "package": "rosbag",
+          "remap_args": [],
+          "required": false,
+          "type": "record"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_collector",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": true,
+          "type": "astra_navigation_collector_n06.py"
+        }
+      ],
+      "params": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_preparation/launch_dump_attempt02/astra_navigation_n06_b002_control/params.yaml",
+        "sha256": "0e37c6f2ba5a1cd658f0bdbabab3646a1594386f1d612604e91ff654857516db"
+      },
+      "passed": true,
+      "physics_seed": 263003003,
+      "resolved_method_script": "astra_route_coordinated_runtime.py",
+      "run_id": "astra_navigation_n06_b002_control",
+      "seed": 263003003,
+      "steering_kd": 6.0
+    },
+    {
+      "actual_source_world_geometry_bound": "02696d1b06cafbe434c395969458a5a0390ad5020281527e52d13bc27f97bddf",
+      "method": "astra_analytic_lookahead_1p2_n06",
+      "nodes": [
+        {
+          "args": "-u   -e ode --seed 263003003 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n06_prepared_r01/astra_navigation_n06_b002_treatment/world.sdf",
+          "launch_prefix": null,
+          "name": "gazebo",
+          "package": "gazebo_ros",
+          "remap_args": [],
+          "required": true,
+          "type": "gzserver"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "m2_robot_state_publisher",
+          "package": "robot_state_publisher",
+          "remap_args": [],
+          "required": false,
+          "type": "robot_state_publisher"
+        },
+        {
+          "args": "/cmd_vel_navigation /cmd_vel",
+          "launch_prefix": null,
+          "name": "navigation_command_relay",
+          "package": "topic_tools",
+          "remap_args": [],
+          "required": false,
+          "type": "relay"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_common_route_provider",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_common_route_provider.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_coordinator",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_navigation_coordinator_n06.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+          "name": "astra_route_runtime",
+          "package": "m2_gazebo",
+          "remap_args": [
+            [
+              "/cmd_vel_navigation",
+              "/astra/method_cmd"
+            ]
+          ],
+          "required": false,
+          "type": "astra_route_lookahead_runtime_n06.py"
+        },
+        {
+          "args": "--lz4 --buffsize=128 -O /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n06_b002_treatment/fixture.bag /astra/p03/pre_models /astra/p03/pre_links /astra/p03/end_models /astra/p03/end_links /astra/p03/step_status /astra/physics_contacts /astra/p03/runtime_metadata /astra/physics_metadata /astra/world_models /astra/world_links /clock /odom /joint_states /m2_driver/physical_status /m2_driver/physical_metadata /m2_driver/command_ingress /m2_driver/actuator_target /m2_driver/actuator_commanded_effort /cmd_vel_navigation /cmd_vel /astra/navigation/identity /astra/navigation/status /astra/navigation/gate /astra/navigation/command_trace /scan /tf /tf_static /map /astra/common_route/path /astra/method_cmd /astra/method/status /astra/common_route/identity /astra/common_route/served_path /astra/route_runtime/identity /astra/route_runtime/status /astra/route_runtime/trace /astra/route_runtime/candidates ",
+          "launch_prefix": null,
+          "name": "fixture_bag",
+          "package": "rosbag",
+          "remap_args": [],
+          "required": false,
+          "type": "record"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_collector",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": true,
+          "type": "astra_navigation_collector_n06.py"
+        }
+      ],
+      "params": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_preparation/launch_dump_attempt02/astra_navigation_n06_b002_treatment/params.yaml",
+        "sha256": "f3fd20d5beff90aaa85686fed1195540c2a47c8578075769b3fb1a0392165809"
+      },
+      "passed": true,
+      "physics_seed": 263003003,
+      "resolved_method_script": "astra_route_lookahead_runtime_n06.py",
+      "run_id": "astra_navigation_n06_b002_treatment",
+      "seed": 263003003,
+      "steering_kd": 6.0
+    },
+    {
+      "actual_source_world_geometry_bound": "6f4c1f658830ee64c16d4da47fef0ccaba085339973dc0793f47807f3e86a9d6",
+      "method": "astra_analytic_lookahead_1p2_n06",
+      "nodes": [
+        {
+          "args": "-u   -e ode --seed 263003004 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n06_prepared_r01/astra_navigation_n06_b003_treatment/world.sdf",
+          "launch_prefix": null,
+          "name": "gazebo",
+          "package": "gazebo_ros",
+          "remap_args": [],
+          "required": true,
+          "type": "gzserver"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "m2_robot_state_publisher",
+          "package": "robot_state_publisher",
+          "remap_args": [],
+          "required": false,
+          "type": "robot_state_publisher"
+        },
+        {
+          "args": "/cmd_vel_navigation /cmd_vel",
+          "launch_prefix": null,
+          "name": "navigation_command_relay",
+          "package": "topic_tools",
+          "remap_args": [],
+          "required": false,
+          "type": "relay"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_common_route_provider",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_common_route_provider.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_coordinator",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_navigation_coordinator_n06.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+          "name": "astra_route_runtime",
+          "package": "m2_gazebo",
+          "remap_args": [
+            [
+              "/cmd_vel_navigation",
+              "/astra/method_cmd"
+            ]
+          ],
+          "required": false,
+          "type": "astra_route_lookahead_runtime_n06.py"
+        },
+        {
+          "args": "--lz4 --buffsize=128 -O /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n06_b003_treatment/fixture.bag /astra/p03/pre_models /astra/p03/pre_links /astra/p03/end_models /astra/p03/end_links /astra/p03/step_status /astra/physics_contacts /astra/p03/runtime_metadata /astra/physics_metadata /astra/world_models /astra/world_links /clock /odom /joint_states /m2_driver/physical_status /m2_driver/physical_metadata /m2_driver/command_ingress /m2_driver/actuator_target /m2_driver/actuator_commanded_effort /cmd_vel_navigation /cmd_vel /astra/navigation/identity /astra/navigation/status /astra/navigation/gate /astra/navigation/command_trace /scan /tf /tf_static /map /astra/common_route/path /astra/method_cmd /astra/method/status /astra/common_route/identity /astra/common_route/served_path /astra/route_runtime/identity /astra/route_runtime/status /astra/route_runtime/trace /astra/route_runtime/candidates ",
+          "launch_prefix": null,
+          "name": "fixture_bag",
+          "package": "rosbag",
+          "remap_args": [],
+          "required": false,
+          "type": "record"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_collector",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": true,
+          "type": "astra_navigation_collector_n06.py"
+        }
+      ],
+      "params": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_preparation/launch_dump_attempt02/astra_navigation_n06_b003_treatment/params.yaml",
+        "sha256": "9e479bc835458eb08d2e5679d88856ead84ff025ddbd907096e603f65b7ae87f"
+      },
+      "passed": true,
+      "physics_seed": 263003004,
+      "resolved_method_script": "astra_route_lookahead_runtime_n06.py",
+      "run_id": "astra_navigation_n06_b003_treatment",
+      "seed": 263003004,
+      "steering_kd": 6.0
+    },
+    {
+      "actual_source_world_geometry_bound": "6f4c1f658830ee64c16d4da47fef0ccaba085339973dc0793f47807f3e86a9d6",
+      "method": "astra_analytic_route_v1",
+      "nodes": [
+        {
+          "args": "-u   -e ode --seed 263003004 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n06_prepared_r01/astra_navigation_n06_b003_control/world.sdf",
+          "launch_prefix": null,
+          "name": "gazebo",
+          "package": "gazebo_ros",
+          "remap_args": [],
+          "required": true,
+          "type": "gzserver"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "m2_robot_state_publisher",
+          "package": "robot_state_publisher",
+          "remap_args": [],
+          "required": false,
+          "type": "robot_state_publisher"
+        },
+        {
+          "args": "/cmd_vel_navigation /cmd_vel",
+          "launch_prefix": null,
+          "name": "navigation_command_relay",
+          "package": "topic_tools",
+          "remap_args": [],
+          "required": false,
+          "type": "relay"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_common_route_provider",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_common_route_provider.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_coordinator",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": false,
+          "type": "astra_navigation_coordinator_n06.py"
+        },
+        {
+          "args": "",
+          "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+          "name": "astra_route_runtime",
+          "package": "m2_gazebo",
+          "remap_args": [
+            [
+              "/cmd_vel_navigation",
+              "/astra/method_cmd"
+            ]
+          ],
+          "required": false,
+          "type": "astra_route_coordinated_runtime.py"
+        },
+        {
+          "args": "--lz4 --buffsize=128 -O /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n06_b003_control/fixture.bag /astra/p03/pre_models /astra/p03/pre_links /astra/p03/end_models /astra/p03/end_links /astra/p03/step_status /astra/physics_contacts /astra/p03/runtime_metadata /astra/physics_metadata /astra/world_models /astra/world_links /clock /odom /joint_states /m2_driver/physical_status /m2_driver/physical_metadata /m2_driver/command_ingress /m2_driver/actuator_target /m2_driver/actuator_commanded_effort /cmd_vel_navigation /cmd_vel /astra/navigation/identity /astra/navigation/status /astra/navigation/gate /astra/navigation/command_trace /scan /tf /tf_static /map /astra/common_route/path /astra/method_cmd /astra/method/status /astra/common_route/identity /astra/common_route/served_path /astra/route_runtime/identity /astra/route_runtime/status /astra/route_runtime/trace /astra/route_runtime/candidates ",
+          "launch_prefix": null,
+          "name": "fixture_bag",
+          "package": "rosbag",
+          "remap_args": [],
+          "required": false,
+          "type": "record"
+        },
+        {
+          "args": "",
+          "launch_prefix": null,
+          "name": "astra_navigation_collector",
+          "package": "m2_gazebo",
+          "remap_args": [],
+          "required": true,
+          "type": "astra_navigation_collector_n06.py"
+        }
+      ],
+      "params": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_preparation/launch_dump_attempt02/astra_navigation_n06_b003_control/params.yaml",
+        "sha256": "6150cebafb9a3eaea8663d80adeca6efc850b1cd2c86dc10f59d3f78d3d579eb"
+      },
+      "passed": true,
+      "physics_seed": 263003004,
+      "resolved_method_script": "astra_route_coordinated_runtime.py",
+      "run_id": "astra_navigation_n06_b003_control",
+      "seed": 263003004,
+      "steering_kd": 6.0
+    }
+  ]
+}

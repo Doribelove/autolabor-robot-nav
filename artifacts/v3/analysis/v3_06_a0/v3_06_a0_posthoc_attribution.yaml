@@ -1,0 +1,195 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-06-A0
+report_id: v3_06_a0_posthoc_attribution_1
+status: v3_06_a0_posthoc_attribution_closure_pass
+analysis_kind: posthoc_pure_offline_descriptive
+formal_result: false
+upstream_formal_result_preserved: true
+metrics:
+  receipt_count: 180
+  paired_episode_count: 90
+  v3_episode_count: 90
+  fixed_v120_episode_count: 90
+  v3_decision_count: 3055
+  fixed_v120_decision_count: 3094
+  exact_replay_rate: 1.0
+  selected_candidate_accepted_rate: 1.0
+  nonfinite_output_count: 0
+  v3_failure_count: 6
+  fixed_v120_failure_count: 8
+  v3_failures_by_policy:
+    hesitant: 3
+    cautious: 3
+  fixed_v120_failures_by_policy:
+    cautious: 5
+    hesitant: 3
+  paired_outcome_partition:
+    both_success: 82
+    v3_only_success: 2
+    fixed_v120_only_success: 0
+    both_fail: 6
+  v3_failure_goal_deficit_mean_m: 0.26625000000000004
+  v3_failure_goal_deficit_max_m: 0.5
+  v3_failures_within_one_full_speed_cycle_count: 4
+action_composition:
+  v3_analytic:
+    counts:
+      certified_stop_v000: 1239
+      feasible_v060: 38
+      feasible_v080: 22
+      feasible_v100: 11
+      feasible_v120: 1745
+    certified_stop_rate: 0.4055646481178396
+    feasible_v120_rate: 0.5711947626841244
+    lower_nonstop_rate: 0.023240589198036007
+    v120_rejected_nonstop_rescue_count: 71
+    v120_rejected_nonstop_rescue_rate: 0.023240589198036007
+  fixed_v120_shielded:
+    counts:
+      certified_stop_v000: 1299
+      feasible_v120: 1795
+    certified_stop_rate: 0.4198448610213316
+    feasible_v120_rate: 0.5801551389786684
+effect_gate_gap:
+  baseline_restricted_goal_time_mean_s: 9.094444444444445
+  v3_restricted_goal_time_mean_s: 8.98611111111111
+  observed_mean_reduction_s: 0.10833333333333428
+  observed_point_relative_reduction: 0.0120068899811275
+  frozen_point_gate: 0.05
+  target_mean_reduction_s_at_five_percent: 0.45472222222222225
+  additional_mean_reduction_s_needed: 0.34638888888888797
+  additional_quarter_second_cycles_per_episode_equivalent: 1.3855555555555519
+  interpretation: The frozen analytic ranker already selects the 1.20 m/s candidate whenever it is hard-accepted. Its only structural advantage over the fixed-1.20 policy is choosing a lower-speed accepted candidate when 1.20 m/s is rejected, so the observed effect is bounded by relatively sparse rescue decisions.
+v3_failure_roster:
+- unit_id: v3_05_b0_formal_6461_hesitant_v3_analytic
+  block_id: formal_6461
+  seed: 6461
+  angle_deg: 100.5
+  actor_start_distance_m: 3.225
+  actor_base_speed_mps: 0.925
+  actor_policy_evaluator_only: hesitant
+  final_x_m: 2.373
+  goal_deficit_m: 0.12699999999999978
+  diagnostic_minimum_full_speed_cycles_for_deficit: 1
+  stop_decisions: 18
+  preclear_stop_decisions: 18
+  postclear_stop_decisions: 0
+  fixed_v120_goal_reached: false
+  paired_outcome_class: both_fail
+- unit_id: v3_05_b0_formal_6465_cautious_v3_analytic
+  block_id: formal_6465
+  seed: 6465
+  angle_deg: 104.5
+  actor_start_distance_m: 3.125
+  actor_base_speed_mps: 0.875
+  actor_policy_evaluator_only: cautious
+  final_x_m: 2.3
+  goal_deficit_m: 0.20000000000000018
+  diagnostic_minimum_full_speed_cycles_for_deficit: 1
+  stop_decisions: 19
+  preclear_stop_decisions: 19
+  postclear_stop_decisions: 0
+  fixed_v120_goal_reached: false
+  paired_outcome_class: both_fail
+- unit_id: v3_05_b0_formal_6468_cautious_v3_analytic
+  block_id: formal_6468
+  seed: 6468
+  angle_deg: 97.5
+  actor_start_distance_m: 3.425
+  actor_base_speed_mps: 0.925
+  actor_policy_evaluator_only: cautious
+  final_x_m: 2.3
+  goal_deficit_m: 0.20000000000000018
+  diagnostic_minimum_full_speed_cycles_for_deficit: 1
+  stop_decisions: 19
+  preclear_stop_decisions: 19
+  postclear_stop_decisions: 0
+  fixed_v120_goal_reached: false
+  paired_outcome_class: both_fail
+- unit_id: v3_05_b0_formal_6468_hesitant_v3_analytic
+  block_id: formal_6468
+  seed: 6468
+  angle_deg: 97.5
+  actor_start_distance_m: 3.425
+  actor_base_speed_mps: 0.925
+  actor_policy_evaluator_only: hesitant
+  final_x_m: 2.073
+  goal_deficit_m: 0.42700000000000005
+  diagnostic_minimum_full_speed_cycles_for_deficit: 2
+  stop_decisions: 19
+  preclear_stop_decisions: 19
+  postclear_stop_decisions: 0
+  fixed_v120_goal_reached: false
+  paired_outcome_class: both_fail
+- unit_id: v3_05_b0_formal_6472_cautious_v3_analytic
+  block_id: formal_6472
+  seed: 6472
+  angle_deg: 101.5
+  actor_start_distance_m: 3.325
+  actor_base_speed_mps: 0.875
+  actor_policy_evaluator_only: cautious
+  final_x_m: 2.0
+  goal_deficit_m: 0.5
+  diagnostic_minimum_full_speed_cycles_for_deficit: 2
+  stop_decisions: 20
+  preclear_stop_decisions: 20
+  postclear_stop_decisions: 0
+  fixed_v120_goal_reached: false
+  paired_outcome_class: both_fail
+- unit_id: v3_05_b0_formal_6472_hesitant_v3_analytic
+  block_id: formal_6472
+  seed: 6472
+  angle_deg: 101.5
+  actor_start_distance_m: 3.325
+  actor_base_speed_mps: 0.875
+  actor_policy_evaluator_only: hesitant
+  final_x_m: 2.3565
+  goal_deficit_m: 0.14349999999999996
+  diagnostic_minimum_full_speed_cycles_for_deficit: 1
+  stop_decisions: 19
+  preclear_stop_decisions: 19
+  postclear_stop_decisions: 0
+  fixed_v120_goal_reached: false
+  paired_outcome_class: both_fail
+integrity_gates:
+  receipt_roster_pass: true
+  paired_population_pass: true
+  v3_failure_roster_pass: true
+  fixed_v120_failure_roster_pass: true
+  exact_replay_pass: true
+  selected_candidate_accepted_pass: true
+  finite_output_pass: true
+  formal_negative_result_preserved_pass: true
+  zero_authority_pass: true
+overall_pass: true
+attribution:
+  success_gate_failure: six V3 timeouts leave 93.33% success, below the frozen 95% absolute gate; four of the six final positions are diagnostically within one 0.25 s full-speed distance of the goal, but this is not a counterfactual safety claim
+  efficiency_gate_failure: V3 gains only where fixed-v120 must stop and a lower-speed candidate remains hard-accepted; the frozen greedy ranker cannot beat fixed-v120 when v120 itself is accepted
+  paired_noninferiority_source: V3 converts some fixed-v120 failures to successes and has no fixed-v120-only success in the paired outcome partition
+next_single_factor_direction:
+  factor_id: anticipatory_stop_avoidance_ranker
+  change: replace immediate-progress-only ranking with a deterministic pre-conflict stop-avoidance score over the same hard-accepted candidate set
+  hard_verifier_changed: false
+  candidate_generator_changed: false
+  certified_stop_changed: false
+  predictor_changed: false
+  learning_activated: false
+  required_next_evidence: fresh bounded development identities followed, only if the factor gate passes, by a separately preregistered fresh held-out paired evaluation
+claim:
+  posthoc_attribution_complete: true
+  new_performance_improvement: false
+  actual_teb_superiority: false
+  general_navigation_safety: false
+  deployment_ready: false
+  real_vehicle_ready: false
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  model_write_authorized: false
+  planner_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

@@ -1,0 +1,102 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-A1
+stage_purpose: bounded_fresh_simulation_probe_select_execute_integration
+contract_id: v3_scope_v3_03_a1_shadow_integration_1
+status: preregistered_before_simulation_release
+upstream:
+  planner_contract_path: config/thesis_experiments/v3/v3_03_a0_safe_planner_contract.yaml
+  planner_contract_sha256: be8b1e893961a2c8b4f9d77e884f5763906572b44ee6196b28f6f24877f3ebbd
+  planner_core_path: src/application/v3_scope_planner/src/v3_scope_planner/core.py
+  planner_core_sha256: 8b5bc8f3a3aba38fb631841d35c7d657f3257af8a802460bfd72272e4b1b7a47
+  planner_summary_sha256: 7efccfdb51462415a7c6afbfdac5be6551d5d9ead03846656c2462d0d8baf7f0
+  planner_independent_review_sha256: b7b3333f8a9460bcc3e748cbca01a8af610c2b6fbc0ccf37b614d6b5327dacb9
+  predictor_path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  predictor_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+experimental_unit:
+  policies_evaluator_only: [cautious, assertive, hesitant]
+  scene_blocks:
+    - {block_id: integration_6291, seed: 6291, angle_deg: 80.0, actor_start_distance_m: 3.10, actor_base_speed_mps: 0.90}
+    - {block_id: integration_6292, seed: 6292, angle_deg: 100.0, actor_start_distance_m: 2.90, actor_base_speed_mps: 1.10}
+    - {block_id: integration_6293, seed: 6293, angle_deg: 90.0, actor_start_distance_m: 3.30, actor_base_speed_mps: 1.00}
+  decisions: 9
+  phases_per_decision: [common_prefix_probe, selected_candidate_execution]
+  simulation_units: 18
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+probe_select_execute:
+  probe_candidate_id: feasible_v080
+  probe_duration_s: 0.55
+  decision_absolute_time_s: 0.50
+  execution_duration_s: 4.50
+  common_prefix_match_coordinate_max_m: 0.005
+  common_prefix_match_speed_max_mps: 0.02
+  hidden_actor_policy_available_to_planner: false
+scene:
+  duration_s: 4.50
+  sample_period_s: 0.05
+  max_step_size_s: 0.005
+  real_time_update_rate_hz: 0
+  observation_time_s: 0.50
+  prediction_absolute_times_s: [1.5, 2.5, 3.5, 4.5]
+  conflict_point_m: [0.0, 0.0]
+  ego:
+    model_name: ego_probe
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    endpoint_pose_m_rad: [3.0, 0.0, 0.0]
+    footprint_m: [1.13, 0.73, 0.55]
+    maximum_speed_mps: 1.20
+    common_prefix: {duration_s: 0.50, speed_mps: 0.80, end_x_m: -2.60}
+    feasible_branch:
+      generator_id: v3_02_d1_straight_acceleration_limited_1
+      initial_speed_mps: 0.80
+      maximum_acceleration_mps2: 0.60
+      maximum_deceleration_mps2: 0.80
+      ramp_waypoint_period_s: 0.05
+      zero_speed_is_terminal_hold: true
+  actor:
+    model_name: reactive_actor
+    endpoint_after_conflict_m: 3.50
+    size_m: [0.45, 0.45, 1.70]
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+integration_gates:
+  decision_count: 9
+  simulation_unit_count: 18
+  selected_candidate_accepted_rate_min: 1.0
+  certified_stop_available_rate_min: 1.0
+  no_actual_footprint_intersection_rate_min: 1.0
+  horizon_actor_envelope_coverage_min: 0.90
+  per_horizon_actor_envelope_coverage_min: 0.66
+  common_prefix_probe_execution_coordinate_spread_max_m: 0.005
+  common_prefix_probe_execution_speed_spread_max_mps: 0.02
+  selected_trajectory_trace_error_max_m: 0.006
+  progress_at_horizon_min_m: 0.39
+  planner_latency_p99_max_ms: 40.0
+  nonfinite_metric_count_max: 0
+  exact_replay_required: true
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  dynamic_reconfigure_authorized: false
+  training_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_modification_authorized: false
+failure_policy:
+  retain_terminal_failure: true
+  no_retry_or_seed_replacement: true
+  no_gate_change: true
+  no_performance_claim: true
+claim_if_pass: >-
+  The frozen V3-03 planner completed fresh probe-select-execute Gazebo
+  integration without actual footprint intersection in the bounded
+  parameterized-crossing cases. This is not a navigation-performance or
+  absolute-safety result.
+forbidden_claims:
+  - absolute_safety
+  - performance_improvement
+  - general_scene_planning
+  - deployment_readiness
+  - real_vehicle_readiness

@@ -1,0 +1,185 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R13
+model_id: v3_13_q1_r13_expanded_progress_predictor_1
+model_type: candidate_conditioned_contextual_ridge_v1
+feature_order:
+- time_s
+- time_squared_s2
+- time_cubed_s3
+- initial_coordinate_speed_times_time
+- negative_initial_coordinate_times_time
+- path_origin_x_times_time
+- path_origin_x_times_time_squared
+ridge_lambda_after_rms_feature_scaling: 1.0
+hidden_policy_runtime_input: false
+heads:
+  cautious:
+    spatial_left_v120:
+      trajectory_count: 16
+      sample_count: 2257
+      coefficients:
+      - -0.0044257305261776
+      - 0.09328949550145214
+      - -0.004842163764561743
+      - -0.24292750799714927
+      - 0.13665856616927488
+      - -0.0941146458809918
+      - -0.012783632038088872
+    spatial_right_v120:
+      trajectory_count: 16
+      sample_count: 2264
+      coefficients:
+      - 0.0077952979685075125
+      - 0.09141181687977247
+      - -0.004606483708650364
+      - 0.03882159746513032
+      - 0.12302492822831593
+      - -0.08848295921840175
+      - -0.012271056041011238
+    straight_v120:
+      trajectory_count: 16
+      sample_count: 2256
+      coefficients:
+      - 0.09151298391953992
+      - 0.11297530349864446
+      - -0.007777526172998244
+      - -1.5701265155741622
+      - 0.16759085339077825
+      - -0.18127595967237467
+      - -0.004680546944452995
+    certified_stop_v000:
+      trajectory_count: 16
+      sample_count: 2265
+      coefficients:
+      - 0.12557481418519792
+      - 0.11187828294705117
+      - -0.008178763524250775
+      - -0.33256340946636326
+      - 0.12768307859175587
+      - -0.14729400350635
+      - -0.0017964779252004153
+  hesitant:
+    spatial_left_v120:
+      trajectory_count: 16
+      sample_count: 2261
+      coefficients:
+      - 0.2030138371255967
+      - 0.0350630989734521
+      - -0.00030665116034429217
+      - 0.1691968673298022
+      - 0.12145204871729211
+      - -0.07946673151043603
+      - -0.011905828926642242
+    spatial_right_v120:
+      trajectory_count: 16
+      sample_count: 2260
+      coefficients:
+      - 0.05382081630102626
+      - 0.04022330604652341
+      - -0.0008138655760149471
+      - 0.7174653972576791
+      - 0.11168131463423
+      - -0.06591022871922414
+      - -0.012175621069053254
+    straight_v120:
+      trajectory_count: 16
+      sample_count: 2260
+      coefficients:
+      - 0.42071061454091385
+      - 0.05211663858506072
+      - -0.003404332147230923
+      - -0.3745762730144866
+      - 0.13030872094920937
+      - -0.13846438221528504
+      - -0.003821471808934453
+    certified_stop_v000:
+      trajectory_count: 16
+      sample_count: 2267
+      coefficients:
+      - 0.34701874356143636
+      - 0.04737033630202391
+      - -0.0036097756790541653
+      - 0.05251534057035745
+      - 0.1299320319477569
+      - -0.1626654249743489
+      - -0.0007604326489643434
+  assertive:
+    spatial_left_v120:
+      trajectory_count: 16
+      sample_count: 2258
+      coefficients:
+      - 0.08665616658059457
+      - 0.009698955899481165
+      - 0.0009845545505539498
+      - 0.7762495763076798
+      - -0.03839607613028496
+      - 0.06005170234829972
+      - -0.004149084297968808
+    spatial_right_v120:
+      trajectory_count: 16
+      sample_count: 2258
+      coefficients:
+      - 0.16329037696885773
+      - -0.01628328706766997
+      - 0.0036919257927743292
+      - 0.7471251289342471
+      - -0.052867478819626466
+      - 0.061182985026370325
+      - -0.0018593381879572538
+    straight_v120:
+      trajectory_count: 16
+      sample_count: 2262
+      coefficients:
+      - 0.4320837447892678
+      - 0.008371359669564139
+      - 0.001051127708582875
+      - 0.40052173362605875
+      - -0.027556894268975972
+      - 0.06944134685967498
+      - -0.002764965480659868
+    certified_stop_v000:
+      trajectory_count: 16
+      sample_count: 2258
+      coefficients:
+      - 0.21345607758748136
+      - 0.009954327321640343
+      - -0.0007839372252416472
+      - 0.7509675404599779
+      - 0.006075891146764691
+      - -0.00433942935393347
+      - -0.0003017039100375966
+    recovery_evasive_right_v120_r1:
+      trajectory_count: 16
+      sample_count: 2260
+      coefficients:
+      - 0.07970420123083982
+      - 0.0057291555935114575
+      - -0.0004594981175572095
+      - 0.907251204826323
+      - 0.004140947051487486
+      - -0.005921924586712856
+      - -9.239143510289607e-05
+    recovery_evasive_right_v120_r2:
+      trajectory_count: 16
+      sample_count: 2256
+      coefficients:
+      - 0.09847813869663521
+      - 0.003686452122795284
+      - -0.0002943288328080463
+      - 0.8906655778865786
+      - 0.0029318773566489693
+      - -0.002115848081485654
+      - -5.432708343302829e-05
+calibration:
+  coordinate_radius_m: 0.3
+  coordinate_growth_mps: 0.08
+retained_C2_predictor_sha256: 53a23d292118021d2d70f46f3083acb5ab8632a034b4ba86a90f02362abe6c95
+assertive_training_actor_trajectories: 64
+assertive_training_trace_samples: 9036
+internal_cross_validation_pass: true
+fresh_recovery_qualification_pass: false
+runtime_ready: false
+new_candidate_training_actor_trajectories: 16
+new_candidate_training_trace_samples: 2256
+retained_R7_predictor_sha256: 9003df1fc9dd5076da7f98d4efab971686eee4db9b6788cc8f43b76b0537279d

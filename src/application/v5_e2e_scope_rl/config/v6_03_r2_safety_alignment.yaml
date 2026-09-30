@@ -1,0 +1,37 @@
+schema_version: "1.0"
+architecture_generation: v6
+stage: V6-03-R2
+date: "2026-08-08"
+status: preregistered_single_safety_alignment_repair
+predecessor:
+  stage: V6-03-R1-P0
+  outcome: terminal_preflight_negative
+  pct_clearance_m: -0.07742418189786626
+  analytic_clearance_m: -0.08088292997765612
+  actual_teb_clearance_m: 0.24515537434566537
+  all_contact_counts_zero: true
+single_behavioral_factor:
+  name: hard_shield_scan_surface_geometry_alignment
+  old_inflation_m: 0.12
+  new_inflation_m: 0.33
+  derivation: evaluator_combined_radius_1.15_minus_actor_radius_0.36_minus_robot_radius_0.46
+  tuned_from_performance: false
+nonbehavioral_integrity_repair:
+  restore_evaluator_only_actor_mode_field: true
+frozen:
+  actor_weights: true
+  actor_observation: true
+  analytic_prior: true
+  action_candidates: true
+  evaluator_combined_radius: true
+  goal_and_timeout: true
+  scenes_and_actor_policies: true
+  qualification_and_formal_schedules: true
+fresh_preflight: {seed_start: 954107, seed_end: 954107, blocks: 1, episodes: 3}
+authority:
+  fresh_preflight_authorized: true
+  qualification_only_after_r2_preflight_pass: true
+  formal_only_after_r2_qualification_pass: true
+  training_authorized: false
+  hardware_access_authorized: false
+  real_vehicle_authorized: false

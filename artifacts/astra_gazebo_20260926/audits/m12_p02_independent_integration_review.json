@@ -1,0 +1,222 @@
+{
+  "status": "independent_P02_measurement_interface_preflight_pass",
+  "checks": {
+    "original_command_source_28_tests_and_independent12_tests_pass": true,
+    "command_source_test_snapshot_current": true,
+    "command_source_contract_snapshot_current": true,
+    "all_fake_runtime_modes_no_commands_inside_loss": true,
+    "normal_completion_remains_alive": true,
+    "loss_stall_and_regression_remain_fault_without_zero": true,
+    "full_synthetic_suite67_pass": true,
+    "full_suite_source_unchanged_during_test": true,
+    "full_suite_was_bcbe_snapshot": true,
+    "final_warmup8_pass": true,
+    "final_full_valid_baseline_pass": true,
+    "only_warmup_ast_delta_after_full_suite": true,
+    "final_tested_source_unchanged": true,
+    "motion_schedule_unchanged": true,
+    "numeric_gates_unchanged": true,
+    "physical_parameters_unchanged": true,
+    "exact_runner_preview_binds_current_runner": true,
+    "preview_contract_is_final_contract": true,
+    "preview_source_contract_SHA_bound": true,
+    "preview_seed_run_id_shared_exact": true,
+    "preview_recorder_exact26_topics": true,
+    "preview_expanded_URDF_and_world_pass": true,
+    "preview_required_nodes_source_and_probe": true,
+    "probe_has_no_ROS_publisher": true,
+    "probe_external_shutdown_rejected": true,
+    "runner_terminal_and_assessment_exceptions_fail": true
+  },
+  "check_count": 26,
+  "pass_count": 26,
+  "final_execution_source": {
+    "probe": "68dd16ef4bf5a8ac85bafc8996e52c48f3c145c6a9dc88f490aa3e2d2fbfbe00",
+    "command_source": "82e80264c8eb62cc94b93a74f402047433efda0d7970e8d194b6c3ffeda4489e",
+    "runner": "217bf464f5efd526540acc6b31dccce75a7b8ef884adca174e5664f3a2077800",
+    "contract": "0015576bb4d8a087e2fdbeb8919d7050b9561719050292db31d394e7404dc3c2"
+  },
+  "test_chain": {
+    "command_source": {
+      "original": 28,
+      "independent": 12,
+      "combined_command": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_command_source_p02.py /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_command_source_p02_independent.py",
+      "exit_code": 0
+    },
+    "assessor": {
+      "old_176_snapshot_false_pass_cases": 13,
+      "repaired_bcbe_full_suite": 67,
+      "final_68dd_focused": 8,
+      "final_change_scope": "warmup metadata temporal consistency only; other AST equal"
+    }
+  },
+  "effective_validation": {
+    "plugin": {
+      "wheelbase": 0.65,
+      "track": 0.6,
+      "wheelRadius": 0.15,
+      "maxSpeed": 2.778,
+      "maxSteer": 0.4964,
+      "commandTimeout": 0.5,
+      "speedTimeConstant": 0.22,
+      "steeringTimeConstant": 0.18,
+      "maxAcceleration": 0.6,
+      "maxDeceleration": 0.9,
+      "maxBrakeDeceleration": 0.9,
+      "maxEmergencyDeceleration": 0.9,
+      "maxSteeringRate": 0.75,
+      "commandDelay": 0.0,
+      "commandJitter": 0.0,
+      "publishRate": 50.0,
+      "expectedMass": 79.6,
+      "wheelKp": 4.0,
+      "wheelKi": 2.0,
+      "wheelIntegralTorqueLimit": 1.5,
+      "wheelDriveTorqueLimit": 8.0,
+      "wheelBrakeTorqueLimit": 12.0,
+      "steeringKp": 60.0,
+      "steeringKd": 4.0,
+      "steeringTorqueLimit": 20.0,
+      "wheelJointDamping": 0.05,
+      "wheelJointFriction": 0.01
+    },
+    "front_joint_limits": {
+      "front_left_steer_joint": {
+        "lower": -0.7446,
+        "upper": 0.7446,
+        "velocity": 2.0
+      },
+      "front_right_steer_joint": {
+        "lower": -0.7446,
+        "upper": 0.7446,
+        "velocity": 2.0
+      }
+    },
+    "robot_description_sha256": "6a5c3920a943190a5b2d1e7843442dc7bccfdd69544a33307b6312e832e2515d",
+    "seed": 260926008
+  },
+  "world_validation": {
+    "world_sha256": "938e9e7d52eb3422b3d11a3a12ae3e09aa5c3acdefe5530b234222c36834a78f",
+    "expected_runtime_models": [
+      "ground_plane",
+      "autolabor_m2"
+    ]
+  },
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p02.py",
+      "sha256": "68dd16ef4bf5a8ac85bafc8996e52c48f3c145c6a9dc88f490aa3e2d2fbfbe00"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p02.py",
+      "sha256": "82e80264c8eb62cc94b93a74f402047433efda0d7970e8d194b6c3ffeda4489e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_m12_physics_p02.py",
+      "sha256": "217bf464f5efd526540acc6b31dccce75a7b8ef884adca174e5664f3a2077800"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p02.yaml",
+      "sha256": "0015576bb4d8a087e2fdbeb8919d7050b9561719050292db31d394e7404dc3c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p02_plugin.cpp",
+      "sha256": "da1f1a39e7489c8996d6c16d6eeca5180247331c67687c557ab65f1c13d84a68"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_dense_evidence_plugin.cpp",
+      "sha256": "c8afae8ad317304bf2e5bd6688442105fc001d8ed9559034f3b1912ef4007f17"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/spawn_m2_physical_p02.launch",
+      "sha256": "74355d22c084410f1f68f582853b600719e84f7a09aca58440318eebfa959f3b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_p02.urdf.xacro",
+      "sha256": "dbd9d2751fb961f960b6a6e6ffdbc62df88b3cf956e7c5c9ea0a1d7270e6c42c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_p02_gazebo.xacro",
+      "sha256": "14ca2b079b2eac911e70c9a2410bf9dd18ecee041e8d4b8b3ebb6d09c9bb4d1d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_smoke_a02.py",
+      "sha256": "d2366690628b1b46e574ad0801c5035173a922d3c78a4ed8a993123f708c7ccb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_command_source_p02.py",
+      "sha256": "f1ff494e4adb2e97f618021c287e65be2d05f07187eb13694f816e73b2416ff6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_command_source_p02_independent.py",
+      "sha256": "7453089ccd2615111e7f55bee0b5818ff363df6cc0f655ab264b23e8b32126b7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_physical_actuation_probe_p02.py",
+      "sha256": "7e970fc364a9827926354984e3f0c7d4c04dcbeeb3250cf5211354e997b23b83"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_probe_independent_review.json",
+      "sha256": "bc05593d5222e24df3c50a6ced9d65d2398ee1966fd6410805aec14b5b1cd836"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_probe_initial_invocation.json",
+      "sha256": "513916a5025782fe5dec632759b7932daf871673092997b8163d1d7e08a3736d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_probe_independent_review.prior1.json",
+      "sha256": "26ed263ac343d15e6ad7247956b3da253289cf5f9aa0d4ad7641a71311f59210"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_warmup_focused_review.json",
+      "sha256": "be2030685b1d8ac5289085ce096b435fad235958d5ccda69fdea1ebab798aacb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_command_source_independent_runtime.json",
+      "sha256": "248b896b6df2fa13e6399c11815c5432bcb493b9a5ff62035906960b7e1598e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/build_physical_p02_01.log",
+      "sha256": "e68dd290cda7e44596875b9e6a135576fa7ca245eeb66acffcfce245aed0567a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_launch_preflight/report.json",
+      "sha256": "953ed3d5c67ba976abba269d0a50e7b29ca2cb2a47285564c50f5dfbd9ff4d35"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_launch_preflight/actuation_contract.yaml",
+      "sha256": "0015576bb4d8a087e2fdbeb8919d7050b9561719050292db31d394e7404dc3c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_launch_preflight/fixture.launch",
+      "sha256": "e9b4d13c2819fa54a3506ef98ebba04fedaaa14d37e0670ad9dca462a2c0afd8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_launch_preflight/world.sdf",
+      "sha256": "938e9e7d52eb3422b3d11a3a12ae3e09aa5c3acdefe5530b234222c36834a78f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_launch_preflight/parse.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_launch_preflight/effective_parameters.yaml",
+      "sha256": "5bdbf6c242412d056d6f2ea964ca8dcd894ce5a91d1a6ff0386eaa73770448d1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_launch_preflight/scene_manifest.yaml",
+      "sha256": "056a3f96beb84768c4a91ea4f099b2a94f0e5458980803076785d32607f0f0b1"
+    }
+  ],
+  "scope": [
+    "All added cases are analytic toy/fake rospy tests, not new Gazebo evidence.",
+    "No ROS/Gazebo initialized; no historical or live run files modified.",
+    "P01 remains failed; P02 repairs observation and schedule instrumentation only. Actual physical steering may still fail the unchanged0.85 gate.",
+    "P02 probe never actuates; command source remains sole cmd_vel_navigation publisher.",
+    "Early ROS shutdown returns0 from command source but leaves source status running; final probe explicitly rejects shutdown and demands bootstrap/running/complete history.",
+    "Command event time is sampled immediately before Python publish; Twist has no source header and driver receipt is not atomic with that timestamp. Relay receipt checks remain separate.",
+    "Source publishes all channels before Trigger advertisement and primes zero while paused. Runtime source deadlines still depend on process scheduling; the frozen observed75ms gate remains necessary."
+  ],
+  "preserved_history_note": "Initial176 execution is identified by loaded_source_snapshots and initial_invocation; current source_resources hashes in the old report were capture-time resources, not the assessor execution identity. The67case bcbe report and exact script/probe snapshots are retained separately from final focused68dd verification.",
+  "writer_script_sha256": "5cc98894b1b6ab3ff352c5ffec3844168be1635d53b521cd2d433f84321cc721"
+}

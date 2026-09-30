@@ -1,0 +1,121 @@
+{
+  "schema": "astra_baseline_integration_b04_author_report_v1",
+  "status": "author_static_rear_integration_offline_checks_pass_independent_review_pending",
+  "author_implementation": true,
+  "independent_review": false,
+  "execution_authorized": false,
+  "execution_ready": false,
+  "ROS_or_Gazebo_started": false,
+  "seed_registered": false,
+  "execution_release_written": false,
+  "training_started": false,
+  "dynamic_actor_integration_qualified": false,
+  "live_static_integration_qualified": false,
+  "formal_safety": false,
+  "performance_claim": false,
+  "methods": [
+    "actual_teb_rear_reference_b03",
+    "dwa_rear_reference_b03"
+  ],
+  "source_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_manifest.json",
+    "sha256": "b152d0a29a0a77475e4af518183422ce111569aab767eefaf24ae781f8eb0c0e",
+    "bytes": 57128
+  },
+  "new_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/baseline_rear_evidence_b04.py",
+      "sha256": "0db90dffe5f5498a9347552291be4f3de8de8c49af377f29f1026ce0189899f6",
+      "bytes": 16404
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_b04.py",
+      "sha256": "6c0a1146cb5130361d729ca3bcb27f3cb9be31dcdbd0d9481db65edea8978832",
+      "bytes": 38469
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_collector_b04.py",
+      "sha256": "d331e37e7e6fcdd69d925b8b3cbc34bea9415f5897b5c71f450f5960f31a78b9",
+      "bytes": 25621
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_baseline_rear_b04.launch",
+      "sha256": "bda9ce213b66c31dcf23e2a05d9a7bb2e49e569d3eb40edcb140e0998377653b",
+      "bytes": 4733
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_baseline_integration_b04.py",
+      "sha256": "f4fa6144afa53ab74bfd45ae38175a254cc8fe2f5fff2e4eccdca6dc8ed5af5e",
+      "bytes": 22662
+    }
+  ],
+  "design_and_scope": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/API_and_scope.md",
+    "sha256": "e22f79c4b721e759fb37e80cd8b112673293ba3e525e3ffba559cf240ba97cb8",
+    "bytes": 5966
+  },
+  "launch_preflight": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/report.json",
+    "sha256": "1bb1314791793931484222b88801dfd263fd12b4578a2da6542eeb4a4f9c4b7c",
+    "bytes": 5643
+  },
+  "inherited_checks": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/inherited_scope_checks.json",
+    "sha256": "466758ae24d376a8a1f6a5793e09087fab130ac52ffcbdf37374b0eacb23d5bc",
+    "bytes": 2414
+  },
+  "tests": {
+    "new_author_groups": 48,
+    "new_log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/tests_final_r2.log",
+      "sha256": "d55634f3f71a35f9aeb86feb158d7d1fc95973d081bc1ba593172dfa5e045291",
+      "bytes": 4560
+    },
+    "inherited_B03_groups": 27,
+    "inherited_log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/inherited_b03_tests.log",
+      "sha256": "b902a4dd8d6f770efaaaabc2d2daecda1a1e35cf193783a3d3be4b5dd769349e",
+      "bytes": 2907
+    },
+    "combined_groups": 75,
+    "actual_coordinator_order_combinations": 4,
+    "real_ROS_message_classes_used": true,
+    "synthetic_rosbag_written_and_replayed": true,
+    "Gazebo_evidence": false
+  },
+  "source_and_goal_clock_semantics": {
+    "odom_and_path_source": "retained actual message Header stamps",
+    "adapter_received_available": "ROS callback/availability clock, not physical measurement stamp",
+    "bag_receipt": "recorder clock, independent of collector callback clock",
+    "private_action_result": "receipt clock diagnostic, never shared task authority",
+    "task_authority": "original actual base odometry plus independently replayed world base geometry"
+  },
+  "failure_history": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_attempt01.log",
+      "reason": "author assertion compared tuple with ROSLaunchConfig list remaps; parse was successful, harness type normalization repaired"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/tests_final.log",
+      "reason": "rosbag default messages do not carry caller connection header; explicit return_connection_header=True required"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/tests_final_r1.log",
+      "reason": "returned ROS bag caller value is bytes; strict UTF-8 decode required before matching live string identity"
+    }
+  ],
+  "retained_B03_negative": "actual publish_pending partial batch first output without receipt reproduced and fails B04 completeness; no synthesized receipt",
+  "remaining_blockers": [
+    "No B04 execution manager/release/schedule or full native/runtime closure; separate independent review and fresh bounded qualification required.",
+    "Dynamic actor methods unsupported; static-only contract rejects direct actors/dynamic models/unexpanded includes.",
+    "Tilted yaw-only costmap polygon is not exact full 3D collision projection; known 0.0004061653716359581m example preserved without changing margins.",
+    "Transformed oriented guide kinks and stricter private goals require execution qualification; callback order is not a physical timing guarantee.",
+    "DWA residual lateral velocity, stop-and-rotate and frozen acc_lim_y2.5 may still fail; no generic repair or performance claim.",
+    "Trusted graph/caller observations do not prove adversarial isolation or instantaneous complete transport authority."
+  ],
+  "environment": {
+    "python": "3.8.10 (default, Mar 18 2025, 20:04:55) \n[GCC 9.4.0]",
+    "executable": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python",
+    "numpy": "1.24.4"
+  }
+}

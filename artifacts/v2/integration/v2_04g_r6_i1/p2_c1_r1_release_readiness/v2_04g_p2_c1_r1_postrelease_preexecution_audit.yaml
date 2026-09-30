@@ -1,0 +1,33 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P2-C1-R1
+status: exact_release_preexecution_validation_pass
+release:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i1_p2_c1_r1_execution_release.yaml
+  sha256: 1926726a2b08faf10a7b460ace53f01c1123b070da8e65a8be4900985f86f9cc
+release_validation:
+  schedule_rows: 342
+  schedule_sha256: 9ba3ac0954914b2e630092ea235a36e235fc363fa701bce6adb04eb78fd37b37
+  command_plan_rows: 342
+  command_plan_sha256: c79aeb39990105e1c2ae71ab05e91971427cb99b836a64a2d5e5b356d15c0e20
+  dependency_closure_sha256: 2dae23d80fb385c1fb8c015866a56b20a89f861610fad36a19a1c7435302f5a6
+  local_resources_verified: 613
+  external_resources_verified: 301
+  repaired_sequences_verified: [1, 3, 4, 6, 7, 9, 10, 12]
+  all_342_rows_match_compiled_scene_and_runner_commands: true
+  minimum_free_disk_gate_pass: true
+side_effect_state:
+  old_C1_execution_root_absent: true
+  C1_R1_execution_root_absent: true
+  ROS_Gazebo_move_base_processes_absent: true
+  old_C1_execute_called: false
+  old_C1_consumed_units: 0
+  held_out_test_accessed: false
+authorization_state:
+  execution_authorized: true
+  authorized_evidence_units_max: 342
+  attempt_per_identity: 1
+  retry_resume_replacement_or_seed_substitution_allowed: false
+  training_allowed: false
+  real_vehicle_use_forbidden: true
+next_safe_entry: invoke_the_bound_R1_runner_once_with_the_exact_release_SHA

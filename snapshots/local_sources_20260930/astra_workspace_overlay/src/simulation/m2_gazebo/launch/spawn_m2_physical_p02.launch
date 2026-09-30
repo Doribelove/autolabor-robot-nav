@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="world" default="$(find m2_gazebo)/worlds/empty.world"/>
+  <arg name="gui" default="false"/>
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="z" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+  <arg name="seed" default="42"/>
+  <arg name="speed_time_constant" default="0.22"/>
+  <arg name="steering_time_constant" default="0.18"/>
+  <arg name="max_acceleration" default="0.60"/>
+  <arg name="max_deceleration" default="0.90"/>
+  <arg name="max_brake_deceleration" default="0.90"/>
+  <arg name="max_emergency_deceleration" default="0.90"/>
+  <arg name="max_steering_rate" default="0.75"/>
+  <arg name="command_delay" default="0.0"/>
+  <arg name="command_jitter" default="0.0"/>
+  <arg name="laser_topic" default="scan"/>
+  <arg name="laser_noise_stddev" default="0.01"/>
+  <arg name="server_required" default="false"/>
+
+  <arg name="wheel_mu" default="1.0"/>
+  <arg name="wheel_kp" default="4.0"/>
+  <arg name="wheel_ki" default="2.0"/>
+  <arg name="wheel_integral_torque_limit" default="1.5"/>
+  <arg name="wheel_drive_torque_limit" default="8.0"/>
+  <arg name="wheel_brake_torque_limit" default="12.0"/>
+  <arg name="steering_kp" default="60.0"/>
+  <arg name="steering_kd" default="4.0"/>
+  <arg name="steering_torque_limit" default="20.0"/>
+
+  <param name="use_sim_time" value="$(arg use_sim_time)"/>
+  <!-- Independent marker consumed by the fail-closed T03 write gate. -->
+  <param name="/m2_gazebo/simulation_only" value="true"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="extra_gazebo_args" value="--seed $(arg seed)"/>
+    <arg name="server_required" value="$(arg server_required)"/>
+  </include>
+
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find m2_gazebo)/urdf/m2_physical_p02.urdf.xacro' dynamics_seed:=$(arg seed) speed_time_constant:=$(arg speed_time_constant) steering_time_constant:=$(arg steering_time_constant) max_acceleration:=$(arg max_acceleration) max_deceleration:=$(arg max_deceleration) max_brake_deceleration:=$(arg max_brake_deceleration) max_emergency_deceleration:=$(arg max_emergency_deceleration) max_steering_rate:=$(arg max_steering_rate) command_delay:=$(arg command_delay) command_jitter:=$(arg command_jitter) laser_topic:=$(arg laser_topic) laser_noise_stddev:=$(arg laser_noise_stddev) wheel_mu:=$(arg wheel_mu) wheel_kp:=$(arg wheel_kp) wheel_ki:=$(arg wheel_ki) wheel_integral_torque_limit:=$(arg wheel_integral_torque_limit) wheel_drive_torque_limit:=$(arg wheel_drive_torque_limit) wheel_brake_torque_limit:=$(arg wheel_brake_torque_limit) steering_kp:=$(arg steering_kp) steering_kd:=$(arg steering_kd) steering_torque_limit:=$(arg steering_torque_limit)"/>
+  <node pkg="gazebo_ros" type="spawn_model" name="spawn_m2" output="screen"
+        args="-urdf -param robot_description -model autolabor_m2 -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw)"/>
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="m2_robot_state_publisher" output="screen">
+    <param name="publish_frequency" value="30.0"/>
+  </node>
+</launch>

@@ -1,0 +1,172 @@
+{
+  "status": "six_component_tests_pass_and_offline_geometry_qualification_pass",
+  "tests_run": 6,
+  "failures": 0,
+  "test_command": "python3 -m unittest discover -s artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests -p test_scene_generator_v2.py -v",
+  "test_names": [
+    "camera_and_world_evidence_plugin_match_manifest",
+    "collision_allocator_preserves_prior_and_logs_skip",
+    "full_sweep_detects_retained_v1_screen_penetration",
+    "multiray_occlusion_and_reveal_use_substantial_beam_counts",
+    "new_full_actor_sweeps_clear_all_static_objects",
+    "prior_registry_and_seed_history_not_overwritten"
+  ],
+  "generator_sha256": "aa9cbb38f3cee3a5ab41a9848756cf7e8055de2c78d851f07cbdd0e62dbd8046",
+  "tests_sha256": "6ab36ed351946a9c533094b6d31252653225b676f3bf693dda5032908e9fadef",
+  "readiness_audit_sha256": "268f9687d7a8d99b0679554b4d80065adc8560a8608da5d765128517ac392382",
+  "prior_v1_generator_sha256": "1a6bd7f4f4a53b65481cb955c599fe067c66331b8d5542ea5ecb150d305c37ff",
+  "all_manifest_generator_sha_match_current": true,
+  "replicate_parameter_variation": [
+    {
+      "family": "width_change_corridor",
+      "episode_seeds": [
+        263224520,
+        263280089
+      ],
+      "geometry_sha256": "d0754bc6e6bfb48d3e4ea1ba5ac09344da2e746688c17a648156725e19841dc2",
+      "actor_parameter_replicate_records": [
+        [],
+        []
+      ]
+    },
+    {
+      "family": "sequential_interaction",
+      "episode_seeds": [
+        263838496,
+        263387190
+      ],
+      "geometry_sha256": "c7abe3eea4e961a090ef62f34c55509b9eff45bcda61a21f505e9bf9d1d352e3",
+      "actor_parameter_replicate_records": [
+        [
+          {
+            "base_speed_mps": 1.0,
+            "response_distance_m": 4.0,
+            "response_time_margin_s": 1.4000000000000001,
+            "policy": "assertive",
+            "gate_delay_s": 0.2
+          },
+          {
+            "base_speed_mps": 0.75,
+            "response_distance_m": 3.6,
+            "response_time_margin_s": 1.1,
+            "policy": "assertive",
+            "gate_delay_s": 0.4
+          }
+        ],
+        [
+          {
+            "base_speed_mps": 1.05,
+            "response_distance_m": 3.8000000000000003,
+            "response_time_margin_s": 0.9,
+            "policy": "cautious",
+            "gate_delay_s": 0.6000000000000001
+          },
+          {
+            "base_speed_mps": 0.7000000000000001,
+            "response_distance_m": 4.800000000000001,
+            "response_time_margin_s": 1.5,
+            "policy": "cautious",
+            "gate_delay_s": 1.0
+          }
+        ]
+      ]
+    },
+    {
+      "family": "single_crossing",
+      "episode_seeds": [
+        263657617,
+        263256575
+      ],
+      "geometry_sha256": "38bdd35da181e8b7d998ad69c0dac23d5e818212f345cff398c739d3fe93d5f6",
+      "actor_parameter_replicate_records": [
+        [
+          {
+            "base_speed_mps": 0.65,
+            "response_distance_m": 3.4000000000000004,
+            "response_time_margin_s": 1.3,
+            "policy": "cautious",
+            "gate_delay_s": 0.2
+          }
+        ],
+        [
+          {
+            "base_speed_mps": 0.65,
+            "response_distance_m": 4.2,
+            "response_time_margin_s": 1.0,
+            "policy": "cautious",
+            "gate_delay_s": 0.8
+          }
+        ]
+      ]
+    },
+    {
+      "family": "occluded_emergence",
+      "episode_seeds": [
+        263973245,
+        263503375
+      ],
+      "geometry_sha256": "a687e0927e5ebab4cbc77cf30c230264f113315695238d9c4370a12c53d37972",
+      "actor_parameter_replicate_records": [
+        [
+          {
+            "base_speed_mps": 0.75,
+            "response_distance_m": 4.0,
+            "response_time_margin_s": 0.9,
+            "policy": "hesitant",
+            "gate_delay_s": 0.0
+          }
+        ],
+        [
+          {
+            "base_speed_mps": 0.75,
+            "response_distance_m": 4.4,
+            "response_time_margin_s": 0.9,
+            "policy": "assertive",
+            "gate_delay_s": 0.0
+          }
+        ]
+      ]
+    },
+    {
+      "family": "head_on_yield",
+      "episode_seeds": [
+        263817307,
+        263275740
+      ],
+      "geometry_sha256": "ed6dafc1bdd6275955227e3cf0663fcbe41719ebc0e5c872103f2356820da060",
+      "actor_parameter_replicate_records": [
+        [
+          {
+            "base_speed_mps": 1.0,
+            "response_distance_m": 3.4000000000000004,
+            "response_time_margin_s": 1.0,
+            "policy": "cautious",
+            "gate_delay_s": 0.6000000000000001
+          }
+        ],
+        [
+          {
+            "base_speed_mps": 1.0,
+            "response_distance_m": 4.4,
+            "response_time_margin_s": 1.2000000000000002,
+            "policy": "hesitant",
+            "gate_delay_s": 0.2
+          }
+        ]
+      ]
+    },
+    {
+      "family": "static_avoidance",
+      "episode_seeds": [
+        263015272,
+        263984145
+      ],
+      "geometry_sha256": "609ee6cecf23e6a8e64f6b27a36017ad08166713267c9284d5831f08c5db7cdc",
+      "actor_parameter_replicate_records": [
+        [],
+        []
+      ]
+    }
+  ],
+  "live_execution_authorized_by_this_review": false
+}

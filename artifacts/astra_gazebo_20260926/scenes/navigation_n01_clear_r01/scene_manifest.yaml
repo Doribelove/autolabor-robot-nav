@@ -1,0 +1,42 @@
+schema: astra_navigation_n01_clear_scene_v1
+scene_id: navigation_n01_clear
+split: bootstrap_smoke
+parent_geometry_id: new_clear_road_integration_fixture
+actors: []
+route:
+  frame: world
+  spawn:
+  - -5.4
+  - 0.0
+  - 0.0
+  start:
+  - -4.0
+  - 0.0
+  - 0.0
+  goal:
+  - 5.0
+  - 0.0
+  - 0.0
+robot_collision_reference:
+  spawn_xyz_rpy:
+  - -5.4
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  reference: base_link
+static_map_bounds_xyxy:
+- -20.0
+- -15.0
+- 20.0
+- 15.0
+camera:
+  topic: /astra_n01/camera/image_raw
+  width: 2560
+  height: 1440
+  rate_hz: 2
+performance_evidence: false
+independent_layout_count_for_core_population: 0
+frozen_R2_common_guide_consumption: false
+all_methods_same_shared_static_prior: true

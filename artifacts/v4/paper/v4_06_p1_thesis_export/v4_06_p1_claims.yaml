@@ -1,0 +1,32 @@
+schema_version: '1.0'
+architecture_generation: v4
+stage: V4-06-P1
+formal_result: false
+reinforcement_learning_module_implemented: true
+hard_action_mask_invariant_passed: true
+global_training_environment_steps: 600000
+fresh_characterization:
+  paired_blocks: 30
+  episodes: 60
+  analytic_mean_restricted_elapsed_s: 7.775
+  masked_ppo_mean_restricted_elapsed_s: 7.766666666666667
+  paired_relative_time_reduction_mean: 0.000980392156862745
+  bootstrap_two_sided_95_percent_interval:
+  - 0.0
+  - 0.002941176470588235
+  positive_block_fraction: 0.03333333333333333
+  goal_rate_both: 1.0
+  contact_count: 0
+  mask_violation_count: 0
+frozen_efficiency_gate_minimum: 0.03
+meaningful_optimization_demonstrated: false
+actual_teb_comparison_run_in_v4: false
+gazebo_run_in_v4: false
+real_vehicle_used: false
+permitted_claim_zh: 实现了带硬安全动作掩码的强化学习候选选择模块，但未证明其相对解析排序器具有有意义的效率提升。
+forbidden_claims:
+- V4优于Actual TEB
+- V4已通过Gazebo正式评测
+- 强化学习带来显著性能提升
+- 形式化安全保证
+- 实车或部署就绪

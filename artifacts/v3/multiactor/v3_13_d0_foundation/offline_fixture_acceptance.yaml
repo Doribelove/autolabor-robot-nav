@@ -1,0 +1,85 @@
+schema_version: '1.0'
+stage: V3-13-D0
+status: offline_multiactor_fixture_acceptance_pass
+fixture_count: 6
+fixtures:
+- scene_snapshot_id: v3_13_d0_dual_crossing_staggered_open
+  status: PLAN_COMPLETE
+  selected_candidate_id: spatial_left_v120
+  safety_fallback_used: false
+  accepted_candidate_ids:
+  - spatial_left_v120
+  - certified_stop_v000
+  rejected_candidates:
+    spatial_right_v120:
+    - DYNAMIC_OCCUPANCY_INTERSECTION
+    straight_v120:
+    - DYNAMIC_OCCUPANCY_INTERSECTION
+  result_digest: af6438aa860f39935769f0221a4086e45988166fc839479f6efa03e6828e61fd
+- scene_snapshot_id: v3_13_d0_left_blocked_fixture
+  status: PLAN_COMPLETE
+  selected_candidate_id: spatial_right_v120
+  safety_fallback_used: false
+  accepted_candidate_ids:
+  - spatial_right_v120
+  - certified_stop_v000
+  rejected_candidates:
+    spatial_left_v120:
+    - STATIC_OBSTACLE_INTERSECTION
+    straight_v120:
+    - STATIC_OBSTACLE_INTERSECTION
+  result_digest: d9936f344e2165a1338c114201dea738d0fb4b5ea2940fccb134a314f8c949b7
+- scene_snapshot_id: v3_13_d0_right_blocked_fixture
+  status: PLAN_COMPLETE
+  selected_candidate_id: spatial_left_v120
+  safety_fallback_used: false
+  accepted_candidate_ids:
+  - spatial_left_v120
+  - certified_stop_v000
+  rejected_candidates:
+    spatial_right_v120:
+    - STATIC_OBSTACLE_INTERSECTION
+    straight_v120:
+    - STATIC_OBSTACLE_INTERSECTION
+  result_digest: 491d86859186333ceb6d9799754dff6169ac9f12071cf1084228e27ad24a5434
+- scene_snapshot_id: v3_13_d0_narrow_corridor_fixture
+  status: PLAN_COMPLETE
+  selected_candidate_id: straight_v120
+  safety_fallback_used: false
+  accepted_candidate_ids:
+  - straight_v120
+  - certified_stop_v000
+  rejected_candidates:
+    spatial_left_v120:
+    - CORRIDOR_CONTAINMENT
+    spatial_right_v120:
+    - CORRIDOR_CONTAINMENT
+  result_digest: fd2c41326c5fb992c38d40d77bca3f52da7d9146db806f33578f5a82a687cd7b
+- scene_snapshot_id: v3_13_d0_joint_actor_aggregation_fixture
+  status: PLAN_COMPLETE
+  selected_candidate_id: certified_stop_v000
+  safety_fallback_used: true
+  accepted_candidate_ids:
+  - certified_stop_v000
+  rejected_candidates:
+    spatial_left_v120:
+    - DYNAMIC_OCCUPANCY_INTERSECTION
+    spatial_right_v120:
+    - DYNAMIC_OCCUPANCY_INTERSECTION
+    straight_v120:
+    - DYNAMIC_OCCUPANCY_INTERSECTION
+  result_digest: d0d7666df6055be941a9a35fbb02e73a3615090a84f7b5a5cde6ddae3fc0a3f8
+- scene_snapshot_id: v3_13_d0_stale_track_fixture
+  status: FAIL_CLOSED
+  error: NO_SAFE_CANDIDATE_OR_CERTIFIED_STOP
+actor_order_invariant: true
+stale_track_fails_closed: true
+differential_action_expectations:
+  left_blocked_fixture: spatial_right_v120
+  right_blocked_fixture: spatial_left_v120
+  narrow_corridor_fixture: straight_v120
+  joint_actor_aggregation_fixture: certified_stop_v000
+hidden_policy_runtime_input: false
+predictor_qualified: false
+performance_claim_authorized: false
+training_steps: 0

@@ -1,0 +1,29 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-09-F1
+status: frozen_before_any_v3_09_f1_outcome_or_release
+population:
+  fresh_seeds: [6801, 6802, 6803, 6804, 6805, 6806, 6807, 6808, 6809, 6810, 6811, 6812, 6813, 6814, 6815, 6816, 6817, 6818, 6819, 6820, 6821, 6822, 6823, 6824, 6825, 6826, 6827, 6828, 6829, 6830]
+  block_count: 30
+  policies: [cautious, assertive, hesitant]
+  methods: [v3_spatial_safe, fixed_v120_shielded]
+  exact_episodes: 180
+  counterbalanced_method_order: true
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+statistics:
+  endpoint: restricted_goal_time_s
+  cap_s: 12.5
+  block_mean_across_policies_before_pairing: true
+  point_reduction_min: 0.10
+  one_sided_lower_reduction_min: 0.05
+  one_sided_alpha: 0.05
+  bootstrap_resamples: 20000
+  bootstrap_seed: 30909
+  positive_block_fraction_min: 0.80
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_seed_replacement_gate_change_or_posthoc_subsetting: true
+  valid_negative_result_if_any_formal_gate_fails: true
+budget: {simulation_episodes: 180, reinforcement_learning_steps: 0, hardware_runs: 0}

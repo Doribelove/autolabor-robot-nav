@@ -1,0 +1,51 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-PREFLIGHT
+status: terminal_presemantic_package_resolution_failure
+authorized_units: 2
+consumed_units: 1
+completed_units: 0
+forfeited_units: 1
+consumed_identity:
+  actor_policies_evaluator_only:
+  - hesitant
+  - hesitant
+  attempt: 1
+  block_index: 1
+  method: v3_13_analytic
+  scene_id: crossing_and_oncoming
+  seed: 7300
+  sequence: 1
+semantic_execution_reached: false
+root_cause: runner inherited a foreign ROS_PACKAGE_PATH and resolved an m2_gazebo
+  package that did not contain the released launch
+repair_boundary:
+  new_stage_and_fresh_preflight_seed_required: true
+  explicit_thesis_workspace_overlay_required: true
+  planner_actor_TEB_config_or_gate_change_authorized: false
+retry_resume_or_seed_reuse_authorized: false
+qualification_seed_consumed: false
+resources:
+- path: artifacts/v3/multiactor/v3_13_q1_preflight_readiness/execution_release.yaml
+  sha256: 20aab858492a2b4a804deb1e6a008f18f227b924815d7f59619b388ac372597e
+- path: artifacts/v3/multiactor/v3_13_q1_preflight_readiness/independent_review.yaml
+  sha256: 221e53d9b23a87f1d869c2d90b5f0c7fd6adcd396b927a90a68d74fbf89189c7
+- path: artifacts/v3/multiactor/v3_13_q1_preflight/exact_schedule.yaml
+  sha256: 2cd598b399d3174f9f6681a9510c6121a6366542a47dcd179e59d50e93e87a80
+- path: artifacts/v3/multiactor/v3_13_q1_preflight/attempt_journal.jsonl
+  sha256: 945cc93d72753f3e3a7bbf58afdac729bbfeac23366f997bb850de07ff8e9b03
+- path: artifacts/v3/multiactor/v3_13_q1_preflight/episodes/001_01_7300_v3_13_analytic/world.sdf
+  sha256: a97bc8a6922ac1708321b3c0c18e961ad09e42624020edaba4c3de5803374de2
+- path: artifacts/v3/multiactor/v3_13_q1_preflight/episodes/001_01_7300_v3_13_analytic/scene_spec.yaml
+  sha256: 20b865a0ab70daef58a24b12d02e80f24cee2420a0151d46782fdebbd9b1e869
+- path: artifacts/v3/multiactor/v3_13_q1_preflight/episodes/001_01_7300_v3_13_analytic/actor_specs.yaml
+  sha256: 72d80b5be77a2b09e5e6723e8a5593d370ff4b35551970ce9f0872e86a62ee54
+- path: artifacts/v3/multiactor/v3_13_q1_preflight/episodes/001_01_7300_v3_13_analytic/roslaunch.log
+  sha256: dd0631cc586292ba75178ece74ea21b04dbb311e8f21d06b10b74540b33fef5a
+- path: src/tools/thesis_experiment/scripts/freeze_v3_13_q1_preflight_failure.py
+  sha256: cd4c43747aceb4b2df88a6a9098e0c3ff8385415f824e3105fdc0b90e788b625
+- path: src/tools/thesis_experiment/scripts/review_v3_13_q1_preflight_failure.py
+  sha256: b6c99f5ff7cf184bf4ee966ee43c7d8c51f1d820cd3a033984f77162a8a9ed6f
+policy_or_ranker_training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false

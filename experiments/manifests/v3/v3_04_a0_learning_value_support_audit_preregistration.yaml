@@ -1,0 +1,24 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-04-A0
+preregistration_id: v3_scope_v3_04_a0_learning_value_support_audit_1
+date: "2026-07-24"
+status: frozen_before_learning_value_support_audit
+contract: config/thesis_experiments/v3/v3_04_a0_learning_value_support_audit_contract.yaml
+data_roles:
+  v3_03_c6_closed_loop: frozen_audit_only
+  v3_02_d1_cloned_interventions: frozen_support_audit_only
+  fresh_simulation: none
+decision_rule:
+  activate_learning_only_if_all_requirements_pass: true
+  otherwise_training_steps: 0
+  otherwise_retain_analytic_ranker: true
+  no_posthoc_support_imputation: true
+  no_hidden_policy_runtime_input: true
+authority:
+  simulation: false
+  execution: false
+  training: false
+  model_write: false
+  hardware_device_access: false
+  real_vehicle: false

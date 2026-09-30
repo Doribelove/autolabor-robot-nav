@@ -1,0 +1,190 @@
+schema_version: '1.0'
+stage: V3-03-A0
+report_id: v3_03_a0_deterministic_fixture_report_1
+scene_count: 12
+passing_scene_count: 12
+pass_rate: 1.0
+overall_pass: true
+scenes:
+- scene_id: nominal_perpendicular
+  expected: motion
+  selected_candidate_id: feasible_v060
+  accepted_candidate_ids:
+  - certified_stop_v000
+  - feasible_v060
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: ade3bf1964e93eba3316c942f52a8926a55042a8fc1c29c7d34ff974d3200f70
+- scene_id: nominal_angle_75
+  expected: motion
+  selected_candidate_id: feasible_v060
+  accepted_candidate_ids:
+  - certified_stop_v000
+  - feasible_v060
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: f1555d6115d5fb180a98eca260ed1c38553bec3f1d9d5f0079080fb8f64789de
+- scene_id: conservative_angle_105
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: f748b65c032dae00e0d711740ecddd10ef45c18372afaa62bec3b8c4ffa2d7ef
+- scene_id: fault_localization
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: bc74ca78ce52318a0e113f775a98324a47b2dd353737be727bde0e00c30b61a3
+- scene_id: fault_transform
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: 613c167160e28b94cadd8862d336548cf18ad37d241ef955cfb606f6cb1cfb8b
+- scene_id: fault_actor_track
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: cde72027f62b842d7264f375f3f1e6b49e7d48996d203ec7ee7944fc0a97bf03
+- scene_id: fault_command_chain
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: 7c73cb88f295a5fdc7a6efa1c0ca8799629effd6b6b96d3ac9a92460cf8b07fb
+- scene_id: fault_stale_snapshot
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: b6bdda50f295dca301e15129728286cb237a9041ca92f07505598ae7f967613d
+- scene_id: fault_predictor_latency
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: 4ee73dbbd11d5b05fc6d55ced77e293abe8b6c008fea8460129a70bbd6859b8a
+- scene_id: fault_verifier_latency
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: b5563d0012459c6ac749d319026a4ac0d802742b165393c50edd3234f8529ade
+- scene_id: fault_ood_coordinate
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: 4b403f1852f602e057d95d523fa05a6f4e5dacf0cff8c6ea6bfc3088ce15cd3b
+- scene_id: fault_ood_angle
+  expected: stop
+  selected_candidate_id: certified_stop_v000
+  accepted_candidate_ids:
+  - certified_stop_v000
+  checks:
+    byte_deterministic: true
+    certified_stop_present_once: true
+    teb_fallback_present_once: true
+    all_generated_candidates_kinematically_valid: true
+    selected_expectation: true
+    selected_is_accepted: true
+    decision_digest_valid: true
+  pass: true
+  result_digest: a579a709062b38872e4724c68496ff2030475602c5e88815d430922ad922f20f

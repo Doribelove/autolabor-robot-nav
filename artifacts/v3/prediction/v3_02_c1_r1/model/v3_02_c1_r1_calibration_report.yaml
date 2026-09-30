@@ -1,0 +1,38 @@
+schema_version: '1.0'
+stage: V3-02-C1-R1
+report_id: v3_02_c1_r1_calibration_report_1
+status: v3_02_c1_r1_predictor_calibration_pass
+training_episode_count: 72
+calibration_episode_count: 36
+calibration_point_count: 144
+conformal_radius_m: 0.4198179162478387
+marginal_coverage: 1.0
+per_horizon_coverage:
+  t1_5: 1.0
+  t2_5: 1.0
+  t3_5: 1.0
+  t4_5: 1.0
+mean_full_envelope_width_m: 3.8626007648223055
+actual_mode_mae_m: 0.19005276675992386
+minimum_candidate_sensitivity_m: 0.6258658060635329
+maximum_common_prefix_actor_coordinate_spread_m: 0.0
+maximum_common_prefix_actor_speed_spread_mps: 0.0
+gates:
+  training_episode_count_pass: true
+  calibration_episode_count_pass: true
+  model_head_count_pass: true
+  marginal_coverage_pass: true
+  per_horizon_coverage_pass: true
+  mean_width_pass: true
+  actual_mode_mae_pass: true
+  candidate_sensitivity_pass: true
+  hidden_label_runtime_firewall_pass: true
+  common_prefix_actor_coordinate_alignment_pass: true
+  common_prefix_actor_speed_alignment_pass: true
+overall_pass: true
+held_out_test_accessed: false
+reserved_test_seeds:
+- 6261
+- 6262
+- 6263
+claim_scope: parameterized_crossing_train_calibration_only

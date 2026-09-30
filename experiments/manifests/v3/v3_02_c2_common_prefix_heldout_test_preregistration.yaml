@@ -1,0 +1,24 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-C2
+preregistration_id: v3_scope_v3_02_c2_common_prefix_test_preregistration_1
+date: "2026-07-24"
+status: frozen_before_any_common_prefix_heldout_outcome
+contract: config/thesis_experiments/v3/v3_02_c2_common_prefix_heldout_test_contract.yaml
+frozen_model_sha256: 03cdc5b4d49c90e07bd7d1f0dbbde260dbfedc7c5b4db7c640c27ffb940580df
+test:
+  seeds: [6261, 6262, 6263]
+  exact_rows: 36
+  attempt: 1
+candidate_atomicity:
+  common_prefix_end_s: 0.50
+  branch_start_s: 0.50
+  required_at_test: true
+budget:
+  simulation_units_after_separate_authorization: 36
+  consumed_before_release: 0
+  retries: 0
+model_firewall:
+  refit_allowed: false
+  recalibration_allowed: false
+  test_label_available_to_runtime: false

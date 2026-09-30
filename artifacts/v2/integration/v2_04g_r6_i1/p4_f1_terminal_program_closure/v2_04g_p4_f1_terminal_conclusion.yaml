@@ -1,0 +1,84 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P4-F1
+status: global_budget_exhausted_obvious_improvement_not_demonstrated
+program_terminal: true
+stop_performance_search: true
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+candidate_winner_frozen: false
+positive_performance_claim_allowed: false
+historical_formal_result:
+  stage: V2-04G-P1-E1
+  formal_result: true
+  assessment_status: performance_improvement_not_demonstrated
+  point_reduction_fraction: 0.03762364346211233
+  one_sided_95_percent_lower_fraction: 0.027903858836313078
+  safety_and_task_noninferiority: true
+  performance_improvement_demonstrated: false
+requested_obvious_effect_gate:
+  point_reduction_fraction_at_least: 0.1
+  one_sided_lower_reduction_fraction_at_least: 0.05
+  historical_point_gate_pass: false
+  historical_lower_gate_pass: false
+  post_P1_complete_test_matrix_available: false
+  post_P1_integrity_gate_pass: false
+post_P1_search:
+  factor: p2_cruise_forward_velocity_ceiling_v1
+  single_amendment_sequence:
+  - runtime_profile_identity_alignment
+  - runtime_bank_schema_promotion
+  complete_calibration_matrix: false
+  held_out_test_accessed: false
+  performance_effect_observed: false
+  simulation_units_consumed: 4
+  simulation_units_retired: 2196
+terminal_failure_attribution:
+  direct_cause: ros_package_resolution_failed_before_service_readiness
+  inferred_primary_integrity_gap: workspace_overlay_environment_not_bound_or_resolved_before_consumption
+  Gazebo_started: false
+  parameter_transaction_started: false
+  raw_trace_produced: false
+  promoted_bank_strict_offline_parser_passed: true
+  promoted_bank_live_runtime_behavior_reached: false
+global_budget:
+  schema_version: '1.0'
+  architecture_generation: v2
+  stage: V2-04G-P4-F1
+  status: global_post_P1_budget_exhausted_and_closed
+  simulation_capacity_total: 2200
+  simulation_units_consumed: 4
+  simulation_units_retired: 2196
+  simulation_units_remaining: 0
+  training_steps_capacity_total: 120000
+  training_steps_consumed: 0
+  training_steps_retired: 120000
+  training_steps_remaining: 0
+  rounds:
+    round_1:
+      capacity: 792
+      consumed: 2
+      retired: 790
+    round_2:
+      capacity: 704
+      consumed: 1
+      retired: 703
+    round_3:
+      capacity: 704
+      consumed: 1
+      retired: 703
+  budget_transfer_expansion_recycling_or_new_round_allowed: false
+  historical_P1_270_episode_formal_study_outside_post_P1_budget: true
+  new_held_out_test_accessed: false
+terminal_decision: obvious_performance_improvement_not_demonstrated
+chinese_conclusion: 未证明明显提升
+required_thesis_wording: 历史 P1 正式配对试验的受限完成时间点估计降低 3.7624%，单侧 95% 下界为 2.7904%，均未达到本轮预注册的
+  10%/5% 明显提升门；后续有限预算搜索因执行完整性失败未形成完整校准或held-out test 矩阵。全局 2200-unit 预算现已耗尽并关闭，因此本研究未证明
+  FAM-TEB 相对最强公平固定 TEB 基线有明显性能提升。
+active_runtime_processes: []
+real_vehicle_used: false
+stable_workspace_touched: false
+next_safe_entry: none_performance_search_terminal

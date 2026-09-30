@@ -1,0 +1,41 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r01/draft_r00/navigation_n06_process.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_process.py
+@@ -4,6 +4,7 @@
+ the manager ancestry; uncertain ownership is an integrity failure, not a kill.
+ """
+ import ctypes
++from contextlib import contextmanager
+ import errno
+ import os
+ from pathlib import Path
+@@ -90,7 +91,20 @@
+         with socket.socket() as sock:
+             sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1);sock.bind(('127.0.0.1',port))
+ 
+-def cleanup(proc,root,nonce,owner_pid=None,grace=(15.,5.,5.)):
++@contextmanager
++def assessment_child_environment(root,nonce):
++    """Single-threaded manager: mark spawned assessment children, then restore."""
++    values={NONCE_KEY:nonce,'ROS_LOG_DIR':str(Path(root)/'roslog')}
++    previous={key:os.environ.get(key) for key in values}
++    os.environ.update(values)
++    try:yield
++    finally:
++        for key,value in previous.items():
++            if value is None:os.environ.pop(key,None)
++            else:os.environ[key]=value
++
++def cleanup(proc,root,nonce,owner_pid=None,grace=(15.,5.,5.),audit_name='cleanup.json'):
++    if audit_name not in ('cleanup.json','cleanup_after_assessment.json','cleanup_supervisor.json'):raise ValueError('closed cleanup audit filename required')
+     owner_pid=os.getpid() if owner_pid is None else owner_pid
+     events=[];uncertain=[];vanished=[]
+     for sig,seconds in zip((signal.SIGINT,signal.SIGTERM,signal.SIGKILL),grace):
+@@ -133,7 +147,7 @@
+     record={'schema':'astra_navigation_n06_cleanup_v1','owner_pid':owner_pid,'signals':events,'uncertain_ownership_observed':uncertain,
+         'survivors':survivors,'benign_vanished_or_reaped':vanished,'port_error':port_error,'pass':not survivors and port_error is None and not uncertain,
+         'killpg_used':False,'scope':'real descendants plus child-only nonce and start ticks; external host exit is not observed'}
+-    publish(Path(root)/'cleanup.json',record)
++    publish(Path(root)/audit_name,record)
+     if not record['pass']:raise RuntimeError('N06 cleanup integrity failed')
+     return record
+ 

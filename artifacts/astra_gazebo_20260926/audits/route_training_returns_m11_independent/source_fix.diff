@@ -1,0 +1,14 @@
+--- authenticated_original
++++ reviewed_r02
+@@ -143,7 +143,10 @@
+         t=rows[i];exponent=(t.end_ns-t.start_ns)/1e9/ref
+         discount=gamma**exponent
+         delta=t.reward+discount*t.next_value-t.value
+-        continuation=0. if t.outcome!='running' or t.collection_cut else (gamma*lam)**exponent*following
++        # Multiplying gamma*lambda before exponentiation can underflow even
++        # when gamma**exponent * lambda**exponent is representable (e.g.
++        # both 1e-200 with exponent .1). Preserve the declared full domain.
++        continuation=0. if t.outcome!='running' or t.collection_cut else discount*(lam**exponent)*following
+         advantage=finite(delta+continuation,'computed advantage');following=advantage
+         target=finite(advantage+t.value,'computed value target')
+         result[i]=dict(episode_id=t.episode_id,decision_id=t.decision_id,

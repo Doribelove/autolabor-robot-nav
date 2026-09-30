@@ -1,0 +1,30 @@
+schema_version: "1.0"
+stage: PCT-BENCH-R2-D0
+status: preregistered_development_ablation
+simulation_only: true
+real_vehicle_authorized: false
+formal_execution_authorized: false
+development_execution_authorized: true
+development_seed_start: 196201
+development_seed_end: 196240
+formal_round_2_reserved_seed_start: 198001
+formal_round_2_reserved_seed_end: 198200
+formal_seed_outcomes_may_inform_development: false
+single_behavioral_factor:
+  field: candidate_target_speeds_mps[4:6]
+  control: [0.4, 0.4]
+  treatment: [0.6, 0.6]
+  unchanged_fast_spatial: [1.2, 1.2]
+  unchanged_straight: [0.0, 0.4, 0.8, 1.2]
+frozen_from_r1:
+  actor_sha256: deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8
+  safety_clearance_minimum_m: 0.20
+  shield_inflation_m: 0.33
+  safety_response_delay_s: 0.35
+  certified_stop_dwell_s: 1.50
+  maximum_speed_mps: 1.20
+  traditional_planner_parameters_unchanged: true
+failure_accounting:
+  episode_cap_s: 22.0
+  retry_policy: no_retry
+  all_failures_retained: true

@@ -1,0 +1,298 @@
+--- artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n03.py
++++ artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n04.py
+@@ -1,8 +1,9 @@
+ #!/usr/bin/env python3
+-"""Bounded actual-DWA nonholonomic sampling integration, never a performance study.
++"""Six-family four-method development diagnosis with shared event actors.
+ 
+ Preparation is offline. Execution requires an exact root release, qualified
+-passive geometry evidence, fresh identities, and a one-shot one-unit ledger.
++passive geometry evidence, fresh identities, and a one-shot 48-unit ledger.
++Six parent geometries with two repetitions are not a final performance study.
+ """
+ import argparse
+ import csv
+@@ -16,37 +17,85 @@
+ import time
+ import xml.etree.ElementTree as ET
+ 
+-import navigation_evidence_n02 as evidence
++import navigation_evidence_n04 as evidence
+ import run_smoke_a02 as common
+ 
+ WORKSPACE = evidence.WORKSPACE
+ STAGE = evidence.STAGE
+-NAME = 'astra_navigation_n03'
+-SEED = 260926034
+-METHODS = ('dwa_common_route',)
+-SCENE = STAGE/'scenes/navigation_n03_dwa_r01'
++NAME = 'astra_navigation_n04'
++DESIGN = STAGE/'contracts/navigation_n04_design.json'
++DESIGN_SHA = 'ce5afb9920eefb7a3c4d2bad2646405e977494a13cd61477bf248f3fa867a912'
++SCENE = STAGE/'scenes/navigation_n04_development_r01'
+ LAUNCH = WORKSPACE/'src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch'
+ CHECKPOINT = common.CHECKPOINT
+ 
+ 
++def design():
++    value=json.loads(evidence.read_bound(dict(path=str(DESIGN),sha256=DESIGN_SHA)))
++    if value['stage']!=NAME or value['maximum_episodes']!=48 or len(value['schedule'])!=48:
++        raise ValueError('fixed N04 development design required')
++    return value
++
++
++def input_blocks():
++    rows=list(csv.DictReader((SCENE/'diagnostic_blocks.csv').open()))
++    if len(rows)!=12:
++        raise ValueError('exact twelve development input blocks required')
++    schedule=design()['schedule']
++    for index,row in enumerate(rows):
++        expected=schedule[index*4]
++        if int(row['seed'])!=263001001+index or int(row['replicate'])!=expected['replicate']:
++            raise ValueError('fresh block seed or repetition changed')
++        for key in ('family','layout_id','parent_geometry_id','scene_id'):
++            if row[key]!=expected[key]:raise ValueError('parent input mapping changed: '+key)
++        for pathkey,hashkey in (('world_path','world_sha256'),('manifest_path','manifest_sha256')):
++            path=Path(row[pathkey]).resolve()
++            if SCENE.resolve() not in path.parents:
++                raise ValueError('input scene path outside versioned scene tree')
++            evidence.read_bound(dict(path=str(path),sha256=row[hashkey]))
++    return rows
++
++
++def block_for(run_id):
++    matches=[row for row in design()['schedule'] if row['run_id']==run_id]
++    if len(matches)!=1:raise ValueError('unknown or duplicate scheduled run')
++    return input_blocks()[matches[0]['block_index']]
++
++
++def contract_for(run_id,robot_description,world):
++    import yaml
++    row=next(row for row in design()['schedule'] if row['run_id']==run_id)
++    block=block_for(run_id);manifest=Path(block['manifest_path'])
++    scene=yaml.safe_load(manifest.read_bytes())
++    pose=scene['route']['spawn']
++    if scene['seed']!=row['seed'] or scene['split']!='development':
++        raise ValueError('new development scene identity required')
++    return evidence.make_contract(stage=NAME,run_id=run_id,seed=row['seed'],method=row['method'],
++        scene_id=row['scene_id'],world=world,robot_description=robot_description,scene_manifest=manifest,
++        shared_bundle=manifest.parent/'common_bundle',spawn_world_xyz_yaw=[pose[0],pose[1],0.,pose[2]],
++        steering_kd=6.,allowed_nodes=node_roster(row['method']),required_nodes=node_roster(row['method']),
++        record_topics=recorder_topics(row['method']),required_before_arm=recorder_topics(row['method']),
++        camera_topic=scene['camera']['topic'])
++
++
+ def identities():
+-    return [(NAME+'_'+method, SEED, method) for method in METHODS]
++    return [(row['run_id'], row['seed'], row['method']) for row in design()['schedule']]
+ 
+ 
+ def required_resources():
+     """Explicit active import/launch/model graph; excludes unrelated new work."""
+     import passive_sweep_q05 as passive
+     paths = set(passive.required_resources())
+-    scripts = ('run_navigation_n03.py', 'navigation_evidence_n02.py', 'navigation_coordinator_n02.py',
+-        'run_passive_sweep_q05.py', 'passive_sweep_q05.py', 'dense_sweep_p04.py', 'bound_archive.py',
++    scripts = ('run_navigation_n04.py', 'navigation_evidence_n04.py', 'navigation_coordinator_n02.py',
++        'run_passive_sweep_q05.py', 'passive_sweep_q05.py', 'dense_sweep_n04.py', 'dense_sweep_p04.py', 'event_actor_contract_n04.py', 'bound_archive.py',
+         'run_passive_sweep_q04.py', 'passive_sweep_q04.py', 'mapped_elf_inventory_v2.py',
+         'run_passive_sweep_q03.py', 'passive_sweep_q03.py', 'mapped_elf_inventory.py',
+         'run_passive_sweep_q02.py', 'passive_sweep_q02.py', 'run_smoke_a02.py',
+-        'dense_sweep_p03.py', 'dense_sweep.py', 'geometry.py', 'evaluate_episode.py',
++        'dense_sweep_p03.py', 'dense_sweep.py', 'geometry.py', 'evaluate_episode.py', 'evaluate_episode_n04.py', 'prepare_navigation_n04_scenes.py',
+         'common_route.py', 'static_map_export.py', 'route_world_adapter.py',
+         'axle_reference_adapter.py', 'route_candidate_core.py', 'route_sensor_buffer.py', 'route_actor_adapter.py', 'frozen_r2_sensor_lifecycle.py')
+     paths.update(WORKSPACE/'scripts/astra_gazebo'/name for name in scripts)
+-    nodes = ('astra_navigation_collector_n02.py', 'astra_navigation_coordinator_n02.py',
++    nodes = ('astra_navigation_collector_n04.py', 'astra_navigation_coordinator_n02.py',
+         'astra_common_route_provider.py', 'astra_route_coordinated_runtime.py', 'astra_frozen_r2_sensor_lifecycle.py')
+     paths.update(WORKSPACE/'src/simulation/m2_gazebo/scripts'/name for name in nodes)
+     configs = ('benchmark_move_base.yaml', 'costmap_common.yaml', 'local_costmap.yaml',
+@@ -66,8 +115,10 @@
+         paths.update((WORKSPACE/'src/application'/package/'src'/package).glob('*.py'))
+     paths.update(WORKSPACE/'src/application/v5_e2e_scope_rl/scripts'/name for name in
+         ('pct_teb_dwa_benchmark_episode.py', 'pct_teb_dwa_benchmark_r2_episode.py'))
+-    paths.update(p for p in (SCENE/'common_bundle').rglob('*') if p.is_file())
+-    paths.update(SCENE/name for name in ('world.sdf', 'scene_manifest.yaml', 'legacy_map_union_independent.json'))
++    paths.update(p for p in SCENE.rglob('*') if p.is_file())
++    paths.update((DESIGN, WORKSPACE/'devel/lib/libastra_event_actor_n04_plugin.so',
++        WORKSPACE/'src/simulation/m2_gazebo/src/astra_event_actor_n04_plugin.cpp',
++        WORKSPACE/'src/simulation/m2_gazebo/include/m2_gazebo/astra_event_actor_gate_n04.h'))
+     return sorted({path.resolve() for path in paths})
+ 
+ 
+@@ -112,7 +163,7 @@
+                 scene_id=value['scene_id'], legacy_report_path=str(output/'legacy_report.json'),
+                 steering_kd=str(value['steering_kd']), legacy_checkpoint_path=str(CHECKPOINT),
+                 legacy_checkpoint_sha256=evidence.sha(CHECKPOINT),
+-                collector_script='astra_navigation_collector_n02.py',
++                collector_script='astra_navigation_collector_n04.py',
+                 dwa_config=str(WORKSPACE/'src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml'),
+                 contract_path=str(output/'contract.json'), contract_sha256=contract_sha,
+                 output=str(output), bag_path=str(output/'fixture.bag'),
+@@ -124,7 +175,7 @@
+ 
+ 
+ def prepare(output):
+-    import dense_sweep_p04 as dense
++    import dense_sweep_n04 as dense
+     output = Path(output).resolve(); output.mkdir(exist_ok=False)
+     units = []
+     for run_id, seed, method in identities():
+@@ -133,12 +184,11 @@
+             str(WORKSPACE/'src/simulation/m2_gazebo/urdf/m2_physical_p05.urdf.xacro'),
+             'dynamics_seed:='+str(seed), 'steering_kd:=6.0'], text=True, timeout=30)
+         (directory/'robot_description.xml').write_text(urdf)
+-        value = evidence.make_contract(stage=NAME, run_id=run_id, seed=seed, method=method,
+-            scene_id='navigation_n01_clear', world=SCENE/'world.sdf',
+-            robot_description=directory/'robot_description.xml', scene_manifest=SCENE/'scene_manifest.yaml',
+-            shared_bundle=SCENE/'common_bundle', spawn_world_xyz_yaw=[-5.4, 0., 0., 0.],
+-            steering_kd=6., allowed_nodes=node_roster(method), required_nodes=node_roster(method),
+-            record_topics=recorder_topics(method), required_before_arm=recorder_topics(method))
++        from prepare_navigation_n04_scenes import bind_gate_identity
++        block=block_for(run_id)
++        template=Path(block['world_path']).read_text()
++        (directory/'world.sdf').write_text(bind_gate_identity(template,run_id,seed,method))
++        value=contract_for(run_id,directory/'robot_description.xml',directory/'world.sdf')
+         write_new(directory/'contract.json', value)
+         (directory/'fixture.launch').write_text(render_launch(value, evidence.sha(directory/'contract.json'),
+                                                               STAGE/'runs'/run_id))
+@@ -148,9 +198,9 @@
+             conversion_manifest=evidence.binding(conversion_path), converted_sdf=conversion['converted_sdf'],
+             conversion_resources=dense.conversion_resources(conversion_path),
+             files=[evidence.binding(directory/name) for name in
+-                   ('contract.json', 'robot_description.xml', 'fixture.launch')]))
++                   ('contract.json', 'robot_description.xml', 'fixture.launch', 'world.sdf')]))
+     result = dict(stage=NAME, status='offline_prepared_no_authority', execution_authorized=False,
+-        maximum_episodes=1, units=units, scope='clear-fixture software and evidence integration only',
++        maximum_episodes=len(identities()), units=units, scope='six-family four-method development diagnosis with six parent geometries and two repetitions',
+         algorithm_failures_retained=True, infrastructure_failure_retires_remaining=True,
+         retry_allowed=False, resume_allowed=False, training_authorized=False, formal_result=False)
+     write_new(output/'prepared.json', result)
+@@ -161,9 +211,9 @@
+     release = json.loads(evidence.read_bound(dict(path=str(path), sha256=digest)))
+     if (release.get('stage') != NAME or release.get('status') != 'root_reviewed_release'
+             or release.get('execution_authorized') is not True
+-            or type(release.get('maximum_episodes')) is not int or release['maximum_episodes'] != 1
++            or type(release.get('maximum_episodes')) is not int or release['maximum_episodes'] != len(identities())
+             or release.get('retry_allowed') is not False or release.get('resume_allowed') is not False):
+-        raise ValueError('exact one-shot single-unit root release required')
++        raise ValueError('exact one-shot48-unit root release required')
+     prepared = json.loads(evidence.read_bound(release['prepared']))
+     expected = identities()
+     if [(u['run_id'], u['seed'], u['method']) for u in prepared['units']] != expected:
+@@ -200,9 +250,9 @@
+         raise ValueError('native implementation review facts failed')
+     engine_rows = review['engine_module_bindings']
+     roles = [x['role'] for x in engine_rows]
+-    required_roles = set(evidence.passive.ELF_ROLES.values())-{'actor_binaries'}
++    required_roles = set(evidence.ELF_ROLES.values())
+     if len(roles) != len(set(roles)) or not required_roles <= set(roles):
+-        raise ValueError('N03 reviewed engine role roster incomplete or duplicated')
++        raise ValueError('N04 reviewed engine role roster incomplete or duplicated')
+     static_bindings = engine_rows + review['engine_source_bindings'] + [review[x] for x in
+         ('native_engine_report', 'native_engine_records', 'upstream_source_manifest')]
+     for item in static_bindings:
+@@ -220,36 +270,36 @@
+         if path.suffix in ('.py', '.yaml', '.xacro', '.xml', '.cpp', '.h', '.launch') and reviewed.get(str(path.resolve())) != evidence.sha(path):
+             raise ValueError('active source/config absent from independent review: '+str(path))
+     for unit in prepared['units']:
+-        if [Path(x['path']).name for x in unit['files']] != ['contract.json', 'robot_description.xml', 'fixture.launch']:
++        if [Path(x['path']).name for x in unit['files']] != ['contract.json', 'robot_description.xml', 'fixture.launch', 'world.sdf']:
+             raise ValueError('prepared unit files changed')
+         value = json.loads(evidence.read_bound(unit['files'][0])); evidence.validate_contract(value)
+         if (value['stage'], value['run_id'], value['seed'], value['method']) != (NAME, unit['run_id'], unit['seed'], unit['method']):
+             raise ValueError('contract identity differs from schedule')
+-        expected_contract = evidence.make_contract(stage=NAME, run_id=unit['run_id'], seed=SEED,
+-            method=unit['method'], scene_id='navigation_n01_clear', world=SCENE/'world.sdf',
+-            robot_description=unit['files'][1]['path'], scene_manifest=SCENE/'scene_manifest.yaml',
+-            shared_bundle=SCENE/'common_bundle', spawn_world_xyz_yaw=[-5.4, 0., 0., 0.],
+-            steering_kd=6., allowed_nodes=node_roster(unit['method']), required_nodes=node_roster(unit['method']),
+-            record_topics=recorder_topics(unit['method']), required_before_arm=recorder_topics(unit['method']))
++        expected_contract = contract_for(unit['run_id'],unit['files'][1]['path'],unit['files'][3]['path'])
++        from prepare_navigation_n04_scenes import bind_gate_identity
++        expected_world=bind_gate_identity(Path(block_for(unit['run_id'])['world_path']).read_text(),
++            unit['run_id'],unit['seed'],unit['method'])
++        if evidence.read_bound(unit['files'][3]).decode()!=expected_world:
++            raise ValueError('runtime world differs from exact template identity binding')
+         if not evidence.passive.same_typed(value, expected_contract):
+-            raise ValueError('contract differs from exact shared N03 scene/protocol/physical configuration')
++            raise ValueError('contract differs from exact shared N04 scene/protocol/physical configuration')
+         for item in unit['files']:
+             evidence.read_bound(item)
+             if by_path.get(str(Path(item['path']).resolve())) != item['sha256']:
+                 raise ValueError('unit file not in release')
+         if evidence.read_bound(unit['files'][2]).decode() != render_launch(value, unit['files'][0]['sha256'], STAGE/'runs'/unit['run_id']):
+             raise ValueError('launch differs from reviewed generator')
+-        import dense_sweep_p04 as dense
++        import dense_sweep_n04 as dense
+         conversion = json.loads(evidence.read_bound(unit['conversion_manifest']))
+         if conversion['input_urdf'] != unit['files'][1] or conversion['converted_sdf'] != unit['converted_sdf']:
+-            raise ValueError('N03 model conversion differs from prepared unit')
++            raise ValueError('N04 model conversion differs from prepared unit')
+         conversion_resources = dense.conversion_resources(unit['conversion_manifest']['path'])
+         if conversion_resources != unit['conversion_resources']:
+-            raise ValueError('N03 conversion dependency roster differs')
++            raise ValueError('N04 conversion dependency roster differs')
+         for item in conversion_resources:
+             evidence.read_bound(item)
+             if by_path.get(str(Path(item['path']).resolve())) != item['sha256']:
+-                raise ValueError('N03 converter resource absent from release')
++                raise ValueError('N04 converter resource absent from release')
+     return release, prepared, review
+ 
+ 
+@@ -310,18 +360,20 @@
+     guard = (STAGE/'queue/simulation.lock').open('a')
+     fcntl.flock(guard, fcntl.LOCK_EX | fcntl.LOCK_NB)
+     release, prepared, review = verify_release(release_path, release_sha)
+-    ledger = STAGE/'queue/navigation_n03_ledger.json'
++    ledger = STAGE/'queue/navigation_n04_ledger.json'
+     if ledger.exists() or any((STAGE/'runs'/row[0]).exists() for row in identities()):
+         raise ValueError('immutable identity already exists; retry prohibited')
+     registry = list(csv.DictReader((STAGE/'seed_registry.csv').open()))
+-    same_seed = [r for r in registry if r['seed'] == str(SEED)]
+-    if len(same_seed) != 1 or {r['run_id'] for r in same_seed} != {x[0] for x in identities()}:
+-        raise ValueError('fresh N03 seed has foreign or duplicate identities')
++    for seed in sorted({x[1] for x in identities()}):
++        same_seed=[r for r in registry if r['seed']==str(seed)]
++        expected_names={x[0] for x in identities() if x[1]==seed}
++        if len(same_seed)!=4 or {r['run_id'] for r in same_seed}!=expected_names:
++            raise ValueError('N04 fresh block seed has foreign or duplicate identities')
+     for name, seed, _ in identities():
+         own = [r for r in registry if r['run_id'] == name]
+-        if len(own) != 1 or own[0]['seed'] != str(seed) or own[0]['status'] != 'reserved_exact_n03_release' or own[0]['source_binding'] != release_sha:
++        if len(own) != 1 or own[0]['seed'] != str(seed) or own[0]['status'] != 'reserved_exact_n04_release' or own[0]['source_binding'] != release_sha:
+             raise ValueError('exact root reservation missing or already consumed')
+-    state = dict(stage=NAME, status='active', release_sha256=release_sha, maximum_units=1,
++    state = dict(stage=NAME, status='active', release_sha256=release_sha, maximum_units=len(identities()),
+         started_utc=common.utc(), units=[dict(run_id=n, seed=s, method=m, status='reserved') for n, s, m in identities()])
+     write_new(ledger, state); receipts = []
+     try:
+@@ -361,7 +413,7 @@
+                         for marker, ack in [('ready_for_maps.json', 'maps_pre_ready.json'), ('ready_for_maps_final.json', 'maps_final_ready.json')]:
+                             if (root/marker).exists() and not (root/ack).exists():
+                                 capture_baseline_runtime(root, root/marker, proc, value, release, passive_manager)
+-                                passive_manager.capture_maps(root, root/marker, proc)
++                                evidence.capture_maps(root, root/marker, proc)
+                         if time.monotonic()-started > value['wall_cap_s']:
+                             raise TimeoutError('navigation fixture wall cap')
+                         common.atomic(root/'heartbeat.json', dict(utc=common.utc(), elapsed_wall_s=time.monotonic()-started, pid=proc.pid))
+@@ -405,7 +457,7 @@
+                 row['status'] = 'retired_unrun'
+         state.update(status='terminal', ended_utc=common.utc(), consumed_units=sum(r['status'] == 'consumed' for r in state['units']))
+         common.atomic(ledger, state)
+-    return 0 if len(receipts) == 1 and all(r['integrity_pass'] for r in receipts) else 3
++    return 0 if len(receipts) == len(identities()) and all(r['integrity_pass'] for r in receipts) else 3
+ 
+ 
+ def main():
+@@ -419,7 +471,7 @@
+         result = execute(args.release, args.release_sha256)
+         # Persist the manager's returned value separately from roslaunch status
+         # and the outer command-session exit reported by the host.
+-        write_new(STAGE/'queue/navigation_n03_manager_return.json', dict(
++        write_new(STAGE/'queue/navigation_n04_manager_return.json', dict(
+             stage=NAME, returned_code=result, manager_pid=os.getpid(),
+             release_sha256=args.release_sha256, utc=common.utc(),
+             authority='execute() returned after terminal ledger; not proof of later host shell exit'))

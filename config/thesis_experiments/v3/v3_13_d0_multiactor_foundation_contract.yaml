@@ -1,0 +1,217 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-D0
+stage_purpose: pure_offline_multiscene_multiactor_perception_and_learning_foundation
+status: zero_authority_offline_foundation
+upstream:
+  actual_teb_formal_handoff: docs/thesis_experiment/CURRENT_V3_11_ACTUAL_TEB_FORMAL_HANDOFF.md
+  v3_11_terminal_freeze_sha256: f4396e25716dfb13bdc3e8d33a02387c117ab5a8c066e0d6a3e94b2fe3ac7465
+  v3_12_terminal_freeze_sha256: 4e94be77a82acd172cb4f1924f80ccb2abe9e47d7cfda0d4d6eefbf55c988cc9
+  actual_teb_plugin_version: 0.8.4
+  actual_teb_plugin_sha256: 7d17474e7901821d7f69bf10cdb909e4445f9010e32ee045452ad42c6ba1883e
+  actual_teb_config_sha256: 9e3125eec7f1f9040356f245dae9620d0b866ac94482ac29fd2d600838b14c26
+research_sequence:
+- fresh multi-scene/multi-actor actual-TEB qualification and formal evaluation
+- perception latency/noise/dropout and OOD qualification and formal stress evaluation
+- cloned-intervention support, propensity and analytic-regret audit
+- conditional supervised ranker, contextual-bandit and then offline-RL training
+- separately authorized real-vehicle work last
+non_reuse:
+  forbidden_seed_ranges:
+  - [6801, 6830]
+  - [6951, 6967]
+  - [7001, 7032]
+  - [7101, 7130]
+  v3_11_execution_or_budget_reuse: false
+  threshold_selection_from_v3_11_formal_outcome: false
+minimum_actor_count: 2
+maximum_actor_count: 3
+vehicle:
+  wheelbase_m: 0.65
+  maximum_speed_mps: 1.2
+  maximum_acceleration_mps2: 0.6
+  maximum_deceleration_mps2: 0.8
+  maximum_steering_angle_rad: 0.52
+  maximum_steering_rate_radps: 0.5
+  maximum_curvature_inv_m: 0.45
+  ego_half_width_m: 0.365
+  ego_circumscribed_radius_m: 0.55
+candidate_generator:
+  generator_id: v3_13_d0_four_action_ackermann_bank_1
+  horizon_s: 7.0
+  sample_period_s: 0.05
+  outbound_x_range_m: [-2.6, 1.4]
+  return_x_range_m: [1.4, 5.4]
+  steering_peak_rad: 0.25
+  kinematic_residual_max_m_rad: 1.0e-8
+  candidates:
+  - candidate_id: spatial_left_v120
+    kind: spatial
+    direction: 1
+    target_speed_mps: 1.2
+    certified_stop: false
+  - candidate_id: spatial_right_v120
+    kind: spatial
+    direction: -1
+    target_speed_mps: 1.2
+    certified_stop: false
+  - candidate_id: straight_v120
+    kind: straight
+    direction: 0
+    target_speed_mps: 1.2
+    certified_stop: false
+  - candidate_id: certified_stop_v000
+    kind: stop
+    direction: 0
+    target_speed_mps: 0.0
+    certified_stop: true
+predictor:
+  status: offline_fixture_only_not_fitted_or_qualified
+  hidden_policy_runtime_input: false
+  mode_inference:
+    cautious_max_speed_mps: 0.274012499989
+    hesitant_max_speed_mps: 0.758912499986
+    ambiguity_half_width_mps: 0.02
+  future_requirement:
+    candidate_conditioned: true
+    per_actor_output: true
+    calibrated_simultaneous_coverage: true
+    family_held_out: true
+hard_verifier:
+  required_health_fields:
+  - localization_ok
+  - transform_ok
+  - actor_track_ok
+  - command_chain_ok
+  maximum_track_age_s: 0.20
+  combined_actor_ego_radius_m: 1.02
+  aggregate_rule: every_actor_every_time_sample_must_clear
+  certified_stop_required: true
+  fail_closed_on_mode_ambiguity: true
+  fail_closed_on_unsupported_mode: true
+analytic_ranker:
+  ranker_id: v3_13_d0_progress_clearance_comfort_1
+  progress_weight: 1.0
+  clearance_weight: 0.25
+  acceleration_cost_weight: 0.10
+  steering_cost_weight: 0.08
+  deterministic_tie_break: lexicographic_candidate_id
+scene_families:
+- scene_id: dual_crossing_staggered_open
+  family: dual_crossing
+  corridor_half_width_m: null
+  actor_paths:
+  - {track_id: actor_a, conflict_x_m: 0.0, conflict_y_m: 0.0, angle_deg: 90.0}
+  - {track_id: actor_b, conflict_x_m: 2.2, conflict_y_m: 0.0, angle_deg: 110.0}
+- scene_id: dual_crossing_opposed_wide
+  family: opposed_oblique
+  corridor_half_width_m: 2.0
+  actor_paths:
+  - {track_id: actor_a, conflict_x_m: -0.4, conflict_y_m: 0.0, angle_deg: 70.0}
+  - {track_id: actor_b, conflict_x_m: 2.4, conflict_y_m: 0.0, angle_deg: 110.0}
+- scene_id: occluded_staggered_corridor
+  family: occluded_crossing
+  corridor_half_width_m: 1.8
+  static_rectangles:
+  - {x_min_m: -0.2, x_max_m: 0.2, y_min_m: 1.20, y_max_m: 1.65}
+  actor_paths:
+  - {track_id: actor_a, conflict_x_m: 0.5, conflict_y_m: 0.0, angle_deg: 90.0}
+  - {track_id: actor_b, conflict_x_m: 3.0, conflict_y_m: 0.0, angle_deg: 75.0}
+- scene_id: crossing_and_oncoming
+  family: mixed_interaction
+  corridor_half_width_m: 2.0
+  actor_paths:
+  - {track_id: actor_a, conflict_x_m: 0.0, conflict_y_m: 0.0, angle_deg: 90.0}
+  - {track_id: actor_b, conflict_x_m: 2.0, conflict_y_m: 0.0, angle_deg: 180.0}
+future_scene_policy_strata:
+  actor_policy_pairs:
+  - cautious_cautious
+  - cautious_hesitant
+  - hesitant_cautious
+  - hesitant_hesitant
+  stratum_count: 16
+future_evidence_design_bounds:
+  qualification:
+    paired_blocks: 16
+    episodes: 32
+    seed_range_reserved: [7301, 7316]
+  formal:
+    paired_blocks: 48
+    episodes: 96
+    seed_range_reserved: [7401, 7448]
+  perception:
+    seed_range_reserved: [7501, 7599]
+  cloned_intervention:
+    seed_range_reserved: [7601, 7699]
+  training_and_fresh_test:
+    seed_range_reserved: [7701, 7899]
+  all_ranges_are_reservations_not_execution_authority: true
+future_formal_effect_gates:
+  primary_metric: restricted mean gate-to-goal time reduction versus actual TEB
+  point_reduction_percent_min: 10.0
+  one_sided_lower_reduction_percent_min: 5.0
+  every_scene_family_mean_reduction_percent_min: 0.0
+  collision_count_max: 0
+  v3_goal_success_noninferiority_margin: 0.0
+perception_stage_requirements:
+  profiles:
+  - nominal_filtered
+  - latency_100ms
+  - latency_200ms
+  - position_noise_0p10m
+  - position_noise_0p20m
+  - dropout_10pct
+  - dropout_burst_300ms
+  - ood_speed_and_angle
+  evaluate_raw_truth_separately_from_planner_track: true
+  both_methods_receive_same_degraded_dynamic_track: true
+  no_perception_claim_from_oracle_stage: true
+learning_activation_gates:
+  cloned_candidate_support_rate_min: 1.0
+  minimum_logged_propensity: 0.10
+  sequential_context_coverage_rate_min: 0.90
+  analytic_long_horizon_regret_mean_s_min: 0.25
+  analytic_long_horizon_regret_positive_block_rate_min: 0.60
+  safety_gate_required: true
+  activation_order:
+  - supervised_ranker
+  - offline_contextual_bandit
+  - offline_rl_only_if_sequential_support_passes
+  training_if_gate_fails: forbidden_and_freeze_negative_audit
+offline_fixture_model:
+  schema_version: '1.0'
+  model_id: v3_13_d0_unqualified_fixture_predictor
+  calibration:
+    coordinate_radius_m: 0.20
+    coordinate_growth_mps: 0.03
+  heads:
+    cautious:
+      spatial_left_v120: {speed_scale: 0.95, speed_bias_mps: 0.0}
+      spatial_right_v120: {speed_scale: 0.95, speed_bias_mps: 0.0}
+      straight_v120: {speed_scale: 0.90, speed_bias_mps: 0.0}
+      certified_stop_v000: {speed_scale: 1.05, speed_bias_mps: 0.0}
+    hesitant:
+      spatial_left_v120: {speed_scale: 1.0, speed_bias_mps: 0.0}
+      spatial_right_v120: {speed_scale: 1.0, speed_bias_mps: 0.0}
+      straight_v120: {speed_scale: 0.90, speed_bias_mps: 0.0}
+      certified_stop_v000: {speed_scale: 1.10, speed_bias_mps: 0.0}
+authority:
+  user_instruction_date: '2026-07-25'
+  design_and_offline_fixture_authorized: true
+  ros_or_gazebo_execution_authorized: false
+  evidence_seed_consumption_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  qualified_if_d0_passes:
+  - multi-actor candidate generation and aggregation code is deterministically testable
+  - four-action candidate bank has Ackermann-feasible left/right/straight/stop trajectories
+  - cloned-intervention schema can express full positive action support
+  forbidden:
+  - predictor calibration
+  - multi-actor performance
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

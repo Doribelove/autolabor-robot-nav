@@ -1,0 +1,86 @@
+{
+  "schema": "astra_navigation_n05_terminal_replay_static_review_v1",
+  "status": "r04_focused_preview_and_all_consumed_receipt_closure_review_pass",
+  "independent_review": true,
+  "reviewed_source_sha256": "5554ddf0e5a956704ba5192a696ca2164ecb0c59535a3e5c56f5d01bc5f51cce",
+  "pass_within_reviewed_scope": true,
+  "synthetic_check_count": 56,
+  "actual_closed_receipt_and_assessment_checks": 2,
+  "actual_saved_preview_payload_checks": 6,
+  "full_matrix_replayed": false,
+  "full_release_reverified": false,
+  "remaining_issues_in_two_requested_repairs": [],
+  "checks_summary": [
+    "Strict schema/method/false safety flags and exact int action0..7 reject the five previous gaps plus bounds, bools, floats and null cases; legitimate moving and two empty-eligibility fallback cases pass.",
+    "All consumed rows pass through validate_consumed_receipt before valid-only replay. Exact canonical receipt path/SHA/identity/outcome/error bindings verified.",
+    "Failed report empty dictionary, nonexistent/mismatched path and stale content hash now reject; wrong run/seed/method/task reject.",
+    "A failed report with correct bindings and no separate error is accepted; report-absent preparation failure requires nonempty string error.",
+    "Valid receipts require bound report and no error; actual first closed control/treatment receipts and assessment hashes pass.",
+    "r03->r04 AST only validate_consumed_receipt changed; map, halfopen windows, replay metrics, preview validator and main aggregation AST unchanged."
+  ],
+  "scope": "Focused offline preexecution review only. No main() on real stage, no active process/file mutation, no ROS, no bag reopened for r04;6 previously saved payloads from closed first-pair bags reused. Full terminal release/bag/ledger replay remains a later task.",
+  "interpretation_limits": [
+    "Candidate stamp is decision ROS-clock snapshot; trace stamp is prepublication ROS-clock snapshot, not driver command ingress.",
+    "Per-trace stop fraction is a message frequency, not stopped duration; own-terminal position comparisons have different elapsed endpoints when completion differs.",
+    "Synthetic failure injections are not actual N05 failures; actual checks cover first closed pair fields only."
+  ],
+  "prior_negative_reviews": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r01/review.json",
+      "sha256": "208c27b85834914f5b966ff625c40b86b64f304a994e35ee6f4b1115e5312f85"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r02/review.json",
+      "sha256": "e6e91885f8a76fac00f33cf8952847944aff020269bf65bf5d96ac99e38c9177"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r03/review.json",
+      "sha256": "a8dcdc51102bc0519f790185b428e7dc85b2b83ad0834119a2212e99aa1f6e1d"
+    }
+  ],
+  "ast_comparison": {
+    "function_changed": {
+      "map_xy": false,
+      "main": false,
+      "validate_consumed_receipt": true,
+      "sha": false,
+      "replay_one": false
+    },
+    "r03_sha256": "e454374f688776457dcc41d77e2c00c3d17f17b740dd6734084b45520ce2b20f",
+    "r04_sha256": "5554ddf0e5a956704ba5192a696ca2164ecb0c59535a3e5c56f5d01bc5f51cce"
+  },
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r04/ast_delta.json",
+      "sha256": "c05eef10e6cbf2f8dbc76745d417b54b7d4498babe3342b7def8c147b1d07b36"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r04/fixture_results.json",
+      "sha256": "c04404418bfc5a1c8421966df28c26a1f6faa2d49da90cef8a2d458f721de750"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r04/fixtures.py",
+      "sha256": "f409adf89a57f85b78421ec3dd7c88fc932e01cfeed3f04e15a36938f2f1b0a6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r04/fixtures_attempt01.log",
+      "sha256": "42cd52c1dca038f2d3c04995768a1691c1bc432871e60a139357782347912536"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r04/source_snapshot.py",
+      "sha256": "5554ddf0e5a956704ba5192a696ca2164ecb0c59535a3e5c56f5d01bc5f51cce"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r03/actual_first3_astra_analytic_route_v1.json",
+      "sha256": "0d24d98f6eada895d4e556720541584e2fd068b0dc12cf4a097f9656e26a1b5a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r03/actual_first3_astra_analytic_preview_eligible_n05.json",
+      "sha256": "daa7d7669571f9d71440f0453a988345a4611678c4605a52c37418775e2c2b4d"
+    }
+  ],
+  "command": "PYTHONDONTWRITEBYTECODE=1 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r04/fixtures.py",
+  "ROS_started": false,
+  "training_started": false,
+  "release_or_runtime_modified": false
+}

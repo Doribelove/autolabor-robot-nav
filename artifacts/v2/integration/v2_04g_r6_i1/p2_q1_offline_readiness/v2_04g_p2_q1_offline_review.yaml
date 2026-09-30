@@ -1,0 +1,68 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P2-Q1
+status: p2_q1_independent_offline_readiness_closure_pass_release_absent
+review_result: pass
+offline_review_pass: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+planned_future_evidence_units: 342
+authorized_evidence_units: 0
+consumed_evidence_units: 0
+training_budget_steps: 0
+real_vehicle_used: false
+deterministic_rebuild:
+  resource_count: 116
+  all_bytes_equal: true
+  source_freeze_resources: 26
+candidate_review:
+  circle: 5
+  fixed: 5
+  tuned: 1
+  sole_new_behavioral_field: TebLocalPlannerROS.max_vel_x
+  intentional_baseline_weakening_detected: false
+  strongest_safe_fair_baseline_selection_deferred_to_calibration: true
+scene_schedule_review:
+  scenes: 48
+  compiled_children: 96
+  calibration_blocks: 30
+  calibration_rows: 330
+  qualification_rows: 12
+  total_rows: 342
+  held_out_test_rows: 0
+  held_out_test_artifacts: 0
+  maximum_method_position_count_difference: 1
+raw_replay_review:
+  navigation_positive: true
+  braking_positive: true
+  overlay_positive: true
+  circle_positive: true
+  invalid_transaction_negative: true
+historical_freezes:
+  p1_resources_verified: 10
+  i5_resources_verified: 13
+  t12_terminal_resources_verified: 5
+  historical_rerun_or_overwrite_performed: false
+runner_review:
+  preflight_pass: true
+  execute_hard_disabled: true
+  subprocess_imported: false
+  ros_gazebo_started: false
+  release_present: false
+  authorization_present: false
+  authorized_budget: 0
+reviewer:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p2_q1_offline_reviewer.py
+  sha256: 04677cdf4a88b0fe0fc97672a19346fa28a1c711a0e6fcb3609703c3f4bfe35e
+  single_open_no_follow_reads: true
+  deterministic_double_review_required: true
+claim_state:
+  candidate_safety_qualified: false
+  calibration_result_exists: false
+  primary_baseline_selected: false
+  performance_improvement_demonstrated: false
+  held_out_test_accessed: false
+next_safe_entry: new_versioned_exact_P2_calibration_release_with_closed_transitive_runtime_roster_342_unit_budget_and_corresponding_simulation_authorization

@@ -1,0 +1,84 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R19
+stage_purpose: fresh_complete_positive_propensity_goal_aligned_recovery_support
+status: preregistered_before_execution
+upstream:
+  R18_R1_assessment_path: artifacts/v3/multiactor/v3_13_q1_r18_r1_assessment/preflight_assessment.yaml
+  R18_R1_assessment_sha256: 96d4e8e9a7ca904985065ab5366c9b06c72449686da5df090d0a4b7670b66fd7
+  R18_R1_freeze_sha256: 16edb389a96f175243dc817b1f2bc7fea7a2842c65968a33490ce22072db8ed5
+  R18_R1_review_sha256: 4779bca90e9b88453b1e113d1e68860f25f86c49c2f52dd860ee76bd6bdd7be1
+  geometry_contract_path: config/thesis_experiments/v3/v3_13_q1_r17_goal_aligned_recovery_contract.yaml
+  geometry_contract_sha256: 3dd9299cbbf39c63442a108c082e3830784084f4e40f9eff9560de7e43f2603f
+  nonrecursive_adapter_sha256: 78d944812230bce2c5826cbf1254e6736468bbf089683d1bdac31fd18bd524d9
+population:
+  scene_policy_strata:
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, hesitant]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, hesitant]}
+  replicas_per_stratum: 2
+  seeds: [7669, 7670, 7671, 7672, 7673, 7674, 7675, 7676]
+  matched_context_blocks: 8
+  branch_target_sim_s: 12.5
+  nominal_wait_depth_s: 5.0
+  actions:
+  - spatial_left_v120
+  - spatial_right_v120
+  - straight_v120
+  - certified_stop_v000
+  - recovery_evasive_right_v120_r3
+  legacy_action_horizon_s: 7.0
+  r3_action_horizon_s: 7.55
+  actions_per_block: 5
+  exact_units: 40
+  actor_trajectories: 80
+  behavior_propensity_each: 0.20
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+matching_gates:
+  branch_clock_absolute_error_max_s: 0.012
+  paired_decision_ego_x_difference_max_m: 0.04
+  paired_decision_actor_coordinate_difference_max_m: 0.05
+  paired_decision_actor_speed_difference_max_mps: 0.05
+  decision_speed_mps_max: 0.08
+  decision_ego_x_range_m: [-2.70, -2.10]
+  decision_observable_modes_required: [assertive, assertive]
+  complete_action_support_rate_min: 1.0
+  minimum_behavior_propensity: 0.20
+  branch_trace_samples_min: 130
+  branch_trace_duration_s_min: 6.85
+  r3_terminal_guard_execution_rate_min: 1.0
+  all_finite_tracks_required: true
+  unsafe_dynamic_or_static_outcomes_retained: true
+data_use:
+  development_data_not_fresh_qualification: true
+  fit_scope_if_gates_pass: assertive_head_for_recovery_evasive_right_v120_r3_only
+  retain_all_R13_heads_byte_equivalent: true
+  policy_or_ranker_training_steps: 0
+downstream:
+  if_all_collection_gates_pass: deterministic_supervised_r3_head_fit_and_internal_CV
+  if_any_gate_fails: freeze_negative_support_result
+  predictor_fit_authorized_before_result: false
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  exact_bounded_simulation_support_authorized: true
+  authorized_units: 40
+  authorized_seed_range: [7669, 7676]
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - complete matched five-action positive-propensity support for the goal-aligned r3 candidate was collected
+  forbidden:
+  - fresh predictor generalization
+  - actual TEB performance
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

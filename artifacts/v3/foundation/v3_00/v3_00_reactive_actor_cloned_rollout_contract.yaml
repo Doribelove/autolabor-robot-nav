@@ -1,0 +1,335 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-00
+status: reactive_actor_cloned_rollout_data_contract_fixture_pass
+simulation_evidence: false
+counterfactual_identifiability_demonstrated: false
+runtime_ready: false
+actor_policy_ids:
+- cautious
+- assertive
+- hesitant
+runtime_label_firewall:
+  actor_hidden_type_evaluator_only: true
+  runtime_may_read_actor_hidden_type: false
+  runtime_may_read_scene_role: false
+  runtime_may_read_future_truth: false
+required_future_scene_families:
+- crossing
+- head_on
+- merge
+- overtake_or_yield
+- corridor_crossing
+- occlusion_emergence
+block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+candidate_count_per_policy: 8
+clone_count: 24
+behavior_propensity_per_candidate: 0.125
+all_propensities_strictly_positive: true
+same_initial_state_digest_within_block: true
+candidate_coverage_each_policy: true
+policy_audits:
+- policy_id: cautious
+  clone_count: 8
+  response_range_s: 1.2
+  noise_floor_s: 0.05
+  response_effect_fixture_pass: true
+- policy_id: assertive
+  clone_count: 8
+  response_range_s: 0.5
+  noise_floor_s: 0.05
+  response_effect_fixture_pass: true
+- policy_id: hesitant
+  clone_count: 8
+  response_range_s: 0.7
+  noise_floor_s: 0.05
+  response_effect_fixture_pass: true
+static_rows:
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: cautious__certified_stop
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: certified_stop
+  candidate_digest: a7e3ace628ccc6c14dc990a044d731562b09e7d718dc3f00ee110a190e2d0b3e
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: cautious
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.5
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: cautious__teb_fallback
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: teb_fallback
+  candidate_digest: fc46f3ee6224543487f4f4bb71b120f8ad837655adf672cb1e18d87502eef65d
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: cautious
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.29000000000000004
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: cautious__straight_slow
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: straight_slow
+  candidate_digest: 88d7ae3123709dfcc7db1509185370e64971a1a3e2e855aac879b35a648d9b19
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: cautious
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.10999999999999999
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: cautious__straight_cruise
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: straight_cruise
+  candidate_digest: e18b4eec0c820dfbd1f56cec13024ba2918ded9cbce60a3e87a71203cb1e80ab
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: cautious
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.7
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: cautious__left_soft
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: left_soft
+  candidate_digest: 8a33d0117901371cd7c4ee81267b22c21fa0e42a4aa9b3b0d3680bf5da35db53
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: cautious
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.37
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: cautious__right_soft
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: right_soft
+  candidate_digest: 2d879be1210148ee73273448dbcde86b572d717d5c5ca187caed5ecbacc4f5ff
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: cautious
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.37
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: cautious__left_yield
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: left_yield
+  candidate_digest: c5c9b2131a3fb1d6ca0c87965672225b17ba625b0e300d6f3be6d7a6c0105383
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: cautious
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.01999999999999999
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: cautious__right_yield
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: right_yield
+  candidate_digest: 1c2529ebf9494e5eebf0dcd18e339b69b1badec7128650e813bb5844e9d13871
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: cautious
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.01999999999999999
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: assertive__certified_stop
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: certified_stop
+  candidate_digest: a7e3ace628ccc6c14dc990a044d731562b09e7d718dc3f00ee110a190e2d0b3e
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: assertive
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.2
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: assertive__teb_fallback
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: teb_fallback
+  candidate_digest: fc46f3ee6224543487f4f4bb71b120f8ad837655adf672cb1e18d87502eef65d
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: assertive
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.1125
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: assertive__straight_slow
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: straight_slow
+  candidate_digest: 88d7ae3123709dfcc7db1509185370e64971a1a3e2e855aac879b35a648d9b19
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: assertive
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.03749999999999999
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: assertive__straight_cruise
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: straight_cruise
+  candidate_digest: e18b4eec0c820dfbd1f56cec13024ba2918ded9cbce60a3e87a71203cb1e80ab
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: assertive
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.3
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: assertive__left_soft
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: left_soft
+  candidate_digest: 8a33d0117901371cd7c4ee81267b22c21fa0e42a4aa9b3b0d3680bf5da35db53
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: assertive
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.1625
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: assertive__right_soft
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: right_soft
+  candidate_digest: 2d879be1210148ee73273448dbcde86b572d717d5c5ca187caed5ecbacc4f5ff
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: assertive
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.1625
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: assertive__left_yield
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: left_yield
+  candidate_digest: c5c9b2131a3fb1d6ca0c87965672225b17ba625b0e300d6f3be6d7a6c0105383
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: assertive
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.0
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: assertive__right_yield
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: right_yield
+  candidate_digest: 1c2529ebf9494e5eebf0dcd18e339b69b1badec7128650e813bb5844e9d13871
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: assertive
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.0
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: hesitant__certified_stop
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: certified_stop
+  candidate_digest: a7e3ace628ccc6c14dc990a044d731562b09e7d718dc3f00ee110a190e2d0b3e
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: hesitant
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.14999999999999997
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: hesitant__teb_fallback
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: teb_fallback
+  candidate_digest: fc46f3ee6224543487f4f4bb71b120f8ad837655adf672cb1e18d87502eef65d
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: hesitant
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: -0.02749999999999997
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: hesitant__straight_slow
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: straight_slow
+  candidate_digest: 88d7ae3123709dfcc7db1509185370e64971a1a3e2e855aac879b35a648d9b19
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: hesitant
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.07750000000000003
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: hesitant__straight_cruise
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: straight_cruise
+  candidate_digest: e18b4eec0c820dfbd1f56cec13024ba2918ded9cbce60a3e87a71203cb1e80ab
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: hesitant
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.55
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: hesitant__left_soft
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: left_soft
+  candidate_digest: 8a33d0117901371cd7c4ee81267b22c21fa0e42a4aa9b3b0d3680bf5da35db53
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: hesitant
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.35750000000000004
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: hesitant__right_soft
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: right_soft
+  candidate_digest: 2d879be1210148ee73273448dbcde86b572d717d5c5ca187caed5ecbacc4f5ff
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: hesitant
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.35750000000000004
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: hesitant__left_yield
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: left_yield
+  candidate_digest: c5c9b2131a3fb1d6ca0c87965672225b17ba625b0e300d6f3be6d7a6c0105383
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: hesitant
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.13
+  simulation_evidence: false
+- block_id: 57a8b954260e1063e3747a6e10a8d153b78da266cadb8365aa8f06afe3390455
+  clone_id: hesitant__right_yield
+  scene_snapshot_id: edf2063c9808afa8cea0ff6874f1e8ddbec5132c805791a89abeadacfdb70144
+  candidate_set_digest: 7f0a2847c61ea0b3d330f141f0c61a7d27bf9ccdb15659e9c6bbfe9ca4a13824
+  candidate_id: right_yield
+  candidate_digest: 1c2529ebf9494e5eebf0dcd18e339b69b1badec7128650e813bb5844e9d13871
+  behavior_propensity: 0.125
+  actor_policy_id_evaluator_only: hesitant
+  actor_policy_exposed_to_runtime: false
+  synthetic_response_delta_s: 0.13
+  simulation_evidence: false
+future_raw_record_required_fields:
+- release_id
+- environment_fingerprint
+- block_id
+- scene_family
+- geometry_family
+- actor_policy_family_evaluator_only
+- clone_id
+- scene_snapshot_id
+- candidate_set_digest
+- candidate_id
+- candidate_digest
+- behavior_propensity
+- prediction_digest
+- occupancy_tube_digest
+- safety_verdict
+- rejection_codes
+- executed_candidate_id
+- tracker_deviation_trace
+- actor_response_trace
+- outcome
+- terminal_reason
+- raw_resource_bindings
+contract_digest: 6eef2484d6c45662991ff52e5b6323965cffad26ee3c560db458e01784e0f1ea

@@ -1,0 +1,24 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R14
+status: independent_terminal_assessment_failure_review_pass
+terminal_failure_freeze_sha256: cb4cdf6f8132dd330b10dfa3b419ffc439709e0cbf8dc8bdac17e2da28405e23
+collection_evidence_rehashed: true
+released_source_rehashed: true
+root_cause_reproduced: true
+root_cause: >-
+  R14 collection writes an R14 stage/status summary, while the released
+  inherited assessor deterministically overwrites its replayed summary with
+  the R8 stage/status before an exact byte comparison.
+semantic_collection_failure_observed: false
+assessment_integrity_failure_observed: true
+R14_terminal_and_non_resumable: true
+R14_seed_reuse_authorized: false
+released_resource_mutation_authorized: false
+fresh_repair_stage_required: true
+predictor_qualification_claim_authorized: false
+actual_TEB_execution_authorized: false
+perception_execution_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

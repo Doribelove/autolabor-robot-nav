@@ -1,0 +1,66 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-S4
+stage_purpose: fresh_assertive_recovery_predictor_qualification
+status: preregistered_before_execution
+upstream:
+  predictor_path: artifacts/v3/multiactor/v3_13_s3_predictor/candidate_conditioned_recovery_predictor.yaml
+  predictor_sha256: 94449b8a1a645754c88c1781a5b7ac8fd869adaa5b79c69d81aa4e6abc33b621
+  predictor_internal_cv_sha256: 5442ba7ce1a275177f1cefb0ac55e80ed472be09b9e4f0cc6945bdbabf99276c
+  predictor_independent_review_sha256: 3363116acd4ca24ed7b91bdd9317410e37e3514eacdb84e791189609385ef822
+  source_design_contract: config/thesis_experiments/v3/v3_13_s2_synchronized_sequential_clone_contract.yaml
+qualification_population:
+  scene_policy_strata:
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, hesitant]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, hesitant]}
+  branch_time_labels: [early, late]
+  seeds: [7251, 7252, 7253, 7254, 7255, 7256, 7257, 7258]
+  matched_context_blocks: 8
+  actions: [spatial_left_v120, spatial_right_v120, straight_v120, certified_stop_v000]
+  actions_per_block: 4
+  exact_units: 32
+  actor_trajectories: 64
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+matching_gates:
+  branch_clock_absolute_error_max_s: 0.012
+  paired_decision_ego_x_difference_max_m: 0.04
+  paired_decision_actor_coordinate_difference_max_m: 0.05
+  paired_decision_actor_speed_difference_max_mps: 0.05
+  complete_action_support_rate_min: 1.0
+  minimum_behavior_propensity: 0.25
+  branch_trace_samples_min: 130
+  branch_trace_duration_s_min: 6.85
+predictor_gates:
+  simultaneous_whole_trajectory_coverage_min: 0.90
+  every_scene_simultaneous_trajectory_coverage_min: 0.85
+  mean_trajectory_rmse_m_max: 0.25
+  maximum_trajectory_rmse_m_max: 0.65
+  terminal_full_width_m_max: 1.80
+  hidden_label_feature_count_max: 0
+  tube_coordinate_radius_m: 0.30
+  tube_coordinate_growth_mps: 0.08
+downstream:
+  if_passes: offline_recovery_planner_audit_before_actual_TEB_release
+  direct_actual_teb_execution_authorized: false
+  policy_or_ranker_training_authorized: false
+  perception_claim_authorized: false
+authority:
+  user_continuation_instruction_date: '2026-07-25'
+  exact_bounded_simulation_qualification_authorized: true
+  authorized_units: 32
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+  historical_seed_or_budget_reuse_authorized: false
+claims:
+  qualified_if_S4_passes:
+  - fresh same-population simultaneous recovery prediction coverage and error gates pass
+  forbidden:
+  - actual TEB performance improvement
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

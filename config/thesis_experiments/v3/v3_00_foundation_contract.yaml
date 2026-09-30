@@ -1,0 +1,219 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-00
+contract_id: v3_scope_v3_00_pure_offline_foundation_1
+status: pure_offline_foundation_preregistered
+independent_stage: true
+supersedes_v2_stage_identity: false
+stage_state:
+  concept_only: true
+  offline_only: true
+  simulation_only: true
+  formal_result: false
+  runtime_ready: false
+  execution_ready: false
+  execution_authorized: false
+  training_authorized: false
+  evidence_budget_authorized: 0
+  training_budget_steps: 0
+  seed_allocation_count: 0
+  schedule_row_count: 0
+  real_vehicle_authorized: false
+  stable_workspace_modification_allowed: false
+source_freeze:
+  p4_terminal_handoff:
+    path: docs/thesis_experiment/CURRENT_V2_04G_P4_F1_TERMINAL_HANDOFF.md
+    sha256: bc700762809951276d9dde0c65b579b11ca5318ef3c9548b6eafde45e8270b59
+  p4_terminal_conclusion:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_f1_terminal_program_closure/v2_04g_p4_f1_terminal_conclusion.yaml
+    sha256: 8ce6736dd7ea1f13d6c272f0420f4588d1e0c9e25949b7b1eabf5bd028b3eeb7
+  p4_independent_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_f1_terminal_program_closure/v2_04g_p4_f1_independent_review.yaml
+    sha256: e0dc93790e092b99684c64a9d2b11e5ce02a0a16f5235649e3657376835270c8
+  v3_foundation_handoff:
+    path: docs/thesis_experiment/CURRENT_V3_SCOPE_FOUNDATION_HANDOFF.md
+    sha256: dc69215825682b642711139712c1f84a520804d081888f787efbe65cfe14d774
+  v3_theoretical_roadmap:
+    path: docs/future_research/v3_candidate/THEORETICAL_FEASIBILITY_AND_RESEARCH_ROADMAP.md
+    sha256: 4ac25509d8fc07296de27ad9630bb64a0fb71b12fcfcab0784b69a21d169e74f
+  v3_concept_freeze:
+    path: docs/future_research/v3_candidate/V3_CONCEPT_FREEZE.sha256
+    sha256: 32e97932564f2938933b81c6fd8f7204e7a276ee897cd132cfcf4a163a2348fd
+  simulation_vehicle_candidate:
+    path: src/simulation/m2_gazebo/config/simulation_candidates.yaml
+    sha256: 63edc80a38b4d35c5491660ad4d6882d2ddaf95b4ff66fda820ba20eadbfd946
+historical_firewall:
+  v2_terminal_conclusion_must_remain: obvious_performance_improvement_not_demonstrated
+  v2_seed_release_budget_or_stage_reuse_allowed: false
+  v2_winner_import_allowed: false
+  t12_checkpoint_or_action_space_import_allowed: false
+  current_v3_result_may_overwrite_v2_claim: false
+namespace:
+  ros_package: v3_scope_planner
+  python_module: thesis_experiment.v3_foundation
+  config_root: config/thesis_experiments/v3
+  manifest_root: experiments/manifests/v3
+  artifact_root: artifacts/v3
+  runtime_topic_root: /v3_scope
+  v2_artifact_write_allowed: false
+hardware_and_command_boundary:
+  hardware_change_required: false
+  retained_inputs:
+    - /scan
+    - /odom
+    - /gps/odom
+    - /tf
+    - global_path
+    - costmap
+    - health
+  only_allowed_future_command_topic: /cmd_vel_navigation
+  direct_cmd_vel_publish_forbidden: true
+  direct_m2_driver_access_forbidden: true
+  stable_chain:
+    - /cmd_vel_navigation
+    - /cmd_vel_gps
+    - /fod_navigation_mode
+    - /cmd_vel
+    - m2_driver
+interface_contract:
+  package_contract: src/application/v3_scope_planner/config/interface_contract.yaml
+  messages:
+    - TrajectoryPoint.msg
+    - CandidateTrajectory.msg
+    - CandidateSet.msg
+    - CandidateEvaluation.msg
+    - CandidateDecision.msg
+  runtime_nodes_present_in_v3_00: false
+  launch_files_present_in_v3_00: false
+  model_files_present_in_v3_00: false
+candidate_contract:
+  fixture_candidate_count: 8
+  future_runtime_candidate_count_range: [8, 12]
+  unique_candidate_id_required: true
+  strict_monotonic_time_required: true
+  finite_numeric_values_required: true
+  certified_stop_min_count: 1
+  teb_fallback_min_count: 1
+  silent_projection_allowed: false
+  rejection_codes_required: true
+  model: kinematic_bicycle_euler_v1
+  maximum_discrete_residual: 1.0e-9
+  simulation_vehicle:
+    wheelbase_m: 0.65
+    min_turning_radius_m: 1.20
+    max_center_steering_angle_rad: 0.4964
+    max_steering_rate_radps: 0.80
+    max_speed_mps: 1.20
+    calibration_status: simulation_candidate_not_real_vehicle_calibrated
+reactive_actor_and_clone_contract:
+  actor_policy_ids: [cautious, assertive, hesitant]
+  actor_hidden_type_evaluator_only: true
+  runtime_may_read_actor_hidden_type: false
+  runtime_may_read_scene_role: false
+  runtime_may_read_future_truth: false
+  same_initial_state_digest_within_block: true
+  candidate_coverage_required: true
+  behavior_propensity_recorded: true
+  behavior_propensity_strictly_positive: true
+  fixture_propensity_per_candidate: 0.125
+  fixture_response_noise_floor_s: 0.05
+  fixture_is_schema_test_not_simulation_evidence: true
+  future_scene_families:
+    - crossing
+    - head_on
+    - merge
+    - overtake_or_yield
+    - corridor_crossing
+    - occlusion_emergence
+  future_family_split_required: true
+  same_template_seed_change_is_geometry_generalization: false
+hermetic_environment_contract:
+  future_process_start: env_i_non_login_shell
+  required_source_order:
+    - /opt/ros/noetic/setup.bash
+    - /home/robot/robot_ws_base_rl/devel/setup.bash
+  required_bound_environment_keys:
+    - PATH
+    - PYTHONPATH
+    - ROS_PACKAGE_PATH
+    - CMAKE_PREFIX_PATH
+    - LD_LIBRARY_PATH
+    - ROS_DISTRO
+  credential_keys_in_child_environment_allowed: false
+  source_script_path_and_sha_required: true
+  executable_path_and_sha_required: true
+  package_name_root_package_xml_and_sha_required: true
+  launch_path_and_sha_required_before_consumption: true
+  package_resolution_probe_required_before_consumption: true
+  package_resolution_failure_may_cross_consumption_boundary: false
+  current_runtime_environment_snapshot_created: false
+  required_workspace_packages:
+    - v3_scope_planner
+    - thesis_experiment
+    - m2_gazebo
+    - nav_world_model
+    - teb_mode_manager
+    - gps_module
+integrity_contract:
+  canonical_workspace_relative_paths: true
+  duplicate_yaml_keys_rejected: true
+  single_open_component_no_follow_reads: true
+  regular_file_required: true
+  hard_links_for_frozen_resources_allowed: false
+  stable_metadata_during_read_required: true
+  sha256_for_every_dependency: true
+  unresolved_dependency_count_max: 0
+  builder_rebuild_byte_identical_required: true
+  independent_review_exact_reproduction_required: true
+  historical_failure_deletion_allowed: false
+  negative_result_retention_required: true
+forbidden_outputs:
+  - execution_release.yaml
+  - simulation_authorization.yaml
+  - seed_allocation.yaml
+  - exact_schedule.yaml
+  - attempts
+  - journals
+  - models
+  - checkpoints
+forbidden_side_effects:
+  - start_ros
+  - start_gazebo
+  - start_move_base
+  - allocate_seed
+  - create_execution_release
+  - train_model
+  - access_held_out_outcome
+  - modify_stable_workspace
+  - access_can_or_serial
+  - write_online_teb_parameters
+stage_sequence:
+  - {stage: V3-00, purpose: pure_offline_foundation, current_authority: offline_only}
+  - {stage: V3-01, purpose: reactive_actor_and_counterfactual_data_qualification, current_authority: none}
+  - {stage: V3-02, purpose: candidate_conditioned_prediction_and_calibration, current_authority: none}
+  - {stage: V3-03, purpose: analytic_safe_candidate_planner, current_authority: none}
+  - {stage: V3-04, purpose: gated_learning_ranker, current_authority: none}
+  - {stage: V3-05, purpose: one_time_formal_family_held_out_evaluation, current_authority: none}
+v3_00_acceptance:
+  system_guide_present: true
+  package_and_message_contract_present: true
+  source_package_map_unique: true
+  candidate_fixture_pass: true
+  actor_clone_fixture_pass: true
+  dependency_closure_pass: true
+  zero_authority_receipt_pass: true
+  independent_reviewer_pass: true
+  active_runtime_process_count: 0
+  next_stage_automatically_authorized: false
+claim_limit:
+  allowed: >-
+    V3-00 established a deterministic pure-offline interface, integrity,
+    candidate-schema and counterfactual-data foundation for later V3 stages.
+  forbidden:
+    - reactive_actor_validated
+    - predictor_trained_or_calibrated
+    - planner_runtime_validated
+    - safety_guaranteed
+    - performance_improved
+    - real_vehicle_ready
+    - deployment_ready

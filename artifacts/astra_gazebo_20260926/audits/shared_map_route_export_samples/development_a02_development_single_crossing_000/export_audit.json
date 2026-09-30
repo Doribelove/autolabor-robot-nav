@@ -1,0 +1,70 @@
+{
+  "schema": "astra_common_static_map_export_v1",
+  "source_world_sha256": "af1818e9cfce47e914e2390eca9880ac8a9c630fa169c768332e982e96a2682e",
+  "scene_id": "core_single_crossing",
+  "parent_geometry_id": "geom_ab642b25cb6c8060d9ebce3f",
+  "map_frame_id": "map",
+  "map_frame_equals_world": true,
+  "resolution_m": 0.05,
+  "bounds_xyxy": [
+    -7.4,
+    -2.0,
+    7.0,
+    2.0
+  ],
+  "width": 288,
+  "height": 80,
+  "pixel_values": {
+    "occupied": 0,
+    "free": 254,
+    "unknown": 205
+  },
+  "occupied_cell_count": 0,
+  "unknown_cell_count": 732,
+  "robot_height_band_m": [
+    0.01,
+    0.7
+  ],
+  "static_collision_components": [],
+  "omitted_models_or_collisions": [
+    {
+      "model": "ground_plane",
+      "collision": "ground_plane::link::collision",
+      "reason": "ground support plane below body band"
+    },
+    {
+      "model": "benchmark_actor_1",
+      "reason": "declared actor; excluded independently of static flag and current pose"
+    },
+    {
+      "model": "astra_evidence_camera",
+      "reason": "collision-free model"
+    }
+  ],
+  "maximum_primitive_outward_error_m": 0.0,
+  "raster_outward_distance_bound_m": 0.07071067811865477,
+  "collision_to_total_occupied_union_outward_bound_m": 0.07071067811865477,
+  "inflation_or_point_carving_applied": false,
+  "map_image_sha256": "e7b2265912218ae8bbc6bf15d27bc9fa1fc080cd9db0bbbcadf42c269c929d70",
+  "map_yaml_sha256": "4fdd3790074d490269f8c111d3d269f0f390ea3e98c7346fbc7a12a66b4a6f75",
+  "status": "offline_common_static_prior_only_not_live_fairness_qualification",
+  "global_route_integrated": false,
+  "old_R2_runtime_unchanged": true,
+  "limits": [
+    "A synthetic known static prior shared identically is not online actor truth.",
+    "A tilted primitive intersecting the height band uses its full XY projection; the raster bound applies to that projection, not an exact height-clipped cross-section.",
+    "Static map PGM bytes alone do not make runtime consumption or global paths equal.",
+    "Unknown and outside-map policy must be occupied/fail-closed for every consumer.",
+    "No Ackermann feasibility, route availability, navigation performance or safety claim follows from export."
+  ],
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02/development_a02_development_single_crossing_000/replicate_00/scene_manifest.yaml",
+      "sha256": "182ee1112f4c303930c2c9109d96ead862fc4c884bad4e9e25e0059602f647d3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02/development_a02_development_single_crossing_000/replicate_00/world.sdf",
+      "sha256": "af1818e9cfce47e914e2390eca9880ac8a9c630fa169c768332e982e96a2682e"
+    }
+  ]
+}

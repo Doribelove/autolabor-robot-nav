@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="v3_03_a3_integration_6312_hesitant_common_prefix_probe">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="v3_02_deterministic" type="ode">
+      <max_step_size>0.005000000</max_step_size>
+      <real_time_update_rate>0</real_time_update_rate>
+    </physics>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>30 30</size>
+            </plane>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="ego_probe">
+      <static>true</static>
+      <pose>-3.000000000 0.000000000 0.275000000 0 0 0.000000000</pose>
+      <link name="body">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.130000 0.730000 0.550000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.130000 0.730000 0.550000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+      <plugin name="ego_open_loop_intervention" filename="libv2_trajectory_actor_plugin.so">
+        <loop>false</loop>
+        <z>0.275000</z>
+        <waypoint>
+          <time>0.000000000</time>
+          <x>-3.000000000</x>
+          <y>0.000000000</y>
+          <yaw>0.000000000</yaw>
+        </waypoint>
+        <waypoint>
+          <time>0.500000000</time>
+          <x>-2.600000000</x>
+          <y>0.000000000</y>
+          <yaw>0.000000000</yaw>
+        </waypoint>
+        <waypoint>
+          <time>7.500000000</time>
+          <x>3.000000000</x>
+          <y>0.000000000</y>
+          <yaw>0.000000000</yaw>
+        </waypoint>
+      </plugin>
+    </model>
+    <model name="reactive_actor">
+      <static>true</static>
+      <pose>0.503579715 -2.855942484 0.850000000 0 0 1.745329252</pose>
+      <link name="body">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.450000 0.450000 1.700000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.450000 0.450000 1.700000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+      <plugin name="candidate_blind_reactive_actor" filename="libv3_reactive_actor_plugin.so">
+        <ego_model>ego_probe</ego_model>
+        <policy>hesitant</policy>
+        <seed>6312</seed>
+        <start>0.503579715 -2.855942484</start>
+        <end>-0.607768622 3.446827136</end>
+        <conflict>0 0</conflict>
+        <base_speed>1.100000000</base_speed>
+        <response_distance>4.000000000</response_distance>
+        <response_time_margin>1.350000000</response_time_margin>
+        <z>0.850000</z>
+      </plugin>
+    </model>
+    <plugin name="v3_02_pose_recorder" filename="libv3_episode_recorder_plugin.so">
+      <ego_model>ego_probe</ego_model>
+      <actor_model>reactive_actor</actor_model>
+      <output_csv>/home/robot/robot_ws_base_rl/artifacts/v3/planner/v3_03_a3/execution/decisions/v3_03_a3_integration_6312_hesitant/probe/raw_pose_trace.csv</output_csv>
+      <done_marker>/home/robot/robot_ws_base_rl/artifacts/v3/planner/v3_03_a3/execution/decisions/v3_03_a3_integration_6312_hesitant/probe/done.marker</done_marker>
+      <duration>0.550000000</duration>
+      <sample_period>0.050000000</sample_period>
+    </plugin>
+  </world>
+</sdf>

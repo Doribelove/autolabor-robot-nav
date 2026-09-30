@@ -1,0 +1,59 @@
+{
+  "schema": "astra_navigation_single_factor_development_draft_v1",
+  "stage": "astra_navigation_n06_lookahead_static_pilot",
+  "status": "offline_draft_no_schedule_or_authority",
+  "execution_authorized": false,
+  "allocated_budget": 0,
+  "proposed_maximum_episodes": 8,
+  "methods": [
+    "astra_analytic_route_v1",
+    "astra_analytic_lookahead_1p2_n06"
+  ],
+  "single_behavioral_factor": {
+    "field": "route_candidate_core.RouteConfig.lookahead_m",
+    "control_m": 0.7,
+    "treatment_m": 1.2,
+    "all_other_route_candidate_and_backup_semantics": "unchanged",
+    "control_and_treatment_use_original_backup_only_analytic_selector": true,
+    "N05_preview_eligibility_used": false
+  },
+  "why_test": "N04 static old-trace fixed-state probe shows the original 0.7m target requests a capped +0.4964rad steering angle at map x about -2m, while a 1.2m target requests +0.21105rad and anticipates the first global-route corner. This is a hypothesis only, not a simulated counterfactual.",
+  "proposed_population": {
+    "split": "development",
+    "scene_family": "static_avoidance_only",
+    "independent_new_parent_geometries": 4,
+    "paired_blocks": 4,
+    "execution_seed_proposal": [263003001,263003002,263003003,263003004],
+    "geometries_source": "D04 new geometry artifact and independent review pending",
+    "block_order": "counterbalanced and frozen after D04 geometry closure before release",
+    "max_episode_source_seconds": 22,
+    "attempts_per_identity": 1,
+    "retry_or_resume_allowed": false
+  },
+  "unchanged": {
+    "M2_physical_backend": "P05 Kd6",
+    "margin_m": 0.33,
+    "action_count": 8,
+    "candidate_speeds_offsets_horizons": "inherited N04",
+    "prediction": "inherited N04",
+    "control_period_s": 0.05,
+    "decision_period_s": 0.25,
+    "shared_map_route_per_block": true,
+    "shared_actual_base_goal": true,
+    "failure_inclusive_time": true
+  },
+  "assessment": "Descriptive paired static diagnosis only. Retain all timeouts, contacts, integrity failures and no-execution identities. Promotion to six-family validation requires a separate reviewed fresh stage and cannot be inferred from four blocks.",
+  "prerequisites": [
+    "N05 terminal; no resource or process overlap",
+    "D04 four newly distinct static development layouts and static clearance qualification",
+    "exact N06 scene/launch/method/collector contract and independent source review",
+    "exact one-shot release with fresh seed reservation and process isolation"
+  ],
+  "forbidden_claims": [
+    "N04 old-state steering calculation is a closed-loop outcome",
+    "this draft authorizes Gazebo execution or seed consumption",
+    "four pilot blocks establish general performance or safety",
+    "M08 runtime/training or real-vehicle readiness"
+  ],
+  "formal_result": false
+}

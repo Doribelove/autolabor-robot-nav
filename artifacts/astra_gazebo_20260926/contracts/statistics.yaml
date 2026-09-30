@@ -1,0 +1,183 @@
+schema_version: '1.0'
+stage_id: astra_gazebo_20260926
+status: independent_design_proposal_pending_root_review_and_freeze
+execution_release: false
+new_final_outcomes_read: false
+authority_source: CODEX_ASTRA_LONG_RUN_20260926.md
+hardware_motion_authorized: false
+contract_type: statistics_and_failure_accounting
+confirmatory_program:
+  primary_confirmatory_rounds_maximum: 1
+  familywise_one_sided_alpha: 0.05
+  alpha_round_allocation:
+  - 0.05
+  no_postfailure_new_point05_round: true
+  unused_alpha_recycling_forbidden: true
+  post_confirmatory_research_allowed: new development/validation and exploratory holdout
+    with explicit exploratory status; no unplanned confirmatory superiority claim
+  expansion_to_multiple_confirmatory_rounds: only via replacement full_program_preregistration
+    before any first final outcome; root review required
+confirmatory_hypotheses:
+- id: eff_teb
+  endpoint: relative_failure_inclusive_time_reduction
+  comparator: actual_teb
+  null_upper: 0.0
+  alpha: 0.0125
+- id: eff_dwa
+  endpoint: relative_failure_inclusive_time_reduction
+  comparator: actual_dwa
+  null_upper: 0.0
+  alpha: 0.0125
+- id: ni_teb
+  endpoint: valid_completion_rate_difference
+  comparator: actual_teb
+  null_upper: -0.05
+  alpha: 0.0125
+- id: ni_dwa
+  endpoint: valid_completion_rate_difference
+  comparator: actual_dwa
+  null_upper: -0.05
+  alpha: 0.0125
+primary:
+  model_estimand: one_deployment_checkpoint_frozen_before_final
+  time_estimand: one_minus_equal_family_weighted_mean_new_pct_divided_by_equal_family_weighted_mean_baseline
+  layout_weighting: equal_weight_within_each_family_then_equal_six_family_weight
+  execution_replicate_weighting: equal_within_layout
+  failure_time: locked_cap_for_its_task_stratum
+  primary_core_cap_s: 22.0
+  methods:
+  - pct_new_deployment
+  - pct_r2_frozen
+  - analytic_same_stack
+  - actual_teb
+  - actual_dwa
+  co_primary_program_rule: all_four_hypotheses_pass_plus_each_efficiency_point_ge_0.08_plus_all_acceptance_gates
+  complete_five_method_blocks_required: true
+uncertainty:
+  method: paired_stratified_hierarchical_bootstrap
+  resampling:
+  - within_each_family_resample_layouts_with_replacement
+  - within_selected_layout_resample_execution_replicates_jointly_for_all_methods
+  bootstrap_samples: 200000
+  seed: 268000001
+  confirmatory_lower_quantile: 0.0125
+  descriptive_two_sided_quantiles:
+  - 0.025
+  - 0.975
+  all_methods_share_bootstrap_indices: true
+  zero_event_interval: report_episode_counts_and_layout_any_event_count; exact_one_sided_layout_binomial_upper_bound;
+    episode_binomial_bound_labelled_independence_assumption_only
+  all_zero_bootstrap_interval_as_safety_guarantee_forbidden: true
+  family_intervals: descriptive_hierarchical_intervals_without_confirmatory_family_claims
+power:
+  source: fresh_development_variance_or_prefinal_variance_pilot_only; never_final_outcomes
+  minimum_layouts_per_family: 20
+  replicates_per_layout: 3
+  increase_unit: one_layout_in_every_family
+  maximum_layouts_per_family: null
+  target_joint_gate_power: 0.8
+  monte_carlo_replicates: 10000
+  null_type1_simulations: 10000
+  relative_effect_sensitivity_grid:
+  - 0.08
+  - 0.1
+  - 0.12
+  - 0.15
+  effect_used_for_planning: freeze_justified_design_alternative_before_final
+  point_threshold_note: At true effect exactly 8%, an 8% point gate has about 50%
+    asymptotic passage; do not claim 80% full-gate power at that boundary.
+  completion_sensitivity_grid:
+  - 0.9
+  - 0.95
+  - 0.97
+  - 0.99
+  cluster_dependence: preserve empirical between_layout and within_layout variation
+    and paired method covariance
+  variance_uncertainty: use conservative upper variance scenario; report optimistic/central/conservative
+    achieved power
+  must_check:
+  - efficiency_each
+  - completion_noninferiority_each
+  - joint_acceptance_power
+  - type1_under_null
+  - cluster_index_preserves_pairs
+  final_sample_size_frozen_before_first_final_episode: true
+training_seed_stability:
+  minimum_models: 5
+  all_models_tested_each_family: true
+  primary_single_model_not_selected_on_final: true
+  secondary_cross_seed_characterization: freeze all five checkpoints and evaluate
+    same final layout/replicate blocks; additional four models do not replace primary
+    rows
+  minimum_additional_model_episodes_for_360_blocks: 1440
+  estimand: uniform_distribution_over_five_training_initializations_conditional_on_training_recipe
+  uncertainty: crossed_resampling_of_training_seed_and_layout_with_paired_environment_replicates
+  five_seeds_population_generalization_limitation_required: true
+  confirmatory_learned_training_method_claim: false
+secondary:
+  descriptive:
+  - pct_r2_frozen_comparison
+  - analytic_same_stack_comparison
+  - family_effects
+  - stress_ood
+  - safety_clearance
+  - latency
+  - resources
+  - mechanism_ablations
+  - training_seed_characterization
+  selective_significance_claims_forbidden: true
+  historical_pooling_forbidden: true
+execution_order:
+  algorithm: five_method_cyclic_Latin_square_and_reversed_square_in_balanced_ten_block_groups;
+    keyed_shuffling_within_family
+  order_seed: 268000002
+  balance_each_method_each_position: true
+  record_host_resource_state: true
+  formal_parallel_jobs: 1
+  warmup_and_common_route_equivalent_all_methods: true
+failure_accounting:
+  identity: stage/split/layout/replicate/method/model_id/attempt1
+  allocation_consumed_when: episode directory and started journal are atomically created
+    immediately before launch
+  retry_scientific_identity: false
+  replacement_seed: false
+  bootstrap_or_launch_failure: infrastructure_failure; time=cap; valid_completion=false;
+    retain logs
+  post_start_interruption: interrupted_infrastructure_failure; time=cap; valid_completion=false;
+    retain partial data
+  algorithm_failure: timeout/contact/clearance/mask/localization/model/control_fault;
+    time=cap; valid_completion=false
+  success: actual gate_to_goal_elapsed only if all validity gates pass
+  missing_report: cap plus explicit missing_report/integrity flag; cannot silently
+    omit row
+  unstarted_queue_rows: resume_exact_unstarted_identity_after_verifying_no_live_owned_process
+  already_started_process: poll_exact_process_handle; never_relaunch_because_observation_timeout
+  incomplete_final_schedule: formal_incomplete until all unstarted rows finished;
+    no superiority claim from partial favorable prefix
+  material_physics_or_geometry_bug_after_freeze: stop further affected execution;
+    retain terminal consumed rows; no repair-in-place final continuation; independent
+    review and report affected validity
+  diagnostic_rerun: fresh visualization_or_development_identity excluded from primary,
+    source link preserved
+  infrastructure_separate_stratum_report: true
+  algorithm_only_exclusion_sensitivity: secondary_and_clearly_labelled; does_not_replace_primary
+frozen_resource_roster:
+- code_tree_manifest
+- dirty_patch
+- all_models
+- normalization
+- candidate_semantics
+- evaluator
+- world_generator
+- layout_manifest
+- seed_registry
+- schedule
+- planner_yaml
+- launch
+- physics_plugin
+- URDF_SDF
+- sensor_config
+- dependency_lock
+- acceptance
+- statistics
+- splits

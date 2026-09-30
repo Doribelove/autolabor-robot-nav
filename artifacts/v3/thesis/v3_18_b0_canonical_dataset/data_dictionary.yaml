@@ -1,0 +1,60 @@
+schema_version: '1.0'
+row_unit: one_executed_episode_or_declared_offline_unit
+field_groups:
+  identity:
+  - stage
+  - sequence
+  - block_id
+  - attempt
+  - seed
+  - scene_id
+  - actor_policy
+  - method
+  - method_role
+  execution:
+  - simulation_only
+  - completed
+  - terminal_reason
+  - retry_used
+  - resume_used
+  - wall_time_s
+  - sim_time_s
+  task:
+  - goal_success
+  - restricted_time_s
+  - path_length_m
+  - final_position_error_m
+  safety:
+  - contact_count
+  - collision
+  - minimum_clearance_m
+  - emergency_count
+  - safety_fallback_used
+  planner:
+  - decision_count
+  - selected_candidate_id
+  - selected_accepted
+  - certified_stop_available
+  - planner_latency_p99_ms
+  - tracking_error_max_m
+  provenance:
+  - contract_sha256
+  - release_sha256
+  - schedule_sha256
+  - report_sha256
+  - raw_manifest_sha256
+  - source_revision
+  claim_scope:
+  - scientific_inclusion
+  - statistical_unit
+  - oracle_track_used
+  - training_steps
+  - hardware_accessed
+  - real_vehicle_used
+missing_value_policy: use null; never zero-fill an unavailable measurement
+failure_policy: retain every consumed identity and encode terminal_reason
+statistical_policy: block/scene-seed is the independent unit; frames are repeated
+  measures
+provenance_policy: bind contract/release/schedule/report/raw manifest with SHA-256
+authority_policy: simulation/offline by default; hardware rows require separate on-site
+  contract

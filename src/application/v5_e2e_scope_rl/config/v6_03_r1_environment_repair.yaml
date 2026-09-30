@@ -1,0 +1,35 @@
+schema_version: "1.0"
+architecture_generation: v6
+stage: V6-03-R1
+date: "2026-08-08"
+status: preregistered_environment_only_repair
+predecessor:
+  stage: V6-03-P0
+  release_sha256: 6b66cd4ea7832cb413c7bef32489d2bfc8eb3d57393617179701de956a167c19
+  consumed_identity: {seed: 954099, method: pct_scope_rl_v6, attempt: 1}
+  failure_boundary: before_ros_master_gazebo_world_or_control_execution
+  failure: sandbox_denied_local_network_interface_enumeration
+  remaining_units_forfeited: 2
+repair_factor:
+  name: execute_ros_gazebo_outside_network_namespace_sandbox
+  algorithm_change: false
+  scene_change: false
+  threshold_change: false
+  actor_change: false
+  evaluator_change: false
+fresh_preflight:
+  seed_start: 954106
+  seed_end: 954106
+  blocks: 1
+  episodes: 3
+  attempts_per_identity: 1
+  retries_resumes_replacements: forbidden
+qualification_and_formal:
+  reuse_unaccessed_frozen_v6_03_schedules: true
+authority:
+  fresh_preflight_authorized: true
+  qualification_only_after_r1_preflight_pass: true
+  formal_only_after_r1_qualification_pass: true
+  training_authorized: false
+  hardware_access_authorized: false
+  real_vehicle_authorized: false

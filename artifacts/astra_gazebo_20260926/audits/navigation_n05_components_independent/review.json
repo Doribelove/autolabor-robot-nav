@@ -1,0 +1,235 @@
+{
+  "schema": "astra_navigation_n05_components_independent_review_v1",
+  "status": "selection_and_actor_metadata_increment_review_pass_native_and_integration_pending",
+  "review_roles": {
+    "selector": "environment_audit independently reviews design_audit component",
+    "actor": "environment_audit independently reviews root N04-to-N05 delta only; original N04 actor authored by environment_audit and independently reviewed by historical_audit",
+    "prior_actor_review": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/review.json",
+      "sha256": "5076b048213cbae31f929817e8081cdae1e51d38e6ca8116b84157a08a42e327",
+      "bytes": 16648
+    }
+  },
+  "selector": {
+    "source": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_preview_selection_n05.py",
+      "sha256": "bb6afca768c421f70929b1215dcfe00791b7caaf870bcd72bc7e603869cc343c"
+    },
+    "design": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n05_preview_selection_design.json",
+      "sha256": "959b214b3f4a10da276ee46ce9c319c9f5ea8001551f9dc4626b97f9714baefc",
+      "bytes": 14722
+    },
+    "author_tests_independently_rerun": 19,
+    "log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_components_independent/selector_author_tests.log",
+      "sha256": "8c0271a5e1ee61447f9fa3fed550fc0607aa8d25ec1fb880536185d1d1ae1f26",
+      "bytes": 106
+    },
+    "independent_reference_cases": 36,
+    "conclusion": "Exact declared single selection factor: moving eligibility = original backup mask AND original unrounded full-preview clearance>=0. Index0 stop keeps its original backup eligibility. Rank/lowest-index ties use original analytic prior.",
+    "original_mask_prior_feature_mutation": false,
+    "original_class_monkeypatched": false,
+    "rollout": "Wrapper calls original rollout once per requested preview/backup, then verifies original returned object. Capture checks the16 alternating action/backup pairs and inherited backup values, with finally cleanup; no second geometry query.",
+    "full_preview": "float(original_verify_return), captured before clipping/normalization/float32 feature storage. Negative\u22121e\u221250 remains ineligible although candidate feature rounds to\u22120.",
+    "command": "state/step/predict/command/goal_reached remain exact inherited function objects. command revalidates backup on current scan/state; full-preview eligibility is a selection factor only, not a new control-time shield.",
+    "fallbacks": "No original backup pass retains original reason. Some moving backups but no eligible preview/stop returns index0/proposedNone with no_full_preview_eligible_action. It does not set stop backup mask true or certify a physical stop.",
+    "actor": "Any actor or checkpoint metadata rejected at construction; an actor installed later is rejected by select. No learned behavior in this treatment.",
+    "serialization": "Caller must retain original build/command lock; subclass explicitly rejects recursive capture and checks exact protocol. This helper does not supply a new ROS node or concurrent transaction owner.",
+    "rounded_input_boundary": "The public pure function checks shape/type/finiteness, not provenance. Passing an already-rounded float32 full array can change eligibility; independent fixture chooses7 for rounded\u22120 vs6 for original\u22121e\u221250. Current integration subclass supplies original values correctly. Future node must use build output without reconstructing from candidate features.",
+    "qualification": "Synthetic verifier fixtures establish factor isolation; no new full planner geometry benchmark, runtime latency or live closed-loop qualification."
+  },
+  "actor_metadata": {
+    "derivation": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_metadata_derivation/derivation.json",
+      "sha256": "88010866eed5a17cd2270389a59443cdbbea8ce59b2e7be1a38e89aab370bfe9",
+      "bytes": 2241
+    },
+    "files": [
+      {
+        "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_event_actor_gate_n04.h",
+        "original_sha256": "4155723019baf105e96fe3e4d01a2d417fbd1a022bf69741f7d614ed57e7b540",
+        "new_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_event_actor_gate_n05.h",
+        "new_sha256": "6ddaed507abf5728822f365126cbf4910a7b8814100a943e400ef1682974c4ff",
+        "changes": "stage namespace/schema N04 to N05; one added allowed method in identity tables only"
+      },
+      {
+        "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_event_actor_n04_plugin.cpp",
+        "original_sha256": "e947e9791d75bad421d14b3fd35c3c76483ea0f5fa086aedba5ec0d1353a1db2",
+        "new_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_event_actor_n05_plugin.cpp",
+        "new_sha256": "e2e6eb615106405b3aa60c6140d0341b9cbdef408fe0d8457f212efd97555f30",
+        "changes": "stage namespace/schema N04 to N05; one added allowed method in identity tables only"
+      },
+      {
+        "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/event_actor_contract_n04.py",
+        "original_sha256": "0eb396881f654fc4ee669ff420c12ab1135be284641152d95e919e9e63a45a4c",
+        "new_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/event_actor_contract_n05.py",
+        "new_sha256": "8107b8b23b90d7253f38f8fd3c0468e57241352101b595f73537d95d61a2b777",
+        "changes": "stage namespace/schema N04 to N05; one added allowed method in identity tables only"
+      }
+    ],
+    "exact_mechanical_reconstruction": true,
+    "permitted_changes": [
+      "N04/N05 C++ type/class/header names and logs",
+      "versioned plugin filename and status wire schema",
+      "exact one allowed method: astra_analytic_preview_eligible_n05"
+    ],
+    "methods_added": [
+      "astra_analytic_preview_eligible_n05"
+    ],
+    "methods_removed": [],
+    "event_topic_unchanged": "/astra/navigation/gate",
+    "status_topics_unchanged": "/astra/actors/<model>/gate_status",
+    "transport_limit_ns": 50000000,
+    "callback_begin_dt_lifecycle_policy_math_unchanged": true,
+    "actual_parent_world_parser": "Saved N04 prepared actor world, transformed only new plugin filename and new method identity, accepted by N05 parser and rejected by N04 parser.",
+    "boundaries": "Wrong method/seed/run/template/topic/transport/delay, duplicate and old spatial activation fields rejected; old status schema, stale/missing/future active latch, fault and identity errors rejected. All status timeline logic is byte-derived unchanged.",
+    "original_algorithm_newly_independently_reviewed": false,
+    "original_independent_review_inherited": true,
+    "no_compiler_or_native_tests_run": true,
+    "native_library_qualified": false,
+    "pending": [
+      "new targeted native build after N04 terminal",
+      "exact built ELF/source binding",
+      "new namespace consistent collector/evaluator/launch integration and live evidence"
+    ]
+  },
+  "independently_executed_checks": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_components_independent/checks.json",
+    "sha256": "782e792d3baca197959a43345f925f43e96d913ba7ee558c553ee7f8c1701e3d",
+    "bytes": 3462
+  },
+  "integration_requirements": [
+    "Use original RouteAwareRuntime for control and PreviewEligibleRuntime for treatment; no M08 tracker/actor factor.",
+    "Record true backup mask separately from selection_eligibility, original_analytic, chosen/proposed/reason and original unrounded full values.",
+    "Retain common command/terminal/deadline gates and physical evaluator; zero fallback is not a stop certificate.",
+    "Both paired methods use the same new actor metadata namespace/build and unchanged geometry/policy math.",
+    "Bind new module/source/native outputs in a fresh independently reviewed release; never mutate N04."
+  ],
+  "execution": {
+    "ros_started": false,
+    "build_started": false,
+    "benchmark_run": false,
+    "training": false,
+    "seed_allocation": false,
+    "source_modified": false,
+    "release_authority": false
+  },
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_preview_selection_n05.py",
+      "sha256": "bb6afca768c421f70929b1215dcfe00791b7caaf870bcd72bc7e603869cc343c",
+      "bytes": 6760
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_route_preview_selection_n05.py",
+      "sha256": "ab53844ff32545673cb7ac232eb2fd8a17bcad34db79e030e59f9ed0f6b0d4a9",
+      "bytes": 7390
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_preview_selection/tests.log",
+      "sha256": "a942b07bd9a2fd14906394561d557094dc79a87c67c5792f982fc38b7cbeddc4",
+      "bytes": 2028
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_preview_selection/API.md",
+      "sha256": "9fb5eeb4daf46c7d6c8e7acfaae84fc8ff6f7cffae37ea32e571cd2671d98624",
+      "bytes": 3473
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6",
+      "bytes": 22588
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+      "sha256": "a6f2bae1e63ddf14822a7a2d5151e20fbe4ad51ea80525ea388bd38fe6b9b1df",
+      "bytes": 15381
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n05_preview_selection_design.json",
+      "sha256": "959b214b3f4a10da276ee46ce9c319c9f5ea8001551f9dc4626b97f9714baefc",
+      "bytes": 14722
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_static_analytic_diagnosis/diagnosis.json",
+      "sha256": "3e0cec4476976f2d03471b85b8585ab86f717b57d5cb68ad5f44ee014e8f43d0",
+      "bytes": 10841
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_event_actor_gate_n04.h",
+      "sha256": "4155723019baf105e96fe3e4d01a2d417fbd1a022bf69741f7d614ed57e7b540",
+      "bytes": 5594
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_event_actor_gate_n05.h",
+      "sha256": "6ddaed507abf5728822f365126cbf4910a7b8814100a943e400ef1682974c4ff",
+      "bytes": 5633
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_event_actor_n04_plugin.cpp",
+      "sha256": "e947e9791d75bad421d14b3fd35c3c76483ea0f5fa086aedba5ec0d1353a1db2",
+      "bytes": 18243
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_event_actor_n05_plugin.cpp",
+      "sha256": "e2e6eb615106405b3aa60c6140d0341b9cbdef408fe0d8457f212efd97555f30",
+      "bytes": 18243
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/event_actor_contract_n04.py",
+      "sha256": "0eb396881f654fc4ee669ff420c12ab1135be284641152d95e919e9e63a45a4c",
+      "bytes": 9423
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/event_actor_contract_n05.py",
+      "sha256": "8107b8b23b90d7253f38f8fd3c0468e57241352101b595f73537d95d61a2b777",
+      "bytes": 9462
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_preview_selection/implementation_report.json",
+      "sha256": "b7aee8d0bbeb0ce0032e29de33a42bbc8dcfe023cc3a80eb2742b369e421b4aa",
+      "bytes": 3545
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_metadata_derivation/derivation.json",
+      "sha256": "88010866eed5a17cd2270389a59443cdbbea8ce59b2e7be1a38e89aab370bfe9",
+      "bytes": 2241
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/review.json",
+      "sha256": "5076b048213cbae31f929817e8081cdae1e51d38e6ca8116b84157a08a42e327",
+      "bytes": 16648
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_release_source_review/source_review.json",
+      "sha256": "35d7f227e281271aae3d4b256193346647d4606f48bc30b7f27e989256c50640",
+      "bytes": 412363
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_components_independent/selector_author_tests.log",
+      "sha256": "8c0271a5e1ee61447f9fa3fed550fc0607aa8d25ec1fb880536185d1d1ae1f26",
+      "bytes": 106
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_components_independent/checks.json",
+      "sha256": "782e792d3baca197959a43345f925f43e96d913ba7ee558c553ee7f8c1701e3d",
+      "bytes": 3462
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_components_independent/checks.log",
+      "sha256": "782e792d3baca197959a43345f925f43e96d913ba7ee558c553ee7f8c1701e3d",
+      "bytes": 3462
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_components_independent/check_components.py",
+      "sha256": "8f258a58c80d528e0a17a2ad5147c5e17049a88711c12826885bb179e57a8e4a",
+      "bytes": 7914
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_components_independent/write_review.py",
+      "sha256": "56a34a8e0fcd152b2774d5fa4c1d35c704c39fa85675f59642d4c949af1f5e16",
+      "bytes": 8914
+    }
+  ]
+}

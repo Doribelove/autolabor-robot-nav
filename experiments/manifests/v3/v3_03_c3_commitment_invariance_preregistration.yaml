@@ -1,0 +1,22 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C3
+preregistration_id: v3_scope_v3_03_c3_commitment_invariance_1
+date: "2026-07-24"
+status: frozen_before_offline_commitment_invariance_materialization
+contract: config/thesis_experiments/v3/v3_03_c3_commitment_invariance_contract.yaml
+single_factor:
+  factor_id: control_commitment_braking_forward_invariance
+  control_commitment_horizon_s: 0.25
+  minimum_braking_margin_m: 0.05
+  predictor_candidate_ranker_footprint_changes: false
+evidence:
+  c2_failure_state_is_required_fixture: true
+  property_grid_is_pure_offline: true
+authority:
+  simulation: false
+  training: false
+  move_base: false
+  cmd_vel_publish: false
+  hardware_device_access: false
+  real_vehicle: false

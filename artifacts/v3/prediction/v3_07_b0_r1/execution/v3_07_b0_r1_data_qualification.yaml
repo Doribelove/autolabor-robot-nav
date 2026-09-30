@@ -1,0 +1,37 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-07-B0-R1
+status: spatial_predictor_data_qualification_pass
+formal_result: false
+execution:
+  authorized_units: 50
+  consumed_units: 50
+  completed_units: 50
+  retry_units: 0
+metrics:
+  completed_rows: 50
+  training_rows: 30
+  calibration_rows: 20
+  common_prefix_position_error_max_m: 0.0
+  observed_mode_matches_evaluator_rate: 1.0
+  eligible_cell_count: 5
+  minimum_training_rows_per_eligible_cell: 6
+  minimum_calibration_rows_per_eligible_cell: 4
+  assertive_spatial_row_count: 0
+  minimum_conservative_clearance_m: 0.45949502473642023
+  conservative_clearance_violation_count: 0
+  nonfinite_metric_count: 0
+gates:
+  completed_pass: true
+  split_pass: true
+  prefix_pass: true
+  mode_pass: true
+  cell_count_pass: true
+  training_cell_pass: true
+  calibration_cell_pass: true
+  assertive_fail_closed_pass: true
+  clearance_pass: true
+  finite_pass: true
+qualified_for_frozen_supervised_model_fit: true
+overall_pass: true
+held_out_test_accessed: false

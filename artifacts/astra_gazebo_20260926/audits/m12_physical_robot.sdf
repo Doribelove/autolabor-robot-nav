@@ -1,0 +1,531 @@
+<sdf version='1.7'>
+  <model name='autolabor_m2'>
+    <link name='base_link'>
+      <inertial>
+        <pose>0 0 0.272673 0 -0 0</pose>
+        <mass>66.6</mass>
+        <inertia>
+          <ixx>3.31446</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>6.56831</iyy>
+          <iyz>0</iyz>
+          <izz>8.64441</izz>
+        </inertia>
+      </inertial>
+      <collision name='base_link_fixed_joint_lump__chassis_collision_collision'>
+        <pose>0 0 0.27 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1.04 0.7 0.32</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name='base_link_fixed_joint_lump__imu_link_collision_1'>
+        <pose>0 0 0.4 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.04 0.02</size>
+          </box>
+        </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode/>
+          </friction>
+        </surface>
+      </collision>
+      <collision name='base_link_fixed_joint_lump__laser_link_collision_2'>
+        <pose>0 0 0.6 0 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+        <surface>
+          <contact>
+            <ode/>
+          </contact>
+          <friction>
+            <ode/>
+          </friction>
+        </surface>
+      </collision>
+      <visual name='base_link_fixed_joint_lump__chassis_link_visual'>
+        <pose>0 0 0.27 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1.04 0.7 0.32</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Blue</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__imu_link_visual_1'>
+        <pose>0 0 0.4 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>0.04 0.04 0.02</size>
+          </box>
+        </geometry>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__laser_link_visual_2'>
+        <pose>0 0 0.6 0 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.05</radius>
+          </cylinder>
+        </geometry>
+      </visual>
+      <sensor name='m2_chassis_contact' type='contact'>
+        <always_on>1</always_on>
+        <update_rate>100</update_rate>
+        <contact>
+          <collision>chassis_collision</collision>
+          <topic>__default_topic__</topic>
+        </contact>
+        <plugin name='m2_contact_plugin' filename='libgazebo_ros_bumper.so'>
+          <robotNamespace>/</robotNamespace>
+          <bumperTopicName>m2_gazebo/contacts</bumperTopicName>
+          <frameName>base_link</frameName>
+        </plugin>
+        <pose>0 0 0 0 -0 0</pose>
+      </sensor>
+      <sensor name='m2_imu' type='imu'>
+        <always_on>1</always_on>
+        <update_rate>50</update_rate>
+        <plugin name='m2_imu_plugin' filename='libgazebo_ros_imu_sensor.so'>
+          <robotNamespace>/</robotNamespace>
+          <topicName>imu/data</topicName>
+          <bodyName>imu_link</bodyName>
+          <frameName>imu_link</frameName>
+          <updateRateHZ>50</updateRateHZ>
+          <gaussianNoise>0.0</gaussianNoise>
+          <xyzOffset>0 0 0</xyzOffset>
+          <rpyOffset>0 0 0</rpyOffset>
+        </plugin>
+        <pose>0 0 0.4 0 -0 0</pose>
+      </sensor>
+      <sensor name='m2_planar_laser' type='ray'>
+        <always_on>1</always_on>
+        <update_rate>15</update_rate>
+        <visualize>0</visualize>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>720</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159</min_angle>
+              <max_angle>3.14159</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.1</min>
+            <max>30</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </ray>
+        <plugin name='m2_laser_plugin' filename='libgazebo_ros_laser.so'>
+          <robotNamespace>/</robotNamespace>
+          <topicName>scan</topicName>
+          <frameName>laser_link</frameName>
+        </plugin>
+        <pose>0 0 0.6 0 -0 0</pose>
+      </sensor>
+    </link>
+    <joint name='front_left_steer_joint' type='revolute'>
+      <pose relative_to='base_link'>0.325 0.3 0.15 0 -0 0</pose>
+      <parent>base_link</parent>
+      <child>front_left_steer_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.7446</lower>
+          <upper>0.7446</upper>
+          <effort>300</effort>
+          <velocity>2</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.5</damping>
+          <friction>0.1</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='front_left_steer_link'>
+      <pose relative_to='front_left_steer_joint'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 -0 0</pose>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.000704167</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.000704167</iyy>
+          <iyz>0</iyz>
+          <izz>0.000208333</izz>
+        </inertia>
+      </inertial>
+      <collision name='front_left_steer_link_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>0.05 0.05 0.12</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='front_left_steer_link_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>0.05 0.05 0.12</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='front_left_wheel_joint' type='revolute'>
+      <pose relative_to='front_left_steer_link'>0 0 0 0 -0 0</pose>
+      <parent>front_left_steer_link</parent>
+      <child>front_left_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <effort>500</effort>
+          <velocity>30</velocity>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <damping>0.05</damping>
+          <friction>0.01</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='front_left_wheel_link'>
+      <pose relative_to='front_left_wheel_joint'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 -0 0</pose>
+        <mass>3</mass>
+        <inertia>
+          <ixx>0.018475</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.03375</iyy>
+          <iyz>0</iyz>
+          <izz>0.018475</izz>
+        </inertia>
+      </inertial>
+      <collision name='front_left_wheel_link_fixed_joint_lump__front_left_wheel_collision_collision'>
+        <pose>0 0 0 1.5708 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.15</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name='front_left_wheel_link_visual'>
+        <pose>0 0 0 1.5708 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.15</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+    </link>
+    <joint name='front_right_steer_joint' type='revolute'>
+      <pose relative_to='base_link'>0.325 -0.3 0.15 0 -0 0</pose>
+      <parent>base_link</parent>
+      <child>front_right_steer_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.7446</lower>
+          <upper>0.7446</upper>
+          <effort>300</effort>
+          <velocity>2</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.5</damping>
+          <friction>0.1</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='front_right_steer_link'>
+      <pose relative_to='front_right_steer_joint'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 -0 0</pose>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.000704167</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.000704167</iyy>
+          <iyz>0</iyz>
+          <izz>0.000208333</izz>
+        </inertia>
+      </inertial>
+      <collision name='front_right_steer_link_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>0.05 0.05 0.12</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='front_right_steer_link_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>0.05 0.05 0.12</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='front_right_wheel_joint' type='revolute'>
+      <pose relative_to='front_right_steer_link'>0 0 0 0 -0 0</pose>
+      <parent>front_right_steer_link</parent>
+      <child>front_right_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <effort>500</effort>
+          <velocity>30</velocity>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <damping>0.05</damping>
+          <friction>0.01</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='front_right_wheel_link'>
+      <pose relative_to='front_right_wheel_joint'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 -0 0</pose>
+        <mass>3</mass>
+        <inertia>
+          <ixx>0.018475</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.03375</iyy>
+          <iyz>0</iyz>
+          <izz>0.018475</izz>
+        </inertia>
+      </inertial>
+      <collision name='front_right_wheel_link_fixed_joint_lump__front_right_wheel_collision_collision'>
+        <pose>0 0 0 1.5708 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.15</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name='front_right_wheel_link_visual'>
+        <pose>0 0 0 1.5708 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.15</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+    </link>
+    <joint name='rear_left_wheel_joint' type='revolute'>
+      <pose relative_to='base_link'>-0.325 0.3 0.15 0 -0 0</pose>
+      <parent>base_link</parent>
+      <child>rear_left_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <effort>500</effort>
+          <velocity>30</velocity>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <damping>0.05</damping>
+          <friction>0.01</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='rear_left_wheel_link'>
+      <pose relative_to='rear_left_wheel_joint'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 -0 0</pose>
+        <mass>3</mass>
+        <inertia>
+          <ixx>0.018475</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.03375</iyy>
+          <iyz>0</iyz>
+          <izz>0.018475</izz>
+        </inertia>
+      </inertial>
+      <collision name='rear_left_wheel_link_fixed_joint_lump__rear_left_wheel_collision_collision'>
+        <pose>0 0 0 1.5708 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.15</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name='rear_left_wheel_link_visual'>
+        <pose>0 0 0 1.5708 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.15</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+    </link>
+    <joint name='rear_right_wheel_joint' type='revolute'>
+      <pose relative_to='base_link'>-0.325 -0.3 0.15 0 -0 0</pose>
+      <parent>base_link</parent>
+      <child>rear_right_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <effort>500</effort>
+          <velocity>30</velocity>
+          <lower>-1e+16</lower>
+          <upper>1e+16</upper>
+        </limit>
+        <dynamics>
+          <damping>0.05</damping>
+          <friction>0.01</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='rear_right_wheel_link'>
+      <pose relative_to='rear_right_wheel_joint'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 -0 0</pose>
+        <mass>3</mass>
+        <inertia>
+          <ixx>0.018475</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.03375</iyy>
+          <iyz>0</iyz>
+          <izz>0.018475</izz>
+        </inertia>
+      </inertial>
+      <collision name='rear_right_wheel_link_fixed_joint_lump__rear_right_wheel_collision_collision'>
+        <pose>0 0 0 1.5708 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.15</radius>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name='rear_right_wheel_link_visual'>
+        <pose>0 0 0 1.5708 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <length>0.08</length>
+            <radius>0.15</radius>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <name>Gazebo/Black</name>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+          </script>
+        </material>
+      </visual>
+    </link>
+    <plugin name='astra_physical_ackermann' filename='libastra_physical_ackermann_plugin.so'>
+      <wheelbase>0.65</wheelbase>
+      <track>0.6</track>
+      <wheelRadius>0.15</wheelRadius>
+      <maxSpeed>2.778</maxSpeed>
+      <maxSteer>0.4964</maxSteer>
+      <expectedMass>79.6</expectedMass>
+      <commandTimeout>0.5</commandTimeout>
+      <publishRate>50.0</publishRate>
+      <dynamicsSeed>42</dynamicsSeed>
+      <publishTf>1</publishTf>
+      <speedTimeConstant>0.22</speedTimeConstant>
+      <steeringTimeConstant>0.18</steeringTimeConstant>
+      <maxAcceleration>0.6</maxAcceleration>
+      <maxDeceleration>0.9</maxDeceleration>
+      <maxBrakeDeceleration>0.9</maxBrakeDeceleration>
+      <maxEmergencyDeceleration>0.9</maxEmergencyDeceleration>
+      <maxSteeringRate>0.75</maxSteeringRate>
+      <commandDelay>0.0</commandDelay>
+      <commandJitter>0.0</commandJitter>
+      <wheelKp>4.0</wheelKp>
+      <wheelKi>2.0</wheelKi>
+      <wheelIntegralTorqueLimit>1.5</wheelIntegralTorqueLimit>
+      <wheelDriveTorqueLimit>8.0</wheelDriveTorqueLimit>
+      <wheelBrakeTorqueLimit>12.0</wheelBrakeTorqueLimit>
+      <steeringKp>60.0</steeringKp>
+      <steeringKd>4.0</steeringKd>
+      <steeringTorqueLimit>20.0</steeringTorqueLimit>
+      <wheelJointDamping>0.05</wheelJointDamping>
+      <wheelJointFriction>0.01</wheelJointFriction>
+    </plugin>
+    <frame name='chassis_joint' attached_to='base_link'>
+      <pose>0 0 0 0 -0 0</pose>
+    </frame>
+    <frame name='chassis_link' attached_to='chassis_joint'/>
+    <frame name='imu_joint' attached_to='base_link'>
+      <pose>0 0 0.4 0 -0 0</pose>
+    </frame>
+    <frame name='imu_link' attached_to='imu_joint'/>
+    <frame name='laser_joint' attached_to='base_link'>
+      <pose>0 0 0.6 0 -0 0</pose>
+    </frame>
+    <frame name='laser_link' attached_to='laser_joint'/>
+  </model>
+</sdf>

@@ -1,0 +1,9 @@
+# Q04 graphics mapping compatibility
+
+Q03 preserved the actual failure: `/memfd:/.glXXXXXX (deleted)` had one8KB shared RX and one8KB shared RW mapping at offset0 with the same device/inode. The independent local16×16GLX pbuffer probe created this exact alias after `glXMakeContextCurrent`; it disappeared when the context was cleaned up. Before loading OpenGL and before context creation it was absent. NVIDIA GL version580.82.09 was reported by the actual context. No ROS/Gazebo process or visible window was started.
+
+New inventory v2 records only this exact alias shape as external graphics dynamic code. It requires all three actual NVIDIA render-driver backing files with exact path/SHA and mapped inode/device/ELF/BuildID checks. It does not assert that the anonymous code bytes were inspected, hashed or proved to originate in a particular function. Every other deleted executable/required ELF or unknown custom Astra library still fails closed. Raw maps are durably written before interpretation and failure audits retain their hashes. Physics/ROS/custom ELF source closure remains distinct from external graphics binary/pattern evidence.
+
+Q04 uses fresh design seeds260926029/030 and new source files; Q03 sources remain byte-identical. The physical model, Kd6, actor, command pulses, contact/swept gates and bounded failure-stop schedule are unchanged. The explicit Q03 incomplete-window RTF fix, socket TIME_WAIT handling and process-start identity checks are inherited.
+
+145 offline tests pass, including replay of the real Q03 maps against every required physics role and actual driver files, plus GLX before/after snapshots and policy counterexamples. Both new Kd6 URDFs and offline launch parameter dumps pass; prepared_r01 has61 resources and no missing files. Component JSON contains exact bindings and a normalized source diff. Root review, registry and execution are still required; this component run created no attempts.

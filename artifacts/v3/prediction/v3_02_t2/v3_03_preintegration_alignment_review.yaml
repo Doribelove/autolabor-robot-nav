@@ -1,0 +1,28 @@
+schema_version: "1.0"
+architecture_generation: v3
+review_id: v3_scope_v3_03_preintegration_alignment_review_1
+status: planner_integration_blocked_candidate_prefix_misalignment
+source_predictor_result:
+  stage: V3-02-T2
+  result_remains_valid_within_claim_scope: true
+  finite_parameterized_crossing_prediction_pass: true
+issue:
+  predictor_observation_time_s: 0.50
+  existing_candidate_branch_time_s: 0.0
+  candidate_trajectories_share_prefix_through_observation: false
+  consequence: >-
+    Actor histories at the predictor observation can already differ by
+    candidate, so the rows are not valid branches from one common online
+    decision state.
+planner_authorization:
+  integrate_T2_model_directly: false
+  safety_verifier_claim_allowed: false
+required_repair:
+  stage: V3-02-C1
+  common_prefix_duration_s: 0.50
+  common_prefix_ego_speed_mps: 0.80
+  branch_time_s: 0.50
+  predictor_observation_time_s: 0.50
+  fresh_train_calibration_and_test_data_required: true
+  prior_test_seed_reuse_allowed: false
+  frozen_coverage_width_and_firewall_gates_retained: true

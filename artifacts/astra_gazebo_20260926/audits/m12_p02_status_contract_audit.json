@@ -1,0 +1,65 @@
+{
+  "status": "p02_status_contract_urdf_author_verification_pass",
+  "review_independence": "Implementation author verification; not represented as an independent-author review. Root/historical handle independent release review.",
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p02_plugin.cpp",
+      "sha256": "da1f1a39e7489c8996d6c16d6eeca5180247331c67687c557ab65f1c13d84a68"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_plugin.cpp",
+      "sha256": "8b5d45c0943956d13b1229279924a16dfc2565470d7304266800968270d93e98"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_robot_description.xml",
+      "sha256": "57fea5abe66e046eeb82a9bcd479079fff0688aba67155238a9c3da95fdffa29"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p01.yaml",
+      "sha256": "106d7ced1aa43bb37a3fa7f1b55195bf68bf5d4187d6c9ed6a0e93e27cfb7fbb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p02.yaml",
+      "sha256": "0015576bb4d8a087e2fdbeb8919d7050b9561719050292db31d394e7404dc3c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_status_implementation_review.json",
+      "sha256": "37542c1740c00275bc8764a689a14a617d36b99ded389d5b982b0e956cd21d61"
+    }
+  ],
+  "checks": {
+    "all_control_numeric_params_unchanged": true,
+    "all_control_booleans_unchanged": true,
+    "all_motion_gates_unchanged": true,
+    "phase_schedule_unchanged": true,
+    "expanded_urdf_numeric_params_match_contract": true,
+    "status_topic_is_required": true,
+    "50Hz_measured_status_same_cadence_as_existing_odom_targets": true,
+    "500Hz_physics_ten_steps_per_status": true
+  },
+  "source_time_coverage_reasoning": {
+    "normal": "one DiagnosticArray at each existing End publication; same now and50Hz guard as odom/joints/targets",
+    "state_fault": "same valid source now, ERROR and backend_fault=true; no bad motion payloads are fabricated",
+    "clock_fault": "Bool/log only; no fabricated DiagnosticArray stamp; recorder must retain missing-source failure",
+    "coverage_failure": "queue1000 reduces transport drops but does not prove delivery. Probe must enforce strictly increasing header stamps,50Hz rate,source gaps and source-phase coverage; receipt gaps must not substitute for source gaps",
+    "cadence_boundary": "WorldUpdateEnd publication phase can differ from other publisher Load epochs; warmup/source-slot qualification remains a live obligation"
+  },
+  "message_fields": {
+    "header_stamp": "WorldUpdateEnd current simulation clock",
+    "one_status": true,
+    "name": "astra_physical_ackermann",
+    "hardware_id": "simulation-only",
+    "values_exact": [
+      "backend_fault",
+      "command_timeout",
+      "brake",
+      "emergency"
+    ],
+    "value_format": "lowercase strings true/false",
+    "level": "fault ERROR takes precedence over timeout WARN; otherwiseOK"
+  },
+  "dynamics_equivalence_evidence": "Three reverse-edit/exact-source/xacro tests and expanded URDF canonical equality; complete parent code recovered byte-for-byte after removal of allowed telemetry changes and class rename.",
+  "build_or_ros_started": false,
+  "source_frozen": true,
+  "live_delivery_qualified": false
+}

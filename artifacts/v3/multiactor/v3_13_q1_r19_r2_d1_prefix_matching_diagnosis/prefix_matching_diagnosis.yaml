@@ -1,0 +1,64 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R19-R2-D1
+status: offline_prefix_matching_diagnosis_pass
+upstream:
+  collection_summary_sha256: e00202347a9aa374d539046f34e53c644a24831c223c3004771abc83ea3b58a7
+  support_assessment_sha256: ef50fedcfdd12ff5ec0d64dd863c7a78c37dc05216c711446a257f71eb8fa284
+  evidence_freeze_sha256: 8bfbe851e01a487214d72b156240fa9959ae912885a9a6e0389465bed4215555
+  independent_result_review_sha256: c362f03431515b03e6cb1cafd93812317ede0abd285660495261d4b1f66969b3
+replayed_episode_count: 40
+failed_matching_blocks:
+- block_index: 1
+  seed: 7678
+  warmup_duration_range_s: 0.05000000000000071
+  gate_ego_x_range_m: 0.01600143721424585
+  decision_ego_x_range_m: 0.048003227405829296
+  actor_coordinate_ranges_m:
+  - track_id: 1
+    coordinate_range_m: 0.07338972389807008
+  - track_id: 2
+    coordinate_range_m: 0.03598959085200448
+- block_index: 8
+  seed: 7685
+  warmup_duration_range_s: 0.04999999999999982
+  gate_ego_x_range_m: 0.03199695171308736
+  decision_ego_x_range_m: 0.048003227405829296
+  actor_coordinate_ranges_m:
+  - track_id: 1
+    coordinate_range_m: 0.0857634764665205
+  - track_id: 2
+    coordinate_range_m: 0.04755746217599288
+failure_scope:
+  paired_ego_x_gate: false
+  paired_actor_coordinate_gate: false
+  all_other_collection_gates: true
+  r3_terminal_guard_execution_rate: 1.0
+  r3_boundary_atomic_execution_rate: 1.0
+  r3_minimum_dynamic_clearance_m: 0.09193651735945996
+  r3_contact_state_count: 0
+causal_attribution:
+  warmup_command_loop_hz: 20
+  warmup_sample_period_s: 0.05
+  failed_block_warmup_duration_range_s: 0.05
+  gate_crossing_is_sampled_not_state_locked: true
+  actor_activation_is_conditioned_on_ego_x: true
+  mechanism: one 20 Hz warmup sample changes the stopped ego pose; the ego-x actor
+    activation and reactive prefix then amplify the cloned branch-state difference
+  post_branch_boundary_atomic_execution_is_not_causal: true
+single_factor_repair_design:
+  factor: prebranch_warmup_command_sampling_rate_hz
+  control: 20
+  treatment: 100
+  gate_position_and_speed_thresholds_unchanged: true
+  actor_plugin_unchanged: true
+  candidate_geometry_and_postbranch_execution_unchanged: true
+  next_stage: fresh_one_block_five_action_matching_preflight
+R19_R2_remains_failed: true
+R19_R2_seed_reuse_authorized: false
+predictor_fit_authorized: false
+actual_TEB_execution_authorized: false
+perception_execution_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

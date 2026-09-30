@@ -1,0 +1,85 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity_r02.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity_r03.py
+@@ -21,6 +21,9 @@
+  'retry_allowed','resume_allowed','prepared','schedule','preparation_manifest','source_review','d04_review',
+  'passive_geometry_qualification','conversion_bundle','runtime_closure','registry_baseline','predecessor_ledger','resources'}
+ REGISTRY_FIELDS=('namespace','split','purpose','seed','run_id','status','source_binding')
++ASSESSMENT_SOURCES=('fixture.bag','world.sdf','robot_description_runtime.xml','collector_raw.json','collector_report.json','run_closure.json')
++ASSESSMENT_CHECKS={'collector_complete','passive_source_geometry_complete','contact_source_coverage','contact_message_contract','contact_metadata_complete','physical_status_message_contract','physical_status_source_coverage','goal_source_contract','shared_actor_gate_identity_timing'}
++METADATA_FIELDS={'started_utc','ended_utc','exit_code','pid','process_group','command_json','cwd','heartbeat_path','receipt_path','bindings_sha256','code_sha256','config_sha256','model_sha256','report_path','raw_path'}
+ 
+ def digest(data):return hashlib.sha256(data).hexdigest()
+ def json_bytes(data):return (json.dumps(data,sort_keys=True,indent=2,allow_nan=False)+'\n').encode()
+@@ -119,19 +122,59 @@
+     error=receipt.get('error');assessment=receipt.get('assessment');code=receipt.get('roslaunch_exit_code');task=receipt.get('task_outcome')
+     if error is not None and (type(error)is not str or not error):raise ValueError('receipt error must be None or nonempty text')
+     if code is not None and type(code)is not int:raise ValueError('receipt process code must be integer or absent')
+-    dependencies=[];report=None
++    root=STAGE/'runs'/row['run_id'];dependencies=[];report=None
++    contract_binding=binding(prepared_api.PREPARED/row['run_id']/'contract.json');contract=json_bound(contract_binding)
+     if assessment is not None:
++        if type(assessment)is not dict or assessment.get('path')!=str(root/'assessment.json'):raise ValueError('assessment canonical run path required')
+         report=json_bound(assessment);dependencies.append(assessment)
+         if type(report)is not dict or report.get('schema')!='astra_navigation_assessment_v1' or report.get('stage')!=NAME or any(not same_typed(report.get(k),row[k]) for k in ('run_id','seed','method')):raise ValueError('assessment identity mismatch')
+         if type(report.get('capture_integrity_pass'))is not bool or type(report.get('task'))is not dict or report['task'].get('task_phase') not in evidence.TERMINAL_PHASES or task!=report['task']['task_phase']:raise ValueError('receipt/assessment task or integrity semantics disagree')
+         checks=report.get('integrity_checks')
+-        if type(checks)is not dict or not checks or any(type(v)is not bool for v in checks.values()) or all(checks.values())!=report['capture_integrity_pass']:raise ValueError('assessment integrity checks disagree')
+-        for item in (report.get('source_bindings') or {}).values():read_bound(item);dependencies.append(item)
+-        if report.get('sweep_report') is not None:read_bound(report['sweep_report']);dependencies.append(report['sweep_report'])
++        if type(checks)is not dict or set(checks)!=ASSESSMENT_CHECKS or any(type(v)is not bool for v in checks.values()) or all(checks.values())!=report['capture_integrity_pass']:raise ValueError('assessment exact integrity checks disagree')
++        sources=report.get('source_bindings')
++        if type(sources)is not dict or set(sources)!=set(ASSESSMENT_SOURCES):raise ValueError('assessment complete source bindings required')
++        for name,item in sources.items():
++            if type(item)is not dict or item.get('path')!=str(root/name):raise ValueError('assessment source canonical run path required')
++            read_bound(item);dependencies.append(item)
++        if sources['world.sdf']['sha256']!=contract['world']['sha256'] or sources['robot_description_runtime.xml']['sha256']!=contract['robot_description']['sha256']:raise ValueError('assessment world/URDF differs from frozen contract')
++        sweep=report.get('sweep_report')
++        if type(sweep)is not dict or sweep.get('path')!=str(root/'sweep_evaluation/report.json'):raise ValueError('canonical bound sweep report required')
++        sweep_value=json_bound(sweep);dependencies.append(sweep)
++        if sweep_value.get('schema')!='astra_p04_engineering_sweep_v1' or type(sweep_value.get('integrity_pass'))is not bool or (checks['passive_source_geometry_complete'] and sweep_value['integrity_pass']is not True):raise ValueError('bound sweep integrity disagrees')
++        sweep_sources=sweep_value.get('source_bindings');code_dir=prepared_api.WORKSPACE/'scripts/astra_gazebo'
++        expected_paths={str(root/name) for name in ('fixture.bag','world.sdf','robot_description_runtime.xml','run_closure.json','converted_robot.sdf','conversion_manifest.json')}|{str(code_dir/name) for name in ('dense_sweep_n05.py','dense_sweep.py','geometry.py','evaluate_episode_n05.py','event_actor_contract_n05.py')}
++        if type(sweep_sources)is not list or len(sweep_sources)!=len(expected_paths) or {item.get('path') for item in sweep_sources if type(item)is dict}!=expected_paths:raise ValueError('complete canonical sweep source roster required')
++        for item in sweep_sources:
++            read_bound(item);dependencies.append(item)
++            name=Path(item['path']).name
++            if name in ('fixture.bag','world.sdf','robot_description_runtime.xml','run_closure.json') and item!=sources[name]:raise ValueError('assessment/sweep source binding mismatch')
++        for name in ('collector_raw.json','collector_report.json'):
++            value=json_bound(sources[name])
++            if value.get('stage')!=NAME or any(not same_typed(value.get(k),row[k]) for k in ('run_id','seed','method')):raise ValueError('bound collector identity disagrees')
++            if name=='collector_report.json' and (type(value.get('pass'))is not bool or value['pass']!=checks['collector_complete']):raise ValueError('bound collector completion disagrees')
++        closure=json_bound(sources['run_closure.json'])
++        if closure.get('schema')!='astra_p04_run_closure_v1' or closure.get('stage')!=NAME or closure.get('run_id')!=row['run_id']:raise ValueError('bound run closure identity disagrees')
+     elif task is not None:raise ValueError('task outcome without an assessment')
+     if receipt['integrity_pass']:
+         if error is not None or code!=0 or report is None or report['capture_integrity_pass']is not True:raise ValueError('successful integrity requires zero process exit, no error and bound passing assessment')
+     elif error is None and (report is None or report['capture_integrity_pass']is not False):raise ValueError('failed integrity requires retained error or negative assessment')
++    metadata=receipt.get('administrative_metadata')
++    if type(metadata)is not dict or set(metadata)!=METADATA_FIELDS:raise ValueError('closed administrative metadata required; identity overrides forbidden')
++    expected={'receipt_path':str(root/'receipt.json'),'report_path':'' if assessment is None else str(root/'assessment.json'),
++        'raw_path':str(root/'collector_raw.json') if (root/'collector_raw.json').is_file() else '',
++        'heartbeat_path':str(root/'heartbeat.json'),'cwd':str(prepared_api.WORKSPACE),'bindings_sha256':release_sha,
++        'code_sha256':binding(prepared_api.WORKSPACE/'scripts/astra_gazebo/run_navigation_n06_manager_r03.py')['sha256'],
++        'config_sha256':contract_binding['sha256'],'model_sha256':'',
++        'exit_code':'' if code is None else code}
++    if any(not same_typed(metadata.get(k),v) for k,v in expected.items()):raise ValueError('metadata canonical path/hash/value differs')
++    if strict_json(metadata['command_json'])!=['/opt/ros/noetic/bin/roslaunch',str(root/'fixture.launch')]:raise ValueError('metadata launch command differs')
++    if any(type(metadata[k])is not str or not metadata[k] for k in ('started_utc','ended_utc')):raise ValueError('metadata timestamps missing')
++    process_path=root/'process.json';process={}
++    if process_path.is_file():
++        item=binding(process_path);process=json_bound(item);dependencies.append(item)
++        if type(process.get('pid'))is not int or process['pid']<=1 or type(process.get('pgid'))is not int:raise ValueError('process identity malformed')
++    if receipt['integrity_pass'] and not process:raise ValueError('successful receipt requires bound process identity')
++    if not same_typed(metadata['pid'],process.get('pid','')) or not same_typed(metadata['process_group'],process.get('pgid','')):raise ValueError('metadata process identity differs')
+     return dependencies
+ 
+ def terminal(state,reason=None):
+@@ -144,7 +187,7 @@
+ def required_manager_paths():
+     p=prepared_api.WORKSPACE/'scripts/astra_gazebo'
+     venv=prepared_api.WORKSPACE/'.venv';site=venv/'lib/python3.8/site-packages'
+-    return [p/name for name in ('run_navigation_n06_manager_r02.py','navigation_n06_integrity_r02.py','navigation_n06_process_r02.py','navigation_n06_admin_plan_r02.py')]+[
++    return [p/name for name in ('run_navigation_n06_manager_r03.py','navigation_n06_integrity_r03.py','navigation_n06_process_r03.py','navigation_n06_admin_plan_r03.py')]+[
+         Path('/usr/include/x86_64-linux-gnu/asm/unistd_64.h'),Path('/usr/include/linux/prctl.h'),venv/'pyvenv.cfg',
+         site/'_virtualenv.py',site/'_distutils_hack/__init__.py',site/'_virtualenv.pth',site/'distutils-precedence.pth',site/'matplotlib-3.7.5-py3.8-nspkg.pth']
+ 

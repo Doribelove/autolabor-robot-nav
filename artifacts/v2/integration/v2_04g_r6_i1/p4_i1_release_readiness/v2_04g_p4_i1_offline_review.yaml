@@ -1,0 +1,42 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P4-I1
+status: p4_i1_independent_one_unit_execution_readiness_pass_release_absent
+review_result: pass
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: true
+execution_authorized: true
+authorized_evidence_units_max: 1
+consumed_evidence_units: 0
+release_present_during_review: false
+fresh_identity:
+  seed: 5924
+  probe: high_speed_to_conflict_overlay_transition
+  candidate_speed_mps: 1.25
+single_factor_review:
+  runtime_profile_id: r6_semantics_circle_contact
+  evidence_candidate_method_id: circle_contact_v125
+  runtime_profile_accepted_by_consumer: true
+  base_and_transaction_commands_match_runner: true
+  behavioral_TEB_parameter_change: false
+dependency_closure:
+  local_resources_verified: 650
+  external_resources_verified: 301
+  unresolved: []
+budget_review:
+  round_3_maximum_units: 704
+  this_release_units: 1
+  future_units_authorized: 0
+  additive_expansion: false
+side_effect_audit:
+  execution_root_absent: true
+  release_absent: true
+  runtime_processes: []
+  ROS_or_Gazebo_started_by_review: false
+  held_out_test_accessed: false
+reviewer:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p4_i1_offline_reviewer.py
+  sha256: bab4f7785700e0e92f7e820c54495bbc15253988a50f48d5b04654024c3510f1
+next_safe_entry: create_one_exact_release_then_execute_once

@@ -1,0 +1,257 @@
+{
+  "status": "independent_same_lexical_callback_finally_regression_pass",
+  "cases": [
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_no_pending_after_response",
+      "integrated_AST_sha256": "4eb25c8c71e6ba78d2f274dec477a7636fd4eec660ba2cdd02aa6d4d0e3e1325"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [
+        "links"
+      ],
+      "delivery": "after_response",
+      "expected_pass": false,
+      "actual_pass": false,
+      "exact_error": [
+        {
+          "error": "'GetWorldPropertiesResponse' object is not callable",
+          "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 576, in callback\n    try:fn(msg)\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 654, in <lambda>\n    rospy.Subscriber('/astra/world_links',WorldState,protected(lambda m:world(m,'links')),queue_size=5000),\nTypeError: 'GetWorldPropertiesResponse' object is not callable\n"
+        }
+      ],
+      "failure": {
+        "type": "RuntimeError",
+        "message": "source evidence terminal drain deadline",
+        "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 767, in integrated_runtime_callback_and_complete_finally\n    else:raise RuntimeError('source evidence terminal drain deadline')\nRuntimeError: source evidence terminal drain deadline\n"
+      },
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_links_after_response",
+      "integrated_AST_sha256": "4eb25c8c71e6ba78d2f274dec477a7636fd4eec660ba2cdd02aa6d4d0e3e1325"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [
+        "models"
+      ],
+      "delivery": "after_response",
+      "expected_pass": false,
+      "actual_pass": false,
+      "exact_error": [
+        {
+          "error": "'GetWorldPropertiesResponse' object is not callable",
+          "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 576, in callback\n    try:fn(msg)\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 653, in <lambda>\n    subscribers=[rospy.Subscriber('/astra/world_models',WorldState,protected(lambda m:world(m,'models')),queue_size=5000),\nTypeError: 'GetWorldPropertiesResponse' object is not callable\n"
+        }
+      ],
+      "failure": {
+        "type": "RuntimeError",
+        "message": "source evidence terminal drain deadline",
+        "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 767, in integrated_runtime_callback_and_complete_finally\n    else:raise RuntimeError('source evidence terminal drain deadline')\nRuntimeError: source evidence terminal drain deadline\n"
+      },
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_after_response",
+      "integrated_AST_sha256": "4eb25c8c71e6ba78d2f274dec477a7636fd4eec660ba2cdd02aa6d4d0e3e1325"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [
+        "models",
+        "links"
+      ],
+      "delivery": "after_response",
+      "expected_pass": false,
+      "actual_pass": false,
+      "exact_error": [
+        {
+          "error": "'GetWorldPropertiesResponse' object is not callable",
+          "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 576, in callback\n    try:fn(msg)\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 653, in <lambda>\n    subscribers=[rospy.Subscriber('/astra/world_models',WorldState,protected(lambda m:world(m,'models')),queue_size=5000),\nTypeError: 'GetWorldPropertiesResponse' object is not callable\n"
+        },
+        {
+          "error": "'GetWorldPropertiesResponse' object is not callable",
+          "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 576, in callback\n    try:fn(msg)\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 654, in <lambda>\n    rospy.Subscriber('/astra/world_links',WorldState,protected(lambda m:world(m,'links')),queue_size=5000),\nTypeError: 'GetWorldPropertiesResponse' object is not callable\n"
+        }
+      ],
+      "failure": {
+        "type": "RuntimeError",
+        "message": "source evidence terminal drain deadline",
+        "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 767, in integrated_runtime_callback_and_complete_finally\n    else:raise RuntimeError('source evidence terminal drain deadline')\nRuntimeError: source evidence terminal drain deadline\n"
+      },
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_after_response",
+      "integrated_AST_sha256": "4eb25c8c71e6ba78d2f274dec477a7636fd4eec660ba2cdd02aa6d4d0e3e1325"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [
+        "models",
+        "links"
+      ],
+      "delivery": "before_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_before_response",
+      "integrated_AST_sha256": "9d08475106e78fafae39fd88ef6643466b048cbfaafe28b1e17027da85e1fbe4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_no_pending_after_response",
+      "integrated_AST_sha256": "a693a95a8265d9b747cf648c414934c16f106fa2cd2edbc953b89c3e3ae8a2b4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [
+        "links"
+      ],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_links_after_response",
+      "integrated_AST_sha256": "a693a95a8265d9b747cf648c414934c16f106fa2cd2edbc953b89c3e3ae8a2b4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [
+        "models"
+      ],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_after_response",
+      "integrated_AST_sha256": "a693a95a8265d9b747cf648c414934c16f106fa2cd2edbc953b89c3e3ae8a2b4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [
+        "models",
+        "links"
+      ],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_after_response",
+      "integrated_AST_sha256": "a693a95a8265d9b747cf648c414934c16f106fa2cd2edbc953b89c3e3ae8a2b4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [
+        "models",
+        "links"
+      ],
+      "delivery": "before_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_before_response",
+      "integrated_AST_sha256": "488efd941405540f092f61f1d4ba2683545d199adea09677d7e771c773c377d7"
+    }
+  ],
+  "case_count": 10,
+  "same_scope_nested_function_reassignment_audit": {
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py": {
+      "nested_function_names": [
+        "call_service",
+        "command_event",
+        "contact",
+        "diagnostic",
+        "header",
+        "pp",
+        "protected",
+        "record",
+        "recorder_ready",
+        "service",
+        "trigger_start",
+        "world"
+      ],
+      "same_scope_reassignments": [
+        {
+          "name": "world",
+          "line": 738
+        }
+      ]
+    },
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py": {
+      "nested_function_names": [
+        "call_service",
+        "command_event",
+        "contact",
+        "diagnostic",
+        "header",
+        "pp",
+        "protected",
+        "record",
+        "recorder_ready",
+        "service",
+        "trigger_start",
+        "world"
+      ],
+      "same_scope_reassignments": []
+    },
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p07.py": {
+      "nested_function_names": [
+        "diagnostics",
+        "publish_status",
+        "send",
+        "start",
+        "unique_publishers",
+        "watch_publishers"
+      ],
+      "same_scope_reassignments": []
+    }
+  },
+  "source_only_stage_change": true,
+  "probe_exact_doc_node_and_response_variable_rename_only": true,
+  "historical_failure_reproduced": true,
+  "new_delayed_models_and_links_both_pass": true,
+  "all_postclose_callbacks_ignored": true,
+  "no_ROS_or_simulation_started": true,
+  "physical_qualification_evidence": false,
+  "script_sha256": "c4e625636ec1b1522f3b894acfb9f341f539d4276fdc62566fe561d2256d1dac"
+}

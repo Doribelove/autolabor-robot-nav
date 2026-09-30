@@ -1,0 +1,2673 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-02-E1
+assessment_id: v3_02_e1_heldout_assessment_1
+status: v3_02_e1_observed_mode_heldout_predictor_pass
+formal_predictor_result: true
+frozen_model_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+frozen_mode_gate_sha256: c1fd1f18c7065039709aa6d35aa5da7b9fd1550c316233d45792e66f8f5655e4
+execution:
+  authorized_units: 45
+  consumed_units: 45
+  completed_units: 45
+  retry_units: 0
+metrics:
+  classifier_correct_count: 45
+  classifier_accuracy: 1.0
+  ambiguous_episode_count: 0
+  marginal_coverage: 0.9388888888888889
+  per_horizon_coverage:
+    t1_5: 1.0
+    t2_5: 0.9555555555555556
+    t3_5: 0.9333333333333333
+    t4_5: 0.8666666666666667
+  mean_full_envelope_width_m: 0.958049613252001
+  actual_mode_mae_m: 0.19728536117027035
+  minimum_candidate_sensitivity_m: 0.7427092649108262
+  physical_coordinate_violation_count: 0
+  maximum_common_prefix_actor_coordinate_spread_m: 0.0
+  maximum_common_prefix_actor_speed_spread_mps: 0.0
+  maximum_ego_trace_position_error_m: 3.3333413806957424e-10
+  maximum_planned_acceleration_mps2: 0.6000000000002398
+  maximum_planned_deceleration_mps2: 0.8000000000002665
+  maximum_stop_terminal_position_error_m: 0.0
+  maximum_stop_terminal_motion_after_1_5_s_m: 0.0
+gates:
+  episode_count_pass: true
+  point_count_pass: true
+  classifier_accuracy_pass: true
+  ambiguity_pass: true
+  marginal_coverage_pass: true
+  per_horizon_coverage_pass: true
+  mean_width_pass: true
+  actual_mode_mae_pass: true
+  candidate_sensitivity_pass: true
+  physical_coordinate_pass: true
+  hidden_policy_runtime_firewall_pass: true
+  common_prefix_actor_coordinate_alignment_pass: true
+  common_prefix_actor_speed_alignment_pass: true
+  ego_trace_conformity_pass: true
+  planned_acceleration_pass: true
+  planned_deceleration_pass: true
+  stop_terminal_position_pass: true
+  stop_terminal_hold_pass: true
+overall_pass: true
+model_or_gate_changed_after_test: false
+episodes:
+- row:
+    sequence: 1
+    unit_id: v3_02_e1_mode_test_6321_cautious_certified_stop_v000
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: certified_stop_v000
+    certified_stop: true
+    ego_speed_mps: 0.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 8e1082b9ff68094cc2b459b546ffcba80c0a4380dd470b64f9bf5625aa4ee579
+  features:
+  - 1.0
+  - -2.942324999846584
+  - 0.1355250000070729
+  - 0.0
+  - 8.6572764047222
+  - 0.01836702562691711
+  - 0.0
+  - -0.3987585956250191
+  - -0.0
+  - 0.0
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.4700249998515966
+    inferred_mode: cautious
+    prediction_m: -2.489927865648826
+    lower_m: -2.9689526722748263
+    upper_m: -2.010903059022826
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.5200249998499888
+    inferred_mode: cautious
+    prediction_m: -1.6454325055933143
+    lower_m: -2.1244573122193144
+    upper_m: -1.1664076989673142
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.5700249998505795
+    inferred_mode: cautious
+    prediction_m: -0.7625981690201726
+    lower_m: -1.2416229756461727
+    upper_m: -0.28357336239417263
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.3799750001491056
+    inferred_mode: cautious
+    prediction_m: 0.1719849645211653
+    lower_m: -0.3070398421048347
+    upper_m: 0.6510097711471653
+    covered: true
+- row:
+    sequence: 2
+    unit_id: v3_02_e1_mode_test_6321_cautious_feasible_v060
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v060
+    certified_stop: false
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: fd3fc2e25f05cdcd4d89b0f33738c642aba145264eb162dfaad2265c4375175b
+  features:
+  - 1.0
+  - -2.942324999846584
+  - 0.1355250000070729
+  - 0.6
+  - 8.6572764047222
+  - 0.01836702562691711
+  - 0.36
+  - -0.3987585956250191
+  - -1.7653949999079503
+  - 0.08131500000424374
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.8223249998499194
+    inferred_mode: cautious
+    prediction_m: -2.7855179626490374
+    lower_m: -3.2645427692750375
+    upper_m: -2.3064931560230373
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.702324999853255
+    inferred_mode: cautious
+    prediction_m: -2.5557893286874975
+    lower_m: -3.0348141353134976
+    upper_m: -2.0767645220614974
+    covered: true
+  - horizon: t3_5
+    truth_m: -2.575034999850487
+    inferred_mode: cautious
+    prediction_m: -2.0629169645499488
+    lower_m: -2.541941771175949
+    upper_m: -1.5838921579239487
+    covered: false
+  - horizon: t4_5
+    truth_m: -1.7489899998479375
+    inferred_mode: cautious
+    prediction_m: -1.2070788008940596
+    lower_m: -1.6861036075200597
+    upper_m: -0.7280539942680596
+    covered: false
+- row:
+    sequence: 3
+    unit_id: v3_02_e1_mode_test_6321_cautious_feasible_v080
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v080
+    certified_stop: false
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: be6bf9206f319c10c8998dee936142b30fc6502794cc231afbaf63abb0c9371e
+  features:
+  - 1.0
+  - -2.942324999846584
+  - 0.1355250000070729
+  - 0.8
+  - 8.6572764047222
+  - 0.01836702562691711
+  - 0.6400000000000001
+  - -0.3987585956250191
+  - -2.353859999877267
+  - 0.10842000000565832
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.8223249998499194
+    inferred_mode: cautious
+    prediction_m: -2.806692834524682
+    lower_m: -3.2857176411506823
+    upper_m: -2.327668027898682
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.6292224998511338
+    inferred_mode: cautious
+    prediction_m: -2.480704540585826
+    lower_m: -2.9597293472118262
+    upper_m: -2.001679733959826
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.707139999853021
+    inferred_mode: cautious
+    prediction_m: -1.8918507668936329
+    lower_m: -2.370875573519633
+    upper_m: -1.4128259602676327
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.7571399998507279
+    inferred_mode: cautious
+    prediction_m: -1.0158099711309756
+    lower_m: -1.4948347777569757
+    upper_m: -0.5367851645049756
+    covered: true
+- row:
+    sequence: 4
+    unit_id: v3_02_e1_mode_test_6321_cautious_feasible_v100
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v100
+    certified_stop: false
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 21ae601d91937394246195493abf911204bc2b6d2dc7c94e1c71c4fb02f1cb99
+  features:
+  - 1.0
+  - -2.942324999846584
+  - 0.1355250000070729
+  - 1.0
+  - 8.6572764047222
+  - 0.01836702562691711
+  - 1.0
+  - -0.3987585956250191
+  - -2.942324999846584
+  - 0.1355250000070729
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.8223249998499194
+    inferred_mode: cautious
+    prediction_m: -2.7891901261714462
+    lower_m: -3.2682149327974463
+    upper_m: -2.310165319545446
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.071989999847611
+    inferred_mode: cautious
+    prediction_m: -2.216351221250955
+    lower_m: -2.695376027876955
+    upper_m: -1.7373264146249547
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.1219899998556162
+    inferred_mode: cautious
+    prediction_m: -1.4185316711541969
+    lower_m: -1.897556477780197
+    upper_m: -0.9395068645281969
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.1719899998512348
+    inferred_mode: cautious
+    prediction_m: -0.4990627655838118
+    lower_m: -0.9780875722098118
+    upper_m: -0.02003795895781177
+    covered: true
+- row:
+    sequence: 5
+    unit_id: v3_02_e1_mode_test_6321_cautious_feasible_v120
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v120
+    certified_stop: false
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: e47cd58fa52dead29bac7f00c3457979b5af47e4b6fe8396a6d4ab60de8ae9d3
+  features:
+  - 1.0
+  - -2.942324999846584
+  - 0.1355250000070729
+  - 1.2
+  - 8.6572764047222
+  - 0.01836702562691711
+  - 1.44
+  - -0.3987585956250191
+  - -3.5307899998159007
+  - 0.16263000000848749
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.708902499848447
+    inferred_mode: cautious
+    prediction_m: -2.7330098375893304
+    lower_m: -3.2120346442153305
+    upper_m: -2.2539850309633302
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.7690399998540889
+    inferred_mode: cautious
+    prediction_m: -1.762729370682882
+    lower_m: -2.241754177308882
+    upper_m: -1.2837045640568818
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.8190399998505585
+    inferred_mode: cautious
+    prediction_m: -0.6429596773316462
+    lower_m: -1.1219844839576463
+    upper_m: -0.16393487070564614
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.13096000014901626
+    inferred_mode: cautious
+    prediction_m: 0.34316281574743357
+    lower_m: -0.13586199087856646
+    upper_m: 0.8221876223734336
+    covered: true
+- row:
+    sequence: 6
+    unit_id: v3_02_e1_mode_test_6321_assertive_certified_stop_v000
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: certified_stop_v000
+    certified_stop: true
+    ego_speed_mps: 0.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: f1cc1dacff85334503d7f518dd49b3b371f45c9efa240c12bfbfbe9c9e54e89a
+  features:
+  - 1.0
+  - -2.5214499998475883
+  - 1.3500000000228995
+  - 0.0
+  - 6.357710101731403
+  - 1.8225000000618288
+  - 0.0
+  - -3.4039574998519844
+  - -0.0
+  - 0.0
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.4581099998542428
+    inferred_mode: assertive
+    prediction_m: -1.4721983633095104
+    lower_m: -1.9512231699355105
+    upper_m: -0.9931735566835104
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.5081099998509881
+    inferred_mode: assertive
+    prediction_m: -0.5009423433676274
+    lower_m: -0.9799671499936274
+    upper_m: -0.021917536741627414
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.4418900001496582
+    inferred_mode: assertive
+    prediction_m: 0.43542515517301217
+    lower_m: -0.04359965145298786
+    upper_m: 0.9144499617990122
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.3918900001500287
+    inferred_mode: assertive
+    prediction_m: 1.380297374110663
+    lower_m: 0.901272567484663
+    upper_m: 1.859322180736663
+    covered: true
+- row:
+    sequence: 7
+    unit_id: v3_02_e1_mode_test_6321_assertive_feasible_v060
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v060
+    certified_stop: false
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 3e6124d291cb3223f92212ad644e3546e65b9e6f0d1004724bdf0ab2f28fc1dd
+  features:
+  - 1.0
+  - -2.5214499998475883
+  - 1.3500000000228995
+  - 0.6
+  - 6.357710101731403
+  - 1.8225000000618288
+  - 0.36
+  - -3.4039574998519844
+  - -1.5128699999085529
+  - 0.8100000000137397
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.4581099998542428
+    inferred_mode: assertive
+    prediction_m: -1.3542087169146333
+    lower_m: -1.8332335235406334
+    upper_m: -0.8751839102886333
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.5081099998509881
+    inferred_mode: assertive
+    prediction_m: -0.27147253865476784
+    lower_m: -0.7504973452807678
+    upper_m: 0.2075522679712322
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.4418900001496582
+    inferred_mode: assertive
+    prediction_m: 0.6745389257334837
+    lower_m: 0.1955141191074837
+    upper_m: 1.1535637323594838
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.3918900001500287
+    inferred_mode: assertive
+    prediction_m: 1.6194110902445615
+    lower_m: 1.1403862836185614
+    upper_m: 2.0984358968705616
+    covered: true
+- row:
+    sequence: 8
+    unit_id: v3_02_e1_mode_test_6321_assertive_feasible_v080
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v080
+    certified_stop: false
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 4cd7ce06916eaf807cfde90c94ced2e8f3a87c1a8abc9cbf3fb4afb51e271ace
+  features:
+  - 1.0
+  - -2.5214499998475883
+  - 1.3500000000228995
+  - 0.8
+  - 6.357710101731403
+  - 1.8225000000618288
+  - 0.6400000000000001
+  - -3.4039574998519844
+  - -2.017159999878071
+  - 1.0800000000183196
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.1714499998540786
+    inferred_mode: assertive
+    prediction_m: -1.2895275554778878
+    lower_m: -1.7685523621038879
+    upper_m: -0.8105027488518878
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.1338900001488812
+    inferred_mode: assertive
+    prediction_m: -0.13292585492024156
+    lower_m: -0.6119506615462416
+    upper_m: 0.34609895170575844
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.0838900001514502
+    inferred_mode: assertive
+    prediction_m: 0.8173923338635078
+    lower_m: 0.33836752723750785
+    upper_m: 1.296417140489508
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.033890000152782
+    inferred_mode: assertive
+    prediction_m: 1.7622644802336742
+    lower_m: 1.283239673607674
+    upper_m: 2.2412892868596743
+    covered: true
+- row:
+    sequence: 9
+    unit_id: v3_02_e1_mode_test_6321_assertive_feasible_v100
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v100
+    certified_stop: false
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 45161bc4a6e4a734a05e491d5bc2582d89372af7d7e2448632461583a579e33a
+  features:
+  - 1.0
+  - -2.5214499998475883
+  - 1.3500000000228995
+  - 1.0
+  - 6.357710101731403
+  - 1.8225000000618288
+  - 1.0
+  - -3.4039574998519844
+  - -2.5214499998475883
+  - 1.3500000000228995
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.1714499998540786
+    inferred_mode: assertive
+    prediction_m: -1.212170754388582
+    lower_m: -1.6911955610145821
+    upper_m: -0.733145947762582
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.15827000014873358
+    inferred_mode: assertive
+    prediction_m: 0.036649203229405236
+    lower_m: -0.44237560339659476
+    upper_m: 0.5156740098554052
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.1098900001468819
+    inferred_mode: assertive
+    prediction_m: 0.991820150965133
+    lower_m: 0.512795344339133
+    upper_m: 1.470844957591133
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.0598900001484894
+    inferred_mode: assertive
+    prediction_m: 1.9366922791950287
+    lower_m: 1.4576674725690286
+    upper_m: 2.415717085821029
+    covered: true
+- row:
+    sequence: 10
+    unit_id: v3_02_e1_mode_test_6321_assertive_feasible_v120
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v120
+    certified_stop: false
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 3470d874e7da938abcc44283a5cd1bbc56d9fa96929ec23ce52d14e51f71f41d
+  features:
+  - 1.0
+  - -2.5214499998475883
+  - 1.3500000000228995
+  - 1.2
+  - 6.357710101731403
+  - 1.8225000000618288
+  - 1.44
+  - -3.4039574998519844
+  - -3.0257399998171057
+  - 1.6200000000274795
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.1714499998540786
+    inferred_mode: assertive
+    prediction_m: -1.1221383136467165
+    lower_m: -1.6011631202727166
+    upper_m: -0.6431135070207165
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.15827000014873358
+    inferred_mode: assertive
+    prediction_m: 0.23725263579417222
+    lower_m: -0.2417721708318278
+    upper_m: 0.7162774424201722
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.1098900001468819
+    inferred_mode: assertive
+    prediction_m: 1.197822377038357
+    lower_m: 0.7187975704123569
+    upper_m: 1.676847183664357
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.0598900001484894
+    inferred_mode: assertive
+    prediction_m: 2.1426944871286207
+    lower_m: 1.6636696805026205
+    upper_m: 2.6217192937546208
+    covered: true
+- row:
+    sequence: 11
+    unit_id: v3_02_e1_mode_test_6321_hesitant_certified_stop_v000
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: certified_stop_v000
+    certified_stop: true
+    ego_speed_mps: 0.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: e4ab0f08c03eb8e4fe645ea9368c48671d45fbd3250332c4258a61c7eae05a36
+  features:
+  - 1.0
+  - -2.9041549998508187
+  - 0.31999999999659634
+  - 0.0
+  - 8.43411626315851
+  - 0.10239999999782166
+  - 0.0
+  - -0.9293295999423772
+  - -0.0
+  - 0.0
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.0971749998547575
+    inferred_mode: hesitant
+    prediction_m: -2.120509598553217
+    lower_m: -2.599534405179217
+    upper_m: -1.6414847919272169
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.1471749998534255
+    inferred_mode: hesitant
+    prediction_m: -1.1946172204746457
+    lower_m: -1.6736420271006458
+    upper_m: -0.7155924138486457
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.1971749998508568
+    inferred_mode: hesitant
+    prediction_m: -0.281547754227629
+    lower_m: -0.760572560853629
+    upper_m: 0.19747705239837102
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.7528250001488282
+    inferred_mode: hesitant
+    prediction_m: 0.6356164067833667
+    lower_m: 0.1565916001573667
+    upper_m: 1.1146412134093668
+    covered: true
+- row:
+    sequence: 12
+    unit_id: v3_02_e1_mode_test_6321_hesitant_feasible_v060
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v060
+    certified_stop: false
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 66afc02dfcee9d0b959e36bb87ef85c94d57e9d4f553c8a53847250a463ed99d
+  features:
+  - 1.0
+  - -2.9041549998508187
+  - 0.31999999999659634
+  - 0.6
+  - 8.43411626315851
+  - 0.10239999999782166
+  - 0.36
+  - -0.9293295999423772
+  - -1.7424929999104912
+  - 0.1919999999979578
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.3649149998524766
+    inferred_mode: hesitant
+    prediction_m: -2.3235229969754725
+    lower_m: -2.8025478036014726
+    upper_m: -1.8444981903494724
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.8277799998541835
+    inferred_mode: hesitant
+    prediction_m: -1.7288273641120426
+    lower_m: -2.2078521707380427
+    upper_m: -1.2498025574860425
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.2864349998461788
+    inferred_mode: hesitant
+    prediction_m: -1.1436541969474074
+    lower_m: -1.6226790035734076
+    upper_m: -0.6646293903214074
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.7531474998507878
+    inferred_mode: hesitant
+    prediction_m: -0.48752697156218083
+    lower_m: -0.9665517781881808
+    upper_m: -0.008502164936180806
+    covered: true
+- row:
+    sequence: 13
+    unit_id: v3_02_e1_mode_test_6321_hesitant_feasible_v080
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v080
+    certified_stop: false
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 2049ae6384ebd8fc87616c2ce83a285846b1e61db3086a0b5e2ae8ffd27c626e
+  features:
+  - 1.0
+  - -2.9041549998508187
+  - 0.31999999999659634
+  - 0.8
+  - 8.43411626315851
+  - 0.10239999999782166
+  - 0.6400000000000001
+  - -0.9293295999423772
+  - -2.323323999880655
+  - 0.2559999999972771
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.3649149998524766
+    inferred_mode: hesitant
+    prediction_m: -2.3595369559228923
+    lower_m: -2.8385617625488924
+    upper_m: -1.8805121492968921
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.8277799998541835
+    inferred_mode: hesitant
+    prediction_m: -1.7856110474356566
+    lower_m: -2.2646358540616567
+    upper_m: -1.3065862408096565
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.2864349998461788
+    inferred_mode: hesitant
+    prediction_m: -1.164919334182846
+    lower_m: -1.6439441408088462
+    upper_m: -0.6858945275568461
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.6041849998511023
+    inferred_mode: hesitant
+    prediction_m: -0.46184782763304
+    lower_m: -0.94087263425904
+    upper_m: 0.01717697899296003
+    covered: true
+- row:
+    sequence: 14
+    unit_id: v3_02_e1_mode_test_6321_hesitant_feasible_v100
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v100
+    certified_stop: false
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: eaf35800ee0ec6c1ab21e151347a855294b2095eb17576e60adc1523babb2a85
+  features:
+  - 1.0
+  - -2.9041549998508187
+  - 0.31999999999659634
+  - 1.0
+  - 8.43411626315851
+  - 0.10239999999782166
+  - 1.0
+  - -0.9293295999423772
+  - -2.9041549998508187
+  - 0.31999999999659634
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.3649149998524766
+    inferred_mode: hesitant
+    prediction_m: -2.3797223279403115
+    lower_m: -2.8587471345663116
+    upper_m: -1.9006975213143114
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.8277799998541835
+    inferred_mode: hesitant
+    prediction_m: -1.7817515484815107
+    lower_m: -2.260776355107511
+    upper_m: -1.3027267418555106
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.0415799998470068
+    inferred_mode: hesitant
+    prediction_m: -1.0531326329160544
+    lower_m: -1.5321574395420545
+    upper_m: -0.5741078262900544
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.09157999985083741
+    inferred_mode: hesitant
+    prediction_m: -0.23613854868174755
+    lower_m: -0.7151633553077476
+    upper_m: 0.24288625794425248
+    covered: true
+- row:
+    sequence: 15
+    unit_id: v3_02_e1_mode_test_6321_hesitant_feasible_v120
+    block_id: mode_test_6321
+    role_evaluator_only: held_out_test
+    seed: 6321
+    angle_deg: 74.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.95
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v120
+    certified_stop: false
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 20142ee4d385992ef47f7d931a6cce72657400f318186a7ba49fddc430a853f8
+  features:
+  - 1.0
+  - -2.9041549998508187
+  - 0.31999999999659634
+  - 1.2
+  - 8.43411626315851
+  - 0.10239999999782166
+  - 1.44
+  - -0.9293295999423772
+  - -3.4849859998209824
+  - 0.3839999999959156
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.3649149998524766
+    inferred_mode: hesitant
+    prediction_m: -2.3840791130277292
+    lower_m: -2.8631039196537293
+    upper_m: -1.9050543064017291
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.6196649998461041
+    inferred_mode: hesitant
+    prediction_m: -1.717248867249603
+    lower_m: -2.196273673875603
+    upper_m: -1.2382240606236028
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.6696649998505398
+    inferred_mode: hesitant
+    prediction_m: -0.808294093147019
+    lower_m: -1.2873188997730192
+    upper_m: -0.32926928652101906
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.2803350001491178
+    inferred_mode: hesitant
+    prediction_m: 0.18960086529170717
+    lower_m: -0.28942394133429283
+    upper_m: 0.6686256719177072
+    covered: true
+- row:
+    sequence: 16
+    unit_id: v3_02_e1_mode_test_6322_cautious_certified_stop_v000
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: certified_stop_v000
+    certified_stop: true
+    ego_speed_mps: 0.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 0947246f3adaacd166568a531b691be6b4fd501e9c96c5a3c0b60935db0b58f2
+  features:
+  - 1.0
+  - -2.605154999566515
+  - 0.17137500000599548
+  - 0.0
+  - 6.786832571766409
+  - 0.029369390627054952
+  - 0.0
+  - -0.4464584380663307
+  - -0.0
+  - 0.0
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.981409999569499
+    inferred_mode: cautious
+    prediction_m: -2.0012114061147845
+    lower_m: -2.4802362127407847
+    upper_m: -1.5221865994887844
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.9314099995702898
+    inferred_mode: cautious
+    prediction_m: -0.92064820858708
+    lower_m: -1.39967301521308
+    upper_m: -0.44162340196107996
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.11859000042902955
+    inferred_mode: cautious
+    prediction_m: 0.097187590199308
+    lower_m: -0.381837216426692
+    upper_m: 0.576212396825308
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.1685900004252445
+    inferred_mode: cautious
+    prediction_m: 1.0899168053766344
+    lower_m: 0.6108919987506344
+    upper_m: 1.5689416120026345
+    covered: true
+- row:
+    sequence: 17
+    unit_id: v3_02_e1_mode_test_6322_cautious_feasible_v060
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v060
+    certified_stop: false
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 838602a5f7c34ef62f151d170da16404bceec0f17589d21a29d41408a3448e73
+  features:
+  - 1.0
+  - -2.605154999566515
+  - 0.17137500000599548
+  - 0.6
+  - 6.786832571766409
+  - 0.029369390627054952
+  - 0.36
+  - -0.4464584380663307
+  - -1.563092999739909
+  - 0.10282500000359729
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.981409999569499
+    inferred_mode: cautious
+    prediction_m: -2.419137217527757
+    lower_m: -2.898162024153757
+    upper_m: -1.9401124109017567
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.9314099995702898
+    inferred_mode: cautious
+    prediction_m: -2.2349916004525774
+    lower_m: -2.7140164070785775
+    upper_m: -1.7559667938265773
+    covered: false
+  - horizon: t3_5
+    truth_m: 0.11859000042902955
+    inferred_mode: cautious
+    prediction_m: -1.7033781421563692
+    lower_m: -2.1824029487823693
+    upper_m: -1.224353335530369
+    covered: false
+  - horizon: t4_5
+    truth_m: 1.1685900004252445
+    inferred_mode: cautious
+    prediction_m: -0.7953979325951934
+    lower_m: -1.2744227392211935
+    upper_m: -0.3163731259691934
+    covered: false
+- row:
+    sequence: 18
+    unit_id: v3_02_e1_mode_test_6322_cautious_feasible_v080
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v080
+    certified_stop: false
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: bbf2db8d0480f1cd30a1696a62dc5e97f1cd16aeea18f85feac90aa2977bcd99
+  features:
+  - 1.0
+  - -2.605154999566515
+  - 0.17137500000599548
+  - 0.8
+  - 6.786832571766409
+  - 0.029369390627054952
+  - 0.6400000000000001
+  - -0.4464584380663307
+  - -2.084123999653212
+  - 0.13710000000479639
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.4851549995709528
+    inferred_mode: cautious
+    prediction_m: -2.4810906608743206
+    lower_m: -2.9601154675003207
+    upper_m: -2.0020658542483205
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.365154999575391
+    inferred_mode: cautious
+    prediction_m: -2.294569001941344
+    lower_m: -2.773593808567344
+    upper_m: -1.815544195315344
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.9181099995731687
+    inferred_mode: cautious
+    prediction_m: -1.6990609234420262
+    lower_m: -2.1780857300680263
+    upper_m: -1.220036116816026
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.8681099995710759
+    inferred_mode: cautious
+    prediction_m: -0.7728794270176422
+    lower_m: -1.2519042336436423
+    upper_m: -0.29385462039164223
+    covered: true
+- row:
+    sequence: 19
+    unit_id: v3_02_e1_mode_test_6322_cautious_feasible_v100
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v100
+    certified_stop: false
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: ee56258b81ce6066869fa279750dd35de7c7fddc656af326316ced58c3ea076c
+  features:
+  - 1.0
+  - -2.605154999566515
+  - 0.17137500000599548
+  - 1.0
+  - 6.786832571766409
+  - 0.029369390627054952
+  - 1.0
+  - -0.4464584380663307
+  - -2.605154999566515
+  - 0.17137500000599548
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.4851549995709528
+    inferred_mode: cautious
+    prediction_m: -2.5043665239920045
+    lower_m: -2.9833913306180047
+    upper_m: -2.0253417173660044
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.281432499574867
+    inferred_mode: cautious
+    prediction_m: -2.1648778721969055
+    lower_m: -2.6439026788229056
+    upper_m: -1.6858530655709054
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.2717599995730335
+    inferred_mode: cautious
+    prediction_m: -1.3924908066445596
+    lower_m: -1.8715156132705597
+    upper_m: -0.9134660000185596
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.22175999957099596
+    inferred_mode: cautious
+    prediction_m: -0.42488254565601125
+    lower_m: -0.9039073522820112
+    upper_m: 0.05414226096998878
+    covered: true
+- row:
+    sequence: 20
+    unit_id: v3_02_e1_mode_test_6322_cautious_feasible_v120
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v120
+    certified_stop: false
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 77ec4faf2bf9e3d12368c2d1215fdf2ae5311596550b208f8aaa721d5f81cbe6
+  features:
+  - 1.0
+  - -2.605154999566515
+  - 0.17137500000599548
+  - 1.2
+  - 6.786832571766409
+  - 0.029369390627054952
+  - 1.44
+  - -0.4464584380663307
+  - -3.126185999479818
+  - 0.20565000000719458
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.4851549995709528
+    inferred_mode: cautious
+    prediction_m: -2.4889648068808103
+    lower_m: -2.9679896135068105
+    upper_m: -2.0099400002548102
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.9451099995725551
+    inferred_mode: cautious
+    prediction_m: -1.8459182112192725
+    lower_m: -2.3249430178452726
+    upper_m: -1.3668934045932724
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.8951099995701867
+    inferred_mode: cautious
+    prediction_m: -0.7836677917639712
+    lower_m: -1.2626925983899713
+    upper_m: -0.30464298513797117
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.1548900004298734
+    inferred_mode: cautious
+    prediction_m: 0.24859271148969775
+    lower_m: -0.23043209513630228
+    upper_m: 0.7276175181156977
+    covered: true
+- row:
+    sequence: 21
+    unit_id: v3_02_e1_mode_test_6322_assertive_certified_stop_v000
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: certified_stop_v000
+    certified_stop: true
+    ego_speed_mps: 0.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: b6769b886129b5331245f3d776ee8e07d80ec3d26b7b5047b2ff35598579e788
+  features:
+  - 1.0
+  - -2.201504999568402
+  - 1.3500000000118728
+  - 0.0
+  - 4.846624263124671
+  - 1.8225000000320566
+  - 0.0
+  - -2.972031749443481
+  - -0.0
+  - 0.0
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.117754999568656
+    inferred_mode: assertive
+    prediction_m: -1.23191328967351
+    lower_m: -1.7109380962995102
+    upper_m: -0.7528884830475101
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.06775499957062804
+    inferred_mode: assertive
+    prediction_m: -0.367793774766787
+    lower_m: -0.846818581392787
+    upper_m: 0.11123103185921304
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.9822450004297621
+    inferred_mode: assertive
+    prediction_m: 0.5076669455556884
+    lower_m: 0.028642138929688338
+    upper_m: 0.9866917521816884
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.0322450004260872
+    inferred_mode: assertive
+    prediction_m: 1.3851720238426193
+    lower_m: 0.9061472172166193
+    upper_m: 1.8641968304686194
+    covered: false
+- row:
+    sequence: 22
+    unit_id: v3_02_e1_mode_test_6322_assertive_feasible_v060
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v060
+    certified_stop: false
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 6d96fb1c2040409160236f4826f01c3eccfc29ba96b024a054f82db14dbfc7e6
+  features:
+  - 1.0
+  - -2.201504999568402
+  - 1.3500000000118728
+  - 0.6
+  - 4.846624263124671
+  - 1.8225000000320566
+  - 0.36
+  - -2.972031749443481
+  - -1.3209029997410413
+  - 0.8100000000071237
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.117754999568656
+    inferred_mode: assertive
+    prediction_m: -1.0736280476677256
+    lower_m: -1.5526528542937257
+    upper_m: -0.5946032410417256
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.06775499957062804
+    inferred_mode: assertive
+    prediction_m: -0.09876105981318828
+    lower_m: -0.5777858664391883
+    upper_m: 0.3802637468128117
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.9822450004297621
+    inferred_mode: assertive
+    prediction_m: 0.7748888308070141
+    lower_m: 0.2958640241810141
+    upper_m: 1.2539136374330142
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.0322450004260872
+    inferred_mode: assertive
+    prediction_m: 1.6523938548482047
+    lower_m: 1.1733690482222046
+    upper_m: 2.131418661474205
+    covered: true
+- row:
+    sequence: 23
+    unit_id: v3_02_e1_mode_test_6322_assertive_feasible_v080
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v080
+    certified_stop: false
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: fe9726adafc51a0a5002be0a37b4d529376067badc4cbef62532bf33fe03e073
+  features:
+  - 1.0
+  - -2.201504999568402
+  - 1.3500000000118728
+  - 0.8
+  - 4.846624263124671
+  - 1.8225000000320566
+  - 0.6400000000000001
+  - -2.972031749443481
+  - -1.7612039996547217
+  - 1.0800000000094983
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -0.9197549995704576
+    inferred_mode: assertive
+    prediction_m: -0.9955150210273441
+    lower_m: -1.4745398276533441
+    upper_m: -0.5164902144013441
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.1302450004296576
+    inferred_mode: assertive
+    prediction_m: 0.05297326066825103
+    lower_m: -0.42605154595774897
+    upper_m: 0.531998067294251
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.180245000428922
+    inferred_mode: assertive
+    prediction_m: 0.9271116105006567
+    lower_m: 0.4480868038746567
+    upper_m: 1.4061364171266568
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.2302450004271694
+    inferred_mode: assertive
+    prediction_m: 1.804616616461213
+    lower_m: 1.3255918098352129
+    upper_m: 2.283641423087213
+    covered: true
+- row:
+    sequence: 24
+    unit_id: v3_02_e1_mode_test_6322_assertive_feasible_v100
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v100
+    certified_stop: false
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 37fd4af325efddd7aba4b30fa6e3d93336029bd54602a182eb13d30a2c126f75
+  features:
+  - 1.0
+  - -2.201504999568402
+  - 1.3500000000118728
+  - 1.0
+  - 4.846624263124671
+  - 1.8225000000320566
+  - 1.0
+  - -2.972031749443481
+  - -2.201504999568402
+  - 1.3500000000118728
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -0.8515049995702624
+    inferred_mode: assertive
+    prediction_m: -0.9047263547344027
+    lower_m: -1.3837511613604028
+    upper_m: -0.42570154810840266
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.4077450004294753
+    inferred_mode: assertive
+    prediction_m: 0.23573595556481003
+    lower_m: -0.24328885106119
+    upper_m: 0.71476076219081
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.4577450004315682
+    inferred_mode: assertive
+    prediction_m: 1.1109087991658995
+    lower_m: 0.6318839925398995
+    upper_m: 1.5899336057918996
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.5077450004298165
+    inferred_mode: assertive
+    prediction_m: 1.9884137870464613
+    lower_m: 1.5093889804204612
+    upper_m: 2.4674385936724614
+    covered: false
+- row:
+    sequence: 25
+    unit_id: v3_02_e1_mode_test_6322_assertive_feasible_v120
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v120
+    certified_stop: false
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 0cd06fd3a9361a29f439470ce864fbcd682d28667e5f848559f589a84ff4e994
+  features:
+  - 1.0
+  - -2.201504999568402
+  - 1.3500000000118728
+  - 1.2
+  - 4.846624263124671
+  - 1.8225000000320566
+  - 1.44
+  - -2.972031749443481
+  - -2.6418059994820826
+  - 1.6200000000142474
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -0.8515049995702624
+    inferred_mode: assertive
+    prediction_m: -0.8012620487889012
+    lower_m: -1.2802868554149014
+    upper_m: -0.32223724216290117
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.4077450004294753
+    inferred_mode: assertive
+    prediction_m: 0.44952702487649066
+    lower_m: -0.029497781749509372
+    upper_m: 0.9285518315024907
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.4577450004315682
+    inferred_mode: assertive
+    prediction_m: 1.3262803968027401
+    lower_m: 0.8472555901767401
+    upper_m: 1.8053052034287402
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.5077450004298165
+    inferred_mode: assertive
+    prediction_m: 2.2037853666039497
+    lower_m: 1.7247605599779496
+    upper_m: 2.68281017322995
+    covered: true
+- row:
+    sequence: 26
+    unit_id: v3_02_e1_mode_test_6322_hesitant_certified_stop_v000
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: certified_stop_v000
+    certified_stop: true
+    ego_speed_mps: 0.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: c352cfb3d3bdfa824b8c9ac0f9b75ac6f1160453a5a7eae5770c33ece3065f11
+  features:
+  - 1.0
+  - -2.5753249995669187
+  - 0.3205250000039772
+  - 0.0
+  - 6.63229885339435
+  - 0.1027362756275496
+  - 0.0
+  - -0.8254560454964293
+  - -0.0
+  - 0.0
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.7062049995742057
+    inferred_mode: hesitant
+    prediction_m: -1.7878664293026167
+    lower_m: -2.266891235928617
+    upper_m: -1.3088416226766166
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.6562049995701903
+    inferred_mode: hesitant
+    prediction_m: -0.8471393242723149
+    lower_m: -1.326164130898315
+    upper_m: -0.36811451764631486
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.3937950004290188
+    inferred_mode: hesitant
+    prediction_m: 0.09284968970386398
+    lower_m: -0.386175116922136
+    upper_m: 0.571874496329864
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.4437950004301503
+    inferred_mode: hesitant
+    prediction_m: 1.0173418227266247
+    lower_m: 0.5383170161006247
+    upper_m: 1.4963666293526248
+    covered: true
+- row:
+    sequence: 27
+    unit_id: v3_02_e1_mode_test_6322_hesitant_feasible_v060
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v060
+    certified_stop: false
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: d09f04cb3ddc3469d949690b24ae50639a97cf55052475b70325a2b99cf1a0a9
+  features:
+  - 1.0
+  - -2.5753249995669187
+  - 0.3205250000039772
+  - 0.6
+  - 6.63229885339435
+  - 0.1027362756275496
+  - 0.36
+  - -0.8254560454964293
+  - -1.5451949997401513
+  - 0.19231500000238633
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.7062049995742057
+    inferred_mode: hesitant
+    prediction_m: -1.994386091482771
+    lower_m: -2.4734108981087712
+    upper_m: -1.5153612848567708
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.6562049995701903
+    inferred_mode: hesitant
+    prediction_m: -1.4173846476669039
+    lower_m: -1.896409454292904
+    upper_m: -0.9383598410409039
+    covered: false
+  - horizon: t3_5
+    truth_m: 0.3937950004290188
+    inferred_mode: hesitant
+    prediction_m: -0.8505852349429488
+    lower_m: -1.329610041568949
+    upper_m: -0.3715604283169488
+    covered: false
+  - horizon: t4_5
+    truth_m: 1.4437950004301503
+    inferred_mode: hesitant
+    prediction_m: -0.20218082528141146
+    lower_m: -0.6812056319074115
+    upper_m: 0.27684398134458854
+    covered: false
+- row:
+    sequence: 28
+    unit_id: v3_02_e1_mode_test_6322_hesitant_feasible_v080
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v080
+    certified_stop: false
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 0412f9921af10091e2160c02bacf3af26de4843e439db0503517f19c5cecc813
+  features:
+  - 1.0
+  - -2.5753249995669187
+  - 0.3205250000039772
+  - 0.8
+  - 6.63229885339435
+  - 0.1027362756275496
+  - 0.6400000000000001
+  - -0.8254560454964293
+  - -2.060259999653535
+  - 0.25642000000318177
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.9981649995736792
+    inferred_mode: hesitant
+    prediction_m: -2.031568805016155
+    lower_m: -2.510593611642155
+    upper_m: -1.552543998390155
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.4234999995693038
+    inferred_mode: hesitant
+    prediction_m: -1.4861800575762456
+    lower_m: -1.9652048642022457
+    upper_m: -1.0071552509502455
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.8439274995704299
+    inferred_mode: hesitant
+    prediction_m: -0.8989598661540743
+    lower_m: -1.3779846727800744
+    upper_m: -0.4199350595280743
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.12437499957049993
+    inferred_mode: hesitant
+    prediction_m: -0.20862810457310133
+    lower_m: -0.6876529111991013
+    upper_m: 0.2703967020528987
+    covered: true
+- row:
+    sequence: 29
+    unit_id: v3_02_e1_mode_test_6322_hesitant_feasible_v100
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v100
+    certified_stop: false
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 979fd819b3a77c89d04c393d6839015c0b21638dea3348d6d6188f041cf98407
+  features:
+  - 1.0
+  - -2.5753249995669187
+  - 0.3205250000039772
+  - 1.0
+  - 6.63229885339435
+  - 0.1027362756275496
+  - 1.0
+  - -0.8254560454964293
+  - -2.5753249995669187
+  - 0.3205250000039772
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.9981649995736792
+    inferred_mode: hesitant
+    prediction_m: -2.0529229316195394
+    lower_m: -2.5319477382455395
+    upper_m: -1.5738981249935393
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.4234999995693038
+    inferred_mode: hesitant
+    prediction_m: -1.4943322852078311
+    lower_m: -1.9733570918338312
+    upper_m: -1.015307478581831
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.7264399995708444
+    inferred_mode: hesitant
+    prediction_m: -0.8142826588629566
+    lower_m: -1.2933074654889567
+    upper_m: -0.3352578522369566
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.32356000042929833
+    inferred_mode: hesitant
+    prediction_m: -0.015045248842631587
+    lower_m: -0.4940700554686316
+    upper_m: 0.4639795577833684
+    covered: true
+- row:
+    sequence: 30
+    unit_id: v3_02_e1_mode_test_6322_hesitant_feasible_v120
+    block_id: mode_test_6322
+    role_evaluator_only: held_out_test
+    seed: 6322
+    angle_deg: 106.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.05
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v120
+    certified_stop: false
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 7da9d8417d32d20d479bb5095f34f5438de5a0894d7183813f0085f89d664e54
+  features:
+  - 1.0
+  - -2.5753249995669187
+  - 0.3205250000039772
+  - 1.2
+  - 6.63229885339435
+  - 0.1027362756275496
+  - 1.44
+  - -0.8254560454964293
+  - -3.0903899994803026
+  - 0.38463000000477265
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.9981649995736792
+    inferred_mode: hesitant
+    prediction_m: -2.058448471292924
+    lower_m: -2.537473277918924
+    upper_m: -1.579423664666924
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.4234999995693038
+    inferred_mode: hesitant
+    prediction_m: -1.4418413305616529
+    lower_m: -1.920866137187653
+    upper_m: -0.9628165239356529
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.7003799995704685
+    inferred_mode: hesitant
+    prediction_m: -0.5965536130696023
+    lower_m: -1.0755784196956024
+    upper_m: -0.11752880644360228
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.3496200004297295
+    inferred_mode: hesitant
+    prediction_m: 0.37856774190999865
+    lower_m: -0.10045706471600138
+    upper_m: 0.8575925485359986
+    covered: true
+- row:
+    sequence: 31
+    unit_id: v3_02_e1_mode_test_6323_cautious_certified_stop_v000
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: certified_stop_v000
+    certified_stop: true
+    ego_speed_mps: 0.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 03711807402b51c61c6ed44204cce1562c8af369c4c64bd0f7f2c7534af6ae6d
+  features:
+  - 1.0
+  - -3.0593500001798777
+  - 0.12539999999140905
+  - 0.0
+  - 9.359622423600618
+  - 0.01572515999784539
+  - 0.0
+  - -0.3836424899962739
+  - -0.0
+  - 0.0
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.6181550001783167
+    inferred_mode: cautious
+    prediction_m: -2.62011457918959
+    lower_m: -3.0991393858155902
+    upper_m: -2.14108977256359
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.7181550001790522
+    inferred_mode: cautious
+    prediction_m: -1.8127829369889348
+    lower_m: -2.291807743614935
+    upper_m: -1.3337581303629347
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.8181550001777923
+    inferred_mode: cautious
+    prediction_m: -0.9737672091591971
+    lower_m: -1.4527920157851972
+    upper_m: -0.4947424025331971
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.08184499982197196
+    inferred_mode: cautious
+    prediction_m: -0.053185516686578005
+    lower_m: -0.532210323312578
+    upper_m: 0.425839289939422
+    covered: true
+- row:
+    sequence: 32
+    unit_id: v3_02_e1_mode_test_6323_cautious_feasible_v060
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v060
+    certified_stop: false
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 2db4d4d2b865fd07c68ef7454be458a7e6fc6e7a305e573566da735386b9a4c8
+  features:
+  - 1.0
+  - -3.0593500001798777
+  - 0.12539999999140905
+  - 0.6
+  - 9.359622423600618
+  - 0.01572515999784539
+  - 0.36
+  - -0.3836424899962739
+  - -1.8356100001079265
+  - 0.07523999999484543
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.9393500001826323
+    inferred_mode: cautious
+    prediction_m: -2.877639156521199
+    lower_m: -3.356663963147199
+    upper_m: -2.398614349895199
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.8193500001754166
+    inferred_mode: cautious
+    prediction_m: -2.5969158196806195
+    lower_m: -3.0759406263066196
+    upper_m: -2.1178910130546194
+    covered: true
+  - horizon: t3_5
+    truth_m: -2.544347500173824
+    inferred_mode: cautious
+    prediction_m: -2.117491931311351
+    lower_m: -2.596516737937351
+    upper_m: -1.6384671246853508
+    covered: true
+  - horizon: t4_5
+    truth_m: -1.6446550001752491
+    inferred_mode: cautious
+    prediction_m: -1.2739015757661054
+    lower_m: -1.7529263823921055
+    upper_m: -0.7948767691401054
+    covered: true
+- row:
+    sequence: 33
+    unit_id: v3_02_e1_mode_test_6323_cautious_feasible_v080
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v080
+    certified_stop: false
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 73a570cec4483e884e3ffbd56e46276b07d393804b8a3c3e4992be55f2e2cada
+  features:
+  - 1.0
+  - -3.0593500001798777
+  - 0.12539999999140905
+  - 0.8
+  - 9.359622423600618
+  - 0.01572515999784539
+  - 0.6400000000000001
+  - -0.3836424899962739
+  - -2.4474800001439023
+  - 0.10031999999312724
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.9393500001826323
+    inferred_mode: cautious
+    prediction_m: -2.8861255218406416
+    lower_m: -3.3651503284666417
+    upper_m: -2.4071007152146415
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.5047550001827257
+    inferred_mode: cautious
+    prediction_m: -2.479756384778115
+    lower_m: -2.9587811914041153
+    upper_m: -2.000731578152115
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.6047550001734703
+    inferred_mode: cautious
+    prediction_m: -1.8942277091958264
+    lower_m: -2.3732525158218265
+    upper_m: -1.4152029025698263
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.7047550001782031
+    inferred_mode: cautious
+    prediction_m: -1.0298501772244553
+    lower_m: -1.5088749838504554
+    upper_m: -0.5508253705984553
+    covered: true
+- row:
+    sequence: 34
+    unit_id: v3_02_e1_mode_test_6323_cautious_feasible_v100
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v100
+    certified_stop: false
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 3df36bfbaa8026354eaba110e9346e04a5a2bcf28771f74c59896dc9cad3f1b7
+  features:
+  - 1.0
+  - -3.0593500001798777
+  - 0.12539999999140905
+  - 1.0
+  - 9.359622423600618
+  - 0.01572515999784539
+  - 1.0
+  - -0.3836424899962739
+  - -3.0593500001798777
+  - 0.12539999999140905
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.8413400001791778
+    inferred_mode: cautious
+    prediction_m: -2.8559343069312053
+    lower_m: -3.3349591135572054
+    upper_m: -2.376909500305205
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.9509550001780909
+    inferred_mode: cautious
+    prediction_m: -2.1733284186424093
+    lower_m: -2.6523532252684094
+    upper_m: -1.6943036120164092
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.0509550001788264
+    inferred_mode: cautious
+    prediction_m: -1.3687105889971871
+    lower_m: -1.8477353956231872
+    upper_m: -0.8896857823711871
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.15095500017756436
+    inferred_mode: cautious
+    prediction_m: -0.46032040289872533
+    lower_m: -0.9393452095247253
+    upper_m: 0.018704403727274693
+    covered: true
+- row:
+    sequence: 35
+    unit_id: v3_02_e1_mode_test_6323_cautious_feasible_v120
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: feasible_v120
+    certified_stop: false
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: e85cfa02ba22295a7f2fc7744f3fb9c7365c65793ede3f1105f2e11d2ebe8ef7
+  features:
+  - 1.0
+  - -3.0593500001798777
+  - 0.12539999999140905
+  - 1.2
+  - 9.359622423600618
+  - 0.01572515999784539
+  - 1.44
+  - -0.3836424899962739
+  - -3.671220000215853
+  - 0.15047999998969086
+  inferred_mode: cautious
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.694955000172951
+    inferred_mode: cautious
+    prediction_m: -2.7870655117928873
+    lower_m: -3.2660903184188874
+    upper_m: -2.308040705166887
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.7949550001736867
+    inferred_mode: cautious
+    prediction_m: -1.6776319212735054
+    lower_m: -2.1566567278995055
+    upper_m: -1.1986071146475052
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.8949550001784198
+    inferred_mode: cautious
+    prediction_m: -0.5409405707154242
+    lower_m: -1.0199653773414243
+    upper_m: -0.0619157640894242
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.005044999822021448
+    inferred_mode: cautious
+    prediction_m: 0.43468774721108616
+    lower_m: -0.044337059414913865
+    upper_m: 0.9137125538370862
+    covered: true
+- row:
+    sequence: 36
+    unit_id: v3_02_e1_mode_test_6323_assertive_certified_stop_v000
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: certified_stop_v000
+    certified_stop: true
+    ego_speed_mps: 0.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: d54690c93d21085142d425484c7155bc740890eaf5a6be99fff0f1bfad6f33d1
+  features:
+  - 1.0
+  - -2.6335000001776496
+  - 1.350000000018925
+  - 0.0
+  - 6.93532225093568
+  - 1.8225000000510974
+  - 0.0
+  - -3.5552250002896657
+  - -0.0
+  - 0.0
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.583305000173113
+    inferred_mode: assertive
+    prediction_m: -1.5560323363751765
+    lower_m: -2.0350571430011763
+    upper_m: -1.0770075297491764
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.6833050001778492
+    inferred_mode: assertive
+    prediction_m: -0.5556518024971671
+    lower_m: -1.0346766091231672
+    upper_m: -0.07662699587116703
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.21669499982241436
+    inferred_mode: assertive
+    prediction_m: 0.41570406706856566
+    lower_m: -0.06332073955743436
+    upper_m: 0.8947288736945657
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.1166949998246773
+    inferred_mode: assertive
+    prediction_m: 1.3945783075873956
+    lower_m: 0.9155535009613956
+    upper_m: 1.8736031142133958
+    covered: true
+- row:
+    sequence: 37
+    unit_id: v3_02_e1_mode_test_6323_assertive_feasible_v060
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v060
+    certified_stop: false
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 402bf685e07dd92b03e532902379dedf9107e21354332fc1cb24751566775163
+  features:
+  - 1.0
+  - -2.6335000001776496
+  - 1.350000000018925
+  - 0.6
+  - 6.93532225093568
+  - 1.8225000000510974
+  - 0.36
+  - -3.5552250002896657
+  - -1.5801000001065897
+  - 0.810000000011355
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.583305000173113
+    inferred_mode: assertive
+    prediction_m: -1.4521548701964506
+    lower_m: -1.9311796768224507
+    upper_m: -0.9731300635704506
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.6833050001778492
+    inferred_mode: assertive
+    prediction_m: -0.3400375795408308
+    lower_m: -0.8190623861668308
+    upper_m: 0.13898722708516922
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.21669499982241436
+    inferred_mode: assertive
+    prediction_m: 0.6449739136388031
+    lower_m: 0.16594910701280305
+    upper_m: 1.1239987202648032
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.1166949998246773
+    inferred_mode: assertive
+    prediction_m: 1.623848099667729
+    lower_m: 1.1448232930417288
+    upper_m: 2.102872906293729
+    covered: false
+- row:
+    sequence: 38
+    unit_id: v3_02_e1_mode_test_6323_assertive_feasible_v080
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v080
+    certified_stop: false
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 7528ff25e123cef8af03f7f4d2cecba3581a72ea398aa260ea1d99e81b02b877
+  features:
+  - 1.0
+  - -2.6335000001776496
+  - 1.350000000018925
+  - 0.8
+  - 6.93532225093568
+  - 1.8225000000510974
+  - 0.6400000000000001
+  - -3.5552250002896657
+  - -2.10680000014212
+  - 1.08000000001514
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.283500000178753
+    inferred_mode: assertive
+    prediction_m: -1.392177768831755
+    lower_m: -1.871202575457755
+    upper_m: -0.9131529622057549
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.06406999982210639
+    inferred_mode: assertive
+    prediction_m: -0.20610942305847846
+    lower_m: -0.6851342296844785
+    upper_m: 0.27291538356752154
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.988444999822384
+    inferred_mode: assertive
+    prediction_m: 0.7845460137720814
+    lower_m: 0.30552120714608144
+    upper_m: 1.2635708203980816
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.8884449998196466
+    inferred_mode: assertive
+    prediction_m: 1.7634201816389865
+    lower_m: 1.2843953750129864
+    upper_m: 2.2424449882649866
+    covered: true
+- row:
+    sequence: 39
+    unit_id: v3_02_e1_mode_test_6323_assertive_feasible_v100
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v100
+    certified_stop: false
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 44baee8b8287689a5a298f97d9aa0c207a04e45a828e30d844300e8003baa518
+  features:
+  - 1.0
+  - -2.6335000001776496
+  - 1.350000000018925
+  - 1.0
+  - 6.93532225093568
+  - 1.8225000000510974
+  - 1.0
+  - -3.5552250002896657
+  - -2.6335000001776496
+  - 1.350000000018925
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.283500000178753
+    inferred_mode: assertive
+    prediction_m: -1.3195250278144994
+    lower_m: -1.7985498344404995
+    upper_m: -0.8405002211884994
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.06406999982210639
+    inferred_mode: assertive
+    prediction_m: -0.04115289216100648
+    lower_m: -0.5201776987870065
+    upper_m: 0.4378719144649935
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.988444999822384
+    inferred_mode: assertive
+    prediction_m: 0.9556925228769608
+    lower_m: 0.4766677162509608
+    upper_m: 1.434717329502961
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.8884449998196466
+    inferred_mode: assertive
+    prediction_m: 1.9345666725824842
+    lower_m: 1.455541865956484
+    upper_m: 2.4135914792084843
+    covered: true
+- row:
+    sequence: 40
+    unit_id: v3_02_e1_mode_test_6323_assertive_feasible_v120
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: feasible_v120
+    certified_stop: false
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 6c8b004d6d40e020be0ef61268536db64a1e0a7268f4b515bbd0fc28fefb1e17
+  features:
+  - 1.0
+  - -2.6335000001776496
+  - 1.350000000018925
+  - 1.2
+  - 6.93532225093568
+  - 1.8225000000510974
+  - 1.44
+  - -3.5552250002896657
+  - -3.1602000002131794
+  - 1.62000000002271
+  inferred_mode: assertive
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -1.283500000178753
+    inferred_mode: assertive
+    prediction_m: -1.234196647144684
+    lower_m: -1.713221453770684
+    upper_m: -0.7551718405186839
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.06406999982210639
+    inferred_mode: assertive
+    prediction_m: 0.15483201315158546
+    lower_m: -0.32419279347441454
+    upper_m: 0.6338568197775855
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.988444999822384
+    inferred_mode: assertive
+    prediction_m: 1.1584134409534408
+    lower_m: 0.6793886343274408
+    upper_m: 1.637438247579441
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.8884449998196466
+    inferred_mode: assertive
+    prediction_m: 2.137287572498222
+    lower_m: 1.6582627658722218
+    upper_m: 2.616312379124222
+    covered: true
+- row:
+    sequence: 41
+    unit_id: v3_02_e1_mode_test_6323_hesitant_certified_stop_v000
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: certified_stop_v000
+    certified_stop: true
+    ego_speed_mps: 0.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: c213c4df21c334c6105ab731cf81afc70b17650adfceb51b41269113a290aa53
+  features:
+  - 1.0
+  - -3.0170100001760565
+  - 0.3200000000024983
+  - 0.0
+  - 9.102349341162329
+  - 0.1024000000015989
+  - 0.0
+  - -0.9654432000638754
+  - -0.0
+  - 0.0
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.2549300001737644
+    inferred_mode: hesitant
+    prediction_m: -2.224132088001006
+    lower_m: -2.703156894627006
+    upper_m: -1.745107281375006
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.3549300001745002
+    inferred_mode: hesitant
+    prediction_m: -1.293339501812902
+    lower_m: -1.772364308438902
+    upper_m: -0.8143146951869019
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.4549300001782337
+    inferred_mode: hesitant
+    prediction_m: -0.3772633093713207
+    lower_m: -0.8562881159973207
+    upper_m: 0.10176149725467934
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.44506999982202683
+    inferred_mode: hesitant
+    prediction_m: 0.5510712768963586
+    lower_m: 0.07204647027035857
+    upper_m: 1.0300960835223587
+    covered: true
+- row:
+    sequence: 42
+    unit_id: v3_02_e1_mode_test_6323_hesitant_feasible_v060
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v060
+    certified_stop: false
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 7c1ce1816c63dce33951092ca95e0160830316ed7677c3f891a9143a43254662
+  features:
+  - 1.0
+  - -3.0170100001760565
+  - 0.3200000000024983
+  - 0.6
+  - 9.102349341162329
+  - 0.1024000000015989
+  - 0.36
+  - -0.9654432000638754
+  - -1.8102060001056337
+  - 0.19200000000149897
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.497045000179075
+    inferred_mode: hesitant
+    prediction_m: -2.42644452157979
+    lower_m: -2.90546932820579
+    upper_m: -1.94741971495379
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.9789900001824978
+    inferred_mode: hesitant
+    prediction_m: -1.8173952366351767
+    lower_m: -2.2964200432611768
+    upper_m: -1.3383704300091765
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.45711500017515
+    inferred_mode: hesitant
+    prediction_m: -1.2156101657110971
+    lower_m: -1.6946349723370973
+    upper_m: -0.7365853590850971
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.9406750001779275
+    inferred_mode: hesitant
+    prediction_m: -0.5434056147113377
+    lower_m: -1.0224304213373379
+    upper_m: -0.06438080808533772
+    covered: true
+- row:
+    sequence: 43
+    unit_id: v3_02_e1_mode_test_6323_hesitant_feasible_v080
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v080
+    certified_stop: false
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: 4d7f50f82c10aaaba4e9de1b92bab323ad2296b2ab10075225b658f144dbec48
+  features:
+  - 1.0
+  - -3.0170100001760565
+  - 0.3200000000024983
+  - 0.8
+  - 9.102349341162329
+  - 0.1024000000015989
+  - 0.6400000000000001
+  - -0.9654432000638754
+  - -2.4136080001408455
+  - 0.25600000000199863
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.497045000179075
+    inferred_mode: hesitant
+    prediction_m: -2.462224825579384
+    lower_m: -2.941249632205384
+    upper_m: -1.9832000189533838
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.9789900001824978
+    inferred_mode: hesitant
+    prediction_m: -1.8707941170204165
+    lower_m: -2.3498189236464166
+    upper_m: -1.3917693103944164
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.4560125001819386
+    inferred_mode: hesitant
+    prediction_m: -1.228955440819873
+    lower_m: -1.7079802474458732
+    upper_m: -0.7499306341938731
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.6302650001781515
+    inferred_mode: hesitant
+    prediction_m: -0.5081709752029155
+    lower_m: -0.9871957818289155
+    upper_m: -0.029146168576915515
+    covered: true
+- row:
+    sequence: 44
+    unit_id: v3_02_e1_mode_test_6323_hesitant_feasible_v100
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v100
+    certified_stop: false
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: a1add90f877c225fdb7bd92c870ea4c10e3069df0658b8f8427b88b4edde43df
+  features:
+  - 1.0
+  - -3.0170100001760565
+  - 0.3200000000024983
+  - 1.0
+  - 9.102349341162329
+  - 0.1024000000015989
+  - 1.0
+  - -0.9654432000638754
+  - -3.0170100001760565
+  - 0.3200000000024983
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.497045000179075
+    inferred_mode: hesitant
+    prediction_m: -2.482176542648979
+    lower_m: -2.961201349274979
+    upper_m: -2.003151736022979
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.7919050001761057
+    inferred_mode: hesitant
+    prediction_m: -1.8635498151278984
+    lower_m: -2.3425746217538985
+    upper_m: -1.3845250085018983
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.8919050001778404
+    inferred_mode: hesitant
+    prediction_m: -1.1092488774264115
+    lower_m: -1.5882736840524116
+    upper_m: -0.6302240708004115
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.008094999822021172
+    inferred_mode: hesitant
+    prediction_m: -0.2729062006723382
+    lower_m: -0.7519310072983382
+    upper_m: 0.20611860595366185
+    covered: true
+- row:
+    sequence: 45
+    unit_id: v3_02_e1_mode_test_6323_hesitant_feasible_v120
+    block_id: mode_test_6323
+    role_evaluator_only: held_out_test
+    seed: 6323
+    angle_deg: 92.0
+    actor_start_distance_m: 3.25
+    actor_base_speed_mps: 0.9
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: feasible_v120
+    certified_stop: false
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.2
+  raw_csv_sha256: ba761b5a00bd10433a9f6e68a81bfa5a3ac8dbeaf28bd6d9872b2c81dc48ad3b
+  features:
+  - 1.0
+  - -3.0170100001760565
+  - 0.3200000000024983
+  - 1.2
+  - 9.102349341162329
+  - 0.1024000000015989
+  - 1.44
+  - -0.9654432000638754
+  - -3.6204120002112674
+  - 0.38400000000299794
+  inferred_mode: hesitant
+  mode_correct: true
+  points:
+  - horizon: t1_5
+    truth_m: -2.447342500179189
+    inferred_mode: hesitant
+    prediction_m: -2.486299672788575
+    lower_m: -2.965324479414575
+    upper_m: -2.0072748661625748
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.5541950001777516
+    inferred_mode: hesitant
+    prediction_m: -1.7956623309576183
+    lower_m: -2.2746871375836184
+    upper_m: -1.3166375243316182
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.6541950001774874
+    inferred_mode: hesitant
+    prediction_m: -0.8564904755307126
+    lower_m: -1.3355152821567127
+    upper_m: -0.37746566890471256
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.24580499982177434
+    inferred_mode: hesitant
+    prediction_m: 0.16238870888040502
+    lower_m: -0.316636097745595
+    upper_m: 0.641413515506405
+    covered: true
+claim:
+  fresh_observed_mode_predictor_heldout_pass: true
+  general_mode_identification: false
+  general_scene_prediction: false
+  planner_safety: false
+  performance_improvement: false
+  real_vehicle_ready: false

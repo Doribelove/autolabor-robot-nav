@@ -1,0 +1,73 @@
+schema_version: '1.0'
+stage: V3-03-C1
+status: dependency_closure_complete
+unresolved_count: 0
+source_resources:
+- path: config/thesis_experiments/v3/v3_03_c1_segmented_closed_loop_integration_contract.yaml
+  sha256: 72e10615ca1ee4ced208614e484d8fb2917cf7048cb82a25430bcaf734a76c0f
+  size_bytes: 4145
+- path: experiments/manifests/v3/v3_03_c1_segmented_closed_loop_integration_preregistration.yaml
+  sha256: 93a70d65de9fa5754c4a12ae24a1346ee13af1a966c8d9c83e4716cd350416a2
+  size_bytes: 999
+- path: artifacts/v3/planner/v3_03_c0/v3_03_c0_effective_planner_contract.yaml
+  sha256: 92ac141f3eba8dbcf4d008d95bf9e6ab41332b33288c9cb297a40af34b393c8f
+  size_bytes: 4793
+- path: artifacts/v3/planner/v3_03_c0/v3_03_c0_offline_report.yaml
+  sha256: 9af962a5d3697b2e0599a10adfe1b67b4a491c06fcad28693670789dbc11bf85
+  size_bytes: 2473
+- path: artifacts/v3/planner/v3_03_c0/v3_03_c0_independent_review.yaml
+  sha256: 0286f2986d5b828b844ebbacca278f998a89ca9895c56612bd7eaa3edd2370e7
+  size_bytes: 621
+- path: artifacts/v3/prediction/v3_02_e1/v3_02_e1_terminal_freeze.sha256
+  sha256: e436e7b460d33fe03c551a3d5414e1e938d8a8096913610f4fdb6597d7b6f46c
+  size_bytes: 1159
+- path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+  size_bytes: 4591
+- path: src/application/v3_scope_planner/src/v3_scope_planner/core.py
+  sha256: a2d9f2d665883fcdf112f0eb8e71fd72cb806ba840afd247203064f669f9840a
+  size_bytes: 27852
+- path: src/simulation/m2_gazebo/src/v2_trajectory_actor_plugin.cpp
+  sha256: c77027785d268001ea70f71169e1f6f1250a6bf3a30c7b1fccda8e613b2e0a65
+  size_bytes: 2206
+- path: src/simulation/m2_gazebo/src/v3_reactive_actor_plugin.cpp
+  sha256: d70d12653d5ab82b887bcd170bc8569c0a6ed8c6ab4ee5f149d91c8384ce7d9c
+  size_bytes: 5321
+- path: src/simulation/m2_gazebo/src/v3_episode_recorder_plugin.cpp
+  sha256: 28da99f64270742113059b0c508b12d3b5da7f81c74c1c5c12151de187277e54
+  size_bytes: 3560
+- path: src/tools/thesis_experiment/src/thesis_experiment/v3_03_c1.py
+  sha256: 6ae5f79cb4cf86a2e049fb897f5a160c25b62a71c2ef68e032a0d96d0748988c
+  size_bytes: 7741
+- path: src/tools/thesis_experiment/scripts/build_v3_03_c1_readiness.py
+  sha256: b38e5f36b2d78cf1dbfeaa852365051c80eb5a307fa392d217e72ca5e80be8cb
+  size_bytes: 442
+- path: src/tools/thesis_experiment/scripts/review_v3_03_c1_readiness.py
+  sha256: 2c12010fb37a19060c6c7488670f0bb2aea5d201db1e6c7505341aa6f9dce3ca
+  size_bytes: 444
+- path: src/tools/thesis_experiment/scripts/run_v3_03_c1_closed_loop.py
+  sha256: 9ae2a3932f848ca70c9750dde2f754ad43260934e5758094bd0f1ce47502fc92
+  size_bytes: 27030
+- path: src/tools/thesis_experiment/scripts/assess_v3_03_c1_closed_loop.py
+  sha256: 96e7e1a806d3202dfe28cfd8be42a087b09f5b35e0ef4d8bfe49b5c71c4a4293
+  size_bytes: 15456
+- path: src/tools/thesis_experiment/scripts/review_v3_03_c1_result.py
+  sha256: 8af77b6e6b7236090e1fc656a2aafa0d777042239f6b834fc481dc8120b691dd
+  size_bytes: 2772
+- path: src/tools/thesis_experiment/tests/test_v3_03_c1.py
+  sha256: cc42fa4841b03a5531cb2a68e94489917881ddaa9e89543ea25e27ee8150532c
+  size_bytes: 2536
+binary_resources:
+- path: devel/lib/libv2_trajectory_actor_plugin.so
+  sha256: b052fb2e5338b81ddd7ae390e0f2cb29bfd188102016d700405782bcf230c017
+  size_bytes: 5554008
+- path: devel/lib/libv3_reactive_actor_plugin.so
+  sha256: 3f2d5606cb12fc994f5ec68c478aee8c26bf9ce8e114bfdac2511bed3ea18bb2
+  size_bytes: 5749360
+- path: devel/lib/libv3_episode_recorder_plugin.so
+  sha256: 800c2c3b8cb288b4fc92d2aa3c8c7f55fd3aa55b5e654314646973667b895af6
+  size_bytes: 5569368
+executable_resources:
+- path: /usr/bin/gzserver-11.15.1
+  sha256: 3f4a086582a9b43eeaeb18846fe49852ce1da40cb8d1e969e86d9a8a3fe43996
+  size_bytes: 187896

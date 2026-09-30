@@ -1,0 +1,154 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P4-F1
+contract_id: fam_teb_v2_04g_p4_f1_terminal_global_budget_closure_1
+status: offline_terminal_program_closure_preregistered
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps_authorized: 0
+real_vehicle_use_forbidden: true
+
+objective: >-
+  Freeze the terminal P4-I1 integrity failure, close the third and final global
+  search round, reconcile all 2200 post-P1 simulation capacity, preserve the
+  historical P1 formal negative result, and issue the required honest terminal
+  conclusion.  F1 performs only offline replay and integrity attribution.  It
+  may not repair, retry, replace a seed, authorize a new round, start ROS or
+  Gazebo, access held-out outcomes, or make a positive performance claim.
+
+frozen_sources:
+  global_program_contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_i1_p2_d2_offline_single_factor_design_contract.yaml
+    sha256: 962d7f30eae0955972518ffec960fbf892eaf5f40b8bedb61e3cb5867bbf87ef
+  round_2_budget_ledger:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_d1_round2_design/v2_04g_p3_d1_seed_budget_ledger.yaml
+    sha256: 97117619dceeed34f395a383d6ed5bf69e9e57002cf1228897d175c44aebd29e
+  round_3_budget_ledger:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_d1_final_round_design/v2_04g_p4_d1_seed_budget_ledger.yaml
+    sha256: db3b600eb07db75ae8948eb7cb40f132373b3f69897b05b22f5a3638919e9ffa
+  round_1_terminal_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/p2_c1_r1_stage_report.yaml
+    sha256: 92f837f7c22855b5d9d57de53bd718815ad89fa606f576c996c42cccd09974b5
+  round_2_terminal_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_execution/p3_i1_stage_report.yaml
+    sha256: a36f563fea2dc21ecbf29e06ad6fcf535910304506d2c5c6cd0be5c2121cab86
+  round_3_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_p4_i1_execution_release.yaml
+    sha256: 1bcd0392d475cdf17d7a2bf6540e024a61136150011945d323cae1234b568220
+  round_3_preexecution_audit:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_i1_release_readiness/v2_04g_p4_i1_postrelease_preexecution_audit.yaml
+    sha256: 2c8970b47f543034c93ffba7a5b252cf9ebd2ba15ec0faa8f483903568fa7a8d
+  round_3_terminal_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_i1_execution/p4_i1_stage_report.yaml
+    sha256: 6f8a24497dc241192ecf35685847caf8a56f59ef850c89061b78a7bd46b247b6
+  round_3_failure_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_i1_execution/p4_i1_failure_index.yaml
+    sha256: a353fa67ec0ae67b9964f9fcf10a4c4a839cd92663ca3da911ce13bb8869f0fa
+  round_3_failure_journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_i1_execution/journals/sequence_0001_terminal_integrity_failure.yaml
+    sha256: 94ca838da3800a9fbd1fae4d4565992ea67d9b3a08388f198b7a8a9b00d34aa3
+  round_3_base_log:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_i1_execution/attempts/0001__high_speed_to_conflict_overlay_transition_v125__v2-04g-p4-i1-qual-overlay-v125-s5924/work/base_launch.log
+    sha256: 88ccd1e59656cb3df4ed3a02cc8d58f938d352dbb69f5f76ba31bbf85f1868a8
+  promoted_bank_independent_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/v2_04g_p4_q1_independent_review.yaml
+    sha256: 26c03a7e31a06d1f45ccc7348cdd980974b2a00c2b9b7f8e8879af38f0d4b3fd
+  historical_P1_four_gate_assessment:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/p1_e1_four_gate_assessment.yaml
+    sha256: 89147e95f19c461926e302982ab4db3772f1847fa0ca273e05b0df73fe2cd6df
+  historical_P1_terminal_freeze:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/p1_e1_terminal_evidence_freeze.sha256
+    sha256: 952b97389b5c65afbc083dcf3a893e9f9c845a6d512539161f058543d48b594a
+  historical_P1_interpretation:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_i1_interpretation/v2_04g_p1_i1_result_interpretation_review.yaml
+    sha256: fb5637fbdee9cad20ac04918a861061e2a006c0c9569af7fb3ee596d05529e2e
+
+terminal_round_3_expected:
+  authorized_units: 1
+  consumed_units: 1
+  completed_units: 0
+  stage_forfeited_units: 0
+  program_capacity_retired_after_failure: 703
+  round_capacity_closed: 704
+  seed: 5924
+  attempt: 1
+  raw_resources_produced: false
+  held_out_test_accessed: false
+  retry_resume_replacement_or_seed_substitution_allowed: false
+
+failure_attribution:
+  direct_terminal_cause:
+    id: ros_package_resolution_failed_before_service_readiness
+    required_log_text: >-
+      RLException: [m2_v2_04g_p2_q1_execution.launch] is neither a launch file
+      in package [m2_gazebo] nor is [m2_gazebo] a launch file name
+  boundary:
+    base_roslaunch_spawn_requested: true
+    Gazebo_started: false
+    move_base_started: false
+    parameter_transaction_started: false
+    raw_trace_produced: false
+  offline_attribution:
+    local_launch_file_exists_and_was_hash_closed: true
+    child_environment_inherited_ROS_PACKAGE_PATH: true
+    child_environment_source_value_was_not_recorded: true
+    preexecution_package_resolution_probe_was_absent: true
+    inferred_primary_integrity_gap: workspace_overlay_environment_not_bound_or_resolved_before_consumption
+  factor_interpretation:
+    promoted_bank_strict_offline_parser_passed: true
+    promoted_bank_live_runtime_behavior_was_not_reached: true
+    factor_performance_effect_observed: false
+    factor_safety_effect_observed: false
+
+global_post_P1_budget_expected:
+  simulation_capacity_total: 2200
+  training_steps_capacity_total: 120000
+  training_steps_consumed: 0
+  rounds:
+    round_1: {capacity: 792, consumed: 2, retired: 790}
+    round_2: {capacity: 704, consumed: 1, retired: 703}
+    round_3: {capacity: 704, consumed: 1, retired: 703}
+  simulation_units_consumed_total: 4
+  simulation_units_retired_total: 2196
+  remaining_simulation_capacity: 0
+  remaining_training_capacity: 0
+  budget_transfer_expansion_recycling_or_new_round_allowed: false
+
+terminal_effect_gate:
+  required_point_reduction_fraction: 0.10
+  required_one_sided_lower_reduction_fraction: 0.05
+  historical_P1_point_reduction_fraction: 0.03762364346211233
+  historical_P1_one_sided_lower_fraction: 0.027903858836313078
+  historical_P1_point_gate_pass: false
+  historical_P1_lower_gate_pass: false
+  post_P1_complete_calibration_or_test_matrix_available: false
+  post_P1_integrity_gate_pass: false
+  terminal_decision: obvious_performance_improvement_not_demonstrated
+  chinese_conclusion: 未证明明显提升
+
+terminal_claim_policy:
+  program_terminal: true
+  stop_performance_search: true
+  candidate_winner_frozen: false
+  positive_performance_claim_allowed: false
+  allowed:
+    - historical P1 formal negative result
+    - post-P1 finite-budget integrity history
+    - exact terminal infrastructure attribution
+    - honest budget-exhausted negative conclusion
+  forbidden:
+    - performance, safety, learning, winner or deployment superiority
+    - successful-only or calibration-only positive interpretation
+    - new seed, retry, replacement, threshold relaxation or budget expansion
+    - real-vehicle or cross-distribution generalization
+
+forbidden_side_effects:
+  start_ROS_or_Gazebo: true
+  modify_delete_retry_resume_or_rerun_any_historical_stage: true
+  access_new_held_out_test_outcomes: true
+  authorize_execution_training_or_new_performance_search: true
+  modify_stable_workspace_real_vehicle_CAN_or_hardware: true

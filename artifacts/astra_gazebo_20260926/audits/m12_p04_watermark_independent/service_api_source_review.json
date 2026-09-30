@@ -1,0 +1,41 @@
+{
+  "reference_url": "https://raw.githubusercontent.com/ros-simulation/gazebo_ros_pkgs/noetic-devel/gazebo_ros/src/gazebo_ros_api_plugin.cpp",
+  "source_lookup_method": "web open/find; primary upstream ROS repository",
+  "findings": [
+    {
+      "line": 1014,
+      "meaning": "GetWorldProperties sim_time is world SimTime converted to double, independent of receiver ROS clock."
+    },
+    {
+      "line": 1360,
+      "meaning": "GetPhysicsProperties time_step is physics engine maximum step size."
+    },
+    {
+      "line": 1361,
+      "meaning": "GetPhysicsProperties pause is world IsPaused."
+    },
+    {
+      "line": 1585,
+      "meaning": "PausePhysics requests world SetPaused(true)."
+    }
+  ],
+  "installed_packages": {
+    "ros-noetic-gazebo-msgs": "2.9.3-1focal.20250520.004928",
+    "ros-noetic-gazebo-ros": "2.9.3-1focal.20250521.003802"
+  },
+  "qualification_limit": "Upstream source semantics plus installed service schema checked; no claim that remote branch hash proves exact installed binary source revision. No live service invoked.",
+  "local_resources": [
+    {
+      "path": "/opt/ros/noetic/share/gazebo_msgs/srv/GetWorldProperties.srv",
+      "sha256": "8c5b0e4752c17cf5324b9bb7cc5d90ef182a5db6050c98c5a5ad9d0d3fcb3aca"
+    },
+    {
+      "path": "/opt/ros/noetic/share/gazebo_msgs/srv/GetPhysicsProperties.srv",
+      "sha256": "24f7992b443bc21e871c709c92a536bff4160b5649197dee7b131a47a28db433"
+    },
+    {
+      "path": "/opt/ros/noetic/lib/libgazebo_ros_api_plugin.so",
+      "sha256": "faeded3fbb7807bcb57d917ae30311d1504344123ff27337f702f9ebc629c219"
+    }
+  ]
+}

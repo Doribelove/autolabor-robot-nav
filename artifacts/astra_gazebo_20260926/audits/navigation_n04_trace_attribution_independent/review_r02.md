@@ -1,0 +1,1 @@
+N04 attribution r02 独立通过：新脚本的实际两个SE2函数4项纯数学样例通过；逐行JSON/CSV对照此前独立5bag重放，全部计数、源SHA、exact29.460s终态map距离与bag尾值相同。全bag2190条与局部prepublish ROSclock半开区间2182条明确分开；二者分别用于完整历史消息复现和限定时间窗口的描述统计，不能互换。1个assessment KeyboardInterrupt与6个退休analytic均排除，保留原消费/退休；不声称因果或N05收益。原r01坐标错误及所有旧证据保持。另citation_erratum.json仅将独立首报告原脚本行号从47–48更正为48–49，数值与结论不变。本次无ROS/仿真/训练。

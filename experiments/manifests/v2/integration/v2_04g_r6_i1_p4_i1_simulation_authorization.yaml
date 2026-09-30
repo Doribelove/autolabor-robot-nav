@@ -1,0 +1,50 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P4-I1
+authorization_id: fam_teb_v2_04g_p4_i1_user_authorization_20260724_1
+status: explicit_user_authorization_recorded_release_not_yet_created
+explicit_user_authorization_recorded: true
+authorization_recorded_date: "2026-07-24"
+simulation_only: true
+execution_authorized: true
+authorized_evidence_units_max: 1
+attempt_per_identity: 1
+retry_resume_replacement_or_seed_substitution_allowed: false
+training_allowed: false
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+historical_stage_rerun_or_resume_forbidden: true
+single_factor_id: promote_offline_candidate_bank_to_strict_runtime_candidate_schema_v1
+behavioral_TEB_parameter_change: false
+exact_identity:
+  sequence: 1
+  probe_type: high_speed_to_conflict_overlay_transition
+  candidate_speed_mps: 1.25
+  candidate_method_id: circle_contact_v125
+  seed: 5924
+  attempt: 1
+  runtime_profile_id: r6_semantics_circle_contact
+release_boundary:
+  unique_release_path: experiments/manifests/v2/integration/v2_04g_r6_i1_p4_i1_execution_release.yaml
+  release_creation_count_max: 1
+  release_creation_authorized: true
+  independent_release_absent_review_required: true
+  exact_caller_supplied_release_sha256_required: true
+budget_boundary:
+  global_round_3_maximum_units: 704
+  this_stage_units: 1
+  future_C1_units_not_authorized: 253
+  future_T1_units_not_authorized: 450
+  additive_budget_expansion: false
+terminal_policy:
+  integrity_failure: stop_retain_and_retire_remaining_round_3_budget
+  ordinary_probe_failure: retain_stop_and_retire_remaining_round_3_budget
+  pass: permit_only_offline_C1_implementation_and_separate_future_gate
+authorization_basis:
+  user_instruction_excerpt: >-
+    持续推进 FAM-TEB 性能优化，主动执行、自检和记录，不因单次失败停止；
+    任何具体仿真执行仍须在 exact release、schedule 和预算冻结后通过对应阶段授权门。
+  narrowed_scope: >-
+    This record authorizes exactly one fresh Gazebo semantic overlay preflight
+    identity in P4-I1 using the independently reviewed strict-schema promoted
+    bank and nothing else.

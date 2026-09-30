@@ -1,0 +1,1 @@
+Initial N02 adapter inherited the N01 eight-integrity roster and omitted N02 sensor_only_method_registrations, producing one audit comparison failure despite other 23 checks passing. Original script/log/report retained. R02 adds the existing N02 ninth integrity check verbatim and independently audits actual graph evidence separately. No runtime evidence or gate changed.

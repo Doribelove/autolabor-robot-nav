@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "figure_id": "PHY02",
+  "stage": "astra_m12_physics_p04",
+  "status": "preregistered_before_reading_any_P04_outcomes",
+  "created_utc": "2026-09-26T09:51:46.183366+00:00",
+  "any_P04_outcomes_read": false,
+  "any_active_raw_or_bag_opened": false,
+  "population": "Exact fresh three-pair/six-unit P04 schedule, all retained attempts; no additions/retries or pooling with historical runs",
+  "generation_precondition": {
+    "six_closed_receipts_required": true,
+    "all_three_control_treatment_pairs_required": true,
+    "all_six_original_assessments_complete_required": true,
+    "all_six_measurement_source_recorder_watermark_gates_pass_required": true,
+    "physical_gate_failures": "Retain and plot every physical negative; no exclusion based on favorable physical results",
+    "matrix_incomplete_action": "Mark PHY02 not_complete, do not select a replacement representative, generate no PHY02 result plot or fabricated missing points"
+  },
+  "representative_rule": {
+    "sort_statistic": "Each of the three control-arm maximum absolute center-steering change rates derived independently from world-link relative quaternions on the original 20 ms source grid",
+    "sort_order": [
+      "ascending maximum absolute control rate",
+      "ascending integer seed for exact ties"
+    ],
+    "selection": "middle (index 1) control in sorted list; its paired treatment is the sole representative timeline",
+    "selection_timing": "Only after complete independent audit of all six consumed units; no treatment outcome enters selection",
+    "peak_window_rule": "Full formal 36-second timeline shown for selected pair; any local zoom must use the control maximum absolute 20 ms interval midpoint ±0.25 seconds for both arms, clipped at formal endpoints, without selecting treatment peak"
+  },
+  "measurement_definition": {
+    "actual_steering_source": "/astra/world_links raw links, WorldUpdateEnd; use robot base_link-relative front_left/right_steer_link quaternions, not joint_states timestamps or target phase",
+    "left_right_to_center": "k_left=tan(left)/(L+track/2*tan(left)); k_right=tan(right)/(L-track/2*tan(right)); center=atan(L*(k_left+k_right)/2), with L/track from each frozen effective contract",
+    "formal_window": "Use exactly the frozen assessor start<=row.t<=start+total_schedule_s selection for qualification equivalence; validate ns/t consistency and integer bounds separately without substituting a new sample set",
+    "derivative": "Adjacent unsmoothed actual center values / actual source timestamp difference; retained 20 ms grid only for frozen qualification comparison",
+    "x_axis": "Actual world-link source ns minus schedule_start_ns, in seconds; do not shift the curve onto joint or target publication phase",
+    "targets": "If shown, retain their own source stamps and label reference versus actual explicitly",
+    "trajectory": "Actual world model/base poses on their own source time grid; no planned/reference trajectory presented as execution",
+    "steady_steering_error": "Use frozen phase definitions and original final-one-second tail, compare measured actual center with original requested/clipped center; reproduce frozen phase metric selection rather than choosing a favorable interval",
+    "threshold": "Frozen effective maxSteeringRate plus actual_center_slew_tolerance_radps, read from contract; do not retune from observations",
+    "no_smoothing_resampling_or_substep_substitution": true
+  },
+  "panels": {
+    "all_pairs": "Show all three paired control/treatment actual 20 ms peak points connected by seed; report raw numeric values and original gate outcomes for all six",
+    "steady_state": "Show all six measured phase-tail steering errors and original fixed gate, preserving phase labels",
+    "representative": "Only predeclared median-control pair; full actual steering/source-target timeline and actual XY trajectory; selected rule visibly disclosed",
+    "dense_2ms": "May be tabulated as a separately labelled supplementary diagnostic, never used to replace the 20 ms selection statistic or qualification gate"
+  },
+  "claims": "Actuator qualification and measurement diagnosis only; no navigation performance, general safety, real vehicle, or broad statistical superiority claim from three simulator seed pairs",
+  "rendering": {
+    "language": "Chinese",
+    "width_mm": 170,
+    "formats": [
+      "PDF",
+      "SVG",
+      "native 600 dpi PNG"
+    ],
+    "height": "Choose once after layout, then retain revisions; enough room for legible labels and gate lines",
+    "required": [
+      "raw-derived CSV",
+      "standalone Chinese caption",
+      "LaTex include",
+      "all input/output SHA256",
+      "exact generation commands",
+      "actual view_image on native PNG and 170 mm PDF raster",
+      "preserve failed visual revisions and repair history"
+    ]
+  },
+  "historical_PHY01": "Remains not_complete; PHY02 is a distinct new figure for new identities, not completion/replacement of PHY01",
+  "write_scope": "Only new independent result audit and new visual directories; frozen runtime/contracts/releases/global figure manifest/plan untouched"
+}

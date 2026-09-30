@@ -1,0 +1,78 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-S2
+stage_purpose: prospective_branch_clock_and_observer_integrity_repair
+status: preregistered_preflight_only_before_evidence_release
+upstream:
+  s1_failure_report_sha256: b48996d4e72d44e0845163a1a220342fc3b903d3ca0566ca55bf98dae3c9c4bc
+  s1_terminal_freeze_sha256: fcd9b265c08170b7c53857d939c1d550a7996a7fa842f612ab7e4704228d57c1
+  s1_independent_review_sha256: e7374ce66faeb779468d5267ac80a4b46c427c3b82f3a64b2d2115c12c40a56f
+repair:
+  behavioral_factor_changed: false
+  fixed_absolute_sim_clock_branch_barrier: true
+  activation_target_sim_s: 5.0
+  branch_target_sim_times_s: {early: 8.5, late: 12.5}
+  actor_speed_estimator: causal_coordinate_slope_over_0_50_s
+  speed_estimator_window_s: 0.50
+  hidden_evaluator_policy_input: false
+  original_matching_thresholds_retained: true
+  original_candidate_bank_retained: true
+  original_actor_plugin_and_dynamics_retained: true
+population:
+  source_scene_contract: config/thesis_experiments/v3/v3_13_c1_multiactor_clone_contract.yaml
+  scene_policy_strata:
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, hesitant]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, hesitant]}
+  branch_time_labels: [early, late]
+  future_evidence_seeds: [7241, 7242, 7243, 7244, 7245, 7246, 7247, 7248]
+  future_matched_context_blocks: 8
+  branch_actions: [spatial_left_v120, spatial_right_v120, straight_v120, certified_stop_v000]
+  actions_per_block: 4
+  future_exact_evidence_units: 32
+  behavior_propensity_each: 0.25
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+integration_preflight:
+  evidence_identity: false
+  seed: 7239
+  scene_id: occluded_staggered_corridor
+  actor_policies_evaluator_only: [hesitant, hesitant]
+  branch_time_label: late
+  branch_target_sim_s: 12.5
+  actions: [spatial_left_v120, spatial_right_v120, straight_v120, certified_stop_v000]
+  exact_units: 4
+  attempts_per_identity: 1
+  output_cannot_enter_predictor_fit_or_performance_analysis: true
+matching_gates:
+  branch_clock_absolute_error_max_s: 0.012
+  paired_decision_ego_x_difference_max_m: 0.04
+  paired_decision_actor_coordinate_difference_max_m: 0.05
+  paired_decision_actor_speed_difference_max_mps: 0.05
+  decision_speed_mps_max: 0.08
+  decision_ego_x_range_m: [-2.70, -2.10]
+  decision_observable_modes_required: [assertive, assertive]
+  complete_action_support_rate_min: 1.0
+  minimum_behavior_propensity: 0.25
+  branch_trace_samples_min: 130
+  branch_trace_duration_s_min: 6.85
+  unsafe_outcomes_retained: true
+downstream:
+  preflight_pass_authorizes_offline_evidence_release_design_only: true
+  preflight_output_is_fit_or_claim_evidence: false
+  future_evidence_pass_may_authorize_assertive_recovery_predictor_fit: true
+  policy_or_ranker_training_authorized: false
+  actual_teb_comparison_authorized: false
+  perception_claim_authorized: false
+authority:
+  user_continuation_instruction_date: '2026-07-25'
+  exact_non_evidence_preflight_authorized: true
+  authorized_preflight_units: 4
+  evidence_execution_authorized: false
+  authorized_evidence_units: 0
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+  historical_seed_or_budget_reuse_authorized: false

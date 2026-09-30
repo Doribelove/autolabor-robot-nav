@@ -1,0 +1,106 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-C1
+stage_purpose: common_prefix_candidate_conditioned_predictor_train_calibration
+contract_id: v3_scope_v3_02_c1_common_prefix_predictor_1
+status: preregistered_before_simulation
+parent_alignment_review: artifacts/v3/prediction/v3_02_t2/v3_03_preintegration_alignment_review.yaml
+scope:
+  scene_family: parameterized_crossing
+  common_decision_state_required: true
+  formal_performance_result: false
+  planner_evaluation: false
+authority_boundary:
+  simulation_requires_separate_release_and_authorization: true
+  deterministic_supervised_model_fit_after_collection_authorized: true
+  held_out_test_access_authorized: false
+  held_out_test_seeds_reserved: [6261, 6262, 6263]
+  move_base_authorized: false
+  real_vehicle_authorized: false
+experimental_unit:
+  policies: [cautious, assertive, hesitant]
+  ego_interventions:
+    - {candidate_id: branch_v060, speed_mps: 0.60}
+    - {candidate_id: branch_v080, speed_mps: 0.80}
+    - {candidate_id: branch_v100, speed_mps: 1.00}
+    - {candidate_id: branch_v120, speed_mps: 1.20}
+  scenario_blocks:
+    - {block_id: train_6241, role: training, seed: 6241, angle_deg: 70.0, actor_start_distance_m: 2.70, actor_base_speed_mps: 0.90}
+    - {block_id: train_6242, role: training, seed: 6242, angle_deg: 90.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 1.00}
+    - {block_id: train_6243, role: training, seed: 6243, angle_deg: 110.0, actor_start_distance_m: 3.30, actor_base_speed_mps: 1.10}
+    - {block_id: train_6244, role: training, seed: 6244, angle_deg: 70.0, actor_start_distance_m: 3.30, actor_base_speed_mps: 1.00}
+    - {block_id: train_6245, role: training, seed: 6245, angle_deg: 90.0, actor_start_distance_m: 2.70, actor_base_speed_mps: 1.10}
+    - {block_id: train_6246, role: training, seed: 6246, angle_deg: 110.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 0.90}
+    - {block_id: calibration_6251, role: calibration, seed: 6251, angle_deg: 80.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 0.95}
+    - {block_id: calibration_6252, role: calibration, seed: 6252, angle_deg: 100.0, actor_start_distance_m: 3.15, actor_base_speed_mps: 1.05}
+    - {block_id: calibration_6253, role: calibration, seed: 6253, angle_deg: 90.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 1.05}
+  attempts_per_identity: 1
+  schedule_rows: 108
+  evidence_budget_units: 108
+  retry_allowed: false
+  resume_allowed: false
+scene:
+  duration_s: 8.0
+  sample_period_s: 0.05
+  max_step_size_s: 0.005
+  real_time_update_rate_hz: 0
+  observation_time_s: 0.50
+  prediction_absolute_times_s: [1.5, 2.5, 3.5, 4.5]
+  conflict_point_m: [0.0, 0.0]
+  ego:
+    model_name: ego_probe
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    endpoint_pose_m_rad: [3.0, 0.0, 0.0]
+    footprint_m: [1.13, 0.73, 0.55]
+    max_speed_mps: 1.20
+    common_prefix: {duration_s: 0.50, speed_mps: 0.80, end_x_m: -2.60}
+  actor:
+    model_name: reactive_actor
+    endpoint_after_conflict_m: 3.50
+    size_m: [0.45, 0.45, 1.70]
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+predictor_design:
+  runtime_inputs:
+    - actor_conflict_coordinate_at_observation_m
+    - actor_observed_speed_mps
+    - candidate_branch_speed_mps
+    - candidate_future_trajectory
+    - actor_path_direction_from_tracker
+  forbidden_runtime_inputs: [actor_policy_label, role, seed, future_actor_truth]
+  mode_heads: [cautious, assertive, hesitant]
+  model: per_mode_per_horizon_ridge_regression
+  ridge_lambda: 1.0e-6
+  scalar_features:
+    - bias
+    - actor_conflict_coordinate
+    - actor_observed_speed
+    - candidate_ego_speed
+    - candidate_ego_speed_squared
+    - actor_coordinate_x_candidate_speed
+    - actor_speed_x_candidate_speed
+  physical_coordinate_clip:
+    lower_bound: actor_coordinate_at_observation
+    upper_bound_m: 3.50
+  envelope: min_max_across_all_mode_heads_plus_split_conformal_radius
+  conformal_score: actual_mode_absolute_residual
+  conformal_alpha: 0.10
+  actor_physical_radius_m: 0.225
+model_calibration_gates:
+  training_episode_count: 72
+  calibration_episode_count: 36
+  model_head_count: 12
+  common_prefix_actor_coordinate_spread_max_m: 0.005
+  common_prefix_actor_speed_spread_max_mps: 0.02
+  calibration_marginal_coverage_min: 0.90
+  calibration_per_horizon_coverage_min: 0.85
+  calibration_mean_full_width_max_m: 4.50
+  actual_mode_mae_max_m: 0.50
+  candidate_sensitivity_min_m: 0.20
+  hidden_label_runtime_firewall_pass: true
+  byte_identical_rebuild_required: true
+failure_policy:
+  persist_failure: true
+  do_not_access_reserved_test_seeds: true
+  no_retry_or_seed_replacement: true
+  gate_change_after_result_forbidden: true

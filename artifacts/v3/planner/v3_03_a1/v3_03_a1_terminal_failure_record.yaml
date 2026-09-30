@@ -1,0 +1,47 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-A1
+status: terminal_short_trace_parser_preplanner_failure
+date: "2026-07-24"
+execution:
+  authorized_simulation_units: 18
+  consumed_simulation_units: 1
+  completed_simulation_units: 1
+  completed_decisions: 0
+  forfeited_simulation_units: 17
+  retries: 0
+  resume_allowed: false
+  seed_started: 6291
+  remaining_seeds_forfeited: [6291, 6292, 6293]
+failure:
+  decision_id: v3_03_a1_integration_6291_cautious
+  phase: common_prefix_probe_post_capture_parse
+  planner_invoked: false
+  selected_candidate_execution_started: false
+  exception: >-
+    V301Error: trace has too few samples for the inherited full-episode
+    load_trace parser
+  cause: >-
+    The preregistered probe duration was 0.55 s and produced 12 data rows plus
+    the CSV header. The inherited V3-01 full-episode parser requires at least
+    150 data rows and a final timestamp of at least 7.95 s.
+preserved_resources:
+  journal:
+    path: artifacts/v3/planner/v3_03_a1/execution/v3_03_a1_attempt_journal.jsonl
+    sha256: 81ede877d2688b83a7644f29740925a7416ff0665e3e7b8b5bd0b35d0fc04c51
+  raw_probe:
+    path: artifacts/v3/planner/v3_03_a1/execution/decisions/v3_03_a1_integration_6291_cautious/probe/raw_pose_trace.csv
+    sha256: b32137536eacbe58529c7082ebcd50fb74ae05e3c3fd922dfc0bfe9c37415110
+  probe_world:
+    path: artifacts/v3/planner/v3_03_a1/execution/decisions/v3_03_a1_integration_6291_cautious/probe/world.sdf
+    sha256: 119daf0de8810f2bdb9bea8601d4e69e0e8108fa59efff39a4eac502d8f21ca4
+disposition:
+  A1_retry_or_resume: forbidden
+  A1_seed_or_budget_reuse: forbidden
+  gate_or_planner_change: forbidden
+  next_stage: V3-03-A2
+  allowed_repair: short_probe_trace_parser_only
+claim:
+  simulation_integration_pass: false
+  performance_improvement: false
+  real_vehicle_ready: false

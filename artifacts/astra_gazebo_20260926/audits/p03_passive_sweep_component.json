@@ -1,0 +1,150 @@
+{
+  "schema": "astra_p03_passive_sweep_component_review_v1",
+  "status": "offline_component_pass_runtime_not_yet_qualified",
+  "component_version_name": "P03 passive sweep; distinct from parent gainpilot P03 which does not load this plugin",
+  "runtime_qualified": false,
+  "simulation_started_by_this_agent": false,
+  "existing_library_build_performed": false,
+  "new_source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physics_metadata_p03_plugin.cpp",
+      "sha256": "9b5e96d1880a45934fb1b4a2d4276299956eaefb1399fbcbe653bdaba0df4589"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/dense_sweep_p03.py",
+      "sha256": "7de0531ffae59adc226f8de2531367c0e0575191499c00319530f9f8a430de52"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_dense_sweep_p03.py",
+      "sha256": "db646c10b61c7629599c3a0301aad451e0cfd1595f60c06b28c4338074a9d031"
+    }
+  ],
+  "retained_source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/dense_sweep.py",
+      "sha256": "c4bfdeb26a4eef3be38efd163df081e5d3939485942ad88b96ba103b2511d4e0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/evaluate_episode.py",
+      "sha256": "db585cddb29054137c2129f3b96d698cd3a3bcf4b7d854558c29aee4b06550a4"
+    }
+  ],
+  "source_scope": "gazebo_normal_euler_extension_with_actor_begin_jumps",
+  "numeric_profile": {
+    "name": "astra_p03_engineering_numeric_v1",
+    "world_coordinate_abs_max_m": 1000.0,
+    "nonrobot_shape_origin_radius_max_m": 1000.0,
+    "com_radius_max_m": 10.0,
+    "shape_radius_max_m": 10.0,
+    "quaternion_norm_residual_max": 1e-08,
+    "rotation_per_step_max_rad": 0.25,
+    "com_translation_per_step_max_m": 0.25,
+    "point_budget_pad_per_step_m": 1e-05,
+    "endpoint_clearance_pad_m": 1e-05,
+    "phase_join_pose_pad_m": 1e-07,
+    "phase_join_rotation_pad_rad": 1e-07,
+    "physics_step_ns": 2000000,
+    "coarse_stride_steps": 10,
+    "margin_m": 0.33,
+    "interpretation": "conservative engineering envelope tested against high-precision and independent references in this bounded domain; not a formal floating-point proof"
+  },
+  "tests": {
+    "passed": 81,
+    "new_p03_cases": 46,
+    "retained_dense_cases": 18,
+    "retained_geometry_cases": 17,
+    "log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/p03_sweep_tests_final_r1.log",
+      "sha256": "1a5dcfd18cece4f6935c0cbfa362ac1c8de504656bc0f1503fbf8e9c1a148abb"
+    },
+    "native_plugin_syntax": {
+      "command": "g++ -std=c++14 -fsyntax-only -Wall -Wextra -Werror with installed Gazebo/ROS headers",
+      "exit_code": 0,
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/p03_passive_metadata_syntax_final_r1.log",
+        "sha256": "3c696c094e2a1323fa00cf0974a861af0cd6824b1672248c1d12791a70a61e4e"
+      }
+    },
+    "Decimal70_random_COM_quaternion_cases": 1000,
+    "Decimal70_maximum_budget_error_m": 1.1118799244281668e-13,
+    "independent_SciPy_Shapely_endpoint_cases": 200,
+    "independent_endpoint_maximum_error_m": 1.0835776720341528e-13,
+    "synthetic_bag_CLI": {
+      "no_master_required": true,
+      "receipt_shift_s": 0.075,
+      "source_exact_intervals": 10,
+      "outputs_verified": true
+    },
+    "fixture_limits": "Synthetic metadata/audit documents test code paths only; no empirical P03 Gazebo evidence or release authority."
+  },
+  "topics": {
+    "pre_models": "/astra/p03/pre_models",
+    "pre_links": "/astra/p03/pre_links",
+    "end_models": "/astra/p03/end_models",
+    "end_links": "/astra/p03/end_links",
+    "runtime_metadata": "/astra/p03/runtime_metadata",
+    "step_status": "/astra/p03/step_status"
+  },
+  "runtime_facts": [
+    "BeforePhysicsUpdate and WorldUpdateEnd WorldState messages use the same already-advanced source stamp.",
+    "Each phase reads actual public ODE body rotation mode/axis, kinematic/auto-disable/damping settings and enabled state.",
+    "Native dBodyGetMass mass/COM/inertia, native body COM/quaternion, and Gazebo merged inertial/actual collision primitives are retained.",
+    "Native COM/quaternion are checked against link pose and merged COM; configuration revision must remain constant through the evaluation interval.",
+    "No physics setters, command publishers, ROS subscriptions/services, hashing or filesystem I/O in the observer."
+  ],
+  "bound": {
+    "body": "B_i=norm(delta_COM_i)+2*R_i*tan(theta_i/2)+10 micrometres, theta<=0.25 and COM delta<=0.25m.",
+    "normal_extension": "COM linear in unit phase; quaternion normalized normal-Euler extension. Endpoint post-damping/ERP velocities are not a speed bound.",
+    "robot_step": "max_i solver_B_i + max_i previous_End_to_Pre_variation_i; maxima are separate because critical bodies can differ.",
+    "actor_step": "sum reviewed source-rule max(current/target speed)*dt budgets for Begin jumps, plus explicit translation/rotation phase tolerance budgets.",
+    "coarse": "P=sum all exact 2ms robot+obstacle variation budgets; lower=min(d0,d1)-10um-P/2, with 0.33m margin already subtracted from endpoint geometry.",
+    "geometry": "Actual runtime compound box eight-corner and outer48-gon cylinder projections; Z screen diagnostic. Robot mass/COM/body roster/collision count/radius also checked against saved expanded URDF in CLI.",
+    "qualification_limit": "A bounded engineer-reviewed Gazebo algorithmic extension and actor discrete paths; not real continuous physical safety or formal floating point verification."
+  },
+  "required_root_integration": [
+    "After active gainpilot terminates, independently review these exact new source hashes; add isolated CMake library target astra_physics_metadata_p03_plugin using catkin/Gazebo libs and current generated gazebo_msgs.",
+    "Load libastra_physics_metadata_p03_plugin.so once as a world plugin in a separately named future environment stage; it does not replace the whole-system contact plugin.",
+    "Record all six P03 topics plus existing whole-system contacts and task/input evidence; recorder ready before evaluated policy window; never backfill P01/P02/gainpilot.",
+    "Archive exact expanded runtime robot_description and actual world; collect process maps with SHA copies of loaded ODE/Gazebo/controller/actor/observer libraries.",
+    "Produce separately reviewed run closure covering authorized isolated-master node roster, launch and source/binary identities, service-call audit, engine-source/native-test correspondence, and all robot/actor pose writers.",
+    "Execute a fresh common-environment qualification with known positive/negative obstacle/rotation/actor probes, verify lossless2ms Pre/End/status coverage, metadata stable revision, native-body consistency and acceptable simulation throughput.",
+    "Pass exact source window endpoints to offline CLI; combine its engine-scope clearance with existing contacts, input integrity, mask and failure-inclusive task assessment."
+  ],
+  "closure_artifact_roles": [
+    "launch",
+    "world",
+    "robot_description",
+    "driver_source",
+    "driver_binary",
+    "evidence_source",
+    "evidence_binary",
+    "engine_binary_maps",
+    "node_roster_audit",
+    "service_call_audit",
+    "pose_writer_review",
+    "actor_sources",
+    "actor_binaries"
+  ],
+  "not_claimed": [
+    "real continuous physical safety",
+    "formal floating-point error proof",
+    "malicious process isolation",
+    "P01/P02/gainpilot retroactive qualification",
+    "contact absence proves collision-free",
+    "planner access to evaluator truth"
+  ],
+  "primary_implementation_sources": [
+    "https://github.com/gazebosim/gazebo-classic/blob/gazebo11_11.15.1/deps/opende/src/util.cpp",
+    "https://github.com/gazebosim/gazebo-classic/blob/gazebo11_11.15.1/deps/opende/src/quickstep_update_bodies.cpp",
+    "https://github.com/gazebosim/gazebo-classic/blob/gazebo11_11.15.1/gazebo/physics/ode/ODELink.cc",
+    "https://github.com/gazebosim/gazebo-classic/blob/gazebo11_11.15.1/gazebo/physics/World.cc"
+  ],
+  "prior_native_engine_reference": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/dense_sweep_component.json",
+    "sha256": "400ca5d260ba64b176b3e1458de840554bde1065fcc5d8b4979575adaf9f6317"
+  }
+}

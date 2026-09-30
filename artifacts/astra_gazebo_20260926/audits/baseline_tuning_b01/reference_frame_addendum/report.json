@@ -1,0 +1,265 @@
+{
+  "schema": "astra_B01_reference_frame_diagnostic_addendum_v1",
+  "status": "source_confirmed_reference_mismatch_future_adapter_qualification_required",
+  "independent_review": false,
+  "author_scope": "B01 author supplemental source audit, not independent approval of own configs",
+  "offline_only": true,
+  "new_simulation": false,
+  "previous_B01_files_unchanged": true,
+  "coarse_configs_unchanged": true,
+  "current_N04_unchanged": true,
+  "finding": "Physical base_link is axle midpoint; existing TEB/DWA apply nonholonomic trajectory models to that pose, while physical wheel geometry assumes a laterally fixed rear axle. Actual midpoint vy includes rigid-body turning and cannot be interpreted wholly as side slip. This source-confirmed model-reference mismatch does not itself establish any live N04 failure attribution.",
+  "dimensions": {
+    "wheelbase_m": 0.65,
+    "base_to_rear_x_m": -0.325,
+    "base_to_front_x_m": 0.325,
+    "dwa_acc_lim_y": 2.5,
+    "controller_hz": 20.0,
+    "sim_period_s": 0.05,
+    "zero_lateral_window_half_width_mps": 0.125,
+    "ideal_no_slip_turn_threshold_abs_yaw_radps": 0.3846153846153846,
+    "planner_yaw_cap_radps": 0.7805,
+    "ideal_base_vy_at_planner_yaw_cap_mps": 0.2536625,
+    "ideal_base_vy_at_physical_steer_cap_v1p2_mps": 0.32498234262737297
+  },
+  "semantics": {
+    "odom": "P05 world velocity at base link origin rotated into base coordinates; no inventedvy, no rear reference conversion. Pose/TF and child_frame_id are base_link.",
+    "command": "Shared coordinator rejects all nonzero lateral method commands then passes v/w through. Physical P05 maps atan(L*w/v), clips steering, advances reference dynamics and wheel effort. It does not translate planner base-point lateral velocity into rear-point velocity.",
+    "DWA": "Costmap robot pose/footprint at base_link; rawodom helper forwards vx/vy/w without transforming. When |vy|<=.125 (ignoring float32 edge rounding), sampledvy window collapses0. Outside it reverses lower>upper; VelocityIterator coerces1requested sample into2 endpoints, including0 andnonzero. A nonzero sample may be selected, but no selection/fault certainty is claimed.",
+    "TEB": "Robot pose/footprint at base_link; carlike edge soft nonholonomic constraint assumes displacement aligned with bodyheading at that point. Actual axle-midpoint motion has perpendicular term .325*w even underideal no-slip. min_turning_radius/kinematicweights are softoptimization terms, not an exact physical trajectory guarantee.",
+    "footprint": "Current base-frame compound polygon is geometrically consistent with currentbase pose. Reference repair must translate BOTH pose/twist and polygon together; changing onlyrobot_base_frame or zeroing odomvy would be wrong.",
+    "analytic_PCT": "Frozen route_candidate_core already calls base_pose_to_rear andbase_twist_to_rear, integrates rearstate andtransforms back tobase for physical footprint/goal; this baseline reference mismatch is a fairness limitation prior tostrong tuning."
+  },
+  "proposed_new_engineering_factor": {
+    "name": "rear_axle_planning_reference_adapter",
+    "stage": "new separately reviewed engineering qualification before B01 tuning execution; no currentruntime edits or IDs",
+    "transform": "r_BR=(-L/2,0,0); p_R=p_B+R_B*r_BR; v_R^B=v_B^B+omega_B cross r_BR. Planar vy_R=vy_B-L*w/2; vx_R=vx_B. Preserve source stamp and true residual rearvy; never forcevy=0.",
+    "tf": "Add unique static base_link->rear_axle_plan reference; keep authoritative originalodom/base TF intact. Dedicated plannerodom childrear, with pose/twistandcovariance consistently transformed. Preserve full3D transform/covariance and declareplanar scope.",
+    "footprint": "Existing TEB16 and costmap64 vertices in rear frame become(x+L/2,y). Sameworldoccupiedset and0.33margin, no removal of wheel/steer collision support.",
+    "planner_inputs": "Bind both costmap robot_base_frame and plannerodom torear reference. Translate planner terminal goal andguidepoints using theirorientations so original base-centered sharedgoal/route semantics are preserved; no mapgeometry/oracle change.",
+    "common_output": "Keep shared public v/w and physicalbackend/controller unchanged; now declare their bicycle rearreference semantics explicitly. Core evaluator stilluses actualbase geometry.",
+    "qualification": [
+      "Exact source-stamp and nofuture TF/odom joins, unique frameownership; no truthinput.",
+      "Offline straight/left/right, pose/twist covariance transformations, identicalworldfootprint vertices andsensortransforms.",
+      "Fresh boundedphysical constantcurvature +transients compare actual midpointvy, rearvy residual, worldpath andbothplanners internaltrajectory reference; all negativesretained.",
+      "Replay actualDWA samplewindows andstrict zero lateralcommand contract overqualifiedrange; no arbitraryacc_y escalation.",
+      "Checksharedbasegoal stopping/heading androute semantics unchanged afterreference shift; then independentrelease andbaseline-tuning approval."
+    ],
+    "remaining_limit": "DWA v/w rollouts still lack explicit carlike curvature/steering-slew feasibility; reference adaptation alone does not make every DWA proposal physically feasible. TEBCarlike weights/targetbounds still require execution checks."
+  },
+  "limits": [
+    "Synthetic no-slip formulas are not live measurements; realfriction/slip/tilt may change actualvalues.",
+    "NoN04 matrix outcomes read for this analysis; noheldout orfinal data accessed.",
+    "acc_lim_y2.5 is a bounded localwindow mitigation, never a universalfix orphysicallateralacceleration claim.",
+    "ExistingB01 remains candidate design, notexecutionready; this addendum adds amandatory futureengineering qualification prerequisite withoutretrospective gate changes."
+  ],
+  "sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n04_development_r01/reference_robot/robot_description.xml",
+      "sha256": "f6815283ffd61dbe3941893e095a1663c88afad1900af06d01e225dc22e61314",
+      "first_line": 53,
+      "last_line": 58,
+      "text": "  <joint name=\"front_left_steer_joint\" type=\"revolute\">\n    <parent link=\"base_link\"/>\n    <child link=\"front_left_steer_link\"/>\n    <origin rpy=\"0 0 0\" xyz=\"0.325 0.3 0.15\"/>\n    <axis xyz=\"0 0 1\"/>\n    <limit effort=\"300\" lower=\"-0.7446\" upper=\"0.7446\" velocity=\"2.0\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n04_development_r01/reference_robot/robot_description.xml",
+      "sha256": "f6815283ffd61dbe3941893e095a1663c88afad1900af06d01e225dc22e61314",
+      "first_line": 169,
+      "last_line": 175,
+      "text": "  <joint name=\"rear_left_wheel_joint\" type=\"continuous\">\n    <parent link=\"base_link\"/>\n    <child link=\"rear_left_wheel_link\"/>\n    <origin rpy=\"0 0 0\" xyz=\"-0.325 0.3 0.15\"/>\n    <axis xyz=\"0 1 0\"/>\n    <limit effort=\"500\" velocity=\"30\"/>\n    <dynamics damping=\"0.05\" friction=\"0.01\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n04_development_r01/reference_robot/robot_description.xml",
+      "sha256": "f6815283ffd61dbe3941893e095a1663c88afad1900af06d01e225dc22e61314",
+      "first_line": 200,
+      "last_line": 206,
+      "text": "  <joint name=\"rear_right_wheel_joint\" type=\"continuous\">\n    <parent link=\"base_link\"/>\n    <child link=\"rear_right_wheel_link\"/>\n    <origin rpy=\"0 0 0\" xyz=\"-0.325 -0.3 0.15\"/>\n    <axis xyz=\"0 1 0\"/>\n    <limit effort=\"500\" velocity=\"30\"/>\n    <dynamics damping=\"0.05\" friction=\"0.01\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p05_plugin.cpp",
+      "sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255",
+      "first_line": 169,
+      "last_line": 178,
+      "text": "  void cmd(const geometry_msgs::Twist::ConstPtr& msg) {\n    std::lock_guard<std::mutex> lock(mutex_);\n    if (!std::isfinite(msg->linear.x)||!std::isfinite(msg->angular.z)) {\n      fault_=true;pending_.clear();\n      publishCommandIngress(world_->SimTime(),\"cmd_vel\",msg->linear.x,msg->angular.z,false,\"rejected_invalid_command\");\n      return;\n    }\n    const double vx=m2_gazebo::clamp(msg->linear.x,-max_speed_,max_speed_);\n    enqueue(vx,m2_gazebo::twistToSteering(vx,msg->angular.z,wheelbase_,max_steer_),\"cmd_vel\",msg->linear.x,msg->angular.z);\n  }"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p05_plugin.cpp",
+      "sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255",
+      "first_line": 325,
+      "last_line": 335,
+      "text": "    }\n    const auto pose=base_->WorldPose();const auto relative=odom_origin_.Inverse()*pose;\n    const auto body_v=pose.Rot().RotateVectorReverse(base_->WorldLinearVel());\n    const auto body_w=pose.Rot().RotateVectorReverse(base_->WorldAngularVel());\n    nav_msgs::Odometry odom;odom.header.stamp=stamp(now);odom.header.frame_id=\"odom\";odom.child_frame_id=\"base_link\";\n    odom.pose.pose.position.x=relative.Pos().X();odom.pose.pose.position.y=relative.Pos().Y();odom.pose.pose.position.z=relative.Pos().Z();\n    odom.pose.pose.orientation.x=relative.Rot().X();odom.pose.pose.orientation.y=relative.Rot().Y();odom.pose.pose.orientation.z=relative.Rot().Z();odom.pose.pose.orientation.w=relative.Rot().W();\n    odom.twist.twist.linear.x=body_v.X();odom.twist.twist.linear.y=body_v.Y();odom.twist.twist.linear.z=body_v.Z();\n    odom.twist.twist.angular.x=body_w.X();odom.twist.twist.angular.y=body_w.Y();odom.twist.twist.angular.z=body_w.Z();odom_pub_.publish(odom);\n    if (publish_tf_) {geometry_msgs::TransformStamped tf;tf.header=odom.header;tf.child_frame_id=\"base_link\";tf.transform.translation.x=relative.Pos().X();tf.transform.translation.y=relative.Pos().Y();tf.transform.translation.z=relative.Pos().Z();tf.transform.rotation=odom.pose.pose.orientation;tf_pub_.sendTransform(tf);}\n    sensor_msgs::JointState joint;joint.header.stamp=stamp(now);"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_physical_control.h",
+      "sha256": "2f47c23c3b9a09a32789388444cb705de74665e1e27adf922a49eccb72f1c813",
+      "first_line": 9,
+      "last_line": 18,
+      "text": "inline std::array<double, 4> physicalWheelSpeeds(\n    double vx, const SteeringGeometry& steer, double wheelbase,\n    double track, double radius) {\n  const double left_x = vx - steer.yaw_rate * track / 2.0;\n  const double right_x = vx + steer.yaw_rate * track / 2.0;\n  const double front_y = steer.yaw_rate * wheelbase;\n  return {{(left_x*std::cos(steer.left)+front_y*std::sin(steer.left))/radius,\n           (right_x*std::cos(steer.right)+front_y*std::sin(steer.right))/radius,\n           left_x/radius, right_x/radius}};\n}"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/ackermann_kinematics.h",
+      "sha256": "fd47813987561dd6ad0acf03f8c0f734070aaeceb663d5950b6566af904baae0",
+      "first_line": 19,
+      "last_line": 28,
+      "text": "// Convert a body-twist command to the bicycle-model center steering angle.\n// Dividing by signed velocity is intentional: a negative velocity requires the\n// opposite steering sign to retain the requested body yaw-rate sign.\ninline double twistToSteering(double velocity, double yaw_rate,\n                              double wheelbase, double max_steer,\n                              double velocity_epsilon = 1e-3) {\n  if (std::abs(velocity) < velocity_epsilon || std::abs(yaw_rate) < 1e-9) {\n    return 0.0;\n  }\n  return clamp(std::atan(wheelbase * yaw_rate / velocity),"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/ackermann_kinematics.h",
+      "sha256": "fd47813987561dd6ad0acf03f8c0f734070aaeceb663d5950b6566af904baae0",
+      "first_line": 40,
+      "last_line": 55,
+      "text": "\n  const double curvature = std::tan(result.center) / wheelbase;\n  const double radius = 1.0 / std::abs(curvature);\n  const double inner_denominator = std::max(1e-6, radius - track / 2.0);\n  const double outer_denominator = radius + track / 2.0;\n  const double inner = std::atan(wheelbase / inner_denominator);\n  const double outer = std::atan(wheelbase / outer_denominator);\n  if (result.center > 0.0) {\n    result.left = inner;\n    result.right = outer;\n  } else {\n    result.left = -outer;\n    result.right = -inner;\n  }\n  result.yaw_rate = velocity * curvature;\n  return result;"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/odometry_helper_ros.cpp",
+      "sha256": "857613213fc9be73e63b240cb9678b5584db377d02c402d91f64172b107b8577",
+      "first_line": 48,
+      "last_line": 88,
+      "text": "void OdometryHelperRos::odomCallback(const nav_msgs::Odometry::ConstPtr& msg) {\n    ROS_INFO_ONCE(\"odom received!\");\n\n  //we assume that the odometry is published in the frame of the base\n  boost::mutex::scoped_lock lock(odom_mutex_);\n  base_odom_.twist.twist.linear.x = msg->twist.twist.linear.x;\n  base_odom_.twist.twist.linear.y = msg->twist.twist.linear.y;\n  base_odom_.twist.twist.angular.z = msg->twist.twist.angular.z;\n  base_odom_.child_frame_id = msg->child_frame_id;\n//  ROS_DEBUG_NAMED(\"dwa_local_planner\", \"In the odometry callback with velocity values: (%.2f, %.2f, %.2f)\",\n//      base_odom_.twist.twist.linear.x, base_odom_.twist.twist.linear.y, base_odom_.twist.twist.angular.z);\n}\n\n//copy over the odometry information\nvoid OdometryHelperRos::getOdom(nav_msgs::Odometry& base_odom) {\n  boost::mutex::scoped_lock lock(odom_mutex_);\n  base_odom = base_odom_;\n}\n\n\nvoid OdometryHelperRos::getRobotVel(geometry_msgs::PoseStamped& robot_vel) {\n  // Set current velocities from odometry\n  geometry_msgs::Twist global_vel;\n  {\n    boost::mutex::scoped_lock lock(odom_mutex_);\n    global_vel.linear.x = base_odom_.twist.twist.linear.x;\n    global_vel.linear.y = base_odom_.twist.twist.linear.y;\n    global_vel.angular.z = base_odom_.twist.twist.angular.z;\n\n    robot_vel.header.frame_id = base_odom_.child_frame_id;\n  }\n  robot_vel.pose.position.x = global_vel.linear.x;\n  robot_vel.pose.position.y = global_vel.linear.y;\n  robot_vel.pose.position.z = 0;\n  tf2::Quaternion q;\n  q.setRPY(0, 0, global_vel.angular.z);\n  tf2::convert(q, robot_vel.pose.orientation);\n  robot_vel.header.stamp = ros::Time();\n}\n\nvoid OdometryHelperRos::setOdomTopic(std::string odom_topic)"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/simple_trajectory_generator.cpp",
+      "sha256": "584e776487561956f6fb678c034d9c4f9dc5799452943e1bcd79bf1b8d080860",
+      "first_line": 106,
+      "last_line": 126,
+      "text": "    } else {\n      // with dwa do not accelerate beyond the first step, we only sample within velocities we reach in sim_period\n      max_vel[0] = std::min(max_vel_x, vel[0] + acc_lim[0] * sim_period_);\n      max_vel[1] = std::min(max_vel_y, vel[1] + acc_lim[1] * sim_period_);\n      max_vel[2] = std::min(max_vel_th, vel[2] + acc_lim[2] * sim_period_);\n\n      min_vel[0] = std::max(min_vel_x, vel[0] - acc_lim[0] * sim_period_);\n      min_vel[1] = std::max(min_vel_y, vel[1] - acc_lim[1] * sim_period_);\n      min_vel[2] = std::max(min_vel_th, vel[2] - acc_lim[2] * sim_period_);\n    }\n\n    Eigen::Vector3f vel_samp = Eigen::Vector3f::Zero();\n    VelocityIterator x_it(min_vel[0], max_vel[0], vsamples[0]);\n    VelocityIterator y_it(min_vel[1], max_vel[1], vsamples[1]);\n    VelocityIterator th_it(min_vel[2], max_vel[2], vsamples[2]);\n    for(; !x_it.isFinished(); x_it++) {\n      vel_samp[0] = x_it.getVelocity();\n      for(; !y_it.isFinished(); y_it++) {\n        vel_samp[1] = y_it.getVelocity();\n        for(; !th_it.isFinished(); th_it++) {\n          vel_samp[2] = th_it.getVelocity();"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/simple_trajectory_generator.cpp",
+      "sha256": "584e776487561956f6fb678c034d9c4f9dc5799452943e1bcd79bf1b8d080860",
+      "first_line": 225,
+      "last_line": 263,
+      "text": "    loop_vel = computeNewVelocities(sample_target_vel, vel, limits_->getAccLimits(), dt);\n    traj.xv_     = loop_vel[0];\n    traj.yv_     = loop_vel[1];\n    traj.thetav_ = loop_vel[2];\n  } else {\n    // assuming sample_vel is our target velocity within acc limits for one timestep\n    loop_vel = sample_target_vel;\n    traj.xv_     = sample_target_vel[0];\n    traj.yv_     = sample_target_vel[1];\n    traj.thetav_ = sample_target_vel[2];\n  }\n\n  //simulate the trajectory and check for collisions, updating costs along the way\n  for (int i = 0; i < num_steps; ++i) {\n\n    //add the point to the trajectory so we can draw it later if we want\n    traj.addPoint(pos[0], pos[1], pos[2]);\n\n    if (continued_acceleration_) {\n      //calculate velocities\n      loop_vel = computeNewVelocities(sample_target_vel, loop_vel, limits_->getAccLimits(), dt);\n      //ROS_WARN_NAMED(\"Generator\", \"Flag: %d, Loop_Vel %f, %f, %f\", continued_acceleration_, loop_vel[0], loop_vel[1], loop_vel[2]);\n    }\n\n    //update the position of the robot using the velocities passed in\n    pos = computeNewPositions(pos, loop_vel, dt);\n\n  } // end for simulation steps\n\n  return true; // trajectory has at least one point\n}\n\nEigen::Vector3f SimpleTrajectoryGenerator::computeNewPositions(const Eigen::Vector3f& pos,\n    const Eigen::Vector3f& vel, double dt) {\n  Eigen::Vector3f new_pos = Eigen::Vector3f::Zero();\n  new_pos[0] = pos[0] + (vel[0] * cos(pos[2]) + vel[1] * cos(M_PI_2 + pos[2])) * dt;\n  new_pos[1] = pos[1] + (vel[0] * sin(pos[2]) + vel[1] * sin(M_PI_2 + pos[2])) * dt;\n  new_pos[2] = pos[2] + vel[2] * dt;\n  return new_pos;"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/include/base_local_planner/velocity_iterator.h",
+      "sha256": "16647ead518b442abdb382a0424c6fec3f3ce938bacc5af81a17f7427549b9aa",
+      "first_line": 50,
+      "last_line": 73,
+      "text": "      VelocityIterator(double min, double max, int num_samples):\n        current_index(0)\n      {\n        if (min == max) {\n          samples_.push_back(min);\n        } else {\n          num_samples = std::max(2, num_samples);\n\n          // e.g. for 4 samples, split distance in 3 even parts\n          double step_size = (max - min) / double(std::max(1, (num_samples - 1)));\n\n          // we make sure to avoid rounding errors around min and max.\n          double current;\n          double next = min;\n          for (int j = 0; j < num_samples - 1; ++j) {\n            current = next;\n            next += step_size;\n            samples_.push_back(current);\n            // if 0 is among samples, this is never true. Else it inserts a 0 between the positive and negative samples\n            if ((current < 0) && (next > 0)) {\n              samples_.push_back(0.0);\n            }\n          }\n          samples_.push_back(max);"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner_ros.cpp",
+      "sha256": "6bbeb37938dee0e43d21d3b2a5649ef8c6630297c3d583121a6325cff8a1eef0",
+      "first_line": 188,
+      "last_line": 210,
+      "text": "  bool DWAPlannerROS::dwaComputeVelocityCommands(geometry_msgs::PoseStamped &global_pose, geometry_msgs::Twist& cmd_vel) {\n    // dynamic window sampling approach to get useful velocity commands\n    if(! isInitialized()){\n      ROS_ERROR(\"This planner has not been initialized, please call initialize() before using this planner\");\n      return false;\n    }\n\n    geometry_msgs::PoseStamped robot_vel;\n    odom_helper_.getRobotVel(robot_vel);\n\n    /* For timing uncomment\n    struct timeval start, end;\n    double start_t, end_t, t_diff;\n    gettimeofday(&start, NULL);\n    */\n\n    //compute what trajectory to drive along\n    geometry_msgs::PoseStamped drive_cmds;\n    drive_cmds.header.frame_id = costmap_ros_->getBaseFrameID();\n    \n    // call with updated footprint\n    base_local_planner::Trajectory path = dp_->findBestPath(global_pose, robot_vel, drive_cmds);\n    //ROS_ERROR(\"Best: %.2f, %.2f, %.2f, %.2f\", path.xv_, path.yv_, path.thetav_, path.cost_);"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner_ros.cpp",
+      "sha256": "6bbeb37938dee0e43d21d3b2a5649ef8c6630297c3d583121a6325cff8a1eef0",
+      "first_line": 266,
+      "last_line": 284,
+      "text": "    if ( ! costmap_ros_->getRobotPose(current_pose_)) {\n      ROS_ERROR(\"Could not get robot pose\");\n      return false;\n    }\n    std::vector<geometry_msgs::PoseStamped> transformed_plan;\n    if ( ! planner_util_.getLocalPlan(current_pose_, transformed_plan)) {\n      ROS_ERROR(\"Could not get local plan\");\n      return false;\n    }\n\n    //if the global plan passed in is empty... we won't do anything\n    if(transformed_plan.empty()) {\n      ROS_WARN_NAMED(\"dwa_local_planner\", \"Received an empty transformed plan.\");\n      return false;\n    }\n    ROS_DEBUG_NAMED(\"dwa_local_planner\", \"Received a transformed plan with %zu points.\", transformed_plan.size());\n\n    // update plan in dwa_planner even if we just stop and rotate, to allow checkTrajectory\n    dp_->updatePlanAndLocalCosts(current_pose_, transformed_plan, costmap_ros_->getRobotFootprint());"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "first_line": 131,
+      "last_line": 146,
+      "text": "    //Assuming this planner is being run within the navigation stack, we can\n    //just do an upward search for the frequency at which its being run. This\n    //also allows the frequency to be overwritten locally.\n    std::string controller_frequency_param_name;\n    if(!private_nh.searchParam(\"controller_frequency\", controller_frequency_param_name)) {\n      sim_period_ = 0.05;\n    } else {\n      double controller_frequency = 0;\n      private_nh.param(controller_frequency_param_name, controller_frequency, 20.0);\n      if(controller_frequency > 0) {\n        sim_period_ = 1.0 / controller_frequency;\n      } else {\n        ROS_WARN(\"A controller_frequency less than 0 has been set. Ignoring the parameter, assuming a rate of 20Hz\");\n        sim_period_ = 0.05;\n      }\n    }"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "first_line": 247,
+      "last_line": 261,
+      "text": "  cmd_vel.header.frame_id = robot_base_frame_;\n  cmd_vel.twist.linear.x = cmd_vel.twist.linear.y = cmd_vel.twist.angular.z = 0;\n  goal_reached_ = false;  \n  \n  // Get robot pose\n  geometry_msgs::PoseStamped robot_pose;\n  costmap_ros_->getRobotPose(robot_pose);\n  robot_pose_ = PoseSE2(robot_pose.pose);\n    \n  // Get robot velocity\n  geometry_msgs::PoseStamped robot_vel_tf;\n  odom_helper_.getRobotVel(robot_vel_tf);\n  robot_vel_.linear.x = robot_vel_tf.pose.position.x;\n  robot_vel_.linear.y = robot_vel_tf.pose.position.y;\n  robot_vel_.angular.z = tf2::getYaw(robot_vel_tf.pose.orientation);"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/include/teb_local_planner/g2o_types/edge_kinematics.h",
+      "sha256": "b4a3cb28208ada1bcedfbb169c666b2cb2597bf9d031474edd27308254b1d944",
+      "first_line": 196,
+      "last_line": 220,
+      "text": "   */    \n  void computeError()\n  {\n    ROS_ASSERT_MSG(cfg_, \"You must call setTebConfig on EdgeKinematicsCarlike()\");\n    const VertexPose* conf1 = static_cast<const VertexPose*>(_vertices[0]);\n    const VertexPose* conf2 = static_cast<const VertexPose*>(_vertices[1]);\n    \n    Eigen::Vector2d deltaS = conf2->position() - conf1->position();\n\n    // non holonomic constraint\n    _error[0] = fabs( ( cos(conf1->theta())+cos(conf2->theta()) ) * deltaS[1] - ( sin(conf1->theta())+sin(conf2->theta()) ) * deltaS[0] );\n\n    // limit minimum turning radius\n    double angle_diff = g2o::normalize_theta( conf2->theta() - conf1->theta() );\n    if (angle_diff == 0)\n      _error[1] = 0; // straight line motion\n    else if (cfg_->trajectory.exact_arc_length) // use exact computation of the radius\n      _error[1] = penaltyBoundFromBelow(fabs(deltaS.norm()/(2*sin(angle_diff/2))), cfg_->robot.min_turning_radius, 0.0);\n    else\n      _error[1] = penaltyBoundFromBelow(deltaS.norm() / fabs(angle_diff), cfg_->robot.min_turning_radius, 0.0); \n    // This edge is not affected by the epsilon parameter, the user might add an exra margin to the min_turning_radius parameter.\n    \n    ROS_ASSERT_MSG(std::isfinite(_error[0]) && std::isfinite(_error[1]), \"EdgeKinematicsCarlike::computeError() _error[0]=%f _error[1]=%f\\n\",_error[0],_error[1]);\n  }\n  "
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+      "sha256": "1f2bb1da971fc2536dd0243562bb523d14875bff52b40b6193541544b1dc9959",
+      "first_line": 57,
+      "last_line": 58,
+      "text": "    def publish_output(row):\n        message=Twist();message.linear.x=row['v'];message.angular.z=row['w'];command_pub.publish(message);emit(trace_pub,row);last_emitted_phase[0]=row['phase']"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+      "sha256": "1f2bb1da971fc2536dd0243562bb523d14875bff52b40b6193541544b1dc9959",
+      "first_line": 91,
+      "last_line": 94,
+      "text": "    def on_method_command(message):\n        excluded=(message.linear.y,message.linear.z,message.angular.x,message.angular.y)\n        if not all(math.isfinite(v) for v in excluded) or any(abs(v)>1e-12 for v in excluded):raise ValueError('nonplanar or nonfinite method command')\n        core.method_command(message.linear.x,message.angular.z,rospy.Time.now().to_nsec(),time.monotonic_ns())"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator.py",
+      "sha256": "1574d381a0cf4e6fc98f0702e91c0b36173035302448a50e35faf29379211b42",
+      "first_line": 123,
+      "last_line": 134,
+      "text": "            # Stop output at the declared deadline, but decide timeout only\n            # after ordered actual odometry reaches its source watermark.\n            # An earlier goal packet may still be in transport.\n            if now_ns>=self.gate['deadline_source_ns']:reason='deadline_zero_waiting_ordered_actual_odometry'\n            elif self.command is None:reason='waiting_fresh_post_ack_method_command'\n            elif not 0<=now_ns-self.command['receipt_ros_ns']<=self.config.maximum_command_receipt_age_ns:reason='stale_or_future_method_receipt_zero'\n            else:v,w=self.command['v'],self.command['w'];reason='method_passthrough'\n        if self.phase in ('fault','complete','timeout','stopped'):v=w=0.;reason=self.fault_reason if self.phase=='fault' else self.phase\n        return {'schema':SCHEMA,'sequence':self.trace_sequence,'run_id':self.config.run_id,'seed':self.config.seed,'method':self.config.method,\n            'publisher_visible_clock_ns':now_ns,'actual_odom_source_ns':None if self.latest_odom is None else self.latest_odom['stamp_ns'],\n            'gate_source_ns':None if self.gate is None else self.gate['source_ns'],'phase':self.phase,'terminal_source_ns':self.terminal_source_ns,'terminal_reason':self.terminal_reason,'terminal_time_authority':self.terminal_time_authority,'v':v,'w':w,'reason':reason,\n            'selected_method_receipt':None if self.command is None else dict(self.command),'method_command_generation_stamp_known':False,"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6",
+      "first_line": 194,
+      "last_line": 225,
+      "text": "        steering,disagreement=actual_center_steering(actual['joints']['front_left_steer_joint'],actual['joints']['front_right_steer_joint'])\n        rear=base_pose_to_rear(actual['pose_map'],self.config.wheelbase_m)\n        vx,vy,w=base_twist_to_rear(actual['body_twist'],self.config.wheelbase_m)\n        return {'rear':rear,'vx':vx,'vy':vy,'w':w,'steer':steering,'t':0.,'base':tuple(actual['pose_map']),'front_curvature_disagreement':disagreement}\n\n    def step(self,state,action,dt,braking=False,hold=False):\n        c=self.config;x,y,yaw=state['rear'];projection=self.project(state['base'][:2])\n        # Aim inside the goal ball: stopping at its longitudinal edge leaves\n        # no allowance for residual cross-track error on a curved guide.\n        remaining=max(0.,self.route.length-projection['arc_m']-.5*c.goal_tolerance_m)\n        target_speed=state['vx'] if hold else (0. if braking or action==0 else min(SPEEDS[action],math.sqrt(2*c.deceleration_mps2*remaining)))\n        if hold:desired=state['steer']\n        elif braking or action==0:desired=0.\n        else:\n            sample=self.route.sample(projection['arc_m']+c.lookahead_m)\n            offset=OFFSETS[action]*math.sin(math.pi*min(1.,projection['arc_m']/self.route.length))\n            target=(sample[0]-math.sin(sample[2])*offset,sample[1]+math.cos(sample[2])*offset,sample[2])\n            target_rear=base_pose_to_rear(target,c.wheelbase_m)\n            bearing=wrap_angle(math.atan2(target_rear[1]-y,target_rear[0]-x)-yaw)\n            desired=math.atan2(2*c.wheelbase_m*math.sin(bearing),max(.05,math.dist((x,y),target_rear[:2])))\n            if remaining<1.0:\n                goal_error=wrap_angle(self.route.goal_yaw-state['base'][2])\n                # Keep terminal cross-track correction; heading alone could\n                # stop a laterally displaced candidate outside the base goal.\n                desired=math.atan(c.wheelbase_m*(2*goal_error-2*projection['lateral_m']))\n            desired=max(-c.maximum_steering_rad,min(c.maximum_steering_rad,desired))\n        speed=state['vx']+max(-c.deceleration_mps2*dt,min(c.acceleration_mps2*dt,target_speed-state['vx']))\n        steer=state['steer']+max(-c.maximum_steering_rate_radps*dt,min(c.maximum_steering_rate_radps*dt,desired-state['steer']))\n        w=speed*math.tan(steer)/c.wheelbase_m;angle=wrap_angle(yaw+.5*(state['w']+w)*dt);middle=wrap_angle(yaw+.25*(state['w']+w)*dt)\n        mean_v=.5*(state['vx']+speed);vy=state['vy']\n        rear=(x+(mean_v*math.cos(middle)-vy*math.sin(middle))*dt,y+(mean_v*math.sin(middle)+vy*math.cos(middle))*dt,angle)\n        return dict(state,rear=rear,base=rear_pose_to_base(rear,c.wheelbase_m),vx=speed,w=w,steer=steer,t=state['t']+dt)"
+    }
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/local_costmap.yaml",
+      "sha256": "7937cb8523dcc538b81cd6351d129f207d9be625873fb354349693434f349d19"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/global_costmap.yaml",
+      "sha256": "e7b3458073a90d6998be390fd1ceee8e75afc67765bbf1a3543d0906b241af78"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_teb_v0.yaml",
+      "sha256": "ce9fd94f306a86fe821f9c4732cb0894b8974cf39e45ecf6ab573f72b7e04606"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml",
+      "sha256": "9624d5a0c331d218909fc325fd467c42a202f40dc672935ad0daecd30fdd3cab"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+      "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_move_base.yaml",
+      "sha256": "bfe31f64af3b3590b007448e2792762a41a74ad4d119ae2cae3cfa57f9b758ca"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+      "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/implementation_report.json",
+      "sha256": "945bddd65c65f014e57e2e2221d86a3378fcea2704618431370acb24f2c4f477"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/candidate_manifest.json",
+      "sha256": "90a72b98bbe06a3c09938d2bb2cda97a20ff38e17444937ea6f8af0e40cad047"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/design.yaml",
+      "sha256": "6e3d53044b5f0f6251a066e49ff4bf2abdc6aa4247145eaabfdc9dfe231acb89"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/reference_frame_addendum/synthetic_reference_cases.json",
+      "sha256": "4efb1c8564ae8bf59d0755e84fb9d56e91b39febfb8db04aaf15670698c6958e"
+    },
+    {
+      "path": "artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/reference_frame_addendum/reproduce.py",
+      "sha256": "11fca6a285726f6e614177a27013b5ae03d177eed7ec8f30aba315fefc5b5cb6"
+    }
+  ],
+  "tool_error_history": [
+    {
+      "operation": "read anticipated reference_robot/robot.urdf",
+      "result": "No suchfile; corrected to existingrobot_description.xml beforeanalysis; readonly."
+    },
+    {
+      "operation": "rg anticipated astra_physical_ackermann.h/astra_actuation*",
+      "result": "No suchpaths; discovered actual astra_physical_control.h/ackermann_kinematics.h via include/rg; readonly."
+    }
+  ]
+}

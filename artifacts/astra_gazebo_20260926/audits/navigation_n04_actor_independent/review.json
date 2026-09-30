@@ -1,0 +1,274 @@
+{
+  "schema": "astra_navigation_n04_event_actor_independent_review_v1",
+  "status": "independent_N04_event_actor_offline_component_review_pass",
+  "pass": true,
+  "independent_review": true,
+  "reviewed_plugin_sha256": "e947e9791d75bad421d14b3fd35c3c76483ea0f5fa086aedba5ec0d1353a1db2",
+  "reviewed_gate_sha256": "4155723019baf105e96fe3e4d01a2d417fbd1a022bf69741f7d614ed57e7b540",
+  "reviewed_library_sha256": "8ca7406469a1eefe34a8be837d003c6345e5e04dcf81eed3476085c68e6c0fdf",
+  "library_build_id": "2396da02b9ac0fcf10b8a1533e53cad688a2b2ba",
+  "checks": {
+    "final_source_gate_library_exact": true,
+    "author642_checks_rerun": true,
+    "independent6296_integer_time_policy_motion_checks": true,
+    "actual_callback_consumption_status14_checks": true,
+    "final_callback_bodies_exact_executed_fixture": true,
+    "shared_lifecycle40_synthetic_checks": true,
+    "unchanged_reaction_ego_observation_and_advance_block": true,
+    "unchanged_pose_and_zero_twist_write_block": true,
+    "callback_only_queues_no_world_reads_or_writes": true,
+    "actual_Begin_integration_only": true,
+    "initial20ms_and_event_status": true,
+    "nine_old_libraries_actual_sha_unchanged": true,
+    "author_final_build_evidence_and_component_hashes": true,
+    "stage_runtime_not_invoked_by_reviewer": true
+  },
+  "test_counts": {
+    "author_pure_cpp": 642,
+    "independent_integer_time_policy_motion": 6296,
+    "actual_three_callback_method_bodies_synthetic_runtime": 14,
+    "shared_guard_synthetic_concurrency": 40
+  },
+  "protocol": {
+    "source_authority": "identity-bound coordinator event actual_odom_header_first_crossing",
+    "movement_authority": "Gazebo WorldUpdateBegin SimTime",
+    "transport_max_ns": 50000000,
+    "first_consuming_begin_active_dt_ns": 0,
+    "backfill_allowed": false,
+    "duplicate_same_event": "idempotent, count recorded",
+    "conflicting_or_bad_event": "permanent fault",
+    "source_clock_regression": "permanent fault",
+    "ego_missing_after_seen_or_gate": "permanent fault",
+    "status_source_order": "nondecreasing; event and periodic transitions may share a Begin stamp",
+    "status_missing_after_Load_rejection": "collector must fail missing readiness evidence; plugin does not fabricate healthy fault packet"
+  },
+  "scope": {
+    "ROS_started": false,
+    "Gazebo_started": false,
+    "new_seed_allocated": false,
+    "workspace_build_by_independent_reviewer": false,
+    "standalone_CPP_fixtures_compiled": true,
+    "live_transport_qualified": false,
+    "navigation_qualified": false,
+    "full_shutdown_experiment": false
+  },
+  "lifecycle": {
+    "observed_API": {
+      "path": "/usr/include/gazebo-11/gazebo/common/Event.hh",
+      "sha256": "a6d858ea89e81602e01ff510c80474d0c881544c25917b66f181ac1e0e326a87",
+      "Signal_lines": 271,
+      "Disconnect_lines": 655,
+      "fact": "Disconnect sets on=false and queues erasure; no in-flight callback join."
+    },
+    "original_plugin_risk_scope": "No evidence of an actual UAF in allowed N04 whole-process termination. Runtime delete/reset/plugin unloading is outside stage authority.",
+    "implemented_final_guard": "Begin lambda captures shared Lifecycle, locks mutex and dereferences owner only if nonnull; destructor locks same guard, nulls owner before disconnect, then disables own ROS queue and joins own worker.",
+    "offline_fixture": "test_lifecycle.cpp synthetic entered-update/destruction waiting and retained lambda after destruction,20 repeats/40checks; not a Gazebo shutdown experiment.",
+    "gate_state_lock_order": "Begin owns Lifecycle then transient callback mutex; ROS receive owns only callback mutex; destructor waits Lifecycle without owning callback mutex, releases it before joining worker. No inverse nested locking in reviewed code.",
+    "no_ROS_started": true
+  },
+  "findings": [
+    "Final shared guard binds queued Begin callback lifetime, serializes an already-entered update before owner is nulled, and ROS private queue worker is joined.",
+    "The captured actual callback methods use a separate mutex and do not read/write Gazebo; a queued bad event faults at the next Begin.",
+    "Only temporal admission changed. Inherited reactive policy/ego observation/advance call and bounded path pose write blocks remain exact.",
+    "Speed envelope checks use declared valid fixture initial speeds and inherited target<=1.35m/s; they do not claim arbitrary accepted SDF initial_speed has a universal1.35 bound.",
+    "First event status may have first_active_begin_ns=0 followed by another same-ns status with activation; collector must preserve transitions."
+  ],
+  "limitations": [
+    "Offline fixtures and current compiled binary binding do not establish live event delivery<=50ms or six-scene qualification; those remain fresh runtime gates.",
+    "Actor is a known kinematic Gazebo pose-setting model; no contact-physics or real-person behavior qualification.",
+    "Actual stage allows only whole-process termination, not runtime delete/reset/plugin unloading; synthetic shared-guard checks are not a Gazebo shutdown matrix.",
+    "World/scene identity and source topic publisher authority still require the forthcoming N04 contract/collector review; C++ validates payload identity, not an adversarial publisher."
+  ],
+  "harness_history": [
+    "Callback-body extraction occurred during author lifecycle-only edits at intermediate cpp hash bac1c976; compiled exact three bodies are byte-identical to final e947e979, independently rechecked and bound.",
+    "source_semantics_r01 used first newly_active anchor and included an inherited logging/preactivation block; retained false comparison. r02 uses unique have_ego_distance_ anchor and proves exact reaction block.",
+    "Author initial target-regeneration and lifecycle-lambda UpdateInfo compile failures remain in component history, no episode occurred."
+  ],
+  "component_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/event_actor_n04_component/component_report.json",
+    "sha256": "2ef89dbb3b64c3c7f360717a27b157a4cd4b55bedf6c9506bae698001e95ee11"
+  },
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/event_actor_n04_component/component_report.json",
+      "sha256": "2ef89dbb3b64c3c7f360717a27b157a4cd4b55bedf6c9506bae698001e95ee11"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/event_actor_n04_component/old_libraries_before.json",
+      "sha256": "82c237ec1cd1b606b5adb17c233472403db77ace6d70b858213b6519f441911d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/event_actor_n04_component/source_before_lifecycle_389ec381.cpp",
+      "sha256": "389ec38179358495bff2d06e915fb840c984025a827f36a464bfd029782af82e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/actual_callback_bodies.inc",
+      "sha256": "f68004aa9209a17b93d9c8a244e9bceed6336dedfc03844838766b7a228c1bcc"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/author_gate_test",
+      "sha256": "ad358b4d4f61697741b33492d683b9dd4899aaeacc7b37fcbc2c96e72ee3c767"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/author_result_r01.log",
+      "sha256": "95d103b3b227aed524455124b22c56ca2a1764f28e4a6a006afb7cc447b10c3e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/callback_result_r01.log",
+      "sha256": "fb5d7bf79ce277eaa9fad59db2a50f01bf5a82c26b0dc2bd01e40d825e09783c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/commands.json",
+      "sha256": "aee99c145064c19ad9dda7c9a3db2b5547e85bb8e61a5f364421c9dd2e945d78"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/extract_callback_fixture.py",
+      "sha256": "2567e14906531cfa819c1d6837db7d7233b6ebb045fb1c56ba1c130cc46eaf6a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/extraction.json",
+      "sha256": "6119cf546c3ea4c8b713630c6e8d8107083277d01c96ada51ddccd2972387b92"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/final_library_notes.txt",
+      "sha256": "907da4943f03034ac6b6ae23cc68858ae6b5004b4d6278b4c03d7668bd730fbe"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/finalize.py",
+      "sha256": "d6612b133e7cea5e0996906dc424512d62240663f63b7ff4b6a0b5f7b3fc7ff1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/header_result_r01.log",
+      "sha256": "b50329e6042561930f18fef2a763d96e2fe50b4d5ac3a3a6af0fff8846d2472b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/lifecycle_only.diff",
+      "sha256": "bc8bcbadb23eed272c144ae8f46fa1b0297e8060f4eda21d3cda14cd84e792b7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/lifecycle_result_r01.log",
+      "sha256": "315068282db622c192a3beabc0a376c1001e00de244c5562c984282aa6834802"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/lifecycle_scope.json",
+      "sha256": "589b1c45232271d130b58d3776438e317273ca0218ea13c77b88ad47ab93dfb1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/reviewed_cpp_r01.cpp",
+      "sha256": "e947e9791d75bad421d14b3fd35c3c76483ea0f5fa086aedba5ec0d1353a1db2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/reviewed_gate_r01.h",
+      "sha256": "4155723019baf105e96fe3e4d01a2d417fbd1a022bf69741f7d614ed57e7b540"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/source_semantics_r01.json",
+      "sha256": "782d94a18e55114eedf08c247679c31ab9eaa4338e7d1367a902bf4e9dff432b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/source_semantics_r02.json",
+      "sha256": "6acf655c1b5fd3cec03cc2dcab07b3eab4cff02a7f167fff519984d4593743e1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/test_callback",
+      "sha256": "e94221fa12633392f865f3ccf973e35217be680e3f10cd7834e51f50dca27eeb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/test_callback.cpp",
+      "sha256": "627a48236190c2fa6407d7393e0324b7865ddf5429965fe626d5d27a2d4be749"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/test_header",
+      "sha256": "7c63f2255b284d49ae983a4055ffe4a40d40e04e0ae2a3c9903038a59252a534"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/test_header.cpp",
+      "sha256": "990f99ec7ed7338e29833dbda5c27bf571d21b54361a77efe5ddfdf2a684b824"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/test_lifecycle",
+      "sha256": "f55e40e2554f97d11a1ff11f3d4aa55c9b40b46966c9e04ddd6e1ef78e19ead8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_actor_independent/test_lifecycle.cpp",
+      "sha256": "7287a0ad6aeea82ef1c6498aca98a1a034f9a9163d1f3ae803e0f9478b5e1483"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/build_event_actor_n04_05.log",
+      "sha256": "567a648ad5a016a81649611beb0f06b497a77b958ac9d9acfb6d799450faee3d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_common_route_global_planner.so",
+      "sha256": "8e7837131a4f48d58dd83ca185e9037032a0698bece3bf2933faeaa443f411f9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_dense_evidence_plugin.so",
+      "sha256": "271629ca3fc0d27a61c0629556ea54177658b57fff602e8962a8c0fdc2663a96"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_event_actor_n04_plugin.so",
+      "sha256": "8ca7406469a1eefe34a8be837d003c6345e5e04dcf81eed3476085c68e6c0fdf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_evidence_plugin.so",
+      "sha256": "9bbee5978326035c5747c704b64b0be016b9615d067aa511c449b6e4073703d1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_physical_ackermann_p02_plugin.so",
+      "sha256": "751d6601c6ecc77d8ce113420fdd05d055c41e42c66f310bed8befdbbab27ed4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_physical_ackermann_p05_plugin.so",
+      "sha256": "a98b72e6161132c16f38d5cbce4541ffed5dc3345405edf73ff1420db08b8d39"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_physical_ackermann_plugin.so",
+      "sha256": "8633f5f1c02321e58bbb80a8ca24090154e1cc143ae38d7aa1b7532e283a6372"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_physics_metadata_p03_plugin.so",
+      "sha256": "27a57437733b95c2d9c7a4f13ba39486d629d65959366c73556c80bf2a9fbac2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_reactive_actor_plugin.so",
+      "sha256": "50e75215e9629e80bf8036c021fa9abdeeac5bce92af8f78e9a071dd63aed9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_steering_hold_plugin.so",
+      "sha256": "af7e1053c2a5ad7c282e528fbd0368fafc7517783f32b4f0476fc192f774c9c7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/CMakeLists.txt",
+      "sha256": "3f75cc058bca1ad756227e3ad27aa6f8889ac88f899e7b81682e1bdebe4a6edd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_actor_gate.h",
+      "sha256": "a225e53888227e26607d2ce0b48a7ef34a41c7a454aebe439479034513c99d6d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_event_actor_gate_n04.h",
+      "sha256": "4155723019baf105e96fe3e4d01a2d417fbd1a022bf69741f7d614ed57e7b540"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/v3_reactive_actor.h",
+      "sha256": "69cc13979122d1215ad42b18c8583a03368d982d84ee000d8a6b615b06aa306d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_event_actor_n04_plugin.cpp",
+      "sha256": "e947e9791d75bad421d14b3fd35c3c76483ea0f5fa086aedba5ec0d1353a1db2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_reactive_actor_plugin.cpp",
+      "sha256": "f55399bd46ce3b28344b581eb24d2465a311c74c92830068ff609d80d84c388b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/tests/test_astra_event_actor_gate_n04.cpp",
+      "sha256": "775a23625de28d5e66bbe251bec0da19d40f83e8271f4bbfc1993aed091ccec5"
+    },
+    {
+      "path": "/usr/include/gazebo-11/gazebo/common/Event.hh",
+      "sha256": "a6d858ea89e81602e01ff510c80474d0c881544c25917b66f181ac1e0e326a87"
+    }
+  ],
+  "created_utc": "2026-09-26T13:17:21.433101+00:00"
+}

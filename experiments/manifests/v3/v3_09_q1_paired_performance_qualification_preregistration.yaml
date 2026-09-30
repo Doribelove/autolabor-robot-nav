@@ -1,0 +1,26 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-09-Q1
+status: frozen_before_any_v3_09_q1_outcome_or_release
+methods:
+  primary: v3_spatial_safe
+  baseline: fixed_v120_shielded
+  baseline_is_actual_teb: false
+fresh_schedule:
+  seeds: [6711, 6712, 6713, 6714, 6715, 6716]
+  policies: [cautious, assertive, hesitant]
+  methods: [v3_spatial_safe, fixed_v120_shielded]
+  exact_episodes: 36
+  counterbalanced_method_order: true
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+effect:
+  restricted_goal_time_cap_s: 12.5
+  point_relative_reduction_min: 0.05
+  positive_block_fraction_min: 0.50
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_seed_replacement_or_gate_change: true
+  no_formal_evaluation_if_any_qualification_gate_fails: true
+budget: {simulation_episodes: 36, reinforcement_learning_steps: 0, hardware_runs: 0}

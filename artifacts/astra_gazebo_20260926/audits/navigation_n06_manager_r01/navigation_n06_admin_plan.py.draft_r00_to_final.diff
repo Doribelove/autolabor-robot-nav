@@ -1,0 +1,36 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r01/draft_r00/navigation_n06_admin_plan.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan.py
+@@ -40,13 +40,16 @@
+     if len(rows)!=8 or any(any(not q.same_typed(row[k],s[k]) for k in s) for row,s in zip(rows,schedule)):raise ValueError('terminal ordered identities differ')
+     statuses=[r['status'] for r in rows];consumed=statuses.count('consumed')
+     if statuses!=['consumed']*consumed+['retired_unrun']*(8-consumed):raise ValueError('consumed prefix/retired tail required')
++    if not q.same_typed(ledger.get('maximum_units'),8) or not q.same_typed(ledger.get('consumed_units'),consumed):raise ValueError('terminal budget totals differ')
+     names={r['run_id'] for r in rows};tables={};parsed={}
+     for name,fields in FIELDS.items():parsed[name]=records(before[name],fields)
+     registry=parsed['seed_registry.csv'][1];selected=[r for r,_ in registry if r['run_id'] in names]
+     if len(selected)!=8 or len({r['run_id'] for r in selected})!=8:raise ValueError('exact eight unique reserved registry rows required')
+     for row in rows:
+         own=next(r for r in selected if r['run_id']==row['run_id'])
+-        if own['seed']!=str(row['seed']) or own['status']!='reserved_exact_n06_release' or own['source_binding']!=release_sha:raise ValueError('reservation changed before projection')
++        expected=dict(namespace='astra_gazebo_20260926',split='development',purpose='n06_static_lookahead_pilot',
++            seed=str(row['seed']),run_id=row['run_id'],status='reserved_exact_n06_release',source_binding=release_sha)
++        if own!=expected:raise ValueError('reservation changed before projection')
+     if any(r['seed'] in {str(u['seed']) for u in rows} and r['run_id'] not in names for r,_ in registry):raise ValueError('foreign paired seed reservation')
+     for table in ('run_manifest.csv','EXPERIMENTS.csv'):
+         if any(r['run_id'] in names for r,_ in parsed[table][1]):raise ValueError('N06 administrative identity already projected without this transaction')
+@@ -56,6 +59,7 @@
+         if row['status']=='consumed':
+             if rec is None or rec.get('release_sha256')!=release_sha or any(not q.same_typed(rec[k],row[k]) for k in ('run_id','seed','method','attempt')):raise ValueError('consumed receipt identity missing')
+             if type(rec.get('integrity_pass'))is not bool:raise ValueError('receipt integrity must be bool')
++            if not q.same_typed(row.get('integrity_pass'),rec['integrity_pass']) or not q.same_typed(row.get('task_outcome'),rec['task_outcome']):raise ValueError('ledger and receipt outcomes disagree')
+             if first_failed is not None:raise ValueError('consumed after infrastructure failure')
+             if not rec['integrity_pass']:first_failed=index
+             status='terminal_'+str(rec['task_outcome']) if rec['integrity_pass'] else 'terminal_integrity_failure'
+@@ -130,6 +134,7 @@
+     if manifest.get('schema')!='astra_navigation_n06_administrative_plan_v1' or manifest.get('stage')!=q.NAME or len(manifest.get('tables',[]))!=3:raise ValueError('closed three-table plan required')
+     if set(manifest)!={'schema','stage','release_sha256','tables','resources','three_original_paths_jointly_atomic','requires_separate_independent_terminal_and_plan_review','execution_authorized'} or manifest['three_original_paths_jointly_atomic']is not False or manifest['execution_authorized']is not False:raise ValueError('plan scope or authority changed')
+     if {Path(row['target']).name for row in manifest['tables']}!=set(FIELDS) or len({str(Path(row['target']).parent) for row in manifest['tables']})!=1:raise ValueError('exact co-located administrative targets required')
++    if {row['target'] for row in manifest['tables']}!={str(q.STAGE/name) for name in FIELDS}:raise ValueError('exact canonical stage administrative targets required')
+     for row in manifest['tables']:
+         name=Path(row['target']).name
+         if set(row)!={'target','before_file','after_file','before_sha256','after_sha256'} or row['before_file']!='before_'+name or row['after_file']!='after_'+name:raise ValueError('closed table snapshot mapping required')

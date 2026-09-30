@@ -1,0 +1,124 @@
+{
+  "schema": "astra_baseline_rear_axle_b02_component_report_v1",
+  "status": "author_offline_component32_tests_pass_integration_pending",
+  "independent_review": false,
+  "source_frozen": true,
+  "scope": "new pure pose/twist/covariance/footprint/oriented-route reference conversion, no live wiring",
+  "source_addendum": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/reference_frame_addendum/report.json",
+    "sha256": "8f6aedd635999c81b5b24dec6304731c5b958d4ec1741068f10f72ac08cb150d"
+  },
+  "reference": {
+    "wheelbase_m": 0.65,
+    "base_to_rear_body_xyz_m": [
+      -0.325,
+      0.0,
+      0.0
+    ],
+    "rear_frame": "rear_axle_plan_b02",
+    "true_rear_lateral_velocity_preserved": true
+  },
+  "numerical_contract": {
+    "pose_SE2": "reuse axle_reference_adapter",
+    "pose_SE3": "reuse geometry.Pose3 full rigid translation",
+    "twist6": "v_rear=v_base+omega cross r; angular unchanged",
+    "pose_covariance6": "first-order parent-axis position/fixed-axis infinitesimal rotation, includes all cross terms",
+    "twist_covariance6": "exact linear body-axis velocity transform, includes all cross terms",
+    "arbitrary_Euler_covariance_supported": false,
+    "unreported_zero_covariance_means_known_exact": false,
+    "planar_footprint_world_equality": true,
+    "tilted_yaw_only_costmap_exact_equality": false
+  },
+  "tests": {
+    "count": 32,
+    "passed": 32,
+    "actual_existing_footprint_vertex_counts": [
+      64,
+      64,
+      16
+    ],
+    "benchmark_or_heavy_replay": false
+  },
+  "retained_counterexamples": {
+    "rear_goal_same_tolerance_base_error_m": 0.3048917208204383,
+    "shared_base_xy_tolerance_m": 0.25,
+    "tilted_yaw_only_reference_shift_at_pitch_point05_m": 0.0004061653716359581
+  },
+  "live_prerequisites": [
+    "unique static TF owner and no duplicate odom->rear",
+    "source-stamped full odom and exact covariance convention",
+    "both baseline odom_topic and costmap robot_base_frame aligned",
+    "all original16/64 footprint vertices shifted with unchanged margin",
+    "oriented route and goal reference converted together, original provider validates base request",
+    "authoritative shared coordinator base goal unchanged; premature rear-local-goal stopping resolved explicitly",
+    "tilt-envelope and actual2D costmap equivalence qualified",
+    "actual DWA samplewindow/output and TEB path/reference checked; no assumption that inverted interval removes zero"
+  ],
+  "simulation_episodes": 0,
+  "new_seed_reservations": 0,
+  "current_config_or_launch_changes": false,
+  "acc_lim_y_changed": false,
+  "physical_or_navigation_performance_qualified": false,
+  "bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/baseline_rear_axle_adapter_b02.py",
+      "sha256": "13b72ac9f159d68f3e2f58cab185b5d6620e936d723b03c5946e712d0e819a92"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_baseline_rear_axle_adapter_b02.py",
+      "sha256": "91820b2f27228243491b44f57b26fe95e52ff84296b4a3e9566faa71073ae461"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02/tests.log",
+      "sha256": "37507b3db7bcc9d7040eb3c1d3f8ab6a5ae683fd00fc5d8e7bcfe83d0d19ddac"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02/API_and_design.md",
+      "sha256": "8e4c657d03fb7a179ba4943e5f1e99d807ddbb8edf43005f0c53090d23b05394"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+      "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+      "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+      "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_common_route_provider.py",
+      "sha256": "8cb5d7927b4f9585d1818217983de407efc76571107d52fd8f76dd0197e0782c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_common_route_global_planner.cpp",
+      "sha256": "2a9a4b6d27e4a7ba27a961f96e2457df23335486d2675f01b382c4b2307bafe9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p05_plugin.cpp",
+      "sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+      "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_common_map_route.yaml",
+      "sha256": "ba342dcfbaef35c855826d96f55ea7eaf66c9c0f34c587a7b04aeafb5d69c8b7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_teb_v0.yaml",
+      "sha256": "ce9fd94f306a86fe821f9c4732cb0894b8974cf39e45ecf6ab573f72b7e04606"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml",
+      "sha256": "9624d5a0c331d218909fc325fd467c42a202f40dc672935ad0daecd30fdd3cab"
+    }
+  ]
+}

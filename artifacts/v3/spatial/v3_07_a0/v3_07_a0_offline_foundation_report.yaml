@@ -1,0 +1,70 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-07-A0
+status: spatial_candidate_offline_foundation_pass
+candidate_audits:
+  spatial_left_v120:
+    point_count: 141
+    maximum_bicycle_integration_error_m: 1.151810476067481e-12
+    speed_limit_violation_count: 0
+    acceleration_limit_violation_count: 0
+    steering_limit_violation_count: 0
+    steering_rate_limit_violation_count: 0
+    curvature_limit_violation_count: 0
+    corridor_violation_count: 0
+    maximum_absolute_center_y_m: 1.08106793972
+    maximum_absolute_yaw_rad: 0.520302621063
+    terminal_goal_x_reached: true
+    terminal_center_error_m: 0.005213829296
+    terminal_yaw_error_rad: 0.012333833509
+    final_x_m: 5.235476184075
+    final_y_m: -0.005213829296
+    final_yaw_rad: -0.012333833509
+  spatial_right_v120:
+    point_count: 141
+    maximum_bicycle_integration_error_m: 1.151810476067481e-12
+    speed_limit_violation_count: 0
+    acceleration_limit_violation_count: 0
+    steering_limit_violation_count: 0
+    steering_rate_limit_violation_count: 0
+    curvature_limit_violation_count: 0
+    corridor_violation_count: 0
+    maximum_absolute_center_y_m: 1.08106793972
+    maximum_absolute_yaw_rad: 0.520302621063
+    terminal_goal_x_reached: true
+    terminal_center_error_m: 0.005213829296
+    terminal_yaw_error_rad: 0.012333833509
+    final_x_m: 5.235476184075
+    final_y_m: 0.005213829296
+    final_yaw_rad: 0.012333833509
+mirror_error: 0.0
+gates:
+  candidate_count_pass: true
+  mirror_pass: true
+  bicycle_integration_pass: true
+  speed_pass: true
+  acceleration_pass: true
+  steering_pass: true
+  steering_rate_pass: true
+  curvature_pass: true
+  corridor_pass: true
+  terminal_pass: true
+overall_pass: true
+prediction_coverage:
+  existing_model_features:
+  - actor_coordinate
+  - actor_speed
+  - candidate_target_speed
+  lateral_geometry_feature_present: false
+  existing_model_authorized_for_spatial_candidates: false
+  new_cloned_spatial_intervention_data_required: true
+execution_ready: false
+simulation_authorized: false
+training_authorized: false
+claim:
+  offline_ackermann_candidate_foundation: true
+  interaction_prediction_qualified: false
+  runtime_safety_qualified: false
+  performance_improvement: false
+  deployment_ready: false
+  real_vehicle_ready: false

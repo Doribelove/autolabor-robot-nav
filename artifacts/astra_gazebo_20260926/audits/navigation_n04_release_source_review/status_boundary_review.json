@@ -1,0 +1,230 @@
+{
+  "status": "pass",
+  "source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/event_actor_contract_n04.py",
+    "sha256": "0eb396881f654fc4ee669ff420c12ab1135be284641152d95e919e9e63a45a4c"
+  },
+  "cases": [
+    {
+      "case": "realistic_mature_activation",
+      "expected": true,
+      "result": {
+        "pass_": true,
+        "actors": {
+          "actor_1": {
+            "status_count": 1,
+            "event_observation_count": 1,
+            "transport_delay_ns": 20000000,
+            "pass_": true,
+            "issues": []
+          }
+        },
+        "issues": [],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    },
+    {
+      "case": "never_activated",
+      "expected": false,
+      "result": {
+        "pass_": false,
+        "actors": {
+          "actor_1": {
+            "status_count": 1,
+            "event_observation_count": 1,
+            "transport_delay_ns": 20000000,
+            "pass_": false,
+            "issues": [
+              "mature_status_missing_first_active",
+              "terminal_missing_first_active"
+            ]
+          }
+        },
+        "issues": [
+          "actor_1:mature_status_missing_first_active",
+          "actor_1:terminal_missing_first_active"
+        ],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    },
+    {
+      "case": "future_activation",
+      "expected": false,
+      "result": {
+        "pass_": false,
+        "actors": {
+          "actor_1": {
+            "status_count": 1,
+            "event_observation_count": 1,
+            "transport_delay_ns": 20000000,
+            "pass_": false,
+            "issues": [
+              "incorrect_or_future_first_active"
+            ]
+          }
+        },
+        "issues": [
+          "actor_1:incorrect_or_future_first_active"
+        ],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    },
+    {
+      "case": "activation_one_step_late",
+      "expected": false,
+      "result": {
+        "pass_": false,
+        "actors": {
+          "actor_1": {
+            "status_count": 1,
+            "event_observation_count": 1,
+            "transport_delay_ns": 20000000,
+            "pass_": false,
+            "issues": [
+              "incorrect_or_future_first_active"
+            ]
+          }
+        },
+        "issues": [
+          "actor_1:incorrect_or_future_first_active"
+        ],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    },
+    {
+      "case": "consumed_pending_delay",
+      "expected": true,
+      "result": {
+        "pass_": true,
+        "actors": {
+          "actor_1": {
+            "status_count": 1,
+            "event_observation_count": 1,
+            "transport_delay_ns": 20000000,
+            "pass_": true,
+            "issues": []
+          }
+        },
+        "issues": [],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    },
+    {
+      "case": "same_Begin_zero_then_active",
+      "expected": true,
+      "result": {
+        "pass_": true,
+        "actors": {
+          "actor_1": {
+            "status_count": 3,
+            "event_observation_count": 3,
+            "transport_delay_ns": 20000000,
+            "pass_": true,
+            "issues": []
+          }
+        },
+        "issues": [],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    },
+    {
+      "case": "activation_latch_cleared",
+      "expected": false,
+      "result": {
+        "pass_": false,
+        "actors": {
+          "actor_1": {
+            "status_count": 3,
+            "event_observation_count": 3,
+            "transport_delay_ns": 20000000,
+            "pass_": false,
+            "issues": [
+              "first_active_latch_cleared"
+            ]
+          }
+        },
+        "issues": [
+          "actor_1:first_active_latch_cleared"
+        ],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    },
+    {
+      "case": "activation_latch_changed",
+      "expected": false,
+      "result": {
+        "pass_": false,
+        "actors": {
+          "actor_1": {
+            "status_count": 3,
+            "event_observation_count": 3,
+            "transport_delay_ns": 20000000,
+            "pass_": false,
+            "issues": [
+              "first_active_latch_mutated",
+              "incorrect_or_future_first_active"
+            ]
+          }
+        },
+        "issues": [
+          "actor_1:first_active_latch_mutated",
+          "actor_1:incorrect_or_future_first_active"
+        ],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    },
+    {
+      "case": "mature_status_still_zero",
+      "expected": false,
+      "result": {
+        "pass_": false,
+        "actors": {
+          "actor_1": {
+            "status_count": 2,
+            "event_observation_count": 2,
+            "transport_delay_ns": 20000000,
+            "pass_": false,
+            "issues": [
+              "mature_status_missing_first_active",
+              "terminal_missing_first_active"
+            ]
+          }
+        },
+        "issues": [
+          "actor_1:mature_status_missing_first_active",
+          "actor_1:terminal_missing_first_active"
+        ],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    },
+    {
+      "case": "short_episode_before_delayed_activation",
+      "expected": true,
+      "result": {
+        "pass_": true,
+        "actors": {
+          "actor_1": {
+            "status_count": 1,
+            "event_observation_count": 1,
+            "transport_delay_ns": 20000000,
+            "pass_": true,
+            "issues": []
+          }
+        },
+        "issues": [],
+        "maximum_transport_delay_ns": 50000000,
+        "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+      }
+    }
+  ],
+  "old_counterexamples_preserved": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_release_source_review/status_counterexamples_r01.json"
+}

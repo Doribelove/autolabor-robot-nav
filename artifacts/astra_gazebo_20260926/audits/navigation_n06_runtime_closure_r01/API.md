@@ -1,0 +1,21 @@
+# N06 r05 authored runtime disk closure
+
+`closure.json` is an author artifact with status `authored_disk_dependency_closure_independent_review_pending`. It is deliberately rejected by the manager's future release gate until an independent review and root-owned reviewed envelope exist. No release, seed registration or ROS/Gazebo process is created here.
+
+The selected collection is `collection_r05_attempt04/`. It binds fixed r05 manager/child Python startup, 64 actually resolved launch nodes over eight prepared units, nine configured Gazebo plugins after the real wrapper's second setup, explicit canonical `/usr/bin/gzserver-11.15.1`, shell/package/schema/locale/graphics files, and recursive ELF loader dependencies in two environments. `manager_python` and `gzserver_after_actual_wrapper` are separate graph contexts. Imported modules and conservative package envelopes are distinguished by `resource_roles.json`; an envelope file need not have executed. OGRE/NVIDIA and Shapely ctypes roots are explicit disk roots, not alleged live observations.
+
+`environment_r05_attempt01/` holds exact safe source-environment inputs and raw commands, the fixed `execution_environment.json`, and eight actual gazebo_ros shell-prefix executions. Only the final `gzserver` command resolves to a sole harmless PATH shim. The complete observed environment, exact shim bytes, temporary prefix removal, canonical actual Gazebo binary and all forwarded arguments are recorded. No Gazebo binary or ROS node is invoked. The new nonempty model database points only to http://127.0.0.1:9; all eight prepared world/URDF inputs have no external URI. The actual old empty-value case restores http://models.gazebosim.org and is retained as a negative.
+
+The prescribed future entry is the r05 manager API's outer `/usr/bin/env -i ... /bin/bash --noprofile --norc navigation_n06_entry_r05.sh`. The shell sources nothing; it enters a no-site isolated standard-library bootstrap. Exact release/closure hashes and entry sources are verified before explicit .venv Python exec. Every later spawn uses the release-bound exact key/value dictionary, with only run-specific ROS directories and ownership nonce. The closure hash is an explicit runtime-derived field; collection probes use 64 zeroes solely as a placeholder, never as authority. The selected Python import probes run directly in this same fixed environment and verify their whole resulting dictionaries.
+
+Earlier attempts remain readable and in the evidence manifest. Attempt01 failed when standalone ldd on NumPy's vendored gfortran could not see the parent's inherited RPATH. The final collector uses only an actually observed parent root's full ldd table containing that exact current library and dependency; unresolved/ambiguous contexts still reject. It never adds guessed search directories. Attempts02/03 are complete disk drafts tied to older manager versions; their sanitized source environment was not yet enforced at execution, so they are not release candidates. Their raw commands and limitations are retained.
+
+Sources are `build_disk_closure.py`, `python_import_probe.py`, `observe_environment_r05.py`, `finalize_runtime.py` and focused parser tests. All raw argv/environment/stdout/stderr and return codes are saved. No API executes a simulation. A future independent disk reproduction may use a new empty output directory:
+
+```bash
+/usr/bin/python3 build_disk_closure.py --manager-revision r05 --output /ABS/NEW_EMPTY_AUDIT_DIRECTORY
+```
+
+Do not rerun onto a frozen output or alter the closure status in place. Finalize verifies all file hashes, aliases, imports, node identities, plugin precedence, loader edges, parent-RPATH evidence, raw commands and zero N06 allocation. It then publishes the author artifacts once. The reported `source_evidence_manifest.json` includes failed attempts; no historical attempt becomes new simulation evidence.
+
+Disk resolution does not establish actual runtime mapped ELF, image/physics qualification, absence of every possible dynamic dlopen, or protection from a malicious same-account writer/compromised OS. Future execution still requires the original live mapping/native/graphics checks, reviewed exact source/converted-model closure and separately issued authority. The three global administrative tables remain untouched.

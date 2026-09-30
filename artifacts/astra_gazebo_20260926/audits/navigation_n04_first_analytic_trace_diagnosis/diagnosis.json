@@ -1,0 +1,43 @@
+{
+  "status": "single_closed_development_failure_descriptive_attribution_not_counterfactual",
+  "run_id": "astra_navigation_n04_b00_astra_analytic_route_v1",
+  "trace_rows": 439,
+  "candidate_rows": 88,
+  "stop_reason_counts": {
+    "None": 106,
+    "transaction_deadline_drop": 15,
+    "backup_revalidation_failed": 206,
+    "backup_stop_requested": 111,
+    "episode_time_limit": 1
+  },
+  "selection_reason_counts": {
+    "None": 398,
+    "no_prediction_model_backup_pass": 41
+  },
+  "nonzero_commands": 106,
+  "transaction_deadline_drops": 15,
+  "input_failure_rows": 0,
+  "sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/fixture.bag",
+      "sha256": "c807dad45a2b0096b1abe51d1ed0cd4fbf238a87b7cd86552cb9fd3f1301d40f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/assessment.json",
+      "sha256": "ef8d710153d964e4a63da35eb09277b97092994d62ede3b1c6115ca71a3c2d96"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/trace.json",
+      "sha256": "664816c98df03a9166e9d9e46f5ae3a06eeb9d22a12ced7a3a58b75f6adcf946"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/candidates.json",
+      "sha256": "81100cfd5eb324e9daa0a1479b68484e86f73f81361dacd5af25de766d99a3c5"
+    }
+  ],
+  "limits": [
+    "No causal decomposition from one trace.",
+    "Backup failures and deadline drops are observed reasons, not proof of their counterfactual contribution to timeout.",
+    "CurrentN04 remains frozen and running; no parameter adjusted from this result."
+  ]
+}

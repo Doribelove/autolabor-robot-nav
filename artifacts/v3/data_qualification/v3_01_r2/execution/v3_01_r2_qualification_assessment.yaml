@@ -1,0 +1,1283 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-01-R2
+assessment_id: v3_01_r2_crossing_assessment_1
+status: v3_01_r2_crossing_reactive_actor_qualification_pass
+formal_result: false
+simulation_evidence: true
+execution:
+  authorized_units: 36
+  consumed_units: 36
+  completed_units: 36
+  forfeited_units: 0
+  retry_units: 0
+gates:
+  initial_clone_pass: true
+  ego_crossing_time_pass: true
+  ego_crossing_time_max_error_s: 0.0
+  all_policy_seed_blocks_pass: true
+  pre_intervention_clone_spread_pass: true
+  maximum_pre_intervention_spread_m: 0.002429999999999932
+  cross_seed_repeatability_pass: true
+  maximum_cross_seed_response_spread_m: 0.0
+  overall_pass: true
+policy_seed_blocks:
+- seed: 6121
+  actor_policy: cautious
+  candidate_count: 4
+  actor_y_at_4s_spread_m: 2.310975
+  distinct_response_signature_count: 4
+  position_spread_gate_pass: true
+  signature_gate_pass: true
+- seed: 6121
+  actor_policy: assertive
+  candidate_count: 4
+  actor_y_at_4s_spread_m: 0.777245
+  distinct_response_signature_count: 3
+  position_spread_gate_pass: true
+  signature_gate_pass: true
+- seed: 6121
+  actor_policy: hesitant
+  candidate_count: 4
+  actor_y_at_4s_spread_m: 1.8490799999999998
+  distinct_response_signature_count: 4
+  position_spread_gate_pass: true
+  signature_gate_pass: true
+- seed: 6122
+  actor_policy: cautious
+  candidate_count: 4
+  actor_y_at_4s_spread_m: 2.310975
+  distinct_response_signature_count: 4
+  position_spread_gate_pass: true
+  signature_gate_pass: true
+- seed: 6122
+  actor_policy: assertive
+  candidate_count: 4
+  actor_y_at_4s_spread_m: 0.777245
+  distinct_response_signature_count: 3
+  position_spread_gate_pass: true
+  signature_gate_pass: true
+- seed: 6122
+  actor_policy: hesitant
+  candidate_count: 4
+  actor_y_at_4s_spread_m: 1.8490799999999998
+  distinct_response_signature_count: 4
+  position_spread_gate_pass: true
+  signature_gate_pass: true
+- seed: 6123
+  actor_policy: cautious
+  candidate_count: 4
+  actor_y_at_4s_spread_m: 2.310975
+  distinct_response_signature_count: 4
+  position_spread_gate_pass: true
+  signature_gate_pass: true
+- seed: 6123
+  actor_policy: assertive
+  candidate_count: 4
+  actor_y_at_4s_spread_m: 0.777245
+  distinct_response_signature_count: 3
+  position_spread_gate_pass: true
+  signature_gate_pass: true
+- seed: 6123
+  actor_policy: hesitant
+  candidate_count: 4
+  actor_y_at_4s_spread_m: 1.8490799999999998
+  distinct_response_signature_count: 4
+  position_spread_gate_pass: true
+  signature_gate_pass: true
+episodes:
+- row:
+    sequence: 1
+    unit_id: v3_01_r2_s6121_cautious_probe_v060
+    seed: 6121
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f83ae294a6fdda8f1c5b2e834a861b6fea2c101b514d28b4bebb98563e11c289
+  metrics:
+    initial_ego_xy_m:
+    - -2.997
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95
+    actor_y_at_4s_m: 1.0
+    ego_crossing_time_s: 5.0
+    actor_crossing_time_s: 3.0
+    response_signature: 830d45b884187b0c36b78cbc0f16889f17af225bfe2b837049ce5dbdea46a80e
+    response_signature_samples_m:
+    - -1.5
+    - -1.0
+    - -0.5
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+  expected_ego_crossing_time_s: 5.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 2
+    unit_id: v3_01_r2_s6121_cautious_probe_v080
+    seed: 6121
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 3890a1489b295c9d29ee2698c09befee7ee5d21cd31c15989e6055ebea6985ea
+  metrics:
+    initial_ego_xy_m:
+    - -2.996
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -1.310975
+    ego_crossing_time_s: 3.75
+    actor_crossing_time_s: 5.310975
+    response_signature: c868653ba3ce881261ba156a06b9bc871005d225b795ec5f146b7a14925cc7ec
+    response_signature_samples_m:
+    - -2.654
+    - -2.594
+    - -2.534
+    - -2.308
+    - -1.811
+    - -1.311
+    - -0.811
+    - -0.311
+  expected_ego_crossing_time_s: 3.75
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 3
+    unit_id: v3_01_r2_s6121_cautious_probe_v100
+    seed: 6121
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: d1fda68951486f97362460ddcc42883a31d2e9c219a9f2267fcc2c5ce7c2be00
+  metrics:
+    initial_ego_xy_m:
+    - -2.995
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.562975
+    ego_crossing_time_s: 3.0
+    actor_crossing_time_s: 4.562975
+    response_signature: 7b39d82c0b41c809b257799b46dfdcc7edc7a1e5312f0cb7351a71ab21207806
+    response_signature_samples_m:
+    - -2.654
+    - -2.524
+    - -2.063
+    - -1.563
+    - -1.063
+    - -0.563
+    - -0.063
+    - 0.437
+  expected_ego_crossing_time_s: 3.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 4
+    unit_id: v3_01_r2_s6121_cautious_probe_v120
+    seed: 6121
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: ac2b28b31b1fbe8d9abc356b17bb878e7a4ed11bfc5895258f469842949099c5
+  metrics:
+    initial_ego_xy_m:
+    - -2.994
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.061375
+    ego_crossing_time_s: 2.5
+    actor_crossing_time_s: 4.061375
+    response_signature: c97b4427b6c1ba68ede85fba08de8d335580b4bcb8df08c6f28564afb48ce301
+    response_signature_samples_m:
+    - -2.544
+    - -2.061
+    - -1.561
+    - -1.061
+    - -0.561
+    - -0.061
+    - 0.439
+    - 0.939
+  expected_ego_crossing_time_s: 2.5
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 5
+    unit_id: v3_01_r2_s6121_assertive_probe_v060
+    seed: 6121
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f83ae294a6fdda8f1c5b2e834a861b6fea2c101b514d28b4bebb98563e11c289
+  metrics:
+    initial_ego_xy_m:
+    - -2.997
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95
+    actor_y_at_4s_m: 1.0
+    ego_crossing_time_s: 5.0
+    actor_crossing_time_s: 3.0
+    response_signature: 830d45b884187b0c36b78cbc0f16889f17af225bfe2b837049ce5dbdea46a80e
+    response_signature_samples_m:
+    - -1.5
+    - -1.0
+    - -0.5
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+  expected_ego_crossing_time_s: 5.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 6
+    unit_id: v3_01_r2_s6121_assertive_probe_v080
+    seed: 6121
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 1fd09684b113a4772dff01d55933dbac2c51b7593afc76d27de0fd37f8977f00
+  metrics:
+    initial_ego_xy_m:
+    - -2.996
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.9481775
+    actor_y_at_4s_m: 1.631995
+    ego_crossing_time_s: 3.75
+    actor_crossing_time_s: 2.368005
+    response_signature: 5f60cbd2787da2a78a4d55e8a65d89e271f01ca09352b9048b4d2b67d8c85be3
+    response_signature_samples_m:
+    - -1.011
+    - -0.368
+    - 0.132
+    - 0.632
+    - 1.132
+    - 1.632
+    - 2.132
+    - 2.632
+  expected_ego_crossing_time_s: 3.75
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 7
+    unit_id: v3_01_r2_s6121_assertive_probe_v100
+    seed: 6121
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 767dea1f9ee845f9a89ec450c50ded90884b2f6e56f621150e628aabe2e685ed
+  metrics:
+    initial_ego_xy_m:
+    - -2.995
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.9481775
+    actor_y_at_4s_m: 1.777245
+    ego_crossing_time_s: 3.0
+    actor_crossing_time_s: 2.248725925925926
+    response_signature: 87c14e72a45af112ee368f31cd93edb404a23712ea602fe726a495ba6994f694
+    response_signature_samples_m:
+    - -1.011
+    - -0.336
+    - 0.277
+    - 0.777
+    - 1.277
+    - 1.777
+    - 2.277
+    - 2.777
+  expected_ego_crossing_time_s: 3.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 8
+    unit_id: v3_01_r2_s6121_assertive_probe_v120
+    seed: 6121
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 7dfc65dfb38a2a973210bc2e2e05d2e32b16a1623ebd1c8bc7403d2538971ada
+  metrics:
+    initial_ego_xy_m:
+    - -2.994
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.9481775
+    actor_y_at_4s_m: 1.777245
+    ego_crossing_time_s: 2.5
+    actor_crossing_time_s: 2.248725925925926
+    response_signature: 87c14e72a45af112ee368f31cd93edb404a23712ea602fe726a495ba6994f694
+    response_signature_samples_m:
+    - -1.011
+    - -0.336
+    - 0.277
+    - 0.777
+    - 1.277
+    - 1.777
+    - 2.277
+    - 2.777
+  expected_ego_crossing_time_s: 2.5
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 9
+    unit_id: v3_01_r2_s6121_hesitant_probe_v060
+    seed: 6121
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f83ae294a6fdda8f1c5b2e834a861b6fea2c101b514d28b4bebb98563e11c289
+  metrics:
+    initial_ego_xy_m:
+    - -2.997
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95
+    actor_y_at_4s_m: 1.0
+    ego_crossing_time_s: 5.0
+    actor_crossing_time_s: 3.0
+    response_signature: 830d45b884187b0c36b78cbc0f16889f17af225bfe2b837049ce5dbdea46a80e
+    response_signature_samples_m:
+    - -1.5
+    - -1.0
+    - -0.5
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+  expected_ego_crossing_time_s: 5.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 10
+    unit_id: v3_01_r2_s6121_hesitant_probe_v080
+    seed: 6121
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 5b57a5aeaea197fa7db1efbcaea6d6cb9f65d48cbfa4b23f70818628214e00da
+  metrics:
+    initial_ego_xy_m:
+    - -2.996
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.84908
+    ego_crossing_time_s: 3.75
+    actor_crossing_time_s: 4.86378
+    response_signature: 33760266be937043df9c6b67a8ef7a8393537c4dcee8615fc7ca7c3c732d78e9
+    response_signature_samples_m:
+    - -2.182
+    - -1.92
+    - -1.626
+    - -1.407
+    - -1.065
+    - -0.849
+    - -0.364
+    - 0.136
+  expected_ego_crossing_time_s: 3.75
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 11
+    unit_id: v3_01_r2_s6121_hesitant_probe_v100
+    seed: 6121
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: dc5ea6e04a359fd43ad8d7117d78f3b7cdd0e2d5a815755047f3438fe336ca36
+  metrics:
+    initial_ego_xy_m:
+    - -2.995
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.42099
+    ego_crossing_time_s: 3.0
+    actor_crossing_time_s: 4.420990000000001
+    response_signature: 4b2ee36e7d227cd067b151f42b06b9afbc21e1118fd78ea59bbaee4821c46133
+    response_signature_samples_m:
+    - -2.182
+    - -1.92
+    - -1.626
+    - -1.407
+    - -0.921
+    - -0.421
+    - 0.079
+    - 0.579
+  expected_ego_crossing_time_s: 3.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 12
+    unit_id: v3_01_r2_s6121_hesitant_probe_v120
+    seed: 6121
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: e8f4abdb2fa3e46a96cb93603921814d897862f02dd0bf2bd53399573158c04f
+  metrics:
+    initial_ego_xy_m:
+    - -2.994
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: 0.0876
+    ego_crossing_time_s: 2.5
+    actor_crossing_time_s: 3.9124
+    response_signature: f2349f402ac7eab6d4e44f5076397bf62ea95cd62f34be8e29a559e86cead416
+    response_signature_samples_m:
+    - -2.182
+    - -1.912
+    - -1.412
+    - -0.912
+    - -0.412
+    - 0.088
+    - 0.588
+    - 1.088
+  expected_ego_crossing_time_s: 2.5
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 13
+    unit_id: v3_01_r2_s6122_cautious_probe_v060
+    seed: 6122
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f83ae294a6fdda8f1c5b2e834a861b6fea2c101b514d28b4bebb98563e11c289
+  metrics:
+    initial_ego_xy_m:
+    - -2.997
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95
+    actor_y_at_4s_m: 1.0
+    ego_crossing_time_s: 5.0
+    actor_crossing_time_s: 3.0
+    response_signature: 830d45b884187b0c36b78cbc0f16889f17af225bfe2b837049ce5dbdea46a80e
+    response_signature_samples_m:
+    - -1.5
+    - -1.0
+    - -0.5
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+  expected_ego_crossing_time_s: 5.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 14
+    unit_id: v3_01_r2_s6122_cautious_probe_v080
+    seed: 6122
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 3890a1489b295c9d29ee2698c09befee7ee5d21cd31c15989e6055ebea6985ea
+  metrics:
+    initial_ego_xy_m:
+    - -2.996
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -1.310975
+    ego_crossing_time_s: 3.75
+    actor_crossing_time_s: 5.310975
+    response_signature: c868653ba3ce881261ba156a06b9bc871005d225b795ec5f146b7a14925cc7ec
+    response_signature_samples_m:
+    - -2.654
+    - -2.594
+    - -2.534
+    - -2.308
+    - -1.811
+    - -1.311
+    - -0.811
+    - -0.311
+  expected_ego_crossing_time_s: 3.75
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 15
+    unit_id: v3_01_r2_s6122_cautious_probe_v100
+    seed: 6122
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: d1fda68951486f97362460ddcc42883a31d2e9c219a9f2267fcc2c5ce7c2be00
+  metrics:
+    initial_ego_xy_m:
+    - -2.995
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.562975
+    ego_crossing_time_s: 3.0
+    actor_crossing_time_s: 4.562975
+    response_signature: 7b39d82c0b41c809b257799b46dfdcc7edc7a1e5312f0cb7351a71ab21207806
+    response_signature_samples_m:
+    - -2.654
+    - -2.524
+    - -2.063
+    - -1.563
+    - -1.063
+    - -0.563
+    - -0.063
+    - 0.437
+  expected_ego_crossing_time_s: 3.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 16
+    unit_id: v3_01_r2_s6122_cautious_probe_v120
+    seed: 6122
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: ac2b28b31b1fbe8d9abc356b17bb878e7a4ed11bfc5895258f469842949099c5
+  metrics:
+    initial_ego_xy_m:
+    - -2.994
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.061375
+    ego_crossing_time_s: 2.5
+    actor_crossing_time_s: 4.061375
+    response_signature: c97b4427b6c1ba68ede85fba08de8d335580b4bcb8df08c6f28564afb48ce301
+    response_signature_samples_m:
+    - -2.544
+    - -2.061
+    - -1.561
+    - -1.061
+    - -0.561
+    - -0.061
+    - 0.439
+    - 0.939
+  expected_ego_crossing_time_s: 2.5
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 17
+    unit_id: v3_01_r2_s6122_assertive_probe_v060
+    seed: 6122
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f83ae294a6fdda8f1c5b2e834a861b6fea2c101b514d28b4bebb98563e11c289
+  metrics:
+    initial_ego_xy_m:
+    - -2.997
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95
+    actor_y_at_4s_m: 1.0
+    ego_crossing_time_s: 5.0
+    actor_crossing_time_s: 3.0
+    response_signature: 830d45b884187b0c36b78cbc0f16889f17af225bfe2b837049ce5dbdea46a80e
+    response_signature_samples_m:
+    - -1.5
+    - -1.0
+    - -0.5
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+  expected_ego_crossing_time_s: 5.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 18
+    unit_id: v3_01_r2_s6122_assertive_probe_v080
+    seed: 6122
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 1fd09684b113a4772dff01d55933dbac2c51b7593afc76d27de0fd37f8977f00
+  metrics:
+    initial_ego_xy_m:
+    - -2.996
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.9481775
+    actor_y_at_4s_m: 1.631995
+    ego_crossing_time_s: 3.75
+    actor_crossing_time_s: 2.368005
+    response_signature: 5f60cbd2787da2a78a4d55e8a65d89e271f01ca09352b9048b4d2b67d8c85be3
+    response_signature_samples_m:
+    - -1.011
+    - -0.368
+    - 0.132
+    - 0.632
+    - 1.132
+    - 1.632
+    - 2.132
+    - 2.632
+  expected_ego_crossing_time_s: 3.75
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 19
+    unit_id: v3_01_r2_s6122_assertive_probe_v100
+    seed: 6122
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 767dea1f9ee845f9a89ec450c50ded90884b2f6e56f621150e628aabe2e685ed
+  metrics:
+    initial_ego_xy_m:
+    - -2.995
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.9481775
+    actor_y_at_4s_m: 1.777245
+    ego_crossing_time_s: 3.0
+    actor_crossing_time_s: 2.248725925925926
+    response_signature: 87c14e72a45af112ee368f31cd93edb404a23712ea602fe726a495ba6994f694
+    response_signature_samples_m:
+    - -1.011
+    - -0.336
+    - 0.277
+    - 0.777
+    - 1.277
+    - 1.777
+    - 2.277
+    - 2.777
+  expected_ego_crossing_time_s: 3.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 20
+    unit_id: v3_01_r2_s6122_assertive_probe_v120
+    seed: 6122
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 7dfc65dfb38a2a973210bc2e2e05d2e32b16a1623ebd1c8bc7403d2538971ada
+  metrics:
+    initial_ego_xy_m:
+    - -2.994
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.9481775
+    actor_y_at_4s_m: 1.777245
+    ego_crossing_time_s: 2.5
+    actor_crossing_time_s: 2.248725925925926
+    response_signature: 87c14e72a45af112ee368f31cd93edb404a23712ea602fe726a495ba6994f694
+    response_signature_samples_m:
+    - -1.011
+    - -0.336
+    - 0.277
+    - 0.777
+    - 1.277
+    - 1.777
+    - 2.277
+    - 2.777
+  expected_ego_crossing_time_s: 2.5
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 21
+    unit_id: v3_01_r2_s6122_hesitant_probe_v060
+    seed: 6122
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f83ae294a6fdda8f1c5b2e834a861b6fea2c101b514d28b4bebb98563e11c289
+  metrics:
+    initial_ego_xy_m:
+    - -2.997
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95
+    actor_y_at_4s_m: 1.0
+    ego_crossing_time_s: 5.0
+    actor_crossing_time_s: 3.0
+    response_signature: 830d45b884187b0c36b78cbc0f16889f17af225bfe2b837049ce5dbdea46a80e
+    response_signature_samples_m:
+    - -1.5
+    - -1.0
+    - -0.5
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+  expected_ego_crossing_time_s: 5.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 22
+    unit_id: v3_01_r2_s6122_hesitant_probe_v080
+    seed: 6122
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 5b57a5aeaea197fa7db1efbcaea6d6cb9f65d48cbfa4b23f70818628214e00da
+  metrics:
+    initial_ego_xy_m:
+    - -2.996
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.84908
+    ego_crossing_time_s: 3.75
+    actor_crossing_time_s: 4.86378
+    response_signature: 33760266be937043df9c6b67a8ef7a8393537c4dcee8615fc7ca7c3c732d78e9
+    response_signature_samples_m:
+    - -2.182
+    - -1.92
+    - -1.626
+    - -1.407
+    - -1.065
+    - -0.849
+    - -0.364
+    - 0.136
+  expected_ego_crossing_time_s: 3.75
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 23
+    unit_id: v3_01_r2_s6122_hesitant_probe_v100
+    seed: 6122
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: dc5ea6e04a359fd43ad8d7117d78f3b7cdd0e2d5a815755047f3438fe336ca36
+  metrics:
+    initial_ego_xy_m:
+    - -2.995
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.42099
+    ego_crossing_time_s: 3.0
+    actor_crossing_time_s: 4.420990000000001
+    response_signature: 4b2ee36e7d227cd067b151f42b06b9afbc21e1118fd78ea59bbaee4821c46133
+    response_signature_samples_m:
+    - -2.182
+    - -1.92
+    - -1.626
+    - -1.407
+    - -0.921
+    - -0.421
+    - 0.079
+    - 0.579
+  expected_ego_crossing_time_s: 3.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 24
+    unit_id: v3_01_r2_s6122_hesitant_probe_v120
+    seed: 6122
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: e8f4abdb2fa3e46a96cb93603921814d897862f02dd0bf2bd53399573158c04f
+  metrics:
+    initial_ego_xy_m:
+    - -2.994
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: 0.0876
+    ego_crossing_time_s: 2.5
+    actor_crossing_time_s: 3.9124
+    response_signature: f2349f402ac7eab6d4e44f5076397bf62ea95cd62f34be8e29a559e86cead416
+    response_signature_samples_m:
+    - -2.182
+    - -1.912
+    - -1.412
+    - -0.912
+    - -0.412
+    - 0.088
+    - 0.588
+    - 1.088
+  expected_ego_crossing_time_s: 2.5
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 25
+    unit_id: v3_01_r2_s6123_cautious_probe_v060
+    seed: 6123
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f83ae294a6fdda8f1c5b2e834a861b6fea2c101b514d28b4bebb98563e11c289
+  metrics:
+    initial_ego_xy_m:
+    - -2.997
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95
+    actor_y_at_4s_m: 1.0
+    ego_crossing_time_s: 5.0
+    actor_crossing_time_s: 3.0
+    response_signature: 830d45b884187b0c36b78cbc0f16889f17af225bfe2b837049ce5dbdea46a80e
+    response_signature_samples_m:
+    - -1.5
+    - -1.0
+    - -0.5
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+  expected_ego_crossing_time_s: 5.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 26
+    unit_id: v3_01_r2_s6123_cautious_probe_v080
+    seed: 6123
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 3890a1489b295c9d29ee2698c09befee7ee5d21cd31c15989e6055ebea6985ea
+  metrics:
+    initial_ego_xy_m:
+    - -2.996
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -1.310975
+    ego_crossing_time_s: 3.75
+    actor_crossing_time_s: 5.310975
+    response_signature: c868653ba3ce881261ba156a06b9bc871005d225b795ec5f146b7a14925cc7ec
+    response_signature_samples_m:
+    - -2.654
+    - -2.594
+    - -2.534
+    - -2.308
+    - -1.811
+    - -1.311
+    - -0.811
+    - -0.311
+  expected_ego_crossing_time_s: 3.75
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 27
+    unit_id: v3_01_r2_s6123_cautious_probe_v100
+    seed: 6123
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: d1fda68951486f97362460ddcc42883a31d2e9c219a9f2267fcc2c5ce7c2be00
+  metrics:
+    initial_ego_xy_m:
+    - -2.995
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.562975
+    ego_crossing_time_s: 3.0
+    actor_crossing_time_s: 4.562975
+    response_signature: 7b39d82c0b41c809b257799b46dfdcc7edc7a1e5312f0cb7351a71ab21207806
+    response_signature_samples_m:
+    - -2.654
+    - -2.524
+    - -2.063
+    - -1.563
+    - -1.063
+    - -0.563
+    - -0.063
+    - 0.437
+  expected_ego_crossing_time_s: 3.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 28
+    unit_id: v3_01_r2_s6123_cautious_probe_v120
+    seed: 6123
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: ac2b28b31b1fbe8d9abc356b17bb878e7a4ed11bfc5895258f469842949099c5
+  metrics:
+    initial_ego_xy_m:
+    - -2.994
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.061375
+    ego_crossing_time_s: 2.5
+    actor_crossing_time_s: 4.061375
+    response_signature: c97b4427b6c1ba68ede85fba08de8d335580b4bcb8df08c6f28564afb48ce301
+    response_signature_samples_m:
+    - -2.544
+    - -2.061
+    - -1.561
+    - -1.061
+    - -0.561
+    - -0.061
+    - 0.439
+    - 0.939
+  expected_ego_crossing_time_s: 2.5
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 29
+    unit_id: v3_01_r2_s6123_assertive_probe_v060
+    seed: 6123
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f83ae294a6fdda8f1c5b2e834a861b6fea2c101b514d28b4bebb98563e11c289
+  metrics:
+    initial_ego_xy_m:
+    - -2.997
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95
+    actor_y_at_4s_m: 1.0
+    ego_crossing_time_s: 5.0
+    actor_crossing_time_s: 3.0
+    response_signature: 830d45b884187b0c36b78cbc0f16889f17af225bfe2b837049ce5dbdea46a80e
+    response_signature_samples_m:
+    - -1.5
+    - -1.0
+    - -0.5
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+  expected_ego_crossing_time_s: 5.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 30
+    unit_id: v3_01_r2_s6123_assertive_probe_v080
+    seed: 6123
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 1fd09684b113a4772dff01d55933dbac2c51b7593afc76d27de0fd37f8977f00
+  metrics:
+    initial_ego_xy_m:
+    - -2.996
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.9481775
+    actor_y_at_4s_m: 1.631995
+    ego_crossing_time_s: 3.75
+    actor_crossing_time_s: 2.368005
+    response_signature: 5f60cbd2787da2a78a4d55e8a65d89e271f01ca09352b9048b4d2b67d8c85be3
+    response_signature_samples_m:
+    - -1.011
+    - -0.368
+    - 0.132
+    - 0.632
+    - 1.132
+    - 1.632
+    - 2.132
+    - 2.632
+  expected_ego_crossing_time_s: 3.75
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 31
+    unit_id: v3_01_r2_s6123_assertive_probe_v100
+    seed: 6123
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 767dea1f9ee845f9a89ec450c50ded90884b2f6e56f621150e628aabe2e685ed
+  metrics:
+    initial_ego_xy_m:
+    - -2.995
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.9481775
+    actor_y_at_4s_m: 1.777245
+    ego_crossing_time_s: 3.0
+    actor_crossing_time_s: 2.248725925925926
+    response_signature: 87c14e72a45af112ee368f31cd93edb404a23712ea602fe726a495ba6994f694
+    response_signature_samples_m:
+    - -1.011
+    - -0.336
+    - 0.277
+    - 0.777
+    - 1.277
+    - 1.777
+    - 2.277
+    - 2.777
+  expected_ego_crossing_time_s: 3.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 32
+    unit_id: v3_01_r2_s6123_assertive_probe_v120
+    seed: 6123
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 7dfc65dfb38a2a973210bc2e2e05d2e32b16a1623ebd1c8bc7403d2538971ada
+  metrics:
+    initial_ego_xy_m:
+    - -2.994
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.9481775
+    actor_y_at_4s_m: 1.777245
+    ego_crossing_time_s: 2.5
+    actor_crossing_time_s: 2.248725925925926
+    response_signature: 87c14e72a45af112ee368f31cd93edb404a23712ea602fe726a495ba6994f694
+    response_signature_samples_m:
+    - -1.011
+    - -0.336
+    - 0.277
+    - 0.777
+    - 1.277
+    - 1.777
+    - 2.277
+    - 2.777
+  expected_ego_crossing_time_s: 2.5
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 33
+    unit_id: v3_01_r2_s6123_hesitant_probe_v060
+    seed: 6123
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f83ae294a6fdda8f1c5b2e834a861b6fea2c101b514d28b4bebb98563e11c289
+  metrics:
+    initial_ego_xy_m:
+    - -2.997
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95
+    actor_y_at_4s_m: 1.0
+    ego_crossing_time_s: 5.0
+    actor_crossing_time_s: 3.0
+    response_signature: 830d45b884187b0c36b78cbc0f16889f17af225bfe2b837049ce5dbdea46a80e
+    response_signature_samples_m:
+    - -1.5
+    - -1.0
+    - -0.5
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+    - 2.0
+  expected_ego_crossing_time_s: 5.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 34
+    unit_id: v3_01_r2_s6123_hesitant_probe_v080
+    seed: 6123
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 5b57a5aeaea197fa7db1efbcaea6d6cb9f65d48cbfa4b23f70818628214e00da
+  metrics:
+    initial_ego_xy_m:
+    - -2.996
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.84908
+    ego_crossing_time_s: 3.75
+    actor_crossing_time_s: 4.86378
+    response_signature: 33760266be937043df9c6b67a8ef7a8393537c4dcee8615fc7ca7c3c732d78e9
+    response_signature_samples_m:
+    - -2.182
+    - -1.92
+    - -1.626
+    - -1.407
+    - -1.065
+    - -0.849
+    - -0.364
+    - 0.136
+  expected_ego_crossing_time_s: 3.75
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 35
+    unit_id: v3_01_r2_s6123_hesitant_probe_v100
+    seed: 6123
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: dc5ea6e04a359fd43ad8d7117d78f3b7cdd0e2d5a815755047f3438fe336ca36
+  metrics:
+    initial_ego_xy_m:
+    - -2.995
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: -0.42099
+    ego_crossing_time_s: 3.0
+    actor_crossing_time_s: 4.420990000000001
+    response_signature: 4b2ee36e7d227cd067b151f42b06b9afbc21e1118fd78ea59bbaee4821c46133
+    response_signature_samples_m:
+    - -2.182
+    - -1.92
+    - -1.626
+    - -1.407
+    - -0.921
+    - -0.421
+    - 0.079
+    - 0.579
+  expected_ego_crossing_time_s: 3.0
+  ego_crossing_time_error_s: 0.0
+- row:
+    sequence: 36
+    unit_id: v3_01_r2_s6123_hesitant_probe_v120
+    seed: 6123
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: e8f4abdb2fa3e46a96cb93603921814d897862f02dd0bf2bd53399573158c04f
+  metrics:
+    initial_ego_xy_m:
+    - -2.994
+    - 0.0
+    initial_actor_xy_m:
+    - 0.0
+    - -2.995
+    actor_y_at_0_05s_m: -2.95243
+    actor_y_at_4s_m: 0.0876
+    ego_crossing_time_s: 2.5
+    actor_crossing_time_s: 3.9124
+    response_signature: f2349f402ac7eab6d4e44f5076397bf62ea95cd62f34be8e29a559e86cead416
+    response_signature_samples_m:
+    - -2.182
+    - -1.912
+    - -1.412
+    - -0.912
+    - -0.412
+    - 0.088
+    - 0.588
+    - 1.088
+  expected_ego_crossing_time_s: 2.5
+  ego_crossing_time_error_s: 0.0
+claim:
+  crossing_family_counterfactual_data_qualified: true
+  general_multi_family_identifiability: false
+  predictor_accuracy_claimed: false
+  planner_safety_claimed: false
+  performance_improvement_claimed: false
+  real_vehicle_ready: false

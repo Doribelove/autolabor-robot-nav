@@ -1,0 +1,20 @@
+schema_version: '1.0'
+stage: V3-06-B0
+status: hermetic_runtime_bindings_frozen
+process_model: env_i_non_login_no_ros_master
+gazebo_executable:
+  path: /usr/bin/gzserver-11.15.1
+  sha256: 3f4a086582a9b43eeaeb18846fe49852ce1da40cb8d1e969e86d9a8a3fe43996
+  size_bytes: 187896
+gazebo_arguments:
+- --verbose
+- WORLD
+environment:
+  PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  LD_LIBRARY_PATH: /home/robot/robot_ws_base_rl/devel/lib:/opt/ros/noetic/lib:/usr/lib/x86_64-linux-gnu
+  GAZEBO_PLUGIN_PATH: /home/robot/robot_ws_base_rl/devel/lib
+  GAZEBO_MODEL_PATH: ''
+  ROS_DISTRO: noetic
+ros_master_required: false
+move_base_required: false
+hardware_device_access_required: false

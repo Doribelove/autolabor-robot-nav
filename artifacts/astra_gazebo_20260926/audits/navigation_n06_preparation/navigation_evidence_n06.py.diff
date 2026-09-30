@@ -1,0 +1,35 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_n05.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_n06.py
+@@ -18,7 +18,7 @@
+ 
+ WORKSPACE=passive.WORKSPACE
+ STAGE=passive.STAGE
+-SCHEMA='astra_navigation_evidence_n05_v1'
++SCHEMA='astra_navigation_evidence_n06_v1'
+ ELF_ROLES=dict(passive.ELF_ROLES)
+ del ELF_ROLES['libastra_reactive_actor_plugin.so']
+ ELF_ROLES[event_actor.PLUGIN]='actor_binaries'
+@@ -51,7 +51,7 @@
+ 
+ IMAGE_POLICY='supplementary_native_frames_do_not_suppress_physical_failure_evidence'
+ STEP_NS=2_000_000
+-METHODS=('astra_analytic_preview_eligible_n05','astra_analytic_route_v1','astra_pct_route_v1','frozen_r2_v060_sensor_lifecycle_v1','actual_teb_common_route','dwa_common_route')
++METHODS=('astra_analytic_route_v1','astra_analytic_lookahead_1p2_n06')
+ DENSE_TOPICS=passive.DENSE_TOPICS
+ PHYSICAL_TOPICS=DENSE_TOPICS+('/astra/p03/runtime_metadata','/astra/physics_metadata','/astra/world_models','/astra/world_links',
+  '/clock','/odom','/joint_states','/m2_driver/physical_status','/m2_driver/physical_metadata','/m2_driver/command_ingress',
+@@ -363,10 +363,10 @@
+     if review.get('schema')!='astra_navigation_source_review_v1' or review.get('status')!='independently_reviewed':raise ValueError('new navigation source review required')
+     resources={str(Path(x['path']).resolve()):x for x in release['resources']}
+     reviewed={str(Path(x['path']).resolve()):x for x in review['resources']}
+-    required_sources=[WORKSPACE/'scripts/astra_gazebo/navigation_evidence_n05.py',
+-      WORKSPACE/'src/simulation/m2_gazebo/scripts/astra_navigation_collector_n05.py',
+-      WORKSPACE/'scripts/astra_gazebo/navigation_coordinator_n05.py',
+-      WORKSPACE/'src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n05.py',
++    required_sources=[WORKSPACE/'scripts/astra_gazebo/navigation_evidence_n06.py',
++      WORKSPACE/'src/simulation/m2_gazebo/scripts/astra_navigation_collector_n06.py',
++      WORKSPACE/'scripts/astra_gazebo/navigation_coordinator_n06.py',
++      WORKSPACE/'src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n06.py',
+       root/'fixture.launch']
+     # The launch copy is bound by content, since its prepared canonical path differs.
+     resource_digests={x['sha256'] for x in resources.values()};review_digests={x['sha256'] for x in reviewed.values()}

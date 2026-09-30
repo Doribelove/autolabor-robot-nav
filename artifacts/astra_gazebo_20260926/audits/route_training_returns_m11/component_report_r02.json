@@ -1,0 +1,24 @@
+{
+  "revision": "r02",
+  "source_r01_preserved": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11/source_r01_before_independent_underflow_fix.py",
+    "sha256": "b8a84ae4cc4ad5284263cebd25a858062214d01c6b726d78f28e4f080d8cc1fa"
+  },
+  "independent_finding": "gamma=lambda=1e-200, delta_s/reference=.1: pre-exponent product underflowed to zero despite representable continuation ~1e-40",
+  "fix": "compute gamma**exponent * lambda**exponent * next advantage via existing discount",
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_training_returns_m11.py",
+      "sha256": "b584dbb2b16ded9931de7996a60c1392f02b935f1cf3834f62cddc1617f21fa6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_route_training_returns_m11.py",
+      "sha256": "8ccb8c390603d906808922a730fddf7a541e6a5a6f0765571d5e1128dc3474c4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/route_training_returns_m11_tests_r02.log",
+      "sha256": "b0b75f421b5d473d250fc837b68d4922c35c17299afa8f1aae96d02175372f3c"
+    }
+  ],
+  "claim": "pure numerical fix; no Gazebo evidence or training"
+}

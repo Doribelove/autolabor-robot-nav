@@ -1,0 +1,104 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R17
+stage_purpose: pure_offline_goal_aligned_recovery_and_terminal_guard_closure
+status: preregistered_pure_offline_design
+upstream:
+  R16_D1_diagnosis_sha256: 9ec8375096a5d36cbec43ff4b7412659971b6472120518a659ad1e770c35c81f
+  R16_D1_manifest_sha256: 94116ac47579a58ebcfa7e8ab9d89019c52aff5726dd8aa8fc76634c83a25088
+  R16_D1_review_sha256: 99bd5ec4dfa188ace09206f4708fa7150c4c138272698e7f9d325ab4c1498e77
+  progress_candidate_core_path: src/application/v3_scope_planner/src/v3_scope_planner/progress_recovery_candidate_core.py
+  progress_candidate_core_sha256: 028919c09e336cd22b02c99e1cd2f5a54d56ae4704e78499090aef5275ea9de9
+  terminal_guard_core_path: src/application/v3_scope_planner/src/v3_scope_planner/goal_aligned_execution_core.py
+  terminal_guard_core_sha256: 0b30da1f7ee93d22dc88924ed90a991793f419f7b0780e8c9bd59efc05b52652
+single_architectural_factor:
+  factor: end_to_end_recovery_completion
+  superseded_candidate_id: recovery_evasive_right_v120_r2
+  new_candidate_id: recovery_evasive_right_v120_r3
+  components:
+  - recovery trajectory terminates inside the frozen common goal tolerance
+  - execution emits a fail-closed zero command at or beyond the candidate terminal plane
+  legacy_candidate_count: 4
+  prospective_candidate_count: 5
+  legacy_candidate_bytes_and_order_unchanged: true
+  analytic_ranker_weights_unchanged: true
+  hard_verifier_thresholds_unchanged: true
+  common_goal_timeout_or_safety_thresholds_changed: false
+candidate_extension:
+  generator_id: v3_13_q1_r17_goal_aligned_recovery_bank_1
+  candidate_id: recovery_evasive_right_v120_r3
+  kind: spatial
+  direction: -1
+  target_speed_mps: 1.20
+  certified_stop: false
+  recovery_only: true
+  eligible_after_certified_stop_prefix_only: true
+  phase_coordinate: longitudinal_progress_from_recovery_pose_m
+  longitudinal_acceleration_limit_mps2: 1.20
+  steering_peak_rad: 0.434
+  steering_rate_limit_radps: 0.65
+  outbound_progress_range_m: [0.0, 3.04]
+  return_progress_range_m: [3.04, 6.58]
+  horizon_s: 7.55
+  sample_period_s: 0.05
+terminal_guard:
+  terminal_tolerance_m: 0.12
+  terminal_window_last_point_count: 3
+  stop_if_terminal_distance_within_tolerance: true
+  stop_if_terminal_plane_crossed: true
+  fail_closed_command_linear_x_mps: 0.0
+  fail_closed_command_angular_z_radps: 0.0
+hardware_envelope:
+  source_urdf_path: src/simulation/m2_gazebo/urdf/m2.urdf.xacro
+  wheelbase_m: 0.65
+  maximum_steering_angle_rad: 0.4964
+  maximum_curvature_inv_m: 0.834
+  maximum_acceleration_mps2: 1.20
+  maximum_steering_rate_radps: 0.80
+  envelope_is_simulation_candidate_not_real_vehicle_calibration: true
+offline_design_replay:
+  source_R14_R1_blocks: [1, 2, 3, 4, 5, 6, 7, 8]
+  include_R16_failed_preflight_state: true
+  common_goal_world_xy_m: [5.2, 0.0]
+  actor_response_surrogate: R13_assertive_recovery_evasive_right_v120_r2_head
+  surrogate_is_geometry_design_only: true
+  surrogate_is_not_candidate_specific_support_or_qualification: true
+offline_geometry_gates:
+  exactly_one_candidate_appended: true
+  legacy_candidate_digest_change_count_max: 0
+  kinematic_validation_failure_count_max: 0
+  maximum_acceleration_mps2_max: 1.20
+  maximum_steering_angle_rad_max: 0.434
+  maximum_steering_rate_radps_max: 0.65
+  maximum_curvature_inv_m_max: 0.72
+  maximum_relative_lateral_offset_m_max: 1.36
+  maximum_terminal_common_goal_distance_m_max: 0.05
+  maximum_terminal_absolute_yaw_rad_max: 0.12
+  every_design_state_surrogate_dynamic_clearance_m_min: 0.05
+  every_design_state_static_clearance_m_min: 0.05
+  terminal_guard_zero_command_at_terminal_required: true
+  terminal_guard_zero_command_after_terminal_plane_required: true
+  terminal_guard_preserves_approach_command_required: true
+downstream:
+  if_all_gates_pass: design_one_fresh_non_evidence_goal_aligned_runtime_preflight
+  candidate_specific_support_authorized: false
+  candidate_specific_predictor_fit_authorized: false
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  pure_offline_geometry_and_guard_design_authorized: true
+  ROS_or_Gazebo_execution_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - one goal-aligned recovery trajectory is inside the frozen simulation and safety envelope on the nine design states
+  - the terminal guard stops at or beyond the candidate endpoint without changing an ordinary approach command
+  forbidden:
+  - candidate-specific support or prediction qualification
+  - fresh-simulation safety or goal completion
+  - actual TEB performance
+  - perception or learned-policy benefit
+  - deployment or real-vehicle readiness

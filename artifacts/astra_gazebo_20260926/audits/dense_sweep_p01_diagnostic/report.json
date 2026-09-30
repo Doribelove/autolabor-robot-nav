@@ -1,0 +1,177 @@
+{
+  "schema": "astra_dense_sweep_conditional_v1",
+  "integrity_pass": true,
+  "issues": [],
+  "source_step_ns": 2000000,
+  "dense_interval_count": 18077,
+  "body_envelopes": {
+    "base_link": {
+      "mass_kg": 66.6,
+      "com_local_m": [
+        0.0,
+        0.0,
+        0.2726726726726727
+      ],
+      "members": [
+        "base_link",
+        "chassis_link",
+        "laser_link",
+        "imu_link"
+      ],
+      "radius_m": 0.6495884322581075,
+      "collisions": [
+        "chassis_link/chassis_collision",
+        "laser_link/collision_0",
+        "imu_link/collision_0"
+      ]
+    },
+    "front_left_steer_link": {
+      "mass_kg": 0.5,
+      "com_local_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "members": [
+        "front_left_steer_link"
+      ],
+      "radius_m": 0.0696419413859206,
+      "collisions": [
+        "front_left_steer_link/collision_0"
+      ]
+    },
+    "front_left_wheel_link": {
+      "mass_kg": 3.0,
+      "com_local_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "members": [
+        "front_left_wheel_link"
+      ],
+      "radius_m": 0.15555275238371957,
+      "collisions": [
+        "front_left_wheel_link/collision_0"
+      ]
+    },
+    "front_right_steer_link": {
+      "mass_kg": 0.5,
+      "com_local_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "members": [
+        "front_right_steer_link"
+      ],
+      "radius_m": 0.0696419413859206,
+      "collisions": [
+        "front_right_steer_link/collision_0"
+      ]
+    },
+    "front_right_wheel_link": {
+      "mass_kg": 3.0,
+      "com_local_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "members": [
+        "front_right_wheel_link"
+      ],
+      "radius_m": 0.15555275238371957,
+      "collisions": [
+        "front_right_wheel_link/collision_0"
+      ]
+    },
+    "rear_left_wheel_link": {
+      "mass_kg": 3.0,
+      "com_local_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "members": [
+        "rear_left_wheel_link"
+      ],
+      "radius_m": 0.15555275238371957,
+      "collisions": [
+        "rear_left_wheel_link/collision_0"
+      ]
+    },
+    "rear_right_wheel_link": {
+      "mass_kg": 3.0,
+      "com_local_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "members": [
+        "rear_right_wheel_link"
+      ],
+      "radius_m": 0.15555275238371957,
+      "collisions": [
+        "rear_right_wheel_link/collision_0"
+      ]
+    }
+  },
+  "actor_rule_speed_bounds_mps": {},
+  "conditional_model": "normal ODE Euler quaternion extension and COM linear extension; bounded actor Begin jumps",
+  "qualification": "pending",
+  "pending_obligations": [
+    "loaded_engine_source_and_binary_verified",
+    "normal_infinitesimal_rotation_mode_verified",
+    "one_pose_integration_per_dense_step_verified",
+    "fixed_body_com_mapping_verified",
+    "all_non_engine_pose_writes_classified",
+    "all_actor_updates_bounded",
+    "numerical_error_envelope_verified",
+    "declared_simulator_extension_accepted"
+  ],
+  "proof_binding_syntax_checks": {
+    "loaded_engine_source_and_binary_verified": false,
+    "normal_infinitesimal_rotation_mode_verified": false,
+    "one_pose_integration_per_dense_step_verified": false,
+    "fixed_body_com_mapping_verified": false,
+    "all_non_engine_pose_writes_classified": false,
+    "all_actor_updates_bounded": false,
+    "numerical_error_envelope_verified": false,
+    "declared_simulator_extension_accepted": false
+  },
+  "proof_bindings": {},
+  "proof_documents_authenticated_by_this_component": false,
+  "claim": "conditional simulator-extension point/clearance variation budgets only; no real continuous trajectory observed",
+  "formal_safety": false,
+  "physical_velocity_bounds_inferred_from_sampled_maxima": false,
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p01/fixture.bag",
+      "sha256": "29ebb615535c65c8bc62827cf6acd24c2f92aba3c30b7d5ed99494763d5d25c8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/dense_sweep_p01_reconstructed_urdf.xml",
+      "sha256": "a743e87c207c756fcf7c40e762fe59306d180afd525d59cc33f22e108c8fabc7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p01/world.sdf",
+      "sha256": "39a320d4e09f990c0c89ab819da4b00566b9425da38506d147168963e3962dba"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/dense_sweep.py",
+      "sha256": "6452198a8b14edae89a31ca9d191833538aa5d92794057ccd4b0a798abe581ee"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/evaluate_episode.py",
+      "sha256": "db585cddb29054137c2129f3b96d698cd3a3bcf4b7d854558c29aee4b06550a4"
+    }
+  ],
+  "intervals": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/dense_sweep_p01_diagnostic/intervals.jsonl",
+    "sha256": "2ef5633f4ee66cfe97dabcb677e392ce8928c94bd653573f26a595f7238cdb2b"
+  }
+}

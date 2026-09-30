@@ -1,0 +1,179 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P2-C1-R1
+contract_id: fam_teb_v2_04g_p2_c1_r1_exact_calibration_execution_integrity_repair_1
+status: explicitly_authorized_release_candidate_not_yet_released
+independent_stage: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_authorized: true
+authorized_evidence_units_max: 342
+consumed_evidence_units: 0
+training_allowed: false
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+
+authority:
+  user_instruction_date: "2026-07-24"
+  user_instruction_scope: >-
+    Continuously advance FAM-TEB performance optimization using only offline
+    analysis and Gazebo; execute only after an exact release, schedule, finite
+    budget and corresponding authorization gate.
+  interpreted_scope:
+    - preserve_the_terminally_unused_C1_release_and_failure_audit
+    - create_one_independent_C1_R1_execution_integrity_repair_stage
+    - authorize_at_most_342_previously_unconsumed_round_1_identities
+    - run_only_the_repaired_exact_calibration_and_qualification_schedule
+    - retain_every_failure_journal_and_raw_trace
+  authorization_does_not_extend_to:
+    - held_out_test_seeds_5401_through_5490
+    - any_training_step
+    - any_real_vehicle_CAN_or_hardware_access
+    - retry_resume_replacement_or_seed_substitution
+    - modification_or_rerun_of_P1_I5_T12_P2_Q1_or_the_old_C1_release
+
+predecessor_terminal_freeze:
+  old_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_p2_c1_execution_release.yaml
+    sha256: bf370b51e19a91fd13ccf2684d4217590c675042c51fa2b26e95bd4db3bd5266
+  old_preexecution_audit:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_release_readiness/v2_04g_p2_c1_postrelease_preexecution_audit.yaml
+    sha256: bb0b367fb2ce0f548388b7c942c9dc288d0f9b76417eb9f51288adb09436c83d
+  old_schedule:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_release_readiness/v2_04g_p2_c1_exact_342_schedule.yaml
+    sha256: 85fe33cb4fc343c645d12bb454bf70f6640047e4cfb004b1dff38346b2d22ccb
+  old_command_plan:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_release_readiness/v2_04g_p2_c1_exact_342_command_plan.yaml
+    sha256: 721f242c33ccecaeb774b2676600b3c05784d2ba26867445fe546f81dae0b480
+  old_release_execute_called: false
+  old_execution_root_created: false
+  old_consumed_evidence_units: 0
+  old_authorized_units_permanently_forfeited: 342
+  old_release_retry_resume_or_reuse_allowed: false
+
+single_integrity_amendment:
+  amendment_id: qualification_compiled_scene_and_startup_binding_v1
+  classification: execution_integrity_binding_only
+  behavioral_factor_count_changed: 0
+  candidate_parameter_or_threshold_changed: false
+  scene_bytes_changed: false
+  evaluator_or_safety_gate_changed: false
+  affected_sequences: [1, 3, 4, 6, 7, 9, 10, 12]
+  old_scheduled_timeout_s: 80.0
+  compiled_and_repaired_timeout_s: 55.0
+  unaffected_row_count: 334
+  exact_amendments:
+    - bind_every_schedule_timeout_to_the_frozen_compiled_instance_timeout
+    - bind_direct_circle_qualification_rows_to_their_frozen_fixed_startup_config
+    - preserve_all_342_source_rows_order_seeds_scenes_methods_and_attempts
+    - freeze_the_actual_resolved_start_pose_world_config_and_transaction_command_plan
+    - bind_C1_R1_evidence_identity_wrappers_without_changing_inherited_runtime_logic
+  factor_or_outcome_based_schedule_change_allowed: false
+  direct_probe_startup_binding:
+    affected_sequences: [1, 3, 4, 6, 7, 9, 10, 12]
+    old_lookup: circle_method_materialized_config_key_absent
+    repaired_lookup: frozen_circle_method_fixed_startup_config
+    start_move_base: false
+    runtime_behavior_change: false
+
+global_budget_accounting:
+  source_program: fam_teb_post_p1_effect_search_v1
+  round: 1
+  round_simulation_evidence_units_max: 792
+  old_C1_authority_units_forfeited: 342
+  old_C1_evidence_units_consumed: 0
+  C1_R1_authorized_evidence_units_max: 342
+  held_out_test_units_reserved_max: 450
+  additive_budget_expansion: false
+  evidence_identity_freshness_reason: >-
+    Seeds 5301--5342 were compiled and authorized by C1 but no C1 execute call,
+    Gazebo process, attempt root, journal or consumption record ever existed.
+    They therefore remain unobserved fresh round-1 calibration identities; R1
+    is neither a rerun nor a replacement of consumed evidence.
+
+qualification_first_gate:
+  ordered_speeds_mps: [1.25, 1.30, 1.35, 1.40]
+  ordered_probes:
+    [braking, high_speed_to_conflict_overlay_transition, ackermann_circle]
+  all_three_probes_required_per_speed: true
+  any_failure_disqualifies_that_speed_and_all_higher_speeds: true
+  higher_speed_probe_execution_after_lower_speed_failure_allowed: false
+  calibration_rows_for_disqualified_speed_allowed: false
+  deterministic_skipped_identity_record_required: true
+  skipped_identity_consumes_evidence_budget: false
+  lower_qualified_speeds_and_frozen_controls_may_continue: true
+  no_eligible_circle_candidate_action: terminal_negative_without_test
+
+exact_schedule:
+  target_path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_release_readiness/v2_04g_p2_c1_r1_exact_342_schedule.yaml
+  qualification_rows: 12
+  calibration_rows: 330
+  total_rows: 342
+  attempt_per_identity: 1
+  source_row_count_preserved: 342
+  retry_resume_replacement_or_seed_substitution_allowed: false
+  held_out_test_rows: 0
+
+execution_policy:
+  serial_concurrency: 1
+  consumption_boundary: base_roslaunch_spawn_requested
+  stop_on_first_integrity_failure: true
+  remaining_budget_after_postconsumption_integrity_failure: forfeit
+  ordinary_navigation_or_probe_failure: retain_and_apply_preregistered_selection_or_qualification_rule
+  per_identity_hard_wall_cap_s: 240
+  stage_hard_wall_cap_h: 20
+  positive_progress_clock_bootstrap_required: true
+  credential_safe_child_environment_required: true
+  process_isolation_between_identities_required: true
+  two_phase_restore_for_semantic_transaction_required: true
+
+calibration_selection:
+  source: config/thesis_experiments/v2/v2_04g_r6_i1_p2_d2_offline_single_factor_design_contract.yaml
+  selection_data: calibration_only
+  complete_raw_replay_required: true
+  circle_rank: minimum_semantic_clear_geometric_restricted_completion_time
+  fixed_rank: minimum_equal_role_weighted_geometric_restricted_completion_time
+  candidate_tie_rule: within_1_percent_choose_lower_speed
+  primary_fair_baseline_candidates: [TEB-Tuned-V1, independently_tuned_fixed_teb_selected]
+  primary_baseline_tie_rule: within_1_percent_choose_TEB-Tuned-V1
+  candidate_and_baseline_frozen_before_any_test_release: true
+  TEB_Default_automatic_primary_baseline_allowed: false
+
+raw_evidence:
+  summary_fields_trusted_as_statistics: false
+  raw_path_SHA_and_size_receipts_required: true
+  navigation_replay_adapter: v2_04g_r6_i1_p2_q1_replay.normalize_navigation_trace
+  qualification_replay_adapter: v2_04g_r6_i1_p2_q1_replay.assess_qualification_trace
+  transaction_tracker_projection_emergency_sample_evidence_required: true
+  journal_per_consumed_identity_required: true
+  failure_index_required: true
+  skipped_identity_ledger_required: true
+
+release_policy:
+  release_count_max: 1
+  release_must_be_absent_during_offline_review: true
+  exact_release_SHA256_must_be_caller_supplied: true
+  full_local_and_external_path_SHA_closure_required: true
+  corresponding_simulation_authorization_record_required: true
+  minimum_free_disk_bytes: 4294967296
+  canonical_artifact_cap_bytes: 1073741824
+
+claim_boundary:
+  allowed_after_complete_C1_R1_only:
+    - calibration_and_qualification_results
+    - safety_qualified_speed_roster_within_the_frozen_simulation_probes
+    - calibration_frozen_circle_candidate_and_strongest_fair_baseline
+    - decision_whether_a_separate_held_out_test_release_may_be_designed
+  forbidden:
+    - held_out_performance_improvement
+    - obvious_performance_improvement_demonstrated
+    - reinforcement_learning_improvement
+    - generalization_safety_deployment_or_real_vehicle_claim
+
+forbidden_side_effects:
+  modify_or_rerun_P1_I5_T12_P2_Q1_or_old_C1: true
+  create_access_or_inspect_held_out_test_artifacts_or_outcomes: true
+  run_training_or_expand_global_budget: true
+  connect_stable_workspace_real_vehicle_CAN_or_hardware: true
+  execute_before_exact_release_and_review_pass: true

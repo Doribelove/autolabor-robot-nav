@@ -1,0 +1,27 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-A1
+preregistration_id: v3_scope_v3_02_a1_predictor_data_preregistration_1
+date: "2026-07-24"
+status: frozen_before_any_v3_02_gazebo_execution
+contract: config/thesis_experiments/v3/v3_02_a1_predictor_data_contract.yaml
+schedule:
+  roles: {training: 72, calibration: 36, held_out_test: 0}
+  exact_row_count: 108
+  attempt: 1
+  order: contract_block_then_policy_then_increasing_candidate_speed
+budget:
+  simulation_units_after_separate_authorization: 108
+  consumed_before_release: 0
+  retry_units: 0
+  reinforcement_learning_steps: 0
+held_out_firewall:
+  reserved_test_seeds: [6221, 6222, 6223]
+  test_scene_materialization_allowed: false
+  test_outcome_access_allowed: false
+  future_test_requires_frozen_model_and_separate_release: true
+analysis:
+  model: per_mode_per_horizon_ridge_regression
+  conformal_alpha: 0.10
+  all_features_and_gates_frozen_in_contract: true
+  negative_result_retained: true

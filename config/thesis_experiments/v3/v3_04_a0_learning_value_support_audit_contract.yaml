@@ -1,0 +1,57 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-04-A0
+stage_purpose: pure_offline_learning_value_and_support_audit
+contract_id: v3_scope_v3_04_a0_learning_value_support_audit_1
+status: pure_offline_preregistered_before_audit
+upstream:
+  v3_03_terminal_freeze_path: artifacts/v3/planner/v3_03_c6/v3_03_c6_terminal_freeze.sha256
+  v3_03_terminal_freeze_sha256: 973c2a41e271ec4aa20669ffcfd82c952eb3e7d56d8ce376de8a3dc1336c1b89
+  planner_contract_path: artifacts/v3/planner/v3_03_c5/v3_03_c5_effective_planner_contract.yaml
+  planner_contract_sha256: 6f2ec1530b67785dfc8f5a397ab416847f35f0c6ffc9e6f45bbf633a50057761
+  predictor_path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  predictor_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+  cloned_schedule_path: artifacts/v3/prediction/v3_02_d1/offline_readiness/v3_02_d1_exact_schedule.yaml
+  cloned_schedule_sha256: eb2426164002bbccc3c7769d48b5826500915a3fb5ed50a3740d0d7fe037ba6a
+audit_sequence:
+  - supervised_ranker_value
+  - offline_contextual_bandit_support
+  - sequential_offline_rl_support
+activation_requirements:
+  stable_immediate_progress_regret_m_min: 0.02
+  contextual_action_propensity_min: 0.05
+  sequential_transition_support_required: true
+  evaluator_policy_label_runtime_allowed: false
+  hard_verifier_bypass_allowed: false
+  learning_action_space: hard_verifier_accepted_candidate_id_only
+expected_fail_closed_disposition:
+  if_any_activation_requirement_fails: do_not_train
+  retain_analytic_ranker: true
+  training_steps: 0
+  model_artifact_allowed: false
+audit_gates:
+  c6_episode_count: 9
+  c6_decision_count: 308
+  analytic_selected_accepted_rate_min: 1.0
+  analytic_maximum_progress_rate_min: 1.0
+  audit_deterministic_replay_rate_min: 1.0
+  nonfinite_output_count_max: 0
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  model_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  V3-04 correctly withheld learning because the analytic ranker showed no
+  immediate progress regret and the frozen closed-loop log lacks contextual
+  alternative-action and sequential transition support.
+forbidden_claims:
+  - learned_policy_improvement
+  - offline_rl_validated
+  - performance_improvement
+  - deployment_readiness
+  - real_vehicle_readiness

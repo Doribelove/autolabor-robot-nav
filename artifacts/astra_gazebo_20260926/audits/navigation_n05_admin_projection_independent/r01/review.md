@@ -1,0 +1,1 @@
+r01不可直接用于正式行政投影。实际临时目录故障注入证明第二次replace后3表不一致且重启不能完成；release/design/receipt验证也缺少已审闭包。正向保留历史字段、bootstrap失败与retired行。全部反例为synthetic，真实CSV和活跃N05未触碰。

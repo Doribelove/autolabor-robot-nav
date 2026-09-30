@@ -1,0 +1,2201 @@
+schema_version: '1.0'
+stage: astra_gazebo_20260926
+captured_at_utc: '2026-09-26T06:55:45.595093+00:00'
+status: clean_build_static_environment_verified
+workspace: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace
+python: 3.8.10
+python_executable: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python
+torch_cuda_available: false
+source_snapshot_manifest_sha256: 6a8b1e917d61d1cd6a866c9c6430f3fa1f1489b596e28147b4a26d832eb8fab2
+source_order:
+- /opt/ros/noetic/setup.bash
+- /usr/share/gazebo/setup.sh
+- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/setup.bash
+- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/activate
+build_packages:
+- autolabor_canbus_driver
+- m2_gazebo
+- nav_world_model
+- teb_local_planner
+- teb_mode_manager
+- teb_rl_tuner
+- thesis_experiment
+- v3_scope_planner
+- v5_e2e_scope_rl
+build_exit_code: 0
+build_command: ASTRA_BOOTSTRAP_VENV=/home/robot/robot_ws_base_rl/.venv ./scripts/astra_build.sh
+build_log: logs/build_20260926_01.log
+static_test_log: logs/build_20260926_02_static_tests.log
+static_tests:
+  command: devel/lib/m2_gazebo/test_ackermann_kinematics
+  exit_code: 0
+  passed: 18
+  failed: 0
+  suites:
+  - AckermannKinematics
+  - ActuatorDynamics
+  - TrajectoryActor
+  - V3ReactiveActor
+audit_failures_preserved:
+- log: logs/build_20260926_03_environment_capture.log
+  cause: gzserver --version prints valid 11.15.1 but returns 255; capture now uses
+    pkg-config --modversion gazebo
+- log: audits/environment_smoke_static_entry.log
+  cause: First static-only launch used an empty required actor_checkpoint_path; repeated
+    with nonempty placeholder. Camera ldd lacked standard Gazebo plugin directory;
+    fixed by sourcing the installed Gazebo setup before fresh devel.
+python_modules:
+  torch:
+    origin: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/lib/python3.8/site-packages/torch/__init__.py
+    version: 2.4.1+cpu
+  numpy:
+    origin: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/lib/python3.8/site-packages/numpy/__init__.py
+    version: 1.24.4
+  gymnasium:
+    origin: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/lib/python3.8/site-packages/gymnasium/__init__.py
+    version: 1.0.0
+  stable_baselines3:
+    origin: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/lib/python3.8/site-packages/stable_baselines3/__init__.py
+    version: 2.4.1
+  scipy:
+    origin: /usr/lib/python3/dist-packages/scipy/__init__.py
+    version: 1.3.3
+  PIL:
+    origin: /usr/lib/python3/dist-packages/PIL/__init__.py
+    version: 7.0.0
+  rospy:
+    origin: /opt/ros/noetic/lib/python3/dist-packages/rospy/__init__.py
+    version: ROS/source
+  tf2_ros:
+    origin: /opt/ros/noetic/lib/python3/dist-packages/tf2_ros/__init__.py
+    version: ROS/source
+  v3_scope_planner:
+    origin: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/python3/dist-packages/v3_scope_planner/__init__.py
+    version: ROS/source
+  v5_e2e_scope_rl:
+    origin: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/python3/dist-packages/v5_e2e_scope_rl/__init__.py
+    version: ROS/source
+  m2_gazebo:
+    origin: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/python3/dist-packages/m2_gazebo/__init__.py
+    version: ROS/source
+python_path:
+- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src
+- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src
+- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v3_scope_planner/src
+- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits
+- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/python3/dist-packages
+- /opt/ros/noetic/lib/python3/dist-packages
+- /usr/lib/python38.zip
+- /usr/lib/python3.8
+- /usr/lib/python3.8/lib-dynload
+- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/lib/python3.8/site-packages
+- /usr/local/lib/python3.8/dist-packages
+- /usr/lib/python3/dist-packages
+sanitized_overlay:
+  CMAKE_PREFIX_PATH: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel:/opt/ros/noetic
+  ROS_PACKAGE_PATH: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src:/opt/ros/noetic/share
+  PYTHONPATH: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/python3/dist-packages:/opt/ros/noetic/lib/python3/dist-packages
+  LD_LIBRARY_PATH: /opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/lib:/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib:/opt/ros/noetic/lib:/opt/ros/noetic/lib/x86_64-linux-gnu:/opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins
+  GAZEBO_PLUGIN_PATH: '/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib:/opt/ros/noetic/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:'
+  ROS_MASTER_URI: http://127.0.0.1:14700
+  GAZEBO_MASTER_URI: http://127.0.0.1:14701
+  ROS_HOME: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.astra_runtime/ros_home
+  ROS_LOG_DIR: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.astra_runtime/roslog
+  THESIS_WS: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace
+probes:
+  os:
+    command:
+    - cat
+    - /etc/os-release
+    exit_code: 0
+    output: 'NAME="Ubuntu"
+
+      VERSION="20.04.6 LTS (Focal Fossa)"
+
+      ID=ubuntu
+
+      ID_LIKE=debian
+
+      PRETTY_NAME="Ubuntu 20.04.6 LTS"
+
+      VERSION_ID="20.04"
+
+      HOME_URL="https://www.ubuntu.com/"
+
+      SUPPORT_URL="https://help.ubuntu.com/"
+
+      BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+
+      PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+
+      VERSION_CODENAME=focal
+
+      UBUNTU_CODENAME=focal
+
+      '
+  kernel:
+    command:
+    - uname
+    - -srmo
+    exit_code: 0
+    output: 'Linux 5.15.0-139-generic x86_64 GNU/Linux
+
+      '
+  cpu:
+    command:
+    - lscpu
+    exit_code: 0
+    output: 'Architecture:                         x86_64
+
+      CPU op-mode(s):                       32-bit, 64-bit
+
+      Byte Order:                           Little Endian
+
+      Address sizes:                        39 bits physical, 48 bits virtual
+
+      CPU(s):                               24
+
+      On-line CPU(s) list:                  0-23
+
+      Thread(s) per core:                   1
+
+      Core(s) per socket:                   16
+
+      Socket(s):                            1
+
+      NUMA node(s):                         1
+
+      Vendor ID:                            GenuineIntel
+
+      CPU family:                           6
+
+      Model:                                183
+
+      Model name:                           Intel(R) Core(TM) i7-14650HX
+
+      Stepping:                             1
+
+      CPU MHz:                              2400.000
+
+      CPU max MHz:                          5200.0000
+
+      CPU min MHz:                          800.0000
+
+      BogoMIPS:                             4838.40
+
+      Virtualization:                       VT-x
+
+      L1d cache:                            384 KiB
+
+      L1i cache:                            256 KiB
+
+      L2 cache:                             16 MiB
+
+      NUMA node0 CPU(s):                    0-23
+
+      Vulnerability Gather data sampling:   Not affected
+
+      Vulnerability Itlb multihit:          Not affected
+
+      Vulnerability L1tf:                   Not affected
+
+      Vulnerability Mds:                    Not affected
+
+      Vulnerability Meltdown:               Not affected
+
+      Vulnerability Mmio stale data:        Not affected
+
+      Vulnerability Reg file data sampling: Mitigation; Clear Register File
+
+      Vulnerability Retbleed:               Not affected
+
+      Vulnerability Spec rstack overflow:   Not affected
+
+      Vulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled
+      via prctl and seccomp
+
+      Vulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and
+      __user pointer sanitization
+
+      Vulnerability Spectre v2:             Mitigation; Enhanced / Automatic IBRS;
+      IBPB conditional; RSB filling; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S
+
+      Vulnerability Srbds:                  Not affected
+
+      Vulnerability Tsx async abort:        Not affected
+
+      Flags:                                fpu vme de pse tsc msr pae mce cx8 apic
+      sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm
+      pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good
+      nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64
+      monitor ds_cpl vmx est tm2 ssse3 sdbg fma cx16 xtpr pdcm sse4_1 sse4_2 x2apic
+      movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch
+      cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow vnmi flexpriority
+      ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed
+      adx smap clflushopt clwb intel_pt sha_ni xsaveopt xsavec xgetbv1 xsaves split_lock_detect
+      avx_vnni dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req
+      umip pku ospke waitpkg gfni vaes vpclmulqdq rdpid movdiri movdir64b fsrm md_clear
+      serialize arch_lbr flush_l1d arch_capabilities
+
+      '
+  memory:
+    command:
+    - free
+    - -b
+    exit_code: 0
+    output: '              total        used        free      shared  buff/cache   available
+
+      Mem:    33413312512  6452043776  4428840960   193884160 22532427776 26287353856
+
+      Swap:   29999755264     2097152 29997658112
+
+      '
+  disk:
+    command:
+    - df
+    - -B1
+    - /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926
+    exit_code: 0
+    output: 'Filesystem        1B-blocks         Used    Available Use% Mounted on
+
+      /dev/nvme1n1p6 343361282048 143485599744 182358908928  45% /home
+
+      '
+  gcc:
+    command:
+    - gcc
+    - --version
+    exit_code: 0
+    output: 'gcc (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+
+      Copyright (C) 2019 Free Software Foundation, Inc.
+
+      This is free software; see the source for copying conditions.  There is NO
+
+      warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+      '
+  cmake:
+    command:
+    - cmake
+    - --version
+    exit_code: 0
+    output: 'cmake version 3.16.3
+
+
+      CMake suite maintained and supported by Kitware (kitware.com/cmake).
+
+      '
+  ros:
+    command:
+    - rosversion
+    - roslaunch
+    exit_code: 0
+    output: '1.17.4
+
+      '
+  catkin:
+    command:
+    - rosversion
+    - catkin
+    exit_code: 0
+    output: '0.8.12
+
+      '
+  gazebo:
+    command:
+    - pkg-config
+    - --modversion
+    - gazebo
+    exit_code: 0
+    output: '11.15.1
+
+      '
+  teb:
+    command:
+    - rosversion
+    - teb_local_planner
+    exit_code: 0
+    output: '0.8.4
+
+      '
+  dwa:
+    command:
+    - rosversion
+    - dwa_local_planner
+    exit_code: 0
+    output: '1.17.3
+
+      '
+  teb_package:
+    command:
+    - rospack
+    - find
+    - teb_local_planner
+    exit_code: 0
+    output: '/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb
+
+      '
+  m2_package:
+    command:
+    - rospack
+    - find
+    - m2_gazebo
+    exit_code: 0
+    output: '/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo
+
+      '
+  gpu:
+    command:
+    - nvidia-smi
+    - --query-gpu=name,driver_version,memory.total,memory.used
+    - --format=csv,noheader
+    exit_code: 0
+    output: 'NVIDIA GeForce RTX 4060 Laptop GPU, 580.82.09, 8188 MiB, 714 MiB
+
+      '
+  opengl:
+    command:
+    - glxinfo
+    - -B
+    exit_code: 0
+    output: "name of display: :0\ndisplay: :0  screen: 0\ndirect rendering: Yes\n\
+      Memory info (GL_NVX_gpu_memory_info):\n    Dedicated video memory: 8188 MB\n\
+      \    Total available memory: 8188 MB\n    Currently available dedicated video\
+      \ memory: 7056 MB\nOpenGL vendor string: NVIDIA Corporation\nOpenGL renderer\
+      \ string: NVIDIA GeForce RTX 4060 Laptop GPU/PCIe/SSE2\nOpenGL core profile\
+      \ version string: 4.6.0 NVIDIA 580.82.09\nOpenGL core profile shading language\
+      \ version string: 4.60 NVIDIA\nOpenGL core profile context flags: (none)\nOpenGL\
+      \ core profile profile mask: core profile\n\nOpenGL version string: 4.6.0 NVIDIA\
+      \ 580.82.09\nOpenGL shading language version string: 4.60 NVIDIA\nOpenGL context\
+      \ flags: (none)\nOpenGL profile mask: (none)\n\nOpenGL ES profile version string:\
+      \ OpenGL ES 3.2 NVIDIA 580.82.09\nOpenGL ES profile shading language version\
+      \ string: OpenGL ES GLSL ES 3.20\n\n"
+  display:
+    command:
+    - xrandr
+    - --current
+    exit_code: 0
+    output: "Screen 0: minimum 8 x 8, current 4096 x 2560, maximum 32767 x 32767\n\
+      DP-0 disconnected (normal left inverted right x axis y axis)\nDP-1 disconnected\
+      \ (normal left inverted right x axis y axis)\nDP-2 disconnected (normal left\
+      \ inverted right x axis y axis)\nDP-3 disconnected (normal left inverted right\
+      \ x axis y axis)\nHDMI-0 disconnected (normal left inverted right x axis y axis)\n\
+      DP-4 connected primary 4096x2560+0+0 (normal left inverted right x axis y axis)\
+      \ 344mm x 215mm\n   2560x1600     60.03*+ 165.04  \n"
+  ffmpeg:
+    command:
+    - ffmpeg
+    - -hide_banner
+    - -version
+    exit_code: 0
+    output: 'ffmpeg version 4.2.7-0ubuntu0.1 Copyright (c) 2000-2022 the FFmpeg developers
+
+      built with gcc 9 (Ubuntu 9.4.0-1ubuntu1~20.04.1)
+
+      configuration: --prefix=/usr --extra-version=0ubuntu0.1 --toolchain=hardened
+      --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64
+      --enable-gpl --disable-stripping --enable-avresample --disable-filter=resample
+      --enable-avisynth --enable-gnutls --enable-ladspa --enable-libaom --enable-libass
+      --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2
+      --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi
+      --enable-libgme --enable-libgsm --enable-libjack --enable-libmp3lame --enable-libmysofa
+      --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-libpulse
+      --enable-librsvg --enable-librubberband --enable-libshine --enable-libsnappy
+      --enable-libsoxr --enable-libspeex --enable-libssh --enable-libtheora --enable-libtwolame
+      --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libwebp
+      --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzmq --enable-libzvbi
+      --enable-lv2 --enable-omx --enable-openal --enable-opencl --enable-opengl --enable-sdl2
+      --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-nvenc --enable-chromaprint
+      --enable-frei0r --enable-libx264 --enable-shared
+
+      libavutil      56. 31.100 / 56. 31.100
+
+      libavcodec     58. 54.100 / 58. 54.100
+
+      libavformat    58. 29.100 / 58. 29.100
+
+      libavdevice    58.  8.100 / 58.  8.100
+
+      libavfilter     7. 57.100 /  7. 57.100
+
+      libavresample   4.  0.  0 /  4.  0.  0
+
+      libswscale      5.  5.100 /  5.  5.100
+
+      libswresample   3.  5.100 /  3.  5.100
+
+      libpostproc    55.  5.100 / 55.  5.100
+
+      '
+  rl_lock:
+    command:
+    - /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python
+    - -B
+    - /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/verify_rl_stack.py
+    exit_code: 0
+    output: '{"errors": [], "status": "valid"}
+
+      '
+  pip_check:
+    command:
+    - /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python
+    - -B
+    - -m
+    - pip
+    - check
+    exit_code: 0
+    output: 'No broken requirements found.
+
+      '
+  camera_plugin_dependencies:
+    command:
+    - ldd
+    - /opt/ros/noetic/lib/libgazebo_ros_camera.so
+    exit_code: 0
+    output: "\tlinux-vdso.so.1 (0x00007ffe483bd000)\n\tlibgazebo_ros_camera_utils.so\
+      \ => /opt/ros/noetic/lib/libgazebo_ros_camera_utils.so (0x00007fd7bf2c3000)\n\
+      \tlibCameraPlugin.so => /usr/lib/x86_64-linux-gnu/gazebo-11/plugins/libCameraPlugin.so\
+      \ (0x00007fd7bf28e000)\n\tlibgazebo_sensors.so.11 => /lib/x86_64-linux-gnu/libgazebo_sensors.so.11\
+      \ (0x00007fd7bf12e000)\n\tlibgazebo_transport.so.11 => /lib/x86_64-linux-gnu/libgazebo_transport.so.11\
+      \ (0x00007fd7bf068000)\n\tlibgazebo_common.so.11 => /lib/x86_64-linux-gnu/libgazebo_common.so.11\
+      \ (0x00007fd7beef4000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0\
+      \ (0x00007fd7beecf000)\n\tlibroscpp.so => /opt/ros/noetic/lib/libroscpp.so (0x00007fd7bed1e000)\n\
+      \tlibrosconsole.so => /opt/ros/noetic/lib/librosconsole.so (0x00007fd7becbb000)\n\
+      \tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fd7bead9000)\n\
+      \tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fd7beabe000)\n\
+      \tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fd7be8cc000)\n\tlibgazebo_rendering.so.11\
+      \ => /lib/x86_64-linux-gnu/libgazebo_rendering.so.11 (0x00007fd7be5e5000)\n\t\
+      libgazebo_physics.so.11 => /lib/x86_64-linux-gnu/libgazebo_physics.so.11 (0x00007fd7be131000)\n\
+      \tlibboost_thread.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_thread.so.1.71.0\
+      \ (0x00007fd7be105000)\n\tlibsdformat9.so.9 => /lib/x86_64-linux-gnu/libsdformat9.so.9\
+      \ (0x00007fd7bdeea000)\n\tlibtf.so => /opt/ros/noetic/lib/libtf.so (0x00007fd7bdebb000)\n\
+      \tlibdynamic_reconfigure_config_init_mutex.so => /opt/ros/noetic/lib/libdynamic_reconfigure_config_init_mutex.so\
+      \ (0x00007fd7bdeae000)\n\tlibimage_transport.so => /opt/ros/noetic/lib/libimage_transport.so\
+      \ (0x00007fd7bde18000)\n\tlibcamera_info_manager.so => /opt/ros/noetic/lib/libcamera_info_manager.so\
+      \ (0x00007fd7bddf0000)\n\tlibroscpp_serialization.so => /opt/ros/noetic/lib/libroscpp_serialization.so\
+      \ (0x00007fd7bddeb000)\n\tlibrostime.so => /opt/ros/noetic/lib/librostime.so\
+      \ (0x00007fd7bddbe000)\n\tlibignition-math6.so.6 => /lib/x86_64-linux-gnu/libignition-math6.so.6\
+      \ (0x00007fd7bdd59000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fd7bdc0a000)\n\
+      \tlibOgreMain.so.1.9.0 => /lib/x86_64-linux-gnu/libOgreMain.so.1.9.0 (0x00007fd7bd674000)\n\
+      \tlibgazebo_util.so.11 => /lib/x86_64-linux-gnu/libgazebo_util.so.11 (0x00007fd7bd5b5000)\n\
+      \tlibgazebo_msgs.so.11 => /lib/x86_64-linux-gnu/libgazebo_msgs.so.11 (0x00007fd7bd2dc000)\n\
+      \tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007fd7bd2d6000)\n\tlibprotobuf.so.17\
+      \ => /lib/x86_64-linux-gnu/libprotobuf.so.17 (0x00007fd7bcfdd000)\n\tlibignition-transport8.so.8\
+      \ => /lib/x86_64-linux-gnu/libignition-transport8.so.8 (0x00007fd7bcf1e000)\n\
+      \tlibignition-msgs5.so.5 => /lib/x86_64-linux-gnu/libignition-msgs5.so.5 (0x00007fd7bcb32000)\n\
+      \tlibtbb.so.2 => /lib/x86_64-linux-gnu/libtbb.so.2 (0x00007fd7bcaec000)\n\t\
+      /lib64/ld-linux-x86-64.so.2 (0x00007fd7bf39c000)\n\tlibboost_filesystem.so.1.71.0\
+      \ => /lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0 (0x00007fd7bcace000)\n\
+      \tlibboost_iostreams.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_iostreams.so.1.71.0\
+      \ (0x00007fd7bcaa7000)\n\tlibfreeimage.so.3 => /lib/x86_64-linux-gnu/libfreeimage.so.3\
+      \ (0x00007fd7bc9eb000)\n\tlibtar.so.0 => /lib/x86_64-linux-gnu/libtar.so.0 (0x00007fd7bc9dd000)\n\
+      \tlibtinyxml.so.2.6.2 => /lib/x86_64-linux-gnu/libtinyxml.so.2.6.2 (0x00007fd7bc9c5000)\n\
+      \tlibcurl.so.4 => /lib/x86_64-linux-gnu/libcurl.so.4 (0x00007fd7bc932000)\n\t\
+      libavcodec.so.58 => /lib/x86_64-linux-gnu/libavcodec.so.58 (0x00007fd7bb371000)\n\
+      \tlibavformat.so.58 => /lib/x86_64-linux-gnu/libavformat.so.58 (0x00007fd7bb0f7000)\n\
+      \tlibavutil.so.56 => /lib/x86_64-linux-gnu/libavutil.so.56 (0x00007fd7bafce000)\n\
+      \tlibavdevice.so.58 => /lib/x86_64-linux-gnu/libavdevice.so.58 (0x00007fd7baf98000)\n\
+      \tlibswscale.so.5 => /lib/x86_64-linux-gnu/libswscale.so.5 (0x00007fd7baf01000)\n\
+      \tlibgts-0.7.so.5 => /lib/x86_64-linux-gnu/libgts-0.7.so.5 (0x00007fd7baca4000)\n\
+      \tlibglib-2.0.so.0 => /lib/x86_64-linux-gnu/libglib-2.0.so.0 (0x00007fd7bab7a000)\n\
+      \tlibgdal.so.26 => /lib/libgdal.so.26 (0x00007fd7b97f3000)\n\tlibignition-fuel_tools4.so.4\
+      \ => /lib/x86_64-linux-gnu/libignition-fuel_tools4.so.4 (0x00007fd7b9751000)\n\
+      \tlibignition-common3.so.3 => /lib/x86_64-linux-gnu/libignition-common3.so.3\
+      \ (0x00007fd7b96e1000)\n\tlibxmlrpcpp.so => /opt/ros/noetic/lib/libxmlrpcpp.so\
+      \ (0x00007fd7b96bd000)\n\tlibcpp_common.so => /opt/ros/noetic/lib/libcpp_common.so\
+      \ (0x00007fd7b96af000)\n\tlibboost_chrono.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_chrono.so.1.71.0\
+      \ (0x00007fd7b96a1000)\n\tlibrosconsole_log4cxx.so => /opt/ros/noetic/lib/librosconsole_log4cxx.so\
+      \ (0x00007fd7b9681000)\n\tlibrosconsole_backend_interface.so => /opt/ros/noetic/lib/librosconsole_backend_interface.so\
+      \ (0x00007fd7b967a000)\n\tliblog4cxx.so.10 => /lib/x86_64-linux-gnu/liblog4cxx.so.10\
+      \ (0x00007fd7b949c000)\n\tlibboost_regex.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_regex.so.1.71.0\
+      \ (0x00007fd7b939c000)\n\tlibOgreRTShaderSystem.so.1.9.0 => /lib/x86_64-linux-gnu/libOgreRTShaderSystem.so.1.9.0\
+      \ (0x00007fd7b9280000)\n\tlibOgreTerrain.so.1.9.0 => /lib/x86_64-linux-gnu/libOgreTerrain.so.1.9.0\
+      \ (0x00007fd7b91f0000)\n\tlibOgrePaging.so.1.9.0 => /lib/x86_64-linux-gnu/libOgrePaging.so.1.9.0\
+      \ (0x00007fd7b91b5000)\n\tlibOgreOverlay.so.1.9.0 => /lib/x86_64-linux-gnu/libOgreOverlay.so.1.9.0\
+      \ (0x00007fd7b914e000)\n\tlibGL.so.1 => /lib/x86_64-linux-gnu/libGL.so.1 (0x00007fd7b90c6000)\n\
+      \tlibX11.so.6 => /lib/x86_64-linux-gnu/libX11.so.6 (0x00007fd7b8f89000)\n\t\
+      libgazebo_ode.so.11 => /lib/x86_64-linux-gnu/libgazebo_ode.so.11 (0x00007fd7b8eb4000)\n\
+      \tlibBulletDynamics.so.2.88 => /lib/x86_64-linux-gnu/libBulletDynamics.so.2.88\
+      \ (0x00007fd7b8dde000)\n\tlibBulletCollision.so.2.88 => /lib/x86_64-linux-gnu/libBulletCollision.so.2.88\
+      \ (0x00007fd7b8cd4000)\n\tlibLinearMath.so.2.88 => /lib/x86_64-linux-gnu/libLinearMath.so.2.88\
+      \ (0x00007fd7b8cb1000)\n\tlibdart-collision-bullet.so.6 => /lib/x86_64-linux-gnu/libdart-collision-bullet.so.6\
+      \ (0x00007fd7b8c8f000)\n\tlibSimTKsimbody.so.3.6 => /lib/x86_64-linux-gnu/libSimTKsimbody.so.3.6\
+      \ (0x00007fd7b8689000)\n\tlibode.so.8 => /lib/x86_64-linux-gnu/libode.so.8 (0x00007fd7b8565000)\n\
+      \tlibdart.so.6 => /lib/x86_64-linux-gnu/libdart.so.6 (0x00007fd7b7f49000)\n\t\
+      libassimp.so.5 => /lib/x86_64-linux-gnu/libassimp.so.5 (0x00007fd7b72fa000)\n\
+      \tlibSimTKmath.so.3.6 => /lib/x86_64-linux-gnu/libSimTKmath.so.3.6 (0x00007fd7b6e6e000)\n\
+      \tlibSimTKcommon.so.3.6 => /lib/x86_64-linux-gnu/libSimTKcommon.so.3.6 (0x00007fd7b6a6c000)\n\
+      \tlibtf2_ros.so => /opt/ros/noetic/lib/libtf2_ros.so (0x00007fd7b69b4000)\n\t\
+      libtf2.so => /opt/ros/noetic/lib/libtf2.so (0x00007fd7b6978000)\n\tlibmessage_filters.so\
+      \ => /opt/ros/noetic/lib/libmessage_filters.so (0x00007fd7b696e000)\n\tlibclass_loader.so\
+      \ => /opt/ros/noetic/lib/libclass_loader.so (0x00007fd7b6941000)\n\tlibroslib.so\
+      \ => /opt/ros/noetic/lib/libroslib.so (0x00007fd7b6926000)\n\tlibtinyxml2.so.6\
+      \ => /lib/x86_64-linux-gnu/libtinyxml2.so.6 (0x00007fd7b690f000)\n\tlibconsole_bridge.so.0.4\
+      \ => /lib/x86_64-linux-gnu/libconsole_bridge.so.0.4 (0x00007fd7b6909000)\n\t\
+      libcamera_calibration_parsers.so => /opt/ros/noetic/lib/libcamera_calibration_parsers.so\
+      \ (0x00007fd7b68d9000)\n\tlibXt.so.6 => /lib/x86_64-linux-gnu/libXt.so.6 (0x00007fd7b666e000)\n\
+      \tlibXaw.so.7 => /lib/x86_64-linux-gnu/libXaw.so.7 (0x00007fd7b63fa000)\n\t\
+      libzzip-0.so.13 => /lib/x86_64-linux-gnu/libzzip-0.so.13 (0x00007fd7b63f1000)\n\
+      \tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007fd7b63d5000)\n\tlibzmq.so.5\
+      \ => /lib/x86_64-linux-gnu/libzmq.so.5 (0x00007fd7b632f000)\n\tlibuuid.so.1\
+      \ => /lib/x86_64-linux-gnu/libuuid.so.1 (0x00007fd7b6324000)\n\tlibbz2.so.1.0\
+      \ => /lib/x86_64-linux-gnu/libbz2.so.1.0 (0x00007fd7b6311000)\n\tliblzma.so.5\
+      \ => /lib/x86_64-linux-gnu/liblzma.so.5 (0x00007fd7b62e8000)\n\tlibzstd.so.1\
+      \ => /lib/x86_64-linux-gnu/libzstd.so.1 (0x00007fd7b623f000)\n\tlibjxrglue.so.0\
+      \ => /lib/x86_64-linux-gnu/libjxrglue.so.0 (0x00007fd7b601f000)\n\tlibjpeg.so.8\
+      \ => /lib/x86_64-linux-gnu/libjpeg.so.8 (0x00007fd7b5f98000)\n\tlibopenjp2.so.7\
+      \ => /lib/x86_64-linux-gnu/libopenjp2.so.7 (0x00007fd7b5f42000)\n\tlibpng16.so.16\
+      \ => /lib/x86_64-linux-gnu/libpng16.so.16 (0x00007fd7b5f0a000)\n\tlibraw.so.19\
+      \ => /lib/x86_64-linux-gnu/libraw.so.19 (0x00007fd7b5e2a000)\n\tlibtiff.so.5\
+      \ => /lib/x86_64-linux-gnu/libtiff.so.5 (0x00007fd7b5da8000)\n\tlibwebpmux.so.3\
+      \ => /lib/x86_64-linux-gnu/libwebpmux.so.3 (0x00007fd7b5d9c000)\n\tlibwebp.so.6\
+      \ => /lib/x86_64-linux-gnu/libwebp.so.6 (0x00007fd7b5d30000)\n\tlibIlmImf-2_3.so.24\
+      \ => /lib/x86_64-linux-gnu/libIlmImf-2_3.so.24 (0x00007fd7b5a51000)\n\tlibHalf.so.24\
+      \ => /lib/x86_64-linux-gnu/libHalf.so.24 (0x00007fd7b5a0c000)\n\tlibIex-2_3.so.24\
+      \ => /lib/x86_64-linux-gnu/libIex-2_3.so.24 (0x00007fd7b59eb000)\n\tlibnghttp2.so.14\
+      \ => /lib/x86_64-linux-gnu/libnghttp2.so.14 (0x00007fd7b59c1000)\n\tlibidn2.so.0\
+      \ => /lib/x86_64-linux-gnu/libidn2.so.0 (0x00007fd7b599e000)\n\tlibrtmp.so.1\
+      \ => /lib/x86_64-linux-gnu/librtmp.so.1 (0x00007fd7b597e000)\n\tlibssh.so.4\
+      \ => /lib/x86_64-linux-gnu/libssh.so.4 (0x00007fd7b590f000)\n\tlibpsl.so.5 =>\
+      \ /lib/x86_64-linux-gnu/libpsl.so.5 (0x00007fd7b58fc000)\n\tlibssl.so.1.1 =>\
+      \ /lib/x86_64-linux-gnu/libssl.so.1.1 (0x00007fd7b5869000)\n\tlibcrypto.so.1.1\
+      \ => /lib/x86_64-linux-gnu/libcrypto.so.1.1 (0x00007fd7b5592000)\n\tlibgssapi_krb5.so.2\
+      \ => /lib/x86_64-linux-gnu/libgssapi_krb5.so.2 (0x00007fd7b5545000)\n\tlibldap_r-2.4.so.2\
+      \ => /lib/x86_64-linux-gnu/libldap_r-2.4.so.2 (0x00007fd7b54ed000)\n\tliblber-2.4.so.2\
+      \ => /lib/x86_64-linux-gnu/liblber-2.4.so.2 (0x00007fd7b54dc000)\n\tlibbrotlidec.so.1\
+      \ => /lib/x86_64-linux-gnu/libbrotlidec.so.1 (0x00007fd7b54ce000)\n\tlibswresample.so.3\
+      \ => /lib/x86_64-linux-gnu/libswresample.so.3 (0x00007fd7b54ac000)\n\tlibvpx.so.6\
+      \ => /lib/x86_64-linux-gnu/libvpx.so.6 (0x00007fd7b5274000)\n\tlibrsvg-2.so.2\
+      \ => /lib/x86_64-linux-gnu/librsvg-2.so.2 (0x00007fd7b4957000)\n\tlibgobject-2.0.so.0\
+      \ => /lib/x86_64-linux-gnu/libgobject-2.0.so.0 (0x00007fd7b48f5000)\n\tlibcairo.so.2\
+      \ => /lib/x86_64-linux-gnu/libcairo.so.2 (0x00007fd7b47d2000)\n\tlibzvbi.so.0\
+      \ => /lib/x86_64-linux-gnu/libzvbi.so.0 (0x00007fd7b4743000)\n\tlibsnappy.so.1\
+      \ => /lib/x86_64-linux-gnu/libsnappy.so.1 (0x00007fd7b4738000)\n\tlibaom.so.0\
+      \ => /lib/x86_64-linux-gnu/libaom.so.0 (0x00007fd7b429a000)\n\tlibcodec2.so.0.9\
+      \ => /lib/x86_64-linux-gnu/libcodec2.so.0.9 (0x00007fd7b34b6000)\n\tlibgsm.so.1\
+      \ => /lib/x86_64-linux-gnu/libgsm.so.1 (0x00007fd7b34a5000)\n\tlibmp3lame.so.0\
+      \ => /lib/x86_64-linux-gnu/libmp3lame.so.0 (0x00007fd7b342d000)\n\tlibopus.so.0\
+      \ => /lib/x86_64-linux-gnu/libopus.so.0 (0x00007fd7b33ce000)\n\tlibshine.so.3\
+      \ => /lib/x86_64-linux-gnu/libshine.so.3 (0x00007fd7b31c3000)\n\tlibspeex.so.1\
+      \ => /lib/x86_64-linux-gnu/libspeex.so.1 (0x00007fd7b31a5000)\n\tlibtheoraenc.so.1\
+      \ => /lib/x86_64-linux-gnu/libtheoraenc.so.1 (0x00007fd7b3168000)\n\tlibtheoradec.so.1\
+      \ => /lib/x86_64-linux-gnu/libtheoradec.so.1 (0x00007fd7b3146000)\n\tlibtwolame.so.0\
+      \ => /lib/x86_64-linux-gnu/libtwolame.so.0 (0x00007fd7b3120000)\n\tlibvorbis.so.0\
+      \ => /lib/x86_64-linux-gnu/libvorbis.so.0 (0x00007fd7b30f2000)\n\tlibvorbisenc.so.2\
+      \ => /lib/x86_64-linux-gnu/libvorbisenc.so.2 (0x00007fd7b3047000)\n\tlibwavpack.so.1\
+      \ => /lib/x86_64-linux-gnu/libwavpack.so.1 (0x00007fd7b301b000)\n\tlibx264.so.155\
+      \ => /lib/x86_64-linux-gnu/libx264.so.155 (0x00007fd7b2d5d000)\n\tlibx265.so.179\
+      \ => /lib/x86_64-linux-gnu/libx265.so.179 (0x00007fd7b1ded000)\n\tlibxvidcore.so.4\
+      \ => /lib/x86_64-linux-gnu/libxvidcore.so.4 (0x00007fd7b1cda000)\n\tlibva.so.2\
+      \ => /lib/x86_64-linux-gnu/libva.so.2 (0x00007fd7b1cb1000)\n\tlibxml2.so.2 =>\
+      \ /lib/x86_64-linux-gnu/libxml2.so.2 (0x00007fd7b1af7000)\n\tlibgme.so.0 =>\
+      \ /lib/x86_64-linux-gnu/libgme.so.0 (0x00007fd7b1aaa000)\n\tlibopenmpt.so.0\
+      \ => /lib/x86_64-linux-gnu/libopenmpt.so.0 (0x00007fd7b18bb000)\n\tlibchromaprint.so.1\
+      \ => /lib/x86_64-linux-gnu/libchromaprint.so.1 (0x00007fd7b18a5000)\n\tlibbluray.so.2\
+      \ => /lib/x86_64-linux-gnu/libbluray.so.2 (0x00007fd7b1854000)\n\tlibgnutls.so.30\
+      \ => /lib/x86_64-linux-gnu/libgnutls.so.30 (0x00007fd7b167e000)\n\tlibssh-gcrypt.so.4\
+      \ => /lib/x86_64-linux-gnu/libssh-gcrypt.so.4 (0x00007fd7b15f0000)\n\tlibva-drm.so.2\
+      \ => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007fd7b15eb000)\n\tlibva-x11.so.2\
+      \ => /lib/x86_64-linux-gnu/libva-x11.so.2 (0x00007fd7b15e1000)\n\tlibvdpau.so.1\
+      \ => /lib/x86_64-linux-gnu/libvdpau.so.1 (0x00007fd7b15db000)\n\tlibdrm.so.2\
+      \ => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007fd7b15c5000)\n\tlibOpenCL.so.1\
+      \ => /lib/x86_64-linux-gnu/libOpenCL.so.1 (0x00007fd7b13ba000)\n\tlibavfilter.so.7\
+      \ => /lib/x86_64-linux-gnu/libavfilter.so.7 (0x00007fd7b1039000)\n\tlibraw1394.so.11\
+      \ => /lib/x86_64-linux-gnu/libraw1394.so.11 (0x00007fd7b0e2a000)\n\tlibavc1394.so.0\
+      \ => /lib/x86_64-linux-gnu/libavc1394.so.0 (0x00007fd7b0c23000)\n\tlibrom1394.so.0\
+      \ => /lib/x86_64-linux-gnu/librom1394.so.0 (0x00007fd7b0a1e000)\n\tlibiec61883.so.0\
+      \ => /lib/x86_64-linux-gnu/libiec61883.so.0 (0x00007fd7b0a10000)\n\tlibjack.so.0\
+      \ => /lib/x86_64-linux-gnu/libjack.so.0 (0x00007fd7b09c4000)\n\tlibopenal.so.1\
+      \ => /lib/x86_64-linux-gnu/libopenal.so.1 (0x00007fd7b08dc000)\n\tlibxcb.so.1\
+      \ => /lib/x86_64-linux-gnu/libxcb.so.1 (0x00007fd7b08b2000)\n\tlibxcb-shm.so.0\
+      \ => /lib/x86_64-linux-gnu/libxcb-shm.so.0 (0x00007fd7b08ab000)\n\tlibxcb-shape.so.0\
+      \ => /lib/x86_64-linux-gnu/libxcb-shape.so.0 (0x00007fd7b08a6000)\n\tlibxcb-xfixes.so.0\
+      \ => /lib/x86_64-linux-gnu/libxcb-xfixes.so.0 (0x00007fd7b089c000)\n\tlibcdio_paranoia.so.2\
+      \ => /lib/x86_64-linux-gnu/libcdio_paranoia.so.2 (0x00007fd7b0892000)\n\tlibcdio_cdda.so.2\
+      \ => /lib/x86_64-linux-gnu/libcdio_cdda.so.2 (0x00007fd7b0888000)\n\tlibdc1394.so.22\
+      \ => /lib/x86_64-linux-gnu/libdc1394.so.22 (0x00007fd7b0810000)\n\tlibasound.so.2\
+      \ => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007fd7b0713000)\n\tlibcaca.so.0\
+      \ => /lib/x86_64-linux-gnu/libcaca.so.0 (0x00007fd7b0647000)\n\tlibpulse.so.0\
+      \ => /lib/x86_64-linux-gnu/libpulse.so.0 (0x00007fd7b05f2000)\n\tlibSDL2-2.0.so.0\
+      \ => /lib/x86_64-linux-gnu/libSDL2-2.0.so.0 (0x00007fd7b049d000)\n\tlibsndio.so.7.0\
+      \ => /lib/x86_64-linux-gnu/libsndio.so.7.0 (0x00007fd7b048c000)\n\tlibXv.so.1\
+      \ => /lib/x86_64-linux-gnu/libXv.so.1 (0x00007fd7b0287000)\n\tlibXext.so.6 =>\
+      \ /lib/x86_64-linux-gnu/libXext.so.6 (0x00007fd7b0270000)\n\tlibpcre.so.3 =>\
+      \ /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007fd7b01fd000)\n\tlibarmadillo.so.9\
+      \ => /lib/libarmadillo.so.9 (0x00007fd7b01ea000)\n\tlibpoppler.so.97 => /lib/x86_64-linux-gnu/libpoppler.so.97\
+      \ (0x00007fd7afea6000)\n\tlibjson-c.so.4 => /lib/x86_64-linux-gnu/libjson-c.so.4\
+      \ (0x00007fd7afe94000)\n\tlibfreexl.so.1 => /lib/x86_64-linux-gnu/libfreexl.so.1\
+      \ (0x00007fd7afe87000)\n\tlibqhull.so.7 => /lib/x86_64-linux-gnu/libqhull.so.7\
+      \ (0x00007fd7afc2d000)\n\tlibgeos_c.so.1 => /lib/x86_64-linux-gnu/libgeos_c.so.1\
+      \ (0x00007fd7afbea000)\n\tlibepsilon.so.1 => /lib/x86_64-linux-gnu/libepsilon.so.1\
+      \ (0x00007fd7afbd0000)\n\tlibodbc.so.2 => /lib/x86_64-linux-gnu/libodbc.so.2\
+      \ (0x00007fd7afb5d000)\n\tlibodbcinst.so.2 => /lib/x86_64-linux-gnu/libodbcinst.so.2\
+      \ (0x00007fd7afb45000)\n\tlibkmlbase.so.1 => /lib/x86_64-linux-gnu/libkmlbase.so.1\
+      \ (0x00007fd7afb26000)\n\tlibkmldom.so.1 => /lib/x86_64-linux-gnu/libkmldom.so.1\
+      \ (0x00007fd7afa85000)\n\tlibkmlengine.so.1 => /lib/x86_64-linux-gnu/libkmlengine.so.1\
+      \ (0x00007fd7afa4b000)\n\tlibexpat.so.1 => /lib/x86_64-linux-gnu/libexpat.so.1\
+      \ (0x00007fd7afa1d000)\n\tlibxerces-c-3.2.so => /lib/x86_64-linux-gnu/libxerces-c-3.2.so\
+      \ (0x00007fd7af68a000)\n\tlibnetcdf.so.15 => /lib/x86_64-linux-gnu/libnetcdf.so.15\
+      \ (0x00007fd7af565000)\n\tlibhdf5_serial.so.103 => /lib/x86_64-linux-gnu/libhdf5_serial.so.103\
+      \ (0x00007fd7af1e6000)\n\tlibmfhdfalt.so.0 => /lib/libmfhdfalt.so.0 (0x00007fd7af1bc000)\n\
+      \tlibdfalt.so.0 => /lib/libdfalt.so.0 (0x00007fd7af117000)\n\tlibogdi.so.4.1\
+      \ => /lib/libogdi.so.4.1 (0x00007fd7af0fb000)\n\tlibgif.so.7 => /lib/x86_64-linux-gnu/libgif.so.7\
+      \ (0x00007fd7af0f0000)\n\tlibCharLS.so.2 => /lib/x86_64-linux-gnu/libCharLS.so.2\
+      \ (0x00007fd7af0a1000)\n\tlibgeotiff.so.5 => /lib/x86_64-linux-gnu/libgeotiff.so.5\
+      \ (0x00007fd7af06a000)\n\tlibcfitsio.so.8 => /lib/x86_64-linux-gnu/libcfitsio.so.8\
+      \ (0x00007fd7aed6b000)\n\tlibpq.so.5 => /lib/x86_64-linux-gnu/libpq.so.5 (0x00007fd7aed1a000)\n\
+      \tlibproj.so.15 => /lib/x86_64-linux-gnu/libproj.so.15 (0x00007fd7aea2b000)\n\
+      \tlibdapclient.so.6 => /lib/x86_64-linux-gnu/libdapclient.so.6 (0x00007fd7ae9e3000)\n\
+      \tlibdap.so.25 => /lib/x86_64-linux-gnu/libdap.so.25 (0x00007fd7ae845000)\n\t\
+      libspatialite.so.7 => /lib/x86_64-linux-gnu/libspatialite.so.7 (0x00007fd7ae2b4000)\n\
+      \tlibcurl-gnutls.so.4 => /lib/x86_64-linux-gnu/libcurl-gnutls.so.4 (0x00007fd7ae224000)\n\
+      \tlibfyba.so.0 => /lib/x86_64-linux-gnu/libfyba.so.0 (0x00007fd7ae1cc000)\n\t\
+      libmysqlclient.so.21 => /lib/x86_64-linux-gnu/libmysqlclient.so.21 (0x00007fd7adaa0000)\n\
+      \tlibjsoncpp.so.1 => /lib/x86_64-linux-gnu/libjsoncpp.so.1 (0x00007fd7ada6a000)\n\
+      \tlibyaml-0.so.2 => /lib/x86_64-linux-gnu/libyaml-0.so.2 (0x00007fd7ada46000)\n\
+      \tlibzip.so.5 => /lib/x86_64-linux-gnu/libzip.so.5 (0x00007fd7ada2b000)\n\t\
+      libapr-1.so.0 => /lib/x86_64-linux-gnu/libapr-1.so.0 (0x00007fd7ad9f2000)\n\t\
+      libaprutil-1.so.0 => /lib/x86_64-linux-gnu/libaprutil-1.so.0 (0x00007fd7ad9c4000)\n\
+      \tlibicui18n.so.66 => /lib/x86_64-linux-gnu/libicui18n.so.66 (0x00007fd7ad6c5000)\n\
+      \tlibicuuc.so.66 => /lib/x86_64-linux-gnu/libicuuc.so.66 (0x00007fd7ad4dd000)\n\
+      \tlibfreetype.so.6 => /lib/x86_64-linux-gnu/libfreetype.so.6 (0x00007fd7ad41e000)\n\
+      \tlibGLdispatch.so.0 => /lib/x86_64-linux-gnu/libGLdispatch.so.0 (0x00007fd7ad366000)\n\
+      \tlibGLX.so.0 => /lib/x86_64-linux-gnu/libGLX.so.0 (0x00007fd7ad332000)\n\t\
+      libgazebo_opcode.so.11 => /lib/x86_64-linux-gnu/libgazebo_opcode.so.11 (0x00007fd7ad2da000)\n\
+      \tlibgazebo_opende_ou.so.11 => /lib/x86_64-linux-gnu/libgazebo_opende_ou.so.11\
+      \ (0x00007fd7ad2d2000)\n\tlibccd.so.2 => /lib/x86_64-linux-gnu/libccd.so.2 (0x00007fd7ad2c6000)\n\
+      \tliblapack.so.3 => /lib/x86_64-linux-gnu/liblapack.so.3 (0x00007fd7acbfe000)\n\
+      \tlibdart-external-odelcpsolver.so.6 => /lib/x86_64-linux-gnu/libdart-external-odelcpsolver.so.6\
+      \ (0x00007fd7acbf0000)\n\tliboctomap.so.1.9 => /opt/ros/noetic/lib/liboctomap.so.1.9\
+      \ (0x00007fd7acba7000)\n\tlibfcl.so.0.5 => /lib/x86_64-linux-gnu/libfcl.so.0.5\
+      \ (0x00007fd7ac21b000)\n\tliboctomath.so.1.9 => /opt/ros/noetic/lib/liboctomath.so.1.9\
+      \ (0x00007fd7ac213000)\n\tlibminizip.so.1 => /lib/x86_64-linux-gnu/libminizip.so.1\
+      \ (0x00007fd7ac008000)\n\tlibblas.so.3 => /lib/x86_64-linux-gnu/libblas.so.3\
+      \ (0x00007fd7abc42000)\n\tlibactionlib.so => /opt/ros/noetic/lib/libactionlib.so\
+      \ (0x00007fd7abc21000)\n\tlibPocoFoundation.so.62 => /lib/x86_64-linux-gnu/libPocoFoundation.so.62\
+      \ (0x00007fd7aba67000)\n\tlibrospack.so => /opt/ros/noetic/lib/librospack.so\
+      \ (0x00007fd7aba18000)\n\tlibyaml-cpp.so.0.6 => /lib/x86_64-linux-gnu/libyaml-cpp.so.0.6\
+      \ (0x00007fd7ab9bd000)\n\tlibSM.so.6 => /lib/x86_64-linux-gnu/libSM.so.6 (0x00007fd7ab9b2000)\n\
+      \tlibICE.so.6 => /lib/x86_64-linux-gnu/libICE.so.6 (0x00007fd7ab994000)\n\t\
+      libXmu.so.6 => /lib/x86_64-linux-gnu/libXmu.so.6 (0x00007fd7ab976000)\n\tlibXpm.so.4\
+      \ => /lib/x86_64-linux-gnu/libXpm.so.4 (0x00007fd7ab961000)\n\tlibsodium.so.23\
+      \ => /lib/x86_64-linux-gnu/libsodium.so.23 (0x00007fd7ab909000)\n\tlibpgm-5.2.so.0\
+      \ => /lib/x86_64-linux-gnu/libpgm-5.2.so.0 (0x00007fd7ab8ba000)\n\tlibnorm.so.1\
+      \ => /lib/x86_64-linux-gnu/libnorm.so.1 (0x00007fd7ab75f000)\n\tlibjpegxr.so.0\
+      \ => /lib/x86_64-linux-gnu/libjpegxr.so.0 (0x00007fd7ab529000)\n\tliblcms2.so.2\
+      \ => /lib/x86_64-linux-gnu/liblcms2.so.2 (0x00007fd7ab4ce000)\n\tlibgomp.so.1\
+      \ => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007fd7ab48c000)\n\tlibjbig.so.0\
+      \ => /lib/x86_64-linux-gnu/libjbig.so.0 (0x00007fd7ab47b000)\n\tlibIlmThread-2_3.so.24\
+      \ => /lib/x86_64-linux-gnu/libIlmThread-2_3.so.24 (0x00007fd7ab471000)\n\tlibunistring.so.2\
+      \ => /lib/x86_64-linux-gnu/libunistring.so.2 (0x00007fd7ab2ed000)\n\tlibhogweed.so.5\
+      \ => /lib/x86_64-linux-gnu/libhogweed.so.5 (0x00007fd7ab2b6000)\n\tlibnettle.so.7\
+      \ => /lib/x86_64-linux-gnu/libnettle.so.7 (0x00007fd7ab27c000)\n\tlibgmp.so.10\
+      \ => /lib/x86_64-linux-gnu/libgmp.so.10 (0x00007fd7ab1f8000)\n\tlibkrb5.so.3\
+      \ => /lib/x86_64-linux-gnu/libkrb5.so.3 (0x00007fd7ab11b000)\n\tlibk5crypto.so.3\
+      \ => /lib/x86_64-linux-gnu/libk5crypto.so.3 (0x00007fd7ab0e8000)\n\tlibcom_err.so.2\
+      \ => /lib/x86_64-linux-gnu/libcom_err.so.2 (0x00007fd7ab0e1000)\n\tlibkrb5support.so.0\
+      \ => /lib/x86_64-linux-gnu/libkrb5support.so.0 (0x00007fd7ab0d2000)\n\tlibresolv.so.2\
+      \ => /lib/x86_64-linux-gnu/libresolv.so.2 (0x00007fd7ab0b6000)\n\tlibsasl2.so.2\
+      \ => /lib/x86_64-linux-gnu/libsasl2.so.2 (0x00007fd7ab099000)\n\tlibgssapi.so.3\
+      \ => /lib/x86_64-linux-gnu/libgssapi.so.3 (0x00007fd7ab054000)\n\tlibbrotlicommon.so.1\
+      \ => /lib/x86_64-linux-gnu/libbrotlicommon.so.1 (0x00007fd7ab02f000)\n\tlibsoxr.so.0\
+      \ => /lib/x86_64-linux-gnu/libsoxr.so.0 (0x00007fd7aafc4000)\n\tlibcairo-gobject.so.2\
+      \ => /lib/x86_64-linux-gnu/libcairo-gobject.so.2 (0x00007fd7aafb8000)\n\tlibgdk_pixbuf-2.0.so.0\
+      \ => /lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x00007fd7aaf90000)\n\tlibgio-2.0.so.0\
+      \ => /lib/x86_64-linux-gnu/libgio-2.0.so.0 (0x00007fd7aadae000)\n\tlibpangocairo-1.0.so.0\
+      \ => /lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 (0x00007fd7aad9c000)\n\tlibpango-1.0.so.0\
+      \ => /lib/x86_64-linux-gnu/libpango-1.0.so.0 (0x00007fd7aad4b000)\n\tlibffi.so.7\
+      \ => /lib/x86_64-linux-gnu/libffi.so.7 (0x00007fd7aad3f000)\n\tlibpixman-1.so.0\
+      \ => /lib/x86_64-linux-gnu/libpixman-1.so.0 (0x00007fd7aac98000)\n\tlibfontconfig.so.1\
+      \ => /lib/x86_64-linux-gnu/libfontconfig.so.1 (0x00007fd7aac51000)\n\tlibxcb-render.so.0\
+      \ => /lib/x86_64-linux-gnu/libxcb-render.so.0 (0x00007fd7aac42000)\n\tlibXrender.so.1\
+      \ => /lib/x86_64-linux-gnu/libXrender.so.1 (0x00007fd7aaa38000)\n\tlibogg.so.0\
+      \ => /lib/x86_64-linux-gnu/libogg.so.0 (0x00007fd7aaa29000)\n\tlibnuma.so.1\
+      \ => /lib/x86_64-linux-gnu/libnuma.so.1 (0x00007fd7aaa1c000)\n\tlibmpg123.so.0\
+      \ => /lib/x86_64-linux-gnu/libmpg123.so.0 (0x00007fd7aa9bc000)\n\tlibvorbisfile.so.3\
+      \ => /lib/x86_64-linux-gnu/libvorbisfile.so.3 (0x00007fd7aa9b1000)\n\tlibp11-kit.so.0\
+      \ => /lib/x86_64-linux-gnu/libp11-kit.so.0 (0x00007fd7aa879000)\n\tlibtasn1.so.6\
+      \ => /lib/x86_64-linux-gnu/libtasn1.so.6 (0x00007fd7aa863000)\n\tlibgcrypt.so.20\
+      \ => /lib/x86_64-linux-gnu/libgcrypt.so.20 (0x00007fd7aa745000)\n\tlibgpg-error.so.0\
+      \ => /lib/x86_64-linux-gnu/libgpg-error.so.0 (0x00007fd7aa722000)\n\tlibXfixes.so.3\
+      \ => /lib/x86_64-linux-gnu/libXfixes.so.3 (0x00007fd7aa71a000)\n\tlibpostproc.so.55\
+      \ => /lib/x86_64-linux-gnu/libpostproc.so.55 (0x00007fd7aa6f6000)\n\tlibbs2b.so.0\
+      \ => /lib/x86_64-linux-gnu/libbs2b.so.0 (0x00007fd7aa6ef000)\n\tliblilv-0.so.0\
+      \ => /lib/x86_64-linux-gnu/liblilv-0.so.0 (0x00007fd7aa6d4000)\n\tlibrubberband.so.2\
+      \ => /lib/x86_64-linux-gnu/librubberband.so.2 (0x00007fd7aa697000)\n\tlibmysofa.so.1\
+      \ => /lib/x86_64-linux-gnu/libmysofa.so.1 (0x00007fd7aa686000)\n\tlibflite_cmu_us_awb.so.1\
+      \ => /lib/x86_64-linux-gnu/libflite_cmu_us_awb.so.1 (0x00007fd7aa28f000)\n\t\
+      libflite_cmu_us_kal.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal.so.1 (0x00007fd7aa127000)\n\
+      \tlibflite_cmu_us_kal16.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal16.so.1\
+      \ (0x00007fd7a9d4d000)\n\tlibflite_cmu_us_rms.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_rms.so.1\
+      \ (0x00007fd7a98b2000)\n\tlibflite_cmu_us_slt.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_slt.so.1\
+      \ (0x00007fd7a94ba000)\n\tlibflite.so.1 => /lib/x86_64-linux-gnu/libflite.so.1\
+      \ (0x00007fd7a9481000)\n\tlibfribidi.so.0 => /lib/x86_64-linux-gnu/libfribidi.so.0\
+      \ (0x00007fd7a9464000)\n\tlibass.so.9 => /lib/x86_64-linux-gnu/libass.so.9 (0x00007fd7a922f000)\n\
+      \tlibvidstab.so.1.1 => /lib/x86_64-linux-gnu/libvidstab.so.1.1 (0x00007fd7a921b000)\n\
+      \tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007fd7a9211000)\n\tlibXau.so.6\
+      \ => /lib/x86_64-linux-gnu/libXau.so.6 (0x00007fd7a920b000)\n\tlibXdmcp.so.6\
+      \ => /lib/x86_64-linux-gnu/libXdmcp.so.6 (0x00007fd7a9203000)\n\tlibcdio.so.18\
+      \ => /lib/x86_64-linux-gnu/libcdio.so.18 (0x00007fd7a91d6000)\n\tlibusb-1.0.so.0\
+      \ => /opt/MVS/lib/64/libusb-1.0.so.0 (0x00007fd7a8fbe000)\n\tlibslang.so.2 =>\
+      \ /lib/x86_64-linux-gnu/libslang.so.2 (0x00007fd7a8cc7000)\n\tlibncursesw.so.6\
+      \ => /lib/x86_64-linux-gnu/libncursesw.so.6 (0x00007fd7a8c8d000)\n\tlibtinfo.so.6\
+      \ => /lib/x86_64-linux-gnu/libtinfo.so.6 (0x00007fd7a8c5d000)\n\tlibpulsecommon-13.99.so\
+      \ => /usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-13.99.so (0x00007fd7a8bd9000)\n\
+      \tlibdbus-1.so.3 => /lib/x86_64-linux-gnu/libdbus-1.so.3 (0x00007fd7a8b88000)\n\
+      \tlibXcursor.so.1 => /lib/x86_64-linux-gnu/libXcursor.so.1 (0x00007fd7a8b7b000)\n\
+      \tlibXinerama.so.1 => /lib/x86_64-linux-gnu/libXinerama.so.1 (0x00007fd7a8b76000)\n\
+      \tlibXi.so.6 => /lib/x86_64-linux-gnu/libXi.so.6 (0x00007fd7a8b64000)\n\tlibXrandr.so.2\
+      \ => /lib/x86_64-linux-gnu/libXrandr.so.2 (0x00007fd7a8b57000)\n\tlibXss.so.1\
+      \ => /lib/x86_64-linux-gnu/libXss.so.1 (0x00007fd7a8b50000)\n\tlibXxf86vm.so.1\
+      \ => /lib/x86_64-linux-gnu/libXxf86vm.so.1 (0x00007fd7a8b49000)\n\tlibwayland-egl.so.1\
+      \ => /lib/x86_64-linux-gnu/libwayland-egl.so.1 (0x00007fd7a8b44000)\n\tlibwayland-client.so.0\
+      \ => /lib/x86_64-linux-gnu/libwayland-client.so.0 (0x00007fd7a8b33000)\n\tlibwayland-cursor.so.0\
+      \ => /lib/x86_64-linux-gnu/libwayland-cursor.so.0 (0x00007fd7a8b28000)\n\tlibxkbcommon.so.0\
+      \ => /lib/x86_64-linux-gnu/libxkbcommon.so.0 (0x00007fd7a8ae6000)\n\tlibbsd.so.0\
+      \ => /lib/x86_64-linux-gnu/libbsd.so.0 (0x00007fd7a8aca000)\n\tlibarpack.so.2\
+      \ => /lib/x86_64-linux-gnu/libarpack.so.2 (0x00007fd7a8a82000)\n\tlibsuperlu.so.5\
+      \ => /lib/x86_64-linux-gnu/libsuperlu.so.5 (0x00007fd7a8a12000)\n\tlibnss3.so\
+      \ => /lib/x86_64-linux-gnu/libnss3.so (0x00007fd7a88b7000)\n\tlibsmime3.so =>\
+      \ /lib/x86_64-linux-gnu/libsmime3.so (0x00007fd7a8887000)\n\tlibnspr4.so =>\
+      \ /lib/x86_64-linux-gnu/libnspr4.so (0x00007fd7a8844000)\n\tlibgeos-3.8.0.so\
+      \ => /lib/x86_64-linux-gnu/libgeos-3.8.0.so (0x00007fd7a867b000)\n\tlibltdl.so.7\
+      \ => /lib/x86_64-linux-gnu/libltdl.so.7 (0x00007fd7a8670000)\n\tliburiparser.so.1\
+      \ => /lib/x86_64-linux-gnu/liburiparser.so.1 (0x00007fd7a8651000)\n\tlibhdf5_serial_hl.so.100\
+      \ => /lib/x86_64-linux-gnu/libhdf5_serial_hl.so.100 (0x00007fd7a862a000)\n\t\
+      libsz.so.2 => /lib/x86_64-linux-gnu/libsz.so.2 (0x00007fd7a8625000)\n\tlibsqlite3.so.0\
+      \ => /lib/x86_64-linux-gnu/libsqlite3.so.0 (0x00007fd7a84fa000)\n\tlibfyut.so.0\
+      \ => /lib/x86_64-linux-gnu/libfyut.so.0 (0x00007fd7a84ee000)\n\tlibfygm.so.0\
+      \ => /lib/x86_64-linux-gnu/libfygm.so.0 (0x00007fd7a84e5000)\n\tlibcrypt.so.1\
+      \ => /lib/x86_64-linux-gnu/libcrypt.so.1 (0x00007fd7a84aa000)\n\tlibicudata.so.66\
+      \ => /lib/x86_64-linux-gnu/libicudata.so.66 (0x00007fd7a69e7000)\n\tlibgfortran.so.5\
+      \ => /lib/x86_64-linux-gnu/libgfortran.so.5 (0x00007fd7a671f000)\n\tlibboost_program_options.so.1.71.0\
+      \ => /lib/x86_64-linux-gnu/libboost_program_options.so.1.71.0 (0x00007fd7a6690000)\n\
+      \tlibpython3.8.so.1.0 => /lib/x86_64-linux-gnu/libpython3.8.so.1.0 (0x00007fd7a613a000)\n\
+      \tlibkeyutils.so.1 => /lib/x86_64-linux-gnu/libkeyutils.so.1 (0x00007fd7a6131000)\n\
+      \tlibheimntlm.so.0 => /lib/x86_64-linux-gnu/libheimntlm.so.0 (0x00007fd7a6125000)\n\
+      \tlibkrb5.so.26 => /lib/x86_64-linux-gnu/libkrb5.so.26 (0x00007fd7a6092000)\n\
+      \tlibasn1.so.8 => /lib/x86_64-linux-gnu/libasn1.so.8 (0x00007fd7a5fec000)\n\t\
+      libhcrypto.so.4 => /lib/x86_64-linux-gnu/libhcrypto.so.4 (0x00007fd7a5fb4000)\n\
+      \tlibroken.so.18 => /lib/x86_64-linux-gnu/libroken.so.18 (0x00007fd7a5f99000)\n\
+      \tlibgmodule-2.0.so.0 => /lib/x86_64-linux-gnu/libgmodule-2.0.so.0 (0x00007fd7a5f93000)\n\
+      \tlibmount.so.1 => /lib/x86_64-linux-gnu/libmount.so.1 (0x00007fd7a5f33000)\n\
+      \tlibselinux.so.1 => /lib/x86_64-linux-gnu/libselinux.so.1 (0x00007fd7a5f08000)\n\
+      \tlibpangoft2-1.0.so.0 => /lib/x86_64-linux-gnu/libpangoft2-1.0.so.0 (0x00007fd7a5eef000)\n\
+      \tlibthai.so.0 => /lib/x86_64-linux-gnu/libthai.so.0 (0x00007fd7a5ee2000)\n\t\
+      libharfbuzz.so.0 => /lib/x86_64-linux-gnu/libharfbuzz.so.0 (0x00007fd7a5dde000)\n\
+      \tlibserd-0.so.0 => /lib/x86_64-linux-gnu/libserd-0.so.0 (0x00007fd7a5dbd000)\n\
+      \tlibsord-0.so.0 => /lib/x86_64-linux-gnu/libsord-0.so.0 (0x00007fd7a5db1000)\n\
+      \tlibsratom-0.so.0 => /lib/x86_64-linux-gnu/libsratom-0.so.0 (0x00007fd7a5da5000)\n\
+      \tlibsamplerate.so.0 => /lib/x86_64-linux-gnu/libsamplerate.so.0 (0x00007fd7a5a37000)\n\
+      \tlibfftw3.so.3 => /lib/x86_64-linux-gnu/libfftw3.so.3 (0x00007fd7a5831000)\n\
+      \tlibflite_usenglish.so.1 => /lib/x86_64-linux-gnu/libflite_usenglish.so.1 (0x00007fd7a5806000)\n\
+      \tlibflite_cmulex.so.1 => /lib/x86_64-linux-gnu/libflite_cmulex.so.1 (0x00007fd7a576f000)\n\
+      \tlibsystemd.so.0 => /lib/x86_64-linux-gnu/libsystemd.so.0 (0x00007fd7a56c0000)\n\
+      \tlibwrap.so.0 => /lib/x86_64-linux-gnu/libwrap.so.0 (0x00007fd7a56b2000)\n\t\
+      libsndfile.so.1 => /lib/x86_64-linux-gnu/libsndfile.so.1 (0x00007fd7a5633000)\n\
+      \tlibasyncns.so.0 => /lib/x86_64-linux-gnu/libasyncns.so.0 (0x00007fd7a542d000)\n\
+      \tlibapparmor.so.1 => /lib/x86_64-linux-gnu/libapparmor.so.1 (0x00007fd7a5418000)\n\
+      \tlibnssutil3.so => /lib/x86_64-linux-gnu/libnssutil3.so (0x00007fd7a53e5000)\n\
+      \tlibplc4.so => /lib/x86_64-linux-gnu/libplc4.so (0x00007fd7a53dc000)\n\tlibplds4.so\
+      \ => /lib/x86_64-linux-gnu/libplds4.so (0x00007fd7a53d7000)\n\tlibaec.so.0 =>\
+      \ /lib/x86_64-linux-gnu/libaec.so.0 (0x00007fd7a53ce000)\n\tlibquadmath.so.0\
+      \ => /lib/x86_64-linux-gnu/libquadmath.so.0 (0x00007fd7a5384000)\n\tlibutil.so.1\
+      \ => /lib/x86_64-linux-gnu/libutil.so.1 (0x00007fd7a537f000)\n\tlibwind.so.0\
+      \ => /lib/x86_64-linux-gnu/libwind.so.0 (0x00007fd7a5353000)\n\tlibheimbase.so.1\
+      \ => /lib/x86_64-linux-gnu/libheimbase.so.1 (0x00007fd7a5341000)\n\tlibhx509.so.5\
+      \ => /lib/x86_64-linux-gnu/libhx509.so.5 (0x00007fd7a52f3000)\n\tlibblkid.so.1\
+      \ => /lib/x86_64-linux-gnu/libblkid.so.1 (0x00007fd7a529c000)\n\tlibpcre2-8.so.0\
+      \ => /lib/x86_64-linux-gnu/libpcre2-8.so.0 (0x00007fd7a520b000)\n\tlibdatrie.so.1\
+      \ => /lib/x86_64-linux-gnu/libdatrie.so.1 (0x00007fd7a51ff000)\n\tlibgraphite2.so.3\
+      \ => /lib/x86_64-linux-gnu/libgraphite2.so.3 (0x00007fd7a51d2000)\n\tliblz4.so.1\
+      \ => /lib/x86_64-linux-gnu/liblz4.so.1 (0x00007fd7a51b1000)\n\tlibnsl.so.1 =>\
+      \ /lib/x86_64-linux-gnu/libnsl.so.1 (0x00007fd7a5194000)\n\tlibFLAC.so.8 =>\
+      \ /lib/x86_64-linux-gnu/libFLAC.so.8 (0x00007fd7a5156000)\n"
+built_libraries:
+  m2_ackermann_plugin:
+    path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libm2_ackermann_plugin.so
+    sha256: ce9ecc43b3928630055df533d2c6f95e4c7014cf84ea0ce8a848fed35c9b492d
+    ldd:
+      command:
+      - ldd
+      - /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libm2_ackermann_plugin.so
+      exit_code: 0
+      output: "\tlinux-vdso.so.1 (0x00007fffd0def000)\n\tlibtf2_ros.so => /opt/ros/noetic/lib/libtf2_ros.so\
+        \ (0x00007fc340d05000)\n\tlibroscpp.so => /opt/ros/noetic/lib/libroscpp.so\
+        \ (0x00007fc340b54000)\n\tlibrosconsole.so => /opt/ros/noetic/lib/librosconsole.so\
+        \ (0x00007fc340af1000)\n\tlibroscpp_serialization.so => /opt/ros/noetic/lib/libroscpp_serialization.so\
+        \ (0x00007fc340aec000)\n\tlibrostime.so => /opt/ros/noetic/lib/librostime.so\
+        \ (0x00007fc340abf000)\n\tlibgazebo_physics.so.11 => /lib/x86_64-linux-gnu/libgazebo_physics.so.11\
+        \ (0x00007fc3405c5000)\n\tlibgazebo_common.so.11 => /lib/x86_64-linux-gnu/libgazebo_common.so.11\
+        \ (0x00007fc340451000)\n\tlibsdformat9.so.9 => /lib/x86_64-linux-gnu/libsdformat9.so.9\
+        \ (0x00007fc340236000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6\
+        \ (0x00007fc340054000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fc33ff05000)\n\
+        \tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fc33feea000)\n\
+        \tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fc33fcf6000)\n\tlibactionlib.so\
+        \ => /opt/ros/noetic/lib/libactionlib.so (0x00007fc33fcd5000)\n\tlibpthread.so.0\
+        \ => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fc33fcb2000)\n\tlibtf2.so\
+        \ => /opt/ros/noetic/lib/libtf2.so (0x00007fc33fc76000)\n\tlibboost_thread.so.1.71.0\
+        \ => /lib/x86_64-linux-gnu/libboost_thread.so.1.71.0 (0x00007fc33fc4a000)\n\
+        \tlibxmlrpcpp.so => /opt/ros/noetic/lib/libxmlrpcpp.so (0x00007fc33fc26000)\n\
+        \tlibcpp_common.so => /opt/ros/noetic/lib/libcpp_common.so (0x00007fc33fc16000)\n\
+        \tlibboost_chrono.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_chrono.so.1.71.0\
+        \ (0x00007fc33fc08000)\n\tlibboost_filesystem.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0\
+        \ (0x00007fc33fbea000)\n\tlibrosconsole_log4cxx.so => /opt/ros/noetic/lib/librosconsole_log4cxx.so\
+        \ (0x00007fc33fbca000)\n\tlibrosconsole_backend_interface.so => /opt/ros/noetic/lib/librosconsole_backend_interface.so\
+        \ (0x00007fc33fbc5000)\n\tliblog4cxx.so.10 => /lib/x86_64-linux-gnu/liblog4cxx.so.10\
+        \ (0x00007fc33f9e7000)\n\tlibboost_regex.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_regex.so.1.71.0\
+        \ (0x00007fc33f8e5000)\n\tlibgazebo_util.so.11 => /lib/x86_64-linux-gnu/libgazebo_util.so.11\
+        \ (0x00007fc33f826000)\n\tlibgazebo_ode.so.11 => /lib/x86_64-linux-gnu/libgazebo_ode.so.11\
+        \ (0x00007fc33f751000)\n\tlibBulletDynamics.so.2.88 => /lib/x86_64-linux-gnu/libBulletDynamics.so.2.88\
+        \ (0x00007fc33f67b000)\n\tlibBulletCollision.so.2.88 => /lib/x86_64-linux-gnu/libBulletCollision.so.2.88\
+        \ (0x00007fc33f573000)\n\tlibLinearMath.so.2.88 => /lib/x86_64-linux-gnu/libLinearMath.so.2.88\
+        \ (0x00007fc33f54e000)\n\tlibdart-collision-bullet.so.6 => /lib/x86_64-linux-gnu/libdart-collision-bullet.so.6\
+        \ (0x00007fc33f52c000)\n\tlibSimTKsimbody.so.3.6 => /lib/x86_64-linux-gnu/libSimTKsimbody.so.3.6\
+        \ (0x00007fc33ef26000)\n\tlibignition-transport8.so.8 => /lib/x86_64-linux-gnu/libignition-transport8.so.8\
+        \ (0x00007fc33ee67000)\n\tlibgazebo_transport.so.11 => /lib/x86_64-linux-gnu/libgazebo_transport.so.11\
+        \ (0x00007fc33eda1000)\n\tlibgazebo_msgs.so.11 => /lib/x86_64-linux-gnu/libgazebo_msgs.so.11\
+        \ (0x00007fc33eac8000)\n\tlibignition-common3.so.3 => /lib/x86_64-linux-gnu/libignition-common3.so.3\
+        \ (0x00007fc33ea5a000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007fc33ea52000)\n\
+        \tlibprotobuf.so.17 => /lib/x86_64-linux-gnu/libprotobuf.so.17 (0x00007fc33e759000)\n\
+        \tlibignition-msgs5.so.5 => /lib/x86_64-linux-gnu/libignition-msgs5.so.5 (0x00007fc33e36f000)\n\
+        \tlibignition-math6.so.6 => /lib/x86_64-linux-gnu/libignition-math6.so.6 (0x00007fc33e30a000)\n\
+        \tlibode.so.8 => /lib/x86_64-linux-gnu/libode.so.8 (0x00007fc33e1e6000)\n\t\
+        libdart.so.6 => /lib/x86_64-linux-gnu/libdart.so.6 (0x00007fc33dbca000)\n\t\
+        libassimp.so.5 => /lib/x86_64-linux-gnu/libassimp.so.5 (0x00007fc33cf7b000)\n\
+        \tlibSimTKmath.so.3.6 => /lib/x86_64-linux-gnu/libSimTKmath.so.3.6 (0x00007fc33caef000)\n\
+        \tlibSimTKcommon.so.3.6 => /lib/x86_64-linux-gnu/libSimTKcommon.so.3.6 (0x00007fc33c6ed000)\n\
+        \tlibboost_iostreams.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_iostreams.so.1.71.0\
+        \ (0x00007fc33c6c6000)\n\tlibfreeimage.so.3 => /lib/x86_64-linux-gnu/libfreeimage.so.3\
+        \ (0x00007fc33c60a000)\n\tlibtar.so.0 => /lib/x86_64-linux-gnu/libtar.so.0\
+        \ (0x00007fc33c5fc000)\n\tlibtinyxml.so.2.6.2 => /lib/x86_64-linux-gnu/libtinyxml.so.2.6.2\
+        \ (0x00007fc33c5e4000)\n\tlibcurl.so.4 => /lib/x86_64-linux-gnu/libcurl.so.4\
+        \ (0x00007fc33c551000)\n\tlibavcodec.so.58 => /lib/x86_64-linux-gnu/libavcodec.so.58\
+        \ (0x00007fc33af90000)\n\tlibavformat.so.58 => /lib/x86_64-linux-gnu/libavformat.so.58\
+        \ (0x00007fc33ad16000)\n\tlibavutil.so.56 => /lib/x86_64-linux-gnu/libavutil.so.56\
+        \ (0x00007fc33abed000)\n\tlibavdevice.so.58 => /lib/x86_64-linux-gnu/libavdevice.so.58\
+        \ (0x00007fc33abb7000)\n\tlibswscale.so.5 => /lib/x86_64-linux-gnu/libswscale.so.5\
+        \ (0x00007fc33ab20000)\n\tlibgts-0.7.so.5 => /lib/x86_64-linux-gnu/libgts-0.7.so.5\
+        \ (0x00007fc33a8c3000)\n\tlibglib-2.0.so.0 => /lib/x86_64-linux-gnu/libglib-2.0.so.0\
+        \ (0x00007fc33a799000)\n\tlibgdal.so.26 => /lib/libgdal.so.26 (0x00007fc339412000)\n\
+        \tlibignition-fuel_tools4.so.4 => /lib/x86_64-linux-gnu/libignition-fuel_tools4.so.4\
+        \ (0x00007fc339370000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007fc340e34000)\n\
+        \tlibconsole_bridge.so.0.4 => /lib/x86_64-linux-gnu/libconsole_bridge.so.0.4\
+        \ (0x00007fc339368000)\n\tlibapr-1.so.0 => /lib/x86_64-linux-gnu/libapr-1.so.0\
+        \ (0x00007fc33932f000)\n\tlibaprutil-1.so.0 => /lib/x86_64-linux-gnu/libaprutil-1.so.0\
+        \ (0x00007fc339301000)\n\tlibicui18n.so.66 => /lib/x86_64-linux-gnu/libicui18n.so.66\
+        \ (0x00007fc339002000)\n\tlibicuuc.so.66 => /lib/x86_64-linux-gnu/libicuuc.so.66\
+        \ (0x00007fc338e1c000)\n\tlibtinyxml2.so.6 => /lib/x86_64-linux-gnu/libtinyxml2.so.6\
+        \ (0x00007fc338e03000)\n\tlibgazebo_opcode.so.11 => /lib/x86_64-linux-gnu/libgazebo_opcode.so.11\
+        \ (0x00007fc338dab000)\n\tlibgazebo_opende_ou.so.11 => /lib/x86_64-linux-gnu/libgazebo_opende_ou.so.11\
+        \ (0x00007fc338da5000)\n\tlibccd.so.2 => /lib/x86_64-linux-gnu/libccd.so.2\
+        \ (0x00007fc338d99000)\n\tliblapack.so.3 => /lib/x86_64-linux-gnu/liblapack.so.3\
+        \ (0x00007fc3386d1000)\n\tlibzmq.so.5 => /lib/x86_64-linux-gnu/libzmq.so.5\
+        \ (0x00007fc338629000)\n\tlibuuid.so.1 => /lib/x86_64-linux-gnu/libuuid.so.1\
+        \ (0x00007fc338620000)\n\tlibtbb.so.2 => /lib/x86_64-linux-gnu/libtbb.so.2\
+        \ (0x00007fc3385da000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007fc3385be000)\n\
+        \tlibdart-external-odelcpsolver.so.6 => /lib/x86_64-linux-gnu/libdart-external-odelcpsolver.so.6\
+        \ (0x00007fc3385b0000)\n\tliboctomap.so.1.9 => /opt/ros/noetic/lib/liboctomap.so.1.9\
+        \ (0x00007fc338565000)\n\tlibfcl.so.0.5 => /lib/x86_64-linux-gnu/libfcl.so.0.5\
+        \ (0x00007fc337bdb000)\n\tliboctomath.so.1.9 => /opt/ros/noetic/lib/liboctomath.so.1.9\
+        \ (0x00007fc337bd3000)\n\tlibminizip.so.1 => /lib/x86_64-linux-gnu/libminizip.so.1\
+        \ (0x00007fc3379c8000)\n\tlibblas.so.3 => /lib/x86_64-linux-gnu/libblas.so.3\
+        \ (0x00007fc337602000)\n\tlibbz2.so.1.0 => /lib/x86_64-linux-gnu/libbz2.so.1.0\
+        \ (0x00007fc3375ed000)\n\tliblzma.so.5 => /lib/x86_64-linux-gnu/liblzma.so.5\
+        \ (0x00007fc3375c4000)\n\tlibzstd.so.1 => /lib/x86_64-linux-gnu/libzstd.so.1\
+        \ (0x00007fc33751b000)\n\tlibjxrglue.so.0 => /lib/x86_64-linux-gnu/libjxrglue.so.0\
+        \ (0x00007fc3372fb000)\n\tlibjpeg.so.8 => /lib/x86_64-linux-gnu/libjpeg.so.8\
+        \ (0x00007fc337276000)\n\tlibopenjp2.so.7 => /lib/x86_64-linux-gnu/libopenjp2.so.7\
+        \ (0x00007fc337220000)\n\tlibpng16.so.16 => /lib/x86_64-linux-gnu/libpng16.so.16\
+        \ (0x00007fc3371e6000)\n\tlibraw.so.19 => /lib/x86_64-linux-gnu/libraw.so.19\
+        \ (0x00007fc337106000)\n\tlibtiff.so.5 => /lib/x86_64-linux-gnu/libtiff.so.5\
+        \ (0x00007fc337084000)\n\tlibwebpmux.so.3 => /lib/x86_64-linux-gnu/libwebpmux.so.3\
+        \ (0x00007fc337078000)\n\tlibwebp.so.6 => /lib/x86_64-linux-gnu/libwebp.so.6\
+        \ (0x00007fc33700e000)\n\tlibIlmImf-2_3.so.24 => /lib/x86_64-linux-gnu/libIlmImf-2_3.so.24\
+        \ (0x00007fc336d2f000)\n\tlibHalf.so.24 => /lib/x86_64-linux-gnu/libHalf.so.24\
+        \ (0x00007fc336ce8000)\n\tlibIex-2_3.so.24 => /lib/x86_64-linux-gnu/libIex-2_3.so.24\
+        \ (0x00007fc336cc7000)\n\tlibnghttp2.so.14 => /lib/x86_64-linux-gnu/libnghttp2.so.14\
+        \ (0x00007fc336c9d000)\n\tlibidn2.so.0 => /lib/x86_64-linux-gnu/libidn2.so.0\
+        \ (0x00007fc336c7c000)\n\tlibrtmp.so.1 => /lib/x86_64-linux-gnu/librtmp.so.1\
+        \ (0x00007fc336c5c000)\n\tlibssh.so.4 => /lib/x86_64-linux-gnu/libssh.so.4\
+        \ (0x00007fc336bed000)\n\tlibpsl.so.5 => /lib/x86_64-linux-gnu/libpsl.so.5\
+        \ (0x00007fc336bd8000)\n\tlibssl.so.1.1 => /lib/x86_64-linux-gnu/libssl.so.1.1\
+        \ (0x00007fc336b45000)\n\tlibcrypto.so.1.1 => /lib/x86_64-linux-gnu/libcrypto.so.1.1\
+        \ (0x00007fc33686e000)\n\tlibgssapi_krb5.so.2 => /lib/x86_64-linux-gnu/libgssapi_krb5.so.2\
+        \ (0x00007fc336821000)\n\tlibldap_r-2.4.so.2 => /lib/x86_64-linux-gnu/libldap_r-2.4.so.2\
+        \ (0x00007fc3367cb000)\n\tliblber-2.4.so.2 => /lib/x86_64-linux-gnu/liblber-2.4.so.2\
+        \ (0x00007fc3367ba000)\n\tlibbrotlidec.so.1 => /lib/x86_64-linux-gnu/libbrotlidec.so.1\
+        \ (0x00007fc3367aa000)\n\tlibswresample.so.3 => /lib/x86_64-linux-gnu/libswresample.so.3\
+        \ (0x00007fc336788000)\n\tlibvpx.so.6 => /lib/x86_64-linux-gnu/libvpx.so.6\
+        \ (0x00007fc336550000)\n\tlibrsvg-2.so.2 => /lib/x86_64-linux-gnu/librsvg-2.so.2\
+        \ (0x00007fc335c33000)\n\tlibgobject-2.0.so.0 => /lib/x86_64-linux-gnu/libgobject-2.0.so.0\
+        \ (0x00007fc335bd3000)\n\tlibcairo.so.2 => /lib/x86_64-linux-gnu/libcairo.so.2\
+        \ (0x00007fc335ab0000)\n\tlibzvbi.so.0 => /lib/x86_64-linux-gnu/libzvbi.so.0\
+        \ (0x00007fc335a1f000)\n\tlibsnappy.so.1 => /lib/x86_64-linux-gnu/libsnappy.so.1\
+        \ (0x00007fc335a14000)\n\tlibaom.so.0 => /lib/x86_64-linux-gnu/libaom.so.0\
+        \ (0x00007fc335576000)\n\tlibcodec2.so.0.9 => /lib/x86_64-linux-gnu/libcodec2.so.0.9\
+        \ (0x00007fc334792000)\n\tlibgsm.so.1 => /lib/x86_64-linux-gnu/libgsm.so.1\
+        \ (0x00007fc334783000)\n\tlibmp3lame.so.0 => /lib/x86_64-linux-gnu/libmp3lame.so.0\
+        \ (0x00007fc33470b000)\n\tlibopus.so.0 => /lib/x86_64-linux-gnu/libopus.so.0\
+        \ (0x00007fc3346aa000)\n\tlibshine.so.3 => /lib/x86_64-linux-gnu/libshine.so.3\
+        \ (0x00007fc33449f000)\n\tlibspeex.so.1 => /lib/x86_64-linux-gnu/libspeex.so.1\
+        \ (0x00007fc334481000)\n\tlibtheoraenc.so.1 => /lib/x86_64-linux-gnu/libtheoraenc.so.1\
+        \ (0x00007fc334444000)\n\tlibtheoradec.so.1 => /lib/x86_64-linux-gnu/libtheoradec.so.1\
+        \ (0x00007fc334424000)\n\tlibtwolame.so.0 => /lib/x86_64-linux-gnu/libtwolame.so.0\
+        \ (0x00007fc3343fe000)\n\tlibvorbis.so.0 => /lib/x86_64-linux-gnu/libvorbis.so.0\
+        \ (0x00007fc3343ce000)\n\tlibvorbisenc.so.2 => /lib/x86_64-linux-gnu/libvorbisenc.so.2\
+        \ (0x00007fc334323000)\n\tlibwavpack.so.1 => /lib/x86_64-linux-gnu/libwavpack.so.1\
+        \ (0x00007fc3342f7000)\n\tlibx264.so.155 => /lib/x86_64-linux-gnu/libx264.so.155\
+        \ (0x00007fc334039000)\n\tlibx265.so.179 => /lib/x86_64-linux-gnu/libx265.so.179\
+        \ (0x00007fc3330cb000)\n\tlibxvidcore.so.4 => /lib/x86_64-linux-gnu/libxvidcore.so.4\
+        \ (0x00007fc332fb8000)\n\tlibva.so.2 => /lib/x86_64-linux-gnu/libva.so.2 (0x00007fc332f8d000)\n\
+        \tlibxml2.so.2 => /lib/x86_64-linux-gnu/libxml2.so.2 (0x00007fc332dd3000)\n\
+        \tlibgme.so.0 => /lib/x86_64-linux-gnu/libgme.so.0 (0x00007fc332d86000)\n\t\
+        libopenmpt.so.0 => /lib/x86_64-linux-gnu/libopenmpt.so.0 (0x00007fc332b99000)\n\
+        \tlibchromaprint.so.1 => /lib/x86_64-linux-gnu/libchromaprint.so.1 (0x00007fc332b83000)\n\
+        \tlibbluray.so.2 => /lib/x86_64-linux-gnu/libbluray.so.2 (0x00007fc332b30000)\n\
+        \tlibgnutls.so.30 => /lib/x86_64-linux-gnu/libgnutls.so.30 (0x00007fc33295a000)\n\
+        \tlibssh-gcrypt.so.4 => /lib/x86_64-linux-gnu/libssh-gcrypt.so.4 (0x00007fc3328cc000)\n\
+        \tlibva-drm.so.2 => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007fc3328c7000)\n\
+        \tlibva-x11.so.2 => /lib/x86_64-linux-gnu/libva-x11.so.2 (0x00007fc3328bf000)\n\
+        \tlibvdpau.so.1 => /lib/x86_64-linux-gnu/libvdpau.so.1 (0x00007fc3328b9000)\n\
+        \tlibX11.so.6 => /lib/x86_64-linux-gnu/libX11.so.6 (0x00007fc33277a000)\n\t\
+        libdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007fc332764000)\n\t\
+        libOpenCL.so.1 => /lib/x86_64-linux-gnu/libOpenCL.so.1 (0x00007fc332559000)\n\
+        \tlibavfilter.so.7 => /lib/x86_64-linux-gnu/libavfilter.so.7 (0x00007fc3321d8000)\n\
+        \tlibraw1394.so.11 => /lib/x86_64-linux-gnu/libraw1394.so.11 (0x00007fc331fc9000)\n\
+        \tlibavc1394.so.0 => /lib/x86_64-linux-gnu/libavc1394.so.0 (0x00007fc331dc4000)\n\
+        \tlibrom1394.so.0 => /lib/x86_64-linux-gnu/librom1394.so.0 (0x00007fc331bbd000)\n\
+        \tlibiec61883.so.0 => /lib/x86_64-linux-gnu/libiec61883.so.0 (0x00007fc331baf000)\n\
+        \tlibjack.so.0 => /lib/x86_64-linux-gnu/libjack.so.0 (0x00007fc331b63000)\n\
+        \tlibopenal.so.1 => /lib/x86_64-linux-gnu/libopenal.so.1 (0x00007fc331a7b000)\n\
+        \tlibxcb.so.1 => /lib/x86_64-linux-gnu/libxcb.so.1 (0x00007fc331a51000)\n\t\
+        libxcb-shm.so.0 => /lib/x86_64-linux-gnu/libxcb-shm.so.0 (0x00007fc331a4c000)\n\
+        \tlibxcb-shape.so.0 => /lib/x86_64-linux-gnu/libxcb-shape.so.0 (0x00007fc331a45000)\n\
+        \tlibxcb-xfixes.so.0 => /lib/x86_64-linux-gnu/libxcb-xfixes.so.0 (0x00007fc331a3b000)\n\
+        \tlibcdio_paranoia.so.2 => /lib/x86_64-linux-gnu/libcdio_paranoia.so.2 (0x00007fc331a31000)\n\
+        \tlibcdio_cdda.so.2 => /lib/x86_64-linux-gnu/libcdio_cdda.so.2 (0x00007fc331a27000)\n\
+        \tlibdc1394.so.22 => /lib/x86_64-linux-gnu/libdc1394.so.22 (0x00007fc3319af000)\n\
+        \tlibasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007fc3318b4000)\n\
+        \tlibcaca.so.0 => /lib/x86_64-linux-gnu/libcaca.so.0 (0x00007fc3317e6000)\n\
+        \tlibGL.so.1 => /lib/x86_64-linux-gnu/libGL.so.1 (0x00007fc33175e000)\n\t\
+        libpulse.so.0 => /lib/x86_64-linux-gnu/libpulse.so.0 (0x00007fc331709000)\n\
+        \tlibSDL2-2.0.so.0 => /lib/x86_64-linux-gnu/libSDL2-2.0.so.0 (0x00007fc3315b4000)\n\
+        \tlibsndio.so.7.0 => /lib/x86_64-linux-gnu/libsndio.so.7.0 (0x00007fc3315a3000)\n\
+        \tlibXv.so.1 => /lib/x86_64-linux-gnu/libXv.so.1 (0x00007fc33139e000)\n\t\
+        libXext.so.6 => /lib/x86_64-linux-gnu/libXext.so.6 (0x00007fc331387000)\n\t\
+        libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007fc331314000)\n\t\
+        libarmadillo.so.9 => /lib/libarmadillo.so.9 (0x00007fc331301000)\n\tlibpoppler.so.97\
+        \ => /lib/x86_64-linux-gnu/libpoppler.so.97 (0x00007fc330fbd000)\n\tlibjson-c.so.4\
+        \ => /lib/x86_64-linux-gnu/libjson-c.so.4 (0x00007fc330fab000)\n\tlibfreexl.so.1\
+        \ => /lib/x86_64-linux-gnu/libfreexl.so.1 (0x00007fc330f9e000)\n\tlibqhull.so.7\
+        \ => /lib/x86_64-linux-gnu/libqhull.so.7 (0x00007fc330d44000)\n\tlibgeos_c.so.1\
+        \ => /lib/x86_64-linux-gnu/libgeos_c.so.1 (0x00007fc330d01000)\n\tlibepsilon.so.1\
+        \ => /lib/x86_64-linux-gnu/libepsilon.so.1 (0x00007fc330ce7000)\n\tlibodbc.so.2\
+        \ => /lib/x86_64-linux-gnu/libodbc.so.2 (0x00007fc330c74000)\n\tlibodbcinst.so.2\
+        \ => /lib/x86_64-linux-gnu/libodbcinst.so.2 (0x00007fc330c5c000)\n\tlibkmlbase.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmlbase.so.1 (0x00007fc330c3d000)\n\tlibkmldom.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmldom.so.1 (0x00007fc330b9c000)\n\tlibkmlengine.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmlengine.so.1 (0x00007fc330b62000)\n\tlibexpat.so.1\
+        \ => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007fc330b34000)\n\tlibxerces-c-3.2.so\
+        \ => /lib/x86_64-linux-gnu/libxerces-c-3.2.so (0x00007fc3307a1000)\n\tlibnetcdf.so.15\
+        \ => /lib/x86_64-linux-gnu/libnetcdf.so.15 (0x00007fc33067c000)\n\tlibhdf5_serial.so.103\
+        \ => /lib/x86_64-linux-gnu/libhdf5_serial.so.103 (0x00007fc3302fd000)\n\t\
+        libmfhdfalt.so.0 => /lib/libmfhdfalt.so.0 (0x00007fc3302d3000)\n\tlibdfalt.so.0\
+        \ => /lib/libdfalt.so.0 (0x00007fc33022e000)\n\tlibogdi.so.4.1 => /lib/libogdi.so.4.1\
+        \ (0x00007fc330212000)\n\tlibgif.so.7 => /lib/x86_64-linux-gnu/libgif.so.7\
+        \ (0x00007fc330207000)\n\tlibCharLS.so.2 => /lib/x86_64-linux-gnu/libCharLS.so.2\
+        \ (0x00007fc3301b8000)\n\tlibgeotiff.so.5 => /lib/x86_64-linux-gnu/libgeotiff.so.5\
+        \ (0x00007fc330181000)\n\tlibcfitsio.so.8 => /lib/x86_64-linux-gnu/libcfitsio.so.8\
+        \ (0x00007fc32fe82000)\n\tlibpq.so.5 => /lib/x86_64-linux-gnu/libpq.so.5 (0x00007fc32fe31000)\n\
+        \tlibproj.so.15 => /lib/x86_64-linux-gnu/libproj.so.15 (0x00007fc32fb42000)\n\
+        \tlibdapclient.so.6 => /lib/x86_64-linux-gnu/libdapclient.so.6 (0x00007fc32fafa000)\n\
+        \tlibdap.so.25 => /lib/x86_64-linux-gnu/libdap.so.25 (0x00007fc32f95c000)\n\
+        \tlibspatialite.so.7 => /lib/x86_64-linux-gnu/libspatialite.so.7 (0x00007fc32f3cb000)\n\
+        \tlibcurl-gnutls.so.4 => /lib/x86_64-linux-gnu/libcurl-gnutls.so.4 (0x00007fc32f33b000)\n\
+        \tlibfyba.so.0 => /lib/x86_64-linux-gnu/libfyba.so.0 (0x00007fc32f2e3000)\n\
+        \tlibmysqlclient.so.21 => /lib/x86_64-linux-gnu/libmysqlclient.so.21 (0x00007fc32ebb7000)\n\
+        \tlibjsoncpp.so.1 => /lib/x86_64-linux-gnu/libjsoncpp.so.1 (0x00007fc32eb81000)\n\
+        \tlibyaml-0.so.2 => /lib/x86_64-linux-gnu/libyaml-0.so.2 (0x00007fc32eb5d000)\n\
+        \tlibzip.so.5 => /lib/x86_64-linux-gnu/libzip.so.5 (0x00007fc32eb42000)\n\t\
+        libcrypt.so.1 => /lib/x86_64-linux-gnu/libcrypt.so.1 (0x00007fc32eb07000)\n\
+        \tlibicudata.so.66 => /lib/x86_64-linux-gnu/libicudata.so.66 (0x00007fc32d046000)\n\
+        \tlibgfortran.so.5 => /lib/x86_64-linux-gnu/libgfortran.so.5 (0x00007fc32cd7e000)\n\
+        \tlibsodium.so.23 => /lib/x86_64-linux-gnu/libsodium.so.23 (0x00007fc32cd24000)\n\
+        \tlibpgm-5.2.so.0 => /lib/x86_64-linux-gnu/libpgm-5.2.so.0 (0x00007fc32ccd5000)\n\
+        \tlibnorm.so.1 => /lib/x86_64-linux-gnu/libnorm.so.1 (0x00007fc32cb7a000)\n\
+        \tlibjpegxr.so.0 => /lib/x86_64-linux-gnu/libjpegxr.so.0 (0x00007fc32c946000)\n\
+        \tliblcms2.so.2 => /lib/x86_64-linux-gnu/liblcms2.so.2 (0x00007fc32c8eb000)\n\
+        \tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007fc32c8a7000)\n\
+        \tlibjbig.so.0 => /lib/x86_64-linux-gnu/libjbig.so.0 (0x00007fc32c896000)\n\
+        \tlibIlmThread-2_3.so.24 => /lib/x86_64-linux-gnu/libIlmThread-2_3.so.24 (0x00007fc32c88c000)\n\
+        \tlibunistring.so.2 => /lib/x86_64-linux-gnu/libunistring.so.2 (0x00007fc32c70a000)\n\
+        \tlibhogweed.so.5 => /lib/x86_64-linux-gnu/libhogweed.so.5 (0x00007fc32c6d3000)\n\
+        \tlibnettle.so.7 => /lib/x86_64-linux-gnu/libnettle.so.7 (0x00007fc32c697000)\n\
+        \tlibgmp.so.10 => /lib/x86_64-linux-gnu/libgmp.so.10 (0x00007fc32c613000)\n\
+        \tlibkrb5.so.3 => /lib/x86_64-linux-gnu/libkrb5.so.3 (0x00007fc32c536000)\n\
+        \tlibk5crypto.so.3 => /lib/x86_64-linux-gnu/libk5crypto.so.3 (0x00007fc32c505000)\n\
+        \tlibcom_err.so.2 => /lib/x86_64-linux-gnu/libcom_err.so.2 (0x00007fc32c4fe000)\n\
+        \tlibkrb5support.so.0 => /lib/x86_64-linux-gnu/libkrb5support.so.0 (0x00007fc32c4ed000)\n\
+        \tlibresolv.so.2 => /lib/x86_64-linux-gnu/libresolv.so.2 (0x00007fc32c4d1000)\n\
+        \tlibsasl2.so.2 => /lib/x86_64-linux-gnu/libsasl2.so.2 (0x00007fc32c4b4000)\n\
+        \tlibgssapi.so.3 => /lib/x86_64-linux-gnu/libgssapi.so.3 (0x00007fc32c46f000)\n\
+        \tlibbrotlicommon.so.1 => /lib/x86_64-linux-gnu/libbrotlicommon.so.1 (0x00007fc32c44c000)\n\
+        \tlibsoxr.so.0 => /lib/x86_64-linux-gnu/libsoxr.so.0 (0x00007fc32c3e1000)\n\
+        \tlibcairo-gobject.so.2 => /lib/x86_64-linux-gnu/libcairo-gobject.so.2 (0x00007fc32c3d3000)\n\
+        \tlibgdk_pixbuf-2.0.so.0 => /lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x00007fc32c3ab000)\n\
+        \tlibgio-2.0.so.0 => /lib/x86_64-linux-gnu/libgio-2.0.so.0 (0x00007fc32c1c9000)\n\
+        \tlibpangocairo-1.0.so.0 => /lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 (0x00007fc32c1b7000)\n\
+        \tlibpango-1.0.so.0 => /lib/x86_64-linux-gnu/libpango-1.0.so.0 (0x00007fc32c168000)\n\
+        \tlibffi.so.7 => /lib/x86_64-linux-gnu/libffi.so.7 (0x00007fc32c15c000)\n\t\
+        libpixman-1.so.0 => /lib/x86_64-linux-gnu/libpixman-1.so.0 (0x00007fc32c0b3000)\n\
+        \tlibfontconfig.so.1 => /lib/x86_64-linux-gnu/libfontconfig.so.1 (0x00007fc32c06c000)\n\
+        \tlibfreetype.so.6 => /lib/x86_64-linux-gnu/libfreetype.so.6 (0x00007fc32bfad000)\n\
+        \tlibxcb-render.so.0 => /lib/x86_64-linux-gnu/libxcb-render.so.0 (0x00007fc32bf9e000)\n\
+        \tlibXrender.so.1 => /lib/x86_64-linux-gnu/libXrender.so.1 (0x00007fc32bd94000)\n\
+        \tlibogg.so.0 => /lib/x86_64-linux-gnu/libogg.so.0 (0x00007fc32bd85000)\n\t\
+        libnuma.so.1 => /lib/x86_64-linux-gnu/libnuma.so.1 (0x00007fc32bd78000)\n\t\
+        libmpg123.so.0 => /lib/x86_64-linux-gnu/libmpg123.so.0 (0x00007fc32bd18000)\n\
+        \tlibvorbisfile.so.3 => /lib/x86_64-linux-gnu/libvorbisfile.so.3 (0x00007fc32bd0d000)\n\
+        \tlibp11-kit.so.0 => /lib/x86_64-linux-gnu/libp11-kit.so.0 (0x00007fc32bbd7000)\n\
+        \tlibtasn1.so.6 => /lib/x86_64-linux-gnu/libtasn1.so.6 (0x00007fc32bbbf000)\n\
+        \tlibgcrypt.so.20 => /lib/x86_64-linux-gnu/libgcrypt.so.20 (0x00007fc32baa1000)\n\
+        \tlibgpg-error.so.0 => /lib/x86_64-linux-gnu/libgpg-error.so.0 (0x00007fc32ba7e000)\n\
+        \tlibXfixes.so.3 => /lib/x86_64-linux-gnu/libXfixes.so.3 (0x00007fc32ba76000)\n\
+        \tlibpostproc.so.55 => /lib/x86_64-linux-gnu/libpostproc.so.55 (0x00007fc32ba54000)\n\
+        \tlibbs2b.so.0 => /lib/x86_64-linux-gnu/libbs2b.so.0 (0x00007fc32ba4b000)\n\
+        \tliblilv-0.so.0 => /lib/x86_64-linux-gnu/liblilv-0.so.0 (0x00007fc32ba30000)\n\
+        \tlibrubberband.so.2 => /lib/x86_64-linux-gnu/librubberband.so.2 (0x00007fc32b9f3000)\n\
+        \tlibmysofa.so.1 => /lib/x86_64-linux-gnu/libmysofa.so.1 (0x00007fc32b9e2000)\n\
+        \tlibflite_cmu_us_awb.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_awb.so.1\
+        \ (0x00007fc32b5eb000)\n\tlibflite_cmu_us_kal.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal.so.1\
+        \ (0x00007fc32b485000)\n\tlibflite_cmu_us_kal16.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal16.so.1\
+        \ (0x00007fc32b0a9000)\n\tlibflite_cmu_us_rms.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_rms.so.1\
+        \ (0x00007fc32ac0e000)\n\tlibflite_cmu_us_slt.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_slt.so.1\
+        \ (0x00007fc32a816000)\n\tlibflite.so.1 => /lib/x86_64-linux-gnu/libflite.so.1\
+        \ (0x00007fc32a7dd000)\n\tlibfribidi.so.0 => /lib/x86_64-linux-gnu/libfribidi.so.0\
+        \ (0x00007fc32a7c0000)\n\tlibass.so.9 => /lib/x86_64-linux-gnu/libass.so.9\
+        \ (0x00007fc32a58d000)\n\tlibvidstab.so.1.1 => /lib/x86_64-linux-gnu/libvidstab.so.1.1\
+        \ (0x00007fc32a577000)\n\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007fc32a56d000)\n\
+        \tlibXau.so.6 => /lib/x86_64-linux-gnu/libXau.so.6 (0x00007fc32a567000)\n\t\
+        libXdmcp.so.6 => /lib/x86_64-linux-gnu/libXdmcp.so.6 (0x00007fc32a55f000)\n\
+        \tlibcdio.so.18 => /lib/x86_64-linux-gnu/libcdio.so.18 (0x00007fc32a534000)\n\
+        \tlibusb-1.0.so.0 => /opt/MVS/lib/64/libusb-1.0.so.0 (0x00007fc32a31a000)\n\
+        \tlibslang.so.2 => /lib/x86_64-linux-gnu/libslang.so.2 (0x00007fc32a023000)\n\
+        \tlibncursesw.so.6 => /lib/x86_64-linux-gnu/libncursesw.so.6 (0x00007fc329fe9000)\n\
+        \tlibtinfo.so.6 => /lib/x86_64-linux-gnu/libtinfo.so.6 (0x00007fc329fb9000)\n\
+        \tlibGLdispatch.so.0 => /lib/x86_64-linux-gnu/libGLdispatch.so.0 (0x00007fc329f01000)\n\
+        \tlibGLX.so.0 => /lib/x86_64-linux-gnu/libGLX.so.0 (0x00007fc329ecd000)\n\t\
+        libpulsecommon-13.99.so => /usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-13.99.so\
+        \ (0x00007fc329e49000)\n\tlibdbus-1.so.3 => /lib/x86_64-linux-gnu/libdbus-1.so.3\
+        \ (0x00007fc329df8000)\n\tlibXcursor.so.1 => /lib/x86_64-linux-gnu/libXcursor.so.1\
+        \ (0x00007fc329deb000)\n\tlibXinerama.so.1 => /lib/x86_64-linux-gnu/libXinerama.so.1\
+        \ (0x00007fc329de6000)\n\tlibXi.so.6 => /lib/x86_64-linux-gnu/libXi.so.6 (0x00007fc329dd4000)\n\
+        \tlibXrandr.so.2 => /lib/x86_64-linux-gnu/libXrandr.so.2 (0x00007fc329dc5000)\n\
+        \tlibXss.so.1 => /lib/x86_64-linux-gnu/libXss.so.1 (0x00007fc329dc0000)\n\t\
+        libXxf86vm.so.1 => /lib/x86_64-linux-gnu/libXxf86vm.so.1 (0x00007fc329db9000)\n\
+        \tlibwayland-egl.so.1 => /lib/x86_64-linux-gnu/libwayland-egl.so.1 (0x00007fc329db4000)\n\
+        \tlibwayland-client.so.0 => /lib/x86_64-linux-gnu/libwayland-client.so.0 (0x00007fc329da3000)\n\
+        \tlibwayland-cursor.so.0 => /lib/x86_64-linux-gnu/libwayland-cursor.so.0 (0x00007fc329d98000)\n\
+        \tlibxkbcommon.so.0 => /lib/x86_64-linux-gnu/libxkbcommon.so.0 (0x00007fc329d56000)\n\
+        \tlibbsd.so.0 => /lib/x86_64-linux-gnu/libbsd.so.0 (0x00007fc329d3a000)\n\t\
+        libarpack.so.2 => /lib/x86_64-linux-gnu/libarpack.so.2 (0x00007fc329cf2000)\n\
+        \tlibsuperlu.so.5 => /lib/x86_64-linux-gnu/libsuperlu.so.5 (0x00007fc329c82000)\n\
+        \tlibnss3.so => /lib/x86_64-linux-gnu/libnss3.so (0x00007fc329b27000)\n\t\
+        libsmime3.so => /lib/x86_64-linux-gnu/libsmime3.so (0x00007fc329af7000)\n\t\
+        libnspr4.so => /lib/x86_64-linux-gnu/libnspr4.so (0x00007fc329ab4000)\n\t\
+        libgeos-3.8.0.so => /lib/x86_64-linux-gnu/libgeos-3.8.0.so (0x00007fc3298eb000)\n\
+        \tlibltdl.so.7 => /lib/x86_64-linux-gnu/libltdl.so.7 (0x00007fc3298e0000)\n\
+        \tliburiparser.so.1 => /lib/x86_64-linux-gnu/liburiparser.so.1 (0x00007fc3298c1000)\n\
+        \tlibhdf5_serial_hl.so.100 => /lib/x86_64-linux-gnu/libhdf5_serial_hl.so.100\
+        \ (0x00007fc32989a000)\n\tlibsz.so.2 => /lib/x86_64-linux-gnu/libsz.so.2 (0x00007fc329893000)\n\
+        \tlibsqlite3.so.0 => /lib/x86_64-linux-gnu/libsqlite3.so.0 (0x00007fc32976a000)\n\
+        \tlibfyut.so.0 => /lib/x86_64-linux-gnu/libfyut.so.0 (0x00007fc32975e000)\n\
+        \tlibfygm.so.0 => /lib/x86_64-linux-gnu/libfygm.so.0 (0x00007fc329755000)\n\
+        \tlibquadmath.so.0 => /lib/x86_64-linux-gnu/libquadmath.so.0 (0x00007fc329709000)\n\
+        \tlibkeyutils.so.1 => /lib/x86_64-linux-gnu/libkeyutils.so.1 (0x00007fc329702000)\n\
+        \tlibheimntlm.so.0 => /lib/x86_64-linux-gnu/libheimntlm.so.0 (0x00007fc3296f6000)\n\
+        \tlibkrb5.so.26 => /lib/x86_64-linux-gnu/libkrb5.so.26 (0x00007fc329663000)\n\
+        \tlibasn1.so.8 => /lib/x86_64-linux-gnu/libasn1.so.8 (0x00007fc3295bd000)\n\
+        \tlibhcrypto.so.4 => /lib/x86_64-linux-gnu/libhcrypto.so.4 (0x00007fc329583000)\n\
+        \tlibroken.so.18 => /lib/x86_64-linux-gnu/libroken.so.18 (0x00007fc32956a000)\n\
+        \tlibgmodule-2.0.so.0 => /lib/x86_64-linux-gnu/libgmodule-2.0.so.0 (0x00007fc329564000)\n\
+        \tlibmount.so.1 => /lib/x86_64-linux-gnu/libmount.so.1 (0x00007fc329504000)\n\
+        \tlibselinux.so.1 => /lib/x86_64-linux-gnu/libselinux.so.1 (0x00007fc3294d9000)\n\
+        \tlibpangoft2-1.0.so.0 => /lib/x86_64-linux-gnu/libpangoft2-1.0.so.0 (0x00007fc3294be000)\n\
+        \tlibthai.so.0 => /lib/x86_64-linux-gnu/libthai.so.0 (0x00007fc3294b3000)\n\
+        \tlibharfbuzz.so.0 => /lib/x86_64-linux-gnu/libharfbuzz.so.0 (0x00007fc3293af000)\n\
+        \tlibserd-0.so.0 => /lib/x86_64-linux-gnu/libserd-0.so.0 (0x00007fc32938e000)\n\
+        \tlibsord-0.so.0 => /lib/x86_64-linux-gnu/libsord-0.so.0 (0x00007fc329382000)\n\
+        \tlibsratom-0.so.0 => /lib/x86_64-linux-gnu/libsratom-0.so.0 (0x00007fc329374000)\n\
+        \tlibsamplerate.so.0 => /lib/x86_64-linux-gnu/libsamplerate.so.0 (0x00007fc329008000)\n\
+        \tlibfftw3.so.3 => /lib/x86_64-linux-gnu/libfftw3.so.3 (0x00007fc328e02000)\n\
+        \tlibflite_usenglish.so.1 => /lib/x86_64-linux-gnu/libflite_usenglish.so.1\
+        \ (0x00007fc328dd7000)\n\tlibflite_cmulex.so.1 => /lib/x86_64-linux-gnu/libflite_cmulex.so.1\
+        \ (0x00007fc328d40000)\n\tlibsystemd.so.0 => /lib/x86_64-linux-gnu/libsystemd.so.0\
+        \ (0x00007fc328c8f000)\n\tlibwrap.so.0 => /lib/x86_64-linux-gnu/libwrap.so.0\
+        \ (0x00007fc328c83000)\n\tlibsndfile.so.1 => /lib/x86_64-linux-gnu/libsndfile.so.1\
+        \ (0x00007fc328c04000)\n\tlibasyncns.so.0 => /lib/x86_64-linux-gnu/libasyncns.so.0\
+        \ (0x00007fc3289fe000)\n\tlibapparmor.so.1 => /lib/x86_64-linux-gnu/libapparmor.so.1\
+        \ (0x00007fc3289e9000)\n\tlibnssutil3.so => /lib/x86_64-linux-gnu/libnssutil3.so\
+        \ (0x00007fc3289b4000)\n\tlibplc4.so => /lib/x86_64-linux-gnu/libplc4.so (0x00007fc3289ad000)\n\
+        \tlibplds4.so => /lib/x86_64-linux-gnu/libplds4.so (0x00007fc3289a8000)\n\t\
+        libaec.so.0 => /lib/x86_64-linux-gnu/libaec.so.0 (0x00007fc32899f000)\n\t\
+        libwind.so.0 => /lib/x86_64-linux-gnu/libwind.so.0 (0x00007fc328975000)\n\t\
+        libheimbase.so.1 => /lib/x86_64-linux-gnu/libheimbase.so.1 (0x00007fc328961000)\n\
+        \tlibhx509.so.5 => /lib/x86_64-linux-gnu/libhx509.so.5 (0x00007fc328913000)\n\
+        \tlibblkid.so.1 => /lib/x86_64-linux-gnu/libblkid.so.1 (0x00007fc3288bc000)\n\
+        \tlibpcre2-8.so.0 => /lib/x86_64-linux-gnu/libpcre2-8.so.0 (0x00007fc32882b000)\n\
+        \tlibdatrie.so.1 => /lib/x86_64-linux-gnu/libdatrie.so.1 (0x00007fc328821000)\n\
+        \tlibgraphite2.so.3 => /lib/x86_64-linux-gnu/libgraphite2.so.3 (0x00007fc3287f2000)\n\
+        \tliblz4.so.1 => /lib/x86_64-linux-gnu/liblz4.so.1 (0x00007fc3287d1000)\n\t\
+        libnsl.so.1 => /lib/x86_64-linux-gnu/libnsl.so.1 (0x00007fc3287b4000)\n\t\
+        libFLAC.so.8 => /lib/x86_64-linux-gnu/libFLAC.so.8 (0x00007fc328776000)\n"
+  v2_trajectory_actor_plugin:
+    path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libv2_trajectory_actor_plugin.so
+    sha256: 48b2f18b68df985921c8461ae4143cc72879c1d2a9d022c025f389c72a1764bf
+    ldd:
+      command:
+      - ldd
+      - /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libv2_trajectory_actor_plugin.so
+      exit_code: 0
+      output: "\tlinux-vdso.so.1 (0x00007ffc0774f000)\n\tlibgazebo_physics.so.11 =>\
+        \ /lib/x86_64-linux-gnu/libgazebo_physics.so.11 (0x00007f06e1335000)\n\tlibgazebo_common.so.11\
+        \ => /lib/x86_64-linux-gnu/libgazebo_common.so.11 (0x00007f06e11c1000)\n\t\
+        libsdformat9.so.9 => /lib/x86_64-linux-gnu/libsdformat9.so.9 (0x00007f06e0fa6000)\n\
+        \tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f06e0dc4000)\n\
+        \tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f06e0c75000)\n\tlibgcc_s.so.1\
+        \ => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f06e0c58000)\n\tlibc.so.6\
+        \ => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f06e0a66000)\n\tlibgazebo_util.so.11\
+        \ => /lib/x86_64-linux-gnu/libgazebo_util.so.11 (0x00007f06e09a7000)\n\tlibgazebo_ode.so.11\
+        \ => /lib/x86_64-linux-gnu/libgazebo_ode.so.11 (0x00007f06e08d2000)\n\tlibboost_regex.so.1.71.0\
+        \ => /lib/x86_64-linux-gnu/libboost_regex.so.1.71.0 (0x00007f06e07d2000)\n\
+        \tlibBulletDynamics.so.2.88 => /lib/x86_64-linux-gnu/libBulletDynamics.so.2.88\
+        \ (0x00007f06e06fc000)\n\tlibBulletCollision.so.2.88 => /lib/x86_64-linux-gnu/libBulletCollision.so.2.88\
+        \ (0x00007f06e05f2000)\n\tlibLinearMath.so.2.88 => /lib/x86_64-linux-gnu/libLinearMath.so.2.88\
+        \ (0x00007f06e05cf000)\n\tlibdart-collision-bullet.so.6 => /lib/x86_64-linux-gnu/libdart-collision-bullet.so.6\
+        \ (0x00007f06e05ad000)\n\tlibSimTKsimbody.so.3.6 => /lib/x86_64-linux-gnu/libSimTKsimbody.so.3.6\
+        \ (0x00007f06dffa7000)\n\tlibignition-transport8.so.8 => /lib/x86_64-linux-gnu/libignition-transport8.so.8\
+        \ (0x00007f06dfee8000)\n\tlibgazebo_transport.so.11 => /lib/x86_64-linux-gnu/libgazebo_transport.so.11\
+        \ (0x00007f06dfe22000)\n\tlibgazebo_msgs.so.11 => /lib/x86_64-linux-gnu/libgazebo_msgs.so.11\
+        \ (0x00007f06dfb47000)\n\tlibignition-common3.so.3 => /lib/x86_64-linux-gnu/libignition-common3.so.3\
+        \ (0x00007f06dfad9000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f06dfad3000)\n\
+        \tlibprotobuf.so.17 => /lib/x86_64-linux-gnu/libprotobuf.so.17 (0x00007f06df7da000)\n\
+        \tlibignition-msgs5.so.5 => /lib/x86_64-linux-gnu/libignition-msgs5.so.5 (0x00007f06df3f0000)\n\
+        \tlibignition-math6.so.6 => /lib/x86_64-linux-gnu/libignition-math6.so.6 (0x00007f06df38b000)\n\
+        \tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f06df366000)\n\
+        \tlibode.so.8 => /lib/x86_64-linux-gnu/libode.so.8 (0x00007f06df242000)\n\t\
+        libdart.so.6 => /lib/x86_64-linux-gnu/libdart.so.6 (0x00007f06dec26000)\n\t\
+        libassimp.so.5 => /lib/x86_64-linux-gnu/libassimp.so.5 (0x00007f06ddfd9000)\n\
+        \tlibSimTKmath.so.3.6 => /lib/x86_64-linux-gnu/libSimTKmath.so.3.6 (0x00007f06ddb4d000)\n\
+        \tlibSimTKcommon.so.3.6 => /lib/x86_64-linux-gnu/libSimTKcommon.so.3.6 (0x00007f06dd74b000)\n\
+        \tlibboost_thread.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_thread.so.1.71.0\
+        \ (0x00007f06dd71d000)\n\tlibboost_filesystem.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0\
+        \ (0x00007f06dd6ff000)\n\tlibboost_iostreams.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_iostreams.so.1.71.0\
+        \ (0x00007f06dd6d8000)\n\tlibfreeimage.so.3 => /lib/x86_64-linux-gnu/libfreeimage.so.3\
+        \ (0x00007f06dd61c000)\n\tlibtar.so.0 => /lib/x86_64-linux-gnu/libtar.so.0\
+        \ (0x00007f06dd610000)\n\tlibtinyxml.so.2.6.2 => /lib/x86_64-linux-gnu/libtinyxml.so.2.6.2\
+        \ (0x00007f06dd5f6000)\n\tlibcurl.so.4 => /lib/x86_64-linux-gnu/libcurl.so.4\
+        \ (0x00007f06dd563000)\n\tlibavcodec.so.58 => /lib/x86_64-linux-gnu/libavcodec.so.58\
+        \ (0x00007f06dbfa2000)\n\tlibavformat.so.58 => /lib/x86_64-linux-gnu/libavformat.so.58\
+        \ (0x00007f06dbd28000)\n\tlibavutil.so.56 => /lib/x86_64-linux-gnu/libavutil.so.56\
+        \ (0x00007f06dbbff000)\n\tlibavdevice.so.58 => /lib/x86_64-linux-gnu/libavdevice.so.58\
+        \ (0x00007f06dbbcb000)\n\tlibswscale.so.5 => /lib/x86_64-linux-gnu/libswscale.so.5\
+        \ (0x00007f06dbb32000)\n\tlibgts-0.7.so.5 => /lib/x86_64-linux-gnu/libgts-0.7.so.5\
+        \ (0x00007f06db8d5000)\n\tlibglib-2.0.so.0 => /lib/x86_64-linux-gnu/libglib-2.0.so.0\
+        \ (0x00007f06db7ab000)\n\tlibgdal.so.26 => /lib/libgdal.so.26 (0x00007f06da424000)\n\
+        \tlibignition-fuel_tools4.so.4 => /lib/x86_64-linux-gnu/libignition-fuel_tools4.so.4\
+        \ (0x00007f06da382000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007f06e1870000)\n\
+        \tlibtinyxml2.so.6 => /lib/x86_64-linux-gnu/libtinyxml2.so.6 (0x00007f06da369000)\n\
+        \tlibgazebo_opcode.so.11 => /lib/x86_64-linux-gnu/libgazebo_opcode.so.11 (0x00007f06da311000)\n\
+        \tlibgazebo_opende_ou.so.11 => /lib/x86_64-linux-gnu/libgazebo_opende_ou.so.11\
+        \ (0x00007f06da30b000)\n\tlibccd.so.2 => /lib/x86_64-linux-gnu/libccd.so.2\
+        \ (0x00007f06da2ff000)\n\tlibicui18n.so.66 => /lib/x86_64-linux-gnu/libicui18n.so.66\
+        \ (0x00007f06da000000)\n\tlibicuuc.so.66 => /lib/x86_64-linux-gnu/libicuuc.so.66\
+        \ (0x00007f06d9e18000)\n\tliblapack.so.3 => /lib/x86_64-linux-gnu/liblapack.so.3\
+        \ (0x00007f06d9750000)\n\tlibzmq.so.5 => /lib/x86_64-linux-gnu/libzmq.so.5\
+        \ (0x00007f06d96aa000)\n\tlibuuid.so.1 => /lib/x86_64-linux-gnu/libuuid.so.1\
+        \ (0x00007f06d96a1000)\n\tlibtbb.so.2 => /lib/x86_64-linux-gnu/libtbb.so.2\
+        \ (0x00007f06d965b000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f06d963d000)\n\
+        \tlibdart-external-odelcpsolver.so.6 => /lib/x86_64-linux-gnu/libdart-external-odelcpsolver.so.6\
+        \ (0x00007f06d962f000)\n\tliboctomap.so.1.9 => /opt/ros/noetic/lib/liboctomap.so.1.9\
+        \ (0x00007f06d95e6000)\n\tlibfcl.so.0.5 => /lib/x86_64-linux-gnu/libfcl.so.0.5\
+        \ (0x00007f06d8c5c000)\n\tliboctomath.so.1.9 => /opt/ros/noetic/lib/liboctomath.so.1.9\
+        \ (0x00007f06d8c54000)\n\tlibminizip.so.1 => /lib/x86_64-linux-gnu/libminizip.so.1\
+        \ (0x00007f06d8a47000)\n\tlibblas.so.3 => /lib/x86_64-linux-gnu/libblas.so.3\
+        \ (0x00007f06d8681000)\n\tlibbz2.so.1.0 => /lib/x86_64-linux-gnu/libbz2.so.1.0\
+        \ (0x00007f06d866e000)\n\tliblzma.so.5 => /lib/x86_64-linux-gnu/liblzma.so.5\
+        \ (0x00007f06d8645000)\n\tlibzstd.so.1 => /lib/x86_64-linux-gnu/libzstd.so.1\
+        \ (0x00007f06d859c000)\n\tlibjxrglue.so.0 => /lib/x86_64-linux-gnu/libjxrglue.so.0\
+        \ (0x00007f06d837a000)\n\tlibjpeg.so.8 => /lib/x86_64-linux-gnu/libjpeg.so.8\
+        \ (0x00007f06d82f5000)\n\tlibopenjp2.so.7 => /lib/x86_64-linux-gnu/libopenjp2.so.7\
+        \ (0x00007f06d829f000)\n\tlibpng16.so.16 => /lib/x86_64-linux-gnu/libpng16.so.16\
+        \ (0x00007f06d8267000)\n\tlibraw.so.19 => /lib/x86_64-linux-gnu/libraw.so.19\
+        \ (0x00007f06d8187000)\n\tlibtiff.so.5 => /lib/x86_64-linux-gnu/libtiff.so.5\
+        \ (0x00007f06d8105000)\n\tlibwebpmux.so.3 => /lib/x86_64-linux-gnu/libwebpmux.so.3\
+        \ (0x00007f06d80f7000)\n\tlibwebp.so.6 => /lib/x86_64-linux-gnu/libwebp.so.6\
+        \ (0x00007f06d808d000)\n\tlibIlmImf-2_3.so.24 => /lib/x86_64-linux-gnu/libIlmImf-2_3.so.24\
+        \ (0x00007f06d7dae000)\n\tlibHalf.so.24 => /lib/x86_64-linux-gnu/libHalf.so.24\
+        \ (0x00007f06d7d69000)\n\tlibIex-2_3.so.24 => /lib/x86_64-linux-gnu/libIex-2_3.so.24\
+        \ (0x00007f06d7d48000)\n\tlibnghttp2.so.14 => /lib/x86_64-linux-gnu/libnghttp2.so.14\
+        \ (0x00007f06d7d1c000)\n\tlibidn2.so.0 => /lib/x86_64-linux-gnu/libidn2.so.0\
+        \ (0x00007f06d7cfb000)\n\tlibrtmp.so.1 => /lib/x86_64-linux-gnu/librtmp.so.1\
+        \ (0x00007f06d7cdb000)\n\tlibssh.so.4 => /lib/x86_64-linux-gnu/libssh.so.4\
+        \ (0x00007f06d7c6c000)\n\tlibpsl.so.5 => /lib/x86_64-linux-gnu/libpsl.so.5\
+        \ (0x00007f06d7c59000)\n\tlibssl.so.1.1 => /lib/x86_64-linux-gnu/libssl.so.1.1\
+        \ (0x00007f06d7bc6000)\n\tlibcrypto.so.1.1 => /lib/x86_64-linux-gnu/libcrypto.so.1.1\
+        \ (0x00007f06d78ef000)\n\tlibgssapi_krb5.so.2 => /lib/x86_64-linux-gnu/libgssapi_krb5.so.2\
+        \ (0x00007f06d78a0000)\n\tlibldap_r-2.4.so.2 => /lib/x86_64-linux-gnu/libldap_r-2.4.so.2\
+        \ (0x00007f06d784a000)\n\tliblber-2.4.so.2 => /lib/x86_64-linux-gnu/liblber-2.4.so.2\
+        \ (0x00007f06d7839000)\n\tlibbrotlidec.so.1 => /lib/x86_64-linux-gnu/libbrotlidec.so.1\
+        \ (0x00007f06d782b000)\n\tlibswresample.so.3 => /lib/x86_64-linux-gnu/libswresample.so.3\
+        \ (0x00007f06d7809000)\n\tlibvpx.so.6 => /lib/x86_64-linux-gnu/libvpx.so.6\
+        \ (0x00007f06d75d1000)\n\tlibrsvg-2.so.2 => /lib/x86_64-linux-gnu/librsvg-2.so.2\
+        \ (0x00007f06d6cb2000)\n\tlibgobject-2.0.so.0 => /lib/x86_64-linux-gnu/libgobject-2.0.so.0\
+        \ (0x00007f06d6c52000)\n\tlibcairo.so.2 => /lib/x86_64-linux-gnu/libcairo.so.2\
+        \ (0x00007f06d6b2f000)\n\tlibzvbi.so.0 => /lib/x86_64-linux-gnu/libzvbi.so.0\
+        \ (0x00007f06d6aa0000)\n\tlibsnappy.so.1 => /lib/x86_64-linux-gnu/libsnappy.so.1\
+        \ (0x00007f06d6a95000)\n\tlibaom.so.0 => /lib/x86_64-linux-gnu/libaom.so.0\
+        \ (0x00007f06d65f7000)\n\tlibcodec2.so.0.9 => /lib/x86_64-linux-gnu/libcodec2.so.0.9\
+        \ (0x00007f06d5811000)\n\tlibgsm.so.1 => /lib/x86_64-linux-gnu/libgsm.so.1\
+        \ (0x00007f06d5802000)\n\tlibmp3lame.so.0 => /lib/x86_64-linux-gnu/libmp3lame.so.0\
+        \ (0x00007f06d578a000)\n\tlibopus.so.0 => /lib/x86_64-linux-gnu/libopus.so.0\
+        \ (0x00007f06d572b000)\n\tlibshine.so.3 => /lib/x86_64-linux-gnu/libshine.so.3\
+        \ (0x00007f06d5520000)\n\tlibspeex.so.1 => /lib/x86_64-linux-gnu/libspeex.so.1\
+        \ (0x00007f06d5502000)\n\tlibtheoraenc.so.1 => /lib/x86_64-linux-gnu/libtheoraenc.so.1\
+        \ (0x00007f06d54c3000)\n\tlibtheoradec.so.1 => /lib/x86_64-linux-gnu/libtheoradec.so.1\
+        \ (0x00007f06d54a3000)\n\tlibtwolame.so.0 => /lib/x86_64-linux-gnu/libtwolame.so.0\
+        \ (0x00007f06d547d000)\n\tlibvorbis.so.0 => /lib/x86_64-linux-gnu/libvorbis.so.0\
+        \ (0x00007f06d544f000)\n\tlibvorbisenc.so.2 => /lib/x86_64-linux-gnu/libvorbisenc.so.2\
+        \ (0x00007f06d53a4000)\n\tlibwavpack.so.1 => /lib/x86_64-linux-gnu/libwavpack.so.1\
+        \ (0x00007f06d5378000)\n\tlibx264.so.155 => /lib/x86_64-linux-gnu/libx264.so.155\
+        \ (0x00007f06d50b8000)\n\tlibx265.so.179 => /lib/x86_64-linux-gnu/libx265.so.179\
+        \ (0x00007f06d414a000)\n\tlibxvidcore.so.4 => /lib/x86_64-linux-gnu/libxvidcore.so.4\
+        \ (0x00007f06d4037000)\n\tlibva.so.2 => /lib/x86_64-linux-gnu/libva.so.2 (0x00007f06d400e000)\n\
+        \tlibxml2.so.2 => /lib/x86_64-linux-gnu/libxml2.so.2 (0x00007f06d3e54000)\n\
+        \tlibgme.so.0 => /lib/x86_64-linux-gnu/libgme.so.0 (0x00007f06d3e05000)\n\t\
+        libopenmpt.so.0 => /lib/x86_64-linux-gnu/libopenmpt.so.0 (0x00007f06d3c18000)\n\
+        \tlibchromaprint.so.1 => /lib/x86_64-linux-gnu/libchromaprint.so.1 (0x00007f06d3c02000)\n\
+        \tlibbluray.so.2 => /lib/x86_64-linux-gnu/libbluray.so.2 (0x00007f06d3bb1000)\n\
+        \tlibgnutls.so.30 => /lib/x86_64-linux-gnu/libgnutls.so.30 (0x00007f06d39db000)\n\
+        \tlibssh-gcrypt.so.4 => /lib/x86_64-linux-gnu/libssh-gcrypt.so.4 (0x00007f06d394d000)\n\
+        \tlibva-drm.so.2 => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007f06d3946000)\n\
+        \tlibva-x11.so.2 => /lib/x86_64-linux-gnu/libva-x11.so.2 (0x00007f06d393e000)\n\
+        \tlibvdpau.so.1 => /lib/x86_64-linux-gnu/libvdpau.so.1 (0x00007f06d3938000)\n\
+        \tlibX11.so.6 => /lib/x86_64-linux-gnu/libX11.so.6 (0x00007f06d37fb000)\n\t\
+        libdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007f06d37e5000)\n\t\
+        libOpenCL.so.1 => /lib/x86_64-linux-gnu/libOpenCL.so.1 (0x00007f06d35da000)\n\
+        \tlibavfilter.so.7 => /lib/x86_64-linux-gnu/libavfilter.so.7 (0x00007f06d3257000)\n\
+        \tlibraw1394.so.11 => /lib/x86_64-linux-gnu/libraw1394.so.11 (0x00007f06d3048000)\n\
+        \tlibavc1394.so.0 => /lib/x86_64-linux-gnu/libavc1394.so.0 (0x00007f06d2e43000)\n\
+        \tlibrom1394.so.0 => /lib/x86_64-linux-gnu/librom1394.so.0 (0x00007f06d2c3e000)\n\
+        \tlibiec61883.so.0 => /lib/x86_64-linux-gnu/libiec61883.so.0 (0x00007f06d2c30000)\n\
+        \tlibjack.so.0 => /lib/x86_64-linux-gnu/libjack.so.0 (0x00007f06d2be4000)\n\
+        \tlibopenal.so.1 => /lib/x86_64-linux-gnu/libopenal.so.1 (0x00007f06d2afa000)\n\
+        \tlibxcb.so.1 => /lib/x86_64-linux-gnu/libxcb.so.1 (0x00007f06d2ad0000)\n\t\
+        libxcb-shm.so.0 => /lib/x86_64-linux-gnu/libxcb-shm.so.0 (0x00007f06d2acb000)\n\
+        \tlibxcb-shape.so.0 => /lib/x86_64-linux-gnu/libxcb-shape.so.0 (0x00007f06d2ac6000)\n\
+        \tlibxcb-xfixes.so.0 => /lib/x86_64-linux-gnu/libxcb-xfixes.so.0 (0x00007f06d2abc000)\n\
+        \tlibcdio_paranoia.so.2 => /lib/x86_64-linux-gnu/libcdio_paranoia.so.2 (0x00007f06d2ab2000)\n\
+        \tlibcdio_cdda.so.2 => /lib/x86_64-linux-gnu/libcdio_cdda.so.2 (0x00007f06d2aa6000)\n\
+        \tlibdc1394.so.22 => /lib/x86_64-linux-gnu/libdc1394.so.22 (0x00007f06d2a2e000)\n\
+        \tlibasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007f06d2933000)\n\
+        \tlibcaca.so.0 => /lib/x86_64-linux-gnu/libcaca.so.0 (0x00007f06d2867000)\n\
+        \tlibGL.so.1 => /lib/x86_64-linux-gnu/libGL.so.1 (0x00007f06d27df000)\n\t\
+        libpulse.so.0 => /lib/x86_64-linux-gnu/libpulse.so.0 (0x00007f06d278a000)\n\
+        \tlibSDL2-2.0.so.0 => /lib/x86_64-linux-gnu/libSDL2-2.0.so.0 (0x00007f06d2633000)\n\
+        \tlibsndio.so.7.0 => /lib/x86_64-linux-gnu/libsndio.so.7.0 (0x00007f06d2622000)\n\
+        \tlibXv.so.1 => /lib/x86_64-linux-gnu/libXv.so.1 (0x00007f06d241d000)\n\t\
+        libXext.so.6 => /lib/x86_64-linux-gnu/libXext.so.6 (0x00007f06d2408000)\n\t\
+        libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007f06d2395000)\n\t\
+        libarmadillo.so.9 => /lib/libarmadillo.so.9 (0x00007f06d2380000)\n\tlibpoppler.so.97\
+        \ => /lib/x86_64-linux-gnu/libpoppler.so.97 (0x00007f06d203c000)\n\tlibjson-c.so.4\
+        \ => /lib/x86_64-linux-gnu/libjson-c.so.4 (0x00007f06d202a000)\n\tlibfreexl.so.1\
+        \ => /lib/x86_64-linux-gnu/libfreexl.so.1 (0x00007f06d201f000)\n\tlibqhull.so.7\
+        \ => /lib/x86_64-linux-gnu/libqhull.so.7 (0x00007f06d1dc5000)\n\tlibgeos_c.so.1\
+        \ => /lib/x86_64-linux-gnu/libgeos_c.so.1 (0x00007f06d1d82000)\n\tlibepsilon.so.1\
+        \ => /lib/x86_64-linux-gnu/libepsilon.so.1 (0x00007f06d1d66000)\n\tlibodbc.so.2\
+        \ => /lib/x86_64-linux-gnu/libodbc.so.2 (0x00007f06d1cf3000)\n\tlibodbcinst.so.2\
+        \ => /lib/x86_64-linux-gnu/libodbcinst.so.2 (0x00007f06d1cdb000)\n\tlibkmlbase.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmlbase.so.1 (0x00007f06d1cbe000)\n\tlibkmldom.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmldom.so.1 (0x00007f06d1c1d000)\n\tlibkmlengine.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmlengine.so.1 (0x00007f06d1be3000)\n\tlibexpat.so.1\
+        \ => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007f06d1bb3000)\n\tlibxerces-c-3.2.so\
+        \ => /lib/x86_64-linux-gnu/libxerces-c-3.2.so (0x00007f06d1820000)\n\tlibnetcdf.so.15\
+        \ => /lib/x86_64-linux-gnu/libnetcdf.so.15 (0x00007f06d16fb000)\n\tlibhdf5_serial.so.103\
+        \ => /lib/x86_64-linux-gnu/libhdf5_serial.so.103 (0x00007f06d137e000)\n\t\
+        libmfhdfalt.so.0 => /lib/libmfhdfalt.so.0 (0x00007f06d1354000)\n\tlibdfalt.so.0\
+        \ => /lib/libdfalt.so.0 (0x00007f06d12af000)\n\tlibogdi.so.4.1 => /lib/libogdi.so.4.1\
+        \ (0x00007f06d1291000)\n\tlibgif.so.7 => /lib/x86_64-linux-gnu/libgif.so.7\
+        \ (0x00007f06d1286000)\n\tlibCharLS.so.2 => /lib/x86_64-linux-gnu/libCharLS.so.2\
+        \ (0x00007f06d1237000)\n\tlibgeotiff.so.5 => /lib/x86_64-linux-gnu/libgeotiff.so.5\
+        \ (0x00007f06d1202000)\n\tlibcfitsio.so.8 => /lib/x86_64-linux-gnu/libcfitsio.so.8\
+        \ (0x00007f06d0f03000)\n\tlibpq.so.5 => /lib/x86_64-linux-gnu/libpq.so.5 (0x00007f06d0eb2000)\n\
+        \tlibproj.so.15 => /lib/x86_64-linux-gnu/libproj.so.15 (0x00007f06d0bc1000)\n\
+        \tlibdapclient.so.6 => /lib/x86_64-linux-gnu/libdapclient.so.6 (0x00007f06d0b79000)\n\
+        \tlibdap.so.25 => /lib/x86_64-linux-gnu/libdap.so.25 (0x00007f06d09db000)\n\
+        \tlibspatialite.so.7 => /lib/x86_64-linux-gnu/libspatialite.so.7 (0x00007f06d044c000)\n\
+        \tlibcurl-gnutls.so.4 => /lib/x86_64-linux-gnu/libcurl-gnutls.so.4 (0x00007f06d03bc000)\n\
+        \tlibfyba.so.0 => /lib/x86_64-linux-gnu/libfyba.so.0 (0x00007f06d0364000)\n\
+        \tlibmysqlclient.so.21 => /lib/x86_64-linux-gnu/libmysqlclient.so.21 (0x00007f06cfc36000)\n\
+        \tlibjsoncpp.so.1 => /lib/x86_64-linux-gnu/libjsoncpp.so.1 (0x00007f06cfc00000)\n\
+        \tlibyaml-0.so.2 => /lib/x86_64-linux-gnu/libyaml-0.so.2 (0x00007f06cfbde000)\n\
+        \tlibzip.so.5 => /lib/x86_64-linux-gnu/libzip.so.5 (0x00007f06cfbc3000)\n\t\
+        libicudata.so.66 => /lib/x86_64-linux-gnu/libicudata.so.66 (0x00007f06ce102000)\n\
+        \tlibgfortran.so.5 => /lib/x86_64-linux-gnu/libgfortran.so.5 (0x00007f06cde38000)\n\
+        \tlibsodium.so.23 => /lib/x86_64-linux-gnu/libsodium.so.23 (0x00007f06cdde0000)\n\
+        \tlibpgm-5.2.so.0 => /lib/x86_64-linux-gnu/libpgm-5.2.so.0 (0x00007f06cdd91000)\n\
+        \tlibnorm.so.1 => /lib/x86_64-linux-gnu/libnorm.so.1 (0x00007f06cdc36000)\n\
+        \tlibjpegxr.so.0 => /lib/x86_64-linux-gnu/libjpegxr.so.0 (0x00007f06cda02000)\n\
+        \tliblcms2.so.2 => /lib/x86_64-linux-gnu/liblcms2.so.2 (0x00007f06cd9a5000)\n\
+        \tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f06cd963000)\n\
+        \tlibjbig.so.0 => /lib/x86_64-linux-gnu/libjbig.so.0 (0x00007f06cd952000)\n\
+        \tlibIlmThread-2_3.so.24 => /lib/x86_64-linux-gnu/libIlmThread-2_3.so.24 (0x00007f06cd948000)\n\
+        \tlibunistring.so.2 => /lib/x86_64-linux-gnu/libunistring.so.2 (0x00007f06cd7c6000)\n\
+        \tlibhogweed.so.5 => /lib/x86_64-linux-gnu/libhogweed.so.5 (0x00007f06cd78d000)\n\
+        \tlibnettle.so.7 => /lib/x86_64-linux-gnu/libnettle.so.7 (0x00007f06cd753000)\n\
+        \tlibgmp.so.10 => /lib/x86_64-linux-gnu/libgmp.so.10 (0x00007f06cd6cf000)\n\
+        \tlibkrb5.so.3 => /lib/x86_64-linux-gnu/libkrb5.so.3 (0x00007f06cd5f2000)\n\
+        \tlibk5crypto.so.3 => /lib/x86_64-linux-gnu/libk5crypto.so.3 (0x00007f06cd5c1000)\n\
+        \tlibcom_err.so.2 => /lib/x86_64-linux-gnu/libcom_err.so.2 (0x00007f06cd5b8000)\n\
+        \tlibkrb5support.so.0 => /lib/x86_64-linux-gnu/libkrb5support.so.0 (0x00007f06cd5a9000)\n\
+        \tlibresolv.so.2 => /lib/x86_64-linux-gnu/libresolv.so.2 (0x00007f06cd58d000)\n\
+        \tlibsasl2.so.2 => /lib/x86_64-linux-gnu/libsasl2.so.2 (0x00007f06cd570000)\n\
+        \tlibgssapi.so.3 => /lib/x86_64-linux-gnu/libgssapi.so.3 (0x00007f06cd52b000)\n\
+        \tlibbrotlicommon.so.1 => /lib/x86_64-linux-gnu/libbrotlicommon.so.1 (0x00007f06cd508000)\n\
+        \tlibsoxr.so.0 => /lib/x86_64-linux-gnu/libsoxr.so.0 (0x00007f06cd49b000)\n\
+        \tlibcairo-gobject.so.2 => /lib/x86_64-linux-gnu/libcairo-gobject.so.2 (0x00007f06cd48f000)\n\
+        \tlibgdk_pixbuf-2.0.so.0 => /lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x00007f06cd467000)\n\
+        \tlibgio-2.0.so.0 => /lib/x86_64-linux-gnu/libgio-2.0.so.0 (0x00007f06cd285000)\n\
+        \tlibpangocairo-1.0.so.0 => /lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 (0x00007f06cd273000)\n\
+        \tlibpango-1.0.so.0 => /lib/x86_64-linux-gnu/libpango-1.0.so.0 (0x00007f06cd224000)\n\
+        \tlibffi.so.7 => /lib/x86_64-linux-gnu/libffi.so.7 (0x00007f06cd216000)\n\t\
+        libpixman-1.so.0 => /lib/x86_64-linux-gnu/libpixman-1.so.0 (0x00007f06cd16f000)\n\
+        \tlibfontconfig.so.1 => /lib/x86_64-linux-gnu/libfontconfig.so.1 (0x00007f06cd128000)\n\
+        \tlibfreetype.so.6 => /lib/x86_64-linux-gnu/libfreetype.so.6 (0x00007f06cd069000)\n\
+        \tlibxcb-render.so.0 => /lib/x86_64-linux-gnu/libxcb-render.so.0 (0x00007f06cd05a000)\n\
+        \tlibXrender.so.1 => /lib/x86_64-linux-gnu/libXrender.so.1 (0x00007f06cce50000)\n\
+        \tlibogg.so.0 => /lib/x86_64-linux-gnu/libogg.so.0 (0x00007f06cce41000)\n\t\
+        libnuma.so.1 => /lib/x86_64-linux-gnu/libnuma.so.1 (0x00007f06cce34000)\n\t\
+        libmpg123.so.0 => /lib/x86_64-linux-gnu/libmpg123.so.0 (0x00007f06ccdd4000)\n\
+        \tlibvorbisfile.so.3 => /lib/x86_64-linux-gnu/libvorbisfile.so.3 (0x00007f06ccdc9000)\n\
+        \tlibp11-kit.so.0 => /lib/x86_64-linux-gnu/libp11-kit.so.0 (0x00007f06ccc91000)\n\
+        \tlibtasn1.so.6 => /lib/x86_64-linux-gnu/libtasn1.so.6 (0x00007f06ccc7b000)\n\
+        \tlibgcrypt.so.20 => /lib/x86_64-linux-gnu/libgcrypt.so.20 (0x00007f06ccb5d000)\n\
+        \tlibgpg-error.so.0 => /lib/x86_64-linux-gnu/libgpg-error.so.0 (0x00007f06ccb3a000)\n\
+        \tlibXfixes.so.3 => /lib/x86_64-linux-gnu/libXfixes.so.3 (0x00007f06ccb32000)\n\
+        \tlibpostproc.so.55 => /lib/x86_64-linux-gnu/libpostproc.so.55 (0x00007f06ccb0e000)\n\
+        \tlibbs2b.so.0 => /lib/x86_64-linux-gnu/libbs2b.so.0 (0x00007f06ccb07000)\n\
+        \tliblilv-0.so.0 => /lib/x86_64-linux-gnu/liblilv-0.so.0 (0x00007f06ccaec000)\n\
+        \tlibrubberband.so.2 => /lib/x86_64-linux-gnu/librubberband.so.2 (0x00007f06ccaaf000)\n\
+        \tlibmysofa.so.1 => /lib/x86_64-linux-gnu/libmysofa.so.1 (0x00007f06cca9e000)\n\
+        \tlibflite_cmu_us_awb.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_awb.so.1\
+        \ (0x00007f06cc6a7000)\n\tlibflite_cmu_us_kal.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal.so.1\
+        \ (0x00007f06cc53f000)\n\tlibflite_cmu_us_kal16.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal16.so.1\
+        \ (0x00007f06cc165000)\n\tlibflite_cmu_us_rms.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_rms.so.1\
+        \ (0x00007f06cbcca000)\n\tlibflite_cmu_us_slt.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_slt.so.1\
+        \ (0x00007f06cb8d2000)\n\tlibflite.so.1 => /lib/x86_64-linux-gnu/libflite.so.1\
+        \ (0x00007f06cb899000)\n\tlibfribidi.so.0 => /lib/x86_64-linux-gnu/libfribidi.so.0\
+        \ (0x00007f06cb87c000)\n\tlibass.so.9 => /lib/x86_64-linux-gnu/libass.so.9\
+        \ (0x00007f06cb647000)\n\tlibvidstab.so.1.1 => /lib/x86_64-linux-gnu/libvidstab.so.1.1\
+        \ (0x00007f06cb633000)\n\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f06cb629000)\n\
+        \tlibXau.so.6 => /lib/x86_64-linux-gnu/libXau.so.6 (0x00007f06cb623000)\n\t\
+        libXdmcp.so.6 => /lib/x86_64-linux-gnu/libXdmcp.so.6 (0x00007f06cb61b000)\n\
+        \tlibcdio.so.18 => /lib/x86_64-linux-gnu/libcdio.so.18 (0x00007f06cb5ee000)\n\
+        \tlibusb-1.0.so.0 => /opt/MVS/lib/64/libusb-1.0.so.0 (0x00007f06cb3d6000)\n\
+        \tlibslang.so.2 => /lib/x86_64-linux-gnu/libslang.so.2 (0x00007f06cb0df000)\n\
+        \tlibncursesw.so.6 => /lib/x86_64-linux-gnu/libncursesw.so.6 (0x00007f06cb0a5000)\n\
+        \tlibtinfo.so.6 => /lib/x86_64-linux-gnu/libtinfo.so.6 (0x00007f06cb075000)\n\
+        \tlibGLdispatch.so.0 => /lib/x86_64-linux-gnu/libGLdispatch.so.0 (0x00007f06cafbb000)\n\
+        \tlibGLX.so.0 => /lib/x86_64-linux-gnu/libGLX.so.0 (0x00007f06caf87000)\n\t\
+        libpulsecommon-13.99.so => /usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-13.99.so\
+        \ (0x00007f06caf05000)\n\tlibdbus-1.so.3 => /lib/x86_64-linux-gnu/libdbus-1.so.3\
+        \ (0x00007f06caeb4000)\n\tlibXcursor.so.1 => /lib/x86_64-linux-gnu/libXcursor.so.1\
+        \ (0x00007f06caea7000)\n\tlibXinerama.so.1 => /lib/x86_64-linux-gnu/libXinerama.so.1\
+        \ (0x00007f06caea0000)\n\tlibXi.so.6 => /lib/x86_64-linux-gnu/libXi.so.6 (0x00007f06cae8e000)\n\
+        \tlibXrandr.so.2 => /lib/x86_64-linux-gnu/libXrandr.so.2 (0x00007f06cae81000)\n\
+        \tlibXss.so.1 => /lib/x86_64-linux-gnu/libXss.so.1 (0x00007f06cae7c000)\n\t\
+        libXxf86vm.so.1 => /lib/x86_64-linux-gnu/libXxf86vm.so.1 (0x00007f06cae75000)\n\
+        \tlibwayland-egl.so.1 => /lib/x86_64-linux-gnu/libwayland-egl.so.1 (0x00007f06cae70000)\n\
+        \tlibwayland-client.so.0 => /lib/x86_64-linux-gnu/libwayland-client.so.0 (0x00007f06cae5d000)\n\
+        \tlibwayland-cursor.so.0 => /lib/x86_64-linux-gnu/libwayland-cursor.so.0 (0x00007f06cae52000)\n\
+        \tlibxkbcommon.so.0 => /lib/x86_64-linux-gnu/libxkbcommon.so.0 (0x00007f06cae10000)\n\
+        \tlibbsd.so.0 => /lib/x86_64-linux-gnu/libbsd.so.0 (0x00007f06cadf6000)\n\t\
+        libarpack.so.2 => /lib/x86_64-linux-gnu/libarpack.so.2 (0x00007f06cadae000)\n\
+        \tlibsuperlu.so.5 => /lib/x86_64-linux-gnu/libsuperlu.so.5 (0x00007f06cad3c000)\n\
+        \tlibnss3.so => /lib/x86_64-linux-gnu/libnss3.so (0x00007f06cabe1000)\n\t\
+        libsmime3.so => /lib/x86_64-linux-gnu/libsmime3.so (0x00007f06cabb1000)\n\t\
+        libnspr4.so => /lib/x86_64-linux-gnu/libnspr4.so (0x00007f06cab70000)\n\t\
+        libgeos-3.8.0.so => /lib/x86_64-linux-gnu/libgeos-3.8.0.so (0x00007f06ca9a7000)\n\
+        \tlibltdl.so.7 => /lib/x86_64-linux-gnu/libltdl.so.7 (0x00007f06ca99a000)\n\
+        \tliburiparser.so.1 => /lib/x86_64-linux-gnu/liburiparser.so.1 (0x00007f06ca97b000)\n\
+        \tlibhdf5_serial_hl.so.100 => /lib/x86_64-linux-gnu/libhdf5_serial_hl.so.100\
+        \ (0x00007f06ca954000)\n\tlibsz.so.2 => /lib/x86_64-linux-gnu/libsz.so.2 (0x00007f06ca94f000)\n\
+        \tlibsqlite3.so.0 => /lib/x86_64-linux-gnu/libsqlite3.so.0 (0x00007f06ca826000)\n\
+        \tlibfyut.so.0 => /lib/x86_64-linux-gnu/libfyut.so.0 (0x00007f06ca818000)\n\
+        \tlibfygm.so.0 => /lib/x86_64-linux-gnu/libfygm.so.0 (0x00007f06ca80f000)\n\
+        \tlibquadmath.so.0 => /lib/x86_64-linux-gnu/libquadmath.so.0 (0x00007f06ca7c5000)\n\
+        \tlibkeyutils.so.1 => /lib/x86_64-linux-gnu/libkeyutils.so.1 (0x00007f06ca7be000)\n\
+        \tlibheimntlm.so.0 => /lib/x86_64-linux-gnu/libheimntlm.so.0 (0x00007f06ca7b0000)\n\
+        \tlibkrb5.so.26 => /lib/x86_64-linux-gnu/libkrb5.so.26 (0x00007f06ca71d000)\n\
+        \tlibasn1.so.8 => /lib/x86_64-linux-gnu/libasn1.so.8 (0x00007f06ca677000)\n\
+        \tlibhcrypto.so.4 => /lib/x86_64-linux-gnu/libhcrypto.so.4 (0x00007f06ca63f000)\n\
+        \tlibroken.so.18 => /lib/x86_64-linux-gnu/libroken.so.18 (0x00007f06ca626000)\n\
+        \tlibgmodule-2.0.so.0 => /lib/x86_64-linux-gnu/libgmodule-2.0.so.0 (0x00007f06ca620000)\n\
+        \tlibmount.so.1 => /lib/x86_64-linux-gnu/libmount.so.1 (0x00007f06ca5be000)\n\
+        \tlibselinux.so.1 => /lib/x86_64-linux-gnu/libselinux.so.1 (0x00007f06ca593000)\n\
+        \tlibpangoft2-1.0.so.0 => /lib/x86_64-linux-gnu/libpangoft2-1.0.so.0 (0x00007f06ca57a000)\n\
+        \tlibthai.so.0 => /lib/x86_64-linux-gnu/libthai.so.0 (0x00007f06ca56f000)\n\
+        \tlibharfbuzz.so.0 => /lib/x86_64-linux-gnu/libharfbuzz.so.0 (0x00007f06ca46b000)\n\
+        \tlibserd-0.so.0 => /lib/x86_64-linux-gnu/libserd-0.so.0 (0x00007f06ca448000)\n\
+        \tlibsord-0.so.0 => /lib/x86_64-linux-gnu/libsord-0.so.0 (0x00007f06ca43c000)\n\
+        \tlibsratom-0.so.0 => /lib/x86_64-linux-gnu/libsratom-0.so.0 (0x00007f06ca430000)\n\
+        \tlibsamplerate.so.0 => /lib/x86_64-linux-gnu/libsamplerate.so.0 (0x00007f06ca0c4000)\n\
+        \tlibfftw3.so.3 => /lib/x86_64-linux-gnu/libfftw3.so.3 (0x00007f06c9ebe000)\n\
+        \tlibflite_usenglish.so.1 => /lib/x86_64-linux-gnu/libflite_usenglish.so.1\
+        \ (0x00007f06c9e91000)\n\tlibflite_cmulex.so.1 => /lib/x86_64-linux-gnu/libflite_cmulex.so.1\
+        \ (0x00007f06c9dfa000)\n\tlibsystemd.so.0 => /lib/x86_64-linux-gnu/libsystemd.so.0\
+        \ (0x00007f06c9d4b000)\n\tlibwrap.so.0 => /lib/x86_64-linux-gnu/libwrap.so.0\
+        \ (0x00007f06c9d3f000)\n\tlibsndfile.so.1 => /lib/x86_64-linux-gnu/libsndfile.so.1\
+        \ (0x00007f06c9cc0000)\n\tlibasyncns.so.0 => /lib/x86_64-linux-gnu/libasyncns.so.0\
+        \ (0x00007f06c9ab8000)\n\tlibapparmor.so.1 => /lib/x86_64-linux-gnu/libapparmor.so.1\
+        \ (0x00007f06c9aa3000)\n\tlibnssutil3.so => /lib/x86_64-linux-gnu/libnssutil3.so\
+        \ (0x00007f06c9a70000)\n\tlibplc4.so => /lib/x86_64-linux-gnu/libplc4.so (0x00007f06c9a69000)\n\
+        \tlibplds4.so => /lib/x86_64-linux-gnu/libplds4.so (0x00007f06c9a64000)\n\t\
+        libaec.so.0 => /lib/x86_64-linux-gnu/libaec.so.0 (0x00007f06c9a59000)\n\t\
+        libwind.so.0 => /lib/x86_64-linux-gnu/libwind.so.0 (0x00007f06c9a2f000)\n\t\
+        libheimbase.so.1 => /lib/x86_64-linux-gnu/libheimbase.so.1 (0x00007f06c9a1d000)\n\
+        \tlibhx509.so.5 => /lib/x86_64-linux-gnu/libhx509.so.5 (0x00007f06c99cf000)\n\
+        \tlibcrypt.so.1 => /lib/x86_64-linux-gnu/libcrypt.so.1 (0x00007f06c9994000)\n\
+        \tlibblkid.so.1 => /lib/x86_64-linux-gnu/libblkid.so.1 (0x00007f06c993b000)\n\
+        \tlibpcre2-8.so.0 => /lib/x86_64-linux-gnu/libpcre2-8.so.0 (0x00007f06c98aa000)\n\
+        \tlibdatrie.so.1 => /lib/x86_64-linux-gnu/libdatrie.so.1 (0x00007f06c98a0000)\n\
+        \tlibgraphite2.so.3 => /lib/x86_64-linux-gnu/libgraphite2.so.3 (0x00007f06c9873000)\n\
+        \tliblz4.so.1 => /lib/x86_64-linux-gnu/liblz4.so.1 (0x00007f06c9852000)\n\t\
+        libnsl.so.1 => /lib/x86_64-linux-gnu/libnsl.so.1 (0x00007f06c9833000)\n\t\
+        libFLAC.so.8 => /lib/x86_64-linux-gnu/libFLAC.so.8 (0x00007f06c97f5000)\n"
+  v3_reactive_actor_plugin:
+    path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libv3_reactive_actor_plugin.so
+    sha256: f00761d38f030ab0aad4f1e142fd12f60bddfa4feb991b1252e10c01f582b688
+    ldd:
+      command:
+      - ldd
+      - /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libv3_reactive_actor_plugin.so
+      exit_code: 0
+      output: "\tlinux-vdso.so.1 (0x00007ffe311d5000)\n\tlibgazebo_physics.so.11 =>\
+        \ /lib/x86_64-linux-gnu/libgazebo_physics.so.11 (0x00007f73b5eca000)\n\tlibgazebo_common.so.11\
+        \ => /lib/x86_64-linux-gnu/libgazebo_common.so.11 (0x00007f73b5d56000)\n\t\
+        libsdformat9.so.9 => /lib/x86_64-linux-gnu/libsdformat9.so.9 (0x00007f73b5b3b000)\n\
+        \tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f73b5959000)\n\
+        \tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f73b580a000)\n\tlibgcc_s.so.1\
+        \ => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f73b57ed000)\n\tlibc.so.6\
+        \ => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f73b55fb000)\n\tlibgazebo_util.so.11\
+        \ => /lib/x86_64-linux-gnu/libgazebo_util.so.11 (0x00007f73b553c000)\n\tlibgazebo_ode.so.11\
+        \ => /lib/x86_64-linux-gnu/libgazebo_ode.so.11 (0x00007f73b5467000)\n\tlibboost_regex.so.1.71.0\
+        \ => /lib/x86_64-linux-gnu/libboost_regex.so.1.71.0 (0x00007f73b5367000)\n\
+        \tlibBulletDynamics.so.2.88 => /lib/x86_64-linux-gnu/libBulletDynamics.so.2.88\
+        \ (0x00007f73b5291000)\n\tlibBulletCollision.so.2.88 => /lib/x86_64-linux-gnu/libBulletCollision.so.2.88\
+        \ (0x00007f73b5187000)\n\tlibLinearMath.so.2.88 => /lib/x86_64-linux-gnu/libLinearMath.so.2.88\
+        \ (0x00007f73b5164000)\n\tlibdart-collision-bullet.so.6 => /lib/x86_64-linux-gnu/libdart-collision-bullet.so.6\
+        \ (0x00007f73b5142000)\n\tlibSimTKsimbody.so.3.6 => /lib/x86_64-linux-gnu/libSimTKsimbody.so.3.6\
+        \ (0x00007f73b4b3c000)\n\tlibignition-transport8.so.8 => /lib/x86_64-linux-gnu/libignition-transport8.so.8\
+        \ (0x00007f73b4a7d000)\n\tlibgazebo_transport.so.11 => /lib/x86_64-linux-gnu/libgazebo_transport.so.11\
+        \ (0x00007f73b49b7000)\n\tlibgazebo_msgs.so.11 => /lib/x86_64-linux-gnu/libgazebo_msgs.so.11\
+        \ (0x00007f73b46dc000)\n\tlibignition-common3.so.3 => /lib/x86_64-linux-gnu/libignition-common3.so.3\
+        \ (0x00007f73b466e000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f73b4668000)\n\
+        \tlibprotobuf.so.17 => /lib/x86_64-linux-gnu/libprotobuf.so.17 (0x00007f73b436f000)\n\
+        \tlibignition-msgs5.so.5 => /lib/x86_64-linux-gnu/libignition-msgs5.so.5 (0x00007f73b3f85000)\n\
+        \tlibignition-math6.so.6 => /lib/x86_64-linux-gnu/libignition-math6.so.6 (0x00007f73b3f20000)\n\
+        \tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f73b3efb000)\n\
+        \tlibode.so.8 => /lib/x86_64-linux-gnu/libode.so.8 (0x00007f73b3dd7000)\n\t\
+        libdart.so.6 => /lib/x86_64-linux-gnu/libdart.so.6 (0x00007f73b37bb000)\n\t\
+        libassimp.so.5 => /lib/x86_64-linux-gnu/libassimp.so.5 (0x00007f73b2b6e000)\n\
+        \tlibSimTKmath.so.3.6 => /lib/x86_64-linux-gnu/libSimTKmath.so.3.6 (0x00007f73b26e2000)\n\
+        \tlibSimTKcommon.so.3.6 => /lib/x86_64-linux-gnu/libSimTKcommon.so.3.6 (0x00007f73b22e0000)\n\
+        \tlibboost_thread.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_thread.so.1.71.0\
+        \ (0x00007f73b22b2000)\n\tlibboost_filesystem.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0\
+        \ (0x00007f73b2294000)\n\tlibboost_iostreams.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_iostreams.so.1.71.0\
+        \ (0x00007f73b226d000)\n\tlibfreeimage.so.3 => /lib/x86_64-linux-gnu/libfreeimage.so.3\
+        \ (0x00007f73b21b1000)\n\tlibtar.so.0 => /lib/x86_64-linux-gnu/libtar.so.0\
+        \ (0x00007f73b21a5000)\n\tlibtinyxml.so.2.6.2 => /lib/x86_64-linux-gnu/libtinyxml.so.2.6.2\
+        \ (0x00007f73b218b000)\n\tlibcurl.so.4 => /lib/x86_64-linux-gnu/libcurl.so.4\
+        \ (0x00007f73b20f8000)\n\tlibavcodec.so.58 => /lib/x86_64-linux-gnu/libavcodec.so.58\
+        \ (0x00007f73b0b37000)\n\tlibavformat.so.58 => /lib/x86_64-linux-gnu/libavformat.so.58\
+        \ (0x00007f73b08bd000)\n\tlibavutil.so.56 => /lib/x86_64-linux-gnu/libavutil.so.56\
+        \ (0x00007f73b0794000)\n\tlibavdevice.so.58 => /lib/x86_64-linux-gnu/libavdevice.so.58\
+        \ (0x00007f73b0760000)\n\tlibswscale.so.5 => /lib/x86_64-linux-gnu/libswscale.so.5\
+        \ (0x00007f73b06c7000)\n\tlibgts-0.7.so.5 => /lib/x86_64-linux-gnu/libgts-0.7.so.5\
+        \ (0x00007f73b046a000)\n\tlibglib-2.0.so.0 => /lib/x86_64-linux-gnu/libglib-2.0.so.0\
+        \ (0x00007f73b0340000)\n\tlibgdal.so.26 => /lib/libgdal.so.26 (0x00007f73aefb9000)\n\
+        \tlibignition-fuel_tools4.so.4 => /lib/x86_64-linux-gnu/libignition-fuel_tools4.so.4\
+        \ (0x00007f73aef17000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007f73b640b000)\n\
+        \tlibtinyxml2.so.6 => /lib/x86_64-linux-gnu/libtinyxml2.so.6 (0x00007f73aeefe000)\n\
+        \tlibgazebo_opcode.so.11 => /lib/x86_64-linux-gnu/libgazebo_opcode.so.11 (0x00007f73aeea6000)\n\
+        \tlibgazebo_opende_ou.so.11 => /lib/x86_64-linux-gnu/libgazebo_opende_ou.so.11\
+        \ (0x00007f73aeea0000)\n\tlibccd.so.2 => /lib/x86_64-linux-gnu/libccd.so.2\
+        \ (0x00007f73aee94000)\n\tlibicui18n.so.66 => /lib/x86_64-linux-gnu/libicui18n.so.66\
+        \ (0x00007f73aeb95000)\n\tlibicuuc.so.66 => /lib/x86_64-linux-gnu/libicuuc.so.66\
+        \ (0x00007f73ae9ad000)\n\tliblapack.so.3 => /lib/x86_64-linux-gnu/liblapack.so.3\
+        \ (0x00007f73ae2e5000)\n\tlibzmq.so.5 => /lib/x86_64-linux-gnu/libzmq.so.5\
+        \ (0x00007f73ae23f000)\n\tlibuuid.so.1 => /lib/x86_64-linux-gnu/libuuid.so.1\
+        \ (0x00007f73ae236000)\n\tlibtbb.so.2 => /lib/x86_64-linux-gnu/libtbb.so.2\
+        \ (0x00007f73ae1f0000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f73ae1d2000)\n\
+        \tlibdart-external-odelcpsolver.so.6 => /lib/x86_64-linux-gnu/libdart-external-odelcpsolver.so.6\
+        \ (0x00007f73ae1c4000)\n\tliboctomap.so.1.9 => /opt/ros/noetic/lib/liboctomap.so.1.9\
+        \ (0x00007f73ae17b000)\n\tlibfcl.so.0.5 => /lib/x86_64-linux-gnu/libfcl.so.0.5\
+        \ (0x00007f73ad7f1000)\n\tliboctomath.so.1.9 => /opt/ros/noetic/lib/liboctomath.so.1.9\
+        \ (0x00007f73ad7e9000)\n\tlibminizip.so.1 => /lib/x86_64-linux-gnu/libminizip.so.1\
+        \ (0x00007f73ad5dc000)\n\tlibblas.so.3 => /lib/x86_64-linux-gnu/libblas.so.3\
+        \ (0x00007f73ad216000)\n\tlibbz2.so.1.0 => /lib/x86_64-linux-gnu/libbz2.so.1.0\
+        \ (0x00007f73ad203000)\n\tliblzma.so.5 => /lib/x86_64-linux-gnu/liblzma.so.5\
+        \ (0x00007f73ad1da000)\n\tlibzstd.so.1 => /lib/x86_64-linux-gnu/libzstd.so.1\
+        \ (0x00007f73ad131000)\n\tlibjxrglue.so.0 => /lib/x86_64-linux-gnu/libjxrglue.so.0\
+        \ (0x00007f73acf0f000)\n\tlibjpeg.so.8 => /lib/x86_64-linux-gnu/libjpeg.so.8\
+        \ (0x00007f73ace8a000)\n\tlibopenjp2.so.7 => /lib/x86_64-linux-gnu/libopenjp2.so.7\
+        \ (0x00007f73ace34000)\n\tlibpng16.so.16 => /lib/x86_64-linux-gnu/libpng16.so.16\
+        \ (0x00007f73acdfc000)\n\tlibraw.so.19 => /lib/x86_64-linux-gnu/libraw.so.19\
+        \ (0x00007f73acd1c000)\n\tlibtiff.so.5 => /lib/x86_64-linux-gnu/libtiff.so.5\
+        \ (0x00007f73acc9a000)\n\tlibwebpmux.so.3 => /lib/x86_64-linux-gnu/libwebpmux.so.3\
+        \ (0x00007f73acc8c000)\n\tlibwebp.so.6 => /lib/x86_64-linux-gnu/libwebp.so.6\
+        \ (0x00007f73acc22000)\n\tlibIlmImf-2_3.so.24 => /lib/x86_64-linux-gnu/libIlmImf-2_3.so.24\
+        \ (0x00007f73ac943000)\n\tlibHalf.so.24 => /lib/x86_64-linux-gnu/libHalf.so.24\
+        \ (0x00007f73ac8fe000)\n\tlibIex-2_3.so.24 => /lib/x86_64-linux-gnu/libIex-2_3.so.24\
+        \ (0x00007f73ac8dd000)\n\tlibnghttp2.so.14 => /lib/x86_64-linux-gnu/libnghttp2.so.14\
+        \ (0x00007f73ac8b1000)\n\tlibidn2.so.0 => /lib/x86_64-linux-gnu/libidn2.so.0\
+        \ (0x00007f73ac890000)\n\tlibrtmp.so.1 => /lib/x86_64-linux-gnu/librtmp.so.1\
+        \ (0x00007f73ac870000)\n\tlibssh.so.4 => /lib/x86_64-linux-gnu/libssh.so.4\
+        \ (0x00007f73ac801000)\n\tlibpsl.so.5 => /lib/x86_64-linux-gnu/libpsl.so.5\
+        \ (0x00007f73ac7ee000)\n\tlibssl.so.1.1 => /lib/x86_64-linux-gnu/libssl.so.1.1\
+        \ (0x00007f73ac75b000)\n\tlibcrypto.so.1.1 => /lib/x86_64-linux-gnu/libcrypto.so.1.1\
+        \ (0x00007f73ac484000)\n\tlibgssapi_krb5.so.2 => /lib/x86_64-linux-gnu/libgssapi_krb5.so.2\
+        \ (0x00007f73ac435000)\n\tlibldap_r-2.4.so.2 => /lib/x86_64-linux-gnu/libldap_r-2.4.so.2\
+        \ (0x00007f73ac3df000)\n\tliblber-2.4.so.2 => /lib/x86_64-linux-gnu/liblber-2.4.so.2\
+        \ (0x00007f73ac3ce000)\n\tlibbrotlidec.so.1 => /lib/x86_64-linux-gnu/libbrotlidec.so.1\
+        \ (0x00007f73ac3c0000)\n\tlibswresample.so.3 => /lib/x86_64-linux-gnu/libswresample.so.3\
+        \ (0x00007f73ac39e000)\n\tlibvpx.so.6 => /lib/x86_64-linux-gnu/libvpx.so.6\
+        \ (0x00007f73ac166000)\n\tlibrsvg-2.so.2 => /lib/x86_64-linux-gnu/librsvg-2.so.2\
+        \ (0x00007f73ab847000)\n\tlibgobject-2.0.so.0 => /lib/x86_64-linux-gnu/libgobject-2.0.so.0\
+        \ (0x00007f73ab7e7000)\n\tlibcairo.so.2 => /lib/x86_64-linux-gnu/libcairo.so.2\
+        \ (0x00007f73ab6c4000)\n\tlibzvbi.so.0 => /lib/x86_64-linux-gnu/libzvbi.so.0\
+        \ (0x00007f73ab635000)\n\tlibsnappy.so.1 => /lib/x86_64-linux-gnu/libsnappy.so.1\
+        \ (0x00007f73ab62a000)\n\tlibaom.so.0 => /lib/x86_64-linux-gnu/libaom.so.0\
+        \ (0x00007f73ab18c000)\n\tlibcodec2.so.0.9 => /lib/x86_64-linux-gnu/libcodec2.so.0.9\
+        \ (0x00007f73aa3a6000)\n\tlibgsm.so.1 => /lib/x86_64-linux-gnu/libgsm.so.1\
+        \ (0x00007f73aa397000)\n\tlibmp3lame.so.0 => /lib/x86_64-linux-gnu/libmp3lame.so.0\
+        \ (0x00007f73aa31f000)\n\tlibopus.so.0 => /lib/x86_64-linux-gnu/libopus.so.0\
+        \ (0x00007f73aa2c0000)\n\tlibshine.so.3 => /lib/x86_64-linux-gnu/libshine.so.3\
+        \ (0x00007f73aa0b5000)\n\tlibspeex.so.1 => /lib/x86_64-linux-gnu/libspeex.so.1\
+        \ (0x00007f73aa097000)\n\tlibtheoraenc.so.1 => /lib/x86_64-linux-gnu/libtheoraenc.so.1\
+        \ (0x00007f73aa058000)\n\tlibtheoradec.so.1 => /lib/x86_64-linux-gnu/libtheoradec.so.1\
+        \ (0x00007f73aa038000)\n\tlibtwolame.so.0 => /lib/x86_64-linux-gnu/libtwolame.so.0\
+        \ (0x00007f73aa012000)\n\tlibvorbis.so.0 => /lib/x86_64-linux-gnu/libvorbis.so.0\
+        \ (0x00007f73a9fe4000)\n\tlibvorbisenc.so.2 => /lib/x86_64-linux-gnu/libvorbisenc.so.2\
+        \ (0x00007f73a9f39000)\n\tlibwavpack.so.1 => /lib/x86_64-linux-gnu/libwavpack.so.1\
+        \ (0x00007f73a9f0d000)\n\tlibx264.so.155 => /lib/x86_64-linux-gnu/libx264.so.155\
+        \ (0x00007f73a9c4d000)\n\tlibx265.so.179 => /lib/x86_64-linux-gnu/libx265.so.179\
+        \ (0x00007f73a8cdf000)\n\tlibxvidcore.so.4 => /lib/x86_64-linux-gnu/libxvidcore.so.4\
+        \ (0x00007f73a8bcc000)\n\tlibva.so.2 => /lib/x86_64-linux-gnu/libva.so.2 (0x00007f73a8ba3000)\n\
+        \tlibxml2.so.2 => /lib/x86_64-linux-gnu/libxml2.so.2 (0x00007f73a89e9000)\n\
+        \tlibgme.so.0 => /lib/x86_64-linux-gnu/libgme.so.0 (0x00007f73a899a000)\n\t\
+        libopenmpt.so.0 => /lib/x86_64-linux-gnu/libopenmpt.so.0 (0x00007f73a87ad000)\n\
+        \tlibchromaprint.so.1 => /lib/x86_64-linux-gnu/libchromaprint.so.1 (0x00007f73a8797000)\n\
+        \tlibbluray.so.2 => /lib/x86_64-linux-gnu/libbluray.so.2 (0x00007f73a8746000)\n\
+        \tlibgnutls.so.30 => /lib/x86_64-linux-gnu/libgnutls.so.30 (0x00007f73a8570000)\n\
+        \tlibssh-gcrypt.so.4 => /lib/x86_64-linux-gnu/libssh-gcrypt.so.4 (0x00007f73a84e2000)\n\
+        \tlibva-drm.so.2 => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007f73a84db000)\n\
+        \tlibva-x11.so.2 => /lib/x86_64-linux-gnu/libva-x11.so.2 (0x00007f73a84d3000)\n\
+        \tlibvdpau.so.1 => /lib/x86_64-linux-gnu/libvdpau.so.1 (0x00007f73a84cd000)\n\
+        \tlibX11.so.6 => /lib/x86_64-linux-gnu/libX11.so.6 (0x00007f73a8390000)\n\t\
+        libdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007f73a837a000)\n\t\
+        libOpenCL.so.1 => /lib/x86_64-linux-gnu/libOpenCL.so.1 (0x00007f73a816f000)\n\
+        \tlibavfilter.so.7 => /lib/x86_64-linux-gnu/libavfilter.so.7 (0x00007f73a7dec000)\n\
+        \tlibraw1394.so.11 => /lib/x86_64-linux-gnu/libraw1394.so.11 (0x00007f73a7bdd000)\n\
+        \tlibavc1394.so.0 => /lib/x86_64-linux-gnu/libavc1394.so.0 (0x00007f73a79d8000)\n\
+        \tlibrom1394.so.0 => /lib/x86_64-linux-gnu/librom1394.so.0 (0x00007f73a77d3000)\n\
+        \tlibiec61883.so.0 => /lib/x86_64-linux-gnu/libiec61883.so.0 (0x00007f73a77c5000)\n\
+        \tlibjack.so.0 => /lib/x86_64-linux-gnu/libjack.so.0 (0x00007f73a7779000)\n\
+        \tlibopenal.so.1 => /lib/x86_64-linux-gnu/libopenal.so.1 (0x00007f73a768f000)\n\
+        \tlibxcb.so.1 => /lib/x86_64-linux-gnu/libxcb.so.1 (0x00007f73a7665000)\n\t\
+        libxcb-shm.so.0 => /lib/x86_64-linux-gnu/libxcb-shm.so.0 (0x00007f73a7660000)\n\
+        \tlibxcb-shape.so.0 => /lib/x86_64-linux-gnu/libxcb-shape.so.0 (0x00007f73a765b000)\n\
+        \tlibxcb-xfixes.so.0 => /lib/x86_64-linux-gnu/libxcb-xfixes.so.0 (0x00007f73a7651000)\n\
+        \tlibcdio_paranoia.so.2 => /lib/x86_64-linux-gnu/libcdio_paranoia.so.2 (0x00007f73a7647000)\n\
+        \tlibcdio_cdda.so.2 => /lib/x86_64-linux-gnu/libcdio_cdda.so.2 (0x00007f73a763b000)\n\
+        \tlibdc1394.so.22 => /lib/x86_64-linux-gnu/libdc1394.so.22 (0x00007f73a75c3000)\n\
+        \tlibasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007f73a74c8000)\n\
+        \tlibcaca.so.0 => /lib/x86_64-linux-gnu/libcaca.so.0 (0x00007f73a73fc000)\n\
+        \tlibGL.so.1 => /lib/x86_64-linux-gnu/libGL.so.1 (0x00007f73a7374000)\n\t\
+        libpulse.so.0 => /lib/x86_64-linux-gnu/libpulse.so.0 (0x00007f73a731f000)\n\
+        \tlibSDL2-2.0.so.0 => /lib/x86_64-linux-gnu/libSDL2-2.0.so.0 (0x00007f73a71c8000)\n\
+        \tlibsndio.so.7.0 => /lib/x86_64-linux-gnu/libsndio.so.7.0 (0x00007f73a71b7000)\n\
+        \tlibXv.so.1 => /lib/x86_64-linux-gnu/libXv.so.1 (0x00007f73a6fb2000)\n\t\
+        libXext.so.6 => /lib/x86_64-linux-gnu/libXext.so.6 (0x00007f73a6f9d000)\n\t\
+        libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007f73a6f2a000)\n\t\
+        libarmadillo.so.9 => /lib/libarmadillo.so.9 (0x00007f73a6f15000)\n\tlibpoppler.so.97\
+        \ => /lib/x86_64-linux-gnu/libpoppler.so.97 (0x00007f73a6bd1000)\n\tlibjson-c.so.4\
+        \ => /lib/x86_64-linux-gnu/libjson-c.so.4 (0x00007f73a6bbf000)\n\tlibfreexl.so.1\
+        \ => /lib/x86_64-linux-gnu/libfreexl.so.1 (0x00007f73a6bb4000)\n\tlibqhull.so.7\
+        \ => /lib/x86_64-linux-gnu/libqhull.so.7 (0x00007f73a695a000)\n\tlibgeos_c.so.1\
+        \ => /lib/x86_64-linux-gnu/libgeos_c.so.1 (0x00007f73a6917000)\n\tlibepsilon.so.1\
+        \ => /lib/x86_64-linux-gnu/libepsilon.so.1 (0x00007f73a68fb000)\n\tlibodbc.so.2\
+        \ => /lib/x86_64-linux-gnu/libodbc.so.2 (0x00007f73a6888000)\n\tlibodbcinst.so.2\
+        \ => /lib/x86_64-linux-gnu/libodbcinst.so.2 (0x00007f73a6870000)\n\tlibkmlbase.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmlbase.so.1 (0x00007f73a6853000)\n\tlibkmldom.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmldom.so.1 (0x00007f73a67b2000)\n\tlibkmlengine.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmlengine.so.1 (0x00007f73a6778000)\n\tlibexpat.so.1\
+        \ => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007f73a6748000)\n\tlibxerces-c-3.2.so\
+        \ => /lib/x86_64-linux-gnu/libxerces-c-3.2.so (0x00007f73a63b5000)\n\tlibnetcdf.so.15\
+        \ => /lib/x86_64-linux-gnu/libnetcdf.so.15 (0x00007f73a6290000)\n\tlibhdf5_serial.so.103\
+        \ => /lib/x86_64-linux-gnu/libhdf5_serial.so.103 (0x00007f73a5f13000)\n\t\
+        libmfhdfalt.so.0 => /lib/libmfhdfalt.so.0 (0x00007f73a5ee9000)\n\tlibdfalt.so.0\
+        \ => /lib/libdfalt.so.0 (0x00007f73a5e44000)\n\tlibogdi.so.4.1 => /lib/libogdi.so.4.1\
+        \ (0x00007f73a5e26000)\n\tlibgif.so.7 => /lib/x86_64-linux-gnu/libgif.so.7\
+        \ (0x00007f73a5e1b000)\n\tlibCharLS.so.2 => /lib/x86_64-linux-gnu/libCharLS.so.2\
+        \ (0x00007f73a5dcc000)\n\tlibgeotiff.so.5 => /lib/x86_64-linux-gnu/libgeotiff.so.5\
+        \ (0x00007f73a5d97000)\n\tlibcfitsio.so.8 => /lib/x86_64-linux-gnu/libcfitsio.so.8\
+        \ (0x00007f73a5a98000)\n\tlibpq.so.5 => /lib/x86_64-linux-gnu/libpq.so.5 (0x00007f73a5a47000)\n\
+        \tlibproj.so.15 => /lib/x86_64-linux-gnu/libproj.so.15 (0x00007f73a5756000)\n\
+        \tlibdapclient.so.6 => /lib/x86_64-linux-gnu/libdapclient.so.6 (0x00007f73a570e000)\n\
+        \tlibdap.so.25 => /lib/x86_64-linux-gnu/libdap.so.25 (0x00007f73a5570000)\n\
+        \tlibspatialite.so.7 => /lib/x86_64-linux-gnu/libspatialite.so.7 (0x00007f73a4fe1000)\n\
+        \tlibcurl-gnutls.so.4 => /lib/x86_64-linux-gnu/libcurl-gnutls.so.4 (0x00007f73a4f51000)\n\
+        \tlibfyba.so.0 => /lib/x86_64-linux-gnu/libfyba.so.0 (0x00007f73a4ef9000)\n\
+        \tlibmysqlclient.so.21 => /lib/x86_64-linux-gnu/libmysqlclient.so.21 (0x00007f73a47cb000)\n\
+        \tlibjsoncpp.so.1 => /lib/x86_64-linux-gnu/libjsoncpp.so.1 (0x00007f73a4795000)\n\
+        \tlibyaml-0.so.2 => /lib/x86_64-linux-gnu/libyaml-0.so.2 (0x00007f73a4773000)\n\
+        \tlibzip.so.5 => /lib/x86_64-linux-gnu/libzip.so.5 (0x00007f73a4758000)\n\t\
+        libicudata.so.66 => /lib/x86_64-linux-gnu/libicudata.so.66 (0x00007f73a2c97000)\n\
+        \tlibgfortran.so.5 => /lib/x86_64-linux-gnu/libgfortran.so.5 (0x00007f73a29cd000)\n\
+        \tlibsodium.so.23 => /lib/x86_64-linux-gnu/libsodium.so.23 (0x00007f73a2975000)\n\
+        \tlibpgm-5.2.so.0 => /lib/x86_64-linux-gnu/libpgm-5.2.so.0 (0x00007f73a2926000)\n\
+        \tlibnorm.so.1 => /lib/x86_64-linux-gnu/libnorm.so.1 (0x00007f73a27cb000)\n\
+        \tlibjpegxr.so.0 => /lib/x86_64-linux-gnu/libjpegxr.so.0 (0x00007f73a2597000)\n\
+        \tliblcms2.so.2 => /lib/x86_64-linux-gnu/liblcms2.so.2 (0x00007f73a253a000)\n\
+        \tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f73a24f8000)\n\
+        \tlibjbig.so.0 => /lib/x86_64-linux-gnu/libjbig.so.0 (0x00007f73a24e7000)\n\
+        \tlibIlmThread-2_3.so.24 => /lib/x86_64-linux-gnu/libIlmThread-2_3.so.24 (0x00007f73a24dd000)\n\
+        \tlibunistring.so.2 => /lib/x86_64-linux-gnu/libunistring.so.2 (0x00007f73a235b000)\n\
+        \tlibhogweed.so.5 => /lib/x86_64-linux-gnu/libhogweed.so.5 (0x00007f73a2322000)\n\
+        \tlibnettle.so.7 => /lib/x86_64-linux-gnu/libnettle.so.7 (0x00007f73a22e8000)\n\
+        \tlibgmp.so.10 => /lib/x86_64-linux-gnu/libgmp.so.10 (0x00007f73a2264000)\n\
+        \tlibkrb5.so.3 => /lib/x86_64-linux-gnu/libkrb5.so.3 (0x00007f73a2187000)\n\
+        \tlibk5crypto.so.3 => /lib/x86_64-linux-gnu/libk5crypto.so.3 (0x00007f73a2156000)\n\
+        \tlibcom_err.so.2 => /lib/x86_64-linux-gnu/libcom_err.so.2 (0x00007f73a214d000)\n\
+        \tlibkrb5support.so.0 => /lib/x86_64-linux-gnu/libkrb5support.so.0 (0x00007f73a213e000)\n\
+        \tlibresolv.so.2 => /lib/x86_64-linux-gnu/libresolv.so.2 (0x00007f73a2122000)\n\
+        \tlibsasl2.so.2 => /lib/x86_64-linux-gnu/libsasl2.so.2 (0x00007f73a2105000)\n\
+        \tlibgssapi.so.3 => /lib/x86_64-linux-gnu/libgssapi.so.3 (0x00007f73a20c0000)\n\
+        \tlibbrotlicommon.so.1 => /lib/x86_64-linux-gnu/libbrotlicommon.so.1 (0x00007f73a209d000)\n\
+        \tlibsoxr.so.0 => /lib/x86_64-linux-gnu/libsoxr.so.0 (0x00007f73a2030000)\n\
+        \tlibcairo-gobject.so.2 => /lib/x86_64-linux-gnu/libcairo-gobject.so.2 (0x00007f73a2024000)\n\
+        \tlibgdk_pixbuf-2.0.so.0 => /lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x00007f73a1ffc000)\n\
+        \tlibgio-2.0.so.0 => /lib/x86_64-linux-gnu/libgio-2.0.so.0 (0x00007f73a1e1a000)\n\
+        \tlibpangocairo-1.0.so.0 => /lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 (0x00007f73a1e08000)\n\
+        \tlibpango-1.0.so.0 => /lib/x86_64-linux-gnu/libpango-1.0.so.0 (0x00007f73a1db9000)\n\
+        \tlibffi.so.7 => /lib/x86_64-linux-gnu/libffi.so.7 (0x00007f73a1dab000)\n\t\
+        libpixman-1.so.0 => /lib/x86_64-linux-gnu/libpixman-1.so.0 (0x00007f73a1d04000)\n\
+        \tlibfontconfig.so.1 => /lib/x86_64-linux-gnu/libfontconfig.so.1 (0x00007f73a1cbd000)\n\
+        \tlibfreetype.so.6 => /lib/x86_64-linux-gnu/libfreetype.so.6 (0x00007f73a1bfe000)\n\
+        \tlibxcb-render.so.0 => /lib/x86_64-linux-gnu/libxcb-render.so.0 (0x00007f73a1bef000)\n\
+        \tlibXrender.so.1 => /lib/x86_64-linux-gnu/libXrender.so.1 (0x00007f73a19e5000)\n\
+        \tlibogg.so.0 => /lib/x86_64-linux-gnu/libogg.so.0 (0x00007f73a19d6000)\n\t\
+        libnuma.so.1 => /lib/x86_64-linux-gnu/libnuma.so.1 (0x00007f73a19c9000)\n\t\
+        libmpg123.so.0 => /lib/x86_64-linux-gnu/libmpg123.so.0 (0x00007f73a1969000)\n\
+        \tlibvorbisfile.so.3 => /lib/x86_64-linux-gnu/libvorbisfile.so.3 (0x00007f73a195e000)\n\
+        \tlibp11-kit.so.0 => /lib/x86_64-linux-gnu/libp11-kit.so.0 (0x00007f73a1826000)\n\
+        \tlibtasn1.so.6 => /lib/x86_64-linux-gnu/libtasn1.so.6 (0x00007f73a1810000)\n\
+        \tlibgcrypt.so.20 => /lib/x86_64-linux-gnu/libgcrypt.so.20 (0x00007f73a16f2000)\n\
+        \tlibgpg-error.so.0 => /lib/x86_64-linux-gnu/libgpg-error.so.0 (0x00007f73a16cf000)\n\
+        \tlibXfixes.so.3 => /lib/x86_64-linux-gnu/libXfixes.so.3 (0x00007f73a16c7000)\n\
+        \tlibpostproc.so.55 => /lib/x86_64-linux-gnu/libpostproc.so.55 (0x00007f73a16a3000)\n\
+        \tlibbs2b.so.0 => /lib/x86_64-linux-gnu/libbs2b.so.0 (0x00007f73a169c000)\n\
+        \tliblilv-0.so.0 => /lib/x86_64-linux-gnu/liblilv-0.so.0 (0x00007f73a1681000)\n\
+        \tlibrubberband.so.2 => /lib/x86_64-linux-gnu/librubberband.so.2 (0x00007f73a1644000)\n\
+        \tlibmysofa.so.1 => /lib/x86_64-linux-gnu/libmysofa.so.1 (0x00007f73a1633000)\n\
+        \tlibflite_cmu_us_awb.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_awb.so.1\
+        \ (0x00007f73a123c000)\n\tlibflite_cmu_us_kal.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal.so.1\
+        \ (0x00007f73a10d4000)\n\tlibflite_cmu_us_kal16.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal16.so.1\
+        \ (0x00007f73a0cfa000)\n\tlibflite_cmu_us_rms.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_rms.so.1\
+        \ (0x00007f73a085f000)\n\tlibflite_cmu_us_slt.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_slt.so.1\
+        \ (0x00007f73a0467000)\n\tlibflite.so.1 => /lib/x86_64-linux-gnu/libflite.so.1\
+        \ (0x00007f73a042e000)\n\tlibfribidi.so.0 => /lib/x86_64-linux-gnu/libfribidi.so.0\
+        \ (0x00007f73a0411000)\n\tlibass.so.9 => /lib/x86_64-linux-gnu/libass.so.9\
+        \ (0x00007f73a01dc000)\n\tlibvidstab.so.1.1 => /lib/x86_64-linux-gnu/libvidstab.so.1.1\
+        \ (0x00007f73a01c8000)\n\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f73a01be000)\n\
+        \tlibXau.so.6 => /lib/x86_64-linux-gnu/libXau.so.6 (0x00007f73a01b8000)\n\t\
+        libXdmcp.so.6 => /lib/x86_64-linux-gnu/libXdmcp.so.6 (0x00007f73a01b0000)\n\
+        \tlibcdio.so.18 => /lib/x86_64-linux-gnu/libcdio.so.18 (0x00007f73a0183000)\n\
+        \tlibusb-1.0.so.0 => /opt/MVS/lib/64/libusb-1.0.so.0 (0x00007f739ff6b000)\n\
+        \tlibslang.so.2 => /lib/x86_64-linux-gnu/libslang.so.2 (0x00007f739fc74000)\n\
+        \tlibncursesw.so.6 => /lib/x86_64-linux-gnu/libncursesw.so.6 (0x00007f739fc3a000)\n\
+        \tlibtinfo.so.6 => /lib/x86_64-linux-gnu/libtinfo.so.6 (0x00007f739fc0a000)\n\
+        \tlibGLdispatch.so.0 => /lib/x86_64-linux-gnu/libGLdispatch.so.0 (0x00007f739fb50000)\n\
+        \tlibGLX.so.0 => /lib/x86_64-linux-gnu/libGLX.so.0 (0x00007f739fb1c000)\n\t\
+        libpulsecommon-13.99.so => /usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-13.99.so\
+        \ (0x00007f739fa9a000)\n\tlibdbus-1.so.3 => /lib/x86_64-linux-gnu/libdbus-1.so.3\
+        \ (0x00007f739fa49000)\n\tlibXcursor.so.1 => /lib/x86_64-linux-gnu/libXcursor.so.1\
+        \ (0x00007f739fa3c000)\n\tlibXinerama.so.1 => /lib/x86_64-linux-gnu/libXinerama.so.1\
+        \ (0x00007f739fa35000)\n\tlibXi.so.6 => /lib/x86_64-linux-gnu/libXi.so.6 (0x00007f739fa23000)\n\
+        \tlibXrandr.so.2 => /lib/x86_64-linux-gnu/libXrandr.so.2 (0x00007f739fa16000)\n\
+        \tlibXss.so.1 => /lib/x86_64-linux-gnu/libXss.so.1 (0x00007f739fa11000)\n\t\
+        libXxf86vm.so.1 => /lib/x86_64-linux-gnu/libXxf86vm.so.1 (0x00007f739fa0a000)\n\
+        \tlibwayland-egl.so.1 => /lib/x86_64-linux-gnu/libwayland-egl.so.1 (0x00007f739fa05000)\n\
+        \tlibwayland-client.so.0 => /lib/x86_64-linux-gnu/libwayland-client.so.0 (0x00007f739f9f2000)\n\
+        \tlibwayland-cursor.so.0 => /lib/x86_64-linux-gnu/libwayland-cursor.so.0 (0x00007f739f9e7000)\n\
+        \tlibxkbcommon.so.0 => /lib/x86_64-linux-gnu/libxkbcommon.so.0 (0x00007f739f9a5000)\n\
+        \tlibbsd.so.0 => /lib/x86_64-linux-gnu/libbsd.so.0 (0x00007f739f98b000)\n\t\
+        libarpack.so.2 => /lib/x86_64-linux-gnu/libarpack.so.2 (0x00007f739f943000)\n\
+        \tlibsuperlu.so.5 => /lib/x86_64-linux-gnu/libsuperlu.so.5 (0x00007f739f8d1000)\n\
+        \tlibnss3.so => /lib/x86_64-linux-gnu/libnss3.so (0x00007f739f776000)\n\t\
+        libsmime3.so => /lib/x86_64-linux-gnu/libsmime3.so (0x00007f739f746000)\n\t\
+        libnspr4.so => /lib/x86_64-linux-gnu/libnspr4.so (0x00007f739f705000)\n\t\
+        libgeos-3.8.0.so => /lib/x86_64-linux-gnu/libgeos-3.8.0.so (0x00007f739f53c000)\n\
+        \tlibltdl.so.7 => /lib/x86_64-linux-gnu/libltdl.so.7 (0x00007f739f52f000)\n\
+        \tliburiparser.so.1 => /lib/x86_64-linux-gnu/liburiparser.so.1 (0x00007f739f510000)\n\
+        \tlibhdf5_serial_hl.so.100 => /lib/x86_64-linux-gnu/libhdf5_serial_hl.so.100\
+        \ (0x00007f739f4e9000)\n\tlibsz.so.2 => /lib/x86_64-linux-gnu/libsz.so.2 (0x00007f739f4e4000)\n\
+        \tlibsqlite3.so.0 => /lib/x86_64-linux-gnu/libsqlite3.so.0 (0x00007f739f3bb000)\n\
+        \tlibfyut.so.0 => /lib/x86_64-linux-gnu/libfyut.so.0 (0x00007f739f3ad000)\n\
+        \tlibfygm.so.0 => /lib/x86_64-linux-gnu/libfygm.so.0 (0x00007f739f3a4000)\n\
+        \tlibquadmath.so.0 => /lib/x86_64-linux-gnu/libquadmath.so.0 (0x00007f739f35a000)\n\
+        \tlibkeyutils.so.1 => /lib/x86_64-linux-gnu/libkeyutils.so.1 (0x00007f739f353000)\n\
+        \tlibheimntlm.so.0 => /lib/x86_64-linux-gnu/libheimntlm.so.0 (0x00007f739f345000)\n\
+        \tlibkrb5.so.26 => /lib/x86_64-linux-gnu/libkrb5.so.26 (0x00007f739f2b2000)\n\
+        \tlibasn1.so.8 => /lib/x86_64-linux-gnu/libasn1.so.8 (0x00007f739f20c000)\n\
+        \tlibhcrypto.so.4 => /lib/x86_64-linux-gnu/libhcrypto.so.4 (0x00007f739f1d4000)\n\
+        \tlibroken.so.18 => /lib/x86_64-linux-gnu/libroken.so.18 (0x00007f739f1bb000)\n\
+        \tlibgmodule-2.0.so.0 => /lib/x86_64-linux-gnu/libgmodule-2.0.so.0 (0x00007f739f1b5000)\n\
+        \tlibmount.so.1 => /lib/x86_64-linux-gnu/libmount.so.1 (0x00007f739f153000)\n\
+        \tlibselinux.so.1 => /lib/x86_64-linux-gnu/libselinux.so.1 (0x00007f739f128000)\n\
+        \tlibpangoft2-1.0.so.0 => /lib/x86_64-linux-gnu/libpangoft2-1.0.so.0 (0x00007f739f10f000)\n\
+        \tlibthai.so.0 => /lib/x86_64-linux-gnu/libthai.so.0 (0x00007f739f104000)\n\
+        \tlibharfbuzz.so.0 => /lib/x86_64-linux-gnu/libharfbuzz.so.0 (0x00007f739f000000)\n\
+        \tlibserd-0.so.0 => /lib/x86_64-linux-gnu/libserd-0.so.0 (0x00007f739efdd000)\n\
+        \tlibsord-0.so.0 => /lib/x86_64-linux-gnu/libsord-0.so.0 (0x00007f739efd1000)\n\
+        \tlibsratom-0.so.0 => /lib/x86_64-linux-gnu/libsratom-0.so.0 (0x00007f739efc5000)\n\
+        \tlibsamplerate.so.0 => /lib/x86_64-linux-gnu/libsamplerate.so.0 (0x00007f739ec59000)\n\
+        \tlibfftw3.so.3 => /lib/x86_64-linux-gnu/libfftw3.so.3 (0x00007f739ea53000)\n\
+        \tlibflite_usenglish.so.1 => /lib/x86_64-linux-gnu/libflite_usenglish.so.1\
+        \ (0x00007f739ea26000)\n\tlibflite_cmulex.so.1 => /lib/x86_64-linux-gnu/libflite_cmulex.so.1\
+        \ (0x00007f739e98f000)\n\tlibsystemd.so.0 => /lib/x86_64-linux-gnu/libsystemd.so.0\
+        \ (0x00007f739e8e0000)\n\tlibwrap.so.0 => /lib/x86_64-linux-gnu/libwrap.so.0\
+        \ (0x00007f739e8d4000)\n\tlibsndfile.so.1 => /lib/x86_64-linux-gnu/libsndfile.so.1\
+        \ (0x00007f739e855000)\n\tlibasyncns.so.0 => /lib/x86_64-linux-gnu/libasyncns.so.0\
+        \ (0x00007f739e64d000)\n\tlibapparmor.so.1 => /lib/x86_64-linux-gnu/libapparmor.so.1\
+        \ (0x00007f739e638000)\n\tlibnssutil3.so => /lib/x86_64-linux-gnu/libnssutil3.so\
+        \ (0x00007f739e605000)\n\tlibplc4.so => /lib/x86_64-linux-gnu/libplc4.so (0x00007f739e5fe000)\n\
+        \tlibplds4.so => /lib/x86_64-linux-gnu/libplds4.so (0x00007f739e5f9000)\n\t\
+        libaec.so.0 => /lib/x86_64-linux-gnu/libaec.so.0 (0x00007f739e5ee000)\n\t\
+        libwind.so.0 => /lib/x86_64-linux-gnu/libwind.so.0 (0x00007f739e5c4000)\n\t\
+        libheimbase.so.1 => /lib/x86_64-linux-gnu/libheimbase.so.1 (0x00007f739e5b2000)\n\
+        \tlibhx509.so.5 => /lib/x86_64-linux-gnu/libhx509.so.5 (0x00007f739e564000)\n\
+        \tlibcrypt.so.1 => /lib/x86_64-linux-gnu/libcrypt.so.1 (0x00007f739e529000)\n\
+        \tlibblkid.so.1 => /lib/x86_64-linux-gnu/libblkid.so.1 (0x00007f739e4d0000)\n\
+        \tlibpcre2-8.so.0 => /lib/x86_64-linux-gnu/libpcre2-8.so.0 (0x00007f739e43f000)\n\
+        \tlibdatrie.so.1 => /lib/x86_64-linux-gnu/libdatrie.so.1 (0x00007f739e435000)\n\
+        \tlibgraphite2.so.3 => /lib/x86_64-linux-gnu/libgraphite2.so.3 (0x00007f739e408000)\n\
+        \tliblz4.so.1 => /lib/x86_64-linux-gnu/liblz4.so.1 (0x00007f739e3e7000)\n\t\
+        libnsl.so.1 => /lib/x86_64-linux-gnu/libnsl.so.1 (0x00007f739e3c8000)\n\t\
+        libFLAC.so.8 => /lib/x86_64-linux-gnu/libFLAC.so.8 (0x00007f739e38a000)\n"
+  v3_episode_recorder_plugin:
+    path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libv3_episode_recorder_plugin.so
+    sha256: b54d0dc2d0265aa10d29dc78e0a078fb8281b0db1372b84b9354b0b5e173306c
+    ldd:
+      command:
+      - ldd
+      - /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libv3_episode_recorder_plugin.so
+      exit_code: 0
+      output: "\tlinux-vdso.so.1 (0x00007ffc48902000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0\
+        \ (0x00007f641825e000)\n\tlibgazebo_physics.so.11 => /lib/x86_64-linux-gnu/libgazebo_physics.so.11\
+        \ (0x00007f6417daa000)\n\tlibgazebo_common.so.11 => /lib/x86_64-linux-gnu/libgazebo_common.so.11\
+        \ (0x00007f6417c36000)\n\tlibsdformat9.so.9 => /lib/x86_64-linux-gnu/libsdformat9.so.9\
+        \ (0x00007f6417a1b000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6\
+        \ (0x00007f6417839000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f64176e8000)\n\
+        \tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f64176cd000)\n\
+        \tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f64174db000)\n\t/lib64/ld-linux-x86-64.so.2\
+        \ (0x00007f641830a000)\n\tlibgazebo_util.so.11 => /lib/x86_64-linux-gnu/libgazebo_util.so.11\
+        \ (0x00007f641741c000)\n\tlibgazebo_ode.so.11 => /lib/x86_64-linux-gnu/libgazebo_ode.so.11\
+        \ (0x00007f6417347000)\n\tlibboost_regex.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_regex.so.1.71.0\
+        \ (0x00007f6417247000)\n\tlibBulletDynamics.so.2.88 => /lib/x86_64-linux-gnu/libBulletDynamics.so.2.88\
+        \ (0x00007f641716f000)\n\tlibBulletCollision.so.2.88 => /lib/x86_64-linux-gnu/libBulletCollision.so.2.88\
+        \ (0x00007f6417067000)\n\tlibLinearMath.so.2.88 => /lib/x86_64-linux-gnu/libLinearMath.so.2.88\
+        \ (0x00007f6417044000)\n\tlibdart-collision-bullet.so.6 => /lib/x86_64-linux-gnu/libdart-collision-bullet.so.6\
+        \ (0x00007f6417022000)\n\tlibSimTKsimbody.so.3.6 => /lib/x86_64-linux-gnu/libSimTKsimbody.so.3.6\
+        \ (0x00007f6416a1c000)\n\tlibignition-transport8.so.8 => /lib/x86_64-linux-gnu/libignition-transport8.so.8\
+        \ (0x00007f641695d000)\n\tlibgazebo_transport.so.11 => /lib/x86_64-linux-gnu/libgazebo_transport.so.11\
+        \ (0x00007f6416895000)\n\tlibgazebo_msgs.so.11 => /lib/x86_64-linux-gnu/libgazebo_msgs.so.11\
+        \ (0x00007f64165bc000)\n\tlibignition-common3.so.3 => /lib/x86_64-linux-gnu/libignition-common3.so.3\
+        \ (0x00007f641654e000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f6416548000)\n\
+        \tlibprotobuf.so.17 => /lib/x86_64-linux-gnu/libprotobuf.so.17 (0x00007f641624f000)\n\
+        \tlibignition-msgs5.so.5 => /lib/x86_64-linux-gnu/libignition-msgs5.so.5 (0x00007f6415e65000)\n\
+        \tlibignition-math6.so.6 => /lib/x86_64-linux-gnu/libignition-math6.so.6 (0x00007f6415dfe000)\n\
+        \tlibode.so.8 => /lib/x86_64-linux-gnu/libode.so.8 (0x00007f6415cda000)\n\t\
+        libdart.so.6 => /lib/x86_64-linux-gnu/libdart.so.6 (0x00007f64156be000)\n\t\
+        libassimp.so.5 => /lib/x86_64-linux-gnu/libassimp.so.5 (0x00007f6414a71000)\n\
+        \tlibSimTKmath.so.3.6 => /lib/x86_64-linux-gnu/libSimTKmath.so.3.6 (0x00007f64145e5000)\n\
+        \tlibSimTKcommon.so.3.6 => /lib/x86_64-linux-gnu/libSimTKcommon.so.3.6 (0x00007f64141e3000)\n\
+        \tlibboost_thread.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_thread.so.1.71.0\
+        \ (0x00007f64141b5000)\n\tlibboost_filesystem.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0\
+        \ (0x00007f6414197000)\n\tlibboost_iostreams.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_iostreams.so.1.71.0\
+        \ (0x00007f6414170000)\n\tlibfreeimage.so.3 => /lib/x86_64-linux-gnu/libfreeimage.so.3\
+        \ (0x00007f64140b4000)\n\tlibtar.so.0 => /lib/x86_64-linux-gnu/libtar.so.0\
+        \ (0x00007f64140a8000)\n\tlibtinyxml.so.2.6.2 => /lib/x86_64-linux-gnu/libtinyxml.so.2.6.2\
+        \ (0x00007f641408e000)\n\tlibcurl.so.4 => /lib/x86_64-linux-gnu/libcurl.so.4\
+        \ (0x00007f6413ffb000)\n\tlibavcodec.so.58 => /lib/x86_64-linux-gnu/libavcodec.so.58\
+        \ (0x00007f6412a3a000)\n\tlibavformat.so.58 => /lib/x86_64-linux-gnu/libavformat.so.58\
+        \ (0x00007f64127c0000)\n\tlibavutil.so.56 => /lib/x86_64-linux-gnu/libavutil.so.56\
+        \ (0x00007f6412697000)\n\tlibavdevice.so.58 => /lib/x86_64-linux-gnu/libavdevice.so.58\
+        \ (0x00007f6412663000)\n\tlibswscale.so.5 => /lib/x86_64-linux-gnu/libswscale.so.5\
+        \ (0x00007f64125ca000)\n\tlibgts-0.7.so.5 => /lib/x86_64-linux-gnu/libgts-0.7.so.5\
+        \ (0x00007f641236d000)\n\tlibglib-2.0.so.0 => /lib/x86_64-linux-gnu/libglib-2.0.so.0\
+        \ (0x00007f6412243000)\n\tlibgdal.so.26 => /lib/libgdal.so.26 (0x00007f6410ebc000)\n\
+        \tlibignition-fuel_tools4.so.4 => /lib/x86_64-linux-gnu/libignition-fuel_tools4.so.4\
+        \ (0x00007f6410e1a000)\n\tlibtinyxml2.so.6 => /lib/x86_64-linux-gnu/libtinyxml2.so.6\
+        \ (0x00007f6410e01000)\n\tlibgazebo_opcode.so.11 => /lib/x86_64-linux-gnu/libgazebo_opcode.so.11\
+        \ (0x00007f6410da9000)\n\tlibgazebo_opende_ou.so.11 => /lib/x86_64-linux-gnu/libgazebo_opende_ou.so.11\
+        \ (0x00007f6410da3000)\n\tlibccd.so.2 => /lib/x86_64-linux-gnu/libccd.so.2\
+        \ (0x00007f6410d97000)\n\tlibicui18n.so.66 => /lib/x86_64-linux-gnu/libicui18n.so.66\
+        \ (0x00007f6410a98000)\n\tlibicuuc.so.66 => /lib/x86_64-linux-gnu/libicuuc.so.66\
+        \ (0x00007f64108b0000)\n\tliblapack.so.3 => /lib/x86_64-linux-gnu/liblapack.so.3\
+        \ (0x00007f64101e8000)\n\tlibzmq.so.5 => /lib/x86_64-linux-gnu/libzmq.so.5\
+        \ (0x00007f6410142000)\n\tlibuuid.so.1 => /lib/x86_64-linux-gnu/libuuid.so.1\
+        \ (0x00007f6410139000)\n\tlibtbb.so.2 => /lib/x86_64-linux-gnu/libtbb.so.2\
+        \ (0x00007f64100f3000)\n\tlibz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f64100d5000)\n\
+        \tlibdart-external-odelcpsolver.so.6 => /lib/x86_64-linux-gnu/libdart-external-odelcpsolver.so.6\
+        \ (0x00007f64100c7000)\n\tliboctomap.so.1.9 => /opt/ros/noetic/lib/liboctomap.so.1.9\
+        \ (0x00007f641007e000)\n\tlibfcl.so.0.5 => /lib/x86_64-linux-gnu/libfcl.so.0.5\
+        \ (0x00007f640f6f4000)\n\tliboctomath.so.1.9 => /opt/ros/noetic/lib/liboctomath.so.1.9\
+        \ (0x00007f640f6ec000)\n\tlibminizip.so.1 => /lib/x86_64-linux-gnu/libminizip.so.1\
+        \ (0x00007f640f4df000)\n\tlibblas.so.3 => /lib/x86_64-linux-gnu/libblas.so.3\
+        \ (0x00007f640f119000)\n\tlibbz2.so.1.0 => /lib/x86_64-linux-gnu/libbz2.so.1.0\
+        \ (0x00007f640f106000)\n\tliblzma.so.5 => /lib/x86_64-linux-gnu/liblzma.so.5\
+        \ (0x00007f640f0dd000)\n\tlibzstd.so.1 => /lib/x86_64-linux-gnu/libzstd.so.1\
+        \ (0x00007f640f034000)\n\tlibjxrglue.so.0 => /lib/x86_64-linux-gnu/libjxrglue.so.0\
+        \ (0x00007f640ee12000)\n\tlibjpeg.so.8 => /lib/x86_64-linux-gnu/libjpeg.so.8\
+        \ (0x00007f640ed8d000)\n\tlibopenjp2.so.7 => /lib/x86_64-linux-gnu/libopenjp2.so.7\
+        \ (0x00007f640ed37000)\n\tlibpng16.so.16 => /lib/x86_64-linux-gnu/libpng16.so.16\
+        \ (0x00007f640ecff000)\n\tlibraw.so.19 => /lib/x86_64-linux-gnu/libraw.so.19\
+        \ (0x00007f640ec1f000)\n\tlibtiff.so.5 => /lib/x86_64-linux-gnu/libtiff.so.5\
+        \ (0x00007f640eb9d000)\n\tlibwebpmux.so.3 => /lib/x86_64-linux-gnu/libwebpmux.so.3\
+        \ (0x00007f640eb8f000)\n\tlibwebp.so.6 => /lib/x86_64-linux-gnu/libwebp.so.6\
+        \ (0x00007f640eb25000)\n\tlibIlmImf-2_3.so.24 => /lib/x86_64-linux-gnu/libIlmImf-2_3.so.24\
+        \ (0x00007f640e846000)\n\tlibHalf.so.24 => /lib/x86_64-linux-gnu/libHalf.so.24\
+        \ (0x00007f640e801000)\n\tlibIex-2_3.so.24 => /lib/x86_64-linux-gnu/libIex-2_3.so.24\
+        \ (0x00007f640e7e0000)\n\tlibnghttp2.so.14 => /lib/x86_64-linux-gnu/libnghttp2.so.14\
+        \ (0x00007f640e7b4000)\n\tlibidn2.so.0 => /lib/x86_64-linux-gnu/libidn2.so.0\
+        \ (0x00007f640e793000)\n\tlibrtmp.so.1 => /lib/x86_64-linux-gnu/librtmp.so.1\
+        \ (0x00007f640e773000)\n\tlibssh.so.4 => /lib/x86_64-linux-gnu/libssh.so.4\
+        \ (0x00007f640e704000)\n\tlibpsl.so.5 => /lib/x86_64-linux-gnu/libpsl.so.5\
+        \ (0x00007f640e6f1000)\n\tlibssl.so.1.1 => /lib/x86_64-linux-gnu/libssl.so.1.1\
+        \ (0x00007f640e65e000)\n\tlibcrypto.so.1.1 => /lib/x86_64-linux-gnu/libcrypto.so.1.1\
+        \ (0x00007f640e387000)\n\tlibgssapi_krb5.so.2 => /lib/x86_64-linux-gnu/libgssapi_krb5.so.2\
+        \ (0x00007f640e338000)\n\tlibldap_r-2.4.so.2 => /lib/x86_64-linux-gnu/libldap_r-2.4.so.2\
+        \ (0x00007f640e2e2000)\n\tliblber-2.4.so.2 => /lib/x86_64-linux-gnu/liblber-2.4.so.2\
+        \ (0x00007f640e2d1000)\n\tlibbrotlidec.so.1 => /lib/x86_64-linux-gnu/libbrotlidec.so.1\
+        \ (0x00007f640e2c3000)\n\tlibswresample.so.3 => /lib/x86_64-linux-gnu/libswresample.so.3\
+        \ (0x00007f640e2a1000)\n\tlibvpx.so.6 => /lib/x86_64-linux-gnu/libvpx.so.6\
+        \ (0x00007f640e069000)\n\tlibrsvg-2.so.2 => /lib/x86_64-linux-gnu/librsvg-2.so.2\
+        \ (0x00007f640d74a000)\n\tlibgobject-2.0.so.0 => /lib/x86_64-linux-gnu/libgobject-2.0.so.0\
+        \ (0x00007f640d6ea000)\n\tlibcairo.so.2 => /lib/x86_64-linux-gnu/libcairo.so.2\
+        \ (0x00007f640d5c7000)\n\tlibzvbi.so.0 => /lib/x86_64-linux-gnu/libzvbi.so.0\
+        \ (0x00007f640d538000)\n\tlibsnappy.so.1 => /lib/x86_64-linux-gnu/libsnappy.so.1\
+        \ (0x00007f640d52d000)\n\tlibaom.so.0 => /lib/x86_64-linux-gnu/libaom.so.0\
+        \ (0x00007f640d08f000)\n\tlibcodec2.so.0.9 => /lib/x86_64-linux-gnu/libcodec2.so.0.9\
+        \ (0x00007f640c2a9000)\n\tlibgsm.so.1 => /lib/x86_64-linux-gnu/libgsm.so.1\
+        \ (0x00007f640c29a000)\n\tlibmp3lame.so.0 => /lib/x86_64-linux-gnu/libmp3lame.so.0\
+        \ (0x00007f640c222000)\n\tlibopus.so.0 => /lib/x86_64-linux-gnu/libopus.so.0\
+        \ (0x00007f640c1c3000)\n\tlibshine.so.3 => /lib/x86_64-linux-gnu/libshine.so.3\
+        \ (0x00007f640bfb8000)\n\tlibspeex.so.1 => /lib/x86_64-linux-gnu/libspeex.so.1\
+        \ (0x00007f640bf9a000)\n\tlibtheoraenc.so.1 => /lib/x86_64-linux-gnu/libtheoraenc.so.1\
+        \ (0x00007f640bf5b000)\n\tlibtheoradec.so.1 => /lib/x86_64-linux-gnu/libtheoradec.so.1\
+        \ (0x00007f640bf3b000)\n\tlibtwolame.so.0 => /lib/x86_64-linux-gnu/libtwolame.so.0\
+        \ (0x00007f640bf15000)\n\tlibvorbis.so.0 => /lib/x86_64-linux-gnu/libvorbis.so.0\
+        \ (0x00007f640bee7000)\n\tlibvorbisenc.so.2 => /lib/x86_64-linux-gnu/libvorbisenc.so.2\
+        \ (0x00007f640be3c000)\n\tlibwavpack.so.1 => /lib/x86_64-linux-gnu/libwavpack.so.1\
+        \ (0x00007f640be10000)\n\tlibx264.so.155 => /lib/x86_64-linux-gnu/libx264.so.155\
+        \ (0x00007f640bb50000)\n\tlibx265.so.179 => /lib/x86_64-linux-gnu/libx265.so.179\
+        \ (0x00007f640abe2000)\n\tlibxvidcore.so.4 => /lib/x86_64-linux-gnu/libxvidcore.so.4\
+        \ (0x00007f640aacf000)\n\tlibva.so.2 => /lib/x86_64-linux-gnu/libva.so.2 (0x00007f640aaa6000)\n\
+        \tlibxml2.so.2 => /lib/x86_64-linux-gnu/libxml2.so.2 (0x00007f640a8ec000)\n\
+        \tlibgme.so.0 => /lib/x86_64-linux-gnu/libgme.so.0 (0x00007f640a89d000)\n\t\
+        libopenmpt.so.0 => /lib/x86_64-linux-gnu/libopenmpt.so.0 (0x00007f640a6b0000)\n\
+        \tlibchromaprint.so.1 => /lib/x86_64-linux-gnu/libchromaprint.so.1 (0x00007f640a69a000)\n\
+        \tlibbluray.so.2 => /lib/x86_64-linux-gnu/libbluray.so.2 (0x00007f640a649000)\n\
+        \tlibgnutls.so.30 => /lib/x86_64-linux-gnu/libgnutls.so.30 (0x00007f640a473000)\n\
+        \tlibssh-gcrypt.so.4 => /lib/x86_64-linux-gnu/libssh-gcrypt.so.4 (0x00007f640a3e5000)\n\
+        \tlibva-drm.so.2 => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007f640a3de000)\n\
+        \tlibva-x11.so.2 => /lib/x86_64-linux-gnu/libva-x11.so.2 (0x00007f640a3d6000)\n\
+        \tlibvdpau.so.1 => /lib/x86_64-linux-gnu/libvdpau.so.1 (0x00007f640a3d0000)\n\
+        \tlibX11.so.6 => /lib/x86_64-linux-gnu/libX11.so.6 (0x00007f640a293000)\n\t\
+        libdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007f640a27d000)\n\t\
+        libOpenCL.so.1 => /lib/x86_64-linux-gnu/libOpenCL.so.1 (0x00007f640a072000)\n\
+        \tlibavfilter.so.7 => /lib/x86_64-linux-gnu/libavfilter.so.7 (0x00007f6409cef000)\n\
+        \tlibraw1394.so.11 => /lib/x86_64-linux-gnu/libraw1394.so.11 (0x00007f6409ae0000)\n\
+        \tlibavc1394.so.0 => /lib/x86_64-linux-gnu/libavc1394.so.0 (0x00007f64098db000)\n\
+        \tlibrom1394.so.0 => /lib/x86_64-linux-gnu/librom1394.so.0 (0x00007f64096d6000)\n\
+        \tlibiec61883.so.0 => /lib/x86_64-linux-gnu/libiec61883.so.0 (0x00007f64096c8000)\n\
+        \tlibjack.so.0 => /lib/x86_64-linux-gnu/libjack.so.0 (0x00007f640967c000)\n\
+        \tlibopenal.so.1 => /lib/x86_64-linux-gnu/libopenal.so.1 (0x00007f6409592000)\n\
+        \tlibxcb.so.1 => /lib/x86_64-linux-gnu/libxcb.so.1 (0x00007f6409568000)\n\t\
+        libxcb-shm.so.0 => /lib/x86_64-linux-gnu/libxcb-shm.so.0 (0x00007f6409563000)\n\
+        \tlibxcb-shape.so.0 => /lib/x86_64-linux-gnu/libxcb-shape.so.0 (0x00007f640955e000)\n\
+        \tlibxcb-xfixes.so.0 => /lib/x86_64-linux-gnu/libxcb-xfixes.so.0 (0x00007f6409554000)\n\
+        \tlibcdio_paranoia.so.2 => /lib/x86_64-linux-gnu/libcdio_paranoia.so.2 (0x00007f640954a000)\n\
+        \tlibcdio_cdda.so.2 => /lib/x86_64-linux-gnu/libcdio_cdda.so.2 (0x00007f640953e000)\n\
+        \tlibdc1394.so.22 => /lib/x86_64-linux-gnu/libdc1394.so.22 (0x00007f64094c6000)\n\
+        \tlibasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007f64093cb000)\n\
+        \tlibcaca.so.0 => /lib/x86_64-linux-gnu/libcaca.so.0 (0x00007f64092ff000)\n\
+        \tlibGL.so.1 => /lib/x86_64-linux-gnu/libGL.so.1 (0x00007f6409277000)\n\t\
+        libpulse.so.0 => /lib/x86_64-linux-gnu/libpulse.so.0 (0x00007f6409222000)\n\
+        \tlibSDL2-2.0.so.0 => /lib/x86_64-linux-gnu/libSDL2-2.0.so.0 (0x00007f64090cb000)\n\
+        \tlibsndio.so.7.0 => /lib/x86_64-linux-gnu/libsndio.so.7.0 (0x00007f64090ba000)\n\
+        \tlibXv.so.1 => /lib/x86_64-linux-gnu/libXv.so.1 (0x00007f6408eb5000)\n\t\
+        libXext.so.6 => /lib/x86_64-linux-gnu/libXext.so.6 (0x00007f6408ea0000)\n\t\
+        libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007f6408e2d000)\n\t\
+        libarmadillo.so.9 => /lib/libarmadillo.so.9 (0x00007f6408e18000)\n\tlibpoppler.so.97\
+        \ => /lib/x86_64-linux-gnu/libpoppler.so.97 (0x00007f6408ad4000)\n\tlibjson-c.so.4\
+        \ => /lib/x86_64-linux-gnu/libjson-c.so.4 (0x00007f6408ac2000)\n\tlibfreexl.so.1\
+        \ => /lib/x86_64-linux-gnu/libfreexl.so.1 (0x00007f6408ab7000)\n\tlibqhull.so.7\
+        \ => /lib/x86_64-linux-gnu/libqhull.so.7 (0x00007f640885d000)\n\tlibgeos_c.so.1\
+        \ => /lib/x86_64-linux-gnu/libgeos_c.so.1 (0x00007f640881a000)\n\tlibepsilon.so.1\
+        \ => /lib/x86_64-linux-gnu/libepsilon.so.1 (0x00007f64087fe000)\n\tlibodbc.so.2\
+        \ => /lib/x86_64-linux-gnu/libodbc.so.2 (0x00007f640878b000)\n\tlibodbcinst.so.2\
+        \ => /lib/x86_64-linux-gnu/libodbcinst.so.2 (0x00007f6408773000)\n\tlibkmlbase.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmlbase.so.1 (0x00007f6408756000)\n\tlibkmldom.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmldom.so.1 (0x00007f64086b5000)\n\tlibkmlengine.so.1\
+        \ => /lib/x86_64-linux-gnu/libkmlengine.so.1 (0x00007f640867b000)\n\tlibexpat.so.1\
+        \ => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007f640864b000)\n\tlibxerces-c-3.2.so\
+        \ => /lib/x86_64-linux-gnu/libxerces-c-3.2.so (0x00007f64082b8000)\n\tlibnetcdf.so.15\
+        \ => /lib/x86_64-linux-gnu/libnetcdf.so.15 (0x00007f6408193000)\n\tlibhdf5_serial.so.103\
+        \ => /lib/x86_64-linux-gnu/libhdf5_serial.so.103 (0x00007f6407e16000)\n\t\
+        libmfhdfalt.so.0 => /lib/libmfhdfalt.so.0 (0x00007f6407dec000)\n\tlibdfalt.so.0\
+        \ => /lib/libdfalt.so.0 (0x00007f6407d47000)\n\tlibogdi.so.4.1 => /lib/libogdi.so.4.1\
+        \ (0x00007f6407d29000)\n\tlibgif.so.7 => /lib/x86_64-linux-gnu/libgif.so.7\
+        \ (0x00007f6407d1e000)\n\tlibCharLS.so.2 => /lib/x86_64-linux-gnu/libCharLS.so.2\
+        \ (0x00007f6407ccf000)\n\tlibgeotiff.so.5 => /lib/x86_64-linux-gnu/libgeotiff.so.5\
+        \ (0x00007f6407c9a000)\n\tlibcfitsio.so.8 => /lib/x86_64-linux-gnu/libcfitsio.so.8\
+        \ (0x00007f640799b000)\n\tlibpq.so.5 => /lib/x86_64-linux-gnu/libpq.so.5 (0x00007f640794a000)\n\
+        \tlibproj.so.15 => /lib/x86_64-linux-gnu/libproj.so.15 (0x00007f6407659000)\n\
+        \tlibdapclient.so.6 => /lib/x86_64-linux-gnu/libdapclient.so.6 (0x00007f6407611000)\n\
+        \tlibdap.so.25 => /lib/x86_64-linux-gnu/libdap.so.25 (0x00007f6407473000)\n\
+        \tlibspatialite.so.7 => /lib/x86_64-linux-gnu/libspatialite.so.7 (0x00007f6406ee4000)\n\
+        \tlibcurl-gnutls.so.4 => /lib/x86_64-linux-gnu/libcurl-gnutls.so.4 (0x00007f6406e54000)\n\
+        \tlibfyba.so.0 => /lib/x86_64-linux-gnu/libfyba.so.0 (0x00007f6406dfc000)\n\
+        \tlibmysqlclient.so.21 => /lib/x86_64-linux-gnu/libmysqlclient.so.21 (0x00007f64066ce000)\n\
+        \tlibjsoncpp.so.1 => /lib/x86_64-linux-gnu/libjsoncpp.so.1 (0x00007f6406698000)\n\
+        \tlibyaml-0.so.2 => /lib/x86_64-linux-gnu/libyaml-0.so.2 (0x00007f6406676000)\n\
+        \tlibzip.so.5 => /lib/x86_64-linux-gnu/libzip.so.5 (0x00007f640665b000)\n\t\
+        libicudata.so.66 => /lib/x86_64-linux-gnu/libicudata.so.66 (0x00007f6404b9a000)\n\
+        \tlibgfortran.so.5 => /lib/x86_64-linux-gnu/libgfortran.so.5 (0x00007f64048d0000)\n\
+        \tlibsodium.so.23 => /lib/x86_64-linux-gnu/libsodium.so.23 (0x00007f6404878000)\n\
+        \tlibpgm-5.2.so.0 => /lib/x86_64-linux-gnu/libpgm-5.2.so.0 (0x00007f6404829000)\n\
+        \tlibnorm.so.1 => /lib/x86_64-linux-gnu/libnorm.so.1 (0x00007f64046ce000)\n\
+        \tlibjpegxr.so.0 => /lib/x86_64-linux-gnu/libjpegxr.so.0 (0x00007f640449a000)\n\
+        \tliblcms2.so.2 => /lib/x86_64-linux-gnu/liblcms2.so.2 (0x00007f640443d000)\n\
+        \tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f64043fb000)\n\
+        \tlibjbig.so.0 => /lib/x86_64-linux-gnu/libjbig.so.0 (0x00007f64043ea000)\n\
+        \tlibIlmThread-2_3.so.24 => /lib/x86_64-linux-gnu/libIlmThread-2_3.so.24 (0x00007f64043e0000)\n\
+        \tlibunistring.so.2 => /lib/x86_64-linux-gnu/libunistring.so.2 (0x00007f640425e000)\n\
+        \tlibhogweed.so.5 => /lib/x86_64-linux-gnu/libhogweed.so.5 (0x00007f6404225000)\n\
+        \tlibnettle.so.7 => /lib/x86_64-linux-gnu/libnettle.so.7 (0x00007f64041eb000)\n\
+        \tlibgmp.so.10 => /lib/x86_64-linux-gnu/libgmp.so.10 (0x00007f6404167000)\n\
+        \tlibkrb5.so.3 => /lib/x86_64-linux-gnu/libkrb5.so.3 (0x00007f640408a000)\n\
+        \tlibk5crypto.so.3 => /lib/x86_64-linux-gnu/libk5crypto.so.3 (0x00007f6404059000)\n\
+        \tlibcom_err.so.2 => /lib/x86_64-linux-gnu/libcom_err.so.2 (0x00007f6404050000)\n\
+        \tlibkrb5support.so.0 => /lib/x86_64-linux-gnu/libkrb5support.so.0 (0x00007f6404041000)\n\
+        \tlibresolv.so.2 => /lib/x86_64-linux-gnu/libresolv.so.2 (0x00007f6404025000)\n\
+        \tlibsasl2.so.2 => /lib/x86_64-linux-gnu/libsasl2.so.2 (0x00007f6404008000)\n\
+        \tlibgssapi.so.3 => /lib/x86_64-linux-gnu/libgssapi.so.3 (0x00007f6403fc3000)\n\
+        \tlibbrotlicommon.so.1 => /lib/x86_64-linux-gnu/libbrotlicommon.so.1 (0x00007f6403fa0000)\n\
+        \tlibsoxr.so.0 => /lib/x86_64-linux-gnu/libsoxr.so.0 (0x00007f6403f33000)\n\
+        \tlibcairo-gobject.so.2 => /lib/x86_64-linux-gnu/libcairo-gobject.so.2 (0x00007f6403f27000)\n\
+        \tlibgdk_pixbuf-2.0.so.0 => /lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0 (0x00007f6403eff000)\n\
+        \tlibgio-2.0.so.0 => /lib/x86_64-linux-gnu/libgio-2.0.so.0 (0x00007f6403d1d000)\n\
+        \tlibpangocairo-1.0.so.0 => /lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 (0x00007f6403d0b000)\n\
+        \tlibpango-1.0.so.0 => /lib/x86_64-linux-gnu/libpango-1.0.so.0 (0x00007f6403cbc000)\n\
+        \tlibffi.so.7 => /lib/x86_64-linux-gnu/libffi.so.7 (0x00007f6403cae000)\n\t\
+        libpixman-1.so.0 => /lib/x86_64-linux-gnu/libpixman-1.so.0 (0x00007f6403c07000)\n\
+        \tlibfontconfig.so.1 => /lib/x86_64-linux-gnu/libfontconfig.so.1 (0x00007f6403bc0000)\n\
+        \tlibfreetype.so.6 => /lib/x86_64-linux-gnu/libfreetype.so.6 (0x00007f6403b01000)\n\
+        \tlibxcb-render.so.0 => /lib/x86_64-linux-gnu/libxcb-render.so.0 (0x00007f6403af2000)\n\
+        \tlibXrender.so.1 => /lib/x86_64-linux-gnu/libXrender.so.1 (0x00007f64038e8000)\n\
+        \tlibogg.so.0 => /lib/x86_64-linux-gnu/libogg.so.0 (0x00007f64038d9000)\n\t\
+        libnuma.so.1 => /lib/x86_64-linux-gnu/libnuma.so.1 (0x00007f64038cc000)\n\t\
+        libmpg123.so.0 => /lib/x86_64-linux-gnu/libmpg123.so.0 (0x00007f640386c000)\n\
+        \tlibvorbisfile.so.3 => /lib/x86_64-linux-gnu/libvorbisfile.so.3 (0x00007f6403861000)\n\
+        \tlibp11-kit.so.0 => /lib/x86_64-linux-gnu/libp11-kit.so.0 (0x00007f6403729000)\n\
+        \tlibtasn1.so.6 => /lib/x86_64-linux-gnu/libtasn1.so.6 (0x00007f6403713000)\n\
+        \tlibgcrypt.so.20 => /lib/x86_64-linux-gnu/libgcrypt.so.20 (0x00007f64035f5000)\n\
+        \tlibgpg-error.so.0 => /lib/x86_64-linux-gnu/libgpg-error.so.0 (0x00007f64035d2000)\n\
+        \tlibXfixes.so.3 => /lib/x86_64-linux-gnu/libXfixes.so.3 (0x00007f64035ca000)\n\
+        \tlibpostproc.so.55 => /lib/x86_64-linux-gnu/libpostproc.so.55 (0x00007f64035a6000)\n\
+        \tlibbs2b.so.0 => /lib/x86_64-linux-gnu/libbs2b.so.0 (0x00007f640359f000)\n\
+        \tliblilv-0.so.0 => /lib/x86_64-linux-gnu/liblilv-0.so.0 (0x00007f6403584000)\n\
+        \tlibrubberband.so.2 => /lib/x86_64-linux-gnu/librubberband.so.2 (0x00007f6403547000)\n\
+        \tlibmysofa.so.1 => /lib/x86_64-linux-gnu/libmysofa.so.1 (0x00007f6403536000)\n\
+        \tlibflite_cmu_us_awb.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_awb.so.1\
+        \ (0x00007f640313f000)\n\tlibflite_cmu_us_kal.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal.so.1\
+        \ (0x00007f6402fd7000)\n\tlibflite_cmu_us_kal16.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_kal16.so.1\
+        \ (0x00007f6402bfd000)\n\tlibflite_cmu_us_rms.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_rms.so.1\
+        \ (0x00007f6402762000)\n\tlibflite_cmu_us_slt.so.1 => /lib/x86_64-linux-gnu/libflite_cmu_us_slt.so.1\
+        \ (0x00007f640236a000)\n\tlibflite.so.1 => /lib/x86_64-linux-gnu/libflite.so.1\
+        \ (0x00007f6402331000)\n\tlibfribidi.so.0 => /lib/x86_64-linux-gnu/libfribidi.so.0\
+        \ (0x00007f6402314000)\n\tlibass.so.9 => /lib/x86_64-linux-gnu/libass.so.9\
+        \ (0x00007f64020df000)\n\tlibvidstab.so.1.1 => /lib/x86_64-linux-gnu/libvidstab.so.1.1\
+        \ (0x00007f64020cb000)\n\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f64020c1000)\n\
+        \tlibXau.so.6 => /lib/x86_64-linux-gnu/libXau.so.6 (0x00007f64020bb000)\n\t\
+        libXdmcp.so.6 => /lib/x86_64-linux-gnu/libXdmcp.so.6 (0x00007f64020b3000)\n\
+        \tlibcdio.so.18 => /lib/x86_64-linux-gnu/libcdio.so.18 (0x00007f6402086000)\n\
+        \tlibusb-1.0.so.0 => /opt/MVS/lib/64/libusb-1.0.so.0 (0x00007f6401e6e000)\n\
+        \tlibslang.so.2 => /lib/x86_64-linux-gnu/libslang.so.2 (0x00007f6401b77000)\n\
+        \tlibncursesw.so.6 => /lib/x86_64-linux-gnu/libncursesw.so.6 (0x00007f6401b3d000)\n\
+        \tlibtinfo.so.6 => /lib/x86_64-linux-gnu/libtinfo.so.6 (0x00007f6401b0d000)\n\
+        \tlibGLdispatch.so.0 => /lib/x86_64-linux-gnu/libGLdispatch.so.0 (0x00007f6401a53000)\n\
+        \tlibGLX.so.0 => /lib/x86_64-linux-gnu/libGLX.so.0 (0x00007f6401a1f000)\n\t\
+        libpulsecommon-13.99.so => /usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-13.99.so\
+        \ (0x00007f640199d000)\n\tlibdbus-1.so.3 => /lib/x86_64-linux-gnu/libdbus-1.so.3\
+        \ (0x00007f640194c000)\n\tlibXcursor.so.1 => /lib/x86_64-linux-gnu/libXcursor.so.1\
+        \ (0x00007f640193f000)\n\tlibXinerama.so.1 => /lib/x86_64-linux-gnu/libXinerama.so.1\
+        \ (0x00007f6401938000)\n\tlibXi.so.6 => /lib/x86_64-linux-gnu/libXi.so.6 (0x00007f6401926000)\n\
+        \tlibXrandr.so.2 => /lib/x86_64-linux-gnu/libXrandr.so.2 (0x00007f6401919000)\n\
+        \tlibXss.so.1 => /lib/x86_64-linux-gnu/libXss.so.1 (0x00007f6401914000)\n\t\
+        libXxf86vm.so.1 => /lib/x86_64-linux-gnu/libXxf86vm.so.1 (0x00007f640190d000)\n\
+        \tlibwayland-egl.so.1 => /lib/x86_64-linux-gnu/libwayland-egl.so.1 (0x00007f6401908000)\n\
+        \tlibwayland-client.so.0 => /lib/x86_64-linux-gnu/libwayland-client.so.0 (0x00007f64018f5000)\n\
+        \tlibwayland-cursor.so.0 => /lib/x86_64-linux-gnu/libwayland-cursor.so.0 (0x00007f64018ea000)\n\
+        \tlibxkbcommon.so.0 => /lib/x86_64-linux-gnu/libxkbcommon.so.0 (0x00007f64018a8000)\n\
+        \tlibbsd.so.0 => /lib/x86_64-linux-gnu/libbsd.so.0 (0x00007f640188e000)\n\t\
+        libarpack.so.2 => /lib/x86_64-linux-gnu/libarpack.so.2 (0x00007f6401846000)\n\
+        \tlibsuperlu.so.5 => /lib/x86_64-linux-gnu/libsuperlu.so.5 (0x00007f64017d4000)\n\
+        \tlibnss3.so => /lib/x86_64-linux-gnu/libnss3.so (0x00007f6401679000)\n\t\
+        libsmime3.so => /lib/x86_64-linux-gnu/libsmime3.so (0x00007f6401649000)\n\t\
+        libnspr4.so => /lib/x86_64-linux-gnu/libnspr4.so (0x00007f6401608000)\n\t\
+        libgeos-3.8.0.so => /lib/x86_64-linux-gnu/libgeos-3.8.0.so (0x00007f640143f000)\n\
+        \tlibltdl.so.7 => /lib/x86_64-linux-gnu/libltdl.so.7 (0x00007f6401432000)\n\
+        \tliburiparser.so.1 => /lib/x86_64-linux-gnu/liburiparser.so.1 (0x00007f6401413000)\n\
+        \tlibhdf5_serial_hl.so.100 => /lib/x86_64-linux-gnu/libhdf5_serial_hl.so.100\
+        \ (0x00007f64013ec000)\n\tlibsz.so.2 => /lib/x86_64-linux-gnu/libsz.so.2 (0x00007f64013e7000)\n\
+        \tlibsqlite3.so.0 => /lib/x86_64-linux-gnu/libsqlite3.so.0 (0x00007f64012be000)\n\
+        \tlibfyut.so.0 => /lib/x86_64-linux-gnu/libfyut.so.0 (0x00007f64012b0000)\n\
+        \tlibfygm.so.0 => /lib/x86_64-linux-gnu/libfygm.so.0 (0x00007f64012a7000)\n\
+        \tlibquadmath.so.0 => /lib/x86_64-linux-gnu/libquadmath.so.0 (0x00007f640125d000)\n\
+        \tlibkeyutils.so.1 => /lib/x86_64-linux-gnu/libkeyutils.so.1 (0x00007f6401256000)\n\
+        \tlibheimntlm.so.0 => /lib/x86_64-linux-gnu/libheimntlm.so.0 (0x00007f6401248000)\n\
+        \tlibkrb5.so.26 => /lib/x86_64-linux-gnu/libkrb5.so.26 (0x00007f64011b5000)\n\
+        \tlibasn1.so.8 => /lib/x86_64-linux-gnu/libasn1.so.8 (0x00007f640110f000)\n\
+        \tlibhcrypto.so.4 => /lib/x86_64-linux-gnu/libhcrypto.so.4 (0x00007f64010d7000)\n\
+        \tlibroken.so.18 => /lib/x86_64-linux-gnu/libroken.so.18 (0x00007f64010be000)\n\
+        \tlibgmodule-2.0.so.0 => /lib/x86_64-linux-gnu/libgmodule-2.0.so.0 (0x00007f64010b8000)\n\
+        \tlibmount.so.1 => /lib/x86_64-linux-gnu/libmount.so.1 (0x00007f6401056000)\n\
+        \tlibselinux.so.1 => /lib/x86_64-linux-gnu/libselinux.so.1 (0x00007f640102b000)\n\
+        \tlibpangoft2-1.0.so.0 => /lib/x86_64-linux-gnu/libpangoft2-1.0.so.0 (0x00007f6401012000)\n\
+        \tlibthai.so.0 => /lib/x86_64-linux-gnu/libthai.so.0 (0x00007f6401007000)\n\
+        \tlibharfbuzz.so.0 => /lib/x86_64-linux-gnu/libharfbuzz.so.0 (0x00007f6400f03000)\n\
+        \tlibserd-0.so.0 => /lib/x86_64-linux-gnu/libserd-0.so.0 (0x00007f6400ee0000)\n\
+        \tlibsord-0.so.0 => /lib/x86_64-linux-gnu/libsord-0.so.0 (0x00007f6400ed4000)\n\
+        \tlibsratom-0.so.0 => /lib/x86_64-linux-gnu/libsratom-0.so.0 (0x00007f6400ec8000)\n\
+        \tlibsamplerate.so.0 => /lib/x86_64-linux-gnu/libsamplerate.so.0 (0x00007f6400b5c000)\n\
+        \tlibfftw3.so.3 => /lib/x86_64-linux-gnu/libfftw3.so.3 (0x00007f6400956000)\n\
+        \tlibflite_usenglish.so.1 => /lib/x86_64-linux-gnu/libflite_usenglish.so.1\
+        \ (0x00007f6400929000)\n\tlibflite_cmulex.so.1 => /lib/x86_64-linux-gnu/libflite_cmulex.so.1\
+        \ (0x00007f6400892000)\n\tlibsystemd.so.0 => /lib/x86_64-linux-gnu/libsystemd.so.0\
+        \ (0x00007f64007e3000)\n\tlibwrap.so.0 => /lib/x86_64-linux-gnu/libwrap.so.0\
+        \ (0x00007f64007d7000)\n\tlibsndfile.so.1 => /lib/x86_64-linux-gnu/libsndfile.so.1\
+        \ (0x00007f6400758000)\n\tlibasyncns.so.0 => /lib/x86_64-linux-gnu/libasyncns.so.0\
+        \ (0x00007f6400550000)\n\tlibapparmor.so.1 => /lib/x86_64-linux-gnu/libapparmor.so.1\
+        \ (0x00007f640053b000)\n\tlibnssutil3.so => /lib/x86_64-linux-gnu/libnssutil3.so\
+        \ (0x00007f6400508000)\n\tlibplc4.so => /lib/x86_64-linux-gnu/libplc4.so (0x00007f6400501000)\n\
+        \tlibplds4.so => /lib/x86_64-linux-gnu/libplds4.so (0x00007f64004fc000)\n\t\
+        libaec.so.0 => /lib/x86_64-linux-gnu/libaec.so.0 (0x00007f64004f1000)\n\t\
+        libwind.so.0 => /lib/x86_64-linux-gnu/libwind.so.0 (0x00007f64004c7000)\n\t\
+        libheimbase.so.1 => /lib/x86_64-linux-gnu/libheimbase.so.1 (0x00007f64004b5000)\n\
+        \tlibhx509.so.5 => /lib/x86_64-linux-gnu/libhx509.so.5 (0x00007f6400467000)\n\
+        \tlibcrypt.so.1 => /lib/x86_64-linux-gnu/libcrypt.so.1 (0x00007f640042c000)\n\
+        \tlibblkid.so.1 => /lib/x86_64-linux-gnu/libblkid.so.1 (0x00007f64003d3000)\n\
+        \tlibpcre2-8.so.0 => /lib/x86_64-linux-gnu/libpcre2-8.so.0 (0x00007f6400342000)\n\
+        \tlibdatrie.so.1 => /lib/x86_64-linux-gnu/libdatrie.so.1 (0x00007f6400338000)\n\
+        \tlibgraphite2.so.3 => /lib/x86_64-linux-gnu/libgraphite2.so.3 (0x00007f640030b000)\n\
+        \tliblz4.so.1 => /lib/x86_64-linux-gnu/liblz4.so.1 (0x00007f64002ea000)\n\t\
+        libnsl.so.1 => /lib/x86_64-linux-gnu/libnsl.so.1 (0x00007f64002cb000)\n\t\
+        libFLAC.so.8 => /lib/x86_64-linux-gnu/libFLAC.so.8 (0x00007f640028d000)\n"
+  teb_local_planner:
+    path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libteb_local_planner.so
+    sha256: ae63785d2eb0c440010009531936e25aac889a901a4ad4a7e51af4e18fde2af4
+    ldd:
+      command:
+      - ldd
+      - /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libteb_local_planner.so
+      exit_code: 0
+      output: "\tlinux-vdso.so.1 (0x00007fffafffc000)\n\tlibcxsparse.so.3 => /lib/x86_64-linux-gnu/libcxsparse.so.3\
+        \ (0x00007f364c9ff000)\n\tlibg2o_csparse_extension.so => /opt/ros/noetic/lib/libg2o_csparse_extension.so\
+        \ (0x00007f364c9f7000)\n\tlibg2o_core.so => /opt/ros/noetic/lib/libg2o_core.so\
+        \ (0x00007f364c99a000)\n\tlibg2o_stuff.so => /opt/ros/noetic/lib/libg2o_stuff.so\
+        \ (0x00007f364c97a000)\n\tlibbase_local_planner.so => /opt/ros/noetic/lib/libbase_local_planner.so\
+        \ (0x00007f364c924000)\n\tlibcostmap_2d.so => /opt/ros/noetic/lib/libcostmap_2d.so\
+        \ (0x00007f364c883000)\n\tlibdynamic_reconfigure_config_init_mutex.so => /opt/ros/noetic/lib/libdynamic_reconfigure_config_init_mutex.so\
+        \ (0x00007f364c876000)\n\tlibclass_loader.so => /opt/ros/noetic/lib/libclass_loader.so\
+        \ (0x00007f364c849000)\n\tlibroslib.so => /opt/ros/noetic/lib/libroslib.so\
+        \ (0x00007f364c82e000)\n\tlibtinyxml2.so.6 => /lib/x86_64-linux-gnu/libtinyxml2.so.6\
+        \ (0x00007f364c817000)\n\tlibroscpp.so => /opt/ros/noetic/lib/libroscpp.so\
+        \ (0x00007f364c666000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0\
+        \ (0x00007f364c641000)\n\tlibboost_filesystem.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_filesystem.so.1.71.0\
+        \ (0x00007f364c623000)\n\tlibrosconsole.so => /opt/ros/noetic/lib/librosconsole.so\
+        \ (0x00007f364c5c0000)\n\tlibxmlrpcpp.so => /opt/ros/noetic/lib/libxmlrpcpp.so\
+        \ (0x00007f364c59c000)\n\tlibtf2.so => /opt/ros/noetic/lib/libtf2.so (0x00007f364c560000)\n\
+        \tlibroscpp_serialization.so => /opt/ros/noetic/lib/libroscpp_serialization.so\
+        \ (0x00007f364c55b000)\n\tlibrostime.so => /opt/ros/noetic/lib/librostime.so\
+        \ (0x00007f364c52c000)\n\tlibboost_thread.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_thread.so.1.71.0\
+        \ (0x00007f364c500000)\n\tlibconsole_bridge.so.0.4 => /lib/x86_64-linux-gnu/libconsole_bridge.so.0.4\
+        \ (0x00007f364c4fa000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6\
+        \ (0x00007f364c318000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f364c1c9000)\n\
+        \tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f364c1ae000)\n\
+        \tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f364bfba000)\n\tlibvoxel_grid.so\
+        \ => /opt/ros/noetic/lib/libvoxel_grid.so (0x00007f364bfb2000)\n\tlibPocoFoundation.so.62\
+        \ => /lib/x86_64-linux-gnu/libPocoFoundation.so.62 (0x00007f364bdfa000)\n\t\
+        librospack.so => /opt/ros/noetic/lib/librospack.so (0x00007f364bdab000)\n\t\
+        libcpp_common.so => /opt/ros/noetic/lib/libcpp_common.so (0x00007f364bd9d000)\n\
+        \tlibboost_chrono.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_chrono.so.1.71.0\
+        \ (0x00007f364bd8d000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007f364cc26000)\n\
+        \tlibrosconsole_log4cxx.so => /opt/ros/noetic/lib/librosconsole_log4cxx.so\
+        \ (0x00007f364bd6d000)\n\tlibrosconsole_backend_interface.so => /opt/ros/noetic/lib/librosconsole_backend_interface.so\
+        \ (0x00007f364bd68000)\n\tliblog4cxx.so.10 => /lib/x86_64-linux-gnu/liblog4cxx.so.10\
+        \ (0x00007f364bb8a000)\n\tlibboost_regex.so.1.71.0 => /lib/x86_64-linux-gnu/libboost_regex.so.1.71.0\
+        \ (0x00007f364ba8a000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f364ba82000)\n\
+        \tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f364ba78000)\n\t\
+        libpcre.so.3 => /lib/x86_64-linux-gnu/libpcre.so.3 (0x00007f364ba05000)\n\t\
+        libz.so.1 => /lib/x86_64-linux-gnu/libz.so.1 (0x00007f364b9e9000)\n\tlibboost_program_options.so.1.71.0\
+        \ => /lib/x86_64-linux-gnu/libboost_program_options.so.1.71.0 (0x00007f364b95a000)\n\
+        \tlibpython3.8.so.1.0 => /lib/x86_64-linux-gnu/libpython3.8.so.1.0 (0x00007f364b404000)\n\
+        \tlibapr-1.so.0 => /lib/x86_64-linux-gnu/libapr-1.so.0 (0x00007f364b3c9000)\n\
+        \tlibaprutil-1.so.0 => /lib/x86_64-linux-gnu/libaprutil-1.so.0 (0x00007f364b39b000)\n\
+        \tlibicui18n.so.66 => /lib/x86_64-linux-gnu/libicui18n.so.66 (0x00007f364b09c000)\n\
+        \tlibicuuc.so.66 => /lib/x86_64-linux-gnu/libicuuc.so.66 (0x00007f364aeb6000)\n\
+        \tlibexpat.so.1 => /lib/x86_64-linux-gnu/libexpat.so.1 (0x00007f364ae88000)\n\
+        \tlibutil.so.1 => /lib/x86_64-linux-gnu/libutil.so.1 (0x00007f364ae81000)\n\
+        \tlibuuid.so.1 => /lib/x86_64-linux-gnu/libuuid.so.1 (0x00007f364ae78000)\n\
+        \tlibcrypt.so.1 => /lib/x86_64-linux-gnu/libcrypt.so.1 (0x00007f364ae3d000)\n\
+        \tlibicudata.so.66 => /lib/x86_64-linux-gnu/libicudata.so.66 (0x00007f364937c000)\n"
+bindings:
+  workspace/scripts/astra_env.sh: 9191605db457e23031f614bfecfab012ba8a294dd30b39011d0651d90cf1eb79
+  workspace/scripts/astra_build.sh: fe02cb77c913ddae8f5a4fad523c5b3d0f4ad23868c197025203d58db164efb4
+  workspace/requirements/thesis-base.txt: 9eb503668abc74467ef0e41472a8b6cda973b05fad32ff028e3316659b5b68cd
+  workspace/requirements/thesis-rl-lock.txt: 4154e8388a35a35dd6cc94a0fadde9ec34ad5bb5da5ae21685bd472a655fee5c
+  workspace/requirements/thesis-rl-lock.yaml: 555d759eb9b8a960bbc6fe0318c883460169fa8d87a7f570bee9d5f44d1271bd
+  logs/build_20260926_01.log: 861d88da940418e0655a65ccadb9f0ac0a3a0af00607c6c1988a3d6b04a31b39
+  logs/build_20260926_02_static_tests.log: 6aa96427d2fbe5c1f19a183d1b7abf07b84c7438909ba6ba7b7620202c6ed79b
+scope:
+  gazebo_started_by_environment_audit: false
+  training_started: false
+  hardware_accessed: false
+  stable_workspace_modified: false
+  runtime_simulation_verification: pending_separate_smoke
+  hardware_validated: pending_no_evidence
+limitations:
+- CUDA-capable display GPU is present; frozen Python stack remains CPU-only.
+- M2 Gazebo plugin applies kinematic SetWorldPose with actuator dynamics, not calibrated
+  tire/friction physics.
+- Xvfb is absent; NVIDIA DISPLAY :0 rendering is available, actual Gazebo screenshots
+  still require runtime capture.
+- Core package clean build only; full 76-package workspace is not claimed built.

@@ -1,0 +1,169 @@
+{
+  "status": "independent_navigation_coordinator_timing_repair_review_pass",
+  "pass": true,
+  "independent_review": true,
+  "offline_only": true,
+  "runtime_ready": false,
+  "scope": "Offline timing-repair readiness for new clear-fixture N01 integration; no simulation, navigation performance, deployment or primary-matrix qualification.",
+  "checks": {
+    "15_independent_actual_code_cases_pass": true,
+    "all_reviewed_current_and_snapshot_hashes_match": true,
+    "configuration_AST_identical": true,
+    "six_core_methods_AST_identical": true,
+    "five_nonrepair_files_unchanged": true,
+    "no_physical_or_actor_driver_or_checkpoint_modified_by_audit": true,
+    "frozen_R2_primary_matrix_prerequisites_explicit": true
+  },
+  "reviewed_core_sha256": "1574d381a0cf4e6fc98f0702e91c0b36173035302448a50e35faf29379211b42",
+  "reviewed_node_sha256": "1f2bb1da971fc2536dd0243562bb523d14875bff52b40b6193541544b1dc9959",
+  "resources": [
+    {
+      "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator.py",
+      "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r2/navigation_coordinator.py",
+      "sha256": "1574d381a0cf4e6fc98f0702e91c0b36173035302448a50e35faf29379211b42",
+      "current_matches": true,
+      "snapshot_matches": true
+    },
+    {
+      "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_coordinator.py",
+      "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r2/test_navigation_coordinator.py",
+      "sha256": "5967a11239976c6642e7c11aae93c8d25ff628ff687f1c9c7e1cc636cddf2729",
+      "current_matches": true,
+      "snapshot_matches": true
+    },
+    {
+      "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_coordinated_route_adapter.py",
+      "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r2/test_coordinated_route_adapter.py",
+      "sha256": "885af40634558aaab38843c26f23b513511afd2f79e4ae29630d45b08976ffd8",
+      "current_matches": true,
+      "snapshot_matches": true
+    },
+    {
+      "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+      "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r2/astra_navigation_coordinator.py",
+      "sha256": "1f2bb1da971fc2536dd0243562bb523d14875bff52b40b6193541544b1dc9959",
+      "current_matches": true,
+      "snapshot_matches": true
+    },
+    {
+      "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_coordinated_runtime.py",
+      "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r2/astra_route_coordinated_runtime.py",
+      "sha256": "d3675f6153152dce54c41809c6da1172ea7168ebb4ca5e66f994110021641f96",
+      "current_matches": true,
+      "snapshot_matches": true
+    },
+    {
+      "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_frozen_r2_coordinated.py",
+      "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r2/astra_frozen_r2_coordinated.py",
+      "sha256": "79acb6aba8a9477fb781b03b13daa0fa19e7566a5bca69aaf7cf240200bee0ad",
+      "current_matches": true,
+      "snapshot_matches": true
+    },
+    {
+      "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_smoke.launch",
+      "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r2/astra_common_navigation_smoke.launch",
+      "sha256": "3cf62fa9ff4a8ee9b60ad10941b118f664d7ac645ea43066e2012b7981052534",
+      "current_matches": true,
+      "snapshot_matches": true
+    },
+    {
+      "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+      "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r2/astra_navigation_common_footprint.yaml",
+      "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e",
+      "current_matches": true,
+      "snapshot_matches": true
+    }
+  ],
+  "configuration_and_original_numeric_thresholds_unchanged": true,
+  "unchanged_methods": {
+    "request_stop": true,
+    "clock": true,
+    "method_status": true,
+    "arm": true,
+    "observe_odom": true,
+    "method_command": true
+  },
+  "unchanged_other_files": {
+    "test_coordinated_route_adapter.py": true,
+    "astra_route_coordinated_runtime.py": true,
+    "astra_frozen_r2_coordinated.py": true,
+    "astra_common_navigation_smoke.launch": true,
+    "astra_navigation_common_footprint.yaml": true
+  },
+  "resolved_findings": [
+    "NC01 first terminal preserved with late_fault diagnostics; public output remainszero",
+    "NC02 source odom pending queue until localclock covers; unchanged200ms age and future bound, strictordered ingress; no fake/clipped stamps",
+    "NC03 clockdeadline requestszero but ordered actual odom watermark owns timeout; both29.000/29.020 callback orders complete"
+  ],
+  "evidence": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/actual_race_results_r0.json",
+      "sha256": "1ba847644f4cc84ad2e8d8ecfd8b6c82e3c063528b0a45ba66cce7f63f6bee1c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/review_r0.json",
+      "sha256": "f4e032931913834605d28bab05e9fc9edbbe97847fd6facceab3fbff1e91bd0e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/test_actual_races_r2.py",
+      "sha256": "e0e792c08f0e20ab6ac9b1aa21ab8f7c1f99fdb8e80b95ba4e2868b6f6318b71"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/actual_race_results_r2.json",
+      "sha256": "a1c2d58eeb7f0ff939fd291ffebc234f45274af0860b89cadcf67b1e02d9936e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/actual_races_r2.log",
+      "sha256": "d3094fad2c1a278db7c7dec0f9923421767393bb829e09d626a3fa35a54ced1e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/repair_acceptance_cases.json",
+      "sha256": "7c986aba4ff7c8da88f20d919618f6e43eaab2ecd7e2b33898c3cf5fb51bfa95"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/primary_matrix_prerequisites.json",
+      "sha256": "5463ea8e8a4f399908be07ab09d3429d1c1423ee7b5444da87613198609b7931"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_components/implementation_report.json",
+      "sha256": "d1417b75c3886bddc0e98cb037841a5dad92b390e316f777fb7400db459c643f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_components/revision_r2.diff",
+      "sha256": "5a5324ea4627b25cd3714051f1449e5024d3eae9f9ff52144374c823159ed043"
+    }
+  ],
+  "independent_fixtures": "Actual pure core and complete actual ROS node executed with generated ROS message classes and fake transport/service/clock; source lead0/2ms/200ms+1ns, late method fault, pausedclock>5wall, exact deadline callbackorder, activefaultzero, unchanged stale guard. Not Gazebo evidence.",
+  "remaining_primary_matrix_prerequisites": [
+    {
+      "id": "R2-LIFECYCLE-TRUTH",
+      "required_before_primary_matrix": true,
+      "observed_code": "pct_teb_dwa_benchmark_episode.py robot_world_pose uses /gazebo/model_states; execute_sensor calls common_metrics_step then goal_state and breaks before policy action generation. New wrapper overrides only wait_ready/warmup, so this truth-dependent stop still executes.",
+      "required_new_adapter": "A separately versioned lifecycle-only R2 adapter must derive readiness/stop/goal from shared coordinator and actual source-stamped odometry, while keeping action-selection algorithm and checkpoint bytes immutable. Simulator oracle model/actor data must be isolated to diagnostics/evaluation and cannot terminate or select deployment commands.",
+      "current_claim_limit": "Do not call all four methods strict sensor-only end to end. Shared coordinator formal timestamps do not erase inherited R2 internal truth-dependent early stop.",
+      "old_R2_unchanged": true
+    },
+    {
+      "id": "R2-FIXED-ROUTE-FAIRNESS",
+      "required_before_primary_matrix": true,
+      "observed_code": "Frozen R2 consumes raster-decomposed static boxes and an implicit x-route, not the shared global path; implicit +/-20m walls and outside-map semantics also differ.",
+      "required_new_design": "Before a primary comparison, preregister and independently review either a semantically comparable fixed-route adapter for R2 or an explicitly narrower comparator population/claim that preserves the limitation. Prove actual input consumption, not only identical provider publication.",
+      "current_claim_limit": "N01 is clear-fixture integration only; it does not qualify a fully shared-route primary comparison.",
+      "old_R2_unchanged": true
+    },
+    {
+      "id": "PRIVATE-TWIST-TIME",
+      "required_before_primary_matrix": true,
+      "observed_code": "Private Twist is headerless; coordinator timestamps callback receipt and explicitly sets generation_source_ns null.",
+      "required_new_design": "Any primary claim requiring generated-after-gate command timing needs source/gate-bound command evidence or a narrowly declared receipt-time protocol. Current counter cannot prove the generation time of a message still queued before its callback.",
+      "current_claim_limit": "Do not claim all queued pre-ack publications are rejected; only already received commands are discarded."
+    }
+  ],
+  "limitations": [
+    "R2 algorithm weights untouched; its truth-dependent readiness/goal break and route-nonconsumption remain disclosed and disqualify stronger allmethods sensor-only/shared-route claims.",
+    "Headerless Twist receipt is not generation source time; pre-ack counter only discards alreadyreceived callbacks.",
+    "No new physical qualification, general safety, navigation performance or deployment claim from offline repair."
+  ],
+  "script_sha256": "f46b713e0bea62823acb8a3035740fd428a26b803a5643198483ac2515894ad2",
+  "created_utc": "2026-09-26T11:23:19.762235+00:00"
+}

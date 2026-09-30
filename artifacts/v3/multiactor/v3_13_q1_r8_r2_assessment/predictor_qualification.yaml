@@ -1,0 +1,70 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R8
+status: fresh_expanded_recovery_predictor_qualification_pass
+predictor_sha256: 9003df1fc9dd5076da7f98d4efab971686eee4db9b6788cc8f43b76b0537279d
+trajectory_count: 80
+global_simultaneous_trajectory_coverage: 1.0
+mean_trajectory_rmse_m: 0.09484464208393291
+maximum_trajectory_rmse_m: 0.2975136856178936
+terminal_full_width_at_7s_m: 1.7200000000000002
+scene_statistics:
+- scene_id: crossing_and_oncoming
+  trajectory_count: 40
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.09365948988101466
+  maximum_trajectory_rmse_m: 0.2805728686648983
+- scene_id: occluded_staggered_corridor
+  trajectory_count: 40
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.09602979428685114
+  maximum_trajectory_rmse_m: 0.2975136856178936
+candidate_statistics:
+- candidate_id: spatial_left_v120
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.10474016678906564
+  maximum_trajectory_rmse_m: 0.262178085968217
+- candidate_id: spatial_right_v120
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.13435690208911238
+  maximum_trajectory_rmse_m: 0.2975136856178936
+- candidate_id: straight_v120
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.15912988800146446
+  maximum_trajectory_rmse_m: 0.2875030468267976
+- candidate_id: certified_stop_v000
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.047554294743748164
+  maximum_trajectory_rmse_m: 0.093443397544556
+- candidate_id: recovery_evasive_right_v120_r1
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 1.0
+  mean_trajectory_rmse_m: 0.028441958796273915
+  maximum_trajectory_rmse_m: 0.06419251393974484
+matching_metrics:
+  complete_action_support_rate: 1.0
+  minimum_behavior_propensity: 0.2
+  maximum_branch_clock_absolute_error_s: 0.007999999999999119
+  maximum_decision_ego_x_range_m: 0.016001174946416175
+  maximum_decision_actor_coordinate_range_m: 0.012503232263998854
+  maximum_decision_actor_speed_range_mps: 0.005242695434667155
+gate_checks:
+  collection_gate: true
+  global_coverage: true
+  every_scene_coverage: true
+  every_candidate_coverage: true
+  mean_rmse: true
+  maximum_rmse: true
+  terminal_width: true
+  hidden_label_feature_count: true
+qualification_pass: true
+expanded_recovery_planner_integration_design_authorized: true
+direct_actual_TEB_execution_authorized: false
+perception_execution_authorized: false
+policy_or_ranker_training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false

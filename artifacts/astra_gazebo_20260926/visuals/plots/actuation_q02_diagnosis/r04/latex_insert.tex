@@ -1,0 +1,6 @@
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=170mm]{AQC01.pdf}
+\caption{Q02 单回合执行资格测试的转向变化率失败。蓝线由 Gazebo WorldUpdateEnd 的 base_link 与前转向架相对四元数恢复左右转角，再按有效轴距和轮距反推中心角；红线为实际发布的 joint_states 内部目标状态。前轮滚转轴方向独立复核实际中心角。全部 1801 个姿态样本源间隔均为 20 ms，匹配的内部状态恒早 2 ms。最高区间 15.782–15.802 s 内，实际变化率 -0.943859841 rad/s，内部状态为 -0.750 rad/s；残差差分解释二者之差。冻结门限为 ±0.85 rad/s，18/1800 个区间超门，原测试不通过。四元数 Z 轴 twist 与 Euler heading 的变化率差不足 1.55e-06 rad/s，前轮轴向也复现同一峰值，故无法以 Euler 投影误差解释失败。旧驱动每 20 ms 设定一次关节位置，ODE 仍可在物理更新中改变关节姿态；此解释符合原始残差和相对角速度，但缺少逐 2 ms 关节姿态及接触力，不能重建完整中间波形或分离每项动力学因果。此图仅为既有 Q02 原始数据的离线诊断，不改变门限、回执或历史结论。}
+\label{fig:aqc01-actuation-diagnostic}
+\end{figure}

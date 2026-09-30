@@ -1,0 +1,6 @@
+<?xml version="1.0"?><sdf version="1.6"><world name="astra_contact_fixture">
+<gravity>0 0 -9.81</gravity><physics name="ode" type="ode"><max_step_size>0.002</max_step_size><real_time_update_rate>500</real_time_update_rate></physics>
+<model name="ground_plane"><static>true</static><link name="body"><collision name="floor"><geometry><plane><normal>0 0 1</normal><size>20 20</size></plane></geometry></collision></link></model>
+<model name="falling_cube"><pose>0 0 1 0 0 0</pose><link name="body"><inertial><mass>1</mass><inertia><ixx>0.0266666667</ixx><iyy>0.0266666667</iyy><izz>0.0266666667</izz></inertia></inertial><collision name="cube"><geometry><box><size>0.4 0.4 0.4</size></box></geometry></collision></link></model>
+<plugin name="astra_evidence" filename="libastra_evidence_plugin.so"><state_hz>50</state_hz></plugin>
+</world></sdf>

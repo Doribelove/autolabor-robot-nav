@@ -1,0 +1,30 @@
+% Requires booktabs.
+\begin{table}[htbp]
+\centering
+\caption{Gazebo 正式 R2 四方法结果}
+\begin{tabular}{lrrrrr}
+\toprule
+方法 & 有效目标 & 完成率/\% & 失败计入均时/s & 最小保守净空/m & contact/mask\\
+\midrule
+PCT-SCOPE-RL & 180/200 & 90.0 & 14.8413 & -0.2696 & 0/0\\
+解析先验 & 150/200 & 75.0 & 16.3988 & 0.1645 & 0/0\\
+Actual TEB & 119/200 & 59.5 & 14.4470 & -1.1259 & 0/0\\
+DWA & 100/200 & 50.0 & 16.0925 & -0.3702 & 0/0\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{两轮预注册主比较}
+\begin{tabular}{llrrl}
+\toprule
+轮次 & 比较 & 点改善/\% & 双侧 97.5\% CI/\% & 结论\\
+\midrule
+R1 & PCT vs TEB & -0.9442 & [-8.3569,5.6359] & 未证明\\
+R1 & PCT vs DWA & 6.3693 & [1.0871,11.1411] & 未达 8\% 门\\
+R2 & PCT vs TEB & -2.7288 & [-9.8083,3.5914] & 未证明\\
+R2 & PCT vs DWA & 7.7754 & [2.5521,12.6148] & 未达 8\% 门\\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,128 @@
+schema_version: "1.0"
+architecture_generation: v6
+stage: V6-03
+name: PCT-SCOPE-RL sensor-only Gazebo transfer evaluation
+date: "2026-08-08"
+status: preregistered_before_any_v6_gazebo_outcome
+
+research_question: >-
+  Does the frozen PCT-SCOPE-RL actor retain a measurable advantage over its
+  frozen analytic prior when both receive only LaserScan, odometry and a local
+  goal in closed-loop Ackermann Gazebo, while a hard candidate/backup shield
+  remains active?
+
+methods:
+  identifiers: [pct_scope_rl_v6, sensor_analytic_prior, actual_teb]
+  roles:
+    pct_scope_rl_v6: main_sensor_policy
+    sensor_analytic_prior: primary_single_factor_baseline
+    actual_teb: strong_context_baseline
+  actor_identity_assignment: block_index_modulo_4
+  frozen_actor_checkpoints:
+    - id: pct_seed9501
+      path: artifacts/v6/training/v6_01_r1/pct_seed9501/actor_step_0120000.pt
+      sha256: 84db8f7dd2a8d231c1745d4ab96b0999a794a2298afadb98bc1bb04ac14a5476
+    - id: pct_seed9502
+      path: artifacts/v6/training/v6_01_r1/pct_seed9502/actor_step_0080640.pt
+      sha256: 5e9cee273d8381d24c1d385df3b38d993042b6b25262a4d2f0b17ff1e2798a28
+    - id: pct_seed9503
+      path: artifacts/v6/training/v6_01_r1/pct_seed9503/actor_step_0040704.pt
+      sha256: f274d8fbaa9529e1e4d28f81e4177c82eb30af98c281e26c33d6e4c931013bda
+    - id: pct_seed9504
+      path: artifacts/v6/training/v6_01_r1/pct_seed9504/actor_step_0080640.pt
+      sha256: 1b460ea6571aefa02df6df0b774ad879039988c533447b993aa7d753f8bc9ab7
+
+scene_population:
+  - {scene_id: open_crossing_90, actor_angle_deg: 90.0, corridor_half_width_m: null}
+  - {scene_id: wide_corridor_crossing_70, actor_angle_deg: 70.0, corridor_half_width_m: 1.80}
+  - {scene_id: bounded_corridor_crossing_110, actor_angle_deg: 110.0, corridor_half_width_m: 1.68}
+actor_policies: [cautious, hesitant]
+strata:
+  - {scene_id: open_crossing_90, actor_policy: cautious}
+  - {scene_id: open_crossing_90, actor_policy: hesitant}
+  - {scene_id: wide_corridor_crossing_70, actor_policy: cautious}
+  - {scene_id: wide_corridor_crossing_70, actor_policy: hesitant}
+  - {scene_id: bounded_corridor_crossing_110, actor_policy: cautious}
+  - {scene_id: bounded_corridor_crossing_110, actor_policy: hesitant}
+
+evaluation:
+  preflight: {seed_start: 954099, seed_end: 954099, blocks: 1, episodes: 3}
+  qualification: {seed_start: 954100, seed_end: 954105, blocks: 6, episodes: 18}
+  formal: {seed_start: 955100, seed_end: 955129, blocks: 30, episodes: 90}
+  attempts_per_identity: 1
+  retries_resumes_replacements: forbidden
+  method_order: deterministic_balanced_latin_rotation
+  formal_data_access: only_after_qualification_pass
+
+common_protocol:
+  simulation_only: true
+  shared_vehicle: autolabor_m2_ackermann
+  shared_command_boundary: /cmd_vel_navigation
+  maximum_speed_mps: 1.2
+  replanning_period_s: 0.25
+  handoff_pose_m_rad: [-2.6, 0.0, 0.0]
+  handoff_speed_mps: 0.8
+  timing_starts_at_handoff: true
+  goal_pose_m_rad: [5.2, 0.0, 0.0]
+  timeout_s: 22.0
+  failure_value_s: 22.0
+  evaluator_world_state_use: metrics_only
+  pct_and_analytic_policy_inputs: [LaserScan, Odometry, local_goal]
+  actual_teb_dynamic_actor_input: shared_oracle_track_context_baseline
+  hard_shield_active_for_sensor_methods: true
+  actor_checkpoint_and_observation_schema_frozen: true
+
+qualification_gates:
+  exact_episode_count: 18
+  completed_attempt1_rate_min: 1.0
+  execution_integrity_rate_min: 1.0
+  gate_physical_valid_rate_min: 1.0
+  actor_mode_match_rate_min: 1.0
+  maximum_within_block_gate_actor_coordinate_range_m: 0.04
+  maximum_within_block_gate_actor_speed_range_mps: 0.04
+  pct_goal_success_rate_min: 0.8333333333333334
+  analytic_goal_success_rate_min: 0.8333333333333334
+  actual_teb_goal_success_rate_min: 0.8333333333333334
+  contact_count_max: 0
+  minimum_conservative_clearance_m: 0.0
+  sensor_policy_world_state_access_count_max: 0
+  pct_checkpoint_hash_match_required: true
+
+formal_statistics:
+  independent_unit: paired_scene_seed_block
+  primary_comparison: pct_scope_rl_v6_vs_sensor_analytic_prior
+  primary_estimand: one_minus_ratio_of_failure_inclusive_population_mean_times
+  paired_bootstrap_resamples: 20000
+  bootstrap_seed: 66303
+  two_sided_confidence_level: 0.95
+  effectiveness_gate:
+    relative_reduction_minimum: 0.05
+    interval_lower_strictly_positive: true
+    goal_success_noninferior: true
+    contact_count_max: 0
+    minimum_conservative_clearance_m: 0.0
+  secondary_comparison: pct_scope_rl_v6_vs_actual_teb
+  secondary_inference: exploratory_two_sided_95_percent_block_bootstrap
+  report_all_scene_policy_strata: true
+
+claim_boundary:
+  positive_fast_environment_result_already_available: true
+  gazebo_population: three frozen reactive single-actor templates under paired simulator seeds
+  actor_inference_is_sensor_only: true
+  privileged_information_is_training_only: true
+  actual_teb_receives_oracle_actor_track: true
+  perception_generalization_claim_authorized: false
+  multi_actor_or_ood_claim_authorized: false
+  formal_safety_claim_authorized: false
+  deployment_claim_authorized: false
+  real_vehicle_claim_authorized: false
+
+authority:
+  explicit_user_simulation_instruction_date: "2026-08-08"
+  preflight_execution_authorized: true
+  qualification_execution_authorized_after_preflight_integrity: true
+  formal_execution_authorized_only_after_qualification_pass: true
+  training_authorized: false
+  online_teb_write_authorized: false
+  hardware_access_authorized: false
+  real_vehicle_authorized: false

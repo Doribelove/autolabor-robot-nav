@@ -1,0 +1,5 @@
+r2独立离线修复审查通过：15个实际代码针对性案例全部通过。firstterminal保持、迟到fault单列诊断，合法2ms未来odom排队直到clock覆盖，200ms+1ns超前仍fault；29.000目标/29.020截止两回调顺序均complete，实际odom达到截止才timeout，缺包200ms仍fault且activefault立即zero。
+
+原CoordinatorConfig与六个核心方法AST相同，五个非修复文件SHA相同。原r0八案例负结果和源码完整保留。新review仅支持下一清路集成的离线就绪，不是运行/部署资格。
+
+未来primary matrix强制先完成新的lifecycle-only R2适配器：去除truth readiness/内部goal stop，对齐shared coordinator/odom，动作算法和weights保持不可变，oracle仅作诊断。同时必须解决固定route不消费及地图语义差异；当前不得声称全四方法strictsensor-only或fullyshared-route。headerless私有命令只有receipt时基。具体要求绑定primary_matrix_prerequisites.json。

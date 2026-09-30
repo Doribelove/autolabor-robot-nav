@@ -1,0 +1,47 @@
+schema_version: '1.0'
+stage: pilot
+status: preregistered_before_outcome_access
+simulation_only: true
+purpose: estimate paired variance, failure rates, system feasibility and formal sample
+  size; no tuning or claims
+blocks: 20
+episodes: 80
+seed_range:
+- 196501
+- 196520
+scene_allocation:
+  core_static_avoidance: 4
+  core_single_crossing: 4
+  core_head_on_yield: 3
+  core_sequential_interaction: 3
+  core_partially_occluded: 3
+  core_width_change: 3
+methods:
+- pct_scope_rl
+- analytic_prior
+- actual_teb
+- dwa
+primary_metric: failure_inclusive_restricted_time_s
+failure_accounting:
+  success: measured_gate_to_goal_time
+  timeout_contact_nonarrival_method_system_failure: 22.0
+  infrastructure_failure: retained_and_reported_separately_never_deleted
+  retry: none_for_same_scientific_identity
+safety_metrics:
+- contact_count
+- minimum_conservative_clearance_m
+- mask_violation_count
+pilot_decision_rule:
+  tuning_from_pilot: forbidden
+  formal_sample_size_minimum_blocks: 100
+  formal_sample_size_maximum_blocks: 200
+  power_target: 0.8
+  two_primary_comparisons:
+  - actual_teb
+  - dwa
+  formal_effect_threshold_relative_reduction: 0.08
+schedule_path: artifacts/gazebo_pct_teb_dwa_benchmark/pilot/pilot_r1/pilot_schedule.csv
+schedule_sha256: b68ed50a659e8cf3bd412921d5fd0e5fe2929d827b2dda66342dc3c98510a3be
+pilot_formal_independence: pilot seeds excluded from all formal rounds
+hardware_authorized: false
+real_vehicle_authorized: false

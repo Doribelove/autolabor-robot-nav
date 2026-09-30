@@ -1,0 +1,73 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C0
+stage_purpose: pure_offline_segmented_closed_loop_yield_replan_recovery_design
+contract_id: v3_scope_v3_03_c0_closed_loop_recovery_1
+status: pure_offline_preregistered_before_materialization
+upstream:
+  b0_effective_planner_contract_path: artifacts/v3/planner/v3_03_b0/v3_03_b0_effective_planner_contract.yaml
+  b0_effective_planner_contract_sha256: c1fd1f18c7065039709aa6d35aa5da7b9fd1550c316233d45792e66f8f5655e4
+  b0_independent_review_sha256: 4f26ca02e09d9f05e4e29cfdd7fac840bac3747d2ff8f5feb668a57675bb2ef3
+  e1_terminal_freeze_path: artifacts/v3/prediction/v3_02_e1/v3_02_e1_terminal_freeze.sha256
+  predictor_path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  predictor_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+single_factor_extension:
+  factor_id: certified_monotone_actor_cleared_bypass_and_segmented_replan
+  predictor_model_changed: false
+  observed_mode_gate_changed: false
+  hard_verifier_footprints_or_margins_changed: false
+  analytic_ranker_weights_changed: false
+  candidate_speed_roster_changed: false
+  real_vehicle_interface_changed: false
+cleared_actor_bypass:
+  cleared_bypass_id: v3_03_c0_monotone_actor_cleared_1
+  scope: qualified_parameterized_crossing_actor_only
+  minimum_coordinate_m: 1.35
+  minimum_speed_mps: 0.0
+  certified_path_coordinate_upper_m: 3.50
+  required_snapshot_actor_flag: monotone_coordinate_certified
+  actor_reverse_motion_allowed: false
+  path_angle_support_deg: [70.0, 110.0]
+  fail_closed_if_flag_absent: true
+segmented_closed_loop:
+  observation_prefix_s: 0.50
+  replanning_period_s: 0.25
+  maximum_episode_duration_s: 10.0
+  goal_x_m: 2.50
+  state_carried_between_segments:
+    - global_time_s
+    - ego_pose
+    - ego_speed_mps
+    - actor_path_coordinate_m
+    - actor_speed_mps
+  actor_policy_runtime_input: false
+  evaluator_policy_available_to_simulator_only: true
+  exact_python_core_called_each_decision: true
+  segment_boundary_state_replay_required: true
+offline_gates:
+  minimum_cleared_geometric_margin_m: 0.10
+  cleared_motion_selection_rate_min: 1.0
+  missing_certificate_stop_rate_min: 1.0
+  preclear_conflict_stop_rate_min: 1.0
+  variable_initial_speed_stop_valid_rate_min: 1.0
+  deterministic_replay_pass: true
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_modification_authorized: false
+claim_if_pass: >-
+  The bounded crossing planner passed pure-offline tests for fail-closed
+  pre-conflict yielding and certificate-bound motion recovery after a
+  monotone actor has geometrically cleared the conflict path. Segmented
+  Gazebo execution and navigation performance remain unproven.
+forbidden_claims:
+  - continuous_runtime_integration
+  - general_obstacle_clearance
+  - navigation_safety
+  - performance_improvement
+  - deployment_readiness
+  - real_vehicle_readiness

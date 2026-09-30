@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="world"/>
+  <arg name="seed"/>
+  <arg name="scene_id"/>
+  <arg name="block_index"/>
+  <arg name="pre_action_wait_s"/>
+  <arg name="forced_candidate_id"/>
+  <arg name="behavior_propensity"/>
+  <arg name="report_path"/>
+  <arg name="scene_spec_path"/>
+  <arg name="actor_specs_path"/>
+  <arg name="planner_contract_path"/>
+  <arg name="spawn_world_x" default="-4.2"/>
+  <arg name="gui" default="false"/>
+
+  <include file="$(find m2_gazebo)/launch/spawn_m2.launch">
+    <arg name="world" value="$(arg world)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/>
+    <arg name="paused" value="true"/>
+    <arg name="server_required" value="true"/>
+    <arg name="x" value="$(arg spawn_world_x)"/>
+    <arg name="y" value="0.0"/>
+    <arg name="yaw" value="0.0"/>
+    <arg name="enable_actuator_dynamics" value="true"/>
+    <arg name="speed_time_constant" value="0.22"/>
+    <arg name="steering_time_constant" value="0.18"/>
+    <arg name="max_acceleration" value="1.20"/>
+    <arg name="max_deceleration" value="1.60"/>
+    <arg name="max_steering_rate" value="0.80"/>
+    <arg name="command_delay" value="0.0"/>
+    <arg name="command_jitter" value="0.0"/>
+    <arg name="laser_noise_stddev" value="0.01"/>
+  </include>
+
+  <node pkg="topic_tools" type="relay" name="v3_13_s1_navigation_command_relay"
+        args="/cmd_vel_navigation /cmd_vel" output="screen"/>
+
+  <node pkg="v3_scope_planner"
+        type="v3_scope_multiactor_sequential_clone_episode.py"
+        name="v3_scope_multiactor_sequential_clone_episode"
+        output="screen" required="true">
+    <param name="seed" value="$(arg seed)"/>
+    <param name="scene_id" value="$(arg scene_id)"/>
+    <param name="block_index" value="$(arg block_index)"/>
+    <param name="pre_action_wait_s" value="$(arg pre_action_wait_s)"/>
+    <param name="forced_candidate_id" value="$(arg forced_candidate_id)"/>
+    <param name="behavior_propensity" value="$(arg behavior_propensity)"/>
+    <param name="report_path" value="$(arg report_path)"/>
+    <param name="scene_spec_path" value="$(arg scene_spec_path)"/>
+    <param name="actor_specs_path" value="$(arg actor_specs_path)"/>
+    <param name="planner_contract_path" value="$(arg planner_contract_path)"/>
+    <param name="spawn_world_x" value="$(arg spawn_world_x)"/>
+    <param name="lookahead_m" value="0.70"/>
+    <param name="activation_time_s" value="5.0"/>
+    <param name="combined_radius_m" value="1.15"/>
+    <param name="gate_world_x" value="-2.6"/>
+    <param name="warmup_timeout_s" value="12.0"/>
+    <param name="warmup_speed_mps" value="0.8"/>
+    <param name="horizon_s" value="7.0"/>
+  </node>
+</launch>
+

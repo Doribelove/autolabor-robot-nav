@@ -1,0 +1,88 @@
+{
+  "schema": "astra_navigation_evidence_component_v1",
+  "status": "offline_ready_for_independent_review",
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence.py",
+      "sha256": "1cda155271b640b9e04fb41918b2fac49f92876302393e61767ad66e195464ea"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_collector.py",
+      "sha256": "dcff3deea85e8bccda333b8675a84d7d0e32875eb2e224447f9a5039ac2f6056"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_evidence.py",
+      "sha256": "4af79dd4b2c206b333f908212f5fcccb80f6de6560796ce9767721dc7d25c229"
+    }
+  ],
+  "test_count": 39,
+  "test_log": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/navigation_evidence_offline_tests_01.log",
+    "sha256": "075cdb1e98bcd488fa185c4bce871649df66e81f79f97bdb34123a2fc3a8bb8d"
+  },
+  "execution_authorized": false,
+  "training_authorized": false,
+  "ROS_Gazebo_started": false,
+  "scope": "new common navigation lifecycle/physical evidence adapter, separate from immutable Q02/Q03/Q04 stages",
+  "dependencies": {
+    "passive_helper": "passive_sweep_q04",
+    "inventory": "mapped_elf_inventory_v2 via run_passive_sweep_q04.capture_maps; fixed role and graphics evidence unchanged",
+    "physics_evaluator": "dense_sweep_p03 CLI with full actualURDF mass/COM/bodyshape and sourcebindings; no assess_records shortcut",
+    "whole_contacts": "evaluate_episode.read_bag/contact_audit; source coverage and fullcollision packet contract required"
+  },
+  "api": {
+    "make_contract": "keyword stage/run_id/seed/method/scene_id/world/robot_description/scene_manifest/shared_bundle/spawn_world_xyz_yaw/steering_kd/allowed_nodes/required_nodes, optional record/barrier/camera/node/wall settings",
+    "collector_params": [
+      "contract_path",
+      "contract_sha256",
+      "output"
+    ],
+    "markers": {
+      "ready_for_maps.json": "pid,source_ns,phase,node_processes(list PID/start_ticks/exe binding),planner_parameters(exact baseline local/global class or empty)",
+      "ready_for_maps_final.json": "same fields at terminal paused source watermark"
+    },
+    "acknowledgments": [
+      "maps_pre_ready.json",
+      "maps_final_ready.json"
+    ],
+    "closure": "closure(root,release,review,value) -> run_closure.json plus actual engine/node/service/writer audits",
+    "assess": "assess(root,value,timeout_s=120.) -> assessment.json; reads root/fixture.bag,world.sdf,robot_description_runtime.xml,collector_raw/report,run_closure",
+    "review_schema": "astra_navigation_source_review_v1; status independently_reviewed; resources include new helper/collector/coordinator/prepared fixture.launch content and engine sources; navigation_lifecycle_authority=collector_only_spawn_unpause_pause_fixed_gateway",
+    "assessment_keys": [
+      "capture_integrity_pass",
+      "safety_within_declared_engineering_scope_pass",
+      "valid_completed",
+      "restricted_goal_time_s",
+      "task.task_phase"
+    ]
+  },
+  "lifecycle": [
+    "collector sole Gazebo spawn/unpause/pause through fixed service whitelist; coordinator arm/stop only other mutations",
+    "core publisher-recorder barrier beforeunpause; allselectedmethod/route/sensor channels and readiness before fixed5s arm; no lazy move_base bootstrap deadlock",
+    "permanent source activation/fault errors abort readiness immediately; transient RPC advertisement errors retry within hardwall deadline",
+    "gate exact actualodom source; terminal sourceauthority phase-specific; source End must reach terminal beforestop/pause",
+    "hard5s includes coordinatorstop,pause,sourcewatermarkqueries,densejoins,node/PID/classparameter checks; finalELF archive handshake outside5s but within total collectorcap",
+    "one lock owns callbackparse/errors/activeflag; callbacks closed then immutable deep snapshot beforepass/output",
+    "raw state/contact onlybag; JSONcompact timestamps/status/command provenance, twooptionalnativePNG+singleROSframes outsidebag"
+  ],
+  "outcome_semantics": [
+    "capture complete timeout may have capture_integrity_pass=true and valid_completed=false; original failure retained",
+    "raw geometric arrival uses actualbase_link worldpose at2ms, position<=.25m/yaw<=.25rad, separately from coordinator20ms goal source",
+    "restricted goal time equals first raw geometric arrival only after complete task+capture+engineering/contact/physical gates; otherwise fixed22s",
+    "planned/incomplete sourcewindow throughput is null; complete interval ratio labelledformalwindow/totalwall, not whole-run clockRTF"
+  ],
+  "limitations": [
+    "No live navigation execution or first-use P03 adapter runtime validation yet",
+    "No mask/candidate/localplan/decision replay qualification in this physical adapter; report explicitly planner_input_mask_or_decision_integrity_assessed=false",
+    "Actual TEB/DWA loaded plugin/class proof owned by root manager; configuredclass and loadedDLL do not prove everycall",
+    "No performance comparison, learnedbenefit, deployment, formal/realcontinuous physicalsafety claim",
+    "Externalgraphics dynamiccode is observed/binary-bound pattern evidence, never anonymous memoryhash or NVIDIA sourceproof"
+  ],
+  "root_prerequisites": [
+    "qualify fresh passiveQ04 under independent review",
+    "save bound world.sdf in each rootattempt; launch actualworld SHA must match",
+    "freeze source review and rootowned runner/launch/coordinator exactbytes",
+    "rootonly registry/release/execute; retain sourcebag compactderived outputs"
+  ],
+  "frozen_stage_sources_unchanged": true
+}

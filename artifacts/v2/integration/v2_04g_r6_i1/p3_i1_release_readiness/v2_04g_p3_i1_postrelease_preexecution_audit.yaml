@@ -1,0 +1,34 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P3-I1
+status: exact_release_preexecution_validation_pass
+release:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i1_p3_i1_execution_release.yaml
+  sha256: 7da98701aeb7c8fa324d2840253c415c46c9a81b005b017892aaef1f68443535
+exact_identity:
+  sequence: 1
+  seed: 5624
+  probe_type: high_speed_to_conflict_overlay_transition
+  candidate_speed_mps: 1.25
+  candidate_method_id: circle_contact_v125
+  runtime_profile_id: r6_semantics_circle_contact
+release_validation:
+  schedule_sha256: f674f445658e9a4cba1ed63ef430c3f63ef817ed33a1199e97a5c7310967056f
+  command_plan_sha256: 5df6af07020793d7215e77da5160a11d8af46cb90a72a7f353772c44b3008650
+  dependency_closure_sha256: 9915937fca1827a0620b8dfd3d75956bd0f3782a7a9b96ad57dd9618ef685511
+  local_resources_verified: 639
+  external_resources_verified: 301
+  runtime_profile_consumer_allowlist_pass: true
+  base_transaction_probe_commands_match_runner: true
+side_effect_state:
+  execution_root_absent: true
+  ROS_Gazebo_move_base_processes_absent: true
+  held_out_test_accessed: false
+authorization_state:
+  authorized_evidence_units_max: 1
+  attempt_per_identity: 1
+  retry_resume_replacement_or_seed_substitution_allowed: false
+  future_round_2_units_authorized: 0
+  training_allowed: false
+  real_vehicle_use_forbidden: true
+next_safe_entry: invoke_bound_runner_once_with_exact_release_SHA

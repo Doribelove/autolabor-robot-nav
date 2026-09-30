@@ -1,0 +1,196 @@
+schema_version: '1.0'
+stage: P14_PAPER_WRITER_HANDOFF
+status: paper_writer_handoff_complete
+claims:
+- id: historical_v6_fast_population
+  status: qualified_reproduced
+  boundary: four frozen sensor-level fast families; not Gazebo or TEB/DWA
+  claim: PCT-SCOPE-RL reduced failure-inclusive restricted time by 8.402444% versus
+    the analytic prior in the frozen V6 fast population; two-sided 97.5% CI [3.484003%,
+    13.713459%]
+  evidence:
+    original: artifacts/v6/formal/v6_02_f1_fresh_formal/formal_assessment.json
+    reproduction: artifacts/gazebo_pct_teb_dwa_benchmark/reproduction/v6_02_f1_recomputed_20260810/reproduction_comparison.json
+    episode_ledger: artifacts/gazebo_pct_teb_dwa_benchmark/episode_results.csv
+- id: pct_gazebo_migration_admission
+  status: qualified_development_component_gate
+  claim: Six current-version development live gates passed across static, single-crossing
+    and partially-occluded scenes in analytic shadow and PCT takeover; this is interface/execution
+    admission only.
+  evidence:
+    report: artifacts/gazebo_pct_teb_dwa_benchmark/p02_gazebo_admission_report.json
+    offline: artifacts/gazebo_pct_teb_dwa_benchmark/admission/p02_offline_admission.json
+    ledger: artifacts/gazebo_pct_teb_dwa_benchmark/episode_results.csv
+  boundaries:
+  - no paired performance effect
+  - no TEB or DWA superiority
+  - no formal safety or generalization
+  - no deployment or real vehicle
+- id: real_vehicle
+  status: forbidden_no_evidence
+  evidence: null
+- id: analytic_prior_core_static_development
+  status: qualified_single_identity_development_component_gate
+  claim: The current analytic prior completed one integrity-valid core static Gazebo
+    development episode with zero contact.
+  evidence:
+    report: artifacts/gazebo_pct_teb_dwa_benchmark/p03_static_candidate_repair_report.json
+    ledger: artifacts/gazebo_pct_teb_dwa_benchmark/episode_results.csv
+  boundaries:
+  - adaptive development sequence
+  - no effect estimate
+  - no PCT/TEB/DWA comparison
+  - no formal or deployment claim
+- id: p04_development_four_method_signal
+  status: descriptive_development_only_not_qualified
+  claim: The aligned PCT checkpoint completed all six adaptive development blocks,
+    but did not meet the preregistered 8% practical threshold versus DWA and remained
+    slower than TEB-v0.
+  evidence:
+    report: artifacts/gazebo_pct_teb_dwa_benchmark/p04_development_checkpoint_report.json
+    ledger: artifacts/gazebo_pct_teb_dwa_benchmark/episode_results.csv
+  boundaries:
+  - adaptive development data
+  - no confidence interval
+  - no superiority claim
+  - no pilot/formal/deployment authority
+- id: p05_development_freeze
+  status: descriptive_development_only_not_qualified
+  claim: The final adaptive development matrix retained all failures and selected
+    R1, TEB-v0 and DWA-v0, but PCT did not meet the 8% practical threshold versus
+    DWA and was slower than TEB.
+  evidence:
+    report: artifacts/gazebo_pct_teb_dwa_benchmark/p05_development_freeze_report.json
+    report_sha256: 6f37229358461dc75d9950cb2f08e1d7b39c6376c96dbd64c91078a7242e8705
+    blocks: 6
+    pct_mean_s: 14.950000000000001
+    teb_mean_s: 13.299999999999999
+    dwa_mean_s: 16.108333333333334
+  limitations:
+  - adaptive development data
+  - six blocks only
+  - no confidence interval
+  - pilot and formal seeds untouched
+  - no deployment or real-vehicle authority
+- id: p06_pilot
+  status: pilot_only_not_qualified_for_advantage
+  claim: The preregistered pilot completed 20 paired blocks without tuning and selected
+    160 formal blocks; it did not itself demonstrate PCT superiority.
+  evidence:
+    report: artifacts/gazebo_pct_teb_dwa_benchmark/pilot/pilot_r1/pilot_assessment.json
+    report_sha256: 76eaf0ef3997ecfe496aba4814ba67ba23645f025fd07b5dbb7b78d0c6eef67c
+  limitations:
+  - pilot sample
+  - not a formal test
+  - TEB comparison underpowered within cap
+  - simulation only
+- id: p07_formal_r1_release
+  status: preregistered_pending_execution_no_result_claim
+  claim: Formal round 1 has a hash-bound 160-block preregistration and grants no result
+    claim before execution.
+  evidence:
+    release_sha256: af9ce1b2e5887cc4b41ef822dd877a50eb222bcdc67107163cc2de920c1cd93f
+    preregistration_sha256: 13785745d0ff40596aacb19c8cb5880baeb9480fce8ba8e3a6714a984078156b
+    schedule_sha256: 89adaa3ad8c6175c2223b91f3b457c789b94858d2b606515413da6bac8c496e8
+- id: p08_formal_r1
+  status: qualified_negative
+  claim: 'Formal round 1 completed all 160 paired blocks. Positive comparator gates
+    passed for: none.'
+  evidence:
+    assessment: artifacts/gazebo_pct_teb_dwa_benchmark/formal/round_1/formal_r1_assessment.json
+    assessment_sha256: 777ce9b1599713ebbdc62cb14691334e733c5f08e12e8cde881d2eeb07a0a04c
+    review_sha256: f2fb67d34998c17adba1c174608a37613696187cdd882f758d9dbc641cec9422
+  limitations:
+  - six frozen Gazebo templates
+  - simulation only
+  - no perception/OOD/deployment/real-vehicle claim
+- id: p09_r2_candidate_coverage_development
+  status: qualified_development_single_factor_signal
+  claim: A preregistered development ablation promoted only the 0.6 m/s low-speed
+    spatial candidate factor; this is not formal superiority evidence.
+  evidence:
+    assessment: artifacts/gazebo_pct_teb_dwa_benchmark/development/r2_candidate_coverage_d0/assessment.json
+    assessment_sha256: f9737ed1514510312c4969d5c362749f62ce0e4fc45f25c3bacb8c509d0778f3
+    review_sha256: c3313ee54486d16b418e5989edc01514929fcb0da53665d7bc0bc05d36505b35
+  limitations:
+  - development seeds informed selection
+  - one retained presemantic system failure
+  - no confidence interval
+  - no formal/deployment/real-vehicle claim
+- id: p10_pilot_r2
+  status: pilot_only_not_qualified_for_advantage
+  claim: R2 pilot selected 200 formal blocks and made no tuning change.
+  evidence:
+    assessment: artifacts/gazebo_pct_teb_dwa_benchmark/pilot/pilot_r2/pilot_r2_assessment.json
+    assessment_sha256: cc90d51f584055c1e2a5fa7e73c42dab3eaa8a250ab92c686b9e347edd7f75c3
+    review_sha256: 9f314a5a06c265d738a68717e4feff9c3ecd3eea3583728b714758d37427d4dc
+  limitations:
+  - pilot sample
+  - not formal
+  - simulation only
+- id: p11_formal_r2_release
+  status: preregistered_pending_execution_no_result_claim
+  claim: Formal R2 is hash-bound for 200 fresh paired blocks and grants no result
+    claim before execution.
+  evidence:
+    release_sha256: c64dee01acbdf58ece4b9eb2056d039c6d2ee61121dbbbcffbc717c8c5253137
+    preregistration_sha256: fabdc7034f4e352e258873e76b754cd890ff3fbef099a198c3ee2395ef31cffb
+    schedule_sha256: 9b83713ee4fabbd86e9009a2c7b6bb89f533142824b5c1f24820d55cae2b065c
+- id: pct_vs_actual_teb_gazebo
+  status: not_demonstrated_after_two_formal_rounds
+  claim: 'Formal R2 PCT relative reduction versus Actual TEB: -2.7288%, 97.5% CI [-9.8083%,
+    3.5914%].'
+  evidence:
+    assessment: artifacts/gazebo_pct_teb_dwa_benchmark/formal/round_2/formal_r2_assessment.json
+    assessment_sha256: a0cf0ef415a0685411299524bcb9a71674edd59f58c378b037d8b91d64e6a473
+    review_sha256: a937f5272756bb2b1a10526046d03ff9cbf0dd6f8d41be3658e7b8419b7a6265
+  limitations:
+  - six frozen Gazebo templates
+  - simulation only
+  - no perception/OOD/deployment/real-vehicle claim
+- id: pct_vs_dwa_gazebo
+  status: not_demonstrated_after_two_formal_rounds
+  claim: 'Formal R2 PCT relative reduction versus DWA: 7.7754%, 97.5% CI [2.5521%,
+    12.6148%].'
+  evidence:
+    assessment: artifacts/gazebo_pct_teb_dwa_benchmark/formal/round_2/formal_r2_assessment.json
+    assessment_sha256: a0cf0ef415a0685411299524bcb9a71674edd59f58c378b037d8b91d64e6a473
+    review_sha256: a937f5272756bb2b1a10526046d03ff9cbf0dd6f8d41be3658e7b8419b7a6265
+  limitations:
+  - six frozen Gazebo templates
+  - simulation only
+  - no perception/OOD/deployment/real-vehicle claim
+- id: p12_formal_r2
+  status: qualified_negative
+  claim: 'Formal R2 completed all 200 paired blocks. Positive comparator gates passed
+    for: none.'
+  evidence:
+    assessment_sha256: a0cf0ef415a0685411299524bcb9a71674edd59f58c378b037d8b91d64e6a473
+    review_sha256: a937f5272756bb2b1a10526046d03ff9cbf0dd6f8d41be3658e7b8419b7a6265
+- id: p13_thesis_transfer
+  status: qualified_paper_transfer
+  evidence:
+    path: THESIS_RESULT_TRANSFER.md
+    sha256: bfe8611ffeca7936924f90ffee002cf6d5952990ab9e2842f84a8dbf9660a80a
+    review_sha256: 356b9ebbffbba53724fbcc1d9b51f2a7cc9afd28a429ae82107db604ec887cfd
+    diagnostic_csv_sha256: fc5c52d890e9d0a8ec54672397d813e9b9858ee76acf82659c1a9e7d80e1f2b6
+    terminal_tests: 44_runtime_pass; 6_model_contract_pass; catkin_make_j2_pass
+- id: p14_paper_writer_handoff
+  status: qualified_offline_transfer
+  claim: All current paper-relevant historical and new Gazebo evidence is organized
+    under one outer claims contract; no new scientific result was created.
+  evidence:
+    package_path: artifacts/paper_writer_handoff/FAM_TEB_PCT_SCOPE_RL_COMPLETE_20260810
+    required_first: claims_contract.yaml
+    machine_results: canonical_results.json
+    raw_index: indices/full_raw_benchmark_evidence_index.csv
+  limitations:
+  - portable core omits duplicate raw ROS logs
+  - raw logs remain available only through repository paths
+  - no new execution or real-vehicle evidence
+forbidden_claims:
+- general superiority over TEB
+- superiority over DWA before a frozen fresh formal matrix
+- formal safety
+- perception or OOD generalization
+- deployment or real-vehicle readiness

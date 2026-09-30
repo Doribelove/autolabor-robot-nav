@@ -1,0 +1,144 @@
+schema_version: '1.0'
+stage: V3-21-F1
+status: complete_failure_inclusive_characterization_with_one_protocol_deviation
+scientific_matrix_complete: true
+formal_result: false
+characterization_result_available: true
+performance_improvement_vs_actual_teb_demonstrated: false
+episode_count: 120
+paired_block_count: 30
+method_metrics:
+  v3_spatial_safe:
+    episodes: 30
+    goal_successes: 28
+    goal_success_rate: 0.9333333333333333
+    restricted_time_mean_s: 7.785
+    restricted_time_std_s: 3.8641399542727353
+    restricted_time_median_s: 6.750000000000001
+    successful_only_time_mean_s: 6.769642857142857
+    path_length_mean_m: 7.5051252585502235
+    minimum_clearance_mean_m: 0.9981896309759448
+    minimum_clearance_min_m: 0.4763955404786977
+    contact_count: 0
+    fallback_count: 2
+    fallback_rate: 0.06666666666666667
+    execution_integrity_passes: 29
+    planner_latency_p99_ms: 10.755505520000002
+  actual_teb:
+    episodes: 30
+    goal_successes: 30
+    goal_success_rate: 1.0
+    restricted_time_mean_s: 7.77
+    restricted_time_std_s: 0.04842341981115034
+    restricted_time_median_s: 7.75
+    successful_only_time_mean_s: 7.77
+    path_length_mean_m: 7.894006249632403
+    minimum_clearance_mean_m: 0.2064455402999655
+    minimum_clearance_min_m: 0.039524702913058096
+    contact_count: 0
+    fallback_count: 0
+    fallback_rate: 0.0
+    execution_integrity_passes: 30
+    planner_latency_p99_ms: null
+  fixed_v120_shielded:
+    episodes: 30
+    goal_successes: 0
+    goal_success_rate: 0.0
+    restricted_time_mean_s: 22.0
+    restricted_time_std_s: 0.0
+    restricted_time_median_s: 22.0
+    successful_only_time_mean_s: null
+    path_length_mean_m: 0.2531573416588961
+    minimum_clearance_mean_m: 1.0950967248108674
+    minimum_clearance_min_m: 1.0460225867501043
+    contact_count: 0
+    fallback_count: 30
+    fallback_rate: 1.0
+    execution_integrity_passes: 30
+    planner_latency_p99_ms: 18.836491250000005
+  v3_no_candidate_conditioning:
+    episodes: 30
+    goal_successes: 13
+    goal_success_rate: 0.43333333333333335
+    restricted_time_mean_s: 15.401666666666667
+    restricted_time_std_s: 7.6744929444246015
+    restricted_time_median_s: 22.0
+    successful_only_time_mean_s: 6.773076923076923
+    path_length_mean_m: 3.615492722747247
+    minimum_clearance_mean_m: 1.093081145012883
+    minimum_clearance_min_m: 0.6639943944508475
+    contact_count: 0
+    fallback_count: 17
+    fallback_rate: 0.5666666666666667
+    execution_integrity_passes: 30
+    planner_latency_p99_ms: 10.910183150000003
+comparisons:
+  v3_spatial_safe_vs_actual_teb:
+    point_relative_reduction: -0.0019305019305020038
+    two_sided_95_lower: -0.19866838487972502
+    two_sided_95_upper: 0.12982005141388184
+    mean_comparator_minus_main_s: -0.014999999999999857
+    raw_two_sided_p: 0.7554122293885306
+    bootstrap_resamples: 20000
+    bootstrap_seed: 32020
+    main_goal_success_rate: 0.9333333333333333
+    comparator_goal_success_rate: 1.0
+    holm_adjusted_p: 0.7554122293885306
+  v3_spatial_safe_vs_fixed_v120_shielded:
+    point_relative_reduction: 0.6461363636363636
+    two_sided_95_lower: 0.5768181818181818
+    two_sided_95_upper: 0.6925
+    mean_comparator_minus_main_s: 14.215
+    raw_two_sided_p: 4.999750012499375e-05
+    bootstrap_resamples: 20000
+    bootstrap_seed: 32021
+    main_goal_success_rate: 0.9333333333333333
+    comparator_goal_success_rate: 0.0
+    holm_adjusted_p: 0.00014999250037498125
+  v3_spatial_safe_vs_v3_no_candidate_conditioning:
+    point_relative_reduction: 0.4945352234606644
+    two_sided_95_lower: 0.3700102816638785
+    two_sided_95_upper: 0.5880024360535931
+    mean_comparator_minus_main_s: 7.616666666666667
+    raw_two_sided_p: 4.999750012499375e-05
+    bootstrap_resamples: 20000
+    bootstrap_seed: 32022
+    main_goal_success_rate: 0.9333333333333333
+    comparator_goal_success_rate: 0.43333333333333335
+    holm_adjusted_p: 0.00014999250037498125
+primary_interpretation:
+  result: no_restricted_time_improvement_vs_actual_teb
+  point_relative_reduction: -0.0019305019305020038
+  two_sided_95_interval:
+  - -0.19866838487972502
+  - 0.12982005141388184
+  main_success_rate: 0.9333333333333333
+  actual_teb_success_rate: 1.0
+candidate_conditioning_exploratory_evidence: true
+protocol_deviations:
+- sequence: 107
+  seed: 8227
+  method: v3_spatial_safe
+  gate_x_m: -2.5677143070183965
+  absolute_gate_error_m: 0.03228569298160355
+  tolerance_m: 0.03
+  outcome_retained: true
+posthoc_sensitivity_excluding_block27:
+  block_count: 29
+  point_relative_reduction: -0.006434435322831129
+  conclusion_changes: false
+integrity:
+  all_attempt1: true
+  all_ports_below_ephemeral: true
+  execution_integrity_pass_rate: 0.9916666666666667
+  zero_contact: true
+  all_nonnegative_clearance: true
+  gate_actor_coordinate_range_max_m: 0.0057600000000004314
+  gate_actor_speed_range_max_mps: 0.025600000000010614
+claim_boundary:
+  exploratory_followup: true
+  single_reactive_actor_oracle_track_only: true
+  perception_ood_formal_safety_deployment_real_vehicle_claims: false
+training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false

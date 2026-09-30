@@ -1,0 +1,45 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-05-R1
+stage_purpose: pure_offline_gazebo_master_port_allocation_repair
+contract_id: v3_scope_v3_05_r1_master_port_repair_1
+status: pure_offline_preregistered_before_materialization
+parent:
+  stage: V3-05-A0
+  terminal_freeze_path: artifacts/v3/formal/v3_05_a0/v3_05_a0_terminal_freeze.sha256
+  terminal_freeze_sha256: b876af0a5c72d6630165ba87b4e9fbc782446187ce9e57c8607b91eb1a77f909
+  failure_record_path: artifacts/v3/formal/v3_05_a0/v3_05_a0_terminal_failure_record.yaml
+  failure_record_sha256: 299b7a5619e3f5bcbc4fcd0812374f7df831259fd6ce543fc52b9a432c8c522e
+single_factor_repair:
+  factor_count: 1
+  factor_id: gazebo_master_port_allocation_below_ephemeral_range
+  base_port: 12000
+  sequence_stride: 50
+  maximum_sequence: 270
+  maximum_decision_index: 38
+  minimum_allowed_port: 12050
+  maximum_allowed_port: 25538
+  audited_linux_ephemeral_range: [32768, 60999]
+  all_ports_unique: true
+  all_ports_below_ephemeral_range: true
+  planner_or_model_changed: false
+  method_roster_or_selection_changed: false
+  geometry_or_statistics_changed: false
+  safety_or_task_gate_changed: false
+  execution_protocol_changed_other_than_port_allocation: false
+offline_gates:
+  allocated_port_count: 10530
+  unique_port_rate_min: 1.0
+  below_ephemeral_rate_min: 1.0
+  static_bind_probe_rate_min: 1.0
+  historical_failure_port_identified: 35600
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  The pure-offline port allocation repair maps the complete formal matrix to
+  unique currently bindable ports below the audited Linux ephemeral range.
+  It does not authorize or prove formal execution.

@@ -1,0 +1,171 @@
+--- frozen_P04
++++ initial_unreleased_P05
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""M12-P04 source-watermark drain repair of the frozen P02 collector.
++"""M12-P05 source-timed driver ingress and exact interval measurement.
+ 
+ Pure assessment/helpers are importable without ROS. Runtime saves streaming raw
+ records before attempting assessment, and always preserves terminal failures.
+@@ -88,6 +88,61 @@
+                 and type(drain.get('wall_elapsed_s')) in (float,int)
+                 and 0<=drain['wall_elapsed_s']<=5. and not raw.get('pause_error'))
+     except (ValueError,TypeError,KeyError,AttributeError,OverflowError):return False
++
++
++def sample_ns(row):
++    """Source headers win; legacy receipt-clock rows remain diagnostic only."""
++    if 'ns' in row:
++        if type(row['ns']) is not int:raise ValueError('integer source ns required')
++        return row['ns']
++    return int(round(row['t']*1e9))
++
++
++def in_ns_window(row,start_ns,end_ns,inclusive_end=False):
++    ns=sample_ns(row)
++    return start_ns<=ns and (ns<=end_ns if inclusive_end else ns<end_ns)
++
++
++def parse_command_ingress(raw):
++    """Actual callback entry in the physical driver, stamped by Gazebo time."""
++    result=[];previous_ns=-1;previous_seq=None
++    keys={'input_topic','requested_linear_x','requested_angular_z','accepted',
++          'disposition','backend_fault','activation_time_s'}
++    for row in raw.get('command_ingress',[]):
++        ns=sample_ns(row);seq=row.get('seq');items=row.get('statuses',[])
++        if (ns<0 or ns<previous_ns or row.get('frame')!='world' or type(seq) is not int
++                or not 0<=seq<2**32 or (previous_seq is not None and seq!=(previous_seq+1)%2**32)
++                or len(items)!=1):raise ValueError('invalid driver ingress source/order')
++        status=items[0];values=status.get('values',{})
++        if (status.get('name')!='astra_physical_command_ingress' or status.get('hardware_id')!='simulation-only'
++                or status.get('level')!=0 or status.get('value_count')!=7 or set(values)!=keys
++                or values.get('input_topic')!='cmd_vel' or values.get('accepted')!='true'
++                or values.get('backend_fault')!='false' or values.get('disposition')!='accepted_queued'):
++            raise ValueError('invalid or rejected driver command ingress')
++        v=float(values['requested_linear_x']);w=float(values['requested_angular_z']);activation=float(values['activation_time_s'])
++        if not all(math.isfinite(x) for x in (v,w,activation)) or int(round(activation*1e9))<ns:
++            raise ValueError('invalid driver ingress payload/activation time')
++        result.append({'ns':ns,'t':ns/1e9,'seq':seq,'v':v,'w':w,'activation_time_s':activation})
++        previous_ns=ns;previous_seq=seq
++    if not result:raise ValueError('driver ingress evidence absent')
++    return result
++
++
++def command_ingress_integrity(raw,contract):
++    checks={'physical_command_ingress_source_schema_and_order':False,
++            'physical_command_ingress_matches_source_commands':False}
++    try:
++        rows=parse_command_ingress(raw)
++        checks['physical_command_ingress_source_schema_and_order']=True
++        start=raw['schedule_start_ns'];end=start+int(round(contract['total_schedule_s']*1e9))
++        sent=[r for r in raw['commands_sent'] if r['ns']>=start]
++        received=[r for r in rows if r['ns']>=start]
++        checks['physical_command_ingress_matches_source_commands']=(bool(sent) and len(sent)==len(received)
++            and all(r['ns']>=s['ns'] and abs(r['v']-s['v'])<=1e-12 and abs(r['w']-s['w'])<=1e-12
++                    for s,r in zip(sent,received))
++            and len([r for r in received if r['ns']>=end and r['v']==r['w']==0.])==1)
++    except (ValueError,TypeError,KeyError,AttributeError,OverflowError):pass
++    return checks
+ 
+ 
+ def sha_bytes(value):return hashlib.sha256(value).hexdigest()
+@@ -134,7 +189,7 @@
+ 
+ 
+ def validate_effective_urdf(xml,contract,seed):
+-    root=ET.fromstring(xml);plugin=root.find("gazebo/plugin[@filename='libastra_physical_ackermann_p02_plugin.so']")
++    root=ET.fromstring(xml);plugin=root.find("gazebo/plugin[@filename='libastra_physical_ackermann_p05_plugin.so']")
+     if plugin is None:raise ValueError('M2 actuator plugin absent from effective robot_description')
+     values={k:float(plugin.findtext(k)) for k in contract['effective_plugin_parameters']}
+     for key,expected in contract['effective_plugin_parameters'].items():
+@@ -187,7 +242,8 @@
+     required_links={model+'::base_link'}|{model+'::'+n for n in contract['front_link_names']}
+     required_links|={model+'::'+n+'_wheel_link' for n in ('front_left','front_right','rear_left','rear_right')}
+     checks={'final_paused_source_watermark_drained':final_drain_integrity(raw,contract)}
+-    stamped=('models','links','dense_models','dense_links','odom','joints','targets','contacts','commanded_efforts','backend_status','source_status')
++    checks.update(command_ingress_integrity(raw,contract))
++    stamped=('models','links','dense_models','dense_links','odom','joints','targets','contacts','commanded_efforts','backend_status','source_status','command_ingress')
+     checks['all_source_stamp_ns_and_seconds_agree']=all(
+         type(r.get('ns')) is int and r['ns']>=0 and abs(r['t']-r['ns']/1e9)<=1e-9
+         for key in stamped for r in raw.get(key,[]))
+@@ -327,9 +383,10 @@
+ 
+ def assess(raw,contract):
+     g=contract['gates'];params=contract['effective_plugin_parameters'];L=params['wheelbase'];track=params['track'];start=raw['schedule_start_s'];end=start+contract['total_schedule_s']
++    start_ns=raw['schedule_start_ns'];end_ns=start_ns+int(round(contract['total_schedule_s']*1e9))
+     checks={};metrics={};errors=[]
+     def gate(name,value):checks[name]=bool(value)
+-    def inside(r):return start<=r['t']<=end
++    def inside(r):return in_ns_window(r,start_ns,end_ns,inclusive_end=True)
+     model_rows=[r for r in raw['models'] if inside(r)];link_rows=[r for r in raw['links'] if inside(r)]
+     odom=[r for r in raw['odom'] if inside(r)];joints=[r for r in raw['joints'] if inside(r)];targets=[r for r in raw['targets'] if inside(r)];contacts=[r for r in raw['contacts'] if inside(r)]
+     gate('all_numeric_finite',finite(raw));gate('no_callback_errors',not raw.get('callback_errors'))
+@@ -438,16 +495,24 @@
+     metrics['robot_nonwheel_ground_contact_pair_count']=len(illegal_ground)
+     metrics['first_nonwheel_ground_contacts']=illegal_ground[:10]
+     gate('only_wheels_may_contact_ground',not illegal_ground)
+-    phase_metrics={}
++    phase_metrics={};ingress=parse_command_ingress(raw)
++    metrics['command_loss_qualification_basis']='physical driver receipt at Gazebo World::SimTime; source order/payload joins, not probe-local headerless receipt clock'
+     for phase in phase_intervals(contract):
+         lo=start+phase['start_s'];hi=start+phase['end_s'];tail=hi-contract['settled_tail_s'];name=phase['name']
+-        rr=[r for r in robot if tail<=r['t']<hi];oo=[r for r in odom if tail<=r['t']<hi];cc=[v for ts,v in centers if tail<=ts<hi]
++        lo_ns=start_ns+int(round(phase['start_s']*1e9));hi_ns=start_ns+int(round(phase['end_s']*1e9))
++        tail_ns=hi_ns-int(round(contract['settled_tail_s']*1e9))
++        rr=[r for r in robot if in_ns_window(r,tail_ns,hi_ns)];oo=[r for r in odom if in_ns_window(r,tail_ns,hi_ns)]
++        cc=[v for ts,v in centers if in_ns_window({'t':ts},tail_ns,hi_ns)]
+         metric={'tail_samples':len(oo),'actual_center_rad':summary(cc),'actual_tail_speed_mps':summary([r['v'] for r in oo])};phase_metrics[name]=metric
+         lo_ns=raw['schedule_start_ns']+int(round(phase['start_s']*1e9));hi_ns=raw['schedule_start_ns']+int(round(phase['end_s']*1e9))
+         sent=[r for r in raw['commands_sent'] if lo_ns<=r['ns']<hi_ns]
+         if phase.get('publish') is False:
+-            observed=[r for r in raw['commands_observed'] if lo+g['command_loss_relay_drain_grace_s']<=r['t']<hi]
+-            gate('command_loss_no_probe_publication',not sent);gate('command_loss_no_relay_publication_after_drain',not observed)
++            lower=lo_ns+int(round(g['command_loss_relay_drain_grace_s']*1e9))
++            observed=[r for r in ingress if in_ns_window(r,lower,hi_ns)]
++            legacy=[r for r in raw['commands_observed'] if in_ns_window(r,lower,hi_ns)]
++            metric['legacy_headerless_probe_callback_commands_in_loss']=legacy
++            metric['driver_source_receipts_in_loss']=observed
++            gate('command_loss_no_probe_publication',not sent);gate('command_loss_no_driver_receipt_after_drain',not observed)
+         else:
+             expected_count=phase['duration_s']/contract['publish_period_s'];gate(name+'_command_count',len(sent)>=g['minimum_phase_command_count_fraction']*expected_count)
+         if not oo or not rr or not cc:gate(name+'_tail_available',False);continue
+@@ -457,7 +522,7 @@
+             desired=max(-params['maxSteer'],min(phase['center_steering_request_rad'],params['maxSteer']))
+             gate(name+'_actual_steady_steering',max(abs(v-desired) for v in cc)<=g['steady_actual_steering_error_rad'])
+             if 'turn_' in name or 'saturation_' in name:
+-                allp=[r for r in robot if lo<=r['t']<hi];change=sum(angle_diff(yaw(b['p']),yaw(a['p'])) for a,b in zip(allp,allp[1:]));metric['actual_phase_yaw_change_rad']=change
++                allp=[r for r in robot if in_ns_window(r,lo_ns,hi_ns)];change=sum(angle_diff(yaw(b['p']),yaw(a['p'])) for a,b in zip(allp,allp[1:]));metric['actual_phase_yaw_change_rad']=change
+                 gate(name+'_yaw_excitation',math.copysign(1,desired)*change>=g['minimum_turn_yaw_excitation_rad'])
+         else:
+             displacement=sum(math.hypot(b['p'][0]-a['p'][0],b['p'][1]-a['p'][1]) for a,b in zip(rr,rr[1:]));rotation=sum(abs(angle_diff(yaw(b['p']),yaw(a['p']))) for a,b in zip(rr,rr[1:]))
+@@ -485,11 +550,11 @@
+     from std_msgs.msg import String,Bool,Int64
+     from diagnostic_msgs.msg import DiagnosticArray
+     from std_srvs.srv import Empty,Trigger
+-    rospy.init_node('astra_physical_actuation_probe_p04')
++    rospy.init_node('astra_physical_actuation_probe_p05')
+     output=Path(rospy.get_param('~output'));output.mkdir(parents=True,exist_ok=True)
+     if any((output/p).exists() for p in ('probe_raw.jsonl','probe_raw.json','probe_report.json')):raise RuntimeError('refusing to overwrite an existing probe identity')
+     stream=(output/'probe_raw.jsonl').open('x',buffering=1);lock=threading.RLock()
+-    raw={'models':[],'links':[],'contacts':[],'odom':[],'joints':[],'targets':[],'dense_models':[],'dense_links':[],'backend_fault':[],'commanded_efforts':[],'physical_metadata':None,'backend_status':[],'source_status':[],'schedule_start_records':[],'commands_sent':[],'commands_observed':[],
++    raw={'models':[],'links':[],'contacts':[],'odom':[],'joints':[],'targets':[],'dense_models':[],'dense_links':[],'backend_fault':[],'commanded_efforts':[],'physical_metadata':None,'backend_status':[],'command_ingress':[],'source_status':[],'schedule_start_records':[],'commands_sent':[],'commands_observed':[],
+          'metadata':None,'callback_errors':[],'pipeline_only':True,'vehicle_operation_authorized':False}
+     subscribers=[];active=True;started=time.monotonic();failure=None;contract=None
+     def record(kind,row):
+@@ -585,6 +650,7 @@
+           rospy.Subscriber('/m2_driver/physical_backend_fault',Bool,protected(lambda m:record('backend_fault',{'t':rospy.Time.now().to_sec(),'value':m.data})),queue_size=5000),
+           rospy.Subscriber('/m2_driver/physical_metadata',String,protected(lambda m:record('physical_metadata',json.loads(m.data))),queue_size=1),
+           rospy.Subscriber('/m2_driver/physical_status',DiagnosticArray,protected(lambda m:diagnostic(m,'backend_status')),queue_size=5000),
++          rospy.Subscriber('/m2_driver/command_ingress',DiagnosticArray,protected(lambda m:diagnostic(m,'command_ingress')),queue_size=2000),
+           rospy.Subscriber('/astra_fixture/command_source_status',DiagnosticArray,protected(lambda m:diagnostic(m,'source_status')),queue_size=1000),
+           rospy.Subscriber('/astra_fixture/command_event',DiagnosticArray,protected(command_event),queue_size=2000),
+           rospy.Subscriber('/astra_fixture/schedule_start_ns',Int64,protected(lambda m:record('schedule_start_records',{'data':m.data,'receipt_t':rospy.Time.now().to_sec()})),queue_size=1),
+@@ -673,6 +739,8 @@
+                         tail=final_stream_watermarks(raw,watermark)
+                         complete=any(v.get('values',{}).get('state')=='complete' for r in raw['source_status'] for v in r['statuses'])
+                         terminal=any(r['phase']=='terminal_zero' for r in raw['commands_sent'])
++                        ingress=parse_command_ingress(raw)
++                        terminal=terminal and any(r['ns']>=end_ns and r['v']==r['w']==0. for r in ingress)
+                         if tail['complete'] and complete and terminal:
+                             raw['final_drain'].update(tail,wall_elapsed_s=time.monotonic()-drain_started)
+                             # Source joins and closure are checked under the same

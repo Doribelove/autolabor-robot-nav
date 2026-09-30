@@ -1,0 +1,213 @@
+{
+  "schema": "astra_navigation_assessment_v1",
+  "stage": "astra_navigation_n05_preview_selection",
+  "run_id": "astra_navigation_n05_b10_astra_analytic_preview_eligible_n05",
+  "seed": 263002011,
+  "method": "astra_analytic_preview_eligible_n05",
+  "capture_integrity_pass": true,
+  "safety_within_declared_engineering_scope_pass": true,
+  "valid_completed": true,
+  "restricted_goal_time_s": 8.31,
+  "failure_inclusive": true,
+  "task": {
+    "task_phase": "complete",
+    "terminal_reason": "actual_base_goal",
+    "terminal_source_ns": 15780000000,
+    "terminal_time_authority": "first_actual_odom_header_meeting_base_goal",
+    "raw_geometric_arrival_source_ns": 15770000000,
+    "raw_geometric_arrival_time_s": 8.31,
+    "coordinator_goal_time_s": 8.32,
+    "goal_position_tolerance_m": 0.25,
+    "goal_yaw_tolerance_rad": 0.25,
+    "actual_geometry_period_ns": 2000000,
+    "goal_geometry_contract_pass": true,
+    "issues": [],
+    "failure_restricted_time_s": 22.0,
+    "raw_geometry_is_safety_qualification": false
+  },
+  "integrity_checks": {
+    "collector_complete": true,
+    "passive_source_geometry_complete": true,
+    "contact_source_coverage": true,
+    "contact_message_contract": true,
+    "contact_metadata_complete": true,
+    "physical_status_message_contract": true,
+    "physical_status_source_coverage": true,
+    "goal_source_contract": true,
+    "shared_actor_gate_identity_timing": true
+  },
+  "safety_checks": {
+    "positive_engineering_clearance": true,
+    "no_illegal_robot_contact": true,
+    "no_actor_environment_contact": true,
+    "no_physical_backend_fault_timeout_brake_emergency": true
+  },
+  "physical_status_audit": {
+    "pass": true,
+    "message_contract_pass": true,
+    "no_fault_timeout_brake_emergency": true,
+    "coverage": {
+      "pass": true,
+      "invalid_source_stamp_count": 0,
+      "expected_count": 417,
+      "observed_count": 417,
+      "first_ns": 7460000000,
+      "last_ns": 15780000000,
+      "missing_count": 0,
+      "duplicate_count": 0,
+      "source_order_increasing": true
+    },
+    "issues": []
+  },
+  "actor_gate_audit": {
+    "pass_": true,
+    "actors": {},
+    "issues": [],
+    "maximum_transport_delay_ns": 50000000,
+    "scope": "Shared event identity and bounded receipt-to-Begin activation; no zero-latency claim."
+  },
+  "contact_audit": {
+    "empty_packet_count_in_window": 0,
+    "observed_contact_clock_epochs": [
+      0
+    ],
+    "packet_count": 8002,
+    "source_minus_packet_alignment": "contact source may precede packet by 0..one physics step",
+    "packet_minus_source_time_min_s": -1.7763568394002505e-15,
+    "packet_minus_source_time_max_s": 0.0,
+    "contact_absence_interpretation": "No recorded illegal contact is not collision-free proof; require packet coverage, geometry and backend qualification.",
+    "illegal_robot_contacts_count": 0,
+    "illegal_robot_contacts_examples": [],
+    "wheel_ground_support_contacts_count": 15576,
+    "wheel_ground_support_contacts_examples": [
+      {
+        "packet_stamp_s": 7.46,
+        "contact_source_time_s": 7.46,
+        "collision1": "autolabor_m2::rear_left_wheel_link::rear_left_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 2.2252964088087523e-07,
+        "wheel_link": "rear_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.46,
+        "contact_source_time_s": 7.46,
+        "collision1": "autolabor_m2::front_right_wheel_link::front_right_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 4.730101198224812e-06,
+        "wheel_link": "front_right_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.46,
+        "contact_source_time_s": 7.46,
+        "collision1": "autolabor_m2::front_left_wheel_link::front_left_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 4.747339879790369e-06,
+        "wheel_link": "front_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.46,
+        "contact_source_time_s": 7.46,
+        "collision1": "autolabor_m2::rear_right_wheel_link::rear_right_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 1.3771119644623298e-07,
+        "wheel_link": "rear_right_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.462,
+        "contact_source_time_s": 7.462,
+        "collision1": "autolabor_m2::rear_left_wheel_link::rear_left_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 2.2159124335452418e-07,
+        "wheel_link": "rear_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.462,
+        "contact_source_time_s": 7.462,
+        "collision1": "autolabor_m2::front_right_wheel_link::front_right_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 4.732187728506698e-06,
+        "wheel_link": "front_right_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.462,
+        "contact_source_time_s": 7.462,
+        "collision1": "autolabor_m2::front_left_wheel_link::front_left_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 4.741632314397837e-06,
+        "wheel_link": "front_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.462,
+        "contact_source_time_s": 7.462,
+        "collision1": "autolabor_m2::rear_right_wheel_link::rear_right_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 1.3702823620231896e-07,
+        "wheel_link": "rear_right_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.464,
+        "contact_source_time_s": 7.464,
+        "collision1": "autolabor_m2::rear_left_wheel_link::rear_left_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 2.2082456474503687e-07,
+        "wheel_link": "rear_left_wheel_link"
+      },
+      {
+        "packet_stamp_s": 7.464,
+        "contact_source_time_s": 7.464,
+        "collision1": "autolabor_m2::front_right_wheel_link::front_right_wheel_link_collision",
+        "collision2": "ground_plane::link::collision",
+        "maximum_depth_m": 4.73266790171345e-06,
+        "wheel_link": "front_right_wheel_link"
+      }
+    ],
+    "actor_environment_contacts_count": 0,
+    "actor_environment_contacts_examples": []
+  },
+  "contact_issues": [],
+  "sweep_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n05_b10_astra_analytic_preview_eligible_n05/sweep_evaluation/report.json",
+    "sha256": "d5cef3f162cf6aa42c626c721781c26d67ab2fa2ec521259af5c1ba704dae4cc"
+  },
+  "source_bindings": {
+    "fixture.bag": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n05_b10_astra_analytic_preview_eligible_n05/fixture.bag",
+      "sha256": "38ab9c8eacc86899cf9801142eb8117a1bf8fc065fd7d37a6e6e546569a302c9"
+    },
+    "world.sdf": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n05_b10_astra_analytic_preview_eligible_n05/world.sdf",
+      "sha256": "0bf184605d969495f7d9f4cb8559499a0c9373f183f66f16be7c547813727367"
+    },
+    "robot_description_runtime.xml": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n05_b10_astra_analytic_preview_eligible_n05/robot_description_runtime.xml",
+      "sha256": "1323d687e9899196a0710f50d67f96e2e716026928825410d0479e1fe092bf07"
+    },
+    "collector_raw.json": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n05_b10_astra_analytic_preview_eligible_n05/collector_raw.json",
+      "sha256": "2f901f87aa82bda25df77db8a7f0216b50e09572d488671a311254b12c69e490"
+    },
+    "collector_report.json": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n05_b10_astra_analytic_preview_eligible_n05/collector_report.json",
+      "sha256": "7f1e4de9ef46f343f35eadccb8f014428ba633278f48aa933e1f585f5dfa3e20"
+    },
+    "run_closure.json": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n05_b10_astra_analytic_preview_eligible_n05/run_closure.json",
+      "sha256": "6c9e5bd5921c11eacb40f89be602355b1302080038acedc19799edeed964a384"
+    }
+  },
+  "visual_review": "pending independent inspection of available native PNGs",
+  "image_coverage": {
+    "policy": "supplementary_native_frames_do_not_suppress_physical_failure_evidence",
+    "requested": true,
+    "saved_count": 2,
+    "unique_source_frame_count": 2,
+    "errors": [],
+    "two_distinct_frames_available": true,
+    "capture_integrity_dependency": false,
+    "interpretation": "Sparse or invalid images remain a visual coverage limitation; original task failures and complete physical records remain assessable."
+  },
+  "planner_input_mask_or_decision_integrity_assessed": false,
+  "formal_safety": false,
+  "real_continuous_physical_safety": false,
+  "navigation_performance_claim": false
+}

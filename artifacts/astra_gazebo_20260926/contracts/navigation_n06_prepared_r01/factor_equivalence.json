@@ -1,0 +1,35 @@
+{
+  "N05_preview_selector_used": false,
+  "candidate_generator_mask_selection_command_code_unchanged": true,
+  "configuration_delta": {
+    "lookahead_m": [
+      0.7,
+      1.2
+    ]
+  },
+  "control": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_coordinated_runtime.py",
+    "sha256": "d3675f6153152dce54c41809c6da1172ea7168ebb4ca5e66f994110021641f96"
+  },
+  "exact_allowed_text_substitutions": [
+    [
+      "Shared-gate adaptation of the frozen standalone route node. R2 is separate.",
+      "N06 analytic shared-gate route node with a 1.2 m lookahead factor."
+    ],
+    [
+      "method not in ('astra_analytic_route_v1','astra_pct_route_v1'):raise ValueError('new method identity and positive seed required')",
+      "method!='astra_analytic_lookahead_1p2_n06':raise ValueError('N06 lookahead identity and positive seed required')"
+    ],
+    [
+      "config=RouteConfig(maximum_episode_duration_s=",
+      "config=RouteConfig(lookahead_m=1.2,maximum_episode_duration_s="
+    ]
+  ],
+  "new_semantics_hash_expected_due_to_config": true,
+  "same_core_class": true,
+  "same_observation_schema": true,
+  "treatment": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_lookahead_runtime_n06.py",
+    "sha256": "1ca9e5d4b19a4d22fe737463f0b5411cbc82ee73e7f573248b712475aeb4b533"
+  }
+}

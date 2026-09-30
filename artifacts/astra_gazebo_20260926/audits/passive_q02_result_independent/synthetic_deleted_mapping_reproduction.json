@@ -1,0 +1,23 @@
+{
+  "scope": "Synthetic examples only, not actual proc mapping identification; no /proc access or process mutation.",
+  "source": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q02.py",
+  "source_sha256": "eebd2042e413a370abadb86b7544bd34b6ecb0febe711c3a5cbaec4f7fb1d175",
+  "source_function_start_line": 370,
+  "cases": [
+    {
+      "synthetic_mapping_line": "1000-2000 rw-p 00000000 00:00 0 /dev/zero (deleted)",
+      "error": "ValueError: deleted mapped ELF observed",
+      "rejects_before_ELF_roles_or_magic_check": true
+    },
+    {
+      "synthetic_mapping_line": "1000-2000 rw-p 00000000 00:00 0 /tmp/non_elf_shared_buffer (deleted)",
+      "error": "ValueError: deleted mapped ELF observed",
+      "rejects_before_ELF_roles_or_magic_check": true
+    },
+    {
+      "synthetic_mapping_line": "1000-2000 rw-p 00000000 00:00 0 /usr/lib/libgazebo_ode.so.11.15.1 (deleted)",
+      "error": "ValueError: deleted mapped ELF observed",
+      "rejects_before_ELF_roles_or_magic_check": true
+    }
+  ]
+}

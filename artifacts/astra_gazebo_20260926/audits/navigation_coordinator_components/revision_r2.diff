@@ -1,0 +1,259 @@
+--- revision_r1/navigation_coordinator.py
++++ revision_r2/navigation_coordinator.py
+@@ -12,6 +12,7 @@
+ SCHEMA='astra_common_navigation_v1'
+ PERIOD_NS=50_000_000
+ ACTIVATION_NS=5_000_000_000
++TERMINAL_PHASES=('fault','complete','timeout','stopped')
+ METHODS=('astra_analytic_route_v1','astra_pct_route_v1','frozen_r2_v060_shared_activation','actual_teb_common_route','dwa_common_route')
+ 
+ @dataclass(frozen=True)
+@@ -42,10 +43,19 @@
+         self.config=config;self.route_frame=RouteFrame(*config.start_pose);self.phase='bootstrap';self.fault_reason=None
+         self.armed=False;self.ready=False;self.latest_odom=None;self.gate=None;self.last_clock_ns=None;self.activation_source_ns=None
+         self.method_ack=None;self.command=None;self.command_sequence=0;self.command_floor=0;self.trace_sequence=0;self.terminal_source_ns=None;self.terminal_reason=None;self.terminal_time_authority=None
++        self.late_faults=[];self.late_fault_count=0
+     def terminal(self,phase,reason,stamp,authority):
++        if self.phase in TERMINAL_PHASES:return
+         self.phase=phase;self.command=None;self.terminal_source_ns=stamp;self.terminal_reason=reason;self.terminal_time_authority=authority
+     def fault(self,reason):
+-        if self.phase=='fault':return
++        if self.phase in TERMINAL_PHASES:
++            self.late_fault_count+=1
++            row={'reason':str(reason),'actual_odom_source_ns':None if self.latest_odom is None else self.latest_odom['stamp_ns'],
++                 'publisher_visible_clock_ns':self.last_clock_ns,'count':1}
++            if self.late_faults and self.late_faults[-1]['reason']==row['reason']:
++                row['count']=self.late_faults[-1]['count']+1;self.late_faults[-1]=row
++            else:self.late_faults.append(row);self.late_faults=self.late_faults[-64:]
++            return
+         self.fault_reason=str(reason)
+         self.terminal('fault',self.fault_reason,0 if self.latest_odom is None else self.latest_odom['stamp_ns'],'latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp')
+     def request_stop(self):
+@@ -110,7 +120,10 @@
+             reason='gate_waiting_method_activation_ack'
+             if now_ns-self.gate['source_ns']>self.config.activation_ack_timeout_ns:self.fault('method_activation_ack_timeout')
+         elif self.phase=='active':
+-            if now_ns>=self.gate['deadline_source_ns']:self.terminal('timeout','source_deadline',self.gate['deadline_source_ns'],'declared_gate_actual_odom_source_plus22s')
++            # Stop output at the declared deadline, but decide timeout only
++            # after ordered actual odometry reaches its source watermark.
++            # An earlier goal packet may still be in transport.
++            if now_ns>=self.gate['deadline_source_ns']:reason='deadline_zero_waiting_ordered_actual_odometry'
+             elif self.command is None:reason='waiting_fresh_post_ack_method_command'
+             elif not 0<=now_ns-self.command['receipt_ros_ns']<=self.config.maximum_command_receipt_age_ns:reason='stale_or_future_method_receipt_zero'
+             else:v,w=self.command['v'],self.command['w'];reason='method_passthrough'
+@@ -118,4 +131,5 @@
+         return {'schema':SCHEMA,'sequence':self.trace_sequence,'run_id':self.config.run_id,'seed':self.config.seed,'method':self.config.method,
+             'publisher_visible_clock_ns':now_ns,'actual_odom_source_ns':None if self.latest_odom is None else self.latest_odom['stamp_ns'],
+             'gate_source_ns':None if self.gate is None else self.gate['source_ns'],'phase':self.phase,'terminal_source_ns':self.terminal_source_ns,'terminal_reason':self.terminal_reason,'terminal_time_authority':self.terminal_time_authority,'v':v,'w':w,'reason':reason,
+-            'selected_method_receipt':None if self.command is None else dict(self.command),'method_command_generation_stamp_known':False}
++            'selected_method_receipt':None if self.command is None else dict(self.command),'method_command_generation_stamp_known':False,
++            'late_fault_count':self.late_fault_count,'late_faults':[dict(row) for row in self.late_faults]}
+--- revision_r1/test_navigation_coordinator.py
++++ revision_r2/test_navigation_coordinator.py
+@@ -83,7 +83,9 @@
+ 
+ 
+ @pytest.mark.parametrize('method',['astra_analytic_route_v1','actual_teb_common_route','dwa_common_route'])
+-def test_coordinator_ros_callbacks_survive_terminal_and_have_single_authority(monkeypatch,method):
++@pytest.mark.parametrize('source_lead_ns',[0,2_000_000,200_000_001])
++@pytest.mark.parametrize('late_fault_and_pause',[False,True])
++def test_coordinator_ros_callbacks_survive_terminal_and_have_single_authority(monkeypatch,method,source_lead_ns,late_fault_and_pause):
+     import importlib.util,json,types,io,hashlib
+     monkeypatch.syspath_prepend('/opt/ros/noetic/lib/python3/dist-packages')
+     import genpy
+@@ -106,20 +108,23 @@
+                 gate_payload=json.loads(message.data);clock['gate_tick']=clock['ticks'];clock['gate_ns']=gate_payload['source_ns']
+                 if not baseline:subscribers['/astra/method/status'](status('active',gate_source_ns=clock['gate_ns']))
+     def odom_message(world_x,velocity):
+-        msg=Odometry();msg.header.frame_id='odom';msg.child_frame_id='base_link';msg.header.stamp=timestamp()
++        msg=Odometry();msg.header.frame_id='odom';msg.child_frame_id='base_link';msg.header.stamp=timestamp()+genpy.Duration(0,source_lead_ns)
+         msg.pose.pose.position.x=world_x+5.4;msg.pose.pose.orientation.w=1.;msg.twist.twist.linear.x=velocity;return msg
+     def advance(_):
+-        clock['ticks']+=1;clock['ns']=4_800_000_000+(clock['ticks']-1)*20_000_000
++        clock['ticks']+=1
++        if late_fault_and_pause and clock['gate_tick']is not None and clock['ticks']>=clock['gate_tick']+9:return
++        clock['ns']=4_800_000_000+(clock['ticks']-1)*20_000_000
+         age=max(0.,(clock['ns']-5_000_000_000)/1e9);position=-5.4+.8*age;speed=0. if age==0 else .8
+         if clock['gate_tick']is not None and clock['ticks']>=clock['gate_tick']+6:position=4.8;speed=.4
+         subscribers['/odom'](odom_message(position,speed))
+-        if clock['ticks']==1:
+-            subscribers['/astra/method/status'](status('ready'));arm_results.append(services['/astra/navigation/arm'](None))
++        if clock['ticks']==1:subscribers['/astra/method/status'](status('ready'))
++        if clock['ticks']==(2 if source_lead_ns==2_000_000 else 1):arm_results.append(services['/astra/navigation/arm'](None))
+         if clock['gate_tick']is not None:
+             command=Twist();command.linear.x=.6;subscribers['/astra/method_cmd'](command)
++            if late_fault_and_pause and clock['ticks']==clock['gate_tick']+8:subscribers['/astra/method/status'](status('fault',reason='late injected method fault'))
+     fake.init_node=lambda _:None;fake.get_name=lambda:'/astra_navigation_coordinator';fake.get_param=lambda n,d=None:params.get(n,d)
+     fake.Publisher=Publisher;fake.Subscriber=lambda topic,kind,cb,**kwargs:subscribers.setdefault(topic,cb);fake.Service=lambda name,kind,cb:services.setdefault(name,cb)
+-    fake.Time=types.SimpleNamespace(now=timestamp);fake.is_shutdown=lambda:clock['gate_tick']is not None and clock['ticks']>=clock['gate_tick']+12
++    fake.Time=types.SimpleNamespace(now=timestamp);fake.is_shutdown=lambda:(source_lead_ns>200_000_000 and clock['ticks']>=3) or (clock['gate_tick']is not None and clock['ticks']>=clock['gate_tick']+12)
+     graph=types.ModuleType('rosgraph');graph.Master=lambda _:types.SimpleNamespace(getSystemState=lambda:([('/cmd_vel_navigation',['/astra_navigation_coordinator']),('/astra/method_cmd',['/move_base' if baseline else '/astra_route_runtime'])],[],[]))
+     actionlib=types.ModuleType('actionlib')
+     class ActionClient:
+@@ -138,13 +143,27 @@
+         def __init__(self,target,daemon):self.target=target
+         def start(self):self.target()
+     monkeypatch.setattr(module.threading,'Thread',ImmediateThread)
+-    monkeypatch.setattr(module.time,'sleep',advance);monkeypatch.setattr(module.time,'monotonic',lambda:100+clock['ticks']*.01);monkeypatch.setattr(module.time,'monotonic_ns',lambda:int((100+clock['ticks']*.01)*1e9))
+-    module.main();assert [x.success for x in arm_results]==[True]
++    monkeypatch.setattr(module.time,'sleep',advance);monkeypatch.setattr(module.time,'monotonic',lambda:100+clock['ticks']*.01+(6 if late_fault_and_pause and clock['gate_tick']is not None and clock['ticks']>=clock['gate_tick']+10 else 0));monkeypatch.setattr(module.time,'monotonic_ns',lambda:int((100+clock['ticks']*.01)*1e9))
++    module.main()
++    if source_lead_ns>200_000_000:
++        assert [x.success for x in arm_results]==[False] and not publishers['/astra/navigation/gate'].messages
++        traces=[json.loads(x.data) for x in publishers['/astra/navigation/command_trace'].messages]
++        assert all(row['v']==0 for row in traces)
++        assert any('future transport bound'in str(row['reason']) for row in traces)
++        return
++    assert [x.success for x in arm_results]==[True]
+     assert len(publishers['/astra/navigation/gate'].messages)==1
+     traces=[json.loads(x.data) for x in publishers['/astra/navigation/command_trace'].messages]
+     assert any(x['v']==.8 and x['phase']=='warmup' for x in traces)
+     assert any(x['v']==.6 and x['phase']=='active' for x in traces)
+     terminal=next(x for x in traces if x['phase']=='complete');assert terminal['terminal_time_authority']=='first_actual_odom_header_meeting_base_goal'
++    assert all(row['phase']=='complete' for row in traces[traces.index(terminal):])
++    if late_fault_and_pause:
++        latest_status=json.loads(publishers['/astra/navigation/status'].messages[-1].data)
++        assert latest_status['phase']=='complete' and latest_status['late_fault_count']>=2
++        assert any(row['reason']=='publisher_clock_wall_stall' for row in latest_status['late_faults'])
++    if source_lead_ns:
++        assert all(row['actual_odom_source_ns']is None or row['actual_odom_source_ns']<=row['publisher_visible_clock_ns'] for row in traces)
+     assert all(x['v']==0 for x in traces if x['publisher_visible_clock_ns']>=terminal['terminal_source_ns'])
+     assert set(publishers)&{'/cmd_vel_navigation','/cmd_vel','/astra/method_cmd'}=={'/cmd_vel_navigation'}
+     assert len(goals)==int(baseline)
+@@ -224,3 +243,45 @@
+     assert identity['static_prior_consumer_semantics_equal']is False
+     assert json.loads(publishers['/astra/method/status'].messages[-1].data)['internal_report_goal_reached']is True
+     subscribers['/astra/navigation/gate'](String(data=json.dumps(gate)))
++
++
++@pytest.mark.parametrize('terminal_phase',['complete','timeout','stopped','fault'])
++def test_first_terminal_is_immutable_with_late_fault_diagnostics(terminal_phase):
++    c=gated();acknowledge(c)
++    if terminal_phase=='complete':c.observe_odom(8_000_000_000,(4.8,0,0),(.8,0,0))
++    elif terminal_phase=='timeout':c.observe_odom(29_020_000_000,(0,0,0),(.8,0,0))
++    elif terminal_phase=='stopped':c.request_stop()
++    else:c.fault('first active fault')
++    original=(c.phase,c.terminal_source_ns,c.terminal_reason,c.terminal_time_authority,c.fault_reason)
++    c.fault('late method failure');c.fault('publisher_clock_wall_stall');c.request_stop()
++    assert (c.phase,c.terminal_source_ns,c.terminal_reason,c.terminal_time_authority,c.fault_reason)==original
++    assert c.late_fault_count==2 and len(c.late_faults)==2
++    assert c.output(29_040_000_000)['v']==0
++
++
++@pytest.mark.parametrize('clock_first',[False,True])
++def test_deadline_clock_and_earlier_goal_odom_order_have_same_result(clock_first):
++    c=gated();acknowledge(c);c.observe_odom(28_980_000_000,(4.7,0,0),(.8,0,0))
++    if clock_first:
++        row=c.output(29_020_000_000)
++        assert row['phase']=='active' and row['v']==0 and row['reason']=='deadline_zero_waiting_ordered_actual_odometry'
++    c.observe_odom(29_000_000_000,(4.8,0,0),(.8,0,0))
++    if not clock_first:c.output(29_020_000_000)
++    assert c.phase=='complete' and c.terminal_source_ns==29_000_000_000
++
++
++def test_deadline_requires_ordered_actual_odom_and_stale_is_still_failure():
++    c=gated();acknowledge(c);c.observe_odom(29_000_000_000,(4.7,0,0),(.8,0,0))
++    assert c.output(29_020_000_000)['phase']=='active'
++    c.observe_odom(29_020_000_000,(4.7,0,0),(.8,0,0))
++    assert c.phase=='timeout' and c.terminal_source_ns==29_020_000_000
++    c=gated();acknowledge(c);c.observe_odom(29_000_000_000,(4.7,0,0),(.8,0,0))
++    assert c.output(29_200_000_001)['phase']=='fault'
++    assert c.fault_reason=='actual_odometry_stale_or_future'
++
++
++def test_active_fault_immediately_revokes_method_output():
++    c=gated();acknowledge(c);c.method_command(.8,0,7_030_000_000,100)
++    assert c.output(7_030_000_000)['v']==.8
++    c.fault('active sensor failure');row=c.output(7_030_000_000)
++    assert row['phase']=='fault' and row['v']==row['w']==0
+--- revision_r1/astra_navigation_coordinator.py
++++ revision_r2/astra_navigation_coordinator.py
+@@ -1,6 +1,7 @@
+ #!/usr/bin/env python3
+ """Only navigation-output owner; no Gazebo lifecycle/service calls."""
+ import hashlib
++from collections import deque
+ import json
+ import math
+ import os
+@@ -34,6 +35,7 @@
+     config=CoordinatorConfig(str(rospy.get_param('~run_id')),rospy.get_param('~seed'),str(rospy.get_param('~method')),
+         tuple(data['start_xy_yaw']),tuple(data['goal_xy_yaw']),tuple(data['map_from_odom_xy_yaw']))
+     core=NavigationCoordinator(config);map_from_odom=RouteFrame(*data['map_from_odom_xy_yaw']);lock=threading.RLock()
++    pending_odometry=deque();last_received_odom_source=[None]
+     command_pub=rospy.Publisher('/cmd_vel_navigation',Twist,queue_size=1000)
+     identity_pub=rospy.Publisher('/astra/navigation/identity',String,queue_size=1,latch=True)
+     status_pub=rospy.Publisher('/astra/navigation/status',String,queue_size=100,latch=True)
+@@ -60,6 +62,15 @@
+                 try:function(message)
+                 except Exception as exc:core.fault(type(exc).__name__+':'+str(exc))
+         return callback
++    def drain_odometry(visible_source_ns):
++        # /odom and /clock use different transports. Retain actual source
++        # stamps unchanged until local /clock covers them; never age or clip.
++        while pending_odometry and pending_odometry[0][0]<=visible_source_ns:
++            stamp,pose,body_twist=pending_odometry.popleft()
++            if visible_source_ns-stamp>config.maximum_source_age_ns:
++                core.fault('actual_odometry_stale_before_processing');continue
++            event=core.observe_odom(stamp,pose,body_twist)
++            if event is not None:emit(gate_pub,event);gate_to_dispatch.append(event)
+     def on_odometry(message):
+         stamp=message.header.stamp.to_nsec()
+         if stamp==0 and core.phase=='bootstrap':return
+@@ -69,8 +80,14 @@
+         if not all(math.isfinite(v) for v in values) or abs(sum(v*v for v in values)-1)>1e-5:raise ValueError('invalid odom quaternion')
+         yaw=math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))
+         twist=message.twist.twist
+-        event=core.observe_odom(stamp,map_from_odom.pose_to_world((pose.position.x,pose.position.y,yaw)),(twist.linear.x,twist.linear.y,twist.angular.z))
+-        if event is not None:emit(gate_pub,event);gate_to_dispatch.append(event)
++        actual_pose=map_from_odom.pose_to_world((pose.position.x,pose.position.y,yaw));body_twist=(twist.linear.x,twist.linear.y,twist.angular.z)
++        if not all(math.isfinite(v) for v in actual_pose+body_twist):raise ValueError('nonfinite actual odometry')
++        visible_source_ns=rospy.Time.now().to_nsec()
++        if stamp-visible_source_ns>config.maximum_source_age_ns:raise ValueError('actual odometry exceeds200ms future transport bound')
++        if last_received_odom_source[0] is not None and stamp<=last_received_odom_source[0]:raise ValueError('actual odometry source replay or regression at ingress')
++        if len(pending_odometry)>=1000:raise ValueError('actual odometry pending-clock queue overflow')
++        last_received_odom_source[0]=stamp;pending_odometry.append((stamp,actual_pose,body_twist))
++        drain_odometry(visible_source_ns)
+     def on_method_command(message):
+         excluded=(message.linear.y,message.linear.z,message.angular.x,message.angular.y)
+         if not all(math.isfinite(v) for v in excluded) or any(abs(v)>1e-12 for v in excluded):raise ValueError('nonplanar or nonfinite method command')
+@@ -86,7 +103,9 @@
+         if publishers.get('/astra/method_cmd')!=[expected_node]:raise ValueError('private method publisher identity differs')
+     def arm(_request):
+         with lock:
+-            try:publishers_valid();result=core.arm(rospy.Time.now().to_nsec());return TriggerResponse(True,json.dumps(result))
++            try:
++                publishers_valid();now=rospy.Time.now().to_nsec();drain_odometry(now)
++                result=core.arm(now);return TriggerResponse(True,json.dumps(result))
+             except Exception as exc:return TriggerResponse(False,str(exc))
+     def stop(_request):
+         with lock:
+@@ -97,7 +116,9 @@
+     services=[rospy.Service('/astra/navigation/arm',Trigger,arm),rospy.Service('/astra/navigation/stop',Trigger,stop)]
+     emit(identity_pub,{'schema':SCHEMA,'run_id':config.run_id,'seed':config.seed,'method':config.method,'bundle_sha256':expected,
+         'sole_output':'/cmd_vel_navigation','method_input':'/astra/method_cmd','gate_time_authority':'first qualifying actual odom header x>=-4 in route frame',
+-        'method_twist_generation_source_time_known':False,'moving_method_pre_gate_forbidden':True,'gazebo_lifecycle_owned':False})
++        'method_twist_generation_source_time_known':False,'moving_method_pre_gate_forbidden':True,'gazebo_lifecycle_owned':False,
++        'terminal_first_write_immutable':True,'timeout_authority':'ordered actual odometry watermark; deadline clock requests zero while waiting',
++        'odom_ahead_of_clock_policy':'queue unchanged source timestamps until local clock covers; unchanged200ms stale-source guard'})
+     next_tick=None;last_zero_source=None;last_status_wall=0.;last_progress_wall=time.monotonic();last_source=None;last_graph_wall=0.;baseline_goal_sent=False
+     try:
+         while not rospy.is_shutdown():
+@@ -108,6 +129,7 @@
+                 if last_source is not None and source_now<last_source:core.fault('publisher_clock_regression')
+                 last_source=source_now
+                 if source_now>0 and wall_now-last_progress_wall>5:core.fault('publisher_clock_wall_stall')
++                drain_odometry(source_now)
+                 if baseline and baseline_server_ready.is_set() and core.gate is None:
+                     row={'run_id':config.run_id,'seed':config.seed,'method':config.method,'state':'ready','ready':True}
+                     core.method_status(row)
+@@ -133,7 +155,8 @@
+                     fresh=core.latest_odom is not None and 0<=source_now-core.latest_odom['stamp_ns']<=config.maximum_source_age_ns
+                     emit(status_pub,{'schema':SCHEMA,'run_id':config.run_id,'seed':config.seed,'method':config.method,'phase':core.phase,'fault':core.fault_reason,
+                         'ready_to_arm':bool(source_now>0 and source_now<5_000_000_000 and core.ready and fresh and not core.armed and core.phase=='bootstrap'),
+-                        'armed':core.armed,'terminal_source_ns':core.terminal_source_ns,'terminal_reason':core.terminal_reason,'terminal_time_authority':core.terminal_time_authority,'gate_source_ns':None if core.gate is None else core.gate['source_ns'],'publisher_visible_clock_ns':source_now})
++                        'armed':core.armed,'terminal_source_ns':core.terminal_source_ns,'terminal_reason':core.terminal_reason,'terminal_time_authority':core.terminal_time_authority,'gate_source_ns':None if core.gate is None else core.gate['source_ns'],'publisher_visible_clock_ns':source_now,
++                        'pending_odom_clock_count':len(pending_odometry),'late_fault_count':core.late_fault_count,'late_faults':[dict(row) for row in core.late_faults]})
+                     last_status_wall=wall_now
+             if wall_now-last_graph_wall>=1. and core.armed:
+                 try:publishers_valid()

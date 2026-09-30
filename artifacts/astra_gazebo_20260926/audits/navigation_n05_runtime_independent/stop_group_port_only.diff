@@ -1,0 +1,13 @@
+--- run_smoke_a02.stop_group
++++ N05.stop_group
+@@ -25,9 +25,9 @@
+         while owned_processes(root) and time.monotonic()<deadline:time.sleep(.1)
+     survivors=owned_processes(root)
+     if survivors:raise RuntimeError('owned descendants did not terminate: '+str(survivors))
+-    for port in (14820,14821):
++    for port in (14830,14831):
+         with socket.socket() as sock:
+             sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+             sock.bind(('127.0.0.1',port))
+     atomic(root/'cleanup.json',{'utc':utc(),'owned_live_processes':[],
+-                              'ports_14820_14821_released':True,'scope':'exact run environment markers, not global process names'})+                              'ports_14830_14831_released':True,'scope':'exact run environment markers, not global process names'})

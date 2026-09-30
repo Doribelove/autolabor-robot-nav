@@ -1,0 +1,136 @@
+schema_version: '1.0'
+stage: ARENA-PCT-Q1
+status: qualification_complete_with_safety_outcome_failures
+formal_result: false
+performance_superiority_claim_authorized: false
+rows: 12
+release_path: artifacts/arena_pct_teb_dwa_qualification/q1_execution_release.yaml
+release_sha256: 5437defd313baa0d85f14bac6f20b80ea180a87441d745d31f492366fd8a6997
+release_review_sha256: e1691a370df1d3a7cd3fa0dd59b366d7f3b85ba7bbb52de3433e5fb0f62def3f
+terminal_journal_sha256: 304414698e5851f6b5571ceda7918c75e42047ca226bc12c7a5b84151d7d054a
+matrix_receipt_sha256: d050e54d3232205c856b8f16785b84993342e20ff0e991ee3767ebe5028134a4
+raw_evidence_manifest_sha256: 940c92dde8072a8c28523b4aba74dedd9b11c6985b9ca0d7fdf709eb78b146fe
+raw_evidence_seal_sha256: c1aec5e810de70fbf6121dfb445c0943dc35100fdde2762d6ced1e7bd61afe6b
+release_resource_count: 885
+evidence_chain_complete: true
+platform_integrity_complete: true
+method_summary:
+- method: pct_scope_rl
+  label: PCT-SCOPE-RL
+  episodes: 3
+  evidence_valid_episodes: 3
+  platform_integrity_passes: 3
+  performance_evidence_complete: true
+  raw_goals: 3
+  zero_contact_arrivals: 3
+  valid_goals: 3
+  safety_qualified_goals: 3
+  valid_goal_rate: 1.0
+  raw_goal_rate: 1.0
+  mean_arrival_failure_inclusive_time_s: 12.011000000000001
+  mean_failure_inclusive_time_s: 12.011000000000001
+  mean_safety_failure_inclusive_time_s: 12.011000000000001
+  minimum_clearance_m: 0.11468762770696661
+  contact_count: 0
+  integrity_passes: 3
+- method: analytic_prior
+  label: Analytic prior
+  episodes: 3
+  evidence_valid_episodes: 3
+  platform_integrity_passes: 3
+  performance_evidence_complete: true
+  raw_goals: 3
+  zero_contact_arrivals: 3
+  valid_goals: 3
+  safety_qualified_goals: 3
+  valid_goal_rate: 1.0
+  raw_goal_rate: 1.0
+  mean_arrival_failure_inclusive_time_s: 16.067333333333334
+  mean_failure_inclusive_time_s: 16.067333333333334
+  mean_safety_failure_inclusive_time_s: 16.067333333333334
+  minimum_clearance_m: 0.07582085247450898
+  contact_count: 0
+  integrity_passes: 3
+- method: actual_teb
+  label: Actual TEB
+  episodes: 3
+  evidence_valid_episodes: 3
+  platform_integrity_passes: 3
+  performance_evidence_complete: true
+  raw_goals: 3
+  zero_contact_arrivals: 3
+  valid_goals: 1
+  safety_qualified_goals: 1
+  valid_goal_rate: 0.3333333333333333
+  raw_goal_rate: 1.0
+  mean_arrival_failure_inclusive_time_s: 19.267
+  mean_failure_inclusive_time_s: 22.700333333333333
+  mean_safety_failure_inclusive_time_s: 22.700333333333333
+  minimum_clearance_m: -0.2846588413460245
+  contact_count: 0
+  integrity_passes: 1
+- method: dwa
+  label: DWA
+  episodes: 3
+  evidence_valid_episodes: 3
+  platform_integrity_passes: 3
+  performance_evidence_complete: true
+  raw_goals: 3
+  zero_contact_arrivals: 3
+  valid_goals: 1
+  safety_qualified_goals: 1
+  valid_goal_rate: 0.3333333333333333
+  raw_goal_rate: 1.0
+  mean_arrival_failure_inclusive_time_s: 10.037666666666668
+  mean_failure_inclusive_time_s: 23.11966666666667
+  mean_safety_failure_inclusive_time_s: 23.11966666666667
+  minimum_clearance_m: -0.18039509343060178
+  contact_count: 0
+  integrity_passes: 1
+descriptive_effects:
+- comparison: pct_scope_rl_vs_analytic_prior
+  blocks: 3
+  pct_mean_s: 12.011000000000001
+  baseline_mean_s: 16.067333333333334
+  relative_time_reduction_percent: 25.245840421559265
+  pct_arrival_mean_s: 12.011000000000001
+  baseline_arrival_mean_s: 16.067333333333334
+  arrival_relative_time_reduction_percent: 25.245840421559265
+  pct_valid_goal_rate: 1.0
+  baseline_valid_goal_rate: 1.0
+  inferential_status: not_computed_qualification_n3
+  effect_evidence_complete: true
+- comparison: pct_scope_rl_vs_actual_teb
+  blocks: 3
+  pct_mean_s: 12.011000000000001
+  baseline_mean_s: 22.700333333333333
+  relative_time_reduction_percent: 47.088882688947294
+  pct_arrival_mean_s: 12.011000000000001
+  baseline_arrival_mean_s: 19.267
+  arrival_relative_time_reduction_percent: 37.66024809259354
+  pct_valid_goal_rate: 1.0
+  baseline_valid_goal_rate: 0.3333333333333333
+  inferential_status: not_computed_qualification_n3
+  effect_evidence_complete: true
+- comparison: pct_scope_rl_vs_dwa
+  blocks: 3
+  pct_mean_s: 12.011000000000001
+  baseline_mean_s: 23.11966666666667
+  relative_time_reduction_percent: 48.04855894692831
+  pct_arrival_mean_s: 12.011000000000001
+  baseline_arrival_mean_s: 10.037666666666668
+  arrival_relative_time_reduction_percent: -19.659283365988102
+  pct_valid_goal_rate: 1.0
+  baseline_valid_goal_rate: 0.3333333333333333
+  inferential_status: not_computed_qualification_n3
+  effect_evidence_complete: true
+limitations:
+- one frozen Arena world
+- one wide straight hospital route rather than whole-world coverage
+- three paired blocks
+- no inferential statistics
+- controlled reactive cylinder proxy rather than human-crowd realism
+- no frozen positive collision-sensitivity control; heartbeat completeness is reported
+  separately
+- system-stack comparison with different internal map semantics
+- LaserScan/odometry navigation study, not localization or perception

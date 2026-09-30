@@ -1,0 +1,28 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r01/draft_r00/navigation_n06_integrity.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity.py
+@@ -118,7 +118,10 @@
+ 
+ def required_manager_paths():
+     p=prepared_api.WORKSPACE/'scripts/astra_gazebo'
+-    return [p/name for name in ('run_navigation_n06_manager.py','navigation_n06_integrity.py','navigation_n06_process.py','navigation_n06_admin_plan.py')]+[Path('/usr/include/x86_64-linux-gnu/asm/unistd_64.h'),Path('/usr/include/linux/prctl.h')]
++    venv=prepared_api.WORKSPACE/'.venv';site=venv/'lib/python3.8/site-packages'
++    return [p/name for name in ('run_navigation_n06_manager.py','navigation_n06_integrity.py','navigation_n06_process.py','navigation_n06_admin_plan.py')]+[
++        Path('/usr/include/x86_64-linux-gnu/asm/unistd_64.h'),Path('/usr/include/linux/prctl.h'),venv/'pyvenv.cfg',
++        site/'_virtualenv.py',site/'_distutils_hack/__init__.py',site/'_virtualenv.pth',site/'distutils-precedence.pth',site/'matplotlib-3.7.5-py3.8-nspkg.pth']
+ 
+ def verify_release(path,expected_sha):
+     """Read-only full verifier. No ledger/lock/allocation is created here."""
+@@ -172,7 +175,12 @@
+     if runtime.get('schema')!='astra_navigation_n06_runtime_closure_v1' or runtime.get('stage')!=NAME or runtime.get('status')!='reviewed_disk_dependency_closure' or not runtime.get('resources'):raise ValueError('reviewed runtime dependency roster absent')
+     for item in runtime['resources']:required(item)
+     if runtime.get('python_executable')!=str((prepared_api.WORKSPACE/'.venv/bin/python').resolve()):raise ValueError('runtime interpreter differs from launch')
+-    for name in ('gzserver','libastra_physical_ackermann_p05_plugin.so','libastra_dense_evidence_plugin.so','libastra_physics_metadata_p03_plugin.so',
++    if runtime.get('python_prefix')!=str((prepared_api.WORKSPACE/'.venv').resolve()) or runtime.get('python_no_user_site')is not True:raise ValueError('runtime virtualenv identity differs')
++    # The installed command is a symlink to gzserver-11.15.1. Resource paths
++    # are canonical, so never require the alias basename as if it were a file.
++    gzserver=binding(Path('/usr/bin/gzserver').resolve());required(gzserver)
++    if gzserver not in runtime['resources']:raise ValueError('runtime root omitted: canonical gzserver target')
++    for name in ('libastra_physical_ackermann_p05_plugin.so','libastra_dense_evidence_plugin.so','libastra_physics_metadata_p03_plugin.so',
+                  'libgazebo_ros_api_plugin.so','libgazebo_ros_laser.so','libgazebo_ros_bumper.so','libgazebo_ros_imu_sensor.so','libgazebo_ros_camera.so',
+                  'record','relay','robot_state_publisher','roslaunch'):
+         if not any(Path(item['path']).name==name for item in runtime['resources']):raise ValueError('runtime root omitted: '+name)

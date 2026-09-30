@@ -1,0 +1,5 @@
+r03 独立复核通过：21组继承回归+3组新增输入时序变更均通过，真实完整release校验及inputs+plan只读预检通过。未调用真实close/commit/main，未创建队列transaction/closure/lock，三CSV的SHA、mtime、inode不变。
+
+plan后输入变更在写表前拒绝；首次replace后变更在closure前拒绝，此时3表可以已处于after版本但closure缺失。恢复精确原输入后可从冻结快照完成，未知第三表版本不被覆盖。旧历史行值和顺序已在完整proposed before/after CSV逐行比对保留。
+
+实际计划为24consumed、24valid-assessment，并不等于24goal success。仍要求唯一行政写者及冻结输入；此补丁缩小TOCTOU窗口，不宣称跨多个外部文件的全局原子快照或硬件断电资格。

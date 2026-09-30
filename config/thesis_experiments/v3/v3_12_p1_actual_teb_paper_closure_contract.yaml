@@ -1,0 +1,50 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-12-P1
+stage_purpose: pure_offline_actual_teb_formal_result_paper_closure
+status: frozen_pure_offline_evidence_export
+formal_source:
+  stage: V3-11-F1-ANALYSIS-R1
+  execution_release_sha256: b21835d5d55a55fd130aae836c609fd117481b9d4cd54155ba8fc78b57dc9ea6
+  analysis_repair_release_sha256: 677d29954e216665c414ffb9f11b460e1a7f9d32d4a6a44f427177b95a23e0b5
+  execution_summary_sha256: 9843ce28763e1f836b3230545b00b614019486ab89564d7063d247e1cb1fc2a4
+  execution_journal_sha256: 5c0b79ab5927986e9c0b74d174f0270ff2bb69ba38c276eeabf50cbffc5524ff
+  assessment_path: artifacts/v3/actual_teb/v3_11_f1_assessment/formal_assessment.yaml
+  assessment_sha256: 9b19f8bd29f1d6c06197e932b03359a2f78081da65e636f52f7f610529c3f2f9
+  evidence_freeze_sha256: a90b180c08de489706a7be7ddace09280570240b13449e275d172545e815470f
+  independent_review_path: artifacts/v3/actual_teb/v3_11_f1_assessment/independent_result_review.yaml
+  independent_review_sha256: 2d5e8c21ea70f29df97e646f703159297ff0d2da6ef10edb1341da057c133b39
+  terminal_freeze_sha256: f4396e25716dfb13bdc3e8d33a02387c117ab5a8c066e0d6a3e94b2fe3ac7465
+exports:
+  root: artifacts/v3/actual_teb/v3_12_p1_paper_closure
+  summary_csv: v3_12_p1_actual_teb_formal_summary.csv
+  stratum_csv: v3_12_p1_actual_teb_stratum_results.csv
+  block_csv: v3_12_p1_actual_teb_block_results.csv
+  figure_svg: v3_12_p1_actual_teb_formal_result.svg
+  claims_yaml: v3_12_p1_actual_teb_claims.yaml
+  evidence_manifest: v3_12_p1_actual_teb_evidence_manifest.sha256
+qualified_claim:
+  comparison: v3_spatial_safe_vs_actual_TebLocalPlannerROS_0_8_4
+  population: three frozen single-reactive-actor simulation templates with cautious and hesitant policies
+  paired_blocks: 30
+  episodes: 60
+  point_reduction_percent: 12.928816466552304
+  one_sided_97_5_percent_lower_reduction_percent: 12.725321888411981
+  goal_success_rate_both_methods: 1.0
+  contact_state_count_total: 0
+claim_boundaries:
+  shared_oracle_actor_track: true
+  perception_robustness: false
+  multi_actor_generalization: false
+  out_of_distribution_generalization: false
+  formal_collision_free_guarantee: false
+  learned_policy_or_reinforcement_learning_result: false
+  deployment_ready: false
+  real_vehicle_ready: false
+authority:
+  evidence_budget_units: 0
+  execution_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false

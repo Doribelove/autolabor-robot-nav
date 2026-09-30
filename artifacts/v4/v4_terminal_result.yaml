@@ -1,0 +1,64 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-06-P1
+status: terminal_negative_learning_result_with_paper_export
+date: "2026-08-07"
+architecture:
+  reinforcement_learning_module_implemented: true
+  algorithm: masked_ppo
+  hard_safe_action_mask: true
+  candidate_count: 6
+  replanning_period_s: 0.25
+  command_boundary_reserved: /cmd_vel_navigation
+budget:
+  factor_rounds_authorized: 3
+  factor_rounds_consumed: 3
+  training_environment_steps_authorized: 600000
+  training_environment_steps_consumed: 600000
+  gazebo_episode_units_authorized_maximum: 240
+  gazebo_episode_units_consumed: 0
+component_evidence:
+  pytest_passed: 9
+  pytest_failed: 0
+  random_masked_preflight_episodes: 1000
+  random_masked_preflight_contacts: 0
+  random_masked_preflight_mask_violations: 0
+fresh_terminal_characterization:
+  seed_range_inclusive: [430100, 430129]
+  paired_blocks: 30
+  episodes: 60
+  analytic_goals: 30
+  masked_ppo_goals: 30
+  analytic_mean_restricted_elapsed_s: 7.775
+  masked_ppo_mean_restricted_elapsed_s: 7.766666666666667
+  paired_relative_time_reduction_mean: 0.000980392156862745
+  paired_bootstrap_two_sided_95_percent_interval: [0.0, 0.002941176470588235]
+  positive_block_count: 1
+  contact_count: 0
+  mask_violation_count: 0
+gates:
+  task_gate_pass: true
+  empirical_component_safety_gate_pass: true
+  required_time_reduction_minimum: 0.03
+  time_reduction_gate_pass: false
+  meaningful_optimization_demonstrated: false
+  formal_result: false
+terminal_decision:
+  training_closed: true
+  gazebo_not_started_due_to_learning_gate: true
+  actual_teb_v4_comparison_not_run: true
+  real_vehicle_used: false
+  permitted_claim_zh: 实现了带硬安全动作掩码的强化学习候选选择模块，但未证明其相对解析排序器具有有意义的效率提升。
+paper:
+  pdf: artifacts/v4/paper/v4_06_p1_thesis_export/FAM_TEB_V4_RL_THESIS_DRAFT.pdf
+  pdf_sha256: ef46bb726459129e8029eeaf94c5783f3310183b96a3a2606bb64c06cbb25c57
+  pages: 49
+  evidence_manifest: artifacts/v4/paper/v4_06_p1_thesis_export/v4_06_p1_evidence_manifest.sha256
+  evidence_manifest_sha256: beabd2c9b57a48cf7b7796cb9b60010553c106349dfab6c0535f0f3e3577c729
+prohibitions:
+  - do_not_extend_v4_training_budget
+  - do_not_add_a_fourth_factor_round
+  - do_not_reuse_v4_training_validation_or_test_seeds
+  - do_not_claim_v4_actual_teb_superiority
+  - do_not_claim_gazebo_or_real_vehicle_v4_evidence
+  - do_not_claim_meaningful_rl_improvement

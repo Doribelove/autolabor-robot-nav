@@ -1,0 +1,22 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-08-A3
+status: frozen_before_any_v3_08_a3_simulation_or_release
+single_behavioral_factor:
+  only_change: maximum_episode_duration_12_0_to_12_5_seconds
+  maximum_decisions_24_is_exact_derived_half_second_slot_count: true
+  scene_planner_predictor_verifier_ranker_gates_unchanged: true
+integrity_repair:
+  receipt_stage_must_equal_v3_08_a3: true
+  changes_behavior: false
+fresh_schedule:
+  seeds: [6691, 6692, 6693, 6694, 6695, 6696]
+  exact_episodes: 18
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_seed_replacement_or_gate_change: true
+  no_performance_stage_if_integration_fails: true
+budget: {simulation_episodes: 18, reinforcement_learning_steps: 0, hardware_runs: 0}

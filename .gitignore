@@ -26,3 +26,67 @@ __pycache__/
 .venv/
 *.swp
 *~
+
+# GitHub source/paper snapshot: raw experiment data stays on this machine.
+# Existing tracked evidence is retained; these rules apply to new files.
+.venv_*/
+artifacts/**/ros_logs/
+artifacts/**/ros_home/
+artifacts/**/gazebo_home/
+artifacts/**/.gazebo/
+artifacts/**/logs/
+artifacts/**/batch_logs/
+artifacts/**/code_blobs/
+artifacts/**/bound_blobs/
+artifacts/**/raw/
+artifacts/**/raw_qc/
+artifacts/**/episodes/
+artifacts/**/decision_*/
+artifacts/**/snapshot/
+artifacts/**/*.log
+artifacts/**/*.stdout
+artifacts/**/*.stderr
+artifacts/**/*.rosmsg
+artifacts/**/*.lock
+artifacts/**/*.marker
+artifacts/**/latest
+artifacts/**/rospack_cache*
+artifacts/**/probe_raw.*
+artifacts/**/collector_raw.*
+artifacts/**/intervals.jsonl
+artifacts/**/commands/
+artifacts/**/pytest_tmp/
+artifacts/**/*_tmp/
+artifacts/**/fixtures/
+artifacts/**/fixtures_r*/
+artifacts/**/*rollout*.jsonl
+artifacts/**/rollouts.json
+artifacts/**/node_roster.jsonl
+artifacts/**/service_calls.jsonl
+artifacts/**/source_odometry.jsonl
+artifacts/**/native_probe_output.jsonl
+artifacts/**/native_replay_output.jsonl
+artifacts/**/selected_messages.jsonl
+artifacts/**/*trace*.csv
+artifacts/**/*trace*.jsonl
+artifacts/**/overlay_trace.yaml
+artifacts/**/episode_report.yaml
+artifacts/**/matrix_receipt.yaml
+artifacts/**/episode_receipt.yaml
+
+# Expanded paper packages are versioned; duplicate archives and TeX caches are not.
+artifacts/**/*.zip
+artifacts/**/*.zip.sha256
+artifacts/**/*.tar.gz
+artifacts/**/*.tar.gz.sha256
+artifacts/**/*.tar.xz
+artifacts/**/*.aux
+artifacts/**/*.fls
+artifacts/**/*.fdb_latexmk
+artifacts/**/*.synctex.gz
+
+# Preserve independent sources through snapshots/local_sources_20260930.
+# Its nested Git repositories, environments and duplicated evidence stay local.
+/artifacts/astra_gazebo_20260926/workspace/
+/artifacts/astra_gazebo_20260926/source_snapshot/
+/artifacts/astra_gazebo_20260926/bootstrap/

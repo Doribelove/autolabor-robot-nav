@@ -1,0 +1,82 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-A3
+stage_purpose: fresh_observed_mode_gated_safe_spatial_overlap_qualification
+contract_id: v3_scope_v3_07_a3_mode_gated_safe_overlap_1
+status: preregistered_before_simulation
+upstream:
+  a2_terminal_freeze_path: artifacts/v3/spatial/v3_07_a2/v3_07_a2_terminal_freeze.sha256
+  a2_assessment_path: artifacts/v3/spatial/v3_07_a2/execution/v3_07_a2_identifiability_assessment.yaml
+single_factor:
+  factor_id: observed_speed_mode_gate_for_spatial_left_candidate
+  hidden_policy_runtime_input: false
+  probe_and_treatment_are_cloned_common_prefix_runs: true
+  cautious_and_hesitant_actions: [certified_stop_v000, spatial_left_v120]
+  assertive_actions: [certified_stop_v000]
+  ambiguous_or_nonfinite_action: certified_stop_v000
+  spatial_candidate_geometry_changed: false
+  safety_radius_changed: false
+observed_mode_gate:
+  observable_feature: actor_speed_mps_at_0_5_s
+  cautious_hesitant_threshold_mps: 0.274012499989
+  hesitant_assertive_threshold_mps: 0.758912499986
+  ambiguity_half_width_mps: 0.02
+experimental_unit:
+  scenario_blocks:
+    - {block_id: safe_6591, seed: 6591, angle_deg: 71.0, actor_start_distance_m: 2.95, actor_base_speed_mps: 0.90}
+    - {block_id: safe_6592, seed: 6592, angle_deg: 83.0, actor_start_distance_m: 3.15, actor_base_speed_mps: 1.00}
+    - {block_id: safe_6593, seed: 6593, angle_deg: 97.0, actor_start_distance_m: 3.05, actor_base_speed_mps: 1.10}
+    - {block_id: safe_6594, seed: 6594, angle_deg: 109.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 0.95}
+    - {block_id: safe_6595, seed: 6595, angle_deg: 76.0, actor_start_distance_m: 3.25, actor_base_speed_mps: 1.05}
+    - {block_id: safe_6596, seed: 6596, angle_deg: 104.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 0.925}
+  policies_evaluator_only: [cautious, assertive, hesitant]
+  exact_probe_units: 18
+  exact_stop_units: 18
+  exact_conditional_spatial_units: 12
+  schedule_rows: 48
+  training_rows: 0
+  calibration_rows: 48
+  retry_allowed: false
+  resume_allowed: false
+scene:
+  duration_s: 8.0
+  probe_duration_s: 0.5
+  max_step_size_s: 0.001
+  real_time_update_rate_hz: 1000
+  sample_period_s: 0.05
+  ego:
+    model_name: v3_ego
+    footprint_m: [1.13, 0.73, 0.55]
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    common_prefix: {duration_s: 0.50, speed_mps: 0.80, end_x_m: -2.60}
+  actor:
+    model_name: v3_actor
+    size_m: [0.45, 0.45, 1.70]
+    endpoint_after_conflict_m: 5.0
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+qualification_gates:
+  completed_unit_count: 48
+  observed_mode_matches_evaluator_rate_min: 1.0
+  probe_treatment_observed_speed_difference_max_mps: 0.01
+  eligible_mode_action_overlap_rate_min: 1.0
+  assertive_spatial_execution_count_max: 0
+  conservative_combined_radius_m: 1.15
+  conservative_clearance_violation_count_max: 0
+  minimum_conservative_clearance_m_min: 0.0
+  spatial_goal_x_m: 5.20
+  eligible_spatial_goal_rate_min: 1.0
+  nonfinite_metric_count_max: 0
+authority_boundary:
+  held_out_test_seeds_reserved: [6601, 6602, 6603]
+  held_out_test_access_authorized: false
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_write_authorized: false
+  runtime_integration_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  Fresh cloned probe/treatment simulation established safe candidate overlap
+  for observed cautious/hesitant modes and fail-closed stop-only support for
+  assertive mode. This qualifies only a separate predictor-data design.

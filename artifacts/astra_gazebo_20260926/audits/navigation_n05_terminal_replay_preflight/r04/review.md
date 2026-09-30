@@ -1,0 +1,5 @@
+r04 两项定向修补独立复核通过：56项 synthetic checks，真实首个已闭 control/treatment 的两份 receipt+assessment，以及6份此前保存的真实候选payload均兼容。
+
+原chosen负索引/布尔及错误schema/method已拒绝；所有consumed会先校验receipt；失败report的空dict、不存在路径、哈希变化与身份/task错配均拒绝。有正确绑定report的失败仍被保留，无report的准备失败需非空error string。
+
+r03到r04只有validate_consumed_receipt函数AST变化，其他函数完全相同。未执行真实main、完整release校验或bag回放，不形成全矩阵结论；旧三版负例均保留。

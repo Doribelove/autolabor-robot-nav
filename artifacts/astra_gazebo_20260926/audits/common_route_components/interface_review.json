@@ -1,0 +1,265 @@
+{
+  "schema": "astra_common_route_interface_review_v1",
+  "status": "offline_components_pass_live_integration_pending",
+  "review_kind": "implementation_author_verification",
+  "ros_started": false,
+  "build_started": false,
+  "changed_existing_runtime_or_launch_or_CMake_or_package": false,
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+      "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f",
+      "role": "new_component"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_common_route.py",
+      "sha256": "4d7241d7228eb4a5a957592e2f02cbea953c5375b9163aac1e288ac41ee83288",
+      "role": "new_component"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_common_route_provider.py",
+      "sha256": "8cb5d7927b4f9585d1818217983de407efc76571107d52fd8f76dd0197e0782c",
+      "role": "new_component"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_common_route_global_planner.cpp",
+      "sha256": "2a9a4b6d27e4a7ba27a961f96e2457df23335486d2675f01b382c4b2307bafe9",
+      "role": "new_component"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/astra_common_route_plugins.xml",
+      "sha256": "ccd6d3eb2d28f7faa569338eb31a48f3e13eae4bf9874be798f315b1758dd987",
+      "role": "new_component"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_common_map_route.yaml",
+      "sha256": "ba342dcfbaef35c855826d96f55ea7eaf66c9c0f34c587a7b04aeafb5d69c8b7",
+      "role": "new_component"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/static_map_export.py",
+      "sha256": "6a46faff46362bf6a46777fa3eea43d7b125b70251f8ce336d478bf7e92f7c66",
+      "role": "reused_readonly_dependency"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+      "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb",
+      "role": "reused_readonly_dependency"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+      "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407",
+      "role": "reused_readonly_dependency"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf",
+      "role": "reused_readonly_dependency"
+    }
+  ],
+  "old_consumer_audit": [
+    {
+      "method": "frozen_R2_PCT_and_analytic",
+      "source": "src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py:108",
+      "observed": "DirectionalBenchmarkRuntimeAdapter directly receives scene static_circles/static_boxes/corridor_half_width; no common map/path subscription"
+    },
+    {
+      "method": "frozen_R2",
+      "source": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py:81",
+      "observed": "x-axis guide/kinematic state advance; build progress uses preview[-1].x-pose.x and robot features are axis-specific"
+    },
+    {
+      "method": "frozen_R2",
+      "source": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py:627",
+      "observed": "map association and static clearance use analytic circles and axis-aligned boxes; goal-speed, terminal control and commitment release use x"
+    },
+    {
+      "method": "TEB_and_DWA",
+      "source": "src/simulation/m2_gazebo/config/global_costmap.yaml:2",
+      "observed": "odom rolling global map with obstacle/inflation layers only; no StaticLayer, original Navfn sees no common full static prior"
+    },
+    {
+      "method": "TEB",
+      "source": "src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp:198",
+      "observed": "setPlan copies incoming vector; computeVelocityCommands then prunes/transforms its own internal copy at264/270"
+    },
+    {
+      "method": "DWA",
+      "source": "/opt/ros/noetic/include/dwa_local_planner/dwa_planner_ros.h:109",
+      "observed": "installed public setPlan accepts orig_global_plan; runtime consumption not yet observed; implementation binary remains actual ROS DWA"
+    }
+  ],
+  "interface": {
+    "route_frame": "map equals synthetic world",
+    "route_reference_point": "base_link centre guide; explicit rear conversion exposed separately",
+    "odom_transform": "map_from_odom request spawn x/y/yaw; uses existing RouteFrame; publish one static map->odom transform only",
+    "map_source": "existing static_map_export PGM/YAML; actor collision models were excluded there; provider itself only reads immutable bundle",
+    "occupancy_normalization": {
+      "free": 0,
+      "occupied": 100,
+      "unknown": 100,
+      "why": "common fail-closed unknown prior remains lethal in StaticLayer even with laser clearing; PCT uses identical blocked set",
+      "not_claimed": "not byte-identical to ordinary map_server -1 unknown messages; exact original PGM/YAML are preserved and runtime occupancy hash is published"
+    },
+    "global_protocol": "fixed whole polyline, deterministic static A*, no online global replan, no actor state or method outcomes",
+    "pruning": "provider/NavCore bridge do not prune or insert start points; PCT projections use earliest-segment tie; TEB/DWA native internal pruning remains algorithm-specific",
+    "provider_topics": [
+      "/map",
+      "/map_metadata",
+      "/astra/common_route/path",
+      "/astra/common_route/identity",
+      "/astra/common_route/served_path"
+    ],
+    "provider_services": [
+      "/static_map",
+      "/astra/common_route/get_plan"
+    ],
+    "bridge_diagnostic_topic": "/move_base/FixedRouteGlobalPlanner/provided_path; means returned to move_base, not independent proof of local setPlan consumption",
+    "provider_params": {
+      "bundle": "absolute immutable bundle directory",
+      "bundle_sha256": "required SHA256 of common_route.json",
+      "maximum_start_distance_m": 2.0,
+      "publish_map_to_odom": false
+    },
+    "pct_analytic_api": {
+      "constructor": "CommonRouteInputAdapter(grid,route,map_from_odom_xy_yaw)",
+      "state": "map base/rear pose, actual rear body twist including vy, route arc/lateral/heading error, remaining distance, map/odom lookahead",
+      "candidate_metrics": "common-route arc progress and terminal lateral offset, conservative static occupied-cell clearance for candidate chords",
+      "integration_status": "callable tested pure adapter; current frozen live runtime has not been patched or silently relabelled"
+    }
+  },
+  "root_build_integration": {
+    "new_library": "astra_common_route_global_planner",
+    "new_source": "src/astra_common_route_global_planner.cpp",
+    "catkin_components_to_add": [
+      "nav_core",
+      "costmap_2d",
+      "pluginlib"
+    ],
+    "existing_components_used": [
+      "roscpp",
+      "nav_msgs",
+      "geometry_msgs"
+    ],
+    "target_link": "${catkin_LIBRARIES}; include ${catkin_INCLUDE_DIRS}",
+    "package_export_to_add": "<nav_core plugin=\"${prefix}/astra_common_route_plugins.xml\"/>",
+    "provider_interpreter": "isolated W/.venv/bin/python with numpy/scipy/PyYAML/shapely and ROS message paths",
+    "launch_tasks": [
+      "start sole map/route provider before move_base; set loopback simulation markers and bind bundle SHA",
+      "select new base_global_planner and load new config fragment after original configs for BOTH TEB/DWA",
+      "retain common laser/odom/command chain and common local footprint/inflation configuration",
+      "publish exactly one map->odom transform matching physical driver spawn origin; do not duplicate localization broadcaster",
+      "new PCT/analytic must explicitly consume CommonRouteInputAdapter and common normalized map; do not continue old analytic static_boxes alongside a purported common map"
+    ]
+  },
+  "required_future_runtime_edits": [
+    "New PCT candidate generation must replace x-axis guide by route-relative target/heading and use physically correct rear integration then base conversion.",
+    "New actor observation features/progress and speed-to-goal/terminal goal control must use route arc and common map goal; checkpoint semantics therefore change and need a separately named R2+common-input sensitivity method.",
+    "New PCT static scan association must be derived from common map; dynamic tracker remains sensor-derived, never actor truth.",
+    "New PCT/analytic candidate metrics must actually replace old geometry/clearance/progress calls; merely publishing /map and /path does not qualify consumption.",
+    "Frozen R2 must remain exact with declared input limitations; it is not silently replaced by this adapter."
+  ],
+  "validation": {
+    "pytest": "21 passed in0.50s",
+    "tests_include": [
+      "500 point and80 segment conservative-distance comparisons with independent Shapely occupied-cell union",
+      "deterministic obstructed-map route and impossible-route rejection without carving",
+      "route corners preserved through resampling",
+      "nonidentity SE2 and rear vy reference conversion",
+      "world-Y route progress differs from world-X as intended",
+      "fixed-route goal/frame/nonfinite/out-of-range rejection",
+      "immutable bundle source-hash and endpoint consistency",
+      "six current exported core layouts all retain declared geometric-guide clearance",
+      "real ROS messages serialize under entirely mocked transport; advanced start receives identical full path coordinates; no ROS processes started"
+    ],
+    "actual_layout_routes": [
+      {
+        "scene": "development_a02_development_head_on_yield_000",
+        "status": "reference_route_created",
+        "point_count": 91,
+        "length_m": 9.0,
+        "audit": {
+          "expanded_grid_nodes": 181,
+          "minimum_segment_clearance_lower_bound_m": 2.216789321881343
+        },
+        "path_sha256": "ad09eaef1243d753826724fb5de8c1e6f66068cbe6dd3d591700dfcf5d33f64a",
+        "wall_s": 0.029163672999857226
+      },
+      {
+        "scene": "development_a02_development_occluded_emergence_000",
+        "status": "reference_route_created",
+        "point_count": 94,
+        "length_m": 9.039054777801693,
+        "audit": {
+          "expanded_grid_nodes": 1824,
+          "minimum_segment_clearance_lower_bound_m": 0.6812991008639636
+        },
+        "path_sha256": "96baf119090c3a1d1c0cebd3ce8e63be74543eaf89b402048ea018e8fc2fab64",
+        "wall_s": 0.14290238799912913
+      },
+      {
+        "scene": "development_a02_development_sequential_interaction_000",
+        "status": "reference_route_created",
+        "point_count": 91,
+        "length_m": 9.0,
+        "audit": {
+          "expanded_grid_nodes": 181,
+          "minimum_segment_clearance_lower_bound_m": 14.866789321881345
+        },
+        "path_sha256": "ad09eaef1243d753826724fb5de8c1e6f66068cbe6dd3d591700dfcf5d33f64a",
+        "wall_s": 0.02436097500140022
+      },
+      {
+        "scene": "development_a02_development_single_crossing_000",
+        "status": "reference_route_created",
+        "point_count": 91,
+        "length_m": 9.0,
+        "audit": {
+          "expanded_grid_nodes": 181,
+          "minimum_segment_clearance_lower_bound_m": 14.866789321881345
+        },
+        "path_sha256": "ad09eaef1243d753826724fb5de8c1e6f66068cbe6dd3d591700dfcf5d33f64a",
+        "wall_s": 0.023741028000586084
+      },
+      {
+        "scene": "development_a02_development_static_avoidance_000",
+        "status": "reference_route_created",
+        "point_count": 94,
+        "length_m": 9.20446457599719,
+        "audit": {
+          "expanded_grid_nodes": 4621,
+          "minimum_segment_clearance_lower_bound_m": 0.6810220042780207
+        },
+        "path_sha256": "4cdf7e837de5b761a8e5cd9fabf482ca504238117b4712e4bed34399610a8620",
+        "wall_s": 0.14437280699894472
+      },
+      {
+        "scene": "development_a02_development_width_change_corridor_000",
+        "status": "reference_route_created",
+        "point_count": 91,
+        "length_m": 9.0,
+        "audit": {
+          "expanded_grid_nodes": 181,
+          "minimum_segment_clearance_lower_bound_m": 1.3167893218813431
+        },
+        "path_sha256": "ad09eaef1243d753826724fb5de8c1e6f66068cbe6dd3d591700dfcf5d33f64a",
+        "wall_s": 0.02465652800128737
+      }
+    ]
+  },
+  "live_acceptance_pending": [
+    "build/load new NavCore plugin and verify actual plugin class identity",
+    "record equal normalized /map dimensions/origin/resolution/cells/hash across all new methods",
+    "record provider and NavCore-provided full path coordinates and compare to exact immutable artifact for every plan call",
+    "independently verify local TEB/DWA setPlan received vector and distinguish their later internal transform/pruning",
+    "new PCT/analytic log matching map/path identities and finite projected state/guide metrics at every decision",
+    "check map/world/odom/base/rear transforms under nonzero yaw/translation and multiple start/goal poses",
+    "separately qualify route/candidate Ackermann reachability and physical trackability; grid-reference pass alone is insufficient"
+  ],
+  "limits": [
+    "Guide clearance radius0.68m is an explicit planning threshold, not a qualified bound for the full articulated physical robot in every steering state.",
+    "Polyline corners can have curvature discontinuities; no Ackermann feasibility follows.",
+    "Candidate chord clearance is not clearance of the actual ODE motion or dynamic-actor clearance.",
+    "No online consumption, navigation-performance, final-outcome, or safety claim."
+  ]
+}

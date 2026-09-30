@@ -1,0 +1,24 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-A3
+preregistration_id: v3_scope_v3_03_a3_snapshot_extractor_repair_1
+date: "2026-07-24"
+status: frozen_before_any_v3_03_a3_simulation
+contract: config/thesis_experiments/v3/v3_03_a3_snapshot_extractor_repair_contract.yaml
+single_factor: decision_time_actor_snapshot_extractor
+fresh_schedule:
+  decisions: 9
+  simulation_units: 18
+  seeds: [6311, 6312, 6313]
+  attempts_per_identity: 1
+  retries: 0
+firewall:
+  A1_A2_resume_or_seed_reuse: false
+  planner_or_predictor_update: false
+  threshold_or_gate_update: false
+authority:
+  simulation_requires_separate_authorization: true
+  move_base: false
+  cmd_vel_publish: false
+  training: false
+  real_vehicle: false

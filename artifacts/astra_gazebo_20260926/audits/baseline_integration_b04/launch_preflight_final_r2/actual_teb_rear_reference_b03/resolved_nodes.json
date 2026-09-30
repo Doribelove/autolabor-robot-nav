@@ -1,0 +1,92 @@
+[
+  {
+    "package": "gazebo_ros",
+    "type": "gzserver",
+    "name": "gazebo",
+    "required": true,
+    "args": "-u   -e ode --seed 1 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n03_dwa_r01/world.sdf",
+    "remaps": [],
+    "launch_prefix": null
+  },
+  {
+    "package": "robot_state_publisher",
+    "type": "robot_state_publisher",
+    "name": "m2_robot_state_publisher",
+    "required": false,
+    "args": "",
+    "remaps": [],
+    "launch_prefix": null
+  },
+  {
+    "package": "topic_tools",
+    "type": "relay",
+    "name": "navigation_command_relay",
+    "required": false,
+    "args": "/cmd_vel_navigation /cmd_vel",
+    "remaps": [],
+    "launch_prefix": null
+  },
+  {
+    "package": "m2_gazebo",
+    "type": "astra_common_route_provider.py",
+    "name": "astra_common_route_provider",
+    "required": false,
+    "args": "",
+    "remaps": [],
+    "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python"
+  },
+  {
+    "package": "m2_gazebo",
+    "type": "astra_baseline_rear_adapter_b03.py",
+    "name": "astra_baseline_rear_adapter_b03",
+    "required": true,
+    "args": "",
+    "remaps": [],
+    "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python"
+  },
+  {
+    "package": "m2_gazebo",
+    "type": "astra_navigation_coordinator_b03.py",
+    "name": "astra_navigation_coordinator",
+    "required": false,
+    "args": "",
+    "remaps": [],
+    "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python"
+  },
+  {
+    "package": "move_base",
+    "type": "move_base",
+    "name": "move_base",
+    "required": false,
+    "args": "",
+    "remaps": [
+      [
+        "cmd_vel",
+        "/astra/method_cmd"
+      ],
+      [
+        "odom",
+        "/astra/rear_odom"
+      ]
+    ],
+    "launch_prefix": null
+  },
+  {
+    "package": "rosbag",
+    "type": "record",
+    "name": "fixture_bag",
+    "required": false,
+    "args": "--lz4 --buffsize=128 -O /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/b04_offline_teb/fixture.bag /astra/p03/pre_models /astra/p03/pre_links /astra/p03/end_models /astra/p03/end_links /astra/p03/step_status /astra/physics_contacts /astra/p03/runtime_metadata /astra/physics_metadata /astra/world_models /astra/world_links /clock /odom /joint_states /m2_driver/physical_status /m2_driver/physical_metadata /m2_driver/command_ingress /m2_driver/actuator_target /m2_driver/actuator_commanded_effort /cmd_vel_navigation /cmd_vel /astra/navigation/identity /astra/navigation/status /astra/navigation/gate /astra/navigation/command_trace /scan /tf /tf_static /map /astra/common_route/path /astra/method_cmd /astra/method/status /astra/rear_odom /astra/baseline_rear/identity /astra/baseline_rear/status /astra/baseline_rear/input_receipt /astra/baseline_rear/served_path /move_base/FixedRouteGlobalPlanner/provided_path /move_base/goal /astra/baseline_rear/private_action_result",
+    "remaps": [],
+    "launch_prefix": null
+  },
+  {
+    "package": "m2_gazebo",
+    "type": "astra_navigation_collector_b04.py",
+    "name": "astra_navigation_collector",
+    "required": true,
+    "args": "",
+    "remaps": [],
+    "launch_prefix": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python"
+  }
+]

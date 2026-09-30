@@ -1,0 +1,42 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R16-D1
+stage_purpose: pure_offline_goal_and_candidate_terminal_execution_failure_attribution
+status: preregistered_before_diagnostic_materialization
+upstream:
+  R16_contract_sha256: a1373cc6390b1c5c7b4b49b33bc06139907bd59bc453b97dcb1901024551cd67
+  R16_assessment_sha256: 120c1b2c3cf6966458d7bcf3677d23287d36d094f75bc2dfdee5c2d6823f6c5c
+  R16_evidence_freeze_sha256: 7c4351cb3ac72213132affc354e52d1139d8d443d607fd3d7f01d7fabd15da4a
+  R16_independent_review_sha256: 709d81c499e345ce4bbef6f5ec7950b76948ca800cf359c1f45787888f6dde7a
+  R16_v3_report_sha256: 55d867e932c4c0e9df9a80876044f53f1be1c56d32331fc23a90596176e3f234
+  R16_v3_receipt_sha256: f53aae475c7a1d2ed439961d386bb3082c0da2004befc3938a11aea452249db5
+  execution_core_sha256: 6aef3146a5360179ea49cea2dda31383ad0935389dfa874191b3df27d2f780e0
+diagnostic_questions:
+  candidate_path_reaches_common_goal_tolerance: compute
+  robot_trace_reaches_common_goal_tolerance: compute
+  robot_trace_reaches_candidate_terminal_neighborhood: compute
+  execution_stops_or_replans_at_candidate_terminal: inspect_frozen_code_and_trace
+  safety_failure_observed: compute
+diagnostic_thresholds:
+  common_goal_position_tolerance_m: 0.25
+  candidate_terminal_neighborhood_m: 0.05
+  tracking_error_gate_m: 0.45
+  safe_clearance_min_m: 0.0
+downstream:
+  if_goal_and_terminal_execution_defect_confirmed: design_one_goal_aligned_candidate_and_fail_closed_terminal_guard
+  new_simulation_execution_authorized: false
+  actual_TEB_qualification_execution_authorized: false
+  training_authorized: false
+authority:
+  pure_offline_diagnosis_authorized: true
+  new_simulation_units_authorized: 0
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed:
+  - attribute the frozen R16 V3 preflight failure without changing its result
+  forbidden:
+  - retroactively pass R16
+  - actual TEB performance improvement
+  - perception or learned-policy benefit

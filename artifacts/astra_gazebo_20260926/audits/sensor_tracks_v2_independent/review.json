@@ -1,0 +1,181 @@
+{
+  "schema": "astra_sensor_tracks_v2_independent_review_v1",
+  "status": "independent_M08_v2_offline_availability_and_batch_geometry_review_pass",
+  "pass": true,
+  "independent_review": true,
+  "reviewed_source_sha256": "4975d9cdd91cc9c182f6ec36967a61084ff4e65f71493305f8d68a8b028e6bd6",
+  "checks": {
+    "final_v2_source_exact": true,
+    "frozen_v1_source_unchanged": true,
+    "author47_independently_rerun": true,
+    "independent53_including_original_counterexample_repair_pass": true,
+    "all_five_public_api_availability_and_freshness_boundaries": true,
+    "actual_nine_component_full_footprint_and_unpruned_geometry_bound": true,
+    "valid_request_bytes_identical_and_tracking_inherited": true,
+    "actual_counterbalanced_timing_has_all40_pairs": true,
+    "all992_timing_fixture_distances_match_declared_expression": true,
+    "measured_kernel_under50ms_for_reviewed_fixtures": true,
+    "old_failures_and_new20ms_negative_preserved": true,
+    "source_imports_only_offline_math_geometry_and_frozen_tracker": true
+  },
+  "test_counts": {
+    "author_independently_rerun": 47,
+    "independent": 53
+  },
+  "original_v1_overall_pass": false,
+  "runtime_ready": false,
+  "full_planner_qualified": false,
+  "live_deadline_qualified": false,
+  "availability_repair_qualified_within_public_APIs": true,
+  "tracking_and_valid_request_semantics_unchanged": true,
+  "numeric_subtraction_m": 1e-10,
+  "timing": {
+    "origin": "independent actual execution of bound benchmark,10 counterbalanced repeats per four synthetic workloads",
+    "system_python": "/usr/bin/python3",
+    "max_whole_kernel_ms": 20.023795,
+    "under20ms": false,
+    "under50ms": true,
+    "full_planner_qualification": false,
+    "tracking_and_ROS_included": false
+  },
+  "public_APIs": [
+    "HardOccupancy(snapshot,now_ns)",
+    "BatchHardOccupancy(snapshot,now_ns)",
+    "SensorTracks.occupancy(now_ns)",
+    "SensorTracks.batch_occupancy(now_ns)",
+    "prediction_request(...,decision_ns)"
+  ],
+  "findings": [
+    "All five public consumption paths reject acceptance-minus1ns and accept exact/plus1ns when original source<=200ms; source+200ms+1ns still rejects.",
+    "v1 availability counterexample reproduced; valid v2 request entire contents/hash unchanged relative to v1.",
+    "Actual9component/16plane full-body envelope queries with 31/32/33/2048 sparse supports,20 known circles,baseline andtentative terms match independent unpruned GEOS expression within2e-11m after conservative1e-10 subtraction.",
+    "Independent measured maximum20.023795ms exceeds20ms; retained as negative diagnostic. Reviewed finite kernel fixtures remain below50ms.",
+    "Original v1 879.565325ms/57.427209ms and availability failure are not reclassified."
+  ],
+  "limits": [
+    "No runtime imports/launch integration qualified; scalar compatibility still has original scalar performance.",
+    "Only the tested bounded floating-point geometry, no formal numerical proof. Convexity is mandatory; batch does not silently substitute an arbitrary footprint.",
+    "Timing excludes scan/TF/tracking,staticmap/candidate generation,learned inference,ROS/executor and transport. With known dense tracking40ms, full50ms planner budget remains unproven.",
+    "Association/static-prior assumptions,unknown obstacle extent,detection blind spots,lost-support growth andno learned calibration unchanged.",
+    "No ROS/Gazebo/training/new simulation evidence or primary performance authority."
+  ],
+  "harness_history": "Initial own reference fixture called FullFootprintEnvelope.at(*pose) rather than at(pose),four TypeErrors; original source/log preserved. R02 changes only reference API call;53 pass.",
+  "commands": [
+    "/usr/bin/python3 -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_v2.py",
+    "/usr/bin/python3 -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/test_independent_r02.py /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/test_inherited_boundaries.py",
+    "/usr/bin/python3 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/benchmark.py --output /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/timing_actual_system_r01.json --trials 10"
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/review_v1_limited.json",
+      "sha256": "bfe76fe70536d28628930dec46aee4447b56775b155390b4bfe45bf875899033",
+      "bytes": 9083
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/benchmark.py",
+      "sha256": "c57c6dd0556072564a4818e509de0ba94fc04a0914f142b56979c631c7bab020",
+      "bytes": 6179
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/design.md",
+      "sha256": "d9d120139f789d72a49eb3505092e5fcc5ca42f9b40b43f87dbbffeab1d7c3d1",
+      "bytes": 7275
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/implementation_report.json",
+      "sha256": "8f59983a05ff9c5bf6fec71004fa5c903475feabc2add7cedbf5c34ad32b84dd",
+      "bytes": 10282
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/timing_system_r2.json",
+      "sha256": "602900442bf39101800272e6a0bb9624755316904df99f6acb8da70471a072e7",
+      "bytes": 20824
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2/timing_venv_r2.json",
+      "sha256": "e4dbb4752ce086ef06fd50c21a2bb21cc2b2fb7f4cb06caf8f39c5f1b1d85500",
+      "bytes": 20882
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/author_tests_r01.log",
+      "sha256": "21ca1b1be07fd4a0a03cbf16a30a10ce1bc74e6d597c26301562d14e04726de7",
+      "bytes": 106
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/finalize.py",
+      "sha256": "40d789a1e876dbe9a64e48b0fdb41317615f3a34154fc819fdd005d55d7bc94c",
+      "bytes": 7897
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/harness_correction_r02.md",
+      "sha256": "97b500bbdc8ab103edbea274a60087917697d780aeffcab9db34c3ba9723f6b3",
+      "bytes": 325
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/independent_tests_r01.log",
+      "sha256": "6700c125056f4410bed924c7c8deb7ad3fc60d1be88d95f944d01344a0f50c80",
+      "bytes": 6943
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/independent_tests_r02.log",
+      "sha256": "c64cb5d3e37cec609930a3d298aaf31bd124edf080ad9426134763f0963aaec8",
+      "bytes": 106
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/test_independent.py",
+      "sha256": "f423c3a06fde3d2f59f695c9b61af58233c584ff85e0c0b62d49973efa18a499",
+      "bytes": 5123
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/test_independent_r02.py",
+      "sha256": "de7db41f1942c33f67a6942a8cb418863bdbdbb5127d14929512b3b5c6ba44e5",
+      "bytes": 5122
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/test_inherited_boundaries.py",
+      "sha256": "64ecb8d9667f7ad1208544de22abc66dd65de70d9ed2bb655634debee31d0e26",
+      "bytes": 7634
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/timing_actual_system_r01.json",
+      "sha256": "85024c8fb36a9482c66743938859f372c0521f44b36c4f20d9a8d364f3782a35",
+      "bytes": 15393
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/timing_actual_system_r01.log",
+      "sha256": "7b33438541f0b4c9c0eeaa8061724e0858c74273e1277b793ccdb443ec142f9e",
+      "bytes": 122
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q05_static/robot_description_runtime.xml",
+      "sha256": "293157df0876bfd49c9109f3553b5fca7fa98dd5efdad0d5a3501ca8827a9a07",
+      "bytes": 12678
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6",
+      "bytes": 22588
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_sensor_buffer.py",
+      "sha256": "9822620f0d83f0e203644ba928bc0483e66505f75424e05514119115feb6c812",
+      "bytes": 6773
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v1.py",
+      "sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b",
+      "bytes": 27029
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+      "sha256": "4975d9cdd91cc9c182f6ec36967a61084ff4e65f71493305f8d68a8b028e6bd6",
+      "bytes": 11955
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_v2.py",
+      "sha256": "b25156f9f26de13f78a74e12e41c20468c8dde7e5d266d9bab853f0b85d781a3",
+      "bytes": 10354
+    }
+  ],
+  "created_utc": "2026-09-26T13:07:15.194412+00:00"
+}

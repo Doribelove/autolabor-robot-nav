@@ -1,0 +1,79 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R18
+status: terminal_runtime_adapter_recursion_failure_frozen
+failure_class: pretrace_execution_adapter_integration
+confirmed_cause: The runtime replaced execution_core.pure_pursuit_command with observed_guard,
+  while the frozen goal-aligned helper references that same execution_core module
+  and called the replacement again, creating recursion on the first branch command.
+failure_observed_sim_s: 12.54
+authorized_units: 1
+consumed_units: 1
+completed_units: 0
+remaining_units: 0
+seed7667_reusable: false
+retry_or_resume_authorized: false
+gazebo_started: true
+closed_loop_candidate_trace_started: false
+episode_report_present: false
+scientific_outcome_available: false
+r3_preflight_qualified: false
+repair_boundary:
+  new_stage_and_fresh_seed_required: true
+  only_execution_adapter_recursion_may_change: true
+  candidate_geometry_model_actor_policies_and_gates_frozen: true
+  adapter_equivalence_to_frozen_guard_required_offline: true
+actual_TEB_execution_authorized: false
+perception_execution_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false
+resources:
+- path: config/thesis_experiments/v3/v3_13_q1_r18_goal_aligned_recovery_preflight_contract.yaml
+  sha256: 3616d7b6a7819700f7858ae894c5e8a5d77dd55a5ae84791bdbaf7a6610479b9
+  size_bytes: 3097
+- path: artifacts/v3/multiactor/v3_13_q1_r18_readiness/exact_schedule.yaml
+  sha256: 52efc5ffccb003b18e7a25f9583d0d6d6025a452e4ecaf5fca643777f90bd2a0
+  size_bytes: 557
+- path: artifacts/v3/multiactor/v3_13_q1_r18_readiness/dependency_freeze.yaml
+  sha256: f65360ff9c83c9fe73fe2eaecd507bdf56c59103d906e4b8c4974539086459f1
+  size_bytes: 4804
+- path: artifacts/v3/multiactor/v3_13_q1_r18_readiness/execution_release.yaml
+  sha256: 3b4e68d3343c314df93fa645167b3c63073d469632187579b2f0370ed6aaec4a
+  size_bytes: 797
+- path: artifacts/v3/multiactor/v3_13_q1_r18_readiness/evidence_manifest.sha256
+  sha256: 563388653f976f33c853b4540fbc6485cf607c563db3c8f11d3fc68cdaa18fe4
+  size_bytes: 4490
+- path: artifacts/v3/multiactor/v3_13_q1_r18_readiness/independent_review.yaml
+  sha256: 129820e2f2feff1c22c974a8ff296e8102e9fad3988c7b1a185a2664f483b527
+  size_bytes: 595
+- path: artifacts/v3/multiactor/v3_13_q1_r18_goal_aligned_preflight/exact_schedule.yaml
+  sha256: ab9126fc51838946619628b966d76f36f4902b77404bdd9ee97d96a2d4c89a61
+  size_bytes: 458
+- path: artifacts/v3/multiactor/v3_13_q1_r18_goal_aligned_preflight/attempt_journal.jsonl
+  sha256: cc8525ca075bff2b00f97b7a59550788880ba92f1e941d958bc28df04c22f92c
+  size_bytes: 9313
+- path: artifacts/v3/multiactor/v3_13_q1_r18_goal_aligned_preflight/episodes/001_01_7667_recovery_evasive_right_v120_r3/world.sdf
+  sha256: e17ff16dadd1e165f932a69b86541e890481fe3b42be11920008e765ddf47398
+  size_bytes: 4881
+- path: artifacts/v3/multiactor/v3_13_q1_r18_goal_aligned_preflight/episodes/001_01_7667_recovery_evasive_right_v120_r3/scene_spec.yaml
+  sha256: 20b865a0ab70daef58a24b12d02e80f24cee2420a0151d46782fdebbd9b1e869
+  size_bytes: 255
+- path: artifacts/v3/multiactor/v3_13_q1_r18_goal_aligned_preflight/episodes/001_01_7667_recovery_evasive_right_v120_r3/actor_specs.yaml
+  sha256: 1737208fc7dad91f6e8e1f2c3e1b72d54cf3da0ee167acb0474f364eedd34626
+  size_bytes: 704
+- path: artifacts/v3/multiactor/v3_13_q1_r18_goal_aligned_preflight/episodes/001_01_7667_recovery_evasive_right_v120_r3/roslaunch.log
+  sha256: 22e74bc57a5f5a675b5286c1b7fa90d60e31feb2f140dc13644c60dfb88e2d8f
+  size_bytes: 8119
+- path: src/application/v3_scope_planner/scripts/v3_scope_goal_aligned_recovery_preflight_episode.py
+  sha256: 26b37eb34ec6bf40b45cdb46144e8b22c81b6f08541ce1dd1b23aa8986d5cda2
+  size_bytes: 5552
+- path: src/application/v3_scope_planner/src/v3_scope_planner/goal_aligned_execution_core.py
+  sha256: 0b30da1f7ee93d22dc88924ed90a991793f419f7b0780e8c9bd59efc05b52652
+  size_bytes: 2058
+- path: src/application/v3_scope_planner/src/v3_scope_planner/execution_core.py
+  sha256: 6aef3146a5360179ea49cea2dda31383ad0935389dfa874191b3df27d2f780e0
+  size_bytes: 3990
+- path: src/tools/thesis_experiment/scripts/run_v3_13_q1_r18_goal_aligned_preflight.py
+  sha256: 7c85ad9aa825fd1cb30e74d00385268be8348f8f96ab8c4c1aa959f64b26d499
+  size_bytes: 10399

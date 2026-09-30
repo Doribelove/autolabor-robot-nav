@@ -1,0 +1,1708 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index d054ba0..02507af 100755
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -108,7 +108,36 @@ source devel/setup.bash
+   `docs/thesis_experiment/CURRENT_V2_04G_R6_I3_RELEASE_PREFLIGHT_HANDOFF.md`, then
+   `docs/thesis_experiment/CURRENT_V2_04G_R6_I4_PREFLIGHT_INTEGRITY_HANDOFF.md`, then
+   `docs/thesis_experiment/CURRENT_V2_04G_R6_I5_EXECUTION_HANDOFF.md`, then
+-  `docs/thesis_experiment/CURRENT_V2_04G_R6_I1_R6_I2_R6_I3_R6_I4_R6_I5_R6_I6_RESULT_INTERPRETATION_HANDOFF.md`.
++  `docs/thesis_experiment/CURRENT_V2_04G_R6_I1_R6_I2_R6_I3_R6_I4_R6_I5_R6_I6_RESULT_INTERPRETATION_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V2_04G_P1_R1_OFFLINE_READINESS_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V2_04G_P1_E1_EXECUTION_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V2_04G_P1_I1_RESULT_INTERPRETATION_PAPER_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V2_04G_P2_D1_TRACE_ATTRIBUTION_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V2_04G_P2_D2_SINGLE_FACTOR_DESIGN_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V2_04G_P4_F1_TERMINAL_HANDOFF.md`.
++  For future V3-SCOPE work, read the terminal P4-F1 handoff first, then
++  `docs/thesis_experiment/CURRENT_V3_SCOPE_FOUNDATION_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_00_FOUNDATION_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_01_REACTIVE_ACTOR_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_02_PREDICTOR_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_02_COMMON_PREFIX_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_02_FEASIBLE_INTERVENTION_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_03_SAFE_PLANNER_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_04_LEARNING_AUDIT_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_05_FORMAL_EVALUATION_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_09_FORMAL_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_11_ACTUAL_TEB_FORMAL_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_14_MULTIACTION_TERMINAL_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_15_PAPER_EXPORT_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_16_RESPONSE_GATED_TERMINAL_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_17_PAPER_EXPORT_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_21_FOUR_METHOD_CHARACTERIZATION_HANDOFF.md`, then
++  `docs/thesis_experiment/CURRENT_V3_22_THESIS_EXPORT_HANDOFF.md`, then
++  `docs/future_research/v3_candidate/THEORETICAL_FEASIBILITY_AND_RESEARCH_ROADMAP.md`, then
++  `docs/future_research/v3_candidate/literature/README.md`. V3-00--V3-12-P1 are complete.
++  V3-11-F1 is the latest fresh formal positive result within three frozen single-reactive-actor
++  Gazebo templates against actual TebLocalPlannerROS 0.8.4. It is not a perception,
++  multi-actor/OOD, general-safety, deployment or real-vehicle result.
+   For the current T12 Residual SAC thread, also read
+   `docs/thesis_experiment/CURRENT_T12_RESIDUAL_TRAINING_HANDOFF.md`, then
+   `docs/thesis_experiment/CURRENT_T12_RESIDUAL_LEARNING_REVIEW.md`, and check live processes
+@@ -209,5 +238,241 @@ source devel/setup.bash
+   has `execution_authorized=false` and budget 0. Do not interpret I6 or that design as a release or
+   authorization; I5 remains frozen and non-rerunnable. Any performance execution requires an
+   independent review, new release, fresh budget and separate explicit simulation authorization.
++- V2-04G-P1-R1 is the completed zero-authority offline scene/schedule/statistics/integrity closure.
++  It materializes seeds 5201--5290 as 90 evidence blocks plus four compile-support seeds,
++  94 scenes / 188 compiled children and a deterministic counterbalanced 270-row schedule. The
++  claim population is strictly three frozen dynamic templates under fresh simulator stochastic
++  seeds, not 90 independent geometries. Its dependency closure rehashes 428 local resources and
++  the independent review status is
++  `p1_r1_offline_implementation_readiness_closure_pass_release_absent`. Statistical fixtures pass,
++  but no P1 evidence assessment ran. `execution_ready=false`, `execution_authorized=false`,
++  authorized/consumed budget=0, and release/attempt/journal are absent. Exact P1 runner and raw
++  replay adapters remain future release prerequisites; do not start ROS/Gazebo or treat this
++  offline pass as execution authorization. I5 stays frozen and no historical seed/budget may be
++  reused.
++- V2-04G-P1-E1 and P1-I1 are terminally complete. The exact fresh-seed 270-episode matrix retained
++  all 270 attempt=1 identities and passed integrity, safety/task noninferiority and mechanism gates,
++  but the efficiency effect was only 3.7624% with one-sided lower 2.7904%, below the frozen 5%
++  minimum effect. `formal_result=true` and `performance_improvement_demonstrated=false`; do not
++  rerun, resume, replace seeds, or reinterpret the valid negative result as positive.
++- V2-04G-P2-D1 is a completed pure-offline trace attribution. On the 30 frozen semantic-clear
++  treatment traces it found a conservative same-path post-cruise envelope of 12.0144% with
++  one-sided lower 11.2649%, and an approximate 10% target speed of 1.38349 m/s. This is physical
++  room only: it does not qualify a runtime field, safety, or achieved performance.
++- V2-04G-P2-D2 is the completed zero-authority offline single-factor design closure. The only
++  behavioral field is `TebLocalPlannerROS.max_vel_x`, with control 1.20 m/s and future calibration
++  grid 1.20/1.25/1.30/1.35/1.40 m/s; every nonfactor and safety gate remains frozen. TEB-Default is
++  context only, while the primary baseline must be the calibration-frozen strongest safe choice
++  between exact TEB-Tuned-V1 and an independently speed-tuned fixed TEB. The global program is
++  capped at 3 factor rounds / 2200 simulation evidence units / 120000 training environment steps
++  with non-recyclable one-sided alpha 0.025/0.015/0.010. Round 1 reserves calibration seeds
++  5301--5330, qualification 5331--5342 and held-out test 5401--5490. This was the historical design
++  entry for the now-terminal P2/P3/P4 chain; do not treat its former future work as current.
++- V2-04G-P4-F1 is the terminal offline closure for the post-P1 finite performance search. Across
++  the three frozen rounds, the 2200-unit capacity closed as 4 consumed plus 2196 retired; no
++  training steps or new held-out test were used. Round 3's exact P4-I1 release
++  `1bcd0392d475cdf17d7a2bf6540e024a61136150011945d323cae1234b568220`
++  consumed fresh seed5924 attempt1, then failed before Gazebo startup because roslaunch could not
++  resolve package `m2_gazebo`. The promoted Bank had passed strict offline parsing, but live
++  transaction or performance behavior was never reached. Independent terminal review SHA is
++  `e0dc93790e092b99684c64a9d2b11e5ce02a0a16f5235649e3657376835270c8`.
++  The final conclusion is `obvious_performance_improvement_not_demonstrated` / “未证明明显提升”:
++  historical P1 remains 3.7624% point and 2.7904% lower versus the new 10%/5% gate, and no complete
++  post-P1 test matrix exists. Performance search is stopped; do not retry/reuse P2/P3/P4 seeds or
++  releases, repair-and-rerun P4-I1, add a round, recycle retired budget, train, access new held-out
++  outcomes, freeze a winner, or make positive/deployment/real-vehicle claims.
++- V3-SCOPE began as the saved future architecture direction and is not a continuation of the terminal
++  V2 performance search. It changes the learning action from high-dimensional TEB parameters to a
++  discrete choice among pre-generated Ackermann-feasible trajectories, then applies
++  candidate-conditioned interaction prediction, calibrated reachable occupancy, a hard backup/
++  braking safety verifier, and an analytic ranker before any optional contextual bandit or offline
++  RL. The historical V2 Gazebo waypoint actor is open-loop; V3-01 later supplied and qualified a
++  separately reviewed reactive-actor and cloned-intervention data stage. Hardware and the stable
++  command chain may remain unchanged:
++  any future planner must output through `/cmd_vel_navigation` and retain the GPS limiter, FOD mode
++  arbiter and M2 driver safety boundary. The original concept handoff itself remains
++  non-executable; later V3-00/V3-01 stages supplied their own bounded authority and are now frozen.
++  Do not modify `/home/robot/robot_ws`. Read the current V3 handoffs in the order above before new
++  V3 work.
++- V3-03--V3-12-P1 are terminally complete. V3-03-C6 completed fresh segmented Gazebo integration
++  9/9 with 308/308 accepted selections, certified-stop availability and exact replay, zero
++  conservative-clearance violations and P99 latency 16.2301 ms. V3-04 correctly closed learning:
++  the logged closed-loop contexts had zero propensity for unexecuted alternatives and no sequential
++  support, so training remained 0 steps and no learned-policy claim exists. V3-05-B0 preserved a
++  complete negative longitudinal formal result (270/270; 1.2007% point, 0.9647% lower; 93.33% V3
++  goal success). V3-06 longitudinal repairs remained negative and terminal. V3-07/V3-08 then
++  established spatial candidates, the frozen spatial predictor, hard verifier and fresh A3
++  integration pass. V3-09-Q1 preserved a fairness failure; Q1-R1 qualified only the shared 0.25 s
++  replanning protocol.
++- V3-09-F1 is the historical idealized-comparator formal evaluation. Fresh seeds 6801--6830 formed 30 blocks and
++  180 paired episodes; all 180 completed at attempt=1 with no retry, resume, replacement or
++  forfeiture. V3 spatial-safe and fixed-v1.20 shielded achieved 90/90 goals each; mean restricted
++  goal times were 8.8611 s and 11.4167 s. The preregistered paired relative reduction was 22.3844%
++  with one-sided 95% block-bootstrap lower 21.8235%; all 30 blocks were positive and all frozen
++  safety, task, replay, finite-statistic and latency gates passed. Assessment SHA is
++  `d950256f4da310f65d604031ec72009e014facfb7cb0c14be8cf19ce1b9c346b`; independent
++  review SHA is `206732c86b536e7f9a520c58dac6d386ff6752595bdc767d4957e4804e5f8d5a`.
++  This supports only the frozen parameterized reactive single-actor crossing population and is
++  retained as historical mechanism evidence.
++  The comparator is a shielded straight policy, not actual TEB; assertive-policy mean time is
++  negative for V3 (11.5833 s versus 10.8917 s). Do not rerun/resume F1, reuse seeds/budget,
++  suppress negative strata, or claim actual-TEB superiority, general safety, cross-scene
++  generalization, deployment, learned benefit or real-vehicle readiness.
++- V3-10-P1 is the zero-authority offline paper-evidence closure. Its conventional multiline
++  evidence manifest SHA is
++  `70353b355c6eec2f733901ca7d4a6820de550beff00999cfacdb359dec951938`; independent
++  closure review SHA is
++  `bee5891b08f860a97a25ea71047b3e5fabb0c193695f221de131eacb5dcfe0f4`.
++  It preserves two historical V3-09-F1 manifests containing literal backslash-n separators and
++  binds their exact bytes without changing the formal evidence. V3-10-P1 creates no execution,
++  training, seed, schedule, ROS/Gazebo or real-vehicle authority. Any stronger publication claim
++  required a new study with an actual TEB baseline; that separately released study is now V3-11.
++- V3-11-Q1-R1 and V3-11-F1 are terminally complete. Q1-R1 used fresh seeds 7021--7032 and
++  completed 24/24 qualification episodes; both V3 spatial-safe and actual
++  `teb_local_planner/TebLocalPlannerROS` 0.8.4 achieved 12/12 goals, zero contact, matched common
++  gate/mode semantics and passed all 14 qualification gates. F1 release SHA is
++  `b21835d5d55a55fd130aae836c609fd117481b9d4cd54155ba8fc78b57dc9ea6`; fresh seeds
++  7101--7130 formed 30 paired scene-policy blocks / 60 episodes over three frozen Gazebo
++  templates and cautious/hesitant actors. All 60 completed at attempt=1 with no retry,
++  replacement or forfeiture. V3/actual-TEB goal success was 30/30 and mean restricted
++  gate-to-goal time 6.7683/7.7733 s. The preregistered paired reduction was 12.9288% with
++  one-sided 97.5% lower 12.7253%; all six scene-policy strata were positive, contact count was
++  zero and all 17 frozen gates passed. Formal assessment SHA is
++  `9b19f8bd29f1d6c06197e932b03359a2f78081da65e636f52f7f610529c3f2f9`; independent
++  review SHA is `2d5e8c21ea70f29df97e646f703159297ff0d2da6ef10edb1341da057c133b39`.
++  The first analysis invocation's unquoted metadata labels caused a preserved NameError before
++  any assessment write; R1 injected only the two intended string labels and changed no evidence,
++  statistic or threshold. Do not rerun/resume V3-11, reuse its seeds/budget, tune from formal
++  outcomes or claim perception, multi-actor/OOD, formal safety, training, deployment or
++  real-vehicle readiness. Both methods shared a Gazebo oracle actor track; actual TEB's minimum
++  empirical conservative clearance was 0.0192 m.
++- V3-12-P1 is the zero-authority actual-TEB paper closure. Its evidence manifest SHA is
++  `319bce3401859e25fa1e5da68d97669a6aebf593688c475003a8844b91798c0b`; independent
++  paper review SHA is
++  `96d7d0333ef2eba5b62819fb0fadc689c3756e5015804d2ea8fb86b4a4ca17b2`.
++  Its conventional terminal freeze SHA is
++  `4e94be77a82acd172cb4f1924f80ccb2abe9e47d7cfda0d4d6eefbf55c988cc9`.
++  It exports deterministic summary/stratum/block CSV, SVG and claims YAML and grants no
++  execution, training or real-vehicle authority. A stronger study needs new multi-actor,
++  independent-geometry, perception/OOD and separately authorized real-vehicle evidence.
++- V3-00 pure-offline foundation and the V3-01 deterministic crossing reactive-actor qualification
++  are complete. V3-01 first exposed a terminal Gazebo pause-flag failure; R1 then completed 36/36
++  but failed the frozen cross-seed repeatability gate at 0.2244 m versus 0.20 m. R2 removed only the
++  uncalibrated response-margin seed jitter, used fresh seeds 6121--6123, completed 36/36 and passed
++  all nine policy-seed response blocks; independent result review SHA is
++  `f9363de30f018208d3e2adf0c9cdbe6b19e4c9b2708ec3eba356f03bca2d0ffd`.
++  This qualifies deterministic crossing counterfactual data generation only: stochastic actors,
++  other scene families, prediction, planning, performance and real-vehicle claims remain
++  unqualified. Do not rerun/resume V3-01/R1/R2 or reuse their seeds/budgets. The next safe entry is
++  a separately reviewed V3-02 candidate-conditioned prediction and reachable-occupancy calibration
++  design.
++- V3-02 candidate-conditioned prediction is complete for parameterized crossing. A1 collected
++  72 training + 36 calibration episodes. The first frozen T1 test completed 36/36 but was a valid
++  negative at coverage 0.7986 versus 0.90. B1 changed only the conformal score from outer-envelope
++  nonconformity to actual-mode absolute residual, kept the regression/physical clip/gates frozen,
++  and did not use T1 outcomes for fitting. The fresh T2 seeds 6231--6233 completed 36/36 and passed:
++  coverage 0.9931, minimum per-horizon coverage 0.9722, mean full width 2.3397 m, actual-mode MAE
++  0.0483 m, minimum candidate sensitivity 0.7625 m and zero physical violations. Independent
++  result review SHA is `758cc530c74b44655b60a69c1a2b0da49b22dd251b8fe98c386e92c5aee6e7dd`.
++  A later preintegration review correctly found that T2 candidates branched before the observation
++  time, so T2 was not directly usable for single-state online candidate choice. The C1/C1-R1 chain
++  imposed an exact 0--0.5 s common prefix and froze a complete-quadratic model. C2 fresh seeds
++  6261--6263 completed 36/36 and passed: coverage 0.9931, minimum horizon 0.9722, mean width
++  3.9098 m, MAE 0.1918 m, minimum candidate sensitivity 0.2388 m, zero physical violations and
++  exactly zero actor coordinate/speed spread across candidate prefixes. A post-assessment manifest
++  scope bug was repaired offline without changing the immutable assessment or rerunning simulation;
++  C2-I1 independent integrity review SHA is
++  `56ef648a291a9078ad2dce947b3f308e690d09b6ac325b4554afdbeafc0fabb4`.
++  This is a finite common-prefix parameterized-crossing predictor result only; do not rerun/reuse
++  V3-02 stages, seeds or budgets, and do not claim general prediction, planner safety, navigation
++  performance or real-vehicle readiness. The next safe entry is a separately reviewed V3-03 hard
++  verifier and analytic safe-candidate planner.
++- V3-02-D1/D2 close the later-discovered action-feasibility integration gap. D1 replaced the
++  post-prefix velocity discontinuity with one frozen 0.60/0.80 m/s2 acceleration/deceleration
++  generator and added certified stop to the 0/0.6/0.8/1.0/1.2 m/s support. Its 135/135 train/cal
++  episodes passed trace, acceleration, stop and common-prefix gates; the 90/45 split calibration
++  passed. Frozen model SHA is
++  `fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7`.
++  D2 fresh seeds 6281--6283 completed 45/45 and passed all frozen gates: coverage 1.0, all horizon
++  coverage 1.0, mean width 3.8779 m, MAE 0.1897 m, minimum sensitivity 0.7379 m, zero physical,
++  prefix, trace and stop violations. Independent result review SHA is
++  `f0fd7d3908015851820c4512f868a9a5944919612c8f826c914cba309f3fa001`.
++  Do not rerun/reuse D1/D2 seeds or budgets. This still does not qualify navigation safety,
++  performance, general scenes, deployment or real vehicles. V3-03 may use only the frozen
++  feasible-generator/predictor semantics and must retain certified-stop fail-closed behavior.
++- Historical V3-00 pure-offline foundation is complete. The independent review status is
++  `v3_00_pure_offline_foundation_closure_pass`, review SHA is
++  `bb9ce5641ed650f2f3b14688f15f7a3787679f7e06c9bc4d62cd435be7b6b1bf`, and the terminal
++  11-resource seal passes. It adds the independent `v3_scope_planner` interface package, five ROS
++  messages, a hermetic package-resolution design, deterministic Ackermann candidate fixtures and
++  a reactive-actor/cloned-rollout data contract. V3-00 remains `formal_result=false`,
++  `execution_authorized=false`, `training_authorized=false`, with budget/seed/schedule all zero;
++  its static actor rows are schema fixtures, not simulation evidence. Do not treat the pass as
++  actor identifiability, planner runtime, safety or performance evidence. Its prescribed V3-01
++  successor is now complete as described above.
++- V3-16-D1 and V3-16-S1 are terminally complete. D1 attributed V3-14's common-prefix failure to
++  pre-branch reactive-response amplification. S1 changed exactly one factor by delaying actor
++  response until 12.55 s, then completed fresh seed7741 preflight plus seeds7742--7749 evidence:
++  45/45 attempt-1 units, no retry/replacement/forfeiture. Maximum actor speed spread fell 88.07%
++  to 0.008597 m/s and passed, but coordinate spread remained 0.067472 m and failed the 0.05 m
++  gate; only 5/8 blocks passed coordinate matching. The result is terminal negative with
++  `predictor_fit_authorized=false`. The original assessor's mixed-resource indexing failure is
++  preserved; R1 repaired only raw-report path lookup and passed independent review SHA
++  `c4469571a1a8f8e999e733138d42466fa0c0a6bd472bcebe5d044fe512a4765c`. Do not rerun/resume,
++  reuse seeds 7741--7749, change gates, append samples, fit a multi-actor predictor, or start
++  actual-TEB multi-actor/perception/OOD/training/hardware work from this evidence.
++- V3-18--V3-22 thesis consolidation is terminally complete. V3-18 provides the reviewed project
++  audit and an 825-row historical canonical adapter. V3-21 completed a fresh four-method,
++  30-block/120-episode failure-inclusive characterization with seeds 8201--8230. V3/actual-TEB
++  success was 28/30 versus 30/30 and restricted mean time was 7.785/7.770 s; the paired relative
++  reduction was -0.1931% with two-sided 95% CI [-19.8668%,12.9820%], so actual-TEB superiority was
++  not demonstrated. V3 reduced restricted time 49.4535% versus the no-candidate-conditioning
++  ablation, which is exploratory mechanism evidence. One retained gate tolerance deviation makes
++  `formal_result=false` while `characterization_result_available=true`; exclusion sensitivity did
++  not change the conclusion. Do not pool this study with the separately valid V3-11 historical
++  positive, rerun/reuse V3-19--V3-21 identities/seeds, delete timeouts, or make general TEB,
++  perception/OOD, formal-safety, deployment or real-vehicle claims. V3-22 exports reviewed five-
++  figure/five-table paper materials and a terminal 32-page A4 PDF at
++  `artifacts/v3/paper/v3_22_p2_thesis_export/FAM_TEB_V3_THESIS_DRAFT.pdf`; PDF SHA is
++  `22f4e423a4211590c2d4936c8be4a7f5d6963da83083e0dd8f86b0197af58b7d` and independent
++  paper review SHA is `adb4317773484601dd3a1b2006098051521c611fdaa7073138991112a7a3d7a5`.
++- V5/V6 end-to-end sensor-to-candidate reinforcement learning is terminally complete. V5 trained
++  an asymmetric-PPO actor from only deployable scan/odometry/goal/candidate/prior/mask inputs while
++  keeping 32-dimensional simulator privilege critic-only, then evaluated eight Ackermann-feasible
++  candidate trajectories behind an analytic prior and fail-closed hard shield. Its frozen 60-block
++  fresh formal study was a valid negative (6.0936% versus analytic, 95% CI
++  [1.7867%, 11.0069%], below the 8% gate). V6 changed exactly one learning factor: privileged
++  counterfactual trajectory-rank distillation (PCT, weight 0.35). Four fresh 120k-step identities
++  all improved validation, and the frozen 80-block/320-episode V6-02-F1 formal study achieved
++  60/80 versus analytic 49/80 goals, mean restricted time 13.115625 versus 14.318750 s, and a
++  paired reduction of 8.402444% with two-sided 97.5% CI [3.484003%, 13.713459%]; all task,
++  contact, shield/mask, finite-statistic and latency gates passed. V6 also improved 3.161052%
++  over V5 (95% CI [0.493580%, 6.576508%]). Formal assessment SHA is
++  `08a0ab06343cad51ee206ba502d2a115c6fd707d58620f9bb4f519a71ec95c1b`. The no-history
++  ablation tied V6 exactly, so no temporal-history benefit may be claimed.
++- V6 Gazebo sensor-transfer preflights are terminal negative and did not enter qualification or
++  formal evaluation. The frozen P0/R1/R2/V6-04 attempts preserved, respectively, a sandbox
++  network block, invalid learned/analytic conservative clearances despite completed goals, and a
++  reachable-tracker timeout for V6 while analytic/actual TEB reached the goal. Do not rerun these
++  identities, access the reserved qualification/formal seeds, claim Gazebo or actual-TEB
++  superiority, formal safety, perception/OOD generalization, deployment or real-vehicle readiness.
++  A future transfer repair requires a new preregistered stage, factor and fresh authority. The
++  reviewed paper export is at
++  `artifacts/v6/paper/v6_05_p1_thesis_export/FAM_TEB_V6_PCT_RL_THESIS_DRAFT.pdf` (SHA
++  `c1a23074f1524cf967b89f674017f03529e4b54ab171abc5cabfa5749229d829`); independent R2
++  paper review SHA is `ff4b6423d8fb610fe29486ab059c86a1e86f284055c8b520cf9e38cf4e470b41`.
++  Read `docs/thesis_experiment/CURRENT_V6_PCT_SCOPE_RL_HANDOFF.md` before any successor work.
++  Preserve the release-bound V5-00 architecture contract at SHA
++  `529ed6fd6776e6b259abc5398352ea0a047948af02dc12331da5848dc5c1ca6d`; its known legacy
++  post-action YAML indentation defect is documented in the handoff and must not be fixed in place.
++- V6-06-P1-R1 is the terminal pure-offline current-thesis transfer closure. Use
++  `artifacts/v6/paper/v6_06_p1_r1_thesis_transfer_package/` and read
++  `docs/thesis_experiment/CURRENT_V6_06_THESIS_TRANSFER_HANDOFF.md` before updating an external
++  school-template draft. The package contains a self-contained 41-page integrated V3+V6 PDF,
++  V3/V5/V6 data, 11 editable figures, five V3 three-line tables, combined claims, an explicitly
++  empty real-vehicle chapter and a ready-to-use other-computer Codex prompt. PDF SHA is
++  `a2fcacc82ee8f7fc290415661b34bd5324bbc157158d54a0780705a7737eadf1`; independent review SHA is
++  `00e4705f783632723018c6920f8e1b68dc6096a08cc28018d72e286e783d1f1b`. Do not replace pending
++  real-vehicle fields with invented values or reinterpret V3 Gazebo evidence as V6 evidence.
+ - Real-robot motion and online TEB parameter writes require explicit on-site user approval;
+   Codex must default to simulation, offline replay, or shadow mode.
+diff --git a/docs/thesis_experiment/DEVELOPMENT_STATUS.md b/docs/thesis_experiment/DEVELOPMENT_STATUS.md
+index 0e2f1a5..0d5a405 100755
+--- a/docs/thesis_experiment/DEVELOPMENT_STATUS.md
++++ b/docs/thesis_experiment/DEVELOPMENT_STATUS.md
+@@ -1,20 +1,93 @@
+ # TEB RL Thesis Development Status
+ 
+-更新时间：2026-07-21
++更新时间：2026-08-08
+ 
+ ## 当前阶段
+ 
+-- 阶段：T12 冻结证据维护 + FAM-TEB V2-04G-R6-I6 pure-offline result interpretation/design closure complete
+-- 状态：T00--T11 已完成；T12 两 seed 完整但学习门失败；V2-04G-R5 与 R6-I1 均永久停止，I5 终态冻结且不得重跑。I6 以 13-resource SHA 清单冻结 I5 关键证据，确定性复核报告 `c1fd43205d0f3b3c6a029590b33808812dc8db795bdcf4b270c345e033b9dd68` 返回 `offline_result_interpretation_design_closure_pass`；现有结论只限 fresh simulation semantic/execution integration。未来 V2-04G-P1 已预注册 90 个全新 scene-seed block / 270 episodes、零新增训练步数，但 `execution_authorized=false`、budget=0，未创建 release 或运行状态
++- 阶段：V6-06-P1-R1 当前论文更新与跨电脑移交闭环
++- 状态：V5 传感器端到端候选 RL 完成但正式实效门阴性；V6 以单因素 privileged counterfactual trajectory-rank distillation 完成 4×120k 训练、160 块验证和 80 块 fresh formal，并取得相对解析先验 8.4024% 的限定阳性结果。三条 Gazebo 迁移预检均因保守净空门失败而终止，资格/正式矩阵未启动。最新纯离线交付为 41 页真正整合的 V3+V6 技术稿、自包含 V3/V5/V6 数据、11 图/5 表、实车空白章节和另一台电脑 Codex 学校模板更新提示词；独立审查全部通过。禁止扩大为 Gazebo、Actual TEB、通用安全、感知/OOD、部署或实车结论
+ - 当前负责人：Ubuntu Codex CLI + 用户
+ 
++## V5/V6 端到端候选强化学习终态
++
++- 当前入口：`docs/thesis_experiment/CURRENT_V6_PCT_SCOPE_RL_HANDOFF.md`
++- 架构：LaserScan 历史 + odometry + local goal -> CNN-GRU sensor actor ->
++  8 个 Ackermann 可行候选的残差评分；解析先验、硬动作掩码、0.10 优势门和 certified-stop
++  保留独立否决/回退权限；输出仍经过 `/cmd_vel_navigation`
++- 特权训练：critic-only 32 维仿真真值 + PCT 困难场景反事实候选排序标签；部署 actor-only
++  checkpoint 不含 privilege key/module
++- V5 正式结果：60 fresh blocks，降幅 6.0936%，95% CI [1.7867%,11.0069%]，低于 8% 门，终局阴性
++- V6 正式结果：80 fresh blocks，PCT/解析目标 60/80 对 49/80，均时 13.1156/14.3188 s；
++  降幅 8.4024%，双侧 97.5% CI [3.4840%,13.7135%]，全部冻结门通过；接触/掩码违规均 0
++- 次要机制结果：相对冻结 V5 降幅 3.1611%，95% CI [0.4936%,6.5765%]；收益集中于部分遮挡；
++  narrow-corridor 四方法均 0/20；V6/no-history 完全相同
++- Gazebo 边界：R1/R2/V6-04 三次预检 V6 最小保守净空 -0.0774/-0.3366/-0.9902 m；
++  均未授权 qualification/formal，不得声称相对 Actual TEB 有效
++- 论文：`artifacts/v6/paper/v6_05_p1_thesis_export/FAM_TEB_V6_PCT_RL_THESIS_DRAFT.pdf`，
++  69 页 A4，SHA `c1a23074f1524cf967b89f674017f03529e4b54ab171abc5cabfa5749229d829`；
++  independent review SHA `ff4b6423d8fb610fe29486ab059c86a1e86f284055c8b520cf9e38cf4e470b41`
++- 当前论文移交包：`artifacts/v6/paper/v6_06_p1_r1_thesis_transfer_package/`；整合 PDF 41 页 A4，
++  SHA `a2fcacc82ee8f7fc290415661b34bd5324bbc157158d54a0780705a7737eadf1`；学校模板 Codex 提示词、
++  combined claims、数据字典、V3/V5/V6 CSV、实车空白章节和 77 文件终态清单齐全；independent
++  review SHA `00e4705f783632723018c6920f8e1b68dc6096a08cc28018d72e286e783d1f1b`
++- 当前安全入口：停止训练和 Gazebo 参数追逐；若开展后续工作，必须新建“闭环交互一致的
++  传感器预测/可达占用”阶段并使用新种子、新合同与独立授权；实车和在线 TEB 写入继续禁止
++
++## V3-SCOPE 终态
++
++- 快速入口：`docs/thesis_experiment/CURRENT_V3_11_ACTUAL_TEB_FORMAL_HANDOFF.md`
++- 历史 foundation：`docs/thesis_experiment/CURRENT_V3_SCOPE_FOUNDATION_HANDOFF.md`
++- 完整理论报告：
++  `docs/future_research/v3_candidate/THEORETICAL_FEASIBILITY_AND_RESEARCH_ROADMAP.md`
++- 架构代号：`V3-SCOPE`
++- 核心动作：从已满足 Ackermann 约束的候选轨迹中选择，不再以高维 TEB 参数作为主学习动作
++- 核心链路：候选条件交互预测 -> 校准可达占据管 -> 硬安全过滤 -> 解析排序 ->
++  有条件启用 contextual bandit/offline RL
++- 硬件策略：保留 M2、激光、GPS、里程计、相机和稳定命令安全链；未来输出仍须经过
++  `/cmd_vel_navigation`、GPS limiter、FOD arbiter 和 M2 driver
++- 理论状态：候选条件空间规划、反应式 actor、预测、硬验证与解析排序已实现并形成正式仿真证据
++- 当前状态：`V3-11-F1 ACTUAL-TEB FORMAL POSITIVE / V3-12-P1 PAPER CLOSURE / NO TRAINING / NO REAL VEHICLE`
++- V3-00 证据：`v3_scope_planner` 5 消息编译通过，7/7 pytest 与 7/7 catkin nosetests 通过；
++  foundation evidence freeze SHA `4a08325b67c0706a860560ab7ced1191100e5ecb91e4b6138679aa0c11a05d5b`，
++  independent review SHA `bb9ce5641ed650f2f3b14688f15f7a3787679f7e06c9bc4d62cd435be7b6b1bf`
++- V3-01 证据：R2 36/36 attempt=1，9/9 policy×seed blocks 通过；actor 4 s 位置效应
++  0.777245--2.310975 m，最大初态误差 0.006 m，最大跨 seed spread 0 m；independent
++  result review SHA `f9363de30f018208d3e2adf0c9cdbe6b19e4c9b2708ec3eba356f03bca2d0ffd`
++- V3-02 证据：C2 fresh seeds 6261--6263、36/36 attempt=1；coverage 0.9931、
++  mean width 3.9098 m、MAE 0.1918 m、共同前缀 actor coordinate/speed spread 均为 0；
++  C2-I1 integrity review SHA `56ef648a291a9078ad2dce947b3f308e690d09b6ac325b4554afdbeafc0fabb4`
++- V3-07/08 证据：空间 predictor held-out 20/20，global/per-head coverage 1.0；A3 fresh
++  integration 18/18，minimum conservative clearance 0.41937 m，exact replay 1.0
++- V3-09-F1 证据：180/180、goal success 1.0/1.0、point 0.223844、one-sided lower
++  0.218235、positive blocks 30/30、minimum conservative clearance 0.165663 m、
++  exact replay 1.0、P99 18.087844 ms；assessment SHA
++  `d950256f4da310f65d604031ec72009e014facfb7cb0c14be8cf19ce1b9c346b`
++- V3-10-P1 证据：paper manifest SHA
++  `70353b355c6eec2f733901ca7d4a6820de550beff00999cfacdb359dec951938`，
++  independent closure SHA
++  `bee5891b08f860a97a25ea71047b3e5fabb0c193695f221de131eacb5dcfe0f4`
++- V3-11-F1 actual-TEB 证据：60/60、goal success 1.0/1.0、mean time
++  6.7683/7.7733 s、point 12.9288%、one-sided 97.5% lower 12.7253%、
++  六个 scene×policy strata 全正、contact 0；assessment SHA
++  `9b19f8bd29f1d6c06197e932b03359a2f78081da65e636f52f7f610529c3f2f9`，
++  independent review SHA
++  `2d5e8c21ea70f29df97e646f703159297ff0d2da6ef10edb1341da057c133b39`
++- V3-12-P1 actual-TEB paper manifest SHA
++  `319bce3401859e25fa1e5da68d97669a6aebf593688c475003a8844b91798c0b`，
++  independent closure SHA
++  `96d7d0333ef2eba5b62819fb0fadc689c3756e5015804d2ea8fb86b4a4ca17b2`
++- 下一安全入口：当前 actual-TEB bounded study terminal；更强论文声明需新建
++  纯离线 execution-integrity closure，先加入 scheduled candidate ID 与 runtime report ID
++  的 fail-closed 一致性断言。V3-13 r3 完整支持、感知/定位退化和训练均未获授权；
++  实车仍需现场授权与独立标定
++
+ ## V2 架构设计状态
+ 
+ - 系统指南：`docs/thesis_experiment/V2_SYSTEM_GUIDE.md`
+ - 架构代号：`FAM-TEB V2`
+ - 设计状态：`DESIGN COMPLETE`
+-- 实现状态：`R6-I5 6/6 SIMULATION INTEGRATION PASS FROZEN / R6-I6 OFFLINE INTERPRETATION CLOSURE PASS`
+-- 正式实验状态：`NO PERFORMANCE RESULT / P1 DESIGN PREREGISTERED / 0 AUTHORIZED + 0 CONSUMED / NO WINNER / formal_result=false`
++- 实现状态：`R6-I5 6/6 INTEGRATION PASS FROZEN / P1-E1 270/270 TERMINAL / P2-P4 FINITE SEARCH TERMINAL / P4-F1 OFFLINE CLOSURE PASS`
++- 正式实验状态：`P1 FORMAL NEGATIVE COMPLETE / GLOBAL 2200-UNIT SEARCH CLOSED / obvious_performance_improvement_not_demonstrated / NO WINNER`
+ - 实车状态：`FORBIDDEN WITHOUT NEW CALIBRATION AND ON-SITE APPROVAL`
+ - 与 V1 的关系：V1/T00--T12 合同、runner、配置和 artifacts 保持冻结；V2 必须使用独立的
+   schema、配置、manifest 和 artifact 根目录。
+@@ -23,9 +96,18 @@
+   规则监督器、V2-04 Anchor Bank/类型化 profile/feasible decoder/平滑 shadow 事务和零训练
+   规则闭环；V2-04B 已增加 simulation-only 20 参数 typed TEB 真实事务和 calibration split，
+   最新验收见 `artifacts/v2/component_acceptance/v2_04b_acceptance.yaml`。
+-- 最新入口：独立 `V2-04G-R6-I6` 已完成纯离线解释闭环。I5 13-resource freeze manifest SHA 为 `40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935`；I6 reviewer 重验 14 项 source binding、6 journals、36 raw bindings 和六行语义计数，并与持久化报告 exact-equal。论文可宣称集成正确性和可复核性，不可宣称性能、泛化、安全、winner 或部署。最后一轮 `V2-04G-P1` 性能设计固定 3 roles × 30 fresh blocks × 3 methods = 270 episodes，主确认性对比 180 episodes，不增加训练预算；当前没有执行授权。详见 `docs/thesis_experiment/CURRENT_V2_04G_R6_I1_R6_I2_R6_I3_R6_I4_R6_I5_R6_I6_RESULT_INTERPRETATION_HANDOFF.md`。
+-  不得把 V2 当作 T12 action/projection 单因素
+-  续跑，也不授权新训练或实车闭环。所有模式和参数阈值继续保持 `runtime_ready=false`。
++- 最新入口：`V2-04G-P4-F1` 已完成全局有限搜索终态闭环。三轮容量
++  `792+704+704=2200`，实际 `4 consumed + 2196 retired`，剩余仿真/训练权限均为 0。
++  最终 P4-I1 release SHA
++  `1bcd0392d475cdf17d7a2bf6540e024a61136150011945d323cae1234b568220`
++  只运行 fresh seed5924 attempt1；执行环境未解析到 `m2_gazebo`，故在 Gazebo、move_base、
++  参数事务和 raw trace 前终止。五个 promoted Bank 只通过了严格离线 parser，未获得 live
++  性能或安全证据。终态 conclusion SHA
++  `8ce6736dd7ea1f13d6c272f0420f4588d1e0c9e25949b7b1eabf5bd028b3eeb7`，
++  independent review SHA
++  `e0dc93790e092b99684c64a9d2b11e5ce02a0a16f5235649e3657376835270c8`。
++  详见 `docs/thesis_experiment/CURRENT_V2_04G_P4_F1_TERMINAL_HANDOFF.md`。性能搜索停止；
++  所有模式和参数阈值继续保持 `runtime_ready=false`。
+ 
+ ## 已确认版本
+ 
+@@ -57,9 +139,12 @@
+ | T10 SAC Direct-Theta | DONE | 9D normalized Δθ；与 T09 共享执行器/observation/reward/safety/预算；checkpoint/resume；配对验收；参数量/时延报告 | 20-step smoke 只能证明公平管线，不证明两种动作空间的性能差异 |
+ | T11 正式仿真/消融 | DONE (AMENDED) | 4 seed×5 组×70 test=20 run/1400 episode 完整矩阵；20/20 manifest valid；四组 paired comparison 各 280 对；3 个 seed105 run supplementary | 原 5-seed 预注册未完成，禁止宣称完整 5-seed 正式实验；500-step validation 阈值均未达到；NoSafety 有 1 次 move_base SIGSEGV fatal attempt |
+ | T12 安全修复/Residual SAC/rosbag-shadow | IN PROGRESS | 静态 footprint stress 通过；两 seed 各 2000-step 完整、14/14 test goal、0 crash/collision/emergency；validation change +0.4527/-0.0784 | 学习门失败且 projection 65.1%/69.5%，不扩预算、不做新配对；下一步单因素审查 Residual action/projection 匹配；rosbag adapter/live shadow 仍待实现 |
+-| FAM-TEB V2 | R6-I5 EVIDENCE FROZEN / R6-I6 OFFLINE CLOSURE PASS / P1 DESIGN ONLY | 13-resource freeze；I6 deterministic interpretation exact-equal；论文 claims matrix；90 fresh-block / 270-episode final performance design，additional training=0 | I5 不可重跑；P1 `execution_authorized=false`、budget=0，须独立审查、新 release 和明确模拟授权后才可执行；当前无性能、winner、V2-05/SAC/实车结论，`formal_result=false`、`runtime_ready=false` |
++| FAM-TEB V2 | P1 FORMAL NEGATIVE / P4-F1 GLOBAL SEARCH TERMINAL | P1 270/270 attempt=1；效率 3.7624% / lower 2.7904%；post-P1 三轮总容量 2200，4 consumed + 2196 retired；P4-F1 independent terminal review pass | 明显提升未证明；无完整 post-P1 calibration/test、无 winner；禁止重试、扩轮/预算、训练、新 held-out、部署或实车结论 |
++| V3-SCOPE | V3-11-F1 ACTUAL-TEB FORMAL POSITIVE / V3-12-P1 PAPER CLOSURE | fresh seeds 7101--7130；30 paired blocks / 60 episodes；goal 100%/100%；point 12.9288%，one-sided 97.5% lower 12.7253%；六 strata 全正；all formal gates + independent replay pass | 只证明三个冻结 single-reactive-actor Gazebo 模板内相对 actual TebLocalPlannerROS 0.8.4 的限定收益；共享 oracle actor track，不证明 perception、multi-actor/OOD、formal safety、training、deployment 或实车 |
++| V5-E2E-SCOPE-RL | FAST FORMAL NEGATIVE / FROZEN | 60 fresh blocks；解析/V5 均时 14.1542/13.2917 s；降幅 6.0936%，95% CI [1.7867%,11.0069%]；contact/mask violation 0 | 未达到冻结 8% 实效门；不授权将 V5 改写为阳性 |
++| V6 PCT-SCOPE-RL | FAST FORMAL POSITIVE / GAZEBO TRANSFER NEGATIVE / PAPER CLOSURE | 4×120k 新训练步；80 fresh blocks；V6/解析目标 60/49，均时 13.1156/14.3188 s；降幅 8.4024%，97.5% CI [3.4840%,13.7135%]；paper review 15/15 | 阳性仅限四个 sensor-level fast families；no-history 无差异；三次 Gazebo 净空门失败，禁止 Actual-TEB、formal safety、deployment 或实车声明 |
+ | T13 M2 闭环 | TODO | | |
+-| T14 统计/论文导出 | TODO | | |
++| T14 统计/论文导出 | DONE (V2 + V3 + V4 + V6) | V6-05 导出 6 SVG/PDF、method/effect/family/episode/Gazebo CSV、claims、文献索引、manifest、20 页附录和 69 页合并稿；15/15 independent review pass | V6 Gazebo/Actual-TEB 迁移未通过；投稿必须保留该负边界 |
+ 
+ ## 最近一次可复现命令
+ 
+@@ -122,6 +207,31 @@ rosrun thesis_experiment validate_thesis_config.py metric-schema docs/thesis_exp
+ ## 最近一次测试结果
+ 
+ ```text
++V3-11-F1 actual-TEB 正式配对评测：fresh seeds 7101--7130，30 paired blocks / 60
++episodes 全部 attempt=1 完成，retry/resume/replacement/forfeiture 均为 0。V3 spatial-safe /
++actual TebLocalPlannerROS 目标成功均为 30/30，平均受限 gate-to-goal 时间为
++6.7683/7.7733 s，200,000-resample 配对改善 12.9288%，单侧 97.5% lower 12.7253%，
++六个 scene×policy strata 全为正。contact 0，minimum conservative clearance 分别为
++0.5110/0.0192 m，最大 V3 tracking error 0.03312 m；全部 17 项冻结门和独立 raw replay
++通过。V3-12-P1 paper manifest SHA `319bce...8c0b`，independent closure SHA
++`96d7d0...17b2`。结果只限三个冻结 single-reactive-actor Gazebo 模板和共享 oracle actor
++track，不是 perception、multi-actor/OOD、formal safety 或实车结论。
++V3-09-F1 正式配对评测：fresh seeds 6801--6830，30 blocks / 180 episodes 全部
++attempt=1 完成，retry/resume/replacement/forfeiture 均为 0。两方法目标成功均为 90/90；
++V3 spatial-safe / fixed-v1.20 shielded 平均受限目标时间为 8.8611/11.4167 s，配对
++relative reduction 22.3844%，20,000-resample 单侧 95% lower 21.8235%，positive blocks
++30/30。5320 decisions exact replay 1.0，minimum conservative clearance 0.165663 m，
++clearance violation 0，P99 18.087844 ms。全部冻结 formal gates pass；assessment 与
++independent reviewer cold check byte-identical。结果仅限 parameterized reactive single-actor
++crossing，比较器不是 actual TEB。
++V3-10-P1 pure-offline paper closure：5 个 deterministic exports 两次构建 byte-identical；
++14-resource conventional multiline evidence manifest SHA `70353b...1938`，independent closure
++review SHA `bee589...e0f4`，terminal manifest SHA `57f043...cf54`。未启动 ROS/Gazebo，
++未创建 execution release/authorization/journal，未使用 seed、episode 或 training step。
++V3-01--V3-10 终态回归为 104 passed / 0 failed（380.02 s）；V3-07--V3-10 快速回归为
++17 passed。历史 V3-00 snapshot 单测为 5 passed / 2 failed：两项只检查 foundation 当时的
++package.xml、CMake 与系统指南字节是否仍等于旧 persisted closure，后续 V3-01--V3-10
++合法扩展使其漂移。旧 V3-00 artifacts 保持未改写，该历史 snapshot 不作为当前终态 gate。
+ R6-I6 pure-offline interpretation/design closure：I5 freeze manifest 的 13/13 资源 SHA 校验通过；
+ versioned reviewer 重验 14 项 source binding、6 journal binding、36 raw-resource binding、readiness
+ 直接计数和六行 TTC/overlay 观察，并与 persisted review exact-equal，状态为
+@@ -291,12 +401,37 @@ reward、EMA 或 hold。禁止新训练和配对；下一入口是预注册一
+ 
+ ## 当前阻塞项
+ 
+-- R6-I5 已完成唯一获准执行并由 I6 冻结：6/6 consumed、0 forfeited、0 retry/resume，terminal
+-  assessment pass。不得再次调用 `--execute`、替换 seed、扩预算或从已有 journal resume。I6 只完成
+-  离线 result interpretation/design closure；未来 P1 尚无 execution authorization、budget、release、
+-  schedule materialization 或 journal。当前仍不能形成性能、泛化、winner、训练或实车结论。
+-- 默认 login shell 混入 `arena_ws`/`catkin_ws` 的 ROS、Python 与 Gazebo 路径。未来任何复核或
+-  runner 必须使用 `env -i` non-login shell，只 source Noetic 与本论文 workspace。
++- V3-14-I1 已完成调度--launch--runtime 动作身份的失效关闭完整性闭环；V3-14-S1 的 45/45
++  fresh 单元随后因 actor 坐标/速度配对差 0.066074 m/0.072081 m/s 超过 0.05 门而形成完整
++  阴性结果。V3-16-D1 纯离线归因支持候选分支前闭环响应放大假设；V3-16-S1 只把 actor 响应
++  启用时刻从 0 s 改为 12.55 s，并使用 seed7741 预检、fresh seeds7742--7749 正式执行。
++  新的 45/45 单元全部 attempt1 完成，速度差降至 0.008597 m/s（下降 88.07%）并通过门，
++  但坐标差仍为 0.067472 m，只有 5/8 区块通过坐标门。因此整体仍是终止性阴性结果，
++  `predictor_fit_authorized=false`，不得启动多人 actual-TEB、感知/OOD 或训练。原 assessor 的
++  raw-report 资源索引失败被保留；R1 只修复路径解析并通过独立审查，不改变科学结论。V3-17
++  论文导出把 V3-14/V3-16 的对照和单因素机制结果加入新 PDF。详见
++  `CURRENT_V3_16_RESPONSE_GATED_TERMINAL_HANDOFF.md` 与 `CURRENT_V3_17_PAPER_EXPORT_HANDOFF.md`。
++
++- 历史 V3-13 的 recovery-only r3 几何、终点保护、候选特定预测资格和 planner integration 已完成；
++  R16 的单对 actual TEB/V3 预检仍是有效阴性结果：actual TEB 到达目标但动态净空
++  -0.8965 m，V3 安全为 +0.06883 m 但旧 r2 未完成共同目标。后续 r3 支持链中，R19-R2
++  40/40 因 ego/actor 配对误差失败，100 Hz 公共前缀修复通过；R19-R4 40/40 又因一个边界
++  样本距0.12 m终点门多1.16 mm而使触发率7/8。0.15 m提前停车预检在 fresh seed7696
++  通过，但最终 R19-R6 复用的一单元 runner 把所有调度动作硬编码为 r3；检测到前两行
++  scheduled/runtime ID 不一致后立即停止。R19-R6 0科学单元、2 consumed、38 forfeited，
++  seeds7697--7704不可复用；不得 repair-and-rerun、拟合r3 head、运行seeds7301--7316、
++  开始感知退化或训练。下一入口仅是纯离线 action-binding fail-closed 完整性设计，详见
++  `CURRENT_V3_13_MULTIACTOR_HANDOFF.md` 最后章节。
++
++- R6-I5、P1-E1 与 post-P1 P2/P3/P4 链均已终态冻结。P1 是 `formal_result=true` 的有效阴性
++  结果：安全/任务与机制通过，但 3.7624% / 2.7904% 未达到当前 10% / 5% 明显提升门。
++  post-P1 的 2200-unit 容量已全部关闭，且没有完整 calibration/test matrix；不得再次调用
++  `--execute`、替换 seed、修复后复用 P4 seed5924、扩轮/预算、训练或访问新 held-out。
++  当前不能形成阳性性能、winner、RL 提升、部署或实车结论。
++- 默认 login shell 混入 `arena_ws`/`catkin_ws` 的 ROS、Python 与 Gazebo 路径，P4-I1 正因
++  `m2_gazebo` package resolution 失败而在 Gazebo 启动前终止。该根因已冻结为完整性证据，
++  不是重试授权；后续仅做离线证据复核时仍应使用 `env -i` non-login shell，只 source Noetic
++  与本论文 workspace。
+ - V2-04G-R3/R4/R4-R1 的历史失败与不利 seeds 继续冻结，不得重试或恢复。V2-04G-R5
+   已在 readiness identity 1/6 因 TTC coverage mismatch terminally stop；seed5111 和全部
+   失败证据已保留。R6-I1 也已在 sequence1 seed5141 的 bootstrap readiness 终止；1 unit
+@@ -317,21 +452,45 @@ reward、EMA 或 hold。禁止新训练和配对；下一入口是预注册一
+ 
+ ## 数据与安全状态
+ 
+-- 是否存在正式实验 CSV：否
++- 是否存在正式实验 CSV：是；V3-12、V3-15 与 V3-17 论文闭包均包含可复核 CSV
+ - 是否允许实车参数写入：否
+ - 是否允许实车运动：必须由现场用户逐次批准
+ - NoSafety/ProjectionOnly/NoFallback 实车运行：禁止
+ 
+ ## 下一步
+ 
+-1. FAM-TEB V2 新会话在 I5 execution handoff 后继续读 `CURRENT_V2_04G_R6_I1_R6_I2_R6_I3_R6_I4_R6_I5_R6_I6_RESULT_INTERPRETATION_HANDOFF.md`。R5/R6-I1 终止、I5 终态和失败 I3 release 均保持冻结，不得再次启动。
+-2. 论文继续以 `thesis_draft/CH03_FAM_TEB_SYSTEM_DESIGN.md`、`CH04_EXPERIMENT_INTEGRITY_METHOD.md`、`CH05_I5_INTEGRATION_RESULTS.md` 和 claims matrix 为正文基线；I5 只证明 semantic/execution integration，不得提前写成性能提升。
+-3. 最后一轮性能目标采用已预注册的 `V2-04G-P1` 设计：3 scene roles × 30 fresh blocks × 3 methods = 270 episodes，主配对 180 episodes，additional training=0。先做独立离线设计审查和可计算性/功效复核，不先扩训练预算。
+-4. P1 若要实际运行，必须建立新 closure/review/release、fresh budget 和独立明确的 simulation authorization；当前设计文件不是授权，不得复用 I5 identities、seeds 5161--5163 或任何历史 budget。
+-5. 1.5/1.0 秒不属于本轮 factor；仍只是 D1 frozen trace 上的离线讨论值，不是合格配置或授权。winner freeze、held-out 5001--5010、V2-05/SAC 和实车仍分别需要独立授权。
+-6. T12 新会话先读 `CURRENT_TEB_RL_HANDOFF.md`、`CURRENT_T12_RESIDUAL_TRAINING_HANDOFF.md` 和 `CURRENT_T12_RESIDUAL_LEARNING_REVIEW.md`，禁止重复启动。
+-7. 当前不扩预算，也不重启任何历史 pilot；Residual action/projection 离线审查已经完成。
+-8. 若继续训练，必须先登记一个动作—执行对齐学习 amendment；不得同时修改 residual radius、reward、EMA、hold、SAC 或 safety。只有两 seed validation 均上升后才启动新三方法冻结配对。
+-9. T12 后续仍需用新 Gazebo/rosbag 数据做 live shadow 确认；默认只读，不向实车 TEB 写参数。
+-10. T04--T11 继续复用 T03 四重仿真门控、快照恢复、manifest 和失败保留规则。
+-11. 在实车标定完成前，实车参数范围、制动/时延、安全距离和实车保守回退继续保持 TBD。
++1. 新会话最后必须读取 `CURRENT_V2_04G_P4_F1_TERMINAL_HANDOFF.md`。P1/I5/T12、R5/R6、
++   P2/P3/P4 的 release、seed、journal、失败和 retired budget 全部保持冻结。
++2. FAM-TEB 性能搜索已终止；不再创建 P5、新 factor round、calibration/test release、训练任务或
++   winner。禁止把环境修复视为 P4-I1 retry 权限。
++3. 允许的 FAM-TEB 后续仅限纯离线论文整理、证据哈希复核和归档；必须保留
++   “未证明明显提升”、P1 3.7624% / 2.7904% 与 post-P1 无完整 test matrix 的完整上下文。
++4. T12 继续保持原冻结边界，不得用 P2/P3/P4 seed、配置或未来数据重新选择 checkpoint。
++5. 在实车重新标定并逐次取得现场批准前，实车运动、CAN、online TEB 写入、实车参数范围、
++   制动/时延、安全距离和实车保守回退均保持禁止或 TBD。
++
++## V3-18--V3-22 论文材料整理终态（2026-08-06）
++
++- V3-18-A0 已完成项目审计、系统目标/架构、实验库存、方法证据矩阵、标准采集 schema 和缺口分析；
++  独立审查通过。V3-18-B0 将 V2-P1、V3-05、V3-09、V3-11、V3-16 适配为 825 行 canonical
++  dataset；首版源哈希失败保留，R1 只修复 manifest，dataset 字节不变并通过独立审查。
++- V3-19 建立 V3 spatial-safe、Actual TEB 0.8.4、Fixed-v1.20 shielded 与
++  no-candidate-conditioning 四方法框架。24/24 资格回合完成，但 V3 5/6 goal 未过资格门；正式
++  seeds 8001--8030 未执行并退役。
++- V3-20 的失效计入式矩阵在 sequence78 因 ROS master 端口落入 ephemeral range 终止：77 完成、
++  1 terminal failed、42 forfeited，不重试。V3-21 只修复端口 namespace，使用 fresh seeds
++  8201--8230 完成 120/120 attempt1 回合。
++- V3-21 中 V3/Actual TEB 成功率为 93.33%/100%，受限均时 7.785/7.770 s；V3 相对 TEB
++  点降幅 -0.193%，双侧 95% CI [-19.867%,12.982%]，未证明时间优势。相对 fixed-v1.20 和
++  去候选条件化消融分别缩短 64.614% 与 49.454%。四方法 contact 均为 0。
++- sequence107 的 gate x 误差比 0.03 m 容差多 2.286 mm，回合按 ITT 保留；排除 block27 后
++  点效应 -0.643%，结论不变。因此 `formal_result=false`，但 120 回合 characterization 可报告。
++- V3-22-P1 已从冻结 CSV 确定性导出 5 张图的 PDF/SVG/300-dpi PNG、5 个 booktabs 三线表、
++  中英文结果叙述和 claims YAML；manifest SHA `658e906c...973d0`，独立 review SHA
++  `88547275...0959`。没有 ROS/Gazebo、训练、硬件或实车动作。
++- 当前论文正文已加入四方法复现与消融章节，并成功编译为 32 页预览。终态必须同时报告：
++  V3-11 是限定历史正式阳性；V3-21 是未复现 Actual TEB 失效计入式优势的新鲜表征；两者不池化。
++- V3-22-P2 终态 PDF 归档与独立 paper review 已完成。PDF 为 32 页 A4，全部字体嵌入，
++  无 LaTeX error/undefined reference；PDF SHA `22f4e423...58b7d`，review SHA
++  `adb43177...3d7a5`。历史 V3-19--V3-22 identities、seeds、budgets 和 artifact 目录均不可
++  重跑或覆盖。当前没有剩余仿真或论文导出任务。
+diff --git a/docs/thesis_experiment/thesis_draft/CH03_FAM_TEB_SYSTEM_DESIGN.md b/docs/thesis_experiment/thesis_draft/CH03_FAM_TEB_SYSTEM_DESIGN.md
+index 93d357a..f5e3405 100644
+--- a/docs/thesis_experiment/thesis_draft/CH03_FAM_TEB_SYSTEM_DESIGN.md
++++ b/docs/thesis_experiment/thesis_draft/CH03_FAM_TEB_SYSTEM_DESIGN.md
+@@ -141,7 +141,7 @@ Anchor Bank 是一组类型化 TEB 参数配置。每个锚点包含参数名称
+ - 未知场景回到基准锚点；
+ - 模式切换原因码。
+ 
+-未来学习器若被授权，只能在同一受限候选结构内建议模式或残差，不能绕过解码器、约束和事务层。当前没有新的训练授权，本论文的最后一轮性能设计也固定为零新增训练步数。
++未来学习器若被授权，只能在同一受限候选结构内建议模式或残差，不能绕过解码器、约束和事务层。当前没有新的训练授权；本论文的 P1 正式实验也保持零新增训练步数，因此其结果只评估冻结语义实现，不评估新的学习增益。
+ 
+ ## 3.5 可行解码与动作对齐
+ 
+@@ -225,23 +225,25 @@ Anchor Bank 是一组类型化 TEB 参数配置。每个锚点包含参数名称
+ |---|---|---|---|
+ | Anchor Bank 与类型化 profile | 软件/组件门已完成 | 有限候选可加载和校验 | 候选已达到性能最优 |
+ | 因子化模式与确定性选择 | 已实现零训练路径 | 模式决策可解释、可记录 | 学习策略已收敛 |
+-| circle-contact TTC | 新鲜模拟集成通过 | 语义状态可在完整链中复现 | 导航性能已提升 |
++| circle-contact TTC | I5 集成与 P1 正式仿真完成 | 语义状态可复现；P1 中安全/任务非劣与机制门通过 | 已证明导航性能提升 |
+ | feasible decoder | 组件测试和 shadow 链存在 | 类型、范围和耦合可受控 | 所有真实车辆动力学均覆盖 |
+ | previous-executed 平滑 | 已实现 | 平滑基准与实际生效值对齐 | 已证明优于所有平滑方法 |
+ | 参数事务 | 模拟集成链通过 | 写入、读回和日志边界可审计 | 已授权真实车辆在线写入 |
+-| 证据与 assessor | I5 确定性重放通过 | 关键执行资源可复核 | 结果具有统计性能效力 |
++| 证据与 assessor | I5 与 P1 确定性重放通过 | 关键执行资源和 P1 四门结果可复核 | 四门未全通过时仍可升级性能声明 |
+ 
+-## 3.9 待检验的系统假设
++## 3.9 系统假设与 P1 检验结论
+ 
+-本章提出的性能假设是：在保持成功、碰撞和最小间距非劣的前提下，circle-contact 语义减少 semantic-clear 场景中的无效冲突触发，从而降低受限完成时间和不必要的保守行为。该因果链需要同时观察两个层面：
++本章提出的性能假设是：在保持成功、碰撞和最小间距非劣的前提下，circle-contact 语义减少 semantic-clear 场景中的无效冲突触发，从而降低受限完成时间和不必要的保守行为。预注册检验把该因果链拆成四个不可互相替代的层面：
+ 
+ 1. **机制层**：无真实冲突场景中的错误冲突触发显著减少；
+ 2. **性能层**：配对完成时间改善，且置信区间排除无改善；
+ 3. **安全层**：成功率、碰撞率、最小间距和真实冲突检测不越过预注册非劣界；
+ 4. **完整性层**：没有替换失败样本、重试挑选或哈希闭包破坏。
+ 
+-I5 只确认了上述机制能够被执行链区分和记录。最终性能结论须由新的 90 个 scene-seed block 配对统计实验决定，不能从六个集成单元外推。
++I5 只确认了上述机制能够被执行链区分和记录。随后完成的 P1 使用 seeds 5201--5290，在三个冻结动态模板上形成 90 个 scene-seed block 和 270 个顺序平衡 episode。P1 的完整性门、安全/任务非劣门和机制门通过：两种语义均为 90/90 成功、0 碰撞，semantic-clear 的非 `NONE` overlay 平均占用从 0.176721 降至 0。效率估计也指向 circle-contact：受限完成时间几何下降 3.762%，单侧 95% 下界为 2.790%，调整后 $p\approx10^{-5}$。
++
++然而，预注册效率门同时要求点估计至少达到 5%。3.762% 未达到该 practical-effect threshold，因此效率门失败，四门合取为假。P1 的结论是“性能提升未被证明”，而不是“没有任何差异”：机制路径得到支持，安全/任务非劣得到支持，时间效果方向和显著性为正，但效应量不足以触发预先冻结的性能声明。固定 TEB 仅为背景参照，不进入该确认性结论。
+ 
+ ## 3.10 本章小结
+ 
+-FAM-TEB 通过有限 Anchor Bank、场景语义、因子化模式、可行解码、previous-executed 平滑和类型化事务，把自适应参数管理限制在一条可解释、可回退、可审计的路径中。该设计保留 TEB 作为轨迹优化核心，并把学习能力放在受约束的建议层。当前系统已具备组件和新鲜模拟集成证据，但仍是未校准的模拟候选；性能提升、统计泛化和真实车辆部署必须由后续独立证据支持。
++FAM-TEB 通过有限 Anchor Bank、场景语义、因子化模式、可行解码、previous-executed 平滑和类型化事务，把自适应参数管理限制在一条可解释、可回退、可审计的路径中。该设计保留 TEB 作为轨迹优化核心，并把学习能力放在受约束的建议层。当前系统已具备组件、I5 新鲜模拟集成和 P1 正式配对仿真证据；P1 支持限定分布内的机制下降及安全/任务非劣，但没有通过预注册效率最小效应门。系统因此仍是未校准的模拟候选，不得宣称整体性能提升、统计泛化或真实车辆部署就绪。
+diff --git a/docs/thesis_experiment/thesis_draft/CH04_EXPERIMENT_INTEGRITY_METHOD.md b/docs/thesis_experiment/thesis_draft/CH04_EXPERIMENT_INTEGRITY_METHOD.md
+index 8abd276..83a61de 100644
+--- a/docs/thesis_experiment/thesis_draft/CH04_EXPERIMENT_INTEGRITY_METHOD.md
++++ b/docs/thesis_experiment/thesis_draft/CH04_EXPERIMENT_INTEGRITY_METHOD.md
+@@ -67,7 +67,7 @@ DESIGNED
+ 
+ ### 4.3.2 单元消费规则
+ 
+-预算单元在 attempt 身份写入 canonical journal 后即进入不可替换生命周期。其结果可以是成功、碰撞、超时、启动失败或完整性失败，但不得通过以下方式删除不利结果：
++预算单元在越过预注册消费边界后即进入不可替换生命周期。P1 的具体边界是：release 与精确身份验证通过后，先持久化不可变 consumption receipt，再紧接着请求启动该身份的 base roslaunch；终态 journal 随后补充 raw binding 和结果。其结果可以是成功、碰撞、超时、启动失败或完整性失败，但不得通过以下方式删除不利结果：
+ 
+ - 使用同一身份重试；
+ - 换 seed 补齐样本；
+@@ -165,6 +165,7 @@ ROS 仿真中的 readiness 不等于进程存在。历史执行曾出现如下
+ - `STARTED` 时间与 readiness 证据；
+ - 参数事务和导航结果；
+ - TTC 语义计数与原始文件绑定；
++- goal dispatch 至 terminal 的 timestamped overlay interval；
+ - `TERMINAL` 状态、失败类别、consumed/forfeited 判定；
+ - teardown 和进程隔离结果。
+ 
+@@ -191,7 +192,7 @@ assessor 是只读函数：给定冻结 journal、raw resources 和合同，应
+ - `--check-only` 将当前重建结果与持久化报告精确比较；
+ - 任一绑定、计数或状态不一致即失败。
+ 
+-I5 的确定性重放覆盖 6 项 journal binding 和 36 项原始资源 binding，最终报告未发现完整性失败。后续离线解释阶段再次从这些资源重建六个单元的语义计数，并与持久化解释报告逐字段比较。
++I5 的确定性重放覆盖 6 项 journal binding 和 36 项原始资源 binding，最终报告未发现完整性失败。后续离线解释阶段再次从这些资源重建六个单元的语义计数，并与持久化解释报告逐字段比较。P1 将统一 raw schema 扩展为每 episode 七项资源：activation、evaluation、trace、clearance、overlay、teardown receipt 和 process log。终态 adapter 对 270 个 journal 的 1,890 项 raw resource 逐项重哈，并从原始内容重算 success、collision、navigation time、minimum footprint clearance、TTC status 和 overlay dwell；一次独立内存重放与持久化 matrix、replay report 和 assessment 三个文件逐字节一致。
+ 
+ ## 4.10 失败证据保全与修复链
+ 
+@@ -207,7 +208,7 @@ I5 的确定性重放覆盖 6 项 journal binding 和 36 项原始资源 binding
+ 
+ 一次 episode 完成并不代表实验终态完整。受控 teardown 检查 ROS master、Gazebo、`move_base`、runner 和相关子进程是否退出，并保存结果。下一单元只在前一单元隔离通过后开始。最终报告还需确认没有训练进程、真实车辆接口或非计划参数写入。
+ 
+-I5 六个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态。该结论只说明进程隔离，不说明真实车辆运行安全。
++I5 六个单元和 P1 270 个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态；P1 还确认 11311/11345 无监听。该结论只说明进程隔离，不说明真实车辆运行安全。
+ 
+ ## 4.12 从证据到论文陈述的 claim gate
+ 
+@@ -217,16 +218,16 @@ I5 六个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态。
+ |---|---|---|
+ | 组件正确性 | 单元测试、schema、静态审查 | 已有 |
+ | 执行集成正确性 | 新鲜种子、完整事务、直接计数、确定性重放 | I5 已通过 |
+-| 模拟性能提升 | 预注册多种子配对统计、安全非劣和机制门 | 尚未执行 |
++| 模拟性能提升 | 预注册多种子配对统计、安全非劣和机制门 | P1 已完成，但四门未全通过，未证明 |
+ | 跨场景泛化 | 独立 held-out 分布与外部复核 | 未建立 |
+ | 真实车辆效果 | 现场审批、实车合同和安全验证 | 未授权 |
+ | 形式化安全 | 可证明模型、假设和验证 | 不在本研究当前证据中 |
+ 
+ 因此，集成通过不能自动升级为性能提升；统计显著也不能自动升级为安全或实车泛化。每个结论只能停留在其证据层级。
+ 
+-## 4.13 最终性能实验的完整性约束
++## 4.13 P1 正式性能实验的完整性约束与终态
+ 
+-未来性能设计预注册 3 个 scene role、每个 30 个全新 scene-seed block，共 90 个 block。circle-contact 与 legacy control 构成主配对；固定 TEB 只作背景参照。确认性分析必须遵循：
++P1 在结果出现前预注册 3 个 scene role、每个 30 个全新 scene-seed block，共 90 个 block。circle-contact 与 legacy control 构成主配对；固定 TEB 只作背景参照。确认性分析遵循：
+ 
+ 1. 所有 block 按精确 schedule 运行，不重试、不替换；
+ 2. 失败和超时以预注册惩罚进入受限完成时间；
+@@ -236,7 +237,30 @@ I5 六个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态。
+ 6. 最后检验错误冲突触发减少这一机制；
+ 7. 只有全部门通过，才允许在限定的新鲜模拟动态交互分布上写“性能提升”。
+ 
+-样本量和阈值在结果出现前固定。连续效率终点的功效假设要求每个 role 至少约 22 对，预注册取 30 对。二元成功/碰撞非劣采用按 role 分层后的 90-block pooled interval，同时要求每个 role 的 treatment harmful discordance 不多于 control；零 harmful discordance 时 90-block 单侧精确上界约为 3.28%，60 个真实冲突 block 的对应上界约为 4.87%。因此 5 percentage-point margin 只有在伤害差异极低时才可能通过，不会因连续终点显著而自动通过。设计不增加训练预算，也不允许基于 I5 的六个集成单元估计或挑选有利效应量。未来结果若未通过任何一门，应报告未证实或出现权衡，而不是改变指标或追加样本。
++样本量和阈值在结果出现前固定。连续效率终点使用 30 个 semantic-clear pairs 的
++
++\[
++d_b=\log\frac{T_{b,\mathrm{legacy}}}{T_{b,\mathrm{circle}}},
++\qquad
++\Delta_T=1-\exp(-\bar d),
++\]
++
++其中 clean success 使用实测 navigation time，collision、timeout、planner failure 和其他算法失败均保留并赋 80 s。效率通过要求同时满足点估计 \(\Delta_T\ge0.05\)、分层 paired bootstrap 单侧 95% lower 大于 0，以及 fixed-sequence adjusted \(p\le0.05\)。机制门使用同一 30 对的 timestamped non-`NONE` overlay occupancy，要求 relative reduction 至少 30%、paired absolute decrease 的单侧下界大于 0，且顺序调整后显著。
++
++二元成功、碰撞和 algorithmic emergency 非劣采用 90 对 harmful discordance rate 的单侧 Clopper--Pearson 上界；零 harmful discordance 时上界为 0.032738。minimum clearance 使用按 role 分层的 paired bootstrap，并要求 pooled lower 和每个 role 的点估计都不低于 -0.05 m。60 个真实冲突 block 还要求 treatment 的 expected-TTC-status match fraction 至少 0.95 且不低于 control。重采样由 SHA-256 counter RNG 固定：bootstrap 10,000 次、seed 20260721；paired sign-flip 100,000 次、seed 20260722。
++
++唯一 release `05a6efe21a4c110be667b0873d8ac1b26ac692feefea8932f40a506ca9b9027b` 按 exact schedule 完成 270/270，0 forfeiture、0 terminal integrity failure，全部 identity 均为 attempt 1。四门终态是：
++
++| gate | result |
++|---|---|
++| integrity | pass |
++| safety and task noninferiority | pass |
++| efficiency superiority | fail |
++| mechanism reduction | pass |
++
++效率点估计 0.037624、单侧 95% lower 0.027904、adjusted \(p=9.9999\times10^{-6}\)。失败原因不是方向或显著性，而是点估计低于冻结的 0.05 最小效应量。机制 relative reduction 为 1.0；安全/任务非劣各项通过。因为 claim rule 是四门合取，终态必须为 `performance_improvement_demonstrated=false` 和 `claim_authorized=false`。这里 `formal_result=true` 只表示正式研究按预注册规则完整产生了结果，不表示阳性结论。
++
++P1 展示了完整性门的实际作用：即使方向、置信下界和 $p$ 值看似有利，也不能绕过预先冻结的 practical-effect threshold。完成后的 270-unit budget 已耗尽；不得通过重跑、挑 seed、追加样本或改变阈值升级结论。
+ 
+ ## 4.14 有效性威胁与边界
+ 
+@@ -246,10 +270,10 @@ I5 六个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态。
+ - deterministic assessor 可能与 runner 共享概念性错误，因此需要独立测试和人工审查；
+ - 模拟器、ROS 和系统库版本仍可能影响外部复现，应在最终环境清单中记录；
+ - 配对随机种子减少场景方差，但不能覆盖全部动态参与者行为；
+-- 三个 scene role 的结果只适用于其预注册分布；
++- 三个 scene role 实际由三个冻结动态模板在 seeds 5201--5290 上实例化，结果只适用于该随机种子分布，不等于 90 个独立几何或跨时序泛化；
+ - 固定超时惩罚影响受限完成时间解释，必须与原始成功率共同报告；
+ - 无重试规则保护统计完整性，也会把基础设施故障计入结果，因此执行前的独立 preflight 尤为重要。
+ 
+ ## 4.15 本章小结
+ 
+-本研究以阶段状态机、新鲜种子防火墙、规范路径与哈希闭包、单次打开解析、正进展时钟屏障、原子 journal、直接计数、确定性 assessor 和失败保全构成实验完整性方法。该方法把“运行成功”“证据完整”和“论文可宣称”分成不同判定，并为最后一轮性能实验预先限定了不能事后修改的统计与结论边界。
++本研究以阶段状态机、新鲜种子防火墙、规范路径与哈希闭包、单次打开解析、正进展时钟屏障、原子 journal、直接计数、确定性 assessor 和失败保全构成实验完整性方法。该方法把“运行成功”“证据完整”和“论文可宣称”分成不同判定。P1 的 270 个单元全部成功且三个子门通过，但 3.762% 的效率点估计未达到预注册 5% 最小效应量，最终 claim 仍失败关闭；这一终态说明完整性方法不仅约束执行，也约束结果出现后的叙述。
+diff --git a/docs/thesis_experiment/thesis_draft/CH05_I5_INTEGRATION_RESULTS.md b/docs/thesis_experiment/thesis_draft/CH05_I5_INTEGRATION_RESULTS.md
+index 5361bf6..07d18d8 100644
+--- a/docs/thesis_experiment/thesis_draft/CH05_I5_INTEGRATION_RESULTS.md
++++ b/docs/thesis_experiment/thesis_draft/CH05_I5_INTEGRATION_RESULTS.md
+@@ -96,7 +96,7 @@ I5 使用唯一 release，其 SHA-256 为：
+ 
+ 预期/观察 TTC 状态在全部六行一致，`semantic_schedule_pass=true`。单冲突和多冲突两对中，两种语义均观察到有限 TTC；这说明 circle-contact 没有在所选真实冲突角色中丢失预期状态。semantic-clear 配对中，两种实现均没有有限 TTC，但 legacy control 仍生成 18 个非 `NONE` overlay，而 circle-contact 为 0。该差异展示了两种语义在无 horizon 内接触时的可辨识性。
+ 
+-不能直接用表中的 25 对 19、30 对 19 计算性能改善。不同 episode 的采样时长和消息数不同，这些是 episode 内相关的语义事件，不是独立样本。唯一合法的统计单位是未来实验中的 scene-seed block。
++不能直接用表中的 25 对 19、30 对 19 计算性能改善。不同 episode 的采样时长和消息数不同，这些是 episode 内相关的语义事件，不是独立样本。后续 P1 采用的合法统计单位是 scene-seed block，而不是这些高频消息。
+ 
+ ## 5.5 确定性重放
+ 
+@@ -165,7 +165,7 @@ I5 的证据解释必须连同先前阶段报告：
+ 
+ 这条链显示，实验失败既可能来自语义设计，也可能来自执行基础设施。保留两类失败使最终成功的适用范围更清晰：I5 证明修复后的链能工作，不证明早期假设或性能目标自动成立。
+ 
+-## 5.8 对最终性能实验的启示
++## 5.8 对 P1 正式性能实验的约束与后续结果
+ 
+ I5 给最后一轮性能研究提供了三个设计约束，但不提供效应量：
+ 
+@@ -173,7 +173,7 @@ I5 给最后一轮性能研究提供了三个设计约束，但不提供效应
+ 2. single- 和 multi-conflict 场景必须作为安全保持条件，防止减少触发只是漏检真实冲突；
+ 3. 结果必须以 scene-seed block 配对，而不能以高频 TTC 样本数扩大名义样本量。
+ 
+-未来设计固定 3 个 scene role、每个 30 个全新 block，共 90 个 block。每个 block 运行 circle-contact、legacy control 和固定 TEB reference，共 270 个 episode；主确认性对比使用 circle-contact 与 legacy control 的 180 个 episode。新增训练步数为 0。
++P1 随后按这些约束固定 3 个 scene role、每个 30 个全新 block，共 90 个 block。每个 block 运行 circle-contact、legacy control 和固定 TEB reference，共 270 个 episode；主确认性对比使用 circle-contact 与 legacy control 的 180 个 episode。新增训练步数为 0。
+ 
+ 主性能量为带失败/超时惩罚的受限完成时间。只有以下门同时通过，论文才可在限定的新鲜模拟分布上宣称性能提升：
+ 
+@@ -184,7 +184,7 @@ I5 给最后一轮性能研究提供了三个设计约束，但不提供效应
+ 
+ 成功/碰撞二元门在 90 个 block 上按 scene role 分层后汇总，并增加逐 role 的有害不一致方向保护；零 harmful discordance 时单侧精确上界约为 3.28%。真实冲突保持还单独覆盖 60 个 single/multi-conflict block，其零 harmful discordance 上界约为 4.87%。这使 5 percentage-point 非劣 margin 在极低伤害差异下具有可检验性，同时不允许某个场景角色的伤害被总平均掩盖。
+ 
+-如果任一门失败，结果应写为“未证实性能提升”或“存在安全/效率权衡”。不能因论文目标而重试失败 block、替换 seed、改变主指标或扩大样本量。
++P1 最终完成 270/270，完整性、安全/任务非劣和机制门通过；效率估计下降 3.762%，单侧 95% 下界为 2.790%，调整后 $p\approx10^{-5}$，但点估计低于预注册 5% 最小效应量。因此效率门失败，正式结论为“未证实性能提升”。没有重试 block、替换 seed、改变主指标或扩大样本量。完整 P1 结果见第 6 章。
+ 
+ ## 5.9 有效性限制
+ 
+@@ -199,4 +199,4 @@ I5 的主要限制包括：
+ 
+ ## 5.10 本章小结
+ 
+-I5 在全新 seeds 5161--5163 上完成 6/6 个预注册模拟集成单元，无重试、续跑、作废预算或完整性失败。两种 TTC 语义在 single conflict、multi conflict 和 semantic-clear 三类场景中的观察状态与预期全部一致，且六个 journal 和 36 项原始资源可被确定性重放。该结果建立了语义/执行集成证据，同时明确保留性能结论为空。性能提升须由后续全新 multi-seed 配对统计实验独立检验。
++I5 在全新 seeds 5161--5163 上完成 6/6 个预注册模拟集成单元，无重试、续跑、作废预算或完整性失败。两种 TTC 语义在 single conflict、multi conflict 和 semantic-clear 三类场景中的观察状态与预期全部一致，且六个 journal 和 36 项原始资源可被确定性重放。该结果建立了语义/执行集成证据，但本身不具备性能效力。后续 P1 已独立完成 multi-seed 配对检验，并因效率点估计未达到 5% 门而没有证明性能提升；I5 的集成结论与 P1 的正式阴性性能结论应同时保留。
+diff --git a/docs/thesis_experiment/thesis_draft/CLAIMS_EVIDENCE_MATRIX.md b/docs/thesis_experiment/thesis_draft/CLAIMS_EVIDENCE_MATRIX.md
+index 7ba2013..cca46fd 100644
+--- a/docs/thesis_experiment/thesis_draft/CLAIMS_EVIDENCE_MATRIX.md
++++ b/docs/thesis_experiment/thesis_draft/CLAIMS_EVIDENCE_MATRIX.md
+@@ -1,12 +1,12 @@
+ # 论文 Claims–Evidence Matrix
+ 
+-日期：2026-07-21
++日期：2026-08-06
+ 
+ 状态定义：
+ 
+-- **qualified**：现有冻结证据足以支持限定陈述；
+-- **pending**：已有预注册设计，但没有结果；
+-- **forbidden**：当前证据明确不足，正文不得写成肯定结论。
++- **qualified**：冻结证据足以支持带限定语的陈述；
++- **not demonstrated**：预注册正式检验已完整完成，但对应阳性声明没有通过；
++- **forbidden**：证据范围内不允许作为肯定结论。
+ 
+ | 编号 | 论文陈述 | 状态 | 直接证据 | 必须保留的限定语 |
+ |---|---|---|---|---|
+@@ -14,43 +14,150 @@
+ | C02 | 因子化模式可组合 base 与 scene overlay | qualified | 模式管理器实现与 shadow 证据 | 不等于已找到最优模式 |
+ | C03 | feasible decoder 检查类型、范围与运动学耦合 | qualified | decoder 源码、合同和测试 | 不覆盖全部真实动力学 |
+ | C04 | 平滑以 previous-executed 而非 commanded 为基准 | qualified | manager/decoder 实现和回归测试 | 不声称性能优越 |
+-| C05 | circle-contact TTC 以相对圆接触为冲突事件 | qualified | TTC 实现、组件测试和 I5 语义证据 | 使用短时运动与圆足迹近似 |
++| C05 | circle-contact TTC 以相对圆接触为冲突事件 | qualified | TTC 实现、组件测试、I5/P1 语义证据 | 使用短时运动与圆足迹近似 |
+ | C06 | 参数事务记录 commanded/feasible/safe/executed 链 | qualified | transaction 源码、journal 和执行证据 | 真实车辆在线写入未授权 |
+-| C07 | I5 使用全新 seeds 5161--5163 完成 6/6 单元 | qualified | execution report SHA `8ed096601c13cc45fba34d32d5ae78477cabd345b9730df8ab4eced7fc0e5599` | 纯模拟、六单元集成验证 |
+-| C08 | I5 没有 retry、resume、terminal failure 或 forfeiture | qualified | stage report 与 deterministic assessment | 只针对 I5 身份 |
+-| C09 | I5 全部 expected/observed TTC 状态一致 | qualified | 6 journals + 36 raw bindings + execution report | 语义/执行集成结论 |
+-| C10 | semantic-clear 配对中 legacy non-`NONE` 为 18，circle-contact 为 0 | qualified | I5 sequence 5/6 raw traces 与重放报告 | 描述性单 block 观察，不是效应估计 |
+-| C11 | I5 关键证据可由确定性 assessor 重放 | qualified | execution report、I6 review SHA `c1fd43205d0f3b3c6a029590b33808812dc8db795bdcf4b270c345e033b9dd68` | 可复核性不等于科学假设为真 |
+-| C12 | 历史失败和失败 release 被原样保留 | qualified | freeze manifest SHA `40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935` | 修复使用新的阶段身份 |
+-| C13 | circle-contact 提升模拟导航性能 | pending | future design SHA `a5b74aa99cb63785aa3993ba7cae40974baa3ab9b6aace71ee9cb815e08d379c` | 只有未来四类门全部通过才可写 |
+-| C14 | 性能改善至少 5% 且统计显著 | pending | 90-block / 270-episode 预注册设计 | 当前没有执行结果 |
+-| C15 | semantic-clear 错误触发至少降低 30% | pending | 未来机制 gate | I5 的 18 对 0 不能代替多种子估计 |
+-| C16 | 性能改善不牺牲成功、碰撞或间距 | pending | 未来非劣 gate | 必须逐项通过预注册 margin |
+-| C17 | 已证明跨未见分布泛化 | forbidden | 无 | 需要独立 held-out 分布研究 |
+-| C18 | 已证明真实车辆性能提升 | forbidden | 无 | 没有实车授权或实车数据 |
+-| C19 | 已证明形式化安全或无碰撞保证 | forbidden | 无 | 当前仅有约束与经验评估 |
+-| C20 | 已校准 winner 或可部署阈值 | forbidden | I5 明确 `winner_ranked_or_frozen=false`, `runtime_ready=false` | 不得改写状态 |
+-| C21 | 新增 SAC 训练带来提升 | forbidden | future design 固定 additional training steps = 0 | 本轮不扩训练预算 |
++| C07 | I5 使用 fresh seeds 5161--5163 完成 6/6 集成单元 | qualified | I5 report SHA `8ed096601c13cc45fba34d32d5ae78477cabd345b9730df8ab4eced7fc0e5599` | 纯模拟、六单元集成验证 |
++| C08 | I5 全部 expected/observed TTC 状态一致且可重放 | qualified | 6 journals、36 raw bindings、I6 review | 只支持语义/执行集成 |
++| C09 | 历史失败、失败 release 和 I5 均被原样保留 | qualified | I5 freeze SHA `40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935` | 后续阶段没有改写历史身份 |
++| C10 | P1 使用 seeds 5201--5290 完成 90 blocks / 270 episodes | qualified | P1 stage report SHA `1c625037365eea69b9363c61400e709195f9647211308b81100b395f96805853` | 三个冻结模板的 stochastic-seed 分布，不是 90 个几何场景 |
++| C11 | P1 没有 retry、resume、replacement、forfeiture 或完整性失败 | qualified | 270 receipts、270 journals、stage report | 只针对 P1 唯一 release |
++| C12 | P1 的 1,890 项 raw resources 可统一重放 | qualified | raw replay SHA `91a213e51d043938637be71faafc89169a61d61527bff22ab49c4c8ececc60c3` | 可复核性不等于阳性性能结论 |
++| C13 | circle-contact 在 P1 中通过安全/任务非劣门 | qualified | four-gate assessment SHA `89147e95f19c461926e302982ab4db3772f1847fa0ca273e05b0df73fe2cd6df` | 限于冻结模拟分布与预注册 margin；不是安全优越 |
++| C14 | semantic-clear overlay relative reduction 为 100% | qualified | P1 mechanism gate；control 0.176721、treatment 0 | 机制结论，不等于 whole-system 性能提升 |
++| C15 | semantic-clear 受限完成时间估计下降 3.762% | qualified | P1 efficiency estimate；lower 2.790%，adjusted p≈`1e-5` | 必须同时写明未达到预注册 5% 最小效应量 |
++| C16 | P1 证明了性能提升 | **not demonstrated** | efficiency gate fail；`claim_authorized=false` | 四门合取失败，不得改写为阳性 |
++| C17 | 性能改善至少 5% | **not demonstrated** | point estimate 3.762% < 5% | 显著性不能替代 practical-effect threshold |
++| C18 | circle-contact 比 legacy 更安全 | forbidden | 非劣通过不证明优越 | 只能写“在 margin 下非劣” |
++| C19 | fixed TEB 是 winner 或最佳配置 | forbidden | fixed TEB 仅 contextual | 未预注册 winner ranking |
++| C20 | 已证明跨未见 family、geometry 或 timing 泛化 | forbidden | 无独立 held-out 分布研究 | P1 只覆盖三个冻结模板 seed 分布 |
++| C21 | 已证明真实车辆性能提升或安全 | forbidden | 无实车数据 | 没有现场执行授权或验证 |
++| C22 | 已证明形式化安全或无碰撞保证 | forbidden | 无形式化模型/证明 | 当前仅有约束和经验非劣评估 |
++| C23 | 已校准可部署阈值或 `runtime_ready=true` | forbidden | P1 assessment `runtime_ready=false` | 不得升级部署状态 |
++| C24 | 新增 SAC 训练带来提升 | forbidden | P1 training steps=0 | P1 不检验 learning gain |
++| C25 | post-P1 搜索严格限制为三轮/2200 仿真单元 | qualified | P4-F1 budget accounting SHA `3d1189c7f6f779e4ddd0dae8eaa5f9c373734c49038745d692ec2e8bc7f567cc` | 4 consumed + 2196 retired；retired 不等于成功 episode |
++| C26 | 五个 promoted Bank 通过严格离线 parser | qualified | P4-Q1 review SHA `26c03a7e31a06d1f45ccc7348cdd980974b2a00c2b9b7f8e8879af38f0d4b3fd` | 行为参数未改；没有 live runtime、安全或性能资格 |
++| C27 | post-P1 搜索证明相对最强公平固定 TEB 明显提升 | **not demonstrated** | 无完整 calibration/test；P4-F1 terminal conclusion | P1 3.7624% / 2.7904% 也低于新 10% / 5% 门 |
++| C28 | P4 高速候选是 winner | forbidden | P4-I1 在 Gazebo 启动前失败 | 没有 candidate/baseline selection 或 held-out test |
++| C29 | 修复 ROS 环境后可以复用 seed5924 重跑 | forbidden | P4-I1 consumption journal；final budget closure | 身份已消耗，剩余 703 已退役，性能搜索终止 |
++| C30 | V3-09-F1 使用 fresh seeds 6801--6830 完成 30 blocks / 180 episodes | qualified | assessment SHA `d950256f4da310f65d604031ec72009e014facfb7cb0c14be8cf19ce1b9c346b` | 参数化反应式单 actor crossing family |
++| C31 | V3 spatial-safe 相对 fixed-v1.20 shielded comparator 的配对时间改善为 22.3844% | qualified | V3-09-F1 assessment；one-sided lower 21.8235% | comparator 是冻结直线策略，不是 actual TEB |
++| C32 | V3-09-F1 的点效应、lower、positive-block、任务、安全、重放和延迟门全部通过 | qualified | independent review SHA `206732c86b536e7f9a520c58dac6d386ff6752595bdc767d4957e4804e5f8d5a` | 只在冻结 formal population 内成立 |
++| C33 | V3 与 comparator 的正式目标成功率均为 100% | qualified | 90/90 vs 90/90 receipts 和 assessment | 不等于复杂导航或实车成功率 |
++| C34 | V3 在三种 actor policy 上都更快 | forbidden | assertive：11.5833 s vs 10.8917 s | 阳性结果是三 policy 等权 block 聚合；assertive stratum 为负向 |
++| C35 | V3-09-F1 已证明优于实际 TEB | forbidden | V3-09 formal claim `actual_teb_superiority=false` | fixed-v1.20 shielded comparator 不是 TEB；不得用后续研究改写其历史设计 |
++| C36 | V3 的 RL/学习排序器带来性能提升 | forbidden | V3-04 training steps=0，learning gate closed | 正式方法是解析空间安全规划器 |
++| C37 | V3 已证明通用导航安全、跨场景泛化或可部署 | forbidden | claims YAML 与 independent closure review | 无多场景、多人、分布外、形式证明或硬件验证 |
++| C38 | V3-10-P1 形成可复核论文数据闭环 | qualified | manifest SHA `70353b355c6eec2f733901ca7d4a6820de550beff00999cfacdb359dec951938`；review SHA `bee5891b08f860a97a25ea71047b3e5fabb0c193695f221de131eacb5dcfe0f4` | 纯离线导出，不新增正式证据 |
++| C39 | V3-11-F1 使用 fresh seeds 7101--7130 完成 30 paired blocks / 60 episodes | qualified | execution summary SHA `9843ce28763e1f836b3230545b00b614019486ab89564d7063d247e1cb1fc2a4` | 三个冻结 single-reactive-actor Gazebo 模板、cautious/hesitant policy |
++| C40 | V3 spatial-safe 相对 actual TebLocalPlannerROS 0.8.4 的配对均值时间改善为 12.9288% | qualified | assessment SHA `9b19f8bd29f1d6c06197e932b03359a2f78081da65e636f52f7f610529c3f2f9`；one-sided 97.5% lower 12.7253% | 只针对冻结 formal population 和固定 TEB 版本/配置 |
++| C41 | V3-11 双方目标成功均为 100%、contact 为 0，六个 scene×policy strata 均为正 | qualified | independent review SHA `2d5e8c21ea70f29df97e646f703159297ff0d2da6ef10edb1341da057c133b39` | 双方共享 oracle actor track；actual TEB 最小经验保守净空 0.0192 m |
++| C42 | V3-11 证明 perception、multi-actor/OOD 或通用安全优越 | forbidden | claims YAML 与 formal scope | 未测试感知退化、多人、OOD、独立复杂地图或形式化安全 |
++| C43 | V3-11 证明所有 TEB 版本/配置上都优越 | forbidden | 只冻结 TebLocalPlannerROS 0.8.4 与 fixed_teb.yaml | 合法表述必须带版本、配置和场景总体 |
++| C44 | V3-12-P1 形成 actual-TEB 可复核论文数据闭环 | qualified | manifest SHA `319bce3401859e25fa1e5da68d97669a6aebf593688c475003a8844b91798c0b`；review SHA `96d7d0333ef2eba5b62819fb0fadc689c3756e5015804d2ea8fb86b4a4ca17b2` | 纯离线导出，不新增正式证据 |
++| C45 | V3-14-S1 完成 5 单元预检和 40 单元 fresh 多动作证据矩阵 | qualified | assessment SHA `58c472560699e10276f76c063dd243ab5666f8e534346c51e88aa9f2b49958b9` | 45/45 attempt 1 完成；预检不进入科学计数 |
++| C46 | V3-14-S1 的调度、launch 与 runtime candidate identity 全部一致 | qualified | action-binding receipts；review SHA `4773d76437a01148984770ca502dce96cfa6d3bc2743029e0bb7a1f10f94c60a` | 只证明执行身份完整性，不证明反事实配对或预测有效性 |
++| C47 | V3-14-S1 的五动作多演员支持门通过 | **not demonstrated** | actor 坐标差 0.066074 m、速度差 0.072081 m/s，均超过 0.05 门 | 完整执行不能替代冻结合取门 |
++| C48 | 当前多演员数据可用于拟合 r3 predictor | forbidden | `predictor_fit_authorized=false` | 共同前缀 actor 状态在候选间不可比 |
++| C49 | V3 已证明相对 actual TEB 的 multi-actor 或 perception/OOD 收益 | forbidden | V3-14 后续阶段未授权、未执行 | V3-11 仍只支持 single-reactive-actor oracle-track 总体 |
++| C50 | V3-14 接触了硬件或实车 | forbidden | terminal result 与独立 review 均记录 hardware/real vehicle false | 本阶段全程纯 Gazebo/离线审计 |
++| C51 | V3-16-D1 将 V3-14 失败归因为候选分支前的 actor 闭环响应放大 | qualified | attribution SHA `1f84987b14a9a8721eea5823e965d7c0283f0a4250f7efb7137cf060b08e7396` | 是冻结证据上的机制归因，不是一般 actor 模型结论 |
++| C52 | V3-16-S1 完成 fresh 5 回合预检和 40 回合五动作支持矩阵 | qualified | R1 assessment SHA `6a30f54abea88949722cf10e58e4da59aaa11a631f9eece2ee373a9f766ebaf5` | 45/45 attempt 1；预检不进入科学计数 |
++| C53 | 12.55 s 响应门控显著改善了 actor 速度共同前缀 | qualified mechanism | 最大速度差从 0.072081 降至 0.008597 m/s，下降 88.07% | 单因素机制观察；不等于位置同步、整体支持或性能通过 |
++| C54 | V3-16-S1 通过多人五动作支持门 | **not demonstrated** | 最大坐标差 0.067472 m > 0.05 m；仅 5/8 区块通过坐标门 | 速度门通过不能抵消坐标合取门失败 |
++| C55 | V3-16 数据可用于拟合 r3 predictor 或启动 actual-TEB 多人比较 | forbidden | terminal `predictor_fit_authorized=false`；R1 review SHA `c4469571a1a8f8e999e733138d42466fa0c0a6bd472bcebe5d044fe512a4765c` | 新位置同步设计必须另立合同、seed、预算与授权 |
++| C56 | V3-16 使用了硬件、实车或在线 TEB 参数写入 | forbidden | terminal/R1 review 均记录 hardware/real vehicle false | 全程 Gazebo 与离线复算 |
++| C57 | V3-18 建立了覆盖历史主要研究的统一 canonical episode dataset | qualified | R1 dataset SHA `f93b426b2de0b85ce8d03b8e7c7e42ade53c8371d3fe3f31dc68ab7bbdbbd1fe`；825 rows | 是历史证据适配，不新增性能样本或改变原统计单位 |
++| C58 | V3-21 使用 fresh seeds 8201--8230 完成四方法 30 blocks / 120 episodes | qualified characterization | assessment SHA `c195fc7cea4c649582bb3c0017e55a1b98f5de3b7f971737b1f2abcb5596ccc8` | 一个 gate 容差偏差，`formal_result=false`；所有失败按 22 s 保留 |
++| C59 | V3-21 证明 V3 相对 Actual TEB 具有时间优势 | **not demonstrated** | 点降幅 -0.193%，双侧 95% CI [-19.867%, 12.982%]，Holm p=0.755412 | 新鲜失效计入式研究未复现历史 V3-11 阳性；两研究不得合并 |
++| C60 | V3-21 中 V3 相对去候选条件化消融缩短 49.454% | qualified exploratory mechanism | 双侧 95% CI [37.001%, 58.800%]；成功率 93.33%/43.33% | 冻结单 actor/oracle-track 总体；不等于通用 TEB 优越或安全证明 |
++| C61 | Fixed-v1.20 失败说明所有固定规划器都无效 | forbidden | 本研究只有一个冻结直行屏蔽策略，0/30 goals | 只能说明该具体比较策略过于保守 |
++| C62 | V3-21 的零 contact 和较大净空证明形式化安全 | forbidden | 四方法 contact=0；V3/TEB 最小经验净空 0.4764/0.0395 m | 有限仿真描述量，不是感知、实车或形式化保证 |
++| C63 | V3-21 可被写成无偏差正式阳性研究 | forbidden | sequence107 gate 误差超限 2.286 mm；`formal_result=false` | 可报告完整 characterization 及排除敏感性，但不得升级标签 |
++| C64 | V3-22 自动生成论文图、三线表和结果叙述且通过独立复核 | qualified | materials manifest SHA `658e906c3fae23d86e5cab5e65edbe6ca00cc74c1188b0404294f29c4fe973d0`；review SHA `88547275a6627027517aa55d2128469bb30de1721fc162e92ab9d6d787be0959` | 纯离线派生材料，不新增科学证据 |
+ 
+ ## 正文审查规则
+ 
+-1. 所有 “qualified” 陈述必须同时带上该行限定语。
+-2. 所有 “pending” 陈述只能写为假设、设计或待检验问题。
+-3. 所有 “forbidden” 陈述不得出现在摘要、结论、图题或宣传性文字中。
+-4. `simulation_integration_validation_pass` 不得改写为 `performance_pass`。
+-5. I5 的高频语义样本不得作为独立 $n$；I5 的独立配对 block 数是 3。
+-6. 未来性能实验若失败，矩阵中的 C13--C16 改为“not demonstrated”或具体权衡，不得通过追加样本升级。
++1. 所有 qualified 陈述必须同时保留该行限定语。
++2. C15 不得省略“未达到 5%”后单独出现；其合法作用是报告估计量，不是升级 C16。
++3. not demonstrated 是正式阴性结论，不得改回 pending，也不得用重跑、追加样本或修改阈值升级。
++4. forbidden 陈述不得在摘要、结论、图题或宣传性文字中作为肯定结论出现。
++5. `formal_result=true` 只表示 P1 正式研究完成；不得等同于 `performance_improvement_demonstrated=true`。
++6. I5 的独立 block 数是 3；P1 的独立 block 数是 90。高频 TTC/overlay 样本不扩张统计 $n$。
++7. fixed TEB 的描述性均值不进入 circle-contact 与 legacy 的确认性推断。
++8. P4-Q1 的 strict parser pass 只说明 schema 可解析，不得写成 live transaction、安全或性能通过。
++9. post-P1 的完整性失败、未运行单元和 retired budget 不能从 intention-to-treat 记录中删除。
++10. V3 的阳性结果不得用于改写 V2-P1、post-P1 或 V3-05 的历史阴性结论。
++11. C31 每次出现都必须同时说明 comparator 不是 actual TEB，且范围仅为参数化反应式
++    single-actor crossing。
++12. V3 的 aggregate positive result 不得删除 assertive stratum 的负向结果。
++13. C40 每次出现都必须同时说明 actual TEB 的版本/配置、三个冻结模板、两种 actor policy
++    和共享 oracle actor track。
++14. “零 contact”必须与 actual TEB 最小经验保守净空 0.0192 m 同时解释，不能写成形式化或
++    通用无碰撞保证。
++15. V3-14 的 45/45 完整执行和动作身份通过必须与 actor 坐标/速度配对门失败同时出现；不得
++    把执行完整性写成 multi-actor 科学资格。
++16. V3-16 的“速度差下降 88.07%”每次出现都必须同时写明坐标差 0.067472 m 仍失败、整体
++    `evidence_collection_gate_pass=false`；不得写成多人支持、性能或预测器资格通过。
++17. V3-16 原 assessor/review 的完整性失败与 R1 修复都必须保留；R1 只修复 raw report 路径
++    索引，不改变 45 个回合、门槛或科学阴性结论。
++18. 每次引用 V3-11 的 12.9288% 历史阳性时，若讨论总体稳定性，必须同时披露 V3-21 的
++    -0.193% 新鲜失效计入式结果；两个阶段不得池化、挑 seed 或删除 timeout。
++19. C60 必须标为探索性消融机制证据；不能用其替代 C59 的 Actual TEB 主要比较。
++20. V3-21 的 sequence107 偏差和排除 block27 后结论不变必须一起报告，且
++    `characterization_result_available=true` 不得写成 `formal_result=true`。
+ 
+-## 性能结论升级条件
++## 性能声明终态
+ 
+-只有未来预注册实验同时满足以下条件，C13 才能从 pending 升级为 qualified：
++P1 已耗尽唯一 270-unit budget。四门结果为：
+ 
+-- release 和执行得到新的明确授权；
+-- 90 个预注册 block 按停止规则完整记账；
+-- 完整性报告无失败；
+-- 成功、碰撞、间距和真实冲突保持通过非劣门；
+-- 受限完成时间改善点估计至少 5%，且确认性区间/检验通过；
+-- semantic-clear 错误触发减少至少 30%，且机制区间/检验通过；
+-- 结论限定为预注册的新鲜模拟动态交互分布。
++```text
++integrity=true
++safety_and_task_noninferiority=true
++efficiency_superiority=false
++mechanism_reduction=true
++performance_improvement_demonstrated=false
++claim_authorized=false
++```
+ 
+-上述条件是 claim gate，不是保证结果成功的调参目标。
++论文的最终合法概括是：
++
++> 在预注册的三个冻结动态模板 fresh-seed 仿真分布上，circle-contact 语义通过了安全/任务非劣与机制下降门，并使 semantic-clear 配对的受限完成时间估计下降 3.762%；然而该点估计未达到预注册的 5% 最小效应量，因此本研究未证明性能提升。
++
++这是一项完整而阴性的正式结果；不再存在通过当前 P1 release 升级性能声明的路径。
++
++post-P1 三轮有限搜索也已终止：
++
++```text
++global_capacity=2200
++consumed=4
++retired=2196
++remaining=0
++new_held_out_test_accessed=false
++post_P1_integrity_gate=false
++obvious_performance_improvement_demonstrated=false
++candidate_winner_frozen=false
++```
++
++因此最终合法结论升级为更严格但仍为阴性的一句话：“全局有限预算耗尽，未证明 FAM-TEB
++相对最强公平固定 TEB 基线有明显性能提升。”这里“升级”只指证据闭环覆盖了后续搜索，
++不代表把 P1 的阴性结果改成阳性。
++
++V3-SCOPE 是独立于该 V2 搜索的新架构与新证据链。历史 V3-09 的合法概括是：
++
++> 在 30 个 fresh 参数化反应式单 actor crossing blocks 上，V3 spatial-safe 相对冻结的
++> fixed-v1.20 shielded 直线策略使受限目标时间配对下降 22.3844%，单侧 95% lower 为
++> 21.8235%，双方目标成功均为 100%，全部审计门通过。
++
++该句必须紧接以下边界：比较对象不是 actual TEB；结果不证明多场景泛化、学习收益、
++形式化安全、部署或实车性能。
++
++最新 V3-11 actual-TEB 研究的合法终态概括是：
++
++> 在来自三个冻结 single-reactive-actor Gazebo 模板与 cautious/hesitant policy 的 30 个
++> fresh paired blocks 上，V3 spatial-safe 相对 actual TebLocalPlannerROS 0.8.4 将受限
++> gate-to-goal 时间配对下降 12.9288%，单侧 97.5% lower 为 12.7253%；双方目标成功均为
++> 100%，contact 为 0，六个 scene×policy strata 均为正。
++
++该句必须紧接以下边界：双方共享 oracle actor track；actual TEB 最小经验保守净空为
++0.0192 m；结果不证明 perception、multi-actor/OOD、所有 TEB 配置、形式化安全、学习收益、
++部署或实车性能。
+diff --git a/docs/thesis_experiment/thesis_draft/README.md b/docs/thesis_experiment/thesis_draft/README.md
+index 5439ce2..f6742b2 100644
+--- a/docs/thesis_experiment/thesis_draft/README.md
++++ b/docs/thesis_experiment/thesis_draft/README.md
+@@ -1,34 +1,159 @@
+ # FAM-TEB 论文正文草稿
+ 
+-日期：2026-07-21
++日期：2026-08-08
+ 
+-本目录开始承载可直接并入论文的中文正文，而不是实验运行手册。当前版本包括：
++当前论文写作入口为
++`artifacts/v6/paper/v6_06_p1_r1_thesis_transfer_package/`。其中
++`FAM_TEB_CURRENT_INTEGRATED_TECHNICAL_DRAFT.pdf` 是 41 页 A4 的 V3+V6 真正整合稿，另含
++自包含数据、11 张可编辑图、5 个三线表、combined claims、实车空白章节和另一台电脑 Codex
++学校模板更新提示词。此前 V6-05 的 69 页文件只是既有 PDF 后追加 20 页附录，现作为历史导出
++保留。引用结果前必须阅读 `CURRENT_V6_PCT_SCOPE_RL_HANDOFF.md` 和
++`CURRENT_V6_06_THESIS_TRANSFER_HANDOFF.md` 并保留证据边界。
+ 
+-- `CH03_FAM_TEB_SYSTEM_DESIGN.md`：系统目标、分层架构、TTC 语义、模式选择、可行解码与安全边界；
+-- `CH04_EXPERIMENT_INTEGRITY_METHOD.md`：预注册、哈希闭包、事务日志、失败保全、确定性重放与 claim gate；
+-- `CH05_I5_INTEGRATION_RESULTS.md`：I5 的六单元新鲜种子集成结果及其严格解释；
+-- `CLAIMS_EVIDENCE_MATRIX.md`：论文陈述、证据来源、当前资格与禁止外推的对应表。
++本目录承载可直接并入论文的中文正文，而不是实验运行手册。当前版本包括：
+ 
+-这些章节把三个层级明确分开：
++- `CH03_FAM_TEB_SYSTEM_DESIGN.md`：系统目标、分层架构、TTC 语义、模式选择、可行解码与 P1 后的证据边界；
++- `CH04_EXPERIMENT_INTEGRITY_METHOD.md`：预注册、哈希闭包、预算原子性、统一 raw replay、统计四门和终态 claim gate；
++- `CH05_I5_INTEGRATION_RESULTS.md`：I5 六单元新鲜种子语义/执行集成结果；
++- `CH06_P1_FORMAL_PERFORMANCE_RESULTS.md`：P1 的 90-block / 270-episode 正式配对结果；
++- `CH07_V3_SCOPE_FORMAL_RESULTS.md`：V3-SCOPE 的空间候选设计、历史 comparator 研究、
++  actual-TEB 公平基线、30-block / 60-episode 正式阳性结果，以及 V3-14 多演员支持度
++  扩展的完整阴性结果和 V3-16 响应门控单因素实验；
++- `CH08_V3_FOUR_METHOD_REPLICATION_AND_ABLATION.md`：四方法 30-seed/120-episode 新鲜复现、
++  主基线/固定对比/单因素消融、失效计入统计、分层结果与历史阳性未复现解释；
++- `CH09_PCT_SCOPE_RL_INTEGRATED.tex`：V3 到 V6 的架构关系、Asymmetric PPO、PCT、V5 阴性、
++  V6 正式阳性、消融与 Gazebo 迁移阴性；
++- `CH10_REAL_ROBOT_EXPERIMENT_PLACEHOLDER.tex`：只含协议和空表的实车实验占位；
++- `CURRENT_THESIS_INTEGRATION_GUIDE.md`：把另一台电脑 V3 学校模板初稿更新到 V6 的逐章说明；
++- `CODEX_PROMPT_FOR_SCHOOL_TEMPLATE.md`：可直接发送给另一台电脑 Codex 的论文更新提示词；
++- `V3_PAPER_SUBMISSION_PACKAGE.md`：建议题目、摘要、贡献、核心图表和投稿前缺口；
++- `CLAIMS_EVIDENCE_MATRIX.md`：论文陈述、直接证据、当前资格与禁止外推的对应表。
+ 
+-1. 已实现并经组件或集成证据验证的系统机制；
+-2. I5 已证明的模拟语义/执行集成性质；
+-3. 尚待最后一轮全新 multi-seed 配对实验检验的性能假设。
++证据层级必须分开：
+ 
+-当前正文不得写成“已经证明性能提升”。I5 不是性能实验；其冻结证据只支持集成正确性和执行完整性。性能结论必须等待预注册的未来实验完成，并同时通过完整性、安全非劣、效率和机制四类门槛。
++1. 仓库代码和组件测试支持系统机制已经实现；
++2. I5 支持 fresh simulation semantic/execution integration；
++3. P1 是完整执行的正式性能研究，但四门中效率门失败；
++4. post-P1 三轮有限搜索以 4 consumed + 2196 retired 关闭全部 2200-unit 容量，没有形成完整
++   calibration 或新 held-out test，完整性门失败；
++5. 因此证据只支持安全/任务非劣、机制下降和 P1 3.762% 的限定描述性时间估计，不支持
++   “明显性能提升”；
++6. 没有证据支持 winner、真实车辆、跨分布泛化、形式化安全或 deployment readiness。
++7. 历史 V3-09-F1 在 30 个 fresh 参数化反应式 single-actor crossing blocks 上，相对
++   fixed-v1.20 shielded 直线策略得到 22.3844% 点效应和 21.8235% 单侧 lower；
++8. 最新 V3-11-F1 在三个冻结 single-reactive-actor Gazebo 模板上，相对 actual
++   TebLocalPlannerROS 0.8.4 得到 12.9288% 点效应和 12.7253% 单侧 97.5% lower；
++   两项阳性结果均不改变 V2 的阴性结论；
++9. V3-14-S1 的 5 单元预检和 40 单元证据矩阵均完整执行，动作身份绑定 45/45 通过，
++   但共同前缀 actor 坐标/速度差分别达到 0.06607 m/0.07208 m/s，超过冻结的
++   0.05 m/0.05 m/s 门。因此多人预测器拟合和后续 actual-TEB 多人评测关闭。
++10. V3-16-S1 只把响应启用时刻改为 12.55 s，并用 fresh 45 单元复核；actor 速度差降至
++    0.008597 m/s（下降 88.07%），但坐标差仍为 0.067472 m，仅 5/8 区块通过坐标门。
++    因此只形成速度同步机制结论，整体多人支持仍未证明。
++
++当前可直接阅读的终态论文为 32 页 A4 PDF：
++`artifacts/v3/paper/v3_22_p2_thesis_export/FAM_TEB_V3_THESIS_DRAFT.pdf`。
++
++PDF SHA-256：`22f4e423a4211590c2d4936c8be4a7f5d6963da83083e0dd8f86b0197af58b7d`；
++独立 paper review SHA-256：`adb4317773484601dd3a1b2006098051521c611fdaa7073138991112a7a3d7a5`。
++V3-17 的 25 页 PDF 作为历史版本保留。
++
++V3-21 新鲜四方法表征的终态是：
++
++```text
++episodes/paired_blocks=120/30
++v3_success/actual_teb_success=28/30,30/30
++v3_time/actual_teb_time=7.785s/7.770s
++v3_vs_actual_teb=-0.193%, two-sided 95% CI [-19.867%,12.982%]
++v3_vs_no_candidate_conditioning=49.454%, 95% CI [37.001%,58.800%]
++formal_result=false
++characterization_result_available=true
++```
++
++该结果不删除 V3-11 的历史正式阳性，但不支持“稳定或普遍优于 Actual TEB”的更强陈述。
++
++## V3-SCOPE 终态
++
++```text
++authorized/consumed/completed=60/60/60
++retry=0
++formal_result=true
++performance_improvement_demonstrated=true
++comparison=v3_spatial_safe_vs_actual_TebLocalPlannerROS_0_8_4
++point_relative_reduction=12.9288%
++one_sided_97_5pct_lower=12.7253%
++goal_success=100%/100%
++contact_state_count=0
++scene_policy_strata_positive=6/6
++shared_oracle_actor_track=true
++actual_teb_comparison=true
++runtime_ready=false
++real_vehicle_ready=false
++```
++
++V3-12-P1 的 paper evidence manifest SHA 为
++`319bce3401859e25fa1e5da68d97669a6aebf593688c475003a8844b91798c0b`。
++
++## P1 终态
++
++```text
++authorized/consumed/completed=270/270/270
++forfeited=0
++integrity=true
++safety_and_task_noninferiority=true
++efficiency_superiority=false
++mechanism_reduction=true
++formal_result=true
++performance_improvement_demonstrated=false
++claim_authorized=false
++runtime_ready=false
++```
++
++效率门失败的精确原因是：geometric restricted-completion-time reduction 为 3.762%，单侧 95%
++lower 为 2.790%，adjusted `p≈1e-5`，但点估计未达到预注册的 5% minimum effect。不得用显著性
++绕过该实际效应门。
++
++## post-P1 搜索终态
++
++```text
++global_capacity=2200
++consumed=4
++retired=2196
++remaining=0
++training_steps_consumed=0
++new_held_out_test_accessed=false
++obvious_performance_improvement_demonstrated=false
++candidate_winner_frozen=false
++```
++
++最后一次 P4-I1 fresh identity 在 Gazebo 启动前因 `m2_gazebo` package resolution 失败，
++没有产生参数事务或 raw trace。五个 promoted Bank 的 strict offline parser pass 不能替代
++live 性能证据。终态结论与独立复核分别为：
++
++- conclusion SHA：`8ce6736dd7ea1f13d6c272f0420f4588d1e0c9e25949b7b1eabf5bd028b3eeb7`
++- review SHA：`e0dc93790e092b99684c64a9d2b11e5ce02a0a16f5235649e3657376835270c8`
+ 
+ ## 主要冻结证据
+ 
+ - I5 execution release：SHA-256 `9cef80f5c4eaf562719a71bb11fadd2cded7208d2ade07a22b09d7b6058b3d43`
+ - I5 execution report：SHA-256 `8ed096601c13cc45fba34d32d5ae78477cabd345b9730df8ab4eced7fc0e5599`
+ - I6 interpretation review：SHA-256 `c1fd43205d0f3b3c6a029590b33808812dc8db795bdcf4b270c345e033b9dd68`
+-- I5 critical evidence manifest：SHA-256 `40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935`
+-- future performance design：SHA-256 `a5b74aa99cb63785aa3993ba7cae40974baa3ab9b6aace71ee9cb815e08d379c`
++- P1 execution release：SHA-256 `05a6efe21a4c110be667b0873d8ac1b26ac692feefea8932f40a506ca9b9027b`
++- P1 normalized matrix：SHA-256 `07ee925756405029084ccf8a48ba02b60b38b0760171a71f0cbde6f08f678466`
++- P1 raw replay report：SHA-256 `91a213e51d043938637be71faafc89169a61d61527bff22ab49c4c8ececc60c3`
++- P1 four-gate assessment：SHA-256 `89147e95f19c461926e302982ab4db3772f1847fa0ca273e05b0df73fe2cd6df`
++- P1 stage report：SHA-256 `1c625037365eea69b9363c61400e709195f9647211308b81100b395f96805853`
++- P4-F1 terminal conclusion：SHA-256 `8ce6736dd7ea1f13d6c272f0420f4588d1e0c9e25949b7b1eabf5bd028b3eeb7`
++- P4-F1 independent review：SHA-256 `e0dc93790e092b99684c64a9d2b11e5ce02a0a16f5235649e3657376835270c8`
+ 
+ ## 使用约定
+ 
+-- 文中“系统实现”仅指仓库内已有、能由代码和测试定位的模块；未来设计不写成既成事实。
+-- 文中“I5”仅指冻结的六单元模拟集成验证；不得重跑、续跑或追加样本。
+-- 文中“性能提升”仅作为待检验假设出现，除非未来结果满足预注册 claim gate。
+-- 任何真实车辆结论、部署阈值、形式化安全或跨域泛化结论均不在当前证据范围内。
+-- 最终排版时可将这些 Markdown 章节转为 LaTeX，但证据哈希和限定语应保留。
++- “系统实现”只指仓库内已有、能由代码和测试定位的模块；设计意图不写成实验事实。
++- I5 只证明集成正确性和可复核性，不承担性能推断。
++- P1 的阳性性能 claim 已正式失败，不再是 pending；不能重跑、挑 seed、追加样本或事后改门。
++- post-P1 性能搜索也已耗尽全局预算；不能修复后重跑 P4、增加 round、回收 retired budget 或
++  访问新 held-out test。
++- P1 population 是三个冻结动态模板在 seeds 5201--5290 下的随机实现，不是 90 个独立几何场景。
++- fixed TEB 只作 contextual reference，不能据描述性均值选 winner。
++- “性能提升”“更安全”“可部署”“泛化到真实车辆”等短语必须按 claims matrix 审查。
++- 最终转为 LaTeX 时应保留证据哈希、效应阈值、阴性结论和限定语。
+diff --git a/src/localization_fastlio/FAST_LIO b/src/localization_fastlio/FAST_LIO
+--- a/src/localization_fastlio/FAST_LIO
++++ b/src/localization_fastlio/FAST_LIO
+@@ -1 +1 @@
+-Subproject commit 7cc4175de6f8ba2edf34bab02a42195b141027e9
++Subproject commit 7cc4175de6f8ba2edf34bab02a42195b141027e9-dirty
+diff --git a/src/navigation_arena/arena-rosnav-3D b/src/navigation_arena/arena-rosnav-3D
+--- a/src/navigation_arena/arena-rosnav-3D
++++ b/src/navigation_arena/arena-rosnav-3D
+@@ -1 +1 @@
+-Subproject commit 634bcb091a90b362087cdba5a9cd3856466d493c
++Subproject commit 634bcb091a90b362087cdba5a9cd3856466d493c-dirty
+diff --git a/src/navigation_arena/forks/gazebo_ros_2Dmap_plugin b/src/navigation_arena/forks/gazebo_ros_2Dmap_plugin
+--- a/src/navigation_arena/forks/gazebo_ros_2Dmap_plugin
++++ b/src/navigation_arena/forks/gazebo_ros_2Dmap_plugin
+@@ -1 +1 @@
+-Subproject commit 7e036c419e8b0aecca6130bb9b9c3913cc1d92b1
++Subproject commit 7e036c419e8b0aecca6130bb9b9c3913cc1d92b1-dirty
+diff --git a/src/navigation_arena/forks/navigation/local_planner/teb b/src/navigation_arena/forks/navigation/local_planner/teb
+--- a/src/navigation_arena/forks/navigation/local_planner/teb
++++ b/src/navigation_arena/forks/navigation/local_planner/teb
+@@ -1 +1 @@
+-Subproject commit b4cf0639775e4521cdf7681158043ad3eef4b01a
++Subproject commit b4cf0639775e4521cdf7681158043ad3eef4b01a-dirty
+diff --git a/src/navigation_arena/forks/pedsim_ros b/src/navigation_arena/forks/pedsim_ros
+--- a/src/navigation_arena/forks/pedsim_ros
++++ b/src/navigation_arena/forks/pedsim_ros
+@@ -1 +1 @@
+-Subproject commit 87bf930bb30ac2c66f488e4d3e49cbc5b35213b4
++Subproject commit 87bf930bb30ac2c66f488e4d3e49cbc5b35213b4-dirty
+diff --git a/src/navigation_arena/forks/robots b/src/navigation_arena/forks/robots
+--- a/src/navigation_arena/forks/robots
++++ b/src/navigation_arena/forks/robots
+@@ -1 +1 @@
+-Subproject commit 4b087d93db4d321cff4c26d560ec6170eb019ae1
++Subproject commit 4b087d93db4d321cff4c26d560ec6170eb019ae1-dirty
+diff --git a/src/perception_livox/livox_ros_driver2 b/src/perception_livox/livox_ros_driver2
+--- a/src/perception_livox/livox_ros_driver2
++++ b/src/perception_livox/livox_ros_driver2
+@@ -1 +1 @@
+-Subproject commit 6b9356cadf77084619ba406e6a0eb41163b08039
++Subproject commit 6b9356cadf77084619ba406e6a0eb41163b08039-dirty
+diff --git a/src/simulation/m2_gazebo/CMakeLists.txt b/src/simulation/m2_gazebo/CMakeLists.txt
+index 9d937b2..4ad3725 100644
+--- a/src/simulation/m2_gazebo/CMakeLists.txt
++++ b/src/simulation/m2_gazebo/CMakeLists.txt
+@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ 
+ find_package(catkin REQUIRED COMPONENTS
+   autolabor_canbus_driver
++  diagnostic_msgs
++  gazebo_msgs
+   geometry_msgs
+   nav_msgs
+   roscpp
+@@ -21,7 +23,8 @@ catkin_python_setup()
+ catkin_package(
+   INCLUDE_DIRS include
+   LIBRARIES m2_ackermann_plugin v2_trajectory_actor_plugin
+-  CATKIN_DEPENDS autolabor_canbus_driver geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf2 tf2_ros
++    v3_reactive_actor_plugin v3_episode_recorder_plugin astra_evidence_plugin astra_reactive_actor_plugin astra_steering_hold_plugin astra_dense_evidence_plugin astra_physical_ackermann_plugin astra_physical_ackermann_p02_plugin
++  CATKIN_DEPENDS autolabor_canbus_driver diagnostic_msgs gazebo_msgs geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf2 tf2_ros
+   DEPENDS GAZEBO
+ )
+ 
+@@ -37,12 +40,45 @@ add_library(v2_trajectory_actor_plugin src/v2_trajectory_actor_plugin.cpp)
+ add_dependencies(v2_trajectory_actor_plugin ${catkin_EXPORTED_TARGETS})
+ target_link_libraries(v2_trajectory_actor_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
+ 
++add_library(v3_reactive_actor_plugin src/v3_reactive_actor_plugin.cpp)
++add_dependencies(v3_reactive_actor_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(v3_reactive_actor_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(v3_episode_recorder_plugin src/v3_episode_recorder_plugin.cpp)
++add_dependencies(v3_episode_recorder_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(v3_episode_recorder_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_evidence_plugin src/astra_evidence_plugin.cpp)
++add_dependencies(astra_evidence_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_evidence_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_reactive_actor_plugin src/astra_reactive_actor_plugin.cpp)
++add_dependencies(astra_reactive_actor_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_reactive_actor_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_steering_hold_plugin src/astra_steering_hold_plugin.cpp)
++add_dependencies(astra_steering_hold_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_steering_hold_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_dense_evidence_plugin src/astra_dense_evidence_plugin.cpp)
++add_dependencies(astra_dense_evidence_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_dense_evidence_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_physical_ackermann_plugin src/astra_physical_ackermann_plugin.cpp)
++add_dependencies(astra_physical_ackermann_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_physical_ackermann_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_physical_ackermann_p02_plugin src/astra_physical_ackermann_p02_plugin.cpp)
++add_dependencies(astra_physical_ackermann_p02_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_physical_ackermann_p02_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
+ catkin_install_python(PROGRAMS scripts/m2_regression_test.py scripts/m2_teb_regression_test.py
+   scripts/v2_scan_transport.py scripts/v2_dynamics_regression_test.py
+   scripts/v2_scene_runtime_probe.py
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+ 
+ install(TARGETS m2_ackermann_plugin v2_trajectory_actor_plugin
++  v3_reactive_actor_plugin v3_episode_recorder_plugin astra_evidence_plugin astra_reactive_actor_plugin astra_steering_hold_plugin astra_dense_evidence_plugin astra_physical_ackermann_plugin astra_physical_ackermann_p02_plugin
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+ install(DIRECTORY config launch urdf worlds
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+diff --git a/src/simulation/m2_gazebo/launch/spawn_m2.launch b/src/simulation/m2_gazebo/launch/spawn_m2.launch
+index 994fcc5..a011ae4 100644
+--- a/src/simulation/m2_gazebo/launch/spawn_m2.launch
++++ b/src/simulation/m2_gazebo/launch/spawn_m2.launch
+@@ -21,6 +21,7 @@
+   <arg name="command_jitter" default="0.0"/>
+   <arg name="laser_topic" default="scan"/>
+   <arg name="laser_noise_stddev" default="0.01"/>
++  <arg name="server_required" default="false"/>
+ 
+   <param name="use_sim_time" value="$(arg use_sim_time)"/>
+   <!-- Independent marker consumed by the fail-closed T03 write gate. -->
+@@ -31,6 +32,7 @@
+     <arg name="paused" value="$(arg paused)"/>
+     <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+     <arg name="extra_gazebo_args" value="--seed $(arg seed)"/>
++    <arg name="server_required" value="$(arg server_required)"/>
+   </include>
+ 
+   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find m2_gazebo)/urdf/m2.urdf.xacro' enable_actuator_dynamics:=$(arg enable_actuator_dynamics) dynamics_seed:=$(arg seed) speed_time_constant:=$(arg speed_time_constant) steering_time_constant:=$(arg steering_time_constant) max_acceleration:=$(arg max_acceleration) max_deceleration:=$(arg max_deceleration) max_brake_deceleration:=$(arg max_brake_deceleration) max_emergency_deceleration:=$(arg max_emergency_deceleration) max_steering_rate:=$(arg max_steering_rate) command_delay:=$(arg command_delay) command_jitter:=$(arg command_jitter) laser_topic:=$(arg laser_topic) laser_noise_stddev:=$(arg laser_noise_stddev)"/>
+diff --git a/src/simulation/m2_gazebo/package.xml b/src/simulation/m2_gazebo/package.xml
+index be686d7..bff3527 100644
+--- a/src/simulation/m2_gazebo/package.xml
++++ b/src/simulation/m2_gazebo/package.xml
+@@ -9,6 +9,7 @@
+ 
+   <buildtool_depend>catkin</buildtool_depend>
+   <build_depend>autolabor_canbus_driver</build_depend>
++  <depend>diagnostic_msgs</depend>
+   <build_depend>gazebo_dev</build_depend>
+   <build_depend>gazebo_ros</build_depend>
+   <build_depend>geometry_msgs</build_depend>
+@@ -28,6 +29,7 @@
+   <exec_depend>actionlib</exec_depend>
+   <exec_depend>move_base_msgs</exec_depend>
+   <exec_depend>move_base</exec_depend>
++  <exec_depend>map_server</exec_depend>
+   <exec_depend>nav_msgs</exec_depend>
+   <exec_depend>nav_world_model</exec_depend>
+   <exec_depend>robot_state_publisher</exec_depend>
+@@ -37,6 +39,7 @@
+   <exec_depend>sensor_msgs</exec_depend>
+   <exec_depend>std_msgs</exec_depend>
+   <exec_depend>std_srvs</exec_depend>
++  <exec_depend>topic_tools</exec_depend>
+   <exec_depend>tf2</exec_depend>
+   <exec_depend>tf2_ros</exec_depend>
+   <exec_depend>teb_mode_manager</exec_depend>
+diff --git a/src/simulation/m2_gazebo/tests/test_ackermann_kinematics.cpp b/src/simulation/m2_gazebo/tests/test_ackermann_kinematics.cpp
+index 65de009..933d846 100644
+--- a/src/simulation/m2_gazebo/tests/test_ackermann_kinematics.cpp
++++ b/src/simulation/m2_gazebo/tests/test_ackermann_kinematics.cpp
+@@ -1,9 +1,11 @@
+ #include <cmath>
++#include <limits>
+ 
+ #include <gtest/gtest.h>
+ #include <m2_gazebo/ackermann_kinematics.h>
+ #include <m2_gazebo/actuator_dynamics.h>
+ #include <m2_gazebo/trajectory_interpolation.h>
++#include <m2_gazebo/v3_reactive_actor.h>
+ 
+ TEST(AckermannKinematics, ZeroAndLowSpeedAreFinite) {
+   EXPECT_DOUBLE_EQ(0.0, m2_gazebo::twistToSteering(0.0, 1.0, 0.65, 0.4964));
+@@ -115,6 +117,69 @@ TEST(TrajectoryActor, LoopIsDeterministic) {
+   EXPECT_NEAR(first.y_m, looped.y_m, 1e-12);
+ }
+ 
++TEST(V3ReactiveActor, PolicyParsingIsClosed) {
++  m2_gazebo::V3ActorPolicy policy;
++  EXPECT_TRUE(m2_gazebo::parseV3ActorPolicy("cautious", &policy));
++  EXPECT_EQ(m2_gazebo::V3ActorPolicy::kCautious, policy);
++  EXPECT_TRUE(m2_gazebo::parseV3ActorPolicy("assertive", &policy));
++  EXPECT_EQ(m2_gazebo::V3ActorPolicy::kAssertive, policy);
++  EXPECT_TRUE(m2_gazebo::parseV3ActorPolicy("hesitant", &policy));
++  EXPECT_EQ(m2_gazebo::V3ActorPolicy::kHesitant, policy);
++  EXPECT_FALSE(m2_gazebo::parseV3ActorPolicy("candidate_aware", &policy));
++}
++
++TEST(V3ReactiveActor, PoliciesRespondDifferentlyToObservedConflict) {
++  m2_gazebo::V3ReactiveActorConfig cautious;
++  cautious.policy = m2_gazebo::V3ActorPolicy::kCautious;
++  m2_gazebo::V3ReactiveActorConfig assertive = cautious;
++  assertive.policy = m2_gazebo::V3ActorPolicy::kAssertive;
++  m2_gazebo::V3ReactiveActorConfig hesitant = cautious;
++  hesitant.policy = m2_gazebo::V3ActorPolicy::kHesitant;
++  m2_gazebo::V3ReactiveActorState initial;
++  initial.speed_mps = 1.0;
++  const auto cautious_next = m2_gazebo::advanceV3ReactiveActor(
++      initial, cautious, 2.0, 2.0, 1.0, 1.0, 0.1);
++  const auto assertive_next = m2_gazebo::advanceV3ReactiveActor(
++      initial, assertive, 2.0, 2.0, 1.0, 1.0, 0.1);
++  const auto hesitant_next = m2_gazebo::advanceV3ReactiveActor(
++      initial, hesitant, 2.0, 2.0, 1.0, 1.0, 0.1);
++  EXPECT_TRUE(cautious_next.responding);
++  EXPECT_TRUE(assertive_next.responding);
++  EXPECT_TRUE(hesitant_next.responding);
++  EXPECT_LT(cautious_next.speed_mps, initial.speed_mps);
++  EXPECT_GT(assertive_next.speed_mps, initial.speed_mps);
++  EXPECT_NE(hesitant_next.speed_mps, assertive_next.speed_mps);
++}
++
++TEST(V3ReactiveActor, NoResponseWithoutObservedApproach) {
++  m2_gazebo::V3ReactiveActorConfig config;
++  m2_gazebo::V3ReactiveActorState initial;
++  initial.speed_mps = config.base_speed_mps;
++  const auto next = m2_gazebo::advanceV3ReactiveActor(
++      initial, config, 2.0, 2.0, -0.1, 1.0, 0.1);
++  EXPECT_FALSE(next.responding);
++  EXPECT_FALSE(next.ego_approaching);
++  EXPECT_NEAR(config.base_speed_mps, next.speed_mps, 1e-12);
++}
++
++TEST(V3ReactiveActor, SeedJitterIsDeterministicAndBounded) {
++  const double first = m2_gazebo::v3SignedSeedJitter(6101U);
++  EXPECT_DOUBLE_EQ(first, m2_gazebo::v3SignedSeedJitter(6101U));
++  EXPECT_GE(first, -1.0);
++  EXPECT_LE(first, 1.0);
++  EXPECT_NE(first, m2_gazebo::v3SignedSeedJitter(6102U));
++}
++
++TEST(V3ReactiveActor, ResponseEnableGateIsClosedAndDeterministic) {
++  EXPECT_TRUE(m2_gazebo::v3ResponseEnabled(0.0, 0.0));
++  EXPECT_FALSE(m2_gazebo::v3ResponseEnabled(12.50, 12.55));
++  EXPECT_FALSE(m2_gazebo::v3ResponseEnabled(12.549, 12.55));
++  EXPECT_TRUE(m2_gazebo::v3ResponseEnabled(12.55, 12.55));
++  EXPECT_FALSE(m2_gazebo::v3ResponseEnabled(
++      std::numeric_limits<double>::quiet_NaN(), 12.55));
++  EXPECT_FALSE(m2_gazebo::v3ResponseEnabled(12.55, -1.0));
++}
++
+ int main(int argc, char** argv) {
+   testing::InitGoogleTest(&argc, argv);
+   return RUN_ALL_TESTS();
+diff --git a/src/simulation/m2_gazebo/urdf/m2_base.xacro b/src/simulation/m2_gazebo/urdf/m2_base.xacro
+index e174428..82aeef6 100644
+--- a/src/simulation/m2_gazebo/urdf/m2_base.xacro
++++ b/src/simulation/m2_gazebo/urdf/m2_base.xacro
+@@ -26,7 +26,7 @@
+         <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+         <material name="m2_tire"><color rgba="0.06 0.06 0.06 1"/></material>
+       </visual>
+-      <collision name="${prefix}chassis_collision">
++      <collision name="${prefix}${name}_wheel_collision">
+         <origin rpy="${pi/2} 0 0"/>
+         <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+       </collision>
+@@ -80,7 +80,7 @@
+         <geometry><box size="${body_length} ${body_width} ${body_height}"/></geometry>
+         <material name="m2_body"><color rgba="0.12 0.32 0.62 1"/></material>
+       </visual>
+-      <collision>
++      <collision name="${prefix}chassis_collision">
+         <origin xyz="0 0 ${body_center_z}"/>
+         <geometry><box size="${body_length} ${body_width} ${body_height}"/></geometry>
+       </collision>
+diff --git a/src/tools/thesis_experiment/CMakeLists.txt b/src/tools/thesis_experiment/CMakeLists.txt
+index 8b91981..e30ab06 100644
+--- a/src/tools/thesis_experiment/CMakeLists.txt
++++ b/src/tools/thesis_experiment/CMakeLists.txt
+@@ -132,6 +132,239 @@ catkin_install_python(PROGRAMS
+   scripts/v2_04g_r6_i1_runtime_control.py
+   scripts/v2_04g_r6_i1_bounded_validation.py
+   scripts/assess_v2_04g_r6_i1.py
++  scripts/build_v3_00_foundation.py
++  scripts/review_v3_00_foundation.py
++  scripts/build_v3_01_readiness.py
++  scripts/review_v3_01_readiness.py
++  scripts/run_v3_01_qualification.py
++  scripts/assess_v3_01_qualification.py
++  scripts/build_v3_01_r1_readiness.py
++  scripts/review_v3_01_r1_readiness.py
++  scripts/run_v3_01_r1_qualification.py
++  scripts/assess_v3_01_r1_qualification.py
++  scripts/build_v3_01_r2_readiness.py
++  scripts/review_v3_01_r2_readiness.py
++  scripts/run_v3_01_r2_qualification.py
++  scripts/assess_v3_01_r2_qualification.py
++  scripts/review_v3_01_r2_result.py
++  scripts/build_v3_02_a1_readiness.py
++  scripts/review_v3_02_a1_readiness.py
++  scripts/run_v3_02_a1_data.py
++  scripts/fit_v3_02_predictor.py
++  scripts/review_v3_02_model.py
++  scripts/fit_v3_02_a1_r1.py
++  scripts/review_v3_02_a1_r1_model.py
++  scripts/build_v3_02_t1_readiness.py
++  scripts/review_v3_02_t1_readiness.py
++  scripts/run_v3_02_t1_test.py
++  scripts/assess_v3_02_t1.py
++  scripts/review_v3_02_t1_result.py
++  scripts/fit_v3_02_b1.py
++  scripts/review_v3_02_b1_model.py
++  scripts/build_v3_02_t2_readiness.py
++  scripts/review_v3_02_t2_readiness.py
++  scripts/run_v3_02_t2_test.py
++  scripts/assess_v3_02_t2.py
++  scripts/review_v3_02_t2_result.py
++  scripts/build_v3_02_c1_readiness.py
++  scripts/review_v3_02_c1_readiness.py
++  scripts/run_v3_02_c1_data.py
++  scripts/fit_v3_02_c1.py
++  scripts/review_v3_02_c1_model.py
++  scripts/fit_v3_02_c1_r1.py
++  scripts/review_v3_02_c1_r1_model.py
++  scripts/build_v3_02_c2_readiness.py
++  scripts/review_v3_02_c2_readiness.py
++  scripts/run_v3_02_c2_test.py
++  scripts/assess_v3_02_c2.py
++  scripts/review_v3_02_c2_result.py
++  scripts/review_v3_02_c2_i1_integrity.py
++  scripts/build_v3_02_d1_readiness.py
++  scripts/review_v3_02_d1_readiness.py
++  scripts/run_v3_02_d1_data.py
++  scripts/assess_v3_02_d1_data.py
++  scripts/fit_v3_02_d1.py
++  scripts/review_v3_02_d1_model.py
++  scripts/build_v3_02_d2_readiness.py
++  scripts/review_v3_02_d2_readiness.py
++  scripts/run_v3_02_d2_test.py
++  scripts/assess_v3_02_d2.py
++  scripts/review_v3_02_d2_result.py
++  scripts/build_v3_03_a0_safe_planner.py
++  scripts/review_v3_03_a0_safe_planner.py
++  scripts/build_v3_03_a1_readiness.py
++  scripts/review_v3_03_a1_readiness.py
++  scripts/run_v3_03_a1_integration.py
++  scripts/assess_v3_03_a1_integration.py
++  scripts/review_v3_03_a1_result.py
++  scripts/build_v3_03_a2_readiness.py
++  scripts/review_v3_03_a2_readiness.py
++  scripts/run_v3_03_a2_integration.py
++  scripts/assess_v3_03_a2_integration.py
++  scripts/review_v3_03_a2_result.py
++  scripts/build_v3_03_a3_readiness.py
++  scripts/review_v3_03_a3_readiness.py
++  scripts/run_v3_03_a3_integration.py
++  scripts/assess_v3_03_a3_integration.py
++  scripts/review_v3_03_a3_result.py
++  scripts/build_v3_03_b0_mode_gate.py
++  scripts/review_v3_03_b0_mode_gate.py
++  scripts/build_v3_02_e1_readiness.py
++  scripts/review_v3_02_e1_readiness.py
++  scripts/run_v3_02_e1_test.py
++  scripts/assess_v3_02_e1.py
++  scripts/review_v3_02_e1_result.py
++  scripts/build_v3_03_c0_closed_loop.py
++  scripts/review_v3_03_c0_closed_loop.py
++  scripts/build_v3_03_c1_readiness.py
++  scripts/review_v3_03_c1_readiness.py
++  scripts/run_v3_03_c1_closed_loop.py
++  scripts/assess_v3_03_c1_closed_loop.py
++  scripts/review_v3_03_c1_result.py
++  scripts/build_v3_03_c2_readiness.py
++  scripts/review_v3_03_c2_readiness.py
++  scripts/run_v3_03_c2_closed_loop.py
++  scripts/assess_v3_03_c2_closed_loop.py
++  scripts/review_v3_03_c2_result.py
++  scripts/build_v3_03_c3_commitment_invariance.py
++  scripts/review_v3_03_c3_commitment_invariance.py
++  scripts/build_v3_03_c4_readiness.py
++  scripts/review_v3_03_c4_readiness.py
++  scripts/run_v3_03_c4_closed_loop.py
++  scripts/assess_v3_03_c4_closed_loop.py
++  scripts/review_v3_03_c4_result.py
++  scripts/review_v3_03_c4_failure.py
++  scripts/build_v3_03_c5_post_conflict_reachable.py
++  scripts/review_v3_03_c5_post_conflict_reachable.py
++  scripts/build_v3_03_c6_readiness.py
++  scripts/review_v3_03_c6_readiness.py
++  scripts/run_v3_03_c6_closed_loop.py
++  scripts/assess_v3_03_c6_closed_loop.py
++  scripts/review_v3_03_c6_result.py
++  scripts/build_v3_04_a0_learning_audit.py
++  scripts/review_v3_04_a0_learning_audit.py
++  scripts/build_v3_05_a0_readiness.py
++  scripts/review_v3_05_a0_readiness.py
++  scripts/run_v3_05_a0_formal.py
++  scripts/assess_v3_05_a0_formal.py
++  scripts/review_v3_05_a0_result.py
++  scripts/freeze_v3_05_a0_failure.py
++  scripts/build_v3_05_r1_port_repair.py
++  scripts/review_v3_05_r1_port_repair.py
++  scripts/build_v3_05_b0_readiness.py
++  scripts/review_v3_05_b0_readiness.py
++  scripts/run_v3_05_b0_formal.py
++  scripts/assess_v3_05_b0_formal.py
++  scripts/review_v3_05_b0_result.py
++  scripts/build_v3_06_a0_posthoc_attribution.py
++  scripts/review_v3_06_a0_posthoc_attribution.py
++  scripts/build_v3_06_b0_readiness.py
++  scripts/review_v3_06_b0_readiness.py
++  scripts/run_v3_06_b0_calibration.py
++  scripts/assess_v3_06_b0_calibration.py
++  scripts/review_v3_06_b0_result.py
++  scripts/build_v3_06_c0_low_speed_candidate.py
++  scripts/review_v3_06_c0_low_speed_candidate.py
++  scripts/build_v3_06_c1_readiness.py
++  scripts/review_v3_06_c1_readiness.py
++  scripts/run_v3_06_c1_calibration.py
++  scripts/assess_v3_06_c1_calibration.py
++  scripts/review_v3_06_c1_result.py
++  scripts/assess_v3_06_c1_i1_result.py
++  scripts/review_v3_06_c1_i1_result.py
++  scripts/build_v3_06_c2_minimal_planner.py
++  scripts/review_v3_06_c2_minimal_planner.py
++  scripts/build_v3_06_c3_readiness.py
++  scripts/review_v3_06_c3_readiness.py
++  scripts/run_v3_06_c3_qualification.py
++  scripts/assess_v3_06_c3_qualification.py
++  scripts/review_v3_06_c3_result.py
++  scripts/build_v3_06_c4_v080_dedup_planner.py
++  scripts/review_v3_06_c4_v080_dedup_planner.py
++  scripts/review_v3_06_c4_failure.py
++  scripts/build_v3_06_c5_prediction_cache.py
++  scripts/review_v3_06_c5_prediction_cache.py
++  scripts/build_v3_06_c5_r1_exception_cache.py
++  scripts/review_v3_06_c5_r1_exception_cache.py
++  scripts/build_v3_06_c6_readiness.py
++  scripts/review_v3_06_c6_readiness.py
++  scripts/run_v3_06_c6_qualification.py
++  scripts/assess_v3_06_c6_qualification.py
++  scripts/review_v3_06_c6_result.py
++  scripts/build_v3_06_d0_c6_failure_attribution.py
++  scripts/review_v3_06_d0_c6_failure_attribution.py
++  scripts/build_v3_07_a0_spatial_candidate_foundation.py
++  scripts/review_v3_07_a0_spatial_candidate_foundation.py
++  scripts/build_v3_07_a1_readiness.py
++  scripts/review_v3_07_a1_readiness.py
++  scripts/run_v3_07_a1_identifiability.py
++  scripts/assess_v3_07_a1_identifiability.py
++  scripts/review_v3_07_a1_result.py
++  scripts/freeze_v3_07_a1_failure.py
++  scripts/build_v3_07_a2_readiness.py
++  scripts/review_v3_07_a2_readiness.py
++  scripts/run_v3_07_a2_identifiability.py
++  scripts/assess_v3_07_a2_identifiability.py
++  scripts/review_v3_07_a2_result.py
++  scripts/build_v3_07_a3_readiness.py
++  scripts/review_v3_07_a3_readiness.py
++  scripts/run_v3_07_a3_mode_gate.py
++  scripts/assess_v3_07_a3_safe_overlap.py
++  scripts/review_v3_07_a3_result.py
++  scripts/build_v3_07_b0_readiness.py
++  scripts/review_v3_07_b0_readiness.py
++  scripts/run_v3_07_b0_data.py
++  scripts/assess_v3_07_b0_data.py
++  scripts/review_v3_07_b0_data.py
++  scripts/fit_v3_07_b0_predictor.py
++  scripts/review_v3_07_b0_predictor.py
++  scripts/freeze_v3_07_b0_preexecution_failure.py
++  scripts/build_v3_07_b0_r1_readiness.py
++  scripts/review_v3_07_b0_r1_readiness.py
++  scripts/run_v3_07_b0_r1_data.py
++  scripts/assess_v3_07_b0_r1_data.py
++  scripts/review_v3_07_b0_r1_data.py
++  scripts/fit_v3_07_b0_r1_predictor.py
++  scripts/review_v3_07_b0_r1_predictor.py
++  scripts/build_v3_07_b1_readiness.py
++  scripts/review_v3_07_b1_readiness.py
++  scripts/run_v3_07_b1_heldout.py
++  scripts/assess_v3_07_b1_heldout.py
++  scripts/review_v3_07_b1_result.py
++  scripts/build_v3_08_a0_spatial_safe_planner.py
++  scripts/review_v3_08_a0_spatial_safe_planner.py
++  scripts/build_v3_08_a1_readiness.py
++  scripts/review_v3_08_a1_readiness.py
++  scripts/run_v3_08_a1_integration.py
++  scripts/assess_v3_08_a1_integration.py
++  scripts/review_v3_08_a1_result.py
++  scripts/build_v3_08_a1_r1_readiness.py
++  scripts/review_v3_08_a1_r1_readiness.py
++  scripts/run_v3_08_a1_r1_integration.py
++  scripts/assess_v3_08_a1_r1_integration.py
++  scripts/review_v3_08_a1_r1_result.py
++  scripts/analyze_v3_08_a2_r1_failure.py
++  scripts/review_v3_08_a2_r1_failure.py
++  scripts/build_v3_08_a3_readiness.py
++  scripts/review_v3_08_a3_readiness.py
++  scripts/run_v3_08_a3_integration.py
++  scripts/assess_v3_08_a3_integration.py
++  scripts/review_v3_08_a3_result.py
++  scripts/build_v3_09_q1_readiness.py
++  scripts/review_v3_09_q1_readiness.py
++  scripts/run_v3_09_q1_qualification.py
++  scripts/assess_v3_09_q1_qualification.py
++  scripts/review_v3_09_q1_result.py
++  scripts/build_v3_09_q1_r1_readiness.py
++  scripts/review_v3_09_q1_r1_readiness.py
++  scripts/run_v3_09_q1_r1_qualification.py
++  scripts/assess_v3_09_q1_r1_qualification.py
++  scripts/review_v3_09_q1_r1_result.py
++  scripts/build_v3_09_f1_readiness.py
++  scripts/review_v3_09_f1_readiness.py
++  scripts/run_v3_09_f1_formal.py
++  scripts/assess_v3_09_f1_formal.py
++  scripts/review_v3_09_f1_result.py
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
+ 
+@@ -165,5 +398,57 @@ if(CATKIN_ENABLE_TESTING)
+   catkin_add_nosetests(tests/test_v2_04g_ttc_d1.py)
+   catkin_add_nosetests(tests/test_v2_04g_r6.py)
+   catkin_add_nosetests(tests/test_v2_04g_r6_i1.py)
++  catkin_add_nosetests(tests/test_v3_00_foundation.py)
++  catkin_add_nosetests(tests/test_v3_01_qualification.py)
++  catkin_add_nosetests(tests/test_v3_01_r1.py)
++  catkin_add_nosetests(tests/test_v3_01_r2.py)
++  catkin_add_nosetests(tests/test_v3_02_predictor.py)
++  catkin_add_nosetests(tests/test_v3_02_a1_r1.py)
++  catkin_add_nosetests(tests/test_v3_02_t1.py)
++  catkin_add_nosetests(tests/test_v3_02_b1.py)
++  catkin_add_nosetests(tests/test_v3_02_t2.py)
++  catkin_add_nosetests(tests/test_v3_02_c1.py)
++  catkin_add_nosetests(tests/test_v3_02_c1_r1.py)
++  catkin_add_nosetests(tests/test_v3_02_c2.py)
++  catkin_add_nosetests(tests/test_v3_02_d1.py)
++  catkin_add_nosetests(tests/test_v3_02_d2.py)
++  catkin_add_nosetests(tests/test_v3_03_a0_safe_planner.py)
++  catkin_add_nosetests(tests/test_v3_03_a1.py)
++  catkin_add_nosetests(tests/test_v3_03_a2.py)
++  catkin_add_nosetests(tests/test_v3_03_a3.py)
++  catkin_add_nosetests(tests/test_v3_03_b0_mode_gate.py)
++  catkin_add_nosetests(tests/test_v3_02_e1.py)
++  catkin_add_nosetests(tests/test_v3_03_c0_closed_loop.py)
++  catkin_add_nosetests(tests/test_v3_03_c1.py)
++  catkin_add_nosetests(tests/test_v3_03_c2.py)
++  catkin_add_nosetests(tests/test_v3_03_c3_commitment_invariance.py)
++  catkin_add_nosetests(tests/test_v3_03_c4.py)
++  catkin_add_nosetests(tests/test_v3_03_c5_post_conflict_reachable.py)
++  catkin_add_nosetests(tests/test_v3_03_c6.py)
++  catkin_add_nosetests(tests/test_v3_04_a0_learning_audit.py)
++  catkin_add_nosetests(tests/test_v3_05_a0.py)
++  catkin_add_nosetests(tests/test_v3_05_r1.py)
++  catkin_add_nosetests(tests/test_v3_05_b0.py)
++  catkin_add_nosetests(tests/test_v3_06_a0_posthoc_attribution.py)
++  catkin_add_nosetests(tests/test_v3_06_b0.py)
++  catkin_add_nosetests(tests/test_v3_06_c0_low_speed_candidate.py)
++  catkin_add_nosetests(tests/test_v3_06_c1.py)
++  catkin_add_nosetests(tests/test_v3_06_c3.py)
++  catkin_add_nosetests(tests/test_v3_06_c6.py)
++  catkin_add_nosetests(tests/test_v3_06_d0_c6_failure_attribution.py)
++  catkin_add_nosetests(tests/test_v3_07_a0_spatial_candidate_foundation.py)
++  catkin_add_nosetests(tests/test_v3_07_a1.py)
++  catkin_add_nosetests(tests/test_v3_07_a2.py)
++  catkin_add_nosetests(tests/test_v3_07_a3.py)
++  catkin_add_nosetests(tests/test_v3_07_b0.py)
++  catkin_add_nosetests(tests/test_v3_07_b0_r1.py)
++  catkin_add_nosetests(tests/test_v3_07_b1.py)
++  catkin_add_nosetests(tests/test_v3_08_a0.py)
++  catkin_add_nosetests(tests/test_v3_08_a1.py)
++  catkin_add_nosetests(tests/test_v3_08_a1_r1.py)
++  catkin_add_nosetests(tests/test_v3_08_a3.py)
++  catkin_add_nosetests(tests/test_v3_09_q1.py)
++  catkin_add_nosetests(tests/test_v3_09_q1_r1.py)
++  catkin_add_nosetests(tests/test_v3_09_f1.py)
+   add_rostest(tests/t04_t06_pipeline_integration.test)
+ endif()

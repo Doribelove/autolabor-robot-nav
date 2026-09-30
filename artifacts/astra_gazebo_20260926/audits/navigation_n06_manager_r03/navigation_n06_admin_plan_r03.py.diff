@@ -1,0 +1,20 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan_r02.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan_r03.py
+@@ -13,7 +13,7 @@
+ import shutil
+ import tempfile
+ 
+-import navigation_n06_integrity_r02 as q
++import navigation_n06_integrity_r03 as q
+ 
+ FIELDS={
+  'seed_registry.csv':q.REGISTRY_FIELDS,
+@@ -70,7 +70,7 @@
+             updates[name]='retired_unrun_after_terminal_n06';status='retired_unrun_after_terminal_stop';meta={}
+         run={k:'' for k in FIELDS['run_manifest.csv']};run.update(run_id=name)
+         for k in run:
+-            if k in meta:run[k]=str(meta[k])
++            if k!='run_id' and k in meta:run[k]=str(meta[k])
+         run_rows.append(run)
+         exp={k:'' for k in FIELDS['EXPERIMENTS.csv']}
+         exp.update(run_id=name,split='development',candidate_id=row['method'],method=row['method'],scene_id=row['scene_id'],layout_id=row['layout_id'],seed=str(row['seed']),status=status)

@@ -1,0 +1,3425 @@
+schema_version: '1.0'
+architecture_generation: v4
+stage: V4-02-F1
+status: learning_value_audit_complete
+training_steps: 0
+simulation_only: true
+hardware_accessed: false
+factor:
+  path: src/application/v4_scope_rl/config/v4_02_f1_response_persistence_preregistration.yaml
+  sha256: 4c6e400ac54288a99bb7a29af1570cd897768c5398d2217348f4a7a4da408f47
+seed_range_inclusive:
+- 421100
+- 421199
+summary:
+  block_count: 100
+  counterfactual_candidate_episode_count: 600
+  analytic_prefix_state_count: 435
+  safe_multiaction_state_fraction: 1.0
+  positive_sequential_regret_block_fraction: 0.17
+  mean_relative_time_regret: 0.006165462225946097
+  maximum_relative_time_regret: 0.11428571428571428
+  safe_multiaction_gate_pass: true
+  sequential_regret_gate_pass: true
+  audit_gate_pass: true
+blocks:
+- seed: 421100
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.065552879553897
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421101
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.113963823557889
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.030303030303030304
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421102
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.1909825247825652
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.030303030303030304
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421103
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -0.9783014087978129
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421104
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1765090905144304
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421105
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.4262895649882932
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421106
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0304791647134701
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.03125
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421107
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.2355356621043403
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421108
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1404030049906644
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421109
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0850721820215754
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421110
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.0852713008993993
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421111
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.2702999498368805
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421112
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.1308887556599727
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421113
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1646509868336867
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421114
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0733087867291815
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.5
+  best_counterfactual_restricted_elapsed_s: 8.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421115
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.2768248785774943
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421116
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1351850115678026
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421117
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -0.9487333202885511
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.03125
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421118
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.314133452624369
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421119
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -0.9414388655559479
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421120
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.3266589884017468
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421121
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1910361502015698
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421122
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.058418608167804
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421123
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.3920577254314233
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421124
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.600505858440612
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421125
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.0307536850654988
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421126
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.2832885223233816
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.03225806451612903
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421127
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 70.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.515389108658015
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421128
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0807215683385203
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421129
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.0596392212232566
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421130
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -0.9555100831692913
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421131
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.3200706100500945
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421132
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0813380266191248
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421133
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -0.9114307639642169
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421134
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.2748436618224885
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421135
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0882123438506461
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421136
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.2656208110804226
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421137
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1743621678887624
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421138
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -0.9418338241477924
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421139
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -0.9623268990604901
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421140
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.159598549029377
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421141
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.1293957212674013
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.0
+  best_counterfactual_restricted_elapsed_s: 7.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.0
+- seed: 421142
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 5
+  boundary_actor_coordinate_m: -0.9498207978386652
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421143
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -0.9566873775668563
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421144
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0044610835409935
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421145
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 5
+  boundary_actor_coordinate_m: -0.9817523705019003
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421146
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.2165683057997052
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.03225806451612903
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421147
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1436284034475555
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421148
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.269785307775913
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421149
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -0.9489341166174898
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421150
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0138424547192217
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421151
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.094693931995726
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421152
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 5
+  boundary_actor_coordinate_m: -1.0024337800208194
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421153
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.1995968776479422
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.5
+  best_counterfactual_restricted_elapsed_s: 8.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421154
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1693993225089452
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421155
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.537160169867274
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421156
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0433885895695276
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421157
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.282670568925822
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.11428571428571428
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.75
+- seed: 421158
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.1334510257647064
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421159
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 5
+  boundary_actor_coordinate_m: -1.0817206584338952
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.5
+  best_counterfactual_restricted_elapsed_s: 8.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421160
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.059533335545567
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421161
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1922674572428034
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421162
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.1509361648067424
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.03125
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421163
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1406264934553647
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421164
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0149926743882278
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.030303030303030304
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421165
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -0.9441586135745886
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.03125
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421166
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.3466995035848608
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.03225806451612903
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421167
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.091260596800038
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421168
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 5
+  boundary_actor_coordinate_m: -0.9077815426501146
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.030303030303030304
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.25
+- seed: 421169
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 90.0
+  boundary_decision: 5
+  boundary_actor_coordinate_m: -0.9397715232702053
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421170
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.0007331103365413
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421171
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.2271721212609386
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421172
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.2904444473485697
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.03225806451612903
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421173
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.4569978119027405
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421174
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0557116954156889
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421175
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0669338430544175
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421176
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -0.9552194339147774
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421177
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.007274864570031
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421178
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.0093567851218839
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421179
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 110.0
+  boundary_decision: 5
+  boundary_actor_coordinate_m: -0.9293291716065197
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421180
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.16110198461686
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421181
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0623469744982001
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421182
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.0002311224125076
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421183
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1559506602210412
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.25
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421184
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.0498749839591737
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.03125
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421185
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0363804157257779
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421186
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -0.9939611818474591
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421187
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.3389804606343005
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.03225806451612903
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421188
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 90.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0414410314414457
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421189
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0592868460909795
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421190
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.0156220498603408
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421191
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.090872381420951
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 7.75
+  relative_time_regret: 0.03125
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421192
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 90.0
+  boundary_decision: 3
+  boundary_actor_coordinate_m: -1.1893516548910061
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.5
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.5
+- seed: 421193
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.1237959967975826
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0
+- seed: 421194
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 90.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.1781591644586213
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.75
+  best_counterfactual_restricted_elapsed_s: 7.5
+  relative_time_regret: 0.03225806451612903
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.75
+- seed: 421195
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 5
+  boundary_actor_coordinate_m: -0.9526359261703864
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.5
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421196
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.1441807760249592
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421197
+  actor_policy_evaluator_only: hesitant
+  actor_angle_deg: 110.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -1.1111494760667204
+  analytic_action_id: 1
+  analytic_restricted_elapsed_s: 8.25
+  best_counterfactual_restricted_elapsed_s: 8.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.25
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: false
+    restricted_elapsed_s: null
+- seed: 421198
+  actor_policy_evaluator_only: assertive
+  actor_angle_deg: 110.0
+  boundary_decision: 2
+  boundary_actor_coordinate_m: -1.1939395283177612
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 7.25
+  best_counterfactual_restricted_elapsed_s: 7.25
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 7.75
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 7.5
+  - action_id: 2
+    action_name: straight_v080
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 7.25
+- seed: 421199
+  actor_policy_evaluator_only: cautious
+  actor_angle_deg: 70.0
+  boundary_decision: 4
+  boundary_actor_coordinate_m: -0.9149654733324228
+  analytic_action_id: 5
+  analytic_restricted_elapsed_s: 8.0
+  best_counterfactual_restricted_elapsed_s: 8.0
+  relative_time_regret: 0.0
+  alternatives:
+  - action_id: 0
+    action_name: certified_stop
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 1
+    action_name: straight_v040
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 2
+    action_name: straight_v080
+    accepted: true
+    restricted_elapsed_s: 8.0
+  - action_id: 3
+    action_name: straight_v120
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 4
+    action_name: spatial_left_v100
+    accepted: false
+    restricted_elapsed_s: null
+  - action_id: 5
+    action_name: spatial_right_v100
+    accepted: true
+    restricted_elapsed_s: 8.0

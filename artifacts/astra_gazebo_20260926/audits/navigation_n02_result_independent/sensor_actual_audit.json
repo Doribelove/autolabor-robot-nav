@@ -1,0 +1,572 @@
+{
+  "schema": "independent_N02_actual_sensor_protocol_audit",
+  "pass": false,
+  "checks": {
+    "six_actual_identity_old_sources_exact_release_binding": true,
+    "actual_checkpoint_frozen_exact": true,
+    "node_sha256_actual_bound": true,
+    "helper_sha256_actual_bound": true,
+    "actual_graph_exact_sensor_roster_and_command_authority": true,
+    "actual_identity_and_trace_no_oracle_fields": true,
+    "report_matches_saved_and_counts": true,
+    "all_actual_trace_sources_exist_at_or_before_publication": true,
+    "six_real_distinct_scan_history_with_causal_order": true,
+    "trace_sensor_and_committed_history_freshness_200ms": false,
+    "decision_source_health_and_masks_recorded": true,
+    "command_events_unique_ordered_gate_identity": true,
+    "all_event_payloads_ordered_actual_private_Twist": true,
+    "all_method_public_commands_finite_planar": true,
+    "first_complete_method_terminal_preserved": true,
+    "all_actual_coordinator_terminal_outputs_zero": true,
+    "first_actual_odom_gate_and_goal_exact": true,
+    "all_odom_actual_source_20ms_through_watermark": true,
+    "saved_TF_source_brackets_all_used_scans": true,
+    "route_audit_only_limitation_explicit": true
+  },
+  "trace_counts": {
+    "decision": 37,
+    "control": 182
+  },
+  "private_command_event_count": 182,
+  "actual_method_twist_count": 245,
+  "actual_public_twist_count": 336,
+  "roster_samples": 46,
+  "identity": {
+    "run_id": "astra_navigation_n02_frozen_r2_v060_sensor_lifecycle_v1",
+    "seed": 260926033,
+    "method": "frozen_r2_v060_sensor_lifecycle_v1",
+    "frozen_source_bindings": [
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+        "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_r2_episode.py",
+        "sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+        "sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+        "sha256": "3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/asymmetric_ppo.py",
+        "sha256": "b17462537c8836a31fafbcd900c82fdd85bb55124c44dd98bb90418e5a74407f"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v3_scope_planner/src/v3_scope_planner/execution_core.py",
+        "sha256": "6aef3146a5360179ea49cea2dda31383ad0935389dfa874191b3df27d2f780e0"
+      }
+    ],
+    "checkpoint_sha256": "deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8",
+    "node_sha256": "765238653925e232243c1caa01a58d9034e1ee7171f0f39b1d1032d31ddd3712",
+    "helper_sha256": "791529d1436144d286a2e3a86a5de638e3f5a60ee579a36074017d3aac3ff71b",
+    "algorithm_body": "inherited original R1 execute_sensor and original R2 apply_candidate_variant",
+    "algorithm_sources_unchanged": true,
+    "old_full_episode_protocol_unchanged": false,
+    "scene_manifest_sha256": "538089251e1763afedc2b5b057d07f49c234ce1a9c58043acb1661770f94026a",
+    "static_union": {
+      "rectangle_count": 43,
+      "blocked_cell_count": 3446,
+      "cell_union_mismatch": 0,
+      "overlap_cells": 0
+    },
+    "route_use": "audit_only",
+    "full_polyline_consumed": false,
+    "shared_route_consumer_semantics_equal": false,
+    "oracle_input": false,
+    "scan_history_semantics": "six real accepted scans; inherited float >=.20s rule and 72-beam resampling",
+    "elapsed_feature_origin": "inherited execute_sensor entry, formal shared gate remains separate",
+    "physical_safety_certified": false,
+    "primary_matrix_ready": false,
+    "command_generation_protocol": "publication_ros_time_and_gate_identity_not_driver_acceptance"
+  },
+  "input_receipt": {
+    "run_id": "astra_navigation_n02_frozen_r2_v060_sensor_lifecycle_v1",
+    "seed": 260926033,
+    "method": "frozen_r2_v060_sensor_lifecycle_v1",
+    "bundle_sha256": "add820bf400765fb0dd0446e633d4d54d1ccbf1f6cf097870d4793fa5eec4a5c",
+    "map_image_sha256": "09b25639417dce75fccdf565f9c7d341736c73defac241b44a587c796f3a48d4",
+    "normalized_blocking_occupancy_sha256": "2168d4ef5960e3d7f6386a381eb4d2dcfefed951939bcda2f13fe30f4dbae927",
+    "path_points_sha256": "ad09eaef1243d753826724fb5de8c1e6f66068cbe6dd3d591700dfcf5d33f64a",
+    "points_xy": [
+      [
+        -4.0,
+        0.0
+      ],
+      [
+        -3.9,
+        0.0
+      ],
+      [
+        -3.8,
+        0.0
+      ],
+      [
+        -3.7,
+        0.0
+      ],
+      [
+        -3.6,
+        0.0
+      ],
+      [
+        -3.5,
+        0.0
+      ],
+      [
+        -3.4,
+        0.0
+      ],
+      [
+        -3.3,
+        0.0
+      ],
+      [
+        -3.2,
+        0.0
+      ],
+      [
+        -3.1,
+        0.0
+      ],
+      [
+        -3.0,
+        0.0
+      ],
+      [
+        -2.9,
+        0.0
+      ],
+      [
+        -2.8,
+        0.0
+      ],
+      [
+        -2.7,
+        0.0
+      ],
+      [
+        -2.6,
+        0.0
+      ],
+      [
+        -2.5,
+        0.0
+      ],
+      [
+        -2.4,
+        0.0
+      ],
+      [
+        -2.3,
+        0.0
+      ],
+      [
+        -2.2,
+        0.0
+      ],
+      [
+        -2.1,
+        0.0
+      ],
+      [
+        -2.0,
+        0.0
+      ],
+      [
+        -1.9,
+        0.0
+      ],
+      [
+        -1.7999999999999998,
+        0.0
+      ],
+      [
+        -1.7000000000000002,
+        0.0
+      ],
+      [
+        -1.6,
+        0.0
+      ],
+      [
+        -1.5,
+        0.0
+      ],
+      [
+        -1.4,
+        0.0
+      ],
+      [
+        -1.2999999999999998,
+        0.0
+      ],
+      [
+        -1.2000000000000002,
+        0.0
+      ],
+      [
+        -1.1,
+        0.0
+      ],
+      [
+        -1.0,
+        0.0
+      ],
+      [
+        -0.8999999999999999,
+        0.0
+      ],
+      [
+        -0.7999999999999998,
+        0.0
+      ],
+      [
+        -0.7000000000000002,
+        0.0
+      ],
+      [
+        -0.6000000000000001,
+        0.0
+      ],
+      [
+        -0.5,
+        0.0
+      ],
+      [
+        -0.3999999999999999,
+        0.0
+      ],
+      [
+        -0.2999999999999998,
+        0.0
+      ],
+      [
+        -0.20000000000000018,
+        0.0
+      ],
+      [
+        -0.10000000000000009,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.09999999999999964,
+        0.0
+      ],
+      [
+        0.20000000000000018,
+        0.0
+      ],
+      [
+        0.2999999999999998,
+        0.0
+      ],
+      [
+        0.40000000000000036,
+        0.0
+      ],
+      [
+        0.5,
+        0.0
+      ],
+      [
+        0.5999999999999996,
+        0.0
+      ],
+      [
+        0.7000000000000002,
+        0.0
+      ],
+      [
+        0.7999999999999998,
+        0.0
+      ],
+      [
+        0.9000000000000004,
+        0.0
+      ],
+      [
+        1.0,
+        0.0
+      ],
+      [
+        1.0999999999999996,
+        0.0
+      ],
+      [
+        1.2000000000000002,
+        0.0
+      ],
+      [
+        1.2999999999999998,
+        0.0
+      ],
+      [
+        1.4000000000000004,
+        0.0
+      ],
+      [
+        1.5,
+        0.0
+      ],
+      [
+        1.5999999999999996,
+        0.0
+      ],
+      [
+        1.7000000000000002,
+        0.0
+      ],
+      [
+        1.7999999999999998,
+        0.0
+      ],
+      [
+        1.9000000000000004,
+        0.0
+      ],
+      [
+        2.0,
+        0.0
+      ],
+      [
+        2.0999999999999996,
+        0.0
+      ],
+      [
+        2.2,
+        0.0
+      ],
+      [
+        2.3,
+        0.0
+      ],
+      [
+        2.4000000000000004,
+        0.0
+      ],
+      [
+        2.5,
+        0.0
+      ],
+      [
+        2.5999999999999996,
+        0.0
+      ],
+      [
+        2.7,
+        0.0
+      ],
+      [
+        2.8,
+        0.0
+      ],
+      [
+        2.9000000000000004,
+        0.0
+      ],
+      [
+        3.0,
+        0.0
+      ],
+      [
+        3.0999999999999996,
+        0.0
+      ],
+      [
+        3.2,
+        0.0
+      ],
+      [
+        3.3,
+        0.0
+      ],
+      [
+        3.4000000000000004,
+        0.0
+      ],
+      [
+        3.5,
+        0.0
+      ],
+      [
+        3.5999999999999996,
+        0.0
+      ],
+      [
+        3.7,
+        0.0
+      ],
+      [
+        3.8,
+        0.0
+      ],
+      [
+        3.9000000000000004,
+        0.0
+      ],
+      [
+        4.0,
+        0.0
+      ],
+      [
+        4.1,
+        0.0
+      ],
+      [
+        4.199999999999999,
+        0.0
+      ],
+      [
+        4.300000000000001,
+        0.0
+      ],
+      [
+        4.4,
+        0.0
+      ],
+      [
+        4.5,
+        0.0
+      ],
+      [
+        4.6,
+        0.0
+      ],
+      [
+        4.699999999999999,
+        0.0
+      ],
+      [
+        4.800000000000001,
+        0.0
+      ],
+      [
+        4.9,
+        0.0
+      ],
+      [
+        5.0,
+        0.0
+      ]
+    ],
+    "frame_id": "map",
+    "reference": "base_link",
+    "map_from_odom_xy_yaw": [
+      -5.4,
+      0.0,
+      0.0
+    ],
+    "route_use": "audit_only",
+    "full_polyline_consumed": false,
+    "candidate_route_model": "legacy_global_x",
+    "map_consumer": "frozen exact-raster-union static_boxes with legacy implicit +/-20m y walls",
+    "static_prior_consumer_semantics_equal": false
+  },
+  "TF_recorded_chains": {
+    "map->odom": {
+      "count": 1,
+      "first": 0,
+      "last": 0
+    },
+    "odom->base_link": {
+      "count": 832,
+      "first": 20000000,
+      "last": 16640000000
+    },
+    "base_link->chassis_link": {
+      "count": 1,
+      "first": 36000000,
+      "last": 36000000
+    },
+    "base_link->imu_link": {
+      "count": 1,
+      "first": 36000000,
+      "last": 36000000
+    },
+    "base_link->laser_link": {
+      "count": 1,
+      "first": 36000000,
+      "last": 36000000
+    },
+    "base_link->front_left_steer_link": {
+      "count": 416,
+      "first": 40000000,
+      "last": 16640000000
+    },
+    "front_left_steer_link->front_left_wheel_link": {
+      "count": 416,
+      "first": 40000000,
+      "last": 16640000000
+    },
+    "base_link->front_right_steer_link": {
+      "count": 416,
+      "first": 40000000,
+      "last": 16640000000
+    },
+    "front_right_steer_link->front_right_wheel_link": {
+      "count": 416,
+      "first": 40000000,
+      "last": 16640000000
+    },
+    "base_link->rear_left_wheel_link": {
+      "count": 416,
+      "first": 40000000,
+      "last": 16640000000
+    },
+    "base_link->rear_right_wheel_link": {
+      "count": 416,
+      "first": 40000000,
+      "last": 16640000000
+    }
+  },
+  "used_scan_count": 139,
+  "maximum_observation_ages_ns": {
+    "source_scan_ns": 114000000,
+    "source_odom_ns": 62000000
+  },
+  "maximum_committed_history_age_ns": 250000000,
+  "terminal_times": {
+    "actual_goal_odom_ns": 16440000000,
+    "coordinator_first_terminal_visible_clock_ns": 16542000000,
+    "method_terminal_visible_clock_ns": 16542000000,
+    "last_private_method_event_clock_ns": 16514000000
+  },
+  "limitations": [
+    "Observed trusted-launch registration graph, not proof against arbitrary unrecorded process/file channels.",
+    "TF bag brackets establish recorded transforms at required times; they do not reconstruct original callback arrival or exact tensor arrays.",
+    "Fixed global-x R2 consumes shared path only for audit; no fully shared-route or static-prior semantic fairness claim.",
+    "Headerless private Twist publication and ROS-clock events are distinct from physics driver acceptance; methods may issue after source goal before shared terminal reception while coordinator zeros after its terminal.",
+    "Single clear fixture; no performance improvement or general perception/safety qualification."
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n02_result_independent/sensor_actual.py",
+      "sha256": "446f12054f52b02c6209c201929e9f0010a3d47fda24320bfc85751d5a9ed20d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n02_frozen_r2_v060_sensor_lifecycle_v1/fixture.bag",
+      "sha256": "641e6c1f4131fc7a29d6082696e4502e4ab6691b8b8158107b2542d9b757aff8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n02_frozen_r2_v060_sensor_lifecycle_v1/collector_raw.json",
+      "sha256": "118efd0844890d32a245125e326b6183ce715b1e04277cd17efbb3c4df9da92a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n02_frozen_r2_v060_sensor_lifecycle_v1/legacy_report.json",
+      "sha256": "bbef748f0e9ba6ac28a997f435f1955d596d9f0820129c8621c200970f36732a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n02_release.json",
+      "sha256": "6d774f9a022cb46f266900e70ac1f36d540455e8e265b33770d200064b458fcd"
+    }
+  ]
+}

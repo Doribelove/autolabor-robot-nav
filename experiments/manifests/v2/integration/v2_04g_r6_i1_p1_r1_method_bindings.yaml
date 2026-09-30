@@ -1,0 +1,50 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P1-R1
+status: offline_method_identity_refinement_execution_not_authorized
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps: 0
+methods:
+  r6_semantics_legacy_control:
+    analysis_role: confirmatory_control
+    execution_mode: r6_semantic_profile
+    exact_profile_id: r6_semantics_legacy_control
+    rule_supervisor_started: true
+    typed_transaction_started: true
+    dynamic_conflict_estimator_id: legacy_class_conditioned_geometry_v1
+  r6_semantics_circle_contact:
+    analysis_role: confirmatory_treatment
+    execution_mode: r6_semantic_profile
+    exact_profile_id: r6_semantics_circle_contact
+    rule_supervisor_started: true
+    typed_transaction_started: true
+    dynamic_conflict_estimator_id: shared_circle_envelope_first_contact_v1
+  fixed_teb_reference:
+    analysis_role: context_only
+    execution_mode: fixed_teb
+    exact_profile_id: fixed_teb_reference
+    legacy_aliasing_allowed: false
+    rule_supervisor_started: false
+    typed_transaction_started: false
+    dynamic_obstacle_bridge_started: false
+    fixed_config:
+      path: src/simulation/m2_gazebo/config/fixed_teb.yaml
+      sha256: 9e3125eec7f1f9040356f245dae9620d0b866ac94482ac29fd2d600838b14c26
+    reference_episode_adapter:
+      path: src/tools/thesis_experiment/scripts/v2_supervisor_repair_episode.py
+      sha256: 8e3d2221a66b248a2357e22bc45864aad51f9bfa9f08cc027c47c8906fe0e249
+behavioral_factor:
+  confirmatory_only_allowed_difference: supervisor.dynamic.conflict_estimator_id
+  fixed_teb_is_contextual_and_excluded_from_confirmatory_tests: true
+  label_or_expected_status_visible_to_any_policy_process: false
+future_execution_adapter:
+  p1_exact_schedule_adapter_present: false
+  p1_raw_schema_adapter_present: false
+  creation_requires_later_separately_authorized_release_stage: true
+  current_offline_review_may_claim_execution_ready: false
+  rationale: >-
+    Existing frozen components establish the exact method semantics, including
+    the independent fixed-TEB mode, but no P1 batch runner or release is created
+    in this zero-budget offline stage.
+

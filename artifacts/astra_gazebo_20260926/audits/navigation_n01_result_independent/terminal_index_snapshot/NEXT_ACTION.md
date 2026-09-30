@@ -1,0 +1,5 @@
+完整长期任务继续；31个新仿真回合，训练0，正式测试未解盲；当前无ROS/Gazebo活跃。
+
+Q05两单元组件资格通过，最终r1资格2e1ef51c8073ae91c9a0542fbfb2d11989b9f8e0d27dfdea92e4ee5ef47be1f7。N01四单元已消费且terminal：前三valid complete，actual物理goal时间解析8.562s/TEB7.814s/旧R2 8.954s；DWA在gate后0.26s因有限但非零vy被拒绝，短回合仅1图片又触发collector两图片要求失败，最终map与assessment缺失。保留原失败，不能把N01标成四方法合格。独立复核和DWA根因诊断中。7张原生截图root已分别查看。
+
+新N02准备中：新sensor-only R2 r1（原算法/权重保持）+新coordinator/launch副本，拟seed033单元但未登记/未发布；root新增collector使补充截图缺失不能阻断物理失败证据，并实际记录method ROS输入图。原N01全部字节不改。F04r07独立17项图形检查通过，待root最终纸面view/图册登记。M08纯sensor多track组件并行开发。六场景/强基线/五训练种子/正式矩阵/迁移论文仍按长期授权推进。

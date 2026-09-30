@@ -1,0 +1,19 @@
+{
+  "reviewer": "/root/environment_audit",
+  "mode": "read_only_no_ros",
+  "status": "static_renderer_scan_model_consistency_pass",
+  "episodes_reviewed": 12,
+  "checks": [
+    "expected_models match actual SDF models",
+    "camera pose and unique world evidence plugin",
+    "actor .72x.72x1 box geometry/pose/base_speed",
+    "static OBB geometry/pose and height>.60m",
+    "720 laser beams [-pi,pi], range .1\u201330m and sensor xyz0,0,.60 match expanded URDF",
+    "camera z19/hfov1.05 yields22.01x12.38m ground coverage and covers current route/actor paths"
+  ],
+  "limits": [
+    "Two frozen sensor poses only; temporal emergence not proved",
+    "Scan noise .01m and roll/pitch are not modeled in offline ray proof",
+    "Independent source-stamped physics fixture remains root work"
+  ]
+}

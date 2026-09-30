@@ -1,0 +1,108 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P4-Q1
+contract_id: fam_teb_v2_04g_p4_q1_runtime_bank_schema_promotion_readiness_1
+status: offline_runtime_bank_readiness_contract_frozen
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps_authorized: 0
+real_vehicle_use_forbidden: true
+
+objective: >-
+  Materialize five new runtime-parseable simulation-candidate Anchor Banks by
+  applying only the P4-D1 lifecycle/provenance promotion to immutable P2-Q1
+  sources.  Rebind only those five method paths and hashes, prove byte-level
+  non-factor invariance and strict parser acceptance, and leave every execution,
+  training and held-out-test capability absent.
+
+source_bindings:
+  P4_D1_design_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_d1_final_round_design/p4_d1_offline_closure_freeze.sha256
+    sha256: b2f5b52d0df2d0534790f515c180ac1d28eb27fbbcdcb83adc1f6d98ee5a1d74
+  P4_D1_design_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_d1_final_round_design/v2_04g_p4_d1_design_report.yaml
+    sha256: c14bd264582c30e02c44e2fd6f15d61fb38cc72dc89938cf60c66fc19b699d93
+  P4_D1_independent_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_d1_final_round_design/v2_04g_p4_d1_independent_review.yaml
+    sha256: 9815a5629df7ead960954116883ad3b189a681041f8f263b9fafc60793d26e95
+  P3_I1_D1_failure_attribution:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_d1_failure_attribution/v2_04g_p3_i1_d1_failure_attribution_report.yaml
+    sha256: d152d929ee1ed20293a190a7c5fe070e23dc65ca8c0df21ee9dda525fe7e1a72
+  P2_Q1_method_bindings:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_method_bindings.yaml
+    sha256: a7d50d0c710fe59c8c0a76b3753a9e4dee5845e11108ad881bc32735430e6c51
+  strict_anchor_bank_parser:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/action_pipeline.py
+    sha256: d13873814e27bd95b8f3a752d631faa7d1e0e79a63c763408e678e926885fdba
+
+single_factor:
+  factor_id: promote_offline_candidate_bank_to_strict_runtime_candidate_schema_v1
+  factor_count: 1
+  source_bank_count: 5
+  methods:
+    - circle_contact_v120
+    - circle_contact_v125
+    - circle_contact_v130
+    - circle_contact_v135
+    - circle_contact_v140
+  allowed_leaf_differences:
+    - source_provenance.p2_q1
+    - status
+  status_transition:
+    from: offline_materialized_not_runtime_ready
+    to: uncalibrated_simulation_candidate
+  provenance_operation:
+    path: source_provenance.p2_q1
+    operation: remove
+  behavioral_TEB_field_count_changed: 0
+  parameter_value_or_bound_change_allowed: false
+  runtime_ready_remains_false: true
+  parameter_write_enabled_remains_false: true
+  training_allowed_remains_false: true
+  real_vehicle_use_forbidden_remains_true: true
+
+method_binding_policy:
+  method_count: 11
+  circle_method_changes:
+    - materialized_anchor_bank.path
+    - materialized_anchor_bank.sha256
+    - materialized_anchor_bank.size_bytes
+  all_other_circle_fields_unchanged: true
+  all_fixed_and_TEB_Tuned_method_fields_unchanged: true
+  fair_baseline_rule_unchanged: true
+  intentional_weakening_or_hidden_advantage_allowed: false
+
+required_offline_gates:
+  every_source_bank_rejected_for_exact_frozen_schema_reason: true
+  every_promoted_bank_strict_parser_pass: true
+  exact_allowed_leaf_differences_per_bank: true
+  all_behavioral_values_and_bounds_byte_tree_equal: true
+  all_method_receipts_rehashed: true
+  independent_rebuild_and_review: true
+  ROS_or_Gazebo_started: false
+  held_out_test_accessed: false
+
+target_bundle:
+  root: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness
+  candidate_config_root: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/candidate_configs
+  method_bindings: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/v2_04g_p4_q1_method_bindings.yaml
+  construction_audit: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/v2_04g_p4_q1_construction_audit.yaml
+  source_freeze: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/p4_q1_source_freeze.yaml
+  readiness_report: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/v2_04g_p4_q1_readiness_report.yaml
+
+future_execution_boundary:
+  final_round_capacity_max: 704
+  I1_identity_seed: 5924
+  I1_units_max: 1
+  execution_from_Q1_allowed: false
+  exact_release_schedule_authorization_and_preexecution_audit_required: true
+
+forbidden:
+  - modify or overwrite any P2/P3/P1/I5/T12 artifact
+  - change any TEB parameter value, type, lifecycle, bound or rate
+  - change Ackermann, braking, clearance, projection or interface safety gates
+  - start ROS, Gazebo, training, test evaluation or real-vehicle access

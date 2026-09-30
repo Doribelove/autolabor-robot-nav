@@ -1,0 +1,230 @@
+{
+  "schema": "astra_r2_route_frame_bridge_n05_independent_review_v1",
+  "status": "independent_pure_R2_SE2_bridge_component_review_pass_integration_pending",
+  "independent_review": true,
+  "reviewed_source_sha256": "9a4d3f21929964d50b814748bba8b7ac484f07b5b59099290ceecacbbdb3408e",
+  "method_identity": "frozen_r2_v060_sensor_route_se2_n05_v1",
+  "check_count": 14,
+  "checks": {
+    "author16_resources_rehashed_and_legacy_algorithm_checkpoint_unchanged": true,
+    "author23_tests_replayed": true,
+    "independent27_actual_code_counterexamples_pass": true,
+    "private_x_plus5p4_exactly_compensates_both_legacy_consumers": true,
+    "actual_legacy_policy_pose_scan_resampler_executed_without_ROS_import": true,
+    "complete_quaternion_left_rotation_preserves_tilt_and_z": true,
+    "body_twist_scan_and_command_preserved_not_world_rotated": true,
+    "source_int64_age_availability_and_exact_scan_TF_rejection": true,
+    "canonical_raster_blocked_unknown_cell_exact_once_and_oriented_corners": true,
+    "same_task_SE2_only_and_detour_guide_audit_only": true,
+    "gate_identity_source_deadline_bodytwist_preserved": true,
+    "old_lifecycle_rejects_new_method_not_silently_bypassed": true,
+    "actual_second_TF_failure_preserves_no_commit_requires_wrapper_guard": true,
+    "no_live_or_fullpolicy_or_fullpolyline_qualification_claim": true
+  },
+  "author_tests_passed": 23,
+  "independent_tests_passed": 27,
+  "conclusion": "Pure consumed-field SE2 bridge is consistent with the frozen legacy policy_pose/_scan call sites on reviewed fixtures. No blocking source defect found in this bounded component review. A new wrapper/coordinator integration and fresh bounded engineering qualification remain prerequisites; component pass is not runtime readiness.",
+  "source_findings": [
+    {
+      "file": "pct_teb_dwa_benchmark_episode.py",
+      "lines": [
+        171,
+        204,
+        232,
+        240
+      ],
+      "finding": "Actual old _scan requests odom<-laser_link at original scan header stamp, resamples original local ranges, adds spawn_world_x toTFx and appends original source seconds. policy_pose also adds spawn_world_x. With frozen -5.4, both private views must be route_x+5.4."
+    },
+    {
+      "file": "frozen_r2_route_frame_bridge_n05.py",
+      "function": "Pose3.transformed/_route_pose/_private_view",
+      "finding": "Left multiply yawquaternion, retain z/rollpitch content. Independent real world_from_odom composition works even when odom androute frames have differentyaw/origin. Fullbodylinear/angular twist unchanged because it is expressed inrobotbody axes."
+    },
+    {
+      "file": "frozen_r2_route_frame_bridge_n05.py",
+      "function": "SourceMetadata.require/laser_transform",
+      "finding": "Decision must be at/afteravailability; sourceage<=200ms, receipt/sourcelead<=200ms; exact typedint64 andexact sourceTF equality. Originalmetadata objects retained. SeparatehealthTF cannotreplace exactscanTF."
+    },
+    {
+      "file": "frozen_r2_route_frame_bridge_n05.py",
+      "function": "canonical_static_prior/CanonicalStaticPrior.world_polygons",
+      "finding": "Factory rehashes both canonicalPGM/YAML, reuses frozen rectangle extraction andexactraster verifier. Independent asymmetric9x13map confirms blockedandunknown cells exactlyonce, nofreecells; orientedcorners match independentmatrix. No worldAABB input/rotation-resampling."
+    },
+    {
+      "file": "frozen_r2_route_frame_bridge_n05.py",
+      "function": "__init__/gate",
+      "finding": "Rejectcurved/reversed/rescaled nominaltask; permit sameendpointdetour onlyas audit. Newidentity andnongeometricgatefields preserved; inheritedactivation5..5.2s,deadline22s tolerances unchanged. OldSharedLifecycle rejectsnewmethod, asrequired."
+    }
+  ],
+  "wrapper_integration_requirements": [
+    "Create separatelyidentifiedwrapper/coordinator allowedmethod; do not monkey-patchold whitelist or mislabel newmethod as oldR2. Bind all fourlegacyfiles andexactcheckpoint.",
+    "Use privateinprocess TFfacade only: validateactual real requestedframe/source, retainrawodometry andrawscan identities, materialize privateodom alias afterauth. Neverpublish transformedprivateview onreal /odom/TF.",
+    "Derive world_from_odom andworld_from_route fromboundscene/commonlocalization semantics; no actor/model-state truth subscriptions. Actualgraph/rawTF anddynamicstatic-map evidence required; passingcoordinates alone is notsensor-only proof.",
+    "Retain SensorIngress sourceorder/clock-reset faults, actualavailability queues and200msfreshness. Nozero-stamp fallback, nofuturebackdating, no synthesized sixhistory frames.",
+    "Retain lifecycle r1 last_runtime_scan_stamp andfailurecount append proof. Actualold _scan catchessecondTFerror and leavesoldhistory unchanged; firstTFprecheck alone cannot declarecommittedscan.",
+    "Mapconstructor must invoke authenticated canonical_static_prior factory onboundbytes, not reconstruct CanonicalStaticPrior fromuntrustedboxes; showpublishedcommonmap andphysicalworldgeometry agree withsamecanonicalcells+SE2. A frame label alone doesnotprove this.",
+    "Preserve actualsharedgate/activation/deadline andfirstterminal outcome; terminalcommands publiczero whileoldpolicyprivate statecannotoverride coordinator. Originalsource-time floatseconds usedinsidelegacy algorithm areunchanged, notclaimed losslessint64 policyinternal time.",
+    "Privateviews are consumed-field records, notgeneral ROS serializers orcovariance transforms; futurefacade mustnotsilently reinterpret unrepresentedmessage fields. Preservebodytwist/localrange invarianceandfullorientation, withoutclaimingnew3Dscan tiltcorrection.",
+    "Retainno-full-polyline statement fordetourguide, implicitcanonical y±20walls, unknown-outside-map mismatch andlegacyfootprint/physicalscope. No full-policy bitwiseequivariance ornear-thresholdaction identity claim withoutnew evidence."
+  ],
+  "limits": [
+    "No ROS, Gazebo, inference, training, largebag, benchmark or newidentityallocation performed.",
+    "Purecomponent hasnoeventqueue/clockregressionstate; integrationmustprovide thosefrozen lifecycle guarantees.",
+    "No deployment, physicalsafety, generalizedroute,learnedbenefit orliveperformance qualification.",
+    "Authorchecks include4existingN04 detourguides; this is inputgeometry only, notN04outcomes."
+  ],
+  "retained_failures": [
+    {
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05_independent/independent_tests_r01.log",
+        "sha256": "56c8d272596ed823c45a2bed0db9b4e5a314a398603f5b2a57e181df0cc0416d",
+        "bytes": 3228
+      },
+      "source_snapshot": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05_independent/test_bridge_independent_r01_snapshot.py",
+        "sha256": "ff6c21ae1365d2dd197ef062ad3d384f347228134eafe0396038b57e1a36604f",
+        "bytes": 11196
+      },
+      "result": "26pass1failed",
+      "cause": "Independent firstfixture usedGEOS Hausdorff onfloating differentlypartitioned rotatedcell/rectangle unions. Area difference6.661338147750939e-16m2; internal sliverboundary Hausdorff0.025m. Thismeasure is notan exactunion-equivalence proof.",
+      "repair": "Kept exactintegercellcoverage assertion andcompared everyorientedrectanglecorner withindependent rigidmatrix(<1e-14), plusareaagreement. Noauthorsource orphysicalthreshold changed."
+    },
+    {
+      "kind": "runtimewarning",
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05_independent/independent_tests_r02.log",
+        "sha256": "59e7a56958e4655fc390cd39b6f22cba6f766b4f10782129c579423c186d3ad3",
+        "bytes": 596
+      },
+      "detail": "numpy.ufunc size changed binarycompatibility warning preserved; all27 fixtures execute. No suppressions."
+    }
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/frozen_r2_route_frame_bridge_n05.py",
+      "sha256": "9a4d3f21929964d50b814748bba8b7ac484f07b5b59099290ceecacbbdb3408e",
+      "bytes": 17662
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_frozen_r2_route_frame_bridge_n05.py",
+      "sha256": "7924dbdb475e57d2ceb0ca73405ad73c2b79a066abef490618b6816ed5c1318a",
+      "bytes": 12775
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+      "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73",
+      "bytes": 35210
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_r2_episode.py",
+      "sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe",
+      "bytes": 3155
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+      "sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9",
+      "bytes": 55085
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+      "sha256": "3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7",
+      "bytes": 12873
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/artifacts/gazebo_pct_teb_dwa_benchmark/development/training/pct_benchmark_r1_seed9701/actor_final.pt",
+      "sha256": "deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8",
+      "bytes": 215742
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/frozen_r2_sensor_lifecycle.py",
+      "sha256": "791529d1436144d286a2e3a86a5de638e3f5a60ee579a36074017d3aac3ff71b",
+      "bytes": 11785
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+      "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb",
+      "bytes": 3352
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/prepare_navigation_n01_scene.py",
+      "sha256": "46e09b5236157150ef1cc22bfbe561ee46078cd6d99e7ef3dc0f926ca4547dfa",
+      "bytes": 7563
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+      "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f",
+      "bytes": 14792
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/static_map_export.py",
+      "sha256": "6a46faff46362bf6a46777fa3eea43d7b125b70251f8ce336d478bf7e92f7c66",
+      "bytes": 15961
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_frozen_r2_sensor_lifecycle.py",
+      "sha256": "765238653925e232243c1caa01a58d9034e1ee7171f0f39b1d1032d31ddd3712",
+      "bytes": 31173
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/tests_r01.log",
+      "sha256": "97d4fcc989c7fabd5ff757d1d0fdb3e1532acdd259238a30232f33901c573026",
+      "bytes": 3356
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/tests_r02.log",
+      "sha256": "89e1682fc02defbfbc238c0447d34c385759221803c8891ed5eeafb18e7d98fa",
+      "bytes": 106
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/write_report.py",
+      "sha256": "d430cebe913f09bca0668cafdc11fb8eaa3f48a8917a8931f02741281b7fefba",
+      "bytes": 11421
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/component_report.json",
+      "sha256": "83509c3c7283ca3a81ca6af3aedee4c99a0e5a85722f91fbc616fbab8b71a15b",
+      "bytes": 13606
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/API.md",
+      "sha256": "cab789eba5a2d9f72c8c58d3d95a3e0731f6d66b23e04ab314384921dde45cf5",
+      "bytes": 3708
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05_independent/author_tests_replay.log",
+      "sha256": "d317e81c88c7eaf37552c316c606b7d8ef50e8465593bd0c64e8e2177eb7628f",
+      "bytes": 106
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05_independent/independent_tests_r01.log",
+      "sha256": "56c8d272596ed823c45a2bed0db9b4e5a314a398603f5b2a57e181df0cc0416d",
+      "bytes": 3228
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05_independent/independent_tests_r02.log",
+      "sha256": "59e7a56958e4655fc390cd39b6f22cba6f766b4f10782129c579423c186d3ad3",
+      "bytes": 596
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05_independent/test_bridge_independent.py",
+      "sha256": "9440fc755666fa816f8106587b427d4c5e057025667d0ab077f66f965c2d5e9a",
+      "bytes": 11699
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05_independent/test_bridge_independent_r01_snapshot.py",
+      "sha256": "ff6c21ae1365d2dd197ef062ad3d384f347228134eafe0396038b57e1a36604f",
+      "bytes": 11196
+    },
+    {
+      "path": "artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05_independent/write_review.py",
+      "sha256": "f0dd5a5781d340bc0b7506fdcac868c01111294ff7af98f5d9e2724bc2a257c2",
+      "bytes": 10192
+    }
+  ],
+  "commands": [
+    "workspace/.venv/bin/python -m pytest -q -p no:cacheprovider workspace/scripts/astra_gazebo/tests/test_frozen_r2_route_frame_bridge_n05.py",
+    "workspace/.venv/bin/python -m pytest -q -p no:cacheprovider audits/r2_route_frame_bridge_n05_independent/test_bridge_independent.py"
+  ],
+  "runtime_ready": false,
+  "execution_authorized": false
+}

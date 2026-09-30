@@ -1,0 +1,63 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P2-D1
+review_id: fam_teb_v2_04g_p2_d1_independent_offline_review_1
+status: offline_trace_attribution_independent_review_pass
+review_result: pass
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps: 0
+real_vehicle_used: false
+bindings:
+  contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_i1_p2_d1_offline_trace_attribution_contract.yaml
+    sha256: 82297df5c26538e09f21c5c078dd1d8eb64fe431236d9932d5937deca6b5b31b
+  source_evidence_freeze:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_d1_trace_attribution/p2_d1_source_evidence_freeze.sha256
+    sha256: 2ef6c120b2b558ee85f25a907df7938cf158db0c9ae221eeebf9000e715ac9c0
+  block_table:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_d1_trace_attribution/v2_04g_p2_d1_trace_attribution_blocks.json
+    sha256: 3b4bf51419eca7d1db4ca5b1c0d57e2a2936ff18863b026378c4e62653f6217d
+  attribution_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_d1_trace_attribution/v2_04g_p2_d1_trace_attribution_report.yaml
+    sha256: 957c1942364781d1239eeb1e86a50e8afde72aba617810f17d72c08f315f7793
+integrity_review:
+  source_paths_rehashed: 109
+  paired_blocks_recomputed: 30
+  deterministic_block_rebuild_byte_equal: true
+  deterministic_report_rebuild_byte_equal: true
+  independent_kinematic_rows_recomputed: 30
+  integrity_failures: []
+independent_result:
+  legacy_geometric_time_s: 19.607581924038897
+  treatment_geometric_time_s: 18.869873252574667
+  post_cruise_envelope_geometric_time_s: 17.251842132563013
+  post_cruise_envelope_reduction_fraction: 0.12014432991289692
+  one_sided_95_percent_lower_fraction: 0.11264934873448074
+  target_checks:
+    8percent:
+      recovered_reduction_fraction: 0.08000000000000018
+      cap_exposure_reduction_fraction: 0.08000000000000107
+    10percent:
+      recovered_reduction_fraction: 0.10000000000000009
+      cap_exposure_reduction_fraction: 0.10000000000000009
+  historical_speed_direction_effect_fraction: 0.08620689655172409
+  historical_weight_direction_effect_fraction: 0.012499999999999845
+  physical_room_for_8_to_10_percent: true
+claim_review:
+  specific_runtime_factor_qualified: false
+  causal_gain_demonstrated: false
+  p1_negative_result_preserved: true
+  new_speed_bound_safety_qualified: false
+  simulation_authorized: false
+side_effect_audit:
+  ros_gazebo_move_base_started: false
+  simulation_or_training_started: false
+  release_attempt_journal_or_consumption_created: false
+  seed_evidence_or_training_budget_consumed: false
+  runtime_profile_or_p1_evidence_modified: false
+  real_vehicle_connected: false

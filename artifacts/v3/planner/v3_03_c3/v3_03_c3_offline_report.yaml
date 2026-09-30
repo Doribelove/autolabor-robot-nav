@@ -1,0 +1,36 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-03-C3
+report_id: v3_03_c3_offline_report_1
+status: v3_03_c3_commitment_invariance_offline_pass
+formal_result: false
+metrics:
+  c2_failure_state_selected_candidate_id: certified_stop_v000
+  c2_failure_state_selected_accepted: true
+  property_case_count: 810
+  safe_state_selected_accepted_rate: 1.0
+  selected_commitment_invariant_rate: 1.0
+  deterministic_replay_rate: 1.0
+  cleared_motion_selection_rate: 1.0
+  nonfinite_output_count: 0
+gates:
+  c2_failure_state_repair_pass: true
+  safe_state_selected_accepted_pass: true
+  selected_commitment_invariant_pass: true
+  deterministic_replay_pass: true
+  cleared_motion_selection_pass: true
+  finite_output_pass: true
+overall_pass: true
+claim:
+  offline_commitment_invariance_pass: true
+  segmented_gazebo_integration: false
+  performance_improvement: false
+  real_vehicle_ready: false
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="world" /><arg name="run_id" /><arg name="seed" /><arg name="method" />
+  <arg name="bundle" /><arg name="bundle_sha256" /><arg name="scene_manifest" /><arg name="scene_id" />
+  <arg name="legacy_report_path" /><arg name="steering_kd" />
+  <arg name="legacy_checkpoint_path" default="" />
+  <arg name="legacy_checkpoint_sha256" default="deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8" />
+  <arg name="checkpoint_metadata" default="" /><arg name="checkpoint_metadata_sha256" default="" />
+  <arg name="contract_path" /><arg name="contract_sha256" /><arg name="output" />
+  <arg name="bag_path" /><arg name="bag_topics" />
+  
+  <arg name="collector_script" />
+  <arg name="enable_collector" default="true" /><arg name="gui" default="false" />
+  <arg name="teb_config" default="$(find m2_gazebo)/config/benchmark_teb_v0.yaml" />
+  <arg name="dwa_config" default="$(find m2_gazebo)/config/benchmark_dwa_v0.yaml" />
+  <param name="use_sim_time" value="true" /><param name="/m2_gazebo/simulation_only" value="true" />
+  
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)" /><arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="true" /><arg name="use_sim_time" value="true" />
+    <arg name="extra_gazebo_args" value="--seed $(arg seed)" /><arg name="server_required" value="true" />
+  </include>
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find m2_gazebo)/urdf/m2_physical_p05.urdf.xacro' dynamics_seed:=$(arg seed) steering_kd:=$(arg steering_kd)" />
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="m2_robot_state_publisher" output="screen">
+    <param name="publish_frequency" value="30.0" />
+  </node>
+  <node pkg="topic_tools" type="relay" name="navigation_command_relay" args="/cmd_vel_navigation /cmd_vel" output="screen" />
+  <node pkg="m2_gazebo" type="astra_common_route_provider.py" name="astra_common_route_provider" output="screen">
+    <param name="bundle" value="$(arg bundle)" /><param name="bundle_sha256" value="$(arg bundle_sha256)" />
+    <param name="publish_map_to_odom" value="true" />
+  </node>
+  <node pkg="m2_gazebo" type="astra_navigation_coordinator_n06.py" name="astra_navigation_coordinator" output="screen">
+    <param name="run_id" value="$(arg run_id)" /><param name="seed" value="$(arg seed)" />
+    <param name="method" value="$(arg method)" /><param name="bundle" value="$(arg bundle)" /><param name="bundle_sha256" value="$(arg bundle_sha256)" />
+  </node>
+  <group if="$(eval arg('method') == 'astra_analytic_route_v1')">
+    <node pkg="m2_gazebo" type="astra_route_coordinated_runtime.py" name="astra_route_runtime" output="screen" launch-prefix="$(env THESIS_WS)/.venv/bin/python">
+      <param name="run_id" value="$(arg run_id)" /><param name="seed" value="$(arg seed)" /><param name="method" value="$(arg method)" />
+      <param name="bundle" value="$(arg bundle)" /><param name="bundle_sha256" value="$(arg bundle_sha256)" />
+      <param name="checkpoint_metadata" value="$(arg checkpoint_metadata)" /><param name="checkpoint_metadata_sha256" value="$(arg checkpoint_metadata_sha256)" />
+      <param name="maximum_episode_duration_s" value="22.0" />
+      <remap from="/cmd_vel_navigation" to="/astra/method_cmd" />
+    </node>
+  </group>
+  <group if="$(eval arg('method') == 'astra_analytic_lookahead_1p2_n06')">
+    <node pkg="m2_gazebo" type="astra_route_lookahead_runtime_n06.py" name="astra_route_runtime" output="screen" launch-prefix="$(env THESIS_WS)/.venv/bin/python">
+      <param name="run_id" value="$(arg run_id)" /><param name="seed" value="$(arg seed)" /><param name="method" value="$(arg method)" />
+      <param name="bundle" value="$(arg bundle)" /><param name="bundle_sha256" value="$(arg bundle_sha256)" />
+      <param name="checkpoint_metadata" value="$(arg checkpoint_metadata)" /><param name="checkpoint_metadata_sha256" value="$(arg checkpoint_metadata_sha256)" />
+      <param name="maximum_episode_duration_s" value="22.0" />
+      <remap from="/cmd_vel_navigation" to="/astra/method_cmd" />
+    </node>
+  </group><arg name="sensor_lifecycle_evidence_topics" value="" />
+  <node pkg="rosbag" type="record" name="fixture_bag" output="screen" args="--lz4 --buffsize=128 -O $(arg bag_path) $(arg bag_topics) $(arg sensor_lifecycle_evidence_topics)" />
+  <node if="$(arg enable_collector)" pkg="m2_gazebo" type="$(arg collector_script)" name="astra_navigation_collector" required="true" output="screen">
+    <param name="contract_path" value="$(arg contract_path)" /><param name="contract_sha256" value="$(arg contract_sha256)" /><param name="output" value="$(arg output)" />
+  </node>
+</launch>

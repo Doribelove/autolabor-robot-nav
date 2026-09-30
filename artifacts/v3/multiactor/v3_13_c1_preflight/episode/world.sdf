@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="v3_13_multiactor_world">
+    <gravity>0 0 -9.81</gravity>
+    <physics name="v3_13_physics" type="ode">
+      <max_step_size>0.002</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
+    <light name="sun" type="directional">
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>50 40</size>
+            </plane>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="v3_13_actor_01">
+      <static>true</static>
+      <pose>-0.000000000 -3.838858382 0.500000000 0 0 0.000000000</pose>
+      <link name="body">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.720000 0.720000 1.000000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.720000 0.720000 1.000000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+      <pose>-0.000000000 -3.838858382 0.500000000 0 0 1.570796327</pose>
+      <plugin name="v3_13_actor_01_controller" filename="libv3_reactive_actor_plugin.so">
+        <ego_model>autolabor_m2</ego_model>
+        <policy>cautious</policy>
+        <seed>72991</seed>
+        <start>-0.000000000 -3.838858382</start>
+        <end>0.000000000 9.000000000</end>
+        <conflict>0.000000000 0.000000000</conflict>
+        <base_speed>1.026155388</base_speed>
+        <initial_speed>1.026155388</initial_speed>
+        <time_offset>0.0</time_offset>
+        <start_delay>5.0</start_delay>
+        <activation_ego_x>-3.0</activation_ego_x>
+        <ego_observation_period>0.20</ego_observation_period>
+        <ego_observation_hold>0.30</ego_observation_hold>
+        <response_distance>8.0</response_distance>
+        <response_time_margin>1.35</response_time_margin>
+        <z>0.5</z>
+      </plugin>
+    </model>
+    <model name="v3_13_actor_02">
+      <static>true</static>
+      <pose>4.645929283 -6.720135474 0.500000000 0 0 0.000000000</pose>
+      <link name="body">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.720000 0.720000 1.000000</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.720000 0.720000 1.000000</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+      <pose>4.645929283 -6.720135474 0.500000000 0 0 1.919862177</pose>
+      <plugin name="v3_13_actor_02_controller" filename="libv3_reactive_actor_plugin.so">
+        <ego_model>autolabor_m2</ego_model>
+        <policy>cautious</policy>
+        <seed>72992</seed>
+        <start>4.645929283 -6.720135474</start>
+        <end>-0.878181290 8.457233587</end>
+        <conflict>2.200000000 0.000000000</conflict>
+        <base_speed>1.096396264</base_speed>
+        <initial_speed>1.096396264</initial_speed>
+        <time_offset>0.0</time_offset>
+        <start_delay>5.0</start_delay>
+        <activation_ego_x>-3.0</activation_ego_x>
+        <ego_observation_period>0.20</ego_observation_period>
+        <ego_observation_hold>0.30</ego_observation_hold>
+        <response_distance>8.0</response_distance>
+        <response_time_margin>1.35</response_time_margin>
+        <z>0.5</z>
+      </plugin>
+    </model>
+  </world>
+</sdf>

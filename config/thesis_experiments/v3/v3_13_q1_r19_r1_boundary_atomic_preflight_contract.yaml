@@ -1,0 +1,58 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R19-R1
+stage_purpose: fresh_non_evidence_boundary_atomic_terminal_preflight
+status: preregistered_before_execution
+upstream:
+  R19_D1_diagnosis_sha256: c87086265ef77dc30465552877deb2451cc534ece97661518035b9e0e2abfa42
+  R19_D1_manifest_sha256: 691377da0d3b09064cbd155d4ca32a5b762831e2cedef7a405de0a9af2280adc
+  R19_D1_review_sha256: 3616f9875e0adaae0411a188a1423fa178eb2184c7b714f39058dbfb6962522c
+  R17_geometry_sha256: 3dd9299cbbf39c63442a108c082e3830784084f4e40f9eff9560de7e43f2603f
+  nonrecursive_adapter_sha256: 78d944812230bce2c5826cbf1254e6736468bbf089683d1bdac31fd18bd524d9
+single_factor:
+  factor: terminal_guard_evaluation_before_horizon_exit
+  publish_only_zero_command_at_or_after_horizon: true
+  geometry_actor_model_threshold_and_horizon_change_count: 0
+  candidate_id: recovery_evasive_right_v120_r3
+  branch_target_sim_s: 12.5
+  horizon_s: 7.55
+population:
+  units: 1
+  seed: 7677
+  attempt: 1
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only: [hesitant, cautious]
+  forced_candidate_id: recovery_evasive_right_v120_r3
+  behavior_propensity: 1.0
+  non_evidence_preflight: true
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+scientific_gates:
+  episode_collection_pass: true
+  completed_horizon: true
+  contact_state_count_max: 0
+  minimum_conservative_clearance_m_min: 0.0
+  minimum_trace_static_clearance_m_min: 0.05
+  maximum_tracking_error_m_max: 0.80
+  command_gap_s_max: 0.20
+  final_common_goal_distance_m_max: 0.25
+  terminal_guard_activation_count_min: 1
+  boundary_terminal_evaluation_count_exact: 1
+  boundary_terminal_trigger_count_exact: 1
+  every_actor_observable_mode_at_branch: assertive
+authority:
+  exact_bounded_simulation_preflight_authorized: true
+  authorized_units: 1
+  authorized_seed: 7677
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  evidence_claim_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+downstream:
+  if_all_gates_pass: design_fresh_boundary_atomic_five_action_support
+  if_any_gate_fails: freeze_negative_preflight
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false

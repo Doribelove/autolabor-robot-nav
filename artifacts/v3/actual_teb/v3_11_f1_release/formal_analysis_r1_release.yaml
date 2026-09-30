@@ -1,0 +1,44 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-11-F1-ANALYSIS-R1
+status: immutable_offline_namespace_repair_release
+i0_analysis_release_sha256: 61342983f229dd739a4f0330cebaecc94b0ea981be8982d3f0915bc1d6f69929
+preserved_failure_path: artifacts/v3/actual_teb/v3_11_f1_release/formal_analysis_i0_failure.yaml
+repair_semantics:
+  cautious: cautious
+  hesitant: hesitant
+repair_scope: inject two intended string metadata labels into the frozen assessor
+  module namespace
+statistic_threshold_or_execution_evidence_change_authorized: false
+simulation_rerun_or_selective_exclusion_authorized: false
+resources:
+- path: artifacts/v3/actual_teb/v3_11_f1_release/formal_analysis_release.yaml
+  sha256: 61342983f229dd739a4f0330cebaecc94b0ea981be8982d3f0915bc1d6f69929
+  size_bytes: 1670
+- path: artifacts/v3/actual_teb/v3_11_f1_release/formal_analysis_i0_failure.yaml
+  sha256: c69e47754032f6ed946e9481ceb5e7ee427140e3b5e4d5cb90efd6710cefa1e9
+  size_bytes: 1455
+- path: src/tools/thesis_experiment/scripts/assess_v3_11_f1_actual_teb_formal.py
+  sha256: 050d86f230b647d94fd2f697f9e18d33bb2856548efbc73e7c3957e808e81bc3
+  size_bytes: 31644
+- path: src/tools/thesis_experiment/scripts/review_v3_11_f1_actual_teb_formal.py
+  sha256: 930cadaf5864e5d60ad7aeab6c5c2006ee17944c0e89b22323e3e23a79c947f3
+  size_bytes: 5756
+- path: src/tools/thesis_experiment/scripts/assess_v3_11_f1_actual_teb_formal_r1.py
+  sha256: 78fbbe6599ad6615aef659a7010cc15766dbf46e91dbfc21938edc57cdacd50e
+  size_bytes: 5635
+- path: src/tools/thesis_experiment/scripts/review_v3_11_f1_actual_teb_formal_r1.py
+  sha256: 4adc9d4a521dbf932f33c46b275576edc44259cc675cedd161fdb408349983e3
+  size_bytes: 5985
+- path: config/thesis_experiments/v3/v3_11_f1_actual_teb_formal_contract.yaml
+  sha256: 2f142590e81fa32af4dfde37d4aa442f1abb17973959cbad8893dc080214e53d
+  size_bytes: 8347
+- path: experiments/manifests/v3/v3_11_f1_actual_teb_formal_release.yaml
+  sha256: b21835d5d55a55fd130aae836c609fd117481b9d4cd54155ba8fc78b57dc9ea6
+  size_bytes: 1515
+- path: artifacts/v3/actual_teb/v3_11_f1_execution/attempt_journal.jsonl
+  sha256: 5c0b79ab5927986e9c0b74d174f0270ff2bb69ba38c276eeabf50cbffc5524ff
+  size_bytes: 36014
+- path: artifacts/v3/actual_teb/v3_11_f1_execution/matrix_summary.yaml
+  sha256: 9843ce28763e1f836b3230545b00b614019486ab89564d7063d247e1cb1fc2a4
+  size_bytes: 12934

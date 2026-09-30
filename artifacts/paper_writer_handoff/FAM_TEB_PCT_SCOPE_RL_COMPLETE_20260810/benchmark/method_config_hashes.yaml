@@ -1,0 +1,24 @@
+schema_version: '0.3'
+stage: P03_development_unfrozen
+formal_frozen: false
+pct_development_contract:
+  path: src/application/v5_e2e_scope_rl/config/pct_teb_dwa_benchmark_development.yaml
+  sha256: 6d4d24e178b6cb182d04a53b01b7a6d23c76ab8b0e7c0fdf4006353d6014987f
+pct_historical_checkpoint_for_admission_only:
+  path: artifacts/v6/training/v6_01_r1/pct_seed9501/actor_final.pt
+  sha256: 8c9fc80be384568acdf8a61959b4d16ba6811372f9737eff345089a08f3d91b7
+actual_teb_v0:
+  path: src/simulation/m2_gazebo/config/benchmark_teb_v0.yaml
+  sha256: ce9fd94f306a86fe821f9c4732cb0894b8974cf39e45ecf6ab573f72b7e04606
+dwa_v0:
+  path: src/simulation/m2_gazebo/config/benchmark_dwa_v0.yaml
+  sha256: efb8c37d540927f4bee2b97435c141d07751d8c623b8db6f5c7d44d990967921
+p02_report:
+  path: artifacts/gazebo_pct_teb_dwa_benchmark/p02_gazebo_admission_report.json
+  sha256: 61cc9d7a80fbe1b5fb71d62b87e65cad9c97398b5e0fff25845754c21c614c41
+integrity_report:
+  path: artifacts/gazebo_pct_teb_dwa_benchmark/integrity_report.json
+  sha256: 644693392e44ee6981cc2eec80bea214faf73bdd45b3f50163284cfdb2739169
+p03_static_repair_report:
+  path: artifacts/gazebo_pct_teb_dwa_benchmark/p03_static_candidate_repair_report.json
+  sha256: dee5b25ecb3f548cbfe763a1e8b3ca1736f0b10a30d90de16db1772eae045b28

@@ -1,0 +1,166 @@
+family: head_on_yield
+topology: left_passing_bay
+corridor_half_width_m: null
+static_boxes:
+- name: opposite_wall
+  x: 0.0
+  y: -2.3021
+  length: 16.0
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+- name: bay_entry_wall
+  x: -3.5
+  y: 2.3021
+  length: 5.0
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+- name: bay_exit_wall
+  x: 3.7
+  y: 2.3021
+  length: 4.6
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+- name: bay_back_wall
+  x: 0.25
+  y: 3.0521
+  length: 2.5
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+static_circles: []
+actor_geometry:
+- start:
+  - 4.0674
+  - -1.0308
+  end:
+  - -5.5
+  - -1.0308
+  conflict:
+  - 0.0
+  - -1.0308
+route:
+  start:
+  - -4.0
+  - 0.0
+  - 0.0
+  goal:
+  - 5.0
+  - 0.0
+  - 0.0
+  spawn:
+  - -5.4
+  - 0.0
+  - 0.0
+  length_m: 9.0
+  frame: world
+  transform_implemented: yaw_zero_only
+layout_id: development_a01_development_head_on_yield_001
+parent_geometry_id: geom_ff0d4a2d55f76faf3b736c43
+canonical_geometry_sha256: b9e30b9292b3421de0f686fa67b123280d4fba98a445335ec6b3d31cf5524988
+split: development
+geometry_seed: 260935254
+initial_geometry_qc:
+  illegal_initial_intersections: []
+  horizontal_initial_geometry_pass: true
+  robot_instances: 1
+  actor_count: 1
+  robot_initial_centered_wheel_envelope: within_1.04_by_0.70_chassis_projection
+  wheel_ground_and_vertical_collision_qc: pending_live_physics
+  navigation_feasibility: pending_independent_Ackermann_path_qualification
+  occlusion_and_conflict_semantic_qualification: pending_geometric_ray_and_timing_audit
+schema_version: astra_scene_1.0
+scene_id: core_head_on_yield
+seed: 263463258
+replicate: 0
+actors:
+- start:
+  - 4.0674
+  - -1.0308
+  end:
+  - -5.5
+  - -1.0308
+  conflict:
+  - 0.0
+  - -1.0308
+  policy: cautious
+  base_speed_mps: 1.0
+  response_distance_m: 3.0
+  response_time_margin_s: 1.5
+  gate_delay_s: 0.2
+  parameter_cell_id: actor_d36b7220a31006625e209450
+  model_name: benchmark_actor_1
+  radius_m: 0.36
+  collision_shape: box
+  collision_length_m: 0.72
+  collision_width_m: 0.72
+  collision_height_m: 1.0
+  initial_pose_xyz_rpy:
+  - 4.0674
+  - -1.0308
+  - 0.5
+  - 0.0
+  - 0.0
+  - 3.141592653589793
+  response_seed: 263502610
+  initial_gate_delay_supported_by_legacy_plugin: false
+rng_substreams:
+  actor_parameters: 263256276
+  actor_response: 263810910
+  sensor_noise: 263800442
+  actuator: 263961532
+actor_policy_input_to_planners: false
+gazebo_model_states_evaluator_only: true
+episode_cap_s: 22.0
+robot_collision_reference:
+  link: chassis_link
+  center_xyz_m:
+  - 0.0
+  - 0.0
+  - 0.27
+  length_m: 1.04
+  width_m: 0.7
+  height_m: 0.32
+  spawn_xyz_rpy:
+  - -5.4
+  - 0.0
+  - 0.02
+  - 0.0
+  - 0.0
+  - 0.0
+  vertical_spawn_qualification: pending; legacy .02 m spawn must not be assumed settled
+generator_version: astra_scene_generator_v1
+generator_sha256: 1a6bd7f4f4a53b65481cb955c599fe067c66331b8d5542ea5ecb150d305c37ff
+readiness:
+  static_initial_horizontal_qc: true
+  live_physics_qc: false
+  navigation_feasibility: false
+  occlusion_semantics: false
+  gate_relative_actor_delay: false
+  named_rng_wired_to_all_live_plugins: false
+  final_execution: false
+expected_models:
+- ground_plane
+- benchmark_opposite_wall
+- benchmark_bay_entry_wall
+- benchmark_bay_exit_wall
+- benchmark_bay_back_wall
+- benchmark_actor_1
+- astra_evidence_camera
+- autolabor_m2
+evidence_camera:
+  pose_xyz_rpy:
+  - 0
+  - 0
+  - 18
+  - 0
+  - 1.5707963267948966
+  - 0
+  width: 2560
+  height: 1440
+  horizontal_fov_rad: 1.05
+  update_hz: 2
+  projection: perspective
+  topic: /astra/camera/image_raw

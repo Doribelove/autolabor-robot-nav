@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "figure_id": "PHY03",
+  "stage": "astra_m12_physics_p05",
+  "status": "preregistered_before_reading_any_P05_outcomes",
+  "created_utc": "2026-09-26T10:26:50.761623+00:00",
+  "any_active_raw_or_bag_opened": false,
+  "population": "Exact fresh three-pair/six-unit P05 schedule, seeds 260926017–260926019, all retained attempts; no additions/retries or pooling with historical runs",
+  "generation_precondition": {
+    "six_closed_receipts_required": true,
+    "all_three_control_treatment_pairs_required": true,
+    "all_six_original_assessments_complete_required": true,
+    "physical_gate_failures": "Retain and plot every physical negative; no exclusion based on favorable physical results",
+    "matrix_incomplete_action": "Mark PHY03 not_complete. No replacement representative, no fabricated missing points, no PHY03 result plot when six independent complete measurement audits are unavailable.",
+    "all_six_measurement_source_recorder_watermark_and_ingress_gates_pass_required": true
+  },
+  "representative_rule": {
+    "sort_statistic": "Each of the three control-arm maximum absolute center-steering change rates derived independently from world-link relative quaternions on the original 20 ms source grid",
+    "sort_order": [
+      "ascending maximum absolute control rate",
+      "ascending integer seed for exact ties"
+    ],
+    "selection": "middle (index 1) control in sorted list; its paired treatment is the sole representative timeline",
+    "selection_timing": "Only after complete independent audit of all six consumed units; no treatment outcome enters selection",
+    "peak_window_rule": "Full formal 36-second timeline shown for selected pair; any local zoom must use the control maximum absolute 20 ms interval midpoint ±0.25 seconds for both arms, clipped at formal endpoints, without selecting treatment peak"
+  },
+  "measurement_definition": {
+    "actual_steering_source": "/astra/world_links raw links, WorldUpdateEnd; use robot base_link-relative front_left/right_steer_link quaternions, not joint_states timestamps or target phase",
+    "left_right_to_center": "k_left=tan(left)/(L+track/2*tan(left)); k_right=tan(right)/(L-track/2*tan(right)); center=atan(L*(k_left+k_right)/2), with L/track from each frozen effective contract",
+    "formal_window": "Exactly the frozen P05 assessor integer window schedule_start_ns <= row.ns <= schedule_start_ns + round(total_schedule_s*1e9); validate source ns/t agreement. No floating-point endpoint selection.",
+    "derivative": "Adjacent unsmoothed actual center values divided by their own source timestamp difference, using the unchanged frozen derivative formula and original 20 ms world-link source grid; midpoint labels based on the same two source timestamps.",
+    "x_axis": "Actual world-link source ns minus schedule_start_ns, in seconds; do not shift the curve onto joint or target publication phase",
+    "targets": "If shown, retain their own source stamps and label reference versus actual explicitly",
+    "trajectory": "Actual world model/base poses on their own source time grid; no planned/reference trajectory presented as execution",
+    "steady_steering_error": "For every frozen phase use exactly its final 0.75-second half-open integer tail [phase_end_ns−750000000, phase_end_ns). Compare measured world-link actual center with requested/clipped center. No favorable subinterval selection.",
+    "threshold": "Frozen effective maxSteeringRate plus actual_center_slew_tolerance_radps, read from contract; do not retune from observations",
+    "no_smoothing_resampling_or_substep_substitution": true,
+    "qualification_roster": "Final P05 has122 checks. Preserve all original gate outcomes, including physical negatives; old headerless relay diagnostic is not a qualification check."
+  },
+  "panels": {
+    "all_pairs": "Show all three paired control/treatment actual 20 ms peak points connected by seed; report raw numeric values and original gate outcomes for all six",
+    "steady_state": "Show all six measured phase-tail steering errors and original fixed gate, preserving phase labels",
+    "representative": "Only the predeclared median-control pair; full actual steering/source-target timeline and actual XY trajectory. Plot every native measured point; visibly disclose the selection rule.",
+    "dense_2ms": "May be tabulated as a separately labelled supplementary diagnostic, never used to replace the 20 ms selection statistic or qualification gate",
+    "command_ingress": "Optional separate diagnostic source timeline: command-event time and actual driver receipt time retain their distinct source stamps; no inference of physical force application from acceptance."
+  },
+  "claims": "Actuator qualification and measurement diagnosis only; no navigation performance, general safety, real vehicle, or broad statistical superiority claim from three simulator seed pairs",
+  "rendering": {
+    "language": "Chinese",
+    "width_mm": 170,
+    "formats": [
+      "PDF",
+      "SVG",
+      "native 600 dpi PNG"
+    ],
+    "height": "Choose once after layout, then retain revisions; enough room for legible labels and gate lines",
+    "required": [
+      "raw-derived CSV",
+      "standalone Chinese caption",
+      "LaTex include",
+      "all input/output SHA256",
+      "exact generation commands",
+      "actual view_image on native PNG and 170 mm PDF raster",
+      "preserve failed visual revisions and repair history"
+    ]
+  },
+  "historical_PHY01": "Remains not_complete: original P03 2 consumed / 4 retired; never relabel or replace.",
+  "write_scope": "Only new independent result audit and new visual directories; frozen runtime/contracts/releases/global figure manifest/plan untouched",
+  "any_P05_outcomes_read": false,
+  "no_P05_identity_allocated_at_preregistration": true,
+  "historical_PHY02": "Remains not_complete: original P04 1 consumed / 5 retired; never relabel or replace.",
+  "figure_plan_lookup": "No PHY01/02/03 row found in existing figure_plan.csv at preregistration. Explicit new PHY03 ID; global figure plan and manifest are not changed.",
+  "frozen_inputs": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_design.yaml",
+      "sha256": "f0d887084ea08c92ee44190f5b40d4c78636195f6dfe7dc7671d3a4496a59114"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/queue/m12_physics_p05_schedule.json",
+      "sha256": "df056ad4ca724f3af61fd39acbe96e551bbe9f7de93d01e5417154b78ed3474a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/queue/m12_physics_p05_budget_design.json",
+      "sha256": "5274bccfe84c6741214fccc4f9ceed6274e4476f96eacbe76fe30ac61d191d27"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physics_p05_ingress_repair_review.json",
+      "sha256": "9e0dc5a853f5d7cc2e7c938cdf796411df15b2c5673515954fc646880e3bf541"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p05.py",
+      "sha256": "d19bed1dddc202c6eacf9230de6d53126d34a94ed54ec4f6e6053d3bfa0c1c29"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p04_result_independent/figures_status.json",
+      "sha256": "0b573fa6b8b4aa9ce98f35eae3faf7b82e15a42c5e3519b971e63ed44d4f4d35"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s017_kd4.yaml",
+      "sha256": "06873d1e31a0eb66028910334c062ea6230c2372712d865d00e1ead1dcaa6db2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s017_kd6.yaml",
+      "sha256": "e7b6035cd65f2c23aaacf74e3c4271abfb89f29af676c0040abbb493d34fa8a2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s018_kd6.yaml",
+      "sha256": "1565a593b552630056d1633e50cd7d1d6a4d86900288e279e33ec3c24933420c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s018_kd4.yaml",
+      "sha256": "5bd7e03c46616eb02c5d40fd038f83fdaeeaa9caefe4112e2019033fd372fb18"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s019_kd4.yaml",
+      "sha256": "f869b862fb31a07485dbe39eecbb92a94b98ea8a95cff8aad1a1b29f13ed2850"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p05_runs/m12_physics_p05_s019_kd6.yaml",
+      "sha256": "03a9076d4ffd4aa04c71d826c9c1b72baaf72f090cc79e4bdb53f96adc30edf2"
+    }
+  ]
+}

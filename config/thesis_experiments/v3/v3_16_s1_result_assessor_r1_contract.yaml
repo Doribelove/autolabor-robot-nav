@@ -1,0 +1,27 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-16-S1-R1
+purpose: offline_result_assessor_resource_index_repair
+parent_stage: V3-16-S1
+parent_terminal_status: terminal_negative_response_gated_support
+allowed_change:
+  field: raw_episode_report_path_resolution
+  original: indirect_index_into_mixed_resource_list
+  repaired: receipt_parent_episode_report_yaml
+frozen:
+  - all_simulation_evidence_bytes
+  - exact_schedule
+  - attempt_journal
+  - scientific_inclusion
+  - action_and_response_binding_semantics
+  - response_gate_factor
+  - all_collection_thresholds
+  - terminal_negative_scientific_outcome
+execution_authorized: false
+simulation_budget: 0
+predictor_fit_authorized: false
+actual_TEB_execution_authorized: false
+perception_execution_authorized: false
+training_authorized: false
+hardware_authorized: false
+

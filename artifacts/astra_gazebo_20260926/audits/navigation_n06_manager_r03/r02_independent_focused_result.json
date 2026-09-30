@@ -1,0 +1,131 @@
+{
+  "scope": "focused offline r02 review; temporary filesystem only",
+  "checks": [
+    {
+      "case": "r01_whole_roster_unchanged",
+      "resources": 352,
+      "pass": true
+    },
+    {
+      "case": "r02_whole_roster_unchanged",
+      "resources": 733,
+      "pass": true
+    },
+    {
+      "case": "manager_only_dependency_rename",
+      "pass": true
+    },
+    {
+      "case": "process_only_dependency_rename",
+      "pass": true
+    },
+    {
+      "case": "bound_input_drift_before_commit",
+      "pass": true,
+      "completion_absent_until_exact_restore": true,
+      "recovery_and_noop": true
+    },
+    {
+      "case": "bound_input_drift_seed_registry.csv",
+      "pass": true,
+      "completion_absent_until_exact_restore": true,
+      "recovery_and_noop": true
+    },
+    {
+      "case": "bound_input_drift_run_manifest.csv",
+      "pass": true,
+      "completion_absent_until_exact_restore": true,
+      "recovery_and_noop": true
+    },
+    {
+      "case": "bound_input_drift_EXPERIMENTS.csv",
+      "pass": true,
+      "completion_absent_until_exact_restore": true,
+      "recovery_and_noop": true
+    },
+    {
+      "case": "bound_input_drift_final_progress",
+      "pass": true,
+      "completion_absent_until_exact_restore": true,
+      "recovery_and_noop": true
+    },
+    {
+      "case": "receipt_stage_reject",
+      "pass": true
+    },
+    {
+      "case": "receipt_error_reject",
+      "pass": true
+    },
+    {
+      "case": "receipt_assessment_reject",
+      "pass": true
+    },
+    {
+      "case": "receipt_integrity_pass_reject",
+      "pass": true
+    },
+    {
+      "case": "receipt_seed_reject",
+      "pass": true
+    },
+    {
+      "case": "receipt_roslaunch_exit_code_reject",
+      "pass": true
+    },
+    {
+      "case": "receipt_task_outcome_reject",
+      "pass": true
+    },
+    {
+      "case": "r01_three_key_fake_conversion_now_rejected",
+      "pass": true,
+      "native_facts_only_stubbed": true
+    },
+    {
+      "case": "all_eight_actual_saved_N06_conversions_accepted",
+      "pass": true,
+      "native_and_other_runtime_standins": true,
+      "no_execution_release_qualification": true
+    }
+  ],
+  "remaining_gaps": [
+    {
+      "id": "receipt_administrative_identity_and_path_override",
+      "accepted": true,
+      "projected_first_run_id": "historical_duplicate",
+      "expected_first_run_id": "astra_navigation_n06_b000_control",
+      "unbound_receipt_path": "/tmp/unbound_receipt.json",
+      "unbound_report_path_in_experiments": true,
+      "mechanism": "arbitrary administrative_metadata overwrites run_id and paths without validation"
+    },
+    {
+      "id": "assessment_not_canonical_or_source_complete",
+      "accepted": true,
+      "assessment_outside_run_root": true,
+      "arbitrary_integrity_check_names": [
+        "synthetic_check"
+      ],
+      "missing_source_bindings_and_sweep_report": true,
+      "dependency_count": 1
+    }
+  ],
+  "new_failure_count": 2,
+  "global_csv_observations": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/seed_registry.csv",
+      "sha256": "637e9d237d477a248dd6f08eb4a548e28f487471b8c48d7e0c9c7503caec31b0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/run_manifest.csv",
+      "sha256": "6a3925723da10998fe43984b3df780db621eb750e8e26be51dafef40a664be87"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/EXPERIMENTS.csv",
+      "sha256": "11b81319808875e5d8accadabf2b0dada979b426885185cf16821d7b2d473834"
+    }
+  ],
+  "ROS_started": false,
+  "release_executed": false,
+  "seed_registered": false
+}

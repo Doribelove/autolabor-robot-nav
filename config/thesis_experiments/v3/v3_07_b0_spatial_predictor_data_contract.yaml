@@ -1,0 +1,96 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-B0
+stage_purpose: fresh_safe_overlap_spatial_candidate_predictor_train_calibration_data
+contract_id: v3_scope_v3_07_b0_spatial_predictor_data_1
+status: preregistered_before_simulation
+upstream:
+  safe_overlap_terminal_freeze_path: artifacts/v3/spatial/v3_07_a3/v3_07_a3_terminal_freeze.sha256
+  safe_overlap_assessment_path: artifacts/v3/spatial/v3_07_a3/execution/v3_07_a3_safe_overlap_assessment.yaml
+data_support:
+  observable_mode_feature: actor_speed_mps_at_0_5_s
+  hidden_policy_model_input: false
+  eligible_cells:
+    cautious: [certified_stop_v000, spatial_left_v120]
+    hesitant: [certified_stop_v000, spatial_left_v120]
+    assertive: [certified_stop_v000]
+  assertive_spatial_support: absent_fail_closed
+observed_mode_gate:
+  observable_feature: actor_speed_mps_at_0_5_s
+  cautious_hesitant_threshold_mps: 0.274012499989
+  hesitant_assertive_threshold_mps: 0.758912499986
+  ambiguity_half_width_mps: 0.02
+experimental_unit:
+  scenario_blocks:
+    - {block_id: train_6611, role: training, seed: 6611, angle_deg: 70.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 0.90}
+    - {block_id: train_6612, role: training, seed: 6612, angle_deg: 78.0, actor_start_distance_m: 3.05, actor_base_speed_mps: 0.95}
+    - {block_id: train_6613, role: training, seed: 6613, angle_deg: 86.0, actor_start_distance_m: 3.25, actor_base_speed_mps: 1.00}
+    - {block_id: train_6614, role: training, seed: 6614, angle_deg: 94.0, actor_start_distance_m: 2.95, actor_base_speed_mps: 1.05}
+    - {block_id: train_6615, role: training, seed: 6615, angle_deg: 102.0, actor_start_distance_m: 3.15, actor_base_speed_mps: 1.10}
+    - {block_id: train_6616, role: training, seed: 6616, angle_deg: 110.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 0.925}
+    - {block_id: calibration_6617, role: calibration, seed: 6617, angle_deg: 74.0, actor_start_distance_m: 3.20, actor_base_speed_mps: 0.975}
+    - {block_id: calibration_6618, role: calibration, seed: 6618, angle_deg: 82.0, actor_start_distance_m: 2.90, actor_base_speed_mps: 1.075}
+    - {block_id: calibration_6619, role: calibration, seed: 6619, angle_deg: 98.0, actor_start_distance_m: 3.10, actor_base_speed_mps: 0.925}
+    - {block_id: calibration_6620, role: calibration, seed: 6620, angle_deg: 106.0, actor_start_distance_m: 3.30, actor_base_speed_mps: 1.025}
+  policies_evaluator_only: [cautious, assertive, hesitant]
+  exact_rows: 50
+  training_rows: 30
+  calibration_rows: 20
+  retry_allowed: false
+  resume_allowed: false
+scene:
+  duration_s: 8.0
+  max_step_size_s: 0.001
+  real_time_update_rate_hz: 1000
+  sample_period_s: 0.05
+  ego:
+    model_name: v3_ego
+    footprint_m: [1.13, 0.73, 0.55]
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    common_prefix: {duration_s: 0.50, speed_mps: 0.80, end_x_m: -2.60}
+  actor:
+    model_name: v3_actor
+    size_m: [0.45, 0.45, 1.70]
+    endpoint_after_conflict_m: 5.0
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+data_qualification_gates:
+  completed_rows: 50
+  training_rows: 30
+  calibration_rows: 20
+  common_prefix_position_error_max_m: 0.006
+  observed_mode_matches_evaluator_rate_min: 1.0
+  eligible_cell_count: 5
+  training_rows_per_eligible_cell_min: 6
+  calibration_rows_per_eligible_cell_min: 4
+  assertive_spatial_row_count_max: 0
+  conservative_combined_radius_m: 1.15
+  conservative_clearance_violation_count_max: 0
+  nonfinite_metric_count_max: 0
+predictor_preregistration:
+  target_horizons_s: [1.5, 2.5, 3.5, 4.5]
+  head_key: [observed_mode, candidate_id]
+  scalar_features:
+    - bias
+    - actor_coordinate
+    - actor_speed
+    - actor_coordinate_squared
+    - actor_speed_squared
+    - actor_coordinate_x_actor_speed
+  ridge_lambda: 1.0e-6
+  conformal_score: absolute_residual_of_observed_mode_candidate_head
+  conformal_coverage: 0.95
+  calibration_split_only_for_radius: true
+authority_boundary:
+  held_out_test_seeds_reserved: [6631, 6632, 6633, 6634]
+  held_out_test_access_authorized: false
+  simulation_requires_separate_release_and_authorization: true
+  supervised_model_fit_after_data_qualification_authorized: true
+  reinforcement_learning_authorized: false
+  move_base_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  Fresh safe-overlap training/calibration data are qualified for the frozen
+  supervised spatial predictor fit. No held-out, runtime, performance or
+  deployment claim is authorized.

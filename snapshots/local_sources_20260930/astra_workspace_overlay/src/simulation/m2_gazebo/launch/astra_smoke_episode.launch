@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="world"/><arg name="method"/><arg name="scene_manifest"/>
+  <arg name="scene_id"/><arg name="seed"/><arg name="report_path"/>
+  <arg name="actor_checkpoint_path"/><arg name="evidence_dir"/><arg name="run_id"/>
+  <include file="$(find m2_gazebo)/launch/m2_pct_teb_dwa_benchmark_r2_episode.launch">
+    <arg name="world" value="$(arg world)"/><arg name="method" value="$(arg method)"/>
+    <arg name="scene_manifest" value="$(arg scene_manifest)"/><arg name="scene_id" value="$(arg scene_id)"/>
+    <arg name="seed" value="$(arg seed)"/><arg name="report_path" value="$(arg report_path)"/>
+    <arg name="actor_checkpoint_path" value="$(arg actor_checkpoint_path)"/>
+    <arg name="stage" value="astra_gazebo_20260926_bootstrap_smoke"/>
+    <arg name="split" value="development"/>
+  </include>
+  <node pkg="m2_gazebo" type="astra_evidence_monitor.py" name="astra_evidence_monitor"
+        launch-prefix="$(env THESIS_WS)/.venv/bin/python" output="screen">
+    <param name="output" value="$(arg evidence_dir)"/><param name="run_id" value="$(arg run_id)"/>
+    <param name="scene_manifest" value="$(arg scene_manifest)"/>
+  </node>
+</launch>

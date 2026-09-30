@@ -1,0 +1,40 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-09-Q1
+status: terminal_baseline_commitment_protocol_mismatch
+formal_result: false
+execution:
+  authorized_units: 36
+  consumed_units: 19
+  completed_units: 18
+  forfeited_units: 17
+  retry_units: 0
+failure:
+  unit_id: v3_09_q1_qualify_6714_cautious_fixed_v120_shielded
+  decision_index: 5
+  error: baseline_lacks_accepted_certified_stop
+  state:
+    global_time_s: 2.5
+    ego_x_m: -1.55
+    ego_speed_mps: 0.60
+    actor_coordinate_m: -1.6040000003029518
+    actor_speed_mps: 0.7849999999791235
+  certified_stop_braking_margin_m: 0.03415791184638661
+  frozen_minimum_braking_margin_m: 0.05
+  confirmed_cause: >-
+    The frozen straight baseline certifies a 0.25 second commitment horizon,
+    while Q1 executed shared 0.5 second replanning segments. A previously
+    accepted v1.20 segment therefore advanced beyond the state from which the
+    frozen certified stop remained admissible.
+disposition:
+  terminal_non_resumable: true
+  retry_or_identity_reuse_allowed: false
+  remaining_budget_retired: true
+  repair_requires_fresh_stage_seeds_release_review_and_authorization: true
+  next_single_factor: shared_replanning_period_0_5_to_0_25_seconds
+claims:
+  qualification_complete: false
+  performance_claim_authorized: false
+  actual_teb_comparison: false
+  runtime_ready: false
+  real_vehicle_authorized: false

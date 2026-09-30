@@ -1,0 +1,7 @@
+duration time_from_start
+geometry_msgs/Pose2D pose
+float64 longitudinal_velocity_mps
+float64 longitudinal_acceleration_mps2
+float64 steering_angle_rad
+float64 steering_rate_radps
+float64 curvature_inv_m

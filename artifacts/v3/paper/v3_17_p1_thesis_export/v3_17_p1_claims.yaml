@@ -1,0 +1,45 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-17-P1
+status: terminal_pure_offline_thesis_export
+qualified_primary_claim:
+  study: V3-11-F1
+  comparison: v3_spatial_safe_vs_actual_TebLocalPlannerROS_0_8_4
+  population: three_frozen_single_reactive_actor_Gazebo_templates_cautious_hesitant_shared_oracle_track
+  paired_blocks: 30
+  episodes: 60
+  point_reduction_percent: 12.9288
+  one_sided_97_5pct_lower_percent: 12.7253
+  goal_success_both_percent: 100.0
+  contact_state_count: 0
+qualified_mechanism_claim:
+  study: V3-16-S1
+  factor: reactive_actor_response_enable_sim_s_0_to_12_55
+  maximum_speed_mismatch_before_mps: 0.07208080063201194
+  maximum_speed_mismatch_after_mps: 0.008597073279998702
+  speed_mismatch_reduction_percent: 88.07300528765126
+  scope: common_prefix_speed_mechanism_only
+terminal_extension_claim:
+  study: V3-16-S1
+  status: multi_actor_support_not_demonstrated
+  completed_units: 45
+  scientific_episodes: 40
+  maximum_actor_coordinate_range_m: 0.06747179332200925
+  maximum_actor_speed_range_mps: 0.008597073279998702
+  coordinate_gate_pass_blocks: 5
+  coordinate_gate_total_blocks: 8
+  coordinate_gate_m: 0.05
+  speed_gate_mps: 0.05
+  predictor_fit_authorized: false
+forbidden_claims:
+- perception_robustness
+- multi_actor_performance
+- OOD_generalization
+- formal_safety
+- learning_benefit
+- deployment_readiness
+- real_vehicle_performance
+- all_TEB_versions_superiority
+training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false

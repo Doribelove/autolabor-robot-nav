@@ -1,5 +1,10 @@
 # Robot WS 导航项目上手说明
 
+2026 年 9 月 30 日的研究快照位于 `research/pct-teb-dwa-gazebo-20260810`，
+包含代码、配置、论文材料和结果摘要。子模块的本地源码补丁与独立 ASTRA 工作区差异见
+[项目源码快照与恢复说明](snapshots/local_sources_20260930/README.md)。
+原始实验数据及运行日志保留在原机器，完整证据回放还需要这些本地数据。
+
 ## 硕士论文 TEB 强化学习实验
 
 Ubuntu 20.04 上继续开发 Gazebo、TEB 自适应调参、安全过滤和 Autolabor M2

@@ -1,0 +1,26 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-C2
+status: assessment_materialized_evidence_freeze_failed
+date: "2026-07-24"
+execution:
+  authorized_units: 36
+  consumed_units: 36
+  completed_units: 36
+  retry_units: 0
+  rerun_allowed: false
+assessment:
+  path: artifacts/v3/prediction/v3_02_c2/execution/v3_02_c2_heldout_assessment.yaml
+  sha256: 843a3bc76ee54d1bd7304ca5b88a3a641f32e8f5b1a5dd2d3eaeab942d2768e3
+  materialized_before_failure: true
+failure:
+  command_phase: evidence_freeze_resource_list_construction
+  exception: "NameError: name 'contract' is not defined"
+  semantic_metric_computation_completed: true
+  evidence_freeze_materialized: false
+  independent_review_materialized: false
+disposition:
+  simulation_rerun_forbidden: true
+  assessment_rewrite_forbidden: true
+  repair_stage: V3-02-C2-I1
+  repair_scope: pure_offline_manifest_integrity_only

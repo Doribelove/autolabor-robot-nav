@@ -1,0 +1,69 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-09-Q1
+stage_purpose: fresh_paired_spatial_vs_frozen_straight_baseline_qualification
+contract_id: v3_scope_v3_09_q1_paired_performance_qualification_1
+status: qualification_preregistered_before_release
+upstream:
+  spatial_integration_terminal_freeze_path: artifacts/v3/planner/v3_08_a3/v3_08_a3_terminal_freeze.sha256
+  spatial_integration_terminal_freeze_sha256: e5dbba66ebe9ce53aa9285ec9dab2f04dbf522280951b8cad67c1e46844bb5f7
+primary_method:
+  method_id: v3_spatial_safe
+  planner_path: artifacts/v3/planner/v3_08_a0/v3_08_a0_effective_planner_contract.yaml
+  planner_sha256: 28cd688d3116114a065bcecdf27e94c0499fbd42a1c8dbe5bd37f89eab7f568c
+  model_path: artifacts/v3/prediction/v3_07_b0_r1/model/v3_07_b0_r1_spatial_candidate_predictor.yaml
+  model_sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+baseline_method:
+  method_id: fixed_v120_shielded
+  planner_path: artifacts/v3/planner/v3_03_c5/v3_03_c5_effective_planner_contract.yaml
+  planner_sha256: 6f2ec1530b67785dfc8f5a397ab416847f35f0c6ffc9e6f45bbf633a50057761
+  model_path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  model_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+  actual_teb: false
+fresh_population:
+  scenario_blocks:
+    - {block_id: qualify_6711, seed: 6711, angle_deg: 71.5, actor_start_distance_m: 3.05, actor_base_speed_mps: 0.95}
+    - {block_id: qualify_6712, seed: 6712, angle_deg: 79.5, actor_start_distance_m: 2.85, actor_base_speed_mps: 1.05}
+    - {block_id: qualify_6713, seed: 6713, angle_deg: 87.5, actor_start_distance_m: 3.20, actor_base_speed_mps: 0.925}
+    - {block_id: qualify_6714, seed: 6714, angle_deg: 95.5, actor_start_distance_m: 3.00, actor_base_speed_mps: 1.025}
+    - {block_id: qualify_6715, seed: 6715, angle_deg: 103.5, actor_start_distance_m: 3.25, actor_base_speed_mps: 0.975}
+    - {block_id: qualify_6716, seed: 6716, angle_deg: 108.5, actor_start_distance_m: 2.90, actor_base_speed_mps: 1.075}
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  methods: [v3_spatial_safe, fixed_v120_shielded]
+  schedule_rows: 36
+  retry_allowed: false
+  resume_allowed: false
+paired_protocol:
+  observation_prefix_s: 0.5
+  replanning_period_s: 0.5
+  spatial_commitment_duration_s: 7.0
+  maximum_episode_duration_s: 12.5
+  maximum_decisions_per_episode: 24
+  goal_x_m: 5.20
+  actor_endpoint_after_conflict_m: 3.5
+qualification_gates:
+  complete_episode_count: 36
+  spatial_goal_success_rate_min: 1.0
+  spatial_goal_success_noninferior_to_baseline: true
+  minimum_point_relative_reduction: 0.05
+  positive_block_fraction_min: 0.50
+  selected_candidate_accepted_rate_min: 1.0
+  certified_stop_available_rate_min: 1.0
+  exact_core_replay_rate_min: 1.0
+  conservative_clearance_violation_count_max: 0
+  receipt_stage_identity_rate_min: 1.0
+  planner_latency_p99_max_ms: 20.0
+  nonfinite_metric_count_max: 0
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_or_gate_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  The spatial method passes a small fresh paired performance qualification
+  against the frozen fixed-v1.20 shielded straight baseline and may enter a
+  separately preregistered formal multi-seed evaluation. No performance claim
+  is made from this qualification.

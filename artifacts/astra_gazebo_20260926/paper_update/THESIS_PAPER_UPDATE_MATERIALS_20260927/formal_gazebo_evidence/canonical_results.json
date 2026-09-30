@@ -1,0 +1,312 @@
+{
+  "historical_core_results": {
+    "v3_11_actual_teb": {
+      "one_sided_97_5_percent_lower": 12.7253,
+      "point_percent": 12.9288,
+      "scope": "three frozen single-reactive-actor Gazebo templates; shared oracle actor track",
+      "status": "scoped_historical_positive"
+    },
+    "v3_21_actual_teb": {
+      "point_percent": -0.1931,
+      "scope": "fresh failure-inclusive characterization",
+      "status": "superiority_not_demonstrated",
+      "two_sided_95_percent_interval": [
+        -19.8668,
+        12.982
+      ]
+    },
+    "v4_learning": {
+      "point_percent": 0.098,
+      "status": "meaningful_optimization_not_demonstrated",
+      "two_sided_95_percent_interval": [
+        0.0,
+        0.2941
+      ]
+    },
+    "v5_learning": {
+      "minimum_effect_gate_percent": 8.0,
+      "point_percent": 6.0936,
+      "status": "negative_practical_gate",
+      "two_sided_95_percent_interval": [
+        1.7867,
+        11.0069
+      ]
+    },
+    "v6_fast_population": {
+      "analytic_goals": "49/80",
+      "analytic_mean_s": 14.31875,
+      "pct_goals": "60/80",
+      "pct_mean_s": 13.115625,
+      "point_percent": 8.402444,
+      "scope": "four frozen sensor-level fast interaction families",
+      "status": "scoped_positive",
+      "two_sided_97_5_percent_interval": [
+        3.484003,
+        13.713459
+      ]
+    },
+    "v6_gazebo_preflight": {
+      "note": "three preflights failed conservative-clearance gate; later superseded only in execution availability by the new full Gazebo benchmark, not converted to a positive result",
+      "status": "historical_transfer_negative"
+    },
+    "v6_history": {
+      "result": "exact tie",
+      "status": "not_demonstrated"
+    },
+    "v6_vs_v5": {
+      "point_percent": 3.161052,
+      "status": "qualified_secondary",
+      "two_sided_95_percent_interval": [
+        0.49358,
+        6.576508
+      ]
+    }
+  },
+  "new_gazebo_benchmark": {
+    "formal_block_total": 360,
+    "formal_episode_total": 1440,
+    "methods": [
+      "pct_scope_rl",
+      "analytic_prior",
+      "actual_teb",
+      "dwa"
+    ],
+    "positive_gate": {
+      "completion_rate_difference_minimum_pp": -5.0,
+      "finite_statistics": true,
+      "minimum_point_reduction_percent": 8.0,
+      "pct_contact_not_higher": true,
+      "pct_mask_violation_zero": true,
+      "two_sided_97_5_percent_interval_lower_strictly_positive": true
+    },
+    "round_1": {
+      "all_attempt_one": true,
+      "blocks": 160,
+      "comparisons": {
+        "actual_teb": {
+          "completion_rate_difference_percentage_points": 40.0,
+          "gate_checks": {
+            "bootstrap_lower_strictly_positive": false,
+            "completion_difference_at_least_minus_5_pp": true,
+            "finite_statistics": true,
+            "pct_contact_not_higher": true,
+            "pct_mask_violation_zero": true,
+            "point_reduction_at_least_8_percent": false
+          },
+          "positive_gate_pass": false,
+          "relative_reduction_percent": -0.9442093879810768,
+          "two_sided_97_5_percent_interval_percent": [
+            -8.356862311059334,
+            5.635939126562168
+          ]
+        },
+        "dwa": {
+          "completion_rate_difference_percentage_points": 45.62500000000001,
+          "gate_checks": {
+            "bootstrap_lower_strictly_positive": true,
+            "completion_difference_at_least_minus_5_pp": true,
+            "finite_statistics": true,
+            "pct_contact_not_higher": true,
+            "pct_mask_violation_zero": true,
+            "point_reduction_at_least_8_percent": false
+          },
+          "positive_gate_pass": false,
+          "relative_reduction_percent": 6.369289173467103,
+          "two_sided_97_5_percent_interval_percent": [
+            1.087136778278782,
+            11.14112410495854
+          ]
+        }
+      },
+      "episodes": 640,
+      "formal_result": true,
+      "methods": {
+        "actual_teb": {
+          "completion_rate": 0.55625,
+          "contact_count": 0,
+          "episodes": 160,
+          "failure_counts": {
+            "conservative_clearance_violation": 70,
+            "goal": 89,
+            "timeout_or_nonarrival": 1
+          },
+          "mask_violation_count": 0,
+          "mean_failure_inclusive_time_s": 14.9225375,
+          "minimum_conservative_clearance_m": -1.0902973748928635,
+          "valid_goals": 89
+        },
+        "analytic_prior": {
+          "completion_rate": 0.9125,
+          "contact_count": 0,
+          "episodes": 160,
+          "failure_counts": {
+            "execution_integrity_failure": 7,
+            "goal": 146,
+            "timeout_or_nonarrival": 7
+          },
+          "mask_violation_count": 0,
+          "mean_failure_inclusive_time_s": 16.1231375,
+          "minimum_conservative_clearance_m": 0.01674901348921054,
+          "valid_goals": 146
+        },
+        "dwa": {
+          "completion_rate": 0.5,
+          "contact_count": 0,
+          "episodes": 160,
+          "failure_counts": {
+            "conservative_clearance_violation": 80,
+            "goal": 80
+          },
+          "mask_violation_count": 0,
+          "mean_failure_inclusive_time_s": 16.0881375,
+          "minimum_conservative_clearance_m": -0.3696535891744706,
+          "valid_goals": 80
+        },
+        "pct_scope_rl": {
+          "completion_rate": 0.95625,
+          "contact_count": 0,
+          "episodes": 160,
+          "failure_counts": {
+            "goal": 153,
+            "timeout_or_nonarrival": 7
+          },
+          "mask_violation_count": 0,
+          "mean_failure_inclusive_time_s": 15.063437499999997,
+          "minimum_conservative_clearance_m": 0.13584024492252733,
+          "valid_goals": 153
+        }
+      },
+      "name": "Gazebo-PCT-R1",
+      "performance_improvement_demonstrated": false,
+      "positive_comparators": [],
+      "preregistration_sha256": "13785745d0ff40596aacb19c8cb5880baeb9480fce8ba8e3a6714a984078156b",
+      "release_sha256": "af9ce1b2e5887cc4b41ef822dd877a50eb222bcdc67107163cc2de920c1cd93f",
+      "replacement_seed_count": 0,
+      "same_identity_retry_count": 0,
+      "schedule_sha256": "89adaa3ad8c6175c2223b91f3b457c789b94858d2b606515413da6bac8c496e8"
+    },
+    "round_2": {
+      "all_attempt_one": true,
+      "blocks": 200,
+      "comparisons": {
+        "actual_teb": {
+          "completion_rate_difference_percentage_points": 30.500000000000004,
+          "gate_checks": {
+            "bootstrap_lower_strictly_positive": false,
+            "completion_difference_at_least_minus_5_pp": true,
+            "finite_statistics": true,
+            "pct_contact_not_higher": true,
+            "pct_mask_violation_zero": true,
+            "point_reduction_at_least_8_percent": false
+          },
+          "positive_gate_pass": false,
+          "relative_reduction_percent": -2.7287980497016013,
+          "two_sided_97_5_percent_interval_percent": [
+            -9.808255175072238,
+            3.5914245328708843
+          ]
+        },
+        "dwa": {
+          "completion_rate_difference_percentage_points": 40.0,
+          "gate_checks": {
+            "bootstrap_lower_strictly_positive": true,
+            "completion_difference_at_least_minus_5_pp": true,
+            "finite_statistics": true,
+            "pct_contact_not_higher": true,
+            "pct_mask_violation_zero": true,
+            "point_reduction_at_least_8_percent": false
+          },
+          "positive_gate_pass": false,
+          "relative_reduction_percent": 7.775418502147874,
+          "two_sided_97_5_percent_interval_percent": [
+            2.5521038494359134,
+            12.614771612356929
+          ]
+        }
+      },
+      "episodes": 800,
+      "formal_result": true,
+      "methods": {
+        "actual_teb": {
+          "completion_rate": 0.595,
+          "contact_count": 0,
+          "episodes": 200,
+          "failure_counts": {
+            "conservative_clearance_violation": 81,
+            "goal": 119
+          },
+          "mask_violation_count": 0,
+          "mean_failure_inclusive_time_s": 14.44702,
+          "minimum_conservative_clearance_m": -1.1259240481840114,
+          "valid_goals": 119
+        },
+        "analytic_prior": {
+          "completion_rate": 0.75,
+          "contact_count": 0,
+          "episodes": 200,
+          "failure_counts": {
+            "execution_integrity_failure": 21,
+            "goal": 150,
+            "timeout_or_nonarrival": 29
+          },
+          "mask_violation_count": 0,
+          "mean_failure_inclusive_time_s": 16.39876,
+          "minimum_conservative_clearance_m": 0.16448605295198793,
+          "valid_goals": 150
+        },
+        "dwa": {
+          "completion_rate": 0.5,
+          "contact_count": 0,
+          "episodes": 200,
+          "failure_counts": {
+            "conservative_clearance_violation": 100,
+            "goal": 100
+          },
+          "mask_violation_count": 0,
+          "mean_failure_inclusive_time_s": 16.092509999999997,
+          "minimum_conservative_clearance_m": -0.370241582249328,
+          "valid_goals": 100
+        },
+        "pct_scope_rl": {
+          "completion_rate": 0.9,
+          "contact_count": 0,
+          "episodes": 200,
+          "failure_counts": {
+            "conservative_clearance_violation": 2,
+            "goal": 180,
+            "timeout_or_nonarrival": 18
+          },
+          "mask_violation_count": 0,
+          "mean_failure_inclusive_time_s": 14.84125,
+          "minimum_conservative_clearance_m": -0.26957117493753835,
+          "valid_goals": 180
+        }
+      },
+      "name": "Gazebo-PCT-R2",
+      "performance_improvement_demonstrated": false,
+      "positive_comparators": [],
+      "preregistration_sha256": "fabdc7034f4e352e258873e76b754cd890ff3fbef099a198c3ee2395ef31cffb",
+      "release_sha256": "c64dee01acbdf58ece4b9eb2056d039c6d2ee61121dbbbcffbc717c8c5253137",
+      "replacement_seed_count": 0,
+      "same_identity_retry_count": 0,
+      "schedule_sha256": "9b83713ee4fabbd86e9009a2c7b6bb89f533142824b5c1f24820d55cae2b065c"
+    },
+    "scope": "six frozen single-robot Gazebo templates with fresh simulator seeds",
+    "terminal_conclusion": "Two independent formal studies did not demonstrate PCT-SCOPE-RL superiority over Actual TEB or DWA under the preregistered gates."
+  },
+  "package_date": "2026-08-10",
+  "real_vehicle": {
+    "claim_allowed": false,
+    "episodes": 0,
+    "status": "pending_no_evidence"
+  },
+  "schema_version": "1.0",
+  "source_priority": [
+    "claims_contract.yaml",
+    "canonical_results.json",
+    "data/CURRENT_COMPLETE_RESULT_SUMMARY.csv",
+    "benchmark/formal/*/assessment and episode CSV",
+    "upstream_v6_06_historical for earlier V3/V5/V6 chapters"
+  ],
+  "status": "paper_writer_handoff_current"
+}

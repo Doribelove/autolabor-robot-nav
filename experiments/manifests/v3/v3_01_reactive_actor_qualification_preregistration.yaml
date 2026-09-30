@@ -1,0 +1,45 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-01
+preregistration_id: v3_scope_v3_01_crossing_actor_qualification_preregistration_1
+date: "2026-07-24"
+status: frozen_before_any_v3_01_gazebo_execution
+contract: config/thesis_experiments/v3/v3_01_reactive_actor_qualification_contract.yaml
+design:
+  unit: one_hidden_policy_x_one_ego_intervention_x_one_seed
+  policies: [cautious, assertive, hesitant]
+  candidate_ids: [probe_v060, probe_v080, probe_v100, probe_v120]
+  fresh_seeds: [6101, 6102, 6103]
+  exact_row_count: 36
+  attempt: 1
+  order: seed_then_policy_then_increasing_candidate_speed
+budget:
+  authorized_units_after_separate_release: 36
+  consumed_before_release: 0
+  retry_units: 0
+  training_steps: 0
+  held_out_units: 0
+analysis:
+  primary_effect: actor_y_position_spread_at_sim_time_4s_within_policy_seed
+  primary_threshold_m: 0.20
+  secondary:
+    - response_signature_count
+    - actor_crossing_time
+    - ego_crossing_time_accuracy
+    - pre_intervention_clone_spread
+  aggregation: gate_every_policy_seed_block_then_report_policy_and_global_summary
+  missing_or_failed_episode: qualification_fail
+  seed_replacement: forbidden
+integrity:
+  exact_schedule_required_before_release: true
+  source_and_binary_sha_binding_required: true
+  release_review_required_before_authorization: true
+  append_only_attempt_journal: true
+  raw_csv_sha256_required: true
+  assessor_must_recompute_from_raw_csv: true
+  terminal_process_isolation_check_required: true
+stop_rules:
+  - stop_on_first_infrastructure_failure
+  - no_retry_or_resume
+  - preserve_negative_or_failed_stage
+  - repair_only_in_new_stage_with_fresh_identity

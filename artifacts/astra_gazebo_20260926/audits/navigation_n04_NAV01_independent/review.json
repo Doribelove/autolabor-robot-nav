@@ -1,0 +1,157 @@
+{
+  "schema": "astra_NAV01_independent_data_review_v1",
+  "status": "independent_NAV01_data_source_and_scope_review_pass",
+  "independent_review": true,
+  "figure_id": "NAV01",
+  "figure_group_count": 1,
+  "check_count": 14,
+  "checks": {
+    "all13_manifest_resources_current_hash_match": true,
+    "closed_receipt_exists_no_active_bag": true,
+    "439_controls_88_decisions": true,
+    "41_empty_206_revalidation_111_stops_15_drops": true,
+    "all_candidate_csv_fields_match": true,
+    "all_control_csv_fields_match": true,
+    "15_deadline_drops_exact_wall_time_gt50ms": true,
+    "all88_dynamic_classifications_zero": true,
+    "timeout22_preserved_with_capture_engineering_safety": true,
+    "no_data_outside_plot_axis_limits": true,
+    "recorded_bag_sha_equal_upstream_assessment": true,
+    "native400dpi_and170x165mm_pdf_verified": true,
+    "manual_clock_and_predicted_clearance_source_review": true,
+    "manual_caption_scope_and_actual_preview_review": true
+  },
+  "counts": {
+    "trace_rows": 439,
+    "candidate_rows": 88,
+    "empty_masks": 41,
+    "stop_reasons": {
+      "None": 106,
+      "transaction_deadline_drop": 15,
+      "backup_revalidation_failed": 206,
+      "backup_stop_requested": 111,
+      "episode_time_limit": 1
+    },
+    "deadline_drops": 15
+  },
+  "source_gate_ns": 7460000000,
+  "time_axes": {
+    "candidate": "(decision-start local rospy.Time.now().to_nsec() - shared gate ns)*1e-9, runtime lines171,209",
+    "control": "(prepublish local rospy.Time.now().to_nsec() - shared gate ns)*1e-9, runtime lines200,204; trace stamp is adjacent to publish, not driver ingress or exact Gazebo delivery time",
+    "transaction": "(perf_counter_ns end-start)/1e6 milliseconds, runtime lines184,200; wall time, not sim time"
+  },
+  "clearance": {
+    "source": "route_candidate_core.verify lines249-261; command lines291-301",
+    "meaning": "Predicted backup compound footprint/map-or-reachable obstacle distance minus frozen 0.33m margin and segment motion correction; 0 is the model feasibility boundary. Not independent actual physical clearance or contact.",
+    "margin_m": 0.33
+  },
+  "artifact_format": {
+    "native_png_pixels": [
+      2677,
+      2598
+    ],
+    "native_png_dpi": [
+      400,
+      400
+    ],
+    "pdf_page_mm": [
+      169.99999999999028,
+      165.00000000001026
+    ],
+    "preview_pixels": [
+      1204,
+      1169
+    ],
+    "note": "Existing export is 400 dpi, not 600 dpi; report does not relabel it."
+  },
+  "visual_review": {
+    "actual_view_image": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/r02/NAV01_paper_size_preview.png",
+    "result": "All four panels, legends and labels readable at existing paper-size preview; red deadline markers are not covered by legend. No regeneration performed.",
+    "scope": "Reviewed existing170x165mm preview; root separately reviewed fullPNG."
+  },
+  "claims": [
+    "One retained chronological analytic development failure, not a representative success or a method comparison.",
+    "439/88 counts are trace records, not independent samples; reason classes are mutually exclusive final log reasons, not causal attribution.",
+    "Zero dynamic classified returns is algorithm classification, not proof no actual dynamic object.",
+    "Engineering safety/capture values are inherited frozen assessment, not rerun by this narrow figure review.",
+    "NAV01 is separate from frozen F06-F11 representative-selection preregistration."
+  ],
+  "not_performed": [
+    "No whole-bag reading, rehash or replay; recorded bag SHA compared only across two closed source records.",
+    "No dense replay, Gazebo, ROS, plot regeneration or frozen-source mutation."
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/diagnosis.json",
+      "sha256": "ed1f14811f096667d0f49cbb5cffb63fa05dd1fa0f1cae123514b00654f47e86"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/trace.json",
+      "sha256": "664816c98df03a9166e9d9e46f5ae3a06eeb9d22a12ced7a3a58b75f6adcf946"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/candidates.json",
+      "sha256": "81100cfd5eb324e9daa0a1479b68484e86f73f81361dacd5af25de766d99a3c5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/collector_raw.json",
+      "sha256": "fe27098d2d6cc7a3348d76f22580180efe3e8080ddcecd23015325c8150e9419"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/assessment.json",
+      "sha256": "ef8d710153d964e4a63da35eb09277b97092994d62ede3b1c6115ca71a3c2d96"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/plot_nav01_r02.py",
+      "sha256": "4c026ad06024a1393e30c940c779d73b4f2f42ebc247e4805176de718eb350b9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/r02/NAV01_static_failure_trace.png",
+      "sha256": "dd45c52a8d36b642e951817a78aa6b79e59b0b10739720b407d61f5971ed1abf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/r02/caption.txt",
+      "sha256": "e46033d760f5a11b3ea09b36e0f5a4317a376257872d628b4a6f808a6f6f8481"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/r02/NAV01_paper_size_preview.png",
+      "sha256": "03de01ea81bae96a0e60fdfc6a1f28c2a6cc33af269a6a94b7b4cb6dfe69f78a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/r02/NAV01_static_failure_trace.svg",
+      "sha256": "96273a94b20f7223d0ca57897cde9bc64060693f224e9f86be688ae03ad8624a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/r02/candidate_trace.csv",
+      "sha256": "e95149a346337c85c0f25740711160a588a93b3ce5dfe266d2becfb8e21361a2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/r02/control_trace.csv",
+      "sha256": "004a5722ef376c259259ed17d6d3b2ea9b3870bdf13abec2eca48854dc6c421b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/r02/NAV01_static_failure_trace.pdf",
+      "sha256": "2bb8dcd28a42fb621660bcf07fd68c486dbfeb0f3626921f97c41853714b8192"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/navigation_n04_failure_trace/r02/manifest.json",
+      "sha256": "d8ec5df3c75c2a0fdac5aeffc2b4d373de9fac828e0e731ebccf02eca3da333b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_coordinated_runtime.py",
+      "sha256": "d3675f6153152dce54c41809c6da1172ea7168ebb4ca5e66f994110021641f96"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/receipt.json",
+      "sha256": "16656ba633618b10147e123a3fb5cb92649b261f3710cdb5f936c6b8777fa1a2"
+    },
+    {
+      "path": "artifacts/astra_gazebo_20260926/audits/navigation_n04_NAV01_independent/review.py",
+      "sha256": "48038cf9fe35ffdfc2570e3fe2c8538b6d4a9aa9b9d14ec47f9b11a263e11e5c"
+    }
+  ]
+}

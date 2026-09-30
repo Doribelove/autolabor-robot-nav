@@ -1,0 +1,30 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C1
+preregistration_id: v3_scope_v3_03_c1_segmented_closed_loop_integration_1
+date: "2026-07-24"
+status: frozen_before_any_v3_03_c1_simulation
+contract: config/thesis_experiments/v3/v3_03_c1_segmented_closed_loop_integration_contract.yaml
+fresh_schedule:
+  seeds: [6331, 6332, 6333]
+  policies_evaluator_only: [cautious, assertive, hesitant]
+  exact_episodes: 9
+  attempt: 1
+  retries: 0
+closed_loop:
+  prefix_s: 0.50
+  replanning_period_s: 0.25
+  maximum_duration_s: 10.0
+  goal_x_m: 2.50
+  planner_receives_policy_label: false
+frozen_inputs:
+  planner_contract_sha256: 92ac141f3eba8dbcf4d008d95bf9e6ab41332b33288c9cb297a40af34b393c8f
+  predictor_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+  model_or_gate_update_allowed: false
+authority:
+  simulation_requires_separate_authorization: true
+  training: false
+  move_base: false
+  cmd_vel_publish: false
+  hardware_device_access: false
+  real_vehicle: false

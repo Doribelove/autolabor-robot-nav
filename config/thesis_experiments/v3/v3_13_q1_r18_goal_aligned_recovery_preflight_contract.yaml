@@ -1,0 +1,73 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R18
+stage_purpose: fresh_non_evidence_goal_aligned_recovery_runtime_preflight
+status: preregistered_before_execution
+upstream:
+  R17_contract_path: config/thesis_experiments/v3/v3_13_q1_r17_goal_aligned_recovery_contract.yaml
+  R17_contract_sha256: 3dd9299cbbf39c63442a108c082e3830784084f4e40f9eff9560de7e43f2603f
+  R17_audit_sha256: 0763418219bccd33f9e124d92e0270a0025996ecf2205d54398f83f92701d46e
+  R17_manifest_sha256: afc72f3c366cb913052ec717bffafa09b52a6b420742c0de3f15ef8ea57cebd4
+  R17_review_sha256: 47c87ec44f11caa4479058def794ff28150cabe70d5953d8cb70e82e8b9d66ff
+  progress_candidate_core_sha256: 028919c09e336cd22b02c99e1cd2f5a54d56ae4704e78499090aef5275ea9de9
+  terminal_guard_core_sha256: 0b30da1f7ee93d22dc88924ed90a991793f419f7b0780e8c9bd59efc05b52652
+single_factor:
+  factor: execute_R17_goal_aligned_candidate_and_terminal_guard_once
+  candidate_id: recovery_evasive_right_v120_r3
+  legacy_candidate_bytes_and_order_unchanged: true
+  analytic_ranker_weights_unchanged: true
+  hard_verifier_thresholds_unchanged: true
+  branch_target_sim_s: 12.5
+  clone_combined_radius_m: 1.15
+  horizon_s: 7.55
+  terminal_tolerance_m: 0.12
+population:
+  units: 1
+  seed: 7667
+  attempt: 1
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only: [hesitant, hesitant]
+  nominal_wait_depth_s: 5.0
+  branch_target_sim_s: 12.5
+  forced_candidate_id: recovery_evasive_right_v120_r3
+  behavior_propensity: 1.0
+  non_evidence_preflight: true
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+scientific_gates:
+  episode_collection_pass: true
+  completed_horizon: true
+  contact_state_count_max: 0
+  minimum_conservative_clearance_m_min: 0.0
+  minimum_trace_static_clearance_m_min: 0.05
+  maximum_tracking_error_m_max: 0.80
+  command_gap_s_max: 0.20
+  final_common_goal_distance_m_max: 0.25
+  terminal_guard_activation_count_min: 1
+  every_actor_observable_mode_at_branch: assertive
+downstream:
+  if_all_gates_pass: design_fresh_five_action_r3_positive_propensity_support
+  if_any_gate_fails: freeze_negative_preflight
+  candidate_specific_support_execution_authorized: false
+  candidate_specific_predictor_fit_authorized: false
+  direct_actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  exact_bounded_simulation_preflight_authorized: true
+  authorized_units: 1
+  authorized_seed: 7667
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  evidence_claim_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - one fresh non-evidence simulation preflight completed the dynamic, static, tracking, common-goal and terminal-guard gates
+  forbidden:
+  - candidate-conditioned actor-response support or predictor qualification
+  - actual TEB performance or paired comparison
+  - perception or learned-policy benefit
+  - deployment or real-vehicle readiness

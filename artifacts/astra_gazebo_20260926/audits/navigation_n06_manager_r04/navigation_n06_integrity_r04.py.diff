@@ -1,0 +1,20 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity_r03.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity_r04.py
+@@ -163,7 +163,7 @@
+     expected={'receipt_path':str(root/'receipt.json'),'report_path':'' if assessment is None else str(root/'assessment.json'),
+         'raw_path':str(root/'collector_raw.json') if (root/'collector_raw.json').is_file() else '',
+         'heartbeat_path':str(root/'heartbeat.json'),'cwd':str(prepared_api.WORKSPACE),'bindings_sha256':release_sha,
+-        'code_sha256':binding(prepared_api.WORKSPACE/'scripts/astra_gazebo/run_navigation_n06_manager_r03.py')['sha256'],
++        'code_sha256':binding(prepared_api.WORKSPACE/'scripts/astra_gazebo/run_navigation_n06_manager_r04.py')['sha256'],
+         'config_sha256':contract_binding['sha256'],'model_sha256':'',
+         'exit_code':'' if code is None else code}
+     if any(not same_typed(metadata.get(k),v) for k,v in expected.items()):raise ValueError('metadata canonical path/hash/value differs')
+@@ -187,7 +187,7 @@
+ def required_manager_paths():
+     p=prepared_api.WORKSPACE/'scripts/astra_gazebo'
+     venv=prepared_api.WORKSPACE/'.venv';site=venv/'lib/python3.8/site-packages'
+-    return [p/name for name in ('run_navigation_n06_manager_r03.py','navigation_n06_integrity_r03.py','navigation_n06_process_r03.py','navigation_n06_admin_plan_r03.py')]+[
++    return [p/name for name in ('run_navigation_n06_manager_r04.py','navigation_n06_integrity_r04.py','navigation_n06_process_r04.py','navigation_n06_admin_plan_r04.py')]+[
+         Path('/usr/include/x86_64-linux-gnu/asm/unistd_64.h'),Path('/usr/include/linux/prctl.h'),venv/'pyvenv.cfg',
+         site/'_virtualenv.py',site/'_distutils_hack/__init__.py',site/'_virtualenv.pth',site/'distutils-precedence.pth',site/'matplotlib-3.7.5-py3.8-nspkg.pth']
+ 

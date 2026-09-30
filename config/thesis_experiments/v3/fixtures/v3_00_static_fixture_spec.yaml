@@ -1,0 +1,36 @@
+schema_version: "1.0"
+fixture_id: v3_00_static_contract_fixture_1
+status: schema_and_gate_fixture_only
+simulation_evidence: false
+vehicle:
+  wheelbase_m: 0.65
+  min_turning_radius_m: 1.20
+  max_center_steering_angle_rad: 0.4964
+  max_steering_rate_radps: 0.80
+  max_speed_mps: 1.20
+  calibration_status: simulation_candidate
+integration:
+  dt_s: 0.20
+  point_count: 6
+initial_state:
+  x_m: 0.0
+  y_m: 0.0
+  yaw_rad: 0.0
+  steering_angle_rad: 0.0
+candidates:
+  - {candidate_id: certified_stop, velocity_mps: 0.0, steering_angle_rad: 0.0, assertiveness: -1.0, certified_stop: true, teb_fallback: false}
+  - {candidate_id: teb_fallback, velocity_mps: 0.35, steering_angle_rad: 0.0, assertiveness: -0.65, certified_stop: false, teb_fallback: true}
+  - {candidate_id: straight_slow, velocity_mps: 0.40, steering_angle_rad: 0.0, assertiveness: -0.35, certified_stop: false, teb_fallback: false}
+  - {candidate_id: straight_cruise, velocity_mps: 0.80, steering_angle_rad: 0.0, assertiveness: 1.0, certified_stop: false, teb_fallback: false}
+  - {candidate_id: left_soft, velocity_mps: 0.60, steering_angle_rad: 0.15, assertiveness: 0.45, certified_stop: false, teb_fallback: false}
+  - {candidate_id: right_soft, velocity_mps: 0.60, steering_angle_rad: -0.15, assertiveness: 0.45, certified_stop: false, teb_fallback: false}
+  - {candidate_id: left_yield, velocity_mps: 0.35, steering_angle_rad: 0.25, assertiveness: -0.20, certified_stop: false, teb_fallback: false}
+  - {candidate_id: right_yield, velocity_mps: 0.35, steering_angle_rad: -0.25, assertiveness: -0.20, certified_stop: false, teb_fallback: false}
+actor_fixture:
+  initial_state_label: crossing_clone_fixture
+  response_noise_floor_s: 0.05
+  policies:
+    - {policy_id: cautious, response_gain_s: 0.60, response_bias_s: 0.10, hidden_from_runtime: true}
+    - {policy_id: assertive, response_gain_s: -0.25, response_bias_s: -0.05, hidden_from_runtime: true}
+    - {policy_id: hesitant, response_gain_s: 0.35, response_bias_s: 0.20, hidden_from_runtime: true}
+  behavior_propensity_per_candidate: 0.125

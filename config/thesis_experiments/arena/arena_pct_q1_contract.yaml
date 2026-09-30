@@ -1,0 +1,144 @@
+schema_version: "1.0"
+stage: ARENA-PCT-Q1
+title: Arena hospital four-method integration qualification
+created_at: "2026-08-13 Asia/Shanghai"
+simulation_only: true
+explicit_user_simulation_instruction: true
+formal_result: false
+performance_superiority_claim_authorized: false
+training_steps_authorized: 0
+real_vehicle_authorized: false
+
+purpose:
+  primary: >-
+    Establish a safe, source-preserving Arena-to-M2 integration and collect a
+    bounded descriptive comparison before any multi-world formal study.
+  not_a_claim_population:
+    - all Arena worlds
+    - perception or localization generalization
+    - formal safety
+    - deployment or real-vehicle readiness
+
+methods:
+  - pct_scope_rl_r2_candidate_v060
+  - analytic_prior_same_candidates_and_shield
+  - actual_teb_local_planner_ros_0_8_4
+  - dwa_local_planner
+fairness:
+  comparison_type: complete_navigation_system_stack_qualification
+  shared:
+    - Autolabor M2 Ackermann URDF and actuator dynamics
+    - 15 Hz 360-degree LaserScan with 0.01 m noise
+    - odometry and TF
+    - /cmd_vel_navigation execution boundary
+    - start, policy gate, goal, world snapshot, actor policy, and seed per block
+    - frozen hospital occupancy map (PCT static separation and baseline global planning)
+    - 30 s failure-inclusive cap
+  planner_truth_policy: >-
+    Gazebo model states are evaluator-only. PCT and analytic use scan, odometry,
+    TF, candidate features, analytic prior, hard mask, and the frozen occupancy
+    map for both static/dynamic scan separation and hard candidate static-clearance
+    verification. TEB and DWA use the same occupancy map through map_server,
+    static global costmap and Navfn, while their local obstacle layers use the
+    same scan. A frozen map-to-odom transform isolates navigation behavior; this
+    is a system-stack comparison, not a claim that every method uses identical
+    internal information semantics, and not a localization study.
+
+arena_source_policy:
+  source_world: simulator_setup/worlds/hospital/worlds/hospital.world
+  expected_sha256: 818a5eab5a9eedc43050d2fb3a2345d267dd32843c4139f29d58d06b396e2c95
+  source_is_read_only: true
+  arena_bringup_forbidden: true
+  task_generator_forbidden: true
+  snapshot_policy: >-
+    Remove the five stock actors and world plugins only in an episode-specific
+    copied SDF; inject at most one controlled reactive cylinder actor. Verify
+    the source hash before and after every build/run. Hash-bind and revalidate
+    the hospital model/mesh/texture assets used by the snapshot.
+
+route:
+  world: hospital
+  route_origin_world_m: [0.0, 11.2]
+  route_yaw_world_rad: 0.0
+  spawn_route_x_m: -5.0
+  policy_start_route_x_m: -4.0
+  goal_route_x_m: 4.2
+  goal_tolerance_m: 0.25
+  timeout_s: 30.0
+  policy_time_feature_cap_s: 22.0
+  common_goal_yaw_tolerance_rad: 0.20
+  map_static_surface_tolerance_m: 0.35
+  map_unknown_treated_as_occupied: true
+
+tasks:
+  hospital_static:
+    actors: 0
+  hospital_single_crossing:
+    actors: 1
+    actor_policy: cautious
+    actor_route_start_m: [0.0, -2.7]
+    actor_route_end_m: [0.0, 2.7]
+    actor_base_speed_mps: 0.72
+    actor_collision_geometry: cylinder_radius_0_36_m
+    actor_activation_ego_route_x_m: -3.90
+    branch_actor_pose_tolerance_m: 0.01
+    seed_parameter_jitter_enabled: false
+
+schedule:
+  attempt_policy: attempt_1_only_no_retry_no_replacement
+  blocks:
+    - seed: 20310813
+      task: hospital_static
+      method_order: [pct_scope_rl, actual_teb, analytic_prior, dwa]
+    - seed: 20310814
+      task: hospital_single_crossing
+      method_order: [actual_teb, analytic_prior, dwa, pct_scope_rl]
+    - seed: 20310815
+      task: hospital_single_crossing
+      method_order: [analytic_prior, dwa, pct_scope_rl, actual_teb]
+  total_episodes: 12
+
+metrics:
+  primary_descriptive: safety_qualified_failure_inclusive_traversal_time_s
+  failure_value_s: 30.0
+  safety_qualified_goal_requires:
+    - evidence-chain and platform-integrity pass
+    - common geometric goal and planner success where applicable
+    - no contact state sample on a publisher- and heartbeat-qualified bumper stream
+    - independent conservative clearance >= 0.0 m
+    - zero mask violations
+  separately_reported:
+    - method-native geometric/MoveBase goal
+    - heartbeat-qualified absence of contact-state samples (diagnostic only)
+    - platform integrity excluding algorithm outcome
+    - safety-qualified goal
+  secondary:
+    - valid goal rate
+    - contact state sample count
+    - independent conservative map/actor clearance
+    - path length
+    - candidate switches and certified stops
+    - inference latency
+
+qualification_interpretation:
+  inferential_statistics: forbidden_due_to_n3
+  allowed:
+    - integration feasibility
+    - per-episode and descriptive paired effects
+    - failure mechanism reporting
+  forbidden:
+    - statistically significant superiority
+    - general Arena superiority
+    - pooling with historical Gazebo, V3, V5, or V6 evidence
+    - tuning the frozen actor from qualification outcomes
+  contact_claim_boundary: >-
+    The bumper publisher, type, connection and 100 Hz heartbeat are checked
+    fail-closed, and any observed contact state disqualifies the episode. Q1
+    contains no frozen positive collision-sensitivity control, so zero contact
+    state samples are diagnostic only and do not independently prove zero
+    collision or formal safety.
+  evidence_integrity:
+    - exact selected execution-resource roster reviewed before execution
+    - explicit release SHA and release-review SHA required by the runner
+    - exact ROS/Gazebo URI process and port cleanup; isolation failure stops the matrix
+    - terminal journal, matrix receipt, raw evidence manifest and external SHA seal

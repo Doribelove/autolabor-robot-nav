@@ -1,0 +1,87 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P1-R1
+status: p1_r1_offline_implementation_readiness_closure_pass_release_absent
+review_result: pass
+offline_review_pass: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+planned_evidence_units: 270
+authorized_evidence_units: 0
+consumed_evidence_units: 0
+training_budget_steps: 0
+real_vehicle_used: false
+i5_rerun_or_resume_performed: false
+dependency_closure:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/p1_r1_dependency_closure.yaml
+  file_sha256: 825f636169f7f381eada2f261f8ed7932f1e115fc1fd297c50225345f24d6c66
+  logical_sha256: cb3ec8ed465e63d85c2c9ad041f6bfa9f3b22c9f49727cf9c78e294bce5de5f2
+  local_resources_verified: 428
+  historical_transitive_resources: 218
+  unresolved: []
+i5_freeze:
+  path: artifacts/v2/integration/v2_04g_r6_i1/r6_i6_interpretation/i5_evidence_freeze.sha256
+  sha256: 40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935
+  resource_count: 13
+  all_resources_verified: true
+scene_schedule:
+  scenes: 94
+  evidence_blocks: 90
+  compiled_children: 188
+  episodes: 270
+  schedule_digest: e29530f28449a9b1bcbbb19090f1a9a3a4584e6fc4f9e1cc1f251cdf6f56f38f
+  deterministic_rebuild_pass: true
+  population: three_frozen_dynamic_templates_under_fresh_simulator_stochastic_seeds
+  geometry_or_timing_generalization_allowed: false
+statistics:
+  positive_fixture_all_four_gates_pass: true
+  negative_complete_study_claim_false: true
+  missing_pair_integrity_fail: true
+  interface_failure_integrity_fail: true
+  exact_binary_boundaries_pass: true
+  timestamped_overlay_contract_present: true
+fresh_seed_firewall:
+  reserved:
+  - 5201
+  - 5294
+  materialized_evidence:
+  - 5201
+  - 5290
+  materialized_compile_support:
+  - 5291
+  - 5294
+  authorized_count: 0
+  consumed_count: 0
+  historical_seed_or_budget_reused: false
+  globally_never_referenced_claim_made: false
+resource_time_budget:
+  estimate_only: true
+  authorized_budget: 0
+  serial_concurrency: 1
+  canonical_artifact_cap_bytes: 536870912
+  minimum_future_free_disk_bytes: 4294967296
+  future_stage_wall_cap_h: 20
+execution_gap:
+  p1_exact_runner_adapter_present: false
+  p1_raw_replay_adapter_present: false
+  requires_separate_future_implementation_release_and_review: true
+  current_offline_pass_is_execution_authorization: false
+side_effect_audit:
+  forbidden_execution_paths_absent: true
+  forbidden_processes: []
+  ros_gazebo_started_by_review: false
+  reviewer_has_execute_option: false
+reviewer:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p1_r1_offline_reviewer.py
+  sha256: e537e9132ead55d92acbe073f118fca4418a0534f0acae32469d02ed8c6da49e
+  single_open_no_follow_reads: true
+  deterministic_double_build_required: true
+claim_state:
+  assessment_run: false
+  performance_improvement_demonstrated: false
+  claim_authorized: false
+  future_positive_claim_requires_all_four_gates: true
+next_safe_entry: separately_explicitly_authorized_P1_execution_implementation_release_with_exact_runner_raw_replay_adapter_270_unit_budget_and_fresh_rehash

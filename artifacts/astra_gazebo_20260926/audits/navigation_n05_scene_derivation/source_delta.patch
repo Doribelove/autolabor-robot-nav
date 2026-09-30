@@ -1,0 +1,165 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/prepare_navigation_n04_scenes.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/prepare_navigation_n05_scenes.py
+@@ -2,7 +2,9 @@
+ """Derive twelve existing development inputs; no ROS or episode execution.
+ 
+ One parent geometry per family, two parameter repeats, not twelve independent
+-geometries. Runtime worlds need explicit per-method gate identity binding.
++geometries. Exact proposed24 control/treatment identities; preparation never
++reserves a seed or authorizes execution. N04 source/geometry/QC math retained.
++Runtime worlds need explicit per-method gate identity binding.
+ """
+ import argparse,copy,csv,hashlib,json,math,shutil
+ from pathlib import Path
+@@ -18,9 +20,12 @@
+ from dense_sweep_p04 import parse_converted_model
+ from scene_generator_v2 import laser_visibility
+ HERE=Path(__file__).resolve().parent;STAGE=HERE.parents[2]
+-PLUGIN='libastra_event_actor_n04_plugin.so'
+-METHODS=('astra_analytic_route_v1','astra_pct_route_v1','actual_teb_common_route','dwa_common_route','frozen_r2_v060_sensor_lifecycle_v1')
++PLUGIN='libastra_event_actor_n05_plugin.so'
++METHODS=('astra_analytic_route_v1','astra_analytic_preview_eligible_n05')
+ LIMIT_NS=50000000
++DESIGN=STAGE/'contracts/navigation_n05_preview_selection_design.json'
++DESIGN_SHA256='959b214b3f4a10da276ee46ce9c319c9f5ea8001551f9dc4626b97f9714baefc'
++PARENT_PREPARER_SHA256='7cd9e1c87bdc56f3588713208d0bafe4eddf5758df663068af3d3abe8f345af7'
+ REFERENCE=STAGE/'contracts/navigation_n02_prepared_r01/astra_navigation_n02_frozen_r2_v060_sensor_lifecycle_v1'
+ sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+ 
+@@ -38,14 +43,51 @@
+                 out.append((m.get('name'),m.findtext('pose','0 0 0 0 0 0'),l.get('name'),l.findtext('pose','0 0 0 0 0 0'),ET.tostring(c,encoding='unicode')))
+     return out
+ 
++def validate_design_data(data):
++    """Exact diagnostic roster only; this does not reserve seeds or authorize runs."""
++    if data.get('stage')!='astra_navigation_n05_preview_selection' or data.get('methods')!=list(METHODS):raise ValueError('N05 design stage/method roster mismatch')
++    if data.get('execution_release') is not False or data.get('execution_authorized') is not False or type(data.get('allocated_budget')) is not int or data['allocated_budget']!=0:raise ValueError('prepared design is not an execution release')
++    if any(type(data.get(k)) is not int or data[k]!=v for k,v in [('proposed_maximum_episodes',24),('independent_parent_geometries',6),('blocks',12)]):raise ValueError('N05 diagnostic capacity differs')
++    rows=data.get('schedule')
++    if not isinstance(rows,list) or len(rows)!=24:raise ValueError('exact24 schedule required')
++    groups=[]
++    for block in range(12):
++        own=rows[2*block:2*block+2];seed=263002001+block
++        order=METHODS if block%2==0 else tuple(reversed(METHODS))
++        for offset,(row,method) in enumerate(zip(own,order)):
++            for key,value in [('sequence',2*block+offset+1),('block_index',block),('seed',seed),('method_order_in_block',offset+1),('attempt',1),('replicate',block%2)]:
++                if type(row.get(key)) is not int or row[key]!=value:raise ValueError('N05 exact schedule numeric identity differs:'+key)
++            if row.get('method')!=method or row.get('run_id')!='astra_navigation_n05_b%02d_'%block+method:raise ValueError('N05 exact run/method identity differs')
++            if any(not isinstance(row.get(k),str) or not row[k] for k in ('family','layout_id','parent_geometry_id','scene_id')):raise ValueError('N05 parent identity missing')
++        if any(own[0][k]!=own[1][k] for k in ('family','layout_id','parent_geometry_id','scene_id','replicate')):raise ValueError('paired methods must share geometry/replicate')
++        groups.append(own[0])
++    if len({r['parent_geometry_id'] for r in groups})!=6 or len({r['family'] for r in groups})!=6:raise ValueError('six independent parent identities required')
++    for a,b in zip(groups[::2],groups[1::2]):
++        if any(a[k]!=b[k] for k in ('family','layout_id','parent_geometry_id','scene_id')):raise ValueError('two parameter repeats per parent required')
++    return data
++
++
++def load_design(path=DESIGN):
++    raw=Path(path).read_bytes()
++    if hashlib.sha256(raw).hexdigest()!=DESIGN_SHA256:raise ValueError('N05 design SHA differs')
++    return validate_design_data(json.loads(raw))
++
++
++def design_block(seed):
++    if type(seed)is not int or seed not in range(263002001,263002013):raise ValueError('outside proposed N05 diagnostic seeds')
++    return load_design()['schedule'][2*(seed-263002001)]
++
++
+ def bind_gate_identity(world_text,run_id,seed,method):
+     """Return per-run XML, changing ONLY expected_* actor metadata in template."""
+     if not isinstance(run_id,str) or not run_id or 'UNBOUND' in run_id or len(run_id)>160 or type(seed)is not int or not 0<seed<=2147483647 or method not in METHODS:
+         raise ValueError('explicit runtime identity required')
++    design=load_design()
++    if not any(r['run_id']==run_id and r['seed']==seed and r['method']==method for r in design['schedule']):raise ValueError('identity outside exact N05 proposed schedule')
+     root=ET.fromstring(world_text)
+     for p in root.findall('world/model/plugin'):
+         if p.get('filename')!=PLUGIN:raise ValueError('unexpected model plugin')
+-        if p.findtext('expected_run_id')!='UNBOUND_N04_RUN' or p.findtext('expected_method')!='UNBOUND_N04_METHOD' or p.findtext('expected_seed')!=str(seed):
++        if p.findtext('expected_run_id')!='UNBOUND_N05_RUN' or p.findtext('expected_method')!='UNBOUND_N05_METHOD' or p.findtext('expected_seed')!=str(seed):
+             raise ValueError('identity template mismatch or second binding')
+         for k,v in [('expected_run_id',run_id),('expected_seed',seed),('expected_method',method)]:put(p,k,v)
+     result=ET.tostring(root,encoding='unicode')+'\n'
+@@ -53,6 +95,9 @@
+     return result
+ 
+ def derive(parent,world_text,seed):
++    block=design_block(seed)
++    for key in ('family','layout_id','parent_geometry_id','scene_id','replicate'):
++        if type(parent.get(key)) is not type(block[key]) or parent[key]!=block[key]:raise ValueError('parent differs from N05 exact block:'+key)
+     s=copy.deepcopy(parent);root=ET.fromstring(world_text);world=root.find('world')
+     if parent['route']['spawn']!=[-5.4,0.,0.] or parent['route']['start']!=[-4.,0.,0.] or parent['route']['goal']!=[5.,0.,0.]:
+         raise ValueError('nonidentity route requires a separately named R2/control adapter')
+@@ -67,20 +112,21 @@
+             if old is None:raise ValueError('missing original geometric gate field')
+             p.remove(old)
+         p.set('filename',PLUGIN)
+-        for key,val in [('expected_run_id','UNBOUND_N04_RUN'),('expected_seed',seed),('expected_method','UNBOUND_N04_METHOD'),('gate_topic','/astra/navigation/gate'),('max_gate_transport_delay_ns',LIMIT_NS)]:put(p,key,val)
++        for key,val in [('expected_run_id','UNBOUND_N05_RUN'),('expected_seed',seed),('expected_method','UNBOUND_N05_METHOD'),('gate_topic','/astra/navigation/gate'),('max_gate_transport_delay_ns',LIMIT_NS)]:put(p,key,val)
+         actor.update(live_plugin=PLUGIN,gate_status_topic='/astra/actors/'+actor['model_name']+'/gate_status',gate_authority='coordinator_actual_odom_header_event',live_gate_qualification=False)
+     for plugin in list(world.findall('plugin')):world.remove(plugin)
+     dense=ET.SubElement(world,'plugin',name='whole_contact_evidence',filename='libastra_dense_evidence_plugin.so');put(dense,'state_hz',50)
+     ET.SubElement(world,'plugin',name='passive_sweep_evidence',filename='libastra_physics_metadata_p03_plugin.so')
+     text=ET.tostring(root,encoding='unicode')+'\n'
+     if collision_signature(text)!=collision_signature(world_text):raise AssertionError('parent geometry changed')
+-    s.update(schema='astra_navigation_n04_development_scene_v1',seed=seed,parent_episode_seed=parent['seed'],split='development',
+-        environment_version='astra_n04_physical_p05_event_actor_50ms',runtime_identity_bound=False,execution_authorized=False,
++    s.update(schema='astra_navigation_n05_development_scene_v1',seed=seed,parent_episode_seed=parent['seed'],split='development',
++        environment_version='astra_n05_physical_p05_event_actor_50ms',runtime_identity_bound=False,execution_authorized=False,
++        paired_method_roster=list(METHODS),derivation_design_sha256=DESIGN_SHA256,
+         parent_static_boxes=copy.deepcopy(parent.get('static_boxes',[])),parent_static_circles=copy.deepcopy(parent.get('static_circles',[])),
+         parent_corridor_half_width_m=parent.get('corridor_half_width_m'),parent_robot_collision_reference=copy.deepcopy(parent['robot_collision_reference']),
+         robot_collision_reference={'reference':'base_link','spawn_xyz_rpy':[-5.4,0.,0.,0.,0.,0.],'full_collision_count':9},
+         camera={'topic':parent['evidence_camera']['topic'],'width':2560,'height':1440,'rate_hz':2},
+-        input_variant_id=parent['layout_id']+'_n04_event_actor',new_independent_geometry=False,
++        input_variant_id=parent['layout_id']+'_n05_event_actor',new_independent_geometry=False,
+         frozen_R2_common_guide_consumption=False,nonidentity_heading_supported=False,
+         actor_activation={'source':'/astra/navigation/gate actual_odom_header_first_crossing','max_gate_transport_delay_ns':LIMIT_NS,
+           'first_consuming_Begin_active_dt_ns':0,'no_unreceived_interval_backfill':True,'live_qualification':'pending',
+@@ -206,9 +252,13 @@
+ 
+ def build(source,output,registry,reference=REFERENCE):
+     source,output,registry,reference=map(Path,(source,output,registry,reference))
+-    if output.exists():raise FileExistsError('preserve existing N04 derivation')
+-    rows=list(csv.DictReader((source/'diagnostic_blocks.csv').open()));seeds=list(range(263001001,263001013))
++    if output.exists():raise FileExistsError('preserve existing N05 derivation')
++    design=load_design()
++    with (source/'diagnostic_blocks.csv').open() as stream:rows=list(csv.DictReader(stream))
++    seeds=[r['seed'] for r in design['schedule'][::2]]
+     if len(rows)!=12 or len({r['parent_geometry_id'] for r in rows})!=6:raise ValueError('six parent geometries x two input repeats required')
++    for old,block in zip(rows,design['schedule'][::2]):
++        if any(str(old.get(k))!=str(block[k]) for k in ('family','layout_id','parent_geometry_id','scene_id','replicate')):raise ValueError('source row order/parent differs from N05 design')
+     registry_bytes=registry.read_bytes()
+     registered={int(v) for row in csv.DictReader(registry_bytes.decode().splitlines()) for v in row.values() if v and v.isdigit()}
+     if set(seeds)&registered:raise ValueError('proposed development seed already in registry')
+@@ -230,7 +280,7 @@
+           static_collision_geometry_equals_parent=True,classification_adapter='new event actors explicitly removed before frozen static exporter')
+         boxes,legacy=legacy_static_boxes(pgm,meta);scene.update(static_boxes=boxes,static_circles=[],corridor_half_width_m=None,r2_static_input_adapter=legacy)
+         scene['input_derivation']={'parent_manifest':{'path':str(mp),'sha256':sha(mp)},'parent_world':{'path':str(wp),'sha256':sha(wp)},
+-          'generator_sha256':sha(__file__),'parent_geometry_retained':True,'new_independent_geometry':False,'parent_episode_seed':parent['seed']}
++          'generator_sha256':sha(__file__),'n04_preparer_source_sha256':PARENT_PREPARER_SHA256,'design_sha256':DESIGN_SHA256,'parent_geometry_retained':True,'new_independent_geometry':False,'parent_episode_seed':parent['seed']}
+         (exported/'map.pgm').write_bytes(pgm);(exported/'map.yaml').write_bytes(meta);write_json(exported/'route_request.json',request);write_json(exported/'audit.json',audit);write_json(exported/'legacy_raster_adapter.json',legacy)
+         route=build_bundle(exported,folder/'common_bundle',radius=1.)
+         grid=SharedStaticMap(pgm,meta);rr,cc=np.nonzero(grid.pixels!=254);r=grid.resolution;ox,oy=grid.origin[:2]
+@@ -264,17 +314,18 @@
+         row.update(seed=new['seed'],world_path=str(folder/'world.sdf'),world_sha256=sha(folder/'world.sdf'),
+           manifest_path=str(folder/'scene_manifest.yaml'),manifest_sha256=sha(folder/'scene_manifest.yaml'),
+           input_index=new['input_index'],common_bundle=new['common_bundle'],eligibility='offline_prepared_live_qualification_pending',
+-          input_variant_id=old['layout_id']+'_n04_event_actor',environment_version='astra_n04_physical_p05_event_actor_50ms')
++          input_variant_id=old['layout_id']+'_n05_event_actor',environment_version='astra_n05_physical_p05_event_actor_50ms')
+         csv_rows.append(row)
+     with (output/'diagnostic_blocks.csv').open('w',newline='') as stream:
+         writer=csv.DictWriter(stream,fieldnames=list(csv_rows[0]));writer.writeheader();writer.writerows(csv_rows)
+     files=[{'path':str(p.resolve()),'sha256':sha(p)} for p in sorted(output.rglob('*')) if p.is_file()]
+-    report={'schema':'astra_navigation_n04_scene_preparation_v1','status':'offline_development_inputs_ready_pending_actor_live_qualification',
+-      'execution_authorized':False,'seeds_registered':False,'proposed_seeds':seeds,'registry_binding':{'path':str(registry.resolve()),'sha256':sha(registry)},
++    report={'schema':'astra_navigation_n05_scene_preparation_v1','status':'offline_development_inputs_ready_pending_actor_live_qualification',
++      'execution_authorized':False,'seeds_registered':False,'proposed_seeds':seeds,'paired_method_roster':list(METHODS),
++      'design_binding':{'path':str(DESIGN),'sha256':DESIGN_SHA256},'n04_preparer_source_sha256':PARENT_PREPARER_SHA256,'registry_binding':{'path':str(registry.resolve()),'sha256':sha(registry)},
+       'input_rows':derived,'parent_geometry_count':6,'new_independent_geometry_count':0,'parent_bindings':before,'parent_bytes_preserved':True,
+       'reference_geometry_only':{'urdf_sha256':sha(urdf),'converted_sdf_sha256':sha(sdf),'reference_seed':260926033,'runtime_per_run_URDF_and_conversion_binding_required':True},
+       'files':files,'generator_sha256':sha(__file__),'all_static_witnesses_pass':all(x['static_witness_pass'] for x in derived),
+-      'limitations':['six reused parent geometries; repeats are parameter/noise repeats','fixed R2 audits common route but does not consume it',
++      'limitations':['six reused parent geometries; repeats are parameter/noise repeats','N05 has only analytic control/treatment; unchanged legacy raster adapter retained for common input parity',
+         'all current routes are identity heading; arbitrary SE2 R2 bridge unimplemented','static witness is ideal geometric and excludes moving actors/physical tracking',
+         'source folders contain no raster figures; parent world visual XML is retained byte-exact','event actor transport/fault/roster qualification pending fresh live stage',
+         'camera native 2560x1440 configuration retained; no rendered image created offline']}

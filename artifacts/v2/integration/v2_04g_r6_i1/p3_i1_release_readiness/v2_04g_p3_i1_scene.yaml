@@ -1,0 +1,95 @@
+schema_version: '2.0'
+architecture_generation: v2
+manifest_id: fam_teb_v2_04g_p3_i1_fresh_scene_1
+status: component_candidate_frozen
+simulation_only: true
+formal_experiment: false
+runtime_ready: false
+real_vehicle_use_forbidden: true
+generator:
+  name: v2_scene_compiler
+  version: 2.0.0
+  source: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+  sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+simulation_contract:
+  path: config/thesis_experiments/v2/simulation_contract.yaml
+  sha256: 47139897bc6ea4e9da7392e2d2df7dd441b68b218745f443f2fc112199e6b1bb
+  profile: v2_02_dynamics
+robot:
+  model: autolabor_m2
+  candidate_config: src/simulation/m2_gazebo/config/simulation_candidates.yaml
+  candidate_sha256: 63edc80a38b4d35c5491660ad4d6882d2ddaf95b4ff66fda820ba20eadbfd946
+  footprint:
+    length_m: 1.04
+    width_m: 0.7
+    height_m: 0.43
+  footprint_sha256: 803741045997615734223bf4d23493b45da79490357c31434b1d8b4b0d135ab2
+policy_boundary:
+  runtime_manifest_access: false
+  runtime_label_topics: []
+  evaluator_only_fields:
+  - family
+  - split
+  - evaluator_only.feasible
+  - evaluator_only.reason
+scenes:
+- scene_id: v2-04g-p3-i1-qual-overlay-v125-s5624
+  family: DYNAMIC
+  split: calibration
+  seed: 5624
+  world_template: generated_v2_sdf
+  start:
+    x_m: 0.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  goal:
+    x_m: 18.0
+    y_m: 0.0
+    yaw_rad: 0.0
+  timeout_s: 80.0
+  layout:
+    variant: v2_04g_r6_i1_single_circle_contact
+    reference_centerline:
+    - - 0.0
+      - 0.0
+    - - 18.0
+      - 0.0
+  static_obstacles: []
+  dynamic_agents:
+  - agent_id: crossing-agent
+    shape: box
+    size_m:
+    - 0.55
+    - 0.55
+    - 1.7
+    loop: false
+    trajectory:
+    - time_s: 10.9
+      x_m: 8.0
+      y_m: -3.5
+      yaw_rad: 1.5707963267948966
+    - time_s: 18.9
+      x_m: 8.0
+      y_m: 3.5
+      yaw_rad: 1.5707963267948966
+  randomization:
+    position_jitter_m: 0.0
+    yaw_jitter_rad: 0.0
+    agent_time_jitter_s: 0.0
+  sensor_profile: v2_02_laser
+  actuator_profile: v2_02_dynamics
+  collision:
+    source: gazebo_contacts
+    topic: /m2_gazebo/contacts
+    terminate: true
+  success:
+    goal_tolerance_m: 0.3
+    yaw_tolerance_rad: 0.2
+    stopped_speed_max_mps: 0.05
+  evaluator_only:
+    feasible: true
+    reason: p3_i1_fresh_semantic_overlay_identity_alignment_preflight
+  policy_forbidden_fields:
+  - family
+  - split
+  - evaluator_only

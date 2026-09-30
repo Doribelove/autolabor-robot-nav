@@ -1,0 +1,29 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-A0
+status: frozen_before_fixture_materialization
+defaults:
+  world_model_seq: 1
+  snapshot_age_s: 0.05
+  predictor_latency_ms: 1.0
+  verifier_latency_ms: 1.0
+  ego: {x_m: -2.6, y_m: 0.0, yaw_rad: 0.0, speed_mps: 0.8}
+  actor: {coordinate_m: -2.8, speed_mps: 0.9, path_angle_deg: 90.0}
+  health:
+    localization_ok: true
+    transform_ok: true
+    actor_track_ok: true
+    command_chain_ok: true
+scenes:
+  - {scene_id: nominal_perpendicular, expected: motion}
+  - {scene_id: nominal_angle_75, actor_override: {coordinate_m: -3.1, speed_mps: 0.7, path_angle_deg: 75.0}, expected: motion}
+  - {scene_id: conservative_angle_105, actor_override: {coordinate_m: -2.4, speed_mps: 1.2, path_angle_deg: 105.0}, expected: stop}
+  - {scene_id: fault_localization, health_false: localization_ok, expected: stop}
+  - {scene_id: fault_transform, health_false: transform_ok, expected: stop}
+  - {scene_id: fault_actor_track, health_false: actor_track_ok, expected: stop}
+  - {scene_id: fault_command_chain, health_false: command_chain_ok, expected: stop}
+  - {scene_id: fault_stale_snapshot, snapshot_age_s: 0.201, expected: stop}
+  - {scene_id: fault_predictor_latency, predictor_latency_ms: 20.001, expected: stop}
+  - {scene_id: fault_verifier_latency, verifier_latency_ms: 20.001, expected: stop}
+  - {scene_id: fault_ood_coordinate, actor_override: {coordinate_m: -3.401, speed_mps: 0.9, path_angle_deg: 90.0}, expected: stop}
+  - {scene_id: fault_ood_angle, actor_override: {coordinate_m: -2.8, speed_mps: 0.9, path_angle_deg: 110.001}, expected: stop}

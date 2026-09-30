@@ -1,0 +1,68 @@
+schema_version: '1.0'
+stage: V3-19-Q1
+status: v3_19_q1_valid_negative_qualification_result
+qualification_pass: false
+failed_preregistered_gates:
+- main_goal_success
+checks:
+  episode_count: true
+  attempt1_complete: true
+  execution_integrity: true
+  gate_physical_valid: true
+  actor_mode_match: true
+  gate_actor_coordinate_range: true
+  gate_actor_speed_range: true
+  main_goal_success: false
+  actual_teb_goal_success: true
+  zero_contact: true
+  nonnegative_clearance: true
+  non_teb_selected_accepted: true
+  all_24_receipts_replayed: true
+  all_attempt1_no_retry: true
+  all_simulation_only: true
+  no_hardware_or_real_vehicle: true
+main_failure_identity: seed7906_bounded_corridor_crossing_110_hesitant_v3_spatial_safe
+main_failure_mechanism: spatial candidate rejected for OCCUPANCY_INTERSECTION; accepted
+  certified stop retained
+method_summary:
+  v3_spatial_safe:
+    episodes: 6
+    execution_integrity_passes: 6
+    goal_successes: 5
+    mean_restricted_time_s: 9.299999999999999
+    minimum_clearance_m: 0.706269670936085
+    contact_count: 0
+    fallback_count: 1
+  actual_teb:
+    episodes: 6
+    execution_integrity_passes: 6
+    goal_successes: 6
+    mean_restricted_time_s: 7.75
+    minimum_clearance_m: 0.028567846079374792
+    contact_count: 0
+    fallback_count: 0
+  fixed_v120_shielded:
+    episodes: 6
+    execution_integrity_passes: 6
+    goal_successes: 0
+    mean_restricted_time_s: 22.0
+    minimum_clearance_m: 1.0460224092492365
+    contact_count: 0
+    fallback_count: 6
+  v3_no_candidate_conditioning:
+    episodes: 6
+    execution_integrity_passes: 6
+    goal_successes: 3
+    mean_restricted_time_s: 14.383333333333333
+    minimum_clearance_m: 0.9508087875418529
+    contact_count: 0
+    fallback_count: 3
+maximum_gate_actor_coordinate_range_m: 0.0044800000000000395
+maximum_gate_actor_speed_range_mps: 0.023466666666690505
+formal_execution_authorized: false
+reserved_formal_seed_range_retired:
+- 8001
+- 8030
+training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false

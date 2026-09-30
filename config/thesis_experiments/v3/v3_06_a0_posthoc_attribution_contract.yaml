@@ -1,0 +1,73 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-A0
+stage_purpose: pure_offline_posthoc_failure_and_efficiency_attribution
+contract_id: v3_scope_v3_06_a0_posthoc_attribution_1
+status: posthoc_analysis_plan_frozen_before_report_generation
+upstream:
+  terminal_freeze_path: artifacts/v3/formal/v3_05_b0/v3_05_b0_terminal_freeze.sha256
+  terminal_freeze_sha256: dfd131abf875cf65ad2477fe926e2ddd0a02a38f92ac1388dd6bd1ebc3dfb117
+  assessment_path: artifacts/v3/formal/v3_05_b0/execution/v3_05_b0_formal_assessment.yaml
+  assessment_sha256: 3754b6cce7613f4aeb708fb4e708515f6eeaca87f230c08c1e028700139b568a
+  independent_review_path: artifacts/v3/formal/v3_05_b0/execution/v3_05_b0_independent_result_review.yaml
+  independent_review_sha256: 2bd0d481b6a8019b5bf39969644766821dbc1de8e73775b9eb582da00a71839a
+  schedule_path: artifacts/v3/formal/v3_05_b0/offline_readiness/v3_05_b0_exact_schedule.yaml
+  schedule_sha256: 8440144590564367f3b489cdd207df363b0095c80804b5bf9a34d247b26d5837
+  planner_contract_path: artifacts/v3/planner/v3_03_c5/v3_03_c5_effective_planner_contract.yaml
+  planner_contract_sha256: 6f2ec1530b67785dfc8f5a397ab416847f35f0c6ffc9e6f45bbf633a50057761
+  predictor_path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  predictor_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+analysis_population:
+  methods: [v3_analytic, fixed_v120_shielded]
+  geometry_blocks: 30
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  paired_episode_count: 90
+  episode_receipt_count: 180
+  v3_decision_count: 3055
+  fixed_v120_decision_count: 3094
+  goal_x_m: 2.5
+  failure_time_assignment_s: 10.0
+  replanning_period_s: 0.25
+analysis_questions:
+  - exact_v3_failure_geometry_policy_and_goal_deficit
+  - paired_failure_overlap_and_noninferiority_source
+  - selected_candidate_and_certified_stop_composition
+  - v120_rejection_rescue_opportunity_for_v3
+  - observed_effect_gap_to_frozen_five_percent_gate
+  - next_single_factor_design_direction
+interpretation_rules:
+  posthoc_descriptive_only: true
+  no_new_confirmatory_inference: true
+  no_counterfactual_safety_claim_from_goal_deficit: true
+  no_reuse_for_method_selection_and_formal_evaluation: true
+  preserve_v3_05_negative_result: true
+  preserve_hard_verifier_and_certified_stop: true
+integrity_gates:
+  exact_episode_receipt_count: 180
+  exact_paired_episode_count: 90
+  exact_v3_failure_count: 6
+  exact_fixed_v120_failure_count: 8
+  exact_replay_rate_min: 1.0
+  selected_candidate_accepted_rate_min: 1.0
+  nonfinite_output_count_max: 0
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  model_write_authorized: false
+  planner_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  The frozen V3-05-B0 negative result has a deterministic, receipt-level
+  descriptive attribution that preserves the original formal conclusion and
+  identifies a bounded next single-factor research direction.
+forbidden_claims:
+  - posthoc_performance_improvement
+  - actual_teb_superiority
+  - learned_policy_improvement
+  - general_navigation_safety
+  - deployment_readiness
+  - real_vehicle_readiness

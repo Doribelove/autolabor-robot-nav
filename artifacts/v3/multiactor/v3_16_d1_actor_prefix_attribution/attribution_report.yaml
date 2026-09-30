@@ -1,0 +1,94 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-16-D1
+status: v3_16_d1_prebranch_response_amplification_attribution_pass
+receipt_count: 40
+max_gate_actor_coordinate_range_m: 0.005119999999999791
+max_gate_actor_speed_range_mps: 0.04607999999997947
+max_branch_actor_coordinate_range_m: 0.06607406724600917
+max_branch_actor_speed_range_mps: 0.07208080063201194
+coordinate_amplification_ratio: 12.905091258986692
+blocks:
+- block_index: 1
+  gate_coordinate_range_m: 0.0019199999999992556
+  gate_speed_range_mps: 0.006400000000006401
+  branch_coordinate_range_m: 0.06607406724600917
+  branch_speed_range_mps: 0.07208080063201194
+  branch_coordinate_gate_pass: false
+  branch_speed_gate_pass: false
+- block_index: 2
+  gate_coordinate_range_m: 0.0012799999999995038
+  gate_speed_range_mps: 0.005120000000040648
+  branch_coordinate_range_m: 0.012856611935996298
+  branch_speed_range_mps: 0.0042855373120005424
+  branch_coordinate_gate_pass: true
+  branch_speed_gate_pass: true
+- block_index: 3
+  gate_coordinate_range_m: 0.0038400000000002876
+  gate_speed_range_mps: 0.04607999999997947
+  branch_coordinate_range_m: 0.05062631435000586
+  branch_speed_range_mps: 0.004050105147998195
+  branch_coordinate_gate_pass: false
+  branch_speed_gate_pass: true
+- block_index: 4
+  gate_coordinate_range_m: 0.0025599999999998957
+  gate_speed_range_mps: 0.02432000000000656
+  branch_coordinate_range_m: 0.013947932949999853
+  branch_speed_range_mps: 8.881784197001252e-16
+  branch_coordinate_gate_pass: true
+  branch_speed_gate_pass: true
+- block_index: 5
+  gate_coordinate_range_m: 0.0044800000000000395
+  gate_speed_range_mps: 0.005120000000014002
+  branch_coordinate_range_m: 0.03813231895199998
+  branch_speed_range_mps: 1.7763568394002505e-15
+  branch_coordinate_gate_pass: true
+  branch_speed_gate_pass: true
+- block_index: 6
+  gate_coordinate_range_m: 0.002560000000000784
+  gate_speed_range_mps: 2.5757174171303632e-14
+  branch_coordinate_range_m: 0.06097818707400293
+  branch_speed_range_mps: 0.0042053922119968945
+  branch_coordinate_gate_pass: false
+  branch_speed_gate_pass: true
+- block_index: 7
+  gate_coordinate_range_m: 0.0031999999999996476
+  gate_speed_range_mps: 0.0013444442079624253
+  branch_coordinate_range_m: 0.008293506752002244
+  branch_speed_range_mps: 0.00414675337600201
+  branch_coordinate_gate_pass: true
+  branch_speed_gate_pass: true
+- block_index: 8
+  gate_coordinate_range_m: 0.005119999999999791
+  gate_speed_range_mps: 0.002560000000046969
+  branch_coordinate_range_m: 0.015034836687995323
+  branch_speed_range_mps: 0.00150348366879971
+  branch_coordinate_gate_pass: true
+  branch_speed_gate_pass: true
+failed_coordinate_blocks:
+- 1
+- 3
+- 6
+failed_speed_blocks:
+- 1
+supported_hypothesis: H3_prebranch_reactive_response_amplified_small_gate_differences
+rejected_hypotheses:
+- H1_action_or_ego_mismatch
+- H2_material_actor_mismatch_already_at_gate
+preregistered_next_single_factor:
+  name: postbranch_response_enable_gate
+  response_enable_sim_s: 12.55
+  branch_target_sim_s: 12.5
+checks:
+  all_40_receipts_have_action_binding: true
+  ego_pairing_gate_passed: true
+  gate_actor_coordinate_below_0_01_m: true
+  branch_actor_coordinate_gate_failed: true
+  branch_actor_speed_gate_failed: true
+  renderer_enables_actor_before_branch: true
+  plugin_response_has_no_branch_gate: true
+  execution_authority_zero: true
+execution_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

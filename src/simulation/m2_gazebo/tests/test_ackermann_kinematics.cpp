@@ -1,9 +1,11 @@
 #include <cmath>
+#include <limits>
 
 #include <gtest/gtest.h>
 #include <m2_gazebo/ackermann_kinematics.h>
 #include <m2_gazebo/actuator_dynamics.h>
 #include <m2_gazebo/trajectory_interpolation.h>
+#include <m2_gazebo/v3_reactive_actor.h>
 
 TEST(AckermannKinematics, ZeroAndLowSpeedAreFinite) {
   EXPECT_DOUBLE_EQ(0.0, m2_gazebo::twistToSteering(0.0, 1.0, 0.65, 0.4964));
@@ -113,6 +115,69 @@ TEST(TrajectoryActor, LoopIsDeterministic) {
   const auto looped = m2_gazebo::interpolateTrajectory(points, 2.5, true);
   EXPECT_NEAR(first.x_m, looped.x_m, 1e-12);
   EXPECT_NEAR(first.y_m, looped.y_m, 1e-12);
+}
+
+TEST(V3ReactiveActor, PolicyParsingIsClosed) {
+  m2_gazebo::V3ActorPolicy policy;
+  EXPECT_TRUE(m2_gazebo::parseV3ActorPolicy("cautious", &policy));
+  EXPECT_EQ(m2_gazebo::V3ActorPolicy::kCautious, policy);
+  EXPECT_TRUE(m2_gazebo::parseV3ActorPolicy("assertive", &policy));
+  EXPECT_EQ(m2_gazebo::V3ActorPolicy::kAssertive, policy);
+  EXPECT_TRUE(m2_gazebo::parseV3ActorPolicy("hesitant", &policy));
+  EXPECT_EQ(m2_gazebo::V3ActorPolicy::kHesitant, policy);
+  EXPECT_FALSE(m2_gazebo::parseV3ActorPolicy("candidate_aware", &policy));
+}
+
+TEST(V3ReactiveActor, PoliciesRespondDifferentlyToObservedConflict) {
+  m2_gazebo::V3ReactiveActorConfig cautious;
+  cautious.policy = m2_gazebo::V3ActorPolicy::kCautious;
+  m2_gazebo::V3ReactiveActorConfig assertive = cautious;
+  assertive.policy = m2_gazebo::V3ActorPolicy::kAssertive;
+  m2_gazebo::V3ReactiveActorConfig hesitant = cautious;
+  hesitant.policy = m2_gazebo::V3ActorPolicy::kHesitant;
+  m2_gazebo::V3ReactiveActorState initial;
+  initial.speed_mps = 1.0;
+  const auto cautious_next = m2_gazebo::advanceV3ReactiveActor(
+      initial, cautious, 2.0, 2.0, 1.0, 1.0, 0.1);
+  const auto assertive_next = m2_gazebo::advanceV3ReactiveActor(
+      initial, assertive, 2.0, 2.0, 1.0, 1.0, 0.1);
+  const auto hesitant_next = m2_gazebo::advanceV3ReactiveActor(
+      initial, hesitant, 2.0, 2.0, 1.0, 1.0, 0.1);
+  EXPECT_TRUE(cautious_next.responding);
+  EXPECT_TRUE(assertive_next.responding);
+  EXPECT_TRUE(hesitant_next.responding);
+  EXPECT_LT(cautious_next.speed_mps, initial.speed_mps);
+  EXPECT_GT(assertive_next.speed_mps, initial.speed_mps);
+  EXPECT_NE(hesitant_next.speed_mps, assertive_next.speed_mps);
+}
+
+TEST(V3ReactiveActor, NoResponseWithoutObservedApproach) {
+  m2_gazebo::V3ReactiveActorConfig config;
+  m2_gazebo::V3ReactiveActorState initial;
+  initial.speed_mps = config.base_speed_mps;
+  const auto next = m2_gazebo::advanceV3ReactiveActor(
+      initial, config, 2.0, 2.0, -0.1, 1.0, 0.1);
+  EXPECT_FALSE(next.responding);
+  EXPECT_FALSE(next.ego_approaching);
+  EXPECT_NEAR(config.base_speed_mps, next.speed_mps, 1e-12);
+}
+
+TEST(V3ReactiveActor, SeedJitterIsDeterministicAndBounded) {
+  const double first = m2_gazebo::v3SignedSeedJitter(6101U);
+  EXPECT_DOUBLE_EQ(first, m2_gazebo::v3SignedSeedJitter(6101U));
+  EXPECT_GE(first, -1.0);
+  EXPECT_LE(first, 1.0);
+  EXPECT_NE(first, m2_gazebo::v3SignedSeedJitter(6102U));
+}
+
+TEST(V3ReactiveActor, ResponseEnableGateIsClosedAndDeterministic) {
+  EXPECT_TRUE(m2_gazebo::v3ResponseEnabled(0.0, 0.0));
+  EXPECT_FALSE(m2_gazebo::v3ResponseEnabled(12.50, 12.55));
+  EXPECT_FALSE(m2_gazebo::v3ResponseEnabled(12.549, 12.55));
+  EXPECT_TRUE(m2_gazebo::v3ResponseEnabled(12.55, 12.55));
+  EXPECT_FALSE(m2_gazebo::v3ResponseEnabled(
+      std::numeric_limits<double>::quiet_NaN(), 12.55));
+  EXPECT_FALSE(m2_gazebo::v3ResponseEnabled(12.55, -1.0));
 }
 
 int main(int argc, char** argv) {

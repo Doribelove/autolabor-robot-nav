@@ -1,0 +1,31 @@
+schema_version: "1.0"
+architecture_generation: v3
+package: v3_scope_planner
+status: interface_only_offline_foundation
+runtime_ready: false
+execution_authorized: false
+training_authorized: false
+publish_boundary:
+  only_allowed_command_topic: /cmd_vel_navigation
+  direct_cmd_vel_publish_forbidden: true
+  direct_driver_publish_forbidden: true
+  downstream_chain:
+    - /cmd_vel_navigation
+    - /cmd_vel_gps
+    - /fod_navigation_mode
+    - /cmd_vel
+    - m2_driver
+messages:
+  - TrajectoryPoint
+  - CandidateTrajectory
+  - CandidateSet
+  - CandidateEvaluation
+  - CandidateDecision
+future_runtime_requirements:
+  scene_snapshot_is_immutable_per_decision: true
+  candidate_ids_are_unique_per_set: true
+  every_candidate_is_ackermann_feasible_before_policy: true
+  certified_stop_candidate_required: true
+  teb_fallback_candidate_required: true
+  safety_rejections_are_explicit_not_silent_projection: true
+  selected_candidate_must_reference_same_snapshot_and_set_digest: true

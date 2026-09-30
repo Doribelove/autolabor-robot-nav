@@ -1,0 +1,87 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-T1
+stage_purpose: frozen_predictor_heldout_parameterized_crossing_test
+contract_id: v3_scope_v3_02_t1_heldout_test_1
+status: preregistered_before_test_release
+frozen_model:
+  path: artifacts/v3/prediction/v3_02_a1_r1/model/v3_02_a1_r1_candidate_predictor.yaml
+  sha256: 3caa0124e1d20b8aaff17858ba5821515f4ecb2570197a3fbed83ae18a59a61d
+  calibration_report_sha256: 2cc9f32680b2fcfc79d53a330f05c9d173c83b909ee87b08deb4540c5c3df032
+  model_freeze_sha256: ed0f26ede76973ebb9e664f84d9abc1d22722e31ebb46a54aaf8131925277734
+  independent_review_sha256: e2a420de7f02fabf568e36542367796bcaf2c89b49037e558f04d85da1935fd6
+  conformal_radius_m: 0.014355406265907256
+  refit_or_recalibration_allowed: false
+scope:
+  scene_family: parameterized_crossing
+  formal_predictor_result: true
+  planner_evaluation: false
+  reinforcement_learning: false
+  performance_improvement_claim: false
+authority_boundary:
+  simulation_requires_separate_release_and_authorization: true
+  model_write_allowed: false
+  test_outcome_access_before_release_allowed: false
+  move_base_authorized: false
+  real_vehicle_authorized: false
+experimental_unit:
+  policies: [cautious, assertive, hesitant]
+  ego_interventions:
+    - {candidate_id: probe_v060, speed_mps: 0.60}
+    - {candidate_id: probe_v080, speed_mps: 0.80}
+    - {candidate_id: probe_v100, speed_mps: 1.00}
+    - {candidate_id: probe_v120, speed_mps: 1.20}
+  scenario_blocks:
+    - {block_id: test_6221, role: held_out_test, seed: 6221, angle_deg: 75.0, actor_start_distance_m: 3.15, actor_base_speed_mps: 0.925}
+    - {block_id: test_6222, role: held_out_test, seed: 6222, angle_deg: 105.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 1.075}
+    - {block_id: test_6223, role: held_out_test, seed: 6223, angle_deg: 95.0, actor_start_distance_m: 3.225, actor_base_speed_mps: 0.975}
+  attempts_per_identity: 1
+  schedule_rows: 36
+  evidence_budget_units: 36
+  retry_allowed: false
+  resume_allowed: false
+scene:
+  duration_s: 8.0
+  sample_period_s: 0.05
+  max_step_size_s: 0.005
+  real_time_update_rate_hz: 0
+  observation_time_s: 0.50
+  prediction_absolute_times_s: [1.5, 2.5, 3.5, 4.5]
+  conflict_point_m: [0.0, 0.0]
+  ego:
+    model_name: ego_probe
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    endpoint_pose_m_rad: [3.0, 0.0, 0.0]
+    footprint_m: [1.13, 0.73, 0.55]
+    max_speed_mps: 1.20
+  actor:
+    model_name: reactive_actor
+    endpoint_after_conflict_m: 3.50
+    size_m: [0.45, 0.45, 1.70]
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+heldout_gates:
+  episode_count: 36
+  point_count: 144
+  marginal_coverage_min: 0.90
+  per_horizon_coverage_min: 0.80
+  mean_full_envelope_width_max_m: 4.50
+  actual_mode_mae_max_m: 0.50
+  candidate_sensitivity_min_m: 0.20
+  physical_coordinate_violation_count_max: 0
+  hidden_policy_runtime_input: false
+  exact_raw_replay_required: true
+failure_policy:
+  retain_negative_result: true
+  no_model_update_after_test: true
+  no_seed_replacement_or_retry: true
+  no_gate_change: true
+claim_if_pass: >-
+  The frozen V3-02 latent-mode predictor achieved its preregistered coverage,
+  width, accuracy and candidate-sensitivity gates on three held-out
+  parameterized-crossing blocks.
+forbidden_claims:
+  - general_scene_prediction
+  - navigation_safety
+  - performance_improvement
+  - real_vehicle_readiness

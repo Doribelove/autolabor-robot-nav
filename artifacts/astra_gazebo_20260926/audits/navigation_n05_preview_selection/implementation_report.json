@@ -1,0 +1,75 @@
+{
+  "schema": "astra_n05_preview_selection_component_report_v1",
+  "status": "author_offline19_tests_pass_independent_review_pending",
+  "method": "astra_analytic_preview_eligible_n05",
+  "observation_schema": "astra_route_preview_selection_observation_n05_v1",
+  "implementation_scope": "pure selector and optional frozen-core subclass; no node or release",
+  "tests": {
+    "count": 19,
+    "passed": 19,
+    "scope": "small selection/counterexample and actual inherited build with synthetic geometry verifier"
+  },
+  "single_factor": "analytic moving selection additionally full_preview>=0; true backup mask unchanged",
+  "full_preview_values": "captures original unrounded verify outputs, does not reconstruct float32 features",
+  "stop": "original backup eligibility and command revalidation, no certificate",
+  "verification_calls_per_build": 16,
+  "additional_geometry_queries": 0,
+  "source_frozen": true,
+  "new_runtime_or_urdf_change": false,
+  "simulation_episodes": 0,
+  "training_steps": 0,
+  "seed_allocation": 0,
+  "runtime_latency_qualified": false,
+  "closed_loop_qualified": false,
+  "independent_review_status": "pending",
+  "interfaces": [
+    "select_preview_eligible",
+    "Selection.legacy_result",
+    "Selection.audit",
+    "PreviewEligibleRuntime.build",
+    "PreviewEligibleRuntime.select"
+  ],
+  "required_integration_audit_fields": [
+    "full_preview_clearances_m",
+    "preview_selection_audit.backup_mask",
+    "preview_selection_audit.selection_eligibility",
+    "preview_selection_audit.original_analytic",
+    "preview_selection_audit.chosen",
+    "preview_selection_audit.proposed",
+    "preview_selection_audit.reason"
+  ],
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_preview_selection_n05.py",
+      "sha256": "bb6afca768c421f70929b1215dcfe00791b7caaf870bcd72bc7e603869cc343c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_route_preview_selection_n05.py",
+      "sha256": "ab53844ff32545673cb7ac232eb2fd8a17bcad34db79e030e59f9ed0f6b0d4a9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_preview_selection/tests.log",
+      "sha256": "a942b07bd9a2fd14906394561d557094dc79a87c67c5792f982fc38b7cbeddc4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_preview_selection/API.md",
+      "sha256": "9fb5eeb4daf46c7d6c8e7acfaae84fc8ff6f7cffae37ea32e571cd2671d98624"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+      "sha256": "a6f2bae1e63ddf14822a7a2d5151e20fbe4ad51ea80525ea388bd38fe6b9b1df"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n05_preview_selection_design.json",
+      "sha256": "959b214b3f4a10da276ee46ce9c319c9f5ea8001551f9dc4626b97f9714baefc"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_static_analytic_diagnosis/diagnosis.json",
+      "sha256": "3e0cec4476976f2d03471b85b8585ab86f717b57d5cb68ad5f44ee014e8f43d0"
+    }
+  ]
+}

@@ -1,0 +1,310 @@
+{
+  "schema": "astra_n04_static_analytic_closed_trace_diagnosis_v1",
+  "scope": "descriptive one closed development trace; no counterfactual or contribution estimate",
+  "run_id": "astra_navigation_n04_b00_astra_analytic_route_v1",
+  "seed": 263001001,
+  "rows": {
+    "trace": 439,
+    "candidate": 88
+  },
+  "sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/trace.json",
+      "sha256": "664816c98df03a9166e9d9e46f5ae3a06eeb9d22a12ced7a3a58b75f6adcf946"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/candidates.json",
+      "sha256": "81100cfd5eb324e9daa0a1479b68484e86f73f81361dacd5af25de766d99a3c5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n04_first_analytic_trace_diagnosis/diagnosis.json",
+      "sha256": "ed1f14811f096667d0f49cbb5cffb63fa05dd1fa0f1cae123514b00654f47e86"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/contract.json",
+      "sha256": "24e6e85ddb4d9913b8329253a7f376efa2bffbec4d1cd0441ecbd9c511dd1e8b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/assessment.json",
+      "sha256": "ef8d710153d964e4a63da35eb09277b97092994d62ede3b1c6115ca71a3c2d96"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n04_b00_astra_analytic_route_v1/scene_manifest.yaml",
+      "sha256": "a77ee87b02bdcd6bca0535937c4a5dd90fba5ab1f1e25cc9578769502929c978"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n04_development_r01/development_a02_development_static_avoidance_000/replicate_00/common_bundle/common_route.json",
+      "sha256": "f656cd114285e064e75b9753caa5e2ad3f05c9a8335b1745a8eaebc3e6ce5edc"
+    }
+  ],
+  "reason_counts": {
+    "None": 106,
+    "transaction_deadline_drop": 15,
+    "backup_revalidation_failed": 206,
+    "backup_stop_requested": 111,
+    "episode_time_limit": 1
+  },
+  "all_dynamic_counts_zero": true,
+  "all_mask_empty_decisions": 41,
+  "chosen_counts": {
+    "3": 28,
+    "7": 1,
+    "2": 1,
+    "0": 56,
+    "1": 2
+  },
+  "rank_reconstruction_matches": 88,
+  "selected_moving_negative_preview": 19,
+  "selected_moving_negative_preview_and_positive_moving_alternative": 3,
+  "executed_at_first_control_despite_negative_preview": 16,
+  "first_empty_mask": {
+    "index": 14,
+    "source_ns": 11008000000,
+    "gate_elapsed_s": 3.548,
+    "pose_x": -1.179605674766334,
+    "pose_y": 1.1396986504437168,
+    "pose_yaw": 0.7852202422135761,
+    "actual_vx": 0.9133128195460296,
+    "actual_center_steer": 0.12129000666533157,
+    "guide": {
+      "distance_m": 0.08996741094341637,
+      "arc_m": 3.0406320113755356,
+      "lateral_m": 0.08996741094341637,
+      "heading_rad": 0.3544491759970752,
+      "segment": 30,
+      "nearest_xy": [
+        -1.1483803404846578,
+        1.0553238110017413
+      ]
+    },
+    "chosen": 0,
+    "executed": 0,
+    "stop_reason": "backup_revalidation_failed",
+    "all_mask_empty": true,
+    "mask_count": 0,
+    "mask": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "backup_clearances_m": [
+      -0.03370577786876036,
+      -0.03370577786876036,
+      -0.03370577786876036,
+      -0.09263845835389774,
+      -0.04277181110734537,
+      -0.03370577786876036,
+      -0.10338192270809567,
+      -0.09263845835389774
+    ],
+    "preview_clearances_m": [
+      0.23705162107944489,
+      0.1957835778594017,
+      0.11324941366910934,
+      -0.0025455665308982134,
+      -0.3768354803323746,
+      0.1651478111743927,
+      -0.4254380911588669,
+      -0.21713148057460785
+    ],
+    "scores_reconstructed_from_float32_features": [
+      0.6857230166718364,
+      1.3628613318130376,
+      2.216611401960254,
+      3.1056267369724813,
+      0.43956357076764113,
+      1.7818087804690006,
+      1.6243687382340433,
+      2.24884752497077
+    ],
+    "reconstructed_rank": 0,
+    "chosen_full_preview_clearance_m": 0.23705162107944489,
+    "positive_full_preview_moving_choices": [],
+    "dynamic_count": 0,
+    "trace_end_ns": 11052000000
+  },
+  "first_negative_preview_selection": {
+    "index": 7,
+    "source_ns": 9228000000,
+    "gate_elapsed_s": 1.768,
+    "pose_x": -2.574686052442311,
+    "pose_y": 0.1698304426207853,
+    "pose_yaw": 0.21682367195260957,
+    "actual_vx": 0.8889305787008869,
+    "actual_center_steer": 0.19614315320232573,
+    "guide": {
+      "distance_m": 0.3354157669304797,
+      "arc_m": 1.3956570107435755,
+      "lateral_m": -0.3354157669304797,
+      "heading_rad": 0.3544491759970705,
+      "segment": 14,
+      "nearest_xy": [
+        -2.6911000887685987,
+        0.484396030140755
+      ]
+    },
+    "chosen": 7,
+    "executed": 0,
+    "stop_reason": "transaction_deadline_drop",
+    "all_mask_empty": false,
+    "mask_count": 8,
+    "mask": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "backup_clearances_m": [
+      0.27044401141863605,
+      0.28177067192838484,
+      0.28177067192838484,
+      0.23019100779466,
+      0.28177067192838484,
+      0.27044401141863605,
+      0.23019100779466,
+      0.21382855069674833
+    ],
+    "preview_clearances_m": [
+      0.5394857972860336,
+      0.29038283228874207,
+      0.21025756001472473,
+      0.03911082074046135,
+      -0.004309816402383149,
+      -0.36649104952812195,
+      -0.42542003095149994,
+      -0.40909941494464874
+    ],
+    "scores_reconstructed_from_float32_features": [
+      1.0794290835410356,
+      1.5843620523519348,
+      2.513855246510357,
+      3.2543814305774865,
+      1.2459684731927703,
+      0.9138251034915448,
+      1.6296220055222514,
+      3.2544908975064755
+    ],
+    "reconstructed_rank": 7,
+    "chosen_full_preview_clearance_m": -0.40909941494464874,
+    "positive_full_preview_moving_choices": [
+      1,
+      2,
+      3
+    ],
+    "dynamic_count": 0,
+    "trace_end_ns": 9278000000
+  },
+  "last": {
+    "index": 87,
+    "source_ns": 29352000000,
+    "gate_elapsed_s": 21.892,
+    "pose_x": -0.6216573039799362,
+    "pose_y": 1.7172430729544712,
+    "pose_yaw": 0.783345588021942,
+    "actual_vx": -0.0008605632277224398,
+    "actual_center_steer": -0.0014967613982803953,
+    "guide": {
+      "distance_m": 0.5422430729544705,
+      "arc_m": 3.588789490757798,
+      "lateral_m": 0.5422430729544705,
+      "heading_rad": 0.0,
+      "segment": 36,
+      "nearest_xy": [
+        -0.6216573039799362,
+        1.1750000000000007
+      ]
+    },
+    "chosen": 0,
+    "executed": 0,
+    "stop_reason": "transaction_deadline_drop",
+    "all_mask_empty": true,
+    "mask_count": 0,
+    "mask": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "backup_clearances_m": [
+      -0.001308050546712645,
+      -0.0028170834064955995,
+      -0.0028170834064955995,
+      -0.0028170834064955995,
+      -0.0028808364147508442,
+      -0.0028170834064955995,
+      -0.0028808364147508442,
+      -0.0028170834064955995
+    ],
+    "preview_clearances_m": [
+      -0.00213553971843794,
+      -0.163780577480793,
+      -0.1923203095793724,
+      -0.1953938975930214,
+      -0.3760609030723572,
+      -0.1793946996331215,
+      -0.423920676112175,
+      -0.1953938975930214
+    ],
+    "scores_reconstructed_from_float32_features": [
+      -0.03214422215824016,
+      0.6230778560042382,
+      1.247676955237985,
+      1.6777814270462843,
+      0.40432078063488,
+      1.0006640685349704,
+      0.8443970605731012,
+      1.5511210875213146
+    ],
+    "reconstructed_rank": 0,
+    "chosen_full_preview_clearance_m": -0.00213553971843794,
+    "positive_full_preview_moving_choices": [],
+    "dynamic_count": 0,
+    "trace_end_ns": 29402000000
+  },
+  "late_period": {
+    "start_source_ns": 19786000000,
+    "trace_count": 194,
+    "positive_commands": 8,
+    "deadline_drops": 7,
+    "reason_counts": {
+      "backup_revalidation_failed": 137,
+      "backup_stop_requested": 41,
+      "transaction_deadline_drop": 7,
+      "None": 8,
+      "episode_time_limit": 1
+    }
+  },
+  "route": {
+    "length_m": 9.382549429527348,
+    "geometric_prior_radius_m": 1.0,
+    "minimum_prior_segment_clearance_m": 1.0002231433369217,
+    "ackermann_qualified": false,
+    "plateau_y_m": 1.175,
+    "plateau_x_range": [
+      -0.825,
+      1.075
+    ],
+    "incoming_heading_rad": 0.3544491759970724,
+    "maximum_curvature_per_m": 0.8332880580189052
+  },
+  "limits": [
+    "Feature float32 rounding makes reconstructed scores approximate; all88 chosen IDs nevertheless match.",
+    "Trace command counts are not independent time fractions or causal effects.",
+    "Terminal endpoint poses are observed actual initial preview states, not a replay or simulator truth from a new run.",
+    "R2 and TEB success demonstrate world traversability, not exact same guide-consumer semantics or a feasible frozen8-candidate policy.",
+    "No current source, margin, stop protocol or selection was changed."
+  ]
+}

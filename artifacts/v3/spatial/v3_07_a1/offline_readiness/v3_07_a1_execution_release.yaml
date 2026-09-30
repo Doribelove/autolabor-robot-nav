@@ -1,0 +1,31 @@
+schema_version: '1.0'
+stage: V3-07-A1
+release_id: v3_07_a1_data_execution_release_1
+status: release_candidate_requires_review_and_authorization
+execution_ready: false
+execution_authorized: false
+held_out_test_authorized: false
+training_authorized: false
+real_vehicle_authorized: false
+schedule:
+  path: artifacts/v3/spatial/v3_07_a1/offline_readiness/v3_07_a1_exact_schedule.yaml
+  sha256: 1262ac257f127d774ce7da4cf7845fcbdc9d7b77a8583479e2fd46770928c863
+  row_count: 36
+  training_rows: 0
+  calibration_rows: 36
+  held_out_test_rows: 0
+runtime_bindings:
+  path: artifacts/v3/spatial/v3_07_a1/offline_readiness/v3_07_a1_runtime_bindings.yaml
+  sha256: 83d6edc68cc40e7084a5cd70b4c255b9ddb5db0953616dd648043b371a6c01a2
+dependency_closure:
+  path: artifacts/v3/spatial/v3_07_a1/offline_readiness/v3_07_a1_dependency_closure.yaml
+  sha256: 489bab700e82ce5e88d2d61c8deae181b6fab091ff3842a3edb87697ed818d34
+  unresolved_count: 0
+budget:
+  authorized_after_separate_authorization: 36
+  consumed: 0
+  retry: 0
+reserved_test_seeds_not_released:
+- 6551
+- 6552
+- 6553

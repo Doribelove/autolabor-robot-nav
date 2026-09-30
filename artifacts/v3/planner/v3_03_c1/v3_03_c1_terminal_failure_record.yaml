@@ -1,0 +1,43 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C1
+status: terminal_failure_before_first_planner_decision
+date: "2026-07-24"
+execution:
+  authorized_units: 9
+  consumed_units: 1
+  completed_units: 0
+  forfeited_units: 8
+  retry_units: 0
+  resume_allowed: false
+failed_identity:
+  unit_id: v3_03_c1_closed_loop_6331_cautious
+  seed: 6331
+  attempt: 1
+  phase: observation_prefix
+failure:
+  category: short_segment_parser_contract_mismatch
+  detail: >-
+    Gazebo completed the 0.50 s prefix and atomically produced a valid
+    12-line CSV including its header. The runner then invoked the inherited
+    full-episode parser, which requires at least 150 data rows. The planner
+    was never called and no candidate was selected or executed.
+  gazebo_started: true
+  raw_csv_present: true
+  planner_invoked: false
+  candidate_selected: false
+  source_repair_scope: segment_duration_aware_trace_parser_only
+preserved_resources:
+  release_sha256: 7ddff6b84c3adaa86cca5b7f2764d0dd9d081c406c41f8fa2b821a845a137a05
+  authorization_sha256: 8d2eb9cb3a02e16361b0dc8771e70daeb68c6080d4d1fc500be0501a0fa01ce4
+  journal_sha256: fc16e9ee04787793748927f1a982c0f9f6f9cdfb9bf77318984a9ffbe2c8da5f
+  raw_csv_sha256: 28fc5e77b36e47e45ffb2a8c2eeb5ac817a658c979c7a7b37819baccd5823271
+  world_sha256: 24dae00a68c21ea0c875ad901559c127283f0858dd02594450323bd150826532
+  gzserver_log_sha256: dc62cc64b601904340db1985065fa31aaa66d82447e058ee414fb50499829dc7
+claim_boundary:
+  segmented_closed_loop_integration_pass: false
+  safety_or_performance_claim: false
+  real_vehicle_ready: false
+next_safe_entry: >-
+  A new single-factor parser repair with fresh seeds, a new non-recyclable
+  budget, independent release review, and separate simulation authorization.

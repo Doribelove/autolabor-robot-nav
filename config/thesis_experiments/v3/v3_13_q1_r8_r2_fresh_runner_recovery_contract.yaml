@@ -1,0 +1,87 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R8-R2
+stage_purpose: fresh_seed_recovery_after_terminal_presemantic_runner_failure
+status: preregistered_before_execution
+failure_inheritance:
+  r8_r1_terminal_review_path: artifacts/v3/multiactor/v3_13_q1_r8_r1_terminal_failure_review.yaml
+  r8_r1_terminal_review_sha256: b5f323c953137028c5da3d138bb34435f3b2b01433fc968709f3ce61f2b8dac9
+  r8_r1_status: terminal_presemantic_runner_failure_frozen
+  r8_r1_authorized_consumed_completed_forfeited: [40, 1, 0, 39]
+  seeds7625_through_7632_reused: false
+  retry_or_resume_of_r8_r1: false
+  semantic_change_count: 0
+  gate_change_count: 0
+  model_change_count: 0
+  recovery_change: remove_incorrect_adapter_and_bind_original_four_argument_runner
+upstream:
+  r8_contract_path: config/thesis_experiments/v3/v3_13_q1_r8_recovery_predictor_qualification_contract.yaml
+  r8_contract_sha256: 21b4d46eee6f2a45393c328f735ede755c9676ae09e1e1be4192e7319dcbd2ba
+  predictor_path: artifacts/v3/multiactor/v3_13_q1_r7_predictor/expanded_recovery_predictor.yaml
+  predictor_sha256: 9003df1fc9dd5076da7f98d4efab971686eee4db9b6788cc8f43b76b0537279d
+  geometry_contract_path: config/thesis_experiments/v3/v3_13_q1_r4_r1_recovery_candidate_geometry_contract.yaml
+  geometry_contract_sha256: 22cfa7529934213545d9a8d030d827f92416edbc1e0f631aec995bb895e19f8d
+qualification_population:
+  scene_policy_strata:
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, hesitant]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, hesitant]}
+  replicas_per_stratum: 2
+  seeds: [7633, 7634, 7635, 7636, 7637, 7638, 7639, 7640]
+  matched_context_blocks: 8
+  branch_target_sim_s: 12.5
+  nominal_wait_depth_s: 5.0
+  actions:
+  - spatial_left_v120
+  - spatial_right_v120
+  - straight_v120
+  - certified_stop_v000
+  - recovery_evasive_right_v120_r1
+  actions_per_block: 5
+  exact_units: 40
+  actor_trajectories: 80
+  behavior_propensity_each: 0.20
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+matching_gates:
+  branch_clock_absolute_error_max_s: 0.012
+  paired_decision_ego_x_difference_max_m: 0.04
+  paired_decision_actor_coordinate_difference_max_m: 0.05
+  paired_decision_actor_speed_difference_max_mps: 0.05
+  complete_action_support_rate_min: 1.0
+  minimum_behavior_propensity: 0.20
+  branch_trace_samples_min: 130
+  branch_trace_duration_s_min: 6.85
+predictor_gates:
+  simultaneous_whole_trajectory_coverage_min: 0.90
+  every_scene_simultaneous_trajectory_coverage_min: 0.85
+  every_candidate_simultaneous_trajectory_coverage_min: 0.75
+  mean_trajectory_rmse_m_max: 0.25
+  maximum_trajectory_rmse_m_max: 0.65
+  terminal_full_width_m_max: 1.80
+  hidden_label_feature_count_max: 0
+downstream:
+  if_all_gates_pass: expanded_recovery_planner_integration_and_actual_TEB_preflight_design
+  if_any_gate_fails: freeze_negative_qualification
+  direct_actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  exact_bounded_simulation_qualification_authorized: true
+  authorized_units: 40
+  authorized_seed_range: [7633, 7640]
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - expanded five-action recovery predictor meets fresh trajectory coverage and error gates
+  forbidden:
+  - actual TEB performance
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

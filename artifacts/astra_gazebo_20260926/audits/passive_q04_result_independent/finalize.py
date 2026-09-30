@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+"""Close independent Q04 audit after registry and independent COM diagnosis arrive."""
+import csv,datetime,hashlib,json,sys
+from pathlib import Path
+D=Path(__file__).resolve().parent;S=D.parents[1];W=S/'workspace';R=S/'runs/passive_sweep_q04_static'
+sys.path[:0]=[str(W/'scripts/astra_gazebo'),str(W/'devel/lib/python3/dist-packages'),'/opt/ros/noetic/lib/python3/dist-packages']
+import dense_sweep_p03 as dense
+def read(p):return json.loads(Path(p).read_text())
+def sha(p):
+ h=hashlib.sha256()
+ with Path(p).open('rb')as f:
+  for b in iter(lambda:f.read(4194304),b''):h.update(b)
+ return h.hexdigest()
+def bind(p):return {'path':str(Path(p).resolve()),'sha256':sha(p)}
+audit=read(D/'raw_bag_map_image_audit.json');original=read(R/'assessment.json');before=read(R/'sweep_evaluation/report.json');replay=read(D/'sweep_replay/report.json');contact=read(D/'contact_replay.json');diagnosis=read(D/'independent_mass_diagnosis.json');ledger=read(S/'queue/passive_sweep_q04_ledger.json')
+registry=[x for x in csv.DictReader((S/'seed_registry.csv').open())if x['run_id'].startswith('passive_sweep_q04')]
+checks=dict(audit['checks']);checks['seed_registry_exact_terminal']=len(registry)==2 and sorted((x['run_id'],int(x['seed']),x['status'],x['source_binding'])for x in registry)==sorted((x['run_id'],x['seed'],x['status'],audit['release_sha256'])for x in ledger['units'])
+checks['geometry_report_exact_except_output_path']={k:v for k,v in before.items()if k!='outputs'}=={k:v for k,v in replay.items()if k!='outputs'}
+checks['all_5000_intervals_and_501_endpoints_byte_exact']=all(sha(R/'sweep_evaluation'/p)==sha(D/'sweep_replay'/p)for p in ('intervals.jsonl','endpoints.csv'))
+checks['independent_contact_replay_four_checks']=contact['pass']is True
+records=dense.read_p03_bag(R/'fixture.bag');start,end=before['source_window_ns'];poses=[r['poses'][r['names'].index('autolabor_m2')][:3]for r in records['end_model_rows']if start<=r['stamp_ns']<=end]
+displacement=max(sum((b-a)**2 for a,b in zip(poses[0],p))**.5 for p in poses)
+checks['actual_motion_bag_replay_exact']=displacement==original['robot_maximum_displacement_m'] and displacement>.1 and original['actor_maximum_displacement_m']==0
+checks['original_13_gate_result_remains_11_pass_2_fail']=len(original['checks'])==13 and sum(original['checks'].values())==11 and original['pass']is False
+result={'status':'independent_Q04_terminal_geometry_QC_failure_closure_pass'if all(checks.values())else'independent_Q04_terminal_audit_failed','pass':all(checks.values()),'independent_review':True,'original_episode_pass':False,'qualification_promoted':False,'checks':checks,'release_sha256':audit['release_sha256'],'budget':{'maximum_units':2,'consumed':1,'retired_unrun':1,'identities':ledger['units'],'retry_allowed':False},'registry_rows':registry,'report_chain':[bind(D/p)for p in ('raw_bag_map_image_audit.json','contact_replay.json','independent_mass_diagnosis.json','sweep_replay/report.json','final_registry_check.json')],'initial_registry_snapshot_preserved':'raw_bag_map_image_audit.json records initial reserved registry while manager ledger already terminal; only final external bookkeeping rechecked here.','source_window_ns':[start,end],'final_source_watermark_ns':audit['source_coverage']['/astra/p03/end_links']['last_ns'],'dense_intervals':before['dense_solver_intervals'],'minimum_engineering_conservative_swept_xy_m_conditional':before['minimum_engineering_conservative_swept_xy_m'],'robot_displacement_m':displacement,'frozen_failure':before['closure_audit']['issues'],'mechanism':'Unrounded URDF fixed-link center of mass differs from actual URDF-to-SDF quantized center of mass; independent native offline conversion reproduces runtime value. Original numerical tolerance and failed qualification remain unchanged.','diagnosis_artifact':bind(D/'independent_mass_diagnosis.json'),'native_image_integrity':audit['native_images'],'actual_visual_inspection':{'tool':'view_image','files':[x['png']for x in audit['native_images']],'visible':'Both native source images show blue robot, static blue box and orange cylinder; robot position changes; no text overlays or rescaling added. Source association and pixels independently verified.','limit':'Top-down raster visibility cannot establish contact, wheel support or 3D clearance.'},'scope_limits':['Static fixture completed 10 seconds; actor fixture was retired unrun. This does not qualify the intended two-fixture stage.','No navigation, training, general safety or real vehicle claim.','Conditional positive engineering XY envelope does not override failed runtime/URDF QC.','Exact GL alias and three binary bindings are accepted within trusted local graphics scope; executable memory bytes were not hashed.','Zero recorded illegal contacts does not prove collision freedom.'],'offline_errors_preserved':[str(D/p)for p in ('tool_errors.log','audit_closed_r01_syntax_error.py','audit_closed_r01.log','audit_closed_r02.log')],'inputs':[bind(p)for p in [S/'queue/passive_sweep_q04_ledger.json',S/'seed_registry.csv',R/'receipt.json',R/'assessment.json',R/'collector_report.json',R/'fixture.bag',Path(__file__)]],'no_ROS_or_live_process_access':True,'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+with (D/'terminal_failure_audit.json').open('x')as f:json.dump(result,f,indent=2,ensure_ascii=False);f.write('\n')
+print(json.dumps({'pass':result['pass'],'checks':len(checks),'failed':[k for k,v in checks.items()if not v],'sha256':sha(D/'terminal_failure_audit.json')},indent=2));assert result['pass']

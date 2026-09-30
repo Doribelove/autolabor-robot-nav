@@ -1,0 +1,56 @@
+schema_version: "1.0"
+stage: V5-02-R1
+date: "2026-08-08"
+status: preregistered_bounded_training
+
+entry_gate:
+  required_stage: V5-01-R1
+  required_status: v5_01_r1_sensor_backend_component_audit_pass
+  component_environment_frozen: true
+
+training_schedule:
+  total_eligible_environment_steps: 1800000
+  maximum_from_v5_00: 1800000
+  unused_steps_after_schedule: 0
+  identities:
+    - {id: asym_seed9101, variant: asymmetric, seed: 9101, steps: 300000}
+    - {id: asym_seed9102, variant: asymmetric, seed: 9102, steps: 300000}
+    - {id: asym_seed9103, variant: asymmetric, seed: 9103, steps: 300000}
+    - {id: asym_seed9104, variant: asymmetric, seed: 9104, steps: 300000}
+    - {id: symmetric_seed9101, variant: symmetric, seed: 9101, steps: 150000}
+    - {id: symmetric_seed9102, variant: symmetric, seed: 9102, steps: 150000}
+    - {id: no_prior_seed9103, variant: no_prior, seed: 9103, steps: 150000}
+    - {id: no_prior_seed9104, variant: no_prior, seed: 9104, steps: 150000}
+  vector_envs: 12
+  rollout_steps: 64
+  checkpoint_interval_steps: 50000
+  retries_or_extensions: 0
+  additional_factor_rounds_authorized: false
+
+checkpoint_selection:
+  validation_seed_range_inclusive: [920100, 920419]
+  blocks_per_identity: 40
+  disjoint_assignment_by_schedule_order: true
+  criterion_order:
+    - maximum_goal_count
+    - minimum_mean_failure_inclusive_restricted_time
+    - zero_contact_and_zero_mask_violation_required
+    - earliest_checkpoint_step
+  formal_outcomes_must_not_select_checkpoint: true
+  formal_policy_mapping: block_index_modulo_available_training_identities
+
+learning_gate_before_formal:
+  asymmetric_seed_positive_directions_minimum: 2
+  asymmetric_mean_goal_noninferior_to_analytic: true
+  asymmetric_mean_contact_count_maximum: 0
+  asymmetric_mean_mask_violation_count_maximum: 0
+  gated_mean_relative_time_reduction_minimum: 0.05
+
+authority:
+  eligible_fast_backend_training_authorized: true
+  validation_authorized_after_training: true
+  formal_seed_access_authorized: false
+  gazebo_authorized: false
+  real_vehicle_authorized: false
+  online_teb_write_authorized: false
+

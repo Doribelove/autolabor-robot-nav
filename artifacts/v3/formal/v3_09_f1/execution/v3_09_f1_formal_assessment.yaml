@@ -1,0 +1,183 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-09-F1
+status: v3_09_f1_formal_positive_result
+formal_result: true
+performance_improvement_demonstrated: true
+execution:
+  authorized_units: 180
+  consumed_units: 180
+  completed_units: 180
+  retry_units: 0
+pooled_metrics:
+  completed_episodes: 180
+  method_metrics:
+    v3_spatial_safe:
+      episode_count: 90
+      goal_success_rate: 1.0
+      restricted_goal_time_mean_s: 8.86111111111111
+      restricted_goal_time_median_s: 7.5
+    fixed_v120_shielded:
+      episode_count: 90
+      goal_success_rate: 1.0
+      restricted_goal_time_mean_s: 11.416666666666666
+      restricted_goal_time_median_s: 11.25
+  method_policy_metrics:
+    v3_spatial_safe__cautious:
+      episode_count: 30
+      goal_success_rate: 1.0
+      restricted_goal_time_mean_s: 7.5
+      restricted_goal_time_median_s: 7.5
+    v3_spatial_safe__assertive:
+      episode_count: 30
+      goal_success_rate: 1.0
+      restricted_goal_time_mean_s: 11.583333333333334
+      restricted_goal_time_median_s: 11.5
+    v3_spatial_safe__hesitant:
+      episode_count: 30
+      goal_success_rate: 1.0
+      restricted_goal_time_mean_s: 7.5
+      restricted_goal_time_median_s: 7.5
+    fixed_v120_shielded__cautious:
+      episode_count: 30
+      goal_success_rate: 1.0
+      restricted_goal_time_mean_s: 11.766666666666667
+      restricted_goal_time_median_s: 12.0
+    fixed_v120_shielded__assertive:
+      episode_count: 30
+      goal_success_rate: 1.0
+      restricted_goal_time_mean_s: 10.891666666666667
+      restricted_goal_time_median_s: 11.0
+    fixed_v120_shielded__hesitant:
+      episode_count: 30
+      goal_success_rate: 1.0
+      restricted_goal_time_mean_s: 11.591666666666667
+      restricted_goal_time_median_s: 11.5
+  minimum_conservative_clearance_m: 0.16566330222743098
+  conservative_clearance_violation_count: 0
+  selected_candidate_accepted_rate: 1.0
+  certified_stop_available_rate: 1.0
+  exact_core_replay_rate: 1.0
+  receipt_stage_identity_rate: 1.0
+  planner_latency_p99_ms: 18.087844
+  planner_latency_p99_by_method_ms:
+    v3_spatial_safe: 15.629119
+    fixed_v120_shielded: 18.548193
+  nonfinite_metric_count: 0
+  decision_count: 5320
+primary_statistics:
+  comparison: v3_spatial_safe_vs_fixed_v120_shielded
+  statistical_unit_count: 30
+  point_relative_reduction: 0.22384428223844294
+  one_sided_lower_relative_reduction: 0.21823543868272294
+  one_sided_alpha: 0.05
+  bootstrap_resamples: 20000
+  bootstrap_seed: 30909
+  positive_block_fraction: 1.0
+formal_gates:
+  complete_paired_matrix_pass: true
+  shared_safety_integrity_pass: true
+  spatial_goal_success_pass: true
+  goal_success_noninferiority_pass: true
+  primary_point_effect_pass: true
+  primary_lower_effect_pass: true
+  positive_block_fraction_pass: true
+  latency_pass: true
+  finite_statistics_pass: true
+block_means_restricted_goal_time_s:
+  formal_6801:
+    v3_spatial_safe: 8.916666666666666
+    fixed_v120_shielded: 11.75
+  formal_6802:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.333333333333334
+  formal_6803:
+    v3_spatial_safe: 8.916666666666666
+    fixed_v120_shielded: 11.583333333333334
+  formal_6804:
+    v3_spatial_safe: 8.75
+    fixed_v120_shielded: 10.916666666666666
+  formal_6805:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.333333333333334
+  formal_6806:
+    v3_spatial_safe: 9.083333333333334
+    fixed_v120_shielded: 12.083333333333334
+  formal_6807:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.333333333333334
+  formal_6808:
+    v3_spatial_safe: 8.916666666666666
+    fixed_v120_shielded: 11.666666666666666
+  formal_6809:
+    v3_spatial_safe: 8.75
+    fixed_v120_shielded: 10.833333333333334
+  formal_6810:
+    v3_spatial_safe: 8.75
+    fixed_v120_shielded: 11.083333333333334
+  formal_6811:
+    v3_spatial_safe: 9.0
+    fixed_v120_shielded: 12.083333333333334
+  formal_6812:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.25
+  formal_6813:
+    v3_spatial_safe: 8.916666666666666
+    fixed_v120_shielded: 11.5
+  formal_6814:
+    v3_spatial_safe: 8.666666666666666
+    fixed_v120_shielded: 10.75
+  formal_6815:
+    v3_spatial_safe: 8.916666666666666
+    fixed_v120_shielded: 11.583333333333334
+  formal_6816:
+    v3_spatial_safe: 9.0
+    fixed_v120_shielded: 12.083333333333334
+  formal_6817:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.083333333333334
+  formal_6818:
+    v3_spatial_safe: 8.916666666666666
+    fixed_v120_shielded: 11.5
+  formal_6819:
+    v3_spatial_safe: 8.666666666666666
+    fixed_v120_shielded: 10.833333333333334
+  formal_6820:
+    v3_spatial_safe: 8.916666666666666
+    fixed_v120_shielded: 11.5
+  formal_6821:
+    v3_spatial_safe: 9.0
+    fixed_v120_shielded: 12.0
+  formal_6822:
+    v3_spatial_safe: 8.75
+    fixed_v120_shielded: 11.083333333333334
+  formal_6823:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.666666666666666
+  formal_6824:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.166666666666666
+  formal_6825:
+    v3_spatial_safe: 8.916666666666666
+    fixed_v120_shielded: 11.5
+  formal_6826:
+    v3_spatial_safe: 9.0
+    fixed_v120_shielded: 12.083333333333334
+  formal_6827:
+    v3_spatial_safe: 8.75
+    fixed_v120_shielded: 10.916666666666666
+  formal_6828:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.333333333333334
+  formal_6829:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.166666666666666
+  formal_6830:
+    v3_spatial_safe: 8.833333333333334
+    fixed_v120_shielded: 11.5
+claim:
+  in_scope_performance_improvement: true
+  actual_teb_superiority: false
+  general_navigation_safety: false
+  deployment_ready: false
+  real_vehicle_ready: false

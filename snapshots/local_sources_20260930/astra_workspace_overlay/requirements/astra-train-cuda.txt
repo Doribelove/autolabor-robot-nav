@@ -1,0 +1,28 @@
+# Isolated Astra CUDA preparation; Python 3.8.10. No training authorization.
+# Derived from thesis-rl-lock.txt, changing only torch CPU to CUDA 12.1.
+# Install torch first from its official cu121 index, then this file from PyPI.
+Farama-Notifications==0.0.6
+Jinja2==3.1.3
+MarkupSafe==2.1.5
+cloudpickle==3.1.1
+contourpy==1.1.1
+fonttools==4.57.0
+gymnasium==1.0.0
+importlib_metadata==8.5.0
+importlib_resources==6.4.5
+matplotlib==3.7.5
+mpmath==1.3.0
+numexpr==2.8.6
+numpy==1.24.4
+pandas==1.5.3
+python-dateutil==2.9.0.post0
+pytz==2026.2
+stable-baselines3==2.4.1
+sympy==1.13.3
+testresources==2.0.1
+torch==2.4.1+cu121
+zipp==3.20.2
+# Explicit new-env compatibility repair: system SciPy 1.3.3/NetworkX 2.4 use
+# removed NumPy aliases with the retained NumPy 1.24.4 pin.
+scipy==1.10.1
+networkx==3.1

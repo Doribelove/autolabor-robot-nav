@@ -1,0 +1,217 @@
+{
+  "status": "offline_component_implementation_complete_independent_review_pending",
+  "schema": "astra_sensor_tracks_v1_implementation_report",
+  "scope": {
+    "ROS_started": false,
+    "Gazebo_started": false,
+    "training_steps": 0,
+    "seeds_consumed": 0,
+    "final_outcomes_accessed": false,
+    "sealed_N01_runtime_modified": false,
+    "learned_candidate_conditioned_predictor_implemented": false,
+    "physical_safety_certified": false,
+    "calibration_qualified": false,
+    "live_deadline_qualified": false
+  },
+  "sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v1.py",
+      "sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b",
+      "bytes": 27029
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_v1.py",
+      "sha256": "99b1347add03d4bf9615df8c9f787d5823ea74a7e8c7d6e40d92b76cb5b66561",
+      "bytes": 18401
+    }
+  ],
+  "design": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/design.md",
+    "sha256": "69871d56caef3f7fa39942d7005793afe37752c3c8980480ae36e1d74bcaf151",
+    "bytes": 9438
+  },
+  "author_tests": {
+    "command": "/usr/bin/python3 -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_v1.py",
+    "passed": 51,
+    "result": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/test_results.txt",
+      "sha256": "cefc48bce9f1d7d7ba3ad307e11af920ef16f7cb16af6f9746a35962eb498bb3",
+      "bytes": 106
+    }
+  },
+  "interfaces": {
+    "input": "RouteSensorBuffer.ScanFrame; exact scan TF stamp; causal at-or-before actual odometry in map; shared static map",
+    "output": "immutable Snapshot + additive HardOccupancy.distance_lower_bound(shape, offset_ns) + diagnostic CV + versioned candidate-conditioned future-model request",
+    "runtime_integration": "not installed into existing N01/core; new explicit runtime revision needed",
+    "model_training": "new geometry-disjoint train/cal and observation/checkpoint namespace required"
+  },
+  "key_invariants": [
+    "latest legacy fresh-cloud map predicate and 1.35m/s expansion always retained as exact minimum term",
+    "unchanged external 0.33m margin and200ms freshness; no numeric-gate change",
+    "no oracle subscription/import/input field",
+    "ambiguity retains union hypothesis; no asserted true identity",
+    "lost and sparse supports remain; absence is not free-space or proven occlusion",
+    "history six real200ms buckets match accepted source/content hashes and cannot exceed observation cutoff",
+    "planned future candidates share actual initial state and explicit0.325m base/rear relation",
+    "broad-phase pruning keeps exact query geometry and does not change distance result"
+  ],
+  "cases": [
+    "two observed tracks crossing/merging/splitting ambiguity",
+    "missing returns behind static prior and prolonged lost support",
+    "sparse singleton/two-return retention",
+    "map consistency/no unmapped-stationary deletion/dynamic entering map band",
+    "ego translation and actual RouteSensorBuffer rotation/exactTF",
+    "lateTF same-source recovery without extending200ms age",
+    "future/stale/replay/clock rollback and atomic capacity fault",
+    "accepted-history content swap/future/padding rejection",
+    "physical candidate schema and shared initial state",
+    "no future mutation of frozen snapshot",
+    "384 non-shrink comparisons plus actual sealed core predict/SharedStaticMap invocation",
+    "180 independent direct unpruned GEOS distance comparisons to broad-phase implementation"
+  ],
+  "timing": {
+    "report": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/timing.json",
+      "sha256": "0d324f4e40fa7d967dfb1db4923a7a51dcd156c3687c7965dac16fa93e3f14f7",
+      "bytes": 6992
+    },
+    "benchmark": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/benchmark.py",
+      "sha256": "4ff6f039f56edfb48bcd3fc5932580a40acbfb93c333aaeb04c9d1050981c2e2",
+      "bytes": 4511
+    },
+    "six_synthetic_workloads_not_six_Gazebo_families": true,
+    "queries_per_scan": 248,
+    "whole_six_workloads_max_ms": 30.702726,
+    "per_workload": [
+      {
+        "name": "static_prior_720",
+        "count": 30,
+        "median_ms": 5.2904615,
+        "p95_ms": 18.927143049999927,
+        "max_ms": 30.702726
+      },
+      {
+        "name": "two_crossing",
+        "count": 30,
+        "median_ms": 5.9520535,
+        "p95_ms": 10.530547449999977,
+        "max_ms": 14.248078
+      },
+      {
+        "name": "occluded",
+        "count": 30,
+        "median_ms": 5.0896609999999995,
+        "p95_ms": 9.540561949999978,
+        "max_ms": 13.281579
+      },
+      {
+        "name": "sparse",
+        "count": 30,
+        "median_ms": 5.7288429999999995,
+        "p95_ms": 10.227790299999977,
+        "max_ms": 13.886671
+      },
+      {
+        "name": "ego_motion",
+        "count": 30,
+        "median_ms": 5.935419,
+        "p95_ms": 10.392400799999976,
+        "max_ms": 14.23738
+      },
+      {
+        "name": "crowded_12",
+        "count": 30,
+        "median_ms": 14.948195,
+        "p95_ms": 19.189841649999977,
+        "max_ms": 23.006214
+      }
+    ],
+    "dense_unknown": [
+      {
+        "unknown_returns": 720,
+        "accept": {
+          "count": 5,
+          "median_ms": 13.447806,
+          "p95_ms": 13.762548200000001,
+          "max_ms": 13.790743
+        }
+      },
+      {
+        "unknown_returns": 1440,
+        "accept": {
+          "count": 5,
+          "median_ms": 39.37689,
+          "p95_ms": 40.619705,
+          "max_ms": 40.690558
+        }
+      }
+    ],
+    "maximum_sparse_memory": {
+      "retained_cells": 2048,
+      "query_states": 248,
+      "total_query_ms": 57.427209
+    },
+    "maximum_sparse_50ms_gate_pass": false,
+    "original_unpruned_sparse_ms": 879.565325,
+    "retained_negative_snapshot": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/development_r1_before_distance_pruning",
+    "limitations": "component-only synthetic timing; excludes TF/ROS, static/footprint, learned inference, executor and scheduling; no live or WCET claim"
+  },
+  "dependencies": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/mechanism_plan.yaml",
+      "sha256": "472e7d38f506e539574b9ff85a971e39ef9d1867f0c611234313aa146ab3b227",
+      "bytes": 8652
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_sensor_buffer.py",
+      "sha256": "9822620f0d83f0e203644ba928bc0483e66505f75424e05514119115feb6c812",
+      "bytes": 6773
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6",
+      "bytes": 22588
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+      "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f",
+      "bytes": 14792
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/static_map_export.py",
+      "sha256": "6a46faff46362bf6a46777fa3eea43d7b125b70251f8ce336d478bf7e92f7c66",
+      "bytes": 15961
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+      "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb",
+      "bytes": 3352
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+      "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407",
+      "bytes": 2348
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf",
+      "bytes": 21585
+    }
+  ],
+  "preserved_development": {
+    "r0_timing": "timing_development_r0.json retained as preliminary unsealed measurement, not final closure evidence",
+    "r1": "exact unpruned source/tests/benchmark/timing snapshot retained",
+    "r2": "exact sorted-pruning source/tests/benchmark/timing snapshot retained"
+  },
+  "limitations": [
+    "static association remains uncalibrated and can miss a new map-near actor",
+    "observed-return envelopes do not infer full unknown obstacle extent or prove detection coverage",
+    "ambiguous associations can remain conservatively merged for episode",
+    "no lost-track clearing so long occlusion/sparse memory may stop navigation",
+    "not a learned candidate-conditioned prediction or calibration result",
+    "maximum configured sparse load remains above50ms; caller must retain deadline fail-closed behavior before any runtime integration",
+    "capacity/coordinate/episode bounds are explicit; exceeding them never evicts uncertainty"
+  ],
+  "next_review": "independent actual-code causal/boundary/non-shrink review; root owns future integration/train-cal authority"
+}

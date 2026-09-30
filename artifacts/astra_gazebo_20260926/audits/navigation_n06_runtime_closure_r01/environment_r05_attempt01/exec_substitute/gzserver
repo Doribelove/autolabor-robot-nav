@@ -1,0 +1,3 @@
+#!/usr/bin/python3
+import json,os,sys
+print(json.dumps({"argv":sys.argv,"environment":dict(os.environ),"gazebo_started":False},sort_keys=True))

@@ -1,0 +1,8 @@
+std_msgs/Header header
+string schema_version
+uint64 world_model_seq
+string scene_snapshot_id
+string global_path_digest
+string vehicle_model_digest
+string candidate_set_digest
+v3_scope_planner/CandidateTrajectory[] candidates

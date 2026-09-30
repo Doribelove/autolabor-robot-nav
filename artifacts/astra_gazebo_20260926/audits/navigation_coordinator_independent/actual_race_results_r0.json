@@ -1,0 +1,256 @@
+{
+  "status": "actual_frozen_code_defects_reproduced_offline",
+  "no_ROS": true,
+  "cases": [
+    {
+      "case": "late_fault_after_complete",
+      "before": {
+        "phase": "complete",
+        "source_ns": 8000000000,
+        "reason": "actual_base_goal",
+        "authority": "first_actual_odom_header_meeting_base_goal"
+      },
+      "after": {
+        "phase": "fault",
+        "source_ns": 8000000000,
+        "reason": "late_method_or_clock_fault",
+        "authority": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp"
+      },
+      "original_terminal_overwritten": true
+    },
+    {
+      "case": "late_fault_after_timeout",
+      "before": {
+        "phase": "timeout",
+        "source_ns": 29020000000,
+        "reason": "source_deadline",
+        "authority": "declared_gate_actual_odom_source_plus22s"
+      },
+      "after": {
+        "phase": "fault",
+        "source_ns": 29020000000,
+        "reason": "late_method_or_clock_fault",
+        "authority": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp"
+      },
+      "original_terminal_overwritten": true
+    },
+    {
+      "case": "late_fault_after_stopped",
+      "before": {
+        "phase": "stopped",
+        "source_ns": 7020000000,
+        "reason": "external_stop",
+        "authority": "latest_actual_odom_header_at_stop_request"
+      },
+      "after": {
+        "phase": "fault",
+        "source_ns": 7020000000,
+        "reason": "late_method_or_clock_fault",
+        "authority": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp"
+      },
+      "original_terminal_overwritten": true
+    },
+    {
+      "case": "valid_odom_callback_two_ms_before_local_clock",
+      "odom_ns": 5002000000,
+      "clock_ns": 5000000000,
+      "result": {
+        "schema": "astra_common_navigation_v1",
+        "sequence": 1,
+        "run_id": "fixture",
+        "seed": 42,
+        "method": "astra_analytic_route_v1",
+        "publisher_visible_clock_ns": 5000000000,
+        "actual_odom_source_ns": 5002000000,
+        "gate_source_ns": null,
+        "phase": "fault",
+        "terminal_source_ns": 5002000000,
+        "terminal_reason": "actual_odometry_stale_or_future",
+        "terminal_time_authority": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp",
+        "v": 0.0,
+        "w": 0.0,
+        "reason": "actual_odometry_stale_or_future",
+        "selected_method_receipt": null,
+        "method_command_generation_stamp_known": false
+      },
+      "faulted": true
+    },
+    {
+      "case": "goal_before_clock_poll",
+      "goal_source_ns": 29000000000,
+      "declared_deadline_ns": 29020000000,
+      "result": {
+        "phase": "complete",
+        "source_ns": 29000000000,
+        "reason": "actual_base_goal",
+        "authority": "first_actual_odom_header_meeting_base_goal"
+      }
+    },
+    {
+      "case": "goal_after_clock_poll",
+      "goal_source_ns": 29000000000,
+      "declared_deadline_ns": 29020000000,
+      "result": {
+        "phase": "timeout",
+        "source_ns": 29020000000,
+        "reason": "source_deadline",
+        "authority": "declared_gate_actual_odom_source_plus22s"
+      }
+    },
+    {
+      "case": "full_actual_node_method_fault",
+      "final": {
+        "phase": "fault",
+        "source_ns": 6839999999,
+        "reason": "method_fault:late_sensor_callback",
+        "authority": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp"
+      },
+      "terminal_trace": [
+        {
+          "schema": "astra_common_navigation_v1",
+          "sequence": 36,
+          "run_id": "fixture",
+          "seed": 42,
+          "method": "astra_analytic_route_v1",
+          "publisher_visible_clock_ns": 6839999999,
+          "actual_odom_source_ns": 6839999999,
+          "gate_source_ns": 6759999999,
+          "phase": "complete",
+          "terminal_source_ns": 6839999999,
+          "terminal_reason": "actual_base_goal",
+          "terminal_time_authority": "first_actual_odom_header_meeting_base_goal",
+          "v": 0.0,
+          "w": 0.0,
+          "reason": "complete",
+          "selected_method_receipt": null,
+          "method_command_generation_stamp_known": false
+        },
+        {
+          "schema": "astra_common_navigation_v1",
+          "sequence": 37,
+          "run_id": "fixture",
+          "seed": 42,
+          "method": "astra_analytic_route_v1",
+          "publisher_visible_clock_ns": 6839999999,
+          "actual_odom_source_ns": 6839999999,
+          "gate_source_ns": 6759999999,
+          "phase": "fault",
+          "terminal_source_ns": 6839999999,
+          "terminal_reason": "method_fault:late_sensor_callback",
+          "terminal_time_authority": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp",
+          "v": 0.0,
+          "w": 0.0,
+          "reason": "method_fault:late_sensor_callback",
+          "selected_method_receipt": null,
+          "method_command_generation_stamp_known": false
+        }
+      ],
+      "published_commands_after_goal_all_zero": true
+    },
+    {
+      "case": "full_actual_node_paused_clock_stall",
+      "final": {
+        "phase": "fault",
+        "source_ns": 6839999999,
+        "reason": "publisher_clock_wall_stall",
+        "authority": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp"
+      },
+      "terminal_trace": [
+        {
+          "schema": "astra_common_navigation_v1",
+          "sequence": 36,
+          "run_id": "fixture",
+          "seed": 42,
+          "method": "astra_analytic_route_v1",
+          "publisher_visible_clock_ns": 6839999999,
+          "actual_odom_source_ns": 6839999999,
+          "gate_source_ns": 6759999999,
+          "phase": "complete",
+          "terminal_source_ns": 6839999999,
+          "terminal_reason": "actual_base_goal",
+          "terminal_time_authority": "first_actual_odom_header_meeting_base_goal",
+          "v": 0.0,
+          "w": 0.0,
+          "reason": "complete",
+          "selected_method_receipt": null,
+          "method_command_generation_stamp_known": false
+        },
+        {
+          "schema": "astra_common_navigation_v1",
+          "sequence": 37,
+          "run_id": "fixture",
+          "seed": 42,
+          "method": "astra_analytic_route_v1",
+          "publisher_visible_clock_ns": 6839999999,
+          "actual_odom_source_ns": 6839999999,
+          "gate_source_ns": 6759999999,
+          "phase": "fault",
+          "terminal_source_ns": 6839999999,
+          "terminal_reason": "publisher_clock_wall_stall",
+          "terminal_time_authority": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp",
+          "v": 0.0,
+          "w": 0.0,
+          "reason": "publisher_clock_wall_stall",
+          "selected_method_receipt": null,
+          "method_command_generation_stamp_known": false
+        }
+      ],
+      "published_commands_after_goal_all_zero": true
+    }
+  ],
+  "source_snapshot_manifest": {
+    "purpose": "Pre-repair bytes actually executed by independent offline fixtures; not runtime edits",
+    "files": [
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/navigation_coordinator.py",
+        "sha256": "6065e7d094a45d0ce41a279618803a019a5ac89a496ed6c8096597e49758c80b",
+        "reported_sha256": "6065e7d094a45d0ce41a279618803a019a5ac89a496ed6c8096597e49758c80b"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_coordinator.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/test_navigation_coordinator.py",
+        "sha256": "b978b03047b33e7ba40bc3cc0a4ff16ad60d853eab90c77c9a1aedce05d9297f",
+        "reported_sha256": "b978b03047b33e7ba40bc3cc0a4ff16ad60d853eab90c77c9a1aedce05d9297f"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_coordinated_route_adapter.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/test_coordinated_route_adapter.py",
+        "sha256": "885af40634558aaab38843c26f23b513511afd2f79e4ae29630d45b08976ffd8",
+        "reported_sha256": "885af40634558aaab38843c26f23b513511afd2f79e4ae29630d45b08976ffd8"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_navigation_coordinator.py",
+        "sha256": "0aac24213d6df95b8ec2ccbf72bf82f08dab6ec6d6bd0001da0573d8c84756d9",
+        "reported_sha256": "0aac24213d6df95b8ec2ccbf72bf82f08dab6ec6d6bd0001da0573d8c84756d9"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_coordinated_runtime.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_route_coordinated_runtime.py",
+        "sha256": "d3675f6153152dce54c41809c6da1172ea7168ebb4ca5e66f994110021641f96",
+        "reported_sha256": "d3675f6153152dce54c41809c6da1172ea7168ebb4ca5e66f994110021641f96"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_frozen_r2_coordinated.py",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_frozen_r2_coordinated.py",
+        "sha256": "79acb6aba8a9477fb781b03b13daa0fa19e7566a5bca69aaf7cf240200bee0ad",
+        "reported_sha256": "79acb6aba8a9477fb781b03b13daa0fa19e7566a5bca69aaf7cf240200bee0ad"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_smoke.launch",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_common_navigation_smoke.launch",
+        "sha256": "3cf62fa9ff4a8ee9b60ad10941b118f664d7ac645ea43066e2012b7981052534",
+        "reported_sha256": "3cf62fa9ff4a8ee9b60ad10941b118f664d7ac645ea43066e2012b7981052534"
+      },
+      {
+        "original": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+        "snapshot": "artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/snapshot_r0/astra_navigation_common_footprint.yaml",
+        "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e",
+        "reported_sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e"
+      }
+    ]
+  },
+  "script_sha256": "1b245d59383447517e16974482f8738368edb6f2cc31f790ee7b25b8be656396",
+  "command": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/test_actual_races.py"
+}

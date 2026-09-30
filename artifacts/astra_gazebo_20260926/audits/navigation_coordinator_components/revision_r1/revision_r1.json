@@ -1,0 +1,8 @@
+{
+  "old_launch_sha256": "bfea3cebeb60da91b9aa38c040261db350be1d5e3cb0cd1e79b5783ee0d31e2c",
+  "new_launch_sha256": "3cf62fa9ff4a8ee9b60ad10941b118f664d7ac645ea43066e2012b7981052534",
+  "unrelated_seven_files_unchanged": true,
+  "actual_roslaunch_config_four_branches_required_true": true,
+  "ros_started": false,
+  "minimal_diff": "--- revision_r0/astra_common_navigation_smoke.launch\n+++ revision_r1/astra_common_navigation_smoke.launch\n@@ -69,7 +69,7 @@\n     </node>\n   </group>\n   <node pkg=\"rosbag\" type=\"record\" name=\"fixture_bag\" output=\"screen\" args=\"--lz4 --buffsize=128 -O $(arg bag_path) $(arg bag_topics)\"/>\n-  <node if=\"$(arg enable_collector)\" pkg=\"m2_gazebo\" type=\"$(arg collector_script)\" name=\"astra_navigation_collector\" output=\"screen\">\n+  <node if=\"$(arg enable_collector)\" pkg=\"m2_gazebo\" type=\"$(arg collector_script)\" name=\"astra_navigation_collector\" required=\"true\" output=\"screen\">\n     <param name=\"contract_path\" value=\"$(arg contract_path)\"/><param name=\"contract_sha256\" value=\"$(arg contract_sha256)\"/><param name=\"output\" value=\"$(arg output)\"/>\n   </node>\n </launch>\n"
+}

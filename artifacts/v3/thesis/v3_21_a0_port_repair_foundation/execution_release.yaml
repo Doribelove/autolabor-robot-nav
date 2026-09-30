@@ -1,0 +1,58 @@
+schema_version: '1.0'
+stage: V3-21-A0
+status: v3_21_a0_ephemeral_port_repair_release_reviewed
+contract_sha256: c9c0eb160511c0f9e71d97e9aeb2ccd873b92b7a7ca2a6e9382869e9a067f787
+formal_schedule_sha256: 75b04b419309d8c5f4f0bb0f3d755ea5fafa4426291f3659433f25555a8bd5b7
+runtime_bindings:
+- path: config/thesis_experiments/v3/v3_21_a0_ephemeral_port_repair_contract.yaml
+  sha256: c9c0eb160511c0f9e71d97e9aeb2ccd873b92b7a7ca2a6e9382869e9a067f787
+- path: config/thesis_experiments/v3/v3_20_a0_failure_inclusive_characterization_contract.yaml
+  sha256: 5801b3eea542ad98ee2df53bcf2b03ca9293e2904bd05a7d20eed2412ae4804a
+- path: artifacts/v3/thesis/v3_20_f1_execution/terminal_failure_assessment.yaml
+  sha256: 2cfc48ebcab5be21ea6e940ec76d20593d8641b1147ecc20fe30404b0ecf78c1
+- path: artifacts/v3/thesis/v3_20_f1_execution/independent_terminal_review.yaml
+  sha256: cbf13ee801595310ff093acfe41ef302a9b2768b0a575f2a735823617225ce6a
+- path: artifacts/v3/thesis/v3_20_f1_execution/terminal_freeze.sha256
+  sha256: fe402d85ba0efc3da3cae2ec0b8fff40f656c7781f56098d13823e7b8fd5f8df
+- path: artifacts/v3/thesis/v3_19_a0_benchmark_foundation/execution_release.yaml
+  sha256: 7de2f90bb4757aadf0128ef67bfa77ab488ec9a333ba1e8c3c5fd6a6832f55ee
+- path: artifacts/v3/thesis/v3_19_a0_benchmark_foundation/v3_19_no_candidate_conditioning_model.yaml
+  sha256: 5f42f1fbcb3fa39fee856932e5e35fc28604b1447adaf0a7c7e26c93ffb81799
+- path: artifacts/v3/planner/v3_08_a0/v3_08_a0_effective_planner_contract.yaml
+  sha256: 28cd688d3116114a065bcecdf27e94c0499fbd42a1c8dbe5bd37f89eab7f568c
+- path: artifacts/v3/prediction/v3_07_b0_r1/model/v3_07_b0_r1_spatial_candidate_predictor.yaml
+  sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+- path: artifacts/v3/planner/v3_03_c5/v3_03_c5_effective_planner_contract.yaml
+  sha256: 6f2ec1530b67785dfc8f5a397ab416847f35f0c6ffc9e6f45bbf633a50057761
+- path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+- path: src/application/v3_scope_planner/src/v3_scope_planner/thesis_benchmark_methods.py
+  sha256: 812c55a3d2a6c8127a6d352c325d3730e86c833786fb26e8d1d09afdb294ef34
+- path: src/application/v3_scope_planner/scripts/v3_scope_thesis_benchmark_episode.py
+  sha256: 86b2299506981e443749e3a8d6afa29e3fe01da6c289fb96e1116f027724212d
+- path: src/application/v3_scope_planner/scripts/v3_scope_actual_teb_fair_episode.py
+  sha256: 1781c664dcefaaa046657a7a0082227e38e6d87bccc863e71b23ee9773d0165c
+- path: src/simulation/m2_gazebo/launch/m2_v3_19_thesis_benchmark_episode.launch
+  sha256: 05caf3b1b9b79d0965ef6b2f99994045489964caa83bca911b796bb8735380dd
+- path: src/simulation/m2_gazebo/launch/spawn_m2.launch
+  sha256: 0d631e03100a9b874373270b56f58690294c6bc168a2bf1f086319e24bc96193
+- path: src/simulation/m2_gazebo/config/fixed_teb.yaml
+  sha256: 9e3125eec7f1f9040356f245dae9620d0b866ac94482ac29fd2d600838b14c26
+- path: src/simulation/m2_gazebo/src/v3_reactive_actor_plugin.cpp
+  sha256: 0f58306edb11792c09b00f7bc62a9faca04a2ebd10e80ede2290db0c449509bf
+- path: src/tools/thesis_experiment/scripts/run_v3_19_four_method_benchmark.py
+  sha256: 62b71d303ffda8d59fbcd79322da6a3172d9a47a8297b455cb5f5629d000375b
+- path: src/tools/thesis_experiment/scripts/run_v3_20_failure_inclusive_characterization.py
+  sha256: c3f0a9b9ac44618ff7dc345e1c06e95e9583896dc77eb2aeb8e5cd4353e90d2c
+- path: src/tools/thesis_experiment/scripts/run_v3_21_ephemeral_port_repair_characterization.py
+  sha256: 894030be3588e8db663b6a463cfd2465f8a4c2ed8009bccc6b79e1b328571fbf
+formal_units: 120
+port_formula: 24000 + 2 * sequence
+maximum_master_port: 24240
+linux_ephemeral_start: 32768
+minimum_task_success_execution_gate: false
+failure_value_s: 22.0
+retry_resume_replacement_forbidden: true
+training_steps: 0
+hardware_access_authorized: false
+real_vehicle_authorized: false

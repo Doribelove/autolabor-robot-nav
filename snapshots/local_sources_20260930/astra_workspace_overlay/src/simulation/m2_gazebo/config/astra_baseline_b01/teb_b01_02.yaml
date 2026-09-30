@@ -1,0 +1,112 @@
+# B01 offline candidate only; no execution authority. Load AFTER the shared footprint.
+TebLocalPlannerROS:
+  odom_topic: /odom
+  map_frame: odom
+  teb_autosize: true
+  dt_ref: 0.15
+  dt_hysteresis: 0.05
+  max_samples: 500
+  global_plan_overwrite_orientation: true
+  allow_init_with_backwards_motion: true
+  max_global_plan_lookahead_dist: 10
+  feasibility_check_no_poses: 8
+  max_vel_x: 1.2
+  max_vel_x_backwards: 0.4
+  max_vel_y: 0.0
+  max_vel_theta: 0.7805
+  acc_lim_x: 0.6
+  acc_lim_theta: 0.75
+  min_turning_radius: 1.2
+  wheelbase: 0.65
+  cmd_angle_instead_rotvel: false
+  footprint_model:
+    type: polygon
+    vertices:
+    - - 0.5580484505080585
+      - 0.3575519004060608
+    - - 0.5522694299701707
+      - 0.37150369016586227
+    - - 0.47684305152539824
+      - 0.4469300686106347
+    - - 0.36355985925398526
+      - 0.4938535032383729
+    - - -0.272107484247291
+      - 0.49385350323837296
+    - - -0.5415600775645184
+      - 0.38224258466977534
+    - - -0.55225819113519
+      - 0.3715444710991037
+    - - -0.5580484505080585
+      - 0.3575655483914668
+    - - -0.5580484505080585
+      - -0.35756554839146626
+    - - -0.5522581911351897
+      - -0.3715444710991041
+    - - -0.5415600775645185
+      - -0.3822425846697753
+    - - -0.2721074842472917
+      - -0.49385350323837285
+    - - 0.3635598592539851
+      - -0.49385350323837296
+    - - 0.4768430515253983
+      - -0.4469300686106346
+    - - 0.5522694299701706
+      - -0.37150369016586243
+    - - 0.5580484505080585
+      - -0.3575519004060608
+  min_obstacle_dist: 0.4
+  inflation_dist: 0.45
+  include_costmap_obstacles: true
+  costmap_obstacles_behind_robot_dist: 1.5
+  obstacle_poses_affected: 20
+  include_dynamic_obstacles: true
+  weight_max_vel_x: 2.0
+  weight_max_vel_theta: 1.0
+  weight_acc_lim_x: 1.0
+  weight_acc_lim_theta: 1.0
+  weight_kinematics_nh: 1000.0
+  weight_kinematics_forward_drive: 10.0
+  weight_kinematics_turning_radius: 10.0
+  weight_optimaltime: 1.0
+  weight_shortest_path: 0.0
+  weight_obstacle: 40
+  weight_inflation: 0.2
+  weight_viapoint: 1.0
+  weight_adapt_factor: 2.0
+  enable_homotopy_class_planning: true
+  enable_multithreading: true
+  max_number_classes: 4
+  xy_goal_tolerance: 0.25
+  yaw_goal_tolerance: 0.2
+  free_goal_vel: false
+  costmap_converter_plugin: costmap_converter::CostmapToDynamicObstacles
+  costmap_converter_spin_thread: true
+  dynamic_obstacle_inflation_dist: 0.45
+  weight_dynamic_obstacle: 40
+  weight_dynamic_obstacle_inflation: 0.2
+  costmap_converter/CostmapToDynamicObstacles:
+    alpha_slow: 0.3
+    alpha_fast: 0.85
+    beta: 0.85
+    min_sep_between_slow_and_fast_filter: 80
+    min_occupancy_probability: 180
+    max_occupancy_neighbors: 80
+    morph_size: 1
+    publish_static_obstacles: true
+    min_distance_between_blobs: 10
+    filter_by_area: true
+    min_area: 3
+    max_area: 300
+    filter_by_circularity: true
+    min_circularity: 0.2
+    max_circularity: 1.0
+    filter_by_inertia: true
+    min_inertia_ratio: 0.2
+    max_inertia_ratio: 1.0
+    filter_by_convexity: false
+    min_convexity: 0.0
+    max_convexity: 1.0
+    dt: 0.2
+    dist_thresh: 20.0
+    max_allowed_skipped_frames: 3
+    max_trace_length: 10

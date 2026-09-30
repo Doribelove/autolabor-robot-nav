@@ -1,0 +1,83 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P2-C1-R1-D1
+status: offline_failure_attribution_pass
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+simulation_started_by_D1: false
+terminal_C1_R1_accounting:
+  authorized: 342
+  consumed: 2
+  completed: 1
+  skipped: 0
+  forfeited: 340
+  retry_resume_or_reuse_allowed: false
+  held_out_test_accessed: false
+completed_sequence_1_raw_replay:
+  normalized:
+    sequence: 1
+    row_type: qualification_probe
+    probe_type: braking
+    candidate_speed_mps: 1.25
+    scene_id: v2-04g-p2-q1-qual-braking-v125-s5331
+    seed: 5331
+    attempt: 1
+    collision: false
+    emergency: false
+    normal_projection_rate: 0.0
+    invalid_transaction_sample_count: 0
+    trace_sample_count: 121
+    raw_trace_sha256: 31de6a65c11c6a3bff29b6581c954842f5cea5f4718be94bfba918ed96d3a3dc
+    initial_speed_mps: 1.2499527766746628
+    stop_time_s: 0.8499999999999996
+    stopping_distance_m: 0.3624205998809642
+    pass: true
+    terminal_status: completed
+    q1_source_sequence: 331
+  audit:
+    sequence: 1
+    journal_path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/journals/sequence_0001.yaml
+    journal_sha256: 18407ff6f0ae6ad551ddd3f5e11c4ebfbead4db95fb852afebff33c74a7fb6e4
+    raw_trace_path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/attempts/0001__braking_v125__v2-04g-p2-q1-qual-braking-v125-s5331/raw/raw_trace.yaml
+    raw_trace_sha256: 92c4f5dd44265de6250ecbac84cbecae7175f2cf183cdc1f65ec55a50019e244
+    normalized_sha256: 8402113fec0cbcde88850c123a6028442365841d46d544239a80b3d6381d4d3d
+failure_sequence_2:
+  recorded_terminal_reason: 'C1ExecutionError: R6I2BootstrapError: unpause_service_not_acknowledged'
+  planned_runtime_profile_id: qualification_overlay_v125
+  supervisor_allowed_profile_to_estimator:
+    r6_semantics_legacy_control: legacy_class_conditioned_geometry_v1
+    r6_semantics_circle_contact: shared_circle_envelope_first_contact_v1
+  frozen_supervisor_estimator_id: shared_circle_envelope_first_contact_v1
+  required_aligned_runtime_profile_id: r6_semantics_circle_contact
+  required_supervisor_process_died: true
+  unpause_service_not_available_after_required_process_exit: true
+attribution:
+  primary_cause: runtime_evidence_profile_identity_domain_mismatch
+  primary_mechanism: The evidence-level candidate profile qualification_overlay_v125
+    was passed into the frozen supervisor runtime-profile interface. That interface
+    accepts only estimator-bound semantic aliases; its required process exited, and
+    the later unpause call failed because roslaunch was already shutting the attempt
+    down.
+next_single_factor:
+  factor_id: separate_runtime_semantic_profile_from_evidence_candidate_identity_v1
+  runtime_profile_id: r6_semantics_circle_contact
+  evidence_identity_preserved: true
+  behavioral_TEB_parameter_change: false
+  other_runtime_scene_threshold_estimator_or_safety_change: false
+  fresh_seed_required: true
+  old_seed_reuse_allowed: false
+  execution_authorized: false
+evidence_freeze:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_d1_failure_attribution/p2_c1_r1_d1_source_evidence_freeze.yaml
+  logical_sha256: ec00ad89f455fe9b0dd0775152515f33f71b0c0c218186416ddb05899dab0173
+  resource_count: 56
+process_isolation:
+  active_runtime_processes: []
+  clean: true
+claim_boundary:
+  performance_effect_or_candidate_selection_allowed: false
+  held_out_test_or_obvious_improvement_claim_allowed: false
+next_safe_entry: independent_offline_review_then_new_finite_design_with_fresh_seed

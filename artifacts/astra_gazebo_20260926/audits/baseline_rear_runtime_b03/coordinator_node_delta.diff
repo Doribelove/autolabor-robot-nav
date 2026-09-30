@@ -1,0 +1,107 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n02.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_b03.py
+@@ -26,7 +26,8 @@
+     if master_uri.scheme!='http' or master_uri.hostname not in ('127.0.0.1','localhost','::1') or master_uri.username or master_uri.password:raise ValueError('loopback simulation master required')
+     if rospy.get_param('/use_sim_time',False)is not True or rospy.get_param('/m2_gazebo/simulation_only',False)is not True:raise ValueError('isolated simulation required')
+     workspace=Path(os.environ['THESIS_WS']).resolve();sys.path.insert(0,str(workspace/'scripts/astra_gazebo'))
+-    from navigation_coordinator_n02 import NavigationCoordinator,CoordinatorConfig,PERIOD_NS,SCHEMA
++    from navigation_coordinator_b03 import NavigationCoordinator,CoordinatorConfig,PERIOD_NS,SCHEMA
++    from baseline_rear_runtime_b03 import RearAdapterHealth,planar_pose_to_rear,goal_tolerance_contract
+     from common_route import load_bundle
+     from route_world_adapter import RouteFrame
+     directory=Path(rospy.get_param('~bundle'));expected=rospy.get_param('~bundle_sha256')
+@@ -34,6 +35,7 @@
+     grid,route,data=load_bundle(directory)
+     config=CoordinatorConfig(str(rospy.get_param('~run_id')),rospy.get_param('~seed'),str(rospy.get_param('~method')),
+         tuple(data['start_xy_yaw']),tuple(data['goal_xy_yaw']),tuple(data['map_from_odom_xy_yaw']))
++    rear_health=RearAdapterHealth(config.run_id,config.seed,config.method)
+     core=NavigationCoordinator(config);map_from_odom=RouteFrame(*data['map_from_odom_xy_yaw']);lock=threading.RLock()
+     pending_odometry=deque();last_received_odom_source=[None]
+     command_pub=rospy.Publisher('/cmd_vel_navigation',Twist,queue_size=1000)
+@@ -41,7 +43,8 @@
+     status_pub=rospy.Publisher('/astra/navigation/status',String,queue_size=100,latch=True)
+     gate_pub=rospy.Publisher('/astra/navigation/gate',String,queue_size=1,latch=True)
+     trace_pub=rospy.Publisher('/astra/navigation/command_trace',String,queue_size=1000)
+-    method_status_pub=None;baseline=config.method in ('actual_teb_common_route','dwa_common_route')
++    private_result_pub=rospy.Publisher('/astra/baseline_rear/private_action_result',String,queue_size=100,latch=True)
++    method_status_pub=None;baseline=config.method in ('actual_teb_rear_reference_b03','dwa_rear_reference_b03')
+     client=actionlib.SimpleActionClient('/move_base',MoveBaseAction) if baseline else None
+     baseline_server_ready=threading.Event();gate_to_dispatch=[]
+     if baseline:
+@@ -93,9 +96,11 @@
+         if not all(math.isfinite(v) for v in excluded) or any(abs(v)>1e-12 for v in excluded):raise ValueError('nonplanar or nonfinite method command')
+         core.method_command(message.linear.x,message.angular.z,rospy.Time.now().to_nsec(),time.monotonic_ns())
+     def on_method_status(message):core.method_status(json.loads(message.data))
++    def on_rear_status(message):rear_health.accept(json.loads(message.data),rospy.Time.now().to_nsec())
+     subscribers=[rospy.Subscriber('/odom',Odometry,callback_guard(on_odometry),queue_size=1000),
+                  rospy.Subscriber('/astra/method_cmd',Twist,callback_guard(on_method_command),queue_size=1000),
+-                 rospy.Subscriber('/astra/method/status',String,callback_guard(on_method_status),queue_size=1000)]
++                 rospy.Subscriber('/astra/method/status',String,callback_guard(on_method_status),queue_size=1000),
++                 rospy.Subscriber('/astra/baseline_rear/status',String,callback_guard(on_rear_status),queue_size=1000)]
+     def publishers_valid():
+         publishers=dict(rosgraph.Master(rospy.get_name()).getSystemState()[0])
+         if publishers.get('/cmd_vel_navigation')!=[rospy.get_name()]:raise ValueError('coordinator is not sole navigation command publisher')
+@@ -105,6 +110,7 @@
+         with lock:
+             try:
+                 publishers_valid();now=rospy.Time.now().to_nsec();drain_odometry(now)
++                if not rear_health.ready(now):raise ValueError('rear adapter not source-fresh/ready')
+                 result=core.arm(now);return TriggerResponse(True,json.dumps(result))
+             except Exception as exc:return TriggerResponse(False,str(exc))
+     def stop(_request):
+@@ -118,7 +124,9 @@
+         'sole_output':'/cmd_vel_navigation','method_input':'/astra/method_cmd','gate_time_authority':'first qualifying actual odom header x>=-4 in route frame',
+         'method_twist_generation_source_time_known':False,'moving_method_pre_gate_forbidden':True,'gazebo_lifecycle_owned':False,
+         'terminal_first_write_immutable':True,'timeout_authority':'ordered actual odometry watermark; deadline clock requests zero while waiting',
+-        'odom_ahead_of_clock_policy':'queue unchanged source timestamps until local clock covers; unchanged200ms stale-source guard'})
++        'odom_ahead_of_clock_policy':'queue unchanged source timestamps until local clock covers; unchanged200ms stale-source guard',
++        'planner_goal_reference':'rear_axle_kinematic','shared_terminal_reference':'actual base_link',
++        'internal_goal_contract':goal_tolerance_contract(),'private_action_result_is_terminal_authority':False})
+     next_tick=None;last_zero_source=None;last_status_wall=0.;last_progress_wall=time.monotonic();last_source=None;last_graph_wall=0.;baseline_goal_sent=False
+     try:
+         while not rospy.is_shutdown():
+@@ -130,21 +138,31 @@
+                 last_source=source_now
+                 if source_now>0 and wall_now-last_progress_wall>5:core.fault('publisher_clock_wall_stall')
+                 drain_odometry(source_now)
+-                if baseline and baseline_server_ready.is_set() and core.gate is None:
++                rear_ready=rear_health.ready(source_now)
++                if core.armed and core.phase not in ('fault','complete','timeout','stopped') and not rear_ready:core.fault('rear_adapter_not_source_fresh_or_ready')
++                if baseline and baseline_server_ready.is_set() and rear_ready and core.gate is None:
+                     row={'run_id':config.run_id,'seed':config.seed,'method':config.method,'state':'ready','ready':True}
+                     core.method_status(row)
+                     if wall_now-last_status_wall>=.2:emit(method_status_pub,row)
+                 if gate_to_dispatch and baseline and not baseline_goal_sent:
+                     gate_event=gate_to_dispatch.pop(0);baseline_goal_sent=True
+                     goal_message=MoveBaseGoal();goal_message.target_pose.header.frame_id='map';goal_message.target_pose.header.stamp=rospy.Time.now()
+-                    goal_message.target_pose.pose.position.x,goal_message.target_pose.pose.position.y=config.goal_pose[:2]
+-                    goal_message.target_pose.pose.orientation.z=math.sin(config.goal_pose[2]/2);goal_message.target_pose.pose.orientation.w=math.cos(config.goal_pose[2]/2)
++                    rear_goal=planar_pose_to_rear(config.goal_pose)
++                    goal_message.target_pose.pose.position.x,goal_message.target_pose.pose.position.y=rear_goal[:2]
++                    goal_message.target_pose.pose.orientation.z=math.sin(rear_goal[2]/2);goal_message.target_pose.pose.orientation.w=math.cos(rear_goal[2]/2)
+                     def baseline_active_callback():
+                         with lock:
+                             row={'run_id':config.run_id,'seed':config.seed,'method':config.method,'state':'active','ready':True,'gate_source_ns':gate_event['source_ns'],
+                                  'activation_ack_receipt_clock_ns':rospy.Time.now().to_nsec(),'ack_semantics':'move_base action ACTIVE callback; not command generation timestamp'}
+                             core.method_status(row);emit(method_status_pub,row)
+-                    client.send_goal(goal_message,active_cb=baseline_active_callback)
++                    def baseline_done_callback(state,result):
++                        # Private planner result is diagnostic only. The inherited
++                        # actual-base source predicate alone closes the episode.
++                        with lock:
++                            emit(private_result_pub,{'run_id':config.run_id,'seed':config.seed,'method':config.method,
++                                'action_state':int(state),'receipt_clock_ns':rospy.Time.now().to_nsec(),
++                                'shared_phase':core.phase,'is_task_terminal_authority':False})
++                    client.send_goal(goal_message,active_cb=baseline_active_callback,done_cb=baseline_done_callback)
+                 if source_now==0:
+                     # One clock0 prime after relay+recorder; no paused queue fill.
+                     if last_zero_source is None and command_pub.get_num_connections()>=2:publish_output(core.output(0));last_zero_source=0
+@@ -154,7 +172,7 @@
+                 if wall_now-last_status_wall>=.2:
+                     fresh=core.latest_odom is not None and 0<=source_now-core.latest_odom['stamp_ns']<=config.maximum_source_age_ns
+                     emit(status_pub,{'schema':SCHEMA,'run_id':config.run_id,'seed':config.seed,'method':config.method,'phase':core.phase,'fault':core.fault_reason,
+-                        'ready_to_arm':bool(source_now>0 and source_now<5_000_000_000 and core.ready and fresh and not core.armed and core.phase=='bootstrap'),
++                        'ready_to_arm':bool(source_now>0 and source_now<5_000_000_000 and core.ready and rear_ready and fresh and not core.armed and core.phase=='bootstrap'),
+                         'armed':core.armed,'terminal_source_ns':core.terminal_source_ns,'terminal_reason':core.terminal_reason,'terminal_time_authority':core.terminal_time_authority,'gate_source_ns':None if core.gate is None else core.gate['source_ns'],'publisher_visible_clock_ns':source_now,
+                         'pending_odom_clock_count':len(pending_odometry),'late_fault_count':core.late_fault_count,'late_faults':[dict(row) for row in core.late_faults]})
+                     last_status_wall=wall_now

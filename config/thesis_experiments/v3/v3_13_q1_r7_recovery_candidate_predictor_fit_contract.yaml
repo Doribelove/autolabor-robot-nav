@@ -1,0 +1,78 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R7
+stage_purpose: deterministic_new_recovery_candidate_head_fit_and_internal_validation
+status: preregistered_offline_fit
+upstream:
+  r6_assessment_path: artifacts/v3/multiactor/v3_13_q1_r6_assessment/support_assessment.yaml
+  r6_assessment_sha256: 1178b39ef28809da45163387c111ad2dc2fadc27064e68146d6982a57f595f28
+  r6_freeze_path: artifacts/v3/multiactor/v3_13_q1_r6_assessment/evidence_freeze.yaml
+  r6_freeze_sha256: 8b966252955a22d7aca2c88618b3518c5d4793e14d806a08d481649cb92e9402
+  r6_review_path: artifacts/v3/multiactor/v3_13_q1_r6_assessment/independent_result_review.yaml
+  r6_review_sha256: a05cb0800412c45750f34fb098ee097e03a4745c05874c613063ff8142f12bdf
+  s3_predictor_path: artifacts/v3/multiactor/v3_13_s3_predictor/candidate_conditioned_recovery_predictor.yaml
+  s3_predictor_sha256: 94449b8a1a645754c88c1781a5b7ac8fd869adaa5b79c69d81aa4e6abc33b621
+data_scope:
+  source_stage: V3-13-Q1-R6
+  matched_context_blocks: 8
+  selected_candidate_id: recovery_evasive_right_v120_r1
+  selected_candidate_episodes: 8
+  actor_trajectories: 16
+  observable_mode: assertive
+  hidden_policy_runtime_input: false
+  R6_is_model_development_data_not_fresh_qualification: true
+model:
+  model_type: candidate_conditioned_contextual_ridge_v1
+  retained_model: V3-13-S3
+  retained_S3_heads_byte_equivalent: true
+  newly_fitted_mode: assertive
+  newly_fitted_candidate_id: recovery_evasive_right_v120_r1
+  feature_order:
+  - time_s
+  - time_squared_s2
+  - time_cubed_s3
+  - initial_coordinate_speed_times_time
+  - negative_initial_coordinate_times_time
+  - path_origin_x_times_time
+  - path_origin_x_times_time_squared
+  ridge_lambda_after_rms_feature_scaling: 1.0
+  intercept: false
+  target: actor_path_coordinate_displacement_m
+calibration:
+  coordinate_radius_m: 0.30
+  coordinate_growth_mps: 0.08
+  terminal_full_width_at_7s_m: 1.72
+  retained_exactly_from_S3: true
+internal_cross_validation:
+  split: leave_one_matched_context_block_out
+  folds: 8
+  global_simultaneous_trajectory_coverage_min: 0.90
+  every_block_simultaneous_trajectory_coverage_min: 0.75
+  mean_trajectory_rmse_m_max: 0.25
+  maximum_trajectory_rmse_m_max: 0.65
+  terminal_full_width_m_max: 1.80
+  hidden_label_feature_count_max: 0
+  fixed_before_fit: true
+future_qualification:
+  internal_validation_is_not_fresh_qualification: true
+  fresh_seed_range_reserved_not_authorized: [7625, 7632]
+  exact_future_units: 40
+  five_action_support_required: true
+  actual_TEB_comparison_requires_fresh_qualification_pass: true
+authority:
+  deterministic_offline_supervised_fit_authorized: true
+  simulation_execution_authorized: false
+  policy_or_ranker_training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - the new assertive candidate head can be fit reproducibly to R6
+  - internal leave-one-block-out coverage and error gates pass
+  forbidden:
+  - fresh predictor generalization
+  - actual TEB performance
+  - perception robustness
+  - policy or ranker training benefit
+  - deployment or real-vehicle readiness

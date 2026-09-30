@@ -1,0 +1,39 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-08-A1-R1
+stage_purpose: finite_rejected_candidate_diagnostic_serialization_repair
+contract_id: v3_scope_v3_08_a1_r1_finite_diagnostic_repair_1
+status: single_factor_repair_preregistered_before_release
+parent_failure:
+  stage: V3-08-A1
+  terminal_freeze_path: artifacts/v3/planner/v3_08_a1/v3_08_a1_terminal_freeze.sha256
+  terminal_freeze_sha256: 056b880bec7f30e26faa581d390392d0ebe41abb385fa35901639a51bbbccadb
+  consumed_units: 2
+  completed_units: 1
+  forfeited_units: 16
+single_factor_repair:
+  factor_id: rejected_candidate_nonfinite_diagnostic_to_finite_sentinel
+  old_value: negative_infinity
+  new_value: -1.0e9
+  candidate_set_changed: false
+  acceptance_or_rejection_changed: false
+  selected_candidate_changed: false
+  trajectory_changed: false
+  predictor_changed: false
+  hard_verifier_changed: false
+  ranker_changed: false
+  scene_or_protocol_changed: false
+  qualification_gates_changed: false
+fresh_scenario_blocks:
+  - {block_id: repair_6681, seed: 6681, angle_deg: 72.0, actor_start_distance_m: 3.05, actor_base_speed_mps: 0.95}
+  - {block_id: repair_6682, seed: 6682, angle_deg: 80.0, actor_start_distance_m: 2.90, actor_base_speed_mps: 1.05}
+  - {block_id: repair_6683, seed: 6683, angle_deg: 88.0, actor_start_distance_m: 3.20, actor_base_speed_mps: 0.925}
+  - {block_id: repair_6684, seed: 6684, angle_deg: 96.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 1.025}
+  - {block_id: repair_6685, seed: 6685, angle_deg: 104.0, actor_start_distance_m: 3.25, actor_base_speed_mps: 0.975}
+  - {block_id: repair_6686, seed: 6686, angle_deg: 108.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 1.075}
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_or_gate_write_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

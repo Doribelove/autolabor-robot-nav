@@ -1,0 +1,154 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P4-I1
+contract_id: fam_teb_v2_04g_p4_i1_one_unit_semantic_preflight_1
+status: explicitly_authorized_release_candidate_not_yet_released
+independent_stage: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_authorized: true
+authorized_evidence_units_max: 1
+consumed_evidence_units: 0
+training_allowed: false
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+
+authority:
+  user_instruction_date: "2026-07-24"
+  scope: >-
+    Continue FAM-TEB optimization autonomously in offline analysis and Gazebo,
+    with exact release, schedule, finite budget and corresponding stage gate.
+  narrowed_to:
+    - one_fresh_seed_semantic_overlay_qualification_preflight
+    - complete_transaction_activation_restore_and_raw_replay
+    - retain_any_failure_without_retry_resume_or_seed_replacement
+  excluded:
+    - any_other_round_3_calibration_or_qualification_identity
+    - held_out_test
+    - training
+    - stable_workspace_real_vehicle_CAN_or_hardware
+    - rerun_or_modification_of_any_P1_P2_P3_I5_T12_identity
+
+frozen_sources:
+  P4_D1_design_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_d1_final_round_design/p4_d1_offline_closure_freeze.sha256
+    sha256: b2f5b52d0df2d0534790f515c180ac1d28eb27fbbcdcb83adc1f6d98ee5a1d74
+  P4_D1_design_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_d1_final_round_design/v2_04g_p4_d1_design_report.yaml
+    sha256: c14bd264582c30e02c44e2fd6f15d61fb38cc72dc89938cf60c66fc19b699d93
+  P4_D1_independent_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_d1_final_round_design/v2_04g_p4_d1_independent_review.yaml
+    sha256: 9815a5629df7ead960954116883ad3b189a681041f8f263b9fafc60793d26e95
+  P4_Q1_implementation_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/p4_q1_offline_closure_freeze.sha256
+    sha256: 351a7ce09a043ed8185d0b177b0af06437b5b27880f868091a14abba740bfb9a
+  P4_Q1_readiness_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/v2_04g_p4_q1_readiness_report.yaml
+    sha256: 95d231cdad9f4d79114402f168b1e4429c040fd128de2d6ddb04c0094b436d24
+  P4_Q1_independent_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/v2_04g_p4_q1_independent_review.yaml
+    sha256: 26c03a7e31a06d1f45ccc7348cdd980974b2a00c2b9b7f8e8879af38f0d4b3fd
+  inherited_runtime_dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_release_readiness/p2_c1_r1_execution_dependency_closure.yaml
+    sha256: 2dae23d80fb385c1fb8c015866a56b20a89f861610fad36a19a1c7435302f5a6
+  method_bindings:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p4_q1_runtime_bank_readiness/v2_04g_p4_q1_method_bindings.yaml
+    sha256: cc1ae9fd7a48807a205685bfcc723f8660b06c324dc9e387e27a050916cf47d0
+  source_scene_manifest:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_scenes.yaml
+    sha256: 050219ef3fc50649f7b7fc48b19716bfcc2a498ef8c2500ebf1713c7d7e487ec
+
+single_factor_binding:
+  factor_id: promote_offline_candidate_bank_to_strict_runtime_candidate_schema_v1
+  promoted_bank_status: uncalibrated_simulation_candidate
+  removed_offline_provenance_key: source_provenance.p2_q1
+  strict_parser_offline_pass: true
+  runtime_profile_id: r6_semantics_circle_contact
+  evidence_candidate_method_id: circle_contact_v125
+  evidence_qualification_profile_id: qualification_overlay_v125
+  runtime_consumers:
+    - r6_rule_context_supervisor
+    - v2_04g_r6_typed_anchor_transaction
+    - activation_probe_listener
+    - runtime_control
+  evidence_identity_records:
+    - schedule
+    - consumption
+    - journal
+    - raw_trace
+    - normalized_replay
+  behavioral_TEB_parameter_change: false
+  parameter_value_or_bound_change: false
+  scene_threshold_estimator_safety_or_evaluator_change: false
+
+exact_identity:
+  sequence: 1
+  row_type: qualification_probe
+  probe_type: high_speed_to_conflict_overlay_transition
+  candidate_speed_mps: 1.25
+  candidate_method_id: circle_contact_v125
+  seed: 5924
+  attempt: 1
+  split: calibration
+  source_template_role: single_true_conflict
+  counts_toward_future_round_3_qualification_matrix: true
+  old_seed_5332_reuse_allowed: false
+  old_seed_5624_reuse_allowed: false
+
+budget_accounting:
+  global_round_3_maximum_units: 704
+  I1_authorized_units: 1
+  C1_future_additional_units_reserved_not_authorized: 253
+  T1_future_units_reserved_not_authorized: 450
+  sum: 704
+  additive_expansion: false
+  if_I1_integrity_or_probe_gate_fails_retire_remaining_round_units: 703
+
+execution_policy:
+  serial_concurrency: 1
+  consumption_boundary: base_roslaunch_spawn_requested
+  attempt_per_identity: 1
+  retry_resume_replacement_or_seed_substitution_allowed: false
+  per_identity_hard_wall_cap_s: 240
+  stage_hard_wall_cap_s: 300
+  positive_progress_clock_bootstrap_required: true
+  credential_safe_child_environment_required: true
+  exact_transaction_startup_arm_activation_restore_required: true
+  final_process_isolation_required: true
+  raw_path_SHA_size_receipts_required: true
+  stop_on_any_integrity_failure: true
+
+pass_gate:
+  execution_integrity_required: true
+  raw_replay_required: true
+  ordinary_probe_pass_required: true
+  collision: false
+  emergency: false
+  invalid_transaction_sample_count: 0
+  normal_projection_rate_strictly_below: 0.10
+  C1_implementation_or_release_allowed_before_pass: false
+
+release_policy:
+  release_count_max: 1
+  release_must_be_absent_during_independent_review: true
+  exact_release_SHA256_caller_supplied: true
+  full_local_and_external_dependency_closure_required: true
+  minimum_free_disk_bytes: 4294967296
+
+claim_boundary:
+  allowed_after_complete_I1:
+    - one_fresh_simulation_semantic_integration_result
+    - one_overlay_qualification_probe_result
+    - decision_whether_round_3_C1_may_be_implemented
+  forbidden:
+    - calibration_candidate_or_baseline_selection
+    - held_out_test_or_performance_improvement
+    - safety_generalization_deployment_or_real_vehicle_claim
+
+forbidden_side_effects:
+  modify_rerun_or_resume_P1_I5_T12_P2_or_C1_R1: true
+  access_round_3_held_out_test_artifacts_or_outcomes: true
+  run_training: true
+  execute_before_independent_review_and_exact_release: true
+  connect_stable_workspace_real_vehicle_CAN_or_hardware: true

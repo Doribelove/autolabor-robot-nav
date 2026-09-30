@@ -1,0 +1,33 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-D1
+preregistration_id: v3_scope_v3_02_d1_feasible_intervention_data_1
+date: "2026-07-24"
+status: frozen_before_any_v3_02_d1_gazebo_execution
+contract: config/thesis_experiments/v3/v3_02_d1_feasible_intervention_data_contract.yaml
+causal_reason: >-
+  C2 established a common observation prefix but used a post-prefix velocity
+  discontinuity and lacked the certified-stop action. D1 replaces the
+  intervention realization with one frozen acceleration-limited generator and
+  adds stop support before any hard-verifier integration.
+schedule:
+  exact_rows: 135
+  training_rows: 90
+  calibration_rows: 45
+  attempts_per_identity: 1
+  retries: 0
+candidate_atomicity:
+  common_prefix_end_s: 0.50
+  branch_start_s: 0.50
+  maximum_acceleration_mps2: 0.60
+  maximum_deceleration_mps2: 0.80
+  certified_stop_in_support: true
+held_out_firewall:
+  reserved_seeds: [6281, 6282, 6283]
+  test_outcome_access_allowed: false
+  test_release_allowed_before_calibration_pass: false
+authority:
+  simulation_requires_separate_authorization: true
+  training: false
+  move_base: false
+  real_vehicle: false

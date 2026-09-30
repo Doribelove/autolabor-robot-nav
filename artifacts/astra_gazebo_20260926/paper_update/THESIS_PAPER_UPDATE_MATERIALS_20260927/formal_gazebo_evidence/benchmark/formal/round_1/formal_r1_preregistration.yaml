@@ -1,0 +1,73 @@
+schema_version: '1.0'
+stage: formal_round_1
+status: preregistered_before_formal_outcome_access
+simulation_only: true
+blocks: 160
+episodes: 640
+seed_range:
+- 197001
+- 197160
+scene_allocation:
+  core_static_avoidance: 27
+  core_single_crossing: 27
+  core_head_on_yield: 27
+  core_sequential_interaction: 27
+  core_partially_occluded: 26
+  core_width_change: 26
+methods:
+- pct_scope_rl
+- analytic_prior
+- actual_teb
+- dwa
+primary_unit: paired_seed_scene_block
+primary_metric: failure_inclusive_restricted_time_s
+primary_comparisons:
+- pct_scope_rl_vs_actual_teb
+- pct_scope_rl_vs_dwa
+primary_estimator: (mean_baseline_minus_mean_pct)/mean_baseline
+multiplicity:
+  method: two_sided_97_5_percent_paired_block_bootstrap_for_each_of_two_locked_primary_comparisons
+  bootstrap_samples: 200000
+  bootstrap_seeds:
+    actual_teb: 20261971
+    dwa: 20261972
+  confidence_quantiles:
+  - 0.0125
+  - 0.9875
+positive_gate_per_comparator:
+  minimum_relative_time_reduction: 0.08
+  bootstrap_lower_bound_strictly_greater_than: 0.0
+  pct_completion_rate_difference_percentage_points_minimum: -5.0
+  pct_contact_count_not_higher_than_comparator: true
+  pct_mask_violation_count_maximum: 0
+  finite_statistics_required: true
+program_success_rule: all integrity gates plus positive_gate for at least one locked
+  traditional comparator
+failure_accounting:
+  success: measured_gate_to_goal_time
+  timeout_contact_nonarrival_method_system_failure: 22.0
+  infrastructure_failure: retained_and_reported_separately_with_22_second_primary_penalty
+  retry: none_for_same_scientific_identity
+  replacement_seed: forbidden
+secondary_analyses:
+- analytic_prior_comparison
+- scene_strata
+- completion_contact_clearance
+- candidate_switch_stop_recovery_tracking_latency
+- failure_case_inventory
+secondary_claim_status: descriptive_unless_separately_gated
+sample_size_basis:
+  pilot_assessment_path: artifacts/gazebo_pct_teb_dwa_benchmark/pilot/pilot_r1/pilot_assessment.json
+  pilot_assessment_sha256: 76eaf0ef3997ecfe496aba4814ba67ba23645f025fd07b5dbb7b78d0c6eef67c
+  selected_blocks: 160
+  dwa_target_power: 0.8204883971202288
+  teb_target_power: 0.5845471832926094
+  teb_underpowered_within_200_block_cap: true
+schedule_path: artifacts/gazebo_pct_teb_dwa_benchmark/formal/round_1/formal_r1_schedule.csv
+schedule_sha256: 89adaa3ad8c6175c2223b91f3b457c789b94858d2b606515413da6bac8c496e8
+pilot_seeds_excluded: true
+development_seeds_excluded: true
+formal_round_2_seeds_not_accessed: true
+tuning_from_formal_outcomes: forbidden
+hardware_authorized: false
+real_vehicle_authorized: false

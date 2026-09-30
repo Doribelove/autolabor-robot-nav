@@ -1,0 +1,50 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R4
+status: offline_recovery_candidate_geometry_closure_pass
+source_snapshot_id: v3_13_q1_r2_crossing_and_oncoming_7331_1_late_recovery
+candidate_id: recovery_evasive_right_v120
+candidate_digest: 95153a15c9efbecd86bb9ac970f509a2f4695cc39ce897c836a16f8313b01542
+legacy_candidate_set_digest: efd7c84a05409efe08ef17f8e1ac0a63339e3c7215bc85f7750bcb138943cd5d
+recovery_candidate_set_digest: cbce7224deaa165c0ca8c9edfd622e42b7e3e7ce83a35c5071fcacc9bc252ce1
+legacy_candidate_change_count: 0
+validation_failures: []
+observed_geometry:
+  maximum_acceleration_mps2: 1.0
+  maximum_steering_angle_rad: 0.339879881697
+  maximum_steering_rate_radps: 0.5
+  maximum_curvature_inv_m: 0.544002669386
+  maximum_absolute_lateral_offset_m: 1.545791016948
+  terminal_progress_m: 6.740505190833
+  terminal_lateral_offset_m: 0.029528059961
+hardware_curvature_limit_inv_m: 0.8332880580189052
+R2_surrogate_evaluation:
+  surrogate_head: S3_assertive_spatial_right_v120
+  candidate_specific_support_or_qualification: false
+  accepted: true
+  rejection_codes: []
+  minimum_dynamic_clearance_m: 0.036255035774140465
+  minimum_static_clearance_m: 0.08920898305199998
+  minimum_clearance_m: 0.036255035774140465
+checks:
+  exactly_one_candidate_appended: true
+  legacy_candidate_digests_unchanged: true
+  initial_context_has_no_extension: true
+  kinematic_validation: true
+  acceleration_bound: true
+  steering_angle_bound: true
+  steering_rate_bound: true
+  curvature_bound: true
+  M2_physical_curvature_bound: true
+  surrogate_dynamic_clearance: true
+  corridor_static_clearance: true
+  safety_and_ranker_nonfactors_unchanged: true
+all_offline_geometry_gates_pass: true
+simulation_evidence_created: false
+new_seed_consumed: false
+new_candidate_predictor_qualified: false
+actual_TEB_execution_authorized: false
+perception_execution_authorized: false
+policy_or_ranker_training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false

@@ -1,0 +1,34 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-01-R1
+preregistration_id: v3_scope_v3_01_r1_pause_flag_repair_preregistration_1
+date: "2026-07-24"
+status: frozen_before_any_v3_01_r1_gazebo_execution
+contract: config/thesis_experiments/v3/v3_01_r1_pause_flag_repair_contract.yaml
+single_factor:
+  factor_id: gzserver_start_paused_flag
+  remove_exact_argument: "-u"
+  other_runtime_semantics_changed: false
+design:
+  unit: one_hidden_policy_x_one_ego_intervention_x_one_seed
+  policies: [cautious, assertive, hesitant]
+  candidate_ids: [probe_v060, probe_v080, probe_v100, probe_v120]
+  fresh_seeds: [6111, 6112, 6113]
+  exact_row_count: 36
+  attempt: 1
+  order: seed_then_policy_then_increasing_candidate_speed
+budget:
+  authorized_units_after_separate_release: 36
+  consumed_before_release: 0
+  retry_units: 0
+  training_steps: 0
+analysis:
+  primary_effect: actor_y_position_spread_at_sim_time_4s_within_policy_seed
+  primary_threshold_m: 0.20
+  missing_or_failed_episode: qualification_fail
+  seed_replacement: forbidden
+stop_rules:
+  - stop_on_first_infrastructure_failure
+  - no_retry_or_resume
+  - preserve_negative_or_failed_stage
+  - repair_only_in_new_stage_with_fresh_identity

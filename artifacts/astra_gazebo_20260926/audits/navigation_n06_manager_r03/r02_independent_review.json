@@ -1,0 +1,165 @@
+{
+  "schema": "astra_navigation_n06_manager_independent_review_v2",
+  "status": "independent_r02_review_blocked_two_receipt_closure_gaps",
+  "independent_review": true,
+  "r02_release_usable": false,
+  "author_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r02/implementation_report.json",
+    "sha256": "1a46daaf235abfd97f79cd529fd17546cefc9d05f41bc9431ec6bf86e41477b3",
+    "bytes": 6155
+  },
+  "author_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r02/source_evidence_manifest.json",
+    "sha256": "76bd9a6256f927668eb46a5a6e366c6ab3735f4c4fe190480402c37d21dc0415",
+    "bytes": 156971
+  },
+  "reviewed_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager_r02.py",
+      "sha256": "14d4ab5b0647217cc9a7630054dd049d3373cbd99e7277595a70016a30a84aaf",
+      "bytes": 20761
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity_r02.py",
+      "sha256": "b9da7c5cf2a1785aa5b474c94a5566327c6df3ecbef6ef7409fa95d02d1eee81",
+      "bytes": 18790
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_process_r02.py",
+      "sha256": "e5bafc4c53788c2542c91b335738aa32f11de7dd049e2569b9eccb339a449c74",
+      "bytes": 8077
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan_r02.py",
+      "sha256": "d4cec6644b0e47dc9d0b8fd44e37cedc5ecd91f5022d0e94406f64959127a6a0",
+      "bytes": 13041
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager_r02.py",
+      "sha256": "010223c2a28cc2eb836ffcb87af941e56d8e3bb44f11195574ca71feabae3ef1",
+      "bytes": 41932
+    }
+  ],
+  "resources": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r02/resources.json",
+    "sha256": "2b2f24e9d4e009c4f6eedff663849e63e75deae613578341e64bf67ed8544d6b",
+    "bytes": 159927
+  },
+  "r01_resources_unchanged": 352,
+  "r02_resources_rehashed_before_and_at_seal": 733,
+  "recursive_static_modules": 23,
+  "observed_workspace_modules": 12,
+  "recursive_import_evidence": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r02/recursive_import_verification.json",
+    "sha256": "a502b7402192b043995322f762e621d50bad9eab9bd34f777f9dbdd9fc087aca",
+    "bytes": 25595
+  },
+  "author_tests_rerun": {
+    "passed": 56,
+    "log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r02/author_tests_rerun.log",
+      "sha256": "fa866a1c04e62b643a73edbbf319d012465cd004b89aa66376dbd7ddcfc1a407",
+      "bytes": 6530
+    }
+  },
+  "focused_checks": {
+    "passed_groups": 18,
+    "result": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r02/focused_result.json",
+      "sha256": "13e85918b60a16cf014bd72fb6cddf0a44bb2368acc7e29825741fecb9c124d1",
+      "bytes": 3626
+    },
+    "script": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r02/focused_checks.py",
+      "sha256": "f7ae6062ad27e90f65fe9d3dc45f4e9875ce489902feddc24342da819d4dc486",
+      "bytes": 7417
+    },
+    "log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r02/focused_checks.log",
+      "sha256": "c47c9c87211622c34f45639a0347fb7e49697111136f50ae4efe801f2752d508",
+      "bytes": 798
+    }
+  },
+  "r01_three_requested_repairs_pass": true,
+  "findings": [
+    {
+      "id": "N06R02_ADMINISTRATIVE_IDENTITY_OVERRIDE",
+      "severity": "blocking_before_administrative_projection",
+      "source": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan_r02.py",
+        "sha256": "d4cec6644b0e47dc9d0b8fd44e37cedc5ecd91f5022d0e94406f64959127a6a0",
+        "bytes": 13041
+      },
+      "line": 67,
+      "mechanism": "未验证的 administrative_metadata 经第71–73行覆盖 run_manifest 的 run_id 和路径；第77–78行也接受未绑定 report/raw 路径。",
+      "counterexample": {
+        "id": "receipt_administrative_identity_and_path_override",
+        "accepted": true,
+        "projected_first_run_id": "historical_duplicate",
+        "expected_first_run_id": "astra_navigation_n06_b000_control",
+        "unbound_receipt_path": "/tmp/unbound_receipt.json",
+        "unbound_report_path_in_experiments": true,
+        "mechanism": "arbitrary administrative_metadata overwrites run_id and paths without validation"
+      },
+      "impact": "临时反例中 exact ledger 身份仍正常，但新行政行变为 historical_duplicate；原有历史行未被写改，新增身份与 ledger 不一致。未发生真实 CSV 损坏。",
+      "repair": "关闭 metadata schema；身份由已验证 schedule 构造且不可覆盖，路径与 SHA 从 canonical run root/已绑定 receipt、assessment 和实际资源派生或严格核对。"
+    },
+    {
+      "id": "N06R02_ASSESSMENT_SOURCE_CLOSURE_OPTIONAL",
+      "severity": "blocking_before_terminal_integrity_qualification",
+      "source": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity_r02.py",
+        "sha256": "b9da7c5cf2a1785aa5b474c94a5566327c6df3ecbef6ef7409fa95d02d1eee81",
+        "bytes": 18790
+      },
+      "line": 123,
+      "mechanism": "成功 assessment 只要求一般绝对路径/hash和若干结果字段；source_bindings 与 sweep_report 均可缺省，单个任意命名 true check 能成立。",
+      "counterexample": {
+        "id": "assessment_not_canonical_or_source_complete",
+        "accepted": true,
+        "assessment_outside_run_root": true,
+        "arbitrary_integrity_check_names": [
+          "synthetic_check"
+        ],
+        "missing_source_bindings_and_sweep_report": true,
+        "dependency_count": 1
+      },
+      "impact": "最小 synthetic assessment 并非真实 Gazebo 结果，但可被当前正式 validator 接受；现有校验未形成所声明的实际 assessment/source/sweep 闭包。",
+      "repair": "要求 canonical runs/<run_id>/assessment.json；验证实际 assessor 固定必需来源键及 canonical resource 绑定、sweep 绑定、固定 integrity schema。保留真实负 assessment 和无 assessment 的非空 error 失败回执，不将 schema 完整性等同重放物理结果。"
+    }
+  ],
+  "inherited_process_evidence": {
+    "binding": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/disposable_process_result.json",
+      "sha256": "81035a589438dbb1b8d7ddff4f5ed89d88ea8f0b57e03ca46ddf67b076c89e03",
+      "bytes": 1783
+    },
+    "rerun_in_r02": false,
+    "basis": "manager/process bytes identical after dependency-import renaming"
+  },
+  "conversion_independent_review": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_conversion_independent/review.json",
+    "sha256": "5a06d3fb3c32da58a951e7c1e5cbbd2a05d14714c06da193ed070465dfd7d872",
+    "bytes": 25447
+  },
+  "global_csv_readonly_observations": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r02/global_csv_readonly_observations.json",
+    "sha256": "5375d1145581c024ec940dfab579c7680049fd9b96dc33040ff5d1a7baf6ac6e",
+    "bytes": 888
+  },
+  "coverage_limits": [
+    "Synthetic native and other-runtime stand-ins are not an executable release.",
+    "No live physical replay; no arbitrary concurrent writer guarantee; sequential CSV visibility retained.",
+    "Missing assessment/source provenance is a structural validator failure, not evidence that historical physical measurements were forged.",
+    "N05 manager0 versus outer143 cause remains unknown."
+  ],
+  "authority": {
+    "ROS_started": false,
+    "training_started": false,
+    "actual_release_created": false,
+    "seed_registered": false,
+    "actual_global_csv_written": false,
+    "author_source_changed": false
+  },
+  "next": "Versioned receipt/metadata closure repair; preserve r01 and r02 negative evidence."
+}

@@ -1,0 +1,3 @@
+N02 独立终态审查通过：新seed033一次消费、0重跑，1973项release与CAS/原图绑定闭合。原24项证据核验、4490个2ms区间完整重放及20项实际sensor/graph/command/goal核验通过。方法只注册九个声明的传感器与共享协调输入；六项旧源与原权重SHA匹配。
+
+保留额外诊断：18条append trace的最后下采样history帧年龄超过200ms，最大250ms。该值不同于实际tensor读取时刻；冻结算法只在readiness约束该history-tail，运行期health检查raw scan/odom/TF。原资格不追溯新增门，后续不得声称所有运行决策history<=200ms。固定全局x路径与audit-only shared route限制仍在。两张native帧像素一致、root已查看；manager和outer均有实际exit0。

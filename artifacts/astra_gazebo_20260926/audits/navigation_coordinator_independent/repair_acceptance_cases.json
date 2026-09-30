@@ -1,0 +1,19 @@
+{
+  "scope": "Focused independent acceptance of authorized prerelease r2 timing repair; no numerical navigation or performance retuning",
+  "expectations": [
+    "complete, timeout, stopped first terminal retains exact phase/source/reason/authority after each late fault",
+    "late faults remain explicit diagnostics and output zero",
+    "complete full actual node remains complete through simulated paused-clock wall stall greater than5s",
+    "complete full actual node remains complete through late method fault callback",
+    "ordered goal odom29.000s versus deadline29.020s yields complete whether /clock deadline poll arrives before or after goal callback",
+    "ordered actual odom at deadline without prior goal produces timeout exactly at declared deadline",
+    "clock reaching deadline before odom cannot itself assert timeout; stale missing odom eventually faults with unchanged200ms freshness",
+    "actual node queues odom2ms beyond local visible clock and does not consume it for gate/readiness until clock covers source",
+    "future odom more than existing200ms bound or replay/regression faults and emits zero",
+    "active explicit fault immediately outputs zero",
+    "wrapper, route algorithm, weights, frozen numerical thresholds and no Gazebo lifecycle authority remain unchanged except separately declared launch-required flag"
+  ],
+  "source_r0_evidence": "actual_race_results_r0.json",
+  "no_ROS": true,
+  "not_simulator_or_live_result": true
+}

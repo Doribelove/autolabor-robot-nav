@@ -1,0 +1,93 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-C2
+stage_purpose: common_prefix_frozen_predictor_fresh_heldout_test
+contract_id: v3_scope_v3_02_c2_common_prefix_heldout_test_1
+status: preregistered_before_test_release
+frozen_model:
+  path: artifacts/v3/prediction/v3_02_c1_r1/model/v3_02_c1_r1_candidate_predictor.yaml
+  sha256: 03cdc5b4d49c90e07bd7d1f0dbbde260dbfedc7c5b4db7c640c27ffb940580df
+  calibration_report_sha256: e399f03fff133e76649375a6a0be2d6644777725e598827e998b8d2d4a9c5c2f
+  model_freeze_sha256: 6aca165cdde2c407bca52d2d913050f3b204a213bb89fcfe9caeeb415565c602
+  independent_review_sha256: 28f3c72b677d7bbee3d5b056d5714c34d656d2a0e73363a0e82233237acdadde
+  conformal_radius_m: 0.4198179162478387
+  conformal_score: actual_mode_absolute_residual
+  feature_basis: complete_quadratic_10_features
+  refit_or_recalibration_allowed: false
+scope:
+  scene_family: parameterized_crossing
+  common_decision_state_required: true
+  formal_predictor_result: true
+  planner_evaluation: false
+  performance_improvement_claim: false
+authority_boundary:
+  simulation_requires_separate_release_and_authorization: true
+  model_write_allowed: false
+  test_outcome_access_before_release_allowed: false
+  prior_seed_or_outcome_reuse_allowed: false
+  move_base_authorized: false
+  real_vehicle_authorized: false
+experimental_unit:
+  policies: [cautious, assertive, hesitant]
+  ego_interventions:
+    - {candidate_id: branch_v060, speed_mps: 0.60}
+    - {candidate_id: branch_v080, speed_mps: 0.80}
+    - {candidate_id: branch_v100, speed_mps: 1.00}
+    - {candidate_id: branch_v120, speed_mps: 1.20}
+  scenario_blocks:
+    - {block_id: test_6261, role: held_out_test, seed: 6261, angle_deg: 75.0, actor_start_distance_m: 3.15, actor_base_speed_mps: 0.925}
+    - {block_id: test_6262, role: held_out_test, seed: 6262, angle_deg: 105.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 1.075}
+    - {block_id: test_6263, role: held_out_test, seed: 6263, angle_deg: 95.0, actor_start_distance_m: 3.225, actor_base_speed_mps: 0.975}
+  attempts_per_identity: 1
+  schedule_rows: 36
+  evidence_budget_units: 36
+  retry_allowed: false
+  resume_allowed: false
+scene:
+  duration_s: 8.0
+  sample_period_s: 0.05
+  max_step_size_s: 0.005
+  real_time_update_rate_hz: 0
+  observation_time_s: 0.50
+  prediction_absolute_times_s: [1.5, 2.5, 3.5, 4.5]
+  conflict_point_m: [0.0, 0.0]
+  ego:
+    model_name: ego_probe
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    endpoint_pose_m_rad: [3.0, 0.0, 0.0]
+    footprint_m: [1.13, 0.73, 0.55]
+    max_speed_mps: 1.20
+    common_prefix: {duration_s: 0.50, speed_mps: 0.80, end_x_m: -2.60}
+  actor:
+    model_name: reactive_actor
+    endpoint_after_conflict_m: 3.50
+    size_m: [0.45, 0.45, 1.70]
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+heldout_gates:
+  episode_count: 36
+  point_count: 144
+  common_prefix_actor_coordinate_spread_max_m: 0.005
+  common_prefix_actor_speed_spread_max_mps: 0.02
+  marginal_coverage_min: 0.90
+  per_horizon_coverage_min: 0.80
+  mean_full_envelope_width_max_m: 4.50
+  actual_mode_mae_max_m: 0.50
+  candidate_sensitivity_min_m: 0.20
+  physical_coordinate_violation_count_max: 0
+  hidden_policy_runtime_input: false
+  exact_raw_replay_required: true
+failure_policy:
+  retain_negative_result: true
+  no_model_update_after_test: true
+  no_seed_replacement_or_retry: true
+  no_gate_change: true
+claim_if_pass: >-
+  The common-prefix frozen predictor passed all preregistered alignment,
+  coverage, width, accuracy and candidate-sensitivity gates on fresh held-out
+  parameterized-crossing blocks.
+forbidden_claims:
+  - general_scene_prediction
+  - navigation_safety
+  - performance_improvement
+  - real_vehicle_readiness

@@ -1,0 +1,91 @@
+{
+  "schema": "astra_event_actor_n04_component_v1",
+  "status": "offline_component_built_independent_review_pending_live_qualification_pending",
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_event_actor_n04_plugin.cpp",
+      "sha256": "e947e9791d75bad421d14b3fd35c3c76483ea0f5fa086aedba5ec0d1353a1db2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_event_actor_gate_n04.h",
+      "sha256": "4155723019baf105e96fe3e4d01a2d417fbd1a022bf69741f7d614ed57e7b540"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/tests/test_astra_event_actor_gate_n04.cpp",
+      "sha256": "775a23625de28d5e66bbe251bec0da19d40f83e8271f4bbfc1993aed091ccec5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/CMakeLists.txt",
+      "sha256": "3f75cc058bca1ad756227e3ad27aa6f8889ac88f899e7b81682e1bdebe4a6edd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_event_actor_n04_plugin.so",
+      "sha256": "8ca7406469a1eefe34a8be837d003c6345e5e04dcf81eed3476085c68e6c0fdf"
+    }
+  ],
+  "build_exit_code": 0,
+  "build_log": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/build_event_actor_n04_05.log",
+  "old_library_sha_unchanged": {
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_dense_evidence_plugin.so": true,
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_physical_ackermann_p05_plugin.so": true,
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_steering_hold_plugin.so": true,
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_evidence_plugin.so": true,
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_reactive_actor_plugin.so": true,
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_physics_metadata_p03_plugin.so": true,
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_physical_ackermann_plugin.so": true,
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_common_route_global_planner.so": true,
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_physical_ackermann_p02_plugin.so": true
+  },
+  "author_cpp_assertions_passed": 642,
+  "test_command": "g++ -std=c++14 -O2 -I W/src/simulation/m2_gazebo/include W/src/simulation/m2_gazebo/tests/test_astra_event_actor_gate_n04.cpp -o /tmp/test_astra_event_actor_gate_n04 && /tmp/test_astra_event_actor_gate_n04",
+  "reactive_update_through_pose_write_identical_except_log_class_label": true,
+  "gate_topic": "/astra/navigation/gate",
+  "event_schema": "astra_common_navigation_v1",
+  "status_topic_template": "/astra/actors/<model_name>/gate_status",
+  "status_schema": "astra_event_actor_gate_n04_v1",
+  "required_SDF_new": [
+    "expected_run_id",
+    "expected_seed",
+    "expected_method",
+    "gate_topic",
+    "max_gate_transport_delay_ns"
+  ],
+  "removed_SDF_fields": [
+    "route_origin",
+    "route_yaw",
+    "gate_route_x"
+  ],
+  "gate_delay_seconds_retained": true,
+  "max_gate_transport_delay_ns": 50000000,
+  "status_policy": {
+    "initial_while_paused": true,
+    "normal_period_ns": 20000000,
+    "events_immediate": true,
+    "same_Begin_status_duplicates_allowed": true,
+    "not_yet_occurred_times": 0
+  },
+  "authority": "coordinator event identity and actual odom source; callback receipt ROS stamp descriptive only; Begin source clock determines deadline and physical update",
+  "no_backfill": "first consuming Begin permits active_dt=0; only later intervals after max(source+delay,firstBegin) move",
+  "faults": [
+    "invalid typed gate/schema/identity",
+    "conflicting duplicate event",
+    "source future or source-to-first-Begin >50ms",
+    "receipt clock rollback",
+    "Begin clock rollback",
+    "nonfinite ego XY",
+    "ego disappears or gate consumed without ego"
+  ],
+  "load_failure": "missing/invalid configuration rejects plugin readiness; no valid status fabricated; collector must fail missing evidence",
+  "lifecycle": "shared guard prevents queued Begin callbacks accessing destroyed owner and waits currently entered update; ROS private queue thread joined; authorized runtime still process-whole shutdown only",
+  "preserved_pre_final_failures": [
+    "first make before CMake regeneration unknown target",
+    "lifecycle lambda initially lacked UpdateInfo argument, build failed then corrected; no episode ran"
+  ],
+  "scope": [
+    "known kinematic pose-setting actor in Gazebo",
+    "reactive speed/acceleration rule unchanged",
+    "50ms limit is predeclared before any N04 runtime measurement",
+    "no ROS/Gazebo process or seed registration started",
+    "not physical continuous safety or navigation qualification"
+  ]
+}

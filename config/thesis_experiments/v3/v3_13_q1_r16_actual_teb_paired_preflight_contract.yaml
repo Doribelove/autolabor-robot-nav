@@ -1,0 +1,102 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R16
+stage_purpose: fresh_actual_teb_and_progress_v3_fair_paired_integration_preflight
+status: preregistered_before_execution
+upstream:
+  R15_contract_sha256: e09862033356366e9218527f95e31fe6ac35b3ac524031c1185a6726b328fabb
+  R15_audit_sha256: 538a97816abe776c7e3c025de6761325151012dc05e1acd4e70503621ea7527f
+  R15_manifest_sha256: f96ce3e4b0c3b32fd5e9cdf00ea7faf0dda8cd3f1004cc41f8bd1e3eca417d41
+  R15_review_sha256: e2268b5e5fa04ae7c441ef62373a99d01602c3896a0c2b227883cab007ba2f47
+  D0_contract_path: config/thesis_experiments/v3/v3_13_d0_multiactor_foundation_contract.yaml
+  D0_contract_sha256: 7fbcdc34b526bd63d93475452bf6f46b6a27a2d28fbaa9c5156d96d3bdd88d05
+  geometry_contract_path: config/thesis_experiments/v3/v3_13_q1_r10_progress_recovery_geometry_contract.yaml
+  geometry_contract_sha256: 3749d475ffc28d8abe2a04e37927972dfd55a23379d4c1ab667265e92203745a
+  predictor_path: artifacts/v3/multiactor/v3_13_q1_r13_predictor/expanded_progress_predictor.yaml
+  predictor_sha256: 0e0d067b647a39a909fc3daadd5abd5d5938cf2e135b62f582dd45731889ee96
+methods:
+  identifiers: [actual_teb, v3_13_analytic]
+  treatment:
+    initial_planner: frozen_D0_candidate_bank_verifier_and_ranker
+    recovery_planner: frozen_R15_progress_expanded_recovery_core
+    predictor: frozen_R13_candidate_conditioned_predictor
+    execution: pure_pursuit_of_selected_Ackermann_candidate
+  primary_baseline:
+    planner_plugin: teb_local_planner/TebLocalPlannerROS
+    teb_version: 0.8.4
+    max_vel_x_mps: 1.2
+    config_path: src/simulation/m2_gazebo/config/fixed_teb.yaml
+    config_sha256: 9e3125eec7f1f9040356f245dae9620d0b866ac94482ac29fd2d600838b14c26
+    built_plugin_path: devel/lib/libteb_local_planner.so
+    built_plugin_sha256: 7d17474e7901821d7f69bf10cdb909e4445f9010e32ee045452ad42c6ba1883e
+    source_path: src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp
+    source_sha256: 5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2
+    include_dynamic_obstacles: true
+    oracle_track_topic: /move_base/TebLocalPlannerROS/obstacles
+fairness:
+  common_vehicle: autolabor_m2 with libm2_ackermann_plugin.so
+  actuator_dynamics_enabled: true
+  common_command_boundary: /cmd_vel_navigation
+  relay_to_simulation_driver: /cmd_vel
+  common_maximum_speed_mps: 1.2
+  common_start_prefix:
+    spawn_world_x_m: -4.2
+    target_speed_mps: 0.8
+    handoff_world_x_m: -2.6
+    fixed_simulation_activation_time_s: 5.0
+  common_goal_world_pose_m_rad: [5.2, 0.0, 0.0]
+  common_timeout_s: 22.0
+  shared_oracle_actor_truth_source: true
+  same_simulator_seed_within_pair: true
+  hidden_actor_policy_runtime_input: false
+preflight_population:
+  seed: 7666
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only: [hesitant, hesitant]
+  method_order: [actual_teb, v3_13_analytic]
+  paired_blocks: 1
+  exact_units: 2
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  included_in_qualification_or_performance_evidence: false
+integration_gates:
+  complete_paired_blocks_exact: 1
+  all_reports_finite_required: true
+  paired_gate_ego_x_difference_max_m: 0.03
+  paired_gate_actor_coordinate_difference_max_m: 0.05
+  paired_gate_actor_speed_difference_max_mps: 0.05
+  actual_teb_local_plan_count_min: 1
+  actual_teb_command_count_min: 1
+  actual_teb_performance_outcome_retained_without_pass_requirement: true
+  v3_decision_analytic_accept_rate_min: 1.0
+  v3_eventual_progress_required: true
+  v3_goal_reached_required: true
+  v3_contact_state_count_max: 0
+  v3_minimum_conservative_clearance_m_min: 0.0
+  v3_tracking_error_max_m: 0.45
+downstream:
+  if_all_gates_pass: actual_teb_multiscene_qualification_design
+  if_any_gate_fails: freeze_preflight_and_diagnose
+  qualification_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  exact_bounded_simulation_preflight_authorized: true
+  authorized_units: 2
+  authorized_seed: 7666
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  qualification_execution_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - exact actual TEB and progress-recovery V3 implementations complete one fair paired integration preflight
+  forbidden:
+  - actual TEB performance improvement
+  - multiscene qualification
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

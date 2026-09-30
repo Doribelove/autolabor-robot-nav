@@ -1,0 +1,345 @@
+schema_version: '1.0'
+stage: V2-04G-P2-C1-R1
+status: terminal_integrity_failure
+release_sha256: 1926726a2b08faf10a7b460ace53f01c1123b070da8e65a8be4900985f86f9cc
+schedule_sha256: 9ba3ac0954914b2e630092ea235a36e235fc363fa701bce6adb04eb78fd37b37
+schedule_row_digest: 8afc95eef6af349f155c5442b4990e9b0eb3cf86b9ccf1c554e6cd0e0f116062
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_authorized: true
+authorized_evidence_units_max: 342
+evidence_units_consumed: 2
+evidence_units_completed: 1
+evidence_units_skipped: 0
+evidence_units_forfeited: 340
+retry_resume_replacement_or_seed_substitution_allowed: false
+training_budget_steps: 0
+real_vehicle_used: false
+held_out_test_accessed: false
+started_at_utc: '2026-07-23T17:22:20.117366Z'
+completed_at_utc: '2026-07-23T17:22:37.152436Z'
+first_failed_qualification_speed_mps: null
+attempt_ledger:
+- identity:
+    sequence: 1
+    row_type: qualification_probe
+    scene_id: v2-04g-p2-q1-qual-braking-v125-s5331
+    seed: 5331
+    attempt: 1
+    probe_type: braking
+    candidate_speed_mps: 1.25
+  status: completed
+  environment_policy:
+    policy_id: v2_04g_r6_i2_credential_safe_environment_v1
+    allowlist_mode: exact_key_allowlist
+    source_value_material_recorded: false
+    credential_value_copied: false
+    inherited_key_names:
+    - CMAKE_PREFIX_PATH
+    - GAZEBO_MODEL_PATH
+    - GAZEBO_PLUGIN_PATH
+    - HOME
+    - LANG
+    - LANGUAGE
+    - LC_ALL
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    forced_key_names:
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    removed_credential_like_key_names:
+    - DBUS_SESSION_BUS_ADDRESS
+    - DESKTOP_SESSION
+    - GNOME_DESKTOP_SESSION_ID
+    - GNOME_SHELL_SESSION_MODE
+    - OPENAI_API_KEY
+    - SESSION_MANAGER
+    - SSH_AUTH_SOCK
+    - XDG_SESSION_CLASS
+    - XDG_SESSION_DESKTOP
+    - XDG_SESSION_TYPE
+    removed_non_allowlisted_key_names:
+    - ARCHDIR
+    - BUN_INSTALL
+    - CODEX_CI
+    - CODEX_MANAGED_BY_NPM
+    - CODEX_MANAGED_PACKAGE_ROOT
+    - CODEX_THREAD_ID
+    - COLORTERM
+    - DISPLAY
+    - EUSDIR
+    - GDMSESSION
+    - GH_PAGER
+    - GIO_LAUNCHED_DESKTOP_FILE_PID
+    - GIT_PAGER
+    - GPG_AGENT_INFO
+    - GTK_MODULES
+    - IM_CONFIG_PHASE
+    - INVOCATION_ID
+    - JOURNAL_STREAM
+    - LC_CTYPE
+    - LESSCLOSE
+    - LESSOPEN
+    - LS_COLORS
+    - MANAGERPID
+    - NO_COLOR
+    - OLDPWD
+    - PAGER
+    - PWD
+    - QT_ACCESSIBILITY
+    - QT_IM_MODULE
+    - ROSLISP_PACKAGE_DIRECTORIES
+    - ROS_MASTER_URI
+    - SHLVL
+    - SSH_AGENT_PID
+    - TERM
+    - TERMINATOR_DBUS_NAME
+    - TERMINATOR_DBUS_PATH
+    - TERMINATOR_UUID
+    - TURTLEBOT3_MODEL
+    - USERNAME
+    - VIRTUALENVWRAPPER_HOOK_DIR
+    - VIRTUALENVWRAPPER_PROJECT_FILENAME
+    - VIRTUALENVWRAPPER_PYTHON
+    - VIRTUALENVWRAPPER_SCRIPT
+    - VIRTUALENVWRAPPER_VIRTUALENV
+    - VIRTUALENVWRAPPER_WORKON_CD
+    - VTE_VERSION
+    - WINDOWPATH
+    - WORKON_HOME
+    - XAUTHORITY
+    - XDG_CONFIG_DIRS
+    - XDG_CURRENT_DESKTOP
+    - XDG_DATA_DIRS
+    - XDG_MENU_PREFIX
+    - XDG_RUNTIME_DIR
+    - XMODIFIERS
+    - _
+    - http_proxy
+    - https_proxy
+    child_key_names:
+    - CMAKE_PREFIX_PATH
+    - GAZEBO_MODEL_PATH
+    - GAZEBO_PLUGIN_PATH
+    - HOME
+    - LANG
+    - LANGUAGE
+    - LC_ALL
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    loopback_only_ros_master: true
+    ros_log_location_confined_to_attempt_root: true
+  bootstrap:
+    schema_version: '1.0'
+    stage: V2-04G-P2-C1-R1
+    required_order:
+    - base_spawn
+    - unpause_request
+    - successful_unpause_ack
+    - two_strictly_increasing_positive_post_ack_clock_samples
+    - release_direct_probe
+    barrier:
+      protocol_id: v2_04g_r6_i2_positive_clock_bootstrap_v1
+      state: service_wait_released
+      terminal: true
+      positive_clock_required: true
+      strict_clock_progression_required: true
+      topic_existence_is_sufficient: false
+      zero_clock_is_sufficient: false
+      single_positive_clock_sample_is_sufficient: false
+      pre_unpause_positive_clock_is_sufficient: false
+      service_wait_allowed: true
+      timeout_s: 45.0
+      base_spawn_monotonic_s: 11751.155793182
+      deadline_monotonic_s: 11796.155793182
+      unpause_ack_monotonic_s: 11754.108512795
+      positive_clock:
+        sec: 0
+        nsec: 946000000
+      positive_clock_observed_monotonic_s: 11755.155859658
+      clock_progression_sample:
+        sec: 1
+        nsec: 978000000
+      clock_progression_observed_monotonic_s: 11756.193466699
+      post_ack_clock_sample_count: 2
+      post_ack_zero_clock_sample_count: 0
+      post_positive_equal_clock_sample_count: 0
+      pre_ack_clock_sample_count_ignored: 0
+      pre_ack_positive_clock_sample_count_ignored: 0
+      failure_reason: null
+    move_base_service_intentionally_absent: true
+  journal: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/journals/sequence_0001.yaml
+  journal_sha256: 18407ff6f0ae6ad551ddd3f5e11c4ebfbead4db95fb852afebff33c74a7fb6e4
+  normalized_terminal_sha256: 8402113fec0cbcde88850c123a6028442365841d46d544239a80b3d6381d4d3d
+  probe_pass: true
+- identity:
+    sequence: 2
+    row_type: qualification_probe
+    scene_id: v2-04g-p2-q1-qual-high-speed-to-conflict-overlay-transition-v125-s5332
+    seed: 5332
+    attempt: 1
+    probe_type: high_speed_to_conflict_overlay_transition
+    candidate_speed_mps: 1.25
+  status: terminal_integrity_failure
+  environment_policy:
+    policy_id: v2_04g_r6_i2_credential_safe_environment_v1
+    allowlist_mode: exact_key_allowlist
+    source_value_material_recorded: false
+    credential_value_copied: false
+    inherited_key_names:
+    - CMAKE_PREFIX_PATH
+    - GAZEBO_MODEL_PATH
+    - GAZEBO_PLUGIN_PATH
+    - HOME
+    - LANG
+    - LANGUAGE
+    - LC_ALL
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    forced_key_names:
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    removed_credential_like_key_names:
+    - DBUS_SESSION_BUS_ADDRESS
+    - DESKTOP_SESSION
+    - GNOME_DESKTOP_SESSION_ID
+    - GNOME_SHELL_SESSION_MODE
+    - OPENAI_API_KEY
+    - SESSION_MANAGER
+    - SSH_AUTH_SOCK
+    - XDG_SESSION_CLASS
+    - XDG_SESSION_DESKTOP
+    - XDG_SESSION_TYPE
+    removed_non_allowlisted_key_names:
+    - ARCHDIR
+    - BUN_INSTALL
+    - CODEX_CI
+    - CODEX_MANAGED_BY_NPM
+    - CODEX_MANAGED_PACKAGE_ROOT
+    - CODEX_THREAD_ID
+    - COLORTERM
+    - DISPLAY
+    - EUSDIR
+    - GDMSESSION
+    - GH_PAGER
+    - GIO_LAUNCHED_DESKTOP_FILE_PID
+    - GIT_PAGER
+    - GPG_AGENT_INFO
+    - GTK_MODULES
+    - IM_CONFIG_PHASE
+    - INVOCATION_ID
+    - JOURNAL_STREAM
+    - LC_CTYPE
+    - LESSCLOSE
+    - LESSOPEN
+    - LS_COLORS
+    - MANAGERPID
+    - NO_COLOR
+    - OLDPWD
+    - PAGER
+    - PWD
+    - QT_ACCESSIBILITY
+    - QT_IM_MODULE
+    - ROSLISP_PACKAGE_DIRECTORIES
+    - ROS_MASTER_URI
+    - SHLVL
+    - SSH_AGENT_PID
+    - TERM
+    - TERMINATOR_DBUS_NAME
+    - TERMINATOR_DBUS_PATH
+    - TERMINATOR_UUID
+    - TURTLEBOT3_MODEL
+    - USERNAME
+    - VIRTUALENVWRAPPER_HOOK_DIR
+    - VIRTUALENVWRAPPER_PROJECT_FILENAME
+    - VIRTUALENVWRAPPER_PYTHON
+    - VIRTUALENVWRAPPER_SCRIPT
+    - VIRTUALENVWRAPPER_VIRTUALENV
+    - VIRTUALENVWRAPPER_WORKON_CD
+    - VTE_VERSION
+    - WINDOWPATH
+    - WORKON_HOME
+    - XAUTHORITY
+    - XDG_CONFIG_DIRS
+    - XDG_CURRENT_DESKTOP
+    - XDG_DATA_DIRS
+    - XDG_MENU_PREFIX
+    - XDG_RUNTIME_DIR
+    - XMODIFIERS
+    - _
+    - http_proxy
+    - https_proxy
+    child_key_names:
+    - CMAKE_PREFIX_PATH
+    - GAZEBO_MODEL_PATH
+    - GAZEBO_PLUGIN_PATH
+    - HOME
+    - LANG
+    - LANGUAGE
+    - LC_ALL
+    - LD_LIBRARY_PATH
+    - LOGNAME
+    - PATH
+    - PKG_CONFIG_PATH
+    - PYTHONPATH
+    - ROS_DISTRO
+    - ROS_ETC_DIR
+    - ROS_HOME
+    - ROS_IP
+    - ROS_LOG_DIR
+    - ROS_MASTER_URI
+    - ROS_PACKAGE_PATH
+    - ROS_PYTHON_VERSION
+    - ROS_ROOT
+    - ROS_VERSION
+    - SHELL
+    - USER
+    loopback_only_ros_master: true
+    ros_log_location_confined_to_attempt_root: true
+  failure: 'R6I2BootstrapError: unpause_service_not_acknowledged'
+  journal: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_execution/journals/sequence_0002_terminal_integrity_failure.yaml
+terminal_integrity_failures:
+- 'C1ExecutionError: R6I2BootstrapError: unpause_service_not_acknowledged'
+performance_improvement_demonstrated: false

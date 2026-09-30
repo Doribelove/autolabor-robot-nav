@@ -1,0 +1,38 @@
+{
+  "status": "m12_r2_end_joint_finite_guard_pass",
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_plugin.cpp",
+      "sha256": "8b5d45c0943956d13b1229279924a16dfc2565470d7304266800968270d93e98"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/tests/test_astra_physical_publish_guard.py",
+      "sha256": "129fc232e7c6c95b1b515a55a6deff401df1ef2818527a310f87cb21cc42ad6b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physical_source_4df5b0a0.cpp",
+      "sha256": "4df5b0a01528e47681005ce49234ee93f1d2a4bd08d1105a460a3816b295eb27"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physical_components_review_r1.json",
+      "sha256": "052090149c23432bf8acb9317ebea011899ecfa3c628772d1646eeba8eaeff46"
+    }
+  ],
+  "old_source_preserved": true,
+  "delta_only": [
+    "finiteJointState checks six measured Position(0)/GetVelocity(0)",
+    "WorldUpdateEnd publish guard rejects any nonfinite clock/base/joint in one shared path",
+    "failure latches fault, clears pending, publishes only physical_backend_fault=true then returns",
+    "fault reason names base or joint state"
+  ],
+  "checks": {
+    "actual_source_extracted_guard36_joint_nonfinite_cases": true,
+    "actual_source_extracted_guard_base_nonfinite_case": true,
+    "valid_baseline_publication_path": true,
+    "syntax_only_cpp14_compile_exit0": true,
+    "header_geometry_xacro_unchanged_from_r1": true
+  },
+  "ros_started": false,
+  "old_r1_model_and_component_checks_reused": true,
+  "physical_tracking_qualified": false
+}

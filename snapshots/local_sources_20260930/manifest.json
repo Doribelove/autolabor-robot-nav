@@ -1,0 +1,3074 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-30",
+  "repository": "git@github.com:Doribelove/autolabor-robot-nav.git",
+  "branch": "research/pct-teb-dwa-gazebo-20260810",
+  "submodules": [
+    {
+      "path": "src/localization_fastlio/FAST_LIO",
+      "base_commit": "7cc4175de6f8ba2edf34bab02a42195b141027e9",
+      "patch": "submodules/localization_fastlio__FAST_LIO.patch",
+      "sha256": "2cad795abdd1aaa7425b049a7fc2cff59d8b98abfff0036a3cb03a63cbcffd0b",
+      "verified_tree": "c924563cc0a7615de6319b1ae698206323312876",
+      "files": [
+        "CMakeLists.txt",
+        "config/mid360.yaml",
+        "launch/mapping_mid360.launch",
+        "launch/mapping_mid360（另一个复件）.launch",
+        "launch/mapping_mid360（复件）.launch",
+        "package.xml",
+        "src/laserMapping.cpp",
+        "src/preprocess.cpp",
+        "src/preprocess.h"
+      ],
+      "excluded_local_files": []
+    },
+    {
+      "path": "src/navigation_arena/arena-rosnav-3D",
+      "base_commit": "634bcb091a90b362087cdba5a9cd3856466d493c",
+      "patch": "submodules/navigation_arena__arena-rosnav-3D.patch",
+      "sha256": "abc873b8838f909dd306787cbafdde64ab664161d9db2df21d8120c2c1f759c0",
+      "verified_tree": "2669917bdfaf911bd85a14f4d23e704ae3b93333",
+      "files": [
+        "arena_bringup/launch/amcl.launch",
+        "arena_bringup/launch/check_move_base.py",
+        "arena_bringup/launch/gmapping.launch",
+        "arena_bringup/launch/gps_localization.launch",
+        "arena_bringup/launch/kobuki_real_world.launch",
+        "arena_bringup/launch/kobuki_rosnav_real.launch",
+        "arena_bringup/launch/launch_arena（复件）.py",
+        "arena_bringup/launch/move_base_odom.launch",
+        "arena_bringup/launch/move_base_test.launch",
+        "arena_bringup/launch/real_nav.launch",
+        "arena_bringup/launch/real_nav_autolaborm2.launch",
+        "arena_bringup/launch/real_nav_jingru.launch",
+        "arena_bringup/launch/real_nav_nomap.launch",
+        "arena_bringup/launch/real_nav_rosnav.launch",
+        "arena_bringup/launch/send_goal_from_livox.py",
+        "arena_bringup/launch/start_arena_gazebo.launch",
+        "arena_bringup/launch/start_arena_real2.launch",
+        "arena_bringup/launch/start_rosnav_kobuki.launch",
+        "arena_bringup/launch/sublaunch_testing/amcl_dingo.launch",
+        "arena_bringup/launch/sublaunch_testing/move_base/move_base_autolaborm2_teb.launch",
+        "arena_bringup/launch/sublaunch_testing/move_base/move_base_rosnav.launch",
+        "arena_bringup/launch/sublaunch_testing/move_base/move_base_teb.launch",
+        "arena_bringup/launch/sublaunch_testing/move_base/move_base_teb_nomap.launch",
+        "arena_bringup/launch/sublaunch_testing/robot_params/turtlebot3_burger_params.yaml",
+        "arena_bringup/launch/test.launch",
+        "arena_bringup/package.xml",
+        "arena_bringup/params/amcl_kobuki_params.yaml",
+        "arena_bringup/rviz/nav_LP.rviz",
+        "arena_bringup/scripts/gps_localization_node.py",
+        "arena_navigation/arena_fake_localization/CMakeLists.txt",
+        "arena_navigation/arena_intermediate_planner/CMakeLists.txt",
+        "arena_navigation/arena_local_planer/learning_based/arena_local_planner_drl/rl_agent/base_agent_wrapper.py",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/dingo/costmap_common_params_auto.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/dingo/costmap_common_params_nomap.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/dingo/global_costmap_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/dingo/global_costmap_params_nomap.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/dingo/local_costmap_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/dingo/local_costmap_params_nomap.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/dingo/local_costmap_params_nomap（复件）.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/dingo/teb_local_planner_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/dingo/teb_local_planner_params_nomap.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/jackal/costmap_common_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/jackal/global_costmap_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/jackal/local_costmap_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/ridgeback/dwa_local_planner_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/ridgeback/local_costmap_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/ridgeback/teb_local_planner_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/turtlebot3_burger/costmap_common_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/turtlebot3_burger/global_costmap_params.yaml",
+        "arena_navigation/arena_local_planer/model_based/conventional/config/turtlebot3_burger/local_costmap_params.yaml",
+        "arena_navigation/arena_mapping/CMakeLists.txt",
+        "arena_navigation/arena_path_search/CMakeLists.txt",
+        "arena_navigation/arena_plan_manager/CMakeLists.txt",
+        "arena_navigation/arena_spacial_horizon/CMakeLists.txt",
+        "arena_navigation/arena_traj_planner/CMakeLists.txt",
+        "map/frames.gv",
+        "map/frames.pdf",
+        "map/map.pgm",
+        "map/map.yaml",
+        "map/map/map.pgm",
+        "map/map/map.yaml",
+        "map/map（复件）/map.pgm",
+        "map/map（复件）/map.yaml",
+        "params/amcl_params.yaml",
+        "params/base_local_planner_params.yaml",
+        "params/costmap_common_params.yaml",
+        "params/global_costmap_params.yaml",
+        "params/local_costmap_params.yaml",
+        "simulator_setup/maps/map.pgm",
+        "simulator_setup/maps/map.yaml",
+        "simulator_setup/robot/jackal/urdf/urdf/accessories.urdf.xacro",
+        "simulator_setup/robot/jackal/urdf/urdf/accessories/hokuyo_ust10.urdf.xacro",
+        "simulator_setup/robot/jackal/urdf/urdf/accessories/intel_realsense.urdf.xacro",
+        "simulator_setup/robot/jackal/urdf/urdf/accessories/sick_lms1xx_mount.urdf.xacro",
+        "simulator_setup/robot/jackal/urdf/urdf/accessories/vlp16_mount.urdf.xacro",
+        "simulator_setup/robot/jackal/urdf/urdf/configs/base",
+        "simulator_setup/robot/jackal/urdf/urdf/configs/front_laser",
+        "simulator_setup/robot/jackal/urdf/urdf/dingo-d.urdf.xacro",
+        "simulator_setup/robot/jackal/urdf/urdf/dingo.gazebo",
+        "simulator_setup/robot/jackal/urdf/urdf/dingo.urdf.xacro",
+        "simulator_setup/robot/jackal/urdf/urdf/empty.urdf",
+        "simulator_setup/worlds/factory/worlds/factory.world",
+        "simulator_setup/worlds/outside/worlds/outside.world",
+        "simulator_setup/worlds/small_warehouse/worlds/small_warehouse.world",
+        "task_generator/scripts/odom.py",
+        "task_generator/task_generator/tasks.py",
+        "zjr_planner/CMakeLists.txt",
+        "zjr_planner/RuleBand_API-main/README.md",
+        "zjr_planner/RuleBand_API-main/data/example_data.json",
+        "zjr_planner/RuleBand_API-main/data/example_data2.json",
+        "zjr_planner/RuleBand_API-main/data/pointcloud/data_start_1.json",
+        "zjr_planner/RuleBand_API-main/data/pointcloud/data_start_5.json",
+        "zjr_planner/RuleBand_API-main/data/ros_data/rrt_paths_1755180543.json",
+        "zjr_planner/RuleBand_API-main/data/ros_data/rrt_paths_1755183433.json",
+        "zjr_planner/RuleBand_API-main/data/ros_data/rrt_paths_1755183463.json",
+        "zjr_planner/RuleBand_API-main/data/ros_data/rrt_paths_1756142697.json",
+        "zjr_planner/RuleBand_API-main/data/ros_data/rrt_paths_1756142867.json",
+        "zjr_planner/RuleBand_API-main/data/ros_data/rrt_paths_1756143172.json",
+        "zjr_planner/RuleBand_API-main/data_json/example_data.json",
+        "zjr_planner/RuleBand_API-main/example.py",
+        "zjr_planner/RuleBand_API-main/example_data.json",
+        "zjr_planner/RuleBand_API-main/example_data_zjr.json",
+        "zjr_planner/RuleBand_API-main/main copy 2.py",
+        "zjr_planner/RuleBand_API-main/main copy 3.py",
+        "zjr_planner/RuleBand_API-main/main copy 4_judge_pointcloud.py",
+        "zjr_planner/RuleBand_API-main/main copy.py",
+        "zjr_planner/RuleBand_API-main/main.py",
+        "zjr_planner/RuleBand_API-main/main_copy_suc_0.9s_eversubgoal.py",
+        "zjr_planner/RuleBand_API-main/merge_data.py",
+        "zjr_planner/RuleBand_API-main/nav_goal_utils.py",
+        "zjr_planner/RuleBand_API-main/override_goal.py",
+        "zjr_planner/RuleBand_API-main/pipe_subgoal/data_json/data_start_5.json",
+        "zjr_planner/RuleBand_API-main/pipe_subgoal/data_json/example_data.json",
+        "zjr_planner/RuleBand_API-main/pipe_subgoal/data_json/paths.json",
+        "zjr_planner/RuleBand_API-main/pointcloud_generate.py",
+        "zjr_planner/RuleBand_API-main/requirements.txt",
+        "zjr_planner/RuleBand_API-main/rrt_path_generate.py",
+        "zjr_planner/RuleBand_API-main/rrt_path_generate_removable.py",
+        "zjr_planner/RuleBand_API-main/ruleband_api.py",
+        "zjr_planner/RuleBand_API-main/send_goal_once.py",
+        "zjr_planner/RuleBand_API-main/utils/dataloading.py",
+        "zjr_planner/RuleBand_API-main/utils/environment_functions.py",
+        "zjr_planner/agents/AGENT_1/training_config.yaml",
+        "zjr_planner/imilearning_model/best/checkpoints/best.pth",
+        "zjr_planner/imilearning_model/best/exports/eri_net_ts.pt",
+        "zjr_planner/imilearning_model/best/metrics/best.json",
+        "zjr_planner/imilearning_model/latest/checkpoints/latest.pth",
+        "zjr_planner/imilearning_model/latest/exports/eri_net_ts.pt",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-08_16-24-54/step_0008920.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-08_17-17-06/step_0015502.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-08_17-17-06/step_0016748.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-08_17-17-06/step_0017160.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-08_17-17-06/step_0017570.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-08_17-17-06/step_0018380.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_13-37-05/step_0024510.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_13-37-05/step_0025324.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_13-37-05/step_0025730.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_13-37-05/step_0026544.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_13-37-05/step_0027348.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_14-15-18/step_0025374.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_14-15-18/step_0026206.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_14-15-18/step_0027042.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_14-15-18/step_0029120.pth",
+        "zjr_planner/imilearning_model/snapshots/run_2026-01-09_14-15-18/step_0029536.pth",
+        "zjr_planner/launch/action_server.launch",
+        "zjr_planner/launch/action_server_RRT.launch",
+        "zjr_planner/launch/logger.launch",
+        "zjr_planner/package.xml",
+        "zjr_planner/plot_eri_heatmap.py",
+        "zjr_planner/pyproject.toml",
+        "zjr_planner/scripts/README.md",
+        "zjr_planner/scripts/before_820/nav_goal_utils.py",
+        "zjr_planner/scripts/before_820/override_goal.py",
+        "zjr_planner/scripts/before_820/ruleband_node.py",
+        "zjr_planner/scripts/before_820/save_point.py",
+        "zjr_planner/scripts/data/example_data.json",
+        "zjr_planner/scripts/data/example_data2.json",
+        "zjr_planner/scripts/data/pointcloud/data_start_1.json",
+        "zjr_planner/scripts/data/pointcloud/data_start_5.json",
+        "zjr_planner/scripts/data/ros_data/aws_house_obs05_epoch0_seed101_date20251027/samples.jsonl",
+        "zjr_planner/scripts/data/ros_data/factory_5_epoch0_seed101_date20251027/samples.jsonl",
+        "zjr_planner/scripts/data/ros_data/map5_obs__epoch0_seed101_date20251027/samples.jsonl",
+        "zjr_planner/scripts/data/ros_data/map5_obs__epoch1_seed101_date20251027/samples.jsonl",
+        "zjr_planner/scripts/data/ros_data/small_warehouse_obs10_v0.2_epoch0_seed101_date20251027/samples.jsonl",
+        "zjr_planner/scripts/data/ros_data/small_warehouse_obs10_v0.2_epoch1_seed101_date20251027/samples.jsonl",
+        "zjr_planner/scripts/data/ros_data/smallwh_obs10_e0/samples.jsonl",
+        "zjr_planner/scripts/data_json/data_start_5.json",
+        "zjr_planner/scripts/data_json/example_data.json",
+        "zjr_planner/scripts/eg_rrt_client copy.py",
+        "zjr_planner/scripts/eg_save_pointcloud_client.py",
+        "zjr_planner/scripts/eri_compute_online_metrics.py",
+        "zjr_planner/scripts/eri_runtime_logger.py",
+        "zjr_planner/scripts/eri_summary_recorder.py",
+        "zjr_planner/scripts/eri_trainer.py",
+        "zjr_planner/scripts/example.py",
+        "zjr_planner/scripts/example_data.json",
+        "zjr_planner/scripts/example_data_zjr.json",
+        "zjr_planner/scripts/imilearning_model/eri_net_best.pt",
+        "zjr_planner/scripts/imilearning_model/eri_net_ts_NEW.pt",
+        "zjr_planner/scripts/imilearning_model/visualizations/final_pred.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_0.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_1.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_12.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_13.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_15.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_17.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_18.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_2.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_21.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_22.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_23.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_26.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_27.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_28.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_3.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_30.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_34.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_35.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_38.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_4.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_49.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_5.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_6.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_7.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_8.png",
+        "zjr_planner/scripts/imilearning_model/visualizations/pred_epoch_9.png",
+        "zjr_planner/scripts/logger.py",
+        "zjr_planner/scripts/main copy 4_judge_pointcloud.py",
+        "zjr_planner/scripts/main copy.py",
+        "zjr_planner/scripts/main.py",
+        "zjr_planner/scripts/main_copy_suc_0.9s_eversubgoal copy.py",
+        "zjr_planner/scripts/main_suc_0.9s_eversubgoal.py",
+        "zjr_planner/scripts/main_suc_rrt_supply.py",
+        "zjr_planner/scripts/merge_data.py",
+        "zjr_planner/scripts/nav_goal_utils.py",
+        "zjr_planner/scripts/override_goal.py",
+        "zjr_planner/scripts/pipe_subgoal/data_json/data_start_5.json",
+        "zjr_planner/scripts/pipe_subgoal/data_json/example_data.json",
+        "zjr_planner/scripts/pipe_subgoal/data_json/paths.json",
+        "zjr_planner/scripts/pointcloud_generate.py",
+        "zjr_planner/scripts/requirements.txt",
+        "zjr_planner/scripts/rrt_path_generate.py",
+        "zjr_planner/scripts/rrt_path_generate_removable.py",
+        "zjr_planner/scripts/ruleband_api.py",
+        "zjr_planner/scripts/send_goal_once.py",
+        "zjr_planner/scripts/train_eri_net.py",
+        "zjr_planner/scripts/utils/dataloading.py",
+        "zjr_planner/scripts/utils/environment_functions.py",
+        "zjr_planner/setup.py",
+        "zjr_planner/src/rrt_multi_paths_srv.cpp",
+        "zjr_planner/src/save_pointcloud_service.cpp",
+        "zjr_planner/srv/GenerateRRTPaths.srv",
+        "zjr_planner/srv/SaveScan.srv",
+        "zjr_planner/summary.csv",
+        "zjr_planner/transition.csv"
+      ],
+      "excluded_local_files": [
+        "zjr_planner/RuleBand_API-main.zip",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/eri_trainer_backup.py",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/heatmap/best_01-07_15-18-30.png",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/heatmap/latest_01-07_15-18-30.png",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/best/checkpoints/best.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/best/exports/eri_net_ts.pt",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/best/metrics/best.json",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/latest/checkpoints/latest.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/latest/exports/eri_net_ts.pt",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000003.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000004.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000005.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000006.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000007.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000008.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000009.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000010.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000011.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000012.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000013.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000014.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000015.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000016.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000017.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000018.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000019.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000020.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000021.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000022.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000023.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000024.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000025.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000026.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000027.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000028.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000029.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000030.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000031.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000032.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000033.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000034.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000035.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000036.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000037.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000038.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000039.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000040.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000041.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000042.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000151.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000152.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000153.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000154.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000155.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000156.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000157.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000158.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000159.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000160.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000161.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000162.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000163.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000164.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000165.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000166.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000167.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000168.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000169.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000170.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000171.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000172.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000173.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000174.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000175.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000176.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000177.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000178.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000179.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000180.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000181.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000182.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000183.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000184.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000185.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000186.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000187.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000188.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000189.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000190.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000191.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000192.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000193.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000194.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000195.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000196.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000197.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000198.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000199.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000200.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000201.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000202.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0000644.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0001092.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0001538.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0001986.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0002868.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0004644.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0008144.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0009022.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0009892.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0010764.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0012466.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0015536.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0015976.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0016858.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0017294.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0017736.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0018176.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0019490.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0020362.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0020806.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0022094.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0022972.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0023824.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0024262.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0025138.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0025566.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0026006.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0026450.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0029142.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0029590.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0030490.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0031372.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0032270.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0033134.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0033572.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0035304.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0036612.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0037050.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0037902.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0039638.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0041376.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0041814.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_13-43-43/step_0042250.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0042690.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0043570.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0047042.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0047896.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0048326.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0050534.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0050978.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0052304.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0053182.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0055384.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0055822.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0056260.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0056698.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0058456.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0060208.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0060648.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0061090.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0061532.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0062876.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0063330.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0064688.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0065592.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0066486.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0066934.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0067830.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0068278.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0068722.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0069170.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0070518.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0070968.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0071414.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0071862.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0072760.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0073208.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0073660.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0075004.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0075450.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0076342.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0076794.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0078588.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0079038.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0080832.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0083066.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0083960.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0085302.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0086644.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0087090.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0087988.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_16-40-26/step_0088438.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0089778.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0090214.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0091948.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0093248.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0093678.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0094102.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0094534.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0095414.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0095852.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0096730.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0097172.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0097614.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0098056.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0099376.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0099820.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0101584.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0102026.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0102466.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0102906.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0103346.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0103782.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0104222.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0105542.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0105980.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0107294.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0107734.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0109052.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0109490.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0110370.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0110826.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0111284.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0111740.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0114024.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0114480.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0115390.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0115850.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0116304.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0116762.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0117216.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0117670.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0118582.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0120406.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0121316.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0121772.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0122224.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0122678.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0123132.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0124498.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0124952.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0125408.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0125864.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0126774.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0127228.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0127678.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0128134.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0128584.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0129038.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0129490.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0130400.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0130854.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0131308.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0131762.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0132668.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0133574.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0134028.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0134934.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0135386.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0136300.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0136756.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0137208.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0137660.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0138568.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0139020.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0140380.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0140832.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0141288.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0142196.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0142650.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0143104.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0144014.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0144468.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0144924.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0145834.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0147200.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0147654.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0148110.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0148566.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0149022.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0150386.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0152200.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0153108.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0154018.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0154474.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0155380.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0156742.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0157198.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0158110.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0159470.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0159924.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0160380.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0160834.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0162646.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0163554.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0164458.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0165818.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0166268.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0166722.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0169900.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0170352.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0171262.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0171714.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0172168.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0173536.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0173992.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0174902.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0176260.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0177168.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0178528.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0180342.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0180798.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0181254.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0182618.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0183070.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0183524.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0183978.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0184432.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0185342.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0186252.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0186706.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0187162.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0187616.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0188070.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0188524.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0188980.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0189888.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0191700.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0193064.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0194424.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0194880.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0195336.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_18-31-45/step_0197708.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0198180.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0199018.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0199846.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0200270.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0201100.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0201532.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0203242.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0203686.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0204128.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0204572.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0206342.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0207674.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0209456.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0209900.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0210786.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0212116.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0212560.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0216094.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0216980.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0218748.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0219192.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0220076.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0220962.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0221404.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0222318.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0222774.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0223232.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0225518.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0225976.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0226888.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0227802.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0228712.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0229168.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0229626.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0230082.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0231450.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0232816.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0233726.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0234640.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0235092.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0236000.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0236914.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0237824.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0238280.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0239186.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0240554.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0241010.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0241464.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0241916.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0242374.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0243744.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0244202.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0246026.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0246934.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0247390.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0248758.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0250122.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0251488.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0252852.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0255120.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0256032.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0256486.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0256940.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0257396.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0257852.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0258310.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0258766.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0259220.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0259676.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-06_22-37-26/step_0260588.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0262412.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0263298.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0263742.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0264628.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0265074.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0265510.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0266390.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0267270.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0268584.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0269472.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0270380.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0271238.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0271694.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0272592.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0273478.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0276156.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0277002.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0277420.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0278328.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0278772.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0279216.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0279670.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0281010.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0281904.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0283250.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0284150.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0285480.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0285932.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0287238.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0289016.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0290346.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0291252.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0291688.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0293034.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0293480.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0294806.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0296504.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0297408.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0297838.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0298276.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0299178.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0300464.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0301364.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0301798.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0302240.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0302688.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0303134.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0306152.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0306602.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0308378.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0308810.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0309660.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0310562.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0312316.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0313216.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0313670.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0315026.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0315480.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0316840.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0317290.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0317742.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0318194.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0319100.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0320008.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0320912.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0321820.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0322274.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0322724.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0324082.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0324990.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0325442.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0326802.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0327252.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0327708.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0328160.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0328616.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0329072.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0329978.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0330432.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0330884.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0331338.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0331792.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0332246.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0332698.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0334508.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0334958.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0335410.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0336768.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0337216.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0337672.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0338126.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0339938.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0340390.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0340842.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0342202.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0342652.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0344458.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0345364.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0346726.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0348086.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0349894.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0350798.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0351704.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0352602.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0354412.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0355770.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0356218.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0356672.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0358026.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0358930.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0360284.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0360738.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0362094.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0364808.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0365708.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0367966.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0368418.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0369886.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0370860.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0372808.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0373296.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0373784.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0374762.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0376720.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0377206.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0377696.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0378674.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0380146.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0382568.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0383540.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0384030.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0385496.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0385982.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0387452.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0388430.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0388920.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0389410.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0389896.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0390382.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0391352.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0391836.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0392328.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0392820.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0393794.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0394766.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0395742.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0396230.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0396718.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0397202.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0397688.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0399636.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0400128.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0401112.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0401606.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0402094.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0403070.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0403560.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0404048.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0405516.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0406008.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0406496.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0407472.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0407960.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0408448.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0409908.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0410398.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0410890.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0411862.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0412352.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0412840.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0413332.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0415772.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0416752.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0418220.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0418706.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0419196.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0419682.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0420170.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0422114.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0423094.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0423582.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0424070.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0424560.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0426026.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0427496.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0428470.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0429440.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0429932.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0431886.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0432866.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0433356.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0434340.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0435806.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0436294.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0437272.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0437762.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0439232.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0439720.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0440696.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0441186.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0441676.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0442164.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0442650.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0443140.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0444114.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0444604.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0447520.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0448986.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0452412.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0453390.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0453878.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0455344.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0455834.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0456326.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0457790.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0458766.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0460226.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0462180.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0462668.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0463644.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0464132.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0465110.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0465596.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0466086.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0466572.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0467548.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0468036.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0468524.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0469496.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0469986.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0470476.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0470966.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0472432.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0472916.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0473402.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0474380.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0475836.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0476322.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0477294.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0478268.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0479246.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0479738.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0480710.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0481196.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0481682.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0482170.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0483634.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0484124.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0485590.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0487042.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0487526.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0488008.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0488976.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0490928.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0491908.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0493374.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0493862.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0494350.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0495328.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0495816.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0496304.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0496792.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0497280.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0497764.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0498248.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0499714.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0501170.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0502142.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0502630.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0503118.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0504090.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0505064.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0505548.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0507484.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0508942.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0509912.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0511372.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0511858.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0513322.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0515266.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0516730.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0517216.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0517702.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0519640.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0522068.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0522554.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0523526.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0524014.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0525472.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0525960.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0526446.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0528870.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0529358.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0529844.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0530824.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0532276.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0532762.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0534226.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0535690.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0536180.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0537150.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0539086.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0539570.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0540544.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0541030.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0542002.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0544442.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0545906.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/models/snapshots/run_2026-01-07_01-05-15/step_0546876.pth",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/results.txt",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/ruleband_api_backup.py",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/best/run_2026-01-07_16-42-20/episode_summary.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/best/run_2026-01-07_16-42-20/transitions.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/latest/run_2026-01-07_15-18-30/episode_summary.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/latest/run_2026-01-07_15-18-30/transitions.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/rule/run_2026-01-07_13-27-35/episode_summary.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/rule/run_2026-01-07_13-27-35/transitions.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-06_13-43-41/episode_summary.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-06_13-43-41/transitions.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-06_16-40-25/episode_summary.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-06_16-40-25/transitions.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-06_18-31-43/episode_summary.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-06_18-31-43/transitions.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-06_22-37-25/episode_summary.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-06_22-37-25/transitions.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-07_01-05-13/episode_summary.csv",
+        "zjr_planner/eri_logs/best_2026-01-08_15-43-32/run/train/run_2026-01-07_01-05-13/transitions.csv",
+        "zjr_planner/eri_logs/heatmaps/best_01-08_17-17-04_epi200.png",
+        "zjr_planner/eri_logs/heatmaps/latest_01-08_16-24-53_epi100.png",
+        "zjr_planner/eri_logs/heatmaps/latest_01-08_17-17-04_epi200.png",
+        "zjr_planner/eri_logs/heatmaps/latest_01-09_13-37-04.png",
+        "zjr_planner/eri_logs/heatmaps/latest_01-09_14-15-16.png",
+        "zjr_planner/eri_logs/run_2026-01-08_16-24-53/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-01-08_16-24-53/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-01-08_17-17-04/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-01-08_17-17-04/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-01-09_13-37-04/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-01-09_13-37-04/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-01-09_14-15-16/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-01-09_14-15-16/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-15-03/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-15-03/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-18-05/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-18-05/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-21-24/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-21-24/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-24-53/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-24-53/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-28-03/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_10-28-03/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_11-28-43/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_11-28-43/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_12-29-53/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-25_12-29-53/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-19-06/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-19-06/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-23-29/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-23-29/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-27-14/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-27-14/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-33-04/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-33-04/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-38-00/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-38-00/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-40-54/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-40-54/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-41-27/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_17-41-27/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_21-07-18/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_21-07-18/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_21-29-30/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-26_21-29-30/transitions.csv",
+        "zjr_planner/eri_logs/run_2026-02-27_15-32-54/episode_summary.csv",
+        "zjr_planner/eri_logs/run_2026-02-27_15-32-54/transitions.csv"
+      ]
+    },
+    {
+      "path": "src/navigation_arena/forks/gazebo_ros_2Dmap_plugin",
+      "base_commit": "7e036c419e8b0aecca6130bb9b9c3913cc1d92b1",
+      "patch": "submodules/navigation_arena__forks__gazebo_ros_2Dmap_plugin.patch",
+      "sha256": "bc1890e6801831e556b9c1702d45fbb95105bcb95fa7e7721e0e50b5c43082d6",
+      "verified_tree": "3fd9de91ca9619a7acde85c4cc7ca6f3bbdb93ba",
+      "files": [
+        "CMakeLists.txt"
+      ],
+      "excluded_local_files": []
+    },
+    {
+      "path": "src/navigation_arena/forks/navigation/local_planner/teb",
+      "base_commit": "b4cf0639775e4521cdf7681158043ad3eef4b01a",
+      "patch": "submodules/navigation_arena__forks__navigation__local_planner__teb.patch",
+      "sha256": "9be5c3ac83b61ddd920afc443486ee14a04a3a09f5ffdf5bbc25b04a2c0e6dc2",
+      "verified_tree": "2ad66d8d215a2761e4f6e81f3abff0019cdc2260",
+      "files": [
+        "src/teb_local_planner_ros.cpp"
+      ],
+      "excluded_local_files": []
+    },
+    {
+      "path": "src/navigation_arena/forks/pedsim_ros",
+      "base_commit": "87bf930bb30ac2c66f488e4d3e49cbc5b35213b4",
+      "patch": "submodules/navigation_arena__forks__pedsim_ros.patch",
+      "sha256": "760aa6237c84866d8c3691402800ea7632b6de3d2030ac065514e45e80911168",
+      "verified_tree": "36b09a88a2f8de35182b765861da2642219e57cc",
+      "files": [
+        "2ndparty/spencer_tracking_rviz_plugin/src/additional_topic_subscriber.h",
+        "pedsim_gazebo_plugin/CMakeLists.txt"
+      ],
+      "excluded_local_files": []
+    },
+    {
+      "path": "src/perception_livox/livox_ros_driver2",
+      "base_commit": "6b9356cadf77084619ba406e6a0eb41163b08039",
+      "patch": "submodules/perception_livox__livox_ros_driver2.patch",
+      "sha256": "685e71c9c86cb6067db6ed4548165f2d8feef7aa4b3fcffbaa686f4f3b9634fa",
+      "verified_tree": "7ee286a03953df4f8859c2355a493fb9d9b10960",
+      "files": [
+        "CMakeLists.txt",
+        "config/MID360_config.json",
+        "launch_ROS1/mid360_to_scan.launch",
+        "launch_ROS1/msg_MID360.launch",
+        "launch_ROS1/msg_MID360_to_scan.launch",
+        "launch_ROS1/msg_MID360_to_scan_to_gmapping.launch",
+        "launch_ROS1/scan.launch",
+        "launch_ROS1/total_scan.launch"
+      ],
+      "excluded_local_files": []
+    }
+  ],
+  "excluded_generated_only": [
+    {
+      "path": "src/navigation_arena/forks/robots",
+      "files": [
+        "cob4_packages/generic_throttle/src/generic_throttle/__pycache__/generic_throttle.cpython-38.pyc"
+      ]
+    }
+  ],
+  "astra_workspace": {
+    "source_path": "artifacts/astra_gazebo_20260926/workspace",
+    "overlay": "astra_workspace_overlay",
+    "files": [
+      {
+        "path": "requirements/astra-train-cuda-lock.json",
+        "sha256": "9318a9c46573fdfc6c66f619009a939caf3eb0bd1e8b76f6ac89dc5312489b80",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "requirements/astra-train-cuda-lock.txt",
+        "sha256": "9627641799359cdacc05fb9240834a96c3c4cf66fa5fa34d677b669c16e7f599",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "requirements/astra-train-cuda.txt",
+        "sha256": "6c79e59aa46cb71469de5e8f41bfc2fe727a72fdf5b4d2527ae909ee2e09a706",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_build.sh",
+        "sha256": "fe02cb77c913ddae8f5a4fad523c5b3d0f4ad23868c197025203d58db164efb4",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "scripts/astra_env.sh",
+        "sha256": "9191605db457e23031f614bfecfab012ba8a294dd30b39011d0651d90cf1eb79",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "scripts/astra_gazebo/audit_route_runtime.py",
+        "sha256": "c84bdc7f745997cc5fb47312a83c1e6e9b20de51244c35c2f112515c21c5d968",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/audit_smoke_a02.py",
+        "sha256": "b07cb7bf9a365106db6f5740eec8dfd6b4e733bf36d634de0798c7bc3d1ea905",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/axle_reference_adapter.py",
+        "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/baseline_rear_axle_adapter_b02.py",
+        "sha256": "13b72ac9f159d68f3e2f58cab185b5d6620e936d723b03c5946e712d0e819a92",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/baseline_rear_evidence_b04.py",
+        "sha256": "0db90dffe5f5498a9347552291be4f3de8de8c49af377f29f1026ce0189899f6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/baseline_rear_runtime_b03.py",
+        "sha256": "06ee57d9c576d25a908156fb8210b277b537e2706d53924a9d43a28064e1ee7a",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/baseline_static_qualification_b05.py",
+        "sha256": "282fcb6d3498e04b4941ce2534a763736f6771d1be3acf7ecdd1f73c5f496eb7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/baseline_static_qualification_b06.py",
+        "sha256": "ba9257daa9353fc132d2258666eb1fd75d9f9436b313aae2036fc6ce74558aaa",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/bound_archive.py",
+        "sha256": "621df289dc6a6732a6c79c9c95859179624045b668b1ff43d585dfcb78c355b4",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/common_route.py",
+        "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/dense_sweep.py",
+        "sha256": "c4bfdeb26a4eef3be38efd163df081e5d3939485942ad88b96ba103b2511d4e0",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/dense_sweep_n04.py",
+        "sha256": "a3d111f0ec1d996634d29f658b529654789be325bca9134e4f51ae929f8a7236",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/dense_sweep_n05.py",
+        "sha256": "583fd0bb034ea3b82fa4c4457802b7faa1a2a79896cb7f4a7d96f055fb805b73",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/dense_sweep_p03.py",
+        "sha256": "7de0531ffae59adc226f8de2531367c0e0575191499c00319530f9f8a430de52",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/dense_sweep_p04.py",
+        "sha256": "3bebade4f43d53f0a7cc0be1fd067d42bdb9d9c6251d4d2c728f59993c6f0736",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/derive_live_actor_inputs.py",
+        "sha256": "3c576b9d71b4fac9b1dcb82db673b6f16bb1203704006620467ce922fe3aacb0",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/derive_live_actor_inputs_v2.py",
+        "sha256": "0e72e0cf2766285761e7128bf42e4c04be9267716ebc3df9cd78b22b7ead3149",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/evaluate_episode.py",
+        "sha256": "db585cddb29054137c2129f3b96d698cd3a3bcf4b7d854558c29aee4b06550a4",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "scripts/astra_gazebo/evaluate_episode_n04.py",
+        "sha256": "9972be47a0635f7696ec2a5554a5844fb7519f1adc3885edcc1ec2303b00e86a",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/evaluate_episode_n05.py",
+        "sha256": "fc104ec545ef118374c9e4baa60497f61aa574184c0770e1248e4fd813c8d915",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/event_actor_contract_n04.py",
+        "sha256": "0eb396881f654fc4ee669ff420c12ab1135be284641152d95e919e9e63a45a4c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/event_actor_contract_n05.py",
+        "sha256": "8107b8b23b90d7253f38f8fd3c0468e57241352101b595f73537d95d61a2b777",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/frozen_r2_route_frame_bridge_n05.py",
+        "sha256": "9a4d3f21929964d50b814748bba8b7ac484f07b5b59099290ceecacbbdb3408e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/frozen_r2_sensor_lifecycle.py",
+        "sha256": "791529d1436144d286a2e3a86a5de638e3f5a60ee579a36074017d3aac3ff71b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/geometry.py",
+        "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/mapped_elf_inventory.py",
+        "sha256": "5cab23c6d3da29ea0e734d2c0b704077bff70567e39eed0ef4c45a5a9abae436",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/mapped_elf_inventory_v2.py",
+        "sha256": "c5d2c7239f9490fcf14777e822c3af79c3cd0b06f5d4e1085ef5598a81559e14",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_coordinator.py",
+        "sha256": "1574d381a0cf4e6fc98f0702e91c0b36173035302448a50e35faf29379211b42",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_coordinator_b03.py",
+        "sha256": "693064aa5b0f544aacfde083262c24c943fbe2dd58e0eac782b5508adf013c0e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_coordinator_n02.py",
+        "sha256": "28ef7728770280e20281d2a702016c482541e6b0db0b5b5e0cab512f94d27d72",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_coordinator_n05.py",
+        "sha256": "ac27c39d2a2ed242f0da2dfd87625e55d30f6d72ee96b890803c7b1bbaeb08e4",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_coordinator_n06.py",
+        "sha256": "54ba8903b8e64db30f9954d4e73b17ddeb7ba6082a444a8310ad25b46946118a",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_evidence.py",
+        "sha256": "1cda155271b640b9e04fb41918b2fac49f92876302393e61767ad66e195464ea",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_evidence_b04.py",
+        "sha256": "6c0a1146cb5130361d729ca3bcb27f3cb9be31dcdbd0d9481db65edea8978832",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_evidence_n02.py",
+        "sha256": "4a3e806d83ddc3e83e69a1ceda343dedbb0129867ea3c6230620f1170672c275",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_evidence_n04.py",
+        "sha256": "8f91cb2b1c08cbe78616c4e7fbabc8a14d71b4895e8935afb2b4c73887726b2a",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_evidence_n05.py",
+        "sha256": "273cbccb6f1c492046c3e1117932f52cf33e3c9f0b8befee908bbeaa0465b067",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_evidence_n06.py",
+        "sha256": "97814241f149d8718420144df67ffc40d802f37831cfafc8eeb413d8e0d1acb2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_evidence_p04.py",
+        "sha256": "9094826e41699775a5468175a64cdeb855dc3e32d42ec09e6db4b5f2ae341a0d",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_admin_plan.py",
+        "sha256": "a2a357e7110e3fcbac6be33b4caf0d3df268501617f3f686db5ad501f2251773",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_admin_plan_r02.py",
+        "sha256": "d4cec6644b0e47dc9d0b8fd44e37cedc5ecd91f5022d0e94406f64959127a6a0",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_admin_plan_r03.py",
+        "sha256": "aa70090d5a7815ed2a133af8706ce7eab9b996dab1ffcbb070f5dc7f93175da3",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_admin_plan_r04.py",
+        "sha256": "cf1652f3b66e12423053dac896b0981ba2f44084d74ef51ab007d3276547376c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_admin_plan_r05.py",
+        "sha256": "5d542e6f4bcd165a7de2c6ef0ddcc829979a7c5f87e5829c921dc9c2592a0f22",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_bootstrap_r05.py",
+        "sha256": "041cc1170ac0ebc9f251e8286601b39a1fa49ee81c075f154d07c1ae1c056252",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_entry_r05.sh",
+        "sha256": "70985d9b51dddd30b27ab2317971f33e7020670c23dd49775af379c80b676ebe",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_environment_r05.py",
+        "sha256": "51d82ea9676111b7b2d0a2a4348976a66a23fa16cec5cd84f3fdebc1e1c21aa7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_integrity.py",
+        "sha256": "27c4a4e63a78750daa752c3555c274301762c824b3691b3497583df730730ec7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_integrity_r02.py",
+        "sha256": "b9da7c5cf2a1785aa5b474c94a5566327c6df3ecbef6ef7409fa95d02d1eee81",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_integrity_r03.py",
+        "sha256": "b2e175975f5fddb5228b4cf4051cd41b9f590d54609cca0f059e63fc2024a3d1",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_integrity_r04.py",
+        "sha256": "f3d83e56489dfacb007fec3424cd94eed5eaeb525c985a6ce7466597c000f8f2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_integrity_r05.py",
+        "sha256": "f9bc66633a43f02ab8347656edb89fb5e0ff8b870fb1b7763e43b605ef955256",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_process.py",
+        "sha256": "7746e6b55c11e6c67329f944a2a2fdc78c5ea2c429d4cc227c82fae745ef1e73",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_process_r02.py",
+        "sha256": "e5bafc4c53788c2542c91b335738aa32f11de7dd049e2569b9eccb339a449c74",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_process_r03.py",
+        "sha256": "15fcd980c017a13b91ce9c292b11464c614ae68550e2e0f8660c27453f399b8a",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_process_r04.py",
+        "sha256": "0819ffd79ebce7c8f6008b95c82a90630d595621cd1151234867866ce3a3bdce",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_n06_process_r05.py",
+        "sha256": "6da194816b717a11b8cadbd4c73a64e8d294a2b202e723af7778a53150e333fa",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/navigation_process_cleanup_n05.py",
+        "sha256": "9f44f22589d6dcd96502be6dc03be14c72bb61103a5938fc17f12e638dd54ed1",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/passive_sweep_q02.py",
+        "sha256": "eebd2042e413a370abadb86b7544bd34b6ecb0febe711c3a5cbaec4f7fb1d175",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/passive_sweep_q03.py",
+        "sha256": "4efeb6277d2e002495b2cf26463f7c8a52670e61303348afaca3d54054a9ecda",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/passive_sweep_q04.py",
+        "sha256": "c757fce921cd5edd0080a8cad205bebb3c5efe2664fc687c209a6b05d0cbd1ca",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/passive_sweep_q05.py",
+        "sha256": "8e92e942002060117bef8221aba4ff14980d31f6ca314a51a5cd80d63d507c74",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/plot_smoke_a02.py",
+        "sha256": "d6114f07bad7ca3e8dcf29ba52c0e01f7a467854655808cb088bf1e2c23c6f17",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/prepare_development_geometry_d04.py",
+        "sha256": "0a343fc0de7705cf9b8e06ff021c2f9277ca7de75d7758c9905cc59f47e6b850",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/prepare_development_geometry_d04_r05.py",
+        "sha256": "8d795b97fece3657459ae9de228962af5f086a92347d6a57bd32faf6cccb9105",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/prepare_development_geometry_d04_v2.py",
+        "sha256": "2568d032a4bbcbb65db2bdbf9b4a76ae3be83a43d113b01ec1b7bee04c1dea15",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/prepare_development_geometry_d04_v3.py",
+        "sha256": "4aca2c567111f772f12f33d728b822e9840ac82fd009881e0b30cf35f986918f",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/prepare_development_geometry_d04_v4.py",
+        "sha256": "c68aea02cb205ddd90015610378cdf10094d54ca47454fcee3cab8310e413686",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/prepare_navigation_n01_scene.py",
+        "sha256": "46e09b5236157150ef1cc22bfbe561ee46078cd6d99e7ef3dc0f926ca4547dfa",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/prepare_navigation_n04_scenes.py",
+        "sha256": "7cd9e1c87bdc56f3588713208d0bafe4eddf5758df663068af3d3abe8f345af7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/prepare_navigation_n05_scenes.py",
+        "sha256": "0f366444310134c6366f8a78c2ccd11b2110c5c2d08b452fa59e57b7f3356daf",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/prepare_navigation_n06_static.py",
+        "sha256": "dfea6f6b190f1f8000c4866a8bc0dc4fc85c42907347026f316bded8eedcf634",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/release_validation_session_n05.py",
+        "sha256": "a16cd5c7ac185986c72f36e8bddf6841842c217e0a61f9fc519ae780603d8e08",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_actor_adapter.py",
+        "sha256": "796f41d8e33138b985ce1d3224a60d12adbb5f3132de4d91922a273edd3ef3fd",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_candidate_core.py",
+        "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_candidate_core_m08.py",
+        "sha256": "a6f2bae1e63ddf14822a7a2d5151e20fbe4ad51ea80525ea388bd38fe6b9b1df",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_preview_selection_n05.py",
+        "sha256": "bb6afca768c421f70929b1215dcfe00791b7caaf870bcd72bc7e603869cc343c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_sensor_buffer.py",
+        "sha256": "9822620f0d83f0e203644ba928bc0483e66505f75424e05514119115feb6c812",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_tracks_actor_adapter_m08.py",
+        "sha256": "8aaf54fac10f466a2820a3a25c6cbc2b72ed4a6fd7ff8ae18fa1bfc549464cf2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_tracks_sensor_io_m08.py",
+        "sha256": "0fc042c0be421a8eabf86dca38f7a2f707b15004cc842f9a5d2b01b97f1d4aad",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_training_proposal_m10.py",
+        "sha256": "e034c3dc271e1d487bdae8fcab22b52a0affee9e41dca0ae7d63eb31e97589a6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_training_returns_m11.py",
+        "sha256": "b584dbb2b16ded9931de7996a60c1392f02b935f1cf3834f62cddc1617f21fa6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/route_world_adapter.py",
+        "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_actuation_qualification.py",
+        "sha256": "90aacb0037a319b2b14e63be1f1499465dfb2c64f10acbf35c6897e819e910c1",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_actuation_qualification_q02.py",
+        "sha256": "418493d266d42bec0aaca9721aa30378044b6f1b22f8c0c9198f3c8d4213c170",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_actuation_qualification_q03.py",
+        "sha256": "12f7457932cce295937f0508078ccf4010bc6b916155c2afe3333e516416ae32",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_diagnostic_matrix.py",
+        "sha256": "b00bf11e100e9ac39955451b5731c699e916eab2ad61e76edc5ab2faf68e25e8",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_evidence_fixture.py",
+        "sha256": "c4afbcfd351590b135f715a26413b44d8a952a7e5f94b23b1511d343954555db",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_m12_physics_p01.py",
+        "sha256": "f4ccf72b2aae19d39f9fbd01466ffd2e71e42e938819eda58e115014d85eddb2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_m12_physics_p02.py",
+        "sha256": "217bf464f5efd526540acc6b31dccce75a7b8ef884adca174e5664f3a2077800",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_m12_physics_p03.py",
+        "sha256": "c6c34155ea16c8523a29da588428a18d7c9fd91dffdb5b4fc4a03d9b1abb5bd6",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_m12_physics_p04.py",
+        "sha256": "4db19900b7203a69334bf9c1ca7300e021d223722546b03933294ff5f8dab940",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_m12_physics_p05.py",
+        "sha256": "2dac51996951377ac5e23a27b1354098ade69b6bbb0cbbc63d23747be8e50420",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_m12_physics_p06.py",
+        "sha256": "ed2e1f1352b6c617dad2ec50fb6e9fc3dd5c26369508cb4fa9742a2a8733b5a3",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_m12_physics_p07.py",
+        "sha256": "4efe7bf67fce9b3e16c0afabc9cd47f982bcc372abb39f3cd9c4f491369764f4",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n01.py",
+        "sha256": "8715ca32c61cd67bde5f3b33d3853ad5239ced4cc0435cdb7cf701178ca5fc03",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n02.py",
+        "sha256": "44123de56c08fa99b050ff9ff7ee0b5cd826f786f041074768523aedfff6918b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n03.py",
+        "sha256": "a11f9c1c67a769c760d611a9b2617f135896db95c1ef15fe72abc42770fc043c",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n04.py",
+        "sha256": "da06dc0bca1e47f2ba1efd4287b18107e2c0b791f31aa8d740f4c631a825e05e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n05.py",
+        "sha256": "1e97b47d10ded513921d6f0bcc43b934779bd289bcc7f7b180b2e02b11f6c36f",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n06_manager.py",
+        "sha256": "90e0d1b1ad0a1ce318aae25ae136407fdca0a129aae2f2b2a9abbcb3d80018cf",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n06_manager_r02.py",
+        "sha256": "14d4ab5b0647217cc9a7630054dd049d3373cbd99e7277595a70016a30a84aaf",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n06_manager_r03.py",
+        "sha256": "ced885f3349a098c661b41225491c4ca1928eb71645a78664f29250ea2a95d0f",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n06_manager_r04.py",
+        "sha256": "2c353e13d30202c387157bc521fb591367fc26ffbd3abeee11a8b6cdf5d98305",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_navigation_n06_manager_r05.py",
+        "sha256": "efdf9bbd2bce89c875484a7ec7cefc864ad356116c42ccd1904c141a1e2d4e57",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_passive_sweep_q02.py",
+        "sha256": "883e2f1849ca2e8b4701f376775ce053329a4507d07e3559b05927d3046629ed",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_passive_sweep_q03.py",
+        "sha256": "e024d9febd225794ca4e72408c8183a8045ff2d1ace25a9e749f03212fbfb326",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_passive_sweep_q04.py",
+        "sha256": "a2f742413b177b206199f974883f113c04f7776544fb7cc590ba4137de97ddf8",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_passive_sweep_q05.py",
+        "sha256": "f82e5c72e09894e10e0009ba67ab707b250c0840721582f2e854ed3839affd80",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_smoke.py",
+        "sha256": "bb5818c29db218b5d329c57f7309bf6858f5080c008a7a8eada59e70403e2206",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "scripts/astra_gazebo/run_smoke_a02.py",
+        "sha256": "d2366690628b1b46e574ad0801c5035173a922d3c78a4ed8a993123f708c7ccb",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "scripts/astra_gazebo/scene_generator.py",
+        "sha256": "1a6bd7f4f4a53b65481cb955c599fe067c66331b8d5542ea5ecb150d305c37ff",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/scene_generator_v2.py",
+        "sha256": "aa9cbb38f3cee3a5ab41a9848756cf7e8055de2c78d851f07cbdd0e62dbd8046",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/sensor_tracks_ingestion_m08.py",
+        "sha256": "97b739bb8b165a652e44e2695a2298bf5fa0ea87ba3e80a67a40f4b39644ffc2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/sensor_tracks_ingestion_m12.py",
+        "sha256": "026e2f7d62a125c70a8c1da813948618dbb71830a267dff4e6f71893e60c8668",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/sensor_tracks_query_m08.py",
+        "sha256": "3660ce97b4e522f44209d8fe9f0483d1ae3151adb05f62e3bc1ea7c945939545",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/sensor_tracks_v1.py",
+        "sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/sensor_tracks_v2.py",
+        "sha256": "4975d9cdd91cc9c182f6ec36967a61084ff4e65f71493305f8d68a8b028e6bd6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/static_map_export.py",
+        "sha256": "6a46faff46362bf6a46777fa3eea43d7b125b70251f8ce336d478bf7e92f7c66",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_axle_reference_adapter.py",
+        "sha256": "5fe51ef4c3815ee8bc4b2a1d0abe2a790e974db6641fb3e91777d8f7e8886388",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_baseline_integration_b04.py",
+        "sha256": "f4fa6144afa53ab74bfd45ae38175a254cc8fe2f5fff2e4eccdca6dc8ed5af5e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_baseline_rear_axle_adapter_b02.py",
+        "sha256": "91820b2f27228243491b44f57b26fe95e52ff84296b4a3e9566faa71073ae461",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_baseline_rear_nodes_b03.py",
+        "sha256": "a9a8dec67f7f87c14b9de61bb0c3f53794ba6a5a5381b020f8b088de835983b4",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_baseline_rear_runtime_b03.py",
+        "sha256": "8ea45b648f6abe7d583a7ddf598f165ac04918583611fcc8d00e9a45e4bcad22",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_baseline_static_qualification_b05.py",
+        "sha256": "a869413ebda55adededa3b36f7f2de8bb0ad939779fb05578cf7cbdabd18dc6e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_baseline_static_qualification_b06.py",
+        "sha256": "fd406bc10dfa8f72b24a25f1df76baf83c708b40c7e33ff1fd562174979e165e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_bound_archive.py",
+        "sha256": "5059f5cdaff482e5866a62b4c11769c11340f4405e8ad5224f7bc651cd3a7107",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_command_source_p02.py",
+        "sha256": "f1ff494e4adb2e97f618021c287e65be2d05f07187eb13694f816e73b2416ff6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_command_source_p02_independent.py",
+        "sha256": "7453089ccd2615111e7f55bee0b5818ff363df6cc0f655ab264b23e8b32126b7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_common_route.py",
+        "sha256": "4d7241d7228eb4a5a957592e2f02cbea953c5375b9163aac1e288ac41ee83288",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_coordinated_route_adapter.py",
+        "sha256": "885af40634558aaab38843c26f23b513511afd2f79e4ae29630d45b08976ffd8",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_coordinated_route_preview_n05.py",
+        "sha256": "f0ad068cbdea9eca5993f4781b68d7362750c1711ffe21cee7a14f7b77d7719b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_dense_sweep.py",
+        "sha256": "c9015473820c51535a4e7665a2d841d3c361719a19d1cdf63fd671faeacaf36f",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_dense_sweep_p03.py",
+        "sha256": "db646c10b61c7629599c3a0301aad451e0cfd1595f60c06b28c4338074a9d031",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_dense_sweep_p04.py",
+        "sha256": "0638902a4b4ed259c4a1b20b22c3267efdab22d83953aabdd1f0fa3f9300ab81",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_evaluate_episode.py",
+        "sha256": "3b0094a6715fa621d2eb63b34617a1ef79b1578c8e9a8bb5abdab6d2658ea779",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_event_actor_contract_n04.py",
+        "sha256": "8882ba7c28e61621c1fe96e513e865d4988c9caf61aeeb7303d1fed4c92b55a1",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_event_actor_contract_n05.py",
+        "sha256": "4992148e16cacbd71428f4838651929d1a035ffd1ac6fc0955df62fb667ed203",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_frozen_r2_route_frame_bridge_n05.py",
+        "sha256": "7924dbdb475e57d2ceb0ca73405ad73c2b79a066abef490618b6816ed5c1318a",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_frozen_r2_sensor_lifecycle.py",
+        "sha256": "2f3787ae79ec52f95ac317fc795392c84e5a96ea0790cf4cf3010bc6e541a3dc",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_geometry.py",
+        "sha256": "550ac78c96138f0fac394aecb3bf3044a003a4a310aaed6c9e5f184c9fcc5cd9",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_live_actor_inputs.py",
+        "sha256": "2f4a12ee62b4a494869126c65372976089d0d232717cb0f65615305b6759bc0e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_live_actor_inputs_v2.py",
+        "sha256": "b2106c3bf47af97bc9c6c4283a65285f667afdf301d023244b86d7acbf100ef2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_m12_physics_p03.py",
+        "sha256": "15da26e33e8681f46ee933bde78cd08aa932f099175b5da9c8a6e9c21e99e598",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_m12_physics_p04.py",
+        "sha256": "2a1387e7d68794b44e3338c86b55d60f762b09ebac2ec51e365cc5e017cd67c7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_m12_physics_p05.py",
+        "sha256": "af4fdfbf3f20cabefe183efca4f02ff329b9bf9c41c8f8da6f0fa43239f706b6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_mapped_elf_inventory.py",
+        "sha256": "742d80354cf2a8e671719b22b9ca64712aee88c5437d15240c25fd5183db623e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_mapped_elf_inventory_v2.py",
+        "sha256": "4cf79e0cbdf01cb62c1ae93a4fa07cb43bacd267326c005eaea4c9c003a51322",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_coordinator.py",
+        "sha256": "5967a11239976c6642e7c11aae93c8d25ff628ff687f1c9c7e1cc636cddf2729",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_evidence.py",
+        "sha256": "4af79dd4b2c206b333f908212f5fcccb80f6de6560796ce9767721dc7d25c229",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_evidence_n02.py",
+        "sha256": "05cbaec00fbe18357f39ef7b01d6c3c6e0b0bbe2226bec6766f8b02a52f20555",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_evidence_n04.py",
+        "sha256": "6c5d5b676641b82d6486a79d813ee928ac5638f5c99b2ee75c61f78aa6f0ddda",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_evidence_p04.py",
+        "sha256": "c8e08f5268eea8f16268462fe984390f14be8c605079c1a1cfe363cadfe25f4b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n01_runner.py",
+        "sha256": "afb2eab271779bf400a2410c6589acc7c5aaa497524ed9a1f6477b0d095e203a",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n01_runner_p04.py",
+        "sha256": "b64f80b8111ead7efa30215c257c9f9b047be19c90b80bf795f21842cd8aab7f",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n02_integration.py",
+        "sha256": "45241c57be0b30546201608f7f1170943d6189af3046d5e0c32c03c67833b0e2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n02_runner.py",
+        "sha256": "1636fbbdedf17ae731d7d106cfc0650eadebe1adbcc8504ee889373766c25282",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n05_pipeline.py",
+        "sha256": "01e36a41e6ad95d9bd43c25ec0a57bd0687589b0b78158f0c6ba0164c0780e48",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n06_environment_r05.py",
+        "sha256": "4cc9255bc3c0fd6ada16246716ca12533aa2b3920f460ea6bc69799eccbb1805",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n06_manager.py",
+        "sha256": "fa06b1f358d72423a5d6e65bff5a6a93514aa3b079286a666db0d9fef01d79a8",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n06_manager_r02.py",
+        "sha256": "010223c2a28cc2eb836ffcb87af941e56d8e3bb44f11195574ca71feabae3ef1",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n06_manager_r03.py",
+        "sha256": "36493e1dfdbcd5591e98368470e256bb6f1e8feb72eb93fb318d44215d8e3ab6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n06_manager_r04.py",
+        "sha256": "d889e109dd36d8446769232dce3ccbb9fed5bda063cc191e764b9d164152ce8e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_n06_manager_r05.py",
+        "sha256": "4995b73b8bebf15f2e61690874ea7630928647f9016d51cc0397460052aeb13c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_navigation_process_cleanup_n05.py",
+        "sha256": "ed89189c04069d9f661562fea0e151b44b375817c1e78956c7cc999aec7f1f13",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_passive_sweep_q02.py",
+        "sha256": "be5d4c6e09d95113f69a42f0e7a212d3e57c3a078e8bcc2a127da93ab6cdb600",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_passive_sweep_q03.py",
+        "sha256": "c757756f5789ec512961cc9e75bdc70e966c767ea83c229d1ae49e09c1919cf3",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_passive_sweep_q04.py",
+        "sha256": "da95b3555cf2abf346b7df94283b01b6bbcdff64d30fe2e25da18b64c9712447",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_passive_sweep_q05.py",
+        "sha256": "6d74b4085797aa2d3b4b24751bf27e2dea9e368cc37381083df79e4997a9900c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_physical_actuation_probe_p01.py",
+        "sha256": "894c402d6a68286feffeae86b887aa716cb0faa7a101c334b4fd2644d3710125",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_physical_actuation_probe_p02.py",
+        "sha256": "7e970fc364a9827926354984e3f0c7d4c04dcbeeb3250cf5211354e997b23b83",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_physical_actuation_probe_p04.py",
+        "sha256": "03365e31020ffa94eeaa8b924db733d42b3a4280d458a30044c8c44a99f0e347",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_physical_actuation_probe_p05.py",
+        "sha256": "e9495ea4605cd146386ca66b83e7584be8cc5163154f9c9fa2e5f01f19105546",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_prepare_development_geometry_d04.py",
+        "sha256": "e6b38fd4253c62472c8f930e36dbdbb0d22a8bdff388729a9d10dbf52462a56e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_prepare_development_geometry_d04_r05.py",
+        "sha256": "7f4f4f3a7d66c8f3ba901362aff476f0fd86e5b5ccd3499f76357b2923bff6c2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_prepare_development_geometry_d04_v2.py",
+        "sha256": "b1809e46f6735e8f40b8c4a54da23ffb5f6b7a7538e5b969b295906cf8172763",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_prepare_development_geometry_d04_v3.py",
+        "sha256": "fc212e7cfb8f67da96c94ae2231ba368fe4183d4b5fb53b0d7ed06250b11cc7a",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_prepare_development_geometry_d04_v4.py",
+        "sha256": "84971d93bb0cdf8e5f99edde8846df3f88eb7d798d4a11035ccb8977a82678ea",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_prepare_navigation_n04_scenes.py",
+        "sha256": "cab9e8b782a258359606f7f237d38cdfc0dddc022c46fec432ae7fbc3252a330",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_prepare_navigation_n05_scenes.py",
+        "sha256": "588605d9dbed619668d7347d994635b7bfc57c92d3ec6210c83523b423e171ff",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_prepare_navigation_n06_static.py",
+        "sha256": "e14469be3b98232308f5588f2f8427069dfffcc86f23d306f8b6717418c26d2b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_release_validation_session_n05.py",
+        "sha256": "d9c272d608272ed282b175e21e530504a0744192b459de0fc88d338934ee3ca6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_route_preview_selection_n05.py",
+        "sha256": "ab53844ff32545673cb7ac232eb2fd8a17bcad34db79e030e59f9ed0f6b0d4a9",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_route_runtime_core.py",
+        "sha256": "34059bda6b90dd1875bf316d1553ef7f5d75192cf51d6217f0a522c9537a5640",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_route_tracks_node_m08.py",
+        "sha256": "9e0ae7385bf52d73337185cd9a71c5d330fa496d9630ad85d119882de8c59e7c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_route_tracks_runtime_m08.py",
+        "sha256": "e2cd8bb9bf57c96aa85f5dcd2b31931c5c37e690d464d3285329cf4c86f1bbbe",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_route_training_proposal_m10.py",
+        "sha256": "bfd5483ce64f92c44e29b86c01989bf36d06fef02e9c70075b0e4a28c7ac4d34",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_route_training_returns_m11.py",
+        "sha256": "8ccb8c390603d906808922a730fddf7a541e6a5a6f0765571d5e1128dc3474c4",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_route_world_adapter.py",
+        "sha256": "5e33b629a8f3024c59b8a9bccf9257b9cda738ddc7cb840383bcec8f7fce0c9b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_scene_generator.py",
+        "sha256": "f0427197e339945420e40798eaebcecd6ae08907664d78b3f805d715f6550c44",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_scene_generator_v2.py",
+        "sha256": "6ab36ed351946a9c533094b6d31252653225b676f3bf693dda5032908e9fadef",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_sensor_tracks_ingestion_m08.py",
+        "sha256": "6ae43b5c8454c289e76ad0cf00b3642f9c97263c33aaae508135c5e11334a73e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_sensor_tracks_ingestion_m12.py",
+        "sha256": "d20366d7272e01ca4e6d9070346095afc147f37e0b65445d7e648cff4e9c2cac",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_sensor_tracks_v1.py",
+        "sha256": "99b1347add03d4bf9615df8c9f787d5823ea74a7e8c7d6e40d92b76cb5b66561",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_sensor_tracks_v2.py",
+        "sha256": "b25156f9f26de13f78a74e12e41c20468c8dde7e5d266d9bab853f0b85d781a3",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_gazebo/tests/test_static_map_export.py",
+        "sha256": "1ceadf7f1f43313cbc84cb05789d9d9f80e7887c8c2926346719cb557d8f8505",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "scripts/astra_train_env.sh",
+        "sha256": "ba7e6ae3fa24d98590527ece857704e05638d109f5b39af167f3f4b89b00d632",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/application/v5_e2e_scope_rl/scripts/astra_sync_episode.py",
+        "sha256": "66027a37209e375eaae492b618252448f0d46a9ec4096f6056a75ce866c319d7",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/astra_input_sync.py",
+        "sha256": "0e36a427e82b3fe284550611eaf76941cc636ccbedc72cf663d35fbe39918048",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/application/v5_e2e_scope_rl/tests/test_astra_input_sync.py",
+        "sha256": "2f04f5427318fc65f058abbdb448f8f10c9d0713749ca4c9ade45f0530ea647c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/CMakeLists.txt",
+        "sha256": "44ea750f47a2bf1a58c85c64b16009cedf938cae2c045ff102339b7e5d0784e0",
+        "base_sha256": "5e107f1dec79b29b8d2dff690ef1b5524cafab0426692582bda97239eb5a0315",
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/astra_common_route_plugins.xml",
+        "sha256": "ccd6d3eb2d28f7faa569338eb31a48f3e13eae4bf9874be798f315b1758dd987",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_00_anchor.yaml",
+        "sha256": "f6050e56b675b5bdf63031b1357f0fca52c9db5c0530ac63863bdb2c7bba5e03",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_01.yaml",
+        "sha256": "20358a41e64bd7b8e5864bc99826bad008b64d2a6c6e5f8ffdcec0f31c2194b6",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_02.yaml",
+        "sha256": "b9f8a100e835609398b853840b3389edffbb3ccec03e91b28ec14d79edc6dac4",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_03.yaml",
+        "sha256": "b31e3037c845a9bbb82c86c6547425b6178f45ccbad4292899ec7016a2c9c0e5",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_04.yaml",
+        "sha256": "351a0bb216abbf36202dede8aaf73f8daf0bc5e380c216b987e8814ff18fd578",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_05.yaml",
+        "sha256": "796b8acc4987687149fc0c41c9c069fa9bbef4e16436449f5f700b248b6a6553",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_06.yaml",
+        "sha256": "91262094516b2c07fb266a4b7f659d73c513a7adf77c8b17a51de2c2ba907e19",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_07.yaml",
+        "sha256": "abf4d02bd284e2f2e8e4c978b8d98e3499c53dc4a0d746fcebe841f002b54b7e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_08.yaml",
+        "sha256": "6c836ff69108ef88e8545eccf514bb0f713987c8c268322b2cb3d189daddbee7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_09.yaml",
+        "sha256": "13facd31d10effa8fb467fffe4f55a48e59dcba9e39c1c67823ae84d909f203d",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_10.yaml",
+        "sha256": "80abb30c7140a625662eeb8acb043a2cca62e1868c97c77ca8838b1c697b1688",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/dwa_b01_11.yaml",
+        "sha256": "378d2d8abfdfc90d1f349c0c70cf30124b45be97aef02d6dbffd88157aab9f57",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_00_anchor.yaml",
+        "sha256": "d17151e3075c27f3261a58de40cd160b9377bab94bdcb562328a0be85e955c56",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_01.yaml",
+        "sha256": "832a0fb20a55d18edafb46cb5efbf0cf5cdd21a07b2366858542239695d23aea",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_02.yaml",
+        "sha256": "f7558310de53022481d4f68e970c8d99a6ccb15c615cf972a424ecf77a51a6c2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_03.yaml",
+        "sha256": "edae7defa55d16525a99e081dbf110cf27a14839db26534dd37de3ef48d25d9d",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_04.yaml",
+        "sha256": "3ffa20c1f0d104701d424e3436b1448eedb628d23405ed75ae082b9056b8ea89",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_05.yaml",
+        "sha256": "393226308b1c3a931864f5c3ca73258ee43fa40bcc6502dee693a5afce1763e0",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_06.yaml",
+        "sha256": "3b9f28a4c9ae23dc9fce4edfcf7e5183a6f05d15d3e4124cfe34a27e0bbdea2b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_07.yaml",
+        "sha256": "2e21618a8918b27ba4bfea49159a8720d97c79feebb3578e10a5fac8e0684a5f",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_08.yaml",
+        "sha256": "6cec0e95aaa9658a018c00d26f62a23131ddb8cf9c87192bc53fa00e7b888cff",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_09.yaml",
+        "sha256": "98cf018dba04e1af760e72c37a80cedd88c84a41a3c378cc8fda2eb1ef94d736",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_10.yaml",
+        "sha256": "604f33f46b3e2bb1c55ac382ec9e98b71bcbbdc4b0b2de408a0430f87b139825",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_b01/teb_b01_11.yaml",
+        "sha256": "d1585d197d9fdc70884993a0cba983ac1b345e61d18a78d6191c7c510e4f179c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_baseline_rear_b03.yaml",
+        "sha256": "af85b740470dbb3acaf303835a29b441e8911a75eb80fd973b1d402048e0c064",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_common_map_route.yaml",
+        "sha256": "ba342dcfbaef35c855826d96f55ea7eaf66c9c0f34c587a7b04aeafb5d69c8b7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+        "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml",
+        "sha256": "9624d5a0c331d218909fc325fd467c42a202f40dc672935ad0daecd30fdd3cab",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/include/m2_gazebo/astra_actor_gate.h",
+        "sha256": "a225e53888227e26607d2ce0b48a7ef34a41c7a454aebe439479034513c99d6d",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/include/m2_gazebo/astra_event_actor_gate_n04.h",
+        "sha256": "4155723019baf105e96fe3e4d01a2d417fbd1a022bf69741f7d614ed57e7b540",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/include/m2_gazebo/astra_event_actor_gate_n05.h",
+        "sha256": "6ddaed507abf5728822f365126cbf4910a7b8814100a943e400ef1682974c4ff",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/include/m2_gazebo/astra_physical_control.h",
+        "sha256": "2f47c23c3b9a09a32789388444cb705de74665e1e27adf922a49eccb72f1c813",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_baseline_rear_b03.launch",
+        "sha256": "4ea22fb49ff01b64655419b0bfccd2d12d3f35fc5503b450bf5858b9a95e8ffe",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_baseline_rear_b04.launch",
+        "sha256": "bda9ce213b66c31dcf23e2a05d9a7bb2e49e569d3eb40edcb140e0998377653b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_common_navigation_n01_p04.launch",
+        "sha256": "ee9d511c615cdd380f1bdf89f9e04a49bd32a467b875e995eb351e93879eac37",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+        "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_common_navigation_n05.launch",
+        "sha256": "3436459726437764c961c863a1fa3570164cdb2e1d3c3ad485dee9cd005924b7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_common_navigation_n06.launch",
+        "sha256": "48813df1ad3b4b8707cee9c11476290e2683dfb405a77eb156efb53b51ca3aa4",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_common_navigation_smoke.launch",
+        "sha256": "3cf62fa9ff4a8ee9b60ad10941b118f664d7ac645ea43066e2012b7981052534",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_diagnostic_episode.launch",
+        "sha256": "bc93270f915db6ea3e5427d7177f3b78d3fab1956a30f9936d2865eab71ab708",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_smoke_a02_episode.launch",
+        "sha256": "36cc5b57281b9e1c71245a38758d0af00e07d5337d8389a4e3abbb3359eb2767",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_smoke_episode.launch",
+        "sha256": "961177787bda95a16c3a3577138c3c11e69249c51d338b5a3c8fca4169c8cd85",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/astra_spawn_hold_q03.launch",
+        "sha256": "05c1a623bae4ea737d0487c92239255c57d523f875f432fed1edb12b105129f1",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/spawn_m2_physical.launch",
+        "sha256": "18d1d4fdb3bfee116ee9ccc1f39ca6d1fb17a0660e1f5913896650b15ca578a7",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/spawn_m2_physical_p02.launch",
+        "sha256": "74355d22c084410f1f68f582853b600719e84f7a09aca58440318eebfa959f3b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/launch/spawn_m2_physical_p05.launch",
+        "sha256": "671ae2ac49e7541bde68b860920a5896c3ec2f42f6c1259b0cdb380b2ce67630",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/package.xml",
+        "sha256": "be73a33d42eec0d270a058a806c0bede8f714303103314edd2d34d92df41b88a",
+        "base_sha256": "42d5fe3f7c4de9163200f47806df9ba569472280b74aed2712f9d85eeba74823",
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p02.py",
+        "sha256": "82e80264c8eb62cc94b93a74f402047433efda0d7970e8d194b6c3ffeda4489e",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p03.py",
+        "sha256": "2468df67dcf94bacefe4c57fab2939feca051213000f2d2670a652f81a9dbf77",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p04.py",
+        "sha256": "18c1a3a955d82fe8f5fad12c579abb105eb4c70d4c49b0f124994b39fdb55818",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p05.py",
+        "sha256": "f6c7c5fa411aec2f51b480edc1b1379e67213c0133c9741a26d9a9d8893b2644",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p06.py",
+        "sha256": "88315c0cc91d34c16783de8074ef510866dd982a234dd8eab74e574cfae1a4ef",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p07.py",
+        "sha256": "a201d91a986f789be62cc0f313ba1797206fcad98f37146075d1a0115da5e1de",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_actuation_probe.py",
+        "sha256": "5c8027192340704529247408f4c6bb5c0d66be72b39cb525e192134a9025d00a",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_actuation_probe_q02.py",
+        "sha256": "164ebbf2734401278100f781be1a015e8029d43163da666592b302bdd84730a4",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_baseline_rear_adapter_b03.py",
+        "sha256": "9a8b0be06c8f4d2f1d2fac346c042bb118416ed99d9c3938555441a5e00f845c",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_common_route_provider.py",
+        "sha256": "8cb5d7927b4f9585d1818217983de407efc76571107d52fd8f76dd0197e0782c",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_evidence_fixture_probe.py",
+        "sha256": "80b567b289239ec489dcaff7debd67306c8b6089054be5f869e7bde50864aee1",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_evidence_monitor.py",
+        "sha256": "adc0993d4ad382238b34ab0d7a809f99782ece00abba226dba2aeba46a0a5890",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_evidence_monitor_a02.py",
+        "sha256": "d50a733244e09f570ed4243aef4ba210317c451d3383feacbd725a3ab505253f",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_evidence_monitor_a03.py",
+        "sha256": "75ece1b115fe63fa08bde8f3273cf267bb428b926698515b76a54d5d01adf4b0",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_frozen_r2_coordinated.py",
+        "sha256": "79acb6aba8a9477fb781b03b13daa0fa19e7566a5bca69aaf7cf240200bee0ad",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_frozen_r2_sensor_lifecycle.py",
+        "sha256": "765238653925e232243c1caa01a58d9034e1ee7171f0f39b1d1032d31ddd3712",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_collector.py",
+        "sha256": "dcff3deea85e8bccda333b8675a84d7d0e32875eb2e224447f9a5039ac2f6056",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_collector_b04.py",
+        "sha256": "d331e37e7e6fcdd69d925b8b3cbc34bea9415f5897b5c71f450f5960f31a78b9",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_collector_n02.py",
+        "sha256": "011723bc295c63ab6e7aaa41d98381b68f0700a89c6c7cd33337ab7543bdfcad",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_collector_n04.py",
+        "sha256": "b4532b5494c4868e2f04e3d8b0cd3c8dea5b4187a405eb0c68e92a34e5476f64",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_collector_n05.py",
+        "sha256": "935964de9d1c62424bc0a810a2b486225f218c25d27126e80f00c87bac6cd101",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_collector_n06.py",
+        "sha256": "66e48beb317fc3fd2c34aadac066927951d111b7f09344e81672a3ad559b19ac",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_collector_p04.py",
+        "sha256": "dd8508d6397433a959437d8fee5adadb7f79b0d9d422268100cee32fe575b09a",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+        "sha256": "1f2bb1da971fc2536dd0243562bb523d14875bff52b40b6193541544b1dc9959",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_b03.py",
+        "sha256": "59b2e2f423b5829be42fe71ee2f336db0237eba420e9c82bf33f0601e33b2df8",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n02.py",
+        "sha256": "3813fd51782efb7df2e2479f938fad7587648ee581fe3af596a4bd8e6ad74d31",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n05.py",
+        "sha256": "b777157ddf2b8a673610aa65bb474406dc10cc73bc8f4b899e6462a36eec3086",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n06.py",
+        "sha256": "774e071df92f10f8ba3283b86f909b1754d44078c97d73e94253aa018419bcda",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_passive_collector_q02.py",
+        "sha256": "32bf2ee4f0ad3402c376a51d6f368986616c8ec6571305b1684d0c466278940c",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_passive_collector_q03.py",
+        "sha256": "7293feaf72c13c21ce3d037cab899d6bb464a686e9d0611620c8d7e4263d8ec4",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_passive_collector_q04.py",
+        "sha256": "a75f7bb2b9df22a21c3f5ac460278cb7aa0bb906080b06e4cc35184b78aca511",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_passive_collector_q05.py",
+        "sha256": "5fa08df287026396c43f7510ecd9f919a2ad0be2839b097addd2d0dd3e024fa6",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_passive_command_q02.py",
+        "sha256": "54c6fd694369a8ce79190b3cd0e1b4da12b00d4f71ac2d57b37216ef8ccce39d",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_passive_command_q03.py",
+        "sha256": "85f2dfdabd0d6ccb84aed25433eed432986e56b016586325921720a3cac30424",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_passive_command_q04.py",
+        "sha256": "8516739615e15c423e5f5c16b5397b0951217d3216c87cd0c9014ad7c788ebb5",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_passive_command_q05.py",
+        "sha256": "b12c94a79bbc5306e00ddcb27ee6f3d6a221bd34c19a8963450c51b749357d8b",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p01.py",
+        "sha256": "2ded4d98e2c6191c50bfa3a55792b211f4be93500fbb76f0a473f2b848dc6f4f",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p02.py",
+        "sha256": "68dd16ef4bf5a8ac85bafc8996e52c48f3c145c6a9dc88f490aa3e2d2fbfbe00",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p04.py",
+        "sha256": "e1c86f35a652d9473376318023ee18862b5035c9d5d2858d2bcabad49157ee5b",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p05.py",
+        "sha256": "d19bed1dddc202c6eacf9230de6d53126d34a94ed54ec4f6e6053d3bfa0c1c29",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+        "sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+        "sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+        "base_sha256": null,
+        "mode": "0o755"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_route_coordinated_runtime.py",
+        "sha256": "d3675f6153152dce54c41809c6da1172ea7168ebb4ca5e66f994110021641f96",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_route_lookahead_runtime_n06.py",
+        "sha256": "1ca9e5d4b19a4d22fe737463f0b5411cbc82ee73e7f573248b712475aeb4b533",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_route_preview_runtime_n05.py",
+        "sha256": "d14a92a6f8366525a607221e8fddeb8694669af999c17eaef288e7ce339fd709",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_route_runtime.py",
+        "sha256": "23f35c1d9092954ab1d8f75713e8a2c74adc1272380c85662ece6b65e9e608c6",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/scripts/astra_route_tracks_runtime_m08.py",
+        "sha256": "72877d9db1456b96882da880938d8b1b06aace3e7a9fd956e3136efd37662e3d",
+        "base_sha256": null,
+        "mode": "0o775"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_common_route_global_planner.cpp",
+        "sha256": "2a9a4b6d27e4a7ba27a961f96e2457df23335486d2675f01b382c4b2307bafe9",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_dense_evidence_plugin.cpp",
+        "sha256": "c8afae8ad317304bf2e5bd6688442105fc001d8ed9559034f3b1912ef4007f17",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_event_actor_n04_plugin.cpp",
+        "sha256": "e947e9791d75bad421d14b3fd35c3c76483ea0f5fa086aedba5ec0d1353a1db2",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_event_actor_n05_plugin.cpp",
+        "sha256": "e2e6eb615106405b3aa60c6140d0341b9cbdef408fe0d8457f212efd97555f30",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_evidence_plugin.cpp",
+        "sha256": "2f9587d552d741196ab39c5d92e0654d8eef7d492248ef2edc4faa10409800d3",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_physical_ackermann_p02_plugin.cpp",
+        "sha256": "da1f1a39e7489c8996d6c16d6eeca5180247331c67687c557ab65f1c13d84a68",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_physical_ackermann_p05_plugin.cpp",
+        "sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_physical_ackermann_plugin.cpp",
+        "sha256": "8b5d45c0943956d13b1229279924a16dfc2565470d7304266800968270d93e98",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_physics_metadata_p03_plugin.cpp",
+        "sha256": "9b5e96d1880a45934fb1b4a2d4276299956eaefb1399fbcbe653bdaba0df4589",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_reactive_actor_plugin.cpp",
+        "sha256": "f55399bd46ce3b28344b581eb24d2465a311c74c92830068ff609d80d84c388b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/src/astra_steering_hold_plugin.cpp",
+        "sha256": "ece8bad7515f1f502b0afbc134ac7833fc5d11129627b753f1ea62a912d2a7e0",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/tests/test_astra_actor_gate.cpp",
+        "sha256": "61b9d498060fe94196683c1398266719d92436bfdc9b5a622ba62d6db2e6f447",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/tests/test_astra_event_actor_gate_n04.cpp",
+        "sha256": "775a23625de28d5e66bbe251bec0da19d40f83e8271f4bbfc1993aed091ccec5",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/tests/test_astra_physical_control.cpp",
+        "sha256": "7549bbbe876e7065f1789117bb8b348af329e986d1a4def6bdcad3526f217507",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/tests/test_astra_physical_p02_source.py",
+        "sha256": "54c7b3bffdae1e888b8dc1c7c47f9a6a0c1cb070169b77ba1123fd75d75cbfe1",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/tests/test_astra_physical_publish_guard.py",
+        "sha256": "129fc232e7c6c95b1b515a55a6deff401df1ef2818527a310f87cb21cc42ad6b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/urdf/astra_m2_gazebo_hold_q03.xacro",
+        "sha256": "8e0c8865b7d337540089c5f6535a88b1c5439a483e68cfe7e47c765713e37249",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/urdf/astra_m2_hold_q03.urdf.xacro",
+        "sha256": "0a0dcf937afa5ed18c7a9317f3f6a72b1189be50d403d45a319a3b0801bbe1c4",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/urdf/m2_physical.urdf.xacro",
+        "sha256": "bda90ff9daf91fcb06ae914f5893b6411468384066fa6a33c29159c0f3baa1b3",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/urdf/m2_physical_base.xacro",
+        "sha256": "1da6e321f8fd14e925e3ec9c73fa2eb22b2cf32a0b76b794cafa1b1476320a0b",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/urdf/m2_physical_gazebo.xacro",
+        "sha256": "697d138a1013247c6d2dce3bc320fa761b2dfc0bd9564c88d4c4873a80fdf03e",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/urdf/m2_physical_p02.urdf.xacro",
+        "sha256": "dbd9d2751fb961f960b6a6e6ffdbc62df88b3cf956e7c5c9ea0a1d7270e6c42c",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/urdf/m2_physical_p02_gazebo.xacro",
+        "sha256": "14ca2b079b2eac911e70c9a2410bf9dd18ecee041e8d4b8b3ebb6d09c9bb4d1d",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/urdf/m2_physical_p05.urdf.xacro",
+        "sha256": "63cdf3db0a171143fbd751bc54cff5ae25df46d69bd5caf976755a4a5b0a59cb",
+        "base_sha256": null,
+        "mode": "0o664"
+      },
+      {
+        "path": "src/simulation/m2_gazebo/urdf/m2_physical_p05_gazebo.xacro",
+        "sha256": "f2746067c295caedbd8bea783da5a6ebbf47641887474f1b37215b5be9a250b3",
+        "base_sha256": null,
+        "mode": "0o664"
+      }
+    ],
+    "note": "Apply over this repository snapshot after restoring submodule patches; no nested Git database, virtual environment, build output or raw experiment data is included."
+  }
+}

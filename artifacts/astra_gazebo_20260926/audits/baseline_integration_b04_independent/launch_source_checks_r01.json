@@ -1,0 +1,928 @@
+{
+  "status": "pass",
+  "checks": [
+    {
+      "name": "199_author_resources_still_match",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "B03_launch_only_collector_binding_changes",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "inherited_public_task_and_drain_primitives_unchanged",
+      "passed": true,
+      "details": {
+        "identical": [
+          "LifecycleFault",
+          "_identity",
+          "_names",
+          "_vector",
+          "coordinator_identity",
+          "gate_record",
+          "image_coverage",
+          "navigation_outcome",
+          "readiness_guard",
+          "sensor_method_graph",
+          "terminal_record",
+          "validate_robot_description",
+          "validate_services",
+          "wait_condition"
+        ],
+        "changed": [
+          "assess",
+          "closure",
+          "make_contract",
+          "planner_parameters",
+          "validate_contract"
+        ]
+      }
+    },
+    {
+      "name": "all64_padded_and16_raw_footprint_vertices_translate_without_reduction",
+      "passed": true,
+      "details": {
+        "global_costmap": 64,
+        "local_costmap": 64,
+        "TebLocalPlannerROS": 16
+      }
+    },
+    {
+      "name": "actual_parameters_exact_actual_teb_rear_reference_b03",
+      "passed": true,
+      "details": {
+        "count": 143
+      }
+    },
+    {
+      "name": "actual_node_roster_exact_actual_teb_rear_reference_b03",
+      "passed": true,
+      "details": {
+        "count": 9
+      }
+    },
+    {
+      "name": "actual_parameters_exact_dwa_rear_reference_b03",
+      "passed": true,
+      "details": {
+        "count": 131
+      }
+    },
+    {
+      "name": "actual_node_roster_exact_dwa_rear_reference_b03",
+      "passed": true,
+      "details": {
+        "count": 9
+      }
+    },
+    {
+      "name": "two_actual_static_launches_private_reference_and_baseline_nonoverlay_values",
+      "passed": true,
+      "details": [
+        {
+          "method": "actual_teb_rear_reference_b03",
+          "baseline_nonoverlay_fields_compared": 40,
+          "overlay_keys": [
+            "footprint_model",
+            "min_obstacle_dist",
+            "odom_topic",
+            "xy_goal_tolerance",
+            "yaw_goal_tolerance"
+          ],
+          "full_effective_parameters_saved": true,
+          "overlay_validator_accepts_changed_max_vel_x_scope_limitation": true,
+          "contract_sha256": "cb571849b2c2557f6388eddf63fba3dced5f6029cc298a025afd536f97bb2c06",
+          "all_robot_components": 9
+        },
+        {
+          "method": "dwa_rear_reference_b03",
+          "baseline_nonoverlay_fields_compared": 28,
+          "overlay_keys": [
+            "latch_xy_goal_tolerance",
+            "odom_topic",
+            "xy_goal_tolerance",
+            "yaw_goal_tolerance"
+          ],
+          "full_effective_parameters_saved": true,
+          "overlay_validator_accepts_changed_max_vel_x_scope_limitation": true,
+          "contract_sha256": "a2152d7d3eff88bf429efc166157365d27f0a550354b5f0d95d5bb7f6275e3c1",
+          "all_robot_components": 9
+        }
+      ]
+    },
+    {
+      "name": "frozen_B03_independent_review_bound",
+      "passed": true,
+      "details": null
+    }
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/API_and_scope.md",
+      "sha256": "e22f79c4b721e759fb37e80cd8b112673293ba3e525e3ffba559cf240ba97cb8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/astra_baseline_rear_b04.launch.diff",
+      "sha256": "18200330621ea07f2d415f22d6331af7c9d1a9364cb53630bac2ee320c9b8144"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/astra_navigation_collector_b04.py.diff",
+      "sha256": "f9d22e1cfec72147bec1a6fe4d7c84e8681810500e5064d2cba62d65992e9e7b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/derivation.json",
+      "sha256": "9f451c0d45d47614ec54355c09a670e343d79244a7df640012ac65fbdae92662"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/derivation_check.log",
+      "sha256": "ea8fcdaa3b424381eede79bb28c006b9113bbc1a304d5c9325681a1d8bf1beec"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/derivation_check_final.log",
+      "sha256": "ea8fcdaa3b424381eede79bb28c006b9113bbc1a304d5c9325681a1d8bf1beec"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/derivation_check_final_r1.log",
+      "sha256": "ea8fcdaa3b424381eede79bb28c006b9113bbc1a304d5c9325681a1d8bf1beec"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/derive_attempt01.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/derive_sources.py",
+      "sha256": "c5d61accaeb5ea2e8177905c50039cb89227a43b0aa523848990fc048fd428c4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/derive_sources_before_check.py",
+      "sha256": "20930bf7b7abe6b74f965d011a48d61431e3f19b857b4c58d24cc12da9f1b431"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/inherited_b03_tests.log",
+      "sha256": "b902a4dd8d6f770efaaaabc2d2daecda1a1e35cf193783a3d3be4b5dd769349e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/inherited_scope_checks.json",
+      "sha256": "466758ae24d376a8a1f6a5793e09087fab130ac52ffcbdf37374b0eacb23d5bc"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_attempt01.log",
+      "sha256": "ac5212b30b3cfbb5660723064831cff5bb8464ad8d9157fe6eb5bfd4e89554d4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_attempt02.log",
+      "sha256": "8417513092920d5825abc5e273384a83ee70362b946798d7adfaf45db051f4a0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_final.log",
+      "sha256": "02ddb345eb9de0350da1c4d755e6537b5fc371147d61454fa0b4cf26ce1ed234"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_final_r1.log",
+      "sha256": "372e2f74c271dbeb1280909087d6afb78693284276e27eb872816de6f0f28cfd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_final_r2.log",
+      "sha256": "4c125cb912b0b83ac70413257cdc1b1f828d7d721cc4dd8ec4e8406baf1ffd39"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt01/actual_teb_rear_reference_b03/contract.json",
+      "sha256": "7e0e781a1fd705911275c5bf99929e7f1a476a69a106d37adb2f839a356ce974"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt01/actual_teb_rear_reference_b03/fixture.launch",
+      "sha256": "7738abf10af1b7d2b96cfb63b1aa495ead7917441db33ca75409ecc3ac27f05b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt01/actual_teb_rear_reference_b03/initial_expansion.launch",
+      "sha256": "baae1c41517ce1fb07b6a94b37b51dfb194fa648c6617f2f5d17bc34faa09211"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt01/actual_teb_rear_reference_b03/initial_parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt01/actual_teb_rear_reference_b03/initial_parameters.yaml",
+      "sha256": "d0bf324c957cd05101e02e32da7043adc9dcc276e2c2a5c150f032da51505561"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt01/actual_teb_rear_reference_b03/parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt01/actual_teb_rear_reference_b03/parameters.yaml",
+      "sha256": "d5ec2a9da234579ac1b4e4517aa915c534ef5b6e6bd99f0186860729ee6a5c11"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt01/actual_teb_rear_reference_b03/robot_description.xml",
+      "sha256": "271140111227d7a2a3fade4ccad895fed0529ee32e3fe5a80610a53ea090f9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt01/actual_teb_rear_reference_b03/scene_manifest.yaml",
+      "sha256": "9d98d6390b2e0f5c092c3d15d3d2d45a2c21e930333b294f6000601039b6a086"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/contract.json",
+      "sha256": "bd74601f3dcd77649a54912a1bbcc2f76bca09f689ef862f41e17228a269923d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/effective_move_base.json",
+      "sha256": "390662e5e3e9ade95839a573e6021a4b986b5e899666aae5d72395856b87550e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/fixture.launch",
+      "sha256": "4cd53c2d06efb65bc91f59b2e5162f7a87eb6721384a9f7d7f7bc1661b20a83f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/initial_expansion.launch",
+      "sha256": "6b9414e9aa5b3fa7cb37d966780e714826d98b3a20ad1c14c41437666075071d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/initial_parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/initial_parameters.yaml",
+      "sha256": "f90667fa8ba1cf37c69e153f25023e82b0e2bd088236b374b8eb7ec1c1b75c50"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/parameters.yaml",
+      "sha256": "e3264613be4a492d6720b1b2a6f49a28d0e83b9758e8fe132bf45b646fd97a84"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/resolved_nodes.json",
+      "sha256": "910857508055f995d2b2c983c7e8abe9bcdf22ff05ec1854171f68c1e6fb0a53"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/robot_description.xml",
+      "sha256": "271140111227d7a2a3fade4ccad895fed0529ee32e3fe5a80610a53ea090f9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/actual_teb_rear_reference_b03/scene_manifest.yaml",
+      "sha256": "9d98d6390b2e0f5c092c3d15d3d2d45a2c21e930333b294f6000601039b6a086"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/contract.json",
+      "sha256": "62d297c3a4afef7c904ebbc83d9c93f92fd4a7580ae5bf71e43790e448de651a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/effective_move_base.json",
+      "sha256": "5191d9583def545d03e87fcb1af9295cdebd493c90a526bdbdd1f93efe008afe"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/fixture.launch",
+      "sha256": "2e85efed60a83964e3d052c1fca34347ee93260bdbd89a2c082377a398edc71f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/initial_expansion.launch",
+      "sha256": "59741edbe74985f04a47de6a63afe10a88b2a7a07bfa19f00eba18f9ec42a9cc"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/initial_parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/initial_parameters.yaml",
+      "sha256": "e80f0d42351acbe779bb0abb206dc89ce6f5643ca71d22800d885317d27e4900"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/parameters.yaml",
+      "sha256": "360fddcc36331987164b2b84ccfe1611b080fc5d190dc8d008d4525942e5f074"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/resolved_nodes.json",
+      "sha256": "a2bdfada1e72d6ed03f1eb57e5d25fdb6db5def85dc63c268198cc229d21af2c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/robot_description.xml",
+      "sha256": "271140111227d7a2a3fade4ccad895fed0529ee32e3fe5a80610a53ea090f9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/dwa_rear_reference_b03/scene_manifest.yaml",
+      "sha256": "9d98d6390b2e0f5c092c3d15d3d2d45a2c21e930333b294f6000601039b6a086"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_attempt02/report.json",
+      "sha256": "e2bd12ac4f6d2e20c9f7451d5564813dbdfe2c86fad4382600cdbafaa20754d0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/contract.json",
+      "sha256": "a8d8512adb6c536c5b82a14ceb6d1f949d28fe17bed3beb1e21564cf7245ded0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/effective_move_base.json",
+      "sha256": "390662e5e3e9ade95839a573e6021a4b986b5e899666aae5d72395856b87550e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/fixture.launch",
+      "sha256": "3a2f5600abe3d9ea94329c8bf0c0d13c1081b8a31b542961e434996cc5ba25b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/initial_expansion.launch",
+      "sha256": "9e9292f09bdfcb5328ea2b40d67d13444f0cc71b5b0e8a74b29b18ece4686efa"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/initial_parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/initial_parameters.yaml",
+      "sha256": "7223ef85256b07367076b040ec922670b1d430eb66283120f050029892ae2e3c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/parameters.yaml",
+      "sha256": "467e58e7c98aa9574417ef9cce9f6781f62d658fe453f9c4ed65171640448067"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/resolved_nodes.json",
+      "sha256": "910857508055f995d2b2c983c7e8abe9bcdf22ff05ec1854171f68c1e6fb0a53"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/robot_description.xml",
+      "sha256": "271140111227d7a2a3fade4ccad895fed0529ee32e3fe5a80610a53ea090f9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/actual_teb_rear_reference_b03/scene_manifest.yaml",
+      "sha256": "9d98d6390b2e0f5c092c3d15d3d2d45a2c21e930333b294f6000601039b6a086"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/contract.json",
+      "sha256": "07b053776d3ae48a4863f892ece6d1222220de6d5cf7e3d5ffa6d28782adc333"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/effective_move_base.json",
+      "sha256": "5191d9583def545d03e87fcb1af9295cdebd493c90a526bdbdd1f93efe008afe"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/fixture.launch",
+      "sha256": "2b955ecea5f8c2d1ed8e8a06735b187a2274c4d3e1c1e0baf300abf7dfa01085"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/initial_expansion.launch",
+      "sha256": "b670823fd1a894146f925c92e2d9276d431e349c631e6a16fb9febf5742c31c7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/initial_parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/initial_parameters.yaml",
+      "sha256": "daf7d4dcf8968ceafdb8b136a5c80a5552912adf8fac3f11c8088d08e25b9f79"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/parameters.yaml",
+      "sha256": "8e6d7adb044abf38137d52df295b25ee71cfe6d7e5860b6d094525738cbb5488"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/resolved_nodes.json",
+      "sha256": "a2bdfada1e72d6ed03f1eb57e5d25fdb6db5def85dc63c268198cc229d21af2c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/robot_description.xml",
+      "sha256": "271140111227d7a2a3fade4ccad895fed0529ee32e3fe5a80610a53ea090f9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/dwa_rear_reference_b03/scene_manifest.yaml",
+      "sha256": "9d98d6390b2e0f5c092c3d15d3d2d45a2c21e930333b294f6000601039b6a086"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final/report.json",
+      "sha256": "38f4b72a6462a536bc071c9ea93f3e4c1465183d845b7c7e979df1276696d374"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/contract.json",
+      "sha256": "0f9aa0d53bb5a631cbb03a83e41b568ae5719f2e7d992206a791bf2c8eba0953"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/effective_move_base.json",
+      "sha256": "390662e5e3e9ade95839a573e6021a4b986b5e899666aae5d72395856b87550e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/fixture.launch",
+      "sha256": "79ed430da9ec81c6c28e46ccc1f5f5d052d3423208b732ced65b990d537a882f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/initial_expansion.launch",
+      "sha256": "e42d1e63093fbd27c58e110494677cc254ac7e78a9fa1c9ec3105c4bdedd7140"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/initial_parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/initial_parameters.yaml",
+      "sha256": "eb250a4357bfd888bb8310e004f3d82ed411f0f940025513ce4a8f6469331da0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/parameters.yaml",
+      "sha256": "4a0a2e6cce990941606d9d178dfcf7c275c0ccc862638ce10eda9192b99e24fd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/resolved_nodes.json",
+      "sha256": "910857508055f995d2b2c983c7e8abe9bcdf22ff05ec1854171f68c1e6fb0a53"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/robot_description.xml",
+      "sha256": "271140111227d7a2a3fade4ccad895fed0529ee32e3fe5a80610a53ea090f9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/actual_teb_rear_reference_b03/scene_manifest.yaml",
+      "sha256": "9d98d6390b2e0f5c092c3d15d3d2d45a2c21e930333b294f6000601039b6a086"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/contract.json",
+      "sha256": "0e352f074e2f9f8c54e0dde0b71d879ce3d3ea157c852d8795da99354a76d76e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/effective_move_base.json",
+      "sha256": "5191d9583def545d03e87fcb1af9295cdebd493c90a526bdbdd1f93efe008afe"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/fixture.launch",
+      "sha256": "953e13cfb00d3fdc9da6fc164ff5c472f3ec452c608ae1c01abd78944c18b694"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/initial_expansion.launch",
+      "sha256": "6ae15aa59b6bd8762480516211d2222a8a88b5f01f926114d9d3ff6302943066"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/initial_parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/initial_parameters.yaml",
+      "sha256": "f44cd92d854bf0636299d9782424910ff5bcf89185a83ceeb3f6991b0afc9455"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/parameters.yaml",
+      "sha256": "30084e246fb9c06c05ccb183dacc7eb1120449e19c01700f63b959039f097d06"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/resolved_nodes.json",
+      "sha256": "a2bdfada1e72d6ed03f1eb57e5d25fdb6db5def85dc63c268198cc229d21af2c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/robot_description.xml",
+      "sha256": "271140111227d7a2a3fade4ccad895fed0529ee32e3fe5a80610a53ea090f9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/dwa_rear_reference_b03/scene_manifest.yaml",
+      "sha256": "9d98d6390b2e0f5c092c3d15d3d2d45a2c21e930333b294f6000601039b6a086"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r1/report.json",
+      "sha256": "5a42abe4c25ef96a3843fcdb5c70627d9bb0b547231a1044159aedbed4a03a2a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/contract.json",
+      "sha256": "cb571849b2c2557f6388eddf63fba3dced5f6029cc298a025afd536f97bb2c06"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/effective_move_base.json",
+      "sha256": "390662e5e3e9ade95839a573e6021a4b986b5e899666aae5d72395856b87550e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/fixture.launch",
+      "sha256": "20b1d3286dbcfb72c7d6f34b20e917013d26646035c57587cdf2d67ceea95b8e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/initial_expansion.launch",
+      "sha256": "b224832a2f8c06be3eb93b2a0703270c388a9953a4425f5019fea0d4c6f0196d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/initial_parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/initial_parameters.yaml",
+      "sha256": "0f4d0e8141a3ca6acc7f1127fda84aad0a921f36bd71d55ed205c6efe1eeaecd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/parameters.yaml",
+      "sha256": "f6f38443b4115a83dbcc2b3fe11afb13ef2ec0f3c5b6056a7a8417de63c9f228"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/resolved_nodes.json",
+      "sha256": "910857508055f995d2b2c983c7e8abe9bcdf22ff05ec1854171f68c1e6fb0a53"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/robot_description.xml",
+      "sha256": "271140111227d7a2a3fade4ccad895fed0529ee32e3fe5a80610a53ea090f9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/actual_teb_rear_reference_b03/scene_manifest.yaml",
+      "sha256": "9d98d6390b2e0f5c092c3d15d3d2d45a2c21e930333b294f6000601039b6a086"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/contract.json",
+      "sha256": "a2152d7d3eff88bf429efc166157365d27f0a550354b5f0d95d5bb7f6275e3c1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/effective_move_base.json",
+      "sha256": "5191d9583def545d03e87fcb1af9295cdebd493c90a526bdbdd1f93efe008afe"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/fixture.launch",
+      "sha256": "d1d64987624e55d6b461cd72e032d0ba4b8a9101c9510eae1b59059cdcd77cd8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/initial_expansion.launch",
+      "sha256": "377a45d9c2461b6e3eb252d814889b74dd7e9f3df34d9186ce0699c6b8d19b64"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/initial_parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/initial_parameters.yaml",
+      "sha256": "bd429a4220386c1de8638a29432d5eb8bf72a91b7f1c4f449c282909815b4371"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/parameters.stderr.log",
+      "sha256": "54c58f219dde0fc2384626b7f7078ed987182f3e10ae21b3d7c4e882e03317b6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/parameters.yaml",
+      "sha256": "064aaacc817023abd87411fb804dc28b23be7c3a6a41e19ab945629ab1ff1426"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/resolved_nodes.json",
+      "sha256": "a2bdfada1e72d6ed03f1eb57e5d25fdb6db5def85dc63c268198cc229d21af2c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/robot_description.xml",
+      "sha256": "271140111227d7a2a3fade4ccad895fed0529ee32e3fe5a80610a53ea090f9e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/dwa_rear_reference_b03/scene_manifest.yaml",
+      "sha256": "9d98d6390b2e0f5c092c3d15d3d2d45a2c21e930333b294f6000601039b6a086"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/launch_preflight_final_r2/report.json",
+      "sha256": "1bb1314791793931484222b88801dfd263fd12b4578a2da6542eeb4a4f9c4b7c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/navigation_evidence_b04.py.diff",
+      "sha256": "32779076ac83a0d75df256d374f847d9a92aaabe6e9cffc66efa4a2f29bcf1a3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/prepare_offline.py",
+      "sha256": "df4b459aba617e2d332cb3910abe3fe685a981ce77b5d5ceda58b3623e951275"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/prepare_offline_attempt01.py",
+      "sha256": "f6f557fda4518559386fb64bc157c8eafe74052b2fb02df193ad70c17723abbf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/seal_author_report.py",
+      "sha256": "92156b9579d4c0cd0244d90519f7507b6ad335574c72e526ff082eb62cd4bd72"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_initial_r00/baseline_rear_evidence_b04.py",
+      "sha256": "1ee25f38f1b702f98b8b6b75ee61109023eaad0b1ee453469b4b31a0a56bf65b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_initial_r00/baseline_rear_evidence_bag_bytes_failure.py",
+      "sha256": "b27c100c5c02fb7e04f73e265ffdf44599d3275e7ffe1d34b9b3e4dd337d3aa7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_initial_r00/baseline_rear_evidence_before_bag_join.py",
+      "sha256": "f87792164de7e01272017040cd9ec69c97b639d174a9922d101ae7dfba4482c5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_initial_r00/navigation_evidence_b04.py",
+      "sha256": "73708304c1e5ac54921be25f4cd00b239c7c2ca811b69111d76eaf1255f4f80b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_initial_r00/navigation_evidence_bag_header_failure.py",
+      "sha256": "886df1dc4b86738158e16dd236feb7a6b179d0a29d87eb70b6624b6bb3f463ae"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_initial_r00/navigation_evidence_before_bag_join.py",
+      "sha256": "85f6d665d0494d8bad6c60f9c3f488469e331ab718036bdb724f175f0868e337"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_initial_r00/test_bag_header_failure.py",
+      "sha256": "7165494f6e38be393a92ba2f7eb1239f7c93c8ba46b713817fb602f62d4faa03"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_manifest.json",
+      "sha256": "b152d0a29a0a77475e4af518183422ce111569aab767eefaf24ae781f8eb0c0e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/synthetic_bag_failure_diagnosis.log",
+      "sha256": "c787368e5e5ff28aa164f4bd613614b0d8a4147e446f1493d0c721efc3688f85"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/synthetic_bag_failure_diagnosis_r1.log",
+      "sha256": "1e7f8f6fd78aa75f0bef4211e67ed2e16d486d206ec368547e6270df19e7a0d4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/tests_attempt01.log",
+      "sha256": "29203cba04421893c93fdf704d49e7b519312872760697a5d66ccd6b519395b9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/tests_attempt02.log",
+      "sha256": "e8c07e9d20f8a05d73f4a55f9830617ba12e6ab284d16ecdbec469c4ceed8cef"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/tests_attempt03.log",
+      "sha256": "87a4d7fc7a788fdb5f7b55169504e48fa4ba2c04c28c0a8fc7c3069a1fb4e2b4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/tests_final.log",
+      "sha256": "3550276ab97b35d278c27fc43afbc1f74a0510b28f9087492f75526d1576c6ae"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/tests_final_r1.log",
+      "sha256": "f16357f4bbb88cf130cd49011219b0ccdcabd37825f330c28928b3254562d74f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/tests_final_r2.log",
+      "sha256": "d55634f3f71a35f9aeb86feb158d7d1fc95973d081bc1ba593172dfa5e045291"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02/implementation_report.json",
+      "sha256": "f0d65ae292e28c53b8bb718541dda3599332bdf7e6dbd569f8370005fc7386e3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02_independent/review.json",
+      "sha256": "9f9bc620ce945731821840cbf68040c7ea8cc0e41361b68585607de21e73f551"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/API_and_design.md",
+      "sha256": "ffcbcb54228a13ab4c77314a677c48c1bfe2d680208a4009924f6ef86bfcfc06"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/combined_tests_final.log",
+      "sha256": "30c2aa656a4fd453ba4e77ae1877657939109ed4efe7636a6c42880f346ffb69"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/coordinator_core_delta.diff",
+      "sha256": "3d822186301de4c85aec518b2d6fd617aba39d63e0c78f918e0f9714daa2177f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/coordinator_node_delta.diff",
+      "sha256": "a1f5cce1447c5280270ce6fd773ed2169365a4e2d02947d39cf507cf7ce2aefd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/implementation_report.json",
+      "sha256": "ff752c777dcc23580702cf61a97a4700d3e57a151cdfe9d0c242975889c57767"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/node_tests_r0.log",
+      "sha256": "de6f583e30d98d67243cb70786917b563356f3edf41896c9f11ce28ce5cfbd70"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/node_tests_r1.log",
+      "sha256": "2f4cceba3cfb6b01672f6ebf7576f68da548f7e95022deac7970da1eff720b24"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/pure_tests_r0.log",
+      "sha256": "ee3095a7cdfda217abd64a93e2c2298aaba209829844098c35c9371001856527"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/source_manifest.json",
+      "sha256": "ead28d67c63f20808c6bde18f95a371118ac131931474c1787ef5e2fdbe2516d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/static_interface_checks.json",
+      "sha256": "33ab4918a40c884748574ec57b3aea5a5a0ec10328c72de5f160a6d6afedfcc3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/author_replay.log",
+      "sha256": "1f6845d0213db025947ac52c60790dcc1853231e5893c228264def44d4d93a1f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/independent_tests_r01.log",
+      "sha256": "c260f0b4420397e05bea00c3673c116456f5120f948abee74c731562dae00da3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/review.json",
+      "sha256": "cfd9f8166fec91b46b611c0fb0c20bbdeb2dc4bf86bc8c81001f6b8e543aa13a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/review.md",
+      "sha256": "f78138e794aff5cdeec1dbe2747c52f695db94413190320c065f6457e61348b0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/seal_review.py",
+      "sha256": "39302ef71f5e3f33a1ef69fb02dd59671454f88c3664d3fff35695a6ab0ceb1d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/static_checks.json",
+      "sha256": "7b261c3bfc5e21aae1c55c231204729c19e2dd5c524637770dce686299b0617c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/static_review.py",
+      "sha256": "31564a97b6edcea5a854afe0fcf0722c2d0b6d114d4ed2edb649647826450a5b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/test_independent.py",
+      "sha256": "1acfe666cb65265b40429fe4acaaac4717b61bec7b304ded3d4790eaf2116f83"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/reference_frame_addendum/report.json",
+      "sha256": "8f6aedd635999c81b5b24dec6304731c5b958d4ec1741068f10f72ac08cb150d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/latched_stop_rotate_controller.cpp",
+      "sha256": "40be0483fe6d6cf456c05d27a1428c15380cef5099205f7f85154ab140179ab7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner_ros.cpp",
+      "sha256": "6bbeb37938dee0e43d21d3b2a5649ef8c6630297c3d583121a6325cff8a1eef0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n03_dwa_r01/world.sdf",
+      "sha256": "96ecfcbf61d3418e9aeb0df78e5df54ebd93c5943e582718607225acea9f473e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+      "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/baseline_rear_axle_adapter_b02.py",
+      "sha256": "13b72ac9f159d68f3e2f58cab185b5d6620e936d723b03c5946e712d0e819a92"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/baseline_rear_evidence_b04.py",
+      "sha256": "0db90dffe5f5498a9347552291be4f3de8de8c49af377f29f1026ce0189899f6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/baseline_rear_runtime_b03.py",
+      "sha256": "06ee57d9c576d25a908156fb8210b277b537e2706d53924a9d43a28064e1ee7a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+      "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator_b03.py",
+      "sha256": "693064aa5b0f544aacfde083262c24c943fbe2dd58e0eac782b5508adf013c0e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator_n02.py",
+      "sha256": "28ef7728770280e20281d2a702016c482541e6b0db0b5b5e0cab512f94d27d72"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator_n05.py",
+      "sha256": "ac27c39d2a2ed242f0da2dfd87625e55d30f6d72ee96b890803c7b1bbaeb08e4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_b04.py",
+      "sha256": "6c0a1146cb5130361d729ca3bcb27f3cb9be31dcdbd0d9481db65edea8978832"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_n02.py",
+      "sha256": "4a3e806d83ddc3e83e69a1ceda343dedbb0129867ea3c6230620f1170672c275"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+      "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_baseline_integration_b04.py",
+      "sha256": "f4fa6144afa53ab74bfd45ae38175a254cc8fe2f5fff2e4eccdca6dc8ed5af5e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_baseline_rear_nodes_b03.py",
+      "sha256": "a9a8dec67f7f87c14b9de61bb0c3f53794ba6a5a5381b020f8b088de835983b4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_baseline_rear_runtime_b03.py",
+      "sha256": "8ea45b648f6abe7d583a7ddf598f165ac04918583611fcc8d00e9a45e4bcad22"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/astra_common_route_plugins.xml",
+      "sha256": "ccd6d3eb2d28f7faa569338eb31a48f3e13eae4bf9874be798f315b1758dd987"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_baseline_rear_b03.yaml",
+      "sha256": "af85b740470dbb3acaf303835a29b441e8911a75eb80fd973b1d402048e0c064"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_common_map_route.yaml",
+      "sha256": "ba342dcfbaef35c855826d96f55ea7eaf66c9c0f34c587a7b04aeafb5d69c8b7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+      "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml",
+      "sha256": "9624d5a0c331d218909fc325fd467c42a202f40dc672935ad0daecd30fdd3cab"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_move_base.yaml",
+      "sha256": "bfe31f64af3b3590b007448e2792762a41a74ad4d119ae2cae3cfa57f9b758ca"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_teb_v0.yaml",
+      "sha256": "ce9fd94f306a86fe821f9c4732cb0894b8974cf39e45ecf6ab573f72b7e04606"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/costmap_common.yaml",
+      "sha256": "432592eb268dc14157dd23cc4f3d2f263a731f88ccf08e5aad022a77b0f019b9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/global_costmap.yaml",
+      "sha256": "e7b3458073a90d6998be390fd1ceee8e75afc67765bbf1a3543d0906b241af78"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/local_costmap.yaml",
+      "sha256": "7937cb8523dcc538b81cd6351d129f207d9be625873fb354349693434f349d19"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_baseline_rear_b03.launch",
+      "sha256": "4ea22fb49ff01b64655419b0bfccd2d12d3f35fc5503b450bf5858b9a95e8ffe"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_baseline_rear_b04.launch",
+      "sha256": "bda9ce213b66c31dcf23e2a05d9a7bb2e49e569d3eb40edcb140e0998377653b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_baseline_rear_adapter_b03.py",
+      "sha256": "9a8b0be06c8f4d2f1d2fac346c042bb118416ed99d9c3938555441a5e00f845c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_common_route_provider.py",
+      "sha256": "8cb5d7927b4f9585d1818217983de407efc76571107d52fd8f76dd0197e0782c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_collector_b04.py",
+      "sha256": "d331e37e7e6fcdd69d925b8b3cbc34bea9415f5897b5c71f450f5960f31a78b9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_collector_n02.py",
+      "sha256": "011723bc295c63ab6e7aaa41d98381b68f0700a89c6c7cd33337ab7543bdfcad"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_b03.py",
+      "sha256": "59b2e2f423b5829be42fe71ee2f336db0237eba420e9c82bf33f0601e33b2df8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n02.py",
+      "sha256": "3813fd51782efb7df2e2479f938fad7587648ee581fe3af596a4bd8e6ad74d31"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_common_route_global_planner.cpp",
+      "sha256": "2a9a4b6d27e4a7ba27a961f96e2457df23335486d2675f01b382c4b2307bafe9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p05_plugin.cpp",
+      "sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_p05.urdf.xacro",
+      "sha256": "63cdf3db0a171143fbd751bc54cff5ae25df46d69bd5caf976755a4a5b0a59cb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_p05_gazebo.xacro",
+      "sha256": "f2746067c295caedbd8bea783da5a6ebbf47641887474f1b37215b5be9a250b3"
+    },
+    {
+      "path": "/usr/bin/python3.8",
+      "sha256": "298a9e830ed52f36c299427565485d717d1ce0179c0597cc16560513eb780b06"
+    }
+  ],
+  "ROS_started": false
+}

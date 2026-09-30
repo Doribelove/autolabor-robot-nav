@@ -1,0 +1,53 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R16
+status: fresh_actual_teb_paired_integration_preflight_fail
+complete_paired_blocks: 1
+integration_gate_checks:
+  complete_paired_blocks: true
+  all_reports_finite: true
+  paired_gate_ego_x: true
+  paired_gate_actor_coordinate: true
+  paired_gate_actor_speed: true
+  actual_teb_local_plan: true
+  actual_teb_command: true
+  v3_decision_analytic_accept: true
+  v3_eventual_progress: true
+  v3_goal_reached: false
+  v3_contact_state_count: true
+  v3_conservative_clearance: true
+  v3_tracking_error: false
+matching_metrics:
+  maximum_paired_gate_ego_x_difference_m: 1.0921992488199805e-06
+  maximum_paired_gate_actor_coordinate_difference_m: 0.0006399999999997519
+  maximum_paired_gate_actor_speed_difference_mps: 3.552713678800501e-14
+actual_teb_outcome_retained_without_pass_requirement:
+  episode_pass: false
+  goal_reached: true
+  timeout: false
+  restricted_elapsed_s: 15.35
+  minimum_conservative_clearance_m: -0.8964979479095978
+  contact_state_count: 0
+  local_plan_count: 109
+  command_count: 118
+  action_state_name: SUCCEEDED
+v3_outcome:
+  episode_pass: false
+  goal_reached: false
+  restricted_elapsed_s: 22.0
+  minimum_conservative_clearance_m: 0.0688269269535815
+  contact_state_count: 0
+  initial_stop: true
+  eventual_progress: true
+  selected_candidate_ids:
+  - certified_stop_v000
+  - certified_stop_v000
+  - recovery_evasive_right_v120_r2
+preflight_pass: false
+actual_teb_multiscene_qualification_design_authorized: false
+qualification_execution_authorized: false
+performance_claim_authorized: false
+perception_execution_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

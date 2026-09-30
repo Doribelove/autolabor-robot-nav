@@ -1,0 +1,143 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P3-I1
+contract_id: fam_teb_v2_04g_p3_i1_one_unit_semantic_preflight_1
+status: explicitly_authorized_release_candidate_not_yet_released
+independent_stage: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_authorized: true
+authorized_evidence_units_max: 1
+consumed_evidence_units: 0
+training_allowed: false
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+
+authority:
+  user_instruction_date: "2026-07-24"
+  scope: >-
+    Continue FAM-TEB optimization autonomously in offline analysis and Gazebo,
+    with exact release, schedule, finite budget and corresponding stage gate.
+  narrowed_to:
+    - one_fresh_seed_semantic_overlay_qualification_preflight
+    - complete_transaction_activation_restore_and_raw_replay
+    - retain_any_failure_without_retry_resume_or_seed_replacement
+  excluded:
+    - any_other_round_2_calibration_or_qualification_identity
+    - held_out_test
+    - training
+    - stable_workspace_real_vehicle_CAN_or_hardware
+    - rerun_or_modification_of_any_P2_or_C1_R1_identity
+
+frozen_sources:
+  P3_D1_design_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_d1_round2_design/p3_d1_offline_closure_freeze.sha256
+    sha256: 2cd85d1cddb29ec7072a79070996664a380d1ac56596d3a781e60ffa97d449e6
+  P3_D1_design_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_d1_round2_design/v2_04g_p3_d1_design_report.yaml
+    sha256: 1187e053367838bf0ba289e1949420a13e45f6e226b56d0c2230fcfc34213e21
+  P3_D1_independent_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_d1_round2_design/v2_04g_p3_d1_independent_review.yaml
+    sha256: ac152f77e95d11769508ecdc0d97de5613d1dc71fe9ddc1942681d597abad4d9
+  C1_R1_D1_failure_attribution_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_d1_failure_attribution/p2_c1_r1_d1_offline_closure_freeze.sha256
+    sha256: d7e4179a38a2c9903295759ce49ad496598cd58199e980daf9078ae2e63cde29
+  inherited_runtime_dependency_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_release_readiness/p2_c1_r1_execution_dependency_closure.yaml
+    sha256: 2dae23d80fb385c1fb8c015866a56b20a89f861610fad36a19a1c7435302f5a6
+  method_bindings:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_method_bindings.yaml
+    sha256: a7d50d0c710fe59c8c0a76b3753a9e4dee5845e11108ad881bc32735430e6c51
+  source_scene_manifest:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_scenes.yaml
+    sha256: 050219ef3fc50649f7b7fc48b19716bfcc2a498ef8c2500ebf1713c7d7e487ec
+
+single_factor_binding:
+  factor_id: separate_runtime_semantic_profile_from_evidence_candidate_identity_v1
+  runtime_profile_id: r6_semantics_circle_contact
+  evidence_candidate_method_id: circle_contact_v125
+  evidence_qualification_profile_id: qualification_overlay_v125
+  runtime_consumers:
+    - r6_rule_context_supervisor
+    - v2_04g_r6_typed_anchor_transaction
+    - activation_probe_listener
+    - runtime_control
+  evidence_identity_records:
+    - schedule
+    - consumption
+    - journal
+    - raw_trace
+    - normalized_replay
+  behavioral_TEB_parameter_change: false
+  scene_threshold_estimator_safety_or_evaluator_change: false
+
+exact_identity:
+  sequence: 1
+  row_type: qualification_probe
+  probe_type: high_speed_to_conflict_overlay_transition
+  candidate_speed_mps: 1.25
+  candidate_method_id: circle_contact_v125
+  seed: 5624
+  attempt: 1
+  split: calibration
+  source_template_role: single_true_conflict
+  counts_toward_future_round_2_qualification_matrix: true
+  old_seed_5332_reuse_allowed: false
+
+budget_accounting:
+  global_round_2_maximum_units: 704
+  I1_authorized_units: 1
+  C1_future_additional_units_reserved_not_authorized: 253
+  T1_future_units_reserved_not_authorized: 450
+  sum: 704
+  additive_expansion: false
+  if_I1_integrity_or_probe_gate_fails_retire_remaining_round_units: 703
+
+execution_policy:
+  serial_concurrency: 1
+  consumption_boundary: base_roslaunch_spawn_requested
+  attempt_per_identity: 1
+  retry_resume_replacement_or_seed_substitution_allowed: false
+  per_identity_hard_wall_cap_s: 240
+  stage_hard_wall_cap_s: 300
+  positive_progress_clock_bootstrap_required: true
+  credential_safe_child_environment_required: true
+  exact_transaction_startup_arm_activation_restore_required: true
+  final_process_isolation_required: true
+  raw_path_SHA_size_receipts_required: true
+  stop_on_any_integrity_failure: true
+
+pass_gate:
+  execution_integrity_required: true
+  raw_replay_required: true
+  ordinary_probe_pass_required: true
+  collision: false
+  emergency: false
+  invalid_transaction_sample_count: 0
+  normal_projection_rate_strictly_below: 0.10
+  C1_implementation_or_release_allowed_before_pass: false
+
+release_policy:
+  release_count_max: 1
+  release_must_be_absent_during_independent_review: true
+  exact_release_SHA256_caller_supplied: true
+  full_local_and_external_dependency_closure_required: true
+  minimum_free_disk_bytes: 4294967296
+
+claim_boundary:
+  allowed_after_complete_I1:
+    - one_fresh_simulation_semantic_integration_result
+    - one_overlay_qualification_probe_result
+    - decision_whether_round_2_C1_may_be_implemented
+  forbidden:
+    - calibration_candidate_or_baseline_selection
+    - held_out_test_or_performance_improvement
+    - safety_generalization_deployment_or_real_vehicle_claim
+
+forbidden_side_effects:
+  modify_rerun_or_resume_P1_I5_T12_P2_or_C1_R1: true
+  access_round_2_held_out_test_artifacts_or_outcomes: true
+  run_training: true
+  execute_before_independent_review_and_exact_release: true
+  connect_stable_workspace_real_vehicle_CAN_or_hardware: true

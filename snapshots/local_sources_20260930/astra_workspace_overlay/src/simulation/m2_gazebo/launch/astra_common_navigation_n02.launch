@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="world"/><arg name="run_id"/><arg name="seed"/><arg name="method"/>
+  <arg name="bundle"/><arg name="bundle_sha256"/><arg name="scene_manifest"/><arg name="scene_id"/>
+  <arg name="legacy_report_path"/><arg name="steering_kd"/>
+  <arg name="legacy_checkpoint_path" default=""/>
+  <arg name="legacy_checkpoint_sha256" default="deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8"/>
+  <arg name="checkpoint_metadata" default=""/><arg name="checkpoint_metadata_sha256" default=""/>
+  <arg name="contract_path"/><arg name="contract_sha256"/><arg name="output"/>
+  <arg name="bag_path"/><arg name="bag_topics"/>
+  <!-- Future root-owned N02 collector must validate the new method identity.
+       The frozen N01/P04 collector intentionally rejects this new enum. -->
+  <arg name="collector_script"/>
+  <arg name="enable_collector" default="true"/><arg name="gui" default="false"/>
+  <arg name="teb_config" default="$(find m2_gazebo)/config/benchmark_teb_v0.yaml"/>
+  <arg name="dwa_config" default="$(find m2_gazebo)/config/benchmark_dwa_v0.yaml"/>
+  <param name="use_sim_time" value="true"/><param name="/m2_gazebo/simulation_only" value="true"/>
+  <!-- The collector alone invokes spawn/unpause/pause services. No spawn_model node. -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/><arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="true"/><arg name="use_sim_time" value="true"/>
+    <arg name="extra_gazebo_args" value="--seed $(arg seed)"/><arg name="server_required" value="true"/>
+  </include>
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find m2_gazebo)/urdf/m2_physical_p05.urdf.xacro' dynamics_seed:=$(arg seed) steering_kd:=$(arg steering_kd)"/>
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="m2_robot_state_publisher" output="screen">
+    <param name="publish_frequency" value="30.0"/>
+  </node>
+  <node pkg="topic_tools" type="relay" name="navigation_command_relay" args="/cmd_vel_navigation /cmd_vel" output="screen"/>
+  <node pkg="m2_gazebo" type="astra_common_route_provider.py" name="astra_common_route_provider" output="screen">
+    <param name="bundle" value="$(arg bundle)"/><param name="bundle_sha256" value="$(arg bundle_sha256)"/>
+    <param name="publish_map_to_odom" value="true"/>
+  </node>
+  <node pkg="m2_gazebo" type="astra_navigation_coordinator_n02.py" name="astra_navigation_coordinator" output="screen">
+    <param name="run_id" value="$(arg run_id)"/><param name="seed" value="$(arg seed)"/>
+    <param name="method" value="$(arg method)"/><param name="bundle" value="$(arg bundle)"/><param name="bundle_sha256" value="$(arg bundle_sha256)"/>
+  </node>
+  <group if="$(eval arg('method') in ['astra_analytic_route_v1', 'astra_pct_route_v1'])">
+    <node pkg="m2_gazebo" type="astra_route_coordinated_runtime.py" name="astra_route_runtime" output="screen" launch-prefix="$(env THESIS_WS)/.venv/bin/python">
+      <param name="run_id" value="$(arg run_id)"/><param name="seed" value="$(arg seed)"/><param name="method" value="$(arg method)"/>
+      <param name="bundle" value="$(arg bundle)"/><param name="bundle_sha256" value="$(arg bundle_sha256)"/>
+      <param name="checkpoint_metadata" value="$(arg checkpoint_metadata)"/><param name="checkpoint_metadata_sha256" value="$(arg checkpoint_metadata_sha256)"/>
+      <param name="maximum_episode_duration_s" value="22.0"/>
+      <remap from="/cmd_vel_navigation" to="/astra/method_cmd"/>
+    </node>
+  </group>
+  <group if="$(eval arg('method') == 'frozen_r2_v060_sensor_lifecycle_v1')">
+    <node pkg="m2_gazebo" type="astra_frozen_r2_sensor_lifecycle.py" name="astra_frozen_r2_method" output="screen" launch-prefix="$(env THESIS_WS)/.venv/bin/python">
+      <param name="run_id" value="$(arg run_id)"/><param name="seed" value="$(arg seed)"/><param name="method" value="pct_scope_rl"/>
+      <param name="candidate_variant" value="r2_candidate_v060"/><param name="actor_checkpoint_path" value="$(arg legacy_checkpoint_path)"/>
+      <param name="actor_checkpoint_sha256" value="$(arg legacy_checkpoint_sha256)"/>
+      <param name="execution_method" value="frozen_r2_v060_sensor_lifecycle_v1"/>
+      <param name="bundle" value="$(arg bundle)"/><param name="bundle_sha256" value="$(arg bundle_sha256)"/>
+      <param name="scene_id" value="$(arg scene_id)"/><param name="scene_manifest" value="$(arg scene_manifest)"/>
+      <param name="report_path" value="$(arg legacy_report_path)"/><param name="stage" value="astra_common_navigation_smoke"/><param name="split" value="development"/>
+      <param name="spawn_world_x" value="-5.4"/><param name="policy_start_world_x" value="-4.0"/><param name="goal_world_x" value="5.0"/>
+      <param name="goal_tolerance_m" value="0.25"/><param name="timeout_s" value="22.0"/>
+      <param name="activation_time_s" value="5.0"/><param name="warmup_speed_mps" value="0.8"/>
+      <param name="lookahead_m" value="0.70"/><param name="combined_radius_m" value="1.15"/>
+      <remap from="/cmd_vel_navigation" to="/astra/method_cmd"/>
+    </node>
+  </group>
+  <group if="$(eval arg('method') in ['actual_teb_common_route', 'dwa_common_route'])">
+    <node pkg="move_base" type="move_base" name="move_base" output="screen">
+      <rosparam file="$(find m2_gazebo)/config/benchmark_move_base.yaml" command="load"/>
+      <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="local_costmap"/>
+      <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="global_costmap"/>
+      <rosparam file="$(find m2_gazebo)/config/local_costmap.yaml" command="load"/>
+      <rosparam file="$(find m2_gazebo)/config/global_costmap.yaml" command="load"/>
+      <param name="base_local_planner" value="$(eval 'teb_local_planner/TebLocalPlannerROS' if arg('method') == 'actual_teb_common_route' else 'dwa_local_planner/DWAPlannerROS')"/>
+      <rosparam if="$(eval arg('method') == 'actual_teb_common_route')" file="$(arg teb_config)" command="load"/>
+      <rosparam if="$(eval arg('method') == 'dwa_common_route')" file="$(arg dwa_config)" command="load"/>
+      <rosparam file="$(find m2_gazebo)/config/astra_common_map_route.yaml" command="load"/>
+      <rosparam file="$(find m2_gazebo)/config/astra_navigation_common_footprint.yaml" command="load"/>
+      <remap from="cmd_vel" to="/astra/method_cmd"/><remap from="odom" to="/odom"/>
+    </node>
+  </group>
+  <!-- Five sensor-lifecycle evidence publishers are advertised at construction.
+       Root's NEW N02 contract must also bind these record/connection topics.
+       Headerless method Twist still has receipt-only coordinator semantics. -->
+  <arg name="sensor_lifecycle_evidence_topics" value="$(eval '/astra/frozen_r2_sensor_lifecycle/identity /astra/frozen_r2_sensor_lifecycle/input_receipt /astra/frozen_r2_sensor_lifecycle/trace /astra/frozen_r2_sensor_lifecycle/command_event /astra/frozen_r2_sensor_lifecycle/report' if arg('method') == 'frozen_r2_v060_sensor_lifecycle_v1' else '')"/>
+  <node pkg="rosbag" type="record" name="fixture_bag" output="screen" args="--lz4 --buffsize=128 -O $(arg bag_path) $(arg bag_topics) $(arg sensor_lifecycle_evidence_topics)"/>
+  <node if="$(arg enable_collector)" pkg="m2_gazebo" type="$(arg collector_script)" name="astra_navigation_collector" required="true" output="screen">
+    <param name="contract_path" value="$(arg contract_path)"/><param name="contract_sha256" value="$(arg contract_sha256)"/><param name="output" value="$(arg output)"/>
+  </node>
+</launch>

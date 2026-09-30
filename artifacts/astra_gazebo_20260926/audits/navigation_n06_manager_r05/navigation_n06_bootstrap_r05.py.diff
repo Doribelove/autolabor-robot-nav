@@ -1,0 +1,76 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_bootstrap_r04.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_bootstrap_r05.py
+@@ -0,0 +1,73 @@
++#!/usr/bin/python3
++"""Standard-library bootstrap, entered by env -i and Python -I -S only."""
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import stat
++import sys
++
++HERE=Path(__file__).resolve().parent
++sys.path.insert(0,str(HERE))
++import navigation_n06_environment_r05 as policy
++
++def read_bound(item):
++    if type(item)is not dict or set(item)!={'path','sha256'}:raise ValueError('closed binding required')
++    path=Path(item['path'])
++    if not path.is_absolute() or str(path.resolve())!=str(path):raise ValueError('canonical file required')
++    fd=os.open(str(path),os.O_RDONLY|os.O_NOFOLLOW)
++    try:
++        before=os.fstat(fd)
++        if not stat.S_ISREG(before.st_mode):raise ValueError('regular file required')
++        chunks=[]
++        while True:
++            data=os.read(fd,1024*1024)
++            if not data:break
++            chunks.append(data)
++        after=os.fstat(fd)
++    finally:os.close(fd)
++    if (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns,before.st_ctime_ns)!=(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns,after.st_ctime_ns):raise ValueError('bootstrap file changed')
++    data=b''.join(chunks)
++    if hashlib.sha256(data).hexdigest()!=item['sha256']:raise ValueError('bootstrap binding SHA differs')
++    return data
++
++def document(data):
++    def pairs(items):
++        out={}
++        for key,value in items:
++            if key in out:raise ValueError('duplicate JSON key')
++            out[key]=value
++        return out
++    def invalid(value):raise ValueError('nonfinite JSON')
++    return json.loads(data,object_pairs_hook=pairs,parse_constant=invalid)
++
++def prepare(release_path,release_sha,mode):
++    if dict(os.environ)!=policy.BOOTSTRAP_ENV or sys.flags.isolated!=1 or sys.flags.no_site!=1:raise ValueError('env -i /usr/bin/python3 -I -S entry required before manager imports')
++    if mode not in ('verify','execute'):raise ValueError('closed manager mode')
++    release=document(read_bound({'path':str(release_path),'sha256':release_sha}))
++    if release.get('stage')!='astra_navigation_n06_lookahead_static_pilot' or release.get('schema')!='astra_navigation_n06_exact_release_v1':raise ValueError('N06 exact release required')
++    binding=release['runtime_closure'];runtime=document(read_bound(binding))
++    resources=release['resources'];by_path={item['path']:item for item in resources}
++    if len(by_path)!=len(resources) or by_path.get(binding['path'])!=binding:raise ValueError('runtime closure must be uniquely release-bound')
++    for path in (Path(__file__).resolve(),HERE/'navigation_n06_environment_r05.py',HERE/'navigation_n06_entry_r05.sh',HERE/'run_navigation_n06_manager_r05.py'):
++        item=by_path.get(str(path))
++        if item is None:raise ValueError('bootstrap/manager source omitted from release')
++        read_bound(item)
++    values=policy.expected_environment(runtime['execution_environment'],binding['sha256'])
++    executable=policy.WORKSPACE/'.venv/bin/python'
++    if runtime.get('python_executable')!=str(executable.resolve()) or runtime.get('python_prefix')!=str(policy.WORKSPACE/'.venv') or runtime.get('python_no_user_site')is not True:raise ValueError('runtime interpreter identity differs')
++    argv=[str(executable),str(HERE/'run_navigation_n06_manager_r05.py'),'--'+mode,'--release',str(release_path),'--release-sha256',release_sha]
++    return executable,argv,values
++
++def main():
++    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--release',type=Path,required=True);parser.add_argument('--release-sha256',required=True)
++    mode=parser.add_mutually_exclusive_group(required=True);mode.add_argument('--verify',action='store_true');mode.add_argument('--execute',action='store_true')
++    parser.add_argument('--inspect-bootstrap',action='store_true',help='read-only resolved entry inspection; no manager import or spawn')
++    args=parser.parse_args();exe,argv,env=prepare(args.release,args.release_sha256,'verify' if args.verify else 'execute')
++    if args.inspect_bootstrap:
++        imported=any(name.startswith(('rospy','rosbag','run_navigation_n06_manager')) for name in sys.modules)
++        print(json.dumps({'schema':'astra_n06_bootstrap_inspection_r05','argv':argv,'environment':env,'manager_imported':imported,'execution_performed':False},sort_keys=True));return 0
++    os.execve(str(exe),argv,env)
++
++if __name__=='__main__':raise SystemExit(main())

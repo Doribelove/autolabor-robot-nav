@@ -1,0 +1,120 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P1-E1
+contract_id: fam_teb_v2_04g_p1_e1_exact_270_execution_1
+status: explicitly_authorized_implementation_release_and_simulation_execution
+independent_stage: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_authorized: true
+authorized_evidence_units: 270
+consumed_evidence_units: 0
+training_allowed: false
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+i5_rerun_or_resume_forbidden: true
+authority:
+  user_instruction: >-
+    下一阶段是实现并独立审查 exact 270-row runner 与统一 raw replay
+    adapter，然后建立唯一 release 和 270-unit budget；仍需你另行明确授权后才
+    能运行模拟。完整交接见 docs/thesis_experiment/
+    CURRENT_V2_04G_P1_R1_OFFLINE_READINESS_HANDOFF.md。明确授权
+  interpreted_scope:
+    - implement_exact_270_row_runner
+    - implement_unified_raw_replay_adapter
+    - perform_independent_offline_review
+    - create_one_unique_release_with_exact_270_unit_budget
+    - execute_the_exact_270_row_simulation_after_all_offline_gates_pass
+  authorization_does_not_extend_to:
+    - rerun_or_resume_i5
+    - training_or_training_budget_expansion
+    - real_vehicle_operation
+    - historical_seed_or_budget_reuse
+    - retries_resumes_replacements_or_outcome_selection
+frozen_inputs:
+  p1_r1_handoff:
+    path: docs/thesis_experiment/CURRENT_V2_04G_P1_R1_OFFLINE_READINESS_HANDOFF.md
+  exact_schedule:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/v2_04g_p1_r1_exact_schedule.yaml
+    episode_count: 270
+    block_count: 90
+    evidence_seed_first: 5201
+    evidence_seed_last: 5290
+  method_roster:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_p1_r1_method_bindings.yaml
+    confirmatory_control: r6_semantics_legacy_control
+    confirmatory_treatment: r6_semantics_circle_contact
+    contextual_reference: fixed_teb_reference
+  statistics:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_p1_statistics.py
+execution_policy:
+  serial_concurrency: 1
+  attempt_per_identity: 1
+  retry_resume_replacement_allowed: false
+  consumption_boundary: base_roslaunch_spawn_requested
+  stop_on_first_integrity_failure: true
+  remaining_budget_action_after_integrity_failure: forfeit
+  per_identity_hard_wall_cap_s: 240
+  stage_hard_wall_cap_h: 20
+  paused_clock_positive_progress_bootstrap_required: true
+  credential_safe_child_environment_required: true
+  process_isolation_between_identities_required: true
+method_execution:
+  r6_semantics_legacy_control:
+    rule_supervisor_started: true
+    typed_transaction_started: true
+    dynamic_obstacle_bridge_started: true
+    exact_profile_id: r6_semantics_legacy_control
+  r6_semantics_circle_contact:
+    rule_supervisor_started: true
+    typed_transaction_started: true
+    dynamic_obstacle_bridge_started: true
+    exact_profile_id: r6_semantics_circle_contact
+  fixed_teb_reference:
+    rule_supervisor_started: false
+    typed_transaction_started: false
+    dynamic_obstacle_bridge_started: false
+    balanced_anchor_overlay_loaded: false
+    pre_post_no_write_readback_required: true
+raw_replay_policy:
+  common_required_resources:
+    - activation
+    - evaluation
+    - trace
+    - clearance
+    - overlay
+    - teardown_receipt
+    - process_log
+  metrics_recomputed_from_raw:
+    - success
+    - collision
+    - navigation_time
+    - minimum_footprint_clearance
+    - observed_ttc_status
+    - timestamped_overlay_intervals
+  summary_fields_not_trusted_as_statistical_inputs: true
+  overlay_window: first_goal_dispatch_through_first_terminal_event
+  exact_interval_tiling_required: true
+  raw_path_and_sha_receipt_required: true
+release_policy:
+  release_count_max: 1
+  release_must_be_absent_during_offline_review: true
+  exact_release_sha256_must_be_caller_supplied: true
+  full_path_sha_closure_must_rehash_before_state_creation: true
+  minimum_free_disk_bytes: 4294967296
+  canonical_artifact_cap_bytes: 536870912
+claim_policy:
+  four_gates_required:
+    - integrity
+    - safety_and_task_noninferiority
+    - efficiency_superiority
+    - mechanism_reduction
+  positive_claim_only_if_all_four_pass: true
+  allowed_scope: three_frozen_dynamic_templates_under_fresh_simulator_stochastic_seeds_5201_5290
+  forbidden_claims:
+    - geometric_or_timing_generalization
+    - whole_system_superiority
+    - reinforcement_learning_gain
+    - real_vehicle_performance_or_safety
+    - deployment_readiness

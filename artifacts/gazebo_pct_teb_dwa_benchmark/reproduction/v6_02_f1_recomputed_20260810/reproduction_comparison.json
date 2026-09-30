@@ -1,0 +1,83 @@
+{
+  "allowed_nondeterminism": [
+    "mean_inference_latency_ms",
+    "p99_episode_inference_latency_ms",
+    "p99_inference_latency_ms"
+  ],
+  "assessment_excluding_wall_clock_latency_exact": true,
+  "bootstrap_distribution_byte_exact": true,
+  "episode_count": 320,
+  "field_difference_counts": {
+    "mean_inference_latency_ms": 240,
+    "p99_inference_latency_ms": 240
+  },
+  "formal_statistics": {
+    "gates": {
+      "97_5_percent_interval_lower_strictly_positive": true,
+      "goal_noninferior": true,
+      "relative_reduction_minimum_0_08": true,
+      "zero_contact": true,
+      "zero_mask_violation": true
+    },
+    "primary_relative_reduction_vs_analytic": 0.08402444347446525,
+    "primary_two_sided_97_5_percent_interval": [
+      0.03484003280375775,
+      0.13713459061481775
+    ],
+    "secondary_relative_reduction_vs_frozen_v5": 0.03161052145823717,
+    "secondary_two_sided_95_percent_interval": [
+      0.004935803710412512,
+      0.06576508199795365
+    ],
+    "summaries": {
+      "frozen_v5_full": {
+        "contact_count": 0,
+        "episodes": 80,
+        "goal_count": 56,
+        "mask_violation_count": 0,
+        "mean_failure_inclusive_restricted_time_s": 13.54375,
+        "minimum_physical_clearance_m": 0.10545226313616585
+      },
+      "pct_scope_rl_v6": {
+        "contact_count": 0,
+        "episodes": 80,
+        "goal_count": 60,
+        "mask_violation_count": 0,
+        "mean_failure_inclusive_restricted_time_s": 13.115625,
+        "minimum_physical_clearance_m": 0.15405185790718368
+      },
+      "pct_scope_rl_v6_no_history": {
+        "contact_count": 0,
+        "episodes": 80,
+        "goal_count": 60,
+        "mask_violation_count": 0,
+        "mean_failure_inclusive_restricted_time_s": 13.115625,
+        "minimum_physical_clearance_m": 0.15405185790718368
+      },
+      "sensor_analytic_prior": {
+        "contact_count": 0,
+        "episodes": 80,
+        "goal_count": 49,
+        "mask_violation_count": 0,
+        "mean_failure_inclusive_restricted_time_s": 14.31875,
+        "minimum_physical_clearance_m": 0.11129534797033913
+      }
+    }
+  },
+  "gazebo_or_teb_dwa_claim_created": false,
+  "original_sha256": {
+    "bootstrap_distributions.csv": "97d5dea6761dacdd0c1f09756ecbc2e184dbea7450c74da7ccf282685a77b79a",
+    "family_summary.csv": "86ce875759766d114f53983e43b4dafd81339fd9210a5d1ce18cbb95918b3eda",
+    "formal_assessment.json": "08a0ab06343cad51ee206ba502d2a115c6fd707d58620f9bb4f519a71ec95c1b",
+    "formal_episodes.csv": "2ab099cb695494527da0d0f4f62bab38e9ee0083771f0191b6101599ad93523c"
+  },
+  "reproduction_sha256": {
+    "bootstrap_distributions.csv": "97d5dea6761dacdd0c1f09756ecbc2e184dbea7450c74da7ccf282685a77b79a",
+    "family_summary.csv": "3630fec6e8c8b52ae70f2567191d40d223ade2dd907ba2baa5a005290635cf8a",
+    "formal_assessment.json": "f8697ad762df5f73f179e0bf63c6a7246fbe78a614a1e5ab635ac382b0640ca5",
+    "formal_episodes.csv": "dfcc0e04798463434f89d38541f334e2204179a48aae639220bc118c75d6ba6e"
+  },
+  "scientific_episode_fields_exact": true,
+  "scope": "historical four-family sensor-level fast population only",
+  "status": "v6_02_f1_scientific_reproduction_pass"
+}

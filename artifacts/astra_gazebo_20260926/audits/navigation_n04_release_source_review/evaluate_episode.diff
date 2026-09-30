@@ -1,0 +1,64 @@
+--- artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/evaluate_episode.py
++++ artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/evaluate_episode_n04.py
+@@ -90,7 +90,7 @@
+     exceed every target, so bounding by a nominal/base speed alone is unsound.
+     """
+     filename = plugin.get('filename')
+-    if filename not in ('libv3_reactive_actor_plugin.so', 'libastra_reactive_actor_plugin.so'):
++    if filename not in ('libv3_reactive_actor_plugin.so', 'libastra_reactive_actor_plugin.so', 'libastra_event_actor_n04_plugin.so'):
+         raise ValueError('unsupported actor plugin '+str(filename))
+     base = finite(plugin.findtext('base_speed', '1.0'))
+     initial = finite(plugin.findtext('initial_speed', str(base)))
+@@ -99,9 +99,15 @@
+     for name, default in (('response_distance', '4.0'), ('response_time_margin', '1.35')):
+         if finite(plugin.findtext(name, default)) <= 0:
+             raise ValueError('actor '+name+' must be positive')
+-    if filename == 'libastra_reactive_actor_plugin.so':
++    event_actor = filename == 'libastra_event_actor_n04_plugin.so'
++    if event_actor:
++        from event_actor_contract_n04 import plugin_contract
++        plugin_contract(plugin)
++    if filename in ('libastra_reactive_actor_plugin.so', 'libastra_event_actor_n04_plugin.so'):
+         required = ('ego_model', 'policy', 'start', 'end', 'conflict', 'route_origin',
+                     'route_yaw', 'gate_route_x', 'gate_delay')
++        if event_actor:
++            required = ('ego_model', 'policy', 'start', 'end', 'conflict', 'gate_delay')
+         if any(not plugin.findtext(name) for name in required):
+             raise ValueError('Astra actor required relative-gate/path field missing')
+         if plugin.findtext('policy') not in ('cautious', 'assertive', 'hesitant'):
+@@ -109,13 +115,13 @@
+         if any(plugin.find(name) is not None for name in ('start_delay', 'activation_ego_x')):
+             raise ValueError('Astra actor rejects legacy absolute gate fields')
+         vectors = {}
+-        for name in ('start', 'end', 'conflict', 'route_origin'):
++        for name in (('start', 'end', 'conflict') if event_actor else ('start', 'end', 'conflict', 'route_origin')):
+             vectors[name] = tuple(finite(x) for x in plugin.findtext(name).split())
+             if len(vectors[name]) != 2:
+                 raise ValueError('Astra actor '+name+' requires two coordinates')
+         if math.hypot(*(b-a for a, b in zip(vectors['start'], vectors['end']))) <= 0:
+             raise ValueError('Astra actor path must have positive length')
+-        for name in ('route_yaw', 'gate_route_x'):
++        for name in (() if event_actor else ('route_yaw', 'gate_route_x')):
+             finite(plugin.findtext(name))
+         for name in ('gate_delay', 'time_offset', 'ego_observation_hold',
+                      'ego_observation_period', 'response_enable_time'):
+@@ -131,8 +137,8 @@
+             'target_speeds_mps': targets,
+             'speed_model_bound_mps': max(initial, *targets.values()),
+             'derivation': 'next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress',
+-            'gate_scope': ('route-relative delay/stopping; active_dt<=physics_dt'
+-                           if filename == 'libastra_reactive_actor_plugin.so' else 'retained V3 activation protocol'),
++            'gate_scope': ('shared coordinator event; no pre-receipt integration; bounded Begin transport50ms' if event_actor else 'route-relative delay/stopping; active_dt<=physics_dt'
++                           if filename in ('libastra_reactive_actor_plugin.so', 'libastra_event_actor_n04_plugin.so') else 'retained V3 activation protocol'),
+             'heading_scope': 'fixed path yaw; observed changes have no qualified angular bound',
+             'qualification': 'pending',
+             'limit': 'SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations'}
+@@ -170,7 +176,7 @@
+                 model_pose = sdf_pose(model.find('pose'))
+                 plugins = model.findall('plugin')
+                 actors = [p for p in plugins if p.get('filename') in
+-                          ('libv3_reactive_actor_plugin.so', 'libastra_reactive_actor_plugin.so')]
++                          ('libv3_reactive_actor_plugin.so', 'libastra_reactive_actor_plugin.so', 'libastra_event_actor_n04_plugin.so')]
+                 if len(actors) == 1 and len(plugins) == 1:
+                     envelope = actor_motion_envelope(actors[0])
+                     self.actor_envelopes[name] = envelope

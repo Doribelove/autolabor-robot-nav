@@ -1,0 +1,62 @@
+{
+  "version": "astra_actor_live_parameter_mapping_v1",
+  "scope": "New common simulation environment for all methods; no planner algorithm change; no ROS execution by this mapping.",
+  "source_input_set": "scenes/development_a02",
+  "planned_derived_input_set": "scenes/development_a02_live_v1",
+  "actor_semantics": "parameterized deterministic reactive actor; direct reuse of frozen advanceV3ReactiveActor, with route-projected first-crossing gate plus per-actor delay",
+  "actor_fields": {
+    "model_name": {"sdf": "model.name", "usage": "live model identity"},
+    "start": {"sdf": "plugin/start", "usage": "world XY initial position and straight trajectory origin"},
+    "end": {"sdf": "plugin/end", "usage": "world XY path endpoint; clamped scalar progress"},
+    "conflict": {"sdf": "plugin/conflict", "usage": "world XY actor projection and Euclidean ego distance for frozen reaction"},
+    "policy": {"sdf": "plugin/policy", "usage": "cautious/assertive/hesitant deterministic reactive rule"},
+    "base_speed_mps": {"sdf": "plugin/base_speed and initial_speed", "usage": "live nominal and initial internal speed; actor position remains fixed until gate delay elapsed"},
+    "response_distance_m": {"sdf": "plugin/response_distance", "usage": "live ego-approach distance threshold"},
+    "response_time_margin_s": {"sdf": "plugin/response_time_margin", "usage": "live actor/ego TTC difference threshold"},
+    "gate_delay_s": {"sdf": "plugin/gate_delay", "usage": "simulation seconds after first route-projected gate observation; no absolute start_delay"},
+    "response_seed": {"sdf": "plugin/seed", "usage": "recorded deterministic configuration only; frozen jitter multiplier is zero, no behavioral effect"},
+    "parameter_cell_id": {"sdf": null, "usage": "offline train/development/validation/final split identity only"},
+    "nominal_arrival_difference_s": {"sdf": null, "usage": "offline input qualification proxy only; does not control live motion"},
+    "radius_m": {"sdf": null, "usage": "legacy inscribed-radius metadata; exact box is collision geometry"},
+    "collision_shape/length/width/height": {"sdf": "model/link/collision/geometry/box", "usage": "actual .72x.72x1m physical actor box"},
+    "initial_pose_xyz_rpy": {"sdf": "model/pose", "usage": "actual world XY/z.5/yaw follows transformed start-to-end direction"}
+  },
+  "fixed_actor_values": {
+    "ego_model": "autolabor_m2",
+    "route_origin": [0.0, 0.0],
+    "route_yaw": 0.0,
+    "gate_route_x": -4.02,
+    "gate_threshold_scope": "exact projected actor trigger; episode warmup checks at policy_start_x-.030, so source-stamped gate time must be reported separately",
+    "ego_observation_period_s": 0.2,
+    "ego_observation_hold_s": 0.3,
+    "time_offset_s": 0.0,
+    "response_enable_time_s": 0.0,
+    "cautious_speed_mps": 0.12,
+    "assertive_speed_mps": 1.35,
+    "hesitant_speed_mps": 0.32,
+    "hesitant_alternating_phase_s": 0.55,
+    "hesitant_alternate_speed_fraction": 0.78,
+    "acceleration_mps2": 1.8,
+    "deceleration_mps2": 2.4,
+    "motion_model": "legacy straight-path SetWorldPose; kinematic scripted actor, not force-driven walking dynamics"
+  },
+  "rng_fields": {
+    "geometry_seed": {"usage": "offline named geometry generation only", "behavioral_variation": true},
+    "seed": {"usage": "runner must pass to Gazebo --seed and robot dynamics_seed; scan gaussian noise stddev.01 uses Gazebo global RNG", "behavioral_variation": "scan randomness expected; live seed binding/repeatability remains a runtime check"},
+    "rng_substreams.actor_parameters": {"usage": "offline live-bound policy/base speed/response distance/response margin/gate delay sampling", "behavioral_variation": true},
+    "rng_substreams.actor_response": {"usage": "reserved unused aggregate stream", "behavioral_variation": false, "blocking": false},
+    "actor.response_seed": {"usage": "passed to inherited deterministic config; zero jitter multiplier", "behavioral_variation": false, "blocking": false},
+    "rng_substreams.sensor_noise": {"usage": "reserved future independent sensor stream; actual scan uses global Gazebo seed", "behavioral_variation": false, "blocking": false},
+    "rng_substreams.actuator": {"usage": "reserved future independent actuator stream; actual dynamics_seed is episode seed, command_jitter0 disables random delay", "behavioral_variation": false, "blocking": false}
+  },
+  "rigid_transform_scope": {
+    "actor_plugin": "world path and ego route projection support arbitrary finite SE2",
+    "derived_executable_inputs": "identity SE2 only until planner/map/evaluator live bridges are implemented",
+    "route_length_m": 9.0,
+    "route_start_xy": [-4.0, 0.0],
+    "route_goal_xy": [5.0, 0.0],
+    "robot_spawn_xyz_yaw": [-5.4, 0.0, 0.0, 0.0],
+    "future_scene_transforms": "transform actor/static geometry and robot spawn/goal together; planner observation and map frame bridge required; do not rotate body Twist scalar commands"
+  },
+  "claims_not_made": ["stochastic actor response", "independent sensor RNG stream", "randomized actuator delay", "friction-driven Ackermann dynamics", "live SE2 planner bridge", "live execution qualification"]
+}

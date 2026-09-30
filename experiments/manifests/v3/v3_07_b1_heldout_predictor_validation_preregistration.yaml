@@ -1,0 +1,27 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-B1
+status: frozen_before_any_v3_07_b1_heldout_access_or_gazebo_execution
+model:
+  path: artifacts/v3/prediction/v3_07_b0_r1/model/v3_07_b0_r1_spatial_candidate_predictor.yaml
+  sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+  conformal_radius_m: 0.4967404086874341
+  refit_on_heldout_forbidden: true
+schedule:
+  exact_rows: 20
+  fresh_reserved_seeds: [6661, 6662, 6663, 6664]
+  rows_per_eligible_head: 4
+  retry_allowed: false
+  resume_allowed: false
+evaluation:
+  hidden_policy_is_evaluator_only: true
+  model_inputs_exclude_hidden_policy: true
+  interval_score: maximum_absolute_error_across_four_horizons
+  global_coverage_min: 0.95
+  per_head_coverage_min: 0.75
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_or_seed_replacement: true
+  no_model_or_gate_change_after_outcome_access: true
+  no_planner_integration_if_any_gate_fails: true
+budget: {simulation_units: 20, reinforcement_learning_steps: 0, hardware_runs: 0}

@@ -1,0 +1,106 @@
+{
+  "schema": "astra_navigation_n05_terminal_replay_static_review_v1",
+  "status": "r02_binding_window_release_caller_regressions_pass_remaining_preview_schema_and_failed_receipt_gaps",
+  "independent_review": true,
+  "reviewed_source_sha256": "9f777fe7b417a64e1b4a576ab89281dafc59e9af152e84d0a498a3c96960a959",
+  "source_snapshot": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r02/source_snapshot.py",
+    "sha256": "9f777fe7b417a64e1b4a576ab89281dafc59e9af152e84d0a498a3c96960a959"
+  },
+  "scope": "Preexecution static source plus synthetic actual-function fault checks only; no active N05 full-matrix replay, no runtime outcome finding",
+  "positive_check_count": 18,
+  "synthetic_preview_counterexamples": {
+    "chosen=-1": {
+      "accepted": true,
+      "changed_decisions": 1
+    },
+    "chosen=True": {
+      "accepted": true,
+      "changed_decisions": 0
+    },
+    "original_analytic=-1": {
+      "accepted": true,
+      "changed_decisions": 1
+    },
+    "schema=wrong": {
+      "accepted": true,
+      "changed_decisions": 0
+    },
+    "method=wrong": {
+      "accepted": true,
+      "changed_decisions": 0
+    }
+  },
+  "closed_r01_issues": [
+    "Receipt artifact bindings now cover assessment/raw/contract/bag and exact report binding.",
+    "Formal start/end exact int, positive duration<=22s, gate and task terminal joins; terminal odom exact unique header and expected frame.",
+    "Treatment mask/full preview arrays checked against raw and exact eligibility predicate; missing audit rejects.",
+    "Boolean deadline flag and stop-reason count reported separately.",
+    "main invokes full frozen manager.verify_release, compares exact schedule and terminal statuses; no live execution of that expensive verifier in this review.",
+    "Empty safety result None, zero trace denominator None; own-terminal distance interpretation explicitly limited."
+  ],
+  "remaining_issues": [
+    {
+      "id": "preview_schema_and_action_index",
+      "priority": "repair_before_final_replay",
+      "source_lines": [
+        97,
+        109,
+        113
+      ],
+      "observed": "Five synthetic candidates accepted: chosen=-1, chosen=True, original_analytic=-1, wrong schema, wrong method. Negative indexing can select the last eligibility and falsify changed-decision counts.",
+      "repair": "Exact schema/method, strictly typed index0..7 for chosen/original and proposed if non-null; preserve physical_safety_certified=False and empty-eligibility fallback semantics."
+    },
+    {
+      "id": "failed_consumed_receipt_closure",
+      "priority": "repair_failure_inclusive_receipt_accounting",
+      "source_lines": [
+        157,
+        158,
+        187,
+        195
+      ],
+      "observed": "Synthetic exact prepared schedule of24 integrity-failed consumed units produced a report without any receipt files. main only replay-validates integrity_pass=True rows.",
+      "repair": "Validate receipt hash/identity/release/task/error for every consumed unit; full artifact/bag replay only for valid captures; enumerate failed/retired/incomplete identities and reasons."
+    }
+  ],
+  "interpretation_limits": [
+    "Trace and candidate stamp_ns are ROS clock snapshots at different stages: candidate decision now versus trace prepublication end_ns. Neither is actual physical driver command ingress.",
+    "Stop fraction is a per-trace-message fraction, not duration stopped; output column name should be read in that limited sense.",
+    "Terminal endpoint comparison is at each method own terminal; map SE2 transform is correct.",
+    "Source/runtimes are release-bound; this is not a new safety or navigation performance qualification.",
+    "No whole active release hash or actual bag replay in this revision review. Full verify_release implementation was read; caller execution isolated by a stub."
+  ],
+  "synthetic_results": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r02/fixture_results.json",
+    "sha256": "b762c73eebecee0cfd97af6e0345079830b5892dadcd4cec4ca71c3b24601a9f"
+  },
+  "command": "PYTHONDONTWRITEBYTECODE=1 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r02/fixtures.py",
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r02/source_snapshot.py",
+      "sha256": "9f777fe7b417a64e1b4a576ab89281dafc59e9af152e84d0a498a3c96960a959"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r02/fixtures.py",
+      "sha256": "10885dd188e36019f899db2af2b1abfdfe050f62a8a15de6cc1837d76a9a5c92"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r02/fixture_results.json",
+      "sha256": "b762c73eebecee0cfd97af6e0345079830b5892dadcd4cec4ca71c3b24601a9f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r02/fixtures_attempt01.log",
+      "sha256": "b762c73eebecee0cfd97af6e0345079830b5892dadcd4cec4ca71c3b24601a9f"
+    }
+  ],
+  "tool_errors_preserved": [
+    {
+      "error": "Initial read used nonexistent astra_route_preview_n05.py; rg returned missing file.",
+      "correction": "Resolved actual astra_route_preview_runtime_n05.py via rg --files; no source/output mutation or test error."
+    }
+  ],
+  "N05_actual_failure_claim": false,
+  "ROS_started": false,
+  "release_or_runtime_modified": false
+}

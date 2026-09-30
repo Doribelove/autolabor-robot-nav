@@ -1,0 +1,288 @@
+schema_version: '1.0'
+stage_id: astra_gazebo_20260926
+status: independent_design_proposal_pending_root_review_and_freeze
+execution_release: false
+new_final_outcomes_read: false
+authority_source: CODEX_ASTRA_LONG_RUN_20260926.md
+hardware_motion_authorized: false
+contract_type: mechanism_program
+cycle:
+- hypothesis
+- single_major_factor
+- targeted_regression
+- fresh_development_pairs
+- ablation
+- five_seed_stability_if_stochastic
+- fresh_validation_tranche
+- retain_or_revert_candidate_keep_evidence
+- next_mechanism
+major_factor_trials_per_cycle: 1
+hard_gate_priority:
+- input_and_execution_integrity
+- physical_safety
+- valid_completion
+- efficiency
+promotion:
+  required_safety_events: 0
+  minimum_distinct_validation_layouts_each_family: 12
+  validation_replicates_per_layout: 3
+  substantive_time_reduction_minimum: 0.03
+  alternative_completion_gain_percentage_points: 5.0
+  maximum_family_completion_point_drop_percentage_points: 2.0
+  substantive_engineering_effect_minimum_relative: 0.2
+  engineering_gain_alone_is_not_performance_claim: true
+  no_new_physical_or_conservative_safety_violation: true
+  uncertainty_required: true
+  stochastic_promotion: five training seeds; median substantive benefit and at least
+    four nonnegative directions; all failures retained
+  thresholds_frozen_before_candidate_validation: true
+methods:
+  primary:
+  - pct_new_deployment
+  - pct_r2_frozen
+  - analytic_same_stack
+  - actual_teb
+  - actual_dwa
+  frozen_r2_source: read_only_complete_snapshot_and_historical_release_model; never_import_mutable_new_runtime
+  analytic_same_stack: same new candidates/predictor/verifier/executor; learned ranking
+    bypassed only
+  actual_teb_plugin: teb_local_planner/TebLocalPlannerROS
+  actual_dwa_plugin: dwa_local_planner/DWAPlannerROS
+  oracle: separate_diagnostic_upper_bound_only
+  input_audit: actor receives scan/odom/local-goal/map and candidate features only;
+    Gazebo truth evaluator and optional train critic/teacher only
+baseline_tuning:
+  seed_split: development_then_validation
+  same_speed_and_actuation_caps_as_pct: true
+  minimum_coarse_configurations_per_planner: 12
+  additional_search_until_response_stable_or_documented_plateau: true
+  teb_axes:
+    dt_ref:
+    - 0.15
+    - 0.25
+    - 0.35
+    min_obstacle_dist:
+    - 0.25
+    - 0.33
+    - 0.4
+    inflation_dist:
+    - 0.45
+    - 0.6
+    - 0.8
+    weight_obstacle:
+    - 40
+    - 80
+    - 160
+    lookahead_m:
+    - 6
+    - 8
+    - 10
+    homotopy:
+    - false
+    - true
+    dynamic_scan_converter:
+    - false
+    - true
+  dwa_axes:
+    sim_time:
+    - 2.0
+    - 3.0
+    - 4.0
+    vx_samples:
+    - 18
+    - 30
+    vth_samples:
+    - 36
+    - 60
+    occdist_scale:
+    - 0.1
+    - 0.2
+    - 0.4
+    path_distance_bias:
+    - 16
+    - 32
+    - 48
+    goal_distance_bias:
+    - 16
+    - 24
+    - 32
+    stop_time_buffer:
+    - 0.3
+    - 0.5
+    - 0.7
+  search: space_filling_paired_coarse_then_local_refinement; exact_count_and_candidates_logged
+  selection: lexicographic_safety_then_valid_completion_then_failure_inclusive_time;
+    baseline cannot be discarded merely for outperforming PCT
+  DWA_ackermann_projection: common audited v-dependent yaw bound and steering slew;
+    raw and executed twist logged; no zero-speed in-place rotation
+mechanisms:
+- id: M01_geometry_reference
+  evidence: R2 clearance violations and inscribed actor-circle mismatch
+  factor: exact geometry reference/alignment
+  measurements:
+  - exact_collision_reference_fixtures
+  - fresh_paired_safety_runs
+  promotion_specific:
+  - all_independent_geometry_fixtures_pass
+  - zero_contact_and_clearance_violations_on_validation
+  status: not_yet_tested
+  applicable: true
+- id: M02_clock_tf_state
+  evidence: Scan timestamp TF and warmup races
+  factor: bounded atomic input synchronization
+  measurements:
+  - clock_reset
+  - stale_scan
+  - late_tf
+  - clean_reset
+  - owned_process_recovery
+  promotion_specific:
+  - zero_stale_output_commits
+  - bounded_stop_fallback
+  - fewer_input_faults_than_control
+  status: not_yet_tested
+  applicable: true
+- id: M03_switch_hysteresis
+  evidence: head-on and crossing safe-candidate switch burden
+  factor: safe-only switching hysteresis
+  measurements:
+  - switch_count
+  - time
+  - clearance
+  - mask
+  promotion_specific:
+  - switch_count_reduction_ge_20_percent
+  - time_reduction_ge_3_percent
+  - no_task_or_safety_regression
+  status: not_yet_tested
+  applicable: true
+- id: M04_short_commitment
+  evidence: unsafe replanning churn despite safe continuation
+  factor: short commitment revalidated every cycle
+  measurements:
+  - danger_interrupt
+  - mask
+  - switch_count
+  - time
+  promotion_specific:
+  - danger_interrupt_within_one_control_period
+  - time_reduction_ge_3_percent
+  - no_task_or_safety_regression
+  status: not_yet_tested
+  applicable: true
+- id: M05_stop_recovery
+  evidence: sequential timeouts and stale commitment
+  factor: progress-aware release after safe clearance
+  measurements:
+  - stop_duration
+  - recovery_delay
+  - timeouts
+  - mask
+  promotion_specific:
+  - timeout_rate_drop_ge_5_percentage_points_or_time_reduction_ge_3_percent
+  - no_task_or_safety_regression
+  status: not_yet_tested
+  applicable: true
+- id: M06_actuation_alignment
+  evidence: 0.40/0.48/0.4964 steering contracts and DWA twist projection
+  factor: single shared executed Ackermann contract
+  measurements:
+  - steer_saturation
+  - tracking_error
+  - candidate_execution_agreement
+  promotion_specific:
+  - zero_contract_mismatch
+  - tracking_error_p95_reduction_ge_20_percent
+  - no_task_or_safety_regression
+  status: not_yet_tested
+  applicable: true
+- id: M07_candidate_coverage
+  evidence: fixed lateral basis and unsupported obstacle layouts
+  factor: versioned route-relative candidate library
+  measurements:
+  - candidate_feasibility
+  - safe_multi_action_fraction
+  - path_coverage
+  - time
+  promotion_specific:
+  - safe_multi_action_fraction_gain_ge_10_percentage_points_or_time_reduction_ge_3_percent
+  - no_task_or_safety_regression
+  status: not_yet_tested
+  applicable: true
+- id: M08_predictor_calibration
+  evidence: single track and constant max-speed occupancy overconservatism
+  factor: multi-track candidate-conditioned calibrated occupancy
+  measurements:
+  - coverage
+  - width
+  - identity_switch
+  - clearance
+  - time
+  promotion_specific:
+  - heldout_calibration_coverage_gate_pass
+  - width_reduction_ge_10_percent_or_time_reduction_ge_3_percent
+  - no_task_or_safety_regression
+  status: not_yet_tested
+  applicable: true
+- id: M09_training_gazebo_gap
+  evidence: fast backend geometry/response differs from Gazebo
+  factor: shared generator and sensor-domain training alignment
+  measurements:
+  - fixed_input_equivalence
+  - scan_distribution
+  - validation_time
+  promotion_specific:
+  - all_interface_equivalence_gates_pass
+  - time_reduction_ge_3_percent_across_training_seeds
+  - no_task_or_safety_regression
+  status: not_yet_tested
+  applicable: true
+- id: M10_pct_target
+  evidence: PCT labels may favor side independent of achievable progression
+  factor: execution-feasible counterfactual ranking target
+  measurements:
+  - teacher_regret
+  - rank_accuracy
+  - validation_time
+  promotion_specific:
+  - teacher_regret_reduction_ge_10_percent
+  - time_reduction_ge_3_percent_across_training_seeds
+  - no_task_or_safety_regression
+  status: not_yet_tested
+  applicable: true
+- id: M11_reward_curriculum
+  evidence: sparse recovery feedback and scene imbalance
+  factor: one reward or curriculum factor per trial
+  measurements:
+  - per_family_steps
+  - seed_learning_curves
+  - validation_completion
+  promotion_specific:
+  - completion_gain_ge_5_percentage_points_or_time_reduction_ge_3_percent_across_training_seeds
+  - no_family_completion_drop_gt_2_percentage_points
+  - no_safety_regression
+  status: not_yet_tested
+  applicable: true
+- id: M12_dynamics_stress
+  evidence: pose-set driver cannot answer friction sensitivity
+  factor: new physics-valid actuator backend as separately frozen shared environment
+    factor
+  measurements:
+  - mu_response
+  - coast_brake
+  - steer_step
+  - contacts
+  - all_method_smoke
+  promotion_specific:
+  - measured_friction_effect_present
+  - all_shared_kinematics_and_contact_gates_pass
+  - do_not_claim_physical_fidelity_from_parameter_write_only
+  status: not_yet_tested
+  applicable: true
+stop_rule:
+  not_met_by_first_negative: true
+  not_met_by_smoke_or_documents: true
+  negative_exit: acceptance.nonachievement_closure only after independent review
+  no_arbitrary_training_or_token_budget_added: true
+  compute_order: measure hardware/memory/disk before assigning training schedules;
+    retain live job heartbeats

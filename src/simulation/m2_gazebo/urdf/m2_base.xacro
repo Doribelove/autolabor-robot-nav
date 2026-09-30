@@ -26,7 +26,7 @@
         <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
         <material name="m2_tire"><color rgba="0.06 0.06 0.06 1"/></material>
       </visual>
-      <collision name="${prefix}chassis_collision">
+      <collision name="${prefix}${name}_wheel_collision">
         <origin rpy="${pi/2} 0 0"/>
         <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
       </collision>
@@ -80,7 +80,7 @@
         <geometry><box size="${body_length} ${body_width} ${body_height}"/></geometry>
         <material name="m2_body"><color rgba="0.12 0.32 0.62 1"/></material>
       </visual>
-      <collision>
+      <collision name="${prefix}chassis_collision">
         <origin xyz="0 0 ${body_center_z}"/>
         <geometry><box size="${body_length} ${body_width} ${body_height}"/></geometry>
       </collision>

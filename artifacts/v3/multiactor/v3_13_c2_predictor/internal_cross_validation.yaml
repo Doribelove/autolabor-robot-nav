@@ -1,0 +1,45 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-C2
+status: internal_family_heldout_cross_validation_pass
+split: leave_one_scene_family_out
+fold_count: 4
+trajectory_count: 128
+global_simultaneous_trajectory_coverage: 0.921875
+mean_trajectory_rmse_m: 0.16960536381438757
+maximum_trajectory_rmse_m: 0.6101728918045466
+terminal_full_width_at_7s_m: 1.7200000000000002
+folds:
+- heldout_scene_family: crossing_and_oncoming
+  training_trajectories: 96
+  heldout_trajectories: 32
+  simultaneous_trajectory_coverage: 0.875
+  mean_trajectory_rmse_m: 0.1946622520564803
+  maximum_trajectory_rmse_m: 0.5781587759457919
+- heldout_scene_family: dual_crossing_opposed_wide
+  training_trajectories: 96
+  heldout_trajectories: 32
+  simultaneous_trajectory_coverage: 0.90625
+  mean_trajectory_rmse_m: 0.1777273108510897
+  maximum_trajectory_rmse_m: 0.541574787772811
+- heldout_scene_family: dual_crossing_staggered_open
+  training_trajectories: 96
+  heldout_trajectories: 32
+  simultaneous_trajectory_coverage: 0.96875
+  mean_trajectory_rmse_m: 0.12472789372584325
+  maximum_trajectory_rmse_m: 0.4832910709631473
+- heldout_scene_family: occluded_staggered_corridor
+  training_trajectories: 96
+  heldout_trajectories: 32
+  simultaneous_trajectory_coverage: 0.9375
+  mean_trajectory_rmse_m: 0.18130399862413715
+  maximum_trajectory_rmse_m: 0.6101728918045466
+gate_checks:
+  global_simultaneous_trajectory_coverage: true
+  every_heldout_family_simultaneous_coverage: true
+  mean_trajectory_rmse: true
+  maximum_trajectory_rmse: true
+  terminal_full_width: true
+  hidden_label_feature_count: true
+cross_validation_pass: true
+fresh_qualification_claim: false

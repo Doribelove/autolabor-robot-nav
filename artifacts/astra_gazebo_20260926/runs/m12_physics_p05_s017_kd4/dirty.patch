@@ -1,0 +1,131 @@
+diff --git a/src/simulation/m2_gazebo/CMakeLists.txt b/src/simulation/m2_gazebo/CMakeLists.txt
+index 9d937b2..eebe9b2 100644
+--- a/src/simulation/m2_gazebo/CMakeLists.txt
++++ b/src/simulation/m2_gazebo/CMakeLists.txt
+@@ -6,8 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ 
+ find_package(catkin REQUIRED COMPONENTS
+   autolabor_canbus_driver
++  diagnostic_msgs
++  gazebo_msgs
+   geometry_msgs
+   nav_msgs
++  nav_core
++  costmap_2d
++  pluginlib
+   roscpp
+   sensor_msgs
+   std_msgs
+@@ -21,7 +26,9 @@ catkin_python_setup()
+ catkin_package(
+   INCLUDE_DIRS include
+   LIBRARIES m2_ackermann_plugin v2_trajectory_actor_plugin
+-  CATKIN_DEPENDS autolabor_canbus_driver geometry_msgs nav_msgs roscpp sensor_msgs std_msgs tf2 tf2_ros
++    v3_reactive_actor_plugin v3_episode_recorder_plugin astra_evidence_plugin astra_reactive_actor_plugin astra_steering_hold_plugin astra_dense_evidence_plugin astra_physical_ackermann_plugin astra_physical_ackermann_p02_plugin
++    astra_physical_ackermann_p05_plugin astra_physics_metadata_p03_plugin astra_common_route_global_planner
++  CATKIN_DEPENDS autolabor_canbus_driver diagnostic_msgs gazebo_msgs geometry_msgs nav_msgs nav_core costmap_2d pluginlib roscpp sensor_msgs std_msgs tf2 tf2_ros
+   DEPENDS GAZEBO
+ )
+ 
+@@ -37,15 +44,62 @@ add_library(v2_trajectory_actor_plugin src/v2_trajectory_actor_plugin.cpp)
+ add_dependencies(v2_trajectory_actor_plugin ${catkin_EXPORTED_TARGETS})
+ target_link_libraries(v2_trajectory_actor_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
+ 
++add_library(v3_reactive_actor_plugin src/v3_reactive_actor_plugin.cpp)
++add_dependencies(v3_reactive_actor_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(v3_reactive_actor_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(v3_episode_recorder_plugin src/v3_episode_recorder_plugin.cpp)
++add_dependencies(v3_episode_recorder_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(v3_episode_recorder_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_evidence_plugin src/astra_evidence_plugin.cpp)
++add_dependencies(astra_evidence_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_evidence_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_reactive_actor_plugin src/astra_reactive_actor_plugin.cpp)
++add_dependencies(astra_reactive_actor_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_reactive_actor_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_steering_hold_plugin src/astra_steering_hold_plugin.cpp)
++add_dependencies(astra_steering_hold_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_steering_hold_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_dense_evidence_plugin src/astra_dense_evidence_plugin.cpp)
++add_dependencies(astra_dense_evidence_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_dense_evidence_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_physical_ackermann_plugin src/astra_physical_ackermann_plugin.cpp)
++add_dependencies(astra_physical_ackermann_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_physical_ackermann_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_physical_ackermann_p02_plugin src/astra_physical_ackermann_p02_plugin.cpp)
++add_dependencies(astra_physical_ackermann_p02_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_physical_ackermann_p02_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_physical_ackermann_p05_plugin src/astra_physical_ackermann_p05_plugin.cpp)
++add_dependencies(astra_physical_ackermann_p05_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_physical_ackermann_p05_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_physics_metadata_p03_plugin src/astra_physics_metadata_p03_plugin.cpp)
++add_dependencies(astra_physics_metadata_p03_plugin ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_physics_metadata_p03_plugin ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
++
++add_library(astra_common_route_global_planner src/astra_common_route_global_planner.cpp)
++add_dependencies(astra_common_route_global_planner ${catkin_EXPORTED_TARGETS})
++target_link_libraries(astra_common_route_global_planner ${catkin_LIBRARIES})
++
+ catkin_install_python(PROGRAMS scripts/m2_regression_test.py scripts/m2_teb_regression_test.py
+   scripts/v2_scan_transport.py scripts/v2_dynamics_regression_test.py
+   scripts/v2_scene_runtime_probe.py
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+ 
+ install(TARGETS m2_ackermann_plugin v2_trajectory_actor_plugin
++  v3_reactive_actor_plugin v3_episode_recorder_plugin astra_evidence_plugin astra_reactive_actor_plugin astra_steering_hold_plugin astra_dense_evidence_plugin astra_physical_ackermann_plugin astra_physical_ackermann_p02_plugin
++  astra_physical_ackermann_p05_plugin astra_physics_metadata_p03_plugin astra_common_route_global_planner
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+ install(DIRECTORY config launch urdf worlds
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
++install(FILES astra_common_route_plugins.xml DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+ 
+ if(CATKIN_ENABLE_TESTING)
+   find_package(rostest REQUIRED)
+diff --git a/src/simulation/m2_gazebo/package.xml b/src/simulation/m2_gazebo/package.xml
+index be686d7..2b99c62 100644
+--- a/src/simulation/m2_gazebo/package.xml
++++ b/src/simulation/m2_gazebo/package.xml
+@@ -9,6 +9,10 @@
+ 
+   <buildtool_depend>catkin</buildtool_depend>
+   <build_depend>autolabor_canbus_driver</build_depend>
++  <depend>diagnostic_msgs</depend>
++  <depend>nav_core</depend>
++  <depend>costmap_2d</depend>
++  <depend>pluginlib</depend>
+   <build_depend>gazebo_dev</build_depend>
+   <build_depend>gazebo_ros</build_depend>
+   <build_depend>geometry_msgs</build_depend>
+@@ -28,6 +32,7 @@
+   <exec_depend>actionlib</exec_depend>
+   <exec_depend>move_base_msgs</exec_depend>
+   <exec_depend>move_base</exec_depend>
++  <exec_depend>map_server</exec_depend>
+   <exec_depend>nav_msgs</exec_depend>
+   <exec_depend>nav_world_model</exec_depend>
+   <exec_depend>robot_state_publisher</exec_depend>
+@@ -37,6 +42,7 @@
+   <exec_depend>sensor_msgs</exec_depend>
+   <exec_depend>std_msgs</exec_depend>
+   <exec_depend>std_srvs</exec_depend>
++  <exec_depend>topic_tools</exec_depend>
+   <exec_depend>tf2</exec_depend>
+   <exec_depend>tf2_ros</exec_depend>
+   <exec_depend>teb_mode_manager</exec_depend>
+@@ -45,6 +51,7 @@
+   <test_depend>rostest</test_depend>
+ 
+   <export>
++    <nav_core plugin="${prefix}/astra_common_route_plugins.xml"/>
+     <gazebo_ros plugin_path="${prefix}/lib" gazebo_model_path="${prefix}"/>
+   </export>
+ </package>

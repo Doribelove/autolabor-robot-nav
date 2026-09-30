@@ -1,0 +1,25 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_baseline_rear_b03.launch
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_baseline_rear_b04.launch
+@@ -1,11 +1,11 @@
+ <?xml version="1.0"?>
+ <launch>
+-  <!-- Source draft only: new collector/stage/actor metadata/release required.
++  <!-- B04 static offline integration: separately reviewed release required before any run.
+        The collector alone owns spawn/unpause/pause; no lifecycle calls here. -->
+   <arg name="world"/><arg name="run_id"/><arg name="seed"/><arg name="method"/>
+   <arg name="bundle"/><arg name="bundle_sha256"/><arg name="steering_kd"/>
+   <arg name="contract_path"/><arg name="contract_sha256"/><arg name="output"/>
+-  <arg name="bag_path"/><arg name="bag_topics"/><arg name="collector_script"/>
++  <arg name="bag_path"/><arg name="bag_topics"/>
+   <arg name="gui" default="false"/>
+   <arg name="python_executable" default="$(env THESIS_WS)/.venv_train_cuda/bin/python"/>
+   <arg name="teb_config" default="$(find m2_gazebo)/config/benchmark_teb_v0.yaml"/>
+@@ -46,7 +46,7 @@
+     <remap from="odom" to="/astra/rear_odom"/>
+   </node>
+   <node pkg="rosbag" type="record" name="fixture_bag" output="screen" args="--lz4 --buffsize=128 -O $(arg bag_path) $(arg bag_topics)"/>
+-  <node pkg="m2_gazebo" type="$(arg collector_script)" name="astra_navigation_collector" required="true" output="screen" launch-prefix="$(arg python_executable)">
++  <node pkg="m2_gazebo" type="astra_navigation_collector_b04.py" name="astra_navigation_collector" required="true" output="screen" launch-prefix="$(arg python_executable)">
+     <param name="contract_path" value="$(arg contract_path)"/><param name="contract_sha256" value="$(arg contract_sha256)"/><param name="output" value="$(arg output)"/>
+   </node>
+ </launch>

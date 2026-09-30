@@ -1,0 +1,34 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-B1
+contract_id: v3_scope_v3_02_b1_conformal_score_repair_1
+status: pure_offline_single_factor_repair_preregistered
+parent_result: artifacts/v3/prediction/v3_02_t1/execution/v3_02_t1_terminal_result.yaml
+source_data:
+  training_calibration_only: true
+  schedule: artifacts/v3/prediction/v3_02_a1/offline_readiness/v3_02_a1_exact_schedule.yaml
+  T1_test_outcomes_used_for_fit_or_radius: false
+single_factor_repair:
+  factor_count: 1
+  factor_id: conformal_nonconformity_score
+  parent_value: outer_latent_mode_envelope_nonconformity
+  repaired_value: actual_mode_absolute_residual
+  quantile_alpha: 0.10
+  regression_coefficients_features_physical_clip_and_gates_unchanged: true
+authority:
+  offline_model_rebuild_authorized: true
+  new_simulation_authorized: false
+  T1_test_reuse_authorized: false
+  fresh_future_test_seeds_reserved: [6231, 6232, 6233]
+  real_vehicle_authorized: false
+acceptance:
+  calibration_marginal_coverage_min: 0.90
+  calibration_per_horizon_coverage_min: 0.85
+  calibration_mean_full_width_max_m: 4.50
+  actual_mode_mae_max_m: 0.50
+  candidate_sensitivity_min_m: 0.20
+  byte_identical_rebuild: true
+  independent_review: true
+failure_policy:
+  preserve_failure: true
+  do_not_access_fresh_test_on_failure: true

@@ -1,0 +1,119 @@
+{
+  "schema": "astra_route_training_proposal_m10_component_review_request_v1",
+  "status": "pure_candidate_component_author_checks_pass_independent_review_pending",
+  "source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_training_proposal_m10.py",
+    "sha256": "e034c3dc271e1d487bdae8fcab22b52a0affee9e41dca0ae7d63eb31e97589a6"
+  },
+  "tests": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_route_training_proposal_m10.py",
+    "sha256": "bfd5483ce64f92c44e29b86c01989bf36d06fef02e9c70075b0e4a28c7ac4d34"
+  },
+  "training_policy_id": "astra_route_tracks_pushforward_explore_m10_v1",
+  "deployment_policy_id": "astra_route_tracks_deterministic_residual_gate_m10_v1",
+  "candidate_epsilon": 0.2,
+  "epsilon_status": "fixed_offline_candidate_not_training_release",
+  "residual_gate_margin": 0.1,
+  "formula": "q(a)=epsilon*pi(a)+(1-epsilon)*sum_z[gate(z)==a]pi(z)",
+  "probability_space": "proposal_action_pushforward_marginal",
+  "gradient": "a.e. fixed-gate-partition score only; current mapping recomputed for ratio; no straight-through",
+  "deployment": "deterministic argmax original logits then original residual gate; exploration off; separate objective and identity",
+  "tests_passed": 32,
+  "actual_actor_gate_cases": 96,
+  "actual_actor_probe": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_proposal_m10/actual_actor_probe.json",
+    "sha256": "01e169ef28d36ef8636ea057931b76328d3bb70910cea4dd5c2d2c65bba7dfe4"
+  },
+  "original_sources_unchanged": true,
+  "preserved_first_test_failure": "tests_r01.log: 1 ULP rational-reference comparison; threshold corrected to binary64 epsilon only",
+  "pg_rules": {
+    "empty_mask": false,
+    "invalid_actor": false,
+    "deadline_or_source_drop": false,
+    "valid_timely_proposal_with_shield_response": "retain original proposal logq and label; executed action separate",
+    "all_failure_rewards_and_credit": "must remain in episode/critic/earlier valid PG credit; future M11 integration"
+  },
+  "limits": [
+    "No differentiable trainer/runtime adapter or checkpoint loader implemented",
+    "No proof of supplied receipt timestamps, hash authenticity or RNG independence",
+    "Masked PG availability objective is not proved unbiased for parameter-dependent deadline selection",
+    "Training mixture and deterministic deployment differ; no deployment return claim",
+    "Gate boundaries discontinuous; no global smooth PPO guarantee",
+    "Existing M08 69.239986ms >50ms remains a negative",
+    "Empty or single-valid mask cannot create alternative exploration",
+    "No N04/N05 integration or mutation"
+  ],
+  "training_steps": 0,
+  "simulation_episodes": 0,
+  "optimizer_created": false,
+  "gpu_used": false,
+  "benchmark": false,
+  "execution_authorized": false,
+  "training_authorized": false,
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_training_proposal_m10.py",
+      "sha256": "e034c3dc271e1d487bdae8fcab22b52a0affee9e41dca0ae7d63eb31e97589a6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_route_training_proposal_m10.py",
+      "sha256": "bfd5483ce64f92c44e29b86c01989bf36d06fef02e9c70075b0e4a28c7ac4d34"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_proposal_m10/actual_actor_probe.log",
+      "sha256": "01e169ef28d36ef8636ea057931b76328d3bb70910cea4dd5c2d2c65bba7dfe4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_proposal_m10/tests_final.log",
+      "sha256": "39286207a524a1043c6438478549cb8a494c09b92e7905d7af1689a89b1c620e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_proposal_m10/tests_r01.log",
+      "sha256": "d9c26ad500f4073659d1d33bff8f811637f7ce956dd1133aa04bb810052b0340"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_proposal_m10/tests_r02.log",
+      "sha256": "39286207a524a1043c6438478549cb8a494c09b92e7905d7af1689a89b1c620e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_proposal_m10/design.md",
+      "sha256": "8bc1ad140ce751aa70dd1db728e2672ed9b567ad7a030480dba14e5a486828c0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_proposal_m10/actual_actor_probe.py",
+      "sha256": "36955b04b2e30a56de173f314027c43ece9183fdf2a1cb3b5d5776eedaafb35f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_proposal_m10/actual_actor_probe.json",
+      "sha256": "01e169ef28d36ef8636ea057931b76328d3bb70910cea4dd5c2d2c65bba7dfe4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/asymmetric_ppo.py",
+      "sha256": "b17462537c8836a31fafbcd900c82fdd85bb55124c44dd98bb90418e5a74407f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_tracks_actor_adapter_m08.py",
+      "sha256": "8aaf54fac10f466a2820a3a25c6cbc2b72ed4a6fd7ff8ae18fa1bfc549464cf2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_alignment_m09/design.md",
+      "sha256": "7e4f76e5e41e2bac8e722e1882c36ddc6d7ad876e34f13a4e962631d3f55a84b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_alignment_m09_initialization_finding/finding.md",
+      "sha256": "9119d4ad072f9b4bedecd016e537aeec0b600ecfca50796845c31d7d9ac1fd19"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_alignment_m09/interfaces.py",
+      "sha256": "2fbedeb3cf97c6803aa39a22e1f0e21b48c1aa5cb16cc3a6b9d5c5a393662700"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_alignment_m09_initialization_finding/finding.json",
+      "sha256": "29af77d408d7168414d79e708f3fef6398a7ce1e91f5521da3d4f144364e7d7e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_alignment_m09_initialization_finding/probe_result.json",
+      "sha256": "d7647c3ed3fa05559e40213035c252d9493717d2f0a4378112a2a91c04c01172"
+    }
+  ]
+}

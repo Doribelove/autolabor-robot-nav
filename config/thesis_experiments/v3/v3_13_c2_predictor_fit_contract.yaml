@@ -1,0 +1,70 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-C2
+stage_purpose: candidate_conditioned_multiactor_predictor_fit_and_internal_cross_validation
+status: preregistered_model_fit
+upstream:
+  c1_assessment_path: artifacts/v3/multiactor/v3_13_c1_assessment/clone_assessment.yaml
+  c1_assessment_sha256: 41209bba6bdda908f5cbe8bf11096d8522979992d33782e0fbab95c71f5d7ad6
+  c1_evidence_freeze_sha256: c427437d0fd0795efa55374ba19f666d2447d934adb4696e9c26683f9d08459d
+  c1_independent_review_sha256: 946d1bb4f959d64a308d1de6827a1a13fe32aca7e4943f957c9999fb49d69a1e
+data_scope:
+  paired_blocks: 16
+  actor_trajectories: 128
+  scene_families: 4
+  candidate_actions: 4
+  hidden_policy_runtime_input: false
+  c1_is_model_development_and_calibration_data_not_future_qualification: true
+model:
+  model_type: candidate_conditioned_contextual_ridge_v1
+  separate_heads_by_observable_mode_and_candidate: true
+  observable_modes: [cautious, hesitant]
+  candidate_ids: [spatial_left_v120, spatial_right_v120, straight_v120, certified_stop_v000]
+  feature_order:
+  - time_s
+  - time_squared_s2
+  - time_cubed_s3
+  - initial_coordinate_speed_times_time
+  - negative_initial_coordinate_times_time
+  - path_origin_x_times_time
+  - path_origin_x_times_time_squared
+  ridge_lambda_after_rms_feature_scaling: 1.0
+  intercept: false
+  target: actor_path_coordinate_displacement_m
+calibration:
+  coordinate_radius_m: 0.30
+  coordinate_growth_mps: 0.08
+  terminal_full_width_at_7s_m: 1.72
+  selection_disclosure: fixed_after_exploratory_C1_internal_model_development_before_any_fresh_qualification
+internal_cross_validation:
+  split: leave_one_scene_family_out
+  folds: 4
+  global_simultaneous_trajectory_coverage_min: 0.90
+  every_heldout_family_simultaneous_coverage_min: 0.85
+  mean_trajectory_rmse_m_max: 0.25
+  maximum_trajectory_rmse_m_max: 0.65
+  terminal_full_width_m_max: 1.80
+  hidden_label_feature_count_max: 0
+future_qualification_boundary:
+  internal_cross_validation_is_not_fresh_qualification: true
+  future_seeds_reserved_not_authorized: [7301, 7316]
+  future_predictor_qualification_requires_new_release: true
+  future_actual_teb_comparison_requires_predictor_qualification: true
+authority:
+  deterministic_offline_predictor_fit_authorized: true
+  simulation_execution_authorized: false
+  policy_or_ranker_training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  qualified_if_c2_passes:
+  - a candidate-conditioned contextual predictor can be fit reproducibly to C1 clone trajectories
+  - internal leave-one-scene-family-out coverage and error gates pass
+  forbidden:
+  - fresh predictor generalization
+  - planner performance
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness
+

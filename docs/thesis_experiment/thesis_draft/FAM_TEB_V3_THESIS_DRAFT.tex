@@ -1,0 +1,595 @@
+\documentclass[12pt,a4paper,oneside]{report}
+\usepackage{fontspec}
+\setmainfont{Noto Sans CJK SC}
+\setsansfont{Noto Sans CJK SC}
+\setmonofont{DejaVu Sans Mono}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+\usepackage[margin=2.55cm]{geometry}
+\usepackage{booktabs,longtable,array,tabularx,multirow}
+\usepackage{graphicx,xcolor,tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,shapes.geometric}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{url}
+\hypersetup{colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!55!black,pdftitle={面向Ackermann移动机器人的候选条件交互预测与安全空间轨迹选择},pdfauthor={项目论文技术稿}}
+\definecolor{vblue}{HTML}{1769AA}
+\definecolor{vgreen}{HTML}{168A72}
+\definecolor{vred}{HTML}{C74440}
+\definecolor{vgray}{HTML}{667085}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{FAM-TEB / V3-SCOPE 论文技术稿}
+\fancyhead[R]{\leftmark}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{15pt}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.35em}
+\newcommand{\ok}{\textcolor{vgreen}{通过}}
+\newcommand{\fail}{\textcolor{vred}{失败}}
+\newcommand{\scope}{\textcolor{vgray}{证据边界}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\hashbreak}[4]{\texttt{\footnotesize #1\allowbreak#2\allowbreak#3\allowbreak#4}}
+\title{\Huge 面向 Ackermann 移动机器人的\\候选条件交互预测与安全空间轨迹选择\\[0.8em]\Large FAM-TEB 与 V3-SCOPE 可复核仿真研究}
+\author{项目论文技术稿\\\small 基于冻结实验资产自动导出}
+\date{2026 年 8 月 6 日}
+
+\begin{document}
+% Fixed trailer identifiers remove one avoidable source of PDF metadata drift.
+\special{pdf:trailerid [<56333232503154484553495350444631><56333232503154484553495350444631>]}
+\pagenumbering{Roman}
+\maketitle
+
+\chapter*{证据范围声明}
+\addcontentsline{toc}{chapter}{证据范围声明}
+本文档是从仓库冻结合同、一次性仿真回执、确定性 assessment 与独立 review 中导出的论文技术稿。
+核心正式阳性结果来自三个冻结的单反应式 actor Gazebo 模板，比较对象为工作区实际构建的
+\path{teb_local_planner/TebLocalPlannerROS} 0.8.4；双方共享 Gazebo oracle actor track。
+本文没有实车运动、CAN/串口访问、感知退化、多人正式性能、分布外泛化、形式化安全或部署证据。
+训练门在 V3-04 已关闭，正式 V3 方法是零训练的解析安全规划器，不将其表述为强化学习收益。
+
+V3-14 的多人扩展是完整阴性结果：45/45 单元执行及动作身份均通过，但共同前缀 actor 配对门失败。
+V3-16 随后只改变一个因素，在 12.55 s 前关闭 actor 闭环响应；新的 45/45 单元表明 actor 速度差
+下降 88.1\%，但坐标差仍为 0.06747 m 并超过 0.05 m 门。因而没有拟合多人 predictor，也没有
+运行多人 actual-TEB 或感知实验。本文保留两次阴性结果，避免把单演员阳性外推成多人泛化。
+
+为检验单演员阳性结果的稳健性，V3-21 又使用 30 个 fresh paired scene--seed blocks 完成
+V3、Actual TEB、固定屏蔽策略与去候选条件化消融共 120 个一次性回合，并将失败保留为 22 s
+受限时间。该研究发现 V3 相对 Actual TEB 的点降幅为 $-0.193\%$，双侧 95\% 区间跨零，因而
+没有复现失效计入式时间优势；相对消融的降幅为 49.454\%。V3-21 有一个 2.286 mm 的 gate
+容差偏差，故只作为完整表征而不升级为新的正式阳性结果。历史 V3-11 与 V3-21 分开报告且不合并。
+
+\chapter*{摘要}
+\addcontentsline{toc}{chapter}{摘要}
+动态横穿场景中的局部导航必须同时满足车辆运动学、他者对自车动作的条件响应以及安全备份。
+早期 Residual SAC 研究显示，高维 TEB 参数动作在执行前经常受到可行性投影，训练期平均投影率为
+67.3\%，动作语义与实际控制存在系统性错位。为此，本文提出 V3-SCOPE：把决策动作从高维局部
+规划器参数改为预生成的 Ackermann 可行空间轨迹，并在解析排序前依次执行候选条件交互预测、
+校准可达占据与硬安全验证；系统始终保留 certified stop，并为候选接受、拒绝和执行建立可重放
+证据链。
+
+在三个冻结 single-reactive-actor Gazebo 模板、cautious/hesitant 两类行为的 30 个 fresh
+paired blocks、60 个一次性 episodes 中，V3-SCOPE 与 actual TebLocalPlannerROS 0.8.4 均达到
+100\% 目标成功且 contact 为 0。V3 将平均受限 gate-to-goal 时间从 7.7733 s 降至 6.7683 s，
+配对均值下降 12.9288\%，单侧 97.5\% paired-bootstrap lower 为 12.7253\%；六个
+scene$\times$policy strata 均为正。独立的四方法 V3-21 表征在另外 30 个 fresh blocks 上保留
+两个 V3 certified-stop timeout 后，V3/Actual TEB 成功率为 93.33\%/100\%，受限均时为
+7.785/7.770 s，相对降幅 $-0.193\%$（双侧 95\% CI $[-19.867\%,12.982\%]$），未复现
+Actual TEB 时间优势；但相对去候选条件化消融缩短 49.454\%。进一步的双 actor 扩展完成
+5 单元预检和 40 单元证据矩阵，
+动作身份 45/45 通过，但跨候选 actor 坐标/速度差达到 0.06607 m/0.07208 m/s，超过预注册的
+0.05 m/0.05 m/s 门。单因素 V3-16 又完成 45/45 个 fresh 单元：速度差降至 0.00860 m/s，
+而坐标差仍为 0.06747 m，8 个区块中仅 5 个通过坐标门，故多人预测器和后续评测继续关闭。
+结果支持限定单演员反应式横穿仿真中
+相对固定 actual TEB 配置的空间候选收益，但不支持感知鲁棒、多人/OOD 泛化、形式化安全、学习、
+部署或实车声明。
+
+\noindent\textbf{关键词：} Ackermann 移动机器人；局部规划；候选条件预测；安全验证；TEB；
+预注册仿真；可复现性
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+This work presents V3-SCOPE, an action-aligned local planning architecture for Ackermann mobile
+robots. Instead of producing high-dimensional TEB parameters that may be substantially projected
+before execution, the planner selects from pre-generated feasible spatial trajectories. Each
+candidate is processed by candidate-conditioned interaction prediction, calibrated reachable
+occupancy, a hard safety verifier, and an analytic ranker with a certified-stop fallback.
+
+In a preregistered study covering three frozen single-reactive-actor Gazebo templates and 30 fresh
+paired blocks, V3-SCOPE and actual TebLocalPlannerROS 0.8.4 both achieved 100\% goal success with
+zero contact states. Mean restricted gate-to-goal time was reduced from 7.7733 s to 6.7683 s, a
+paired reduction of 12.9288\% with a one-sided 97.5\% bootstrap lower bound of 12.7253\%. A fresh
+four-method characterization over another 30 paired blocks retained two V3 certified-stop timeouts;
+V3 and actual TEB then achieved 93.33\%/100\% success and 7.785/7.770 s restricted means. The
+paired reduction was $-0.193\%$ (two-sided 95\% CI $[-19.867\%,12.982\%]$), so this study did not
+replicate failure-inclusive superiority over actual TEB, while V3 reduced restricted time by
+49.454\% relative to the no-candidate-conditioning ablation. A later
+two-actor extension completed all 45 scheduled units with correct action identity, but failed the
+preregistered common-prefix actor matching gates. A fresh 45-unit single-factor study then delayed
+reactive-actor response until 12.55 s. It reduced the maximum speed mismatch by 88.1\% (0.07208 to
+0.00860 m/s), while the coordinate mismatch remained above threshold at 0.06747 m. Consequently,
+no multi-actor predictor or downstream multi-actor comparison was authorized. The positive claim is therefore restricted to
+the frozen single-actor oracle-track population; no perception, multi-actor/OOD, formal-safety,
+learning, deployment, or real-vehicle claim is made.
+
+\tableofcontents
+\listoftables
+\listoffigures
+\clearpage
+\pagenumbering{arabic}
+
+\chapter{绪论}
+\section{研究背景}
+Ackermann 底盘在园区、实验室和低速服务机器人中常以全局路径、局部规划器和底盘安全链构成导航
+闭环。动态横穿行为使局部规划不再只是静态几何优化：机器人选择的轨迹会改变他者的响应，而他者
+的响应又反过来改变轨迹的安全性与效率。若规划器只使用与候选无关的单一 actor 预测，它会把“自车
+向左绕行”和“自车直行”等不同干预下的未来混为一谈。
+
+传统调参或强化学习路径还存在第二类问题：学习器输出的参数并不一定等于实际执行参数。类型边界、
+Ackermann 耦合、速率限制、安全监督器和运行时恢复会把 commanded action 投影成另一组 executed
+action。若回放缓冲区仍把 commanded action 当作环境动作，学习目标会受到结构性偏差。
+
+\section{研究问题}
+本文围绕三个层次提出问题：
+\begin{enumerate}
+  \item 能否用有限、可审计、Ackermann 可行的空间轨迹替代高维 TEB 参数动作？
+  \item 能否在候选条件预测、保守占据和硬安全验证之后，仍以实时解析排序完成局部选择？
+  \item 在公平共享车辆、场景、时钟、速度上限、目标和 actor track 的条件下，该方法相对 actual
+  TebLocalPlannerROS 0.8.4 是否具有预注册的时间收益？该证据能否扩展到两个 actor？
+  \item 在新的随机种子上把安全回退失败保留进统计后，历史时间收益能否复现；候选条件预测相对
+  单因素消融是否仍有可观测作用？
+\end{enumerate}
+
+\section{主要贡献}
+\begin{enumerate}
+  \item 提出 action-aligned 的空间候选架构，使策略选择对象与实际执行轨迹在语义上对齐。
+  \item 构建候选条件预测---校准占据---硬安全验证链，并保留 certified-stop 失效关闭路径。
+  \item 建立 actual TEB 公平基线和 30-block/60-episode fresh 正式评测，报告效应量、单侧 lower、
+  分层方向、安全、任务、执行和完整性门。
+  \item 以完整阴性多人扩展及一次 fresh 单因素修复刻画外部效度边界：响应门控消除了速度错位，
+  但未消除坐标错位，因此按预注册规则关闭后续拟合与性能推断。
+  \item 建立统一 episode 数据模式和四方法、六分层、30-seed 失效计入式框架；自动输出 bootstrap
+  统计、论文图和三线表，并公开历史阳性未被新研究复现的结果。
+\end{enumerate}
+
+\chapter{系统目标与总体架构}
+\section{系统目标}
+系统目标不是在线自由调节任意 TEB 参数，而是在动态交互中输出可执行、可解释、可回退的局部运动
+选择。软件必须同时满足：有限动作语义、Ackermann 可行性、候选条件交互建模、硬安全门、确定性
+回放、实时预算和现有底盘命令边界兼容。真实部署链保持为
+\path{/cmd_vel_navigation} $\rightarrow$ GPS limiter $\rightarrow$ FOD mode arbiter
+$\rightarrow$ M2 driver；本研究未连接该实物链。
+
+\section{分层数据流}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+node distance=7mm and 7mm,
+box/.style={draw,rounded corners,align=center,minimum height=11mm,minimum width=28mm,fill=blue!5},
+safe/.style={draw,rounded corners,align=center,minimum height=11mm,minimum width=28mm,fill=green!8},
+arrow/.style={-{Latex[length=2mm]},thick}
+]
+\node[box] (snap) {共同前缀\\场景快照};
+\node[box,right=of snap] (gen) {Ackermann 可行\\候选生成};
+\node[box,right=of gen] (pred) {候选条件\\actor 预测};
+\node[box,below=of pred] (occ) {校准可达\\占据管};
+\node[safe,left=of occ] (verify) {硬安全验证\\+ 制动检查};
+\node[safe,left=of verify] (rank) {解析排序\\+ certified stop};
+\node[box,below=of rank] (cmd) {命令边界\\仿真执行};
+\draw[arrow] (snap)--(gen); \draw[arrow] (gen)--(pred); \draw[arrow] (pred)--(occ);
+\draw[arrow] (occ)--(verify); \draw[arrow] (verify)--(rank); \draw[arrow] (rank)--(cmd);
+\draw[arrow,dashed] (cmd.east) -- ++(20mm,0) |- (snap.south);
+\end{tikzpicture}
+\caption{V3-SCOPE 候选条件空间规划数据流。}
+\label{fig:architecture}
+\end{figure}
+
+系统按五层工作。候选生成器先产生满足曲率、速度和加速度约束的有限轨迹；预测器针对每个候选分别
+预测 actor 响应；conformal 校准半径把预测转换为保守可达占据；硬验证器检查静态/动态净空、
+制动和下一承诺域；解析排序器只能在已通过候选中选择。任一依赖缺失、预测非有限或无候选通过时，
+系统返回 certified stop，而不是绕过安全门。
+
+\section{学习门与零训练决策}
+V3-04 对已有 closed-loop 日志执行支持度审计。日志对未执行候选的 propensity 为零，也缺少满足
+顺序决策学习所需的支持。根据预注册 learning-value gate，contextual bandit、offline RL 和 SAC
+均未获授权，训练步数保持为 0。这一决策避免把无法识别的反事实目标包装为学习收益。
+
+\chapter{候选、预测与安全验证方法}
+\section{Ackermann 可行候选}
+候选集合包含左/右空间绕行、直行、低速或停止轨迹。轨迹由冻结的加速/减速生成器离散化，支持速度
+$\{0,0.6,0.8,1.0,1.2\}$ m/s，并包含从当前状态可达的 certified stop。候选必须通过曲率、
+纵向加速度和共同前缀一致性检查；策略不再输出随后被大幅投影的高维参数向量。
+
+\section{候选条件交互预测}
+对于场景上下文 $x$、候选 $a$ 和预测时域 $h$，预测器估计 actor 沿路径坐标
+\begin{equation}
+  \hat{s}_{h}=f_h(x,a).
+\end{equation}
+校准阶段以 actual-mode 绝对残差构造 conformal 半径 $q_h$，得到
+$[\hat{s}_{h}-q_h,\hat{s}_{h}+q_h]$，再与物理速度边界相交。该表示明确保留候选对 actor 响应的
+影响；同一 actor 的预测不能无条件复制到所有候选。
+
+\section{硬验证与解析排序}
+验证器把 ego 轨迹扫掠体与 actor 可达占据进行时空相交检查，并评估静态净空、动态净空、制动距离
+和承诺域。若 $\mathcal{A}_{safe}$ 是通过候选集合，解析排序只计算
+\begin{equation}
+ a^*=\arg\min_{a\in\mathcal{A}_{safe}}
+ \left(w_pJ_{progress}(a)+w_cJ_{clearance}(a)+w_sJ_{smooth}(a)\right).
+\end{equation}
+当 $\mathcal{A}_{safe}$ 为空或证据依赖不完整时，输出 certified stop。安全验证通过是冻结仿真
+合同下的经验结果，不是对连续真实世界动力学的形式化证明。
+
+\chapter{实验完整性方法}
+\section{预注册与一次性身份}
+每个阶段在运行前冻结 scene、policy、seed、schedule、attempt、统计单位、阈值与停止规则。
+执行身份仅允许 attempt 1；禁止 retry、resume、replacement 和 selective exclusion。失败身份和
+剩余额度按合同计入 consumed/forfeited/retired 账本，不能因技术故障或结果不理想而回收。
+
+\section{动作绑定失效关闭}
+V3-13-R19-R6 曾出现调度五动作而运行器硬编码 r3 的完整性失败。V3-14-I1 因此新增两道门：
+\begin{enumerate}
+  \item 写入 \code{unit\_consumed} 前，调度 candidate、seed、scene、block、propensity 和
+  candidate-specific horizon 必须等于唯一 launch override；
+  \item 写入 \code{unit\_complete} 或纳入科学统计前，运行报告 candidate、seed、scene、block
+  必须再次与调度行完全一致。
+\end{enumerate}
+缺失、重复或替换 identity 都会立即终止阶段并作废剩余单元。该机制把“运行成功”与“运行了预定
+动作”分开审计。
+
+\section{证据闭包}
+合同、源码、二进制插件、release、exact schedule、raw report、receipt、journal、assessment 和
+independent review 均由 SHA-256 路径清单绑定。统计以 paired seed block 为独立单位，不能把
+高频轨迹样本或规划帧当作额外独立样本。论文声明通过 claims--evidence matrix 限定为
+qualified、not demonstrated 或 forbidden。
+
+\chapter{早期 FAM-TEB 与学习路线结果}
+\section{V2 正式性能阴性结果}
+V2-P1 在三个冻结动态模板、90 个 fresh seed blocks、270 episodes 上完整执行。安全/任务非劣和
+TTC 机制门通过，但受限完成时间点改善仅 3.7624\%，单侧 lower 为 2.7904\%，低于预注册 5\%
+最小实际效应门。因此 \code{formal\_result=true} 仅表示研究完整完成，
+\code{performance\_improvement\_demonstrated=false} 才是性能结论。
+
+\section{Residual SAC 诊断}
+T12 在修复崩溃链后完成两个 2000-step seeds 与 14/14 test goals，但验证变化为
++0.4527/-0.0784，跨 seed 均值门失败。离线诊断显示训练动作平均有 67.3\% 被投影；Ackermann
+耦合与 WARNING 后回锚速率限制是主要结构来源。因此该学习路线终止，未追加预算，也未把单 seed
+改善解释成跨 seed 学习收益。
+
+\section{对 V3 的启示}
+V2 与 T12 的共同结论不是“学习一定无效”，而是高维参数动作缺少稳定可识别的执行语义。V3 将动作
+改为可行轨迹，并在缺乏未执行候选支持时主动关闭训练，把研究重心转为解析安全规划及可复核比较。
+
+\chapter{V3-SCOPE 单演员正式结果}
+\section{actual TEB 公平合同}
+V3-11 使用工作区实际构建的 TebLocalPlannerROS 0.8.4。双方共享 M2 Ackermann Gazebo 车辆、
+执行器动力学、1.2 m/s 速度上限、起始 gate、目标、22 s timeout、paired simulator seed 与
+oracle actor track。总体包含 open 90$^\circ$ crossing、wide corridor 70$^\circ$ oblique
+crossing 和 bounded corridor 110$^\circ$ mirrored crossing 三个模板，以及 cautious/hesitant
+两类 policy，共六个 strata。
+
+正式设计使用 seeds 7101--7130，形成 30 paired blocks/60 episodes。主要指标是 22 s 限制下的
+paired mean gate-to-goal time reduction；点估计门为 10\%，单侧 97.5\% lower 门为 5\%，六个
+strata 均不得为负，并要求零 contact、非负保守净空和 V3 目标成功不劣于 actual TEB。
+
+\section{正式结果}
+\begin{table}[htbp]
+\centering
+\caption{V3-11-F1 相对 actual TEB 的正式结果。}
+\begin{tabular}{lrr}
+\toprule
+指标 & V3 spatial-safe & Actual TEB 0.8.4\\
+\midrule
+episodes & 30 & 30\\
+目标成功率 & 100\% & 100\%\\
+平均受限 gate-to-goal 时间 & 6.7683 s & 7.7733 s\\
+最小经验保守净空 & 0.5110 m & 0.0192 m\\
+contact state count & 0 & 0\\
+\bottomrule
+\end{tabular}
+\label{tab:v311}
+\end{table}
+
+60/60 episodes 均为 attempt 1 完成。配对均值降幅为 12.9288\%，单侧 97.5\% bootstrap lower
+为 12.7253\%；六个 scene$\times$policy strata 的均值降幅为 12.5161\%--13.5723\%，方向全部
+为正。所有 17 个冻结门通过，故
+\code{formal\_result=true} 且 \code{performance\_improvement\_demonstrated=true}。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=0.82cm,y=0.8cm]
+\draw[->] (0,0)--(11,0) node[right]{时间（s）};
+\foreach \x in {0,2,4,6,8,10} \draw (\x,0.08)--(\x,-0.08) node[below]{\x};
+\fill[vblue] (0,1.0) rectangle (6.7683,1.55);
+\fill[vgray] (0,2.0) rectangle (7.7733,2.55);
+\node[anchor=east] at (0,1.28) {V3};
+\node[anchor=east] at (0,2.28) {Actual TEB};
+\node[anchor=west] at (6.9,1.28) {6.7683};
+\node[anchor=west] at (7.9,2.28) {7.7733};
+\node[anchor=west,text=vgreen] at (0,3.2) {配对下降 12.9288\%；单侧 97.5\% lower 12.7253\%};
+\end{tikzpicture}
+\caption{受限 gate-to-goal 时间均值；越低越好。}
+\label{fig:v311}
+\end{figure}
+
+\section{合法结论与边界}
+该结果只支持三个冻结 single-reactive-actor Gazebo 模板及固定 TEB 版本/配置。双方共享 oracle
+actor track，因此没有感知证据。actual TEB 的最小经验保守净空仅 0.0192 m，零 contact 不能被
+解释为通用安全或形式化保证。结果不代表所有 TEB 配置、复杂地图、多人、OOD、部署或实车排名。
+
+\chapter{V3-14 多演员扩展：完整阴性结果}
+\section{新鲜发布与完整执行}
+V3-14-S1 不修补或续跑历史 R19-R6，而建立独立 release。非科学预检使用 seed 7719，证据矩阵
+使用 fresh seeds 7721--7728；每个区块覆盖 left、right、straight、certified stop 和 r3 五个
+动作。5/5 预检通过后才释放 40 个科学单元。45/45 均为 attempt 1 完成，无 retry、replacement、
+forfeiture 或 identity mismatch。
+
+\section{门结果}
+\begin{table}[htbp]
+\centering
+\caption{V3-14-S1 共同前缀和执行完整性门。}
+\begin{tabular}{lrrl}
+\toprule
+指标 & 观测值 & 门槛 & 状态\\
+\midrule
+动作身份一致率 & 1.000000 & 1.000000 & \ok\\
+branch clock 最大误差 & 0.008000 s & $\leq$0.012000 s & \ok\\
+ego 决策 x 最大差 & 0.000000 m & $\leq$0.040000 m & \ok\\
+actor 坐标最大差 & 0.066074 m & $\leq$0.050000 m & \fail\\
+actor 速度最大差 & 0.072081 m/s & $\leq$0.050000 m/s & \fail\\
+r3 terminal/boundary rate & 1.000000 & $\geq$1.000000 & \ok\\
+\bottomrule
+\end{tabular}
+\label{tab:v314}
+\end{table}
+
+最大坐标和速度差出现在 seed 7721 的 occluded-staggered-corridor 区块；seed 7723 与 7726
+的坐标差也分别为 0.050626 m 和 0.060978 m。ego 决策位置完全配对，说明偏差主要来自两个
+闭环 actor 在候选分支边界前的状态演化，而不是车辆前缀或动作硬编码。
+
+\section{终止解释}
+V3-14 的 scientific gate 是合取门，不能用 45/45 执行成功抵消 actor 配对失败。因此
+\code{evidence\_collection\_gate\_pass=false}，\code{predictor\_fit\_authorized=false}。
+项目没有拟合 r3 多演员 predictor，也没有启动 actual-TEB 多演员、感知/OOD 或训练阶段。
+这一阴性结果不推翻 V3-11 的单演员正式阳性，但阻止了任何多人泛化表述。
+
+\chapter{V3-16 反应门控单因素实验}
+\section{离线归因与冻结因素}
+V3-16-D1 对 V3-14 的 40 份科学回执逐项重放。40/40 action identity 与 ego pairing 均通过；
+actor 在 warmup gate 处的最大坐标差只有 0.00512 m，但到 12.5 s 候选分支边界增至
+0.06607 m。轨迹和插件审计表明，reactive actor 在候选动作生效前已经根据细小的相对状态差异
+闭环调整速度，因而把门边界附近的微小采样差放大为不可接受的分支状态差。
+
+据此预注册且只改变一个执行因素：把两个 actor 的响应启用时刻从 0 s 改为 12.55 s，即比冻结
+候选分支 12.50 s 晚 50 ms。actor 的初始位置、路径、基础速度、隐藏 policy、场景几何、五个
+候选动作、车辆控制、采集逻辑和全部 0.05 门槛保持不变。预检 seed 7741 不进入科学证据；
+fresh seeds 7742--7749 构成 8 个五动作区块、40 个正式回合。每个身份仅允许 attempt 1，
+禁止 retry、resume、replacement 和 selective exclusion。
+
+\section{实现与预检结果}
+Gazebo actor 插件增加可选的 \code{response\_enable\_time}；默认值 0 s 保持历史行为，V3-16
+world materializer 才显式写入 12.55 s。插件在门前保持冻结 base-speed 语义，门后恢复原
+cautious/hesitant 响应律。C++、Python 和 ROS 测试全部通过。5/5 预检单元一次完成，五动作的
+最大 actor 坐标/速度差为 0.00828 m/0.00414 m/s，均远低于 0.05 门；因此正式 40 单元按
+预注册条件自动释放。
+
+\section{正式支持门结果}
+45/45 单元均在 attempt 1 完成，无失败进程、重试、替换、forfeiture、动作或响应门身份错配。
+40 个正式回合全部保留；每区块五动作完整支持率为 1.0，最小行为 propensity 为 0.2。
+
+\begin{table}[htbp]
+\centering
+\caption{V3-14 与 V3-16 单因素结果对比。}
+\begin{tabular}{lrrrl}
+\toprule
+指标 & V3-14 & V3-16 & V3-16 门槛 & 状态\\
+\midrule
+完成单元 & 45/45 & 45/45 & 45/45 & \ok\\
+actor 坐标最大差 & 0.066074 m & 0.067472 m & $\leq$0.050000 m & \fail\\
+actor 速度最大差 & 0.072081 m/s & 0.008597 m/s & $\leq$0.050000 m/s & \ok\\
+branch clock 最大误差 & 0.008000 s & 0.008000 s & $\leq$0.012000 s & \ok\\
+ego 决策 x 最大差 & 0.000000 m & 0.016001 m & $\leq$0.040000 m & \ok\\
+通过坐标门的区块 & 5/8 & 5/8 & 8/8 & \fail\\
+\bottomrule
+\end{tabular}
+\label{tab:v316}
+\end{table}
+
+速度最大差相对 V3-14 下降 88.07\%，说明门控确实隔离了分支前的闭环速度响应；但坐标最大差
+反而从 0.066074 m 变为 0.067472 m（增加约 2.12\%），且块 1、3、5 仍越过坐标门。
+因此 \code{evidence\_collection\_gate\_pass=false}，
+\code{predictor\_fit\_authorized=false}。这个结果把失败进一步分解为“速度响应污染可修复，
+位置同步仍未解决”，但不能写成多人支持取得部分资格或性能改善。
+
+\section{证据修复与终止规则}
+冻结 assessor 的第一次调用使用混合 resource list 的间接索引查找 episode report，导致 raw hash
+检查错误失败；原 assessment 和 review 均保留。R1 只把路径解析改为 receipt 同目录下的
+\path{episode_report.yaml}，不改任何仿真字节、样本、门槛或科学结论。R1 复算 45/45 report
+hash 和 action/response binding 均通过，独立 review SHA 为
+\hashbreak{c4469571a1a8f8e9}{99e733138d42466f}{a0c0a6bd472bcebe}{5d044fe512a4765c}。
+由于科学坐标门仍失败，后续 predictor fitting、actual TEB 多人比较、感知/OOD、训练与实车
+均未获授权。
+
+\chapter{四方法新鲜种子复现与消融表征}
+\section{设计、方法与失效计入规则}
+V3-19 首先预注册主方法、Actual TEB 0.8.4、Fixed-v1.20 shielded 和
+\code{v3\_no\_candidate\_conditioning} 四种方法。消融只把候选条件空间预测头替换为同一模式的
+certified-stop 预测头；候选生成、硬验证、排序、跟踪、场景和车辆均不变，训练步数仍为 0。
+资格研究 24/24 回合完成，但 V3 仅完成 5/6 个目标，故其预留正式 seeds 按合同退役。
+
+V3-20 改为不以任务成功阻止完整矩阵，而将所有已消费失败保留为 22 s 受限时间。该阶段在第 78
+序列发生 ROS master 端口碰撞，77 个已完成回合保留、剩余 42 个回合作废且不重试。V3-21
+只修复端口命名空间：master 端口固定为 24002--24240，低于 Linux ephemeral range；科学方法、
+统计和场景均不变。fresh seeds 8201--8230 构成 30 个配对区块，每区块运行四方法，共 120 回合。
+统计以区块为独立单位，使用 20000 次 paired bootstrap 双侧 95\% CI，并对三个比较作 Holm 校正。
+
+\input{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/tables/tab04_experiment_configuration.tex}
+\input{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/tables/tab05_integrity_history.tex}
+
+\section{四方法总体结果}
+120/120 回合均在 attempt 1 完成，无 retry、resume、replacement、contact 或端口失败。V3 完成
+28/30 个目标，两个未完成回合按意向处理保留为 22 s；Actual TEB 完成 30/30，固定屏蔽策略
+完成 0/30，去候选条件化消融完成 13/30。四方法总体结果见表~\ref{tab:v321-methods} 和
+图~\ref{fig:v321-outcomes}。
+
+\input{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/tables/tab01_method_results.tex}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/figures/fig01_method_outcomes.pdf}
+\caption{V3-21 四方法成功率与失效计入式受限时间；失败以 22 s 保留。}
+\label{fig:v321-outcomes}
+\end{figure}
+
+\section{配对效应与消融解释}
+V3 与 Actual TEB 的受限均时分别为 7.785 s 和 7.770 s。配对相对降幅为 $-0.193\%$，双侧
+95\% block-bootstrap 区间为 $[-19.867\%,12.982\%]$，Holm $p=0.755412$，因此该批 fresh
+数据不支持 V3 的失效计入式时间优势。V3 相对 Fixed-v1.20 shielded 和去候选条件化消融则分别
+缩短 64.614\% 与 49.454\%，两个 Holm $p$ 均为 0.000150。固定策略全部进入 certified stop，
+只能说明该冻结直行策略过于保守，并不代表所有固定规划器。
+
+\input{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/tables/tab02_pairwise_results.tex}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/figures/fig02_pairwise_effects.pdf}
+\caption{V3 相对三个比较对象的配对区块 bootstrap 效应；正值表示 V3 受限时间更短。}
+\label{fig:v321-effects}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.67\textwidth]{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/figures/fig03_v3_vs_actual_teb_blocks.pdf}
+\caption{V3 与 Actual TEB 的 30 个配对区块；两个 V3 timeout 均保留为 22 s。}
+\label{fig:v321-blocks}
+\end{figure}
+
+\section{分层、净空与协议偏差}
+六个 scene$\times$policy strata 中，V3 在两个 hesitant strata 的成功率为 80\%，其余四层为
+100\%；Actual TEB 六层均为 100\%。去候选条件化消融在 hesitant actor 下最弱，其中 open-90/
+hesitant 为 0\%。这表明候选条件预测的探索性收益主要体现在避免保守停止，但不等价于相对
+Actual TEB 的总体性能优势。
+
+\input{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/tables/tab03_stratum_results.tex}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.98\textwidth]{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/figures/fig04_scene_policy_strata.pdf}
+\caption{六个冻结场景--actor 行为分层的成功率与受限时间。}
+\label{fig:v321-strata}
+\end{figure}
+
+四方法 contact 均为 0；V3 与 Actual TEB 的最小经验净空分别为 0.4764 m 与 0.0395 m。图
+\ref{fig:v321-clearance} 仅描述有限仿真样本，不构成形式化或实车安全结论。V3 规划延迟 P99 为
+10.756 ms。唯一协议偏差出现在 sequence 107：gate x 误差 0.032286 m，超出 0.03 m 容差
+2.286 mm；该回合目标成功且其余完整性门通过，故按 intention-to-treat 保留。排除对应 block 27
+后的 V3--TEB 点降幅为 $-0.643\%$，结论不变。因存在该偏差，V3-21 的
+\code{formal\_result=false}，但完整 120 回合表征和消融统计可报告。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.94\textwidth]{../../../artifacts/v3/thesis/v3_22_p1_paper_materials/figures/fig05_minimum_clearance.pdf}
+\caption{四方法经验最小净空分布；仅为有限仿真描述量。}
+\label{fig:v321-clearance}
+\end{figure}
+
+\section{与历史正式阳性结果的关系}
+V3-11 和 V3-21 使用不同 fresh seeds 与不同合同，必须分别报告。V3-11 双方均 30/30 成功，得到
+12.9288\% 的正式阳性配对降幅；V3-21 将两个保守回退按 22 s 保留后不再优于 Actual TEB。
+二者共同说明：成功通过时 V3 的完成时间稳定在约 6.77 s，但少量 certified-stop timeout 足以
+消除失效计入式均值优势。论文因此保留 V3-11 的限定历史证据，同时明确陈述新的严格复现没有证明
+Actual TEB 优势，不做事后合并、失败删除或选择性汇报。
+
+\chapter{讨论}
+\section{历史阳性与新鲜未复现为何可以并存}
+历史 V3-11 回答冻结正式合同下的配对性能问题，V3-21 则加入固定比较与单因素消融，并要求失败全部
+进入 22 s 统计。新实验不是对旧证据的删除，但降低了“稳定优于 Actual TEB”这一更强陈述的可信度。
+工程上最重要的限制是硬安全验证可能选择 certified stop：它提高了保守性，却使任务效率对少量
+拒绝事件高度敏感。后续研究应在不放松安全门的前提下改进可行候选覆盖，而不是删除失败区块。
+
+\section{为什么单演员阳性与多人阴性可以同时成立}
+V3-11 检验的是冻结单演员总体上的规划器时间收益；V3-14/V3-16 检验的是在两个闭环 actor 下，不同候选
+是否共享足够一致的分支前状态，以支持 cloned-intervention predictor 拟合。二者研究问题、seed、
+合同与资格门不同。单演员规划收益成立，并不逻辑蕴含多人反事实可比性成立。
+
+\section{工程意义}
+动作绑定闭环消除了“调度动作不等于运行动作”的证据风险。更重要的是，V3-14/V3-16 显示完整性修复不应
+自动升级科学结论：执行器可以完美执行错误或不可比的实验。将 runtime identity、反事实配对和性能
+推断拆成不同 gate，是本项目对可复现实验流程的关键贡献。
+
+\section{有效性威胁}
+\begin{itemize}
+  \item 场景是工程构造的 Gazebo 模板，actor policy 不是实测人群分布；
+  \item actual TEB 比较只覆盖 0.8.4 与冻结配置，不是所有版本/调参的排序；
+  \item oracle actor track 隔离了规划器差异，也排除了感知误差，故不能声明感知鲁棒；
+  \item 零 contact 和保守净空是有限仿真总体上的经验量，不是形式化安全证明；
+  \item 没有实车、定位漂移、传感器退化、复杂静态地图或多人正式性能证据；
+  \item 训练步数为 0，本文不评价学习方法的最终潜力，只说明当前日志不支持可识别训练。
+  \item V3-21 有一个超出 gate 容差 2.286 mm 的协议偏差，故只能作完整表征；排除敏感性虽不改变
+  结论，也不能把它事后升级为正式研究。
+\end{itemize}
+
+\chapter{结论与展望}
+本文形成了一条从高维参数动作诊断到 action-aligned 空间候选规划的完整研究链。V2 和 T12 揭示
+参数投影与跨 seed 学习不稳定；V3-SCOPE 用 Ackermann 可行候选、候选条件预测、保守占据、硬安全
+验证和解析排序替代高维参数学习。在三个冻结单演员反应式横穿模板上，V3 相对 actual
+TebLocalPlannerROS 0.8.4 获得 12.9288\% 配对时间改善，单侧 97.5\% lower 为 12.7253\%，
+双方目标成功 100\%、contact 为 0。
+
+新的四方法 30-seed/120-episode 表征进一步约束了这一结论：V3 相对 Actual TEB 的失效计入式
+降幅为 $-0.193\%$，双侧 95\% CI 跨零，未复现时间优势；相对去候选条件化消融仍缩短
+49.454\%，成功率由 43.33\% 提高到 93.33\%。因此终态不能概括为“V3 普遍优于 TEB”，而应写成
+“候选条件机制证据明确，历史限定阳性存在，但新的失效计入复现未证明 Actual TEB 优势”。
+
+双 actor 扩展则得到同样重要的阴性结论：动作身份问题已经解决；12.55 s 响应门控把速度差降低
+88.07\%，却没有让 actor 坐标满足预注册容差，故多人 predictor 与后续比较必须关闭。当前最诚实
+的终态是“单演员限定阳性，多人速度同步因素有效但整体支持未证明”。未来研究需要新的、独立审查的
+位置状态快照/重置设计，而不能继续修改当前门槛或追加当前 release；实车环节必须另获现场授权。
+
+\appendix
+\chapter{主要冻结证据索引}
+\begin{longtable}{p{0.31\textwidth}p{0.62\textwidth}}
+\toprule
+资产 & SHA-256\\
+\midrule
+\endhead
+V3-11 formal assessment & \hashbreak{9b19f8bd29f1d6c0}{6197e932b03359a2}{f78081da65e636f5}{2f7f610529c3f2f9}\\
+V3-11 independent review & \hashbreak{2d5e8c21ea70f29d}{f97e646f70315929}{7ff0d2da6ef10edb}{1341da057c133b39}\\
+V3-12 paper manifest & \hashbreak{319bce3401859e25}{fa1e5da68d97669a}{6aebf593688c4750}{03a8844b91798c0b}\\
+V3-14 execution release & \hashbreak{bf2cf4ec95861897}{5597ce46f6f150d4}{279d68d7548e7dfa}{c39e08333943855a}\\
+V3-14 evidence summary & \hashbreak{d6ffde4c658170cc}{f6ed992bd4131ee2}{8f72a81882d64f73}{b41c38038f53e8d4}\\
+V3-14 assessment & \hashbreak{58c472560699e102}{76f76c063dd243ab}{5666f8e534346c51}{e88aa9f2b49958b9}\\
+V3-14 evidence manifest & \hashbreak{ab8d31605b383a7b}{590f86f716a6fe88}{a2eb12c2afb45f74}{e21195a7f47b4679}\\
+V3-14 independent review & \hashbreak{4773d76437a01148}{984770ca502dce96}{cfa6d3bc2743029e}{0bb7a1f10f94c60a}\\
+V3-16-D1 attribution & \hashbreak{1f84987b14a9a872}{1eea5823e965d7c0}{283f0a4250f7efb7}{137cf060b08e7396}\\
+V3-16 execution release & \hashbreak{8bdb5eebebaf1cde}{d5b2712fd51d92cc}{e134858255f7f877}{6cfb1f7076618a71}\\
+V3-16 evidence summary & \hashbreak{088483a89952f157}{b51f5411a96e270f}{3d639c214a244d1d}{6fbdbc4b9e116590}\\
+V3-16 R1 assessment & \hashbreak{6a30f54abea88949}{722cf10e58e4da59}{aaa11a631f9eece2}{ee373a9f766ebaf5}\\
+V3-16 R1 review & \hashbreak{c4469571a1a8f8e9}{99e733138d42466f}{a0c0a6bd472bcebe}{5d044fe512a4765c}\\
+V3-21 characterization & \hashbreak{c195fc7cea4c6495}{82bb3c0017e55a1b}{98f5de3b7f971737}{b1f2abcb5596ccc8}\\
+V3-21 independent review & \hashbreak{450f4103e58e8e62}{2c3adc192599a6e7}{4fdc587430277432}{a642403729e6dd90}\\
+V3-22 paper materials manifest & \hashbreak{658e906c3fae23d8}{6e5cab5e65edbe6c}{a00cc74c1188b040}{4294f29c4fe973d0}\\
+V3-22 paper materials review & \hashbreak{88547275a6627027}{517aa55d2128469b}{b30de1721fc162e9}{2ab9d6d787be0959}\\
+\bottomrule
+\end{longtable}
+
+\chapter{论文声明门}
+\begin{longtable}{p{0.18\textwidth}p{0.22\textwidth}p{0.52\textwidth}}
+\toprule
+声明 & 状态 & 合法边界\\
+\midrule
+\endhead
+历史单演员 actual TEB 时间收益 & qualified historical & V3-11 的三个冻结模板、固定 TEB 0.8.4 配置、共享 oracle track。\\
+新鲜失效计入式 TEB 优势 & not demonstrated & V3-21 点降幅 $-0.193\%$，双侧 95\% CI 跨零；不得与 V3-11 合并。\\
+候选条件化消融机制 & exploratory evidence & V3-21 相对去条件化消融降幅 49.454\%，成功率 93.33\%/43.33\%。\\
+多人五动作支持 & not demonstrated & V3-16 速度门通过但坐标门仍失败；不得拟合 predictor。\\
+响应门控因素 & qualified mechanism & 速度最大差下降 88.07\%；不等于整体共同前缀或性能通过。\\
+感知/OOD 泛化 & forbidden & 未运行感知退化或 OOD 正式研究。\\
+形式化安全 & forbidden & 当前仅有限仿真经验门。\\
+学习收益 & forbidden & 训练步数为 0，learning gate 已关闭。\\
+实车与部署 & forbidden & 无硬件执行，runtime-ready 与 real-vehicle-ready 均为 false。\\
+\bottomrule
+\end{longtable}
+
+\end{document}

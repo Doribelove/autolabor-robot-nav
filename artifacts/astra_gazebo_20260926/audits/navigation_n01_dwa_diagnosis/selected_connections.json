@@ -1,0 +1,62 @@
+[
+  {
+    "topic": "/astra/navigation/status",
+    "type": "std_msgs/String",
+    "header": {
+      "callerid": "b'/astra_navigation_coordinator'",
+      "latching": "b'1'",
+      "md5sum": "b'992ce8a1687cec8c8bd883ec73ca41d1'",
+      "message_definition": "b'string data\\n'",
+      "topic": "b'/astra/navigation/status'",
+      "type": "b'std_msgs/String'"
+    }
+  },
+  {
+    "topic": "/astra/navigation/command_trace",
+    "type": "std_msgs/String",
+    "header": {
+      "callerid": "b'/astra_navigation_coordinator'",
+      "latching": "b'0'",
+      "md5sum": "b'992ce8a1687cec8c8bd883ec73ca41d1'",
+      "message_definition": "b'string data\\n'",
+      "topic": "b'/astra/navigation/command_trace'",
+      "type": "b'std_msgs/String'"
+    }
+  },
+  {
+    "topic": "/odom",
+    "type": "nav_msgs/Odometry",
+    "header": {
+      "callerid": "b'/gazebo'",
+      "latching": "b'0'",
+      "md5sum": "b'cd5e73d190d741a2f92e81eda573aca7'",
+      "message_definition": "b\"# This represents an estimate of a position and velocity in free space.  \\n# The pose in this message should be specified in the coordinate frame given by header.frame_id.\\n# The twist in this message should be specified in the coordinate frame given by the child_frame_id\\nHeader header\\nstring child_frame_id\\ngeometry_msgs/PoseWithCovariance pose\\ngeometry_msgs/TwistWithCovariance twist\\n\\n================================================================================\\nMSG: std_msgs/Header\\n# Standard metadata for higher-level stamped data types.\\n# This is generally used to communicate timestamped data \\n# in a particular coordinate frame.\\n# \\n# sequence ID: consecutively increasing ID \\nuint32 seq\\n#Two-integer timestamp that is expressed as:\\n# * stamp.sec: seconds (stamp_secs) since epoch (in Python the variable is called 'secs')\\n# * stamp.nsec: nanoseconds since stamp_secs (in Python the variable is called 'nsecs')\\n# time-handling sugar is provided by the client library\\ntime stamp\\n#Frame this data is associated with\\nstring frame_id\\n\\n================================================================================\\nMSG: geometry_msgs/PoseWithCovariance\\n# This represents a pose in free space with uncertainty.\\n\\nPose pose\\n\\n# Row-major representation of the 6x6 covariance matrix\\n# The orientation parameters use a fixed-axis representation.\\n# In order, the parameters are:\\n# (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)\\nfloat64[36] covariance\\n\\n================================================================================\\nMSG: geometry_msgs/Pose\\n# A representation of pose in free space, composed of position and orientation. \\nPoint position\\nQuaternion orientation\\n\\n================================================================================\\nMSG: geometry_msgs/Point\\n# This contains the position of a point in free space\\nfloat64 x\\nfloat64 y\\nfloat64 z\\n\\n================================================================================\\nMSG: geometry_msgs/Quaternion\\n# This represents an orientation in free space in quaternion form.\\n\\nfloat64 x\\nfloat64 y\\nfloat64 z\\nfloat64 w\\n\\n================================================================================\\nMSG: geometry_msgs/TwistWithCovariance\\n# This expresses velocity in free space with uncertainty.\\n\\nTwist twist\\n\\n# Row-major representation of the 6x6 covariance matrix\\n# The orientation parameters use a fixed-axis representation.\\n# In order, the parameters are:\\n# (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)\\nfloat64[36] covariance\\n\\n================================================================================\\nMSG: geometry_msgs/Twist\\n# This expresses velocity in free space broken into its linear and angular parts.\\nVector3 linear\\nVector3 angular\\n\\n================================================================================\\nMSG: geometry_msgs/Vector3\\n# This represents a vector in free space. \\n# It is only meant to represent a direction. Therefore, it does not\\n# make sense to apply a translation to it (e.g., when applying a \\n# generic rigid transformation to a Vector3, tf2 will only apply the\\n# rotation). If you want your data to be translatable too, use the\\n# geometry_msgs/Point message instead.\\n\\nfloat64 x\\nfloat64 y\\nfloat64 z\\n\"",
+      "topic": "b'/odom'",
+      "type": "b'nav_msgs/Odometry'"
+    }
+  },
+  {
+    "topic": "/astra/navigation/gate",
+    "type": "std_msgs/String",
+    "header": {
+      "callerid": "b'/astra_navigation_coordinator'",
+      "latching": "b'1'",
+      "md5sum": "b'992ce8a1687cec8c8bd883ec73ca41d1'",
+      "message_definition": "b'string data\\n'",
+      "topic": "b'/astra/navigation/gate'",
+      "type": "b'std_msgs/String'"
+    }
+  },
+  {
+    "topic": "/astra/method_cmd",
+    "type": "geometry_msgs/Twist",
+    "header": {
+      "callerid": "b'/move_base'",
+      "latching": "b'0'",
+      "md5sum": "b'9f195f881246fdfa2798d1d3eebca84a'",
+      "message_definition": "b'# This expresses velocity in free space broken into its linear and angular parts.\\nVector3 linear\\nVector3 angular\\n\\n================================================================================\\nMSG: geometry_msgs/Vector3\\n# This represents a vector in free space. \\n# It is only meant to represent a direction. Therefore, it does not\\n# make sense to apply a translation to it (e.g., when applying a \\n# generic rigid transformation to a Vector3, tf2 will only apply the\\n# rotation). If you want your data to be translatable too, use the\\n# geometry_msgs/Point message instead.\\n\\nfloat64 x\\nfloat64 y\\nfloat64 z\\n'",
+      "topic": "b'/astra/method_cmd'",
+      "type": "b'geometry_msgs/Twist'"
+    }
+  }
+]

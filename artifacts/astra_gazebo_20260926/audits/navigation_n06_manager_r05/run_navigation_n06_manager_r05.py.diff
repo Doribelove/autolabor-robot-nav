@@ -1,0 +1,51 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager_r04.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager_r05.py
+@@ -17,8 +17,9 @@
+ import sys
+ import time
+ 
+-import navigation_n06_integrity_r04 as q
+-import navigation_n06_process_r04 as processes
++import navigation_n06_integrity_r05 as q
++import navigation_n06_process_r05 as processes
++import navigation_n06_environment_r05 as exec_env
+ import navigation_evidence_n06 as evidence
+ 
+ STAGE=q.STAGE;WORKSPACE=q.prepared_api.WORKSPACE;NAME=q.NAME
+@@ -56,6 +57,7 @@
+     if Path(os.environ.get('THESIS_WS','')).resolve()!=WORKSPACE:raise ValueError('source isolated astra_env first')
+     if Path(sys.executable).resolve()!=(WORKSPACE/'.venv/bin/python').resolve():raise ValueError('manager interpreter differs from reviewed runtime')
+     if Path(sys.prefix).resolve()!=(WORKSPACE/'.venv').resolve() or sys.flags.no_user_site!=1:raise ValueError('reviewed virtualenv prefix with user site disabled required')
++    exec_env.validate_current(data)
+     if LEDGER.exists() or EVENTS.exists() or any((STAGE/'runs'/u['run_id']).exists() for u in data['rows']):raise ValueError('N06 identity already exists: retry/resume prohibited')
+     q.check_registry(q.regular_bytes(STAGE/'seed_registry.csv'),data['registry_baseline'],data['release_binding']['sha256'],data['rows'])
+     import run_smoke_a02 as common
+@@ -104,9 +106,7 @@
+         q.check_registry(q.regular_bytes(STAGE/'seed_registry.csv'),data['registry_baseline'],data['release_binding']['sha256'],data['rows'])
+         if stop.signal or not processes.checked_parent(**parent_identity):raise RuntimeError('manager interrupted or supervisor lost before launch')
+         processes.assert_ports_free()
+-        env=dict(os.environ,ROS_MASTER_URI='http://127.0.0.1:14830',GAZEBO_MASTER_URI='http://127.0.0.1:14831',
+-            ROS_IP='127.0.0.1',ROS_HOSTNAME='127.0.0.1',GAZEBO_IP='127.0.0.1',ROS_LOG_DIR=str(root/'roslog'),
+-            ROS_HOME=str(root/'ros_home'),GAZEBO_MODEL_DATABASE_URI='',ASTRA_N06_CHILD_NONCE=nonce)
++        env=exec_env.child_environment(data,root,nonce)
+         with (root/'roslaunch.log').open('xb') as log:
+             proc=subprocess.Popen(['/opt/ros/noetic/bin/roslaunch',str(root/'fixture.launch')],cwd=str(WORKSPACE),env=env,
+                 stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+@@ -128,7 +128,7 @@
+     try:
+         if error or code!=0:raise RuntimeError('launch/preparation/cleanup failed: '+str(error)+' returncode='+str(code))
+         session.recheck();evidence.closure(root,data['release'],data['review'],value)
+-        with processes.assessment_child_environment(root,nonce):report=evidence.assess(root,value)
++        with exec_env.assessment_environment(data,root,nonce):report=evidence.assess(root,value)
+         session.recheck()
+         if stop.signal:raise RuntimeError('manager interrupted during assessment')
+         if time.monotonic()-wall>value['wall_cap_s']:raise TimeoutError('assessment-inclusive wall cap')
+@@ -217,7 +217,7 @@
+         with processes.StopRequest() as stop:
+             try:
+                 with (QUEUE/'navigation_n06_worker.log').open('xb') as log:
+-                    proc=subprocess.Popen(command,cwd=str(WORKSPACE),env=dict(os.environ),stdout=log,stderr=subprocess.STDOUT,
++                    proc=subprocess.Popen(command,cwd=str(WORKSPACE),env=exec_env.child_environment(data),stdout=log,stderr=subprocess.STDOUT,
+                         start_new_session=True,pass_fds=(lock.fileno(),))
+                     child=processes.proc_row(proc.pid);forwarded=False
+                     if child is None:code=proc.wait()

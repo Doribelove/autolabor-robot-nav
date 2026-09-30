@@ -1,0 +1,55 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R16-D1
+status: offline_goal_and_terminal_execution_attribution_pass
+diagnostic_checks:
+  candidate_path_misses_common_goal_tolerance: true
+  robot_trace_misses_common_goal_tolerance: true
+  robot_reaches_candidate_terminal_neighborhood: true
+  candidate_terminal_speed_nonzero: true
+  execution_helper_has_no_terminal_completion_output: true
+  tracking_error_gate_failed: true
+  safety_clearance_remained_nonnegative: true
+  eventual_progress_observed: true
+  goal_not_reached: true
+candidate_terminal:
+  time_from_start_s: 7.0
+  x_m: 5.025792714098
+  y_m: -0.627826347447
+  yaw_rad: 0.153248561964
+  longitudinal_velocity_mps: 1.2
+  longitudinal_acceleration_mps2: 0.0
+  steering_angle_rad: 0.0
+  steering_rate_radps: 0.0
+  curvature_inv_m: 0.0
+minimum_candidate_path_goal_distance_m: 0.6515474664289489
+candidate_terminal_goal_distance_m: 0.6515474664289489
+minimum_robot_trace_goal_distance_m: 0.5995318374295548
+minimum_robot_trace_terminal_distance_m: 0.01848904260778492
+closest_terminal_trace_elapsed_s: 12.25
+closest_terminal_trace_pose:
+  x_m: 5.044063396935661
+  y_m: -0.6249931786913296
+  yaw_rad: 0.14243195714139847
+  speed_mps: 1.199999999999894
+final_pose:
+  x_m: 9.396528439726591
+  y_m: -1.4793008806629087
+  yaw_rad: -0.5384266291638626
+final_goal_distance_m: 4.449627179996561
+maximum_tracking_error_m: 4.397091485932819
+minimum_conservative_clearance_m: 0.0688269269535815
+root_cause: recovery_candidate_endpoint_misses_common_goal_and_pure_pursuit_has_no_fail_closed_terminal_completion
+attribution_confirmed: true
+single_repair_design_authorized: true
+repair_requirements:
+  goal_aligned_recovery_candidate: true
+  terminal_completion_guard: true
+  goal_timeout_or_safety_threshold_relaxation: false
+  fresh_candidate_support_and_prediction_qualification: true
+R16_result_changed: false
+new_simulation_units_used: 0
+actual_TEB_qualification_execution_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

@@ -1,0 +1,5 @@
+新增 close_navigation_n05_r02.py 已完成，原r01不变。21组作者故障测试通过，含第1/2次replace失败、目录fsync失败、所有CSV已提交但closure发布失败、closure已链接后异常、孤立staging、快照篡改、外部历史编辑、receipt变化、24有效timeout和24retired边界。重复成功调用的hash/mtime/inode均未改变。
+
+生产路径调用完整release校验及SHA冻结的r04 receipt校验；测试替身仅用于synthetic release API，实际两份closed receipt/assessment与metadata/schema加载兼容。未对真实stage调用main/close，未写三CSV。
+
+新transaction/closure均带r02后缀。恢复只接受记录的before/after版本；未知改动拒绝。要求root为三表唯一写入者。本文为作者实现报告，待root独立审查，不自称独立通过。

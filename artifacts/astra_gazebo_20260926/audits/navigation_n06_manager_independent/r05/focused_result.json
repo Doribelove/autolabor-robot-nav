@@ -1,0 +1,446 @@
+{
+  "schema": "independent_n06_r05_environment_checks_v1",
+  "checks": [
+    {
+      "name": "r01_all_frozen_bindings_unchanged",
+      "passed": true,
+      "resources": 352
+    },
+    {
+      "name": "r02_all_frozen_bindings_unchanged",
+      "passed": true,
+      "resources": 733
+    },
+    {
+      "name": "r03_all_frozen_bindings_unchanged",
+      "passed": true,
+      "resources": 764
+    },
+    {
+      "name": "r04_all_frozen_bindings_unchanged",
+      "passed": true,
+      "resources": 791
+    },
+    {
+      "name": "r05_all_frozen_bindings_unchanged",
+      "passed": true,
+      "resources": 866
+    },
+    {
+      "name": "actual_outer_clean_entry_precedes_shell_python_hooks_and_manager_import",
+      "passed": true
+    },
+    {
+      "name": "eight_actual_bootstrap_faults_before_manager",
+      "passed": true,
+      "cases": 8
+    },
+    {
+      "name": "direct_extra_environment_rejected_before_manager",
+      "passed": true
+    },
+    {
+      "name": "actual_main_execve_uses_bound_environment_before_manager_import",
+      "passed": true
+    },
+    {
+      "name": "actual_live_preflight_all_forbidden_unknown_and_changed_fields_before_writes",
+      "passed": true,
+      "injected_keys": [
+        "BASH_ENV",
+        "ENV",
+        "GCONV_PATH",
+        "LD_AUDIT",
+        "LD_DEBUG",
+        "LD_ORIGIN_PATH",
+        "LD_PRELOAD",
+        "LD_PROFILE",
+        "LIBGL_ALWAYS_SOFTWARE",
+        "LIBGL_DRIVERS_PATH",
+        "LOCPATH",
+        "MESA_LOADER_DRIVER_OVERRIDE",
+        "PYTHONHOME",
+        "PYTHONINSPECT",
+        "PYTHONPYCACHEPREFIX",
+        "PYTHONSTARTUP",
+        "PYTHONUSERBASE",
+        "PYTHONWARNINGS",
+        "QML2_IMPORT_PATH",
+        "QT_PLUGIN_PATH",
+        "UNDECLARED",
+        "__EGL_VENDOR_LIBRARY_FILENAMES",
+        "__GLX_VENDOR_LIBRARY_NAME"
+      ],
+      "changed_value_count": 37
+    },
+    {
+      "name": "five_old_inherited_environment_counterexamples_closed_by_exact_gate",
+      "passed": true
+    },
+    {
+      "name": "actual_supervisor_worker_spawn_fixed_environment_failure_retires_all",
+      "passed": true
+    },
+    {
+      "name": "actual_execute_unit_unstubbed_environment_helper_and_benign_assessment_children",
+      "passed": true,
+      "cases": 4,
+      "actual_python_children": 2
+    },
+    {
+      "name": "r04_unchanged_AST_and_four_whole_supervisor_late_assessment_cases",
+      "passed": true,
+      "cases": 4
+    }
+  ],
+  "details": {
+    "bootstrap_positive": {
+      "returncode": 0,
+      "inspection": {
+        "argv": [
+          "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+          "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager_r05.py",
+          "--verify",
+          "--release",
+          "/tmp/tmpu7zhps74/synthetic_release_shaped_input.json",
+          "--release-sha256",
+          "8ef3415e44b28fcf87e70180dae861d7ab7613fa6c2d1b26e17be5090571cbe3"
+        ],
+        "environment": {
+          "ASTRA_N06_RUNTIME_CLOSURE_SHA256": "45e129b89c0e7015f7c134999fafd6eb696f184d584e898da9123f869c158d9f",
+          "CMAKE_PREFIX_PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel:/opt/ros/noetic",
+          "DISPLAY": ":0",
+          "GAZEBO_IP": "127.0.0.1",
+          "GAZEBO_MASTER_URI": "http://127.0.0.1:14831",
+          "GAZEBO_MODEL_DATABASE_URI": "http://127.0.0.1:9",
+          "GAZEBO_MODEL_PATH": "/usr/share/gazebo-11/models:",
+          "GAZEBO_PLUGIN_PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib:/opt/ros/noetic/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:",
+          "GAZEBO_RESOURCE_PATH": "/usr/share/gazebo-11:",
+          "HOME": "/home/robot",
+          "LANG": "C.UTF-8",
+          "LC_ALL": "C.UTF-8",
+          "LD_LIBRARY_PATH": "/opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/lib:/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib:/opt/ros/noetic/lib:/opt/ros/noetic/lib/x86_64-linux-gnu:/opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins",
+          "LOGNAME": "robot",
+          "MKL_NUM_THREADS": "1",
+          "OGRE_RESOURCE_PATH": "/usr/lib/x86_64-linux-gnu/OGRE-1.9.0",
+          "OMP_NUM_THREADS": "1",
+          "PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin:/opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/bin:/opt/ros/noetic/bin:/opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "PKG_CONFIG_PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/pkgconfig:/opt/ros/noetic/lib/pkgconfig:/opt/ros/noetic/lib/x86_64-linux-gnu/pkgconfig",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "PYTHONPATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/python3/dist-packages:/opt/ros/noetic/lib/python3/dist-packages",
+          "ROS_DISTRO": "noetic",
+          "ROS_ETC_DIR": "/opt/ros/noetic/etc/ros",
+          "ROS_HOME": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.astra_runtime/n06/ros_home",
+          "ROS_HOSTNAME": "127.0.0.1",
+          "ROS_IP": "127.0.0.1",
+          "ROS_LOG_DIR": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.astra_runtime/n06/roslog",
+          "ROS_MASTER_URI": "http://127.0.0.1:14830",
+          "ROS_PACKAGE_PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src:/opt/ros/noetic/share",
+          "ROS_PYTHON_VERSION": "3",
+          "ROS_ROOT": "/opt/ros/noetic/share/ros",
+          "ROS_VERSION": "1",
+          "THESIS_WS": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace",
+          "USER": "robot",
+          "VIRTUAL_ENV": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv",
+          "XDG_RUNTIME_DIR": "/run/user/1000"
+        },
+        "execution_performed": false,
+        "manager_imported": false,
+        "schema": "astra_n06_bootstrap_inspection_r05"
+      },
+      "shell_python_hook_marker_absent": true
+    },
+    "bootstrap_faults": [
+      {
+        "case": "hash",
+        "returncode": 1,
+        "last_error": "ValueError: bootstrap binding SHA differs"
+      },
+      {
+        "case": "entry_missing",
+        "returncode": 1,
+        "last_error": "ValueError: bootstrap/manager source omitted from release"
+      },
+      {
+        "case": "entry_wrong_hash",
+        "returncode": 1,
+        "last_error": "ValueError: bootstrap binding SHA differs"
+      },
+      {
+        "case": "duplicate_resource",
+        "returncode": 1,
+        "last_error": "ValueError: runtime closure must be uniquely release-bound"
+      },
+      {
+        "case": "runtime_unbound",
+        "returncode": 1,
+        "last_error": "ValueError: runtime closure must be uniquely release-bound"
+      },
+      {
+        "case": "stage",
+        "returncode": 1,
+        "last_error": "ValueError: N06 exact release required"
+      },
+      {
+        "case": "bad_python_prefix",
+        "returncode": 1,
+        "last_error": "ValueError: runtime interpreter identity differs"
+      },
+      {
+        "case": "bad_environment_key",
+        "returncode": 1,
+        "last_error": "ValueError: environment key set differs"
+      }
+    ],
+    "captured_execve": {
+      "exe": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+      "argv": [
+        "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+        "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager_r05.py",
+        "--verify",
+        "--release",
+        "/tmp/tmpu7zhps74/synthetic_release_shaped_input.json",
+        "--release-sha256",
+        "8ef3415e44b28fcf87e70180dae861d7ab7613fa6c2d1b26e17be5090571cbe3"
+      ],
+      "env": {
+        "CMAKE_PREFIX_PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel:/opt/ros/noetic",
+        "DISPLAY": ":0",
+        "GAZEBO_IP": "127.0.0.1",
+        "GAZEBO_MASTER_URI": "http://127.0.0.1:14831",
+        "GAZEBO_MODEL_DATABASE_URI": "http://127.0.0.1:9",
+        "GAZEBO_MODEL_PATH": "/usr/share/gazebo-11/models:",
+        "GAZEBO_PLUGIN_PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib:/opt/ros/noetic/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:",
+        "GAZEBO_RESOURCE_PATH": "/usr/share/gazebo-11:",
+        "HOME": "/home/robot",
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8",
+        "LD_LIBRARY_PATH": "/opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/lib:/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib:/opt/ros/noetic/lib:/opt/ros/noetic/lib/x86_64-linux-gnu:/opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins",
+        "LOGNAME": "robot",
+        "MKL_NUM_THREADS": "1",
+        "OGRE_RESOURCE_PATH": "/usr/lib/x86_64-linux-gnu/OGRE-1.9.0",
+        "OMP_NUM_THREADS": "1",
+        "PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin:/opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/bin:/opt/ros/noetic/bin:/opt/ros/noetic/share/euslisp/jskeus/eus//Linux64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "PKG_CONFIG_PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/pkgconfig:/opt/ros/noetic/lib/pkgconfig:/opt/ros/noetic/lib/x86_64-linux-gnu/pkgconfig",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONPATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/python3/dist-packages:/opt/ros/noetic/lib/python3/dist-packages",
+        "ROS_DISTRO": "noetic",
+        "ROS_ETC_DIR": "/opt/ros/noetic/etc/ros",
+        "ROS_HOME": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.astra_runtime/n06/ros_home",
+        "ROS_HOSTNAME": "127.0.0.1",
+        "ROS_IP": "127.0.0.1",
+        "ROS_LOG_DIR": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.astra_runtime/n06/roslog",
+        "ROS_MASTER_URI": "http://127.0.0.1:14830",
+        "ROS_PACKAGE_PATH": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src:/opt/ros/noetic/share",
+        "ROS_PYTHON_VERSION": "3",
+        "ROS_ROOT": "/opt/ros/noetic/share/ros",
+        "ROS_VERSION": "1",
+        "THESIS_WS": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace",
+        "USER": "robot",
+        "VIRTUAL_ENV": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv",
+        "XDG_RUNTIME_DIR": "/run/user/1000",
+        "ASTRA_N06_RUNTIME_CLOSURE_SHA256": "45e129b89c0e7015f7c134999fafd6eb696f184d584e898da9123f869c158d9f"
+      },
+      "manager_imported": false
+    },
+    "execute_unit_cases": [
+      {
+        "kind": "normal",
+        "launch_calls": 1,
+        "assessment_calls": 1,
+        "real_python_children": 1,
+        "receipt": {
+          "stage": "astra_navigation_n06_lookahead_static_pilot",
+          "run_id": "astra_navigation_n06_b000_control",
+          "seed": 263003001,
+          "method": "astra_analytic_route_v1",
+          "attempt": 1,
+          "release_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "integrity_pass": true,
+          "task_outcome": "timeout",
+          "error": null,
+          "roslaunch_exit_code": 0,
+          "wall_elapsed_s": 0.056382117996690795,
+          "assessment": null,
+          "administrative_metadata": {
+            "started_utc": "2026-09-26T17:35:23.106043+00:00",
+            "ended_utc": "2026-09-26T17:35:23.162628+00:00",
+            "exit_code": 0,
+            "pid": 987654,
+            "process_group": 987654,
+            "command_json": "[\"/opt/ros/noetic/bin/roslaunch\", \"/tmp/tmp9t30e3ve/runs/astra_navigation_n06_b000_control/fixture.launch\"]",
+            "cwd": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace",
+            "heartbeat_path": "/tmp/tmp9t30e3ve/runs/astra_navigation_n06_b000_control/heartbeat.json",
+            "receipt_path": "/tmp/tmp9t30e3ve/runs/astra_navigation_n06_b000_control/receipt.json",
+            "bindings_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "code_sha256": "efdf9bbd2bce89c875484a7ec7cefc864ad356116c42ccd1904c141a1e2d4e57",
+            "config_sha256": "93abee185957843f332f77b50f019fde3592147a4d2d37160855bd55678a5068",
+            "model_sha256": "",
+            "report_path": "",
+            "raw_path": ""
+          },
+          "retry_allowed": false,
+          "host_shell_exit_status": "unknown"
+        },
+        "temporary_paths_only": true
+      },
+      {
+        "kind": "parent_changed_before_launch",
+        "launch_calls": 0,
+        "assessment_calls": 0,
+        "real_python_children": 0,
+        "receipt": {
+          "stage": "astra_navigation_n06_lookahead_static_pilot",
+          "run_id": "astra_navigation_n06_b000_control",
+          "seed": 263003001,
+          "method": "astra_analytic_route_v1",
+          "attempt": 1,
+          "release_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "integrity_pass": false,
+          "task_outcome": null,
+          "error": "ValueError: execution environment mismatch keys=['LD_AUDIT'] changed=[]; assessment:RuntimeError(\"launch/preparation/cleanup failed: ValueError: execution environment mismatch keys=['LD_AUDIT'] changed=[] returncode=None\")",
+          "roslaunch_exit_code": null,
+          "wall_elapsed_s": 0.03791259600257035,
+          "assessment": null,
+          "administrative_metadata": {
+            "started_utc": "2026-09-26T17:35:23.197824+00:00",
+            "ended_utc": "2026-09-26T17:35:23.235838+00:00",
+            "exit_code": "",
+            "pid": "",
+            "process_group": "",
+            "command_json": "[\"/opt/ros/noetic/bin/roslaunch\", \"/tmp/tmp4jq5up4l/runs/astra_navigation_n06_b000_control/fixture.launch\"]",
+            "cwd": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace",
+            "heartbeat_path": "/tmp/tmp4jq5up4l/runs/astra_navigation_n06_b000_control/heartbeat.json",
+            "receipt_path": "/tmp/tmp4jq5up4l/runs/astra_navigation_n06_b000_control/receipt.json",
+            "bindings_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "code_sha256": "efdf9bbd2bce89c875484a7ec7cefc864ad356116c42ccd1904c141a1e2d4e57",
+            "config_sha256": "c6585a6db0aa70e280369b9529d1b6811ea86d54a5a8671b58e0c3e00030d33f",
+            "model_sha256": "",
+            "report_path": "",
+            "raw_path": ""
+          },
+          "retry_allowed": false,
+          "host_shell_exit_status": "unknown"
+        },
+        "temporary_paths_only": true
+      },
+      {
+        "kind": "parent_changed_before_assessment",
+        "launch_calls": 1,
+        "assessment_calls": 0,
+        "real_python_children": 0,
+        "receipt": {
+          "stage": "astra_navigation_n06_lookahead_static_pilot",
+          "run_id": "astra_navigation_n06_b000_control",
+          "seed": 263003001,
+          "method": "astra_analytic_route_v1",
+          "attempt": 1,
+          "release_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "integrity_pass": false,
+          "task_outcome": null,
+          "error": "; assessment:ValueError(\"execution environment mismatch keys=['PYTHONUSERBASE'] changed=[]\")",
+          "roslaunch_exit_code": 0,
+          "wall_elapsed_s": 0.04201451400149381,
+          "assessment": null,
+          "administrative_metadata": {
+            "started_utc": "2026-09-26T17:35:23.271302+00:00",
+            "ended_utc": "2026-09-26T17:35:23.313597+00:00",
+            "exit_code": 0,
+            "pid": 987654,
+            "process_group": 987654,
+            "command_json": "[\"/opt/ros/noetic/bin/roslaunch\", \"/tmp/tmpa4gbv1md/runs/astra_navigation_n06_b000_control/fixture.launch\"]",
+            "cwd": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace",
+            "heartbeat_path": "/tmp/tmpa4gbv1md/runs/astra_navigation_n06_b000_control/heartbeat.json",
+            "receipt_path": "/tmp/tmpa4gbv1md/runs/astra_navigation_n06_b000_control/receipt.json",
+            "bindings_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "code_sha256": "efdf9bbd2bce89c875484a7ec7cefc864ad356116c42ccd1904c141a1e2d4e57",
+            "config_sha256": "d2df02568c28479472e283295f3a0e3ef4647721f49655f335bdd45591253b36",
+            "model_sha256": "",
+            "report_path": "",
+            "raw_path": ""
+          },
+          "retry_allowed": false,
+          "host_shell_exit_status": "unknown"
+        },
+        "temporary_paths_only": true
+      },
+      {
+        "kind": "assessment_exception",
+        "launch_calls": 1,
+        "assessment_calls": 1,
+        "real_python_children": 1,
+        "receipt": {
+          "stage": "astra_navigation_n06_lookahead_static_pilot",
+          "run_id": "astra_navigation_n06_b000_control",
+          "seed": 263003001,
+          "method": "astra_analytic_route_v1",
+          "attempt": 1,
+          "release_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "integrity_pass": false,
+          "task_outcome": null,
+          "error": "; assessment:RuntimeError('independent assessor exception')",
+          "roslaunch_exit_code": 0,
+          "wall_elapsed_s": 0.061609158998180646,
+          "assessment": null,
+          "administrative_metadata": {
+            "started_utc": "2026-09-26T17:35:23.349839+00:00",
+            "ended_utc": "2026-09-26T17:35:23.411667+00:00",
+            "exit_code": 0,
+            "pid": 987654,
+            "process_group": 987654,
+            "command_json": "[\"/opt/ros/noetic/bin/roslaunch\", \"/tmp/tmpisb3afig/runs/astra_navigation_n06_b000_control/fixture.launch\"]",
+            "cwd": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace",
+            "heartbeat_path": "/tmp/tmpisb3afig/runs/astra_navigation_n06_b000_control/heartbeat.json",
+            "receipt_path": "/tmp/tmpisb3afig/runs/astra_navigation_n06_b000_control/receipt.json",
+            "bindings_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+            "code_sha256": "efdf9bbd2bce89c875484a7ec7cefc864ad356116c42ccd1904c141a1e2d4e57",
+            "config_sha256": "5c0d4f92560742019f463ce006e88da8b4622a48c0026d6604282e26da154884",
+            "model_sha256": "",
+            "report_path": "",
+            "raw_path": ""
+          },
+          "retry_allowed": false,
+          "host_shell_exit_status": "unknown"
+        },
+        "temporary_paths_only": true
+      }
+    ],
+    "late_assessment": [
+      {
+        "phase": "complete",
+        "integrity_pass": false,
+        "one_consumed_seven_retired": true,
+        "assessment_unchanged": true,
+        "repeat_noop": true
+      },
+      {
+        "phase": "timeout",
+        "integrity_pass": false,
+        "one_consumed_seven_retired": true,
+        "assessment_unchanged": true,
+        "repeat_noop": true
+      },
+      {
+        "phase": "fault",
+        "integrity_pass": false,
+        "one_consumed_seven_retired": true,
+        "assessment_unchanged": true,
+        "repeat_noop": true
+      },
+      {
+        "phase": "stopped",
+        "integrity_pass": false,
+        "one_consumed_seven_retired": true,
+        "assessment_unchanged": true,
+        "repeat_noop": true
+      }
+    ]
+  },
+  "synthetic_not_simulation": true,
+  "actual_release_created": false,
+  "real_CSV_written": false,
+  "ROS_started": false,
+  "seed_registered": false
+}

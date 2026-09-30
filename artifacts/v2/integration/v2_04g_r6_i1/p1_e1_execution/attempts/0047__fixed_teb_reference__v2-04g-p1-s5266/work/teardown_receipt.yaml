@@ -1,0 +1,103 @@
+schema_version: '1.0'
+stage: V2-04G-P1-E1
+record_type: fixed_teb_verify_readback
+profile_id: fixed_teb_reference
+scene_id: v2-04g-p1-s5266
+seed: 5266
+attempt: 1
+teb_namespace: /move_base/TebLocalPlannerROS
+configuration:
+  teb_autosize: true
+  global_plan_overwrite_orientation: true
+  allow_init_with_backwards_motion: true
+  exact_arc_length: false
+  publish_feedback: false
+  via_points_ordered: false
+  is_footprint_dynamic: false
+  use_proportional_saturation: false
+  cmd_angle_instead_rotvel: false
+  free_goal_vel: false
+  include_dynamic_obstacles: false
+  include_costmap_obstacles: true
+  legacy_obstacle_association: false
+  optimization_activate: true
+  optimization_verbose: false
+  enable_multithreading: true
+  selection_alternative_time_cost: false
+  viapoints_all_candidates: true
+  visualize_hc_graph: false
+  shrink_horizon_backup: true
+  oscillation_recovery: true
+  divergence_detection_enable: false
+  feasibility_check_no_poses: 5
+  obstacle_poses_affected: 15
+  no_inner_iterations: 5
+  no_outer_iterations: 4
+  max_number_classes: 4
+  max_number_plans_in_current_class: 1
+  roadmap_graph_no_samples: 15
+  dt_ref: 0.3
+  dt_hysteresis: 0.1
+  max_global_plan_lookahead_dist: 8.0
+  force_reinit_new_goal_dist: 1.0
+  force_reinit_new_goal_angular: 0.78
+  visualize_with_time_as_z_axis_scale: 0.0
+  global_plan_viapoint_sep: -0.1
+  max_vel_x: 1.2
+  max_vel_x_backwards: 0.6
+  max_vel_theta: 1.0
+  acc_lim_x: 0.8
+  acc_lim_theta: 0.8
+  transform_tolerance: 0.5
+  min_turning_radius: 1.2
+  wheelbase: 0.65
+  max_vel_y: 0.0
+  acc_lim_y: 0.5
+  xy_goal_tolerance: 0.2
+  yaw_goal_tolerance: 0.1
+  trans_stopped_vel: 0.1
+  theta_stopped_vel: 0.1
+  min_obstacle_dist: 0.25
+  inflation_dist: 0.55
+  dynamic_obstacle_inflation_dist: 0.6
+  obstacle_association_force_inclusion_factor: 1.5
+  obstacle_association_cutoff_factor: 5.0
+  costmap_obstacles_behind_robot_dist: 1.5
+  obstacle_proximity_ratio_max_vel: 1.0
+  obstacle_proximity_lower_bound: 0.0
+  obstacle_proximity_upper_bound: 0.5
+  penalty_epsilon: 0.1
+  weight_max_vel_x: 2.0
+  weight_max_vel_y: 2.0
+  weight_max_vel_theta: 1.0
+  weight_acc_lim_x: 1.0
+  weight_acc_lim_y: 1.0
+  weight_acc_lim_theta: 1.0
+  weight_kinematics_nh: 1000.0
+  weight_kinematics_forward_drive: 10.0
+  weight_kinematics_turning_radius: 10.0
+  weight_optimaltime: 1.0
+  weight_shortest_path: 0.0
+  weight_obstacle: 50.0
+  weight_inflation: 0.1
+  weight_dynamic_obstacle: 50.0
+  weight_dynamic_obstacle_inflation: 0.1
+  weight_velocity_obstacle_ratio: 0.0
+  weight_viapoint: 1.0
+  weight_adapt_factor: 2.0
+  obstacle_cost_exponent: 1.0
+  selection_cost_hysteresis: 1.0
+  selection_prefer_initial_plan: 0.95
+  selection_obst_cost_scale: 2.0
+  selection_viapoint_cost_scale: 1.0
+  selection_dropping_probability: 0.0
+  switching_blocking_period: 0.0
+  roadmap_graph_area_width: 5.0
+  roadmap_graph_area_length_scale: 1.0
+  h_signature_prescaler: 1.0
+  h_signature_threshold: 0.1
+  obstacle_heading_threshold: 0.45
+  divergence_detection_max_chi_squared: 10.0
+configuration_sha256: da1bc52c8045013c2854693f2602b6e8b6644a0093c25372fb00de1c7beca291
+baseline_configuration_sha256: da1bc52c8045013c2854693f2602b6e8b6644a0093c25372fb00de1c7beca291
+no_write_boundary_unchanged: true

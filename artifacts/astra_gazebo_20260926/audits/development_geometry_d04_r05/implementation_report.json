@@ -1,0 +1,139 @@
+{
+  "N06_release": false,
+  "ROS_started": false,
+  "closed_input_recheck": {
+    "bytes": 19066,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/development_geometry_d04_r05/closed_input_recheck.json",
+    "sha256": "e4222c22f0fcbc4c1802e7117b1a3fed9885a9525dca4d8b4bea110456fcff7d"
+  },
+  "counts": {
+    "actual_new_atomic_actor_cells": 20,
+    "geometry_rejection_reasons": {
+      "full_geometry_or_native_witness_failed": 6,
+      "registered_or_selected_structural_near_duplicate": 6
+    },
+    "geometry_rejections": 12,
+    "joint_rejections": 150,
+    "new_replacement_geometry": 7,
+    "per_family": {
+      "head_on_yield": 4,
+      "occluded_emergence": 4,
+      "sequential_interaction": 4,
+      "single_crossing": 4,
+      "static_avoidance": 4,
+      "width_change_corridor": 4
+    },
+    "prior_parent_groups_checked": 48,
+    "retained_r04_geometry": 17,
+    "selected_parent_cell_combinations": 24
+  },
+  "design": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/development_geometry_d04_r05/design.json",
+    "sha256": "f680b01930e12c2291a56c25b17c1859e1d46e344369ed8319c7b0b4e09b67ac"
+  },
+  "execution_authorized": false,
+  "execution_release": false,
+  "final_outcomes_read": false,
+  "four_static_layout_ids": [
+    "d04r05_development_static_avoidance_000",
+    "d04r05_development_static_avoidance_001",
+    "d04r05_development_static_avoidance_002",
+    "d04r05_development_static_avoidance_003"
+  ],
+  "generation_report": {
+    "bytes": 61922,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/development_geometry_d04_r05/generation_report.json",
+    "sha256": "f29f43e58f2b5a959c2f3b3b7eebc61804577f0801c3b3fb9389a196b5e2b6c1"
+  },
+  "global_seed_registry_modified": false,
+  "independent_review": false,
+  "minimum_exported_guide_full_envelope_conservative_m": 0.07435739259832913,
+  "minimum_selected_raster_witness_conservative_m": 0.0430718496357837,
+  "native_raster_failure_retained": true,
+  "new_geometry_or_execution_seeds_allocated": 0,
+  "offline_environment": {
+    "executable": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python",
+    "numpy": "1.24.4",
+    "python": "3.8.10",
+    "shapely": "1.7.0"
+  },
+  "output_root": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_d04_geometry_r05",
+  "readme": {
+    "bytes": 5058,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/development_geometry_d04_r05/README.md",
+    "sha256": "0eaec5862e8963c8ac11dae1fada770770e8a0af948c73984961f2b261e6869d"
+  },
+  "remaining_risks_and_prerequisites": [
+    "Independent split/raster review pending; no N06 release, seed allocation or runtime qualification.",
+    "Only 4 parents/family, not full development 24/family, validation or final-test population.",
+    "Ownership audit covers bound A01/A02 and N04/N05 inputs plus r04 (48 prior parents); future train/validation/final allocation must consume final_ownership.json and perform its own complete registry check.",
+    "Static slot001 original native witness is raster-negative; use the bound raster_witness.csv and common_bundle, not the original native witness, for any future derivation.",
+    "Exported A* guide has conservative whole-footprint geometric clearance; heading corners do not prove Ackermann transitions or controller tracking.",
+    "Raster/guide qualification currently covers only the four static_avoidance parents; other20 have native geometry checks only.",
+    "Static planar witness, nominal actor arrivals, two-pose ray visibility and bounded wheel/tilt envelope do not qualify reactive temporal behavior, actual sensor reveal, physical tracking, elapsed22s goals or dynamic safety.",
+    "Actual runtime worlds/plugin parameters, SE2 spawn/route bridge, sensor noise and fresh execution identities remain future independently reviewed work.",
+    "Finite deterministic geometry/cell enumeration provides development inputs, not representative random sampling or a performance effect estimate."
+  ],
+  "runtime_ready": false,
+  "schema": "astra_d04_r05_author_closure_v1",
+  "selection_completed_before_parent_N05_terminal_summary": true,
+  "selection_uses_N05_method_outcomes": false,
+  "source": {
+    "bytes": 20217,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/prepare_development_geometry_d04_r05.py",
+    "sha256": "8d795b97fece3657459ae9de228962af5f086a92347d6a57bd32faf6cccb9105"
+  },
+  "source_evidence_manifest": {
+    "bytes": 89445,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/development_geometry_d04_r05/source_evidence_manifest.json",
+    "sha256": "538b4b2504ea7a25db0f2bdd0d1f45d90429c490e1068a3e47aab3c8aba25d9e"
+  },
+  "static_raster_results": [
+    {
+      "Ackermann_corner_feasibility_claim": false,
+      "exported_guide_sweep_lower_m": 0.08123235460597844,
+      "layout_id": "d04r05_development_static_avoidance_000",
+      "native_witness_survives": true,
+      "original_native_witness_after_raster_m": 0.12157313308998191,
+      "selected_raster_witness_lower_m": 0.12157313308998191
+    },
+    {
+      "Ackermann_corner_feasibility_claim": false,
+      "exported_guide_sweep_lower_m": 0.07435739259832913,
+      "layout_id": "d04r05_development_static_avoidance_001",
+      "native_witness_survives": false,
+      "original_native_witness_after_raster_m": -0.011732719505100908,
+      "selected_raster_witness_lower_m": 0.12292237364987668
+    },
+    {
+      "Ackermann_corner_feasibility_claim": false,
+      "exported_guide_sweep_lower_m": 0.07435739259833091,
+      "layout_id": "d04r05_development_static_avoidance_002",
+      "native_witness_survives": true,
+      "original_native_witness_after_raster_m": 0.0430718496357837,
+      "selected_raster_witness_lower_m": 0.0430718496357837
+    },
+    {
+      "Ackermann_corner_feasibility_claim": false,
+      "exported_guide_sweep_lower_m": 0.09031812733152778,
+      "layout_id": "d04r05_development_static_avoidance_003",
+      "native_witness_survives": true,
+      "original_native_witness_after_raster_m": 0.09926706320872486,
+      "selected_raster_witness_lower_m": 0.09926706320872486
+    }
+  ],
+  "status": "24_joint_development_combinations_and4_static_raster_guides_offline_author_pass_independent_review_pending",
+  "tests": {
+    "bytes": 5830,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_prepare_development_geometry_d04_r05.py",
+    "sha256": "7f4f4f3a7d66c8f3ba901362aff476f0fd86e5b5ccd3499f76357b2923bff6c2"
+  },
+  "tests_result": {
+    "author_unit_tests_passed": 15,
+    "closed_input_replay_pass": true,
+    "current_bound_resources_rechecked": 221,
+    "initial_test_compatibility_failure_retained": true,
+    "old_r04_manifest_resources_unchanged": 151
+  },
+  "unchanged_margin_m": 0.33
+}

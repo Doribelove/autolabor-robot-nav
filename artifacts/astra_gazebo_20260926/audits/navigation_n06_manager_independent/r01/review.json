@@ -1,0 +1,182 @@
+{
+  "schema": "astra_navigation_n06_manager_independent_review_v1",
+  "status": "independent_r01_review_blocked_three_confirmed_integrity_gaps",
+  "independent_review": true,
+  "author_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r01/implementation_report.json",
+    "sha256": "2a9587125804a7fac73f0a7558490196616a3c98f11702701b5980a8b6757288",
+    "bytes": 6299
+  },
+  "author_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r01/source_evidence_manifest.json",
+    "sha256": "50a5af06ff0be1ddd7d94ae17af3b108c41a213a855be51a7d4656cf9b3f8c8b",
+    "bytes": 100409
+  },
+  "reviewed_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager.py",
+      "sha256": "90e0d1b1ad0a1ce318aae25ae136407fdca0a129aae2f2b2a9abbcb3d80018cf",
+      "bytes": 20753
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity.py",
+      "sha256": "27c4a4e63a78750daa752c3555c274301762c824b3691b3497583df730730ec7",
+      "bytes": 15827
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_process.py",
+      "sha256": "7746e6b55c11e6c67329f944a2a2fdc78c5ea2c429d4cc227c82fae745ef1e73",
+      "bytes": 8073
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan.py",
+      "sha256": "a2a357e7110e3fcbac6be33b4caf0d3df268501617f3f686db5ad501f2251773",
+      "bytes": 12728
+    }
+  ],
+  "resources": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r01/resources.json",
+    "sha256": "0d4201abfb66af1a618aba1aaad269d475439cc5c23dcc585a8cdad177c737f2",
+    "bytes": 105207
+  },
+  "author_352_resources_rehashed_before_and_after": true,
+  "recursive_local_modules": 23,
+  "observed_import_modules": 12,
+  "author_tests_rerun": {
+    "passed": 48,
+    "log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/author_tests_rerun.log",
+      "sha256": "513083127ceda364a6b96903ad6600b4790367f216351b78460a43ad240d6286",
+      "bytes": 5275
+    }
+  },
+  "independent_counterexamples": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/initial_counterexamples.json",
+    "sha256": "e830cece64bd16fbe5ec2b80b55d1e8af16cffa7950ed53320e2e1fb28460353",
+    "bytes": 1064
+  },
+  "independent_real_process_fixture": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/disposable_process_result.json",
+    "sha256": "81035a589438dbb1b8d7ddff4f5ed89d88ea8f0b57e03ca46ddf67b076c89e03",
+    "bytes": 1783
+  },
+  "findings": [
+    {
+      "id": "N06R01_ADMIN_INPUT_DRIFT",
+      "severity": "blocking_before_administrative_apply",
+      "source": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan.py",
+        "sha256": "a2a357e7110e3fcbac6be33b4caf0d3df268501617f3f686db5ad501f2251773",
+        "bytes": 12728
+      },
+      "line": 123,
+      "mechanism": "resources只在commit开始重哈希。首CSV持久替换之后的receipt变化未复核，3表全部after且completion写出。",
+      "counterexample": {
+        "id": "input_drift_after_first_CSV_replace",
+        "first_csv_durable_then_bound_receipt_mutated": true,
+        "bound_receipt_now_invalid": true,
+        "completion_written": true,
+        "all_tables_after": true,
+        "classification": "confirmed_commit_accepts_stale_terminal_input"
+      },
+      "repair": "每表替换前、完成凭据写入前重验所有validated输入（包括plan/review与resources），变化拒绝并保留partial after状态，精确恢复原输入后roll-forward。"
+    },
+    {
+      "id": "N06R01_RECEIPT_CLOSURE",
+      "severity": "blocking_before_administrative_projection",
+      "source": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan.py",
+        "sha256": "a2a357e7110e3fcbac6be33b4caf0d3df268501617f3f686db5ad501f2251773",
+        "bytes": 12728
+      },
+      "line": 37,
+      "mechanism": "consumed receipt仅校验部分identity与bool，未校验stage/error/assessment。foreign stage且integrity true/error非空/assessment None仍投影terminal_timeout。",
+      "counterexample": {
+        "id": "consumed_receipt_stage_error_and_assessment_not_validated",
+        "accepted": true,
+        "status_contains_terminal_timeout": true,
+        "classification": "confirmed_projection_does_not_validate_full_terminal_receipt_contract"
+      },
+      "repair": "统一校验closed receipt schema、canonical path+SHA、stage/run/seed/method/attempt/release；error与integrity一致；存在assessment时验证真实文件内容身份/结果并绑定SHA，成功必须有assessment。所有实际行政字段来自已校验资源。"
+    },
+    {
+      "id": "N06R01_CONVERSION_AUTHENTICATION",
+      "severity": "blocking_before_execution_release_qualification",
+      "source": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity.py",
+        "sha256": "27c4a4e63a78750daa752c3555c274301762c824b3691b3497583df730730ec7",
+        "bytes": 15827
+      },
+      "line": 126,
+      "mechanism": "conversion_resources仅验证资源哈希，未调用authenticate_conversion；只有3键的synthetic manifest和非SDF字节能通过结构验证（仅native facts stub，其余conversion真实代码）。",
+      "counterexample": {
+        "id": "conversion_manifest_authentication_not_called",
+        "accepted_structural_fixture": true,
+        "conversion_manifest_has_only": [
+          "input_urdf",
+          "converted_sdf",
+          "resources"
+        ],
+        "native_facts_stubbed": true,
+        "actual_conversion_function_not_stubbed": true,
+        "classification": "structural_roster_pass_does_not_establish_converter_provenance_before_allocation"
+      },
+      "repair": "在分配前对8份manifest调用authenticate_conversion(...,diagnostic=True)并要求pass；此门仅认证离线转换器/双次输出/进程maps，不冒称实际运行sdformat对应已合格。"
+    }
+  ],
+  "passed_bounded_checks": [
+    "canonical/type-sensitive bindings and exact immutable8preparation source/schedule verified with author suite; native stand-ins are only structural fixtures",
+    "23 recursive local Python imports covered by bound source roster",
+    "actual pidfd rejects wrong start ticks; owned child plus separately setsid grandchild cleaned with real nonce/ancestry and subreaper; unrelated sibling survives",
+    "N05 legacy return0/outer143 difference remains causally unresolved",
+    "no manager main execute, no ROS/Gazebo or native converter invoked by this r01 audit; temporary-FS synthetic documents never used as execution authority"
+  ],
+  "coverage_limits": [
+    "Actual reviewed full release/runtime/native8conversion qualification is absent in this r01 review. New root conversion bundle is a separate next audit.",
+    "No live Gazebo drain or full physical outcome tested. Real process fixture uses ordinary Python children.",
+    "Source review completeness and exact runtime root names are enforced structurally; this report does not endorse a synthetic native/runtime stand-in as qualified.",
+    "Administrative apply tests affect only temporary filesystem targets; no global CSV changed."
+  ],
+  "global_csv_readonly_observations": [
+    {
+      "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/seed_registry.csv",
+      "unchanged": true,
+      "observed_sha256": "637e9d237d477a248dd6f08eb4a548e28f487471b8c48d7e0c9c7503caec31b0",
+      "immutable_snapshot_binding": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/frozen_input_verification.json",
+        "sha256": "aec76c5f0f0dfb83c2cca0d40bd6da85c4209143e735278cb873f99e266d2807",
+        "bytes": 26440
+      }
+    },
+    {
+      "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/run_manifest.csv",
+      "unchanged": true,
+      "observed_sha256": "6a3925723da10998fe43984b3df780db621eb750e8e26be51dafef40a664be87",
+      "immutable_snapshot_binding": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/frozen_input_verification.json",
+        "sha256": "aec76c5f0f0dfb83c2cca0d40bd6da85c4209143e735278cb873f99e266d2807",
+        "bytes": 26440
+      }
+    },
+    {
+      "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/EXPERIMENTS.csv",
+      "unchanged": true,
+      "observed_sha256": "11b81319808875e5d8accadabf2b0dada979b426885185cf16821d7b2d473834",
+      "immutable_snapshot_binding": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/frozen_input_verification.json",
+        "sha256": "aec76c5f0f0dfb83c2cca0d40bd6da85c4209143e735278cb873f99e266d2807",
+        "bytes": 26440
+      }
+    }
+  ],
+  "authority": {
+    "execution_authorized": false,
+    "release_created": false,
+    "seed_registered": false,
+    "ROS_started": false,
+    "training_started": false,
+    "source_changed": false
+  },
+  "r01_release_usable": false,
+  "next": "new versioned r02 repair and focused independent regression; retain all r01 negatives"
+}

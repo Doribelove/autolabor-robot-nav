@@ -1,0 +1,151 @@
+{
+  "schema": "astra_baseline_integration_b04_independent_review_v1",
+  "status": "independent_offline_static_source_contract_launch_and_synthetic_bag_review_pass",
+  "independent_review": true,
+  "author_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/implementation_report.json",
+    "sha256": "90a21ee2c240111fdbe6c9022d96042f23a9581620b8bd33783f6cd41f945178",
+    "bytes": 6431
+  },
+  "author_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04/source_manifest.json",
+    "sha256": "b152d0a29a0a77475e4af518183422ce111569aab767eefaf24ae781f8eb0c0e",
+    "bytes": 57128
+  },
+  "frozen_B03_review": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/review.json",
+    "sha256": "cfd9f8166fec91b46b611c0fb0c20bbdeb2dc4bf86bc8c81001f6b8e543aa13a",
+    "bytes": 21686
+  },
+  "author_files_changed": false,
+  "execution_authorized": false,
+  "execution_ready": false,
+  "release_created": false,
+  "seed_registered": false,
+  "ROS_or_Gazebo_started": false,
+  "training_started": false,
+  "live_static_rear_reference_qualified": false,
+  "dynamic_actor_integration_qualified": false,
+  "live_receipt_completeness_qualified": false,
+  "performance_claim": false,
+  "formal_safety": false,
+  "tests": {
+    "author_replayed": 48,
+    "independent": 10,
+    "source_launch_aggregate": 10,
+    "all_pass": true,
+    "synthetic_bags_only": true,
+    "physical_B04_bag_count": 0,
+    "logs": [
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/author_tests_replay.log",
+        "sha256": "323eeedffe3a81b17b4838a6172214504e0f471c20259f84909d5dcfeab5336c",
+        "bytes": 4560
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/independent_tests_r01.log",
+        "sha256": "28258c4a8ebafebe46b8691fb57551b61d183c291d64a7fc39ee58211f47d019",
+        "bytes": 980
+      }
+    ],
+    "source_launch_results": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/launch_source_checks_r01.json",
+      "sha256": "11c623a680549d7e5f73913627b26518cbd82dd767b6e516f1011cc37747c815",
+      "bytes": 55100
+    },
+    "environment": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/test_environment.json",
+      "sha256": "0bbe20c368cdd4adce7a56c8855de4a8e659b1b2736cb6039b04d5ba3f953c7c",
+      "bytes": 881
+    },
+    "commands": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/commands.json",
+      "sha256": "16bd798094adeb13378bb252ab9014ce3e7c36672c7a20d853d58abef808d340",
+      "bytes": 1220
+    }
+  },
+  "independent_scope": [
+    "All 199 frozen author resources rehashed after tests.",
+    "Read B04 helper, collector, assessor and all new deltas; bind prior independent B03 geometry/coordinator audit rather than claiming B04 reimplements it.",
+    "Actual source assessor Bag-loop extraction with ROS message serialization for all rear evidence types and both methods.",
+    "Two actual XmlLoader/Xacro expansions, full parameter/node equality to saved author final_r2 outputs, private command/odom remaps and exact 9 robot collision parts.",
+    "Full64 padded costmap and16 raw TEB footprint translation; 40 TEB and28 DWA nonoverlay baseline fields unchanged.",
+    "Gate, terminal_record, navigation_outcome, validate_services, robot model, wait/readiness primitives AST unchanged from frozen N02."
+  ],
+  "source_clock_and_terminal": {
+    "measurement": "original source headers; no receive-time retiming",
+    "availability": "received and available_ns retained separately, bounded by inherited200ms",
+    "formal_join": "original base, rear, receipt exact50Hz source lattice from gate through final watermark slot",
+    "bag_join": "each raw and bag stream independently audited; three source payload/caller streams equal; receiver timestamps need not match",
+    "terminal": "only original actual base_link common goal/cap; private action states diagnostic",
+    "goal_m_rad": [
+      0.25,
+      0.25
+    ],
+    "private_goal_m_rad": [
+      0.15,
+      0.1
+    ],
+    "timeout_s": 22,
+    "shutdown": "same lock callback freeze and total5s drain; missing evidence retained as capture failure"
+  },
+  "retained_negative_and_scope_limits": [
+    {
+      "id": "B03_partial_batch",
+      "result": "actual earlier rear output may lack receipt if later queued sample expires before publication; B04 fails integrity, never fabricates receipt"
+    },
+    {
+      "id": "full_parameter_validation_scope",
+      "result": "11 overlay fields plus class only; changed max_vel_x=17 accepted by narrow checker, although actual prepared values are correct and full namespaces saved",
+      "future_requirement": "closed manager compares full prepared effective parameters at bootstrap and terminal"
+    },
+    {
+      "id": "rear_fault_not_live_stop_proof",
+      "result": "status fault is captured and invalidates final audit; immediate physical stop behavior not qualified"
+    },
+    {
+      "id": "tilt_geometry",
+      "result": "full3D transform does not establish exact yaw-only footprint equivalence; prior0.0004061653716359581m counterexample retained"
+    },
+    {
+      "id": "private_goal_callback_order",
+      "result": "inner instantaneous goal-set containment does not guarantee asynchronous observation order or prevent planner stopping before common observation; failure remains included"
+    },
+    {
+      "id": "nonholonomic_execution",
+      "result": "retained rear vy, DWA stop-and-rotate, Ackermann compatibility and transformed polyline curvature remain live prerequisites; acc_lim_y2.5 is sampling not physical lateral ability"
+    },
+    {
+      "id": "static_only",
+      "result": "current flat expanded world static; dynamic actor/schema/method whitelist integration not implemented or qualified"
+    },
+    {
+      "id": "trusted_evidence",
+      "result": "graph caller/source checks describe trusted selected-node closure, not hostile process isolation"
+    }
+  ],
+  "future_runtime_prerequisites": [
+    "Independent exact manager, fresh schedule/budget/release and resource/native ELF/interpreter closure.",
+    "Prepared URDF conversion/SDF and actual runtime model binding; current XML expansion alone is not Gazebo conversion or physics evidence.",
+    "Actual full rear/base/receipt transport including pause/drain, TF source availability, selected native TEB/DWA execution and whole geometry/contact evaluation.",
+    "Whole effective planner-parameter comparison and failure-inclusive handling; no assumption private result callback or rear status supplies physical success/stop.",
+    "Separate explicit dynamic actor integration and qualification before any dynamic comparison."
+  ],
+  "negative_evidence_preserved": "All B04 author earlier bag/header/launch failures remain bound unchanged; B03 partial-batch and tilt negatives retained. No B04 actual episode existed or was reclassified.",
+  "reviewer_attempt_failure": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/seal_attempt01_failure.json",
+    "sha256": "e66545205d6ab82f524b2d344fd8e86cd1e92c8f4e97253c39361ff494b0b041",
+    "bytes": 316
+  },
+  "authority_scope": "Offline source/contract/launch/synthetic serialization only; this review grants no seed, execution or training permission.",
+  "resources": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/resources.json",
+    "sha256": "12c97ed0b3c0592481689e76527ad5a6e3f6bc1f93ef5a8ffc9aa58f0e71d169",
+    "bytes": 59800
+  },
+  "narrative": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/README.md",
+    "sha256": "118acccc9678d8f59ed6a4a29897b7f0f8cd83adb6ad433a00af3f5f88af3e62",
+    "bytes": 3136
+  }
+}

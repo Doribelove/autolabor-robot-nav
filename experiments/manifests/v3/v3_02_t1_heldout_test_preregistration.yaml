@@ -1,0 +1,24 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-T1
+preregistration_id: v3_scope_v3_02_t1_heldout_test_preregistration_1
+date: "2026-07-24"
+status: frozen_before_any_heldout_test_outcome
+contract: config/thesis_experiments/v3/v3_02_t1_heldout_test_contract.yaml
+frozen_model_sha256: 3caa0124e1d20b8aaff17858ba5821515f4ecb2570197a3fbed83ae18a59a61d
+test:
+  seeds: [6221, 6222, 6223]
+  blocks: 3
+  policies: 3
+  candidates: 4
+  exact_rows: 36
+  attempt: 1
+budget:
+  simulation_units_after_separate_authorization: 36
+  consumed_before_release: 0
+  retries: 0
+model_firewall:
+  refit_allowed: false
+  recalibration_allowed: false
+  conformal_radius_change_allowed: false
+  test_label_available_to_runtime: false

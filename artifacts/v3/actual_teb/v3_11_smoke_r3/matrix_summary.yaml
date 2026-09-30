@@ -1,0 +1,46 @@
+schema_version: '1.0'
+stage: V3-11-SMOKE
+phase: smoke
+status: execution_complete
+simulation_only: true
+contract_sha256: 6a1d2c24f3800548f9da0d1177baef790d2b360c11cc47c324b5033f0e7c1c12
+lookahead_m: 0.7
+training_steps: 0
+episode_count: 2
+method_summary:
+  v3_spatial_safe:
+    episodes: 1
+    episode_passes: 0
+    goal_successes: 0
+    mean_restricted_elapsed_s: 22.0
+    minimum_clearance_m: 1.1870046721869043
+    contact_state_count: 0
+  actual_teb:
+    episodes: 1
+    episode_passes: 0
+    goal_successes: 1
+    mean_restricted_elapsed_s: 7.750000000000001
+    minimum_clearance_m: 0.41660515549539845
+    contact_state_count: 0
+paired_blocks:
+- block_index: 1
+  scene_id: open_crossing_90
+  actor_policy: cautious
+  v3_restricted_elapsed_s: 22.0
+  actual_teb_restricted_elapsed_s: 7.750000000000001
+  v3_minus_teb_s: 14.25
+  reduction_percent: -183.87096774193546
+gate_pair_differences:
+- block_index: 1
+  actor_coordinate_absolute_difference_m: 0.03966377767999818
+  actor_speed_absolute_difference_mps: 0.0034914699162131857
+maximum_gate_actor_coordinate_difference_m: 0.03966377767999818
+maximum_gate_actor_speed_difference_mps: 0.0034914699162131857
+paired_mean_time_reduction_percent: -183.87096774193546
+all_gate_physical_valid: true
+all_v3_spatial_selected: false
+all_actor_modes_match_evaluator_policy: false
+all_zero_contact: true
+all_nonnegative_conservative_clearance: true
+hardware_accessed: false
+real_vehicle_used: false

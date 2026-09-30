@@ -1,0 +1,101 @@
+--- artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_collector_n02.py
++++ artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_collector_n04.py
+@@ -19,7 +19,7 @@
+ 
+ WORKSPACE=Path(__file__).resolve().parents[4]
+ sys.path.insert(0,str(WORKSPACE/'scripts/astra_gazebo'))
+-import navigation_evidence_n02 as q
++import navigation_evidence_n04 as q
+ import run_smoke_a02 as common
+ 
+ class Transport(xmlrpc.client.Transport):
+@@ -48,7 +48,10 @@
+     phase=['bootstrap'];drain_deadline=[None];raw={'run_id':value['run_id'],'seed':value['seed'],
+         'method':value['method'],'stage':value['stage'],'contract_sha256':rospy.get_param('~contract_sha256'),'source_stamps':{},'status_messages':[],
+         'coordinator_status':[],'coordinator_identity':[],'gate':None,'command_trace_summary':[],'command_ingress':[],'node_processes':[],'metadata':[],'node_roster':[],'services':[],
+-        'errors':[],'images':[],'resource_samples':[],'source_wall_samples':[]}
++        'errors':[],'images':[],'resource_samples':[],'source_wall_samples':[],
++        'actor_gate_status':[]}
++    actor_topics={q.event_actor.status_topic(name):name for name in
++                  q.event_actor.world_actors(q.read_bound(value['world']).decode())}
+     evidence=q.EvidenceStore(raw);lock=evidence.lock
+     latest={};last_state={};last_image=[None];gazebo_pid=[None];source_wall=raw['source_wall_samples'];started_wall=time.monotonic()
+     lifecycle_deadline=q.WallDeadline(value['wall_cap_s'])
+@@ -58,6 +61,17 @@
+     def parse_callback(topic,message):
+         if isinstance(message,String):
+             item=json.loads(message.data)
++            if topic in actor_topics:
++                if item.get('model_name')!=actor_topics[topic]:
++                    raise ValueError('actor gate status topic/model mismatch')
++                raw['actor_gate_status'].append(item)
++                if item.get('schema')!=q.event_actor.STATUS_SCHEMA or any(
++                        type(item.get(key))is not type(value[key]) or item[key]!=value[key]
++                        for key in ('run_id','seed','method')):
++                    raise ValueError('actor gate status schema/episode identity mismatch')
++                if item.get('fault')is not False:
++                    raise ValueError('actor gate fault: '+str(item.get('reason')))
++                return
+             if topic=='/astra/p03/step_status':stamp=item['stamp_ns']
+             elif topic=='/astra/p03/runtime_metadata':raw['metadata'].append(item);return
+             elif topic in q.COORDINATOR_TOPICS:
+@@ -90,7 +104,7 @@
+         kind=String if topic.endswith('step_status') else ContactsState if topic.endswith('physics_contacts') else WorldState
+         subscribers.append(rospy.Subscriber(topic,kind,lambda msg,t=topic:callback(t,msg),queue_size=10000,buff_size=16*1024*1024))
+     for topic,kind in [('/astra/p03/runtime_metadata',String),('/m2_driver/physical_status',DiagnosticArray),
+-                       ('/m2_driver/command_ingress',DiagnosticArray)]+[(name,String) for name in q.COORDINATOR_TOPICS]:
++                       ('/m2_driver/command_ingress',DiagnosticArray)]+[(name,String) for name in q.COORDINATOR_TOPICS]+[(name,String) for name in actor_topics]:
+         subscribers.append(rospy.Subscriber(topic,kind,lambda msg,t=topic:callback(t,msg),queue_size=10000))
+     if value['camera_topic'] is not None:
+         subscribers.append(rospy.Subscriber(value['camera_topic'],Image,
+@@ -143,6 +157,13 @@
+         if value['method'] in ('actual_teb_common_route','dwa_common_route'):
+             params={name:rospy.get_param('/move_base/'+name) for name in ('base_local_planner','base_global_planner')}
+         return q.planner_parameters(params,value['method'])
++    def full_planner_parameters():
++        if value['method'] not in ('actual_teb_common_route','dwa_common_route'):
++            return {}
++        result=rpc(master_uri,'getParam','/move_base')
++        if type(result)is not dict:raise ValueError('actual move_base parameter namespace absent')
++        json.dumps(result,allow_nan=False)
++        return result
+     def roster():
+         system=rpc(master_uri,'getSystemState')
+         nodes=sorted({node for category in system for _name,members in category for node in members})
+@@ -152,6 +173,8 @@
+              'command_publishers':{topic:sorted(pubs.get(topic,[])) for topic in ('/cmd_vel_navigation','/cmd_vel')}}
+         row['pass']=(not unexpected and not row['missing_nodes'] and row['command_publishers']=={
+             '/cmd_vel_navigation':[value['coordinator_node']],'/cmd_vel':[value['relay_node']]})
++        row['actor_gate_graph']=q.event_actor.graph_audit(system,list(actor_topics.values()),value['coordinator_node'])
++        row['pass']=row['pass'] and row['actor_gate_graph']['pass_']
+         if value['method']=='frozen_r2_v060_sensor_lifecycle_v1':
+             row['sensor_method_graph']=q.sensor_method_graph(system)
+             row['pass']=row['pass'] and row['sensor_method_graph']['pass_']
+@@ -223,8 +246,10 @@
+         gazebo_uri=rpc(master_uri,'lookupNode','/gazebo');pid=rpc(gazebo_uri,'getPid');gazebo_pid[0]=pid
+         bootstrap_processes=process_roster('bootstrap')
+         bootstrap_planners=actual_planner_parameters();raw['planner_parameters']={'bootstrap':bootstrap_planners}
++        raw['planner_full_parameters']={'bootstrap':full_planner_parameters()}
+         common.atomic(root/'ready_for_maps.json',{'pid':pid,'source_ns':rospy.Time.now().to_nsec(),'phase':'bootstrap',
+-          'node_processes':bootstrap_processes,'planner_parameters':bootstrap_planners})
++          'node_processes':bootstrap_processes,'planner_parameters':bootstrap_planners,
++          'planner_full_parameters':raw['planner_full_parameters']['bootstrap']})
+         wait_until(lambda:(root/'maps_pre_ready.json').is_file(),30.,'parent actual ELF snapshot')
+         gateway('/gazebo/unpause_physics',Empty);phase[0]='warmup'
+         warmup_query=gateway('/gazebo/get_world_properties',GetWorldProperties)
+@@ -286,12 +311,14 @@
+                    drain_deadline[0].remaining(),'final source watermark drain')
+         require_roster();terminal_processes=process_roster('terminal');drain_deadline[0].check()
+         terminal_planners=actual_planner_parameters();raw['planner_parameters']['terminal']=terminal_planners;drain_deadline[0].check()
++        raw['planner_full_parameters']['terminal']=full_planner_parameters();drain_deadline[0].check()
+         raw['final_drain']={'source_watermark_ns':watermark,'queried_source_ns':times,'latest':dict(latest),
+                             'wall_elapsed_s':drain_deadline[0].elapsed(),'deadline_scope':'coordinator stop request through pause, queries, joins, roster and process checks','physics_pause':physics.pause,'physics_step':physics.time_step}
+         raw['image_coverage']=q.image_coverage(raw['images'],image_errors,value['camera_topic'])
+         drain_deadline[0].check();drain_deadline[0]=None
+         common.atomic(root/'ready_for_maps_final.json',{'pid':pid,'source_ns':watermark,'phase':'terminal',
+-          'node_processes':terminal_processes,'planner_parameters':terminal_planners})
++          'node_processes':terminal_processes,'planner_parameters':terminal_planners,
++          'planner_full_parameters':raw['planner_full_parameters']['terminal']})
+         wait_until(lambda:(root/'maps_final_ready.json').is_file(),30.,'parent final actual ELF snapshot')
+         lifecycle_deadline.check()
+     except BaseException as error:

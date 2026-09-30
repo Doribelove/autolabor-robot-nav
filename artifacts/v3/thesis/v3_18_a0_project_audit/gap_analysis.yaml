@@ -1,0 +1,41 @@
+schema_version: '1.0'
+stage: V3-18-A0
+status: audit_complete_new_same_population_benchmark_required
+evidence_strengths:
+- actual TEB formal paired baseline exists
+- fresh multi-scene/multi-seed execution exists
+- idealized comparator and longitudinal ablations exist
+- negative learning and multi-actor evidence is preserved
+- deterministic assessments and paper assets exist
+material_gaps:
+- id: G1
+  gap: no canonical episode-level dataset spanning frozen studies
+  action: implement adapters and manifest-backed collector
+- id: G2
+  gap: main/actual-TEB/fixed comparator/ablation are not evaluated in one fresh population
+  action: new four-method simulation-only benchmark
+- id: G3
+  gap: figures and three-line tables are stage-specific
+  action: single deterministic analysis/export pipeline
+- id: G4
+  gap: reproduction commands are distributed across handoffs
+  action: generate top-level reproduction book and one-command offline rebuild
+- id: G5
+  gap: perception/OOD and independent complex geometry remain untested
+  action: future separately authorized study; not silently added to current claim
+- id: G6
+  gap: multi-actor common-prefix coordinate gate remains negative
+  action: do not fit predictor; future snapshot/reset design only
+next_preregistered_study:
+  methods:
+  - v3_spatial_safe
+  - actual_teb
+  - fixed_v120_shielded
+  - v3_no_candidate_conditioning
+  purpose: thesis benchmark and component ablation, not retuning V3-11
+  fresh_seeds_required: true
+  qualification_required: true
+  training_steps: 0
+  hardware_access: false
+cross_stage_pooling_forbidden: true
+execution_authorized: false

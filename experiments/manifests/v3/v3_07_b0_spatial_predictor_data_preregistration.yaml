@@ -1,0 +1,30 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-B0
+status: frozen_before_any_v3_07_b0_gazebo_execution
+schedule:
+  exact_rows: 50
+  training_rows: 30
+  calibration_rows: 20
+  seeds: [6611, 6612, 6613, 6614, 6615, 6616, 6617, 6618, 6619, 6620]
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+support:
+  cautious: [certified_stop_v000, spatial_left_v120]
+  hesitant: [certified_stop_v000, spatial_left_v120]
+  assertive: [certified_stop_v000]
+  hidden_policy_runtime_input: false
+model:
+  fit_only_after_data_qualification: true
+  frozen_head_key: [observed_mode, candidate_id]
+  frozen_horizons_s: [1.5, 2.5, 3.5, 4.5]
+  calibration_not_used_for_coefficients: true
+held_out_firewall:
+  reserved_seeds: [6631, 6632, 6633, 6634]
+  test_outcome_access_allowed: false
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_or_seed_replacement: true
+  no_model_fit_if_data_qualification_fails: true
+budget: {simulation_units: 50, reinforcement_learning_steps: 0, hardware_runs: 0}

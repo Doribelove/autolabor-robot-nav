@@ -1,0 +1,614 @@
+schema_version: 1
+stage: astra_m12_physics_p07
+purpose: paired_single_factor_steering_gain_after_terminal_callback_name_binding_repair
+scope: simulation-only physical-control calibration pilot, not navigation performance
+  or formal safety
+execution_status: offline_design_not_executed
+navigation_performance_evidence: false
+training_authorized: false
+vehicle_operation_authorized: false
+maximum_episodes: 6
+independent_pairs: 3
+seeds:
+- 260926023
+- 260926024
+- 260926025
+namespace: frozen pipeline_smoke range260926001--260926099
+paired_order:
+- - kd4
+  - kd6
+- - kd6
+  - kd4
+- - kd4
+  - kd6
+factor:
+  parameter: steeringKd
+  control: 4.0
+  treatment: 6.0
+  all_other_effective_parameters_and_numeric_gates_fixed: true
+parent_contract:
+  path: contracts/m12_physics_p02.yaml
+  sha256: 0015576bb4d8a087e2fdbeb8919d7050b9561719050292db31d394e7404dc3c2
+command_source_parent:
+  path: workspace/src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p02.py
+  sha256: 82e80264c8eb62cc94b93a74f402047433efda0d7970e8d194b6c3ffeda4489e
+  permitted_source_change: P02 -> P07 exact stage constant; expected physical plugin
+    filename P02 -> P05; all command scheduling and behavior byte-identical
+schedule:
+  path: queue/m12_physics_p07_schedule.json
+  sha256: c65339feafcf8f891e7d704698c06c46f6c18f5b35ffd8bb69bde0556c511191
+budget_design:
+  path: queue/m12_physics_p07_budget_design.json
+  sha256: 6ea94c1b4e92f75c972670e004c43e1d8b97bcbe2db8d6216bf3991d050dbfc8
+environment:
+  driver_library: libastra_physical_ackermann_p05_plugin.so
+  dense_evidence_library: libastra_dense_evidence_plugin.so
+  spawn_launch: spawn_m2_physical_p05.launch
+  probe_script: astra_physical_actuation_probe_p07.py
+  command_script: astra_actuation_command_source_p07.py
+  world_sdf_exactly_parent: true
+  new_passive_metadata_plugin_allowed: false
+  shared_geometry_mass_friction_and_sensors: true
+  within_pair_gazebo_and_dynamics_seed_equal: true
+  all_launch_controller_args_explicit: true
+prerequisite:
+  run_id: m12_physics_p02
+  requires_complete_measurement_chain: true
+  physical_failure_allowed: true
+  allowed_failed_checks:
+  - accelerate_actual_steady_steering
+  - accelerate_steady_speed
+  - actual_center_angle_limit
+  - actual_center_slew_with_declared_sampling_tolerance
+  - actual_front_Ackermann_pair_agreement
+  - actual_front_joint_URDF_angle_limits
+  - actual_front_left_steer_joint_URDF_velocity_limit
+  - actual_front_right_steer_joint_URDF_velocity_limit
+  - command_loss_actual_stopped
+  - command_loss_model_stopped
+  - commanded_brake_actual_stopped
+  - commanded_brake_model_stopped
+  - internal_accel_limit
+  - internal_brake_limit
+  - internal_target_center_angle_limit
+  - internal_target_center_slew_limit
+  - no_non_ground_robot_contacts
+  - only_wheels_may_contact_ground
+  - reaccelerate_brake_actual_steady_steering
+  - reaccelerate_brake_steady_speed
+  - reaccelerate_loss_actual_steady_steering
+  - reaccelerate_loss_steady_speed
+  - saturation_negative_actual_steady_steering
+  - saturation_negative_steady_speed
+  - saturation_negative_yaw_excitation
+  - saturation_positive_actual_steady_steering
+  - saturation_positive_steady_speed
+  - saturation_positive_yaw_excitation
+  - stationary_actual_stopped
+  - stationary_model_stopped
+  - turn_negative_actual_steady_steering
+  - turn_negative_steady_speed
+  - turn_negative_yaw_excitation
+  - turn_positive_actual_steady_steering
+  - turn_positive_steady_speed
+  - turn_positive_yaw_excitation
+  - zero_speed_yaw_actual_stopped
+  - zero_speed_yaw_model_stopped
+  minimum_measurement_checks:
+  - accelerate_command_count
+  - actual_joint_positions_agree_with_dense_source_pose
+  - actual_odom_twist_agrees_with_dense_base_link
+  - all_numeric_finite
+  - backend_status_approximately_50Hz
+  - backend_status_bounded_source_gap
+  - backend_status_covers_schedule
+  - backend_status_source_strictly_monotonic
+  - command_loss_no_driver_receipt_after_drain
+  - command_loss_no_probe_publication
+  - commanded_brake_command_count
+  - commanded_efforts_approximately_50Hz
+  - commanded_efforts_bounded_source_gap
+  - commanded_efforts_covers_schedule
+  - commanded_efforts_finite_limits_not_reaction
+  - commanded_efforts_source_strictly_monotonic
+  - contacts_bounded_source_gap
+  - contacts_covers_schedule
+  - contacts_source_strictly_monotonic
+  - dense_links_covers_schedule
+  - dense_links_every_physics_step
+  - dense_model_link_exact_source_join
+  - dense_models_covers_schedule
+  - dense_models_every_physics_step
+  - dense_source_metadata
+  - final_paused_source_watermark_drained
+  - isolated_command_events_match_integer_schedule
+  - isolated_command_source_identity_and_completion
+  - joints_approximately_50Hz
+  - joints_bounded_source_gap
+  - joints_covers_schedule
+  - joints_source_strictly_monotonic
+  - links_approximately_50Hz
+  - links_bounded_source_gap
+  - links_covers_schedule
+  - links_source_strictly_monotonic
+  - models_approximately_50Hz
+  - models_bounded_source_gap
+  - models_covers_schedule
+  - models_links_exact_source_stamp_join
+  - models_source_strictly_monotonic
+  - no_callback_errors
+  - odom_approximately_50Hz
+  - odom_bounded_source_gap
+  - odom_covers_schedule
+  - odom_source_strictly_monotonic
+  - physical_backend_metadata
+  - physical_backend_never_faulted
+  - physical_command_ingress_matches_source_commands
+  - physical_command_ingress_source_schema_and_order
+  - physical_status_source_exact_target_odom_join
+  - physical_status_source_schema
+  - physics_source_metadata
+  - reaccelerate_brake_command_count
+  - reaccelerate_loss_command_count
+  - recorder_connections_ready_before_unpause
+  - recorder_warmup_before_start
+  - saturation_negative_command_count
+  - saturation_positive_command_count
+  - schedule_start_marker_matches_trigger
+  - stationary_command_count
+  - targets_approximately_50Hz
+  - targets_bounded_source_gap
+  - targets_covers_schedule
+  - targets_source_strictly_monotonic
+  - turn_negative_command_count
+  - turn_positive_command_count
+  - unique_expected_model_roster
+  - within_phase_command_deadline
+  - zero_speed_yaw_command_count
+  full_check_roster:
+  - accelerate_actual_steady_steering
+  - accelerate_command_count
+  - accelerate_steady_speed
+  - actual_center_angle_limit
+  - actual_center_slew_with_declared_sampling_tolerance
+  - actual_front_Ackermann_pair_agreement
+  - actual_front_joint_URDF_angle_limits
+  - actual_front_left_steer_joint_URDF_velocity_limit
+  - actual_front_right_steer_joint_URDF_velocity_limit
+  - actual_joint_positions_agree_with_dense_source_pose
+  - actual_odom_twist_agrees_with_dense_base_link
+  - all_numeric_finite
+  - all_source_stamp_ns_and_seconds_agree
+  - backend_status_approximately_50Hz
+  - backend_status_bounded_source_gap
+  - backend_status_covers_schedule
+  - backend_status_source_strictly_monotonic
+  - command_loss_actual_stopped
+  - command_loss_model_stopped
+  - command_loss_no_driver_receipt_after_drain
+  - command_loss_no_probe_publication
+  - commanded_brake_actual_stopped
+  - commanded_brake_command_count
+  - commanded_brake_model_stopped
+  - commanded_efforts_approximately_50Hz
+  - commanded_efforts_bounded_source_gap
+  - commanded_efforts_covers_schedule
+  - commanded_efforts_finite_limits_not_reaction
+  - commanded_efforts_source_strictly_monotonic
+  - contacts_bounded_source_gap
+  - contacts_covers_schedule
+  - contacts_source_strictly_monotonic
+  - dense_links_complete_roster_and_shapes
+  - dense_links_covers_schedule
+  - dense_links_every_physics_step
+  - dense_model_link_exact_source_join
+  - dense_models_complete_roster_and_shapes
+  - dense_models_covers_schedule
+  - dense_models_every_physics_step
+  - dense_source_metadata
+  - final_paused_source_watermark_drained
+  - inside_empty_fixture
+  - internal_accel_limit
+  - internal_brake_limit
+  - internal_target_center_angle_limit
+  - internal_target_center_slew_limit
+  - isolated_command_events_match_integer_schedule
+  - isolated_command_source_identity_and_completion
+  - joints_approximately_50Hz
+  - joints_bounded_source_gap
+  - joints_covers_schedule
+  - joints_source_strictly_monotonic
+  - links_approximately_50Hz
+  - links_bounded_source_gap
+  - links_complete_roster_and_shapes
+  - links_covers_schedule
+  - links_matches_dense_same_stamp
+  - links_source_strictly_monotonic
+  - model_odom_xy_agreement
+  - model_odom_yaw_agreement
+  - models_approximately_50Hz
+  - models_bounded_source_gap
+  - models_complete_roster_and_shapes
+  - models_covers_schedule
+  - models_links_exact_source_stamp_join
+  - models_matches_dense_same_stamp
+  - models_source_strictly_monotonic
+  - no_callback_errors
+  - no_non_ground_robot_contacts
+  - odom_approximately_50Hz
+  - odom_bounded_source_gap
+  - odom_covers_schedule
+  - odom_source_join_age
+  - odom_source_strictly_monotonic
+  - only_wheels_may_contact_ground
+  - physical_backend_metadata
+  - physical_backend_never_faulted
+  - physical_command_ingress_matches_source_commands
+  - physical_command_ingress_source_schema_and_order
+  - physical_status_source_exact_target_odom_join
+  - physical_status_source_schema
+  - physics_source_metadata
+  - reaccelerate_brake_actual_steady_steering
+  - reaccelerate_brake_command_count
+  - reaccelerate_brake_steady_speed
+  - reaccelerate_loss_actual_steady_steering
+  - reaccelerate_loss_command_count
+  - reaccelerate_loss_steady_speed
+  - recorder_connections_ready_before_unpause
+  - recorder_warmup_before_start
+  - saturation_negative_actual_steady_steering
+  - saturation_negative_command_count
+  - saturation_negative_steady_speed
+  - saturation_negative_yaw_excitation
+  - saturation_positive_actual_steady_steering
+  - saturation_positive_command_count
+  - saturation_positive_steady_speed
+  - saturation_positive_yaw_excitation
+  - schedule_start_marker_matches_trigger
+  - spawn_pose_matches_fixture
+  - stationary_actual_stopped
+  - stationary_command_count
+  - stationary_model_stopped
+  - target_fields_and_Ackermann_geometry
+  - target_speed_and_instantaneous_reference_limits
+  - targets_approximately_50Hz
+  - targets_bounded_source_gap
+  - targets_covers_schedule
+  - targets_source_strictly_monotonic
+  - turn_negative_actual_steady_steering
+  - turn_negative_command_count
+  - turn_negative_steady_speed
+  - turn_negative_yaw_excitation
+  - turn_positive_actual_steady_steering
+  - turn_positive_command_count
+  - turn_positive_steady_speed
+  - turn_positive_yaw_excitation
+  - unique_expected_model_roster
+  - within_phase_command_deadline
+  - zero_speed_yaw_actual_stopped
+  - zero_speed_yaw_command_count
+  - zero_speed_yaw_model_stopped
+  inherited_check_names:
+  - accelerate_actual_steady_steering
+  - accelerate_command_count
+  - accelerate_steady_speed
+  - actual_center_angle_limit
+  - actual_center_slew_with_declared_sampling_tolerance
+  - actual_front_Ackermann_pair_agreement
+  - actual_front_joint_URDF_angle_limits
+  - actual_front_left_steer_joint_URDF_velocity_limit
+  - actual_front_right_steer_joint_URDF_velocity_limit
+  - actual_joint_positions_agree_with_dense_source_pose
+  - actual_odom_twist_agrees_with_dense_base_link
+  - all_numeric_finite
+  - all_source_stamp_ns_and_seconds_agree
+  - backend_status_approximately_50Hz
+  - backend_status_bounded_source_gap
+  - backend_status_covers_schedule
+  - backend_status_source_strictly_monotonic
+  - command_loss_actual_stopped
+  - command_loss_model_stopped
+  - command_loss_no_probe_publication
+  - command_loss_no_relay_publication_after_drain
+  - command_relay_observed
+  - commanded_brake_actual_stopped
+  - commanded_brake_command_count
+  - commanded_brake_model_stopped
+  - commanded_efforts_approximately_50Hz
+  - commanded_efforts_bounded_source_gap
+  - commanded_efforts_covers_schedule
+  - commanded_efforts_finite_limits_not_reaction
+  - commanded_efforts_source_strictly_monotonic
+  - contacts_bounded_source_gap
+  - contacts_covers_schedule
+  - contacts_source_strictly_monotonic
+  - dense_links_complete_roster_and_shapes
+  - dense_links_covers_schedule
+  - dense_links_every_physics_step
+  - dense_model_link_exact_source_join
+  - dense_models_complete_roster_and_shapes
+  - dense_models_covers_schedule
+  - dense_models_every_physics_step
+  - dense_source_metadata
+  - inside_empty_fixture
+  - internal_accel_limit
+  - internal_brake_limit
+  - internal_target_center_angle_limit
+  - internal_target_center_slew_limit
+  - isolated_command_events_match_integer_schedule
+  - isolated_command_source_identity_and_completion
+  - joints_approximately_50Hz
+  - joints_bounded_source_gap
+  - joints_covers_schedule
+  - joints_source_strictly_monotonic
+  - links_approximately_50Hz
+  - links_bounded_source_gap
+  - links_complete_roster_and_shapes
+  - links_covers_schedule
+  - links_matches_dense_same_stamp
+  - links_source_strictly_monotonic
+  - model_odom_xy_agreement
+  - model_odom_yaw_agreement
+  - models_approximately_50Hz
+  - models_bounded_source_gap
+  - models_complete_roster_and_shapes
+  - models_covers_schedule
+  - models_links_exact_source_stamp_join
+  - models_matches_dense_same_stamp
+  - models_source_strictly_monotonic
+  - no_callback_errors
+  - no_non_ground_robot_contacts
+  - odom_approximately_50Hz
+  - odom_bounded_source_gap
+  - odom_covers_schedule
+  - odom_source_join_age
+  - odom_source_strictly_monotonic
+  - only_wheels_may_contact_ground
+  - physical_backend_metadata
+  - physical_backend_never_faulted
+  - physical_status_source_exact_target_odom_join
+  - physical_status_source_schema
+  - physics_source_metadata
+  - reaccelerate_brake_actual_steady_steering
+  - reaccelerate_brake_command_count
+  - reaccelerate_brake_steady_speed
+  - reaccelerate_loss_actual_steady_steering
+  - reaccelerate_loss_command_count
+  - reaccelerate_loss_steady_speed
+  - recorder_connections_ready_before_unpause
+  - recorder_warmup_before_start
+  - saturation_negative_actual_steady_steering
+  - saturation_negative_command_count
+  - saturation_negative_steady_speed
+  - saturation_negative_yaw_excitation
+  - saturation_positive_actual_steady_steering
+  - saturation_positive_command_count
+  - saturation_positive_steady_speed
+  - saturation_positive_yaw_excitation
+  - schedule_start_marker_matches_trigger
+  - spawn_pose_matches_fixture
+  - stationary_actual_stopped
+  - stationary_command_count
+  - stationary_model_stopped
+  - target_fields_and_Ackermann_geometry
+  - target_speed_and_instantaneous_reference_limits
+  - targets_approximately_50Hz
+  - targets_bounded_source_gap
+  - targets_covers_schedule
+  - targets_source_strictly_monotonic
+  - turn_negative_actual_steady_steering
+  - turn_negative_command_count
+  - turn_negative_steady_speed
+  - turn_negative_yaw_excitation
+  - turn_positive_actual_steady_steering
+  - turn_positive_command_count
+  - turn_positive_steady_speed
+  - turn_positive_yaw_excitation
+  - unique_expected_model_roster
+  - within_phase_command_deadline
+  - zero_speed_yaw_actual_stopped
+  - zero_speed_yaw_command_count
+  - zero_speed_yaw_model_stopped
+  P02_protocol_evidence_role: frozen predecessor protocol qualification, not new P04
+    evidence
+  P03_terminal:
+    ledger:
+      path: queue/m12_physics_p03_budget_runtime.json
+      sha256: 5572117e9e6d05cea52c74bd61c0aaebba2f6e3f91972966665f3edcb0352cb0
+    summary:
+      path: audits/m12_physics_p03_summary.json
+      sha256: af22527c71cfb12d47de63a3a4ae6445f2604089ec0d80e61e38f0af0c64d276
+    diagnosis:
+      path: audits/m12_p03_result_independent/terminal_tail_diagnosis.json
+      sha256: 2460ddbc676723acd3cb50d273fec3bc9d3937c6c5ca7c26e7452d0fd871d5ee
+    required_status: stopped_infrastructure
+    consumed_units: 2
+    retired_units: 4
+    never_reused_seeds:
+    - 260926009
+    - 260926010
+    - 260926011
+  ingress_repair_review:
+    path: audits/m12_physics_p07_callback_name_review.json
+    required_status: offline_callback_name_binding_repair_review_pass
+  driver_root_review:
+    path: audits/m12_physics_p05_driver_root_review.json
+  P04_terminal:
+    ledger:
+      path: queue/m12_physics_p04_budget_runtime.json
+      sha256: 2a89a41fb5da218937846c9df42e0518853ee4cb4b92cba2f0f0b0b386cb8416
+    summary:
+      path: audits/m12_physics_p04_summary.json
+      sha256: 1bbb69e2250452c5b234e6f5acd725c677c4bc7421aa37e60b60fa48e6ac674a
+    receipt:
+      path: runs/m12_physics_p04_s012_kd4/receipt.json
+      sha256: 975332fe0b7ec4c981a30afba06a0ab0498daadafa79d1d1d92c05d2ff2771c9
+    binding_audit:
+      path: audits/m12_p04_result_independent/budget_binding_audit.json
+      sha256: 0e6ef763a921a23e8c36eb41727b91d4561638a312818e49f4e1166fe555fe29
+  P05_terminal:
+    ledger:
+      path: queue/m12_physics_p05_budget_runtime.json
+      sha256: 1be008727a40ff5062d5b32df3feea10f799f9dc531502c841a1fffaa1c7dbbc
+    summary:
+      path: audits/m12_physics_p05_summary.json
+      sha256: d2ffea23a32337fe31e7915aaeed65422fa3ef263f584efed4e4471d5d9ab9e1
+    receipt:
+      path: runs/m12_physics_p05_s017_kd4/receipt.json
+      sha256: a5d85e01b8c07e2f83f1cf98b2b18db58ecc25ce7b8df94380bcd3ce3d576e40
+    cleanup:
+      path: runs/m12_physics_p05_s017_kd4/cleanup.json
+      sha256: 583ad40c1717d01d6c47881a399d871cdf980b93377e90a0a90a7c66d1869181
+  P06_terminal:
+    ledger:
+      path: queue/m12_physics_p06_budget_runtime.json
+      sha256: 81d864289bb4c959c9118136709b3ec7c04f29859a89a0168d988ef023812f41
+    summary:
+      path: audits/m12_physics_p06_summary.json
+      sha256: e67a23e1926a53d0f50a6e297dbf13056cf79b8aa8ae6b84a7214b2639d915aa
+    receipt:
+      path: runs/m12_physics_p06_s020_kd4/receipt.json
+      sha256: f90fff1a99043553836b0635e6c09a78861ea759ec99de5b0f9aba53bbdbde7a
+    cleanup:
+      path: runs/m12_physics_p06_s020_kd4/cleanup.json
+      sha256: f34cb6229e52f64fef949d43a163cf02ff9661206e024b30b7c2d1b37c43f9d9
+failure_policy:
+  no_retry: true
+  no_resume: true
+  no_replacement: true
+  infrastructure_failure: stop immediately and retire all remaining planned identities
+  physical_gate_failure: retain valid negative result and continue all scheduled pairs
+  unknown_or_missing_gate: infrastructure_failure
+  unfinished_process_after_interrupt: no restart; root audit/retirement required
+  physical_failures_allowed_to_continue:
+  - accelerate_actual_steady_steering
+  - accelerate_steady_speed
+  - actual_center_angle_limit
+  - actual_center_slew_with_declared_sampling_tolerance
+  - actual_front_Ackermann_pair_agreement
+  - actual_front_joint_URDF_angle_limits
+  - actual_front_left_steer_joint_URDF_velocity_limit
+  - actual_front_right_steer_joint_URDF_velocity_limit
+  - command_loss_actual_stopped
+  - command_loss_model_stopped
+  - commanded_brake_actual_stopped
+  - commanded_brake_model_stopped
+  - internal_accel_limit
+  - internal_brake_limit
+  - internal_target_center_angle_limit
+  - internal_target_center_slew_limit
+  - no_non_ground_robot_contacts
+  - only_wheels_may_contact_ground
+  - reaccelerate_brake_actual_steady_steering
+  - reaccelerate_brake_steady_speed
+  - reaccelerate_loss_actual_steady_steering
+  - reaccelerate_loss_steady_speed
+  - saturation_negative_actual_steady_steering
+  - saturation_negative_steady_speed
+  - saturation_negative_yaw_excitation
+  - saturation_positive_actual_steady_steering
+  - saturation_positive_steady_speed
+  - saturation_positive_yaw_excitation
+  - stationary_actual_stopped
+  - stationary_model_stopped
+  - turn_negative_actual_steady_steering
+  - turn_negative_steady_speed
+  - turn_negative_yaw_excitation
+  - turn_positive_actual_steady_steering
+  - turn_positive_steady_speed
+  - turn_positive_yaw_excitation
+  - zero_speed_yaw_actual_stopped
+  - zero_speed_yaw_model_stopped
+promotion:
+  requires_all_six_completed_measurement_valid: true
+  treatment_all_gates_pass_count: 3
+  treatment_required_count: 3
+  control_same_metrics_and_all_failures_must_be_reported: true
+  no_cherry_pick: true
+  no_gate_relaxation: true
+  claims: three-pair physical qualification only; no navigation or general safety
+    claim
+  new_P04_evidence_only: true
+statistics:
+  primary: all-gate treatment qualification3/3, paired descriptive differences
+  paired_metrics:
+  - actual_center_rate_radps.maximum_absolute
+  - actual_front_curvature_disagreement_inv_m.maximum_absolute
+  - phase_actual_steady_steering
+  - phase_tail_speed
+  - nonwheel_ground_contacts
+  - commanded_torque_limits
+  report_every_pair: true
+  formal_p_value_claim: false
+  stochastic_repeatability_scope: three fresh simulator/noise seeds; deterministic
+    controller and same geometry
+release_requirements:
+  path: contracts/m12_physics_p04_release.json
+  status: root_reviewed_release
+  explicit_execute_cli: true
+  bind_source_inputs_and_binaries: true
+  bind_P02_receipt_report_raw_and_cleanup: true
+  exact_schedule_and_per_run_contracts: true
+  bind_P03_terminal_and_new_independent_watermark_review: true
+terminal_collection_protocol:
+  version: p04_paused_world_source_watermark_v1
+  integrity_gate: final_paused_source_watermark_drained
+  authoritative_source: /gazebo/get_world_properties after /gazebo/pause_physics
+  pause_confirmation: /gazebo/get_physics_properties pause=true and unchanged max_step_size
+  stable_world_query_count: 2
+  post_pause_drain_wall_s: 5.0
+  periods_ns:
+    models: 20000000
+    links: 20000000
+    odom: 20000000
+    joints: 20000000
+    targets: 20000000
+    backend_status: 20000000
+    commanded_efforts: 20000000
+    dense_models: 2000000
+    dense_links: 2000000
+    contacts: 2000000
+  require_final_source_slot_for_every_stream: true
+  no_trimming_interpolation_or_timeout_extension: true
+  inherited_120_checks_and_numeric_physical_gates_unchanged: true
+  expected_complete_report_check_count: 121
+  prior_raw_fixture_use_only: true
+runtime_resource_parent:
+  path: contracts/m12_physics_p06_release.json
+  sha256: b1ee6e965074b712c66d257cf652c5caae59e074abd5ab730fbec5ed88b51adc
+  resource_count: 573
+command_ingress_protocol:
+  topic: /m2_driver/command_ingress
+  stamp: same World::SimTime read used by original command enqueue
+  interpretation: source-timed driver callback receipt and queue acceptance, not actual
+    force activation or relay publisher timestamp
+  input_topic_value: cmd_vel
+  disposition: accepted_queued
+  exact_values:
+  - input_topic
+  - requested_linear_x
+  - requested_angular_z
+  - accepted
+  - disposition
+  - backend_fault
+  - activation_time_s
+  local_headerless_probe_receipt_clock: retained diagnostic only
+  source_command_join: formal+terminal exact count, same ordered payload, no receipt
+    before source event
+  loss_grace_s: 0.12
+  phase_membership: integer nanoseconds, original half-open phase and tail intervals;
+    formal full window inclusive
+  new_integrity_checks:
+  - physical_command_ingress_source_schema_and_order
+  - physical_command_ingress_matches_source_commands
+  replaced_check:
+    old: command_loss_no_relay_publication_after_drain
+    new: command_loss_no_driver_receipt_after_drain
+  all_numeric_thresholds_unchanged: true
+  removed_weak_gate: command_relay_observed; duplicate-value/local-callback-clock
+    matching remains diagnostic only, replaced by strict complete ordered source-ingress
+    join
+  source_epoch: all actual ingress ns on2msphysicsgrid and <=paused source watermark
+  callback_closure: parse+record+error handling under callback RLock, ignore all work
+    after active=false
+updated_build_dependencies: {}

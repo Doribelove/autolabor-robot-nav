@@ -1,0 +1,95 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R16
+phase: preflight
+status: paired_integration_collection_complete
+contract_sha256: a1373cc6390b1c5c7b4b49b33bc06139907bd59bc453b97dcb1901024551cd67
+authorized_units: 2
+consumed_units: 2
+completed_units: 2
+forfeited_units: 0
+complete_paired_blocks: 1
+episode_pass_count: 0
+goal_success_count: 1
+maximum_paired_gate_ego_x_difference_m: 1.0921992488199805e-06
+maximum_paired_gate_actor_coordinate_difference_m: 0.0006399999999997519
+maximum_paired_gate_actor_speed_difference_mps: 3.552713678800501e-14
+all_reports_finite: true
+blocks:
+- block_index: 1
+  seed: 7666
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only:
+  - hesitant
+  - hesitant
+  complete_method_pair: true
+  paired_gate_ego_x_difference_m: 1.0921992488199805e-06
+  paired_gate_actor_differences:
+  - track_id: 1
+    coordinate_difference_m: 0.0006399999999997519
+    speed_difference_mps: 8.881784197001252e-15
+  - track_id: 2
+    coordinate_difference_m: 0.0006399999999997519
+    speed_difference_mps: 3.552713678800501e-14
+  method_results:
+    actual_teb:
+      episode_pass: false
+      goal_reached: true
+      restricted_elapsed_s: 15.35
+      minimum_conservative_clearance_m: -0.8964979479095978
+      contact_state_count: 0
+      initial_stop: false
+      eventual_progress: false
+    v3_13_analytic:
+      episode_pass: false
+      goal_reached: false
+      restricted_elapsed_s: 22.0
+      minimum_conservative_clearance_m: 0.0688269269535815
+      contact_state_count: 0
+      initial_stop: true
+      eventual_progress: true
+policy_or_ranker_training_steps: 0
+performance_claim_authorized: false
+perception_claim_authorized: false
+hardware_accessed: false
+real_vehicle_used: false
+integration_gate_checks:
+  complete_paired_blocks: true
+  all_reports_finite: true
+  paired_gate_ego_x: true
+  paired_gate_actor_coordinate: true
+  paired_gate_actor_speed: true
+  actual_teb_local_plan: true
+  actual_teb_command: true
+  v3_decision_analytic_accept: true
+  v3_eventual_progress: true
+  v3_goal_reached: false
+  v3_contact_state_count: true
+  v3_conservative_clearance: true
+  v3_tracking_error: false
+collection_gate_pass: false
+actual_teb_outcome_retained_without_pass_requirement:
+  episode_pass: false
+  goal_reached: true
+  timeout: false
+  restricted_elapsed_s: 15.35
+  minimum_conservative_clearance_m: -0.8964979479095978
+  contact_state_count: 0
+  local_plan_count: 109
+  command_count: 118
+  action_state_name: SUCCEEDED
+v3_outcome:
+  episode_pass: false
+  goal_reached: false
+  restricted_elapsed_s: 22.0
+  minimum_conservative_clearance_m: 0.0688269269535815
+  contact_state_count: 0
+  initial_stop: true
+  eventual_progress: true
+  selected_candidate_ids:
+  - certified_stop_v000
+  - certified_stop_v000
+  - recovery_evasive_right_v120_r2
+included_in_qualification_or_performance_evidence: false
+actual_TEB_performance_claim_authorized: false
+training_authorized: false

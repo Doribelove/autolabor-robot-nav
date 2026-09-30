@@ -1,0 +1,101 @@
+{
+  "status": "actor_relative_gate_and_live_input_components_pass_runtime_qualification_pending",
+  "ros_started": false,
+  "new_environment_for_all_methods": true,
+  "planner_algorithm_changed": false,
+  "old_reactive_rule_changed": false,
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_reactive_actor_plugin.cpp",
+      "sha256": "4c209bd96c47718ba04e74b2300a52b6f6f60acfbd63290e7037d8a23250f3e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_actor_gate.h",
+      "sha256": "fcf442023bbeccf48dfc5da68d0d3783f034a5bdd3b5311089128fdfd547efc0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/tests/test_astra_actor_gate.cpp",
+      "sha256": "f08862c0d6f70ab2ed1cc3a3f741c1c5f4f843fb4db140eeab4aefcfcb1a7a33"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/v3_reactive_actor_plugin.cpp",
+      "sha256": "0f58306edb11792c09b00f7bc62a9faca04a2ebd10e80ede2290db0c449509bf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/v3_reactive_actor.h",
+      "sha256": "69cc13979122d1215ad42b18c8583a03368d982d84ee000d8a6b615b06aa306d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/derive_live_actor_inputs.py",
+      "sha256": "3c576b9d71b4fac9b1dcb82db673b6f16bb1203704006620467ce922fe3aacb0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_live_actor_inputs.py",
+      "sha256": "2f4a12ee62b4a494869126c65372976089d0d232717cb0f65615305b6759bc0e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/actor_live_parameter_mapping.json",
+      "sha256": "4da4f07a87ec8d47a7c8ace1d403e88bf20c65aca76d56dff30fcf31375e94bc"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/derivation_report.json",
+      "sha256": "50bb98a7c561e759a65d8cbc4994a622ddb9007848b4aa4512f9d3c06ebc774b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/actor_live_component_tests.log",
+      "sha256": "4e1782868e6745d74200b1ba8002fbda6921f5a820b150db7a9d85fb747c9670"
+    }
+  ],
+  "test_results": [
+    {
+      "command": [
+        "/tmp/astra_actor_gate_test"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests",
+        "-p",
+        "test_live_actor_inputs.py",
+        "-v"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "cpp_inherited_rule_exact_comparisons": 4500,
+  "python_tests_passed": 5,
+  "scope": [
+    "Relative first-observed route gate + delay, latched through ego reversal",
+    "No actor position progress before delay including physics-step boundary clipping",
+    "Duplicate simulation stamps produce zero integration; clock regression and nonfinite positions permanently fault actor",
+    "Actor world-path SE2 transformation/composition and invariant projected gate chronology",
+    "Preserved exact frozen reaction rule and deterministic seed invariance",
+    "All12 parent derived inputs and their actual policy/base-speed/response/delay/path mapping checked"
+  ],
+  "new_plugin_library": "libastra_reactive_actor_plugin.so",
+  "new_plugin_build_owner": "root CMake target and source/binary binding",
+  "input_table": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/diagnostic_blocks.csv",
+  "gate_reference": {
+    "route_x_m": -4.02,
+    "observation": "WorldUpdateBegin world ego pose first at/above threshold",
+    "episode_warmup_threshold_x_m": -4.03,
+    "policy_start_x_m": -4.0,
+    "note": "Actor gate time and controller warmup report gate are separate measured events; do not label identical stamps."
+  },
+  "live_pending": [
+    "Common-environment release binary/hash closure",
+    "Source-stamped measured zero preactivation actor progress and gate+delay within a physics-step tolerance",
+    "New evidence plugin/robot support/actuation and geometry evaluator qualification",
+    "All methods use same variant; no planner observation of hidden actor policy",
+    "Future nonidentity planner/map/evaluator SE2 bridge"
+  ],
+  "reserved_stream_status": "Unused actor_response/sensor_noise/actuator streams documented and nonblocking; parameterized actor variation is real, conditional response deterministic; scan uses episode Gazebo --seed, zero actuator jitter means no actuator randomness",
+  "independent_review": "requested from historical_audit; pending at report creation",
+  "final_outcomes_accessed": false
+}

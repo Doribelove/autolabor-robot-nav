@@ -1,0 +1,40 @@
+schema_version: '1.0'
+stage: V3-20-F1
+status: terminal_infrastructure_failure_nonresumable
+authorized_units: 120
+consumed_units: 78
+completed_units: 77
+terminal_failed_units: 1
+forfeited_units: 42
+completed_method_counts:
+  actual_teb: 19
+  fixed_v120_shielded: 19
+  v3_no_candidate_conditioning: 20
+  v3_spatial_safe: 19
+failure_identity:
+  actor_policy: hesitant
+  attempt: 1
+  block_index: 20
+  method: v3_spatial_safe
+  scene_id: open_crossing_90
+  seed: 8120
+  sequence: 78
+failure_before_semantic_execution: true
+failure_cause: ROS master port 34156 collided with a Linux ephemeral port
+linux_ephemeral_port_range:
+- 32768
+- 60999
+frozen_port_formula: 34000 + 2 * sequence
+failed_port: 34156
+scientific_matrix_complete: false
+formal_or_inferential_result: false
+partial_results_descriptive_only: true
+retry_resume_replacement_authorized: false
+seed_range_8101_8130_reuse_forbidden: true
+next_repair_constraint: new stage, fresh seeds, predeclared ports below 32768, independent
+  release
+all_completed_execution_integrity_pass: true
+completed_contact_count: 0
+training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false

@@ -1,0 +1,42 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-07-B0
+status: terminal_preexecution_schedule_key_validation_failure
+failure_class: pre_execution_contract_runner_compatibility
+confirmed_cause: The inherited runner requires experimental_unit.schedule_rows while the frozen B0 contract exposed only experimental_unit.exact_rows.
+authorized_units: 50
+consumed_units: 0
+completed_units: 0
+forfeited_units: 0
+execution_root_present: false
+gazebo_started: false
+outcome_accessed: false
+authorization_reusable: false
+qualified_for_model_fit: false
+simulation_authorized: false
+training_authorized: false
+real_vehicle_authorized: false
+repair_boundary:
+  new_stage_release_review_and_authorization_required: true
+  only_schedule_rows_compatibility_alias_may_change: true
+  data_support_model_and_gates_must_remain_frozen: true
+  fresh_stage_identities_required: true
+evidence_resources:
+- path: config/thesis_experiments/v3/v3_07_b0_spatial_predictor_data_contract.yaml
+  sha256: fd354266639892bbb0fa2dcd12d6d2fd2adf5b619a036ecc93a80685558afb26
+  size_bytes: 4477
+- path: experiments/manifests/v3/v3_07_b0_spatial_predictor_data_preregistration.yaml
+  sha256: 49ded3f7f974695ea3622ca5bfa2eed41071a8583a46464de5caccb9931914f5
+  size_bytes: 1034
+- path: experiments/manifests/v3/v3_07_b0_simulation_authorization.yaml
+  sha256: 5056ec94b6119d65842900769dc88721028a6baf66377bb15a13b0b14fad30f2
+  size_bytes: 1263
+- path: artifacts/v3/prediction/v3_07_b0/offline_readiness/v3_07_b0_execution_release.yaml
+  sha256: 51f5eed57527e83b3176b6b528b66e977e75df955c25b8805220f304a5349a11
+  size_bytes: 1074
+- path: artifacts/v3/prediction/v3_07_b0/offline_readiness/v3_07_b0_independent_release_review.yaml
+  sha256: 2ae4bbd02678024ac8215ed774609226d0a06d2ad1a75ec22c1bab43212a3f2e
+  size_bytes: 533
+- path: artifacts/v3/prediction/v3_07_b0/offline_readiness/v3_07_b0_readiness_freeze.sha256
+  sha256: 80cf13ee3649569d5acdb19e2c7612f420d754f318868efb6de5bef214edfd89
+  size_bytes: 751

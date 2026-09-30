@@ -1,0 +1,136 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager_r02.py
+@@ -14,17 +14,28 @@
+ from unittest.mock import patch,Mock
+ 
+ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+-import navigation_n06_integrity as q
+-import navigation_n06_process as process
+-import navigation_n06_admin_plan as admin
+-import run_navigation_n06_manager as manager
++import navigation_n06_integrity_r02 as q
++import navigation_n06_process_r02 as process
++import navigation_n06_admin_plan_r02 as admin
++import run_navigation_n06_manager_r02 as manager
++
++_RECEIPT_FIXTURES=tempfile.TemporaryDirectory(prefix='n06-r02-assessment-fixtures-')
++_RECEIPT_COUNTER=0
+ 
+ def csv_document(fields,rows=()):
+     out=io.StringIO(newline='');writer=csv.DictWriter(out,fieldnames=fields,lineterminator='\r\n');writer.writeheader();writer.writerows(rows);return out.getvalue().encode()
+ 
+ def receipt(row,ok=True,outcome='timeout'):
+-    return dict(run_id=row['run_id'],seed=row['seed'],method=row['method'],attempt=1,release_sha256='1'*64,
+-        integrity_pass=ok,task_outcome=outcome,error=None if ok else 'injected transport failure',administrative_metadata={})
++    global _RECEIPT_COUNTER
++    assessment=None
++    if ok:
++        _RECEIPT_COUNTER+=1;path=Path(_RECEIPT_FIXTURES.name)/('%04d.json'%_RECEIPT_COUNTER)
++        q.publish(path,dict(schema='astra_navigation_assessment_v1',stage=q.NAME,run_id=row['run_id'],seed=row['seed'],method=row['method'],
++            capture_integrity_pass=True,task={'task_phase':outcome},integrity_checks={'synthetic_check':True}))
++        assessment=q.binding(path)
++    return dict(stage=q.NAME,run_id=row['run_id'],seed=row['seed'],method=row['method'],attempt=1,release_sha256='1'*64,
++        integrity_pass=ok,task_outcome=outcome if ok else None,error=None if ok else 'injected transport failure',administrative_metadata={},
++        assessment=assessment,roslaunch_exit_code=0 if ok else None)
+ 
+ class IntegrityTests(unittest.TestCase):
+     def test_typed_bool_not_integer_and_nested_types(self):
+@@ -81,7 +92,9 @@
+ class SyntheticClosureTests(unittest.TestCase):
+     """Actual frozen preparation plus temp dependency stand-ins, never executed.
+ 
+-    Only native_review_facts is stubbed; these tests prove the structural
++    Native facts and converter authentication are explicitly stubbed here;
++    separate tests exercise real saved converter records and rejected fakes.
++    These tests prove the structural
+     verifier, not native/runtime qualification. Runtime stand-ins are labelled
+     synthetic and have no executable permission.
+     """
+@@ -125,7 +138,8 @@
+         self.documents['conversion_bundle']={'schema':'astra_navigation_n06_conversion_bundle_v1','stage':q.NAME,'units':converted}
+         base=self.root/'baseline.csv';base.write_bytes(csv_document(q.REGISTRY_FIELDS));self.base['registry_baseline']=add(base)
+         self.native=patch('run_passive_sweep_q05.native_review_facts',return_value={'native_reference_pass':True,'upstream_source_review_pass':True});self.native.start()
+-    def tearDown(self):self.native.stop();self.temp.cleanup()
++        self.converter=patch('dense_sweep_n05.authenticate_conversion',return_value={'pass':True,'diagnostic_only':True,'runtime_converter_correspondence_qualified':False});self.converter_mock=self.converter.start()
++    def tearDown(self):self.converter.stop();self.native.stop();self.temp.cleanup()
+     def document(self,change=None):
+         value=copy.deepcopy(self.base);docs=copy.deepcopy(self.documents)
+         if change:change(value,docs)
+@@ -140,6 +154,12 @@
+     def test_complete_actual_prepared_structural_roster(self):
+         path,sha=self.document();out=q.verify_release(path,sha)
+         self.assertEqual(out['rows'],q.prepared_api.schedule());self.assertEqual(len(out['prepared']['units']),8)
++        self.assertFalse((self.root/'queue').exists());self.assertFalse((self.root/'runs').exists())
++        self.assertEqual(self.converter_mock.call_count,8)
++        self.assertTrue(all(call.kwargs=={'diagnostic':True} for call in self.converter_mock.call_args_list))
++    def test_real_authenticator_rejects_three_field_conversion_before_allocation(self):
++        self.converter.stop();path,sha=self.document()
++        with self.assertRaisesRegex(ValueError,'converter provenance failed'):q.verify_release(path,sha)
+         self.assertFalse((self.root/'queue').exists());self.assertFalse((self.root/'runs').exists())
+     def test_positive_roster_mutations_rejected(self):
+         mutations=[
+@@ -231,6 +251,28 @@
+         import ast
+         tree=ast.parse(Path(process.__file__).read_text())
+         self.assertFalse(any(isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='killpg' for n in ast.walk(tree)))
++
++class RealRetainedConversionTests(unittest.TestCase):
++    def test_saved_q05_conversion_authenticates_diagnostically_without_new_process(self):
++        import dense_sweep_n05 as dense
++        path=q.prepared_api.STAGE/'contracts/passive_sweep_q05_prepared_r02/passive_sweep_q05_static/conversion/manifest.json'
++        value=q.strict_json(path.read_bytes())
++        with patch.object(subprocess,'Popen',side_effect=AssertionError('conversion authentication must not spawn a process')):
++            result=dense.authenticate_conversion(path,value['input_urdf']['path'],value['converted_sdf']['path'],{},diagnostic=True)
++        self.assertTrue(result['pass'],result['issues']);self.assertTrue(result['diagnostic_only']);self.assertFalse(result['runtime_converter_correspondence_qualified'])
++
++class ReceiptSemanticsTests(unittest.TestCase):
++    def test_negative_assessment_is_valid_infrastructure_failure_without_error(self):
++        row=q.prepared_api.schedule()[0];r=receipt(row);path=Path(r['assessment']['path']);report=q.json_bound(r['assessment'])
++        report['capture_integrity_pass']=False;report['integrity_checks']['synthetic_check']=False;path.write_bytes(q.json_bytes(report))
++        r.update(integrity_pass=False,assessment=q.binding(path))
++        self.assertTrue(q.validate_terminal_receipt(r,row,'1'*64))
++    def test_positive_assessment_with_later_error_retains_negative_overall_integrity(self):
++        row=q.prepared_api.schedule()[0];r=receipt(row);r.update(integrity_pass=False,error='post-assessment resource drift')
++        self.assertTrue(q.validate_terminal_receipt(r,row,'1'*64))
++    def test_false_without_error_or_negative_assessment_rejected(self):
++        row=q.prepared_api.schedule()[0];r=receipt(row);r.update(integrity_pass=False)
++        with self.assertRaisesRegex(ValueError,'failed integrity'):q.validate_terminal_receipt(r,row,'1'*64)
+ 
+ class JournalTests(unittest.TestCase):
+     @contextlib.contextmanager
+@@ -386,6 +428,35 @@
+         self.assertNotEqual((self.stage/'seed_registry.csv').read_bytes(),self.before['seed_registry.csv'])
+         admin.apply_reviewed_plan(plan,review)
+         self.assertTrue((self.stage/'transaction/completion.json').is_file())
++    def test_receipt_drift_after_first_replace_rejects_before_next_or_completion(self):
++        plan,review=self.plan();original=q.publish;mutated=[False]
++        def inject(path,*args,**kwargs):
++            result=original(path,*args,**kwargs)
++            if Path(path)==self.stage/'seed_registry.csv' and not mutated[0]:
++                mutated[0]=True;(self.stage/'receipt0.json').write_bytes(b'{}')
++            return result
++        with patch.object(q,'publish',side_effect=inject):
++            with self.assertRaisesRegex(ValueError,'bound bytes changed'):admin.apply_reviewed_plan(plan,review)
++        self.assertNotEqual((self.stage/'seed_registry.csv').read_bytes(),self.before['seed_registry.csv'])
++        self.assertEqual((self.stage/'run_manifest.csv').read_bytes(),self.before['run_manifest.csv'])
++        self.assertFalse((self.stage/'transaction/completion.json').exists())
++    def test_assessment_drift_after_last_replace_rejects_completion(self):
++        plan,review=self.plan();original=q.publish;assessment=Path(self.receipts[self.rows[0]['run_id']]['assessment']['path'])
++        def inject(path,*args,**kwargs):
++            result=original(path,*args,**kwargs)
++            if Path(path)==self.stage/'EXPERIMENTS.csv':assessment.write_bytes(b'{}')
++            return result
++        with patch.object(q,'publish',side_effect=inject):
++            with self.assertRaisesRegex(ValueError,'bound bytes changed'):admin.apply_reviewed_plan(plan,review)
++        self.assertFalse((self.stage/'transaction/completion.json').exists())
++    def test_receipt_stage_error_missing_assessment_and_report_mismatch_rejected(self):
++        original=self.receipts[self.rows[0]['run_id']]
++        for key,value in (('stage','foreign'),('error','retained failure'),('assessment',None),('roslaunch_exit_code',-15),('task_outcome','complete')):
++            rows=copy.deepcopy(self.receipts);rows[self.rows[0]['run_id']][key]=value
++            with self.subTest(key=key),self.assertRaises(ValueError):admin.projected_tables(self.before,self.state,rows,self.sha)
++        report=q.json_bound(original['assessment']);report['seed']+=1
++        path=self.stage/'wrong_assessment.json';q.publish(path,report);rows=copy.deepcopy(self.receipts);rows[self.rows[0]['run_id']]['assessment']=q.binding(path)
++        with self.assertRaisesRegex(ValueError,'assessment identity'):admin.projected_tables(self.before,self.state,rows,self.sha)
+     def test_unknown_third_table_version_rejects_before_other_write(self):
+         plan,review=self.plan();(self.stage/'EXPERIMENTS.csv').write_bytes(self.before['EXPERIMENTS.csv']+b'foreign\n')
+         with self.assertRaises(ValueError):admin.apply_reviewed_plan(plan,review)

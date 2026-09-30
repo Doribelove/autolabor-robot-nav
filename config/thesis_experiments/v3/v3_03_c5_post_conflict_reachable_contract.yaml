@@ -1,0 +1,68 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C5
+stage_purpose: pure_offline_post_conflict_reachable_occupancy_repair
+contract_id: v3_scope_v3_03_c5_post_conflict_reachable_1
+status: pure_offline_preregistered_before_materialization
+parent:
+  stage: V3-03-C4
+  terminal_freeze_path: artifacts/v3/planner/v3_03_c4/v3_03_c4_terminal_freeze.sha256
+  terminal_freeze_sha256: 63263d03bf9e37d34ad2fdf89400748675fbf7055bf50f4b69919a0ed99ac0f6
+  negative_review_path: artifacts/v3/planner/v3_03_c4/execution/v3_03_c4_independent_failure_review.yaml
+  negative_review_sha256: 5bab14dab80ff0258a914670a828975e95b375965af1966e294b46d27c352fef
+upstream:
+  planner_contract_path: artifacts/v3/planner/v3_03_c3/v3_03_c3_effective_planner_contract.yaml
+  planner_contract_sha256: 0e3af391b652f961e032a427748c84de82325d1420c04ca1fe9468f86134668e
+  predictor_path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  predictor_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+single_factor_repair:
+  factor_count: 1
+  factor_id: certified_post_conflict_reachable_occupancy
+  post_conflict_reachable_bypass_id: v3_03_c5_certified_post_conflict_reachable_1
+  minimum_coordinate_m: 0.0
+  certified_minimum_speed_mps: 0.12
+  certified_maximum_deceleration_mps2: 2.4
+  certified_path_coordinate_upper_m: 3.5
+  required_snapshot_actor_flag: monotone_coordinate_certified
+  path_angle_support_deg: [70.0, 110.0]
+  learned_predictor_used_in_bypass: false
+  time_indexed_geometric_verification_retained: true
+  commitment_invariance_changed: false
+  predictor_model_or_mode_gate_changed: false
+  cleared_certificate_changed: false
+  candidate_generator_changed: false
+  ranker_weights_changed: false
+  footprint_or_margin_changed: false
+  integration_gates_changed: false
+offline_gates:
+  c4_recorded_episode_count: 9
+  c4_recorded_decision_count: 330
+  c4_post_conflict_preclear_episode_activation_rate_min: 1.0
+  c4_counterfactual_motion_advance_episode_rate_min: 1.0
+  c4_counterfactual_advance_s_min: 0.50
+  selected_candidate_accepted_rate_min: 1.0
+  selected_commitment_invariant_rate_min: 1.0
+  reachable_lower_bound_conservative_rate_min: 1.0
+  missing_certificate_stop_rate_min: 1.0
+  out_of_support_stop_rate_min: 1.0
+  deterministic_replay_rate_min: 1.0
+  nonfinite_output_count_max: 0
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  The pure-offline C5 planner safely admitted earlier post-conflict motion on
+  frozen C4 snapshots using a conservative time-indexed reachable occupancy
+  certificate. Fresh Gazebo goal recovery remains unproven.
+forbidden_claims:
+  - segmented_gazebo_integration_pass
+  - continuous_runtime_validation
+  - general_navigation_safety
+  - performance_improvement
+  - deployment_readiness
+  - real_vehicle_readiness

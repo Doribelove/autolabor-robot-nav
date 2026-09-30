@@ -1,0 +1,105 @@
+{
+  "author_files_frozen_for_review": true,
+  "independent_review": false,
+  "interpreter": {
+    "binary": {
+      "bytes": 5490456,
+      "path": "/usr/bin/python3.8",
+      "sha256": "298a9e830ed52f36c299427565485d717d1ce0179c0597cc16560513eb780b06"
+    },
+    "numpy_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/__init__.py",
+    "numpy_version": "1.24.4",
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python",
+    "realpath": "/usr/bin/python3.8",
+    "scope": "offline tests only; launch interpreter/runtime closure remains future release prerequisite",
+    "user_site_enabled": true,
+    "version": "3.8.10 (default, Mar 18 2025, 20:04:55) \n[GCC 9.4.0]"
+  },
+  "invariants": {
+    "actual_rear_lateral_velocity_preserved": true,
+    "base_goal_xy_m": 0.25,
+    "base_goal_yaw_rad": 0.25,
+    "common_gate_and_22s_deadline_unchanged": true,
+    "footprint_padding": 0,
+    "full_fixed_guide_one_to_one": true,
+    "full_twist_and_covariance_retained": true,
+    "future_samples_queued_not_retimed": true,
+    "internal_goal": {
+      "actual_base_terminal_authority_unchanged": true,
+      "dwa_latch_xy_goal_tolerance": false,
+      "internal_xy_m": 0.15,
+      "internal_yaw_rad": 0.1,
+      "maximum_base_xy_at_internal_goal_m": 0.18289262539757686,
+      "scope": "internal current-pose goal set is strictly inside shared base goal set; result callback never controls shared terminal",
+      "shared_base_xy_m": 0.25,
+      "shared_base_yaw_rad": 0.25,
+      "strict_callback_wall_order_guaranteed": false,
+      "tilt_projection_pad_m": 0.0004061653716359581
+    },
+    "new_Cpp_or_CMake_needed": false,
+    "original_coordinator_AST_except_method_roster_equal": true,
+    "original_odom_unmodified": true,
+    "private_action_result_diagnostic_only": true,
+    "raw_quaternion_validated_before_Pose3": true,
+    "source_age_bound_ns": 200000000,
+    "source_based_actual_base_terminal": true,
+    "source_future_bound_ns": 200000000
+  },
+  "limitations": [
+    "full fixed oriented-polyline conversion does not prove Ackermann feasibility; heading kinks persist",
+    "DWA stop/rotate can remain incompatible with an Ackermann vehicle; no acc_y enlargement or rear-vy zeroing",
+    "private success set containment is geometric at a common pose, not callback wall-order guarantee",
+    "2D yaw-only footprint is not exactly full tilted 3D geometry; prior0.00040616537m example retained",
+    "source guards cover dynamic actual odom; immutable GetPlan geometry request timestamps are not sensor freshness evidence",
+    "graph authority checks are periodic, not instantaneous transport authorization",
+    "no physical stopping or continuous safety qualification from component tests"
+  ],
+  "method_identities": [
+    "actual_teb_rear_reference_b03",
+    "dwa_rear_reference_b03"
+  ],
+  "remaining_prerequisites": [
+    "independent source/stub review",
+    "future stage-specific collector, contract, recorder roster and actor method metadata identities",
+    "actual roslaunch effective-parameter parse and complete source/interpreter/runtime library closure",
+    "new explicit execution stage with fresh identities and bounded budget",
+    "yaw-only costmap versus tilted 3D footprint engineering-margin review",
+    "live TF/costmap/planner consumption and actual rear-vy behavior qualification; retain every failure"
+  ],
+  "schema": "astra_baseline_rear_b03_author_report_v1",
+  "scope": {
+    "build_performed": false,
+    "engineering_reference_and_goal_integration_package": true,
+    "execution_ready": false,
+    "no_ROS_or_simulation_started": true,
+    "old_B01_B02_N04_sources_modified": false,
+    "physical_or_live_qualification": false,
+    "pure_single_factor_performance_candidate": false,
+    "seed_or_release_or_run_allocated": false,
+    "training_performed": false
+  },
+  "source_manifest": {
+    "bytes": 10402,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/source_manifest.json",
+    "sha256": "ead28d67c63f20808c6bde18f95a371118ac131931474c1787ef5e2fdbe2516d"
+  },
+  "status": "offline_source_component_tests_pass_independent_review_pending",
+  "tests": {
+    "actual_node_main_stub_cases": 7,
+    "final_command": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python -m unittest discover -s /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests -p 'test_baseline_rear_*b03.py' -v",
+    "final_log": {
+      "bytes": 2907,
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/combined_tests_final.log",
+      "sha256": "30c2aa656a4fd453ba4e77ae1877657939109ed4efe7636a6c42880f346ffb69"
+    },
+    "negative_fixture_preserved": {
+      "bytes": 1833,
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03/node_tests_r0.log",
+      "sha256": "de6f583e30d98d67243cb70786917b563356f3edf41896c9f11ce28ce5cfbd70"
+    },
+    "negative_fixture_reason": "2ms-future status fixture armed before main loop consumed readiness; only fixture arm scheduling changed, production guard unchanged",
+    "passed": 27,
+    "pure_message_cases": 20,
+    "simulated_evidence": false
+  }
+}

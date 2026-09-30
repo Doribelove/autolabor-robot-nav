@@ -1,0 +1,268 @@
+{
+  "schema": "astra_frozen_r2_sensor_lifecycle_design_v1",
+  "status": "offline_design_no_runtime_or_primary_matrix_authority",
+  "identity_proposal": "frozen_r2_v060_sensor_lifecycle_v1",
+  "old_identity_preserved": "frozen_r2_v060_shared_activation",
+  "source_bindings": {
+    "r1": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+      "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73"
+    },
+    "r2": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_r2_episode.py",
+      "sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe"
+    },
+    "runtime": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+      "sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9"
+    },
+    "runtime_base": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+      "sha256": "3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7"
+    },
+    "current_wrapper": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_frozen_r2_coordinated.py",
+      "sha256": "79acb6aba8a9477fb781b03b13daa0fa19e7566a5bca69aaf7cf240200bee0ad"
+    },
+    "prerequisites": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_independent/primary_matrix_prerequisites.json",
+      "sha256": "5463ea8e8a4f399908be07ab09d3429d1c1423ee7b5444da87613198609b7931"
+    }
+  },
+  "r1_method_locations": {
+    "__init__": {
+      "line": 63,
+      "end_line": 163
+    },
+    "_odom": {
+      "line": 165,
+      "end_line": 169
+    },
+    "_scan": {
+      "line": 171,
+      "end_line": 203
+    },
+    "_models": {
+      "line": 205,
+      "end_line": 207
+    },
+    "_contacts": {
+      "line": 209,
+      "end_line": 211
+    },
+    "_command": {
+      "line": 213,
+      "end_line": 216
+    },
+    "_local_plan": {
+      "line": 218,
+      "end_line": 220
+    },
+    "robot_world_pose": {
+      "line": 222,
+      "end_line": 230
+    },
+    "policy_pose": {
+      "line": 232,
+      "end_line": 240
+    },
+    "actor_world_poses": {
+      "line": 242,
+      "end_line": 257
+    },
+    "conservative_clearance": {
+      "line": 259,
+      "end_line": 281
+    },
+    "publish_command": {
+      "line": 283,
+      "end_line": 287
+    },
+    "wait_ready": {
+      "line": 289,
+      "end_line": 329
+    },
+    "warmup": {
+      "line": 331,
+      "end_line": 359
+    },
+    "input_health": {
+      "line": 361,
+      "end_line": 389
+    },
+    "send_goal": {
+      "line": 391,
+      "end_line": 398
+    },
+    "common_metrics_step": {
+      "line": 400,
+      "end_line": 406
+    },
+    "goal_state": {
+      "line": 408,
+      "end_line": 411
+    },
+    "execute_sensor": {
+      "line": 413,
+      "end_line": 567
+    },
+    "execute_baseline": {
+      "line": 569,
+      "end_line": 638
+    },
+    "frequency": {
+      "line": 641,
+      "end_line": 643
+    },
+    "run": {
+      "line": 645,
+      "end_line": 745
+    }
+  },
+  "claim": "Frozen R2 decision algorithm/checkpoint with a separately versioned sensor-only execution lifecycle, not an unchanged full legacy episode and not a full-route-aware learned policy.",
+  "preserve_exact": {
+    "source_files_immutable": [
+      "r1",
+      "r2",
+      "runtime",
+      "runtime_base"
+    ],
+    "r2_variant": "r2_candidate_v060",
+    "action_count": 8,
+    "action4_5_speed_mps": 0.6,
+    "runtime_calls": [
+      "suggest",
+      "revalidate",
+      "build",
+      "commit_executed",
+      "candidate_safety_diagnostics",
+      "terminal_command"
+    ],
+    "execute_sensor_method": "inherit exact original function object/body; no fork of candidate/rank/mask/control loop",
+    "sensor_model_semantics": [
+      "legacy72beam resampling",
+      "legacy float>=.20s accepted-history subsampling",
+      "same six-history tensor/features and actor checkpoint",
+      "same max input age .20s and runtime fail-closed health thresholds",
+      "same .25s replan/.05s controller and elapsed feature origin at inherited execute_sensor start; common gate time remains external formal time"
+    ]
+  },
+  "observed_truth_paths": [
+    {
+      "entry": "__init__",
+      "effect": "unconditionally subscribes /gazebo/model_states and /m2_gazebo/contacts; no handle retained for model subscription"
+    },
+    {
+      "entry": "wait_ready",
+      "effect": "requires model existence/actor roster, calls Gazebo get_model_state and unpause"
+    },
+    {
+      "entry": "robot_world_pose -> common_metrics_step -> goal_state -> execute_sensor break",
+      "effect": "model truth can stop command generation before sensor policy branch"
+    },
+    {
+      "entry": "actor_world_poses -> conservative_clearance/decision_trace/control_trace",
+      "effect": "actor truth is diagnostic but runs in the command loop; remove it rather than silently return fabricated poses"
+    },
+    {
+      "entry": "run final pose/metrics/report",
+      "effect": "legacy final pose/path/clearance/scientific inclusion are not the common source-stamped evaluator"
+    }
+  ],
+  "proposed_override_surface": [
+    {
+      "method": "__init__",
+      "action": "Use a new constructor adapter with the exact immutable R1 actor/runtime initialization block plus exact R2 apply_candidate_variant. Omit only simulator model/contact subscriptions and unused baseline subscriptions; add source ingress, common gate/status/path identity subscriptions. Do not monkeypatch global rospy.Subscriber or alter frozen parent source. AST-diff whitelist and runtime object equivalence must demonstrate constructor changes are transport/lifecycle only.",
+      "reason": "Calling super().__init__ then overriding _models leaves an oracle subscription in the deployment node; base did not retain its handle."
+    },
+    {
+      "method": "wait_ready",
+      "action": "Require progressing positive clock; exact run/seed/gate protocol identity; positive strictly increasing /odom and /scan source stamps and valid odom/base_link/laser frames; finite normalized pose; actual TF at accepted scan source; unchanged <=.20s scan/odom/TF health. Require six distinct successfully appended runtime scan stamps before arm, not len(scan_history) or raw scan count. No model/actor presence check or Gazebo service.",
+      "reason": "runtime_adapter.py initializes a6x72 max-range tensor, so its length is always6; current wrapper raw scan_stamps>=6 also does not prove six real accepted history entries."
+    },
+    {
+      "method": "warmup",
+      "action": "Retain new shared coordinator gate-only wait and exact gate acknowledgement; no method motion, goal service, or unpause before gate. Formal start/deadline derive from coordinator actual odom source."
+    },
+    {
+      "method": "_odom and _scan ingress",
+      "action": "Validate/queue immutable positive stamped messages until local clock covers them; reject lead or staleness beyond .20s, replay/regression/nonfinite frames. Then call unchanged parent callbacks, preserving legacy scan resampling and float .20s append rule. Count actual last_runtime_scan_stamp_s advances separately for readiness. Do not replace model history sampling with the new route node's integer buckets under old checkpoint identity.",
+      "reason": "Parent callbacks replace stamp0 with callback time and input_health clips future age to0; ingress must prevent these cases without changing valid-stream numerical observations."
+    },
+    {
+      "method": "robot_world_pose",
+      "action": "Return a dictionary derived from the latest accepted source odometry in the same fixed legacy frame as policy_pose: x=odom.x+spawn_world_x, y=odom.y, yaw=odom yaw. Initially admit only yaw0 legacy spawn/start/goal; stamp and source are separately logged. No model state fallback."
+    },
+    {
+      "method": "common_metrics_step",
+      "action": "Compute diagnostic path increments only between distinct accepted source odom stamps, retain existing <=.25m step filter for legacy diagnostic comparability, and return sensor pose. Skip dynamic/static oracle clearance altogether; truth geometry belongs only to separate evaluator."
+    },
+    {
+      "method": "goal_state",
+      "action": "Return reached=True only for latched shared complete. For latched shared timeout/stopped raise a typed SharedTerminal carrying the actual phase, caught by new top-level orchestration; do not return True and falsely label timeout as a goal. On shared fault raise explicit LifecycleFault/zero. While active, sensor position/yaw errors are diagnostic and shared coordinator/evaluator alone decides formal arrival. Never inspect simulator model pose.",
+      "caveat": "The unchanged execute_sensor also has its local timeout and calls runtime.terminal_command; these remain disclosed sensor/algorithm behavior. Do not rebase elapsed policy features to the common gate without a new algorithm identity."
+    },
+    {
+      "method": "actor_world_poses",
+      "action": "Return no oracle data with explicit unavailable provenance; diagnostics are absent, not an assertion there are no actors."
+    },
+    {
+      "method": "conservative_clearance",
+      "action": "Return explicit None in diagnostic trace slots; adapted common_metrics_step must not call min() on it. Keep internal legacy minimum accumulator unused so final finite_or_none is None. Never use the old radius metric as safety evidence; shared full-body bag evaluator computes authoritative clearance."
+    },
+    {
+      "method": "top-level run/report orchestration",
+      "action": "New node orchestrates adapted readiness/gate plus inherited execute_sensor and emits a new report schema. Do not expose inherited scientific_inclusion=True or zero contact counters as formal evidence. Stream completed decision/control trace rows independently of legacy final report and tail sleeps, so collector pause does not lose them."
+    },
+    {
+      "method": "publish_command (optional source-envelope hook)",
+      "action": "Preserve proposed speed/yaw values exactly; record run/seed/gate epoch, monotonically increasing command sequence and actual publication/construction ROS source stamp in a new companion/envelope topic. Enforce post-gate emission. This does not prove old headerless commands' generation time retroactively or solve baseline timing by receipt relabeling."
+    }
+  ],
+  "forbidden_inputs_to_method": [
+    "/gazebo/model_states",
+    "/gazebo/link_states",
+    "/astra/world_models",
+    "/astra/world_links",
+    "/astra/p03/*",
+    "/astra/physics_contacts",
+    "actor true states or policy/response parameters"
+  ],
+  "allowed_method_inputs": [
+    "/scan",
+    "/odom",
+    "source-time TF",
+    "actual shared coordinator gate/status derived only from odometry",
+    "shared static map and immutable route bundle metadata; no actor tracks",
+    "optional actual steering joints only for diagnostics unless separate algorithm version"
+  ],
+  "route_fairness": {
+    "availability_not_consumption": "Subscribe/read/hash common Path and map, publish an input receipt including all path points, frames/reference, bundle/normalized occupancy SHA and declared usage. For frozen R2 explicitly route_use=audit_only, candidate_route_model=legacy_global_x, full_polyline_consumed=false.",
+    "map": "Keep exact blocked-raster rectangle union adapter, including rotated/cylindrical source rasterization. Bind union audit. Retain explicit legacy +/-20m y walls and outside-map mismatch.",
+    "why_not_general_equivalence": "Legacy _target_lateral(x,offset), previews, x-goal speed envelope and actor features use an absolute straight x reference. Replacing x with route arclength/Frenet poses, warping candidates, reranking/masking by guide or injecting a route corridor changes the policy/mask and cannot retain frozen-algorithm identity.",
+    "narrow_straight_route_adapter": {
+      "possible": true,
+      "admission": "Before allocation validate every common path point is on exact canonical y=0, yaw0, monotonically increasing x, exact declared start/goal. Read start/goal from that validated guide and require equality to frozen constants. Bent/path endpoint mutations must reject rather than straighten.",
+      "claim": "Only straight-route input representation equivalence on a preregistered admitted population; not full arbitrary-route capability.",
+      "constraint": "Do not force an obstacle-crossing straight guide or select layouts from method results to qualify R2. It will not automatically cover all six independent-geometry families."
+    },
+    "recommended_primary_interpretation": "Keep sensor-lifecycle R2 as an explicitly frozen auxiliary/context comparator on the same episodes; primary shared-polyline method claims concern the route-consuming newPCT/analytic/actualTEB/DWA. This does not by itself satisfy a strict requirement that all five primary methods actually consume the same global path.",
+    "strict_five_method_requirement": "Unresolved design constraint: either preregister a genuinely route-conditioned new fifth comparator with its own algorithm/checkpoint identity and retain R2 separately, or explicitly narrow the comparison/claim by authorized protocol choice. Do not silently relabel frozen R2 as route-aware or declare the original six-family/five-method requirement fulfilled.",
+    "future_route_aware_R2": "New observation/action semantics require a new namespace and matched new checkpoint/training/qualification; old weights cannot be presented as a trained full-route model."
+  },
+  "acceptance_before_any_primary_release": [
+    "Deny every oracle subscription/service in a fake ROS graph; inject arbitrary changing model/actor states and demonstrate identical accepted sensor-stream actions and identical lifecycle results.",
+    "Bind immutable R1/R2/runtime/actorSHA and constructor AST whitelist; replay legal sensor histories against original runtime and compare observations, all8 previews, masks, analytic scores, learned ranking, commits and commands exactly (or preregister machine precision for deliberate rigid-frame extensions).",
+    "Start readiness with fewer than6 successful source-scan appends, padded history, duplicate stamp, zero stamp, future2ms and future>200ms, TF failure, stale>200ms; preserve old model-history sampling for accepted data.",
+    "Perturb coordinator vs old model truth near goal; only sensor/coordinator controls stopping. Preserve failure-inclusive timeout, late-terminal immutability and command-zero behavior.",
+    "Prove no inherited report or post-pause tail is necessary for final command/decision evidence; authoritative evaluator reads separate source-stamped bag.",
+    "For fullroute availability receipt, mutate path digest and missing map/path => startup rejection; demonstrate audit_only receipt never masquerades as predictor/candidate consumption.",
+    "For any narrow straight-route equivalence claim, path interior bend/changedgoal/reversedorder must reject before allocation; retain unsupported family strata without outcome-based exclusion.",
+    "Private Twist generation-time prerequisite remains open for all-method claims unless a source/gate-bound publication protocol is explicitly implemented/reviewed across methods; no receipt-to-generation relabeling."
+  ],
+  "no_runtime_edits": true,
+  "no_ROS": true,
+  "no_seed_or_release": true,
+  "new_checkpoint_created": false,
+  "primary_matrix_ready": false
+}

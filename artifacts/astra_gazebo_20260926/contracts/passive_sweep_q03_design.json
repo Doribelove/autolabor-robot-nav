@@ -1,0 +1,113 @@
+{
+  "schema": "astra_passive_sweep_q03_design_v1",
+  "stage": "astra_passive_sweep_q03",
+  "created_utc": "2026-09-26T11:16:36.376442+00:00",
+  "status": "offline_implementation_no_execution_authority",
+  "execution_authorized": false,
+  "training_authorized": false,
+  "registry_changes": false,
+  "attempts_created": false,
+  "reserved_design_identities": [
+    {
+      "run_id": "passive_sweep_q03_static",
+      "seed": 260926027,
+      "actor": false,
+      "duration_ns": 10000000000
+    },
+    {
+      "run_id": "passive_sweep_q03_actor",
+      "seed": 260926028,
+      "actor": true,
+      "duration_ns": 10000000000
+    }
+  ],
+  "physical_parameter_decision": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_p07_kd6_simulation_parameter_decision.json",
+    "sha256": "d4b81a4b95a9e0d6b9774aa9ce8f877a39416bbe22fd5e22eff9892cd3867dfd"
+  },
+  "contracts": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/passive_sweep_q03_static_contract.json",
+      "sha256": "022be6be38f69ebd17df08303a07878d3c57eb13bacb3ad9bde65765bed76fc2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/passive_sweep_q03_actor_contract.json",
+      "sha256": "b49d818ad4f2208fb5f2ae4245aa5afee74efbe713c1f0f685235124741859af"
+    }
+  ],
+  "source_review_template": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/passive_sweep_q03_source_review_template.json",
+    "sha256": "c92bbbdbe088119ba91ba58105fc57d87be5469ab4362d4b109f78e6271521be"
+  },
+  "owned_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/mapped_elf_inventory.py",
+      "sha256": "5cab23c6d3da29ea0e734d2c0b704077bff70567e39eed0ef4c45a5a9abae436"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q03.py",
+      "sha256": "4efeb6277d2e002495b2cf26463f7c8a52670e61303348afaca3d54054a9ecda"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_passive_sweep_q03.py",
+      "sha256": "e024d9febd225794ca4e72408c8183a8045ff2d1ace25a9e749f03212fbfb326"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_passive_command_q03.py",
+      "sha256": "85f2dfdabd0d6ccb84aed25433eed432986e56b016586325921720a3cac30424"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_passive_collector_q03.py",
+      "sha256": "7293feaf72c13c21ce3d037cab899d6bb464a686e9d0611620c8d7e4263d8ec4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_passive_sweep_q03.py",
+      "sha256": "c757756f5789ec512961cc9e75bdc70e966c767ea83c229d1ae49e09c1919cf3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_mapped_elf_inventory.py",
+      "sha256": "742d80354cf2a8e671719b22b9ca64712aee88c5437d15240c25fd5183db623e"
+    }
+  ],
+  "functional_gates": [
+    "exact complete ordered 2ms Pre/End models, links, per-step status and whole contacts in integer source window",
+    "native body modes/COM/collision geometry/source identities and bounded algorithmic sweep pass frozen P03 evaluator",
+    "actual mapped reviewed ELF + process/node/service/pose-writer closure within authorized trusted-node scope",
+    "no illegal robot contact; only four wheel links contacting ground are support exceptions; no actor/nonground contact",
+    "200 ordered publisher-visible source-clock command slots with <=20ms publication lateness; exact fixed phase values",
+    "real robot motion >0.10m and actor motion >0.25m when actor present",
+    "exact singleton named physical status with complete unique boolean keys, consistent level/message, complete50Hz source coverage and all fault/timeout/brake/emergency flags false",
+    "native requested image files complete at 2560x1440, with later independent visual inspection still required",
+    "hard5s global drain from pause request through source queries, joins and process/roster checks; final paused source time stable and all six dense streams reach watermark",
+    "bounded wall cap240s including assessment; fail stops stage and retires unrun unit; no retry"
+  ],
+  "descriptive_measurements": [
+    "active receipt RTF and complete-attempt throughput, no causal overhead claim",
+    "per-process CPU tick and RSS snapshots",
+    "source-to-wall receive trace",
+    "actual P05 command ingress stamp/sequence/values, independent of publisher-visible /clock",
+    "bag/file sizes and source/hash bindings"
+  ],
+  "data_storage": "full dense state/contact payload only in bag; compact JSON stamps/status/audits; two native PNG+single-frame ROS messages, no image topic in bag; contact JSON counts and first10 examples retain all original evidence in bag",
+  "limits": [
+    "Gazebo algorithmic motion extension and bounded actor Begin jumps only; not real continuous physical safety or formal floating-point proof",
+    "no navigation, learning, policy or performance comparison",
+    "selected DLL hashes plus full maps and independent versioned-source review, not bit-for-bit provenance theorem",
+    "trusted authorized nodes/services only, not malicious external-process isolation",
+    "nominal geometry preview is synthetic placement sampling, not an observed trajectory"
+  ],
+  "root_next_steps": [
+    "independent exact-source review",
+    "bind new review, prepared_r02 and P07 Kd6 decision in a NEW root release",
+    "root owns seed registry and optional execution; no agent execution"
+  ],
+  "parent_stage": "astra_passive_sweep_q02_terminal_bootstrap_failure",
+  "changes": [
+    "new Q03 identities/namespace and fresh seeds027/028",
+    "inventory: durable original proc maps before interpretation; nonexec unlinked shm classified as excluded data, deleted code/required ELF fail closed",
+    "inventory: mapped device/inode plus same-fd magic/BuildID/SHA and before/after PID-start checks",
+    "pre/post same-process provenance check",
+    "descriptive throughput null for incomplete observed window; complete formal-window/total-wall label",
+    "SO_REUSEADDR for idle loopback-port TIME_WAIT handling; occupied listening ports still block"
+  ]
+}

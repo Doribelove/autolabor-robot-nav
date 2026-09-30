@@ -1,0 +1,50 @@
+{
+  "status": "diagnostic_runner_monitor_static_components_pass",
+  "checks": {
+    "three_sources_parse": true,
+    "all_twelve_bound_inputs_load": true,
+    "seven_schedule_identity_mutations_rejected": true,
+    "missing_physics_plugin_rejected": true,
+    "legacy_actor_plugin_rejected": true,
+    "legacy_gate_field_rejected": true,
+    "mismatched_actor_delay_rejected": true,
+    "monitor_uses_only_source_stamps_at_or_before_image": true,
+    "monitor_no_prior_sample_explicit_missing": true,
+    "rotated_wheel_support_formula": true,
+    "all_source_evidence_topics_recorded": true,
+    "driver_and_command_topics_recorded": true,
+    "spawn_z0_and_yaw0": true,
+    "passive_monitor_no_publishers": true,
+    "runner_main_guards_execute_flag": true
+  },
+  "ros_started": false,
+  "execution_called": false,
+  "input_set_checked": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1",
+  "input_rows_checked": 12,
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_diagnostic_matrix.py",
+      "sha256": "181e392701a3c5a90c6867e2b8021be5374ef97dcb5b7624b09e1493ebd04c13"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_diagnostic_episode.launch",
+      "sha256": "bc93270f915db6ea3e5427d7177f3b78d3fab1956a30f9936d2865eab71ab708"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_evidence_monitor_a03.py",
+      "sha256": "75ece1b115fe63fa08bde8f3273cf267bb428b926698515b76a54d5d01adf4b0"
+    },
+    {
+      "path": "artifacts/astra_gazebo_20260926/audits/check_diagnostic_matrix_static.py",
+      "sha256": "2762393b29228076eb41ea68d16704ca36ca8bc18caa0fa2ed494a5dc1b8d426"
+    }
+  ],
+  "scope": "Source/static components only; final selected contract, runtime actuation/evaluator, bag/source consistency and independent live outcome assessment remain root gates.",
+  "limits": [
+    "Frame QC is per selected frame and runner requires at least one machine-pass frame; not proof all navigation frames pass.",
+    "Model/link camera associations are independent at-or-before source samples, not exact simultaneous rendering.",
+    "states.jsonl is a convenience summary; full empty/nonempty contacts and precise temporal analysis require source-stamped raw bag.",
+    "Nonidentity route intentionally rejected.",
+    "Reserved unused future RNG streams are not blocking."
+  ]
+}

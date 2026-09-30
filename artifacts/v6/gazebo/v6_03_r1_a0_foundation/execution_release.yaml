@@ -1,0 +1,49 @@
+schema_version: '1.0'
+stage: V6-03-R1-A0
+status: v6_03_r1_environment_repair_release_frozen
+base_contract_sha256: 70e34f31d128fe68fb293eb05b3cd2027270f533066513e0f8cabaa88658aada
+amendment_sha256: 685c3e0c1083dcbb1cb812bfdc85340074a717db8427a93ad628d2d7fb5cc629
+schedule_sha256:
+  preflight: 944d9010bcf08b9990733b6ffb6bccfd2d6e0873e63f80698efbfaf41e67f5fc
+  qualification: bed1d33fb8efead6085aabed8685b6df0db22ffbd76a5ea6fc7ac1442e11bfc7
+  formal: 09f23856f611033f5ce8284b4665f081270f9f203c0b5194d9fca7904519a4c4
+runtime_bindings:
+- path: src/tools/thesis_experiment/scripts/run_v6_03_sensor_gazebo.py
+  sha256: d2c38edebc322c3f46aa7b89a6bfa0cb80241674ec8596fda29f7299143d933d
+- path: src/application/v5_e2e_scope_rl/config/v6_03_gazebo_contract.yaml
+  sha256: 70e34f31d128fe68fb293eb05b3cd2027270f533066513e0f8cabaa88658aada
+- path: src/application/v5_e2e_scope_rl/scripts/v6_sensor_gazebo_episode.py
+  sha256: 4cb61d710b10287813a984b03eb34dadcacedfc8a6d081bd2ba4ff523e318736
+- path: src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/asymmetric_ppo.py
+  sha256: b17462537c8836a31fafbcd900c82fdd85bb55124c44dd98bb90418e5a74407f
+- path: src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py
+  sha256: f95e2ea9a5e206ac650cddfc696925981a8ae2a189e82a1feb382c67cd260059
+- path: src/simulation/m2_gazebo/launch/m2_v6_sensor_benchmark_episode.launch
+  sha256: c10c2061266812bbd5a7c2c908529f6420810a76cd5082aca20b5f923c224c1c
+- path: src/simulation/m2_gazebo/launch/spawn_m2.launch
+  sha256: 0d631e03100a9b874373270b56f58690294c6bc168a2bf1f086319e24bc96193
+- path: src/application/v3_scope_planner/scripts/v3_scope_actual_teb_fair_episode.py
+  sha256: 1781c664dcefaaa046657a7a0082227e38e6d87bccc863e71b23ee9773d0165c
+- path: src/application/v3_scope_planner/src/v3_scope_planner/execution_core.py
+  sha256: 6aef3146a5360179ea49cea2dda31383ad0935389dfa874191b3df27d2f780e0
+- path: src/tools/thesis_experiment/scripts/run_v3_11_actual_teb_matrix.py
+  sha256: 463063264c9d74563e32f87ef8960227cd1d1fa2d834836f58b7933786951715
+- path: src/tools/thesis_experiment/scripts/run_v6_03_r1_sensor_gazebo.py
+  sha256: 74a13ad30894abdad0b02d78c42d22aaa5020edf3070635b601bdb45d00f5751
+- path: src/application/v5_e2e_scope_rl/config/v6_03_r1_environment_repair.yaml
+  sha256: 685c3e0c1083dcbb1cb812bfdc85340074a717db8427a93ad628d2d7fb5cc629
+- path: artifacts/v6/gazebo/v6_03_p0_preflight/attempt_journal.jsonl
+  sha256: 3698f6729f950aaf27008d016e47e8930814af9b388e08a9375ba6c95f96c304
+- path: artifacts/v6/training/v6_01_r1/pct_seed9501/actor_step_0120000.pt
+  sha256: 84db8f7dd2a8d231c1745d4ab96b0999a794a2298afadb98bc1bb04ac14a5476
+- path: artifacts/v6/training/v6_01_r1/pct_seed9502/actor_step_0080640.pt
+  sha256: 5e9cee273d8381d24c1d385df3b38d993042b6b25262a4d2f0b17ff1e2798a28
+- path: artifacts/v6/training/v6_01_r1/pct_seed9503/actor_step_0040704.pt
+  sha256: f274d8fbaa9529e1e4d28f81e4177c82eb30af98c281e26c33d6e4c931013bda
+- path: artifacts/v6/training/v6_01_r1/pct_seed9504/actor_step_0080640.pt
+  sha256: 1b460ea6571aefa02df6df0b774ad879039988c533447b993aa7d753f8bc9ab7
+only_factor: network_namespace_execution_environment
+algorithm_or_threshold_change: false
+training_authorized: false
+hardware_access_authorized: false
+real_vehicle_authorized: false

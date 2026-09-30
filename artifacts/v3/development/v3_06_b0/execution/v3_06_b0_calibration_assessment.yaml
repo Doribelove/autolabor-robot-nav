@@ -1,0 +1,138 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-06-B0
+assessment_id: v3_06_b0_calibration_assessment_1
+status: v3_06_b0_development_no_factor_selected
+formal_result: false
+execution:
+  authorized_units: 48
+  consumed_units: 48
+  completed_units: 48
+  retry_units: 0
+pooled_integration_metrics:
+  episode_count: 48
+  decision_count: 1624
+  goal_success_rate: 1.0
+  selected_candidate_accepted_rate: 1.0
+  certified_stop_available_rate: 1.0
+  exact_core_replay_rate: 1.0
+  motion_recovery_after_clear_rate: 1.0
+  yield_before_clear_rate: 1.0
+  conservative_clearance_violation_count: 0
+  minimum_conservative_clearance_m: 0.22979554510909073
+  maximum_segment_boundary_ego_position_jump_m: 0.006000000000000227
+  maximum_segment_boundary_actor_position_jump_m: 0.0067500002400047165
+  maximum_selected_trajectory_trace_error_m: 4.440892098500626e-16
+  planner_latency_p99_ms: 18.21316
+  planner_latency_max_ms: 20.011727
+  maximum_goal_time_s: 9.75
+  nonfinite_metric_count: 0
+method_metrics:
+  v3_greedy_control:
+    clearance_weight: 0.25
+    episode_count: 12
+    goal_success_rate: 1.0
+    restricted_goal_time_mean_s: 8.958333333333334
+    decision_count: 406
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    selected_candidate_counts:
+      certified_stop_v000: 164
+      feasible_v060: 7
+      feasible_v080: 5
+      feasible_v100: 2
+      feasible_v120: 228
+  anticipatory_w050:
+    clearance_weight: 0.5
+    episode_count: 12
+    goal_success_rate: 1.0
+    restricted_goal_time_mean_s: 8.958333333333334
+    decision_count: 406
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    selected_candidate_counts:
+      certified_stop_v000: 164
+      feasible_v060: 7
+      feasible_v080: 5
+      feasible_v100: 2
+      feasible_v120: 228
+  anticipatory_w100:
+    clearance_weight: 1.0
+    episode_count: 12
+    goal_success_rate: 1.0
+    restricted_goal_time_mean_s: 8.958333333333334
+    decision_count: 406
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    selected_candidate_counts:
+      certified_stop_v000: 164
+      feasible_v060: 7
+      feasible_v080: 5
+      feasible_v100: 2
+      feasible_v120: 228
+  anticipatory_w200:
+    clearance_weight: 2.0
+    episode_count: 12
+    goal_success_rate: 1.0
+    restricted_goal_time_mean_s: 8.958333333333334
+    decision_count: 406
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    selected_candidate_counts:
+      certified_stop_v000: 164
+      feasible_v060: 7
+      feasible_v080: 5
+      feasible_v100: 2
+      feasible_v120: 228
+candidate_effects:
+  anticipatory_w050:
+    paired_unit_count: 12
+    point_relative_reduction_vs_control: 0.0
+    positive_pair_fraction: 0.0
+    development_gates:
+      minimum_relative_reduction_pass: false
+      goal_success_noninferiority_pass: true
+      collision_gate_pass: true
+      selected_candidate_accepted_pass: true
+      exact_replay_pass: true
+    eligible: false
+  anticipatory_w100:
+    paired_unit_count: 12
+    point_relative_reduction_vs_control: 0.0
+    positive_pair_fraction: 0.0
+    development_gates:
+      minimum_relative_reduction_pass: false
+      goal_success_noninferiority_pass: true
+      collision_gate_pass: true
+      selected_candidate_accepted_pass: true
+      exact_replay_pass: true
+    eligible: false
+  anticipatory_w200:
+    paired_unit_count: 12
+    point_relative_reduction_vs_control: 0.0
+    positive_pair_fraction: 0.0
+    development_gates:
+      minimum_relative_reduction_pass: false
+      goal_success_noninferiority_pass: true
+      collision_gate_pass: true
+      selected_candidate_accepted_pass: true
+      exact_replay_pass: true
+    eligible: false
+selection:
+  selected_method: ''
+  selected_clearance_weight: null
+  eligible_methods: []
+  selection_is_development_only: true
+  fresh_qualification_required: false
+overall_pass: true
+claim:
+  development_calibration_complete: true
+  formal_performance_improvement: false
+  actual_teb_superiority: false
+  general_navigation_safety: false
+  deployment_ready: false
+  real_vehicle_ready: false

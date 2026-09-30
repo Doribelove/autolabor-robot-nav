@@ -1,0 +1,33 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-10-P1
+status: frozen_pure_offline_plan
+date: "2026-07-24"
+
+purpose:
+  - Export the frozen V3-09-F1 formal result into paper-ready tables and a figure.
+  - Bind the exact formal assessment, independent review, exports and claim boundary.
+  - Repair manifest serialization only in a new closure without rewriting V3-09-F1 history.
+
+prohibited_actions:
+  - start ROS or Gazebo
+  - create a new execution release or simulation authorization
+  - allocate or consume a seed, episode, retry, training step or held-out outcome
+  - edit or replace any V3-09-F1 evidence
+  - change a preregistered threshold or statistical result
+  - claim actual TEB superiority, general safety, deployment or real-vehicle readiness
+
+historical_manifest_note:
+  affected_files:
+    - artifacts/v3/formal/v3_09_f1/execution/v3_09_f1_evidence_freeze.sha256
+    - artifacts/v3/formal/v3_09_f1/v3_09_f1_terminal_freeze.sha256
+  issue: The historical writer serialized separators as literal backslash-n bytes.
+  treatment: Preserve both files byte-for-byte and bind their hashes in a new conventional multiline manifest.
+  impact_on_result: none
+  reason: The formal assessor and independent reviewer replay the raw evidence directly and both cold checks passed.
+
+terminal_condition:
+  - deterministic exports match the frozen assessment
+  - an independent offline reviewer validates every source and export hash
+  - the new evidence and terminal manifests use real newline bytes
+  - documentation distinguishes the in-scope positive result from forbidden extrapolations

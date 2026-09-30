@@ -1,0 +1,136 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P1-R1
+derivation_id: fam_teb_v2_04g_p1_r1_three_template_fresh_seed_derivation_1
+status: offline_derivation_frozen_execution_not_authorized
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+source_bundle:
+  manifest:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_scenes.yaml
+    sha256: e6c15d906c707686fcb3923cee1c075ebb000ab1216900b3578387433fc679fa
+  compiled_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/compiled_scenes/compiled_scene_index.yaml
+    sha256: cf9dc16079c2aa01a80e8d50d00e6e968c3e5da125b25c6d8659d26366f218a6
+  compiler:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+    sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+target_bundle:
+  root: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness
+  manifest: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/v2_04g_p1_r1_scenes.yaml
+  compiled_root: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes
+  manifest_id: fam_teb_v2_04g_p1_r1_three_template_fresh_seed_scenes_1
+  expected_scene_count: 94
+  expected_compiled_child_count: 188
+derivation_boundary:
+  algorithm: exact_i5_template_clone_scene_id_seed_and_test_split_only_v1
+  evidence_scene_changed_fields: [scene_id, seed, split]
+  compile_support_changed_fields: [scene_id, seed]
+  geometry_change_allowed: false
+  trajectory_change_allowed: false
+  timeout_change_allowed: false
+  randomization_manifest_change_allowed: false
+  sensor_or_actuator_profile_change_allowed: false
+  source_template_selection_after_outcome_allowed: false
+  seed_rejection_after_outcome_allowed: false
+  every_preregistered_seed_retained: true
+  runtime_receives_opaque_scene_id_only: true
+  runtime_manifest_or_role_access_allowed: false
+  note: >-
+    These are 30 fresh simulator stochastic-seed replicates of each of three
+    frozen dynamic templates, not 90 independent geometries. The only
+    permissible distribution-level claim is over these three templates under
+    the frozen seeded simulation stack.
+evidence_roles:
+  - role: single_true_conflict
+    source_scene_id: v2-04g-r6-i5-dynamic-conflict-single-s5161
+    source_seed: 5161
+    seed_first: 5201
+    seed_last: 5230
+    count: 30
+    expected_ttc_status: OBSERVED_CONFLICT
+    target_scene_id_format: v2-04g-p1-s{seed}
+  - role: multi_true_conflict
+    source_scene_id: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+    source_seed: 5162
+    seed_first: 5231
+    seed_last: 5260
+    count: 30
+    expected_ttc_status: OBSERVED_CONFLICT
+    target_scene_id_format: v2-04g-p1-s{seed}
+  - role: time_separated_semantic_clear
+    source_scene_id: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+    source_seed: 5163
+    seed_first: 5261
+    seed_last: 5290
+    count: 30
+    expected_ttc_status: NO_CONFLICT_IN_HORIZON
+    target_scene_id_format: v2-04g-p1-s{seed}
+compile_support:
+  evidence: false
+  schedule_membership_allowed: false
+  scenes:
+    - source_scene_id: v2-04g-r6-i5-compile-support-cruise-s5164
+      source_seed: 5164
+      target_scene_id: v2-04g-p1-support-s5291
+      target_seed: 5291
+    - source_scene_id: v2-04g-r6-i5-compile-support-static-s5165
+      source_seed: 5165
+      target_scene_id: v2-04g-p1-support-s5292
+      target_seed: 5292
+    - source_scene_id: v2-04g-r6-i5-compile-support-corridor-s5166
+      source_seed: 5166
+      target_scene_id: v2-04g-p1-support-s5293
+      target_seed: 5293
+    - source_scene_id: v2-04g-r6-i5-compile-support-maneuver-s5167
+      source_seed: 5167
+      target_scene_id: v2-04g-p1-support-s5294
+      target_seed: 5294
+simulator_seed_plumbing:
+  same_seed_across_all_three_methods_in_block: true
+  gazebo_rng:
+    binding: roslaunch seed argument to Gazebo --seed
+    source:
+      path: src/simulation/m2_gazebo/launch/m2_v2_04g_r6_i2_spawn_m2.launch
+      sha256: 5705ca4902e2e000022d697c91cdcfe9e4a2ad96ebb8fa65358a806fa3a5cb84
+  actuator_dynamics_rng:
+    binding: roslaunch seed argument to URDF xacro dynamics_seed
+    source:
+      path: src/simulation/m2_gazebo/launch/m2_v2_04g_r6_i2_spawn_m2.launch
+      sha256: 5705ca4902e2e000022d697c91cdcfe9e4a2ad96ebb8fa65358a806fa3a5cb84
+  future_release_must_reverify_exact_seed_plumbing: true
+  nondegeneracy_requirement: >-
+    Before execution authorization, the future release reviewer must prove that
+    the seed reaches at least Gazebo RNG and actuator dynamics RNG and that all
+    seeded-noise amplitudes remain nonzero. P1-R1 materialization alone does not
+    assert that an execution occurred.
+freshness_lifecycle:
+  seed_5201_5294_pre_i6_authoritative_allocation_count: 0
+  i6_reserved_evidence_seed_count: 90
+  i6_reserved_compile_support_seed_count: 4
+  p1_r1_materialized_offline_allowed: true
+  authorized_seed_count: 0
+  consumed_seed_count: 0
+  attempt_or_journal_allowed: false
+  globally_never_referenced_claim_forbidden: true
+  historical_forbidden_ranges:
+    - [5001, 5010]
+    - [5111, 5135]
+    - [5141, 5147]
+    - [5151, 5157]
+    - [5161, 5167]
+claim_scope:
+  allowed_if_future_four_gate_assessment_passes: >-
+    Performance improved on the preregistered three-template, fresh stochastic-
+    seed simulation distribution relative to the frozen legacy estimator.
+  geometry_generalization_forbidden: true
+  timing_generalization_forbidden: true
+  whole_dynamic_scene_family_generalization_forbidden: true
+  real_vehicle_or_deployment_claim_forbidden: true
+

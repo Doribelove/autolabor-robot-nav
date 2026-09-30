@@ -1,0 +1,53 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C6
+status: terminal_fresh_segmented_closed_loop_integration_pass
+date: "2026-07-24"
+execution:
+  authorized_units: 9
+  consumed_units: 9
+  completed_units: 9
+  forfeited_units: 0
+  retry_units: 0
+  resume_allowed: false
+  seeds: [6361, 6362, 6363]
+metrics:
+  episode_count: 9
+  decision_count: 308
+  goal_success_rate: 1.0
+  selected_candidate_accepted_rate: 1.0
+  certified_stop_available_rate: 1.0
+  exact_core_replay_rate: 1.0
+  motion_recovery_after_clear_rate: 1.0
+  yield_before_clear_rate: 1.0
+  conservative_clearance_violation_count: 0
+  minimum_conservative_clearance_m: 0.21825012646947406
+  planner_latency_p99_ms: 16.230065
+  maximum_goal_time_s: 10.0
+frozen_resources:
+  planner_contract_sha256: 6f2ec1530b67785dfc8f5a397ab416847f35f0c6ffc9e6f45bbf633a50057761
+  release_sha256: caf5988d33e90e26d78a87be39295458204edeff46eea8d75030a00de7b1f919
+  authorization_sha256: 25d0a80e3da3aa9191131d1879896ca829663253b4eb32c2670ce4e67d1b47bd
+  journal_sha256: f0bcd145e737126e6ce13f80ab9c4a0aa16e8d7c6d33290c7f4b1563863d5019
+  assessment_sha256: 0344b54e27cf2943beba83d92d2839db68f3abc1e1f0bad9e892ec56f734c2a3
+  evidence_freeze_sha256: 2dd9a1bb7f040c1847047d2f6083508ca21017ec8bc86e9c5ad0d0f1c28ce148
+  independent_result_review_sha256: 1e6aa34c12b41f8ce2d6a8d3d01b2e11a5984634a69ea7665a196c5127c5b4c7
+claim_boundary:
+  fresh_segmented_gazebo_closed_loop_integration_pass: true
+  commitment_invariance_validated_in_scope: true
+  post_conflict_reachable_certificate_validated_in_scope: true
+  continuous_runtime_validation: false
+  general_navigation_safety: false
+  performance_improvement: false
+  formal_result: false
+  deployment_ready: false
+  real_vehicle_ready: false
+authority:
+  rerun_or_resume_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+next_safe_entry: >-
+  A pure-offline V3-04 learning-value and support audit using only frozen
+  evidence, followed by a separately preregistered fresh evaluation if a
+  bounded safety-shielded policy is justified.

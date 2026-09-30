@@ -1,0 +1,18 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-08-A1-R1
+status: frozen_before_any_v3_08_a1_r1_simulation_or_release
+single_factor:
+  only_change: rejected_candidate_diagnostic_negative_infinity_to_negative_1e9
+  selection_trajectory_model_verifier_ranker_scene_protocol_gates_unchanged: true
+fresh_schedule:
+  seeds: [6681, 6682, 6683, 6684, 6685, 6686]
+  exact_episodes: 18
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_seed_replacement_or_gate_change: true
+  no_performance_stage_if_integration_fails: true
+budget: {simulation_episodes: 18, reinforcement_learning_steps: 0, hardware_runs: 0}

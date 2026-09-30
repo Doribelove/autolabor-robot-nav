@@ -1,0 +1,25 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-08-A1
+status: frozen_before_any_v3_08_a1_simulation_or_release
+planner:
+  sha256: 28cd688d3116114a065bcecdf27e94c0499fbd42a1c8dbe5bd37f89eab7f568c
+  model_sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+  model_or_gate_write_allowed: false
+fresh_schedule:
+  seeds: [6671, 6672, 6673, 6674, 6675, 6676]
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  exact_episodes: 18
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+protocol:
+  observation_prefix_s: 0.5
+  replanning_period_s: 0.5
+  spatial_commitment_duration_s: 7.0
+  maximum_episode_duration_s: 12.0
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_seed_replacement_or_gate_change: true
+  no_confirmatory_performance_stage_if_any_gate_fails: true
+budget: {simulation_episodes: 18, reinforcement_learning_steps: 0, hardware_runs: 0}

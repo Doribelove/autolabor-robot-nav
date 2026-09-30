@@ -1,0 +1,28 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-C1
+preregistration_id: v3_scope_v3_06_c1_calibration_preregistration_1
+status: frozen_before_any_v3_06_c1_outcome_or_release
+single_factor: low_speed_candidate_density
+levels: [sparse_control, add_v040, add_v020_v040]
+fresh_population:
+  seeds: [6511, 6512, 6513, 6514]
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  exact_episodes: 36
+  attempts_per_identity: 1
+selection_gate:
+  relative_restricted_time_reduction_min: 0.02
+  goal_success_noninferior_to_control: true
+  all_shared_safety_and_replay_gates: true
+failure_policy:
+  preserve_all_outcomes: true
+  no_retry_resume_or_seed_replacement: true
+  no_level_change_after_first_outcome: true
+  no_formal_claim_from_development_data: true
+future_firewall:
+  selected_level_may_enter_only_fresh_qualification: true
+  calibration_seeds_may_not_enter_future_formal_evaluation: true
+budget:
+  simulation_units: 36
+  training_steps: 0
+  hardware_runs: 0

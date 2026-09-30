@@ -1,0 +1,40 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-02-R0
+status: engineering_probe_negative_preserved
+date: "2026-08-07"
+evidence_class: preformal_development_probe
+purpose: test whether the baseline fast backend contains learnable sequential value
+implementation:
+  algorithm: masked_ppo
+  training_seed: 4101
+  environment_steps: 100000
+  environment_count: 8
+  rollout_steps: 256
+  update_epochs: 6
+  hidden_size: 128
+evaluation:
+  seed_range_inclusive: [420100, 420499]
+  paired_blocks: 400
+  episodes: 800
+  analytic_goal_rate: 1.0
+  learned_goal_rate: 1.0
+  analytic_mean_restricted_elapsed_s: 7.78625
+  learned_mean_restricted_elapsed_s: 7.78625
+  paired_relative_time_reduction_mean: 0.0
+  positive_block_fraction: 0.0
+  contact_count: 0
+  mask_violation_count: 0
+interpretation:
+  learning_value_gate_pass: false
+  diagnosis: >-
+    The learned deterministic policy converged to the memoryless analytic
+    choice. The original response persistence was too short to create
+    measurable delayed regret at the 0.25 s decision interval.
+  positive_learning_claim: false
+  checkpoint_preserved: false
+  checkpoint_absence_reason: in_memory_engineering_probe_before_evidence_release
+prohibitions:
+  - do_not_claim_improvement
+  - do_not_hide_in_final_thesis_audit
+  - do_not_use_probe_seeds_as_formal_test_seeds

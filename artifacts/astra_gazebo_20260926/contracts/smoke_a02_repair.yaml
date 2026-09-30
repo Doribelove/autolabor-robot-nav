@@ -1,0 +1,39 @@
+schema_version: '1.0'
+stage: smoke_a02
+split: bootstrap_smoke
+fresh_seed: 260926002
+methods:
+- pct_scope_rl
+- analytic_prior
+- actual_teb
+- dwa
+maximum_episodes: 4
+retry: false
+performance_evidence: false
+factors:
+- spawn_z_0.02_to_0.0_environment_repair
+- timestamp_associated_recording
+- camera_framing_only
+inherited_learning_and_planning_behavior: frozen R2 unchanged
+a01_diagnosis_sha256: c406fefa92c9e45da6f99b9802738c336424269c40d7e4df53e1471dc1cb539e
+machine_qc_thresholds_unchanged: true
+sources:
+- path: scripts/astra_gazebo/run_smoke_a02.py
+  sha256: d2366690628b1b46e574ad0801c5035173a922d3c78a4ed8a993123f708c7ccb
+- path: src/simulation/m2_gazebo/scripts/astra_evidence_monitor_a02.py
+  sha256: d50a733244e09f570ed4243aef4ba210317c451d3383feacbd725a3ab505253f
+- path: src/simulation/m2_gazebo/launch/astra_smoke_a02_episode.launch
+  sha256: 36cc5b57281b9e1c71245a38758d0af00e07d5337d8389a4e3abbb3359eb2767
+raw_sensor_bag_required: true
+new_outcomes_not_yet_observed: true
+bag_required_topics:
+- /clock
+- /scan
+- /odom
+- /tf
+- /tf_static
+- /joint_states
+- /cmd_vel_navigation
+- /cmd_vel
+- /gazebo/model_states
+- /gazebo/link_states

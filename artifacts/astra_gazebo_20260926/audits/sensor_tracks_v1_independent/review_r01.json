@@ -1,0 +1,39 @@
+{
+  "status": "independent_M08_offline_review_requires_availability_time_guard",
+  "independent_review": true,
+  "pass": false,
+  "reviewed_source_sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b",
+  "author_tests_passed": 51,
+  "independent_tests_passed": 23,
+  "independent_tests_failed": 1,
+  "finding": {
+    "scope": "request availability chronology; source-time observations themselves remain at/before cutoff",
+    "reproduction": "final scan source2.0s accepted_now2.1s; prediction_request decision2.0s returns request",
+    "expected": "decision>=snapshot.accepted_now; source freshness bound200ms unchanged",
+    "actual": "only decision>=snapshot.source_ns enforced"
+  },
+  "resources": [
+    {
+      "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v1.py",
+      "snapshot_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/reviewed_r01_snapshot/sensor_tracks_v1.py",
+      "sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b"
+    },
+    {
+      "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_v1.py",
+      "snapshot_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/reviewed_r01_snapshot/test_sensor_tracks_v1.py",
+      "sha256": "99b1347add03d4bf9615df8c9f787d5823ea74a7e8c7d6e40d92b76cb5b66561"
+    },
+    {
+      "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/implementation_report.json",
+      "snapshot_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/reviewed_r01_snapshot/implementation_report.json",
+      "sha256": "2130e888e0d9d13701581524a64dcb350af97e6a6e5937653888f8f1c0506739"
+    },
+    {
+      "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/test_boundary_review.py",
+      "snapshot_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/reviewed_r01_snapshot/test_boundary_review.py",
+      "sha256": "5531b9627700eb4f3d624b85c7db5580e42ac1e10932678051014782150df344"
+    }
+  ],
+  "noROS": true,
+  "created_utc": "2026-09-26T12:48:52.664002+00:00"
+}

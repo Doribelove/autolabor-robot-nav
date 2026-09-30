@@ -1,0 +1,136 @@
+{
+  "schema": "astra_input_sync_component_v1",
+  "stage": "M02_input_contract",
+  "created_utc": "2026-09-26T07:26:15.799464+00:00",
+  "status": "offline_component_pass_live_unqualified",
+  "new_resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/astra_input_sync.py",
+      "sha256": "0e36a427e82b3fe284550611eaf76941cc636ccbedc72cf663d35fbe39918048"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/tests/test_astra_input_sync.py",
+      "sha256": "2f04f5427318fc65f058abbdb448f8f10c9d0713749ca4c9ade45f0530ea647c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/astra_sync_episode.py",
+      "sha256": "66027a37209e375eaae492b618252448f0d46a9ec4096f6056a75ce866c319d7"
+    }
+  ],
+  "frozen_dependencies_unchanged": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+      "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73",
+      "snapshot_sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_r2_episode.py",
+      "sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe",
+      "snapshot_sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+      "sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9",
+      "snapshot_sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+      "sha256": "3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7",
+      "snapshot_sha256": "3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7",
+      "unchanged_from_verified_snapshot": true
+    }
+  ],
+  "test_attempts": [
+    {
+      "attempt": 1,
+      "command": "source scripts/astra_env.sh; python -B -m pytest -q -p no:cacheprovider src/application/v5_e2e_scope_rl/tests/test_astra_input_sync.py",
+      "exit_code": 0,
+      "result": "26 passed in 0.88 seconds",
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/input_sync_test_01.log",
+        "sha256": "b9076cfbf352c17c2d534233bfaf98cd627ce975eb2dffc71bb0aad5ad527a35"
+      }
+    }
+  ],
+  "static_checks": {
+    "three_python_sources_compile_without_bytecode_write": true,
+    "rosrun_executable_resolution": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/astra_sync_episode.py",
+    "chmod_executable": true,
+    "no_CMake_or_existing_R2_modification": true
+  },
+  "factor": {
+    "parameter": "~input_sync_mode",
+    "values": [
+      "legacy",
+      "synchronized"
+    ],
+    "default": "legacy",
+    "authorized_comparison_scope": [
+      "pct_scope_rl",
+      "analytic_prior",
+      "pct_shadow"
+    ],
+    "external_move_base_methods_rejected_in_synchronized_mode": [
+      "actual_teb",
+      "dwa"
+    ],
+    "legacy_callbacks_health_commands": "delegate unchanged frozen implementation",
+    "synchronized_input_contract_components": [
+      "bounded chronological scan queue with exact positive scan-stamp TF lookup and 5 ms ROS timer drain",
+      "minimum six genuine committed source-stamp scans before warmup instead of accepting inherited maximum-range placeholder rows",
+      "committed history freshness and real odometry source-stamp health; invalid or stale input gates this node command publisher to zero",
+      "serialized runtime observation and planning access; clock reset clears history and latches failure until a new episode"
+    ],
+    "is_bootstrap_change_explicit": true,
+    "not_claimed_as_timing_only_or_no_behavior_change": true
+  },
+  "fixed_boundaries": {
+    "maximum_input_age_s": 0.2,
+    "inclusive_queue_age_boundary_integer_ns": true,
+    "minimum_history_source_interval_s": 0.2,
+    "sampling_operator": "unchanged inherited float(source_stamp)-last_committed_float >= 0.20, including floating subtraction boundaries",
+    "history_rows": 6,
+    "queue_maximum_entries": 8,
+    "tf_latest_fallback_allowed": false,
+    "future_scan_allowed_to_commit": false,
+    "bootstrap_wall_timeout_s": 35.0,
+    "temporary_wait_counts_as_terminal_TF_failure": false
+  },
+  "tested_evidence": [
+    "2 ms and 20 ms delayed TF commit original stamp; wait scan/poll/time counters separate from terminal failures",
+    "arrival age 0.199999999/0.200000000 accepted and 0.200000001 rejected; expired queued scan cannot trigger TF lookup/commit",
+    "invalid/zero stamps, duplicate/out-of-order, queue overflow, future stamp clock catchup, and far-future rejection are visible",
+    "clock reset clears pending and actual runtime observations/tracker, increments failure, and does not silently resume",
+    "fresh raw scan with pending TF cannot hide stale most-recent committed scan; 6 placeholders never qualify as six real samples",
+    "no-delay callback replay of 100 real ROS nanosecond stamps compares all scan histories, source stamps, poses and tracker velocity against frozen R1 callback using actual runtime",
+    "exact ROS scan timestamp, zero lookup timeout, returned-stamp verification, genuine odometry header stamp check",
+    "nonzero command becomes zero on invalid history and independent 5 ms timer watchdog handles inter-decision stale intervals",
+    "legacy delegates frozen callback/health/command; actual_teb/dwa synchronized mode rejected before initialization"
+  ],
+  "runtime_reports": [
+    "unique waiting scans and wait polls",
+    "per commit source stamp, completion clock, age, residence, wait duration and TF attempt count",
+    "expired terminal wait events and duration, invalid/out-of-order/overflow/future/error counts",
+    "clock resets and discarded pending count",
+    "real bootstrap wait, maximum committed scan age, command-gated/watchdog-zero counters",
+    "sidecar <report_path>.input_sync.json written on normal/failing shutdown"
+  ],
+  "live_questions": [
+    "No ROS/Gazebo or training was started by this component task. Live TF return-stamp behavior and subscriber/timer scheduling must be qualified.",
+    "A source sampling interval >=0.20 s combined with a strict maximum age 0.20 s leaves no delay slack near sampling boundaries. Floating legacy sampling may select 0.25 s gaps at a 20 Hz scan rate. These intervals must stop or fail existing gates, not be hidden by relaxing the ceiling.",
+    "Synchronized bootstrap waits six actual rows and may shift warmup timing. Pair as an explicit input-contract factor with unchanged legacy control, not as a guaranteed no-effect fix.",
+    "Command serialization and 5 ms ROS timer can affect timing. Report actual callback/candidate latency and wait distributions in live pairing.",
+    "Clock reset latches fail-closed state and reports it. The inherited ROS rate/episode loop may require the external wall-time runner to terminate after a reset.",
+    "This node cannot veto independently published move_base commands. A common sensor-staleness relay needs separately designed and fairly reassessed M06 or engineering-chain work.",
+    "Queue drops/expired scans may recover to fresh history, but remain terminal evidence failures in the episode report. There is no loss concealment."
+  ],
+  "claims": {
+    "formal_result": false,
+    "runtime_qualified": false,
+    "performance_improvement_demonstrated": false,
+    "no_robot_or_simulation_started": true
+  }
+}

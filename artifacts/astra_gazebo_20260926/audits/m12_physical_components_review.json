@@ -1,0 +1,66 @@
+{
+  "status": "m12_offline_model_and_component_checks_pass",
+  "checks": {
+    "all_link_geometry_and_inertia_unchanged": true,
+    "all_joint_geometry_limits_damping_unchanged": true,
+    "actual_mass79_6": true,
+    "unique_new_driver": true,
+    "wheel_mu_defaults_same": true,
+    "wheel_lateral_axis_fdir1": true,
+    "no_pose_or_velocity_mutator_calls": true,
+    "joint_effort_actuation_present": true,
+    "actual_postphysics_twist_including_vy": true,
+    "source_stamped_target_topic": true,
+    "reference_limits_retained": true,
+    "physical_spawn_z0": true
+  },
+  "actual_mass_kg": 79.6,
+  "neutral_com_xyz_m": [
+    0.004082914572864321,
+    0.0,
+    0.25263819095477386
+  ],
+  "links_with_mass": 9,
+  "ros_started": false,
+  "physical_tracking_qualified": false,
+  "friction_response_qualified": false,
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_plugin.cpp",
+      "sha256": "aa481ce19c8e7fe11e89f1af2a7a9af566490e81565f9088d5b43dde321431d3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_physical_control.h",
+      "sha256": "be7a337266afd3399c09fff4dff4084b6f55e00a107c4b8584557bbd6a644861"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical.urdf.xacro",
+      "sha256": "d49c4b7002e768c11f9c43dd3871976b14c6fa090946d3db631f9737aa05407d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_gazebo.xacro",
+      "sha256": "0290015582f2bc7441628e9bdb3f9b4ecc122aa8c03c8096af881e25e8104a70"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/spawn_m2_physical.launch",
+      "sha256": "18d1d4fdb3bfee116ee9ccc1f39ca6d1fb17a0660e1f5913896650b15ca578a7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physical_robot_description.xml",
+      "sha256": "cd4f5d00400d92efb4be7bd5916c9f23e5e3963e5a2ce7d6e306818e1a5eab74"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/simulation_candidates.yaml",
+      "sha256": "63edc80a38b4d35c5491660ad4d6882d2ddaf95b4ff66fda820ba20eadbfd946"
+    }
+  ],
+  "component_tests": "25 forward/reverse/zero wheel geometries, finite PI/PD torque, windup/NaN and6000 target acceleration/slew updates passed",
+  "important_limits": [
+    "Candidate gains/torque caps are simulation choices, not calibrated motor specifications.",
+    "Actual physical accel/steer slew require root fresh live qualification; target bounds are not actual bounds.",
+    "Four independent driven wheels retain legacy simulated topology; physical drivetrain still unverified.",
+    "Odometry is actual simulator ego base_link pose/twist shared across methods, not a real localization model.",
+    "Wheel fdir1 uses collision cylinder axis as lateral friction direction; needs converted-SDF and live yaw/mu qualification.",
+    "No ROS/Gazebo run or CMake/old-driver modification by design_audit."
+  ]
+}

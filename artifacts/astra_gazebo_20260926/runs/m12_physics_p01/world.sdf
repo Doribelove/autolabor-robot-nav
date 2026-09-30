@@ -1,0 +1,10 @@
+<sdf version="1.6"><world name="astra_m12_physics_p01">
+  <gravity>0 0 -9.81</gravity>
+  <physics name="physics" type="ode"><max_step_size>0.002</max_step_size><real_time_update_rate>500</real_time_update_rate></physics>
+  <light name="sun" type="directional"><pose>0 0 10 0 0 0</pose><diffuse>0.8 0.8 0.8 1</diffuse><direction>-0.5 0.1 -0.9</direction></light>
+  <model name="ground_plane"><static>true</static><link name="link">
+    <collision name="collision"><geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry></collision>
+    <visual name="visual"><geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry></visual>
+  </link></model>
+  <plugin name="astra_evidence" filename="libastra_dense_evidence_plugin.so"><state_hz>50</state_hz></plugin>
+</world></sdf>

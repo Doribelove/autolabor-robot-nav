@@ -1,0 +1,101 @@
+schema_version: '1.0'
+stage: V2-04G-P1
+assessment_status: performance_improvement_not_demonstrated
+formal_study_complete: true
+formal_result: true
+performance_improvement_demonstrated: false
+claim_authorized: false
+runtime_ready: false
+simulation_only: true
+claim_scope: null
+matrix:
+  scheduled: 270
+  consumed_and_retained: 270
+  confirmatory_pairs: 90
+  semantic_clear_pairs: 30
+  true_conflict_pairs: 60
+  episode_digest: f3868c821a697d319cce703a2dbf9030c32efd2bc9ed0ddf574a13194710a1ca
+four_gate_decision:
+  integrity: true
+  safety_and_task_noninferiority: true
+  efficiency_superiority: false
+  mechanism_reduction: true
+safety_and_task:
+  pass: true
+  success:
+    pass: true
+    harmful_discordances: 0
+    beneficial_discordances: 0
+    one_sided_exact_harm_rate_upper: 0.03273803383353463
+    conservative_risk_difference_lower: -0.03273803383353463
+    role_treatment_minus_control_count:
+      single_true_conflict: 0
+      multi_true_conflict: 0
+      time_separated_semantic_clear: 0
+  collision:
+    pass: true
+    harmful_discordances: 0
+    beneficial_discordances: 0
+    one_sided_exact_harm_rate_upper: 0.03273803383353463
+    conservative_risk_difference_upper: 0.03273803383353463
+    role_treatment_minus_control_count:
+      single_true_conflict: 0
+      multi_true_conflict: 0
+      time_separated_semantic_clear: 0
+  clearance:
+    pass: true
+    paired_mean_difference_m: -0.029086489773633224
+    one_sided_95_percent_lower_m: -0.04289094138217517
+    role_paired_mean_difference_m:
+      single_true_conflict: -0.010758554094800333
+      multi_true_conflict: -0.03278784097032187
+      time_separated_semantic_clear: -0.04371307425577748
+  true_conflict_semantics:
+    pass: true
+    control_match_fraction: 1.0
+    treatment_match_fraction: 1.0
+  algorithmic_emergency:
+    pass: true
+    harmful_discordances: 0
+    one_sided_exact_harm_rate_upper: 0.03273803383353463
+    role_treatment_minus_control_count:
+      single_true_conflict: 0
+      multi_true_conflict: 0
+      time_separated_semantic_clear: 0
+efficiency:
+  pass: false
+  restricted_completion_time_rule: navigation_time_only_for_clean_success_else_80_second_timeout
+  geometric_time_reduction_fraction: 0.03762364346211233
+  one_sided_95_percent_lower_fraction: 0.027903858836313078
+  raw_p_value: 9.99990000099999e-06
+  fixed_sequence_adjusted_p_value: 9.99990000099999e-06
+mechanism:
+  pass: true
+  metric: timestamped_non_none_overlay_time_fraction
+  trace_coverage_required: true
+  control_mean_fraction: 0.17672110140675926
+  treatment_mean_fraction: 0.0
+  relative_reduction_fraction: 1.0
+  paired_absolute_decrease_one_sided_95_percent_lower: 0.17176223658064604
+  raw_p_value: 9.99990000099999e-06
+  fixed_sequence_adjusted_p_value: 9.99990000099999e-06
+  zero_control_mean_policy: gate_fails_as_relative_reduction_is_undefined
+methodology:
+  bootstrap_resamples: 10000
+  bootstrap_seed: 20260721
+  paired_randomization_resamples: 100000
+  paired_randomization_seed: 20260722
+  deterministic_rng: sha256_counter_p1_r1_v1
+  bootstrap_quantile: nearest_rank_ceil_p_times_B_minus_one
+  binary_noninferiority: one_sided_clopper_pearson_upper_on_harmful_discordance_rate_conservative_for_paired_risk_difference
+  fixed_sequence_adjustment: efficiency_p_adj=p_efficiency; mechanism_p_adj=max(p_efficiency,p_mechanism)
+claim_wording_if_pass: null
+forbidden_claims:
+- whole-system superiority
+- learning gain
+- cross-family generalization
+- real-vehicle performance or safety
+- deployment readiness
+execution_stage: V2-04G-P1-E1
+release_sha256: 05a6efe21a4c110be667b0873d8ac1b26ac692feefea8932f40a506ca9b9027b
+raw_replay_report_sha256: 47ad86639a056bd4906ff7bf8de708cfba491157da6812e3d6911584caa2a8c5

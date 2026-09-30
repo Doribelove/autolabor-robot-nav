@@ -1,0 +1,89 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P2-Q1
+status: p2_q1_offline_implementation_readiness_pass_release_absent
+offline_implementation_review_ready: true
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+planned_future_evidence_units: 342
+authorized_evidence_units: 0
+consumed_evidence_units: 0
+training_budget_steps: 0
+real_vehicle_used: false
+contract:
+  path: config/thesis_experiments/v2/v2_04g_r6_i1_p2_q1_offline_implementation_readiness_contract.yaml
+  sha256: 6a6812b61b0c45e06084142f65cfa39c15e69c187a4063aa437190c3b30f05bd
+materialization:
+  method_count: 11
+  circle_single_factor_candidates: 5
+  independent_fixed_grid_candidates: 5
+  frozen_engineering_baselines: 1
+  scene_count: 48
+  compiled_child_count: 96
+  schedule_rows: 342
+  command_plan_rows: 342
+  sole_p2_behavioral_field: TebLocalPlannerROS.max_vel_x
+fairness:
+  transparent_reference: TEB-Default
+  transparent_reference_is_automatically_primary: false
+  frozen_engineering_candidate: TEB-Tuned-V1
+  independent_fixed_grid_candidates:
+  - fixed_teb_v120__TEB-Default_alias
+  - fixed_teb_v125
+  - fixed_teb_v130
+  - fixed_teb_v135
+  - fixed_teb_v140
+  future_primary_baseline: strongest_safety_qualified_calibration_frozen_candidate_between_TEB-Tuned-V1_and_independent_fixed_grid
+  intentional_weakening_or_hidden_advantage_allowed: false
+artifacts:
+  method_bindings:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_method_bindings.yaml
+    sha256: a7d50d0c710fe59c8c0a76b3753a9e4dee5845e11108ad881bc32735430e6c51
+    size_bytes: 10870
+  scenes:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_scenes.yaml
+    sha256: 050219ef3fc50649f7b7fc48b19716bfcc2a498ef8c2500ebf1713c7d7e487ec
+    size_bytes: 64383
+  compiled_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/compiled_scenes/compiled_scene_index.yaml
+    sha256: b9bcfcc67fb7cd14a30de37be88dcff89e74b5bd8b0428eea34eff4d809f6e1c
+    size_bytes: 22207
+  exact_schedule:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_exact_342_schedule.yaml
+    sha256: 5a021eb17e382781acfb3fbea9e8afabb0c46aa137ff095fb0f0661c2434efbe
+    size_bytes: 283850
+  exact_command_plan:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_exact_342_command_plan.yaml
+    sha256: 1db6760b847160d13d9cefd3ca5b67e524627aea92e6b8417c0e22d612b1b3a7
+    size_bytes: 692200
+  construction_audit:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_construction_audit.yaml
+    sha256: 53ab9985b4b89ebe4324cc27efaeabcc8886ba1ce0389a16de9720abf2f9a7a2
+    size_bytes: 23395
+  failure_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_failure_index.yaml
+    sha256: 95c11c9a00fdf774107a05761a8b5738260b47dd84d0e636184839a78eedcced
+    size_bytes: 257
+  source_freeze:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/p2_q1_source_freeze.sha256
+    sha256: 9fd0865d40327e5cc54b3de63346a775d990daeb0310322be51e9801bc172b72
+    size_bytes: 3811
+execution_gap:
+  exact_release_present: false
+  corresponding_simulation_authorization_present: false
+  authorized_budget: 0
+  transitive_runtime_dependency_closure_frozen: false
+  future_executable_and_environment_bindings_frozen: false
+  runner_execute_entry_hard_disabled: true
+  held_out_test_open: false
+  future_release_must_close_all_items: true
+claim_state:
+  candidate_safety_qualified: false
+  calibration_result_exists: false
+  primary_baseline_selected: false
+  performance_improvement_demonstrated: false
+  held_out_test_accessed: false
+next_safe_entry: independent_P2_Q1_offline_review_then_new_exact_calibration_release_and_corresponding_separate_simulation_authorization

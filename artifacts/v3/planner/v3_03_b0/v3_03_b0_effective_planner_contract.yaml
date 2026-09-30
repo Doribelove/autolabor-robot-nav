@@ -1,0 +1,129 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-03-B0
+stage_purpose: pure_offline_observed_history_mode_gate_design_and_replay
+contract_id: v3_scope_v3_03_b0_effective_planner_1
+status: pure_offline_mode_gate_candidate
+upstream:
+  predictor_path: artifacts/v3/prediction/v3_02_d1/model/v3_02_d1_candidate_predictor.yaml
+  predictor_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+  predictor_terminal_freeze: artifacts/v3/prediction/v3_02_d2/v3_02_d2_terminal_freeze.sha256
+  predictor_result_review_sha256: f0fd7d3908015851820c4512f868a9a5944919612c8f826c914cba309f3fa001
+  predictor_claim_scope: acceleration_feasible_parameterized_crossing_only
+  a0_contract_path: config/thesis_experiments/v3/v3_03_a0_safe_planner_contract.yaml
+candidate_generator:
+  generator_id: v3_03_a0_straight_ackermann_set_1
+  decision_horizon_s: 4.0
+  sample_period_s: 0.05
+  target_speeds_mps:
+  - 0.0
+  - 0.6
+  - 0.8
+  - 1.0
+  - 1.2
+  initial_speed_mps: 0.8
+  maximum_speed_mps: 1.2
+  maximum_acceleration_mps2: 0.6
+  maximum_deceleration_mps2: 0.8
+  maximum_steering_angle_rad: 0.52
+  maximum_steering_rate_radps: 0.5
+  maximum_curvature_inv_m: 0.45
+  certified_stop_candidate_id: certified_stop_v000
+  teb_fallback_candidate_id: teb_fallback_v080
+  certified_stop_required: true
+  teb_fallback_required: true
+predictor_runtime:
+  mode_heads:
+  - cautious
+  - assertive
+  - hesitant
+  relative_horizons_s:
+  - 1.0
+  - 2.0
+  - 3.0
+  - 4.0
+  physical_coordinate_upper_m: 3.5
+  conformal_radius_m: 0.379024806626
+  tube_interpolation: piecewise_linear_outer_interval
+  additional_coordinate_margin_m: 0.1
+  maximum_full_tube_width_m: 1.2
+  runtime_hidden_policy_input: false
+  ood_bounds:
+    actor_coordinate_m:
+    - -3.4
+    - -1.9
+    actor_speed_mps:
+    - 0.1
+    - 1.4
+    candidate_target_speed_mps:
+    - 0.0
+    - 1.2
+    actor_path_angle_deg:
+    - 70.0
+    - 110.0
+  mode_inference:
+    mode_inference_id: v3_03_b0_observed_speed_gap_gate_1
+    observable_feature: actor_speed_mps
+    hidden_policy_runtime_input: false
+    cautious_hesitant_threshold_mps: 0.274012499989
+    hesitant_assertive_threshold_mps: 0.758912499986
+    ambiguity_half_width_mps: 0.02
+    ambiguous_or_nonfinite_behavior: fail_closed_to_certified_stop
+hard_verifier:
+  ego_footprint_length_m: 1.13
+  ego_footprint_width_m: 0.73
+  actor_footprint_length_m: 0.45
+  actor_footprint_width_m: 0.45
+  tracking_error_margin_m: 0.1
+  occupancy_margin_m: 0.05
+  braking_response_latency_s: 0.25
+  certified_braking_deceleration_mps2: 0.8
+  minimum_braking_margin_m: 0.05
+  maximum_snapshot_age_s: 0.2
+  maximum_predictor_latency_ms: 20.0
+  maximum_verifier_latency_ms: 20.0
+  required_health_fields:
+  - localization_ok
+  - transform_ok
+  - actor_track_ok
+  - command_chain_ok
+  fail_closed_on_nonfinite: true
+  fail_closed_on_digest_mismatch: true
+  certified_stop_uses_deterministic_backup_invariant: true
+analytic_ranker:
+  ranker_id: v3_03_a0_progress_clearance_comfort_1
+  progress_weight: 1.0
+  clearance_weight: 0.25
+  acceleration_cost_weight: 0.1
+  teb_fallback_penalty: 0.05
+  rejected_candidate_visibility: false
+  deterministic_tie_break: lexicographic_candidate_id
+fixtures:
+  definition_path: config/thesis_experiments/v3/v3_03_a0_safe_planner_fixtures.yaml
+  deterministic_scene_count: 12
+  property_scene_count: 512
+  property_seed: 30303
+offline_gates:
+  deterministic_fixture_pass_rate_min: 1.0
+  property_fixture_pass_rate_min: 1.0
+  stop_present_rate_min: 1.0
+  selected_candidate_accepted_or_emergency_stop_rate_min: 1.0
+  fault_injection_stop_rate_min: 1.0
+  digest_determinism_pass: true
+  nonfinite_output_count_max: 0
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_modification_authorized: false
+claim_if_pass: An observed-speed gate selected the evaluator-consistent latent head on all frozen V3-02-D1 training and calibration episodes, and the unchanged conformal radius retained its preregistered calibration coverage while reducing the runtime tube width. This does not establish navigation performance or safety.
+forbidden_claims:
+- general_mode_identification
+- general_scene_prediction
+- navigation_safety
+- performance_improvement
+- deployment_readiness
+- real_vehicle_readiness

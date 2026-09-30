@@ -1,0 +1,228 @@
+{
+  "ROS_started": false,
+  "command": "artifacts/astra_gazebo_20260926/audits/historical/recompute_historical.py --workspace /home/robot/robot_ws_base_rl --output /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/historical",
+  "elapsed_wall_seconds": 65.87046599388123,
+  "geometry": {
+    "198136": {
+      "ROS_contact_count_episode": 0,
+      "chassis_overlap_sample_count": 0,
+      "interpretation": "offline projected geometry diagnosis; not a rewritten historical outcome",
+      "max_absolute_circle_replay_error_m": 8.881784197001252e-16,
+      "minimum_chassis_actor_signed_gap_m": 0.04050801710456153,
+      "samples": 435,
+      "worst_time_s": 14.872
+    },
+    "198146": {
+      "ROS_contact_count_episode": 0,
+      "chassis_overlap_sample_count": 1,
+      "interpretation": "offline projected geometry diagnosis; not a rewritten historical outcome",
+      "max_absolute_circle_replay_error_m": 8.881784197001252e-16,
+      "minimum_chassis_actor_signed_gap_m": -0.0013606268495563942,
+      "samples": 328,
+      "worst_time_s": 13.902
+    }
+  },
+  "historical_writes": false,
+  "limitations": [
+    "Historical sources are read only; newly diagnosed issues do not overwrite frozen outcomes.",
+    "Geometry uses synchronized-as-logged model_states snapshots; actor/ego fields may be asynchronously sampled by the historical logger.",
+    "Chassis XY intersection is sufficient for a projected chassis collision given nominal overlapping Z, but no historical Z/roll/pitch/joint trace exists for full 3D collision reconstruction.",
+    "A nonintersecting chassis does not exclude wheel/sensor collision.",
+    "Historical zero contact messages are not independently validated physical no-contact evidence.",
+    "Source current hashes and historical resource bindings are reported separately; no claim of full execution binary closure is added."
+  ],
+  "numpy": "1.21.0",
+  "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.29",
+  "python": "3.8.10 (default, Mar 18 2025, 20:04:55) \n[GCC 9.4.0]",
+  "pyyaml": "5.3.1",
+  "randomization": {
+    "core_head_on_yield": {
+      "actor_speed_vectors": [
+        "[0.84]"
+      ],
+      "unique_geometry_policy_speed_fingerprints": 1
+    },
+    "core_partially_occluded": {
+      "actor_speed_vectors": [
+        "[0.84]"
+      ],
+      "unique_geometry_policy_speed_fingerprints": 1
+    },
+    "core_sequential_interaction": {
+      "actor_speed_vectors": [
+        "[0.84, 0.915]"
+      ],
+      "unique_geometry_policy_speed_fingerprints": 1
+    },
+    "core_single_crossing": {
+      "actor_speed_vectors": [
+        "[0.84]"
+      ],
+      "unique_geometry_policy_speed_fingerprints": 1
+    },
+    "core_static_avoidance": {
+      "actor_speed_vectors": [
+        "[]"
+      ],
+      "unique_geometry_policy_speed_fingerprints": 1
+    },
+    "core_width_change": {
+      "actor_speed_vectors": [
+        "[]"
+      ],
+      "unique_geometry_policy_speed_fingerprints": 1
+    }
+  },
+  "rounds": {
+    "1": {
+      "assessment_sha256": "777ce9b1599713ebbdc62cb14691334e733c5f08e12e8cde881d2eeb07a0a04c",
+      "comparisons": {
+        "actual_teb": {
+          "bootstrap_samples": 200000,
+          "ci_97_5": [
+            -0.08356862311059335,
+            0.05635939126562168
+          ],
+          "frozen_assessment_match": true,
+          "relative_reduction": -0.009442093879810768,
+          "seed": 20261971
+        },
+        "dwa": {
+          "bootstrap_samples": 200000,
+          "ci_97_5": [
+            0.01087136778278782,
+            0.11141124104958539
+          ],
+          "frozen_assessment_match": true,
+          "relative_reduction": 0.06369289173467103,
+          "seed": 20261972
+        }
+      },
+      "episode_csv_sha256": "ce6b9f33e1613f959babd86493dbbd7752e8090f5962b1ee55a89da28bd83b2c",
+      "episodes": 640,
+      "method_summary": {
+        "actual_teb": {
+          "episodes": 160,
+          "failure_counts": {
+            "conservative_clearance_violation": 70,
+            "goal": 89,
+            "timeout_or_nonarrival": 1
+          },
+          "mean_failure_inclusive_time_s": 14.9225375,
+          "minimum_conservative_clearance_m": -1.0902973748928635,
+          "valid_goals": 89
+        },
+        "analytic_prior": {
+          "episodes": 160,
+          "failure_counts": {
+            "execution_integrity_failure": 7,
+            "goal": 146,
+            "timeout_or_nonarrival": 7
+          },
+          "mean_failure_inclusive_time_s": 16.1231375,
+          "minimum_conservative_clearance_m": 0.01674901348921054,
+          "valid_goals": 146
+        },
+        "dwa": {
+          "episodes": 160,
+          "failure_counts": {
+            "conservative_clearance_violation": 80,
+            "goal": 80
+          },
+          "mean_failure_inclusive_time_s": 16.0881375,
+          "minimum_conservative_clearance_m": -0.3696535891744706,
+          "valid_goals": 80
+        },
+        "pct_scope_rl": {
+          "episodes": 160,
+          "failure_counts": {
+            "goal": 153,
+            "timeout_or_nonarrival": 7
+          },
+          "mean_failure_inclusive_time_s": 15.063437499999997,
+          "minimum_conservative_clearance_m": 0.13584024492252733,
+          "valid_goals": 153
+        }
+      },
+      "raw_hash_and_scientific_replay_count": 640
+    },
+    "2": {
+      "assessment_sha256": "a0cf0ef415a0685411299524bcb9a71674edd59f58c378b037d8b91d64e6a473",
+      "comparisons": {
+        "actual_teb": {
+          "bootstrap_samples": 200000,
+          "ci_97_5": [
+            -0.09808255175072239,
+            0.03591424532870884
+          ],
+          "frozen_assessment_match": true,
+          "relative_reduction": -0.027287980497016015,
+          "seed": 20261991
+        },
+        "dwa": {
+          "bootstrap_samples": 200000,
+          "ci_97_5": [
+            0.025521038494359133,
+            0.1261477161235693
+          ],
+          "frozen_assessment_match": true,
+          "relative_reduction": 0.07775418502147874,
+          "seed": 20261992
+        }
+      },
+      "episode_csv_sha256": "1c1cc0e1df5634a2e87edf999184d8dcfb751962d583afd84913414371c5ca7c",
+      "episodes": 800,
+      "method_summary": {
+        "actual_teb": {
+          "episodes": 200,
+          "failure_counts": {
+            "conservative_clearance_violation": 81,
+            "goal": 119
+          },
+          "mean_failure_inclusive_time_s": 14.44702,
+          "minimum_conservative_clearance_m": -1.1259240481840114,
+          "valid_goals": 119
+        },
+        "analytic_prior": {
+          "episodes": 200,
+          "failure_counts": {
+            "execution_integrity_failure": 21,
+            "goal": 150,
+            "timeout_or_nonarrival": 29
+          },
+          "mean_failure_inclusive_time_s": 16.39876,
+          "minimum_conservative_clearance_m": 0.16448605295198793,
+          "valid_goals": 150
+        },
+        "dwa": {
+          "episodes": 200,
+          "failure_counts": {
+            "conservative_clearance_violation": 100,
+            "goal": 100
+          },
+          "mean_failure_inclusive_time_s": 16.092509999999997,
+          "minimum_conservative_clearance_m": -0.370241582249328,
+          "valid_goals": 100
+        },
+        "pct_scope_rl": {
+          "episodes": 200,
+          "failure_counts": {
+            "conservative_clearance_violation": 2,
+            "goal": 180,
+            "timeout_or_nonarrival": 18
+          },
+          "mean_failure_inclusive_time_s": 14.84125,
+          "minimum_conservative_clearance_m": -0.26957117493753835,
+          "valid_goals": 180
+        }
+      },
+      "raw_hash_and_scientific_replay_count": 800
+    }
+  },
+  "schema_version": "1.0",
+  "script_sha256": "585db669bdd551546bfd4232c10fe8a1b14a11cf1a764b44b2595cf8a81362cd",
+  "status": "offline_historical_statistics_and_raw_replay_pass_with_new_diagnostic_findings",
+  "tf_integrity_failure_episodes": 21,
+  "tf_rejected_scan_total": 24,
+  "training_started": false
+}

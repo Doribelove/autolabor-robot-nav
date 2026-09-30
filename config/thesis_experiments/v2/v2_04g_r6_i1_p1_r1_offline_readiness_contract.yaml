@@ -1,0 +1,245 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P1-R1
+contract_id: fam_teb_v2_04g_p1_r1_offline_implementation_readiness_1
+status: offline_implementation_readiness_preregistered_execution_not_authorized
+scope: scene_schedule_statistics_integrity_and_resource_closure_only
+independent_stage: true
+stage_state:
+  offline_only: true
+  simulation_only: true
+  formal_result: false
+  runtime_ready: false
+  execution_ready: false
+  execution_authorized: false
+  planned_evidence_units: 270
+  authorized_evidence_units: 0
+  consumed_evidence_units: 0
+  training_allowed: false
+  training_budget_steps: 0
+  real_vehicle_use_forbidden: true
+authority_dag:
+  source_design:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i6_future_multiseed_performance_design.yaml
+    sha256: a5b74aa99cb63785aa3993ba7cae40974baa3ab9b6aace71ee9cb815e08d379c
+  source_interpretation_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i6_interpretation/v2_04g_r6_i6_result_interpretation_review.yaml
+    sha256: c1fd43205d0f3b3c6a029590b33808812dc8db795bdcf4b270c345e033b9dd68
+  source_i5_freeze:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i6_interpretation/i5_evidence_freeze.sha256
+    sha256: 40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935
+  source_bytes_may_be_modified: false
+  this_contract_is_predata_refinement: true
+  refinement_changes_runtime_behavior: false
+frozen_factor:
+  control_method: r6_semantics_legacy_control
+  treatment_method: r6_semantics_circle_contact
+  only_confirmatory_behavioral_difference: supervisor.dynamic.conflict_estimator_id
+  control_value: legacy_class_conditioned_geometry_v1
+  treatment_value: shared_circle_envelope_first_contact_v1
+  contextual_method: fixed_teb_reference
+  contextual_method_in_confirmatory_tests: false
+  threshold_or_training_change_allowed: false
+method_roster:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i1_p1_r1_method_bindings.yaml
+  fixed_teb_exact_identity_required: true
+  fixed_teb_legacy_aliasing_allowed: false
+  future_adapter_required_before_execution_release: true
+fresh_seed_firewall:
+  evidence_seed_first: 5201
+  evidence_seed_last: 5290
+  evidence_seed_count: 90
+  compile_support_seeds: [5291, 5292, 5293, 5294]
+  historical_seed_reuse_allowed: false
+  retry_resume_replacement_allowed: false
+  structured_lifecycle_states: [reserved, materialized_offline, authorized, consumed]
+  current_lifecycle_state: materialized_offline
+  authorized_count: 0
+  consumed_count: 0
+  globally_never_referenced_wording_allowed: false
+  role_ranges:
+    single_true_conflict: [5201, 5230]
+    multi_true_conflict: [5231, 5260]
+    time_separated_semantic_clear: [5261, 5290]
+scene_derivation:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i1_p1_r1_scene_derivation.yaml
+  source_template_count: 3
+  evidence_scene_count: 90
+  compile_support_scene_count: 4
+  target_scene_count: 94
+  compiled_child_count: 188
+  opaque_scene_ids_required: true
+  geometry_or_timing_distribution_claim_allowed: false
+  population: three_frozen_dynamic_templates_under_fresh_simulator_stochastic_seeds
+  all_seeds_retained_without_outcome_selection: true
+exact_schedule:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/v2_04g_p1_r1_exact_schedule.yaml
+  blocks: 90
+  methods_per_block: 3
+  episodes: 270
+  attempt_per_identity: 1
+  block_rows_contiguous: true
+  method_permutations_per_role: 6
+  repetitions_per_method_permutation_per_role: 5
+  every_method_each_position_per_role: 10
+  role_permutations: 6
+  repetitions_per_role_permutation: 5
+  schedule_digest_required: true
+statistical_contract:
+  evaluator:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_p1_statistics.py
+  analysis_population: intention_to_treat_all_270_consumed_identities
+  four_gates_in_order:
+    - integrity
+    - safety_and_task_noninferiority
+    - efficiency_superiority
+    - mechanism_reduction
+  restricted_completion_time:
+    clean_success: measured_navigation_time_s
+    collision_timeout_planner_or_algorithmic_failure: frozen_80_second_timeout
+    deletion_or_success_only_analysis_allowed: false
+  binary_noninferiority_refinement:
+    replaces_underspecified_phrase: exact_paired_mcnemar_and_paired_score_interval
+    confirmatory_bound: one_sided_clopper_pearson_upper_on_paired_harmful_discordance_rate
+    paired_risk_difference_interpretation: conservative_bound
+    alpha: 0.05
+    success_lower_bound_min: -0.05
+    collision_upper_bound_max: 0.05
+    algorithmic_emergency_upper_bound_max: 0.05
+    per_role_net_harm_allowed: false
+    zero_harm_upper_n90: 0.032738
+    one_harm_upper_n90: 0.051626
+  clearance_noninferiority:
+    paired_stratified_bootstrap_lower_min_m: -0.05
+    per_role_mean_difference_min_m: -0.05
+  true_conflict_status_preservation:
+    blocks: 60
+    treatment_expected_status_match_min: 0.95
+    treatment_must_not_be_below_control: true
+    selected_track_identity_claim_allowed: false
+  efficiency_superiority:
+    population: 30_time_separated_semantic_clear_pairs
+    paired_value: log_control_restricted_time_minus_log_treatment_restricted_time
+    point_geometric_reduction_min: 0.05
+    one_sided_bootstrap_lower_strictly_above: 0.0
+    adjusted_p_max: 0.05
+  mechanism_reduction:
+    population: 30_time_separated_semantic_clear_pairs
+    inferential_value: paired_absolute_timestamped_overlay_occupancy_decrease
+    reported_relative_effect: one_minus_treatment_mean_over_control_mean
+    relative_point_reduction_min: 0.30
+    paired_absolute_bootstrap_lower_strictly_above: 0.0
+    control_mean_zero_action: fail_gate_as_undefined
+    adjusted_p_max: 0.05
+  resampling:
+    deterministic_rng: sha256_counter_p1_r1_v1
+    bootstrap_resamples: 10000
+    bootstrap_base_seed: 20260721
+    bootstrap_quantile: nearest_rank_ceil_p_times_B_minus_one
+    signflip_resamples: 100000
+    signflip_base_seed: 20260722
+    signflip_p_rule: one_plus_extreme_over_one_plus_resamples
+  fixed_sequence_multiplicity:
+    efficiency_adjusted_p: raw_efficiency_p
+    mechanism_adjusted_p: max_raw_efficiency_and_raw_mechanism_p
+    secondary_adjustment: holm
+  completion_and_claim_state:
+    negative_complete_study_is_formal: true
+    formal_study_complete_is_separate_from_positive_claim: true
+    positive_claim_requires_all_four_gates: true
+raw_evidence_contract:
+  timestamped_overlay_instrumentation_is_behavior_read_only: true
+  overlay_window: first_goal_dispatch_through_terminal_event
+  interval_trace_must_exactly_tile_window: true
+  allowed_states: [NONE, LEGACY_DYNAMIC, CIRCLE_CONTACT_DYNAMIC, CAUTION, EMERGENCY]
+  unknown_state_gap_overlap_or_nonmonotonic_time_action: integrity_failure
+  timestamped_overlay_trace_path_and_sha_required: true
+  raw_success_collision_time_clearance_and_ttc_must_be_replayed_not_trusted_from_summary: true
+  current_statistics_core_accepts_only_normalized_terminal_rows: true
+  current_raw_replay_adapter_present: false
+  future_raw_replay_adapter_required_before_release: true
+  fixed_reference_same_raw_schema_required: true
+failure_classification:
+  valid_algorithmic_outcomes_retained: [collision, timeout, planner_failure, algorithmic_emergency]
+  restricted_time_imputation_is_only_imputation: true
+  integrity_failures:
+    - process_failure
+    - interface_failure
+    - hash_failure
+    - schema_failure
+    - missing_or_duplicate_identity
+    - incomplete_overlay_trace
+    - unexplained_process_crash
+  integrity_failure_action: persist_ledger_stop_stage_claim_false_no_retry_no_replacement
+  preconsumption_failure_action: stop_without_consumption_and_require_new_review
+resource_time_budget:
+  estimate_only_not_authorization: true
+  serial_concurrency: 1
+  planned_episode_count: 270
+  frozen_scene_timeout_s: 80
+  per_identity_future_hard_wall_cap_s: 240
+  expected_execution_window_h: [4, 6]
+  all_timeout_planning_window_h: [7, 10]
+  future_stage_hard_wall_cap_h: 20
+  i5_measured_largest_attempt_bytes: 1027181
+  linear_projected_attempt_bytes: 277338870
+  canonical_artifact_cap_bytes: 536870912
+  transient_workspace_cap_bytes: 2147483648
+  minimum_free_disk_before_future_release_bytes: 4294967296
+  current_authorized_resource_budget: 0
+  infrastructure_risk_note: >-
+    With 270 identities and no retry or resume, even a small independent
+    infrastructure-failure probability materially reduces complete-matrix
+    probability. This risk cannot be repaired by dropping or replacing rows.
+dependency_policy:
+  canonical_workspace_relative_paths: true
+  sha256_for_every_local_resource: true
+  all_compiled_children_individually_bound: true
+  single_open_no_follow_regular_file_reads: true
+  duplicate_yaml_keys_rejected_for_parsed_resources: true
+  parse_only_closed_allowlist: true
+  closure_file_and_final_review_excluded_from_own_dag: true
+  unresolved_or_hash_mismatch_max: 0
+state_boundary:
+  future_release_path_must_be_absent: true
+  authorization_path_must_be_absent: true
+  attempt_root_must_be_absent: true
+  journal_root_must_be_absent: true
+  ros_or_gazebo_process_allowed: false
+  stable_workspace_modification_allowed: false
+forbidden_side_effects:
+  - rerun_or_resume_i5
+  - create_p1_execution_release
+  - create_p1_authorization
+  - start_ros_gazebo_move_base_or_planner
+  - consume_any_seed_or_budget
+  - expand_training_budget
+  - modify_i5_or_i6_frozen_bytes
+  - write_real_vehicle_parameters_or_move_real_vehicle
+future_release_gate:
+  current_review_may_pass_offline_closure: true
+  current_review_may_set_execution_ready: false
+  current_review_may_set_execution_authorized: false
+  later_explicit_user_instruction_required: true
+  future_exact_runner_and_raw_adapter_required: true
+  future_270_unit_budget_authorization_required: true
+  future_dependency_rehash_and_release_review_required: true
+claim_limit:
+  positive_wording: >-
+    On the preregistered three-template fresh stochastic-seed simulation
+    distribution, circle-contact conflict semantics improved semantically clear
+    restricted completion time relative to legacy semantics while all frozen
+    safety, task, and mechanism gates passed.
+  forbidden:
+    - geometric_or_timing_generalization
+    - whole_system_superiority
+    - reinforcement_learning_gain
+    - real_vehicle_performance_or_safety
+    - deployment_readiness
+reviewer_integrity:
+  offline_only: true
+  execute_option_allowed: false
+  deterministic_double_build_required: true
+  persisted_review_exact_match_required: true
+  reviewer_self_hash_required: true
+  regression_fixture_matrix_required: true

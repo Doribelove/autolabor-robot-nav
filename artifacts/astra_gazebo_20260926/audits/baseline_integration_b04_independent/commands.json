@@ -1,0 +1,11 @@
+{
+  "environment_prefix": "source /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_env.sh; PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1",
+  "interpreter": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python",
+  "commands": [
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python -B -m unittest discover -s /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests -p 'test_baseline_integration_b04.py' -v",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python -B artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/test_independent.py",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python -B artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/check_launch_source.py"
+  ],
+  "all_exit_codes": 0,
+  "scope": "offline file reads, ROS message construction/synthetic temporary bag serialization, and ROS XML/Xacro expansion only; no node launch or master"
+}

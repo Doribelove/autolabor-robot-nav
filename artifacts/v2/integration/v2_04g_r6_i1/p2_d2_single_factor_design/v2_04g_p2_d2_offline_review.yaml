@@ -1,0 +1,60 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P2-D2
+review_id: fam_teb_v2_04g_p2_d2_independent_offline_review_1
+status: offline_single_factor_design_independent_review_pass
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps_authorized: 0
+integrity_review:
+  source_paths_rehashed: 11
+  source_freeze_sha256: fe0d4dd6ecc9048bae25761255db4575a57e5170a347dae44d9784af5850c93d
+  contract_sha256: 962d7f30eae0955972518ffec960fbf892eaf5f40b8bedb61e3cb5867bbf87ef
+  amendment_sha256: de077b15ed2d6e57556fb3d7a04cd3c0a116edb9a06b626abe915cd379fa43da
+  report_sha256: f6be3e25757e95abeff384a56e7e87938001b73df759a4125eafcdb6dced4882
+  deterministic_report_rebuild_byte_equal: true
+  deterministic_amendment_rebuild_byte_equal: true
+  integrity_failures: []
+independent_result:
+  behavioral_field_count: 1
+  runtime_field: TebLocalPlannerROS.max_vel_x
+  candidate_grid_mps:
+  - 1.25
+  - 1.3
+  - 1.35
+  - 1.4
+  normal_transition_required_forward_free_path_m: 2.2485
+  command_timeout_fault_required_forward_free_path_m: 2.9485
+  ackermann_grid_feasible: true
+  p2_d1_implied_ten_percent_speed_inside_design_bound: true
+  global_simulation_evidence_units_max: 2200
+  global_training_environment_steps_max: 120000
+  global_alpha_spend: 0.05
+  round_1_evidence_units_max: 792
+  required_pairs_per_role: 22
+fairness_review:
+  teb_default_transparent_reference_present: true
+  teb_tuned_v1_exact_values_verified: true
+  independent_fixed_teb_calibration_grid_present: true
+  strongest_safe_baseline_selected_on_calibration_only: true
+  held_out_test_baseline_selection_forbidden: true
+  intentional_baseline_weakening_detected: false
+claim_review:
+  offline_design_closure_only: true
+  new_speed_bound_safety_qualified: false
+  performance_improvement_demonstrated: false
+  reinforcement_learning_improvement_demonstrated: false
+  simulation_release_exists: false
+  simulation_authorized: false
+side_effect_audit:
+  ros_gazebo_move_base_started: false
+  simulation_or_training_started: false
+  execution_release_schedule_journal_or_consumption_created: false
+  active_runtime_profile_or_online_parameter_modified: false
+  p1_i5_t12_or_stable_workspace_modified: false
+  held_out_test_accessed: false
+  real_vehicle_can_or_hardware_connected: false

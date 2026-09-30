@@ -1,0 +1,202 @@
+{
+  "author_closure": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_closure_r01/closure.json",
+    "sha256": "25f882db92b529ee5a16b1350807d56d4ed053383f9ccc41d2ff93fba0280c93"
+  },
+  "author_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_closure_r01/source_evidence_manifest.json",
+    "sha256": "429575f85cb336923a64ebc3b6a23656e655c8135909599f71462f8666a18b31"
+  },
+  "author_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_closure_r01/implementation_report.json",
+    "sha256": "d310d6b1e49c2d8090df7247fa9ef9d62c64989f77d52ad6cf3571d3af665fab"
+  },
+  "author_revision": "r05",
+  "blocking_finding": {
+    "affected_manifests": [
+      {
+        "in_closure_resources": false,
+        "package": "gazebo_plugins",
+        "path": "/opt/ros/noetic/share/gazebo_plugins/package.xml",
+        "sha256": "1dbb4e7bfb6a507558367ef13a68b6977a2a2cef4bf606656f8bd391cb94d802"
+      },
+      {
+        "in_closure_resources": false,
+        "package": "simulator_setup",
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/arena-rosnav-3D/simulator_setup/package.xml",
+        "sha256": "3860c8ec21a5ded501e04e3e9285e266218922567e0e05624a3ded9d954283ae"
+      },
+      {
+        "in_closure_resources": false,
+        "package": "turtlebot3_gazebo",
+        "path": "/opt/ros/noetic/share/turtlebot3_gazebo/package.xml",
+        "sha256": "4d2dd1ef15c19affed0ee27271c72de9a240c97a7a33572eeeeab4bf927500d8"
+      }
+    ],
+    "counterexamples": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r05_final/export_input_counterexamples.json",
+      "sha256": "c37ba7facde0e3301effe900f9dc5c27604810a56bcfd92a476da77f37b36749"
+    },
+    "description": "The bound gazebo_ros paths system plugin queries package exports for plugin/media/model paths, but three actual exporter package.xml inputs are absent from the 5214-resource runtime closure. The final wrapper environment is prior to the system-plugin constructor, so it alone is not the final Gazebo SystemPaths state.",
+    "evidence": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r05_final/export_gap.json",
+      "sha256": "32d133350f45a9cec147c5cfef22992223bf799c399b25cfa2c72e52d9e3e7bc"
+    },
+    "id": "N06_DISK_EXPORT_INPUTS_01",
+    "live_maps_substitute": false,
+    "observed_effect": "Only six canonical aliases of already-bound configured ROS plugin libraries exist among the extra export directories. No alternative ELF or actual incorrect load was observed.",
+    "raw_commands": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r05_final/rospack_exports_commands.json",
+      "sha256": "6b958fba1a3bdabb49336569953dc25826071fa1c8e885a1fb70ca7c992ade19"
+    },
+    "required_followup": "Preserve author bytes. Add a separately bound offline export-input supplement covering actual exporter/package-resolution inputs, three export query outputs and selected candidates, plus the paths-plugin GAZEBORC derivation/absence scope. Independently review it before constructing a new reviewed closure resource union.",
+    "scope": "Completeness of declared ROS/Gazebo disk configuration inputs, not a demonstrated runtime wrong-library selection."
+  },
+  "disk_dependency_closure_qualified": false,
+  "execution_authorized": false,
+  "limitations": [
+    "No ROS node/master/Gazebo main, simulation, seed registration, release or training was started. rospack queries are disk package queries with cache confined to this review directory.",
+    "The primary versioned upstream source explains paths-plugin behavior; byte-for-byte equivalence of installed compiled library to that source is not claimed. The installed library remains SHA-bound.",
+    "Disk graph closure is not live mapped-ELF, dynamic graphics code identity, absence of every possible dlopen, OS/kernel/hardware qualification or malicious same-account protection.",
+    "N06 exact two analytic methods and current eight root-namespace launches only; arbitrary future nodes/methods/environments need new review.",
+    "Manager restricted entry and child/assessment gating rely on separately bound historical independent review.",
+    "The original authored closure retains its pending status. This report does not authorize constructing a reviewed/pass envelope without the export-input followup."
+  ],
+  "manager_independent_review": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r05/review.json",
+    "sha256": "36a7c23c4c366fab1a26d5e6a24be09b7991188cb494287fe9c78bf459c9d059"
+  },
+  "positive_checks": [
+    {
+      "detail": null,
+      "name": "same_5214_closed_resource_roster",
+      "pass": true
+    },
+    {
+      "detail": null,
+      "name": "author_status_not_execution_authority",
+      "pass": true
+    },
+    {
+      "detail": null,
+      "name": "two_exact_contexts",
+      "pass": true
+    },
+    {
+      "detail": null,
+      "name": "context_environment_links",
+      "pass": true
+    },
+    {
+      "detail": null,
+      "name": "3593_raw_commands_exact_environment_and_records",
+      "pass": true
+    },
+    {
+      "detail": null,
+      "name": "602_ELFs_two_contexts_no_duplicate",
+      "pass": true
+    },
+    {
+      "detail": {
+        "interpreter_rows": 38,
+        "private_context_rows": 4
+      },
+      "name": "1204_actual_ELF_headers_raw_ldd_recursive_edges_and_inherited_RPATH",
+      "pass": true
+    },
+    {
+      "detail": [
+        "removed_actual_needed",
+        "wrong_soname",
+        "wrong_library_hash",
+        "unobserved_environment",
+        "invented_unproven_parent_resolution",
+        "missing_actual_interpreter",
+        "dependency_absent_from_roster"
+      ],
+      "name": "seven_graph_mutations_rejected_independently",
+      "pass": true
+    },
+    {
+      "detail": 376,
+      "name": "all_alias_targets_and_link_text_match",
+      "pass": true
+    },
+    {
+      "detail": null,
+      "name": "nine_actual_configured_plugins_final_wrapper_precedence",
+      "pass": true
+    },
+    {
+      "detail": null,
+      "name": "runtime_shell_gzserver_loader_dlopen_and_startup_roots_present",
+      "pass": true
+    },
+    {
+      "detail": [
+        {
+          "byte_structure_equal": true,
+          "module_count": 917,
+          "node_count": 0,
+          "profile": "venv"
+        },
+        {
+          "byte_structure_equal": true,
+          "module_count": 456,
+          "node_count": 64,
+          "profile": "system_launcher"
+        }
+      ],
+      "name": "both_real_interpreter_import_and_64_launch_node_replays_equal",
+      "pass": true
+    }
+  ],
+  "report_scope": "Full frozen disk evidence reviewed, bounded positive checks plus one explicit completeness blocker.",
+  "resources": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r05_final/resources.json",
+    "sha256": "774fe1ef0423eb3a1ffb79bcf7cba9b68a15f122b49d0968c2bdbbdd2440a3ad"
+  },
+  "retained_negatives": [
+    "Old r03 ambient injection and empty model database counterexamples remain frozen; current r05 exact environment and nonempty loopback wrapper cases pass.",
+    "NumPy private-library standalone ldd failure is preserved, and inherited-RPATH resolution was independently checked against actual parent tables in the same context.",
+    "Seven graph mutations are rejected by independent validation.",
+    "Three real unbound exporter XML inputs can change in memory without altering any runtime-roster byte; originals were never written.",
+    "The first independent import replay used a relative output path with cwd=workspace and failed at output creation after imports. Its source/stdout/stderr/command are retained. r2 changes only reviewer output location to an absolute new directory and completes both exact structure comparisons."
+  ],
+  "review_independence": "Reviewer did not author manager or disk collector; manager actual enforcement reviewed separately by historical_audit.",
+  "reviewer": "environment_audit",
+  "runtime_ready": false,
+  "schema": "astra_n06_runtime_disk_independent_review_v1",
+  "source_modified": false,
+  "status": "independent_disk_review_positive_checks_with_export_input_gap_pending",
+  "summary": {
+    "ELFs_direct_binary_structure_checked": 602,
+    "actual_command_records_verified": 3593,
+    "actual_export_queries": 3,
+    "author_frozen_resources_rehashed": 26921,
+    "author_parser_tests_passed": 7,
+    "configured_plugins": 9,
+    "export_path_counts": {
+      "--attrib=gazebo_media_path": 19,
+      "--attrib=gazebo_model_path": 20,
+      "--attrib=plugin_path": 19
+    },
+    "hash_failures": 0,
+    "independent_aggregate_checks_passed": 12,
+    "independent_graph_negative_cases": 7,
+    "loader_context_rows": 1204,
+    "replayed_XML_node_rows": 64,
+    "replayed_python_module_files": {
+      "system_launcher": 456,
+      "venv": 917
+    },
+    "runtime_resources": 5214,
+    "static_local_import_edges": 120,
+    "unbound_exporter_manifests": 3
+  },
+  "wrapper_precheck": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r05_wrapper_precheck/review.json",
+    "sha256": "fbee20870665e0c09241d3bf12e42f370a897a7ed0d684dd06ceaf2bc060ac6a"
+  }
+}

@@ -1,0 +1,38 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-B0-R1
+stage_purpose: fresh_schedule_rows_compatibility_repair_for_spatial_predictor_data
+contract_id: v3_scope_v3_07_b0_r1_schedule_key_repair_1
+status: single_factor_repair_preregistered_before_simulation
+parent_failure:
+  stage: V3-07-B0
+  terminal_freeze_path: artifacts/v3/prediction/v3_07_b0/v3_07_b0_terminal_freeze.sha256
+  consumed_units: 0
+  outcome_accessed: false
+single_factor_repair:
+  factor_id: add_schedule_rows_runner_compatibility_alias
+  exact_rows_semantic_value: 50
+  schedule_rows_alias_value: 50
+  data_support_changed: false
+  scene_changed: false
+  predictor_preregistration_changed: false
+  qualification_gates_changed: false
+  safety_radius_changed: false
+fresh_scenario_blocks:
+  - {block_id: train_6641, role: training, seed: 6641, angle_deg: 70.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 0.90}
+  - {block_id: train_6642, role: training, seed: 6642, angle_deg: 78.0, actor_start_distance_m: 3.05, actor_base_speed_mps: 0.95}
+  - {block_id: train_6643, role: training, seed: 6643, angle_deg: 86.0, actor_start_distance_m: 3.25, actor_base_speed_mps: 1.00}
+  - {block_id: train_6644, role: training, seed: 6644, angle_deg: 94.0, actor_start_distance_m: 2.95, actor_base_speed_mps: 1.05}
+  - {block_id: train_6645, role: training, seed: 6645, angle_deg: 102.0, actor_start_distance_m: 3.15, actor_base_speed_mps: 1.10}
+  - {block_id: train_6646, role: training, seed: 6646, angle_deg: 110.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 0.925}
+  - {block_id: calibration_6647, role: calibration, seed: 6647, angle_deg: 74.0, actor_start_distance_m: 3.20, actor_base_speed_mps: 0.975}
+  - {block_id: calibration_6648, role: calibration, seed: 6648, angle_deg: 82.0, actor_start_distance_m: 2.90, actor_base_speed_mps: 1.075}
+  - {block_id: calibration_6649, role: calibration, seed: 6649, angle_deg: 98.0, actor_start_distance_m: 3.10, actor_base_speed_mps: 0.925}
+  - {block_id: calibration_6650, role: calibration, seed: 6650, angle_deg: 106.0, actor_start_distance_m: 3.30, actor_base_speed_mps: 1.025}
+held_out_test_seeds_reserved: [6661, 6662, 6663, 6664]
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  supervised_model_fit_after_data_qualification_authorized: true
+  reinforcement_learning_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

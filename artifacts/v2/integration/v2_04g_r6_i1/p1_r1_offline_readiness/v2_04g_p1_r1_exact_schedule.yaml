@@ -1,0 +1,4659 @@
+schema_version: '1.0'
+stage: V2-04G-P1-R1
+status: offline_schedule_frozen_not_authorized
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+schedule_id: fam_teb_v2_04g_p1_r1_270_episode_counterbalanced_1
+construction:
+  algorithm: six_permutation_three_role_wave_balance_v1
+  waves: 30
+  role_permutation_cycle:
+  - - single_true_conflict
+    - multi_true_conflict
+    - time_separated_semantic_clear
+  - - single_true_conflict
+    - time_separated_semantic_clear
+    - multi_true_conflict
+  - - multi_true_conflict
+    - single_true_conflict
+    - time_separated_semantic_clear
+  - - multi_true_conflict
+    - time_separated_semantic_clear
+    - single_true_conflict
+  - - time_separated_semantic_clear
+    - single_true_conflict
+    - multi_true_conflict
+  - - time_separated_semantic_clear
+    - multi_true_conflict
+    - single_true_conflict
+  role_permutation_index: zero_based_wave_mod_6
+  method_permutation_cycle:
+  - - r6_semantics_legacy_control
+    - r6_semantics_circle_contact
+    - fixed_teb_reference
+  - - r6_semantics_legacy_control
+    - fixed_teb_reference
+    - r6_semantics_circle_contact
+  - - r6_semantics_circle_contact
+    - r6_semantics_legacy_control
+    - fixed_teb_reference
+  - - r6_semantics_circle_contact
+    - fixed_teb_reference
+    - r6_semantics_legacy_control
+  - - fixed_teb_reference
+    - r6_semantics_legacy_control
+    - r6_semantics_circle_contact
+  - - fixed_teb_reference
+    - r6_semantics_circle_contact
+    - r6_semantics_legacy_control
+  method_permutation_index: (zero_based_wave_plus_2_times_canonical_role_index)_mod_6
+  block_rows_contiguous: true
+  retry_resume_replacement_allowed: false
+methods:
+- r6_semantics_legacy_control
+- r6_semantics_circle_contact
+- fixed_teb_reference
+scene_roles:
+- single_true_conflict
+- multi_true_conflict
+- time_separated_semantic_clear
+episode_count: 270
+block_count: 90
+episodes:
+- sequence: 1
+  wave: 1
+  role_order_position: 1
+  block_id: p1-block-s5201
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5201
+  scene_id: v2-04g-p1-s5201
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5201.instance.yaml
+    sha256: fa301e91b42abdff136e82180ccd08154dc3c024e7dcfc99372ad14d56b91554
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5201.world
+    sha256: 3a059b9b8c46be20a041cc511e6194965163f2dec9457ba63122143ba676d9f1
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 2
+  wave: 1
+  role_order_position: 1
+  block_id: p1-block-s5201
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5201
+  scene_id: v2-04g-p1-s5201
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5201.instance.yaml
+    sha256: fa301e91b42abdff136e82180ccd08154dc3c024e7dcfc99372ad14d56b91554
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5201.world
+    sha256: 3a059b9b8c46be20a041cc511e6194965163f2dec9457ba63122143ba676d9f1
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 3
+  wave: 1
+  role_order_position: 1
+  block_id: p1-block-s5201
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5201
+  scene_id: v2-04g-p1-s5201
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5201.instance.yaml
+    sha256: fa301e91b42abdff136e82180ccd08154dc3c024e7dcfc99372ad14d56b91554
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5201.world
+    sha256: 3a059b9b8c46be20a041cc511e6194965163f2dec9457ba63122143ba676d9f1
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 4
+  wave: 1
+  role_order_position: 2
+  block_id: p1-block-s5231
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5231
+  scene_id: v2-04g-p1-s5231
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5231.instance.yaml
+    sha256: bf80b7c63cb813b4acc48529a9bc0e3faa2c8c372de737bd4799e6151d1eba68
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5231.world
+    sha256: 2af3760f464a8788ad47fe37db429f0720e69eef309905b09b24acf5166947b0
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 5
+  wave: 1
+  role_order_position: 2
+  block_id: p1-block-s5231
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5231
+  scene_id: v2-04g-p1-s5231
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5231.instance.yaml
+    sha256: bf80b7c63cb813b4acc48529a9bc0e3faa2c8c372de737bd4799e6151d1eba68
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5231.world
+    sha256: 2af3760f464a8788ad47fe37db429f0720e69eef309905b09b24acf5166947b0
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 6
+  wave: 1
+  role_order_position: 2
+  block_id: p1-block-s5231
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5231
+  scene_id: v2-04g-p1-s5231
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5231.instance.yaml
+    sha256: bf80b7c63cb813b4acc48529a9bc0e3faa2c8c372de737bd4799e6151d1eba68
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5231.world
+    sha256: 2af3760f464a8788ad47fe37db429f0720e69eef309905b09b24acf5166947b0
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 7
+  wave: 1
+  role_order_position: 3
+  block_id: p1-block-s5261
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5261
+  scene_id: v2-04g-p1-s5261
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5261.instance.yaml
+    sha256: 9cd6c5f689b394ccd9b78d8edffa29d7237e472d7fc7d6b7337374afed806ca2
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5261.world
+    sha256: 6db039bc433c602a33ce93ae965f208f3aa4beb54cf8c18b56a71fd1e663a8c7
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 8
+  wave: 1
+  role_order_position: 3
+  block_id: p1-block-s5261
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5261
+  scene_id: v2-04g-p1-s5261
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5261.instance.yaml
+    sha256: 9cd6c5f689b394ccd9b78d8edffa29d7237e472d7fc7d6b7337374afed806ca2
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5261.world
+    sha256: 6db039bc433c602a33ce93ae965f208f3aa4beb54cf8c18b56a71fd1e663a8c7
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 9
+  wave: 1
+  role_order_position: 3
+  block_id: p1-block-s5261
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5261
+  scene_id: v2-04g-p1-s5261
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5261.instance.yaml
+    sha256: 9cd6c5f689b394ccd9b78d8edffa29d7237e472d7fc7d6b7337374afed806ca2
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5261.world
+    sha256: 6db039bc433c602a33ce93ae965f208f3aa4beb54cf8c18b56a71fd1e663a8c7
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 10
+  wave: 2
+  role_order_position: 1
+  block_id: p1-block-s5202
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5202
+  scene_id: v2-04g-p1-s5202
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5202.instance.yaml
+    sha256: 68b4411ba255db4d57bcec41575c9a7bcf90ff6be66a1093e7dd980537a0c047
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5202.world
+    sha256: 41aa1496441088b2ad1b161a45d52aa7f29bc700d737c871c47fadc46cd8bbff
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 11
+  wave: 2
+  role_order_position: 1
+  block_id: p1-block-s5202
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5202
+  scene_id: v2-04g-p1-s5202
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5202.instance.yaml
+    sha256: 68b4411ba255db4d57bcec41575c9a7bcf90ff6be66a1093e7dd980537a0c047
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5202.world
+    sha256: 41aa1496441088b2ad1b161a45d52aa7f29bc700d737c871c47fadc46cd8bbff
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 12
+  wave: 2
+  role_order_position: 1
+  block_id: p1-block-s5202
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5202
+  scene_id: v2-04g-p1-s5202
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5202.instance.yaml
+    sha256: 68b4411ba255db4d57bcec41575c9a7bcf90ff6be66a1093e7dd980537a0c047
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5202.world
+    sha256: 41aa1496441088b2ad1b161a45d52aa7f29bc700d737c871c47fadc46cd8bbff
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 13
+  wave: 2
+  role_order_position: 2
+  block_id: p1-block-s5262
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5262
+  scene_id: v2-04g-p1-s5262
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5262.instance.yaml
+    sha256: d13e7fa9749827b4262266f42d4f9b816b222582bc5cac3256649a747d0a711e
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5262.world
+    sha256: 430b31c5dac77a4133e4d7a5210f97b63aa7297ace7ddae3747778fee531b261
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 14
+  wave: 2
+  role_order_position: 2
+  block_id: p1-block-s5262
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5262
+  scene_id: v2-04g-p1-s5262
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5262.instance.yaml
+    sha256: d13e7fa9749827b4262266f42d4f9b816b222582bc5cac3256649a747d0a711e
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5262.world
+    sha256: 430b31c5dac77a4133e4d7a5210f97b63aa7297ace7ddae3747778fee531b261
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 15
+  wave: 2
+  role_order_position: 2
+  block_id: p1-block-s5262
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5262
+  scene_id: v2-04g-p1-s5262
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5262.instance.yaml
+    sha256: d13e7fa9749827b4262266f42d4f9b816b222582bc5cac3256649a747d0a711e
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5262.world
+    sha256: 430b31c5dac77a4133e4d7a5210f97b63aa7297ace7ddae3747778fee531b261
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 16
+  wave: 2
+  role_order_position: 3
+  block_id: p1-block-s5232
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5232
+  scene_id: v2-04g-p1-s5232
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5232.instance.yaml
+    sha256: e45d76cb3858deaf9e89b71149479de8b9c02ec51d03553560847fa5a59d98c0
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5232.world
+    sha256: 031f5a580194c5b19e75e2aa8d419468d4b5bc73b9146b66fafe69fcd2abb86e
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 17
+  wave: 2
+  role_order_position: 3
+  block_id: p1-block-s5232
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5232
+  scene_id: v2-04g-p1-s5232
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5232.instance.yaml
+    sha256: e45d76cb3858deaf9e89b71149479de8b9c02ec51d03553560847fa5a59d98c0
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5232.world
+    sha256: 031f5a580194c5b19e75e2aa8d419468d4b5bc73b9146b66fafe69fcd2abb86e
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 18
+  wave: 2
+  role_order_position: 3
+  block_id: p1-block-s5232
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5232
+  scene_id: v2-04g-p1-s5232
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5232.instance.yaml
+    sha256: e45d76cb3858deaf9e89b71149479de8b9c02ec51d03553560847fa5a59d98c0
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5232.world
+    sha256: 031f5a580194c5b19e75e2aa8d419468d4b5bc73b9146b66fafe69fcd2abb86e
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 19
+  wave: 3
+  role_order_position: 1
+  block_id: p1-block-s5233
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5233
+  scene_id: v2-04g-p1-s5233
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5233.instance.yaml
+    sha256: facd7bd952f25eaf40fa511a69677a41c409f08a6243f788273fa2a970d2fa39
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5233.world
+    sha256: c00f1c00740dbd48679dbef6f32f0135544fbfd3c5fd88fc2ad5342753997461
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 20
+  wave: 3
+  role_order_position: 1
+  block_id: p1-block-s5233
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5233
+  scene_id: v2-04g-p1-s5233
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5233.instance.yaml
+    sha256: facd7bd952f25eaf40fa511a69677a41c409f08a6243f788273fa2a970d2fa39
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5233.world
+    sha256: c00f1c00740dbd48679dbef6f32f0135544fbfd3c5fd88fc2ad5342753997461
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 21
+  wave: 3
+  role_order_position: 1
+  block_id: p1-block-s5233
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5233
+  scene_id: v2-04g-p1-s5233
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5233.instance.yaml
+    sha256: facd7bd952f25eaf40fa511a69677a41c409f08a6243f788273fa2a970d2fa39
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5233.world
+    sha256: c00f1c00740dbd48679dbef6f32f0135544fbfd3c5fd88fc2ad5342753997461
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 22
+  wave: 3
+  role_order_position: 2
+  block_id: p1-block-s5203
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5203
+  scene_id: v2-04g-p1-s5203
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5203.instance.yaml
+    sha256: b15371c1a14a4ee62370005a62c52d96fbae38797cb61b7b8d6b4371a7d87032
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5203.world
+    sha256: 58ffe1d04df909ca0dde1d9868c0f7c5911b16118bb36035a560ddd76772b0df
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 23
+  wave: 3
+  role_order_position: 2
+  block_id: p1-block-s5203
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5203
+  scene_id: v2-04g-p1-s5203
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5203.instance.yaml
+    sha256: b15371c1a14a4ee62370005a62c52d96fbae38797cb61b7b8d6b4371a7d87032
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5203.world
+    sha256: 58ffe1d04df909ca0dde1d9868c0f7c5911b16118bb36035a560ddd76772b0df
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 24
+  wave: 3
+  role_order_position: 2
+  block_id: p1-block-s5203
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5203
+  scene_id: v2-04g-p1-s5203
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5203.instance.yaml
+    sha256: b15371c1a14a4ee62370005a62c52d96fbae38797cb61b7b8d6b4371a7d87032
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5203.world
+    sha256: 58ffe1d04df909ca0dde1d9868c0f7c5911b16118bb36035a560ddd76772b0df
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 25
+  wave: 3
+  role_order_position: 3
+  block_id: p1-block-s5263
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5263
+  scene_id: v2-04g-p1-s5263
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5263.instance.yaml
+    sha256: e41c6917de8bb3d707ff1f608c55916963740e41dd0fdb261bda20fd93a7cf50
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5263.world
+    sha256: 20314b68b96f2106f20637328818996ee0ae8e51bc89f2d991c44cda88bd246a
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 26
+  wave: 3
+  role_order_position: 3
+  block_id: p1-block-s5263
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5263
+  scene_id: v2-04g-p1-s5263
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5263.instance.yaml
+    sha256: e41c6917de8bb3d707ff1f608c55916963740e41dd0fdb261bda20fd93a7cf50
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5263.world
+    sha256: 20314b68b96f2106f20637328818996ee0ae8e51bc89f2d991c44cda88bd246a
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 27
+  wave: 3
+  role_order_position: 3
+  block_id: p1-block-s5263
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5263
+  scene_id: v2-04g-p1-s5263
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5263.instance.yaml
+    sha256: e41c6917de8bb3d707ff1f608c55916963740e41dd0fdb261bda20fd93a7cf50
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5263.world
+    sha256: 20314b68b96f2106f20637328818996ee0ae8e51bc89f2d991c44cda88bd246a
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 28
+  wave: 4
+  role_order_position: 1
+  block_id: p1-block-s5234
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5234
+  scene_id: v2-04g-p1-s5234
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5234.instance.yaml
+    sha256: 9c23f4fe0fa9132d1a236106de82180abe1a6865bc63e6004ebeb83101b27d74
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5234.world
+    sha256: b70b7da23e690f805615f4b682bef13d3c4d06e8e34f52ddef64e1b5c30e84d0
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 29
+  wave: 4
+  role_order_position: 1
+  block_id: p1-block-s5234
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5234
+  scene_id: v2-04g-p1-s5234
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5234.instance.yaml
+    sha256: 9c23f4fe0fa9132d1a236106de82180abe1a6865bc63e6004ebeb83101b27d74
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5234.world
+    sha256: b70b7da23e690f805615f4b682bef13d3c4d06e8e34f52ddef64e1b5c30e84d0
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 30
+  wave: 4
+  role_order_position: 1
+  block_id: p1-block-s5234
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5234
+  scene_id: v2-04g-p1-s5234
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5234.instance.yaml
+    sha256: 9c23f4fe0fa9132d1a236106de82180abe1a6865bc63e6004ebeb83101b27d74
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5234.world
+    sha256: b70b7da23e690f805615f4b682bef13d3c4d06e8e34f52ddef64e1b5c30e84d0
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 31
+  wave: 4
+  role_order_position: 2
+  block_id: p1-block-s5264
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5264
+  scene_id: v2-04g-p1-s5264
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5264.instance.yaml
+    sha256: aab9eadc8171967203c203cfdf2f8e6cda1d9292c1c4c078bba1f37ea621251e
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5264.world
+    sha256: 41432808104fffcbcc0b0437681f986e32e5447433a6331e4a3e08b466bac723
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 32
+  wave: 4
+  role_order_position: 2
+  block_id: p1-block-s5264
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5264
+  scene_id: v2-04g-p1-s5264
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5264.instance.yaml
+    sha256: aab9eadc8171967203c203cfdf2f8e6cda1d9292c1c4c078bba1f37ea621251e
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5264.world
+    sha256: 41432808104fffcbcc0b0437681f986e32e5447433a6331e4a3e08b466bac723
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 33
+  wave: 4
+  role_order_position: 2
+  block_id: p1-block-s5264
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5264
+  scene_id: v2-04g-p1-s5264
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5264.instance.yaml
+    sha256: aab9eadc8171967203c203cfdf2f8e6cda1d9292c1c4c078bba1f37ea621251e
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5264.world
+    sha256: 41432808104fffcbcc0b0437681f986e32e5447433a6331e4a3e08b466bac723
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 34
+  wave: 4
+  role_order_position: 3
+  block_id: p1-block-s5204
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5204
+  scene_id: v2-04g-p1-s5204
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5204.instance.yaml
+    sha256: 8cf58522dcd3203753ae9489471c37140fdbd7be967874614c947fea13b6fa82
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5204.world
+    sha256: 20268b9a6f09a7931bd40305043f44cb60f8215155268a1641901a7b85caf99c
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 35
+  wave: 4
+  role_order_position: 3
+  block_id: p1-block-s5204
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5204
+  scene_id: v2-04g-p1-s5204
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5204.instance.yaml
+    sha256: 8cf58522dcd3203753ae9489471c37140fdbd7be967874614c947fea13b6fa82
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5204.world
+    sha256: 20268b9a6f09a7931bd40305043f44cb60f8215155268a1641901a7b85caf99c
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 36
+  wave: 4
+  role_order_position: 3
+  block_id: p1-block-s5204
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5204
+  scene_id: v2-04g-p1-s5204
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5204.instance.yaml
+    sha256: 8cf58522dcd3203753ae9489471c37140fdbd7be967874614c947fea13b6fa82
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5204.world
+    sha256: 20268b9a6f09a7931bd40305043f44cb60f8215155268a1641901a7b85caf99c
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 37
+  wave: 5
+  role_order_position: 1
+  block_id: p1-block-s5265
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5265
+  scene_id: v2-04g-p1-s5265
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5265.instance.yaml
+    sha256: 9681119a760204aefbb7f92d21ace665c4c35d751729e66c253b3864d50a2501
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5265.world
+    sha256: def0ec6dda5dd56f261fffa6d6ab29bb4531bf89357e3f462f53496b2ee2c974
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 38
+  wave: 5
+  role_order_position: 1
+  block_id: p1-block-s5265
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5265
+  scene_id: v2-04g-p1-s5265
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5265.instance.yaml
+    sha256: 9681119a760204aefbb7f92d21ace665c4c35d751729e66c253b3864d50a2501
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5265.world
+    sha256: def0ec6dda5dd56f261fffa6d6ab29bb4531bf89357e3f462f53496b2ee2c974
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 39
+  wave: 5
+  role_order_position: 1
+  block_id: p1-block-s5265
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5265
+  scene_id: v2-04g-p1-s5265
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5265.instance.yaml
+    sha256: 9681119a760204aefbb7f92d21ace665c4c35d751729e66c253b3864d50a2501
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5265.world
+    sha256: def0ec6dda5dd56f261fffa6d6ab29bb4531bf89357e3f462f53496b2ee2c974
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 40
+  wave: 5
+  role_order_position: 2
+  block_id: p1-block-s5205
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5205
+  scene_id: v2-04g-p1-s5205
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5205.instance.yaml
+    sha256: 39d44b9921647fde0adc25f93691cc1ff418b26fdb1a5b8512aa639c223d4c1a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5205.world
+    sha256: 1625241197ba00d6b3b3cc2e3f5135d6fb311c377d15f9ed10a7a7cf2d46c29d
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 41
+  wave: 5
+  role_order_position: 2
+  block_id: p1-block-s5205
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5205
+  scene_id: v2-04g-p1-s5205
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5205.instance.yaml
+    sha256: 39d44b9921647fde0adc25f93691cc1ff418b26fdb1a5b8512aa639c223d4c1a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5205.world
+    sha256: 1625241197ba00d6b3b3cc2e3f5135d6fb311c377d15f9ed10a7a7cf2d46c29d
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 42
+  wave: 5
+  role_order_position: 2
+  block_id: p1-block-s5205
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5205
+  scene_id: v2-04g-p1-s5205
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5205.instance.yaml
+    sha256: 39d44b9921647fde0adc25f93691cc1ff418b26fdb1a5b8512aa639c223d4c1a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5205.world
+    sha256: 1625241197ba00d6b3b3cc2e3f5135d6fb311c377d15f9ed10a7a7cf2d46c29d
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 43
+  wave: 5
+  role_order_position: 3
+  block_id: p1-block-s5235
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5235
+  scene_id: v2-04g-p1-s5235
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5235.instance.yaml
+    sha256: ad3fe6f0b709b542ed79978d42afc03896ddf08b5dd5729d78f5ad9804933e1b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5235.world
+    sha256: fcfe24b96ecfbc2cc37cac1f41aee219a9949852d58798425e5562240de0dd7b
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 44
+  wave: 5
+  role_order_position: 3
+  block_id: p1-block-s5235
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5235
+  scene_id: v2-04g-p1-s5235
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5235.instance.yaml
+    sha256: ad3fe6f0b709b542ed79978d42afc03896ddf08b5dd5729d78f5ad9804933e1b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5235.world
+    sha256: fcfe24b96ecfbc2cc37cac1f41aee219a9949852d58798425e5562240de0dd7b
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 45
+  wave: 5
+  role_order_position: 3
+  block_id: p1-block-s5235
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5235
+  scene_id: v2-04g-p1-s5235
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5235.instance.yaml
+    sha256: ad3fe6f0b709b542ed79978d42afc03896ddf08b5dd5729d78f5ad9804933e1b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5235.world
+    sha256: fcfe24b96ecfbc2cc37cac1f41aee219a9949852d58798425e5562240de0dd7b
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 46
+  wave: 6
+  role_order_position: 1
+  block_id: p1-block-s5266
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5266
+  scene_id: v2-04g-p1-s5266
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5266.instance.yaml
+    sha256: fe9fde8afae010eeb3716a6d89e20daa8c3b49cc49f7da95f288ecfecc5c9198
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5266.world
+    sha256: 9c3f85b03a5651d7f28b504babdf72623d1e976c14ea31652cae4d5720962bbb
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 47
+  wave: 6
+  role_order_position: 1
+  block_id: p1-block-s5266
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5266
+  scene_id: v2-04g-p1-s5266
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5266.instance.yaml
+    sha256: fe9fde8afae010eeb3716a6d89e20daa8c3b49cc49f7da95f288ecfecc5c9198
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5266.world
+    sha256: 9c3f85b03a5651d7f28b504babdf72623d1e976c14ea31652cae4d5720962bbb
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 48
+  wave: 6
+  role_order_position: 1
+  block_id: p1-block-s5266
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5266
+  scene_id: v2-04g-p1-s5266
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5266.instance.yaml
+    sha256: fe9fde8afae010eeb3716a6d89e20daa8c3b49cc49f7da95f288ecfecc5c9198
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5266.world
+    sha256: 9c3f85b03a5651d7f28b504babdf72623d1e976c14ea31652cae4d5720962bbb
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 49
+  wave: 6
+  role_order_position: 2
+  block_id: p1-block-s5236
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5236
+  scene_id: v2-04g-p1-s5236
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5236.instance.yaml
+    sha256: 56d948835064e3189351973b6c48633c242c3ef077fb007a102dd772331cdf4d
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5236.world
+    sha256: 3588de199e1959f788665de2e5c0682a4f1b818f6768cfd62363f821cd094687
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 50
+  wave: 6
+  role_order_position: 2
+  block_id: p1-block-s5236
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5236
+  scene_id: v2-04g-p1-s5236
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5236.instance.yaml
+    sha256: 56d948835064e3189351973b6c48633c242c3ef077fb007a102dd772331cdf4d
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5236.world
+    sha256: 3588de199e1959f788665de2e5c0682a4f1b818f6768cfd62363f821cd094687
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 51
+  wave: 6
+  role_order_position: 2
+  block_id: p1-block-s5236
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5236
+  scene_id: v2-04g-p1-s5236
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5236.instance.yaml
+    sha256: 56d948835064e3189351973b6c48633c242c3ef077fb007a102dd772331cdf4d
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5236.world
+    sha256: 3588de199e1959f788665de2e5c0682a4f1b818f6768cfd62363f821cd094687
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 52
+  wave: 6
+  role_order_position: 3
+  block_id: p1-block-s5206
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5206
+  scene_id: v2-04g-p1-s5206
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5206.instance.yaml
+    sha256: 32ec8d3443862b8f2763aa5c8a52caca55e4e80b790ff9d7f5426c84d3643dbc
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5206.world
+    sha256: 670eb981a4824333b33368110d25a8b7f174d45b5c413e4031e04a9ea8e924ed
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 53
+  wave: 6
+  role_order_position: 3
+  block_id: p1-block-s5206
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5206
+  scene_id: v2-04g-p1-s5206
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5206.instance.yaml
+    sha256: 32ec8d3443862b8f2763aa5c8a52caca55e4e80b790ff9d7f5426c84d3643dbc
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5206.world
+    sha256: 670eb981a4824333b33368110d25a8b7f174d45b5c413e4031e04a9ea8e924ed
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 54
+  wave: 6
+  role_order_position: 3
+  block_id: p1-block-s5206
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5206
+  scene_id: v2-04g-p1-s5206
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5206.instance.yaml
+    sha256: 32ec8d3443862b8f2763aa5c8a52caca55e4e80b790ff9d7f5426c84d3643dbc
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5206.world
+    sha256: 670eb981a4824333b33368110d25a8b7f174d45b5c413e4031e04a9ea8e924ed
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 55
+  wave: 7
+  role_order_position: 1
+  block_id: p1-block-s5207
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5207
+  scene_id: v2-04g-p1-s5207
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5207.instance.yaml
+    sha256: fceba03d9cbeba0e1203e8e2eb1b54c3321090df7a377cf2fe978b7a2e754413
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5207.world
+    sha256: 5f2bf917f5c92f76aeb06691852ee805da445d4c6bf37223eb8f6a715b5f86d3
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 56
+  wave: 7
+  role_order_position: 1
+  block_id: p1-block-s5207
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5207
+  scene_id: v2-04g-p1-s5207
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5207.instance.yaml
+    sha256: fceba03d9cbeba0e1203e8e2eb1b54c3321090df7a377cf2fe978b7a2e754413
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5207.world
+    sha256: 5f2bf917f5c92f76aeb06691852ee805da445d4c6bf37223eb8f6a715b5f86d3
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 57
+  wave: 7
+  role_order_position: 1
+  block_id: p1-block-s5207
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5207
+  scene_id: v2-04g-p1-s5207
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5207.instance.yaml
+    sha256: fceba03d9cbeba0e1203e8e2eb1b54c3321090df7a377cf2fe978b7a2e754413
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5207.world
+    sha256: 5f2bf917f5c92f76aeb06691852ee805da445d4c6bf37223eb8f6a715b5f86d3
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 58
+  wave: 7
+  role_order_position: 2
+  block_id: p1-block-s5237
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5237
+  scene_id: v2-04g-p1-s5237
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5237.instance.yaml
+    sha256: a20211936dbc9ab5c5d133c769de486047f1bd8b9c14b6d380f81864cecfcd8b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5237.world
+    sha256: 956588ff1cdacfc75ffad34382f859aab36c157a5ea35fbb95172370bbb5f76e
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 59
+  wave: 7
+  role_order_position: 2
+  block_id: p1-block-s5237
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5237
+  scene_id: v2-04g-p1-s5237
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5237.instance.yaml
+    sha256: a20211936dbc9ab5c5d133c769de486047f1bd8b9c14b6d380f81864cecfcd8b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5237.world
+    sha256: 956588ff1cdacfc75ffad34382f859aab36c157a5ea35fbb95172370bbb5f76e
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 60
+  wave: 7
+  role_order_position: 2
+  block_id: p1-block-s5237
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5237
+  scene_id: v2-04g-p1-s5237
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5237.instance.yaml
+    sha256: a20211936dbc9ab5c5d133c769de486047f1bd8b9c14b6d380f81864cecfcd8b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5237.world
+    sha256: 956588ff1cdacfc75ffad34382f859aab36c157a5ea35fbb95172370bbb5f76e
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 61
+  wave: 7
+  role_order_position: 3
+  block_id: p1-block-s5267
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5267
+  scene_id: v2-04g-p1-s5267
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5267.instance.yaml
+    sha256: e803afefd9c960de12452a9578aa029735c48b005bdd654b7f75c6aab64d032c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5267.world
+    sha256: 1d8a8ec18bbdda71427362a491a5483742303b14232977ace8e26b05b5ec1ac0
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 62
+  wave: 7
+  role_order_position: 3
+  block_id: p1-block-s5267
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5267
+  scene_id: v2-04g-p1-s5267
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5267.instance.yaml
+    sha256: e803afefd9c960de12452a9578aa029735c48b005bdd654b7f75c6aab64d032c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5267.world
+    sha256: 1d8a8ec18bbdda71427362a491a5483742303b14232977ace8e26b05b5ec1ac0
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 63
+  wave: 7
+  role_order_position: 3
+  block_id: p1-block-s5267
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5267
+  scene_id: v2-04g-p1-s5267
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5267.instance.yaml
+    sha256: e803afefd9c960de12452a9578aa029735c48b005bdd654b7f75c6aab64d032c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5267.world
+    sha256: 1d8a8ec18bbdda71427362a491a5483742303b14232977ace8e26b05b5ec1ac0
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 64
+  wave: 8
+  role_order_position: 1
+  block_id: p1-block-s5208
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5208
+  scene_id: v2-04g-p1-s5208
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5208.instance.yaml
+    sha256: 2670f75c47a7900976b4eb8077467cde468cc7d2e35bf31cffbcd901030c059b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5208.world
+    sha256: 5b23293d697f4fb10ce021201dcda03cb4360f904b25db26566a1162c3ad542f
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 65
+  wave: 8
+  role_order_position: 1
+  block_id: p1-block-s5208
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5208
+  scene_id: v2-04g-p1-s5208
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5208.instance.yaml
+    sha256: 2670f75c47a7900976b4eb8077467cde468cc7d2e35bf31cffbcd901030c059b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5208.world
+    sha256: 5b23293d697f4fb10ce021201dcda03cb4360f904b25db26566a1162c3ad542f
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 66
+  wave: 8
+  role_order_position: 1
+  block_id: p1-block-s5208
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5208
+  scene_id: v2-04g-p1-s5208
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5208.instance.yaml
+    sha256: 2670f75c47a7900976b4eb8077467cde468cc7d2e35bf31cffbcd901030c059b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5208.world
+    sha256: 5b23293d697f4fb10ce021201dcda03cb4360f904b25db26566a1162c3ad542f
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 67
+  wave: 8
+  role_order_position: 2
+  block_id: p1-block-s5268
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5268
+  scene_id: v2-04g-p1-s5268
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5268.instance.yaml
+    sha256: 4e285664a260784ce8323cbf965064bf8f1306e224d470dcdccb978d97004823
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5268.world
+    sha256: ddf6d04686a45379d299cabe3e3880ca753548670e6f8bd0cafef1f62cb02d08
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 68
+  wave: 8
+  role_order_position: 2
+  block_id: p1-block-s5268
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5268
+  scene_id: v2-04g-p1-s5268
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5268.instance.yaml
+    sha256: 4e285664a260784ce8323cbf965064bf8f1306e224d470dcdccb978d97004823
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5268.world
+    sha256: ddf6d04686a45379d299cabe3e3880ca753548670e6f8bd0cafef1f62cb02d08
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 69
+  wave: 8
+  role_order_position: 2
+  block_id: p1-block-s5268
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5268
+  scene_id: v2-04g-p1-s5268
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5268.instance.yaml
+    sha256: 4e285664a260784ce8323cbf965064bf8f1306e224d470dcdccb978d97004823
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5268.world
+    sha256: ddf6d04686a45379d299cabe3e3880ca753548670e6f8bd0cafef1f62cb02d08
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 70
+  wave: 8
+  role_order_position: 3
+  block_id: p1-block-s5238
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5238
+  scene_id: v2-04g-p1-s5238
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5238.instance.yaml
+    sha256: bd8c35e7b20e7721885e355addf03eacd349268446f632d27d6160d153c2ac31
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5238.world
+    sha256: 2e7bacf1820430c6d8aae14a21217d3f4b04afb0b7f7378e4dca8eb80271af6e
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 71
+  wave: 8
+  role_order_position: 3
+  block_id: p1-block-s5238
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5238
+  scene_id: v2-04g-p1-s5238
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5238.instance.yaml
+    sha256: bd8c35e7b20e7721885e355addf03eacd349268446f632d27d6160d153c2ac31
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5238.world
+    sha256: 2e7bacf1820430c6d8aae14a21217d3f4b04afb0b7f7378e4dca8eb80271af6e
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 72
+  wave: 8
+  role_order_position: 3
+  block_id: p1-block-s5238
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5238
+  scene_id: v2-04g-p1-s5238
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5238.instance.yaml
+    sha256: bd8c35e7b20e7721885e355addf03eacd349268446f632d27d6160d153c2ac31
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5238.world
+    sha256: 2e7bacf1820430c6d8aae14a21217d3f4b04afb0b7f7378e4dca8eb80271af6e
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 73
+  wave: 9
+  role_order_position: 1
+  block_id: p1-block-s5239
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5239
+  scene_id: v2-04g-p1-s5239
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5239.instance.yaml
+    sha256: 2ac1ee2d6a0285b7d8465f72e4c81b5ea33e19ab225f68667310b67ac2107bdc
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5239.world
+    sha256: 94f5aaeceed233bea04e787b3e34c7ca57917a6730e8d2b312246c5ea080be80
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 74
+  wave: 9
+  role_order_position: 1
+  block_id: p1-block-s5239
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5239
+  scene_id: v2-04g-p1-s5239
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5239.instance.yaml
+    sha256: 2ac1ee2d6a0285b7d8465f72e4c81b5ea33e19ab225f68667310b67ac2107bdc
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5239.world
+    sha256: 94f5aaeceed233bea04e787b3e34c7ca57917a6730e8d2b312246c5ea080be80
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 75
+  wave: 9
+  role_order_position: 1
+  block_id: p1-block-s5239
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5239
+  scene_id: v2-04g-p1-s5239
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5239.instance.yaml
+    sha256: 2ac1ee2d6a0285b7d8465f72e4c81b5ea33e19ab225f68667310b67ac2107bdc
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5239.world
+    sha256: 94f5aaeceed233bea04e787b3e34c7ca57917a6730e8d2b312246c5ea080be80
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 76
+  wave: 9
+  role_order_position: 2
+  block_id: p1-block-s5209
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5209
+  scene_id: v2-04g-p1-s5209
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5209.instance.yaml
+    sha256: f98d3f9a2bc9653e10c49c9f241d752f2045ece9bcb59f0827e4be6d544afca4
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5209.world
+    sha256: f3f751cab6ff626881b5019ea0f6e813d86700482fd2e4500ed3b2100891c6dd
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 77
+  wave: 9
+  role_order_position: 2
+  block_id: p1-block-s5209
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5209
+  scene_id: v2-04g-p1-s5209
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5209.instance.yaml
+    sha256: f98d3f9a2bc9653e10c49c9f241d752f2045ece9bcb59f0827e4be6d544afca4
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5209.world
+    sha256: f3f751cab6ff626881b5019ea0f6e813d86700482fd2e4500ed3b2100891c6dd
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 78
+  wave: 9
+  role_order_position: 2
+  block_id: p1-block-s5209
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5209
+  scene_id: v2-04g-p1-s5209
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5209.instance.yaml
+    sha256: f98d3f9a2bc9653e10c49c9f241d752f2045ece9bcb59f0827e4be6d544afca4
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5209.world
+    sha256: f3f751cab6ff626881b5019ea0f6e813d86700482fd2e4500ed3b2100891c6dd
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 79
+  wave: 9
+  role_order_position: 3
+  block_id: p1-block-s5269
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5269
+  scene_id: v2-04g-p1-s5269
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5269.instance.yaml
+    sha256: 2e5c2480ffc450e671f04206bd361d16bc7e45d01880b91607c51bf4a29d7c92
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5269.world
+    sha256: 5b4650d0080db430c496ff3ef8b2f83edb0b8aae3145ed89656ab600f8fb5595
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 80
+  wave: 9
+  role_order_position: 3
+  block_id: p1-block-s5269
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5269
+  scene_id: v2-04g-p1-s5269
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5269.instance.yaml
+    sha256: 2e5c2480ffc450e671f04206bd361d16bc7e45d01880b91607c51bf4a29d7c92
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5269.world
+    sha256: 5b4650d0080db430c496ff3ef8b2f83edb0b8aae3145ed89656ab600f8fb5595
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 81
+  wave: 9
+  role_order_position: 3
+  block_id: p1-block-s5269
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5269
+  scene_id: v2-04g-p1-s5269
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5269.instance.yaml
+    sha256: 2e5c2480ffc450e671f04206bd361d16bc7e45d01880b91607c51bf4a29d7c92
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5269.world
+    sha256: 5b4650d0080db430c496ff3ef8b2f83edb0b8aae3145ed89656ab600f8fb5595
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 82
+  wave: 10
+  role_order_position: 1
+  block_id: p1-block-s5240
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5240
+  scene_id: v2-04g-p1-s5240
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5240.instance.yaml
+    sha256: bc029e75c0572259f70ad70538182c02670489f4e3d9fb0151309a7fda07b67c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5240.world
+    sha256: 854cc65927e0c5e46d12b4deb7335026e5a258fea8f88503c35e156487100954
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 83
+  wave: 10
+  role_order_position: 1
+  block_id: p1-block-s5240
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5240
+  scene_id: v2-04g-p1-s5240
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5240.instance.yaml
+    sha256: bc029e75c0572259f70ad70538182c02670489f4e3d9fb0151309a7fda07b67c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5240.world
+    sha256: 854cc65927e0c5e46d12b4deb7335026e5a258fea8f88503c35e156487100954
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 84
+  wave: 10
+  role_order_position: 1
+  block_id: p1-block-s5240
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5240
+  scene_id: v2-04g-p1-s5240
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5240.instance.yaml
+    sha256: bc029e75c0572259f70ad70538182c02670489f4e3d9fb0151309a7fda07b67c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5240.world
+    sha256: 854cc65927e0c5e46d12b4deb7335026e5a258fea8f88503c35e156487100954
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 85
+  wave: 10
+  role_order_position: 2
+  block_id: p1-block-s5270
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5270
+  scene_id: v2-04g-p1-s5270
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5270.instance.yaml
+    sha256: a1943c5cba426ce32b4bfcf61ec98e315e57352f857591ae31f9d12df8e93778
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5270.world
+    sha256: b45cbcdef99edc30464a4eff7b6b71ce317513fddd2404af53573372ad09ad63
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 86
+  wave: 10
+  role_order_position: 2
+  block_id: p1-block-s5270
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5270
+  scene_id: v2-04g-p1-s5270
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5270.instance.yaml
+    sha256: a1943c5cba426ce32b4bfcf61ec98e315e57352f857591ae31f9d12df8e93778
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5270.world
+    sha256: b45cbcdef99edc30464a4eff7b6b71ce317513fddd2404af53573372ad09ad63
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 87
+  wave: 10
+  role_order_position: 2
+  block_id: p1-block-s5270
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5270
+  scene_id: v2-04g-p1-s5270
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5270.instance.yaml
+    sha256: a1943c5cba426ce32b4bfcf61ec98e315e57352f857591ae31f9d12df8e93778
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5270.world
+    sha256: b45cbcdef99edc30464a4eff7b6b71ce317513fddd2404af53573372ad09ad63
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 88
+  wave: 10
+  role_order_position: 3
+  block_id: p1-block-s5210
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5210
+  scene_id: v2-04g-p1-s5210
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5210.instance.yaml
+    sha256: 7ad2e69b71e8a92f1af7c5135d4c34d3bbab1af532f27020e65c29d7a0dab2fe
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5210.world
+    sha256: b374778914f0658fb8e7c5cf0e44bd7e270922e547aab351776f51fba42364a2
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 89
+  wave: 10
+  role_order_position: 3
+  block_id: p1-block-s5210
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5210
+  scene_id: v2-04g-p1-s5210
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5210.instance.yaml
+    sha256: 7ad2e69b71e8a92f1af7c5135d4c34d3bbab1af532f27020e65c29d7a0dab2fe
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5210.world
+    sha256: b374778914f0658fb8e7c5cf0e44bd7e270922e547aab351776f51fba42364a2
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 90
+  wave: 10
+  role_order_position: 3
+  block_id: p1-block-s5210
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5210
+  scene_id: v2-04g-p1-s5210
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5210.instance.yaml
+    sha256: 7ad2e69b71e8a92f1af7c5135d4c34d3bbab1af532f27020e65c29d7a0dab2fe
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5210.world
+    sha256: b374778914f0658fb8e7c5cf0e44bd7e270922e547aab351776f51fba42364a2
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 91
+  wave: 11
+  role_order_position: 1
+  block_id: p1-block-s5271
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5271
+  scene_id: v2-04g-p1-s5271
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5271.instance.yaml
+    sha256: 8994e25fc7f349c9da5ca14bf9e9189203bebdd4a03bb364cf23cf480d35ce01
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5271.world
+    sha256: 7535b33da4aa6ddcb99a44dc665cce2a7b39e5849427e59917d06e36f9316441
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 92
+  wave: 11
+  role_order_position: 1
+  block_id: p1-block-s5271
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5271
+  scene_id: v2-04g-p1-s5271
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5271.instance.yaml
+    sha256: 8994e25fc7f349c9da5ca14bf9e9189203bebdd4a03bb364cf23cf480d35ce01
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5271.world
+    sha256: 7535b33da4aa6ddcb99a44dc665cce2a7b39e5849427e59917d06e36f9316441
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 93
+  wave: 11
+  role_order_position: 1
+  block_id: p1-block-s5271
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5271
+  scene_id: v2-04g-p1-s5271
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5271.instance.yaml
+    sha256: 8994e25fc7f349c9da5ca14bf9e9189203bebdd4a03bb364cf23cf480d35ce01
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5271.world
+    sha256: 7535b33da4aa6ddcb99a44dc665cce2a7b39e5849427e59917d06e36f9316441
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 94
+  wave: 11
+  role_order_position: 2
+  block_id: p1-block-s5211
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5211
+  scene_id: v2-04g-p1-s5211
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5211.instance.yaml
+    sha256: 1bae63e8ee162d5350ea65ec2d88799cc4dbc7ad5e349b8a3f708b6de0e96559
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5211.world
+    sha256: e30af04f6414f5a43ca9c43bec2d22fc5919d237f22032cc828a2a9029b18fd8
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 95
+  wave: 11
+  role_order_position: 2
+  block_id: p1-block-s5211
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5211
+  scene_id: v2-04g-p1-s5211
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5211.instance.yaml
+    sha256: 1bae63e8ee162d5350ea65ec2d88799cc4dbc7ad5e349b8a3f708b6de0e96559
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5211.world
+    sha256: e30af04f6414f5a43ca9c43bec2d22fc5919d237f22032cc828a2a9029b18fd8
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 96
+  wave: 11
+  role_order_position: 2
+  block_id: p1-block-s5211
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5211
+  scene_id: v2-04g-p1-s5211
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5211.instance.yaml
+    sha256: 1bae63e8ee162d5350ea65ec2d88799cc4dbc7ad5e349b8a3f708b6de0e96559
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5211.world
+    sha256: e30af04f6414f5a43ca9c43bec2d22fc5919d237f22032cc828a2a9029b18fd8
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 97
+  wave: 11
+  role_order_position: 3
+  block_id: p1-block-s5241
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5241
+  scene_id: v2-04g-p1-s5241
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5241.instance.yaml
+    sha256: 873b1ff944ff72cb56f2646fb646d1a1d80255786f5a196eab1fd7b4c0f078a2
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5241.world
+    sha256: 81615a62ca10f06ea4745de63941f7b6a322318746b1ef69ea9d91ca102cc107
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 98
+  wave: 11
+  role_order_position: 3
+  block_id: p1-block-s5241
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5241
+  scene_id: v2-04g-p1-s5241
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5241.instance.yaml
+    sha256: 873b1ff944ff72cb56f2646fb646d1a1d80255786f5a196eab1fd7b4c0f078a2
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5241.world
+    sha256: 81615a62ca10f06ea4745de63941f7b6a322318746b1ef69ea9d91ca102cc107
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 99
+  wave: 11
+  role_order_position: 3
+  block_id: p1-block-s5241
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5241
+  scene_id: v2-04g-p1-s5241
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5241.instance.yaml
+    sha256: 873b1ff944ff72cb56f2646fb646d1a1d80255786f5a196eab1fd7b4c0f078a2
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5241.world
+    sha256: 81615a62ca10f06ea4745de63941f7b6a322318746b1ef69ea9d91ca102cc107
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 100
+  wave: 12
+  role_order_position: 1
+  block_id: p1-block-s5272
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5272
+  scene_id: v2-04g-p1-s5272
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5272.instance.yaml
+    sha256: 712af610601257fe6e2f4126b7cd4a3ee64fed7cc488807cb54a51ee307e4fe7
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5272.world
+    sha256: d963008018be5e58c0e915df895b333595b59f75af867574cbd7e8402ed33407
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 101
+  wave: 12
+  role_order_position: 1
+  block_id: p1-block-s5272
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5272
+  scene_id: v2-04g-p1-s5272
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5272.instance.yaml
+    sha256: 712af610601257fe6e2f4126b7cd4a3ee64fed7cc488807cb54a51ee307e4fe7
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5272.world
+    sha256: d963008018be5e58c0e915df895b333595b59f75af867574cbd7e8402ed33407
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 102
+  wave: 12
+  role_order_position: 1
+  block_id: p1-block-s5272
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5272
+  scene_id: v2-04g-p1-s5272
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5272.instance.yaml
+    sha256: 712af610601257fe6e2f4126b7cd4a3ee64fed7cc488807cb54a51ee307e4fe7
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5272.world
+    sha256: d963008018be5e58c0e915df895b333595b59f75af867574cbd7e8402ed33407
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 103
+  wave: 12
+  role_order_position: 2
+  block_id: p1-block-s5242
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5242
+  scene_id: v2-04g-p1-s5242
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5242.instance.yaml
+    sha256: ffd4f3be67167d301fe3c2a89d36f62842cb9d40db7748359f07b5abf0d0efd9
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5242.world
+    sha256: 19781164577dd0768c85e3d066017f941562b54fe7828105316b6748bd4aee3b
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 104
+  wave: 12
+  role_order_position: 2
+  block_id: p1-block-s5242
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5242
+  scene_id: v2-04g-p1-s5242
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5242.instance.yaml
+    sha256: ffd4f3be67167d301fe3c2a89d36f62842cb9d40db7748359f07b5abf0d0efd9
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5242.world
+    sha256: 19781164577dd0768c85e3d066017f941562b54fe7828105316b6748bd4aee3b
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 105
+  wave: 12
+  role_order_position: 2
+  block_id: p1-block-s5242
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5242
+  scene_id: v2-04g-p1-s5242
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5242.instance.yaml
+    sha256: ffd4f3be67167d301fe3c2a89d36f62842cb9d40db7748359f07b5abf0d0efd9
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5242.world
+    sha256: 19781164577dd0768c85e3d066017f941562b54fe7828105316b6748bd4aee3b
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 106
+  wave: 12
+  role_order_position: 3
+  block_id: p1-block-s5212
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5212
+  scene_id: v2-04g-p1-s5212
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5212.instance.yaml
+    sha256: 87e36c06bf2622d4e3662d00430707dad0b6b80df5aff1c5ecd4db5f72c2ab4b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5212.world
+    sha256: e798d04e3f7ab92fa9fa54b835c6a18fb297f45a0d945c7f10bec46b30c4445c
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 107
+  wave: 12
+  role_order_position: 3
+  block_id: p1-block-s5212
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5212
+  scene_id: v2-04g-p1-s5212
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5212.instance.yaml
+    sha256: 87e36c06bf2622d4e3662d00430707dad0b6b80df5aff1c5ecd4db5f72c2ab4b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5212.world
+    sha256: e798d04e3f7ab92fa9fa54b835c6a18fb297f45a0d945c7f10bec46b30c4445c
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 108
+  wave: 12
+  role_order_position: 3
+  block_id: p1-block-s5212
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5212
+  scene_id: v2-04g-p1-s5212
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5212.instance.yaml
+    sha256: 87e36c06bf2622d4e3662d00430707dad0b6b80df5aff1c5ecd4db5f72c2ab4b
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5212.world
+    sha256: e798d04e3f7ab92fa9fa54b835c6a18fb297f45a0d945c7f10bec46b30c4445c
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 109
+  wave: 13
+  role_order_position: 1
+  block_id: p1-block-s5213
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5213
+  scene_id: v2-04g-p1-s5213
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5213.instance.yaml
+    sha256: 814e6fa8b75f22e6a581fa524370d3e5c441185d645319a27706ee2e00ca6470
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5213.world
+    sha256: b3b7f28c1752e5ec92267c90747a6f58c78f510a8b868683139f192bad991c31
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 110
+  wave: 13
+  role_order_position: 1
+  block_id: p1-block-s5213
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5213
+  scene_id: v2-04g-p1-s5213
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5213.instance.yaml
+    sha256: 814e6fa8b75f22e6a581fa524370d3e5c441185d645319a27706ee2e00ca6470
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5213.world
+    sha256: b3b7f28c1752e5ec92267c90747a6f58c78f510a8b868683139f192bad991c31
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 111
+  wave: 13
+  role_order_position: 1
+  block_id: p1-block-s5213
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5213
+  scene_id: v2-04g-p1-s5213
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5213.instance.yaml
+    sha256: 814e6fa8b75f22e6a581fa524370d3e5c441185d645319a27706ee2e00ca6470
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5213.world
+    sha256: b3b7f28c1752e5ec92267c90747a6f58c78f510a8b868683139f192bad991c31
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 112
+  wave: 13
+  role_order_position: 2
+  block_id: p1-block-s5243
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5243
+  scene_id: v2-04g-p1-s5243
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5243.instance.yaml
+    sha256: c6b31e62a483e48459ceab0f3318dbaf54571cba251729359c7635386922bbff
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5243.world
+    sha256: f42c35833a51663466834a4e309e984629c077fafefa48f87189781567c78428
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 113
+  wave: 13
+  role_order_position: 2
+  block_id: p1-block-s5243
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5243
+  scene_id: v2-04g-p1-s5243
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5243.instance.yaml
+    sha256: c6b31e62a483e48459ceab0f3318dbaf54571cba251729359c7635386922bbff
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5243.world
+    sha256: f42c35833a51663466834a4e309e984629c077fafefa48f87189781567c78428
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 114
+  wave: 13
+  role_order_position: 2
+  block_id: p1-block-s5243
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5243
+  scene_id: v2-04g-p1-s5243
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5243.instance.yaml
+    sha256: c6b31e62a483e48459ceab0f3318dbaf54571cba251729359c7635386922bbff
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5243.world
+    sha256: f42c35833a51663466834a4e309e984629c077fafefa48f87189781567c78428
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 115
+  wave: 13
+  role_order_position: 3
+  block_id: p1-block-s5273
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5273
+  scene_id: v2-04g-p1-s5273
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5273.instance.yaml
+    sha256: c6ab0bfe0a9452380ca7d71f53e9512179c4c9c3b09d48d1ee4d8f27d91ef2d4
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5273.world
+    sha256: 494318af703d779f847c180d0c8d5d188c750d656ca4d4da3a0502ce31aa5e22
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 116
+  wave: 13
+  role_order_position: 3
+  block_id: p1-block-s5273
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5273
+  scene_id: v2-04g-p1-s5273
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5273.instance.yaml
+    sha256: c6ab0bfe0a9452380ca7d71f53e9512179c4c9c3b09d48d1ee4d8f27d91ef2d4
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5273.world
+    sha256: 494318af703d779f847c180d0c8d5d188c750d656ca4d4da3a0502ce31aa5e22
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 117
+  wave: 13
+  role_order_position: 3
+  block_id: p1-block-s5273
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5273
+  scene_id: v2-04g-p1-s5273
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5273.instance.yaml
+    sha256: c6ab0bfe0a9452380ca7d71f53e9512179c4c9c3b09d48d1ee4d8f27d91ef2d4
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5273.world
+    sha256: 494318af703d779f847c180d0c8d5d188c750d656ca4d4da3a0502ce31aa5e22
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 118
+  wave: 14
+  role_order_position: 1
+  block_id: p1-block-s5214
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5214
+  scene_id: v2-04g-p1-s5214
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5214.instance.yaml
+    sha256: 3ba94109fee9e4a0c55275fc3ed907b1a72e082dbb4112c471c8b388f5f6cbf9
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5214.world
+    sha256: 69ea70580081b4da31f785e9bed2f5a36ae7c09b7f287b91e51323100ee8b1be
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 119
+  wave: 14
+  role_order_position: 1
+  block_id: p1-block-s5214
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5214
+  scene_id: v2-04g-p1-s5214
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5214.instance.yaml
+    sha256: 3ba94109fee9e4a0c55275fc3ed907b1a72e082dbb4112c471c8b388f5f6cbf9
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5214.world
+    sha256: 69ea70580081b4da31f785e9bed2f5a36ae7c09b7f287b91e51323100ee8b1be
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 120
+  wave: 14
+  role_order_position: 1
+  block_id: p1-block-s5214
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5214
+  scene_id: v2-04g-p1-s5214
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5214.instance.yaml
+    sha256: 3ba94109fee9e4a0c55275fc3ed907b1a72e082dbb4112c471c8b388f5f6cbf9
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5214.world
+    sha256: 69ea70580081b4da31f785e9bed2f5a36ae7c09b7f287b91e51323100ee8b1be
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 121
+  wave: 14
+  role_order_position: 2
+  block_id: p1-block-s5274
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5274
+  scene_id: v2-04g-p1-s5274
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5274.instance.yaml
+    sha256: 9005fe671abbf1868c4e66d9c37a0aa4b3e3ea6a03bed2b31101df194daeba45
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5274.world
+    sha256: 2d754b7d7de9ba1651cfb2462bc27ae6c7e24880378401a1488c5bf0e8189080
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 122
+  wave: 14
+  role_order_position: 2
+  block_id: p1-block-s5274
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5274
+  scene_id: v2-04g-p1-s5274
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5274.instance.yaml
+    sha256: 9005fe671abbf1868c4e66d9c37a0aa4b3e3ea6a03bed2b31101df194daeba45
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5274.world
+    sha256: 2d754b7d7de9ba1651cfb2462bc27ae6c7e24880378401a1488c5bf0e8189080
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 123
+  wave: 14
+  role_order_position: 2
+  block_id: p1-block-s5274
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5274
+  scene_id: v2-04g-p1-s5274
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5274.instance.yaml
+    sha256: 9005fe671abbf1868c4e66d9c37a0aa4b3e3ea6a03bed2b31101df194daeba45
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5274.world
+    sha256: 2d754b7d7de9ba1651cfb2462bc27ae6c7e24880378401a1488c5bf0e8189080
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 124
+  wave: 14
+  role_order_position: 3
+  block_id: p1-block-s5244
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5244
+  scene_id: v2-04g-p1-s5244
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5244.instance.yaml
+    sha256: 958aa5de98526ac356174d75acf960d9bbaf81c5cb6e5505e5e44f427d68740f
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5244.world
+    sha256: 05bd55b2fbe9627164b9dbaa758cd8f21cc96eb4003d7f123ff71aec1ee1e7a6
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 125
+  wave: 14
+  role_order_position: 3
+  block_id: p1-block-s5244
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5244
+  scene_id: v2-04g-p1-s5244
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5244.instance.yaml
+    sha256: 958aa5de98526ac356174d75acf960d9bbaf81c5cb6e5505e5e44f427d68740f
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5244.world
+    sha256: 05bd55b2fbe9627164b9dbaa758cd8f21cc96eb4003d7f123ff71aec1ee1e7a6
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 126
+  wave: 14
+  role_order_position: 3
+  block_id: p1-block-s5244
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5244
+  scene_id: v2-04g-p1-s5244
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5244.instance.yaml
+    sha256: 958aa5de98526ac356174d75acf960d9bbaf81c5cb6e5505e5e44f427d68740f
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5244.world
+    sha256: 05bd55b2fbe9627164b9dbaa758cd8f21cc96eb4003d7f123ff71aec1ee1e7a6
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 127
+  wave: 15
+  role_order_position: 1
+  block_id: p1-block-s5245
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5245
+  scene_id: v2-04g-p1-s5245
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5245.instance.yaml
+    sha256: 6eaf55a2acb526a0ec45ed5dd2c4e8cdaf1371455e1abf8783cdd3eb47e44afd
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5245.world
+    sha256: cbdf58142a1ea1aaff7a2580531f03473eb82568e969968ba6a670d2ea1a9bf5
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 128
+  wave: 15
+  role_order_position: 1
+  block_id: p1-block-s5245
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5245
+  scene_id: v2-04g-p1-s5245
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5245.instance.yaml
+    sha256: 6eaf55a2acb526a0ec45ed5dd2c4e8cdaf1371455e1abf8783cdd3eb47e44afd
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5245.world
+    sha256: cbdf58142a1ea1aaff7a2580531f03473eb82568e969968ba6a670d2ea1a9bf5
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 129
+  wave: 15
+  role_order_position: 1
+  block_id: p1-block-s5245
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5245
+  scene_id: v2-04g-p1-s5245
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5245.instance.yaml
+    sha256: 6eaf55a2acb526a0ec45ed5dd2c4e8cdaf1371455e1abf8783cdd3eb47e44afd
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5245.world
+    sha256: cbdf58142a1ea1aaff7a2580531f03473eb82568e969968ba6a670d2ea1a9bf5
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 130
+  wave: 15
+  role_order_position: 2
+  block_id: p1-block-s5215
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5215
+  scene_id: v2-04g-p1-s5215
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5215.instance.yaml
+    sha256: d94bcb061a409d4481c1d8b7fce28ca66af3df3af0334c0e0bdcea77d78d409f
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5215.world
+    sha256: cfd2d31dff65cb2c25b041d7418cbc0d4d8fb4d57a58750925e7ca84d67af816
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 131
+  wave: 15
+  role_order_position: 2
+  block_id: p1-block-s5215
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5215
+  scene_id: v2-04g-p1-s5215
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5215.instance.yaml
+    sha256: d94bcb061a409d4481c1d8b7fce28ca66af3df3af0334c0e0bdcea77d78d409f
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5215.world
+    sha256: cfd2d31dff65cb2c25b041d7418cbc0d4d8fb4d57a58750925e7ca84d67af816
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 132
+  wave: 15
+  role_order_position: 2
+  block_id: p1-block-s5215
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5215
+  scene_id: v2-04g-p1-s5215
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5215.instance.yaml
+    sha256: d94bcb061a409d4481c1d8b7fce28ca66af3df3af0334c0e0bdcea77d78d409f
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5215.world
+    sha256: cfd2d31dff65cb2c25b041d7418cbc0d4d8fb4d57a58750925e7ca84d67af816
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 133
+  wave: 15
+  role_order_position: 3
+  block_id: p1-block-s5275
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5275
+  scene_id: v2-04g-p1-s5275
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5275.instance.yaml
+    sha256: 73ce8a112fe8fef96f773c87056258886b34062bb84d15be6e2981847afad420
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5275.world
+    sha256: 276d03edcd23be7c49b6339a2d29313cceaf7f6d0d2c95f5f55f228d4b55a9db
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 134
+  wave: 15
+  role_order_position: 3
+  block_id: p1-block-s5275
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5275
+  scene_id: v2-04g-p1-s5275
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5275.instance.yaml
+    sha256: 73ce8a112fe8fef96f773c87056258886b34062bb84d15be6e2981847afad420
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5275.world
+    sha256: 276d03edcd23be7c49b6339a2d29313cceaf7f6d0d2c95f5f55f228d4b55a9db
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 135
+  wave: 15
+  role_order_position: 3
+  block_id: p1-block-s5275
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5275
+  scene_id: v2-04g-p1-s5275
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5275.instance.yaml
+    sha256: 73ce8a112fe8fef96f773c87056258886b34062bb84d15be6e2981847afad420
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5275.world
+    sha256: 276d03edcd23be7c49b6339a2d29313cceaf7f6d0d2c95f5f55f228d4b55a9db
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 136
+  wave: 16
+  role_order_position: 1
+  block_id: p1-block-s5246
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5246
+  scene_id: v2-04g-p1-s5246
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5246.instance.yaml
+    sha256: 6174498063b395e670e5e66944fe6719457a3665586ec97620911aa8641c18b6
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5246.world
+    sha256: 69a7867303834661f0e1a25badb5dabc86140b2d1a9237653f17339adb85b9de
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 137
+  wave: 16
+  role_order_position: 1
+  block_id: p1-block-s5246
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5246
+  scene_id: v2-04g-p1-s5246
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5246.instance.yaml
+    sha256: 6174498063b395e670e5e66944fe6719457a3665586ec97620911aa8641c18b6
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5246.world
+    sha256: 69a7867303834661f0e1a25badb5dabc86140b2d1a9237653f17339adb85b9de
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 138
+  wave: 16
+  role_order_position: 1
+  block_id: p1-block-s5246
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5246
+  scene_id: v2-04g-p1-s5246
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5246.instance.yaml
+    sha256: 6174498063b395e670e5e66944fe6719457a3665586ec97620911aa8641c18b6
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5246.world
+    sha256: 69a7867303834661f0e1a25badb5dabc86140b2d1a9237653f17339adb85b9de
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 139
+  wave: 16
+  role_order_position: 2
+  block_id: p1-block-s5276
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5276
+  scene_id: v2-04g-p1-s5276
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5276.instance.yaml
+    sha256: 40d5505069e202c72341a146364fb6393af93210c6634b047b22e65c2b69c460
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5276.world
+    sha256: 2518fd4486a4877deecdea9d5cf26d0590ad4242e1dca9d463913d3f03b9ef40
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 140
+  wave: 16
+  role_order_position: 2
+  block_id: p1-block-s5276
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5276
+  scene_id: v2-04g-p1-s5276
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5276.instance.yaml
+    sha256: 40d5505069e202c72341a146364fb6393af93210c6634b047b22e65c2b69c460
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5276.world
+    sha256: 2518fd4486a4877deecdea9d5cf26d0590ad4242e1dca9d463913d3f03b9ef40
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 141
+  wave: 16
+  role_order_position: 2
+  block_id: p1-block-s5276
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5276
+  scene_id: v2-04g-p1-s5276
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5276.instance.yaml
+    sha256: 40d5505069e202c72341a146364fb6393af93210c6634b047b22e65c2b69c460
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5276.world
+    sha256: 2518fd4486a4877deecdea9d5cf26d0590ad4242e1dca9d463913d3f03b9ef40
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 142
+  wave: 16
+  role_order_position: 3
+  block_id: p1-block-s5216
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5216
+  scene_id: v2-04g-p1-s5216
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5216.instance.yaml
+    sha256: 04976a266999a795329b410d8bcfdab86d146e0d1b5ce85775797458fd911200
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5216.world
+    sha256: 2c59c192371cb27fa38d85a60fe6f8c5951a2a124127bbc22cc320629424e5b5
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 143
+  wave: 16
+  role_order_position: 3
+  block_id: p1-block-s5216
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5216
+  scene_id: v2-04g-p1-s5216
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5216.instance.yaml
+    sha256: 04976a266999a795329b410d8bcfdab86d146e0d1b5ce85775797458fd911200
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5216.world
+    sha256: 2c59c192371cb27fa38d85a60fe6f8c5951a2a124127bbc22cc320629424e5b5
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 144
+  wave: 16
+  role_order_position: 3
+  block_id: p1-block-s5216
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5216
+  scene_id: v2-04g-p1-s5216
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5216.instance.yaml
+    sha256: 04976a266999a795329b410d8bcfdab86d146e0d1b5ce85775797458fd911200
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5216.world
+    sha256: 2c59c192371cb27fa38d85a60fe6f8c5951a2a124127bbc22cc320629424e5b5
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 145
+  wave: 17
+  role_order_position: 1
+  block_id: p1-block-s5277
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5277
+  scene_id: v2-04g-p1-s5277
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5277.instance.yaml
+    sha256: 0317f89b21362987c9ae1771f33945c94443def3aa6e994554f33f7cb492616a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5277.world
+    sha256: adfdb897953bbe6750f294f84aad23c858e383cb4ac19cdb2add0d9f6753ba74
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 146
+  wave: 17
+  role_order_position: 1
+  block_id: p1-block-s5277
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5277
+  scene_id: v2-04g-p1-s5277
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5277.instance.yaml
+    sha256: 0317f89b21362987c9ae1771f33945c94443def3aa6e994554f33f7cb492616a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5277.world
+    sha256: adfdb897953bbe6750f294f84aad23c858e383cb4ac19cdb2add0d9f6753ba74
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 147
+  wave: 17
+  role_order_position: 1
+  block_id: p1-block-s5277
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5277
+  scene_id: v2-04g-p1-s5277
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5277.instance.yaml
+    sha256: 0317f89b21362987c9ae1771f33945c94443def3aa6e994554f33f7cb492616a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5277.world
+    sha256: adfdb897953bbe6750f294f84aad23c858e383cb4ac19cdb2add0d9f6753ba74
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 148
+  wave: 17
+  role_order_position: 2
+  block_id: p1-block-s5217
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5217
+  scene_id: v2-04g-p1-s5217
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5217.instance.yaml
+    sha256: 1a874c8e3008549f30a64fc553c93d065ea8812b79bf62c6d2cc6d680df63aeb
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5217.world
+    sha256: d237f95f4766d830e0d2835267fa8ed8e3116ba67b60670cb3bd5d64ea5a3e6f
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 149
+  wave: 17
+  role_order_position: 2
+  block_id: p1-block-s5217
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5217
+  scene_id: v2-04g-p1-s5217
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5217.instance.yaml
+    sha256: 1a874c8e3008549f30a64fc553c93d065ea8812b79bf62c6d2cc6d680df63aeb
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5217.world
+    sha256: d237f95f4766d830e0d2835267fa8ed8e3116ba67b60670cb3bd5d64ea5a3e6f
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 150
+  wave: 17
+  role_order_position: 2
+  block_id: p1-block-s5217
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5217
+  scene_id: v2-04g-p1-s5217
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5217.instance.yaml
+    sha256: 1a874c8e3008549f30a64fc553c93d065ea8812b79bf62c6d2cc6d680df63aeb
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5217.world
+    sha256: d237f95f4766d830e0d2835267fa8ed8e3116ba67b60670cb3bd5d64ea5a3e6f
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 151
+  wave: 17
+  role_order_position: 3
+  block_id: p1-block-s5247
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5247
+  scene_id: v2-04g-p1-s5247
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5247.instance.yaml
+    sha256: 1f7b877f76da56a88f1a00a3a829dc9db1b60c27cd3b7599279d55a52718d6e3
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5247.world
+    sha256: 90c85c6511f0d91c29af1743db59b44b6a4d4499e59c77e2f008cf2495002779
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 152
+  wave: 17
+  role_order_position: 3
+  block_id: p1-block-s5247
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5247
+  scene_id: v2-04g-p1-s5247
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5247.instance.yaml
+    sha256: 1f7b877f76da56a88f1a00a3a829dc9db1b60c27cd3b7599279d55a52718d6e3
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5247.world
+    sha256: 90c85c6511f0d91c29af1743db59b44b6a4d4499e59c77e2f008cf2495002779
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 153
+  wave: 17
+  role_order_position: 3
+  block_id: p1-block-s5247
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5247
+  scene_id: v2-04g-p1-s5247
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5247.instance.yaml
+    sha256: 1f7b877f76da56a88f1a00a3a829dc9db1b60c27cd3b7599279d55a52718d6e3
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5247.world
+    sha256: 90c85c6511f0d91c29af1743db59b44b6a4d4499e59c77e2f008cf2495002779
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 154
+  wave: 18
+  role_order_position: 1
+  block_id: p1-block-s5278
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5278
+  scene_id: v2-04g-p1-s5278
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5278.instance.yaml
+    sha256: 1891f54d68c33879a77b36f2aee1cef356bb8b299fa20deef2fbe67af36eeeab
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5278.world
+    sha256: 9b912e46f33aeafb19a07044e79e5174fef0e84f81d475eb0ab16f29d598d8db
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 155
+  wave: 18
+  role_order_position: 1
+  block_id: p1-block-s5278
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5278
+  scene_id: v2-04g-p1-s5278
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5278.instance.yaml
+    sha256: 1891f54d68c33879a77b36f2aee1cef356bb8b299fa20deef2fbe67af36eeeab
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5278.world
+    sha256: 9b912e46f33aeafb19a07044e79e5174fef0e84f81d475eb0ab16f29d598d8db
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 156
+  wave: 18
+  role_order_position: 1
+  block_id: p1-block-s5278
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5278
+  scene_id: v2-04g-p1-s5278
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5278.instance.yaml
+    sha256: 1891f54d68c33879a77b36f2aee1cef356bb8b299fa20deef2fbe67af36eeeab
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5278.world
+    sha256: 9b912e46f33aeafb19a07044e79e5174fef0e84f81d475eb0ab16f29d598d8db
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 157
+  wave: 18
+  role_order_position: 2
+  block_id: p1-block-s5248
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5248
+  scene_id: v2-04g-p1-s5248
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5248.instance.yaml
+    sha256: a069ad0c1d6c6c8f9bb6fa9717889a96dc5fae287e198ed54920b0eadd983656
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5248.world
+    sha256: 51bf6a0ee9800da57b64bb413277a81f0a474205970c388b017c4da13c1e9d13
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 158
+  wave: 18
+  role_order_position: 2
+  block_id: p1-block-s5248
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5248
+  scene_id: v2-04g-p1-s5248
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5248.instance.yaml
+    sha256: a069ad0c1d6c6c8f9bb6fa9717889a96dc5fae287e198ed54920b0eadd983656
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5248.world
+    sha256: 51bf6a0ee9800da57b64bb413277a81f0a474205970c388b017c4da13c1e9d13
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 159
+  wave: 18
+  role_order_position: 2
+  block_id: p1-block-s5248
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5248
+  scene_id: v2-04g-p1-s5248
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5248.instance.yaml
+    sha256: a069ad0c1d6c6c8f9bb6fa9717889a96dc5fae287e198ed54920b0eadd983656
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5248.world
+    sha256: 51bf6a0ee9800da57b64bb413277a81f0a474205970c388b017c4da13c1e9d13
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 160
+  wave: 18
+  role_order_position: 3
+  block_id: p1-block-s5218
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5218
+  scene_id: v2-04g-p1-s5218
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5218.instance.yaml
+    sha256: f8fd20792e0255a7bf1b010aeb08e1965c31c4cb2d0334c61f37320c11d9b4d0
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5218.world
+    sha256: 523eada8d70461694e9570eabfe2bbefb9bf607177d5e4e90c435314c0571992
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 161
+  wave: 18
+  role_order_position: 3
+  block_id: p1-block-s5218
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5218
+  scene_id: v2-04g-p1-s5218
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5218.instance.yaml
+    sha256: f8fd20792e0255a7bf1b010aeb08e1965c31c4cb2d0334c61f37320c11d9b4d0
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5218.world
+    sha256: 523eada8d70461694e9570eabfe2bbefb9bf607177d5e4e90c435314c0571992
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 162
+  wave: 18
+  role_order_position: 3
+  block_id: p1-block-s5218
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5218
+  scene_id: v2-04g-p1-s5218
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5218.instance.yaml
+    sha256: f8fd20792e0255a7bf1b010aeb08e1965c31c4cb2d0334c61f37320c11d9b4d0
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5218.world
+    sha256: 523eada8d70461694e9570eabfe2bbefb9bf607177d5e4e90c435314c0571992
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 163
+  wave: 19
+  role_order_position: 1
+  block_id: p1-block-s5219
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5219
+  scene_id: v2-04g-p1-s5219
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5219.instance.yaml
+    sha256: 6c73635036a9680369fbfd2be7309302a02a6277264a008e6854a39d8d6af523
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5219.world
+    sha256: 4c7c8d23a621875d60cd80d1fd53359bf53e72bc9289df35e0f32da7ffe9982b
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 164
+  wave: 19
+  role_order_position: 1
+  block_id: p1-block-s5219
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5219
+  scene_id: v2-04g-p1-s5219
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5219.instance.yaml
+    sha256: 6c73635036a9680369fbfd2be7309302a02a6277264a008e6854a39d8d6af523
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5219.world
+    sha256: 4c7c8d23a621875d60cd80d1fd53359bf53e72bc9289df35e0f32da7ffe9982b
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 165
+  wave: 19
+  role_order_position: 1
+  block_id: p1-block-s5219
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5219
+  scene_id: v2-04g-p1-s5219
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5219.instance.yaml
+    sha256: 6c73635036a9680369fbfd2be7309302a02a6277264a008e6854a39d8d6af523
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5219.world
+    sha256: 4c7c8d23a621875d60cd80d1fd53359bf53e72bc9289df35e0f32da7ffe9982b
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 166
+  wave: 19
+  role_order_position: 2
+  block_id: p1-block-s5249
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5249
+  scene_id: v2-04g-p1-s5249
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5249.instance.yaml
+    sha256: 1a6097916309f7c3410cd333dd785db02ee60c3ef0f77f1b36589755c4fea829
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5249.world
+    sha256: 301449d94ac78f3dd70dc53d58f9a11f48710267def873e8a76f4d130f8a02dd
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 167
+  wave: 19
+  role_order_position: 2
+  block_id: p1-block-s5249
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5249
+  scene_id: v2-04g-p1-s5249
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5249.instance.yaml
+    sha256: 1a6097916309f7c3410cd333dd785db02ee60c3ef0f77f1b36589755c4fea829
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5249.world
+    sha256: 301449d94ac78f3dd70dc53d58f9a11f48710267def873e8a76f4d130f8a02dd
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 168
+  wave: 19
+  role_order_position: 2
+  block_id: p1-block-s5249
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5249
+  scene_id: v2-04g-p1-s5249
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5249.instance.yaml
+    sha256: 1a6097916309f7c3410cd333dd785db02ee60c3ef0f77f1b36589755c4fea829
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5249.world
+    sha256: 301449d94ac78f3dd70dc53d58f9a11f48710267def873e8a76f4d130f8a02dd
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 169
+  wave: 19
+  role_order_position: 3
+  block_id: p1-block-s5279
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5279
+  scene_id: v2-04g-p1-s5279
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5279.instance.yaml
+    sha256: a365914163db1db241f2bcbdd501846de0c0355c05977ba1d3646509d9a7d8a4
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5279.world
+    sha256: cb06c51986396360cae3e48f55985e44aae0e70b0b85697941aa21b38650eed6
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 170
+  wave: 19
+  role_order_position: 3
+  block_id: p1-block-s5279
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5279
+  scene_id: v2-04g-p1-s5279
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5279.instance.yaml
+    sha256: a365914163db1db241f2bcbdd501846de0c0355c05977ba1d3646509d9a7d8a4
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5279.world
+    sha256: cb06c51986396360cae3e48f55985e44aae0e70b0b85697941aa21b38650eed6
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 171
+  wave: 19
+  role_order_position: 3
+  block_id: p1-block-s5279
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5279
+  scene_id: v2-04g-p1-s5279
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5279.instance.yaml
+    sha256: a365914163db1db241f2bcbdd501846de0c0355c05977ba1d3646509d9a7d8a4
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5279.world
+    sha256: cb06c51986396360cae3e48f55985e44aae0e70b0b85697941aa21b38650eed6
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 172
+  wave: 20
+  role_order_position: 1
+  block_id: p1-block-s5220
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5220
+  scene_id: v2-04g-p1-s5220
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5220.instance.yaml
+    sha256: 52289552886bade258266f07f6930cb29ce0543ef671938b9386b3fecac8103f
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5220.world
+    sha256: 57240842973b4af2cd688bb5ba6e6518db6f6d2cf4571e43f2af6b94e0340c19
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 173
+  wave: 20
+  role_order_position: 1
+  block_id: p1-block-s5220
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5220
+  scene_id: v2-04g-p1-s5220
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5220.instance.yaml
+    sha256: 52289552886bade258266f07f6930cb29ce0543ef671938b9386b3fecac8103f
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5220.world
+    sha256: 57240842973b4af2cd688bb5ba6e6518db6f6d2cf4571e43f2af6b94e0340c19
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 174
+  wave: 20
+  role_order_position: 1
+  block_id: p1-block-s5220
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5220
+  scene_id: v2-04g-p1-s5220
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5220.instance.yaml
+    sha256: 52289552886bade258266f07f6930cb29ce0543ef671938b9386b3fecac8103f
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5220.world
+    sha256: 57240842973b4af2cd688bb5ba6e6518db6f6d2cf4571e43f2af6b94e0340c19
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 175
+  wave: 20
+  role_order_position: 2
+  block_id: p1-block-s5280
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5280
+  scene_id: v2-04g-p1-s5280
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5280.instance.yaml
+    sha256: 2e7f47ad47ae6030c552526819e53f7feeade2a14d8553484d76f0c7565e1dea
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5280.world
+    sha256: 3b38d2b5deae177db8fc09b6bd8f14899c8d9cd6d6f036e9f80331e24cba9102
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 176
+  wave: 20
+  role_order_position: 2
+  block_id: p1-block-s5280
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5280
+  scene_id: v2-04g-p1-s5280
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5280.instance.yaml
+    sha256: 2e7f47ad47ae6030c552526819e53f7feeade2a14d8553484d76f0c7565e1dea
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5280.world
+    sha256: 3b38d2b5deae177db8fc09b6bd8f14899c8d9cd6d6f036e9f80331e24cba9102
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 177
+  wave: 20
+  role_order_position: 2
+  block_id: p1-block-s5280
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5280
+  scene_id: v2-04g-p1-s5280
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5280.instance.yaml
+    sha256: 2e7f47ad47ae6030c552526819e53f7feeade2a14d8553484d76f0c7565e1dea
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5280.world
+    sha256: 3b38d2b5deae177db8fc09b6bd8f14899c8d9cd6d6f036e9f80331e24cba9102
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 178
+  wave: 20
+  role_order_position: 3
+  block_id: p1-block-s5250
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5250
+  scene_id: v2-04g-p1-s5250
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5250.instance.yaml
+    sha256: 1f525819826fbf5af23475382a2cb21c7395bbd4cf5358773d00d57d827d335d
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5250.world
+    sha256: 759a30888c14d6a278c3ac7cc220533049162cc64d1692a351233add4dc2bee9
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 179
+  wave: 20
+  role_order_position: 3
+  block_id: p1-block-s5250
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5250
+  scene_id: v2-04g-p1-s5250
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5250.instance.yaml
+    sha256: 1f525819826fbf5af23475382a2cb21c7395bbd4cf5358773d00d57d827d335d
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5250.world
+    sha256: 759a30888c14d6a278c3ac7cc220533049162cc64d1692a351233add4dc2bee9
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 180
+  wave: 20
+  role_order_position: 3
+  block_id: p1-block-s5250
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5250
+  scene_id: v2-04g-p1-s5250
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5250.instance.yaml
+    sha256: 1f525819826fbf5af23475382a2cb21c7395bbd4cf5358773d00d57d827d335d
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5250.world
+    sha256: 759a30888c14d6a278c3ac7cc220533049162cc64d1692a351233add4dc2bee9
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 181
+  wave: 21
+  role_order_position: 1
+  block_id: p1-block-s5251
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5251
+  scene_id: v2-04g-p1-s5251
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5251.instance.yaml
+    sha256: 05bdef4827eb33c6667806aadc8041124f78635fa2e200ce52a150d1c49d0d77
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5251.world
+    sha256: d91ec1ddeb4731ce59c78e2e80681358a3b8053f0ca42be847cbe05c809db7af
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 182
+  wave: 21
+  role_order_position: 1
+  block_id: p1-block-s5251
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5251
+  scene_id: v2-04g-p1-s5251
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5251.instance.yaml
+    sha256: 05bdef4827eb33c6667806aadc8041124f78635fa2e200ce52a150d1c49d0d77
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5251.world
+    sha256: d91ec1ddeb4731ce59c78e2e80681358a3b8053f0ca42be847cbe05c809db7af
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 183
+  wave: 21
+  role_order_position: 1
+  block_id: p1-block-s5251
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5251
+  scene_id: v2-04g-p1-s5251
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5251.instance.yaml
+    sha256: 05bdef4827eb33c6667806aadc8041124f78635fa2e200ce52a150d1c49d0d77
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5251.world
+    sha256: d91ec1ddeb4731ce59c78e2e80681358a3b8053f0ca42be847cbe05c809db7af
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 184
+  wave: 21
+  role_order_position: 2
+  block_id: p1-block-s5221
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5221
+  scene_id: v2-04g-p1-s5221
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5221.instance.yaml
+    sha256: 859cf697fe9c664915740b6fc32b5f5c9f4a2b28e6a957f670fdf8f6b60dfd07
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5221.world
+    sha256: e34e14857646047dff000b09ab5c5d154f949109d833a20f9e755995090911d0
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 185
+  wave: 21
+  role_order_position: 2
+  block_id: p1-block-s5221
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5221
+  scene_id: v2-04g-p1-s5221
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5221.instance.yaml
+    sha256: 859cf697fe9c664915740b6fc32b5f5c9f4a2b28e6a957f670fdf8f6b60dfd07
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5221.world
+    sha256: e34e14857646047dff000b09ab5c5d154f949109d833a20f9e755995090911d0
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 186
+  wave: 21
+  role_order_position: 2
+  block_id: p1-block-s5221
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5221
+  scene_id: v2-04g-p1-s5221
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5221.instance.yaml
+    sha256: 859cf697fe9c664915740b6fc32b5f5c9f4a2b28e6a957f670fdf8f6b60dfd07
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5221.world
+    sha256: e34e14857646047dff000b09ab5c5d154f949109d833a20f9e755995090911d0
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 187
+  wave: 21
+  role_order_position: 3
+  block_id: p1-block-s5281
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5281
+  scene_id: v2-04g-p1-s5281
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5281.instance.yaml
+    sha256: b0ba58a03c4655f9e9480a00deb2a2a362369ddc527365a172adea96f36df0c9
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5281.world
+    sha256: 761627d23045a8b1e783062176cb58f384bd857c2c1ddc83815b157f3298b01c
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 188
+  wave: 21
+  role_order_position: 3
+  block_id: p1-block-s5281
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5281
+  scene_id: v2-04g-p1-s5281
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5281.instance.yaml
+    sha256: b0ba58a03c4655f9e9480a00deb2a2a362369ddc527365a172adea96f36df0c9
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5281.world
+    sha256: 761627d23045a8b1e783062176cb58f384bd857c2c1ddc83815b157f3298b01c
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 189
+  wave: 21
+  role_order_position: 3
+  block_id: p1-block-s5281
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5281
+  scene_id: v2-04g-p1-s5281
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5281.instance.yaml
+    sha256: b0ba58a03c4655f9e9480a00deb2a2a362369ddc527365a172adea96f36df0c9
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5281.world
+    sha256: 761627d23045a8b1e783062176cb58f384bd857c2c1ddc83815b157f3298b01c
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 190
+  wave: 22
+  role_order_position: 1
+  block_id: p1-block-s5252
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5252
+  scene_id: v2-04g-p1-s5252
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5252.instance.yaml
+    sha256: 5458c40feb3400eb58b55ce41f34a6f700b83aff98e580edc5ee389f8a1c6bcf
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5252.world
+    sha256: 2f49636bc0491fea5c2e90d4f6efca52f6868e255954bbb1b897897def1b4f20
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 191
+  wave: 22
+  role_order_position: 1
+  block_id: p1-block-s5252
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5252
+  scene_id: v2-04g-p1-s5252
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5252.instance.yaml
+    sha256: 5458c40feb3400eb58b55ce41f34a6f700b83aff98e580edc5ee389f8a1c6bcf
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5252.world
+    sha256: 2f49636bc0491fea5c2e90d4f6efca52f6868e255954bbb1b897897def1b4f20
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 192
+  wave: 22
+  role_order_position: 1
+  block_id: p1-block-s5252
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5252
+  scene_id: v2-04g-p1-s5252
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5252.instance.yaml
+    sha256: 5458c40feb3400eb58b55ce41f34a6f700b83aff98e580edc5ee389f8a1c6bcf
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5252.world
+    sha256: 2f49636bc0491fea5c2e90d4f6efca52f6868e255954bbb1b897897def1b4f20
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 193
+  wave: 22
+  role_order_position: 2
+  block_id: p1-block-s5282
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5282
+  scene_id: v2-04g-p1-s5282
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5282.instance.yaml
+    sha256: 633c8f2fb46ef8cbca368e3b0ebc26ad3cf0fed9a205bea83c1a5d3611b642fd
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5282.world
+    sha256: 308b0fdc1354c1be685548b827f7d98acc461309e45e08045e10d598b5e2e5b3
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 194
+  wave: 22
+  role_order_position: 2
+  block_id: p1-block-s5282
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5282
+  scene_id: v2-04g-p1-s5282
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5282.instance.yaml
+    sha256: 633c8f2fb46ef8cbca368e3b0ebc26ad3cf0fed9a205bea83c1a5d3611b642fd
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5282.world
+    sha256: 308b0fdc1354c1be685548b827f7d98acc461309e45e08045e10d598b5e2e5b3
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 195
+  wave: 22
+  role_order_position: 2
+  block_id: p1-block-s5282
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5282
+  scene_id: v2-04g-p1-s5282
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5282.instance.yaml
+    sha256: 633c8f2fb46ef8cbca368e3b0ebc26ad3cf0fed9a205bea83c1a5d3611b642fd
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5282.world
+    sha256: 308b0fdc1354c1be685548b827f7d98acc461309e45e08045e10d598b5e2e5b3
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 196
+  wave: 22
+  role_order_position: 3
+  block_id: p1-block-s5222
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5222
+  scene_id: v2-04g-p1-s5222
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5222.instance.yaml
+    sha256: ebe9ed264966896e7a6f1ac1c7d6da219746aeda8cccf0f4b990ac52d3782005
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5222.world
+    sha256: d77a26b659b4c8da0801180589a8287f3cef7f8ebf818d53ff61a89d7a807ab5
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 197
+  wave: 22
+  role_order_position: 3
+  block_id: p1-block-s5222
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5222
+  scene_id: v2-04g-p1-s5222
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5222.instance.yaml
+    sha256: ebe9ed264966896e7a6f1ac1c7d6da219746aeda8cccf0f4b990ac52d3782005
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5222.world
+    sha256: d77a26b659b4c8da0801180589a8287f3cef7f8ebf818d53ff61a89d7a807ab5
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 198
+  wave: 22
+  role_order_position: 3
+  block_id: p1-block-s5222
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5222
+  scene_id: v2-04g-p1-s5222
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5222.instance.yaml
+    sha256: ebe9ed264966896e7a6f1ac1c7d6da219746aeda8cccf0f4b990ac52d3782005
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5222.world
+    sha256: d77a26b659b4c8da0801180589a8287f3cef7f8ebf818d53ff61a89d7a807ab5
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 199
+  wave: 23
+  role_order_position: 1
+  block_id: p1-block-s5283
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5283
+  scene_id: v2-04g-p1-s5283
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5283.instance.yaml
+    sha256: a311d502f43c62de8f8cbb9e8b1e25bc7e859987e93b8ad35c8250b0a289a90c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5283.world
+    sha256: 66e62b970e0975d24810aa56b5acb6a342ab25b7af42fd8fb3057bf146453336
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 200
+  wave: 23
+  role_order_position: 1
+  block_id: p1-block-s5283
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5283
+  scene_id: v2-04g-p1-s5283
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5283.instance.yaml
+    sha256: a311d502f43c62de8f8cbb9e8b1e25bc7e859987e93b8ad35c8250b0a289a90c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5283.world
+    sha256: 66e62b970e0975d24810aa56b5acb6a342ab25b7af42fd8fb3057bf146453336
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 201
+  wave: 23
+  role_order_position: 1
+  block_id: p1-block-s5283
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5283
+  scene_id: v2-04g-p1-s5283
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5283.instance.yaml
+    sha256: a311d502f43c62de8f8cbb9e8b1e25bc7e859987e93b8ad35c8250b0a289a90c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5283.world
+    sha256: 66e62b970e0975d24810aa56b5acb6a342ab25b7af42fd8fb3057bf146453336
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 202
+  wave: 23
+  role_order_position: 2
+  block_id: p1-block-s5223
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5223
+  scene_id: v2-04g-p1-s5223
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5223.instance.yaml
+    sha256: e515c4ecfd1fddb19d45da0ce1a99dba71af89b918d565ca432ad8eb399b8cca
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5223.world
+    sha256: 5f92d3fc43c9c0ef8307fcbbcaf01cc360729a663525eebd1b35a855b133abb7
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 203
+  wave: 23
+  role_order_position: 2
+  block_id: p1-block-s5223
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5223
+  scene_id: v2-04g-p1-s5223
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5223.instance.yaml
+    sha256: e515c4ecfd1fddb19d45da0ce1a99dba71af89b918d565ca432ad8eb399b8cca
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5223.world
+    sha256: 5f92d3fc43c9c0ef8307fcbbcaf01cc360729a663525eebd1b35a855b133abb7
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 204
+  wave: 23
+  role_order_position: 2
+  block_id: p1-block-s5223
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5223
+  scene_id: v2-04g-p1-s5223
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5223.instance.yaml
+    sha256: e515c4ecfd1fddb19d45da0ce1a99dba71af89b918d565ca432ad8eb399b8cca
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5223.world
+    sha256: 5f92d3fc43c9c0ef8307fcbbcaf01cc360729a663525eebd1b35a855b133abb7
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 205
+  wave: 23
+  role_order_position: 3
+  block_id: p1-block-s5253
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5253
+  scene_id: v2-04g-p1-s5253
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5253.instance.yaml
+    sha256: 87d0936cf651c2d40678d81cffcd7e205be162b013f15d30eff571d29b3a1257
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5253.world
+    sha256: 936dac0d791bce3408be87c4d05a27441faba42670e2868153f0da74582fa97b
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 206
+  wave: 23
+  role_order_position: 3
+  block_id: p1-block-s5253
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5253
+  scene_id: v2-04g-p1-s5253
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5253.instance.yaml
+    sha256: 87d0936cf651c2d40678d81cffcd7e205be162b013f15d30eff571d29b3a1257
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5253.world
+    sha256: 936dac0d791bce3408be87c4d05a27441faba42670e2868153f0da74582fa97b
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 207
+  wave: 23
+  role_order_position: 3
+  block_id: p1-block-s5253
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5253
+  scene_id: v2-04g-p1-s5253
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5253.instance.yaml
+    sha256: 87d0936cf651c2d40678d81cffcd7e205be162b013f15d30eff571d29b3a1257
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5253.world
+    sha256: 936dac0d791bce3408be87c4d05a27441faba42670e2868153f0da74582fa97b
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 208
+  wave: 24
+  role_order_position: 1
+  block_id: p1-block-s5284
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5284
+  scene_id: v2-04g-p1-s5284
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5284.instance.yaml
+    sha256: a46230ef83b6806d0ff93e6c96d1fbc69e5e6ca26a105f54156b4b1b4fd8d33c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5284.world
+    sha256: 6f100f5dd1af5006a07459997740c0fd7220c2cee6931979862333ebe24415b0
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 209
+  wave: 24
+  role_order_position: 1
+  block_id: p1-block-s5284
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5284
+  scene_id: v2-04g-p1-s5284
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5284.instance.yaml
+    sha256: a46230ef83b6806d0ff93e6c96d1fbc69e5e6ca26a105f54156b4b1b4fd8d33c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5284.world
+    sha256: 6f100f5dd1af5006a07459997740c0fd7220c2cee6931979862333ebe24415b0
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 210
+  wave: 24
+  role_order_position: 1
+  block_id: p1-block-s5284
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5284
+  scene_id: v2-04g-p1-s5284
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5284.instance.yaml
+    sha256: a46230ef83b6806d0ff93e6c96d1fbc69e5e6ca26a105f54156b4b1b4fd8d33c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5284.world
+    sha256: 6f100f5dd1af5006a07459997740c0fd7220c2cee6931979862333ebe24415b0
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 211
+  wave: 24
+  role_order_position: 2
+  block_id: p1-block-s5254
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5254
+  scene_id: v2-04g-p1-s5254
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5254.instance.yaml
+    sha256: 0f1dc624736668d518dfd4fa7a4dabcbcdcb224c60a899e19637faac946a5033
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5254.world
+    sha256: fa48d1fc3994d86b0381e9c2119eb4cd4708ff134e6eba65944249e0f26ae80d
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 212
+  wave: 24
+  role_order_position: 2
+  block_id: p1-block-s5254
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5254
+  scene_id: v2-04g-p1-s5254
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5254.instance.yaml
+    sha256: 0f1dc624736668d518dfd4fa7a4dabcbcdcb224c60a899e19637faac946a5033
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5254.world
+    sha256: fa48d1fc3994d86b0381e9c2119eb4cd4708ff134e6eba65944249e0f26ae80d
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 213
+  wave: 24
+  role_order_position: 2
+  block_id: p1-block-s5254
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5254
+  scene_id: v2-04g-p1-s5254
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5254.instance.yaml
+    sha256: 0f1dc624736668d518dfd4fa7a4dabcbcdcb224c60a899e19637faac946a5033
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5254.world
+    sha256: fa48d1fc3994d86b0381e9c2119eb4cd4708ff134e6eba65944249e0f26ae80d
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 214
+  wave: 24
+  role_order_position: 3
+  block_id: p1-block-s5224
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5224
+  scene_id: v2-04g-p1-s5224
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5224.instance.yaml
+    sha256: ddeaed4f5ed4a8c31b75a08343a02d4e8fd7f8c15651e220ee64658c86e9a122
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5224.world
+    sha256: 15dfbb32963f63f5d69bab519133f2bb02dde57cc021bb289658ea45db6418ef
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 215
+  wave: 24
+  role_order_position: 3
+  block_id: p1-block-s5224
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5224
+  scene_id: v2-04g-p1-s5224
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5224.instance.yaml
+    sha256: ddeaed4f5ed4a8c31b75a08343a02d4e8fd7f8c15651e220ee64658c86e9a122
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5224.world
+    sha256: 15dfbb32963f63f5d69bab519133f2bb02dde57cc021bb289658ea45db6418ef
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 216
+  wave: 24
+  role_order_position: 3
+  block_id: p1-block-s5224
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5224
+  scene_id: v2-04g-p1-s5224
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5224.instance.yaml
+    sha256: ddeaed4f5ed4a8c31b75a08343a02d4e8fd7f8c15651e220ee64658c86e9a122
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5224.world
+    sha256: 15dfbb32963f63f5d69bab519133f2bb02dde57cc021bb289658ea45db6418ef
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 217
+  wave: 25
+  role_order_position: 1
+  block_id: p1-block-s5225
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5225
+  scene_id: v2-04g-p1-s5225
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5225.instance.yaml
+    sha256: bb9f459ed86817ad9f2c306306923b3a7e8ab0a3b8dcb353a993e34428b9c044
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5225.world
+    sha256: affcaa78ad36bbef651b7fe65334f046e1c81b3048acaa46ac473f2482f62d37
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 218
+  wave: 25
+  role_order_position: 1
+  block_id: p1-block-s5225
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5225
+  scene_id: v2-04g-p1-s5225
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5225.instance.yaml
+    sha256: bb9f459ed86817ad9f2c306306923b3a7e8ab0a3b8dcb353a993e34428b9c044
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5225.world
+    sha256: affcaa78ad36bbef651b7fe65334f046e1c81b3048acaa46ac473f2482f62d37
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 219
+  wave: 25
+  role_order_position: 1
+  block_id: p1-block-s5225
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5225
+  scene_id: v2-04g-p1-s5225
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5225.instance.yaml
+    sha256: bb9f459ed86817ad9f2c306306923b3a7e8ab0a3b8dcb353a993e34428b9c044
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5225.world
+    sha256: affcaa78ad36bbef651b7fe65334f046e1c81b3048acaa46ac473f2482f62d37
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 220
+  wave: 25
+  role_order_position: 2
+  block_id: p1-block-s5255
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5255
+  scene_id: v2-04g-p1-s5255
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5255.instance.yaml
+    sha256: 4b8f4e30cd38b4decfc1a340fbce10eaf812acccaf17e007e95988be15367dee
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5255.world
+    sha256: e493ab907b573c8186864912df02c7095859d05a387a2f6f9c091570204defb6
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 221
+  wave: 25
+  role_order_position: 2
+  block_id: p1-block-s5255
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5255
+  scene_id: v2-04g-p1-s5255
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5255.instance.yaml
+    sha256: 4b8f4e30cd38b4decfc1a340fbce10eaf812acccaf17e007e95988be15367dee
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5255.world
+    sha256: e493ab907b573c8186864912df02c7095859d05a387a2f6f9c091570204defb6
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 222
+  wave: 25
+  role_order_position: 2
+  block_id: p1-block-s5255
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5255
+  scene_id: v2-04g-p1-s5255
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5255.instance.yaml
+    sha256: 4b8f4e30cd38b4decfc1a340fbce10eaf812acccaf17e007e95988be15367dee
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5255.world
+    sha256: e493ab907b573c8186864912df02c7095859d05a387a2f6f9c091570204defb6
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 223
+  wave: 25
+  role_order_position: 3
+  block_id: p1-block-s5285
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5285
+  scene_id: v2-04g-p1-s5285
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5285.instance.yaml
+    sha256: 61a2db2ce8f30d72ab14fc47f2d05f9b33ac984b32c3db1876c8fd8d90f06517
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5285.world
+    sha256: 4e180ebbd66fa0744da2e1840d7beed74e44de3d13a7dbde3ce00b02201a771a
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 224
+  wave: 25
+  role_order_position: 3
+  block_id: p1-block-s5285
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5285
+  scene_id: v2-04g-p1-s5285
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5285.instance.yaml
+    sha256: 61a2db2ce8f30d72ab14fc47f2d05f9b33ac984b32c3db1876c8fd8d90f06517
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5285.world
+    sha256: 4e180ebbd66fa0744da2e1840d7beed74e44de3d13a7dbde3ce00b02201a771a
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 225
+  wave: 25
+  role_order_position: 3
+  block_id: p1-block-s5285
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5285
+  scene_id: v2-04g-p1-s5285
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5285.instance.yaml
+    sha256: 61a2db2ce8f30d72ab14fc47f2d05f9b33ac984b32c3db1876c8fd8d90f06517
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5285.world
+    sha256: 4e180ebbd66fa0744da2e1840d7beed74e44de3d13a7dbde3ce00b02201a771a
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 226
+  wave: 26
+  role_order_position: 1
+  block_id: p1-block-s5226
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5226
+  scene_id: v2-04g-p1-s5226
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5226.instance.yaml
+    sha256: c7e349dbd4e281b86536ca8ad6b83571d10832ba88ca3be2d3befd9af95a69f6
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5226.world
+    sha256: 659d5835ca9852c98be5b2db0d0ed544def46e825a47b84ea40a322d0482f0ce
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 227
+  wave: 26
+  role_order_position: 1
+  block_id: p1-block-s5226
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5226
+  scene_id: v2-04g-p1-s5226
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5226.instance.yaml
+    sha256: c7e349dbd4e281b86536ca8ad6b83571d10832ba88ca3be2d3befd9af95a69f6
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5226.world
+    sha256: 659d5835ca9852c98be5b2db0d0ed544def46e825a47b84ea40a322d0482f0ce
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 228
+  wave: 26
+  role_order_position: 1
+  block_id: p1-block-s5226
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5226
+  scene_id: v2-04g-p1-s5226
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5226.instance.yaml
+    sha256: c7e349dbd4e281b86536ca8ad6b83571d10832ba88ca3be2d3befd9af95a69f6
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5226.world
+    sha256: 659d5835ca9852c98be5b2db0d0ed544def46e825a47b84ea40a322d0482f0ce
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 229
+  wave: 26
+  role_order_position: 2
+  block_id: p1-block-s5286
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5286
+  scene_id: v2-04g-p1-s5286
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5286.instance.yaml
+    sha256: 0603da4d971df63a31b98b372f923aa238b58371419dc181017a5e4617a03f7a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5286.world
+    sha256: b9e3984421f679d4355e3f79e5d59d8556615ec98ccd12c64966974da4b11542
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 230
+  wave: 26
+  role_order_position: 2
+  block_id: p1-block-s5286
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5286
+  scene_id: v2-04g-p1-s5286
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5286.instance.yaml
+    sha256: 0603da4d971df63a31b98b372f923aa238b58371419dc181017a5e4617a03f7a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5286.world
+    sha256: b9e3984421f679d4355e3f79e5d59d8556615ec98ccd12c64966974da4b11542
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 231
+  wave: 26
+  role_order_position: 2
+  block_id: p1-block-s5286
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5286
+  scene_id: v2-04g-p1-s5286
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5286.instance.yaml
+    sha256: 0603da4d971df63a31b98b372f923aa238b58371419dc181017a5e4617a03f7a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5286.world
+    sha256: b9e3984421f679d4355e3f79e5d59d8556615ec98ccd12c64966974da4b11542
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 232
+  wave: 26
+  role_order_position: 3
+  block_id: p1-block-s5256
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5256
+  scene_id: v2-04g-p1-s5256
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5256.instance.yaml
+    sha256: 38e6e9ac13be952e1bc5e30fcb829c582fc052c6b5e2a7f72d312bc9b17b1928
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5256.world
+    sha256: d5edfac3c580479080a0f15f47d6034b470247d19055b7cf081780b52fcfbe03
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 233
+  wave: 26
+  role_order_position: 3
+  block_id: p1-block-s5256
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5256
+  scene_id: v2-04g-p1-s5256
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5256.instance.yaml
+    sha256: 38e6e9ac13be952e1bc5e30fcb829c582fc052c6b5e2a7f72d312bc9b17b1928
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5256.world
+    sha256: d5edfac3c580479080a0f15f47d6034b470247d19055b7cf081780b52fcfbe03
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 234
+  wave: 26
+  role_order_position: 3
+  block_id: p1-block-s5256
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5256
+  scene_id: v2-04g-p1-s5256
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5256.instance.yaml
+    sha256: 38e6e9ac13be952e1bc5e30fcb829c582fc052c6b5e2a7f72d312bc9b17b1928
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5256.world
+    sha256: d5edfac3c580479080a0f15f47d6034b470247d19055b7cf081780b52fcfbe03
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 235
+  wave: 27
+  role_order_position: 1
+  block_id: p1-block-s5257
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5257
+  scene_id: v2-04g-p1-s5257
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5257.instance.yaml
+    sha256: 0cb4bb7c0b1586528663405417ad3440eac840249213e8276dae6b3436d855a1
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5257.world
+    sha256: 81bcd4e865aa288f0d44a48f5d2243677050fa3dd4480f19433ea55d476b2641
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 236
+  wave: 27
+  role_order_position: 1
+  block_id: p1-block-s5257
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5257
+  scene_id: v2-04g-p1-s5257
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5257.instance.yaml
+    sha256: 0cb4bb7c0b1586528663405417ad3440eac840249213e8276dae6b3436d855a1
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5257.world
+    sha256: 81bcd4e865aa288f0d44a48f5d2243677050fa3dd4480f19433ea55d476b2641
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 237
+  wave: 27
+  role_order_position: 1
+  block_id: p1-block-s5257
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5257
+  scene_id: v2-04g-p1-s5257
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5257.instance.yaml
+    sha256: 0cb4bb7c0b1586528663405417ad3440eac840249213e8276dae6b3436d855a1
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5257.world
+    sha256: 81bcd4e865aa288f0d44a48f5d2243677050fa3dd4480f19433ea55d476b2641
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 238
+  wave: 27
+  role_order_position: 2
+  block_id: p1-block-s5227
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5227
+  scene_id: v2-04g-p1-s5227
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5227.instance.yaml
+    sha256: a37b674e4af0967904416f1b84a64cd345c204cba974e0bbfc7802411e1ae028
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5227.world
+    sha256: cafa70afe9a7b96e2ef279ceb3824f4652d5a2aa1693e47d6856f0c4cd04223d
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 239
+  wave: 27
+  role_order_position: 2
+  block_id: p1-block-s5227
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5227
+  scene_id: v2-04g-p1-s5227
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5227.instance.yaml
+    sha256: a37b674e4af0967904416f1b84a64cd345c204cba974e0bbfc7802411e1ae028
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5227.world
+    sha256: cafa70afe9a7b96e2ef279ceb3824f4652d5a2aa1693e47d6856f0c4cd04223d
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 240
+  wave: 27
+  role_order_position: 2
+  block_id: p1-block-s5227
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5227
+  scene_id: v2-04g-p1-s5227
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5227.instance.yaml
+    sha256: a37b674e4af0967904416f1b84a64cd345c204cba974e0bbfc7802411e1ae028
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5227.world
+    sha256: cafa70afe9a7b96e2ef279ceb3824f4652d5a2aa1693e47d6856f0c4cd04223d
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 241
+  wave: 27
+  role_order_position: 3
+  block_id: p1-block-s5287
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5287
+  scene_id: v2-04g-p1-s5287
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5287.instance.yaml
+    sha256: c7cfec2ab93bad977881f74184d800ea352df913ec99015cc2bd5fff10480b5e
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5287.world
+    sha256: 754e0d0889a9559d1785c32949012a238ae5fb23673f70c2a559240707dd64a2
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 242
+  wave: 27
+  role_order_position: 3
+  block_id: p1-block-s5287
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5287
+  scene_id: v2-04g-p1-s5287
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5287.instance.yaml
+    sha256: c7cfec2ab93bad977881f74184d800ea352df913ec99015cc2bd5fff10480b5e
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5287.world
+    sha256: 754e0d0889a9559d1785c32949012a238ae5fb23673f70c2a559240707dd64a2
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 243
+  wave: 27
+  role_order_position: 3
+  block_id: p1-block-s5287
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5287
+  scene_id: v2-04g-p1-s5287
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5287.instance.yaml
+    sha256: c7cfec2ab93bad977881f74184d800ea352df913ec99015cc2bd5fff10480b5e
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5287.world
+    sha256: 754e0d0889a9559d1785c32949012a238ae5fb23673f70c2a559240707dd64a2
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 244
+  wave: 28
+  role_order_position: 1
+  block_id: p1-block-s5258
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5258
+  scene_id: v2-04g-p1-s5258
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5258.instance.yaml
+    sha256: fa8e55e33ee85b29926645f5266d7c6f7320be00473e9d2c6751c06410978ffa
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5258.world
+    sha256: aa3d92397b21ad9ef3baf59e034e191d65e24684663430ae5064ea9e04a3c2f1
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 245
+  wave: 28
+  role_order_position: 1
+  block_id: p1-block-s5258
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5258
+  scene_id: v2-04g-p1-s5258
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5258.instance.yaml
+    sha256: fa8e55e33ee85b29926645f5266d7c6f7320be00473e9d2c6751c06410978ffa
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5258.world
+    sha256: aa3d92397b21ad9ef3baf59e034e191d65e24684663430ae5064ea9e04a3c2f1
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 246
+  wave: 28
+  role_order_position: 1
+  block_id: p1-block-s5258
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5258
+  scene_id: v2-04g-p1-s5258
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5258.instance.yaml
+    sha256: fa8e55e33ee85b29926645f5266d7c6f7320be00473e9d2c6751c06410978ffa
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5258.world
+    sha256: aa3d92397b21ad9ef3baf59e034e191d65e24684663430ae5064ea9e04a3c2f1
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 247
+  wave: 28
+  role_order_position: 2
+  block_id: p1-block-s5288
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5288
+  scene_id: v2-04g-p1-s5288
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5288.instance.yaml
+    sha256: 4ddf477f755945097e9b17aebcd092fe048fea75115ed3d1b72f037b91c70692
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5288.world
+    sha256: 827666b70feb88a3b569bdfbab854df5692240ed92d8d5d781cf2585c521600a
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 248
+  wave: 28
+  role_order_position: 2
+  block_id: p1-block-s5288
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5288
+  scene_id: v2-04g-p1-s5288
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5288.instance.yaml
+    sha256: 4ddf477f755945097e9b17aebcd092fe048fea75115ed3d1b72f037b91c70692
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5288.world
+    sha256: 827666b70feb88a3b569bdfbab854df5692240ed92d8d5d781cf2585c521600a
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 249
+  wave: 28
+  role_order_position: 2
+  block_id: p1-block-s5288
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5288
+  scene_id: v2-04g-p1-s5288
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5288.instance.yaml
+    sha256: 4ddf477f755945097e9b17aebcd092fe048fea75115ed3d1b72f037b91c70692
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5288.world
+    sha256: 827666b70feb88a3b569bdfbab854df5692240ed92d8d5d781cf2585c521600a
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 250
+  wave: 28
+  role_order_position: 3
+  block_id: p1-block-s5228
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5228
+  scene_id: v2-04g-p1-s5228
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5228.instance.yaml
+    sha256: 8333db04fdf58220f2bcc75b4edefec7cf2ab7afe4883165183ac5904675e3cf
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5228.world
+    sha256: d3975599783c940775be7eada928ea8985fecd110602200318647c409222e77e
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 251
+  wave: 28
+  role_order_position: 3
+  block_id: p1-block-s5228
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5228
+  scene_id: v2-04g-p1-s5228
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5228.instance.yaml
+    sha256: 8333db04fdf58220f2bcc75b4edefec7cf2ab7afe4883165183ac5904675e3cf
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5228.world
+    sha256: d3975599783c940775be7eada928ea8985fecd110602200318647c409222e77e
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 252
+  wave: 28
+  role_order_position: 3
+  block_id: p1-block-s5228
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5228
+  scene_id: v2-04g-p1-s5228
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5228.instance.yaml
+    sha256: 8333db04fdf58220f2bcc75b4edefec7cf2ab7afe4883165183ac5904675e3cf
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5228.world
+    sha256: d3975599783c940775be7eada928ea8985fecd110602200318647c409222e77e
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 253
+  wave: 29
+  role_order_position: 1
+  block_id: p1-block-s5289
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5289
+  scene_id: v2-04g-p1-s5289
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5289.instance.yaml
+    sha256: 8e6620623a66740701f7d9352a9e831042978858d73c9ef5750f122421854350
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5289.world
+    sha256: c5fdca7d94315bdca97f68d83521d43132f01b213e0cac6e93df816ff3aa69e2
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 254
+  wave: 29
+  role_order_position: 1
+  block_id: p1-block-s5289
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5289
+  scene_id: v2-04g-p1-s5289
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5289.instance.yaml
+    sha256: 8e6620623a66740701f7d9352a9e831042978858d73c9ef5750f122421854350
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5289.world
+    sha256: c5fdca7d94315bdca97f68d83521d43132f01b213e0cac6e93df816ff3aa69e2
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 255
+  wave: 29
+  role_order_position: 1
+  block_id: p1-block-s5289
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5289
+  scene_id: v2-04g-p1-s5289
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5289.instance.yaml
+    sha256: 8e6620623a66740701f7d9352a9e831042978858d73c9ef5750f122421854350
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5289.world
+    sha256: c5fdca7d94315bdca97f68d83521d43132f01b213e0cac6e93df816ff3aa69e2
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 256
+  wave: 29
+  role_order_position: 2
+  block_id: p1-block-s5229
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5229
+  scene_id: v2-04g-p1-s5229
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5229.instance.yaml
+    sha256: 13bd9c58ddee795cac59311a8fc729c392055eec52d1fc19e1ad06ce35482e05
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5229.world
+    sha256: 2b8f5e2d55ec2e6f6390c7a17d99f31538aac49c62bedbdb5556d70d5266471b
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 257
+  wave: 29
+  role_order_position: 2
+  block_id: p1-block-s5229
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5229
+  scene_id: v2-04g-p1-s5229
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5229.instance.yaml
+    sha256: 13bd9c58ddee795cac59311a8fc729c392055eec52d1fc19e1ad06ce35482e05
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5229.world
+    sha256: 2b8f5e2d55ec2e6f6390c7a17d99f31538aac49c62bedbdb5556d70d5266471b
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 258
+  wave: 29
+  role_order_position: 2
+  block_id: p1-block-s5229
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5229
+  scene_id: v2-04g-p1-s5229
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5229.instance.yaml
+    sha256: 13bd9c58ddee795cac59311a8fc729c392055eec52d1fc19e1ad06ce35482e05
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5229.world
+    sha256: 2b8f5e2d55ec2e6f6390c7a17d99f31538aac49c62bedbdb5556d70d5266471b
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 259
+  wave: 29
+  role_order_position: 3
+  block_id: p1-block-s5259
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5259
+  scene_id: v2-04g-p1-s5259
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5259.instance.yaml
+    sha256: b3541583a467d2dc11b1db3a2ad266b916335af9cad1e8389bcbe5f2938d684c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5259.world
+    sha256: 062c5fd6b8ec90b8e77e3a62d2514c86f42b69d9b8eb7398e2b662a3bebb98db
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 260
+  wave: 29
+  role_order_position: 3
+  block_id: p1-block-s5259
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5259
+  scene_id: v2-04g-p1-s5259
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5259.instance.yaml
+    sha256: b3541583a467d2dc11b1db3a2ad266b916335af9cad1e8389bcbe5f2938d684c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5259.world
+    sha256: 062c5fd6b8ec90b8e77e3a62d2514c86f42b69d9b8eb7398e2b662a3bebb98db
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 261
+  wave: 29
+  role_order_position: 3
+  block_id: p1-block-s5259
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5259
+  scene_id: v2-04g-p1-s5259
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5259.instance.yaml
+    sha256: b3541583a467d2dc11b1db3a2ad266b916335af9cad1e8389bcbe5f2938d684c
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5259.world
+    sha256: 062c5fd6b8ec90b8e77e3a62d2514c86f42b69d9b8eb7398e2b662a3bebb98db
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 262
+  wave: 30
+  role_order_position: 1
+  block_id: p1-block-s5290
+  within_block_position: 1
+  scene_role: time_separated_semantic_clear
+  seed: 5290
+  scene_id: v2-04g-p1-s5290
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5290.instance.yaml
+    sha256: 7c0fdb86c97c58b2a46b79ef088d3120b32a3255165a42d5d938a20dc7325686
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5290.world
+    sha256: d73b04a8d41ff3d21437852ebf4a5ffca9feb852bf028491ad5cbc62d4a459ca
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 263
+  wave: 30
+  role_order_position: 1
+  block_id: p1-block-s5290
+  within_block_position: 2
+  scene_role: time_separated_semantic_clear
+  seed: 5290
+  scene_id: v2-04g-p1-s5290
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5290.instance.yaml
+    sha256: 7c0fdb86c97c58b2a46b79ef088d3120b32a3255165a42d5d938a20dc7325686
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5290.world
+    sha256: d73b04a8d41ff3d21437852ebf4a5ffca9feb852bf028491ad5cbc62d4a459ca
+  method_id: fixed_teb_reference
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 264
+  wave: 30
+  role_order_position: 1
+  block_id: p1-block-s5290
+  within_block_position: 3
+  scene_role: time_separated_semantic_clear
+  seed: 5290
+  scene_id: v2-04g-p1-s5290
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5290.instance.yaml
+    sha256: 7c0fdb86c97c58b2a46b79ef088d3120b32a3255165a42d5d938a20dc7325686
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5290.world
+    sha256: d73b04a8d41ff3d21437852ebf4a5ffca9feb852bf028491ad5cbc62d4a459ca
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: NO_CONFLICT_IN_HORIZON
+  attempt: 1
+- sequence: 265
+  wave: 30
+  role_order_position: 2
+  block_id: p1-block-s5260
+  within_block_position: 1
+  scene_role: multi_true_conflict
+  seed: 5260
+  scene_id: v2-04g-p1-s5260
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5260.instance.yaml
+    sha256: bc91799d242b611bd44f82f0cdbd4adcae5d842fa8b0688c8181ed56d1b0c120
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5260.world
+    sha256: 33a2c7514834dae5302be293cad7540371ef9dcb9cdeded40f474383cffd081c
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 266
+  wave: 30
+  role_order_position: 2
+  block_id: p1-block-s5260
+  within_block_position: 2
+  scene_role: multi_true_conflict
+  seed: 5260
+  scene_id: v2-04g-p1-s5260
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5260.instance.yaml
+    sha256: bc91799d242b611bd44f82f0cdbd4adcae5d842fa8b0688c8181ed56d1b0c120
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5260.world
+    sha256: 33a2c7514834dae5302be293cad7540371ef9dcb9cdeded40f474383cffd081c
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 267
+  wave: 30
+  role_order_position: 2
+  block_id: p1-block-s5260
+  within_block_position: 3
+  scene_role: multi_true_conflict
+  seed: 5260
+  scene_id: v2-04g-p1-s5260
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5260.instance.yaml
+    sha256: bc91799d242b611bd44f82f0cdbd4adcae5d842fa8b0688c8181ed56d1b0c120
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5260.world
+    sha256: 33a2c7514834dae5302be293cad7540371ef9dcb9cdeded40f474383cffd081c
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 268
+  wave: 30
+  role_order_position: 3
+  block_id: p1-block-s5230
+  within_block_position: 1
+  scene_role: single_true_conflict
+  seed: 5230
+  scene_id: v2-04g-p1-s5230
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5230.instance.yaml
+    sha256: e08da45adaf8ac79fd9122d89e52cc6caac5cf00f55d2aef951e201b98ea803a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5230.world
+    sha256: 599593ffcaa868a845422b6e04f72d54ddfe2f7ab6a9a8e7037ba5f95cfe6539
+  method_id: fixed_teb_reference
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 269
+  wave: 30
+  role_order_position: 3
+  block_id: p1-block-s5230
+  within_block_position: 2
+  scene_role: single_true_conflict
+  seed: 5230
+  scene_id: v2-04g-p1-s5230
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5230.instance.yaml
+    sha256: e08da45adaf8ac79fd9122d89e52cc6caac5cf00f55d2aef951e201b98ea803a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5230.world
+    sha256: 599593ffcaa868a845422b6e04f72d54ddfe2f7ab6a9a8e7037ba5f95cfe6539
+  method_id: r6_semantics_circle_contact
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+- sequence: 270
+  wave: 30
+  role_order_position: 3
+  block_id: p1-block-s5230
+  within_block_position: 3
+  scene_role: single_true_conflict
+  seed: 5230
+  scene_id: v2-04g-p1-s5230
+  instance:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5230.instance.yaml
+    sha256: e08da45adaf8ac79fd9122d89e52cc6caac5cf00f55d2aef951e201b98ea803a
+  world:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/compiled_scenes/v2-04g-p1-s5230.world
+    sha256: 599593ffcaa868a845422b6e04f72d54ddfe2f7ab6a9a8e7037ba5f95cfe6539
+  method_id: r6_semantics_legacy_control
+  expected_ttc_status: OBSERVED_CONFLICT
+  attempt: 1
+canonical_episode_digest: e29530f28449a9b1bcbbb19090f1a9a3a4584e6fc4f9e1cc1f251cdf6f56f38f

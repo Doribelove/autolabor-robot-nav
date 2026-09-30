@@ -1,0 +1,53 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-01-R1
+report_id: v3_scope_v3_01_r1_terminal_result_1
+status: terminal_semantic_qualification_fail_repeatability
+execution:
+  authorized_units: 36
+  consumed_units: 36
+  completed_units: 36
+  retries: 0
+  resumable: false
+gates:
+  clone_initial_state: pass
+  ego_crossing_time: pass
+  all_9_policy_seed_response_blocks: pass
+  pre_intervention_clone_spread: pass
+  cross_seed_repeatability: fail
+  maximum_cross_seed_response_spread_m: 0.2244
+  frozen_maximum_m: 0.20
+effect_summary:
+  minimum_policy_seed_actor_position_spread_m: 0.777245
+  maximum_policy_seed_actor_position_spread_m: 2.403375
+  all_blocks_distinct_signature_count_min: 3
+  reactive_effect_present: true
+failure_attribution:
+  factor: uncalibrated_seed_threshold_jitter_fraction
+  current_fraction: 0.10
+  mechanism: >-
+    The deterministic seed changes only the actor response-time margin. Near a
+    threshold boundary, the 10 percent margin jitter shifted response onset
+    enough to produce 0.2244 m cross-seed position spread.
+  evidence_chasing_gate_change_allowed: false
+  gate_change_proposed: false
+repair_boundary:
+  required_new_stage: V3-01-R2
+  single_factor: actor_response_margin_seed_jitter_fraction
+  parent_value: 0.10
+  proposed_value: 0.0
+  rationale: >-
+    The qualification world is explicitly deterministic and the jitter has no
+    empirical calibration. Removing it tests repeatability without weakening
+    any response-effect or integrity threshold. Stochastic actor calibration
+    remains future work and cannot be claimed from R2.
+  fresh_seeds_required: [6121, 6122, 6123]
+  parent_seed_or_budget_reuse_allowed: false
+evidence:
+  journal_sha256: 9cec1d3080dee8288c98b7eb1176665cf87b81bf27fbbd45b4f8200b20fee7a3
+  assessment_sha256: 831aec51e15aafd951f0969a814bce352a93e68105a8fa0e8a5fecc8553fc09f
+  execution_freeze_sha256: e497054d0542467ea4a4b69d2000b65eed8621960b140966a200c9314e35a2ed
+claim:
+  crossing_family_counterfactual_data_qualified: false
+  general_multi_family_identifiability: false
+  performance_improvement_claimed: false

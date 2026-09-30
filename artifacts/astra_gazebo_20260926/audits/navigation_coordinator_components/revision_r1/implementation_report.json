@@ -1,0 +1,183 @@
+{
+  "status": "offline_navigation_coordinator_and_adapters_component_pass",
+  "independent_review": false,
+  "ros_started": false,
+  "simulation_episodes": 0,
+  "run_allocations": 0,
+  "sources_frozen": true,
+  "files": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator.py",
+      "sha256": "6065e7d094a45d0ce41a279618803a019a5ac89a496ed6c8096597e49758c80b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_coordinator.py",
+      "sha256": "b978b03047b33e7ba40bc3cc0a4ff16ad60d853eab90c77c9a1aedce05d9297f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_coordinated_route_adapter.py",
+      "sha256": "885af40634558aaab38843c26f23b513511afd2f79e4ae29630d45b08976ffd8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+      "sha256": "0aac24213d6df95b8ec2ccbf72bf82f08dab6ec6d6bd0001da0573d8c84756d9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_coordinated_runtime.py",
+      "sha256": "d3675f6153152dce54c41809c6da1172ea7168ebb4ca5e66f994110021641f96"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_frozen_r2_coordinated.py",
+      "sha256": "79acb6aba8a9477fb781b03b13daa0fa19e7566a5bca69aaf7cf240200bee0ad"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_smoke.launch",
+      "sha256": "3cf62fa9ff4a8ee9b60ad10941b118f664d7ac645ea43066e2012b7981052534"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+      "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e"
+    }
+  ],
+  "tests": {
+    "passed": 19,
+    "failed": 0,
+    "command": "workspace/.venv/bin/python -m pytest -q workspace/scripts/astra_gazebo/tests/test_navigation_coordinator.py workspace/scripts/astra_gazebo/tests/test_coordinated_route_adapter.py",
+    "scope": [
+      "pure first-actual-odom gate and goal/deadline",
+      "pre-gate motion/ack queue prevention",
+      "stale receipt and clock guards",
+      "three real-message fake-ROS coordinator modes including actualTEB and DWA goal callbacks",
+      "remapped method-local publisher uniqueness and service/main lock race",
+      "R2 execution wrapper activation and raster identity",
+      "delayed callbacks after cleanup",
+      "Euclidean margin containment",
+      "four actual roslaunch --dump-params expansions",
+      "actual roslaunch config Node.required=True for selected collector in all four branches"
+    ]
+  },
+  "methods_for_n01": [
+    "astra_analytic_route_v1",
+    "frozen_r2_v060_shared_activation",
+    "actual_teb_common_route",
+    "dwa_common_route"
+  ],
+  "future_checkpoint_only_method": "astra_pct_route_v1",
+  "api": {
+    "sole_public_command_publisher": "/astra_navigation_coordinator",
+    "public_command": "/cmd_vel_navigation",
+    "private_command": "/astra/method_cmd",
+    "private_command_time_semantics": "headerless Twist receipt only; generation source stamp unknown",
+    "collector_node": "/astra_navigation_collector",
+    "relay_node": "/navigation_command_relay",
+    "services": [
+      "/astra/navigation/arm",
+      "/astra/navigation/stop"
+    ],
+    "gate_topic": "/astra/navigation/gate",
+    "status_topic": "/astra/navigation/status",
+    "identity_topic": "/astra/navigation/identity",
+    "trace_topic": "/astra/navigation/command_trace",
+    "method_status_topic": "/astra/method/status",
+    "required_launch_args": [
+      "world",
+      "run_id",
+      "seed",
+      "method",
+      "bundle",
+      "bundle_sha256",
+      "scene_manifest",
+      "scene_id",
+      "legacy_report_path",
+      "steering_kd",
+      "contract_path",
+      "contract_sha256",
+      "output",
+      "bag_path",
+      "bag_topics"
+    ],
+    "r2_extra_argument": "legacy_checkpoint_path",
+    "map_path_sources": [
+      "/map",
+      "/astra/common_route/path",
+      "/astra/common_route/get_plan"
+    ],
+    "phase_status_fields": [
+      "run_id",
+      "seed",
+      "method",
+      "phase",
+      "ready_to_arm",
+      "armed",
+      "gate_source_ns",
+      "terminal_source_ns",
+      "terminal_reason",
+      "terminal_time_authority"
+    ],
+    "gate_fields": [
+      "schema",
+      "run_id",
+      "seed",
+      "method",
+      "source_ns",
+      "source",
+      "pose_map",
+      "body_twist",
+      "activation_source_ns",
+      "goal_pose",
+      "deadline_ns",
+      "deadline_source_ns"
+    ],
+    "terminal_authorities": {
+      "complete": "first_actual_odom_header_meeting_base_goal",
+      "timeout": "declared_gate_actual_odom_source_plus22s",
+      "fault": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp",
+      "stopped": "latest_actual_odom_header_at_stop_request"
+    }
+  },
+  "protocol": {
+    "activation_ns": 5000000000,
+    "warmup_speed_mps": 0.8,
+    "gate": "first actual odom header at map x>=-4, within frozen state tolerances",
+    "formal_cap_ns": 22000000000,
+    "goal_reference": "actual base_link map pose",
+    "spawn_services_in_launch": false,
+    "gazebo_lifecycle_authority": "collector only",
+    "method_goal_generation": "actual TEB/DWA receive one map goal after the common gate; active callback acknowledgement receipt is not command generation time",
+    "bootstrap": "one clock0 zero after relay+bag connections; positive-clock fresh sensor/history and lazy baseline readiness precede arm before5s"
+  },
+  "old_R2": {
+    "algorithm_and_weights_unchanged": true,
+    "overrides": [
+      "wait_ready",
+      "warmup"
+    ],
+    "old_full_episode_protocol_unchanged": false,
+    "static_input": "shared blocked raster exact rectangle decomposition through inherited boxes API",
+    "fixed_route_consumed": false,
+    "limitations": [
+      "inherited implicit y walls +/-20m",
+      "outside-map semantics not equal to explicit blocked map domain",
+      "old internal clock and report diagnostic only",
+      "inherited final6x.02s zero tail can wait when collector pauses; no dependency on old report for authoritative terminal"
+    ]
+  },
+  "limits": [
+    "No actual four-method navigation run or live planner consumption qualification performed here.",
+    "Frozen standalone route node has remap/lock race limitations, repaired only in this new coordinated derived node.",
+    "Fresh visible-point isotropic occupancy bound is bootstrap fallback, not learned candidate-conditioned/calibrated prediction.",
+    "New PCT checkpoint absent; analytic is the only new route method for N01.",
+    "Zero request and geometric verification are not physical safety certification.",
+    "P05 physical backend actual qualification is separately reviewed by parent; not inferred from metadata here."
+  ],
+  "related_audits": [
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_components/common_footprint_projection.json",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_components/route_node_derivation.json",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_components/route_node_derivation.diff",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_components/launch_parse/report.json",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n01_clear_r03/legacy_map_union_independent.json"
+  ],
+  "revision": "r1",
+  "revision_reason": "required collector shutdown terminates roslaunch; r0 would keep other nodes alive to wall cap",
+  "revision_r0_archive": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_coordinator_components/revision_r0"
+}

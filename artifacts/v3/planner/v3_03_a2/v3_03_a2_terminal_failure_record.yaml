@@ -1,0 +1,46 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-A2
+status: terminal_full_metric_extractor_preplanner_failure
+date: "2026-07-24"
+execution:
+  authorized_simulation_units: 18
+  consumed_simulation_units: 1
+  completed_simulation_units: 1
+  completed_decisions: 0
+  forfeited_simulation_units: 17
+  retries: 0
+  resume_allowed: false
+  seed_started: 6301
+  remaining_seeds_forfeited: [6301, 6302, 6303]
+failure:
+  decision_id: v3_03_a2_integration_6301_cautious
+  phase: common_prefix_probe_snapshot_extraction
+  planner_invoked: false
+  selected_candidate_execution_started: false
+  exception: "V301Error: query outside trace"
+  cause: >-
+    The repaired short-trace parser passed, but actor_snapshot delegated to the
+    inherited full prediction trace_metrics function. That function also
+    queries absolute targets 1.5, 2.5, 3.5 and 4.5 s, which are intentionally
+    outside the 0.55 s probe.
+preserved_resources:
+  journal:
+    path: artifacts/v3/planner/v3_03_a2/execution/v3_03_a2_attempt_journal.jsonl
+    sha256: 4d091120f09d5f578bf5cb3260252e0ceb60876b542479c72373a97e342cd10e
+  raw_probe:
+    path: artifacts/v3/planner/v3_03_a2/execution/decisions/v3_03_a2_integration_6301_cautious/probe/raw_pose_trace.csv
+    sha256: b32137536eacbe58529c7082ebcd50fb74ae05e3c3fd922dfc0bfe9c37415110
+  probe_world:
+    path: artifacts/v3/planner/v3_03_a2/execution/decisions/v3_03_a2_integration_6301_cautious/probe/world.sdf
+    sha256: aca8a812dde2420ea4cb92a5cdcead97a2c461ffde37bd8473b4c3240410e0c8
+disposition:
+  A2_retry_or_resume: forbidden
+  A2_seed_or_budget_reuse: forbidden
+  gate_or_planner_change: forbidden
+  next_stage: V3-03-A3
+  allowed_repair: decision_time_actor_snapshot_extractor_only
+claim:
+  simulation_integration_pass: false
+  performance_improvement: false
+  real_vehicle_ready: false

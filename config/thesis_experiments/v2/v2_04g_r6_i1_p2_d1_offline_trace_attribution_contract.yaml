@@ -1,0 +1,145 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P2-D1
+status: offline_trace_attribution_contract_frozen
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+
+scientific_question:
+  factor_hypothesis_id: semantic_clear_post_cruise_longitudinal_release
+  question: >-
+    Does the already recorded P1 semantic-clear treatment trace contain enough
+    same-path longitudinal headroom for a future single-factor design to target
+    an aggregate 8--10 percent restricted-completion-time reduction relative to
+    the paired legacy control?
+  target_population: >-
+    The 30 frozen time_separated_semantic_clear P1 paired blocks at seeds
+    5261--5290; this is not a claim about other geometries, simulators, or a real
+    vehicle.
+  factor_scope:
+    eligibility: >-
+      circle-contact treatment after the first observed anchor_cruise sample in
+      a semantic-clear episode
+    changed_quantity_class: longitudinal envelope utilization only
+    frozen_prefix: goal dispatch through the first anchor_cruise sample
+    frozen_path_geometry: true
+    frozen_spatial_obstacle_parameters: true
+    frozen_semantic_estimator_and_overlay: true
+    frozen_scene_seed_and_evaluator: true
+    executable_runtime_field_selected: false
+    reason_runtime_field_not_selected: >-
+      P2-D1 is attribution and physical-room screening. It must not convert an
+      ideal envelope into an executable or causally qualified parameter.
+
+source_evidence:
+  p1_terminal_evidence_freeze:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/p1_e1_terminal_evidence_freeze.sha256
+    sha256: 952b97389b5c65afbc083dcf3a893e9f9c845a6d512539161f058543d48b594a
+  p1_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_p1_e1_execution_release.yaml
+    sha256: 05a6efe21a4c110be667b0873d8ac1b26ac692feefea8932f40a506ca9b9027b
+  p1_normalized_matrix:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/normalized_terminal_matrix.json
+    sha256: 07ee925756405029084ccf8a48ba02b60b38b0760171a71f0cbde6f08f678466
+  p1_raw_replay_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/raw_replay_report.yaml
+    sha256: 91a213e51d043938637be71faafc89169a61d61527bff22ab49c4c8ececc60c3
+  p1_four_gate_assessment:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/p1_e1_four_gate_assessment.yaml
+    sha256: 89147e95f19c461926e302982ab4db3772f1847fa0ca273e05b0df73fe2cd6df
+  treatment_anchor_bank:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/anchor_bank.yaml
+    sha256: 5a3ecfc4c9dc8b6bfbb90ad5f036250396eceb99bd0154d1634012bbc4a4a72f
+  historical_screen_plan:
+    path: artifacts/v2/calibration/v2_04b_anchor_screen_plan.yaml
+    sha256: d58020bf454f03a5d0ed13c856bf95b1acac9d2f39edccf3858108d185976eb1
+  historical_cruise_center_evaluation:
+    path: artifacts/v2/calibration/pilot_001_cruise_center/evaluation.yaml
+    sha256: 5cf60cbd9010600e0789fb59721866f50220b4054227f3c97ccf3e79c5bd9cfe
+  historical_speed_low_evaluation:
+    path: artifacts/v2/calibration/episodes/ep_051__anchor_cruise-c01-max_vel_x_low__v2-cal-cruise-straight-35m-s4301/evaluation.yaml
+    sha256: f834d3dc348e400ceca8206ea530abea6fa7143ac66da1f004520b0bd7bba203
+  historical_speed_high_evaluation:
+    path: artifacts/v2/calibration/episodes/ep_052__anchor_cruise-c02-max_vel_x_high__v2-cal-cruise-straight-35m-s4301/evaluation.yaml
+    sha256: bfdd633415d7ab10a9e49cffb33e3832eca0f83fc4970f99a273734f4a689839
+  historical_weight_low_evaluation:
+    path: artifacts/v2/calibration/episodes/ep_057__anchor_cruise-c07-weight_optimaltime_low__v2-cal-cruise-straight-35m-s4301/evaluation.yaml
+    sha256: df9fa2b939df739897607a8ca86179db4c7a16096eb069a8e99de5f04164a95a
+  historical_weight_high_evaluation:
+    path: artifacts/v2/calibration/episodes/ep_058__anchor_cruise-c08-weight_optimaltime_high__v2-cal-cruise-straight-35m-s4301/evaluation.yaml
+    sha256: f3b61be3196b539e4203e3ce5972cb0eec0f1233717217a04f773ba4979e24cc
+
+trace_selection:
+  scene_role: time_separated_semantic_clear
+  seeds: {start: 5261, end: 5290, count: 30}
+  paired_methods:
+    control: r6_semantics_legacy_control
+    treatment: r6_semantics_circle_contact
+  treatment_trace_count: 30
+  sample_window: goal_dispatch_through_first_goal_reached_inclusive
+  post_terminal_accounting_s: preserve_observed_navigation_time_minus_observation_duration
+  retries_replacements_or_exclusions_allowed: false
+
+analysis_definition:
+  primary_estimand: >-
+    one minus the geometric mean of frozen-prefix same-path envelope times
+    divided by the geometric mean of paired legacy restricted completion times
+  current_longitudinal_constraints:
+    max_vel_x_mps: 1.2
+    acc_lim_x_mps2: 0.8
+    terminal_velocity_mps: 0.0
+  cap_bound_observation_threshold:
+    fraction_of_current_max_vel_x: 0.95
+    actual_speed_threshold_mps: 1.14
+  motion_command_threshold_mps: 0.05
+  phase_distance_fractions: [0.1, 0.9]
+  uncertainty:
+    method: paired_seed_bootstrap_on_mean_log_ratio
+    resamples: 10000
+    seed: 20260722
+    deterministic_rng: sha256_counter_p2_d1_v1
+    one_sided_alpha: 0.05
+  target_reductions: [0.08, 0.10]
+  physical_room_gate:
+    envelope_point_reduction_at_least: 0.10
+    one_sided_95_percent_lower_at_least: 0.10
+    all_30_blocks_retained: true
+    raw_trace_and_evaluation_hashes_match_journals: true
+  cap_exposure_sensitivity: >-
+    Preserve all non-cap-bound observed time and scale only actual-speed
+    cap-bound dwell by the inverse of a hypothetical longitudinal multiplier.
+    This is a first-order exposure calculation, not a dynamically executable
+    trajectory.
+
+interpretation_boundary:
+  physical_room_pass_means: >-
+    The aggregate 8--10 percent target lies inside a conservative same-path
+    longitudinal envelope of the frozen traces.
+  physical_room_pass_does_not_mean:
+    - a runtime parameter has been qualified
+    - the counterfactual time will be achieved
+    - a causal performance improvement has been demonstrated
+    - P1 has changed from its frozen negative four-gate conclusion
+    - safety at a higher speed has been established
+  historical_screen_status: descriptive_direction_check_only
+  future_requirement: >-
+    A later design stage must choose exactly one executable runtime factor,
+    establish safe bounds, use fresh identities, and pass independent offline
+    review before any separately authorized simulation.
+
+forbidden_side_effects:
+  rerun_or_resume_i5: true
+  rerun_resume_or_extend_p1: true
+  start_ros_gazebo_or_move_base: true
+  create_execution_release_attempt_journal_or_consumption: true
+  consume_seed_evidence_or_training_budget: true
+  start_or_expand_training: true
+  modify_p1_thresholds_or_drop_samples: true
+  modify_runtime_profiles_or_online_parameters: true
+  connect_real_vehicle: true

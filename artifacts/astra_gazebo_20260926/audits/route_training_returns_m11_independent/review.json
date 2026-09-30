@@ -1,0 +1,126 @@
+{
+  "schema": "astra_route_training_returns_m11_independent_review_v1",
+  "status": "independent_pure_reward_and_variable_duration_gae_r02_pass",
+  "scope": "scalar CPU component only; actual collector/provenance/training integration pending",
+  "reviewer_ownership": "independent review and fixture only; author root owns source and repair",
+  "reviewed_source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_training_returns_m11.py",
+    "sha256": "b584dbb2b16ded9931de7996a60c1392f02b935f1cf3834f62cddc1617f21fa6"
+  },
+  "original_source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11_independent/source_reviewed_r0.py",
+    "sha256": "b8a84ae4cc4ad5284263cebd25a858062214d01c6b726d78f28e4f080d8cc1fa"
+  },
+  "author_tests_rerun": 37,
+  "independent_tests": 16,
+  "combined_passed": 53,
+  "original_replay": {
+    "failed": 1,
+    "passed": 15,
+    "failure": "premature gamma*lambda underflow before fractional exponent"
+  },
+  "findings": [
+    {
+      "id": "M11_NUMERIC_01",
+      "status": "resolved_by_author_r02",
+      "original_actual_advantage": 0.0,
+      "independent_expected_advantage": 1e-40,
+      "description": "product underflow for supported gamma=lambda=1e-200, dt/ref=.1",
+      "fix": "discount*(lambda**exponent), original bytes and negative replay preserved"
+    }
+  ],
+  "checks": {
+    "actual_source_duration_not_nominal": true,
+    "variable_duration_decimal_reference": true,
+    "lambda_one_discounted_reward_telescope": true,
+    "pg_mask_does_not_change_advantage_or_value_target": true,
+    "nonpg_row_omission_rejected_as_gap": true,
+    "timeout_finite_terminal_zero_bootstrap": true,
+    "cut_preserves_supplied_bootstrap_and_excludes_later_segment": true,
+    "infrastructure_outcome_and_missing_next_value_rejected": true,
+    "duplicate_overlap_terminal_reuse_rejected": true,
+    "root_patch_only_continuation_factor_and_comment": true
+  },
+  "pending": [
+    "Actual observation/route/speed endpoint source joins and control coverage",
+    "Measured bootstrap observation and behavior critic binding at collection cuts",
+    "Shared actual 22-second terminal/contact priority and lifecycle failure accounting",
+    "M10 proposal q and independent PG-eligibility receipt integration",
+    "Training release, complete objective/discount/coefficients/budget and independent backend review"
+  ],
+  "M10_independent_qualification": false,
+  "training_steps": 0,
+  "simulation_episodes": 0,
+  "ROS_started": false,
+  "optimizer_created": false,
+  "gpu_used": false,
+  "benchmark": false,
+  "execution_authorized": false,
+  "training_authorized": false,
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_training_returns_m11.py",
+      "sha256": "b584dbb2b16ded9931de7996a60c1392f02b935f1cf3834f62cddc1617f21fa6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_route_training_returns_m11.py",
+      "sha256": "8ccb8c390603d906808922a730fddf7a541e6a5a6f0765571d5e1128dc3474c4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11/component_report.json",
+      "sha256": "e2cf254512e79552de751b54542edea3511b4cdede2a712db18237f8a9a18b3a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11/component_report_r02.json",
+      "sha256": "4d987f5b8d812e4fab4483597014346f3f995af1a2816b74bdea4a9c5c1d319e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11/source_r01_before_independent_underflow_fix.py",
+      "sha256": "b8a84ae4cc4ad5284263cebd25a858062214d01c6b726d78f28e4f080d8cc1fa"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/route_training_returns_m11_tests_r01.log",
+      "sha256": "615ebe8d4d873b614e3a8757967d1792a4661921b5fd0ed4db4250201b93b310"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/route_training_returns_m11_tests_r02.log",
+      "sha256": "b0b75f421b5d473d250fc837b68d4922c35c17299afa8f1aae96d02175372f3c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_alignment_m09/design.md",
+      "sha256": "7e4f76e5e41e2bac8e722e1882c36ddc6d7ad876e34f13a4e962631d3f55a84b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11_independent/replay_original_negative.log",
+      "sha256": "8845bd00cc83da6c88cc1fba084d0a6d93f5fa7bee5fca5ab0128172fb7c5383"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11_independent/review.md",
+      "sha256": "c5235de7cfba5d5c4bd6fae269d6696b2e5a9894b595065ae24bc78321c16cb6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11_independent/source_fix.diff",
+      "sha256": "6d8ba55f792be23f0343373af63db1adc3657ea92b66f155a9c0eb75fec4be16"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11_independent/source_reviewed_r0.py",
+      "sha256": "b8a84ae4cc4ad5284263cebd25a858062214d01c6b726d78f28e4f080d8cc1fa"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11_independent/test_independent.py",
+      "sha256": "79c58b32925f49e51c541927d2b51d8cbbaeed9cdf1529995d08d8ce1aefa959"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11_independent/tests_final_r02.log",
+      "sha256": "f3880fafa8f29f0711d88553ff9e88c17e480dcd76ea8690a407dd7ef937509d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11_independent/tests_r0.log",
+      "sha256": "c08b4ba2348103858cee19e537495f329111712eb8b433648d9ba67e456dfbfa"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_training_returns_m11_independent/underflow_counterexample_r0.json",
+      "sha256": "2562c301c3fea622a613faf1deb8e460f163795fcf4db19082d270494176919a"
+    }
+  ]
+}

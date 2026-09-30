@@ -1,0 +1,43 @@
+schema_version: '1.0'
+split: development
+scene_id: p02_static_corridor
+seed: 260926002
+corridor_half_width_m: 2.35
+static_boxes: []
+static_circles: []
+actors: []
+actor_policy_input_to_planners: false
+gazebo_model_states_evaluator_only: true
+expected_models:
+- ground_plane
+- benchmark_upper_wall
+- benchmark_lower_wall
+- astra_evidence_camera
+- autolabor_m2
+evidence_camera:
+  pose_xyz_rpy:
+  - 0
+  - 0
+  - 15
+  - 0
+  - 1.5707963267948966
+  - 1.5707963267948966
+  width: 2560
+  height: 1440
+  horizontal_fov_rad: 1.05
+  update_hz: 2
+  projection: perspective
+  topic: /astra/camera/image_raw
+initial_geometry_qc:
+  robot_instances: 1
+  actors: 0
+  robot_xy:
+  - -5.4
+  - 0
+  robot_chassis_length_width_m:
+  - 1.04
+  - 0.7
+  minimum_initial_horizontal_clearance_m: 2.0
+  illegal_initial_intersection: false
+  wheel_ground_height: runtime_required
+  scope: static corridor only; not a general geometric verifier

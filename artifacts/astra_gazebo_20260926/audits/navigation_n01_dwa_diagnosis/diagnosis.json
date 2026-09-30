@@ -1,0 +1,535 @@
+{
+  "schema": "astra_navigation_n01_dwa_offline_diagnosis_v1",
+  "status": "root_cause_reproduced_offline_new_config_candidate_not_live_qualified",
+  "run_id": "astra_navigation_n01_dwa_common_route",
+  "source_release_sha256": "ae155b33ea2ad6c732163265c266764817ff9268587e136a0c9f9ff93aed9ea5",
+  "historical_result_reclassified": false,
+  "ros_or_gazebo_started": false,
+  "seed_allocated": false,
+  "conclusion": "All raw method commands are finite. The first fault is caused solely by nonzero linear.y from /move_base. Zero acc_lim_y combined with nonzero measured lateral velocity creates an inverted DWA dynamic window; vy_samples=1 does not suppress its nonzero endpoint. This mechanism is reproduced by the currently installed native generator.",
+  "raw_method_commands": [
+    {
+      "topic": "/astra/method_cmd",
+      "bag_receipt_ns": 7442000000,
+      "vx": 0.0,
+      "vy": 0.0,
+      "vz": 0.0,
+      "wx": 0.0,
+      "wy": 0.0,
+      "wz": 0.0,
+      "nonplanar_or_nonfinite": false
+    },
+    {
+      "topic": "/astra/method_cmd",
+      "bag_receipt_ns": 7706000000,
+      "vx": 0.8070158958435059,
+      "vy": 1.2670447176788002e-05,
+      "vz": 0.0,
+      "wx": 0.0,
+      "wy": 0.0,
+      "wz": 0.0010689642513170836,
+      "nonplanar_or_nonfinite": true
+    },
+    {
+      "topic": "/astra/method_cmd",
+      "bag_receipt_ns": 7864000000,
+      "vx": 0.6076943278312683,
+      "vy": 0.00045139779103919864,
+      "vz": 0.0,
+      "wx": 0.0,
+      "wy": 0.0,
+      "wz": 0.0,
+      "nonplanar_or_nonfinite": true
+    },
+    {
+      "topic": "/astra/method_cmd",
+      "bag_receipt_ns": 7872000000,
+      "vx": 0.47857972979545593,
+      "vy": 0.0002892707707360387,
+      "vz": 0.0,
+      "wx": 0.0,
+      "wy": 0.0,
+      "wz": 0.0007465453818440436,
+      "nonplanar_or_nonfinite": true
+    }
+  ],
+  "raw_connection_callerid": "/move_base",
+  "first_fault": {
+    "topic": "/astra/navigation/command_trace",
+    "bag_receipt_ns": 7706000000,
+    "data": {
+      "schema": "astra_common_navigation_v1",
+      "sequence": 156,
+      "run_id": "astra_navigation_n01_dwa_common_route",
+      "seed": 260926026,
+      "method": "dwa_common_route",
+      "publisher_visible_clock_ns": 7706000000,
+      "actual_odom_source_ns": 7700000000,
+      "gate_source_ns": 7440000000,
+      "phase": "fault",
+      "terminal_source_ns": 7700000000,
+      "terminal_reason": "ValueError:nonplanar or nonfinite method command",
+      "terminal_time_authority": "latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp",
+      "v": 0.0,
+      "w": 0.0,
+      "reason": "ValueError:nonplanar or nonfinite method command",
+      "selected_method_receipt": null,
+      "method_command_generation_stamp_known": false,
+      "late_fault_count": 0,
+      "late_faults": []
+    }
+  },
+  "gate": {
+    "topic": "/astra/navigation/gate",
+    "bag_receipt_ns": 7440000000,
+    "data": {
+      "schema": "astra_common_navigation_v1",
+      "run_id": "astra_navigation_n01_dwa_common_route",
+      "seed": 260926026,
+      "method": "dwa_common_route",
+      "source_ns": 7440000000,
+      "source": "actual_odom_header_first_crossing",
+      "pose_map": [
+        -3.9970251394171434,
+        -0.0009514026860489266,
+        -0.00011040771673506144
+      ],
+      "body_twist": [
+        0.800353651463652,
+        -1.4238516298407274e-06,
+        -9.739394662775843e-06
+      ],
+      "activation_source_ns": 5000000000,
+      "goal_pose": [
+        5.0,
+        0.0,
+        0.0
+      ],
+      "deadline_source_ns": 29440000000,
+      "deadline_ns": 29440000000
+    }
+  },
+  "gate_to_terminal_source_seconds": 0.26,
+  "timestamp_limit": "Twist has no Header. Bag receipt and coordinator visible clock are not planner generation timestamps. Unique float32 odom matches establish numerical correspondence, not a stamped causal input join.",
+  "actual_float32_matches": [
+    {
+      "command_bag_receipt_ns": 7706000000,
+      "command_vy": 1.2670447176788002e-05,
+      "matching_odom": {
+        "source_ns": 7480000000,
+        "bag_receipt_ns": 7480000000,
+        "vx": 0.784074716030415,
+        "vy": 1.2670447233572088e-05,
+        "wz": -2.4653239072892418e-06
+      },
+      "match_is_not_a_planner_generation_timestamp": true
+    },
+    {
+      "command_bag_receipt_ns": 7864000000,
+      "command_vy": 0.00045139779103919864,
+      "matching_odom": {
+        "source_ns": 7700000000,
+        "bag_receipt_ns": 7700000000,
+        "vx": 0.5882826143373889,
+        "vy": 0.00045139777794571515,
+        "wz": -0.0009960793428317142
+      },
+      "match_is_not_a_planner_generation_timestamp": true
+    },
+    {
+      "command_bag_receipt_ns": 7872000000,
+      "command_vy": 0.0002892707707360387,
+      "matching_odom": {
+        "source_ns": 7860000000,
+        "bag_receipt_ns": 7860000000,
+        "vx": 0.44857972679135477,
+        "vy": 0.0002892707832461651,
+        "wz": 0.003960829556623413
+      },
+      "match_is_not_a_planner_generation_timestamp": true
+    }
+  ],
+  "configured_parameters": {
+    "min_vel_y": 0.0,
+    "max_vel_y": 0.0,
+    "acc_lim_y": 0.0,
+    "vy_samples": 1,
+    "holonomic_robot": false
+  },
+  "parameter_evidence": [
+    "saved actual roslaunch parameter expansion",
+    "roslaunch startup parameter text",
+    "bootstrap selected planner class read from parameter server"
+  ],
+  "defaults": {
+    "min_vel_y": -0.1,
+    "max_vel_y": 0.1,
+    "acc_lim_y": 2.5,
+    "use_dwa": true,
+    "vy_samples": 10
+  },
+  "holonomic_flag_scope": "holonomic_robot=false is present in the YAML/parameter server but absent from DWAPlannerConfig and DWAPlannerROS limits/reconfigure paths. It does not force lateral sampling to zero in this implementation.",
+  "mechanism": {
+    "period_s": 0.05,
+    "period_evidence": "20 Hz controller and runtime Sim period is set to 0.05 log",
+    "lower": "max(0, float32(measured_vy) - float32(acc_lim_y) * 0.05)",
+    "upper": "min(0, float32(measured_vy) + float32(acc_lim_y) * 0.05)",
+    "zero_acc_positive_vy": "lower=vy>upper=0",
+    "zero_acc_negative_vy": "lower=0>upper=vy",
+    "iterator": "If endpoints differ, requested sample count 1 is raised to at least 2 and both endpoints are emitted.",
+    "generator": "The native DWA-mode generator accepts nonzero-y samples; the final command copies the chosen trajectory y velocity. This probe does not reproduce costmap scoring or the exact winning trajectory.",
+    "near_goal_caveat": "LatchedStopRotateController also uses acc_lim_y to reduce measured vy toward zero; positive allowance has the same bounded-input limitation near goal."
+  },
+  "native_probe": {
+    "checks": 17,
+    "cases": 1212,
+    "odom_inputs": 393,
+    "maximum_abs_observed_vy_row": {
+      "source_ns": 6240000000,
+      "bag_receipt_ns": 6240000000,
+      "vx": 0.719539382650247,
+      "vy": 0.036252974741212744,
+      "wz": 0.06273681604671061
+    },
+    "results": [
+      {
+        "acc_lim_y": 0.0,
+        "actual_odom_inputs": 393,
+        "all_y_samples_zero_count": 0,
+        "nonzero_sample_count": 393
+      },
+      {
+        "acc_lim_y": 0.6,
+        "actual_odom_inputs": 393,
+        "all_y_samples_zero_count": 392,
+        "nonzero_sample_count": 1
+      },
+      {
+        "acc_lim_y": 2.5,
+        "actual_odom_inputs": 393,
+        "all_y_samples_zero_count": 393,
+        "nonzero_sample_count": 0
+      }
+    ],
+    "positive_acceleration_domain": "For a>=0 and fixed period 0.05, zero-only DWA y sampling requires abs(float32(vy)) <= float32(a)*0.05 (subject to stated float evaluation). The 2.5 candidate covers |vy|<=0.125 m/s; synthetic +0.125001/-0.13 still produce accepted nonzero samples.",
+    "observed_maximum_is_not_future_bound": true,
+    "loaded_current_probe_libraries": [
+      "/opt/ros/noetic/lib/libbase_local_planner.so",
+      "/opt/ros/noetic/lib/libclass_loader.so",
+      "/opt/ros/noetic/lib/libcostmap_2d.so",
+      "/opt/ros/noetic/lib/libcpp_common.so",
+      "/opt/ros/noetic/lib/libdynamic_reconfigure_config_init_mutex.so",
+      "/opt/ros/noetic/lib/librosconsole.so",
+      "/opt/ros/noetic/lib/librosconsole_backend_interface.so",
+      "/opt/ros/noetic/lib/librosconsole_log4cxx.so",
+      "/opt/ros/noetic/lib/libroscpp.so",
+      "/opt/ros/noetic/lib/libroscpp_serialization.so",
+      "/opt/ros/noetic/lib/libroslib.so",
+      "/opt/ros/noetic/lib/librospack.so",
+      "/opt/ros/noetic/lib/librostime.so",
+      "/opt/ros/noetic/lib/libtf2.so",
+      "/opt/ros/noetic/lib/libvoxel_grid.so",
+      "/opt/ros/noetic/lib/libxmlrpcpp.so"
+    ],
+    "run_dwa_final_mapped_elf_proof_available": false,
+    "installed_binary_not_a_substitute_for_missing_historical_final_maps": true
+  },
+  "repair_options": [
+    {
+      "option": "new config acc_lim_y=2.5",
+      "selected_by_parent": true,
+      "change": "Only DWAPlannerROS.acc_lim_y 0.0→2.5; hard min/max y remain zero, native code/real odom/coordinator unchanged.",
+      "benefit": "Smallest single configuration factor; official generic local-planner default; all393 saved odom inputs yield only zero-y samples.",
+      "boundary": "Virtual planner velocity-change allowance, not an independently actuated lateral degree of freedom or physical acceleration bound. Beyond0.125m/s lateral input the coordinator still fails closed.",
+      "fairness": "New configured DWA comparator identity/factor; separate fresh qualification. Changes candidate set and potentially ranking; no performance claim from old data."
+    },
+    {
+      "option": "explicit nonholonomic planner-odometry adapter",
+      "selected_by_parent": false,
+      "change": "Preserve /odom and evidence exactly; provide separate marked planner-only odometry with lateral twist zero.",
+      "benefit": "Stock generator sees a strict nonholonomic model velocity; prevents this interval inversion independent of raw finite vy magnitude.",
+      "boundary": "Deliberately omits measured slip from planner model and possibly stopped/goal logic. Must log raw/adapted source-stamp pairs, enforce a declared slip domain, and qualify a new adapter identity. It must never replace evaluator or physical-driver odometry."
+    },
+    {
+      "option": "post-planner command projection",
+      "selected_by_parent": false,
+      "change": "Set raw DWA output vy to zero before authority.",
+      "boundary": "Executed command differs from the scored trajectory and can invalidate obstacle-cost predictions. Requires separately verified projected-trajectory semantics; not recommended as a minimal fix."
+    }
+  ],
+  "selected_config": {
+    "schema": "astra_dwa_configuration_single_factor_v1",
+    "old": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_v0.yaml",
+      "sha256": "efb8c37d540927f4bee2b97435c141d07751d8c623b8db6f5c7d44d990967921"
+    },
+    "new": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml",
+      "sha256": "9624d5a0c331d218909fc325fd467c42a202f40dc672935ad0daecd30fdd3cab"
+    },
+    "changed_fields": [
+      {
+        "field": "DWAPlannerROS.acc_lim_y",
+        "before": 0.0,
+        "after": 2.5
+      }
+    ],
+    "reverse_exact_text_substitution_equals_parent_bytes": true,
+    "execution_authorized_by_this_artifact": false,
+    "new_config_loaded_by_existing_launch": false,
+    "candidate_only": "Future separately released DWA diagnostic qualification; no seed allocated here.",
+    "scope": "Lateral sampler virtual velocity-change allowance, not physical lateral actuation; actual odometry and strict coordinator rejection unchanged."
+  },
+  "future_stage_proposal": {
+    "stage": "N03 single DWA diagnostic qualification",
+    "seed_candidate_not_allocated": 260926034,
+    "requires": "New root-owned contract/release and fresh execution authority; retain raw /odom, record effective parameters and final loaded DWA ELF, keep strict nonzero-y rejection. N02 sensor-only R2 remains separate."
+  },
+  "secondary_failure": "Collector native-image requirement failed for the short terminal interval; missing final maps caused assessment FileNotFoundError. These remain original failures and are separate from the preceding raw DWA command fault.",
+  "scope_limits": [
+    "No live fix tested",
+    "No N01 outcome reclassification",
+    "No N01/N02 coordinator modifications",
+    "No exact historical final DWA loaded-library closure after early collector failure",
+    "No actor/planner performance or physical lateral-control claim",
+    "No timestamp invention for headerless Twist"
+  ],
+  "upstream_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/ros-planning/navigation/1.17.3/base_local_planner/src/simple_trajectory_generator.cpp",
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/simple_trajectory_generator.cpp",
+      "sha256": "584e776487561956f6fb678c034d9c4f9dc5799452943e1bcd79bf1b8d080860"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ros-planning/navigation/1.17.3/base_local_planner/include/base_local_planner/velocity_iterator.h",
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/include/base_local_planner/velocity_iterator.h",
+      "sha256": "16647ead518b442abdb382a0424c6fec3f3ce938bacc5af81a17f7427549b9aa"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ros-planning/navigation/1.17.3/base_local_planner/src/odometry_helper_ros.cpp",
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/odometry_helper_ros.cpp",
+      "sha256": "857613213fc9be73e63b240cb9678b5584db377d02c402d91f64172b107b8577"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ros-planning/navigation/1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ros-planning/navigation/1.17.3/dwa_local_planner/src/dwa_planner_ros.cpp",
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner_ros.cpp",
+      "sha256": "6bbeb37938dee0e43d21d3b2a5649ef8c6630297c3d583121a6325cff8a1eef0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ros-planning/navigation/1.17.3/dwa_local_planner/cfg/DWAPlanner.cfg",
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/cfg/DWAPlanner.cfg",
+      "sha256": "8bbcd114563167be6be98c5d00a669cd5a14edacfa18805b1b6e22214318681e"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ros-planning/navigation/1.17.3/base_local_planner/src/latched_stop_rotate_controller.cpp",
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/latched_stop_rotate_controller.cpp",
+      "sha256": "40be0483fe6d6cf456c05d27a1428c15380cef5099205f7f85154ab140179ab7"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/ros-planning/navigation/1.17.3/base_local_planner/src/local_planner_limits/__init__.py",
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/base_local_planner/src/local_planner_limits/__init__.py",
+      "sha256": "75ecf8fff826e3c7b167edd4892c0c082563adbb95095dcba53c1b8d5afe5be3"
+    }
+  ],
+  "input_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_dwa_common_route/fixture.bag",
+      "sha256": "d8893db38531fe3a4a9be8f0702086ffc034824fd6e8ee88118bdc7acd5ee880",
+      "bytes": 9175663
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_dwa_common_route/collector_report.json",
+      "sha256": "0d53efd8dc0398237e27277e2a8010adf95fada7dd0160264ad05b117dabf765",
+      "bytes": 1079
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_dwa_common_route/collector_raw.json",
+      "sha256": "b2066f3415af60f67715d37f353c8b3768ff6ff10e5c752813ca817e312f7b01",
+      "bytes": 1170719
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_dwa_common_route/receipt.json",
+      "sha256": "792416354db2ef5d418f4a0db04c2d5fa8642849474ba62a71caafac37de4f91",
+      "bytes": 5224
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_dwa_common_route/roslaunch.log",
+      "sha256": "dd189cf28ddb2d61464380e80c782177e0e1852f55c6a5d03456dca6607bdf8c",
+      "bytes": 17148
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_dwa_common_route/ready_for_maps.json",
+      "sha256": "14d7f857f49eaab6d061ea293d809c173d511a882daf539dcd987c97ac5527b8",
+      "bytes": 4513
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_dwa_common_route/baseline_process_bootstrap.json",
+      "sha256": "da2d54e1c358061cb04fc56b390f0d20b3152d18cf240782dfa0fc3870310cf9",
+      "bytes": 410
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_dwa_common_route/contract.json",
+      "sha256": "f48acf327fd9d5bca05c95c2ef5c6ac6388c2dbbd1bb7566c5d5125005ea9cc3",
+      "bytes": 5242
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_v0.yaml",
+      "sha256": "efb8c37d540927f4bee2b97435c141d07751d8c623b8db6f5c7d44d990967921",
+      "bytes": 739
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_root_launch_preflight_r02/astra_navigation_n01_dwa_common_route/parameters.yaml",
+      "sha256": "e007957144dc4e4a76677828c2df50c58342e1a9ad864a21c4f38e5587ffe3cd",
+      "bytes": 25173
+    },
+    {
+      "path": "/opt/ros/noetic/lib/python3/dist-packages/dwa_local_planner/cfg/DWAPlannerConfig.py",
+      "sha256": "079fb943c1b170a372ea5c06f2639f08bdb783ed64ccd2e3120a249c4d83879f",
+      "bytes": 14392
+    },
+    {
+      "path": "/opt/ros/noetic/include/base_local_planner/simple_trajectory_generator.h",
+      "sha256": "73fa3282f4f913316bb86717c2b820b31dd4279fda6ffe85654888b5a73346be",
+      "bytes": 6332
+    },
+    {
+      "path": "/opt/ros/noetic/include/base_local_planner/local_planner_limits.h",
+      "sha256": "8a4b620e81ec4c2437c621de4fcfdb8066b6f71b9c25d3e5a3a6130a561a441f",
+      "bytes": 3983
+    },
+    {
+      "path": "/opt/ros/noetic/include/base_local_planner/velocity_iterator.h",
+      "sha256": "16647ead518b442abdb382a0424c6fec3f3ce938bacc5af81a17f7427549b9aa",
+      "bytes": 3544
+    },
+    {
+      "path": "/opt/ros/noetic/lib/libbase_local_planner.so",
+      "sha256": "94413e12921289199cde6098d3b642204ed52f567fee1e52477c3ea2d6517608",
+      "bytes": 349080
+    },
+    {
+      "path": "/opt/ros/noetic/lib/libdwa_local_planner.so",
+      "sha256": "58b10f4a57c0007ce89319edee58d72b2d6c59a56f6f769968b6652fafc24dcf",
+      "bytes": 427152
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+      "sha256": "1f2bb1da971fc2536dd0243562bb523d14875bff52b40b6193541544b1dc9959",
+      "bytes": 12913
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_coordinator_n02.py",
+      "sha256": "28ef7728770280e20281d2a702016c482541e6b0db0b5b5e0cab512f94d27d72",
+      "bytes": 10907
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n02.py",
+      "sha256": "3813fd51782efb7df2e2479f938fad7587648ee581fe3af596a4bd8e6ad74d31",
+      "bytes": 12919
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "bytes": 7613
+    }
+  ],
+  "frozen_coordinator_checks": {
+    "src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py": "1f2bb1da971fc2536dd0243562bb523d14875bff52b40b6193541544b1dc9959",
+    "scripts/astra_gazebo/navigation_coordinator_n02.py": "28ef7728770280e20281d2a702016c482541e6b0db0b5b5e0cab512f94d27d72",
+    "src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n02.py": "3813fd51782efb7df2e2479f938fad7587648ee581fe3af596a4bd8e6ad74d31",
+    "src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c"
+  },
+  "reproduce_commands": [
+    "g++ -std=c++14 -O0 -I/opt/ros/noetic/include -I/usr/include/eigen3 native_dynamic_window_probe.cpp -L/opt/ros/noetic/lib -Wl,-rpath,/opt/ros/noetic/lib -lbase_local_planner -o native_dynamic_window_probe",
+    "./native_dynamic_window_probe native_probe.maps.txt < native_probe_inputs.txt > native_probe_output.jsonl",
+    "PYTHONDONTWRITEBYTECODE=1 python3 verify_native_probe.py"
+  ],
+  "artifacts": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/configuration_unique.diff",
+      "sha256": "25d8fdb61a0df4336969b710e7d65cb6932e414d4d82e9e1a7f5e864093fb155",
+      "bytes": 469
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/configuration_unique_diff.json",
+      "sha256": "e559596d9cd580c6a6a14f24b39cf92a346a59816e3809718351cd3265454f52",
+      "bytes": 1090
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/initial_timing.json",
+      "sha256": "250ca9eb26fbdbf2d4b9833b9a3d971f7813b459617ed7c36cd3db8941f8f19b",
+      "bytes": 5823
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/installed_package_versions.txt",
+      "sha256": "5380701236464427a384bfcf69fef9e056a732eb40ec02ba1989293a5ac1a3e3",
+      "bytes": 119
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_dynamic_window_probe",
+      "sha256": "b15934f4f7f9133654f054487fa9d14b98e3e025ab88761a6692d9f24e40101c",
+      "bytes": 74960
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_dynamic_window_probe.cpp",
+      "sha256": "a99d3b25543c10146d5dc40b818ec978a7a5ffd8cbffade6d27d56f502ef58f1",
+      "bytes": 2700
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe.maps.txt",
+      "sha256": "f2018230be1d45d6a87d24a296e6bc3e60c99cbc43903040d55fbae8f81228d8",
+      "bytes": 30734
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe_inputs.txt",
+      "sha256": "c3ad7c7b79db875bcebf1678c0a60822b2b50f32d835059325791f05316cccff",
+      "bytes": 110349
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe_output.jsonl",
+      "sha256": "5960823975a36aff01ffd436da0d1403ba874c37f9c44a2f08af1f2f9687d70d",
+      "bytes": 330328
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe_stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe_summary.json",
+      "sha256": "6ecdff4bb3ab63ea18a01e9e3807d7e1ac04f71f3f80246727df128e2d799b24",
+      "bytes": 22829
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe_verification.json",
+      "sha256": "e89adbe2f8d5b36af9a4239d2b985f2deb23d34a6e04d2734bbc36e2492347ca",
+      "bytes": 3901
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/selected_connections.json",
+      "sha256": "83f716c65cf645d549a3a7b665e031585a66a375a15d9a89326c480eee51b2d6",
+      "bytes": 5836
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/selected_messages.jsonl",
+      "sha256": "8d5a7f5a773429d194cd612b744fd81a06beee1167d41938dc839d2d0ddc2238",
+      "bytes": 136661
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/source_odometry.jsonl",
+      "sha256": "7e371f265084dee1c8f0e9a454e612c87fcb63cf38da73697ac570cbc75af325",
+      "bytes": 56058
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/verify_native_probe.py",
+      "sha256": "d3294c8834c4e9ee0c49925c18795e9ff0aafaf13a97be1dbea973a15953ff27",
+      "bytes": 3367
+    }
+  ],
+  "classification": "Finite planar lateral velocity incompatible with nonholonomic command contract; the combined exception name does not mean actual z/roll/pitch or NaN. Float32 conversion preserves observed nonzero vy rather than creating it from zero."
+}

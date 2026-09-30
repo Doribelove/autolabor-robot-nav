@@ -1,0 +1,76 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R3
+stage_purpose: midpoint_recovery_sequential_support_and_predictor_qualification
+status: preregistered_before_execution
+upstream:
+  diagnostic_analysis_path: artifacts/v3/multiactor/v3_13_q1_r2_diagnostic/offline_root_cause.yaml
+  diagnostic_analysis_sha256: d651b8af11641272d064bc217ea5812c8325fce76830a7e1922c8f4644ceecce
+  diagnostic_review_sha256: e435f82ecf701dc86331ec1ba05aa8ed33dfc7b228ddeaca1479f121da984717
+  predictor_path: artifacts/v3/multiactor/v3_13_s3_predictor/candidate_conditioned_recovery_predictor.yaml
+  predictor_sha256: 94449b8a1a645754c88c1781a5b7ac8fd869adaa5b79c69d81aa4e6abc33b621
+single_factor:
+  factor: second_recovery_absolute_sim_time_s
+  previous_s: 12.5
+  prospective_s: 10.5
+  first_recovery_absolute_sim_time_s_unchanged: 8.5
+  speed_estimator_unchanged: causal_coordinate_slope_window_0_50_s
+  planner_predictor_actor_candidate_bank_safety_gates_unchanged: true
+offline_design_scan:
+  source: frozen_R2_early_and_late_snapshots_linear_coordinate_interpolation
+  grid_s: [8.5, 8.75, 9.0, 9.25, 9.5, 9.75, 10.0, 10.25, 10.5, 10.75, 11.0, 11.25, 11.5, 11.75, 12.0, 12.25, 12.5]
+  positive_progress_window_s: [10.25, 10.75]
+  selected_fixed_time_s: 10.5
+  selected_candidate_at_design_snapshot: spatial_right_v120
+  selected_predicted_clearance_m: 0.0227
+  interpolation_is_design_only_not_evidence: true
+population:
+  scene_policy_strata:
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, hesitant]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, hesitant]}
+  seeds: [7332, 7333, 7334, 7335]
+  branch_target_sim_s: 10.5
+  nominal_wait_depth_s: 3.0
+  actions: [spatial_left_v120, spatial_right_v120, straight_v120, certified_stop_v000]
+  actions_per_block: 4
+  matched_context_blocks: 4
+  exact_units: 16
+  actor_trajectories: 32
+  behavior_propensity: 0.25
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+matching_gates:
+  branch_clock_absolute_error_max_s: 0.012
+  paired_decision_ego_x_difference_max_m: 0.04
+  paired_decision_actor_coordinate_difference_max_m: 0.05
+  paired_decision_actor_speed_difference_max_mps: 0.05
+  complete_action_support_rate_min: 1.0
+  branch_trace_samples_min: 130
+  branch_trace_duration_s_min: 6.85
+predictor_gates:
+  simultaneous_whole_trajectory_coverage_min: 0.90
+  every_scene_simultaneous_trajectory_coverage_min: 0.85
+  mean_trajectory_rmse_m_max: 0.25
+  maximum_trajectory_rmse_m_max: 0.65
+  terminal_full_width_m_max: 1.80
+  hidden_label_feature_count_max: 0
+planner_audit_gates:
+  every_block_selected_candidate_is_nonstop_progress: true
+  every_selected_candidate_analytic_accepted: true
+  every_selected_clone_contact_count_max: 0
+  every_selected_clone_conservative_clearance_min_m: 0.0
+  every_block_has_four_action_support: true
+downstream:
+  if_all_gates_pass: new_actual_TEB_preflight_with_midpoint_recovery
+  direct_actual_TEB_execution_authorized: false
+  training_authorized: false
+authority:
+  exact_bounded_simulation_qualification_authorized: true
+  authorized_units: 16
+  training_authorized: false
+  perception_stage_execution_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false

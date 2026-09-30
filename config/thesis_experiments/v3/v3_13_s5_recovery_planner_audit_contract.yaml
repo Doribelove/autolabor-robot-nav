@@ -1,0 +1,47 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-S5
+stage_purpose: offline_three_state_recovery_planner_audit
+status: preregistered_pure_offline_audit
+upstream:
+  predictor_path: artifacts/v3/multiactor/v3_13_s3_predictor/candidate_conditioned_recovery_predictor.yaml
+  predictor_sha256: 94449b8a1a645754c88c1781a5b7ac8fd869adaa5b79c69d81aa4e6abc33b621
+  S4_assessment_sha256: d8c77522840c4d943566d946b0042bfb620e2b6291b4cbe2c84fc718d0baec30
+  S4_evidence_freeze_sha256: 21691c4e7eca68bf35534600792989f5358a1b77fd2e6f8cdd22a7e4df0eb8a9
+  S4_independent_review_sha256: 6d4932730e8c1c4b25b79cb2d8310ef71d9eb57065fa58cef1ff1a32f699ce43
+audit_population:
+  high_risk_strata: 4
+  states_per_stratum: [initial_interaction, early_recovery, late_recovery]
+  initial_source_C3_block_indices: [11, 12, 15, 16]
+  recovery_source_S4_block_indices: [1, 2, 3, 4, 5, 6, 7, 8]
+  hidden_policy_runtime_input: false
+gates:
+  all_initial_decisions_certified_stop: true
+  all_early_recovery_decisions_certified_stop: true
+  all_late_recovery_decisions_nonstop_progress: true
+  all_selected_candidates_analytic_verifier_accepted: true
+  all_selected_clone_outcomes_nonnegative_conservative_clearance: true
+  all_selected_clone_outcomes_contact_free: true
+  all_states_have_four_action_clone_support: true
+  every_stratum_eventually_progresses: true
+  hidden_label_feature_count_max: 0
+downstream:
+  if_passes: design_actual_TEB_multiactor_fair_qualification_release
+  direct_actual_TEB_execution_authorized: false
+  policy_or_ranker_training_authorized: false
+  perception_claim_authorized: false
+authority:
+  pure_offline_audit_authorized: true
+  ROS_or_Gazebo_execution_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  qualified_if_S5_passes:
+  - the frozen analytic planner has a supported stop-wait-progress recovery chain in all four high-risk strata
+  forbidden:
+  - actual TEB performance improvement
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

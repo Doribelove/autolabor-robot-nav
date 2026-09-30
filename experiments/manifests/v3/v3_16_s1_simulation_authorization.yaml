@@ -1,0 +1,27 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-16-S1
+authorization_basis:
+  source: explicit_user_instruction
+  date: '2026-08-06'
+  instruction_scope: add_more_nonphysical_experiments_for_the_thesis
+authorized_scope:
+  simulation_only: true
+  exact_units: 45
+  preflight_seed: 7741
+  evidence_seeds: [7742, 7743, 7744, 7745, 7746, 7747, 7748, 7749]
+  attempts_per_identity: 1
+  stop_after_failed_preflight: true
+  retry_resume_replacement_or_selective_exclusion: false
+excluded_scope:
+  historical_seed_or_release_reuse: true
+  hardware_device_access: true
+  real_vehicle_motion: true
+  can_or_serial_access: true
+  stable_workspace_modification: true
+  online_TEB_parameter_writes: true
+  predictor_or_policy_training_in_this_stage: true
+execution_authorized: true
+hardware_device_access_authorized: false
+real_vehicle_authorized: false
+

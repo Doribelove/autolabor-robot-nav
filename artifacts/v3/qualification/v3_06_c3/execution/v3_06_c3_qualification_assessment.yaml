@@ -1,0 +1,79 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-06-C3
+assessment_id: v3_06_c3_qualification_assessment_1
+status: v3_06_c3_minimal_v040_qualification_fail
+formal_result: false
+execution:
+  authorized_units: 36
+  consumed_units: 36
+  completed_units: 36
+  retry_units: 0
+pooled_integration_metrics:
+  episode_count: 36
+  decision_count: 1215
+  goal_success_rate: 1.0
+  selected_candidate_accepted_rate: 1.0
+  certified_stop_available_rate: 1.0
+  exact_core_replay_rate: 1.0
+  motion_recovery_after_clear_rate: 1.0
+  yield_before_clear_rate: 1.0
+  conservative_clearance_violation_count: 0
+  minimum_conservative_clearance_m: 0.2492751022509352
+  maximum_segment_boundary_ego_position_jump_m: 0.006000000000000227
+  maximum_segment_boundary_actor_position_jump_m: 0.006750000433160874
+  maximum_selected_trajectory_trace_error_m: 4.440892098500626e-16
+  planner_latency_p99_ms: 19.88076
+  planner_latency_max_ms: 23.411004
+  maximum_goal_time_s: 9.75
+  nonfinite_metric_count: 0
+pooled_integration_gates:
+  episode_count_pass: true
+  goal_success_pass: true
+  selected_candidate_accepted_pass: true
+  certified_stop_available_pass: true
+  exact_core_replay_pass: true
+  motion_recovery_after_clear_pass: true
+  conservative_clearance_pass: true
+  ego_boundary_continuity_pass: true
+  actor_boundary_continuity_pass: true
+  trajectory_trace_pass: true
+  planner_latency_pass: true
+  finite_metrics_pass: true
+method_metrics:
+  sparse_control:
+    episode_count: 18
+    goal_success_rate: 1.0
+    restricted_goal_time_mean_s: 9.0
+    decision_count: 612
+    certified_stop_decision_count: 246
+    collision_episode_count: 0
+  minimal_v040:
+    episode_count: 18
+    goal_success_rate: 1.0
+    restricted_goal_time_mean_s: 8.875
+    decision_count: 603
+    certified_stop_decision_count: 200
+    collision_episode_count: 0
+paired_effect:
+  paired_unit_count: 18
+  point_relative_reduction_vs_control: 0.014454689593363483
+  positive_pair_fraction: 0.5555555555555556
+qualification_gates:
+  shared_integration_pass: true
+  point_effect_pass: false
+  treatment_goal_success_pass: true
+  goal_success_noninferiority_pass: true
+  positive_pair_fraction_pass: true
+  collision_pass: true
+  selected_candidate_accepted_pass: true
+  exact_replay_pass: true
+  latency_pass: true
+qualified_for_fresh_formal_evaluation: false
+overall_pass: false
+claim:
+  formal_performance_improvement: false
+  actual_teb_superiority: false
+  general_navigation_safety: false
+  deployment_ready: false
+  real_vehicle_ready: false

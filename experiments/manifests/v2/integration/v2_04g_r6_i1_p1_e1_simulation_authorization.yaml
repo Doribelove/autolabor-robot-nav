@@ -1,0 +1,47 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P1-E1
+authorization_id: fam_teb_v2_04g_p1_e1_user_authorization_20260721_1
+status: explicit_user_authorization_recorded_release_not_yet_created
+explicit_user_authorization_recorded: true
+authorization_recorded_date: "2026-07-21"
+simulation_only: true
+execution_authorized: true
+authorized_evidence_units: 270
+attempt_per_identity: 1
+retry_resume_replacement_allowed: false
+training_allowed: false
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+i5_rerun_or_resume_forbidden: true
+fresh_execution_seeds:
+  first: 5201
+  last: 5290
+  count: 90
+  historical_seed_reuse_allowed: false
+  compile_support_seeds_are_execution_forbidden: [5291, 5292, 5293, 5294]
+exact_schedule:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/v2_04g_p1_r1_exact_schedule.yaml
+  rows: 270
+  blocks: 90
+  methods_per_block: 3
+release_boundary:
+  unique_release_path: experiments/manifests/v2/integration/v2_04g_r6_i1_p1_e1_execution_release.yaml
+  release_creation_count_max: 1
+  release_creation_authorized: true
+  execution_requires_release_and_offline_review_pass: true
+  execution_without_exact_caller_supplied_release_sha256: false
+terminal_failure_policy:
+  preconsumption_failure: stop_without_consumption
+  postconsumption_integrity_failure: persist_stop_forfeit_remaining
+  retry_allowed: false
+  resume_allowed: false
+  replacement_allowed: false
+  successful_only_analysis_allowed: false
+authorization_basis:
+  verbatim_user_tail: 明确授权
+  contextual_scope: >-
+    The immediately preceding user text names the exact P1 runner, unified raw
+    replay adapter, independent review, unique release, exact 270-unit budget,
+    and later simulation execution; the explicit authorization applies to that
+    bounded sequence and no broader activity.

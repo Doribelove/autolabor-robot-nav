@@ -1,0 +1,36 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-16-D1
+stage_purpose: pure_offline_multi_actor_common_prefix_failure_attribution
+status: preregistered_pure_offline
+upstream:
+  v3_14_s1_assessment_sha256: 58c472560699e10276f76c063dd243ab5666f8e534346c51e88aa9f2b49958b9
+  v3_14_s1_review_sha256: 4773d76437a01148984770ca502dce96cfa6d3bc2743029e0bb7a1f10f94c60a
+  v3_14_s1_evidence_summary_sha256: d6ffde4c658170ccf6ed992bd4131ee28f72a81882d64f73b41c38038f53e8d4
+hypotheses:
+  H1: action identity or ego common-prefix mismatch caused the failure
+  H2: actor state was already materially mismatched at the warmup gate
+  H3: prebranch reactive response amplified small gate differences before the 12.5 s intervention boundary
+frozen_diagnostics:
+  compare_warmup_gate_and_branch_actor_coordinate_ranges: true
+  compare_warmup_gate_and_branch_actor_speed_ranges: true
+  preserve_all_eight_blocks_and_all_five_actions: true
+  inspect_renderer_and_plugin_response_activation_semantics: true
+decision_rule:
+  if_action_binding_and_ego_pairing_pass_and_gate_actor_coordinate_max_below_0_01_m_and_branch_actor_gate_fails: support_H3
+  factor_if_H3_supported: postbranch_response_enable_gate
+  frozen_response_enable_sim_s: 12.55
+  rationale: 0.05_s_after_12.5_s_branch_exceeds_observed_0.008_s_branch_clock_error_and_prevents_treatment_response_before_snapshot
+future_single_factor:
+  only_behavioral_change: reactive_actor_response_disabled_before_12_55_s
+  actor_activation_start_path_seed_base_speed_geometry_and_postgate_policy_unchanged: true
+  original_plugin_default_behavior_preserved_when_field_absent: true
+  matching_thresholds_unchanged: true
+authority:
+  offline_only: true
+  simulation_execution_authorized: false
+  evidence_budget: 0
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+

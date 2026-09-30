@@ -1,0 +1,104 @@
+{
+  "schema": "astra_n04_static_witness_supplement_v1",
+  "parent_r01_inputs_unchanged": true,
+  "preserved_previous_witness": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n04_development_r01/development_a02_development_occluded_emergence_000/replicate_00/geometry_qc.json",
+    "sha256": "21c4ba25d19eb8afc1b478ff1871243a8a59cc058dfee3034d06031b5acbf337",
+    "status": "sin^4 static witness physical gap positive but margin insufficient"
+  },
+  "curve": "piecewise symmetric quintic smoothstep: rear_x -4.325 to4.675; y=A*(10t^3-15t^4+6t^5), t rises0to1 in4.5m then falls1to0",
+  "amplitude_m": 1.6,
+  "endpoint_yaw_and_curvature_zero": true,
+  "sample_count": 901,
+  "rear_x_step_m": 0.01,
+  "derivative_bounds": {
+    "abs_yprime": 0.6666666666666666,
+    "abs_y2prime": 0.4561779904708154,
+    "abs_y3prime": 1.0534979423868314,
+    "abs_curvature_prime": 1.4696946603668142,
+    "point_L_per_rear_x": 2.1909600526316217
+  },
+  "body_radius_m": 1.0,
+  "steer_local_radius_m": 0.3,
+  "shape_radius_audit": [
+    {
+      "shape": "autolabor_m2::base_link::base_link_fixed_joint_lump__chassis_collision_collision",
+      "root_radius_triangle_bound_m": 0.9169157595854348,
+      "steering_local_radius_bound_m": null,
+      "arbitrary_wheel_spin_pad_required_m": 0.0
+    },
+    {
+      "shape": "autolabor_m2::base_link::base_link_fixed_joint_lump__imu_link_collision_1",
+      "root_radius_triangle_bound_m": 0.43000000000000005,
+      "steering_local_radius_bound_m": null,
+      "arbitrary_wheel_spin_pad_required_m": 0.0
+    },
+    {
+      "shape": "autolabor_m2::base_link::base_link_fixed_joint_lump__laser_link_collision_2",
+      "root_radius_triangle_bound_m": 0.6640312423743284,
+      "steering_local_radius_bound_m": null,
+      "arbitrary_wheel_spin_pad_required_m": 0.0
+    },
+    {
+      "shape": "autolabor_m2::front_left_steer_link::front_left_steer_link_collision",
+      "root_radius_triangle_bound_m": 0.5366804836926556,
+      "steering_local_radius_bound_m": 0.0696419413859206,
+      "arbitrary_wheel_spin_pad_required_m": 0.0
+    },
+    {
+      "shape": "autolabor_m2::front_left_wheel_link::front_left_wheel_link_collision",
+      "root_radius_triangle_bound_m": 0.6222802892693353,
+      "steering_local_radius_bound_m": 0.15524174696260024,
+      "arbitrary_wheel_spin_pad_required_m": 1.1404552100461259e-06
+    },
+    {
+      "shape": "autolabor_m2::front_right_steer_link::front_right_steer_link_collision",
+      "root_radius_triangle_bound_m": 0.5366804836926556,
+      "steering_local_radius_bound_m": 0.0696419413859206,
+      "arbitrary_wheel_spin_pad_required_m": 0.0
+    },
+    {
+      "shape": "autolabor_m2::front_right_wheel_link::front_right_wheel_link_collision",
+      "root_radius_triangle_bound_m": 0.6222802892693353,
+      "steering_local_radius_bound_m": 0.15524174696260024,
+      "arbitrary_wheel_spin_pad_required_m": 1.1404552100461259e-06
+    },
+    {
+      "shape": "autolabor_m2::rear_left_wheel_link::rear_left_wheel_link_collision",
+      "root_radius_triangle_bound_m": 0.6222802892693353,
+      "steering_local_radius_bound_m": null,
+      "arbitrary_wheel_spin_pad_required_m": 1.1404552100461259e-06
+    },
+    {
+      "shape": "autolabor_m2::rear_right_wheel_link::rear_right_wheel_link_collision",
+      "root_radius_triangle_bound_m": 0.6222802892693353,
+      "steering_local_radius_bound_m": null,
+      "arbitrary_wheel_spin_pad_required_m": 1.1404552100461259e-06
+    }
+  ],
+  "curvature_abs_bound": 0.4561779904708154,
+  "sampled_max_abs_curvature": 0.413914148710875,
+  "central_steer_abs_bound": 0.28825712577055107,
+  "central_steer_limit": 0.4964,
+  "sampled_min_physical_xy_m": 0.49004860145838797,
+  "interval_physical_xy_lower_m": 0.47908380119522986,
+  "interval_minus_033_lower_m": 0.14908380119522985,
+  "worst_sample": {
+    "rear_x_m": -3.455,
+    "base_pose": [
+      -3.140414527776329,
+      0.1662994129627825,
+      0.25383980130594463
+    ],
+    "curvature": 0.41125342620092625
+  },
+  "static_geometric_witness_pass": true,
+  "scope": "ideal static planar Ackermann geometry with nine converted primitive shapes and conservative point interval pad; no dynamic actor or tracking/actuator claim",
+  "root_geometry_provenance": {
+    "urdf_sha256": "f6815283ffd61dbe3941893e095a1663c88afad1900af06d01e225dc22e61314",
+    "converted_sdf_sha256": "a1859bff1624cc687295603a48d5770821191d7409563c6d1636e0c1de79f912"
+  },
+  "generator_sha256": "e4c77d307dcbe7af43a462b007b45b779f503407f1c23750dfe560da49f8a218",
+  "live_qualification": false,
+  "scene_bytes_changed": false
+}

@@ -1,0 +1,60 @@
+schema_version: '1.0'
+stage: V6-04-P0
+phase: preflight
+status: execution_complete
+release_sha256: 18c4455bbc4b51fd8ac3087c8dc5ac5a7c25224f5317e29e865c3f0a596a4b3f
+simulation_only: true
+episode_count: 3
+method_summary:
+  pct_scope_rl_v6:
+    episodes: 1
+    execution_integrity_passes: 0
+    goal_successes: 0
+    mean_restricted_time_s: 22.0
+    minimum_clearance_m: -0.9901913478090653
+    contact_count: 0
+    mean_policy_latency_ms: 3.92646006741573
+  sensor_analytic_prior:
+    episodes: 1
+    execution_integrity_passes: 0
+    goal_successes: 1
+    mean_restricted_time_s: 11.599999999999998
+    minimum_clearance_m: -1.0339251477522733
+    contact_count: 0
+    mean_policy_latency_ms: 0.09806446808510635
+  actual_teb:
+    episodes: 1
+    execution_integrity_passes: 1
+    goal_successes: 1
+    mean_restricted_time_s: 7.75
+    minimum_clearance_m: 0.19040373230669205
+    contact_count: 0
+    mean_policy_latency_ms: null
+gate_actor_ranges:
+- block_index: 1
+  coordinate_range_m: 0.0009600000000000719
+  speed_range_mps: 0.0019199999999752748
+base_integrity_checks:
+  exact_episode_count: true
+  attempt1_complete: true
+  execution_integrity: false
+  gate_physical_valid: true
+  actor_mode_match: true
+  zero_contact: true
+  nonnegative_clearance: false
+  sensor_input_audit: true
+qualification_checks: {}
+phase_pass: false
+qualification_pass: null
+paired_blocks:
+- block_index: 1
+  scene_id: open_crossing_90
+  actor_policy: cautious
+  pct_time_s: 22.0
+  analytic_time_s: 11.599999999999998
+  actual_teb_time_s: 7.75
+formal_statistics: null
+training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false
+v6_04_tracker_gate_pass: true

@@ -1,0 +1,7 @@
+# V3-21 paper-ready results narrative
+
+V3-21 is a fresh-seed, four-method, failure-inclusive characterization over 30 paired scene-seed blocks and 120 one-shot episodes. V3 spatial-safe reached 28/30 goals (93.33%) with a mean restricted time of 7.785 s; actual TebLocalPlannerROS 0.8.4 reached 30/30 goals with 7.770 s. The paired relative reduction was -0.193% (two-sided 95% block-bootstrap CI [-19.867%, 12.982%], Holm-adjusted p=0.755), so this study does not demonstrate a failure-inclusive time advantage over actual TEB.
+
+Against fixed-v1.20 shielded, V3 reduced restricted time by 64.614% (95% CI [57.682%, 69.250%]); against the no-candidate-conditioning ablation it reduced time by 49.454% (95% CI [37.001%, 58.800%]). The ablation reached only 13/30 goals, compared with 28/30 for V3, providing exploratory evidence for candidate-conditioned prediction within the frozen population. All methods recorded zero contact states. Empirical clearance is descriptive finite-simulation evidence, not a formal safety guarantee.
+
+The historical V3-11 study remains a valid, separately preregistered positive result (12.9288% reduction with 100% success for both methods), but V3-21 did not reproduce the actual-TEB efficiency advantage because two conservative V3 fallbacks were retained at 22 s. The studies must not be pooled or selectively filtered. The defensible conclusion is therefore bounded mechanism evidence plus a negative fresh replication for failure-inclusive superiority over actual TEB.

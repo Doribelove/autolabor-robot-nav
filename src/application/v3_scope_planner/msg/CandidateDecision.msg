@@ -1,0 +1,11 @@
+std_msgs/Header header
+string schema_version
+string scene_snapshot_id
+string candidate_set_digest
+string selected_candidate_id
+string policy_kind
+string policy_artifact_digest
+float64 selection_propensity
+bool safety_fallback_used
+string fallback_reason
+string decision_digest

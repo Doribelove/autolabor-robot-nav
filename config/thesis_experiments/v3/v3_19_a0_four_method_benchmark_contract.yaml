@@ -1,0 +1,110 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-19-A0
+status: preregistered_before_any_v3_19_simulation_outcome
+purpose: Same-population four-method thesis benchmark and single-factor component ablation.
+methods:
+  identifiers:
+    - v3_spatial_safe
+    - actual_teb
+    - fixed_v120_shielded
+    - v3_no_candidate_conditioning
+  roles:
+    v3_spatial_safe: main_method
+    actual_teb: primary_baseline
+    fixed_v120_shielded: shielded_fixed_policy_comparator
+    v3_no_candidate_conditioning: single_factor_ablation
+  ablation:
+    single_factor: candidate_conditioning
+    control: candidate-specific spatial predictor head
+    treatment: same-mode certified-stop predictor head reused for spatial candidate
+    frozen_nonfactors:
+      - candidate generator
+      - hard verifier
+      - analytic ranker
+      - tracker
+      - vehicle and actuator dynamics
+      - scene and actor dynamics
+      - command boundary
+    training_steps: 0
+scene_population:
+  - {scene_id: open_crossing_90, actor_angle_deg: 90.0, corridor_half_width_m: null}
+  - {scene_id: wide_corridor_crossing_70, actor_angle_deg: 70.0, corridor_half_width_m: 1.80}
+  - {scene_id: bounded_corridor_crossing_110, actor_angle_deg: 110.0, corridor_half_width_m: 1.68}
+actor_policies: [cautious, hesitant]
+strata:
+  - {scene_id: open_crossing_90, actor_policy: cautious}
+  - {scene_id: open_crossing_90, actor_policy: hesitant}
+  - {scene_id: wide_corridor_crossing_70, actor_policy: cautious}
+  - {scene_id: wide_corridor_crossing_70, actor_policy: hesitant}
+  - {scene_id: bounded_corridor_crossing_110, actor_policy: cautious}
+  - {scene_id: bounded_corridor_crossing_110, actor_policy: hesitant}
+evaluation:
+  qualification:
+    seed_start: 7901
+    seed_end: 7906
+    blocks: 6
+    episodes: 24
+  formal:
+    seed_start: 8001
+    seed_end: 8030
+    blocks: 30
+    episodes: 120
+  attempts_per_identity: 1
+  retries_resumes_replacements: forbidden
+  method_order: deterministic_balanced_latin_rotation
+common_protocol:
+  simulation_only: true
+  shared_vehicle: autolabor_m2_ackermann
+  shared_command_boundary: /cmd_vel_navigation
+  maximum_speed_mps: 1.2
+  handoff_pose_m_rad: [-2.6, 0.0, 0.0]
+  handoff_speed_mps: 0.8
+  timing_starts_at_handoff: true
+  goal_pose_m_rad: [5.2, 0.0, 0.0]
+  timeout_s: 22.0
+  shared_oracle_actor_track: true
+  perception_claim_authorized: false
+qualification_gates:
+  exact_episode_count: 24
+  completed_attempt1_rate_min: 1.0
+  execution_integrity_rate_min: 1.0
+  gate_physical_valid_rate_min: 1.0
+  actor_mode_match_rate_min: 1.0
+  maximum_within_block_gate_actor_coordinate_range_m: 0.04
+  maximum_within_block_gate_actor_speed_range_mps: 0.04
+  main_goal_success_rate_min: 0.95
+  actual_teb_goal_success_rate_min: 0.95
+  contact_count_max: 0
+  minimum_conservative_clearance_m: 0.0
+  all_non_teb_selected_candidates_accepted: true
+formal_statistics:
+  independent_unit: paired_scene_seed_block
+  failure_value: restricted_time_equals_22_seconds
+  primary_comparison: v3_spatial_safe_vs_actual_teb
+  estimand: ratio_of_paired_population_mean_restricted_times
+  point_relative_reduction_min: 0.10
+  one_sided_lower_relative_reduction_min: 0.05
+  one_sided_alpha: 0.025
+  block_bootstrap_resamples: 20000
+  bootstrap_seed: 31919
+  secondary_comparisons:
+    - v3_spatial_safe_vs_fixed_v120_shielded
+    - v3_spatial_safe_vs_v3_no_candidate_conditioning
+  secondary_inference: exploratory_two_sided_95_percent_block_bootstrap
+  report_all_scene_policy_strata: true
+claim_boundary:
+  population: three frozen reactive single-actor Gazebo templates under paired simulator seeds
+  learning_claim_authorized: false
+  perception_or_ood_claim_authorized: false
+  formal_safety_claim_authorized: false
+  deployment_claim_authorized: false
+  real_vehicle_claim_authorized: false
+authority:
+  explicit_user_simulation_instruction_date: '2026-08-06'
+  qualification_execution_authorized_after_release_review: true
+  formal_execution_authorized_only_after_qualification_pass: true
+  training_authorized: false
+  hardware_access_authorized: false
+  real_vehicle_authorized: false
+

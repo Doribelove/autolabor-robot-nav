@@ -1,20 +1,93 @@
 # TEB RL Thesis Development Status
 
-更新时间：2026-07-21
+更新时间：2026-08-08
 
 ## 当前阶段
 
-- 阶段：T12 冻结证据维护 + FAM-TEB V2-04G-R6-I6 pure-offline result interpretation/design closure complete
-- 状态：T00--T11 已完成；T12 两 seed 完整但学习门失败；V2-04G-R5 与 R6-I1 均永久停止，I5 终态冻结且不得重跑。I6 以 13-resource SHA 清单冻结 I5 关键证据，确定性复核报告 `c1fd43205d0f3b3c6a029590b33808812dc8db795bdcf4b270c345e033b9dd68` 返回 `offline_result_interpretation_design_closure_pass`；现有结论只限 fresh simulation semantic/execution integration。未来 V2-04G-P1 已预注册 90 个全新 scene-seed block / 270 episodes、零新增训练步数，但 `execution_authorized=false`、budget=0，未创建 release 或运行状态
+- 阶段：V6-06-P1-R1 当前论文更新与跨电脑移交闭环
+- 状态：V5 传感器端到端候选 RL 完成但正式实效门阴性；V6 以单因素 privileged counterfactual trajectory-rank distillation 完成 4×120k 训练、160 块验证和 80 块 fresh formal，并取得相对解析先验 8.4024% 的限定阳性结果。三条 Gazebo 迁移预检均因保守净空门失败而终止，资格/正式矩阵未启动。最新纯离线交付为 41 页真正整合的 V3+V6 技术稿、自包含 V3/V5/V6 数据、11 图/5 表、实车空白章节和另一台电脑 Codex 学校模板更新提示词；独立审查全部通过。禁止扩大为 Gazebo、Actual TEB、通用安全、感知/OOD、部署或实车结论
 - 当前负责人：Ubuntu Codex CLI + 用户
+
+## V5/V6 端到端候选强化学习终态
+
+- 当前入口：`docs/thesis_experiment/CURRENT_V6_PCT_SCOPE_RL_HANDOFF.md`
+- 架构：LaserScan 历史 + odometry + local goal -> CNN-GRU sensor actor ->
+  8 个 Ackermann 可行候选的残差评分；解析先验、硬动作掩码、0.10 优势门和 certified-stop
+  保留独立否决/回退权限；输出仍经过 `/cmd_vel_navigation`
+- 特权训练：critic-only 32 维仿真真值 + PCT 困难场景反事实候选排序标签；部署 actor-only
+  checkpoint 不含 privilege key/module
+- V5 正式结果：60 fresh blocks，降幅 6.0936%，95% CI [1.7867%,11.0069%]，低于 8% 门，终局阴性
+- V6 正式结果：80 fresh blocks，PCT/解析目标 60/80 对 49/80，均时 13.1156/14.3188 s；
+  降幅 8.4024%，双侧 97.5% CI [3.4840%,13.7135%]，全部冻结门通过；接触/掩码违规均 0
+- 次要机制结果：相对冻结 V5 降幅 3.1611%，95% CI [0.4936%,6.5765%]；收益集中于部分遮挡；
+  narrow-corridor 四方法均 0/20；V6/no-history 完全相同
+- Gazebo 边界：R1/R2/V6-04 三次预检 V6 最小保守净空 -0.0774/-0.3366/-0.9902 m；
+  均未授权 qualification/formal，不得声称相对 Actual TEB 有效
+- 论文：`artifacts/v6/paper/v6_05_p1_thesis_export/FAM_TEB_V6_PCT_RL_THESIS_DRAFT.pdf`，
+  69 页 A4，SHA `c1a23074f1524cf967b89f674017f03529e4b54ab171abc5cabfa5749229d829`；
+  independent review SHA `ff4b6423d8fb610fe29486ab059c86a1e86f284055c8b520cf9e38cf4e470b41`
+- 当前论文移交包：`artifacts/v6/paper/v6_06_p1_r1_thesis_transfer_package/`；整合 PDF 41 页 A4，
+  SHA `a2fcacc82ee8f7fc290415661b34bd5324bbc157158d54a0780705a7737eadf1`；学校模板 Codex 提示词、
+  combined claims、数据字典、V3/V5/V6 CSV、实车空白章节和 77 文件终态清单齐全；independent
+  review SHA `00e4705f783632723018c6920f8e1b68dc6096a08cc28018d72e286e783d1f1b`
+- 当前安全入口：停止训练和 Gazebo 参数追逐；若开展后续工作，必须新建“闭环交互一致的
+  传感器预测/可达占用”阶段并使用新种子、新合同与独立授权；实车和在线 TEB 写入继续禁止
+
+## V3-SCOPE 终态
+
+- 快速入口：`docs/thesis_experiment/CURRENT_V3_11_ACTUAL_TEB_FORMAL_HANDOFF.md`
+- 历史 foundation：`docs/thesis_experiment/CURRENT_V3_SCOPE_FOUNDATION_HANDOFF.md`
+- 完整理论报告：
+  `docs/future_research/v3_candidate/THEORETICAL_FEASIBILITY_AND_RESEARCH_ROADMAP.md`
+- 架构代号：`V3-SCOPE`
+- 核心动作：从已满足 Ackermann 约束的候选轨迹中选择，不再以高维 TEB 参数作为主学习动作
+- 核心链路：候选条件交互预测 -> 校准可达占据管 -> 硬安全过滤 -> 解析排序 ->
+  有条件启用 contextual bandit/offline RL
+- 硬件策略：保留 M2、激光、GPS、里程计、相机和稳定命令安全链；未来输出仍须经过
+  `/cmd_vel_navigation`、GPS limiter、FOD arbiter 和 M2 driver
+- 理论状态：候选条件空间规划、反应式 actor、预测、硬验证与解析排序已实现并形成正式仿真证据
+- 当前状态：`V3-11-F1 ACTUAL-TEB FORMAL POSITIVE / V3-12-P1 PAPER CLOSURE / NO TRAINING / NO REAL VEHICLE`
+- V3-00 证据：`v3_scope_planner` 5 消息编译通过，7/7 pytest 与 7/7 catkin nosetests 通过；
+  foundation evidence freeze SHA `4a08325b67c0706a860560ab7ced1191100e5ecb91e4b6138679aa0c11a05d5b`，
+  independent review SHA `bb9ce5641ed650f2f3b14688f15f7a3787679f7e06c9bc4d62cd435be7b6b1bf`
+- V3-01 证据：R2 36/36 attempt=1，9/9 policy×seed blocks 通过；actor 4 s 位置效应
+  0.777245--2.310975 m，最大初态误差 0.006 m，最大跨 seed spread 0 m；independent
+  result review SHA `f9363de30f018208d3e2adf0c9cdbe6b19e4c9b2708ec3eba356f03bca2d0ffd`
+- V3-02 证据：C2 fresh seeds 6261--6263、36/36 attempt=1；coverage 0.9931、
+  mean width 3.9098 m、MAE 0.1918 m、共同前缀 actor coordinate/speed spread 均为 0；
+  C2-I1 integrity review SHA `56ef648a291a9078ad2dce947b3f308e690d09b6ac325b4554afdbeafc0fabb4`
+- V3-07/08 证据：空间 predictor held-out 20/20，global/per-head coverage 1.0；A3 fresh
+  integration 18/18，minimum conservative clearance 0.41937 m，exact replay 1.0
+- V3-09-F1 证据：180/180、goal success 1.0/1.0、point 0.223844、one-sided lower
+  0.218235、positive blocks 30/30、minimum conservative clearance 0.165663 m、
+  exact replay 1.0、P99 18.087844 ms；assessment SHA
+  `d950256f4da310f65d604031ec72009e014facfb7cb0c14be8cf19ce1b9c346b`
+- V3-10-P1 证据：paper manifest SHA
+  `70353b355c6eec2f733901ca7d4a6820de550beff00999cfacdb359dec951938`，
+  independent closure SHA
+  `bee5891b08f860a97a25ea71047b3e5fabb0c193695f221de131eacb5dcfe0f4`
+- V3-11-F1 actual-TEB 证据：60/60、goal success 1.0/1.0、mean time
+  6.7683/7.7733 s、point 12.9288%、one-sided 97.5% lower 12.7253%、
+  六个 scene×policy strata 全正、contact 0；assessment SHA
+  `9b19f8bd29f1d6c06197e932b03359a2f78081da65e636f52f7f610529c3f2f9`，
+  independent review SHA
+  `2d5e8c21ea70f29df97e646f703159297ff0d2da6ef10edb1341da057c133b39`
+- V3-12-P1 actual-TEB paper manifest SHA
+  `319bce3401859e25fa1e5da68d97669a6aebf593688c475003a8844b91798c0b`，
+  independent closure SHA
+  `96d7d0333ef2eba5b62819fb0fadc689c3756e5015804d2ea8fb86b4a4ca17b2`
+- 下一安全入口：当前 actual-TEB bounded study terminal；更强论文声明需新建
+  纯离线 execution-integrity closure，先加入 scheduled candidate ID 与 runtime report ID
+  的 fail-closed 一致性断言。V3-13 r3 完整支持、感知/定位退化和训练均未获授权；
+  实车仍需现场授权与独立标定
 
 ## V2 架构设计状态
 
 - 系统指南：`docs/thesis_experiment/V2_SYSTEM_GUIDE.md`
 - 架构代号：`FAM-TEB V2`
 - 设计状态：`DESIGN COMPLETE`
-- 实现状态：`R6-I5 6/6 SIMULATION INTEGRATION PASS FROZEN / R6-I6 OFFLINE INTERPRETATION CLOSURE PASS`
-- 正式实验状态：`NO PERFORMANCE RESULT / P1 DESIGN PREREGISTERED / 0 AUTHORIZED + 0 CONSUMED / NO WINNER / formal_result=false`
+- 实现状态：`R6-I5 6/6 INTEGRATION PASS FROZEN / P1-E1 270/270 TERMINAL / P2-P4 FINITE SEARCH TERMINAL / P4-F1 OFFLINE CLOSURE PASS`
+- 正式实验状态：`P1 FORMAL NEGATIVE COMPLETE / GLOBAL 2200-UNIT SEARCH CLOSED / obvious_performance_improvement_not_demonstrated / NO WINNER`
 - 实车状态：`FORBIDDEN WITHOUT NEW CALIBRATION AND ON-SITE APPROVAL`
 - 与 V1 的关系：V1/T00--T12 合同、runner、配置和 artifacts 保持冻结；V2 必须使用独立的
   schema、配置、manifest 和 artifact 根目录。
@@ -23,9 +96,18 @@
   规则监督器、V2-04 Anchor Bank/类型化 profile/feasible decoder/平滑 shadow 事务和零训练
   规则闭环；V2-04B 已增加 simulation-only 20 参数 typed TEB 真实事务和 calibration split，
   最新验收见 `artifacts/v2/component_acceptance/v2_04b_acceptance.yaml`。
-- 最新入口：独立 `V2-04G-R6-I6` 已完成纯离线解释闭环。I5 13-resource freeze manifest SHA 为 `40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935`；I6 reviewer 重验 14 项 source binding、6 journals、36 raw bindings 和六行语义计数，并与持久化报告 exact-equal。论文可宣称集成正确性和可复核性，不可宣称性能、泛化、安全、winner 或部署。最后一轮 `V2-04G-P1` 性能设计固定 3 roles × 30 fresh blocks × 3 methods = 270 episodes，主确认性对比 180 episodes，不增加训练预算；当前没有执行授权。详见 `docs/thesis_experiment/CURRENT_V2_04G_R6_I1_R6_I2_R6_I3_R6_I4_R6_I5_R6_I6_RESULT_INTERPRETATION_HANDOFF.md`。
-  不得把 V2 当作 T12 action/projection 单因素
-  续跑，也不授权新训练或实车闭环。所有模式和参数阈值继续保持 `runtime_ready=false`。
+- 最新入口：`V2-04G-P4-F1` 已完成全局有限搜索终态闭环。三轮容量
+  `792+704+704=2200`，实际 `4 consumed + 2196 retired`，剩余仿真/训练权限均为 0。
+  最终 P4-I1 release SHA
+  `1bcd0392d475cdf17d7a2bf6540e024a61136150011945d323cae1234b568220`
+  只运行 fresh seed5924 attempt1；执行环境未解析到 `m2_gazebo`，故在 Gazebo、move_base、
+  参数事务和 raw trace 前终止。五个 promoted Bank 只通过了严格离线 parser，未获得 live
+  性能或安全证据。终态 conclusion SHA
+  `8ce6736dd7ea1f13d6c272f0420f4588d1e0c9e25949b7b1eabf5bd028b3eeb7`，
+  independent review SHA
+  `e0dc93790e092b99684c64a9d2b11e5ce02a0a16f5235649e3657376835270c8`。
+  详见 `docs/thesis_experiment/CURRENT_V2_04G_P4_F1_TERMINAL_HANDOFF.md`。性能搜索停止；
+  所有模式和参数阈值继续保持 `runtime_ready=false`。
 
 ## 已确认版本
 
@@ -57,9 +139,12 @@
 | T10 SAC Direct-Theta | DONE | 9D normalized Δθ；与 T09 共享执行器/observation/reward/safety/预算；checkpoint/resume；配对验收；参数量/时延报告 | 20-step smoke 只能证明公平管线，不证明两种动作空间的性能差异 |
 | T11 正式仿真/消融 | DONE (AMENDED) | 4 seed×5 组×70 test=20 run/1400 episode 完整矩阵；20/20 manifest valid；四组 paired comparison 各 280 对；3 个 seed105 run supplementary | 原 5-seed 预注册未完成，禁止宣称完整 5-seed 正式实验；500-step validation 阈值均未达到；NoSafety 有 1 次 move_base SIGSEGV fatal attempt |
 | T12 安全修复/Residual SAC/rosbag-shadow | IN PROGRESS | 静态 footprint stress 通过；两 seed 各 2000-step 完整、14/14 test goal、0 crash/collision/emergency；validation change +0.4527/-0.0784 | 学习门失败且 projection 65.1%/69.5%，不扩预算、不做新配对；下一步单因素审查 Residual action/projection 匹配；rosbag adapter/live shadow 仍待实现 |
-| FAM-TEB V2 | R6-I5 EVIDENCE FROZEN / R6-I6 OFFLINE CLOSURE PASS / P1 DESIGN ONLY | 13-resource freeze；I6 deterministic interpretation exact-equal；论文 claims matrix；90 fresh-block / 270-episode final performance design，additional training=0 | I5 不可重跑；P1 `execution_authorized=false`、budget=0，须独立审查、新 release 和明确模拟授权后才可执行；当前无性能、winner、V2-05/SAC/实车结论，`formal_result=false`、`runtime_ready=false` |
+| FAM-TEB V2 | P1 FORMAL NEGATIVE / P4-F1 GLOBAL SEARCH TERMINAL | P1 270/270 attempt=1；效率 3.7624% / lower 2.7904%；post-P1 三轮总容量 2200，4 consumed + 2196 retired；P4-F1 independent terminal review pass | 明显提升未证明；无完整 post-P1 calibration/test、无 winner；禁止重试、扩轮/预算、训练、新 held-out、部署或实车结论 |
+| V3-SCOPE | V3-11-F1 ACTUAL-TEB FORMAL POSITIVE / V3-12-P1 PAPER CLOSURE | fresh seeds 7101--7130；30 paired blocks / 60 episodes；goal 100%/100%；point 12.9288%，one-sided 97.5% lower 12.7253%；六 strata 全正；all formal gates + independent replay pass | 只证明三个冻结 single-reactive-actor Gazebo 模板内相对 actual TebLocalPlannerROS 0.8.4 的限定收益；共享 oracle actor track，不证明 perception、multi-actor/OOD、formal safety、training、deployment 或实车 |
+| V5-E2E-SCOPE-RL | FAST FORMAL NEGATIVE / FROZEN | 60 fresh blocks；解析/V5 均时 14.1542/13.2917 s；降幅 6.0936%，95% CI [1.7867%,11.0069%]；contact/mask violation 0 | 未达到冻结 8% 实效门；不授权将 V5 改写为阳性 |
+| V6 PCT-SCOPE-RL | FAST FORMAL POSITIVE / GAZEBO TRANSFER NEGATIVE / PAPER CLOSURE | 4×120k 新训练步；80 fresh blocks；V6/解析目标 60/49，均时 13.1156/14.3188 s；降幅 8.4024%，97.5% CI [3.4840%,13.7135%]；paper review 15/15 | 阳性仅限四个 sensor-level fast families；no-history 无差异；三次 Gazebo 净空门失败，禁止 Actual-TEB、formal safety、deployment 或实车声明 |
 | T13 M2 闭环 | TODO | | |
-| T14 统计/论文导出 | TODO | | |
+| T14 统计/论文导出 | DONE (V2 + V3 + V4 + V6) | V6-05 导出 6 SVG/PDF、method/effect/family/episode/Gazebo CSV、claims、文献索引、manifest、20 页附录和 69 页合并稿；15/15 independent review pass | V6 Gazebo/Actual-TEB 迁移未通过；投稿必须保留该负边界 |
 
 ## 最近一次可复现命令
 
@@ -122,6 +207,31 @@ rosrun thesis_experiment validate_thesis_config.py metric-schema docs/thesis_exp
 ## 最近一次测试结果
 
 ```text
+V3-11-F1 actual-TEB 正式配对评测：fresh seeds 7101--7130，30 paired blocks / 60
+episodes 全部 attempt=1 完成，retry/resume/replacement/forfeiture 均为 0。V3 spatial-safe /
+actual TebLocalPlannerROS 目标成功均为 30/30，平均受限 gate-to-goal 时间为
+6.7683/7.7733 s，200,000-resample 配对改善 12.9288%，单侧 97.5% lower 12.7253%，
+六个 scene×policy strata 全为正。contact 0，minimum conservative clearance 分别为
+0.5110/0.0192 m，最大 V3 tracking error 0.03312 m；全部 17 项冻结门和独立 raw replay
+通过。V3-12-P1 paper manifest SHA `319bce...8c0b`，independent closure SHA
+`96d7d0...17b2`。结果只限三个冻结 single-reactive-actor Gazebo 模板和共享 oracle actor
+track，不是 perception、multi-actor/OOD、formal safety 或实车结论。
+V3-09-F1 正式配对评测：fresh seeds 6801--6830，30 blocks / 180 episodes 全部
+attempt=1 完成，retry/resume/replacement/forfeiture 均为 0。两方法目标成功均为 90/90；
+V3 spatial-safe / fixed-v1.20 shielded 平均受限目标时间为 8.8611/11.4167 s，配对
+relative reduction 22.3844%，20,000-resample 单侧 95% lower 21.8235%，positive blocks
+30/30。5320 decisions exact replay 1.0，minimum conservative clearance 0.165663 m，
+clearance violation 0，P99 18.087844 ms。全部冻结 formal gates pass；assessment 与
+independent reviewer cold check byte-identical。结果仅限 parameterized reactive single-actor
+crossing，比较器不是 actual TEB。
+V3-10-P1 pure-offline paper closure：5 个 deterministic exports 两次构建 byte-identical；
+14-resource conventional multiline evidence manifest SHA `70353b...1938`，independent closure
+review SHA `bee589...e0f4`，terminal manifest SHA `57f043...cf54`。未启动 ROS/Gazebo，
+未创建 execution release/authorization/journal，未使用 seed、episode 或 training step。
+V3-01--V3-10 终态回归为 104 passed / 0 failed（380.02 s）；V3-07--V3-10 快速回归为
+17 passed。历史 V3-00 snapshot 单测为 5 passed / 2 failed：两项只检查 foundation 当时的
+package.xml、CMake 与系统指南字节是否仍等于旧 persisted closure，后续 V3-01--V3-10
+合法扩展使其漂移。旧 V3-00 artifacts 保持未改写，该历史 snapshot 不作为当前终态 gate。
 R6-I6 pure-offline interpretation/design closure：I5 freeze manifest 的 13/13 资源 SHA 校验通过；
 versioned reviewer 重验 14 项 source binding、6 journal binding、36 raw-resource binding、readiness
 直接计数和六行 TTC/overlay 观察，并与 persisted review exact-equal，状态为
@@ -291,12 +401,37 @@ reward、EMA 或 hold。禁止新训练和配对；下一入口是预注册一�
 
 ## 当前阻塞项
 
-- R6-I5 已完成唯一获准执行并由 I6 冻结：6/6 consumed、0 forfeited、0 retry/resume，terminal
-  assessment pass。不得再次调用 `--execute`、替换 seed、扩预算或从已有 journal resume。I6 只完成
-  离线 result interpretation/design closure；未来 P1 尚无 execution authorization、budget、release、
-  schedule materialization 或 journal。当前仍不能形成性能、泛化、winner、训练或实车结论。
-- 默认 login shell 混入 `arena_ws`/`catkin_ws` 的 ROS、Python 与 Gazebo 路径。未来任何复核或
-  runner 必须使用 `env -i` non-login shell，只 source Noetic 与本论文 workspace。
+- V3-14-I1 已完成调度--launch--runtime 动作身份的失效关闭完整性闭环；V3-14-S1 的 45/45
+  fresh 单元随后因 actor 坐标/速度配对差 0.066074 m/0.072081 m/s 超过 0.05 门而形成完整
+  阴性结果。V3-16-D1 纯离线归因支持候选分支前闭环响应放大假设；V3-16-S1 只把 actor 响应
+  启用时刻从 0 s 改为 12.55 s，并使用 seed7741 预检、fresh seeds7742--7749 正式执行。
+  新的 45/45 单元全部 attempt1 完成，速度差降至 0.008597 m/s（下降 88.07%）并通过门，
+  但坐标差仍为 0.067472 m，只有 5/8 区块通过坐标门。因此整体仍是终止性阴性结果，
+  `predictor_fit_authorized=false`，不得启动多人 actual-TEB、感知/OOD 或训练。原 assessor 的
+  raw-report 资源索引失败被保留；R1 只修复路径解析并通过独立审查，不改变科学结论。V3-17
+  论文导出把 V3-14/V3-16 的对照和单因素机制结果加入新 PDF。详见
+  `CURRENT_V3_16_RESPONSE_GATED_TERMINAL_HANDOFF.md` 与 `CURRENT_V3_17_PAPER_EXPORT_HANDOFF.md`。
+
+- 历史 V3-13 的 recovery-only r3 几何、终点保护、候选特定预测资格和 planner integration 已完成；
+  R16 的单对 actual TEB/V3 预检仍是有效阴性结果：actual TEB 到达目标但动态净空
+  -0.8965 m，V3 安全为 +0.06883 m 但旧 r2 未完成共同目标。后续 r3 支持链中，R19-R2
+  40/40 因 ego/actor 配对误差失败，100 Hz 公共前缀修复通过；R19-R4 40/40 又因一个边界
+  样本距0.12 m终点门多1.16 mm而使触发率7/8。0.15 m提前停车预检在 fresh seed7696
+  通过，但最终 R19-R6 复用的一单元 runner 把所有调度动作硬编码为 r3；检测到前两行
+  scheduled/runtime ID 不一致后立即停止。R19-R6 0科学单元、2 consumed、38 forfeited，
+  seeds7697--7704不可复用；不得 repair-and-rerun、拟合r3 head、运行seeds7301--7316、
+  开始感知退化或训练。下一入口仅是纯离线 action-binding fail-closed 完整性设计，详见
+  `CURRENT_V3_13_MULTIACTOR_HANDOFF.md` 最后章节。
+
+- R6-I5、P1-E1 与 post-P1 P2/P3/P4 链均已终态冻结。P1 是 `formal_result=true` 的有效阴性
+  结果：安全/任务与机制通过，但 3.7624% / 2.7904% 未达到当前 10% / 5% 明显提升门。
+  post-P1 的 2200-unit 容量已全部关闭，且没有完整 calibration/test matrix；不得再次调用
+  `--execute`、替换 seed、修复后复用 P4 seed5924、扩轮/预算、训练或访问新 held-out。
+  当前不能形成阳性性能、winner、RL 提升、部署或实车结论。
+- 默认 login shell 混入 `arena_ws`/`catkin_ws` 的 ROS、Python 与 Gazebo 路径，P4-I1 正因
+  `m2_gazebo` package resolution 失败而在 Gazebo 启动前终止。该根因已冻结为完整性证据，
+  不是重试授权；后续仅做离线证据复核时仍应使用 `env -i` non-login shell，只 source Noetic
+  与本论文 workspace。
 - V2-04G-R3/R4/R4-R1 的历史失败与不利 seeds 继续冻结，不得重试或恢复。V2-04G-R5
   已在 readiness identity 1/6 因 TTC coverage mismatch terminally stop；seed5111 和全部
   失败证据已保留。R6-I1 也已在 sequence1 seed5141 的 bootstrap readiness 终止；1 unit
@@ -317,21 +452,45 @@ reward、EMA 或 hold。禁止新训练和配对；下一入口是预注册一�
 
 ## 数据与安全状态
 
-- 是否存在正式实验 CSV：否
+- 是否存在正式实验 CSV：是；V3-12、V3-15 与 V3-17 论文闭包均包含可复核 CSV
 - 是否允许实车参数写入：否
 - 是否允许实车运动：必须由现场用户逐次批准
 - NoSafety/ProjectionOnly/NoFallback 实车运行：禁止
 
 ## 下一步
 
-1. FAM-TEB V2 新会话在 I5 execution handoff 后继续读 `CURRENT_V2_04G_R6_I1_R6_I2_R6_I3_R6_I4_R6_I5_R6_I6_RESULT_INTERPRETATION_HANDOFF.md`。R5/R6-I1 终止、I5 终态和失败 I3 release 均保持冻结，不得再次启动。
-2. 论文继续以 `thesis_draft/CH03_FAM_TEB_SYSTEM_DESIGN.md`、`CH04_EXPERIMENT_INTEGRITY_METHOD.md`、`CH05_I5_INTEGRATION_RESULTS.md` 和 claims matrix 为正文基线；I5 只证明 semantic/execution integration，不得提前写成性能提升。
-3. 最后一轮性能目标采用已预注册的 `V2-04G-P1` 设计：3 scene roles × 30 fresh blocks × 3 methods = 270 episodes，主配对 180 episodes，additional training=0。先做独立离线设计审查和可计算性/功效复核，不先扩训练预算。
-4. P1 若要实际运行，必须建立新 closure/review/release、fresh budget 和独立明确的 simulation authorization；当前设计文件不是授权，不得复用 I5 identities、seeds 5161--5163 或任何历史 budget。
-5. 1.5/1.0 秒不属于本轮 factor；仍只是 D1 frozen trace 上的离线讨论值，不是合格配置或授权。winner freeze、held-out 5001--5010、V2-05/SAC 和实车仍分别需要独立授权。
-6. T12 新会话先读 `CURRENT_TEB_RL_HANDOFF.md`、`CURRENT_T12_RESIDUAL_TRAINING_HANDOFF.md` 和 `CURRENT_T12_RESIDUAL_LEARNING_REVIEW.md`，禁止重复启动。
-7. 当前不扩预算，也不重启任何历史 pilot；Residual action/projection 离线审查已经完成。
-8. 若继续训练，必须先登记一个动作—执行对齐学习 amendment；不得同时修改 residual radius、reward、EMA、hold、SAC 或 safety。只有两 seed validation 均上升后才启动新三方法冻结配对。
-9. T12 后续仍需用新 Gazebo/rosbag 数据做 live shadow 确认；默认只读，不向实车 TEB 写参数。
-10. T04--T11 继续复用 T03 四重仿真门控、快照恢复、manifest 和失败保留规则。
-11. 在实车标定完成前，实车参数范围、制动/时延、安全距离和实车保守回退继续保持 TBD。
+1. 新会话最后必须读取 `CURRENT_V2_04G_P4_F1_TERMINAL_HANDOFF.md`。P1/I5/T12、R5/R6、
+   P2/P3/P4 的 release、seed、journal、失败和 retired budget 全部保持冻结。
+2. FAM-TEB 性能搜索已终止；不再创建 P5、新 factor round、calibration/test release、训练任务或
+   winner。禁止把环境修复视为 P4-I1 retry 权限。
+3. 允许的 FAM-TEB 后续仅限纯离线论文整理、证据哈希复核和归档；必须保留
+   “未证明明显提升”、P1 3.7624% / 2.7904% 与 post-P1 无完整 test matrix 的完整上下文。
+4. T12 继续保持原冻结边界，不得用 P2/P3/P4 seed、配置或未来数据重新选择 checkpoint。
+5. 在实车重新标定并逐次取得现场批准前，实车运动、CAN、online TEB 写入、实车参数范围、
+   制动/时延、安全距离和实车保守回退均保持禁止或 TBD。
+
+## V3-18--V3-22 论文材料整理终态（2026-08-06）
+
+- V3-18-A0 已完成项目审计、系统目标/架构、实验库存、方法证据矩阵、标准采集 schema 和缺口分析；
+  独立审查通过。V3-18-B0 将 V2-P1、V3-05、V3-09、V3-11、V3-16 适配为 825 行 canonical
+  dataset；首版源哈希失败保留，R1 只修复 manifest，dataset 字节不变并通过独立审查。
+- V3-19 建立 V3 spatial-safe、Actual TEB 0.8.4、Fixed-v1.20 shielded 与
+  no-candidate-conditioning 四方法框架。24/24 资格回合完成，但 V3 5/6 goal 未过资格门；正式
+  seeds 8001--8030 未执行并退役。
+- V3-20 的失效计入式矩阵在 sequence78 因 ROS master 端口落入 ephemeral range 终止：77 完成、
+  1 terminal failed、42 forfeited，不重试。V3-21 只修复端口 namespace，使用 fresh seeds
+  8201--8230 完成 120/120 attempt1 回合。
+- V3-21 中 V3/Actual TEB 成功率为 93.33%/100%，受限均时 7.785/7.770 s；V3 相对 TEB
+  点降幅 -0.193%，双侧 95% CI [-19.867%,12.982%]，未证明时间优势。相对 fixed-v1.20 和
+  去候选条件化消融分别缩短 64.614% 与 49.454%。四方法 contact 均为 0。
+- sequence107 的 gate x 误差比 0.03 m 容差多 2.286 mm，回合按 ITT 保留；排除 block27 后
+  点效应 -0.643%，结论不变。因此 `formal_result=false`，但 120 回合 characterization 可报告。
+- V3-22-P1 已从冻结 CSV 确定性导出 5 张图的 PDF/SVG/300-dpi PNG、5 个 booktabs 三线表、
+  中英文结果叙述和 claims YAML；manifest SHA `658e906c...973d0`，独立 review SHA
+  `88547275...0959`。没有 ROS/Gazebo、训练、硬件或实车动作。
+- 当前论文正文已加入四方法复现与消融章节，并成功编译为 32 页预览。终态必须同时报告：
+  V3-11 是限定历史正式阳性；V3-21 是未复现 Actual TEB 失效计入式优势的新鲜表征；两者不池化。
+- V3-22-P2 终态 PDF 归档与独立 paper review 已完成。PDF 为 32 页 A4，全部字体嵌入，
+  无 LaTeX error/undefined reference；PDF SHA `22f4e423...58b7d`，review SHA
+  `adb43177...3d7a5`。历史 V3-19--V3-22 identities、seeds、budgets 和 artifact 目录均不可
+  重跑或覆盖。当前没有剩余仿真或论文导出任务。

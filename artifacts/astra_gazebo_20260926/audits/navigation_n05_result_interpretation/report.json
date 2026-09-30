@@ -1,0 +1,138 @@
+{
+  "schema": "astra_navigation_n05_terminal_development_interpretation_v1",
+  "status": "negative_preview_selection_development_diagnostic_no_promotion",
+  "release_sha256": "e9879ee6ca8ca050b9ee036db87c4728f5f1aa38895b69c2ca2d429bbcf6c628",
+  "ledger_sha256": "87f50b5cf2610ba68c55a7609c9e926c0c81bb404ff4a760fad0ef1f50cd734f",
+  "replay_report_sha256": "21e38298c1ad34ca29e933f88810649e33b515222ec2084a523231148649abb1",
+  "replay_script_sha256": "5554ddf0e5a956704ba5192a696ca2164ecb0c59535a3e5c56f5d01bc5f51cce",
+  "outer_shell_observation_sha256": "22d7f69ec91c5b5b88f23dedbd7f9add00d33ac88a7c15e9ea48e5e03b88a5af",
+  "schedule": "12 paired fresh-seed blocks over six previously used development parent geometries, two seeds per parent; no new independent geometries",
+  "attempts": "24/24 consumed exactly once; integrity24; retired0; 12 complete pairs; no retry/resume",
+  "method_summaries": {
+    "astra_analytic_route_v1": {
+      "valid_rows": 12,
+      "complete": 2,
+      "timeout": 10,
+      "scoped_safety_pass": 10,
+      "mean_terminal_map_goal_distance_m": 5.60140175,
+      "median_terminal_map_goal_distance_m": 5.977384241499999,
+      "totals": {
+        "trace_ticks": 4689,
+        "executed_stop_ticks": 3118,
+        "backup_revalidation_failed_ticks": 2046,
+        "backup_stop_requested_ticks": 896,
+        "transaction_deadline_drop_ticks": 176,
+        "treatment_selection_changed_decisions": 0,
+        "candidate_decisions": 945,
+        "treatment_moving_backup_count_sum": 0,
+        "treatment_moving_eligible_count_sum": 0
+      },
+      "executed_stop_trace_message_fraction": 0.6649605459586265
+    },
+    "astra_analytic_preview_eligible_n05": {
+      "valid_rows": 12,
+      "complete": 2,
+      "timeout": 10,
+      "scoped_safety_pass": 10,
+      "mean_terminal_map_goal_distance_m": 6.145101590916667,
+      "median_terminal_map_goal_distance_m": 7.116146213,
+      "totals": {
+        "trace_ticks": 4698,
+        "executed_stop_ticks": 3788,
+        "backup_revalidation_failed_ticks": 1201,
+        "backup_stop_requested_ticks": 2425,
+        "transaction_deadline_drop_ticks": 162,
+        "treatment_selection_changed_decisions": 504,
+        "candidate_decisions": 945,
+        "treatment_moving_backup_count_sum": 4833,
+        "treatment_moving_eligible_count_sum": 719
+      },
+      "executed_stop_trace_message_fraction": 0.8063005534269903
+    }
+  },
+  "paired_terminal_map_goal_distance_treatment_minus_control_m": {
+    "values": [
+      0.1351859150000001,
+      0.14309821300000003,
+      -0.026969574999999857,
+      -0.711219023,
+      0.08720208500000037,
+      0.167707312000001,
+      3.3270809990000005,
+      3.2893084580000007,
+      0.06834639699999911,
+      0.056283486999999965,
+      -0.006675977999999999,
+      -0.004950199000000016
+    ],
+    "mean": 0.5436998409166668,
+    "median": 0.07777424099999974,
+    "note": "Each endpoint is measured at its own exact terminal source time; failure-inclusive and descriptive, not matched-state distance."
+  },
+  "scoped_safety_failures": [
+    {
+      "run_id": "astra_navigation_n05_b04_astra_analytic_route_v1",
+      "seed": 263002005,
+      "method": "astra_analytic_route_v1",
+      "minimum_engineering_conservative_swept_xy_m": -0.16468911624234767,
+      "safety_checks": {
+        "positive_engineering_clearance": false,
+        "no_illegal_robot_contact": true,
+        "no_actor_environment_contact": true,
+        "no_physical_backend_fault_timeout_brake_emergency": true
+      },
+      "sweep_sha256": "d59b1f4473440729eedc06f3f1e5cb229c0a7e24c3d3a762d78fb9f14b834588"
+    },
+    {
+      "run_id": "astra_navigation_n05_b05_astra_analytic_route_v1",
+      "seed": 263002006,
+      "method": "astra_analytic_route_v1",
+      "minimum_engineering_conservative_swept_xy_m": -0.1645462950374252,
+      "safety_checks": {
+        "positive_engineering_clearance": false,
+        "no_illegal_robot_contact": true,
+        "no_actor_environment_contact": true,
+        "no_physical_backend_fault_timeout_brake_emergency": true
+      },
+      "sweep_sha256": "ced5858ebebe2caf57360772728bb471a15e2246001596c701375b3bdd245532"
+    },
+    {
+      "run_id": "astra_navigation_n05_b04_astra_analytic_preview_eligible_n05",
+      "seed": 263002005,
+      "method": "astra_analytic_preview_eligible_n05",
+      "minimum_engineering_conservative_swept_xy_m": -0.16436766762260105,
+      "safety_checks": {
+        "positive_engineering_clearance": false,
+        "no_illegal_robot_contact": true,
+        "no_actor_environment_contact": true,
+        "no_physical_backend_fault_timeout_brake_emergency": true
+      },
+      "sweep_sha256": "f923891ac7c4d82332759d63ef4a0386f99fee236096f31b25d0f77f64304491"
+    },
+    {
+      "run_id": "astra_navigation_n05_b05_astra_analytic_preview_eligible_n05",
+      "seed": 263002006,
+      "method": "astra_analytic_preview_eligible_n05",
+      "minimum_engineering_conservative_swept_xy_m": -0.16481708186152103,
+      "safety_checks": {
+        "positive_engineering_clearance": false,
+        "no_illegal_robot_contact": true,
+        "no_actor_environment_contact": true,
+        "no_physical_backend_fault_timeout_brake_emergency": true
+      },
+      "sweep_sha256": "447a4c71d44606f504860d82e687e4f815d5450fe2ef4936f37975f4540c7cd4"
+    }
+  ],
+  "total_illegal_robot_contacts": 0,
+  "factor_mechanism": "The treatment made 504 selection changes and reduced backup_revalidation_failed trace messages but increased executed-stop and backup-stop-requested trace messages. These message counts overlap and are not time durations or proof of why a goal failed.",
+  "decision": "Do not promote N05 preview eligibility into the training/evaluation policy. A later isolated factor may use new development geometries only after a separate reviewed release; N05 seeds and budget remain terminal.",
+  "claim_limits": [
+    "No all-scoped-safety pass because four b04/b05 episodes have negative conservative engineering swept clearance despite zero recorded illegal contact.",
+    "Not a formal safety, navigation performance, six-family, learned policy, sim-to-real, hardware or deployment result.",
+    "Manager returned0 and ledger terminal; parent tool observed outer shell exit143 without the expected outer exit file. Cause unknown."
+  ],
+  "independent_result_review_pending": true,
+  "formal_result": false,
+  "performance_improvement_demonstrated": false,
+  "runtime_ready": false
+}

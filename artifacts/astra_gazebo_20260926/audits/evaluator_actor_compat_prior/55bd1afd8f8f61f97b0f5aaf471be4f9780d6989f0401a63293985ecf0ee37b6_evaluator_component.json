@@ -1,0 +1,180 @@
+{
+  "schema": "astra_evaluator_component_v1",
+  "created_utc": "2026-09-26T07:53:30.889163+00:00",
+  "status": "offline_component_pass_source_bag_runtime_episode_qualification_pending",
+  "owned_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/evaluate_episode.py",
+      "sha256": "aea5d6de28eaf7b90287046e8205a7b5cb3f2e1f7ccda3422d077c5aefc5e225"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_evaluate_episode.py",
+      "sha256": "e401c924a20af7b6e5fceaebde8961e16aef0f86be75f1936b4f38845dd87c99"
+    }
+  ],
+  "geometry_dependency_unchanged_and_reused": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+    "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf"
+  },
+  "test_attempts": [
+    {
+      "attempt": 1,
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_01.log",
+        "sha256": "dae7444a5436897f1d34328236e81713003129435aaacd6be5ff711d00dc27ea"
+      },
+      "exit_code": 0,
+      "result": "25 evaluator tests pass"
+    },
+    {
+      "attempt": 2,
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_02.log",
+        "sha256": "75df75910a4eb2e909699e068ddbeca2c9c4ab2a7fcc978f841a83d3e8650dd5"
+      },
+      "exit_code": 0,
+      "result": "25 evaluator tests pass after legacy gate separation and source/jump additions"
+    },
+    {
+      "attempt": 3,
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_03_with_geometry.log",
+        "sha256": "a1e9df377d2934331f94fc0a7d5b76fae8f6a1d9b599e2df9f420d9bb0146e92"
+      },
+      "exit_code": 1,
+      "result": "42 pass, 1 test fixture path failure, 2 existing geometry xacro environment errors; preserved; no simulation"
+    },
+    {
+      "attempt": 4,
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_04_with_geometry.log",
+        "sha256": "53929bb4a8525cd3822810e9272a3c1bfbc71ddcf4c7ad3a8afc27e07a471551"
+      },
+      "exit_code": 0,
+      "result": "45 tests pass in 2.35 s = 28 evaluator plus 17 existing geometry reference tests",
+      "command": "source scripts/astra_env.sh; /usr/bin/python3 -B -m pytest -q -p no:cacheprovider scripts/astra_gazebo/tests/test_evaluate_episode.py scripts/astra_gazebo/tests/test_geometry.py"
+    },
+    {
+      "attempt": 5,
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_05_wheel_diagnostic_amendment.log",
+        "sha256": "3ed5d4f0a7e3c667f94274be9e1c87d3a443551f1b886dead5279a92c2ced70a"
+      },
+      "exit_code": 0,
+      "result": "46 passed in2.42s =29 evaluator plus17 geometry; explicit -0.002m wheel fixture reports all diagnostic counts without treating them as new task failures"
+    }
+  ],
+  "actual_read_only_bag_adapter_check": {
+    "bag": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/physics_evidence_q01/fixture.bag",
+      "sha256": "22c038438bccf8217485b0ee3e96900d34b9f0fb891165c0768f5df7027bf289"
+    },
+    "models": 199,
+    "links": 199,
+    "contacts": 1996,
+    "first_model_stamp_ns": 42000000,
+    "first_link_stamp_ns": 42000000,
+    "first_contact_stamp_ns": 28000000,
+    "nonempty_contact_packets": 1807,
+    "all_frames_world": true,
+    "metadata_schema": "astra_physics_evidence_v1",
+    "meaning": "only bag decoding/interface validation; Q01 has no robot and was not passed to episode performance evaluator"
+  },
+  "input_contract": {
+    "topics": [
+      "/astra/world_models",
+      "/astra/world_links",
+      "/astra/physics_contacts",
+      "/astra/physics_metadata"
+    ],
+    "join": "exact positive integer source header nanoseconds; no receipt-time interpolation or nearest-neighbor join",
+    "source_hashes": "bag, scene manifest, world SDF, episode report, saved expanded URDF, effective ROS parameters, and existing allocation/receipt/bindings; before/after hash comparison; evaluator and geometry source hashes",
+    "identity_checks": "scene_id/seed/method/model roster, source frame, allocation/receipt identity, manifest/report SHA",
+    "policy_window": "explicit report policy_window or first policy control/decision trace stamp plus report elapsed; cap22s",
+    "required_recording": "episode_report.yaml.inputs.bag plus evidence/robot_description.xml and evidence/effective_parameters.yaml",
+    "legacy_mode": "explicit --legacy => receipt-time diagnostic unavailable for exact source qualification; no fake join"
+  },
+  "geometry": {
+    "robot": "all collision primitives in saved URDF; actual link world poses, fixed-joint FK for Gazebo-merged links; missing movable joint/link evidence fails, no implicit zero steering",
+    "world": "actual SDF box/cylinder collision sizes/origins, scoped model/link poses; horizontal plane support geometry; unsupported/nested/include/mesh/frame semantics fail qualification",
+    "metrics": [
+      "minimum unmargined projected compound clearance",
+      "minus0.33m conservative clearance",
+      "separate Z-screened physical and conservative clearance",
+      "worst pair and potential 3D overlap count",
+      "each wheel exact analytic minimum Z versus ground, nonwheel penetration diagnostic",
+      "per-row cylinder outward approximation bound"
+    ],
+    "limits": "Exact 8-corner boxes; cylinder projection is outer48-gon and true3Dintersection cannot be inferred from XY+Z overlap. Negative XY distance is component convex-pair translation depth, not force or compound penetration."
+  },
+  "contact_contract": {
+    "all_engine_pairs": "all source-stamped ContactsState packets, including empty rows, required at exact physics cadence across policy window",
+    "allowed_robot_support": "only four exact wheel link names against actual ground collision names",
+    "illegal": "every other robot collision, including body-ground/self/obstacle/actor; actor non-ground environment contacts separately flagged",
+    "contact_source_alignment": "original source_contact_time_s and epoch parsed; packet minus native time must lie0..one physics step (0.002s for retained world); source offset min/max preserved",
+    "absence": "missing contacts topic is failure; empty contact packets establish sampled collection only, never collision-free proof",
+    "crosscheck": "projected XY/Z overlap samples without nearby illegal contacts listed as review candidates, not proven misses"
+  },
+  "gates_and_outcomes": {
+    "legacy_preserved_not_reused_as_geometry_gate": [
+      "old combined execution_integrity_pass",
+      "old circular minimum_conservative_clearance_m",
+      "old chassis contact_state_count"
+    ],
+    "independent_input_execution": [
+      "gate_valid",
+      "message flag and finite0..0.20 age values",
+      "TF and scan-stamp transform success rates>=.999",
+      "positive command count",
+      "zero reported mask violations plus executed-action membership in each recorded mask",
+      "positive local-plan count for actual TEB/DWA or matching positive decision count for sensor methods"
+    ],
+    "goal": "first source-stamped robot root pose within0.25m XY and0.25rad wrapped yaw of scene route world goal during policy window",
+    "failure_inclusive_observed_time": "raw first arrival elapsed only when input/source integrity and observed contact/sample geometry gates pass; failures receive22s; explicitly development diagnostic while continuous safety is pending",
+    "fully_qualified_time": "22s and fully_safety_qualified_success=false while swept qualification is pending; no promotion of sampled success to final safety"
+  },
+  "swept_bounds": {
+    "driver_parameters": "read effective expanded URDF maxSpeed/maxSteer/wheelbase/track/wheelRadius/maxSteeringRate; missing parameters produce unavailable bound",
+    "core_rigid_formula": "v_max + (v_max*tan(steer_max)/wheelbase)*collision_enclosing_radius",
+    "articulation": "additional conservative model steer-joint and wheel-spin point-rate terms, including outer polygon motion",
+    "actor_envelope": "max(initial_speed,base_speed,retained reactive actor assertive default1.35m/s); unknown plugin/heading changes unqualified",
+    "interval_formula": "min(d0,d1)-L*dt/2",
+    "qualification": "pending always for retained SetWorldPose/SetPosition backend; no false assertion of finite instantaneous physics Lipschitz constant",
+    "alignment": "model/link exact source join0s; contacts may precede packet by0..1 physics step; pose snapshots50Hz, contacts500Hz",
+    "observed_jump_checks": "robot planar displacement/yaw, articulated link positions, actor displacement and static model movement"
+  },
+  "tested_cases": [
+    "lateral protruding wheel intersection missed by chassis-only shape",
+    "robot rotation and nonzero world goal yaw",
+    "rotated0.72m actor box plus1.35m/s response target bound",
+    "actual SDF cylinder and disjoint Z screen",
+    "empty versus missing contacts and missing exact source streams",
+    "one-nanosecond mismatch, reset, duplicate, wrong frame, identity mismatch",
+    "wheel-ground-only exception and body-ground/actor-screen illegality",
+    "native contact phase0/.002 admitted, future/.004 rejected",
+    "executed action mask failure and observed pose jump assigned Tcap22",
+    "constant-v zero acceleration/jerk and exact constant-acceleration nonuniform midpoint derivative",
+    "unknown driver bounds and unsupported SDF do not qualify",
+    "external actual TEB same geometry with required local-plan evidence",
+    "explicit old legacy mode and immutable output refusal",
+    "missing run produces finite durable failure JSON/CSV",
+    "source SHA mismatch assigned failure despite previously valid result",
+    "real saved nine-component M2 URDF projects from actual retained A02 link poses without promoting receipt stamps",
+    "Small wheel ground penetration remains a diagnostic, not an undeclared new failure gate; continuous qualification remains pending."
+  ],
+  "output": "new output directory/evaluation.json and finite per_step.csv with SHA bindings; original run evidence never rewritten",
+  "command_example": "source workspace/scripts/astra_env.sh; python workspace/scripts/astra_gazebo/evaluate_episode.py --run <new_run_directory> --output <new_evaluation_directory>",
+  "outstanding": [
+    "Apply to fresh A03/D01 source-stamped episode; currently only actual bag decode and synthetic/retained component inputs were tested.",
+    "No continuous backend qualification: a separate dynamics/environment factor is required before final safety qualification.",
+    "Contact forces, slip/friction realism, swept engine collision response and physical deployment remain unqualified.",
+    "Direct independent reviewer assessment of the new evaluator and future source-bound results remains useful."
+  ],
+  "no_ROS_Gazebo_training_started": true,
+  "formal_result": false,
+  "runtime_qualified": false,
+  "prior_report_exact_utf8": "{\n  \"schema\": \"astra_evaluator_component_v1\",\n  \"created_utc\": \"2026-09-26T07:53:30.889163+00:00\",\n  \"status\": \"offline_component_pass_source_bag_runtime_episode_qualification_pending\",\n  \"owned_sources\": [\n    {\n      \"path\": \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/evaluate_episode.py\",\n      \"sha256\": \"01077fec1a91f0c1ebcd1d54404da215fbb05217ec785918a29871510115d8c6\"\n    },\n    {\n      \"path\": \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_evaluate_episode.py\",\n      \"sha256\": \"6adf5f7ae71a8be36875fd31a5410ddc1385f716faf0ee33b8f67ce23c4068f2\"\n    }\n  ],\n  \"geometry_dependency_unchanged_and_reused\": {\n    \"path\": \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py\",\n    \"sha256\": \"8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf\"\n  },\n  \"test_attempts\": [\n    {\n      \"attempt\": 1,\n      \"log\": {\n        \"path\": \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_01.log\",\n        \"sha256\": \"dae7444a5436897f1d34328236e81713003129435aaacd6be5ff711d00dc27ea\"\n      },\n      \"exit_code\": 0,\n      \"result\": \"25 evaluator tests pass\"\n    },\n    {\n      \"attempt\": 2,\n      \"log\": {\n        \"path\": \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_02.log\",\n        \"sha256\": \"75df75910a4eb2e909699e068ddbeca2c9c4ab2a7fcc978f841a83d3e8650dd5\"\n      },\n      \"exit_code\": 0,\n      \"result\": \"25 evaluator tests pass after legacy gate separation and source/jump additions\"\n    },\n    {\n      \"attempt\": 3,\n      \"log\": {\n        \"path\": \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_03_with_geometry.log\",\n        \"sha256\": \"a1e9df377d2934331f94fc0a7d5b76fae8f6a1d9b599e2df9f420d9bb0146e92\"\n      },\n      \"exit_code\": 1,\n      \"result\": \"42 pass, 1 test fixture path failure, 2 existing geometry xacro environment errors; preserved; no simulation\"\n    },\n    {\n      \"attempt\": 4,\n      \"log\": {\n        \"path\": \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_04_with_geometry.log\",\n        \"sha256\": \"53929bb4a8525cd3822810e9272a3c1bfbc71ddcf4c7ad3a8afc27e07a471551\"\n      },\n      \"exit_code\": 0,\n      \"result\": \"45 tests pass in 2.35 s = 28 evaluator plus 17 existing geometry reference tests\",\n      \"command\": \"source scripts/astra_env.sh; /usr/bin/python3 -B -m pytest -q -p no:cacheprovider scripts/astra_gazebo/tests/test_evaluate_episode.py scripts/astra_gazebo/tests/test_geometry.py\"\n    }\n  ],\n  \"actual_read_only_bag_adapter_check\": {\n    \"bag\": {\n      \"path\": \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/physics_evidence_q01/fixture.bag\",\n      \"sha256\": \"22c038438bccf8217485b0ee3e96900d34b9f0fb891165c0768f5df7027bf289\"\n    },\n    \"models\": 199,\n    \"links\": 199,\n    \"contacts\": 1996,\n    \"first_model_stamp_ns\": 42000000,\n    \"first_link_stamp_ns\": 42000000,\n    \"first_contact_stamp_ns\": 28000000,\n    \"nonempty_contact_packets\": 1807,\n    \"all_frames_world\": true,\n    \"metadata_schema\": \"astra_physics_evidence_v1\",\n    \"meaning\": \"only bag decoding/interface validation; Q01 has no robot and was not passed to episode performance evaluator\"\n  },\n  \"input_contract\": {\n    \"topics\": [\n      \"/astra/world_models\",\n      \"/astra/world_links\",\n      \"/astra/physics_contacts\",\n      \"/astra/physics_metadata\"\n    ],\n    \"join\": \"exact positive integer source header nanoseconds; no receipt-time interpolation or nearest-neighbor join\",\n    \"source_hashes\": \"bag, scene manifest, world SDF, episode report, saved expanded URDF, effective ROS parameters, and existing allocation/receipt/bindings; before/after hash comparison; evaluator and geometry source hashes\",\n    \"identity_checks\": \"scene_id/seed/method/model roster, source frame, allocation/receipt identity, manifest/report SHA\",\n    \"policy_window\": \"explicit report policy_window or first policy control/decision trace stamp plus report elapsed; cap22s\",\n    \"required_recording\": \"episode_report.yaml.inputs.bag plus evidence/robot_description.xml and evidence/effective_parameters.yaml\",\n    \"legacy_mode\": \"explicit --legacy => receipt-time diagnostic unavailable for exact source qualification; no fake join\"\n  },\n  \"geometry\": {\n    \"robot\": \"all collision primitives in saved URDF; actual link world poses, fixed-joint FK for Gazebo-merged links; missing movable joint/link evidence fails, no implicit zero steering\",\n    \"world\": \"actual SDF box/cylinder collision sizes/origins, scoped model/link poses; horizontal plane support geometry; unsupported/nested/include/mesh/frame semantics fail qualification\",\n    \"metrics\": [\n      \"minimum unmargined projected compound clearance\",\n      \"minus0.33m conservative clearance\",\n      \"separate Z-screened physical and conservative clearance\",\n      \"worst pair and potential 3D overlap count\",\n      \"each wheel exact analytic minimum Z versus ground, nonwheel penetration diagnostic\",\n      \"per-row cylinder outward approximation bound\"\n    ],\n    \"limits\": \"Exact 8-corner boxes; cylinder projection is outer48-gon and true3Dintersection cannot be inferred from XY+Z overlap. Negative XY distance is component convex-pair translation depth, not force or compound penetration.\"\n  },\n  \"contact_contract\": {\n    \"all_engine_pairs\": \"all source-stamped ContactsState packets, including empty rows, required at exact physics cadence across policy window\",\n    \"allowed_robot_support\": \"only four exact wheel link names against actual ground collision names\",\n    \"illegal\": \"every other robot collision, including body-ground/self/obstacle/actor; actor non-ground environment contacts separately flagged\",\n    \"contact_source_alignment\": \"original source_contact_time_s and epoch parsed; packet minus native time must lie0..one physics step (0.002s for retained world); source offset min/max preserved\",\n    \"absence\": \"missing contacts topic is failure; empty contact packets establish sampled collection only, never collision-free proof\",\n    \"crosscheck\": \"projected XY/Z overlap samples without nearby illegal contacts listed as review candidates, not proven misses\"\n  },\n  \"gates_and_outcomes\": {\n    \"legacy_preserved_not_reused_as_geometry_gate\": [\n      \"old combined execution_integrity_pass\",\n      \"old circular minimum_conservative_clearance_m\",\n      \"old chassis contact_state_count\"\n    ],\n    \"independent_input_execution\": [\n      \"gate_valid\",\n      \"message flag and finite0..0.20 age values\",\n      \"TF and scan-stamp transform success rates>=.999\",\n      \"positive command count\",\n      \"zero reported mask violations plus executed-action membership in each recorded mask\",\n      \"positive local-plan count for actual TEB/DWA or matching positive decision count for sensor methods\"\n    ],\n    \"goal\": \"first source-stamped robot root pose within0.25m XY and0.25rad wrapped yaw of scene route world goal during policy window\",\n    \"failure_inclusive_observed_time\": \"raw first arrival elapsed only when input/source integrity and observed contact/sample geometry gates pass; failures receive22s; explicitly development diagnostic while continuous safety is pending\",\n    \"fully_qualified_time\": \"22s and fully_safety_qualified_success=false while swept qualification is pending; no promotion of sampled success to final safety\"\n  },\n  \"swept_bounds\": {\n    \"driver_parameters\": \"read effective expanded URDF maxSpeed/maxSteer/wheelbase/track/wheelRadius/maxSteeringRate; missing parameters produce unavailable bound\",\n    \"core_rigid_formula\": \"v_max + (v_max*tan(steer_max)/wheelbase)*collision_enclosing_radius\",\n    \"articulation\": \"additional conservative model steer-joint and wheel-spin point-rate terms, including outer polygon motion\",\n    \"actor_envelope\": \"max(initial_speed,base_speed,retained reactive actor assertive default1.35m/s); unknown plugin/heading changes unqualified\",\n    \"interval_formula\": \"min(d0,d1)-L*dt/2\",\n    \"qualification\": \"pending always for retained SetWorldPose/SetPosition backend; no false assertion of finite instantaneous physics Lipschitz constant\",\n    \"alignment\": \"model/link exact source join0s; contacts may precede packet by0..1 physics step; pose snapshots50Hz, contacts500Hz\",\n    \"observed_jump_checks\": \"robot planar displacement/yaw, articulated link positions, actor displacement and static model movement\"\n  },\n  \"tested_cases\": [\n    \"lateral protruding wheel intersection missed by chassis-only shape\",\n    \"robot rotation and nonzero world goal yaw\",\n    \"rotated0.72m actor box plus1.35m/s response target bound\",\n    \"actual SDF cylinder and disjoint Z screen\",\n    \"empty versus missing contacts and missing exact source streams\",\n    \"one-nanosecond mismatch, reset, duplicate, wrong frame, identity mismatch\",\n    \"wheel-ground-only exception and body-ground/actor-screen illegality\",\n    \"native contact phase0/.002 admitted, future/.004 rejected\",\n    \"executed action mask failure and observed pose jump assigned Tcap22\",\n    \"constant-v zero acceleration/jerk and exact constant-acceleration nonuniform midpoint derivative\",\n    \"unknown driver bounds and unsupported SDF do not qualify\",\n    \"external actual TEB same geometry with required local-plan evidence\",\n    \"explicit old legacy mode and immutable output refusal\",\n    \"missing run produces finite durable failure JSON/CSV\",\n    \"source SHA mismatch assigned failure despite previously valid result\",\n    \"real saved nine-component M2 URDF projects from actual retained A02 link poses without promoting receipt stamps\"\n  ],\n  \"output\": \"new output directory/evaluation.json and finite per_step.csv with SHA bindings; original run evidence never rewritten\",\n  \"command_example\": \"source workspace/scripts/astra_env.sh; python workspace/scripts/astra_gazebo/evaluate_episode.py --run <new_run_directory> --output <new_evaluation_directory>\",\n  \"outstanding\": [\n    \"Apply to fresh A03/D01 source-stamped episode; currently only actual bag decode and synthetic/retained component inputs were tested.\",\n    \"No continuous backend qualification: a separate dynamics/environment factor is required before final safety qualification.\",\n    \"Contact forces, slip/friction realism, swept engine collision response and physical deployment remain unqualified.\",\n    \"Direct independent reviewer assessment of the new evaluator and future source-bound results remains useful.\"\n  ],\n  \"no_ROS_Gazebo_training_started\": true,\n  \"formal_result\": false,\n  \"runtime_qualified\": false\n}\n",
+  "prior_report_sha256": "0a2ab9859a26cb8954e8fef3890519e2b7aa6d3fd6769d5947a6a95907279714",
+  "amended_utc": "2026-09-26T07:55:43.345551+00:00",
+  "amendment": "The initial component used the wheel-height diagnostic counter Z<-0.001m as an automatic sampled failure. That gate was not part of the agreed task. It is removed; all exact wheel ranges/counters remain. Four wheel-ground support contacts remain allowed; nonwheel ground contacts/geometric body penetration remain anomalies. No runtime outcomes were used to tune a threshold."
+}

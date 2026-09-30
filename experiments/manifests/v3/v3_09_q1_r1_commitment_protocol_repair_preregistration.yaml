@@ -1,0 +1,21 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-09-Q1-R1
+status: frozen_before_any_v3_09_q1_r1_outcome_or_release
+single_factor:
+  only_change: shared_replanning_period_0_5_to_0_25_seconds
+  maximum_decisions_48_is_exact_derived_slot_count: true
+  spatial_commitment_methods_scenes_models_planners_gates_unchanged: true
+fresh_schedule:
+  seeds: [6721, 6722, 6723, 6724, 6725, 6726]
+  policies: [cautious, assertive, hesitant]
+  methods: [v3_spatial_safe, fixed_v120_shielded]
+  exact_episodes: 36
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_seed_replacement_or_gate_change: true
+  no_formal_evaluation_if_any_gate_fails: true
+budget: {simulation_episodes: 36, reinforcement_learning_steps: 0, hardware_runs: 0}

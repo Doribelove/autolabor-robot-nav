@@ -1,0 +1,113 @@
+# 当前下一步：使用现有证据完成论文排版（2026-09-27 用户改定范围）
+
+最终交接包已改为 `paper_update/THESIS_PAPER_UPDATE_20260927.zip`，SHA256
+`9e6f5d048910163f4189734622be9f42670be1ca7fc8e3c6e98d8fc06634213e`。
+用户进一步明确：正式论文不关注内部实验版本号。包内 `PROMPT_FOR_OTHER_CODEX.md`、
+`EDITORIAL_BRIEF.md`、`EVIDENCE_CROSSWALK_INTERNAL.md` 已将正文术语与内部证据索引分开。
+标题、摘要、正文、图题、表题、结论使用方法和实验场景称呼；内部编号只准在附录证据索引
+出现。解压后 217 文件哈希及包内论文 20 项检查通过。旧正向包保留为历史，后续只发最终包。
+
+最新写作偏好：以已成立的成果为主线，精简局限披露。重新压缩的
+`paper_update/THESIS_POSITIVE_FOCUS_UPDATE_20260927.zip` SHA256
+`9906f6bef434cca172e7d5af997b716224cacdc25ba21183bb55ed68d7e21a98`，
+含 `PROMPT_FOR_OTHER_CODEX.md`、`EDITORIAL_BRIEF.md`、`FIGURE_SELECTION.md` 和完整原材料。
+解压后 216 文件哈希复核及包内论文 20 项核验通过。后续 Codex 应重点写 V3-11 限定阳性和
+V6 快速总体正式阳性；V3-21 与 Gazebo R1/R2 仅作简洁、准确的外部有效性说明，N05
+开发诊断可不进正文。不得把 V3/V6 合并或把局限性改写为正结果。
+
+用户明确选择“优先使用现有证据收论文”，并要求把工作做扎实。现有证据已整理为
+`paper_update/existing_evidence_thesis_r01/` 的 45 页 A4 技术稿、源文件、正式证据副本、
+30 图组图册、声明边界、哈希清单与 20 项机器核对；便携交接档为
+`paper_update/FAM_TEB_EXISTING_EVIDENCE_THESIS_R01.tar.gz`。先读包内 `README.md`。
+新增面向直接改稿的 ZIP：`paper_update/THESIS_PAPER_UPDATE_MATERIALS_20260927.zip`，
+SHA256 `97577bdb660943f89ef91d999f754d53b8d198258ddaec67f08a1f8e88933459`；
+含 211 个文件、30 组单独 PNG/SVG、13 张原生帧、R1/R2 逐回合 CSV 与正式回执。
+整包 manifest、ZIP CRC、逐回合 CSV 哈希和包内技术稿 20 项检查均通过。
+学校论文模板尚未提供，因此下一步是将该稿套入实际学校模板，核对作者/引用/学校格式，
+保持 V6 快速总体限定阳性、Gazebo R1/R2 未证明传统规划器优势及 N05 开发负结果的边界。
+
+N06 精确 release SHA `3846af40b95b72ac61dd87e2bf3da9a411732992b5c96c196f54634197cccf9a`
+及只读独立复核 SHA `5dad75414059230edeb1ab58d1a88355c44ca9cbeaa6fb8d738e6b95d88d4c39`
+已通过；**未登记种子、未执行、未启动 ROS/Gazebo**。当前论文优先范围不继续 N06，不把离线
+release 写为仿真结果。新实验须另有用户指令。Astra 阶段仍为 Gazebo 开发回合 81、训练 0 步、
+新正式 final-test 未打开；稳定实车工作区未改。
+
+## 以下为历史进度记录，旧“下一步”不再适用
+
+D04 r05 离线几何独审 SHA `a40a0f4f914347e83c57d033a0d20525d79a4811d8d8cca379b28c6d3f7f30a4`；N06 4块/8回合离线准备独审 SHA `e8d8b1e49d9386fde389f299cd10e70eeb380a5e96d1ad9c693b044a6ac816ee`。两项均仅证明输入和静态启动接线，不能推断物理轨迹、22秒完成率或部署。N06种子263003001–004仍只是提议，registry未登记，release不存在，没有ROS/Gazebo运行。
+
+下一步：完成新的一次性manager、转换sidecar、运行时ELF和全源码资源哈希闭包、故障恢复/行政事务计划的独立审查；再制作精确release并登记新种子，然后执行八回合。任何完整性故障按预定规则保留和退休，不重跑/替换。N05终态负结果与父shell143观察保持不变。
+
+论文现有17组不同的已实际质检图；NAV07为几何示意而非Gazebo截图，NAV08为静态几何下界图。M13只读性能剖析不构成训练运行时资格。当前Gazebo已消耗81回合、训练0步、formal final-test未打开、稳定实车工作区未改。
+
+阶段性论文图册 r02 16页已逐页渲染视检通过，PDF SHA `e2cc695967c9704d7194a545f460b5d5c04e2241e4610401333c7d261eb97ee5`；r01 中文缺字被保留为失败版本。图册并非最终30图交付。
+
+LAT01 r06 基于冻结 M13 合成 cProfile 的实际 PNG/PDF 视检通过，源证据 SHA `77685002b095fba298de3247fc159437496346249169af13e501c7007b1960cb`；图组现为17，仍不代表实时期限合格。
+
+阶段性图册 r03 17页 PDF SHA `bbfc28cb24e47e31d962a965e900a6b0a9b5c931c7991127f7839f99eb4f60ed`，根代理已查看全部页面接触表；仍未达到30组。
+
+F01 接口设计示意 r01 实际 PNG/PDF 视检通过，源 manifest SHA `88a820ed574125c71be61a61ceea1c71643c99a5c74aef20b0ec326d29050ea2`；不同已验收图组为18。该图不代表完整仿真命令链或实车已验证。
+
+阶段性图册 r04 18页 PDF SHA `48f0d1a393a5332c0d664910e00b221a63e3680a6b31c09d9758cc458c92bc8c`，根代理已查看全部页面接触表；仍未达到30组。
+
+B04 静态后轴 TEB/DWA 离线集成独审 SHA `20e90d05b0317dbd1ba2913f597f8561cc4208cdd3032d23cc88c7b52a188463`，215资源通过；真实后轴物理/动态参与者/实时回执仍无资格，未来 manager 必须比较完整 prepared 参数。无 release、seed、ROS。
+
+N06 离线双次 URDF→SDF 转换 8/8 成功（16个转换进程），bundle SHA `51dc54250991519254dcca93da54461dac9bd05fc3b0a6b96087221646b21339`、根复核 SHA `0bed9675a02081ea93a28ef6d6d8e61ee9f1ec3c1299e7864b78353fc5610c01`，独审待完成。它不构成实时引擎映射、物理或导航资格。
+
+F05 D04 六类×四父布局图 r02 质检通过，源 SHA `318bfab8df1eef486f22daa741ba767ddb6edf418ae75b3e433623f01dff4da7`，不同图组19。N06 管理器 r01 独审负结果 SHA `a04ccb08be678ef07a2e8a8caa6beef60d8b6538a4fec95b21d82f05963b9d18`，三处完整性阻断，r01 不可发布；另起 r02 修复。
+
+B05 静态后轴双基线零权限设计与纯组件作者报告 SHA `55f09a5694f4683823a34e4d104db1deae8047f2a66735be6d5ccc343b8f60b9`，20项测试，独审待做。263004001–010 仅提案、预算0；真实运行尚缺完整默认参数prepare/九类shape/回执/manager与collector。
+
+N06八份离线转换已独立复核：438资源/16真实转换进程/8项diagnostic认证通过，报告SHA `5a06d3fb3c32da58a951e7c1e5cbbd2a05d14714c06da193ed070465dfd7d872`；运行时converter correspondence仍未资格。N06 r01三项阻断保留，r02修复及独审未完成，无release/种子登记/ROS。
+
+阶段性图册r05 19页实际视检通过，PDF SHA `4329c9b09b278fc2b2ee49706d774833d400d52c8cb9a6da525a02e05bb4c5cb`、视检记录SHA `68edb425c730eb92881de7648b76559a8612349809d705e1d247339e8c6e12b9`；全部图ID可从PDF提取，仍未达到30个不同图组。
+
+N06 manager r02 作者冻结SHA `1a46daaf235abfd97f79cd529fd17546cefc9d05f41bc9431ec6bf86e41477b3`，56项作者测试通过，r01不变，三处修复待独审。只读部分release资源预览r02复验824个唯一资源/137个源码配置，SHA `e47b38d6d38cf1b232b6a799e8e12a23ab9321e2faaef248c55e86782e450f2d`；runtime与source闭包仍缺，绝非release。
+
+B05作者补充SHA `8ced613d81d6a5f3dd9d24bf427bef1ed3ebfde96d08d20ec5d220814fee0c40` 保留数字字符串other_proposed_seeds漏检的通用API反例；当前整数真实输入未受影响，独审待做。
+
+N06 manager r02 独审另发现行政metadata污染与成功assessment来源闭包绕过，r02保留负结果待报告SHA，不能release；另起r03。
+
+F03 M08/N05候选执行事务源码示意r02实看PNG及170mm PDF通过，源SHA `50457f3fe269d1d451a147c0c9e14b454dff09a9c82b065c153143a98707b0c6`，QC SHA `7d87d721dc5abdc76c8632b7ef4bd30b34638b54949e66c6f01fccc5477ed1c9`；r01箭头文字交叉被保留为失败。图组20。阶段图册r06 20页PDF SHA `9e646a997b2bd5604fdd6337908b351c0b76c894f71732be891ad32a084f8918`，视检QC SHA `01aa0810eaba6422787fd9cbe05c5cc370327106cf95f54481f944abfd70d40f`，未达30组。
+
+N06 manager r02 独审正式负结果SHA `9c8765368b31c0860da2588a73c7627f1cb21ee9de4cbb7a4c88a3491906a81d`，两项回执闭包缺口；r02不可release，三张真实CSV未改，另起r03修复。
+
+B05 零权限静态双基线设计独审有限通过SHA `0c76652b6aa31c039fc7552ee56a4f9a61f38d7e3c382bb532ca29a432b93383`；数字字符串seed冲突门缺口保留，真实后轴物理/九shape/回执/manager未资格。
+
+F06–F11 六类N05旧开发场景真实Gazebo原生画面+分离的输入几何示意各一组，r04逐张实看全分辨率PNG及170mm PDF通过；r01 Path错误、r02/r03裁切参与者保留失败。图组26。阶段图册r07 26页PDF SHA `6b5b4445fc29e8dfe896abbab0e2da702c1f8a94f9dc268251bff27b7528dcd2`、视检SHA `f9a41d990587733c9b049e5499ccf1c5edda420ba19d790af3b38273ab37289f`；仍非30图最终交付。
+
+N06 manager r03 62项作者测试/764资源冻结，但独审复现 assessor 已写 assessment 后 worker 退出导致回执 task_outcome 不匹配、台账仍active；r03不可release。r04 最小修补及独审进行中；旧runtime磁盘闭包草案不作为发布资源，须重收。B06 整数种子类型门作者冻结，待独审；均未登记种子或启动ROS。
+
+NAV09 r02 基于六任务族首个开发配对的12个真实Gazebo `/astra/world_models` bag，16421行坐标，10超时/2完成；r01 PDF字体损坏保留失败，r02原始数据逐字节一致且170mm PDF实际视检通过，QC SHA `94502ff1d0be33798610a9e8ad5636c544abc68c53ebd10e9a2d1bf1be91b7f1`。不同已验收图组27；阶段图册r08 27页PDF SHA `8e2af4cb081b000fb90180a41c824d923c471c2a475367a3ff02fff6e5be0a25`、逐页ID复核与新增页实际视检QC SHA `d6c67e9bf9c22b7fb664e2660b571b3f04f0d230d833780763924db069d11c71`。仍非30图最终交付。
+
+N06 r03 独审正式负结果SHA `ca3b019eef72035526d3f232377caba8ad8fd9185979acb674057c75b3e36655`；晚到assessment终态回执缺口保留。r04 作者修复SHA `47b04f9b6192638fae33440e8950ff0e3b0e821c7b9e49ef46cac96b032900c9`，独审中。运行资源审计另指出manager继承环境与collector受限环境不一致，以及gazebo_ros包装器二次改写插件/模型库环境；r05受限入口与真实wrapper派生环境闭包设计中。r04磁盘attempt03仅草案，release/种子/ROS均无。B06 exact-int 种子修补独审离线通过SHA `35272ace942ada77fb828397363dd2fabd3fa39375a11fe865f2f1c115085672`，不授予双基线运行资格。
+
+NAV10 r02从N05全部24个旧开发回合真实Gazebo模型状态提取23654个时间窗样本，保留20超时/4完成；r01图注与横轴碰撞拒收，r02样本CSV与其逐字节一致且自然170mm PDF实看通过，QC SHA `f71dcd9461c624cb4e62d09b5086605dc4335de78830c70b1aca07aff708b7eb`。图组28。阶段图册r09 28页PDF SHA `7ed2b2e1c317f5f030fd814cc192d167075a108953c31816ce127be14f74ac21`，新增页视检与前27页绑定复核QC SHA `18a5a931373d22503f0bb91ad86b7220f8cef2f696c5080530d0bb99abf08626`；未达30组。
+
+N06 manager r04 晚到assessment故障恢复独审通过SHA `973ea0b05348be6f410b02f4cc23b6af8c5f54a92f647f04495f7a46bbc4dd8b`，但完整执行环境/磁盘/源码闭包未完成，`execution_ready=false`。r03磁盘草案环境不一致的独立反例SHA `906a54deebee9d05590a8f57f9eb32034b813bcec80cd2838ae1b9b344448f7f` 保留，r05受限父入口及gazebo_ros最终wrapper环境闭包进行中；无release/种子/ROS。
+
+NAV11 r02从N05全部24旧开发回合真实`/odom`按精确任务源时间取23678个50Hz速度样本，20超时/4完成完整保留。0.05m/s仅探索性描述。r01图间标签碰撞拒收，r02原始/汇总CSV与之逐字节一致且170mm PDF实看通过，QC SHA `a9acacfc57546e255ff174276b38b798aebbb66df32c48e58bee4f657c008fff`。图组29。阶段图册r10 29页PDF SHA `75b10fef3bd352968da04c17b2854a70a97ff5c27de8bda6ae46138b9590bc61`，新增页视检及前28页绑定复核QC SHA `87d1260978c039f76e5be7eebc8b0da5299124075156c7d1211ec0ec2412f1ef`；未达30组。
+
+NAV12 r02绘制N05 b04/b05两臂四条真实工程扫掠净距失败的4400个20ms区间，全部负下界保留；r01横轴与图注碰撞拒收，r02数据CSV逐字节一致且170mm PDF实看通过，QC SHA `3518d255a27e12ca9fc7dfb930c63d3429f73d7eda0b6d8317e93e09f71e3573`。下界<0只表示工程安全门失败，不等同真实接触。不同质检图组达30。阶段图册r11 30页PDF SHA `21a54bb3bb8a101666e361f1c73c56d1d3bb1f5458965980754709c0da2bb25c`，新增页实看、前29图哈希绑定及全30 ID核对QC SHA `260319185d8a00cc9e39954612fcfab20bbb009a73b9de70240c9097f608d196`。这只满足图组数量与视觉质检，长程目标的训练、正式比较与迁移尚未完成。
+
+图册r12仅修正30组后索引说明，30页PDF SHA `63a656f6d59cce29c54cde51ec8a7c8ffd11bdd777db60e929b36d6fd61eaa96`；全部30图源/QC绑定与已实看的r11相同，第30页渲染逐字节一致，QC SHA `f049005486cf5e007e148c9604df834b46a9cfecaefefcb5d462e68d11735827`。N06 manager r05 作者冻结SHA `bd4e3a6c2700df586ff8894d2796a8d0f8783e30590b9e14ac1076e63ef2d111`、866资源/75测试，独审和最终运行资源闭包仍进行中；无release/种子/ROS。
+
+N06 manager r05 受限入口/预算前和所有child环境独审通过SHA `36a7c23c4c366fab1a26d5e6a24be09b7991188cb494287fe9c78bf459c9d059`，仍非执行许可。作者磁盘闭包5214资源、602 ELF、64节点报告SHA `d310d6b1e49c2d8090df7247fa9ef9d62c64989f77d52ad6cf3571d3af665fab`，独审中。完成后需新reviewed封装、候选roster和最终source/lifecycle审查，才可评估真实release。
+
+30图组阶段包的机器重查SHA `9ec5bbd73e1cc53f22bccf7a965b3b858328f91f44c51dce57f892ffd7cfa133`：8组真实Gazebo截图图版、13张不同原始帧，六核心场景F06–F11；149条RAW素材中21条机器失败且其余并非全数逐张批准。说明见 paper_update/FIGURE_PACKAGE_AUDIT_R01.md。
+
+N06 r05原磁盘闭包独审负结果SHA `5fc6cb26f7ffe3ca90d257e7e2372ebb371b1dee750e1e870c3e3d07449b21cf`：26921全量哈希等检查通过，但三个实际Gazebo ROS路径导出 `package.xml` 未闭合，SystemPaths/GAZEBORC派生也须绑定；无替代ELF/错载证据。另起小supplement/closure r02，原件不改；release/种子/ROS继续禁止。
+
+B07 只读生成默认值清单SHA `ff7cfe847a06545ccd6ecc91d0cc3e71e45e531bc11cc69994a94896ae830559`：活动TEB的91键有51键、活动DWA的35键有7键未在离线launch展开显式列出。global/local costmap及层默认值也有未列项。这不是运行时参数树结论，B05完整树期望生成与三阶段真实对比仍缺。
+
+B08 同样只读补齐 `move_base` 根动态配置：两套离线launch展开均未显式列出16个生成默认键中的5个，报告SHA `e924f3d39db4b94c3ee42d8656cda9e58733401fcd3a75857cc6c52a790a2c04`。这是源码缺口而非实际参数服务器读数，B05仍不可发布。N06磁盘补充闭包r02已由作者冻结，独立增量审查进行中；未经通过前仍无release/seed/ROS。
+
+N06磁盘r02补充独审现已通过，报告SHA `9154b5d8a145d747b5b15d15505a9c693ad14833637c05a1424ff9cb1e5660e7`：5217运行资源和原26921资源重哈希一致，三份实际路径导出清单缺口闭合。这只限离线磁盘依赖；GAZEBORC仅为当前不存在和源码推导，未证明实际SystemPaths运行。下一步另存reviewed envelope和精确候选roster，再做最终source/lifecycle独审、精确release验证及新seed登记。仍无release/seed/ROS。
+
+N06另存reviewed磁盘封装SHA `48986889780c681a87cacc20cf53d22e01e967096b02354732e43fc8a3c50c36`；5656资源/2456源码配置的精确候选roster SHA `232b9352ea34474c5179ffdee3304a651d0eba96031b2cb823277f0f264855c9`，不包含可变live CSV，固定registry baseline副本已绑定。Q05旧资格文件唯一相对证据路径在N06专用投影中规范化，证据SHA和资格语义未变，投影SHA `d4f462ee14492bf671716571108047af9122eda98463b9d6def2f25488b712b7`。最终source/lifecycle独审进行中；无release/seed/ROS。
+
+上项r02候选roster最终源码独审为**负**：SHA `e80b325855af29be19dc097319882ee117b1597877ad63660c195654f0f62158`，缺8个活动源码/构建输入；冻结closure的`archived_source()`对其中两份cpp实际会报未绑定。旧r02字节保留，另建仅追加8个原SHA资源的r03候选并重新独审。没有release、种子登记或ROS/Gazebo启动。
+
+r03候选roster SHA `97db74b3d9fcf283b249b66fd1c432a6e5c80ee8b5ec9559669a00dd87ace15a` 精确增加旧scope的8项，原r02不改。进一步实际本地递归include审查SHA `fc1bffc3f808886ee35c5fe88eac337052df4adbfa1c83f51f24257e704d9b50` 发现另外5份活动头文件（含4份隔离工作区生成service头），r03不冒充完整；另起r04按该清单仅追加5项，之后重新做最终独审。无release/seed/ROS。
+
+r04候选roster SHA `d0ebfdfc8e1f4ccf1fbd107c9dfb28ad3dbe58ca398a5c79a21933952b0b3471` 精确追加5项，5669资源/2468源码配置全量重验通过。最终独立source/lifecycle API SHA `d9ab161799d0ef03a82839b3c8134407c23a4dbd3b5b7c2d3792d0f7a21ea6c6`、报告SHA `b847d057317081fddd80825aafc057dc702fce9d7ce6154b4a9daf1c8f9fac01` 通过；GAZEBORC仍只属当前absence限界。根代理创建真实8回合精确release SHA `3846af40b95b72ac61dd87e2bf3da9a411732992b5c96c196f54634197cccf9a`，规定clean-env入口`--verify`只读通过且未分配。独立release复核中，seed registry仍127行原字节、N06无ROS/Gazebo；待复核通过才一次登记并执行。

@@ -1,0 +1,147 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-06-C1-I1
+report_id: v3_06_c1_i1_result_interpretation_1
+status: v3_06_c1_terminal_shared_latency_gate_failure
+formal_result: false
+execution:
+  authorized_units: 36
+  consumed_units: 36
+  completed_units: 36
+  retry_units: 0
+pooled_integration_metrics:
+  episode_count: 36
+  decision_count: 1202
+  goal_success_rate: 1.0
+  selected_candidate_accepted_rate: 1.0
+  certified_stop_available_rate: 1.0
+  exact_core_replay_rate: 1.0
+  motion_recovery_after_clear_rate: 1.0
+  yield_before_clear_rate: 1.0
+  conservative_clearance_violation_count: 0
+  minimum_conservative_clearance_m: 0.19168846405460815
+  maximum_segment_boundary_ego_position_jump_m: 0.006000000000000227
+  maximum_segment_boundary_actor_position_jump_m: 0.006750000123029842
+  maximum_selected_trajectory_trace_error_m: 4.440892098500626e-16
+  planner_latency_p99_ms: 20.906248
+  planner_latency_max_ms: 25.190683
+  maximum_goal_time_s: 10.0
+  nonfinite_metric_count: 0
+pooled_integration_gates:
+  episode_count_pass: true
+  goal_success_pass: true
+  selected_candidate_accepted_pass: true
+  certified_stop_available_pass: true
+  exact_core_replay_pass: true
+  motion_recovery_after_clear_pass: true
+  conservative_clearance_pass: true
+  ego_boundary_continuity_pass: true
+  actor_boundary_continuity_pass: true
+  trajectory_trace_pass: true
+  planner_latency_pass: false
+  finite_metrics_pass: true
+failing_shared_gates:
+- planner_latency_pass
+descriptive_method_metrics:
+  sparse_control:
+    enabled_new_candidate_ids: []
+    episode_count: 12
+    goal_success_rate: 1.0
+    restricted_goal_time_mean_s: 9.0
+    decision_count: 408
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    selected_candidate_counts:
+      certified_stop_v000: 165
+      feasible_v060: 2
+      feasible_v080: 2
+      feasible_v100: 3
+      feasible_v120: 236
+  add_v040:
+    enabled_new_candidate_ids:
+    - feasible_v040
+    episode_count: 12
+    goal_success_rate: 1.0
+    restricted_goal_time_mean_s: 8.8125
+    decision_count: 399
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    selected_candidate_counts:
+      certified_stop_v000: 135
+      feasible_v040: 32
+      feasible_v060: 3
+      feasible_v080: 2
+      feasible_v100: 4
+      feasible_v120: 223
+  add_v020_v040:
+    enabled_new_candidate_ids:
+    - feasible_v020
+    - feasible_v040
+    episode_count: 12
+    goal_success_rate: 1.0
+    restricted_goal_time_mean_s: 8.729166666666666
+    decision_count: 395
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    selected_candidate_counts:
+      certified_stop_v000: 102
+      feasible_v020: 38
+      feasible_v040: 34
+      feasible_v060: 5
+      feasible_v080: 2
+      feasible_v100: 4
+      feasible_v120: 210
+descriptive_candidate_effects:
+  add_v040:
+    paired_unit_count: 12
+    point_relative_reduction_vs_control: 0.021238694516558295
+    positive_pair_fraction: 0.6666666666666666
+    development_gates:
+      minimum_relative_reduction_pass: true
+      goal_success_noninferiority_pass: true
+      collision_gate_pass: true
+      selected_candidate_accepted_pass: true
+      exact_replay_pass: true
+    eligible: true
+  add_v020_v040:
+    paired_unit_count: 12
+    point_relative_reduction_vs_control: 0.03097683219587245
+    positive_pair_fraction: 0.75
+    development_gates:
+      minimum_relative_reduction_pass: true
+      goal_success_noninferiority_pass: true
+      collision_gate_pass: true
+      selected_candidate_accepted_pass: true
+      exact_replay_pass: true
+    eligible: true
+pre_disqualification_selected_method: add_v020_v040
+final_selection:
+  selected_method: ''
+  all_candidate_levels_disqualified: true
+  reason: shared_planner_latency_p99_exceeded_frozen_20_ms_gate
+  fresh_qualification_authorized: false
+integrity:
+  all_36_units_preserved: true
+  only_latency_gate_failed: true
+  exact_replay_pass: true
+  safety_clearance_pass: true
+  threshold_changed: false
+  rerun_or_resume_allowed: false
+claim:
+  result_interpretation_complete: true
+  candidate_selected: false
+  performance_improvement: false
+  deployment_ready: false
+  real_vehicle_ready: false
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  model_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

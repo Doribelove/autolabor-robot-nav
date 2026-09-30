@@ -1,0 +1,64 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-00
+preregistration_id: v3_scope_v3_00_pure_offline_foundation_preregistration_1
+date: "2026-07-24"
+status: frozen_before_foundation_materialization
+scope: pure_offline_design_interface_integrity_and_static_fixture_closure
+authority:
+  offline_design_authorized: true
+  ros_authorized: false
+  gazebo_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  real_vehicle_authorized: false
+  evidence_budget_authorized: 0
+  seed_allocation_count: 0
+  schedule_row_count: 0
+inputs:
+  contract: config/thesis_experiments/v3/v3_00_foundation_contract.yaml
+  static_fixture_spec: config/thesis_experiments/v3/fixtures/v3_00_static_fixture_spec.yaml
+  system_guide: docs/thesis_experiment/V3_SYSTEM_GUIDE.md
+planned_outputs:
+  root: artifacts/v3/foundation/v3_00
+  files:
+    - v3_00_foundation_summary.yaml
+    - v3_00_interface_registry.yaml
+    - v3_00_hermetic_package_closure.yaml
+    - v3_00_candidate_fixture.yaml
+    - v3_00_reactive_actor_cloned_rollout_contract.yaml
+    - v3_00_static_fixture_report.yaml
+    - v3_00_zero_authority_receipt.yaml
+    - v3_00_dependency_closure.yaml
+    - v3_00_foundation_evidence_freeze.sha256
+    - v3_00_offline_review.yaml
+    - v3_00_terminal_freeze.sha256
+acceptance_gates:
+  - exact_contract_schema_and_zero_authority
+  - v3_namespace_isolated_from_v2
+  - message_interface_registry_exact
+  - unique_required_source_package_resolution
+  - candidate_fixture_kinematic_and_digest_pass
+  - certified_stop_and_teb_fallback_present
+  - actor_hidden_label_firewall_pass
+  - cloned_initial_state_and_candidate_coverage_pass
+  - positive_propensity_and_response_effect_fixture_pass
+  - dependency_hash_closure_pass
+  - deterministic_builder_byte_equality
+  - independent_reviewer_exact_equality
+  - no_runtime_process_and_no_execution_state
+failure_action:
+  persist_failure: true
+  do_not_create_execution_authority: true
+  correct_source_before_first_materialization: true
+  after_materialization_byte_rewrite_allowed: false
+claim_if_pass: >-
+  The V3-00 pure-offline foundation contract, interface registry, hermetic
+  package-resolution design and static counterfactual-data fixtures passed an
+  independent deterministic review.
+forbidden_claims:
+  - actor_response_validated_in_simulation
+  - counterfactual_identifiability_demonstrated
+  - predictor_or_planner_performance
+  - safety_or_deployment_readiness
+  - real_vehicle_result

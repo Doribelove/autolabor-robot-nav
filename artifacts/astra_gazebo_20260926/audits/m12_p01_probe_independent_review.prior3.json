@@ -1,0 +1,956 @@
+{
+  "status": "independent_synthetic_assessor_false_pass_defects",
+  "synthetic_only": true,
+  "no_simulation_started": true,
+  "cases": [
+    {
+      "name": "valid_analytic_baseline",
+      "expected_pass": true,
+      "expected_gate": null,
+      "actual_pass": true,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    },
+    {
+      "name": "normal_wheel_ground_reverse_order",
+      "expected_pass": true,
+      "expected_gate": null,
+      "actual_pass": true,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    },
+    {
+      "name": "base_ground_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "only_wheels_may_contact_ground"
+      ],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 1
+      },
+      "claim": null
+    },
+    {
+      "name": "steer_ground_rejected_reverse",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "only_wheels_may_contact_ground"
+      ],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 1
+      },
+      "claim": null
+    },
+    {
+      "name": "wheel_obstacle_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "no_non_ground_robot_contacts"
+      ],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    },
+    {
+      "name": "robot_self_collision_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "no_non_ground_robot_contacts"
+      ],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    },
+    {
+      "name": "dense_missing_step_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "dense_models_every_physics_step",
+        "dense_model_link_exact_source_join"
+      ],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    },
+    {
+      "name": "dense_duplicate_stamp_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "dense_models_every_physics_step",
+        "dense_model_link_exact_source_join"
+      ],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    },
+    {
+      "name": "dense_cross_topic_stamp_offset_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "all_source_stamp_ns_and_seconds_agree",
+        "links_matches_dense_same_stamp",
+        "actual_odom_twist_agrees_with_dense_base_link"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "dense_body_payload_empty_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "dense_models_complete_roster_and_shapes",
+        "dense_links_complete_roster_and_shapes",
+        "models_matches_dense_same_stamp",
+        "links_matches_dense_same_stamp",
+        "actual_joint_positions_agree_with_dense_source_pose",
+        "actual_odom_twist_agrees_with_dense_base_link"
+      ],
+      "metrics_excerpt": {},
+      "claim": "An every-step timestamp shell is not body truth."
+    },
+    {
+      "name": "dense_same_stamp_body_mismatch_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "models_matches_dense_same_stamp"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Dense and low-rate source-stamp-identical poses must agree."
+    },
+    {
+      "name": "dense_ros_seconds_disagree_with_ns_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "all_source_stamp_ns_and_seconds_agree"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Header seconds/nanoseconds encode the same source stamp."
+    },
+    {
+      "name": "dense_named_pose_length_mismatch_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "dense_links_complete_roster_and_shapes"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "actual_joint_values_nonsense_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "actual_joint_positions_agree_with_dense_source_pose"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Actual joint_states contents must be independently coherent with actual link state."
+    },
+    {
+      "name": "target_left_right_missing_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Target schema requires all four named fields."
+    },
+    {
+      "name": "target_left_right_geometry_wrong_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "target_speed_above_effective_max_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_speed_and_instantaneous_reference_limits"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "target_acceleration_violation_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_speed_and_instantaneous_reference_limits"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "target_slew_violation_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "actual_derivative_not_used_for_internal_gate",
+      "expected_pass": null,
+      "expected_gate": {
+        "internal_accel_limit": true
+      },
+      "actual_pass": true,
+      "actual_gate": true,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -442.21701247616824,
+          "max": 442.6590761220919,
+          "mean": 8.133481379167683e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 442.6590761220919
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": "Coherent actual body velocity may exceed target acceleration; internal target gate must remain separate."
+    },
+    {
+      "name": "nonzero_lateral_actual_twist_rotates_correctly",
+      "expected_pass": true,
+      "expected_gate": null,
+      "actual_pass": true,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    },
+    {
+      "name": "actual_twist_inconsistent_with_truth_must_fail",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "actual_odom_twist_agrees_with_dense_base_link"
+      ],
+      "metrics_excerpt": {},
+      "claim": "Independent target gate should pass; odom velocity truth consistency must reject the false measurement."
+    },
+    {
+      "name": "target_nan_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "all_numeric_finite"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "actual_slew_overlimit_cannot_pass",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "links_complete_roster_and_shapes",
+        "links_matches_dense_same_stamp"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "dense_nonfinite_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "all_numeric_finite"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "command_loss_extra_publication_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "command_loss_no_relay_publication_after_drain"
+      ],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    },
+    {
+      "name": "actual_vy_truth_mismatch_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "actual_odom_twist_agrees_with_dense_base_link"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "backend_fault_late_true_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "physical_backend_never_faulted"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "backend_fault_missing_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "physical_backend_never_faulted"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "backend_fault_only_initial_false_must_not_certify_never",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": true,
+      "actual_gate": null,
+      "fixture_pass": false,
+      "false_pass": true,
+      "failed_checks": [],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    },
+    {
+      "name": "physical_metadata_wrong_backend_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "physical_backend_metadata"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "physical_metadata_wrong_mass_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "physical_backend_metadata"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "commanded_torque_overlimit_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "commanded_efforts_finite_limits_not_reaction"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "commanded_effort_wrong_shape_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "commanded_efforts_finite_limits_not_reaction"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "commanded_effort_dropped_step_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "commanded_efforts_bounded_source_gap"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "target_instantaneous_accel_rate_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_speed_and_instantaneous_reference_limits"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "target_instantaneous_steer_rate_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_speed_and_instantaneous_reference_limits"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "target_duplicate_names_rejected",
+      "expected_pass": false,
+      "expected_gate": null,
+      "actual_pass": false,
+      "actual_gate": null,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "target_fields_and_Ackermann_geometry"
+      ],
+      "metrics_excerpt": {},
+      "claim": null
+    },
+    {
+      "name": "unit_quaternion_coherent_actual_slew_rejected",
+      "expected_pass": null,
+      "expected_gate": {
+        "actual_center_slew_with_declared_sampling_tolerance": false
+      },
+      "actual_pass": false,
+      "actual_gate": false,
+      "fixture_pass": true,
+      "false_pass": false,
+      "failed_checks": [
+        "actual_front_left_steer_joint_URDF_velocity_limit",
+        "actual_center_slew_with_declared_sampling_tolerance"
+      ],
+      "metrics_excerpt": {
+        "internal_target_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "internal_target_center_slew_radps": {
+          "count": 1800,
+          "min": -0.750000000000025,
+          "max": 0.7500000000000222,
+          "mean": -8.838608857154718e-17,
+          "p95": 0.749999999999949,
+          "maximum_absolute": 0.750000000000025
+        },
+        "measured_odom_acceleration_mps2": {
+          "count": 1800,
+          "min": -0.9000000000001799,
+          "max": 0.6000000000000133,
+          "mean": 8.1334805673356e-08,
+          "p95": 0.6000000000000133,
+          "maximum_absolute": 0.9000000000001799
+        },
+        "robot_nonwheel_ground_contact_pair_count": 0
+      },
+      "claim": null
+    }
+  ],
+  "case_count": 39,
+  "passing_fixture_count": 38,
+  "source_resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p01.py",
+      "sha256": "2ded4d98e2c6191c50bfa3a55792b211f4be93500fbb76f0a473f2b848dc6f4f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p01.yaml",
+      "sha256": "106d7ced1aa43bb37a3fa7f1b55195bf68bf5d4187d6c9ed6a0e93e27cfb7fbb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_dense_evidence_plugin.cpp",
+      "sha256": "c8afae8ad317304bf2e5bd6688442105fc001d8ed9559034f3b1912ef4007f17"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_m12_physics_p01.py",
+      "sha256": "f4ccf72b2aae19d39f9fbd01466ffd2e71e42e938819eda58e115014d85eddb2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_probe_q02.py",
+      "sha256": "164ebbf2734401278100f781be1a015e8029d43163da666592b302bdd84730a4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q02/probe_raw.json",
+      "sha256": "5d7da0185dc60d9f9219a614a1e3d3ca74964fc5fe4e529c536d4e5a9697ae7e"
+    }
+  ],
+  "loaded_source_snapshots": {
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_probe_q02.py": {
+      "sha256": "164ebbf2734401278100f781be1a015e8029d43163da666592b302bdd84730a4",
+      "source_text": "#!/usr/bin/env python3\n\"\"\"Q02 bounded turning/braking qualification with paused zero-command bootstrap.\n\nPure assessment/helpers are importable without ROS. Runtime saves streaming raw\nrecords before attempting assessment, and always preserves terminal failures.\nOnly /cmd_vel_navigation is published; /cmd_vel is observed after the relay.\n\"\"\"\nimport argparse\nimport bisect\nimport hashlib\nimport json\nimport math\nimport os\nfrom pathlib import Path\nimport statistics\nimport threading\nimport time\nimport traceback\nimport xml.etree.ElementTree as ET\nfrom urllib.parse import urlparse\n\nimport yaml\n\n\ndef sha_bytes(value):return hashlib.sha256(value).hexdigest()\ndef phase_intervals(contract):\n    at=0.;result=[]\n    for item in contract['phase_schedule']:\n        item=dict(item,start_s=at,end_s=at+item['duration_s']);result.append(item);at=item['end_s']\n    if abs(at-contract['total_schedule_s'])>1e-9:raise ValueError('schedule duration mismatch')\n    return result\ndef phase_at(elapsed,contract):\n    return next((r for r in phase_intervals(contract) if r['start_s']<=elapsed<r['end_s']),None)\ndef command_for(phase,wheelbase):\n    if phase.get('publish') is False:return None\n    v=float(phase['speed_mps'])\n    return v,float(phase['yaw_rate_request_radps']) if 'yaw_rate_request_radps' in phase else v*math.tan(phase['center_steering_request_rad'])/wheelbase\ndef angle_diff(a,b):return math.atan2(math.sin(a-b),math.cos(a-b))\ndef yaw(p):\n    x,y,z,w=p[3:];return math.atan2(2*(w*z+x*y),1-2*(y*y+z*z))\ndef quat_relative(parent,child):\n    ax,ay,az,aw=(-parent[0],-parent[1],-parent[2],parent[3]);bx,by,bz,bw=child\n    return (aw*bx+ax*bw+ay*bz-az*by,aw*by-ax*bz+ay*bw+az*bx,\n            aw*bz+ax*by-ay*bx+az*bw,aw*bw-ax*bx-ay*by-az*bz)\ndef pair_center(left,right,L,track):\n    tl,tr=math.tan(left),math.tan(right);kl=tl/(L+track/2*tl);kr=tr/(L-track/2*tr)\n    return math.atan(L*(kl+kr)/2),abs(kl-kr)\ndef summary(values):\n    values=sorted(float(v) for v in values)\n    if not values:return {'count':0}\n    return {'count':len(values),'min':values[0],'max':values[-1],'mean':sum(values)/len(values),\n            'p95':values[min(len(values)-1,int(.95*(len(values)-1)))],'maximum_absolute':max(abs(values[0]),abs(values[-1]))}\ndef derivative(times,values):\n    return [(times[i]+times[i-1])/2 for i in range(1,len(times))],[(values[i]-values[i-1])/(times[i]-times[i-1]) for i in range(1,len(times))]\ndef finite(value):\n    if isinstance(value,float):return math.isfinite(value)\n    if isinstance(value,dict):return all(finite(v) for v in value.values())\n    if isinstance(value,(tuple,list)):return all(finite(v) for v in value)\n    return True\n\n\ndef validate_effective_urdf(xml,contract,seed):\n    root=ET.fromstring(xml);plugin=root.find(\"gazebo/plugin[@name='m2_ackermann_interface']\")\n    if plugin is None:raise ValueError('M2 actuator plugin absent from effective robot_description')\n    values={k:float(plugin.findtext(k)) for k in contract['effective_plugin_parameters']}\n    for key,expected in contract['effective_plugin_parameters'].items():\n        if abs(values[key]-expected)>1e-10:raise ValueError('effective actuator parameter mismatch '+key)\n    for key,expected in contract['effective_boolean_parameters'].items():\n        if (plugin.findtext(key).lower()=='true')!=expected:raise ValueError('effective boolean mismatch '+key)\n    if int(plugin.findtext('dynamicsSeed'))!=seed:raise ValueError('effective actuator seed mismatch')\n    limits={}\n    for name in contract['front_joint_names']:\n        joint=root.find(\"joint[@name='{}']\".format(name));limit=joint.find('limit') if joint is not None else None\n        if limit is None:raise ValueError('actual front joint limit absent '+name)\n        limits[name]={'lower':float(limit.get('lower')),'upper':float(limit.get('upper')),'velocity':float(limit.get('velocity'))}\n    return {'plugin':values,'front_joint_limits':limits,'robot_description_sha256':sha_bytes(xml.encode()),'seed':seed}\n\n\ndef validate_world(xml,contract):\n    def structure(element):\n        return (element.tag,tuple(sorted(element.attrib.items())),(element.text or '').strip(),tuple(structure(c) for c in element))\n    if structure(ET.fromstring(xml))!=structure(ET.fromstring(contract['world_fixture']['sdf'])):\n        raise ValueError('world differs structurally from preregistered empty-ground SDF')\n    world=ET.fromstring(xml).find('world');spec=contract['world_fixture'];physics=world.find('physics')\n    if physics.get('type')!=spec['physics_type'] or abs(float(physics.findtext('max_step_size'))-spec['max_step_s'])>1e-12:raise ValueError('world physics mismatch')\n    if list(map(float,world.findtext('gravity').split()))!=spec['gravity_mps2']:raise ValueError('world gravity mismatch')\n    if sorted(m.get('name') for m in world.findall('model'))!=sorted(spec['fixed_world_models']):raise ValueError('world fixture models changed')\n    ground=world.find(\"model[@name='ground_plane']\")\n    if ground.findtext('static')!='true' or ground.find('pose') is not None:raise ValueError('ground must be static origin plane')\n    collisions=ground.findall('link/collision')\n    if len(collisions)!=1 or list(map(float,collisions[0].findtext('geometry/plane/size').split()))!=spec['ground_size_m']:raise ValueError('ground collision mismatch')\n    plugin=world.find(\"plugin[@filename='libastra_evidence_plugin.so']\")\n    if plugin is None or float(plugin.findtext('state_hz'))!=spec['state_hz']:raise ValueError('source evidence plugin mismatch')\n    return {'world_sha256':sha_bytes(xml.encode()),'expected_runtime_models':spec['fixed_world_models']+[contract['model_name']]}\n\n\ndef pose_derivatives(rows,stride):\n    rows=rows[::stride]\n    times=[];speeds=[];rates=[]\n    for a,b in zip(rows,rows[1:]):\n        dt=b['t']-a['t'];times.append((a['t']+b['t'])/2)\n        speeds.append(math.hypot(b['p'][0]-a['p'][0],b['p'][1]-a['p'][1])/dt)\n        rates.append(angle_diff(yaw(b['p']),yaw(a['p']))/dt)\n    at,acc=derivative(times,speeds);jt,jerk=derivative(at,acc)\n    return {'stride':stride,'interval_midpoint_speed_mps':summary(speeds),'interval_yaw_rate_radps':summary(rates),\n            'acceleration_of_interval_speed_mps2':summary(acc),'jerk_of_interval_acceleration_mps3':summary(jerk),\n            'interpretation':'Unsigned planar pose secants at explicit source times; impulsive pose-setting and discretization affect derivatives; no physical acceleration/jerk compliance claim.'}\n\n\ndef assess(raw,contract):\n    g=contract['gates'];params=contract['effective_plugin_parameters'];L=params['wheelbase'];track=params['track'];start=raw['schedule_start_s'];end=start+contract['total_schedule_s']\n    checks={};metrics={};errors=[]\n    def gate(name,value):checks[name]=bool(value)\n    def inside(r):return start<=r['t']<=end\n    model_rows=[r for r in raw['models'] if inside(r)];link_rows=[r for r in raw['links'] if inside(r)]\n    odom=[r for r in raw['odom'] if inside(r)];joints=[r for r in raw['joints'] if inside(r)];contacts=[r for r in raw['contacts'] if inside(r)]\n    gate('all_numeric_finite',finite(raw));gate('no_callback_errors',not raw.get('callback_errors'))\n    for name,rows in [('models',model_rows),('links',link_rows),('odom',odom),('joints',joints),('contacts',contacts)]:\n        dt=[b['t']-a['t'] for a,b in zip(rows,rows[1:])];metrics[name+'_dt_s']=summary(dt)\n        gate(name+'_source_strictly_monotonic',bool(dt) and min(dt)>0)\n        gate(name+'_covers_schedule',bool(rows) and rows[0]['t']-start<=.025 and end-rows[-1]['t']<=.025)\n        limit=g['maximum_contact_gap_s'] if name=='contacts' else g['maximum_state_gap_s']\n        gate(name+'_bounded_source_gap',bool(dt) and max(dt)<=limit)\n        if name!='contacts':gate(name+'_approximately_50Hz',bool(dt) and g['minimum_packet_frequency_hz']<=(len(rows)-1)/(rows[-1]['t']-rows[0]['t'])<=g['maximum_packet_frequency_hz'])\n    # Missing/malformed rows remain raw; avoid laundering a partial result.\n    if not all(checks.values()):\n        return {'pass':False,'checks':checks,'metrics':metrics,'assessment_incomplete':True,'reason':'source coverage/finite gate failed before derivative assessment'}\n    meta=raw['metadata'];gate('physics_source_metadata',meta['physics_type']=='ode' and abs(meta['max_step_s']-.002)<1e-12 and meta['phase']=='WorldUpdateEnd' and meta['all_collision_pairs_retained'])\n    expected=set(contract['world_fixture']['fixed_world_models']+[contract['model_name']])\n    gate('unique_expected_model_roster',all(len(set(r['names']))==len(r['names']) and set(r['names'])==expected for r in model_rows))\n    links={r['ns']:r for r in link_rows};gate('models_links_exact_source_stamp_join',len(links)==len(link_rows)==len(model_rows) and all(r['ns'] in links for r in model_rows))\n    robot=[];actual_angles=[];centers=[];curvature_error=[];angular_bounds=[]\n    actual_limits=raw['effective_configuration']['front_joint_limits']\n    for row in model_rows:\n        p=row['poses'][row['names'].index(contract['model_name'])];robot.append({'t':row['t'],'p':p})\n    gate('spawn_pose_matches_fixture',math.hypot(robot[0]['p'][0],robot[0]['p'][1])<=.01 and abs(robot[0]['p'][2])<=.01 and abs(yaw(robot[0]['p']))<=.01)\n    gate('inside_empty_fixture',all(math.hypot(r['p'][0],r['p'][1])<contract['world_fixture']['runtime_xy_abort_radius_m'] for r in robot))\n    for r in link_rows:\n        byname=dict(zip(r['names'],r['poses']));base=byname[contract['model_name']+'::base_link'];angles=[]\n        for joint_name,link in zip(contract['front_joint_names'],contract['front_link_names']):\n            child=byname[contract['model_name']+'::'+link];q=quat_relative(base[3:],child[3:]);a=yaw([0,0,0]+list(q));angles.append(a)\n            lim=actual_limits[joint_name];angular_bounds.append(lim['lower']-g['actual_front_joint_angle_tolerance_rad']<=a<=lim['upper']+g['actual_front_joint_angle_tolerance_rad'])\n        c,err=pair_center(*angles,L,track);centers.append((r['t'],c));curvature_error.append(err);actual_angles.append(angles)\n    metrics['actual_front_left_rad']=summary([x[0] for x in actual_angles]);metrics['actual_front_right_rad']=summary([x[1] for x in actual_angles]);metrics['actual_center_rad']=summary([v for _,v in centers]);metrics['actual_front_curvature_disagreement_inv_m']=summary(curvature_error)\n    gate('actual_front_joint_URDF_angle_limits',all(angular_bounds));gate('actual_center_angle_limit',max(abs(v) for _,v in centers)<=params['maxSteer']+g['actual_center_steering_tolerance_rad'])\n    gate('actual_front_Ackermann_pair_agreement',max(curvature_error)<=g['actual_front_pair_curvature_disagreement_inv_m'])\n    for i,name in enumerate(contract['front_joint_names']):\n        _,joint_rates=derivative([r['t'] for r in link_rows],[a[i] for a in actual_angles])\n        metrics['actual_'+name+'_rate_radps']=summary(joint_rates)\n        gate('actual_'+name+'_URDF_velocity_limit',max(abs(x) for x in joint_rates)<=actual_limits[name]['velocity']+g['actual_front_joint_rate_tolerance_radps'])\n    _,actual_center_rates=derivative([t for t,_ in centers],[v for _,v in centers])\n    metrics['actual_center_rate_radps']=summary(actual_center_rates)\n    gate('actual_center_slew_with_declared_sampling_tolerance',max(abs(v) for v in actual_center_rates)<=params['maxSteeringRate']+g['actual_center_slew_tolerance_radps'])\n    # Exact source stamps differ between 50Hz plugin phases. Select latest odom\n    # at/before truth, retain its bounded age, and report physical pose agreement.\n    all_odom=raw['odom'];ot=[r['t'] for r in all_odom];poserr=[];yawerr=[];ages=[]\n    for r in robot:\n        i=bisect.bisect_right(ot,r['t'])-1\n        if i<0:raise ValueError('truth precedes all odom')\n        o=all_odom[i];ages.append(r['t']-o['t']);poserr.append(math.hypot(r['p'][0]-o['p'][0],r['p'][1]-o['p'][1]));yawerr.append(abs(angle_diff(yaw(r['p']),yaw(o['p']))))\n    metrics['truth_latest_odom_source_age_s']=summary(ages);metrics['truth_odom_xy_error_m']=summary(poserr);metrics['truth_odom_yaw_error_rad']=summary(yawerr)\n    gate('odom_source_join_age',max(ages)<=g['latest_odom_source_age_s']);gate('model_odom_xy_agreement',max(poserr)<=g['model_to_latest_odom_xy_error_m']);gate('model_odom_yaw_agreement',max(yawerr)<=g['model_to_latest_odom_yaw_error_rad'])\n    t=[r['t'] for r in odom];v=[r['v'] for r in odom];at,a=derivative(t,v);jt,j=derivative(at,a)\n    published=[]\n    for r in joints:\n        d=r['positions'];c,_=pair_center(d[contract['front_joint_names'][0]],d[contract['front_joint_names'][1]],L,track);published.append(c)\n    _,rates=derivative([r['t'] for r in joints],published);tol=g['published_limit_numeric_tolerance']\n    metrics['internal_acceleration_mps2']=summary(a);metrics['internal_jerk_mps3']=summary(j);metrics['published_center_steering_rate_radps']=summary(rates)\n    gate('internal_accel_limit',max(a)<=params['maxAcceleration']+tol);gate('internal_brake_limit',min(a)>=-params['maxDeceleration']-tol)\n    gate('published_center_slew_limit',max(abs(v) for v in rates)<=params['maxSteeringRate']+tol);gate('published_center_angle_limit',max(abs(v) for v in published)<=params['maxSteer']+tol)\n    metrics['actual_pose_derivatives_20ms']=pose_derivatives(robot,1);metrics['actual_pose_derivatives_100ms']=pose_derivatives(robot,5)\n    ground=[];nonground=[]\n    for r in contacts:\n        for pair in r['pairs']:\n            names=[pair['a'].split('::')[0],pair['b'].split('::')[0]]\n            if contract['model_name'] not in names:continue\n            (ground if contract['world_fixture']['ground_model'] in names else nonground).append({'t':r['t'],**pair})\n    metrics['robot_ground_contact_pair_count']=len(ground);metrics['robot_non_ground_contact_pair_count']=len(nonground);metrics['first_non_ground_contacts']=nonground[:10]\n    gate('no_non_ground_robot_contacts',len(nonground)<=g['maximum_non_ground_robot_contacts'])\n    phase_metrics={}\n    for phase in phase_intervals(contract):\n        lo=start+phase['start_s'];hi=start+phase['end_s'];tail=hi-contract['settled_tail_s'];name=phase['name']\n        rr=[r for r in robot if tail<=r['t']<hi];oo=[r for r in odom if tail<=r['t']<hi];cc=[v for ts,v in centers if tail<=ts<hi]\n        metric={'tail_samples':len(oo),'actual_center_rad':summary(cc),'internal_tail_speed_mps':summary([r['v'] for r in oo])};phase_metrics[name]=metric\n        sent=[r for r in raw['commands_sent'] if lo<=r['t']<hi]\n        if phase.get('publish') is False:\n            observed=[r for r in raw['commands_observed'] if lo+g['command_loss_relay_drain_grace_s']<=r['t']<hi]\n            gate('command_loss_no_probe_publication',not sent);gate('command_loss_no_relay_publication_after_drain',not observed)\n        else:\n            expected_count=phase['duration_s']/contract['publish_period_s'];gate(name+'_command_count',len(sent)>=g['minimum_phase_command_count_fraction']*expected_count)\n        if not oo or not rr or not cc:gate(name+'_tail_available',False);continue\n        speed=phase.get('speed_mps',0)\n        if speed:\n            gate(name+'_steady_speed',max(abs(r['v']-speed) for r in oo)<=g['moving_tail_speed_error_mps'])\n            desired=max(-params['maxSteer'],min(phase['center_steering_request_rad'],params['maxSteer']))\n            gate(name+'_actual_steady_steering',max(abs(v-desired) for v in cc)<=g['steady_actual_steering_error_rad'])\n            if 'turn_' in name or 'saturation_' in name:\n                allp=[r for r in robot if lo<=r['t']<hi];change=sum(angle_diff(yaw(b['p']),yaw(a['p'])) for a,b in zip(allp,allp[1:]));metric['actual_phase_yaw_change_rad']=change\n                gate(name+'_yaw_excitation',math.copysign(1,desired)*change>=g['minimum_turn_yaw_excitation_rad'])\n        else:\n            displacement=sum(math.hypot(b['p'][0]-a['p'][0],b['p'][1]-a['p'][1]) for a,b in zip(rr,rr[1:]));rotation=sum(abs(angle_diff(yaw(b['p']),yaw(a['p']))) for a,b in zip(rr,rr[1:]))\n            metric.update(tail_model_path_m=displacement,tail_model_yaw_variation_rad=rotation)\n            gate(name+'_internal_stopped',max(abs(r['v']) for r in oo)<=g['stopped_tail_speed_mps'])\n            gate(name+'_model_stopped',displacement<=g['stopped_tail_model_displacement_m'] and rotation<=g['stopped_tail_model_yaw_change_rad'])\n    metrics['phases']=phase_metrics\n    sent=raw['commands_sent'];observed=raw['commands_observed'];matched=0\n    for r in sent:\n        if any(0<=o['t']-r['t']<=.12 and abs(o['v']-r['v'])<1e-9 and abs(o['w']-r['w'])<1e-9 for o in observed):matched+=1\n    metrics['relay_match_fraction']=matched/len(sent) if sent else 0.;gate('command_relay_observed',metrics['relay_match_fraction']>=g['minimum_matched_relay_fraction'])\n    gaps=[b['t']-a['t'] for a,b in zip(sent,sent[1:]) if b['phase']==a['phase']];gate('within_phase_command_deadline',bool(gaps) and max(gaps)<=g['maximum_publish_gap_s'])\n    return {'pass':all(checks.values()),'checks':checks,'metrics':metrics,'assessment_incomplete':False,\n       'scope':'one simulator-only actuator/execution qualification, not navigation performance or real-vehicle safety',\n       'limits':['Actual model pose derivatives and Gazebo body twists differ under SetWorldPose.','Internal acceleration and slew bounds are not formal bounds on physical contact-driven motion.','Ground contacts are retained separately, not classified as obstacle collisions.','No physical jerk limit was preregistered or retrofitted.']}\n\n\ndef offline_fixtures(contract,effective):\n    \"\"\"Synthetic assessor/failure-injection fixtures; never simulator evidence.\"\"\"\n    import copy\n    params=contract['effective_plugin_parameters'];L=params['wheelbase'];track=params['track']\n    raw={'schedule_start_s':0.,'effective_configuration':effective,'models':[],'links':[],'odom':[],'joints':[],\n         'contacts':[],'commands_sent':[],'commands_observed':[],'callback_errors':[],\n         'metadata':{'physics_type':'ode','max_step_s':.002,'phase':'WorldUpdateEnd','all_collision_pairs_retained':True}}\n    velocity=center=x=y=heading=0.\n    def pp(x,y,h):return [x,y,0.,0.,0.,math.sin(h/2),math.cos(h/2)]\n    def ack(c):\n        k=math.tan(c)/L\n        return math.atan2(L*k,1-track*k/2),math.atan2(L*k,1+track*k/2)\n    for i in range(int(round(contract['total_schedule_s']/.02))+1):\n        t=i*.02;phase=phase_at(max(0.,t-1e-8),contract);cmd=command_for(phase,L)\n        if cmd is None:\n            # Previous command persists until its 0.5s timeout, including last\n            # 20Hz send at phase boundary minus one send period.\n            target_v=1.2 if t < phase['start_s']+.45 else 0.;target_c=0.\n        else:\n            target_v=cmd[0];target_c=0. if abs(target_v)<.001 else max(-params['maxSteer'],min(math.atan(L*cmd[1]/target_v),params['maxSteer']))\n        if i:\n            desired=(target_v-velocity)*(1-math.exp(-.02/params['speedTimeConstant']))\n            rate=params['maxAcceleration'] if target_v>velocity else params['maxDeceleration']\n            velocity+=max(-rate*.02,min(desired,rate*.02))\n            delta=(target_c-center)*(1-math.exp(-.02/params['steeringTimeConstant']))\n            center+=max(-params['maxSteeringRate']*.02,min(delta,params['maxSteeringRate']*.02))\n            x+=velocity*math.cos(heading)*.02;y+=velocity*math.sin(heading)*.02;heading+=velocity*math.tan(center)/L*.02\n        left,right=ack(center);p=pp(x,y,heading);h={'t':t,'ns':int(round(t*1e9)),'frame':'world'}\n        raw['models'].append(dict(h,names=['ground_plane','autolabor_m2'],poses=[pp(0,0,0),p]))\n        raw['links'].append(dict(h,names=['autolabor_m2::base_link','autolabor_m2::front_left_steer_link','autolabor_m2::front_right_steer_link'],poses=[p,pp(x,y,heading+left),pp(x,y,heading+right)]))\n        raw['odom'].append(dict(h,p=p,v=velocity,w=velocity*math.tan(center)/L))\n        raw['joints'].append(dict(h,positions={'front_left_steer_joint':left,'front_right_steer_joint':right}))\n    for i in range(int(round(contract['total_schedule_s']/.002))+1):raw['contacts'].append({'t':i*.002,'ns':i*2000000,'pairs':[]})\n    for i in range(int(round(contract['total_schedule_s']/.05))):\n        t=i*.05;phase=phase_at(t,contract);cmd=command_for(phase,L)\n        if cmd is not None:\n            row={'t':t,'phase':phase['name'],'v':cmd[0],'w':cmd[1]};raw['commands_sent'].append(row);raw['commands_observed'].append(dict(row))\n    baseline=assess(raw,contract)\n    cases={'ideal_synthetic_fixture_pass':baseline['pass']};details={'ideal_failed_checks':[k for k,v in baseline['checks'].items() if not v]}\n    altered=copy.deepcopy(raw);altered['contacts'][50]['pairs']=[{'a':'autolabor_m2::base::collision','b':'obstacle::body::collision','depths':[.01]}]\n    cases['non_ground_contact_fails']=not assess(altered,contract)['checks']['no_non_ground_robot_contacts']\n    altered=copy.deepcopy(raw);altered['links'][100]['poses'][1]=pp(0,0,1.0)\n    cases['actual_front_joint_overlimit_fails']=not assess(altered,contract)['checks']['actual_front_joint_URDF_angle_limits']\n    altered=copy.deepcopy(raw);del altered['models'][100]\n    cases['dropped_truth_packet_fails']=not assess(altered,contract)['pass']\n    altered=copy.deepcopy(raw);altered['odom'][100]['t']=altered['odom'][99]['t']\n    cases['duplicate_source_stamp_fails']=not assess(altered,contract)['checks']['odom_source_strictly_monotonic']\n    altered=copy.deepcopy(raw);altered['commands_observed'].append({'t':33.,'v':1.2,'w':0.})\n    cases['command_loss_extra_publisher_fails']=not assess(altered,contract)['checks']['command_loss_no_relay_publication_after_drain']\n    altered=copy.deepcopy(raw);altered['odom'][100]['v']=float('nan')\n    cases['nonfinite_state_fails']=not assess(altered,contract)['checks']['all_numeric_finite']\n    actual=baseline['metrics'];details['synthetic_turn_yaw_changes']={k:v.get('actual_phase_yaw_change_rad') for k,v in actual.get('phases',{}).items() if 'turn' in k or 'saturation' in k}\n    details['synthetic_actual_front_left_rad']=actual.get('actual_front_left_rad');details['synthetic_actual_center_slew_radps']=actual.get('actual_center_rate_radps')\n    return {'purpose':'synthetic offline assessor/failure-injection fixtures only','checks':cases,'pass':all(cases.values()),'details':details}\n\n\ndef runtime():\n    import rospy\n    from gazebo_msgs.msg import WorldState,ContactsState\n    from nav_msgs.msg import Odometry\n    from sensor_msgs.msg import JointState\n    from geometry_msgs.msg import Twist\n    from std_msgs.msg import String\n    from std_srvs.srv import Empty\n    rospy.init_node('astra_actuation_probe')\n    output=Path(rospy.get_param('~output'));output.mkdir(parents=True,exist_ok=True)\n    if any((output/p).exists() for p in ('probe_raw.jsonl','probe_raw.json','probe_report.json')):raise RuntimeError('refusing to overwrite an existing probe identity')\n    stream=(output/'probe_raw.jsonl').open('x',buffering=1);lock=threading.RLock()\n    raw={'models':[],'links':[],'contacts':[],'odom':[],'joints':[],'commands_sent':[],'commands_observed':[],\n         'metadata':None,'callback_errors':[],'pipeline_only':True,'vehicle_operation_authorized':False}\n    subscribers=[];publisher=None;active=True;started=time.monotonic();failure=None;contract=None\n    def record(kind,row):\n        with lock:\n            if not active:return\n            stream.write(json.dumps({'kind':kind,'record':row},allow_nan=False)+'\\n')\n            if isinstance(raw.get(kind),list):raw[kind].append(row)\n            else:raw[kind]=row\n    def protected(fn):\n        def callback(msg):\n            try:fn(msg)\n            except Exception as exc:\n                with lock:raw['callback_errors'].append({'error':str(exc),'traceback':traceback.format_exc()})\n        return callback\n    def header(msg):return {'ns':msg.header.stamp.to_nsec(),'t':msg.header.stamp.to_sec(),'frame':msg.header.frame_id,'seq':msg.header.seq}\n    def pp(p):return [p.position.x,p.position.y,p.position.z,p.orientation.x,p.orientation.y,p.orientation.z,p.orientation.w]\n    def world(msg,kind):\n        record(kind,dict(header(msg),names=list(msg.name),poses=[pp(p) for p in msg.pose],\n          twists=[[p.linear.x,p.linear.y,p.linear.z,p.angular.x,p.angular.y,p.angular.z] for p in msg.twist]))\n    def contact(msg):\n        record('contacts',dict(header(msg),pairs=[{'a':p.collision1_name,'b':p.collision2_name,'depths':list(p.depths),\n           'source_info':p.info,'positions':[[v.x,v.y,v.z] for v in p.contact_positions],'normals':[[v.x,v.y,v.z] for v in p.contact_normals]} for p in msg.states]))\n    def service(name):\n        done=threading.Event();error=[]\n        def invoke():\n            try:rospy.ServiceProxy(name,Empty)()\n            except Exception as exc:error.append(exc)\n            finally:done.set()\n        threading.Thread(target=invoke,daemon=True).start()\n        if not done.wait(5.):raise RuntimeError('service wall timeout '+name)\n        if error:raise error[0]\n    try:\n        if not rospy.get_param('/use_sim_time',False) or not rospy.get_param('/m2_gazebo/simulation_only',False):raise RuntimeError('simulation-only guards required')\n        if urlparse(os.environ.get('ROS_MASTER_URI','')).hostname not in ('127.0.0.1','localhost','::1'):raise RuntimeError('isolated loopback ROS master required')\n        seed=rospy.get_param('~seed');run_id=rospy.get_param('~run_id')\n        if isinstance(seed,bool) or not isinstance(seed,int) or seed<=0:raise ValueError('explicit positive fresh seed required')\n        payload=Path(rospy.get_param('~contract_path')).read_bytes();contract=yaml.safe_load(payload)\n        raw.update(seed=seed,run_id=run_id,contract_sha256=sha_bytes(payload),contract=contract,\n                   script_sha256=sha_bytes(Path(__file__).read_bytes()))\n        phase_intervals(contract)\n        description=rospy.get_param('/robot_description');raw['effective_configuration']=validate_effective_urdf(description,contract,seed)\n        raw['robot_description']=description;raw['world_validation']=validate_world(Path(rospy.get_param('~world_path')).read_text(),contract)\n        record('startup',{'run_id':run_id,'seed':seed,'contract_sha256':raw['contract_sha256'],'effective_configuration':raw['effective_configuration']})\n        publisher=rospy.Publisher('/cmd_vel_navigation',Twist,queue_size=1)\n        subscribers=[rospy.Subscriber('/astra/world_models',WorldState,protected(lambda m:world(m,'models')),queue_size=5000),\n          rospy.Subscriber('/astra/world_links',WorldState,protected(lambda m:world(m,'links')),queue_size=5000),\n          rospy.Subscriber('/astra/physics_contacts',ContactsState,protected(contact),queue_size=20000),\n          rospy.Subscriber('/astra/physics_metadata',String,protected(lambda m:record('metadata',json.loads(m.data))),queue_size=1),\n          rospy.Subscriber('/odom',Odometry,protected(lambda m:record('odom',dict(header(m),p=pp(m.pose.pose),v=m.twist.twist.linear.x,w=m.twist.twist.angular.z))),queue_size=5000),\n          rospy.Subscriber('/joint_states',JointState,protected(lambda m:record('joints',dict(header(m),positions=dict(zip(m.name,m.position))))),queue_size=5000),\n          rospy.Subscriber('/cmd_vel',Twist,protected(lambda m:record('commands_observed',{'t':rospy.Time.now().to_sec(),'v':m.linear.x,'w':m.angular.z,'callerid':m._connection_header.get('callerid')})),queue_size=2000)]\n        deadline=time.monotonic()+contract['readiness_wall_s']\n        bootstrap_zero_count=0\n        while time.monotonic()<deadline and not rospy.is_shutdown():\n            # topic_tools relay advertises its output only after the first input.\n            # Simulation is paused; this primes transport with a zero command.\n            publisher.publish(Twist())\n            bootstrap_zero_count+=1\n            if all(s.get_num_connections()>0 for s in subscribers) and publisher.get_num_connections()>0 and raw['metadata'] is not None:break\n            time.sleep(.02)\n        else:raise RuntimeError('readiness wall deadline')\n        raw['paused_bootstrap_zero_count']=bootstrap_zero_count\n        code,message,system=rospy.get_master().getSystemState()\n        pubs=dict(system[0]);raw['command_publishers_before_unpause']={k:pubs.get(k,[]) for k in ('/cmd_vel_navigation','/cmd_vel')}\n        if pubs.get('/cmd_vel_navigation')!=[rospy.get_name()] or len(pubs.get('/cmd_vel',[]))!=1:raise RuntimeError('command-chain publisher uniqueness failed')\n        rospy.wait_for_service('/gazebo/unpause_physics',timeout=5);service('/gazebo/unpause_physics')\n        ready_deadline=time.monotonic()+contract['readiness_wall_s']\n        while time.monotonic()<ready_deadline and not rospy.is_shutdown():\n            if raw['models'] and raw['links'] and raw['odom'] and raw['joints'] and raw['contacts']:break\n            time.sleep(.002)\n        else:raise RuntimeError('source packets absent after unpause')\n        start=rospy.Time.now().to_sec()+.1;raw['schedule_start_s']=start;next_send=start;last_time=rospy.Time.now().to_sec();last_progress=time.monotonic()\n        while not rospy.is_shutdown():\n            now=rospy.Time.now().to_sec();wall=time.monotonic()\n            if wall-started>contract['wall_cap_s']:raise RuntimeError('probe wall cap')\n            if now<last_time-1e-9:raise RuntimeError('simulation clock regressed')\n            if now>last_time:last_progress=wall\n            if wall-last_progress>contract['clock_stall_wall_s']:raise RuntimeError('simulation clock stalled')\n            last_time=now\n            if raw['callback_errors']:raise RuntimeError('raw callback failed')\n            if raw['models']:\n                row=raw['models'][-1];index=row['names'].index(contract['model_name']);p=row['poses'][index]\n                if math.hypot(p[0],p[1])>contract['world_fixture']['runtime_xy_abort_radius_m']:raise RuntimeError('fixture range exceeded')\n            if now>=start+contract['total_schedule_s']+.03:break\n            phase=phase_at(now-start,contract)\n            if phase is not None and now>=next_send-1e-9:\n                command=command_for(phase,contract['effective_plugin_parameters']['wheelbase'])\n                if command is not None:\n                    m=Twist();m.linear.x,m.angular.z=command;publisher.publish(m)\n                    record('commands_sent',{'t':now,'wall_monotonic_s':wall,'phase':phase['name'],'v':command[0],'w':command[1]})\n                while next_send<=now+1e-9:next_send+=contract['publish_period_s']\n            time.sleep(.001)\n        if rospy.is_shutdown():raise RuntimeError('external ROS shutdown before successful terminal assessment')\n    except BaseException as exc:\n        failure={'type':type(exc).__name__,'message':str(exc),'traceback':traceback.format_exc()}\n    finally:\n        if publisher is not None:\n            try:publisher.publish(Twist())\n            except Exception:pass\n        # No ROS-time wait: shutdown/stall must still produce durable raw data.\n        if contract is not None:\n            try:service('/gazebo/pause_physics')\n            except Exception as exc:raw['pause_error']=str(exc)\n        with lock:\n            active=False\n            stream.flush();os.fsync(stream.fileno());stream.close()\n        for subscriber in subscribers:subscriber.unregister()\n        raw['wall_elapsed_s']=time.monotonic()-started;raw['terminal_exception']=failure\n        (output/'probe_raw.json').write_text(json.dumps(raw,indent=2,allow_nan=False)+'\\n')\n        report={'pass':False,'pipeline_only':True,'vehicle_operation_authorized':False,'seed':raw.get('seed'),'run_id':raw.get('run_id'),\n                'raw_sha256':sha_bytes((output/'probe_raw.json').read_bytes()),'raw_stream_sha256':sha_bytes((output/'probe_raw.jsonl').read_bytes()),'terminal_exception':failure}\n        if failure is None:\n            try:report.update(assess(raw,contract))\n            except BaseException as exc:report['assessment_exception']={'type':type(exc).__name__,'message':str(exc),'traceback':traceback.format_exc()}\n        (output/'probe_report.json').write_text(json.dumps(report,indent=2,allow_nan=False)+'\\n')\n    return 0 if report['pass'] else 3\n\n\nif __name__=='__main__':\n    raise SystemExit(runtime())\n"
+    },
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p01.py": {
+      "sha256": "dd7355aba1c48a2bb0b169375d58011c131f4e3e17d6a765ac26662ceba50a20",
+      "source_text": "#!/usr/bin/env python3\n\"\"\"M12-P01 physical wheel/steer qualification with independent target/actual data.\n\nPure assessment/helpers are importable without ROS. Runtime saves streaming raw\nrecords before attempting assessment, and always preserves terminal failures.\nOnly /cmd_vel_navigation is published; /cmd_vel is observed after the relay.\n\"\"\"\nimport argparse\nimport bisect\nimport hashlib\nimport json\nimport math\nimport os\nfrom pathlib import Path\nimport statistics\nimport threading\nimport time\nimport traceback\nimport xml.etree.ElementTree as ET\nfrom urllib.parse import urlparse\n\nimport yaml\n\n\ndef sha_bytes(value):return hashlib.sha256(value).hexdigest()\ndef phase_intervals(contract):\n    at=0.;result=[]\n    for item in contract['phase_schedule']:\n        item=dict(item,start_s=at,end_s=at+item['duration_s']);result.append(item);at=item['end_s']\n    if abs(at-contract['total_schedule_s'])>1e-9:raise ValueError('schedule duration mismatch')\n    return result\ndef phase_at(elapsed,contract):\n    return next((r for r in phase_intervals(contract) if r['start_s']<=elapsed<r['end_s']),None)\ndef command_for(phase,wheelbase):\n    if phase.get('publish') is False:return None\n    v=float(phase['speed_mps'])\n    return v,float(phase['yaw_rate_request_radps']) if 'yaw_rate_request_radps' in phase else v*math.tan(phase['center_steering_request_rad'])/wheelbase\ndef angle_diff(a,b):return math.atan2(math.sin(a-b),math.cos(a-b))\ndef yaw(p):\n    x,y,z,w=p[3:];return math.atan2(2*(w*z+x*y),1-2*(y*y+z*z))\ndef quat_relative(parent,child):\n    ax,ay,az,aw=(-parent[0],-parent[1],-parent[2],parent[3]);bx,by,bz,bw=child\n    return (aw*bx+ax*bw+ay*bz-az*by,aw*by-ax*bz+ay*bw+az*bx,\n            aw*bz+ax*by-ay*bx+az*bw,aw*bw-ax*bx-ay*by-az*bz)\ndef world_vector_in_body(v,q):\n    x,y,z,w=q\n    return [\n      (1-2*y*y-2*z*z)*v[0]+(2*x*y+2*w*z)*v[1]+(2*x*z-2*w*y)*v[2],\n      (2*x*y-2*w*z)*v[0]+(1-2*x*x-2*z*z)*v[1]+(2*y*z+2*w*x)*v[2],\n      (2*x*z+2*w*y)*v[0]+(2*y*z-2*w*x)*v[1]+(1-2*x*x-2*y*y)*v[2]]\ndef pair_center(left,right,L,track):\n    tl,tr=math.tan(left),math.tan(right);kl=tl/(L+track/2*tl);kr=tr/(L-track/2*tr)\n    return math.atan(L*(kl+kr)/2),abs(kl-kr)\ndef summary(values):\n    values=sorted(float(v) for v in values)\n    if not values:return {'count':0}\n    return {'count':len(values),'min':values[0],'max':values[-1],'mean':sum(values)/len(values),\n            'p95':values[min(len(values)-1,int(.95*(len(values)-1)))],'maximum_absolute':max(abs(values[0]),abs(values[-1]))}\ndef derivative(times,values):\n    return [(times[i]+times[i-1])/2 for i in range(1,len(times))],[(values[i]-values[i-1])/(times[i]-times[i-1]) for i in range(1,len(times))]\ndef finite(value):\n    if isinstance(value,float):return math.isfinite(value)\n    if isinstance(value,dict):return all(finite(v) for v in value.values())\n    if isinstance(value,(tuple,list)):return all(finite(v) for v in value)\n    return True\n\n\ndef validate_effective_urdf(xml,contract,seed):\n    root=ET.fromstring(xml);plugin=root.find(\"gazebo/plugin[@filename='libastra_physical_ackermann_plugin.so']\")\n    if plugin is None:raise ValueError('M2 actuator plugin absent from effective robot_description')\n    values={k:float(plugin.findtext(k)) for k in contract['effective_plugin_parameters']}\n    for key,expected in contract['effective_plugin_parameters'].items():\n        if abs(values[key]-expected)>1e-10:raise ValueError('effective actuator parameter mismatch '+key)\n    for key,expected in contract['effective_boolean_parameters'].items():\n        if (plugin.findtext(key).lower()=='true')!=expected:raise ValueError('effective boolean mismatch '+key)\n    if int(plugin.findtext('dynamicsSeed'))!=seed:raise ValueError('effective actuator seed mismatch')\n    limits={}\n    for name in contract['front_joint_names']:\n        joint=root.find(\"joint[@name='{}']\".format(name));limit=joint.find('limit') if joint is not None else None\n        if limit is None:raise ValueError('actual front joint limit absent '+name)\n        limits[name]={'lower':float(limit.get('lower')),'upper':float(limit.get('upper')),'velocity':float(limit.get('velocity'))}\n    return {'plugin':values,'front_joint_limits':limits,'robot_description_sha256':sha_bytes(xml.encode()),'seed':seed}\n\n\ndef validate_world(xml,contract):\n    def structure(element):\n        return (element.tag,tuple(sorted(element.attrib.items())),(element.text or '').strip(),tuple(structure(c) for c in element))\n    if structure(ET.fromstring(xml))!=structure(ET.fromstring(contract['world_fixture']['sdf'])):\n        raise ValueError('world differs structurally from preregistered empty-ground SDF')\n    world=ET.fromstring(xml).find('world');spec=contract['world_fixture'];physics=world.find('physics')\n    if physics.get('type')!=spec['physics_type'] or abs(float(physics.findtext('max_step_size'))-spec['max_step_s'])>1e-12:raise ValueError('world physics mismatch')\n    if list(map(float,world.findtext('gravity').split()))!=spec['gravity_mps2']:raise ValueError('world gravity mismatch')\n    if sorted(m.get('name') for m in world.findall('model'))!=sorted(spec['fixed_world_models']):raise ValueError('world fixture models changed')\n    ground=world.find(\"model[@name='ground_plane']\")\n    if ground.findtext('static')!='true' or ground.find('pose') is not None:raise ValueError('ground must be static origin plane')\n    collisions=ground.findall('link/collision')\n    if len(collisions)!=1 or list(map(float,collisions[0].findtext('geometry/plane/size').split()))!=spec['ground_size_m']:raise ValueError('ground collision mismatch')\n    plugin=world.find(\"plugin[@filename='libastra_dense_evidence_plugin.so']\")\n    if plugin is None or float(plugin.findtext('state_hz'))!=spec['state_hz']:raise ValueError('source evidence plugin mismatch')\n    return {'world_sha256':sha_bytes(xml.encode()),'expected_runtime_models':spec['fixed_world_models']+[contract['model_name']]}\n\n\ndef pose_derivatives(rows,stride):\n    rows=rows[::stride]\n    times=[];speeds=[];rates=[]\n    for a,b in zip(rows,rows[1:]):\n        dt=b['t']-a['t'];times.append((a['t']+b['t'])/2)\n        speeds.append(math.hypot(b['p'][0]-a['p'][0],b['p'][1]-a['p'][1])/dt)\n        rates.append(angle_diff(yaw(b['p']),yaw(a['p']))/dt)\n    at,acc=derivative(times,speeds);jt,jerk=derivative(at,acc)\n    return {'stride':stride,'interval_midpoint_speed_mps':summary(speeds),'interval_yaw_rate_radps':summary(rates),\n            'acceleration_of_interval_speed_mps2':summary(acc),'jerk_of_interval_acceleration_mps3':summary(jerk),\n            'interpretation':'Unsigned planar pose secants at explicit source times; impulsive pose-setting and discretization affect derivatives; no physical acceleration/jerk compliance claim.'}\n\n\ndef source_packet_integrity(raw,contract):\n    \"\"\"Check dense bodies, references and actual joint fields before arithmetic.\"\"\"\n    model=contract['model_name'];expected_models=set(contract['world_fixture']['fixed_world_models']+[model])\n    required_links={model+'::base_link'}|{model+'::'+n for n in contract['front_link_names']}\n    required_links|={model+'::'+n+'_wheel_link' for n in ('front_left','front_right','rear_left','rear_right')}\n    checks={}\n    stamped=('models','links','dense_models','dense_links','odom','joints','targets','contacts','commanded_efforts')\n    checks['all_source_stamp_ns_and_seconds_agree']=all(\n        type(r.get('ns')) is int and r['ns']>=0 and abs(r['t']-r['ns']/1e9)<=1e-9\n        for key in stamped for r in raw.get(key,[]))\n    for key in ('models','links','dense_models','dense_links'):\n        rows=raw[key];valid=bool(rows);first_names=set(rows[0].get('names',[])) if rows else set()\n        for r in rows:\n            names=r.get('names',[]);poses=r.get('poses',[]);twists=r.get('twists',[])\n            valid=valid and r.get('frame')=='world'\n            valid=valid and len(names)==len(set(names))==len(poses)==len(twists) and bool(names)\n            valid=valid and all(len(p)==7 for p in poses) and all(len(v)==6 for v in twists)\n            valid=valid and all(abs(sum(q*q for q in p[3:])-1.)<=1e-4 for p in poses if len(p)==7)\n            if key.endswith('models'):valid=valid and set(names)==expected_models\n            else:valid=valid and set(names)==first_names and required_links<=set(names)\n        checks[key+'_complete_roster_and_shapes']=bool(valid)\n    for low,dense in (('models','dense_models'),('links','dense_links')):\n        lookup={r['ns']:r for r in raw[dense]}\n        checks[low+'_matches_dense_same_stamp']=all(\n            r['ns'] in lookup and all(r.get(k)==lookup[r['ns']].get(k) for k in ('names','poses','twists'))\n            for r in raw[low]) and bool(raw[low])\n    names={'speed','center_steering','front_left_steering','front_right_steering'}\n    targets=raw['targets'];params=contract['effective_plugin_parameters'];L=params['wheelbase'];half=params['track']/2\n    target_valid=bool(targets)\n    for r in targets:\n        d=r.get('positions',{});v=r.get('velocities',{})\n        if (set(d)!=names or set(v)!=names or set(r.get('names',[]))!=names\n                or len(r.get('names',[]))!=4 or r.get('position_count')!=4\n                or r.get('velocity_count')!=4):target_valid=False;continue\n        curvature=math.tan(d['center_steering'])/L\n        left=math.atan2(L*curvature,1-half*curvature);right=math.atan2(L*curvature,1+half*curvature)\n        target_valid=target_valid and abs(d['front_left_steering']-left)<=1e-9 and abs(d['front_right_steering']-right)<=1e-9\n    checks['target_fields_and_Ackermann_geometry']=bool(target_valid)\n    checks['target_speed_and_instantaneous_reference_limits']=bool(targets) and all(\n        abs(r['positions'].get('speed',float('inf')))<=params['maxSpeed']+1e-6\n        and -params['maxDeceleration']-1e-6<=r['velocities'].get('speed',float('inf'))<=params['maxAcceleration']+1e-6\n        and abs(r['velocities'].get('center_steering',float('inf')))<=params['maxSteeringRate']+1e-6\n        for r in targets)\n    # Actual joints may precede the next WorldUpdateEnd packet by one step.\n    # Compare with the newest dense packet at/before that explicit source time.\n    dense=raw['dense_links'];times=[r['ns'] for r in dense];joint_ok=bool(raw['joints'])\n    for r in raw['joints']:\n        i=bisect.bisect_right(times,r['ns'])-1\n        if i<0:continue  # Startup before first dense packet is outside the schedule.\n        if r['ns']-times[i]>2000000:joint_ok=False;continue\n        bodies=dict(zip(dense[i].get('names',[]),dense[i].get('poses',[])))\n        if not required_links<=set(bodies):joint_ok=False;continue\n        base=bodies[model+'::base_link'];positions=r.get('positions',{})\n        for joint,link in zip(contract['front_joint_names'],contract['front_link_names']):\n            child=bodies[model+'::'+link]\n            angle=yaw([0,0,0]+list(quat_relative(base[3:],child[3:])))\n            joint_ok=joint_ok and joint in positions and abs(angle_diff(positions.get(joint,0.),angle))<=contract['gates']['actual_front_joint_angle_tolerance_rad']\n    checks['actual_joint_positions_agree_with_dense_source_pose']=bool(joint_ok)\n    # Both publications occur at WorldUpdateEnd. Compare source-stamped actual\n    # base-link velocity directly, including the nonzero lateral component.\n    lookup={r['ns']:r for r in dense};odom_ok=bool(raw['odom'])\n    for r in raw['odom']:\n        if r['ns'] not in lookup:odom_ok=False;continue\n        packet=lookup[r['ns']]\n        if model+'::base_link' not in packet.get('names',[]):odom_ok=False;continue\n        index=packet['names'].index(model+'::base_link')\n        if len(packet.get('poses',[]))<=index or len(packet.get('twists',[]))<=index:odom_ok=False;continue\n        pose=packet['poses'][index];twist=packet['twists'][index]\n        if len(pose)!=7 or len(twist)!=6:odom_ok=False;continue\n        linear=world_vector_in_body(twist[:3],pose[3:]);angular=world_vector_in_body(twist[3:],pose[3:])\n        odom_ok=odom_ok and max(abs(r['v']-linear[0]),abs(r['vy']-linear[1]),abs(r['w']-angular[2]))<=1e-6\n    checks['actual_odom_twist_agrees_with_dense_base_link']=bool(odom_ok)\n    checks['physical_backend_never_faulted']=bool(raw.get('backend_fault')) and not any(r['value'] for r in raw.get('backend_fault',[]))\n    metadata=raw.get('physical_metadata') or {}\n    checks['physical_backend_metadata']=metadata.get('backend')=='astra_physical_ackermann_v1' and metadata.get('effort_only') is True and metadata.get('calibrated') is False\n    for key,param in (('actual_mass_kg','expectedMass'),('wheelbase_m','wheelbase'),('track_m','track'),('wheel_radius_m','wheelRadius'),('wheel_drive_torque_limit_nm','wheelDriveTorqueLimit'),('wheel_brake_torque_limit_nm','wheelBrakeTorqueLimit'),('steering_torque_limit_nm','steeringTorqueLimit')):\n        checks['physical_backend_metadata']=checks['physical_backend_metadata'] and isinstance(metadata.get(key),(int,float)) and abs(metadata[key]-params[param])<=1e-9\n    effort_ok=bool(raw.get('commanded_efforts'));joint_names=set(contract['front_joint_names'])|{n+'_wheel_joint' for n in ('front_left','front_right','rear_left','rear_right')}\n    for r in raw.get('commanded_efforts',[]):\n        if set(r.get('names',[]))!=joint_names or len(r.get('names',[]))!=6 or len(r.get('effort',[]))!=6:effort_ok=False;continue\n        for name,value in zip(r['names'],r['effort']):\n            limit=params['steeringTorqueLimit'] if name in contract['front_joint_names'] else max(params['wheelDriveTorqueLimit'],params['wheelBrakeTorqueLimit'])\n            effort_ok=effort_ok and abs(value)<=limit+1e-9\n    checks['commanded_efforts_finite_limits_not_reaction']=bool(effort_ok)\n    return checks\n\n\ndef assess(raw,contract):\n    g=contract['gates'];params=contract['effective_plugin_parameters'];L=params['wheelbase'];track=params['track'];start=raw['schedule_start_s'];end=start+contract['total_schedule_s']\n    checks={};metrics={};errors=[]\n    def gate(name,value):checks[name]=bool(value)\n    def inside(r):return start<=r['t']<=end\n    model_rows=[r for r in raw['models'] if inside(r)];link_rows=[r for r in raw['links'] if inside(r)]\n    odom=[r for r in raw['odom'] if inside(r)];joints=[r for r in raw['joints'] if inside(r)];targets=[r for r in raw['targets'] if inside(r)];contacts=[r for r in raw['contacts'] if inside(r)]\n    gate('all_numeric_finite',finite(raw));gate('no_callback_errors',not raw.get('callback_errors'))\n    if checks['all_numeric_finite']:\n        checks.update(source_packet_integrity(raw,contract))\n    for name,rows in [('models',model_rows),('links',link_rows),('odom',odom),('joints',joints),('targets',targets),('contacts',contacts),('commanded_efforts',[r for r in raw['commanded_efforts'] if inside(r)])]:\n        dt=[b['t']-a['t'] for a,b in zip(rows,rows[1:])];metrics[name+'_dt_s']=summary(dt)\n        gate(name+'_source_strictly_monotonic',bool(dt) and min(dt)>0)\n        gate(name+'_covers_schedule',bool(rows) and rows[0]['t']-start<=.025 and end-rows[-1]['t']<=.025)\n        limit=g['maximum_contact_gap_s'] if name=='contacts' else g['maximum_state_gap_s']\n        gate(name+'_bounded_source_gap',bool(dt) and max(dt)<=limit)\n        if name!='contacts':gate(name+'_approximately_50Hz',bool(dt) and g['minimum_packet_frequency_hz']<=(len(rows)-1)/(rows[-1]['t']-rows[0]['t'])<=g['maximum_packet_frequency_hz'])\n    # Missing/malformed rows remain raw; avoid laundering a partial result.\n    if not all(checks.values()):\n        return {'pass':False,'checks':checks,'metrics':metrics,'assessment_incomplete':True,'reason':'source coverage/finite gate failed before derivative assessment'}\n    meta=raw['metadata'];gate('physics_source_metadata',meta['physics_type']=='ode' and abs(meta['max_step_s']-.002)<1e-12 and meta['phase']=='WorldUpdateEnd' and meta['all_collision_pairs_retained'])\n    expected=set(contract['world_fixture']['fixed_world_models']+[contract['model_name']])\n    gate('unique_expected_model_roster',all(len(set(r['names']))==len(r['names']) and set(r['names'])==expected for r in model_rows))\n    links={r['ns']:r for r in link_rows};gate('models_links_exact_source_stamp_join',len(links)==len(link_rows)==len(model_rows) and all(r['ns'] in links for r in model_rows))\n    robot=[];actual_angles=[];centers=[];curvature_error=[];angular_bounds=[]\n    actual_limits=raw['effective_configuration']['front_joint_limits']\n    for row in model_rows:\n        p=row['poses'][row['names'].index(contract['model_name'])];robot.append({'t':row['t'],'p':p})\n    gate('spawn_pose_matches_fixture',math.hypot(robot[0]['p'][0],robot[0]['p'][1])<=.01 and abs(robot[0]['p'][2])<=.01 and abs(yaw(robot[0]['p']))<=.01)\n    gate('inside_empty_fixture',all(math.hypot(r['p'][0],r['p'][1])<contract['world_fixture']['runtime_xy_abort_radius_m'] for r in robot))\n    for r in link_rows:\n        byname=dict(zip(r['names'],r['poses']));base=byname[contract['model_name']+'::base_link'];angles=[]\n        for joint_name,link in zip(contract['front_joint_names'],contract['front_link_names']):\n            child=byname[contract['model_name']+'::'+link];q=quat_relative(base[3:],child[3:]);a=yaw([0,0,0]+list(q));angles.append(a)\n            lim=actual_limits[joint_name];angular_bounds.append(lim['lower']-g['actual_front_joint_angle_tolerance_rad']<=a<=lim['upper']+g['actual_front_joint_angle_tolerance_rad'])\n        c,err=pair_center(*angles,L,track);centers.append((r['t'],c));curvature_error.append(err);actual_angles.append(angles)\n    metrics['actual_front_left_rad']=summary([x[0] for x in actual_angles]);metrics['actual_front_right_rad']=summary([x[1] for x in actual_angles]);metrics['actual_center_rad']=summary([v for _,v in centers]);metrics['actual_front_curvature_disagreement_inv_m']=summary(curvature_error)\n    gate('actual_front_joint_URDF_angle_limits',all(angular_bounds));gate('actual_center_angle_limit',max(abs(v) for _,v in centers)<=params['maxSteer']+g['actual_center_steering_tolerance_rad'])\n    gate('actual_front_Ackermann_pair_agreement',max(curvature_error)<=g['actual_front_pair_curvature_disagreement_inv_m'])\n    for i,name in enumerate(contract['front_joint_names']):\n        _,joint_rates=derivative([r['t'] for r in link_rows],[a[i] for a in actual_angles])\n        metrics['actual_'+name+'_rate_radps']=summary(joint_rates)\n        gate('actual_'+name+'_URDF_velocity_limit',max(abs(x) for x in joint_rates)<=actual_limits[name]['velocity']+g['actual_front_joint_rate_tolerance_radps'])\n    _,actual_center_rates=derivative([t for t,_ in centers],[v for _,v in centers])\n    metrics['actual_center_rate_radps']=summary(actual_center_rates)\n    gate('actual_center_slew_with_declared_sampling_tolerance',max(abs(v) for v in actual_center_rates)<=params['maxSteeringRate']+g['actual_center_slew_tolerance_radps'])\n    # Exact source stamps differ between 50Hz plugin phases. Select latest odom\n    # at/before truth, retain its bounded age, and report physical pose agreement.\n    all_odom=raw['odom'];ot=[r['t'] for r in all_odom];poserr=[];yawerr=[];ages=[]\n    for r in robot:\n        i=bisect.bisect_right(ot,r['t'])-1\n        if i<0:raise ValueError('truth precedes all odom')\n        o=all_odom[i];ages.append(r['t']-o['t']);poserr.append(math.hypot(r['p'][0]-o['p'][0],r['p'][1]-o['p'][1]));yawerr.append(abs(angle_diff(yaw(r['p']),yaw(o['p']))))\n    metrics['truth_latest_odom_source_age_s']=summary(ages);metrics['truth_odom_xy_error_m']=summary(poserr);metrics['truth_odom_yaw_error_rad']=summary(yawerr)\n    gate('odom_source_join_age',max(ages)<=g['latest_odom_source_age_s']);gate('model_odom_xy_agreement',max(poserr)<=g['model_to_latest_odom_xy_error_m']);gate('model_odom_yaw_agreement',max(yawerr)<=g['model_to_latest_odom_yaw_error_rad'])\n    # Physical odom and joint_states are measured quantities; actuator_target\n    # alone carries the bounded reference state. Never call actual odom internal.\n    target_times=[r['t'] for r in targets]\n    target_speed=[r['positions']['speed'] for r in targets]\n    target_center=[r['positions']['center_steering'] for r in targets]\n    at,a=derivative(target_times,target_speed);jt,j=derivative(at,a)\n    _,rates=derivative(target_times,target_center);tol=g['published_limit_numeric_tolerance']\n    metrics['internal_target_acceleration_mps2']=summary(a)\n    metrics['internal_target_jerk_mps3']=summary(j)\n    metrics['internal_target_center_slew_radps']=summary(rates)\n    gate('internal_accel_limit',max(a)<=params['maxAcceleration']+tol)\n    gate('internal_brake_limit',min(a)>=-params['maxDeceleration']-tol)\n    gate('internal_target_center_slew_limit',max(abs(v) for v in rates)<=params['maxSteeringRate']+tol)\n    gate('internal_target_center_angle_limit',max(abs(v) for v in target_center)<=params['maxSteer']+tol)\n    actual_t=[r['t'] for r in odom]\n    av=[r['v'] for r in odom]\n    actual_at,actual_a=derivative(actual_t,av)\n    _,actual_j=derivative(actual_at,actual_a)\n    metrics['measured_odom_acceleration_mps2']=summary(actual_a)\n    metrics['measured_odom_jerk_mps3']=summary(actual_j)\n    metrics['measured_odom_lateral_speed_mps']=summary([r['vy'] for r in odom])\n    # Dense source evidence is an additional integrity prerequisite; sampled\n    # steering qualification above retains the original 50Hz observation grid.\n    dense={key:[r for r in raw[key] if inside(r)] for key in ('dense_models','dense_links')}\n    for key,rows in dense.items():\n        ns=[r['ns'] for r in rows]\n        gaps=[b-a for a,b in zip(ns,ns[1:])]\n        metrics[key+'_source_gap_ns']=summary(gaps)\n        gate(key+'_every_physics_step',bool(gaps) and all(v==2000000 for v in gaps))\n        gate(key+'_covers_schedule',bool(rows) and rows[0]['t']-start<=.002000001 and end-rows[-1]['t']<=.002000001)\n    gate('dense_model_link_exact_source_join',[r['ns'] for r in dense['dense_models']]==[r['ns'] for r in dense['dense_links']])\n    gate('dense_source_metadata',bool(meta.get('all_body_states_every_physics_step')))\n    metrics['actual_pose_derivatives_20ms']=pose_derivatives(robot,1);metrics['actual_pose_derivatives_100ms']=pose_derivatives(robot,5)\n    ground=[];nonground=[];illegal_ground=[]\n    support_links={contract['model_name']+'::'+name+'_wheel_link'\n                   for name in ('front_left','front_right','rear_left','rear_right')}\n    for r in contacts:\n        for pair in r['pairs']:\n            names=[pair['a'].split('::')[0],pair['b'].split('::')[0]]\n            if contract['model_name'] not in names:continue\n            if contract['world_fixture']['ground_model'] in names:\n                ground.append({'t':r['t'],**pair})\n                robot_collision=pair['a'] if names[0]==contract['model_name'] else pair['b']\n                if '::'.join(robot_collision.split('::')[:2]) not in support_links:\n                    illegal_ground.append({'t':r['t'],**pair})\n            else:\n                nonground.append({'t':r['t'],**pair})\n    metrics['robot_ground_contact_pair_count']=len(ground);metrics['robot_non_ground_contact_pair_count']=len(nonground);metrics['first_non_ground_contacts']=nonground[:10]\n    gate('no_non_ground_robot_contacts',len(nonground)<=g['maximum_non_ground_robot_contacts'])\n    metrics['robot_nonwheel_ground_contact_pair_count']=len(illegal_ground)\n    metrics['first_nonwheel_ground_contacts']=illegal_ground[:10]\n    gate('only_wheels_may_contact_ground',not illegal_ground)\n    phase_metrics={}\n    for phase in phase_intervals(contract):\n        lo=start+phase['start_s'];hi=start+phase['end_s'];tail=hi-contract['settled_tail_s'];name=phase['name']\n        rr=[r for r in robot if tail<=r['t']<hi];oo=[r for r in odom if tail<=r['t']<hi];cc=[v for ts,v in centers if tail<=ts<hi]\n        metric={'tail_samples':len(oo),'actual_center_rad':summary(cc),'actual_tail_speed_mps':summary([r['v'] for r in oo])};phase_metrics[name]=metric\n        sent=[r for r in raw['commands_sent'] if lo<=r['t']<hi]\n        if phase.get('publish') is False:\n            observed=[r for r in raw['commands_observed'] if lo+g['command_loss_relay_drain_grace_s']<=r['t']<hi]\n            gate('command_loss_no_probe_publication',not sent);gate('command_loss_no_relay_publication_after_drain',not observed)\n        else:\n            expected_count=phase['duration_s']/contract['publish_period_s'];gate(name+'_command_count',len(sent)>=g['minimum_phase_command_count_fraction']*expected_count)\n        if not oo or not rr or not cc:gate(name+'_tail_available',False);continue\n        speed=phase.get('speed_mps',0)\n        if speed:\n            gate(name+'_steady_speed',max(abs(r['v']-speed) for r in oo)<=g['moving_tail_speed_error_mps'])\n            desired=max(-params['maxSteer'],min(phase['center_steering_request_rad'],params['maxSteer']))\n            gate(name+'_actual_steady_steering',max(abs(v-desired) for v in cc)<=g['steady_actual_steering_error_rad'])\n            if 'turn_' in name or 'saturation_' in name:\n                allp=[r for r in robot if lo<=r['t']<hi];change=sum(angle_diff(yaw(b['p']),yaw(a['p'])) for a,b in zip(allp,allp[1:]));metric['actual_phase_yaw_change_rad']=change\n                gate(name+'_yaw_excitation',math.copysign(1,desired)*change>=g['minimum_turn_yaw_excitation_rad'])\n        else:\n            displacement=sum(math.hypot(b['p'][0]-a['p'][0],b['p'][1]-a['p'][1]) for a,b in zip(rr,rr[1:]));rotation=sum(abs(angle_diff(yaw(b['p']),yaw(a['p']))) for a,b in zip(rr,rr[1:]))\n            metric.update(tail_model_path_m=displacement,tail_model_yaw_variation_rad=rotation)\n            gate(name+'_actual_stopped',max(abs(r['v']) for r in oo)<=g['stopped_tail_speed_mps'])\n            gate(name+'_model_stopped',displacement<=g['stopped_tail_model_displacement_m'] and rotation<=g['stopped_tail_model_yaw_change_rad'])\n    metrics['phases']=phase_metrics\n    sent=raw['commands_sent'];observed=raw['commands_observed'];matched=0\n    for r in sent:\n        if any(0<=o['t']-r['t']<=.12 and abs(o['v']-r['v'])<1e-9 and abs(o['w']-r['w'])<1e-9 for o in observed):matched+=1\n    metrics['relay_match_fraction']=matched/len(sent) if sent else 0.;gate('command_relay_observed',metrics['relay_match_fraction']>=g['minimum_matched_relay_fraction'])\n    gaps=[b['t']-a['t'] for a,b in zip(sent,sent[1:]) if b['phase']==a['phase']];gate('within_phase_command_deadline',bool(gaps) and max(gaps)<=g['maximum_publish_gap_s'])\n    return {'pass':all(checks.values()),'checks':checks,'metrics':metrics,'assessment_incomplete':False,\n       'scope':'one simulator-only actuator/execution qualification, not navigation performance or real-vehicle safety',\n       'limits':['Physical backend uses finite joint forces; body poses and twists are measured every2ms; this fixture alone does not establish a swept safety verifier.','Internal target acceleration and slew bounds are reported separately from measured physical motion.','Ground contacts are retained separately, not classified as obstacle collisions.','No physical jerk limit was preregistered or retrofitted.']}\n\n\ndef runtime():\n    import rospy\n    from gazebo_msgs.msg import WorldState,ContactsState\n    from nav_msgs.msg import Odometry\n    from sensor_msgs.msg import JointState\n    from geometry_msgs.msg import Twist\n    from std_msgs.msg import String,Bool\n    from std_srvs.srv import Empty\n    rospy.init_node('astra_physical_actuation_probe')\n    output=Path(rospy.get_param('~output'));output.mkdir(parents=True,exist_ok=True)\n    if any((output/p).exists() for p in ('probe_raw.jsonl','probe_raw.json','probe_report.json')):raise RuntimeError('refusing to overwrite an existing probe identity')\n    stream=(output/'probe_raw.jsonl').open('x',buffering=1);lock=threading.RLock()\n    raw={'models':[],'links':[],'contacts':[],'odom':[],'joints':[],'targets':[],'dense_models':[],'dense_links':[],'backend_fault':[],'commanded_efforts':[],'physical_metadata':None,'commands_sent':[],'commands_observed':[],\n         'metadata':None,'callback_errors':[],'pipeline_only':True,'vehicle_operation_authorized':False}\n    subscribers=[];publisher=None;active=True;started=time.monotonic();failure=None;contract=None\n    def record(kind,row):\n        with lock:\n            if not active:return\n            stream.write(json.dumps({'kind':kind,'record':row},allow_nan=False)+'\\n')\n            if isinstance(raw.get(kind),list):raw[kind].append(row)\n            else:raw[kind]=row\n    def protected(fn):\n        def callback(msg):\n            try:fn(msg)\n            except Exception as exc:\n                with lock:raw['callback_errors'].append({'error':str(exc),'traceback':traceback.format_exc()})\n        return callback\n    def header(msg):return {'ns':msg.header.stamp.to_nsec(),'t':msg.header.stamp.to_sec(),'frame':msg.header.frame_id,'seq':msg.header.seq}\n    def pp(p):return [p.position.x,p.position.y,p.position.z,p.orientation.x,p.orientation.y,p.orientation.z,p.orientation.w]\n    def world(msg,kind):\n        record(kind,dict(header(msg),names=list(msg.name),poses=[pp(p) for p in msg.pose],\n          twists=[[p.linear.x,p.linear.y,p.linear.z,p.angular.x,p.angular.y,p.angular.z] for p in msg.twist]))\n    def contact(msg):\n        record('contacts',dict(header(msg),pairs=[{'a':p.collision1_name,'b':p.collision2_name,'depths':list(p.depths),\n           'source_info':p.info,'positions':[[v.x,v.y,v.z] for v in p.contact_positions],'normals':[[v.x,v.y,v.z] for v in p.contact_normals]} for p in msg.states]))\n    def service(name):\n        done=threading.Event();error=[]\n        def invoke():\n            try:rospy.ServiceProxy(name,Empty)()\n            except Exception as exc:error.append(exc)\n            finally:done.set()\n        threading.Thread(target=invoke,daemon=True).start()\n        if not done.wait(5.):raise RuntimeError('service wall timeout '+name)\n        if error:raise error[0]\n    try:\n        if not rospy.get_param('/use_sim_time',False) or not rospy.get_param('/m2_gazebo/simulation_only',False):raise RuntimeError('simulation-only guards required')\n        if urlparse(os.environ.get('ROS_MASTER_URI','')).hostname not in ('127.0.0.1','localhost','::1'):raise RuntimeError('isolated loopback ROS master required')\n        seed=rospy.get_param('~seed');run_id=rospy.get_param('~run_id')\n        if isinstance(seed,bool) or not isinstance(seed,int) or seed<=0:raise ValueError('explicit positive fresh seed required')\n        payload=Path(rospy.get_param('~contract_path')).read_bytes();contract=yaml.safe_load(payload)\n        raw.update(seed=seed,run_id=run_id,contract_sha256=sha_bytes(payload),contract=contract,\n                   script_sha256=sha_bytes(Path(__file__).read_bytes()))\n        phase_intervals(contract)\n        description=rospy.get_param('/robot_description');raw['effective_configuration']=validate_effective_urdf(description,contract,seed)\n        raw['robot_description']=description;raw['world_validation']=validate_world(Path(rospy.get_param('~world_path')).read_text(),contract)\n        record('startup',{'run_id':run_id,'seed':seed,'contract_sha256':raw['contract_sha256'],'effective_configuration':raw['effective_configuration']})\n        publisher=rospy.Publisher('/cmd_vel_navigation',Twist,queue_size=1)\n        subscribers=[rospy.Subscriber('/astra/world_models',WorldState,protected(lambda m:world(m,'models')),queue_size=5000),\n          rospy.Subscriber('/astra/world_links',WorldState,protected(lambda m:world(m,'links')),queue_size=5000),\n          rospy.Subscriber('/astra/physics_models',WorldState,protected(lambda m:world(m,'dense_models')),queue_size=30000),\n          rospy.Subscriber('/astra/physics_links',WorldState,protected(lambda m:world(m,'dense_links')),queue_size=30000),\n          rospy.Subscriber('/m2_driver/actuator_target',JointState,protected(lambda m:record('targets',dict(header(m),names=list(m.name),position_count=len(m.position),velocity_count=len(m.velocity),positions=dict(zip(m.name,m.position)),velocities=dict(zip(m.name,m.velocity))))),queue_size=5000),\n          rospy.Subscriber('/m2_driver/physical_backend_fault',Bool,protected(lambda m:record('backend_fault',{'t':rospy.Time.now().to_sec(),'value':m.data})),queue_size=5000),\n          rospy.Subscriber('/m2_driver/physical_metadata',String,protected(lambda m:record('physical_metadata',json.loads(m.data))),queue_size=1),\n          rospy.Subscriber('/m2_driver/actuator_commanded_effort',JointState,protected(lambda m:record('commanded_efforts',dict(header(m),names=list(m.name),effort=list(m.effort)))),queue_size=5000),\n          rospy.Subscriber('/astra/physics_contacts',ContactsState,protected(contact),queue_size=20000),\n          rospy.Subscriber('/astra/physics_metadata',String,protected(lambda m:record('metadata',json.loads(m.data))),queue_size=1),\n          rospy.Subscriber('/odom',Odometry,protected(lambda m:record('odom',dict(header(m),p=pp(m.pose.pose),v=m.twist.twist.linear.x,vy=m.twist.twist.linear.y,w=m.twist.twist.angular.z))),queue_size=5000),\n          rospy.Subscriber('/joint_states',JointState,protected(lambda m:record('joints',dict(header(m),positions=dict(zip(m.name,m.position)),velocities=dict(zip(m.name,m.velocity)),efforts=dict(zip(m.name,m.effort))))),queue_size=5000),\n          rospy.Subscriber('/cmd_vel',Twist,protected(lambda m:record('commands_observed',{'t':rospy.Time.now().to_sec(),'v':m.linear.x,'w':m.angular.z,'callerid':m._connection_header.get('callerid')})),queue_size=2000)]\n        deadline=time.monotonic()+contract['readiness_wall_s']\n        bootstrap_zero_count=0\n        while time.monotonic()<deadline and not rospy.is_shutdown():\n            # topic_tools relay advertises its output only after the first input.\n            # Simulation is paused; this primes transport with a zero command.\n            publisher.publish(Twist())\n            bootstrap_zero_count+=1\n            if all(s.get_num_connections()>0 for s in subscribers) and publisher.get_num_connections()>0 and raw['metadata'] is not None:break\n            time.sleep(.02)\n        else:raise RuntimeError('readiness wall deadline')\n        raw['paused_bootstrap_zero_count']=bootstrap_zero_count\n        code,message,system=rospy.get_master().getSystemState()\n        pubs=dict(system[0]);raw['command_publishers_before_unpause']={k:pubs.get(k,[]) for k in ('/cmd_vel_navigation','/cmd_vel')}\n        if pubs.get('/cmd_vel_navigation')!=[rospy.get_name()] or len(pubs.get('/cmd_vel',[]))!=1:raise RuntimeError('command-chain publisher uniqueness failed')\n        rospy.wait_for_service('/gazebo/unpause_physics',timeout=5);service('/gazebo/unpause_physics')\n        ready_deadline=time.monotonic()+contract['readiness_wall_s']\n        while time.monotonic()<ready_deadline and not rospy.is_shutdown():\n            if all(raw[k] for k in ('models','links','odom','joints','targets','contacts','dense_models','dense_links','backend_fault','commanded_efforts','physical_metadata')):break\n            time.sleep(.002)\n        else:raise RuntimeError('source packets absent after unpause')\n        start=rospy.Time.now().to_sec()+.1;raw['schedule_start_s']=start;next_send=start;last_time=rospy.Time.now().to_sec();last_progress=time.monotonic()\n        while not rospy.is_shutdown():\n            now=rospy.Time.now().to_sec();wall=time.monotonic()\n            if wall-started>contract['wall_cap_s']:raise RuntimeError('probe wall cap')\n            if now<last_time-1e-9:raise RuntimeError('simulation clock regressed')\n            if now>last_time:last_progress=wall\n            if wall-last_progress>contract['clock_stall_wall_s']:raise RuntimeError('simulation clock stalled')\n            last_time=now\n            if raw['callback_errors']:raise RuntimeError('raw callback failed')\n            if raw['models']:\n                row=raw['models'][-1];index=row['names'].index(contract['model_name']);p=row['poses'][index]\n                if math.hypot(p[0],p[1])>contract['world_fixture']['runtime_xy_abort_radius_m']:raise RuntimeError('fixture range exceeded')\n            if now>=start+contract['total_schedule_s']+.03:break\n            phase=phase_at(now-start,contract)\n            if phase is not None and now>=next_send-1e-9:\n                command=command_for(phase,contract['effective_plugin_parameters']['wheelbase'])\n                if command is not None:\n                    m=Twist();m.linear.x,m.angular.z=command;publisher.publish(m)\n                    record('commands_sent',{'t':now,'wall_monotonic_s':wall,'phase':phase['name'],'v':command[0],'w':command[1]})\n                while next_send<=now+1e-9:next_send+=contract['publish_period_s']\n            time.sleep(.001)\n        if rospy.is_shutdown():raise RuntimeError('external ROS shutdown before successful terminal assessment')\n    except BaseException as exc:\n        failure={'type':type(exc).__name__,'message':str(exc),'traceback':traceback.format_exc()}\n    finally:\n        if publisher is not None:\n            try:publisher.publish(Twist())\n            except Exception:pass\n        # No ROS-time wait: shutdown/stall must still produce durable raw data.\n        if contract is not None:\n            try:service('/gazebo/pause_physics')\n            except Exception as exc:raw['pause_error']=str(exc)\n        with lock:\n            active=False\n            stream.flush();os.fsync(stream.fileno());stream.close()\n        for subscriber in subscribers:subscriber.unregister()\n        raw['wall_elapsed_s']=time.monotonic()-started;raw['terminal_exception']=failure\n        (output/'probe_raw.json').write_text(json.dumps(raw,indent=2,allow_nan=False)+'\\n')\n        report={'pass':False,'pipeline_only':True,'vehicle_operation_authorized':False,'seed':raw.get('seed'),'run_id':raw.get('run_id'),\n                'raw_sha256':sha_bytes((output/'probe_raw.json').read_bytes()),'raw_stream_sha256':sha_bytes((output/'probe_raw.jsonl').read_bytes()),'terminal_exception':failure}\n        if failure is None:\n            try:report.update(assess(raw,contract))\n            except BaseException as exc:report['assessment_exception']={'type':type(exc).__name__,'message':str(exc),'traceback':traceback.format_exc()}\n        (output/'probe_report.json').write_text(json.dumps(report,indent=2,allow_nan=False)+'\\n')\n    return 0 if report['pass'] else 3\n\n\nif __name__=='__main__':\n    raise SystemExit(runtime())\n"
+    }
+  },
+  "loaded_source_changed_during_test": {
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_probe_q02.py": false,
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p01.py": true
+  },
+  "test_script_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_physical_actuation_probe_p01.py",
+  "test_script_sha256": "e74a67029c0503b0eb41aacd0c2b87e7c793930dbf42a773c2c180fe76f42596",
+  "commands": [
+    "workspace/.venv/bin/python workspace/scripts/astra_gazebo/tests/test_physical_actuation_probe_p01.py"
+  ],
+  "working_directory": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926",
+  "prior_tool_errors": [
+    {
+      "command": "cat workspace/src/simulation/m2_gazebo/test/test_astra_actuation_probe.py",
+      "error": "No such file or directory; used independent new test file as assigned."
+    },
+    {
+      "command": "sed include/m2_gazebo/astra_physical_actuation.h",
+      "error": "No such file; rg resolved actual astra_physical_control.h; no source changed."
+    }
+  ],
+  "all_motion_phases_unchanged": true,
+  "frozen_original_gates_unchanged": true
+}

@@ -1,0 +1,53 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-C3
+stage_purpose: fresh_minimal_v040_latency_and_effect_qualification
+contract_id: v3_scope_v3_06_c3_minimal_v040_qualification_1
+status: qualification_preregistered_before_release
+offline_foundation:
+  terminal_freeze_path: artifacts/v3/development/v3_06_c2/v3_06_c2_terminal_freeze.sha256
+  planner_contract_path: artifacts/v3/development/v3_06_c2/v3_06_c2_effective_planner_contract.yaml
+  planner_contract_sha256: f83f240fac3498050737cf73ecdc86bd7cbc06dafa3838a97dae1585ff7d8684
+single_factor:
+  factor_id: retain_only_feasible_v040_low_speed_candidate
+  treatment_enabled_new_candidates: [feasible_v040]
+  control_enabled_new_candidates: []
+  hard_verifier_changed: false
+  predictor_changed: false
+  certified_stop_changed: false
+  ranker_changed: false
+fresh_qualification_population:
+  seeds: [6521, 6522, 6523, 6524, 6525, 6526]
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  methods: [sparse_control, minimal_v040]
+  exact_episodes: 36
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+qualification_gates:
+  minimum_relative_reduction_vs_control: 0.02
+  treatment_goal_success_rate_min: 0.95
+  goal_success_noninferior_to_control: true
+  positive_pair_fraction_min: 0.50
+  collision_count_max: 0
+  selected_candidate_accepted_rate_min: 1.0
+  exact_replay_rate_min: 1.0
+  planner_latency_p99_max_ms: 20.0
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_write_authorized: false
+  hard_verifier_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  The minimal v0.4 candidate amendment is qualified for a separate fresh
+  confirmatory evaluation within the parameterized crossing scope.
+forbidden_claims:
+  - formal_performance_improvement
+  - actual_teb_superiority
+  - general_navigation_safety
+  - deployment_readiness
+  - real_vehicle_readiness

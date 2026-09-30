@@ -1,0 +1,321 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-11-A0-R8
+stage_purpose: actual_teb_fair_execution_and_multiscene_qualification
+status: preregistered_synchronization_repair_and_qualification
+repair_from_v3_11_smoke_i0:
+  preserved_failed_audit_path: artifacts/v3/actual_teb/v3_11_smoke_i0
+  defects:
+  - method-dependent actor pre-warmup displacement from different node startup times
+  - reactive actor closing-speed aliasing between 500 Hz physics and 50 Hz M2 pose updates
+  single_infrastructure_repair:
+    actor_motion_start_sim_time_s: 5.0
+    episode_activation_barrier_sim_time_s: 5.0
+    sampled_ego_closing_speed_hold_s: 0.12
+    behavioral_planner_or_teb_parameter_changed: false
+repair_from_v3_11_smoke_r1:
+  preserved_plumbing_pass_path: artifacts/v3/actual_teb/v3_11_smoke_r1
+  semantic_defect: cautious actor had not responded before the handoff gate and was observably classified as hesitant
+  single_scene_factor_calibration:
+    factor: actor_start_coordinate_m
+    previous_center_m: -4.06
+    repaired_center_m: -3.80
+    purpose: trigger frozen reactive policy before the shared planner snapshot
+  activation_poll_rate_hz: 100
+  behavioral_planner_or_teb_parameter_changed: false
+repair_from_v3_11_smoke_r2:
+  preserved_synchronization_pass_path: artifacts/v3/actual_teb/v3_11_smoke_r2
+  remaining_defect: micro-pose updates repeatedly overwrote the held ego-closing-speed estimate
+  observer_refinement:
+    fixed_closing_speed_sample_period_s: 0.05
+    closing_speed_hold_s: 0.12
+    planner_teb_or_actor_policy_parameter_changed: false
+repair_from_v3_11_smoke_r3:
+  preserved_fail_closed_path: artifacts/v3/actual_teb/v3_11_smoke_r3
+  observed_gate_state:
+    cautious_speed_mps: 0.2618538461538433
+    frozen_mode_result: MODE_AMBIGUOUS
+    v3_action: certified_stop_v000
+  single_scene_factor_calibration:
+    factor: actor_base_speed_mps
+    previous_center_mps: 0.60
+    repaired_center_mps: 0.52
+    required_cautious_observable_region_mps: [0.10, 0.254012499989]
+    required_hesitant_observable_region_mps: [0.294012499989, 0.738912499986]
+    planner_teb_or_threshold_changed: false
+repair_from_v3_11_smoke_r4:
+  preserved_unsupported_overlap_path: artifacts/v3/actual_teb/v3_11_smoke_r4
+  offline_frozen_support_audit:
+    source_schedule: artifacts/v3/formal/v3_09_f1/offline_readiness/v3_09_f1_exact_schedule.yaml
+    source_execution: artifacts/v3/formal/v3_09_f1/execution/episodes
+    frozen_interaction_prefix:
+      ego_start_x_m: -3.0
+      ego_speed_mps: 0.8
+      duration_s: 0.5
+      planner_gate_x_m: -2.6
+    frozen_actor_start_distance_m: [2.85, 3.25]
+    frozen_actor_base_speed_mps: [0.90, 1.10]
+    observed_gate_cautious_speed_mps: 0.12
+    observed_gate_hesitant_speed_mps: 0.32
+  integration_repair:
+    actor_activation_condition: ego_world_x_greater_equal_minus_3_0
+    preinteraction_vehicle_conditioning_is_shared_and_excluded_from_timing: true
+    new_actor_policy_dynamics_invented: false
+diagnosis_after_v3_11_smoke_r5:
+  preserved_path: artifacts/v3/actual_teb/v3_11_smoke_r5
+  status: read_only_response_transition_instrumentation
+  behavioral_change: false
+diagnosis_after_v3_11_smoke_r5_d1:
+  preserved_path: artifacts/v3/actual_teb/v3_11_smoke_r5_d1
+  finding: no response-state transition occurred
+  next_instrumentation: read-only 50 ms TTC and closing-speed trace for the first 0.6 interaction seconds
+diagnosis_after_v3_11_smoke_r5_d2:
+  preserved_path: artifacts/v3/actual_teb/v3_11_smoke_r5_d2
+  finding: Gazebo informational logging was suppressed by the non-verbose launch
+  correction: route the same read-only diagnostics to the captured error stream
+diagnosis_after_v3_11_smoke_r5_d3:
+  preserved_path: artifacts/v3/actual_teb/v3_11_smoke_r5_d3
+  root_cause:
+    observed_closing_speed_cycle_mps: [0.615, 0.923]
+    common_physical_speed_mps: 0.8
+    effect: response state repeatedly toggled off and on
+  observer_repair:
+    preactivation_estimation_enabled: true
+    fixed_estimation_window_s: 0.20
+    hold_s: 0.30
+    activation_resets_estimate: false
+    actor_policy_planner_teb_or_threshold_changed: false
+repair_after_v3_11_smoke_r6:
+  preserved_terminal_path: artifacts/v3/actual_teb/v3_11_smoke_r6
+  terminal_state:
+    completed_units: 2
+    consumed_failed_unit: 1
+    forfeited_units: 1
+    failure: gzserver_SIGSEGV_at_sim_time_0_178_after_m2_spawn
+    semantic_execution_reached: false
+  bootstrap_repair:
+    gazebo_starts_paused: true
+    spawn_completes_before_positive_clock_progress: true
+    controller_calls_unpause_service: true
+    positive_clock_progress_barrier_required: true
+    frozen_clock_wait_uses_wall_time: true
+    gazebo_server_is_required_process: true
+    planner_teb_actor_or_threshold_changed: false
+repair_after_v3_11_q1:
+  preserved_terminal_path: artifacts/v3/actual_teb/v3_11_q1
+  q1_result:
+    completed_rows: 24
+    passing_rows: 23
+    v3_goal_success_rate: 0.9166666666666666
+    actual_teb_goal_success_rate: 1.0
+    qualification_pass: false
+  single_factor_failure:
+    identity: seed7008_open_crossing_90_hesitant_v3_spatial_safe
+    estimated_gate_actor_speed_mps: 0.3308823529411742
+    rejection: OCCUPANCY_INTERSECTION
+    average_window_s: 0.20
+  estimator_alignment_repair:
+    factor: actor_track_velocity_estimator
+    repaired_estimator: backward_second_order_h0_05_s
+    basis: frozen V3-09 endpoint actor-speed estimator
+    approximate_replayed_failed_trace_speed_mps: 0.3136
+    planner_teb_actor_or_threshold_changed: false
+upstream:
+  planner_contract_path: artifacts/v3/planner/v3_08_a0/v3_08_a0_effective_planner_contract.yaml
+  planner_contract_sha256: 28cd688d3116114a065bcecdf27e94c0499fbd42a1c8dbe5bd37f89eab7f568c
+  predictor_model_path: artifacts/v3/prediction/v3_07_b0_r1/model/v3_07_b0_r1_spatial_candidate_predictor.yaml
+  predictor_model_sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+methods:
+  identifiers:
+  - v3_spatial_safe
+  - actual_teb
+  treatment:
+    planner: frozen V3-08-A0 spatial analytic safe planner
+    execution: pure-pursuit tracking of the frozen selected candidate
+  primary_baseline:
+    planner_plugin: teb_local_planner/TebLocalPlannerROS
+    teb_version: 0.8.4
+    max_vel_x_mps: 1.2
+    config_path: src/simulation/m2_gazebo/config/fixed_teb.yaml
+    config_sha256: 9e3125eec7f1f9040356f245dae9620d0b866ac94482ac29fd2d600838b14c26
+    built_plugin_sha256: 7d17474e7901821d7f69bf10cdb909e4445f9010e32ee045452ad42c6ba1883e
+    source_sha256: 5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2
+    include_dynamic_obstacles: true
+    shared_oracle_track_topic: /move_base/TebLocalPlannerROS/obstacles
+fairness:
+  common_vehicle: autolabor_m2 with libm2_ackermann_plugin.so
+  actuator_dynamics_enabled: true
+  common_command_boundary: /cmd_vel_navigation
+  relay_to_simulation_driver: /cmd_vel
+  common_maximum_speed_mps: 1.2
+  common_start_prefix:
+    spawn_world_x_m: -4.2
+    target_speed_mps: 0.8
+    handoff_world_x_m: -2.6
+    physical_gate_position_tolerance_m: 0.03
+    physical_gate_speed_tolerance_mps: 0.04
+    canonical_frozen_v3_snapshot: [-2.6, 0.0, 0.0, 0.8]
+    fixed_simulation_activation_time_s: 5.0
+    actor_interaction_activation_ego_world_x_m: -3.0
+    frozen_interaction_observation_prefix_m: 0.4
+  common_goal:
+    world_pose_m_rad: [5.2, 0.0, 0.0]
+    position_tolerance_m: 0.25
+    yaw_tolerance_rad: 0.22
+  common_timeout_s: 22.0
+  actor_track:
+    source: Gazebo model states finite-difference oracle
+    shared_by_both_methods: true
+    perception_claim_authorized: false
+    rationale: isolate planner behavior rather than detector quality
+    velocity_estimator: backward_second_order_h0_05_s
+  timing:
+    starts_at_common_handoff_gate: true
+    excludes_process_startup_and_shared_warmup: true
+  simulator_seed_paired_within_block: true
+  method_order_counterbalanced: true
+scene_population:
+- scene_id: open_crossing_90
+  actor_angle_deg: 90.0
+  corridor_half_width_m: null
+  claim_scope: open single-reactive-actor crossing
+- scene_id: wide_corridor_crossing_70
+  actor_angle_deg: 70.0
+  corridor_half_width_m: 1.80
+  claim_scope: wide bounded corridor with oblique reactive crossing
+- scene_id: bounded_corridor_crossing_110
+  actor_angle_deg: 110.0
+  corridor_half_width_m: 1.68
+  claim_scope: tighter bounded corridor with mirrored oblique reactive crossing
+actor_population:
+  policies:
+  - cautious
+  - hesitant
+  assertive_excluded_reason: frozen V3 predictor explicitly fails closed for unsupported assertive spatial behavior
+  generated_start_coordinate_m: [-3.25, -2.85]
+  generated_base_speed_mps: [0.90, 1.10]
+  derivation_basis: frozen V3-09-F1 fresh population formulas
+  actor_box_size_m: [0.72, 0.72, 1.0]
+  response_distance_m: 4.0
+  response_time_margin_s: 1.35
+evaluation:
+  smoke:
+    seed_start: 6966
+    seed_end: 6967
+    strata:
+    - {scene_id: open_crossing_90, actor_policy: cautious}
+    - {scene_id: open_crossing_90, actor_policy: hesitant}
+  qualification:
+    seed_start: 7021
+    seed_end: 7032
+    strata:
+    - {scene_id: open_crossing_90, actor_policy: cautious}
+    - {scene_id: open_crossing_90, actor_policy: hesitant}
+    - {scene_id: wide_corridor_crossing_70, actor_policy: cautious}
+    - {scene_id: wide_corridor_crossing_70, actor_policy: hesitant}
+    - {scene_id: bounded_corridor_crossing_110, actor_policy: cautious}
+    - {scene_id: bounded_corridor_crossing_110, actor_policy: hesitant}
+  future_formal:
+    seed_start: 7101
+    seed_end: 7130
+    strata:
+    - {scene_id: open_crossing_90, actor_policy: cautious}
+    - {scene_id: open_crossing_90, actor_policy: hesitant}
+    - {scene_id: wide_corridor_crossing_70, actor_policy: cautious}
+    - {scene_id: wide_corridor_crossing_70, actor_policy: hesitant}
+    - {scene_id: bounded_corridor_crossing_110, actor_policy: cautious}
+    - {scene_id: bounded_corridor_crossing_110, actor_policy: hesitant}
+qualification_gates:
+  schedule_rows_exact: 24
+  attempts_per_identity: 1
+  retry_or_resume_authorized: false
+  common_gate_valid_rate_min: 1.0
+  actor_mode_matches_evaluator_policy_rate_min: 1.0
+  paired_gate_actor_coordinate_difference_max_m: 0.03
+  paired_gate_actor_speed_difference_max_mps: 0.03
+  v3_spatial_selected_rate_min: 1.0
+  goal_success_rate_each_method_min: 0.95
+  collision_count_max: 0
+  conservative_clearance_min_m: 0.0
+  v3_tracking_error_max_m: 0.45
+  actual_teb_local_plan_required: true
+  qualification_outcomes_may_not_change_future_formal_thresholds: true
+future_formal_preregistration:
+  experimental_unit: paired scene-policy-seed block
+  paired_blocks: 30
+  schedule_rows: 60
+  attempts_per_identity: 1
+  retry_or_resume_authorized: false
+  primary_metric: restricted mean gate-to-goal time reduction versus actual TEB
+  restriction_time_s: 22.0
+  one_sided_alpha: 0.025
+  confidence_method: deterministic paired bootstrap
+  bootstrap_seed: 31100
+  bootstrap_replicates: 200000
+  safety_task_gates:
+    collision_count_max: 0
+    conservative_clearance_min_m: 0.0
+    v3_goal_success_noninferiority_margin: 0.0
+  meaningful_effect_gate:
+    point_reduction_percent_min: 10.0
+    one_sided_lower_reduction_percent_min: 5.0
+    each_scene_policy_stratum_mean_reduction_percent_min: 0.0
+  formal_execution_requires:
+  - passing frozen qualification assessment
+  - independent replay of all qualification reports
+  - new immutable release binding exact source, binary, config and schedule hashes
+  - no qualification-driven threshold change
+qualification_dependency_freeze:
+- path: src/application/v3_scope_planner/scripts/v3_scope_actual_teb_fair_episode.py
+  sha256: 1781c664dcefaaa046657a7a0082227e38e6d87bccc863e71b23ee9773d0165c
+- path: src/application/v3_scope_planner/src/v3_scope_planner/execution_core.py
+  sha256: 6aef3146a5360179ea49cea2dda31383ad0935389dfa874191b3df27d2f780e0
+- path: src/application/v3_scope_planner/src/v3_scope_planner/spatial_core.py
+  sha256: ac4984ace4ec7877e4828bf6b1dc84f5254f90b90552de7f66286a8a224d3830
+- path: src/application/v3_scope_planner/src/v3_scope_planner/spatial_core_r1.py
+  sha256: ade32703c34341876ecf1bce1ee5483f86fe754a08f3b8b4859b7c710496155c
+- path: src/tools/thesis_experiment/scripts/run_v3_11_actual_teb_matrix.py
+  sha256: 463063264c9d74563e32f87ef8960227cd1d1fa2d834836f58b7933786951715
+- path: src/simulation/m2_gazebo/launch/m2_v3_11_fair_episode.launch
+  sha256: 2d3573e9180dd20905ff31b254355fbd4b066f3c7ecf5296e29d085ad6e3d6e2
+- path: src/simulation/m2_gazebo/launch/spawn_m2.launch
+  sha256: 0d631e03100a9b874373270b56f58690294c6bc168a2bf1f086319e24bc96193
+- path: src/simulation/m2_gazebo/src/v3_reactive_actor_plugin.cpp
+  sha256: e444707af97c00b27df656f8712bed1eb7128c0c3eb9ad612b21bbbf49a86bf2
+- path: devel/lib/libv3_reactive_actor_plugin.so
+  sha256: 10d20d04c8c7fca586a02fe6d7d7d7a2ee25994f750ca6c5851c486e31a7fdbc
+- path: src/simulation/m2_gazebo/src/m2_ackermann_plugin.cpp
+  sha256: 6819c1252ba0955cb7a1eb973f0bc5d53edd27e1986caf284b7ad68620ec7ed4
+- path: devel/lib/libm2_ackermann_plugin.so
+  sha256: 64f9e3a20fea300fdaf24fb61d45a8023d7e47243b8c3654ef8170a6c029a0e5
+- path: src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp
+  sha256: 5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2
+- path: devel/lib/libteb_local_planner.so
+  sha256: 7d17474e7901821d7f69bf10cdb909e4445f9010e32ee045452ad42c6ba1883e
+- path: src/simulation/m2_gazebo/config/fixed_teb.yaml
+  sha256: 9e3125eec7f1f9040356f245dae9620d0b866ac94482ac29fd2d600838b14c26
+- path: src/simulation/m2_gazebo/config/move_base.yaml
+  sha256: deeb914a012564d2832668e59540c0a8a3947bd79dc8bf5ec7347e8de1088619
+- path: src/simulation/m2_gazebo/config/costmap_common.yaml
+  sha256: 432592eb268dc14157dd23cc4f3d2f263a731f88ccf08e5aad022a77b0f019b9
+- path: artifacts/v3/planner/v3_08_a0/v3_08_a0_effective_planner_contract.yaml
+  sha256: 28cd688d3116114a065bcecdf27e94c0499fbd42a1c8dbe5bd37f89eab7f568c
+- path: artifacts/v3/prediction/v3_07_b0_r1/model/v3_07_b0_r1_spatial_candidate_predictor.yaml
+  sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+authority:
+  user_instruction_date: '2026-07-25'
+  simulation_only: true
+  integration_and_qualification_authorized: true
+  formal_execution_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  if_qualification_passes: The actual TEB and V3 methods share the same M2 vehicle, command boundary, oracle actor track, dynamic scenes, start gate, speed cap, goal and evaluator, and are ready for a separately released fresh formal comparison.
+  forbidden_before_formal:
+  - actual_teb_performance_improvement
+  - general_navigation_safety
+  - perception_robustness
+  - deployment_readiness
+  - real_vehicle_readiness

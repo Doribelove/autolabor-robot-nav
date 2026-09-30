@@ -1,0 +1,24 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-A1
+preregistration_id: v3_scope_v3_03_a1_shadow_integration_1
+date: "2026-07-24"
+status: frozen_before_any_v3_03_a1_simulation
+contract: config/thesis_experiments/v3/v3_03_a1_shadow_integration_contract.yaml
+schedule:
+  decision_blocks: 9
+  phases_per_block: 2
+  simulation_units: 18
+  attempts_per_identity: 1
+  retries: 0
+  seeds: [6291, 6292, 6293]
+planner_firewall:
+  actor_policy_runtime_input: false
+  model_or_threshold_update_after_execution: false
+  selected_candidate_only_executed: true
+authority:
+  simulation_requires_separate_authorization: true
+  move_base: false
+  cmd_vel_publish: false
+  training: false
+  real_vehicle: false

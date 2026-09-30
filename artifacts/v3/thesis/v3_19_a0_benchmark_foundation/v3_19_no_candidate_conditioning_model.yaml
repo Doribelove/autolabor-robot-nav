@@ -1,0 +1,229 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-19-A0
+model_id: v3_19_no_candidate_conditioning_from_v3_07_b0_r1_observed_mode_spatial_candidate_linear_1
+status: frozen_single_factor_ablation_model
+feature_names:
+- bias
+- actor_coordinate
+- actor_speed
+- actor_coordinate_squared
+- actor_speed_squared
+- actor_coordinate_x_actor_speed
+horizons_s:
+- 1.5
+- 2.5
+- 3.5
+- 4.5
+supported_action_heads:
+  assertive:
+    certified_stop_v000:
+      t1_5:
+        coefficients:
+        - -2.7474328001171515
+        - -0.7038931237541735
+        - -1.8236485330039812e-07
+        - -0.5810858429389054
+        - -5.014765146361005e-07
+        - -0.950255213573964
+        training_rows: 6
+      t2_5:
+        coefficients:
+        - -8.020536575698783
+        - -2.4560121288884136
+        - -4.197061882535555e-07
+        - -1.5523860201802648
+        - -1.1545616339138223e-06
+        - -3.3156151815313977
+        training_rows: 6
+      t3_5:
+        coefficients:
+        - -13.293640366619531
+        - -4.2081311295009325
+        - -6.534059916749872e-07
+        - -2.523686197437998
+        - -1.8019812851128763e-06
+        - -5.680975152897606
+        training_rows: 6
+      t4_5:
+        coefficients:
+        - -18.56674415389006
+        - -5.960250133993393
+        - -8.880255454468573e-07
+        - -3.494986374788006
+        - -2.45101964146711e-06
+        - -8.046335121721683
+        training_rows: 6
+  cautious:
+    certified_stop_v000:
+      t1_5:
+        coefficients:
+        - 0.2540595151953147
+        - 1.7810432095618693
+        - 20.098559792062023
+        - 0.2595486717092757
+        - -5.64531817993969
+        - 5.8012548518920815
+        training_rows: 6
+      t2_5:
+        coefficients:
+        - 0.25403528227583644
+        - 1.8886948546518134
+        - 31.907506264360894
+        - 0.3575600617742253
+        - -9.260206039654797
+        - 8.565810167334464
+        training_rows: 6
+      t3_5:
+        coefficients:
+        - 0.2540110505183282
+        - 1.9963465002935656
+        - 43.71645273198276
+        - 0.45557145189281373
+        - -12.875093898236464
+        - 11.33036548126413
+        training_rows: 6
+      t4_5:
+        coefficients:
+        - 0.25398681815191293
+        - 2.103998145594207
+        - 55.52539920120049
+        - 0.55358284196553
+        - -16.48998175713543
+        - 14.09492079570975
+        training_rows: 6
+    spatial_left_v120:
+      t1_5:
+        coefficients:
+        - 0.2540595151953147
+        - 1.7810432095618693
+        - 20.098559792062023
+        - 0.2595486717092757
+        - -5.64531817993969
+        - 5.8012548518920815
+        training_rows: 6
+      t2_5:
+        coefficients:
+        - 0.25403528227583644
+        - 1.8886948546518134
+        - 31.907506264360894
+        - 0.3575600617742253
+        - -9.260206039654797
+        - 8.565810167334464
+        training_rows: 6
+      t3_5:
+        coefficients:
+        - 0.2540110505183282
+        - 1.9963465002935656
+        - 43.71645273198276
+        - 0.45557145189281373
+        - -12.875093898236464
+        - 11.33036548126413
+        training_rows: 6
+      t4_5:
+        coefficients:
+        - 0.25398681815191293
+        - 2.103998145594207
+        - 55.52539920120049
+        - 0.55358284196553
+        - -16.48998175713543
+        - 14.09492079570975
+        training_rows: 6
+  hesitant:
+    certified_stop_v000:
+      t1_5:
+        coefficients:
+        - 1.0976782444888473
+        - 3.8476503147717938
+        - 2.7867427530617066
+        - 0.19753860572131246
+        - 1.7723471484593256
+        - -5.654981459253761
+        training_rows: 6
+      t2_5:
+        coefficients:
+        - 1.1806031010703746
+        - 7.703895192395088
+        - 7.274366547093425
+        - 0.3465232059537916
+        - 4.625396376916893
+        - -15.457360195575038
+        training_rows: 6
+      t3_5:
+        coefficients:
+        - 1.263527956214589
+        - 11.560140069217299
+        - 11.76199034250933
+        - 0.4955078060551763
+        - 7.478445605634192
+        - -25.259738931620177
+        training_rows: 6
+      t4_5:
+        coefficients:
+        - 1.346452811772771
+        - 15.416384946215345
+        - 16.249614138257257
+        - 0.6444924062254382
+        - 10.33149483442551
+        - -35.062117667023145
+        training_rows: 6
+    spatial_left_v120:
+      t1_5:
+        coefficients:
+        - 1.0976782444888473
+        - 3.8476503147717938
+        - 2.7867427530617066
+        - 0.19753860572131246
+        - 1.7723471484593256
+        - -5.654981459253761
+        training_rows: 6
+      t2_5:
+        coefficients:
+        - 1.1806031010703746
+        - 7.703895192395088
+        - 7.274366547093425
+        - 0.3465232059537916
+        - 4.625396376916893
+        - -15.457360195575038
+        training_rows: 6
+      t3_5:
+        coefficients:
+        - 1.263527956214589
+        - 11.560140069217299
+        - 11.76199034250933
+        - 0.4955078060551763
+        - 7.478445605634192
+        - -25.259738931620177
+        training_rows: 6
+      t4_5:
+        coefficients:
+        - 1.346452811772771
+        - 15.416384946215345
+        - 16.249614138257257
+        - 0.6444924062254382
+        - 10.33149483442551
+        - -35.062117667023145
+        training_rows: 6
+unsupported_action_policy:
+  assertive:
+  - spatial_left_v120
+  behavior: fail_closed_to_certified_stop
+calibration:
+  method: split_conformal_max_horizon_absolute_residual
+  coverage: 0.95
+  calibration_rows: 20
+  rank: 20
+  radius_m: 0.4967404086874341
+reinforcement_learning_steps: 0
+held_out_test_accessed: false
+ablation:
+  single_factor: candidate_conditioning
+  control: candidate_specific_spatial_action_head
+  treatment: same_mode_certified_stop_head_for_spatial_candidate
+  replaced_modes:
+  - cautious
+  - hesitant
+  candidate_generator_changed: false
+  hard_verifier_changed: false
+  analytic_ranker_changed: false
+  training_steps: 0

@@ -1,0 +1,209 @@
+{
+  "branch": "research/pct-teb-dwa-gazebo-20260810",
+  "captured_at_utc": "2026-08-09T17:32:20.750822+00:00",
+  "git_status_snapshot": {
+    "line_count": 870,
+    "path": "artifacts/gazebo_pct_teb_dwa_benchmark/initial_git_status.txt",
+    "sha256": "3d539a6ae45e4cbd223544f7b3cda693b92a0f577efd9b4a0465bf6bf5b87cfd"
+  },
+  "head": "717424c0b8190b4b2366d081529da056801e9b98",
+  "host": {
+    "hostname": "WP",
+    "machine": "x86_64"
+  },
+  "probes": {
+    "catkin_version": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "source /opt/ros/noetic/setup.bash && source /home/robot/robot_ws_base_rl/devel/setup.bash && python3 -c 'import catkin_pkg; print(catkin_pkg.__version__)'"
+      ],
+      "exit_code": 0,
+      "output": "1.0.0\n"
+    },
+    "cpu": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "lscpu | sed -n '1,30p'"
+      ],
+      "exit_code": 0,
+      "output": "\u67b6\u6784\uff1a                                x86_64\nCPU \u8fd0\u884c\u6a21\u5f0f\uff1a                        32-bit, 64-bit\n\u5b57\u8282\u5e8f\uff1a                              Little Endian\nAddress sizes:                        39 bits physical, 48 bits virtual\nCPU:                                  24\n\u5728\u7ebf CPU \u5217\u8868\uff1a                       0-23\n\u6bcf\u4e2a\u6838\u7684\u7ebf\u7a0b\u6570\uff1a                      1\n\u6bcf\u4e2a\u5ea7\u7684\u6838\u6570\uff1a                        16\n\u5ea7\uff1a                                  1\nNUMA \u8282\u70b9\uff1a                           1\n\u5382\u5546 ID\uff1a                             GenuineIntel\nCPU \u7cfb\u5217\uff1a                            6\n\u578b\u53f7\uff1a                                183\n\u578b\u53f7\u540d\u79f0\uff1a                            Intel(R) Core(TM) i7-14650HX\n\u6b65\u8fdb\uff1a                                1\nCPU MHz\uff1a                             2400.000\nCPU \u6700\u5927 MHz\uff1a                        5200.0000\nCPU \u6700\u5c0f MHz\uff1a                        800.0000\nBogoMIPS\uff1a                            4838.40\n\u865a\u62df\u5316\uff1a                              VT-x\nL1d \u7f13\u5b58\uff1a                            384 KiB\nL1i \u7f13\u5b58\uff1a                            256 KiB\nL2 \u7f13\u5b58\uff1a                             16 MiB\nNUMA \u8282\u70b90 CPU\uff1a                      0-23\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Not affected\n"
+    },
+    "dwa_package": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "source /opt/ros/noetic/setup.bash && source /home/robot/robot_ws_base_rl/devel/setup.bash && rospack find dwa_local_planner"
+      ],
+      "exit_code": 0,
+      "output": "/opt/ros/noetic/share/dwa_local_planner\n"
+    },
+    "gazebo_version": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "source /opt/ros/noetic/setup.bash && source /home/robot/robot_ws_base_rl/devel/setup.bash && gazebo --version"
+      ],
+      "exit_code": 255,
+      "output": "Gazebo multi-robot simulator, version 11.15.1\nCopyright (C) 2012 Open Source Robotics Foundation.\nReleased under the Apache 2 License.\nhttp://gazebosim.org\n\n\nGazebo multi-robot simulator, version 11.15.1\nCopyright (C) 2012 Open Source Robotics Foundation.\nReleased under the Apache 2 License.\nhttp://gazebosim.org\n\n\n"
+    },
+    "git_branch": {
+      "command": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "exit_code": 0,
+      "output": "research/pct-teb-dwa-gazebo-20260810\n"
+    },
+    "git_commit": {
+      "command": [
+        "git",
+        "show",
+        "-s",
+        "--format=%H%n%aI%n%s",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "717424c0b8190b4b2366d081529da056801e9b98\n2026-07-21T17:59:20+08:00\nFreeze V2 integration evidence and thesis design\n"
+    },
+    "git_head": {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "output": "717424c0b8190b4b2366d081529da056801e9b98\n"
+    },
+    "gpu": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "command -v nvidia-smi >/dev/null && nvidia-smi -L || true"
+      ],
+      "exit_code": 0,
+      "output": "GPU 0: NVIDIA GeForce RTX 4060 Laptop GPU (UUID: GPU-405305cb-c572-c56f-aed0-c8c4a1e9c594)\n"
+    },
+    "kernel": {
+      "command": [
+        "uname",
+        "-a"
+      ],
+      "exit_code": 0,
+      "output": "Linux WP 5.15.0-139-generic #149~20.04.1-Ubuntu SMP Wed Apr 16 08:29:56 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\n"
+    },
+    "m2_package": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "source /opt/ros/noetic/setup.bash && source /home/robot/robot_ws_base_rl/devel/setup.bash && rospack find m2_gazebo"
+      ],
+      "exit_code": 0,
+      "output": "/home/robot/robot_ws_base_rl/src/simulation/m2_gazebo\n"
+    },
+    "memory": {
+      "command": [
+        "free",
+        "-h"
+      ],
+      "exit_code": 0,
+      "output": "              \u603b\u8ba1         \u5df2\u7528        \u7a7a\u95f2      \u5171\u4eab    \u7f13\u51b2/\u7f13\u5b58    \u53ef\u7528\n\u5185\u5b58\uff1a        31Gi       5.0Gi        20Gi       247Mi       6.1Gi        25Gi\n\u4ea4\u6362\uff1a        27Gi          0B        27Gi\n"
+    },
+    "os_release": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "cat /etc/os-release"
+      ],
+      "exit_code": 0,
+      "output": "NAME=\"Ubuntu\"\nVERSION=\"20.04.6 LTS (Focal Fossa)\"\nID=ubuntu\nID_LIKE=debian\nPRETTY_NAME=\"Ubuntu 20.04.6 LTS\"\nVERSION_ID=\"20.04\"\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nVERSION_CODENAME=focal\nUBUNTU_CODENAME=focal\n"
+    },
+    "python": {
+      "command": [
+        "python3",
+        "--version"
+      ],
+      "exit_code": 0,
+      "output": "Python 3.8.10\n"
+    },
+    "ros_distribution": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "source /opt/ros/noetic/setup.bash && source /home/robot/robot_ws_base_rl/devel/setup.bash && rosversion -d"
+      ],
+      "exit_code": 0,
+      "output": "noetic\n"
+    },
+    "ros_version": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "source /opt/ros/noetic/setup.bash && source /home/robot/robot_ws_base_rl/devel/setup.bash && rosversion roslaunch"
+      ],
+      "exit_code": 0,
+      "output": "1.17.4\n"
+    },
+    "teb_package": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "source /opt/ros/noetic/setup.bash && source /home/robot/robot_ws_base_rl/devel/setup.bash && rospack find teb_local_planner"
+      ],
+      "exit_code": 0,
+      "output": "/home/robot/robot_ws_base_rl/src/navigation_arena/forks/navigation/local_planner/teb\n"
+    },
+    "v5_package": {
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-c",
+        "source /opt/ros/noetic/setup.bash && source /home/robot/robot_ws_base_rl/devel/setup.bash && rospack find v5_e2e_scope_rl"
+      ],
+      "exit_code": 0,
+      "output": "/home/robot/robot_ws_base_rl/src/application/v5_e2e_scope_rl\n"
+    }
+  },
+  "process_precheck": {
+    "command": [
+      "bash",
+      "--noprofile",
+      "--norc",
+      "-c",
+      "ps -eo pid,ppid,stat,cmd | grep -E '[r]oscore|[r]osmaster|[r]oslaunch|[g]zserver|[g]zclient|[m]ove_base|[t]rain_v[56]|[r]un_v6' || true"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  "schema_version": "1.0",
+  "stable_workspace_modified": false,
+  "submodule_snapshot": {
+    "line_count": 14,
+    "path": "artifacts/gazebo_pct_teb_dwa_benchmark/initial_submodule_status.txt",
+    "sha256": "38cc7ae86c3c61affb86cce1b6a9e7145659994627f684776afc0d724c06780f"
+  },
+  "workspace": "/home/robot/robot_ws_base_rl"
+}

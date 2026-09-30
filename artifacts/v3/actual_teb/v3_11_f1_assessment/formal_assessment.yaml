@@ -1,0 +1,460 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-11-F1
+status: actual_teb_fair_formal_meaningful_improvement_demonstrated
+execution_release_sha256: b21835d5d55a55fd130aae836c609fd117481b9d4cd54155ba8fc78b57dc9ea6
+analysis_release_sha256: 61342983f229dd739a4f0330cebaecc94b0ea981be8982d3f0915bc1d6f69929
+contract_sha256: 2f142590e81fa32af4dfde37d4aa442f1abb17973959cbad8893dc080214e53d
+authorization_sha256: 26a2173f11b32185409721e4027c419f87dd02e6afe965c0dfe790350705f0c2
+schedule_sha256: 0b84b742469ebf693b0e6ec9837e505035b4ac42b0305bfc0c0762346214d57e
+execution_summary_sha256: 9843ce28763e1f836b3230545b00b614019486ab89564d7063d247e1cb1fc2a4
+execution_journal_sha256: 5c0b79ab5927986e9c0b74d174f0270ff2bb69ba38c276eeabf50cbffc5524ff
+assessment_basis: raw 30-block paired replay with pre-released deterministic 200000-replicate
+  bootstrap
+metrics:
+  episode_count: 60
+  paired_block_count: 30
+  episodes_by_method:
+    v3_spatial_safe: 30
+    actual_teb: 30
+  episode_pass_count_by_method:
+    v3_spatial_safe: 30
+    actual_teb: 30
+  goal_success_rate_by_method:
+    v3_spatial_safe: 1.0
+    actual_teb: 1.0
+  goal_success_rate_difference_v3_minus_actual_teb: 0.0
+  mean_restricted_elapsed_s_by_method:
+    v3_spatial_safe: 6.7683333333333335
+    actual_teb: 7.7733333333333325
+  point_reduction_percent: 12.928816466552304
+  one_sided_alpha: 0.025
+  bootstrap_seed: 31100
+  bootstrap_replicates: 200000
+  bootstrap:
+    one_sided_lower_reduction_percent: 12.725321888411981
+    order_index_zero_based: 5000
+    minimum_bootstrap_reduction_percent: 12.489251934651731
+    median_bootstrap_reduction_percent: 12.92881646655228
+    maximum_bootstrap_reduction_percent: 13.422962014511285
+    estimates_digest: 8f4e506515224750f08825b7c9cdd1d0253400ac078a696784152ad1e98e0132
+  stratum_metrics:
+    bounded_corridor_crossing_110__cautious:
+      paired_blocks: 5
+      mean_v3_restricted_elapsed_s: 6.779999999999999
+      mean_actual_teb_restricted_elapsed_s: 7.790000000000001
+      mean_reduction_percent: 12.965340179717606
+    bounded_corridor_crossing_110__hesitant:
+      paired_blocks: 5
+      mean_v3_restricted_elapsed_s: 6.7700000000000005
+      mean_actual_teb_restricted_elapsed_s: 7.7700000000000005
+      mean_reduction_percent: 12.87001287001287
+    open_crossing_90__cautious:
+      paired_blocks: 5
+      mean_v3_restricted_elapsed_s: 6.76
+      mean_actual_teb_restricted_elapsed_s: 7.75
+      mean_reduction_percent: 12.7741935483871
+    open_crossing_90__hesitant:
+      paired_blocks: 5
+      mean_v3_restricted_elapsed_s: 6.75
+      mean_actual_teb_restricted_elapsed_s: 7.81
+      mean_reduction_percent: 13.572343149807933
+    wide_corridor_crossing_70__cautious:
+      paired_blocks: 5
+      mean_v3_restricted_elapsed_s: 6.780000000000001
+      mean_actual_teb_restricted_elapsed_s: 7.75
+      mean_reduction_percent: 12.51612903225805
+    wide_corridor_crossing_70__hesitant:
+      paired_blocks: 5
+      mean_v3_restricted_elapsed_s: 6.7700000000000005
+      mean_actual_teb_restricted_elapsed_s: 7.7700000000000005
+      mean_reduction_percent: 12.87001287001287
+  minimum_conservative_clearance_m_by_method:
+    v3_spatial_safe: 0.5110349186159404
+    actual_teb: 0.019191468972761028
+  contact_state_count_total: 0
+  common_gate_valid_rate: 1.0
+  actor_mode_match_rate: 1.0
+  v3_spatial_selected_rate: 1.0
+  maximum_paired_gate_actor_coordinate_difference_m: 0.0038399999999998435
+  maximum_paired_gate_actor_speed_difference_mps: 0.02986666666666349
+  maximum_v3_tracking_error_m: 0.033117690760967274
+  minimum_actual_teb_local_plan_count: 75
+  actual_teb_action_succeeded_rate: 1.0
+  paired_blocks:
+  - block_index: 1
+    seed: 7101
+    scene_id: open_crossing_90
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.75
+    v3_minus_teb_s: -1.0
+    block_reduction_percent: 12.903225806451612
+  - block_index: 2
+    seed: 7102
+    scene_id: open_crossing_90
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.75
+    v3_minus_teb_s: -1.0
+    block_reduction_percent: 12.903225806451612
+  - block_index: 3
+    seed: 7103
+    scene_id: wide_corridor_crossing_70
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.800000000000001
+    actual_teb_restricted_elapsed_s: 7.749999999999999
+    v3_minus_teb_s: -0.9499999999999984
+    block_reduction_percent: 12.258064516129014
+  - block_index: 4
+    seed: 7104
+    scene_id: wide_corridor_crossing_70
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.800000000000001
+    actual_teb_restricted_elapsed_s: 7.749999999999999
+    v3_minus_teb_s: -0.9499999999999984
+    block_reduction_percent: 12.258064516129014
+  - block_index: 5
+    seed: 7105
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.8
+    actual_teb_restricted_elapsed_s: 7.8500000000000005
+    v3_minus_teb_s: -1.0500000000000007
+    block_reduction_percent: 13.375796178343958
+  - block_index: 6
+    seed: 7106
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.750000000000001
+    v3_minus_teb_s: -1.0000000000000009
+    block_reduction_percent: 12.903225806451623
+  - block_index: 7
+    seed: 7107
+    scene_id: open_crossing_90
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.750000000000001
+    actual_teb_restricted_elapsed_s: 7.749999999999999
+    v3_minus_teb_s: -0.9999999999999982
+    block_reduction_percent: 12.903225806451593
+  - block_index: 8
+    seed: 7108
+    scene_id: open_crossing_90
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.85
+    v3_minus_teb_s: -1.0999999999999996
+    block_reduction_percent: 14.012738853503182
+  - block_index: 9
+    seed: 7109
+    scene_id: wide_corridor_crossing_70
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.749999999999999
+    v3_minus_teb_s: -0.9999999999999991
+    block_reduction_percent: 12.903225806451603
+  - block_index: 10
+    seed: 7110
+    scene_id: wide_corridor_crossing_70
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.800000000000001
+    actual_teb_restricted_elapsed_s: 7.75
+    v3_minus_teb_s: -0.9499999999999993
+    block_reduction_percent: 12.258064516129023
+  - block_index: 11
+    seed: 7111
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.800000000000001
+    actual_teb_restricted_elapsed_s: 7.75
+    v3_minus_teb_s: -0.9499999999999993
+    block_reduction_percent: 12.258064516129023
+  - block_index: 12
+    seed: 7112
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.749999999999999
+    v3_minus_teb_s: -0.9999999999999991
+    block_reduction_percent: 12.903225806451603
+  - block_index: 13
+    seed: 7113
+    scene_id: open_crossing_90
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.799999999999999
+    actual_teb_restricted_elapsed_s: 7.749999999999999
+    v3_minus_teb_s: -0.9500000000000002
+    block_reduction_percent: 12.258064516129036
+  - block_index: 14
+    seed: 7114
+    scene_id: open_crossing_90
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.8500000000000005
+    v3_minus_teb_s: -1.1000000000000005
+    block_reduction_percent: 14.01273885350319
+  - block_index: 15
+    seed: 7115
+    scene_id: wide_corridor_crossing_70
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.800000000000001
+    actual_teb_restricted_elapsed_s: 7.750000000000001
+    v3_minus_teb_s: -0.9500000000000002
+    block_reduction_percent: 12.258064516129032
+  - block_index: 16
+    seed: 7116
+    scene_id: wide_corridor_crossing_70
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.750000000000001
+    v3_minus_teb_s: -1.0000000000000009
+    block_reduction_percent: 12.903225806451623
+  - block_index: 17
+    seed: 7117
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.75
+    v3_minus_teb_s: -1.0
+    block_reduction_percent: 12.903225806451612
+  - block_index: 18
+    seed: 7118
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.8
+    actual_teb_restricted_elapsed_s: 7.750000000000001
+    v3_minus_teb_s: -0.9500000000000011
+    block_reduction_percent: 12.258064516129046
+  - block_index: 19
+    seed: 7119
+    scene_id: open_crossing_90
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.749999999999999
+    actual_teb_restricted_elapsed_s: 7.75
+    v3_minus_teb_s: -1.0000000000000009
+    block_reduction_percent: 12.903225806451625
+  - block_index: 20
+    seed: 7120
+    scene_id: open_crossing_90
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.749999999999999
+    actual_teb_restricted_elapsed_s: 7.750000000000001
+    v3_minus_teb_s: -1.0000000000000018
+    block_reduction_percent: 12.903225806451633
+  - block_index: 21
+    seed: 7121
+    scene_id: wide_corridor_crossing_70
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.800000000000001
+    actual_teb_restricted_elapsed_s: 7.75
+    v3_minus_teb_s: -0.9499999999999993
+    block_reduction_percent: 12.258064516129023
+  - block_index: 22
+    seed: 7122
+    scene_id: wide_corridor_crossing_70
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.75
+    v3_minus_teb_s: -1.0
+    block_reduction_percent: 12.903225806451612
+  - block_index: 23
+    seed: 7123
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.750000000000001
+    actual_teb_restricted_elapsed_s: 7.750000000000001
+    v3_minus_teb_s: -1.0
+    block_reduction_percent: 12.903225806451612
+  - block_index: 24
+    seed: 7124
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.800000000000001
+    actual_teb_restricted_elapsed_s: 7.750000000000001
+    v3_minus_teb_s: -0.9500000000000002
+    block_reduction_percent: 12.258064516129032
+  - block_index: 25
+    seed: 7125
+    scene_id: open_crossing_90
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.750000000000001
+    actual_teb_restricted_elapsed_s: 7.750000000000001
+    v3_minus_teb_s: -1.0
+    block_reduction_percent: 12.903225806451612
+  - block_index: 26
+    seed: 7126
+    scene_id: open_crossing_90
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.8500000000000005
+    v3_minus_teb_s: -1.1000000000000005
+    block_reduction_percent: 14.01273885350319
+  - block_index: 27
+    seed: 7127
+    scene_id: wide_corridor_crossing_70
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.750000000000001
+    actual_teb_restricted_elapsed_s: 7.75
+    v3_minus_teb_s: -0.9999999999999991
+    block_reduction_percent: 12.903225806451601
+  - block_index: 28
+    seed: 7128
+    scene_id: wide_corridor_crossing_70
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.75
+    actual_teb_restricted_elapsed_s: 7.85
+    v3_minus_teb_s: -1.0999999999999996
+    block_reduction_percent: 14.012738853503182
+  - block_index: 29
+    seed: 7129
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: cautious
+    v3_restricted_elapsed_s: 6.8
+    actual_teb_restricted_elapsed_s: 7.85
+    v3_minus_teb_s: -1.0499999999999998
+    block_reduction_percent: 13.375796178343947
+  - block_index: 30
+    seed: 7130
+    scene_id: bounded_corridor_crossing_110
+    actor_policy: hesitant
+    v3_restricted_elapsed_s: 6.750000000000001
+    actual_teb_restricted_elapsed_s: 7.85
+    v3_minus_teb_s: -1.0999999999999988
+    block_reduction_percent: 14.01273885350317
+  gate_pair_differences:
+  - block_index: 1
+    actor_coordinate_absolute_difference_m: 0.0007199999999998319
+    actor_speed_absolute_difference_mps: 0.00047999999999603915
+  - block_index: 2
+    actor_coordinate_absolute_difference_m: 0.000640000000000196
+    actor_speed_absolute_difference_mps: 1.3322676295501878e-14
+  - block_index: 3
+    actor_coordinate_absolute_difference_m: 0.00048000000000003595
+    actor_speed_absolute_difference_mps: 0.0017600000000184135
+  - block_index: 4
+    actor_coordinate_absolute_difference_m: 0.0038399999999998435
+    actor_speed_absolute_difference_mps: 0.0012800000000079415
+  - block_index: 5
+    actor_coordinate_absolute_difference_m: 0.0011999999999998678
+    actor_speed_absolute_difference_mps: 2.1996293675385914e-14
+  - block_index: 6
+    actor_coordinate_absolute_difference_m: 0.001280000000000392
+    actor_speed_absolute_difference_mps: 0.02047999999997946
+  - block_index: 7
+    actor_coordinate_absolute_difference_m: 0.00048000000000003595
+    actor_speed_absolute_difference_mps: 0.007199999999998319
+  - block_index: 8
+    actor_coordinate_absolute_difference_m: 0.0
+    actor_speed_absolute_difference_mps: 0.01920000000000588
+  - block_index: 9
+    actor_coordinate_absolute_difference_m: 0.00023999999999979593
+    actor_speed_absolute_difference_mps: 1.441902153231922e-14
+  - block_index: 10
+    actor_coordinate_absolute_difference_m: 0.0
+    actor_speed_absolute_difference_mps: 0.0
+  - block_index: 11
+    actor_coordinate_absolute_difference_m: 0.00023999999999979593
+    actor_speed_absolute_difference_mps: 0.007200000000006285
+  - block_index: 12
+    actor_coordinate_absolute_difference_m: 0.0006399999999997519
+    actor_speed_absolute_difference_mps: 0.025600000000006506
+  - block_index: 13
+    actor_coordinate_absolute_difference_m: 0.0009600000000000719
+    actor_speed_absolute_difference_mps: 0.0033279999999891174
+  - block_index: 14
+    actor_coordinate_absolute_difference_m: 0.0032000000000000917
+    actor_speed_absolute_difference_mps: 8.881784197001252e-15
+  - block_index: 15
+    actor_coordinate_absolute_difference_m: 0.00023999999999979593
+    actor_speed_absolute_difference_mps: 0.0019199999999953699
+  - block_index: 16
+    actor_coordinate_absolute_difference_m: 0.0019200000000001438
+    actor_speed_absolute_difference_mps: 2.65898414397725e-14
+  - block_index: 17
+    actor_coordinate_absolute_difference_m: 0.0009600000000000719
+    actor_speed_absolute_difference_mps: 5.315192730392937e-15
+  - block_index: 18
+    actor_coordinate_absolute_difference_m: 0.0025599999999994516
+    actor_speed_absolute_difference_mps: 0.005119999999994129
+  - block_index: 19
+    actor_coordinate_absolute_difference_m: 0.0011999999999998678
+    actor_speed_absolute_difference_mps: 0.007679999999998799
+  - block_index: 20
+    actor_coordinate_absolute_difference_m: 0.0012799999999999478
+    actor_speed_absolute_difference_mps: 1.3322676295501878e-14
+  - block_index: 21
+    actor_coordinate_absolute_difference_m: 0.00024000000000024002
+    actor_speed_absolute_difference_mps: 0.0008711999999967274
+  - block_index: 22
+    actor_coordinate_absolute_difference_m: 0.001920000000000588
+    actor_speed_absolute_difference_mps: 1.887379141862766e-15
+  - block_index: 23
+    actor_coordinate_absolute_difference_m: 0.0007199999999998319
+    actor_speed_absolute_difference_mps: 0.0030719999999967162
+  - block_index: 24
+    actor_coordinate_absolute_difference_m: 0.000640000000000196
+    actor_speed_absolute_difference_mps: 0.02986666666666349
+  - block_index: 25
+    actor_coordinate_absolute_difference_m: 0.0009600000000000719
+    actor_speed_absolute_difference_mps: 8.881784197001252e-15
+  - block_index: 26
+    actor_coordinate_absolute_difference_m: 0.0012799999999995038
+    actor_speed_absolute_difference_mps: 2.220446049250313e-14
+  - block_index: 27
+    actor_coordinate_absolute_difference_m: 0.00023999999999979593
+    actor_speed_absolute_difference_mps: 0.004320000000013036
+  - block_index: 28
+    actor_coordinate_absolute_difference_m: 0.0006399999999993078
+    actor_speed_absolute_difference_mps: 1.4988010832439613e-15
+  - block_index: 29
+    actor_coordinate_absolute_difference_m: 0.00048000000000003595
+    actor_speed_absolute_difference_mps: 0.007199999999993781
+  - block_index: 30
+    actor_coordinate_absolute_difference_m: 0.0012799999999999478
+    actor_speed_absolute_difference_mps: 0.005333333333348345
+gates:
+  complete_exact_fresh_schedule_pass: true
+  attempt_identity_no_retry_or_forfeiture_pass: true
+  simulation_zero_training_boundary_pass: true
+  common_gate_integrity_pass: true
+  actor_mode_integrity_pass: true
+  paired_gate_actor_coordinate_integrity_pass: true
+  paired_gate_actor_speed_integrity_pass: true
+  v3_spatial_selection_integrity_pass: true
+  v3_tracking_integrity_pass: true
+  actual_teb_execution_integrity_pass: true
+  collision_gate_pass: true
+  conservative_clearance_gate_pass: true
+  v3_goal_success_noninferiority_pass: true
+  point_meaningful_effect_pass: true
+  one_sided_lower_meaningful_effect_pass: true
+  each_scene_policy_stratum_nonnegative_pass: true
+  preexecution_analysis_release_pass: true
+formal_result: true
+performance_improvement_demonstrated: true
+training_steps: 0
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false
+runtime_ready: false
+claim_scope:
+  actual_teb_baseline: true
+  three_frozen_single_actor_simulation_templates: true
+  supported_actor_policies:
+  - cautious
+  - hesitant
+  oracle_actor_track_shared_by_both_methods: true
+  perception_robustness_claim_authorized: false
+  general_navigation_safety_claim_authorized: false
+  deployment_claim_authorized: false
+  real_vehicle_claim_authorized: false
+analysis_repair_release_sha256: 677d29954e216665c414ffb9f11b460e1a7f9d32d4a6a44f427177b95a23e0b5
+analysis_implementation_repair:
+  stage: V3-11-F1-ANALYSIS-R1
+  type: namespace_only_string_label_injection
+  preserved_i0_failure_path: artifacts/v3/actual_teb/v3_11_f1_release/formal_analysis_i0_failure.yaml
+  repair_semantics:
+    cautious: cautious
+    hesitant: hesitant
+  statistic_threshold_or_evidence_changed: false

@@ -1,0 +1,107 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R3-ASSESSMENT
+status: midpoint_support_predictor_planner_qualification_fail
+execution_release_sha256: 65a129d2b2c0edc84e633fc056bc3939794b46fff764f354c79448e0d9fab1ea
+collection_summary_sha256: 50042e384f7e3b3ce440044c0e1e53a083cac02ea13a8f134dfe0c2e4c7711b9
+authorized_units: 16
+consumed_units: 16
+completed_units: 16
+forfeited_units: 0
+attempts_per_identity: 1
+retry_resume_replacement_or_selective_exclusion_observed: false
+matching_metrics:
+  complete_action_support_rate: 1.0
+  maximum_branch_clock_absolute_error_s: 0.007999999999999119
+  maximum_decision_ego_x_range_m: 0.016001160441486917
+  maximum_decision_actor_coordinate_range_m: 0.010855409379999514
+  maximum_decision_actor_speed_range_mps: 0.004339765071998514
+matching_gate_checks:
+  all_episode_collection_pass: true
+  all_reports_finite: true
+  complete_action_support_rate: true
+  branch_clock: true
+  decision_ego_x: true
+  actor_coordinate: true
+  actor_speed: true
+actor_trajectory_count: 32
+simultaneous_whole_trajectory_coverage: 0.65625
+mean_trajectory_rmse_m: 0.5284319027740629
+maximum_trajectory_rmse_m: 1.728313593981046
+terminal_full_width_at_7s_m: 1.7200000000000002
+scene_predictor_results:
+- scene_id: crossing_and_oncoming
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 0.6875
+  mean_trajectory_rmse_m: 0.520070476768599
+  maximum_trajectory_rmse_m: 1.5956395442661755
+- scene_id: occluded_staggered_corridor
+  trajectory_count: 16
+  simultaneous_trajectory_coverage: 0.625
+  mean_trajectory_rmse_m: 0.5367933287795267
+  maximum_trajectory_rmse_m: 1.728313593981046
+predictor_gate_checks:
+  global_coverage: false
+  every_scene_coverage: false
+  mean_rmse: false
+  maximum_rmse: false
+  terminal_width: true
+  hidden_label_feature_count: true
+planner_results:
+- block_index: 1
+  scene_id: occluded_staggered_corridor
+  actor_policies_evaluator_only:
+  - hesitant
+  - cautious
+  selected_candidate_id: certified_stop_v000
+  selected_analytic_accepted: true
+  selected_analytic_clearance_m: 1.435
+  selected_clone_clearance_m: 1.734992160466891
+  selected_clone_contact_state_count: 0
+  planner_error: null
+- block_index: 2
+  scene_id: occluded_staggered_corridor
+  actor_policies_evaluator_only:
+  - hesitant
+  - hesitant
+  selected_candidate_id: certified_stop_v000
+  selected_analytic_accepted: true
+  selected_analytic_clearance_m: 1.435
+  selected_clone_clearance_m: 1.7349656826117874
+  selected_clone_contact_state_count: 0
+  planner_error: null
+- block_index: 3
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only:
+  - hesitant
+  - cautious
+  selected_candidate_id: spatial_right_v120
+  selected_analytic_accepted: true
+  selected_analytic_clearance_m: 0.043360158031253704
+  selected_clone_clearance_m: -0.3217475601780183
+  selected_clone_contact_state_count: 0
+  planner_error: null
+- block_index: 4
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only:
+  - hesitant
+  - hesitant
+  selected_candidate_id: spatial_right_v120
+  selected_analytic_accepted: true
+  selected_analytic_clearance_m: 0.04768965440590067
+  selected_clone_clearance_m: -0.06359685037944285
+  selected_clone_contact_state_count: 0
+  planner_error: null
+planner_gate_checks:
+  every_block_progress: false
+  every_selected_analytic_accepted: true
+  every_selected_clone_contact_free: true
+  every_selected_clone_clearance_nonnegative: false
+  every_block_four_action_support: true
+qualification_pass: false
+new_actual_TEB_preflight_design_authorized: false
+direct_actual_TEB_execution_authorized: false
+formal_performance_claim_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

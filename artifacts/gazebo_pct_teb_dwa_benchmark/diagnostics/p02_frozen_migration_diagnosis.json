@@ -1,0 +1,266 @@
+{
+  "claims_not_supported": [
+    "that the historical tracker was always associated with the wrong object",
+    "that any one listed mismatch alone caused the historical negative result",
+    "Gazebo superiority over Actual TEB or DWA"
+  ],
+  "falsifiable_hypotheses_for_new_development_only": [
+    {
+      "hypothesis": "Starting the policy at a shared state represented in training and preserving elapsed/previous-executed semantics removes the activation distribution discontinuity.",
+      "id": "H-P02-1",
+      "test": "fixed-input parity plus new development shadow episodes; no historical identity rerun"
+    },
+    {
+      "hypothesis": "A goal-aware speed envelope and terminal candidate prevents lateral-action goal overshoot without changing the shared evaluator goal.",
+      "id": "H-P02-2",
+      "test": "static development trajectories must enter and stop inside the common goal ball"
+    },
+    {
+      "hypothesis": "Time-consistent scan clustering with static-map rejection and activation revalidation eliminates negative evaluator clearance while retaining non-stop candidates after the actor clears.",
+      "id": "H-P02-3",
+      "test": "single-actor shadow development episodes: evaluator clearance >= 0, mask violations 0, recovery from certified stop"
+    }
+  ],
+  "fixed_input_parity_probe": {
+    "controlled_pose": [
+      -2.6,
+      0.0,
+      0.0
+    ],
+    "controlled_speed_mps": 0.8,
+    "fields": {
+      "action_mask": {
+        "exact": false,
+        "max_absolute_difference": 1.0,
+        "shape_equal": true
+      },
+      "analytic_prior": {
+        "exact": true,
+        "max_absolute_difference": 0.0,
+        "shape_equal": true
+      },
+      "candidates": {
+        "exact": true,
+        "max_absolute_difference": 0.0,
+        "shape_equal": true
+      },
+      "robot": {
+        "exact": false,
+        "max_absolute_difference": 0.02222222089767456,
+        "shape_equal": true
+      },
+      "scans": {
+        "exact": true,
+        "max_absolute_difference": 0.0,
+        "shape_equal": true
+      }
+    },
+    "runtime_action_mask": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "runtime_robot_features": [
+      0.1702127605676651,
+      0.0,
+      0.0,
+      0.6666666865348816,
+      0.6666666865348816,
+      0.8666666746139526,
+      0.2857142984867096,
+      0.125,
+      0.0,
+      0.2937679588794708
+    ],
+    "synthetic_development_seed": 196001,
+    "training_action_mask": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      0
+    ],
+    "training_robot_features": [
+      0.15555556118488312,
+      0.0,
+      0.0,
+      0.6666666865348816,
+      0.6666666865348816,
+      0.8444444537162781,
+      0.2857142984867096,
+      0.125,
+      0.0,
+      0.2937679588794708
+    ]
+  },
+  "historical_method_order_facts": {
+    "actual_teb_goal": true,
+    "analytic_goal": true,
+    "pct_goal": false
+  },
+  "historical_v604_reports": [
+    {
+      "certified_stop_decisions": 21,
+      "contact_state_count": 0,
+      "decision_count": 89,
+      "episode": "001_954200_open_crossing_90_cautious_pct_scope_rl_v6",
+      "execution_integrity_pass": false,
+      "final_pose": {
+        "x_m": 16.66503885807297,
+        "y_m": 0.0022630953582715393,
+        "yaw_rad": -0.005078375343557775
+      },
+      "final_position_error_m": 11.465039081430282,
+      "goal_reached": false,
+      "method": "pct_scope_rl_v6",
+      "minimum_conservative_clearance_m": -0.9901913478090653,
+      "restricted_elapsed_s": 22.0,
+      "safe_action_count_transitions": 9,
+      "single_safe_action_decisions": 21,
+      "spatial_decisions": 47,
+      "tracker": {
+        "center_world_m": [
+          0.3405219883528545,
+          5.784759082441296
+        ],
+        "source": "LaserScan_plus_Odometry_only",
+        "speed_mps": 0.9015594874570059,
+        "valid": true,
+        "velocity_world_mps": [
+          0.14111668455892784,
+          0.8904468489263327
+        ]
+      }
+    },
+    {
+      "certified_stop_decisions": 15,
+      "contact_state_count": 0,
+      "decision_count": 47,
+      "episode": "002_954200_open_crossing_90_cautious_sensor_analytic_prior",
+      "execution_integrity_pass": false,
+      "final_pose": {
+        "x_m": 5.128317429226435,
+        "y_m": 2.2727469268568998e-14,
+        "yaw_rad": -6.207219913551196e-13
+      },
+      "final_position_error_m": 0.07168257077356532,
+      "goal_reached": true,
+      "method": "sensor_analytic_prior",
+      "minimum_conservative_clearance_m": -1.0339251477522733,
+      "restricted_elapsed_s": 11.599999999999998,
+      "safe_action_count_transitions": 8,
+      "single_safe_action_decisions": 15,
+      "spatial_decisions": 0,
+      "tracker": {
+        "center_world_m": [
+          0.10571233093020416,
+          5.40136048656036
+        ],
+        "source": "LaserScan_plus_Odometry_only",
+        "speed_mps": 0.8464327734165716,
+        "valid": true,
+        "velocity_world_mps": [
+          -0.09491069825308554,
+          0.8410947623608062
+        ]
+      }
+    },
+    {
+      "contact_state_count": 0,
+      "episode": "003_954200_open_crossing_90_cautious_actual_teb",
+      "execution_integrity_pass": true,
+      "final_pose": {
+        "x_m": 5.26280745750457,
+        "y_m": -0.0018110866699043919,
+        "yaw_rad": -0.003355500726892538
+      },
+      "final_position_error_m": 0.06283356390587935,
+      "goal_reached": true,
+      "method": "actual_teb",
+      "minimum_conservative_clearance_m": 0.19040373230669205,
+      "restricted_elapsed_s": 7.75,
+      "tracker": {
+        "center_world_m": [
+          0.35133906720614005,
+          -0.7148225029926623
+        ],
+        "source": "LaserScan_plus_Odometry_only",
+        "speed_mps": 0.5411549989088408,
+        "valid": true,
+        "velocity_world_mps": [
+          0.3135583896794719,
+          0.44105540366902196
+        ]
+      }
+    }
+  ],
+  "schema_version": "1.0",
+  "scope": "read-only historical attribution plus synthetic fixed-input probe; no historical identity rerun",
+  "status": "p02_frozen_migration_offline_diagnosis_complete",
+  "verified_contract_differences": {
+    "actor_at_policy_activation": {
+      "training_crossing_speed_range_mps": [
+        0.72,
+        1.12
+      ],
+      "training_crossing_start_absolute_y_range_m": [
+        1.45,
+        2.05
+      ],
+      "v604_gate_actor_coordinate_m": -2.9139688000000006,
+      "v604_gate_actor_speed_mps": 0.11807999999999819
+    },
+    "execution_semantics": {
+      "activation_time_hard_mask_revalidation": false,
+      "nan_inf_and_inference_timeout_fail_closed_contract": false,
+      "previous_action_updated_at_selection_not_confirmed_execution": true,
+      "scan_odom_tf_age_deadlines_logged": false,
+      "separate_suggested_validated_executed_ids_logged": false
+    },
+    "goal_semantics": {
+      "analytic_final_position_error_m": 0.07168257077356532,
+      "historical_gazebo_success": "Euclidean distance to (5.2,0) <= 0.25 and |yaw| <= 0.25",
+      "pct_final_position_error_m": 11.465039081430282,
+      "pct_final_x_m": 16.66503885807297,
+      "runtime_candidate_has_goal_speed_or_longitudinal_clamp": false,
+      "training_success": "x >= 4.70 with |y| <= 0.55 and |yaw| <= 0.35"
+    },
+    "laser": {
+      "gazebo_dropout_probability": 0.0,
+      "gazebo_noise_std_m": 0.01,
+      "gazebo_raw_beams_fov": "720 over 360 deg; nearest-index resampled to 72 over 270 deg",
+      "laser_xy_extrinsic_m": [
+        0.0,
+        0.0
+      ],
+      "training_beams_fov": "72 over 270 deg",
+      "training_dropout_probability": 0.006,
+      "training_noise_std_m": 0.012
+    },
+    "policy_activation": {
+      "gazebo_elapsed_feature_resets_to_zero_at_gate": true,
+      "gazebo_policy_skips_training_initial_longitudinal_distance_m": 1.4,
+      "historical_gazebo_policy_gate_x_m": -2.6,
+      "historical_gazebo_spawn_x_m": -4.2,
+      "training_start_x_m": -4.0,
+      "training_step_fraction_at_x_minus_2_6_is_not_zero": true
+    },
+    "shield": {
+      "actor_half_width_m": 0.36,
+      "center_separation_equivalent_m": 1.15,
+      "evaluator_combined_radius_m": 1.15,
+      "historical_base_runtime_dynamic_reachable_expansion": "min(0.75,1.35*t)",
+      "robot_radius_plus_surface_inflation_m": 0.79,
+      "training_dynamic_reachable_expansion": "1.35*t without 0.75 m cap",
+      "v604_dynamic_surface_inflation_m": 0.33
+    }
+  }
+}

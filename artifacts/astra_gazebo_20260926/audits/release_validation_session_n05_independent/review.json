@@ -1,0 +1,112 @@
+{
+  "schema": "astra_release_validation_session_n05_independent_review_v1",
+  "status": "component_pass_with_pure_manager_and_new_release_integration_scope",
+  "new_source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/release_validation_session_n05.py",
+    "sha256": "a16cd5c7ac185986c72f36e8bddf6841842c217e0a61f9fc519ae780603d8e08"
+  },
+  "author_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/release_validation_scaling_n05/implementation_report.json",
+    "sha256": "0040526bc15cb71f6a44cc9537cc98af3e5e8775c98e32862ad4df6e8fe0096b"
+  },
+  "author_tests_independently_rerun": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 W/.venv/bin/python -m pytest -q -p no:cacheprovider W/scripts/astra_gazebo/tests/test_release_validation_session_n05.py",
+    "passed": 8,
+    "observed_result": "8 passed in 0.02s; not a performance benchmark"
+  },
+  "independent_checks": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/release_validation_session_n05_independent/checks.json",
+    "sha256": "e36ab16fbc0ed7909ecb0ea44cbc0b705ec2a1199366a635f26a0b31c855a4d7"
+  },
+  "independent_checks_passed": 11,
+  "source_review": {
+    "constructor": "Runs the original full verifier once; caches a deep copy; consolidates canonical exact bindings and rejects conflicts, duplicate required roster, missing helper/manager source or unbound active paths; immediately validates unchanged again.",
+    "preserved_closure": "Every release resource plus release/prepared/review/qualification documents, prerequisite evidence, native/source review resources, every prepared file and conversion resource is re-opened and hashed at each call. Current required_resources roster and identities schedule rebuilt and compared.",
+    "inherited_full_verifier": "Reviewed N04 verify_release and its make_contract/validate_contract/native_review_facts/conversion_resources helpers. Its repeated semantics depend on bound files, source-defined constants and returned schedule/rosters; no clock/process/ledger/service check is cached by this helper.",
+    "no_unclosed_current_file_dependency_found": true,
+    "permanent_failure": "All BaseException from rehash/roster/schedule closes the session; restoring bytes cannot reopen. Caller mutation of returned nested objects or original verifier aliases cannot modify cached deep copy.",
+    "liveness": "Ledger allocation, attempt existence, process ownership/ELF/roster, service gateways, runtime records and final evidence remain separate mandatory checks; this helper neither enforces nor replaces them.",
+    "dependency_roster": "Directory/glob changes that affect active required_resources are detected, rather than inferred from unchanged old files.",
+    "old_stage": "Actual frozen N04 release does not contain this new helper. Construction would reject missing binding after full verifier; no actual full verifier or current run was invoked for this check."
+  },
+  "counterexample": {
+    "type": "scope_boundary_not_current_N04_code_defect",
+    "fixture": "External allowed flag switches false without bound-byte/roster changes. Cache still returns earlier semantics; the full verifier rejects.",
+    "required_precondition": "Only a separately reviewed deterministic verifier may be cached. Any future verifier reading time, environment, process state, ledger, directory facts outside the roster, or mutable authorization state must keep those validations uncached or include them in a freshly checked explicit state contract."
+  },
+  "integration_requirements": [
+    "New stage release and independent source review bind helper and exact manager source; frozen N04 must stay unchanged.",
+    "Verify the new manager still satisfies the pure bound-file semantics assumption.",
+    "Construct one session after initial release verification in the one-shot manager process; retain unchanged verification at original preallocation/prelaunch boundaries.",
+    "Never catch a closed-session failure and start a replacement session to continue the same matrix.",
+    "Do not move ledger/runtime/terminal validations into cached semantic work."
+  ],
+  "performance": {
+    "measured": false,
+    "claim": "Repeated all-matrix semantic reconstruction can be avoided; repeated full-resource hashing still occurs. No runtime/speedup or end-to-end complexity measurement was performed during active N04."
+  },
+  "execution": {
+    "integrated": false,
+    "authorized": false,
+    "ros_started": false,
+    "seed_or_release_changes": false
+  },
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/release_validation_session_n05.py",
+      "sha256": "a16cd5c7ac185986c72f36e8bddf6841842c217e0a61f9fc519ae780603d8e08"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_release_validation_session_n05.py",
+      "sha256": "d9c272d608272ed282b175e21e530504a0744192b459de0fc88d338934ee3ca6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n04.py",
+      "sha256": "da06dc0bca1e47f2ba1efd4287b18107e2c0b791f31aa8d740f4c631a825e05e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_n04.py",
+      "sha256": "8f91cb2b1c08cbe78616c4e7fbabc8a14d71b4895e8935afb2b4c73887726b2a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_passive_sweep_q05.py",
+      "sha256": "f82e5c72e09894e10e0009ba67ab707b250c0840721582f2e854ed3839affd80"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q05.py",
+      "sha256": "8e92e942002060117bef8221aba4ff14980d31f6ca314a51a5cd80d63d507c74"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q04.py",
+      "sha256": "c757fce921cd5edd0080a8cad205bebb3c5efe2664fc687c209a6b05d0cbd1ca"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/dense_sweep_p04.py",
+      "sha256": "3bebade4f43d53f0a7cc0be1fd067d42bdb9d9c6251d4d2c728f59993c6f0736"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/release_validation_scaling_n05/implementation_report.json",
+      "sha256": "0040526bc15cb71f6a44cc9537cc98af3e5e8775c98e32862ad4df6e8fe0096b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n04_release.json",
+      "sha256": "3ad785e8f4b1242bb238b4714b2925a7bf280edb43f1fc1fcf2217a0a8a3efb9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/release_validation_session_n05_independent/check.py",
+      "sha256": "d34e626902acca992be2473dbffce040f2e1b51d1bbc09e586456744d2725258"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/release_validation_session_n05_independent/checks.json",
+      "sha256": "e36ab16fbc0ed7909ecb0ea44cbc0b705ec2a1199366a635f26a0b31c855a4d7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/release_validation_session_n05_independent/checks.log",
+      "sha256": "e36ab16fbc0ed7909ecb0ea44cbc0b705ec2a1199366a635f26a0b31c855a4d7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/release_validation_session_n05_independent/write_review.py",
+      "sha256": "60b229374d6bfa36f28f9b9384e43fef8474341d289297dfe094f9e27aef4895"
+    }
+  ]
+}

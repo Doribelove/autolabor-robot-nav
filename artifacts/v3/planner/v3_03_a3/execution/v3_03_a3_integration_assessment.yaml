@@ -1,0 +1,371 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-03-A3
+assessment_id: v3_03_a3_integration_assessment_1
+status: v3_03_a3_probe_select_execute_integration_pass
+formal_result: false
+metrics:
+  decision_count: 9
+  simulation_unit_count: 18
+  selected_candidate_accepted_rate: 1.0
+  certified_stop_available_rate: 1.0
+  no_actual_footprint_intersection_rate: 1.0
+  minimum_actual_clearance_with_margin_m: 1.0257350722419867
+  horizon_actor_envelope_coverage: 1.0
+  per_horizon_actor_envelope_coverage:
+    '1.5': 1.0
+    '2.5': 1.0
+    '3.5': 1.0
+    '4.5': 1.0
+  maximum_common_prefix_probe_execution_coordinate_spread_m: 0.0
+  maximum_common_prefix_probe_execution_speed_spread_mps: 0.0
+  maximum_selected_trajectory_trace_error_m: 0.0
+  minimum_progress_at_horizon_m: 0.3999999999999999
+  planner_latency_p99_ms: 18.056367
+  planner_latency_max_ms: 18.056367
+  nonfinite_metric_count: 0
+  selected_candidate_counts:
+    certified_stop_v000: 9
+gates:
+  decision_count_pass: true
+  simulation_unit_count_pass: true
+  selected_candidate_accepted_pass: true
+  certified_stop_available_pass: true
+  actual_clearance_pass: true
+  horizon_coverage_pass: true
+  per_horizon_coverage_pass: true
+  probe_execution_coordinate_alignment_pass: true
+  probe_execution_speed_alignment_pass: true
+  selected_trajectory_trace_pass: true
+  progress_pass: true
+  planner_latency_pass: true
+  finite_metrics_pass: true
+overall_pass: true
+execution:
+  authorized_units: 18
+  consumed_units: 18
+  completed_units: 18
+  completed_decisions: 9
+  retry_units: 0
+outcomes:
+- decision_id: v3_03_a3_integration_6311_cautious
+  block_id: integration_6311
+  seed: 6311
+  actor_policy_evaluator_only: cautious
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: true
+  predicted_minimum_clearance_m: 1.0257349684732442
+  actual_minimum_clearance_with_margin_m: 1.0257350722419867
+  progress_at_horizon_m: 0.3999999999999999
+  planner_latency_ms: 17.511913
+  probe_execution_actor_coordinate_spread_m: 0.0
+  probe_execution_actor_speed_spread_mps: 0.0
+  selected_trajectory_trace_error_m: 0.0
+  horizon_coverage:
+  - absolute_time_s: 1.5
+    truth_actor_coordinate_m: -2.4513549997039354
+    lower_coordinate_m: -3.388374806333539
+    upper_coordinate_m: 0.20807275359665614
+    covered: true
+  - absolute_time_s: 2.5
+    truth_actor_coordinate_m: -1.551354999706115
+    lower_coordinate_m: -3.388374806333539
+    upper_coordinate_m: 2.0951576510243815
+    covered: true
+  - absolute_time_s: 3.5
+    truth_actor_coordinate_m: -0.6513549997073093
+    lower_coordinate_m: -3.388374806333539
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 4.5
+    truth_actor_coordinate_m: 0.24864500029249859
+    lower_coordinate_m: -3.388374806333539
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  decision_receipt_sha256: 28dec4e65fd2d928037feabad260a6727e445f46bc9a69d524da78564d264e62
+- decision_id: v3_03_a3_integration_6311_assertive
+  block_id: integration_6311
+  seed: 6311
+  actor_policy_evaluator_only: assertive
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: true
+  predicted_minimum_clearance_m: 1.0257349684732442
+  actual_minimum_clearance_with_margin_m: 1.0257614938087936
+  progress_at_horizon_m: 0.3999999999999999
+  planner_latency_ms: 18.056367
+  probe_execution_actor_coordinate_spread_m: 0.0
+  probe_execution_actor_speed_spread_mps: 0.0
+  selected_trajectory_trace_error_m: 0.0
+  horizon_coverage:
+  - absolute_time_s: 1.5
+    truth_actor_coordinate_m: -1.451304999704062
+    lower_coordinate_m: -1.9227922270125193
+    upper_coordinate_m: 3.9790248066260006
+    covered: true
+  - absolute_time_s: 2.5
+    truth_actor_coordinate_m: -0.5513049997072083
+    lower_coordinate_m: -0.9623877673260891
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 3.5
+    truth_actor_coordinate_m: 0.3486950002925996
+    lower_coordinate_m: -0.03626423501864898
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 4.5
+    truth_actor_coordinate_m: 1.2486950002894008
+    lower_coordinate_m: 0.8983160103169686
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  decision_receipt_sha256: f558f67fe9a11639385cb864c7a4534a4bbeed8cf338baf2ececd82c02138cba
+- decision_id: v3_03_a3_integration_6311_hesitant
+  block_id: integration_6311
+  seed: 6311
+  actor_policy_evaluator_only: hesitant
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: true
+  predicted_minimum_clearance_m: 1.0257349684732442
+  actual_minimum_clearance_with_margin_m: 1.0257370509010522
+  progress_at_horizon_m: 0.3999999999999999
+  planner_latency_ms: 17.523379
+  probe_execution_actor_coordinate_spread_m: 0.0
+  probe_execution_actor_speed_spread_mps: 0.0
+  selected_trajectory_trace_error_m: 0.0
+  horizon_coverage:
+  - absolute_time_s: 1.5
+    truth_actor_coordinate_m: -2.095029999712384
+    lower_coordinate_m: -2.5644875222566506
+    upper_coordinate_m: -0.004853043233350091
+    covered: true
+  - absolute_time_s: 2.5
+    truth_actor_coordinate_m: -1.195029999704715
+    lower_coordinate_m: -1.6395288840866473
+    upper_coordinate_m: 1.922836516056623
+    covered: true
+  - absolute_time_s: 3.5
+    truth_actor_coordinate_m: -0.2950299997078961
+    lower_coordinate_m: -0.7265322956728143
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 4.5
+    truth_actor_coordinate_m: 0.6049700002919116
+    lower_coordinate_m: 0.1881371128372896
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  decision_receipt_sha256: eada49ee1d3de16a673534c5c5e6bc198a8077add33bfde129e08485edee80f2
+- decision_id: v3_03_a3_integration_6312_cautious
+  block_id: integration_6312
+  seed: 6312
+  actor_policy_evaluator_only: cautious
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: true
+  predicted_minimum_clearance_m: 1.0257349684732442
+  actual_minimum_clearance_with_margin_m: 1.0258637606712862
+  progress_at_horizon_m: 0.3999999999999999
+  planner_latency_ms: 15.789235
+  probe_execution_actor_coordinate_spread_m: 0.0
+  probe_execution_actor_speed_spread_mps: 0.0
+  selected_trajectory_trace_error_m: 0.0
+  horizon_coverage:
+  - absolute_time_s: 1.5
+    truth_actor_coordinate_m: -1.959350000215755
+    lower_coordinate_m: -3.114034806848003
+    upper_coordinate_m: 0.20641081664867658
+    covered: true
+  - absolute_time_s: 2.5
+    truth_actor_coordinate_m: -0.8593500002198727
+    lower_coordinate_m: -3.114034806848003
+    upper_coordinate_m: 2.155383327628491
+    covered: true
+  - absolute_time_s: 3.5
+    truth_actor_coordinate_m: 0.24064999977986196
+    lower_coordinate_m: -3.114034806848003
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 4.5
+    truth_actor_coordinate_m: 1.340649999776816
+    lower_coordinate_m: -3.114034806848003
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  decision_receipt_sha256: 4327d8371d60ed1c4b4f06681ab9ce803b7505fe8f4416d8e7a6ea40568ac45a
+- decision_id: v3_03_a3_integration_6312_assertive
+  block_id: integration_6312
+  seed: 6312
+  actor_policy_evaluator_only: assertive
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: true
+  predicted_minimum_clearance_m: 1.0257349684732442
+  actual_minimum_clearance_with_margin_m: 1.0257876990311918
+  progress_at_horizon_m: 0.3999999999999999
+  planner_latency_ms: 17.197115
+  probe_execution_actor_coordinate_spread_m: 0.0
+  probe_execution_actor_speed_spread_mps: 0.0
+  selected_trajectory_trace_error_m: 0.0
+  horizon_coverage:
+  - absolute_time_s: 1.5
+    truth_actor_coordinate_m: -1.118090000219175
+    lower_coordinate_m: -1.7426403620585198
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 2.5
+    truth_actor_coordinate_m: -0.01809000021990318
+    lower_coordinate_m: -0.8623904831737298
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 3.5
+    truth_actor_coordinate_m: 1.0819099997824377
+    lower_coordinate_m: 0.017785434654930737
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 4.5
+    truth_actor_coordinate_m: 2.1819099997832434
+    lower_coordinate_m: 0.9016412618985817
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  decision_receipt_sha256: a8176365ef49aeb588a45cd5a0037070d2b4f0e610f0e93275febb29384429e6
+- decision_id: v3_03_a3_integration_6312_hesitant
+  block_id: integration_6312
+  seed: 6312
+  actor_policy_evaluator_only: hesitant
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: true
+  predicted_minimum_clearance_m: 1.0257349684732442
+  actual_minimum_clearance_with_margin_m: 1.0257419011702953
+  progress_at_horizon_m: 0.3999999999999999
+  planner_latency_ms: 16.103916
+  probe_execution_actor_coordinate_spread_m: 0.0
+  probe_execution_actor_speed_spread_mps: 0.0
+  selected_trajectory_trace_error_m: 0.0
+  horizon_coverage:
+  - absolute_time_s: 1.5
+    truth_actor_coordinate_m: -1.713455000223873
+    lower_coordinate_m: -2.2459523246476025
+    upper_coordinate_m: 0.07859895647669904
+    covered: true
+  - absolute_time_s: 2.5
+    truth_actor_coordinate_m: -0.6134550002201123
+    lower_coordinate_m: -1.2027465371758939
+    upper_coordinate_m: 2.0328124949579687
+    covered: true
+  - absolute_time_s: 3.5
+    truth_actor_coordinate_m: 0.48654499977965693
+    lower_coordinate_m: -0.15756087466120353
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 4.5
+    truth_actor_coordinate_m: 1.5865449997785457
+    lower_coordinate_m: 0.847142334539989
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  decision_receipt_sha256: 397ab24478e2da832f406fd71cfee6f292f99e018cf2b6dd76cf444f51cb6540
+- decision_id: v3_03_a3_integration_6313_cautious
+  block_id: integration_6313
+  seed: 6313
+  actor_policy_evaluator_only: cautious
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: true
+  predicted_minimum_clearance_m: 1.0591579118463867
+  actual_minimum_clearance_with_margin_m: 1.059160500623273
+  progress_at_horizon_m: 0.3999999999999999
+  planner_latency_ms: 15.387554
+  probe_execution_actor_coordinate_spread_m: 0.0
+  probe_execution_actor_speed_spread_mps: 0.0
+  selected_trajectory_trace_error_m: 0.0
+  horizon_coverage:
+  - absolute_time_s: 1.5
+    truth_actor_coordinate_m: -2.553375
+    lower_coordinate_m: -3.5532848066260003
+    upper_coordinate_m: 0.132820397876832
+    covered: true
+  - absolute_time_s: 2.5
+    truth_actor_coordinate_m: -1.553375
+    lower_coordinate_m: -3.5532848066260003
+    upper_coordinate_m: 1.9877911376343669
+    covered: true
+  - absolute_time_s: 3.5
+    truth_actor_coordinate_m: -0.553375
+    lower_coordinate_m: -3.5532848066260003
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 4.5
+    truth_actor_coordinate_m: 0.446625
+    lower_coordinate_m: -3.5532848066260003
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  decision_receipt_sha256: adfc22973db54189363a1b22fa4115fd1c52fb954b069d684d23099b7f478b31
+- decision_id: v3_03_a3_integration_6313_assertive
+  block_id: integration_6313
+  seed: 6313
+  actor_policy_evaluator_only: assertive
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: true
+  predicted_minimum_clearance_m: 1.0591579118463867
+  actual_minimum_clearance_with_margin_m: 1.0592108009890548
+  progress_at_horizon_m: 0.3999999999999999
+  planner_latency_ms: 16.288788
+  probe_execution_actor_coordinate_spread_m: 0.0
+  probe_execution_actor_speed_spread_mps: 0.0
+  selected_trajectory_trace_error_m: 0.0
+  horizon_coverage:
+  - absolute_time_s: 1.5
+    truth_actor_coordinate_m: -1.565255
+    lower_coordinate_m: -2.055442636000282
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 2.5
+    truth_actor_coordinate_m: -0.565255
+    lower_coordinate_m: -1.0486306851205065
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 3.5
+    truth_actor_coordinate_m: 0.434745
+    lower_coordinate_m: -0.06768399447536658
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 4.5
+    truth_actor_coordinate_m: 1.434745
+    lower_coordinate_m: 0.9202858155043862
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  decision_receipt_sha256: b04c1cfd46421231cf3230bacb7142efa865036041ea7b90bcb10a98dfdca7a5
+- decision_id: v3_03_a3_integration_6313_hesitant
+  block_id: integration_6313
+  seed: 6313
+  actor_policy_evaluator_only: hesitant
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: true
+  predicted_minimum_clearance_m: 1.0591579118463867
+  actual_minimum_clearance_with_margin_m: 1.0591580200509298
+  progress_at_horizon_m: 0.3999999999999999
+  planner_latency_ms: 16.264059
+  probe_execution_actor_coordinate_spread_m: 0.0
+  probe_execution_actor_speed_spread_mps: 0.0
+  selected_trajectory_trace_error_m: 0.0
+  horizon_coverage:
+  - absolute_time_s: 1.5
+    truth_actor_coordinate_m: -2.19931
+    lower_coordinate_m: -2.7239706000980024
+    upper_coordinate_m: -0.06433169046586026
+    covered: true
+  - absolute_time_s: 2.5
+    truth_actor_coordinate_m: -1.19931
+    lower_coordinate_m: -1.7917827932367838
+    upper_coordinate_m: 1.8322776065876931
+    covered: true
+  - absolute_time_s: 3.5
+    truth_actor_coordinate_m: -0.19931
+    lower_coordinate_m: -0.8745665008759745
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  - absolute_time_s: 4.5
+    truth_actor_coordinate_m: 0.80069
+    lower_coordinate_m: 0.05674061494811919
+    upper_coordinate_m: 3.979024806626
+    covered: true
+  decision_receipt_sha256: d7880821338dba3ea457435e40c931885dfed72022eff2c425349c1981a52600
+claim:
+  bounded_crossing_simulation_integration_pass: true
+  absolute_safety: false
+  performance_improvement: false
+  general_scene_planning: false
+  real_vehicle_ready: false

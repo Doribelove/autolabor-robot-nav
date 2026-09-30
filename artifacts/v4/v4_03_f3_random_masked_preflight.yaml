@@ -1,0 +1,20 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-03-F3
+status: random_masked_preflight_pass
+date: "2026-08-07"
+seed_range_inclusive: [423000, 423999]
+episode_count: 1000
+policy: uniform_random_over_current_hard_safe_mask
+actor_longitudinal_deceleration_bound_mps2: 3.0
+results:
+  contact_count: 0
+  mask_violation_count: 0
+  goal_count: 999
+  timeout_count: 1
+  minimum_clearance_m: 0.317151959
+gates:
+  contact_gate_pass: true
+  mask_integrity_gate_pass: true
+  training_preflight_pass: true
+claim_boundary: component_preflight_only_not_performance_evidence

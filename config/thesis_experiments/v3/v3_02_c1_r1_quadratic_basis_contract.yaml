@@ -1,0 +1,37 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-C1-R1
+contract_id: v3_scope_v3_02_c1_r1_quadratic_basis_1
+status: pure_offline_single_factor_repair_preregistered
+parent_result: artifacts/v3/prediction/v3_02_c1/model/v3_02_c1_terminal_calibration_result.yaml
+source_data:
+  training_calibration_only: true
+  schedule: artifacts/v3/prediction/v3_02_c1/offline_readiness/v3_02_c1_exact_schedule.yaml
+  held_out_test_outcomes_accessed: false
+single_factor_repair:
+  factor_count: 1
+  factor_id: ridge_feature_basis
+  parent_value: partial_quadratic_7_features
+  repaired_value: complete_quadratic_10_features
+  complete_features:
+    - bias
+    - actor_coordinate
+    - actor_speed
+    - candidate_speed
+    - actor_coordinate_squared
+    - actor_speed_squared
+    - candidate_speed_squared
+    - actor_coordinate_x_actor_speed
+    - actor_coordinate_x_candidate_speed
+    - actor_speed_x_candidate_speed
+  ridge_conformal_score_physical_clip_and_gates_unchanged: true
+authority:
+  offline_model_rebuild_authorized: true
+  new_simulation_authorized: false
+  held_out_test_access_authorized: false
+  reserved_test_seeds: [6261, 6262, 6263]
+acceptance:
+  use_parent_calibration_gates: true
+  all_gates_must_pass: true
+  byte_identical_rebuild: true
+  independent_review: true

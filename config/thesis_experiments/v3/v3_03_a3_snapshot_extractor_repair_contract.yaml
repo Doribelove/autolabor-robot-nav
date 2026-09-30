@@ -1,0 +1,42 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-A3
+stage_purpose: decision_time_snapshot_extractor_repair_and_fresh_integration
+contract_id: v3_scope_v3_03_a3_snapshot_extractor_repair_1
+date: "2026-07-24"
+status: single_factor_repair_preregistered_before_fresh_release
+parent:
+  stage: V3-03-A2
+  contract: config/thesis_experiments/v3/v3_03_a2_short_probe_parser_repair_contract.yaml
+  terminal_failure_record: artifacts/v3/planner/v3_03_a2/v3_03_a2_terminal_failure_record.yaml
+  consumed_units: 1
+  forfeited_units: 17
+  retry_or_resume_allowed: false
+single_factor_repair:
+  factor_count: 1
+  factor_id: decision_time_actor_snapshot_extractor
+  parent_value: full_trace_metrics_with_1_5_to_4_5_s_target_queries
+  repaired_value: direct_actor_coordinate_at_0_5_and_speed_from_0_3_to_0_5
+  short_trace_parser_unchanged: true
+  planner_core_changed: false
+  predictor_changed: false
+  candidate_roster_changed: false
+  safety_thresholds_changed: false
+  integration_gates_changed: false
+fresh_execution:
+  scene_blocks:
+    - {block_id: integration_6311, seed: 6311, angle_deg: 80.0, actor_start_distance_m: 3.10, actor_base_speed_mps: 0.90}
+    - {block_id: integration_6312, seed: 6312, angle_deg: 100.0, actor_start_distance_m: 2.90, actor_base_speed_mps: 1.10}
+    - {block_id: integration_6313, seed: 6313, angle_deg: 90.0, actor_start_distance_m: 3.30, actor_base_speed_mps: 1.00}
+  decisions: 9
+  simulation_units: 18
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  training_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_modification_authorized: false

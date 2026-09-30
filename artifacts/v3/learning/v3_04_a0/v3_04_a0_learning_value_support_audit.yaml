@@ -1,0 +1,63 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-04-A0
+report_id: v3_04_a0_learning_value_support_audit_1
+status: v3_04_learning_not_justified_offline_closure_pass
+formal_result: false
+metrics:
+  c6_episode_count: 9
+  c6_decision_count: 308
+  multi_safe_action_decision_count: 183
+  alternative_accepted_action_count: 890
+  analytic_selected_accepted_rate: 1.0
+  analytic_maximum_progress_rate: 1.0
+  immediate_progress_regret_mean_m: 0.0
+  immediate_progress_regret_max_m: 0.0
+  c6_contextual_alternative_action_propensity_min: 0.0
+  d1_cloned_row_count: 135
+  d1_cloned_candidate_count: 5
+  d1_cloned_propensity_min: 0.2
+  d1_roles:
+  - calibration
+  - training
+  d1_sequential_closed_loop_transition_support: false
+  audit_deterministic_replay_rate: 1.0
+  nonfinite_output_count: 0
+  training_steps: 0
+  learned_model_artifact_count: 0
+learning_activation_observations:
+  stable_immediate_regret_requirement_pass: false
+  contextual_action_support_requirement_pass: false
+  sequential_transition_support_requirement_pass: false
+  all_learning_activation_requirements_pass: false
+integrity_gates:
+  frozen_episode_count_pass: true
+  frozen_decision_count_pass: true
+  analytic_selected_accepted_pass: true
+  analytic_maximum_progress_pass: true
+  deterministic_replay_pass: true
+  finite_output_pass: true
+  fail_closed_no_training_pass: true
+overall_pass: true
+disposition:
+  learning_activated: false
+  supervised_ranker_trained: false
+  contextual_bandit_trained: false
+  offline_rl_trained: false
+  analytic_ranker_retained: true
+  reason: zero_observed_immediate_progress_regret_and_missing_closed_loop_alternative_action_sequential_support
+claim:
+  learning_value_support_audit_complete: true
+  learned_policy_improvement: false
+  offline_rl_validated: false
+  performance_improvement: false
+  real_vehicle_ready: false
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  model_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

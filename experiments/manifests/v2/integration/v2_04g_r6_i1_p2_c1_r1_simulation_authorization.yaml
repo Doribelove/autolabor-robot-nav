@@ -1,0 +1,63 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P2-C1-R1
+authorization_id: fam_teb_v2_04g_p2_c1_r1_user_authorization_20260724_1
+status: explicit_user_authorization_recorded_release_not_yet_created
+explicit_user_authorization_recorded: true
+authorization_recorded_date: "2026-07-24"
+simulation_only: true
+execution_authorized: true
+authorized_evidence_units_max: 342
+attempt_per_identity: 1
+retry_resume_replacement_or_seed_substitution_allowed: false
+training_allowed: false
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+historical_stage_rerun_or_resume_forbidden: true
+predecessor_C1:
+  release_sha256: bf370b51e19a91fd13ccf2684d4217590c675042c51fa2b26e95bd4db3bd5266
+  execute_called: false
+  consumed_evidence_units: 0
+  authorized_units_permanently_forfeited: 342
+  release_reuse_allowed: false
+fresh_unobserved_execution_seeds:
+  qualification: {first: 5331, last: 5342, count: 12}
+  calibration: {first: 5301, last: 5330, count: 30}
+  held_out_test_forbidden: {first: 5401, last: 5490, count: 90}
+  compile_support_execution_forbidden: [5343, 5344, 5345, 5346, 5347, 5348]
+  freshness_basis: no_old_C1_execute_attempt_journal_consumption_or_Gazebo_state_exists
+exact_schedule:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p2_c1_r1_release_readiness/v2_04g_p2_c1_r1_exact_342_schedule.yaml
+  maximum_rows: 342
+  qualification_rows_first: 12
+  calibration_rows_after_gate: 330
+release_boundary:
+  unique_release_path: experiments/manifests/v2/integration/v2_04g_r6_i1_p2_c1_r1_execution_release.yaml
+  release_creation_count_max: 1
+  release_creation_authorized: true
+  execution_requires_independent_offline_review_pass: true
+  execution_requires_exact_caller_supplied_release_sha256: true
+  execution_without_corresponding_release: false
+qualification_gate:
+  lower_to_higher_speed_order_required: true
+  first_failed_speed_disqualifies_itself_and_higher: true
+  disqualified_probe_or_calibration_rows_must_not_spawn_Gazebo: true
+  every_skipped_identity_must_be_recorded: true
+terminal_failure_policy:
+  preconsumption_integrity_failure: stop_without_consumption
+  postconsumption_integrity_failure: persist_stop_and_forfeit_remaining
+  ordinary_probe_or_navigation_outcome: retain_and_apply_frozen_gate
+  retry_allowed: false
+  resume_allowed: false
+  replacement_allowed: false
+  successful_only_analysis_allowed: false
+authorization_basis:
+  user_instruction_excerpt: >-
+    持续推进 FAM-TEB 性能优化，主动执行、自检和记录，不因单次失败停止；
+    仅允许离线分析和 Gazebo；任何具体仿真执行仍须在 exact release、
+    schedule 和预算冻结后通过对应阶段授权门。
+  contextual_scope: >-
+    This record narrows the current continuous Gazebo instruction to the
+    independent P2-C1-R1 342-unit maximum calibration/qualification stage.
+    It replaces only the unused and forfeited C1 authority, adds no round-1
+    evidence capacity, and does not authorize held-out test execution.

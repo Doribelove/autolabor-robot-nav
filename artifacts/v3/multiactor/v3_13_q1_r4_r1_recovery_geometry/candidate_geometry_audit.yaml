@@ -1,0 +1,61 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R4-R1
+status: runtime_radius_aligned_recovery_geometry_closure_pass
+source_snapshot_id: v3_13_q1_r2_crossing_and_oncoming_7331_1_late_recovery
+candidate_id: recovery_evasive_right_v120_r1
+candidate_digest: c460a6a074882e49a1a6f29dd821fa8751d95a589940bb5f64b6ecf94ec7a6ec
+legacy_candidate_set_digest: efd7c84a05409efe08ef17f8e1ac0a63339e3c7215bc85f7750bcb138943cd5d
+recovery_candidate_set_digest: 501b08517bd859fbf8167f22b3b59885bbc75216c0685069d3c67dd8a6269fb9
+legacy_candidate_change_count: 0
+validation_failures: []
+observed_geometry:
+  maximum_acceleration_mps2: 1.2
+  maximum_steering_angle_rad: 0.399999861154
+  maximum_steering_rate_radps: 0.5
+  maximum_curvature_inv_m: 0.650450853959
+  maximum_absolute_lateral_offset_m: 1.540632422014
+  terminal_progress_m: 6.85955240865
+  terminal_lateral_offset_m: 0.103554198634
+hardware_curvature_limit_inv_m: 0.8332880580189052
+R2_surrogate_evaluation:
+  surrogate_head: S3_assertive_spatial_right_v120
+  candidate_specific_support_or_qualification: false
+  accepted: true
+  rejection_codes: []
+  minimum_dynamic_clearance_m: 0.20656476533868307
+  minimum_static_clearance_m: 0.09436757798600004
+  minimum_clearance_m: 0.09436757798600004
+checks:
+  exactly_one_candidate_appended: true
+  legacy_candidate_digests_unchanged: true
+  initial_context_has_no_extension: true
+  kinematic_validation: true
+  acceleration_bound: true
+  steering_angle_bound: true
+  steering_rate_bound: true
+  curvature_bound: true
+  M2_physical_curvature_bound: true
+  surrogate_dynamic_clearance: true
+  corridor_static_clearance: true
+  safety_and_ranker_nonfactors_unchanged: true
+  runtime_radius_surrogate_clearance: true
+all_offline_geometry_gates_pass: true
+simulation_evidence_created: false
+new_seed_consumed: false
+new_candidate_predictor_qualified: false
+actual_TEB_execution_authorized: false
+perception_execution_authorized: false
+policy_or_ranker_training_steps: 0
+hardware_accessed: false
+real_vehicle_used: false
+supersedes_unexecuted_candidate_id: recovery_evasive_right_v120
+runtime_radius_surrogate_evaluation:
+  combined_actor_ego_radius_m: 1.15
+  candidate_specific_support_or_qualification: false
+  accepted: true
+  rejection_codes: []
+  minimum_dynamic_clearance_m: 0.07656476533868317
+  minimum_static_clearance_m: 0.09436757798600004
+  minimum_clearance_m: 0.07656476533868317
+fresh_non_evidence_preflight_design_authorized: true

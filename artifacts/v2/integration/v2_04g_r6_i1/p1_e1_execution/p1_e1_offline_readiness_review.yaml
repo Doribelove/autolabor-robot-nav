@@ -1,0 +1,113 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P1-E1
+status: p1_e1_offline_execution_readiness_pass_release_absent
+review_result: pass
+independent_offline_review_pass: true
+release_present_during_review: false
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready_after_unique_release_validation: true
+execution_authorized: true
+authorized_evidence_units: 270
+consumed_evidence_units: 0
+training_budget_steps: 0
+real_vehicle_used: false
+i5_rerun_or_resume_performed: false
+dependency_closure:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/offline_readiness_dependency_closure.yaml
+  file_sha256: c3792d19757093676b12bdc248edbda37b43dc80cc176ef18840e5e88b07e004
+  logical_sha256: d180fe7d86b52b4adcf529409d98072068a5ca7be0f55a1d1ea86ea64300e32b
+  local_resources_verified: 456
+  external_resources_verified: 301
+  unresolved: []
+  deterministic_double_build_pass: true
+exact_schedule:
+  rows: 270
+  blocks: 90
+  seed_first: 5201
+  seed_last: 5290
+  method_counts:
+    r6_semantics_legacy_control: 90
+    r6_semantics_circle_contact: 90
+    fixed_teb_reference: 90
+  canonical_episode_digest: e29530f28449a9b1bcbbb19090f1a9a3a4584e6fc4f9e1cc1f251cdf6f56f38f
+  partial_selection_interface_present: false
+runner_audit:
+  sha256: 48b8e301330b4e59b3e3ac0f5965a96f8688954afafc9d33dc69f928e0cef01f
+  ast_node_count: 6335
+  cli_options:
+  - --anchor-bank
+  - --attempt
+  - --baseline
+  - --execute
+  - --execute is required; validation alone must use the offline reviewer
+  - --instance
+  - --instance-sha256
+  - --maximum-expected-context-hold-count
+  - --measurement-duration-s
+  - --method-id
+  - --minimum-message-count
+  - --minimum-valid-fraction
+  - --mode
+  - --output
+  - --output-dir
+  - --profile-id
+  - --release-sha256
+  - --repeat
+  - --required-consecutive-stable-count
+  - --scene-id
+  - --seed
+  - --stage
+  - --warmup-timeout-s
+launch_and_seed_audit:
+  sha256: 649e96cb24d5e8d96133993cec9101675a15fa20460d4f7c65f69033f3f553f8
+  required_switches:
+  - load_balanced_anchor
+  - publish_teb_obstacles
+  - seed
+  - start_rule_supervisor
+  - start_typed_transaction
+  - world
+  shared_seed_bindings: 3
+unified_raw_replay_audit:
+  source_sha256: f3a159de92c62b9010523dc01eb2c0616de09dbafc7fcbff7d93f3d982459d1a
+  common_raw_labels:
+  - activation
+  - clearance
+  - evaluation
+  - overlay
+  - process_log
+  - teardown_receipt
+  - trace
+  raw_metrics_recomputed: true
+  overlay_exact_tiling_enforced: true
+  fixed_reference_same_schema: true
+offline_regressions:
+  returncode: 0
+  output_sha256: 2a5e1fa0d3f9ce3d384fc38269c531f5bbe064bca1a6e8f6716350981e9f244e
+  test_count: 7
+i5_freeze:
+  resources_verified: 13
+  rerun_performed: false
+resource_review:
+  serial_concurrency: 1
+  per_identity_hard_wall_cap_s: 240
+  stage_hard_wall_cap_h: 20
+  free_disk_bytes: 187330539520
+  minimum_free_disk_bytes: 4294967296
+state_boundary:
+  attempts_absent: true
+  journals_absent: true
+  consumption_absent: true
+  ros_gazebo_absent: true
+  release_absent: true
+reviewer:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p1_e1_offline_reviewer.py
+  sha256: 001a04ce4efde2712547748780905d1a30faac28b95565979ef716a639cba222
+release_gate:
+  one_unique_release_may_now_be_created: true
+  release_must_bind_this_exact_review: true
+  release_must_bind_caller_supplied_exact_sha256: true
+  execution_without_release_validation: false

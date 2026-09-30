@@ -1,0 +1,51 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C2
+status: terminal_failure_at_preexecution_planner_gate
+date: "2026-07-24"
+execution:
+  authorized_units: 9
+  consumed_units: 3
+  completed_units: 2
+  forfeited_units: 6
+  retry_units: 0
+  resume_allowed: false
+completed_outcomes:
+  - {unit_id: v3_03_c2_closed_loop_6341_cautious, goal_reached: false, duration_s: 10.0}
+  - {unit_id: v3_03_c2_closed_loop_6341_assertive, goal_reached: true, duration_s: 9.75}
+failed_identity:
+  unit_id: v3_03_c2_closed_loop_6341_hesitant
+  seed: 6341
+  attempt: 1
+  decision_index: 7
+failure:
+  category: one_step_braking_domain_noninvariance
+  detail: >-
+    The decision-6 feasible_v060 commitment was accepted from its current
+    state, but after executing the frozen 0.25 s prefix the next state had
+    only 0.0426579118463859 m braking margin, below the frozen 0.05 m
+    minimum. At decision 7 every candidate, including certified stop, was
+    rejected with BRAKING_DOMAIN_INVALID. No decision-7 segment ran.
+  planner_invoked: true
+  selected_candidate_id: certified_stop_v000
+  selected_candidate_accepted: false
+  execution_after_failure_decision: false
+  safety_response: fail_closed_terminal_stop
+  required_repair: candidate_commitment_horizon_braking_invariance
+preserved_resources:
+  release_sha256: 8d14b568c28af0506771db0c322f8c665302e76f3c5f7f2956361a1c6ae04303
+  authorization_sha256: 813cc99765908b337e481e786c7f8516e7b5348c4214e2d4321e3fbf9da1a18a
+  journal_sha256: 2f4b774c43c4b4904004e9d9fc9ef07d635261b21b3f9f48b497c4c2c7f3b752
+  cautious_episode_receipt_sha256: 7e4efd89109dc1ddee9ea80b3c34dc54aee4b00b1f5a73a1a5edeaf4bee04487
+  assertive_episode_receipt_sha256: afc6cbbfe1a50dc694ded1e2ac1788e30d8cb6e49c1e50af43610cc544672171
+  last_successful_segment_raw_sha256: 14d666d4c270085a56602c95048291f0cede54db1f127e621f647125acbf7d65
+  last_successful_segment_world_sha256: 1e3bc098bdaa92e2f42c65a24046340b4faae126ca9a2475e459b7acaf42464f
+claim_boundary:
+  segmented_closed_loop_integration_pass: false
+  goal_success_claim: false
+  safety_or_performance_claim: false
+  real_vehicle_ready: false
+next_safe_entry: >-
+  A new single-factor forward-invariant commitment verifier with pure-offline
+  tests, fresh seeds and budget, independent release review, and separate
+  simulation authorization.

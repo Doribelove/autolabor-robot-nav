@@ -1,0 +1,22 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-D0
+status: frozen_before_report_generation
+analysis_kind: posthoc_pure_offline_descriptive
+population:
+  source: terminal V3-06-C6 sparse-control decision snapshots
+  exact_decisions: 614
+  no_new_simulation_units: true
+counterfactual_grid:
+  speeds_mps: [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55]
+  one_added_candidate_at_a_time: true
+  frozen_model_and_hard_verifier: true
+  metric: aggregate additional x progress over the frozen 0.25 s commitment
+latency_analysis:
+  use_recorded_planner_receipts_only: true
+  percentile: nearest_rank_p99
+selection_guard:
+  c6_negative_result_must_remain_unchanged: true
+  no_fresh_factor_authorized_by_this_plan: true
+  no_threshold_relaxation: true
+budget: {simulation_units: 0, training_steps: 0, hardware_runs: 0}

@@ -1,0 +1,60 @@
+{
+  "schema": "astra_n06_runtime_disk_closure_independent_draft_risk_v1",
+  "status": "r03_draft_environment_context_gaps_preserved_formal_review_pending_r05",
+  "independent_review": true,
+  "scope": "bounded r03 draft risks only, not final source/release/closure approval",
+  "full_disk_resource_rehash_performed": false,
+  "original_declared_disk_resources": 5203,
+  "original_declared_ELF_nodes": 602,
+  "confirmed_findings": [
+    {
+      "id": "collector_execution_environment_mismatch",
+      "evidence": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r03_draft_risks/synthetic_parent_child_environment.json",
+        "sha256": "17c8c3ac8dfffcb8bc23b70a15bd7e522b2e55bec8631f961f02b9cdd29c42e6",
+        "bytes": 1737
+      },
+      "actual_host_contamination_asserted": false
+    },
+    {
+      "id": "gazebo_wrapper_final_environment_differs",
+      "evidence": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r03_draft_risks/wrapper_environment_difference.json",
+        "sha256": "cec21e6de0a68c6ca491140c92910a18df2ad4129beab397428ffa0bafee8fc7",
+        "bytes": 5119
+      },
+      "current_nine_plugin_canonical_selection_equal": true,
+      "remote_download_observed": false
+    }
+  ],
+  "acceptance_conditions": [
+    "restricted parent entry before manager Python imports, not only post-import check",
+    "identical enforced environment for every child/assessment; explicit run-specific replacements and absent injection variables",
+    "source-bound final Gazebo wrapper environment and accurate model database/graphics selection scope",
+    "new r05 manager plus new separately frozen complete disk closure and independent review",
+    "live PID/maps/native correspondence remains an independent requirement after disk closure"
+  ],
+  "source_probe": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r03_draft_risks/probe.py",
+    "sha256": "a45d9e53687c539c956a61dd52a4acd3969e41dcc6bde804c852f5af1faafb05",
+    "bytes": 6814
+  },
+  "source_probe_exit_code": 0,
+  "only_executed_shell_variant": "last gzserver command replaced by env; no server/main initialized",
+  "ROS_started": false,
+  "Gazebo_started": false,
+  "training_started": false,
+  "release_created": false,
+  "seed_registered": false,
+  "authors_files_modified": false,
+  "resources": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r03_draft_risks/resources.json",
+    "sha256": "d44fb1b1b6156c0ec12a9ca02355796af899a254b9b1b3c58eb431c60a9fb2be",
+    "bytes": 6717
+  },
+  "README": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r03_draft_risks/README.md",
+    "sha256": "82e94cfbf47df3f1925f6a378436bb7fd40da2bad18457c681289f1dc8b16603",
+    "bytes": 3265
+  }
+}

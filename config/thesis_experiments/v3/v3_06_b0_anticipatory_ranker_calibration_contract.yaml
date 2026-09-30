@@ -1,0 +1,69 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-B0
+stage_purpose: fresh_bounded_anticipatory_ranker_development_calibration
+contract_id: v3_scope_v3_06_b0_anticipatory_ranker_calibration_1
+status: single_factor_development_calibration_preregistered_before_release
+parent_attribution:
+  path: artifacts/v3/analysis/v3_06_a0/v3_06_a0_terminal_freeze.sha256
+  disposition: posthoc_descriptive_only_no_b0_outcome_reuse
+single_factor:
+  factor_count: 1
+  factor_id: anticipatory_clearance_weight
+  factor_field: deterministic_ranker.clearance_weight
+  control_weight: 0.25
+  calibration_weights: [0.50, 1.00, 2.00]
+  score: progress_m_plus_weight_times_clipped_minimum_clearance_m_minus_0_1_acceleration_cost
+  accepted_nonstop_candidates_only_before_certified_stop: true
+  hard_verifier_changed: false
+  candidate_generator_changed: false
+  certified_stop_changed: false
+  predictor_changed: false
+  learning_activated: false
+fresh_development_population:
+  seeds: [6501, 6502, 6503, 6504]
+  geometry_block_count: 4
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  methods:
+    - v3_greedy_control
+    - anticipatory_w050
+    - anticipatory_w100
+    - anticipatory_w200
+  exact_episodes: 48
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+  geometry_derivation:
+    angle_deg: "71.5 + ((block_index * 12) mod 37)"
+    actor_start_distance_m: "2.775 + ((block_index * 9) mod 14) * 0.05"
+    actor_base_speed_mps: "0.90 + ((block_index * 4) mod 7) * 0.05"
+development_selection:
+  outcome: restricted_goal_time
+  unit: geometry_policy_episode
+  minimum_relative_reduction_vs_control: 0.02
+  candidate_goal_success_must_be_at_least_control: true
+  collision_count_max: 0
+  selected_candidate_accepted_rate_min: 1.0
+  exact_replay_rate_min: 1.0
+  deterministic_tie_break: lowest_clearance_weight
+  no_confirmatory_claim: true
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_write_authorized: false
+  hard_verifier_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  One deterministic clearance weight may be selected for a separate fresh
+  qualification stage; this development calibration is not a formal
+  performance result.
+forbidden_claims:
+  - formal_performance_improvement
+  - actual_teb_superiority
+  - learned_policy_improvement
+  - general_navigation_safety
+  - deployment_readiness
+  - real_vehicle_readiness

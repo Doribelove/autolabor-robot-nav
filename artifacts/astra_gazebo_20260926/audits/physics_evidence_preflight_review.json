@@ -1,0 +1,154 @@
+{
+  "schema": "astra_physics_evidence_preflight_review_v1",
+  "reviewer": "environment_audit independent subagent",
+  "created_utc": "2026-09-26T07:30:43.190466+00:00",
+  "status": "offline_preflight_pass_bounded_Q01_fixture_only",
+  "reviewed_resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_evidence_plugin.cpp",
+      "sha256": "2f9587d552d741196ab39c5d92e0654d8eef7d492248ef2edc4faa10409800d3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_evidence_fixture_probe.py",
+      "sha256": "80b567b289239ec489dcaff7debd67306c8b6089054be5f869e7bde50864aee1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_evidence_fixture.py",
+      "sha256": "c4afbcfd351590b135f715a26413b44d8a952a7e5f94b23b1511d343954555db"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_smoke_a02.py",
+      "sha256": "d2366690628b1b46e574ad0801c5035173a922d3c78a4ed8a993123f708c7ccb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/CMakeLists.txt",
+      "sha256": "8c407d2b7f0ff820304a97de11a26730e7c512340964e2cc7ec060c595b0b186"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/package.xml",
+      "sha256": "42d5fe3f7c4de9163200f47806df9ba569472280b74aed2712f9d85eeba74823"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_evidence_plugin.so",
+      "sha256": "9bbee5978326035c5747c704b64b0be016b9615d067aa511c449b6e4073703d1"
+    },
+    {
+      "path": "/opt/ros/noetic/share/gazebo_ros/launch/empty_world.launch",
+      "sha256": "cc1fae384d9a9c89ef9d83ca377ede4f2e5b2bb01cbdd1ef5913319da17f1741"
+    }
+  ],
+  "execution_performed_by_reviewer": false,
+  "allowed_scope_under_parent_authority": {
+    "run_id": "physics_evidence_q01",
+    "seed": 260926003,
+    "attempt": 1,
+    "world": "one falling 0.4 m cube and static floor, no robot or planner",
+    "physics_dt_s": 0.002,
+    "state_hz": 50,
+    "source_recording_duration_s": 4.0,
+    "wall_cap_s": 90
+  },
+  "static_findings": {
+    "no_pose_twist_actuator_or_integrator_writes_in_new_plugin": true,
+    "only_physics_manager_mutation": "SetNeverDropContacts(true) requests generated-contact data retention including pairs without per-link sensor; compute/transport overhead can change",
+    "model_link_states_sample_same_WorldUpdateEnd_callback_and_stamp": true,
+    "contacts_every_unique_simstep_including_empty_packets": true,
+    "contact_source_time_preserved_separately": "ContactState.info source_contact_time_s plus epoch; packet stamp remains WorldUpdateEnd; assessor allows and reports offset 0..0.002 seconds",
+    "contact_manager_bounds": "GetContactCount/GetContact, MAX_CONTACT_JOINTS cap; not all possible continuous geometric intersections",
+    "metadata_latched_and_measurement_only": true,
+    "wrenches_explicitly_unreported": true,
+    "binary_built_and_ldd_dependencies_resolved": true,
+    "two_python_entries_compile_probe_rosrun_resolves": true,
+    "seed_passed_to_gzserver_via_supported_extra_gazebo_args": true,
+    "new_identity_existing_root_rejected_and_simulation_lock_exclusive": true,
+    "exact_launch_source_and_library_bytes_bound_and_archived": true,
+    "launch_exit_code_zero_and_required_bag_topics_gate_receipt": true
+  },
+  "resolved_review_findings": [
+    "Source model/link association changed from per-publisher Header.seq to exact nanosecond stamp keys, with equal unique cardinalities.",
+    "Contact source time is assessed and actual offset range reported instead of treating wrapper stamp as unproven coincidence.",
+    "A report cannot pass receipt after nonzero roslaunch exit; required bag topics and nonempty messages are checked.",
+    "Raw probe observations saved before gate indexing so malformed evidence is retained; nonempty/length/finite checks added for measured contact arrays and body arrays.",
+    "Fixture seed is explicitly passed as --seed 260926003.",
+    "Outer main catches allocated preparation failure, durably writes failure receipt and ledgers, and refuses identity reuse."
+  ],
+  "offline_gate_mutation_tests": [
+    {
+      "name": "valid_synthetic_measurement_arrays",
+      "pass": true,
+      "expected": "pass"
+    },
+    {
+      "name": "contact_time_100_seconds_old",
+      "pass": true,
+      "expected": "fail closed",
+      "failed_gates": [
+        "contact_source_time_within_one_physics_step"
+      ]
+    },
+    {
+      "name": "empty_contact_arrays",
+      "pass": true,
+      "expected": "fail closed",
+      "failed_gates": [
+        "contact_arrays_nonempty_equal_and_finite"
+      ]
+    },
+    {
+      "name": "one_missing_physics_packet",
+      "pass": true,
+      "expected": "fail closed",
+      "failed_gates": [
+        "physics_contact_packets_500hz_no_gaps"
+      ]
+    },
+    {
+      "name": "model_link_source_stamp_mismatch",
+      "pass": true,
+      "expected": "fail closed",
+      "failed_gates": [
+        "paired_models_links_have_identical_source_stamp"
+      ]
+    },
+    {
+      "name": "nonfinite_linear_body_velocity",
+      "pass": true,
+      "expected": "fail closed",
+      "failed_gates": [
+        "body_array_lengths_and_twists_finite"
+      ]
+    }
+  ],
+  "offline_runner_failure_injection": {
+    "temporary_directory_only": true,
+    "subprocess_Popen_replaced_by_forbidden_stub": true,
+    "injected_preparation_ValueError_preserved": true,
+    "durable_failure_receipt_pass_false": true,
+    "seed_registry_and_two_run_ledgers_each_append_once": true,
+    "second_call_rejected_existing_allocated_identity": true,
+    "receipt_bytes_unchanged_on_rejected_repeat": true,
+    "process_launches": 0
+  },
+  "review_test_attempts": [
+    {
+      "attempt": 1,
+      "result": "harness NameError while parent concurrently replaced seq join by stamp_key; no file, ROS or evidence modification; discarded stale harness assumptions"
+    },
+    {
+      "attempt": 2,
+      "result": "current frozen assessor AST: one baseline plus five negative mutations all behave as expected; durable preparation failure and immutable identity tests pass"
+    }
+  ],
+  "remaining_limits": [
+    "Preflight is not a runtime qualification. The root must run the new bounded Q01 identity and retain failures, raw data, bag, receipt and cleanup evidence.",
+    "No robot exists in this fixture. A pass does not establish contact coverage for M2 chassis/wheels, pose-set drive collision response, swept collisions, or formal safety.",
+    "SetNeverDropContacts retains generated engine contacts; collision masks, disabled self collision, engine discretization, contact-point truncation and pre-step/post-step distinctions remain.",
+    "Contact time is allowed to precede packet time by at most one 0.002 s physics step; do not label all contacts exactly simultaneous with post-step poses.",
+    "The negative pre-touch gate proves at least one empty packet before 0.2 s, not a statistical false-positive rate or absence of every possible false contact.",
+    "State snapshots are 50 Hz, not every physics step. Contact packets are 500 Hz; downstream compound geometry must use the correct timestamp and account for the allowed phase offset.",
+    "Probe stores pose, linear body velocity and contact vectors; angular velocity remains in rosbag. The driver may set poses so body velocity need not equal finite pose derivative.",
+    "Body contact forces are not reported and no physical tire/friction calibration is qualified."
+  ],
+  "formal_result": false,
+  "runtime_qualified": false
+}

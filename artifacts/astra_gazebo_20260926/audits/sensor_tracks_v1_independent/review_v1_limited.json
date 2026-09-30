@@ -1,0 +1,179 @@
+{
+  "schema": "astra_sensor_tracks_v1_independent_limited_review",
+  "status": "independent_M08_v1_limited_component_review_with_two_unresolved_failures",
+  "independent_review": true,
+  "limited_component_review_pass": true,
+  "pass": false,
+  "runtime_ready": false,
+  "created_utc": "2026-09-26T12:54:05.551041+00:00",
+  "reviewed_source_sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b",
+  "checks": {
+    "author_51_tests_independently_pass": true,
+    "independent_23_causal_geometry_schema_tests_pass": true,
+    "legacy_occupancy_bound_never_relaxed_in_tested_cases": true,
+    "ambiguous_and_lost_support_retained_in_tested_cases": true,
+    "real_history_and_candidate_schema_checks_pass": true,
+    "source_time_observations_at_or_before_cutoff": true,
+    "request_availability_time_guard": false,
+    "maximum_configured_sparse_load_within_50ms": false,
+    "original_source_and_negative_evidence_preserved": true
+  },
+  "test_counts": {
+    "author_pass": 51,
+    "independent_pass": 23,
+    "independent_fail": 1
+  },
+  "failures": [
+    {
+      "name": "request_availability_time_guard",
+      "actual_reproduction": "final scan source2.0s accepted_now2.1s; prediction_request decision2.0s returns request",
+      "explanation": "Snapshot source measurements are causal, but the standalone prediction_request admits a decision earlier than acceptance/availability. No claim of future-source measurement leakage.",
+      "required_new_version_condition": "decision_ns >= snapshot.accepted_now_ns; public HardOccupancy chronology must also retain availability bound without changing 200ms freshness."
+    },
+    {
+      "name": "maximum_configured_sparse_load_within_50ms",
+      "retained_cells": 2048,
+      "query_states": 248,
+      "observed_query_ms": 57.427209,
+      "limit_ms": 50,
+      "timing_origin": "author saved actual synthetic benchmark, independently source/hash checked; not rerun timing or ROS evidence",
+      "ordinary_six_workload_max_ms": 30.702726
+    }
+  ],
+  "scope": {
+    "ROS_started": false,
+    "Gazebo_started": false,
+    "training_steps": 0,
+    "new_simulation_evidence": false,
+    "live_deadline_qualification": false,
+    "learned_prediction_qualification": false,
+    "physical_safety_claim": false
+  },
+  "limitations": [
+    "static association remains uncalibrated and can miss a new map-near actor",
+    "observed-return envelopes do not infer full unknown obstacle extent or prove detection coverage",
+    "ambiguous associations can remain conservatively merged for episode",
+    "no lost-track clearing so long occlusion/sparse memory may stop navigation",
+    "not a learned candidate-conditioned prediction or calibration result",
+    "maximum configured sparse load remains above50ms; caller must retain deadline fail-closed behavior before any runtime integration",
+    "capacity/coordinate/episode bounds are explicit; exceeding them never evicts uncertainty",
+    "Synthetic component timings exclude TF/ROS, full static-footprint evaluation, learned inference, executor and scheduling.",
+    "No integration is qualified by this review. New v2 is independently reviewed separately; v1 remains immutable."
+  ],
+  "commands": [
+    "/usr/bin/python3 -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_v1.py",
+    "/usr/bin/python3 -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/test_boundary_review.py"
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/benchmark.py",
+      "sha256": "4ff6f039f56edfb48bcd3fc5932580a40acbfb93c333aaeb04c9d1050981c2e2",
+      "bytes": 4511
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/design.md",
+      "sha256": "69871d56caef3f7fa39942d7005793afe37752c3c8980480ae36e1d74bcaf151",
+      "bytes": 9438
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/implementation_report.json",
+      "sha256": "2130e888e0d9d13701581524a64dcb350af97e6a6e5937653888f8f1c0506739",
+      "bytes": 9555
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1/timing.json",
+      "sha256": "0d324f4e40fa7d967dfb1db4923a7a51dcd156c3687c7965dac16fa93e3f14f7",
+      "bytes": 6992
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/author_tests_r01.log",
+      "sha256": "f78343f09517ffafc666982592de79b21a24480e17c7649a459c5580e5ee3aca",
+      "bytes": 106
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/independent_tests_r01.log",
+      "sha256": "e7ffffe6bc4a06f7621697c2e2683b3836c1dcc56e6361df70cf16d83d601872",
+      "bytes": 817
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/review_r01.json",
+      "sha256": "fe71a7494e4d0f09b86101bc30164e274ed7cacf1f964bd7270212ba424be162",
+      "bytes": 2433
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/reviewed_r01_snapshot/implementation_report.json",
+      "sha256": "2130e888e0d9d13701581524a64dcb350af97e6a6e5937653888f8f1c0506739",
+      "bytes": 9555
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/reviewed_r01_snapshot/sensor_tracks_v1.py",
+      "sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b",
+      "bytes": 27029
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/reviewed_r01_snapshot/test_boundary_review.py",
+      "sha256": "5531b9627700eb4f3d624b85c7db5580e42ac1e10932678051014782150df344",
+      "bytes": 7605
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/reviewed_r01_snapshot/test_sensor_tracks_v1.py",
+      "sha256": "99b1347add03d4bf9615df8c9f787d5823ea74a7e8c7d6e40d92b76cb5b66561",
+      "bytes": 18401
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v1_independent/test_boundary_review.py",
+      "sha256": "5531b9627700eb4f3d624b85c7db5580e42ac1e10932678051014782150df344",
+      "bytes": 7605
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/mechanism_plan.yaml",
+      "sha256": "472e7d38f506e539574b9ff85a971e39ef9d1867f0c611234313aa146ab3b227",
+      "bytes": 8652
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+      "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407",
+      "bytes": 2348
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+      "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f",
+      "bytes": 14792
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf",
+      "bytes": 21585
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6",
+      "bytes": 22588
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_sensor_buffer.py",
+      "sha256": "9822620f0d83f0e203644ba928bc0483e66505f75424e05514119115feb6c812",
+      "bytes": 6773
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+      "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb",
+      "bytes": 3352
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v1.py",
+      "sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b",
+      "bytes": 27029
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/static_map_export.py",
+      "sha256": "6a46faff46362bf6a46777fa3eea43d7b125b70251f8ce336d478bf7e92f7c66",
+      "bytes": 15961
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_v1.py",
+      "sha256": "99b1347add03d4bf9615df8c9f787d5823ea74a7e8c7d6e40d92b76cb5b66561",
+      "bytes": 18401
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "status": "p02_source_stamped_status_addition_static_pass_build_and_live_pending",
+  "parent_plugin_sha256": "8b5d45c0943956d13b1229279924a16dfc2565470d7304266800968270d93e98",
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_plugin.cpp",
+      "sha256": "8b5d45c0943956d13b1229279924a16dfc2565470d7304266800968270d93e98"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p02_plugin.cpp",
+      "sha256": "da1f1a39e7489c8996d6c16d6eeca5180247331c67687c557ab65f1c13d84a68"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_p02.urdf.xacro",
+      "sha256": "dbd9d2751fb961f960b6a6e6ffdbc62df88b3cf956e7c5c9ea0a1d7270e6c42c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_p02_gazebo.xacro",
+      "sha256": "14ca2b079b2eac911e70c9a2410bf9dd18ecee041e8d4b8b3ebb6d09c9bb4d1d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/spawn_m2_physical_p02.launch",
+      "sha256": "74355d22c084410f1f68f582853b600719e84f7a09aca58440318eebfa959f3b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/tests/test_astra_physical_p02_source.py",
+      "sha256": "54c7b3bffdae1e888b8dc1c7c47f9a6a0c1cb070169b77ba1123fd75d75cbfe1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_robot_description.xml",
+      "sha256": "57fea5abe66e046eeb82a9bcd479079fff0688aba67155238a9c3da95fdffa29"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_plugin_source.diff",
+      "sha256": "1856373ec0556b32e4e7d9be65efd67b37350596c1d5db0c2b8687bdc627883b"
+    }
+  ],
+  "new_target": "astra_physical_ackermann_p02_plugin",
+  "new_library": "libastra_physical_ackermann_p02_plugin.so",
+  "new_catkin_dependency": "diagnostic_msgs",
+  "compile_attempted": false,
+  "ros_or_gazebo_server_started": false,
+  "checks": {
+    "parent_exact_bytes_unchanged": true,
+    "reverse_allowlisted_telemetry_changes_recovers_entire_parent_source_exactly": true,
+    "controller_body_actuators_gains_limits_topics_unchanged": true,
+    "all_parameters_model_geometry_sensors_identical_in_expanded_urdf_except_plugin_entrypoint": true,
+    "new_status_queue1000": true,
+    "status_source_is_same_WorldUpdateEnd_sim_time_as_actual_odom_joint_targets": true,
+    "finite_base_or_joint_fault_publishes_stamped_error_status_and_bool_only": true,
+    "invalid_source_clock_publishes_no_fabricated_diagnostic_stamp_logs_failure": true,
+    "legacy_bool_preserved": true,
+    "static_tests3_pass": true
+  },
+  "status_schema": {
+    "topic": "/m2_driver/physical_status",
+    "ros_type": "diagnostic_msgs/DiagnosticArray",
+    "publisher_queue": 1000,
+    "latched": false,
+    "frequency_hz": 50,
+    "header_stamp": "world_->SimTime().Double() read once at WorldUpdateEnd; no receipt/wall substitution",
+    "status_count": 1,
+    "name": "astra_physical_ackermann",
+    "hardware_id": "simulation-only",
+    "level_precedence": [
+      "ERROR if backend_fault",
+      "WARN if command_timeout",
+      "OK otherwise"
+    ],
+    "values": {
+      "backend_fault": "true or false",
+      "command_timeout": "true or false",
+      "brake": "true or false",
+      "emergency": "true or false"
+    },
+    "valid_stamp_range_seconds": "finite 0 <= now < 2^32; invalid time faults/logs and emits no stamped status"
+  },
+  "qualified_claims": [
+    "source-level additive measurement repair",
+    "unchanged nominal dynamics source and parameters"
+  ],
+  "not_qualified": [
+    "linked compilation",
+    "live source message coverage and source slot regularity",
+    "P01 physical motion conclusions",
+    "any physical tracking or safety result"
+  ],
+  "p01_handling": "P01 old identities/source/outcomes preserved, no rerun or replacement performed"
+}

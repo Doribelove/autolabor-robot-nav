@@ -1,0 +1,29 @@
+schema_version: '1.0'
+stage: V3-18-B0
+purpose: Non-invasive episode-level harmonization of frozen V2/V3 thesis evidence.
+source_studies:
+  - V2-04G-P1-E1
+  - V3-05-B0
+  - V3-09-F1
+  - V3-11-F1
+  - V3-16-S1
+expected_rows:
+  V2-04G-P1-E1: 270
+  V3-05-B0: 270
+  V3-09-F1: 180
+  V3-11-F1: 60
+  V3-16-S1: 45
+  total: 825
+rules:
+  source_artifacts_are_read_only: true
+  missing_measurements_are_null: true
+  cross_stage_statistical_pooling_forbidden: true
+  failures_and_preflight_rows_retained: true
+  scientific_inclusion_is_explicit: true
+  report_bytes_are_sha256_bound: true
+authority:
+  execution_authorized: false
+  training_authorized: false
+  hardware_access_authorized: false
+  real_vehicle_authorized: false
+

@@ -1,0 +1,111 @@
+schema_version: "1.0"
+architecture_generation: v6
+stage: V6-00
+name: PCT-SCOPE-RL
+date: "2026-08-08"
+status: preregistered_single_factor_successor
+
+predecessor:
+  stage: V5-03-F1
+  terminal_status: v5_03_f1_fast_formal_negative
+  primary_relative_reduction: 0.06093612010597593
+  frozen_practical_gate: 0.08
+  source_must_remain_immutable: true
+  diagnosis_stage: V5-04-D1
+
+single_architecture_factor:
+  name: privileged_counterfactual_candidate_rank_distillation
+  acronym: PCT
+  description: >-
+    During simulation training only, world-state hazard side and the hard safe
+    mask produce a deterministic counterfactual rank target over the same
+    Ackermann candidates. One auxiliary cross-entropy epoch follows every PPO
+    update. The sensor actor never receives the privileged fields, target or
+    family ID at inference.
+  eligible_families: [partially_occluded_crossing, narrow_corridor_yield]
+  eligible_until_ego_x_m: 4.0
+  rank_order:
+    - high_speed_spatial_candidate_opposite_privileged_hazard_side
+    - low_speed_spatial_candidate_opposite_privileged_hazard_side
+    - fastest_hard_mask_accepted_straight_candidate
+    - certified_stop
+  auxiliary_loss_coefficient: 0.35
+  auxiliary_epochs_per_ppo_update: 1
+
+frozen_from_v5:
+  sensor_environment_transition: true
+  observation_schema: true
+  reward: true
+  action_set: true
+  hard_shield: true
+  analytic_prior: true
+  recurrent_actor_architecture: true
+  asymmetric_critic_architecture: true
+  advantage_gate_margin: 0.10
+  deployment_actor_checkpoint_schema: v5_sensor_actor_only_v1
+
+component_gate:
+  development_seed_range_inclusive: [951000, 951399]
+  partial_teacher_goal_fraction_minimum: 0.80
+  narrow_teacher_goal_fraction_minimum: 0.50
+  contact_count_maximum: 0
+  mask_violation_count_maximum: 0
+  actor_observation_unchanged_required: true
+
+training:
+  initialization: selected_v5_02_actor_critic_checkpoints
+  identities:
+    - {id: pct_seed9501, training_seed: 9501, v5_identity: asym_seed9101, steps: 120000}
+    - {id: pct_seed9502, training_seed: 9502, v5_identity: asym_seed9102, steps: 120000}
+    - {id: pct_seed9503, training_seed: 9503, v5_identity: asym_seed9103, steps: 120000}
+    - {id: pct_seed9504, training_seed: 9504, v5_identity: asym_seed9104, steps: 120000}
+  total_environment_steps: 480000
+  retries_or_extensions: 0
+  factor_rounds: 1
+
+validation:
+  seed_range_inclusive: [952100, 952259]
+  blocks_per_identity: 40
+  criterion_order:
+    - maximum_goal_count
+    - minimum_mean_failure_inclusive_restricted_time
+    - zero_contact_and_zero_mask_violation_required
+    - earliest_checkpoint_step
+  entry_gate:
+    positive_seed_directions_minimum: 3
+    aggregate_relative_reduction_vs_analytic_minimum: 0.08
+    goal_noninferior: true
+    contact_count_maximum: 0
+    mask_violation_count_maximum: 0
+
+fresh_formal:
+  seed_range_inclusive: [953100, 953179]
+  paired_blocks: 80
+  family_assignment: block_index_modulo_4
+  training_identity_assignment: floor_block_index_div_4_modulo_4
+  methods:
+    - sensor_analytic_prior
+    - frozen_v5_full
+    - pct_scope_rl_v6
+    - pct_scope_rl_v6_no_history
+  primary_estimand: one_minus_v6_mean_time_divided_by_analytic_mean_time
+  paired_bootstrap_resamples: 20000
+  paired_bootstrap_random_seed: 60421
+  interval: two_sided_97_5_percent
+  positive_gate:
+    relative_reduction_minimum: 0.08
+    interval_lower_strictly_positive: true
+    goal_noninferior: true
+    contact_count_maximum: 0
+    mask_violation_count_maximum: 0
+  frozen_v5_comparison_is_mechanism_secondary: true
+
+authority:
+  component_execution_authorized: true
+  eligible_training_only_after_component_pass: true
+  validation_only_after_training_closure: true
+  formal_only_after_validation_gate: true
+  gazebo_only_after_fresh_formal_positive: true
+  real_vehicle_authorized: false
+  online_teb_write_authorized: false
+

@@ -1,0 +1,58 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity_r02.py
+@@ -104,10 +104,35 @@
+ def close_unit(state,index,receipt_binding,receipt):
+     row=state['units'][index]
+     if row['status']!='consumed' or row['receipt']is not None:raise ValueError('unit receipt is one-shot')
+-    if any(not same_typed(receipt[k],row[k]) for k in ('run_id','seed','method','attempt')) or receipt['release_sha256']!=state['release_sha256']:raise ValueError('receipt identity mismatch')
+-    if type(receipt['integrity_pass'])is not bool:raise ValueError('boolean integrity required')
++    validate_terminal_receipt(receipt,row,state['release_sha256'])
+     row.update(receipt=receipt_binding,integrity_pass=receipt['integrity_pass'],task_outcome=receipt['task_outcome'])
+     if not receipt['integrity_pass']:state['infrastructure_stop']='unit '+str(index)+' integrity failure'
++
++def validate_terminal_receipt(receipt,row,release_sha):
++    """Bind administrative/task meaning to the exact retained assessment.
++
++    This checks receipt consistency; it does not independently replay physics.
++    Return dependencies so administrative transactions rehash them throughout.
++    """
++    if type(receipt)is not dict or receipt.get('stage')!=NAME or any(not same_typed(receipt.get(k),row[k]) for k in ('run_id','seed','method','attempt')) or receipt.get('release_sha256')!=release_sha:raise ValueError('receipt stage/identity mismatch')
++    if type(receipt.get('integrity_pass'))is not bool:raise ValueError('boolean integrity required')
++    error=receipt.get('error');assessment=receipt.get('assessment');code=receipt.get('roslaunch_exit_code');task=receipt.get('task_outcome')
++    if error is not None and (type(error)is not str or not error):raise ValueError('receipt error must be None or nonempty text')
++    if code is not None and type(code)is not int:raise ValueError('receipt process code must be integer or absent')
++    dependencies=[];report=None
++    if assessment is not None:
++        report=json_bound(assessment);dependencies.append(assessment)
++        if type(report)is not dict or report.get('schema')!='astra_navigation_assessment_v1' or report.get('stage')!=NAME or any(not same_typed(report.get(k),row[k]) for k in ('run_id','seed','method')):raise ValueError('assessment identity mismatch')
++        if type(report.get('capture_integrity_pass'))is not bool or type(report.get('task'))is not dict or report['task'].get('task_phase') not in evidence.TERMINAL_PHASES or task!=report['task']['task_phase']:raise ValueError('receipt/assessment task or integrity semantics disagree')
++        checks=report.get('integrity_checks')
++        if type(checks)is not dict or not checks or any(type(v)is not bool for v in checks.values()) or all(checks.values())!=report['capture_integrity_pass']:raise ValueError('assessment integrity checks disagree')
++        for item in (report.get('source_bindings') or {}).values():read_bound(item);dependencies.append(item)
++        if report.get('sweep_report') is not None:read_bound(report['sweep_report']);dependencies.append(report['sweep_report'])
++    elif task is not None:raise ValueError('task outcome without an assessment')
++    if receipt['integrity_pass']:
++        if error is not None or code!=0 or report is None or report['capture_integrity_pass']is not True:raise ValueError('successful integrity requires zero process exit, no error and bound passing assessment')
++    elif error is None and (report is None or report['capture_integrity_pass']is not False):raise ValueError('failed integrity requires retained error or negative assessment')
++    return dependencies
+ 
+ def terminal(state,reason=None):
+     if reason:state['infrastructure_stop']=str(reason)
+@@ -119,7 +144,7 @@
+ def required_manager_paths():
+     p=prepared_api.WORKSPACE/'scripts/astra_gazebo'
+     venv=prepared_api.WORKSPACE/'.venv';site=venv/'lib/python3.8/site-packages'
+-    return [p/name for name in ('run_navigation_n06_manager.py','navigation_n06_integrity.py','navigation_n06_process.py','navigation_n06_admin_plan.py')]+[
++    return [p/name for name in ('run_navigation_n06_manager_r02.py','navigation_n06_integrity_r02.py','navigation_n06_process_r02.py','navigation_n06_admin_plan_r02.py')]+[
+         Path('/usr/include/x86_64-linux-gnu/asm/unistd_64.h'),Path('/usr/include/linux/prctl.h'),venv/'pyvenv.cfg',
+         site/'_virtualenv.py',site/'_distutils_hack/__init__.py',site/'_virtualenv.pth',site/'distutils-precedence.pth',site/'matplotlib-3.7.5-py3.8-nspkg.pth']
+ 
+@@ -195,6 +220,8 @@
+         actual=dense.conversion_resources(side['conversion_manifest']['path'])
+         if not same_typed(actual,side['conversion_resources']):raise ValueError('conversion resources differ')
+         for item in actual:required(item)
++        provenance=dense.authenticate_conversion(side['conversion_manifest']['path'],unit['robot_description']['path'],side['converted_sdf']['path'],{},diagnostic=True)
++        if provenance.get('pass')is not True or provenance.get('diagnostic_only')is not True or provenance.get('runtime_converter_correspondence_qualified')is not False:raise ValueError('preallocation converter provenance failed: '+str(provenance.get('issues')))
+     baseline=read_bound(release['registry_baseline']);reserved_registry_bytes(baseline,expected_sha,rows)
+     return {'release':release,'release_binding':rb,'prepared':data,'review':review,'conversions':conversions,'rows':rows,'registry_baseline':baseline}
+ 

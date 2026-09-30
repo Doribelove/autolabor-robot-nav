@@ -1,0 +1,171 @@
+schema: astra_baseline_b01_initial_tuning_proposal_v1
+status: offline_proposal_pending_independent_review_and_separate_execution_release
+execution_authorized: false
+authorized_episodes: 0
+seeds_allocated: []
+ROS_started: false
+final_outcomes_read: false
+old_sources_or_configs_modified: false
+purpose: strengthen both actual local-planner baselines through equal-budget development search and fresh validation; never discard a baseline for outperforming PCT
+
+coarse_matrix:
+  planners: [TEB_workspace_0.8.4, DWA_installed_1.17.3]
+  configurations_per_planner: 12
+  current_effective_anchor_included: true
+  source: candidate_manifest.json
+  parameter_tables: [teb_coarse.csv, dwa_coarse.csv]
+  generator: generate.py
+  algorithm: enumerate frozen finite Cartesian grids; anchor first; cover missing levels then deterministic greedy maximin over confirmed effective axes; ties use marginal occupancy and SHA256
+  search_random_seed_or_episode_identity_used: false
+  all_levels_covered: true
+  orthogonal_or_exactly_balanced_design_claim: false
+  distinct_confirmed_active_parameter_vectors_per_planner: 12
+  excluded_from_active_uniqueness:
+    teb: [lookahead_m]
+    dwa: [stop_time_buffer]
+  anchor_outside_contract_grid:
+    dwa: {occdist_scale: 0.15, goal_distance_bias: 20.0, stop_time_buffer: 0.4}
+
+fair_environment_and_boundary:
+  frozen_geometry_reference: nine actual converted-SDF primitives, seven surviving bodies, base_link at axle midpoint
+  frozen_costmap_footprint: existing astra_navigation_common_footprint.yaml; unchanged64plane outward base-envelope+0.33m footprint; footprint_padding0
+  frozen_TEB_footprint: original16support-plane full compound envelope, not old chassis rectangle
+  frozen_physical_driver: libastra_physical_ackermann_p05_plugin.so; steeringKd6 qualified candidate; no control-source edits
+  planner_forward_speed_cap_mps: 1.2
+  current_common_driver_absolute_reference_speed_cap_mps: 2.778
+  cap_interpretation: all planner configurations retain1.2m/s forward request cap and same physical backend; do not mislabel the driver's2.778m/s absolute clamp as1.2 or claim observed physical speed is hard-bounded by request cap
+  common_actuator_reference_limits:
+    wheelbase_m: 0.65
+    track_m: 0.6
+    wheel_radius_m: 0.15
+    max_center_steer_rad: 0.4964
+    reference_acceleration_mps2: 0.6
+    reference_deceleration_mps2: 0.9
+    reference_steer_slew_radps: 0.75
+    driver_command_timeout_s: 0.5
+    drive_torque_Nm: 8.0
+    brake_torque_Nm: 12.0
+    steer_torque_Nm: 20.0
+  preserved_planner_caps:
+    both: {max_vel_x: 1.2, max_vel_y: 0.0, max_vel_theta: 0.7805, acc_lim_x: 0.6, acc_lim_theta: 0.75}
+    teb: {max_vel_x_backwards: 0.4, wheelbase: 0.65, min_turning_radius: 1.2, cmd_angle_instead_rotvel: false}
+    dwa: {max_vel_trans: 1.2, min_vel_x: 0.0, min_vel_y: 0.0, vy_samples: 1, acc_lim_y: 2.5}
+  no_same_reverse_action_set_claim: TEB retains backward initialization/.4 limit, DWA retains forward-only sampling; these are disclosed existing planner choices, not an actuator difference
+  common_execution_mapping: driver atan(L*w/v) clipped to steer range then reference slew; abs(v)<.001 gives zero steer; no physical zero-speed rotation
+  raw_command_projection_qualification: pending future exact launch and rawTwist/driver_ingress/target/actual-world evidence; coordinator itself currently passes Twist through
+  log_required: [raw_method_Twist, coordinator_trace, driver_command_ingress, actuator_target, actual_odom, actual_joint_states, dense_actual_world_links, physical_status, native_contacts]
+  physical_vs_reference: actual ODE velocity, acceleration and steer derivative require separate measured gates; reference limits do not prove exact actual limits
+  shared_sensor_and_map: actual scan and odom, same static prior without actors, same source-stamped coordinator gate and paired actor parameter cells
+  current_R2_path_limitation: frozen R2 guide is audit-only; B01 cannot claim all-method fully shared global-route consumption
+
+axes:
+  teb:
+    independently_set: [dt_ref, min_obstacle_dist, inflation_dist, weight_obstacle, max_global_plan_lookahead_dist, enable_homotopy_class_planning]
+    fixed: {dt_hysteresis: 0.05, enable_multithreading: true, max_number_classes: 4, weight_inflation: 0.2}
+    mathematical_constraints: [dt_ref > dt_hysteresis, inflation_dist > min_obstacle_dist]
+    min_obstacle_dist_scope: optimizer distance axis only; common costmap footprint0.33 and external engineering-clearance assessment unchanged
+    inflation_dist_scope: TEB penalty band only; does not change shared costmap inflation_radius0.55
+    lookahead_scope: configured6/8/10m but transformGlobalPlan applies0.85*half_costmap=5.1m radial cutoff; actual transformed length must be measured; no guarantee these levels separate straight-route behavior
+    converter_linked_bundle:
+      enabled_by: dynamic_scan_converter
+      include_dynamic_obstacles: true_when_enabled
+      plugin: costmap_converter::CostmapToDynamicObstacles
+      namespace: TebLocalPlannerROS/costmap_converter/CostmapToDynamicObstacles
+      dynamic_obstacle_inflation_dist: equals_inflation_dist
+      weight_dynamic_obstacle: equals_weight_obstacle
+      weight_dynamic_obstacle_inflation: fixed0.2
+      other_converter_parameters: installed0.0.13 cfg defaults, fixed across all converter-on candidates
+      effective_worker_rate_hz: 5
+      tracker_dt_s: 0.2
+      rate_reason: workspaceTEB0.8.4 never reads YAML costmap_converter_rate; default5Hz is used by startWorker; no rate key is written
+      no_isolated_factor_claim: switching converter changes tracking/representation and associated CV-prediction path together
+  dwa:
+    independently_set_and_source_consumed: [sim_time, vx_samples, vth_samples, occdist_scale, path_distance_bias, goal_distance_bias]
+    linked_semantics:
+      path_distance_bias: costmap_resolution * configured_bias affects path and alignment critics together
+      goal_distance_bias: costmap_resolution * configured_bias affects goal and forward-goal critics together
+      sample_counts: vx_samples * vth_samples changes search and compute budget together
+    inert_axis_retained_as_diagnostic: stop_time_buffer is assigned to a member but not read elsewhere by DWAPlanner1.17.3; cannot count standalone changes as distinct behavior or braking safety
+    holonomic_robot_key: retained anchor key, no verified reader; real lateral-window limits are the explicit min/max_y andacc_lim_y values
+    lateral_window_scope: acc_lim_y2.5 at controller20Hz covers measured |vy|<=.125m/s domain only; larger real lateral states remain a possible strict-command failure and are retained
+    preregistered_followup_refinement_axis:
+      forward_point_distance: [0.0, 0.25, 0.5, 0.75]
+      source_effect: forward goal/alignment x-shift and near-goal alignment-disable threshold
+      current_anchor_value: 0.5
+
+integration_prerequisites:
+  ready_now: false
+  launch_load_order: existing shared configuration; existing compound footprint; exact B01 planner YAML last
+  cannot_use_current_launch_config_arg_alone: existing launch loads footprint after planner and would overwrite TEB min_obstacle_dist to0.33
+  exact_parameter_validation: dump every candidate launch and query actual effective planner/config namespaces after startup; verify full footprint and caps; runtime library maps must bind workspaceTEB0.8.4, installedDWA1.17.3 and converter0.0.13
+  restart_between_candidates: true
+  converter_component_tests_required:
+  - actual pluginlib load and exact in-process converter namespace; plugin fallback to points is an integrity failure for converter-on candidate
+  - costmap static prior and actual scan obstacle layer only, with actual odom compensation; no Gazebo model/link/actor truth subscriptions or custom oracle obstacle publishers
+  - actual worker/output source timing and dt/velocity units; nominal source5Hz is not yet a measured runtime rate
+  - ego-moving/static-object and moving-object cases, obstacle splitting/merging, stale/missing scan and TF cases, and nonfinite/empty output retention
+  - verify publish_static_obstacles preserves static occupied support; converter update path replaces the direct cell path, so a null/empty converter is not automatically a safe fallback
+  - retain raw costmap/scan/TF/obstacle output and exact byte closure; fail qualification if source chronology or velocity/frame semantics cannot be demonstrated
+  component_failure_rule: do not silently drop converter-on candidates or count unevaluated configs; stop before evidence allocation and preregister a separately reviewed replacement matrix if needed
+
+equal_budget_proposal_not_authorization:
+  initial_development_screen:
+    fresh_parent_geometries_each_family: 2
+    families: 6
+    execution_replicates_each_parent: 2
+    paired_blocks: 24
+    configs_each_planner: 12
+    proposed_episodes_each_planner: 288
+    proposed_total_episodes: 576
+    limitation: initial screening tranche only; not the full development allocation in splits.yaml and not a formal result
+  local_refinement_batch:
+    new_configs_each_planner: 6
+    paired_blocks: 24
+    proposed_episodes_each_planner: 144
+    proposed_total_episodes: 288
+    same_dev_parents_allowed: true
+    fresh_execution_identities_each_batch_required: true
+    no_one_sided_extra_search: identical candidate-slot and episode capacity offered to both; any new batch budget is reviewed and sealed before results
+  validation:
+    minimum_new_independent_parent_geometries_each_family: 12
+    families: 6
+    execution_replicates_each_parent: 3
+    paired_blocks: 216
+    frozen_shortlist_each_planner: 4
+    proposed_episodes_each_planner: 864
+    proposed_total_episodes: 1728
+    contract_source: mechanism_plan.promotion.minimum_distinct_validation_layouts_each_family and validation_replicates_per_layout
+  compute: identical machine, sensor rates, shared costmap, control20Hz and complete-attempt wall policy; record real latency and missed control deadlines; homotopy/classes/sample-count work is not claimed equal CPU work
+  algorithm_failures: timeout/no-feasible-trajectory/planner fault/illegal command/collision/clearance violation all consume their original unit and remain in safety/completion/restricted-time denominators
+  infrastructure_failures: preserve consumed failure and raw evidence; stop cohort and retire remaining exact schedule per new stage contract; no seed replacement or winner from incomplete paired evidence
+  images: supplementary only when complete physical records exist; image absence cannot erase an algorithm failure
+  no_current_allocation: all numbers are a reviewable proposal; no seeds, schedule, ledger, release or benchmark is created here
+
+selection:
+  separation: development for all search and refinement; validation only once after shortlist freeze; final_test never read for tuning
+  grouping: geometry parents include all rigid transforms/reflections/near-duplicate geometry cells; actor parameter cells also keep their split; seeds alone do not make independent geometry
+  paired_inputs: same fresh parent/actor-parameter/seed block across both planners and every compared configuration; independent closed process per identity; shared event source, actual reactive motion may differ by method
+  ordering: deterministic balanced planner/config order, frozen before execution, not chosen from prior outcomes
+  score_priority:
+  - full input/execution integrity prerequisite
+  - ascending count of episodes with any physical/contact/engineering-clearance safety failure
+  - descending valid-completion fraction, macro-balanced equally across six families
+  - ascending family-balanced mean restricted goal time; every non-valid completion receives22s
+  - lexicographic candidate_id only for exact remaining ties
+  safety_eligibility_for_final_baseline: zero safety events across all complete validation evidence; no compensating a safety loss with speed
+  development_shortlist: current anchor plus the best3 non-anchor configurations under fixed lexicographic score, independently for each planner; frozen before any validation outcome
+  unsafe_development_shortlist: may remain explicitly diagnostic only; no qualified baseline unless validation safety and completeness gates subsequently pass
+  no_passing_validation: report no qualified tuned baseline; preserve all configs and negative rows, no hidden fallback winner
+  selected_baselines: choose strongest safe TEB and strongest safe DWA separately; both retained for subsequent primary comparisons even if they outperform PCT
+  statistical_reporting: report all parent-clustered outcomes, per-family negatives, paired restricted-time differences with uncertainty; adaptive development/validation selection is not a confirmatory superiority test
+
+refinement_and_plateau:
+  initial_required_step: after coarse search, at least one equal6-config local batch per planner unless the source-confirmed unique legal neighborhood is exhausted
+  candidate_generation: from top2 development incumbents; enumerate one-step neighbors on confirmed effective axes, preserve the declared converter couplings; remove previously evaluated effective fingerprints; choose6 by deterministic maximin distance then candidate_id
+  DWA_extension: forward_point_distance grid above is eligible after coarse; stop_time_buffer alone never creates a new candidate
+  TEB_extension: no unilateral costmap enlargement or velocity/footprint changes; censored lookahead alone never creates a new candidate
+  continue_until: both planners show a documented plateau in two successive complete equal-budget batches, or their preregistered unique local neighborhoods are exhausted
+  plateau_definition: no safety-event reduction; no valid-completion gain at least5percentage points; no restricted-time reduction at least3percent among equally safe candidates with no family completion drop exceeding2percentage points
+  threshold_origin: mechanism_plan promotion substantive thresholds; development stopping evidence only, not a performance-claim gate
+  if_not_plateau: propose and freeze another equal-budget local batch before reading its outcomes; never stop merely because a candidate loses once
+  hard_compute_interruption: retain all consumed/retired identities and label tuning incomplete; do not relabel an unfinished search as plateau or strong-baseline qualification

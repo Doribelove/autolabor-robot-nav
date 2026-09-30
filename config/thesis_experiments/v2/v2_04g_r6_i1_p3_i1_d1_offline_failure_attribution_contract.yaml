@@ -1,0 +1,149 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P3-I1-D1
+contract_id: fam_teb_v2_04g_p3_i1_d1_anchor_bank_runtime_schema_failure_attribution_1
+status: offline_failure_attribution_preregistered
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps_authorized: 0
+real_vehicle_use_forbidden: true
+
+objective: >-
+  Freeze every P3-I1 artifact, verify that the prior runtime-identity amendment
+  passed its intended bootstrap and supervisor boundaries, attribute the
+  pre-transaction failure to the frozen P2-Q1 candidate-bank lifecycle and
+  provenance schema, close all remaining round-2 capacity, and permit exactly
+  one final fresh-seed runtime-schema promotion factor.  This stage is
+  offline-only and may not start, retry, resume, or authorize simulation.
+
+frozen_sources:
+  P3_D1_round2_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_d1_round2_design/p3_d1_offline_closure_freeze.sha256
+    sha256: 2cd85d1cddb29ec7072a79070996664a380d1ac56596d3a781e60ffa97d449e6
+  P3_D1_independent_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_d1_round2_design/v2_04g_p3_d1_independent_review.yaml
+    sha256: ac152f77e95d11769508ecdc0d97de5613d1dc71fe9ddc1942681d597abad4d9
+  P3_I1_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_p3_i1_execution_release.yaml
+    sha256: 7da98701aeb7c8fa324d2840253c415c46c9a81b005b017892aaef1f68443535
+  P3_I1_preexecution_audit:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_release_readiness/v2_04g_p3_i1_postrelease_preexecution_audit.yaml
+    sha256: 8e7a624cfe228c9b7111d961273d92f1c6479ed6d4b0e7a7bb85b4c6889019d9
+  P3_I1_stage_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_execution/p3_i1_stage_report.yaml
+    sha256: a36f563fea2dc21ecbf29e06ad6fcf535910304506d2c5c6cd0be5c2121cab86
+  P3_I1_failure_index:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_execution/p3_i1_failure_index.yaml
+    sha256: ca346165ad3c4d6056d2a1c7e8d9ff6d4e65d23731addc9d88a73ebaa014bcf7
+  P3_I1_failure_journal:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_execution/journals/sequence_0001_terminal_integrity_failure.yaml
+    sha256: fc547a49fed03834bc9955dfd004c99a3eb796543dc8b35b710305c99d6c0f9c
+  P3_I1_base_log:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_execution/attempts/0001__high_speed_to_conflict_overlay_transition_v125__v2-04g-p3-i1-qual-overlay-v125-s5624/work/base_launch.log
+    sha256: 8d7772d4c3507534fab0c98060c0b5e71d47d7edd463b95d4d6dea239220a2a8
+  P3_I1_bootstrap_receipt:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_execution/attempts/0001__high_speed_to_conflict_overlay_transition_v125__v2-04g-p3-i1-qual-overlay-v125-s5624/work/bootstrap_receipt.yaml
+    sha256: bb4ead850cc1caa8e5546f3b382fecbfcc5ee1cdaba90a5a7d57df75df07ef16
+  P3_I1_initial_readback_log:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_execution/attempts/0001__high_speed_to_conflict_overlay_transition_v125__v2-04g-p3-i1-qual-overlay-v125-s5624/work/initial_readback.log
+    sha256: f7c379570f0f8c9ca48e1400fcaed7d9b3f47b41c0b019b5c0f43713b0fcd0c6
+  failed_candidate_bank:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs/circle_contact_v125_anchor_bank.yaml
+    sha256: c70e3e766ba57385b2b8209a97740a35711f51dad8e6c8b97a87b6520dc8cb9f
+  strict_anchor_bank_parser:
+    path: src/application/teb_mode_manager/src/teb_mode_manager/action_pipeline.py
+    sha256: d13873814e27bd95b8f3a752d631faa7d1e0e79a63c763408e678e926885fdba
+
+terminal_accounting_expected:
+  round: 2
+  round_capacity: 704
+  stage_authorized_units: 1
+  actual_consumed_units: 1
+  completed_units: 0
+  stage_forfeited_units: 0
+  program_capacity_retired_after_terminal_failure: 703
+  total_round_capacity_closed: 704
+  reusable_or_transfer_allowed: false
+  retry_resume_replacement_or_seed_substitution_allowed: false
+  failed_seed: 5624
+  held_out_test_accessed: false
+
+attribution_requirements:
+  prior_factor_success:
+    runtime_profile_id: r6_semantics_circle_contact
+    supervisor_process_started: true
+    successful_unpause_ack: true
+    strictly_increasing_positive_post_ack_clock_samples: 2
+    move_base_teb_service_wait_released: true
+  failure_boundary:
+    phase: initial_readback_before_parameter_transaction
+    exception_type: teb_mode_manager.action_pipeline.ActionPipelineError
+    exception_text: anchor bank safety boundary drifted
+    raw_resources_produced: false
+  primary_cause:
+    id: offline_candidate_bank_lifecycle_and_provenance_not_runtime_schema_valid
+    frozen_status_observed: offline_materialized_not_runtime_ready
+    strict_status_required: uncalibrated_simulation_candidate
+    extra_provenance_key_observed: p2_q1
+    strict_provenance_keys:
+      - baseline
+      - mode_deltas
+      - formal_test_scenes_used
+    max_vel_x_upper_bound_observed: 1.4
+    upper_bound_widening_is_not_the_failure: true
+
+single_next_factor:
+  maximum_factor_count: 1
+  factor_id: promote_offline_candidate_bank_to_strict_runtime_candidate_schema_v1
+  factor_class: action_execution_schema_alignment
+  source: P3_I1_sequence_1_initial_readback_trace
+  allowed_differences_per_circle_candidate_bank:
+    status:
+      from: offline_materialized_not_runtime_ready
+      to: uncalibrated_simulation_candidate
+    source_provenance.p2_q1:
+      operation: remove
+  required_unchanged_content:
+    - bank_id
+    - vehicle
+    - parameter_registry
+    - parameter_bounds
+    - anchors
+    - overlays
+    - transaction
+    - policy_boundary
+    - simulation_only
+    - runtime_ready
+    - training_allowed
+    - parameter_write_enabled
+    - real_vehicle_use_forbidden
+  behavioral_TEB_field_count_changed: 0
+  safety_boundary_change_allowed: false
+  fresh_seed_required: true
+  seed_5624_reuse_allowed: false
+  all_five_candidate_banks_must_parse_offline_before_design_review: true
+  execution_requires_new_design_review_release_budget_and_authorization: true
+
+claim_boundary:
+  allowed:
+    - terminal execution-integrity result
+    - intended prior-factor success at supervisor and bootstrap boundaries
+    - pre-transaction primary-cause attribution
+    - one final offline amendment recommendation
+  forbidden:
+    - performance or safety effect
+    - candidate or baseline selection
+    - held-out access
+    - deployment or real-vehicle claim
+
+forbidden_side_effects:
+  start_ROS_or_Gazebo: true
+  modify_delete_retry_resume_or_rerun_P3_I1: true
+  modify_frozen_P2_Q1_candidate_banks: true
+  access_held_out_test_outcomes: true
+  authorize_execution_or_training: true
+  modify_stable_workspace_real_vehicle_CAN_or_hardware: true

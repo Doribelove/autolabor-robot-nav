@@ -1,0 +1,88 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R5
+stage_purpose: fresh_non_evidence_runtime_radius_aligned_recovery_candidate_preflight
+status: preregistered_before_execution
+upstream:
+  geometry_contract_path: config/thesis_experiments/v3/v3_13_q1_r4_r1_recovery_candidate_geometry_contract.yaml
+  geometry_contract_sha256: 22cfa7529934213545d9a8d030d827f92416edbc1e0f631aec995bb895e19f8d
+  consistency_audit_path: artifacts/v3/multiactor/v3_13_q1_r4_r1_recovery_geometry/cross_layer_consistency_audit.yaml
+  consistency_audit_sha256: 62e71e343294591204e70ec08401b5d763f660a2777c2e7b7c720369f7aa55eb
+  geometry_audit_path: artifacts/v3/multiactor/v3_13_q1_r4_r1_recovery_geometry/candidate_geometry_audit.yaml
+  geometry_audit_sha256: c11363a884d310114f28066cea07cedce44eb23d2b6da7e5e7d4d13b99e72542
+  geometry_manifest_path: artifacts/v3/multiactor/v3_13_q1_r4_r1_recovery_geometry/evidence_manifest.sha256
+  geometry_manifest_sha256: d5c29960b8ec704d93c129a93e6f38b460bc91cc6f59d86dc469ef4e7e539c65
+  geometry_review_path: artifacts/v3/multiactor/v3_13_q1_r4_r1_recovery_geometry/independent_review.yaml
+  geometry_review_sha256: ec867820cc0cc708b0134394443d8aa98b22758f87f2aa9f1d21d40e62691e30
+  recovery_candidate_core_path: src/application/v3_scope_planner/src/v3_scope_planner/recovery_candidate_core.py
+  recovery_candidate_core_sha256: 109a186f07b613eab4119a708eac80affbca6808414d1c5d5271c6275db9c29c
+single_factor:
+  factor: execute_the_frozen_R4_R1_recovery_candidate_once
+  candidate_id: recovery_evasive_right_v120_r1
+  candidate_geometry_unchanged: true
+  branch_time_unchanged_from_R2_late_recovery_s: 12.5
+  actor_scene_policy_unchanged_from_R2: true
+  actuator_dynamics_unchanged: true
+  pure_pursuit_and_command_boundary_unchanged: true
+  clone_combined_radius_m_unchanged: 1.15
+population:
+  units: 1
+  seed: 7336
+  attempt: 1
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only: [hesitant, hesitant]
+  branch_target_sim_s: 12.5
+  nominal_wait_depth_s: 5.0
+  forced_candidate_id: recovery_evasive_right_v120_r1
+  behavior_propensity: 1.0
+  non_evidence_preflight: true
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+collection_gates:
+  gate_pose_x_absolute_error_max_m: 0.03
+  gate_pose_y_absolute_error_max_m: 0.03
+  gate_yaw_absolute_error_max_rad: 0.03
+  gate_speed_absolute_error_max_mps: 0.04
+  branch_clock_absolute_error_max_s: 0.012
+  branch_ego_x_range_m: [-2.70, -2.10]
+  branch_ego_y_absolute_max_m: 0.05
+  branch_yaw_absolute_max_rad: 0.05
+  branch_speed_absolute_max_mps: 0.08
+  maximum_actor_track_age_s: 0.20
+  trace_samples_min: 130
+  trace_duration_s_min: 6.85
+scientific_gates:
+  completed_horizon_required: true
+  contact_state_count_max: 0
+  minimum_conservative_clearance_m_min: 0.0
+  maximum_tracking_error_m_max: 0.80
+  command_gap_s_max: 0.20
+  every_actor_observable_mode_at_branch: assertive
+  unsafe_outcome_retained: true
+downstream:
+  if_all_gates_pass: design_complete_positive_propensity_support_for_new_candidate
+  if_any_gate_fails: freeze_negative_preflight_and_redesign_or_stop
+  candidate_specific_predictor_fit_authorized: false
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  exact_bounded_simulation_preflight_authorized: true
+  authorized_units: 1
+  authorized_seed: 7336
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  evidence_claim_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - one fresh critical-scene non-evidence clone completed with nonnegative conservative clearance
+  forbidden:
+  - population safety or generalization
+  - candidate-conditioned actor response qualification
+  - actual TEB performance
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

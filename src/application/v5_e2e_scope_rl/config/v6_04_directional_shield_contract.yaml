@@ -1,0 +1,54 @@
+schema_version: "1.0"
+architecture_generation: v6
+stage: V6-04
+date: "2026-08-08"
+status: preregistered_sensor_directional_verifier_successor
+predecessor:
+  v6_03_r1: terminal_negative
+  v6_03_r2: terminal_negative
+  r2_pct_clearance_m: -0.33664827923299756
+  r2_analytic_clearance_m: -0.25805267353332195
+architecture_factor:
+  name: temporal_scan_directional_reachable_occupancy
+  inputs: [LaserScan_history, Odometry]
+  privileged_or_world_state_policy_input: false
+  static_inflation_m: 0.12
+  dynamic_surface_inflation_m: 0.33
+  bounded_constant_velocity_track: true
+  acceleration_bound_mps2: 0.40
+  uncertainty_rate_mps: 0.12
+  candidate_conditioned_backup_verification: true
+  certified_stop_remains_available: true
+frozen:
+  pct_actor_weights: true
+  pct_actor_observation: true
+  analytic_prior: true
+  candidate_bank: true
+  command_boundary: true
+  evaluator_and_thresholds: true
+  scene_population: true
+evaluation:
+  preflight: {seed_start: 954200, seed_end: 954200, blocks: 1, episodes: 3}
+  qualification: {seed_start: 954201, seed_end: 954206, blocks: 6, episodes: 18}
+  formal: {seed_start: 955200, seed_end: 955229, blocks: 30, episodes: 90}
+  attempts_per_identity: 1
+  retries_resumes_replacements: forbidden
+  formal_only_after_qualification_pass: true
+gates:
+  inherited_from_v6_03_contract: true
+  tracker_valid_required_for_sensor_methods: true
+  contact_count_max: 0
+  minimum_conservative_clearance_m: 0.0
+  sensor_world_state_access_count_max: 0
+formal_statistics:
+  inherited_from_v6_03_contract: true
+  primary_comparison: pct_scope_rl_v6_vs_sensor_analytic_prior
+  relative_reduction_minimum: 0.05
+  two_sided_95_percent_interval_lower_strictly_positive: true
+authority:
+  simulation_preflight_authorized: true
+  qualification_only_after_preflight_pass: true
+  formal_only_after_qualification_pass: true
+  training_authorized: false
+  hardware_access_authorized: false
+  real_vehicle_authorized: false

@@ -1,0 +1,34 @@
+# New integration fragment. Load after old benchmark costmap settings.
+# Pending live integration; never retroactively applied to frozen R2.
+base_global_planner: astra_common_route/FixedRouteGlobalPlanner
+planner_frequency: 1.0  # polls the same fixed route; performs no online replan
+FixedRouteGlobalPlanner:
+  route_service: /astra/common_route/get_plan
+global_costmap:
+  global_frame: map
+  robot_base_frame: base_link
+  rolling_window: false
+  track_unknown_space: true
+  plugins:
+    - {name: static_layer, type: "costmap_2d::StaticLayer"}
+    - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+  static_layer:
+    map_topic: /map
+    subscribe_to_updates: false
+    track_unknown_space: true
+    use_maximum: true
+local_costmap:
+  global_frame: odom
+  robot_base_frame: base_link
+  rolling_window: true
+  track_unknown_space: true
+  plugins:
+    - {name: static_layer, type: "costmap_2d::StaticLayer"}
+    - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+  static_layer:
+    map_topic: /map
+    subscribe_to_updates: false
+    track_unknown_space: true
+    use_maximum: true

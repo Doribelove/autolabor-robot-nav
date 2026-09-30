@@ -1,0 +1,64 @@
+schema_version: '1.0'
+stage: V3-18-A0
+system_goal: action-aligned, explainable, fail-closed local navigation for Ackermann
+  robots in dynamic interaction
+workspace_boundaries:
+  thesis_workspace: /home/robot/robot_ws_base_rl
+  stable_real_robot_workspace: /home/robot/robot_ws
+  stable_workspace_modified: false
+physical_platform:
+  base: Autolabor M2 Ackermann
+  sensors:
+  - Livox lidar
+  - GPS
+  - odometry
+  - camera
+  hardware_calibration_status: not qualified by current simulation evidence
+command_safety_chain:
+- /cmd_vel_navigation
+- GPS speed limiter
+- /cmd_vel_gps
+- FOD mode arbiter
+- /cmd_vel
+- M2 driver sanitizer
+algorithm_generations:
+  V1_T11_T12: TEB parameter RL/residual control; exposed action projection and cross-seed
+    instability
+  V2_FAM_TEB: typed scene profiles, feasible decoder, semantic TTC overlays and transaction
+    audit
+  V3_SCOPE: Ackermann-feasible trajectory candidates, candidate-conditioned prediction,
+    calibrated occupancy, hard verifier and analytic ranker
+v3_runtime_dataflow:
+- scan/odom/GPS/TF/global path/costmap/health
+- immutable scene snapshot
+- Ackermann candidate generator with certified stop
+- candidate-conditioned actor predictor
+- calibrated reachable occupancy tubes
+- hard verifier
+- analytic ranker
+- pure-pursuit tracker
+- /cmd_vel_navigation boundary
+experiment_integrity_layers:
+- preregistration
+- exact schedule
+- fresh seeds
+- attempt-1 identity
+- consumption journal
+- raw report SHA
+- deterministic assessment
+- independent review
+- claim gate
+- terminal freeze
+current_claim_boundary:
+  qualified: V3-11 single-reactive-actor oracle-track improvement versus actual TebLocalPlannerROS
+    0.8.4
+  not_demonstrated:
+  - multi-actor support
+  - learning benefit
+  - V2 obvious performance improvement
+  forbidden:
+  - perception robustness
+  - OOD generalization
+  - formal safety
+  - deployment
+  - real-vehicle performance

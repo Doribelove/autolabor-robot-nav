@@ -1,0 +1,52 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-10-P1
+contract_id: v3_scope_v3_10_p1_paper_evidence_closure_1
+status: pure_offline_paper_evidence_closure
+date: "2026-07-24"
+
+authority:
+  execution_authorized: false
+  training_authorized: false
+  real_vehicle_authorized: false
+  evidence_budget_units: 0
+  training_environment_steps: 0
+  seeds: []
+  schedule: []
+
+frozen_formal_source:
+  stage: V3-09-F1
+  assessment_path: artifacts/v3/formal/v3_09_f1/execution/v3_09_f1_formal_assessment.yaml
+  assessment_sha256: d950256f4da310f65d604031ec72009e014facfb7cb0c14be8cf19ce1b9c346b
+  independent_review_path: artifacts/v3/formal/v3_09_f1/execution/v3_09_f1_independent_result_review.yaml
+  independent_review_sha256: 206732c86b536e7f9a520c58dac6d386ff6752595bdc767d4957e4804e5f8d5a
+  evidence_freeze_path: artifacts/v3/formal/v3_09_f1/execution/v3_09_f1_evidence_freeze.sha256
+  evidence_freeze_sha256: 5a86ee866ab1b990eb430b6692364ec84dc69314af56ce55c7ede2042cb3851d
+  terminal_freeze_path: artifacts/v3/formal/v3_09_f1/v3_09_f1_terminal_freeze.sha256
+
+paper_exports:
+  summary_csv: artifacts/v3/formal/v3_10_p1_paper_closure/v3_10_p1_formal_summary.csv
+  policy_csv: artifacts/v3/formal/v3_10_p1_paper_closure/v3_10_p1_policy_results.csv
+  block_csv: artifacts/v3/formal/v3_10_p1_paper_closure/v3_10_p1_block_results.csv
+  figure_svg: artifacts/v3/formal/v3_10_p1_paper_closure/v3_10_p1_formal_result.svg
+  claims_yaml: artifacts/v3/formal/v3_10_p1_paper_closure/v3_10_p1_claims.yaml
+
+required_claim_boundaries:
+  actual_teb_comparison: false
+  general_navigation_safety: false
+  deployment_ready: false
+  real_vehicle_ready: false
+  learned_policy_benefit: false
+
+closure_requirements:
+  source_hashes_exact: true
+  formal_result: true
+  performance_improvement_demonstrated: true
+  all_formal_gates_pass: true
+  paper_exports_byte_reproducible: true
+  conventional_multiline_sha256_manifests: true
+  malformed_historical_manifest_preserved: true
+  no_execution_release: true
+  no_simulation_authorization: true
+  no_attempt_journal: true
+  no_ros_or_gazebo: true

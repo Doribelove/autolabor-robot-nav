@@ -1,0 +1,217 @@
+schema_version: "1.0"
+stage: PCT-BENCH-P02-P03
+status: development_only_not_frozen
+simulation_only: true
+hardware_access_authorized: false
+real_vehicle_authorized: false
+training_authorized: true
+development_execution_authorized: true
+pilot_execution_authorized: false
+formal_execution_authorized: false
+
+method_identifiers:
+  - pct_scope_rl
+  - analytic_prior
+  - actual_teb
+  - dwa
+
+seed_partitions:
+  historical_frozen:
+    rule: all identities under artifacts/v6/gazebo; read-only and non-rerunnable
+  development:
+    seed_start: 196001
+    seed_end: 196120
+    may_inform_tuning: true
+  pilot_reserved_unreleased:
+    seed_start: 196501
+    seed_end: 196530
+    may_inform_tuning: false
+  formal_round_1_reserved_unreleased:
+    seed_start: 197001
+    seed_end: 197200
+    may_inform_tuning: false
+  formal_round_2_reserved_unreleased:
+    seed_start: 198001
+    seed_end: 198200
+    may_inform_tuning: false
+
+shared_vehicle:
+  model: autolabor_m2_ackermann
+  command_boundary: /cmd_vel_navigation
+  wheelbase_m: 0.65
+  footprint_polygon_m: [[0.52, 0.35], [0.52, -0.35], [-0.52, -0.35], [-0.52, 0.35]]
+  maximum_linear_speed_mps: 1.20
+  maximum_acceleration_mps2: 0.60
+  maximum_deceleration_mps2: 0.90
+  maximum_steering_rad: 0.40
+  maximum_steering_rate_radps: 0.75
+  maximum_yaw_rate_radps_at_max_speed: 0.7805
+  actuator_speed_time_constant_s: 0.22
+  actuator_steering_time_constant_s: 0.18
+  command_delay_s: 0.0
+  command_jitter_s: 0.0
+
+shared_sensor:
+  topic: /scan
+  frame: laser_link
+  raw_beams: 720
+  raw_field_of_view_deg: 360.0
+  policy_beams: 72
+  policy_field_of_view_deg: 270.0
+  policy_maximum_range_m: 8.0
+  update_rate_hz: 15.0
+  noise_std_m: 0.01
+  dropout_probability: 0.0
+  maximum_message_age_s: 0.20
+  prohibited_policy_inputs:
+    - /gazebo/model_states
+    - evaluator actor track
+    - simulator contact state
+
+shared_task:
+  policy_start_x_m: -4.0
+  spawn_x_m: -5.4
+  goal_x_m: 5.0
+  goal_y_m: 0.0
+  goal_tolerance_m: 0.25
+  terminal_lateral_convergence_start_x_m: 3.5
+  yaw_tolerance_rad: 0.25
+  decision_period_s: 0.25
+  control_frequency_hz: 20.0
+  planning_frequency_hz: 4.0
+  episode_cap_s: 22.0
+  common_warmup_speed_mps: 0.80
+  common_warmup_gate_tolerance_m: 0.03
+  common_warmup_handoff_rule: first_speed_qualified_sample_inside_lower_gate_boundary
+  retired_common_warmup_handoff_compensation_m: 0.02
+  retired_common_warmup_handoff_reason: fixed_prediction_failed_under_discrete_odometry_sampling_at_seed196071
+  evaluator_combined_radius_m: 1.15
+
+pct_candidate_contract:
+  count: 8
+  names:
+    - certified_stop
+    - straight_v040
+    - straight_v080
+    - straight_v120
+    - spatial_left_v040
+    - spatial_right_v040
+    - spatial_left_v120
+    - spatial_right_v120
+  preview_horizon_s: 3.0
+  preview_step_s: 0.25
+  lateral_offsets_m: [0.0, 0.0, 0.0, 0.0, 1.35, -1.35, 1.35, -1.35]
+  lateral_offset_basis: evaluator_footprint_aligned_static_feasible_band_center
+  target_speeds_mps: [0.0, 0.4, 0.8, 1.2, 0.4, 0.4, 1.2, 1.2]
+  maximum_steering_rad: 0.48
+  maximum_steering_rate_radps: 0.80
+  execution_adapter_maximum_steering_rad: 0.4964
+  lateral_candidate_route_departure_x_m: -5.5
+  lateral_candidate_route_hold_start_x_m: -3.0
+  lateral_candidate_route_hold_end_x_m: 0.8
+  lateral_candidate_route_recovery_x_m: 2.0
+  certified_stop_analytic_prior_penalty: 1.0
+  low_speed_spatial_commitment_bonus: 1.0
+  spatial_commitment_trigger: fastest_straight_full_clearance_nonpositive
+  analytic_candidate_switch_penalty: 0.15
+  opposite_spatial_side_switch_penalty: 2.0
+  spatial_speed_escalation_penalty: 2.0
+  spatial_speed_escalation_release_clearance_m: 0.22
+  spatial_speed_escalation_scope: every_non_stop_candidate_until_commitment_release
+  central_static_route_commitment_bonus: 3.0
+  central_static_route_commitment_eligibility: same_side_low_speed_and_positive_full_preview_clearance
+  central_static_route_commitment_release: obstacle_far_x_plus_robot_plus_inflation_plus_backup_margin
+  spatial_side_commitment_reset: four_consecutive_confirmed_non_stop_straight_executions_and_past_central_static_release
+  central_static_commitment_direct_release: observed_pose_strictly_past_central_static_release
+  certified_stop_preserves_spatial_side_commitment: true
+  static_surface_association_tolerance_m: 0.15
+  shield_dynamic_surface_inflation_m: 0.33
+  mapped_wall_surface_inflation_m: 0.33
+  training_oracle_and_physical_clearance_inflation_m: 0.33
+  non_stop_backup_viability_margin_m: 0.20
+  maximum_dynamic_obstacle_speed_mps: 1.35
+  dynamic_reachable_expansion_cap_m: null
+  safety_response_delay_s: 0.35
+  safety_response_delay_basis: maximum_scan_age_0.20_plus_actuator_and_control_response_0.15
+  safety_response_delay_motion: hold_current_measured_speed_not_previous_target_speed
+  certified_stop_post_stop_dwell_s: 1.50
+  certified_stop_invariance_rule: verify_reachable_occupancy_during_stop_and_post_stop_dwell
+  core_static_avoidance_geometry:
+    corridor_half_width_m: 2.55
+    center_obstacle_half_width_m: 0.45
+    evaluator_robot_radius_m: 0.79
+    non_stop_backup_margin_m: 0.20
+    minimum_feasible_corridor_half_width_m: 2.43
+    feasibility_formula: obstacle_half_width_plus_2x_evaluator_radius_plus_2x_backup_margin
+  core_head_on_actor_policy: cautious_reactive_parallel_opposing
+  core_head_on_actor_lateral_offset_m: 1.40
+  core_head_on_corridor_half_width_m: 2.55
+  directional_tracker:
+    source: LaserScan_plus_Odometry_plus_static_map_rejection_only
+    association_radius_m: 1.20
+    maximum_track_age_s: 0.50
+    association_miss_policy: hold_then_clear_before_reacquisition
+    minimum_history_span_s: 0.35
+    maximum_fit_residual_m: 0.25
+    dynamic_acceleration_bound_mps2: 0.40
+    dynamic_uncertainty_rate_mps: 0.12
+    dynamic_uncertainty_cap_m: 0.75
+    directional_prediction_speed_mps: 1.35
+    direction_rule: fitted_motion_direction_with_maximum_speed_and_bounded_deviation
+  goal_speed_envelope: true
+  activation_revalidation: required
+  previous_action_source: last_confirmed_executed_action
+  all_rejected_fallback: certified_stop
+
+admission_gates:
+  fixed_input_exact: required
+  actor_export_action_exact: required
+  actor_export_logit_tolerance: 1.0e-6
+  scan_odom_tf_contract: required
+  eight_candidate_contract: required
+  permission_fail_closed: required
+  suggested_validated_executed_trace: required
+  shadow_order: [static, single_actor, partially_occluded_actor]
+  maximum_inference_p99_ms: 20.0
+  deadline_miss_rate_maximum: 0.001
+  mask_violation_maximum: 0
+  contact_maximum: 0
+  conservative_clearance_minimum_m: 0.0
+
+failure_accounting:
+  success: measured_gate_to_goal_time
+  timeout: episode_cap_s
+  contact: episode_cap_s
+  nonarrival: episode_cap_s
+  method_system_failure: episode_cap_s
+  infrastructure_failure: retained_and_reported_separately_but_not_deleted
+  retry_policy: no_retry_for_scientific_identity
+
+development_budget:
+  pct_major_factor_trials_maximum: 24
+  actual_teb_configuration_trials_maximum: 24
+  dwa_configuration_trials_maximum: 24
+  paired_development_blocks_maximum: 120
+  training_environment_steps_global_maximum: 500000
+  one_major_factor_per_cycle: true
+
+formal_rules:
+  minimum_pilot_blocks: 20
+  maximum_pilot_blocks: 30
+  formal_blocks_target_minimum: 100
+  primary_unit: paired_block
+  primary_metric: failure_inclusive_restricted_time_s
+  completion_noninferiority_margin_percentage_points: -5.0
+  minimum_relative_time_reduction: 0.08
+  joint_primary_comparisons: [actual_teb, dwa]
+  multiplicity: two_sided_97_5_percent_paired_block_bootstrap_or_locked_holm
+  positive_interval_lower_bound_strictly_greater_than: 0.0
+  pct_mask_violation_maximum: 0
+  contact_not_higher_than_baseline: true
+
+claim_boundaries:
+  formal_result: false
+  runtime_ready: false
+  deployment_ready: false
+  real_vehicle_ready: false
+  no_superiority_claim_before_fresh_formal_gate: true

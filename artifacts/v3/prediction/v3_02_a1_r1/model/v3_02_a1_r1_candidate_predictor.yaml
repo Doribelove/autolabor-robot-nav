@@ -1,0 +1,162 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-02-A1-R1
+model_id: v3_02_a1_r1_candidate_conditioned_latent_mode_ridge_1
+status: candidate_conditioned_predictor_calibrated
+runtime_hidden_policy_input: false
+runtime_outputs_all_mode_heads: true
+feature_names:
+- bias
+- actor_conflict_coordinate
+- actor_observed_speed
+- candidate_ego_speed
+- candidate_ego_speed_squared
+- actor_coordinate_x_candidate_speed
+- actor_speed_x_candidate_speed
+observation_time_s: 0.5
+prediction_absolute_times_s:
+- 1.5
+- 2.5
+- 3.5
+- 4.5
+ridge_lambda: 1.0e-06
+mode_heads:
+  cautious:
+    t1_5:
+      coefficients:
+      - 2.139113433847
+      - 1.419711990065
+      - 4.137735715599
+      - -4.235681403444
+      - 1.975359780563
+      - -0.585939719112
+      - -5.457440405882
+      training_sample_count: 24
+    t2_5:
+      coefficients:
+      - 0.688380883129
+      - 2.22453994285
+      - 11.218327808802
+      - -1.881774401832
+      - 0.687304224721
+      - -1.857809402706
+      - -14.591178929484
+      training_sample_count: 24
+    t3_5:
+      coefficients:
+      - -3.125697521051
+      - 1.767047799615
+      - 12.028007070388
+      - 4.771420585056
+      - -1.972251633222
+      - -1.620978604647
+      - -14.295749897369
+      training_sample_count: 24
+    t4_5:
+      coefficients:
+      - -2.984837321566
+      - 1.651054025552
+      - 9.118545833784
+      - 6.146295322659
+      - -2.936751364849
+      - -1.543690077017
+      - -9.089345364218
+      training_sample_count: 24
+  assertive:
+    t1_5:
+      coefficients:
+      - 3.222026164695
+      - 0.973227432065
+      - -1.466019571103
+      - -5.372281907573
+      - -0.028147101777
+      - 0.019963703958
+      - 4.066759669569
+      training_sample_count: 24
+    t2_5:
+      coefficients:
+      - 1.860604514617
+      - 0.804773211327
+      - -0.187491643635
+      - -3.031719194464
+      - -0.287839679622
+      - -0.084718697502
+      - 2.708056291314
+      training_sample_count: 24
+    t3_5:
+      coefficients:
+      - -2.230408307766
+      - 0.713187697213
+      - 4.147666745563
+      - 3.681178676014
+      - 0.71488412096
+      - -0.092726837624
+      - -3.764921486752
+      training_sample_count: 24
+    t4_5:
+      coefficients:
+      - -6.307720262256
+      - 0.609880774715
+      - 8.461848169366
+      - 10.3931835045
+      - 1.734046801585
+      - -0.071881152221
+      - -10.211658009064
+      training_sample_count: 24
+  hesitant:
+    t1_5:
+      coefficients:
+      - 3.360409156518
+      - 1.028433405217
+      - -9.13334015764
+      - -5.078075808656
+      - -0.173316977808
+      - -0.069623006451
+      - 16.419370056621
+      training_sample_count: 24
+    t2_5:
+      coefficients:
+      - 3.971957988387
+      - 1.423816639946
+      - -1.018982771036
+      - -6.311615093189
+      - 2.012096525217
+      - -0.648668170085
+      - 3.674098529771
+      training_sample_count: 24
+    t3_5:
+      coefficients:
+      - 6.005999588837
+      - 1.69860388745
+      - -6.458199511433
+      - -9.51714253144
+      - 1.799180642116
+      - -1.092059182636
+      - 14.386063391117
+      training_sample_count: 24
+    t4_5:
+      coefficients:
+      - 12.100321353694
+      - 1.807383683761
+      - -34.402510243567
+      - -17.996155060029
+      - -1.651617155454
+      - -1.259612373597
+      - 63.049207103736
+      training_sample_count: 24
+calibration:
+  method: global_split_conformal_outer_envelope
+  alpha: 0.1
+  radius_m: 0.014355406266
+  sample_count: 144
+  finite_sample_rank: 131
+actor_physical_radius_m: 0.225
+training_episode_count: 72
+calibration_episode_count: 36
+reserved_test_seeds_not_accessed:
+- 6221
+- 6222
+- 6223
+physical_coordinate_clip:
+  lower_bound: actor_coordinate_at_observation
+  upper_bound_m: 3.5

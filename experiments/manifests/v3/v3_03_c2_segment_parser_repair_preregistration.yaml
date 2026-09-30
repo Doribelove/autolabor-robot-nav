@@ -1,0 +1,28 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C2
+preregistration_id: v3_scope_v3_03_c2_segment_parser_repair_1
+date: "2026-07-24"
+status: frozen_before_any_v3_03_c2_simulation
+contract: config/thesis_experiments/v3/v3_03_c2_segment_parser_repair_contract.yaml
+fresh_schedule:
+  seeds: [6341, 6342, 6343]
+  policies_evaluator_only: [cautious, assertive, hesitant]
+  exact_episodes: 9
+  attempt: 1
+  retries: 0
+single_factor:
+  factor_id: segment_duration_aware_trace_parser
+  minimum_data_rows: 6
+  minimum_covered_duration_s: 0.25
+  c1_resume_or_seed_reuse: false
+unchanged:
+  planner_model_gate_candidates_ranker_safety: true
+  closed_loop_protocol_and_integration_gates: true
+authority:
+  simulation_requires_separate_authorization: true
+  training: false
+  move_base: false
+  cmd_vel_publish: false
+  hardware_device_access: false
+  real_vehicle: false

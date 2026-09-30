@@ -1,0 +1,45 @@
+{
+  "status": "root_initial_design_review_pass",
+  "reviewed_utc": "2026-09-26T06:56:03.542744+00:00",
+  "resources": [
+    {
+      "path": "contracts/acceptance.yaml",
+      "sha256": "caf88b99e22816aa36d6d296d530e1997a2e0906fe427e33b2315708dc70fb6f"
+    },
+    {
+      "path": "contracts/splits.yaml",
+      "sha256": "900bb5962fe3efa63db0f6167ccb23ce6966cab1559a613aca650d6d93c27c02"
+    },
+    {
+      "path": "contracts/statistics.yaml",
+      "sha256": "9c7eaf9faf3c34ce4b98f2a8fc8348a9542ed7c311b522e267a7753f3e511c3f"
+    },
+    {
+      "path": "contracts/mechanism_plan.yaml",
+      "sha256": "472e7d38f506e539574b9ff85a971e39ef9d1867f0c611234313aa146ab3b227"
+    }
+  ],
+  "scope": "acceptance and splitting/multiplicity/mechanism rules frozen before new development; final sample size and calibrated evaluator implementation remain prefinal prerequisites",
+  "smoke_only_authorization": {
+    "fresh_seed": 260926001,
+    "methods": [
+      "pct_scope_rl",
+      "analytic_prior",
+      "actual_teb",
+      "dwa"
+    ],
+    "max_episodes": 4,
+    "attempts_per_identity": 1,
+    "launch_wall_cap_s": 180,
+    "failure_time_s": 22,
+    "prelaunch_preparation_failure_retained": true,
+    "not_performance_evidence": true
+  },
+  "review_notes": [
+    "Core performance, success, safety gates unchanged from user goals.",
+    "One confirmatory round alpha allocation fixed before outcomes; no repeated p=.05 search.",
+    "Geometry implementation, grouping and power must actually pass; proposal existence is not validation.",
+    "New stress physics backend required to measure friction response; historical pose-set model not sufficient.",
+    "Final outcomes unavailable and have not been accessed."
+  ]
+}

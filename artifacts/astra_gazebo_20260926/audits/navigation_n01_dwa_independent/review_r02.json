@@ -1,0 +1,155 @@
+{
+  "status": "independent_DWA_native_window_cause_and_single_field_config_review_pass",
+  "pass": true,
+  "independent_review": true,
+  "checks": {
+    "frozen_diagnosis_SHA": true,
+    "all_saved_diagnostic_input_source_artifacts_rehash": true,
+    "actual_bag_all_four_method_commands_exact_diagnosis": true,
+    "actual_command_failure_is_finite_lateral_only": true,
+    "three_unique_causal_candidate_odom_float32_value_matches": true,
+    "all393_native_probe_odom_inputs_equal_actual_bag": true,
+    "actual1212_native_replay_byte_exact": true,
+    "saved393_odom_zero_only_counts_0_392_393": true,
+    "zero_acc_nonzero_vy_inverts_native_bounds_and_expands_one_sample": true,
+    "own18_float32_boundary_cases_exact_plusminus0125_domain": true,
+    "single_config_field_only_acc_lim_y_0_to_2point5": true,
+    "raw_odom_topic_and_hard_lateral_zero_limits_unchanged": true,
+    "strict_command_guard_AST_unchanged": true,
+    "no_historical_final_DWA_maps_or_assessment_claimed": true
+  },
+  "diagnosis": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/diagnosis.json",
+    "sha256": "0aeabfd90532cd635436c2936c4a141daeebb29bcfe481669e5f3ea33dc5c867"
+  },
+  "actual_float32_matches": [
+    {
+      "command_bag_receipt_ns": 7706000000,
+      "command_vy": 1.2670447176788002e-05,
+      "matches": [
+        {
+          "source_ns": 7480000000,
+          "bag_receipt_ns": 7480000000,
+          "vx": 0.784074716030415,
+          "vy": 1.2670447233572088e-05,
+          "wz": -2.4653239072892418e-06
+        }
+      ]
+    },
+    {
+      "command_bag_receipt_ns": 7864000000,
+      "command_vy": 0.00045139779103919864,
+      "matches": [
+        {
+          "source_ns": 7700000000,
+          "bag_receipt_ns": 7700000000,
+          "vx": 0.5882826143373889,
+          "vy": 0.00045139777794571515,
+          "wz": -0.0009960793428317142
+        }
+      ]
+    },
+    {
+      "command_bag_receipt_ns": 7872000000,
+      "command_vy": 0.0002892707707360387,
+      "matches": [
+        {
+          "source_ns": 7860000000,
+          "bag_receipt_ns": 7860000000,
+          "vx": 0.44857972679135477,
+          "vy": 0.0002892707832461651,
+          "wz": 0.003960829556623413
+        }
+      ]
+    }
+  ],
+  "native_cases_replayed": 1212,
+  "additional_independent_boundary_cases": 18,
+  "zero_only_counts_by_acceleration": {
+    "0.0": 0,
+    "0.6": 392,
+    "2.5": 393
+  },
+  "configuration_delta": [
+    [
+      "acc_lim_y",
+      0.0,
+      2.5
+    ]
+  ],
+  "old_config": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_v0.yaml",
+    "sha256": "efb8c37d540927f4bee2b97435c141d07751d8c623b8db6f5c7d44d990967921"
+  },
+  "new_config": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml",
+    "sha256": "9624d5a0c331d218909fc325fd467c42a202f40dc672935ad0daecd30fdd3cab"
+  },
+  "domain": "For fixed0.05s DWA window, acc_lim_y2.5 admits only zero lateral targets when abs(float32 measured vy)<=0.125m/s. Own next-representable-float32 outside both boundaries still emits accepted nonzero target; unchanged1e-12 guard rejects it.",
+  "causal_strength": "Actual finite nonzero linear.y caused the strict method-command fault. Three raw command values equal unique earlier raw odometry afterfloat32 conversion. Installed native generator reproduces the inversion and endpoint acceptance; headerless messages do not prove the exact planner input callback join, and this probe does not reconstruct costmap scoring/winning trajectory.",
+  "configuration_scope": "Virtual planner dynamic-window allowance; not real lateral actuation or a physical acceleration guarantee. It changes the candidate set and may change ranking, so only a fresh separately released DWA identity may qualify it.",
+  "preserved_negative": "N01 source, raw, gate and failure remain unchanged. Missing historical final ELF closure is not replaced by current probe mappings. No live fix or performance claim.",
+  "actual_commands": [
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_dynamic_window_probe /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/native_replay.maps.txt < /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe_inputs.txt > /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/native_replay_output.jsonl",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_dynamic_window_probe /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/boundary.maps.txt < /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/boundary_inputs.txt > /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/boundary_output.jsonl"
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/review_r02.py",
+      "sha256": "2f612408cb8f46da26cb20d423c4d65a3ea1ff9709d6ddc8e6512b1f07525e13"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator.py",
+      "sha256": "1f2bb1da971fc2536dd0243562bb523d14875bff52b40b6193541544b1dc9959"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n02.py",
+      "sha256": "3813fd51782efb7df2e2479f938fad7587648ee581fe3af596a4bd8e6ad74d31"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_dynamic_window_probe",
+      "sha256": "b15934f4f7f9133654f054487fa9d14b98e3e025ab88761a6692d9f24e40101c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_dynamic_window_probe.cpp",
+      "sha256": "a99d3b25543c10146d5dc40b818ec978a7a5ffd8cbffade6d27d56f502ef58f1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/native_probe_inputs.txt",
+      "sha256": "c3ad7c7b79db875bcebf1678c0a60822b2b50f32d835059325791f05316cccff"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/native_replay_output.jsonl",
+      "sha256": "5960823975a36aff01ffd436da0d1403ba874c37f9c44a2f08af1f2f9687d70d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/native_replay.maps.txt",
+      "sha256": "c6c3914548a8d04e7fa98ed3d7219b3b00149902308752191465bb4487a0d946"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/boundary_inputs.txt",
+      "sha256": "13a4cc0af3f7c80d1e05e48a282442cd042fa07a336ba699f511533e1abb5bca"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/boundary_output.jsonl",
+      "sha256": "8a31cea3316ab7fe1aa56bb13cd1b244388e7a10b27d0728406e2ebcf6693b3a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/boundary.maps.txt",
+      "sha256": "72bc3178d4f89eafb8a9163698f92c7edb3b97e3fae78bad6bf5841313707abd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n01_dwa_common_route/fixture.bag",
+      "sha256": "d8893db38531fe3a4a9be8f0702086ffc034824fd6e8ee88118bdc7acd5ee880"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_independent/tool_notes.txt",
+      "sha256": "96792b6a7d8dee3b79a99b5783729dc15e7b953131502ddf3bbeec141edf33cb"
+    }
+  ],
+  "ROS_started": false,
+  "Gazebo_started": false,
+  "new_seed_allocated": false,
+  "live_qualification": false,
+  "created_utc": "2026-09-26T12:44:24.329368+00:00"
+}

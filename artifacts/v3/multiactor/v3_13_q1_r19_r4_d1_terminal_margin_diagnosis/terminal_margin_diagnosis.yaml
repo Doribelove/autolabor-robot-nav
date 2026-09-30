@@ -1,0 +1,94 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R19-R4-D1
+status: offline_terminal_margin_diagnosis_pass
+upstream:
+  collection_summary_sha256: 99b6f5f50864ce8d4ba54d56368036e9ce9482b04e7ce4d90e4d8aeda7fbf3c9
+  support_assessment_sha256: 5e1802ab7083772abc57d6861fbded1d548a518e5b6b0ee84c430b62f5630c41
+  evidence_freeze_sha256: 860d8cda2ccac73727037f8a41ca2bcd466995dc77102b1cae6db2869387c15f
+  independent_result_review_sha256: 7b62d3849383556c4e8b3fcb624eccda6ea6af582db3b6f907e18c772538ccbd
+r3_rows_replayed:
+- block_index: 1
+  seed: 7687
+  terminal_distance_at_boundary_m: 0.09205808917618027
+  guard_activation_count: 1
+  boundary_evaluation_count: 1
+  boundary_trigger_count: 1
+  would_trigger_at_tolerance_0_15_m: true
+- block_index: 2
+  seed: 7688
+  terminal_distance_at_boundary_m: 0.0984627502000727
+  guard_activation_count: 1
+  boundary_evaluation_count: 1
+  boundary_trigger_count: 1
+  would_trigger_at_tolerance_0_15_m: true
+- block_index: 3
+  seed: 7689
+  terminal_distance_at_boundary_m: 0.04056492923017319
+  guard_activation_count: 2
+  boundary_evaluation_count: 1
+  boundary_trigger_count: 1
+  would_trigger_at_tolerance_0_15_m: true
+- block_index: 4
+  seed: 7690
+  terminal_distance_at_boundary_m: 0.06690168967539582
+  guard_activation_count: 2
+  boundary_evaluation_count: 1
+  boundary_trigger_count: 1
+  would_trigger_at_tolerance_0_15_m: true
+- block_index: 5
+  seed: 7691
+  terminal_distance_at_boundary_m: 0.12115632487599486
+  guard_activation_count: 0
+  boundary_evaluation_count: 1
+  boundary_trigger_count: 0
+  would_trigger_at_tolerance_0_15_m: true
+- block_index: 6
+  seed: 7692
+  terminal_distance_at_boundary_m: 0.07314750226201426
+  guard_activation_count: 1
+  boundary_evaluation_count: 1
+  boundary_trigger_count: 1
+  would_trigger_at_tolerance_0_15_m: true
+- block_index: 7
+  seed: 7693
+  terminal_distance_at_boundary_m: 0.08732944690488646
+  guard_activation_count: 1
+  boundary_evaluation_count: 1
+  boundary_trigger_count: 1
+  would_trigger_at_tolerance_0_15_m: true
+- block_index: 8
+  seed: 7694
+  terminal_distance_at_boundary_m: 0.006550218834948197
+  guard_activation_count: 2
+  boundary_evaluation_count: 1
+  boundary_trigger_count: 1
+  would_trigger_at_tolerance_0_15_m: true
+causal_attribution:
+  failed_block: 5
+  failed_seed: 7691
+  frozen_terminal_tolerance_m: 0.12
+  observed_terminal_distance_at_boundary_m: 0.12115632487599486
+  miss_margin_m: 0.0011563248759948602
+  boundary_was_evaluated: true
+  candidate_geometry_or_matching_failure: false
+  mechanism: the boundary sample was 1.16 mm outside the frozen terminal tolerance,
+    so the correctly ordered evaluator did not trigger before braking
+single_factor_repair_design:
+  factor: r3_terminal_tolerance_m
+  control: 0.12
+  treatment: 0.15
+  offline_all_eight_boundary_samples_trigger: true
+  stop_occurs_earlier_not_later: true
+  candidate_geometry_unchanged: true
+  horizon_and_actor_model_unchanged: true
+  legacy_action_execution_unchanged: true
+  next_stage: one_fresh_r3_only_runtime_preflight
+R19_R4_remains_failed: true
+R19_R4_seed_reuse_authorized: false
+predictor_fit_authorized: false
+actual_TEB_execution_authorized: false
+perception_execution_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

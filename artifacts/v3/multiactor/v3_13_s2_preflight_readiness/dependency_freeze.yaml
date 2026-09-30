@@ -1,0 +1,51 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-S2-PREFLIGHT
+status: closed_preflight_dependency_freeze
+resource_count: 22
+resources:
+- path: config/thesis_experiments/v3/v3_13_s2_synchronized_sequential_clone_contract.yaml
+  sha256: c55eb3a1749470b87ac6bcf4e37467acfa96adfa60e119968d2c04424727a6c3
+- path: src/tools/thesis_experiment/scripts/build_v3_13_s2_preflight_readiness.py
+  sha256: f9791cbfc5884a1d9d040bcc86805a0e89574e1a7a70231cd2cebac55aa0f51e
+- path: src/tools/thesis_experiment/scripts/review_v3_13_s2_preflight_readiness.py
+  sha256: fc2a15755be910cf097bf673db91fcdc458dcebc6a3d7e077701afe1288a6464
+- path: src/tools/thesis_experiment/scripts/run_v3_13_s2_preflight.py
+  sha256: e455c9caf2514144e4c9a00613166be292be67a78eee7adef5e2c98174c4225a
+- path: src/tools/thesis_experiment/scripts/review_v3_13_s2_preflight_result.py
+  sha256: 36565dc36321e169da7a1ea0fa4f7bffb3b1a5cb0ce51adc24968be2908acda9
+- path: src/tools/thesis_experiment/tests/test_v3_13_s2_design.py
+  sha256: 6b19f897d6d9089dffd687b8ea67736d5edd1726aaf4656d255e8623f92214b0
+- path: src/tools/thesis_experiment/scripts/v3_13_multiactor_design.py
+  sha256: a43820e41263092241c92f37de4bf398f46542b5f6a746b8a2ebef05fabe3054
+- path: src/tools/thesis_experiment/scripts/run_v3_13_c1_multiactor_clones.py
+  sha256: 76ddfe8d09b431ac67660c62c13cd88e734924cf2892d528cbaf6cf078b7d388
+- path: src/application/v3_scope_planner/scripts/v3_scope_multiactor_clone_episode.py
+  sha256: e86f085e0758b1dd02ebc74d42fdaeefd92754506393a8c4fd3402a8c72dc314
+- path: src/application/v3_scope_planner/scripts/v3_scope_multiactor_sequential_clone_episode.py
+  sha256: d728b6d83d6cab6d0144386e1d0741db6f4e8601b916e684b7ec648fd63d38d9
+- path: src/application/v3_scope_planner/scripts/v3_scope_multiactor_sequential_clone_episode_v2.py
+  sha256: fae693c226564f45939e658a80b9038e415ffc1e5233e6653b8184972634c3d0
+- path: src/application/v3_scope_planner/src/v3_scope_planner/multi_actor_core.py
+  sha256: 0569a2177b1a98fc6ebb2c2546a46d5279d1767a7970a49295295bda04ade77a
+- path: src/application/v3_scope_planner/src/v3_scope_planner/execution_core.py
+  sha256: 6aef3146a5360179ea49cea2dda31383ad0935389dfa874191b3df27d2f780e0
+- path: src/simulation/m2_gazebo/launch/m2_v3_13_sequential_clone_episode_v2.launch
+  sha256: afb66fd6172672cf2984f02be843ea0cc3c51fe97280c22152ff3da5e8402ffc
+- path: src/simulation/m2_gazebo/launch/spawn_m2.launch
+  sha256: 0d631e03100a9b874373270b56f58690294c6bc168a2bf1f086319e24bc96193
+- path: src/simulation/m2_gazebo/src/v3_reactive_actor_plugin.cpp
+  sha256: e444707af97c00b27df656f8712bed1eb7128c0c3eb9ad612b21bbbf49a86bf2
+- path: devel/lib/libv3_reactive_actor_plugin.so
+  sha256: 10d20d04c8c7fca586a02fe6d7d7d7a2ee25994f750ca6c5851c486e31a7fdbc
+- path: src/simulation/m2_gazebo/src/m2_ackermann_plugin.cpp
+  sha256: 6819c1252ba0955cb7a1eb973f0bc5d53edd27e1986caf284b7ad68620ec7ed4
+- path: devel/lib/libm2_ackermann_plugin.so
+  sha256: 64f9e3a20fea300fdaf24fb61d45a8023d7e47243b8c3654ef8170a6c029a0e5
+- path: artifacts/v3/multiactor/v3_13_s1_failure/failure_attribution.yaml
+  sha256: b48996d4e72d44e0845163a1a220342fc3b903d3ca0566ca55bf98dae3c9c4bc
+- path: artifacts/v3/multiactor/v3_13_s1_failure/terminal_evidence_freeze.yaml
+  sha256: fcd9b265c08170b7c53857d939c1d550a7996a7fa842f612ab7e4704228d57c1
+- path: artifacts/v3/multiactor/v3_13_s1_failure/independent_review.yaml
+  sha256: e7374ce66faeb779468d5267ac80a4b46c427c3b82f3a64b2d2115c12c40a56f
+credential_environment_scrub_required: true

@@ -1,0 +1,37 @@
+schema_version: "1.0"
+stage: V6-03-R1-D1
+status: offline_failure_attribution_complete
+source_outcome: terminal_preflight_negative
+observations:
+  pct_minimum_scan_range_m: 0.6654322147369385
+  analytic_minimum_scan_range_m: 0.6693530678749084
+  pct_minimum_evaluator_clearance_m: -0.07742418189786626
+  analytic_minimum_evaluator_clearance_m: -0.08088292997765612
+  contact_count_all_methods: 0
+  both_sensor_methods_reached_goal: true
+  shield_did_select_certified_stop: true
+root_causes:
+  - id: shield_evaluator_geometry_mismatch
+    finding: >-
+      The deployed scan shield used robot radius 0.46 m plus inflation 0.12 m,
+      while the frozen evaluator used combined centre separation 1.15 m with
+      actor radius 0.36 m.  The equivalent scan-surface inflation is therefore
+      1.15 - 0.36 - 0.46 = 0.33 m, leaving a deterministic 0.21 m mismatch.
+  - id: report_schema_omission
+    finding: >-
+      The V6 override called the inherited warmup directly but did not add the
+      inherited evaluator-only actor-mode audit fields before serialization;
+      the original summarizer therefore raised KeyError after all three units.
+single_repair_stage:
+  stage: V6-03-R2
+  behavioral_factor: align_runtime_hard_shield_inflation_from_0.12_to_0.33_m
+  nonbehavioral_repair: restore_evaluator_only_actor_mode_audit_field
+  actor_weights_changed: false
+  policy_observation_changed: false
+  analytic_prior_changed: false
+  evaluation_radius_or_gate_changed: false
+  performance_outcome_used_for_tuning: false
+  fresh_preflight_required: true
+claims:
+  safety_or_effectiveness_demonstrated: false
+  r1_may_not_be_retried_or_resumed: true

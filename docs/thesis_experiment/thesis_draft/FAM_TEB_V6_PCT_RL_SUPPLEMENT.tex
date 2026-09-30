@@ -1,0 +1,299 @@
+\documentclass[12pt,a4paper,oneside]{report}
+\usepackage{fontspec}
+\setmainfont{Noto Sans CJK SC}
+\setsansfont{Noto Sans CJK SC}
+\setmonofont{DejaVu Sans Mono}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+\usepackage[margin=2.45cm]{geometry}
+\usepackage{booktabs,longtable,array,tabularx,multirow}
+\usepackage{graphicx,xcolor,amsmath,amssymb}
+\usepackage{hyperref,fancyhdr,url}
+\hypersetup{colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!55!black,
+pdftitle={PCT-SCOPE-RL：仿真特权训练与传感器端到端候选轨迹强化学习},pdfauthor={项目论文技术稿}}
+\definecolor{vblue}{HTML}{1769AA}\definecolor{vgreen}{HTML}{168A72}
+\definecolor{vred}{HTML}{C74440}\definecolor{vgray}{HTML}{667085}\definecolor{vpurple}{HTML}{7A5AF8}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{FAM-TEB / PCT-SCOPE-RL}
+\fancyhead[R]{\leftmark}\fancyfoot[C]{V6--\thepage}\setlength{\headheight}{15pt}
+\setlength{\parindent}{2em}\setlength{\parskip}{0.35em}
+\newcommand{\ok}{\textcolor{vgreen}{通过}}\newcommand{\fail}{\textcolor{vred}{失败}}
+\newcommand{\scope}{\textcolor{vgray}{证据边界}}\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\Huge PCT-SCOPE-RL\\[0.35em]
+\Large 利用仿真特权信息训练、以真实传感器端到端评估候选轨迹，\\
+并由硬安全屏蔽和解析先验共同约束的 Ackermann 局部导航强化学习架构\\[0.8em]
+\large 论文方法、正式结果与迁移边界附录}
+\author{项目论文技术稿\\\small 由冻结合同、训练回执、fresh-seed 正式评估与失败预检证据导出}
+\date{2026 年 8 月 8 日}
+
+\begin{document}
+\special{pdf:trailerid [<563650435453434F5045524C30303031><563650435453434F5045524C30303031>]}
+\pagenumbering{Roman}\maketitle
+
+\chapter*{范围声明}\addcontentsline{toc}{chapter}{范围声明}
+本文给出一个已经实现并训练的强化学习模块，而不是把解析排序器重新命名为 RL。部署 actor
+只读取六帧激光、里程计、局部目标、候选描述、解析先验和硬掩码；仿真世界状态只进入训练期
+critic 与反事实候选排序目标，actor-only 检查点不包含特权模块。动作是 8 个经过 Ackermann
+运动学生成的候选轨迹 ID，而不是无约束速度、转角或 TEB 参数。
+
+在 80 个全新配对块的冻结快速交互总体上，PCT-SCOPE-RL 相对同候选集解析先验将失效计入的
+受限均时降低 8.4024\%，双侧 97.5\% paired-block bootstrap 区间为
+[3.4840\%, 13.7135\%]，目标数 60/80 对 49/80，接触与掩码违规均为零，全部预注册门通过。
+这是本文的主阳性结果。
+
+同时必须保留反证边界：三次单块 Gazebo 预检均未通过冻结的保守净空门，因此没有启动 Gazebo
+资格或正式矩阵，也没有得到相对 Actual TEB 的学习优势。本文不声称形式化安全、通用感知、
+多 actor/OOD 泛化、部署或实车有效性。历史消融还显示 V6 与 no-history 版本结果完全相同，
+故不声称 GRU 历史记忆产生收益。
+
+\chapter*{摘要}\addcontentsline{toc}{chapter}{摘要}
+传统端到端导航强化学习可直接从激光映射到速度，但连续控制输出难以同时保持 Ackermann 可行性、
+安全可审计性和已有解析规划知识。本文提出 PCT-SCOPE-RL：首先由确定性运动学生成器构建
+certified stop、三条直行和四条空间候选；传感器 actor 以 CNN--GRU 编码激光历史，并对每个候选
+输出相对解析先验的残差分数；硬安全屏蔽在采样和执行前拒绝不可接受候选；优势门仅在学习残差
+相对解析动作超过冻结阈值时允许覆盖。训练阶段采用 asymmetric PPO，critic 可读仿真特权状态；
+进一步提出 privileged counterfactual trajectory-rank distillation（PCT），用世界状态构造困难
+交互中的反事实候选排序标签，并以辅助交叉熵监督同一个传感器 actor。部署时删除 critic 和标签。
+
+V5 首次实现完整传感器 actor，在 60 个 fresh blocks 上仅得到 6.0936\% 降幅，未达到 8\% 门。
+V6 只增加 PCT 单因素，使用 4 个训练身份各 120,000 新环境步；验证门四个身份方向全正。随后
+80 块正式评估得到 8.4024\% 主效应与正区间，且相对冻结 V5 的次要改善为 3.1611\%。分场景
+结果显示增益集中在部分遮挡 crossing；窄走廊四方法均失败，说明阳性并非一般导航解决方案。
+Gazebo 预检进一步暴露当前扫描屏蔽与反应式 actor 闭环的迁移缺口，为论文提供可复核的外部
+效度边界。
+
+\noindent\textbf{关键词：} 强化学习；仿真特权信息；Asymmetric PPO；知识蒸馏；候选轨迹；
+Ackermann 运动学；硬安全屏蔽；端到端传感器策略
+
+\tableofcontents\listoftables\listoffigures\clearpage\pagenumbering{arabic}
+
+\chapter{研究问题与创新定位}
+\section{问题定义}
+机器人在时刻 $t$ 获得传感器观测
+$o_t=(L_{t-5:t},\,x_t^{\mathrm{odom}},\,g_t)$，其中 $L$ 为 72 束激光，$g_t$ 为局部目标。
+运动学生成器给出有限候选集 $\mathcal{T}_t=\{\tau_t^1,\ldots,\tau_t^8\}$。研究目标不是学习
+任意控制量，而是在硬可行集合 $\mathcal{A}_{\mathrm{safe}}(o_t)\subseteq\{1,\ldots,8\}$ 中学习
+候选选择策略，并保持解析排序器作为可解释先验与回退。
+
+仿真训练还可获得特权变量 $p_t$，包括 actor 真实位置、速度、模式、危险侧和完整交互状态。
+部署策略必须满足
+\begin{equation}
+a_t\sim\pi_\theta(a\mid o_t,\mathcal{T}_t,m_t),\qquad
+\frac{\partial a_t}{\partial p_t}=0,
+\end{equation}
+其中 $m_t$ 为硬安全掩码。特权信息可以影响参数学习，但不能出现在部署图中。
+
+\section{创新点及其边界}
+PPO、asymmetric actor--critic、privileged teacher、安全 shielding 和候选轨迹规划分别已有研究
+基础\cite{schulman2017ppo,pinto2018asymmetric,chen2020cheating,alshiekh2018shielding,rosmann2017teb}。
+本文不把这些单独机制宣称为首创。可写入论文的组合创新是：
+\begin{enumerate}
+  \item 将 RL 动作空间从高维 TEB/连续控制参数改为\textbf{预生成 Ackermann 可执行候选 ID}，
+  使学习权限、运动学权限与命令权限可分离审计；
+  \item 提出\textbf{解析先验上的优势门控残差 actor}：神经策略不必重学基本进度/净空规律，
+  仅在学到足够反事实优势时覆盖解析动作；
+  \item 提出\textbf{PCT 训练目标}：仿真特权信息不进入部署 actor，而只产生困难场景候选排序标签，
+  与 privileged critic 同时训练同一传感器策略；
+  \item 将硬掩码置于候选采样和执行边界，保留 certified-stop，形成“学习优化性能、解析提供先验、
+  verifier 掌握否决权”的三权分离架构；
+  \item 用 V5 阴性、V6 单因素阳性和 Gazebo 迁移阴性组成完整证据链，不用不利结果调参或删样本。
+\end{enumerate}
+
+\chapter{PCT-SCOPE-RL 架构}
+\section{总体数据流}
+\begin{figure}[htbp]\centering
+\includegraphics[width=\textwidth]{figure_v6_architecture.pdf}
+\caption{PCT-SCOPE-RL 训练与部署数据流。紫色特权路径在 actor-only 部署检查点中被删除。}
+\label{fig:v6arch}\end{figure}
+
+如图~\ref{fig:v6arch}，部署数据流从传感器到候选评分再到
+\path{/cmd_vel_navigation}，中间不读取 Gazebo model states 或 actor 真值轨迹。硬件侧原 GPS
+限幅器、FOD 模式仲裁和 M2 驱动边界无需改变。与直接速度策略相比，轨迹候选输出保留了控制器
+可跟踪性；与直接调 TEB 参数相比，单次决策不会产生高维、耦合且大量被投影的动作。
+
+\section{观测、候选与 actor}
+激光编码器对每帧使用一维卷积，随后以 GRU 融合 6 帧；里程计/目标向量经 MLP 编码。每个候选
+包含目标速度、横向偏移、预测进度、净空、加速度代价、横向代价和切换代价。解析分数
+\begin{equation}
+q_{\mathrm{ana}}(o,\tau)=\Delta x+1.5\,\mathrm{clip}(c,-1,2)
+-0.035J_a-0.025J_y-0.01J_s
+\end{equation}
+提供尺度已知的基本偏好。actor 学习候选残差 $r_\theta(o,\tau)$，得到
+\begin{equation}
+z_\theta(o,\tau)=\bar q_{\mathrm{ana}}(o,\tau)
++3\tanh r_\theta(o,\tau),
+\quad z_\theta=-10^9\;\text{if}\;m(o,\tau)=0.
+\end{equation}
+学习动作只有在相对解析动作的残差优势不少于 0.10 时执行；否则回退解析选择。该门不是事后
+挑选，而是在 V5/V6 合同中冻结。
+
+\section{Asymmetric PPO 与 PCT}
+PPO 使用裁剪代理目标\cite{schulman2017ppo}。actor 只编码 $o_t$，critic 额外编码 32 维特权
+$p_t$，与 Asymmetric Actor Critic 的训练/执行信息分离思想一致\cite{pinto2018asymmetric}：
+\begin{equation}
+L_{\mathrm{PPO}}=-L^{\mathrm{clip}}+c_vL_V-c_H\mathcal{H},
+\qquad V_\phi=V_\phi(o_t,p_t).
+\end{equation}
+V5 的 fresh 结果表明，仅让 critic 读取特权状态仍不足以达到 8\% 实效门。V6 因此只增加一个
+训练因素：在部分遮挡与窄走廊困难族中，根据危险侧、硬掩码和候选速度生成反事实排序目标
+$a_t^{\star}(p_t,m_t)$，并在每次 PPO 更新后进行一次辅助更新：
+\begin{equation}
+L_{\mathrm{V6}}=L_{\mathrm{PPO}}+lambda_{\mathrm{PCT}}
+\operatorname{CE}\bigl(\pi_\theta(\cdot\mid o_t,m_t),a_t^{\star}(p_t,m_t)\bigr),
+\quad\lambda_{\mathrm{PCT}}=0.35.
+\end{equation}
+这与“先用特权教师、后部署纯传感器学生”的一般思想相关\cite{chen2020cheating}，区别在于本研究
+不训练独立全状态驾驶策略，而是在同一个 actor 中蒸馏\emph{候选排序}，并同时保留 PPO 回报学习。
+
+\section{硬安全屏蔽}
+安全不是碰撞惩罚。对每个候选，verifier 检查其短时轨迹及候选之后的可停车尾段；被拒绝候选
+在策略分布中概率为零。certified-stop 始终作为失败关闭动作。该角色对应 pre-shielding 的允许
+动作集合思想\cite{alshiekh2018shielding,carr2022partialshield}，但本文只有经验完整性验证，
+没有时序逻辑或控制屏障函数意义下的形式化证明。
+
+\chapter{实验设计与实现}
+\section{阶段链与预算}
+\begin{table}[htbp]\centering\caption{V5--V6 关键阶段与冻结结论}\label{tab:stages}
+\begin{tabularx}{\textwidth}{p{2.4cm}Xrrp{2.0cm}}\toprule
+阶段 & 唯一目的/因素 & 新训练步 & fresh blocks & 结论\\\midrule
+V5-01 & 传感器 actor、特权 critic、硬掩码组件 & 0 & 组件审计 & \ok\\
+V5-02 & 4 asym、2 symmetric、2 no-prior & 1,800,000 & 验证 & \ok\\
+V5-03-F1 & 首次 60 块正式评估 & 0 & 60 & 6.09\%，\fail\\
+V5-04-D1 & 纯离线失败归因 & 0 & 0 & 锁定 PCT\\
+V6-01-R1 & 4 个 V5 初始化身份，各 120k & 480,000 & 160 验证 & \ok\\
+V6-02-F1 & 80 块四方法 fresh formal & 0 & 80 & 8.40\%，\ok\\
+V6-03/04 & 传感器 Gazebo 迁移预检 & 0 & 3×1 & 净空门\fail\\
+\bottomrule\end{tabularx}\end{table}
+
+V6 四个训练身份使用 seeds 9501--9504，选择检查点的验证 seeds 为 952100--952259；正式 seeds
+953100--953179 在验证门通过前不可访问。每个训练身份在四个交互族与四种方法上采用 Latin 分配，
+每个“身份×场景族×方法”恰好 5 个 episode。失败 episode 以 20 s 受限值计入，不删除 timeout。
+
+\section{训练过程与组件审计}
+\begin{figure}[htbp]\centering\includegraphics[width=.96\textwidth]{figure_v6_training.pdf}
+\caption{四个 V6 训练身份的 PCT 排序准确率与 rollout reward。}\label{fig:training}\end{figure}
+组件门以全新困难状态检查 PCT 教师：部分遮挡目标完成率 87/100，窄走廊 63/100，接触与掩码
+违规均为零；actor 观测键保持不变，actor-only checkpoint 明确标记
+\code{contains\_privileged\_modules=false}。图~\ref{fig:training} 显示四个身份均获得稳定的特权排序
+监督。总新训练预算为 480,000 步，没有追加、重启或从正式结果选模。
+
+验证阶段解析/V5/V6 受限均时为 14.5281/13.3859/12.9828 s，V6 相对解析降低 10.6367\%；
+4/4 身份均为正，接触与掩码违规为零，因此正式数据访问门通过。
+
+\chapter{正式结果}
+\section{主效应与任务结果}
+\begin{figure}[htbp]\centering\includegraphics[width=.96\textwidth]{figure_v6_formal_summary.pdf}
+\caption{80 个 fresh blocks 的方法均时与目标成功数。}\label{fig:formal}\end{figure}
+\begin{table}[htbp]\centering\caption{V6-02-F1 方法级结果}\label{tab:formal}
+\begin{tabular}{lrrrrr}\toprule
+方法 & episodes & 目标 & 受限均时/s & 最小净空/m & 接触/掩码违规\\\midrule
+解析先验 & 80 & 49 & 14.3188 & 0.1113 & 0/0\\
+冻结 V5 & 80 & 56 & 13.5438 & 0.1055 & 0/0\\
+PCT-SCOPE-RL V6 & 80 & 60 & 13.1156 & 0.1541 & 0/0\\
+V6 no-history & 80 & 60 & 13.1156 & 0.1541 & 0/0\\
+\bottomrule\end{tabular}\end{table}
+
+主估计量为 $1-\bar T_{V6}/\bar T_{ana}$，点估计 8.4024\%，双侧 97.5\% block-bootstrap 区间
+[3.4840\%,13.7135\%]；点估计达到冻结 8\% 门、区间下界严格为正、目标数不劣、接触和掩码
+违规为零，故正式阳性。相对冻结 V5 的次要降幅为 3.1611\%，双侧 95\% 区间
+[0.4936\%,6.5765\%]，支持 PCT 单因素带来附加收益。
+
+\begin{figure}[htbp]\centering\includegraphics[width=.86\textwidth]{figure_v6_effect_intervals.pdf}
+\caption{V5/V6 效应点估计与冻结 bootstrap 区间。}\label{fig:effects}\end{figure}
+图~\ref{fig:effects} 同时保留 V5 阴性：V5 虽有正区间，但 6.0936\% 未达到预注册 8\% 实效门。
+因此不能把 V5 与 V6 合并后重新定义阈值。
+
+\section{场景分解与消融}
+\begin{figure}[htbp]\centering\includegraphics[width=.92\textwidth]{figure_v6_family_ablation.pdf}
+\caption{四类交互场景的失效计入均时。}\label{fig:families}\end{figure}
+双向 crossing 与顺序双 actor 场景中三种方法接近；主要增益来自部分遮挡：解析/V5/V6 为
+15.675/12.600/10.7625 s，V6 完成 20/20，而解析完成 9/20。窄走廊中三种方法均为 0/20，均时
+20 s。故本文的有效性声明必须限定为四个合成交互族的总体，其中 PCT 对遮挡族有明显贡献；
+不能声称已解决窄走廊让行。
+
+V6 与 no-history 的 80 个正式块完全一致。这意味着 actor 的可部署输入确实包含历史扫描，
+但本实验没有识别出 GRU 记忆的独立收益。阳性应归因于 PCT 训练及其产生的候选偏好，不得改写为
+“时序端到端网络优于单帧网络”。
+
+\chapter{Gazebo 迁移负结果}
+\section{三次预检}
+\begin{figure}[htbp]\centering\includegraphics[width=.92\textwidth]{figure_v6_gazebo_boundary.pdf}
+\caption{三次 Gazebo 预检的最小保守净空；零线为冻结完整性门。}\label{fig:gazebo}\end{figure}
+\begin{table}[htbp]\centering\caption{Gazebo 预检终局结果（每方法 1 个新鲜 episode）}
+\begin{tabular}{llrrr}\toprule
+阶段 & 方法 & 目标 & 受限时间/s & 最小保守净空/m\\\midrule
+V6-03-R1 & V6 / 解析 / Actual TEB & 1/1/1 & 7.60/7.75/7.75 & -0.077/-0.081/+0.245\\
+V6-03-R2 & V6 / 解析 / Actual TEB & 1/1/1 & 10.40/9.85/7.75 & -0.337/-0.258/+0.285\\
+V6-04 & V6 / 解析 / Actual TEB & 0/1/1 & 22.00/11.60/7.75 & -0.990/-1.034/+0.190\\
+\bottomrule\end{tabular}\end{table}
+
+R1 发现扫描表面膨胀 0.12 m 与评价器中心距 1.15 m 不一致。R2 用几何式
+$1.15-0.36-0.46=0.33$ m 对齐，而非按性能调参；闭环净空反而恶化，说明静态膨胀不是充分修复。
+V6-04 再增加只读 LaserScan+Odometry 的方向可达占用跟踪器，跟踪器门通过，但 V6 超时且净空
+进一步为负。三阶段均为零接触，但冻结的保守净空门失败，因此不能以“没有碰撞”为由放行。
+
+\section{对论文结论的影响}
+Gazebo 结果没有推翻快速总体内的统计阳性，但限制其外部效度。合理表述是：
+\begin{quote}
+PCT-SCOPE-RL 在冻结的传感器级交互环境中证明了相对解析先验的学习收益；然而，当前在线扫描
+屏蔽在反应式 Gazebo actor 下未满足预注册保守净空门，故尚未证明 Gazebo 迁移、Actual TEB
+优势或部署安全。
+\end{quote}
+资格 seeds 954201--954206 与正式 seeds 955200--955229 从未执行；不存在挑选更有利 Gazebo
+episode 的问题。后续研究必须重新设计具有闭环交互一致性的候选条件感知预测/可达占用，而不能
+继续放大一个半径常数。
+
+\chapter{讨论、贡献与局限}
+\section{为什么该工作属于强化学习}
+策略不是监督分类器：主体以 PPO rollout、GAE、裁剪策略目标、价值回归和熵正则从环境回报训练，
+并经历 480,000 个新交互步。PCT 是加入 PPO 的训练期辅助目标，用于解决特权状态不能部署的
+信息瓶颈；它没有替代序列回报优化。四个独立训练身份、验证选模和 fresh formal 共同证明结果
+不是单次 checkpoint 演示。
+
+\section{为什么该工作是端到端而非端到端控制}
+“端到端”限定为从合法传感器到候选轨迹评价：actor 直接编码原始重采样激光与里程计并输出候选
+分数，中间不使用人工 actor 真值特征。系统没有端到端输出轮端执行量；Ackermann 生成器、硬
+verifier、解析先验、优势门和跟踪器是明确的结构先验。该限定比笼统声称“端到端自动驾驶”更准确，
+也更适合安全关键局部导航。
+
+\section{论文可支持的贡献}
+\begin{itemize}
+  \item 可运行的 sensor-only candidate-level RL 软件、训练脚本、ROS 节点和 actor-only checkpoint；
+  \item 仿真特权 critic 与候选反事实 PCT 蒸馏的双通道训练机制；
+  \item 解析先验、优势门、硬掩码和 certified-stop 的结构化安全权限分离；
+  \item V5 阴性到 V6 单因素阳性的预注册证据，含 80 块 fresh formal、效应区间与场景消融；
+  \item 将三次 Gazebo 失败原样导出，明确指出传感器屏蔽的 sim-to-sim 迁移缺口。
+\end{itemize}
+
+\section{禁止扩大的声明}
+本证据不能支持：一般动态场景有效、任意 TEB 优势、形式化安全、识别/跟踪精度、多 actor/OOD
+泛化、实车可用、GRU 历史收益或部署 readiness。Actual TEB 只出现在三个预检单元，且 V6 安全门
+失败，不能做性能统计比较。真实机器人从未连接，稳定工作区从未修改。
+
+\chapter{复现资源索引}
+论文资源位于 \path{artifacts/v6/paper/v6_05_p1_thesis_export/}：
+\begin{itemize}
+  \item \path{v6_02_f1_method_summary.csv}、\path{v6_effect_summary.csv}：主结果与区间；
+  \item \path{v6_02_f1_family_summary.csv}、\path{v6_02_f1_formal_episodes.csv}：场景和逐 episode 数据；
+  \item \path{v6_gazebo_preflight_summary.csv}：三次迁移预检；
+  \item 六幅 SVG/PDF 图、\path{v6_05_p1_claims.yaml} 与 primary-source 文献索引；
+  \item \path{v6_05_p1_evidence_manifest.sha256}：上游证据与实现路径 SHA256；
+  \item \path{FAM_TEB_V6_PCT_RL_SUPPLEMENT.pdf}：本附录；
+  \item \path{FAM_TEB_V6_PCT_RL_THESIS_DRAFT.pdf}：在既有 49 页 V4 稿后追加本附录的合并论文稿。
+\end{itemize}
+
+核心实现为 \path{src/application/v5_e2e_scope_rl/}。V6 主合同、Gazebo 失败和 V6-04 后继均以
+独立 release SHA 封存。复现实验时应使用项目虚拟环境运行训练/快速评估，使用 ROS Noetic 系统
+Python 运行 Gazebo 节点；两种环境不可混用。
+
+\begin{thebibliography}{9}
+\bibitem{schulman2017ppo} J. Schulman et al., ``Proximal Policy Optimization Algorithms,'' arXiv:1707.06347, 2017. \url{https://arxiv.org/abs/1707.06347}
+\bibitem{pinto2018asymmetric} L. Pinto et al., ``Asymmetric Actor Critic for Image-Based Robot Learning,'' RSS, 2018. \url{https://arxiv.org/abs/1710.06542}
+\bibitem{chen2020cheating} D. Chen et al., ``Learning by Cheating,'' CoRL, PMLR 100, 2020. \url{https://proceedings.mlr.press/v100/chen20a.html}
+\bibitem{alshiekh2018shielding} M. Alshiekh et al., ``Safe Reinforcement Learning via Shielding,'' AAAI, 2018. \url{https://arxiv.org/abs/1708.08611}
+\bibitem{carr2022partialshield} S. Carr et al., ``Safe Reinforcement Learning via Shielding under Partial Observability,'' arXiv:2204.00755, 2022. \url{https://arxiv.org/abs/2204.00755}
+\bibitem{rosmann2017teb} C. Rösmann, F. Hoffmann, and T. Bertram, ``Integrated Online Trajectory Planning and Optimization in Distinctive Topologies,'' Robotics and Autonomous Systems, 2017. \url{https://doi.org/10.1016/j.robot.2016.11.007}
+\bibitem{long2017sensorrl} P. Long et al., ``Towards Optimally Decentralized Multi-Robot Collision Avoidance via Deep Reinforcement Learning,'' arXiv:1709.10082, 2017. \url{https://arxiv.org/abs/1709.10082}
+\end{thebibliography}
+
+\end{document}

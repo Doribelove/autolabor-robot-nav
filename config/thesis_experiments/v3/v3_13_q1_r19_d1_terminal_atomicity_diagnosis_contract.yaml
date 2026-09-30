@@ -1,0 +1,39 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R19-D1
+stage_purpose: pure_offline_terminal_guard_boundary_atomicity_diagnosis
+status: preregistered_pure_offline_diagnosis
+upstream:
+  R19_assessment_path: artifacts/v3/multiactor/v3_13_q1_r19_assessment/support_assessment.yaml
+  R19_assessment_sha256: 3eb4cda1da37bb2944258b1ee2b6db1e943e8fdc46277d9097120bbfeec5a90b
+  R19_freeze_sha256: 0737d3522a9003e97e73a7afd9536478ff8b02199c4d443079da6d8b36d567c3
+  R19_review_sha256: 4cd19643cd6cf2e3e69deabc6b135f1bf9776acf46bbe89bbbd73c261587c336
+questions:
+- Were the two guard-zero r3 trajectories outside the frozen terminal predicate?
+- Did control-loop horizon ordering skip the predicate at the exact boundary?
+- Would boundary-atomic evaluation change geometry, actor behavior, safety gates or trajectory evidence?
+diagnostic_gates:
+  r3_episode_count: 8
+  observed_guard_pass_count: 6
+  observed_guard_fail_count: 2
+  every_final_pose_replayed_through_frozen_guard: true
+  every_final_pose_would_trigger_frozen_guard: true
+  guard_failures_exactly_at_horizon_boundary: true
+  source_ordering_horizon_break_before_command_confirmed: true
+  all_r3_dynamic_clearance_m_min: 0.0
+  all_r3_static_clearance_m_min: 0.05
+authority:
+  pure_offline_diagnosis_authorized: true
+  ROS_or_Gazebo_execution_authorized: false
+  predictor_fit_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+downstream:
+  if_all_diagnostic_gates_pass: design_fresh_single_factor_boundary_atomic_preflight
+  R19_reinterpretation_as_pass_authorized: false
+  R19_seed_reuse_authorized: false
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false

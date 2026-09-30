@@ -1,0 +1,9 @@
+std_msgs/Header header
+string schema_version
+string scene_snapshot_id
+string candidate_id
+string generator_id
+string generator_digest
+bool certified_stop
+bool teb_fallback
+v3_scope_planner/TrajectoryPoint[] points

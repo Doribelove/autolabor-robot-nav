@@ -1,0 +1,436 @@
+schema_version: '1.0'
+stage_id: astra_gazebo_20260926
+status: independent_design_proposal_pending_root_review_and_freeze
+execution_release: false
+new_final_outcomes_read: false
+authority_source: CODEX_ASTRA_LONG_RUN_20260926.md
+hardware_motion_authorized: false
+contract_type: splits_and_identity
+geometry_independent_unit: canonical_parent_geometry_id_in_route_frame_excluding_rigid_transforms_and_cosmetic_changes
+split_assignment:
+  algorithm: sha256(stage_id|canonical_parent_geometry_id|actor_parameter_cell_id|allocation_version)
+  grouping:
+  - parent_map_geometry
+  - all_rotations_and_translations
+  - near_duplicate_parameter_cell
+  - actor_policy_parameter_cell
+  no_parent_group_crosses_splits: true
+  parameter_cell_resolution:
+    position_m: 0.2
+    size_m: 0.1
+    angle_deg: 5.0
+    actor_speed_mps: 0.05
+    trigger_time_s: 0.2
+  nearest_geometry_rejection: canonical geometry descriptor max normalized difference
+    <1 cell in all structural coordinates => same parent group
+  random_split_of_episode_rows_forbidden: true
+allocations:
+  train:
+    initial_unique_parent_geometries_per_family: 100
+    expandable_without_final_access: true
+  development:
+    initial_unique_parent_geometries_per_family: 24
+    execution_seeds_per_geometry: 3
+    adaptive: true
+    fresh_tranche_per_major_mechanism: true
+  validation:
+    unique_parent_geometries_per_family_per_tranche: 12
+    execution_seeds_per_geometry: 3
+    independent_tranche_for_each_promotion: true
+    selection_only_not_confirmatory: true
+  final_test:
+    minimum_unique_parent_geometries_per_family: 20
+    execution_seeds_per_geometry: 3
+    minimum_blocks: 360
+    minimum_primary_episodes: 1800
+    outcomes_before_freeze: forbidden
+    outcomes_for_tuning_at_any_time: forbidden
+    retired_permanently_after_unblinding: true
+route_design:
+  core_route_length_m: 9.0
+  core_elapsed_cap_s: 22.0
+  core_gate_route_coordinate_m: 0.0
+  core_goal_route_coordinate_m: 9.0
+  global_world_start_translation_xy_m:
+  - -8.0
+  - 8.0
+  global_world_heading_deg:
+  - -180.0
+  - 180.0
+  rigid_transform_is_not_independent_layout: true
+  core_geometry_must_vary_relative_to_route: true
+  old_r2_runtime_frame_bridge: rigid_transform_to_legacy_x_range_minus4_to5_without_changing_old_internal_code;
+    interface-equivalence-tested
+  ood_long_route_caps:
+  - route_length_range_m:
+    - 12
+    - 15
+    cap_s: 40.0
+  - route_length_range_m:
+    - 16
+    - 20
+    cap_s: 55.0
+  mix_raw_times_across_cap_strata: false
+  new_route_or_cap_change_requires_prefinal_design_revision: true
+scene_grammar:
+  static_avoidance:
+    topologies:
+    - one_block_offset
+    - two_staggered_blocks
+    - asymmetric_passage_with_side_bay
+    parameters:
+      obstacle_count:
+      - 1
+      - 3
+      obstacle_length_m:
+      - 0.5
+      - 1.4
+      obstacle_width_m:
+      - 0.45
+      - 1.1
+      obstacle_center_progress_m:
+      - 2.0
+      - 6.7
+      obstacle_lateral_offset_m:
+      - -0.55
+      - 0.55
+      corridor_clear_width_m:
+      - 4.8
+      - 6.5
+    eligibility: at_least_one_continuous_Ackermann_path_with_frozen_inflation
+  single_crossing:
+    topologies:
+    - near_mid_crossing
+    - oblique_crossing
+    - crossing_with_offset_approach
+    parameters:
+      conflict_progress_m:
+      - 2.4
+      - 6.5
+      crossing_angle_deg:
+      - 60
+      - 120
+      actor_initial_distance_to_conflict_m:
+      - 2.5
+      - 4.5
+      side_boundary_width_m:
+      - 4.8
+      - 8.0
+    eligibility: initial_footprints_disjoint; scripted_unreactive_arrival_difference_abs_s_le_2.0
+  head_on_yield:
+    topologies:
+    - symmetric_corridor
+    - left_passing_bay
+    - right_passing_bay
+    parameters:
+      clear_width_m:
+      - 3.2
+      - 5.6
+      actor_lateral_offset_m:
+      - -1.5
+      - 1.5
+      passing_bay_length_m:
+      - 1.8
+      - 3.0
+      passing_bay_depth_m:
+      - 0.6
+      - 1.2
+      actor_initial_longitudinal_distance_m:
+      - 5.0
+      - 8.5
+    eligibility: shared_planner_independent_path_feasibility; conflict_present_before_any_method_run
+  sequential_interaction:
+    topologies:
+    - alternating_crossings
+    - same_side_crossings
+    - crossing_then_oncoming
+    parameters:
+      actor_count:
+      - 2
+      - 3
+      conflict_separation_m:
+      - 1.8
+      - 3.8
+      crossing_angles_deg:
+      - 60
+      - 120
+      second_actor_trigger_delay_s:
+      - 0.8
+      - 2.8
+    eligibility: all_actor_initial_geometry_disjoint; separable_conflicts; no_infeasible_compulsory_collision
+  occluded_emergence:
+    topologies:
+    - single_screen
+    - L_corner_screen
+    - staggered_screens
+    parameters:
+      screen_length_m:
+      - 0.6
+      - 1.6
+      screen_width_m:
+      - 0.25
+      - 0.7
+      screen_to_conflict_distance_m:
+      - 0.5
+      - 1.4
+      emergence_progress_m:
+      - 2.5
+      - 6.5
+      actor_path_angle_deg:
+      - 65
+      - 115
+    eligibility: ray_geometry_confirms_initial_occlusion_and_later_visibility; initial_screen_actor_intersection_forbidden
+  width_change_corridor:
+    topologies:
+    - symmetric_throat
+    - offset_throat
+    - two_stage_throat
+    parameters:
+      entry_clear_width_m:
+      - 3.4
+      - 5.8
+      throat_clear_width_m:
+      - 1.7
+      - 3.2
+      throat_length_m:
+      - 1.2
+      - 3.6
+      throat_center_offset_m:
+      - -0.65
+      - 0.65
+      throat_progress_m:
+      - 2.2
+      - 6.2
+    eligibility: Ackermann_feasible_entry_exit; positive_inflated_body_clearance_for_at_least_one_path
+actor_parameters:
+  policy_classes:
+  - cautious
+  - hesitant
+  - assertive
+  base_speed_mps:
+  - 0.65
+  - 1.1
+  response_distance_m:
+  - 3.0
+  - 5.0
+  response_time_margin_s:
+  - 0.9
+  - 1.7
+  start_delay_from_common_gate_s:
+  - 0.0
+  - 1.0
+  parameter_cells_disjoint_by_split: true
+  matched_per_block_across_methods: true
+  reactive_result_trajectories_need_not_match_across_methods: true
+  runtime_stochastic_response: optional_new_plugin_version_only_after_component_qualification;
+    parameter randomization mandatory
+  legacy_seed_multiplier_modulus_bug_must_not_be_inherited: true
+random_streams:
+  proposed_namespace_inclusive:
+  - 260926000
+  - 269999999
+  ranges:
+    pipeline_smoke:
+    - 260926001
+    - 260926099
+    training_initialization:
+    - 260927001
+    - 260927099
+    geometry_generator:
+    - 260930000
+    - 260999999
+    train_episode:
+    - 261000000
+    - 262999999
+    development_episode:
+    - 263000000
+    - 263999999
+    validation_episode:
+    - 264000000
+    - 264999999
+    final_episode:
+    - 265000000
+    - 265999999
+    stress_ood_episode:
+    - 266000000
+    - 266999999
+    visualization_only:
+    - 267000000
+    - 267999999
+    statistics_and_schedule:
+    - 268000000
+    - 268999999
+    fault_injection:
+    - 269000000
+    - 269999999
+  historical_ranges_confirmed_from_selected_sources:
+    benchmark_development_reserved:
+    - - 196001
+      - 196120
+    - - 196201
+      - 196212
+    benchmark_pilot_reserved:
+    - - 196501
+      - 196530
+    - - 196601
+      - 196620
+    benchmark_formal_reserved:
+    - - 197001
+      - 197200
+    - - 198001
+      - 198200
+    benchmark_training_observed:
+    - - 9701
+      - 9703
+    benchmark_fast_validation_observed:
+    - - 970100
+      - 970499
+    - - 971100
+      - 971499
+    - - 972100
+      - 972499
+    v5_component_reserved:
+    - - 881000
+      - 886999
+    - - 887000
+      - 887279
+    - - 888000
+      - 891124
+    v5_training:
+    - - 9101
+      - 9104
+    v5_validation_reserved:
+    - - 920100
+      - 920499
+    v5_formal_reserved:
+    - - 930100
+      - 930159
+    v6_training:
+    - - 9501
+      - 9504
+    v6_development_reserved:
+    - - 951000
+      - 951399
+    v6_validation_reserved:
+    - - 952100
+      - 952259
+    v6_formal_reserved:
+    - - 953100
+      - 953179
+    v6_gazebo_preflight_qualification_reserved:
+    - - 954099
+      - 954107
+    - - 954200
+      - 954206
+    v6_gazebo_formal_reserved:
+    - - 955100
+      - 955129
+    - - 955200
+      - 955229
+    v1_v2_v3_v4_other_history: preserve_all_old_identities_and_reservations; full
+      registry consolidation remains root release prerequisite
+  derivation: sha256(stage|split|layout_id|replicate|substream_name), uint32 projection
+    with checked global collision table
+  names:
+  - geometry
+  - actor_parameters
+  - actor_response
+  - sensor_noise
+  - actuator
+  - training_initialization
+  - training_sampling
+  - method_order
+  - bootstrap
+  pairing: environment substream derivation excludes method and candidate ID
+  call_order_independence: precompute time-indexed noise tapes or independent per-source
+    generators
+  integer_seed_range:
+  - 0
+  - 4294967295
+  seed_registry_states:
+  - reserved
+  - released
+  - started
+  - terminal
+  - retired
+  reuse_of_terminal_or_retired_scientific_identity: false
+  namespace_audit_file: contracts/seed_namespace_audit.json
+  all_history_exhaustively_audited: false
+training:
+  promoted_schemes_minimum_independent_seeds: 5
+  initial_proposed_seeds:
+  - 260927001
+  - 260927002
+  - 260927003
+  - 260927004
+  - 260927005
+  each_seed_every_family_in_validation: true
+  seed_to_family_confounding_forbidden: true
+  single_deployment_model_selection: safety_then_valid_completion_then_failure_inclusive_time_on_locked_validation_rule;
+    tie smaller_model_id
+  selection_rule_frozen_before_candidate_validation: true
+  shared_warm_start_declared_if_used: true
+extensions:
+  separate_from_core_aggregation: true
+  strata:
+  - id: narrow_recovery
+    levels:
+    - offset_throat
+    - blocked_then_release
+    - backtracking_required
+  - id: multi_actor
+    levels:
+    - 2
+    - 3
+    - 5
+  - id: scan_noise_std_m
+    levels:
+    - 0.01
+    - 0.03
+    - 0.06
+  - id: scan_delay_s
+    levels:
+    - 0.0
+    - 0.1
+    - 0.2
+    - 0.3
+  - id: occlusion_duration_s
+    levels:
+    - 0.0
+    - 0.5
+    - 1.0
+    - 1.5
+  - id: localization_bias_m
+    levels:
+    - 0.0
+    - 0.05
+    - 0.15
+    - 0.3
+  - id: execution_delay_s
+    levels:
+    - 0.0
+    - 0.05
+    - 0.1
+    - 0.2
+  - id: braking_deceleration_mps2
+    levels:
+    - 0.9
+    - 0.7
+    - 0.5
+  - id: friction
+    levels:
+    - 0.4
+    - 0.7
+    - 1.0
+    prerequisite: force_or_velocity_physics_driver_that_demonstrably_responds_to_mu;
+      SetWorldPose driver is ineligible
+  - id: ood_geometry
+    levels:
+    - unseen_L_turn
+    - unseen_S_route
+    - long_route
+    - unseen_topology
+  minimum_distinct_layouts_per_stress_stratum: 10
+  execution_seeds_per_layout: 3
+  one_factor_at_a_time_then_preregistered_joint_corner_cases: true
+  structural_ineligibility_must_be_reported_not_hidden_as_pass: true

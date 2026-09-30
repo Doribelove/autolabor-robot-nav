@@ -1,0 +1,30 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C5
+preregistration_id: v3_scope_v3_03_c5_post_conflict_reachable_1
+date: "2026-07-24"
+status: frozen_before_offline_post_conflict_reachable_materialization
+contract: config/thesis_experiments/v3/v3_03_c5_post_conflict_reachable_contract.yaml
+single_factor:
+  factor_id: certified_post_conflict_reachable_occupancy
+  actor_coordinate_interval_m: [0.0, 1.35]
+  actor_minimum_speed_mps: 0.12
+  actor_maximum_deceleration_mps2: 2.4
+  planner_uses_evaluator_policy_label: false
+frozen_evidence:
+  c4_terminal_freeze: artifacts/v3/planner/v3_03_c4/v3_03_c4_terminal_freeze.sha256
+  c4_replay_only: true
+unchanged:
+  predictor_model_mode_gate_and_calibration: true
+  fully_cleared_certificate: true
+  candidate_generator_ranker_footprint_margin: true
+  commitment_invariance: true
+  integration_gates: true
+authority:
+  simulation: false
+  execution: false
+  training: false
+  move_base: false
+  cmd_vel_publish: false
+  hardware_device_access: false
+  real_vehicle: false

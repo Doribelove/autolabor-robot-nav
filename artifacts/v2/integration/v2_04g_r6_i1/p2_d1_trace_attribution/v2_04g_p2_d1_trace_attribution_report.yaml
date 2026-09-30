@@ -1,0 +1,175 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P2-D1
+report_id: fam_teb_v2_04g_p2_d1_offline_trace_attribution_1
+status: offline_trace_attribution_physical_room_pass
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps: 0
+real_vehicle_used: false
+contract:
+  path: config/thesis_experiments/v2/v2_04g_r6_i1_p2_d1_offline_trace_attribution_contract.yaml
+  sha256: 82297df5c26538e09f21c5c078dd1d8eb64fe431236d9932d5937deca6b5b31b
+source_integrity:
+  contract_source_bindings_verified: 12
+  p1_terminal_manifest_targets_verified: 10
+  selected_paired_blocks: 30
+  selected_treatment_journals_verified: 30
+  selected_raw_trace_and_evaluation_resources_verified: 60
+  missing_replaced_retried_or_excluded_blocks: 0
+  integrity_failures: []
+  unique_closed_source_paths: 108
+frozen_p1_result:
+  legacy_geometric_restricted_time_s: 19.607581924038897
+  treatment_geometric_restricted_time_s: 18.869873252574667
+  observed_reduction_fraction: 0.037623643462114
+  efficiency_gate_pass: false
+  performance_improvement_demonstrated: false
+  p1_conclusion_changed_by_p2_d1: false
+observed_trace_attribution:
+  current_anchor_cruise_max_vel_x_mps: 1.2
+  current_anchor_cruise_acc_lim_x_mps2: 0.8
+  current_bank_max_vel_x_upper_mps: 1.2
+  current_bank_acc_lim_x_upper_mps2: 0.8
+  both_current_longitudinal_values_at_bank_upper_bound: true
+  mean_total_path_to_terminal_m: 18.20522825701095
+  mean_dispatch_to_first_motion_command_s: 0.2
+  mean_first_cruise_elapsed_s: 1.1733333333333333
+  mean_first_cruise_velocity_mps: 0.6412644926933048
+  mean_post_cruise_path_m: 17.83793944540873
+  mean_cruise_dwell_s: 17.399999999999995
+  mean_actual_cap_bound_dwell_s: 9.203333333333335
+  mean_commanded_cap_bound_dwell_s: 10.673333333333328
+  mean_actual_cap_bound_fraction_of_observation: 0.49637152423483205
+  mean_commanded_cap_bound_fraction_of_observation: 0.5753714244826358
+  mean_start_0_to_10_percent_path_slack_s: 0.14736028190556263
+  mean_middle_10_to_90_percent_path_slack_s: 1.1862599974588688
+  mean_terminal_90_to_100_percent_path_slack_s: 0.36868950645977383
+  mean_post_cruise_recoverable_time_s: 1.6214708194141803
+same_path_longitudinal_envelopes:
+  definition:
+    path_geometry_replayed_not_changed: true
+    pre_cruise_prefix_observed_not_retimed: true
+    post_terminal_accounting_observed_not_retimed: true
+    max_vel_x_mps: 1.2
+    symmetric_acceleration_mps2: 0.8
+    terminal_velocity_mps: 0.0
+  whole_trace_diagnostic:
+    geometric_time_s: 17.17101147718381
+    reduction_fraction_vs_paired_legacy: 0.12426674825557404
+    paired_bootstrap_one_sided_95_percent_lower: 0.11674401534557899
+    blocks_at_or_above_8_percent: 30
+    blocks_at_or_above_10_percent: 26
+    status: diagnostic_only_less_conservative_than_frozen_prefix
+  frozen_prefix_post_cruise_primary:
+    geometric_time_s: 17.251842132563013
+    reduction_fraction_vs_paired_legacy: 0.12014432991289692
+    paired_bootstrap_one_sided_95_percent_lower: 0.11264934873448074
+    margin_above_10_percent_point_fraction: 0.020144329912896913
+    margin_above_10_percent_lower_fraction: 0.012649348734480731
+    blocks_at_or_above_8_percent: 29
+    blocks_at_or_above_10_percent: 24
+    physical_room_gate_pass: true
+target_closure:
+  8percent:
+    target_reduction_fraction: 0.08
+    target_treatment_geometric_time_s: 18.038975370115786
+    additional_reduction_from_observed_treatment_s: 0.8308978824588813
+    required_fraction_of_post_cruise_recoverable_time: 0.5139795085583968
+    first_order_actual_cap_dwell_multiplier: 1.0990430890074248
+    first_order_implied_max_vel_x_mps: 1.3188517068089096
+    inside_current_anchor_bank_speed_bound: false
+  10percent:
+    target_reduction_fraction: 0.1
+    target_treatment_geometric_time_s: 17.646823731635006
+    additional_reduction_from_observed_treatment_s: 1.2230495209396608
+    required_fraction_of_post_cruise_recoverable_time: 0.7562315434904943
+    first_order_actual_cap_dwell_multiplier: 1.152908811857001
+    first_order_implied_max_vel_x_mps: 1.3834905742284012
+    inside_current_anchor_bank_speed_bound: false
+historical_single_coordinate_check:
+  status: descriptive_single_seed_direction_check_only
+  scene_id: v2-cal-cruise-straight-35m-s4301
+  seed: 4301
+  rows:
+    speed_low:
+      candidate_id: anchor_cruise-c01-max_vel_x_low
+      max_vel_x_mps: 0.98
+      weight_optimaltime: 1.2
+      navigation_time_s: 38.2
+      path_length_m: 35.09189881081128
+      minimum_clearance_m: 2.6950201365369653
+    speed_high:
+      candidate_id: anchor_cruise-c02-max_vel_x_high
+      max_vel_x_mps: 1.0899999999999999
+      weight_optimaltime: 1.2
+      navigation_time_s: 34.8
+      path_length_m: 35.11830586738797
+      minimum_clearance_m: 2.688280124601903
+    center:
+      candidate_id: anchor_cruise-c00-center
+      max_vel_x_mps: 1.2
+      weight_optimaltime: 1.2
+      navigation_time_s: 31.8
+      path_length_m: 35.097896335409544
+      minimum_clearance_m: 2.697208155969843
+    weight_low:
+      candidate_id: anchor_cruise-c07-weight_optimaltime_low
+      max_vel_x_mps: 1.2
+      weight_optimaltime: 1.03
+      navigation_time_s: 31.999999999999996
+      path_length_m: 35.10336696178662
+      minimum_clearance_m: 2.696502359108299
+    weight_high:
+      candidate_id: anchor_cruise-c08-weight_optimaltime_high
+      max_vel_x_mps: 1.2
+      weight_optimaltime: 1.3699999999999999
+      navigation_time_s: 31.6
+      path_length_m: 35.10370593798353
+      minimum_clearance_m: 2.694269202101896
+  speed_ceiling_high_1_09_to_center_1_20_time_reduction_fraction: 0.08620689655172409
+  speed_ceiling_path_change_m: -0.02040953197842299
+  speed_ceiling_clearance_change_m: 0.008928031367940292
+  weight_optimaltime_1_03_to_1_37_time_reduction_fraction: 0.012499999999999845
+  interpretation:
+    speed_ceiling_has_target_scale_directional_sensitivity: true
+    weight_optimaltime_alone_has_target_scale_evidence: false
+    new_above_1_2_speed_bound_qualified: false
+    causal_generalization_authorized: false
+decision:
+  aggregate_physical_room_for_8_to_10_percent: true
+  factor_hypothesis_retained_for_design: true
+  specific_executable_runtime_factor_qualified: false
+  counterfactual_gain_achieved: false
+  causal_performance_improvement_demonstrated: false
+  new_speed_bound_safety_qualified: false
+  simulation_authorized: false
+  decision_reason: post_cruise_same_path_point_and_one_sided_lower_exceed_ten_percent_but_runtime_mapping_and_causal_gain_remain_unqualified
+claim_boundary:
+  allowed:
+  - the_frozen_30_block_trace_set_contains_aggregate_same_path_longitudinal_headroom_for_an_8_to_10_percent_design_target
+  - the_primary_envelope_preserves_the_observed_pre_cruise_prefix_and_uses_current_longitudinal_limits
+  - the_result_is_a_physical_room_screen_not_an_achieved_treatment_effect
+  forbidden:
+  - p2_performance_improvement
+  - causal_gain_from_a_named_runtime_parameter
+  - safety_of_speed_above_the_current_bank_bound
+  - p1_positive_reinterpretation
+  - cross_scene_or_real_vehicle_generalization
+  - winner_runtime_ready_or_deployment_ready
+side_effect_audit:
+  ros_gazebo_move_base_started: false
+  simulation_or_training_started: false
+  release_attempt_journal_or_consumption_created: false
+  seed_evidence_or_training_budget_consumed: false
+  runtime_profile_or_p1_evidence_modified: false
+  real_vehicle_connected: false
+artifacts:
+  block_table:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_d1_trace_attribution/v2_04g_p2_d1_trace_attribution_blocks.json
+    sha256: 3b4bf51419eca7d1db4ca5b1c0d57e2a2936ff18863b026378c4e62653f6217d
+    rows: 30

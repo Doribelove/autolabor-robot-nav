@@ -1,0 +1,52 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-02-F1
+status: single_factor_preregistered_before_execution
+date: "2026-08-07"
+parent_contract: v4_00_architecture_contract.yaml
+trigger:
+  prior_stage: V4-02-R0
+  prior_result: zero_learned_time_improvement
+  diagnosis: insufficient_delayed_actor_response_persistence
+single_factor:
+  name: actor_yield_response_persistence
+  baseline:
+    cautious_yield_memory_s: 1.25
+    hesitant_yield_memory_s: 0.75
+  candidate:
+    cautious_yield_memory_s: 2.50
+    hesitant_yield_memory_s: 1.50
+  rationale: >-
+    Preserve a reactive actor's observable yield commitment across multiple
+    0.25 s replanning decisions so that an earlier ego choice can affect later
+    transitions. This is a synthetic parameterized-actor factor, not a claim
+    about human response timing.
+frozen_nonfactors:
+  - action_ids_and_candidate_kinematics
+  - hard_reachable_occupancy_mask
+  - certified_stop_fallback
+  - observation_features
+  - reward_components_and_weights
+  - ppo_algorithm_and_hyperparameters
+  - primary_metric_and_all_gates
+  - simulation_only_claim_boundary
+sequence:
+  - run_offline_learning_value_audit_without_training
+  - if_gate_passes_train_seed_4102_for_at_most_150000_steps
+  - evaluate_only_on_fresh_validation_seeds_421200_to_421399
+  - stop_or_preregister_next_single_factor
+budget:
+  learning_value_audit_episodes: 600
+  maximum_training_environment_steps: 150000
+  consumed_from_global_factor_rounds: 1
+  formal_gazebo_units: 0
+authorization:
+  offline_audit: true
+  bounded_training_on_gate_pass: true
+  gazebo: false
+  real_vehicle: false
+identity_separation:
+  burned_r0_validation_seed_range_inclusive: [420100, 420499]
+  f1_learning_audit_seed_range_inclusive: [421100, 421199]
+  f1_checkpoint_validation_seed_range_inclusive: [421200, 421399]
+  overlap_count: 0

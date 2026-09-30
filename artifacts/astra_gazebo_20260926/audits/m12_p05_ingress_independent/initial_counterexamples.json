@@ -1,0 +1,40 @@
+{
+  "synthetic_only": true,
+  "assessor_snapshot": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_ingress_independent/probe_review_initial_snapshot.py",
+    "sha256": "2d890b82472436282949c865c664094c9516c159033f19a02d6c134073dd9a6a"
+  },
+  "baseline": {
+    "pass": true,
+    "checks": 123
+  },
+  "cases": {
+    "driver_receipt_after_paused_watermark": {
+      "pass": true,
+      "failed": [],
+      "driver_ns": 37102000000,
+      "paused_watermark_ns": 37100000000
+    },
+    "headerless_callback_clock_shift_-0.002": {
+      "pass": true,
+      "failed": [],
+      "relay_match_fraction": 0.984375
+    },
+    "headerless_callback_clock_shift_0.14": {
+      "pass": true,
+      "failed": [],
+      "relay_match_fraction": 0.984375
+    },
+    "headerless_callback_clock_shift_0.25": {
+      "pass": false,
+      "failed": [
+        "command_relay_observed"
+      ],
+      "relay_match_fraction": 0.953125
+    },
+    "callback_decode_failure_after_capture_close": {
+      "active": false,
+      "callback_errors_appended_after_close": 1
+    }
+  }
+}

@@ -1,0 +1,41 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-08-A1
+status: terminal_post_gazebo_evidence_serialization_failure
+formal_result: false
+release_sha256: 5af92c091a2102fb884c16b59af1d985d854cbfaca1c6305703182590e8585ec
+authorization_sha256: f752ca8188ddd395430c70be619953089d6821bde81fb9f22f5d3d79cadbf385
+execution:
+  authorized_units: 18
+  consumed_units: 2
+  completed_units: 1
+  forfeited_units: 16
+  retry_units: 0
+  resume_allowed: false
+completed_observation:
+  unit_id: v3_08_a1_integration_6671_cautious
+  goal_reached: true
+  goal_time_s: 7.5
+  decision_count: 1
+failure:
+  unit_id: v3_08_a1_integration_6671_assertive
+  phase: post_gazebo_planner_result_digest_serialization
+  exception: "ValueError:Out of range float values are not JSON compliant"
+  confirmed_cause: >-
+    The rejected unsupported spatial candidate retained negative infinity as
+    its diagnostic minimum clearance. The canonical JSON digest correctly
+    rejects non-finite values. Selection had already failed closed to the
+    certified stop, but the evidence receipt could not be serialized.
+  physical_planner_selection_failure: false
+  evidence_path_failure: true
+disposition:
+  terminal_non_resumable: true
+  retry_or_seed_reuse_allowed: false
+  remaining_budget_retired: true
+  source_files_bound_to_release_must_not_be_patched: true
+  repair_requires_new_stage_fresh_seeds_release_review_and_authorization: true
+claims:
+  integration_qualified: false
+  performance_claim_authorized: false
+  runtime_ready: false
+  real_vehicle_authorized: false

@@ -1,0 +1,408 @@
+{
+  "pass": true,
+  "checks": {
+    "all12_actual_based_cases": true,
+    "frozen_1e7_tolerance": true,
+    "all7_body_union_radii_outward": true,
+    "source_unchanged_during_review": true
+  },
+  "tests": [
+    {
+      "name": "actual_saved_model_and_metadata_baseline",
+      "expected_rejection": false,
+      "rejected": false,
+      "pass": true,
+      "error": null
+    },
+    {
+      "name": "runtime_COM",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "runtime/converted COM differs: base_link"
+    },
+    {
+      "name": "runtime_inertia",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "runtime/converted inertia tensor differs: base_link"
+    },
+    {
+      "name": "runtime_ODE_inertia",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "native ODE inertia differs from Gazebo tensor: base_link"
+    },
+    {
+      "name": "runtime_mass",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "Gazebo/ODE mass correspondence failed"
+    },
+    {
+      "name": "runtime_finite_rotation",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "robot runtime body is not normal dynamic ODE: autolabor_m2::base_link"
+    },
+    {
+      "name": "runtime_shape_dimension",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "runtime/converted collision dimensions differ"
+    },
+    {
+      "name": "runtime_body_missing",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "runtime/converted surviving body roster differs"
+    },
+    {
+      "name": "converted_mass",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "converted merged mass differs from source members"
+    },
+    {
+      "name": "converted_inertia",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "converted inertia differs from source fixed-member tensor: base_link"
+    },
+    {
+      "name": "converted_collision_missing",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "collision source\u2192lump mapping ambiguous/absent: chassis_link/chassis_collision"
+    },
+    {
+      "name": "converted_fixed_frame_attachment",
+      "expected_rejection": true,
+      "rejected": true,
+      "pass": true,
+      "error": "fixed frame attachment differs from URDF tree"
+    }
+  ],
+  "reviewed_source_sha256": "3bebade4f43d53f0a7cc0be1fd067d42bdb9d9c6251d4d2c728f59993c6f0736",
+  "radius_audits": [
+    {
+      "body": "base_link",
+      "runtime_radius_m": 0.6495887595854348,
+      "converted_radius_about_runtime_com_m": 0.6495887595854348,
+      "URDF_source_radius_about_runtime_com_m": 0.6495887595854348,
+      "used_outward_union_radius_m": 0.6495887595854349,
+      "comparison_tolerance_unchanged": 1e-07
+    },
+    {
+      "body": "front_left_steer_link",
+      "runtime_radius_m": 0.0696419413859206,
+      "converted_radius_about_runtime_com_m": 0.0696419413859206,
+      "URDF_source_radius_about_runtime_com_m": 0.0696419413859206,
+      "used_outward_union_radius_m": 0.06964194138592061,
+      "comparison_tolerance_unchanged": 1e-07
+    },
+    {
+      "body": "front_left_wheel_link",
+      "runtime_radius_m": 0.15555275238371957,
+      "converted_radius_about_runtime_com_m": 0.15555275238371957,
+      "URDF_source_radius_about_runtime_com_m": 0.15555275238371957,
+      "used_outward_union_radius_m": 0.1555527523837196,
+      "comparison_tolerance_unchanged": 1e-07
+    },
+    {
+      "body": "front_right_steer_link",
+      "runtime_radius_m": 0.0696419413859206,
+      "converted_radius_about_runtime_com_m": 0.0696419413859206,
+      "URDF_source_radius_about_runtime_com_m": 0.0696419413859206,
+      "used_outward_union_radius_m": 0.06964194138592061,
+      "comparison_tolerance_unchanged": 1e-07
+    },
+    {
+      "body": "front_right_wheel_link",
+      "runtime_radius_m": 0.15555275238371957,
+      "converted_radius_about_runtime_com_m": 0.15555275238371957,
+      "URDF_source_radius_about_runtime_com_m": 0.15555275238371957,
+      "used_outward_union_radius_m": 0.1555527523837196,
+      "comparison_tolerance_unchanged": 1e-07
+    },
+    {
+      "body": "rear_left_wheel_link",
+      "runtime_radius_m": 0.15555275238371957,
+      "converted_radius_about_runtime_com_m": 0.15555275238371957,
+      "URDF_source_radius_about_runtime_com_m": 0.15555275238371957,
+      "used_outward_union_radius_m": 0.1555527523837196,
+      "comparison_tolerance_unchanged": 1e-07
+    },
+    {
+      "body": "rear_right_wheel_link",
+      "runtime_radius_m": 0.15555275238371957,
+      "converted_radius_about_runtime_com_m": 0.15555275238371957,
+      "URDF_source_radius_about_runtime_com_m": 0.15555275238371957,
+      "used_outward_union_radius_m": 0.1555527523837196,
+      "comparison_tolerance_unchanged": 1e-07
+    }
+  ],
+  "mapping": {
+    "body_members": {
+      "base_link": [
+        "base_link",
+        "chassis_link",
+        "laser_link",
+        "imu_link"
+      ],
+      "front_left_steer_link": [
+        "front_left_steer_link"
+      ],
+      "front_left_wheel_link": [
+        "front_left_wheel_link"
+      ],
+      "front_right_steer_link": [
+        "front_right_steer_link"
+      ],
+      "front_right_wheel_link": [
+        "front_right_wheel_link"
+      ],
+      "rear_left_wheel_link": [
+        "rear_left_wheel_link"
+      ],
+      "rear_right_wheel_link": [
+        "rear_right_wheel_link"
+      ]
+    },
+    "fixed_joint_frames": [
+      {
+        "joint": "chassis_joint",
+        "parent": "base_link",
+        "child": "chassis_link",
+        "surviving_body": "base_link"
+      },
+      {
+        "joint": "laser_joint",
+        "parent": "base_link",
+        "child": "laser_link",
+        "surviving_body": "base_link"
+      },
+      {
+        "joint": "imu_joint",
+        "parent": "base_link",
+        "child": "imu_link",
+        "surviving_body": "base_link"
+      }
+    ],
+    "moving_joint_names": [
+      "front_left_steer_joint",
+      "front_left_wheel_joint",
+      "front_right_steer_joint",
+      "front_right_wheel_joint",
+      "rear_left_wheel_joint",
+      "rear_right_wheel_joint"
+    ],
+    "collision_map": [
+      {
+        "urdf_collision": "chassis_link/chassis_collision",
+        "urdf_link": "chassis_link",
+        "surviving_body": "base_link",
+        "sdf_collision": "autolabor_m2::base_link::base_link_fixed_joint_lump__chassis_collision_collision",
+        "source_to_converted_translation_m": 0.0,
+        "source_to_converted_angle_rad": 0.0
+      },
+      {
+        "urdf_collision": "laser_link/collision_0",
+        "urdf_link": "laser_link",
+        "surviving_body": "base_link",
+        "sdf_collision": "autolabor_m2::base_link::base_link_fixed_joint_lump__laser_link_collision_2",
+        "source_to_converted_translation_m": 0.0,
+        "source_to_converted_angle_rad": 0.0
+      },
+      {
+        "urdf_collision": "imu_link/collision_0",
+        "urdf_link": "imu_link",
+        "surviving_body": "base_link",
+        "sdf_collision": "autolabor_m2::base_link::base_link_fixed_joint_lump__imu_link_collision_1",
+        "source_to_converted_translation_m": 0.0,
+        "source_to_converted_angle_rad": 0.0
+      },
+      {
+        "urdf_collision": "front_left_steer_link/collision_0",
+        "urdf_link": "front_left_steer_link",
+        "surviving_body": "front_left_steer_link",
+        "sdf_collision": "autolabor_m2::front_left_steer_link::front_left_steer_link_collision",
+        "source_to_converted_translation_m": 0.0,
+        "source_to_converted_angle_rad": 0.0
+      },
+      {
+        "urdf_collision": "front_left_wheel_link/collision_0",
+        "urdf_link": "front_left_wheel_link",
+        "surviving_body": "front_left_wheel_link",
+        "sdf_collision": "autolabor_m2::front_left_wheel_link::front_left_wheel_link_collision",
+        "source_to_converted_translation_m": 0.0,
+        "source_to_converted_angle_rad": 3.6732051035118894e-06
+      },
+      {
+        "urdf_collision": "front_right_steer_link/collision_0",
+        "urdf_link": "front_right_steer_link",
+        "surviving_body": "front_right_steer_link",
+        "sdf_collision": "autolabor_m2::front_right_steer_link::front_right_steer_link_collision",
+        "source_to_converted_translation_m": 0.0,
+        "source_to_converted_angle_rad": 0.0
+      },
+      {
+        "urdf_collision": "front_right_wheel_link/collision_0",
+        "urdf_link": "front_right_wheel_link",
+        "surviving_body": "front_right_wheel_link",
+        "sdf_collision": "autolabor_m2::front_right_wheel_link::front_right_wheel_link_collision",
+        "source_to_converted_translation_m": 0.0,
+        "source_to_converted_angle_rad": 3.6732051035118894e-06
+      },
+      {
+        "urdf_collision": "rear_left_wheel_link/collision_0",
+        "urdf_link": "rear_left_wheel_link",
+        "surviving_body": "rear_left_wheel_link",
+        "sdf_collision": "autolabor_m2::rear_left_wheel_link::rear_left_wheel_link_collision",
+        "source_to_converted_translation_m": 0.0,
+        "source_to_converted_angle_rad": 3.6732051035118894e-06
+      },
+      {
+        "urdf_collision": "rear_right_wheel_link/collision_0",
+        "urdf_link": "rear_right_wheel_link",
+        "surviving_body": "rear_right_wheel_link",
+        "sdf_collision": "autolabor_m2::rear_right_wheel_link::rear_right_wheel_link_collision",
+        "source_to_converted_translation_m": 0.0,
+        "source_to_converted_angle_rad": 3.6732051035118894e-06
+      }
+    ],
+    "quantization_diagnostics": [
+      {
+        "body": "base_link",
+        "nominal_com": [
+          0.0,
+          0.0,
+          0.2726726726726727
+        ],
+        "converted_com": [
+          0.0,
+          0.0,
+          0.272673
+        ],
+        "com_delta_m": 3.273273272985655e-07,
+        "nominal_radius_m": 0.6495884322581075,
+        "converted_radius_m": 0.6495887595854348,
+        "source_radius_at_converted_com_m": 0.6495887595854348
+      },
+      {
+        "body": "front_left_steer_link",
+        "nominal_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "converted_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "com_delta_m": 0.0,
+        "nominal_radius_m": 0.0696419413859206,
+        "converted_radius_m": 0.0696419413859206,
+        "source_radius_at_converted_com_m": 0.0696419413859206
+      },
+      {
+        "body": "front_left_wheel_link",
+        "nominal_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "converted_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "com_delta_m": 0.0,
+        "nominal_radius_m": 0.15555275238371957,
+        "converted_radius_m": 0.15555275238371957,
+        "source_radius_at_converted_com_m": 0.15555275238371957
+      },
+      {
+        "body": "front_right_steer_link",
+        "nominal_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "converted_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "com_delta_m": 0.0,
+        "nominal_radius_m": 0.0696419413859206,
+        "converted_radius_m": 0.0696419413859206,
+        "source_radius_at_converted_com_m": 0.0696419413859206
+      },
+      {
+        "body": "front_right_wheel_link",
+        "nominal_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "converted_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "com_delta_m": 0.0,
+        "nominal_radius_m": 0.15555275238371957,
+        "converted_radius_m": 0.15555275238371957,
+        "source_radius_at_converted_com_m": 0.15555275238371957
+      },
+      {
+        "body": "rear_left_wheel_link",
+        "nominal_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "converted_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "com_delta_m": 0.0,
+        "nominal_radius_m": 0.15555275238371957,
+        "converted_radius_m": 0.15555275238371957,
+        "source_radius_at_converted_com_m": 0.15555275238371957
+      },
+      {
+        "body": "rear_right_wheel_link",
+        "nominal_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "converted_com": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "com_delta_m": 0.0,
+        "nominal_radius_m": 0.15555275238371957,
+        "converted_radius_m": 0.15555275238371957,
+        "source_radius_at_converted_com_m": 0.15555275238371957
+      }
+    ],
+    "URDF_to_SDF_scalar_rule": "six significant decimal digits; exact converted bytes separately authenticated",
+    "runtime_joint_parameters_directly_measured": false
+  },
+  "scope": "Synthetic fault mutations of actual frozen Q04 metadata/URDF and newly recorded offline conversion. Not a new Gazebo result and not a historical result reclassification."
+}

@@ -1,0 +1,76 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-A2
+stage_purpose: fresh_trace_window_integrity_repair_for_spatial_identifiability
+contract_id: v3_scope_v3_07_a2_trace_window_repair_1
+status: single_factor_repair_preregistered_before_simulation
+parent_failure:
+  stage: V3-07-A1
+  terminal_freeze_path: artifacts/v3/spatial/v3_07_a1/v3_07_a1_terminal_freeze.sha256
+  disposition: terminal_one_consumed_zero_complete_thirty_five_forfeited
+single_factor_repair:
+  factor_id: evidence_recording_duration_only
+  old_duration_s: 5.0
+  new_duration_s: 8.0
+  sample_period_s: 0.05
+  expected_data_rows_min: 160
+  parser_minimum_data_rows: 150
+  candidate_geometry_changed: false
+  common_prefix_changed: false
+  actor_semantics_changed: false
+  qualification_gates_changed: false
+  safety_radius_changed: false
+experimental_unit:
+  scenario_blocks:
+    - {block_id: repair_6561, seed: 6561, angle_deg: 72.0, actor_start_distance_m: 2.90, actor_base_speed_mps: 0.90}
+    - {block_id: repair_6562, seed: 6562, angle_deg: 88.0, actor_start_distance_m: 3.10, actor_base_speed_mps: 1.00}
+    - {block_id: repair_6563, seed: 6563, angle_deg: 102.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 1.10}
+    - {block_id: repair_6564, seed: 6564, angle_deg: 78.0, actor_start_distance_m: 3.20, actor_base_speed_mps: 0.95}
+  policies: [cautious, assertive, hesitant]
+  branches: [straight_v120, spatial_left_v120, spatial_right_v120]
+  schedule_rows: 36
+  training_rows: 0
+  calibration_rows: 36
+  retry_allowed: false
+  resume_allowed: false
+scene:
+  duration_s: 8.0
+  max_step_size_s: 0.001
+  real_time_update_rate_hz: 1000
+  sample_period_s: 0.05
+  ego:
+    model_name: v3_ego
+    footprint_m: [1.13, 0.73, 0.55]
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    common_prefix: {duration_s: 0.50, speed_mps: 0.80, end_x_m: -2.60}
+  actor:
+    model_name: v3_actor
+    size_m: [0.45, 0.45, 1.70]
+    endpoint_after_conflict_m: 5.0
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+qualification_gates:
+  completed_unit_count: 36
+  common_prefix_position_error_max_m: 0.006
+  spatial_ego_separation_at_3_5_s_min_m: 0.30
+  left_right_actor_coordinate_difference_max_m: 0.03
+  mean_spatial_vs_straight_actor_sensitivity_min_m: 0.10
+  candidate_sensitive_pair_fraction_min: 0.50
+  pair_sensitivity_threshold_m: 0.10
+  conservative_clearance_violation_count_max: 0
+  minimum_conservative_clearance_m_min: 0.0
+  conservative_combined_radius_m: 1.15
+  nonfinite_metric_count_max: 0
+authority_boundary:
+  held_out_test_seeds_reserved: [6571, 6572, 6573]
+  held_out_test_access_authorized: false
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_write_authorized: false
+  runtime_integration_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  The repaired fresh reactive simulator produces candidate-sensitive,
+  mirror-consistent outcomes for cloned spatial interventions. This qualifies
+  only a separate spatial predictor data-design stage.

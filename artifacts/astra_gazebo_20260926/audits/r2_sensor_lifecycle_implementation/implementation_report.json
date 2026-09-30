@@ -1,0 +1,195 @@
+{
+  "schema": "astra_frozen_r2_sensor_lifecycle_implementation_v1",
+  "status": "offline_author_components_pass_independent_review_and_live_integration_pending",
+  "method": "frozen_r2_v060_sensor_lifecycle_v1",
+  "sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/frozen_r2_sensor_lifecycle.py",
+      "sha256": "791529d1436144d286a2e3a86a5de638e3f5a60ee579a36074017d3aac3ff71b",
+      "bytes": 11785
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_frozen_r2_sensor_lifecycle.py",
+      "sha256": "e839d13fd899b732a36e6e0a3e28c35c4b0d00ada999372d27ef81baf2be4c75",
+      "bytes": 30152
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_frozen_r2_sensor_lifecycle.py",
+      "sha256": "5b64a0f94ffb297a6a1d6028943c1bba3fc3222db2bdb5cfc4bfe35ecfa32002",
+      "bytes": 23583
+    }
+  ],
+  "immutable_originals_reverified": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+      "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_r2_episode.py",
+      "sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+      "sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+      "sha256": "3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7"
+    }
+  ],
+  "checkpoint": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/artifacts/gazebo_pct_teb_dwa_benchmark/development/training/pct_benchmark_r1_seed9701/actor_final.pt",
+    "sha256": "deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8",
+    "bytes": 215742
+  },
+  "design": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_sensor_lifecycle_design/design.json",
+    "sha256": "ce5a6e07e03b936c6ede631bd1ff17b7912fb7de26db4741832bc07942b7516c",
+    "bytes": 15842
+  },
+  "tests": {
+    "command": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python -m pytest -q /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_frozen_r2_sensor_lifecycle.py --tb=short",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "exit_code": 0,
+    "passed": 60,
+    "elapsed_s": 2.11,
+    "transport": "real generated ROS messages with fake clock/TF/pub/sub; no ROS master/service/launch",
+    "included": [
+      "strict positive/order/200ms source ingress and future2ms queue",
+      "true accepted history count versus padded tensors and high-rate raw scans",
+      "exact TF source/frame/finite checks and expiry",
+      "same actual R1/R2 source/checkpoint instantiated in fake transport",
+      "constructor actor/runtime initialization AST byte-equivalent representation",
+      "inherited execute_sensor/input_health/policy_pose function identity",
+      "accepted same-stream observations/all8previews/masks/analytic scores/learned rankings/revalidate/commit/terminal command equality",
+      "actual inherited 20Hz loop streams decision/control rows and unwinds shared terminal before ROS tail sleeps",
+      "shared timeout/stopped/fault never falsely become reached goal",
+      "late terminal fault leaves original complete phase immutable",
+      "full node main actual closure positive/map/path mutations/missing receipt and pause-independent final report"
+    ],
+    "limitations": [
+      "Fake transport is not ROS scheduling/TCPROS/Gazebo qualification.",
+      "The full-main tests isolate lifecycle callbacks with the algorithm worker disabled; separate actual-loop tests execute inherited control.",
+      "Initial /usr/bin/python3 test attempt lacked gymnasium; final test uses actual frozen workspace .venv interpreter.",
+      "One early test incorrectly called commit without revalidate; corrected fixture now exercises real transaction order."
+    ]
+  },
+  "override_surface": [
+    "__init__",
+    "_ingress",
+    "_odom",
+    "_scan",
+    "accept_scan",
+    "drain",
+    "status",
+    "ready",
+    "wait_ready",
+    "warmup",
+    "robot_world_pose",
+    "actor_world_poses",
+    "conservative_clearance",
+    "common_metrics_step",
+    "goal_state",
+    "emit_zero",
+    "publish_command"
+  ],
+  "inherited_method_ast_sha256": {
+    "execute_sensor": "34b90eed00dcc85cde3dc640226e6bc93d70a85f884ae382f06b8457b92e33c8",
+    "input_health": "d20599b3d5c2c7f6b2c4b46de1c47841bc38aeb67c8dc2d3f2ed73fa6660a882",
+    "policy_pose": "ae2292148f77faa17fac55ab09f7fc1b1ea9658173c72d5b57f4e50d718623fd"
+  },
+  "constructor_changes": [
+    "retain original actor/checkpoint/runtime initialization AST",
+    "strip manifest actors after scene identity validation; keep shared raster static geometry only",
+    "remove model_states/model_index and all model/contact/baseline subscriptions",
+    "contact_state_count diagnostic unavailable (None)",
+    "wrap TF source validation; raw TF listener unchanged",
+    "private output and new source-ingress/trace/lifecycle state"
+  ],
+  "io": {
+    "required_params": [
+      "execution_method",
+      "run_id",
+      "seed",
+      "method",
+      "candidate_variant",
+      "scene_id",
+      "scene_manifest",
+      "report_path",
+      "actor_checkpoint_path",
+      "actor_checkpoint_sha256",
+      "bundle",
+      "bundle_sha256"
+    ],
+    "fixed": {
+      "execution_method": "frozen_r2_v060_sensor_lifecycle_v1",
+      "method": "pct_scope_rl",
+      "candidate_variant": "r2_candidate_v060",
+      "actor_checkpoint_sha256": "deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8",
+      "spawn_world_x": -5.4,
+      "policy_start_world_x": -4.0,
+      "goal_world_x": 5.0,
+      "goal_tolerance_m": 0.25,
+      "timeout_s": 22.0,
+      "activation_time_s": 5.0,
+      "warmup_speed_mps": 0.8,
+      "warmup_gate_tolerance_m": 0.03,
+      "lookahead_m": 0.7
+    },
+    "subscriptions": [
+      "/odom",
+      "/scan",
+      "/tf",
+      "/tf_static",
+      "/map",
+      "/astra/common_route/path",
+      "/astra/navigation/gate",
+      "/astra/navigation/status"
+    ],
+    "no_truth_subscriptions_or_Gazebo_services": true,
+    "private_command_output": "/astra/method_cmd",
+    "public_command_output_owned_by_coordinator": true,
+    "status": "/astra/method/status",
+    "other_outputs": [
+      "/astra/frozen_r2_sensor_lifecycle/identity",
+      "/astra/frozen_r2_sensor_lifecycle/input_receipt",
+      "/astra/frozen_r2_sensor_lifecycle/trace",
+      "/astra/frozen_r2_sensor_lifecycle/command_event",
+      "/astra/frozen_r2_sensor_lifecycle/report"
+    ],
+    "publisher_queue_size": 1000,
+    "terminal_source": "shared coordinator actual odometry header authority; legacy sensor pose/path diagnostics only",
+    "command_event_semantics": "own publication ROS source time and gate identity; not downstream acceptance or a retroactive source stamp for other headerless methods",
+    "report_file_mode": "exclusive create; failure preserves existing artifact"
+  },
+  "fairness": {
+    "route_use": "audit_only",
+    "full_polyline_consumed": false,
+    "candidate_reference": "legacy absolute map x, fixed y=0 nominal reference",
+    "shared_map": "exact normalized blocked raster rectangle union checked with zero cell mismatch/overlap; original consumer adds implicit +/-20m y walls",
+    "static_consumer_semantics_equal": false,
+    "old_full_episode_unchanged": false,
+    "learned_R2_algorithm_unchanged": true,
+    "shared_gate_formal_time_separate_from_inherited_elapsed_features": true,
+    "unknown_oracle_clearance_and_contacts_reported_as": null,
+    "safety_evidence_authority": "separate full-body source-stamped bag evaluator"
+  },
+  "integration_pending": [
+    "Current frozen N01 coordinator method enum deliberately unchanged; a new integration version must admit this identity and bind its new source/dependencies.",
+    "New launch/collector must record the five lifecycle evidence topics plus standard method status and sensor/common inputs.",
+    "Independent reviewer has not yet approved these files.",
+    "No fresh lifecycle Gazebo comparison has run.",
+    "Original strict all-five shared-global-path consumption requirement remains unresolved; this implementation does not claim to satisfy it."
+  ],
+  "claims": {
+    "new_checkpoint": false,
+    "training": false,
+    "simulation_execution": false,
+    "ROS_master_started": false,
+    "build_started": false,
+    "seed_reserved_or_consumed": false,
+    "physical_safety_certified": false,
+    "primary_matrix_ready": false,
+    "performance_result": false
+  }
+}

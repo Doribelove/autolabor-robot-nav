@@ -1,0 +1,7 @@
+# Q03 独立离线预检
+
+independent_q03_kinematic_hold_preflight_pass；20/20 项通过。
+
+独立展开两版 URDF，除库名外结构完全相等；原 probe 对新 URDF 和 world 的有效参数校验通过。动作序列、全部门限、effective 参数、world 保持不变。新实现每个正时间物理步同时投影两个转向关节位置并归零角速度；50 Hz 主步先更新 cache 再 hold，不覆盖新目标。旧 driver/probe 哈希保持冻结。
+
+这是可证伪的运动学保持诊断：预测实际与发布角残差及原 20 ms slew 超门减少；不保证通过。仍只有固定相位 50 Hz 观测，不能证明 2 ms 步内限值、力驱动动力学或实车可用性。源/库/编译日志哈希、实际命令及展开 XML 见 JSON。未启动 ROS。

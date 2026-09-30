@@ -1,0 +1,37 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P2-C1
+status: release_terminally_unused_preexecution_binding_mismatch
+release:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i1_p2_c1_execution_release.yaml
+  sha256: bf370b51e19a91fd13ccf2684d4217590c675042c51fa2b26e95bd4db3bd5266
+release_validation_passed: true
+execute_called: false
+execution_root_created: false
+gazebo_or_ros_started: false
+authorized_evidence_units_max: 342
+consumed_evidence_units: 0
+completed_evidence_units: 0
+forfeited_authority_units: 342
+resume_or_reuse_this_release_allowed: false
+finding:
+  kind: preconsumption_schedule_instance_binding_mismatch
+  first_affected_sequence: 1
+  row_type: qualification_probe
+  probe_type: braking
+  scheduled_timeout_s: 80.0
+  compiled_scene_timeout_s: 55.0
+  affected_q1_source_sequences: [331, 333, 334, 336, 337, 339, 340, 342]
+  behavioral_runtime_effect_if_unchecked: none
+  actual_old_runner_effect: fail_before_base_roslaunch_spawn
+repair_boundary:
+  new_independent_stage_required: true
+  old_release_or_hash_may_not_be_modified: true
+  behavioral_candidate_parameter_or_threshold_change_allowed: false
+  fresh_release_and_corresponding_authorization_required: true
+  new_stage_must_verify_every_row_against_compiled_instance_semantics: true
+claim_state:
+  formal_result: false
+  performance_improvement_demonstrated: false
+  calibration_result_exists: false
+  held_out_test_accessed: false

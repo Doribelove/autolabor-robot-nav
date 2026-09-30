@@ -1,0 +1,236 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-00
+status: interface_registry_pass
+offline_only: true
+runtime_ready: false
+execution_authorized: false
+ros_package: v3_scope_planner
+message_count: 5
+messages:
+- message: TrajectoryPoint
+  path: src/application/v3_scope_planner/msg/TrajectoryPoint.msg
+  sha256: e273c64f27494dde9a7219149e1a200c0c41343b1bdc8520bc2f2b995270aa35
+  field_count: 7
+  constant_count: 0
+  fields:
+  - type: duration
+    name: time_from_start
+    line: 1
+  - type: geometry_msgs/Pose2D
+    name: pose
+    line: 2
+  - type: float64
+    name: longitudinal_velocity_mps
+    line: 3
+  - type: float64
+    name: longitudinal_acceleration_mps2
+    line: 4
+  - type: float64
+    name: steering_angle_rad
+    line: 5
+  - type: float64
+    name: steering_rate_radps
+    line: 6
+  - type: float64
+    name: curvature_inv_m
+    line: 7
+  constants: []
+- message: CandidateTrajectory
+  path: src/application/v3_scope_planner/msg/CandidateTrajectory.msg
+  sha256: 85b0e549ae367f8854beb733d873950017d22a7af32ca25f21d94bd86b8291ee
+  field_count: 9
+  constant_count: 0
+  fields:
+  - type: std_msgs/Header
+    name: header
+    line: 1
+  - type: string
+    name: schema_version
+    line: 2
+  - type: string
+    name: scene_snapshot_id
+    line: 3
+  - type: string
+    name: candidate_id
+    line: 4
+  - type: string
+    name: generator_id
+    line: 5
+  - type: string
+    name: generator_digest
+    line: 6
+  - type: bool
+    name: certified_stop
+    line: 7
+  - type: bool
+    name: teb_fallback
+    line: 8
+  - type: v3_scope_planner/TrajectoryPoint[]
+    name: points
+    line: 9
+  constants: []
+- message: CandidateSet
+  path: src/application/v3_scope_planner/msg/CandidateSet.msg
+  sha256: d4eb6b977e8582a8e580b5e840621b925a24cfe2bf5f3aa0bc607390d373f8cd
+  field_count: 8
+  constant_count: 0
+  fields:
+  - type: std_msgs/Header
+    name: header
+    line: 1
+  - type: string
+    name: schema_version
+    line: 2
+  - type: uint64
+    name: world_model_seq
+    line: 3
+  - type: string
+    name: scene_snapshot_id
+    line: 4
+  - type: string
+    name: global_path_digest
+    line: 5
+  - type: string
+    name: vehicle_model_digest
+    line: 6
+  - type: string
+    name: candidate_set_digest
+    line: 7
+  - type: v3_scope_planner/CandidateTrajectory[]
+    name: candidates
+    line: 8
+  constants: []
+- message: CandidateEvaluation
+  path: src/application/v3_scope_planner/msg/CandidateEvaluation.msg
+  sha256: ae9f79cddc7a794244bd71fb4be627fe8b8a602b6572958745092995994f3e8d
+  field_count: 16
+  constant_count: 5
+  fields:
+  - type: std_msgs/Header
+    name: header
+    line: 7
+  - type: string
+    name: schema_version
+    line: 8
+  - type: string
+    name: scene_snapshot_id
+    line: 9
+  - type: string
+    name: candidate_id
+    line: 10
+  - type: string
+    name: predictor_id
+    line: 11
+  - type: string
+    name: prediction_digest
+    line: 12
+  - type: string
+    name: occupancy_tube_digest
+    line: 13
+  - type: uint8
+    name: verdict
+    line: 14
+  - type: string[]
+    name: rejection_codes
+    line: 15
+  - type: float64
+    name: minimum_clearance_m
+    line: 16
+  - type: float64
+    name: braking_margin_m
+    line: 17
+  - type: float64
+    name: calibrated_risk_upper
+    line: 18
+  - type: float64
+    name: progress_score
+    line: 19
+  - type: float64
+    name: comfort_cost
+    line: 20
+  - type: float64
+    name: predictor_latency_ms
+    line: 21
+  - type: float64
+    name: verifier_latency_ms
+    line: 22
+  constants:
+  - type: uint8
+    name: VERDICT_ACCEPTED
+    line: 1
+    value: '0'
+  - type: uint8
+    name: VERDICT_REJECT_KINEMATICS
+    line: 2
+    value: '1'
+  - type: uint8
+    name: VERDICT_REJECT_SAFETY
+    line: 3
+    value: '2'
+  - type: uint8
+    name: VERDICT_REJECT_HEALTH
+    line: 4
+    value: '3'
+  - type: uint8
+    name: VERDICT_REJECT_UNCERTAINTY
+    line: 5
+    value: '4'
+- message: CandidateDecision
+  path: src/application/v3_scope_planner/msg/CandidateDecision.msg
+  sha256: ab194917e824f5a656d8737bf622fc10c6d0feb7bee36854fad7c680b87ec47c
+  field_count: 11
+  constant_count: 0
+  fields:
+  - type: std_msgs/Header
+    name: header
+    line: 1
+  - type: string
+    name: schema_version
+    line: 2
+  - type: string
+    name: scene_snapshot_id
+    line: 3
+  - type: string
+    name: candidate_set_digest
+    line: 4
+  - type: string
+    name: selected_candidate_id
+    line: 5
+  - type: string
+    name: policy_kind
+    line: 6
+  - type: string
+    name: policy_artifact_digest
+    line: 7
+  - type: float64
+    name: selection_propensity
+    line: 8
+  - type: bool
+    name: safety_fallback_used
+    line: 9
+  - type: string
+    name: fallback_reason
+    line: 10
+  - type: string
+    name: decision_digest
+    line: 11
+  constants: []
+publish_boundary:
+  only_allowed_command_topic: /cmd_vel_navigation
+  direct_cmd_vel_publish_forbidden: true
+  direct_driver_publish_forbidden: true
+  downstream_chain:
+  - /cmd_vel_navigation
+  - /cmd_vel_gps
+  - /fod_navigation_mode
+  - /cmd_vel
+  - m2_driver
+future_runtime_requirements:
+  scene_snapshot_is_immutable_per_decision: true
+  candidate_ids_are_unique_per_set: true
+  every_candidate_is_ackermann_feasible_before_policy: true
+  certified_stop_candidate_required: true
+  teb_fallback_candidate_required: true
+  safety_rejections_are_explicit_not_silent_projection: true
+  selected_candidate_must_reference_same_snapshot_and_set_digest: true

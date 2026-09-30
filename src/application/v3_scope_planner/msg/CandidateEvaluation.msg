@@ -1,0 +1,22 @@
+uint8 VERDICT_ACCEPTED=0
+uint8 VERDICT_REJECT_KINEMATICS=1
+uint8 VERDICT_REJECT_SAFETY=2
+uint8 VERDICT_REJECT_HEALTH=3
+uint8 VERDICT_REJECT_UNCERTAINTY=4
+
+std_msgs/Header header
+string schema_version
+string scene_snapshot_id
+string candidate_id
+string predictor_id
+string prediction_digest
+string occupancy_tube_digest
+uint8 verdict
+string[] rejection_codes
+float64 minimum_clearance_m
+float64 braking_margin_m
+float64 calibrated_risk_upper
+float64 progress_score
+float64 comfort_cost
+float64 predictor_latency_ms
+float64 verifier_latency_ms

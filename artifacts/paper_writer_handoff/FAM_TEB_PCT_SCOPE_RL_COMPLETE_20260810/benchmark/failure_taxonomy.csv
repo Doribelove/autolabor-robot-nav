@@ -1,0 +1,12 @@
+failure_code,category,failure_inclusive,formal_handling,description
+goal,success,false,use_observed_time,Reached the frozen goal without disqualifying failure
+timeout,task_failure,true,use_T_cap,Episode exceeded the frozen cap
+contact,safety_failure,true,use_T_cap,Any frozen contact or collision event
+not_reached,task_failure,true,use_T_cap,Terminated without reaching goal
+stuck,task_failure,true,use_T_cap,Frozen stuck detector triggered
+planner_failure,method_failure,true,use_T_cap,Planner failed under the frozen protocol
+sensor_fault,system_failure,true,preregistered_ITT_rule,Required sensor invalid or stale
+tf_fault,system_failure,true,preregistered_ITT_rule,Required transform invalid or stale
+process_failure,system_failure,true,preregistered_ITT_rule,ROS Gazebo or method process failed
+protocol_failure,integrity_failure,true,fail_closed,Schedule configuration or identity mismatch
+

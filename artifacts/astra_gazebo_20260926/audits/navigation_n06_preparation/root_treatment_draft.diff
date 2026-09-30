@@ -1,0 +1,25 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_coordinated_runtime.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_lookahead_runtime_n06.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""Shared-gate adaptation of the frozen standalone route node. R2 is separate.
++"""N06 analytic shared-gate route node with a 1.2 m lookahead factor.
+ 
+ Map and route are verified against the provider's actual latched messages.
+ Only LaserScan, timestamp TF, Odometry and actual JointState feed the policy.
+@@ -37,13 +37,13 @@
+     from route_sensor_buffer import RouteSensorBuffer
+     from route_candidate_core import RouteAwareRuntime,RouteConfig,OBSERVATION_SCHEMA,ACTION_NAMES,prepublish_guard,physical_backend
+     run_id=str(rospy.get_param('~run_id'));seed=rospy.get_param('~seed');method=rospy.get_param('~method')
+-    if not run_id or type(seed)is not int or seed<=0 or method not in ('astra_analytic_route_v1','astra_pct_route_v1'):raise ValueError('new method identity and positive seed required')
++    if not run_id or type(seed)is not int or seed<=0 or method!='astra_analytic_lookahead_1p2_n06':raise ValueError('N06 lookahead identity and positive seed required')
+     bundle=Path(rospy.get_param('~bundle')).resolve();bundle_sha=str(rospy.get_param('~bundle_sha256'))
+     if hashlib.sha256((bundle/'common_route.json').read_bytes()).hexdigest()!=bundle_sha:raise ValueError('bundle SHA mismatch')
+     grid,route,route_data=load_bundle(bundle);map_from_odom=RouteFrame(*route_data['map_from_odom_xy_yaw'])
+     urdf=rospy.get_param('/robot_description');backend=physical_backend(urdf)
+     if backend['seed']!=seed:raise ValueError('actual physical backend seed differs from run identity')
+-    config=RouteConfig(maximum_episode_duration_s=float(rospy.get_param('~maximum_episode_duration_s',22.)));core=RouteAwareRuntime(grid,route,urdf,config)
++    config=RouteConfig(lookahead_m=1.2,maximum_episode_duration_s=float(rospy.get_param('~maximum_episode_duration_s',22.)));core=RouteAwareRuntime(grid,route,urdf,config)
+     actor_artifact_sha=None
+     if method=='astra_pct_route_v1':
+         metadata_path=Path(rospy.get_param('~checkpoint_metadata')).resolve()

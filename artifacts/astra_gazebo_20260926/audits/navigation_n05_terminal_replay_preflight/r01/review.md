@@ -1,0 +1,7 @@
+N05终态replay r01执行前静态审查需修订。源快照SHA 9962a00e55520df6eff6dfdf651175abb6f60cad5f840ea7db05bc3ed2e3187c。
+
+坐标SE2公式、半开区间意图、exact终态取样方向正确；一个已closed回合的assessment字段与treatment audit原字段名都匹配。未执行真实main、未读进行中的bag或形成全矩阵结论。
+
+真实保存函数配合纯synthetic临时文件/假bag复现6项：receipt绑定后的assessment替换仍通过；缺失treatment audit被当零；错误odom frame通过；负正式时长通过并得到零trace；deadline boolean与reason不同时返回漏计；24个未计划的bad字典与空release被接受且零有效记录all_safety=true。各反例不是N05实际运行故障。
+
+修订应闭合原receipt/artifact/report/发布schedule绑定，校验raw gate/start/end与assessment、odom frame/唯一源时刻；强制treatment逐candidate audit语义并校验原mask；区分drop bool与reason；列出bad/retired/incomplete身份，空分母明确不可用。配对必须同绑定parent/bundle/replicate；各自终态末距与message-weighted stop fraction均只是描述统计，不能解释为同elapsed处理效果或时间停驶比例。旧结果与本r01源快照保留。

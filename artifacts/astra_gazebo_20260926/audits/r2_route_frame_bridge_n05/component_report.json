@@ -1,0 +1,245 @@
+{
+  "schema": "astra_r2_route_frame_bridge_n05_component_v1",
+  "status": "pure_component_author_tests_pass_independent_review_and_runtime_integration_pending",
+  "method_identity": "frozen_r2_v060_sensor_route_se2_n05_v1",
+  "source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/frozen_r2_route_frame_bridge_n05.py",
+    "sha256": "9a4d3f21929964d50b814748bba8b7ac484f07b5b59099290ceecacbbdb3408e",
+    "bytes": 17662
+  },
+  "tests": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_frozen_r2_route_frame_bridge_n05.py",
+    "sha256": "7924dbdb475e57d2ceb0ca73405ad73c2b79a066abef490618b6816ed5c1318a",
+    "bytes": 12775
+  },
+  "tests_passed": 23,
+  "final_log": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/tests_r02.log",
+    "sha256": "89e1682fc02defbfbc238c0447d34c385759221803c8891ed5eeafb18e7d98fa",
+    "bytes": 106
+  },
+  "runtime_interpreter": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python",
+  "scope": "Rigid world translation/rotation of the same canonical frozen R2 task. No new ROS node/launch; old files unchanged.",
+  "actual_legacy_call_review": {
+    "source": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+      "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73",
+      "bytes": 35210
+    },
+    "odometry": "policy_pose reads odom.position.x+spawn_world_x, y and quaternion yaw",
+    "scan": "_scan resamples unchanged local LaserScan, looks up odom<-laser at scan header stamp, then adds spawn_world_x to TF.x before append_scan_with_pose",
+    "required_private_view": "route_pose shifted by +5.4m in x; old +(-5.4) restores canonical route x. Both odom and laser TF use the same transform.",
+    "health": "Original latest TF health query can use health_transform only; scan conversion still requires exact requested source transform.",
+    "actual_code_fixture": "Frozen policy_pose/_scan and original resample_scan AST bodies execute on transformed private views with fake transport. Identical model scan arrays, equivalent pose and identical original source seconds verified; no ROS/torch import.",
+    "commit_guard": "Future wrapper must retain sensor-lifecycle r1 real last_runtime_scan_stamp/failure-count append proof. First TF precheck alone is insufficient; this bridge does not claim an observation was committed."
+  },
+  "coordinates": {
+    "world_from_route": "Explicit SE2 R->W, no interpolation or fitting",
+    "world_from_odom": "Explicit real odom O->W, independent of route origin",
+    "input_real_parent_frames": [
+      "configured world/map",
+      "configured actual odom"
+    ],
+    "robot_child": "base_link",
+    "laser_child": "laser_link",
+    "private_parent_alias": "odom",
+    "private_scope": "inprocess_legacy_alias_never_publish_as_real_ros_frame",
+    "physical_ROS_frame_mutation": false,
+    "public_TF_broadcast": false,
+    "static_odom_relabel_allowed": false,
+    "full_pose": "left multiply world yaw quaternion; preserve z/roll-pitch content, no normalization repair",
+    "body_twist": "same immutable object and six components, never world-rotated",
+    "laser": "same immutable object, ranges including+inf, angles/intensities/time fields unchanged",
+    "command": "same BodyTwist object; bridge performs no command projection or physical capability change"
+  },
+  "source_time": {
+    "exact_int64": true,
+    "bool_or_float_coercion": false,
+    "source_stamp_preserved": true,
+    "receipt_and_availability_preserved": true,
+    "first_available": "decision now>=actual available_source_ns; source and receipt cannot follow availability",
+    "age_limit_ns": 200000000,
+    "receipt_source_lead_age_limit_ns": 200000000,
+    "scan_tf_exact_source_equality": true,
+    "sequence_reset_scope": "Pure adapter has no clock/sequence state. Future wrapper must retain SensorIngress queues, source ordering and clock-reset fault lifecycle; no zero-stamp bootstrap substitution."
+  },
+  "task_support": {
+    "canonical_spawn": [
+      -5.4,
+      0.0,
+      0.0
+    ],
+    "canonical_gate": [
+      -4.0,
+      0.0,
+      0.0
+    ],
+    "canonical_goal": [
+      5.0,
+      0.0,
+      0.0
+    ],
+    "nominal_reference": "Explicit monotonically forward straight nine-metre task reference, independent from common guide.",
+    "shared_guide": "Finite same-endpoint detour polyline accepted, retained as audit_only. No full polyline consumption.",
+    "actual_existing_guides_checked": "Both repeats of N04 static_avoidance and occluded_emergence (4 existing guides) accepted, each arc length>9m.",
+    "rejected": [
+      "curved nominal L/S reference",
+      "changed start-goal or spawn offset",
+      "changed nominal length/scale",
+      "nominal reversal",
+      "wrong frame or method identity"
+    ],
+    "gate": "New public run/seed/method and all source/activation/deadline/body-twist fields preserved. Only pose_map and declared goal are expressed in canonical route coordinates inside private view.",
+    "old_node_compatible_without_new_wrapper": false,
+    "reason": "Frozen old node and SharedLifecycle deliberately hard-code old method/frame checks. A new separately reviewed wrapper/coordinator identity is required; this component does not bypass them."
+  },
+  "static_prior": {
+    "authority": "SHA-bound canonical route-frame PGM/YAML, shared across all future methods under declared frame transform",
+    "raster_rotation_or_resampling": false,
+    "world_AABB_input_allowed": false,
+    "union": "Frozen legacy_static_boxes plus verify_static_union: every blocked/unknown cell exactly once, no overlaps",
+    "world_output": "Oriented four-corner polygons from the exact same canonical rectangles; no AABB expansion.",
+    "independent_reference": "Per-cell independent matrix transforms match transformed rectangle union area and boundary within1e-12; explicit rotated-AABB alternative adds>0.1m2 on fixture.",
+    "remaining": "Future scene/common-map adapter must prove the actual published map/world physical geometry correspond to these canonical bytes. A frame label alone is not evidence.",
+    "inherited_limitations": [
+      "implicit canonical y walls +/-20m unchanged",
+      "unknown outside map semantics still differ from common map",
+      "shared guide remains audit-only",
+      "no full-body or physical safety upgrade to legacy R2"
+    ]
+  },
+  "retained_development_failures": [
+    {
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/tests_r01.log",
+        "sha256": "97d4fcc989c7fabd5ff757d1d0fdb3e1532acdd259238a30232f33901c573026",
+        "bytes": 3356
+      },
+      "passed": 21,
+      "failed": 2,
+      "cause": "Test selected occluded_reveal instead of actual occluded_emergence; independent GEOS symmetric-difference overlay produced4.0246e-10m2 slivers although area delta1.776e-15m2 and Hausdorff1.256e-15m.",
+      "correction": "Correct actual family name; compare independent area and boundary under1e-12, retaining exact raster cell-count test. No runtime/physical threshold changed."
+    }
+  ],
+  "frozen_algorithm": {
+    "weights": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/artifacts/gazebo_pct_teb_dwa_benchmark/development/training/pct_benchmark_r1_seed9701/actor_final.pt",
+      "sha256": "deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8",
+      "bytes": 215742
+    },
+    "runtime_actor_candidate_normalization_files": [
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+        "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_r2_episode.py",
+        "sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+        "sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+        "sha256": "3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7"
+      }
+    ],
+    "modified": false,
+    "unchanged_body_twist_and_local_scan": true,
+    "numerical_claim": "SE2 equivariance to tested floating-point precision, not bitwise full-policy or near-threshold action equivalence.",
+    "learned_benefit": false
+  },
+  "qualification": {
+    "independent_review": false,
+    "live_qualified": false,
+    "execution_authorized": false,
+    "training_steps": 0,
+    "ros_started": false,
+    "new_seeds_registered": 0,
+    "benchmark_run": false,
+    "physical_safety_certified": false
+  },
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/frozen_r2_route_frame_bridge_n05.py",
+      "sha256": "9a4d3f21929964d50b814748bba8b7ac484f07b5b59099290ceecacbbdb3408e",
+      "bytes": 17662
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_frozen_r2_route_frame_bridge_n05.py",
+      "sha256": "7924dbdb475e57d2ceb0ca73405ad73c2b79a066abef490618b6816ed5c1318a",
+      "bytes": 12775
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+      "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73",
+      "bytes": 35210
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_r2_episode.py",
+      "sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe",
+      "bytes": 3155
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+      "sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9",
+      "bytes": 55085
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+      "sha256": "3ae49e46e95e1f09055c6d47f01f3fa9ae4c047f3c54cc6e457d2a4a114ef0f7",
+      "bytes": 12873
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/artifacts/gazebo_pct_teb_dwa_benchmark/development/training/pct_benchmark_r1_seed9701/actor_final.pt",
+      "sha256": "deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8",
+      "bytes": 215742
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/frozen_r2_sensor_lifecycle.py",
+      "sha256": "791529d1436144d286a2e3a86a5de638e3f5a60ee579a36074017d3aac3ff71b",
+      "bytes": 11785
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+      "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb",
+      "bytes": 3352
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/prepare_navigation_n01_scene.py",
+      "sha256": "46e09b5236157150ef1cc22bfbe561ee46078cd6d99e7ef3dc0f926ca4547dfa",
+      "bytes": 7563
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+      "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f",
+      "bytes": 14792
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/static_map_export.py",
+      "sha256": "6a46faff46362bf6a46777fa3eea43d7b125b70251f8ce336d478bf7e92f7c66",
+      "bytes": 15961
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_frozen_r2_sensor_lifecycle.py",
+      "sha256": "765238653925e232243c1caa01a58d9034e1ee7171f0f39b1d1032d31ddd3712",
+      "bytes": 31173
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/tests_r01.log",
+      "sha256": "97d4fcc989c7fabd5ff757d1d0fdb3e1532acdd259238a30232f33901c573026",
+      "bytes": 3356
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/tests_r02.log",
+      "sha256": "89e1682fc02defbfbc238c0447d34c385759221803c8891ed5eeafb18e7d98fa",
+      "bytes": 106
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/r2_route_frame_bridge_n05/write_report.py",
+      "sha256": "d430cebe913f09bca0668cafdc11fb8eaa3f48a8917a8931f02741281b7fefba",
+      "bytes": 11421
+    }
+  ]
+}

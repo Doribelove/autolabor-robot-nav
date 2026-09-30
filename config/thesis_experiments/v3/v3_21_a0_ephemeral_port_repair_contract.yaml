@@ -1,0 +1,78 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-21-A0
+status: preregistered_single_infrastructure_repair_before_any_v3_21_outcome
+purpose: Complete the failure-inclusive four-method characterization after repairing only the ROS/Gazebo port namespace.
+preserved_terminal_predecessor:
+  stage: V3-20-F1
+  completed_units: 77
+  terminal_failed_units: 1
+  forfeited_units: 42
+  formal_result: false
+  seed_range_reuse_forbidden: [8101, 8130]
+single_infrastructure_factor:
+  name: master_port_namespace
+  failed_formula: 34000_plus_2_times_sequence
+  linux_ephemeral_range: [32768, 60999]
+  repaired_formula: 24000_plus_2_times_sequence
+  repaired_port_range: [24002, 24240]
+  ports_strictly_below_ephemeral_range: true
+  method_scene_actor_vehicle_or_statistic_changed: false
+frozen_methods:
+  - v3_spatial_safe
+  - actual_teb
+  - fixed_v120_shielded
+  - v3_no_candidate_conditioning
+scene_population:
+  - {scene_id: open_crossing_90, actor_angle_deg: 90.0, corridor_half_width_m: null}
+  - {scene_id: wide_corridor_crossing_70, actor_angle_deg: 70.0, corridor_half_width_m: 1.80}
+  - {scene_id: bounded_corridor_crossing_110, actor_angle_deg: 110.0, corridor_half_width_m: 1.68}
+strata:
+  - {scene_id: open_crossing_90, actor_policy: cautious}
+  - {scene_id: open_crossing_90, actor_policy: hesitant}
+  - {scene_id: wide_corridor_crossing_70, actor_policy: cautious}
+  - {scene_id: wide_corridor_crossing_70, actor_policy: hesitant}
+  - {scene_id: bounded_corridor_crossing_110, actor_policy: cautious}
+  - {scene_id: bounded_corridor_crossing_110, actor_policy: hesitant}
+formal_matrix:
+  seed_start: 8201
+  seed_end: 8230
+  blocks: 30
+  episodes: 120
+  blocks_per_stratum: 5
+  attempts_per_identity: 1
+  retries_resumes_replacements: forbidden
+  method_order: deterministic_balanced_latin_rotation
+inclusion:
+  every_consumed_identity_retained: true
+  navigation_failure_restricted_time_s: 22.0
+  certified_stop_timeout_is_valid_outcome: true
+statistics:
+  copied_without_change_from: V3-20-A0
+  independent_unit: paired_scene_seed_block
+  primary_estimand: v3_vs_actual_teb_relative_difference_in_mean_restricted_time
+  interval: two_sided_95_percent_paired_block_bootstrap
+  bootstrap_resamples: 20000
+  bootstrap_seed: 32020
+  no_positive_effect_gate: true
+  comparisons:
+    - v3_spatial_safe_vs_actual_teb
+    - v3_spatial_safe_vs_fixed_v120_shielded
+    - v3_spatial_safe_vs_v3_no_candidate_conditioning
+  multiplicity: report_holm_adjusted_two_sided_bootstrap_p_values_for_three_comparisons
+  stratification: all_six_scene_policy_strata
+claim_boundary:
+  study_kind: exploratory_followup_characterization
+  positive_or_negative_results_both_valid: true
+  learning_claim_authorized: false
+  perception_or_ood_claim_authorized: false
+  formal_safety_claim_authorized: false
+  deployment_claim_authorized: false
+  real_vehicle_claim_authorized: false
+authority:
+  explicit_user_simulation_instruction_date: '2026-08-06'
+  exact_formal_matrix_authorized_after_release_review: true
+  training_authorized: false
+  hardware_access_authorized: false
+  real_vehicle_authorized: false
+

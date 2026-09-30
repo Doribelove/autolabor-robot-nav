@@ -21,6 +21,7 @@
   <arg name="command_jitter" default="0.0"/>
   <arg name="laser_topic" default="scan"/>
   <arg name="laser_noise_stddev" default="0.01"/>
+  <arg name="server_required" default="false"/>
 
   <param name="use_sim_time" value="$(arg use_sim_time)"/>
   <!-- Independent marker consumed by the fail-closed T03 write gate. -->
@@ -31,6 +32,7 @@
     <arg name="paused" value="$(arg paused)"/>
     <arg name="use_sim_time" value="$(arg use_sim_time)"/>
     <arg name="extra_gazebo_args" value="--seed $(arg seed)"/>
+    <arg name="server_required" value="$(arg server_required)"/>
   </include>
 
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find m2_gazebo)/urdf/m2.urdf.xacro' enable_actuator_dynamics:=$(arg enable_actuator_dynamics) dynamics_seed:=$(arg seed) speed_time_constant:=$(arg speed_time_constant) steering_time_constant:=$(arg steering_time_constant) max_acceleration:=$(arg max_acceleration) max_deceleration:=$(arg max_deceleration) max_brake_deceleration:=$(arg max_brake_deceleration) max_emergency_deceleration:=$(arg max_emergency_deceleration) max_steering_rate:=$(arg max_steering_rate) command_delay:=$(arg command_delay) command_jitter:=$(arg command_jitter) laser_topic:=$(arg laser_topic) laser_noise_stddev:=$(arg laser_noise_stddev)"/>

@@ -1,0 +1,29 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-E1
+preregistration_id: v3_scope_v3_02_e1_observed_mode_heldout_test_1
+date: "2026-07-24"
+status: frozen_before_any_v3_02_e1_heldout_outcome
+contract: config/thesis_experiments/v3/v3_02_e1_observed_mode_heldout_test_contract.yaml
+test:
+  seeds: [6321, 6322, 6323]
+  exact_rows: 45
+  attempt: 1
+  retries: 0
+candidate_atomicity:
+  common_prefix_end_s: 0.50
+  branch_start_s: 0.50
+  feasible_generator_id: v3_02_d1_straight_acceleration_limited_1
+  certified_stop_in_support: true
+mode_gate_firewall:
+  mode_inference_id: v3_03_b0_observed_speed_gap_gate_1
+  hidden_policy_runtime_input: false
+  gate_update_allowed: false
+  model_refit_or_recalibration_allowed: false
+  test_label_available_to_runtime: false
+authority:
+  simulation_requires_separate_authorization: true
+  training: false
+  move_base: false
+  cmd_vel_publish: false
+  real_vehicle: false

@@ -1,0 +1,112 @@
+{
+  "schema": "astra_passive_sweep_q04_design_v1",
+  "stage": "astra_passive_sweep_q04",
+  "created_utc": "2026-09-26T11:27:58.637948+00:00",
+  "status": "offline_implementation_no_execution_authority",
+  "execution_authorized": false,
+  "training_authorized": false,
+  "registry_changes": false,
+  "attempts_created": false,
+  "reserved_design_identities": [
+    {
+      "run_id": "passive_sweep_q04_static",
+      "seed": 260926029,
+      "actor": false,
+      "duration_ns": 10000000000
+    },
+    {
+      "run_id": "passive_sweep_q04_actor",
+      "seed": 260926030,
+      "actor": true,
+      "duration_ns": 10000000000
+    }
+  ],
+  "physical_parameter_decision": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_p07_kd6_simulation_parameter_decision.json",
+    "sha256": "d4b81a4b95a9e0d6b9774aa9ce8f877a39416bbe22fd5e22eff9892cd3867dfd"
+  },
+  "contracts": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/passive_sweep_q04_static_contract.json",
+      "sha256": "dfba4615a85c555e4878ca9e1f48df13aa27c8800b78a422f34dec0e292ab41e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/passive_sweep_q04_actor_contract.json",
+      "sha256": "d2b66f2fe9ebae30d1ca544e14e4d3dac6490e7944f3c7aaa227f91b139ffe49"
+    }
+  ],
+  "source_review_template": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/passive_sweep_q04_source_review_template.json",
+    "sha256": "69e2f1c6cfd889715044ff8c6d3f6b49bc1be377329d03e361572a8494e68ec7"
+  },
+  "owned_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/mapped_elf_inventory_v2.py",
+      "sha256": "c5d2c7239f9490fcf14777e822c3af79c3cd0b06f5d4e1085ef5598a81559e14"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q04.py",
+      "sha256": "c757fce921cd5edd0080a8cad205bebb3c5efe2664fc687c209a6b05d0cbd1ca"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_passive_sweep_q04.py",
+      "sha256": "a2f742413b177b206199f974883f113c04f7776544fb7cc590ba4137de97ddf8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_passive_command_q04.py",
+      "sha256": "8516739615e15c423e5f5c16b5397b0951217d3216c87cd0c9014ad7c788ebb5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_passive_collector_q04.py",
+      "sha256": "a75f7bb2b9df22a21c3f5ac460278cb7aa0bb906080b06e4cc35184b78aca511"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_passive_sweep_q04.py",
+      "sha256": "da95b3555cf2abf346b7df94283b01b6bbcdff64d30fe2e25da18b64c9712447"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_mapped_elf_inventory_v2.py",
+      "sha256": "4cf79e0cbdf01cb62c1ae93a4fa07cb43bacd267326c005eaea4c9c003a51322"
+    }
+  ],
+  "functional_gates": [
+    "exact complete ordered 2ms Pre/End models, links, per-step status and whole contacts in integer source window",
+    "native body modes/COM/collision geometry/source identities and bounded algorithmic sweep pass frozen P03 evaluator",
+    "actual mapped reviewed ELF + process/node/service/pose-writer closure within authorized trusted-node scope",
+    "no illegal robot contact; only four wheel links contacting ground are support exceptions; no actor/nonground contact",
+    "200 ordered publisher-visible source-clock command slots with <=20ms publication lateness; exact fixed phase values",
+    "real robot motion >0.10m and actor motion >0.25m when actor present",
+    "exact singleton named physical status with complete unique boolean keys, consistent level/message, complete50Hz source coverage and all fault/timeout/brake/emergency flags false",
+    "native requested image files complete at 2560x1440, with later independent visual inspection still required",
+    "hard5s global drain from pause request through source queries, joins and process/roster checks; final paused source time stable and all six dense streams reach watermark",
+    "bounded wall cap240s including assessment; fail stops stage and retires unrun unit; no retry"
+  ],
+  "descriptive_measurements": [
+    "active receipt RTF and complete-attempt throughput, no causal overhead claim",
+    "per-process CPU tick and RSS snapshots",
+    "source-to-wall receive trace",
+    "actual P05 command ingress stamp/sequence/values, independent of publisher-visible /clock",
+    "bag/file sizes and source/hash bindings"
+  ],
+  "data_storage": "full dense state/contact payload only in bag; compact JSON stamps/status/audits; two native PNG+single-frame ROS messages, no image topic in bag; contact JSON counts and first10 examples retain all original evidence in bag",
+  "limits": [
+    "Gazebo algorithmic motion extension and bounded actor Begin jumps only; not real continuous physical safety or formal floating-point proof",
+    "no navigation, learning, policy or performance comparison",
+    "selected DLL hashes plus full maps and independent versioned-source review, not bit-for-bit provenance theorem",
+    "trusted authorized nodes/services only, not malicious external-process isolation",
+    "nominal geometry preview is synthetic placement sampling, not an observed trajectory"
+  ],
+  "root_next_steps": [
+    "independent exact graphics-policy/source review including actualQ03raw and standaloneGLXbefore/after maps",
+    "bind new review, prepared_r01, P07Kd6decision and graphicsdrivers/probe in NEW rootrelease",
+    "root owns registry and optionalexecution; no agentexecution"
+  ],
+  "parent_stage": "astra_passive_sweep_q03_terminal_graphics_mapping_failure",
+  "changes": [
+    "new Q04 identities/namespace and fresh seeds029/030",
+    "new inventory_v2 recognizes only observed exact deleted graphics memfd8KB singleRX+singleRWshared alias, sameinode/dev/offset; classified external graphics dynamiccode, not staticELF",
+    "three actual NVIDIA580.82.09 backing drivers required by exact path/SHA, mapped device/inode/magic/BuildID; newrelease binds driverfiles and standalone GLX probe",
+    "all other deleted executable/required ELF/unknown custom plugin rules remainfailclosed; rawmaps preserved beforeinterpretation",
+    "Q03 RTF coverage prerequisite/SO_REUSEADDR/sameprocess guards retained unchanged"
+  ]
+}

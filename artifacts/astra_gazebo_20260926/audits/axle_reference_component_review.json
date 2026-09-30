@@ -1,0 +1,58 @@
+{
+  "status": "axle_reference_components_pass_not_live_integrated",
+  "ros_started": false,
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+      "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_axle_reference_adapter.py",
+      "sha256": "5fe51ef4c3815ee8bc4b2a1d0abe2a790e974db6641fb3e91777d8f7e8886388"
+    }
+  ],
+  "tests_passed": 30,
+  "wheelbase_argument": "explicit finite positive value; current M12 actual .65m",
+  "conventions": {
+    "pose": "same world frame, x y yaw of named reference",
+    "twist": "body-aligned vx vy wz at named reference point",
+    "base_to_rear_offset_body_m": [
+      -0.325,
+      0
+    ],
+    "base_to_rear_velocity": "(vx, vy-.325*wz, wz)",
+    "preserve_measured_slip": true,
+    "footprint_point_base_to_rear": "(x+.325,y)",
+    "cmd_vel_vx_yawrate": "unchanged by longitudinal point-reference shift"
+  },
+  "code_integration_sites": [
+    {
+      "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+      "line": 88,
+      "role": "inherited _kinematic_step translation uses rear bicycle equation with point currently named base pose"
+    },
+    {
+      "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+      "line": 135,
+      "role": "scan origin world projection must remain actual sensor/base-frame association"
+    },
+    {
+      "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/runtime_adapter.py",
+      "line": 149,
+      "role": "clearance uses preview point as robot footprint center; convert rear path to base first"
+    },
+    {
+      "path": "src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+      "line": 758,
+      "role": "current _kinematic_step override delegates inherited integration, new derived backend integration can keep old sources immutable"
+    }
+  ],
+  "recommended_future_bridge": "keep external runtime state, scan poses, path progress, goals, feature inputs and footprint centers at actual base_link; evaluate steering target at base, integrate its rear axle internally, convert each resulting rear pose back to base; do not globally relabel rear points as base",
+  "pending": [
+    "separately versioned candidate/runtime integration",
+    "actual lateral-slip bound/model uncertainty",
+    "new physical tracking/backup qualification",
+    "compound footprint bound relative to correct origin",
+    "all-method shared geometry/map/route fairness"
+  ]
+}

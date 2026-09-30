@@ -1,0 +1,38 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-09-Q1-R1
+stage_purpose: fresh_shared_replanning_period_commitment_alignment_repair
+contract_id: v3_scope_v3_09_q1_r1_commitment_protocol_repair_1
+status: single_factor_repair_preregistered_before_release
+parent_failure:
+  stage: V3-09-Q1
+  terminal_freeze_path: artifacts/v3/qualification/v3_09_q1/v3_09_q1_terminal_freeze.sha256
+  terminal_freeze_sha256: 18ec868a07c1ec89fc9c2e616b321034b895a734b38f20258a9d558a1c74d847
+  consumed_units: 19
+  completed_units: 18
+  forfeited_units: 17
+single_factor_repair:
+  factor_id: shared_replanning_period_matches_frozen_baseline_commitment
+  old_replanning_period_s: 0.5
+  new_replanning_period_s: 0.25
+  spatial_commitment_duration_s: 7.0
+  maximum_episode_duration_s: 12.5
+  derived_maximum_decisions_old: 24
+  derived_maximum_decisions_new: 48
+  methods_changed: false
+  scenes_changed: false
+  models_or_planners_changed: false
+  qualification_gates_changed: false
+fresh_scenario_blocks:
+  - {block_id: repaired_6721, seed: 6721, angle_deg: 72.5, actor_start_distance_m: 3.00, actor_base_speed_mps: 0.925}
+  - {block_id: repaired_6722, seed: 6722, angle_deg: 80.5, actor_start_distance_m: 3.20, actor_base_speed_mps: 1.025}
+  - {block_id: repaired_6723, seed: 6723, angle_deg: 88.5, actor_start_distance_m: 2.90, actor_base_speed_mps: 0.975}
+  - {block_id: repaired_6724, seed: 6724, angle_deg: 96.5, actor_start_distance_m: 3.10, actor_base_speed_mps: 1.075}
+  - {block_id: repaired_6725, seed: 6725, angle_deg: 104.5, actor_start_distance_m: 2.85, actor_base_speed_mps: 0.95}
+  - {block_id: repaired_6726, seed: 6726, angle_deg: 108.0, actor_start_distance_m: 3.25, actor_base_speed_mps: 1.05}
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_or_gate_write_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

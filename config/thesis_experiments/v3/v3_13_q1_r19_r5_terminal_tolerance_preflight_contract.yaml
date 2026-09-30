@@ -1,0 +1,60 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R19-R5
+stage_purpose: fresh_r3_terminal_tolerance_single_factor_preflight
+status: preregistered_before_execution
+upstream:
+  R19_R4_assessment_sha256: 5e1802ab7083772abc57d6861fbded1d548a518e5b6b0ee84c430b62f5630c41
+  R19_R4_freeze_sha256: 860d8cda2ccac73727037f8a41ca2bcd466995dc77102b1cae6db2869387c15f
+  R19_R4_review_sha256: 7b62d3849383556c4e8b3fcb624eccda6ea6af582db3b6f907e18c772538ccbd
+  R19_R4_D1_diagnosis_sha256: cfd5625f1cb7a3115a9cebcdb51f6e39b6b8dc85fbbdd2b0ce892c90db456b31
+  R19_R4_D1_manifest_sha256: 08bf978479f2070140dfe2126192bff0177e3afe91fb6031d3cfcfa9c793a6b2
+  R19_R4_D1_review_sha256: e1bcf68ad8f6b3066249969a6bc323b9c947e3899603479662c7bfdb8ca2cfe3
+  R17_geometry_sha256: 3dd9299cbbf39c63442a108c082e3830784084f4e40f9eff9560de7e43f2603f
+single_factor:
+  factor: r3_terminal_tolerance_m
+  control: 0.12
+  treatment: 0.15
+  candidate_geometry_unchanged: true
+  horizon_and_actor_model_unchanged: true
+  legacy_action_execution_unchanged: true
+population:
+  seed: 7695
+  scene_id: occluded_staggered_corridor
+  actor_policies_evaluator_only: [hesitant, cautious]
+  forced_candidate_id: recovery_evasive_right_v120_r3
+  branch_target_sim_s: 12.5
+  nominal_wait_depth_s: 5.0
+  horizon_s: 7.55
+  exact_units: 1
+  attempts_per_identity: 1
+  non_evidence_preflight: true
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+scientific_gates:
+  episode_collection_pass_required: true
+  contact_state_count_max: 0
+  minimum_conservative_clearance_m_min: 0.05
+  minimum_trace_static_clearance_m_min: 0.05
+  maximum_tracking_error_m_max: 0.20
+  command_gap_s_max: 0.20
+  terminal_guard_activation_count_min: 1
+  boundary_terminal_evaluation_count_exact: 1
+  boundary_terminal_trigger_count_exact: 1
+  every_actor_observable_mode_at_branch: assertive
+downstream:
+  if_all_preflight_gates_pass: fresh_tolerance_repaired_eight_block_support_design
+  if_any_gate_fails: freeze_negative_preflight
+  predictor_fit_authorized: false
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  exact_bounded_simulation_preflight_authorized: true
+  authorized_units: 1
+  authorized_seed: 7695
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false

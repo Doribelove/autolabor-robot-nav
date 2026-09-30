@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""Formal V3-09-F1 paired assessment with frozen block bootstrap."""
+import argparse,hashlib,importlib.util,json,math,random
+from collections import defaultdict
+from pathlib import Path
+W=Path("/home/robot/robot_ws_base_rl");MODULE=W/"src/tools/thesis_experiment/src/thesis_experiment/v3_09_f1.py";DISPATCH=W/"src/tools/thesis_experiment/src/thesis_experiment/v3_09_dispatch.py"
+def load(p,n):
+ s=importlib.util.spec_from_file_location(n,p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+def write_once(p,b):
+ if p.exists():
+  if p.read_bytes()!=b:raise RuntimeError("refusing overwrite")
+ else:p.write_bytes(b)
+def assess(v):
+ c=v.load_yaml_relative(W,v.CONTRACT_RELATIVE);p=v.load_yaml_relative(W,v.PREREGISTRATION_RELATIVE);v.validate_contract(c,p);schedule=v.load_yaml_relative(W,v.SCHEDULE_RELATIVE);v.require(schedule==v.exact_schedule(c),"F1 schedule differs");planner=v.load_yaml_path(W/c["upstream"]["planner_contract_path"]);model=v.load_yaml_path(W/c["frozen_model"]["path"]);dispatch=load(DISPATCH,"f1assessdispatch");journal=[json.loads(x) for x in (W/v.JOURNAL_RELATIVE).read_text().splitlines() if x.strip()];v.require(journal[-1]["event"]=="execution_complete" and journal[-1]["completed_units"]==180 and len([x for x in journal if x["event"]=="unit_complete"])==180,"F1 journal incomplete")
+ methods=["v3_spatial_safe","fixed_v120_shielded"];by_method=defaultdict(list);by_policy=defaultdict(list);blocks=defaultdict(dict);selected=stop=exact=0;min_clear=float("inf");violations=0;latencies=defaultdict(list);nonfinite=0;stage_correct=0;evidence=[v.JOURNAL_RELATIVE]
+ for row in schedule["rows"]:
+  root=v.EXECUTION_RELATIVE/"episodes"/row["unit_id"];rp=root/"episode_receipt.yaml";receipt=v.RAW_LOAD(W,rp);v.require(receipt["row"]==row,"F1 receipt differs");stage_correct+=receipt["stage"]=="V3-09-F1";restricted=float(receipt["goal_time_s"]) if receipt["goal_reached"] else 12.5;record=(receipt["goal_reached"],restricted);by_method[row["method"]].append(record);by_policy[(row["method"],row["actor_policy_evaluator_only"])].append(record);blocks[row["block_id"]].setdefault(row["method"],[]).append(restricted)
+  for seg in [receipt["prefix"]]+[x["segment"] for x in receipt["decisions"]]:
+   clearance=float(seg["minimum_conservative_clearance_m"]);min_clear=min(min_clear,clearance);violations+=clearance<0
+  for d in receipt["decisions"]:
+   replay=dispatch.plan(d["snapshot_runtime_input_without_policy"],model,planner);exact+=dispatch.digest(replay)==d["planner_result_digest"] and replay["decision"]["decision_digest"]==d["decision_digest"];selected+=d["selected_candidate_accepted"];stop+=d["certified_stop_available"];latencies[row["method"]].append(float(d["planner_latency_ms"]));nonfinite+=sum(not math.isfinite(float(x)) for x in (d["planner_latency_ms"],d["selected_minimum_predicted_clearance_m"]))
+  evidence.append(rp);evidence.extend(path.relative_to(W) for path in sorted((W/root).glob("**/*")) if path.is_file() and path.name in ("raw_pose_trace.csv","world.sdf"))
+ def summary(values):return {"episode_count":len(values),"goal_success_rate":sum(x[0] for x in values)/len(values),"restricted_goal_time_mean_s":sum(x[1] for x in values)/len(values),"restricted_goal_time_median_s":sorted(x[1] for x in values)[len(values)//2]}
+ method_metrics={m:summary(by_method[m]) for m in methods};policy_metrics={"{}__{}".format(m,p):summary(by_policy[(m,p)]) for m in methods for p in ("cautious","assertive","hesitant")};block_means={b:{m:sum(x[m])/len(x[m]) for m in methods} for b,x in sorted(blocks.items())};pairs=[(x["v3_spatial_safe"],x["fixed_v120_shielded"]) for x in block_means.values()];spatial_mean=sum(x[0] for x in pairs)/len(pairs);baseline_mean=sum(x[1] for x in pairs)/len(pairs);point=(baseline_mean-spatial_mean)/baseline_mean;positive=sum(a<b for a,b in pairs)/len(pairs)
+ stats=c["formal_statistics"];rng=random.Random(int(stats["bootstrap_seed"]));boot=[]
+ for _ in range(int(stats["bootstrap_resamples"])):
+  sample=[pairs[rng.randrange(len(pairs))] for _ in pairs];a=sum(x[0] for x in sample)/len(sample);b=sum(x[1] for x in sample)/len(sample);boot.append((b-a)/b)
+ boot.sort();lower=boot[max(0,int(math.floor(float(stats["one_sided_alpha"])*len(boot)))-1)]
+ all_latency=sorted(x for values in latencies.values() for x in values);p99=all_latency[min(len(all_latency)-1,int(math.ceil(.99*len(all_latency)))-1)];per_method_latency={m:sorted(latencies[m])[min(len(latencies[m])-1,int(math.ceil(.99*len(latencies[m])))-1)] for m in methods};count=len(all_latency)
+ metrics={"completed_episodes":180,"method_metrics":method_metrics,"method_policy_metrics":policy_metrics,"minimum_conservative_clearance_m":min_clear,"conservative_clearance_violation_count":violations,"selected_candidate_accepted_rate":selected/count,"certified_stop_available_rate":stop/count,"exact_core_replay_rate":exact/count,"receipt_stage_identity_rate":stage_correct/180.,"planner_latency_p99_ms":p99,"planner_latency_p99_by_method_ms":per_method_latency,"nonfinite_metric_count":nonfinite,"decision_count":count}
+ primary={"comparison":"v3_spatial_safe_vs_fixed_v120_shielded","statistical_unit_count":len(pairs),"point_relative_reduction":point,"one_sided_lower_relative_reduction":lower,"one_sided_alpha":stats["one_sided_alpha"],"bootstrap_resamples":stats["bootstrap_resamples"],"bootstrap_seed":stats["bootstrap_seed"],"positive_block_fraction":positive}
+ g=c["formal_gates"];gates={"complete_paired_matrix_pass":metrics["completed_episodes"]==g["complete_episode_count"],"shared_safety_integrity_pass":violations<=g["conservative_clearance_violation_count_max"] and metrics["selected_candidate_accepted_rate"]>=g["selected_candidate_accepted_rate_min"] and metrics["certified_stop_available_rate"]>=g["certified_stop_available_rate_min"] and metrics["exact_core_replay_rate"]>=g["exact_core_replay_rate_min"] and metrics["receipt_stage_identity_rate"]>=g["receipt_stage_identity_rate_min"] and nonfinite<=g["nonfinite_metric_count_max"],"spatial_goal_success_pass":method_metrics["v3_spatial_safe"]["goal_success_rate"]>=g["spatial_goal_success_rate_min"],"goal_success_noninferiority_pass":method_metrics["v3_spatial_safe"]["goal_success_rate"]>=method_metrics["fixed_v120_shielded"]["goal_success_rate"],"primary_point_effect_pass":point>=stats["point_relative_reduction_min"],"primary_lower_effect_pass":lower>=stats["one_sided_lower_relative_reduction_min"],"positive_block_fraction_pass":positive>=stats["positive_block_fraction_min"],"latency_pass":p99<=g["planner_latency_p99_max_ms"],"finite_statistics_pass":all(math.isfinite(x) for x in (point,lower,positive))}
+ positive_result=all(gates.values())
+ return {"schema_version":"1.0","architecture_generation":"v3","stage":"V3-09-F1","status":"v3_09_f1_formal_positive_result" if positive_result else "v3_09_f1_formal_valid_negative_result","formal_result":True,"performance_improvement_demonstrated":positive_result,"execution":{"authorized_units":180,"consumed_units":180,"completed_units":180,"retry_units":0},"pooled_metrics":metrics,"primary_statistics":primary,"formal_gates":gates,"block_means_restricted_goal_time_s":block_means,"claim":{"in_scope_performance_improvement":positive_result,"actual_teb_superiority":False,"general_navigation_safety":False,"deployment_ready":False,"real_vehicle_ready":False},"_evidence":evidence}
+def main():
+ ap=argparse.ArgumentParser();ap.add_argument("--check",action="store_true");args=ap.parse_args();v=load(MODULE,"f1assessmodule");value=assess(v);evidence=value.pop("_evidence");payload=v.BASE_YAML_BYTES(value)
+ if args.check:v.require((W/v.ASSESSMENT_RELATIVE).read_bytes()==payload,"F1 assessment differs")
+ else:
+  write_once(W/v.ASSESSMENT_RELATIVE,payload);freeze=("\\n".join("{}  {}".format(v.sha256_bytes(v.read_file_once(W/x)),x) for x in evidence+[v.ASSESSMENT_RELATIVE])+"\\n").encode();write_once(W/v.EVIDENCE_FREEZE_RELATIVE,freeze)
+ print("status={} positive={} point={:.6f} lower={:.6f} assessment_sha256={}".format(value["status"],value["performance_improvement_demonstrated"],value["primary_statistics"]["point_relative_reduction"],value["primary_statistics"]["one_sided_lower_relative_reduction"],hashlib.sha256(payload).hexdigest()))
+if __name__=="__main__":main()

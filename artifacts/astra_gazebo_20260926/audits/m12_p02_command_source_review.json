@@ -1,0 +1,111 @@
+{
+  "status": "p02_isolated_integer_command_source_components_pass_live_pending",
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p02.py",
+      "sha256": "82e80264c8eb62cc94b93a74f402047433efda0d7970e8d194b6c3ffeda4489e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_command_source_p02.py",
+      "sha256": "f1ff494e4adb2e97f618021c287e65be2d05f07187eb13694f816e73b2416ff6"
+    }
+  ],
+  "contract_used_for_component_tests_only": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p02.yaml",
+    "sha256": "540dff1d210dabdc85586967053896abf532a2bc6613d79828d9df4a69175756",
+    "not_execution_seal": true
+  },
+  "frozen_schedule_sha256": "a297167d4b20b4c77630084dfabca952cade4d2aa2cda2baaeba849b013b3f1f",
+  "ros_started": false,
+  "cpp_build_attempted": false,
+  "tests_passed": 28,
+  "identity_guards": [
+    "exact SHA bytes read once then YAML parsed",
+    "exact stage astra_m12_physics_p02",
+    "explicit contract.run_id and seed equality; no defaults",
+    "loopback HTTP ROS master with no credentials",
+    "use_sim_time and simulation_only true",
+    "initial Gazebo physics paused",
+    "unique effective P02 plugin, dynamicsSeed and all effective params equal contract",
+    "single cmd_vel_navigation publisher and single relay output at start; separate periodic monitor"
+  ],
+  "interface": {
+    "node_name": "/actuation_command_source",
+    "private_params": [
+      "contract_path",
+      "contract_sha256",
+      "run_id",
+      "seed"
+    ],
+    "start_service": "/astra_fixture/start",
+    "start_service_type": "std_srvs/Trigger",
+    "start_once": true,
+    "start_ns_formula": "rospy.Time.now().to_nsec()+100000000",
+    "start_response_json": [
+      "start_ns",
+      "run_id",
+      "seed",
+      "contract_sha256"
+    ],
+    "start_topic": "/astra_fixture/schedule_start_ns",
+    "start_topic_type": "std_msgs/Int64 latched",
+    "command_topic": "/cmd_vel_navigation",
+    "command_queue": 1,
+    "event_topic": "/astra_fixture/command_event",
+    "event_type": "diagnostic_msgs/DiagnosticArray queue1000",
+    "event_values": [
+      "phase",
+      "v",
+      "w",
+      "wall_monotonic_s",
+      "scheduled_ns",
+      "lateness_ns",
+      "missed_slots"
+    ],
+    "event_header": "actual ROS time sampled immediately before command publication, not intended slot or callback receipt",
+    "status_topic": "/astra_fixture/command_source_status",
+    "status_type": "diagnostic_msgs/DiagnosticArray queue1000 latched",
+    "status_values": [
+      "state",
+      "run_id",
+      "seed",
+      "contract_sha256",
+      "reason",
+      "start_ns"
+    ],
+    "states": [
+      "bootstrap",
+      "running",
+      "complete",
+      "fault"
+    ],
+    "required_node_lifecycle": "complete/fault stay alive until external launch shutdown"
+  },
+  "schedule": {
+    "formal_duration_ns": 36000000000,
+    "period_ns": 50000000,
+    "loss_start_ns": 32000000000,
+    "loss_end_ns": 36000000000,
+    "regular_command_slots": 640,
+    "silent_loss_slots": 80,
+    "terminal_zero_once_after_end": true,
+    "priming": "wall20Hz bootstrap_zero while initially paused and while waiting for start during root zero warmup",
+    "start_to_first_formal_slot": "100ms source lead; priming stops immediately on accepted start",
+    "missed_slot_behavior": "skip; no catch-up burst; report missed_slots and actual timestamps",
+    "send_phase_recheck": true,
+    "float_elapsed_or_accumulated_float_schedule": false
+  },
+  "failure_semantics": {
+    "clock_regression_or_wall_stall": "latched fault, stop scheduling; publish one safe zero outside loss only",
+    "loss_segment_fault": "no command, including no zero; timeout braking remains original driver behavior",
+    "loss_seen_guard": "retains entry across regression so fault cannot inject zero into an earlier-looking source phase",
+    "no_shutdown_zero": "loop exit does not publish an unlogged extra command in loss",
+    "forged_or_repeated_start": "reject; failed first request also cannot be retried"
+  },
+  "scope_limits": [
+    "No live timing/transport qualification yet; OS scheduler deadlines must be assessed from event and relay source evidence.",
+    "No physical-control dynamics or gates changed; P01 actual center slew failure remains separate from measurement repair.",
+    "Exact historical P01 phase schedule preserved; bootstrap/warmup and terminal zero are explicit separate phases.",
+    "Node reads small contract/URDF only at startup, has no explicit subscribers, no dense callbacks, no raw/log file writes."
+  ]
+}

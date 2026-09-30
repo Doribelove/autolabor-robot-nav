@@ -1,0 +1,62 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R15
+stage_purpose: pure_offline_progress_recovery_planner_integration_audit
+status: preregistered_before_audit_materialization
+upstream:
+  D0_contract_path: config/thesis_experiments/v3/v3_13_d0_multiactor_foundation_contract.yaml
+  D0_contract_sha256: 7fbcdc34b526bd63d93475452bf6f46b6a27a2d28fbaa9c5156d96d3bdd88d05
+  geometry_contract_path: config/thesis_experiments/v3/v3_13_q1_r10_progress_recovery_geometry_contract.yaml
+  geometry_contract_sha256: 3749d475ffc28d8abe2a04e37927972dfd55a23379d4c1ab667265e92203745a
+  predictor_path: artifacts/v3/multiactor/v3_13_q1_r13_predictor/expanded_progress_predictor.yaml
+  predictor_sha256: 0e0d067b647a39a909fc3daadd5abd5d5938cf2e135b62f582dd45731889ee96
+  R14_R1_assessment_sha256: 3f1125d4d24ab57488f6e9dd91c0bac5f55e9b6639dc803191e74e01bdd45d28
+  R14_R1_evidence_freeze_sha256: 5b91dbdd1aa0ea8780903c137cc877d2a03cdff277d3a6aa110d357930a297a7
+  R14_R1_independent_review_sha256: eaf75ec955c40285f704fea4270f07724d62a4290d84c774f374c51879b9f3d5
+  progress_planner_core_path: src/application/v3_scope_planner/src/v3_scope_planner/progress_expanded_recovery_core.py
+  progress_planner_core_sha256: 9e42a13c15040e29d3d6e997f0abb435d2a0fbc4ed096ec13ef0870b066dc501
+audit_population:
+  source_stage: V3-13-Q1-R14-R1
+  source_seed_range: [7658, 7665]
+  matched_context_blocks: 8
+  actions_per_block: 5
+  source_units: 40
+  audit_rows: 8
+  recovery_context_required: true
+  actor_hidden_policy_labels_available_to_planner: false
+integration_gates:
+  row_count_exact: 8
+  selected_candidate_accepted_rate_min: 1.0
+  no_safe_candidate_exception_count_max: 0
+  every_crossing_stratum_nonstop_progress_required: true
+  selected_clone_minimum_dynamic_clearance_m_min: 0.0
+  selected_clone_minimum_static_clearance_m_min: 0.0
+  selected_clone_contact_state_count_max: 0
+  progress_candidate_predicted_dynamic_clearance_m_min: 0.0
+  progress_candidate_predicted_static_clearance_m_min: 0.0
+  progress_candidate_clone_dynamic_clearance_m_min: 0.0
+  progress_candidate_clone_static_clearance_m_min: 0.0
+  hidden_label_feature_count_max: 0
+downstream:
+  if_all_gates_pass: fresh_actual_TEB_paired_preflight_design
+  if_any_gate_fails: freeze_negative_integration_and_diagnose
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  pure_offline_audit_authorized: true
+  new_simulation_units_authorized: 0
+  actual_TEB_execution_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - frozen predictor, hard verifier and analytic ranker select clone-safe progress on the eight R14-R1 recovery states
+  forbidden:
+  - actual TEB performance
+  - held-out generalization
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

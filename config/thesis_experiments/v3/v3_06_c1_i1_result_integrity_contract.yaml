@@ -1,0 +1,26 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-C1-I1
+stage_purpose: pure_offline_result_interpretation_after_pooled_latency_gate_failure
+contract_id: v3_scope_v3_06_c1_i1_result_integrity_1
+status: pure_offline_no_execution_authority
+upstream:
+  stage: V3-06-C1
+  execution_complete: true
+  authorized_consumed_completed_units: [36, 36, 36]
+  original_assessor_disposition: failed_before_output_on_pooled_overall_pass_assertion
+interpretation:
+  preserve_all_c1_outcomes: true
+  recompute_original_pooled_gates_without_early_abort: true
+  any_shared_gate_failure_disqualifies_all_density_levels: true
+  do_not_change_latency_threshold: true
+  do_not_rerun_or_resume_c1: true
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  model_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

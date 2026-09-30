@@ -1,0 +1,27 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-C5-R1
+stage_purpose: pure_offline_duplicate_prediction_exception_cache_repair
+contract_id: v3_scope_v3_06_c5_r1_exception_cache_1
+status: pure_offline_single_factor_cache_repair
+parent:
+  report_path: artifacts/v3/development/v3_06_c5/v3_06_c5_offline_equivalence_report.yaml
+  disposition: exact_output_pass_but_302_of_395_saved_call_gate_failed
+single_factor:
+  factor_id: cache_equivalent_prediction_exceptions
+  successful_value_cache_changed: false
+  exception_type_and_args_replayed: true
+  plan_output_semantics_changed: false
+offline_gates:
+  exact_plan_output_rate_min: 1.0
+  saved_predictor_call_count_min: 395
+  selected_candidate_accepted_rate_min: 1.0
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  model_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

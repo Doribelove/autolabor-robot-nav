@@ -1,0 +1,135 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r01/draft_r00/run_navigation_n06_manager.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager.py
+@@ -55,6 +55,7 @@
+ def live_preflight(data):
+     if Path(os.environ.get('THESIS_WS','')).resolve()!=WORKSPACE:raise ValueError('source isolated astra_env first')
+     if Path(sys.executable).resolve()!=(WORKSPACE/'.venv/bin/python').resolve():raise ValueError('manager interpreter differs from reviewed runtime')
++    if Path(sys.prefix).resolve()!=(WORKSPACE/'.venv').resolve() or sys.flags.no_user_site!=1:raise ValueError('reviewed virtualenv prefix with user site disabled required')
+     if LEDGER.exists() or EVENTS.exists() or any((STAGE/'runs'/u['run_id']).exists() for u in data['rows']):raise ValueError('N06 identity already exists: retry/resume prohibited')
+     q.check_registry(q.regular_bytes(STAGE/'seed_registry.csv'),data['registry_baseline'],data['release_binding']['sha256'],data['rows'])
+     import run_smoke_a02 as common
+@@ -121,10 +122,15 @@
+         except BaseException as exc:error=(error or '')+'; cleanup:'+repr(exc)
+     try:
+         if error or code!=0:raise RuntimeError('launch/preparation/cleanup failed: '+str(error)+' returncode='+str(code))
+-        session.recheck();evidence.closure(root,data['release'],data['review'],value);report=evidence.assess(root,value);session.recheck()
++        session.recheck();evidence.closure(root,data['release'],data['review'],value)
++        with processes.assessment_child_environment(root,nonce):report=evidence.assess(root,value)
++        session.recheck()
+         if stop.signal:raise RuntimeError('manager interrupted during assessment')
+         if time.monotonic()-wall>value['wall_cap_s']:raise TimeoutError('assessment-inclusive wall cap')
+     except BaseException as exc:error=(error or '')+'; assessment:'+repr(exc)
++    finally:
++        try:processes.cleanup(None,root,nonce,audit_name='cleanup_after_assessment.json')
++        except BaseException as exc:error=(error or '')+'; assessment cleanup:'+repr(exc)
+     receipt=terminal_receipt(unit,data['release_binding']['sha256'],report=report,error=error,exit_code=code,root=root,started=started,elapsed=time.monotonic()-wall)
+     q.publish(root/'receipt.json',receipt);return q.binding(root/'receipt.json'),receipt
+ 
+@@ -140,6 +146,7 @@
+         try:
+             for index,(unit,side) in enumerate(zip(data['prepared']['units'],data['conversions']['units'])):
+                 session.recheck()
++                q.check_registry(q.regular_bytes(STAGE/'seed_registry.csv'),data['registry_baseline'],data['release_binding']['sha256'],data['rows'])
+                 if stop.signal or not processes.checked_parent(**parent_identity):raise RuntimeError('interrupt/supervisor loss before next allocation')
+                 q.consume(state,index);persist(state,'consume_identity_before_any_launch')
+                 bound,receipt=execute_unit(unit,side,data,session,stop,parent_identity)
+@@ -172,10 +179,9 @@
+         if owner.exists():
+             identity=q.strict_json(q.regular_bytes(owner))
+             if processes.scan(os.getpid(),identity['child_nonce'],root):
+-                # Never replace worker cleanup evidence: write supervisor's
+-                # audit into a separate subdirectory with the same marker root.
+-                if (root/'cleanup.json').exists():raise RuntimeError('live survivor after saved cleanup; independent closure required')
+-                processes.cleanup(None,root,identity['child_nonce'])
++                # Earlier launch cleanup may already exist when the worker
++                # died in its later offline assessment subprocess. Preserve it.
++                processes.cleanup(None,root,identity['child_nonce'],audit_name='cleanup_supervisor.json')
+         if row['receipt'] is None:
+             root.mkdir(exist_ok=True);receipt_path=root/'receipt.json'
+             if receipt_path.exists():receipt=q.strict_json(q.regular_bytes(receipt_path))
+@@ -186,7 +192,10 @@
+                 q.publish(receipt_path,receipt)
+             q.close_unit(state,index,q.binding(receipt_path),receipt);actions.append(row['run_id'])
+     pointer_stale=not LEDGER.exists() or not q.same_typed(q.strict_json(q.regular_bytes(LEDGER)),state)
+-    if observed_code!=0 or state['status']!='terminal' or actions or pointer_stale:
++    # A worker can correctly return 3 after an already closed infrastructure
++    # failure. Preserve that terminal ledger/reason and its return binding.
++    # The independent supervisor observation records any later exit discrepancy.
++    if state['status']!='terminal' or actions or pointer_stale:
+         q.terminal(state,'supervisor observed interrupted/incomplete worker '+str(observed_code));persist(state,'supervisor_terminal_infrastructure_closure')
+     return {'ledger_present':True,'missing_receipts_closed':actions,'ledger':q.binding(LEDGER)}
+ 
+@@ -199,33 +208,53 @@
+             'start_ticks':me['start_ticks'],'utc':utc(),'host_shell_exit_status':'unknown'})
+         command=[sys.executable,str(Path(__file__).resolve()),'--worker','--release',str(Path(path).resolve()),'--release-sha256',sha,
+             '--parent-pid',str(os.getpid()),'--parent-start-ticks',me['start_ticks'],'--lock-fd',str(lock.fileno())]
+-        with (QUEUE/'navigation_n06_worker.log').open('xb') as log,processes.StopRequest() as stop:
+-            proc=subprocess.Popen(command,cwd=str(WORKSPACE),env=dict(os.environ),stdout=log,stderr=subprocess.STDOUT,
+-                start_new_session=True,pass_fds=(lock.fileno(),))
+-            child=processes.proc_row(proc.pid);forwarded=False
+-            if child is None:code=proc.wait()
+-            else:
+-                q.publish(QUEUE/'navigation_n06_worker_identity.json',dict(child,argv=command,supervisor_pid=os.getpid()))
+-                while proc.poll() is None:
+-                    if stop.signal and not forwarded:
+-                        processes.signal_pinned(proc.pid,child['start_ticks'],stop.signal,
+-                            lambda row:processes.descendant_chain(row['pid'],os.getpid()) is not None)
+-                        forwarded=True
+-                    time.sleep(.1)
+-                code=proc.wait()
++        proc=None;child=None;code=None;supervisor_error=None
++        with processes.StopRequest() as stop:
++            try:
++                with (QUEUE/'navigation_n06_worker.log').open('xb') as log:
++                    proc=subprocess.Popen(command,cwd=str(WORKSPACE),env=dict(os.environ),stdout=log,stderr=subprocess.STDOUT,
++                        start_new_session=True,pass_fds=(lock.fileno(),))
++                    child=processes.proc_row(proc.pid);forwarded=False
++                    if child is None:code=proc.wait()
++                    else:
++                        q.publish(QUEUE/'navigation_n06_worker_identity.json',dict(child,argv=command,supervisor_pid=os.getpid()))
++                        while proc.poll() is None:
++                            if stop.signal and not forwarded:
++                                processes.signal_pinned(proc.pid,child['start_ticks'],stop.signal,
++                                    lambda row:processes.descendant_chain(row['pid'],os.getpid()) is not None)
++                                forwarded=True
++                            time.sleep(.1)
++                        code=proc.wait()
++            except BaseException as exc:
++                supervisor_error=type(exc).__name__+': '+str(exc)
++                if proc is not None:
++                    # Observe/reap even when publishing identity/log state
++                    # failed. Orphaned workload cleanup belongs to reconciliation.
++                    child=child or processes.proc_row(proc.pid)
++                    for sig,timeout in ((signal.SIGTERM,30.),(signal.SIGKILL,5.)):
++                        try:
++                            if child is not None and proc.poll() is None:
++                                processes.signal_pinned(proc.pid,child['start_ticks'],sig,
++                                    lambda row:processes.descendant_chain(row['pid'],os.getpid()) is not None)
++                        except BaseException as cleanup_exc:supervisor_error+='; worker stop: '+repr(cleanup_exc)
++                        try:code=proc.wait(timeout=timeout);break
++                        except subprocess.TimeoutExpired:continue
+         reconciliation=None;reconcile_error=None
+-        try:reconciliation=reconcile_worker_exit(data,code)
++        try:
++            if proc is not None and code is None:raise RuntimeError('worker exit unobserved; no concurrent ledger reconciliation')
++            reconciliation=reconcile_worker_exit(data,code)
+         except BaseException as exc:reconcile_error=repr(exc)
+         returned=None;return_error=None
+         try:
+             returned=q.strict_json(q.regular_bytes(QUEUE/'navigation_n06_manager_return.json'))
+-            if returned['stage']!=NAME or returned['release_sha256']!=sha or returned['manager_pid']!=proc.pid or returned['returned_code']!=code or returned['ledger']!=q.binding(LEDGER):raise ValueError('manager return/observed process exit/terminal ledger disagreement')
++            if proc is None or returned['stage']!=NAME or returned['release_sha256']!=sha or returned['manager_pid']!=proc.pid or returned['returned_code']!=code or returned['ledger']!=q.binding(LEDGER):raise ValueError('manager return/observed process exit/terminal ledger disagreement')
+         except BaseException as exc:return_error=repr(exc)
+-        q.publish(QUEUE/'navigation_n06_supervisor_wait.json',{'stage':NAME,'release_sha256':sha,'worker_pid':proc.pid,
+-            'observed_child_returncode':code,'termination_signal':-code if code<0 else None,'forwarded_supervisor_signal':stop.signal,
++        q.publish(QUEUE/'navigation_n06_supervisor_wait.json',{'stage':NAME,'release_sha256':sha,'worker_pid':None if proc is None else proc.pid,
++            'observed_child_returncode':code,'termination_signal':-code if code is not None and code<0 else None,'forwarded_supervisor_signal':stop.signal,
++            'supervisor_error':supervisor_error,
+             'reconciliation':reconciliation,'reconciliation_error':reconcile_error,'manager_return':returned,'manager_return_error':return_error,'utc':utc(),
+-            'authority':'Python Popen.wait observation of this child only','host_shell_exit_status':'unknown'})
+-        return 0 if code==0 and reconcile_error is None and return_error is None else 3
++            'authority':'no child exit observed' if code is None else 'Python Popen.wait observation of this child only','host_shell_exit_status':'unknown'})
++        return 0 if code==0 and supervisor_error is None and reconcile_error is None and return_error is None else 3
+ 
+ def main():
+     parser=argparse.ArgumentParser(description=__doc__);mode=parser.add_mutually_exclusive_group()

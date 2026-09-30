@@ -1,0 +1,135 @@
+{
+  "schema": "astra_navigation_n05_administration_independent_r03",
+  "status": "independent_r03_recovery_and_input_rehash_review_pass",
+  "independent_review": true,
+  "reviewed_source_sha256": "0d799bfd635529666f08c020830ce57af74aaf1d3146efeb87fd5f2c575acc47",
+  "code_delta": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/delta_review.json",
+    "sha256": "26f47248960055c229336093e14e0ed232d943accf0aefe6f177659a13c1ff6f"
+  },
+  "synthetic_regression_groups": 24,
+  "inherited_groups": 21,
+  "new_input_mutation_groups": 3,
+  "actual_full_release_validation": true,
+  "actual_readonly_inputs_and_plan_pass": true,
+  "actual_validated_administrative_bindings": 149,
+  "actual_counts": {
+    "consumed": 24,
+    "valid_assessment": 24,
+    "integrity_failed": 0,
+    "retired_unrun": 0,
+    "run_manifest_rows": 24,
+    "experiment_rows": 24
+  },
+  "actual_historical_rows_preserved": {
+    "seed_registry.csv": {
+      "all_historical_row_values_and_order_preserved": true,
+      "historical_rows": 103,
+      "before_rows": 127,
+      "proposed_after_rows": 127
+    },
+    "run_manifest.csv": {
+      "all_historical_row_values_and_order_preserved": true,
+      "historical_rows": 57,
+      "before_rows": 57,
+      "proposed_after_rows": 81
+    },
+    "EXPERIMENTS.csv": {
+      "all_historical_row_values_and_order_preserved": true,
+      "historical_rows": 81,
+      "before_rows": 81,
+      "proposed_after_rows": 105
+    }
+  },
+  "actual_csv_hash_mtime_inode_unchanged": true,
+  "real_close_or_commit_or_main_called": false,
+  "real_queue_transaction_closure_lock_created": false,
+  "real_csv_written": false,
+  "scope": "Root-owned r03 delta independently checked; r02 author cases rerun plus3new timing injections. Actual full frozen manager.verify_release and inputs+plan executed read-only. No actual administrative publication or simulation.",
+  "findings": [
+    "Reverse transformation proves r03 changes only transaction identity strings and two bound-input rehash loops; every other source byte equals archived r02.",
+    "All21 original filesystem/control-flow cases pass under r03, including partial commit recovery and completed read-only repeat.",
+    "Input change after plan fails before any CSV replacement; restoring exact original input bytes permits recovery.",
+    "Input change after first table replace is detected at preclosure check. All3tables may already be after versions, but closure is absent; exact input restoration permits closure completion without rewriting those tables.",
+    "Changed input during recovery from a partial replacement leaves remaining tables untouched; exact restoration resumes.",
+    "Actual24closed receipts/reports and149 administrative input bindings validate; proposed plan contains24consumed/24valid-assessment, no retired/capture failures. Valid assessment is not a claim of goal success.",
+    "All existing historical row values/order remain identical in saved before/proposed-after comparisons; only24 N05 registry statuses and24 append rows per other table change."
+  ],
+  "limitations": [
+    "Sole administrative writer assumption remains; this is not a universal lock for unrelated writers. Rehashing narrows TOCTOU windows but does not create one atomic snapshot across external independently mutable files. Frozen sources/receipts must remain immutable during actual projection.",
+    "Input mutation after a partial commit can leave some or all CSVs at after versions with no closure; durable transaction and strict before/after classification provide recovery. No silent rollback or synthesis of missing evidence.",
+    "Failure tests are synthetic OS-call injections, not hardware power-loss certification.",
+    "The actual proposed manifest and after CSVs exist only under this independent audit directory and must not be mistaken for the queue transaction or an executed administrative closure."
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/actual_historical_rows_comparison.json",
+      "sha256": "379a9a7b20ba5f56721d095cf708cc8988c2fa86d77d2a04a940fc2909a048fd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/delta_review.json",
+      "sha256": "26f47248960055c229336093e14e0ed232d943accf0aefe6f177659a13c1ff6f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_actual_attempt01.log",
+      "sha256": "f2a39079a6f260f525b66e2a2cb63262bf7bfa833aa109c610397f8c1b35a636"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_actual_plan.json",
+      "sha256": "f2a39079a6f260f525b66e2a2cb63262bf7bfa833aa109c610397f8c1b35a636"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_actual_plan.py",
+      "sha256": "7f3f00877de158a19a26fd2e52669c2eb74fa5fb5369a4aa814706d83c238996"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_before_EXPERIMENTS.csv",
+      "sha256": "7efaa5aa8c4ef563c04f7045ad757fc82b6f2e016c0268827bfe832d8f122320"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_before_run_manifest.csv",
+      "sha256": "99ed8253aa6a631834ad7a5fdc85b472294c4427ed939d40827fc57aed7d4663"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_before_seed_registry.csv",
+      "sha256": "8882af63aa2e0c547ccfe03c6b5b20968898b15d100bec7e37e3c19d40ec6842"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_proposed_after_EXPERIMENTS.csv",
+      "sha256": "11b81319808875e5d8accadabf2b0dada979b426885185cf16821d7b2d473834"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_proposed_after_run_manifest.csv",
+      "sha256": "6a3925723da10998fe43984b3df780db621eb750e8e26be51dafef40a664be87"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_proposed_after_seed_registry.csv",
+      "sha256": "637e9d237d477a248dd6f08eb4a548e28f487471b8c48d7e0c9c7503caec31b0"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_proposed_manifest.json",
+      "sha256": "827368526cab2904a03f73571012fa3c8d8ca25702d4fc8776b655398e32ef29"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/source_snapshot.py",
+      "sha256": "0d799bfd635529666f08c020830ce57af74aaf1d3146efeb87fd5f2c575acc47"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/test_projection.py",
+      "sha256": "7190b1a796b595a170d343b7c8b683268ea43f473ed3ac7ffff8e4555a66e18d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/test_results.json",
+      "sha256": "a9440dd2dcb615b4ac86c7e27090b20038f8b7c5b3228e628bedca5167050bea"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/tests_attempt01.log",
+      "sha256": "cf00d060635724361c57d97256c117a412801f14db5def80954fe9ae55be907a"
+    }
+  ],
+  "commands": [
+    "PYTHONDONTWRITEBYTECODE=1 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/test_projection.py",
+    "PYTHONDONTWRITEBYTECODE=1 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_admin_projection_independent/r03/readonly_actual_plan.py"
+  ],
+  "no_ROS": true
+}

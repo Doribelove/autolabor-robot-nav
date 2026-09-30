@@ -1,0 +1,65 @@
+diff --git a/src/teb_local_planner_ros.cpp b/src/teb_local_planner_ros.cpp
+index 7b8f3d7eedeaaddbc18d8c9bde7ad1dbd4cd27b7..2d63fde16c46c109c7076d61ed69037d92142d60 100644
+--- a/src/teb_local_planner_ros.cpp
++++ b/src/teb_local_planner_ros.cpp
+@@ -43,6 +43,8 @@
+ 
+ #include <boost/algorithm/string.hpp>
+ 
++#include <algorithm>
++
+ // MBF return codes
+ #include <mbf_msgs/ExePathResult.h>
+ 
+@@ -81,10 +83,6 @@ TebLocalPlannerROS::~TebLocalPlannerROS()
+ void TebLocalPlannerROS::reconfigureCB(TebLocalPlannerReconfigureConfig& config, uint32_t level)
+ {
+   cfg_.reconfigure(config);
+-  ros::NodeHandle nh("~/" + name_);
+-  // create robot footprint/contour model for optimization
+-  RobotFootprintModelPtr robot_model = getRobotFootprintFromParamServer(nh);
+-  planner_->updateRobotModel(robot_model);
+ }
+ 
+ void TebLocalPlannerROS::initialize(std::string name, tf2_ros::Buffer* tf, costmap_2d::Costmap2DROS* costmap_ros)
+@@ -574,7 +572,33 @@ void TebLocalPlannerROS::updateObstacleContainerWithCustomObstacles()
+         Eigen::Vector3d pos( custom_obstacle_msg_.obstacles.at(i).polygon.points.front().x,
+                              custom_obstacle_msg_.obstacles.at(i).polygon.points.front().y,
+                              custom_obstacle_msg_.obstacles.at(i).polygon.points.front().z );
+-        obstacles_.push_back(ObstaclePtr(new CircularObstacle( (obstacle_to_map_eig * pos).head(2), custom_obstacle_msg_.obstacles.at(i).radius)));
++        const Eigen::Vector2d map_pos = (obstacle_to_map_eig * pos).head(2);
++        const double speed = std::hypot(
++            custom_obstacle_msg_.obstacles.at(i).velocities.twist.linear.x,
++            custom_obstacle_msg_.obstacles.at(i).velocities.twist.linear.y);
++        if (speed >= 0.001)
++        {
++          // A velocity-aware custom obstacle normally describes the same laser
++          // return cluster already copied from the costmap above. Fuse those
++          // static points into the tracked object instead of optimizing against
++          // two contradictory representations of one physical target.
++          const double fusion_radius =
++              std::max(0.25, static_cast<double>(custom_obstacle_msg_.obstacles.at(i).radius)) + 0.15;
++          const std::size_t before = obstacles_.size();
++          obstacles_.erase(
++              std::remove_if(obstacles_.begin(), obstacles_.end(),
++                  [&map_pos, fusion_radius](const ObstaclePtr& obstacle)
++                  {
++                    return !obstacle->isDynamic()
++                        && (obstacle->getCentroid() - map_pos).norm() <= fusion_radius;
++                  }),
++              obstacles_.end());
++          ROS_DEBUG_THROTTLE(1.0,
++              "Fused %zu costmap points into velocity-aware custom obstacle.",
++              before - obstacles_.size());
++        }
++        obstacles_.push_back(ObstaclePtr(new CircularObstacle(
++            map_pos, custom_obstacle_msg_.obstacles.at(i).radius)));
+       }
+       else if (custom_obstacle_msg_.obstacles.at(i).polygon.points.size() == 1 ) // point
+       {
+@@ -1206,5 +1230,3 @@ double TebLocalPlannerROS::getNumberFromXMLRPC(XmlRpc::XmlRpcValue& value, const
+ }
+ 
+ } // end namespace teb_local_planner
+-
+-

@@ -1,0 +1,2202 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-02-T1
+assessment_id: v3_scope_v3_02_t1_heldout_assessment_1
+status: v3_02_t1_heldout_predictor_fail
+formal_predictor_result: true
+frozen_model_sha256: 3caa0124e1d20b8aaff17858ba5821515f4ecb2570197a3fbed83ae18a59a61d
+execution:
+  authorized_units: 36
+  consumed_units: 36
+  completed_units: 36
+  retry_units: 0
+metrics:
+  marginal_coverage: 0.7986111111111112
+  per_horizon_coverage:
+    t1_5: 0.75
+    t2_5: 0.7777777777777778
+    t3_5: 0.8888888888888888
+    t4_5: 0.7777777777777778
+  mean_full_envelope_width_m: 2.218446772335325
+  actual_mode_mae_m: 0.07189137899823289
+  minimum_candidate_sensitivity_m: 0.6393330325790387
+  physical_coordinate_violation_count: 0
+gates:
+  episode_count_pass: true
+  point_count_pass: true
+  marginal_coverage_pass: false
+  per_horizon_coverage_pass: false
+  mean_width_pass: true
+  actual_mode_mae_pass: true
+  candidate_sensitivity_pass: true
+  physical_coordinate_pass: true
+  hidden_policy_runtime_firewall_pass: true
+overall_pass: false
+model_refit_or_recalibrated_after_test: false
+episodes:
+- row:
+    sequence: 1
+    unit_id: v3_02_t1_test_6221_cautious_probe_v060
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: a57de36a66a52587043b7e1191994828ed5b04b6c41d356f83bb4548a360cecd
+  features:
+  - 1.0
+  - -2.68750000016256
+  - 0.9249999999832448
+  - 0.6
+  - 0.36
+  - -1.612500000097536
+  - 0.5549999999899469
+  points:
+  - horizon: t1_5
+    truth_m: -1.7625000001592168
+    mode_predictions_m:
+      cautious: -1.7632879519718445
+      assertive: -1.7582326196314373
+      hesitant: -1.7360673838697007
+    lower_m: -1.7776433582378446
+    upper_m: -1.7217119776037006
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.8375000001638602
+    mode_predictions_m:
+      cautious: -0.8971387545600571
+      assertive: -0.7587269212744063
+      hesitant: -0.7746204934145382
+    lower_m: -0.911494160826057
+    upper_m: -0.7443715150084064
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.08749999983585696
+    mode_predictions_m:
+      cautious: 0.08379662743279725
+      assertive: 0.21554758515663952
+      hesitant: 0.14979721940181534
+    lower_m: 0.06944122116679725
+    upper_m: 0.2299029914226395
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.0124999998358053
+    mode_predictions_m:
+      cautious: 1.0877701551326457
+      assertive: 1.1890398264261774
+      hesitant: 1.0518154110762694
+    lower_m: 1.0374600048102693
+    upper_m: 1.2033952326921775
+    covered: false
+- row:
+    sequence: 2
+    unit_id: v3_02_t1_test_6221_cautious_probe_v080
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: dcf7b214ebc34ebb53e7a09523972e78bdfb76c1a19edea6d1537afa21ce80cb
+  features:
+  - 1.0
+  - -2.9509675001647873
+  - 0.12981249997638722
+  - 0.8
+  - 0.6400000000000001
+  - -2.36077400013183
+  - 0.10384999998110978
+  points:
+  - horizon: t1_5
+    truth_m: -2.830967500159476
+    mode_predictions_m:
+      cautious: -2.821079485664072
+      assertive: -2.9509675001647873
+      hesitant: -2.9509675001647873
+    lower_m: -2.9653229064307873
+    upper_m: -2.806724079398072
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.5775650001653734
+    mode_predictions_m:
+      cautious: -2.6148556267112433
+      assertive: -2.666953242336888
+      hesitant: -2.2105915587437703
+    lower_m: -2.681308648602888
+    upper_m: -2.1962361524777703
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.6560550001682224
+    mode_predictions_m:
+      cautious: -1.8817665405802266
+      assertive: -0.5661942451737585
+      hesitant: -2.235021108936648
+    lower_m: -2.249376515202648
+    upper_m: -0.5518388389077585
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.7310550001639136
+    mode_predictions_m:
+      cautious: -0.935452594348686
+      assertive: 1.5245462856995884
+      hesitant: -2.9509675001647873
+    lower_m: -2.9653229064307873
+    upper_m: 1.5389016919655885
+    covered: true
+- row:
+    sequence: 3
+    unit_id: v3_02_t1_test_6221_cautious_probe_v100
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 3d0829d486d7d607670e398c568f594b6977598836ae103709737dbc68de8561
+  features:
+  - 1.0
+  - -2.9509675001647873
+  - 0.12981249997638722
+  - 1.0
+  - 1.0
+  - -2.9509675001647873
+  - 0.12981249997638722
+  points:
+  - horizon: t1_5
+    truth_m: -2.776945000160166
+    mode_predictions_m:
+      cautious: -2.752957228231091
+      assertive: -2.9509675001647873
+      hesitant: -2.9509675001647873
+    lower_m: -2.9653229064307873
+    upper_m: -2.7386018219650907
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.8887550001611773
+    mode_predictions_m:
+      cautious: -2.0261374352887116
+      assertive: -2.9509675001647873
+      hesitant: -2.2703313075791822
+    lower_m: -2.9653229064307873
+    upper_m: -2.0117820290227115
+    covered: false
+  - horizon: t3_5
+    truth_m: -0.9637550001638886
+    mode_predictions_m:
+      cautious: -1.0519553820167244
+      assertive: 0.38437977633691855
+      hesitant: -2.4727201820958786
+    lower_m: -2.4870755883618787
+    upper_m: 0.39873518260291857
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.038755000164119695
+    mode_predictions_m:
+      cautious: -0.08833030061730351
+      assertive: 3.5
+      hesitant: -2.9509675001647873
+    lower_m: -2.9653229064307873
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 4
+    unit_id: v3_02_t1_test_6221_cautious_probe_v120
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: b5d2ed54f67273195dbb38b44ef47c14ef9fd6fc327e36de4914c083bb99ba18
+  features:
+  - 1.0
+  - -2.9509675001647873
+  - 0.12981249997638722
+  - 1.2
+  - 1.44
+  - -3.5411610001977447
+  - 0.15577499997166466
+  points:
+  - horizon: t1_5
+    truth_m: -2.3508800001673893
+    mode_predictions_m:
+      cautious: -2.5268061883530697
+      assertive: -2.9509675001647873
+      hesitant: -2.9509675001647873
+    lower_m: -2.9653229064307873
+    upper_m: -2.5124507820870696
+    covered: false
+  - horizon: t2_5
+    truth_m: -1.4258800001643057
+    mode_predictions_m:
+      cautious: -1.3824349058885002
+      assertive: -2.9509675001647873
+      hesitant: -2.169103334397235
+    lower_m: -2.9653229064307873
+    upper_m: -1.3680794996225
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.5008800001638605
+    mode_predictions_m:
+      cautious: -0.37992435411098224
+      assertive: 1.3921445275243962
+      hesitant: -2.56648480388583
+    lower_m: -2.58084021015183
+    upper_m: 1.4064999337903963
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.4241199998363258
+    mode_predictions_m:
+      cautious: 0.5238518839261594
+      assertive: 3.5
+      hesitant: -2.9509675001647873
+    lower_m: -2.9653229064307873
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 5
+    unit_id: v3_02_t1_test_6221_assertive_probe_v060
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: a57de36a66a52587043b7e1191994828ed5b04b6c41d356f83bb4548a360cecd
+  features:
+  - 1.0
+  - -2.68750000016256
+  - 0.9249999999832448
+  - 0.6
+  - 0.36
+  - -1.612500000097536
+  - 0.5549999999899469
+  points:
+  - horizon: t1_5
+    truth_m: -1.7625000001592168
+    mode_predictions_m:
+      cautious: -1.7632879519718445
+      assertive: -1.7582326196314373
+      hesitant: -1.7360673838697007
+    lower_m: -1.7776433582378446
+    upper_m: -1.7217119776037006
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.8375000001638602
+    mode_predictions_m:
+      cautious: -0.8971387545600571
+      assertive: -0.7587269212744063
+      hesitant: -0.7746204934145382
+    lower_m: -0.911494160826057
+    upper_m: -0.7443715150084064
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.08749999983585696
+    mode_predictions_m:
+      cautious: 0.08379662743279725
+      assertive: 0.21554758515663952
+      hesitant: 0.14979721940181534
+    lower_m: 0.06944122116679725
+    upper_m: 0.2299029914226395
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.0124999998358053
+    mode_predictions_m:
+      cautious: 1.0877701551326457
+      assertive: 1.1890398264261774
+      hesitant: 1.0518154110762694
+    lower_m: 1.0374600048102693
+    upper_m: 1.2033952326921775
+    covered: false
+- row:
+    sequence: 6
+    unit_id: v3_02_t1_test_6221_assertive_probe_v080
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 062300486e2dcf027265dd7f33a4408b047e7c52698162925d12ff8580a0e9df
+  features:
+  - 1.0
+  - -2.527302500159299
+  - 1.3500000000111334
+  - 0.8
+  - 0.6400000000000001
+  - -2.0218420001274393
+  - 1.0800000000089067
+  points:
+  - horizon: t1_5
+    truth_m: -1.1773025001682615
+    mode_predictions_m:
+      cautious: -2.527302500159299
+      assertive: -1.1808430617571943
+      hesitant: 2.1315404945428282
+    lower_m: -2.541657906425299
+    upper_m: 2.1458959008088283
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.13594749983545706
+    mode_predictions_m:
+      cautious: -2.527302500159299
+      assertive: 0.05998131157930331
+      hesitant: 0.5158965577698638
+    lower_m: -2.541657906425299
+    upper_m: 0.5302519640358637
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.0609599998388197
+    mode_predictions_m:
+      cautious: -0.9609041400811176
+      assertive: 1.0903333358880671
+      hesitant: 3.5
+    lower_m: -0.9752595463471175
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.9859599998325033
+    mode_predictions_m:
+      cautious: 1.4946064115486513
+      assertive: 2.115499999058299
+      hesitant: 3.5
+    lower_m: 1.4802510052826512
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 7
+    unit_id: v3_02_t1_test_6221_assertive_probe_v100
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: c545f167dc53c2b4eb56f89e892314da61f7e40c58f598d9594acc7e4410f510
+  features:
+  - 1.0
+  - -2.527302500159299
+  - 1.3500000000111334
+  - 1.0
+  - 1.0
+  - -2.527302500159299
+  - 1.3500000000111334
+  points:
+  - horizon: t1_5
+    truth_m: -1.1773025001682615
+    mode_predictions_m:
+      cautious: -2.527302500159299
+      assertive: -1.1774981529039277
+      hesitant: 3.5
+    lower_m: -2.541657906425299
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.15394749983624081
+    mode_predictions_m:
+      cautious: -2.527302500159299
+      assertive: 0.12401234188480181
+      hesitant: 1.2978110288624496
+    lower_m: -2.541657906425299
+    upper_m: 1.3121664351284497
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.0822099998402785
+    mode_predictions_m:
+      cautious: -2.527302500159299
+      assertive: 1.1142683069168435
+      hesitant: 3.5
+    lower_m: -2.541657906425299
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.0072099998337034
+    mode_predictions_m:
+      cautious: -0.00721390540105471
+      assertive: 2.0975789692033757
+      hesitant: 3.5
+    lower_m: -0.02156931166705471
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 8
+    unit_id: v3_02_t1_test_6221_assertive_probe_v120
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 757ef70985eeb30d76480d46ef936e66f89bf5961477f86fb4efe880a8559a59
+  features:
+  - 1.0
+  - -2.527302500159299
+  - 1.3500000000111334
+  - 1.2
+  - 1.44
+  - -3.0327630001911587
+  - 1.62000000001336
+  points:
+  - horizon: t1_5
+    truth_m: -1.1773025001682615
+    mode_predictions_m:
+      cautious: -2.527302500159299
+      assertive: -1.1764050121928218
+      hesitant: 3.5
+    lower_m: -2.541657906425299
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.15394749983624081
+    mode_predictions_m:
+      cautious: -2.527302500159299
+      assertive: 0.16501619782054
+      hesitant: 2.2406932219723945
+    lower_m: -2.541657906425299
+    upper_m: 2.2550486282383946
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.0822099998402785
+    mode_predictions_m:
+      cautious: -2.527302500159299
+      assertive: 1.1953940076224199
+      hesitant: 3.5
+    lower_m: -2.541657906425299
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.0072099998337034
+    mode_predictions_m:
+      cautious: -1.743974331538685
+      assertive: 2.2183816834752452
+      hesitant: 3.5
+    lower_m: -1.7583297378046852
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 9
+    unit_id: v3_02_t1_test_6221_hesitant_probe_v060
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: a57de36a66a52587043b7e1191994828ed5b04b6c41d356f83bb4548a360cecd
+  features:
+  - 1.0
+  - -2.68750000016256
+  - 0.9249999999832448
+  - 0.6
+  - 0.36
+  - -1.612500000097536
+  - 0.5549999999899469
+  points:
+  - horizon: t1_5
+    truth_m: -1.7625000001592168
+    mode_predictions_m:
+      cautious: -1.7632879519718445
+      assertive: -1.7582326196314373
+      hesitant: -1.7360673838697007
+    lower_m: -1.7776433582378446
+    upper_m: -1.7217119776037006
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.8375000001638602
+    mode_predictions_m:
+      cautious: -0.8971387545600571
+      assertive: -0.7587269212744063
+      hesitant: -0.7746204934145382
+    lower_m: -0.911494160826057
+    upper_m: -0.7443715150084064
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.08749999983585696
+    mode_predictions_m:
+      cautious: 0.08379662743279725
+      assertive: 0.21554758515663952
+      hesitant: 0.14979721940181534
+    lower_m: 0.06944122116679725
+    upper_m: 0.2299029914226395
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.0124999998358053
+    mode_predictions_m:
+      cautious: 1.0877701551326457
+      assertive: 1.1890398264261774
+      hesitant: 1.0518154110762694
+    lower_m: 1.0374600048102693
+    upper_m: 1.2033952326921775
+    covered: false
+- row:
+    sequence: 10
+    unit_id: v3_02_t1_test_6221_hesitant_probe_v080
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 9c3ae1a1d089d91d17dfd5186af9cb9a81aa6f351ec9a3958a054033b2a0cd6b
+  features:
+  - 1.0
+  - -2.910712500162043
+  - 0.31999999998849393
+  - 0.8
+  - 0.6400000000000001
+  - -2.3285700001296346
+  - 0.25599999999079515
+  points:
+  - horizon: t1_5
+    truth_m: -2.3810800001638275
+    mode_predictions_m:
+      cautious: -2.826202528562903
+      assertive: -2.910712500162043
+      hesitant: -2.3636363962085003
+    lower_m: -2.925067906428043
+    upper_m: -2.3492809899425002
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.8534550001689392
+    mode_predictions_m:
+      cautious: -2.6715978193044987
+      assertive: -2.2609131798737
+      hesitant: -1.808949224088182
+    lower_m: -2.6859532255704988
+    upper_m: -1.7945938178221819
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.3218150001668778
+    mode_predictions_m:
+      cautious: -1.750357778567602
+      assertive: -0.3244694845233427
+      hesitant: -1.2412417579237562
+    lower_m: -1.7647131848336022
+    upper_m: -0.31011407825734266
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.6497425001640129
+    mode_predictions_m:
+      cautious: -0.5674128711698154
+      assertive: 1.602416158296883
+      hesitant: -0.549522629351312
+    lower_m: -0.5817682774358154
+    upper_m: 1.616771564562883
+    covered: false
+- row:
+    sequence: 11
+    unit_id: v3_02_t1_test_6221_hesitant_probe_v100
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 2589ed487f6c0dd7b67f64aa3c468c4de80f1d4d743c3ed6e03b6a8acb3bbd03
+  features:
+  - 1.0
+  - -2.910712500162043
+  - 0.31999999998849393
+  - 1.0
+  - 1.0
+  - -2.910712500162043
+  - 0.31999999998849393
+  points:
+  - horizon: t1_5
+    truth_m: -2.3810800001638275
+    mode_predictions_m:
+      cautious: -2.910712500162043
+      assertive: -2.910712500162043
+      hesitant: -2.3502754753294637
+    lower_m: -2.925067906428043
+    upper_m: -2.3359200690634636
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.7246425001676495
+    mode_predictions_m:
+      cautious: -2.6528488199497504
+      assertive: -2.748245346429252
+      hesitant: -1.7341578775262434
+    lower_m: -2.762600752695252
+    upper_m: -1.7198024712602433
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.7996425001645654
+    mode_predictions_m:
+      cautious: -1.4773717055067905
+      assertive: 0.4821497921561273
+      hesitant: -0.9405231132885437
+    lower_m: -1.4917271117727906
+    upper_m: 0.4965051984221273
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.12535749983585387
+    mode_predictions_m:
+      cautious: -0.07845480056279364
+      assertive: 3.5
+      hesitant: 0.025087333410976242
+    lower_m: -0.09281020682879364
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 12
+    unit_id: v3_02_t1_test_6221_hesitant_probe_v120
+    block_id: test_6221
+    role_evaluator_only: held_out_test
+    seed: 6221
+    angle_deg: 75.0
+    actor_start_distance_m: 3.15
+    actor_base_speed_mps: 0.925
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: a3ed81243ca0a9ca02476bc04ca50a26b98ce320c96d80414a2fcf52cf5bbb28
+  features:
+  - 1.0
+  - -2.910712500162043
+  - 0.31999999998849393
+  - 1.2
+  - 1.44
+  - -3.4928550001944516
+  - 0.3839999999861927
+  points:
+  - horizon: t1_5
+    truth_m: -2.1811550001644138
+    mode_predictions_m:
+      cautious: -2.910712500162043
+      assertive: -2.910712500162043
+      hesitant: -2.3507799126750673
+    lower_m: -2.925067906428043
+    upper_m: -2.336424506409067
+    covered: false
+  - horizon: t2_5
+    truth_m: -1.2561550001610706
+    mode_predictions_m:
+      cautious: -2.579115482617323
+      assertive: -2.910712500162043
+      hesitant: -1.4983988089469449
+    lower_m: -2.925067906428043
+    upper_m: -1.4840434026809448
+    covered: false
+  - horizon: t3_5
+    truth_m: -0.3311550001637304
+    mode_predictions_m:
+      cautious: -1.3621657631037394
+      assertive: 1.3459597985123979
+      hesitant: -0.49587001728405156
+    lower_m: -1.3765211693697395
+    upper_m: 1.360315204778398
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.593844999835697
+    mode_predictions_m:
+      cautious: 0.17556316085630552
+      assertive: 3.5
+      hesitant: 0.46756792373694367
+    lower_m: 0.16120775459030554
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 13
+    unit_id: v3_02_t1_test_6222_cautious_probe_v060
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 449dcd9b6d74dbadfd91e0dc51be76fd5334de954d53c7e9296f42061124cbda
+  features:
+  - 1.0
+  - -2.3125000001900644
+  - 1.0750000000141546
+  - 0.6
+  - 0.36
+  - -1.3875000001140385
+  - 0.6450000000084928
+  points:
+  - horizon: t1_5
+    truth_m: -1.2375000001960084
+    mode_predictions_m:
+      cautious: -1.2332416716898962
+      assertive: -1.2426750646177425
+      hesitant: -1.258327751919846
+    lower_m: -1.272683158185846
+    upper_m: -1.218886265423896
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.16250000019237038
+    mode_predictions_m:
+      cautious: -0.11140032388779231
+      assertive: -0.26039735426803023
+      hesitant: -0.20881813967173635
+    lower_m: -0.27475276053403025
+    upper_m: -0.0970449176217923
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.9124999998075594
+    mode_predictions_m:
+      cautious: 0.8993029361226439
+      assertive: 0.7454365112131789
+      hesitant: 0.8670761396265299
+    lower_m: 0.7310811049471789
+    upper_m: 0.9136583423886439
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.9874999998054794
+    mode_predictions_m:
+      cautious: 1.9093259397671467
+      assertive: 1.7517998623402988
+      hesitant: 1.960223611305512
+    lower_m: 1.7374444560742988
+    upper_m: 1.974579017571512
+    covered: false
+- row:
+    sequence: 14
+    unit_id: v3_02_t1_test_6222_cautious_probe_v080
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 12e319c599908a97e8849d60e78c6f30890c5168bd4e160503f798f8c19127cc
+  features:
+  - 1.0
+  - -2.595212500191807
+  - 0.18358750002006818
+  - 0.8
+  - 0.6400000000000001
+  - -2.076170000153446
+  - 0.14687000001605455
+  points:
+  - horizon: t1_5
+    truth_m: -2.475212500193826
+    mode_predictions_m:
+      cautious: -2.495042982647021
+      assertive: -2.595212500191807
+      hesitant: -2.595212500191807
+    lower_m: -2.6095679064578072
+    upper_m: -2.4806875763810208
+    covered: false
+  - horizon: t2_5
+    truth_m: -2.3552125001955857
+    mode_predictions_m:
+      cautious: -2.3766513462582606
+      assertive: -2.2983442101427256
+      hesitant: -1.7854113055809337
+    lower_m: -2.3910067525242606
+    upper_m: -1.7710558993149337
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.9680800001927372
+    mode_predictions_m:
+      cautious: -1.6826645257867203
+      assertive: -0.2777907279319656
+      hesitant: -1.6699399260149388
+    lower_m: -1.6970199320527204
+    upper_m: -0.26343532166596556
+    covered: false
+  - horizon: t4_5
+    truth_m: -0.8930800001919192
+    mode_predictions_m:
+      cautious: -0.6880960754552663
+      assertive: 1.7367871150171945
+      hesitant: -2.4848467823681766
+    lower_m: -2.4992021886341766
+    upper_m: 1.7511425212831946
+    covered: true
+- row:
+    sequence: 15
+    unit_id: v3_02_t1_test_6222_cautious_probe_v100
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f555c15256ecb606bd055ba4d17a62f1960ccd63be7cfcd62dd788c64255ac9c
+  features:
+  - 1.0
+  - -2.595212500191807
+  - 0.18358750002006818
+  - 1.0
+  - 1.0
+  - -2.595212500191807
+  - 0.18358750002006818
+  points:
+  - horizon: t1_5
+    truth_m: -2.475212500193826
+    mode_predictions_m:
+      cautious: -2.5273056937783496
+      assertive: -2.595212500191807
+      hesitant: -2.595212500191807
+    lower_m: -2.6095679064578072
+    upper_m: -2.5129502875123495
+    covered: false
+  - horizon: t2_5
+    truth_m: -2.22181000019403
+    mode_predictions_m:
+      cautious: -2.077046281151696
+      assertive: -2.595212500191807
+      hesitant: -1.851789513662773
+    lower_m: -2.6095679064578072
+    upper_m: -1.8374341073967728
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.1658800001933813
+    mode_predictions_m:
+      cautious: -1.1219384061847908
+      assertive: 0.6256939557325185
+      hesitant: -1.8306179901748578
+    lower_m: -1.844973396440858
+    upper_m: 0.6400493619985185
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.09088000019205465
+    mode_predictions_m:
+      cautious: -0.04856478385694807
+      assertive: 3.5
+      hesitant: -2.595212500191807
+    lower_m: -2.6095679064578072
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 16
+    unit_id: v3_02_t1_test_6222_cautious_probe_v120
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: dd71dccafcdd8a01c2379002b424c36c22b075823da79409148e1133c4e5873e
+  features:
+  - 1.0
+  - -2.595212500191807
+  - 0.18358750002006818
+  - 1.2
+  - 1.44
+  - -3.1142550002301683
+  - 0.22030500002408182
+  points:
+  - horizon: t1_5
+    truth_m: -2.475212500193826
+    mode_predictions_m:
+      cautious: -2.4015396224646386
+      assertive: -2.595212500191807
+      hesitant: -2.595212500191807
+    lower_m: -2.6095679064578072
+    upper_m: -2.3871842161986385
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.701305000194827
+    mode_predictions_m:
+      cautious: -1.7224568780674523
+      assertive: -2.595212500191807
+      hesitant: -1.7571999997272538
+    lower_m: -2.6095679064578072
+    upper_m: -1.7081014718014522
+    covered: false
+  - horizon: t3_5
+    truth_m: -0.6263050001920774
+    mode_predictions_m:
+      cautious: -0.7189924172406217
+      assertive: 1.5863693690738034
+      hesitant: -1.847361602965501
+    lower_m: -1.861717009231501
+    upper_m: 1.6007247753398035
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.4486949998077746
+    mode_predictions_m:
+      cautious: 0.35602639855344886
+      assertive: 3.5
+      hesitant: -2.595212500191807
+    lower_m: -2.6095679064578072
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 17
+    unit_id: v3_02_t1_test_6222_assertive_probe_v060
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 449dcd9b6d74dbadfd91e0dc51be76fd5334de954d53c7e9296f42061124cbda
+  features:
+  - 1.0
+  - -2.3125000001900644
+  - 1.0750000000141546
+  - 0.6
+  - 0.36
+  - -1.3875000001140385
+  - 0.6450000000084928
+  points:
+  - horizon: t1_5
+    truth_m: -1.2375000001960084
+    mode_predictions_m:
+      cautious: -1.2332416716898962
+      assertive: -1.2426750646177425
+      hesitant: -1.258327751919846
+    lower_m: -1.272683158185846
+    upper_m: -1.218886265423896
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.16250000019237038
+    mode_predictions_m:
+      cautious: -0.11140032388779231
+      assertive: -0.26039735426803023
+      hesitant: -0.20881813967173635
+    lower_m: -0.27475276053403025
+    upper_m: -0.0970449176217923
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.9124999998075594
+    mode_predictions_m:
+      cautious: 0.8993029361226439
+      assertive: 0.7454365112131789
+      hesitant: 0.8670761396265299
+    lower_m: 0.7310811049471789
+    upper_m: 0.9136583423886439
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.9874999998054794
+    mode_predictions_m:
+      cautious: 1.9093259397671467
+      assertive: 1.7517998623402988
+      hesitant: 1.960223611305512
+    lower_m: 1.7374444560742988
+    upper_m: 1.974579017571512
+    covered: false
+- row:
+    sequence: 18
+    unit_id: v3_02_t1_test_6222_assertive_probe_v080
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 9245602eb633e2a0440bc4af245a9937803d88675236cdd545bc9abfef1fdda3
+  features:
+  - 1.0
+  - -2.197387500195975
+  - 1.349999999991307
+  - 0.8
+  - 0.6400000000000001
+  - -1.75791000015678
+  - 1.0799999999930456
+  points:
+  - horizon: t1_5
+    truth_m: -0.9457550001922626
+    mode_predictions_m:
+      cautious: -2.197387500195975
+      assertive: -0.8544916732661436
+      hesitant: 2.452460361971342
+    lower_m: -2.211742906461975
+    upper_m: 2.466815768237342
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.1292449998076153
+    mode_predictions_m:
+      cautious: -2.197387500195975
+      assertive: 0.30312809025888665
+      hesitant: 0.8144307369995145
+    lower_m: -2.211742906461975
+    upper_m: 0.8287861432655145
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.2042449998074414
+    mode_predictions_m:
+      cautious: -0.8057566903817981
+      assertive: 1.3011510752603632
+      hesitant: 3.5
+    lower_m: -0.820112096647798
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.279244999811157
+    mode_predictions_m:
+      cautious: 1.6318846909295068
+      assertive: 2.2977370785543485
+      hesitant: 3.5
+    lower_m: 1.6175292846635068
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 19
+    unit_id: v3_02_t1_test_6222_assertive_probe_v100
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: f453a6baf0d39abe502d5c7512a8623bd295b10bd2fd1a47fa97bdd0c32c0c25
+  features:
+  - 1.0
+  - -2.197387500195975
+  - 1.349999999991307
+  - 1.0
+  - 1.0
+  - -2.197387500195975
+  - 1.349999999991307
+  points:
+  - horizon: t1_5
+    truth_m: -0.8473875001923699
+    mode_predictions_m:
+      cautious: -2.197387500195975
+      assertive: -0.8498294993508893
+      hesitant: 3.5
+    lower_m: -2.211742906461975
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.41661999980835007
+    mode_predictions_m:
+      cautious: -2.197387500195975
+      assertive: 0.3615691267369936
+      hesitant: 1.553544136215569
+    lower_m: -2.211742906461975
+    upper_m: 1.5678995424815692
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.4916199998043385
+    mode_predictions_m:
+      cautious: -2.197387500195975
+      assertive: 1.318967651377804
+      hesitant: 3.5
+    lower_m: -2.211742906461975
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.566619999808054
+    mode_predictions_m:
+      cautious: 0.028207071675353745
+      assertive: 2.275073114673445
+      hesitant: 3.5
+    lower_m: 0.013851665409353746
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 20
+    unit_id: v3_02_t1_test_6222_assertive_probe_v120
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 66db3cd8c0ac905dc8d0c3b2fb3778bb0f647f4c58b0147bd16dcf304b37746d
+  features:
+  - 1.0
+  - -2.197387500195975
+  - 1.349999999991307
+  - 1.2
+  - 1.44
+  - -2.63686500023517
+  - 1.6199999999895685
+  points:
+  - horizon: t1_5
+    truth_m: -0.8473875001923699
+    mode_predictions_m:
+      cautious: -2.197387500195975
+      assertive: -0.8474190935777939
+      hesitant: 3.5
+    lower_m: -2.211742906461975
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.41661999980835007
+    mode_predictions_m:
+      cautious: -2.197387500195975
+      assertive: 0.396982988845342
+      hesitant: 2.453625257448989
+    lower_m: -2.211742906461975
+    upper_m: 2.467980663714989
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.4916199998043385
+    mode_predictions_m:
+      cautious: -2.197387500195975
+      assertive: 1.3939749571720466
+      hesitant: 3.5
+    lower_m: -2.211742906461975
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.566619999808054
+    mode_predictions_m:
+      cautious: -1.8104106567667202
+      assertive: 2.3911328949193376
+      hesitant: 3.5
+    lower_m: -1.8247660630327203
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 21
+    unit_id: v3_02_t1_test_6222_hesitant_probe_v060
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 449dcd9b6d74dbadfd91e0dc51be76fd5334de954d53c7e9296f42061124cbda
+  features:
+  - 1.0
+  - -2.3125000001900644
+  - 1.0750000000141546
+  - 0.6
+  - 0.36
+  - -1.3875000001140385
+  - 0.6450000000084928
+  points:
+  - horizon: t1_5
+    truth_m: -1.2375000001960084
+    mode_predictions_m:
+      cautious: -1.2332416716898962
+      assertive: -1.2426750646177425
+      hesitant: -1.258327751919846
+    lower_m: -1.272683158185846
+    upper_m: -1.218886265423896
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.16250000019237038
+    mode_predictions_m:
+      cautious: -0.11140032388779231
+      assertive: -0.26039735426803023
+      hesitant: -0.20881813967173635
+    lower_m: -0.27475276053403025
+    upper_m: -0.0970449176217923
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.9124999998075594
+    mode_predictions_m:
+      cautious: 0.8993029361226439
+      assertive: 0.7454365112131789
+      hesitant: 0.8670761396265299
+    lower_m: 0.7310811049471789
+    upper_m: 0.9136583423886439
+    covered: true
+  - horizon: t4_5
+    truth_m: 1.9874999998054794
+    mode_predictions_m:
+      cautious: 1.9093259397671467
+      assertive: 1.7517998623402988
+      hesitant: 1.960223611305512
+    lower_m: 1.7374444560742988
+    upper_m: 1.974579017571512
+    covered: false
+- row:
+    sequence: 22
+    unit_id: v3_02_t1_test_6222_hesitant_probe_v080
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 879e27a77b5f273d7477e3eac566a13fe20192b31884a1d787e7a3ec5852fb0a
+  features:
+  - 1.0
+  - -2.567467500191503
+  - 0.32231250002158873
+  - 0.8
+  - 0.6400000000000001
+  - -2.0539740001532025
+  - 0.257850000017271
+  points:
+  - horizon: t1_5
+    truth_m: -1.9809625001955926
+    mode_predictions_m:
+      cautious: -2.5003179405864477
+      assertive: -2.567467500191503
+      hesitant: -2.0204949855202115
+    lower_m: -2.581822906457503
+    upper_m: -2.0061395792542114
+    covered: false
+  - horizon: t2_5
+    truth_m: -1.397050000195334
+    mode_predictions_m:
+      cautious: -2.4192339353648937
+      assertive: -2.003365884654216
+      hesitant: -1.4939122816836283
+    lower_m: -2.433589341630894
+    upper_m: -1.4795568754176283
+    covered: false
+  - horizon: t3_5
+    truth_m: -0.8082662501923366
+    mode_predictions_m:
+      cautious: -1.5875740684645407
+      assertive: -0.10250741748028158
+      hesitant: -0.9463999188448717
+    lower_m: -1.6019294747305408
+    upper_m: -0.08815201121428158
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.08004500019205187
+    mode_predictions_m:
+      cautious: -0.4203166041920876
+      assertive: 1.7926928645069538
+      hesitant: -0.23794650744816792
+    lower_m: -0.4346720104580876
+    upper_m: 1.8070482707729538
+    covered: true
+- row:
+    sequence: 23
+    unit_id: v3_02_t1_test_6222_hesitant_probe_v100
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 9b27fa3a5a38d0c255443166eeffaf03e7560b3adfd6d47a1a21c144e728c428
+  features:
+  - 1.0
+  - -2.567467500191503
+  - 0.32231250002158873
+  - 1.0
+  - 1.0
+  - -2.567467500191503
+  - 0.32231250002158873
+  points:
+  - horizon: t1_5
+    truth_m: -1.9809625001955926
+    mode_predictions_m:
+      cautious: -2.567467500191503
+      assertive: -2.567467500191503
+      hesitant: -2.004319655650752
+    lower_m: -2.581822906457503
+    upper_m: -1.989964249384752
+    covered: false
+  - horizon: t2_5
+    truth_m: -1.397050000195334
+    mode_predictions_m:
+      cautious: -2.534770114037028
+      assertive: -2.495261429021427
+      hesitant: -1.4619520857316939
+    lower_m: -2.549125520303028
+    upper_m: -1.4475966794656938
+    covered: false
+  - horizon: t3_5
+    truth_m: -0.6653675001923691
+    mode_predictions_m:
+      cautious: -1.432478340046747
+      assertive: 0.6960049783111426
+      hesitant: -0.7139964906183902
+    lower_m: -1.446833746312747
+    upper_m: 0.7103603845771426
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.4096324998084487
+    mode_predictions_m:
+      cautious: -0.04153513596422442
+      assertive: 3.5
+      hesitant: 0.27935258418927944
+    lower_m: -0.055890542230224424
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 24
+    unit_id: v3_02_t1_test_6222_hesitant_probe_v120
+    block_id: test_6222
+    role_evaluator_only: held_out_test
+    seed: 6222
+    angle_deg: 105.0
+    actor_start_distance_m: 2.85
+    actor_base_speed_mps: 1.075
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: b7b5217f1a8511a369bb9411262de59eb9782634106ceb602dc62cbdbc7852b3
+  features:
+  - 1.0
+  - -2.567467500191503
+  - 0.32231250002158873
+  - 1.2
+  - 1.44
+  - -3.0809610002298036
+  - 0.3867750000259065
+  points:
+  - horizon: t1_5
+    truth_m: -1.9809625001955926
+    mode_predictions_m:
+      cautious: -2.567467500191503
+      assertive: -2.567467500191503
+      hesitant: -2.002009684005932
+    lower_m: -2.581822906457503
+    upper_m: -1.987654277739932
+    covered: false
+  - horizon: t2_5
+    truth_m: -1.397050000195334
+    mode_predictions_m:
+      cautious: -2.567467500191503
+      assertive: -2.567467500191503
+      hesitant: -1.2690241677624021
+    lower_m: -2.581822906457503
+    upper_m: -1.254668761496402
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.48039250019213536
+    mode_predictions_m:
+      cautious: -1.4351627422867121
+      assertive: 1.5517081037793665
+      hesitant: -0.3376586110226292
+    lower_m: -1.4495181485527122
+    upper_m: 1.5660635100453666
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.5946074998077165
+    mode_predictions_m:
+      cautious: 0.10230622307572013
+      assertive: 3.5
+      hesitant: 0.664522303390406
+    lower_m: 0.08795081680972013
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 25
+    unit_id: v3_02_t1_test_6223_cautious_probe_v060
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 0dbed1f75d1e59c7f0c180ed909cd0191028f7092911f5fb30dbcd679d542c50
+  features:
+  - 1.0
+  - -2.7374999996232026
+  - 0.97500000001147
+  - 0.6
+  - 0.36
+  - -1.6424999997739216
+  - 0.585000000006882
+  points:
+  - horizon: t1_5
+    truth_m: -1.762499999621608
+    mode_predictions_m:
+      cautious: -1.7735317856977661
+      assertive: -1.758791090262637
+      hesitant: -1.7494862695679574
+    lower_m: -1.7878871919637662
+    upper_m: -1.7351308633019573
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.7874999996240587
+    mode_predictions_m:
+      cautious: -0.8294504463976509
+      assertive: -0.724556913910813
+      hesitant: -0.76707746237647
+    lower_m: -0.8438058526636508
+    upper_m: -0.710201507644813
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.18750000037649625
+    mode_predictions_m:
+      cautious: 0.21660145271567988
+      assertive: 0.27710569850826494
+      hesitant: 0.2063007272943551
+    lower_m: 0.19194532102835513
+    upper_m: 0.29146110477426496
+    covered: false
+  - horizon: t4_5
+    truth_m: 1.1625000003730404
+    mode_predictions_m:
+      cautious: 1.234775087422606
+      assertive: 1.2774448908250218
+      hesitant: 1.1705852996937907
+    lower_m: 1.1562298934277906
+    upper_m: 1.2918002970910218
+    covered: true
+- row:
+    sequence: 26
+    unit_id: v3_02_t1_test_6223_cautious_probe_v080
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: fd94a285389817a5fc437c436748d56a889abf405383fe16d243fd1ff27e2732
+  features:
+  - 1.0
+  - -3.008422499619756
+  - 0.14253750002050536
+  - 0.8
+  - 0.6400000000000001
+  - -2.406737999695805
+  - 0.11403000001640429
+  points:
+  - horizon: t1_5
+    truth_m: -2.888422499620563
+    mode_predictions_m:
+      cautious: -2.8786209606466393
+      assertive: -3.008422499619756
+      hesitant: -3.008422499619756
+    lower_m: -3.0227779058857562
+    upper_m: -2.8642655543806392
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.7003599996203103
+    mode_predictions_m:
+      cautious: -2.6630591974945177
+      assertive: -2.684115294612383
+      hesitant: -2.238145792172536
+    lower_m: -2.6984707008783833
+    upper_m: -2.2237903859065358
+    covered: false
+  - horizon: t3_5
+    truth_m: -1.761359999627387
+    mode_predictions_m:
+      cautious: -1.9012599550252403
+      assertive: -0.5884561889520439
+      hesitant: -2.218149449808367
+    lower_m: -2.232504856074367
+    upper_m: -0.5741007826860439
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.7863599996238783
+    mode_predictions_m:
+      cautious: -0.9358557724513279
+      assertive: 1.496531870805903
+      hesitant: -3.008422499619756
+    lower_m: -3.0227779058857562
+    upper_m: 1.510887277071903
+    covered: true
+- row:
+    sequence: 27
+    unit_id: v3_02_t1_test_6223_cautious_probe_v100
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 1318c87749873683d01bf935cefd9bd767e0dcf3426488fb05e9e5ce59f0a91e
+  features:
+  - 1.0
+  - -3.008422499619756
+  - 0.14253750002050536
+  - 1.0
+  - 1.0
+  - -3.008422499619756
+  - 0.14253750002050536
+  points:
+  - horizon: t1_5
+    truth_m: -2.873212499628525
+    mode_predictions_m:
+      cautious: -2.817654855846338
+      assertive: -3.008422499619756
+      hesitant: -3.008422499619756
+    lower_m: -3.0227779058857562
+    upper_m: -2.803299449580338
+    covered: true
+  - horizon: t2_5
+    truth_m: -2.0053349996207532
+    mode_predictions_m:
+      cautious: -2.0901274689322875
+      assertive: -3.008422499619756
+      hesitant: -2.2810811143455245
+    lower_m: -3.0227779058857562
+    upper_m: -2.0757720626662874
+    covered: false
+  - horizon: t3_5
+    truth_m: -1.0303349996192195
+    mode_predictions_m:
+      cautious: -1.0892048151073812
+      assertive: 0.3536016314226591
+      hesitant: -2.4066871395616385
+    lower_m: -2.4210425458276386
+    upper_m: 0.3679570376886591
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.05533499962394087
+    mode_predictions_m:
+      cautious: -0.09412732024534876
+      assertive: 3.5
+      hesitant: -3.008422499619756
+    lower_m: -3.0227779058857562
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 28
+    unit_id: v3_02_t1_test_6223_cautious_probe_v120
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: cautious
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 3496f148e16519847dcaf8d20517c6ff6a00d722c3ff11e7f2d3f3d5c305abbe
+  features:
+  - 1.0
+  - -3.008422499619756
+  - 0.14253750002050536
+  - 1.2
+  - 1.44
+  - -3.6101069995437074
+  - 0.17104500002460643
+  points:
+  - horizon: t1_5
+    truth_m: -2.4929849996268247
+    mode_predictions_m:
+      cautious: -2.5986599686009972
+      assertive: -3.008422499619756
+      hesitant: -3.008422499619756
+    lower_m: -3.0227779058857562
+    upper_m: -2.584304562334997
+    covered: false
+  - horizon: t2_5
+    truth_m: -1.5179849996252297
+    mode_predictions_m:
+      cautious: -1.4622114023923782
+      assertive: -3.008422499619756
+      hesitant: -2.1630487145011505
+    lower_m: -3.0227779058857562
+    upper_m: -1.4478559961263782
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.5429849996237046
+    mode_predictions_m:
+      cautious: -0.4349298058472808
+      assertive: 1.352850181474162
+      hesitant: -2.4512903779456323
+    lower_m: -2.4656457842116324
+    upper_m: 1.367205587740162
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.43201500037585416
+    mode_predictions_m:
+      cautious: 0.5126610227727078
+      assertive: 3.5
+      hesitant: -3.008422499619756
+    lower_m: -3.0227779058857562
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 29
+    unit_id: v3_02_t1_test_6223_assertive_probe_v060
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 0dbed1f75d1e59c7f0c180ed909cd0191028f7092911f5fb30dbcd679d542c50
+  features:
+  - 1.0
+  - -2.7374999996232026
+  - 0.97500000001147
+  - 0.6
+  - 0.36
+  - -1.6424999997739216
+  - 0.585000000006882
+  points:
+  - horizon: t1_5
+    truth_m: -1.762499999621608
+    mode_predictions_m:
+      cautious: -1.7735317856977661
+      assertive: -1.758791090262637
+      hesitant: -1.7494862695679574
+    lower_m: -1.7878871919637662
+    upper_m: -1.7351308633019573
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.7874999996240587
+    mode_predictions_m:
+      cautious: -0.8294504463976509
+      assertive: -0.724556913910813
+      hesitant: -0.76707746237647
+    lower_m: -0.8438058526636508
+    upper_m: -0.710201507644813
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.18750000037649625
+    mode_predictions_m:
+      cautious: 0.21660145271567988
+      assertive: 0.27710569850826494
+      hesitant: 0.2063007272943551
+    lower_m: 0.19194532102835513
+    upper_m: 0.29146110477426496
+    covered: false
+  - horizon: t4_5
+    truth_m: 1.1625000003730404
+    mode_predictions_m:
+      cautious: 1.234775087422606
+      assertive: 1.2774448908250218
+      hesitant: 1.1705852996937907
+    lower_m: 1.1562298934277906
+    upper_m: 1.2918002970910218
+    covered: true
+- row:
+    sequence: 30
+    unit_id: v3_02_t1_test_6223_assertive_probe_v080
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 62dbfc98e8d9a4396747eacfcff34741931726bbe808bdab941e8269b30f0cdd
+  features:
+  - 1.0
+  - -2.5909424996285653
+  - 1.3499999999776002
+  - 0.8
+  - 0.6400000000000001
+  - -2.072753999702852
+  - 1.0799999999820802
+  points:
+  - horizon: t1_5
+    truth_m: -1.2409424996210803
+    mode_predictions_m:
+      cautious: -2.5909424996285653
+      assertive: -1.2437956471646547
+      hesitant: 2.069635639521308
+    lower_m: -2.6052979058945653
+    upper_m: 2.083991045787308
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.1013775003758199
+    mode_predictions_m:
+      cautious: -2.5909424996285653
+      assertive: 0.013078743062464149
+      hesitant: 0.458309861094925
+    lower_m: -2.6052979058945653
+    upper_m: 0.472665267360925
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.0833600003799464
+    mode_predictions_m:
+      cautious: -0.9908317990990714
+      assertive: 1.0496669798956029
+      hesitant: 3.5
+    lower_m: -1.0051872053650714
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.0583600003715445
+    mode_predictions_m:
+      cautious: 1.4681256827225146
+      assertive: 2.080346800060668
+      hesitant: 3.5
+    lower_m: 1.4537702764565146
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 31
+    unit_id: v3_02_t1_test_6223_assertive_probe_v100
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: fb7d27361685698c4074d2af1da545f896f351316a040b34bb345b7105ae960d
+  features:
+  - 1.0
+  - -2.5909424996285653
+  - 1.3499999999776002
+  - 1.0
+  - 1.0
+  - -2.5909424996285653
+  - 1.3499999999776002
+  points:
+  - horizon: t1_5
+    truth_m: -1.2409424996210803
+    mode_predictions_m:
+      cautious: -2.5909424996285653
+      assertive: -1.2407048363605213
+      hesitant: 3.5
+    lower_m: -2.6052979058945653
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.1013775003758199
+    mode_predictions_m:
+      cautious: -2.5909424996285653
+      assertive: 0.07818807292261365
+      hesitant: 1.2484805805628572
+    lower_m: -2.6052979058945653
+    upper_m: 1.2628359868288572
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.0833600003799464
+    mode_predictions_m:
+      cautious: -2.5909424996285653
+      assertive: 1.0747821781290643
+      hesitant: 3.5
+    lower_m: -2.6052979058945653
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.0583600003715445
+    mode_predictions_m:
+      cautious: -0.014046547029819223
+      assertive: 2.063340673572066
+      hesitant: 3.5
+    lower_m: -0.028401953295819224
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 32
+    unit_id: v3_02_t1_test_6223_assertive_probe_v120
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: assertive
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: e4928a5da337a236f27793ba18a607b6e1b1b4073c0bcc6ea13f592634c193bd
+  features:
+  - 1.0
+  - -2.5909424996285653
+  - 1.3499999999776002
+  - 1.2
+  - 1.44
+  - -3.1091309995542784
+  - 1.6199999999731203
+  points:
+  - horizon: t1_5
+    truth_m: -1.2409424996210803
+    mode_predictions_m:
+      cautious: -2.5909424996285653
+      assertive: -1.2398657936985487
+      hesitant: 3.5
+    lower_m: -2.6052979058945653
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t2_5
+    truth_m: 0.1013775003758199
+    mode_predictions_m:
+      cautious: -2.5909424996285653
+      assertive: 0.12027022841300372
+      hesitant: 2.199619022048152
+    lower_m: -2.6052979058945653
+    upper_m: 2.213974428314152
+    covered: true
+  - horizon: t3_5
+    truth_m: 1.0833600003799464
+    mode_predictions_m:
+      cautious: -2.5909424996285653
+      assertive: 1.157088106039327
+      hesitant: 3.5
+    lower_m: -2.6052979058945653
+    upper_m: 3.514355406266
+    covered: true
+  - horizon: t4_5
+    truth_m: 2.0583600003715445
+    mode_predictions_m:
+      cautious: -1.731158885970073
+      assertive: 2.1850582912102663
+      hesitant: 3.5
+    lower_m: -1.7455142922360731
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 33
+    unit_id: v3_02_t1_test_6223_hesitant_probe_v060
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v060
+    ego_speed_mps: 0.6
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 0dbed1f75d1e59c7f0c180ed909cd0191028f7092911f5fb30dbcd679d542c50
+  features:
+  - 1.0
+  - -2.7374999996232026
+  - 0.97500000001147
+  - 0.6
+  - 0.36
+  - -1.6424999997739216
+  - 0.585000000006882
+  points:
+  - horizon: t1_5
+    truth_m: -1.762499999621608
+    mode_predictions_m:
+      cautious: -1.7735317856977661
+      assertive: -1.758791090262637
+      hesitant: -1.7494862695679574
+    lower_m: -1.7878871919637662
+    upper_m: -1.7351308633019573
+    covered: true
+  - horizon: t2_5
+    truth_m: -0.7874999996240587
+    mode_predictions_m:
+      cautious: -0.8294504463976509
+      assertive: -0.724556913910813
+      hesitant: -0.76707746237647
+    lower_m: -0.8438058526636508
+    upper_m: -0.710201507644813
+    covered: true
+  - horizon: t3_5
+    truth_m: 0.18750000037649625
+    mode_predictions_m:
+      cautious: 0.21660145271567988
+      assertive: 0.27710569850826494
+      hesitant: 0.2063007272943551
+    lower_m: 0.19194532102835513
+    upper_m: 0.29146110477426496
+    covered: false
+  - horizon: t4_5
+    truth_m: 1.1625000003730404
+    mode_predictions_m:
+      cautious: 1.234775087422606
+      assertive: 1.2774448908250218
+      hesitant: 1.1705852996937907
+    lower_m: 1.1562298934277906
+    upper_m: 1.2918002970910218
+    covered: true
+- row:
+    sequence: 34
+    unit_id: v3_02_t1_test_6223_hesitant_probe_v080
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v080
+    ego_speed_mps: 0.8
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 12856c09d9546c3bef4c33845ec67b5575aa42f8a0fa2da1c22768ac00d8fc83
+  features:
+  - 1.0
+  - -2.972337499620312
+  - 0.3200000000111003
+  - 0.8
+  - 0.6400000000000001
+  - -2.3778699996962493
+  - 0.25600000000888024
+  points:
+  - horizon: t1_5
+    truth_m: -2.4235324996259733
+    mode_predictions_m:
+      cautious: -2.884805451288431
+      assertive: -2.972337499620312
+      hesitant: -2.4235811899695303
+    lower_m: -2.986692905886312
+    upper_m: -2.4092257837035302
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.8769299996191002
+    mode_predictions_m:
+      cautious: -2.7170950893395456
+      assertive: -2.306330696790886
+      hesitant: -1.8647125832060496
+    lower_m: -2.7314504956055456
+    upper_m: -1.8503571769400495
+    covered: true
+  - horizon: t3_5
+    truth_m: -1.3259224996273338
+    mode_predictions_m:
+      cautious: -1.7793378537416529
+      assertive: -0.36384824289738615
+      hesitant: -1.2920797042228287
+    lower_m: -1.793693260007653
+    upper_m: -0.34949283663138614
+    covered: true
+  - horizon: t4_5
+    truth_m: -0.6338499996236975
+    mode_predictions_m:
+      cautious: -0.59305515443035
+      assertive: 1.5683759966654174
+      hesitant: -0.598803758048998
+    lower_m: -0.613159164314998
+    upper_m: 1.5827314029314175
+    covered: false
+- row:
+    sequence: 35
+    unit_id: v3_02_t1_test_6223_hesitant_probe_v100
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v100
+    ego_speed_mps: 1.0
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 2d70c7b6169b46d865a7bcd5f1bdb307073faba5dcbee3184311494d3461ea50
+  features:
+  - 1.0
+  - -2.972337499620312
+  - 0.3200000000111003
+  - 1.0
+  - 1.0
+  - -2.972337499620312
+  - 0.3200000000111003
+  points:
+  - horizon: t1_5
+    truth_m: -2.4235324996259733
+    mode_predictions_m:
+      cautious: -2.972337499620312
+      assertive: -2.972337499620312
+      hesitant: -2.4093621654692896
+    lower_m: -2.986692905886312
+    upper_m: -2.3950067592032895
+    covered: true
+  - horizon: t2_5
+    truth_m: -1.8650274996231264
+    mode_predictions_m:
+      cautious: -2.6754485893637034
+      assertive: -2.7926187053966607
+      hesitant: -1.7819264015014822
+    lower_m: -2.8069741116626608
+    upper_m: -1.7675709952354821
+    covered: true
+  - horizon: t3_5
+    truth_m: -0.9457824996235156
+    mode_predictions_m:
+      cautious: -1.4863732196188284
+      assertive: 0.44391389202873066
+      hesitant: -0.977901430214903
+    lower_m: -1.5007286258848285
+    upper_m: 0.4582692982947307
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.02921750037604424
+    mode_predictions_m:
+      cautious: -0.08507110383244232
+      assertive: 3.5
+      hesitant: -0.00866907263354122
+    lower_m: -0.09942651009844232
+    upper_m: 3.514355406266
+    covered: true
+- row:
+    sequence: 36
+    unit_id: v3_02_t1_test_6223_hesitant_probe_v120
+    block_id: test_6223
+    role_evaluator_only: held_out_test
+    seed: 6223
+    angle_deg: 95.0
+    actor_start_distance_m: 3.225
+    actor_base_speed_mps: 0.975
+    actor_policy_evaluator_only: hesitant
+    candidate_id_evaluator_only: probe_v120
+    ego_speed_mps: 1.2
+    attempt: 1
+    propensity: 0.25
+  raw_csv_sha256: 5383084a464c73019c47de7d5350513f780b9ea03c8a55dfbaaeff4148514cc2
+  features:
+  - 1.0
+  - -2.972337499620312
+  - 0.3200000000111003
+  - 1.2
+  - 1.44
+  - -3.5668049995443742
+  - 0.38400000001332035
+  points:
+  - horizon: t1_5
+    truth_m: -2.385709999624473
+    mode_predictions_m:
+      cautious: -2.972337499620312
+      assertive: -2.972337499620312
+      hesitant: -2.409008499193691
+    lower_m: -2.986692905886312
+    upper_m: -2.394653092927691
+    covered: false
+  - horizon: t2_5
+    truth_m: -1.4334349996288132
+    mode_predictions_m:
+      cautious: -2.5788177514101815
+      assertive: -2.972337499620312
+      hesitant: -1.5381724977795557
+    lower_m: -2.986692905886312
+    upper_m: -1.5238170915135556
+    covered: false
+  - horizon: t3_5
+    truth_m: -0.45843499962427336
+    mode_predictions_m:
+      cautious: -1.3511887161537652
+      assertive: 1.3088667566316488
+      hesitant: -0.5197887048377012
+    lower_m: -1.3655441224197653
+    upper_m: 1.3232221628976488
+    covered: true
+  - horizon: t4_5
+    truth_m: 0.5165650003762817
+    mode_predictions_m:
+      cautious: 0.18797283757754446
+      assertive: 3.5
+      hesitant: 0.44933624034559827
+    lower_m: 0.17361743131154447
+    upper_m: 3.514355406266
+    covered: true
+claim:
+  parameterized_crossing_predictor_heldout_pass: false
+  general_scene_prediction: false
+  planner_safety: false
+  performance_improvement: false
+  real_vehicle_ready: false

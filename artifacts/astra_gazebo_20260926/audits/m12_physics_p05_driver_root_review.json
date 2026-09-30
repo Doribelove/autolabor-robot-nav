@@ -1,0 +1,47 @@
+{
+  "pass": true,
+  "independent_driver_review": true,
+  "reviewer": "root independent from historical_audit driver author",
+  "driver_sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255",
+  "parent_driver_sha256": "da1f1a39e7489c8996d6c16d6eeca5180247331c67687c557ab65f1c13d84a68",
+  "controller_formula_unchanged": true,
+  "unchanged_method_bodies": {
+    "control": true,
+    "finiteBaseState": true,
+    "finiteJointState": true,
+    "publishMetadata": true,
+    "publishPhysicalStatus": true,
+    "publish": true,
+    "brake": true,
+    "emergency": true,
+    "reset": true,
+    "bias": true,
+    "jointReferenceEnvelopeValid": true,
+    "parameters": true,
+    "read": true,
+    "valid": true
+  },
+  "single_shared_sim_time_read": true,
+  "source_header_independent_of_node_clock": true,
+  "ingress_publisher_exists_before_subscriptions": true,
+  "telemetry_has_no_physics_writes_or_control_state_mutation": true,
+  "URDF_author_projection_review": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_driver_ingress_implementation/source_projection_review.json",
+    "sha256": "ff2e3856fab5ff3bb5e4a04cefb869766b8871e83cd18848c078c595a077372b"
+  },
+  "build": {
+    "exit_code": 0,
+    "log": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/build_physical_p05_and_common_components_01.log",
+    "log_sha256": "28ebfee8c87299454cf49fe739cb65bcd8286a398522bd1b12ebdcb5c10f04d2",
+    "binary_sha256": "a98b72e6161132c16f38d5cbce4541ffed5dc3345405edf73ff1420db08b8d39"
+  },
+  "old_runtime_bindings_unchanged_except_explicit_build_metadata": [
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/CMakeLists.txt",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/package.xml"
+  ],
+  "limitations": [
+    "Instrumentation adds callback work under the existing lock; no real-time noninterference theorem.",
+    "Acceptance stamp and scheduled queue activation are distinct from actual physical force application.",
+    "Live source evidence qualification still pending."
+  ]
+}

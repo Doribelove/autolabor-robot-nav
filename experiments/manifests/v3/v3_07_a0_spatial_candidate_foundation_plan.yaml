@@ -1,0 +1,22 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-A0
+status: frozen_before_offline_generation
+analysis_kind: pure_offline_deterministic_candidate_generation
+candidate_factor:
+  type: mirrored_spatial_trajectory
+  target_speed_mps: 1.20
+  left_and_right_required: true
+  certified_stop_unchanged: true
+  current_straight_candidates_unchanged: true
+gates:
+  exact_ackermann_dynamics: true
+  hardware_candidate_limits: true
+  whole_footprint_corridor_containment: true
+  return_to_centerline_before_goal: true
+  exact_mirror_symmetry: true
+firewall:
+  existing_speed_only_predictor_must_not_be_used_for_execution: true
+  no_gazebo_or_ros: true
+  no_performance_claim: true
+budget: {simulation_units: 0, training_steps: 0, hardware_runs: 0}

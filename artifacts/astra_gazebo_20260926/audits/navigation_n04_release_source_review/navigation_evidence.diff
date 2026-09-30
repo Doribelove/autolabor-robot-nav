@@ -1,0 +1,141 @@
+--- artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_n02.py
++++ artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_n04.py
+@@ -12,12 +12,43 @@
+ import yaml
+ 
+ import passive_sweep_q05 as passive
++import event_actor_contract_n04 as event_actor
+ from passive_sweep_q05 import (EvidenceStore,WallDeadline,sha,binding,read_bound,
+     source_coverage,physical_status_audit,recorder_connections,proc_sample,elf_inventory,source_rtf)
+ 
+ WORKSPACE=passive.WORKSPACE
+ STAGE=passive.STAGE
+-SCHEMA='astra_navigation_evidence_n02_v1'
++SCHEMA='astra_navigation_evidence_n04_v1'
++ELF_ROLES=dict(passive.ELF_ROLES)
++del ELF_ROLES['libastra_reactive_actor_plugin.so']
++ELF_ROLES[event_actor.PLUGIN]='actor_binaries'
++
++
++def elf_inventory(pid,raw_maps_path):
++    """Same closed ELF policy with the independently versioned actor role."""
++    from mapped_elf_inventory_v2 import inventory,GRAPHICS_ROLES
++    required=set(ELF_ROLES.values())-{'actor_binaries','camera'}-set(GRAPHICS_ROLES.values())
++    return inventory(pid,ELF_ROLES,required,raw_maps_path)
++
++
++def capture_maps(root,marker,proc):
++    import run_passive_sweep_q05 as inherited
++    import run_smoke_a02 as common
++    request=json.loads(marker.read_text());pid=request['pid']
++    if type(pid)is not int or not inherited.descendant(pid,proc.pid):
++        raise ValueError('Gazebo PID not owned by launched tree')
++    label='pre' if request['phase']=='bootstrap' else 'final'
++    data=elf_inventory(pid,root/('elf_'+label+'.maps.txt'))
++    data.update(source_ns=request['source_ns'],phase=request['phase'],wall_monotonic_ns=time.monotonic_ns(),
++                proc_start_ticks=Path('/proc/{}/stat'.format(pid)).read_text().rsplit(')',1)[1].split()[19])
++    for item in data['loaded_modules']:
++        original=item['path'];copied=inherited.archive(root,item)
++        item.update(path=copied['path'],original_path=original)
++    common.atomic(root/('elf_'+label+'.json'),data)
++    common.atomic(root/('maps_'+label+'_ready.json'),{'inventory':binding(root/('elf_'+label+'.json'))})
++    return data
++
++
+ IMAGE_POLICY='supplementary_native_frames_do_not_suppress_physical_failure_evidence'
+ STEP_NS=2_000_000
+ METHODS=('astra_analytic_route_v1','astra_pct_route_v1','frozen_r2_v060_sensor_lifecycle_v1','actual_teb_common_route','dwa_common_route')
+@@ -127,6 +158,10 @@
+     before=list(ESSENTIAL_BEFORE_UNPAUSE if required_before_unpause is None else required_before_unpause)
+     arm=list(ESSENTIAL_BEFORE_ARM if required_before_arm is None else required_before_arm)
+     topics=list(dict.fromkeys(arm) if record_topics is None else record_topics)
++    for name in event_actor.world_actors(world.read_text()):
++        topic=event_actor.status_topic(name)
++        for group in (before,arm,topics):
++            if topic not in group:group.append(topic)
+     value={'schema':SCHEMA,'stage':stage,'run_id':run_id,'seed':seed,'attempt':1,'method':method,'scene_id':scene_id,
+       'world':binding(world),'robot_description':binding(robot_description),'scene_manifest':binding(scene_manifest),
+       'shared_bundle':binding(Path(shared_bundle)/'common_route.json'),'spawn_world_xyz_yaw':list(spawn_world_xyz_yaw),
+@@ -171,6 +206,13 @@
+         if type(item)is not dict or set(item)!={'path','sha256'} or not Path(item['path']).is_absolute() or not re.fullmatch('[0-9a-f]{64}',item['sha256']):raise ValueError('exact path+SHA resource required: '+key)
+         read_bound(item)
+     world=ET.fromstring(read_bound(value['world']));models=[m.get('name') for m in world.findall('world/model')]+['autolabor_m2']
++    actors=event_actor.world_actors(read_bound(value['world']).decode())
++    for name,actor in actors.items():
++        if any(actor[key]!=value[key] for key in ('run_id','seed','method')):
++            raise ValueError('actor event identity differs from episode')
++        if any(event_actor.status_topic(name) not in value[key] for key in
++               ('required_before_unpause','required_before_arm','record_topics')):
++            raise ValueError('actor event status omitted from recorder barrier')
+     if value['expected_models']!=models or len(set(models))!=len(models):raise ValueError('expected models differ from saved world')
+     if abs(float(world.findtext('world/physics/max_step_size'))-.002)>1e-12:raise ValueError('world physics step differs')
+     bundle=json.loads(read_bound(value['shared_bundle']))
+@@ -315,7 +357,7 @@
+     """
+     import run_passive_sweep_q05 as inherited
+     import run_smoke_a02 as common
+-    import dense_sweep_p04 as dense
++    import dense_sweep_n04 as dense
+     root=Path(root);validate_contract(value)
+     if json.loads(read_bound(release['source_review']))!=review:raise ValueError('source review is not release-bound')
+     if review.get('schema')!='astra_navigation_source_review_v1' or review.get('status')!='independently_reviewed':raise ValueError('new navigation source review required')
+@@ -343,12 +385,12 @@
+     pre={role:x for x in before['loaded_modules'] for role in x['roles']}
+     post={role:x for x in after['loaded_modules'] for role in x['roles']}
+     module_checks={role:role in pre and role in post and pre[role]['sha256']==post[role]['sha256']==digest for role,digest in expected_modules.items()}
+-    from evaluate_episode import WorldCollisions
++    from evaluate_episode_n04 import WorldCollisions
+     world=WorldCollisions(read_bound(value['world']).decode())
+     if world.errors:raise ValueError('world geometry/plugin unsupported: '+str(world.errors))
+     actor=bool(world.actor_speed_bounds)
+     if actor and review.get('actor_updates')!='reviewed_bounded_Begin_updates':raise ValueError('actor pose writers not reviewed')
+-    required_roles=set(passive.ELF_ROLES.values())-{'actor_binaries','camera'}
++    required_roles=set(ELF_ROLES.values())-{'actor_binaries','camera'}
+     if actor:required_roles.add('actor_binaries')
+     if value['camera_topic'] is not None:required_roles.add('camera')
+     module_complete=process_identity_pass and required_roles<=set(module_checks) and all(module_checks[r] for r in required_roles)
+@@ -385,7 +427,7 @@
+        driver_source=[archived_source('src/simulation/m2_gazebo/src/astra_physical_ackermann_p05_plugin.cpp')],
+        evidence_source=[archived_source('src/simulation/m2_gazebo/src/astra_physics_metadata_p03_plugin.cpp')],
+        driver_binary=[post['driver_binary']],evidence_binary=[post['evidence_binary']],
+-       actor_sources=[archived_source('src/simulation/m2_gazebo/src/astra_reactive_actor_plugin.cpp')] if actor else [],
++       actor_sources=[archived_source('src/simulation/m2_gazebo/src/astra_event_actor_n04_plugin.cpp')] if actor else [],
+        actor_binaries=[post['actor_binaries']] if actor else [])
+     conversion=json.loads((root/'conversion_manifest.json').read_bytes())
+     bindings.update(converted_robot_sdf=[binding(root/'converted_robot.sdf')],
+@@ -406,8 +448,8 @@
+     """
+     import subprocess
+     import rosbag
+-    import dense_sweep_p04 as dense
+-    import evaluate_episode as evaluator
++    import dense_sweep_n04 as dense
++    import evaluate_episode_n04 as evaluator
+     import run_smoke_a02 as common
+     root=Path(root);validate_contract(value)
+     raw=json.loads((root/'collector_raw.json').read_text());start,end=raw['start_ns'],raw['end_ns']
+@@ -439,12 +481,15 @@
+     scene=yaml.safe_load(read_bound(value['scene_manifest']))
+     task=navigation_outcome(samples,scene['route']['goal'],start,end,raw['terminal'],value)
+     physical=physical_status_audit(raw['status_messages'],start,end)
++    actor_gate=event_actor.audit_status(raw['actor_gate_status'],
++        event_actor.world_actors((root/'world.sdf').read_text()),raw['gate'],end)
+     checks={'collector_complete':json.loads((root/'collector_report.json').read_text())['pass'],
+       'passive_source_geometry_complete':process.returncode==0 and sweep['integrity_pass'],
+       'contact_source_coverage':coverage['pass'],'contact_message_contract':not errors,
+       'contact_metadata_complete':all(metadata.get(k)is True for k in ('contacts_every_physics_step','all_collision_pairs_retained','empty_contact_packets_published')),
+       'physical_status_message_contract':physical['message_contract_pass'],'physical_status_source_coverage':physical['coverage']['pass'],
+-      'goal_source_contract':task['goal_geometry_contract_pass']}
++      'goal_source_contract':task['goal_geometry_contract_pass'],
++      'shared_actor_gate_identity_timing':actor_gate['pass_']}
+     if value['method']=='frozen_r2_v060_sensor_lifecycle_v1':
+         graph_rows=[r for r in raw['node_roster'] if start<=r['source_ns']<=raw['final_drain']['source_watermark_ns']]
+         checks['sensor_only_method_registrations']=bool(graph_rows) and all(
+@@ -461,6 +506,7 @@
+       'capture_integrity_pass':integrity,'safety_within_declared_engineering_scope_pass':safety_pass,
+       'valid_completed':completed,'restricted_goal_time_s':task['raw_geometric_arrival_time_s'] if completed else value['policy_cap_ns']/1e9,
+       'failure_inclusive':True,'task':task,'integrity_checks':checks,'safety_checks':safety,'physical_status_audit':physical,
++      'actor_gate_audit':actor_gate,
+       'contact_audit':contact_summary,'contact_issues':errors,'sweep_report':binding(out/'report.json'),'source_bindings':source_files,
+       'visual_review':'pending independent inspection of available native PNGs' if value['camera_topic'] else 'not requested',
+       'image_coverage':raw['image_coverage'],

@@ -1,0 +1,138 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P1-I1
+status: offline_result_interpretation_paper_contract_frozen
+offline_only: true
+formal_result: true
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_allowed: false
+real_vehicle_use_forbidden: true
+
+source_evidence:
+  p1_terminal_evidence_freeze:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/p1_e1_terminal_evidence_freeze.sha256
+    sha256: 952b97389b5c65afbc083dcf3a893e9f9c845a6d512539161f058543d48b594a
+  p1_release:
+    path: experiments/manifests/v2/integration/v2_04g_r6_i1_p1_e1_execution_release.yaml
+    sha256: 05a6efe21a4c110be667b0873d8ac1b26ac692feefea8932f40a506ca9b9027b
+  p1_schedule:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/v2_04g_p1_r1_exact_schedule.yaml
+    sha256: 6c43cced674ae475dcf972fcdcca1872639e3b70fd0dc3156bc38c3b738e79fd
+  p1_stage_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/p1_e1_stage_report.yaml
+    sha256: 1c625037365eea69b9363c61400e709195f9647211308b81100b395f96805853
+  p1_normalized_matrix:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/normalized_terminal_matrix.json
+    sha256: 07ee925756405029084ccf8a48ba02b60b38b0760171a71f0cbde6f08f678466
+  p1_raw_replay_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/raw_replay_report.yaml
+    sha256: 91a213e51d043938637be71faafc89169a61d61527bff22ab49c4c8ececc60c3
+  p1_four_gate_assessment:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/p1_e1_four_gate_assessment.yaml
+    sha256: 89147e95f19c461926e302982ab4db3772f1847fa0ca273e05b0df73fe2cd6df
+  p1_execution_handoff:
+    path: docs/thesis_experiment/CURRENT_V2_04G_P1_E1_EXECUTION_HANDOFF.md
+    sha256: cab6e4b3f1990cb1d2cad5776482fda0c1e9c01bfc2b36e70858b92aa43791ec
+  i5_evidence_freeze:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i6_interpretation/i5_evidence_freeze.sha256
+    sha256: 40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935
+  i5_execution_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_execution_report.yaml
+    sha256: 8ed096601c13cc45fba34d32d5ae78477cabd345b9730df8ab4eced7fc0e5599
+
+paper_artifacts:
+  draft_readme:
+    path: docs/thesis_experiment/thesis_draft/README.md
+    sha256: e16529b5ce34ca38441ba2e76b15aa74075a3aa7b1c809589584ab54b3469fe5
+  system_design_chapter:
+    path: docs/thesis_experiment/thesis_draft/CH03_FAM_TEB_SYSTEM_DESIGN.md
+    sha256: fc7f28c1d7eb57638d1ff70c5fbeec5c6d169b02adf43b7c6a29ba8bd6bcf8ff
+  integrity_method_chapter:
+    path: docs/thesis_experiment/thesis_draft/CH04_EXPERIMENT_INTEGRITY_METHOD.md
+    sha256: 718210ad40d0634e1f20719d93dddea7a71971f18741c62d4fe26baa6a41cdc7
+  i5_results_chapter:
+    path: docs/thesis_experiment/thesis_draft/CH05_I5_INTEGRATION_RESULTS.md
+    sha256: a23f2ebe00ba7f7a310e9a706b78735de0c356e84b0887a923840849d6df7836
+  p1_results_chapter:
+    path: docs/thesis_experiment/thesis_draft/CH06_P1_FORMAL_PERFORMANCE_RESULTS.md
+    sha256: cca6016a0780e416b661c790212bea12d096e4907fc0320c210630e6bc7785ff
+  claims_evidence_matrix:
+    path: docs/thesis_experiment/thesis_draft/CLAIMS_EVIDENCE_MATRIX.md
+    sha256: 1ca0a5f0c070891e9790c38a4cc819a10b1b5f31eedde7bd663e78516fe0bfa2
+
+result_interpretation:
+  study_status: formal_complete_performance_improvement_not_demonstrated
+  formal_study_complete: true
+  performance_improvement_demonstrated: false
+  claim_authorized: false
+  four_gate_decision:
+    integrity: true
+    safety_and_task_noninferiority: true
+    efficiency_superiority: false
+    mechanism_reduction: true
+  efficiency:
+    geometric_time_reduction_fraction: 0.03762364346211233
+    one_sided_95_percent_lower_fraction: 0.027903858836313078
+    point_threshold_min: 0.05
+    fixed_sequence_adjusted_p_value: 9.99990000099999e-06
+    pass: false
+  mechanism:
+    control_mean_fraction: 0.17672110140675926
+    treatment_mean_fraction: 0.0
+    relative_reduction_fraction: 1.0
+    paired_absolute_decrease_one_sided_95_percent_lower: 0.17176223658064604
+    fixed_sequence_adjusted_p_value: 9.99990000099999e-06
+    pass: true
+  safety_and_task:
+    legacy_successes: 90
+    treatment_successes: 90
+    legacy_collisions: 0
+    treatment_collisions: 0
+    harmful_discordances: 0
+    clearance_paired_mean_difference_m: -0.029086489773633224
+    clearance_one_sided_95_percent_lower_m: -0.04289094138217517
+    true_conflict_control_match_fraction: 1.0
+    true_conflict_treatment_match_fraction: 1.0
+    pass: true
+  decision_reason: efficiency_point_estimate_below_preregistered_five_percent_minimum_effect
+
+claim_closure:
+  claim_population: three_frozen_dynamic_templates_under_fresh_simulator_stochastic_seeds_5201_5290
+  fixed_teb_status: contextual_only_excluded_from_confirmatory_claim
+  allowed_claims:
+    - p1_exact_270_row_formal_simulation_study_completed
+    - p1_safety_and_task_noninferiority_gate_passed_within_frozen_simulation_distribution
+    - p1_semantic_clear_overlay_mechanism_reduction_gate_passed
+    - p1_restricted_completion_time_directional_reduction_was_3_762_percent
+    - p1_performance_improvement_was_not_demonstrated_because_the_five_percent_minimum_effect_was_not_met
+  forbidden_claims:
+    - navigation_performance_improvement
+    - whole_system_superiority
+    - safety_superiority
+    - cross_family_geometry_or_timing_generalization
+    - learning_or_training_gain
+    - real_vehicle_performance_or_safety
+    - formal_safety_guarantee
+    - winner_or_best_profile
+    - deployment_readiness
+  required_thesis_wording: "在预注册的三个冻结动态模板 fresh-seed 仿真分布上，circle-contact 语义通过了安全/任务非劣与机制下降门，并使 semantic-clear 配对的受限完成时间估计下降 3.762%；然而该点估计未达到预注册的 5% 最小效应量，因此本研究未证明性能提升。"
+
+forbidden_side_effects:
+  rerun_or_resume_i5: true
+  rerun_resume_or_extend_p1: true
+  create_execution_release: true
+  create_attempt_consumption_or_journal: true
+  start_ros_or_gazebo: true
+  start_training: true
+  consume_seed_or_evidence_budget: true
+  change_preregistered_thresholds: true
+  select_or_drop_samples: true
+  connect_real_vehicle: true
+  write_online_teb_parameters: true
+
+reviewer:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p1_i1_result_interpretation_reviewer.py
+  sha256: 2c75e319600d92919e42d02f68a2dc817f96246803c5acfb918f2256329dcf33

@@ -1,0 +1,120 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q02.py [identity-normalized]
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q03.py
+@@ -50,6 +50,7 @@
+  'libgazebo_ros_laser.so':'laser_sensor','libgazebo_ros_bumper.so':'chassis_contact_sensor',
+  'libgazebo_ros_imu_sensor.so':'imu_sensor'}
+ SOURCE_FILES=(
++ 'scripts/astra_gazebo/mapped_elf_inventory.py',
+  'scripts/astra_gazebo/passive_sweep_q03.py','scripts/astra_gazebo/run_smoke_a02.py','scripts/astra_gazebo/run_passive_sweep_q03.py',
+  'scripts/astra_gazebo/dense_sweep_p03.py','scripts/astra_gazebo/dense_sweep.py',
+  'scripts/astra_gazebo/geometry.py','scripts/astra_gazebo/evaluate_episode.py',
+@@ -367,27 +368,18 @@
+     counts={n:names.count(n) for n in required}
+     return {'pass':not failures and all(v==1 for v in counts.values()),'forbidden_calls':failures,'required_call_counts':counts}
+ 
+-def elf_inventory(pid):
+-    """Actual proc maps and mapped target ELF bytes; no process memory/env read."""
+-    maps=Path('/proc/{}/maps'.format(pid)).read_text();selected={}
+-    for line in maps.splitlines():
+-        fields=line.split(maxsplit=5)
+-        if len(fields)<6 or not fields[5].startswith('/'):continue
+-        mapped=fields[5]
+-        if mapped.endswith(' (deleted)'):raise ValueError('deleted mapped ELF observed')
+-        if Path(mapped).name.startswith('libastra_') and not any(Path(mapped).name==stem or Path(mapped).name.startswith(stem+'.') for stem in ELF_ROLES):raise ValueError('unreviewed custom Astra plugin mapped')
+-        for stem,role in ELF_ROLES.items():
+-            if Path(mapped).name==stem or Path(mapped).name.startswith(stem+'.'):
+-                path=Path(mapped).resolve();item=binding(path)
+-                notes=subprocess.check_output(['readelf','-n',str(path)],text=True,timeout=10)
+-                found=re.search(r'Build ID:\s*(\S+)',notes)
+-                if not found:raise ValueError('mapped target ELF lacks build-id')
+-                item.update(mapped_path=mapped,build_id=found.group(1),roles=[role])
+-                if role in selected and selected[role]['sha256']!=item['sha256']:raise ValueError('multiple different mapped ELFs for '+role)
+-                selected[role]=item
++def source_window_wall_ratio(start,end,wall_seconds,complete=False):
++    """Descriptive actual source window only; absent bootstrap interval is null."""
++    if complete is not True or type(start)is not int or type(end)is not int or end<=start or not math.isfinite(wall_seconds) or wall_seconds<=0:return None
++    return (end-start)/1e9/wall_seconds
++
++
++def elf_inventory(pid,raw_maps_path):
++    """Q03 sole repair: durable raw proc maps plus classified ELF inventory."""
++    from mapped_elf_inventory import inventory
+     required=set(ELF_ROLES.values())-{'actor_binaries','camera'}
+-    if not required<=set(selected):raise ValueError('mapped required ELF missing: '+str(sorted(required-set(selected))))
+-    return {'pid':pid,'maps':maps,'loaded_modules':list(selected.values())}
++    return inventory(pid,ELF_ROLES,required,raw_maps_path)
++
+ 
+ def required_resources(camera=True):
+     paths=[WORKSPACE/p for p in SOURCE_FILES]
+
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_passive_sweep_q02.py [identity-normalized]
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_passive_sweep_q03.py
+@@ -156,13 +156,13 @@
+ def capture_maps(root,marker,proc):
+     request=json.loads(marker.read_text());pid=request['pid']
+     if type(pid)is not int or not descendant(pid,proc.pid):raise ValueError('Gazebo PID not owned by launched tree')
+-    data=q.elf_inventory(pid)
++    label='pre' if request['phase']=='bootstrap' else 'final'
++    data=q.elf_inventory(pid,root/('elf_'+label+'.maps.txt'))
+     data.update(source_ns=request['source_ns'],phase=request['phase'],wall_monotonic_ns=time.monotonic_ns(),
+                 proc_start_ticks=Path('/proc/{}/stat'.format(pid)).read_text().rsplit(')',1)[1].split()[19])
+     for item in data['loaded_modules']:
+         original=item['path'];copied=archive(root,item)
+         item.update(path=copied['path'],original_path=original)
+-    label='pre' if request['phase']=='bootstrap' else 'final'
+     common.atomic(root/('elf_'+label+'.json'),data)
+     common.atomic(root/('maps_'+label+'_ready.json'),{'inventory':q.binding(root/('elf_'+label+'.json'))})
+     return data
+@@ -171,6 +171,8 @@
+     """Derive audit conclusions from authenticated review plus actual run facts."""
+     raw=json.loads((root/'collector_raw.json').read_text());start,end=raw['start_ns'],raw['end_ns']
+     before=json.loads((root/'elf_pre.json').read_text());after=json.loads((root/'elf_final.json').read_text())
++    from mapped_elf_inventory import same_process
++    process_identity_pass=same_process(before,after)
+     facts=native_review_facts(review)
+     expected_ode=facts['expected_ode_sha256']
+     expected_modules={x['role']:x['sha256'] for x in review['engine_module_bindings']}
+@@ -181,7 +183,7 @@
+     required_roles=set(q.ELF_ROLES.values())-{'actor_binaries','camera'}
+     if value['actor']:required_roles.add('actor_binaries')
+     if value['camera']:required_roles.add('camera')
+-    module_complete=required_roles<=set(module_checks) and all(module_checks[r] for r in required_roles)
++    module_complete=process_identity_pass and required_roles<=set(module_checks) and all(module_checks[r] for r in required_roles)
+     native_ok=facts['native_reference_pass'] and pre.get('ode_integrator',{}).get('sha256')==expected_ode
+     source_ok=facts['upstream_source_review_pass']
+     source_bindings=review['engine_source_bindings']
+@@ -191,6 +193,7 @@
+     common_fields={'run_id':value['run_id'],'start_ns':start,'end_ns':end,'scope_limit':'authorized launch/nodes; not adversarial process proof'}
+     audits={
+       'engine_binary_maps':dict(common_fields,**{'pass':module_complete and native_ok and source_ok,
++         'same_process_identity_pass':process_identity_pass,
+          'loaded_modules':after['loaded_modules'],'module_checks':module_checks,
+          'runtime_inventory_bindings':[q.binding(root/'elf_pre.json'),q.binding(root/'elf_final.json')],
+          'native_report_binding':review['native_engine_report'],'native_records_binding':review['native_engine_records'],
+@@ -301,7 +304,9 @@
+                 for name in ('prepared','source_review','physical_parameter_decision'):archive(root,release[name])
+                 verify_release(release_path,release_sha)
+                 for port in (14820,14821):
+-                    with socket.socket() as sock:sock.bind(('127.0.0.1',port))
++                    with socket.socket() as sock:
++                        sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
++                        sock.bind(('127.0.0.1',port))
+                 env=dict(os.environ);env.update(ROS_MASTER_URI='http://127.0.0.1:14820',GAZEBO_MASTER_URI='http://127.0.0.1:14821',
+                   ROS_IP='127.0.0.1',ROS_HOSTNAME='127.0.0.1',GAZEBO_IP='127.0.0.1',
+                   ROS_LOG_DIR=str(root/'roslog'),ROS_HOME=str(root/'ros_home'),GAZEBO_MODEL_DATABASE_URI='')
+
+
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_passive_collector_q02.py [identity-normalized]
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_passive_collector_q03.py
+@@ -270,7 +270,9 @@
+     common.atomic(root/'collector_report.json',{'run_id':value['run_id'],'seed':value['seed'],'pass':passed,
+         'errors':raw['errors'],'source_window_ns':[start,end],'watermark_ns':watermark,
+         'wall_elapsed_s':raw['wall_elapsed_s'],'raw_sha256':q.sha(root/'collector_raw.json'),
+-        'descriptive_overall_sim_seconds_per_wall_second':10./raw['wall_elapsed_s'],
++        'descriptive_overall_sim_seconds_per_wall_second':q.source_window_wall_ratio(start,end,raw['wall_elapsed_s'],
++            complete=bool(raw.get('coverage')) and all(x['pass'] for x in raw['coverage'].values())),
++        'overall_ratio_definition':'complete formal source-window duration over total collector wall time including bootstrap/drain; not whole-run clock RTF; null if window incomplete',
+         'descriptive_active_source_rtf':q.source_rtf(source_wall,start,end),'performance_claim':False,'runtime_source_closure_not_yet_assessed':True})
+     return 0 if passed else 3
+ if __name__=='__main__':raise SystemExit(main())

@@ -1,0 +1,68 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P2-C1-R1
+status: p2_c1_r1_independent_execution_readiness_pass_release_absent
+review_result: pass
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: true
+execution_authorized: true
+authorized_evidence_units_max: 342
+consumed_evidence_units: 0
+release_present_during_review: false
+predecessor_terminal_freeze:
+  old_release_preserved: true
+  old_execute_called: false
+  old_execution_root_absent: true
+  old_consumed_units: 0
+  old_authority_forfeited: 342
+single_integrity_amendment_review:
+  classification: qualification_compiled_scene_and_startup_binding_only
+  behavioral_factor_count_changed: 0
+  direct_probe_startup_config_rows:
+  - 1
+  - 3
+  - 4
+  - 6
+  - 7
+  - 9
+  - 10
+  - 12
+  rows_verified: 342
+  timeout_repaired_sequences:
+  - 1
+  - 3
+  - 4
+  - 6
+  - 7
+  - 9
+  - 10
+  - 12
+  unaffected_rows_byte_equivalent_after_stage_projection: 334
+  all_rows_match_compiled_scene_identity_and_timeout: true
+runtime_command_review:
+  resolved_rows_compared_to_runner: 342
+  semantic_transaction_rows: 154
+  direct_positive_clock_rows: 8
+  start_pose_world_fixed_config_and_runtime_resources_bound: true
+dependency_closure:
+  local_resources_verified: 613
+  external_resources_verified: 301
+  unresolved: []
+budget_review:
+  round_1_maximum_units: 792
+  R1_calibration_maximum_units: 342
+  held_out_reserved_maximum_units: 450
+  additive_budget_expansion: false
+side_effect_audit:
+  R1_execution_root_absent: true
+  release_absent: true
+  forbidden_processes: []
+  ros_gazebo_started_by_review: false
+  held_out_test_accessed: false
+reviewer:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p2_c1_r1_offline_reviewer.py
+  sha256: 913b347cc3199e9ea22f454e204bf1b27c6d01a456580c20787a8cfcf6898db7
+  deterministic_double_review_required: true
+next_safe_entry: create_one_exact_R1_release_bind_its_SHA_then_execute_once

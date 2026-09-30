@@ -1,0 +1,51 @@
+schema_version: "1.0"
+stage: V6-06-P1
+name: current_thesis_update_and_transfer_package
+date: "2026-08-08"
+status: authorized_pure_offline_derivation
+
+scope:
+  purpose: >-
+    Integrate the frozen V3 thesis draft with the terminal V5/V6 reinforcement-learning
+    evidence, export a portable school-template handoff package, and preserve an explicitly
+    empty real-vehicle experiment section.
+  simulation_execution: false
+  training: false
+  formal_seed_access: false
+  hardware_access: false
+  real_vehicle_execution: false
+  online_teb_write: false
+  stable_workspace_modification: false
+
+immutable_upstream:
+  v3_terminal_pdf_sha256: 22f4e423a4211590c2d4936c8be4a7f5d6963da83083e0dd8f86b0197af58b7d
+  v3_paper_review_sha256: adb4317773484601dd3a1b2006098051521c611fdaa7073138991112a7a3d7a5
+  v6_formal_assessment_sha256: 08a0ab06343cad51ee206ba502d2a115c6fd707d58620f9bb4f519a71ec95c1b
+  v6_paper_review_sha256: ff4b6423d8fb610fe29486ab059c86a1e86f284055c8b520cf9e38cf4e470b41
+  rewrite_upstream_files_forbidden: true
+
+required_outputs:
+  - self_contained_integrated_latex_source
+  - compiled_a4_searchable_pdf
+  - v3_v5_v6_machine_readable_data
+  - editable_v3_v6_figures
+  - combined_claims_evidence_matrix
+  - external_draft_integration_guide
+  - codex_writing_prompt_for_other_computer
+  - real_vehicle_experiment_placeholder
+  - evidence_and_terminal_sha256_manifests
+  - independent_offline_review
+
+claim_rules:
+  v3_11_historical_positive_must_remain_scoped: true
+  v3_21_actual_teb_superiority_not_demonstrated: true
+  v6_fast_population_positive_may_be_reported: true
+  v6_gazebo_effectiveness_forbidden: true
+  v6_actual_teb_superiority_forbidden: true
+  temporal_history_benefit_forbidden: true
+  formal_safety_forbidden: true
+  real_vehicle_result_status: pending_no_evidence
+  fabricated_real_vehicle_values_forbidden: true
+
+output_root: artifacts/v6/paper/v6_06_p1_thesis_transfer_package
+

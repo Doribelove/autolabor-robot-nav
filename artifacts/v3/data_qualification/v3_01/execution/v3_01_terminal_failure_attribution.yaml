@@ -1,0 +1,65 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-01
+report_id: v3_scope_v3_01_terminal_failure_attribution_1
+status: terminal_infrastructure_failure_root_cause_confirmed
+identity:
+  unit_id: v3_01_s6101_cautious_probe_v060
+  seed: 6101
+  actor_policy_evaluator_only: cautious
+  candidate_id_evaluator_only: probe_v060
+  attempt: 1
+budget:
+  authorized_units: 36
+  consumed_units: 1
+  completed_units: 0
+  remaining_units_forfeited: 35
+  retries: 0
+  resumable: false
+observed:
+  world_loaded: true
+  recorder_loaded_and_header_created: true
+  done_marker_created: false
+  finalized_raw_csv_created: false
+  raw_active_contains_header_only: true
+  wall_timeout_s: 30.0
+  semantic_actor_response_reached: false
+root_cause:
+  class: runner_pause_flag_semantics
+  command_fragment: gzserver --verbose -u WORLD
+  authoritative_local_help: "-u [ --pause ] Start the server in a paused state."
+  mechanism: >-
+    The runner incorrectly treated -u as unpause. Gazebo Classic 11 defines
+    -u/--pause as start paused, so the world-update callbacks never advanced
+    simulation time and the recorder could not reach its 8 s terminal marker.
+  plugin_or_scene_failure: false
+  semantic_factor_failure: false
+evidence:
+  journal:
+    path: artifacts/v3/data_qualification/v3_01/execution/v3_01_attempt_journal.jsonl
+    sha256: a8cf431ad98fbc1c3606c446cb1188d71e0e334c80ff41ab86e5c2bfb586fef9
+  world:
+    path: artifacts/v3/data_qualification/v3_01/execution/attempts/v3_01_s6101_cautious_probe_v060/world.sdf
+    sha256: 9c9e0a7d5f462a4ea0cae433da058b7bcb9ac511cf9c7b35f08c874a4c0cb679
+  gzserver_log:
+    path: artifacts/v3/data_qualification/v3_01/execution/attempts/v3_01_s6101_cautious_probe_v060/gzserver.log
+    sha256: 9930ec8d227c18ac985318a4b9e726b8b10ae27a3b480936505186c10c137779
+  raw_active:
+    path: artifacts/v3/data_qualification/v3_01/execution/attempts/v3_01_s6101_cautious_probe_v060/raw_pose_trace.csv.active
+    sha256: c23abbdc7fd15ed4e3c9ef4fad9f2de765c7a11a96d48aa6b9519ad8e9653819
+    size_bytes: 73
+repair_boundary:
+  original_release_reusable: false
+  original_authorization_reusable: false
+  seed_6101_reusable: false
+  seeds_6102_6103_reusable: false
+  original_budget_recyclable: false
+  required_new_stage: V3-01-R1
+  required_change_count: 1
+  only_allowed_execution_change: remove_gzserver_pause_flag
+  fresh_seed_roster_required: true
+  new_release_review_and_authorization_required: true
+claim:
+  reactive_actor_qualified: false
+  counterfactual_identifiability_demonstrated: false
+  performance_claim_allowed: false

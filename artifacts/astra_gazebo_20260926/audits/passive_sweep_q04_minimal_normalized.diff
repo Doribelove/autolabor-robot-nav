@@ -1,0 +1,63 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q03.py [identity-normalized]
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q04.py
+@@ -49,8 +49,10 @@
+  'libgazebo_ros_camera.so':'camera',
+  'libgazebo_ros_laser.so':'laser_sensor','libgazebo_ros_bumper.so':'chassis_contact_sensor',
+  'libgazebo_ros_imu_sensor.so':'imu_sensor'}
++from mapped_elf_inventory_v2 import GRAPHICS_ROLES,GRAPHICS_BINDINGS
++ELF_ROLES.update(GRAPHICS_ROLES)
+ SOURCE_FILES=(
+- 'scripts/astra_gazebo/mapped_elf_inventory.py',
++ 'scripts/astra_gazebo/mapped_elf_inventory.py','scripts/astra_gazebo/mapped_elf_inventory_v2.py',
+  'scripts/astra_gazebo/passive_sweep_q04.py','scripts/astra_gazebo/run_smoke_a02.py','scripts/astra_gazebo/run_passive_sweep_q04.py',
+  'scripts/astra_gazebo/dense_sweep_p03.py','scripts/astra_gazebo/dense_sweep.py',
+  'scripts/astra_gazebo/geometry.py','scripts/astra_gazebo/evaluate_episode.py',
+@@ -376,8 +378,8 @@
+ 
+ def elf_inventory(pid,raw_maps_path):
+     """Q04 sole repair: durable raw proc maps plus classified ELF inventory."""
+-    from mapped_elf_inventory import inventory
+-    required=set(ELF_ROLES.values())-{'actor_binaries','camera'}
++    from mapped_elf_inventory_v2 import inventory
++    required=set(ELF_ROLES.values())-{'actor_binaries','camera'}-set(GRAPHICS_ROLES.values())
+     return inventory(pid,ELF_ROLES,required,raw_maps_path)
+ 
+ 
+@@ -395,4 +397,6 @@
+       '/opt/ros/noetic/lib/gazebo_ros/gzserver',
+       '/usr/bin/gzserver','/opt/ros/noetic/bin/roslaunch','/opt/ros/noetic/lib/rosbag/record',
+       '/opt/ros/noetic/lib/topic_tools/relay','/opt/ros/noetic/lib/robot_state_publisher/robot_state_publisher'))
++    paths.extend(Path(item['path']) for item in GRAPHICS_BINDINGS.values())
++    paths.extend(p for p in (STAGE/'audits/mapped_graphics_probe_v1').iterdir() if p.is_file())
+     return paths
+
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_passive_sweep_q03.py [identity-normalized]
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_passive_sweep_q04.py
+@@ -181,6 +181,7 @@
+     module_checks={role:role in pre and role in post and pre[role]['sha256']==post[role]['sha256']==digest
+                    for role,digest in expected_modules.items()}
+     required_roles=set(q.ELF_ROLES.values())-{'actor_binaries','camera'}
++    if not value['camera']:required_roles-=set(q.GRAPHICS_ROLES.values())
+     if value['actor']:required_roles.add('actor_binaries')
+     if value['camera']:required_roles.add('camera')
+     module_complete=process_identity_pass and required_roles<=set(module_checks) and all(module_checks[r] for r in required_roles)
+@@ -194,6 +195,8 @@
+     audits={
+       'engine_binary_maps':dict(common_fields,**{'pass':module_complete and native_ok and source_ok,
+          'same_process_identity_pass':process_identity_pass,
++         'external_graphics_dynamic_code':after.get('external_graphics_dynamic_code',[]),
++         'graphics_driver_provenance':'exact binary bindings plus independent GLX mapping reproduction; no NVIDIA source correspondence or dynamic executable memory equality claim',
+          'loaded_modules':after['loaded_modules'],'module_checks':module_checks,
+          'runtime_inventory_bindings':[q.binding(root/'elf_pre.json'),q.binding(root/'elf_final.json')],
+          'native_report_binding':review['native_engine_report'],'native_records_binding':review['native_engine_records'],
+@@ -201,7 +204,7 @@
+            'gazebo_pre_end_callback_order_verified':source_ok,
+            'loaded_module_source_correspondence_reviewed':module_complete and source_ok,
+            'source_bindings':source_bindings},
+-         'interpretation':'mapped ELF SHA + native reference + independently reviewed versioned source; no formal bit-for-bit source-build theorem'}),
++         'interpretation':'selected physics/ROS/custom mapped ELF SHA + native reference + reviewed versioned engine source; external graphics receives binary/pattern evidence only; no formal bit-for-bit source-build theorem'}),
+       'node_roster_audit':dict(common_fields,**{'pass':roster_ok,'loopback_master_isolated':roster_ok,
+           'unexpected_nodes':sorted({n for r in roster_rows for n in r['unexpected_nodes']}),
+           'observations':q.binding(root/'node_roster.jsonl'),'sampling':'0.20wall s during active window; trusted authorized node scope'}),
+
+

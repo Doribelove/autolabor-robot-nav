@@ -1,0 +1,245 @@
+{
+  "schema": "astra_dense_sweep_component_v1",
+  "created_utc": "2026-09-26T08:53:49.043777+00:00",
+  "status": "offline_conditional_bound_component_pass_runtime_correspondence_and_safety_pending",
+  "owned_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/dense_sweep.py",
+      "sha256": "c4bfdeb26a4eef3be38efd163df081e5d3939485942ad88b96ba103b2511d4e0",
+      "bytes": 20485
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_dense_sweep.py",
+      "sha256": "c9015473820c51535a4e7665a2d841d3c361719a19d1cdf63fd671faeacaf36f",
+      "bytes": 10731
+    }
+  ],
+  "frozen_sources_unchanged": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/evaluate_episode.py",
+      "sha256": "db585cddb29054137c2129f3b96d698cd3a3bcf4b7d854558c29aee4b06550a4",
+      "bytes": 53470
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf",
+      "bytes": 21585
+    }
+  ],
+  "upstream_source_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/dense_sweep_upstream_sources/manifest.json",
+    "sha256": "c6465c8cdc71b7e4a229cb555d1122b1af77d9c304f42952f00ef793d0a64a20",
+    "bytes": 4100
+  },
+  "official_primary_sources": [
+    {
+      "url": "https://github.com/gazebosim/gazebo-classic/blob/gazebo11_11.15.1/deps/opende/src/util.cpp",
+      "lines": "249-349",
+      "finding": "dxStepBody advances COM linearly, applies finite or normal Euler quaternion rotation, normalizes it, then damps stored velocities. Normal rotation is a special case that must be verified, not assumed from ODE name."
+    },
+    {
+      "url": "https://github.com/gazebosim/gazebo-classic/blob/gazebo11_11.15.1/deps/opende/src/quickstep_update_bodies.cpp",
+      "lines": "223-277",
+      "finding": "QuickStep integrates poses through dxStepBody, then adjusts stored velocities by the difference between ERP and non-ERP constraint accelerations."
+    },
+    {
+      "url": "https://github.com/gazebosim/gazebo-classic/blob/gazebo11_11.15.1/gazebo/physics/ode/ODELink.cc",
+      "lines": "62-105,435-506",
+      "finding": "Normal Gazebo body creation does not set finite-rotation mode. Reported link-origin velocity differs from body COM velocity by the angular velocity cross COM offset; fixed-link lumping changes that offset."
+    },
+    {
+      "url": "https://github.com/gazebosim/gazebo-classic/blob/gazebo11_11.15.1/gazebo/physics/World.cc",
+      "lines": "920-1008",
+      "finding": "WorldUpdateBegin precedes collision/integration; dirty physical poses are propagated before WorldUpdateEnd. Actor Begin teleports and body integration have distinct phases."
+    }
+  ],
+  "mathematical_derivation": {
+    "declared_scope": "Conditional simulator continuous extension for normal infinitesimal-quaternion dxStepBody, with known actor updates represented as bounded variation jumps. This is not a sampled observation of a real continuous physical trajectory.",
+    "body_frame": "Aggregate every fixed-link mass and collision into the surviving ODE body; c is merged COM in body-link coordinates. COM0=p0+R0*c and COM1=p1+R1*c. Every collision point is enclosed within radius R of COM; outer48-gon cylinder inflation is included.",
+    "quaternion_extension": "Choose q1 sign so dot(q0,q1)>=0. q_perp=q1-dot*q0; k=norm(q_perp)/dot=tan(theta/2). Normal Euler extension q(s)=normalize(q0+s*k*q_perp/norm(q_perp)) has rotation angle2*atan(s*k), derivative2*k/(1+s*s*k*k)<=2*k.",
+    "point_bound": "For s in[0,1], every shape point has phase derivative norm<=B_link=norm(COM1-COM0)+2*R*k. This bounds path length through the full step. Near-pi/ill-conditioned intervals are rejected.",
+    "compound_bound": "B_robot=max_link B_link bounds the Hausdorff phase derivative of the full robot compound; all seven body phases share the same declared extension parameter. XY projection cannot enlarge this displacement bound.",
+    "actors": "Each reviewed fixed-heading actor takes one bounded pose step at Begin. Its movement consumes at most max(initial,all_policy_targets)*dt variation. Sum actor budgets conservatively covers sequential actor updates; zero published twist is never used to erase a jump. No finite instantaneous actor velocity is claimed.",
+    "coarse_bound": "For complete contiguous dense intervals between two geometry endpoints, P=sum(B_robot+B_actors). Clearance is Lipschitz under component point displacement and a constant0.33m margin does not change variation. For any interior configuration, variations to both endpoints total<=P; one is<=P/2. Therefore d(t)>=min(d0,d1)-P/2, including known discontinuous actor updates.",
+    "floating_point_limit": "The theorem is in real arithmetic. Source quaternion normalization, COM reconstruction, projection arithmetic and libm require an independently bounded numeric error envelope before a positive computed value is called qualified."
+  },
+  "why_end_twist_is_not_a_bound": {
+    "native_library": {
+      "path": "/usr/lib/x86_64-linux-gnu/libgazebo_ode.so.11.15.1",
+      "sha256": "4ece2e46d4c6e7d5f4b2d7310fc9583e4c8a3a5f6337bc2d654a689044ec3fa5",
+      "bytes": 855816
+    },
+    "native_fixture_library_from_dladdr": {
+      "type": "library",
+      "path": "/lib/x86_64-linux-gnu/libgazebo_ode.so.11"
+    },
+    "native_random_undamped_steps": 300,
+    "native_test_dt_s": 0.002,
+    "native_finite_rotation_mode": 0,
+    "damping_counterexample": "Native20%post-pose damping yields actual COM displacement1.25times(norm(end_velocity)*dt).",
+    "erp_caveat": "Source permits post-pose ERP velocity changes; the single contact fixture did not itself produce a nonzero ERP residual, so no empirical ERP effect is attributed to that sample.",
+    "observed_maximum_velocity_never_used_as_bound": true
+  },
+  "runtime_provenance_available": {
+    "recorded_P01_engine_libraries": [],
+    "limit": "Matching recorded/current engine binaries plus official version source and native tests support the model investigation; they do not independently establish all runtime body rotation flags, all state-writing callbacks/services, or a certified source-to-binary build."
+  },
+  "tests": [
+    {
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/dense_sweep_test_01.log",
+        "sha256": "dfd794ed2edacb338305b9acce40bf5952351a746de77cf66668a6ec9617fcf5",
+        "bytes": 106
+      },
+      "result": "16 pass in1.81s"
+    },
+    {
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/dense_sweep_test_02.log",
+        "sha256": "3b2d06c70c25ded120dd4d2e8af5e413822ed9bab6896b8b18a3cfcd9d3a056e",
+        "bytes": 106
+      },
+      "result": "18 pass in1.86s; added out-and-back indistinguishability and independent Shapely rotated-box clearance samples"
+    }
+  ],
+  "independent_references": [
+    "100 random SciPy-composed rotations, each201interior point samples, check radius/COM phase-length bound independently of Pose3.",
+    "300 native libgazebo_ode undamped steps match endpoint COM and normalized quaternion integration; separately retained damping and contact cases.",
+    "Shapely rotated rectangle versus static obstacle across1001interior states verifies coarse conditional clearance bound.",
+    "Adversarial unrestricted out-and-back motion has identical endpoint pose/zero endpoint velocity but1m interior excursion; this demonstrates why engine-path correspondence is mandatory.",
+    "Missing2ms step, 1nsjoin mismatch, clock reset, missingbody, NaNtwist, non-dense metadata, actor jump violation and fixed-lumping overrides fail closed.",
+    "Quaternion sign, tinyangle, near-pi rejection, realM12merged COM, initial/zero-speed actor twist and fake proof bindings are covered."
+  ],
+  "native_probe_artifacts": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/dense_sweep_native_ode_probe.cpp",
+      "sha256": "f34042b876f86d65fd820186b1bb25aeced70f00dc563f81ac3aa97104ed6be6",
+      "bytes": 2566
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/dense_sweep_native_ode_steps.jsonl",
+      "sha256": "ec514940e64c00644e42fc72387cbd214ef3c5153de75c688416b27e86e73b09",
+      "bytes": 158887
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/dense_sweep_native_ode_probe.log",
+      "sha256": "feb9f9a119b2d2db429301552814c2882e2ca7f9871966588b7775461b9c5a6e",
+      "bytes": 1090
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/dense_sweep_native_ode_probe_02.log",
+      "sha256": "4e2bb813e768193d0b4b88242c71a331fd5e66b854c4f3f66b610a2daf87f71f",
+      "bytes": 614
+    }
+  ],
+  "native_compile_attempt_note": "The first reviewer fixture used an unavailable convenience damping-threshold API and failed compile; preserved log. Replacing it with installed linear/angular threshold APIs compiled and executed successfully. No production code changed.",
+  "P01_readonly_diagnostic": {
+    "original_terminal_report": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p01/probe_report.json",
+      "sha256": "cc925ec6b142f60aa09d3830f98b645e15108ce9267d6a7f7bd89658bd123f22",
+      "bytes": 4442
+    },
+    "original_pass": false,
+    "dense_report": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/dense_sweep_p01_diagnostic_final/report.json",
+      "sha256": "68aefa08c2c2ad3a52597243d9195778078e8ad0f9ba08b29382589a33204b43",
+      "bytes": 5487
+    },
+    "summary": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/dense_sweep_p01_summary.json",
+      "sha256": "a6b30e4ebbd98b2124ff398808701cffdeea1a3225b3193113f74edd9898dec0",
+      "bytes": 2643
+    },
+    "metrics": {
+      "dense_intervals": 18077,
+      "first_source_stamp_ns": 2000000,
+      "last_source_stamp_ns": 36156000000,
+      "all_intervals_2ms": true,
+      "per_body_maxima": {
+        "autolabor_m2::base_link": {
+          "max_point_phase_budget_m": 0.0037913854588329955,
+          "max_end_twist_translation_residual_m": 2.1380717512610536e-05,
+          "max_end_twist_rotation_residual_rad": 8.057862206477309e-05
+        },
+        "autolabor_m2::front_left_steer_link": {
+          "max_point_phase_budget_m": 0.00345686911054766,
+          "max_end_twist_translation_residual_m": 9.16292834251229e-05,
+          "max_end_twist_rotation_residual_rad": 0.0022859589158802356
+        },
+        "autolabor_m2::front_left_wheel_link": {
+          "max_point_phase_budget_m": 0.006743447173020912,
+          "max_end_twist_translation_residual_m": 9.603236829872342e-05,
+          "max_end_twist_rotation_residual_rad": 0.002024885391833697
+        },
+        "autolabor_m2::front_right_steer_link": {
+          "max_point_phase_budget_m": 0.003458878411623499,
+          "max_end_twist_translation_residual_m": 0.00010716378559410957,
+          "max_end_twist_rotation_residual_rad": 0.002727380862333782
+        },
+        "autolabor_m2::front_right_wheel_link": {
+          "max_point_phase_budget_m": 0.006757947510302514,
+          "max_end_twist_translation_residual_m": 6.908567319166004e-05,
+          "max_end_twist_rotation_residual_rad": 0.001756550247936761
+        },
+        "autolabor_m2::rear_left_wheel_link": {
+          "max_point_phase_budget_m": 0.006158791995943828,
+          "max_end_twist_translation_residual_m": 4.837219439500531e-05,
+          "max_end_twist_rotation_residual_rad": 0.0015263566078848763
+        },
+        "autolabor_m2::rear_right_wheel_link": {
+          "max_point_phase_budget_m": 0.006186473117460529,
+          "max_end_twist_translation_residual_m": 4.916773982252668e-05,
+          "max_end_twist_rotation_residual_rad": 0.0012151020584202344
+        }
+      },
+      "max_relative_per_step_phase_budget_m": 0.006757947510302514,
+      "mean_relative_per_step_phase_budget_m": 0.0035202039124759142,
+      "diagnostic_20ms_bound_subtraction_half_sum_m": {
+        "max": 0.03314504381630214,
+        "mean": 0.017607804412001375,
+        "count": 1807,
+        "alignment": "nonoverlapping ten-step windows from first dense sample; not a substituted 50Hz geometry trace"
+      },
+      "actual_conservative_clearance_assessed": false,
+      "world_has_navigation_obstacles": false,
+      "historical_p01_pass": false,
+      "qualification": "pending",
+      "limits": "P01 has ground only and failed its receipt fault-coverage gate; this motion diagnostic neither reruns nor requalifies it. Expanded URDF is reconstructed from source-bound launch parameters, not a saved runtime parameter capture."
+    },
+    "old_and_final_interval_artifact_hash_equal": true,
+    "reconstructed_urdf": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/dense_sweep_p01_reconstructed_urdf.xml",
+      "sha256": "a743e87c207c756fcf7c40e762fe59306d180afd525d59cc33f22e108c8fabc7",
+      "bytes": 12637
+    },
+    "URDF_scope": "Reconstructed from the source-bound launch arguments after terminal receipt; not falsely labelled a saved runtime robot_description capture."
+  },
+  "qualification_decision": {
+    "current": "pending",
+    "mathematical_conditional_bound_provided": true,
+    "automatic_pass_from_plugin_filename_or_boolean": false,
+    "external_proof_binding_syntax_does_not_authenticate_documents": true,
+    "missing_runtime_proofs": [
+      "loaded_engine_source_and_binary_verified",
+      "normal_infinitesimal_rotation_mode_verified",
+      "one_pose_integration_per_dense_step_verified",
+      "fixed_body_com_mapping_verified",
+      "all_non_engine_pose_writes_classified",
+      "all_actor_updates_bounded",
+      "numerical_error_envelope_verified",
+      "declared_simulator_extension_accepted"
+    ],
+    "scope_of_P01_success": "Only exact source-joined motion-budget calculation succeeded. P01 remains failed; no navigation obstacle clearance or actual continuous safety was assessed."
+  },
+  "minimal_future_closure": [
+    "New read-only evidence metadata should bind runtime per-body merged COM, mass, finite-rotation flag/axis, disabled/kinematic status and exact solver/body update flags; bind that stream and loaded engine binary/source version.",
+    "Close every pose/velocity writer, including permitted actor Begin updates and Gazebo service paths, for the evaluated interval. Merely knowing the motor plugin uses SetForce is insufficient.",
+    "Preregister the explicitly defined normal-ODE extension plus discrete actor jump semantics, rather than call it real continuous physical safety.",
+    "Produce an outward numeric-error envelope for point budgets and endpoint geometric clearances; authenticate all proof documents through the root evaluator/reviewer.",
+    "Then join actual50Hz geometry endpoints to the complete2ms intervals and combine bounded clearances with whole-system contact evidence and original integrity/task gates."
+  ],
+  "no_ros_or_gazebo_server_or_navigation_episode_started": true,
+  "standalone_native_ode_unit_steps_executed": true,
+  "formal_result": false,
+  "physical_continuous_safety_qualified": false
+}

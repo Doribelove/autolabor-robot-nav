@@ -1,0 +1,44 @@
+schema_version: '1.0'
+status: current_outer_paper_claims_contract
+supersedes_for_gazebo_writing: upstream_v6_06_historical/combined_claims_evidence_matrix.yaml
+does_not_invalidate:
+- V3-11 scoped historical positive
+- V3-21 fresh negative characterization
+- V5 fast-population negative practical gate
+- V6-02-F1 scoped fast-population positive
+current_gazebo_claims:
+- id: pct_vs_actual_teb
+  status: not_demonstrated_after_two_independent_formal_rounds
+  r1: -0.9442%, two-sided 97.5% CI [-8.3569%,5.6359%]
+  r2: -2.7288%, two-sided 97.5% CI [-9.8083%,3.5914%]
+- id: pct_vs_dwa
+  status: not_demonstrated_after_two_independent_formal_rounds
+  r1: 6.3693%, two-sided 97.5% CI [1.0871%,11.1411%]
+  r2: 7.7754%, two-sided 97.5% CI [2.5521%,12.6148%]
+  reason: both point estimates were below the preregistered 8% minimum effect gate
+- id: formal_safety
+  status: not_demonstrated
+  reason: R2 PCT retained two conservative-clearance violations; no formal proof
+allowed_claims:
+- V6 PCT rank distillation was positive only in the frozen fast sensor-level population.
+- The later Gazebo benchmark completed 360 fresh paired blocks and 1440 episodes over
+  two independent formal rounds.
+- PCT had higher valid-goal rates than TEB and DWA in both Gazebo rounds, but did
+  not meet the preregistered time-reduction superiority gate.
+- R2 versus DWA had a positive interval but missed the 8% point gate and is therefore
+  a negative superiority result.
+- Post-freeze diagnostics motivate new development-only tests of safe switching hysteresis
+  and stop-recovery release.
+forbidden_claims:
+- PCT-SCOPE-RL is superior to Actual TEB in Gazebo.
+- PCT-SCOPE-RL is superior to DWA in Gazebo.
+- A positive confidence interval alone overrides the frozen 8% practical-effect gate.
+- V6 fast-simulator evidence is Gazebo or real-vehicle evidence.
+- V3 Gazebo evidence is PCT/V6 Gazebo evidence.
+- Formal safety, perception/OOD generalization, deployment readiness, or real-vehicle
+  effectiveness.
+- Temporal history benefit, because V6 and no-history were tied.
+- Deleting failures, pooling R1/R2, or treating formal seeds as development data.
+real_vehicle:
+  status: pending_no_evidence
+  numeric_fields_must_remain_empty: true

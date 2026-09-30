@@ -1,0 +1,25 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager_r03.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager_r04.py
+@@ -17,8 +17,8 @@
+ import sys
+ import time
+ 
+-import navigation_n06_integrity_r03 as q
+-import navigation_n06_process_r03 as processes
++import navigation_n06_integrity_r04 as q
++import navigation_n06_process_r04 as processes
+ import navigation_evidence_n06 as evidence
+ 
+ STAGE=q.STAGE;WORKSPACE=q.prepared_api.WORKSPACE;NAME=q.NAME
+@@ -68,6 +68,11 @@
+     root=Path(root);integrity=not error and report is not None and report.get('capture_integrity_pass')is True
+     process=q.strict_json(q.regular_bytes(root/'process.json')) if (root/'process.json').exists() else {}
+     assessment=q.binding(root/'assessment.json') if (root/'assessment.json').exists() else None
++    if report is None and assessment is not None:
++        # The assessor may finish its atomic write just before the worker dies.
++        # Recover only the retained task label; integrity was fixed above from
++        # the interrupted call and remains false. Full validation still applies.
++        report=q.json_bound(assessment)
+     metadata={'started_utc':started,'ended_utc':utc(),'exit_code':'' if exit_code is None else exit_code,
+         'pid':process.get('pid',''),'process_group':process.get('pgid',''),'command_json':json.dumps(['/opt/ros/noetic/bin/roslaunch',str(root/'fixture.launch')]),
+         'cwd':str(WORKSPACE),'heartbeat_path':str(root/'heartbeat.json'),'receipt_path':str(root/'receipt.json'),

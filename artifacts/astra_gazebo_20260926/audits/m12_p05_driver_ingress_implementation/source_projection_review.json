@@ -1,0 +1,176 @@
+{
+  "status": "measurement_only_source_projection_and_URDF_equivalence_pass",
+  "new_driver_sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255",
+  "parent_driver_sha256": "da1f1a39e7489c8996d6c16d6eeca5180247331c67687c557ab65f1c13d84a68",
+  "entire_projected_CPP_token_stream_exact": true,
+  "projection_scope": "Erase passive ingress publisher/helper/calls/counter and extra telemetry arguments; collapse Time capture+Double to original one-read expression; remove telemetry-only fault outcome branch. No control statement altered.",
+  "methods": [
+    {
+      "method": "Load",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": false
+    },
+    {
+      "method": "read",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "valid",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "jointReferenceEnvelopeValid",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "cmd",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": false
+    },
+    {
+      "method": "ack",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": false
+    },
+    {
+      "method": "enqueue",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": false
+    },
+    {
+      "method": "brake",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "emergency",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "reset",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "bias",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "control",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "finiteBaseState",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "finiteJointState",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "stamp",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "validStatusSourceTime",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "publishPhysicalStatus",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "publish",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "publishMetadata",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    },
+    {
+      "method": "parameters",
+      "projected_tokens_identical": true,
+      "unprojected_body_tokens_identical": true
+    }
+  ],
+  "expanded_URDF_only_plugin_library_and_instance_name_changed": true,
+  "all_xacro_spawn_changes_only_new_identity_references": true,
+  "ingress_schema": {
+    "topic": "/m2_driver/command_ingress",
+    "message_type": "diagnostic_msgs/DiagnosticArray",
+    "header_frame_id": "world",
+    "header_stamp": "same Gazebo common::Time read used for original last_receipt_ double; exact sec/nsec, no ROS receipt clock",
+    "header_seq": "dedicated publication sequence, monotonic per published callback event; ROS transport may populate its publisher sequence",
+    "status_name": "astra_physical_command_ingress",
+    "hardware_id": "simulation-only",
+    "value_keys": [
+      "input_topic",
+      "requested_linear_x",
+      "requested_angular_z",
+      "accepted",
+      "disposition",
+      "backend_fault",
+      "activation_time_s"
+    ],
+    "input_topic_values": {
+      "cmd_vel": "/cmd_vel, angular_z yaw rate rad/s",
+      "ackerman_vel": "/ackerman_vel, angular_z steering angle rad"
+    },
+    "normal_disposition": "accepted_queued when activation_time<=receipt; accepted_deferred only with later original queue activation",
+    "normal_level": 0,
+    "normal_accepted": "true",
+    "normal_backend_fault": "false",
+    "activation_time_s": "Original pending command activation timestamp; not measured force activation. Empty for rejected command.",
+    "rejections": [
+      "rejected_invalid_command",
+      "rejected_existing_fault",
+      "rejected_clock_fault",
+      "rejected_queue_overflow"
+    ],
+    "invalid_header_time": "Logged and omitted, never fabricated; incomplete evidence cannot pass expected event-count gate."
+  },
+  "no_control_writes_in_telemetry_helper": true,
+  "advertise_before_subscribe": true,
+  "no_build_no_ROS": true,
+  "limits": [
+    "Passive ROS publication has finite execution cost; code equivalence does not claim identical stochastic live trajectories.",
+    "No new receipt-to-application latency gate or actuator threshold is introduced.",
+    "Root independent review and compilation remain pending."
+  ],
+  "sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p02_plugin.cpp",
+      "sha256": "da1f1a39e7489c8996d6c16d6eeca5180247331c67687c557ab65f1c13d84a68"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p05_plugin.cpp",
+      "sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_driver_ingress_implementation/p02_expanded.xml",
+      "sha256": "57fea5abe66e046eeb82a9bcd479079fff0688aba67155238a9c3da95fdffa29"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_driver_ingress_implementation/p05_expanded.xml",
+      "sha256": "d18d0eeb51d92f307e4f2871029267c9ba873a7e181f2a00806a223059bc7d0d"
+    },
+    {
+      "path": "artifacts/astra_gazebo_20260926/audits/m12_p05_driver_ingress_implementation/verify_source_projection.py",
+      "sha256": "39897573b09830803768573e8fa4c657a0934a7ab79a67f326ca8349e033a7bc"
+    }
+  ],
+  "command": "/usr/bin/python3 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_driver_ingress_implementation/verify_source_projection.py"
+}

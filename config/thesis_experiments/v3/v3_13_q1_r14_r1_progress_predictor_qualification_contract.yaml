@@ -1,0 +1,91 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R14-R1
+stage_purpose: fresh_stage_identity_repair_and_progress_predictor_qualification
+status: preregistered_before_execution
+repair_scope:
+  triggering_failure_stage: V3-13-Q1-R14
+  terminal_failure_freeze_path: artifacts/v3/multiactor/v3_13_q1_r14_terminal_assessment_failure.yaml
+  terminal_failure_freeze_sha256: cb4cdf6f8132dd330b10dfa3b419ffc439709e0cbf8dc8bdac17e2da28405e23
+  terminal_failure_review_path: artifacts/v3/multiactor/v3_13_q1_r14_terminal_assessment_failure_review.yaml
+  terminal_failure_review_sha256: 2043bdf8dd480642b8df3b3ebe53bf5c0c7e4bf537a2ca05dde0043a031ceab8
+  only_repaired_factor: released_summary_stage_and_status_compatibility
+  predictor_model_changed: false
+  action_bank_changed: false
+  scenes_or_actor_policies_changed: false
+  matching_or_predictor_thresholds_changed: false
+upstream:
+  R13_fit_contract_path: config/thesis_experiments/v3/v3_13_q1_r13_progress_predictor_fit_contract.yaml
+  R13_fit_contract_sha256: d66300bfcd5f79eedc671dedd0c2958b93eb72abefb0845a789657f1ab7e5ecd
+  predictor_path: artifacts/v3/multiactor/v3_13_q1_r13_predictor/expanded_progress_predictor.yaml
+  predictor_sha256: 0e0d067b647a39a909fc3daadd5abd5d5938cf2e135b62f582dd45731889ee96
+  internal_CV_sha256: a75f0229bfc76f6b4eb0be18c95f6f1fab47c7df633eb8bedd4823b80df0b6f2
+  R13_manifest_sha256: 4bfde4c20a8a60f3e584aeef3f4c289f60126e0db4ff9f94a56e5be838584bfb
+  R13_review_sha256: 44529f6b2b8bb36e630e52fb87e7080b3649c297094c33ad6851ad6eb3b626f7
+  geometry_contract_path: config/thesis_experiments/v3/v3_13_q1_r10_progress_recovery_geometry_contract.yaml
+  geometry_contract_sha256: 3749d475ffc28d8abe2a04e37927972dfd55a23379d4c1ab667265e92203745a
+qualification_population:
+  scene_policy_strata:
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: occluded_staggered_corridor, actor_policies_evaluator_only: [hesitant, hesitant]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, cautious]}
+  - {scene_id: crossing_and_oncoming, actor_policies_evaluator_only: [hesitant, hesitant]}
+  replicas_per_stratum: 2
+  seeds: [7658, 7659, 7660, 7661, 7662, 7663, 7664, 7665]
+  matched_context_blocks: 8
+  branch_target_sim_s: 12.5
+  nominal_wait_depth_s: 5.0
+  actions:
+  - spatial_left_v120
+  - spatial_right_v120
+  - straight_v120
+  - certified_stop_v000
+  - recovery_evasive_right_v120_r2
+  actions_per_block: 5
+  exact_units: 40
+  actor_trajectories: 80
+  behavior_propensity_each: 0.20
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+matching_gates:
+  branch_clock_absolute_error_max_s: 0.012
+  paired_decision_ego_x_difference_max_m: 0.04
+  paired_decision_actor_coordinate_difference_max_m: 0.05
+  paired_decision_actor_speed_difference_max_mps: 0.05
+  complete_action_support_rate_min: 1.0
+  minimum_behavior_propensity: 0.20
+  branch_trace_samples_min: 130
+  branch_trace_duration_s_min: 6.85
+predictor_gates:
+  simultaneous_whole_trajectory_coverage_min: 0.90
+  every_scene_simultaneous_trajectory_coverage_min: 0.85
+  every_candidate_simultaneous_trajectory_coverage_min: 0.75
+  mean_trajectory_rmse_m_max: 0.25
+  maximum_trajectory_rmse_m_max: 0.65
+  terminal_full_width_m_max: 1.80
+  hidden_label_feature_count_max: 0
+  progress_candidate_every_block_static_clearance_m_min: 0.05
+downstream:
+  if_all_gates_pass: progress_recovery_planner_integration_and_actual_TEB_preflight_design
+  if_any_gate_fails: freeze_negative_qualification
+  direct_actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  exact_bounded_simulation_qualification_authorized: true
+  authorized_units: 40
+  authorized_seed_range: [7658, 7665]
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed_if_passes:
+  - expanded progress predictor meets fresh coverage, error and progress-candidate static gates
+  forbidden:
+  - actual TEB performance
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

@@ -1,0 +1,95 @@
+{
+  "schema": "astra_passive_sweep_q02_design_v1",
+  "stage": "astra_passive_sweep_q02",
+  "created_utc": "2026-09-26T10:29:30.592141+00:00",
+  "status": "offline_implementation_no_execution_authority",
+  "execution_authorized": false,
+  "training_authorized": false,
+  "registry_changes": false,
+  "attempts_created": false,
+  "reserved_design_identities": [
+    {
+      "run_id": "passive_sweep_q02_static",
+      "seed": 260926015,
+      "actor": false,
+      "duration_ns": 10000000000
+    },
+    {
+      "run_id": "passive_sweep_q02_actor",
+      "seed": 260926016,
+      "actor": true,
+      "duration_ns": 10000000000
+    }
+  ],
+  "physical_parameter_decision": "unresolved; P05 startup failure provides no qualified gain; future P06 exact-P05 driver qualification/root decision required before new prepare/freeze",
+  "contracts": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/passive_sweep_q02_static_contract.json",
+      "sha256": "3c88821760d1d79f27d409f171403211431fc26e2632669e4cd756128f841685"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/passive_sweep_q02_actor_contract.json",
+      "sha256": "808433ac8137bc8c1e62ca9c82cd293380ee4a65ee4f0a1e73594ffb23c7a601"
+    }
+  ],
+  "source_review_template": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/passive_sweep_q02_source_review_template.json",
+    "sha256": "34370a2cbef402fa94498f1da3682392a9e43942bea4d35d48beac73ceeda806"
+  },
+  "owned_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/passive_sweep_q02.py",
+      "sha256": "eebd2042e413a370abadb86b7544bd34b6ecb0febe711c3a5cbaec4f7fb1d175"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_passive_sweep_q02.py",
+      "sha256": "883e2f1849ca2e8b4701f376775ce053329a4507d07e3559b05927d3046629ed"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_passive_sweep_q02.py",
+      "sha256": "be5d4c6e09d95113f69a42f0e7a212d3e57c3a078e8bcc2a127da93ab6cdb600"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_passive_command_q02.py",
+      "sha256": "54c6fd694369a8ce79190b3cd0e1b4da12b00d4f71ac2d57b37216ef8ccce39d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_passive_collector_q02.py",
+      "sha256": "32bf2ee4f0ad3402c376a51d6f368986616c8ec6571305b1684d0c466278940c"
+    }
+  ],
+  "functional_gates": [
+    "exact complete ordered 2ms Pre/End models, links, per-step status and whole contacts in integer source window",
+    "native body modes/COM/collision geometry/source identities and bounded algorithmic sweep pass frozen P03 evaluator",
+    "actual mapped reviewed ELF + process/node/service/pose-writer closure within authorized trusted-node scope",
+    "no illegal robot contact; only four wheel links contacting ground are support exceptions; no actor/nonground contact",
+    "200 ordered publisher-visible source-clock command slots with <=20ms publication lateness; exact fixed phase values",
+    "real robot motion >0.10m and actor motion >0.25m when actor present",
+    "exact singleton named physical status with complete unique boolean keys, consistent level/message, complete50Hz source coverage and all fault/timeout/brake/emergency flags false",
+    "native requested image files complete at 2560x1440, with later independent visual inspection still required",
+    "hard5s global drain from pause request through source queries, joins and process/roster checks; final paused source time stable and all six dense streams reach watermark",
+    "bounded wall cap240s including assessment; fail stops stage and retires unrun unit; no retry"
+  ],
+  "descriptive_measurements": [
+    "active receipt RTF and complete-attempt throughput, no causal overhead claim",
+    "per-process CPU tick and RSS snapshots",
+    "source-to-wall receive trace",
+    "actual P05 command ingress stamp/sequence/values, independent of publisher-visible /clock",
+    "bag/file sizes and source/hash bindings"
+  ],
+  "data_storage": "full dense state/contact payload only in bag; compact JSON stamps/status/audits; two native PNG+single-frame ROS messages, no image topic in bag; contact JSON counts and first10 examples retain all original evidence in bag",
+  "limits": [
+    "Gazebo algorithmic motion extension and bounded actor Begin jumps only; not real continuous physical safety or formal floating-point proof",
+    "no navigation, learning, policy or performance comparison",
+    "selected DLL hashes plus full maps and independent versioned-source review, not bit-for-bit provenance theorem",
+    "trusted authorized nodes/services only, not malicious external-process isolation",
+    "nominal geometry preview is synthetic placement sampling, not an observed trajectory"
+  ],
+  "root_next_steps": [
+    "resolve Kd from fresh exact P05 result",
+    "independently review these exact source hashes and complete a NEW review document, preserving pending template",
+    "prepare NEW output with resolved Kd; generated world/URDF/launch bytes rechecked before execution",
+    "bind prepared.json, physical parameter decision with evidence, independent source review and all resources into explicit root release",
+    "root exclusively reserves registry identities and runs if/when separately released"
+  ]
+}

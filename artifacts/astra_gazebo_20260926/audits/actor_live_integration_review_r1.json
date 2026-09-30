@@ -1,0 +1,142 @@
+{
+  "status": "actor_relative_gate_r1_lifecycle_repair_components_pass_runtime_pending",
+  "ros_started": false,
+  "new_environment_for_all_methods": true,
+  "planner_algorithm_changed": false,
+  "old_reactive_rule_changed": false,
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_reactive_actor_plugin.cpp",
+      "sha256": "f55399bd46ce3b28344b581eb24d2465a311c74c92830068ff609d80d84c388b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_actor_gate.h",
+      "sha256": "a225e53888227e26607d2ce0b48a7ef34a41c7a454aebe439479034513c99d6d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/tests/test_astra_actor_gate.cpp",
+      "sha256": "61b9d498060fe94196683c1398266719d92436bfdc9b5a622ba62d6db2e6f447"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/v3_reactive_actor_plugin.cpp",
+      "sha256": "0f58306edb11792c09b00f7bc62a9faca04a2ebd10e80ede2290db0c449509bf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/v3_reactive_actor.h",
+      "sha256": "69cc13979122d1215ad42b18c8583a03368d982d84ee000d8a6b615b06aa306d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/derive_live_actor_inputs_v2.py",
+      "sha256": "0e72e0cf2766285761e7128bf42e4c04be9267716ebc3df9cd78b22b7ead3149"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_live_actor_inputs_v2.py",
+      "sha256": "b2106c3bf47af97bc9c6c4283a65285f667afdf301d023244b86d7acbf100ef2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/actor_live_parameter_mapping_r1.json",
+      "sha256": "2b63aad3b5cd6b00f34f382852b6f37114bd89f6945c4aff5d0424fdd42d7627"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v2/derivation_report.json",
+      "sha256": "9f3f0617a391cee6897396ad1b1d5fadfcc46f6dba94c276bf73bacf5108a8f3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/actor_live_v1_source_snapshot/astra_reactive_actor_plugin.cpp",
+      "sha256": "4c209bd96c47718ba04e74b2300a52b6f6f60acfbd63290e7037d8a23250f3e9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/actor_live_v1_source_snapshot/astra_actor_gate.h",
+      "sha256": "fcf442023bbeccf48dfc5da68d0d3783f034a5bdd3b5311089128fdfd547efc0"
+    }
+  ],
+  "test_results": [
+    {
+      "command": [
+        "g++",
+        "-std=c++14",
+        "-Wall",
+        "-Wextra",
+        "-pedantic",
+        "-I",
+        "artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include",
+        "artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/tests/test_astra_actor_gate.cpp",
+        "-o",
+        "/tmp/astra_actor_gate_test_r1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/tmp/astra_actor_gate_test_r1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests",
+        "-p",
+        "test_live_actor_inputs_v2.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "tests_passed": 5
+    }
+  ],
+  "cpp_inherited_rule_exact_comparisons": 4500,
+  "python_tests_passed": 5,
+  "scope": [
+    "Relative first-observed route gate + delay, latched through ego reversal",
+    "No actor position progress before delay including physics-step boundary clipping",
+    "Duplicate simulation stamps produce zero integration; clock regression and nonfinite positions permanently fault actor",
+    "Actor world-path SE2 transformation/composition and invariant projected gate chronology",
+    "Preserved exact frozen reaction rule and deterministic seed invariance",
+    "All12 parent derived inputs and their actual policy/base-speed/response/delay/path mapping checked"
+  ],
+  "new_plugin_library": "libastra_reactive_actor_plugin.so",
+  "new_plugin_build_owner": "root CMake target and source/binary binding",
+  "input_table": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v2/diagnostic_blocks.csv",
+  "gate_reference": {
+    "route_x_m": -4.02,
+    "observation": "WorldUpdateBegin world ego pose first at/above threshold",
+    "episode_warmup_threshold_x_m": -4.03,
+    "policy_start_x_m": -4.0,
+    "note": "Actor gate time and controller warmup report gate are separate measured events; do not label identical stamps."
+  },
+  "live_pending": [
+    "Common-environment release binary/hash closure",
+    "Source-stamped zero preactivation progress and correct delay; any AstraReactiveActorPlugin gate_fault invalidates episode",
+    "New evidence plugin/robot support/actuation and geometry evaluator qualification",
+    "All methods use same variant; no planner observation of hidden actor policy",
+    "Future nonidentity planner/map/evaluator SE2 bridge"
+  ],
+  "reserved_stream_status": "Unused actor_response/sensor_noise/actuator streams documented and nonblocking; parameterized actor variation is real, conditional response deterministic; scan uses episode Gazebo --seed, zero actuator jitter means no actuator randomness",
+  "independent_review": {
+    "reviewer": "historical_audit",
+    "scope": "read-only Load clock anchor and ego-disappearance repair blocks plus prior normal gate/inherited-rule review",
+    "result": "both reported lifecycle boundaries covered; no catch-up introduced in inspected repair",
+    "ros_started": false
+  },
+  "final_outcomes_accessed": false,
+  "new_environment_version": "astra_common_environment_v4_routegate_ego_clock_fault_guard_z0_evidence",
+  "supersedes_component_version": "actor_live_integration_review.json; old source snapshot preserved and old derived inputs retained",
+  "repair_findings": [
+    {
+      "finding": "ego loss can leave an unobserved dt to integrate at return",
+      "resolution": "after first ego observation any missing ego permanently faults instance; no catch-up integration",
+      "test_pass": true
+    },
+    {
+      "finding": "Load-to-first-update clock regression unanchored",
+      "resolution": "observeWithoutEgo at Load primes source clock and every pre-spawn update advances it; backward first update faults",
+      "test_pass": true
+    }
+  ],
+  "reaction_timing_scope": "activation gate/delay relative; inherited response_enable_time remains absolute source simulation time, current value0",
+  "old_frozen_actor_unchanged": true
+}

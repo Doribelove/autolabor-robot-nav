@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+\centering
+\caption{V3-21 可复现实验配置。}
+\label{tab:v321-config}
+\small
+\begin{tabular}{p{0.30\textwidth}p{0.61\textwidth}}
+\toprule
+配置项 & 冻结值\\
+\midrule
+实验单位 & 30 个 paired scene--seed blocks，120 episodes\\
+随机种子 & 8201--8230；每种方法共享区块 seed\\
+场景 & open 90$^\circ$、wide corridor 70$^\circ$、bounded corridor 110$^\circ$\\
+actor 行为 & cautious / hesitant，共六个 scene$\times$policy strata\\
+方法 & V3 spatial-safe、Actual TEB 0.8.4、Fixed-v1.20 shielded、去候选条件化消融\\
+失败处理 & 所有已消费失败保留，并以 22.0 s 受限时间进入 intention-to-treat 统计\\
+推断 & paired block bootstrap 20000 次，双侧 95\% CI；三比较 Holm 校正\\
+执行隔离 & ROS master 端口 24002--24240，低于 Linux ephemeral range\\
+训练与实物 & 0 training steps；未访问硬件、CAN/串口或实车\\
+\bottomrule
+\end{tabular}
+\end{table}

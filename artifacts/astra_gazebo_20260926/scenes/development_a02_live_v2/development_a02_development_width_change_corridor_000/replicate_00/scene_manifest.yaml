@@ -1,0 +1,210 @@
+family: width_change_corridor
+topology: symmetric_throat
+corridor_half_width_m: null
+static_boxes:
+- name: entry_-1
+  x: -3.5
+  y: -2.1541
+  length: 3.0
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+- name: throat_-1
+  x: 0.2819
+  y: -1.5361
+  length: 3.072
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+- name: exit_-1
+  x: 4.5
+  y: -2.1541
+  length: 2.5
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+- name: entry_1
+  x: -3.5
+  y: 2.1541
+  length: 3.0
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+- name: throat_1
+  x: 0.2819
+  y: 1.5361
+  length: 3.072
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+- name: exit_1
+  x: 4.5
+  y: 2.1541
+  length: 2.5
+  width: 0.2
+  height: 1.0
+  yaw_rad: 0.0
+static_circles: []
+actor_geometry: []
+route:
+  start:
+  - -4.0
+  - 0.0
+  - 0.0
+  goal:
+  - 5.0
+  - 0.0
+  - 0.0
+  spawn:
+  - -5.4
+  - 0.0
+  - 0.0
+  length_m: 9.0
+  frame: world
+  transform_implemented: yaw_zero_only
+layout_id: development_a02_development_width_change_corridor_000
+parent_geometry_id: geom_cc6ffafbeff31c6a02063b26
+canonical_geometry_sha256: d0754bc6e6bfb48d3e4ea1ba5ac09344da2e746688c17a648156725e19841dc2
+split: development
+geometry_seed: 260982255
+initial_geometry_qc:
+  illegal_initial_intersections: []
+  horizontal_initial_geometry_pass: true
+  robot_instances: 1
+  actor_count: 0
+  robot_initial_centered_wheel_envelope: within_1.04_by_0.70_chassis_projection
+  wheel_ground_and_vertical_collision_qc: pending_live_physics
+  navigation_feasibility: pending_independent_Ackermann_path_qualification
+  occlusion_and_conflict_semantic_qualification: pending_geometric_ray_and_timing_audit
+offline_semantics:
+  minimum_actor_swept_static_clearance_m: 100.0
+  actor_swept_static_pairs: []
+  actor_swept_static_pass: true
+schema_version: astra_scene_1.0
+scene_id: core_width_change
+seed: 263224520
+replicate: 0
+actors: []
+rng_substreams:
+  actor_parameters: 263105444
+  actor_response: 263709011
+  sensor_noise: 263787298
+  actuator: 263750893
+actor_policy_input_to_planners: false
+gazebo_model_states_evaluator_only: true
+episode_cap_s: 22.0
+robot_collision_reference:
+  link: chassis_link
+  center_xyz_m:
+  - 0.0
+  - 0.0
+  - 0.27
+  length_m: 1.04
+  width_m: 0.7
+  height_m: 0.32
+  spawn_xyz_rpy:
+  - -5.4
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  vertical_spawn_qualification: z0 new common environment; live support/contact qualification
+    pending
+generator_version: astra_scene_generator_v2
+generator_sha256: aa9cbb38f3cee3a5ab41a9848756cf7e8055de2c78d851f07cbdd0e62dbd8046
+readiness:
+  static_initial_horizontal_qc: true
+  live_physics_qc: false
+  navigation_feasibility: false
+  occlusion_semantics: false
+  gate_relative_actor_delay: true
+  named_rng_wired_to_all_live_plugins: false
+  final_execution: false
+  actor_swept_static_geometry: true
+  initial_lidar_occlusion: true
+  offline_geometric_reveal: true
+  gate_relative_actor_delay_live_qualified: false
+  declared_active_rng_scope_mapping_complete: true
+generator_v1_dependency_sha256: 1a6bd7f4f4a53b65481cb955c599fe067c66331b8d5542ea5ecb150d305c37ff
+environment_version: astra_common_environment_v4_routegate_ego_clock_fault_guard_z0_evidence
+expected_models:
+- ground_plane
+- benchmark_entry_-1
+- benchmark_throat_-1
+- benchmark_exit_-1
+- benchmark_entry_1
+- benchmark_throat_1
+- benchmark_exit_1
+- astra_evidence_camera
+- autolabor_m2
+evidence_camera:
+  pose_xyz_rpy:
+  - 0
+  - 0
+  - 19
+  - 0
+  - 1.5707963267948966
+  - 1.5707963267948966
+  width: 2560
+  height: 1440
+  horizontal_fov_rad: 1.05
+  update_hz: 2
+  projection: perspective
+  topic: /astra/camera/image_raw
+physics_evidence:
+  plugin: libastra_evidence_plugin.so
+  world_state_hz: 50
+  model_topic: /astra/world_models
+  link_topic: /astra/world_links
+  world_state_message_type: gazebo_msgs/WorldState
+  source_stamp: WorldUpdateEnd
+  contact_topic: /astra/physics_contacts
+  contact_rate: every_physics_step_including_empty
+  metadata_topic: /astra/physics_metadata
+  twist_semantics: Gazebo internal velocity; derive pose velocity separately for SetWorldPose
+    models
+  force_wrench_fields: not_populated_do_not_interpret_as_measured_force
+  live_topic_qualification: pending
+input_variant_id: development_a02_development_width_change_corridor_000_live_gate_v2
+input_derivation:
+  version: astra_live_actor_input_derivation_v2
+  script_sha256: 0e72e0cf2766285761e7128bf42e4c04be9267716ebc3df9cd78b22b7ead3149
+  parameter_mapping_path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/actor_live_parameter_mapping_r1.json
+  parameter_mapping_sha256: 2b63aad3b5cd6b00f34f382852b6f37114bd89f6945c4aff5d0424fdd42d7627
+  actor_plugin_source_sha256: f55399bd46ce3b28344b581eb24d2465a311c74c92830068ff609d80d84c388b
+  gate_helper_sha256: a225e53888227e26607d2ce0b48a7ef34a41c7a454aebe439479034513c99d6d
+  parent_geometry_identity_retained: true
+  parent_episode_seed_retained_unexecuted_input: true
+  new_independent_geometry: false
+  live_execution_started: false
+  parent_manifest_path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02/development_a02_development_width_change_corridor_000/replicate_00/scene_manifest.yaml
+  parent_manifest_sha256: 9aaffd7c96bb481ebc3dbc2a2043d125bfc073d32b11a36444f964133b306fe4
+  parent_world_path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02/development_a02_development_width_change_corridor_000/replicate_00/world.sdf
+  parent_world_sha256: cde564e2ef483db70aa02b4de0d633b58505adb3dfcfcfff9bcf6a4fc6cc612a
+actor_activation:
+  trigger: first_observed_ego_route_projection_crossing
+  route_origin_xy:
+  - 0.0
+  - 0.0
+  route_yaw_rad: 0.0
+  gate_route_x_m: -4.02
+  delay_source: actor.gate_delay_s
+  clock: simulation_source_time
+  clock_regression: permanent_actor_fault_requires_new_episode_including_Load_before_first_update
+  ego_disappearance: permanent_actor_fault_after_first_observation_no_catchup_integration
+  initial_ego_spawn: allowed_with_clock_anchored_and_actor_fixed_at_start
+  preactivation_progress_m: 0.0
+  boundary_integration: clip_each_physics_step_to_active_interval
+  live_timing_qualification: pending
+randomization_scope:
+  parameter_stream: rng_substreams.actor_parameters is bound to sampled policy,base_speed,response_distance,response_time_margin,gate_delay
+  gazebo_seed: episode seed must be passed as --seed; scan noise uses Gazebo global
+    RNG
+  unused_reserved_streams:
+  - rng_substreams.actor_response
+  - rng_substreams.sensor_noise
+  - rng_substreams.actuator
+  actor_response_seed: passed but inherited zero-jitter rule means no behavioral effect
+  actuator_jitter: command_jitter=0; no random actuator delay
+  unused_reserved_streams_block_execution: false

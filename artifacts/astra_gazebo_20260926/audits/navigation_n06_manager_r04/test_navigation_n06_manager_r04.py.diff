@@ -1,0 +1,35 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager_r03.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager_r04.py
+@@ -14,10 +14,10 @@
+ from unittest.mock import patch,Mock
+ 
+ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+-import navigation_n06_integrity_r03 as q
+-import navigation_n06_process_r03 as process
+-import navigation_n06_admin_plan_r03 as admin
+-import run_navigation_n06_manager_r03 as manager
++import navigation_n06_integrity_r04 as q
++import navigation_n06_process_r04 as process
++import navigation_n06_admin_plan_r04 as admin
++import run_navigation_n06_manager_r04 as manager
+ 
+ def csv_document(fields,rows=()):
+     out=io.StringIO(newline='');writer=csv.DictWriter(out,fieldnames=fields,lineterminator='\r\n');writer.writeheader();writer.writerows(rows);return out.getvalue().encode()
+@@ -380,6 +380,17 @@
+             result=manager.reconcile_worker_exit({'release_binding':{'sha256':'1'*64},'rows':rows,'prepared':{'units':units}},-9)
+             self.assertEqual(result['missing_receipts_closed'],[rows[0]['run_id']]);state=q.strict_json(manager.LEDGER.read_bytes())
+             self.assertFalse(state['units'][0]['integrity_pass']);self.assertIsNone(state['units'][0]['task_outcome'])
++            self.assertEqual([r['status'] for r in state['units']],['consumed']+['retired_unrun']*7)
++    def test_worker_dies_after_assessment_atomic_write_closes_infrastructure_failure(self):
++        with self.journal() as root:
++            rows=q.prepared_api.schedule();units=[dict(r,contract=q.binding(q.prepared_api.PREPARED/r['run_id']/'contract.json')) for r in rows]
++            state=q.initial_state('1'*64,rows);manager.persist(state,'allocate');q.consume(state,0);manager.persist(state,'consume')
++            receipt(rows[0]);run=root/'runs'/rows[0]['run_id'];before=(run/'assessment.json').read_bytes()
++            result=manager.reconcile_worker_exit({'release_binding':{'sha256':'1'*64},'rows':rows,'prepared':{'units':units}},-9)
++            self.assertEqual(result['missing_receipts_closed'],[rows[0]['run_id']]);state=q.strict_json(manager.LEDGER.read_bytes())
++            saved=q.json_bound(state['units'][0]['receipt']);self.assertFalse(saved['integrity_pass']);self.assertTrue(saved['error'])
++            self.assertEqual(saved['task_outcome'],'timeout');self.assertIsNotNone(saved['assessment']);self.assertIsNone(saved['roslaunch_exit_code'])
++            self.assertEqual((run/'assessment.json').read_bytes(),before);self.assertEqual(state['status'],'terminal')
+             self.assertEqual([r['status'] for r in state['units']],['consumed']+['retired_unrun']*7)
+ 
+ class UnitSubprocessFaultTests(unittest.TestCase):

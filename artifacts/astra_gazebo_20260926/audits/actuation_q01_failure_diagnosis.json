@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "status": "independent_q01_infrastructure_bootstrap_failure_confirmed",
+  "run_id": "actuation_q01",
+  "seed": 260926004,
+  "source_resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q01/probe_raw.json",
+      "sha256": "b0e48e1c5084a09989502f51e54f0038b7c5716b1d7c1887654ddc01f211ff65"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q01/probe_raw.jsonl",
+      "sha256": "0b8fbebf151b37db3186614c3d6907adac6fb0cae30b851241efea472d60ae1e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q01/probe_report.json",
+      "sha256": "9bd1a62eca322c897eb250c8626efb4638d06f9d2a2d22b40dbcf82e9cccfcfa"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q01/receipt.json",
+      "sha256": "ab7c4dbb7fdc13f7007ec7219da67cb747417c86b0f46c9285b4ec77300d1b3a"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q01/roslaunch.log",
+      "sha256": "45770e3880b22691751a4438cc57dd080a2e0eeb7a38ffc2bdaa3647b56467ee"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q01/fixture.launch",
+      "sha256": "a2978736521ce46048eea32542ed48cbd8c4ed5c2be8e942b7be4469e27dc5bf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q01/actuation_contract.yaml",
+      "sha256": "8b7077b908c97a3b3b04b1916d79d2d5cefbd71051809ac332a6968450f0cbee"
+    }
+  ],
+  "preserved_original_receipt_status": "completed",
+  "preserved_original_receipt_pass": false,
+  "roslaunch_parent_exit_code": 0,
+  "probe_terminal_exception": {
+    "type": "RuntimeError",
+    "message": "readiness wall deadline",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_probe.py\", line 340, in runtime\n    else:raise RuntimeError('readiness wall deadline')\nRuntimeError: readiness wall deadline\n"
+  },
+  "raw_counts": {
+    "models": 0,
+    "links": 0,
+    "contacts": 0,
+    "odom": 0,
+    "joints": 0,
+    "commands_sent": 0,
+    "commands_observed": 0,
+    "callback_errors": 0
+  },
+  "metadata_received": true,
+  "metadata": {
+    "schema": "astra_physics_evidence_v1",
+    "physics_type": "ode",
+    "max_step_s": 0.002,
+    "state_hz": 50,
+    "phase": "WorldUpdateEnd",
+    "contacts_every_physics_step": true,
+    "all_collision_pairs_retained": true,
+    "empty_contact_packets_published": true,
+    "pose_frame": "world",
+    "wrench_array": "not_reported",
+    "twist_source": "Gazebo_body_velocity_may_differ_from_teleport_derivative",
+    "planner_input_authorized": false
+  },
+  "wall_elapsed_s": 30.049708401000316,
+  "schedule_started": false,
+  "log_evidence": [
+    {
+      "line": 41,
+      "text": "[INFO] [1790408697.456443975]: advertised as /cmd_vel"
+    },
+    {
+      "line": 46,
+      "text": "process has died [pid 25801, exit code 3, cmd /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv/bin/python /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_probe.py __name:=fixture_probe __log:=/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/actuation_q01/roslog/191b3d40-b97e-11f1-a724-8502e2d88b3c/fixture_probe-7.log]."
+    }
+  ],
+  "causal_chain": [
+    "Paused Gazebo permits latched physics metadata, but no physics state samples.",
+    "Probe waits for all subscribers including /cmd_vel to have connections before unpause.",
+    "topic_tools relay advertises /cmd_vel only after its first input message.",
+    "Q01 publishes no input until the finally cleanup zero after readiness deadline.",
+    "The late zero opens relay output after failure; the 36 s motion schedule never starts."
+  ],
+  "counterfactual_fixture": {
+    "q01_lazy_relay": {
+      "success": false,
+      "error": "RuntimeError: readiness wall deadline",
+      "wall_s": 30.01999999999945,
+      "zero_publish_count": 0,
+      "nonzero_publish_count": 0,
+      "raw_bootstrap_count": null,
+      "sim_clock_s": 0.0,
+      "ast_sha256": "7a7a8a1ff04f06da673d07264694093a3089bd0b45e025d20491e0b0723119ea"
+    },
+    "q02_lazy_relay": {
+      "success": true,
+      "error": null,
+      "wall_s": 0.21999999999999997,
+      "zero_publish_count": 12,
+      "nonzero_publish_count": 0,
+      "raw_bootstrap_count": 12,
+      "sim_clock_s": 0.0,
+      "ast_sha256": "905e0b8c1ee6cb80762930f9a68414c42de7eba74d94640970917e94744462a8"
+    },
+    "q02_missing_metadata": {
+      "success": false,
+      "error": "RuntimeError: readiness wall deadline",
+      "wall_s": 30.01999999999945,
+      "zero_publish_count": 1501,
+      "nonzero_publish_count": 0,
+      "raw_bootstrap_count": null,
+      "sim_clock_s": 0.0,
+      "ast_sha256": "905e0b8c1ee6cb80762930f9a68414c42de7eba74d94640970917e94744462a8"
+    },
+    "q02_missing_downstream": {
+      "success": false,
+      "error": "RuntimeError: readiness wall deadline",
+      "wall_s": 30.01999999999945,
+      "zero_publish_count": 1501,
+      "nonzero_publish_count": 0,
+      "raw_bootstrap_count": null,
+      "sim_clock_s": 0.0,
+      "ast_sha256": "905e0b8c1ee6cb80762930f9a68414c42de7eba74d94640970917e94744462a8"
+    }
+  },
+  "qualification_outcome": "not_reached",
+  "identity_terminal_nonreusable": true,
+  "scheduled_motion_command_count": 0,
+  "cleanup_zero_command_exists_in_source": true,
+  "offline_review_gap": "Earlier review and dynamic-assessment fixtures did not model lazy relay advertisement. New exact-AST transport fixtures cover this missed prerequisite.",
+  "history_mutated": false,
+  "scope": "pipeline only; no navigation/physical-actuation qualification evidence"
+}

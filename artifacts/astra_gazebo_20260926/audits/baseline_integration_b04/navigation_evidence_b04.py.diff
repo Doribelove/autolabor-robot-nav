@@ -1,0 +1,129 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_n02.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_evidence_b04.py
+@@ -10,6 +10,7 @@
+ import time
+ import xml.etree.ElementTree as ET
+ import yaml
++import baseline_rear_evidence_b04 as rear
+ 
+ import passive_sweep_q05 as passive
+ from passive_sweep_q05 import (EvidenceStore,WallDeadline,sha,binding,read_bound,
+@@ -17,10 +18,10 @@
+ 
+ WORKSPACE=passive.WORKSPACE
+ STAGE=passive.STAGE
+-SCHEMA='astra_navigation_evidence_n02_v1'
++SCHEMA='astra_navigation_evidence_b04_v1'
+ IMAGE_POLICY='supplementary_native_frames_do_not_suppress_physical_failure_evidence'
+ STEP_NS=2_000_000
+-METHODS=('astra_analytic_route_v1','astra_pct_route_v1','frozen_r2_v060_sensor_lifecycle_v1','actual_teb_common_route','dwa_common_route')
++METHODS=rear.METHODS
+ DENSE_TOPICS=passive.DENSE_TOPICS
+ PHYSICAL_TOPICS=DENSE_TOPICS+('/astra/p03/runtime_metadata','/astra/physics_metadata','/astra/world_models','/astra/world_links',
+  '/clock','/odom','/joint_states','/m2_driver/physical_status','/m2_driver/physical_metadata','/m2_driver/command_ingress',
+@@ -28,6 +29,7 @@
+ COORDINATOR_TOPICS=('/astra/navigation/identity','/astra/navigation/status','/astra/navigation/gate','/astra/navigation/command_trace')
+ ESSENTIAL_BEFORE_UNPAUSE=PHYSICAL_TOPICS+COORDINATOR_TOPICS
+ ESSENTIAL_BEFORE_ARM=ESSENTIAL_BEFORE_UNPAUSE+('/scan','/tf','/tf_static','/map','/astra/common_route/path','/astra/method_cmd','/astra/method/status')
++ESSENTIAL_BEFORE_ARM=tuple(dict.fromkeys(ESSENTIAL_BEFORE_ARM+rear.REQUIRED_RECORD_TOPICS))
+ SERVICE_PHASES={'/gazebo/spawn_urdf_model':{'bootstrap'},'/gazebo/unpause_physics':{'bootstrap'},
+  '/gazebo/pause_physics':{'terminal','failure'},'/gazebo/get_world_properties':{'bootstrap','warmup','terminal'},
+  '/gazebo/get_physics_properties':{'bootstrap','terminal'},'/astra/navigation/arm':{'warmup'},
+@@ -37,7 +39,7 @@
+  'timeout':'declared_gate_actual_odom_source_plus22s',
+  'fault':'latest_actual_odom_header_at_fault_detection_not_fault_generation_stamp',
+  'stopped':'latest_actual_odom_header_at_stop_request'}
+-CONTRACT_FIELDS={'schema','stage','run_id','seed','attempt','method','scene_id','world','robot_description','scene_manifest','image_policy',
++CONTRACT_FIELDS={'reference_contract','schema','stage','run_id','seed','attempt','method','scene_id','world','robot_description','scene_manifest','image_policy',
+  'shared_bundle','spawn_world_xyz_yaw','steering_kd','expected_models','allowed_nodes','required_nodes',
+  'required_before_unpause','required_before_arm','record_topics','coordinator_node','relay_node','camera_topic',
+  'activation_source_ns','policy_cap_ns','physics_step_ns','readiness_wall_s','wall_cap_s','clock_stall_wall_s','drain_wall_s',
+@@ -127,7 +129,7 @@
+     before=list(ESSENTIAL_BEFORE_UNPAUSE if required_before_unpause is None else required_before_unpause)
+     arm=list(ESSENTIAL_BEFORE_ARM if required_before_arm is None else required_before_arm)
+     topics=list(dict.fromkeys(arm) if record_topics is None else record_topics)
+-    value={'schema':SCHEMA,'stage':stage,'run_id':run_id,'seed':seed,'attempt':1,'method':method,'scene_id':scene_id,
++    value={'schema':SCHEMA,'reference_contract':json.loads(json.dumps(rear.REFERENCE_CONTRACT)),'stage':stage,'run_id':run_id,'seed':seed,'attempt':1,'method':method,'scene_id':scene_id,
+       'world':binding(world),'robot_description':binding(robot_description),'scene_manifest':binding(scene_manifest),
+       'shared_bundle':binding(Path(shared_bundle)/'common_route.json'),'spawn_world_xyz_yaw':list(spawn_world_xyz_yaw),
+       'steering_kd':steering_kd,'expected_models':models,'allowed_nodes':list(allowed_nodes),'required_nodes':list(required_nodes),
+@@ -142,6 +144,10 @@
+ def validate_contract(value):
+     if type(value)is not dict or set(value)!=CONTRACT_FIELDS:raise ValueError('closed navigation evidence contract required')
+     if value['schema']!=SCHEMA:raise ValueError('navigation evidence schema differs')
++    if json.dumps(value['reference_contract'],sort_keys=True,allow_nan=False)!=json.dumps(rear.REFERENCE_CONTRACT,sort_keys=True):raise ValueError('fixed B04 rear reference contract differs')
++    rear.static_world_only(read_bound(value['world']).decode())
++    if not set(rear.REQUIRED_RECORD_TOPICS)<=set(value['record_topics']) or not set(rear.REQUIRED_RECORD_TOPICS)<=set(value['required_before_arm']):raise ValueError('complete B04 rear recorder roster required')
++    if not set(rear.REQUIRED_NODES)<=set(value['required_nodes']):raise ValueError('required B04 rear nodes absent')
+     if value['image_policy']!=IMAGE_POLICY:raise ValueError('separate supplementary image policy required')
+     for key in ('stage','run_id','scene_id'):_identity(value[key],key)
+     if type(value['seed'])is not int or not 0<value['seed']<2**32 or type(value['attempt'])is not int or value['attempt']!=1:raise ValueError('positive seed/attempt1 required')
+@@ -226,8 +232,8 @@
+ 
+ 
+ def planner_parameters(values,method):
+-    expected=({'base_local_planner':'teb_local_planner/TebLocalPlannerROS' if method=='actual_teb_common_route' else 'dwa_local_planner/DWAPlannerROS',
+-      'base_global_planner':'astra_common_route/FixedRouteGlobalPlanner'} if method in ('actual_teb_common_route','dwa_common_route') else {})
++    expected=({'base_local_planner':'teb_local_planner/TebLocalPlannerROS' if method=='actual_teb_rear_reference_b03' else 'dwa_local_planner/DWAPlannerROS',
++      'base_global_planner':'astra_common_route/FixedRouteGlobalPlanner'} if method in ('actual_teb_rear_reference_b03','dwa_rear_reference_b03') else {})
+     if values!=expected:raise ValueError('actual configured planner classes differ from method identity')
+     return dict(values)
+ 
+@@ -321,10 +327,16 @@
+     if review.get('schema')!='astra_navigation_source_review_v1' or review.get('status')!='independently_reviewed':raise ValueError('new navigation source review required')
+     resources={str(Path(x['path']).resolve()):x for x in release['resources']}
+     reviewed={str(Path(x['path']).resolve()):x for x in review['resources']}
+-    required_sources=[WORKSPACE/'scripts/astra_gazebo/navigation_evidence_n02.py',
+-      WORKSPACE/'src/simulation/m2_gazebo/scripts/astra_navigation_collector_n02.py',
+-      WORKSPACE/'scripts/astra_gazebo/navigation_coordinator_n02.py',
+-      WORKSPACE/'src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n02.py',
++    required_sources=[WORKSPACE/'scripts/astra_gazebo/navigation_evidence_b04.py',
++      WORKSPACE/'src/simulation/m2_gazebo/launch/astra_baseline_rear_b04.launch',
++      WORKSPACE/'scripts/astra_gazebo/baseline_rear_evidence_b04.py',
++      WORKSPACE/'scripts/astra_gazebo/baseline_rear_runtime_b03.py',
++      WORKSPACE/'scripts/astra_gazebo/baseline_rear_axle_adapter_b02.py',
++      WORKSPACE/'src/simulation/m2_gazebo/scripts/astra_baseline_rear_adapter_b03.py',
++      WORKSPACE/'src/simulation/m2_gazebo/config/astra_baseline_rear_b03.yaml',
++      WORKSPACE/'src/simulation/m2_gazebo/scripts/astra_navigation_collector_b04.py',
++      WORKSPACE/'scripts/astra_gazebo/navigation_coordinator_b03.py',
++      WORKSPACE/'src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_b03.py',
+       root/'fixture.launch']
+     # The launch copy is bound by content, since its prepared canonical path differs.
+     resource_digests={x['sha256'] for x in resources.values()};review_digests={x['sha256'] for x in reviewed.values()}
+@@ -428,9 +440,12 @@
+     contact_summary=dict(contact)
+     for key in ('illegal_robot_contacts','wheel_ground_support_contacts','actor_environment_contacts'):
+         contact_summary[key+'_count']=len(contact[key]);contact_summary[key+'_examples']=contact[key][:10];del contact_summary[key]
+-    samples=[]
++    samples=[];bag_rear=rear.new_evidence()
+     with rosbag.Bag(str(root/'fixture.bag'),'r') as bag:
+-        for _topic,msg,_receipt in bag.read_messages(topics=['/astra/p03/end_links']):
++        for _topic,msg,_receipt,connection_header in bag.read_messages(topics=['/astra/p03/end_links']+list(rear.TOPICS),return_connection_header=True):
++            if _topic in rear.TOPICS:
++                msg._connection_header=connection_header
++                rear.capture(bag_rear,_topic,msg,_receipt.to_nsec());continue
+             if msg.header.frame_id!='world':raise ValueError('actual link goal stream not world frame')
+             names=list(msg.name);key='autolabor_m2::base_link'
+             if names.count(key)!=1 or len(msg.pose)!=len(names):raise ValueError('actual base link identity absent/duplicated')
+@@ -449,6 +464,12 @@
+         graph_rows=[r for r in raw['node_roster'] if start<=r['source_ns']<=raw['final_drain']['source_watermark_ns']]
+         checks['sensor_only_method_registrations']=bool(graph_rows) and all(
+             r.get('sensor_method_graph',{}).get('pass_') is True for r in graph_rows)
++    rear_reference=rear.audit(raw['rear_reference_evidence'],value,start,end,raw['final_drain']['source_watermark_ns'],raw['planner_full_parameters'])
++    rear_bag_reference=rear.audit(bag_rear,value,start,end,raw['final_drain']['source_watermark_ns'],raw['planner_full_parameters'])
++    checks['rear_reference_source_and_parameter_integrity']=rear_reference['pass_']
++    checks['rear_reference_bag_integrity']=rear_bag_reference['pass_']
++    checks['rear_reference_bag_collector_source_equality']=rear.bag_source_equality(raw['rear_reference_evidence'],bag_rear,start,end,raw['final_drain']['source_watermark_ns'])
++    checks['rear_reference_observed_graph']=bool(raw['node_roster']) and all(r.get('rear_reference_graph',{}).get('pass_')is True for r in raw['node_roster'])
+     integrity=all(checks.values())
+     safety={'positive_engineering_clearance':sweep['clearance_status']=='pass_within_model_scope',
+       'no_illegal_robot_contact':not contact['illegal_robot_contacts'],'no_actor_environment_contact':not contact['actor_environment_contacts'],
+@@ -460,7 +481,7 @@
+     report={'schema':'astra_navigation_assessment_v1','stage':value['stage'],'run_id':value['run_id'],'seed':value['seed'],'method':value['method'],
+       'capture_integrity_pass':integrity,'safety_within_declared_engineering_scope_pass':safety_pass,
+       'valid_completed':completed,'restricted_goal_time_s':task['raw_geometric_arrival_time_s'] if completed else value['policy_cap_ns']/1e9,
+-      'failure_inclusive':True,'task':task,'integrity_checks':checks,'safety_checks':safety,'physical_status_audit':physical,
++      'failure_inclusive':True,'rear_reference_audit':rear_reference,'rear_reference_bag_audit':rear_bag_reference,'task':task,'integrity_checks':checks,'safety_checks':safety,'physical_status_audit':physical,
+       'contact_audit':contact_summary,'contact_issues':errors,'sweep_report':binding(out/'report.json'),'source_bindings':source_files,
+       'visual_review':'pending independent inspection of available native PNGs' if value['camera_topic'] else 'not requested',
+       'image_coverage':raw['image_coverage'],

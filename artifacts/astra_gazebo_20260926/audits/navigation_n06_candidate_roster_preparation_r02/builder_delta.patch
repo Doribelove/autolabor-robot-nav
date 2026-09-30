@@ -1,0 +1,24 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_reviewed_r01/build_candidate_roster.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_candidate_roster_preparation_r02/build_candidate_roster.py
+@@ -41,7 +41,11 @@
+  for unit in bundle['units']:
+   for key in ('input_urdf','conversion_manifest','converted_sdf'):add(unit[key],'conversion.'+key)
+   for item in unit['conversion_resources']:add(item,'conversion.resources')
+- qualification=S/'contracts/passive_q05_navigation_evidence_qualification.json';qual=q.strict_json(qualification.read_bytes())
++ qualification=A/'qualification_canonical.json';qual=q.strict_json(qualification.read_bytes())
++ projection=q.strict_json((A/'qualification_projection.json').read_bytes())
++ if projection['projected']!=q.binding(qualification) or projection['all_other_fields_equal']is not True:raise ValueError('canonical projection identity mismatch')
++ for key in ('original','projected','producer'):add(projection[key],'qualification_projection.'+key)
++ file(A/'qualification_projection.json','qualification_projection.audit')
+  if qual.get('qualified_for_navigation_evidence')is not True or qual.get('resolved_steering_kd')!=6:raise ValueError('real qualification identity differs')
+  for item in qual['evidence_bindings']:add(item,'passive_qualification.evidence')
+  native_reference=S/'audits/navigation_n05_root_release/source_review.json';native=q.strict_json(native_reference.read_bytes())
+@@ -64,7 +68,7 @@
+  result={'schema':'astra_navigation_n06_candidate_resource_roster_v1','stage':q.NAME,'status':'readonly_complete_input_roster_pending_final_source_review',
+   'resources':ordered,'resource_count':len(ordered),'source_config_roster':source,'source_config_count':len(source),
+   'origins':{p:sorted(origins[p]) for p in sorted(origins)},'reviewed_runtime':q.binding(args.reviewed_runtime),
+-  'registry_baseline':q.binding(baseline),'source_review_self_binding_excluded':True,'roster_self_binding_excluded':True,
++  'registry_baseline':q.binding(baseline),'passive_geometry_qualification':q.binding(qualification),'source_review_self_binding_excluded':True,'roster_self_binding_excluded':True,
+   'final_source_review_not_created_or_assumed':True,'inherited_native_fields_for_independent_revalidation':native_fields,
+   'execution_authorized':False,'seed_registration_authorized':False,'canonical_release_created':False,'ros_gazebo_started':False}
+  q.publish(args.output/'resources.json',result)

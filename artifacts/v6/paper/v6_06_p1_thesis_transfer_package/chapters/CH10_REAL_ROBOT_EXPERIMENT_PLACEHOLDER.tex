@@ -1,0 +1,60 @@
+\chapter{实车实验设计与待补结果}
+\label{ch:real-robot-placeholder}
+
+\section{当前状态}
+截至本文技术稿冻结时，尚未执行实车运动、CAN/串口访问、在线 TEB 参数写入或真实动态障碍测试。
+本章仅保留学校最终论文所需的实验接口和表格结构，不提供、推测或插补任何实车数值。后续取得
+现场条件和单独安全授权后，应以新的预注册研究填写本章；在此之前所有结果单元统一标记为
+“待实车实验”。
+
+\section{建议的分级验证流程}
+\begin{enumerate}
+  \item \textbf{传感器接口审计：}核对 LaserScan/点云、里程计、局部目标、TF、时间戳、视场、
+  无回波语义和 72 束重采样，不允许运行时访问仿真特权字段。
+  \item \textbf{静止 shadow：}机器人不运动，actor 只记录候选、优势门、硬掩码、certified-stop
+  和推理延迟，不发布运动命令。
+  \item \textbf{低速资格：}在封闭场地、物理急停、deadman、独立观察员和速度上限下，先静态障碍，
+  再使用软质或遥控动态目标；资格阶段不得进入正式统计。
+  \item \textbf{正式配对：}冻结 PCT-SCOPE-RL 与解析先验，按相同起终点和障碍行为随机化块内顺序，
+  失败、急停和人工干预全部计入受限时间。
+\end{enumerate}
+
+\section{待填写的正式合同}
+\begin{table}[htbp]
+\centering
+\caption{实车正式研究合同占位。}
+\begin{tabularx}{\textwidth}{p{4.2cm}X}
+\toprule
+项目 & 冻结值\\
+\midrule
+车辆、传感器与计算平台 & 待实车实验\\
+场地与场景数量 & 待实车实验\\
+比较方法 & 建议：解析先验、冻结 V6；Actual TEB 作为可选次要基线\\
+正式 paired blocks & 待功效分析后冻结\\
+主要指标 & 失败计入受限完成时间\\
+安全门 & 零接触、零未计划急停、独立最小净空达到预注册阈值\\
+外部真值 & 待定；只能用于评价，不得进入 actor\\
+排除、停止和失败计入规则 & 待预注册\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{待填写的结果表}
+\begin{table}[htbp]
+\centering
+\caption{实车结果占位；不得在没有原始日志时填写。}
+\begin{tabular}{lrrrrr}
+\toprule
+方法 & 回合 & 目标成功 & 受限均时/s & 最小净空/m & 接触/干预\\
+\midrule
+解析先验 & -- & -- & -- & -- & --\\
+PCT-SCOPE-RL V6 & -- & -- & -- & -- & --\\
+Actual TEB（可选） & -- & -- & -- & -- & --\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{允许的占位结论}
+在实车证据产生之前，本章唯一允许的结论是：“实车评估尚未执行，当前论文结论来自限定仿真总体；
+实车实验是后续外部有效性验证，而不是已经完成的证据。”
+

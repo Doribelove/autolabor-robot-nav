@@ -1,0 +1,114 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P3-I1-D1
+status: offline_failure_attribution_pass
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+terminal_accounting:
+  round: 2
+  round_capacity: 704
+  actual_consumed: 1
+  completed: 0
+  program_capacity_retired: 703
+  total_closed: 704
+  reusable: 0
+prior_factor_boundary_result:
+  runtime_semantic_profile_alignment: passed
+  positive_progress_clock_bootstrap: passed
+  supervisor_started: true
+  move_base_teb_service_wait_released: true
+failure_boundary:
+  phase: initial_readback_before_parameter_transaction
+  raw_trace_produced: false
+  held_out_test_accessed: false
+  candidate_bank_sha256: c70e3e766ba57385b2b8209a97740a35711f51dad8e6c8b97a87b6520dc8cb9f
+  exception: 'ActionPipelineError: anchor bank safety boundary drifted'
+primary_cause:
+  id: offline_candidate_bank_lifecycle_and_provenance_not_runtime_schema_valid
+  status_mismatch:
+    observed: offline_materialized_not_runtime_ready
+    required: uncalibrated_simulation_candidate
+  extra_provenance_key: p2_q1
+  max_vel_x_upper_bound_observed: 1.4
+  upper_bound_widening_is_not_the_failure: true
+all_five_candidates_in_memory_single_factor_parse_audit:
+- source_path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs/circle_contact_v120_anchor_bank.yaml
+  source_sha256: f2b1399f097348cb261109610b4954114a6053374bedda62b8f335b21259691e
+  bank_id: fam_teb_v2_04g_p2_q1_circle_contact_v120
+  original_rejection: 'ActionPipelineError: anchor bank safety boundary drifted'
+  in_memory_promoted_parse: pass
+  allowed_differences:
+  - source_provenance.p2_q1
+  - status
+  removed_provenance_stage: V2-04G-P2-Q1
+  max_vel_x_bounds_unchanged:
+  - 0.1
+  - 1.4
+  behavioral_TEB_field_count_changed: 0
+- source_path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs/circle_contact_v125_anchor_bank.yaml
+  source_sha256: c70e3e766ba57385b2b8209a97740a35711f51dad8e6c8b97a87b6520dc8cb9f
+  bank_id: fam_teb_v2_04g_p2_q1_circle_contact_v125
+  original_rejection: 'ActionPipelineError: anchor bank safety boundary drifted'
+  in_memory_promoted_parse: pass
+  allowed_differences:
+  - source_provenance.p2_q1
+  - status
+  removed_provenance_stage: V2-04G-P2-Q1
+  max_vel_x_bounds_unchanged:
+  - 0.1
+  - 1.4
+  behavioral_TEB_field_count_changed: 0
+- source_path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs/circle_contact_v130_anchor_bank.yaml
+  source_sha256: be8134dd6dd7848855dd95a88386f8bfd6e685440f541dd3e994348b3a759cc4
+  bank_id: fam_teb_v2_04g_p2_q1_circle_contact_v130
+  original_rejection: 'ActionPipelineError: anchor bank safety boundary drifted'
+  in_memory_promoted_parse: pass
+  allowed_differences:
+  - source_provenance.p2_q1
+  - status
+  removed_provenance_stage: V2-04G-P2-Q1
+  max_vel_x_bounds_unchanged:
+  - 0.1
+  - 1.4
+  behavioral_TEB_field_count_changed: 0
+- source_path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs/circle_contact_v135_anchor_bank.yaml
+  source_sha256: 84e15277ad525787a9b7717668b09dea7c9346ab531ed1d414746deba330d334
+  bank_id: fam_teb_v2_04g_p2_q1_circle_contact_v135
+  original_rejection: 'ActionPipelineError: anchor bank safety boundary drifted'
+  in_memory_promoted_parse: pass
+  allowed_differences:
+  - source_provenance.p2_q1
+  - status
+  removed_provenance_stage: V2-04G-P2-Q1
+  max_vel_x_bounds_unchanged:
+  - 0.1
+  - 1.4
+  behavioral_TEB_field_count_changed: 0
+- source_path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs/circle_contact_v140_anchor_bank.yaml
+  source_sha256: ff25a1d872e64c28b525618611cba7430a9adb55756711f748d5398e6ff76798
+  bank_id: fam_teb_v2_04g_p2_q1_circle_contact_v140
+  original_rejection: 'ActionPipelineError: anchor bank safety boundary drifted'
+  in_memory_promoted_parse: pass
+  allowed_differences:
+  - source_provenance.p2_q1
+  - status
+  removed_provenance_stage: V2-04G-P2-Q1
+  max_vel_x_bounds_unchanged:
+  - 0.1
+  - 1.4
+  behavioral_TEB_field_count_changed: 0
+next_factor:
+  factor_count: 1
+  factor_id: promote_offline_candidate_bank_to_strict_runtime_candidate_schema_v1
+  allowed_differences:
+  - source_provenance.p2_q1
+  - status
+  behavioral_TEB_field_count_changed: 0
+  fresh_seed_required: true
+  old_seed_reuse_allowed: false
+active_runtime_processes_after_review: []
+performance_claim_allowed: false
+next_safe_entry: independent_offline_review_then_final_round_design

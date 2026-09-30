@@ -1,0 +1,24 @@
+schema_version: '1.0'
+stage: V3-02-D2
+release_id: v3_02_d2_heldout_release_1
+status: release_candidate_requires_review_and_authorization
+execution_ready: false
+execution_authorized: false
+model_write_allowed: false
+training_authorized: false
+real_vehicle_authorized: false
+frozen_model_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+schedule:
+  path: artifacts/v3/prediction/v3_02_d2/offline_readiness/v3_02_d2_exact_schedule.yaml
+  sha256: 72b3f7b72d0926d9faf3d4cb63f50d964bff5b810d374718e8415e28ad4cfc6a
+  row_count: 45
+runtime_bindings:
+  path: artifacts/v3/prediction/v3_02_d2/offline_readiness/v3_02_d2_runtime_bindings.yaml
+  sha256: 98976533e34d6b4d2dbf841321c458a03ae31090931c4ffb8a8ef59b3f4c5c19
+dependency_closure:
+  path: artifacts/v3/prediction/v3_02_d2/offline_readiness/v3_02_d2_dependency_closure.yaml
+  sha256: ad20e1f6fd342a72123994f9d93b794cecb5e40bb4eac92a8187b2a774887ed6
+  unresolved_count: 0
+budget:
+  authorized_after_authorization: 45
+  retry: 0

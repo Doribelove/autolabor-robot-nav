@@ -1,0 +1,34 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/event_actor_n04_component/source_before_lifecycle_389ec381.cpp
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_event_actor_n04_plugin.cpp
+@@ -23,6 +23,7 @@
+ class AstraEventActorN04Plugin : public ModelPlugin {
+  public:
+   ~AstraEventActorN04Plugin() override {
++    {std::lock_guard<std::mutex> lock(lifecycle_->mutex);lifecycle_->owner=nullptr;}
+     connection_.reset(); running_=false; queue_.disable();
+     if(worker_.joinable()) worker_.join();
+   }
+@@ -163,8 +164,12 @@
+       sampled_ego_time_s_ = last_time_s_;
+       have_ego_distance_ = true;
+     }
+-    connection_ = event::Events::ConnectWorldUpdateBegin(
+-        std::bind(&AstraEventActorN04Plugin::update, this));
++    lifecycle_->owner=this;
++    auto life=lifecycle_;
++    connection_ = event::Events::ConnectWorldUpdateBegin([life](const common::UpdateInfo&){
++      std::lock_guard<std::mutex> lock(life->mutex);
++      if(life->owner) life->owner->update();
++    });
+   }
+ 
+  private:
+@@ -351,6 +356,8 @@
+     last_time_s_ = now_s;
+   }
+ 
++  struct Lifecycle {std::mutex mutex;AstraEventActorN04Plugin* owner{nullptr};};
++  std::shared_ptr<Lifecycle> lifecycle_{std::make_shared<Lifecycle>()};
+   physics::ModelPtr model_;
+   physics::WorldPtr world_;
+   event::ConnectionPtr connection_;

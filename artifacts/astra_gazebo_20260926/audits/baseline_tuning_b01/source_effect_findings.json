@@ -1,0 +1,314 @@
+{
+  "footprint_load_after_planner": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "line": 64,
+      "text": "<rosparam file=\"$(find m2_gazebo)/config/benchmark_move_base.yaml\" command=\"load\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "line": 65,
+      "text": "<rosparam file=\"$(find m2_gazebo)/config/costmap_common.yaml\" command=\"load\" ns=\"local_costmap\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "line": 66,
+      "text": "<rosparam file=\"$(find m2_gazebo)/config/costmap_common.yaml\" command=\"load\" ns=\"global_costmap\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "line": 67,
+      "text": "<rosparam file=\"$(find m2_gazebo)/config/local_costmap.yaml\" command=\"load\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "line": 68,
+      "text": "<rosparam file=\"$(find m2_gazebo)/config/global_costmap.yaml\" command=\"load\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "line": 70,
+      "text": "<rosparam if=\"$(eval arg('method') == 'actual_teb_common_route')\" file=\"$(arg teb_config)\" command=\"load\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "line": 71,
+      "text": "<rosparam if=\"$(eval arg('method') == 'dwa_common_route')\" file=\"$(arg dwa_config)\" command=\"load\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "line": 72,
+      "text": "<rosparam file=\"$(find m2_gazebo)/config/astra_common_map_route.yaml\" command=\"load\"/>"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_common_navigation_n02.launch",
+      "sha256": "7d379f3ba1cadcb1c6cef3d2a3cd0343f052bd3fa23dfd4c021f9afc3799470c",
+      "line": 73,
+      "text": "<rosparam file=\"$(find m2_gazebo)/config/astra_navigation_common_footprint.yaml\" command=\"load\"/>"
+    }
+  ],
+  "shared_footprint_overrides_min_obstacle_dist": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+      "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e",
+      "line": 176,
+      "text": "min_obstacle_dist: 0.33"
+    }
+  ],
+  "DWA_stop_time_member_assignment": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "line": 77,
+      "text": "stop_time_buffer_ = config.stop_time_buffer;"
+    }
+  ],
+  "DWA_stop_time_member_declaration": [
+    {
+      "path": "/opt/ros/noetic/include/dwa_local_planner/dwa_planner.h",
+      "sha256": "3a629172b6a481f106f356a9e7bbd5565e9de13c230782ff59e90d6bd03b447f",
+      "line": 151,
+      "text": "double stop_time_buffer_; ///< @brief How long before hitting something we're going to enforce that the robot stop"
+    }
+  ],
+  "TEB_converter_rate_default": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/include/teb_local_planner/teb_config.h",
+      "sha256": "da63e58a1b5e7c3a3f09bbb486d3a587428df2dd3db98d6d91ad040853b67880",
+      "line": 135,
+      "text": "int costmap_converter_rate; //!< The rate that defines how often the costmap_converter plugin processes the current costmap (the value should not be much higher than the costmap update rate)"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/include/teb_local_planner/teb_config.h",
+      "sha256": "da63e58a1b5e7c3a3f09bbb486d3a587428df2dd3db98d6d91ad040853b67880",
+      "line": 304,
+      "text": "obstacles.costmap_converter_rate = 5;"
+    }
+  ],
+  "TEB_converter_worker": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 145,
+      "text": "costmap_converter_->startWorker(ros::Rate(cfg_.obstacles.costmap_converter_rate), costmap_, cfg_.obstacles.costmap_converter_spin_thread);"
+    }
+  ],
+  "TEB_rate_readers_in_config_cpp": [],
+  "TEB_lookahead_radial_cutoff": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 749,
+      "text": "double dist_threshold = std::max(costmap.getSizeInCellsX() * costmap.getResolution() / 2.0,"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 751,
+      "text": "dist_threshold *= 0.85; // just consider 85% of the costmap size to better incorporate point obstacle that are"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 756,
+      "text": "double sq_dist_threshold = dist_threshold * dist_threshold;"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 766,
+      "text": "if (new_sq_dist > sq_dist_threshold)"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 786,
+      "text": "while(i < (int)global_plan.size() && sq_dist <= sq_dist_threshold && (max_plan_length<=0 || plan_length <= max_plan_length))"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 804,
+      "text": "// if we are really close to the goal (<sq_dist_threshold) and the goal is not yet reached (e.g. orientation error >>0)"
+    }
+  ],
+  "DWA_path_goal_resolution_scales": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "line": 65,
+      "text": "path_distance_bias_ = resolution * config.path_distance_bias;"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "line": 70,
+      "text": "goal_distance_bias_ = resolution * config.goal_distance_bias;"
+    }
+  ],
+  "DWA_forward_point_distance_consumers": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "line": 79,
+      "text": "forward_point_distance_ = config.forward_point_distance;"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "line": 80,
+      "text": "goal_front_costs_.setXShift(forward_point_distance_);"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "line": 81,
+      "text": "alignment_costs_.setXShift(forward_point_distance_);"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "line": 276,
+      "text": "forward_point_distance_ * cos(angle_to_goal);"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "line": 277,
+      "text": "front_global_plan.back().pose.position.y = front_global_plan.back().pose.position.y + forward_point_distance_ *"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n01_dwa_diagnosis/upstream_navigation_1.17.3/dwa_local_planner/src/dwa_planner.cpp",
+      "sha256": "bee688c6c67bed5d73cbdcea5fecef1796a38da5c58993a525fd9c992ae887e1",
+      "line": 283,
+      "text": "if (sq_dist > forward_point_distance_ * forward_point_distance_ * cheat_factor_) {"
+    }
+  ],
+  "TEB_plugin_fallback": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 150,
+      "text": "ROS_WARN(\"The specified costmap converter plugin cannot be loaded. All occupied costmap cells are treaten as point obstacles. Error message: %s\", ex.what());"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 1082,
+      "text": "ROS_ERROR_STREAM(\"Footprint model 'circular' cannot be loaded for trajectory optimization, since param '\" << nh.getNamespace()"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 1096,
+      "text": "ROS_ERROR_STREAM(\"Footprint model 'line' cannot be loaded for trajectory optimization, since param '\" << nh.getNamespace()"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 1106,
+      "text": "ROS_ERROR_STREAM(\"Footprint model 'line' cannot be loaded for trajectory optimization, since param '\" << nh.getNamespace()"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 1123,
+      "text": "ROS_ERROR_STREAM(\"Footprint model 'two_circles' cannot be loaded for trajectory optimization, since params '\" << nh.getNamespace()"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 1145,
+      "text": "ROS_ERROR_STREAM(\"Footprint model 'polygon' cannot be loaded for trajectory optimization, since param '\" << nh.getNamespace()"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 1160,
+      "text": "ROS_ERROR_STREAM(\"Footprint model 'polygon' cannot be loaded for trajectory optimization: \" << ex.what() << \". Using point-model instead.\");"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 1166,
+      "text": "ROS_ERROR_STREAM(\"Footprint model 'polygon' cannot be loaded for trajectory optimization, since param '\" << nh.getNamespace()"
+    }
+  ],
+  "TEB_converter_replaces_point_path": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 342,
+      "text": "updateObstacleContainerWithCostmapConverter();"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 344,
+      "text": "updateObstacleContainerWithCostmap();"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 472,
+      "text": "void TebLocalPlannerROS::updateObstacleContainerWithCostmap()"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 500,
+      "text": "void TebLocalPlannerROS::updateObstacleContainerWithCostmapConverter()"
+    }
+  ],
+  "TEB_converter_setCostmap_and_odom": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 143,
+      "text": "costmap_converter_->setCostmap2D(costmap_);"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 141,
+      "text": "costmap_converter_->setOdomTopic(cfg_.odom_topic);"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/navigation_arena/forks/navigation/local_planner/teb/src/teb_local_planner_ros.cpp",
+      "sha256": "5ada4149b1827284403c1664ce61dd14188bb30f8073417f3da1b378f00df8c2",
+      "line": 163,
+      "text": "odom_helper_.setOdomTopic(cfg_.odom_topic);"
+    }
+  ],
+  "ELF_files": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libteb_local_planner.so",
+      "sha256": "ae63785d2eb0c440010009531936e25aac889a901a4ad4a7e51af4e18fde2af4",
+      "role": "workspaceTEB_source0.8.4",
+      "build_id": "2243683348c87d29b5c0f8bb286fd50c2c9db805",
+      "scope": "installed/current file identity only; future actual-process mapping required"
+    },
+    {
+      "path": "/opt/ros/noetic/lib/libdwa_local_planner.so",
+      "sha256": "58b10f4a57c0007ce89319edee58d72b2d6c59a56f6f769968b6652fafc24dcf",
+      "role": "installedDWA1.17.3",
+      "build_id": "b638959c609672e86238ee919f1c6b7e2a21d954",
+      "scope": "installed/current file identity only; future actual-process mapping required"
+    },
+    {
+      "path": "/opt/ros/noetic/lib/libcostmap_converter.so",
+      "sha256": "12a9dc5822654b65945cc974405ac63b510be84376404db514a2739504c8775d",
+      "role": "installedconverter0.0.13",
+      "build_id": "c7087c2be0a043926a52f0b0f91003f29d48e2d5",
+      "scope": "installed/current file identity only; future actual-process mapping required"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-00
+status: v3_00_pure_offline_foundation_closure_pass
+review_result: pass
+offline_review_pass: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+training_authorized: false
+evidence_budget_authorized: 0
+seed_allocation_count: 0
+schedule_row_count: 0
+real_vehicle_authorized: false
+source_freeze_count: 7
+dependency_resource_count: 25
+evidence_freeze_resource_count: 33
+interface_audit:
+  message_count: 5
+  only_allowed_future_command_topic: /cmd_vel_navigation
+  direct_cmd_vel_publish_forbidden: true
+package_audit:
+  required_package_count: 6
+  unique_source_root_each_package: true
+  package_xml_receipts_valid: true
+  preconsumption_resolution_probe_required: true
+candidate_audit:
+  candidate_count: 8
+  unique_candidate_ids: true
+  certified_stop_present: true
+  teb_fallback_present: true
+  maximum_discrete_residual: 0.0
+actor_clone_audit:
+  policy_count: 3
+  clone_count: 24
+  same_initial_state_digest: true
+  candidate_coverage_each_policy: true
+  positive_propensity_each_candidate: true
+  hidden_label_firewall: true
+  simulation_identifiability_claim: false
+claim_state:
+  foundation_tooling_qualified: true
+  actor_response_validated_in_simulation: false
+  counterfactual_identifiability_demonstrated: false
+  predictor_trained_or_calibrated: false
+  planner_runtime_validated: false
+  performance_improvement_demonstrated: false
+  safety_or_deployment_ready: false
+active_forbidden_process_count: 0
+next_stage_automatically_authorized: false
+next_safe_entry: V3-01 independent offline design and release review
+review_digest: e7e0d2c55abad73f4ad4ce44a22b7a5603a283bb0a5df7b1f8eb3b61425238e0

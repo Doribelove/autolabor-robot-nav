@@ -1,0 +1,62 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P1-E1
+release_id: fam_teb_v2_04g_p1_e1_unique_270_unit_release_20260721_1
+status: unique_270_unit_simulation_release
+simulation_only: true
+formal_result: false
+runtime_ready: false
+execution_authorized: true
+authorized_evidence_units: 270
+attempt_per_identity: 1
+retry_resume_replacement_allowed: false
+training_allowed: false
+training_budget_steps: 0
+real_vehicle_use_forbidden: true
+i5_rerun_forbidden: true
+schedule:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p1_r1_offline_readiness/v2_04g_p1_r1_exact_schedule.yaml
+  sha256: 6c43cced674ae475dcf972fcdcca1872639e3b70fd0dc3156bc38c3b738e79fd
+contract:
+  path: config/thesis_experiments/v2/v2_04g_r6_i1_p1_e1_execution_contract.yaml
+  sha256: 82d4e4ba9c78b9e6693aabdb03ff476f9e953516a2578f7dc3328a0ab825bab9
+authorization:
+  path: experiments/manifests/v2/integration/v2_04g_r6_i1_p1_e1_simulation_authorization.yaml
+  sha256: 727e6df0cce794f568df1bcc55bfaed2c68510b502b94aa24ab83abda9062826
+dependency_closure:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/offline_readiness_dependency_closure.yaml
+  sha256: c3792d19757093676b12bdc248edbda37b43dc80cc176ef18840e5e88b07e004
+offline_review:
+  path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/p1_e1_offline_readiness_review.yaml
+  sha256: e4837a56e3751a3b9b2d7572d4a7b51fbb8f65c93df9d05e3f1e2a6268659a98
+runner:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p1_e1_exact_runner.py
+  sha256: 48b8e301330b4e59b3e3ac0f5965a96f8688954afafc9d33dc69f928e0cef01f
+raw_replay_adapter:
+  path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_p1_e1_replay.py
+  sha256: f3a159de92c62b9010523dc01eb2c0616de09dbafc7fcbff7d93f3d982459d1a
+episode_adapter:
+  path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p1_e1_episode.py
+  sha256: 2f5666d751cfe30a72caf1f9852245ce2dacfa502b480ec609cd30ff4751ad4d
+launch_surface:
+  path: src/simulation/m2_gazebo/launch/m2_v2_04g_p1_e1_execution.launch
+  sha256: 649e96cb24d5e8d96133993cec9101675a15fa20460d4f7c65f69033f3f553f8
+resource_caps:
+  serial_concurrency: 1
+  per_identity_hard_wall_cap_s: 240
+  stage_hard_wall_cap_h: 20
+  canonical_artifact_cap_bytes: 536870912
+  minimum_free_disk_before_execution_bytes: 4294967296
+claim_boundary:
+  schedule_episode_digest: e29530f28449a9b1bcbbb19090f1a9a3a4584e6fc4f9e1cc1f251cdf6f56f38f
+  population: three_frozen_dynamic_templates_under_fresh_simulator_stochastic_seeds_5201_5290
+  positive_claim_requires_all_four_gates: true
+  four_gates:
+    - integrity
+    - safety_and_task_noninferiority
+    - efficiency_superiority
+    - mechanism_reduction
+  no_claim_before_complete_raw_replay: true
+  geometric_or_timing_generalization_forbidden: true
+  reinforcement_learning_gain_claim_forbidden: true
+  real_vehicle_or_deployment_claim_forbidden: true

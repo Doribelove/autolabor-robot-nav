@@ -1,0 +1,300 @@
+family: sequential_interaction
+topology: alternating_crossings
+corridor_half_width_m: null
+static_boxes:
+- x: 0.0
+  y: -14.975
+  length: 40.0
+  width: 0.05
+- x: -19.975
+  y: 0.0
+  length: 0.05
+  width: 29.900000000000002
+- x: 0.0
+  y: 14.975000000000001
+  length: 40.0
+  width: 0.05
+- x: 19.975
+  y: 0.0
+  length: 0.05
+  width: 29.900000000000002
+static_circles: []
+actor_geometry:
+- start:
+  - -1.0472
+  - -4.1542
+  end:
+  - -1.0472
+  - 4.5
+  conflict:
+  - -1.0472
+  - 0.0
+- start:
+  - 2.3225
+  - 3.738
+  end:
+  - 0.1562
+  - -4.3467
+  conflict:
+  - 1.3209
+  - 0.0
+route:
+  start:
+  - -4.0
+  - 0.0
+  - 0.0
+  goal:
+  - 5.0
+  - 0.0
+  - 0.0
+  spawn:
+  - -5.4
+  - 0.0
+  - 0.0
+  length_m: 9.0
+  frame: world
+  transform_implemented: yaw_zero_only
+layout_id: development_a02_development_sequential_interaction_000
+parent_geometry_id: geom_5996a0ea5af26390ee063920
+canonical_geometry_sha256: c7abe3eea4e961a090ef62f34c55509b9eff45bcda61a21f505e9bf9d1d352e3
+split: development
+geometry_seed: 260973128
+initial_geometry_qc:
+  illegal_initial_intersections: []
+  horizontal_initial_geometry_pass: true
+  robot_instances: 1
+  actor_count: 2
+  robot_initial_centered_wheel_envelope: within_1.04_by_0.70_chassis_projection
+  wheel_ground_and_vertical_collision_qc: pending_live_physics
+  navigation_feasibility: pending_independent_Ackermann_path_qualification
+  occlusion_and_conflict_semantic_qualification: pending_geometric_ray_and_timing_audit
+offline_semantics:
+  minimum_actor_swept_static_clearance_m: 100.0
+  actor_swept_static_pairs: []
+  actor_swept_static_pass: true
+schema_version: astra_scene_1.0
+scene_id: core_sequential_interaction
+seed: 263001008
+replicate: 1
+actors:
+- start:
+  - -1.0472
+  - -4.1542
+  end:
+  - -1.0472
+  - 4.5
+  conflict:
+  - -1.0472
+  - 0.0
+  policy: cautious
+  base_speed_mps: 1.05
+  response_distance_m: 3.8000000000000003
+  response_time_margin_s: 0.9
+  gate_delay_s: 0.6000000000000001
+  parameter_cell_id: actor_5d41299517d8758f6ac428a6
+  model_name: benchmark_actor_1
+  radius_m: 0.36
+  collision_shape: box
+  collision_length_m: 0.72
+  collision_width_m: 0.72
+  collision_height_m: 1.0
+  initial_pose_xyz_rpy:
+  - -1.0472
+  - -4.1542
+  - 0.5
+  - 0.0
+  - 0.0
+  - 1.5707963267948966
+  response_seed: 263073305
+  initial_gate_delay_supported_by_legacy_plugin: false
+  nominal_arrival_difference_s: 0.2653809523809527
+  live_plugin: libastra_event_actor_n04_plugin.so
+  gate_relative_delay_wired: true
+  response_semantics: parameterized_deterministic_frozen_v3_rule
+  response_seed_behavioral_effect: false
+  nominal_arrival_difference_with_gate_delay_s: 0.8653809523809528
+  gate_status_topic: /astra/actors/benchmark_actor_1/gate_status
+  gate_authority: coordinator_actual_odom_header_event
+  live_gate_qualification: false
+- start:
+  - 2.3225
+  - 3.738
+  end:
+  - 0.1562
+  - -4.3467
+  conflict:
+  - 1.3209
+  - 0.0
+  policy: cautious
+  base_speed_mps: 0.7000000000000001
+  response_distance_m: 4.800000000000001
+  response_time_margin_s: 1.5
+  gate_delay_s: 1.0
+  parameter_cell_id: actor_36ee42e2471b6e96c2206d26
+  model_name: benchmark_actor_2
+  radius_m: 0.36
+  collision_shape: box
+  collision_length_m: 0.72
+  collision_width_m: 0.72
+  collision_height_m: 1.0
+  initial_pose_xyz_rpy:
+  - 2.3225
+  - 3.738
+  - 0.5
+  - 0.0
+  - 0.0
+  - -1.8325970029665914
+  response_seed: 263457902
+  initial_gate_delay_supported_by_legacy_plugin: false
+  nominal_arrival_difference_s: -1.1227480082179353
+  live_plugin: libastra_event_actor_n04_plugin.so
+  gate_relative_delay_wired: true
+  response_semantics: parameterized_deterministic_frozen_v3_rule
+  response_seed_behavioral_effect: false
+  nominal_arrival_difference_with_gate_delay_s: -0.1227480082179353
+  gate_status_topic: /astra/actors/benchmark_actor_2/gate_status
+  gate_authority: coordinator_actual_odom_header_event
+  live_gate_qualification: false
+rng_substreams:
+  actor_parameters: 263277150
+  actor_response: 263183542
+  sensor_noise: 263935492
+  actuator: 263884631
+actor_policy_input_to_planners: false
+gazebo_model_states_evaluator_only: true
+episode_cap_s: 22.0
+robot_collision_reference:
+  reference: base_link
+  spawn_xyz_rpy:
+  - -5.4
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  full_collision_count: 9
+generator_version: astra_scene_generator_v2
+generator_sha256: aa9cbb38f3cee3a5ab41a9848756cf7e8055de2c78d851f07cbdd0e62dbd8046
+readiness:
+  static_initial_horizontal_qc: true
+  live_physics_qc: false
+  navigation_feasibility: false
+  occlusion_semantics: false
+  gate_relative_actor_delay: true
+  named_rng_wired_to_all_live_plugins: false
+  final_execution: false
+  actor_swept_static_geometry: true
+  initial_lidar_occlusion: true
+  offline_geometric_reveal: true
+  gate_relative_actor_delay_live_qualified: false
+  declared_active_rng_scope_mapping_complete: true
+generator_v1_dependency_sha256: 1a6bd7f4f4a53b65481cb955c599fe067c66331b8d5542ea5ecb150d305c37ff
+environment_version: astra_n04_physical_p05_event_actor_50ms
+expected_models:
+- ground_plane
+- benchmark_actor_1
+- benchmark_actor_2
+- astra_evidence_camera
+- autolabor_m2
+evidence_camera:
+  pose_xyz_rpy:
+  - 0
+  - 0
+  - 19
+  - 0
+  - 1.5707963267948966
+  - 1.5707963267948966
+  width: 2560
+  height: 1440
+  horizontal_fov_rad: 1.05
+  update_hz: 2
+  projection: perspective
+  topic: /astra/camera/image_raw
+physics_evidence:
+  plugin: libastra_evidence_plugin.so
+  world_state_hz: 50
+  model_topic: /astra/world_models
+  link_topic: /astra/world_links
+  world_state_message_type: gazebo_msgs/WorldState
+  source_stamp: WorldUpdateEnd
+  contact_topic: /astra/physics_contacts
+  contact_rate: every_physics_step_including_empty
+  metadata_topic: /astra/physics_metadata
+  twist_semantics: Gazebo internal velocity; derive pose velocity separately for SetWorldPose
+    models
+  force_wrench_fields: not_populated_do_not_interpret_as_measured_force
+  live_topic_qualification: pending
+input_variant_id: development_a02_development_sequential_interaction_000_n04_event_actor
+input_derivation:
+  parent_manifest:
+    path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v2/development_a02_development_sequential_interaction_000/replicate_01/scene_manifest.yaml
+    sha256: f9d8190455f800cca86c8b7eb9152d5d84ae87b4665f5c7bf87457df431095a3
+  parent_world:
+    path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v2/development_a02_development_sequential_interaction_000/replicate_01/world.sdf
+    sha256: 551366408413a131b776319c18963ea784a9e81e951ed6b605a056918fdc1eeb
+  generator_sha256: 7cd9e1c87bdc56f3588713208d0bafe4eddf5758df663068af3d3abe8f345af7
+  parent_geometry_retained: true
+  new_independent_geometry: false
+  parent_episode_seed: 263387190
+actor_activation:
+  source: /astra/navigation/gate actual_odom_header_first_crossing
+  max_gate_transport_delay_ns: 50000000
+  first_consuming_Begin_active_dt_ns: 0
+  no_unreceived_interval_backfill: true
+  live_qualification: pending
+  expected_identity: per-run materialized SDF expected_run_id/expected_seed/expected_method
+randomization_scope:
+  parameter_stream: rng_substreams.actor_parameters is bound to sampled policy,base_speed,response_distance,response_time_margin,gate_delay
+  gazebo_seed: episode seed must be passed as --seed; scan noise uses Gazebo global
+    RNG
+  unused_reserved_streams:
+  - rng_substreams.actor_response
+  - rng_substreams.sensor_noise
+  - rng_substreams.actuator
+  actor_response_seed: passed but inherited zero-jitter rule means no behavioral effect
+  actuator_jitter: command_jitter=0; no random actuator delay
+  unused_reserved_streams_block_execution: false
+schema: astra_navigation_n04_development_scene_v1
+parent_episode_seed: 263387190
+runtime_identity_bound: false
+execution_authorized: false
+parent_static_boxes: []
+parent_static_circles: []
+parent_corridor_half_width_m: null
+parent_robot_collision_reference:
+  link: chassis_link
+  center_xyz_m:
+  - 0.0
+  - 0.0
+  - 0.27
+  length_m: 1.04
+  width_m: 0.7
+  height_m: 0.32
+  spawn_xyz_rpy:
+  - -5.4
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  vertical_spawn_qualification: z0 new common environment; live support/contact qualification
+    pending
+camera:
+  topic: /astra/camera/image_raw
+  width: 2560
+  height: 1440
+  rate_hz: 2
+new_independent_geometry: false
+frozen_R2_common_guide_consumption: false
+nonidentity_heading_supported: false
+source_seed_change_scope: new simulator noise seed only; parent actor parameter/response
+  seeds unchanged
+r2_static_input_adapter:
+  rectangle_count: 4
+  blocked_pixel_count: 2796
+  cell_union_symmetric_difference_count: 0
+  overlap_cells: 0
+  adapter: exact_shared_blocked_raster_rectangles_v1
+  legacy_implicit_y_wall_m: 20.0
+  legacy_unknown_outside_map_semantics_equal: false
+  fixed_global_route_consumed_by_R2: false

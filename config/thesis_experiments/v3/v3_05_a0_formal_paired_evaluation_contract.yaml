@@ -1,0 +1,91 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-05-A0
+stage_purpose: preregistered_fresh_paired_formal_simulation_evaluation
+contract_id: v3_scope_v3_05_a0_formal_paired_evaluation_1
+status: formal_evaluation_preregistered_before_release
+upstream:
+  v3_03_terminal_freeze_path: artifacts/v3/planner/v3_03_c6/v3_03_c6_terminal_freeze.sha256
+  v3_03_terminal_freeze_sha256: 973c2a41e271ec4aa20669ffcfd82c952eb3e7d56d8ce376de8a3dc1336c1b89
+  v3_04_terminal_freeze_path: artifacts/v3/learning/v3_04_a0/v3_04_a0_terminal_freeze.sha256
+  v3_04_terminal_freeze_sha256: 8f817a29b264663cef2263d209b7c1190cb88d870dc2db989f02551961cd96ca
+  planner_contract_path: artifacts/v3/planner/v3_03_c5/v3_03_c5_effective_planner_contract.yaml
+  planner_contract_sha256: 6f2ec1530b67785dfc8f5a397ab416847f35f0c6ffc9e6f45bbf633a50057761
+methods:
+  primary_treatment:
+    method_id: v3_analytic
+    selection: frozen_c5_analytic_ranker
+  primary_baseline:
+    method_id: fixed_v120_shielded
+    selection: feasible_v120_if_hard_accepted_else_certified_stop
+  secondary_reference:
+    method_id: fixed_v080_shielded
+    selection: teb_fallback_v080_if_hard_accepted_else_certified_stop
+    actual_teb_claim: false
+  shared:
+    candidate_generator_predictor_hard_verifier: identical
+    certified_stop: identical
+    tracker_and_scene: identical
+    evaluator_policy_runtime_input: false
+experimental_unit:
+  statistical_unit: geometry_seed_block_mean_over_three_actor_policies
+  seed_start: 6401
+  seed_end: 6430
+  geometry_block_count: 30
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  method_count: 3
+  episode_count: 270
+  evidence_budget_units: 270
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+  counterbalanced_method_order: true
+  geometry_derivation:
+    angle_deg: "70 + ((block_index * 7) mod 41)"
+    actor_start_distance_m: "2.70 + ((block_index * 13) mod 15) * 0.05"
+    actor_base_speed_mps: "0.85 + ((block_index * 11) mod 7) * 0.05"
+closed_loop_protocol:
+  inherited_from_v3_03_c6: true
+  maximum_episode_duration_s: 10.0
+  replanning_period_s: 0.25
+  goal_x_m: 2.5
+  baseline_failure_time_assignment_s: 10.0
+formal_statistics:
+  primary_comparison: v3_analytic_vs_fixed_v120_shielded
+  primary_outcome: paired_block_mean_restricted_goal_time_relative_reduction
+  bootstrap_unit: geometry_seed_block
+  bootstrap_resamples: 20000
+  bootstrap_seed: 30505
+  one_sided_alpha: 0.05
+  minimum_point_reduction: 0.05
+  minimum_one_sided_lower_reduction: 0.02
+  v3_goal_success_rate_min: 0.95
+  goal_success_noninferiority_margin: 0.0
+  collision_count_max_each_method: 0
+  selected_candidate_accepted_rate_min_each_method: 1.0
+  exact_replay_rate_min_each_method: 1.0
+  secondary_reference_inferential_claim: false
+  formal_result_true_after_complete_valid_matrix: true
+failure_policy:
+  preserve_all_outcomes: true
+  no_retry_resume_seed_replacement_or_gate_change: true
+  formal_result_independent_of_positive_claim: true
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_or_gate_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_positive: >-
+  Within the preregistered parameterized single-actor crossing population,
+  the frozen V3 analytic safe-candidate selector reduced restricted goal time
+  relative to the strongest fixed high-speed shielded candidate policy while
+  retaining the shared hard-safety gates.
+forbidden_claims:
+  - actual_teb_superiority
+  - general_navigation_safety
+  - cross_family_generalization
+  - deployment_readiness
+  - real_vehicle_readiness

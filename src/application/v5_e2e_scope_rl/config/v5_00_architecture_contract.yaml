@@ -1,0 +1,215 @@
+schema_version: "1.1"
+architecture_generation: v5
+stage: V5-00
+name: V5-E2E-SCOPE-RL
+status: preregistered_architecture_foundation
+created_date: "2026-08-08"
+
+pre_evidence_component_amendment:
+  date: "2026-08-08"
+  reason: >-
+    Development smoke replay, before any eligible training/validation/formal
+    evidence, exposed inadequate fixed-horizon braking coverage and a late
+    lateral-bump onset. The component semantics below replace those unsafe or
+    deadlocking development fixtures; all failures are retained in the V5-01
+    repair log.
+  eligible_training_steps_before_amendment: 0
+  eligible_validation_or_formal_episodes_before_amendment: 0
+  ineligible_code_smoke_training_steps: 1536
+  ineligible_code_smoke_seed: 999
+  component_audit_seed_range_inclusive: [881000, 886999]
+  repairs:
+    - one_decision_then_maximum_deceleration_certified_stop_tail
+    - mapped_static_return_filter_plus_dynamic_reachable_occupancy
+    - dynamic_obstacle_speed_bound_1_35_mps
+    - shield_inflation_0_12_m
+    - spatial_bump_begins_at_planning_origin_and_rejoins_before_goal
+    - nonadversarial_actor_physical_collision_avoidance_boundary
+  factor_search_or_reward_tuning_from_formal_outcomes: false
+
+scope:
+  independent_successor_to_v4: true
+  v2_v3_v4_evidence_read_only: true
+  allowed_workspace: /home/robot/robot_ws_base_rl
+  stable_workspace_forbidden: /home/robot/robot_ws
+  simulation_and_offline_only_until_separate_gate: true
+  real_vehicle_forbidden: true
+  online_teb_write_forbidden: true
+  eventual_command_boundary: /cmd_vel_navigation
+
+research_question:
+  primary: >-
+    Can a sensor-only recurrent policy, trained with simulation-privileged
+    critic information, reduce failure-inclusive restricted navigation time
+    relative to a same-candidate sensor analytic prior while preserving hard
+    shield, task and replay integrity gates?
+  secondary: >-
+    After the fast-backend learning gate passes, does the frozen sensor policy
+    retain its benefit in fresh Gazebo episodes relative to the same analytic
+    prior and actual TebLocalPlannerROS 0.8.4?
+  actual_teb_only_superiority_is_insufficient: true
+
+end_to_end_boundary:
+  policy_inputs_available_on_real_robot:
+    - laser_scan_history
+    - odometry_velocity
+    - local_goal_in_ego_frame
+    - previous_candidate_id
+    - previous_executed_speed
+    - candidate_trajectory_features
+    - analytic_prior_scores
+    - hard_safe_action_mask
+  policy_output: candidate_trajectory_id
+  excluded_from_policy_output:
+    - raw_cmd_vel
+    - steering_command
+    - teb_parameter_write
+  deterministic_modules_outside_learning:
+    - ackermann_candidate_generator
+    - hard_collision_and_braking_shield
+    - certified_stop
+    - activation_time_revalidation
+    - trajectory_tracker
+    - downstream_command_chain
+
+privileged_training_contract:
+  critic_only_fields:
+    - actor_world_positions
+    - actor_world_velocities
+    - actor_response_mode
+    - oracle_candidate_future_clearances
+    - oracle_time_to_conflict
+  actor_access_to_privileged_fields_forbidden: true
+  actor_checkpoint_must_load_without_privileged_schema: true
+  deployment_inference_must_accept_sensor_observation_only: true
+  leakage_audit_required: true
+
+architecture:
+  scan_history_frames: 6
+  laser_beams: 72
+  laser_field_of_view_deg: 270.0
+  laser_maximum_range_m: 8.0
+  decision_period_s: 0.25
+  maximum_episode_decisions: 80
+  shield:
+    minimum_reaction_horizon_s: 0.75
+    certificate: one_action_plus_maximum_deceleration_stop_tail
+    mapped_static_inflation_m: 0.12
+    dynamic_reachable_speed_bound_mps: 1.35
+    certified_stop_always_available: true
+  spatial_candidate_shape:
+    type: continuous_sine_bump
+    onset_x_m: -4.0
+    rejoin_x_m: 4.0
+  actor_network:
+    scan_encoder: shared_1d_cnn
+    temporal_encoder: gru
+    candidate_encoder: shared_mlp
+    fusion: candidate_conditioned_residual_score
+  critic_network:
+    type: asymmetric_privileged_value
+  policy_score: analytic_prior_plus_learned_residual
+  inference_gate:
+    type: conservative_advantage_margin
+    minimum_residual_margin: 0.10
+    fallback: sensor_analytic_prior
+
+actions:
+  - {id: 0, name: certified_stop, target_speed_mps: 0.0, lateral_offset_m: 0.0}
+  - {id: 1, name: straight_v040, target_speed_mps: 0.4, lateral_offset_m: 0.0}
+  - {id: 2, name: straight_v080, target_speed_mps: 0.8, lateral_offset_m: 0.0}
+  - {id: 3, name: straight_v120, target_speed_mps: 1.2, lateral_offset_m: 0.0}
+  - {id: 4, name: spatial_left_v080, target_speed_mps: 0.8, lateral_offset_m: 1.20}
+  - {id: 5, name: spatial_right_v080, target_speed_mps: 0.8, lateral_offset_m: -1.20}
+  - {id: 6, name: spatial_left_v120, target_speed_mps: 1.2, lateral_offset_m: 1.20}
+  - {id: 7, name: spatial_right_v120, target_speed_mps: 1.2, lateral_offset_m: -1.20}
+  invariant: certified_stop_is_always_available
+
+fast_simulation_population:
+  families:
+    - bidirectional_reactive_crossing
+    - sequential_two_actor_crossing
+    - partially_occluded_crossing
+    - narrow_corridor_yield
+  claim_boundary: synthetic_sensor_level_interaction_population
+  observation_noise_and_domain_randomization: true
+  privileged_state_is_never_part_of_actor_observation: true
+
+reward:
+  hard_safety_is_not_a_reward_tradeoff: true
+  progress_per_m: 1.0
+  elapsed_per_s: -0.30
+  speed_change_per_mps: -0.01
+  candidate_switch: -0.005
+  goal: 8.0
+  timeout: -4.0
+  contact_invariant_alarm: -30.0
+  post_test_reward_tuning_forbidden: true
+
+learning:
+  algorithm: asymmetric_recurrent_masked_ppo
+  analytic_prior_residual: true
+  total_training_environment_steps_maximum: 1800000
+  factor_rounds_maximum: 3
+  training_seeds: [9101, 9102, 9103, 9104]
+  validation_seed_range_inclusive: [920100, 920499]
+  validation_outcomes_only_for_checkpoint_selection: true
+  formal_test_outcomes_for_fitting_forbidden: true
+  checkpoints:
+    - sensor_symmetric_control
+    - privileged_critic_residual
+    - privileged_critic_residual_advantage_gated
+
+learning_value_gate:
+  required_before_full_training:
+    sensor_history_identifiable_direction_accuracy_minimum: 0.80
+    safe_multiaction_state_fraction_minimum: 0.25
+    analytic_sequential_regret_block_fraction_minimum: 0.20
+  required_before_gazebo:
+    two_training_seed_directions_positive: true
+    validation_goal_noninferiority: true
+    validation_contact_count_maximum: 0
+    validation_mask_violation_count_maximum: 0
+    validation_relative_time_reduction_minimum: 0.05
+
+fast_formal_evaluation:
+  fresh_seed_range_inclusive: [930100, 930159]
+  paired_blocks: 60
+  methods:
+    - sensor_analytic_prior
+    - symmetric_recurrent_masked_ppo
+    - asymmetric_residual_masked_ppo
+    - full_advantage_gated_v5
+  primary_metric: failure_inclusive_restricted_goal_time
+  positive_gate:
+    full_vs_sensor_analytic_relative_reduction_minimum: 0.08
+    paired_bootstrap_two_sided_95_percent_lower_minimum: 0.0
+    full_goal_success_noninferior: true
+    contact_count_maximum: 0
+    mask_violation_count_maximum: 0
+  required_ablations:
+    - no_scan_history
+    - no_privileged_critic
+    - no_analytic_prior
+    - no_advantage_gate
+
+gazebo_budget:
+  episode_units_maximum: 240
+  execution_authorized_only_after_fast_positive_gate: true
+  qualification_blocks: 8
+  formal_fresh_blocks: 30
+  methods:
+    - full_advantage_gated_v5
+    - sensor_analytic_prior
+    - actual_teb_0_8_4
+  actual_teb_must_be_workspace_built_plugin: true
+  oracle_actor_track_for_v5_actor_forbidden: true
+
+claim_boundary:
+  end_to_end_sensor_to_candidate_decision: possible_only_after_fast_gate
+  actual_teb_superiority: possible_only_after_gazebo_formal_gate
+  perception_generalization: false
+  formal_safety: false
+  deployment_ready: false
+  real_vehicle_ready: false
+  all_negative_and_mixed_results_must_be_reported: true

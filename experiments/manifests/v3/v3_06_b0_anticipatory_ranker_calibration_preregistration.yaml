@@ -1,0 +1,29 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-B0
+preregistration_id: v3_scope_v3_06_b0_calibration_preregistration_1
+status: frozen_before_any_v3_06_b0_outcome_or_release
+single_factor: anticipatory_clearance_weight
+weights: [0.25, 0.50, 1.00, 2.00]
+fresh_population:
+  seeds: [6501, 6502, 6503, 6504]
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  exact_episodes: 48
+  attempts_per_identity: 1
+selection_gate:
+  relative_restricted_time_reduction_min: 0.02
+  goal_success_noninferior_to_control: true
+  all_shared_safety_and_replay_gates: true
+failure_policy:
+  preserve_all_outcomes: true
+  no_retry_resume_or_seed_replacement: true
+  no_weight_change_after_first_outcome: true
+  no_formal_claim_from_development_data: true
+future_firewall:
+  selected_weight_may_enter_only_fresh_qualification: true
+  calibration_seeds_may_not_enter_future_formal_evaluation: true
+  v3_05_b0_outcomes_may_not_select_weight: true
+budget:
+  simulation_units: 48
+  training_steps: 0
+  hardware_runs: 0

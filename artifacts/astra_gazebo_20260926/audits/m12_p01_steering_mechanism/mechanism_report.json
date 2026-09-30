@@ -1,0 +1,96 @@
+{
+  "scope": "Exploratory diagnosis of preserved failed P01 only, not a revised outcome or gate",
+  "raw_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p01/probe_raw.json",
+  "raw_sha256": "60420763714a7e979efc8f9a3de891632678950fd98d15c6e13536f561bcbea9",
+  "start_s": 0.12000000000000001,
+  "physical_steering_kp": 60,
+  "physical_steering_kd": 4,
+  "physical_torque_limit_nm": 20,
+  "frozen_center_target_slew_limit_radps": 0.75,
+  "frozen_actual_center_slew_gate_radps": 0.85,
+  "peak50Hz_joint_state_grid": {
+    "t_s": 18.6,
+    "relative_schedule_s": 18.48,
+    "actual_center_rad": -0.1707618917601337,
+    "actual_center_rate_from_joint_velocity_radps": 0.8905926369907144,
+    "target_center_rad": -0.13639546636570443,
+    "target_center_rate_radps": 0.75,
+    "left_actual_rad": -0.156812133439046,
+    "right_actual_rad": -0.18735589896413796,
+    "left_rate_radps": 0.7696360961525168,
+    "right_rate_radps": 1.0459404496248637,
+    "left_target_rad": -0.1283619077903878,
+    "right_target_rad": -0.1454941513581256,
+    "left_target_rate_radps": 0.6643071834538591,
+    "right_target_rate_radps": 0.8532742122916833,
+    "left_commanded_torque_nm": 1.387633471767804,
+    "right_commanded_torque_nm": 2.7279828068829226,
+    "actual_center_secant_rate_radps": 0.9047241537552958,
+    "interval_start_s": 18.58,
+    "left_position_torque_nm": 1.7993606778956335,
+    "left_velocity_torque_nm": -0.4117326331965847,
+    "left_previous_step_velocity_radps": 0.7672403417530053,
+    "left_replayed_torque_nm": 1.3876280446990488,
+    "left_torque_replay_error_nm": 5.427068755281539e-06,
+    "right_position_torque_nm": 2.6372173143518096,
+    "right_velocity_torque_nm": 0.09076502360209115,
+    "right_previous_step_velocity_radps": 0.8305829563911605,
+    "right_replayed_torque_nm": 2.7279823379539008,
+    "right_torque_replay_error_nm": 4.689290218351516e-07
+  },
+  "peak50Hz_world_link_grid": {
+    "t_s": 18.602,
+    "interval_start_s": 18.582,
+    "center_rad": -0.16887768119225594,
+    "secant_rate_radps": 0.901224031508982
+  },
+  "peak500Hz_pose_secant": {
+    "t_s": 18.584,
+    "center_rad": -0.18489760753765735,
+    "interval_start_s": 18.582,
+    "secant_rate_radps": 1.0022771423891101
+  },
+  "count50Hz_joint_grid_above_gate": 3,
+  "count50Hz_world_link_grid_above_gate": 4,
+  "commands_at_zero_yaw_transition": [
+    {
+      "t": 18.07,
+      "wall_monotonic_s": 7149.235909438,
+      "phase": "saturation_negative",
+      "v": 1.2,
+      "w": -1.40345427532371
+    },
+    {
+      "t": 18.12,
+      "wall_monotonic_s": 7149.286811728,
+      "phase": "zero_speed_yaw",
+      "v": 0.0,
+      "w": 0.6
+    },
+    {
+      "t": 18.17,
+      "wall_monotonic_s": 7149.336856965,
+      "phase": "zero_speed_yaw",
+      "v": 0.0,
+      "w": 0.6
+    },
+    {
+      "t": 18.22,
+      "wall_monotonic_s": 7149.387813206,
+      "phase": "zero_speed_yaw",
+      "v": 0.0,
+      "w": 0.6
+    }
+  ],
+  "max_abs_target_center_rate_radps": 0.75,
+  "max_abs_actual_joint_velocity_derived_center_rate_radps": 0.9312886035033376,
+  "max_abs_commanded_steering_torque_nm": 3.036746479439224,
+  "window_previous_dense_torque_replay_max_error_nm": 0.0018960182330038933,
+  "window_previous_dense_torque_replay_mean_abs_error_nm": 8.439263922652473e-05,
+  "notes": [
+    "50Hz joints and50Hz world links have2ms phase offset; their20ms secant maxima/counts differ. Original gate uses the world-link grid; joint grid is additional diagnosis, not a substitute reassessment.",
+    "Commanded torque is prior Begin control, paired here with previous2ms dense End state and current target. Replay error diagnoses whether this timestamp assumption holds; do not assume exactness.",
+    "Dense Link angular velocities are post-step measured velocities, not certified within-step derivative bounds.",
+    "No ROS, new simulation, gate modification or P01/P02 controller modification performed."
+  ]
+}

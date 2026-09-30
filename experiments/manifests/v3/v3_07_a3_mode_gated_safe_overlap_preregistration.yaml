@@ -1,0 +1,28 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-A3
+status: frozen_before_any_v3_07_a3_gazebo_execution
+schedule:
+  exact_rows: 48
+  fresh_seeds: [6591, 6592, 6593, 6594, 6595, 6596]
+  probe_units: 18
+  certified_stop_units: 18
+  conditional_spatial_left_units: 12
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+runtime_selection:
+  only_input: actor_speed_mps_at_0_5_s
+  hidden_policy_forbidden: true
+  cautious_or_hesitant: allow_stop_and_spatial_left
+  assertive_or_ambiguous: stop_only
+safety_gate:
+  combined_radius_m: 1.15
+  clearance_violation_count_max: 0
+overlap_gate:
+  stop_and_spatial_each_present_for_every_eligible_mode_block: true
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_or_seed_replacement: true
+  no_predictor_data_stage_if_any_gate_fails: true
+budget: {simulation_units: 48, training_steps: 0, hardware_runs: 0}

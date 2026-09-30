@@ -1,0 +1,35 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-A1-R1
+contract_id: v3_scope_v3_02_a1_r1_physical_clip_1
+status: pure_offline_single_factor_repair_preregistered
+parent_result: artifacts/v3/prediction/v3_02_a1/model/v3_02_a1_terminal_calibration_result.yaml
+source_data:
+  schedule: artifacts/v3/prediction/v3_02_a1/offline_readiness/v3_02_a1_exact_schedule.yaml
+  journal: artifacts/v3/prediction/v3_02_a1/execution/v3_02_a1_attempt_journal.jsonl
+  training_episodes: 72
+  calibration_episodes: 36
+  held_out_test_episodes: 0
+single_factor_repair:
+  factor_count: 1
+  factor_id: physical_actor_path_coordinate_clip
+  lower_bound: actor_coordinate_at_observation
+  upper_bound_m: 3.50
+  justification: actor_is_forward_only_and_pose_driven_on_finite_frozen_path
+  regression_features_coefficients_and_gates_unchanged: true
+authority:
+  offline_model_rebuild_authorized: true
+  new_simulation_authorized: false
+  reinforcement_learning_authorized: false
+  held_out_test_access_authorized: false
+  reserved_test_seeds: [6221, 6222, 6223]
+  real_vehicle_authorized: false
+acceptance:
+  use_parent_frozen_gates: true
+  all_parent_gates_must_pass: true
+  byte_identical_rebuild: true
+  independent_review: true
+failure_policy:
+  preserve_result: true
+  do_not_change_gates: true
+  do_not_access_test_on_failure: true

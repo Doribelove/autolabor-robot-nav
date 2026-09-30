@@ -1,0 +1,44 @@
+{
+  "actual_wrapper_shim_invocations": 9,
+  "author_manager_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r05/implementation_report.json",
+    "sha256": "bd4e3a6c2700df586ff8894d2796a8d0f8783e30590b9e14ac1076e63ef2d111",
+    "size_bytes": 8668
+  },
+  "author_wrapper_observations": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_closure_r01/environment_r05_attempt01/wrapper_observations.json",
+    "sha256": "faecea771b498462d81353a006f785a9896ef2fea4b9f82e5a50d9271e62544a",
+    "size_bytes": 92491
+  },
+  "checks_passed": 6,
+  "execution_authorized": false,
+  "findings": [
+    "Eight frozen prepared units reproduced the saved final wrapper argv and normalized environment exactly using the actual gazebo_ros shell prelude and a verified no-Gazebo final-exec shim.",
+    "Nonempty loopback model database URI survives the wrapper second Gazebo setup; the retained empty-URI negative restores the old remote default without any download tested.",
+    "The frozen pure exact-environment validator rejects all five previous synthetic loader/Python/EGL injection keys. This is not a review of manager enforcement callflow.",
+    "Current eight nodes use root namespace and no custom node environment overrides; future namespace/env_args changes require another observed derivation."
+  ],
+  "independent_of_author": true,
+  "limits": [
+    "Complete r05 disk closure is not yet author-frozen and is not qualified by this partial review.",
+    "Real gzserver, ROS master/nodes, simulation, seed allocation and release were not invoked.",
+    "The harmless shim substitutes only the final gzserver executable; this measures wrapper environment derivation, not actual process startup/mapped ELF.",
+    "Closure SHA and child nonce are explicit placeholders in the author observation; no released run identity is claimed.",
+    "Historical reviewer owns restricted-entry-before-import, preallocation refusal and all child/assessment enforcement paths.",
+    "No safety/performance/live runtime qualification."
+  ],
+  "resources": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r05_wrapper_precheck/resources.json",
+    "sha256": "a7878ecf9fb33bd16cd8916de9d9c786609e38ad20a6213c846e1f7b6e982ed6",
+    "size_bytes": 21119
+  },
+  "results": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_runtime_disk_closure_independent/r05_wrapper_precheck/results.json",
+    "sha256": "63c80d3f9c060b67f5f311431594e30acd5113f64714ffa10fc16d5666ff2a09",
+    "size_bytes": 16959
+  },
+  "reviewer": "environment_audit",
+  "runtime_ready": false,
+  "schema": "astra_n06_r05_wrapper_precheck_independent_v1",
+  "status": "independent_offline_wrapper_precheck_pass_full_disk_review_pending"
+}

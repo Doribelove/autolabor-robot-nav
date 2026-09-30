@@ -1,0 +1,90 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R2-D1
+status: offline_diagnostic_root_cause_complete
+planner_failure_observed: true
+terminal_decision_label: late_recovery
+terminal_sim_time_s: 12.544
+terminal_planner_error: MultiActorPlannerError:NO_SAFE_CANDIDATE_OR_CERTIFIED_STOP
+rejection_code_counts:
+  DYNAMIC_OCCUPANCY_INTERSECTION: 4
+all_candidates_dynamic_occupancy_rejected: true
+certified_stop_minimum_dynamic_clearance_m: -1.0199999999999996
+root_cause: all_candidates_rejected_by_dynamic_reachable_occupancy
+decision_sequence:
+- label: initial_gate
+  sim_time_s: 7.384
+  selected_candidate_id: certified_stop_v000
+  planner_error: null
+  ego:
+    x_m: -2.615713119811616
+    y_m: 1.4499376947472826e-14
+    yaw_rad: -4.069624090997142e-13
+    speed_mps: 0.799951711486873
+  actors:
+  - track_id: 1
+    coordinate_m: -3.6927064453890006
+    coordinate_speed_mps: 0.3199999999999781
+    velocity_estimator: backward_second_order_h0_05_s
+  - track_id: 2
+    coordinate_m: -5.9134290226260005
+    coordinate_speed_mps: 0.31999999999997364
+    velocity_estimator: backward_second_order_h0_05_s
+  candidate_clearances:
+    spatial_left_v120: -0.6350502179704476
+    spatial_right_v120: -0.7391227167349979
+    straight_v120: -1.0199999999980003
+    certified_stop_v000: 1.1957602011119999
+- label: early_recovery
+  sim_time_s: 8.534
+  selected_candidate_id: certified_stop_v000
+  planner_error: null
+  ego:
+    x_m: -2.3387376840533745
+    y_m: 1.5719638493617066e-17
+    yaw_rad: -4.163855551738389e-15
+    speed_mps: 0.008467658339332152
+  actors:
+  - track_id: 1
+    coordinate_m: -2.7418464332006787
+    coordinate_speed_mps: 1.0617228015874893
+    velocity_estimator: causal_coordinate_slope_window_0_50_s
+  - track_id: 2
+    coordinate_m: -4.972777629240006
+    coordinate_speed_mps: 0.9941460472239978
+    velocity_estimator: causal_coordinate_slope_window_0_50_s
+  candidate_clearances:
+    spatial_left_v120: -0.6609613530985519
+    spatial_right_v120: -0.994420053685
+    straight_v120: -1.02
+    certified_stop_v000: 0.37106022975989283
+- label: late_recovery
+  sim_time_s: 12.544
+  selected_candidate_id: null
+  planner_error: MultiActorPlannerError:NO_SAFE_CANDIDATE_OR_CERTIFIED_STOP
+  ego:
+    x_m: -2.3369581740542933
+    y_m: 3.909553681091065e-18
+    yaw_rad: -2.1399405642598765e-17
+    speed_mps: 0.0
+  actors:
+  - track_id: 1
+    coordinate_m: 1.479648072069382
+    coordinate_speed_mps: 1.0622507476921477
+    velocity_estimator: causal_coordinate_slope_window_0_50_s
+  - track_id: 2
+    coordinate_m: -1.021938258300123
+    coordinate_speed_mps: 0.9941460472238104
+    velocity_estimator: causal_coordinate_slope_window_0_50_s
+  candidate_clearances:
+    spatial_left_v120: -0.3614083018524422
+    spatial_right_v120: -0.3591412507823769
+    straight_v120: -1.0199999999999998
+    certified_stop_v000: -1.0199999999999996
+interpretation: the hard verifier failed closed; no action was overridden. A future
+  repair must change one prospective modeling or decision-timing factor and obtain
+  new sequential support.
+actual_TEB_qualification_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

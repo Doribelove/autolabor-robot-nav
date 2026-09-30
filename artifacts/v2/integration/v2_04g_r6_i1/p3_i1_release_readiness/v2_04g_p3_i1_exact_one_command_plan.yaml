@@ -1,0 +1,98 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P3-I1
+status: exact_one_unit_resolved_command_plan_not_yet_released
+execution_authorized: true
+authorized_evidence_units_max: 1
+single_factor_id: separate_runtime_semantic_profile_from_evidence_candidate_identity_v1
+rows:
+- sequence: 1
+  evidence_identity:
+    sequence: 1
+    row_type: qualification_probe
+    scene_id: v2-04g-p3-i1-qual-overlay-v125-s5624
+    seed: 5624
+    attempt: 1
+    probe_type: high_speed_to_conflict_overlay_transition
+    candidate_speed_mps: 1.25
+  runtime_profile_id: r6_semantics_circle_contact
+  evidence_candidate_method_id: circle_contact_v125
+  evidence_qualification_profile_id: qualification_overlay_v125
+  scene_execution_binding:
+    source_instance:
+      path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_release_readiness/compiled_scene/v2-04g-p3-i1-qual-overlay-v125-s5624.instance.yaml
+      sha256: 65dd8866dc3e709c28927757553ccf7a1bc371b2197068a0ce6463896f7adf60
+      size_bytes: 1555
+    source_world:
+      path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_release_readiness/compiled_scene/v2-04g-p3-i1-qual-overlay-v125-s5624.world
+      sha256: 751fc0c5734f9aaa42bc5783a7b166b46d81df89bc7f487370d2a9e2bd657d3e
+      size_bytes: 1489
+    snapshot_instance: '{FUTURE_SCENE_SNAPSHOT_INSTANCE}'
+    snapshot_world: '{FUTURE_SCENE_SNAPSHOT_WORLD}'
+    start:
+      x_m: 0.0
+      y_m: 0.0
+      yaw_rad: 0.0
+    timeout_s: 80.0
+  base_launch_argv:
+  - '{ROSLAUNCH_EXECUTABLE}'
+  - m2_gazebo
+  - m2_v2_04g_p2_q1_execution.launch
+  - world:={FUTURE_SCENE_SNAPSHOT_WORLD}
+  - seed:=5624
+  - xacro_executable:={XACRO_EXECUTABLE}
+  - x:=0.0
+  - y:=0.0
+  - yaw:=0.0
+  - gui:=false
+  - paused:=true
+  - attempt_stage:=V2-04G-P3-I1
+  - attempt_profile_id:=r6_semantics_circle_contact
+  - attempt_scene_id:=v2-04g-p3-i1-qual-overlay-v125-s5624
+  - attempt_number:=1
+  - fixed_teb_config:=artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs/fixed_teb_v120.yaml
+  - start_move_base:=true
+  - start_world_model:=true
+  - start_rule_supervisor:=true
+  - start_typed_transaction:=false
+  - allow_simulation_teb_parameter_write:=false
+  - allow_unfrozen_simulation_candidate:=true
+  - load_balanced_anchor:=false
+  - publish_teb_obstacles:=true
+  - rule_supervisor_config:=artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/supervisor.yaml
+  - rule_supervisor_config_sha256:=d5e35cfe84082b229ae6e656c2d3aaa7a10c8c61b696184bda8dc90e47a762da
+  - anchor_bank:=artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs/circle_contact_v125_anchor_bank.yaml
+  - mechanism_config:=artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/mechanism.yaml
+  semantic_transaction_launch_argv:
+  - '{ROSLAUNCH_EXECUTABLE}'
+  - teb_mode_manager
+  - v2_04g_r6_simulation_typed_anchor.launch
+  - allow_simulation_teb_parameter_write:=true
+  - allow_unfrozen_simulation_candidate:=true
+  - anchor_bank:=artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs/circle_contact_v125_anchor_bank.yaml
+  - mechanism_config:=artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/mechanism.yaml
+  - attempt_stage:=V2-04G-P3-I1
+  - attempt_profile_id:=r6_semantics_circle_contact
+  - attempt_scene_id:=v2-04g-p3-i1-qual-overlay-v125-s5624
+  - attempt_seed:=5624
+  - attempt_number:=1
+  - supervisor_config_sha256:=d5e35cfe84082b229ae6e656c2d3aaa7a10c8c61b696184bda8dc90e47a762da
+  probe_argv:
+  - '{PYTHON_EXECUTABLE}'
+  - src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p3_i1_qualification_probe.py
+  - --probe
+  - high_speed_to_conflict_overlay_transition
+  - --candidate-speed-mps
+  - '1.25'
+  - --sequence
+  - '1'
+  - --scene-id
+  - v2-04g-p3-i1-qual-overlay-v125-s5624
+  - --seed
+  - '5624'
+  - --output
+  - '{FUTURE_ATTEMPT_ROOT}/raw_trace.yaml'
+  runtime_control_adapter: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p3_i1_runtime_control.py
+  activation_listener_adapter: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p3_i1_activation_probe_listener.py
+  per_identity_hard_wall_s: 240
+canonical_plan_digest: 817b1072382b6cf8f9f9d3f07eaf2e3b6733fba6d4b8dc11953238accff96631

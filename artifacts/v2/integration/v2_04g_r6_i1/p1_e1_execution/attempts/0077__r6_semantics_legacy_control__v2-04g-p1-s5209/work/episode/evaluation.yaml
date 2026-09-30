@@ -1,0 +1,133 @@
+schema_version: '2.0'
+architecture_generation: v2
+evaluator_id: fam_teb_v2_02_evaluator_1
+formal_result: false
+runtime_ready: false
+scene_id: v2-04g-p1-s5209
+family: DYNAMIC
+split: calibration
+seed: 5209
+instance_sha256: acd248fa4ea6a2476723d9b86951c32b4b2335ef4df553dfbb90d99307de9717
+raw_trace_sha256: 8dac85118a1fe415f109dac88882b91c0e8aa05e3b798f49e12d4eb577ac3f67
+termination: SUCCESS
+metrics:
+  common:
+    success: true
+    collision: false
+    navigation_time_s: 20.700000000000003
+    path_length_m: 18.197591408671848
+    mean_abs_speed_mps: 0.8790133911722992
+    minimum_clearance_m: 0.809277915507653
+    stop_count: 1
+    reverse_distance_m: 0.0
+  family:
+    minimum_predicted_ttc_s: 1.5212092975372191
+    stop_count: 1
+    interaction_clearance_m: 1.760065321101206
+stage: V2-04G-P1-E1
+method: rule_multi_anchor
+episode_timeout_s: 80.0
+tracker_message_count: 309
+tracker_health_valid_fraction: 1.0
+finite_ttc_sample_count: 18
+ttc_status: OBSERVED_CONFLICT
+context_message_count: 103
+context_valid_count: 103
+context_geometry_sequence:
+- BALANCED
+- CRUISE
+context_geometry_switch_count: 1
+transaction_message_count: 105
+transaction_valid_count: 105
+transaction_activated_count: 105
+transaction_fault_count: 0
+transaction_backends:
+- simulation_teb_dynamic_reconfigure
+active_anchor_sequence:
+- anchor_balanced
+- anchor_cruise
+active_anchor_switch_count: 1
+typed_transaction_expected: true
+typed_transaction_valid: true
+training_used: false
+runtime_policy_manifest_access: false
+runtime_scene_labels_available: false
+experiment_manager_validation_manifest_access: false
+runner_fault_reason: ''
+supervisor_profile_id: r6_semantics_legacy_control
+context_geometry_sample_counts:
+  BALANCED: 4
+  CRUISE: 99
+  STATIC_DENSE: 0
+  CORRIDOR: 0
+  MANEUVER: 0
+context_geometry_sample_fractions:
+  BALANCED: 0.038834951456310676
+  CRUISE: 0.9611650485436893
+  STATIC_DENSE: 0.0
+  CORRIDOR: 0.0
+  MANEUVER: 0.0
+context_overlay_sample_counts:
+  NONE: 78
+  CROSSING: 10
+  HEAD_ON: 7
+  FOLLOW: 0
+  OVERTAKE_OR_YIELD: 8
+context_overlay_sample_fractions:
+  NONE: 0.7572815533980582
+  CROSSING: 0.0970873786407767
+  HEAD_ON: 0.06796116504854369
+  FOLLOW: 0.0
+  OVERTAKE_OR_YIELD: 0.07766990291262135
+experiment_manager_calibration_manifest_access: true
+mode_measurement_window: post_readiness_goal_execution_only
+clearance_audit:
+  schema_version: '2.0'
+  stage: V2-04G-P1-E1
+  evaluator_only_gazebo_truth_used: true
+  runtime_policy_received_truth: false
+  minimum_signed_scan_clearance_m: 0.809277915507653
+  minimum_truth_box_clearance_m: 0.7939509047378397
+  classification: CLEARANCE_POSITIVE
+  minimum_scan_detail:
+    stamp_s: 15.93
+    robot_x_m: 6.461431488032405
+    robot_y_m: -0.05963592825931905
+    signed_scan_clearance_m: 0.809277915507653
+    clipped_scan_clearance_m: 0.809277915507653
+    raw_range_m: 1.4314037561416626
+    ray_index: 426
+    ray_angle_rad: 0.5811283458024263
+    footprint_boundary_range_m: 0.6221258406340096
+  minimum_truth_detail:
+    stamp_s: 15.73
+    clearance_m: 0.7939509047378397
+    closest_model: crossing-agent
+    model_x_m: 8.0
+    model_y_m: 0.7244999999999999
+  contact_count: 0
+  profile_id: r6_semantics_legacy_control
+  scene_id: v2-04g-p1-s5209
+  seed: 5209
+  attempt: 1
+mechanism_message_count: 104
+mechanism_join_valid_count: 104
+mechanism_join_valid_fraction: 1.0
+mechanism_join_reason_counts:
+  EXACT_SEQUENCE_JOIN: 104
+mechanism_topology_locked_sample_count: 0
+mechanism_corridor_centerline_sample_count: 0
+mechanism_maneuver_reverse_sample_count: 0
+mechanism_topology_switch_count: 0
+profile_id: r6_semantics_legacy_control
+attempt: 1
+p1_method_id: r6_semantics_legacy_control
+source_instance_path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/attempts/0077__r6_semantics_legacy_control__v2-04g-p1-s5209/work/scene_snapshot/v2-04g-p1-s5209.instance.yaml
+source_instance_sha256: f98d3f9a2bc9653e10c49c9f241d752f2045ece9bcb59f0827e4be6d544afca4
+adapted_instance_sha256: acd248fa4ea6a2476723d9b86951c32b4b2335ef4df553dfbb90d99307de9717
+p1_split_adapter: test_id_to_evaluator_calibration_only
+overlay_trace_path: /home/robot/robot_ws_base_rl/artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/attempts/0077__r6_semantics_legacy_control__v2-04g-p1-s5209/work/episode/overlay_trace.yaml
+overlay_trace_sha256: 63fc7e4842b81e2e1a77023cd99c3000f808740c4ddeefc09a9f44ee1c22ccc7
+goal_dispatch_stamp_s: 8.03
+terminal_event_stamp_s: 28.43
+observation_duration_s: 20.4

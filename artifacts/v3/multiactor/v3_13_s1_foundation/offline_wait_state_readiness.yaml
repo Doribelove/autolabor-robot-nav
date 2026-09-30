@@ -1,0 +1,111 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-S1
+status: offline_sequential_wait_state_foundation_pass
+source: fresh C3 certified-stop traces; readiness only
+wait_state_count: 8
+wait_states:
+- source_c3_block_index: 11
+  scene_id: occluded_staggered_corridor
+  actor_policies_evaluator_only: &id001
+  - hesitant
+  - cautious
+  wait_depth_s: 1.0
+  observed_sample_time_s: 1.0
+  ego_x_m: -2.372030593612365
+  ego_speed_mps: 0.013340154643377256
+  observable_modes:
+  - assertive
+  - assertive
+  all_assertive: true
+- source_c3_block_index: 11
+  scene_id: occluded_staggered_corridor
+  actor_policies_evaluator_only: *id001
+  wait_depth_s: 5.0
+  observed_sample_time_s: 5.0
+  ego_x_m: -2.3689602265137064
+  ego_speed_mps: 0.0
+  observable_modes:
+  - assertive
+  - assertive
+  all_assertive: true
+- source_c3_block_index: 12
+  scene_id: occluded_staggered_corridor
+  actor_policies_evaluator_only: &id002
+  - hesitant
+  - hesitant
+  wait_depth_s: 1.0
+  observed_sample_time_s: 0.9999999999999991
+  ego_x_m: -2.372322753653778
+  ego_speed_mps: 0.014609729688628871
+  observable_modes:
+  - assertive
+  - assertive
+  all_assertive: true
+- source_c3_block_index: 12
+  scene_id: occluded_staggered_corridor
+  actor_policies_evaluator_only: *id002
+  wait_depth_s: 5.0
+  observed_sample_time_s: 4.999999999999999
+  ego_x_m: -2.3689602265137064
+  ego_speed_mps: 0.0
+  observable_modes:
+  - assertive
+  - assertive
+  all_assertive: true
+- source_c3_block_index: 15
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only: &id003
+  - hesitant
+  - cautious
+  wait_depth_s: 1.0
+  observed_sample_time_s: 0.9999999999999991
+  ego_x_m: -2.3720308870304745
+  ego_speed_mps: 0.013340154643377256
+  observable_modes:
+  - assertive
+  - assertive
+  all_assertive: true
+- source_c3_block_index: 15
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only: *id003
+  wait_depth_s: 5.0
+  observed_sample_time_s: 4.999999999999999
+  ego_x_m: -2.3689602265137064
+  ego_speed_mps: 0.0
+  observable_modes:
+  - assertive
+  - assertive
+  all_assertive: true
+- source_c3_block_index: 16
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only: &id004
+  - hesitant
+  - hesitant
+  wait_depth_s: 1.0
+  observed_sample_time_s: 1.0000000000000009
+  ego_x_m: -2.372322723203538
+  ego_speed_mps: 0.014609729688628871
+  observable_modes:
+  - assertive
+  - assertive
+  all_assertive: true
+- source_c3_block_index: 16
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only: *id004
+  wait_depth_s: 5.0
+  observed_sample_time_s: 5.000000000000001
+  ego_x_m: -2.3689602265137064
+  ego_speed_mps: 0.0
+  observable_modes:
+  - assertive
+  - assertive
+  all_assertive: true
+all_wait_states_assertive: true
+all_wait_states_stopped: true
+all_wait_states_in_ego_x_range: true
+matched_post_stop_alternative_actions_collected: false
+simulation_execution_authorized: false
+training_authorized: false
+hardware_accessed: false
+real_vehicle_used: false

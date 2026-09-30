@@ -1,0 +1,19 @@
+--- artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_gazebo.xacro
++++ artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_p02_gazebo.xacro
+@@ -1,6 +1,6 @@
+ <?xml version="1.0"?>
+ <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+-  <xacro:macro name="m2_physical_gazebo" params="publish_tf:=true dynamics_seed:=42 speed_time_constant:=0.22 steering_time_constant:=0.18 max_acceleration:=0.60 max_deceleration:=0.90 max_brake_deceleration:=0.90 max_emergency_deceleration:=0.90 max_steering_rate:=0.75 command_delay:=0.0 command_jitter:=0.0 laser_topic:=scan laser_noise_stddev:=0.01 wheel_mu:=1.0 wheel_kp:=4.0 wheel_ki:=2.0 wheel_integral_torque_limit:=1.5 wheel_drive_torque_limit:=8.0 wheel_brake_torque_limit:=12.0 steering_kp:=60.0 steering_kd:=4.0 steering_torque_limit:=20.0">
++  <xacro:macro name="m2_physical_p02_gazebo" params="publish_tf:=true dynamics_seed:=42 speed_time_constant:=0.22 steering_time_constant:=0.18 max_acceleration:=0.60 max_deceleration:=0.90 max_brake_deceleration:=0.90 max_emergency_deceleration:=0.90 max_steering_rate:=0.75 command_delay:=0.0 command_jitter:=0.0 laser_topic:=scan laser_noise_stddev:=0.01 wheel_mu:=1.0 wheel_kp:=4.0 wheel_ki:=2.0 wheel_integral_torque_limit:=1.5 wheel_drive_torque_limit:=8.0 wheel_brake_torque_limit:=12.0 steering_kp:=60.0 steering_kd:=4.0 steering_torque_limit:=20.0">
+     <gazebo reference="${prefix}chassis_link"><material>Gazebo/Blue</material></gazebo>
+     <gazebo reference="${prefix}front_left_wheel_link"><mu1>${wheel_mu}</mu1><mu2>${wheel_mu}</mu2><fdir1>0 0 1</fdir1><material>Gazebo/Black</material></gazebo>
+     <gazebo reference="${prefix}front_right_wheel_link"><mu1>${wheel_mu}</mu1><mu2>${wheel_mu}</mu2><fdir1>0 0 1</fdir1><material>Gazebo/Black</material></gazebo>
+@@ -56,7 +56,7 @@
+     </gazebo>
+ 
+     <gazebo>
+-      <plugin name="astra_physical_ackermann" filename="libastra_physical_ackermann_plugin.so">
++      <plugin name="astra_physical_ackermann_p02" filename="libastra_physical_ackermann_p02_plugin.so">
+         <wheelbase>${wheelbase}</wheelbase><track>${track}</track><wheelRadius>${wheel_radius}</wheelRadius>
+         <maxSpeed>2.778</maxSpeed><maxSteer>${max_steer}</maxSteer><expectedMass>79.6</expectedMass>
+         <commandTimeout>0.5</commandTimeout><publishRate>50.0</publishRate>

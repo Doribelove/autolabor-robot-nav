@@ -1,0 +1,30 @@
+schema_version: '1.0'
+stage: V3-07-B1
+release_id: v3_07_b1_heldout_execution_release_1
+status: release_candidate_requires_review_and_authorization
+execution_ready: false
+execution_authorized: false
+held_out_test_authorized: false
+training_authorized: false
+real_vehicle_authorized: false
+schedule:
+  path: artifacts/v3/prediction/v3_07_b1/offline_readiness/v3_07_b1_exact_schedule.yaml
+  sha256: fba844498c74b0cfc6b81019a1954bbca4a2f0b3344c0b308f1cabb4f48db404
+  row_count: 20
+  training_rows: 0
+  calibration_rows: 0
+  held_out_test_rows: 20
+runtime_bindings:
+  path: artifacts/v3/prediction/v3_07_b1/offline_readiness/v3_07_b1_runtime_bindings.yaml
+  sha256: f2180a70d060309128067f670150851e72b699eb7c0723c988dc2750dd60804e
+dependency_closure:
+  path: artifacts/v3/prediction/v3_07_b1/offline_readiness/v3_07_b1_dependency_closure.yaml
+  sha256: c3b6addc14405234300d8cdf9ad2775590bde8be9f0f6bb6bfd4138eff35499c
+  unresolved_count: 0
+frozen_model:
+  path: artifacts/v3/prediction/v3_07_b0_r1/model/v3_07_b0_r1_spatial_candidate_predictor.yaml
+  sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+budget:
+  authorized_after_separate_authorization: 20
+  consumed: 0
+  retry: 0

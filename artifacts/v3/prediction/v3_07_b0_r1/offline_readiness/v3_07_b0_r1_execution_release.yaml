@@ -1,0 +1,32 @@
+schema_version: '1.0'
+stage: V3-07-B0-R1
+release_id: v3_07_b0_r1_data_execution_release_1
+status: release_candidate_requires_review_and_authorization
+execution_ready: false
+execution_authorized: false
+held_out_test_authorized: false
+training_authorized: false
+real_vehicle_authorized: false
+schedule:
+  path: artifacts/v3/prediction/v3_07_b0_r1/offline_readiness/v3_07_b0_r1_exact_schedule.yaml
+  sha256: 36d51cbc4d6389d85849ef98180bae098132cf794286e44dd52a860a2a0a1046
+  row_count: 50
+  training_rows: 30
+  calibration_rows: 20
+  held_out_test_rows: 0
+runtime_bindings:
+  path: artifacts/v3/prediction/v3_07_b0_r1/offline_readiness/v3_07_b0_r1_runtime_bindings.yaml
+  sha256: 1066407afbbcfef161fcaea13d16ec5769f58acd01d5b32223f92deda72bab3a
+dependency_closure:
+  path: artifacts/v3/prediction/v3_07_b0_r1/offline_readiness/v3_07_b0_r1_dependency_closure.yaml
+  sha256: e8fc76f8b6dc09be2d1dcd16825becb8cdf59005c3464016875170652feaee62
+  unresolved_count: 0
+budget:
+  authorized_after_separate_authorization: 50
+  consumed: 0
+  retry: 0
+reserved_test_seeds_not_released:
+- 6661
+- 6662
+- 6663
+- 6664

@@ -1,0 +1,238 @@
+{
+  "status": "independent_Q04_terminal_geometry_QC_failure_closure_pass",
+  "pass": true,
+  "independent_review": true,
+  "original_episode_pass": false,
+  "qualification_promoted": false,
+  "checks": {
+    "release_820_unique_resources": true,
+    "all_release_current_and_archives_match": true,
+    "extra_release_bindings_match": true,
+    "receipt_all_artifacts_match": true,
+    "release_ledger_receipt_exact": true,
+    "original_failure_retained": true,
+    "original_two_false_geometry_checks": true,
+    "budget_one_consumed_one_retired": true,
+    "exact_fresh_identity_no_retry": true,
+    "retired_actor_absent": true,
+    "raw_collector_sha_exact": true,
+    "isolated_cleanup": true,
+    "seed_registry_exact_terminal": true,
+    "four_prepared_inputs_exact": true,
+    "actual_expanded_urdf_exact": true,
+    "pre_final_actual_maps_replay": true,
+    "same_gazebo_process_pre_final": true,
+    "all_23_required_topics_recorded": true,
+    "recorder_connected_before_unpause": true,
+    "all_eight_source_lists_raw_bag_exact": true,
+    "six_500Hz_streams_and_50Hz_status_complete_to_final_watermark": true,
+    "source_payloads_raw_bag_exact": true,
+    "actual_world_watermark_bound": true,
+    "source_start_marker_exact": true,
+    "independent_200_command_slots_payloads_deadlines": true,
+    "frozen_command_assessor_replay_exact": true,
+    "frozen_status_assessor_replay_exact": true,
+    "both_native_pngs_exact_source_message_pixels": true,
+    "image_source_time_native_dense_grid": true,
+    "run_closure_authentication_itself_passes": true,
+    "failure_only_runtime_nominal_base_mass_COM": true,
+    "geometry_report_exact_except_output_path": true,
+    "all_5000_intervals_and_501_endpoints_byte_exact": true,
+    "independent_contact_replay_four_checks": true,
+    "actual_motion_bag_replay_exact": true,
+    "original_13_gate_result_remains_11_pass_2_fail": true
+  },
+  "release_sha256": "adfef3b58588238c9f85e69f2471a4659bd3ba18174d24ecd040300600793826",
+  "budget": {
+    "maximum_units": 2,
+    "consumed": 1,
+    "retired_unrun": 1,
+    "identities": [
+      {
+        "run_id": "passive_sweep_q04_static",
+        "seed": 260926029,
+        "status": "consumed",
+        "receipt": {
+          "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/receipt.json",
+          "sha256": "d585ea20319831fe47c45f7882ad82b0e8b43975243d11056b2e2834ad9360c2"
+        },
+        "pass": false
+      },
+      {
+        "run_id": "passive_sweep_q04_actor",
+        "seed": 260926030,
+        "status": "retired_unrun"
+      }
+    ],
+    "retry_allowed": false
+  },
+  "registry_rows": [
+    {
+      "namespace": "astra_gazebo_20260926",
+      "split": "bootstrap_smoke",
+      "purpose": "passive_continuous_geometry_qualification_q04",
+      "seed": "260926029",
+      "run_id": "passive_sweep_q04_static",
+      "status": "consumed",
+      "source_binding": "adfef3b58588238c9f85e69f2471a4659bd3ba18174d24ecd040300600793826"
+    },
+    {
+      "namespace": "astra_gazebo_20260926",
+      "split": "bootstrap_smoke",
+      "purpose": "passive_continuous_geometry_qualification_q04",
+      "seed": "260926030",
+      "run_id": "passive_sweep_q04_actor",
+      "status": "retired_unrun",
+      "source_binding": "adfef3b58588238c9f85e69f2471a4659bd3ba18174d24ecd040300600793826"
+    }
+  ],
+  "report_chain": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/raw_bag_map_image_audit.json",
+      "sha256": "8ef3d278ccb84caf1f7377821173b17f151727e0965d82cf278070a1268f21b2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/contact_replay.json",
+      "sha256": "e01bce06b7c460f1230684c9251b22fdca619f78b68246b171b95e072b746607"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/independent_mass_diagnosis.json",
+      "sha256": "22c5641d5de8fe9d56cd35b62ac1c6fbf4665ebdf1ad2d95f438a2122b58285c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/sweep_replay/report.json",
+      "sha256": "4eeb76eba5eae5cdcc89b85ebe8048070014da3d240ece65efb88632db5b3c11"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/final_registry_check.json",
+      "sha256": "5bec2c6bae4811e323b449a69cde423d13e1406f625dba1380e449212f338ae3"
+    }
+  ],
+  "initial_registry_snapshot_preserved": "raw_bag_map_image_audit.json records initial reserved registry while manager ledger already terminal; only final external bookkeeping rechecked here.",
+  "source_window_ns": [
+    1160000000,
+    11160000000
+  ],
+  "final_source_watermark_ns": 11180000000,
+  "dense_intervals": 5000,
+  "minimum_engineering_conservative_swept_xy_m_conditional": 1.44223384524174,
+  "robot_displacement_m": 2.0834668759891106,
+  "frozen_failure": [
+    "runtime/URDF merged mass or COM differs: base_link"
+  ],
+  "mechanism": "Unrounded URDF fixed-link center of mass differs from actual URDF-to-SDF quantized center of mass; independent native offline conversion reproduces runtime value. Original numerical tolerance and failed qualification remain unchanged.",
+  "diagnosis_artifact": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/independent_mass_diagnosis.json",
+    "sha256": "22c5641d5de8fe9d56cd35b62ac1c6fbf4665ebdf1ad2d95f438a2122b58285c"
+  },
+  "native_image_integrity": [
+    {
+      "name": "pulse_start.png",
+      "png": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/images/pulse_start.png",
+        "sha256": "3ef0fae5dafba60d76fe3e2a9ca004528665b9d135413339a35aa6a8408239c6"
+      },
+      "raw_message": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/images/pulse_start.rosmsg",
+        "sha256": "ed9728795b875605e73bfb61062bc199c976e3f6c472cd0a12fd678db584c24b"
+      },
+      "source_ns": 2500000000,
+      "frame_id": "q04_camera_optical",
+      "encoding": "rgb8",
+      "size": [
+        2560,
+        1440
+      ],
+      "mode": "RGB",
+      "raw_bound_matches": true,
+      "png_bound_matches": true,
+      "source_stamp_matches": true,
+      "lossless_native_pixel_equality": true,
+      "pixel_std": 21.597394528149675
+    },
+    {
+      "name": "stopped.png",
+      "png": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/images/stopped.png",
+        "sha256": "829aa8de2900da7edeb82024741fd98d471b881f4f51e10651e7e2cd339f76d8"
+      },
+      "raw_message": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/images/stopped.rosmsg",
+        "sha256": "9b9fb454c1b67d3ebe7a4d9f9f99dd66d13cb09dadd0b991e5b8f4ad267e881c"
+      },
+      "source_ns": 9500000000,
+      "frame_id": "q04_camera_optical",
+      "encoding": "rgb8",
+      "size": [
+        2560,
+        1440
+      ],
+      "mode": "RGB",
+      "raw_bound_matches": true,
+      "png_bound_matches": true,
+      "source_stamp_matches": true,
+      "lossless_native_pixel_equality": true,
+      "pixel_std": 21.44568198541918
+    }
+  ],
+  "actual_visual_inspection": {
+    "tool": "view_image",
+    "files": [
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/images/pulse_start.png",
+        "sha256": "3ef0fae5dafba60d76fe3e2a9ca004528665b9d135413339a35aa6a8408239c6"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/images/stopped.png",
+        "sha256": "829aa8de2900da7edeb82024741fd98d471b881f4f51e10651e7e2cd339f76d8"
+      }
+    ],
+    "visible": "Both native source images show blue robot, static blue box and orange cylinder; robot position changes; no text overlays or rescaling added. Source association and pixels independently verified.",
+    "limit": "Top-down raster visibility cannot establish contact, wheel support or 3D clearance."
+  },
+  "scope_limits": [
+    "Static fixture completed 10 seconds; actor fixture was retired unrun. This does not qualify the intended two-fixture stage.",
+    "No navigation, training, general safety or real vehicle claim.",
+    "Conditional positive engineering XY envelope does not override failed runtime/URDF QC.",
+    "Exact GL alias and three binary bindings are accepted within trusted local graphics scope; executable memory bytes were not hashed.",
+    "Zero recorded illegal contacts does not prove collision freedom."
+  ],
+  "offline_errors_preserved": [
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/tool_errors.log",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/audit_closed_r01_syntax_error.py",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/audit_closed_r01.log",
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/audit_closed_r02.log"
+  ],
+  "inputs": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/queue/passive_sweep_q04_ledger.json",
+      "sha256": "00bf2cf1cb65612e02fe41f2755f56db2d79ded9194b930768289f04426b5b05"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/seed_registry.csv",
+      "sha256": "483092dbc61f550bf0460224dc1c7c2f61800c8d6a5e8f3817783162b7960cea"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/receipt.json",
+      "sha256": "d585ea20319831fe47c45f7882ad82b0e8b43975243d11056b2e2834ad9360c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/assessment.json",
+      "sha256": "d2e2b3823b346f747b6b319c255f7ba3bcffab3f3113ff347b31f52681e025ea"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/collector_report.json",
+      "sha256": "ff069c338b34459003f2bc9ec084384ebdd8af4cb9234245dd2d364643e44337"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q04_static/fixture.bag",
+      "sha256": "05c3c4ea3e168bb90ad725967b39186dba735496bacb6eed774d3246cde97b61"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/finalize.py",
+      "sha256": "7012a54c3a2435ee934dc4d74e6e89b68ac8542325223190209f510195647ff5"
+    }
+  ],
+  "no_ROS_or_live_process_access": true,
+  "created_utc": "2026-09-26T11:44:20.668783+00:00"
+}

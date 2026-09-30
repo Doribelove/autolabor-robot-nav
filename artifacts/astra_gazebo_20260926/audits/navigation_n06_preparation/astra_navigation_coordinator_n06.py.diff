@@ -1,0 +1,11 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n05.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_navigation_coordinator_n06.py
+@@ -26,7 +26,7 @@
+     if master_uri.scheme!='http' or master_uri.hostname not in ('127.0.0.1','localhost','::1') or master_uri.username or master_uri.password:raise ValueError('loopback simulation master required')
+     if rospy.get_param('/use_sim_time',False)is not True or rospy.get_param('/m2_gazebo/simulation_only',False)is not True:raise ValueError('isolated simulation required')
+     workspace=Path(os.environ['THESIS_WS']).resolve();sys.path.insert(0,str(workspace/'scripts/astra_gazebo'))
+-    from navigation_coordinator_n05 import NavigationCoordinator,CoordinatorConfig,PERIOD_NS,SCHEMA
++    from navigation_coordinator_n06 import NavigationCoordinator,CoordinatorConfig,PERIOD_NS,SCHEMA
+     from common_route import load_bundle
+     from route_world_adapter import RouteFrame
+     directory=Path(rospy.get_param('~bundle'));expected=rospy.get_param('~bundle_sha256')

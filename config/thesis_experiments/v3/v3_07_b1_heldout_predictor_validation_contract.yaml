@@ -1,0 +1,76 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-B1
+stage_purpose: fresh_heldout_validation_of_frozen_spatial_candidate_predictor
+contract_id: v3_scope_v3_07_b1_heldout_predictor_validation_1
+status: preregistered_before_heldout_access
+upstream:
+  data_stage_terminal_freeze_path: artifacts/v3/prediction/v3_07_b0_r1/v3_07_b0_r1_terminal_freeze.sha256
+  frozen_model_path: artifacts/v3/prediction/v3_07_b0_r1/model/v3_07_b0_r1_spatial_candidate_predictor.yaml
+  frozen_model_sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+  frozen_conformal_radius_m: 0.4967404086874341
+data_support:
+  observable_mode_feature: actor_speed_mps_at_0_5_s
+  hidden_policy_model_input: false
+  eligible_cells:
+    cautious: [certified_stop_v000, spatial_left_v120]
+    hesitant: [certified_stop_v000, spatial_left_v120]
+    assertive: [certified_stop_v000]
+  assertive_spatial_support: absent_fail_closed
+observed_mode_gate:
+  observable_feature: actor_speed_mps_at_0_5_s
+  cautious_hesitant_threshold_mps: 0.274012499989
+  hesitant_assertive_threshold_mps: 0.758912499986
+  ambiguity_half_width_mps: 0.02
+experimental_unit:
+  scenario_blocks:
+    - {block_id: heldout_6661, role: held_out_test, seed: 6661, angle_deg: 72.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 0.925}
+    - {block_id: heldout_6662, role: held_out_test, seed: 6662, angle_deg: 84.0, actor_start_distance_m: 3.15, actor_base_speed_mps: 1.025}
+    - {block_id: heldout_6663, role: held_out_test, seed: 6663, angle_deg: 96.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 0.975}
+    - {block_id: heldout_6664, role: held_out_test, seed: 6664, angle_deg: 108.0, actor_start_distance_m: 3.25, actor_base_speed_mps: 1.075}
+  policies_evaluator_only: [cautious, assertive, hesitant]
+  schedule_rows: 20
+  held_out_test_rows: 20
+  retry_allowed: false
+  resume_allowed: false
+scene:
+  duration_s: 8.0
+  max_step_size_s: 0.001
+  real_time_update_rate_hz: 1000
+  sample_period_s: 0.05
+  ego:
+    model_name: v3_ego
+    footprint_m: [1.13, 0.73, 0.55]
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    common_prefix: {duration_s: 0.50, speed_mps: 0.80, end_x_m: -2.60}
+  actor:
+    model_name: v3_actor
+    size_m: [0.45, 0.45, 1.70]
+    endpoint_after_conflict_m: 5.0
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+heldout_qualification_gates:
+  completed_rows: 20
+  common_prefix_position_error_max_m: 0.006
+  observed_mode_matches_evaluator_rate_min: 1.0
+  eligible_head_count: 5
+  rows_per_eligible_head: 4
+  assertive_spatial_row_count_max: 0
+  interval_coverage_rate_min: 0.95
+  per_head_interval_coverage_rate_min: 0.75
+  conservative_combined_radius_m: 1.15
+  conservative_clearance_violation_count_max: 0
+  nonfinite_metric_count_max: 0
+claim_if_pass: >-
+  The frozen observed-mode and candidate-conditioned predictor attains its
+  preregistered finite-sample held-out coverage and safety gates on these four
+  fresh simulator blocks. This qualifies only bounded spatial safe-planner
+  integration; it is not a performance, deployment, or real-vehicle result.
+authority_boundary:
+  held_out_test_seeds_released_only_by_separate_authorization: [6661, 6662, 6663, 6664]
+  simulation_requires_separate_release_and_authorization: true
+  planner_integration_only_after_qualification_authorized: true
+  reinforcement_learning_authorized: false
+  move_base_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

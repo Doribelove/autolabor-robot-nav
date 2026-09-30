@@ -1,0 +1,34 @@
+# B01 offline candidate only; no execution authority. Load AFTER the shared footprint.
+DWAPlannerROS:
+  odom_topic: /odom
+  global_frame_id: odom
+  holonomic_robot: false
+  max_vel_x: 1.2
+  min_vel_x: 0.0
+  max_vel_y: 0.0
+  min_vel_y: 0.0
+  max_vel_trans: 1.2
+  min_vel_trans: 0.05
+  max_vel_theta: 0.7805
+  min_vel_theta: 0.0
+  acc_lim_x: 0.6
+  acc_lim_y: 2.5
+  acc_lim_theta: 0.75
+  xy_goal_tolerance: 0.25
+  yaw_goal_tolerance: 0.2
+  latch_xy_goal_tolerance: true
+  sim_time: 4.0
+  sim_granularity: 0.05
+  angular_sim_granularity: 0.025
+  vx_samples: 18
+  vy_samples: 1
+  vth_samples: 36
+  path_distance_bias: 16
+  goal_distance_bias: 32
+  occdist_scale: 0.4
+  forward_point_distance: 0.5
+  stop_time_buffer: 0.5
+  scaling_speed: 0.6
+  max_scaling_factor: 0.3
+  oscillation_reset_dist: 0.2
+  prune_plan: true

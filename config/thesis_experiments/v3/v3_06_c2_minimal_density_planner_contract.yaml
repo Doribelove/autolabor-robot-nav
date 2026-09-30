@@ -1,0 +1,36 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-C2
+stage_purpose: pure_offline_minimal_density_latency_repair_foundation
+contract_id: v3_scope_v3_06_c2_minimal_density_planner_1
+status: pure_offline_single_factor_latency_repair
+upstream:
+  dense_planner_path: artifacts/v3/development/v3_06_c0/v3_06_c0_effective_planner_contract.yaml
+  dense_planner_sha256: 4d7e28f43d9cdd6f18a0fb555313f2f9f08b35c7f7991d53aa900227b98d84ad
+  c1_i1_terminal_freeze_path: artifacts/v3/development/v3_06_c1_i1/v3_06_c1_i1_terminal_freeze.sha256
+single_factor:
+  factor_count: 1
+  factor_id: remove_v020_candidate_for_latency
+  dense_target_speeds_mps: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2]
+  minimal_target_speeds_mps: [0.0, 0.4, 0.6, 0.8, 1.0, 1.2]
+  retained_new_candidate_id: feasible_v040
+  removed_candidate_id: feasible_v020
+  hard_verifier_changed: false
+  predictor_changed: false
+  certified_stop_changed: false
+  ranker_changed: false
+offline_gates:
+  c1_add_v040_episode_count: 12
+  c1_add_v040_decision_count: 399
+  selected_candidate_exact_replay_rate_min: 1.0
+  shared_evaluation_exact_rate_min: 1.0
+  selected_candidate_accepted_rate_min: 1.0
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  model_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

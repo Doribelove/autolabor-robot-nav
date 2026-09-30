@@ -1,0 +1,1513 @@
+{
+  "schema": "astra_m13_read_only_build_profile_v1",
+  "scope": "one synthetic build per case under cProfile; relative hotspots only; no deadline or population inference",
+  "no_ROS_Gazebo_training_or_actor": true,
+  "sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_profile_m13/profile_build.py",
+      "sha256": "e4e26fa9817f5ecf2298aa965b622c71ab69fa3ef93a746dbdc531288de88098"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/benchmark.py",
+      "sha256": "afa46ca221be8d05133811872f42d3a28796c5f3df54b5cfad7427223144efe9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+      "sha256": "a6f2bae1e63ddf14822a7a2d5151e20fbe4ad51ea80525ea388bd38fe6b9b1df"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_ingestion_m08.py",
+      "sha256": "97b739bb8b165a652e44e2695a2298bf5fa0ea87ba3e80a67a40f4b39644ffc2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+      "sha256": "3660ce97b4e522f44209d8fe9f0483d1ae3151adb05f62e3bc1ea7c945939545"
+    }
+  ],
+  "cases": [
+    {
+      "name": "sparse1440_retained2048",
+      "point_count": 1440,
+      "retained_count": 2048,
+      "query_count": 491,
+      "mask": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "profile": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_profile_m13/sparse1440_retained2048.pstats",
+        "sha256": "52be7ef0012e9f3c04009ec2f1b2a648b5879c77ed4cd3a5f3521ba85f491c68"
+      },
+      "top_functions": [
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 114,
+          "function": "build",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.06521,
+          "cumulative_ms_profiled": 43.499327
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 227,
+          "function": "rollout",
+          "primitive_calls": 16,
+          "total_calls": 16,
+          "self_ms_profiled": 0.03558,
+          "cumulative_ms_profiled": 20.184243000000002
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 229,
+          "function": "advance",
+          "primitive_calls": 32,
+          "total_calls": 32,
+          "self_ms_profiled": 0.42033200000000004,
+          "cumulative_ms_profiled": 20.147832
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 199,
+          "function": "step",
+          "primitive_calls": 475,
+          "total_calls": 475,
+          "self_ms_profiled": 2.691511,
+          "cumulative_ms_profiled": 19.611882
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 92,
+          "function": "verify_many",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.7306670000000001,
+          "cumulative_ms_profiled": 19.373686
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method numpy.core._multiarray_umath.implement_array_function>",
+          "primitive_calls": 1611,
+          "total_calls": 2278,
+          "self_ms_profiled": 0.802752,
+          "cumulative_ms_profiled": 10.314602
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 59,
+          "function": "project",
+          "primitive_calls": 484,
+          "total_calls": 484,
+          "self_ms_profiled": 0.5448170000000001,
+          "cumulative_ms_profiled": 9.524629
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+          "line": 110,
+          "function": "distance_lower_bounds",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.100282,
+          "cumulative_ms_profiled": 9.313332
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+          "line": 141,
+          "function": "_spatial_minimum",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 4.917903000000001,
+          "cumulative_ms_profiled": 8.908368
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 173,
+          "function": "project",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 2.3510000000000004,
+          "cumulative_ms_profiled": 8.892197000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 99,
+          "function": "<listcomp>",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.156731,
+          "cumulative_ms_profiled": 8.726343000000002
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 82,
+          "function": "_static_at",
+          "primitive_calls": 491,
+          "total_calls": 491,
+          "self_ms_profiled": 0.47324000000000005,
+          "cumulative_ms_profiled": 8.279895
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 118,
+          "function": "<listcomp>",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.005692000000000001,
+          "cumulative_ms_profiled": 5.652469
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 51,
+          "function": "_wrapfunc",
+          "primitive_calls": 850,
+          "total_calls": 850,
+          "self_ms_profiled": 0.43605,
+          "cumulative_ms_profiled": 5.512328
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 25,
+          "function": "shift_pose",
+          "primitive_calls": 693,
+          "total_calls": 693,
+          "self_ms_profiled": 0.541955,
+          "cumulative_ms_profiled": 3.7947970000000004
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "clip",
+          "primitive_calls": 322,
+          "total_calls": 322,
+          "self_ms_profiled": 0.14352600000000001,
+          "cumulative_ms_profiled": 3.718395
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 132,
+          "function": "at",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.955098,
+          "cumulative_ms_profiled": 3.549687
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 2111,
+          "function": "clip",
+          "primitive_calls": 322,
+          "total_calls": 322,
+          "self_ms_profiled": 0.185424,
+          "cumulative_ms_profiled": 3.4209870000000002
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 68,
+          "function": "predict",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.015392000000000001,
+          "cumulative_ms_profiled": 3.326283
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+          "line": 17,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.131895,
+          "cumulative_ms_profiled": 3.307172
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/base.py",
+          "line": 440,
+          "function": "distance",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.141239,
+          "cumulative_ms_profiled": 3.2162870000000003
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 11,
+          "function": "_finite",
+          "primitive_calls": 1388,
+          "total_calls": 1388,
+          "self_ms_profiled": 1.271932,
+          "cumulative_ms_profiled": 3.1319470000000003
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "sum",
+          "primitive_calls": 629,
+          "total_calls": 629,
+          "self_ms_profiled": 0.288128,
+          "cumulative_ms_profiled": 3.1246140000000002
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/topology.py",
+          "line": 44,
+          "function": "__call__",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 2.771211,
+          "cumulative_ms_profiled": 3.0431880000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'clip' of 'numpy.ndarray' objects>",
+          "primitive_calls": 322,
+          "total_calls": 322,
+          "self_ms_profiled": 0.14256300000000002,
+          "cumulative_ms_profiled": 3.019345
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 44,
+          "function": "rear_pose_to_base",
+          "primitive_calls": 475,
+          "total_calls": 475,
+          "self_ms_profiled": 0.197754,
+          "cumulative_ms_profiled": 2.917116
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_methods.py",
+          "line": 127,
+          "function": "_clip",
+          "primitive_calls": 322,
+          "total_calls": 322,
+          "self_ms_profiled": 0.47703,
+          "cumulative_ms_profiled": 2.876782
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 69,
+          "function": "_wrapreduction",
+          "primitive_calls": 737,
+          "total_calls": 737,
+          "self_ms_profiled": 0.573106,
+          "cumulative_ms_profiled": 2.545079
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 2188,
+          "function": "sum",
+          "primitive_calls": 629,
+          "total_calls": 629,
+          "self_ms_profiled": 0.47243500000000005,
+          "cumulative_ms_profiled": 2.541372
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+          "line": 22,
+          "function": "_point_polygon_distances",
+          "primitive_calls": 17,
+          "total_calls": 17,
+          "self_ms_profiled": 0.5417660000000001,
+          "cumulative_ms_profiled": 2.2450400000000004
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/polygon.py",
+          "line": 220,
+          "function": "__init__",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.19642700000000002,
+          "cumulative_ms_profiled": 2.244612
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/polygon.py",
+          "line": 500,
+          "function": "geos_polygon_from_py",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.43515400000000004,
+          "cumulative_ms_profiled": 1.8736030000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'reduce' of 'numpy.ufunc' objects>",
+          "primitive_calls": 738,
+          "total_calls": 738,
+          "self_ms_profiled": 1.710687,
+          "cumulative_ms_profiled": 1.710687
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+          "line": 84,
+          "function": "sample",
+          "primitive_calls": 217,
+          "total_calls": 217,
+          "self_ms_profiled": 0.551471,
+          "cumulative_ms_profiled": 1.688534
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_methods.py",
+          "line": 93,
+          "function": "_clip_dep_is_scalar_nan",
+          "primitive_calls": 644,
+          "total_calls": 644,
+          "self_ms_profiled": 0.740445,
+          "cumulative_ms_profiled": 1.605158
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method numpy.asarray>",
+          "primitive_calls": 1762,
+          "total_calls": 1762,
+          "self_ms_profiled": 1.4867130000000002,
+          "cumulative_ms_profiled": 1.4867130000000002
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 40,
+          "function": "base_pose_to_rear",
+          "primitive_calls": 218,
+          "total_calls": 218,
+          "self_ms_profiled": 0.11630200000000002,
+          "cumulative_ms_profiled": 1.449669
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<shapely.speedups._speedups.geos_linearring_from_py>",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.8551120000000001,
+          "cumulative_ms_profiled": 1.36524
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "primitive_calls": 1390,
+          "total_calls": 1390,
+          "self_ms_profiled": 0.49398400000000003,
+          "cumulative_ms_profiled": 1.314963
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "nonzero",
+          "primitive_calls": 11,
+          "total_calls": 11,
+          "self_ms_profiled": 0.005734,
+          "cumulative_ms_profiled": 1.112706
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 1892,
+          "function": "nonzero",
+          "primitive_calls": 11,
+          "total_calls": 11,
+          "self_ms_profiled": 0.00514,
+          "cumulative_ms_profiled": 1.1011900000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'nonzero' of 'numpy.ndarray' objects>",
+          "primitive_calls": 11,
+          "total_calls": 11,
+          "self_ms_profiled": 1.0867350000000002,
+          "cumulative_ms_profiled": 1.0867350000000002
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+          "line": 10,
+          "function": "wrap_angle",
+          "primitive_calls": 1643,
+          "total_calls": 1643,
+          "self_ms_profiled": 0.666123,
+          "cumulative_ms_profiled": 1.074492
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "argmin",
+          "primitive_calls": 299,
+          "total_calls": 299,
+          "self_ms_profiled": 0.12747300000000003,
+          "cumulative_ms_profiled": 0.9699730000000001
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "searchsorted",
+          "primitive_calls": 217,
+          "total_calls": 217,
+          "self_ms_profiled": 0.098109,
+          "cumulative_ms_profiled": 0.9628210000000001
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/base.py",
+          "line": 718,
+          "function": "contains",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.161387,
+          "cumulative_ms_profiled": 0.962225
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+          "line": 26,
+          "function": "<listcomp>",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.8151200000000001,
+          "cumulative_ms_profiled": 0.9487740000000001
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "ndim",
+          "primitive_calls": 644,
+          "total_calls": 644,
+          "self_ms_profiled": 0.23497900000000002,
+          "cumulative_ms_profiled": 0.8647130000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+          "line": 69,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.13966,
+          "cumulative_ms_profiled": 0.858037
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 13,
+          "function": "<genexpr>",
+          "primitive_calls": 4858,
+          "total_calls": 4858,
+          "self_ms_profiled": 0.64981,
+          "cumulative_ms_profiled": 0.817539
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/predicates.py",
+          "line": 11,
+          "function": "__call__",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.46365500000000004,
+          "cumulative_ms_profiled": 0.7621920000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 1345,
+          "function": "searchsorted",
+          "primitive_calls": 217,
+          "total_calls": 217,
+          "self_ms_profiled": 0.087911,
+          "cumulative_ms_profiled": 0.755393
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 1249,
+          "function": "argmin",
+          "primitive_calls": 299,
+          "total_calls": 299,
+          "self_ms_profiled": 0.204112,
+          "cumulative_ms_profiled": 0.707392
+        },
+        {
+          "file": "/usr/lib/python3.8/json/__init__.py",
+          "line": 183,
+          "function": "dumps",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.0027390000000000005,
+          "cumulative_ms_profiled": 0.689131
+        },
+        {
+          "file": "/usr/lib/python3.8/json/encoder.py",
+          "line": 182,
+          "function": "encode",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.00288,
+          "cumulative_ms_profiled": 0.685602
+        },
+        {
+          "file": "/usr/lib/python3.8/json/encoder.py",
+          "line": 204,
+          "function": "iterencode",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.6822980000000001,
+          "cumulative_ms_profiled": 0.6822980000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 38,
+          "function": "_wrapit",
+          "primitive_calls": 233,
+          "total_calls": 233,
+          "self_ms_profiled": 0.23617000000000002,
+          "cumulative_ms_profiled": 0.6636270000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_methods.py",
+          "line": 108,
+          "function": "_clip_dep_invoke_with_casting",
+          "primitive_calls": 322,
+          "total_calls": 322,
+          "self_ms_profiled": 0.5396310000000001,
+          "cumulative_ms_profiled": 0.5396310000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_asarray.py",
+          "line": 31,
+          "function": "require",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.24380400000000002,
+          "cumulative_ms_profiled": 0.510128
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 12,
+          "function": "<genexpr>",
+          "primitive_calls": 4858,
+          "total_calls": 4858,
+          "self_ms_profiled": 0.456891,
+          "cumulative_ms_profiled": 0.456891
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/topology.py",
+          "line": 16,
+          "function": "_validate",
+          "primitive_calls": 1156,
+          "total_calls": 1156,
+          "self_ms_profiled": 0.293222,
+          "cumulative_ms_profiled": 0.42871400000000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.min>",
+          "primitive_calls": 3004,
+          "total_calls": 3004,
+          "self_ms_profiled": 0.405666,
+          "cumulative_ms_profiled": 0.405666
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 3152,
+          "function": "ndim",
+          "primitive_calls": 644,
+          "total_calls": 644,
+          "self_ms_profiled": 0.283641,
+          "cumulative_ms_profiled": 0.38307900000000006
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'argmin' of 'numpy.ndarray' objects>",
+          "primitive_calls": 299,
+          "total_calls": 299,
+          "self_ms_profiled": 0.335311,
+          "cumulative_ms_profiled": 0.335311
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method math.sin>",
+          "primitive_calls": 4226,
+          "total_calls": 4226,
+          "self_ms_profiled": 0.33473600000000003,
+          "cumulative_ms_profiled": 0.33473600000000003
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "amin",
+          "primitive_calls": 44,
+          "total_calls": 44,
+          "self_ms_profiled": 0.021951000000000002,
+          "cumulative_ms_profiled": 0.326534
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+          "line": 22,
+          "function": "<dictcomp>",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.26005500000000004,
+          "cumulative_ms_profiled": 0.31728100000000004
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method math.cos>",
+          "primitive_calls": 3792,
+          "total_calls": 3792,
+          "self_ms_profiled": 0.304734,
+          "cumulative_ms_profiled": 0.304734
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "roll",
+          "primitive_calls": 17,
+          "total_calls": 17,
+          "self_ms_profiled": 0.01021,
+          "cumulative_ms_profiled": 0.293068
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/base.py",
+          "line": 239,
+          "function": "__del__",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.085431,
+          "cumulative_ms_profiled": 0.289717
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.max>",
+          "primitive_calls": 2294,
+          "total_calls": 2294,
+          "self_ms_profiled": 0.284231,
+          "cumulative_ms_profiled": 0.284231
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 2829,
+          "function": "amin",
+          "primitive_calls": 44,
+          "total_calls": 44,
+          "self_ms_profiled": 0.029174000000000002,
+          "cumulative_ms_profiled": 0.28228200000000003
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "unique",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.0014540000000000002,
+          "cumulative_ms_profiled": 0.281359
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/lib/arraysetops.py",
+          "line": 138,
+          "function": "unique",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.011888000000000001,
+          "cumulative_ms_profiled": 0.278189
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method math.atan2>",
+          "primitive_calls": 2583,
+          "total_calls": 2583,
+          "self_ms_profiled": 0.27462800000000004,
+          "cumulative_ms_profiled": 0.27462800000000004
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/base.py",
+          "line": 222,
+          "function": "empty",
+          "primitive_calls": 578,
+          "total_calls": 578,
+          "self_ms_profiled": 0.270878,
+          "cumulative_ms_profiled": 0.270878
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/numeric.py",
+          "line": 1147,
+          "function": "roll",
+          "primitive_calls": 17,
+          "total_calls": 17,
+          "self_ms_profiled": 0.190416,
+          "cumulative_ms_profiled": 0.259172
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 18,
+          "function": "_half_wheelbase",
+          "primitive_calls": 694,
+          "total_calls": 694,
+          "self_ms_profiled": 0.210353,
+          "cumulative_ms_profiled": 0.25828
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_methods.py",
+          "line": 103,
+          "function": "_clip_dep_is_byte_swapped",
+          "primitive_calls": 644,
+          "total_calls": 644,
+          "self_ms_profiled": 0.197521,
+          "cumulative_ms_profiled": 0.25496300000000005
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+          "line": 38,
+          "function": "<listcomp>",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.243116,
+          "cumulative_ms_profiled": 0.243116
+        }
+      ]
+    },
+    {
+      "name": "dense1440",
+      "point_count": 1440,
+      "retained_count": 0,
+      "query_count": 491,
+      "mask": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "profile": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_profile_m13/dense1440.pstats",
+        "sha256": "171d48389618a8ce66eee6b173e79b7aeac838a75961f63c382b55f463e60296"
+      },
+      "top_functions": [
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 114,
+          "function": "build",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.057335000000000004,
+          "cumulative_ms_profiled": 35.967611000000005
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 227,
+          "function": "rollout",
+          "primitive_calls": 16,
+          "total_calls": 16,
+          "self_ms_profiled": 0.031849,
+          "cumulative_ms_profiled": 20.344453
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 229,
+          "function": "advance",
+          "primitive_calls": 32,
+          "total_calls": 32,
+          "self_ms_profiled": 0.424079,
+          "cumulative_ms_profiled": 20.311814000000002
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 199,
+          "function": "step",
+          "primitive_calls": 475,
+          "total_calls": 475,
+          "self_ms_profiled": 2.747077,
+          "cumulative_ms_profiled": 19.771686
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 92,
+          "function": "verify_many",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.5012420000000001,
+          "cumulative_ms_profiled": 12.782528000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 59,
+          "function": "project",
+          "primitive_calls": 484,
+          "total_calls": 484,
+          "self_ms_profiled": 0.561334,
+          "cumulative_ms_profiled": 9.650545
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 173,
+          "function": "project",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 2.3850390000000004,
+          "cumulative_ms_profiled": 9.001063
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 99,
+          "function": "<listcomp>",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.157894,
+          "cumulative_ms_profiled": 8.673781
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method numpy.core._multiarray_umath.implement_array_function>",
+          "primitive_calls": 1598,
+          "total_calls": 2259,
+          "self_ms_profiled": 0.812965,
+          "cumulative_ms_profiled": 8.562789
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 82,
+          "function": "_static_at",
+          "primitive_calls": 491,
+          "total_calls": 491,
+          "self_ms_profiled": 0.47568800000000006,
+          "cumulative_ms_profiled": 8.220898
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 118,
+          "function": "<listcomp>",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.005753,
+          "cumulative_ms_profiled": 5.69026
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 51,
+          "function": "_wrapfunc",
+          "primitive_calls": 849,
+          "total_calls": 849,
+          "self_ms_profiled": 0.433601,
+          "cumulative_ms_profiled": 4.36924
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 25,
+          "function": "shift_pose",
+          "primitive_calls": 693,
+          "total_calls": 693,
+          "self_ms_profiled": 0.546851,
+          "cumulative_ms_profiled": 3.74717
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "clip",
+          "primitive_calls": 320,
+          "total_calls": 320,
+          "self_ms_profiled": 0.145367,
+          "cumulative_ms_profiled": 3.7140980000000003
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+          "line": 132,
+          "function": "at",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.9402050000000001,
+          "cumulative_ms_profiled": 3.4933780000000003
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 2111,
+          "function": "clip",
+          "primitive_calls": 320,
+          "total_calls": 320,
+          "self_ms_profiled": 0.18334200000000003,
+          "cumulative_ms_profiled": 3.4020590000000004
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/base.py",
+          "line": 440,
+          "function": "distance",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.138962,
+          "cumulative_ms_profiled": 3.20629
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 11,
+          "function": "_finite",
+          "primitive_calls": 1388,
+          "total_calls": 1388,
+          "self_ms_profiled": 1.230177,
+          "cumulative_ms_profiled": 3.078337
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/topology.py",
+          "line": 44,
+          "function": "__call__",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 2.766555,
+          "cumulative_ms_profiled": 3.028162
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+          "line": 110,
+          "function": "distance_lower_bounds",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.089357,
+          "cumulative_ms_profiled": 3.0162580000000005
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'clip' of 'numpy.ndarray' objects>",
+          "primitive_calls": 320,
+          "total_calls": 320,
+          "self_ms_profiled": 0.14258099999999999,
+          "cumulative_ms_profiled": 2.999867
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 44,
+          "function": "rear_pose_to_base",
+          "primitive_calls": 475,
+          "total_calls": 475,
+          "self_ms_profiled": 0.20508,
+          "cumulative_ms_profiled": 2.898953
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_methods.py",
+          "line": 127,
+          "function": "_clip",
+          "primitive_calls": 320,
+          "total_calls": 320,
+          "self_ms_profiled": 0.48352500000000004,
+          "cumulative_ms_profiled": 2.857286
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "sum",
+          "primitive_calls": 623,
+          "total_calls": 623,
+          "self_ms_profiled": 0.28189400000000003,
+          "cumulative_ms_profiled": 2.683698
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+          "line": 141,
+          "function": "_spatial_minimum",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.723271,
+          "cumulative_ms_profiled": 2.644626
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+          "line": 68,
+          "function": "predict",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.006677000000000001,
+          "cumulative_ms_profiled": 2.2463159999999998
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+          "line": 17,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.104704,
+          "cumulative_ms_profiled": 2.23606
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/polygon.py",
+          "line": 220,
+          "function": "__init__",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.191003,
+          "cumulative_ms_profiled": 2.2085730000000003
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 2188,
+          "function": "sum",
+          "primitive_calls": 623,
+          "total_calls": 623,
+          "self_ms_profiled": 0.47591700000000003,
+          "cumulative_ms_profiled": 2.105583
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 69,
+          "function": "_wrapreduction",
+          "primitive_calls": 726,
+          "total_calls": 726,
+          "self_ms_profiled": 0.555316,
+          "cumulative_ms_profiled": 2.0179440000000004
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/polygon.py",
+          "line": 500,
+          "function": "geos_polygon_from_py",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.41595,
+          "cumulative_ms_profiled": 1.842429
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+          "line": 84,
+          "function": "sample",
+          "primitive_calls": 217,
+          "total_calls": 217,
+          "self_ms_profiled": 0.5608310000000001,
+          "cumulative_ms_profiled": 1.708819
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_methods.py",
+          "line": 93,
+          "function": "_clip_dep_is_scalar_nan",
+          "primitive_calls": 640,
+          "total_calls": 640,
+          "self_ms_profiled": 0.7429740000000001,
+          "cumulative_ms_profiled": 1.612157
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 40,
+          "function": "base_pose_to_rear",
+          "primitive_calls": 218,
+          "total_calls": 218,
+          "self_ms_profiled": 0.11752600000000002,
+          "cumulative_ms_profiled": 1.429387
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+          "line": 22,
+          "function": "_point_polygon_distances",
+          "primitive_calls": 15,
+          "total_calls": 15,
+          "self_ms_profiled": 0.334159,
+          "cumulative_ms_profiled": 1.3713980000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<shapely.speedups._speedups.geos_linearring_from_py>",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.847545,
+          "cumulative_ms_profiled": 1.3556840000000001
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.all>",
+          "primitive_calls": 1390,
+          "total_calls": 1390,
+          "self_ms_profiled": 0.49101000000000006,
+          "cumulative_ms_profiled": 1.3039850000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'reduce' of 'numpy.ufunc' objects>",
+          "primitive_calls": 727,
+          "total_calls": 727,
+          "self_ms_profiled": 1.214264,
+          "cumulative_ms_profiled": 1.214264
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+          "line": 10,
+          "function": "wrap_angle",
+          "primitive_calls": 1643,
+          "total_calls": 1643,
+          "self_ms_profiled": 0.647946,
+          "cumulative_ms_profiled": 1.06152
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method numpy.asarray>",
+          "primitive_calls": 1760,
+          "total_calls": 1760,
+          "self_ms_profiled": 0.9980380000000001,
+          "cumulative_ms_profiled": 0.9980380000000001
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "searchsorted",
+          "primitive_calls": 217,
+          "total_calls": 217,
+          "self_ms_profiled": 0.09576300000000001,
+          "cumulative_ms_profiled": 0.971157
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/base.py",
+          "line": 718,
+          "function": "contains",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.16348,
+          "cumulative_ms_profiled": 0.9655100000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+          "line": 26,
+          "function": "<listcomp>",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.841554,
+          "cumulative_ms_profiled": 0.9201320000000001
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "ndim",
+          "primitive_calls": 640,
+          "total_calls": 640,
+          "self_ms_profiled": 0.24593200000000004,
+          "cumulative_ms_profiled": 0.869183
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "argmin",
+          "primitive_calls": 299,
+          "total_calls": 299,
+          "self_ms_profiled": 0.126753,
+          "cumulative_ms_profiled": 0.812902
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 13,
+          "function": "<genexpr>",
+          "primitive_calls": 4858,
+          "total_calls": 4858,
+          "self_ms_profiled": 0.6410140000000001,
+          "cumulative_ms_profiled": 0.8100200000000001
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/predicates.py",
+          "line": 11,
+          "function": "__call__",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.46333,
+          "cumulative_ms_profiled": 0.760916
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 1345,
+          "function": "searchsorted",
+          "primitive_calls": 217,
+          "total_calls": 217,
+          "self_ms_profiled": 0.089064,
+          "cumulative_ms_profiled": 0.7584680000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 38,
+          "function": "_wrapit",
+          "primitive_calls": 233,
+          "total_calls": 233,
+          "self_ms_profiled": 0.248761,
+          "cumulative_ms_profiled": 0.6638860000000001
+        },
+        {
+          "file": "/usr/lib/python3.8/json/__init__.py",
+          "line": 183,
+          "function": "dumps",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.002412,
+          "cumulative_ms_profiled": 0.630191
+        },
+        {
+          "file": "/usr/lib/python3.8/json/encoder.py",
+          "line": 182,
+          "function": "encode",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.0025350000000000004,
+          "cumulative_ms_profiled": 0.62712
+        },
+        {
+          "file": "/usr/lib/python3.8/json/encoder.py",
+          "line": 204,
+          "function": "iterencode",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.62418,
+          "cumulative_ms_profiled": 0.62418
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 1249,
+          "function": "argmin",
+          "primitive_calls": 299,
+          "total_calls": 299,
+          "self_ms_profiled": 0.20321500000000003,
+          "cumulative_ms_profiled": 0.551424
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_methods.py",
+          "line": 108,
+          "function": "_clip_dep_invoke_with_casting",
+          "primitive_calls": 320,
+          "total_calls": 320,
+          "self_ms_profiled": 0.5168940000000001,
+          "cumulative_ms_profiled": 0.5168940000000001
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_asarray.py",
+          "line": 31,
+          "function": "require",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.242675,
+          "cumulative_ms_profiled": 0.508139
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 12,
+          "function": "<genexpr>",
+          "primitive_calls": 4858,
+          "total_calls": 4858,
+          "self_ms_profiled": 0.45607000000000003,
+          "cumulative_ms_profiled": 0.45607000000000003
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/topology.py",
+          "line": 16,
+          "function": "_validate",
+          "primitive_calls": 1156,
+          "total_calls": 1156,
+          "self_ms_profiled": 0.28998,
+          "cumulative_ms_profiled": 0.422
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.min>",
+          "primitive_calls": 3002,
+          "total_calls": 3002,
+          "self_ms_profiled": 0.399431,
+          "cumulative_ms_profiled": 0.399431
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 3152,
+          "function": "ndim",
+          "primitive_calls": 640,
+          "total_calls": 640,
+          "self_ms_profiled": 0.274726,
+          "cumulative_ms_profiled": 0.371472
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method math.sin>",
+          "primitive_calls": 4226,
+          "total_calls": 4226,
+          "self_ms_profiled": 0.33658,
+          "cumulative_ms_profiled": 0.33658
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method math.cos>",
+          "primitive_calls": 3792,
+          "total_calls": 3792,
+          "self_ms_profiled": 0.309236,
+          "cumulative_ms_profiled": 0.309236
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/base.py",
+          "line": 239,
+          "function": "__del__",
+          "primitive_calls": 289,
+          "total_calls": 289,
+          "self_ms_profiled": 0.088259,
+          "cumulative_ms_profiled": 0.294989
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.max>",
+          "primitive_calls": 2294,
+          "total_calls": 2294,
+          "self_ms_profiled": 0.290055,
+          "cumulative_ms_profiled": 0.290055
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "amin",
+          "primitive_calls": 42,
+          "total_calls": 42,
+          "self_ms_profiled": 0.02224,
+          "cumulative_ms_profiled": 0.283397
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method math.atan2>",
+          "primitive_calls": 2583,
+          "total_calls": 2583,
+          "self_ms_profiled": 0.27498100000000003,
+          "cumulative_ms_profiled": 0.27498100000000003
+        },
+        {
+          "file": "/usr/lib/python3/dist-packages/shapely/geometry/base.py",
+          "line": 222,
+          "function": "empty",
+          "primitive_calls": 578,
+          "total_calls": 578,
+          "self_ms_profiled": 0.273548,
+          "cumulative_ms_profiled": 0.273548
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "unique",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.001363,
+          "cumulative_ms_profiled": 0.259398
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+          "line": 18,
+          "function": "_half_wheelbase",
+          "primitive_calls": 694,
+          "total_calls": 694,
+          "self_ms_profiled": 0.21171900000000002,
+          "cumulative_ms_profiled": 0.25896
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/lib/arraysetops.py",
+          "line": 138,
+          "function": "unique",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.010012,
+          "cumulative_ms_profiled": 0.25644400000000006
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/_methods.py",
+          "line": 103,
+          "function": "_clip_dep_is_byte_swapped",
+          "primitive_calls": 640,
+          "total_calls": 640,
+          "self_ms_profiled": 0.18765700000000002,
+          "cumulative_ms_profiled": 0.24471000000000004
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+          "line": 69,
+          "function": "__init__",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.023394,
+          "cumulative_ms_profiled": 0.24257900000000002
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 2829,
+          "function": "amin",
+          "primitive_calls": 42,
+          "total_calls": 42,
+          "self_ms_profiled": 0.026697000000000002,
+          "cumulative_ms_profiled": 0.238216
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method math.isfinite>",
+          "primitive_calls": 4391,
+          "total_calls": 4391,
+          "self_ms_profiled": 0.234523,
+          "cumulative_ms_profiled": 0.234523
+        },
+        {
+          "file": "<__array_function__ internals>",
+          "line": 177,
+          "function": "roll",
+          "primitive_calls": 15,
+          "total_calls": 15,
+          "self_ms_profiled": 0.008132,
+          "cumulative_ms_profiled": 0.217984
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/fromnumeric.py",
+          "line": 70,
+          "function": "<dictcomp>",
+          "primitive_calls": 726,
+          "total_calls": 726,
+          "self_ms_profiled": 0.21274400000000002,
+          "cumulative_ms_profiled": 0.21274400000000002
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+          "line": 38,
+          "function": "<listcomp>",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.20302,
+          "cumulative_ms_profiled": 0.20302
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/lib/arraysetops.py",
+          "line": 323,
+          "function": "_unique1d",
+          "primitive_calls": 1,
+          "total_calls": 1,
+          "self_ms_profiled": 0.041881,
+          "cumulative_ms_profiled": 0.191145
+        },
+        {
+          "file": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/lib/python3.8/site-packages/numpy/core/numeric.py",
+          "line": 1147,
+          "function": "roll",
+          "primitive_calls": 15,
+          "total_calls": 15,
+          "self_ms_profiled": 0.137635,
+          "cumulative_ms_profiled": 0.190738
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<built-in method builtins.len>",
+          "primitive_calls": 2313,
+          "total_calls": 2313,
+          "self_ms_profiled": 0.18449000000000002,
+          "cumulative_ms_profiled": 0.18449000000000002
+        },
+        {
+          "file": "~",
+          "line": 0,
+          "function": "<method 'argmin' of 'numpy.ndarray' objects>",
+          "primitive_calls": 299,
+          "total_calls": 299,
+          "self_ms_profiled": 0.18344100000000002,
+          "cumulative_ms_profiled": 0.18344100000000002
+        }
+      ]
+    }
+  ]
+}

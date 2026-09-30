@@ -1,0 +1,33 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-B0
+preregistration_id: v3_scope_v3_03_b0_observed_mode_gate_1
+date: "2026-07-24"
+status: frozen_before_offline_mode_gate_materialization
+contract: config/thesis_experiments/v3/v3_03_b0_observed_mode_gate_contract.yaml
+design_population:
+  source_stage: V3-02-D1
+  training_episodes: 90
+  calibration_episodes: 45
+  held_out_episode_access: false
+  a3_runtime_outcomes_used_for_thresholds: false
+observable_only_rule:
+  feature: actor_speed_mps_at_decision
+  cautious_hesitant_threshold_mps: 0.274012499989
+  hesitant_assertive_threshold_mps: 0.758912499986
+  ambiguity_half_width_mps: 0.020000000000
+  hidden_policy_input: false
+  ambiguous_or_nonfinite_action: certified_stop
+prediction:
+  frozen_model_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+  frozen_conformal_radius_m: 0.379024806626
+  refit_or_recalibration: false
+retrospective_replay:
+  a3_descriptive_only: true
+  a3_may_change_gate_or_threshold: false
+authority:
+  simulation: false
+  training: false
+  move_base: false
+  cmd_vel_publish: false
+  real_vehicle: false

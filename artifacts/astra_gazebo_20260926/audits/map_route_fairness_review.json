@@ -1,0 +1,346 @@
+{
+  "schema": "astra_map_route_fairness_review_v1",
+  "created_utc": "2026-09-26T08:10:23.115308+00:00",
+  "status": "confirmed_current_input_asymmetry_offline_common_map_component_pass_runtime_integration_pending",
+  "authority": {
+    "path": "/home/robot/robot_ws_base_rl/CODEX_ASTRA_LONG_RUN_20260926.md",
+    "sha256": "72a043c79c0cd6c582fd8dbb15eb53500b6b91b04c4f9d2053f23656cea0b64b"
+  },
+  "task_requirement": "taskbook line91: shared map, sensors, start/goal, global path, simulator model, constraints, resources, command chain and termination/accounting",
+  "reviewed_resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_episode.py",
+      "sha256": "e38bc474aa7d6f28b6f61e2e9d26394c31dd7f12a8b4de53da71962d089b7d73",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/pct_teb_dwa_benchmark_r2_episode.py",
+      "sha256": "488d84b266795c348abba90a917a5ef017044e74a50443c7265a12eb4b5ed9fe",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/benchmark_runtime.py",
+      "sha256": "af73770b60d3f3c4d1cc97e2ca4ff848b7ce0f70476a397d7eded5b230af35e9",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/arena_benchmark_runtime.py",
+      "sha256": "0851cb793b78351cc2510d9445aba64e0bac81f1b65addd68abcd94265153dbd",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/application/v5_e2e_scope_rl/scripts/arena_pct_teb_dwa_qualification_episode.py",
+      "sha256": "6006c4cb2d317c157a8d0a82b8d7f6e57dc50cac2e205341ea4ea34136c8041a",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/m2_pct_teb_dwa_benchmark_r2_episode.launch",
+      "sha256": "e4219f0e00d6ec8e87f8e8e1275a84433866506362c292407ef7cdbd7257fe94",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/astra_diagnostic_episode.launch",
+      "sha256": "bc93270f915db6ea3e5427d7177f3b78d3fab1956a30f9936d2865eab71ab708"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/m2_arena_pct_teb_dwa_q1_episode.launch",
+      "sha256": "33153869ad499649fdb7d813ab2a9c62b21779e220ce3e4b2d65854d43f9ce5f",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/costmap_common.yaml",
+      "sha256": "432592eb268dc14157dd23cc4f3d2f263a731f88ccf08e5aad022a77b0f019b9",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/global_costmap.yaml",
+      "sha256": "e7b3458073a90d6998be390fd1ceee8e75afc67765bbf1a3543d0906b241af78",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/local_costmap.yaml",
+      "sha256": "7937cb8523dcc538b81cd6351d129f207d9be625873fb354349693434f349d19",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/arena_global_costmap.yaml",
+      "sha256": "71d62051cf36d139da63d20c51172977235bae325cabeac92597b1b1d393f5dc",
+      "unchanged_from_verified_snapshot": true
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_move_base.yaml",
+      "sha256": "bfe31f64af3b3590b007448e2792762a41a74ad4d119ae2cae3cfa57f9b758ca",
+      "unchanged_from_verified_snapshot": true
+    }
+  ],
+  "findings": [
+    {
+      "id": "F01",
+      "severity": "material_fairness_gap",
+      "evidence": "pct_teb_dwa_benchmark_episode.py105-115 passes entire corridor_half_width/static_circles/static_boxes to runtime; benchmark_runtime.py585-675 uses them for central route-release coordinate, scan static/dynamic classification and preview static clearance",
+      "conclusion": "PCT/analytic have a complete known static geometry prior, including objects not currently visible in scan."
+    },
+    {
+      "id": "F02",
+      "severity": "material_fairness_gap",
+      "evidence": "current diagnostic/R2 launch loads global_costmap.yaml: rolling_window=true, global_frame=odom, only ObstacleLayer+InflationLayer; costmap_common.yaml observation_sources=scan; benchmark_move_base.yaml NavfnROS replans1Hz; no map_server or StaticLayer in this path",
+      "conclusion": "Actual TEB/DWA global planner sees scan-built rolling costmap rather than the same complete static prior."
+    },
+    {
+      "id": "F03",
+      "severity": "global_path_not_shared",
+      "evidence": "PCT uses fixed route x/y guide/candidate curves; R1 only subscribes to TEB/DWA local_plan for counting and never to Navfn/global path. TEB/DWA receive odom goal and Navfn plan separately.",
+      "conclusion": "Same endpoints are not shared global path consumption."
+    },
+    {
+      "id": "F04",
+      "severity": "legacy_geometry_semantics_limit",
+      "evidence": "runtime static box mask/clearance/release use abs(x-box.x),abs(y-box.y),half length/width; yaw_rad not used",
+      "conclusion": "Frozen R2 retains its axis-aligned static-box interpretation; new OBB layouts require explicit limit reporting."
+    },
+    {
+      "id": "F05",
+      "severity": "available_reference_not_complete_solution",
+      "evidence": "Frozen Arena Q1 already provides map_server+StaticLayer and ArenaOccupancyDistanceField for PCT with map hash/unknown handling",
+      "conclusion": "Useful design reference; Arena explicitly discloses different system-stack semantics and does not give PCT a Navfn polyline. Do not re-execute or relabel its frozen study."
+    }
+  ],
+  "required_method_labels": {
+    "frozen_R2": "Keep exact original R2 implementation as required historical-implementation comparator in new common environment; publish common map/guide availability but audit that it ignores them; label axis-aligned-box and straight-guide input-utilization limits. Never replace it with an adapter under the same name.",
+    "new_primary_methods": [
+      "new PCT",
+      "analytic common-input control",
+      "actual TebLocalPlannerROS0.8.4",
+      "actual DWAPlannerROS"
+    ],
+    "optional_sixth_probe": "R2 weights + common-input adapter, separately named and attributed; never substitutes frozen R2"
+  },
+  "implemented_now": {
+    "sources": [
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/static_map_export.py",
+        "sha256": "6a46faff46362bf6a46777fa3eea43d7b125b70251f8ce336d478bf7e92f7c66"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_static_map_export.py",
+        "sha256": "1ceadf7f1f43313cbc84cb05789d9d9f80e7887c8c2926346719cb557d8f8505"
+      }
+    ],
+    "dependencies": [
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+        "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf"
+      }
+    ],
+    "actual_outputs_summary": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/shared_map_route_export_samples_r1/summary.json",
+      "sha256": "2dd1fac2d05ae10df300a556b00f8bd92c3f4590369d230cf538a8dde5ec431b"
+    },
+    "actual_output_layout_count": 6,
+    "actual_output_checks": [
+      {
+        "family": "head_on_yield",
+        "layout_id": "development_a02_development_head_on_yield_000",
+        "shape": [
+          600,
+          800
+        ],
+        "bounds": [
+          -20.0,
+          -15.0,
+          20.0,
+          15.0
+        ],
+        "occupied_cells": 3620,
+        "actor_replicates_same_map_bytes": true,
+        "map_image_sha256": "9c01c7205b37f1c738b13f6b142b763307a0ca1294a16ebbbbb4de37c96b2905",
+        "output": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/shared_map_route_export_samples_r1/development_a02_development_head_on_yield_000"
+      },
+      {
+        "family": "occluded_emergence",
+        "layout_id": "development_a02_development_occluded_emergence_000",
+        "shape": [
+          600,
+          800
+        ],
+        "bounds": [
+          -20.0,
+          -15.0,
+          20.0,
+          15.0
+        ],
+        "occupied_cells": 280,
+        "actor_replicates_same_map_bytes": true,
+        "map_image_sha256": "c259a6511c439eb77e9222f33064b6a37cf14c5a80ed69167b226b9bf3750da8",
+        "output": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/shared_map_route_export_samples_r1/development_a02_development_occluded_emergence_000"
+      },
+      {
+        "family": "sequential_interaction",
+        "layout_id": "development_a02_development_sequential_interaction_000",
+        "shape": [
+          600,
+          800
+        ],
+        "bounds": [
+          -20.0,
+          -15.0,
+          20.0,
+          15.0
+        ],
+        "occupied_cells": 0,
+        "actor_replicates_same_map_bytes": true,
+        "map_image_sha256": "d907f8d8587b15d7fd57ac0ea68279912b613f227b6a3cb2dc6862e9271cb37b",
+        "output": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/shared_map_route_export_samples_r1/development_a02_development_sequential_interaction_000"
+      },
+      {
+        "family": "single_crossing",
+        "layout_id": "development_a02_development_single_crossing_000",
+        "shape": [
+          600,
+          800
+        ],
+        "bounds": [
+          -20.0,
+          -15.0,
+          20.0,
+          15.0
+        ],
+        "occupied_cells": 0,
+        "actor_replicates_same_map_bytes": true,
+        "map_image_sha256": "d907f8d8587b15d7fd57ac0ea68279912b613f227b6a3cb2dc6862e9271cb37b",
+        "output": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/shared_map_route_export_samples_r1/development_a02_development_single_crossing_000"
+      },
+      {
+        "family": "static_avoidance",
+        "layout_id": "development_a02_development_static_avoidance_000",
+        "shape": [
+          600,
+          800
+        ],
+        "bounds": [
+          -20.0,
+          -15.0,
+          20.0,
+          15.0
+        ],
+        "occupied_cells": 4100,
+        "actor_replicates_same_map_bytes": true,
+        "map_image_sha256": "ff72c51eb5b0a1138eb5aecbbd13ce43aa06597271732e6ea2770ba1faf7de25",
+        "output": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/shared_map_route_export_samples_r1/development_a02_development_static_avoidance_000"
+      },
+      {
+        "family": "width_change_corridor",
+        "layout_id": "development_a02_development_width_change_corridor_000",
+        "shape": [
+          600,
+          800
+        ],
+        "bounds": [
+          -20.0,
+          -15.0,
+          20.0,
+          15.0
+        ],
+        "occupied_cells": 1770,
+        "actor_replicates_same_map_bytes": true,
+        "map_image_sha256": "8a53214921b6dfdf77ece31ea7fea573749c8fb39633299df79aaa2c38edf719",
+        "output": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/shared_map_route_export_samples_r1/development_a02_development_width_change_corridor_000"
+      }
+    ],
+    "map_representation": "shared0.05m axis-aligned map/world frame P5 PGM+map_server YAML; 0occupied/254free/205unknown; unknown/outside treated occupied by consumers",
+    "domain": "explicit common40m x30m prior [-20,-15,20,15] for current worlds; not tightened to an artificial corridor around the route or inferred from actor positions",
+    "geometry": "actual static SDF box8corner/cylinder outer48-gon collision projections including model/link/collision transforms and yaw; only body-height band intersecting projections; ground/robot/collision-free cameras omitted",
+    "dynamic_truth_exclusion": "declared V3/Astra actor models excluded even if static=true; unclassified moving/plugin models fail; actor movement/speed variants leave map bytes identical",
+    "no_carving_or_robot_inflation": true,
+    "error_bound": "raster outward bound sqrt(2)*resolution plus cylinder outward Hausdorff error, relative to selected full XY projection; no claim of exact height slice",
+    "route_output": "route_request.json binds map hashes, world-frame start/goal and nonidentity map_from_odom spawn transform; global_path_polyline=null and planner_input_authorized=false"
+  },
+  "tests": [
+    {
+      "attempt": 1,
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/static_map_export_test_01.log",
+        "sha256": "4a41b204f75247e765772c5ccb0ba2873b9ee8894689b78e32ac4af524254d1f"
+      },
+      "result": "12 pass"
+    },
+    {
+      "attempt": 2,
+      "log": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/static_map_export_test_02_domain.log",
+        "sha256": "2445d1a6ddd9f720e6d4db1b5a811a20e0101cbafaff6fb863c5007572921c3a"
+      },
+      "result": "13 pass in0.39s; independent4860pixel SAT comparisons, analytic cylinder coverage/error, tiny/rotated shapes, dynamic actor exclusion, PGMvertical flip, unknown boundaries, no carving, map/odom SE2, immutable output/hash checks"
+    }
+  ],
+  "retained_prototype_outputs": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/shared_map_route_export_samples",
+    "reason": "Initial export inferred known-map extent from static/route bounds plus2m. Self-review identified artificial unknown corridor in open scenes; retained as non-runtime prototype. R1 uses explicit40x30known domain before any newepisode."
+  },
+  "shared_interface_design": {
+    "static_map": {
+      "topic": "/map or one namespaced alias bound identically",
+      "message": "nav_msgs/OccupancyGrid",
+      "source": "same exact map.yaml/map.pgm bytes per layout; complete static prior only",
+      "frame": "map coincides with world; T_map_odom comes from agreed spawn/localization transform, not online Gazebo model truth",
+      "unknown": "occupied/failclosed outside known domain, identical occupancy thresholds and raster interpretation",
+      "baseline_costmaps": "new independent global AND local config with StaticLayer+scan ObstacleLayer+InflationLayer, explicit common static map resolution/frame/unknown rules; planner-specific tunable costs remain declared development factors",
+      "new_PCT_analytic": "new consumer of same decoded grid before any distance transform; remove separate exact-box/circle oracle side channel in these new methods, preserve local sensor dynamic tracking",
+      "consumer_receipts": "bind image/YAML hashes and normalized received grid bytes+info; prove actual subscribers loaded/used correct map before warmup; record topics and readiness in bag"
+    },
+    "global_reference": {
+      "artifact": "one ordered map-frame polyline, arc length, tangent yaw, map hash, goal and planner configuration hash per input layout",
+      "recommended_initial_semantics": "shared static-map-derived reference geometry with common deterministic monotonic projection/pruning; no per-method hidden Navfn path substitute",
+      "generation": "use a declared common static global planner and qualify compound clearance plus Ackermann curvature/rejoin feasibility before freeze; exporter does not invent a straight successful path",
+      "actual_TEB_DWA_adapter": "new nav_core BaseGlobalPlanner adapter returns common reference/pruned suffix to actual local planner setPlan chain; current local planners remain actual binaries",
+      "new_PCT_analytic_adapter": "new route-relative candidate/reference consumer uses same polyline and arclength/tangent; local goals and static clearance derived from same map, no actor truth",
+      "future_dynamic_global_replanning": "requires separate shared trigger/input/cadence protocol for all participating new methods; do not silently give only TEB/DWA a different route provider",
+      "frozen_R2": "available topics do not imply consumption; retain original straight-guide behavior and label limitation"
+    },
+    "validation_before_live_comparison": [
+      "PGM/map_server normalized occupancy equality for every consumer",
+      "map->odom->base/laser roundtrip under nonzero translation/yaw without Gazebo state policy input",
+      "static boxes/walls/cylinders/OBBunknown boundaries give common classification on randomized poses",
+      "route hash and common pruning/projection audit; actual local planners demonstrably consume same geometric reference",
+      "same scan/odom/map/path with changed Gazebo actor truth produces unchanged deployment policy observation/action",
+      "static blocked route and no-feasible-rejoin fail closed; no carved endpoints or forced route success",
+      "separate timing and resource overhead, fresh four-new-method paired qualification and original frozenR2 context row; no replay/relabel of historical results"
+    ]
+  },
+  "ownership_plan_not_implemented": [
+    {
+      "path": "W/scripts/astra_gazebo/static_map_export.py + tests/test_static_map_export.py",
+      "owner": "environment_audit",
+      "status": "implemented offline only"
+    },
+    {
+      "path": "W/src/application/v5_e2e_scope_rl/src/v5_e2e_scope_rl/astra_common_map.py + astra_shared_route.py + tests/test_astra_common_inputs.py",
+      "owner": "future assigned runtime implementer",
+      "purpose": "new grid/route observation interface, no edits to frozen benchmark/arena modules"
+    },
+    {
+      "path": "W/src/application/v5_e2e_scope_rl/scripts/astra_common_input_episode.py",
+      "owner": "future assigned episode implementer",
+      "purpose": "new method identity, common map/path readiness+receipt, retaining frozenR2 node separately"
+    },
+    {
+      "path": "W/src/application/astra_shared_route_planner/{package.xml,CMakeLists.txt,plugin.xml,src/shared_route_planner.cpp}",
+      "owner": "future assigned navigation implementer",
+      "purpose": "new common nav_core path adapter; root owns workspace whitelist/build coordination"
+    },
+    {
+      "path": "W/src/simulation/m2_gazebo/config/astra_common_{global,local}_costmap.yaml + launch/astra_common_map_route_episode.launch",
+      "owner": "root/integration owner",
+      "purpose": "new configs/launch only; map_server, localization bridge, shared route bindings and bag topics"
+    },
+    {
+      "path": "S/contracts/shared_map_route_input_v1.yaml + new downstream run namespaces",
+      "owner": "root + independent reviewer",
+      "purpose": "freeze interface/consumer contracts before live common-input qualification"
+    }
+  ],
+  "no_existing_runtime_launch_plugin_or_historical_file_modified": true,
+  "no_ROS_training_or_newepisode_started": true,
+  "fairness_qualified": false,
+  "formal_result": false
+}

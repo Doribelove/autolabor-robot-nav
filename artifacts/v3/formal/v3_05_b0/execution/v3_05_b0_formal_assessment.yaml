@@ -1,0 +1,211 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-05-B0
+assessment_id: v3_05_b0_formal_assessment_1
+status: v3_05_b0_formal_valid_negative_result
+formal_result: true
+performance_improvement_demonstrated: false
+execution:
+  authorized_units: 270
+  consumed_units: 270
+  completed_units: 270
+  retry_units: 0
+pooled_integration_metrics:
+  episode_count: 270
+  decision_count: 9563
+  goal_success_rate: 0.6777777777777778
+  selected_candidate_accepted_rate: 1.0
+  certified_stop_available_rate: 1.0
+  exact_core_replay_rate: 1.0
+  motion_recovery_after_clear_rate: 1.0
+  yield_before_clear_rate: 1.0
+  conservative_clearance_violation_count: 0
+  minimum_conservative_clearance_m: 0.21100415399575478
+  maximum_segment_boundary_ego_position_jump_m: 0.006000000000000227
+  maximum_segment_boundary_actor_position_jump_m: 0.006750000505684639
+  maximum_selected_trajectory_trace_error_m: 4.440892098500626e-16
+  planner_latency_p99_ms: 18.006274
+  planner_latency_max_ms: 21.234737
+  maximum_goal_time_s: 10.0
+  nonfinite_metric_count: 0
+method_metrics:
+  v3_analytic:
+    episode_count: 90
+    goal_success_rate: 0.9333333333333333
+    restricted_goal_time_mean_s: 8.98611111111111
+    restricted_goal_time_median_s: 9.0
+    decision_count: 3055
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    certified_stop_decision_rate: 0.4055646481178396
+  fixed_v120_shielded:
+    episode_count: 90
+    goal_success_rate: 0.9111111111111111
+    restricted_goal_time_mean_s: 9.094444444444445
+    restricted_goal_time_median_s: 9.0
+    decision_count: 3094
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    certified_stop_decision_rate: 0.4198448610213316
+  fixed_v080_shielded:
+    episode_count: 90
+    goal_success_rate: 0.18888888888888888
+    restricted_goal_time_mean_s: 9.983333333333333
+    restricted_goal_time_median_s: 10.0
+    decision_count: 3414
+    selected_candidate_accepted_rate: 1.0
+    exact_replay_rate: 1.0
+    collision_episode_count: 0
+    certified_stop_decision_rate: 0.37082601054481545
+primary_statistics:
+  comparison: v3_analytic_vs_fixed_v120_shielded
+  statistical_unit_count: 30
+  point_relative_reduction: 0.0120068899811275
+  one_sided_lower_relative_reduction: 0.009646993388223672
+  one_sided_alpha: 0.05
+  bootstrap_resamples: 20000
+  bootstrap_seed: 30505
+  positive_block_fraction: 0.8333333333333334
+secondary_descriptive_statistics:
+  comparison: v3_analytic_vs_fixed_v080_shielded
+  point_relative_reduction: 0.09999220592191681
+  inferential_claim: false
+  actual_teb_claim: false
+formal_gates:
+  complete_paired_matrix_pass: true
+  shared_safety_integrity_pass: true
+  v3_goal_success_pass: false
+  goal_success_noninferiority_pass: true
+  primary_point_effect_pass: false
+  primary_lower_effect_pass: false
+  finite_statistics_pass: true
+block_means_restricted_goal_time_s:
+  formal_6451:
+    v3_analytic: 9.25
+    fixed_v120_shielded: 9.5
+    fixed_v080_shielded: 10.0
+  formal_6452:
+    v3_analytic: 8.5
+    fixed_v120_shielded: 8.583333333333334
+    fixed_v080_shielded: 10.0
+  formal_6453:
+    v3_analytic: 9.333333333333334
+    fixed_v120_shielded: 9.5
+    fixed_v080_shielded: 10.0
+  formal_6454:
+    v3_analytic: 9.5
+    fixed_v120_shielded: 9.583333333333334
+    fixed_v080_shielded: 10.0
+  formal_6455:
+    v3_analytic: 8.666666666666666
+    fixed_v120_shielded: 8.916666666666666
+    fixed_v080_shielded: 10.0
+  formal_6456:
+    v3_analytic: 8.583333333333334
+    fixed_v120_shielded: 8.666666666666666
+    fixed_v080_shielded: 10.0
+  formal_6457:
+    v3_analytic: 9.416666666666666
+    fixed_v120_shielded: 9.583333333333334
+    fixed_v080_shielded: 10.0
+  formal_6458:
+    v3_analytic: 9.583333333333334
+    fixed_v120_shielded: 9.583333333333334
+    fixed_v080_shielded: 10.0
+  formal_6459:
+    v3_analytic: 8.833333333333334
+    fixed_v120_shielded: 8.916666666666666
+    fixed_v080_shielded: 10.0
+  formal_6460:
+    v3_analytic: 8.666666666666666
+    fixed_v120_shielded: 8.75
+    fixed_v080_shielded: 10.0
+  formal_6461:
+    v3_analytic: 9.666666666666666
+    fixed_v120_shielded: 9.666666666666666
+    fixed_v080_shielded: 10.0
+  formal_6462:
+    v3_analytic: 8.166666666666666
+    fixed_v120_shielded: 8.333333333333334
+    fixed_v080_shielded: 9.833333333333334
+  formal_6463:
+    v3_analytic: 8.833333333333334
+    fixed_v120_shielded: 8.916666666666666
+    fixed_v080_shielded: 10.0
+  formal_6464:
+    v3_analytic: 8.666666666666666
+    fixed_v120_shielded: 8.916666666666666
+    fixed_v080_shielded: 10.0
+  formal_6465:
+    v3_analytic: 9.666666666666666
+    fixed_v120_shielded: 9.75
+    fixed_v080_shielded: 10.0
+  formal_6466:
+    v3_analytic: 8.25
+    fixed_v120_shielded: 8.333333333333334
+    fixed_v080_shielded: 9.833333333333334
+  formal_6467:
+    v3_analytic: 9.0
+    fixed_v120_shielded: 9.0
+    fixed_v080_shielded: 10.0
+  formal_6468:
+    v3_analytic: 9.666666666666666
+    fixed_v120_shielded: 9.75
+    fixed_v080_shielded: 10.0
+  formal_6469:
+    v3_analytic: 8.416666666666666
+    fixed_v120_shielded: 8.583333333333334
+    fixed_v080_shielded: 10.0
+  formal_6470:
+    v3_analytic: 9.166666666666666
+    fixed_v120_shielded: 9.166666666666666
+    fixed_v080_shielded: 10.0
+  formal_6471:
+    v3_analytic: 9.083333333333334
+    fixed_v120_shielded: 9.083333333333334
+    fixed_v080_shielded: 10.0
+  formal_6472:
+    v3_analytic: 9.75
+    fixed_v120_shielded: 9.833333333333334
+    fixed_v080_shielded: 10.0
+  formal_6473:
+    v3_analytic: 8.416666666666666
+    fixed_v120_shielded: 8.583333333333334
+    fixed_v080_shielded: 9.916666666666666
+  formal_6474:
+    v3_analytic: 9.166666666666666
+    fixed_v120_shielded: 9.25
+    fixed_v080_shielded: 10.0
+  formal_6475:
+    v3_analytic: 9.166666666666666
+    fixed_v120_shielded: 9.333333333333334
+    fixed_v080_shielded: 10.0
+  formal_6476:
+    v3_analytic: 8.583333333333334
+    fixed_v120_shielded: 8.666666666666666
+    fixed_v080_shielded: 10.0
+  formal_6477:
+    v3_analytic: 8.333333333333334
+    fixed_v120_shielded: 8.5
+    fixed_v080_shielded: 9.916666666666666
+  formal_6478:
+    v3_analytic: 9.166666666666666
+    fixed_v120_shielded: 9.333333333333334
+    fixed_v080_shielded: 10.0
+  formal_6479:
+    v3_analytic: 9.416666666666666
+    fixed_v120_shielded: 9.5
+    fixed_v080_shielded: 10.0
+  formal_6480:
+    v3_analytic: 8.666666666666666
+    fixed_v120_shielded: 8.75
+    fixed_v080_shielded: 10.0
+claim:
+  in_scope_performance_improvement: false
+  actual_teb_superiority: false
+  general_navigation_safety: false
+  cross_family_generalization: false
+  deployment_ready: false
+  real_vehicle_ready: false

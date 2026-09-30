@@ -1,0 +1,144 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-03-B0
+report_id: v3_03_b0_mode_gate_report_1
+status: v3_03_b0_observed_mode_gate_offline_pass
+formal_result: false
+d1_support:
+  cautious:
+    count: 45
+    minimum_mps: 0.1205249999863578
+    maximum_mps: 0.22802500001692705
+  assertive:
+    count: 45
+    minimum_mps: 1.1822999999545614
+    maximum_mps: 1.3500000000171664
+  hesitant:
+    count: 45
+    minimum_mps: 0.31999999996043416
+    maximum_mps: 0.33552500001736707
+derived_thresholds:
+  cautious_hesitant_threshold_mps: 0.2740124999886806
+  hesitant_assertive_threshold_mps: 0.7589124999859642
+training:
+  episode_count: 90
+  classifier_correct_count: 90
+  classifier_accuracy: 1.0
+  ambiguous_count: 0
+  prediction_point_count: 360
+  marginal_coverage: 0.9083333333333333
+  per_horizon_coverage:
+    t1_5: 0.9888888888888889
+    t2_5: 0.9555555555555556
+    t3_5: 0.8777777777777778
+    t4_5: 0.8111111111111111
+  actual_mode_mae_m: 0.16715489079573476
+  mean_full_tube_width_m: 0.958049613252
+calibration:
+  episode_count: 45
+  classifier_correct_count: 45
+  classifier_accuracy: 1.0
+  ambiguous_count: 0
+  prediction_point_count: 180
+  marginal_coverage: 0.9055555555555556
+  per_horizon_coverage:
+    t1_5: 0.9777777777777777
+    t2_5: 0.9555555555555556
+    t3_5: 0.8888888888888888
+    t4_5: 0.8
+  actual_mode_mae_m: 0.19154762220662483
+  mean_full_tube_width_m: 0.958049613252
+fault_injection:
+  ambiguous_case_count: 2
+  ambiguous_stop_rate: 1.0
+  nonfinite_case_count: 1
+  nonfinite_stop_rate: 1.0
+retrospective_a3_descriptive_replay:
+  decision_count: 9
+  classifier_accuracy: 1.0
+  non_stop_selection_count: 0
+  non_stop_selection_rate: 0.0
+  interpretation: observed_mode_gate_correct_but_first_decision_continuous_motion_candidates_remain_unsafe;_closed_loop_yield_then_replan_required
+  used_for_gate_or_threshold: false
+  rows:
+  - decision_id: v3_03_a3_integration_6311_assertive
+    evaluator_policy: assertive
+    observed_speed_mps: 1.3499999999967338
+    inferred_mode: assertive
+    selected_candidate_id: certified_stop_v000
+    non_stop_selected: false
+  - decision_id: v3_03_a3_integration_6311_cautious
+    evaluator_policy: cautious
+    observed_speed_mps: 0.1254000000237654
+    inferred_mode: cautious
+    selected_candidate_id: certified_stop_v000
+    non_stop_selected: false
+  - decision_id: v3_03_a3_integration_6311_hesitant
+    evaluator_policy: hesitant
+    observed_speed_mps: 0.31999999999005047
+    inferred_mode: hesitant
+    selected_candidate_id: certified_stop_v000
+    non_stop_selected: false
+  - decision_id: v3_03_a3_integration_6312_assertive
+    evaluator_policy: assertive
+    observed_speed_mps: 1.3499999999767631
+    inferred_mode: assertive
+    selected_candidate_id: certified_stop_v000
+    non_stop_selected: false
+  - decision_id: v3_03_a3_integration_6312_cautious
+    evaluator_policy: cautious
+    observed_speed_mps: 0.19709999998016148
+    inferred_mode: cautious
+    selected_candidate_id: certified_stop_v000
+    non_stop_selected: false
+  - decision_id: v3_03_a3_integration_6312_hesitant
+    evaluator_policy: hesitant
+    observed_speed_mps: 0.325399999968059
+    inferred_mode: hesitant
+    selected_candidate_id: certified_stop_v000
+    non_stop_selected: false
+  - decision_id: v3_03_a3_integration_6313_assertive
+    evaluator_policy: assertive
+    observed_speed_mps: 1.35
+    inferred_mode: assertive
+    selected_candidate_id: certified_stop_v000
+    non_stop_selected: false
+  - decision_id: v3_03_a3_integration_6313_cautious
+    evaluator_policy: cautious
+    observed_speed_mps: 0.15084999999999793
+    inferred_mode: cautious
+    selected_candidate_id: certified_stop_v000
+    non_stop_selected: false
+  - decision_id: v3_03_a3_integration_6313_hesitant
+    evaluator_policy: hesitant
+    observed_speed_mps: 0.3200000000000003
+    inferred_mode: hesitant
+    selected_candidate_id: certified_stop_v000
+    non_stop_selected: false
+gates:
+  training_classifier_accuracy_pass: true
+  calibration_classifier_accuracy_pass: true
+  training_calibration_ambiguity_pass: true
+  calibration_marginal_coverage_pass: true
+  calibration_per_horizon_coverage_pass: true
+  calibration_width_pass: true
+  calibration_mae_pass: true
+  ambiguous_fault_stop_pass: true
+  nonfinite_fault_stop_pass: true
+  runtime_hidden_policy_firewall_pass: true
+overall_pass: true
+claim:
+  observed_mode_gate_calibration_qualified: true
+  a3_first_decision_motion_restored: false
+  navigation_safety: false
+  performance_improvement: false
+  real_vehicle_ready: false
+next_required_stage: fresh_heldout_mode_gate_prediction_validation_before_closed_loop_yield_then_replan_integration
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_modification_authorized: false

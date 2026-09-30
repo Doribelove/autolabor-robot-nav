@@ -1,0 +1,147 @@
+{
+  "schema": "astra_navigation_n06_manager_independent_review_v3",
+  "status": "independent_r03_review_blocked_late_assessment_reconciliation",
+  "independent_review": true,
+  "r03_release_usable": false,
+  "author_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r03/implementation_report.json",
+    "sha256": "6245fb04b8291c9bb8962c8f503d30e8736cac862a03bfdff65c581e2f328e92",
+    "bytes": 6037
+  },
+  "author_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_r03/source_evidence_manifest.json",
+    "sha256": "cb48b726ab31680eb2ee61c2721f5e2ccfa169c49f33ed16ac82409096b3fa87",
+    "bytes": 164424
+  },
+  "reviewed_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager_r03.py",
+      "sha256": "ced885f3349a098c661b41225491c4ca1928eb71645a78664f29250ea2a95d0f",
+      "bytes": 20761
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_integrity_r03.py",
+      "sha256": "b2e175975f5fddb5228b4cf4051cd41b9f590d54609cca0f059e63fc2024a3d1",
+      "bytes": 24289
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_process_r03.py",
+      "sha256": "15fcd980c017a13b91ce9c292b11464c614ae68550e2e0f8660c27453f399b8a",
+      "bytes": 8077
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/navigation_n06_admin_plan_r03.py",
+      "sha256": "aa70090d5a7815ed2a133af8706ce7eab9b996dab1ffcbb070f5dc7f93175da3",
+      "bytes": 13057
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager_r03.py",
+      "sha256": "36493e1dfdbcd5591e98368470e256bb6f1e8feb72eb93fb318d44215d8e3ab6",
+      "bytes": 48053
+    }
+  ],
+  "old_rosters_unchanged": {
+    "r01": 352,
+    "r02": 733
+  },
+  "r03_resources_rehashed_before_and_at_seal": 764,
+  "r02_two_requested_repairs_pass": true,
+  "author_tests_rerun": {
+    "passed": 62,
+    "log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r03/author_tests_rerun.log",
+      "sha256": "1deb761ec096b16a2e3db89455a0a7fb4d78207d8fdba11fd0b4429de1994dfe",
+      "bytes": 7337
+    }
+  },
+  "independent_focused": {
+    "passed_groups": 16,
+    "rejected_mutations": 66,
+    "result": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r03/focused_result.json",
+      "sha256": "0bed868165c111baa1db8415c5b870ddf8760054fddbcb0eb9d68330206f9585",
+      "bytes": 13844
+    },
+    "script": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r03/focused_checks.py",
+      "sha256": "5576b5ddcf3c01230b035e9d02ba52b696f56b5e915dc8343bca29f673256768",
+      "bytes": 10288
+    }
+  },
+  "findings": [
+    {
+      "id": "N06R03_RETAINED_ASSESSMENT_WORKER_EXIT_NOT_CLOSED",
+      "severity": "blocking_before_one_shot_execution_release",
+      "source": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_navigation_n06_manager_r03.py",
+        "sha256": "ced885f3349a098c661b41225491c4ca1928eb71645a78664f29250ea2a95d0f",
+        "bytes": 20761
+      },
+      "source_lines": [
+        70,
+        78,
+        184,
+        187
+      ],
+      "counterexample": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r03/late_assessment_counterexample.json",
+        "sha256": "7352e9bd3d8cda9b82ad169e019ac689dc94438fb4d42d823d2f9a91354eb408",
+        "bytes": 630
+      },
+      "script": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r03/late_assessment_counterexample.py",
+        "sha256": "8c48e9a0c848712844d6e7eef86df2cf5adc4eefc98dedf8d6ad435a48dcd630",
+        "bytes": 2161
+      },
+      "observed": {
+        "schema": "n06_r03_late_assessment_independent_counterexample_v1",
+        "synthetic_no_ROS": true,
+        "actual_function": "reconcile_worker_exit",
+        "injected_boundary": "assessment.json exists; worker stopped before report/receipt return",
+        "exception": "ValueError: receipt/assessment task or integrity semantics disagree",
+        "assessment_bytes_preserved": true,
+        "receipt_has_assessment": true,
+        "receipt_task_outcome": null,
+        "receipt_integrity_pass": false,
+        "ledger_status": "active",
+        "consumed_receipt_bound": false,
+        "retired_count": 0,
+        "classification": "unresolved_supervisor_closure_after_retained_assessment"
+      },
+      "repair": "New version: read retained canonical assessment to derive task/identity when recovering an interrupted worker, keep overall integrity false and original error; validate sources then bind consumed receipt and retire unrun tail."
+    }
+  ],
+  "inherited_not_rerun": [
+    "r01 disposable PID/starttick/setsid child cleanup; manager/process body equivalence retained.",
+    "r02 eight actual saved conversion diagnostic authentication; unchanged verifier conversion block."
+  ],
+  "coverage_limits": [
+    "Synthetic assessment consistency fixtures are not Gazebo outcomes.",
+    "No actual execution release/runtime closure or physical terminal replay.",
+    "Sequential CSV visibility and sole-writer assumptions remain; N05 outer143 cause unknown."
+  ],
+  "global_readonly_observations": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r03/global_readonly_observations.json",
+    "sha256": "0ab27d9a41de921b270aa4e6e2c6e1305be79d8415be9c268d779f619d5ddc02",
+    "bytes": 861
+  },
+  "resources": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r03/resources.json",
+    "sha256": "fd70cc95e26b02f6347fed5c20505467edfcae895d68f4098e7de177a787915d",
+    "bytes": 168194
+  },
+  "narrative": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_manager_independent/r03/review.md",
+    "sha256": "9931f08c6b649576953a5e9938dab7ae496b9f68d17257ea8f7ebe16532ea08a",
+    "bytes": 2604
+  },
+  "authority": {
+    "execution_release_created": false,
+    "seed_registered": false,
+    "ROS_started": false,
+    "training_started": false,
+    "real_CSV_written": false,
+    "author_source_modified": false
+  },
+  "next": "Versioned r04 late-assessment recovery regression; then separate final source/lifecycle/runtime closure."
+}

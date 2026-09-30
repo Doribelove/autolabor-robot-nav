@@ -67,7 +67,7 @@ DESIGNED
 
 ### 4.3.2 单元消费规则
 
-预算单元在 attempt 身份写入 canonical journal 后即进入不可替换生命周期。其结果可以是成功、碰撞、超时、启动失败或完整性失败，但不得通过以下方式删除不利结果：
+预算单元在越过预注册消费边界后即进入不可替换生命周期。P1 的具体边界是：release 与精确身份验证通过后，先持久化不可变 consumption receipt，再紧接着请求启动该身份的 base roslaunch；终态 journal 随后补充 raw binding 和结果。其结果可以是成功、碰撞、超时、启动失败或完整性失败，但不得通过以下方式删除不利结果：
 
 - 使用同一身份重试；
 - 换 seed 补齐样本；
@@ -165,6 +165,7 @@ ROS 仿真中的 readiness 不等于进程存在。历史执行曾出现如下�
 - `STARTED` 时间与 readiness 证据；
 - 参数事务和导航结果；
 - TTC 语义计数与原始文件绑定；
+- goal dispatch 至 terminal 的 timestamped overlay interval；
 - `TERMINAL` 状态、失败类别、consumed/forfeited 判定；
 - teardown 和进程隔离结果。
 
@@ -191,7 +192,7 @@ assessor 是只读函数：给定冻结 journal、raw resources 和合同，应�
 - `--check-only` 将当前重建结果与持久化报告精确比较；
 - 任一绑定、计数或状态不一致即失败。
 
-I5 的确定性重放覆盖 6 项 journal binding 和 36 项原始资源 binding，最终报告未发现完整性失败。后续离线解释阶段再次从这些资源重建六个单元的语义计数，并与持久化解释报告逐字段比较。
+I5 的确定性重放覆盖 6 项 journal binding 和 36 项原始资源 binding，最终报告未发现完整性失败。后续离线解释阶段再次从这些资源重建六个单元的语义计数，并与持久化解释报告逐字段比较。P1 将统一 raw schema 扩展为每 episode 七项资源：activation、evaluation、trace、clearance、overlay、teardown receipt 和 process log。终态 adapter 对 270 个 journal 的 1,890 项 raw resource 逐项重哈，并从原始内容重算 success、collision、navigation time、minimum footprint clearance、TTC status 和 overlay dwell；一次独立内存重放与持久化 matrix、replay report 和 assessment 三个文件逐字节一致。
 
 ## 4.10 失败证据保全与修复链
 
@@ -207,7 +208,7 @@ I5 的确定性重放覆盖 6 项 journal binding 和 36 项原始资源 binding
 
 一次 episode 完成并不代表实验终态完整。受控 teardown 检查 ROS master、Gazebo、`move_base`、runner 和相关子进程是否退出，并保存结果。下一单元只在前一单元隔离通过后开始。最终报告还需确认没有训练进程、真实车辆接口或非计划参数写入。
 
-I5 六个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态。该结论只说明进程隔离，不说明真实车辆运行安全。
+I5 六个单元和 P1 270 个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态；P1 还确认 11311/11345 无监听。该结论只说明进程隔离，不说明真实车辆运行安全。
 
 ## 4.12 从证据到论文陈述的 claim gate
 
@@ -217,16 +218,16 @@ I5 六个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态。
 |---|---|---|
 | 组件正确性 | 单元测试、schema、静态审查 | 已有 |
 | 执行集成正确性 | 新鲜种子、完整事务、直接计数、确定性重放 | I5 已通过 |
-| 模拟性能提升 | 预注册多种子配对统计、安全非劣和机制门 | 尚未执行 |
+| 模拟性能提升 | 预注册多种子配对统计、安全非劣和机制门 | P1 已完成，但四门未全通过，未证明 |
 | 跨场景泛化 | 独立 held-out 分布与外部复核 | 未建立 |
 | 真实车辆效果 | 现场审批、实车合同和安全验证 | 未授权 |
 | 形式化安全 | 可证明模型、假设和验证 | 不在本研究当前证据中 |
 
 因此，集成通过不能自动升级为性能提升；统计显著也不能自动升级为安全或实车泛化。每个结论只能停留在其证据层级。
 
-## 4.13 最终性能实验的完整性约束
+## 4.13 P1 正式性能实验的完整性约束与终态
 
-未来性能设计预注册 3 个 scene role、每个 30 个全新 scene-seed block，共 90 个 block。circle-contact 与 legacy control 构成主配对；固定 TEB 只作背景参照。确认性分析必须遵循：
+P1 在结果出现前预注册 3 个 scene role、每个 30 个全新 scene-seed block，共 90 个 block。circle-contact 与 legacy control 构成主配对；固定 TEB 只作背景参照。确认性分析遵循：
 
 1. 所有 block 按精确 schedule 运行，不重试、不替换；
 2. 失败和超时以预注册惩罚进入受限完成时间；
@@ -236,7 +237,30 @@ I5 六个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态。
 6. 最后检验错误冲突触发减少这一机制；
 7. 只有全部门通过，才允许在限定的新鲜模拟动态交互分布上写“性能提升”。
 
-样本量和阈值在结果出现前固定。连续效率终点的功效假设要求每个 role 至少约 22 对，预注册取 30 对。二元成功/碰撞非劣采用按 role 分层后的 90-block pooled interval，同时要求每个 role 的 treatment harmful discordance 不多于 control；零 harmful discordance 时 90-block 单侧精确上界约为 3.28%，60 个真实冲突 block 的对应上界约为 4.87%。因此 5 percentage-point margin 只有在伤害差异极低时才可能通过，不会因连续终点显著而自动通过。设计不增加训练预算，也不允许基于 I5 的六个集成单元估计或挑选有利效应量。未来结果若未通过任何一门，应报告未证实或出现权衡，而不是改变指标或追加样本。
+样本量和阈值在结果出现前固定。连续效率终点使用 30 个 semantic-clear pairs 的
+
+\[
+d_b=\log\frac{T_{b,\mathrm{legacy}}}{T_{b,\mathrm{circle}}},
+\qquad
+\Delta_T=1-\exp(-\bar d),
+\]
+
+其中 clean success 使用实测 navigation time，collision、timeout、planner failure 和其他算法失败均保留并赋 80 s。效率通过要求同时满足点估计 \(\Delta_T\ge0.05\)、分层 paired bootstrap 单侧 95% lower 大于 0，以及 fixed-sequence adjusted \(p\le0.05\)。机制门使用同一 30 对的 timestamped non-`NONE` overlay occupancy，要求 relative reduction 至少 30%、paired absolute decrease 的单侧下界大于 0，且顺序调整后显著。
+
+二元成功、碰撞和 algorithmic emergency 非劣采用 90 对 harmful discordance rate 的单侧 Clopper--Pearson 上界；零 harmful discordance 时上界为 0.032738。minimum clearance 使用按 role 分层的 paired bootstrap，并要求 pooled lower 和每个 role 的点估计都不低于 -0.05 m。60 个真实冲突 block 还要求 treatment 的 expected-TTC-status match fraction 至少 0.95 且不低于 control。重采样由 SHA-256 counter RNG 固定：bootstrap 10,000 次、seed 20260721；paired sign-flip 100,000 次、seed 20260722。
+
+唯一 release `05a6efe21a4c110be667b0873d8ac1b26ac692feefea8932f40a506ca9b9027b` 按 exact schedule 完成 270/270，0 forfeiture、0 terminal integrity failure，全部 identity 均为 attempt 1。四门终态是：
+
+| gate | result |
+|---|---|
+| integrity | pass |
+| safety and task noninferiority | pass |
+| efficiency superiority | fail |
+| mechanism reduction | pass |
+
+效率点估计 0.037624、单侧 95% lower 0.027904、adjusted \(p=9.9999\times10^{-6}\)。失败原因不是方向或显著性，而是点估计低于冻结的 0.05 最小效应量。机制 relative reduction 为 1.0；安全/任务非劣各项通过。因为 claim rule 是四门合取，终态必须为 `performance_improvement_demonstrated=false` 和 `claim_authorized=false`。这里 `formal_result=true` 只表示正式研究按预注册规则完整产生了结果，不表示阳性结论。
+
+P1 展示了完整性门的实际作用：即使方向、置信下界和 $p$ 值看似有利，也不能绕过预先冻结的 practical-effect threshold。完成后的 270-unit budget 已耗尽；不得通过重跑、挑 seed、追加样本或改变阈值升级结论。
 
 ## 4.14 有效性威胁与边界
 
@@ -246,10 +270,10 @@ I5 六个单元结束后，ROS/Gazebo/导航相关进程均处于清洁终态。
 - deterministic assessor 可能与 runner 共享概念性错误，因此需要独立测试和人工审查；
 - 模拟器、ROS 和系统库版本仍可能影响外部复现，应在最终环境清单中记录；
 - 配对随机种子减少场景方差，但不能覆盖全部动态参与者行为；
-- 三个 scene role 的结果只适用于其预注册分布；
+- 三个 scene role 实际由三个冻结动态模板在 seeds 5201--5290 上实例化，结果只适用于该随机种子分布，不等于 90 个独立几何或跨时序泛化；
 - 固定超时惩罚影响受限完成时间解释，必须与原始成功率共同报告；
 - 无重试规则保护统计完整性，也会把基础设施故障计入结果，因此执行前的独立 preflight 尤为重要。
 
 ## 4.15 本章小结
 
-本研究以阶段状态机、新鲜种子防火墙、规范路径与哈希闭包、单次打开解析、正进展时钟屏障、原子 journal、直接计数、确定性 assessor 和失败保全构成实验完整性方法。该方法把“运行成功”“证据完整”和“论文可宣称”分成不同判定，并为最后一轮性能实验预先限定了不能事后修改的统计与结论边界。
+本研究以阶段状态机、新鲜种子防火墙、规范路径与哈希闭包、单次打开解析、正进展时钟屏障、原子 journal、直接计数、确定性 assessor 和失败保全构成实验完整性方法。该方法把“运行成功”“证据完整”和“论文可宣称”分成不同判定。P1 的 270 个单元全部成功且三个子门通过，但 3.762% 的效率点估计未达到预注册 5% 最小效应量，最终 claim 仍失败关闭；这一终态说明完整性方法不仅约束执行，也约束结果出现后的叙述。

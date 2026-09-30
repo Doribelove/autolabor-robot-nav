@@ -1,0 +1,47 @@
+{
+  "schema": "astra_passive_sweep_q05_design_v1",
+  "stage": "astra_passive_sweep_q05",
+  "status": "offline_design_no_release",
+  "execution_authorized": false,
+  "training_authorized": false,
+  "real_vehicle_authorized": false,
+  "maximum_episodes": 2,
+  "retry_allowed": false,
+  "resume_allowed": false,
+  "units": [
+    {
+      "run_id": "passive_sweep_q05_static",
+      "seed": 260926031,
+      "attempt": 1,
+      "actor": false
+    },
+    {
+      "run_id": "passive_sweep_q05_actor",
+      "seed": 260926032,
+      "attempt": 1,
+      "actor": true
+    }
+  ],
+  "physical_parameter_decision": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_p07_kd6_simulation_parameter_decision.json",
+    "sha256": "d4b81a4b95a9e0d6b9774aa9ce8f877a39416bbe22fd5e22eff9892cd3867dfd"
+  },
+  "predecessor_terminal": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/passive_q04_result_independent/terminal_failure_audit.json",
+    "sha256": "e489dbc848f6324a555eaa1343a3b576d65c29e053aad8599360abe598ed7318"
+  },
+  "changes": [
+    "Compare native body mass/COM/inertia/collision geometry to independently preserved actual URDF-to-SDF conversion output; retain original1e-7 comparison tolerance.",
+    "Preserve original URDF fixed-joint/collision correspondence with explicit installed-converter quantization; evaluate point-motion envelope about actual native COM.",
+    "Bind converter executable, actual offline process maps, reproducible output, libraries and actual Gazebo libsdformat9 mapping.",
+    "Share exact read-only content archive using validated CAS+per-run hard links; no source/data deletion or overwriting.",
+    "New stage namespaces/seeds only; same Kd6 physical driver, ten-second command program, camera, actor semantics, node/service rules and numerical gates."
+  ],
+  "retained_result": "Q04 remains original terminal integrity failure. New offline diagnosis is not historical qualification.",
+  "scope": "Bounded passive geometry/evidence integration, not navigation performance, formal continuous physical safety, generalization or deployment",
+  "terminal_rule": "Any failed first attempt stops this two-unit stage and retires unrun unit; no retries",
+  "figure_selection": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/visuals/plots/geometry_contract/F04_selection_preregistration.json",
+    "sha256": "7333a9078e3d0c7a73a4b75515b1fc77a0d5ef811e29e93576fd68cfb4eec0d0"
+  }
+}

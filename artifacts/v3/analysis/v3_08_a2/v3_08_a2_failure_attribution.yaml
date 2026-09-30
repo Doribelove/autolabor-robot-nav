@@ -1,0 +1,53 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-08-A2
+status: r1_boundary_failure_attribution_pass
+r1_summary:
+  episodes: 18
+  goals: 17
+  goal_success_rate: 0.9444444444444444
+  safety_violation_count: 0
+  exact_replay_rate: 1.0
+failed_units:
+- unit_id: v3_08_a1_r1_repair_6683_assertive
+  policy: assertive
+  goal_x_m: 5.2
+  final_time_s: 12.0
+  final_x_m: 5.0
+  goal_shortfall_m: 0.20000000000000018
+  last_selected_candidate_id: cleared_straight_v120
+  last_segment_speed_mps: 1.1999999999999993
+  projected_x_at_12_5_s_m: 5.6
+  projected_goal_reached_at_12_5_s: true
+  selected_candidate_accepted: true
+  last_segment_clearance_m: 5.8128554901759735
+receipt_stage_identity:
+  expected_stage: V3-08-A1-R1
+  legacy_stage_observed: V3-08-A1
+  mismatch_count: 18
+  future_repair_required: true
+  behavioral_semantics_affected: false
+attribution:
+  safety_failure: false
+  selection_failure: false
+  predictor_failure: false
+  episode_boundary_truncation: true
+  next_half_second_existing_recovery_motion_sufficient: true
+future_design:
+  factor_id: maximum_episode_duration
+  old_value_s: 12.0
+  future_value_s: 12.5
+  derived_maximum_decisions_old: 23
+  derived_maximum_decisions_future: 24
+  scene_changed: false
+  planner_changed: false
+  predictor_changed: false
+  verifier_or_ranker_changed: false
+  qualification_gates_changed: false
+mandatory_nonbehavioral_integrity_repair:
+  receipt_stage_must_equal_active_stage: true
+simulation_authorized: false
+performance_claim_authorized: false
+runtime_ready: false
+real_vehicle_authorized: false
+overall_pass: true

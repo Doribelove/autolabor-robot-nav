@@ -1,0 +1,5474 @@
+schema_version: '1.0'
+stage: astra_common_navigation_smoke
+simulation_only: true
+split: development
+method: pct_scope_rl
+scene_id: navigation_n01_clear
+seed: 260926026
+scene_manifest_path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n01_clear_r03/scene_manifest.yaml
+scene_manifest_sha256: c6c9807b55a218340aa11b11b0974761b1e7dfc6fa5e1b2a57d018d7d66e5596
+actor_checkpoint_path: /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/artifacts/gazebo_pct_teb_dwa_benchmark/development/training/pct_benchmark_r1_seed9701/actor_final.pt
+actor_checkpoint_sha256: deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8
+shared_sensor_policy: LaserScan+Odometry+TF; no Gazebo actor state for planning
+traditional_planner_oracle_actor_track: false
+warmup:
+  duration_s: 2.46
+  gate_pose:
+    x_m: -3.990977375705377
+    y_m: -0.000617109606227435
+    yaw_rad: 0.0004938837433938576
+  gate_speed_mps: 0.8004103022812534
+  trace_tail: []
+  shared_actual_odom_gate_source_ns: 7460000000
+  shared_execution_protocol: astra_common_navigation_v1
+gate_valid: true
+message_contract_pass: true
+decision_trace:
+- time_s: 7.462
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 3.42901
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.184844493865967
+  - 4.129889488220215
+  - 5.400036811828613
+  - 5.985439300537109
+  - 4.372095108032227
+  - 4.372648239135742
+  - 4.372603893280029
+  - 4.480942726135254
+  ego_pose: &id001
+    x_m: -3.990977375705377
+    y_m: -0.000617109606227435
+    yaw_rad: 0.0004938837433938576
+  actor_poses: []
+  conservative_clearance_m: 4.458256398052972
+  candidate_safety_diagnostics:
+    scan_minimum_m: 5.349088668823242
+    scan_point_count: 4
+    static_point_count: 4
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 4.14020678421788
+      backup_clearance_m: 3.7971459125949902
+    - action: 1
+      full_clearance_m: 3.353982984076734
+      backup_clearance_m: 3.7971459125949902
+    - action: 2
+      full_clearance_m: 2.4916809784804306
+      backup_clearance_m: 3.6295682733765178
+    - action: 3
+      full_clearance_m: 1.7911124696746046
+      backup_clearance_m: 3.494816204198308
+    - action: 4
+      full_clearance_m: 2.7194485205816448
+      backup_clearance_m: 3.7758709916354514
+    - action: 5
+      full_clearance_m: 2.761274774041227
+      backup_clearance_m: 3.7880206351907297
+    - action: 6
+      full_clearance_m: 1.2088207695279132
+      backup_clearance_m: 3.4630978902016007
+    - action: 7
+      full_clearance_m: 1.280903380935587
+      backup_clearance_m: 3.49197758509521
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 1
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 1
+  selected_preview_after_one_period:
+    x_m: -3.7721248268264493
+    y_m: -0.0005090218813475287
+    longitudinal_velocity_mps: 0.9504103022812534
+  selected_preview_terminal:
+    x_m: -0.5282210999934529
+    y_m: 4.044906811834511e-05
+    longitudinal_velocity_mps: 1.2
+- time_s: 7.712
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.39789
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.236774206161499
+  - 4.153966426849365
+  - 5.255600929260254
+  - 5.995718002319336
+  - 4.38538932800293
+  - 4.385933876037598
+  - 4.105254173278809
+  - 4.1930999755859375
+  ego_pose: &id002
+    x_m: -3.7932568656697994
+    y_m: -0.0005171945753510694
+    yaw_rad: 0.0004997320127246073
+  actor_poses: []
+  conservative_clearance_m: 4.284205957115978
+  candidate_safety_diagnostics:
+    scan_minimum_m: 5.218410968780518
+    scan_point_count: 4
+    static_point_count: 4
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 3.927728728017298
+      backup_clearance_m: 3.5649753697726387
+    - action: 1
+      full_clearance_m: 3.173825639932103
+      backup_clearance_m: 3.5649753697726387
+    - action: 2
+      full_clearance_m: 2.350082012314014
+      backup_clearance_m: 3.437513591352192
+    - action: 3
+      full_clearance_m: 1.6707634567198957
+      backup_clearance_m: 3.2379815013108697
+    - action: 4
+      full_clearance_m: 2.5364462149967317
+      backup_clearance_m: 3.557611274324895
+    - action: 5
+      full_clearance_m: 2.5746472048659648
+      backup_clearance_m: 3.5733839958601825
+    - action: 6
+      full_clearance_m: 0.991872010293779
+      backup_clearance_m: 3.197790670240925
+    - action: 7
+      full_clearance_m: 1.0506031204603588
+      backup_clearance_m: 3.2257339058294257
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 2
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 2
+  selected_preview_after_one_period:
+    x_m: -3.56413673947041
+    y_m: -0.000402942301704019
+    longitudinal_velocity_mps: 1.012231403016179
+  selected_preview_terminal:
+    x_m: -0.2970500739934618
+    y_m: 1.6765116461089517e-05
+    longitudinal_velocity_mps: 1.2
+- time_s: 7.962
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.587102
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.395045280456543
+  - 4.244747161865234
+  - 5.269448757171631
+  - 5.864898204803467
+  - 4.432455062866211
+  - 4.4328179359436035
+  - 3.773084878921509
+  - 3.838456392288208
+  ego_pose: &id003
+    x_m: -3.5823796881603234
+    y_m: -0.0004213304475117723
+    yaw_rad: 0.0007935874860624671
+  actor_poses: []
+  conservative_clearance_m: 4.100562597642958
+  candidate_safety_diagnostics:
+    scan_minimum_m: 5.064291000366211
+    scan_point_count: 4
+    static_point_count: 4
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 3.584357683832067
+      backup_clearance_m: 3.1635826449811555
+    - action: 1
+      full_clearance_m: 2.901955984040866
+      backup_clearance_m: 3.1635826449811555
+    - action: 2
+      full_clearance_m: 2.16492923834371
+      backup_clearance_m: 3.1563427763070013
+    - action: 3
+      full_clearance_m: 1.5351991559794094
+      backup_clearance_m: 2.80563870391951
+    - action: 4
+      full_clearance_m: 2.2767227448192475
+      backup_clearance_m: 3.1460238081866883
+    - action: 5
+      full_clearance_m: 2.30875052065282
+      backup_clearance_m: 3.1747091421518845
+    - action: 6
+      full_clearance_m: 0.7073862873962433
+      backup_clearance_m: 2.728918189656261
+    - action: 7
+      full_clearance_m: 0.750179045184856
+      backup_clearance_m: 2.7594689094587537
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 3
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 3
+  selected_preview_after_one_period:
+    x_m: -3.281404208069289
+    y_m: -0.0005534008760236866
+    longitudinal_velocity_mps: 1.1660967043958004
+  selected_preview_terminal:
+    x_m: 0.014357763062311957
+    y_m: 7.23400264473471e-05
+    longitudinal_velocity_mps: 1.2
+- time_s: 8.212
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.947016
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.5255000591278076
+  - 4.3288655281066895
+  - 5.257244110107422
+  - 5.754016876220703
+  - 4.4837327003479
+  - 4.485360622406006
+  - 3.451202392578125
+  - 3.4895927906036377
+  ego_pose: &id004
+    x_m: -3.296775284724842
+    y_m: -0.00021679055553714918
+    yaw_rad: 0.0011359802476363988
+  actor_poses: []
+  conservative_clearance_m: 3.8554921664808717
+  candidate_safety_diagnostics:
+    scan_minimum_m: 4.894058704376221
+    scan_point_count: 5
+    static_point_count: 5
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 3.256235599204521
+      backup_clearance_m: 2.804138093636239
+    - action: 1
+      full_clearance_m: 2.6361709429021123
+      backup_clearance_m: 2.804138093636239
+    - action: 2
+      full_clearance_m: 1.9666754551927088
+      backup_clearance_m: 2.804138093636239
+    - action: 3
+      full_clearance_m: 1.4430763616619675
+      backup_clearance_m: 2.519070937598415
+    - action: 4
+      full_clearance_m: 2.0016185944882867
+      backup_clearance_m: 2.772218915233565
+    - action: 5
+      full_clearance_m: 2.0296784359256037
+      backup_clearance_m: 2.8047668822310285
+    - action: 6
+      full_clearance_m: 0.4685248151966271
+      backup_clearance_m: 2.422331382696527
+    - action: 7
+      full_clearance_m: 0.49798480541794615
+      backup_clearance_m: 2.4564047352114073
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 4
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 4
+  selected_preview_after_one_period:
+    x_m: -3.002786804220476
+    y_m: 0.00011952343498704773
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 0.29721265810915
+    y_m: -0.00018079646098752479
+    longitudinal_velocity_mps: 1.2
+- time_s: 8.462
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.82096
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.5877366065979004
+  - 4.367879390716553
+  - 4.991526126861572
+  - 5.665589809417725
+  - 4.0957255363464355
+  - 4.143007755279541
+  - 3.0730104446411133
+  - 3.1181626319885254
+  ego_pose: &id005
+    x_m: -2.9950344474357493
+    y_m: 0.0008730072743864609
+    yaw_rad: 0.0025772462164671693
+  actor_poses: []
+  conservative_clearance_m: 3.6014119767439787
+  candidate_safety_diagnostics:
+    scan_minimum_m: 4.502861976623535
+    scan_point_count: 4
+    static_point_count: 4
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.9602553801839617
+      backup_clearance_m: 2.514095068363669
+    - action: 1
+      full_clearance_m: 2.3893256242815233
+      backup_clearance_m: 2.514095068363669
+    - action: 2
+      full_clearance_m: 1.7790034087155893
+      backup_clearance_m: 2.514095068363669
+    - action: 3
+      full_clearance_m: 1.379172051377053
+      backup_clearance_m: 2.2845833638134327
+    - action: 4
+      full_clearance_m: 1.7251932746204495
+      backup_clearance_m: 2.47058377953185
+    - action: 5
+      full_clearance_m: 1.7573571985191148
+      backup_clearance_m: 2.5067852697486095
+    - action: 6
+      full_clearance_m: 0.2111702344582012
+      backup_clearance_m: 2.181521746720968
+    - action: 7
+      full_clearance_m: 0.2441695410008043
+      backup_clearance_m: 2.217966107886322
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 5
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 5
+  selected_preview_after_one_period:
+    x_m: -2.6951481483089714
+    y_m: 0.0016394109335674256
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 0.604850082781173
+    y_m: -0.0004479153325019837
+    longitudinal_velocity_mps: 1.2
+- time_s: 8.712
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.37142
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.606314182281494
+  - 4.3795247077941895
+  - 4.776083469390869
+  - 5.586983680725098
+  - 3.753091335296631
+  - 3.8088085651397705
+  - 2.7598140239715576
+  - 2.8033878803253174
+  ego_pose: &id006
+    x_m: -2.7217876398434697
+    y_m: 0.00128989608353265
+    yaw_rad: 0.0019980274935849376
+  actor_poses: []
+  conservative_clearance_m: 3.373817666279055
+  candidate_safety_diagnostics:
+    scan_minimum_m: 4.292019367218018
+    scan_point_count: 5
+    static_point_count: 5
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.7245526363869677
+      backup_clearance_m: 2.2935436105182223
+    - action: 1
+      full_clearance_m: 2.1797583213770375
+      backup_clearance_m: 2.2935436105182223
+    - action: 2
+      full_clearance_m: 1.6322325553156687
+      backup_clearance_m: 2.2935436105182223
+    - action: 3
+      full_clearance_m: 1.3252894660722987
+      backup_clearance_m: 2.0816202752391657
+    - action: 4
+      full_clearance_m: 1.4927655573856402
+      backup_clearance_m: 2.2460477329884165
+    - action: 5
+      full_clearance_m: 1.5294760561080238
+      backup_clearance_m: 2.2834420999558973
+    - action: 6
+      full_clearance_m: -0.0011887018657860127
+      backup_clearance_m: 1.9734096056289765
+    - action: 7
+      full_clearance_m: 0.03459075235456133
+      backup_clearance_m: 2.0102224700648184
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 6
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 6
+  selected_preview_after_one_period:
+    x_m: -2.408201723947455
+    y_m: 0.0019141802702968922
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 0.8917959118690346
+    y_m: -0.0005285964917536993
+    longitudinal_velocity_mps: 1.2
+- time_s: 8.962
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.538709
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.612711191177368
+  - 4.3404927253723145
+  - 4.586784839630127
+  - 5.563865661621094
+  - 3.4102251529693604
+  - 3.4711968898773193
+  - 2.4376938343048096
+  - 2.473248243331909
+  ego_pose: &id007
+    x_m: -2.405835456550537
+    y_m: 0.0019116860742978633
+    yaw_rad: 0.0019775253624726165
+  actor_poses: []
+  conservative_clearance_m: 3.1139092365760015
+  candidate_safety_diagnostics:
+    scan_minimum_m: 4.088300704956055
+    scan_point_count: 5
+    static_point_count: 5
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.490334577598786
+      backup_clearance_m: 2.072592101719216
+    - action: 1
+      full_clearance_m: 1.9713056267250062
+      backup_clearance_m: 2.072592101719216
+    - action: 2
+      full_clearance_m: 1.5049520462641683
+      backup_clearance_m: 2.072592101719216
+    - action: 3
+      full_clearance_m: 1.3093688914354606
+      backup_clearance_m: 1.8834440407182234
+    - action: 4
+      full_clearance_m: 1.2625595660097608
+      backup_clearance_m: 2.0209467798419474
+    - action: 5
+      full_clearance_m: 1.3029041405366115
+      backup_clearance_m: 2.0576119339679297
+    - action: 6
+      full_clearance_m: -0.21707150695180866
+      backup_clearance_m: 1.7630663879054058
+    - action: 7
+      full_clearance_m: -0.18544126910331604
+      backup_clearance_m: 1.7968466167198716
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 7
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 7
+  selected_preview_after_one_period:
+    x_m: -2.096388786765322
+    y_m: 0.0025232415288035815
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 1.2036078128759358
+    y_m: -0.0006311085645394544
+    longitudinal_velocity_mps: 1.2
+- time_s: 9.212
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.513448
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.6142492294311523
+  - 4.0836181640625
+  - 4.460768699645996
+  - 5.563784122467041
+  - 3.1039397716522217
+  - 3.1659011840820312
+  - 2.2672274112701416
+  - 2.255476236343384
+  ego_pose: &id008
+    x_m: -2.1299327753472164
+    y_m: 0.0024503289411510667
+    yaw_rad: 0.001961985332009385
+  actor_poses: []
+  conservative_clearance_m: 2.8941209645588115
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.8864023685455322
+    scan_point_count: 5
+    static_point_count: 5
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.2853295419546678
+      backup_clearance_m: 1.8895333147213282
+    - action: 1
+      full_clearance_m: 1.799413355992919
+      backup_clearance_m: 1.8895333147213282
+    - action: 2
+      full_clearance_m: 1.4206815324548683
+      backup_clearance_m: 1.8895333147213282
+    - action: 3
+      full_clearance_m: 1.3091928713688237
+      backup_clearance_m: 1.7223421649736843
+    - action: 4
+      full_clearance_m: 1.057911427755008
+      backup_clearance_m: 1.83311701921092
+    - action: 5
+      full_clearance_m: 1.0990804791326005
+      backup_clearance_m: 1.8671885873436977
+    - action: 6
+      full_clearance_m: -0.3313253632186306
+      backup_clearance_m: 1.5901631084036993
+    - action: 7
+      full_clearance_m: -0.3302353948051163
+      backup_clearance_m: 1.620354442481673
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 8
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 8
+  selected_preview_after_one_period:
+    x_m: -1.8083310719420977
+    y_m: 0.003080459059784369
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 1.49166436486206
+    y_m: -0.0007220970718441893
+    longitudinal_velocity_mps: 1.2
+- time_s: 9.462
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 3.261818
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.6142492294311523
+  - 3.8427045345306396
+  - 4.367027282714844
+  - 5.563630104064941
+  - 2.80045485496521
+  - 2.8570609092712402
+  - 2.2999961376190186
+  - 2.1535515785217285
+  ego_pose: &id009
+    x_m: -1.8130389914898926
+    y_m: 0.003064198047897343
+    yaw_rad: 0.0019447140295622831
+  actor_poses: []
+  conservative_clearance_m: 2.651668628759439
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.488297700881958
+    scan_point_count: 6
+    static_point_count: 6
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.069890369889771
+      backup_clearance_m: 1.7152380355602346
+    - action: 1
+      full_clearance_m: 1.6388047942256776
+      backup_clearance_m: 1.7152380355602346
+    - action: 2
+      full_clearance_m: 1.3581880788883187
+      backup_clearance_m: 1.7152380355602346
+    - action: 3
+      full_clearance_m: 1.3090911130488037
+      backup_clearance_m: 1.5755820583945512
+    - action: 4
+      full_clearance_m: 0.8555009470739943
+      backup_clearance_m: 1.6537594373973823
+    - action: 5
+      full_clearance_m: 0.8932744369938865
+      backup_clearance_m: 1.6842951893756348
+    - action: 6
+      full_clearance_m: -0.3099905155841891
+      backup_clearance_m: 1.4304811181872386
+    - action: 7
+      full_clearance_m: -0.39761201793427225
+      backup_clearance_m: 1.4557831809661526
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 9
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 9
+  selected_preview_after_one_period:
+    x_m: -1.4962323663471253
+    y_m: 0.003679612116836701
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 1.8037615637298587
+    y_m: -0.0008202058160488055
+    longitudinal_velocity_mps: 1.2
+- time_s: 9.712
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 2.153919
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.4460771083831787
+  - 3.6618857383728027
+  - 4.304286479949951
+  - 5.563760280609131
+  - 2.571446180343628
+  - 2.6202595233917236
+  - 2.3851585388183594
+  - 2.2080435752868652
+  ego_pose: &id010
+    x_m: -1.5008923412685111
+    y_m: 0.0036545524852832946
+    yaw_rad: 0.0019071853213854244
+  actor_poses: []
+  conservative_clearance_m: 2.4255433049957213
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.301260471343994
+    scan_point_count: 6
+    static_point_count: 6
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.887885322521663
+      backup_clearance_m: 1.5795990223332805
+    - action: 1
+      full_clearance_m: 1.5182592336361864
+      backup_clearance_m: 1.5795990223332805
+    - action: 2
+      full_clearance_m: 1.3163617266565568
+      backup_clearance_m: 1.5795990223332805
+    - action: 3
+      full_clearance_m: 1.3091788549406131
+      backup_clearance_m: 1.4701130896195154
+    - action: 4
+      full_clearance_m: 0.7027201937278087
+      backup_clearance_m: 1.5134911935301578
+    - action: 5
+      full_clearance_m: 0.7355153028640491
+      backup_clearance_m: 1.5399053903504871
+    - action: 6
+      full_clearance_m: -0.25360535485278135
+      backup_clearance_m: 1.3136790615003986
+    - action: 7
+      full_clearance_m: -0.36086490639212715
+      backup_clearance_m: 1.3334028794442432
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 10
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 10
+  selected_preview_after_one_period:
+    x_m: -1.2080964310512332
+    y_m: 0.004213938481093019
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 2.09189597925946
+    y_m: -0.0009022830307808334
+    longitudinal_velocity_mps: 1.2
+- time_s: 9.962
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 2.022919
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.1841001510620117
+  - 3.5184500217437744
+  - 4.29496955871582
+  - 5.564062118530273
+  - 2.399458885192871
+  - 2.4338700771331787
+  - 2.5874760150909424
+  - 2.3140041828155518
+  ego_pose: &id011
+    x_m: -1.2343570287820465
+    y_m: 0.004115821039547287
+    yaw_rad: 0.0018298038980894874
+  actor_poses: []
+  conservative_clearance_m: 2.2365985587494284
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.145267963409424
+    scan_point_count: 7
+    static_point_count: 7
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.714150826762085
+      backup_clearance_m: 1.4659593934844466
+    - action: 1
+      full_clearance_m: 1.423210575321726
+      backup_clearance_m: 1.4659593934844466
+    - action: 2
+      full_clearance_m: 1.310383577409798
+      backup_clearance_m: 1.4659593934844466
+    - action: 3
+      full_clearance_m: 1.3094903806442857
+      backup_clearance_m: 1.3935784181067725
+    - action: 4
+      full_clearance_m: 0.5880900098048067
+      backup_clearance_m: 1.3955753226303473
+    - action: 5
+      full_clearance_m: 0.6118978257176848
+      backup_clearance_m: 1.4163360401336869
+    - action: 6
+      full_clearance_m: -0.11854078860120176
+      backup_clearance_m: 1.2266461719788437
+    - action: 7
+      full_clearance_m: -0.29031509500161873
+      backup_clearance_m: 1.2390410856608236
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 11
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 11
+  selected_preview_after_one_period:
+    x_m: -0.8960653242555319
+    y_m: 0.004722872285210382
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 2.4039256708793935
+    y_m: -0.0009487164356403508
+    longitudinal_velocity_mps: 1.2
+- time_s: 10.212
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 3.096609
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.980190634727478
+  - 3.4388046264648438
+  - 4.295299053192139
+  - 5.565064430236816
+  - 2.3259096145629883
+  - 2.3251657485961914
+  - 2.783341884613037
+  - 2.438666582107544
+  ego_pose: &id012
+    x_m: -0.9173836913040381
+    y_m: 0.004631391612308435
+    yaw_rad: 0.0016700154042149995
+  actor_poses: []
+  conservative_clearance_m: 2.021670312691949
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.9736852645874023
+    scan_point_count: 8
+    static_point_count: 8
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.5782204677825162
+      backup_clearance_m: 1.3947868826709628
+    - action: 1
+      full_clearance_m: 1.3701198836377952
+      backup_clearance_m: 1.3947868826709628
+    - action: 2
+      full_clearance_m: 1.3106065300554248
+      backup_clearance_m: 1.3947868826709628
+    - action: 3
+      full_clearance_m: 1.3101607729521336
+      backup_clearance_m: 1.3409363027891215
+    - action: 4
+      full_clearance_m: 0.5389653068499471
+      backup_clearance_m: 1.3209441345311634
+    - action: 5
+      full_clearance_m: 0.5395271689570948
+      backup_clearance_m: 1.3357334594032628
+    - action: 6
+      full_clearance_m: 0.011759201918947082
+      backup_clearance_m: 1.1867848310711449
+    - action: 7
+      full_clearance_m: -0.20691032695462175
+      backup_clearance_m: 1.1712575999522157
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 12
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 12
+  selected_preview_after_one_period:
+    x_m: -0.607908599430816
+    y_m: 0.005145930452100189
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 2.6920809548818445
+    y_m: -0.001004195678700374
+    longitudinal_velocity_mps: 1.2
+- time_s: 10.462
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 2.67934
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.8078793287277222
+  - 3.364579677581787
+  - 4.297146797180176
+  - 5.566897869110107
+  - 2.3284785747528076
+  - 2.2633473873138428
+  - 3.0464158058166504
+  - 2.646141767501831
+  ego_pose: &id013
+    x_m: -0.602824471825568
+    y_m: 0.005123532637460294
+    yaw_rad: 0.0015606858445978218
+  actor_poses: []
+  conservative_clearance_m: 1.8289647674918075
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.6442530155181885
+    scan_point_count: 8
+    static_point_count: 8
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.4634199229586065
+      backup_clearance_m: 1.3406878292229525
+    - action: 1
+      full_clearance_m: 1.320683207073425
+      backup_clearance_m: 1.3406878292229525
+    - action: 2
+      full_clearance_m: 1.3118580020062804
+      backup_clearance_m: 1.3406878292229525
+    - action: 3
+      full_clearance_m: 1.3113932994019248
+      backup_clearance_m: 1.3122596046647077
+    - action: 4
+      full_clearance_m: 0.5408847501078662
+      backup_clearance_m: 1.28252108786958
+    - action: 5
+      full_clearance_m: 0.4979597863346868
+      backup_clearance_m: 1.2652581343338607
+    - action: 6
+      full_clearance_m: 0.18604987947985335
+      backup_clearance_m: 1.1838285595025269
+    - action: 7
+      full_clearance_m: -0.06711414149190931
+      backup_clearance_m: 1.1347308957987041
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 13
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 13
+  selected_preview_after_one_period:
+    x_m: -0.29576485837768507
+    y_m: 0.005598224705528883
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 3.004222683519896
+    y_m: -0.0011165733925317086
+    longitudinal_velocity_mps: 1.2
+- time_s: 10.712
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 2.055483
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.7008811235427856
+  - 3.3525876998901367
+  - 4.298598289489746
+  - 5.568975448608398
+  - 2.4341163635253906
+  - 2.2968814373016357
+  - 3.298460006713867
+  - 2.9136669635772705
+  ego_pose: &id014
+    x_m: -0.336310550211745
+    y_m: 0.005499900747910947
+    yaw_rad: 0.0014548340779900872
+  actor_poses: []
+  conservative_clearance_m: 1.6853473397196397
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.574274778366089
+    scan_point_count: 10
+    static_point_count: 10
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.3921394066821033
+      backup_clearance_m: 1.313922875013854
+    - action: 1
+      full_clearance_m: 1.3127213760328122
+      backup_clearance_m: 1.313922875013854
+    - action: 2
+      full_clearance_m: 1.3128392478619855
+      backup_clearance_m: 1.313922875013854
+    - action: 3
+      full_clearance_m: 1.312785388396183
+      backup_clearance_m: 1.3125762343845895
+    - action: 4
+      full_clearance_m: 0.6067348629878995
+      backup_clearance_m: 1.281965004327815
+    - action: 5
+      full_clearance_m: 0.5158872261175644
+      backup_clearance_m: 1.23618589128698
+    - action: 6
+      full_clearance_m: 0.350066994252289
+      backup_clearance_m: 1.2167907713275126
+    - action: 7
+      full_clearance_m: 0.10698908566759102
+      backup_clearance_m: 1.1372876847298765
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 14
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 14
+  selected_preview_after_one_period:
+    x_m: -0.007645899801875133
+    y_m: 0.005971456519841377
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 3.29234016990083
+    y_m: -0.0011631706842306936
+    longitudinal_velocity_mps: 1.2
+- time_s: 10.962
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 2.312668
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.6266392469406128
+  - 3.353943109512329
+  - 4.300262928009033
+  - 5.570645809173584
+  - 2.7243592739105225
+  - 2.4867727756500244
+  - 3.7125136852264404
+  - 3.36165189743042
+  ego_pose: &id015
+    x_m: -0.019384017316751417
+    y_m: 0.0058439496035196945
+    yaw_rad: 0.0011749756366680564
+  actor_poses: []
+  conservative_clearance_m: 1.5429535228438072
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.4459431171417236
+    scan_point_count: 10
+    static_point_count: 10
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.3426900412714566
+      backup_clearance_m: 1.31365121868353
+    - action: 1
+      full_clearance_m: 1.3136537871977754
+      backup_clearance_m: 1.31365121868353
+    - action: 2
+      full_clearance_m: 1.3139609710379063
+      backup_clearance_m: 1.31365121868353
+    - action: 3
+      full_clearance_m: 1.3139045549791
+      backup_clearance_m: 1.3140287063182967
+    - action: 4
+      full_clearance_m: 0.7788052816621829
+      backup_clearance_m: 1.3187955614698983
+    - action: 5
+      full_clearance_m: 0.6226335418580455
+      backup_clearance_m: 1.2404404138647354
+    - action: 6
+      full_clearance_m: 0.588710618359837
+      backup_clearance_m: 1.2998091246455505
+    - action: 7
+      full_clearance_m: 0.35653565146967564
+      backup_clearance_m: 1.1833760382892002
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 15
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 15
+  selected_preview_after_one_period:
+    x_m: 0.3044713847273025
+    y_m: 0.0062018899856802695
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 3.604456907155845
+    y_m: -0.001104009074120727
+    longitudinal_velocity_mps: 1.2
+- time_s: 11.212
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.370267
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.5877093076705933
+  - 3.356179714202881
+  - 4.3018622398376465
+  - 5.572316646575928
+  - 3.119276523590088
+  - 2.8137705326080322
+  - 3.9624197483062744
+  - 3.656466245651245
+  ego_pose: &id016
+    x_m: 0.29992323108213426
+    y_m: 0.005965848752660651
+    yaw_rad: 0.000620937662863477
+  actor_poses: []
+  conservative_clearance_m: 1.4364264125072292
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.3182666301727295
+    scan_point_count: 10
+    static_point_count: 10
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.315640528276886
+      backup_clearance_m: 1.314976016349867
+    - action: 1
+      full_clearance_m: 1.3144576825362497
+      backup_clearance_m: 1.314976016349867
+    - action: 2
+      full_clearance_m: 1.314748867321403
+      backup_clearance_m: 1.314976016349867
+    - action: 3
+      full_clearance_m: 1.3148872699893994
+      backup_clearance_m: 1.3148872699893994
+    - action: 4
+      full_clearance_m: 1.0046556834065565
+      backup_clearance_m: 1.314976016349867
+    - action: 5
+      full_clearance_m: 0.8036958504500897
+      backup_clearance_m: 1.2823798649831408
+    - action: 6
+      full_clearance_m: 0.753950193560579
+      backup_clearance_m: 1.3148872699893994
+    - action: 7
+      full_clearance_m: 0.5542378627147608
+      backup_clearance_m: 1.2570642965840864
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 16
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 16
+  selected_preview_after_one_period:
+    x_m: 0.5927270474176989
+    y_m: 0.006153227783588854
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 3.892712980674049
+    y_m: -0.0010228474481423265
+    longitudinal_velocity_mps: 1.2
+- time_s: 11.462
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.758609
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.5868297815322876
+  - 3.357137441635132
+  - 4.303114891052246
+  - 5.573105335235596
+  - 3.523277997970581
+  - 3.228344678878784
+  - 4.946118354797363
+  - 4.582021236419678
+  ego_pose: &id017
+    x_m: 0.5688130628457075
+    y_m: 0.0058406258395773125
+    yaw_rad: 8.089064829865335e-08
+  actor_poses: []
+  conservative_clearance_m: 1.3795861838474321
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.281414031982422
+    scan_point_count: 11
+    static_point_count: 11
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.3151659784890626
+      backup_clearance_m: 1.315425055337295
+    - action: 1
+      full_clearance_m: 1.3151659784890626
+      backup_clearance_m: 1.315425055337295
+    - action: 2
+      full_clearance_m: 1.3156114908372332
+      backup_clearance_m: 1.315425055337295
+    - action: 3
+      full_clearance_m: 1.3154249988331586
+      backup_clearance_m: 1.315425055337295
+    - action: 4
+      full_clearance_m: 1.2279304808072937
+      backup_clearance_m: 1.315425055337295
+    - action: 5
+      full_clearance_m: 1.0333087582648082
+      backup_clearance_m: 1.315425055337295
+    - action: 6
+      full_clearance_m: 1.2193885038457752
+      backup_clearance_m: 1.315425055337295
+    - action: 7
+      full_clearance_m: 0.9774093566692568
+      backup_clearance_m: 1.315425055337295
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 17
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 17
+  selected_preview_after_one_period:
+    x_m: 0.9048053323606042
+    y_m: 0.005785783096969741
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 4.2047930306691645
+    y_m: -0.0009426269970007602
+    longitudinal_velocity_mps: 1.2
+- time_s: 11.712
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.871028
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.5872267484664917
+  - 3.3574724197387695
+  - 4.302720069885254
+  - 5.5481157302856445
+  - 3.713013172149658
+  - 3.571471691131592
+  - 5.105899333953857
+  - 4.870573043823242
+  ego_pose: &id018
+    x_m: 0.8832932914960726
+    y_m: 0.005507295160684083
+    yaw_rad: -0.0006382807117661317
+  actor_poses: []
+  conservative_clearance_m: 1.3323320754151222
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.1642298698425293
+    scan_point_count: 12
+    static_point_count: 12
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.3153189898886812
+      backup_clearance_m: 1.3153006324054517
+    - action: 1
+      full_clearance_m: 1.3153189898886812
+      backup_clearance_m: 1.3153006324054517
+    - action: 2
+      full_clearance_m: 1.3153189898886812
+      backup_clearance_m: 1.3153006324054517
+    - action: 3
+      full_clearance_m: 1.3153006324054517
+      backup_clearance_m: 1.3153006324054517
+    - action: 4
+      full_clearance_m: 1.3153189898886812
+      backup_clearance_m: 1.3153006324054517
+    - action: 5
+      full_clearance_m: 1.2223732252825736
+      backup_clearance_m: 1.3153006324054517
+    - action: 6
+      full_clearance_m: 1.3153006324054517
+      backup_clearance_m: 1.3153006324054517
+    - action: 7
+      full_clearance_m: 1.1637327262236623
+      backup_clearance_m: 1.3153006324054517
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 18
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 18
+  selected_preview_after_one_period:
+    x_m: 1.192895115014695
+    y_m: 0.005300632405451795
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 4.468060022119426
+    y_m: -0.0008032892093568232
+    longitudinal_velocity_mps: 1.001402708465555
+- time_s: 11.962
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.630338
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.5869442224502563
+  - 3.3571906089782715
+  - 4.302438735961914
+  - 5.466002464294434
+  - 3.7514379024505615
+  - 3.750487804412842
+  - 5.193521022796631
+  - 5.193990230560303
+  ego_pose: &id019
+    x_m: 1.19294741650365
+    y_m: 0.005143953826381719
+    yaw_rad: -0.0009699531166185045
+  actor_poses: []
+  conservative_clearance_m: 1.3151439538263818
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.159003496170044
+    scan_point_count: 12
+    static_point_count: 12
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.3151305724464297
+      backup_clearance_m: 1.3151305724464297
+    - action: 1
+      full_clearance_m: 1.3151305724464297
+      backup_clearance_m: 1.3151305724464297
+    - action: 2
+      full_clearance_m: 1.3151305724464297
+      backup_clearance_m: 1.3151305724464297
+    - action: 3
+      full_clearance_m: 1.3151305724464297
+      backup_clearance_m: 1.3151305724464297
+    - action: 4
+      full_clearance_m: 1.3151305724464297
+      backup_clearance_m: 1.3151305724464297
+    - action: 5
+      full_clearance_m: 1.3151305724464297
+      backup_clearance_m: 1.3151305724464297
+    - action: 6
+      full_clearance_m: 1.3151305724464297
+      backup_clearance_m: 1.3151305724464297
+    - action: 7
+      full_clearance_m: 1.3151305724464297
+      backup_clearance_m: 1.3151305724464297
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 19
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 19
+  selected_preview_after_one_period:
+    x_m: 1.5049492823404735
+    y_m: 0.004837997322396318
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 4.698256236239255
+    y_m: -0.0007814125810077833
+    longitudinal_velocity_mps: 0.7655083027448876
+- time_s: 12.212
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.976462
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.60578453540802
+  - 3.376598834991455
+  - 4.322414875030518
+  - 5.35626220703125
+  - 3.7860753536224365
+  - 3.785552501678467
+  - 5.155211925506592
+  - 5.1546854972839355
+  ego_pose: &id020
+    x_m: 1.5026029962698098
+    y_m: 0.004711798516440885
+    yaw_rad: -0.0012256021364677214
+  actor_poses: []
+  conservative_clearance_m: 1.3298160364849578
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.1461620330810547
+    scan_point_count: 13
+    static_point_count: 13
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.3287044310428877
+      backup_clearance_m: 1.3287044310428877
+    - action: 1
+      full_clearance_m: 1.3287044310428877
+      backup_clearance_m: 1.3287044310428877
+    - action: 2
+      full_clearance_m: 1.3287044310428877
+      backup_clearance_m: 1.3287044310428877
+    - action: 3
+      full_clearance_m: 1.3287044310428877
+      backup_clearance_m: 1.3287044310428877
+    - action: 4
+      full_clearance_m: 1.3287044310428877
+      backup_clearance_m: 1.3287044310428877
+    - action: 5
+      full_clearance_m: 1.3287044310428877
+      backup_clearance_m: 1.3287044310428877
+    - action: 6
+      full_clearance_m: 1.3287044310428877
+      backup_clearance_m: 1.3287044310428877
+    - action: 7
+      full_clearance_m: 1.3287044310428877
+      backup_clearance_m: 1.3287044310428877
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 20
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 20
+  selected_preview_after_one_period:
+    x_m: 1.7928601843319851
+    y_m: 0.004355642172904029
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 4.856247564356507
+    y_m: -0.0007626406132697323
+    longitudinal_velocity_mps: 0.5514311177164966
+- time_s: 12.462
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.892789
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.6922732591629028
+  - 3.462994337081909
+  - 4.408716678619385
+  - 5.242697238922119
+  - 3.8789145946502686
+  - 3.878845453262329
+  - 5.057307243347168
+  - 5.057403564453125
+  ego_pose: &id021
+    x_m: 1.766666751735279
+    y_m: 0.004265853357703661
+    yaw_rad: -0.0014327569723857389
+  actor_poses: []
+  conservative_clearance_m: 1.3767670188453365
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.2014739513397217
+    scan_point_count: 14
+    static_point_count: 14
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.386195460370773
+      backup_clearance_m: 1.386195460370773
+    - action: 1
+      full_clearance_m: 1.386195460370773
+      backup_clearance_m: 1.386195460370773
+    - action: 2
+      full_clearance_m: 1.386195460370773
+      backup_clearance_m: 1.386195460370773
+    - action: 3
+      full_clearance_m: 1.386195460370773
+      backup_clearance_m: 1.386195460370773
+    - action: 4
+      full_clearance_m: 1.386195460370773
+      backup_clearance_m: 1.386195460370773
+    - action: 5
+      full_clearance_m: 1.386195460370773
+      backup_clearance_m: 1.386195460370773
+    - action: 6
+      full_clearance_m: 1.386195460370773
+      backup_clearance_m: 1.386195460370773
+    - action: 7
+      full_clearance_m: 1.386195460370773
+      backup_clearance_m: 1.386195460370773
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 21
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 21
+  selected_preview_after_one_period:
+    x_m: 2.10495703872064
+    y_m: 0.003785820885149169
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 4.96851270456884
+    y_m: -0.0007438589387174763
+    longitudinal_velocity_mps: 0.3154982871177182
+- time_s: 12.712
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 2.997272
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.8008662462234497
+  - 3.5711145401000977
+  - 4.516363620758057
+  - 5.112948417663574
+  - 3.98811411857605
+  - 3.98811411857605
+  - 4.929198265075684
+  - 4.929198265075684
+  ego_pose: &id022
+    x_m: 2.0883288556107047
+    y_m: 0.0037802638708983156
+    yaw_rad: -0.0014560922585839609
+  actor_poses: []
+  conservative_clearance_m: 1.4563822366073542
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.2900946140289307
+    scan_point_count: 13
+    static_point_count: 13
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.4577451746506394
+      backup_clearance_m: 1.4577451746506394
+    - action: 1
+      full_clearance_m: 1.4577451746506394
+      backup_clearance_m: 1.4577451746506394
+    - action: 2
+      full_clearance_m: 1.4577451746506394
+      backup_clearance_m: 1.4577451746506394
+    - action: 3
+      full_clearance_m: 1.4577451746506394
+      backup_clearance_m: 1.4577451746506394
+    - action: 4
+      full_clearance_m: 1.4577451746506394
+      backup_clearance_m: 1.4577451746506394
+    - action: 5
+      full_clearance_m: 1.4577451746506394
+      backup_clearance_m: 1.4577451746506394
+    - action: 6
+      full_clearance_m: 1.4577451746506394
+      backup_clearance_m: 1.4577451746506394
+    - action: 7
+      full_clearance_m: 1.4577451746506394
+      backup_clearance_m: 1.4577451746506394
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 22
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 22
+  selected_preview_after_one_period:
+    x_m: 2.393129119654928
+    y_m: 0.003338029207815227
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 5.01946004020435
+    y_m: -0.000713078777276659
+    longitudinal_velocity_mps: 0.10118683816691962
+- time_s: 12.962
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.686157
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.9615150690078735
+  - 3.732285261154175
+  - 4.602234363555908
+  - 4.9740309715271
+  - 4.149545669555664
+  - 4.149545669555664
+  - 4.790281295776367
+  - 4.790281295776367
+  ego_pose: &id023
+    x_m: 2.4003611362917576
+    y_m: 0.0034592778604825873
+    yaw_rad: -0.0011581381813253674
+  actor_poses: []
+  conservative_clearance_m: 1.563842210254787
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.3979413509368896
+    scan_point_count: 12
+    static_point_count: 12
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.5657760555740516
+      backup_clearance_m: 1.5657760555740516
+    - action: 1
+      full_clearance_m: 1.5657760555740516
+      backup_clearance_m: 1.5657760555740516
+    - action: 2
+      full_clearance_m: 1.5657760555740516
+      backup_clearance_m: 1.5657760555740516
+    - action: 3
+      full_clearance_m: 1.5657760555740516
+      backup_clearance_m: 1.5657760555740516
+    - action: 4
+      full_clearance_m: 1.5657760555740516
+      backup_clearance_m: 1.5657760555740516
+    - action: 5
+      full_clearance_m: 1.5657760555740516
+      backup_clearance_m: 1.5657760555740516
+    - action: 6
+      full_clearance_m: 1.5657760555740516
+      backup_clearance_m: 1.5657760555740516
+    - action: 7
+      full_clearance_m: 1.5657760555740516
+      backup_clearance_m: 1.5657760555740516
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 23
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 23
+  selected_preview_after_one_period:
+    x_m: 2.705029871967472
+    y_m: 0.0031045908257173365
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 5.030563925583576
+    y_m: -0.0006108684443646325
+    longitudinal_velocity_mps: 0.0
+- time_s: 13.212
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.623876
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.1577610969543457
+  - 3.928375482559204
+  - 4.620865345001221
+  - 4.883376121520996
+  - 4.345558166503906
+  - 4.345558166503906
+  - 4.699626445770264
+  - 4.699626445770264
+  ego_pose: &id024
+    x_m: 2.6715907872665476
+    y_m: 0.0032214241567295114
+    yaw_rad: -0.0009764495867962126
+  actor_poses: []
+  conservative_clearance_m: 1.6856103394884316
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.524240732192993
+    scan_point_count: 12
+    static_point_count: 12
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.6963277934161929
+      backup_clearance_m: 1.6963277934161929
+    - action: 1
+      full_clearance_m: 1.6963277934161929
+      backup_clearance_m: 1.6963277934161929
+    - action: 2
+      full_clearance_m: 1.6963277934161929
+      backup_clearance_m: 1.6963277934161929
+    - action: 3
+      full_clearance_m: 1.6963277934161929
+      backup_clearance_m: 1.6963277934161929
+    - action: 4
+      full_clearance_m: 1.6963277934161929
+      backup_clearance_m: 1.6963277934161929
+    - action: 5
+      full_clearance_m: 1.6963277934161929
+      backup_clearance_m: 1.6963277934161929
+    - action: 6
+      full_clearance_m: 1.6963277934161929
+      backup_clearance_m: 1.6963277934161929
+    - action: 7
+      full_clearance_m: 1.6963277934161929
+      backup_clearance_m: 1.6963277934161929
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 24
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 24
+  selected_preview_after_one_period:
+    x_m: 2.9931081966971345
+    y_m: 0.0029127565861441916
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 5.032109892278828
+    y_m: -0.00038890851975018054
+    longitudinal_velocity_mps: 0.0
+- time_s: 13.462
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 2.056067
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.411191940307617
+  - 4.182159423828125
+  - 4.5640363693237305
+  - 4.82412052154541
+  - 4.4769415855407715
+  - 4.4769415855407715
+  - 4.640370845794678
+  - 4.640370845794678
+  ego_pose: &id025
+    x_m: 2.988453058519469
+    y_m: 0.0029355224321681284
+    yaw_rad: -0.0008234358567237222
+  actor_poses: []
+  conservative_clearance_m: 1.8561234243735059
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.633718252182007
+    scan_point_count: 12
+    static_point_count: 12
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 1.8659116330066472
+      backup_clearance_m: 1.8659116330066472
+    - action: 1
+      full_clearance_m: 1.8659116330066472
+      backup_clearance_m: 1.8659116330066472
+    - action: 2
+      full_clearance_m: 1.8659116330066472
+      backup_clearance_m: 1.8659116330066472
+    - action: 3
+      full_clearance_m: 1.8659116330066472
+      backup_clearance_m: 1.8659116330066472
+    - action: 4
+      full_clearance_m: 1.8659116330066472
+      backup_clearance_m: 1.8659116330066472
+    - action: 5
+      full_clearance_m: 1.8659116330066472
+      backup_clearance_m: 1.8659116330066472
+    - action: 6
+      full_clearance_m: 1.8659116330066472
+      backup_clearance_m: 1.8659116330066472
+    - action: 7
+      full_clearance_m: 1.8659116330066472
+      backup_clearance_m: 1.8659116330066472
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 25
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 25
+  selected_preview_after_one_period:
+    x_m: 3.3050739904808424
+    y_m: 0.002664244860153292
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 5.030557119851766
+    y_m: -0.00021959478211946098
+    longitudinal_velocity_mps: 0.0
+- time_s: 13.712
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.495601
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.6142494678497314
+  - 4.3563737869262695
+  - 4.49224853515625
+  - 4.738785743713379
+  - 4.407748699188232
+  - 4.407748699188232
+  - 4.555035591125488
+  - 4.555035591125488
+  ego_pose: &id026
+    x_m: 3.3029006172661792
+    y_m: 0.00278640950044226
+    yaw_rad: -0.0005689762488270834
+  actor_poses: []
+  conservative_clearance_m: 2.0503749791876387
+  candidate_safety_diagnostics:
+    scan_minimum_m: 2.7742919921875
+    scan_point_count: 12
+    static_point_count: 12
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.0441227289646755
+      backup_clearance_m: 2.0441227289646755
+    - action: 1
+      full_clearance_m: 2.0441227289646755
+      backup_clearance_m: 2.0441227289646755
+    - action: 2
+      full_clearance_m: 2.0441227289646755
+      backup_clearance_m: 2.0441227289646755
+    - action: 3
+      full_clearance_m: 2.0441227289646755
+      backup_clearance_m: 2.0441227289646755
+    - action: 4
+      full_clearance_m: 2.0441227289646755
+      backup_clearance_m: 2.0441227289646755
+    - action: 5
+      full_clearance_m: 2.0441227289646755
+      backup_clearance_m: 2.0441227289646755
+    - action: 6
+      full_clearance_m: 2.0441227289646755
+      backup_clearance_m: 2.0441227289646755
+    - action: 7
+      full_clearance_m: 2.0441227289646755
+      backup_clearance_m: 2.0441227289646755
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 26
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 26
+  selected_preview_after_one_period:
+    x_m: 3.593299782950201
+    y_m: 0.002614234671650671
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 5.032085495444403
+    y_m: 0.00039672746611112597
+    longitudinal_velocity_mps: 0.0
+- time_s: 13.962
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.897062
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.5863037109375
+  - 4.060730934143066
+  - 4.167969226837158
+  - 4.425126552581787
+  - 4.095444679260254
+  - 4.095444679260254
+  - 4.241376876831055
+  - 4.241376876831055
+  ego_pose: &id027
+    x_m: 3.569323015922613
+    y_m: 0.0027723730219496095
+    yaw_rad: -0.00025482756009764264
+  actor_poses: []
+  conservative_clearance_m: 2.230920213422701
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.071767568588257
+    scan_point_count: 9
+    static_point_count: 9
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.256092785785469
+      backup_clearance_m: 2.256092785785469
+    - action: 1
+      full_clearance_m: 2.256092785785469
+      backup_clearance_m: 2.256092785785469
+    - action: 2
+      full_clearance_m: 2.256092785785469
+      backup_clearance_m: 2.256092785785469
+    - action: 3
+      full_clearance_m: 2.256092785785469
+      backup_clearance_m: 2.256092785785469
+    - action: 4
+      full_clearance_m: 2.256092785785469
+      backup_clearance_m: 2.256092785785469
+    - action: 5
+      full_clearance_m: 2.256092785785469
+      backup_clearance_m: 2.256092785785469
+    - action: 6
+      full_clearance_m: 2.256092785785469
+      backup_clearance_m: 2.256092785785469
+    - action: 7
+      full_clearance_m: 2.256092785785469
+      backup_clearance_m: 2.256092785785469
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 27
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 27
+  selected_preview_after_one_period:
+    x_m: 3.9024469369509736
+    y_m: 0.0027021221786733304
+    longitudinal_velocity_mps: 1.2
+  selected_preview_terminal:
+    x_m: 5.030910366315106
+    y_m: 0.0013343377495148793
+    longitudinal_velocity_mps: 0.0
+- time_s: 14.212
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.810842
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.4299240112304688
+  - 3.7959232330322266
+  - 3.9045355319976807
+  - 4.159797191619873
+  - 3.8300259113311768
+  - 3.8300259113311768
+  - 3.9760468006134033
+  - 3.9760468006134033
+  ego_pose: &id028
+    x_m: 3.8647320538587766
+    y_m: 0.002478296989680892
+    yaw_rad: -0.000780742440285681
+  actor_poses: []
+  conservative_clearance_m: 2.4396157021979996
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.2436983585357666
+    scan_point_count: 7
+    static_point_count: 7
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.4440315905226675
+      backup_clearance_m: 2.4440315905226675
+    - action: 1
+      full_clearance_m: 2.4440315905226675
+      backup_clearance_m: 2.4440315905226675
+    - action: 2
+      full_clearance_m: 2.4440315905226675
+      backup_clearance_m: 2.4440315905226675
+    - action: 3
+      full_clearance_m: 2.4440315905226675
+      backup_clearance_m: 2.4440315905226675
+    - action: 4
+      full_clearance_m: 2.4440315905226675
+      backup_clearance_m: 2.4440315905226675
+    - action: 5
+      full_clearance_m: 2.4440315905226675
+      backup_clearance_m: 2.4440315905226675
+    - action: 6
+      full_clearance_m: 2.4440315905226675
+      backup_clearance_m: 2.4440315905226675
+    - action: 7
+      full_clearance_m: 2.4440315905226675
+      backup_clearance_m: 2.4440315905226675
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 28
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 28
+  selected_preview_after_one_period:
+    x_m: 4.15180824145312
+    y_m: 0.002244326924616318
+    longitudinal_velocity_mps: 1.1980960621479477
+  selected_preview_terminal:
+    x_m: 5.036147988165012
+    y_m: 0.0006700371634694253
+    longitudinal_velocity_mps: 0.0
+- time_s: 14.462
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.965346
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.2099547386169434
+  - 3.54868745803833
+  - 3.6672348976135254
+  - 3.855518341064453
+  - 3.589848518371582
+  - 3.589848518371582
+  - 3.6717681884765625
+  - 3.6717681884765625
+  ego_pose: &id029
+    x_m: 4.1122302674879
+    y_m: 0.001755831719109811
+    yaw_rad: -0.0018629205761671844
+  actor_poses: []
+  conservative_clearance_m: 2.6148984393309527
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.4091787338256836
+    scan_point_count: 6
+    static_point_count: 6
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.6173002381901393
+      backup_clearance_m: 2.6173002381901393
+    - action: 1
+      full_clearance_m: 2.6173002381901393
+      backup_clearance_m: 2.6173002381901393
+    - action: 2
+      full_clearance_m: 2.6173002381901393
+      backup_clearance_m: 2.6173002381901393
+    - action: 3
+      full_clearance_m: 2.6173002381901393
+      backup_clearance_m: 2.6173002381901393
+    - action: 4
+      full_clearance_m: 2.6173002381901393
+      backup_clearance_m: 2.6173002381901393
+    - action: 5
+      full_clearance_m: 2.6173002381901393
+      backup_clearance_m: 2.6173002381901393
+    - action: 6
+      full_clearance_m: 2.6173002381901393
+      backup_clearance_m: 2.6173002381901393
+    - action: 7
+      full_clearance_m: 2.6173002381901393
+      backup_clearance_m: 2.6173002381901393
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 29
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 29
+  selected_preview_after_one_period:
+    x_m: 4.341882263729666
+    y_m: 0.0013258377261443168
+    longitudinal_velocity_mps: 0.9803041160039887
+  selected_preview_terminal:
+    x_m: 4.984014360989698
+    y_m: 0.00022058751038662625
+    longitudinal_velocity_mps: 0.0
+- time_s: 14.712
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.240508
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 2.0459420680999756
+  - 3.3864736557006836
+  - 3.49499773979187
+  - 3.630997657775879
+  - 3.4249467849731445
+  - 3.4249467849731445
+  - 3.4472477436065674
+  - 3.4472477436065674
+  ego_pose: &id030
+    x_m: 4.279097240310964
+    y_m: 0.0010432612190788173
+    yaw_rad: -0.0027801099318489767
+  actor_poses: []
+  conservative_clearance_m: 2.7369755762032644
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.5994560718536377
+    scan_point_count: 4
+    static_point_count: 4
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.7443850281246625
+      backup_clearance_m: 2.7443850281246625
+    - action: 1
+      full_clearance_m: 2.7443850281246625
+      backup_clearance_m: 2.7443850281246625
+    - action: 2
+      full_clearance_m: 2.7443850281246625
+      backup_clearance_m: 2.7443850281246625
+    - action: 3
+      full_clearance_m: 2.7443850281246625
+      backup_clearance_m: 2.7443850281246625
+    - action: 4
+      full_clearance_m: 2.7443850281246625
+      backup_clearance_m: 2.7443850281246625
+    - action: 5
+      full_clearance_m: 2.7443850281246625
+      backup_clearance_m: 2.7443850281246625
+    - action: 6
+      full_clearance_m: 2.7443850281246625
+      backup_clearance_m: 2.7443850281246625
+    - action: 7
+      full_clearance_m: 2.7443850281246625
+      backup_clearance_m: 2.7443850281246625
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 30
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 30
+  selected_preview_after_one_period:
+    x_m: 4.462344691746874
+    y_m: 0.0005131910436276543
+    longitudinal_velocity_mps: 0.7681239847222214
+  selected_preview_terminal:
+    x_m: 4.940427815918796
+    y_m: -0.0006121210294107753
+    longitudinal_velocity_mps: 0.0
+- time_s: 14.962
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 2.343962
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.9229587316513062
+  - 3.263672351837158
+  - 3.3157598972320557
+  - 3.4517600536346436
+  - 3.2698092460632324
+  - 3.2698092460632324
+  - 3.268009901046753
+  - 3.268009901046753
+  ego_pose: &id031
+    x_m: 4.4149490804379194
+    y_m: 0.00042274155122312674
+    yaw_rad: -0.0032954729134824436
+  actor_poses: []
+  conservative_clearance_m: 2.8389709948435304
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.7686874866485596
+    scan_point_count: 4
+    static_point_count: 4
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.8419098528116753
+      backup_clearance_m: 2.8419098528116753
+    - action: 1
+      full_clearance_m: 2.8419098528116753
+      backup_clearance_m: 2.8419098528116753
+    - action: 2
+      full_clearance_m: 2.8419098528116753
+      backup_clearance_m: 2.8419098528116753
+    - action: 3
+      full_clearance_m: 2.8419098528116753
+      backup_clearance_m: 2.8419098528116753
+    - action: 4
+      full_clearance_m: 2.8419098528116753
+      backup_clearance_m: 2.8419098528116753
+    - action: 5
+      full_clearance_m: 2.8419098528116753
+      backup_clearance_m: 2.8419098528116753
+    - action: 6
+      full_clearance_m: 2.8419098528116753
+      backup_clearance_m: 2.8419098528116753
+    - action: 7
+      full_clearance_m: 2.8419098528116753
+      backup_clearance_m: 2.8419098528116753
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 31
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 31
+  selected_preview_after_one_period:
+    x_m: 4.5325686092439765
+    y_m: 3.859108110543371e-05
+    longitudinal_velocity_mps: 0.5300269874817041
+  selected_preview_terminal:
+    x_m: 4.89927164328931
+    y_m: -0.0008130635931585471
+    longitudinal_velocity_mps: 0.0
+- time_s: 15.212
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.484313
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.8823035955429077
+  - 3.203603744506836
+  - 3.2153921127319336
+  - 3.3513922691345215
+  - 3.1886420249938965
+  - 3.1886420249938965
+  - 3.167642116546631
+  - 3.167642116546631
+  ego_pose: &id032
+    x_m: 4.4878644139584924
+    y_m: 0.00012579491371264787
+    yaw_rad: -0.003479408172437495
+  actor_poses: []
+  conservative_clearance_m: 2.894639152472161
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.827883720397949
+    scan_point_count: 3
+    static_point_count: 3
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.8991116169703393
+      backup_clearance_m: 2.8991116169703393
+    - action: 1
+      full_clearance_m: 2.8991116169703393
+      backup_clearance_m: 2.8991116169703393
+    - action: 2
+      full_clearance_m: 2.8991116169703393
+      backup_clearance_m: 2.8991116169703393
+    - action: 3
+      full_clearance_m: 2.8991116169703393
+      backup_clearance_m: 2.8991116169703393
+    - action: 4
+      full_clearance_m: 2.8991116169703393
+      backup_clearance_m: 2.8991116169703393
+    - action: 5
+      full_clearance_m: 2.8991116169703393
+      backup_clearance_m: 2.8991116169703393
+    - action: 6
+      full_clearance_m: 2.8991116169703393
+      backup_clearance_m: 2.8991116169703393
+    - action: 7
+      full_clearance_m: 2.8991116169703393
+      backup_clearance_m: 2.8991116169703393
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 32
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 32
+  selected_preview_after_one_period:
+    x_m: 4.577550153247527
+    y_m: -0.00018868193897057496
+    longitudinal_velocity_mps: 0.41045278734603996
+  selected_preview_terminal:
+    x_m: 4.87796381219351
+    y_m: -0.0010035351827594294
+    longitudinal_velocity_mps: 0.0
+- time_s: 15.462
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.232384
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.8697079420089722
+  - 3.1165859699249268
+  - 3.1310970783233643
+  - 3.267097234725952
+  - 3.104346990585327
+  - 3.104346990585327
+  - 3.0833470821380615
+  - 3.0833470821380615
+  ego_pose: &id033
+    x_m: 4.550286317715423
+    y_m: -9.480019580630041e-05
+    yaw_rad: -0.0035149389269732894
+  actor_poses: []
+  conservative_clearance_m: 2.9427891947971094
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.874431848526001
+    scan_point_count: 2
+    static_point_count: 2
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.9465423210440207
+      backup_clearance_m: 2.9465423210440207
+    - action: 1
+      full_clearance_m: 2.9465423210440207
+      backup_clearance_m: 2.9465423210440207
+    - action: 2
+      full_clearance_m: 2.9465423210440207
+      backup_clearance_m: 2.9465423210440207
+    - action: 3
+      full_clearance_m: 2.9465423210440207
+      backup_clearance_m: 2.9465423210440207
+    - action: 4
+      full_clearance_m: 2.9465423210440207
+      backup_clearance_m: 2.9465423210440207
+    - action: 5
+      full_clearance_m: 2.9465423210440207
+      backup_clearance_m: 2.9465423210440207
+    - action: 6
+      full_clearance_m: 2.9465423210440207
+      backup_clearance_m: 2.9465423210440207
+    - action: 7
+      full_clearance_m: 2.9465423210440207
+      backup_clearance_m: 2.9465423210440207
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 33
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 33
+  selected_preview_after_one_period:
+    x_m: 4.62862041548398
+    y_m: -0.000365752343044855
+    longitudinal_velocity_mps: 0.3689800247785886
+  selected_preview_terminal:
+    x_m: 4.8565587049742325
+    y_m: -0.0009072092270327283
+    longitudinal_velocity_mps: 0.0
+- time_s: 15.712
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.730965
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.868622899055481
+  - 3.0840916633605957
+  - 3.070091724395752
+  - 3.20609188079834
+  - 3.043341636657715
+  - 3.043341636657715
+  - 3.022341728210449
+  - 3.022341728210449
+  ego_pose: &id034
+    x_m: 4.605906817885208
+    y_m: -0.00030375292024961345
+    yaw_rad: -0.003447069628501805
+  actor_poses: []
+  conservative_clearance_m: 2.986037283920922
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.8875620365142822
+    scan_point_count: 2
+    static_point_count: 2
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 2.986037283920922
+      backup_clearance_m: 2.986037283920922
+    - action: 1
+      full_clearance_m: 2.986037283920922
+      backup_clearance_m: 2.986037283920922
+    - action: 2
+      full_clearance_m: 2.986037283920922
+      backup_clearance_m: 2.986037283920922
+    - action: 3
+      full_clearance_m: 2.986037283920922
+      backup_clearance_m: 2.986037283920922
+    - action: 4
+      full_clearance_m: 2.986037283920922
+      backup_clearance_m: 2.986037283920922
+    - action: 5
+      full_clearance_m: 2.986037283920922
+      backup_clearance_m: 2.986037283920922
+    - action: 6
+      full_clearance_m: 2.986037283920922
+      backup_clearance_m: 2.986037283920922
+    - action: 7
+      full_clearance_m: 2.986037283920922
+      backup_clearance_m: 2.986037283920922
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 34
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 34
+  selected_preview_after_one_period:
+    x_m: 4.676387012265015
+    y_m: -0.0005467040199796425
+    longitudinal_velocity_mps: 0.35692245245960286
+  selected_preview_terminal:
+    x_m: 4.846756388928735
+    y_m: -0.0011273366777671246
+    longitudinal_velocity_mps: 0.0
+- time_s: 15.962
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 1.528818
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.8683382272720337
+  - 3.006124258041382
+  - 2.992124319076538
+  - 3.128124475479126
+  - 2.965374231338501
+  - 2.965374231338501
+  - 2.9443743228912354
+  - 2.9443743228912354
+  ego_pose: &id035
+    x_m: 4.658487649533567
+    y_m: -0.0005043319860679601
+    yaw_rad: -0.0033640964667070923
+  actor_poses: []
+  conservative_clearance_m: 3.0272146692859994
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.901318311691284
+    scan_point_count: 2
+    static_point_count: 2
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 3.027533847291124
+      backup_clearance_m: 3.027533847291124
+    - action: 1
+      full_clearance_m: 3.027533847291124
+      backup_clearance_m: 3.027533847291124
+    - action: 2
+      full_clearance_m: 3.027533847291124
+      backup_clearance_m: 3.027533847291124
+    - action: 3
+      full_clearance_m: 3.027533847291124
+      backup_clearance_m: 3.027533847291124
+    - action: 4
+      full_clearance_m: 3.027533847291124
+      backup_clearance_m: 3.027533847291124
+    - action: 5
+      full_clearance_m: 3.027533847291124
+      backup_clearance_m: 3.027533847291124
+    - action: 6
+      full_clearance_m: 3.027533847291124
+      backup_clearance_m: 3.027533847291124
+    - action: 7
+      full_clearance_m: 3.027533847291124
+      backup_clearance_m: 3.027533847291124
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 35
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 35
+  selected_preview_after_one_period:
+    x_m: 4.728584810671816
+    y_m: -0.0007423132894743363
+    longitudinal_velocity_mps: 0.35376017813124616
+  selected_preview_terminal:
+    x_m: 4.82188797547698
+    y_m: -0.0010620788677427216
+    longitudinal_velocity_mps: 0.0
+- time_s: 16.212
+  suggested_action: 3
+  shadow_control_action: null
+  validated_action: 3
+  executed_action: 3
+  analytic_action: 3
+  learned_action: 3
+  learned_intervened: false
+  residual_margin: 0.0
+  inference_latency_ms: 2.896755
+  suggestion_fallback_reason: null
+  activation_fallback_reason: null
+  input_health_failures: []
+  safe_action_count: 8
+  action_mask:
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  - 1
+  analytic_prior_scores:
+  - 1.8681122064590454
+  - 2.950735569000244
+  - 2.9367356300354004
+  - 3.0727357864379883
+  - 2.9099855422973633
+  - 2.9099855422973633
+  - 2.8889856338500977
+  - 2.8889856338500977
+  ego_pose: &id036
+    x_m: 4.704390077290764
+    y_m: -0.000659697965866729
+    yaw_rad: -0.003255779113352425
+  actor_poses: []
+  conservative_clearance_m: 3.06340091335097
+  candidate_safety_diagnostics:
+    scan_minimum_m: 3.941704273223877
+    scan_point_count: 2
+    static_point_count: 2
+    dynamic_point_count: 0
+    dynamic_point_sample_world_m: []
+    dynamic_point_bounds_world_m: null
+    candidates:
+    - action: 0
+      full_clearance_m: 3.0656180683778227
+      backup_clearance_m: 3.0656180683778227
+    - action: 1
+      full_clearance_m: 3.0656180683778227
+      backup_clearance_m: 3.0656180683778227
+    - action: 2
+      full_clearance_m: 3.0656180683778227
+      backup_clearance_m: 3.0656180683778227
+    - action: 3
+      full_clearance_m: 3.0656180683778227
+      backup_clearance_m: 3.0656180683778227
+    - action: 4
+      full_clearance_m: 3.0656180683778227
+      backup_clearance_m: 3.0656180683778227
+    - action: 5
+      full_clearance_m: 3.0656180683778227
+      backup_clearance_m: 3.0656180683778227
+    - action: 6
+      full_clearance_m: 3.0656180683778227
+      backup_clearance_m: 3.0656180683778227
+    - action: 7
+      full_clearance_m: 3.0656180683778227
+      backup_clearance_m: 3.0656180683778227
+  directional_tracker_audit:
+    valid: false
+    center_world_m: null
+    velocity_world_mps:
+    - 0.0
+    - 0.0
+    safety_direction_world:
+    - 0.0
+    - 0.0
+    safety_prediction_speed_mps: 0.0
+    speed_mps: 0.0
+    fit_residual_m: null
+    history_count: 0
+    track_age_s: null
+    maximum_track_age_s: 0.5
+    association_miss_policy: hold_then_clear_before_reacquisition
+    source: LaserScan+Odometry+static_map_rejection_only
+  execution_audit:
+    suggested_action: 3
+    validated_action: 3
+    executed_action: 3
+    previous_action_feature_source: last_confirmed_executed_action
+    committed_spatial_side: 0
+    committed_spatial_speed_mps: 0.0
+    spatial_speed_escalation_release_clearance_m: 0.22
+    confirmed_straight_run_length: 36
+    central_static_route_release_x_m: 20.99
+    certified_stop_preserves_spatial_side_commitment: true
+    execution_sequence: 36
+  selected_preview_after_one_period:
+    x_m: 4.767048354710853
+    y_m: -0.0008665896224158897
+    longitudinal_velocity_mps: 0.2775735473529155
+  selected_preview_terminal:
+    x_m: 4.814888152925443
+    y_m: -0.0010308195338018735
+    longitudinal_velocity_mps: 0.0
+control_trace:
+- time_s: 7.462
+  ego_pose: *id001
+  actor_poses: []
+  conservative_clearance_m: 4.458256398052972
+  speed_mps: 0.8004103022812534
+  yaw_rate_radps: -2.1273923729051953e-06
+- time_s: 7.514
+  ego_pose:
+    x_m: -3.9686960602100103
+    y_m: -0.0006061707289336543
+    yaw_rad: 0.0004939977021635186
+  actor_poses: []
+  conservative_clearance_m: 4.438558491650849
+  speed_mps: 0.7751131832215576
+  yaw_rate_radps: -2.9252613240338308e-05
+- time_s: 7.562
+  ego_pose:
+    x_m: -3.9133696487970115
+    y_m: -0.000579087194775319
+    yaw_rad: 0.0004931453051909437
+  actor_poses: []
+  conservative_clearance_m: 4.389737485062168
+  speed_mps: 0.7781428693263831
+  yaw_rate_radps: 2.738178803177685e-05
+- time_s: 7.612
+  ego_pose:
+    x_m: -3.8833406074800365
+    y_m: -0.0005639558592230603
+    yaw_rad: 0.0004939574273123218
+  actor_poses: []
+  conservative_clearance_m: 4.36329416637396
+  speed_mps: 0.8023060557559647
+  yaw_rate_radps: 1.8368104999916654e-05
+- time_s: 7.662
+  ego_pose:
+    x_m: -3.8540895122185757
+    y_m: -0.0005490242709732466
+    yaw_rad: 0.0004952194338721395
+  actor_poses: []
+  conservative_clearance_m: 4.337573778546028
+  speed_mps: 0.8383271945575979
+  yaw_rate_radps: 5.852561325227518e-05
+- time_s: 7.712
+  ego_pose: *id002
+  actor_poses: []
+  conservative_clearance_m: 4.284205957115978
+  speed_mps: 0.8622314030161791
+  yaw_rate_radps: 7.307580437570107e-05
+- time_s: 7.7620000000000005
+  ego_pose:
+    x_m: -3.759903722776873
+    y_m: -0.000499616671768101
+    yaw_rad: 0.0005022159268692249
+  actor_poses: []
+  conservative_clearance_m: 4.25501726612207
+  speed_mps: 0.8979172393340712
+  yaw_rate_radps: 7.066386304076477e-05
+- time_s: 7.812
+  ego_pose:
+    x_m: -3.7275147518881604
+    y_m: -0.00048243171887957324
+    yaw_rad: 0.0005047408678486381
+  actor_poses: []
+  conservative_clearance_m: 4.226721992612441
+  speed_mps: 0.9215576187260112
+  yaw_rate_radps: 4.711213457140599e-05
+- time_s: 7.862
+  ego_pose:
+    x_m: -3.6566701226226668
+    y_m: -0.0005264959590666885
+    yaw_rad: 0.00040214099336908355
+  actor_poses: []
+  conservative_clearance_m: 4.165046685197644
+  speed_mps: 0.9570868876024656
+  yaw_rate_radps: -0.0011046456161133637
+- time_s: 7.912
+  ego_pose:
+    x_m: -3.6199377266013126
+    y_m: -0.0004836825192748982
+    yaw_rad: 0.000496257175093349
+  actor_poses: []
+  conservative_clearance_m: 4.133132993059036
+  speed_mps: 0.9808897341124988
+  yaw_rate_radps: -0.00042561800326179047
+- time_s: 7.962
+  ego_pose: *id003
+  actor_poses: []
+  conservative_clearance_m: 4.100562597642958
+  speed_mps: 1.0160967043958005
+  yaw_rate_radps: -6.21899923715667e-05
+- time_s: 8.012
+  ego_pose:
+    x_m: -3.504682454574726
+    y_m: -0.0005548580818632243
+    yaw_rad: 0.0003613916230749402
+  actor_poses: []
+  conservative_clearance_m: 4.033546974045106
+  speed_mps: 1.0401538174608718
+  yaw_rate_radps: -0.0008377412133227951
+- time_s: 8.062
+  ego_pose:
+    x_m: -3.4624472439035254
+    y_m: -0.0006462141248719606
+    yaw_rad: 0.00023832360111754103
+  actor_poses: []
+  conservative_clearance_m: 3.9972632265934864
+  speed_mps: 1.0754800455570914
+  yaw_rate_radps: -0.013085832877172904
+- time_s: 8.112
+  ego_pose:
+    x_m: -3.4214152675814926
+    y_m: -0.0007042931669841154
+    yaw_rad: 2.2582224710629327e-05
+  actor_poses: []
+  conservative_clearance_m: 3.962091519914445
+  speed_mps: 1.0961563344476655
+  yaw_rate_radps: 0.0007186473451267158
+- time_s: 8.162
+  ego_pose:
+    x_m: -3.339617117118381
+    y_m: -0.00020100805810079314
+    yaw_rad: 0.001393225394130811
+  actor_poses: []
+  conservative_clearance_m: 3.891936535355101
+  speed_mps: 1.1205552535939367
+  yaw_rate_radps: 0.0021815153838941627
+- time_s: 8.212
+  ego_pose: *id004
+  actor_poses: []
+  conservative_clearance_m: 3.8554921664808717
+  speed_mps: 1.1337690793874557
+  yaw_rate_radps: 0.002067318880631035
+- time_s: 8.262
+  ego_pose:
+    x_m: -3.253501824749213
+    y_m: -0.0001538021754714207
+    yaw_rad: 0.0011822603103842217
+  actor_poses: []
+  conservative_clearance_m: 3.8187503892199857
+  speed_mps: 1.1487333343255584
+  yaw_rate_radps: 0.059274771335302345
+- time_s: 8.312
+  ego_pose:
+    x_m: -3.209921554063294
+    y_m: 0.00030656016041371144
+    yaw_rad: 0.0023003956944281957
+  actor_poses: []
+  conservative_clearance_m: 3.7816509438840047
+  speed_mps: 1.1577260517892962
+  yaw_rate_radps: -0.010351402391080266
+- time_s: 8.362
+  ego_pose:
+    x_m: -3.1240976942542997
+    y_m: 0.0004150069213855318
+    yaw_rad: 0.002048031003378449
+  actor_poses: []
+  conservative_clearance_m: 3.7093644044566547
+  speed_mps: 1.1678654117562752
+  yaw_rate_radps: -0.00221374740487814
+- time_s: 8.412
+  ego_pose:
+    x_m: -3.0796761139832265
+    y_m: 0.0004771509543228369
+    yaw_rad: 0.0019622582629786577
+  actor_poses: []
+  conservative_clearance_m: 3.672134702495419
+  speed_mps: 1.1733301587368359
+  yaw_rate_radps: -0.0028103241867946578
+- time_s: 8.462
+  ego_pose: *id005
+  actor_poses: []
+  conservative_clearance_m: 3.6014119767439787
+  speed_mps: 1.1802147910884113
+  yaw_rate_radps: -0.00553316788801065
+- time_s: 8.512
+  ego_pose:
+    x_m: -2.9477586057217495
+    y_m: 0.0009031858960183673
+    yaw_rad: 0.002273848570010016
+  actor_poses: []
+  conservative_clearance_m: 3.5622341607385044
+  speed_mps: 1.1836502221278977
+  yaw_rate_radps: -0.0011097376607947837
+- time_s: 8.562
+  ego_pose:
+    x_m: -2.902728901766153
+    y_m: 0.0009825065909142706
+    yaw_rad: 0.002212080159743212
+  actor_poses: []
+  conservative_clearance_m: 3.5250398992904195
+  speed_mps: 1.1877898254535908
+  yaw_rate_radps: -0.002081866240742986
+- time_s: 8.612
+  ego_pose:
+    x_m: -2.8576033010450828
+    y_m: 0.0010536284422804246
+    yaw_rad: 0.0021286558066654863
+  actor_poses: []
+  conservative_clearance_m: 3.487844784118492
+  speed_mps: 1.189957488917095
+  yaw_rate_radps: -0.001584914587390461
+- time_s: 8.662
+  ego_pose:
+    x_m: -2.7671214743596035
+    y_m: 0.0012065127544793922
+    yaw_rad: 0.0020221433708549163
+  actor_poses: []
+  conservative_clearance_m: 3.4117371362811237
+  speed_mps: 1.1926424543844814
+  yaw_rate_radps: -0.0007658298015258763
+- time_s: 8.712
+  ego_pose: *id006
+  actor_poses: []
+  conservative_clearance_m: 3.373817666279055
+  speed_mps: 1.1940784624266436
+  yaw_rate_radps: -0.00023867202836594698
+- time_s: 8.762
+  ego_pose:
+    x_m: -2.676403957023295
+    y_m: 0.001378622751752526
+    yaw_rad: 0.0019922141837331107
+  actor_poses: []
+  conservative_clearance_m: 3.3360034310028794
+  speed_mps: 1.1957682955218203
+  yaw_rate_radps: -8.560657669459925e-05
+- time_s: 8.812
+  ego_pose:
+    x_m: -2.5879121572692054
+    y_m: 0.001553589644988646
+    yaw_rad: 0.001988163269153956
+  actor_poses: []
+  conservative_clearance_m: 3.2627168012235206
+  speed_mps: 1.1966573238859708
+  yaw_rate_radps: -4.674319976830108e-05
+- time_s: 8.862
+  ego_pose:
+    x_m: -2.5424250682109206
+    y_m: 0.0016432470468338803
+    yaw_rad: 0.0019855795589578487
+  actor_poses: []
+  conservative_clearance_m: 3.225284123649174
+  speed_mps: 1.197672238890932
+  yaw_rate_radps: -5.644854376681028e-05
+- time_s: 8.912
+  ego_pose:
+    x_m: -2.4969139475412256
+    y_m: 0.0017328456110196164
+    yaw_rad: 0.00198306580991768
+  actor_poses: []
+  conservative_clearance_m: 3.1879997606436543
+  speed_mps: 1.1982142333044534
+  yaw_rate_radps: -6.648980421074298e-05
+- time_s: 8.962
+  ego_pose: *id007
+  actor_poses: []
+  conservative_clearance_m: 3.1139092365760015
+  speed_mps: 1.1988521822743832
+  yaw_rate_radps: -7.677962291457374e-05
+- time_s: 9.012
+  ego_pose:
+    x_m: -2.3602742970737554
+    y_m: 0.002000779258406462
+    yaw_rad: 0.0019744140494410843
+  actor_poses: []
+  conservative_clearance_m: 3.077118645912822
+  speed_mps: 1.1992085709689908
+  yaw_rate_radps: -8.112610139356878e-05
+- time_s: 9.062
+  ego_pose:
+    x_m: -2.312303023911511
+    y_m: 0.0020944584921591142
+    yaw_rad: 0.001971291138024764
+  actor_poses: []
+  conservative_clearance_m: 3.0385858600728852
+  speed_mps: 1.199573370301553
+  yaw_rate_radps: -4.550570986291857e-05
+- time_s: 9.112
+  ego_pose:
+    x_m: -2.2211307419668906
+    y_m: 0.0022725171388915007
+    yaw_rad: 0.0019665159085166793
+  actor_poses: []
+  conservative_clearance_m: 2.9659512072650753
+  speed_mps: 1.1997962929536372
+  yaw_rate_radps: -6.556111342456394e-05
+- time_s: 9.162
+  ego_pose:
+    x_m: -2.1755343549155532
+    y_m: 0.002361463994423015
+    yaw_rad: 0.0019642353472305767
+  actor_poses: []
+  conservative_clearance_m: 2.9299320025948083
+  speed_mps: 1.2000113396914398
+  yaw_rate_radps: -5.485321493435003e-05
+- time_s: 9.212
+  ego_pose: *id008
+  actor_poses: []
+  conservative_clearance_m: 2.8941209645588115
+  speed_mps: 1.200153813488843
+  yaw_rate_radps: -8.527804420597451e-05
+- time_s: 9.262
+  ego_pose:
+    x_m: -2.0387176304188492
+    y_m: 0.002627396760702301
+    yaw_rad: 0.001956398134764648
+  actor_poses: []
+  conservative_clearance_m: 2.823151934298284
+  speed_mps: 1.2002924468563827
+  yaw_rate_radps: -7.086448091967712e-05
+- time_s: 9.312
+  ego_pose:
+    x_m: -1.9955061503282931
+    y_m: 0.002711274518877999
+    yaw_rad: 0.0019544955936571995
+  actor_poses: []
+  conservative_clearance_m: 2.7898518837674233
+  speed_mps: 1.2003653741625047
+  yaw_rate_radps: -5.681342118736866e-05
+- time_s: 9.362
+  ego_pose:
+    x_m: -1.9498917916422578
+    y_m: 0.0027996466208871688
+    yaw_rad: 0.0019520636337059527
+  actor_poses: []
+  conservative_clearance_m: 2.754932319543261
+  speed_mps: 1.200440014683365
+  yaw_rate_radps: -6.422066180323647e-05
+- time_s: 9.412
+  ego_pose:
+    x_m: -1.85865785813647
+    y_m: 0.002976150059310808
+    yaw_rad: 0.0019472623837324067
+  actor_poses: []
+  conservative_clearance_m: 2.6858329056520405
+  speed_mps: 1.2004800442529622
+  yaw_rate_radps: -6.789327004448698e-05
+- time_s: 9.462
+  ego_pose: *id009
+  actor_poses: []
+  conservative_clearance_m: 2.651668628759439
+  speed_mps: 1.2005243445930152
+  yaw_rate_radps: -8.520703399802622e-05
+- time_s: 9.512
+  ego_pose:
+    x_m: -1.7698201953268138
+    y_m: 0.0031472421521815033
+    yaw_rad: 0.001941588907019218
+  actor_poses: []
+  conservative_clearance_m: 2.619549296902744
+  speed_mps: 1.2005272379111307
+  yaw_rate_radps: -0.00011970082489451922
+- time_s: 9.562
+  ego_pose:
+    x_m: -1.6809793687074188
+    y_m: 0.0033159603025131068
+    yaw_rad: 0.0019311592895479665
+  actor_poses: []
+  conservative_clearance_m: 2.55431132959871
+  speed_mps: 1.200572713742249
+  yaw_rate_radps: -0.0001377579470087431
+- time_s: 9.612
+  ego_pose:
+    x_m: -1.6377588545650454
+    y_m: 0.0033980281147777233
+    yaw_rad: 0.001926909247615469
+  actor_poses: []
+  conservative_clearance_m: 2.5229704141179514
+  speed_mps: 1.2005848636488272
+  yaw_rate_radps: -0.00010949004562244766
+- time_s: 9.662
+  ego_pose:
+    x_m: -1.5921369251480908
+    y_m: 0.003484466548593562
+    yaw_rad: 0.0019224532500964587
+  actor_poses: []
+  conservative_clearance_m: 2.4901812406520705
+  speed_mps: 1.2005719986524586
+  yaw_rate_radps: -0.0001702242105743559
+- time_s: 9.712
+  ego_pose: *id010
+  actor_poses: []
+  conservative_clearance_m: 2.4255433049957213
+  speed_mps: 1.2006007138591002
+  yaw_rate_radps: -0.00026846751208535057
+- time_s: 9.762
+  ego_pose:
+    x_m: -1.4552696402747587
+    y_m: 0.003737786460294939
+    yaw_rad: 0.0018960561954786226
+  actor_poses: []
+  conservative_clearance_m: 2.393070071852229
+  speed_mps: 1.200604142641735
+  yaw_rate_radps: -0.00034368332770072925
+- time_s: 9.812
+  ego_pose:
+    x_m: -1.4096467863990196
+    y_m: 0.003819839321971305
+    yaw_rad: 0.0018829919642855632
+  actor_poses: []
+  conservative_clearance_m: 2.360851350804589
+  speed_mps: 1.200594673951243
+  yaw_rate_radps: -0.00036060940570324874
+- time_s: 9.862
+  ego_pose:
+    x_m: -1.3184004173583648
+    y_m: 0.003979813340035294
+    yaw_rad: 0.0018505667707638316
+  actor_poses: []
+  conservative_clearance_m: 2.29617320159093
+  speed_mps: 1.2006019968954504
+  yaw_rate_radps: -0.0004922709454939899
+- time_s: 9.912
+  ego_pose:
+    x_m: -1.2751746495491671
+    y_m: 0.004053364232691512
+    yaw_rad: 0.001856808171042805
+  actor_poses: []
+  conservative_clearance_m: 2.2655640591554267
+  speed_mps: 1.1988814004754615
+  yaw_rate_radps: 0.0011305737211239992
+- time_s: 9.962
+  ego_pose: *id011
+  actor_poses: []
+  conservative_clearance_m: 2.2365985587494284
+  speed_mps: 1.198973770251369
+  yaw_rate_radps: -0.0017907478176641578
+- time_s: 10.012
+  ego_pose:
+    x_m: -1.1431076944800918
+    y_m: 0.004272242136316806
+    yaw_rad: 0.001779761977943723
+  actor_poses: []
+  conservative_clearance_m: 2.1728426657705735
+  speed_mps: 1.1989914144292193
+  yaw_rate_radps: -0.001835949647751832
+- time_s: 10.062
+  ego_pose:
+    x_m: -1.0974790961360132
+    y_m: 0.004341047388214154
+    yaw_rad: 0.0017546408413639948
+  actor_poses: []
+  conservative_clearance_m: 2.141514127617922
+  speed_mps: 1.1989920957546907
+  yaw_rate_radps: 0.0006829835738667845
+- time_s: 10.112
+  ego_pose:
+    x_m: -1.051857097823893
+    y_m: 0.004418091046438994
+    yaw_rad: 0.0017347998394540865
+  actor_poses: []
+  conservative_clearance_m: 2.1105633691326813
+  speed_mps: 1.1989912284806639
+  yaw_rate_radps: 0.0006497751419109225
+- time_s: 10.162
+  ego_pose:
+    x_m: -0.9630049948985743
+    y_m: 0.00455663993574568
+    yaw_rad: 0.0016893045782566047
+  actor_poses: []
+  conservative_clearance_m: 2.0514283067254833
+  speed_mps: 1.1989788952101381
+  yaw_rate_radps: -0.0018035027801185845
+- time_s: 10.212
+  ego_pose: *id012
+  actor_poses: []
+  conservative_clearance_m: 2.021670312691949
+  speed_mps: 1.1989633389661043
+  yaw_rate_radps: -0.0017932890419183928
+- time_s: 10.262
+  ego_pose:
+    x_m: -0.8741608956101713
+    y_m: 0.004702243802888841
+    yaw_rad: 0.0016516900079038463
+  actor_poses: []
+  conservative_clearance_m: 1.9938730837192735
+  speed_mps: 1.1989535437541687
+  yaw_rate_radps: 0.0007786384310244193
+- time_s: 10.312
+  ego_pose:
+    x_m: -0.782913950478423
+    y_m: 0.00484094779489318
+    yaw_rad: 0.0016150481128920661
+  actor_poses: []
+  conservative_clearance_m: 1.9365191589226765
+  speed_mps: 1.1989368466676558
+  yaw_rate_radps: 0.0008385881498112589
+- time_s: 10.362
+  ego_pose:
+    x_m: -0.73728801951816
+    y_m: 0.0049175074100257276
+    yaw_rad: 0.0016016426299820528
+  actor_poses: []
+  conservative_clearance_m: 1.9085349652864845
+  speed_mps: 1.1988897268009526
+  yaw_rate_radps: -0.0016356973473922462
+- time_s: 10.412
+  ego_pose:
+    x_m: -0.6940671796827115
+    y_m: 0.004975087743881786
+    yaw_rad: 0.001583551138084222
+  actor_poses: []
+  conservative_clearance_m: 1.8824861173710468
+  speed_mps: 1.1988868133024497
+  yaw_rate_radps: -0.0016236401088758296
+- time_s: 10.462
+  ego_pose: *id013
+  actor_poses: []
+  conservative_clearance_m: 1.8289647674918075
+  speed_mps: 1.19888077631429
+  yaw_rate_radps: 0.0008964796363457031
+- time_s: 10.512
+  ego_pose:
+    x_m: -0.5572070974931695
+    y_m: 0.005188789674247131
+    yaw_rad: 0.0015439401040503722
+  actor_poses: []
+  conservative_clearance_m: 1.8030035967818288
+  speed_mps: 1.198871496932892
+  yaw_rate_radps: 0.0008076367126841035
+- time_s: 10.562
+  ego_pose:
+    x_m: -0.5115831909781279
+    y_m: 0.005248852345654732
+    yaw_rad: 0.0015227182169397487
+  actor_poses: []
+  conservative_clearance_m: 1.7775912039140178
+  speed_mps: 1.1988455558338265
+  yaw_rate_radps: -0.001729102054332642
+- time_s: 10.612
+  ego_pose:
+    x_m: -0.4203429607513325
+    y_m: 0.005386691595565966
+    yaw_rad: 0.001489350787243085
+  actor_poses: []
+  conservative_clearance_m: 1.7284661555381318
+  speed_mps: 1.1988473151262427
+  yaw_rate_radps: -0.0017160347561214788
+- time_s: 10.662
+  ego_pose:
+    x_m: -0.3795287779808974
+    y_m: 0.005437447248771692
+    yaw_rad: 0.0014712130740100605
+  actor_poses: []
+  conservative_clearance_m: 1.707266993403822
+  speed_mps: 1.198832461023366
+  yaw_rate_radps: 0.0007742490586520049
+- time_s: 10.712
+  ego_pose: *id014
+  actor_poses: []
+  conservative_clearance_m: 1.6853473397196397
+  speed_mps: 1.1988231844464505
+  yaw_rate_radps: 0.0007048617944023575
+- time_s: 10.762
+  ego_pose:
+    x_m: -0.2450726294283363
+    y_m: 0.005614598612809105
+    yaw_rad: 0.0014042197582072428
+  actor_poses: []
+  conservative_clearance_m: 1.6409627879398805
+  speed_mps: 1.1988187133638886
+  yaw_rate_radps: -0.0022012072928371726
+- time_s: 10.812
+  ego_pose:
+    x_m: -0.1994507778569861
+    y_m: 0.005672221536115569
+    yaw_rad: 0.0013658655483950771
+  actor_poses: []
+  conservative_clearance_m: 1.6197580032904133
+  speed_mps: 1.1988098236556457
+  yaw_rate_radps: -0.0024227463437298947
+- time_s: 10.862
+  ego_pose:
+    x_m: -0.15383593806208373
+    y_m: 0.00571732414298443
+    yaw_rad: 0.0013188522792792424
+  actor_poses: []
+  conservative_clearance_m: 1.5992505892709796
+  speed_mps: 1.1987906254921523
+  yaw_rate_radps: 4.8603334708162244e-05
+- time_s: 10.912
+  ego_pose:
+    x_m: -0.06260032753649622
+    y_m: 0.0058035220193316354
+    yaw_rad: 0.0012248995086567602
+  actor_poses: []
+  conservative_clearance_m: 1.5603569785796543
+  speed_mps: 1.1987811271125648
+  yaw_rate_radps: -4.3484449158652626e-05
+- time_s: 10.962
+  ego_pose: *id015
+  actor_poses: []
+  conservative_clearance_m: 1.5429535228438072
+  speed_mps: 1.1987726644402494
+  yaw_rate_radps: -0.002916669392306194
+- time_s: 11.012
+  ego_pose:
+    x_m: 0.026236264755653684
+    y_m: 0.005871443355870153
+    yaw_rad: 0.0011088439323244641
+  actor_poses: []
+  conservative_clearance_m: 1.5253294220142846
+  speed_mps: 1.198760432144205
+  yaw_rate_radps: -0.003251396178457277
+- time_s: 11.062
+  ego_pose:
+    x_m: 0.11986649400906667
+    y_m: 0.005922031505241469
+    yaw_rad: 0.0009461499109396638
+  actor_poses: []
+  conservative_clearance_m: 1.4915956307273914
+  speed_mps: 1.1987439069854815
+  yaw_rate_radps: -0.0009906034064694218
+- time_s: 11.112
+  ego_pose:
+    x_m: 0.16548565688432013
+    y_m: 0.005943866735377715
+    yaw_rad: 0.0008630483800235784
+  actor_poses: []
+  conservative_clearance_m: 1.4763821440419775
+  speed_mps: 1.1987348374316513
+  yaw_rate_radps: -0.000981103127700227
+- time_s: 11.162
+  ego_pose:
+    x_m: 0.21109774308242993
+    y_m: 0.0059526723610312995
+    yaw_rad: 0.000775266920293833
+  actor_poses: []
+  conservative_clearance_m: 1.4620047208524967
+  speed_mps: 1.1987201599943913
+  yaw_rate_radps: -0.003567422013602514
+- time_s: 11.212
+  ego_pose: *id016
+  actor_poses: []
+  conservative_clearance_m: 1.4364264125072292
+  speed_mps: 1.2023571593773792
+  yaw_rate_radps: -0.003923246148231461
+- time_s: 11.262
+  ego_pose:
+    x_m: 0.3455410545551327
+    y_m: 0.005955855104118671
+    yaw_rad: 0.0005151854233335316
+  actor_poses: []
+  conservative_clearance_m: 1.4245767129287148
+  speed_mps: 1.1987897923080049
+  yaw_rate_radps: -0.0015521400916749073
+- time_s: 11.312
+  ego_pose:
+    x_m: 0.3911624336748387
+    y_m: 0.005938389664819003
+    yaw_rad: 0.0004146370005055198
+  actor_poses: []
+  conservative_clearance_m: 1.413614271558616
+  speed_mps: 1.2008636064296068
+  yaw_rate_radps: -0.0057611905318224
+- time_s: 11.362
+  ego_pose:
+    x_m: 0.4799831076540063
+    y_m: 0.005901619316311528
+    yaw_rad: 0.0002225657817316655
+  actor_poses: []
+  conservative_clearance_m: 1.3948505797665902
+  speed_mps: 1.1970656356521223
+  yaw_rate_radps: -0.004384379045766646
+- time_s: 11.412
+  ego_pose:
+    x_m: 0.5256000707701141
+    y_m: 0.005875534610808364
+    yaw_rad: 0.00011495960805609557
+  actor_poses: []
+  conservative_clearance_m: 1.386567258342327
+  speed_mps: 1.1975023135516651
+  yaw_rate_radps: -0.0012675914735311062
+- time_s: 11.462
+  ego_pose: *id017
+  actor_poses: []
+  conservative_clearance_m: 1.3795861838474321
+  speed_mps: 1.1998747061191555
+  yaw_rate_radps: -0.000852466669728534
+- time_s: 11.512
+  ego_pose:
+    x_m: 0.6600346557379311
+    y_m: 0.005751127202766229
+    yaw_rad: -0.00018495296447524804
+  actor_poses: []
+  conservative_clearance_m: 1.367634490579678
+  speed_mps: 1.1992514919579647
+  yaw_rate_radps: -0.0029745514089736373
+- time_s: 11.562
+  ego_pose:
+    x_m: 0.7056504500070357
+    y_m: 0.0057025024267965295
+    yaw_rad: -0.0002931695207915815
+  actor_poses: []
+  conservative_clearance_m: 1.3620756379145749
+  speed_mps: 1.200838607841895
+  yaw_rate_radps: -0.0011953854827741574
+- time_s: 11.612
+  ego_pose:
+    x_m: 0.7512605910295052
+    y_m: 0.005648859617752166
+    yaw_rad: -0.00040913654874567633
+  actor_poses: []
+  conservative_clearance_m: 1.3530702826262329
+  speed_mps: 1.2004067388545572
+  yaw_rate_radps: -0.002813954288572596
+- time_s: 11.662
+  ego_pose:
+    x_m: 0.8376839138730016
+    y_m: 0.005558023613120173
+    yaw_rad: -0.0005666255729515878
+  actor_poses: []
+  conservative_clearance_m: 1.3385948248681045
+  speed_mps: 1.2002546773760006
+  yaw_rate_radps: -0.0019375311133085122
+- time_s: 11.712
+  ego_pose: *id018
+  actor_poses: []
+  conservative_clearance_m: 1.3323320754151222
+  speed_mps: 1.2002353119055278
+  yaw_rate_radps: -0.0017891790967570363
+- time_s: 11.762
+  ego_pose:
+    x_m: 0.9289020415454228
+    y_m: 0.005455372852039486
+    yaw_rad: -0.0007041239008218299
+  actor_poses: []
+  conservative_clearance_m: 1.3270325066716153
+  speed_mps: 1.2002167377398478
+  yaw_rate_radps: -0.001550637235159725
+- time_s: 11.812
+  ego_pose:
+    x_m: 1.0177179297435202
+    y_m: 0.005351273182478741
+    yaw_rad: -0.0008165316907571363
+  actor_poses: []
+  conservative_clearance_m: 1.31950291054609
+  speed_mps: 1.2002089904713806
+  yaw_rate_radps: -0.0013908545492052318
+- time_s: 11.862
+  ego_pose:
+    x_m: 1.060925304681588
+    y_m: 0.005300001078847349
+    yaw_rad: -0.0008628207431443154
+  actor_poses: []
+  conservative_clearance_m: 1.317183522118722
+  speed_mps: 1.200201399680645
+  yaw_rate_radps: -0.001114985064203876
+- time_s: 11.912
+  ego_pose:
+    x_m: 1.104132531648846
+    y_m: 0.00524879955090504
+    yaw_rad: -0.0009031535927735434
+  actor_poses: []
+  conservative_clearance_m: 1.3157484020327481
+  speed_mps: 1.200198032157227
+  yaw_rate_radps: -0.0009607152219654133
+- time_s: 11.962
+  ego_pose: *id019
+  actor_poses: []
+  conservative_clearance_m: 1.3151439538263818
+  speed_mps: 1.2003571644395676
+  yaw_rate_radps: -0.00021195920215914783
+- time_s: 12.012
+  ego_pose:
+    x_m: 1.2385570739744554
+    y_m: 0.005081426610552065
+    yaw_rad: -0.001009414072112892
+  actor_poses: []
+  conservative_clearance_m: 1.315081426610552
+  speed_mps: 1.1999682937375853
+  yaw_rate_radps: 0.004403515575025316
+- time_s: 12.062
+  ego_pose:
+    x_m: 1.324973348959194
+    y_m: 0.004964010499472051
+    yaw_rad: -0.0010839076530685214
+  actor_poses: []
+  conservative_clearance_m: 1.316298765263888
+  speed_mps: 1.2006695717243439
+  yaw_rate_radps: -0.003443962708469696
+- time_s: 12.112
+  ego_pose:
+    x_m: 1.3681786306639123
+    y_m: 0.0049081515888727435
+    yaw_rad: -0.001111906155561179
+  actor_poses: []
+  conservative_clearance_m: 1.3182230705907005
+  speed_mps: 1.2033367455952755
+  yaw_rate_radps: -0.004119217836991603
+- time_s: 12.162
+  ego_pose:
+    x_m: 1.4137842866357517
+    y_m: 0.00484233389825946
+    yaw_rad: -0.0011570069342819358
+  actor_poses: []
+  conservative_clearance_m: 1.3212049978907903
+  speed_mps: 1.1924245868186094
+  yaw_rate_radps: -0.0028455038512283834
+- time_s: 12.212
+  ego_pose: *id020
+  actor_poses: []
+  conservative_clearance_m: 1.3298160364849578
+  speed_mps: 1.1988652838904559
+  yaw_rate_radps: 0.0002617856793710889
+- time_s: 12.262
+  ego_pose:
+    x_m: 1.5458139976504206
+    y_m: 0.0046351608972333355
+    yaw_rad: -0.0012760162471621903
+  actor_poses: []
+  conservative_clearance_m: 1.335322347713599
+  speed_mps: 1.197601193357264
+  yaw_rate_radps: -0.003084188084318358
+- time_s: 12.312
+  ego_pose:
+    x_m: 1.5890264031080252
+    y_m: 0.004563922640753893
+    yaw_rad: -0.0012966297810334954
+  actor_poses: []
+  conservative_clearance_m: 1.3416960868016345
+  speed_mps: 1.1989490883941312
+  yaw_rate_radps: -0.00021279754132466953
+- time_s: 12.362
+  ego_pose:
+    x_m: 1.6754463941040647
+    y_m: 0.004425722171966458
+    yaw_rad: -0.0013590063286253444
+  actor_poses: []
+  conservative_clearance_m: 1.357000757893474
+  speed_mps: 1.1969361720394716
+  yaw_rate_radps: -0.004771539566965401
+- time_s: 12.412
+  ego_pose:
+    x_m: 1.7210630635985944
+    y_m: 0.0043536390255326345
+    yaw_rad: -0.0013939759768842731
+  actor_poses: []
+  conservative_clearance_m: 1.3664333163737972
+  speed_mps: 1.2007471404661623
+  yaw_rate_radps: -0.0018671755614236589
+- time_s: 12.462
+  ego_pose: *id021
+  actor_poses: []
+  conservative_clearance_m: 1.3767670188453365
+  speed_mps: 1.1990533175578815
+  yaw_rate_radps: 0.0015063438333315206
+- time_s: 12.512
+  ego_pose:
+    x_m: 1.8578886761939524
+    y_m: 0.004115366099983742
+    yaw_rad: -0.0014936169363860916
+  actor_poses: []
+  conservative_clearance_m: 1.4001666869220029
+  speed_mps: 1.1921730648364441
+  yaw_rate_radps: -0.0017566298933511507
+- time_s: 12.562
+  ego_pose:
+    x_m: 1.9058968350748233
+    y_m: 0.004037792154599298
+    yaw_rad: -0.0014855550537717294
+  actor_poses: []
+  conservative_clearance_m: 1.4117540131135207
+  speed_mps: 1.2002231300745052
+  yaw_rate_radps: -0.0005788681717180968
+- time_s: 12.612
+  ego_pose:
+    x_m: 1.951509395586711
+    y_m: 0.003970897539716048
+    yaw_rad: -0.0014917548975045731
+  actor_poses: []
+  conservative_clearance_m: 1.4215836636468882
+  speed_mps: 1.2001944180183242
+  yaw_rate_radps: 0.0001347091678545773
+- time_s: 12.662
+  ego_pose:
+    x_m: 2.0427230810805996
+    y_m: 0.003840687103320547
+    yaw_rad: -0.0014756840498811564
+  actor_poses: []
+  conservative_clearance_m: 1.443909209495179
+  speed_mps: 1.2001596381062323
+  yaw_rate_radps: 0.0004132573726374477
+- time_s: 12.712
+  ego_pose: *id022
+  actor_poses: []
+  conservative_clearance_m: 1.4563822366073542
+  speed_mps: 1.2001459359706192
+  yaw_rate_radps: 0.0006312155072208002
+- time_s: 12.764
+  ego_pose:
+    x_m: 2.131533944207519
+    y_m: 0.003726183546657149
+    yaw_rad: -0.001430787003734953
+  actor_poses: []
+  conservative_clearance_m: 1.468987603065032
+  speed_mps: 1.2001339437855387
+  yaw_rate_radps: 0.000893019930449052
+- time_s: 12.812
+  ego_pose:
+    x_m: 2.2203437292865877
+    y_m: 0.003624572380158932
+    yaw_rad: -0.001361777557203383
+  actor_poses: []
+  conservative_clearance_m: 1.4972534315223536
+  speed_mps: 1.200129539874548
+  yaw_rate_radps: 0.001055300100799305
+- time_s: 12.862
+  ego_pose:
+    x_m: 2.263548306971061
+    y_m: 0.003580229637342582
+    yaw_rad: -0.0013201295456432996
+  actor_poses: []
+  conservative_clearance_m: 1.51212264079486
+  speed_mps: 1.200125764038713
+  yaw_rate_radps: 0.0012835724795730215
+- time_s: 12.912
+  ego_pose:
+    x_m: 2.309153065696813
+    y_m: 0.0035371265317845936
+    yaw_rad: -0.0012711595877568811
+  actor_poses: []
+  conservative_clearance_m: 1.5285914141234542
+  speed_mps: 1.2001239487159312
+  yaw_rate_radps: 0.001377624261511967
+- time_s: 12.962
+  ego_pose: *id023
+  actor_poses: []
+  conservative_clearance_m: 1.563842210254787
+  speed_mps: 1.1989566084546828
+  yaw_rate_radps: 0.0026299414767054826
+- time_s: 13.012
+  ego_pose:
+    x_m: 2.4459701002426546
+    y_m: 0.0034136600227774594
+    yaw_rad: -0.0011262311840186012
+  actor_poses: []
+  conservative_clearance_m: 1.582582312955664
+  speed_mps: 1.1998433752745108
+  yaw_rate_radps: 0.004895655126708815
+- time_s: 13.062
+  ego_pose:
+    x_m: 2.4915762790861833
+    y_m: 0.0033750815782944616
+    yaw_rad: -0.0010890417297381143
+  actor_poses: []
+  conservative_clearance_m: 1.6020504566411922
+  speed_mps: 1.20059980232075
+  yaw_rate_radps: -0.0015214581065495641
+- time_s: 13.112
+  ego_pose:
+    x_m: 2.5827869085101396
+    y_m: 0.003296805780783353
+    yaw_rad: -0.0010230213474609552
+  actor_poses: []
+  conservative_clearance_m: 1.6430830881574248
+  speed_mps: 1.2019034212074324
+  yaw_rate_radps: -0.0016542850969947817
+- time_s: 13.162
+  ego_pose:
+    x_m: 2.6283908046551354
+    y_m: 0.0032563393256914157
+    yaw_rad: -0.0010059767595232414
+  actor_poses: []
+  conservative_clearance_m: 1.6646115275827342
+  speed_mps: 1.1985960753035076
+  yaw_rate_radps: 0.0033681280941816978
+- time_s: 13.212
+  ego_pose: *id024
+  actor_poses: []
+  conservative_clearance_m: 1.6856103394884316
+  speed_mps: 1.199268870256867
+  yaw_rate_radps: 0.002614411794508261
+- time_s: 13.262
+  ego_pose:
+    x_m: 2.762815575088035
+    y_m: 0.003136067898417897
+    yaw_rad: -0.0009310258831814686
+  actor_poses: []
+  conservative_clearance_m: 1.7318008765718949
+  speed_mps: 1.198835212926863
+  yaw_rate_radps: 0.001071185188211233
+- time_s: 13.312
+  ego_pose:
+    x_m: 2.8084280063903737
+    y_m: 0.003086121955446551
+    yaw_rad: -0.0009272286258937104
+  actor_poses: []
+  conservative_clearance_m: 1.7558017395513845
+  speed_mps: 1.2019247002555347
+  yaw_rate_radps: 0.00030772441146205
+- time_s: 13.362
+  ego_pose:
+    x_m: 2.8540277018459754
+    y_m: 0.0030371941083862718
+    yaw_rad: -0.0009213002603729144
+  actor_poses: []
+  conservative_clearance_m: 1.780381867887531
+  speed_mps: 1.1968840977973048
+  yaw_rate_radps: 0.002727767529364269
+- time_s: 13.412
+  ego_pose:
+    x_m: 2.9428472975841786
+    y_m: 0.0029617862733305545
+    yaw_rad: -0.0008676420490166561
+  actor_poses: []
+  conservative_clearance_m: 1.8298926518194638
+  speed_mps: 1.1966901149218763
+  yaw_rate_radps: -0.0036729281397242333
+- time_s: 13.462
+  ego_pose: *id025
+  actor_poses: []
+  conservative_clearance_m: 1.8561234243735059
+  speed_mps: 1.1985637734306094
+  yaw_rate_radps: -0.001017592894460876
+- time_s: 13.512
+  ego_pose:
+    x_m: 3.034053623809322
+    y_m: 0.00289346176970542
+    yaw_rad: -0.0008323278884171351
+  actor_poses: []
+  conservative_clearance_m: 1.8828591696597443
+  speed_mps: 1.1988825112071384
+  yaw_rate_radps: 0.0014543318726519922
+- time_s: 13.562
+  ego_pose:
+    x_m: 3.1228819104810452
+    y_m: 0.0028442237112249716
+    yaw_rad: -0.0007605393848482574
+  actor_poses: []
+  conservative_clearance_m: 1.9364027835192448
+  speed_mps: 1.2001682609320528
+  yaw_rate_radps: 0.0009181758008887563
+- time_s: 13.612
+  ego_pose:
+    x_m: 3.1684877704456014
+    y_m: 0.0028245984197312044
+    yaw_rad: -0.000717354869334657
+  actor_poses: []
+  conservative_clearance_m: 1.964605955256061
+  speed_mps: 1.2001386078883558
+  yaw_rate_radps: 0.0012005147842913781
+- time_s: 13.662
+  ego_pose:
+    x_m: 3.211692454075926
+    y_m: 0.002809209263673817
+    yaw_rad: -0.0006725873867973862
+  actor_poses: []
+  conservative_clearance_m: 1.9917526479251402
+  speed_mps: 1.200110132119045
+  yaw_rate_radps: 0.0013549603289627922
+- time_s: 13.712
+  ego_pose: *id026
+  actor_poses: []
+  conservative_clearance_m: 2.0503749791876387
+  speed_mps: 1.2000989870646368
+  yaw_rate_radps: 0.0013931717998219187
+- time_s: 13.762
+  ego_pose:
+    x_m: 3.3437038185915355
+    y_m: 0.002779741118718887
+    yaw_rad: -0.000521288206303003
+  actor_poses: []
+  conservative_clearance_m: 2.077154472001696
+  speed_mps: 1.2000893634220882
+  yaw_rate_radps: 0.001406217748708335
+- time_s: 13.812
+  ego_pose:
+    x_m: 3.389307212028338
+    y_m: 0.0027746351064361994
+    yaw_rad: -0.00046786745075480876
+  actor_poses: []
+  conservative_clearance_m: 2.1074732254470896
+  speed_mps: 1.200085921070337
+  yaw_rate_radps: 0.0014447940226282145
+- time_s: 13.862
+  ego_pose:
+    x_m: 3.4781135047007967
+    y_m: 0.002773720236552559
+    yaw_rad: -0.00035793396230499405
+  actor_poses: []
+  conservative_clearance_m: 2.1676475581939876
+  speed_mps: 1.200082852100259
+  yaw_rate_radps: 0.0015759170198876493
+- time_s: 13.912
+  ego_pose:
+    x_m: 3.523719471434571
+    y_m: 0.002783166273777753
+    yaw_rad: -0.00028958264384866306
+  actor_poses: []
+  conservative_clearance_m: 2.1991115414448177
+  speed_mps: 1.2023988994045267
+  yaw_rate_radps: 0.0024061448140774385
+- time_s: 13.962
+  ego_pose: *id027
+  actor_poses: []
+  conservative_clearance_m: 2.230920213422701
+  speed_mps: 1.1791448455207767
+  yaw_rate_radps: 0.004105514602588486
+- time_s: 14.012
+  ego_pose:
+    x_m: 3.6561762435139964
+    y_m: 0.0027492381627848765
+    yaw_rad: -0.00026144260033166233
+  actor_poses: []
+  conservative_clearance_m: 2.2924016933749636
+  speed_mps: 1.149268085100234
+  yaw_rate_radps: -0.004870834956677674
+- time_s: 14.062
+  ego_pose:
+    x_m: 3.7015451188991184
+    y_m: 0.002715467769801977
+    yaw_rad: -0.0003425193972872985
+  actor_poses: []
+  conservative_clearance_m: 2.3242826369006484
+  speed_mps: 1.1066132834007427
+  yaw_rate_radps: -0.0016186885651248701
+- time_s: 14.112
+  ego_pose:
+    x_m: 3.7438248528566747
+    y_m: 0.0026796211679086723
+    yaw_rad: -0.00043328581389735494
+  actor_poses: []
+  conservative_clearance_m: 2.3542880726494615
+  speed_mps: 1.0985374778837471
+  yaw_rate_radps: -0.004453363604712193
+- time_s: 14.162
+  ego_pose:
+    x_m: 3.8242604519125263
+    y_m: 0.00256065860137552
+    yaw_rad: -0.000658567212210986
+  actor_poses: []
+  conservative_clearance_m: 2.4109826809609594
+  speed_mps: 1.073976425599789
+  yaw_rate_radps: -0.005554382060090446
+- time_s: 14.212
+  ego_pose: *id028
+  actor_poses: []
+  conservative_clearance_m: 2.4396157021979996
+  speed_mps: 1.0480960621479478
+  yaw_rate_radps: -0.0040624081282298885
+- time_s: 14.262
+  ego_pose:
+    x_m: 3.9021026004915607
+    y_m: 0.002403680384176623
+    yaw_rad: -0.0009350878114813528
+  actor_poses: []
+  conservative_clearance_m: 2.4658776221837013
+  speed_mps: 0.9991100444519397
+  yaw_rate_radps: -0.008236590033637274
+- time_s: 14.312
+  ego_pose:
+    x_m: 3.977258598253555
+    y_m: 0.002196949964551829
+    yaw_rad: -0.0012282304820840138
+  actor_poses: []
+  conservative_clearance_m: 2.5189217389608394
+  speed_mps: 0.960364312852586
+  yaw_rate_radps: -0.00047164971873938917
+- time_s: 14.362
+  ego_pose:
+    x_m: 4.011382031632446
+    y_m: 0.002091149781586598
+    yaw_rad: -0.0013901572813689767
+  actor_poses: []
+  conservative_clearance_m: 2.5429353243346067
+  speed_mps: 0.9168295928188627
+  yaw_rate_radps: -0.003029110157354227
+- time_s: 14.412
+  ego_pose:
+    x_m: 4.046283064384608
+    y_m: 0.0019975954835989443
+    yaw_rad: -0.0015386814566876897
+  actor_poses: []
+  conservative_clearance_m: 2.567687480069743
+  speed_mps: 0.8874339930446382
+  yaw_rate_radps: -0.0023690655374856116
+- time_s: 14.462
+  ego_pose: *id029
+  actor_poses: []
+  conservative_clearance_m: 2.6148984393309527
+  speed_mps: 0.8303041160039887
+  yaw_rate_radps: -0.001012090649745044
+- time_s: 14.512
+  ego_pose:
+    x_m: 4.143252964687377
+    y_m: 0.001634401012638752
+    yaw_rad: -0.0020024880222108445
+  actor_poses: []
+  conservative_clearance_m: 2.6373159617911575
+  speed_mps: 0.7950395545294475
+  yaw_rate_radps: -0.007688868640913982
+- time_s: 14.562
+  ego_pose:
+    x_m: 4.172975013200158
+    y_m: 0.0015182251441918074
+    yaw_rad: -0.0021718532374696378
+  actor_poses: []
+  conservative_clearance_m: 2.658918798756736
+  speed_mps: 0.7429213089482807
+  yaw_rate_radps: -0.009558496162322872
+- time_s: 14.612
+  ego_pose:
+    x_m: 4.228611019629407
+    y_m: 0.0012832794856269861
+    yaw_rad: -0.0024965776688108355
+  actor_poses: []
+  conservative_clearance_m: 2.6996658652287726
+  speed_mps: 0.7076717973490833
+  yaw_rate_radps: -0.006193236462060308
+- time_s: 14.662
+  ego_pose:
+    x_m: 4.2544989466316805
+    y_m: 0.0011773190325780778
+    yaw_rad: -0.002651680024867295
+  actor_poses: []
+  conservative_clearance_m: 2.7187675255762858
+  speed_mps: 0.6520617910274561
+  yaw_rate_radps: -0.0016496380829252972
+- time_s: 14.712
+  ego_pose: *id030
+  actor_poses: []
+  conservative_clearance_m: 2.7369755762032644
+  speed_mps: 0.6181239847222214
+  yaw_rate_radps: -0.002006315042864479
+- time_s: 14.762
+  ego_pose:
+    x_m: 4.324402906113109
+    y_m: 0.0008389001019930638
+    yaw_rad: -0.0029967860441493877
+  actor_poses: []
+  conservative_clearance_m: 2.7707407148596164
+  speed_mps: 0.56512397758935
+  yaw_rate_radps: -0.004779529342419044
+- time_s: 14.812
+  ego_pose:
+    x_m: 4.345105761433096
+    y_m: 0.0007527675720085263
+    yaw_rad: -0.00307539763373767
+  actor_poses: []
+  conservative_clearance_m: 2.786259727642458
+  speed_mps: 0.5299145318170109
+  yaw_rate_radps: -0.003899120473828314
+- time_s: 14.862
+  ego_pose:
+    x_m: 4.364506319081571
+    y_m: 0.0006650643352692665
+    yaw_rad: -0.003144443982698713
+  actor_poses: []
+  conservative_clearance_m: 2.800845415918109
+  speed_mps: 0.47192126719129873
+  yaw_rate_radps: 0.008258593190322565
+- time_s: 14.912
+  ego_pose:
+    x_m: 4.382622522303244
+    y_m: 0.0005762937965976077
+    yaw_rad: -0.0032023255492489877
+  actor_poses: []
+  conservative_clearance_m: 2.8145020130882807
+  speed_mps: 0.43859689330286106
+  yaw_rate_radps: 0.006192149316035631
+- time_s: 14.962
+  ego_pose: *id031
+  actor_poses: []
+  conservative_clearance_m: 2.8389709948435304
+  speed_mps: 0.38002698748170405
+  yaw_rate_radps: 0.001771650050932976
+- time_s: 15.012
+  ego_pose:
+    x_m: 4.429232076910338
+    y_m: 0.0003774903550553301
+    yaw_rad: -0.0033470049071106555
+  actor_poses: []
+  conservative_clearance_m: 2.8498358870277465
+  speed_mps: 0.3499664672411119
+  yaw_rate_radps: -0.002535082801929053
+- time_s: 15.062
+  ego_pose:
+    x_m: 4.443149676253214
+    y_m: 0.00031106828494975087
+    yaw_rad: -0.0033963272619356505
+  actor_poses: []
+  conservative_clearance_m: 2.860431102165353
+  speed_mps: 0.3135215343136244
+  yaw_rate_radps: -6.459916020851849e-05
+- time_s: 15.112
+  ego_pose:
+    x_m: 4.467057156306773
+    y_m: 0.0002024878180173759
+    yaw_rad: -0.003458117264788632
+  actor_poses: []
+  conservative_clearance_m: 2.878686788981199
+  speed_mps: 0.29843408347480055
+  yaw_rate_radps: -0.0009751930684030872
+- time_s: 15.162
+  ego_pose:
+    x_m: 4.477995801654948
+    y_m: 0.00016341281074745643
+    yaw_rad: -0.0034690977216154583
+  actor_poses: []
+  conservative_clearance_m: 2.8870678972643744
+  speed_mps: 0.27287536418191527
+  yaw_rate_radps: -0.00267706523160525
+- time_s: 15.212
+  ego_pose: *id032
+  actor_poses: []
+  conservative_clearance_m: 2.894639152472161
+  speed_mps: 0.26045278734604
+  yaw_rate_radps: 0.0007102156000929088
+- time_s: 15.262
+  ego_pose:
+    x_m: 4.506936761317136
+    y_m: 6.1034185398529e-05
+    yaw_rad: -0.0034985878877243476
+  actor_poses: []
+  conservative_clearance_m: 2.909307303071991
+  speed_mps: 0.2439074225043697
+  yaw_rate_radps: 0.003025333302272244
+- time_s: 15.312
+  ego_pose:
+    x_m: 4.516256552355751
+    y_m: 3.383581475007497e-05
+    yaw_rad: -0.003509900703617669
+  actor_poses: []
+  conservative_clearance_m: 2.9164923652149133
+  speed_mps: 0.23791262843831879
+  yaw_rate_radps: 0.001281419100925736
+- time_s: 15.362
+  ego_pose:
+    x_m: 4.525288974014173
+    y_m: 3.685154679787791e-06
+    yaw_rad: -0.0034843612610510415
+  actor_poses: []
+  conservative_clearance_m: 2.9234625357377757
+  speed_mps: 0.23172040105792094
+  yaw_rate_radps: -0.00011345105452374077
+- time_s: 15.412
+  ego_pose:
+    x_m: 4.542708474316223
+    y_m: -7.495616910314772e-05
+    yaw_rad: -0.0035010830697390356
+  actor_poses: []
+  conservative_clearance_m: 2.9369169603043894
+  speed_mps: 0.2281482814650344
+  yaw_rate_radps: -0.001027399915566069
+- time_s: 15.462
+  ego_pose: *id033
+  actor_poses: []
+  conservative_clearance_m: 2.9427891947971094
+  speed_mps: 0.2189800247785886
+  yaw_rate_radps: 0.003778050702579721
+- time_s: 15.512
+  ego_pose:
+    x_m: 4.565543754077492
+    y_m: -0.00014659117295277117
+    yaw_rad: -0.0034919375987402346
+  actor_poses: []
+  conservative_clearance_m: 2.954623669331318
+  speed_mps: 0.21698748739108964
+  yaw_rate_radps: 0.0026409093497915164
+- time_s: 15.562
+  ego_pose:
+    x_m: 4.574098311642998
+    y_m: -0.00018008087654772625
+    yaw_rad: -0.003471774064093867
+  actor_poses: []
+  conservative_clearance_m: 2.961267064401408
+  speed_mps: 0.20870275987338627
+  yaw_rate_radps: 0.002964192726609389
+- time_s: 15.612
+  ego_pose:
+    x_m: 4.582146566350555
+    y_m: -0.00020630112830962382
+    yaw_rad: -0.003467751021235523
+  actor_poses: []
+  conservative_clearance_m: 2.9675276331410294
+  speed_mps: 0.20831742358266622
+  yaw_rate_radps: -0.0014698067591469978
+- time_s: 15.662
+  ego_pose:
+    x_m: 4.590123355491532
+    y_m: -0.00024896365536434243
+    yaw_rad: -0.003465057148969356
+  actor_poses: []
+  conservative_clearance_m: 2.9737289060597143
+  speed_mps: 0.20826206182679505
+  yaw_rate_radps: -0.002846894349500234
+- time_s: 15.712
+  ego_pose: *id034
+  actor_poses: []
+  conservative_clearance_m: 2.986037283920922
+  speed_mps: 0.2069224524596029
+  yaw_rate_radps: -0.002401265275678435
+- time_s: 15.762
+  ego_pose:
+    x_m: 4.61290633152243
+    y_m: -0.0003330526951527341
+    yaw_rad: -0.003441383465452541
+  actor_poses: []
+  conservative_clearance_m: 2.9915008518619377
+  speed_mps: 0.20505434630925773
+  yaw_rate_radps: 0.0001704088668842964
+- time_s: 15.812
+  ego_pose:
+    x_m: 4.6280581600584805
+    y_m: -0.0003892676271554386
+    yaw_rad: -0.0034166658340464558
+  actor_poses: []
+  conservative_clearance_m: 3.003349575028979
+  speed_mps: 0.2045147094042006
+  yaw_rate_radps: 0.0021414629718806344
+- time_s: 15.862
+  ego_pose:
+    x_m: 4.636201005844011
+    y_m: -0.00042113634587503756
+    yaw_rad: -0.0033992398990723375
+  actor_poses: []
+  conservative_clearance_m: 3.0097259485170733
+  speed_mps: 0.20314035889603993
+  yaw_rate_radps: -0.0027345115799288257
+- time_s: 15.912
+  ego_pose:
+    x_m: 4.643509875116383
+    y_m: -0.0004457128231866347
+    yaw_rad: -0.003384290918542271
+  actor_poses: []
+  conservative_clearance_m: 3.015457491657241
+  speed_mps: 0.19927464691695734
+  yaw_rate_radps: 0.002842315063788074
+- time_s: 15.962
+  ego_pose: *id035
+  actor_poses: []
+  conservative_clearance_m: 3.0272146692859994
+  speed_mps: 0.2037601781312462
+  yaw_rate_radps: -0.002003868123409883
+- time_s: 16.012
+  ego_pose:
+    x_m: 4.666568660461441
+    y_m: -0.000527032767894314
+    yaw_rad: -0.003336357547895471
+  actor_poses: []
+  conservative_clearance_m: 3.0335728980931624
+  speed_mps: 0.19389058174248486
+  yaw_rate_radps: -0.0004260169259770107
+- time_s: 16.062
+  ego_pose:
+    x_m: 4.673819006531251
+    y_m: -0.0005516751753015801
+    yaw_rad: -0.003326184816093461
+  actor_poses: []
+  conservative_clearance_m: 3.0392804565977145
+  speed_mps: 0.2034164316018558
+  yaw_rate_radps: 0.0017161743091856677
+- time_s: 16.112
+  ego_pose:
+    x_m: 4.689120909731129
+    y_m: -0.0006158663649567688
+    yaw_rad: -0.0032986280032493995
+  actor_poses: []
+  conservative_clearance_m: 3.051335927947596
+  speed_mps: 0.1991907331418862
+  yaw_rate_radps: 0.0007670367980946967
+- time_s: 16.162
+  ego_pose:
+    x_m: 4.696754352705558
+    y_m: -0.0006349974422593327
+    yaw_rad: -0.003280119245750342
+  actor_poses: []
+  conservative_clearance_m: 3.057366372074978
+  speed_mps: 0.20340616014365748
+  yaw_rate_radps: 0.0020834945690358367
+- time_s: 16.212
+  ego_pose: *id036
+  actor_poses: []
+  conservative_clearance_m: 3.06340091335097
+  speed_mps: 0.2012472663280378
+  yaw_rate_radps: -0.0024839710747505592
+- time_s: 16.262
+  ego_pose:
+    x_m: 4.712011285110556
+    y_m: -0.0006847019116873807
+    yaw_rad: -0.0032318523331701207
+  actor_poses: []
+  conservative_clearance_m: 3.069429424147584
+  speed_mps: 0.20410450977810943
+  yaw_rate_radps: 0.003087498702305804
+- time_s: 16.312
+  ego_pose:
+    x_m: 4.726859708792168
+    y_m: -0.0007274442758101385
+    yaw_rad: -0.0031859256176755726
+  actor_poses: []
+  conservative_clearance_m: 3.0811945454429788
+  speed_mps: 0.20061746751016843
+  yaw_rate_radps: 0.0004276380867634738
+- time_s: 16.362
+  ego_pose:
+    x_m: 4.7344722574727065
+    y_m: -0.0007596625625193474
+    yaw_rad: -0.0031776204424086817
+  actor_poses: []
+  conservative_clearance_m: 3.087228297400363
+  speed_mps: 0.2008452333014458
+  yaw_rate_radps: -0.0005923911513749413
+- time_s: 16.412
+  ego_pose:
+    x_m: 4.748905082291544
+    y_m: -0.0007964172097882791
+    yaw_rad: -0.0031239347759365564
+  actor_poses: []
+  conservative_clearance_m: 3.0986977489188723
+  speed_mps: 0.20032054228454954
+  yaw_rate_radps: -0.0025090413164841107
+directional_tracker_audit:
+  valid: false
+  center_world_m: null
+  velocity_world_mps:
+  - 0.0
+  - 0.0
+  safety_direction_world:
+  - 0.0
+  - 0.0
+  safety_prediction_speed_mps: 0.0
+  speed_mps: 0.0
+  fit_residual_m: null
+  history_count: 0
+  track_age_s: null
+  maximum_track_age_s: 0.5
+  association_miss_policy: hold_then_clear_before_reacquisition
+  source: LaserScan+Odometry+static_map_rejection_only
+execution_audit:
+  suggested_action: 3
+  validated_action: 3
+  executed_action: 3
+  previous_action_feature_source: last_confirmed_executed_action
+  committed_spatial_side: 0
+  committed_spatial_speed_mps: 0.0
+  spatial_speed_escalation_release_clearance_m: 0.22
+  confirmed_straight_run_length: 36
+  central_static_route_release_x_m: 20.99
+  certified_stop_preserves_spatial_side_commitment: true
+  execution_sequence: 36
+result:
+  goal_reached: true
+  timeout: false
+  elapsed_s: 9.0
+  restricted_elapsed_s: 9.0
+  path_length_m: 8.747220865244621
+  minimum_conservative_clearance_m: 1.315081426610552
+  contact_state_count: 0
+  decision_count: 36
+  candidate_switch_count: 1
+  certified_stop_count: 0
+  stop_recovery_count: 0
+  tracking_error_mean_m: 0.06141321794207586
+  tracking_error_max_m: 0.13883774490496617
+  maximum_absolute_acceleration_mps2: 1.1713981164231402
+  maximum_absolute_jerk_mps3: 13.831598472998241
+  maximum_absolute_yaw_rate_radps: 0.059274771335302345
+  mask_violation_count: 0
+  final_pose:
+    x_m: 4.772156706238744
+    y_m: -0.0008642846535983234
+    yaw_rad: -0.003105149572836474
+  final_position_error_m: 0.22784493301353123
+  final_yaw_error_rad: 0.003105149572836474
+  minimum_scan_range_m: 2.132544994354248
+  command_count: 180
+  scan_frequency_hz: 14.705882352941172
+  odometry_frequency_hz: 50.00000000000001
+  command_frequency_hz: 19.959632204530166
+  maximum_scan_age_s: 0.06800000000000139
+  maximum_odometry_age_s: 0.019999999999999574
+  maximum_tf_age_s: 0.019999999999999574
+  tf_success_rate: 1.0
+  mean_inference_latency_ms: 1.963270333333333
+  p95_inference_latency_ms: 3.13791125
+  p99_inference_latency_ms: 3.3704927999999996
+  inference_deadline_miss_count: 0
+  scan_timestamp_transform_success_rate: 1.0
+  scan_timestamp_transform_failure_count: 0
+execution_integrity_pass: true
+scientific_inclusion: true
+hardware_accessed: false
+real_vehicle_used: false
+candidate_contract_variant: r2_candidate_v060
+candidate_target_speeds_mps:
+- 0.0
+- 0.4
+- 0.8
+- 1.2
+- 0.6
+- 0.6
+- 1.2
+- 1.2
+r2_single_behavioral_factor: actions_4_5_target_speed_0.4_to_0.6_mps

@@ -1,0 +1,103 @@
+{
+  "schema": "astra_m08_independent_small_fixtures_v1",
+  "interpreter": "/usr/bin/python3",
+  "numpy_version": "1.21.0",
+  "numpy_path": "/home/robot/.local/lib/python3.8/site-packages/numpy/__init__.py",
+  "checks": [
+    {
+      "name": "exact_accept_and_rollout_inheritance",
+      "passed": true,
+      "details": {
+        "accept_body_byte_equal": true,
+        "inherited_functions": 4
+      }
+    },
+    {
+      "name": "KD_components_independent_transitive_reference",
+      "passed": true,
+      "details": {
+        "cases": 10,
+        "reference": "all_pairs_transitive_closure_original_scalar_norm"
+      }
+    },
+    {
+      "name": "strict_dominance_independent_GEOS_reference",
+      "passed": true,
+      "details": {
+        "full_supports": 18,
+        "queried_supports": 9,
+        "retained_persistent": 9,
+        "independent_GEOS_queries": 4,
+        "delta_max": -1.000000082740371e-10,
+        "delta_absmax": 1.000000082740371e-10
+      }
+    },
+    {
+      "name": "late_accept_original_source_expiry",
+      "passed": true,
+      "details": {
+        "accepted_age_ns": 190000000,
+        "original_expiry_ns": 1200000000,
+        "no_lifetime_extension": true
+      }
+    },
+    {
+      "name": "clock_reset_permanent_fault",
+      "passed": true,
+      "details": {
+        "permanent_fault": "clock_regression_requires_new_episode",
+        "old_snapshot_preserved": true
+      }
+    },
+    {
+      "name": "causal_wait_and_partial_commit_detection",
+      "passed": true,
+      "details": {
+        "causal_wait_does_not_consume": true,
+        "pure_IO_partial_commit_detected": true,
+        "standalone_buffer_atomicity": false,
+        "node_fault_required": true
+      }
+    },
+    {
+      "name": "exact_joint_join_six_real_history",
+      "passed": true,
+      "details": {
+        "exact_odom_joint_join": true,
+        "distinct_model_rows": 6
+      }
+    },
+    {
+      "name": "deadline_and_source_age_boundary",
+      "passed": true,
+      "details": {
+        "inclusive_200ms_50ms": true,
+        "one_ns_and_future_rejected": true
+      }
+    },
+    {
+      "name": "private_worker_expired_result",
+      "passed": true,
+      "details": {
+        "one_worker": true,
+        "old_output_discarded": true,
+        "observation_copy_isolated": true,
+        "timing_claim": false
+      }
+    },
+    {
+      "name": "checkpoint_namespace_and_shared_terminal",
+      "passed": true,
+      "details": {
+        "old_namespace_rejected": true,
+        "task_and_local_integrity_separate": true
+      }
+    }
+  ],
+  "passed": 10,
+  "total": 10,
+  "no_ros": true,
+  "no_benchmark": true,
+  "no_gpu_import": true,
+  "frozen_source_manifest_sha256": "31ed8728e3fe4fd6812ef8fe69644182118282a310958ce61508d40d560a7612"
+}

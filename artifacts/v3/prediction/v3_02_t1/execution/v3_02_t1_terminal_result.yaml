@@ -1,0 +1,50 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-T1
+report_id: v3_scope_v3_02_t1_terminal_result_1
+status: terminal_formal_predictor_negative_coverage
+execution:
+  authorized_units: 36
+  consumed_units: 36
+  completed_units: 36
+  retries: 0
+  resumable: false
+frozen_model:
+  sha256: 3caa0124e1d20b8aaff17858ba5821515f4ecb2570197a3fbed83ae18a59a61d
+  refit_after_test: false
+result:
+  marginal_coverage: 0.7986111111111112
+  frozen_minimum: 0.90
+  minimum_per_horizon_coverage: 0.75
+  frozen_per_horizon_minimum: 0.80
+  mean_full_envelope_width_m: 2.218446772335325
+  actual_mode_mae_m: 0.07189137899823289
+  minimum_candidate_sensitivity_m: 0.6393330325790387
+  physical_coordinate_violation_count: 0
+  overall_pass: false
+attribution:
+  conformal_score: outer_latent_mode_envelope_nonconformity
+  calibrated_radius_m: 0.014355406265907256
+  flaw: >-
+    The score is zero whenever any other latent-mode head brackets the actual
+    mode truth, so it under-represents per-mode interpolation error. Calibration
+    actual-mode MAE was nonzero even when outer-envelope nonconformity was zero.
+  train_cal_only_actual_mode_absolute_residual_q90_m: 0.09460804165531622
+  estimated_train_cal_mean_width_with_corrected_radius_m: 2.347085648083289
+repair_boundary:
+  next_stage: V3-02-B1
+  factor_count: 1
+  factor_id: conformal_nonconformity_score
+  parent_value: outer_envelope_nonconformity
+  proposed_value: actual_mode_absolute_residual
+  model_coefficients_features_physical_clip_and_gates_unchanged: true
+  T1_test_outcomes_allowed_in_model_fit: false
+  fresh_future_test_seeds_required: [6231, 6232, 6233]
+  T1_seed_or_budget_reuse_allowed: false
+evidence:
+  journal_sha256: 5739c65778177980c87e138a67092734970748860e9228fdd20677951debfd84
+  assessment_sha256: 284bf40378dae275c6937261c159acf80ea0ffaa20f3563b7bcfd86e7af89c07
+  evidence_freeze_sha256: a4726069bad9be09a5e8743dbefb58db37db800b3c0d4ed2c56527e2c7bad8a1
+claim:
+  parameterized_crossing_predictor_heldout_pass: false
+  performance_improvement: false

@@ -1,0 +1,55 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-C6
+stage_purpose: fresh_dense_low_speed_cached_latency_and_effect_qualification
+contract_id: v3_scope_v3_06_c6_dense_cached_qualification_1
+status: qualification_preregistered_before_release
+offline_foundation:
+  planner_contract_path: artifacts/v3/development/v3_06_c0/v3_06_c0_effective_planner_contract.yaml
+  planner_contract_sha256: 4d7e28f43d9cdd6f18a0fb555313f2f9f08b35c7f7991d53aa900227b98d84ad
+  cache_terminal_freeze_path: artifacts/v3/development/v3_06_c5_r1/v3_06_c5_r1_terminal_freeze.sha256
+  cached_core_path: src/tools/thesis_experiment/src/thesis_experiment/v3_06_cached_core_r1.py
+single_factor:
+  factor_id: dense_v020_v040_with_semantics_preserving_duplicate_cache
+  treatment_enabled_new_candidates: [feasible_v020, feasible_v040]
+  control_enabled_new_candidates: []
+  plan_output_semantics_changed: false
+  hard_verifier_changed: false
+  predictor_changed: false
+  certified_stop_changed: false
+  ranker_changed: false
+fresh_qualification_population:
+  seeds: [6531, 6532, 6533, 6534, 6535, 6536]
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  methods: [sparse_control, dense_v020_v040]
+  exact_episodes: 36
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+qualification_gates:
+  minimum_relative_reduction_vs_control: 0.02
+  treatment_goal_success_rate_min: 0.95
+  goal_success_noninferior_to_control: true
+  positive_pair_fraction_min: 0.50
+  collision_count_max: 0
+  selected_candidate_accepted_rate_min: 1.0
+  exact_replay_rate_min: 1.0
+  planner_latency_p99_max_ms: 20.0
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_write_authorized: false
+  hard_verifier_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  The dense v0.2/v0.4 amendment with a semantics-preserving duplicate
+  prediction cache is qualified for a separate fresh confirmatory evaluation.
+forbidden_claims:
+  - formal_performance_improvement
+  - actual_teb_superiority
+  - general_navigation_safety
+  - deployment_readiness
+  - real_vehicle_readiness

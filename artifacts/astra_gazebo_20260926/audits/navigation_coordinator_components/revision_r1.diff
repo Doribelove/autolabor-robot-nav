@@ -1,0 +1,11 @@
+--- revision_r0/astra_common_navigation_smoke.launch
++++ revision_r1/astra_common_navigation_smoke.launch
+@@ -69,7 +69,7 @@
+     </node>
+   </group>
+   <node pkg="rosbag" type="record" name="fixture_bag" output="screen" args="--lz4 --buffsize=128 -O $(arg bag_path) $(arg bag_topics)"/>
+-  <node if="$(arg enable_collector)" pkg="m2_gazebo" type="$(arg collector_script)" name="astra_navigation_collector" output="screen">
++  <node if="$(arg enable_collector)" pkg="m2_gazebo" type="$(arg collector_script)" name="astra_navigation_collector" required="true" output="screen">
+     <param name="contract_path" value="$(arg contract_path)"/><param name="contract_sha256" value="$(arg contract_sha256)"/><param name="output" value="$(arg output)"/>
+   </node>
+ </launch>

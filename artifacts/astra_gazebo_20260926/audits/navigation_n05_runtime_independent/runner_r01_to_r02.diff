@@ -1,0 +1,28 @@
+--- r01
++++ r02
+@@ -19,6 +19,7 @@
+ 
+ import navigation_evidence_n05 as evidence
+ import run_smoke_a02 as common
++import navigation_process_cleanup_n05 as cleanup
+ 
+ WORKSPACE = evidence.WORKSPACE
+ STAGE = evidence.STAGE
+@@ -95,7 +96,7 @@
+         'prepare_navigation_n01_scene.py', 'scene_generator_v2.py', 'scene_generator.py',
+         'common_route.py', 'static_map_export.py', 'route_world_adapter.py',
+         'axle_reference_adapter.py', 'route_candidate_core.py', 'route_sensor_buffer.py', 'route_actor_adapter.py', 'frozen_r2_sensor_lifecycle.py',
+-        'route_preview_selection_n05.py', 'release_validation_session_n05.py')
++        'route_preview_selection_n05.py', 'release_validation_session_n05.py', 'navigation_process_cleanup_n05.py')
+     paths.update(WORKSPACE/'scripts/astra_gazebo'/name for name in scripts)
+     nodes = ('astra_navigation_collector_n05.py', 'astra_navigation_coordinator_n05.py',
+         'astra_common_route_provider.py', 'astra_route_coordinated_runtime.py', 'astra_route_preview_runtime_n05.py', 'astra_frozen_r2_sensor_lifecycle.py')
+@@ -435,7 +436,7 @@
+             finally:
+                 if proc is not None:
+                     try:
+-                        common.stop_group(proc, root)
++                        cleanup.stop_group(proc, root)
+                     except BaseException as exc:
+                         error = (error or '')+'; cleanup '+repr(exc)
+             try:

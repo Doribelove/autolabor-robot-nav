@@ -1,0 +1,43 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-A1
+report_id: v3_scope_v3_02_a1_terminal_calibration_result_1
+status: terminal_calibration_fail_envelope_width
+data:
+  simulation_units: 108
+  training_episodes: 72
+  calibration_episodes: 36
+  held_out_test_episodes_accessed: 0
+  reserved_test_seeds_intact: [6221, 6222, 6223]
+passing_gates:
+  marginal_coverage: 0.9097222222222222
+  minimum_per_horizon_coverage: 0.8611111111111112
+  actual_mode_mae_m: 0.039885622606168805
+  minimum_candidate_sensitivity_m: 0.7091020520976148
+  hidden_label_runtime_firewall: true
+failed_gate:
+  metric: mean_full_envelope_width_m
+  observed: 5.150627684444016
+  frozen_maximum: 4.50
+attribution:
+  cause: unconstrained_linear_head_extrapolation_outside_actor_path
+  calibration_radius_m: 0.014355406265907256
+  radius_is_primary_width_source: false
+  policy_mode_spread_is_primary_width_source: true
+  observed_actor_path_endpoint_coordinate_m: 3.50
+repair_design:
+  next_stage: V3-02-A1-R1
+  factor_count: 1
+  factor_id: physical_actor_path_coordinate_clip
+  lower_bound: actor_coordinate_at_observation
+  upper_bound_m: 3.50
+  gates_changed: false
+  regression_features_or_coefficients_changed: false
+  new_simulation_authorized: false
+  held_out_test_access_authorized: false
+evidence:
+  model_sha256: 96fb4e5e286880051f8bbc54ea6239ad187654f6c8572478218a6872ee0443fc
+  calibration_report_sha256: 913bc3f3df820ebf4efae0fe89b82033f4bb1593c704d80dcbc3d494cae900d2
+claim:
+  predictor_calibrated: false
+  held_out_performance_claimed: false

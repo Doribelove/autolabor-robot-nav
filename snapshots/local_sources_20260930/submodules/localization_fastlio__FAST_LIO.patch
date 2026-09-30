@@ -1,0 +1,270 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5f91a3379299547088634dfe05ac555fad83fa7c..0d160bf3de5443337b16d7e32a377e894e027293 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -51,7 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
+   std_msgs
+   pcl_ros
+   tf
+-  livox_ros_driver
++  livox_ros_driver2
+   message_generation
+   eigen_conversions
+ )
+@@ -85,5 +85,6 @@ catkin_package(
+ )
+ 
+ add_executable(fastlio_mapping src/laserMapping.cpp include/ikd-Tree/ikd_Tree.cpp src/preprocess.cpp)
++add_dependencies(fastlio_mapping ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ target_link_libraries(fastlio_mapping ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${PYTHON_LIBRARIES})
+-target_include_directories(fastlio_mapping PRIVATE ${PYTHON_INCLUDE_DIRS})
+\ No newline at end of file
++target_include_directories(fastlio_mapping PRIVATE ${PYTHON_INCLUDE_DIRS})
+diff --git a/config/mid360.yaml b/config/mid360.yaml
+index 20c0e01c8b714f9a618b6ad7087e76fe484caf57..c13da8478c846d1e1bfd571790ea12e90fe8961a 100644
+--- a/config/mid360.yaml
++++ b/config/mid360.yaml
+@@ -30,6 +30,6 @@ publish:
+     scan_bodyframe_pub_en: true  # true: output the point cloud scans in IMU-body-frame
+ 
+ pcd_save:
+-    pcd_save_en: true
++    pcd_save_en: false
+     interval: -1                 # how many LiDAR frames saved in each pcd file; 
+                                  # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.
+diff --git a/launch/mapping_mid360.launch b/launch/mapping_mid360.launch
+index 0fe04fd530c80ab928a08eb0ea21f928d3305136..e3c99a84c4adb769e97dc573ad17a7415243ea66 100644
+--- a/launch/mapping_mid360.launch
++++ b/launch/mapping_mid360.launch
+@@ -2,20 +2,25 @@
+ <!-- Launch file for Livox MID360 LiDAR -->
+ 
+ 	<arg name="rviz" default="true" />
++	<arg name="odom_pub_en" default="true" />
++	<arg name="tf_pub_en" default="true" />
+ 
+ 	<rosparam command="load" file="$(find fast_lio)/config/mid360.yaml" />
+ 
+ 	<param name="feature_extract_enable" type="bool" value="0"/>
+-	<param name="point_filter_num" type="int" value="3"/>
++	 <!-- 100HZ的bag  point_filter_num建议设置为1;   10HZ的bag建议设置为2或3 -->
++	<param name="point_filter_num" type="int" value="5"/>
+ 	<param name="max_iteration" type="int" value="3" />
+ 	<param name="filter_size_surf" type="double" value="0.5" />
+ 	<param name="filter_size_map" type="double" value="0.5" />
+ 	<param name="cube_side_length" type="double" value="1000" />
+ 	<param name="runtime_pos_log_enable" type="bool" value="0" />
++	<param name="publish/odom_pub_en" type="bool" value="$(arg odom_pub_en)" />
++	<param name="publish/tf_pub_en" type="bool" value="$(arg tf_pub_en)" />
+     <node pkg="fast_lio" type="fastlio_mapping" name="laserMapping" output="screen" /> 
+ 
+-	<group if="$(arg rviz)">
++	<!-- <group if="$(arg rviz)">
+ 	<node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_lio)/rviz_cfg/loam_livox.rviz" />
+-	</group>
++	</group> -->
+ 
+ </launch>
+diff --git "a/launch/mapping_mid360\357\274\210\345\217\246\344\270\200\344\270\252\345\244\215\344\273\266\357\274\211.launch" "b/launch/mapping_mid360\357\274\210\345\217\246\344\270\200\344\270\252\345\244\215\344\273\266\357\274\211.launch"
+new file mode 100644
+index 0000000000000000000000000000000000000000..abd5d8b7d1c2b5b5e51faeffbd946881c87662ea
+--- /dev/null
++++ "b/launch/mapping_mid360\357\274\210\345\217\246\344\270\200\344\270\252\345\244\215\344\273\266\357\274\211.launch"
+@@ -0,0 +1,23 @@
++<launch>
++<!-- Launch file for Livox MID360 LiDAR -->
++
++	<arg name="rviz" default="true" />
++
++	<rosparam command="load" file="$(find fast_lio)/config/mid360.yaml" />
++
++	<param name="feature_extract_enable" type="bool" value="0"/>
++	 <!-- 100HZ的bag  point_filter_num建议设置为1;   10HZ的bag建议设置为2或3 -->
++	<param name="point_filter_num" type="int" value="3"/>
++	<param name="max_iteration" type="int" value="3" />
++	<param name="filter_size_surf" type="double" value="0.5" />
++	<param name="filter_size_map" type="double" value="0.5" />
++	<param name="cube_side_length" type="double" value="1000" />
++	<param name="runtime_pos_log_enable" type="bool" value="0" />
++    <node pkg="fast_lio" type="fastlio_mapping" name="laserMapping" output="screen" /> 
++
++	<!-- <group if="$(arg rviz)">
++	<node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_lio)/rviz_cfg/loam_livox.rviz" />
++	</group> -->
++
++</launch>
++
+diff --git "a/launch/mapping_mid360\357\274\210\345\244\215\344\273\266\357\274\211.launch" "b/launch/mapping_mid360\357\274\210\345\244\215\344\273\266\357\274\211.launch"
+new file mode 100644
+index 0000000000000000000000000000000000000000..0fe04fd530c80ab928a08eb0ea21f928d3305136
+--- /dev/null
++++ "b/launch/mapping_mid360\357\274\210\345\244\215\344\273\266\357\274\211.launch"
+@@ -0,0 +1,21 @@
++<launch>
++<!-- Launch file for Livox MID360 LiDAR -->
++
++	<arg name="rviz" default="true" />
++
++	<rosparam command="load" file="$(find fast_lio)/config/mid360.yaml" />
++
++	<param name="feature_extract_enable" type="bool" value="0"/>
++	<param name="point_filter_num" type="int" value="3"/>
++	<param name="max_iteration" type="int" value="3" />
++	<param name="filter_size_surf" type="double" value="0.5" />
++	<param name="filter_size_map" type="double" value="0.5" />
++	<param name="cube_side_length" type="double" value="1000" />
++	<param name="runtime_pos_log_enable" type="bool" value="0" />
++    <node pkg="fast_lio" type="fastlio_mapping" name="laserMapping" output="screen" /> 
++
++	<group if="$(arg rviz)">
++	<node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_lio)/rviz_cfg/loam_livox.rviz" />
++	</group>
++
++</launch>
+diff --git a/package.xml b/package.xml
+index 98bc77408071d7ddef75383186a97bcd2becb125..1e8c4d1468dec655153ae66615ad99ae92dbc065 100644
+--- a/package.xml
++++ b/package.xml
+@@ -25,7 +25,7 @@
+   <build_depend>sensor_msgs</build_depend>
+   <build_depend>tf</build_depend>
+   <build_depend>pcl_ros</build_depend>
+-  <build_depend>livox_ros_driver</build_depend>
++  <build_depend>livox_ros_driver2</build_depend>
+   <build_depend>message_generation</build_depend>
+ 
+   <run_depend>geometry_msgs</run_depend>
+@@ -36,7 +36,7 @@
+   <run_depend>std_msgs</run_depend>
+   <run_depend>tf</run_depend>
+   <run_depend>pcl_ros</run_depend>
+-  <run_depend>livox_ros_driver</run_depend>
++  <run_depend>livox_ros_driver2</run_depend>
+   <run_depend>message_runtime</run_depend>
+ 
+   <test_depend>rostest</test_depend>
+diff --git a/src/laserMapping.cpp b/src/laserMapping.cpp
+index fc41408b6081a7f8cd51a2529e4d84df6f57d469..b10edffadb35fe1f69090eda56d75111b2f06f9d 100644
+--- a/src/laserMapping.cpp
++++ b/src/laserMapping.cpp
+@@ -56,7 +56,7 @@
+ #include <tf/transform_datatypes.h>
+ #include <tf/transform_broadcaster.h>
+ #include <geometry_msgs/Vector3.h>
+-#include <livox_ros_driver/CustomMsg.h>
++#include <livox_ros_driver2/CustomMsg.h>
+ #include "preprocess.h"
+ #include <ikd-Tree/ikd_Tree.h>
+ 
+@@ -94,6 +94,7 @@ int    iterCount = 0, feats_down_size = 0, NUM_MAX_ITERATIONS = 0, laserCloudVal
+ bool   point_selected_surf[100000] = {0};
+ bool   lidar_pushed, flg_first_scan = true, flg_exit = false, flg_EKF_inited;
+ bool   scan_pub_en = false, dense_pub_en = false, scan_body_pub_en = false;
++bool   odom_pub_en = true, tf_pub_en = true;
+ int lidar_type;
+ 
+ vector<vector<int>>  pointSearchInd_surf; 
+@@ -299,7 +300,7 @@ void standard_pcl_cbk(const sensor_msgs::PointCloud2::ConstPtr &msg)
+ 
+ double timediff_lidar_wrt_imu = 0.0;
+ bool   timediff_set_flg = false;
+-void livox_pcl_cbk(const livox_ros_driver::CustomMsg::ConstPtr &msg) 
++void livox_pcl_cbk(const livox_ros_driver2::CustomMsg::ConstPtr &msg) 
+ {
+     mtx_buffer.lock();
+     double preprocess_start_time = omp_get_wtime();
+@@ -588,11 +589,19 @@ void set_posestamp(T & out)
+ 
+ void publish_odometry(const ros::Publisher & pubOdomAftMapped)
+ {
++    if (!odom_pub_en && !tf_pub_en)
++    {
++        return;
++    }
++
+     odomAftMapped.header.frame_id = "camera_init";
+     odomAftMapped.child_frame_id = "body";
+     odomAftMapped.header.stamp = ros::Time().fromSec(lidar_end_time);// ros::Time().fromSec(lidar_end_time);
+     set_posestamp(odomAftMapped.pose);
+-    pubOdomAftMapped.publish(odomAftMapped);
++    if (odom_pub_en)
++    {
++        pubOdomAftMapped.publish(odomAftMapped);
++    }
+     auto P = kf.get_P();
+     for (int i = 0; i < 6; i ++)
+     {
+@@ -616,7 +625,10 @@ void publish_odometry(const ros::Publisher & pubOdomAftMapped)
+     q.setY(odomAftMapped.pose.pose.orientation.y);
+     q.setZ(odomAftMapped.pose.pose.orientation.z);
+     transform.setRotation( q );
+-    br.sendTransform( tf::StampedTransform( transform, odomAftMapped.header.stamp, "camera_init", "body" ) );
++    if (tf_pub_en)
++    {
++        br.sendTransform( tf::StampedTransform( transform, odomAftMapped.header.stamp, "camera_init", "body" ) );
++    }
+ }
+ 
+ void publish_path(const ros::Publisher pubPath)
+@@ -762,6 +774,8 @@ int main(int argc, char** argv)
+     nh.param<bool>("publish/scan_publish_en",scan_pub_en, true);
+     nh.param<bool>("publish/dense_publish_en",dense_pub_en, true);
+     nh.param<bool>("publish/scan_bodyframe_pub_en",scan_body_pub_en, true);
++    nh.param<bool>("publish/odom_pub_en",odom_pub_en, true);
++    nh.param<bool>("publish/tf_pub_en",tf_pub_en, true);
+     nh.param<int>("max_iteration",NUM_MAX_ITERATIONS,4);
+     nh.param<string>("map_file_path",map_file_path,"");
+     nh.param<string>("common/lid_topic",lid_topic,"/livox/lidar");
+diff --git a/src/preprocess.cpp b/src/preprocess.cpp
+index 09a39596efce3357515e3b296faa9762d9f761d6..552ea64b2e0ad9a16d0fb66cfd53eb857a246d10 100644
+--- a/src/preprocess.cpp
++++ b/src/preprocess.cpp
+@@ -41,7 +41,7 @@ void Preprocess::set(bool feat_en, int lid_type, double bld, int pfilt_num)
+   point_filter_num = pfilt_num;
+ }
+ 
+-void Preprocess::process(const livox_ros_driver::CustomMsg::ConstPtr &msg, PointCloudXYZI::Ptr &pcl_out)
++void Preprocess::process(const livox_ros_driver2::CustomMsg::ConstPtr &msg, PointCloudXYZI::Ptr &pcl_out)
+ {  
+   avia_handler(msg);
+   *pcl_out = pl_surf;
+@@ -89,7 +89,7 @@ void Preprocess::process(const sensor_msgs::PointCloud2::ConstPtr &msg, PointClo
+   *pcl_out = pl_surf;
+ }
+ 
+-void Preprocess::avia_handler(const livox_ros_driver::CustomMsg::ConstPtr &msg)
++void Preprocess::avia_handler(const livox_ros_driver2::CustomMsg::ConstPtr &msg)
+ {
+   pl_surf.clear();
+   pl_corn.clear();
+diff --git a/src/preprocess.h b/src/preprocess.h
+index 35f3833a07302c1bf275e1c3b5bdc43db9d9c7f1..b18f2b6770b452a43af4cdd947c8ac15f63a9261 100644
+--- a/src/preprocess.h
++++ b/src/preprocess.h
+@@ -5,7 +5,7 @@
+ #include <ros/ros.h>
+ #include <pcl_conversions/pcl_conversions.h>
+ #include <sensor_msgs/PointCloud2.h>
+-#include <livox_ros_driver/CustomMsg.h>
++#include <livox_ros_driver2/CustomMsg.h>
+ 
+ using namespace std;
+ 
+@@ -91,7 +91,7 @@ class Preprocess
+   Preprocess();
+   ~Preprocess();
+   
+-  void process(const livox_ros_driver::CustomMsg::ConstPtr &msg, PointCloudXYZI::Ptr &pcl_out);
++  void process(const livox_ros_driver2::CustomMsg::ConstPtr &msg, PointCloudXYZI::Ptr &pcl_out);
+   void process(const sensor_msgs::PointCloud2::ConstPtr &msg, PointCloudXYZI::Ptr &pcl_out);
+   void set(bool feat_en, int lid_type, double bld, int pfilt_num);
+ 
+@@ -107,7 +107,7 @@ class Preprocess
+     
+ 
+   private:
+-  void avia_handler(const livox_ros_driver::CustomMsg::ConstPtr &msg);
++  void avia_handler(const livox_ros_driver2::CustomMsg::ConstPtr &msg);
+   void oust64_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
+   void velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);
+   void sim_handler(const sensor_msgs::PointCloud2::ConstPtr &msg);

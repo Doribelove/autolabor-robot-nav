@@ -1,0 +1,32 @@
+{
+  "zero_authority": true,
+  "source_unmodified": true,
+  "results": [
+    {
+      "id": "input_drift_after_first_CSV_replace",
+      "first_csv_durable_then_bound_receipt_mutated": true,
+      "bound_receipt_now_invalid": true,
+      "completion_written": true,
+      "all_tables_after": true,
+      "classification": "confirmed_commit_accepts_stale_terminal_input"
+    },
+    {
+      "id": "consumed_receipt_stage_error_and_assessment_not_validated",
+      "accepted": true,
+      "status_contains_terminal_timeout": true,
+      "classification": "confirmed_projection_does_not_validate_full_terminal_receipt_contract"
+    },
+    {
+      "id": "conversion_manifest_authentication_not_called",
+      "accepted_structural_fixture": true,
+      "conversion_manifest_has_only": [
+        "input_urdf",
+        "converted_sdf",
+        "resources"
+      ],
+      "native_facts_stubbed": true,
+      "actual_conversion_function_not_stubbed": true,
+      "classification": "structural_roster_pass_does_not_establish_converter_provenance_before_allocation"
+    }
+  ]
+}

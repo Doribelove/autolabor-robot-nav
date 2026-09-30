@@ -1,0 +1,88 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-08-A1
+stage_purpose: fresh_segmented_spatial_safe_planner_simulation_integration
+contract_id: v3_scope_v3_08_a1_spatial_planner_integration_1
+status: integration_preregistered_before_release
+upstream:
+  planner_contract_path: artifacts/v3/planner/v3_08_a0/v3_08_a0_effective_planner_contract.yaml
+  planner_contract_sha256: 28cd688d3116114a065bcecdf27e94c0499fbd42a1c8dbe5bd37f89eab7f568c
+  planner_terminal_freeze_path: artifacts/v3/planner/v3_08_a0/v3_08_a0_terminal_freeze.sha256
+frozen_model:
+  path: artifacts/v3/prediction/v3_07_b0_r1/model/v3_07_b0_r1_spatial_candidate_predictor.yaml
+  sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+  refit_or_recalibration_allowed: false
+experimental_unit:
+  scenario_blocks:
+    - {block_id: integration_6671, seed: 6671, angle_deg: 71.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 0.925}
+    - {block_id: integration_6672, seed: 6672, angle_deg: 79.0, actor_start_distance_m: 3.20, actor_base_speed_mps: 1.025}
+    - {block_id: integration_6673, seed: 6673, angle_deg: 87.0, actor_start_distance_m: 2.90, actor_base_speed_mps: 0.975}
+    - {block_id: integration_6674, seed: 6674, angle_deg: 95.0, actor_start_distance_m: 3.10, actor_base_speed_mps: 1.075}
+    - {block_id: integration_6675, seed: 6675, angle_deg: 103.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 0.95}
+    - {block_id: integration_6676, seed: 6676, angle_deg: 109.0, actor_start_distance_m: 3.25, actor_base_speed_mps: 1.05}
+  policies_evaluator_only: [cautious, assertive, hesitant]
+  schedule_rows: 18
+  evidence_budget_units: 18
+  retry_allowed: false
+  resume_allowed: false
+scene:
+  sample_period_s: 0.05
+  max_step_size_s: 0.005
+  real_time_update_rate_hz: 0
+  conflict_point_m: [0.0, 0.0]
+  ego:
+    model_name: v3_ego
+    initial_pose_m_rad: [-3.0, 0.0, 0.0]
+    initial_speed_mps: 0.8
+    footprint_m: [1.13, 0.73, 0.55]
+  actor:
+    model_name: v3_actor
+    endpoint_after_conflict_m: 5.0
+    size_m: [0.45, 0.45, 1.70]
+    response_distance_m: 4.0
+    response_time_margin_s: 1.35
+closed_loop:
+  observation_prefix_s: 0.5
+  replanning_period_s: 0.5
+  spatial_commitment_duration_s: 7.0
+  maximum_episode_duration_s: 12.0
+  maximum_decisions_per_episode: 23
+  goal_x_m: 5.20
+  goal_requires_nonnegative_speed: true
+  evaluator_policy_passed_to_planner: false
+  actor_time_phase_offset_preserved: true
+integration_gates:
+  episode_count: 18
+  goal_success_rate_min: 1.0
+  selected_candidate_accepted_rate_min: 1.0
+  certified_stop_available_rate_min: 1.0
+  exact_core_replay_rate_min: 1.0
+  cautious_hesitant_first_spatial_rate_min: 1.0
+  assertive_spatial_selection_count_max: 0
+  assertive_cleared_straight_recovery_rate_min: 1.0
+  conservative_clearance_violation_count_max: 0
+  minimum_conservative_clearance_m: 0.0
+  maximum_segment_boundary_ego_position_jump_m: 0.012
+  maximum_segment_boundary_actor_position_jump_m: 0.012
+  maximum_selected_trajectory_trace_error_m: 0.006
+  planner_latency_p99_max_ms: 20.0
+  nonfinite_metric_count_max: 0
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_or_gate_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  The frozen spatial planner completes fresh segmented Gazebo integration,
+  safely activates the spatial candidate only for observed supported modes,
+  and recovers assertive cases after a cleared-actor certificate. This is not
+  a formal performance, deployment, or real-vehicle result.
+forbidden_claims:
+  - formal_performance_improvement
+  - actual_teb_superiority
+  - general_navigation_safety
+  - deployment_readiness
+  - real_vehicle_readiness

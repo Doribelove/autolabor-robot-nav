@@ -1,0 +1,121 @@
+{
+  "D04_coverage_exclusions": [
+    "occlusion L_corner/staggered silently collapse to single_screen in v2",
+    "crossing_then_oncoming fixed1.25m lateral path lacks demonstrated second conflict; not included here",
+    "static staggered offset1.15m differs generic central-obstacle .55m range; only one_block_offset included"
+  ],
+  "occlusion_actual_geometry": {
+    "actor_geometry": [
+      {
+        "conflict": [
+          -0.7465,
+          0.0
+        ],
+        "end": [
+          -0.7465,
+          4.5
+        ],
+        "start": [
+          -0.7465,
+          -1.7618
+        ]
+      }
+    ],
+    "corridor_half_width_m": null,
+    "family": "occluded_emergence",
+    "route": {
+      "frame": "world",
+      "goal": [
+        5.0,
+        0.0,
+        0.0
+      ],
+      "length_m": 9.0,
+      "spawn": [
+        -5.4,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -4.0,
+        0.0,
+        0.0
+      ],
+      "transform_implemented": "yaw_zero_only"
+    },
+    "sampled_screen_conflict_distance_m": 1.3778338297176755,
+    "static_boxes": [
+      {
+        "height": 1.2,
+        "length": 1.3158,
+        "name": "occlusion_screen",
+        "width": 0.6704,
+        "x": -1.9226,
+        "y": -0.7178,
+        "yaw_rad": 0.0
+      }
+    ],
+    "static_circles": [],
+    "topology": "single_screen"
+  },
+  "occlusion_requested_L_corner_actual": "single_screen",
+  "oncoming_secondary_geometry": {
+    "actor_geometry": [
+      {
+        "conflict": [
+          -1.2346,
+          0.0
+        ],
+        "end": [
+          -1.2346,
+          4.5
+        ],
+        "start": [
+          -1.2346,
+          -3.5186
+        ]
+      },
+      {
+        "conflict": [
+          1.7947558247648958,
+          1.25
+        ],
+        "end": [
+          -4.8,
+          1.25
+        ],
+        "start": [
+          4.3,
+          1.25
+        ]
+      }
+    ],
+    "corridor_half_width_m": null,
+    "family": "sequential_interaction",
+    "route": {
+      "frame": "world",
+      "goal": [
+        5.0,
+        0.0,
+        0.0
+      ],
+      "length_m": 9.0,
+      "spawn": [
+        -5.4,
+        0.0,
+        0.0
+      ],
+      "start": [
+        -4.0,
+        0.0,
+        0.0
+      ],
+      "transform_implemented": "yaw_zero_only"
+    },
+    "static_boxes": [],
+    "static_circles": [],
+    "topology": "crossing_then_oncoming"
+  },
+  "oncoming_secondary_lateral_m": 1.25,
+  "these_are_input_generator_limitations_not_simulator_failures": true
+}

@@ -1,0 +1,32 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-01
+release_id: v3_scope_v3_01_crossing_execution_release_1
+status: release_candidate_requires_independent_review_and_authorization
+execution_ready: false
+execution_authorized: false
+training_authorized: false
+real_vehicle_authorized: false
+schedule:
+  path: artifacts/v3/data_qualification/v3_01/offline_readiness/v3_01_exact_schedule.yaml
+  sha256: 5cc2ff6627fb9b43ff332be8451db00781a7735eddc199f12a86d4b4bea1c05e
+  row_count: 36
+runtime_bindings:
+  path: artifacts/v3/data_qualification/v3_01/offline_readiness/v3_01_runtime_bindings.yaml
+  sha256: 4be1fadcbca6bfbc868c657c79a335900915eb6a43b7e4a03636297cbe4fa586
+dependency_closure:
+  path: artifacts/v3/data_qualification/v3_01/offline_readiness/v3_01_dependency_closure.yaml
+  sha256: 347f7fce04306d5e525be8049f528493ad82aec4f163dd7bfff9acc5e9f9beac
+  unresolved_count: 0
+budget:
+  authorized_after_separate_authorization: 36
+  consumed: 0
+  forfeited: 0
+  retry: 0
+execution_command_contract:
+  runner: src/tools/thesis_experiment/scripts/run_v3_01_qualification.py
+  required_flags:
+  - --execute
+  - --release-sha
+  - --authorization-sha
+  resume_allowed: false

@@ -1,0 +1,140 @@
+{
+  "status": "m12_r1_offline_model_and_components_pass_live_tracking_pending",
+  "supersedes_for_current_inputs": "m12_physical_components_review.json (preserved historical source-level check; named-collision friction drop discovered during subsequent conversion)",
+  "checks": {
+    "geometry_inertia_identical_except_four_collision_labels": true,
+    "joint_geometry_limits_damping_identical": true,
+    "mass_79_6_before_and_after_fixed_joint_lumping": true,
+    "four_mu1_mu2_1_fdir001_surfaces_in_actual_sdf": true,
+    "four_mu1_mu2_04_fdir001_surfaces_in_actual_sdf": true,
+    "all_stop_modes_passive_wheel_brake_clear_integral": true,
+    "all_stop_modes_ignore_residual_positive_targets": true,
+    "base_pose_twist_nonfinite_fault_guard": true,
+    "joint_reference_envelope_vs_actual_joint_limits": true,
+    "singular_steering_configuration_rejected": true,
+    "reset_moving_linear_or_angular_invalidates": true,
+    "actual_odom_body_vy_and_joint_state_separate_from_target": true,
+    "no_pose_position_velocity_mutators": true,
+    "source_stamped50Hz_actual_and_target": true,
+    "standalone_cpp_components_pass": true,
+    "syntax_only_compilation_pass": true
+  },
+  "source_bindings": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_plugin.cpp",
+      "sha256": "4df5b0a01528e47681005ce49234ee93f1d2a4bd08d1105a460a3816b295eb27"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_physical_control.h",
+      "sha256": "2f47c23c3b9a09a32789388444cb705de74665e1e27adf922a49eccb72f1c813"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/tests/test_astra_physical_control.cpp",
+      "sha256": "7549bbbe876e7065f1789117bb8b348af329e986d1a4def6bdcad3526f217507"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical.urdf.xacro",
+      "sha256": "bda90ff9daf91fcb06ae914f5893b6411468384066fa6a33c29159c0f3baa1b3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_base.xacro",
+      "sha256": "1da6e321f8fd14e925e3ec9c73fa2eb22b2cf32a0b76b794cafa1b1476320a0b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_physical_gazebo.xacro",
+      "sha256": "697d138a1013247c6d2dce3bc320fa761b2dfc0bd9564c88d4c4873a80fdf03e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/urdf/m2_sensors.xacro",
+      "sha256": "073c004f2c38ab0c49d2dff5ee23a0806ea3c5e5d719b9eb945ac7a931ea1593"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/launch/spawn_m2_physical.launch",
+      "sha256": "18d1d4fdb3bfee116ee9ccc1f39ca6d1fb17a0660e1f5913896650b15ca578a7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/simulation_candidates.yaml",
+      "sha256": "63edc80a38b4d35c5491660ad4d6882d2ddaf95b4ff66fda820ba20eadbfd946"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physical_robot_description_r1.xml",
+      "sha256": "31d1bfb8470746dba0c68813f1af3050d51ac2494d12cf08d6225e6555acc474"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physical_robot_r1.sdf",
+      "sha256": "1473d19f02d02b216bf42dc736bd98dfcc6083fdf3d657fc6a2d9ec0277e9edd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physical_robot_mu04.sdf",
+      "sha256": "33e1ad8abf56d3cfd1f29f73115d3cab7f1f3637d2f5bad53adfe8d9ae20de21"
+    }
+  ],
+  "ros_started": false,
+  "actual_mass_kg": 79.6,
+  "max_wheel_target_rad_s_at_full_command_envelope": 25.229630491148345,
+  "urdf_wheel_speed_limit_rad_s": 30,
+  "max_front_steer_target_rad": 0.6254506564833097,
+  "urdf_front_steer_limit_rad": 0.7446,
+  "stopping_test": {
+    "old_counterexample_reference_speed_mps": 1.2,
+    "old_actual_rate_rad_s": 0,
+    "old_torque_nm": 12,
+    "new_actual_rate_zero_torque_nm": 0,
+    "new_property": "torque * measured_wheel_rate <= 0; integral reset every stop step",
+    "actual_deceleration_qualified": false
+  },
+  "friction_conversion": {
+    "finding": "SDFormat9 named-collision extension bug drops link-level friction; only four collision labels removed in independent physical base copy",
+    "conversion_command": "gz sdf -p (parser only, no Gazebo server)",
+    "default_mu": 1,
+    "alternate_mu": 0.4,
+    "fdir1_collision_frame": [
+      0,
+      0,
+      1
+    ],
+    "surfaces_verified_per_case": 4,
+    "physical_effect_qualified": false,
+    "primary_source": "https://sdformat.org/tutorials/specification/sdformat_urdf_extensions/"
+  },
+  "odom": {
+    "pose_source": "base_link WorldPose",
+    "pose_transform": "Load_origin.Inverse() * current_base_link_pose",
+    "linear_twist_source": "current_base_link_pose.Rot().RotateVectorReverse(base_link.WorldLinearVel())",
+    "angular_twist_source": "current_base_link_pose.Rot().RotateVectorReverse(base_link.WorldAngularVel())",
+    "velocity_point": "Link frame origin; not CoG; not Model origin",
+    "publish_phase": "WorldUpdateEnd",
+    "hz": 50,
+    "all_components_published": true,
+    "dense_comparison": "source-stamp exact matching base_link state"
+  },
+  "targets": {
+    "names": [
+      "speed",
+      "center_steering",
+      "front_left_steering",
+      "front_right_steering"
+    ],
+    "position_units": [
+      "m/s",
+      "rad",
+      "rad",
+      "rad"
+    ],
+    "velocity": "derivative of reference at preceding physics WorldUpdateBegin",
+    "stamp": "corresponding WorldUpdateEnd actual state stamp",
+    "actual_wheel_angle": "inverse Ackermann from measured left/right steering, mean curvature then atan(L*kappa)",
+    "actual_joint_state": "Position(0), GetVelocity(0); effort omitted"
+  },
+  "unqualified": [
+    "full linked catkin build handled by root",
+    "actual physical acceleration/deceleration/steering slew",
+    "brake strength stress: target maxBrakeDeceleration alone does not alter new passive torque law; physical wheelBrakeTorqueLimit needs separate preregistered mapping/version",
+    "ground and wheel combined runtime friction response, direction/yaw and integration-step sensitivity",
+    "actual measured motor/steering gains and four-wheel-drive topology",
+    "rear-axle candidate reference bridge",
+    "continuous collision/safety envelope",
+    "formal scene/performance evidence"
+  ],
+  "unchanged_old_inputs": true
+}

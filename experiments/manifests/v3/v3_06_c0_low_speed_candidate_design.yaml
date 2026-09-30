@@ -1,0 +1,24 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-06-C0
+design_id: v3_scope_v3_06_c0_low_speed_candidate_design_1
+status: frozen_before_effective_planner_materialization
+single_factor: low_speed_candidate_density
+new_candidates:
+  - {candidate_id: feasible_v020, target_speed_mps: 0.2}
+  - {candidate_id: feasible_v040, target_speed_mps: 0.4}
+unchanged:
+  - candidate_trajectory_generator
+  - predictor_model_and_conformal_radius
+  - hard_verifier_and_commitment_invariance
+  - certified_stop
+  - analytic_ranker
+  - scene_and_tracker
+selection_firewall:
+  b0_outcomes_used_only_for_activity_audit: true
+  no_performance_selection: true
+  fresh_development_simulation_required: true
+budget:
+  simulation_units: 0
+  training_steps: 0
+  hardware_runs: 0

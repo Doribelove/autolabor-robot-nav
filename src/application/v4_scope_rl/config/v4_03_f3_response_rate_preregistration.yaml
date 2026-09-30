@@ -1,0 +1,60 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-03-F3
+status: final_single_factor_preregistered_before_execution
+date: "2026-08-07"
+parent_contract: v4_00_architecture_contract.yaml
+trigger:
+  prior_stage: V4-03-F2
+  prior_result: repeatable_but_negligible_cross_seed_improvement
+  diagnosis: insufficient_action_to_actor_response_leverage
+single_factor:
+  name: reactive_actor_longitudinal_response_bound
+  baseline_mps2: 1.35
+  candidate_mps2: 3.0
+  rationale: >-
+    Model a responsive robotic crossing actor that can commit to yielding
+    within one 0.25 s decision. This deliberately narrows the future claim to
+    the synthetic responsive-actor population and is not a human-motion
+    calibration claim.
+frozen_nonfactors:
+  actor_response_persistence:
+    cautious_yield_memory_s: 2.50
+    hesitant_yield_memory_s: 1.50
+  elapsed_time_reward_per_s: -0.40
+  action_ids_and_candidate_kinematics: frozen
+  hard_reachable_occupancy_mask: frozen
+  certified_stop_fallback: frozen
+  observation_features: frozen
+  all_other_reward_terms: frozen
+  ppo_algorithm_and_hyperparameters: frozen
+  primary_metric_and_all_gates: frozen
+training:
+  seed: 4105
+  maximum_steps: 50000
+  checkpoint_validation_seed_range_inclusive: [423200, 423399]
+  selection: highest_mean_validation_return_subject_to_task_and_safety_gates
+  required_paired_time_reduction_minimum: 0.03
+preflight:
+  random_masked_episode_count: 1000
+  required_contact_count: 0
+  required_mask_violation_count: 0
+  on_failure: stop_without_training
+budget:
+  consumes_final_factor_round: 3
+  maximum_training_environment_steps: 50000
+  global_training_environment_steps_after_completion: 600000
+  formal_gazebo_units: 0
+decision:
+  on_pass: freeze_checkpoint_and_enter_separate_gazebo_semantic_qualification
+  on_failure: stop_training_and_export_terminal_negative_learning_result
+authorization:
+  bounded_training: true
+  gazebo: false
+  real_vehicle: false
+prohibitions:
+  - no_additional_factor_round
+  - no_training_budget_extension
+  - no_validation_seed_reuse
+  - no_formal_test_outcome_access
+  - no_human_response_claim

@@ -1,0 +1,391 @@
+{
+  "schema": "astra_evaluator_actor_compat_component_v1",
+  "created_utc": "2026-09-26T08:17:56.420839+00:00",
+  "status": "offline_component_pass_continuous_safety_pending",
+  "prior_exact_archive_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/evaluator_actor_compat_prior/manifest.json",
+    "sha256": "0e961dec388dc76e62650873c713a73c1777deb9bb3eb8d13234c6a8b78a08b9",
+    "bytes": 1958
+  },
+  "current_component_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/evaluator_component.json",
+    "sha256": "f0166edb634629affa263107bd98d636b003932eaaf32ca36409db640f6cb603",
+    "bytes": 25493
+  },
+  "owned_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/evaluate_episode.py",
+      "sha256": "db585cddb29054137c2129f3b96d698cd3a3bcf4b7d854558c29aee4b06550a4",
+      "bytes": 53470
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_evaluate_episode.py",
+      "sha256": "3b0094a6715fa621d2eb63b34617a1ef79b1578c8e9a8bb5abdab6d2658ea779",
+      "bytes": 25889
+    }
+  ],
+  "inspected_rule_sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_reactive_actor_plugin.cpp",
+      "sha256": "f55399bd46ce3b28344b581eb24d2465a311c74c92830068ff609d80d84c388b",
+      "bytes": 13552
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/astra_actor_gate.h",
+      "sha256": "a225e53888227e26607d2ce0b48a7ef34a41c7a454aebe439479034513c99d6d",
+      "bytes": 4307
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/include/m2_gazebo/v3_reactive_actor.h",
+      "sha256": "69cc13979122d1215ad42b18c8583a03368d982d84ee000d8a6b615b06aa306d",
+      "bytes": 5321
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/v3_reactive_actor_plugin.cpp",
+      "sha256": "0f58306edb11792c09b00f7bc62a9faca04a2ebd10e80ede2290db0c449509bf",
+      "bytes": 10668
+    }
+  ],
+  "inspected_built_library": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_reactive_actor_plugin.so",
+    "sha256": "50e75215e9629e80bf8036c021fa9abdeeac5bce92af8f78e9a071dd63aed9e9",
+    "bytes": 361880
+  },
+  "library_binding_scope": "Current workspace build only; this is not proof that any historical/future run loaded these bytes. Future run closure must bind loaded plugin independently.",
+  "derivation": {
+    "targets_mps": [
+      "base_speed",
+      0.12,
+      1.35,
+      0.32,
+      "0.78*base_speed"
+    ],
+    "initial_default": "base_speed",
+    "admissible_base_speed_mps": "0.32 < base_speed < 1.35 per retained config validator; initial_speed >= 0",
+    "step_rule": "next_speed=current+clamp(target-current,-deceleration*dt,acceleration*dt), so bounded by max(current,target); progress trapezoidal integral has the same average-speed envelope",
+    "inductive_bound": "max(initial_speed, all possible targets)",
+    "new_gate": "advanceAstraGatedActor delegates unchanged to advanceV3ReactiveActor using active_dt=max(0, now-max(previous,activation)); this is no greater than the elapsed step. No progress before gate; endpoint clamp/fault cannot increase commanded progress.",
+    "fixed_heading": "yaw of end-start; observed heading changes remain pending without angular bound",
+    "not_a_continuous_bound": "SetWorldPose has discrete jumps and both plugins reset published linear/angular velocity to zero. The formula remains conditional; known filename is not a continuous-safety qualification."
+  },
+  "changes": [
+    "Support exact libastra_reactive_actor_plugin.so as well as retained libv3_reactive_actor_plugin.so, with per-actor descriptor/target values in evaluation JSON.",
+    "Check actual new actor required paths/route gate fields and runtime rejection conditions; reject unsupported or multiple model plugins.",
+    "When actor roster/bounds are incomplete, combined point-speed and conditional swept bound are null instead of a finite partial sum.",
+    "Keep raw source-pose jump check, continuous pending, fully_safety_qualified_success=false, and failure-inclusive qualified time22s."
+  ],
+  "tests": {
+    "attempt": 6,
+    "log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/logs/evaluator_test_06_actor_compat.log",
+      "sha256": "5ba102afff4d0527914021d1046fb8fd5eccdb56e362d72e885a9f5d7965b45c",
+      "bytes": 106
+    },
+    "exit_code": 0,
+    "result": "61 passed in 3.41 s = 44 evaluator plus 17 geometry; native C++ production header checked for 180000 gated samples; all 12 live-v1 world actor rosters parsed"
+  },
+  "new_test_cases": [
+    "initial0/.8/2.1 to ensure initial greater than all targets is retained",
+    "missing/negative gate, zero-length route, invalid base/initial/policy, obsolete gate, observation period>hold, unknown extra plugin fail closed",
+    "known plugin with actual pose jump fails integrity and receives Tcap",
+    "12 actual live-v1 SDF actor rosters match manifests; no episodes started",
+    "180000 production C++ gated updates over 3 policies,3 base speeds,4 initial speeds: bounds and stopped prefix verified"
+  ],
+  "actual_world_parser_checks": [
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_head_on_yield_000/replicate_00/world.sdf",
+        "sha256": "32d0c10a80fede37a1b1b232ebbac8aab2a0cd8154216057a1114b0646f98b88",
+        "bytes": 3588
+      },
+      "actor_model_envelopes": {
+        "benchmark_actor_1": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 1.0,
+          "target_speeds_mps": {
+            "base": 1.0,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.78
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        }
+      },
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_head_on_yield_000/replicate_01/world.sdf",
+        "sha256": "27593042f3f2dd19fcbb053e5df5a6298360193b3df1dbb4a16f99688383185a",
+        "bytes": 3573
+      },
+      "actor_model_envelopes": {
+        "benchmark_actor_1": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 1.0,
+          "target_speeds_mps": {
+            "base": 1.0,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.78
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        }
+      },
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_occluded_emergence_000/replicate_00/world.sdf",
+        "sha256": "6524ed36fd05aaee8dce2a19b9b5dd2be1ea89d90791627ba9c6c6510d37082e",
+        "bytes": 3174
+      },
+      "actor_model_envelopes": {
+        "benchmark_actor_1": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 0.75,
+          "target_speeds_mps": {
+            "base": 0.75,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.585
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        }
+      },
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_occluded_emergence_000/replicate_01/world.sdf",
+        "sha256": "78f504327ea9d492b4a12f648045e2828813ceb265e5111e9623bea7a1cd638b",
+        "bytes": 3175
+      },
+      "actor_model_envelopes": {
+        "benchmark_actor_1": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 0.75,
+          "target_speeds_mps": {
+            "base": 0.75,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.585
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        }
+      },
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_sequential_interaction_000/replicate_00/world.sdf",
+        "sha256": "b51aa3105b60c64f42c7c1fae6627d97dfa2c5c0266eb9f9a6d77b29a1b616e6",
+        "bytes": 3846
+      },
+      "actor_model_envelopes": {
+        "benchmark_actor_1": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 1.0,
+          "target_speeds_mps": {
+            "base": 1.0,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.78
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        },
+        "benchmark_actor_2": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 0.75,
+          "target_speeds_mps": {
+            "base": 0.75,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.585
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        }
+      },
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_sequential_interaction_000/replicate_01/world.sdf",
+        "sha256": "551366408413a131b776319c18963ea784a9e81e951ed6b605a056918fdc1eeb",
+        "bytes": 3903
+      },
+      "actor_model_envelopes": {
+        "benchmark_actor_1": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 1.05,
+          "target_speeds_mps": {
+            "base": 1.05,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.8190000000000001
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        },
+        "benchmark_actor_2": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 0.7000000000000001,
+          "target_speeds_mps": {
+            "base": 0.7000000000000001,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.546
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        }
+      },
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_single_crossing_000/replicate_00/world.sdf",
+        "sha256": "98a802dd044607a8c5e0ce3192d1531b0b9c272de192c670dba85e4890e3ef56",
+        "bytes": 2742
+      },
+      "actor_model_envelopes": {
+        "benchmark_actor_1": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 0.65,
+          "target_speeds_mps": {
+            "base": 0.65,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.507
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        }
+      },
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_single_crossing_000/replicate_01/world.sdf",
+        "sha256": "b0fcb9a4c44821d4b08987cc1cf0bbc0b3199f7a4a75180aaa2afec06edffc2c",
+        "bytes": 2727
+      },
+      "actor_model_envelopes": {
+        "benchmark_actor_1": {
+          "plugin_filename": "libastra_reactive_actor_plugin.so",
+          "initial_speed_mps": 0.65,
+          "target_speeds_mps": {
+            "base": 0.65,
+            "cautious": 0.12,
+            "assertive": 1.35,
+            "hesitant_slow": 0.32,
+            "hesitant_fast": 0.507
+          },
+          "speed_model_bound_mps": 1.35,
+          "derivation": "next_speed lies between current_speed and target_speed; progress uses their trapezoidal average; endpoint clamp/gate cannot increase progress",
+          "gate_scope": "route-relative delay/stopping; active_dt<=physics_dt",
+          "heading_scope": "fixed path yaw; observed changes have no qualified angular bound",
+          "qualification": "pending",
+          "limit": "SetWorldPose is discrete and published zero twist is not a measured speed bound; source/binary binding and continuous physical velocity remain separate obligations"
+        }
+      },
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_static_avoidance_000/replicate_00/world.sdf",
+        "sha256": "3e2000cfdad0b582d813a62ac9cb55e35964baa1ac13aea4673c1612c0a5e743",
+        "bytes": 2893
+      },
+      "actor_model_envelopes": {},
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_static_avoidance_000/replicate_01/world.sdf",
+        "sha256": "3e2000cfdad0b582d813a62ac9cb55e35964baa1ac13aea4673c1612c0a5e743",
+        "bytes": 2893
+      },
+      "actor_model_envelopes": {},
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_width_change_corridor_000/replicate_00/world.sdf",
+        "sha256": "cde564e2ef483db70aa02b4de0d633b58505adb3dfcfcfff9bcf6a4fc6cc612a",
+        "bytes": 4141
+      },
+      "actor_model_envelopes": {},
+      "errors": []
+    },
+    {
+      "world": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/development_a02_live_v1/development_a02_development_width_change_corridor_000/replicate_01/world.sdf",
+        "sha256": "cde564e2ef483db70aa02b4de0d633b58505adb3dfcfcfff9bcf6a4fc6cc612a",
+        "bytes": 4141
+      },
+      "actor_model_envelopes": {},
+      "errors": []
+    }
+  ],
+  "limitations": [
+    "No continuous physical actor velocity evidence; no swept safety promotion.",
+    "Runtime model/path health and exact loaded-binary provenance require source-stamped fresh run plus closure.",
+    "Offline config parsing does not prove actor activation time or physical execution; only appropriate evidence may qualify those.",
+    "This amendment is not a new run, retrial, scene tuning or threshold relaxation."
+  ],
+  "no_ROS_Gazebo_training_started": true,
+  "formal_result": false,
+  "runtime_qualified": false
+}

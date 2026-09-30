@@ -1,0 +1,49 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P3-D1
+status: offline_round2_single_factor_design_pass
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+factor_count: 1
+factor_id: separate_runtime_semantic_profile_from_evidence_candidate_identity_v1
+behavioral_TEB_field_count_changed: 0
+fresh_seed_partitions_disjoint: true
+round_2_maximum_units: 704
+phase_maximum_sum: 704
+training_steps: 0
+held_out_test_accessed: false
+statistical_gate:
+  statistical_unit: paired_scene_seed_block
+  primary_efficiency_estimand: Equal-role-weighted geometric restricted-completion-time
+    reduction of the selected circle-contact candidate relative to the calibration-frozen
+    strongest fair baseline.
+  required_secondary_estimand: Semantic-clear geometric restricted-completion-time
+    reduction relative to frozen circle_contact_v120.
+  uncertainty:
+    method: paired_scene_role_stratified_bootstrap_on_mean_log_ratio
+    resamples: 10000
+    one_sided_familywise_alpha: 0.015
+    deterministic_rng: sha256_counter_p3_round2_v1
+    multiple_comparison_control: fixed_gatekeeping_then_Holm
+  obvious_improvement_gate:
+    point_reduction_fraction_at_least: 0.1
+    one_sided_confidence_lower_fraction_at_least: 0.05
+    required_for_primary_and_secondary: true
+safety_and_integrity_gate:
+  complete_intention_to_treat_matrix_required: true
+  unexplained_crash_or_integrity_failure_count_max: 0
+  dropped_replaced_or_retried_identity_count_max: 0
+  success_probability_difference_lower_bound_min: -0.05
+  collision_probability_difference_upper_bound_max: 0.05
+  emergency_probability_difference_upper_bound_max: 0.05
+  harmful_discordance_excess_per_role_max: 0
+  clearance_difference_one_sided_lower_min_m: -0.05
+  clearance_difference_point_min_each_role_m: -0.05
+  normal_projection_rate_strictly_below: 0.1
+  true_conflict_ttc_status_match_fraction_min: 0.95
+  parameter_transaction_invalid_count_max: 0
+  decision_if_any_gate_fails: obvious_performance_improvement_not_demonstrated
+next_safe_entry: independent_offline_review_then_I1_implementation_without_execution

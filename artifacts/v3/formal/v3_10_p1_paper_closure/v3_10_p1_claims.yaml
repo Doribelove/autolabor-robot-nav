@@ -1,0 +1,33 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-10-P1
+status: paper_claim_boundary_frozen
+formal_source_stage: V3-09-F1
+formal_result: true
+performance_improvement_demonstrated: true
+qualified_claim: Within 30 fresh parameterized reactive single-actor crossing blocks,
+  V3 spatial-safe reduced restricted goal time by 22.3844% relative to the frozen
+  fixed-v1.20 shielded straight-policy comparator; the one-sided 95% block-bootstrap
+  lower bound was 21.8235%, with 100% goal success for both methods and all audited
+  integrity/safety gates passing.
+qualified_scope:
+  fresh_blocks: 30
+  episodes: 180
+  actor_policies:
+  - cautious
+  - assertive
+  - hesitant
+  scene_family: parameterized_reactive_single_actor_crossing
+  comparison: v3_spatial_safe_vs_fixed_v120_shielded
+forbidden_extrapolations:
+  actual_teb_superiority: false
+  general_navigation_safety: false
+  cross_scene_generalization: false
+  learned_policy_benefit: false
+  deployment_ready: false
+  real_vehicle_ready: false
+historical_manifest_serialization:
+  preserved: true
+  issue: literal_backslash_n_separators
+  formal_result_impact: none
+  replacement_behavior: new_closure_binds_exact_historical_bytes_with_conventional_multiline_manifest

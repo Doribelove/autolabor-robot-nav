@@ -1,0 +1,47 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-04-N1
+status: terminal_fresh_seed_characterization_preregistered
+date: "2026-08-07"
+purpose: characterize_the_best_validation_selected_learned_checkpoint_without_further_tuning
+prior_learning_gate: failed
+selected_checkpoint:
+  path: artifacts/v4/v4_03_f2_seed4104/best_model.pt
+  sha256: e8e66d6e0c541f6acc99c2fd965bba44673029783d7a1da840f2361426b81483
+  selection_basis: highest_f2_validation_return
+  training_seed: 4104
+environment:
+  backend: deterministic_counterfactual_crossing_fast_simulator
+  cautious_yield_memory_s: 2.50
+  hesitant_yield_memory_s: 1.50
+  elapsed_reward_per_s: -0.40
+  maximum_actor_deceleration_mps2: 1.35
+methods:
+  - masked_ppo_seed4104
+  - same_set_receding_analytic
+fresh_seed_range_inclusive: [430100, 430129]
+paired_block_count: 30
+episode_count: 60
+statistics:
+  primary: paired_relative_failure_inclusive_restricted_time_reduction
+  bootstrap: paired_block_percentile
+  bootstrap_resamples: 10000
+  interval: two_sided_95_percent
+gates_replayed:
+  - goal_success
+  - contact_count_zero
+  - mask_violation_count_zero
+interpretation:
+  can_rescue_failed_learning_gate: false
+  formal_result: false
+  performance_claim: terminal_characterization_only
+authorization:
+  offline_fast_simulation: true
+  training: false
+  gazebo: false
+  real_vehicle: false
+prohibitions:
+  - no_checkpoint_change
+  - no_seed_replacement
+  - no_post_result_tuning
+  - no_actual_teb_claim_from_fast_backend

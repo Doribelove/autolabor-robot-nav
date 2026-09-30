@@ -1,0 +1,273 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P4-D1
+contract_id: fam_teb_v2_04g_p4_d1_final_round_runtime_bank_schema_design_1
+status: offline_final_round_single_factor_design_frozen
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps_authorized: 0
+real_vehicle_use_forbidden: true
+
+objective: >-
+  Spend the third and final global search round on exactly one trace-attributed
+  action/execution-schema amendment: promote the five frozen P2-Q1
+  circle-contact candidate banks into the strict uncalibrated simulation
+  candidate lifecycle and remove their offline-only provenance extension.
+  Preserve all behavioral TEB values, bounds, safety gates, scene templates,
+  evaluators, statistical gates and fair baselines.  Require a one-unit fresh
+  semantic preflight before calibration and one-time held-out testing.
+
+source_bindings:
+  global_program_contract:
+    path: config/thesis_experiments/v2/v2_04g_r6_i1_p2_d2_offline_single_factor_design_contract.yaml
+    sha256: 962d7f30eae0955972518ffec960fbf892eaf5f40b8bedb61e3cb5867bbf87ef
+  P3_I1_D1_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_d1_failure_attribution/p3_i1_d1_offline_closure_freeze.sha256
+    sha256: 777e192d61f1ffdfde5f2c4da1e45c7389246bdef180eea0683d13fb54f5bd34
+  P3_I1_D1_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_d1_failure_attribution/v2_04g_p3_i1_d1_failure_attribution_report.yaml
+    sha256: d152d929ee1ed20293a190a7c5fe070e23dc65ca8c0df21ee9dda525fe7e1a72
+  P3_I1_D1_independent_review:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p3_i1_d1_failure_attribution/v2_04g_p3_i1_d1_independent_review.yaml
+    sha256: 0660e2b75358ad07c189fc10240b2d98bfea09f89f0426a65091ceca9aeb00d9
+  P2_Q1_candidate_and_runtime_freeze:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/p2_q1_offline_closure_freeze.sha256
+    sha256: 39ee7605e07ab27fb02fc431bfe44b48f194e08c86250f3d3f67710ee0749884
+
+prior_round_terminal_accounting:
+  round_1:
+    capacity: 792
+    consumed: 2
+    retired: 790
+    reusable: 0
+  round_2:
+    capacity: 704
+    consumed: 1
+    retired: 703
+    reusable: 0
+  total_prior_capacity_closed: 1496
+  total_prior_consumed: 3
+  total_prior_retired: 1493
+  historical_seed_or_budget_reuse_allowed: false
+  performance_result_available: false
+
+single_new_factor:
+  factor_id: promote_offline_candidate_bank_to_strict_runtime_candidate_schema_v1
+  factor_class: action_execution_schema_alignment
+  factor_count: 1
+  trace_source:
+    stage: V2-04G-P3-I1
+    terminal_sequence: 1
+    phase: initial_readback_before_parameter_transaction
+    exception: anchor bank safety boundary drifted
+  allowed_differences_per_circle_candidate_bank:
+    status:
+      from: offline_materialized_not_runtime_ready
+      to: uncalibrated_simulation_candidate
+    source_provenance.p2_q1:
+      operation: remove
+  behavioral_TEB_field_count_changed: 0
+  TEB_parameter_value_or_bound_changed: false
+  Ackermann_coupling_braking_clearance_rate_or_interface_gate_changed: false
+  scene_geometry_timing_randomization_or_evaluator_changed: false
+  runtime_scene_label_or_expected_outcome_access: false
+  P2_speed_treatment_grid_frozen_carryover_mps: [1.20, 1.25, 1.30, 1.35, 1.40]
+  all_nonfactor_bytes_must_be_rehashed: true
+
+global_round_3_budget:
+  source_program: fam_teb_post_p1_effect_search_v1
+  round: 3
+  final_global_round: true
+  simulation_evidence_units_max: 704
+  training_environment_steps_max: 0
+  one_sided_familywise_alpha: 0.010
+  seed_namespace: [5901, 6090]
+  additive_budget_expansion_or_round_transfer: false
+  unused_units_or_alpha_recycling_allowed: false
+  stop_after_first_full_positive_gate: true
+  phase_allocation:
+    semantic_preflight_I1:
+      maximum_units: 1
+      seed: 5924
+      identity: overlay_transition_v125
+      counts_toward_qualification_matrix: true
+      failure_action: retire_remaining_703_round_units_and_close_global_program_negative
+    qualification_and_calibration_C1:
+      maximum_additional_units: 253
+      qualification_units_excluding_I1: 11
+      calibration_units: 242
+      opened_only_after_I1_integrity_and_raw_replay_pass: true
+      failure_action: retain_all_results_and_retire_unconsumed_round_units
+    held_out_test_T1:
+      maximum_units: 450
+      opened_only_after_complete_calibration_selection_freeze: true
+      each_frozen_candidate_identity_attempt_limit: 1
+      failure_action: terminal_global_program_result_no_retry
+  phase_maximum_sum: 704
+
+round_3_partitions:
+  calibration:
+    scene_seed_blocks:
+      single_true_conflict: {first: 5901, last: 5908, count: 8}
+      multi_true_conflict: {first: 5909, last: 5915, count: 7}
+      time_separated_semantic_clear: {first: 5916, last: 5922, count: 7}
+    block_count: 22
+    unique_method_count: 11
+    methods:
+      - TEB-Tuned-V1
+      - fixed_teb_v120__TEB-Default_alias
+      - fixed_teb_v125
+      - fixed_teb_v130
+      - fixed_teb_v135
+      - fixed_teb_v140
+      - circle_contact_v120
+      - circle_contact_v125
+      - circle_contact_v130
+      - circle_contact_v135
+      - circle_contact_v140
+    paired_evidence_units: 242
+    selection_only_not_inferential: true
+  qualification:
+    speeds_mps: [1.25, 1.30, 1.35, 1.40]
+    probes: [braking, high_speed_to_conflict_overlay_transition, ackermann_circle]
+    seeds: {first: 5923, last: 5934, count: 12}
+    evidence_units: 12
+    I1_seed: 5924
+    I1_is_speed_1_25_overlay_row: true
+    every_other_identity_runs_only_after_I1_pass: true
+  compile_support_only:
+    seeds: [5935, 5936, 5937, 5938, 5939, 5940]
+    count_as_evidence: false
+  held_out_test:
+    scene_seed_blocks:
+      single_true_conflict: {first: 5991, last: 6020, count: 30}
+      multi_true_conflict: {first: 6021, last: 6050, count: 30}
+      time_separated_semantic_clear: {first: 6051, last: 6080, count: 30}
+    block_count: 90
+    maximum_unique_method_count: 5
+    method_roles:
+      - TEB-Default_transparent_reference
+      - TEB-Tuned-V1
+      - independently_tuned_fixed_teb_selected
+      - circle_contact_v120
+      - circle_contact_selected
+    duplicate_identical_method_execution_allowed: false
+    unused_duplicate_capacity_must_be_retired: true
+    maximum_evidence_units: 450
+    candidate_and_baseline_frozen_before_access: true
+    retry_resume_replacement_or_seed_substitution_allowed: false
+
+phase_gates:
+  I1:
+    release_scope: one_fresh_semantic_overlay_qualification_identity
+    required_integrity:
+      - strict_promoted_anchor_bank_parse
+      - supervisor_runtime_profile_r6_semantics_circle_contact
+      - positive_progress_clock_bootstrap
+      - exact_transaction_startup_arm_activation_restore
+      - raw_trace_path_SHA_size_receipt
+      - runtime_profile_and_evidence_identity_both_reconstructible
+      - no_unexplained_process_exit
+      - final_process_isolation_clean
+    ordinary_probe_pass_required_to_open_C1: true
+    release_retry_or_resume_allowed: false
+  C1:
+    complete_12_probe_qualification_matrix_required: true
+    lower_to_higher_monotone_speed_disqualification: true
+    complete_paired_calibration_matrix_for_each_eligible_method: true
+    calibration_only_candidate_and_baseline_selection: true
+    raw_replay_before_selection: true
+  T1:
+    exact_candidate_and_primary_baseline_freeze_required: true
+    exact_fresh_paired_schedule_required: true
+    test_outcome_access_before_release_forbidden: true
+    each_identity_runs_once: true
+
+calibration_selection:
+  circle_contact_candidate:
+    eligibility:
+      - complete_eligible_paired_calibration_matrix
+      - zero_collision
+      - zero_emergency_or_interface_failure
+      - zero_unexplained_crash_or_integrity_failure
+      - no_role_success_count_below_circle_contact_v120
+      - no_role_clearance_point_difference_below_minus_0_05_m
+      - normal_projection_rate_strictly_below_0_10
+    rank: minimum_semantic_clear_geometric_restricted_completion_time
+    tie_rule: within_1_percent_choose_lower_speed
+  independently_tuned_fixed_teb:
+    only_tuned_field: TebLocalPlannerROS.max_vel_x
+    eligibility_and_rank: frozen_from_P2_D2
+  primary_fair_baseline:
+    candidates: [TEB-Tuned-V1, independently_tuned_fixed_teb_selected]
+    selection_data: calibration_only
+    rank: minimum_equal_role_weighted_geometric_restricted_completion_time
+    tie_rule: within_1_percent_choose_TEB-Tuned-V1
+  TEB_Default_primary_baseline_allowed: false
+
+held_out_statistics:
+  statistical_unit: paired_scene_seed_block
+  primary_efficiency_estimand: >-
+    Equal-role-weighted geometric restricted-completion-time reduction of the
+    selected circle-contact candidate relative to the calibration-frozen
+    strongest fair baseline.
+  required_secondary_estimand: >-
+    Semantic-clear geometric restricted-completion-time reduction relative to
+    frozen circle_contact_v120.
+  uncertainty:
+    method: paired_scene_role_stratified_bootstrap_on_mean_log_ratio
+    resamples: 10000
+    one_sided_familywise_alpha: 0.010
+    deterministic_rng: sha256_counter_p4_round3_v1
+    multiple_comparison_control: fixed_gatekeeping_then_Holm
+  obvious_improvement_gate:
+    point_reduction_fraction_at_least: 0.10
+    one_sided_confidence_lower_fraction_at_least: 0.05
+    required_for_primary_and_secondary: true
+
+safety_and_integrity_gate:
+  complete_intention_to_treat_matrix_required: true
+  unexplained_crash_or_integrity_failure_count_max: 0
+  dropped_replaced_or_retried_identity_count_max: 0
+  success_probability_difference_lower_bound_min: -0.05
+  collision_probability_difference_upper_bound_max: 0.05
+  emergency_probability_difference_upper_bound_max: 0.05
+  harmful_discordance_excess_per_role_max: 0
+  clearance_difference_one_sided_lower_min_m: -0.05
+  clearance_difference_point_min_each_role_m: -0.05
+  normal_projection_rate_strictly_below: 0.10
+  true_conflict_ttc_status_match_fraction_min: 0.95
+  parameter_transaction_invalid_count_max: 0
+  decision_if_any_gate_fails: obvious_performance_improvement_not_demonstrated
+
+failure_and_leakage_policy:
+  retain_and_index_all_failures: true
+  successful_only_analysis_allowed: false
+  failed_episode_deletion_allowed: false
+  seed_replacement_allowed: false
+  threshold_relaxation_after_outcome_allowed: false
+  test_access_for_training_calibration_or_selection_allowed: false
+  test_candidate_rerun_allowed: false
+  any_integrity_failure_stops_current_release: true
+  remaining_phase_and_round_budget_after_integrity_failure: retire
+  no_positive_claim_from_directional_or_calibration_only_result: true
+  global_program_terminal_after_round_3: true
+
+future_stage_requirements:
+  - materialize promoted banks and fresh scenes without editing P2-Q1
+  - independent byte-level and parser review
+  - exact one-unit I1 release and separate explicit stage authorization
+  - only after I1 pass, separately frozen C1 release
+  - only after calibration selection, separately frozen one-time T1 release
+
+forbidden:
+  - historical-stage rerun, overwrite, seed reuse or evidence deletion
+  - stable workspace, real vehicle, CAN or hardware access
+  - disabling or weakening any safety gate
+  - deliberate baseline degradation or hidden baseline advantage
+  - outcome-dependent threshold, seed, candidate or budget changes
+  - execution from this offline design contract

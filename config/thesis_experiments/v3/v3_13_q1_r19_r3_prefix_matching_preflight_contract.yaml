@@ -1,0 +1,75 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R19-R3
+stage_purpose: fresh_five_action_prefix_matching_single_factor_preflight
+status: preregistered_before_execution
+upstream:
+  R19_R2_assessment_sha256: ef50fedcfdd12ff5ec0d64dd863c7a78c37dc05216c711446a257f71eb8fa284
+  R19_R2_freeze_sha256: 8bfbe851e01a487214d72b156240fa9959ae912885a9a6e0389465bed4215555
+  R19_R2_review_sha256: c362f03431515b03e6cb1cafd93812317ede0abd285660495261d4b1f66969b3
+  R19_R2_D1_diagnosis_sha256: 79be9b96d4252981677336958185cefcdea1790d7b14b8623a55ef8f65ca2940
+  R19_R2_D1_manifest_sha256: 6b8529954d20a1e6ffdb8e02d4790c5b05fe0d26875d723ab30fa53f315f73d6
+  R19_R2_D1_review_sha256: 203d167d71759f224baa037daed4d574df639418feac240cd51c3846dbdb635d
+  R17_geometry_sha256: 3dd9299cbbf39c63442a108c082e3830784084f4e40f9eff9560de7e43f2603f
+  nonrecursive_adapter_sha256: 78d944812230bce2c5826cbf1254e6736468bbf089683d1bdac31fd18bd524d9
+single_factor:
+  factor: prebranch_warmup_command_sampling_rate_hz
+  control: 20
+  treatment: 100
+  gate_position_and_speed_thresholds_unchanged: true
+  actor_plugin_unchanged: true
+  candidate_geometry_and_postbranch_execution_unchanged: true
+population:
+  scene_id: crossing_and_oncoming
+  actor_policies_evaluator_only: [hesitant, hesitant]
+  seed: 7686
+  matched_context_blocks: 1
+  branch_target_sim_s: 12.5
+  nominal_wait_depth_s: 5.0
+  actions:
+  - spatial_left_v120
+  - spatial_right_v120
+  - straight_v120
+  - certified_stop_v000
+  - recovery_evasive_right_v120_r3
+  legacy_action_horizon_s: 7.0
+  r3_action_horizon_s: 7.55
+  actions_per_block: 5
+  exact_units: 5
+  behavior_propensity_each: 0.20
+  attempts_per_identity: 1
+  non_evidence_preflight: true
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+matching_gates:
+  branch_clock_absolute_error_max_s: 0.012
+  paired_decision_ego_x_difference_max_m: 0.04
+  paired_decision_actor_coordinate_difference_max_m: 0.05
+  paired_decision_actor_speed_difference_max_mps: 0.05
+  decision_speed_mps_max: 0.08
+  decision_ego_x_range_m: [-2.70, -2.10]
+  decision_observable_modes_required: [assertive, assertive]
+  complete_action_support_rate_min: 1.0
+  minimum_behavior_propensity: 0.20
+  branch_trace_samples_min: 130
+  branch_trace_duration_s_min: 6.85
+  r3_terminal_guard_execution_rate_min: 1.0
+  r3_boundary_atomic_execution_rate_min: 1.0
+  all_finite_tracks_required: true
+  unsafe_dynamic_or_static_outcomes_retained: true
+downstream:
+  if_all_preflight_gates_pass: fresh_eight_block_prefix_aligned_support_design
+  if_any_gate_fails: freeze_negative_preflight
+  predictor_fit_authorized: false
+  actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  exact_bounded_simulation_preflight_authorized: true
+  authorized_units: 5
+  authorized_seed: 7686
+  attempts_per_identity: 1
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false

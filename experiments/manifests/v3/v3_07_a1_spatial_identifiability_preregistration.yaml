@@ -1,0 +1,26 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-07-A1
+status: frozen_before_any_v3_07_a1_gazebo_execution
+schedule:
+  exact_rows: 36
+  seeds: [6541, 6542, 6543, 6544]
+  policies: [cautious, assertive, hesitant]
+  branches: [straight_v120, spatial_left_v120, spatial_right_v120]
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+identifiability_gate:
+  mean_spatial_vs_straight_actor_sensitivity_min_m: 0.10
+  candidate_sensitive_pair_fraction_min: 0.50
+  left_right_actor_coordinate_difference_max_m: 0.03
+safety_gate:
+  conservative_clearance_violation_count_max: 0
+held_out_firewall:
+  reserved_seeds: [6551, 6552, 6553]
+  test_outcome_access_allowed: false
+failure_policy:
+  preserve_all_consumed_outcomes: true
+  no_retry_resume_or_seed_replacement: true
+  no_predictor_data_stage_if_identifiability_fails: true
+budget: {simulation_units: 36, training_steps: 0, hardware_runs: 0}

@@ -1,0 +1,40 @@
+--- /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager_r04.py
++++ /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_navigation_n06_manager_r05.py
+@@ -14,10 +14,16 @@
+ from unittest.mock import patch,Mock
+ 
+ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+-import navigation_n06_integrity_r04 as q
+-import navigation_n06_process_r04 as process
+-import navigation_n06_admin_plan_r04 as admin
+-import run_navigation_n06_manager_r04 as manager
++import navigation_n06_integrity_r05 as q
++import navigation_n06_process_r05 as process
++import navigation_n06_environment_r05 as exec_env
++
++def environment_fixture():
++    values={key:'' for key in exec_env.BASE_KEYS};values.update(exec_env.BOOTSTRAP_ENV)
++    values.update(PATH=str(exec_env.WORKSPACE/'.venv/bin')+':/usr/bin:/bin',THESIS_WS=str(exec_env.WORKSPACE),VIRTUAL_ENV=str(exec_env.WORKSPACE/'.venv'),PYTHONNOUSERSITE='1',PYTHONDONTWRITEBYTECODE='1')
++    return exec_env.make_spec(values)
++import navigation_n06_admin_plan_r05 as admin
++import run_navigation_n06_manager_r05 as manager
+ 
+ def csv_document(fields,rows=()):
+     out=io.StringIO(newline='');writer=csv.DictWriter(out,fieldnames=fields,lineterminator='\r\n');writer.writeheader();writer.writerows(rows);return out.getvalue().encode()
+@@ -136,6 +142,7 @@
+             'libgazebo_ros_api_plugin.so','libgazebo_ros_laser.so','libgazebo_ros_bumper.so','libgazebo_ros_imu_sensor.so','libgazebo_ros_camera.so','record','relay','robot_state_publisher','roslaunch'):
+             path=self.root/name;path.write_bytes(b'synthetic non-executable runtime stand-in');runtime.append(add(path))
+         self.documents['runtime_closure']={'schema':'astra_navigation_n06_runtime_closure_v1','stage':q.NAME,'status':'reviewed_disk_dependency_closure',
++            'execution_environment':environment_fixture(),
+             'python_executable':str((q.prepared_api.WORKSPACE/'.venv/bin/python').resolve()),'python_prefix':str((q.prepared_api.WORKSPACE/'.venv').resolve()),'python_no_user_site':True,'resources':runtime}
+         units=q.json_bound(self.base['prepared'])['units'];converted=[]
+         import dense_sweep_n05 as dense
+@@ -408,6 +415,8 @@
+             session=Mock();stop=Mock(signal=None);parent={'pid':os.getpid(),'start_ticks':'synthetic'}
+             fake=Mock(pid=987654,returncode=9 if kind=='nonzero' else 0);fake.poll.return_value=fake.returncode
+             stack.enter_context(patch.object(manager,'STAGE',root));stack.enter_context(patch.object(q,'check_registry'))
++            stack.enter_context(patch.object(exec_env,'child_environment',return_value=dict(os.environ)))
++            stack.enter_context(patch.object(exec_env,'assessment_environment',side_effect=lambda *a:contextlib.nullcontext()))
+             (root/'seed_registry.csv').write_bytes(b'synthetic')
+             stack.enter_context(patch('run_passive_sweep_q05.archive'))
+             stack.enter_context(patch.object(process,'assert_ports_free'));stack.enter_context(patch.object(process,'checked_parent',return_value=True))

@@ -1,0 +1,1 @@
+Initial independent fixture invoked existing FullFootprintEnvelope.at with splatted pose instead of its single pose argument; four reference-construction fixtures failed with TypeError before comparing values,25 other tests passed. Source/log preserved. R02 changes only at(*p) to at(p); no product code or evidence changed.

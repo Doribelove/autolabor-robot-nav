@@ -1,0 +1,54 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-C2
+stage_purpose: single_factor_segment_duration_aware_parser_repair
+contract_id: v3_scope_v3_03_c2_segment_parser_repair_1
+status: single_factor_repair_preregistered_before_fresh_release
+parent:
+  stage: V3-03-C1
+  terminal_freeze_path: artifacts/v3/planner/v3_03_c1/v3_03_c1_terminal_freeze.sha256
+  failure_record_path: artifacts/v3/planner/v3_03_c1/v3_03_c1_terminal_failure_record.yaml
+  disposition: terminal_nonresumable_one_consumed_eight_forfeited
+single_factor_repair:
+  factor_count: 1
+  factor_id: segment_duration_aware_trace_parser
+  minimum_data_rows: 6
+  minimum_covered_duration_s: 0.25
+  exact_header_required: true
+  finite_numeric_fields_required: true
+  strictly_increasing_time_required: true
+  planner_core_changed: false
+  predictor_or_mode_gate_changed: false
+  cleared_certificate_changed: false
+  candidate_or_ranker_changed: false
+  safety_thresholds_changed: false
+  closed_loop_protocol_changed: false
+  integration_gates_changed: false
+fresh_execution:
+  scenario_blocks:
+    - {block_id: closed_loop_6341, seed: 6341, angle_deg: 72.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 0.90}
+    - {block_id: closed_loop_6342, seed: 6342, angle_deg: 108.0, actor_start_distance_m: 3.20, actor_base_speed_mps: 1.10}
+    - {block_id: closed_loop_6343, seed: 6343, angle_deg: 86.0, actor_start_distance_m: 2.95, actor_base_speed_mps: 1.00}
+  episode_count: 9
+  evidence_budget_units: 9
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_or_gate_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_pass: >-
+  The duration-aware parser enabled fresh segmented Gazebo closed-loop
+  integration under the unchanged C1 planner, safety gates and protocol.
+  This does not establish continuous runtime or performance superiority.
+forbidden_claims:
+  - continuous_runtime_validation
+  - general_navigation_safety
+  - performance_improvement
+  - deployment_readiness
+  - real_vehicle_readiness

@@ -1,0 +1,26 @@
+schema_version: '1.0'
+stage: V3-03-A3
+release_id: v3_03_a3_integration_release_1
+status: release_candidate_requires_review_and_authorization
+execution_ready: false
+execution_authorized: false
+training_authorized: false
+move_base_authorized: false
+cmd_vel_publish_authorized: false
+real_vehicle_authorized: false
+schedule:
+  path: artifacts/v3/planner/v3_03_a3/offline_readiness/v3_03_a3_exact_schedule.yaml
+  sha256: c2b376a251ccbee64838b449224f77b820bae87ed2f81b239ee8b84b0911fae7
+  decision_count: 9
+  simulation_unit_count: 18
+runtime_bindings:
+  path: artifacts/v3/planner/v3_03_a3/offline_readiness/v3_03_a3_runtime_bindings.yaml
+  sha256: d5d1ebdc69163eb0d6666409109a4aa93ef9981bdaa754950ba9a5c946f8615d
+dependency_closure:
+  path: artifacts/v3/planner/v3_03_a3/offline_readiness/v3_03_a3_dependency_closure.yaml
+  sha256: 9b8fe5ac0b3a787a68575e7dc52c2f6e9ad2e19aa479a4db0c29b1f1bb1561b7
+  unresolved_count: 0
+budget:
+  authorized_after_separate_authorization: 18
+  consumed: 0
+  retry: 0

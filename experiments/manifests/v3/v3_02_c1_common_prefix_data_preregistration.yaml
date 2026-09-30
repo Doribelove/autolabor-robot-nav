@@ -1,0 +1,23 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-C1
+preregistration_id: v3_scope_v3_02_c1_common_prefix_preregistration_1
+date: "2026-07-24"
+status: frozen_before_any_v3_02_c1_gazebo_execution
+contract: config/thesis_experiments/v3/v3_02_c1_common_prefix_data_contract.yaml
+schedule:
+  roles: {training: 72, calibration: 36, held_out_test: 0}
+  exact_rows: 108
+  attempt: 1
+candidate_atomicity:
+  common_prefix_end_s: 0.50
+  branch_start_s: 0.50
+  prefix_speed_mps: 0.80
+  actor_observation_must_match_within_block_policy: true
+budget:
+  simulation_units_after_separate_authorization: 108
+  consumed_before_release: 0
+  retries: 0
+held_out_firewall:
+  reserved_test_seeds: [6261, 6262, 6263]
+  test_outcome_access_allowed: false

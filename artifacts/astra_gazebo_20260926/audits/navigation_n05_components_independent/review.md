@@ -1,0 +1,11 @@
+# N05 selection and actor-metadata delta review
+
+Both scoped components pass this independent offline review. The19 selector author tests were independently rerun. Nine additional check groups include36 selector cases against a separate Python filter/max reference, exact derivation of all three actor files, and actual saved-world parser/status negative cases. No source was edited; no native compilation, ROS, benchmark or seed allocation ran.
+
+The selector preserves the genuine backup mask and all prior/features. Moving candidates additionally require the original full-preview verifier result>=0; stop retains backup-only eligibility and can win the unchanged prior. The subclass captures the existing16 original verifier returns before float32 feature conversion, with no extra rollout or geometry call. State, dynamics, prediction, command backup revalidation and goal functions stay inherited. Empty eligibility returns zero with an explicit reason; it never fabricates a passed stop mask. Actor/checkpoint input is rejected.
+
+A preserved API boundary matters for integration: the pure selector cannot recover precision lost before its call. An independent−1e−50 fixture picks action6 with the original float64 value, but picks7 when a caller first rounds it to float32 signed zero. The current subclass supplies the correct original values. Future nodes must keep these separate raw fields and must not reconstruct them from normalized candidate features.
+
+The actor header/C++/Python contract match exact N04-to-N05 text derivation plus one allowed method string. Callback/Begin ordering, first-step zero dt,50ms transport limit, lifecycle guard, status timing and reactive policy/physical updates are unchanged. New plugin/status names prevent accidental acceptance as N04. This independently reviews root’s metadata delta only; the original actor algorithm inherits historical_audit’s prior independent review and is not claimed as newly independently reviewed by its original author.
+
+Native build, ELF binding, node/collector/evaluator integration and fresh live qualification remain pending. The N05 study remains a bounded selection-factor diagnostic, not evidence of performance or safety. N04 bytes and release stay frozen.

@@ -1,0 +1,56 @@
+{
+  "status": "independent_readonly_component_review_with_standalone_integration_limits",
+  "sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_sensor_buffer.py",
+      "sha256": "9822620f0d83f0e203644ba928bc0483e66505f75424e05514119115feb6c812"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_actor_adapter.py",
+      "sha256": "796f41d8e33138b985ce1d3224a60d12adbb5f3132de4d91922a273edd3ef3fd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_runtime.py",
+      "sha256": "23f35c1d9092954ab1d8f75713e8a2c74adc1272380c85662ece6b65e9e608c6"
+    }
+  ],
+  "scope": "targeted source/boundary audit; no ROS, training, build or navigation execution",
+  "checks": {
+    "actual_P05_full_body_extreme_cases": 16,
+    "components_per_case": 9,
+    "maximum_polygon_outside_area_m2": 0.0,
+    "exact_odom_joint_join": "different epochs do not join; exact equal epochs do",
+    "staleness_boundary": "200ms inclusive accepted,200ms+1ns drops command",
+    "transaction_boundary": "50ms+0.0001ms drops command"
+  },
+  "findings": [
+    {
+      "severity": "integration_blocker_for_coordinated_launch",
+      "file": "astra_route_runtime.py",
+      "detail": "start queries literal /cmd_vel_navigation although method output will be remapped private; public publisher is coordinator",
+      "resolution": "owner implementing NEW coordinated node using command_pub.resolved_name; original standalone preserved"
+    },
+    {
+      "severity": "source_clock_race_in_standalone",
+      "detail": "main samples now before lock; concurrent start service can advance buffer observed time, causing stale main sample to look like clock reset",
+      "counterexample": "clock_regression_requires_new_episode",
+      "resolution": "owner implementing fresh now inside same lock in NEW coordinated node and corresponding coordinator"
+    }
+  ],
+  "geometry_assessment": "For the actual bound M2 URDF, front-pivot circumscribed disks plus fixed collision projections, conservative tilt padding, convex hull and outer16 support-plane polygon enclose tested extreme states. Segment endpoint gap minus half(total translation+radius*yaw+dynamic expansion) is conservative only for the declared pose interpolation model.",
+  "input_assessment": "Exact requested scan stamp TF; bounded FIFO queue with expiry/overflow faults; six unique real at-or-before200ms rows; full latest scan distinct from model history; odometry and actual joints joined by identical source stamp; runtime freshness fail-close.",
+  "actor_namespace": "New observation schema/feature shapes/core semantic SHA and new artifact format required; old unwrapped R2 artifact rejected. Packaging is interface provenance assertion, not proof of actual training; root release must verify training-run artifacts.",
+  "remaining_runtime_obligations": [
+    "fresh coordinated node/source review after owner fixes",
+    "positive-clock TF/startup and gate protocol integration",
+    "deadline timing under actual physics and camera load",
+    "new checkpoint actual training provenance and namespace before learned execution",
+    "backend qualification remains separate; no general physical safety claim"
+  ],
+  "owned_code_modified": false,
+  "root_notified": true
+}

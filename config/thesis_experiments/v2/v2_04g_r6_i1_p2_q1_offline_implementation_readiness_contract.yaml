@@ -1,0 +1,266 @@
+schema_version: "1.0"
+architecture_generation: v2
+stage: V2-04G-P2-Q1
+contract_id: fam_teb_v2_04g_p2_q1_offline_implementation_readiness_1
+status: offline_implementation_readiness_contract_frozen
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps_authorized: 0
+real_vehicle_use_forbidden: true
+
+objective: >-
+  Materialize and independently audit the P2-D2 round-one calibration and
+  qualification inputs without creating an executable release or touching the
+  held-out test. The output must contain exact single-factor candidate
+  configurations, fresh calibration/qualification scenes, a deterministic
+  342-row attempt=1 schedule, a release-gated runner adapter and a raw replay
+  adapter. It remains a zero-authority offline readiness snapshot.
+
+source_bindings:
+  p2_d2_offline_closure:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_d2_single_factor_design/p2_d2_offline_closure_freeze.sha256
+    sha256: 0b8b689ed821c606fc3681769f81a2704fdc673acd1dd2d14944ee6f2915eb97
+  p2_d2_design_report:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_d2_single_factor_design/v2_04g_p2_d2_design_report.yaml
+    sha256: f6be3e25757e95abeff384a56e7e87938001b73df759a4125eafcdb6dced4882
+  p2_d2_candidate_amendment:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_d2_single_factor_design/v2_04g_p2_d2_candidate_bank_amendment.yaml
+    sha256: de077b15ed2d6e57556fb3d7a04cd3c0a116edb9a06b626abe915cd379fa43da
+  circle_contact_anchor_bank:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/anchor_bank.yaml
+    sha256: 5a3ecfc4c9dc8b6bfbb90ad5f036250396eceb99bd0154d1634012bbc4a4a72f
+  circle_contact_supervisor:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/supervisor.yaml
+    sha256: d5e35cfe84082b229ae6e656c2d3aaa7a10c8c61b696184bda8dc90e47a762da
+  circle_contact_mechanism:
+    path: artifacts/v2/integration/v2_04g_r6_i1/runtime_candidate_configs/r6_semantics_circle_contact/mechanism.yaml
+    sha256: f3deff87e322e1d009fc30bfef6abb4b44770c455e3db61ff8e22afa041eea5e
+  i5_source_scenes:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i5_execution/v2_04g_r6_i5_scenes.yaml
+    sha256: e6c15d906c707686fcb3923cee1c075ebb000ab1216900b3578387433fc679fa
+  scene_compiler:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_scene.py
+    sha256: f056841ebc32c2c849bafa1b7670352f9510fd2cf2c120a448fd89093560f718
+  t08_baseline_registry:
+    path: config/thesis_experiments/t08_baselines.yaml
+    sha256: aa56c08ff7811a001cadd3d7f5ffb517e9921fea6e7451a519c59635cc25ed0e
+  fixed_teb_reference:
+    path: src/simulation/m2_gazebo/config/fixed_teb.yaml
+    sha256: 9e3125eec7f1f9040356f245dae9620d0b866ac94482ac29fd2d600838b14c26
+  inherited_p1_runner_reference:
+    path: src/tools/thesis_experiment/scripts/v2_04g_r6_i1_p1_e1_exact_runner.py
+    sha256: 48b8e301330b4e59b3e3ac0f5965a96f8688954afafc9d33dc69f928e0cef01f
+  inherited_p1_replay_reference:
+    path: src/tools/thesis_experiment/src/thesis_experiment/v2_04g_r6_i1_p1_e1_replay.py
+    sha256: f3a159de92c62b9010523dc01eb2c0616de09dbafc7fcbff7d93f3d982459d1a
+
+historical_freeze_bindings:
+  p1_terminal_evidence:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p1_e1_execution/p1_e1_terminal_evidence_freeze.sha256
+    sha256: 952b97389b5c65afbc083dcf3a893e9f9c845a6d512539161f058543d48b594a
+  i5_terminal_evidence:
+    path: artifacts/v2/integration/v2_04g_r6_i1/r6_i6_interpretation/i5_evidence_freeze.sha256
+    sha256: 40d9eba914840d33a7966f7c5bff972e94d9123239b1cc1cc0c0971752288935
+  t12_terminal_two_seed_pilot:
+    path: artifacts/t12/residual_static_footprint_2seed_pilot/checksums.sha256
+    sha256: 6dbf089c53e24d43b7b5847dfe8c141ca0cec12b52338a9b231e2a9ffe3a5e7c
+
+target_bundle:
+  root: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness
+  candidate_config_root: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/candidate_configs
+  method_bindings: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_method_bindings.yaml
+  scene_manifest: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_scenes.yaml
+  compiled_root: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/compiled_scenes
+  compiled_index: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/compiled_scenes/compiled_scene_index.yaml
+  exact_schedule: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_exact_342_schedule.yaml
+  exact_command_plan: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_exact_342_command_plan.yaml
+  construction_audit: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_construction_audit.yaml
+  failure_index: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_failure_index.yaml
+  source_freeze: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/p2_q1_source_freeze.sha256
+  readiness_report: artifacts/v2/integration/v2_04g_r6_i1/p2_q1_offline_readiness/v2_04g_p2_q1_readiness_report.yaml
+  expected_method_count: 11
+  expected_scene_count: 48
+  expected_compiled_child_count: 96
+  expected_schedule_rows: 342
+
+candidate_materialization:
+  sole_behavioral_field: TebLocalPlannerROS.max_vel_x
+  speed_grid_mps: [1.20, 1.25, 1.30, 1.35, 1.40]
+  circle_contact_methods:
+    - {method_id: circle_contact_v120, speed_mps: 1.20}
+    - {method_id: circle_contact_v125, speed_mps: 1.25}
+    - {method_id: circle_contact_v130, speed_mps: 1.30}
+    - {method_id: circle_contact_v135, speed_mps: 1.35}
+    - {method_id: circle_contact_v140, speed_mps: 1.40}
+  fixed_teb_methods:
+    - {method_id: fixed_teb_v120__TEB-Default_alias, speed_mps: 1.20}
+    - {method_id: fixed_teb_v125, speed_mps: 1.25}
+    - {method_id: fixed_teb_v130, speed_mps: 1.30}
+    - {method_id: fixed_teb_v135, speed_mps: 1.35}
+    - {method_id: fixed_teb_v140, speed_mps: 1.40}
+  frozen_engineering_baseline:
+    method_id: TEB-Tuned-V1
+    exact_t08_theta_required: true
+  unique_method_count: 11
+  circle_bank_allowed_diffs:
+    - bank_id
+    - status
+    - source_provenance.p2_q1
+    - parameters[0].bounds[1]
+    - anchors.anchor_cruise.profile_id
+    - anchors.anchor_cruise.values.max_vel_x
+  fixed_candidate_allowed_diff: TebLocalPlannerROS.max_vel_x
+  teb_tuned_allowed_diffs: exact_nine_t08_theta_fields_only
+  active_source_or_runtime_profile_modification_allowed: false
+  every_materialized_profile_runtime_ready: false
+  every_materialized_profile_parameter_write_enabled: false
+
+scene_derivation:
+  source_templates:
+    single_true_conflict: v2-04g-r6-i5-dynamic-conflict-single-s5161
+    multi_true_conflict: v2-04g-r6-i5-dynamic-conflict-multi-s5162
+    time_separated_semantic_clear: v2-04g-r6-i5-dynamic-semantic-clear-s5163
+    cruise_probe: v2-04g-r6-i5-compile-support-cruise-s5164
+    static_support: v2-04g-r6-i5-compile-support-static-s5165
+    corridor_support: v2-04g-r6-i5-compile-support-corridor-s5166
+    maneuver_support: v2-04g-r6-i5-compile-support-maneuver-s5167
+  clone_algorithm: exact_template_clone_scene_id_seed_split_and_evaluator_reason_only_v1
+  geometry_trajectory_timeout_randomization_or_profiles_change_allowed: false
+  calibration:
+    single_true_conflict: {first: 5301, last: 5310, count: 10, expected_ttc_status: OBSERVED_CONFLICT}
+    multi_true_conflict: {first: 5311, last: 5320, count: 10, expected_ttc_status: OBSERVED_CONFLICT}
+    time_separated_semantic_clear: {first: 5321, last: 5330, count: 10, expected_ttc_status: NO_CONFLICT_IN_HORIZON}
+  qualification:
+    speed_probe_rows:
+      - {speed_mps: 1.25, braking_seed: 5331, overlay_transition_seed: 5332, ackermann_circle_seed: 5333}
+      - {speed_mps: 1.30, braking_seed: 5334, overlay_transition_seed: 5335, ackermann_circle_seed: 5336}
+      - {speed_mps: 1.35, braking_seed: 5337, overlay_transition_seed: 5338, ackermann_circle_seed: 5339}
+      - {speed_mps: 1.40, braking_seed: 5340, overlay_transition_seed: 5341, ackermann_circle_seed: 5342}
+    braking_template: cruise_probe
+    overlay_transition_template: single_true_conflict
+    ackermann_circle_template: cruise_probe
+  compile_support:
+    seeds: [5343, 5344, 5345, 5346, 5347, 5348]
+    templates: [cruise_probe, static_support, corridor_support, maneuver_support, single_true_conflict, multi_true_conflict]
+    schedule_membership_allowed: false
+  held_out_test_seed_range_forbidden: [5401, 5490]
+  policy_receives_scene_role_probe_type_expected_status_or_manifest: false
+
+exact_schedule:
+  calibration:
+    block_count: 30
+    methods_per_block: 11
+    row_count: 330
+    common_random_numbers: true
+    construction: cyclic_11_method_rotation_with_alternating_reversal_and_three_role_wave_balance_v1
+    maximum_method_position_count_difference: 1
+    every_method_runs_every_calibration_seed_once: true
+  qualification:
+    row_count: 12
+    speeds_mps: [1.25, 1.30, 1.35, 1.40]
+    probes: [braking, high_speed_to_conflict_overlay_transition, ackermann_circle]
+    every_speed_probe_pair_once: true
+  total_row_count: 342
+  attempt_per_identity: 1
+  retry_resume_replacement_or_seed_substitution_allowed: false
+  held_out_test_rows: 0
+  canonical_digest_required: true
+
+runner_adapter:
+  mode: release_gated_offline_command_plan
+  supported_row_types: [calibration_navigation, qualification_probe]
+  preflight_rehashes_schedule_scene_and_method_bindings: true
+  builds_exact_command_plan_for_every_row: true
+  credential_safe_child_environment_required: true
+  positive_progress_clock_bootstrap_required: true
+  process_isolation_and_two_phase_teardown_required: true
+  consumption_boundary_for_future_release: base_roslaunch_spawn_requested
+  current_execute_entry_hard_disabled_without_future_release: true
+  future_release_must_bind_runner_sha_and_exact_schedule_sha: true
+  future_release_must_supply_exact_expected_release_sha: true
+
+raw_replay_adapter:
+  summary_fields_trusted_as_statistics: false
+  navigation_sample_integrity_fields:
+    [tracker_valid, transaction_valid, projection_applied, emergency]
+  qualification_sample_integrity_fields:
+    [transaction_valid, projection_applied, emergency]
+  navigation_trace_recomputes:
+    - success
+    - collision
+    - restricted_completion_time
+    - minimum_footprint_clearance
+    - observed_ttc_status
+    - emergency
+    - normal_projection_rate
+    - invalid_transaction_count
+  qualification_trace_recomputes:
+    braking: [initial_speed_mps, stop_time_s, stopping_distance_m, collision]
+    high_speed_to_conflict_overlay_transition: [activation_latency_s, maximum_speed_before_safe_state_mps, collision, minimum_clearance_m]
+    ackermann_circle: [steady_speed_mps, steady_yaw_rate_radps, radius_m, radius_error_m, collision]
+  raw_path_sha_size_receipts_required: true
+  deterministic_synthetic_fixtures_required: true
+  future_replay_of_all_consumed_rows_required: true
+
+qualification_thresholds:
+  braking:
+    candidate_speed_tolerance_mps: 0.05
+    maximum_stop_time_s: 2.50
+    maximum_stopping_distance_m: 2.9485
+    collision_allowed: false
+  high_speed_to_conflict_overlay_transition:
+    maximum_activation_latency_s: 0.99
+    maximum_speed_at_safe_state_mps: 1.20
+    minimum_clearance_m: 0.25
+    collision_allowed: false
+  ackermann_circle:
+    steady_speed_tolerance_mps: 0.08
+    maximum_radius_error_m: 0.20
+    collision_allowed: false
+  any_probe_failure_disqualifies_that_speed_and_higher_speeds: true
+  qualification_results_may_not_open_held_out_test: true
+
+future_calibration_release_boundary:
+  release_present: false
+  exact_authorized_budget_if_later_approved: 342
+  current_authorized_budget: 0
+  attempt_root_journal_or_consumption_allowed: false
+  future_release_count_max: 1
+  future_execution_requires_corresponding_separate_simulation_authorization: true
+  held_out_test_requires_later_independent_release_and_authorization: true
+
+failure_and_integrity_policy:
+  every_failure_retained_in_failure_index: true
+  ordinary_candidate_or_probe_failure_does_not_delete_or_retry_identity: true
+  preconsumption_integrity_failure_stops_without_consumption: true
+  postconsumption_integrity_failure_stops_stage_and_forfeits_remainder: true
+  outcome_based_schedule_or_config_rewrite_allowed: false
+  hidden_test_access_or_test_artifact_creation_is_integrity_failure: true
+  unexplained_crash_allowed_for_positive_selection: false
+
+claim_boundary:
+  allowed_after_q1_offline_pass:
+    - exact_candidate_scene_schedule_runner_and_replay_inputs_are_offline_materialized
+    - every_candidate_diff_is_confined_to_the_preregistered_single_behavioral_field
+    - calibration_and_qualification_release_prerequisites_are_statically_reviewed
+  forbidden:
+    - candidate_or_speed_safety_qualified
+    - calibration_or_performance_result
+    - baseline_or_treatment_selected
+    - reinforcement_learning_improvement
+    - held_out_test_access
+    - release_execution_authorization_or_budget_consumption
+    - runtime_ready_winner_deployment_or_real_vehicle_claim
+
+forbidden_side_effects:
+  modify_p1_i5_t12_or_p2_d2_frozen_evidence: true
+  modify_active_runtime_profiles: true
+  create_held_out_test_scene_schedule_result_or_artifact: true
+  create_execution_release_attempt_journal_or_consumption: true
+  start_ros_gazebo_move_base_or_training: true
+  write_online_teb_parameters: true
+  access_stable_workspace_real_vehicle_can_or_hardware: true

@@ -1,0 +1,273 @@
+{
+  "Gazebo_started": false,
+  "PNG_visual_review_performed": false,
+  "ROS_started": false,
+  "all_safety_scoped_pass": false,
+  "commands": [
+    "source /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_env.sh; PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python -B /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_independent/recompute.py",
+    "PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python -B /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_independent/check_interpretation.py"
+  ],
+  "complete_pairs": 12,
+  "consumed_attempt1": 24,
+  "decision": "No promotion of N05 preview eligibility into training/evaluation policy; terminal negative development diagnostic retained.",
+  "endpoint_treatment_minus_control_mean_m": 0.5436998409166668,
+  "endpoint_treatment_minus_control_median_m": 0.07777424099999974,
+  "failure_inclusive": true,
+  "formal_result": false,
+  "four_negative_sweeps": [
+    {
+      "method": "astra_analytic_route_v1",
+      "minimum_engineering_conservative_swept_xy_m": -0.16468911624234767,
+      "run_id": "astra_navigation_n05_b04_astra_analytic_route_v1",
+      "safety_checks": {
+        "no_actor_environment_contact": true,
+        "no_illegal_robot_contact": true,
+        "no_physical_backend_fault_timeout_brake_emergency": true,
+        "positive_engineering_clearance": false
+      },
+      "seed": 263002005,
+      "sweep_sha256": "d59b1f4473440729eedc06f3f1e5cb229c0a7e24c3d3a762d78fb9f14b834588"
+    },
+    {
+      "method": "astra_analytic_route_v1",
+      "minimum_engineering_conservative_swept_xy_m": -0.1645462950374252,
+      "run_id": "astra_navigation_n05_b05_astra_analytic_route_v1",
+      "safety_checks": {
+        "no_actor_environment_contact": true,
+        "no_illegal_robot_contact": true,
+        "no_physical_backend_fault_timeout_brake_emergency": true,
+        "positive_engineering_clearance": false
+      },
+      "seed": 263002006,
+      "sweep_sha256": "ced5858ebebe2caf57360772728bb471a15e2246001596c701375b3bdd245532"
+    },
+    {
+      "method": "astra_analytic_preview_eligible_n05",
+      "minimum_engineering_conservative_swept_xy_m": -0.16436766762260105,
+      "run_id": "astra_navigation_n05_b04_astra_analytic_preview_eligible_n05",
+      "safety_checks": {
+        "no_actor_environment_contact": true,
+        "no_illegal_robot_contact": true,
+        "no_physical_backend_fault_timeout_brake_emergency": true,
+        "positive_engineering_clearance": false
+      },
+      "seed": 263002005,
+      "sweep_sha256": "f923891ac7c4d82332759d63ef4a0386f99fee236096f31b25d0f77f64304491"
+    },
+    {
+      "method": "astra_analytic_preview_eligible_n05",
+      "minimum_engineering_conservative_swept_xy_m": -0.16481708186152103,
+      "run_id": "astra_navigation_n05_b05_astra_analytic_preview_eligible_n05",
+      "safety_checks": {
+        "no_actor_environment_contact": true,
+        "no_illegal_robot_contact": true,
+        "no_physical_backend_fault_timeout_brake_emergency": true,
+        "positive_engineering_clearance": false
+      },
+      "seed": 263002006,
+      "sweep_sha256": "447a4c71d44606f504860d82e687e4f815d5450fe2ef4936f37975f4540c7cd4"
+    }
+  ],
+  "general_safety_or_deployment_claim": false,
+  "independent_raw_replay": {
+    "all_task_goal_endpoint_trace_candidate_fields_match_original_report_and_CSV": true,
+    "all_treatment_eligibility_masks_and_selected_membership_checked": true,
+    "bags": 24,
+    "entire_selected_topic_message_counts": {
+      "/astra/navigation/gate": 24,
+      "/astra/navigation/status": 3901,
+      "/astra/p03/end_links": 328354,
+      "/astra/route_runtime/candidates": 1890,
+      "/astra/route_runtime/trace": 9417,
+      "/odom": 32826
+    },
+    "entire_selected_topics": [
+      "/odom",
+      "/astra/p03/end_links",
+      "/astra/route_runtime/trace",
+      "/astra/route_runtime/candidates",
+      "/astra/navigation/gate",
+      "/astra/navigation/status"
+    ],
+    "first_actual_odom_terminal_independently_recomputed": true,
+    "first_dense_goal_independently_recomputed": true,
+    "formal_2ms_base_pose_samples": 236564,
+    "planner_rollouts_and_analytic_priors_recomputed": false,
+    "production_replay_or_navigation_assessor_imported": false
+  },
+  "independent_review": true,
+  "interpretation_consistency": {
+    "bytes": 23786,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_independent/interpretation_check.json",
+    "sha256": "08cd26cb6aaf442ca5d4cc5cc9e963c756134b8f35bc52ae879d255e6999121a"
+  },
+  "ledger": {
+    "bytes": 12748,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/queue/navigation_n05_ledger.json",
+    "sha256": "87f50b5cf2610ba68c55a7609c9e926c0c81bb404ff4a760fad0ef1f50cd734f"
+  },
+  "limits": [
+    "six reused development parent geometries, two fresh seeds each; not twelve independent geometries",
+    "endpoint differences compare each method at its own terminal source, not matched elapsed state",
+    "trace/candidate times are runtime clock metadata, not driver ingress source",
+    "stop fractions use recorded trace counts and are not time durations or causal mechanism identification",
+    "physical integrity/contact claims inherited from hash-bound assessments; four negative saved clearance aggregations independently checked",
+    "parent tool143 is explicitly provenance-limited; missing exit file not fabricated or assigned a cause"
+  ],
+  "manager_and_outer_exit": {
+    "all24_child_exit0_receipts": true,
+    "cause": "unknown",
+    "expected_outer_exit_file_absent": true,
+    "manager_return0_durable_file_and_stdout_verified": true,
+    "no_inferred_signal_sender_or_termination_cause": true,
+    "normal_outer_exit_proven": false,
+    "observation_note": {
+      "bytes": 1257,
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/queue/navigation_n05_outer_shell_observation.json",
+      "sha256": "22d7f69ec91c5b5b88f23dedbd7f9add00d33ac88a7c15e9ea48e5e03b88a5af"
+    },
+    "original_tool_response_independently_available": false,
+    "parent_tool_observed_exit_code": 143,
+    "parent_tool_session_id": 1158,
+    "saved_shell_script_checked": true,
+    "terminal_ledger_and24_receipts_verified": true
+  },
+  "mechanism": {
+    "astra_analytic_preview_eligible_n05": {
+      "mean_endpoint_m": 6.145101590916667,
+      "median_endpoint_m": 7.116146213,
+      "totals": {
+        "backup_revalidation_failed_ticks": 1201,
+        "backup_stop_requested_ticks": 2425,
+        "candidate_decisions": 945,
+        "executed_stop_ticks": 3788,
+        "trace_ticks": 4698,
+        "transaction_deadline_drop_ticks": 162,
+        "treatment_moving_backup_count_sum": 4833,
+        "treatment_moving_eligible_count_sum": 719,
+        "treatment_selection_changed_decisions": 504
+      }
+    },
+    "astra_analytic_route_v1": {
+      "mean_endpoint_m": 5.60140175,
+      "median_endpoint_m": 5.977384241499999,
+      "totals": {
+        "backup_revalidation_failed_ticks": 2046,
+        "backup_stop_requested_ticks": 896,
+        "candidate_decisions": 945,
+        "executed_stop_ticks": 3118,
+        "trace_ticks": 4689,
+        "transaction_deadline_drop_ticks": 176,
+        "treatment_moving_backup_count_sum": 0,
+        "treatment_moving_eligible_count_sum": 0,
+        "treatment_selection_changed_decisions": 0
+      }
+    }
+  },
+  "method_outcomes": {
+    "astra_analytic_preview_eligible_n05": {
+      "completed": 2,
+      "timeout": 10,
+      "valid_rows": 12
+    },
+    "astra_analytic_route_v1": {
+      "completed": 2,
+      "timeout": 10,
+      "valid_rows": 12
+    }
+  },
+  "negative_sweep_saved_outputs_independently_reaggregated": [
+    {
+      "coarse_intervals": 1100,
+      "dense_intervals": 11000,
+      "independently_reaggregated_minimum_m": -0.16468911624234767,
+      "max_coarse_abs_difference_m": 2.220446049250313e-16,
+      "original_geometry_and_body_displacement_budget_derivation_replayed": false,
+      "report_minimum_m": -0.16468911624234767,
+      "run_id": "astra_navigation_n05_b04_astra_analytic_route_v1"
+    },
+    {
+      "coarse_intervals": 1100,
+      "dense_intervals": 11000,
+      "independently_reaggregated_minimum_m": -0.1645462950374252,
+      "max_coarse_abs_difference_m": 2.220446049250313e-16,
+      "original_geometry_and_body_displacement_budget_derivation_replayed": false,
+      "report_minimum_m": -0.1645462950374252,
+      "run_id": "astra_navigation_n05_b05_astra_analytic_route_v1"
+    },
+    {
+      "coarse_intervals": 1100,
+      "dense_intervals": 11000,
+      "independently_reaggregated_minimum_m": -0.16436766762260105,
+      "max_coarse_abs_difference_m": 2.220446049250313e-16,
+      "original_geometry_and_body_displacement_budget_derivation_replayed": false,
+      "report_minimum_m": -0.16436766762260105,
+      "run_id": "astra_navigation_n05_b04_astra_analytic_preview_eligible_n05"
+    },
+    {
+      "coarse_intervals": 1100,
+      "dense_intervals": 11000,
+      "independently_reaggregated_minimum_m": -0.16481708186152103,
+      "max_coarse_abs_difference_m": 2.220446049250313e-16,
+      "original_geometry_and_body_displacement_budget_derivation_replayed": false,
+      "report_minimum_m": -0.16481708186152103,
+      "run_id": "astra_navigation_n05_b05_astra_analytic_preview_eligible_n05"
+    }
+  ],
+  "original_resources_modified": false,
+  "performance_improvement_demonstrated": false,
+  "preflight_review_inherited_with_limited_scope": {
+    "bytes": 5504,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_preflight/r04/review.json",
+    "sha256": "9cab3ed95eb0365790c22f6ff602fd4f5abc4dce82287ebe66ff89911b5c8538"
+  },
+  "raw_collision_geometry_and_native_budget_derivation_replayed": false,
+  "raw_contact_messages_replayed": false,
+  "recomputed": {
+    "bytes": 79790,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_independent/recomputed.json",
+    "sha256": "1be097ee1da6f7b6f4227fa2c6229faa288f33b65a991e58a24adbf0f6c175be"
+  },
+  "release": {
+    "bytes": 287794,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/navigation_n05_release.json",
+    "sha256": "e9879ee6ca8ca050b9ee036db87c4728f5f1aa38895b69c2ca2d429bbcf6c628"
+  },
+  "resource_manifest": {
+    "bytes": 524627,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_independent/resources.json",
+    "sha256": "c19916674da61eceb94480436670c6b8e8fa0a93e0a657f42379b8ebdcbe19a4"
+  },
+  "restricted_time_treatment_minus_control_mean_s": 0.022666666666666686,
+  "retired": 0,
+  "review_text": {
+    "bytes": 6401,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_independent/review.md",
+    "sha256": "347b2759dc3630a5355fdf711c58f774804dc23e6b54cc30d8cd1e48d19e8582"
+  },
+  "reviewed_interpretation_report": {
+    "bytes": 6451,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_result_interpretation/report.json",
+    "sha256": "a0bde787a2401885fb85b7712c877d0982fd5759e01785b4732712b1b4f8eb17"
+  },
+  "reviewed_replay_report": {
+    "bytes": 37518,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay/report.json",
+    "sha256": "21e38298c1ad34ca29e933f88810649e33b515222ec2084a523231148649abb1"
+  },
+  "reviewed_replay_script": {
+    "bytes": 16789,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n05_terminal_replay_r04.py",
+    "sha256": "5554ddf0e5a956704ba5192a696ca2164ecb0c59535a3e5c56f5d01bc5f51cce"
+  },
+  "runtime_ready": false,
+  "schema": "astra_navigation_n05_terminal_independent_review_v1",
+  "source_binding_checks": {
+    "exact_prepared_ledger_schedule": true,
+    "original_receipts": 24,
+    "receipt_artifacts": 696,
+    "release_resources": 1179
+  },
+  "status": "independent_all24_selected_topic_task_mechanism_and_negative_interpretation_review_pass",
+  "training_started": false
+}

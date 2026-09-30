@@ -1,0 +1,26 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-03-A0
+preregistration_id: v3_scope_v3_03_a0_safe_planner_1
+date: "2026-07-24"
+status: frozen_before_offline_fixture_materialization
+contract: config/thesis_experiments/v3/v3_03_a0_safe_planner_contract.yaml
+upstream_predictor_sha256: fa4ef83b9b2e534da3031001f5dd0036cd7f983ebfbe73fe20f45c4b73bc55d7
+factor_policy:
+  hard_threshold_change_after_fixture_access: false
+  analytic_weight_change_after_fixture_access: false
+  candidate_roster_change_after_fixture_access: false
+fallback:
+  certified_stop_required: true
+  fault_injection_must_select_stop: true
+  missing_or_invalid_stop_is_terminal_failure: true
+testing:
+  deterministic_scenes: 12
+  property_scenes: 512
+  property_seed: 30303
+authority:
+  simulation: false
+  execution: false
+  training: false
+  move_base: false
+  real_vehicle: false

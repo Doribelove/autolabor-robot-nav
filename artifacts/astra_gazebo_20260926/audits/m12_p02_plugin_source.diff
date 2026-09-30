@@ -1,0 +1,153 @@
+--- artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_plugin.cpp
++++ artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p02_plugin.cpp
+@@ -11,6 +11,9 @@
+ #include <gazebo/common/Events.hh>
+ #include <gazebo/common/Plugin.hh>
+ #include <gazebo/physics/physics.hh>
++#include <diagnostic_msgs/DiagnosticArray.h>
++#include <diagnostic_msgs/DiagnosticStatus.h>
++#include <diagnostic_msgs/KeyValue.h>
+ #include <geometry_msgs/TransformStamped.h>
+ #include <geometry_msgs/Twist.h>
+ #include <nav_msgs/Odometry.h>
+@@ -28,9 +31,9 @@
+ namespace gazebo {
+ // Simulation-only effort backend. After spawn, only joint efforts influence
+ // physical state: no pose, joint-position, or body/joint velocity writes.
+-class AstraPhysicalAckermannPlugin : public ModelPlugin {
++class AstraPhysicalAckermannP02Plugin : public ModelPlugin {
+  public:
+-  ~AstraPhysicalAckermannPlugin() override {
++  ~AstraPhysicalAckermannP02Plugin() override {
+     begin_.reset();end_.reset();if (spinner_) spinner_->stop();
+   }
+   void Load(physics::ModelPtr model,sdf::ElementPtr sdf) override {
+@@ -75,12 +78,12 @@
+     odom_origin_=base_->WorldPose();last_control_=last_publish_=world_->SimTime().Double();
+     if (!finiteBaseState()||!std::isfinite(last_control_)) {gzerr<<"Astra physical nonfinite initial base state/clock\n";return;}
+     ros::NodeHandle root,driver("m2_driver");
+-    cmd_sub_=root.subscribe("/cmd_vel",1,&AstraPhysicalAckermannPlugin::cmd,this);
+-    ack_sub_=root.subscribe("/ackerman_vel",1,&AstraPhysicalAckermannPlugin::ack,this);
+-    brake_sub_=driver.subscribe("brake_set",1,&AstraPhysicalAckermannPlugin::brake,this);
+-    emergency_sub_=driver.subscribe("emergency_stop",1,&AstraPhysicalAckermannPlugin::emergency,this);
+-    reset_sub_=driver.subscribe("reset_odom",1,&AstraPhysicalAckermannPlugin::reset,this);
+-    bias_sub_=driver.subscribe("steer_center_bias",1,&AstraPhysicalAckermannPlugin::bias,this);
++    cmd_sub_=root.subscribe("/cmd_vel",1,&AstraPhysicalAckermannP02Plugin::cmd,this);
++    ack_sub_=root.subscribe("/ackerman_vel",1,&AstraPhysicalAckermannP02Plugin::ack,this);
++    brake_sub_=driver.subscribe("brake_set",1,&AstraPhysicalAckermannP02Plugin::brake,this);
++    emergency_sub_=driver.subscribe("emergency_stop",1,&AstraPhysicalAckermannP02Plugin::emergency,this);
++    reset_sub_=driver.subscribe("reset_odom",1,&AstraPhysicalAckermannP02Plugin::reset,this);
++    bias_sub_=driver.subscribe("steer_center_bias",1,&AstraPhysicalAckermannP02Plugin::bias,this);
+     odom_pub_=root.advertise<nav_msgs::Odometry>("/odom",10);
+     joint_pub_=root.advertise<sensor_msgs::JointState>("/joint_states",10);
+     target_pub_=driver.advertise<sensor_msgs::JointState>("actuator_target",10);
+@@ -93,12 +96,13 @@
+     latency_pub_=driver.advertise<std_msgs::Float64>("command_activation_latency",10);
+     fault_pub_=driver.advertise<std_msgs::Bool>("physical_backend_fault",1,true);
+     metadata_pub_=driver.advertise<std_msgs::String>("physical_metadata",1,true);
+-    parameter_service_=driver.advertiseService("chassis_parameter",&AstraPhysicalAckermannPlugin::parameters,this);
++    status_pub_=driver.advertise<diagnostic_msgs::DiagnosticArray>("physical_status",1000);
++    parameter_service_=driver.advertiseService("chassis_parameter",&AstraPhysicalAckermannP02Plugin::parameters,this);
+     publishMetadata();
+-    begin_=event::Events::ConnectWorldUpdateBegin(std::bind(&AstraPhysicalAckermannPlugin::control,this));
+-    end_=event::Events::ConnectWorldUpdateEnd(std::bind(&AstraPhysicalAckermannPlugin::publish,this));
++    begin_=event::Events::ConnectWorldUpdateBegin(std::bind(&AstraPhysicalAckermannP02Plugin::control,this));
++    end_=event::Events::ConnectWorldUpdateEnd(std::bind(&AstraPhysicalAckermannP02Plugin::publish,this));
+     spinner_.reset(new ros::AsyncSpinner(1));spinner_->start();
+-    gzmsg<<"AstraPhysicalAckermannPlugin loaded mass="<<mass_<<" effort_only=true calibrated=false\n";
++    gzmsg<<"AstraPhysicalAckermannP02Plugin loaded mass="<<mass_<<" effort_only=true calibrated=false\n";
+   }
+  private:
+   double read(sdf::ElementPtr sdf,const std::string& key,double fallback) {
+@@ -160,7 +164,7 @@
+     if (!std::isfinite(now)||dt<0.) {
+       fault_=true;pending_.clear();
+       if (std::isfinite(now)) {last_control_=now;last_publish_=now;}
+-      if (!fault_logged_) {gzerr<<"AstraPhysicalAckermannPlugin physical_backend_fault reason=clock_regression_or_nonfinite requires_new_episode=true\n";fault_logged_=true;}
++      if (!fault_logged_) {gzerr<<"AstraPhysicalAckermannP02Plugin physical_backend_fault reason=clock_regression_or_nonfinite requires_new_episode=true\n";fault_logged_=true;}
+     }
+     if (dt<=0.||!std::isfinite(dt)) return;
+     last_control_=now;
+@@ -213,7 +217,7 @@
+       joints_[i+2]->SetForce(0,efforts_[i+2]);
+     }
+     previous_wheel_targets_=wheel_targets;
+-    if (fault_&&!fault_logged_) {gzerr<<"AstraPhysicalAckermannPlugin physical_backend_fault requires_new_episode=true sim_time="<<now<<"\n";fault_logged_=true;}
++    if (fault_&&!fault_logged_) {gzerr<<"AstraPhysicalAckermannP02Plugin physical_backend_fault requires_new_episode=true sim_time="<<now<<"\n";fault_logged_=true;}
+   }
+   bool finiteBaseState() const {
+     return base_->WorldPose().IsFinite() && base_->WorldLinearVel().IsFinite() &&
+@@ -225,13 +229,44 @@
+     return true;
+   }
+   ros::Time stamp(double now) {ros::Time t;t.fromSec(now);return t;}
++  static bool validStatusSourceTime(double now) {
++    // ros::Time has an unsigned 32-bit seconds field. Never replace invalid
++    // simulation source time with receipt/wall time or a fabricated zero.
++    return std::isfinite(now)&&now>=0.&&now<4294967296.;
++  }
++  void publishPhysicalStatus(double now) {
++    if (!validStatusSourceTime(now)) return;
++    diagnostic_msgs::DiagnosticArray message;message.header.stamp=stamp(now);
++    diagnostic_msgs::DiagnosticStatus status;
++    status.name="astra_physical_ackermann";status.hardware_id="simulation-only";
++    status.level=fault_?diagnostic_msgs::DiagnosticStatus::ERROR:
++      timed_out_?diagnostic_msgs::DiagnosticStatus::WARN:diagnostic_msgs::DiagnosticStatus::OK;
++    status.message=fault_?"backend_fault":timed_out_?"command_timeout":"ok";
++    auto add=[&status](const std::string& name,bool value) {
++      diagnostic_msgs::KeyValue item;item.key=name;item.value=value?"true":"false";status.values.push_back(item);
++    };
++    add("backend_fault",fault_);add("command_timeout",timed_out_);
++    add("brake",brake_);add("emergency",emergency_);
++    message.status.push_back(status);status_pub_.publish(message);
++  }
+   void publish() {
+-    const double now=world_->SimTime().Double();if (now-last_publish_+1e-12<1./publish_hz_) return;last_publish_=now;
++    const double now=world_->SimTime().Double();
++    if (!validStatusSourceTime(now)) {
++      std::lock_guard<std::mutex> lock(mutex_);fault_=true;pending_.clear();
++      std_msgs::Bool flag;flag.data=true;fault_pub_.publish(flag);
++      if (!status_clock_fault_logged_) {
++        gzerr<<"AstraPhysicalAckermannP02Plugin physical_backend_fault reason=invalid_status_source_clock source_status_omitted=true requires_new_episode=true\n";
++        status_clock_fault_logged_=true;
++      }
++      return;
++    }
++    if (now-last_publish_+1e-12<1./publish_hz_) return;last_publish_=now;
+     std::lock_guard<std::mutex> lock(mutex_);
+     if (!std::isfinite(now)||!finiteBaseState()||!finiteJointState()) {
+       fault_=true;pending_.clear();
+       std_msgs::Bool flag;flag.data=true;fault_pub_.publish(flag);
+-      if (!fault_logged_) {gzerr<<"AstraPhysicalAckermannPlugin physical_backend_fault reason=nonfinite_base_or_joint_state requires_new_episode=true\n";fault_logged_=true;}
++      publishPhysicalStatus(now);
++      if (!fault_logged_) {gzerr<<"AstraPhysicalAckermannP02Plugin physical_backend_fault reason=nonfinite_base_or_joint_state requires_new_episode=true\n";fault_logged_=true;}
+       return; // Do not publish fabricated/invalid odometry or transforms.
+     }
+     const auto pose=base_->WorldPose();const auto relative=odom_origin_.Inverse()*pose;
+@@ -256,6 +291,7 @@
+     std_msgs::Float64 value;value.data=m2_gazebo::actualCenterSteering(joint.position[0],joint.position[1],wheelbase_,track_);angle_pub_.publish(value);
+     value.data=body_v.X();speed_pub_.publish(value);value.data=joint.velocity[4]*radius_;left_pub_.publish(value);value.data=joint.velocity[5]*radius_;right_pub_.publish(value);
+     std_msgs::Bool flag;flag.data=timed_out_;timeout_pub_.publish(flag);flag.data=fault_;fault_pub_.publish(flag);
++    publishPhysicalStatus(now);
+   }
+   void publishMetadata() {
+     std::ostringstream o;o<<std::setprecision(17)<<"{\"backend\":\"astra_physical_ackermann_v1\",\"effort_only\":true,\"calibrated\":false,\"actual_mass_kg\":"<<mass_
+@@ -272,7 +308,7 @@
+   physics::ModelPtr model_;physics::WorldPtr world_;physics::LinkPtr base_;std::array<physics::JointPtr,6> joints_;
+   event::ConnectionPtr begin_,end_;std::unique_ptr<ros::AsyncSpinner> spinner_;std::mutex mutex_;
+   ros::Subscriber cmd_sub_,ack_sub_,brake_sub_,emergency_sub_,reset_sub_,bias_sub_;
+-  ros::Publisher odom_pub_,joint_pub_,target_pub_,effort_pub_,angle_pub_,speed_pub_,left_pub_,right_pub_,timeout_pub_,latency_pub_,fault_pub_,metadata_pub_;
++  ros::Publisher odom_pub_,joint_pub_,target_pub_,effort_pub_,angle_pub_,speed_pub_,left_pub_,right_pub_,timeout_pub_,latency_pub_,fault_pub_,metadata_pub_,status_pub_;
+   ros::ServiceServer parameter_service_;tf2_ros::TransformBroadcaster tf_pub_;
+   ignition::math::Pose3d odom_origin_;m2_gazebo::ActuatorLimits limits_;m2_gazebo::ActuatorState reference_;m2_gazebo::SteeringGeometry geometry_;
+   std::array<m2_gazebo::BoundedPI,4> wheel_pi_;std::array<double,4> previous_wheel_targets_{{0.,0.,0.,0.}},target_rates_{{0.,0.,0.,0.}};
+@@ -281,7 +317,8 @@
+   double drive_torque_{8.},brake_torque_{12.},steer_torque_{20.},steer_kp_{60.},steer_kd_{4.},wheel_kp_{4.},wheel_ki_{2.},integral_limit_{1.5},wheel_damping_{.05},wheel_coulomb_{.01};
+   double expected_mass_{79.6},mass_{0.},wheel_effective_inertia_{0.},delay_{0.},jitter_{0.},last_control_{0.},last_publish_{0.},last_receipt_{0.},last_activation_{0.};
+   double command_speed_{0.},command_steer_{0.},bias_{0.},previous_left_{0.},previous_right_{0.};
++  bool status_clock_fault_logged_{false};
+   unsigned int seed_{42U};std::uint64_t sequence_{0U};bool publish_tf_{true},received_{false},brake_{false},emergency_{false},timed_out_{true},fault_{false},fault_logged_{false},reset_requested_{false};
+ };
+-GZ_REGISTER_MODEL_PLUGIN(AstraPhysicalAckermannPlugin)
++GZ_REGISTER_MODEL_PLUGIN(AstraPhysicalAckermannP02Plugin)
+ }  // namespace gazebo

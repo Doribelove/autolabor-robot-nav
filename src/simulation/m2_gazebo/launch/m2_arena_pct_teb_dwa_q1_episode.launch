@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="world"/><arg name="method"/><arg name="scene_manifest"/>
+  <arg name="map_yaml"/><arg name="scene_id"/><arg name="seed"/><arg name="report_path"/>
+  <arg name="stage" default="ARENA-PCT-Q1"/>
+  <arg name="candidate_variant" default="r2_candidate_v060"/>
+  <arg name="actor_checkpoint_path" default=""/><arg name="gui" default="false"/>
+  <arg name="release_sha256" default=""/><arg name="release_review_sha256" default=""/>
+  <arg name="teb_config" default="$(find m2_gazebo)/config/benchmark_teb_v0.yaml"/>
+  <arg name="dwa_config" default="$(find m2_gazebo)/config/benchmark_dwa_v0.yaml"/>
+  <arg name="spawn_world_x" default="-5.0"/><arg name="spawn_world_y" default="11.2"/>
+  <arg name="spawn_world_yaw" default="0.0"/><arg name="spawn_route_x" default="-5.0"/>
+  <arg name="policy_start_route_x" default="-4.0"/><arg name="goal_route_x" default="4.2"/>
+  <arg name="route_origin_world_x" default="0.0"/><arg name="route_origin_world_y" default="11.2"/>
+  <arg name="route_yaw_world" default="0.0"/><arg name="timeout_s" default="30.0"/>
+
+  <include file="$(find m2_gazebo)/launch/spawn_m2.launch">
+    <arg name="world" value="$(arg world)"/><arg name="gui" value="$(arg gui)"/>
+    <arg name="seed" value="$(arg seed)"/><arg name="paused" value="true"/>
+    <arg name="server_required" value="true"/><arg name="x" value="$(arg spawn_world_x)"/>
+    <arg name="y" value="$(arg spawn_world_y)"/><arg name="yaw" value="$(arg spawn_world_yaw)"/>
+    <arg name="enable_actuator_dynamics" value="true"/>
+    <arg name="speed_time_constant" value="0.22"/>
+    <arg name="steering_time_constant" value="0.18"/>
+    <arg name="max_acceleration" value="0.60"/>
+    <arg name="max_deceleration" value="0.90"/>
+    <arg name="max_brake_deceleration" value="0.90"/>
+    <arg name="max_emergency_deceleration" value="0.90"/>
+    <arg name="max_steering_rate" value="0.75"/>
+    <arg name="command_delay" value="0.0"/><arg name="command_jitter" value="0.0"/>
+    <arg name="laser_noise_stddev" value="0.01"/>
+  </include>
+
+  <node pkg="topic_tools" type="relay" name="arena_navigation_command_relay"
+        args="/cmd_vel_navigation /cmd_vel" output="screen"/>
+
+  <!-- All four methods are bound to the same frozen occupancy map.  PCT uses
+       its bytes for static/dynamic scan separation; the navigation baselines
+       consume the same map through map_server and the shared global planner. -->
+  <node pkg="map_server" type="map_server" name="arena_map_server"
+        args="$(arg map_yaml)" output="screen"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="arena_map_to_odom"
+        args="$(arg spawn_world_x) $(arg spawn_world_y) 0 $(arg spawn_world_yaw) 0 0 map odom"/>
+
+  <group if="$(eval arg('method') == 'actual_teb')">
+    <node pkg="move_base" type="move_base" name="move_base" output="screen">
+      <rosparam file="$(find m2_gazebo)/config/benchmark_move_base.yaml" command="load"/>
+      <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
+      <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="local_costmap"/>
+      <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="global_costmap"/>
+      <rosparam file="$(find m2_gazebo)/config/local_costmap.yaml" command="load"/>
+      <rosparam file="$(find m2_gazebo)/config/arena_global_costmap.yaml" command="load"/>
+      <rosparam file="$(arg teb_config)" command="load"/>
+      <remap from="cmd_vel" to="/cmd_vel_navigation"/><remap from="odom" to="/odom"/>
+    </node>
+  </group>
+
+  <group if="$(eval arg('method') == 'dwa')">
+    <node pkg="move_base" type="move_base" name="move_base" output="screen">
+      <rosparam file="$(find m2_gazebo)/config/benchmark_move_base.yaml" command="load"/>
+      <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+      <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="local_costmap"/>
+      <rosparam file="$(find m2_gazebo)/config/costmap_common.yaml" command="load" ns="global_costmap"/>
+      <rosparam file="$(find m2_gazebo)/config/local_costmap.yaml" command="load"/>
+      <rosparam file="$(find m2_gazebo)/config/arena_global_costmap.yaml" command="load"/>
+      <rosparam file="$(arg dwa_config)" command="load"/>
+      <remap from="cmd_vel" to="/cmd_vel_navigation"/><remap from="odom" to="/odom"/>
+    </node>
+  </group>
+
+  <node pkg="v5_e2e_scope_rl" type="arena_pct_teb_dwa_qualification_episode.py"
+        name="arena_pct_teb_dwa_qualification_episode" output="screen" required="true"
+        launch-prefix="$(env THESIS_WS)/.venv/bin/python">
+    <param name="method" value="$(arg method)"/><param name="scene_id" value="$(arg scene_id)"/>
+    <param name="stage" value="$(arg stage)"/><param name="split" value="pilot"/>
+    <param name="candidate_variant" value="$(arg candidate_variant)"/>
+    <param name="seed" value="$(arg seed)"/><param name="report_path" value="$(arg report_path)"/>
+    <param name="scene_manifest" value="$(arg scene_manifest)"/>
+    <param name="map_yaml" value="$(arg map_yaml)"/>
+    <param name="release_sha256" value="$(arg release_sha256)"/>
+    <param name="release_review_sha256" value="$(arg release_review_sha256)"/>
+    <param name="actor_checkpoint_path" value="$(arg actor_checkpoint_path)"/>
+    <param name="spawn_world_x" value="$(arg spawn_route_x)"/>
+    <param name="policy_start_world_x" value="$(arg policy_start_route_x)"/>
+    <param name="goal_world_x" value="$(arg goal_route_x)"/><param name="goal_tolerance_m" value="0.25"/>
+    <param name="timeout_s" value="$(arg timeout_s)"/><param name="activation_time_s" value="5.0"/>
+    <param name="warmup_speed_mps" value="0.8"/><param name="lookahead_m" value="0.70"/>
+    <param name="combined_radius_m" value="1.15"/>
+    <param name="route_origin_world_x_m" value="$(arg route_origin_world_x)"/>
+    <param name="route_origin_world_y_m" value="$(arg route_origin_world_y)"/>
+    <param name="route_yaw_world_rad" value="$(arg route_yaw_world)"/>
+    <param name="map_static_surface_tolerance_m" value="0.35"/>
+  </node>
+</launch>

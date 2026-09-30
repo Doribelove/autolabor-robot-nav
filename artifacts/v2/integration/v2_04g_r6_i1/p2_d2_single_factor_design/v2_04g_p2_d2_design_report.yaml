@@ -1,0 +1,185 @@
+schema_version: '1.0'
+architecture_generation: v2
+stage: V2-04G-P2-D2
+report_id: fam_teb_v2_04g_p2_d2_offline_single_factor_design_1
+status: offline_single_factor_design_closure_pass
+offline_only: true
+formal_result: false
+runtime_ready: false
+execution_ready: false
+execution_authorized: false
+evidence_budget_authorized: 0
+training_budget_steps_authorized: 0
+real_vehicle_used: false
+contract:
+  path: config/thesis_experiments/v2/v2_04g_r6_i1_p2_d2_offline_single_factor_design_contract.yaml
+  sha256: 962d7f30eae0955972518ffec960fbf892eaf5f40b8bedb61e3cb5867bbf87ef
+source_integrity:
+  bound_paths_rehashed: 10
+  unique_bound_paths: 10
+  integrity_failures: []
+p2_d1_entry:
+  frozen_status: offline_trace_attribution_physical_room_pass
+  ten_percent_implied_max_vel_x_mps: 1.3834905742284012
+  same_path_envelope_one_sided_lower_fraction: 0.11264934873448074
+  physical_room_only_not_achieved_gain: true
+  p1_negative_result_preserved: true
+selected_design_factor:
+  factor_id: p2_cruise_forward_velocity_ceiling_v1
+  runtime_field: TebLocalPlannerROS.max_vel_x
+  behavioral_field_count: 1
+  control_value_mps: 1.2
+  candidate_grid_mps:
+  - 1.25
+  - 1.3
+  - 1.35
+  - 1.4
+  design_upper_bound_mps: 1.4
+  all_other_behavioral_fields_frozen: true
+  runtime_label_access: false
+  selection_uses_calibration_only: true
+  held_out_test_used_for_selection: false
+offline_mechanical_screen:
+  status: design_admissible_future_qualification_required
+  normal_transition_envelope:
+    speed_mps: 1.4
+    latency_s: 0.99
+    latency_distance_m: 1.386
+    service_braking_distance_m: 0.6125
+    additional_margin_m: 0.25
+    required_forward_free_path_m: 2.2485
+  command_timeout_fault_envelope:
+    speed_mps: 1.4
+    latency_s: 1.49
+    latency_distance_m: 2.086
+    service_braking_distance_m: 0.6125
+    additional_margin_m: 0.25
+    required_forward_free_path_m: 2.9485
+  circle_ackermann_all_grid_levels_feasible: true
+  fixed_teb_ackermann_all_grid_levels_feasible: true
+  simulator_acceleration_supports_frozen_limit: true
+  p2_d1_ten_percent_implied_speed_inside_design_bound: true
+  new_bound_safety_qualified: false
+fair_baseline_firewall:
+  transparent_reference:
+    method_id: TEB-Default
+    theta:
+      max_vel_x: 1.2
+      max_vel_theta: 1.0
+      acc_lim_x: 0.8
+      acc_lim_theta: 0.8
+      min_obstacle_dist: 0.25
+      inflation_dist: 0.55
+      weight_obstacle: 50.0
+      weight_viapoint: 1.0
+      weight_optimaltime: 1.0
+    primary_baseline_eligible: false
+  required_fixed_baseline_candidates:
+    TEB-Tuned-V1:
+      theta:
+        max_vel_x: 0.9
+        max_vel_theta: 0.75
+        acc_lim_x: 0.6
+        acc_lim_theta: 0.6
+        min_obstacle_dist: 0.375
+        inflation_dist: 0.725
+        weight_obstacle: 75.0
+        weight_viapoint: 2.5
+        weight_optimaltime: 0.75
+      provenance: t07_calibration_midpoint_engineering_baseline_not_claimed_optimal
+    independently_tuned_fixed_teb:
+      source_config:
+        path: src/simulation/m2_gazebo/config/fixed_teb.yaml
+        sha256: 9e3125eec7f1f9040356f245dae9620d0b866ac94482ac29fd2d600838b14c26
+      only_tuned_field: TebLocalPlannerROS.max_vel_x
+      grid_mps:
+      - 1.2
+      - 1.25
+      - 1.3
+      - 1.35
+      - 1.4
+  primary_baseline_rule:
+    candidates:
+    - TEB-Tuned-V1
+    - independently_tuned_fixed_teb_selected
+    selection_data: calibration_only
+    eligibility: identical_task_collision_emergency_and_clearance_rules
+    rank: minimum equal_role_weighted_geometric_restricted_completion_time
+    tie_rule: within_1_percent_choose_TEB-Tuned-V1
+    frozen_before_held_out_test: true
+  baseline_weakening_or_test_selection_allowed: false
+finite_program:
+  maximum_factor_rounds: 3
+  global_simulation_evidence_units_max: 2200
+  global_training_environment_steps_max: 120000
+  global_one_sided_alpha_spend: 0.05
+  round_1:
+    training_steps: 0
+    calibration_evidence_units: 330
+    qualification_evidence_units: 12
+    held_out_test_evidence_units_max: 450
+    total_evidence_units_max: 792
+    one_sided_alpha: 0.025
+    calibration_seeds:
+    - 5301
+    - 5330
+    qualification_seeds:
+    - 5331
+    - 5342
+    held_out_test_seeds:
+    - 5401
+    - 5490
+    test_attempts_per_identity: 1
+  unused_budget_or_alpha_recycled: false
+  stop_after_first_full_positive_gate: true
+held_out_claim_gate:
+  primary_comparator: calibration_frozen_strongest_safe_of_TEB-Tuned-V1_and_independently_tuned_fixed_TEB
+  primary_point_reduction_min: 0.1
+  primary_one_sided_lower_reduction_min: 0.05
+  circle_v120_causal_point_reduction_min: 0.1
+  circle_v120_causal_one_sided_lower_reduction_min: 0.05
+  one_sided_alpha: 0.025
+  approximate_required_pairs_per_role: 22
+  selected_pairs_per_role: 30
+  success_collision_emergency_noninferiority_required: true
+  clearance_one_sided_lower_min_m: -0.05
+  normal_projection_rate_strictly_below: 0.1
+  unexplained_crash_or_integrity_failure_count_max: 0
+  all_gates_conjunctive: true
+  threshold_relaxation_after_outcome_allowed: false
+decision:
+  exactly_one_executable_factor_selected: true
+  fair_primary_baseline_rule_frozen: true
+  finite_global_budget_and_alpha_spend_frozen: true
+  fresh_split_and_one_time_test_firewall_frozen: true
+  candidate_bank_materialized: false
+  new_speed_bound_safety_qualified: false
+  simulation_release_exists: false
+  simulation_authorized: false
+  performance_improvement_demonstrated: false
+  reinforcement_learning_improvement_demonstrated: false
+  next_safe_stage: independent_future_round1_bank_runner_scene_and_exact_schedule_materialization_review
+claim_boundary:
+  allowed_after_this_offline_stage_only:
+  - one_executable_factor_and_finite_program_are_preregistered
+  - proposed_1_40_mps_bound_is_offline_design_admissible_for_future_qualification
+  - fair_baseline_selection_and_held_out_effect_gates_are_frozen
+  forbidden_without_future_positive_held_out_result:
+  - performance_improvement
+  - reinforcement_learning_improvement
+  - new_speed_bound_safety_qualification
+  - winner_or_runtime_ready
+  - cross_geometry_or_real_vehicle_generalization
+  - deployment_readiness
+side_effect_audit:
+  ros_gazebo_move_base_started: false
+  simulation_or_training_started: false
+  execution_release_schedule_journal_or_consumption_created: false
+  active_runtime_profile_or_online_parameter_modified: false
+  p1_i5_t12_or_stable_workspace_modified: false
+  held_out_test_accessed: false
+  real_vehicle_can_or_hardware_connected: false
+artifacts:
+  candidate_bank_amendment:
+    path: artifacts/v2/integration/v2_04g_r6_i1/p2_d2_single_factor_design/v2_04g_p2_d2_candidate_bank_amendment.yaml
+    sha256: de077b15ed2d6e57556fb3d7a04cd3c0a116edb9a06b626abe915cd379fa43da

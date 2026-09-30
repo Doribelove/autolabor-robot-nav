@@ -1,0 +1,309 @@
+{
+  "schema": "astra_baseline_static_qualification_b05_zero_authority_design_v1",
+  "stage": "astra_baseline_static_qualification_b05",
+  "status": "offline_design_and_pure_components_independent_review_pending",
+  "execution_authorized": false,
+  "training_authorized": false,
+  "execution_ready": false,
+  "allocated_budget": 0,
+  "seeds_registered": false,
+  "release_created": false,
+  "ROS_or_Gazebo_started": false,
+  "purpose": "Bounded development qualification of actual TEB/DWA private rear reference with unchanged public actual-base task; no superiority test and no parameter tuning.",
+  "proposed_maximum_episodes": 20,
+  "proposed_blocks": 10,
+  "methods": [
+    "actual_teb_rear_reference_b03",
+    "dwa_rear_reference_b03"
+  ],
+  "repeat_semantics": "5 geometries x2 fresh simulator repeats; repeats are not independent geometries",
+  "scenes": [
+    {
+      "scene_id": "b05_clear_inherited_n03",
+      "family": "clear",
+      "original_parent_scope": "inherited single clear geometry, not a new independent layout",
+      "world_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n03_dwa_r01/world.sdf",
+        "sha256": "96ecfcbf61d3418e9aeb0df78e5df54ebd93c5943e582718607225acea9f473e",
+        "bytes": 2530
+      },
+      "manifest_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n03_dwa_r01/scene_manifest.yaml",
+        "sha256": "17c1f8c2b173cbc6f982958dbc5c5e4469d9852e40d006b1513fd262223b793c",
+        "bytes": 4356
+      },
+      "common_bundle": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n03_dwa_r01/common_bundle/common_route.json",
+        "sha256": "add820bf400765fb0dd0446e633d4d54d1ccbf1f6cf097870d4793fa5eec4a5c",
+        "bytes": 5064
+      }
+    },
+    {
+      "scene_id": "b05_d04r05_development_static_avoidance_000",
+      "family": "static_avoidance",
+      "original_parent_scope": "one of the four frozen D04 r05 development parents; not independent of N06 use",
+      "parent_geometry_id": "geom_e791d30a0ed2e725553619d0",
+      "world_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_000/world.sdf",
+        "sha256": "4f1812c59806cba1b0967982046762158d9e0aaecd3174a18cb6f8e17d060e89"
+      },
+      "manifest_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_000/scene_manifest.yaml",
+        "sha256": "14b09699cb9bb71460e27800549d1b86c60d6fb43a0f0a55d183df75f9cf0028"
+      },
+      "common_bundle": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_000/common_bundle/common_route.json",
+        "sha256": "8e497a93f69042e59c560a14e46aed6e1ce6c54380e7239336f066bc96e49ee1"
+      },
+      "raster_witness": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_000/d04_raster_and_guide/raster_witness.csv",
+        "sha256": "10a33e2d346efe2298c39eb95ba079649a8f33f63a40174e8bc747f453c3c32a"
+      }
+    },
+    {
+      "scene_id": "b05_d04r05_development_static_avoidance_001",
+      "family": "static_avoidance",
+      "original_parent_scope": "one of the four frozen D04 r05 development parents; not independent of N06 use",
+      "parent_geometry_id": "geom_2be9b4aad034fa50b4bb36a8",
+      "world_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_001/world.sdf",
+        "sha256": "c22c2fa00f3545d80e612f8ddfbe6c54f9300fdecd3740c0d1b4d64f78cdb3cf"
+      },
+      "manifest_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_001/scene_manifest.yaml",
+        "sha256": "5ccdcdb80713ff37bf3933cc8dbd03bfc0b9e59c55a07451da8a0c844dea4cbd"
+      },
+      "common_bundle": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_001/common_bundle/common_route.json",
+        "sha256": "3247db6a510b0805b7365771b7373fe524e2b1371ca4e491bef8a4696be052ab"
+      },
+      "raster_witness": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_001/d04_raster_and_guide/raster_witness.csv",
+        "sha256": "70d26cc6e0436f39c74f5c93bf64bdef11787994ec528dac6e8f61f04c7c0a63"
+      }
+    },
+    {
+      "scene_id": "b05_d04r05_development_static_avoidance_002",
+      "family": "static_avoidance",
+      "original_parent_scope": "one of the four frozen D04 r05 development parents; not independent of N06 use",
+      "parent_geometry_id": "geom_16babeed26895e67bbf62d6f",
+      "world_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_002/world.sdf",
+        "sha256": "02696d1b06cafbe434c395969458a5a0390ad5020281527e52d13bc27f97bddf"
+      },
+      "manifest_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_002/scene_manifest.yaml",
+        "sha256": "367f0419845cd675cd0cb28a2a6aeb1ef1253c86856b438c0c424a5bd6ededa6"
+      },
+      "common_bundle": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_002/common_bundle/common_route.json",
+        "sha256": "338d49e4c149128bd73f5e526c6483d6ce0dc0c4d3cb220cd83e32e30745b08b"
+      },
+      "raster_witness": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_002/d04_raster_and_guide/raster_witness.csv",
+        "sha256": "70d26cc6e0436f39c74f5c93bf64bdef11787994ec528dac6e8f61f04c7c0a63"
+      }
+    },
+    {
+      "scene_id": "b05_d04r05_development_static_avoidance_003",
+      "family": "static_avoidance",
+      "original_parent_scope": "one of the four frozen D04 r05 development parents; not independent of N06 use",
+      "parent_geometry_id": "geom_c3109387182fce914677d0df",
+      "world_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_003/world.sdf",
+        "sha256": "6f4c1f658830ee64c16d4da47fef0ccaba085339973dc0793f47807f3e86a9d6"
+      },
+      "manifest_template": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_003/scene_manifest.yaml",
+        "sha256": "3d8606a294c70ef44e9eb7e5b0125d4ad20a08c62cbba72c3b96dd6be8f41379"
+      },
+      "common_bundle": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_003/common_bundle/common_route.json",
+        "sha256": "828f6f71bc6a0b990908f7199eb1cb0188870235a233bd1c246516501e6fc24a"
+      },
+      "raster_witness": {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/scenes/navigation_n06_static_prepared_r01/d04r05_development_static_avoidance_003/d04_raster_and_guide/raster_witness.csv",
+        "sha256": "10a33e2d346efe2298c39eb95ba079649a8f33f63a40174e8bc747f453c3c32a"
+      }
+    }
+  ],
+  "schedule": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_static_qualification_b05/proposed_schedule.json",
+    "sha256": "49b3e2808aa25a764ebdef371f0f7b6b5581c2fadce8f6b24b06e7f98d996380",
+    "bytes": 8107
+  },
+  "freshness": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_static_qualification_b05/freshness_check.json",
+    "sha256": "5490ff19e4b1d611893b76c292d9a2b010d9a3a1e0671409383bd4fa34db8524",
+    "bytes": 875
+  },
+  "prior_independent_reviews": {
+    "B04": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_integration_b04_independent/review.json",
+      "sha256": "20e90d05b0317dbd1ba2913f597f8561cc4208cdd3032d23cc88c7b52a188463",
+      "bytes": 8262
+    },
+    "B03": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_runtime_b03_independent/review.json",
+      "sha256": "cfd9f8166fec91b46b611c0fb0c20bbdeb2dc4bf86bc8c81001f6b8e543aa13a",
+      "bytes": 21686
+    },
+    "D04": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/development_geometry_d04_r05_independent/review.json",
+      "sha256": "a40a0f4f914347e83c57d033a0d20525d79a4811d8d8cca379b28c6d3f7f30a4",
+      "bytes": 20203
+    },
+    "N06_preparation": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_preparation_independent/review.json",
+      "sha256": "e8d8b1e49d9386fde389f299cd10e70eeb380a5e96d1ad9c693b044a6ac816ee",
+      "bytes": 54614
+    }
+  },
+  "historical_identity_policy": {
+    "allowlist_only": [
+      263004001,
+      263004002,
+      263004003,
+      263004004,
+      263004005,
+      263004006,
+      263004007,
+      263004008,
+      263004009,
+      263004010
+    ],
+    "allowed_run_id_pattern": "astra_baseline_static_qualification_b05_b00..09_<exact_method>",
+    "attempt": 1,
+    "all_other_stage_identities_forbidden": true,
+    "all_historical_statuses_excluded": "consumed, failed, retired, reserved, unconsumed and old syntax-only seed1; no historical budget/authorization transfer",
+    "retry": false,
+    "resume": false,
+    "replacement": false,
+    "old_input_role": "World/map/route geometry may be reused as declared development inputs, but old run IDs, seeds, receipts and qualification outcomes are not new evidence."
+  },
+  "pairing": {
+    "same_within_block": [
+      "world collision and sensor geometry",
+      "map raster and full oriented route",
+      "initial robot pose and settle protocol",
+      "robot URDF/SDF, P05 Kd6 controller and friction",
+      "noise and simulator seed",
+      "public5s activation, actual-base gate/goal and22s cap",
+      "private rear adapter/goal/footprint package",
+      "CPU/GPU resource policy, camera and complete evidence topics"
+    ],
+    "differing_within_block": [
+      "actual TEB0.8.4 versus actual DWA planner class and their already frozen baseline configuration",
+      "method identity and planner-specific diagnostics"
+    ],
+    "order": "TEB,DWA at repeat0; DWA,TEB at repeat1 for each geometry",
+    "no_performance_or_strong_baseline_claim": "No tuning from B05 outcomes within this stage. These configurations are engineering candidates, not already fully tuned strong baselines."
+  },
+  "full_parameter_contract": {
+    "namespace": "/move_base",
+    "phases": [
+      "paused_bootstrap",
+      "positive_clock_ready",
+      "paused_terminal"
+    ],
+    "comparison": "Every nested key/type/list order/scalar compared exactly; bool!=int!=double, signed0 is retained, nonfinite/unsupported values rejected, no omitted/extra paths or tolerance.",
+    "prepared_provenance": [
+      "actual offline launch full expansion for each method/scene/seed",
+      "bound sources of all automatically installed plugin/costmap/dynamic-reconfigure defaults",
+      "phase-specific expected tree emitted before any run and bound by content to prepared descriptor/release",
+      "fully explicit ready snapshot accounts for selected defaults and all namespace fields; unclassified defaults block release"
+    ],
+    "no_learning_expectation_from_run": true,
+    "automatic_default_completion_status": "not_implemented_pending; current B04 launch trees are syntax fixtures, not a complete post-initialization expectation",
+    "runtime_reading": "bounded read-only parameter-server RPC; capture paused bootstrap before unpause, ready after lazy TF/plugin initialization but before arm, paused terminal. Callback parameter_updates from planner/costmap namespaces also retained; any drift aborts integrity. Readback does not prove absence of between-snapshot mutation; trusted source/no-write closure remains explicit.",
+    "parameter_writes": "no dynamic-reconfigure writes; no online tuning; constructor default writes only as frozen and pre-enumerated",
+    "implemented_component": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/baseline_static_qualification_b05.py",
+      "sha256": "282fcb6d3498e04b4941ce2534a763736f6771d1be3acf7ecdd1f73c5f496eb7",
+      "bytes": 11068
+    }
+  },
+  "physical_and_reference_gates": [
+    {
+      "id": "public_task",
+      "requirement": "Original /odom actual base_link source + dense actual base evaluation. Goal .25m/.25rad and22s remain fixed. Private SUCCESS/ABORT/PREEMPT is diagnostic only, including early or late callback order."
+    },
+    {
+      "id": "prepared_model",
+      "requirement": "Per-run expanded URDF and double-converted SDF bound with converter/loaded native libraries; actual merged mass/COM/inertia, nine collision components, joints and runtime metadata must match inherited P04 semantics. Native image alone is not geometry QC."
+    },
+    {
+      "id": "rear_transform",
+      "requirement": "Unique base_link->rear_axle_kinematic static edge(-.325,0,0), inherited odom->base and map->odom; actual original/rear/receipt source exact join through paused50Hz watermark, full quaternion/position/v+omega-cross-r/covariance and nonzero rear vy retained. No world-truth subscription by planner/adapter."
+    },
+    {
+      "id": "actual_footprint",
+      "requirement": "Independently project all nine collision shapes at source-matched poses/joints and express planner rear-yaw hull in the same world frame. Preserve raw TEB16 and padded costmap64 polygons. Report tilt-induced difference explicitly; every actual projected shape must be enclosed by the intended raw hull and full .33m buffered shape by the padded hull within declared1e-9m computational tolerance. No deletion of offending frames or enlargement after outcomes.",
+      "status": "new source-based actual-shape containment checker pending; prior .0004061653716359581m tilt mismatch remains a negative, not an added margin"
+    },
+    {
+      "id": "safety",
+      "requirement": "Keep inherited dense500Hz Pre/End, contacts, complete mass/rotation-mode/native/writer closure and numerical profile; actual physical XY and minus.33 conservative clearance, Z support and full contact rules unchanged. No formal/real-world continuous-safety claim."
+    },
+    {
+      "id": "motion_and_goal",
+      "requirement": "Retain actual body vy, full joint/steering/wheel motion and command limits. Record low-speed yaw/stop-rotate mismatch; invalid nonplanar or expired method command still rejected and zeroed. Kd6 and all actuator parameters remain fixed. Private tighter goal is not callback-order guarantee."
+    }
+  ],
+  "command_and_receipt_contract": {
+    "raw_topics": [
+      "/astra/method_cmd",
+      "/cmd_vel_navigation",
+      "/cmd_vel",
+      "/astra/navigation/command_trace",
+      "/m2_driver/command_ingress",
+      "/m2_driver/actuator_target",
+      "/m2_driver/actuator_commanded_effort",
+      "/m2_driver/physical_status",
+      "/astra/baseline_rear/input_receipt"
+    ],
+    "source_authority": "P05 ingress DiagnosticArray header is actual driver receipt SimTime and event seq; navigation Twist has no header. Never substitute bag receipt or coordinator visible clock as exact driver activation.",
+    "required": "Prove sole publishers and complete transport connections before zero bootstrap. Check source/caller/payload/order/count across public command, relay and driver ingress, full finite6DOF and exact planar restrictions; duplicate identical payloads count individually, no nearest-value matching. Check actual raw ingress dispositions/seq and no unexpected ackerman_vel/service writes. Keep separate stamps for trace visible time, driver receipt and actuator source state.",
+    "limits": "Driver acceptance is enqueue evidence, not actual force activation or measured response. No UUID exists in old Twist; order/count under trusted sole FIFO streams is the supported association. All-trace join is not assumed because final shutdown zero has no trace; bounded measured interval and paused drain/tail writes must be explicitly closed in new collector before release.",
+    "implementation_status": "new B05 raw command transport join and physical containment pending; no live qualification from these requirements alone"
+  },
+  "capture_contract": {
+    "collector": "new B05 version, never edit B04; sole spawn/unpause/pause. Exactly bound process roster/ELF roles and gateway; no reset/delete/set-model-state/runtime unload",
+    "startup": "paused essential recorder/command connections first; positive-clock planner TF/defaults/full parameters/rear receipts readiness before fixed5s activation; no circular lazy-topic barrier",
+    "drain": "inherited total5s includes stop,pause,source watermark,source joins,process/parameter RPC and handshakes; callback freeze under one lock before pass decision",
+    "failure": "B03 partial-batch earlier rear publication without receipt remains failure-inclusive integrity failure; do not fabricate receipt or retry. Independent bag and collector source payload/caller equality required. No-gate and early faults preserve all available artifacts."
+  },
+  "stopping_and_accounting": {
+    "initial_gate": "first4 rows are two counterbalanced clear blocks; any invalid completion or integrity/physics failure closes this qualification design; later rows retired without retry",
+    "remaining_static": "a timeout/algorithm stop with valid capture and no physical-safety fault may continue to next predeclared identity, but remains a failed qualification row. Any contact/clearance/physical integrity/process/source fault ends stage and retires remaining identities. No replacement or opportunistic schedule edits.",
+    "row_metric": "valid goal only uses actual common-source elapsed; timeout, algorithm, safety or infrastructure failure uses22s in attempted failure-inclusive table; preserve reason, raw geometric arrival and invalid completion separately",
+    "retirement": "Unstarted rows have no phase or fake observed metrics. All-schedule administrative-cap sensitivity assigns22s while attempted means and pair completeness are reported separately. Incomplete matrix can never pass qualification.",
+    "qualification": "all20 attempted at attempt1, all20 capture/parameter/reference/physical safety gates pass and public valid goals reached; baseline-specific failures disclosed without redefining gates",
+    "analysis": "descriptive counts, per-geometry/seed pairs and failure-inclusive times; no confidence-superiority test, winner, formal result or posthoc tuning"
+  },
+  "visuals": {
+    "native_camera": "shared source-bound2560x1440, same view/scale per pair, no generated or edited evidence",
+    "phases": [
+      "physically settled before gate",
+      "source gate",
+      "closest approach/minimum clearance retrospectively selected from bound raw frames if available",
+      "terminal/failure"
+    ],
+    "QC": "full initial geometry/identity plus actual image review; early-failure image insufficiency recorded separately and must not prevent raw/finalmaps preservation",
+    "status": "no B05 simulation/image exists"
+  },
+  "pending_before_any_execution": [
+    "independent review of this new design/component",
+    "new B05 manager/collector/helper/actual per-unit launch and all20 prepared run identities; complete defaults/parameter trees",
+    "actual9shape rear-yaw containment and command ingress join implementation + meaningful fault fixtures",
+    "full source/native/graphics/ODE/conversion/interpreter closure and all required process/gateway monitoring",
+    "independent source review and exact future release plus explicit execution authorization and fresh registration by root"
+  ],
+  "forbidden": [
+    "modify B04 or historical evidence",
+    "reuse old seeds/run IDs/budgets",
+    "dynamic actor or arbitrary curved/rotated task support claim",
+    "training/ROS/Gazebo from this draft",
+    "actual runtime, tuned-baseline superiority, general physical safety or hardware claim"
+  ]
+}

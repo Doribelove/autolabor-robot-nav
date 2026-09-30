@@ -1,0 +1,313 @@
+{
+  "schema": "astra_route_tracks_m08_independent_review_v1",
+  "status": "offline_component_review_pass_existing_runtime_environment_blocked_separate_diagnostic_candidate",
+  "review_role": "environment_audit independently reviewed design_audit sources; no source modifications",
+  "source_manifest": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/source_manifest.json",
+    "sha256": "31ed8728e3fe4fd6812ef8fe69644182118282a310958ce61508d40d560a7612",
+    "bytes": 2697
+  },
+  "author_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/implementation_report.json",
+    "sha256": "ae7507b4a1de1e01d9808dfff273c634694cb1cb653531ac4021f42e65976683",
+    "bytes": 20030
+  },
+  "sources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+      "sha256": "a6f2bae1e63ddf14822a7a2d5151e20fbe4ad51ea80525ea388bd38fe6b9b1df",
+      "bytes": 15381
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_tracks_sensor_io_m08.py",
+      "sha256": "0fc042c0be421a8eabf86dca38f7a2f707b15004cc842f9a5d2b01b97f1d4aad",
+      "bytes": 4851
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_tracks_actor_adapter_m08.py",
+      "sha256": "8aaf54fac10f466a2820a3a25c6cbc2b72ed4a6fd7ff8ae18fa1bfc549464cf2",
+      "bytes": 3861
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_ingestion_m08.py",
+      "sha256": "97b739bb8b165a652e44e2695a2298bf5fa0ea87ba3e80a67a40f4b39644ffc2",
+      "bytes": 11020
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+      "sha256": "3660ce97b4e522f44209d8fe9f0483d1ae3151adb05f62e3bc1ea7c945939545",
+      "bytes": 2789
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_tracks_runtime_m08.py",
+      "sha256": "72877d9db1456b96882da880938d8b1b06aace3e7a9fd956e3136efd37662e3d",
+      "bytes": 19509
+    }
+  ],
+  "independently_executed_checks": {
+    "small_fixtures": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/small_fixtures.json",
+      "sha256": "28eb7530e8c5c4136f3cd65bc2c10b15c0a5da85070ae88c59a64e6294c5977c",
+      "bytes": 2762
+    },
+    "passed": 10,
+    "total": 10,
+    "environment_matrix": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/environment_import_diagnosis.json",
+      "sha256": "5cb5d6dc69f7e20e73ed0290938a08b0fb430450e7c0f6b4d0657a0268ba5fa8",
+      "bytes": 1256
+    },
+    "compatible_absolute_interpreter_import": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/compatible_absolute_interpreter_import.json",
+      "sha256": "ab28ca69f6605c64ab805f5c0893c3664e50ae7edc9e78549f22b3869ce2400a",
+      "bytes": 2513
+    },
+    "no_author_full_test_rerun": true,
+    "no_benchmark_rerun": true,
+    "no_ros": true,
+    "no_training": true,
+    "no_gpu": true
+  },
+  "findings": [
+    {
+      "id": "M08-ENV-01",
+      "severity": "blocks_existing_venv_deployment",
+      "trigger": "source astra_env.sh; /usr/bin/env python3 imports route_candidate_core_m08",
+      "observed": "NumPy1.24 in existing .venv plus system SciPy1.3.3 fails at scipy.sparse.sputils np.typeDict",
+      "actual_node_shebang": "#!/usr/bin/env python3",
+      "existing_route_launch_prefix": "$(env THESIS_WS)/.venv/bin/python",
+      "source_or_environment_modified": false,
+      "author_environment": "unsourced /usr/bin/python3, Python3.8.10, user-site NumPy1.21.0, system SciPy1.3.3",
+      "other_successful_import": "sourced /usr/bin/python3 uses system NumPy1.17.4/SciPy1.3.3; not the author test environment",
+      "candidate_resolution": "explicit new launch-prefix W/.venv_train_cuda/bin/python with source astra_env.sh; import-only pass NumPy1.24.4/SciPy1.10.1, no user-site, rospy/rosbag/cv_bridge/core/worker imported, torch not imported",
+      "still_required": "Bind the absolute interpreter and all Python/native dependencies, then geometry/parity and complete-chain timing in this specific environment after active N04 completes; do not alter frozen .venv or reuse old timing as new-environment evidence"
+    },
+    {
+      "id": "M08-TIME-01",
+      "severity": "retained_negative_not_new_source_defect",
+      "measured_maximum_ms": 69.239986,
+      "transaction_deadline_ms": 50.0,
+      "full_deadline_gate": false,
+      "scope": "Author full-core scan acceptance+8preview+8backup+current command recheck; excludes ROS scheduling, trained actor and OS WCET",
+      "disposition": "Retain complete sparse reobservation negative. Late computed transaction publishes zero, but a synchronous computation cannot retroactively replace the previous command during its blocked interval. Future live diagnostic must record deadline drops and actual command ingress/staleness; no hard real-time claim."
+    }
+  ],
+  "reviewed_invariants": {
+    "causal_availability": "Exact timestamp TF; actual odom at-or-before scan within200ms; exact odom/joint source join; accepted_now lower bound plus original scan-source expiry; no latest TF, interpolation or fabricated history.",
+    "commit_scope": "The frozen tracker accept body is byte-equal except local clustering dependency and commits only at end. TrackSensorBuffer first commits raw frame before tracker acceptance; failure is detected by health mismatch and propagates to actual node permanent fault/zero. The standalone IO helper is not an atomic rollback abstraction.",
+    "history": "Six distinct real200ms bucket rows inherited; current scan used separately for verifier. Bootstrap zero stamps are discarded and never substituted as history.",
+    "clustering": "Independent all-pairs transitive-closure reference matches ten small geometries including duplicate and nextafter threshold at +/-9999m. KD search is broad phase only; original scalar norm decides near threshold. Finite tested-domain numerical claim, not a universal floating-point proof.",
+    "dominance": "Every persistent track/cell retained. Only current point terms strictly inside a retained circle with>1e-9 interior slack omitted from query work; 1-Lipschitz distance and identical1.35m/s slopes make their terms redundant. Independent GEOS queries with actual full-body hull agree with unpruned supports within the existing1e-10 subtraction; no physical safety inference.",
+    "full_body": "Uses inherited nine-component16-plane FullFootprintEnvelope vertices without radius substitution. Prior geometry inclusion tests retained by source hash; not rerun as a new stress matrix.",
+    "control": "Main holds RLock before sampling source time, includes exact-TF drain in started_wall, resamples source after ingestion and before publish, rechecks health/200ms age/50ms wall budget/deadline, zeros invalid or late command. No moving output after local terminal/fault.",
+    "actor_worker": "One daemon worker, no growing request queue; per-job deepcopy/result/event, busy immediate fallback, late result never becomes later request result. 20ms inference fallback is analytic, final50ms transaction guard remains. Worker/thread scheduling is not WCET proof.",
+    "namespace": "New method IDs/observation schema/actor format and whole semantics SHA required despite unchanged array dimensions; old R2/route metadata rejected. No compatible newly trained M08 checkpoint exists.",
+    "observation_roles": "Policy subscribes scan/odom/joints/map/shared route plus shared gate/status only. No Gazebo state/actor oracle input or Gazebo service write. Shared coordinator owns task outcome; local faults preserved separately even after shared complete.",
+    "deployment": "No new coordinator enum/launch/collector/release is implemented by this review; neither direct shebang nor old launch automatically selects compatible environment."
+  },
+  "author_evidence_not_independently_rerun": {
+    "test_count": 36,
+    "node_fake_transport_cases": 6,
+    "test_log": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/final_tests.log",
+      "sha256": "a75bdb2c7ce7a374b08e6451d34b9c92c1afb8367c262bd43ffe07baebfb8dac",
+      "bytes": 2383
+    },
+    "benchmark": {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/benchmark_frozen.json",
+      "sha256": "56a44b4db34eb5a3a6c63359afe551e27d2ede1fa69eea61d4f26156b1fe3673",
+      "bytes": 25565
+    },
+    "why": "Active48-unit N04 matrix: root limited review to light source reads and small fixtures."
+  },
+  "conclusion": {
+    "component_semantics_acceptable_for_next_bounded_analytic_diagnostic_design": true,
+    "current_frozen_env_launchable": false,
+    "compatible_absolute_interpreter_import_only": true,
+    "future_live_release_still_requires": [
+      "explicit compatible interpreter and native/Python closure",
+      "new coordinator/launch/collector/recorder method bindings",
+      "specific-environment small parity+full-chain timing after N04",
+      "fresh separately approved identity/budget/release",
+      "deadline zero and actual command-source evidence"
+    ],
+    "pct_method_usable_without_new_checkpoint": false,
+    "runtime_ready": false,
+    "full_50ms_qualified": false,
+    "physical_safety_certified": false,
+    "learned_candidate_conditioned_prediction_implemented": false,
+    "execution_authorized": false
+  },
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core_m08.py",
+      "sha256": "a6f2bae1e63ddf14822a7a2d5151e20fbe4ad51ea80525ea388bd38fe6b9b1df",
+      "bytes": 15381
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_tracks_sensor_io_m08.py",
+      "sha256": "0fc042c0be421a8eabf86dca38f7a2f707b15004cc842f9a5d2b01b97f1d4aad",
+      "bytes": 4851
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_tracks_actor_adapter_m08.py",
+      "sha256": "8aaf54fac10f466a2820a3a25c6cbc2b72ed4a6fd7ff8ae18fa1bfc549464cf2",
+      "bytes": 3861
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_ingestion_m08.py",
+      "sha256": "97b739bb8b165a652e44e2695a2298bf5fa0ea87ba3e80a67a40f4b39644ffc2",
+      "bytes": 11020
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_query_m08.py",
+      "sha256": "3660ce97b4e522f44209d8fe9f0483d1ae3151adb05f62e3bc1ea7c945939545",
+      "bytes": 2789
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_tracks_runtime_m08.py",
+      "sha256": "72877d9db1456b96882da880938d8b1b06aace3e7a9fd956e3136efd37662e3d",
+      "bytes": 19509
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_route_tracks_runtime_m08.py",
+      "sha256": "e2cd8bb9bf57c96aa85f5dcd2b31931c5c37e690d464d3285329cf4c86f1bbbe",
+      "bytes": 12404
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_route_tracks_node_m08.py",
+      "sha256": "9e0ae7385bf52d73337185cd9a71c5d330fa496d9630ad85d119882de8c59e7c",
+      "bytes": 11893
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_ingestion_m08.py",
+      "sha256": "6ae43b5c8454c289e76ad0cf00b3642f9c97263c33aaae508135c5e11334a73e",
+      "bytes": 5246
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6",
+      "bytes": 22588
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_sensor_buffer.py",
+      "sha256": "9822620f0d83f0e203644ba928bc0483e66505f75424e05514119115feb6c812",
+      "bytes": 6773
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+      "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb",
+      "bytes": 3352
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+      "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f",
+      "bytes": 14792
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/static_map_export.py",
+      "sha256": "6a46faff46362bf6a46777fa3eea43d7b125b70251f8ce336d478bf7e92f7c66",
+      "bytes": 15961
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+      "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407",
+      "bytes": 2348
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf",
+      "bytes": 21585
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v1.py",
+      "sha256": "3f0cb949640ba93494bfc511538a9776a171b5deaf09dee3c10dd320fd67076b",
+      "bytes": 27029
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_v2.py",
+      "sha256": "4975d9cdd91cc9c182f6ec36967a61084ff4e65f71493305f8d68a8b028e6bd6",
+      "bytes": 11955
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/passive_sweep_q05_static/robot_description_runtime.xml",
+      "sha256": "293157df0876bfd49c9109f3553b5fca7fa98dd5efdad0d5a3501ca8827a9a07",
+      "bytes": 12678
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/implementation_report.json",
+      "sha256": "ae7507b4a1de1e01d9808dfff273c634694cb1cb653531ac4021f42e65976683",
+      "bytes": 20030
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/source_manifest.json",
+      "sha256": "31ed8728e3fe4fd6812ef8fe69644182118282a310958ce61508d40d560a7612",
+      "bytes": 2697
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/benchmark_frozen.json",
+      "sha256": "56a44b4db34eb5a3a6c63359afe551e27d2ede1fa69eea61d4f26156b1fe3673",
+      "bytes": 25565
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/final_tests.log",
+      "sha256": "a75bdb2c7ce7a374b08e6451d34b9c92c1afb8367c262bd43ffe07baebfb8dac",
+      "bytes": 2383
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_runtime_m08/compatible_environment_import_only.json",
+      "sha256": "c5c8023bfc05d4a8caa78f0a7d734ed9be562da8bfef2f80424118ff7ee5a640",
+      "bytes": 1166
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/sensor_tracks_v2_independent/review.json",
+      "sha256": "8e4d472ab9935b48bb9807e471a297b194fe0872db1be92848f0648e963f7999",
+      "bytes": 9977
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/compatible_absolute_interpreter_import.json",
+      "sha256": "ab28ca69f6605c64ab805f5c0893c3664e50ae7edc9e78549f22b3869ce2400a",
+      "bytes": 2513
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/environment_import_diagnosis.json",
+      "sha256": "5cb5d6dc69f7e20e73ed0290938a08b0fb430450e7c0f6b4d0657a0268ba5fa8",
+      "bytes": 1256
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/small_fixtures.json",
+      "sha256": "28eb7530e8c5c4136f3cd65bc2c10b15c0a5da85070ae88c59a64e6294c5977c",
+      "bytes": 2762
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/small_fixtures.log",
+      "sha256": "28eb7530e8c5c4136f3cd65bc2c10b15c0a5da85070ae88c59a64e6294c5977c",
+      "bytes": 2762
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/small_fixtures.py",
+      "sha256": "a9cd5df79473e9b75adeae1eb8a07a6c21d0435b136d77f63754156e19da2f8d",
+      "bytes": 12287
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/sourced_env_shebang.log",
+      "sha256": "a591f0ddd358413f7021478eae00fcc8f615ef85719b93dde6ff39c84d523b79",
+      "bytes": 1814
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/sourced_explicit_system.log",
+      "sha256": "1b73270585f25278149e9c6dc22210b30903c81614360c74196894aab82242a8",
+      "bytes": 144
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/sourced_explicit_venv.log",
+      "sha256": "1665a42fac7510921c055dc3a0a8aebab6e07ec288c78c26f98b7570ade5f984",
+      "bytes": 1813
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_m08_independent/write_review.py",
+      "sha256": "cf09b28968f5d9fb8d9f3394414557be931a7f52a1ebaeb20dfa7da110c64770",
+      "bytes": 10322
+    }
+  ]
+}

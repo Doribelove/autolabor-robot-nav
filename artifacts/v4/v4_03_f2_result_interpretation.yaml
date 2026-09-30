@@ -1,0 +1,44 @@
+schema_version: "1.0"
+architecture_generation: v4
+stage: V4-03-F2
+status: bounded_two_seed_training_negative_terminal
+date: "2026-08-07"
+training_environment_steps_total: 300000
+validation_seed_range_inclusive: [422200, 422399]
+seed_results:
+  - seed: 4103
+    selected_steps: 133120
+    paired_relative_time_reduction_mean: 0.0010393907563025209
+    positive_block_fraction: 0.035
+    analytic_mean_restricted_elapsed_s: 7.81125
+    learned_mean_restricted_elapsed_s: 7.8025
+    training_report_sha256: f59ec5aeb0ffc08495f43315a08b8d7ddc4e16766b41758c0e82a69e01123ef9
+    checkpoint_sha256: 71dde64a54f7e043dd63085ad37e821b6057455e640e735b902b3413bf6dd53c
+  - seed: 4104
+    selected_steps: 122880
+    paired_relative_time_reduction_mean: 0.0007268907563025209
+    positive_block_fraction: 0.025
+    analytic_mean_restricted_elapsed_s: 7.81125
+    learned_mean_restricted_elapsed_s: 7.805
+    training_report_sha256: 4d711d49e219de8b20f10f3cd6b9869b0a86e4bc57d5897b6c6d29fde551ea08
+    checkpoint_sha256: e8e66d6e0c541f6acc99c2fd965bba44673029783d7a1da840f2361426b81483
+cross_seed:
+  both_directions_positive: true
+  mean_paired_relative_time_reduction: 0.0008831407563025209
+  required_minimum: 0.03
+  time_reduction_gate_pass: false
+  goal_rate_both: 1.0
+  contact_count: 0
+  mask_violation_count: 0
+  learned_optimization_demonstrated: false
+diagnosis: >-
+  Increasing elapsed-time weight produced repeatable but negligible policy
+  deviations. The remaining bottleneck is action/execution leverage: the
+  reactive actor cannot decelerate enough within one decision for an early
+  ego commitment to create a sustained future cost.
+next_action: one_final_preregistered_actor_response_rate_factor
+prohibitions:
+  - do_not_enter_gazebo_from_f2
+  - do_not_reuse_f2_validation_seeds
+  - do_not_extend_seed4103_or_seed4104
+  - do_not_claim_meaningful_improvement

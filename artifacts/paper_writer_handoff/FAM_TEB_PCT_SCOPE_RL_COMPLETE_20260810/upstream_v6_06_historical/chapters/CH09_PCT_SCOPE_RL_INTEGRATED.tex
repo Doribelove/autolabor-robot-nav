@@ -1,0 +1,151 @@
+\chapter{仿真特权信息驱动的候选轨迹强化学习}
+\label{ch:pct-scope-rl}
+
+\section{从 V3 解析规划到可部署强化学习}
+V3-SCOPE 建立了“运动学可行候选---候选条件预测---硬验证---解析排序”的安全规划骨架，
+但 V3-04 支持度审计表明，已有闭环日志对未执行候选的 propensity 为零，不能据此声称存在
+可识别的 offline RL 收益。后续学习研究因此不修改 V3 冻结证据，而重新建立在线交互训练环境，
+把强化学习权限限制在硬安全集合中的候选选择。
+
+新系统称为 PCT-SCOPE-RL。它继承 V3 的候选级动作语义、解析先验、硬否决权和
+certified-stop 思想，但使用独立的传感器 actor、训练合同和 fresh-seed 证据。部署端到端边界是
+“真实可得传感器到候选轨迹 ID”，而不是“传感器到轮端控制量”。因此 V3 的 Gazebo 结果不能
+被当作 V6 的学习结果，V6 的快速环境阳性也不能覆盖 V3 的 actual-TEB 证据边界。
+
+\section{训练与部署架构}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/v6/figure_v6_architecture.pdf}
+\caption{PCT-SCOPE-RL 训练与部署数据流；紫色特权路径不进入 actor-only 部署检查点。}
+\label{fig:v6-integrated-architecture}
+\end{figure}
+
+时刻 $t$ 的可部署观测为
+\begin{equation}
+o_t=(L_{t-5:t},\,v_t^{\mathrm{odom}},\,g_t,\,a_{t-1},\,v_{t-1}^{\mathrm{exec}}),
+\end{equation}
+其中 $L_{t-5:t}$ 是六帧、每帧 72 束的重采样激光历史，$g_t$ 是自车坐标系下的局部目标。
+确定性运动学生成器产生 8 个候选：certified stop、三条直行速度候选以及四条左右空间候选。
+每个候选附带目标速度、横向偏移、进度、净空、加速度、横向和平滑代价等描述。
+
+解析先验 $q_{\mathrm{ana}}(o_t,\tau)$ 提供进度、净空和平滑性的基本排序。CNN--GRU actor
+学习候选残差 $r_\theta(o_t,\tau)$，组合分数为
+\begin{equation}
+z_\theta(o_t,\tau)=\bar q_{\mathrm{ana}}(o_t,\tau)
++3\tanh r_\theta(o_t,\tau).
+\end{equation}
+硬验证器先产生掩码 $m_t$；被拒绝候选的 logit 被置为负无穷。只有当学习候选相对解析候选的
+残差优势达到冻结阈值 0.10 时才允许覆盖，否则回退解析选择。最终候选由轨迹跟踪器转换到
+\path{/cmd_vel_navigation}，原 GPS 限幅器、FOD 仲裁器和 M2 驱动安全边界保持在学习器之外。
+
+\section{Asymmetric PPO 与 PCT 单因素}
+主体策略通过 PPO rollout、GAE、裁剪策略目标、价值回归和熵正则学习
+\cite{schulman2017ppo}。actor 只能编码 $o_t$，critic 额外读取 32 维仿真特权变量 $p_t$，包括
+actor 世界位置、速度、模式、危险侧和候选未来净空：
+\begin{equation}
+L_{\mathrm{PPO}}=-L^{\mathrm{clip}}+c_vL_V-c_H\mathcal{H},
+\qquad V_\phi=V_\phi(o_t,p_t).
+\end{equation}
+这一训练/部署信息分离与 asymmetric actor--critic 的一般思想一致
+\cite{pinto2018asymmetric}，但 V5 正式实验表明，仅使用特权 critic 仍不足以达到预注册的
+8\% 实效门。
+
+V6 因此只增加 privileged counterfactual trajectory-rank distillation（PCT）。在部分遮挡和
+窄走廊困难状态中，仿真危险侧与硬掩码构造候选排序目标 $a_t^\star(p_t,m_t)$；每次 PPO 更新后，
+同一传感器 actor 接受一次权重为 0.35 的辅助交叉熵更新：
+\begin{equation}
+L_{\mathrm{V6}}=L_{\mathrm{PPO}}+\lambda_{\mathrm{PCT}}
+\operatorname{CE}\!\left(\pi_\theta(\cdot\mid o_t,m_t),a_t^\star(p_t,m_t)\right),
+\quad \lambda_{\mathrm{PCT}}=0.35.
+\end{equation}
+PCT 与 privileged teacher/student 方法相关\cite{chen2020cheating}，但它不训练独立的全状态驾驶
+策略，而是把反事实候选排序蒸馏到仍由 PPO 回报优化的 actor 中。部署导出明确删除 critic、
+特权编码器和 teacher target。
+
+\section{训练链与正式实验设计}
+V5 共执行 1,800,000 个训练环境步，形成 sensor-symmetric、asymmetric、no-prior 等冻结身份。
+V5-03-F1 使用 60 个 fresh blocks，相对解析先验的失效计入受限均时降低 6.0936\%，双侧 95\%
+区间为 [1.7867\%,11.0069\%]，但未达到预注册 8\% 最小实际效应，故是完整阴性结果。
+
+离线归因后，V6 以四个 V5 检查点为初始化，使用新训练 seeds 9501--9504，各增加 120,000 步，
+合计 480,000 步，无重试、扩展或额外因素轮次。验证 seeds 952100--952259 中四个身份方向均为正，
+随后才释放 formal seeds 953100--953179。正式设计包含 80 个 Latin 分配区块和四种方法，共
+320 个 episode；失败按 20 s 受限值计入，统计单位是 paired block。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.94\textwidth]{figures/v6/figure_v6_training.pdf}
+\caption{四个 V6 训练身份的 PCT 候选排序准确率与 rollout reward。}
+\label{fig:v6-integrated-training}
+\end{figure}
+
+\section{正式阳性结果与消融}
+\begin{table}[htbp]
+\centering
+\caption{V6-02-F1 的方法级正式结果。}
+\label{tab:v6-integrated-formal}
+\begin{tabular}{lrrrrr}
+\toprule
+方法 & 回合 & 目标 & 受限均时/s & 最小净空/m & 接触/掩码违规\\
+\midrule
+解析先验 & 80 & 49 & 14.3188 & 0.1113 & 0/0\\
+冻结 V5 & 80 & 56 & 13.5438 & 0.1055 & 0/0\\
+PCT-SCOPE-RL V6 & 80 & 60 & 13.1156 & 0.1541 & 0/0\\
+V6 no-history & 80 & 60 & 13.1156 & 0.1541 & 0/0\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.96\textwidth]{figures/v6/figure_v6_formal_summary.pdf}
+\caption{80 个 fresh paired blocks 的方法均时和目标完成数。}
+\label{fig:v6-integrated-formal}
+\end{figure}
+
+V6 相对解析先验的主效应为 8.4024\%，双侧 97.5\% block-bootstrap 区间为\\
+$[3.4840\%,13.7135\%]$。点估计达到 8\% 门，区间下界严格为正，目标数不劣，接触与掩码违规
+均为零，因此 \code{method\_effectiveness\_demonstrated=true}。相对冻结 V5 的次要降幅为
+3.1611\%，双侧 95\% 区间为 [0.4936\%,6.5765\%]，支持 PCT 单因素产生附加收益。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.84\textwidth]{figures/v6/figure_v6_effect_intervals.pdf}
+\caption{V5/V6 效应点估计与冻结 bootstrap 区间。}
+\label{fig:v6-integrated-effects}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.90\textwidth]{figures/v6/figure_v6_family_ablation.pdf}
+\caption{四类交互总体的失效计入均时分解。}
+\label{fig:v6-integrated-family}
+\end{figure}
+
+分场景结果显示，PCT 的主要收益来自部分遮挡 crossing：解析/V5/V6 受限均时分别为
+15.675/12.600/10.7625 s，V6 完成 20/20，解析先验完成 9/20。窄走廊中三种方法均为
+0/20，不能声称方法解决了一般让行问题。V6 与 no-history 的 80 个正式区块完全一致，故当前
+证据不支持 GRU 历史记忆收益，阳性只能归因于冻结总体上的 PCT 候选偏好变化。
+
+\section{Gazebo 迁移负结果}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.90\textwidth]{figures/v6/figure_v6_gazebo_boundary.pdf}
+\caption{三次 Gazebo 迁移预检的最小保守净空；零线是冻结完整性门。}
+\label{fig:v6-integrated-gazebo}
+\end{figure}
+
+三次新鲜单块预检中，V6/解析策略的保守净空分别为
+$-0.077/-0.081$ m、$-0.337/-0.258$ m 和 $-0.990/-1.034$ m；Actual TEB 对应为
+$+0.245/+0.285/+0.190$ m。最后一次预检中 V6 还发生 22 s timeout。虽然接触均为零，
+冻结净空门已经失败，因此没有运行 Gazebo 资格或正式矩阵，也不存在 V6 相对 Actual TEB 的
+有效性能比较。该结果不推翻快速总体内的阳性，但把外部有效性限制为：当前扫描屏蔽尚未形成
+闭环交互一致的可达占据，不能声称 Gazebo、部署或实车有效。
+
+\section{本章可支持的结论}
+PCT-SCOPE-RL 的可辩护创新不是 PPO、privileged critic 或 shielding 中任一单项首创，而是
+把“仿真特权候选排序蒸馏、部署期纯传感器候选评价、解析残差先验和硬否决权”组合为一个
+action-aligned Ackermann 局部导航学习架构。正式证据支持冻结四类传感器级快速总体内的
+8.4024\% 学习收益；不支持 temporal-history、Gazebo、一般 TEB 排名、形式化安全、感知/OOD、
+多人泛化、部署或实车结论。
+

@@ -1,0 +1,7 @@
+# P07 回调名称绑定独立审查
+
+离线通过：10个同词法作用域callback+完整finally测试，P06迟到models/links/两者均精确复现响应对象不可调用和deadline，P07全部正常关闭；提前到达及无pending控制正确，关闭后回调不可改变raw。嵌套函数名同作用域重赋值扫描：P06只有world第738行；P07 probe/source均无碰撞。
+
+P07仅把服务响应局部变量改为world_response，外加stage/doc/node身份；25个非runtime函数AST不变、122门和全部运动数值不变。六份真实展开URDF独立调用source/probe/world启动校验均通过。573项继承活动及归档资源不变，P06一用五退休原失败保持；新fresh23–25的六回合执行/预算控制流等价。
+
+测试使用生产callback定义、Subscriber lambda与完整finally共同编译的词法闭包，服务/时钟/消息为明确合成；物理计算与sourcejoin函数在该定向回归中stub，未冒充仿真结果。旧失败保存，后继真实采集是否完整仍须实测。

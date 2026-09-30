@@ -1,0 +1,40 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-08-A3
+stage_purpose: fresh_duration_only_spatial_planner_integration_repair
+contract_id: v3_scope_v3_08_a3_duration_repair_integration_1
+status: single_behavioral_factor_repair_preregistered_before_release
+upstream:
+  r1_terminal_freeze_path: artifacts/v3/planner/v3_08_a1_r1/v3_08_a1_r1_terminal_freeze.sha256
+  attribution_terminal_freeze_path: artifacts/v3/analysis/v3_08_a2/v3_08_a2_terminal_freeze.sha256
+single_behavioral_factor:
+  factor_id: maximum_episode_duration
+  old_value_s: 12.0
+  new_value_s: 12.5
+  derived_maximum_decisions_old: 23
+  derived_maximum_decisions_new: 24
+  scene_changed: false
+  planner_changed: false
+  predictor_changed: false
+  hard_verifier_changed: false
+  ranker_changed: false
+  qualification_gates_changed: false
+mandatory_nonbehavioral_integrity_repair:
+  receipt_stage_old: V3-08-A1
+  receipt_stage_new: V3-08-A3
+  behavioral_semantics_changed: false
+fresh_scenario_blocks:
+  - {block_id: duration_6691, seed: 6691, angle_deg: 73.0, actor_start_distance_m: 3.10, actor_base_speed_mps: 0.975}
+  - {block_id: duration_6692, seed: 6692, angle_deg: 81.0, actor_start_distance_m: 2.85, actor_base_speed_mps: 1.075}
+  - {block_id: duration_6693, seed: 6693, angle_deg: 89.0, actor_start_distance_m: 3.15, actor_base_speed_mps: 0.95}
+  - {block_id: duration_6694, seed: 6694, angle_deg: 97.0, actor_start_distance_m: 2.95, actor_base_speed_mps: 1.05}
+  - {block_id: duration_6695, seed: 6695, angle_deg: 105.0, actor_start_distance_m: 3.20, actor_base_speed_mps: 0.925}
+  - {block_id: duration_6696, seed: 6696, angle_deg: 107.0, actor_start_distance_m: 3.00, actor_base_speed_mps: 1.025}
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_or_gate_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false

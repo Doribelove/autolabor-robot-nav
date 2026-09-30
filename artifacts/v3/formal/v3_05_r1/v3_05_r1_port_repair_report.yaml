@@ -1,0 +1,24 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-05-R1
+status: v3_05_r1_master_port_repair_offline_pass
+formal_result: false
+metrics:
+  allocated_port_count: 10530
+  minimum_allocated_port: 12050
+  maximum_allocated_port: 25538
+  unique_port_rate: 1.0
+  below_ephemeral_rate: 1.0
+  static_bind_probe_rate: 1.0
+  historical_failure_port: 35600
+  historical_failure_port_in_ephemeral_range: true
+gates:
+  port_count_pass: true
+  unique_ports_pass: true
+  below_ephemeral_pass: true
+  bind_probe_pass: true
+  historical_failure_identified_pass: true
+overall_pass: true
+simulation_authorized: false
+training_authorized: false
+real_vehicle_authorized: false

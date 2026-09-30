@@ -1,0 +1,156 @@
+{
+  "pass": true,
+  "checks": {
+    "first_actual_odom_gate_and_goal": true,
+    "full_20ms_odom_through_watermark": true,
+    "actual_dwa_fixed_global_movebase_maps_exact": true,
+    "raw_maps_hash": true,
+    "same_bootstrap_pid_startticks": true,
+    "actual_planner_class_bootstrap_terminal": true,
+    "mapped_bound_binaries_exact": true,
+    "all_actual_command_fields_finite": true,
+    "all_actual_commands_planar_strict_1e12": true,
+    "private_command_source_actual_movebase": true,
+    "public_command_source_coordinator": true,
+    "served_fixed_path_present": true,
+    "configuration_only_acc_lim_y0_to2_5": true,
+    "actual_roslaunch_parameter_summary_2_5_and_zero_y": true,
+    "actual_odometry_within_declared_lateral_sampling_domain": true
+  },
+  "actual_command_counts": {
+    "/cmd_vel_navigation": 349,
+    "/astra/method_cmd": 85
+  },
+  "max_abs_actual_body_vy_mps": 0.024540906684748214,
+  "max_abs_command_vy_mps": 0.0,
+  "baseline_pid": 95096,
+  "baseline_startticks": "2283527",
+  "loaded_modules": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n03_dwa_common_route/bound_blobs/0edbd74f68da09977e9c5cb1ece337a7b7a78f01efd5daa6bac96a379ffabf87",
+      "sha256": "0edbd74f68da09977e9c5cb1ece337a7b7a78f01efd5daa6bac96a379ffabf87",
+      "build_id": "8ccdd7679bc4daf8de8f49e1d2177e330055984c",
+      "mapped_path": "/opt/ros/noetic/lib/move_base/move_base",
+      "device_major": 259,
+      "device_minor": 10,
+      "inode": 2777620,
+      "file_size": 76096,
+      "roles": [
+        "move_base_executable"
+      ],
+      "original_path": "/opt/ros/noetic/lib/move_base/move_base"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n03_dwa_common_route/bound_blobs/58b10f4a57c0007ce89319edee58d72b2d6c59a56f6f769968b6652fafc24dcf",
+      "sha256": "58b10f4a57c0007ce89319edee58d72b2d6c59a56f6f769968b6652fafc24dcf",
+      "build_id": "b638959c609672e86238ee919f1c6b7e2a21d954",
+      "mapped_path": "/opt/ros/noetic/lib/libdwa_local_planner.so",
+      "device_major": 259,
+      "device_minor": 10,
+      "inode": 2778893,
+      "file_size": 427152,
+      "roles": [
+        "actual_dwa"
+      ],
+      "original_path": "/opt/ros/noetic/lib/libdwa_local_planner.so"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n03_dwa_common_route/bound_blobs/8e7837131a4f48d58dd83ca185e9037032a0698bece3bf2933faeaa443f411f9",
+      "sha256": "8e7837131a4f48d58dd83ca185e9037032a0698bece3bf2933faeaa443f411f9",
+      "build_id": "b9344e4fe0da846ee791df22f78666c212f61f8b",
+      "mapped_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_common_route_global_planner.so",
+      "device_major": 259,
+      "device_minor": 11,
+      "inode": 13402488,
+      "file_size": 160536,
+      "roles": [
+        "fixed_global_planner"
+      ],
+      "original_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/devel/lib/libastra_common_route_global_planner.so"
+    }
+  ],
+  "startup_DWA_parameter_summary": {
+    "acc_lim_theta": "0.75",
+    "acc_lim_x": "0.6",
+    "acc_lim_y": "2.5",
+    "angular_sim_granularity": "0.025",
+    "forward_point_distance": "0.5",
+    "global_frame_id": "odom",
+    "goal_distance_bias": "20.0",
+    "holonomic_robot": "False",
+    "latch_xy_goal_tolerance": "True",
+    "max_scaling_factor": "0.3",
+    "max_vel_theta": "0.7805",
+    "max_vel_trans": "1.2",
+    "max_vel_x": "1.2",
+    "max_vel_y": "0.0",
+    "min_vel_theta": "0.0",
+    "min_vel_trans": "0.05",
+    "min_vel_x": "0.0",
+    "min_vel_y": "0.0",
+    "occdist_scale": "0.15",
+    "odom_topic": "/odom",
+    "oscillation_reset_dist": "0.2",
+    "path_distance_bias": "32.0",
+    "prune_plan": "True",
+    "scaling_speed": "0.6",
+    "sim_granularity": "0.05",
+    "sim_time": "3.0",
+    "stop_time_buffer": "0.4",
+    "vth_samples": "36",
+    "vx_samples": "18",
+    "vy_samples": "1",
+    "xy_goal_tolerance": "0.25",
+    "yaw_goal_tolerance": "0.2"
+  },
+  "first_gate_ns": 7460000000,
+  "first_goal_ns": 17040000000,
+  "limits": [
+    "This is actual saved launch parameter summary and actual planner-class RPC evidence, not a full live DWA parameter dump at every timestep.",
+    "No exact headerless Twist generation-time/odom callback pairing or costmap winner replay.",
+    "The observed |actual body vy|<=.125 domain supports this finite run only; acc_lim_y2.5 cannot guarantee zero-vy commands outside that domain.",
+    "N01 negative remains unchanged; fresh N03 is single config integration evidence, not a paired performance comparison."
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n03_result_independent/dwa_actual.py",
+      "sha256": "e0c6f260fb6255e3430737c7dfd1146d88ec0c27555bdc24b939a9cc894d4756"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n03_dwa_common_route/fixture.bag",
+      "sha256": "3446f98acfb9c543342276fadd66057800f69c4c3e93f8ffd21e4a296338f2dc"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n03_dwa_common_route/baseline_final.maps.txt",
+      "sha256": "583458be9de29fe0df232aca1881eb9ee895823074cefaa90f685ca4ba469ebb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n03_dwa_common_route/baseline_runtime_inventory.json",
+      "sha256": "a2416b4a6e8d44c3738f8c8b0526b0a7fd14f57d3fb57bb17f9ed5fc1c0c5fb9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n03_dwa_common_route/baseline_process_bootstrap.json",
+      "sha256": "f86bad1ade6e691b22632ddda17e3d33cf73175170e73be71f07d1c1f4689860"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/astra_navigation_n03_dwa_common_route/roslaunch.log",
+      "sha256": "0f889699b0592df4f1ef7d80e51e6677ec134642336175bb94b333f0b4278217"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_v0.yaml",
+      "sha256": "efb8c37d540927f4bee2b97435c141d07751d8c623b8db6f5c7d44d990967921"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml",
+      "sha256": "9624d5a0c331d218909fc325fd467c42a202f40dc672935ad0daecd30fdd3cab"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n03_result_independent/actual_commands.csv",
+      "sha256": "63a66570fe159dea402740347501f791c892062a5a9e4741abed6ac4241015a3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n03_result_independent/actual_lateral_odometry.csv",
+      "sha256": "381a3f88ef39f27b07c6305506fdd1df5c2600b54e80ef75532d541cc194b3f2"
+    }
+  ]
+}

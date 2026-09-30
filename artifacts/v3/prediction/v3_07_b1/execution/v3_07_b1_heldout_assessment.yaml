@@ -1,0 +1,53 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-07-B1
+status: spatial_predictor_heldout_qualification_pass
+formal_result: false
+execution:
+  authorized_units: 20
+  consumed_units: 20
+  completed_units: 20
+  retry_units: 0
+frozen_model_sha256: 38d8c0fa7c7a696fb9ffdd5c3ce399d760d52fc42a0c6041525c5d70f7445fd4
+metrics:
+  completed_rows: 20
+  observed_mode_matches_evaluator_rate: 1.0
+  eligible_head_count: 5
+  minimum_rows_per_eligible_head: 4
+  assertive_spatial_row_count: 0
+  interval_radius_m: 0.4967404086874341
+  interval_coverage_rate: 1.0
+  per_head_interval_coverage_rate:
+    cautious__certified_stop_v000: 1.0
+    cautious__spatial_left_v120: 1.0
+    hesitant__certified_stop_v000: 1.0
+    hesitant__spatial_left_v120: 1.0
+    assertive__certified_stop_v000: 1.0
+  minimum_per_head_interval_coverage_rate: 1.0
+  per_horizon_interval_coverage_rate:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  maximum_row_score_m: 0.24733050104442467
+  mean_absolute_error_m: 0.05796923357212811
+  maximum_absolute_error_m: 0.24733050104442467
+  common_prefix_position_error_max_m: 0.0
+  minimum_conservative_clearance_m: 0.5538174402301421
+  conservative_clearance_violation_count: 0
+  nonfinite_metric_count: 0
+gates:
+  completed_pass: true
+  mode_pass: true
+  head_count_pass: true
+  assertive_fail_closed_pass: true
+  global_coverage_pass: true
+  per_head_coverage_pass: true
+  prefix_pass: true
+  clearance_pass: true
+  finite_pass: true
+qualified_for_spatial_safe_planner_integration: true
+performance_claim_authorized: false
+runtime_ready: false
+real_vehicle_authorized: false
+overall_pass: true

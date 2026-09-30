@@ -1,0 +1,261 @@
+{
+  "WCET_qualified": false,
+  "actions": {
+    "GPU_used": false,
+    "Gazebo_started": false,
+    "N05_release_resources_modified": false,
+    "ROS_started": false,
+    "Torch_imported": false,
+    "old_M08_files_modified": false,
+    "post_result_factor_edits": false,
+    "timing_reruns_or_outlier_removal": false,
+    "training_started": false
+  },
+  "all_pairs_all_semantic_fields_equal": true,
+  "author_source_frozen": true,
+  "candidate_promotion": false,
+  "case_count": 2,
+  "commands": [
+    "source /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_env.sh; PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python -B -m pytest -q -p no:cacheprovider /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_ingestion_m12.py",
+    "source /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_env.sh; PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/.venv_train_cuda/bin/python -B /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_ingestion_m12/paired_benchmark.py"
+  ],
+  "comparison": {
+    "bytes": 128526,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_ingestion_m12/comparison.json",
+    "sha256": "e5b28e6a68196bebbe7c96c4a6298dd7be84620ffa885190af20ae6b301bb5f9"
+  },
+  "design_and_result": {
+    "bytes": 6976,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_ingestion_m12/design_and_result.md",
+    "sha256": "d3c6b4e8e418cc4fc5d6cca0ff447e2c4ce0484b7057e4e69445057e32f8f6f0"
+  },
+  "environment": {
+    "bytes": 31570,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_ingestion_m12/environment.json",
+    "sha256": "eecff1cca3def56a25e43bb3dcee4595741eb0f3e3b58e584db2d0b0dd045a61"
+  },
+  "excluded_from_semantic_equality": [
+    "descriptive Snapshot.statistics.processing_ns only"
+  ],
+  "execution_ready": false,
+  "factor_gate": {
+    "dense_regression_pass": false,
+    "maximum_dense_median_paired_regression": 0.05,
+    "overall_pass": false,
+    "primary_pass": true,
+    "primary_threshold": 0.05
+  },
+  "fifty_ms_gate": {
+    "all_measured_M12_pass": false,
+    "dense_failures": 0,
+    "dense_trials": 10,
+    "finite_sample_not_live_qualification": true,
+    "sparse_failures": 2,
+    "sparse_trials": 10
+  },
+  "harness_failures_this_candidate": [],
+  "identity_scope": "Per-instance offline harness injection; explicit implementation identity; no M08 globals changed, actor absent",
+  "independent_review": false,
+  "independent_review_pending": true,
+  "limitations": [
+    "two fixed synthetic inputs,10 pairs each; no worst-case or population performance inference",
+    "fresh core construction and retained-input setup excluded as in frozen benchmark",
+    "analytic-only; no actor, ROS, TF callbacks or live timing/load proof",
+    "SciPy1.10.1/NumPy1.24.4 single-thread compatible environment specifically; old author environment not interchangeable",
+    "future optimization must use a new factor/protocol; this failed candidate is not to be tuned or promoted retroactively"
+  ],
+  "live_runtime_qualified": false,
+  "measured_trial_count": 40,
+  "negative_outcomes_retained": [
+    "dense median paired regression5.576585454695434percent exceeds5percent threshold",
+    "sparse M12 two of ten whole-chain observations exceed50ms",
+    "both stress fixtures retain allfalse backup mask/zero command; not navigation-success inputs",
+    "old M08 historical69.239986ms and compatible57.912548ms negatives retained unchanged",
+    "original M08 runtime venv NumPy/SciPy import failure retained separately"
+  ],
+  "no_integrated_ROS_runtime": true,
+  "paired_count": 20,
+  "protocol": {
+    "bytes": 2110,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_ingestion_m12/protocol.json",
+    "sha256": "9012de84a4e3cdde06bcf82e362567cbfb8a2191ad9116e0d00f89c9d5d55478"
+  },
+  "resource_manifest": {
+    "bytes": 39715,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_ingestion_m12/review_resources.json",
+    "sha256": "df58db5e9053c82df67ee98d795cd98ce85867edcefd0fc553db56497ad23905"
+  },
+  "results": [
+    {
+      "all_m12_observed_whole_under50ms": false,
+      "m12_over50ms_count": 2,
+      "name": "combined1440_sparse_reobserved_and2048_retained",
+      "paired_median_relative_reduction": 0.054524428992135276,
+      "ratio_of_medians_relative_reduction": 0.05471805223541171,
+      "timing": {
+        "m08": {
+          "accept": {
+            "count": 10,
+            "max_ms": 24.365227,
+            "median_ms": 18.5945475,
+            "p95_ms": 21.872760699999994
+          },
+          "build": {
+            "count": 10,
+            "max_ms": 29.514304,
+            "median_ms": 29.2127185,
+            "p95_ms": 29.3964337
+          },
+          "select_and_recheck": {
+            "count": 10,
+            "max_ms": 10.319378,
+            "median_ms": 3.8600969999999997,
+            "p95_ms": 7.498184449999993
+          },
+          "whole": {
+            "count": 10,
+            "max_ms": 58.194465,
+            "median_ms": 51.7056325,
+            "p95_ms": 57.82899795
+          }
+        },
+        "m12": {
+          "accept": {
+            "count": 10,
+            "max_ms": 21.722036,
+            "median_ms": 15.765369,
+            "p95_ms": 19.056793099999993
+          },
+          "build": {
+            "count": 10,
+            "max_ms": 29.381517,
+            "median_ms": 29.2067935,
+            "p95_ms": 29.3342508
+          },
+          "select_and_recheck": {
+            "count": 10,
+            "max_ms": 10.737668,
+            "median_ms": 3.882723,
+            "p95_ms": 7.679548999999993
+          },
+          "whole": {
+            "count": 10,
+            "max_ms": 55.762028,
+            "median_ms": 48.876401,
+            "p95_ms": 55.29415085
+          }
+        }
+      }
+    },
+    {
+      "all_m12_observed_whole_under50ms": true,
+      "m12_over50ms_count": 0,
+      "name": "maximum1440_dense_new_scan",
+      "paired_median_relative_reduction": -0.05576585454695434,
+      "ratio_of_medians_relative_reduction": -0.055216234836183986,
+      "timing": {
+        "m08": {
+          "accept": {
+            "count": 10,
+            "max_ms": 16.755622,
+            "median_ms": 10.3422485,
+            "p95_ms": 16.37462455
+          },
+          "build": {
+            "count": 10,
+            "max_ms": 22.257071,
+            "median_ms": 22.13818,
+            "p95_ms": 22.21880795
+          },
+          "select_and_recheck": {
+            "count": 10,
+            "max_ms": 2.689517,
+            "median_ms": 2.619456,
+            "p95_ms": 2.6792552
+          },
+          "whole": {
+            "count": 10,
+            "max_ms": 41.615454,
+            "median_ms": 35.1330185,
+            "p95_ms": 41.1864636
+          }
+        },
+        "m12": {
+          "accept": {
+            "count": 10,
+            "max_ms": 18.374854,
+            "median_ms": 12.3222035,
+            "p95_ms": 15.662393499999993
+          },
+          "build": {
+            "count": 10,
+            "max_ms": 22.30857,
+            "median_ms": 22.1076685,
+            "p95_ms": 22.275242549999998
+          },
+          "select_and_recheck": {
+            "count": 10,
+            "max_ms": 2.666281,
+            "median_ms": 2.627395,
+            "p95_ms": 2.6625136
+          },
+          "whole": {
+            "count": 10,
+            "max_ms": 43.239917,
+            "median_ms": 37.072931499999996,
+            "p95_ms": 40.573093699999994
+          }
+        }
+      }
+    }
+  ],
+  "retrieval_mechanism": {
+    "dense": {
+      "original_scalar_native_queries": 123,
+      "tiled_native_queries": 45,
+      "tiled_prefetched_rows": 1440
+    },
+    "separate_profile_not_paired_deadline_timing": true,
+    "sparse": {
+      "original_scalar_native_queries": 1439,
+      "tiled_native_queries": 45,
+      "tiled_prefetched_rows": 1440
+    }
+  },
+  "schema": "astra_m12_lazy_tiled_kd_author_component_v1",
+  "single_factor": {
+    "cache_bound_excludes_python_byte_and_native_temporary_size": true,
+    "eps": 0.0,
+    "maximum_cached_indices_at1440_points": 46080,
+    "normalized_clustering_traversal_AST_equal": true,
+    "one_cached_tile": true,
+    "original_accept_method_bytes_equal": true,
+    "predicate": "unchanged hypot + original np.linalg.norm in1e-12 boundary band",
+    "radius": "unchanged gap+1e-9",
+    "return_sorted": true,
+    "tile_rows": 32,
+    "workers": 1
+  },
+  "source": {
+    "bytes": 12188,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/sensor_tracks_ingestion_m12.py",
+    "sha256": "026e2f7d62a125c70a8c1da813948618dbb71830a267dff4e6f71893e60c8668"
+  },
+  "status": "semantic_parity_pass_latency_factor_failed_dense_regression",
+  "test_result": {
+    "failed": 0,
+    "global_FP_or_backend_proof": false,
+    "log": {
+      "bytes": 106,
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_tracks_ingestion_m12/tests_r01.log",
+      "sha256": "20ddb99322e9583995550fe8e0a05201efc1422f1ef7b3d02ce19428849d14cd"
+    },
+    "passed": 20,
+    "tests_include_independent_all_pairs_graph": true
+  },
+  "tests": {
+    "bytes": 7789,
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_sensor_tracks_ingestion_m12.py",
+    "sha256": "d20366d7272e01ca4e6d9070346095afc147f37e0b65445d7e648cff4e9c2cac"
+  }
+}

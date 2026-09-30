@@ -1,0 +1,7 @@
+# P06 启动集成独立审查
+
+离线审查通过。六份实际launch展开URDF分别调用命令源load_contract/runtime-environment和probe URDF/world验证，全部通过；共126个聚焦案例。错误插件名、seed、Kd、timeout、boolean以及合同SHA/identity被拒绝。精确runtime启动AST在假paused服务下通过并advertise全部四publisher；未暂停、服务异常和旧插件URDF均在advertise前失败。未调用ROS/Gazebo。
+
+P06命令源相对P02仅改变stage和预期P05插件文件名，所有命令行为不变；probe相对冻结P05仅文档/节点名变化，122门及所有数值计算函数完整不变。相同URDF下旧P05 source guard失败被精确保留。管理器执行/绑定/预算/失败控制流AST除stage和新seed身份完全相等；527继承活动/归档资源无改动；P05一用五退休负结果仍绑定。
+
+本报告验证启动兼容性，不宣称live测量或物理通过。此前P05离线审查遗漏的两套startup validator兼容性检查已在新stage补充，旧报告不改写。

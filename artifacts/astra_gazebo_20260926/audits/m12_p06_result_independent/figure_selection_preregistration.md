@@ -1,0 +1,3 @@
+PHY04 在P06 release、allocation和outcome之前预注册。六回合三配对全部测量门有效方可绘图；物理负结果全部保留。代表pair按三个control原生world-link20ms实际中心转向斜率绝对峰值升序取中位，完全相同时seed升序；任何treatment结果不得影响选择。展示全部pair点及固定0.75s整数末窗误差/实际轨迹；原始时间轴不移到joint或target相位。PHY01/02/03保持not_complete。
+
+预注册SHA：`d367966e01ed88112399cdff4cebff1b92a4965dd21a1ce6a8de22029a276d93`。未进行ROS/Gazebo或修改旧预注册。

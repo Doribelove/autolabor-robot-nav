@@ -1,0 +1,37 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-02-C1
+report_id: v3_scope_v3_02_c1_terminal_calibration_result_1
+status: terminal_calibration_fail_envelope_width
+data:
+  simulation_units: 108
+  training_episodes: 72
+  calibration_episodes: 36
+  held_out_test_episodes_accessed: 0
+common_prefix_atomicity:
+  maximum_actor_coordinate_spread_m: 0.0
+  maximum_actor_speed_spread_mps: 0.0
+  pass: true
+passing_metrics:
+  calibration_coverage: 1.0
+  actual_mode_mae_m: 0.17916682399776415
+  minimum_candidate_sensitivity_m: 0.6258589136610069
+failed_gate:
+  metric: mean_full_envelope_width_m
+  observed: 4.590204450118851
+  frozen_maximum: 4.50
+attribution:
+  model_basis: partial_quadratic_7_feature_ridge
+  conformal_radius_m: 0.4272092088579247
+  issue: common_prefix_post_branch_response_is_undermodeled_by_partial_basis
+repair_design:
+  next_stage: V3-02-C1-R1
+  factor_count: 1
+  factor_id: ridge_feature_basis
+  parent_value: partial_quadratic_7_features
+  proposed_value: complete_quadratic_10_features
+  score_physical_clip_data_and_gates_unchanged: true
+  held_out_test_access_authorized: false
+  reserved_test_seeds: [6261, 6262, 6263]
+claim:
+  common_prefix_predictor_calibrated: false

@@ -1,0 +1,4 @@
+Preserved tool/inspection history; none changed author source or experiment state.
+1. Before the pause, a functions.exec JavaScript read orchestration had an extra closing parenthesis: SyntaxError: Unexpected token ')'. No shell ran. Corrected orchestration only.
+2. Resumed read-only metadata inspection used report['rows'] and reported resource count under the wrong key; actual preparation schema is input_rows/files. Tool ended with KeyError: 'rows' after printing existing keys. Corrected to input_rows/files in check_r02.py before any assessment. First executable independent check_r02 attempt passed; there was no false assessment output.
+3. Same metadata inspection emitted environment RequestsDependencyWarning (urllib3/chardet mismatch). The passing tests and offline checks are recorded separately; no dependency change performed.

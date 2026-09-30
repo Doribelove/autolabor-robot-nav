@@ -1,0 +1,778 @@
+{
+  "status": "offline_callback_name_binding_repair_review_pass",
+  "independent_probe_review": true,
+  "independent_source_manager_review": true,
+  "reviewed_probe_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+  "reviewed_source_sha256": "a201d91a986f789be62cc0f313ba1797206fcad98f37146075d1a0115da5e1de",
+  "reviewed_manager_sha256": "4efe7bf67fce9b3e16c0afabc9cd47f982bcc372abb39f3cd9c4f491369764f4",
+  "numeric_thresholds_unchanged": true,
+  "physical_numeric_thresholds_unchanged": true,
+  "total_gate_count": 122,
+  "check_names": [
+    "accelerate_actual_steady_steering",
+    "accelerate_command_count",
+    "accelerate_steady_speed",
+    "actual_center_angle_limit",
+    "actual_center_slew_with_declared_sampling_tolerance",
+    "actual_front_Ackermann_pair_agreement",
+    "actual_front_joint_URDF_angle_limits",
+    "actual_front_left_steer_joint_URDF_velocity_limit",
+    "actual_front_right_steer_joint_URDF_velocity_limit",
+    "actual_joint_positions_agree_with_dense_source_pose",
+    "actual_odom_twist_agrees_with_dense_base_link",
+    "all_numeric_finite",
+    "all_source_stamp_ns_and_seconds_agree",
+    "backend_status_approximately_50Hz",
+    "backend_status_bounded_source_gap",
+    "backend_status_covers_schedule",
+    "backend_status_source_strictly_monotonic",
+    "command_loss_actual_stopped",
+    "command_loss_model_stopped",
+    "command_loss_no_driver_receipt_after_drain",
+    "command_loss_no_probe_publication",
+    "commanded_brake_actual_stopped",
+    "commanded_brake_command_count",
+    "commanded_brake_model_stopped",
+    "commanded_efforts_approximately_50Hz",
+    "commanded_efforts_bounded_source_gap",
+    "commanded_efforts_covers_schedule",
+    "commanded_efforts_finite_limits_not_reaction",
+    "commanded_efforts_source_strictly_monotonic",
+    "contacts_bounded_source_gap",
+    "contacts_covers_schedule",
+    "contacts_source_strictly_monotonic",
+    "dense_links_complete_roster_and_shapes",
+    "dense_links_covers_schedule",
+    "dense_links_every_physics_step",
+    "dense_model_link_exact_source_join",
+    "dense_models_complete_roster_and_shapes",
+    "dense_models_covers_schedule",
+    "dense_models_every_physics_step",
+    "dense_source_metadata",
+    "final_paused_source_watermark_drained",
+    "inside_empty_fixture",
+    "internal_accel_limit",
+    "internal_brake_limit",
+    "internal_target_center_angle_limit",
+    "internal_target_center_slew_limit",
+    "isolated_command_events_match_integer_schedule",
+    "isolated_command_source_identity_and_completion",
+    "joints_approximately_50Hz",
+    "joints_bounded_source_gap",
+    "joints_covers_schedule",
+    "joints_source_strictly_monotonic",
+    "links_approximately_50Hz",
+    "links_bounded_source_gap",
+    "links_complete_roster_and_shapes",
+    "links_covers_schedule",
+    "links_matches_dense_same_stamp",
+    "links_source_strictly_monotonic",
+    "model_odom_xy_agreement",
+    "model_odom_yaw_agreement",
+    "models_approximately_50Hz",
+    "models_bounded_source_gap",
+    "models_complete_roster_and_shapes",
+    "models_covers_schedule",
+    "models_links_exact_source_stamp_join",
+    "models_matches_dense_same_stamp",
+    "models_source_strictly_monotonic",
+    "no_callback_errors",
+    "no_non_ground_robot_contacts",
+    "odom_approximately_50Hz",
+    "odom_bounded_source_gap",
+    "odom_covers_schedule",
+    "odom_source_join_age",
+    "odom_source_strictly_monotonic",
+    "only_wheels_may_contact_ground",
+    "physical_backend_metadata",
+    "physical_backend_never_faulted",
+    "physical_command_ingress_matches_source_commands",
+    "physical_command_ingress_source_schema_and_order",
+    "physical_status_source_exact_target_odom_join",
+    "physical_status_source_schema",
+    "physics_source_metadata",
+    "reaccelerate_brake_actual_steady_steering",
+    "reaccelerate_brake_command_count",
+    "reaccelerate_brake_steady_speed",
+    "reaccelerate_loss_actual_steady_steering",
+    "reaccelerate_loss_command_count",
+    "reaccelerate_loss_steady_speed",
+    "recorder_connections_ready_before_unpause",
+    "recorder_warmup_before_start",
+    "saturation_negative_actual_steady_steering",
+    "saturation_negative_command_count",
+    "saturation_negative_steady_speed",
+    "saturation_negative_yaw_excitation",
+    "saturation_positive_actual_steady_steering",
+    "saturation_positive_command_count",
+    "saturation_positive_steady_speed",
+    "saturation_positive_yaw_excitation",
+    "schedule_start_marker_matches_trigger",
+    "spawn_pose_matches_fixture",
+    "stationary_actual_stopped",
+    "stationary_command_count",
+    "stationary_model_stopped",
+    "target_fields_and_Ackermann_geometry",
+    "target_speed_and_instantaneous_reference_limits",
+    "targets_approximately_50Hz",
+    "targets_bounded_source_gap",
+    "targets_covers_schedule",
+    "targets_source_strictly_monotonic",
+    "turn_negative_actual_steady_steering",
+    "turn_negative_command_count",
+    "turn_negative_steady_speed",
+    "turn_negative_yaw_excitation",
+    "turn_positive_actual_steady_steering",
+    "turn_positive_command_count",
+    "turn_positive_steady_speed",
+    "turn_positive_yaw_excitation",
+    "unique_expected_model_roster",
+    "within_phase_command_deadline",
+    "zero_speed_yaw_actual_stopped",
+    "zero_speed_yaw_command_count",
+    "zero_speed_yaw_model_stopped"
+  ],
+  "created_utc": "2026-09-26T10:49:24.137233+00:00",
+  "source_command_behavior_only_stage_identity_changed": true,
+  "probe_only_node_doc_identity_and_world_response_binding_changed": true,
+  "all25_nonruntime_probe_functions_AST_identical": {
+    "recorder_connections": true,
+    "final_stream_watermarks": true,
+    "paused_world_source_ns": true,
+    "final_drain_integrity": true,
+    "sample_ns": true,
+    "in_ns_window": true,
+    "parse_command_ingress": true,
+    "command_ingress_integrity": true,
+    "sha_bytes": true,
+    "phase_intervals": true,
+    "phase_at": true,
+    "command_for": true,
+    "angle_diff": true,
+    "yaw": true,
+    "quat_relative": true,
+    "world_vector_in_body": true,
+    "pair_center": true,
+    "summary": true,
+    "derivative": true,
+    "finite": true,
+    "validate_effective_urdf": true,
+    "validate_world": true,
+    "pose_derivatives": true,
+    "source_packet_integrity": true,
+    "assess": true
+  },
+  "same_lexical_callback_finally_regression_cases": 10,
+  "cases": [
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_no_pending_after_response",
+      "integrated_AST_sha256": "4eb25c8c71e6ba78d2f274dec477a7636fd4eec660ba2cdd02aa6d4d0e3e1325"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [
+        "links"
+      ],
+      "delivery": "after_response",
+      "expected_pass": false,
+      "actual_pass": false,
+      "exact_error": [
+        {
+          "error": "'GetWorldPropertiesResponse' object is not callable",
+          "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 576, in callback\n    try:fn(msg)\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 654, in <lambda>\n    rospy.Subscriber('/astra/world_links',WorldState,protected(lambda m:world(m,'links')),queue_size=5000),\nTypeError: 'GetWorldPropertiesResponse' object is not callable\n"
+        }
+      ],
+      "failure": {
+        "type": "RuntimeError",
+        "message": "source evidence terminal drain deadline",
+        "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 767, in integrated_runtime_callback_and_complete_finally\n    else:raise RuntimeError('source evidence terminal drain deadline')\nRuntimeError: source evidence terminal drain deadline\n"
+      },
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_links_after_response",
+      "integrated_AST_sha256": "4eb25c8c71e6ba78d2f274dec477a7636fd4eec660ba2cdd02aa6d4d0e3e1325"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [
+        "models"
+      ],
+      "delivery": "after_response",
+      "expected_pass": false,
+      "actual_pass": false,
+      "exact_error": [
+        {
+          "error": "'GetWorldPropertiesResponse' object is not callable",
+          "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 576, in callback\n    try:fn(msg)\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 653, in <lambda>\n    subscribers=[rospy.Subscriber('/astra/world_models',WorldState,protected(lambda m:world(m,'models')),queue_size=5000),\nTypeError: 'GetWorldPropertiesResponse' object is not callable\n"
+        }
+      ],
+      "failure": {
+        "type": "RuntimeError",
+        "message": "source evidence terminal drain deadline",
+        "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 767, in integrated_runtime_callback_and_complete_finally\n    else:raise RuntimeError('source evidence terminal drain deadline')\nRuntimeError: source evidence terminal drain deadline\n"
+      },
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_after_response",
+      "integrated_AST_sha256": "4eb25c8c71e6ba78d2f274dec477a7636fd4eec660ba2cdd02aa6d4d0e3e1325"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [
+        "models",
+        "links"
+      ],
+      "delivery": "after_response",
+      "expected_pass": false,
+      "actual_pass": false,
+      "exact_error": [
+        {
+          "error": "'GetWorldPropertiesResponse' object is not callable",
+          "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 576, in callback\n    try:fn(msg)\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 653, in <lambda>\n    subscribers=[rospy.Subscriber('/astra/world_models',WorldState,protected(lambda m:world(m,'models')),queue_size=5000),\nTypeError: 'GetWorldPropertiesResponse' object is not callable\n"
+        },
+        {
+          "error": "'GetWorldPropertiesResponse' object is not callable",
+          "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 576, in callback\n    try:fn(msg)\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 654, in <lambda>\n    rospy.Subscriber('/astra/world_links',WorldState,protected(lambda m:world(m,'links')),queue_size=5000),\nTypeError: 'GetWorldPropertiesResponse' object is not callable\n"
+        }
+      ],
+      "failure": {
+        "type": "RuntimeError",
+        "message": "source evidence terminal drain deadline",
+        "traceback": "Traceback (most recent call last):\n  File \"/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py:same_lexical_callback_plus_entire_finally\", line 767, in integrated_runtime_callback_and_complete_finally\n    else:raise RuntimeError('source evidence terminal drain deadline')\nRuntimeError: source evidence terminal drain deadline\n"
+      },
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_after_response",
+      "integrated_AST_sha256": "4eb25c8c71e6ba78d2f274dec477a7636fd4eec660ba2cdd02aa6d4d0e3e1325"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "source_sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f",
+      "pending_streams": [
+        "models",
+        "links"
+      ],
+      "delivery": "before_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_before_response",
+      "integrated_AST_sha256": "9d08475106e78fafae39fd88ef6643466b048cbfaafe28b1e17027da85e1fbe4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_no_pending_after_response",
+      "integrated_AST_sha256": "a693a95a8265d9b747cf648c414934c16f106fa2cd2edbc953b89c3e3ae8a2b4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [
+        "links"
+      ],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_links_after_response",
+      "integrated_AST_sha256": "a693a95a8265d9b747cf648c414934c16f106fa2cd2edbc953b89c3e3ae8a2b4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [
+        "models"
+      ],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_after_response",
+      "integrated_AST_sha256": "a693a95a8265d9b747cf648c414934c16f106fa2cd2edbc953b89c3e3ae8a2b4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [
+        "models",
+        "links"
+      ],
+      "delivery": "after_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_after_response",
+      "integrated_AST_sha256": "a693a95a8265d9b747cf648c414934c16f106fa2cd2edbc953b89c3e3ae8a2b4"
+    },
+    {
+      "source_path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "source_sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06",
+      "pending_streams": [
+        "models",
+        "links"
+      ],
+      "delivery": "before_response",
+      "expected_pass": true,
+      "actual_pass": true,
+      "exact_error": [],
+      "failure": null,
+      "closed_raw_immutable": true,
+      "synthetic_only": true,
+      "output_dir": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_before_response",
+      "integrated_AST_sha256": "488efd941405540f092f61f1d4ba2683545d199adea09677d7e771c773c377d7"
+    }
+  ],
+  "nested_function_name_binding_audit": {
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py": {
+      "nested_function_names": [
+        "call_service",
+        "command_event",
+        "contact",
+        "diagnostic",
+        "header",
+        "pp",
+        "protected",
+        "record",
+        "recorder_ready",
+        "service",
+        "trigger_start",
+        "world"
+      ],
+      "same_scope_reassignments": [
+        {
+          "name": "world",
+          "line": 738
+        }
+      ]
+    },
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py": {
+      "nested_function_names": [
+        "call_service",
+        "command_event",
+        "contact",
+        "diagnostic",
+        "header",
+        "pp",
+        "protected",
+        "record",
+        "recorder_ready",
+        "service",
+        "trigger_start",
+        "world"
+      ],
+      "same_scope_reassignments": []
+    },
+    "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p07.py": {
+      "nested_function_names": [
+        "diagnostics",
+        "publish_status",
+        "send",
+        "start",
+        "unique_publishers",
+        "watch_publishers"
+      ],
+      "same_scope_reassignments": []
+    }
+  },
+  "old_failure_exact_reproduction": true,
+  "new_delayed_callback_success": true,
+  "postclose_raw_immutable": true,
+  "manager_control_flow_AST_unchanged_after_identity_substitution": {
+    "render_launch": true,
+    "classify_report": true,
+    "active_inherited_digest": true,
+    "check_seed_freshness": true,
+    "verify_release": true,
+    "append_registry": true,
+    "write_receipt": true,
+    "bind_from_release": true,
+    "execute_row": true,
+    "matrix_summary": true,
+    "execute": true,
+    "main": true
+  },
+  "six_actual_expanded_URDF_both_startup_validators": [
+    {
+      "run_id": "m12_physics_p07_s023_kd4",
+      "actual_source_and_probe_validators_pass": true,
+      "world_validator_pass": true,
+      "contract_sha256": "d6899c33966102861fbb5e6d508235dc0a1bb427c8ad486cda829c206edf08f9",
+      "parameters_sha256": "80a6ff71a6d9c6c399c081553984f555ce5f8e5634f84596d3c058018d754e9c",
+      "launch_sha256": "ccb537a8681d20a3e37830f345262e9f0fe6d8592eb1c7893980eded2e330fd3"
+    },
+    {
+      "run_id": "m12_physics_p07_s023_kd6",
+      "actual_source_and_probe_validators_pass": true,
+      "world_validator_pass": true,
+      "contract_sha256": "0eb471019c1885807b1e28f1ccc1ad69909ddf6f5108dccd111684bf343f810e",
+      "parameters_sha256": "12436ac47f357bc70f6cbf25094e5a5333b9e6620f81026110ff80e5efaa003c",
+      "launch_sha256": "01fb14b03ef52e864ded54876f22e9b506dd4edf43141cff75db25fe8e3e5aff"
+    },
+    {
+      "run_id": "m12_physics_p07_s024_kd6",
+      "actual_source_and_probe_validators_pass": true,
+      "world_validator_pass": true,
+      "contract_sha256": "939286dd38d35a504b31779489081d4bd9cf59edfe5be59f32778f518b632e47",
+      "parameters_sha256": "8b1e3cf1523776be1fdab2ff346fec2e08610b3fade38fd16fe8c46b1f9223b3",
+      "launch_sha256": "bbff9616c7cb8d0b0f8252705b628d7884b7401df7ff583c9d10c7700ade99a5"
+    },
+    {
+      "run_id": "m12_physics_p07_s024_kd4",
+      "actual_source_and_probe_validators_pass": true,
+      "world_validator_pass": true,
+      "contract_sha256": "d3084035ad18097a6222392ed99929279c835fa5d0d58c2614db32f5998d2b74",
+      "parameters_sha256": "019177ce6d0a392ffb5985b00a8526cb264f8fe6b4d73ebecf61272f71d65ae8",
+      "launch_sha256": "ee04e0e56aa1d51136f5e50a6ec3b0fe73085741034673f1076fff06a85e80cc"
+    },
+    {
+      "run_id": "m12_physics_p07_s025_kd4",
+      "actual_source_and_probe_validators_pass": true,
+      "world_validator_pass": true,
+      "contract_sha256": "6751d0ecaef38820cdd939c2f7aac0b5ec0e815585ad885f8c6d9bc90d29fbdd",
+      "parameters_sha256": "d24aa21f2ee801d85a97016769a0d2077b0e3e1a451d98b5e953118e5105781d",
+      "launch_sha256": "aa9db5174ef5d46029444afc1574e2f1e101e3436c40416794493da9d2a791c2"
+    },
+    {
+      "run_id": "m12_physics_p07_s025_kd6",
+      "actual_source_and_probe_validators_pass": true,
+      "world_validator_pass": true,
+      "contract_sha256": "bd230433ab901b2d73d3aff43fd02007ff6ac35e4cd4f6bf5f8db850140287df",
+      "parameters_sha256": "cfb5993f3b606694f0e5d8afc4dc89784eaadc3063bc80e8b5b744a74bcdc207",
+      "launch_sha256": "9e0d512aa2c51df7da1c05f524fab6e0ed119b35b727c05dfc7bd988fbd211c2"
+    }
+  ],
+  "all573_inherited_active_and_archive_bindings_match": true,
+  "P06_original_one_consumed_five_retired_retained": {
+    "status": "terminal_callback_name_failure_preserved",
+    "resources": [
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/queue/m12_physics_p06_budget_runtime.json",
+        "sha256": "81d864289bb4c959c9118136709b3ec7c04f29859a89a0168d988ef023812f41"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physics_p06_summary.json",
+        "sha256": "e67a23e1926a53d0f50a6e297dbf13056cf79b8aa8ae6b84a7214b2639d915aa"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p06_s020_kd4/receipt.json",
+        "sha256": "f90fff1a99043553836b0635e6c09a78861ea759ec99de5b0f9aba53bbdbde7a"
+      },
+      {
+        "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p06_s020_kd4/cleanup.json",
+        "sha256": "f34cb6229e52f64fef949d43a163cf02ff9661206e024b30b7c2d1b37c43f9d9"
+      }
+    ]
+  },
+  "release_or_identity_allocation_absent_at_review": true,
+  "no_ROS_Gazebo_build_started": true,
+  "physical_qualification_claim": false,
+  "fixture_scope": "Exact nested callback definitions, actual subscriber lambdas and complete original finally body compiled into one function lexical scope, with fake services, clock and packet payloads. Source-join/physical assessor arithmetic are stubbed only to isolate name binding; unchanged arithmetic is established by AST equality, not new synthetic qualification.",
+  "prior_review_gap": "Prior fixtures separated callback parsing from finally service response assignment. This test intentionally joins them in one lexical scope and preserves P06 TypeError/deadline reproduction.",
+  "first_tool_error": "Initial test AST used Python3.9 subscript AST under systemPython3.8 and failed before case execution. r01 source/log and empty output retained; r02 constructs assignments with ast.parse. No product inputs changed.",
+  "limitations": [
+    "This is offline name-binding and startup review; live packet scheduling/complete capture still requires fresh evidence.",
+    "No P06 failure is reclassified or resumed. PHY04 remainsnot_complete.",
+    "Inherited physical driver is unchanged; this does not certify general safety/navigation performance."
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p07.py",
+      "sha256": "a201d91a986f789be62cc0f313ba1797206fcad98f37146075d1a0115da5e1de"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p07.py",
+      "sha256": "54183dcda164a2705173da87defe4a9374a455ad6ab73dfbaaa4a28fe9570b06"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_m12_physics_p07.py",
+      "sha256": "4efe7bf67fce9b3e16c0afabc9cd47f982bcc372abb39f3cd9c4f491369764f4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p07_design.yaml",
+      "sha256": "55203a6ce78dd448ab331123c3c463cfaeb3aeccac68aa66ae09f24c946748c6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p06.py",
+      "sha256": "4c3f4e756f274403f19f2bd79bfbb84e9e48857aa3d336e291e782b6b721dc6f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_actuation_command_source_p06.py",
+      "sha256": "88315c0cc91d34c16783de8074ef510866dd982a234dd8eab74e574cfae1a4ef"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/run_m12_physics_p06.py",
+      "sha256": "ed2e1f1352b6c617dad2ec50fb6e9fc3dd5c26369508cb4fa9742a2a8733b5a3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/callback_closure_cases.json",
+      "sha256": "e72916967f854e8b982c6f656a9777c103393dcc09f41f8ecb2d31876d93c5ce"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/review_callback_closure.py",
+      "sha256": "c4e625636ec1b1522f3b894acfb9f341f539d4276fdc62566fe561d2256d1dac"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/review_callback_closure_r02.log",
+      "sha256": "8c601f57a70c5a62bd4859f36182ed291499ea387f5359b9adedb46d4a5c2583"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/review_callback_closure_r01_python38_ast.py",
+      "sha256": "5d1fd3dd1a5604e87e4bca70a3d9fa89141105a8bba52ca37aef90efe2d4b64f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/review_callback_closure_r01.log",
+      "sha256": "632156bcae9afe2efa7ac49748ac498b473856048fb9b416faeff0cc151dd5be"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/finalize_review.py",
+      "sha256": "cef8940fb59a721aa5451ab50d4309eb6e9fc87dd376234e1fa33b09fd0065c5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/report.json",
+      "sha256": "82671c62b7b5993b79fa402a00220e8eec456f70b9ea86cede22202527d51bb2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/check.py",
+      "sha256": "b0b018455fde82ca14f6042bb30d610e9795b0c8610fba9360c220aaaf280c57"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p06_result_independent/terminal_callback_failure_audit.json",
+      "sha256": "7930855db5ee0a78d052958f71b8d6d07936513294a256727a1a80d115d9d954"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_physics_p06_startup_integration_review.json",
+      "sha256": "77b63de1e6a092b1f4324015d4b84e86cc1a89bea717851fb5b21c286ea9aab2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p06_release.json",
+      "sha256": "b1ee6e965074b712c66d257cf652c5caae59e074abd5ab730fbec5ed88b51adc"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s023_kd4/parameters.yaml",
+      "sha256": "80a6ff71a6d9c6c399c081553984f555ce5f8e5634f84596d3c058018d754e9c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s023_kd4/fixture.launch",
+      "sha256": "ccb537a8681d20a3e37830f345262e9f0fe6d8592eb1c7893980eded2e330fd3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p07_runs/m12_physics_p07_s023_kd4.yaml",
+      "sha256": "d6899c33966102861fbb5e6d508235dc0a1bb427c8ad486cda829c206edf08f9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s023_kd6/parameters.yaml",
+      "sha256": "12436ac47f357bc70f6cbf25094e5a5333b9e6620f81026110ff80e5efaa003c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s023_kd6/fixture.launch",
+      "sha256": "01fb14b03ef52e864ded54876f22e9b506dd4edf43141cff75db25fe8e3e5aff"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p07_runs/m12_physics_p07_s023_kd6.yaml",
+      "sha256": "0eb471019c1885807b1e28f1ccc1ad69909ddf6f5108dccd111684bf343f810e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s024_kd6/parameters.yaml",
+      "sha256": "8b1e3cf1523776be1fdab2ff346fec2e08610b3fade38fd16fe8c46b1f9223b3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s024_kd6/fixture.launch",
+      "sha256": "bbff9616c7cb8d0b0f8252705b628d7884b7401df7ff583c9d10c7700ade99a5"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p07_runs/m12_physics_p07_s024_kd6.yaml",
+      "sha256": "939286dd38d35a504b31779489081d4bd9cf59edfe5be59f32778f518b632e47"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s024_kd4/parameters.yaml",
+      "sha256": "019177ce6d0a392ffb5985b00a8526cb264f8fe6b4d73ebecf61272f71d65ae8"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s024_kd4/fixture.launch",
+      "sha256": "ee04e0e56aa1d51136f5e50a6ec3b0fe73085741034673f1076fff06a85e80cc"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p07_runs/m12_physics_p07_s024_kd4.yaml",
+      "sha256": "d3084035ad18097a6222392ed99929279c835fa5d0d58c2614db32f5998d2b74"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s025_kd4/parameters.yaml",
+      "sha256": "d24aa21f2ee801d85a97016769a0d2077b0e3e1a451d98b5e953118e5105781d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s025_kd4/fixture.launch",
+      "sha256": "aa9db5174ef5d46029444afc1574e2f1e101e3436c40416794493da9d2a791c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p07_runs/m12_physics_p07_s025_kd4.yaml",
+      "sha256": "6751d0ecaef38820cdd939c2f7aac0b5ec0e815585ad885f8c6d9bc90d29fbdd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s025_kd6/parameters.yaml",
+      "sha256": "cfb5993f3b606694f0e5d8afc4dc89784eaadc3063bc80e8b5b744a74bcdc207"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_root_launch_preflight/m12_physics_p07_s025_kd6/fixture.launch",
+      "sha256": "9e0d512aa2c51df7da1c05f524fab6e0ed119b35b727c05dfc7bd988fbd211c2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/contracts/m12_physics_p07_runs/m12_physics_p07_s025_kd6.yaml",
+      "sha256": "bd230433ab901b2d73d3aff43fd02007ff6ac35e4cd4f6bf5f8db850140287df"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_after_response/probe_raw.json",
+      "sha256": "ebc9473387bb8c4a550666afb3618d00eca8495367fbc170744965438eaa8b68"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_after_response/probe_report.json",
+      "sha256": "f49ff3885ec64b9faaa1007406917fad8d4ea15d2920851760e8a739ce00d646"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_after_response/probe_raw.jsonl",
+      "sha256": "c4f3a5be602370a212d4ad8a2016eccbb91a9d4e9bf48dc5523716ad7e255900"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_after_response/probe_raw.json",
+      "sha256": "e7e3cedbd3b7e6425839b5f1aafefccd1ef2ea40bfc3595e5c2969ab198a301c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_after_response/probe_report.json",
+      "sha256": "220c2032e3f22f37e5c9e97452bc66ef024b8ad0fb0faebb536df5151334ff47"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_after_response/probe_raw.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_links_after_response/probe_raw.json",
+      "sha256": "05dc3f8ec36339a7c57d136457a6abba71bb68a93a488dec2f16ea10d0103092"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_links_after_response/probe_report.json",
+      "sha256": "1a958188cb65df234bd8716375b53f54cf3bb411135692d8b8109b01e33325ad"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_links_after_response/probe_raw.jsonl",
+      "sha256": "12b82fc18168e138e001198d9d7de2b18ad8e76fbdc1e25daa69d9da66bf91cc"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_before_response/probe_raw.json",
+      "sha256": "ebc9473387bb8c4a550666afb3618d00eca8495367fbc170744965438eaa8b68"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_before_response/probe_report.json",
+      "sha256": "f49ff3885ec64b9faaa1007406917fad8d4ea15d2920851760e8a739ce00d646"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_links_before_response/probe_raw.jsonl",
+      "sha256": "c4f3a5be602370a212d4ad8a2016eccbb91a9d4e9bf48dc5523716ad7e255900"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_after_response/probe_raw.json",
+      "sha256": "a62692683fb16e7a431c5c94dcf13de238093db03c0ae6a46f568e4b43da250b"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_after_response/probe_report.json",
+      "sha256": "a3d260157f72b1ebb6d16dc8c0e576dd16cf3b19aec0a6d72f99e6031490e27c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_models_after_response/probe_raw.jsonl",
+      "sha256": "f88f05a3215e665ae708fcf7a2dd98d4ec67084cb7aef8d0d929c1cbcd57234e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_no_pending_after_response/probe_raw.json",
+      "sha256": "7c0e5144b97d6ced0fe055fa631895468142b7cf42b92b3b78b9a32688b543d9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_no_pending_after_response/probe_report.json",
+      "sha256": "9db41d895e3faa63dac0263f498960d30109b1bba0e42bd72187ceb073937dd6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p07_no_pending_after_response/probe_raw.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_no_pending_after_response/probe_raw.json",
+      "sha256": "7c0e5144b97d6ced0fe055fa631895468142b7cf42b92b3b78b9a32688b543d9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_no_pending_after_response/probe_report.json",
+      "sha256": "9db41d895e3faa63dac0263f498960d30109b1bba0e42bd72187ceb073937dd6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_no_pending_after_response/probe_raw.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_before_response/probe_raw.json",
+      "sha256": "ebc9473387bb8c4a550666afb3618d00eca8495367fbc170744965438eaa8b68"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_before_response/probe_report.json",
+      "sha256": "f49ff3885ec64b9faaa1007406917fad8d4ea15d2920851760e8a739ce00d646"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_before_response/probe_raw.jsonl",
+      "sha256": "c4f3a5be602370a212d4ad8a2016eccbb91a9d4e9bf48dc5523716ad7e255900"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_links_after_response/probe_raw.json",
+      "sha256": "38f1a5754eccd4a4d432d07c143a1d9a15305072d2a2dc8be3f31ea5ea07a92c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_links_after_response/probe_report.json",
+      "sha256": "c5c95ca19fcf2f569c42f9ed0e05ccf5f280ca51b7c5ee38ae5975c0cb1230f4"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_links_after_response/probe_raw.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_after_response/probe_raw.json",
+      "sha256": "c28a1cf8b71343e43e45526e93203ec89bae6bfda259d66094f52398f997dec2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_after_response/probe_report.json",
+      "sha256": "b3b8c6e9494963b7e48c99b2dc5aec7adb9c581de8d52b0b79b162c75cc75742"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/fixtures/p06_models_links_after_response/probe_raw.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "command": "/usr/bin/python3 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p07_callback_independent/finalize_review.py"
+}

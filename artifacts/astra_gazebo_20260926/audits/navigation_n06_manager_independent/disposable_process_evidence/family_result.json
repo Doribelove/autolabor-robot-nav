@@ -1,0 +1,74 @@
+{
+  "before": {
+    "252304": {
+      "pid": 252304,
+      "ppid": 252303,
+      "pgid": 252304,
+      "sid": 252304,
+      "start_ticks": "3634115",
+      "state": "S"
+    },
+    "252305": {
+      "pid": 252305,
+      "ppid": 252304,
+      "pgid": 252305,
+      "sid": 252305,
+      "start_ticks": "3634117",
+      "state": "R"
+    }
+  },
+  "cleanup": {
+    "schema": "astra_navigation_n06_cleanup_v1",
+    "owner_pid": 252303,
+    "signals": [
+      {
+        "pid": 252304,
+        "start_ticks": "3634115",
+        "signal": 2,
+        "ancestry": [
+          {
+            "pid": 252304,
+            "ppid": 252303,
+            "pgid": 252304,
+            "sid": 252304,
+            "start_ticks": "3634115",
+            "state": "S"
+          }
+        ]
+      },
+      {
+        "pid": 252305,
+        "start_ticks": "3634117",
+        "signal": 2,
+        "ancestry": [
+          {
+            "pid": 252305,
+            "ppid": 252304,
+            "pgid": 252305,
+            "sid": 252305,
+            "start_ticks": "3634117",
+            "state": "S"
+          },
+          {
+            "pid": 252304,
+            "ppid": 252303,
+            "pgid": 252304,
+            "sid": 252304,
+            "start_ticks": "3634115",
+            "state": "S"
+          }
+        ]
+      }
+    ],
+    "uncertain_ownership_observed": [],
+    "survivors": [],
+    "benign_vanished_or_reaped": [],
+    "port_error": null,
+    "pass": true,
+    "killpg_used": false,
+    "scope": "real descendants plus child-only nonce and start ticks; external host exit is not observed"
+  },
+  "child_wait_returncode": -2,
+  "subreaper_survived": true,
+  "ephemeral_port": 58137
+}

@@ -1,0 +1,149 @@
+{
+  "evidence_type": "source-backed offline rigid-body counterexamples; not Gazebo measurements",
+  "rows": [
+    {
+      "case": "straight",
+      "omega_radps": 0.0,
+      "ideal_base_vy_mps": 0.0,
+      "rear_vy_after_rigid_body_transform_mps": 0.0,
+      "dwa_received_float32_vy": 0.0,
+      "dwa_window_lower": 0.0,
+      "dwa_window_upper": 0.0,
+      "window_reversed": false,
+      "vy_samples_requested": 1,
+      "source_equivalent_samples": [
+        0.0
+      ]
+    },
+    {
+      "case": "DWA_window_boundary",
+      "omega_radps": 0.3846153846153846,
+      "ideal_base_vy_mps": 0.125,
+      "rear_vy_after_rigid_body_transform_mps": 0.0,
+      "dwa_received_float32_vy": 0.125,
+      "dwa_window_lower": 0.0,
+      "dwa_window_upper": 0.0,
+      "window_reversed": false,
+      "vy_samples_requested": 1,
+      "source_equivalent_samples": [
+        0.0
+      ]
+    },
+    {
+      "case": "positive_turn",
+      "omega_radps": 0.5,
+      "ideal_base_vy_mps": 0.1625,
+      "rear_vy_after_rigid_body_transform_mps": 0.0,
+      "dwa_received_float32_vy": 0.16249999403953552,
+      "dwa_window_lower": 0.03749999403953552,
+      "dwa_window_upper": 0.0,
+      "window_reversed": true,
+      "vy_samples_requested": 1,
+      "source_equivalent_samples": [
+        0.03749999403953552,
+        0.0
+      ]
+    },
+    {
+      "case": "negative_turn",
+      "omega_radps": -0.5,
+      "ideal_base_vy_mps": -0.1625,
+      "rear_vy_after_rigid_body_transform_mps": 0.0,
+      "dwa_received_float32_vy": -0.16249999403953552,
+      "dwa_window_lower": 0.0,
+      "dwa_window_upper": -0.03749999403953552,
+      "window_reversed": true,
+      "vy_samples_requested": 1,
+      "source_equivalent_samples": [
+        0.0,
+        -0.03749999403953552
+      ]
+    },
+    {
+      "case": "planner_yaw_cap",
+      "omega_radps": 0.7805,
+      "ideal_base_vy_mps": 0.2536625,
+      "rear_vy_after_rigid_body_transform_mps": 0.0,
+      "dwa_received_float32_vy": 0.25366249680519104,
+      "dwa_window_lower": 0.12866249680519104,
+      "dwa_window_upper": 0.0,
+      "window_reversed": true,
+      "vy_samples_requested": 1,
+      "source_equivalent_samples": [
+        0.12866249680519104,
+        0.0
+      ]
+    },
+    {
+      "case": "physical_steering_cap_at_request_v1p2",
+      "omega_radps": 0.999945669622686,
+      "ideal_base_vy_mps": 0.32498234262737297,
+      "rear_vy_after_rigid_body_transform_mps": 0.0,
+      "dwa_received_float32_vy": 0.32498234510421753,
+      "dwa_window_lower": 0.19998234510421753,
+      "dwa_window_upper": 0.0,
+      "window_reversed": true,
+      "vy_samples_requested": 1,
+      "source_equivalent_samples": [
+        0.19998234510421753,
+        0.0
+      ]
+    }
+  ],
+  "pose_example": {
+    "vx_mps": 1.2,
+    "omega_radps": 0.5,
+    "interval_s": 0.05,
+    "true_no_slip_base_pose": [
+      0.05989219298491294,
+      0.008874114610595207
+    ],
+    "incorrect_base_unicycle_pose": [
+      0.05999375019530959,
+      0.0007499609383136985
+    ],
+    "position_difference_m": 0.008124788413111364
+  },
+  "footprint_world_invariance": [
+    {
+      "yaw_rad": 0.0,
+      "shape": "TEB16",
+      "max_world_vertex_error_m": 2.220446049250313e-16
+    },
+    {
+      "yaw_rad": 0.0,
+      "shape": "costmap64",
+      "max_world_vertex_error_m": 4.440892098500626e-16
+    },
+    {
+      "yaw_rad": 0.3,
+      "shape": "TEB16",
+      "max_world_vertex_error_m": 2.220446049250313e-16
+    },
+    {
+      "yaw_rad": 0.3,
+      "shape": "costmap64",
+      "max_world_vertex_error_m": 4.440892098500626e-16
+    },
+    {
+      "yaw_rad": 1.2,
+      "shape": "TEB16",
+      "max_world_vertex_error_m": 2.220446049250313e-16
+    },
+    {
+      "yaw_rad": 1.2,
+      "shape": "costmap64",
+      "max_world_vertex_error_m": 4.965068306494546e-16
+    },
+    {
+      "yaw_rad": -2.0,
+      "shape": "TEB16",
+      "max_world_vertex_error_m": 4.577566798522237e-16
+    },
+    {
+      "yaw_rad": -2.0,
+      "shape": "costmap64",
+      "max_world_vertex_error_m": 4.965068306494546e-16
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "schema": "astra_baseline_rear_axle_b02_independent_review_v1",
+  "status": "independent_B02_pure_reference_component_review_pass_integration_pending",
+  "independent_review": true,
+  "reviewed_source_sha256": "13b72ac9f159d68f3e2f58cab185b5d6620e936d723b03c5946e712d0e819a92",
+  "checks": {
+    "16_author_and_diagnostic_bindings_match": true,
+    "author32_and_independent17_tests_pass": true,
+    "complete_rigid_pose_point_twist_reference_math": true,
+    "actual_rear_lateral_residual_not_zeroed": true,
+    "6x6_parent_smallrotation_pose_covariance_Jacobian_finite_difference": true,
+    "6x6_body_twist_covariance_correlations_preserved": true,
+    "wrong_covariance_conventions_nonfinite_nonPSD_rejected": true,
+    "actual16_64_64_footprints_exact_in_planar_case": true,
+    "pitch_nonzero_2D_worldpolygon_difference_retained": true,
+    "source_receipt_availability_preserved_and_future_use_rejected": true,
+    "route_all_oriented_poses_goal_and_GetPlan_semantics_roundtrip": true,
+    "orientation_kink_rear_position_jump_not_smoothed_or_qualified": true,
+    "same_radius_rear_goal_not_false_base_success": true,
+    "no_ROS_runtime_config_currentN04_changes": true
+  },
+  "check_count": 14,
+  "author_tests_passed": 32,
+  "independent_tests_passed": 17,
+  "conclusion": "No blocking defect found in the bounded pure reference conversion component. Complete rigid point/twist and declared covariance math pass independent checks. Two-dimensional costmap tilt equivalence and planner-internal stopping remain unqualified, material integration conditions; no live readiness is inferred.",
+  "verified_math": {
+    "offset_body_m": [
+      -0.325,
+      0,
+      0
+    ],
+    "pose": "p_R=p_B+R_B r; same orientation",
+    "twist": "v_R^B=v_B^B+omega^B cross r; angular unchanged",
+    "pose_covariance": "First-order J=[I,-skew(Rr);0,I] for parent-axis position/fixed-axis small-rotation perturbations only. Independently differentiated with Rodrigues rotation matrices.",
+    "twist_covariance": "Exact linear J=[I,-skew(r);0,I] for body-axis linear/angular velocity; independent correlated noise-column crossproduct propagation.",
+    "footprint": "All existing16/64/64 vertices translated x+.325 without hull/padding/omission. Exact sameworldpoint inSE2. Full3D points andsensorlocations exact underfulltilt."
+  },
+  "retained_counterexamples": {
+    "pitch_rad": 0.05,
+    "yaw_only_costmap_shift_m": 0.0004061653716359581,
+    "rear_goal_xy_error_m": 0.24,
+    "rear_goal_yaw_error_rad": 0.2,
+    "resulting_actual_base_goal_error_m": 0.3048917208204383,
+    "base_gate_xy_tolerance_m": 0.25,
+    "interpretation": "These are synthetic mathcounterexamples, notsimulation. Do not erase withrounding ordeclarefullplanarpolygon equivalence underactualpitch. Do notchange originalgoal gate."
+  },
+  "boundaries": [
+    "Pure adapt_odometry checks availability, not freshness/order/clockreset: stale sample remainsstale andsource unchanged. Caller mustretain unchanged200ms/no-zero/exactTF sourcehealth semantics.",
+    "geometry.Pose3 normalizes inputquaternions upstream. Future raw-message adapter mustvalidate rawmeasuredquaternion/finite pose beforeconstructing, retaining originalraw; this component pass is notinputintegrityproof.",
+    "Covariance coordinateconvention mustmatch actualsource provenance; a token/default alone is notmeasurement qualification. Physical P05 allzero covariance isunreported uncertainty, notexactstate confidence.",
+    "Samephysicalorientedroute configurations do notimply identicalchord interpolation, pathcosts orAckermannfeasibility; headingkinks move rearXY and remainvisible.",
+    "Changing odom_topic alone or frame alone isincomplete; changing2Dfootprint alone undertilt cannotprove sameworldgeometry.",
+    "Source ageandfull3D covariance arepreserved butpure component doesnotprovide ROS serialization, sensorgraph, TFownership oractualplannerintegration."
+  ],
+  "required_future_integration": [
+    "Newmethodidentity andnewrelease; keep currentN04, oldB01coarseconfig/algorithms, P05physicsdriver and originalresults unchanged.",
+    "One staticbase_link->rear_axle_plan_b02 owner, noadditionalodom->rear parent; preserve originalauthority odom->base andsharedcoordinator readingbase.",
+    "Both TEB/DWA actual odom_topic andboth costmap robot_base_frame usealignedrear convention; actual sensorTF/scan mustremainunchanged sourcegeometry.",
+    "Translate entireexistingfootprints with unchanged.33semantics, then independentlyquantify existingtilt-envelope coverage versus actual2Dcostmapshift; noquietpadding/marginrelax.",
+    "Routeprovider shim inverseconverts bothstart andgoal withownyaw, andconverts allreturnedorientedposes; preserve fixedbaseguide andexplicitfinalyaw. Checkactualserved/global/localpaths.",
+    "Retain authoritativebasegoal predicate. Explicitly designandqualify plannerinternalgoal stopping so rearball doesnotstopoutsidebaseball; noautomatic adoption oftheoreticalsmaller radius.",
+    "Fresh boundedturning/transient qualification records base/rear actualstate andfullcovariance, sourcejoin, DWA sampling/output, TEB reference andactualexecution; noacc_yincrease orclaimreferenceadaptation aloneenforcescarcurvature/slew."
+  ],
+  "runtime_ready": false,
+  "live_qualified": false,
+  "execution_authorized": false,
+  "simulation_episodes": 0,
+  "training_steps": 0,
+  "commands": [
+    "workspace/.venv/bin/python -m pytest -q -p no:cacheprovider workspace/scripts/astra_gazebo/tests/test_baseline_rear_axle_adapter_b02.py",
+    "workspace/.venv/bin/python -m pytest -q -p no:cacheprovider audits/baseline_rear_axle_b02_independent/test_b02_independent.py"
+  ],
+  "resources": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/baseline_rear_axle_adapter_b02.py",
+      "sha256": "13b72ac9f159d68f3e2f58cab185b5d6620e936d723b03c5946e712d0e819a92"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_baseline_rear_axle_adapter_b02.py",
+      "sha256": "91820b2f27228243491b44f57b26fe95e52ff84296b4a3e9566faa71073ae461"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02/tests.log",
+      "sha256": "37507b3db7bcc9d7040eb3c1d3f8ab6a5ae683fd00fc5d8e7bcfe83d0d19ddac"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02/API_and_design.md",
+      "sha256": "8e4c657d03fb7a179ba4943e5f1e99d807ddbb8edf43005f0c53090d23b05394"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/axle_reference_adapter.py",
+      "sha256": "5e2332c6cd095d20fe76593aacfbc60f0eef90aaec4c45fd7e2a1f1b9cb5b407"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/geometry.py",
+      "sha256": "8b59f4580cbf867a6f694e047d0a12d8e2d48b88c4a04b1e8fb80c1c1df3fbcf"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_world_adapter.py",
+      "sha256": "7358277f1f09680635efedd4bfff0c4eba1c32634e80bffabd54fdee5cbd5edb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/common_route.py",
+      "sha256": "6a270374f7d33d584be86a598caf21fa96dbdf1409b862d0e41a6cf7deb8543f"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_common_route_provider.py",
+      "sha256": "8cb5d7927b4f9585d1818217983de407efc76571107d52fd8f76dd0197e0782c"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_common_route_global_planner.cpp",
+      "sha256": "2a9a4b6d27e4a7ba27a961f96e2457df23335486d2675f01b382c4b2307bafe9"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/src/astra_physical_ackermann_p05_plugin.cpp",
+      "sha256": "f7c6cdcd8a023d9fb1c6e46413b2379efcb7361a8e91f948feafcf222ab0e255"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_navigation_common_footprint.yaml",
+      "sha256": "07635c6f571ca460eafe38cb893cc33f2a32008697f31192150485de2a49a01e"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/astra_common_map_route.yaml",
+      "sha256": "ba342dcfbaef35c855826d96f55ea7eaf66c9c0f34c587a7b04aeafb5d69c8b7"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_teb_v0.yaml",
+      "sha256": "ce9fd94f306a86fe821f9c4732cb0894b8974cf39e45ecf6ab573f72b7e04606"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/config/benchmark_dwa_nonholonomic_r1.yaml",
+      "sha256": "9624d5a0c331d218909fc325fd467c42a202f40dc672935ad0daecd30fdd3cab"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_tuning_b01/reference_frame_addendum/report.json",
+      "sha256": "8f6aedd635999c81b5b24dec6304731c5b958d4ec1741068f10f72ac08cb150d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02/implementation_report.json",
+      "sha256": "f0d65ae292e28c53b8bb718541dda3599332bdf7e6dbd569f8370005fc7386e3"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02_independent/author_tests_replay.log",
+      "sha256": "9c0c3d9602528dff83c20495dfb12ed891f4fdaf33b185323588bc9a8ba81b78"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02_independent/independent_tests_r01.log",
+      "sha256": "82bb47b0c9b8594021ca290501813eef8bb0d16e9eea7ecaad43392ace6784f6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02_independent/test_b02_independent.py",
+      "sha256": "f003bc35852dfec17b422c13081e29fe703571f0d1b76fed059c54438a66b7f2"
+    },
+    {
+      "path": "artifacts/astra_gazebo_20260926/audits/baseline_rear_axle_b02_independent/write_review.py",
+      "sha256": "6d2d179c6597848c3272fb3f63545fe9ff91d2e7833b84a0975ac4e68df5c714"
+    }
+  ]
+}

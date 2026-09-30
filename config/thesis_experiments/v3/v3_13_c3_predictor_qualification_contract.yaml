@@ -1,0 +1,50 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-C3
+stage_purpose: fresh_seed_multiscene_multiactor_predictor_qualification
+status: preregistered_before_fresh_execution
+upstream:
+  scene_contract_path: config/thesis_experiments/v3/v3_13_c1_multiactor_clone_contract.yaml
+  scene_contract_sha256: 6a4aa17f5278e43d65cde29556bfe398dec279e1f914d7a7c6183b7bdef6d021
+  predictor_path: artifacts/v3/multiactor/v3_13_c2_predictor/candidate_conditioned_predictor.yaml
+  predictor_sha256: 53a23d292118021d2d70f46f3083acb5ab8632a034b4ba86a90f02362abe6c95
+  predictor_review_sha256: 03160d4af7995281bc4f20cee1c26b605ce7de9c8a6b308e414274aae901df1e
+qualification_population:
+  seeds: [7201, 7202, 7203, 7204, 7205, 7206, 7207, 7208, 7209, 7210, 7211, 7212, 7213, 7214, 7215, 7216]
+  scene_families: 4
+  actor_policy_pairs: 4
+  paired_blocks: 16
+  actions_per_block: 4
+  exact_units: 64
+  actions: [spatial_left_v120, spatial_right_v120, straight_v120, certified_stop_v000]
+  behavior_propensity_each: 0.25
+  attempts_per_identity: 1
+  action_order_counterbalanced: true
+  retry_resume_replacement_or_selective_exclusion_authorized: false
+  seed_overlap_with_v3_11_or_c1: false
+fresh_qualification_gates:
+  completed_units_exact: 64
+  complete_action_support_rate_min: 1.0
+  minimum_behavior_propensity: 0.25
+  global_simultaneous_trajectory_coverage_min: 0.90
+  every_scene_family_simultaneous_coverage_min: 0.85
+  mean_trajectory_rmse_m_max: 0.25
+  maximum_trajectory_rmse_m_max: 0.65
+  all_finite_tracks_required: true
+  common_gate_valid_rate_min: 1.0
+  paired_gate_ego_position_difference_max_m: 0.04
+  paired_gate_actor_coordinate_difference_max_m: 0.05
+  paired_gate_actor_speed_difference_max_mps: 0.05
+downstream:
+  if_passes: predictor_is_qualified_for_a_new_actual_TEB_multiactor_qualification_release
+  policy_or_ranker_training_authorized: false
+  perception_claim_authorized: false
+  performance_claim_authorized: false
+authority:
+  exact_bounded_fresh_simulation_authorized: true
+  authorized_units: 64
+  training_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+

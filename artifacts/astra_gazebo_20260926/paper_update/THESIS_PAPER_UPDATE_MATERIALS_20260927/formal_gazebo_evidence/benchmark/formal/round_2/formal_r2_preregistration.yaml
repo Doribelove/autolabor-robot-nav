@@ -1,0 +1,76 @@
+schema_version: '1.0'
+stage: formal_round_2
+status: preregistered_before_formal_r2_outcome_access
+simulation_only: true
+independent_from_formal_round_1: true
+blocks: 200
+episodes: 800
+seed_range:
+- 198001
+- 198200
+scene_allocation:
+  core_static_avoidance: 34
+  core_single_crossing: 34
+  core_head_on_yield: 33
+  core_sequential_interaction: 33
+  core_partially_occluded: 33
+  core_width_change: 33
+methods:
+- pct_scope_rl
+- analytic_prior
+- actual_teb
+- dwa
+candidate_contract_variant: r2_candidate_v060
+single_change_from_r1: actions_4_5_target_speed_0.4_to_0.6_mps
+unchanged_actor_sha256: deaf8b9fce438d304bd45c261ff1fa6315ff04aaaa52a36b5974db2ca1d8c6b8
+traditional_planner_configs_unchanged: true
+primary_unit: paired_seed_scene_block
+primary_metric: failure_inclusive_restricted_time_s
+primary_comparisons:
+- pct_scope_rl_vs_actual_teb
+- pct_scope_rl_vs_dwa
+primary_estimator: (mean_baseline_minus_mean_pct)/mean_baseline
+multiplicity:
+  method: two_sided_97_5_percent_paired_block_bootstrap_for_each_of_two_locked_primary_comparisons
+  bootstrap_samples: 200000
+  bootstrap_seeds:
+    actual_teb: 20261991
+    dwa: 20261992
+  confidence_quantiles:
+  - 0.0125
+  - 0.9875
+positive_gate_per_comparator:
+  minimum_relative_time_reduction: 0.08
+  bootstrap_lower_bound_strictly_greater_than: 0.0
+  pct_completion_rate_difference_percentage_points_minimum: -5.0
+  pct_contact_count_not_higher_than_comparator: true
+  pct_mask_violation_count_maximum: 0
+  finite_statistics_required: true
+program_success_rule: all integrity gates plus positive_gate for at least one locked
+  traditional comparator
+failure_accounting:
+  success: measured_gate_to_goal_time
+  timeout_contact_nonarrival_method_system_failure: 22.0
+  infrastructure_failure: retained_and_reported_with_22_second_primary_penalty
+  retry: none
+  replacement_seed: forbidden
+secondary_analyses:
+- analytic_prior_comparison
+- scene_strata
+- completion_contact_clearance
+- candidate_switch_stop_recovery_tracking_latency
+- failure_case_inventory
+secondary_claim_status: descriptive_unless_separately_gated
+sample_size_basis:
+  pilot_assessment_path: artifacts/gazebo_pct_teb_dwa_benchmark/pilot/pilot_r2/pilot_r2_assessment.json
+  pilot_assessment_sha256: cc90d51f584055c1e2a5fa7e73c42dab3eaa8a250ab92c686b9e347edd7f75c3
+  selected_blocks: 200
+  dwa_required_blocks: 199
+  teb_required_blocks: 228
+  teb_underpowered_within_200_block_cap: true
+schedule_path: artifacts/gazebo_pct_teb_dwa_benchmark/formal/round_2/formal_r2_schedule.csv
+schedule_sha256: 9b83713ee4fabbd86e9009a2c7b6bb89f533142824b5c1f24820d55cae2b065c
+all_development_pilot_r1_formal_r1_seeds_excluded: true
+tuning_from_formal_outcomes: forbidden
+hardware_authorized: false
+real_vehicle_authorized: false

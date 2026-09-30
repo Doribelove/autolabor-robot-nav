@@ -1,0 +1,59 @@
+schema_version: '1.0'
+stage: V6-06-P1
+status: current_thesis_claims_freeze
+thesis_core_claim:
+  status: qualified
+  text_zh: PCT 特权反事实候选排序蒸馏在冻结四类传感器级快速总体中相对解析先验降低失效计入均时 8.4024%。
+  point_percent: 8.402444
+  two_sided_97_5_percent_interval:
+  - 3.484003
+  - 13.713459
+  scope: four_frozen_sensor_level_fast_interaction_families
+claims:
+- id: v3_historical_teb
+  status: qualified_historical
+  value: 12.9288%, lower 12.7253%
+  boundary: V3-11 only; three frozen single-actor Gazebo templates; shared oracle
+    track
+- id: v3_fresh_teb
+  status: not_demonstrated
+  value: -0.1931%, 95% CI [-19.8668%,12.9820%]
+  boundary: V3-21 failure-inclusive characterization
+- id: v5_learning
+  status: negative_practical_gate
+  value: 6.0936%
+  boundary: positive interval but below frozen 8% gate
+- id: v6_learning
+  status: qualified
+  value: 8.402444%, 97.5% CI [3.484003%,13.713459%]
+  boundary: fast sensor-level population only
+- id: v6_vs_v5
+  status: qualified_secondary
+  value: 3.161052%, 95% CI [0.493580%,6.576508%]
+  boundary: same formal population
+- id: v6_history
+  status: not_demonstrated
+  value: exact tie
+  boundary: V6 versus V6 no-history
+- id: v6_gazebo
+  status: not_demonstrated
+  value: three failed preflights
+  boundary: no qualification or formal matrix
+- id: real_vehicle
+  status: pending_no_evidence
+  value: null
+  boundary: placeholder only
+forbidden_claims:
+- general superiority over TEB
+- V6 Gazebo effectiveness
+- formal safety
+- temporal-history benefit
+- multi-actor or OOD generalization
+- deployment readiness
+- real-vehicle effectiveness
+- fabricated real-vehicle values
+upstream_checks:
+  v5_formal_status: v5_03_f1_fast_formal_negative
+  v6_formal_status: v6_02_f1_fresh_formal_positive
+  v6_method_effectiveness_demonstrated: true
+  v6_real_vehicle_authorized: false

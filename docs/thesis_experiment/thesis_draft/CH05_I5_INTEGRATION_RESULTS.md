@@ -96,7 +96,7 @@ I5 使用唯一 release，其 SHA-256 为：
 
 预期/观察 TTC 状态在全部六行一致，`semantic_schedule_pass=true`。单冲突和多冲突两对中，两种语义均观察到有限 TTC；这说明 circle-contact 没有在所选真实冲突角色中丢失预期状态。semantic-clear 配对中，两种实现均没有有限 TTC，但 legacy control 仍生成 18 个非 `NONE` overlay，而 circle-contact 为 0。该差异展示了两种语义在无 horizon 内接触时的可辨识性。
 
-不能直接用表中的 25 对 19、30 对 19 计算性能改善。不同 episode 的采样时长和消息数不同，这些是 episode 内相关的语义事件，不是独立样本。唯一合法的统计单位是未来实验中的 scene-seed block。
+不能直接用表中的 25 对 19、30 对 19 计算性能改善。不同 episode 的采样时长和消息数不同，这些是 episode 内相关的语义事件，不是独立样本。后续 P1 采用的合法统计单位是 scene-seed block，而不是这些高频消息。
 
 ## 5.5 确定性重放
 
@@ -165,7 +165,7 @@ I5 的证据解释必须连同先前阶段报告：
 
 这条链显示，实验失败既可能来自语义设计，也可能来自执行基础设施。保留两类失败使最终成功的适用范围更清晰：I5 证明修复后的链能工作，不证明早期假设或性能目标自动成立。
 
-## 5.8 对最终性能实验的启示
+## 5.8 对 P1 正式性能实验的约束与后续结果
 
 I5 给最后一轮性能研究提供了三个设计约束，但不提供效应量：
 
@@ -173,7 +173,7 @@ I5 给最后一轮性能研究提供了三个设计约束，但不提供效应�
 2. single- 和 multi-conflict 场景必须作为安全保持条件，防止减少触发只是漏检真实冲突；
 3. 结果必须以 scene-seed block 配对，而不能以高频 TTC 样本数扩大名义样本量。
 
-未来设计固定 3 个 scene role、每个 30 个全新 block，共 90 个 block。每个 block 运行 circle-contact、legacy control 和固定 TEB reference，共 270 个 episode；主确认性对比使用 circle-contact 与 legacy control 的 180 个 episode。新增训练步数为 0。
+P1 随后按这些约束固定 3 个 scene role、每个 30 个全新 block，共 90 个 block。每个 block 运行 circle-contact、legacy control 和固定 TEB reference，共 270 个 episode；主确认性对比使用 circle-contact 与 legacy control 的 180 个 episode。新增训练步数为 0。
 
 主性能量为带失败/超时惩罚的受限完成时间。只有以下门同时通过，论文才可在限定的新鲜模拟分布上宣称性能提升：
 
@@ -184,7 +184,7 @@ I5 给最后一轮性能研究提供了三个设计约束，但不提供效应�
 
 成功/碰撞二元门在 90 个 block 上按 scene role 分层后汇总，并增加逐 role 的有害不一致方向保护；零 harmful discordance 时单侧精确上界约为 3.28%。真实冲突保持还单独覆盖 60 个 single/multi-conflict block，其零 harmful discordance 上界约为 4.87%。这使 5 percentage-point 非劣 margin 在极低伤害差异下具有可检验性，同时不允许某个场景角色的伤害被总平均掩盖。
 
-如果任一门失败，结果应写为“未证实性能提升”或“存在安全/效率权衡”。不能因论文目标而重试失败 block、替换 seed、改变主指标或扩大样本量。
+P1 最终完成 270/270，完整性、安全/任务非劣和机制门通过；效率估计下降 3.762%，单侧 95% 下界为 2.790%，调整后 $p\approx10^{-5}$，但点估计低于预注册 5% 最小效应量。因此效率门失败，正式结论为“未证实性能提升”。没有重试 block、替换 seed、改变主指标或扩大样本量。完整 P1 结果见第 6 章。
 
 ## 5.9 有效性限制
 
@@ -199,4 +199,4 @@ I5 的主要限制包括：
 
 ## 5.10 本章小结
 
-I5 在全新 seeds 5161--5163 上完成 6/6 个预注册模拟集成单元，无重试、续跑、作废预算或完整性失败。两种 TTC 语义在 single conflict、multi conflict 和 semantic-clear 三类场景中的观察状态与预期全部一致，且六个 journal 和 36 项原始资源可被确定性重放。该结果建立了语义/执行集成证据，同时明确保留性能结论为空。性能提升须由后续全新 multi-seed 配对统计实验独立检验。
+I5 在全新 seeds 5161--5163 上完成 6/6 个预注册模拟集成单元，无重试、续跑、作废预算或完整性失败。两种 TTC 语义在 single conflict、multi conflict 和 semantic-clear 三类场景中的观察状态与预期全部一致，且六个 journal 和 36 项原始资源可被确定性重放。该结果建立了语义/执行集成证据，但本身不具备性能效力。后续 P1 已独立完成 multi-seed 配对检验，并因效率点估计未达到 5% 门而没有证明性能提升；I5 的集成结论与 P1 的正式阴性性能结论应同时保留。

@@ -1,0 +1,43 @@
+{
+  "schema": "astra_n06_candidate_roster_independent_negative_v1",
+  "status": "blocked_missing_active_native_source_and_xacro_build_context",
+  "independent_review": true,
+  "candidate_roster": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_candidate_roster_r05_r02/resources.json",
+    "sha256": "232b9352ea34474c5179ffdee3304a651d0eba96031b2cb823277f0f264855c9"
+  },
+  "existing_resource_hashes_passed": 5656,
+  "existing_source_config_hashes_passed": 2456,
+  "missing_count": 8,
+  "missing": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_source_lifecycle_independent/candidate_r02_missing_resources.json",
+    "sha256": "0d5a33f93d27cea3f890345dada80bdc79eff020dcea71ace76e827c0e2f2bc0"
+  },
+  "counterexample": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_source_lifecycle_independent/candidate_r02_counterexample.json",
+    "sha256": "a3bed43edb1c291dd4ab2f65d08e7290330c60d3198aadc06e527f8b58981909"
+  },
+  "counterexample_script": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_source_lifecycle_independent/reproduce_candidate_r02_missing.py",
+    "sha256": "90dccb6bca2d08cffad7bbdb23e362af386e08e2a206adc706edc49b7f4d345b"
+  },
+  "counterexample_log": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_source_lifecycle_independent/candidate_r02_counterexample.log",
+    "sha256": "a3bed43edb1c291dd4ab2f65d08e7290330c60d3198aadc06e527f8b58981909"
+  },
+  "failed_full_check_source": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_source_lifecycle_independent/review_final_r01.py",
+    "sha256": "7f7bd87a48ccc8a24d098cf6a1b22795c0692ef14a3c9cd2e7a2fa6b7f4648f0"
+  },
+  "failed_full_check_log": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/navigation_n06_source_lifecycle_independent/review_final_r01_attempt01.log",
+    "sha256": "0c0e510f63732495531feca05213201829a9ab74e7c2fa61175cf5478d263a31"
+  },
+  "diagnosis": "The actual closure.archived_source function rejects both mandatory driver/evidence C++ paths before archive. Canonical frozen runtime ELF alone does not satisfy the run closure source binding. This is a real roster omission, not a test-harness error.",
+  "repair": "Preserve r02. New roster exact union with the eight unchanged path+SHA entries, preserving old registry snapshot and all other fields except identity/count/source-config roster. Re-run final source review before any release.",
+  "source_review_written": false,
+  "release_created": false,
+  "ROS_started": false,
+  "seeds_registered": 0,
+  "real_CSV_modified": false
+}

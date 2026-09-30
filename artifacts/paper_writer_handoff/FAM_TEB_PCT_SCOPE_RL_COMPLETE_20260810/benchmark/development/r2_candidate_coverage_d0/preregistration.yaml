@@ -1,0 +1,35 @@
+schema_version: "1.0"
+stage: PCT-BENCH-R2-D0
+registered_before_execution: true
+registered_seed_range: [196201, 196212]
+formal_round_2_seeds_prohibited: [198001, 198200]
+hypothesis: >-
+  Replacing only the two 0.4 m/s spatial candidates with 0.6 m/s candidates fills
+  the R1 0.4-to-1.2 m/s support gap, reducing static-scene restricted time without
+  weakening the verifier or materially degrading dynamic scenes.
+design:
+  paired_blocks: 12
+  scenes: [core_static_avoidance, core_single_crossing, core_head_on_yield,
+    core_sequential_interaction, core_partially_occluded, core_width_change]
+  repetitions_per_scene: 2
+  variants: [r1_control_v040, r2_candidate_v060]
+  methods: [pct_scope_rl]
+  attempt: 1
+  retry: forbidden
+  failure_inclusive_cap_s: 22.0
+decision_gates:
+  treatment_contact_count_maximum: 0
+  treatment_mask_violation_count_maximum: 0
+  treatment_minimum_conservative_clearance_m_minimum: 0.0
+  treatment_completion_difference_minimum: 0
+  overall_mean_restricted_time_improvement_s_minimum: 0.25
+  static_mean_restricted_time_improvement_s_minimum: 1.0
+  dynamic_mean_restricted_time_worsening_s_maximum: 0.25
+  rule: all_gates_required_to_promote
+analysis:
+  primary_unit: paired_seed_scene_block
+  static_scene: core_static_avoidance
+  dynamic_scenes: [core_single_crossing, core_head_on_yield,
+    core_sequential_interaction, core_partially_occluded]
+  width_change_reported_but_not_in_dynamic_noninferiority_gate: true
+claim_boundary: development_only_no_formal_or_superiority_claim

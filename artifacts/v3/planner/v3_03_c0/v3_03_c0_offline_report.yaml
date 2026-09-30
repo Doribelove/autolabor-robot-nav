@@ -1,0 +1,92 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-03-C0
+report_id: v3_03_c0_offline_report_1
+status: v3_03_c0_closed_loop_recovery_offline_pass
+formal_result: false
+metrics:
+  combined_footprint_and_margin_radius_m: 1.1408420881536134
+  minimum_cleared_geometric_margin_m: 0.1277429499073628
+  cleared_fixture_count: 9
+  cleared_motion_selection_rate: 1.0
+  missing_certificate_stop_rate: 1.0
+  preclear_conflict_stop_rate: 1.0
+  variable_initial_speed_stop_valid_rate: 1.0
+  deterministic_replay_rate: 1.0
+gates:
+  cleared_geometry_pass: true
+  cleared_motion_selection_pass: true
+  missing_certificate_stop_pass: true
+  preclear_conflict_stop_pass: true
+  variable_initial_speed_stop_valid_pass: true
+  deterministic_replay_pass: true
+overall_pass: true
+cleared_fixtures:
+- angle_deg: 70.0
+  ego_x_m: -2.2
+  ego_speed_mps: 0.0
+  selected_candidate_id: feasible_v120
+  motion_selected: true
+  deterministic: true
+- angle_deg: 70.0
+  ego_x_m: -0.5
+  ego_speed_mps: 0.8
+  selected_candidate_id: feasible_v120
+  motion_selected: true
+  deterministic: true
+- angle_deg: 70.0
+  ego_x_m: 0.2
+  ego_speed_mps: 1.2
+  selected_candidate_id: feasible_v120
+  motion_selected: true
+  deterministic: true
+- angle_deg: 90.0
+  ego_x_m: -2.2
+  ego_speed_mps: 0.0
+  selected_candidate_id: feasible_v120
+  motion_selected: true
+  deterministic: true
+- angle_deg: 90.0
+  ego_x_m: -0.5
+  ego_speed_mps: 0.8
+  selected_candidate_id: feasible_v120
+  motion_selected: true
+  deterministic: true
+- angle_deg: 90.0
+  ego_x_m: 0.2
+  ego_speed_mps: 1.2
+  selected_candidate_id: feasible_v120
+  motion_selected: true
+  deterministic: true
+- angle_deg: 110.0
+  ego_x_m: -2.2
+  ego_speed_mps: 0.0
+  selected_candidate_id: feasible_v120
+  motion_selected: true
+  deterministic: true
+- angle_deg: 110.0
+  ego_x_m: -0.5
+  ego_speed_mps: 0.8
+  selected_candidate_id: feasible_v120
+  motion_selected: true
+  deterministic: true
+- angle_deg: 110.0
+  ego_x_m: 0.2
+  ego_speed_mps: 1.2
+  selected_candidate_id: feasible_v120
+  motion_selected: true
+  deterministic: true
+claim:
+  offline_yield_and_recovery_logic_pass: true
+  segmented_gazebo_integration: false
+  navigation_safety: false
+  performance_improvement: false
+  real_vehicle_ready: false
+authority:
+  simulation_authorized: false
+  execution_authorized: false
+  training_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_modification_authorized: false

@@ -1,0 +1,51 @@
+schema_version: "1.0"
+stage: V5-03-F1
+date: "2026-08-08"
+status: preregistered_conditional_fast_formal
+
+entry_gate:
+  required_status: v5_02_r1_training_validation_gate_pass
+  fast_formal_seed_access_only_after_gate: true
+
+population:
+  seeds_inclusive: [930100, 930159]
+  paired_blocks: 60
+  family_assignment: block_index_modulo_4
+  maximum_episode_time_s: 20.0
+  failures_assigned_maximum_time: true
+
+methods:
+  primary_baseline: sensor_analytic_prior
+  primary_treatment: full_advantage_gated_v5
+  comparators:
+    - symmetric_recurrent_masked_ppo
+    - asymmetric_residual_masked_ppo
+  ablations:
+    - no_scan_history
+    - no_privileged_critic
+    - no_analytic_prior
+    - no_advantage_gate
+  training_policy_mapping: block_index_modulo_available_selected_seed_checkpoints
+
+statistics:
+  primary_estimand: >-
+    one minus treatment mean failure-inclusive restricted time divided by
+    baseline mean failure-inclusive restricted time
+  paired_bootstrap:
+    resamples: 20000
+    random_seed: 50321
+    interval: two_sided_percentile_95
+  positive_gate:
+    relative_reduction_minimum: 0.08
+    bootstrap_lower_strictly_greater_than: 0.0
+    goal_success_noninferior: true
+    contact_count_maximum: 0
+    mask_violation_count_maximum: 0
+  ablations_are_exploratory: true
+
+authority:
+  execution_authorized_only_by_passing_validation_report: true
+  gazebo_authorized_by_this_contract: false
+  real_vehicle_authorized: false
+  online_teb_write_authorized: false
+

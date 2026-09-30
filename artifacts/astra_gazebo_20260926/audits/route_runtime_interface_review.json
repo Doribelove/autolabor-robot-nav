@@ -1,0 +1,352 @@
+{
+  "status": "offline_route_runtime_components_pass_live_integration_pending",
+  "independent_review": false,
+  "tests": {
+    "author_tests_passed": 43,
+    "transport": "real generated ROS messages, fake transport/clock/TF only",
+    "ros_started": false,
+    "training_steps": 0,
+    "experiment_units": 0
+  },
+  "source_files": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_candidate_core.py",
+      "sha256": "6f5756b15236a5b1ca0b25e291369173ca8ccd1eb5b9e6064c7d9d1fbed0e2e6"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_sensor_buffer.py",
+      "sha256": "9822620f0d83f0e203644ba928bc0483e66505f75424e05514119115feb6c812"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/route_actor_adapter.py",
+      "sha256": "796f41d8e33138b985ce1d3224a60d12adbb5f3132de4d91922a273edd3ef3fd"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/audit_route_runtime.py",
+      "sha256": "c84bdc7f745997cc5fb47312a83c1e6e9b20de51244c35c2f112515c21c5d968"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/scripts/astra_gazebo/tests/test_route_runtime_core.py",
+      "sha256": "34059bda6b90dd1875bf316d1553ef7f5d75192cf51d6217f0a522c9537a5640"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_route_runtime.py",
+      "sha256": "23f35c1d9092954ab1d8f75713e8a2c74adc1272380c85662ece6b65e9e608c6"
+    }
+  ],
+  "method_ids": [
+    "astra_analytic_route_v1",
+    "astra_pct_route_v1"
+  ],
+  "frozen_R2_modified": false,
+  "frozen_R2_is_this_method": false,
+  "required_parameters": [
+    "run_id",
+    "seed",
+    "method",
+    "bundle",
+    "bundle_sha256"
+  ],
+  "optional_parameter": {
+    "maximum_episode_duration_s": 22.0
+  },
+  "pct_additional_parameters": [
+    "checkpoint_metadata",
+    "checkpoint_metadata_sha256"
+  ],
+  "observation_schema": "astra_route_observation_v1",
+  "checkpoint_format": "astra_route_sensor_actor_v1",
+  "feature_shapes": {
+    "scans": [
+      6,
+      72
+    ],
+    "robot": [
+      10
+    ],
+    "candidates": [
+      8,
+      7
+    ],
+    "analytic_prior": [
+      8
+    ],
+    "action_mask": [
+      8
+    ]
+  },
+  "required_checkpoint_metadata_fields": [
+    "observation_schema",
+    "candidate_semantics_sha256",
+    "same_generator_predictor_verifier_used_in_training",
+    "feature_shapes",
+    "checkpoint_path",
+    "checkpoint_sha256"
+  ],
+  "methods": "analytic runnable component; PCT architecture/artifact interface runnable only with separately trained new-schema checkpoint; none trained or promoted here",
+  "subscribed_topics": [
+    "/scan",
+    "/odom",
+    "/joint_states",
+    "/map",
+    "/astra/common_route/path",
+    "/tf",
+    "/tf_static"
+  ],
+  "published_topics": [
+    "/cmd_vel_navigation",
+    "/astra/route_runtime/identity",
+    "/astra/route_runtime/status",
+    "/astra/route_runtime/trace",
+    "/astra/route_runtime/candidates"
+  ],
+  "trigger_services": [
+    "/astra/route_runtime/start",
+    "/astra/route_runtime/stop"
+  ],
+  "scheduler": {
+    "decision_period_ns": 250000000,
+    "control_period_ns": 50000000,
+    "inference_wall_deadline_ms": 20.0,
+    "transaction_wall_deadline_ms": 50.0,
+    "history_period_ns": 200000000,
+    "history_real_rows": 6,
+    "source_age_ceiling_ns": 200000000
+  },
+  "geometry": {
+    "reference_link": "base_link",
+    "vertices_xy_m": [
+      [
+        0.5580484505080585,
+        0.3575519004060608
+      ],
+      [
+        0.5522694299701707,
+        0.37150369016586227
+      ],
+      [
+        0.47684305152539824,
+        0.4469300686106347
+      ],
+      [
+        0.36355985925398526,
+        0.4938535032383729
+      ],
+      [
+        -0.272107484247291,
+        0.49385350323837296
+      ],
+      [
+        -0.5415600775645184,
+        0.38224258466977534
+      ],
+      [
+        -0.55225819113519,
+        0.3715444710991037
+      ],
+      [
+        -0.5580484505080585,
+        0.3575655483914668
+      ],
+      [
+        -0.5580484505080585,
+        -0.35756554839146626
+      ],
+      [
+        -0.5522581911351897,
+        -0.3715444710991041
+      ],
+      [
+        -0.5415600775645185,
+        -0.3822425846697753
+      ],
+      [
+        -0.2721074842472917,
+        -0.49385350323837285
+      ],
+      [
+        0.3635598592539851,
+        -0.49385350323837296
+      ],
+      [
+        0.4768430515253983,
+        -0.4469300686106346
+      ],
+      [
+        0.5522694299701706,
+        -0.37150369016586243
+      ],
+      [
+        0.5580484505080585,
+        -0.3575519004060608
+      ]
+    ],
+    "steering_envelope": "all front angles via pivot disks plus circumscribed support planes",
+    "roll_pitch_sum_bound_rad": 0.05,
+    "margin_included_in_vertices_m": 0,
+    "runtime_extra_margin_m": 0.33,
+    "component_count": 9,
+    "radius_m": 0.6656082959821225,
+    "sha256": "e74292567b20d32bf0d86e07be3cca9d2d89c4927489670352cb7bc6b08b9ca0",
+    "scope": "conservative static geometry envelope; choose baseline padding once, do not silently double-count .33 margin"
+  },
+  "backend_fixture_identities": {
+    "p02": {
+      "urdf_fixture": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p02_robot_description.xml",
+      "urdf_sha256": "57fea5abe66e046eeb82a9bcd479079fff0688aba67155238a9c3da95fdffa29",
+      "semantics_sha256": "7eaec6054f989836b57150ae3ebd9f2181dec2400961d70145f0f4fd771b6276",
+      "backend": {
+        "library_filename": "libastra_physical_ackermann_p02_plugin.so",
+        "parameters_without_seed": {
+          "wheelbase": "0.65",
+          "track": "0.6",
+          "wheelRadius": "0.15",
+          "maxSpeed": "2.778",
+          "maxSteer": "0.4964",
+          "expectedMass": "79.6",
+          "commandTimeout": "0.5",
+          "publishRate": "50.0",
+          "publishTf": "True",
+          "speedTimeConstant": "0.22",
+          "steeringTimeConstant": "0.18",
+          "maxAcceleration": "0.6",
+          "maxDeceleration": "0.9",
+          "maxBrakeDeceleration": "0.9",
+          "maxEmergencyDeceleration": "0.9",
+          "maxSteeringRate": "0.75",
+          "commandDelay": "0.0",
+          "commandJitter": "0.0",
+          "wheelKp": "4.0",
+          "wheelKi": "2.0",
+          "wheelIntegralTorqueLimit": "1.5",
+          "wheelDriveTorqueLimit": "8.0",
+          "wheelBrakeTorqueLimit": "12.0",
+          "steeringKp": "60.0",
+          "steeringKd": "4.0",
+          "steeringTorqueLimit": "20.0",
+          "wheelJointDamping": "0.05",
+          "wheelJointFriction": "0.01"
+        },
+        "seed": 42,
+        "canonical_urdf_without_episode_identity_sha256": "8a6fd6966b2b4b0cdccfc2828be9cd55cc23eb2b9cad5c6e6476e11bfe2b4d48",
+        "qualification": "pending_external_stage_result_review; interface acceptance is not qualification"
+      }
+    },
+    "p05": {
+      "urdf_fixture": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p05_driver_ingress_implementation/p05_expanded.xml",
+      "urdf_sha256": "d18d0eeb51d92f307e4f2871029267c9ba873a7e181f2a00806a223059bc7d0d",
+      "semantics_sha256": "c0be0896f079ba0605ba6a42ca8ca5af780bf1f9d7729161a6cd434aa1f11ee0",
+      "backend": {
+        "library_filename": "libastra_physical_ackermann_p05_plugin.so",
+        "parameters_without_seed": {
+          "wheelbase": "0.65",
+          "track": "0.6",
+          "wheelRadius": "0.15",
+          "maxSpeed": "2.778",
+          "maxSteer": "0.4964",
+          "expectedMass": "79.6",
+          "commandTimeout": "0.5",
+          "publishRate": "50.0",
+          "publishTf": "True",
+          "speedTimeConstant": "0.22",
+          "steeringTimeConstant": "0.18",
+          "maxAcceleration": "0.6",
+          "maxDeceleration": "0.9",
+          "maxBrakeDeceleration": "0.9",
+          "maxEmergencyDeceleration": "0.9",
+          "maxSteeringRate": "0.75",
+          "commandDelay": "0.0",
+          "commandJitter": "0.0",
+          "wheelKp": "4.0",
+          "wheelKi": "2.0",
+          "wheelIntegralTorqueLimit": "1.5",
+          "wheelDriveTorqueLimit": "8.0",
+          "wheelBrakeTorqueLimit": "12.0",
+          "steeringKp": "60.0",
+          "steeringKd": "4.0",
+          "steeringTorqueLimit": "20.0",
+          "wheelJointDamping": "0.05",
+          "wheelJointFriction": "0.01"
+        },
+        "seed": 42,
+        "canonical_urdf_without_episode_identity_sha256": "000537b95bd13b84b65102b50ad15d8275c8bd60b87eb57018fa7782069b1f80",
+        "qualification": "pending_external_stage_result_review; interface acceptance is not qualification"
+      }
+    }
+  },
+  "backend_acceptance": "P02/P05 explicit filenames; actual full canonical URDF except episode seed/namespace, all controller params and filename bound; physical qualification pending external stage result review",
+  "shared_input": {
+    "provider": "astra_common_route_provider.py",
+    "nav_core_plugin": "astra_common_route/FixedRouteGlobalPlanner",
+    "path_topic": "/astra/common_route/path",
+    "map_topic": "/map",
+    "get_plan_service": "/astra/common_route/get_plan",
+    "reference": "map-frame base_link route and terminal goal; rear offset .325 used only for motion prediction; actual rear vy=base vy-.325*yawrate",
+    "old_068_bundles_preserved": true,
+    "new_1m_guides_adopted": false,
+    "new_1m_guide_count": 6
+  },
+  "component_timing": {
+    "build_p95_ms": 36.8689647,
+    "build_max_ms": 39.668964,
+    "recheck_p95_ms": 2.3971473499999996,
+    "recheck_max_ms": 2.526791
+  },
+  "component_timing_report": {
+    "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_runtime_components_v3/report.json",
+    "sha256": "8827f385470bf38ded66634f136cd46cec5b470c25c96c8ca9abe85c308a3bf0"
+  },
+  "timing_source_note": "Timing/nominal reports precede final P05-identity-only addition. Every non-constructor core method AST is unchanged; below records the exact comparison. No claim of new Gazebo performance.",
+  "final_vs_measured_core_nonconstructor_method_ast_equal": {
+    "__post_init__": true,
+    "at": true,
+    "project": true,
+    "validate_inputs": true,
+    "state": true,
+    "step": true,
+    "rollout": true,
+    "predict": true,
+    "verify": true,
+    "build": true,
+    "select": true,
+    "command": true,
+    "goal_reached": true
+  },
+  "nominal_only_closed_loop": {
+    "all_six_model_goal_checks": true,
+    "report": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/route_runtime_components_v3/nominal_closed_loop.json",
+    "sha256": "2f715be3908a454d51220136b808c3385cf63adc871749c0a18da7d408792e2d",
+    "not_simulator_or_physical_qualification": true
+  },
+  "preserved_negative_diagnostics": [
+    "route_runtime_components_v1: up to71.7ms full build",
+    "route_runtime_components_v2: static detour nominal goal stopped ~.251m away, before inside-ball approach correction"
+  ],
+  "limitations": [
+    "fresh visible point returns and static-map association, not complete-object perception or hidden-actor occupancy",
+    "1.35m/s isotropic scan expansion is explicit bootstrap fallback, not learned candidate-conditioned prediction",
+    "rear bicycle and interpolation envelope are nominal; no ODE continuous safety certificate or calibrated latency/slip/tracking tube",
+    "M08 prediction calibration and conditioned predictor future; new trained ranking checkpoint and learned benefit future",
+    "all six 1m guides are geometric prior only; root must adopt one identical bundle for all four methods after shared-input review",
+    "P05 physical/backend and four-method live integration qualification pending",
+    "NavCore bridge passes fixed full path; actual local-planner setPlan consumption still needs live trace; legacy frozen R2 remains a separate limited-input method"
+  ],
+  "training_runtime_api": [
+    "RouteSensorBuffer.scan/odom/joint/health/model_history",
+    "RouteAwareRuntime.build -> previews/observation/masks",
+    "RouteAwareRuntime.predict/rollout/verify callable by training and runtime",
+    "RouteAwareRuntime.select + command every50ms + prepublish_guard",
+    "package_route_actor and load_route_actor strict new artifacts"
+  ],
+  "dependencies": [
+    "common_route.py",
+    "geometry.py",
+    "axle_reference_adapter.py",
+    "route_world_adapter.py",
+    "NumPy",
+    "SciPy",
+    "Shapely",
+    "ROS rospy/tf2_ros/nav_msgs/sensor_msgs/geometry_msgs/std_msgs/std_srvs/rosgraph",
+    "PCT only: PyTorch plus existing SensorActor architecture source; no existing checkpoint accepted"
+  ]
+}

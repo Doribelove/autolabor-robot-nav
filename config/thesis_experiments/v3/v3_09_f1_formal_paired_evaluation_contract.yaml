@@ -1,0 +1,72 @@
+schema_version: "1.0"
+architecture_generation: v3
+stage: V3-09-F1
+stage_purpose: fresh_formal_spatial_vs_frozen_straight_paired_evaluation
+contract_id: v3_scope_v3_09_f1_formal_paired_evaluation_1
+status: formal_evaluation_preregistered_before_release
+upstream:
+  qualification_terminal_freeze_path: artifacts/v3/qualification/v3_09_q1_r1/v3_09_q1_r1_terminal_freeze.sha256
+  qualification_terminal_freeze_sha256: f72708cc070f02b6e6d00e1001a60e5eba261500602c67cd95f2b299119f679e
+methods:
+  primary: v3_spatial_safe
+  baseline: fixed_v120_shielded
+  baseline_is_actual_teb: false
+  planner_model_bytes_unchanged_from_qualification: true
+fresh_population:
+  seed_start: 6801
+  seed_end: 6830
+  block_count: 30
+  actor_policies_evaluator_only: [cautious, assertive, hesitant]
+  methods: [v3_spatial_safe, fixed_v120_shielded]
+  exact_episodes: 180
+  attempts_per_identity: 1
+  retry_allowed: false
+  resume_allowed: false
+  geometry_derivation:
+    angle_deg: "70.5 + ((block_index * 11) mod 40)"
+    actor_start_distance_m: "2.85 + ((block_index * 7) mod 9) * 0.05"
+    actor_base_speed_mps: "0.90 + ((block_index * 3) mod 5) * 0.05"
+paired_protocol:
+  observation_prefix_s: 0.5
+  replanning_period_s: 0.25
+  spatial_commitment_duration_s: 7.0
+  maximum_episode_duration_s: 12.5
+  maximum_decisions_per_episode: 48
+  goal_x_m: 5.20
+  actor_endpoint_after_conflict_m: 3.5
+formal_statistics:
+  statistical_unit: scenario_seed_block_mean_across_three_actor_policies
+  primary_comparison: v3_spatial_safe_vs_fixed_v120_shielded
+  endpoint: restricted_goal_time_s
+  unsuccessful_episode_value_s: 12.5
+  point_relative_reduction_min: 0.10
+  one_sided_lower_relative_reduction_min: 0.05
+  one_sided_alpha: 0.05
+  bootstrap_resamples: 20000
+  bootstrap_seed: 30909
+  positive_block_fraction_min: 0.80
+formal_gates:
+  complete_episode_count: 180
+  spatial_goal_success_rate_min: 0.95
+  spatial_goal_success_noninferior_to_baseline: true
+  selected_candidate_accepted_rate_min: 1.0
+  certified_stop_available_rate_min: 1.0
+  exact_core_replay_rate_min: 1.0
+  conservative_clearance_violation_count_max: 0
+  receipt_stage_identity_rate_min: 1.0
+  planner_latency_p99_max_ms: 20.0
+  nonfinite_metric_count_max: 0
+authority:
+  simulation_requires_separate_release_and_authorization: true
+  training_authorized: false
+  model_or_gate_write_authorized: false
+  move_base_authorized: false
+  cmd_vel_publish_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+claim_if_all_gates_pass: >-
+  Within the preregistered parameterized reactive-crossing simulator
+  population, the frozen V3 spatial safe planner demonstrates a formal paired
+  restricted-goal-time improvement over the frozen fixed-v1.20 shielded
+  straight baseline while preserving the stated safety and integrity gates.
+  This is not an actual-TEB, deployment, hardware, or general-safety claim.

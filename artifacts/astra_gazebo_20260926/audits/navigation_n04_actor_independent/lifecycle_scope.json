@@ -1,0 +1,14 @@
+{
+  "observed_API": {
+    "path": "/usr/include/gazebo-11/gazebo/common/Event.hh",
+    "sha256": "a6d858ea89e81602e01ff510c80474d0c881544c25917b66f181ac1e0e326a87",
+    "Signal_lines": 271,
+    "Disconnect_lines": 655,
+    "fact": "Disconnect sets on=false and queues erasure; no in-flight callback join."
+  },
+  "original_plugin_risk_scope": "No evidence of an actual UAF in allowed N04 whole-process termination. Runtime delete/reset/plugin unloading is outside stage authority.",
+  "implemented_final_guard": "Begin lambda captures shared Lifecycle, locks mutex and dereferences owner only if nonnull; destructor locks same guard, nulls owner before disconnect, then disables own ROS queue and joins own worker.",
+  "offline_fixture": "test_lifecycle.cpp synthetic entered-update/destruction waiting and retained lambda after destruction,20 repeats/40checks; not a Gazebo shutdown experiment.",
+  "gate_state_lock_order": "Begin owns Lifecycle then transient callback mutex; ROS receive owns only callback mutex; destructor waits Lifecycle without owning callback mutex, releases it before joining worker. No inverse nested locking in reviewed code.",
+  "no_ROS_started": true
+}

@@ -1,0 +1,98 @@
+{
+  "schema": "astra_passive_sweep_q03_contract_v1",
+  "stage": "astra_passive_sweep_q03",
+  "run_id": "passive_sweep_q03_static",
+  "seed": 260926027,
+  "attempt": 1,
+  "actor": false,
+  "camera": true,
+  "execution_authorized": false,
+  "retry_allowed": false,
+  "training_authorized": false,
+  "navigation_performance_evidence": false,
+  "real_vehicle_authorized": false,
+  "driver_variant": "physical_p05",
+  "command_time_semantics": "integer schedule on publisher-visible /clock; driver ingress uses Gazebo SimTime and is reported separately",
+  "duration_ns": 10000000000,
+  "physics_step_ns": 2000000,
+  "command_period_ns": 50000000,
+  "wheelbase_m": 0.65,
+  "steering_kd": 6.0,
+  "warmup_ns": 1000000000,
+  "readiness_wall_s": 90.0,
+  "wall_cap_s": 240.0,
+  "clock_stall_wall_s": 5.0,
+  "drain_wall_s": 5.0,
+  "command_max_lateness_ns": 20000000,
+  "maximum_robot_xy_radius_m": 8.0,
+  "phase_schedule": [
+    {
+      "name": "settle",
+      "start_ns": 0,
+      "end_ns": 1000000000,
+      "v_mps": 0.0,
+      "steering_rad": 0.0
+    },
+    {
+      "name": "straight",
+      "start_ns": 1000000000,
+      "end_ns": 3000000000,
+      "v_mps": 0.3,
+      "steering_rad": 0.0
+    },
+    {
+      "name": "left",
+      "start_ns": 3000000000,
+      "end_ns": 5000000000,
+      "v_mps": 0.3,
+      "steering_rad": 0.1
+    },
+    {
+      "name": "right",
+      "start_ns": 5000000000,
+      "end_ns": 7000000000,
+      "v_mps": 0.3,
+      "steering_rad": -0.1
+    },
+    {
+      "name": "straight_exit",
+      "start_ns": 7000000000,
+      "end_ns": 8000000000,
+      "v_mps": 0.3,
+      "steering_rad": 0.0
+    },
+    {
+      "name": "stop",
+      "start_ns": 8000000000,
+      "end_ns": 10000000000,
+      "v_mps": 0.0,
+      "steering_rad": 0.0
+    }
+  ],
+  "required_topics": [
+    "/astra/p03/pre_models",
+    "/astra/p03/pre_links",
+    "/astra/p03/end_models",
+    "/astra/p03/end_links",
+    "/astra/p03/step_status",
+    "/astra/physics_contacts",
+    "/astra/p03/runtime_metadata",
+    "/astra/physics_metadata",
+    "/astra/world_models",
+    "/astra/world_links",
+    "/clock",
+    "/odom",
+    "/joint_states",
+    "/m2_driver/physical_status",
+    "/m2_driver/command_ingress",
+    "/m2_driver/physical_metadata",
+    "/m2_driver/actuator_target",
+    "/m2_driver/actuator_commanded_effort",
+    "/cmd_vel_navigation",
+    "/cmd_vel",
+    "/astra_q03/command_event",
+    "/astra_q03/command_status",
+    "/astra_q03/start_ns"
+  ],
+  "scope": "passive algorithmic sweep/component qualification only; no navigation, learning or real continuous safety claim"
+}

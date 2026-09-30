@@ -1,0 +1,417 @@
+{
+  "status": "formal_window_protocol_subset_pass_original_outcome_preserved",
+  "checks": {
+    "original_frozen_report_replay_exact": true,
+    "source_status_formal_50Hz_exact_ns": true,
+    "source_status_same_formal_ns_as_actual_odom_and_target": true,
+    "source_status_all_no_backend_fault": true,
+    "status_and_event_shared_bag_payload_exact": true,
+    "status_and_event_bag_covers_formal_window": true,
+    "all_ten_body_topic_formal_bag_coverage": true,
+    "every_formal_clock_step_2ms": true,
+    "clock_covers_inclusive_formal_start_and_end": true,
+    "commands_strictly_increasing_source_ns": true,
+    "commands_at_most_one_per_slot": true,
+    "commands_slots_and_source_time_consistent": true,
+    "all_commands_match_integer_phase_and_values": true,
+    "no_source_command_in_integer_loss": true,
+    "no_raw_relay_after_loss_drain_grace": true,
+    "no_bag_navigation_or_relay_after_loss_drain_grace": true,
+    "max_same_phase_command_gap_within_frozen75ms": true,
+    "exactly_one_safe_terminal_zero_at_or_after_end": true,
+    "marker_exact_trigger_identity": true,
+    "source_full_status_sequence": true,
+    "recorder_all26_actual_connections_before_unpause": true,
+    "recorder_all26_topics_present_in_closed_bag": true,
+    "warmup_precedes_running_and_schedule": true,
+    "canonical_frozen_negative_preserved": true
+  },
+  "count": 24,
+  "passed": 24,
+  "run_id": "m12_physics_p03_s009_kd6",
+  "seed": 260926009,
+  "formal_start_ns": 1110000000,
+  "formal_end_ns": 37110000000,
+  "loss_start_ns": 33110000000,
+  "frozen_assessor_checks": 54,
+  "frozen_assessor_pass_count": 51,
+  "frozen_failed_checks": [
+    "links_matches_dense_same_stamp",
+    "actual_joint_positions_agree_with_dense_source_pose",
+    "actual_odom_twist_agrees_with_dense_base_link"
+  ],
+  "phase_counts": [
+    {
+      "phase": "stationary",
+      "start_ns": 1110000000,
+      "end_ns": 3110000000,
+      "commands": 40,
+      "nominal_commands": 40
+    },
+    {
+      "phase": "accelerate",
+      "start_ns": 3110000000,
+      "end_ns": 7110000000,
+      "commands": 80,
+      "nominal_commands": 80
+    },
+    {
+      "phase": "turn_positive",
+      "start_ns": 7110000000,
+      "end_ns": 10110000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "turn_negative",
+      "start_ns": 10110000000,
+      "end_ns": 13110000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "saturation_positive",
+      "start_ns": 13110000000,
+      "end_ns": 16110000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "saturation_negative",
+      "start_ns": 16110000000,
+      "end_ns": 19110000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "zero_speed_yaw",
+      "start_ns": 19110000000,
+      "end_ns": 22110000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "reaccelerate_brake",
+      "start_ns": 22110000000,
+      "end_ns": 26110000000,
+      "commands": 80,
+      "nominal_commands": 80
+    },
+    {
+      "phase": "commanded_brake",
+      "start_ns": 26110000000,
+      "end_ns": 29110000000,
+      "commands": 60,
+      "nominal_commands": 60
+    },
+    {
+      "phase": "reaccelerate_loss",
+      "start_ns": 29110000000,
+      "end_ns": 33110000000,
+      "commands": 80,
+      "nominal_commands": 80
+    },
+    {
+      "phase": "command_loss",
+      "start_ns": 33110000000,
+      "end_ns": 37110000000,
+      "commands": 0,
+      "nominal_commands": 0
+    }
+  ],
+  "formal_source_command_count": 640,
+  "maximum_missed_slots_field": 0,
+  "source_command_gaps_ns": {
+    "count": 639,
+    "minimum": 50000000,
+    "maximum": 50000000
+  },
+  "same_phase_source_command_gaps_ns": {
+    "count": 630,
+    "minimum": 50000000,
+    "maximum": 50000000
+  },
+  "relay_bag_gaps_ns": {
+    "count": 639,
+    "minimum": 48000000,
+    "maximum": 52000000
+  },
+  "event_lateness_ns": {
+    "count": 640,
+    "minimum": 0,
+    "maximum": 0
+  },
+  "source_status_formal_count": 1800,
+  "source_status_formal_gaps_ns": {
+    "count": 1799,
+    "minimum": 20000000,
+    "maximum": 20000000
+  },
+  "formal_clock_count": 18001,
+  "formal_clock_gaps_ns": {
+    "count": 18000,
+    "minimum": 2000000,
+    "maximum": 2000000
+  },
+  "status_event_bag_crosschecks": {
+    "/m2_driver/physical_status": {
+      "raw_count": 1857,
+      "bag_count": 1857,
+      "shared": 1857,
+      "payload_mismatch_keys": [],
+      "raw_only_keys": [],
+      "bag_only_keys": [],
+      "formal_raw_only_keys": [],
+      "formal_bag_only_keys": []
+    },
+    "/astra_fixture/command_source_status": {
+      "raw_count": 3,
+      "bag_count": 3,
+      "shared": 2,
+      "payload_mismatch_keys": [],
+      "raw_only_keys": [
+        [
+          0,
+          1
+        ]
+      ],
+      "bag_only_keys": [
+        [
+          0,
+          2
+        ]
+      ],
+      "formal_raw_only_keys": [],
+      "formal_bag_only_keys": []
+    },
+    "/astra_fixture/command_event": {
+      "raw_count": 670,
+      "bag_count": 666,
+      "shared": 666,
+      "payload_mismatch_keys": [],
+      "raw_only_keys": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "bag_only_keys": [],
+      "formal_raw_only_keys": [],
+      "formal_bag_only_keys": []
+    }
+  },
+  "source_status_history": [
+    {
+      "ns": 0,
+      "t": 0.0,
+      "frame": "",
+      "seq": 1,
+      "statuses": [
+        {
+          "name": "astra_actuation_command_source",
+          "hardware_id": "simulation-only",
+          "level": 0,
+          "message": "bootstrap",
+          "values": {
+            "state": "bootstrap",
+            "run_id": "m12_physics_p03_s009_kd6",
+            "seed": "260926009",
+            "contract_sha256": "32c9efb1a77fbd7726c46f30f510da2306af088e5c0382fe9ffc4912c684c945",
+            "reason": "",
+            "start_ns": ""
+          },
+          "value_count": 6
+        }
+      ]
+    },
+    {
+      "ns": 1012000000,
+      "t": 1.012,
+      "frame": "",
+      "seq": 3,
+      "statuses": [
+        {
+          "name": "astra_actuation_command_source",
+          "hardware_id": "simulation-only",
+          "level": 0,
+          "message": "running",
+          "values": {
+            "state": "running",
+            "run_id": "m12_physics_p03_s009_kd6",
+            "seed": "260926009",
+            "contract_sha256": "32c9efb1a77fbd7726c46f30f510da2306af088e5c0382fe9ffc4912c684c945",
+            "reason": "",
+            "start_ns": "1110000000"
+          },
+          "value_count": 6
+        }
+      ]
+    },
+    {
+      "ns": 37110000000,
+      "t": 37.11,
+      "frame": "",
+      "seq": 4,
+      "statuses": [
+        {
+          "name": "astra_actuation_command_source",
+          "hardware_id": "simulation-only",
+          "level": 0,
+          "message": "complete",
+          "values": {
+            "state": "complete",
+            "run_id": "m12_physics_p03_s009_kd6",
+            "seed": "260926009",
+            "contract_sha256": "32c9efb1a77fbd7726c46f30f510da2306af088e5c0382fe9ffc4912c684c945",
+            "reason": "",
+            "start_ns": "1110000000"
+          },
+          "value_count": 6
+        }
+      ]
+    }
+  ],
+  "trigger_response": {
+    "contract_sha256": "32c9efb1a77fbd7726c46f30f510da2306af088e5c0382fe9ffc4912c684c945",
+    "run_id": "m12_physics_p03_s009_kd6",
+    "seed": 260926009,
+    "start_ns": 1110000000
+  },
+  "recorder_barrier": {
+    "required": [
+      "/astra/physics_contacts",
+      "/astra/physics_links",
+      "/astra/physics_metadata",
+      "/astra/physics_models",
+      "/astra/world_links",
+      "/astra/world_models",
+      "/astra_fixture/command_event",
+      "/astra_fixture/command_source_status",
+      "/astra_fixture/schedule_start_ns",
+      "/clock",
+      "/cmd_vel",
+      "/cmd_vel_navigation",
+      "/joint_states",
+      "/m2_driver/actuator_commanded_effort",
+      "/m2_driver/actuator_target",
+      "/m2_driver/applied_speed",
+      "/m2_driver/command_activation_latency",
+      "/m2_driver/control_timeout",
+      "/m2_driver/physical_backend_fault",
+      "/m2_driver/physical_metadata",
+      "/m2_driver/physical_status",
+      "/m2_driver/wheel_angle",
+      "/odom",
+      "/scan",
+      "/tf",
+      "/tf_static"
+    ],
+    "connected": [
+      "/astra/physics_contacts",
+      "/astra/physics_links",
+      "/astra/physics_metadata",
+      "/astra/physics_models",
+      "/astra/world_links",
+      "/astra/world_models",
+      "/astra_fixture/command_event",
+      "/astra_fixture/command_source_status",
+      "/astra_fixture/schedule_start_ns",
+      "/clock",
+      "/cmd_vel",
+      "/cmd_vel_navigation",
+      "/joint_states",
+      "/m2_driver/actuator_commanded_effort",
+      "/m2_driver/actuator_target",
+      "/m2_driver/applied_speed",
+      "/m2_driver/command_activation_latency",
+      "/m2_driver/control_timeout",
+      "/m2_driver/physical_backend_fault",
+      "/m2_driver/physical_metadata",
+      "/m2_driver/physical_status",
+      "/m2_driver/wheel_angle",
+      "/odom",
+      "/scan",
+      "/tf",
+      "/tf_static"
+    ],
+    "missing": [],
+    "node": "/fixture_bag",
+    "uri": "http://127.0.0.1:37189/",
+    "wall_monotonic_s": 10190.14657767
+  },
+  "warmup": {
+    "start_ns": 0,
+    "end_ns": 1000000000
+  },
+  "bag_loss_messages": {
+    "/cmd_vel_navigation": [],
+    "/cmd_vel": []
+  },
+  "bag_loss_after_drain": {
+    "/cmd_vel_navigation": [],
+    "/cmd_vel": []
+  },
+  "terminal_command": [
+    {
+      "ns": 37110000000,
+      "t": 37.11,
+      "frame": "",
+      "seq": 670,
+      "phase": "terminal_zero",
+      "v": 0.0,
+      "w": 0.0,
+      "wall_monotonic_s": 10227.300853796,
+      "scheduled_ns": 37110000000,
+      "lateness_ns": 0,
+      "missed_slots": 0
+    }
+  ],
+  "raw_source_physics_time_basis": "backend_status/model/link/odom/target have explicit source headers; command event stamps are sampled just before Python publish; Bool and relay observations remain receiver-clock quantities.",
+  "measurement_subset_scope": "These checks concern formal-window source/command/bag coverage only. Kd6 all-raw tail integrity remains failed; this subset does not restore the P03 matrix or promote a candidate.",
+  "inputs": [
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/workspace/src/simulation/m2_gazebo/scripts/astra_physical_actuation_probe_p02.py",
+      "sha256": "68dd16ef4bf5a8ac85bafc8996e52c48f3c145c6a9dc88f490aa3e2d2fbfbe00"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p03_s009_kd6/probe_raw.json",
+      "sha256": "850e8dd8d824cdfc764f667a18ce9261c88e8b8648831c2d3479917a858b87cb"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p03_s009_kd6/probe_report.json",
+      "sha256": "3d5d0174c0f129c0ee8acbd7fd7a0da661f10e5b8bac24147240f001370f05a2"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p03_s009_kd6/receipt.json",
+      "sha256": "05b845b47a49394b87e4797e9dd86c04a4f3bb23d21e0ddd92a24281475d01a1"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p03_s009_kd6/fixture.bag",
+      "sha256": "979a1b32cf887d1d726fad6b49af52710f709e01531628179799eb27624a581d"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/runs/m12_physics_p03_s009_kd6/bindings.json",
+      "sha256": "575a8ccc11a72c5cd60382c9f2c21fd23d9549cc3b8f914acdadcee25151f945"
+    },
+    {
+      "path": "/home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p03_result_independent/rows/m12_physics_p03_s009_kd6/independent_raw_diagnosis.json",
+      "sha256": "ec7fa9d0027d5d171c8815bee316643a653e3daf217dd68e3dd0cd9257078334"
+    }
+  ],
+  "command": "/usr/bin/python3 /home/robot/robot_ws_base_rl/artifacts/astra_gazebo_20260926/audits/m12_p03_result_independent/audit_protocol_row.py --run-id m12_physics_p03_s009_kd6",
+  "script_sha256": "c73d62fab319edd24a47835804ce562b5cfa1fd52985fb46b710b5250cc55e49",
+  "no_ROS_started": true,
+  "no_run_files_changed": true
+}

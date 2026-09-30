@@ -1,0 +1,53 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-13-Q1-R9
+stage_purpose: pure_offline_expanded_recovery_planner_integration_audit
+status: preregistered_pure_offline_audit
+upstream:
+  R8_R2_assessment_path: artifacts/v3/multiactor/v3_13_q1_r8_r2_assessment/predictor_qualification.yaml
+  R8_R2_assessment_sha256: d55873f7425de400e713a9872f57dd515f5342da303b5616513c43788570459f
+  R8_R2_evidence_freeze_sha256: b0b17e7d486a25c4c988211fe0232cc496cd84437b34aae6a9d0d45ef4dd9dcf
+  R8_R2_independent_review_sha256: ae70fbb71f805ff3a2d71d6d8e484736fc8254b56fd4287b01961138e673f2fd
+  expanded_predictor_sha256: 9003df1fc9dd5076da7f98d4efab971686eee4db9b6788cc8f43b76b0537279d
+  expanded_recovery_core_sha256: 5dbe5ad0e84f5bd062173416c0acf6b1f11219c01b651bf4c38956882d3bf825
+audit_population:
+  source_stage: V3-13-Q1-R8-R2
+  source_blocks: [1, 2, 3, 4, 5, 6, 7, 8]
+  states_per_block: [late_recovery]
+  candidate_count: 5
+  source_candidate_for_common_state: recovery_evasive_right_v120_r1
+  hidden_policy_runtime_input: false
+integration_gates:
+  all_new_candidate_dynamic_verdicts_accepted: true
+  all_new_candidate_static_verdicts_accepted: true
+  all_selected_candidates_accepted: true
+  every_crossing_stratum_has_nonstop_progress: true
+  all_selected_clone_outcomes_nonnegative_dynamic_clearance: true
+  all_selected_clone_outcomes_static_containment: true
+  no_safe_candidate_exception_count_max: 0
+  hidden_label_feature_count_max: 0
+failure_routing:
+  if_any_gate_fails: freeze_negative_and_redesign_candidate_geometry
+  forbidden_repairs:
+  - lower_or_remove_static_containment_gate
+  - reinterpret_dynamic_only_clone_clearance_as_full_safety
+  - execute_actual_TEB_before_new_geometry_support_and_qualification
+downstream:
+  direct_actual_TEB_execution_authorized: false
+  perception_execution_authorized: false
+  training_authorized: false
+authority:
+  pure_offline_audit_authorized: true
+  ROS_or_Gazebo_execution_authorized: false
+  hardware_device_access_authorized: false
+  real_vehicle_authorized: false
+  stable_workspace_write_authorized: false
+claims:
+  allowed:
+  - expanded planner integration gate result on the frozen R8-R2 states
+  forbidden:
+  - actual TEB performance
+  - full planner safety if any static or dynamic gate fails
+  - perception robustness
+  - learned policy benefit
+  - deployment or real-vehicle readiness

@@ -1,0 +1,85 @@
+schema_version: '1.0'
+architecture_generation: v3
+stage: V3-20-A0
+status: preregistered_after_v3_19_q1_and_before_any_v3_20_outcome
+purpose: Failure-inclusive same-population four-method characterization without retuning.
+design_history:
+  source_qualification: V3-19-Q1
+  source_result: valid_negative_main_goal_success_gate
+  source_outcomes_used_for_tuning: false
+  rationale: execution and safety semantics passed 24/24, while performance failure must be retained as an outcome rather than selected away
+  retired_seed_range: [8001, 8030]
+frozen_methods:
+  - v3_spatial_safe
+  - actual_teb
+  - fixed_v120_shielded
+  - v3_no_candidate_conditioning
+frozen_runtime_source: V3-19-A0 release 7de2f90bb4757aadf0128ef67bfa77ab488ec9a333ba1e8c3c5fd6a6832f55ee
+scene_population:
+  - {scene_id: open_crossing_90, actor_angle_deg: 90.0, corridor_half_width_m: null}
+  - {scene_id: wide_corridor_crossing_70, actor_angle_deg: 70.0, corridor_half_width_m: 1.80}
+  - {scene_id: bounded_corridor_crossing_110, actor_angle_deg: 110.0, corridor_half_width_m: 1.68}
+strata:
+  - {scene_id: open_crossing_90, actor_policy: cautious}
+  - {scene_id: open_crossing_90, actor_policy: hesitant}
+  - {scene_id: wide_corridor_crossing_70, actor_policy: cautious}
+  - {scene_id: wide_corridor_crossing_70, actor_policy: hesitant}
+  - {scene_id: bounded_corridor_crossing_110, actor_policy: cautious}
+  - {scene_id: bounded_corridor_crossing_110, actor_policy: hesitant}
+formal_matrix:
+  seed_start: 8101
+  seed_end: 8130
+  blocks: 30
+  episodes: 120
+  blocks_per_stratum: 5
+  attempts_per_identity: 1
+  retries_resumes_replacements: forbidden
+  method_order: deterministic_balanced_latin_rotation
+inclusion:
+  every_consumed_identity_retained: true
+  navigation_failure_restricted_time_s: 22.0
+  certified_stop_timeout_is_valid_outcome: true
+  execution_failure_is_terminal_and_remaining_budget_forfeited: true
+readiness:
+  v3_19_q1_execution_integrity_pass_rate: 1.0
+  v3_19_q1_zero_contact: true
+  v3_19_q1_nonnegative_clearance: true
+  v3_19_q1_non_teb_selected_accepted: true
+  minimum_task_success_is_not_an_execution_gate: true
+statistics:
+  independent_unit: paired_scene_seed_block
+  primary_estimand: v3_vs_actual_teb_relative_difference_in_mean_restricted_time
+  interval: two_sided_95_percent_paired_block_bootstrap
+  bootstrap_resamples: 20000
+  bootstrap_seed: 32020
+  no_positive_effect_gate: true
+  comparisons:
+    - v3_spatial_safe_vs_actual_teb
+    - v3_spatial_safe_vs_fixed_v120_shielded
+    - v3_spatial_safe_vs_v3_no_candidate_conditioning
+  multiplicity: report_holm_adjusted_two_sided_bootstrap_p_values_for_three_comparisons
+  additional_endpoints:
+    - goal_success_rate_and_paired_difference
+    - restricted_time_distribution
+    - path_length
+    - minimum_conservative_clearance
+    - contact_count
+    - safety_fallback_rate
+    - planner_latency
+  stratification: all_six_scene_policy_strata
+claim_boundary:
+  study_kind: exploratory_followup_characterization
+  positive_or_negative_results_both_valid: true
+  actual_teb_superiority_claim_requires_observed_interval: true
+  learning_claim_authorized: false
+  perception_or_ood_claim_authorized: false
+  formal_safety_claim_authorized: false
+  deployment_claim_authorized: false
+  real_vehicle_claim_authorized: false
+authority:
+  explicit_user_simulation_instruction_date: '2026-08-06'
+  exact_formal_matrix_authorized_after_release_review: true
+  training_authorized: false
+  hardware_access_authorized: false
+  real_vehicle_authorized: false
+
