@@ -1,45 +1,44 @@
 <launch>
   <arg name="input_cloud" default="/livox/lidar"/>
-  <arg name="filtered_cloud" default="/livox/lidar_filtered_for_scan"/>
+  <arg name="filtered_cloud" default="/cloud_filtered_for_scan"/>
   <arg name="output_scan" default="/scan"/>
+  <arg name="start_driver" default="true"/>
+  <arg name="range_max" default="8.0"/>
 
-  <arg name="remove_above_z" default="0.1"/>
+  <!-- body is 0.6 m above base_link: keep obstacles up to 1.5 m high.
+       Body returns are removed with the physical footprint, not a global
+       cutoff just above the lidar that also deletes real obstacles. -->
+  <arg name="remove_above_z" default="0.9"/>
   <arg name="near_radius" default="0.4"/>
   <arg name="near_min_z" default="-0.1"/>
   <arg name="near_max_z" default="0.1"/>
 
-  <include file="$(find robot_bringup)/launch/livox_mid360.launch"/>
+  <include if="$(arg start_driver)" file="$(find robot_bringup)/launch/livox_mid360.launch"/>
 
-  <node name="pointcloud_self_filter" pkg="robot_bringup" type="pointcloud_self_filter" output="screen">
-    <param name="footprint_frame" value="base_link"/>
-    <rosparam command="load" file="$(find robot_bringup)/config/vehicle_footprint.yaml"
-              param="self_footprint"/>
+  <node name="livox_obstacle_cloud" pkg="robot_bringup" type="livox_obstacle_cloud" output="screen">
     <param name="input_topic" value="$(arg input_cloud)"/>
-    <param name="output_topic" value="$(arg filtered_cloud)"/>
-    <param name="remove_above_z" value="$(arg remove_above_z)"/>
-    <param name="near_radius" value="$(arg near_radius)"/>
-    <param name="near_min_z" value="$(arg near_min_z)"/>
-    <param name="near_max_z" value="$(arg near_max_z)"/>
+    <param name="output_topic" value="/cloud_livox_body"/>
+    <param name="odom_topic" value="/gps/odom"/>
   </node>
 
-  <node name="pointcloud_to_laserscan" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" output="screen">
-    <remap from="cloud_in" to="$(arg filtered_cloud)"/>
-    <remap from="scan" to="$(arg output_scan)"/>
-
-    <param name="target_frame" value="base_link"/>
-    <param name="transform_tolerance" value="0.5"/>
-    <param name="queue_size" value="10"/>
-    <param name="min_height" value="0.25"/>
-    <param name="max_height" value="0.8"/>
-    <param name="range_min" value="0.2"/>
-    <param name="range_max" value="12.0"/>
-    <param name="angle_min" value="-3.14159"/>
-    <param name="angle_max" value="3.14159"/>
-    <param name="angle_increment" value="0.00872665"/>
-    <param name="scan_time" value="0.1"/>
-    <param name="use_inf" value="true"/>
-  </node>
-
-  <node pkg="tf" type="static_transform_publisher" name="base_link_to_livox_frame"
-        args="0.16 0 0.9 0 0 0 base_link livox_frame 100"/>
+  <include file="$(find robot_bringup)/launch/scan_fast_lio.launch">
+    <arg name="input_cloud" value="/cloud_livox_body"/>
+    <arg name="filtered_cloud" value="$(arg filtered_cloud)"/>
+    <arg name="output_scan" value="$(arg output_scan)"/>
+    <arg name="remove_above_z" value="$(arg remove_above_z)"/>
+    <arg name="near_radius" value="$(arg near_radius)"/>
+    <arg name="near_min_z" value="$(arg near_min_z)"/>
+    <arg name="near_max_z" value="$(arg near_max_z)"/>
+    <arg name="max_xy_range" value="$(arg range_max)"/>
+    <arg name="remove_ground" value="true"/>
+    <!-- ObstacleLayer with inf_is_valid substitutes +Inf with scan.range_max
+         minus epsilon. Keep that sentinel OUTSIDE the 8 m marking radius,
+         or every empty ray becomes a false circular wall. Real cloud points
+         are still clipped to range_max above, and clearing stays at 8 m. -->
+    <arg name="range_max" value="$(eval float(arg('range_max')) + 0.1)"/>
+    <arg name="max_height" value="1.5"/>
+    <arg name="body_tf_parent" value="base_link"/>
+    <arg name="body_tf_child" value="body"/>
+    <arg name="body_tf_z" value="0.6"/>
+  </include>
 </launch>

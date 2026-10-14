@@ -4,6 +4,7 @@
 import json
 import threading
 import traceback
+import time
 
 import rospy
 from autolabor_fod_msgs.msg import FodDetection, FodDetectionArray
@@ -39,6 +40,11 @@ class DetectorNode:
             rospy.get_param("~required_class_names", "fod")
         )
         self.debug_every_n = max(1, int(rospy.get_param("~debug_every_n", 1)))
+        self.debug_max_fps = max(1.0, float(rospy.get_param("~debug_max_fps", 30.0)))
+        self._next_debug_time = 0.0
+        self._next_diagnostic_time = 0.0
+        self.source_latency_ms = 0.0
+        self.processing_ms = 0.0
         classes = _csv_ints(rospy.get_param("~classes", ""))
         self.bridge = CvBridge()
         self.depth_enabled = bool(rospy.get_param("~use_registered_depth", False))
@@ -200,6 +206,10 @@ class DetectorNode:
         return message
 
     def _publish_diagnostic(self, level, text):
+        now = time.monotonic()
+        if level == DiagnosticStatus.OK and now < self._next_diagnostic_time:
+            return
+        self._next_diagnostic_time = now + 0.5
         status = DiagnosticStatus()
         status.name = "fod_vision/detector"
         status.hardware_id = self.detector.model_sha256
@@ -215,6 +225,9 @@ class DetectorNode:
             KeyValue("processed_frames", str(self.processed_frames)),
             KeyValue("dropped_frames", str(self.dropped_frames)),
             KeyValue("last_inference_ms", "{:.2f}".format(self.last_inference_ms)),
+            KeyValue("source_latency_ms", "{:.2f}".format(self.source_latency_ms)),
+            KeyValue("processing_ms", "{:.2f}".format(self.processing_ms)),
+            KeyValue("debug_max_fps", str(self.debug_max_fps)),
             KeyValue("detector_profile", self.detector_profile),
             KeyValue("confidence_threshold", str(self.detector.confidence)),
             KeyValue("image_size", str(self.detector.image_size)),
@@ -233,6 +246,7 @@ class DetectorNode:
         self.diagnostic_pub.publish(array)
 
     def _process(self, image_message):
+        started = time.monotonic()
         image = self.bridge.imgmsg_to_cv2(image_message, desired_encoding="bgr8")
         result = self.roi.predict(self.detector, image)
         if self.depth_fusion is not None:
@@ -270,10 +284,15 @@ class DetectorNode:
             self._to_ros_detection(item, image.shape[1], image.shape[0])
             for item in result.detections
         ]
+        self.source_latency_ms = max(0.0, (rospy.Time.now()-image_message.header.stamp).to_sec()*1000.0)
         self.detection_pub.publish(output)
 
         self.processed_frames += 1
-        if self.processed_frames % self.debug_every_n == 0:
+        debug_now = time.monotonic()
+        if (self.debug_pub.get_num_connections() > 0
+                and self.processed_frames % self.debug_every_n == 0
+                and debug_now >= self._next_debug_time):
+            self._next_debug_time = max(self._next_debug_time + 1.0/self.debug_max_fps, debug_now)
             banner = (
                 "SMOKE ONLY {}".format(self.detector.model_name)
                 if self.smoke_test_only
@@ -289,6 +308,7 @@ class DetectorNode:
             debug_message = self.bridge.cv2_to_imgmsg(debug, encoding="bgr8")
             debug_message.header = image_message.header
             self.debug_pub.publish(debug_message)
+        self.processing_ms = (time.monotonic()-started)*1000.0
         self._publish_diagnostic(DiagnosticStatus.OK, "inference active")
 
     def _worker_loop(self):

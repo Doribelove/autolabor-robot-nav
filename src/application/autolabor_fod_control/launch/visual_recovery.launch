@@ -9,7 +9,8 @@
        default="$(find autolabor_fod_control)/config/visual_servo.yaml"/>
   <arg name="blind_distance_m" default="0.80"/>
   <arg name="target_u_offset_px" default="0.0"/>
-  <arg name="min_confidence" default="0.30"/>
+  <!-- Keep the selected camera profile unless explicitly overridden. -->
+  <arg name="min_confidence" default=""/>
   <arg name="cmd_vel_topic" default="/cmd_vel"/>
   <arg name="expected_cmd_vel_subscriber_node" default="/m2_driver"/>
   <arg name="camera_driver" default="hikrobot"/>
@@ -32,7 +33,8 @@
            value="$(arg external_estop_override)"/>
     <param name="blind_distance_m" value="$(arg blind_distance_m)"/>
     <param name="target_u_offset_px" value="$(arg target_u_offset_px)"/>
-    <param name="min_confidence" value="$(arg min_confidence)"/>
+    <param if="$(eval arg('min_confidence') != '')"
+           name="min_confidence" value="$(arg min_confidence)"/>
     <param if="$(eval arg('expected_model_sha256') != '')"
            name="expected_model_sha256" type="str" value="$(arg expected_model_sha256)"/>
     <param name="cmd_vel_topic" value="$(arg cmd_vel_topic)"/>

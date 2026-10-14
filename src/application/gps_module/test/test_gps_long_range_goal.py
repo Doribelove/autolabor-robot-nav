@@ -316,6 +316,7 @@ class LongRangeManagerStateTest(unittest.TestCase):
             advance_distance=5.0,
         )
         manager.route_token = "100-1"
+        manager.dispatch_counter = 0
         manager.route_active = True
         manager.paused = False
         manager.route_state = "ACTIVE_INTERMEDIATE"
@@ -501,6 +502,22 @@ class LongRangeManagerStateTest(unittest.TestCase):
         self.assertIs(manager.route, retained_route)
         self.assertEqual(manager.route_state, "PAUSED")
         self.assertEqual(manager.cancel_pub.messages[-1].id, current_goal_id)
+
+    def test_resume_final_segment_has_new_identity_and_ignores_old_terminal_echo(self):
+        for terminal in (GoalStatus.PREEMPTED, GoalStatus.RECALLED, GoalStatus.SUCCEEDED):
+            with self.subTest(terminal=terminal):
+                manager = self.manager_with_route(final_x=4.0)
+                now = rospy.Time.from_sec(10.)
+                manager._send_next_segment_locked(0, 0, now)
+                canceled_id = manager.current_goal_id
+                manager.set_paused_callback(mock.Mock(data=True))
+                with mock.patch.object(MANAGER.rospy.Time, 'now', return_value=now):
+                    self.assertTrue(manager.set_paused_callback(mock.Mock(data=False)).success)
+                    manager.move_base_status_callback(self.status_message(canceled_id, terminal))
+                self.assertNotEqual(manager.current_goal_id, canceled_id)
+                self.assertTrue(manager.route_active)
+                self.assertEqual(manager.route_state, 'ACTIVE_FINAL')
+                self.assertAlmostEqual(manager.action_goal_pub.messages[-1].goal.target_pose.pose.position.x, 4.)
 
     def test_pause_ignores_cancel_and_terminal_status_echoes(self):
         manager = self.manager_with_route()

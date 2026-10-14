@@ -3,6 +3,7 @@
   <arg name="local_planner" default="teb"/>
   <arg name="model" default="dingo"/>
   <arg name="start_rviz" default="true"/>
+  <arg name="gps_keepout_support" default="false"/>
   <arg name="planner_frequency" default="1.0"/>
   <arg name="goal_slowdown_enabled" default="$(eval arg('localization_source') == 'gps')"/>
   <arg name="goal_speed_cap_enabled" default="false"/>
@@ -48,6 +49,26 @@
     <arg name="weight_kinematics_forward_drive" value="$(arg weight_kinematics_forward_drive)"/>
     <arg name="teb_profile_file" value="$(arg teb_profile_file)"/>
   </include>
+
+  <!-- The M2 Ackermann chassis cannot execute an in-place rotation.
+       Keep costmap clearing recovery without the blocking rotate recovery. -->
+  <param name="/move_base/clearing_rotation_allowed" type="bool" value="false"/>
+
+  <!-- Match the GPS direct MID360 scan. Both marking and free-space clearing
+       must stop at the observed 8 m radius; far returns are not used as noise
+       obstacles or as evidence to clear space beyond the sensor window. -->
+  <group if="$(eval arg('localization_source') == 'gps')">
+    <param name="/move_base/local_costmap/obstacles_layer/scan/obstacle_range" value="8.0"/>
+    <param name="/move_base/local_costmap/obstacles_layer/scan/raytrace_range" value="8.0"/>
+    <param name="/move_base/global_costmap/obstacles_layer/scan/obstacle_range" value="8.0"/>
+    <param name="/move_base/global_costmap/obstacles_layer/scan/raytrace_range" value="8.0"/>
+  </group>
+
+  <!-- Optional GPS polygon editing; empty layers never wait for a publisher. -->
+  <group if="$(arg gps_keepout_support)">
+    <rosparam command="load" file="$(find autolabor_gps_keepout)/config/costmap_plugins.yaml" ns="/move_base"/>
+    <include file="$(find autolabor_gps_keepout)/launch/keepout.launch"/>
+  </group>
 
   <!-- Explicit low-speed collection keeps its existing acceleration tune.
        This overlay does not override the requested speed, footprint, or

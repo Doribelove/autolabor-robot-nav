@@ -1,6 +1,7 @@
 #include <autolabor_operator_gui/sweep_panel.h>
 
 #include <QDateTime>
+#include <QComboBox>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHideEvent>
@@ -39,7 +40,6 @@ SweepPanel::SweepPanel(const QString& script, QWidget* parent)
   port_->setValue(50003);
   form->addRow(QStringLiteral("设备 IP"), address_);
   form->addRow(QStringLiteral("端口"), port_);
-  root->addWidget(connection);
 
   auto* status = new QGroupBox(QStringLiteral("设备回读状态"), this);
   auto* status_layout = new QVBoxLayout(status);
@@ -54,7 +54,10 @@ SweepPanel::SweepPanel(const QString& script, QWidget* parent)
   status_layout->addWidget(state_);
   status_layout->addWidget(updated_);
   status_layout->addWidget(result_);
-  root->addWidget(status);
+  auto* overview = new QHBoxLayout();
+  overview->addWidget(connection, 1);
+  overview->addWidget(status, 2);
+  root->addLayout(overview);
 
   auto* buttons = new QHBoxLayout();
   start_ = new QPushButton(QStringLiteral("启动清扫"), this);
@@ -71,6 +74,36 @@ SweepPanel::SweepPanel(const QString& script, QWidget* parent)
     buttons->addWidget(button, 1);
   }
   root->addLayout(buttons);
+
+  auto* hydraulic = new QGroupBox(QStringLiteral("液压杆升降"), this);
+  auto* hydraulic_layout = new QVBoxLayout(hydraulic);
+  auto* hydraulic_buttons = new QHBoxLayout();
+  hydraulic_buttons->addWidget(new QLabel(QStringLiteral("单次动作时长"), hydraulic));
+  hydraulic_duration_ = new QComboBox(hydraulic);
+  hydraulic_duration_->setObjectName(QStringLiteral("hydraulicDuration"));
+  hydraulic_duration_->addItem(QStringLiteral("2 秒（默认）"), 2);
+  hydraulic_duration_->addItem(QStringLiteral("3 秒"), 3);
+  hydraulic_duration_->setMinimumHeight(38);
+  hydraulic_buttons->addWidget(hydraulic_duration_);
+  hydraulic_extend_ = new QPushButton(QStringLiteral("液压杆升出"), hydraulic);
+  hydraulic_extend_->setObjectName(QStringLiteral("hydraulicExtendButton"));
+  hydraulic_retract_ = new QPushButton(QStringLiteral("液压杆回收"), hydraulic);
+  hydraulic_retract_->setObjectName(QStringLiteral("hydraulicRetractButton"));
+  for (auto* button : {hydraulic_extend_, hydraulic_retract_})
+  {
+    button->setMinimumHeight(56);
+    hydraulic_buttons->addWidget(button, 1);
+  }
+  hydraulic_layout->addLayout(hydraulic_buttons);
+  hydraulic_result_ = new QLabel(QStringLiteral("尚未操作液压杆。"), hydraulic);
+  hydraulic_result_->setObjectName(QStringLiteral("hydraulicResult"));
+  hydraulic_result_->setWordWrap(true);
+  hydraulic_layout->addWidget(hydraulic_result_);
+  auto* hydraulic_note = new QLabel(QStringLiteral("设备不回传液压杆位置，请观察实际升降。"), hydraulic);
+  hydraulic_note->setWordWrap(true);
+  hydraulic_note->setStyleSheet(QStringLiteral("color:#9cafc4;font-size:11pt;"));
+  hydraulic_layout->addWidget(hydraulic_note);
+  root->addWidget(hydraulic);
   auto* note = new QLabel(QStringLiteral(
       "本页显示时每 5 秒刷新状态。操作完成后以设备回读为准。\n"
       "使用本页前请退出命令行清扫测试。关闭窗口不会关闭清扫装置，停机请点击“停止清扫”。"), this);
@@ -86,6 +119,10 @@ SweepPanel::SweepPanel(const QString& script, QWidget* parent)
   connect(start_, &QPushButton::clicked, this, [this]() { request(QStringLiteral("on")); });
   connect(stop_, &QPushButton::clicked, this, [this]() { request(QStringLiteral("off")); });
   connect(query_, &QPushButton::clicked, this, &SweepPanel::queryStatus);
+  connect(hydraulic_extend_, &QPushButton::clicked, this,
+          [this]() { request(QStringLiteral("extend")); });
+  connect(hydraulic_retract_, &QPushButton::clicked, this,
+          [this]() { request(QStringLiteral("retract")); });
   connect(&refresh_timer_, &QTimer::timeout, this, &SweepPanel::queryStatus);
   refresh_timer_.setInterval(5000);
   connect(&process_, &QProcess::readyReadStandardOutput, this,
@@ -142,15 +179,28 @@ void SweepPanel::request(const QString& action)
   output_.clear();
   diagnostics_.clear();
   setBusy(true);
-  const QString verb = action == QStringLiteral("on") ? QStringLiteral("启动清扫") :
-                       action == QStringLiteral("off") ? QStringLiteral("停止清扫") : QStringLiteral("查询状态");
-  result_->setText(QStringLiteral("正在%1，等待设备回读……").arg(verb));
+  const bool hydraulic = action == QStringLiteral("extend") || action == QStringLiteral("retract");
+  QString verb = action == QStringLiteral("on") ? QStringLiteral("启动清扫") :
+                 action == QStringLiteral("off") ? QStringLiteral("停止清扫") : QStringLiteral("查询状态");
+  if (hydraulic)
+  {
+    verb = QStringLiteral("液压杆%1 %2 秒")
+               .arg(action == QStringLiteral("extend") ? QStringLiteral("升出") : QStringLiteral("回收"))
+               .arg(hydraulic_duration_->currentData().toInt());
+    hydraulic_result_->setText(QStringLiteral("正在%1，等待控制器应答和动作计时……").arg(verb));
+    hydraulic_result_->setStyleSheet(QStringLiteral("color:#eeb34a;"));
+  }
+  else
+    result_->setText(QStringLiteral("正在%1，等待设备回读……").arg(verb));
   if (action != QStringLiteral("status"))
     Q_EMIT operationEvent(verb, false);
   process_.setProgram(QStringLiteral("/usr/bin/python3"));
-  process_.setArguments({QStringLiteral("-u"), script_, action, QStringLiteral("--json"),
+  QStringList arguments{QStringLiteral("-u"), script_, action, QStringLiteral("--json"),
                         QStringLiteral("--ip"), address_->text().trimmed(),
-                        QStringLiteral("--port"), QString::number(port_->value())});
+                        QStringLiteral("--port"), QString::number(port_->value())};
+  if (hydraulic)
+    arguments << QStringLiteral("--duration") << QString::number(hydraulic_duration_->currentData().toInt());
+  process_.setArguments(arguments);
   process_.start();
 }
 
@@ -161,6 +211,9 @@ void SweepPanel::setBusy(bool busy)
   query_->setEnabled(!busy);
   address_->setEnabled(!busy);
   port_->setEnabled(!busy);
+  hydraulic_duration_->setEnabled(!busy);
+  hydraulic_extend_->setEnabled(!busy);
+  hydraulic_retract_->setEnabled(!busy);
   stop_->setEnabled(!stop_pending_ && (!busy || action_ != QStringLiteral("off")));
 }
 
@@ -174,28 +227,40 @@ void SweepPanel::finished(int exit_code, QProcess::ExitStatus exit_status)
   const bool valid = parse_error.error == QJsonParseError::NoError && document.isObject() &&
                      object.value(QStringLiteral("action")).toString() == action_ &&
                      object.value(QStringLiteral("success")).isBool();
+  const bool hydraulic = action_ == QStringLiteral("extend") || action_ == QStringLiteral("retract");
   const bool success = valid && exit_status == QProcess::NormalExit && exit_code == 0 &&
-                       object.value(QStringLiteral("success")).toBool();
+                       object.value(QStringLiteral("success")).toBool() &&
+                       (!hydraulic || object.value(QStringLiteral("acknowledged")).toBool());
   int state = valid ? object.value(QStringLiteral("state")).toInt(-1) : -1;
   if (state != 0 && state != 1)
     state = -1;
   QString message = valid ? object.value(QStringLiteral("message")).toString() :
                             QStringLiteral("控制程序未返回有效结果；请重新查询状态。%1")
                                 .arg(QString::fromUtf8(diagnostics_).trimmed());
-  complete(state, message, !success || state < 0);
+  complete(state, message, !success || (!hydraulic && state < 0));
 }
 
 void SweepPanel::complete(int state, const QString& message, bool error)
 {
   const QString now = QDateTime::currentDateTime().toString(QStringLiteral("HH:mm:ss"));
-  state_->setText(state == 1 ? QStringLiteral("已开启") :
+  const bool hydraulic = action_ == QStringLiteral("extend") || action_ == QStringLiteral("retract");
+  if (hydraulic)
+  {
+    hydraulic_result_->setText(QStringLiteral("%1  %2").arg(now, message));
+    hydraulic_result_->setStyleSheet(QStringLiteral("color:%1;")
+                                        .arg(error ? QStringLiteral("#e45b61") : QStringLiteral("#20b47a")));
+  }
+  else
+  {
+    state_->setText(state == 1 ? QStringLiteral("已开启") :
                   state == 0 ? QStringLiteral("已关闭") : QStringLiteral("状态未确认"));
-  const QString color = error ? QStringLiteral("#e45b61") : QStringLiteral("#20b47a");
-  state_->setStyleSheet(QStringLiteral("font-size:28pt;font-weight:700;color:%1;").arg(color));
-  updated_->setText(state >= 0 ? QStringLiteral("最近回读：%1").arg(now) :
+    const QString color = error ? QStringLiteral("#e45b61") : QStringLiteral("#20b47a");
+    state_->setStyleSheet(QStringLiteral("font-size:28pt;font-weight:700;color:%1;").arg(color));
+    updated_->setText(state >= 0 ? QStringLiteral("最近回读：%1").arg(now) :
                                 QStringLiteral("%1  查询失败，请检查控制器连接").arg(now));
-  result_->setText(message);
-  Q_EMIT stateChanged(state, updated_->text(), error);
+    result_->setText(message);
+    Q_EMIT stateChanged(state, updated_->text(), error);
+  }
   if (action_ != QStringLiteral("status") || error)
     Q_EMIT operationEvent(message, error);
   appendLog(message);

@@ -1,5 +1,7 @@
 #include <cmath>
 #include <cstring>
+#include <algorithm>
+#include <random>
 #include <string>
 #include <utility>
 #include <vector>
@@ -44,6 +46,8 @@ public:
     private_nh_.param("near_min_z", near_min_z_, -0.1);
     private_nh_.param("near_max_z", near_max_z_, 0.1);
     private_nh_.param("remove_nan", remove_nan_, true);
+    private_nh_.param("max_xy_range", max_xy_range_, 0.0);
+    private_nh_.param("remove_ground", remove_ground_, false);
     private_nh_.param<std::string>("footprint_frame", footprint_frame_, "base_link");
     XmlRpc::XmlRpcValue footprint;
     if (private_nh_.getParam("self_footprint", footprint))
@@ -70,6 +74,96 @@ public:
   }
 
 private:
+  bool fitGroundPlane(const sensor_msgs::PointCloud2& cloud, const tf2::Transform& to_base,
+                      uint32_t xo, uint32_t yo, uint32_t zo,
+                      tf2::Vector3* normal, double* offset)
+  {
+    // Estimate only the local road surface. This is recomputed per frame and
+    // never uses global pose, accumulated LIO state, or acceleration as tilt.
+    std::vector<tf2::Vector3> candidates;
+    for (uint32_t row = 0; row < cloud.height; ++row)
+      for (uint32_t col = 0; col < cloud.width; ++col)
+      {
+        const size_t at = static_cast<size_t>(row) * cloud.row_step + col * cloud.point_step;
+        const double x = readFloat32(cloud.data, at + xo), y = readFloat32(cloud.data, at + yo),
+                     z = readFloat32(cloud.data, at + zo);
+        if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z))
+          continue;
+        const auto p = to_base * tf2::Vector3(x, y, z);
+        const double r2 = p.x()*p.x() + p.y()*p.y();
+        if (r2 >= 1.0 && r2 <= 144.0 && p.z() >= -0.8 && p.z() <= 1.0)
+          candidates.push_back(p);
+      }
+    if (candidates.size() < 60)
+      return false;  // No convincing road sample: preserve all observations.
+    std::vector<tf2::Vector3> sample;
+    const size_t stride = (candidates.size() + 1199) / 1200;
+    for (size_t i = 0; i < candidates.size(); i += stride)
+      sample.push_back(candidates[i]);
+
+    auto plausible = [](const tf2::Vector3& n, double d) {
+      const double height_at_chassis = -d / n.z();
+      return n.z() >= 0.965925826 && height_at_chassis >= -0.4 && height_at_chassis <= 0.15;
+    };
+    std::uniform_int_distribution<size_t> pick(0, sample.size()-1);
+    size_t best_count = 0;
+    tf2::Vector3 best_normal;
+    double best_offset = 0.0;
+    for (int iteration = 0; iteration < 120; ++iteration)
+    {
+      const auto& a = sample[pick(random_)];
+      const auto& b = sample[pick(random_)];
+      const auto& c = sample[pick(random_)];
+      auto n = (b-a).cross(c-a);
+      if (n.length2() < 1e-8)
+        continue;
+      n.normalize();
+      if (n.z() < 0.0) n = -n;
+      if (n.z() < 0.965925826) continue;  // not a wall (maximum road tilt 15 deg)
+      const double d = -n.dot(a);
+      if (!plausible(n, d)) continue;  // not a raised tabletop/vehicle roof
+      size_t count = 0;
+      for (const auto& p : sample)
+        if (std::abs(n.dot(p) + d) <= 0.04) ++count;
+      if (count > best_count)
+      {
+        best_count = count;
+        best_normal = n;
+        best_offset = d;
+      }
+    }
+    if (best_count < 60 || best_count * 2 < sample.size())
+      return false;
+
+    // Least-squares refinement of the robust inliers: z = ax + by + c.
+    double xx=0, xy=0, x=0, yy=0, y=0, xz=0, yz=0, z=0, count=0;
+    double min_x=1e9, max_x=-1e9, min_y=1e9, max_y=-1e9;
+    for (const auto& p : sample)
+      if (std::abs(best_normal.dot(p) + best_offset) <= 0.04)
+      {
+        xx += p.x()*p.x(); xy += p.x()*p.y(); x += p.x();
+        yy += p.y()*p.y(); y += p.y(); xz += p.x()*p.z(); yz += p.y()*p.z(); z += p.z();
+        ++count;
+        min_x=std::min(min_x,p.x()); max_x=std::max(max_x,p.x());
+        min_y=std::min(min_y,p.y()); max_y=std::max(max_y,p.y());
+      }
+    // A small planar object is insufficient evidence to redefine the road.
+    if (max_x-min_x < 3.0 || max_y-min_y < 3.0)
+      return false;
+    const tf2::Matrix3x3 system(xx,xy,x, xy,yy,y, x,y,count);
+    if (std::abs(system.determinant()) < 1e-6)
+      return false;
+    const auto solution = system.inverse() * tf2::Vector3(xz,yz,z);
+    tf2::Vector3 n(-solution.x(),-solution.y(),1.0);
+    const double scale = n.length(); n /= scale;
+    const double d = -solution.z()/scale;
+    if (!plausible(n,d)) return false;
+    *normal=n; *offset=d;
+    ROS_INFO_THROTTLE(15.0, "Local ground: normal=(%.4f,%.4f,%.4f) base_height=%.3f support=%zu/%zu; remove only +/-0.06 m surface band",
+                      n.x(),n.y(),n.z(),-d/n.z(),best_count,sample.size());
+    return true;
+  }
+
   bool insideFootprint(double x, double y) const
   {
     bool inside = false;
@@ -101,9 +195,10 @@ private:
     }
 
     bool filter_footprint = footprint_.size() >= 3;
+    bool have_mount_tf = true;
     tf2::Transform to_footprint;
     to_footprint.setIdentity();
-    if (filter_footprint && msg->header.frame_id != footprint_frame_)
+    if ((filter_footprint || remove_ground_) && msg->header.frame_id != footprint_frame_)
     {
       try
       {
@@ -120,6 +215,7 @@ private:
       {
         // Keep the existing height/radius filtering while mount TF initializes.
         filter_footprint = false;
+        have_mount_tf = false;
         ROS_WARN_THROTTLE(5.0, "pointcloud_self_filter: physical footprint TF unavailable: %s", error.what());
       }
     }
@@ -133,6 +229,10 @@ private:
     output.data.reserve(msg->data.size());
 
     const double near_radius_sq = near_radius_ * near_radius_;
+    tf2::Vector3 ground_normal;
+    double ground_offset = 0.0;
+    const bool filter_ground = remove_ground_ && have_mount_tf &&
+        fitGroundPlane(*msg, to_footprint, x_offset, y_offset, z_offset, &ground_normal, &ground_offset);
     size_t kept = 0;
 
     for (uint32_t row = 0; row < msg->height; ++row)
@@ -151,15 +251,19 @@ private:
         }
 
         const bool above_self = z > remove_above_z_;
+        const bool beyond_range = max_xy_range_ > 0.0 &&
+            (static_cast<double>(x) * x + static_cast<double>(y) * y) > max_xy_range_ * max_xy_range_;
         const bool near_self_level = z >= near_min_z_ && z <= near_max_z_ &&
                                      (static_cast<double>(x) * x + static_cast<double>(y) * y) <= near_radius_sq;
         bool body_return = false;
-        if (filter_footprint)
+        bool ground_return = false;
+        if (filter_footprint || filter_ground)
         {
           const tf2::Vector3 point = to_footprint * tf2::Vector3(x, y, z);
-          body_return = insideFootprint(point.x(), point.y());
+          body_return = filter_footprint && insideFootprint(point.x(), point.y());
+          ground_return = filter_ground && std::abs(ground_normal.dot(point) + ground_offset) <= 0.06;
         }
-        if (above_self || near_self_level || body_return)
+        if (above_self || beyond_range || near_self_level || body_return || ground_return)
         {
           continue;
         }
@@ -190,7 +294,10 @@ private:
   double near_radius_;
   double near_min_z_;
   double near_max_z_;
+  double max_xy_range_;
   bool remove_nan_;
+  bool remove_ground_;
+  std::mt19937 random_{731};
 };
 
 }  // namespace

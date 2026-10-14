@@ -1,0 +1,110 @@
+{
+  "test_date": "2026-10-14",
+  "timezone": "Asia/Shanghai",
+  "target_label": "pt3",
+  "operator_report": "测试结束，效果很好，能回收",
+  "physical_pickup_confirmed_by": "operator observation",
+  "software_path": "GPS approach -> registered-depth visual approach -> recorded FOD GPS crossing endpoint -> stop and sweep shutdown/retraction",
+  "gps_recovery_used": true,
+  "final_fod_memory": {
+    "class_name": "Metal",
+    "crossing_m": 0.8,
+    "fod_latitude": 30.299883834488877,
+    "fod_longitude": 104.38682585151399,
+    "fod_x": -4.3879784252662954,
+    "fod_y": -12.715804032544778,
+    "goal_latitude": 30.299877139341238,
+    "goal_longitude": 104.38682282656951,
+    "goal_x": -4.678714172632327,
+    "goal_y": -13.46110445868414,
+    "range_m": 2.207613945007324,
+    "sample_stamp": 1791953623.0366983,
+    "track_id": 842
+  },
+  "terminal_state": "FOD_COMPLETE_STOP",
+  "transitions": [
+    {
+      "time": "2026-10-14T12:52:06.764",
+      "state": "GPS_ACTIVE",
+      "command_source": "GPS",
+      "reason": "GPS navigation owns the chassis command path",
+      "sweep_status": "not requested"
+    },
+    {
+      "time": "2026-10-14T12:53:23.243",
+      "state": "GPS_ACTIVE",
+      "command_source": "GPS",
+      "reason": "回收已开启：目标小于 10.0 米升杆 3 秒并启动清扫；6 米内记录稳定最近 FOD，丢失后按 GPS 穿过 0.8 米",
+      "sweep_status": "not requested"
+    },
+    {
+      "time": "2026-10-14T12:53:32.351",
+      "state": "GPS_ACTIVE",
+      "command_source": "GPS",
+      "reason": "回收已开启：目标小于 10.0 米升杆 3 秒并启动清扫；6 米内记录稳定最近 FOD，丢失后按 GPS 穿过 0.8 米",
+      "sweep_status": "正在联动：液压杆升出 3 秒并启动清扫"
+    },
+    {
+      "time": "2026-10-14T12:53:35.564",
+      "state": "ENTERING_FOD",
+      "command_source": "STOP",
+      "reason": "blocking GPS commands and requesting a retained-route pause",
+      "sweep_status": "清扫已开启；液压杆升出 3 秒指令已接收，动作计时结束（设备不回传杆位置）。"
+    },
+    {
+      "time": "2026-10-14T12:53:37.262",
+      "state": "FOD_ACTIVE",
+      "command_source": "FOD",
+      "reason": "visual controller owns the chassis; GPS route is retained",
+      "sweep_status": "清扫已开启；液压杆升出 3 秒指令已接收，动作计时结束（设备不回传杆位置）。"
+    },
+    {
+      "time": "2026-10-14T12:53:44.689",
+      "state": "ENTERING_GPS_RECOVERY",
+      "command_source": "STOP",
+      "reason": "视觉接续记录位置，切换到记录 FOD 前方 0.8 米 GPS 终点",
+      "sweep_status": "清扫已开启；液压杆升出 3 秒指令已接收，动作计时结束（设备不回传杆位置）。"
+    },
+    {
+      "time": "2026-10-14T12:53:46.933",
+      "state": "GPS_FOD_RECOVERY",
+      "command_source": "GPS",
+      "reason": "视觉接续记录位置，按记录 GPS 点穿过 FOD 0.8 米；速度 0.6 m/s",
+      "sweep_status": "清扫已开启；液压杆升出 3 秒指令已接收，动作计时结束（设备不回传杆位置）。"
+    },
+    {
+      "time": "2026-10-14T12:53:55.806",
+      "state": "FOD_COMPLETE_STOP",
+      "command_source": "STOP",
+      "reason": "已到达记录 FOD 前方 0.8 米终点；停车，清扫关闭并收杆 3 秒",
+      "sweep_status": "清扫已开启；液压杆升出 3 秒指令已接收，动作计时结束（设备不回传杆位置）。"
+    },
+    {
+      "time": "2026-10-14T12:53:58.751",
+      "state": "FOD_COMPLETE_STOP",
+      "command_source": "STOP",
+      "reason": "已到达记录 FOD 前方 0.8 米终点；停车，清扫关闭并收杆 3 秒",
+      "sweep_status": "清扫已关闭；液压杆回收 3 秒指令已接收，动作计时结束（设备不回传杆位置）。"
+    }
+  ],
+  "local_recording_directory": "/home/slam/robot_ws_agx/log/operator_fod_depth_final_20261014_124519/pt3_fixed_record_20261014_125205",
+  "stop_record": {
+    "stopped_at": "2026-10-14T12:55:02.219472+08:00",
+    "recorder_pid": 425801,
+    "bags": {
+      "pt3_fixed_recovery_0.bag": 821177216
+    },
+    "active_files": [],
+    "operator_report": "测试结束，效果很好，能回收"
+  },
+  "validation_before_field_test": {
+    "related_unit_tests_passed": 124,
+    "isolated_ros_recovery_scenarios_passed": 4,
+    "qt_build": "passed"
+  },
+  "limitations": [
+    "Hydraulic controller acknowledges commands but does not report rod position.",
+    "Camera lateral compensation is an image-based estimate, not a complete measured extrinsic calibration.",
+    "0.8 m is the endpoint offset; navigation retains its arrival tolerance."
+  ]
+}

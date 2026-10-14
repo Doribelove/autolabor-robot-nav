@@ -148,7 +148,7 @@ usage() {
   echo "  FOD_RECOVERY_EXTERNAL_ESTOP_OVERRIDE=false # keep CAN/VCU safety gates active"
   echo "  FOD_RECOVERY_BLIND_DISTANCE_M=0.80 # m; post-loss straight crossing distance"
   echo "  FOD_RECOVERY_TRANSITION_TIMEOUT=12.0 # s; maximum wait for confirmed chassis stop"
-  echo "  FILTER_REMOVE_ABOVE_Z=0.1"
+  echo "  FILTER_REMOVE_ABOVE_Z=0.1 # FAST-LIO modes; GPS direct scan keeps chassis height 0.25..1.5 m"
   echo "  FILTER_NEAR_RADIUS=0.4"
   echo "  FILTER_NEAR_MIN_Z=-0.1"
   echo "  FILTER_NEAR_MAX_Z=0.1"
@@ -348,6 +348,7 @@ cleanup_existing_nodes() {
     /gps_localization
     /laserMapping
     /livox_lidar_publisher2
+    /livox_obstacle_cloud
     /m2_driver
     /move_base
     /pointcloud_self_filter
@@ -1105,16 +1106,13 @@ else
   wait_topics "/livox/lidar,/livox/imu" 45.0
 
   start_fast_lio_launch "FAST_LIO point cloud registration" robot_bringup fast_lio.launch odom_pub_en:=false tf_pub_en:=false
-  wait_topics "/cloud_registered_body" 60.0
-
-  start_launch "FAST_LIO filtered scan projection" robot_bringup scan_fast_lio.launch \
-    remove_above_z:="$FILTER_REMOVE_ABOVE_Z" \
+  # Keep the existing registered clouds for diagnostics, but GPS obstacle
+  # observations must not depend on LIO map matching or integrated velocity.
+  start_launch "MID360 local obstacle scan" robot_bringup scan_livox_direct.launch \
+    start_driver:=false \
     near_radius:="$FILTER_NEAR_RADIUS" \
     near_min_z:="$FILTER_NEAR_MIN_Z" \
-    near_max_z:="$FILTER_NEAR_MAX_Z" \
-    body_tf_parent:=base_link \
-    body_tf_child:=body \
-    body_tf_z:=0.6
+    near_max_z:="$FILTER_NEAR_MAX_Z"
   wait_topics "/scan" 45.0
 
   wait_topics "/odom" 30.0
@@ -1179,8 +1177,13 @@ else
       transition_timeout_sec:="$FOD_RECOVERY_TRANSITION_TIMEOUT"
   fi
 
+  GPS_KEEPOUT_SUPPORT=false
+  if [[ "${GPS_KEEPOUT_ENABLE_SUPPORT:-true}" == "true" ]] && rospack find autolabor_gps_keepout >/dev/null 2>&1; then
+    GPS_KEEPOUT_SUPPORT=true
+  fi
   start_launch "Arena navigation" robot_bringup navigation_arena.launch \
     localization_source:=gps \
+    gps_keepout_support:="$GPS_KEEPOUT_SUPPORT" \
     start_rviz:="$NAV_START_RVIZ" \
     planner_frequency:="$GPS_GLOBAL_PLANNER_FREQUENCY" \
     teb_profile_file:="$GPS_TEB_PROFILE_FILE" \

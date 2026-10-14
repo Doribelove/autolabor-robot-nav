@@ -22,6 +22,8 @@ from typing import Optional, Tuple
 
 import rosgraph
 import rospy
+import tf2_ros
+from autolabor_fod_control.gps_recovery import depth_steering_curvature
 from autolabor_canbus_driver.msg import CanBusMessage, ChassisStatusInfo
 from autolabor_canbus_driver.srv import CanBusService, ChassisParameterServer
 from autolabor_fod_msgs.msg import FodDetectionArray
@@ -52,6 +54,7 @@ from autolabor_fod_control.visual_servo import (
     horizontal_error,
     interpolate_planar_pose,
     renew_motion_lease_now,
+    same_target_observations,
     terminal_feedback_is_fresh,
     terminal_sensor_fence_unchanged,
     validate_detection,
@@ -63,6 +66,7 @@ PRECHECK = "PRECHECK"
 FINAL_STOP = "FINAL_STOP"
 COMPLETE = "COMPLETE"
 ABORT = "ABORT"
+GPS_HANDOFF = "GPS_HANDOFF"
 
 MAX_COMMAND_SPEED_MPS = 0.60
 MAX_BLIND_DISTANCE_M = 0.80
@@ -113,6 +117,7 @@ class CameraState:
     cx: float
     frame_id: str
     error: str = ""
+    projection: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -306,6 +311,7 @@ class FodVisualServoNode:
             recovery_region_top_fraction=float(rospy.get_param("~recovery_region_top_fraction", 0.50)),
             recovery_region_width_fraction=float(rospy.get_param("~recovery_region_width_fraction", 0.60)),
             tracking_loss_grace_sec=float(rospy.get_param("~tracking_loss_grace_sec", 0.30)),
+            recovery_loss_grace_sec=float(rospy.get_param("~recovery_loss_grace_sec", 0.0)),
             filter_alpha=float(rospy.get_param("~pixel_filter_alpha", 0.35)),
         )
         self.machine_config = machine_config
@@ -448,6 +454,8 @@ class FodVisualServoNode:
         self.last_processed_detection_sequence = 0
         self.session_detection_floor = 0
         self.last_processed_odom_sequence = 0
+        self.steering_source = "pixel"
+        self.target_lateral_m = None
         self.target_u_px = None
         self.horizontal_error_value = None
         self.vertical_fraction_value = None
@@ -500,6 +508,8 @@ class FodVisualServoNode:
             self._detection_cb,
             queue_size=50,
         )
+        self.steering_tf_buffer = tf2_ros.Buffer()
+        self.steering_tf_listener = tf2_ros.TransformListener(self.steering_tf_buffer)
         self.camera_sub = rospy.Subscriber(
             self.camera_info_topic, CameraInfo, self._camera_cb, queue_size=20
         )
@@ -711,8 +721,8 @@ class FodVisualServoNode:
             char not in "0123456789abcdef" for char in self.expected_model_sha256
         ):
             raise ValueError("expected_model_sha256 must be exactly 64 hex characters")
-        if not 0.25 <= self.min_confidence <= 0.95:
-            raise ValueError("min_confidence must be between 0.25 and 0.95")
+        if not 0.10 <= self.min_confidence <= 0.95:
+            raise ValueError("min_confidence must be between 0.10 and 0.95")
         if abs(self.target_u_offset_px) > 0.15 * self.expected_image_width:
             raise ValueError("target_u_offset_px exceeds the conservative calibration range")
         if not 5.0 <= self.precheck_timeout_sec <= 60.0:
@@ -971,6 +981,7 @@ class FodVisualServoNode:
             cx=cx,
             frame_id=msg.header.frame_id,
             error="; ".join(errors),
+            projection=tuple(msg.P),
         )
         with self.sensor_lock:
             if state.error:
@@ -1862,6 +1873,10 @@ class FodVisualServoNode:
             self.machine = TargetPhaseMachine(
                 self.machine_config, self.association_config
             )
+            self.preferred_track_id = int(rospy.get_param("~preferred_track_id", 0))
+            preferred = rospy.get_param("~preferred_target", {})
+            self.preferred_target = PixelDetection(**preferred) if preferred else None
+            self.gps_handoff_on_approach_limit = bool(rospy.get_param("~gps_handoff_on_approach_limit", False))
             self.phase = PRECHECK
             if self.external_estop_override:
                 self.reason = (
@@ -1904,6 +1919,8 @@ class FodVisualServoNode:
         )
 
     def _clear_run_metrics(self):
+        self.steering_source = "pixel"
+        self.target_lateral_m = None
         self.target_u_px = None
         self.horizontal_error_value = None
         self.vertical_fraction_value = None
@@ -1969,7 +1986,14 @@ class FodVisualServoNode:
                 self._publish_status()
         except ControllerAbort as exc:
             with self.run_lock:
-                if self.phase not in (DISABLED, COMPLETE, ABORT):
+                if (self.operator_disable_requested.is_set()
+                        and str(exc).startswith("operator disable request")):
+                    # A normal GPS handoff can interrupt an in-flight tick.
+                    # Its immediate zero remains in force; report standby,
+                    # rather than briefly labelling the requested stop ABORT.
+                    self._hard_stop()
+                    self._reset_session(DISABLED, "motion disabled by operator")
+                elif self.phase not in (DISABLED, COMPLETE, ABORT):
                     self._abort_locked(str(exc))
                 self._publish_status(force=True)
         except Exception as exc:
@@ -1980,7 +2004,7 @@ class FodVisualServoNode:
                 self._publish_status(force=True)
 
     def _control_tick_locked(self):
-        if self.phase in (DISABLED, COMPLETE, ABORT):
+        if self.phase in (DISABLED, COMPLETE, ABORT, GPS_HANDOFF):
             self._hard_stop()
             return
 
@@ -2043,10 +2067,14 @@ class FodVisualServoNode:
 
         if self.phase in (APPROACH, TRACK_WAIT):
             self._update_approach_odometry()
+            if self.phase == GPS_HANDOFF:
+                return
         elif self.phase == ACQUIRE:
             self._discard_odom_events()
 
         self._process_detection_events()
+        if self.phase == GPS_HANDOFF:
+            return
 
         if self.phase == APPROACH:
             self._command_visual_approach()
@@ -2142,6 +2170,10 @@ class FodVisualServoNode:
                     self.approach_next_progress_m += self.approach_progress_step_m
         self.approach_last_odom = previous
         if self.approach_path_m > self.max_approach_distance_m:
+            if getattr(self, "gps_handoff_on_approach_limit", False):
+                self._hard_stop()
+                self._transition(GPS_HANDOFF, "visual approach distance reached; continue to recorded FOD GPS endpoint")
+                return
             raise ControllerAbort(
                 "visual approach exceeded %.2fm before target disappearance"
                 % self.max_approach_distance_m
@@ -2213,6 +2245,10 @@ class FodVisualServoNode:
             acquisition_reason = ""
             if self.phase == ACQUIRE:
                 candidates, acquisition_reason = self._acquisition_candidates(frame)
+                if getattr(self, "preferred_track_id", 0):
+                    seed = getattr(self, "preferred_target", None)
+                    candidates = (same_target_observations(seed, candidates) if seed else
+                                  tuple(d for d in candidates if d.track_id == self.preferred_track_id))
             else:
                 # Acquisition still requires confidence + valid depth. Once
                 # locked, use fresh real observations of that identity even
@@ -2242,6 +2278,10 @@ class FodVisualServoNode:
                     decision.filtered_v, frame.height)
 
             if decision.enter_blind_advance:
+                if getattr(self, "gps_handoff_on_approach_limit", False):
+                    self._hard_stop()
+                    self._transition(GPS_HANDOFF, "target no longer visible; continue to recorded FOD GPS endpoint")
+                    return
                 self._start_blind_measurement(frame.stamp_sec)
             if self.phase == TRACK_WAIT and previous_state != TRACK_WAIT:
                 self._hard_stop()
@@ -2294,6 +2334,23 @@ class FodVisualServoNode:
             deadband=self.horizontal_deadband,
             max_curvature=self.max_curvature,
         )
+        self.steering_source = "pixel"
+        self.target_lateral_m = None
+        target = self.machine.locked
+        if self.machine_config.select_nearest_by_depth and target is not None and target.depth_valid:
+            with self.sensor_lock:
+                camera = self.latest_camera
+            try:
+                transform = self.steering_tf_buffer.lookup_transform(
+                    self.expected_base_frame, camera.frame_id, rospy.Time(0)).transform
+                t, rotation = transform.translation, transform.rotation
+                curvature, self.target_lateral_m = depth_steering_curvature(
+                    target, camera.projection, (t.x,t.y,t.z),
+                    (rotation.x,rotation.y,rotation.z,rotation.w), self.max_curvature)
+                self.steering_source = "registered_depth"
+            except (ValueError, IndexError, AttributeError, tf2_ros.TransformException):
+                # A stereo hole or absent optional TF retains pixel steering.
+                pass
         self.horizontal_error_value = error
         self.vertical_fraction_value = q
         now = time.monotonic()
@@ -2743,6 +2800,8 @@ class FodVisualServoNode:
             not in (DISABLED, PRECHECK, COMPLETE, ABORT),
             "completed": self.phase == COMPLETE,
             "target_visible": self.target_visible,
+            "steering_source": self.steering_source,
+            "target_lateral_m": self.target_lateral_m,
             "target_locked": target is not None,
             "target_track_id": target.track_id if target is not None else 0,
             "target_depth_m": round(target.depth_m, 3) if target and target.depth_valid else None,

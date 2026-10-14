@@ -114,7 +114,7 @@ class GpsCruiseLateralStabilityTest(unittest.TestCase):
         cls.script = BRINGUP_SCRIPT.read_text(encoding="utf-8")
 
     def test_cruise_uses_prompt_turn_entry_with_bounded_path_correction(self):
-        self.assertEqual(self.cruise["control_look_ahead_poses"], 2)
+        self.assertEqual(self.cruise["control_look_ahead_poses"], 3)
         self.assertGreaterEqual(self.cruise["global_plan_viapoint_sep"], 1.5)
         self.assertLessEqual(self.cruise["max_vel_theta"], 0.85)
         self.assertAlmostEqual(

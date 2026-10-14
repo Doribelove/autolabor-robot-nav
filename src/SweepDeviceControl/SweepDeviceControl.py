@@ -17,6 +17,16 @@ class SweepDeviceTCPClient:
         self.resp_on = "EEFFC3010000000000020D"   # 设备开启
         self.resp_off = "EEFFC3010000000000000D"  # 设备关闭
 
+        # 液压杆指令：时长编码为 10ms 步进（00C8=200=2s，012C=300=3s）
+        # 设备端目前只提供 2s/3s 的固定校验，任意秒数待对端补齐后再拼帧
+        self.cmd_hydraulic = {
+            ("retract", 2): "CCDDA20102030200C80400000076EC",  # 回收 2秒
+            ("retract", 3): "CCDDA201020302012C04000000DBB6",  # 回收 3秒
+            ("extend", 2): "CCDDA2010203000000040200C876EC",   # 升出 2秒
+            ("extend", 3): "CCDDA20102030000000402012CDBB6",   # 升出 3秒
+        }
+        self.hydraulic_durations = (2, 3)
+
     def connect(self) -> bool:
         """建立单TCP连接，失败返回False"""
         try:
@@ -126,6 +136,45 @@ class SweepDeviceTCPClient:
             time.sleep(0.5)
 
         print(f"连续{retry_times}次操作均失败")
+        return False
+
+    def extend_hydraulic_rod(self, duration_s: int = 2, wait_s=None, retry_times: int = 3) -> bool:
+        """液压杆升出。duration_s 目前仅支持 2 或 3；wait_s 为 ACK 后等待秒数，默认等于 duration_s。"""
+        return self._send_hydraulic_cmd("extend", duration_s, wait_s, retry_times)
+
+    def retract_hydraulic_rod(self, duration_s: int = 2, wait_s=None, retry_times: int = 3) -> bool:
+        """液压杆回收。duration_s 目前仅支持 2 或 3；wait_s 为 ACK 后等待秒数，默认等于 duration_s。"""
+        return self._send_hydraulic_cmd("retract", duration_s, wait_s, retry_times)
+
+    def _send_hydraulic_cmd(self, action: str, duration_s: int, wait_s, retry_times: int) -> bool:
+        """
+        下发液压杆升出/回收指令，成功应答为 4F4B21。
+        无状态查询帧，只能以 ACK 判断命令是否被接收。
+        """
+        action_text = "升出" if action == "extend" else "回收"
+        if duration_s not in self.hydraulic_durations:
+            print(
+                f"[失败] 液压杆{action_text}暂不支持 {duration_s} 秒，"
+                f"设备端目前仅有 {self.hydraulic_durations} 秒的固定校验"
+            )
+            return False
+
+        hex_cmd = self.cmd_hydraulic[(action, duration_s)]
+        if wait_s is None:
+            wait_s = duration_s
+
+        for i in range(retry_times):
+            print(f"\n第{i + 1}次下发液压杆{action_text} {duration_s}秒指令")
+            resp = self.send_hex_cmd(hex_cmd)
+            if self.ack_success in resp:
+                print(f"命令发送成功(4F4B21)，等待液压杆动作 {wait_s} 秒...")
+                if wait_s > 0:
+                    time.sleep(wait_s)
+                return True
+            print(f"命令发送失败，当前应答: {resp}，准备重试")
+            time.sleep(0.5)
+
+        print(f"连续{retry_times}次液压杆{action_text}均失败")
         return False
 
     def close(self):

@@ -157,14 +157,20 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         self.assertEqual(config["max_linear_acceleration_mps2"], 4.00)
         self.assertEqual(config["blind_speed_mps"], 0.60)
 
-    def test_launch_confidence_override_matches_yaml_default(self):
-        with CONFIG_PATH.open(encoding="utf-8") as stream:
-            config = yaml.safe_load(stream)
-        root = ET.parse(str(LAUNCH_PATH)).getroot()
-        launch_arg = next(
-            item for item in root.findall("arg") if item.get("name") == "min_confidence"
-        )
-        self.assertEqual(float(launch_arg.get("default")), config["min_confidence"])
+    def test_launch_confidence_uses_camera_profile_and_explicit_override(self):
+        from roslaunch.config import ROSLaunchConfig
+        from roslaunch.xmlloader import XmlLoader
+
+        for args, expected in (
+            (["camera_driver:=hikrobot"], 0.30),
+            (["camera_driver:=zed"], 0.12),
+            (["camera_driver:=zed", "min_confidence:=0.40"], 0.40),
+        ):
+            with self.subTest(args=args):
+                config = ROSLaunchConfig()
+                XmlLoader().load(str(LAUNCH_PATH), config, argv=args, verbose=False)
+                self.assertAlmostEqual(
+                    config.params["/fod_visual_servo/min_confidence"].value, expected)
 
     def test_stable_targets_well_left_or_right_of_center_can_be_acquired(self):
         node = self.make_node()
@@ -350,6 +356,74 @@ class TargetPhaseMachineTest(unittest.TestCase):
         matches = matching_detections(
             original, [jittered], WIDTH, HEIGHT, AssociationConfig())
         self.assertEqual(matches, (jittered,))
+
+
+class RelaxedDepthAssociationTest(unittest.TestCase):
+    def test_requested_handoff_stop_is_not_reported_as_visual_abort(self):
+        node=FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
+        node.run_lock=threading.RLock()
+        node.operator_disable_requested=threading.Event()
+        node.operator_disable_requested.set()
+        node.phase=APPROACH
+        node._control_tick_locked=mock.Mock(side_effect=FOD_NODE.ControllerAbort(
+            'operator disable request inhibits motion'))
+        node._hard_stop=mock.Mock();node._reset_session=mock.Mock()
+        node._abort_locked=mock.Mock();node._publish_status=mock.Mock()
+        node._control_tick()
+        node._hard_stop.assert_called_once()
+        node._reset_session.assert_called_once_with(FOD_NODE.DISABLED,'motion disabled by operator')
+        node._abort_locked.assert_not_called()
+        node._control_tick_locked.side_effect=FOD_NODE.ControllerAbort('real odometry fault')
+        node._control_tick()
+        node._abort_locked.assert_called_once_with('real odometry fault')
+
+    def make_machine(self):
+        return TargetPhaseMachine(TargetMachineConfig(
+            acquire_frames=3,select_nearest_by_depth=True,
+            recovery_loss_grace_sec=.35,tracking_loss_grace_sec=.30))
+
+    def frame(self,m,ds,t):
+        return m.process_frame(ds,WIDTH,HEIGHT,620.,0.,t)
+
+    def obj(self,identity=1,q=.3,u=620.):
+        return replace(detection(u=u,q=q),track_id=identity,
+                       depth_valid=True,depth_m=3.,range_m=3.)
+
+    def test_id_and_class_changes_during_confirmation_keep_one_target(self):
+        m=self.make_machine()
+        self.frame(m,[self.obj()],1.)
+        alias=replace(self.obj(77),class_name='Plastic',class_id=2)
+        self.frame(m,[alias],1.05)
+        result=self.frame(m,[alias],1.10)
+        self.assertTrue(result.acquired)
+        self.assertEqual(result.target.track_id,77)
+
+    def test_brief_loss_inside_region_reconnects_before_crossing(self):
+        m=self.make_machine()
+        for i in range(3):self.frame(m,[self.obj(q=.6)],1+i*.05)
+        self.assertTrue(m.recovery_ready)
+        self.assertEqual(self.frame(m,[],1.15).state,APPROACH)
+        alias=replace(self.obj(77,q=.62,u=625.),class_name='Plastic',class_id=2,
+                      depth_valid=False,depth_m=0.,range_m=0.)
+        result=self.frame(m,[alias],1.25)
+        self.assertEqual(result.state,APPROACH)
+        self.assertEqual(result.target.track_id,77)
+        self.assertFalse(result.enter_blind_advance)
+        self.frame(m,[],1.3)
+        result=self.frame(m,[],1.7)
+        self.assertTrue(result.enter_blind_advance)
+
+    def test_nearby_known_bystander_does_not_replace_selected_target(self):
+        m=self.make_machine();near=self.obj(2,u=640.)
+        near=replace(near,depth_m=3.1,range_m=3.1)
+        for i in range(3):self.frame(m,[self.obj(),near],1+i*.05)
+        self.frame(m,[near],1.15)
+        result=self.frame(m,[near],1.5)
+        self.assertEqual(result.state,TRACK_WAIT)
+        self.assertEqual(result.target.track_id,1)
+        result=self.frame(m,[near,self.obj(77,u=625.)],1.55)
+        self.assertEqual(result.state,APPROACH)
+        self.assertEqual(result.target.track_id,77)
 
 
 class BlindOdometryAndLeaseTest(unittest.TestCase):

@@ -10,6 +10,7 @@
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
+#include <ros/callback_queue.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/NavSatFix.h>
@@ -49,6 +50,8 @@ namespace autolabor_operator_gui
 {
 
 class ZedCameraPanel;
+class KeepoutPanel;
+class FodTargetsPanel;
 
 struct MasterProbeResult
 {
@@ -184,6 +187,7 @@ protected:
 
 private Q_SLOTS:
   void refreshUi();
+  void refreshCameraPreview();
   void requestMasterProbe();
   void handleMasterProbeFinished();
   void toggleRvizPanels();
@@ -278,6 +282,7 @@ private:
   mutable std::mutex snapshot_mutex_;
   TelemetrySnapshot telemetry_;
 
+  ros::CallbackQueue telemetry_callback_queue_;
   std::unique_ptr<ros::NodeHandle> node_;
   std::unique_ptr<ros::AsyncSpinner> spinner_;
   ros::Subscriber fix_subscriber_;
@@ -318,6 +323,7 @@ private:
   QTimer master_probe_timer_;
   QFutureWatcher<MasterProbeResult> master_probe_watcher_;
   QTimer ui_refresh_timer_;
+  QTimer camera_preview_timer_;
 
   std::map<QString, StatusCard> status_cards_;
   std::map<QString, QLabel*> values_;
@@ -338,6 +344,8 @@ private:
   QPlainTextEdit* vision_detections_ = nullptr;
   QTabWidget* camera_controls_tabs_ = nullptr;
   ZedCameraPanel* zed_camera_panel_ = nullptr;
+  KeepoutPanel* keepout_panel_ = nullptr;
+  FodTargetsPanel* fod_targets_panel_ = nullptr;
   QDoubleSpinBox* gps_latitude_input_ = nullptr;
   QDoubleSpinBox* gps_longitude_input_ = nullptr;
   QPushButton* manual_goal_button_ = nullptr;

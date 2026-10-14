@@ -14,7 +14,7 @@
   <arg name="camera_driver" default="hikrobot"/>
   <arg name="expected_model_sha256"
        default="$(optenv FOD_RECOVERY_EXPECTED_MODEL_SHA256)"/>
-  <arg name="recovery_radius_m" default="5.0"/>
+  <arg name="recovery_radius_m" default="10.0"/>
   <arg name="sweep_enabled" default="true"/>
   <arg name="sweep_auto_stop" default="true"/>
 
@@ -45,6 +45,8 @@
            value="/fod_visual_servo/set_enabled"/>
     <param name="gps_pause_service" value="$(arg gps_pause_service)"/>
     <param name="retain_gps_route" value="$(arg retain_gps_route)"/>
+    <param name="gps_fallback_enabled"
+           value="$(eval arg('retain_gps_route') and arg('camera_driver') == 'zed')"/>
     <param name="recovery_radius_m" value="$(arg recovery_radius_m)"/>
     <param name="sweep_enabled" value="$(arg sweep_enabled)"/>
     <param name="sweep_auto_stop" value="$(arg sweep_auto_stop)"/>

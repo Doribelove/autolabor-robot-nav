@@ -1,0 +1,10 @@
+global_costmap:
+  plugins:
+    - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: gps_keepout, type: "autolabor_gps_keepout/KeepoutLayer"}
+    - {name: inflater_layer, type: "costmap_2d::InflationLayer"}
+local_costmap:
+  plugins:
+    - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
+    - {name: gps_keepout, type: "autolabor_gps_keepout/KeepoutLayer"}
+    - {name: inflater_layer, type: "costmap_2d::InflationLayer"}

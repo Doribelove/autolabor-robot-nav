@@ -1,0 +1,50 @@
+<launch>
+  <arg name="fod_offset_y" default="1.0"/>
+  <arg name="case" default="visible_then_lost"/>
+  <arg name="sweep_port" default="50214"/>
+  <arg name="results_file" default="/tmp/gps_loss_recovery_result.json"/>
+  <arg name="max_approach_distance_m" default="6.0"/>
+  <param name="/gps/origin_lat" value="30.3007"/>
+  <param name="/gps/origin_lon" value="104.3898"/>
+  <param name="/fake_world/is_pub_control_timeout" value="true"/>
+  <node pkg="gps_module" type="gps_long_range_goal_manager.py" name="gps_long_range_goal_manager" output="screen"/>
+  <node pkg="robot_bringup" type="gps_goal_speed_limiter.py" name="gps_goal_speed_limiter" output="screen">
+    <param name="output_cmd_topic" value="/cmd_vel_gps"/>
+    <param name="hard_stop_distance" value="0.2"/>
+    <param name="planner_xy_goal_tolerance" value="0.3"/>
+    <param name="speed_cap_enabled" value="true"/>
+    <param name="comfortable_decel" value="0.25"/>
+    <param name="approach_time" value="3.0"/>
+    <param name="min_approach_speed" value="0.2"/>
+  </node>
+  <node pkg="autolabor_fod_control" type="fod_visual_servo_node.py" name="fod_visual_servo" output="screen">
+    <rosparam command="load" file="$(find autolabor_fod_control)/config/visual_servo.yaml"/>
+    <rosparam command="load" file="$(find autolabor_fod_control)/config/visual_camera_zed2.yaml"/>
+    <rosparam command="load" file="$(find autolabor_fod_control)/../../../config/fod_zed_ground_roi.yaml"/>
+    <param name="allow_motion" value="true"/>
+    <param name="max_approach_distance_m" value="$(arg max_approach_distance_m)"/>
+    <param name="expected_detector_node" value="/fake_world"/>
+    <param name="expected_camera_node" value="/fake_world"/>
+    <param name="expected_driver_node" value="/fake_world"/>
+    <param name="expected_canbus_node" value="/fake_world"/>
+    <param name="cmd_vel_topic" value="/cmd_vel_fod"/>
+    <param name="expected_cmd_vel_subscriber_node" value="/fod_navigation_mode"/>
+    <param name="status_rate_hz" value="10.0"/>
+  </node>
+  <node pkg="autolabor_fod_control" type="fod_navigation_mode_manager.py" name="fod_navigation_mode" output="screen">
+    <param name="gps_fallback_enabled" value="true"/>
+    <param name="expected_driver_node" value="/fake_world"/>
+    <param name="expected_move_base_node" value="/fake_world"/>
+    <param name="require_output_driver" value="false"/>
+    <param name="sweep_ip" value="127.0.0.1"/>
+    <param name="sweep_port" value="$(arg sweep_port)"/>
+    <param name="status_rate_hz" value="10.0"/>
+  </node>
+  <test test-name="gps_loss_recovery" pkg="autolabor_fod_control"
+        type="test_gps_loss_recovery_ros.py" name="fake_world" time-limit="100">
+    <param name="case" value="$(arg case)"/>
+    <param name="fod_offset_y" value="$(arg fod_offset_y)"/>
+    <param name="sweep_port" value="$(arg sweep_port)"/>
+    <param name="results_file" value="$(arg results_file)"/>
+  </test>
+</launch>

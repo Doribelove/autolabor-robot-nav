@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>autolabor_gps_keepout</name>
+  <version>0.1.0</version>
+  <description>Editable GPS exclusion polygons, route geometry and costmap layer.</description>
+  <maintainer email="robot@example.com">robot</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>gps_module</exec_depend>
+  <depend>costmap_2d</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>pluginlib</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <exec_depend>python3-shapely</exec_depend>
+  <exec_depend>python3-pyshp</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <test_depend>rostest</test_depend>
+  <test_depend>python3-nose</test_depend>
+  <export><costmap_2d plugin="${prefix}/plugins.xml"/></export>
+</package>

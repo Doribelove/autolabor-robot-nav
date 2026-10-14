@@ -12,6 +12,9 @@ int main(int argc, char** argv)
   // consistently instead of leaving QSS pixel fonts physically tiny.
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+  // Ogre owns a native X11 render window. Do not promote unrelated tab
+  // widgets to native siblings when that window is created.
+  QApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 
   ros::init(argc, argv, "autolabor_operator_gui",
             ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);

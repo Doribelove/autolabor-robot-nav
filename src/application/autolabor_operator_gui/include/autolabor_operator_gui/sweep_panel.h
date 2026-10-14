@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QWidget>
 
+class QComboBox;
 class QLabel;
 class QLineEdit;
 class QPlainTextEdit;
@@ -55,6 +56,10 @@ private:
   QPushButton* start_ = nullptr;
   QPushButton* stop_ = nullptr;
   QPushButton* query_ = nullptr;
+  QComboBox* hydraulic_duration_ = nullptr;
+  QPushButton* hydraulic_extend_ = nullptr;
+  QPushButton* hydraulic_retract_ = nullptr;
+  QLabel* hydraulic_result_ = nullptr;
   QPlainTextEdit* log_ = nullptr;
 };
 

@@ -30,7 +30,7 @@ from autolabor_fod_control.visual_servo import local_displacement
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "SweepDeviceControl"))
 from test_sweep_test import DeviceServer
 
-# Every entry runs through actual GPS arming, 5 m sweep, visual handoff and stop.
+# Every entry runs through actual GPS arming, 10 m sweep, visual handoff and stop.
 CASES = [
     ("normal", {}),
     ("three_targets", {"bystanders": True}),
@@ -231,7 +231,7 @@ class FullRecoveryTaskTest(FakeWorldIntegrationTest):
             x, y, yaw, travel = self.x, self.y, self.yaw, self.travel_m
             if self.sweeper.state:
                 self.sweep_seen_on = True
-                if self.gps_goal_x - x >= 5.0 + .02:
+                if self.gps_goal_x - x >= 10.0 + .02:
                     self.premature_sweep = True
             self.trace.append([now - self.started, x, y, v, self.command.linear.x,
                                self.visual_status.get("state", ""), self.sweeper.state])

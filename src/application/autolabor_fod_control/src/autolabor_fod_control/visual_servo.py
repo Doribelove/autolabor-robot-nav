@@ -51,6 +51,7 @@ class TargetMachineConfig:
     recovery_region_top_fraction: float = 0.50
     recovery_region_width_fraction: float = 0.60
     tracking_loss_grace_sec: float = 0.30
+    recovery_loss_grace_sec: float = 0.0
     filter_alpha: float = 0.35
     roi_top_fraction: float = 0.0
     roi_bottom_fraction: float = 1.0
@@ -63,8 +64,10 @@ class TargetMachineConfig:
             raise ValueError("recovery region top must be within the ground ROI")
         if not 0.0 < self.recovery_region_width_fraction <= 1.0:
             raise ValueError("recovery region width must be within the image")
-        if not 0.0 <= self.tracking_loss_grace_sec <= 0.50:
-            raise ValueError("tracking loss grace must be between 0 and 0.50 seconds")
+        if not 0.0 <= self.tracking_loss_grace_sec <= 1.50:
+            raise ValueError("tracking loss grace must be between 0 and 1.50 seconds")
+        if not 0.0 <= self.recovery_loss_grace_sec <= 1.50:
+            raise ValueError("recovery loss grace must be between 0 and 1.50 seconds")
 
     def recovery_region(self, image_width, image_height, target_u):
         half_width = self.recovery_region_width_fraction * image_width * 0.5
@@ -296,6 +299,32 @@ def matching_detections(
         scored.append((score, candidate))
     scored.sort(key=lambda item: item[0], reverse=True)
     return tuple(item[1] for item in scored)
+
+
+def same_target_observations(previous, candidates, other_ids=()):
+    """Reconnect one real observation after an ID/class change, not a bystander.
+
+    Known neighbouring identities are excluded. A new identity must be the
+    only plausible box near the last observation; no held box is generated.
+    """
+    exact = tuple(d for d in candidates if d.track_id == previous.track_id)
+    if exact:
+        return exact
+    matches = []
+    for d in candidates:
+        if d.track_id <= 0 or d.track_id in other_ids:
+            continue
+        ratio = d.area / max(previous.area, 1.0)
+        limit = max(48.0, min(100.0, 1.5 * max(
+            math.hypot(previous.width, previous.height), math.hypot(d.width, d.height))))
+        if not .2 <= ratio <= 5.0 or math.hypot(
+                d.anchor_u-previous.anchor_u, d.anchor_v-previous.anchor_v) > limit:
+            continue
+        if (d.depth_valid and previous.depth_valid
+                and abs(d.range_m-previous.range_m) > .75):
+            continue
+        matches.append(d)
+    return tuple(matches) if len(matches) == 1 else ()
 
 
 def horizontal_error(anchor_u: float, target_u: float, image_width: int) -> float:
@@ -636,6 +665,7 @@ class TargetPhaseMachine:
         self.missing_frames = 0
         self.loss_started_stamp = None
         self.recovery_ready = False
+        self.other_track_ids = set()
 
     def _decision(self, **kwargs) -> TargetDecision:
         return TargetDecision(
@@ -680,7 +710,10 @@ class TargetPhaseMachine:
         """Keep the selected identity through approach, loss and blind travel."""
         if not self.config.select_nearest_by_depth or self.locked is None:
             return tuple(candidates)
-        return tuple(d for d in candidates if d.track_id == self.locked.track_id)
+        if any(d.track_id == self.locked.track_id for d in candidates):
+            self.other_track_ids.update(d.track_id for d in candidates
+                                        if d.track_id != self.locked.track_id)
+        return same_target_observations(self.locked, candidates, self.other_track_ids)
 
     def _update_locked(self, target: PixelDetection) -> None:
         self.locked = target
@@ -706,9 +739,13 @@ class TargetPhaseMachine:
                             and math.isfinite(d.range_m) and d.range_m > 0]
                 # Choose nearest once, then confirm that same object across
                 # frames. Range/confidence jitter must not alternate targets.
-                pending = next((d for d in eligible if self.pending is not None
-                                and d.track_id == self.pending.track_id), None)
+                matches = (same_target_observations(self.pending, eligible, self.other_track_ids)
+                           if self.pending is not None else ())
+                pending = matches[0] if len(matches) == 1 else None
                 chosen = pending or min(eligible, key=lambda d: (d.range_m, d.track_id), default=None)
+                if chosen is not None:
+                    self.other_track_ids.update(d.track_id for d in eligible
+                                                if d.track_id != chosen.track_id)
                 candidates = (chosen,) if chosen is not None else ()
             if len(candidates) != 1:
                 self.pending = None
@@ -726,7 +763,7 @@ class TargetPhaseMachine:
                 self.pending_hits = 1
             else:
                 if self.config.select_nearest_by_depth:
-                    matches = (candidate,) if candidate.track_id == self.pending.track_id else ()
+                    matches = same_target_observations(self.pending, (candidate,), self.other_track_ids)
                 else:
                     matches = matching_detections(
                         self.pending, (candidate,), image_width, image_height, self.association)
@@ -776,14 +813,14 @@ class TargetPhaseMachine:
         # it. Its first absence commits one odometry-only crossing; subsequent
         # boxes cannot restart distance, select another object or veto finish.
         self.missing_frames += 1
-        if self.recovery_ready:
-            self.state = BLIND_ADVANCE
-            self.loss_started_stamp = frame_stamp
-            self.reason = "recovery-region target disappeared; completing one measured crossing"
-            return self._decision(enter_blind_advance=True)
         if self.loss_started_stamp is None:
             self.loss_started_stamp = frame_stamp
-        if frame_stamp - self.loss_started_stamp < self.config.tracking_loss_grace_sec:
+        if (self.recovery_ready and frame_stamp-self.loss_started_stamp
+                >= self.config.recovery_loss_grace_sec):
+            self.state = BLIND_ADVANCE
+            self.reason = "recovery-region target disappeared; completing one measured crossing"
+            return self._decision(enter_blind_advance=True)
+        if self.recovery_ready or frame_stamp - self.loss_started_stamp < self.config.tracking_loss_grace_sec:
             self.reason = "brief target dropout before recovery region; retaining approach"
         else:
             self.state = TRACK_WAIT

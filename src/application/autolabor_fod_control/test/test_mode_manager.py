@@ -3,11 +3,13 @@
 import math
 from concurrent.futures import ThreadPoolExecutor
 import importlib.util
+import json
 from pathlib import Path
 import sys
 import threading
 import time
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 
 
@@ -108,6 +110,26 @@ class StopConfirmationInputTest(unittest.TestCase):
 
 
 class ConcurrentGraphQueryTest(unittest.TestCase):
+    def test_first_nearby_fod_uses_pickup_speed_before_gps_memory_confirmation(self):
+        path=Path(__file__).resolve().parents[1]/"scripts/fod_navigation_mode_manager.py"
+        spec=importlib.util.spec_from_file_location("near_fod_speed_test",path)
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        node=module.FodNavigationModeManager.__new__(module.FodNavigationModeManager)
+        node.lock=threading.RLock();node.arbiter=CommandArbiter(.5)
+        node.command_source=GPS_SOURCE;node.mode=module.GPS_ACTIVE
+        node.recovery_armed=True;node.gps_fallback_enabled=True
+        node.fod_gps_point=None;node.fod_approach_started=True;node.keepout=None
+        node.cmd_pub=mock.Mock()
+        node.arbiter.update(GPS_SOURCE,1.6,.32,time.monotonic())
+        node._publish_command()
+        command=node.cmd_pub.publish.call_args.args[0]
+        self.assertAlmostEqual(command.linear.x,.6)
+        self.assertAlmostEqual(command.angular.z,.12)
+        node.recovery_armed=False
+        node._publish_command()
+        command=node.cmd_pub.publish.call_args.args[0]
+        self.assertAlmostEqual(command.linear.x,1.6)
+
     def test_delayed_completion_worker_cannot_stop_a_new_recovery(self):
         path=Path(__file__).resolve().parents[1]/"scripts/fod_navigation_mode_manager.py"
         spec=importlib.util.spec_from_file_location("single_completion_test",path)
@@ -165,6 +187,68 @@ class ConcurrentGraphQueryTest(unittest.TestCase):
             with ThreadPoolExecutor(max_workers=4) as pool:
                 results = list(pool.map(lambda _: node._output_route_error(), range(12)))
         self.assertEqual(results, [""] * 12)
+
+
+class RecoveryEquipmentLifecycleTest(unittest.TestCase):
+    def setUp(self):
+        path = Path(__file__).resolve().parents[1] / "scripts/fod_navigation_mode_manager.py"
+        spec = importlib.util.spec_from_file_location("recovery_equipment_test", path)
+        self.module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.module)
+        self.node = self.module.FodNavigationModeManager.__new__(self.module.FodNavigationModeManager)
+        self.node.lock = threading.RLock()
+        self.node.sweep_enabled = True
+        self.node.sweep_auto_stop = True
+        self.node.recovery_sweep_ready = False
+        self.node.sweep_started_for_recovery = False
+        self.node.sweep_script = "/mock/sweep_test.py"
+        self.node.sweep_ip = "127.0.0.1"
+        self.node.sweep_port = 50193
+
+    @staticmethod
+    def reply(success=True, sent=True, acknowledged=True):
+        return SimpleNamespace(returncode=0 if success else 2, stdout=json.dumps(dict(
+            success=success, previous_state=1, hydraulic_sent=sent,
+            acknowledged=acknowledged, message="mock result")))
+
+    def test_proximity_handoff_completion_and_cancel_use_one_pulse_each(self):
+        with mock.patch.object(self.module.subprocess, "run", return_value=self.reply()) as run:
+            self.assertTrue(self.node._set_sweep(True)[0])
+            # Preexisting manual ON does not exempt this cycle from cleanup.
+            self.assertTrue(self.node.sweep_started_for_recovery)
+            self.assertTrue(self.node._set_sweep(True)[0])
+            self.node._stop_recovery_sweep()
+            self.node._stop_recovery_sweep()
+            self.assertEqual([c.args[0][2] for c in run.call_args_list],
+                             ["recovery-start", "on", "recovery-stop"])
+            self.assertFalse(self.node.sweep_started_for_recovery)
+            self.assertFalse(self.node.recovery_sweep_ready)
+
+    def test_uncertain_start_is_cleaned_up_without_repeating_failed_retraction(self):
+        with mock.patch.object(self.module.subprocess, "run",
+                               return_value=self.reply(False, True, False)) as run, \
+                mock.patch.object(self.module.rospy, "logerr"):
+            self.assertFalse(self.node._set_sweep(True)[0])
+            self.node._stop_recovery_sweep()
+            self.node._stop_recovery_sweep()
+            self.assertEqual([c.args[0][2] for c in run.call_args_list],
+                             ["recovery-start", "recovery-stop"])
+
+    def test_no_hydraulic_command_sent_requires_no_cleanup_motion(self):
+        with mock.patch.object(self.module.subprocess, "run",
+                               return_value=self.reply(False, False, False)) as run:
+            self.assertFalse(self.node._set_sweep(True)[0])
+            self.node._stop_recovery_sweep()
+            self.assertEqual(run.call_count, 1)
+
+    def test_child_timeout_keeps_one_cleanup_for_possibly_sent_pulse(self):
+        timeout = self.module.subprocess.TimeoutExpired(["sweep_test.py"], 20)
+        with mock.patch.object(self.module.subprocess, "run",
+                               side_effect=[timeout, self.reply()]) as run:
+            self.assertFalse(self.node._set_sweep(True)[0])
+            self.node._stop_recovery_sweep()
+            self.node._stop_recovery_sweep()
+            self.assertEqual(run.call_count, 2)
 
 
 if __name__ == "__main__":

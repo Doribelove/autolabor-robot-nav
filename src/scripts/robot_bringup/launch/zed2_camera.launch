@@ -8,10 +8,13 @@
   <arg name="camera_config" default="$(dirname)/../config/zed2_fod.yaml"/>
   <arg name="pub_downscale_factor" default="1.0"/>
   <arg name="grab_frame_rate" default="60"/>
-  <arg name="pub_frame_rate" default="30.0"/>
+  <arg name="pub_frame_rate" default="60.0"/>
   <arg name="depth_mode" default="ULTRA"/>
   <arg name="cam_pos_x" default="0.0"/>
-  <arg name="cam_pos_y" default="0.0"/>
+  <!-- 2026-10-14 antenna centreline stereo estimate: left optical camera
+       about 0.025 m RIGHT of chassis centre; internal left offset is +0.060.
+       Approximate lateral mount correction only; fore/aft and pitch unchanged. -->
+  <arg name="cam_pos_y" default="-0.085"/>
   <arg name="cam_pos_z" default="0.0"/>
   <arg name="cam_roll" default="0.0"/>
   <arg name="cam_pitch" default="0.0"/>

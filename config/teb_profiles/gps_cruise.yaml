@@ -8,13 +8,14 @@ local_costmap:
 TebLocalPlannerROS:
   # Open roads and long straight segments: look farther ahead and favor a
   # smooth path that stays close to the global plan without chasing every
-  # small lateral error.  Averaging the command over two trajectory poses
-  # damps alternating left/right corrections at high speed.
+  # small lateral error. Field return data showed about 0.4-0.6 s steering
+  # response lag. Average over three poses (~0.9 s at dt_ref=0.3), so the
+  # next correction does not fight steering that is still taking effect.
   # Stay slightly inside the 16 x 16 m costmap's theoretical 6.8 m TEB limit
   # instead of relying on an implicit clip at the map boundary.
   max_global_plan_lookahead_dist: 6.5
   global_plan_viapoint_sep: 1.5
-  control_look_ahead_poses: 2
+  control_look_ahead_poses: 3
   # A goal behind the chassis may start with a reverse trajectory; the
   # bringup forward-drive weight is deliberately small for prompt shunting.
   allow_init_with_backwards_motion: true
@@ -42,7 +43,7 @@ TebLocalPlannerROS:
   weight_max_vel_theta: 30.0
   weight_acc_lim_x: 20.0
   # Keep acceleration regularization without the old 250 weight dominating
-  # curved starts. Steady yaw, curvature, and two-pose averaging remain.
+  # curved starts. Steady yaw, curvature, and three-pose averaging remain.
   weight_acc_lim_theta: 60.0
   weight_kinematics_turning_radius: 1000.0
   # A very high via-point/time pressure made the optimizer snap back across

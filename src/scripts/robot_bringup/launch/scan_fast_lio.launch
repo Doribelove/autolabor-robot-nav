@@ -7,6 +7,11 @@
   <arg name="near_radius" default="0.4"/>
   <arg name="near_min_z" default="-0.1"/>
   <arg name="near_max_z" default="0.1"/>
+  <arg name="max_xy_range" default="0.0"/>
+  <arg name="remove_ground" default="false"/>
+  <arg name="min_height" default="0.25"/>
+  <arg name="max_height" default="0.8"/>
+  <arg name="range_max" default="12.0"/>
   <arg name="body_tf_parent" default="body"/>
   <arg name="body_tf_child" default="base_link"/>
   <arg name="body_tf_z" default="-0.6"/>
@@ -21,6 +26,8 @@
     <param name="near_radius" value="$(arg near_radius)"/>
     <param name="near_min_z" value="$(arg near_min_z)"/>
     <param name="near_max_z" value="$(arg near_max_z)"/>
+    <param name="max_xy_range" value="$(arg max_xy_range)"/>
+    <param name="remove_ground" value="$(arg remove_ground)"/>
   </node>
 
   <node name="pointcloud_to_laserscan" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" output="screen">
@@ -31,11 +38,11 @@
     <param name="transform_tolerance" value="0.5"/>
     <param name="queue_size" value="10"/>
 
-    <param name="min_height" value="0.25"/>
-    <param name="max_height" value="0.8"/>
+    <param name="min_height" value="$(arg min_height)"/>
+    <param name="max_height" value="$(arg max_height)"/>
 
     <param name="range_min" value="0.2"/>
-    <param name="range_max" value="12.0"/>
+    <param name="range_max" value="$(arg range_max)"/>
 
     <param name="angle_increment" value="0.00436"/>
     <param name="scan_time" value="0.1"/>

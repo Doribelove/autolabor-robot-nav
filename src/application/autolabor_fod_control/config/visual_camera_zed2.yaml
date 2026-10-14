@@ -1,8 +1,16 @@
 # Actual ZED2 RGB/CameraInfo contract, observed on this Jetson.
-# Motion, acquisition, CAN checks and the original six model classes are kept
-# in visual_servo.yaml; only the camera identity/geometry differs from Hikrobot.
+# Camera identity plus the airport small-FOD acquisition profile.
 expected_camera_node: /zed2/zed_node
 expected_image_width: 1280
 expected_image_height: 720
 expected_camera_frame: zed2_left_camera_optical_frame
 select_nearest_by_depth: true
+# Use actual low-confidence YOLO hits with registered depth. Keep the same
+# material classes and body exclusion; no preview-held boxes or stone class.
+min_confidence: 0.12
+acquire_frames: 3
+acquire_max_abs_horizontal_error: 0.85
+max_runtime_horizontal_error: 0.90
+# A short missed detection can reconnect before committing the GPS fallback.
+tracking_loss_grace_sec: 1.0
+recovery_loss_grace_sec: 1.0

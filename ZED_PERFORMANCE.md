@@ -135,3 +135,16 @@ ROI 时，还需要同步调整导出脚本的输入形状。TensorRT 引擎不�
 具体可用参数以本机 `zed_nodelets/cfg/Zed.cfg` 与 SDK 4.2.5 头文件为准。
 TensorRT 导出参考 [Ultralytics 文档](https://docs.ultralytics.com/integrations/tensorrt)，
 本机命令按已安装的 Ultralytics 8.3.0 API 执行。
+
+## 2026-10-14 现场更新（本节覆盖上文历史阈值）
+
+相机默认 HD720 采集 60、图像与注册深度发布上限 60 Hz，继续使用 ULTRA 深度和现有 TensorRT FP16 FOD 引擎。60 是上限，真实速率受完整导航负载影响，以 `/diagnostics` 的 ZED Video/Depth Publish 和 `/fod/detections` 源时间戳为准。Qt 画面改为独立 33 ms 刷新，遥测和地图业务保留 250 ms；只缩放当前可见页面。标注输出上限 30 Hz、检测诊断 2 Hz，不降低实际控制检测流的频率。
+
+按用户确认的 GNSS 蘑菇头中心线与左右矫正画面估计，左目位于车体中心右侧约 2.5 cm。相机安装中心 `cam_pos_y=-0.085` m，加原生左目 +0.060 m 偏移，得到上述位置。这是现场图像估计，不是完整外参标定；前后、高度和俯角仍待尺量标定，不从图像中心猜测其精确值。相机内参、左右目关系继续使用 ZED 原生配置。
+
+当前回收条件为目标 10 米内联动清扫和升杆 3 秒；6 米内记录稳定最近单个 FOD；视觉控制利用注册深度和机身偏移纠偏；丢失后目标终点为记录 FOD 前方 0.8 米。当前 Qt 速度与导航启动参数不因相机帧率变化而改动。
+
+现场开启 MAXN 下的 `sudo jetson_clocks`，原频率策略备份在本次修复报告目录，未关闭热管理。此频率锁定不跨断电；需要时可再次执行该命令。
+
+官方参数定义：https://docs.stereolabs.com/docs/integrations/ros/zed-node
+官方 ZED 2 分辨率/帧率：https://docs.stereolabs.com/docs/development/zed-sdk/modules/camera/camera-controls

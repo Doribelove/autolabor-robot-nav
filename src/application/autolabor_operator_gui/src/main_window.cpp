@@ -5,6 +5,7 @@
 #include <hikrobot_mvs_camera/GetImagingControls.h>
 #include <hikrobot_mvs_camera/SetImagingControls.h>
 #include <rviz/visualization_frame.h>
+#include <autolabor_operator_gui/gps_map_panel.h>
 
 #include <ros/master.h>
 #include <ros/package.h>
@@ -18,6 +19,7 @@
 #include <QDateTime>
 #include <QDockWidget>
 #include <QDir>
+#include <QEventLoop>
 #include <QDoubleSpinBox>
 #include <QFrame>
 #include <QFuture>
@@ -76,8 +78,11 @@ struct ModeStatusView
   bool sweep_start_requested = false;
   bool recovery_sweep_ready = false;
   bool fod_target_available = false;
+  bool gps_fallback_enabled = false;
+  QString fod_gps_reason;
+  QJsonObject fod_gps_point;
   double final_goal_distance_m = -1.0;
-  double recovery_radius_m = 5.0;
+  double recovery_radius_m = 10.0;
   QString state;
   QString visual_state;
   QString reason;
@@ -131,7 +136,11 @@ QString modeDisplayName(const QString& state)
   if (state == QStringLiteral("FOD_ACTIVE"))
     return QStringLiteral("视觉控制");
   if (state == QStringLiteral("FOD_COMPLETE_STOP"))
-    return QStringLiteral("视觉完成停车");
+    return QStringLiteral("回收行程完成停车");
+  if (state == QStringLiteral("ENTERING_GPS_RECOVERY"))
+    return QStringLiteral("丢框转 GPS 回收");
+  if (state == QStringLiteral("GPS_FOD_RECOVERY"))
+    return QStringLiteral("GPS 穿越回收");
   if (state == QStringLiteral("RETURNING_GPS"))
     return QStringLiteral("正在恢复导航");
   if (state == QStringLiteral("FOD_ABORTED"))
@@ -164,8 +173,11 @@ ModeStatusView parseModeStatus(const std::string& json)
   result.recovery_sweep_ready = object.value(QStringLiteral("recovery_sweep_ready")).toBool(false);
   result.sweep_status = object.value(QStringLiteral("sweep_status")).toString();
   result.fod_target_available = object.value(QStringLiteral("fod_target_available")).toBool(false);
+  result.gps_fallback_enabled = object.value(QStringLiteral("gps_fallback_enabled")).toBool(false);
+  result.fod_gps_reason = object.value(QStringLiteral("fod_gps_reason")).toString();
+  result.fod_gps_point = object.value(QStringLiteral("fod_gps_point")).toObject();
   result.final_goal_distance_m = object.value(QStringLiteral("final_goal_distance_m")).toDouble(-1.0);
-  result.recovery_radius_m = object.value(QStringLiteral("recovery_radius_m")).toDouble(5.0);
+  result.recovery_radius_m = object.value(QStringLiteral("recovery_radius_m")).toDouble(10.0);
   return result;
 }
 
@@ -191,6 +203,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
   connect(&ui_refresh_timer_, &QTimer::timeout, this, &MainWindow::refreshUi);
   ui_refresh_timer_.start(250);
+  connect(&camera_preview_timer_, &QTimer::timeout, this, &MainWindow::refreshCameraPreview);
+  camera_preview_timer_.start(33);
 
   connect(&master_probe_timer_, &QTimer::timeout, this, &MainWindow::requestMasterProbe);
   connect(&master_probe_watcher_, &QFutureWatcher<MasterProbeResult>::finished, this,
@@ -220,6 +234,7 @@ MainWindow::~MainWindow()
 {
   master_probe_timer_.stop();
   ui_refresh_timer_.stop();
+  camera_preview_timer_.stop();
   if (recorder_.state() != QProcess::NotRunning)
   {
     recorder_.terminate();
@@ -326,6 +341,20 @@ void MainWindow::buildUi()
   tabs_->setDocumentMode(true);
   tabs_->addTab(buildOverviewPage(), QStringLiteral("综合"));
   tabs_->addTab(buildGpsPage(), QStringLiteral("GPS"));
+  fod_targets_panel_ = new FodTargetsPanel(tabs_);
+  keepout_panel_ = new KeepoutPanel(tabs_);
+  tabs_->addTab(fod_targets_panel_, QStringLiteral("FOD 目标点"));
+  tabs_->addTab(keepout_panel_, QStringLiteral("GPS 禁入区"));
+  connect(fod_targets_panel_, &FodTargetsPanel::operationEvent, this, &MainWindow::appendEvent);
+  connect(keepout_panel_, &KeepoutPanel::operationEvent, this, &MainWindow::appendEvent);
+  connect(fod_targets_panel_, &FodTargetsPanel::showNavigationMap, this, [this]() { tabs_->setCurrentIndex(0); });
+  connect(fod_targets_panel_, &FodTargetsPanel::navigationRequested, this,
+          [this](const QString& name, double latitude, double longitude) {
+    gps_latitude_input_->setValue(latitude);
+    gps_longitude_input_->setValue(longitude);
+    appendEvent(QStringLiteral("选择 FOD 目标：%1").arg(name));
+    sendManualGpsGoal();
+  });
   tabs_->addTab(buildRabbitPage(), QStringLiteral("远程"));
   tabs_->addTab(buildTestPage(), QStringLiteral("测试"));
   tabs_->addTab(buildVisionPage(), QStringLiteral("视觉"));
@@ -513,9 +542,9 @@ QWidget* MainWindow::buildOverviewPage()
   control_mode_layout->addWidget(overview_fod_start_button_);
   control_mode_layout->addWidget(overview_fod_stop_button_);
   auto* mode_note = new QLabel(
-      QStringLiteral("开启后，距最终目标小于 5 米即启动清扫。无有效 FOD 时按 GPS 回收，"
+      QStringLiteral("开启后，距最终目标小于 10 米即升出液压杆 3 秒并启动清扫。无有效 FOD 时继续 GPS 导航并等待，"
                      "ZED 按实测距离锁定最近一个 FOD，回收速度 0.6 m/s。"
-                     "只回收一个，完成后停车；点击恢复导航才继续 GPS 路线。"),
+                     "只回收一个，完成后停车、停止清扫并回收液压杆 3 秒；点击恢复导航才继续 GPS 路线。"),
       control_mode);
   mode_note->setWordWrap(true);
   mode_note->setStyleSheet(QStringLiteral("color:#d8b46a;font-size:10pt;padding:4px;"));
@@ -949,9 +978,9 @@ QWidget* MainWindow::buildVisionPage()
   mode_layout->addWidget(fod_start_button_);
   mode_layout->addWidget(fod_stop_button_);
   auto* safety = new QLabel(
-      QStringLiteral("可提前开启回收。GPS 模式下，距最终目标小于 5 米即启动清扫，"
+      QStringLiteral("可提前开启回收。GPS 模式下，距最终目标小于 10 米即升出液压杆 3 秒并启动清扫，"
                      "不依赖 FOD 检测；没有有效 FOD 时继续按 GPS 回收，"
-                     "ZED 只锁定有有效深度的最近一个目标，完成后停车，等待手动恢复导航。"),
+                     "ZED 只锁定有有效深度的最近一个目标，完成后停车、停止清扫并回收液压杆 3 秒。"),
       mode);
   safety->setWordWrap(true);
   safety->setStyleSheet(
@@ -1081,6 +1110,9 @@ void MainWindow::handleMasterProbeFinished()
   const MasterProbeResult result = master_probe_watcher_.result();
   const bool restored = result.online && !previous_probe_online_;
   const bool lost = !result.online && previous_probe_online_;
+  // RViz initialization processes Qt events. Record this transition first so
+  // another master probe cannot re-enter it and create a second RViz frame.
+  previous_probe_online_ = result.online;
   master_online_ = result.online;
   has_origin_ = result.has_origin;
   origin_latitude_ = result.origin_latitude;
@@ -1114,7 +1146,6 @@ void MainWindow::handleMasterProbeFinished()
   {
     appendEvent(QStringLiteral("ROS master 连接中断；界面继续运行并保留最后一次数据。"), true);
   }
-  previous_probe_online_ = result.online;
 }
 
 void MainWindow::setupRosInterfaces()
@@ -1126,11 +1157,15 @@ void MainWindow::setupRosInterfaces()
   // window can become interactive.
   if (!spinner_)
   {
-    spinner_.reset(new ros::AsyncSpinner(2));
+    // RViz uses the global callback queue for GUI-thread scene updates.
+    // Spinning that queue here lets a background thread delete Ogre objects
+    // while the GUI is rendering them. Keep telemetry on its own queue.
+    spinner_.reset(new ros::AsyncSpinner(2, &telemetry_callback_queue_));
     spinner_->start();
   }
   shutdownRosInterfaces();
   node_.reset(new ros::NodeHandle("~"));
+  node_->setCallbackQueue(&telemetry_callback_queue_);
   node_->param("enable_rviz", enable_rviz_, true);
   std::string camera_driver;
   node_->param<std::string>("camera_driver", camera_driver, "zed");
@@ -1197,12 +1232,38 @@ void MainWindow::setupEmbeddedRviz()
       rviz_placeholder_->setText(QStringLiteral("已通过 enable_rviz:=false 禁用嵌入式 RViz"));
     return;
   }
+  // A tab can be selected while ROS startup is still in progress. Showing a
+  // child of a hidden tab does not map an X11 window; defer Ogre until the
+  // final host is actually on screen.
+  if (!rviz_host_->isVisible())
+  {
+    QTimer::singleShot(250, this, &MainWindow::setupEmbeddedRviz);
+    return;
+  }
   try
   {
+    if (rviz_placeholder_)
+    {
+      rviz_layout_->removeWidget(rviz_placeholder_);
+      delete rviz_placeholder_;
+      rviz_placeholder_ = nullptr;
+    }
+    rviz_host_->setAttribute(Qt::WA_NativeWindow);
+    (void)rviz_host_->winId();
     rviz_frame_ = new rviz::VisualizationFrame(rviz_host_);
     rviz_frame_->setWindowFlags(Qt::Widget);
+    rviz_frame_->setAttribute(Qt::WA_NativeWindow);
     rviz_frame_->setSplashPath(QString());
     rviz_frame_->setShowChooseNewMaster(false);
+    // Attach and expose the final host before Ogre captures its native X11
+    // window. Initializing a hidden, unattached frame can leave the embedded
+    // viewport black even though standalone RViz and the ROS data work.
+    rviz_layout_->addWidget(rviz_frame_);
+    rviz_frame_->show();
+    rviz_initialized_ = true;  // initialize() processes Qt events.
+    rviz_layout_->activate();
+    (void)rviz_frame_->winId();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     rviz_frame_->initialize(QString::fromStdString(rviz_config_path_));
     bool found_left_dock = false;
     for (QDockWidget* dock : rviz_frame_->findChildren<QDockWidget*>())
@@ -1229,12 +1290,11 @@ void MainWindow::setupEmbeddedRviz()
       rviz_placeholder_->deleteLater();
       rviz_placeholder_ = nullptr;
     }
-    rviz_layout_->addWidget(rviz_frame_);
-    rviz_initialized_ = true;
     appendEvent(QStringLiteral("嵌入式 RViz 已加载：") + QString::fromStdString(rviz_config_path_));
   }
   catch (const std::exception& error)
   {
+    rviz_initialized_ = false;
     appendEvent(QStringLiteral("RViz 加载失败：") + QString::fromLocal8Bit(error.what()), true);
     if (rviz_frame_)
     {
@@ -1415,7 +1475,7 @@ void MainWindow::cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg)
                                 wallAge(telemetry_.debug_image_received_at) <= 1.0;
     if (!debug_is_fresh &&
         (last_raw_preview_conversion_.isZero() ||
-         (now - last_raw_preview_conversion_).toSec() >= 0.20))
+         (now - last_raw_preview_conversion_).toSec() >= 0.03))
     {
       last_raw_preview_conversion_ = now;
       convert_preview = true;
@@ -1440,7 +1500,7 @@ void MainWindow::debugImageCallback(const sensor_msgs::Image::ConstPtr& msg)
     telemetry_.debug_image_received = true;
     telemetry_.debug_image_received_at = now;
     if (last_debug_preview_conversion_.isZero() ||
-        (now - last_debug_preview_conversion_).toSec() >= 0.10)
+        (now - last_debug_preview_conversion_).toSec() >= 0.03)
     {
       last_debug_preview_conversion_ = now;
       convert_preview = true;
@@ -1638,8 +1698,48 @@ bool MainWindow::imageMessageToQImage(const sensor_msgs::Image& message, QImage*
   return false;
 }
 
+void MainWindow::refreshCameraPreview()
+{
+  TelemetrySnapshot data;
+  {
+    std::lock_guard<std::mutex> lock(snapshot_mutex_);
+    data.debug_image = telemetry_.debug_image;
+    data.debug_image_received_at = telemetry_.debug_image_received_at;
+    data.raw_preview = telemetry_.raw_preview;
+    data.raw_preview_received_at = telemetry_.raw_preview_received_at;
+  }
+  const bool debug_preview_fresh = !data.debug_image.isNull() &&
+                                   wallAge(data.debug_image_received_at) <=
+                                       kFreshDetectionSeconds;
+  const bool raw_preview_fresh = !data.raw_preview.isNull() &&
+                                 wallAge(data.raw_preview_received_at) <=
+                                     kFreshCameraSeconds;
+  QImage selected_preview;
+  QString preview_source = QStringLiteral("无新鲜画面");
+  if (debug_preview_fresh)
+  {
+    selected_preview = data.debug_image;
+    preview_source = QStringLiteral("YOLO11 标注 /fod/debug/image");
+  }
+  else if (raw_preview_fresh)
+  {
+    selected_preview = data.raw_preview;
+    preview_source = QStringLiteral("相机原图 /fod_camera/image_raw");
+  }
+  updateImageLabel(overview_camera_preview_, selected_preview,
+                   QStringLiteral("等待相机或 YOLO11 新鲜画面"));
+  updateImageLabel(vision_camera_preview_, selected_preview,
+                   QStringLiteral("等待 /fod/debug/image 或 /fod_camera/image_raw"));
+  values_["vision_image_source"]->setText(preview_source);
+
+}
+
 void MainWindow::refreshUi()
 {
+  // RViz normally pumps the global queue on the GUI thread. Keep optional
+  // panels responsive in the no-RViz console too, using the same GUI thread.
+  if (ros_interfaces_ready_ && !rviz_initialized_)
+    ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0));
   const TelemetrySnapshot data = snapshot();
   const ModeStatusView mode_status =
       data.mode_status_received ? parseModeStatus(data.mode_status) : ModeStatusView();
@@ -1799,29 +1899,6 @@ void MainWindow::refreshUi()
   values_["overview_gps_paused"]->setText(
       gps_paused ? QStringLiteral("休眠 / 目标保留") : QStringLiteral("运行 / 可接收目标"));
 
-  const bool debug_preview_fresh = !data.debug_image.isNull() &&
-                                   wallAge(data.debug_image_received_at) <=
-                                       kFreshDetectionSeconds;
-  const bool raw_preview_fresh = !data.raw_preview.isNull() &&
-                                 wallAge(data.raw_preview_received_at) <=
-                                     kFreshCameraSeconds;
-  QImage selected_preview;
-  QString preview_source = QStringLiteral("无新鲜画面");
-  if (debug_preview_fresh)
-  {
-    selected_preview = data.debug_image;
-    preview_source = QStringLiteral("YOLO11 标注 /fod/debug/image");
-  }
-  else if (raw_preview_fresh)
-  {
-    selected_preview = data.raw_preview;
-    preview_source = QStringLiteral("相机原图 /fod_camera/image_raw");
-  }
-  updateImageLabel(overview_camera_preview_, selected_preview,
-                   QStringLiteral("等待相机或 YOLO11 新鲜画面"));
-  updateImageLabel(vision_camera_preview_, selected_preview,
-                   QStringLiteral("等待 /fod/debug/image 或 /fod_camera/image_raw"));
-  values_["vision_image_source"]->setText(preview_source);
 
   values_["vision_camera_status"]->setText(
       !data.camera_received
@@ -1921,7 +1998,7 @@ void MainWindow::refreshUi()
   values_["vision_selected_target"]->setText(selected_target);
   QString recovery_hint = mode_status.reason.isEmpty() ? QStringLiteral("--") : mode_status.reason;
   if (mode_status.state == QStringLiteral("FOD_COMPLETE_STOP"))
-    recovery_hint = QStringLiteral("已完成一个 FOD 的回收并停车；点击“恢复导航”后再开始下一次。");
+    recovery_hint = QStringLiteral("本次回收行程已完成并停车，请核实实物是否收进；点击“恢复导航”后再开始下一次。");
   if (mode_status.recovery_armed)
   {
     const QString distance = mode_status.final_goal_distance_m < 0.0
@@ -1936,7 +2013,17 @@ void MainWindow::refreshUi()
              : (mode_status.sweep_start_requested
                     ? QStringLiteral("；清扫尚未确认：") + mode_status.sweep_status +
                           QStringLiteral("；GPS 导航继续")
-                    : QStringLiteral("；进入小于 5 米范围即启动清扫，当前继续 GPS 导航")));
+                    : QStringLiteral("；进入小于 %1 米范围即启动清扫，当前继续 GPS 导航")
+                          .arg(mode_status.recovery_radius_m, 0, 'f', 1)));
+  }
+  if (mode_status.gps_fallback_enabled)
+  {
+    recovery_hint += QStringLiteral("；") + mode_status.fod_gps_reason;
+    if (!mode_status.fod_gps_point.isEmpty())
+      recovery_hint += QStringLiteral("；FOD #%1：%2, %3；终点前延 0.8 m")
+          .arg(mode_status.fod_gps_point.value(QStringLiteral("track_id")).toInt())
+          .arg(mode_status.fod_gps_point.value(QStringLiteral("fod_latitude")).toDouble(), 0, 'f', 8)
+          .arg(mode_status.fod_gps_point.value(QStringLiteral("fod_longitude")).toDouble(), 0, 'f', 8);
   }
   values_["vision_mode_reason"]->setText(recovery_hint);
 
@@ -2109,7 +2196,8 @@ void MainWindow::refreshUi()
     button->setEnabled(can_start_fod);
     button->setToolTip(
         can_start_fod
-            ? QStringLiteral("开启后，小于 5 米即启动清扫；有有效 FOD 再切入视觉伺服")
+            ? QStringLiteral("开启后，小于 %1 米即启动清扫并等待目标；有有效 FOD 再切入视觉伺服")
+                  .arg(mode_status.recovery_radius_m, 0, 'f', 1)
             : QStringLiteral("需要导航模式就绪；已开启回收时可点击取消"));
   }
   for (QPushButton* button : { overview_fod_stop_button_, fod_stop_button_ })
@@ -2121,6 +2209,8 @@ void MainWindow::refreshUi()
   camera_query_button_->setEnabled(camera_controls_available);
   camera_apply_button_->setEnabled(camera_controls_available);
   zed_camera_panel_->setOnline(master_online_ && ros_interfaces_ready_);
+  keepout_panel_->setOnline(master_online_ && ros_interfaces_ready_);
+  fod_targets_panel_->setOnline(master_online_ && ros_interfaces_ready_);
   image_quality_enable_button_->setEnabled(master_online_ && ros_interfaces_ready_);
   image_quality_disable_button_->setEnabled(master_online_ && ros_interfaces_ready_);
   record_button_->setText(recorder_.state() == QProcess::NotRunning ? QStringLiteral("开始 mode1 录包")
@@ -2403,11 +2493,14 @@ void MainWindow::startFodMode()
   const QMessageBox::StandardButton answer = QMessageBox::question(
       this, QStringLiteral("确认启动相机控制回收"),
       mode_status.retain_gps_route
-          ? QStringLiteral("开启后继续 GPS 导航；距最终目标小于 5 米即自动启动清扫。"
-                           "没有有效 FOD 时按 GPS 到达目标回收，有有效 FOD 才切入 0.6 m/s 视觉伺服。"
-                           "到达或回收完成后，关闭本次自动启动的清扫装置。"
+          ? QStringLiteral("开启后继续 GPS 导航；距最终目标小于 %1 米即升出液压杆 3 秒并启动清扫。"
+                           "6 米内稳定最近 FOD 将记录 GPS 位置；可见时以 0.6 m/s 视觉靠近，"
+                           "丢失后导航到记录 FOD 前方 0.8 米终点。没有有效 FOD 时继续原 GPS 导航。"
+                           "到达或回收完成后，停止清扫并回收液压杆 3 秒。"
                            "请确认现场具备运行条件并保持物理急停可用。\n\n是否开启？")
-          : QStringLiteral("室内模式将暂停导航、确认停车、启动清扫并切入 0.6 m/s 视觉回收。"
+                .arg(mode_status.recovery_radius_m, 0, 'f', 1)
+          : QStringLiteral("室内模式将暂停导航、确认停车，联动升出液压杆 3 秒并启动清扫，"
+                           "随后切入 0.6 m/s 视觉回收。完成后停止清扫并回收液压杆 3 秒。"
                            "请确认现场具备运行条件并保持物理急停可用。\n\n是否启动？"),
       QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
   if (answer != QMessageBox::Yes)
@@ -2421,7 +2514,7 @@ void MainWindow::stopFodMode()
     return;
   const QMessageBox::StandardButton answer = QMessageBox::question(
       this, QStringLiteral("确认恢复路径导航"),
-      QStringLiteral("等待回收时取消请求并关闭本次自动启动的清扫装置，GPS 导航继续。"
+      QStringLiteral("取消已启动的回收时，停止清扫并回收液压杆 3 秒；等待接近目标时取消仅撤销请求。"
                      "已切入回收时先停用视觉并确认停车。"
                      "双天线模式恢复保留的 GPS 路线；"
                      "室内模式回到导航待机，局部目标需重新下发。"
@@ -2441,7 +2534,7 @@ void MainWindow::requestFodMode(bool enabled)
                                overview_fod_stop_button_, fod_stop_button_ })
     if (button)
       button->setEnabled(false);
-  appendEvent(enabled ? QStringLiteral("正在开启相机回收；小于 5 米即启动清扫，有 FOD 再切入视觉……")
+  appendEvent(enabled ? QStringLiteral("正在开启相机回收；联动升出液压杆 3 秒和启动清扫……")
                       : QStringLiteral("正在请求退出视觉模式并恢复导航……"),
               enabled);
 
@@ -2633,7 +2726,7 @@ void MainWindow::disableImageQualityControl()
 void MainWindow::updateImageLabel(QLabel* label, const QImage& image,
                                   const QString& placeholder)
 {
-  if (!label)
+  if (!label || !label->isVisible())
     return;
   if (image.isNull())
   {

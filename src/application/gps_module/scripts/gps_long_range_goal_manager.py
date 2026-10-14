@@ -25,6 +25,12 @@ from gps_module.long_range import (
     validate_route_distances,
 )
 
+try:
+    from autolabor_gps_keepout.geometry import KeepoutGeometry
+    from autolabor_gps_keepout.route import KeepoutGoalRoute
+except ImportError:
+    KeepoutGeometry = KeepoutGoalRoute = None
+
 
 TERMINAL_FAILURE_STATES = frozenset(
     (
@@ -157,6 +163,7 @@ class GpsLongRangeGoalManager:
         self.route = None
         self.route_token = None
         self.route_counter = 0
+        self.dispatch_counter = 0
         self.route_active = False
         self.paused = False
         self.route_state = "IDLE"
@@ -168,6 +175,9 @@ class GpsLongRangeGoalManager:
         self.current_goal_is_final = False
         self.advance_requested = False
         self.owned_goal_ids = OrderedDict()
+        self.keepout = None
+        self.keepout_sub = rospy.Subscriber(
+            "/gps/keepout/state", String, self.keepout_callback, queue_size=1)
 
         self.action_goal_pub = rospy.Publisher(
             self.action_goal_topic,
@@ -359,10 +369,22 @@ class GpsLongRangeGoalManager:
             self.owned_goal_ids.popitem(last=False)
 
     def _send_next_segment_locked(self, current_x, current_y, stamp):
-        segment = self.route.next_segment(current_x, current_y)
+        try:
+            segment = self.route.next_segment(current_x, current_y)
+        except ValueError as exc:
+            cancel = self._cancel_message_locked()
+            self._deactivate_route_locked("KEEPOUT_BLOCKED", str(exc))
+            if cancel is not None:
+                self.cancel_pub.publish(cancel)
+            rospy.logwarn("GPS keepout route unavailable: %s", exc)
+            return
+        # A paused final segment is geometrically unchanged on resume, but
+        # actionlib and the limiter retain cancellation history by GoalID.
+        # Every dispatch therefore needs a new identity, including final goals.
+        self.dispatch_counter += 1
         goal_id = make_route_goal_id(
             self.route_token,
-            segment.index,
+            self.dispatch_counter,
             segment.is_final,
         )
         pose = self._pose(
@@ -475,6 +497,44 @@ class GpsLongRangeGoalManager:
                 String(data=json.dumps(payload, sort_keys=True))
             )
 
+    def _new_route(self, final_x, final_y, current_x, current_y):
+        geometry = getattr(self, "keepout", None)
+        options = dict(lookahead_distance=self.lookahead_distance,
+                       advance_distance=self.advance_distance)
+        if geometry is not None and geometry.active:
+            geometry.path((current_x, current_y), (final_x, final_y))
+            return KeepoutGoalRoute(final_x, final_y, geometry=geometry, **options)
+        return RollingGoalRoute(final_x, final_y, **options)
+
+    def keepout_callback(self, msg):
+        if KeepoutGeometry is None:
+            return
+        try:
+            state = json.loads(msg.data)
+            if state.get("frame_id") != self.frame_id:
+                return
+            geometry = KeepoutGeometry.from_state(state)
+        except (ValueError, TypeError, KeyError) as exc:
+            rospy.logwarn("Ignoring invalid keepout geometry: %s", exc)
+            return
+        with self.lock:
+            self.keepout = geometry
+            if not self.route_active or self.route is None:
+                return
+            try:
+                x, y = self._odom_xy_locked(rospy.Time.now())
+                route = self._new_route(self.route.final_x, self.route.final_y, x, y)
+                route.segment_index = self.route.segment_index
+                self.route = route
+                self.current_goal_is_final = False
+                if not self.paused:
+                    self._send_next_segment_locked(x, y, rospy.Time.now())
+            except ValueError as exc:
+                cancel = self._cancel_message_locked()
+                self._deactivate_route_locked("KEEPOUT_BLOCKED", str(exc))
+                if cancel is not None:
+                    self.cancel_pub.publish(cancel)
+
     def set_paused_callback(self, request):
         """Pause move_base while retaining the final GPS route."""
         cancel = None
@@ -505,8 +565,8 @@ class GpsLongRangeGoalManager:
                 message="GPS navigation paused; final route retained",
             )
 
-        now = rospy.Time.now()
         with self.lock:
+            now = rospy.Time.now()
             if not self.paused:
                 return SetBoolResponse(
                     success=True,
@@ -563,8 +623,8 @@ class GpsLongRangeGoalManager:
             self._reject_new_goal("GPS origin is unavailable; resend after GPS is ready")
             return
 
-        now = rospy.Time.now()
         with self.lock:
+            now = rospy.Time.now()
             try:
                 current_x, current_y = self._odom_xy_locked(now)
             except ValueError as exc:
@@ -601,14 +661,15 @@ class GpsLongRangeGoalManager:
             return
 
         with self.lock:
+            try:
+                route = self._new_route(final_x, final_y, current_x, current_y)
+            except ValueError as exc:
+                self._reject_new_goal(str(exc))
+                return
             self.route_counter += 1
+            self.dispatch_counter = 0
             self.route_token = "{}-{}".format(now.to_nsec(), self.route_counter)
-            self.route = RollingGoalRoute(
-                final_x,
-                final_y,
-                lookahead_distance=self.lookahead_distance,
-                advance_distance=self.advance_distance,
-            )
+            self.route = route
             self.route_active = True
             self.final_latitude = latitude
             self.final_longitude = longitude
@@ -718,8 +779,8 @@ class GpsLongRangeGoalManager:
 
     def timer_callback(self, _event):
         cancel = None
-        now = rospy.Time.now()
         with self.lock:
+            now = rospy.Time.now()
             if self.paused:
                 return
             if not self.route_active:
@@ -739,15 +800,17 @@ class GpsLongRangeGoalManager:
                         current_y,
                     )
                 elif not self.current_goal_is_final:
-                    final_inside_horizon = self.route.final_is_within_horizon(
-                        current_x,
-                        current_y,
-                    )
-                    if (
-                        self.advance_requested
-                        or final_inside_horizon
-                        or self.route.should_advance(current_x, current_y)
-                    ):
+                    try:
+                        advance = (
+                            self.advance_requested
+                            or self.route.final_is_within_horizon(current_x, current_y)
+                            or self.route.should_advance(current_x, current_y)
+                        )
+                    except ValueError as exc:
+                        cancel = self._cancel_message_locked()
+                        self._deactivate_route_locked("KEEPOUT_BLOCKED", str(exc))
+                        advance = False
+                    if advance:
                         self._send_next_segment_locked(
                             current_x,
                             current_y,

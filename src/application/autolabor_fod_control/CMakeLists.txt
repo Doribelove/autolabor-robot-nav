@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   autolabor_fod_msgs
   diagnostic_msgs
   geometry_msgs
+  gps_module
   move_base_msgs
   nav_msgs
   rosgraph
@@ -14,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   std_srvs
+  tf2_ros
 )
 
 catkin_python_setup()
@@ -25,6 +27,7 @@ catkin_package(
   autolabor_fod_msgs
   diagnostic_msgs
   geometry_msgs
+  gps_module
   move_base_msgs
   nav_msgs
   rosgraph
@@ -32,6 +35,7 @@ catkin_package(
   sensor_msgs
   std_msgs
   std_srvs
+  tf2_ros
 )
 
 catkin_install_python(PROGRAMS
@@ -46,10 +50,13 @@ install(DIRECTORY config launch
 
 if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_mode_manager.py)
+  catkin_add_nosetests(test/test_gps_recovery.py)
+  catkin_add_nosetests(test/test_pt3_dropout.py)
   catkin_add_nosetests(test/test_visual_servo.py)
   catkin_add_nosetests(test/test_detector_model_contract.py)
   find_package(rostest REQUIRED)
   add_rostest(test/fod_navigation_mode.test)
   add_rostest(test/visual_servo_integration.test)
   add_rostest(test/full_recovery.test)
+  add_rostest(test/gps_loss_recovery.test)
 endif()

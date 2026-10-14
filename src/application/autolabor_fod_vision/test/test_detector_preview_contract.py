@@ -28,6 +28,11 @@ with patch.dict('sys.modules', {'cv_bridge': SimpleNamespace(CvBridge=None)}):
 
 
 class DetectorPreviewContractTest(unittest.TestCase):
+    def setUp(self):
+        clock = patch.object(module.rospy.Time, "now", return_value=rospy.Time.from_sec(20))
+        clock.start()
+        self.addCleanup(clock.stop)
+
     def test_three_current_boxes_carry_serializable_stereo_range_and_independent_ids(self):
         boxes = [Detection(0,"Metal",c,x,30,x+20,50,x+10,50)
                  for x,c in [(5,.99),(45,.4),(85,.8)]]
@@ -49,11 +54,13 @@ class DetectorPreviewContractTest(unittest.TestCase):
                                     cv2_to_imgmsg=lambda array,encoding:SimpleNamespace(image=array))
         node.processed_frames=0
         node.debug_every_n=1
+        node.debug_max_fps=30.0
+        node._next_debug_time=0.0
         node.smoke_test_only=False
         node._publish_diagnostic=lambda *args:None
         messages=[]
         node.detection_pub=SimpleNamespace(publish=messages.append)
-        node.debug_pub=SimpleNamespace(publish=lambda msg:None)
+        node.debug_pub=SimpleNamespace(publish=lambda msg:None,get_num_connections=lambda:1)
         node._process(SimpleNamespace(image=np.zeros((96,128,3),np.uint8),
                                      header=Header(stamp=rospy.Time.from_sec(10),frame_id='left')))
         wire=io.BytesIO()
@@ -87,17 +94,20 @@ class DetectorPreviewContractTest(unittest.TestCase):
         )
         node.processed_frames = 0
         node.debug_every_n = 1
+        node.debug_max_fps = 30.0
+        node._next_debug_time = 0.0
         node.smoke_test_only = False
         node._publish_diagnostic = lambda *args: None
         control_messages, preview_images = [], []
         node.detection_pub = SimpleNamespace(publish=control_messages.append)
-        node.debug_pub = SimpleNamespace(publish=preview_images.append)
+        node.debug_pub = SimpleNamespace(publish=preview_images.append,get_num_connections=lambda:1)
         for stamp in (1.0, 1.1):
             image = SimpleNamespace(
                 image=np.zeros((60, 80, 3), dtype=np.uint8),
                 header=Header(stamp=rospy.Time.from_sec(stamp), frame_id='camera'),
             )
-            node._process(image)
+            with patch.object(module.time,"monotonic",return_value=stamp):
+                node._process(image)
         self.assertEqual(len(control_messages[0].detections), 1)
         self.assertAlmostEqual(control_messages[0].detections[0].confidence, 0.11)
         self.assertEqual(control_messages[0].detections[0].bbox.x_offset, 10)
