@@ -1,3 +1,25 @@
+# 净途智行 · Autolabor M2 双机自主导航与清扫系统
+
+面向校园、楼宇及机场场地的移动机器人项目，基于 Autolabor M2 阿克曼底盘，
+以地平线征程 6M（J6M）承担定位、导航与控制仲裁，以 Jetson AGX Orin 承担视觉、
+Qt/RViz 交互和底盘网关。项目把 FAST-LIO/ICP 定位、条带覆盖、Hybrid A* 转场、
+TEB 局部规划、垃圾检测与深度定位连接到同一套 ROS Noetic 任务流程。
+
+[项目图文与实车演示](docs/PROJECT_SHOWCASE.md) ·
+[在线作品集](https://doribelove.github.io/projects/#autolabor) ·
+[双机架构](docs/ARCHITECTURE.md)
+
+![Autolabor M2 整车与已安装的刷扫收集机构](docs/media/autolabor-robot.jpg)
+
+2026 年 9 月竞赛材料补充了室内外场景、机场导航覆盖与刷扫收集演示。
+机场记录显示轨迹覆盖 **160.0 m² / 163.3 m²（98.0%）**；这是导航覆盖统计。
+刷扫收集功能由另一段 **20.5 秒实物视频**展示，两类验证在[展示页](docs/PROJECT_SHOWCASE.md)中分别说明。
+
+下方保留 2026-09-07 导航候选版的部署、启停与历史记录；素材展示不改变这些操作说明、
+运行配置或历史验收范围。
+
+---
+
 # robot_j6m_ws 导航优化专用候选版（2026-09-07）
 
 本目录是独立工作树 `/home/slam/robot_j6m_ws_navigation_20260907`，Git 分支为
