@@ -2,6 +2,8 @@
 #define AUTOLABOR_COVERAGE_COVERAGE_GLOBAL_PLANNER_H
 
 #include <autolabor_coverage/EnforcedPath.h>
+#include <autolabor_coverage/HybridTuningConfig.h>
+#include <dynamic_reconfigure/server.h>
 #include <autolabor_coverage/PlanHybridTransitionsAction.h>
 #include <autolabor_coverage/PrecomputeTransitions.h>
 #include <autolabor_coverage/SetEnforcedPath.h>
@@ -109,6 +111,10 @@ private:
                       std::vector<geometry_msgs::PoseStamped>& plan);
   void publishHybridPathSafety(bool safe);
 
+  std::string tuning_state_file_;
+  HybridTuningConfig last_tuning_config_;
+  std::recursive_mutex tuning_mutex_;
+  std::unique_ptr<dynamic_reconfigure::Server<HybridTuningConfig>> tuning_server_;
   bool initialized_ = false;
   bool coverage_active_ = false;
   double goal_match_tolerance_ = 0.35;

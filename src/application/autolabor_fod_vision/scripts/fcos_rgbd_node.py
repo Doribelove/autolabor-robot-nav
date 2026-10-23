@@ -28,7 +28,7 @@ from std_msgs.msg import String
 from tf.transformations import quaternion_matrix
 from autolabor_bpu_perception.msg import DetectedObject,DetectedObjects
 from autolabor_bpu_perception.core import fresh,ImageTracker,zed_mount
-from autolabor_bpu_perception.protocol import Client
+from autolabor_bpu_perception.protocol import Client,relay_command,DEFAULT_SSH_TARGET,DEFAULT_RELAY_PATH
 from autolabor_fod_vision.bpu_rgbd import Preprocessor,source_boxes,estimate_boxes,FCOS_SHA
 from autolabor_fod_vision.depth_fusion import nearest_synchronized_message
 from autolabor_fod_vision.two_stage import LatestFrameSlot
@@ -40,6 +40,9 @@ class FcosRgbd:
         self.session=uuid.uuid4().hex
         self.maximum_age=float(rospy.get_param('~maximum_age_sec',.35))
         self.fps=float(rospy.get_param('~max_fps',15))
+        self.ssh_target=str(rospy.get_param('~bpu_ssh_target',DEFAULT_SSH_TARGET))
+        self.relay_path=str(rospy.get_param('~bpu_relay_path',DEFAULT_RELAY_PATH))
+        relay_command(self.ssh_target,self.relay_path)
         if not .1<=self.maximum_age<=.5 or not .5<=self.fps<=30:raise ValueError('Invalid age/frequency limits')
         self.mount_file=Path(rospy.get_param('~mount_config'))
         self.mount=zed_mount(yaml.safe_load(self.mount_file.read_text()))
@@ -126,7 +129,8 @@ class FcosRgbd:
                 payload,rows,scales=self.preprocessor.prepare(image)
                 prepared=time.monotonic()
                 self.sequence+=1
-                if self.client is None:self.client=Client(remote=True,timeout=2.)
+                if self.client is None:self.client=Client(remote=True,timeout=2.,
+                    ssh_target=self.ssh_target,relay_path=self.relay_path)
                 result=self.client.infer(dict(model='fcos',sequence=self.sequence,stamp_ns=frame.header.stamp.to_nsec(),
                     width=frame.width,height=frame.height,rows=rows),payload)
                 inferred=time.monotonic()

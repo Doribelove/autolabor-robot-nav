@@ -11,7 +11,7 @@ for source in ("src/sweeper_mcp/src", "src/application/autolabor_coverage/src",
                "src/application/autolabor_fod_control/src"):
     sys.path.insert(0, str(ROOT / source))
 from sweeper_mcp.ros_backend import ROSBackend
-from sweeper_mcp.visual_completion import visual_completed
+from sweeper_mcp.visual_completion import visual_completed, visual_cleaning_completed
 from sweeper_mcp.agent import AgentRunner
 from autolabor_fod_control.visual_session import VisualSessionReceipt
 
@@ -68,6 +68,24 @@ class World:
         self.receipt.complete()
         self.receipt.disable()
         self.mode, self.state, self.active = "GPS_ACTIVE", "DISABLED", False
+
+
+def test_cleaning_success_uses_controller_receipt_and_handoff_waits_for_stop():
+    w = World()
+    initial = json.loads(w.backend.start_spot_cleaning().text)
+    w.receipt.complete(stopped=False)
+    w.state, w.active, w.mode = "COMPLETE", False, "FOD_COMPLETE_STOP"
+    data = json.loads(w.backend.get_visual_servo_status().text)
+    assert data["cleaning_completed"] and not data["ready_for_next_step"]
+    assert visual_cleaning_completed(data, initial["visual_session_id"], 0)
+    assert not visual_completed(data, initial["visual_session_id"], 0)
+    assert w.backend._ai_visual_owned
+    w.receipt.last_completion["stopped"] = True
+    assert not json.loads(w.backend.get_visual_servo_status().text)["ready_for_next_step"]
+    w.mode, w.state = "GPS_ACTIVE", "DISABLED"
+    data = json.loads(w.backend.get_visual_servo_status().text)
+    assert data["cleaning_completed"] and data["ready_for_next_step"]
+    assert not w.backend._ai_visual_owned
 
 
 def test_visual_normal_receipt_is_frozen_across_disable_and_next_session():

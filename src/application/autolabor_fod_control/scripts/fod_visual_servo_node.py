@@ -403,10 +403,10 @@ class FodVisualServoNode:
         )
 
         self.min_acquire_anchor_v_fraction = float(
-            rospy.get_param("~min_acquire_anchor_v_fraction", 0.20)
+            rospy.get_param("~min_acquire_anchor_v_fraction", 0.03)
         )
         self.max_acquire_anchor_v_fraction = float(
-            rospy.get_param("~max_acquire_anchor_v_fraction", 0.80)
+            rospy.get_param("~max_acquire_anchor_v_fraction", 0.97)
         )
         self.acquire_max_abs_horizontal_error = float(
             rospy.get_param("~acquire_max_abs_horizontal_error", 0.65)
@@ -498,7 +498,7 @@ class FodVisualServoNode:
         )
         self.settle_speed_mps = float(rospy.get_param("~settle_speed_mps", 0.03))
         self.blind_speed_mps = float(rospy.get_param("~blind_speed_mps", 0.20))
-        self.blind_distance_m = float(rospy.get_param("~blind_distance_m", 0.30))
+        self.blind_distance_m = float(rospy.get_param("~blind_distance_m", 0.50))
         self.blind_hard_distance_m = float(
             rospy.get_param("~blind_hard_distance_m", 0.55)
         )
@@ -1015,9 +1015,9 @@ class FodVisualServoNode:
         if not 0.0 <= self.cleaning_min_forward_speed_mps <= 0.05:
             raise ValueError("cleaning minimum forward speed is invalid")
 
-        if not 0.05 <= self.min_acquire_anchor_v_fraction < 0.70:
+        if not 0.03 <= self.min_acquire_anchor_v_fraction < 0.70:
             raise ValueError("min acquisition vertical fraction is invalid")
-        if not 0.50 <= self.max_acquire_anchor_v_fraction <= 0.85:
+        if not 0.50 <= self.max_acquire_anchor_v_fraction <= 0.97:
             raise ValueError("max acquisition vertical fraction is invalid")
         if self.min_acquire_anchor_v_fraction >= self.max_acquire_anchor_v_fraction:
             raise ValueError("acquisition vertical range is empty")
@@ -3170,7 +3170,7 @@ class FodVisualServoNode:
 
     def _begin_forward_pass(self):
         # Start at confirmation, not at the first missing image. Travel during
-        # the ten-frame wait does not subtract from the requested extra 0.30 m.
+        # the ten-frame wait does not subtract from the requested extra distance.
         now = time.monotonic()
         with self.sensor_lock:
             odom = self.latest_odom

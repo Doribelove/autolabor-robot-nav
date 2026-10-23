@@ -124,6 +124,20 @@ try:
         rospy.Subscriber('/move_base/TebLocalPlannerROS/global_plan', RosPath, plans.append)]
     spawn('move_base', ['rosrun','move_base','move_base','__name:=move_base'])
     rospy.wait_for_service('/move_base/CoverageGlobalPlanner/set_ordinary_goal_policy', timeout=40)
+    import dynamic_reconfigure.client
+    tuning = dynamic_reconfigure.client.Client('/move_base/CoverageGlobalPlanner', timeout=5)
+    original_tuning = tuning.get_configuration(timeout=5)
+    changed = tuning.update_configuration(dict(hybrid_motion_step=.25, hybrid_max_expansions=60000))
+    assert changed['hybrid_motion_step'] == .25 and changed['hybrid_max_expansions'] == 60000
+    check('Hybrid runtime tuning acknowledged', motion_step=changed['hybrid_motion_step'])
+    corrected = tuning.update_configuration(dict(hybrid_steering_samples=6))
+    assert corrected['hybrid_steering_samples'] == 5
+    check('Hybrid even steering sample count corrected to valid odd count')
+    finite = tuning.update_configuration(dict(hybrid_motion_step=float('nan')))
+    assert finite['hybrid_motion_step'] == .25
+    check('Hybrid nonfinite tuning preserves actual runtime value')
+    tuning.update_configuration({key: value for key, value in original_tuning.items() if key != 'groups'})
+    check('Hybrid tuning restored before navigation regression')
     # The public repository exports this bridge without the complete platform
     # catkin package, so start the checked-in script directly in both source
     # and standalone layouts.

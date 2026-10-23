@@ -145,11 +145,26 @@ class PixelControllerTest(unittest.TestCase):
 
 
 class AcquisitionCaptureRangeTest(unittest.TestCase):
+    def test_expanded_vertical_capture_boundaries_and_six_frame_lock(self):
+        for q, allowed in ((.029, False), (.03, True), (.05, True), (.10, True),
+                           (.90, True), (.953, True), (.97, True), (.971, False)):
+            with self.subTest(q=q):
+                node = self.make_node()
+                target = detection(q=q)
+                for i in range(6):
+                    candidates, reason = node._acquisition_candidates(self.frame(target))
+                    decision = node.machine.process_frame(candidates, WIDTH, HEIGHT,
+                                                          TARGET_U, 0., frame_stamp=10+i*.1)
+                self.assertEqual(decision.acquired, allowed)
+                self.assertEqual(bool(candidates), allowed)
+                if not allowed:
+                    self.assertIn("outside capture range 0.030..0.970", reason)
+
     @staticmethod
     def make_node():
         node = FOD_NODE.FodVisualServoNode.__new__(FOD_NODE.FodVisualServoNode)
-        node.min_acquire_anchor_v_fraction = 0.20
-        node.max_acquire_anchor_v_fraction = 0.80
+        node.min_acquire_anchor_v_fraction = 0.03
+        node.max_acquire_anchor_v_fraction = 0.97
         node.acquire_max_abs_horizontal_error = 0.65
         node.min_confidence = 0.30
         node.target_u_px = TARGET_U
@@ -172,6 +187,8 @@ class AcquisitionCaptureRangeTest(unittest.TestCase):
         with CONFIG_PATH.open(encoding="utf-8") as stream:
             config = yaml.safe_load(stream)
         self.assertEqual(config["acquire_max_abs_horizontal_error"], 0.65)
+        self.assertEqual(config["min_acquire_anchor_v_fraction"], 0.03)
+        self.assertEqual(config["max_acquire_anchor_v_fraction"], 0.97)
         self.assertNotIn("max_runtime_horizontal_error", config)
         self.assertEqual(config["min_confidence"], 0.30)
         self.assertNotIn("raw_can_query_interval_sec", config)
@@ -383,7 +400,7 @@ class ApprovedBottomGateTest(unittest.TestCase):
         node = self.configured_node()
         node._validate_parameters()
         self.assertEqual(node.machine_config.loss_confirm_frames, 10)
-        self.assertEqual(node.blind_distance_m, 0.30)
+        self.assertEqual(node.blind_distance_m, 0.50)
         self.assertEqual((node.far_speed_mps, node.blind_speed_mps), (0.20, 0.20))
 
 

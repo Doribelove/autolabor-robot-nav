@@ -1144,6 +1144,20 @@ class CoverageManager:
         self.navigation_owner_client = rospy.ServiceProxy(
             self.navigation_owner_service_name, SetCoverageOwner
         )
+        from dynamic_reconfigure.server import Server
+        from autolabor_coverage.cfg import TransitTuningConfig
+        from autolabor_coverage.tuning_store import default_state_file, load_values
+        self._transit_tuning_state_file = str(rospy.get_param(
+            "~tuning_state_file", default_state_file("transit_tuning.json")))
+        # Groups are dynamic_reconfigure metadata, not editable algorithm values.
+        stored_defaults = {k: v for k, v in TransitTuningConfig.defaults.items() if k != "groups"}
+        self._transit_tuning_saved = load_values(
+            self._transit_tuning_state_file, stored_defaults,
+            TransitTuningConfig.min, TransitTuningConfig.max)
+        self._transit_tuning_last = None
+        self.transit_tuning_server = Server(
+            TransitTuningConfig, self._transit_tuning_callback)
+        rospy.set_param("~tuning_persistence_protocol", 1)
         self.status_timer = rospy.Timer(rospy.Duration(0.5), self._status_timer)
         self.tracking_timer = rospy.Timer(rospy.Duration(0.2), self._tracking_timer)
         self.active_pub.publish(Bool(data=False))
@@ -1393,6 +1407,53 @@ class CoverageManager:
                 raise RuntimeError(
                     "TEB did not retain {}={:.3f}".format(key, value)
                 )
+
+    def _transit_tuning_callback(self, config, level):
+        fields = {'hybrid_transit_viapoint_separation_m': 'hybrid_transit_viapoint_separation', 'hybrid_transit_lookahead_dist_m': 'hybrid_transit_lookahead_distance', 'hybrid_transit_min_obstacle_dist_m': 'hybrid_transit_min_obstacle_dist', 'hybrid_transit_inflation_dist_m': 'hybrid_transit_inflation_dist', 'hybrid_transit_weight_viapoint': 'hybrid_transit_weight_viapoint', 'hybrid_transit_weight_viapoint_lateral': 'hybrid_transit_weight_viapoint_lateral', 'hybrid_transit_weight_viapoint_heading': 'hybrid_transit_weight_viapoint_heading', 'hybrid_transit_weight_kinematics_forward_drive': 'hybrid_transit_weight_kinematics_forward_drive', 'hybrid_transit_selection_viapoint_cost_scale': 'hybrid_transit_selection_viapoint_cost_scale', 'hybrid_transit_inner_iterations': 'hybrid_transit_inner_iterations', 'hybrid_transit_outer_iterations': 'hybrid_transit_outer_iterations', 'hybrid_transit_max_forward_speed_mps': 'hybrid_transit_max_forward_speed', 'hybrid_transit_max_reverse_speed_mps': 'hybrid_transit_max_reverse_speed', 'hybrid_transit_max_angular_speed_rps': 'hybrid_transit_max_angular_speed', 'hybrid_transit_linear_accel_mps2': 'hybrid_transit_linear_accel', 'hybrid_transit_angular_accel_rps2': 'hybrid_transit_angular_accel'}
+        with self.lock:
+            if self._transit_tuning_last is None:
+                for key, attribute in fields.items():
+                    config[key] = getattr(self, attribute)
+                if getattr(self, "_transit_tuning_saved", None) is not None:
+                    config.update(self._transit_tuning_saved)
+            elif (self.active or self.batch_active or self.plan_pending or
+                  self.start_pending or self.plan is not None or
+                  self.original_teb is not None or self.navigation_profile_update_pending):
+                rospy.logwarn("Transit tuning rejected: cancel preview / finish task first")
+                return dict(self._transit_tuning_last)
+            if not all(math.isfinite(float(config[key])) for key in fields):
+                return dict(self._transit_tuning_last or config)
+            caps = {
+                "hybrid_transit_max_forward_speed_mps": self.max_speed_limit,
+                "hybrid_transit_max_reverse_speed_mps": self.max_reverse_speed_limit,
+                "hybrid_transit_max_angular_speed_rps": self.max_angular_speed_limit,
+                "hybrid_transit_linear_accel_mps2": self.linear_accel_limit,
+                "hybrid_transit_angular_accel_rps2": self.angular_accel_limit,
+            }
+            if any(config[key] > limit for key, limit in caps.items()):
+                if self._transit_tuning_last is None:
+                    raise ValueError("saved transit tuning exceeds configured hardware caps")
+                return dict(self._transit_tuning_last)
+            if config["hybrid_transit_inflation_dist_m"] < config["hybrid_transit_min_obstacle_dist_m"]:
+                if self._transit_tuning_last is None:
+                    raise ValueError("saved transit inflation is below obstacle distance")
+                return dict(self._transit_tuning_last)
+            state_file = getattr(self, "_transit_tuning_state_file", "")
+            values = {key: config[key] for key in fields}
+            if state_file and (self._transit_tuning_last is None or any(
+                    config[key] != self._transit_tuning_last[key] for key in fields)):
+                from autolabor_coverage.tuning_store import save_values
+                try:
+                    save_values(state_file, values)
+                except (OSError, ValueError) as error:
+                    if self._transit_tuning_last is None:
+                        raise
+                    rospy.logerr("Transit tuning rejected: could not persist: %s", error)
+                    return dict(self._transit_tuning_last)
+            for key, attribute in fields.items():
+                setattr(self, attribute, config[key])
+            self._transit_tuning_last = dict(config)
+            return config
 
     def _set_planning_defaults_service(self, request):
         """Atomically apply Qt defaults to TEB, manager state and coverage.yaml."""
@@ -2109,7 +2170,9 @@ class CoverageManager:
 
     @staticmethod
     def _points_from_region(region):
-        return [Point(float(point.x), float(point.y)) for point in region.polygon.points]
+        from autolabor_coverage.coverage_geometry import minimum_area_rectangle
+        return minimum_area_rectangle([
+            Point(float(point.x), float(point.y)) for point in region.polygon.points])
 
     @staticmethod
     def _pose(point, yaw, stamp=None):
@@ -2482,6 +2545,8 @@ class CoverageManager:
         route = plan.swaths
         plan_id = uuid.uuid4().hex
         region = copy.deepcopy(request.region)
+        from geometry_msgs.msg import Point32
+        region.polygon.points = [Point32(x=p.x, y=p.y, z=0.0) for p in points]
         region.header.frame_id = "map"
         region.header.stamp = rospy.Time.now()
         planned_path = self._planned_path(route, current)
@@ -4786,6 +4851,9 @@ class CoverageManager:
         route = plan.swaths
         transition_paths = getattr(plan, "transition_paths", None)
         region = copy.deepcopy(item.region)
+        from geometry_msgs.msg import Point32
+        region.polygon.points = [Point32(x=p.x, y=p.y, z=0.0)
+                                 for p in self._points_from_region(region)]
         region.header.frame_id = "map"
         region.header.stamp = rospy.Time.now()
         planned_path = self._planned_path(

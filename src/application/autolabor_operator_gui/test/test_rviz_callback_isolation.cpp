@@ -18,6 +18,9 @@
 #include <QPlainTextEdit>
 #include <QTableWidget>
 #include <QLabel>
+#include <QGroupBox>
+#include <QDoubleSpinBox>
+#include <QPushButton>
 #include <QPixmap>
 #include <limits>
 
@@ -86,6 +89,33 @@ protected:
   void reconnect()
   {
     window_->setupRosInterfaces();
+  }
+
+  void verifyParameterEditingWithoutMapRetainsTaskLocks()
+  {
+    window_->static_map_mode_ = true;
+    window_->navigation_profile_dirty_ = false;
+    window_->navigation_profile_synced_ = true;
+    window_->navigation_profile_apply_timer_.stop();
+    window_->telemetry_.coverage_status_received = true;
+    window_->telemetry_.coverage_status_received_at = ros::WallTime::now();
+    window_->telemetry_.coverage_status.state = "IDLE";
+    window_->telemetry_.coverage_status.active = false;
+    window_->refreshUi();
+    EXPECT_TRUE(window_->coverage_width_input_->isEnabled());
+    EXPECT_TRUE(window_->coverage_speed_input_->isEnabled());
+    EXPECT_FALSE(window_->coverage_start_button_->isEnabled());
+    window_->telemetry_.coverage_status.active = true;
+    window_->refreshUi();
+    EXPECT_FALSE(window_->coverage_width_input_->isEnabled());
+    window_->telemetry_.coverage_status.active = false;
+    window_->coverage_plan_id_ = "existing-preview";
+    window_->refreshUi();
+    EXPECT_FALSE(window_->coverage_width_input_->isEnabled());
+    window_->coverage_plan_id_.clear();
+    window_->telemetry_.coverage_status_received_at = ros::WallTime::now()-ros::WallDuration(10.0);
+    window_->refreshUi();
+    EXPECT_FALSE(window_->coverage_width_input_->isEnabled());
   }
 
   void verifyTelemetryDelivery()
@@ -505,6 +535,31 @@ TEST_F(RvizCallbackIsolationTest, RestoresEndpointsForgottenByMaster)
           expected.erase({category, static_cast<std::string>(state[category][index][0])});
   EXPECT_TRUE(expected.empty());
   verifyTelemetryDelivery();
+}
+
+TEST_F(RvizCallbackIsolationTest, ParameterEditingDoesNotRequireMapButRetainsTaskAndFreshnessLocks)
+{
+  verifyParameterEditingWithoutMapRetainsTaskLocks();
+}
+
+TEST_F(RvizCallbackIsolationTest, NavigationTuningPageContainsAllThreeParameterGroups)
+{
+  QWidget* tuning_page = nullptr;
+  for (auto* tabs : window_->findChildren<QTabWidget*>())
+    for (int i=0; i<tabs->count(); ++i)
+      if (tabs->tabText(i) == QStringLiteral("导航调参")) tuning_page=tabs->widget(i);
+  ASSERT_NE(nullptr, tuning_page);
+  std::map<QString, int> expected{{QStringLiteral("覆盖规划参数"),10},
+                                 {QStringLiteral("转场 TEB"),16},
+                                 {QStringLiteral("混合 A*"),11}};
+  for (auto* group : tuning_page->findChildren<QGroupBox*>()) {
+    auto it=expected.find(group->title());
+    if (it != expected.end()) {
+      EXPECT_EQ(it->second, group->findChildren<QDoubleSpinBox*>().size());
+      expected.erase(it);
+    }
+  }
+  EXPECT_TRUE(expected.empty());
 }
 
 TEST_F(RvizCallbackIsolationTest, RealRenderingStress)

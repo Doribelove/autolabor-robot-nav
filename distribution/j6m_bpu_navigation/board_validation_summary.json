@@ -1,0 +1,154 @@
+{
+  "recorded_utc": "2026-10-10T06:29:01.032193+00:00",
+  "source_branch": "0914",
+  "source_commit": "5d1028efa93cf34d2179b03384085c87a456402a",
+  "stage": "isolated_native_bpu_executor_and_single_model_transport_verified",
+  "board_candidate": "/map/robot_j6m_navigation_20260907/bpu_production_20261010",
+  "navigation_current": "20260914_095005",
+  "dnn_version": "3.14.5_(4.9.2 HBRT)",
+  "bpu_driver_version": "2.2.19",
+  "executor_build": "build_v5",
+  "executor_sha256": "5c99bafb0531fac9f8e84c49c8c2d0a6d8e852e5c2217e62750dce93b4a14e3d",
+  "executor_source_sha256": "e772e116e707dbce2dd420074bec6fe58faa6765178995cfdf2ffe46944c180b",
+  "reference_fcos": {
+    "input_fixtures": 3,
+    "outputs_per_fixture": 15,
+    "max_abs_error": 0.0,
+    "owned_outputs": true,
+    "synthetic_inputs": true,
+    "round_trip_ms": [
+      100.84764199564233,
+      86.63505199365318,
+      85.22437201463617
+    ],
+    "device_infer_ms": [
+      4.9144,
+      4.30035,
+      4.272525
+    ]
+  },
+  "reference_centerpoint": {
+    "model_sha256": "7a12188054b4f5a05c112dd6d8611436d84cda3e060e11f72d1f1e739040593c",
+    "outputs": 36,
+    "all_finite": true,
+    "timing": {
+      "preprocess_ms": 0.21415,
+      "vendor_infer_ms": 45.755075,
+      "dequantize_ms": 2.25715,
+      "pillars": 326,
+      "kept_points": 1000
+    },
+    "synthetic_input": true,
+    "navigation_enabled": false,
+    "motion_eligible": false
+  },
+  "production_io": {
+    "preprocessing_exact_matches": {
+      "detector_zed": 40,
+      "classifier": 50
+    },
+    "fp32_output_checks": [
+      {
+        "kind": "detector_zed",
+        "sample": "00000.npy",
+        "detections": 1,
+        "max_abs_error": 0.0,
+        "passed": true
+      },
+      {
+        "kind": "detector_zed",
+        "sample": "00001.npy",
+        "detections": 1,
+        "max_abs_error": 0.0,
+        "passed": true
+      },
+      {
+        "kind": "detector_zed",
+        "sample": "00002.npy",
+        "detections": 2,
+        "max_abs_error": 0.0,
+        "passed": true
+      },
+      {
+        "kind": "classifier",
+        "sample": "00000.npy",
+        "source_class": "metal",
+        "probability_sum": 1.0,
+        "passed": true
+      },
+      {
+        "kind": "classifier",
+        "sample": "00010.npy",
+        "source_class": "plastic",
+        "probability_sum": 1.0,
+        "passed": true
+      },
+      {
+        "kind": "classifier",
+        "sample": "00020.npy",
+        "source_class": "paper",
+        "probability_sum": 1.0,
+        "passed": true
+      },
+      {
+        "kind": "classifier",
+        "sample": "00030.npy",
+        "source_class": "glass",
+        "probability_sum": 1.0,
+        "passed": true
+      },
+      {
+        "kind": "classifier",
+        "sample": "00040.npy",
+        "source_class": "kitchen_waste",
+        "probability_sum": 1.0,
+        "passed": true
+      }
+    ],
+    "onnxruntime": "1.16.3",
+    "cuda_initialized": false,
+    "scope": "training-input preprocessing and CPU FP32 output boundary only",
+    "int8_accuracy_accepted": false,
+    "hbm_board_accepted": false,
+    "production_ready": false
+  },
+  "distribution_tests": {
+    "passed": 22,
+    "ptq_tests": 9,
+    "tensor_bridge_tests": 13
+  },
+  "protected_board_files_unchanged": 9,
+  "remaining_inference_processes": [],
+  "connection_address_temporary": true,
+  "full_robot_network_accepted": false,
+  "formal_trash_bpu_migrated": false,
+  "two_model_production_backend_implemented": false,
+  "production_ready": false,
+  "motion_eligible": false,
+  "submitted_to_horizon": false,
+  "evidence_sha256": {
+    "build_v5.log": "f54ccebfb3c3969e499bad84f290dcea3d8c80cdb3a78292716c83a89ccad91b",
+    "reference_compare_v5.json": "bb11c8b8292ce963d664a9fc7df3578468e16741726e8888d19356863c33c84a",
+    "tensor_round_trip_v5.json": "9e2d336974ae91be09e021f49e8e91fa75ed04dbc8df671abf3b190e6198fd2a",
+    "centerpoint_smoke.json": "015779110e63acecab21d91bc1a70293c3e557b63ff3acab9ef28fc0fa7f2599",
+    "production_io.json": "2ff5dfb594cdc2d59ca879de7ac6c8ab5ffd3c9d812ee210b9be5853b0fb3978",
+    "distribution_tests_final.log": "9cd920e1ad6570adbadd52b3bd6a33c989a942e749cff049d571332cba230ed8",
+    "board_preservation.json": "9ddc694a9e5d0dc0cf6556bc683df1f4aa96426848ab8d9fdedc8be12d39dfc0",
+    "time_sync.log": "a2f7e708f8e84b4663e359595fde6f4f984481f6e6efbff93aad5b5736bd28d5",
+    "network_state.json": "561c1163217ad1d4418f66beb703a4a8c62fd1610e423d5df5d4713faeba47b5"
+  },
+  "source_files_sha256": {
+    "distribution/j6m_bpu_navigation/native/tensor_executor.cpp": "e772e116e707dbce2dd420074bec6fe58faa6765178995cfdf2ffe46944c180b",
+    "distribution/j6m_bpu_navigation/tools/build_tensor_executor.sh": "06a0cb7e05829d217f8906b457fad70d60314a24c626f20160c4878a7a61f14e",
+    "distribution/j6m_bpu_navigation/tools/calibration_images.py": "a6cc1b9a9f0ac3ce50abeae84b28d5123acadac696f7e2af86aca33302dbcaf1",
+    "distribution/j6m_bpu_navigation/tools/native_tensor.py": "c83bbbb29134833713fa7b8ed93ebbd560583f7fa413750886f3b54ab66ba3f6",
+    "distribution/j6m_bpu_navigation/tools/production_io.py": "e139c1986430031ac3f312099222bd71b1dae98b5118f6198d3cdd5354c75d1d",
+    "distribution/j6m_bpu_navigation/tools/production_ptq.py": "b351e5c34b9364aef59f61a381d9c98407d0c23fd048881396d6293615d6d4ca",
+    "distribution/j6m_bpu_navigation/tools/tensor_stdio.py": "71343dd6eaf2c1a3a56e9f475453dbc4192356b23b58efac9e4b525a62831cf6",
+    "distribution/j6m_bpu_navigation/tools/tensor_transport.py": "0e26759ecc814a0a4d285766e9a670e9e46071dad3304cfe95919874d24d947f",
+    "distribution/j6m_bpu_navigation/tools/tensor_wire.py": "2e00a65b796ab72160d228a946a7d2c975910916f543826b5065614a494b0ab1",
+    "distribution/j6m_bpu_navigation/tools/verify_production_io.py": "9a4a68e927493945714f467b2fb44325b1fe2503952ae6616ed864f5565e5cae",
+    "distribution/j6m_bpu_navigation/tools/verify_reference_tensor.py": "be16f7e1e0c19379db1d0ed2e818d2d44ec5c35baff548720ab6f351abcfdf7a",
+    "distribution/j6m_bpu_navigation/tools/verify_tensor_transport.py": "c70ebc66526ee8d60f8ffd8d2932c8c1c1c00d00ffcc0e5c3b954249d9275948"
+  }
+}

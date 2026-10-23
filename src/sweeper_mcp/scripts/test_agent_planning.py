@@ -169,7 +169,7 @@ def test_clarification_cannot_carry_executable_steps():
 
 def test_visual_search_and_clean_is_one_native_spot_cleaning_capability():
     runner = _runner({"steps": [
-        _step("navigate_map_pose", {"x_m": 0, "y_m": 0, "yaw_deg": 0}),
+        _step("navigate_map_pose", {"x_m": 0, "y_m": 0}),
         _step("start_spot_cleaning", {}),
     ]})
     result = runner.run("返回地图原点，看看周围有没有垃圾，有垃圾就清扫", execute=False)
@@ -187,7 +187,7 @@ class ScriptedNavigationBackend(MockBackend):
         self.navigation_status_calls = 0
         self._navigation_states = ["active", "succeeded"]
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None):
         failed = self._record("navigate_map_pose", locals())
         assert failed is None
         if self.initial_error:
@@ -219,7 +219,7 @@ class UncertainNavigationBackend(MockBackend):
         self.cancel_calls = 0
         self.states = list(states or ["cancel_uncertain", "recalled"])
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None):
         failed = self._record("navigate_map_pose", locals())
         assert failed is None
         return self._result({
@@ -247,7 +247,7 @@ class LostAfterAcceptanceBackend(UncertainNavigationBackend):
     def __init__(self):
         super().__init__(["lost", "cancel_uncertain", "recalled"])
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None):
         failed = self._record("navigate_map_pose", locals())
         assert failed is None
         return self._result({
@@ -287,7 +287,7 @@ class StatusErrorAfterAcceptanceBackend(UncertainNavigationBackend):
         super().__init__(["cancel_uncertain", "recalled"])
         self.raise_once = True
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None):
         failed = self._record("navigate_map_pose", locals())
         assert failed is None
         return self._result({
@@ -307,7 +307,7 @@ class CancelDuringNavigationBackend(UncertainNavigationBackend):
         self.cancel_callback = None
         self.first_status = True
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None):
         failed = self._record("navigate_map_pose", locals())
         assert failed is None
         return self._result({
@@ -329,7 +329,7 @@ class MismatchedNavigationStatusBackend(UncertainNavigationBackend):
         super().__init__(["recalled"])
         self.first_status = True
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None):
         failed = self._record("navigate_map_pose", locals())
         assert failed is None
         return self._result({
@@ -494,7 +494,7 @@ def test_preview_validates_but_does_not_mutate():
     backend = MockBackend(delay=0.005)
     runner = _runner({"steps": [
         _step("navigate_relative", {
-            "forward_m": 2.0, "left_m": 0.0, "delta_yaw_deg": 0.0,
+            "forward_m": 2.0, "left_m": 0.0,
         }),
     ]}, backend=backend)
     result = runner.run("向前两米", execute=False)
@@ -508,7 +508,7 @@ def test_continuous_sentence_executes_strictly_in_order():
     events = []
     runner = _runner({"steps": [
         _step("navigate_relative", {
-            "forward_m": 1.0, "left_m": 0.0, "delta_yaw_deg": 0.0,
+            "forward_m": 1.0, "left_m": 0.0,
         }, "先向前一米"),
         _step("navigate_map_pose", {
             "x_m": 3.0, "y_m": 2.0, "yaw_deg": 90.0,
@@ -531,7 +531,7 @@ def test_accepted_navigation_polls_active_then_succeeded():
     events = []
     runner = _runner({"steps": [
         _step("navigate_map_pose", {
-            "x_m": 8.0, "y_m": 0.0, "yaw_deg": 0.0,
+            "x_m": 8.0, "y_m": 0.0,
         }),
     ]}, backend=backend, events=events)
 
@@ -552,7 +552,7 @@ def test_initial_navigation_error_fails_without_status_polling():
     events = []
     runner = _runner({"steps": [
         _step("navigate_map_pose", {
-            "x_m": 8.0, "y_m": 0.0, "yaw_deg": 0.0,
+            "x_m": 8.0, "y_m": 0.0,
         }),
     ]}, backend=backend, events=events)
 
@@ -569,7 +569,7 @@ def test_post_publish_navigation_error_waits_for_exact_cancel_confirmation():
     events = []
     runner = _runner({"steps": [
         _step("navigate_map_pose", {
-            "x_m": 8.0, "y_m": 0.0, "yaw_deg": 0.0,
+            "x_m": 8.0, "y_m": 0.0,
         }),
     ]}, backend=backend, events=events)
 
@@ -591,7 +591,7 @@ def test_navigation_cleanup_keeps_run_lock_through_same_goal_recalling():
     backend = RecallingThenRecalledNavigationBackend()
     runner = _runner({"steps": [
         _step("navigate_map_pose", {
-            "x_m": 8.0, "y_m": 0.0, "yaw_deg": 0.0,
+            "x_m": 8.0, "y_m": 0.0,
         }),
     ]}, backend=backend)
     outcome = {}
@@ -633,7 +633,7 @@ def test_lost_navigation_enters_cleanup_instead_of_releasing_goal():
     events = []
     runner = _runner({"steps": [
         _step("navigate_map_pose", {
-            "x_m": 8.0, "y_m": 0.0, "yaw_deg": 0.0,
+            "x_m": 8.0, "y_m": 0.0,
         }),
     ]}, backend=backend, events=events)
 
@@ -656,7 +656,7 @@ def test_navigation_status_error_waits_for_exact_cancel_confirmation():
     events = []
     runner = _runner({"steps": [
         _step("navigate_map_pose", {
-            "x_m": 8.0, "y_m": 0.0, "yaw_deg": 0.0,
+            "x_m": 8.0, "y_m": 0.0,
         }),
     ]}, backend=backend, events=events)
 
@@ -678,7 +678,7 @@ def test_operator_cancel_waits_for_same_goal_safe_state():
     events = []
     runner = _runner({"steps": [
         _step("navigate_map_pose", {
-            "x_m": 8.0, "y_m": 0.0, "yaw_deg": 0.0,
+            "x_m": 8.0, "y_m": 0.0,
         }),
     ]}, backend=backend, events=events)
     backend.cancel_callback = runner.cancel
@@ -697,7 +697,7 @@ def test_foreign_navigation_status_cannot_complete_current_step():
     backend = MismatchedNavigationStatusBackend()
     runner = _runner({"steps": [
         _step("navigate_map_pose", {
-            "x_m": 8.0, "y_m": 0.0, "yaw_deg": 0.0,
+            "x_m": 8.0, "y_m": 0.0,
         }),
     ]}, backend=backend)
 
@@ -781,7 +781,7 @@ def test_failure_stops_remaining_steps():
     backend = MockBackend(delay=0.005, fail_tool="navigate_relative")
     runner = _runner({"steps": [
         _step("navigate_relative", {
-            "forward_m": 1.0, "left_m": 0.0, "delta_yaw_deg": 0.0,
+            "forward_m": 1.0, "left_m": 0.0,
         }),
         _step("get_robot_status", {}),
     ]}, backend=backend)
@@ -795,7 +795,7 @@ def test_revoked_control_fails_closed_before_tool_call():
     backend = MockBackend(delay=0.005)
     runner = _runner({"steps": [
         _step("navigate_relative", {
-            "forward_m": 1.0, "left_m": 0.0, "delta_yaw_deg": 0.0,
+            "forward_m": 1.0, "left_m": 0.0,
         }),
     ]}, backend=backend, authorised=False)
     result = runner.run("向前一米", execute=True)
@@ -816,7 +816,7 @@ def test_more_than_eight_steps_is_rejected_atomically():
 def test_unknown_fields_and_gps_arguments_are_rejected():
     runner = _runner({"steps": [
         _step("navigate_relative", {
-            "forward_m": 1.0, "left_m": 0.0, "delta_yaw_deg": 0.0,
+            "forward_m": 1.0, "left_m": 0.0,
             "latitude": 39.9,
         }),
     ]})

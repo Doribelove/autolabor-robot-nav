@@ -386,7 +386,10 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         manager.map_digest = "test-map"
         manager.region = COVERAGE_MANAGER.PolygonStamped()
         manager.region.header.frame_id = "map"
-        manager.region.polygon.points.append(Point32(x=1.0, y=2.0, z=0.0))
+        # A READY plan now always carries a nondegenerate rectangle.
+        manager.region.polygon.points = [
+            Point32(x=1.0, y=2.0), Point32(x=3.0, y=2.0),
+            Point32(x=3.0, y=4.0), Point32(x=1.0, y=4.0)]
         manager.current_segment = current_segment
         manager.total_segments = total_segments
         manager.blocked_segments = list(blocked_segments or [])

@@ -38,15 +38,22 @@ def number(value):
 
 
 def _yaw(suffix):
-    match = re.match(r"[\s,)米]*[,、]?\s*(?:yaw(?:_deg)?|朝向|航向角?|偏航角?)\s*[:=为是]?\s*(" + NUMBER + r")" + NUMBER_END + r"(?:\s*度)?", suffix)
-    return number(match[1]) if match else 0.0
+    prefix = re.match(r"[\s,)米]*[,、]?\s*(?:并)?\s*(?:yaw(?:_deg)?(?:角度)?|朝向(?:角度?)?|航向(?:角度?)?|偏航(?:角度?)?|角度)\s*[:=为是]?\s*", suffix)
+    if not prefix:
+        return None
+    value = suffix[prefix.end():]
+    if re.match(r"不限|不限制|任意|无要求", value):
+        return None
+    match = re.match(r"(" + NUMBER + r")" + NUMBER_END + r"(?:\s*度)?", value)
+    # An unrecognised explicit orientation is not permission to drop it.
+    return number(match[1]) if match else float("nan")
 
 
 def map_targets(text):
     text = unicodedata.normalize("NFKC", text).lower()
     targets = []
-    if re.search(r"(?:地图(?:坐标)?(?:上面|上|中|里面|里)?的?)?(?:原点|零点)", text):
-        targets.append((0.0, 0.0, 0.0))
+    for match in re.finditer(r"(?:地图(?:坐标)?(?:上面|上|中|里面|里)?的?)?(?:原点|零点)", text):
+        targets.append((0.0, 0.0, _yaw(text[match.end():])))
     patterns = [
         r"(?<![a-z])x(?:_m)?\s*[:=为是]?\s*(" + NUMBER + r")\s*(?:米)?[\s,、]+y(?:_m)?\s*[:=为是]?\s*(" + NUMBER + r")",
         r"(?:地图(?:坐标|位置|位姿|点)?|map(?:坐标)?|坐标)\s*[:=为是到]?\s*\(?\s*(" + NUMBER + r")[\s,、]+(" + NUMBER + r")",
@@ -97,7 +104,20 @@ def valid_return_anchor(value):
 def matches_return_anchor(step, anchor):
     return bool(valid_return_anchor(anchor) and step["tool"] == "navigate_map_pose" and
                 all(math.isclose(float(step["arguments"][k]), anchor[k], rel_tol=0, abs_tol=1e-6)
-                    for k in ("x_m", "y_m", "yaw_deg")))
+                    for k in ("x_m", "y_m")))
+
+
+def return_target(text, anchor):
+    text = unicodedata.normalize("NFKC", str(text or "")).lower()
+    reference = current_return_reference(text)
+    if not reference or not valid_return_anchor(anchor):
+        return None
+    suffix = text[reference.end():]
+    yaw = _yaw(suffix)
+    clause = re.split(r"然后|接着|最后|再|[。;；]", text[:reference.start()])[-1] + reference.group() + re.split(r"然后|接着|最后|再|[。;；]", suffix)[0]
+    if re.search(r"(?:保持|恢复|保留).{0,5}(?:原来|原先|原|当前|现在|之前|起始).{0,3}(?:朝向|方向|角度)|朝向不变", clause):
+        yaw = anchor["yaw_deg"]
+    return (anchor["x_m"], anchor["y_m"], yaw)
 
 
 def unresolved_reference_error(plan, text, anchor=None):
@@ -109,7 +129,7 @@ def unresolved_reference_error(plan, text, anchor=None):
             return ""
         returns = [i for i, step in enumerate(plan.get("steps", [])) if matches_return_anchor(step, anchor)]
         if not returns:
-            return "不得省略返回步骤；必须用本轮已记录的 map 位姿完整 x_m/y_m/yaw_deg 调用 navigate_map_pose。"
+            return "不得省略返回步骤；必须用本轮已记录的 map 位置 x_m/y_m 调用 navigate_map_pose；未明确要求朝向时省略 yaw_deg。"
         before, after = value[:reference.start()], value[reference.end():]
         tools = [step["tool"] for step in plan["steps"]]
         if (re.search(r"清扫|打扫|清理", before) and re.search(r"区|大厅|门厅|走廊", before)
@@ -132,7 +152,7 @@ def relative_targets(text):
     text = unicodedata.normalize("NFKC", text).lower()
     targets = []
     for clause in re.split(r"然后|接着|最后|再|[。;；]", text):
-        values = [0.0, 0.0, 0.0]
+        values = [0.0, 0.0, None]
         found = False
         patterns = [
             (0, 1, r"(?:向前|往前|前进)\s*(" + NUMBER + r")\s*(?:米|m\b)"),
@@ -144,7 +164,7 @@ def relative_targets(text):
         ]
         for axis, sign, pattern in patterns:
             for match in re.finditer(pattern, clause):
-                values[axis] += sign * number(match[1])
+                values[axis] = (values[axis] or 0.0) + sign * number(match[1])
                 found = True
         if found:
             targets.append(tuple(values))
@@ -154,8 +174,7 @@ def relative_targets(text):
 def navigation_error(plan, texts, anchor=None):
     """Require a complete matching point/offset from the current user context."""
     map_points = [point for text in texts for point in map_targets(text)]
-    if valid_return_anchor(anchor) and any(current_return_reference(text) for text in texts):
-        map_points.append(tuple(anchor[k] for k in ("x_m", "y_m", "yaw_deg")))
+    map_points.extend(point for text in texts for point in [return_target(text, anchor)] if point is not None)
     offsets = [point for text in texts for point in relative_targets(text)]
     for step in plan["steps"]:
         tool = step["tool"]
@@ -164,10 +183,11 @@ def navigation_error(plan, texts, anchor=None):
         args = step["arguments"]
         keys, candidates = (("x_m", "y_m", "yaw_deg"), map_points) if tool == "navigate_map_pose" else (
             ("forward_m", "left_m", "delta_yaw_deg"), offsets)
-        if not any(all(math.isclose(float(args[k]), value, abs_tol=1e-6, rel_tol=0.0)
+        if not any(all((args.get(k) is None if value is None else
+                       args.get(k) is not None and math.isclose(float(args[k]), value, abs_tol=1e-6, rel_tol=0.0))
                        for k, value in zip(keys, candidate)) for candidate in candidates):
             return ("导航目标没有可核实的用户明确点位依据。区域名称不是导航点，禁止取区域中心、入口或猜测偏移。"
                     "到区域在那里清扫应只调用 start_coverage_cleaning，由覆盖系统负责入场。"
-                    "独立导航请补充 map 的 x、y（朝向未指定时为0度），或明确方向和距离；"
+                    "独立导航请补充 map 的 x、y；未指定朝向时必须省略yaw参数，最终朝向不限，明确朝向则必须保留。或给出明确相对方向和距离；"
                     "当前没有已登记命名点位服务，不能从区域名生成坐标。")
     return ""

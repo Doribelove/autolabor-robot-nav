@@ -1,4 +1,5 @@
 #include <autolabor_operator_gui/main_window.h>
+#include <autolabor_operator_gui/minimum_rectangle.h>
 #include <autolabor_operator_gui/ros_graph_reconnect.h>
 
 #include <dynamic_reconfigure/DoubleParameter.h>
@@ -1551,6 +1552,7 @@ void MainWindow::buildUi()
   pending_litter_page_ = new PendingLitterPage(tabs_);
   tabs_->addTab(pending_litter_page_, QStringLiteral("待清扫垃圾"));
   coverage_tab_index_ = tabs_->addTab(buildCoveragePage(), QStringLiteral("清扫"));
+  tabs_->addTab(buildNavigationTuningPage(), QStringLiteral("导航调参"));
   ai_tab_index_ = tabs_->addTab(buildAiControlPage(), QStringLiteral("AI语音控制"));
   bpu_tab_index_ = tabs_->addTab(buildBpuPreviewPage(), QStringLiteral("BPU 预览"));
   tabs_->addTab(buildLogPage(), QStringLiteral("日志"));
@@ -2599,7 +2601,8 @@ QWidget* MainWindow::buildCoveragePage()
   selection_layout->addLayout(saved_row);
   controls_layout->addWidget(selection);
 
-  auto* parameters = new QGroupBox(QStringLiteral("规划参数"), controls);
+  auto* parameters = new QGroupBox(QStringLiteral("覆盖规划参数"), controls);
+  coverage_parameters_widget_ = parameters;
   auto* parameters_layout = new QVBoxLayout(parameters);
   auto* width_row = new QWidget(parameters);
   auto* width_layout = new QHBoxLayout(width_row);
@@ -2729,7 +2732,7 @@ QWidget* MainWindow::buildCoveragePage()
                      "角速度和加速度应用到首线入场 Navfn+TEB 与清扫；"
                      "异常重规划重试等待应用于覆盖任务段的有界失败重试；清扫线"
                      "间转场会从实时位姿重新执行 Hybrid A*。该阶段"
-                     "全局参考前视固定为 2 m，并由 TEB 闭环跟踪；安全 mux 只"
+                     "全局参考前视可在“导航调参”调整，并由 TEB 闭环跟踪；安全 mux 只"
                      "校验许可、指令新鲜度、固定档位和曲率。全部参数"
                      "都会立即保存，下次启动 Qt "
                      "会再次下发并作为默认值。服务未确认同步时禁止生成或启动"
@@ -2740,6 +2743,13 @@ QWidget* MainWindow::buildCoveragePage()
       QStringLiteral("color:#374151;font-size:9pt;"));
   parameters_layout->addWidget(persistence_note);
   controls_layout->addWidget(parameters);
+  auto* tuning_link = new QPushButton(QStringLiteral("打开导航调参页面"), controls);
+  connect(tuning_link, &QPushButton::clicked, this, [this]() {
+    for (int i=0; i<tabs_->count(); ++i)
+      if (tabs_->tabText(i) == QStringLiteral("导航调参")) tabs_->setCurrentIndex(i);
+  });
+  controls_layout->addWidget(tuning_link);
+
 
   auto* status = new QGroupBox(QStringLiteral("覆盖任务状态"), controls);
   auto* status_layout = new QVBoxLayout(status);
@@ -6285,8 +6295,16 @@ void MainWindow::refreshUi()
                                        !coverage_active &&
                                        !coverage_batch_active &&
                                        !coverage_backend_busy;
+  // Parameter defaults do not require a rendered map or a region library.
+  // Planning/motion retain coverage_editable and all map/localization gates.
   const bool coverage_parameters_editable =
-      coverage_editable && !coverage_has_ready_plan &&
+      static_map_mode_ && master_online_ && ros_interfaces_ready_ &&
+      coverage_status_fresh && !coverage_active && !coverage_batch_active &&
+      !coverage_backend_busy && coverage_batch_id_.empty() &&
+      !coverage_task_lifecycle_started_ && !coverage_plan_pending_ &&
+      !coverage_command_pending_ && !coverage_batch_start_pending_ &&
+      !coverage_skip_pending_ && !coverage_cancel_pending_ &&
+      !coverage_cancel_requested_ && !coverage_has_ready_plan &&
       !navigation_profile_apply_watcher_.isRunning() &&
       !navigation_profile_factory_restore_pending_;
   coverage_width_input_->setEnabled(coverage_parameters_editable);
@@ -6302,8 +6320,7 @@ void MainWindow::refreshUi()
   coverage_handoff_penalty_input_->setEnabled(coverage_parameters_editable);
   coverage_transit_replan_input_->setEnabled(coverage_parameters_editable);
   coverage_restore_defaults_button_->setEnabled(
-      coverage_editable && !coverage_has_ready_plan && master_online_ &&
-      ros_interfaces_ready_ && !navigation_profile_apply_watcher_.isRunning());
+      coverage_parameters_editable);
   if (coverage_parameter_sync_status_)
   {
     if (!static_map_mode_)
@@ -6827,6 +6844,18 @@ void MainWindow::confirmCoverageSelection()
                              QStringLiteral("至少需要三个顶点才能形成覆盖多边形。"));
     return;
   }
+  try {
+    points = minimumRectangle(points);
+    {
+      std::lock_guard<std::mutex> lock(snapshot_mutex_);
+      coverage_draft_points_ = points;
+    }
+    publishCoverageDraft();
+  } catch (const std::exception& error) {
+    QMessageBox::warning(this, QStringLiteral("选区无法拟合长方形"),
+                         QString::fromUtf8(error.what()));
+    return;
+  }
   const CoveragePlanningUiParameters parameters =
       coveragePlanningParameters();
   const TelemetrySnapshot data = snapshot();
@@ -7092,7 +7121,7 @@ bool MainWindow::loadCoverageRegionDraft(const CoverageRegionRecord& record)
   coverage_cancel_requested_ = false;
   publishCoverageDraft();
   selectCoveragePointTool(true);
-  appendEvent(QStringLiteral("已载入“%1”为可编辑多边形；请目视确认后生成轨迹。")
+  appendEvent(QStringLiteral("已载入“%1”；确认时自动拟合最小面积外接长方形，请检查矩形扩展范围。")
                   .arg(record.name));
   return true;
 }

@@ -81,6 +81,7 @@ add_library(${PROJECT_NAME}_window STATIC
   src/ros_graph_reconnect.cpp
   src/ai_control.cpp
   src/main_window.cpp
+  src/navigation_tuning_page.cpp
   src/pending_litter_page.cpp
   src/pending_litter_integration.cpp
   include/autolabor_operator_gui/main_window.h
@@ -112,6 +113,10 @@ if(CATKIN_ENABLE_TESTING)
   )
   target_link_libraries(test_rviz_callback_isolation ${PROJECT_NAME}_window)
   catkin_add_nosetests(test/test_operator_gui_contract.py)
+  catkin_add_gtest(test_minimum_rectangle test/test_minimum_rectangle.cpp)
+  if(TARGET test_minimum_rectangle)
+    target_link_libraries(test_minimum_rectangle ${catkin_LIBRARIES})
+  endif()
   catkin_add_gtest(test_coverage_region_store
     test/test_coverage_region_store.cpp
   )

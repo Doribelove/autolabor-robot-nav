@@ -29,6 +29,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_python_setup()
 
+generate_dynamic_reconfigure_options(cfg/TransitTuning.cfg cfg/HybridTuning.cfg)
+
 add_message_files(FILES
   CoveragePlanningParameters.msg
   CoverageRegion.msg
@@ -95,6 +97,11 @@ install(FILES coverage_global_planner_plugin.xml
 if(CATKIN_ENABLE_TESTING)
   option(AUTOLABOR_COVERAGE_WORKSPACE_CONTRACT_TESTS
     "Run contracts that require the complete robot deployment workspace" ON)
+  catkin_add_gtest(test_tuning_store test/test_tuning_store.cpp)
+  if(TARGET test_tuning_store)
+    add_dependencies(test_tuning_store ${PROJECT_NAME}_gencfg)
+    target_link_libraries(test_tuning_store ${catkin_LIBRARIES})
+  endif()
   catkin_add_gtest(test_hybrid_a_star test/test_hybrid_a_star.cpp)
   if(TARGET test_hybrid_a_star)
     target_link_libraries(test_hybrid_a_star coverage_hybrid_astar ${catkin_LIBRARIES})
@@ -104,6 +111,7 @@ if(CATKIN_ENABLE_TESTING)
   install(TARGETS hybrid_a_star_benchmark
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
   catkin_add_nosetests(test/test_coverage_geometry.py)
+  catkin_add_nosetests(test/test_rectangle_tuning.py)
   if(AUTOLABOR_COVERAGE_WORKSPACE_CONTRACT_TESTS)
     catkin_add_nosetests(test/test_coverage_contract.py)
   endif()

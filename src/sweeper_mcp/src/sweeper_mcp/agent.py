@@ -19,7 +19,7 @@ from sweeper_mcp.navigation_grounding import (navigation_error, unresolved_refer
 from sweeper_mcp.region_catalog import (compact_catalog, coverage_region_ambiguity_error,
                                         coverage_region_error, reference_map)
 from sweeper_mcp.tools import TOOL_SPECS, validate_arguments
-from sweeper_mcp.visual_completion import session_id_valid, sequence_valid, visual_completed
+from sweeper_mcp.visual_completion import session_id_valid, sequence_valid, visual_completed, visual_cleaning_completed
 
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
 5. 连续语句按独立任务拆分并保留先后顺序，不按动词数量机械拆分。高层任务内部的入场不另拆导航。
 6. 只能调用 submit_plan 一次。不要在 answer 中声称动作已经完成。
 7. “原点、零点”默认就是地图原点，和“地图原点、地图坐标原点、地图上面的原点、
-   地图零点”一样明确表示 map 位姿 x=0、y=0、yaw=0；“起点、基地、
+   地图零点”一样明确表示 map 位置 x=0、y=0，未明确朝向时省略yaw_deg、最终朝向不限；“起点、基地、
    充电点”等名称不等同于地图原点，系统未提供精确坐标时必须要求用户补充。
 8. 输入可能由用户自然停顿后的多个片段合并；连词、指代和“不是X，是Y”应结合本轮完整表达理解。
 9. 历史对话仅用于补齐待答问题、解析指代。历史状态为 PREVIEW/SUCCEEDED/FAILED 的任务
@@ -66,8 +66,8 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
     口语简称在上下文唯一明确时映射为目录中的精确名称/UUID；有多个候选或无匹配时要求补充。
 12. 单独“到前门去”“去A区”等区域目标不是导航点；无明确点位时询问坐标，不能自行变成清扫。
     本系统没有命名导航点目录，清扫区域目录也不提供导航坐标，禁止从名字、中心、入口或机器人状态猜坐标。
-    map 导航接受用户明确的 x/y、地图原点或下述本轮可信返回点；普通数字点未指定朝向时 yaw_deg=0。
-    相对导航必须明确方向和距离/转角。“往前一点”“去附近”不满足条件。
+    map 导航接受用户明确的 x/y、地图原点或下述本轮可信返回点；任何目标点未明确朝向时必须省略 yaw_deg，最终朝向不限，不能默认0度或当前角度。
+    相对导航必须明确方向和距离/转角；未明确转角时省略delta_yaw_deg，最终朝向不限。“往前一点”“去附近”不满足条件。
     如果用户明确要求“先到地图坐标(1,2)，再清扫A区”，才保留独立导航和清扫两个任务。
 13. 当前区域目录是每次规划时动态查询的，不得记忆或写死示例区域。用户说出的区域可以不与
     目录逐字一致：应结合地点主体、方位及其自然同义表达、通用建筑词/后缀的省略或替换、
@@ -97,7 +97,7 @@ SYSTEM_PROMPT = """你是室内无人清扫车的控制规划器。你必须把�
     的部分，不能再次询问已经唯一匹配的区域。
 15. “当前/现在的位置、现在这个点、说话时的位置、这里、原位”在返回指令中指本轮接收
     指令时记录的机器人位置，不是执行到返回步骤时再查询的位置，也不是地图原点。
-    系统若提供本轮可信返回点，必须原样使用其 x_m/y_m/yaw_deg（保留原车头朝向），
+    系统若提供本轮可信返回点，必须原样使用其 x_m/y_m；只有用户明确要求保持原朝向才带快照yaw_deg，明确新朝向则带该角度，否则省略yaw_deg，
     不得猜测或要求用户再次报坐标；没有可信快照才询问，且整单不执行。“我现在的位置”
     指人的位置，不等同于机器人位置；未保存的“刚才位置”也不能用新位置冒充。
     按指代语义理解，不要求固定词序：“原地/现在这儿/这个位置/机器人目前停着的位置”
@@ -1268,6 +1268,9 @@ class AgentRunner:
                 break
             if visual_completed(data, expected_id, baseline):
                 return True, _sanitize_text(response.get("text"))
+            if visual_cleaning_completed(data, expected_id, baseline):
+                self._emit("PROGRESS", tool="visual", state="cleaning_completed_waiting_for_handoff",
+                           result_json="视觉控制器已确认清扫完成，等待真实停车和导航控制权归还。")
             # Mode and visual receipt arrive on independent topics. A genuine
             # COMPLETE may precede its stopped receipt; keep polling within the
             # existing task timeout instead of failing this completed cleaning.

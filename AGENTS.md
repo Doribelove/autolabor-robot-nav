@@ -1,4 +1,116 @@
+# 2026-10-23 后续：永久调参 / Qt预览最新
+
+用户要求关闭当前Qt，打开本分支调参Qt，并要求每次修改后重启保留。
+已由原 `j6m-dev-b-surround/distribution/j6m_bpu_navigation/surround/operator_qt.sh stop`
+正常关闭环视Qt会话（原unit已inactive/MainPID0）；原BPU恢复由其原入口完成，未改该分支源码。
+本分支新增 `scripts/navigation_tuning_preview.sh {start|stop|status|test}`，当前预览服务
+`autolabor-navigation-tuning-preview.service`，仅lo的独立网络/PID命名空间，私有master11543；
+真实move_base/TEB/coverage_manager与本分支Qt，合成地图/TF/零速odom，不连接实车/相机/CAN。
+界面标题明确离线；导航调参页内有覆盖/转场TEB/Hybrid三个子页签，高级组自动读实际值。
+基础参数编辑不再依赖地图渲染/区域库，但仍要求后端状态新鲜、无活动任务/预览；
+规划/运动的地图、定位、授权门未放宽。
+Hybrid/转场高级参数永久保存到 `$ROS_HOME/autolabor_navigation/{hybrid,transit}_tuning.json`，
+启动时已存值覆盖launch/YAML默认；临时文件fsync+原子rename成功后才更新运行态和应答。
+保存失败拒绝并回显原值，损坏/越界历史配置拒绝启动；Qt要求后端persistence_protocol=1。
+基础组沿用coverage.yaml和Qt设置。当前用户预览配置为runtime/navigation_tuning_preview/，
+首次初始化后保留；不是板端部署配置，不自动同步J6M。
+验证：Release、333项独立覆盖/Qt用例（Catkin400含重复）通过，真实后端7项保存/失败/重启
+过程检查通过。旧失败证据和最终日志均在validation/tuning_persistence_20261023/。
+未部署/启停实车导航/发真实目标速度/改运动授权，未查询J6M current，未提交推送。
+下面“高级参数仅会话生效”是上一阶段历史，已由本条替代。生产optimized.sh目录保护仍保留。
+
+# 2026-10-23 本工作树最新
+
+本目录现为 `/home/slam/robot_j6m_ws_navigation_tuning_20261023`，独立分支
+`feature/qt-navigation-tuning-20261023`。原 `/home/slam/robot_j6m_ws_navigation_20260907`
+仍为 `0914`，未改动；新 worktree 带入原未提交源码，未提交/推送。
+新增“导航调参”页，基础覆盖参数迁入并保留事务持久化；转场 TEB 16项和 Hybrid 11项
+经 dynamic_reconfigure 回读确认，无需重启。覆盖/转场只在无预览/任务时修改，Hybrid
+在完整搜索之间切换；高级参数仅本次会话生效。Qt确认、后端单区/批次统一使用点集的
+最小面积外接长方形，拒绝退化和面积<0.5m²，原安全/授权门保留。
+Release、覆盖222项、Qt105项及真实插件隔离14项全部通过，0失败；327为独立叶子用例，
+Catkin390含嵌套重复。测试仅lo/合成数据，不是实车验收。初始环境/夹具/页签断言失败
+保留；详见 `docs/QT_NAVIGATION_TUNING_20261023.md` 与 `validation/navigation_tuning_20261023/`。
+本目录可用 `scripts/validate_navigation_tuning.sh {build|test}` 隔离验证；原devel仅作只读
+依赖，未复制构建缓存、私有配置、地图/模型、授权标记。生产启停/部署路径尚未迁移，
+`optimized.sh`旧目录保护保留，禁止绕过保护启动或连接旧会话。
+未部署、启停/接管实车、发初值/目标/速度或改授权；未重新查询J6M current，以下版本和
+运行状态全部为继承历史，不能作为当前实测状态。
+
 # 导航优化专用候选版约束（2026-09-07）
+
+2026-09-14 11:47 本轮覆盖实验监测最新：用户要求开始实验并由助手持续监测。只读确认
+导航服务为11:28新会话、active/MainPID1246402；操作员已为该会话设置真实初值，开始前
+LOCALIZED，覆盖/视觉/AI空闲且全部速度与双轮反馈为零。11:35挂载被动记录器后，操作员
+先生成并取消5份覆盖预览，均未执行；最终计划c53e5a10bd8b4bba8acab951ecfadd1e于
+11:43:06进入PREPARING，11:47:42完成10/10段，实测275.604秒。捕获7次短暂
+WAITING_OBSTACLE，分布于2/3/5/9段；第5段覆盖到一次整轮重试耗尽后保留依赖清扫线并
+继续自动重规划，最终无PAUSED。26次Hybrid action结果均以SUCCEEDED返回，其中23个结果
+直接取得入口，3个报告目标footprint处于占据/未知区后由后续重试恢复；另有9次2秒低进展
+取消。11:46:57记录1条coverage_manager未跟踪GoalHandle的晚到回调ERROR，但未中断或
+改变最终完成状态；任务开始时optional_cloud_enhancer有1条LD19 stale瞬态告警，记录窗口
+内/scan与三雷达采样无超过1秒断流。定位138个变化样本均LOCALIZED，最低overlap0.6497、
+最高RMSE0.1936。控制线性/角速度峰值1.60m/s、0.444rad/s，左右轮峰值1.831/1.893m/s；
+结束后新记录窗口内导航/FOD/安全/最终指令各20/20/20/49条及双轮各50条全部为零。
+J6M整板CPU平均28.55%、峰53.42%，move_base平均8.98%/峰151.04%（约1.51核），coverage
+manager平均15.40%/峰103.36%。本轮视觉始终DISABLED/GPS_ACTIVE、AI IDLE，不构成视觉
+3%～97%或消失后0.50m实车验收。原始证据完整保留于
+validation/coverage_live_20260912/20260914_113507/（311MB）；发现自定义enforced_path
+仍被高频完整落盘后，仅修正被动记录器按路径身份/点列变化去重并通过py_compile，未改业务
+节点。11:50无缝续录于validation/coverage_live_20260912/20260914_115042/，tmux socket
+runtime/run/coverage_monitor_20260914.tmux.sock；当前服务/Qt保持运行、覆盖COMPLETED、
+localized=true、视觉DISABLED、AI/待清扫空闲，记录器继续等待后续实验。未删除原证据，
+未启停导航、部署、发初值/目标/速度、改授权、提交或推送。
+
+2026-09-14 09:53 参数重部署/完整启动最新：用户明确要求重启、部署后启动实验。部署前
+沿用map_20260914_064202（fused），视觉DISABLED/GPS_ACTIVE、无活动覆盖，安全速度为零。
+统一stop退出0；同历史停机问题，仅核对并SIGKILL服务cgroup唯一残留SSH881583，原入口
+继续按PID停止J6M并退出0，两端停净。统一deploy退出0、43秒，J6M current由091120切至
+20260914_095005。新增3%～97%、消失10帧后0.50m参数、节点及两launch安装文件与本地
+逐字节一致；板端静态、库加载/Python导入及实际参数核验通过，私有配置/运动授权不变。
+随后统一start显式加载原地图退出0，完整runtime健康通过，Qt PID995913、服务active/
+MainPID987924；相机、检测、BPU、MID360、CAN、move_base、覆盖、AI和地图就绪。运行参数
+实测0.03/0.97/0.5/10，视觉DISABLED/GPS_ACTIVE、覆盖IDLE/active=false，3条安全速度
+均零。定位WAITING_INITIAL_POSE/localized=false，操作员须设置本次真实初值后实验；未替
+操作员发初值/目标/速度。/map剩余908MB、97%，未删除旧发布物。仍0914未额外提交/推送，
+证据validation/redeploy_03_97_0914/。下方“本地未再次部署”和091120均为历史。
+
+2026-09-14 后续参数最新（本地未再次部署）：用户要求初始锁定3%～97%、消失后前进0.5m。
+已同步YAML、节点默认/合法范围、两处launch默认及测试/README；仍连续10个正常检测帧
+消失，从第10帧当前odom起算0.50m，原0.55m硬上限和安全/停车回执门保留。
+98项视觉/完成单元及11项仅lo的真实节点ROS测试通过，launch展开为0.03/0.97/0.50/10帧。
+09:35旧采样81帧q=0.953在新范围门离线回放81/81通过，不等于实车锁定验收。
+本轮未部署/启停/发真实控制/改授权；最近板端091120仍是5%～90%及0.30m。
+仍0914未额外提交/推送，证据validation/visual_range_03_97_0914/，报告
+docs/AI_VISUAL_NAVIGATION_0914.md末节。下方09:14部署不包含本次新参数。
+
+2026-09-14 09:14 部署最新：用户明确“现在部署”。部署前实测视觉DISABLED/GPS_ACTIVE，
+覆盖COMPLETED/12/12/active=false/paused=false，采到安全速度零，已非08:19中止状态。
+统一stop退出0；仅对服务cgroup唯一残留SSH466600核对后SIGKILL，原入口继续按PID记录
+结束J6M栈。两端停净后统一deploy退出0、165秒，current由20260912_165656切至
+20260914_091120。11包原生Release，两个规划器修改单元均重编译，14项源码/安装文件
+SHA256逐字节一致；新增SetOrdinaryGoalPolicy两端MD5为81b3245c2d180492c0e35d90e5dd93a6。
+板端两个规划器库即时符号加载、安装Python导入、0.05～0.90参数及两端静态健康通过。
+本机AI加载本目录当前源码，私有配置/主运动标记哈希不变。09:14:33两服务inactive/PID0，
+板端run空、11311/11681无监听，未启动Qt/导航、发初值/目标/速度或恢复任务，非新实车验收。
+/map剩余929MB（97%），未删除旧发布物或日志。仍0914未额外提交/推送，证据
+validation/deploy_0914/，报告docs/AI_VISUAL_NAVIGATION_0914.md末节。下方未部署属历史。
+
+2026-09-14 近处锁定/AI朝向最新（本地未部署）：按用户要求先新建0914并提交修改前
+完整源码043e28d，原0912引用未移动，未推送。现场08:07视觉停留ACQUIRE至75秒超时，
+08:19当前检测82帧均因纵向锚点q=0.953超原0.20～0.80而拒绝；没有故障全程检测证据。
+现初始捕获范围改0.05～0.90（闭区间，0.953仍不接受），原其他筛选/安全门保留。
+AI按本次新COMPLETE回执确认清扫，另等真实停车及控制权归还再执行下一步。原move_base
+不能直接省略四元数表达yaw不限；现MCP角度可省略，默认返回冻结点也只约束x/y，明确
+角度保留。配套新增按目标登记服务、导航桥登记后复查取消、普通Navfn计划策略序号及
+TEB任意终点yaw到达判定，保留XY/新鲜物理停车门，固定角/Qt/覆盖不继承策略。
+Release、AI229项、视觉98项、桥28项、原覆盖177项、AI模拟31组、自由朝向真实插件
+隔离10项、原固定挡位5项、视觉真实节点隔离11项及静态通过。ROS只有lo/合成传感器，
+不是实车/云端/ASR验收；初期失败与修复证据保留于validation/changes_0914/。
+源码修改未额外提交/推送/部署，未启停或接管实车、发真实目标/速度、改授权/私有配置。
+08:19导航服务运行，J6M current仍20260912_165656；下方9月12日停机状态为历史。
+旧板端无新协议时AI拒绝无朝向目标，需双机配套部署，不能只重开新版AI。
+详见docs/AI_VISUAL_NAVIGATION_0914.md与docs/VISUAL_ABORT_ANALYSIS_20260914.md。
 
 2026-09-12 16:58 视觉同步版部署最新：用户随后明确“杀死所有程序，然后部署到J6M”。
 通过vision_0908原统一stop结束当前视觉Qt/相机/AI/底盘及板端旧栈；仅对该服务cgroup

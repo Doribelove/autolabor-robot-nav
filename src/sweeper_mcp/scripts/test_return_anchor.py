@@ -18,7 +18,7 @@ TEXT = "先去A区清扫，再回到现在的位置，进行视觉清扫"
 
 def sequence(anchor=ANCHOR):
     return [_step("start_coverage_cleaning", {"regions": ["A区"]}),
-            _step("navigate_map_pose", {k: anchor[k] for k in ("x_m", "y_m", "yaw_deg")}),
+            _step("navigate_map_pose", {k: anchor[k] for k in ("x_m", "y_m")}),
             _step("start_spot_cleaning", {})]
 
 
@@ -43,7 +43,7 @@ class PositionBackend(MockBackend):
     def get_coverage_status(self):
         return self._result(dict(self.coverage, map_digest=self.digest, localized=True))
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg, expected_map_digest=""):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None, expected_map_digest=""):
         assert self.coverage["state"] == "COMPLETED", "must await coverage terminal"
         assert expected_map_digest == self.digest
         self.dispatched.append((x_m, y_m, yaw_deg))
@@ -72,7 +72,7 @@ def test_all_three_steps_execute_in_order_with_frozen_request_pose():
     result = agent.run(TEXT, execute=True)
     assert result["state"] == "SUCCEEDED", result
     assert backend.capture_count == 1
-    assert backend.dispatched == [(3.125, -4.25, 37.5)]
+    assert backend.dispatched == [(3.125, -4.25, None)]
     assert [c[0] for c in backend.calls] == [s["tool"] for s in sequence()]
 
 
@@ -81,6 +81,26 @@ def test_preview_captures_but_never_moves():
     result = agent.run(TEXT, execute=False)
     assert result["state"] == "PREVIEW"
     assert agent.mcp.backend.capture_count == 1
+    assert agent.mcp.backend.calls == []
+
+
+def test_explicit_original_heading_is_preserved_only_when_requested():
+    steps = sequence()
+    steps[1]["arguments"]["yaw_deg"] = ANCHOR["yaw_deg"]
+    agent = runner({"steps": steps})
+    result = agent.run("清扫A区，再回到现在的位置并保持原来朝向，进行视觉清扫", execute=True)
+    assert result["state"] == "SUCCEEDED"
+    assert agent.mcp.backend.dispatched == [(3.125, -4.25, 37.5)]
+
+
+def test_explicit_return_heading_cannot_be_dropped():
+    agent = runner()
+    try:
+        agent.run("清扫A区，再回到现在的位置并保持原来朝向，进行视觉清扫", execute=True)
+    except AgentError:
+        pass
+    else:
+        assert False
     assert agent.mcp.backend.calls == []
 
 
