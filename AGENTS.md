@@ -1,3 +1,31 @@
+# 合并分支工作区说明（2026-10-23）
+
+- 当前目录 `/home/slam/robot_j6m_ws_conbine`，分支 `robot_j6m_ws_conbine`。
+- 独立 Git 仓库，数据库在本目录 `.git`，不是依赖父目录的 worktree。
+- 用户明确要求将当前三路视觉与导航调参两条开发线主要成果合并保存到新分支，并打开 Qt。
+  用户称视觉分支 vision_bpu_dev；本机实际名称 vision-bpu-surround，按当前三路版本处理。
+- 来源一 `/home/slam/j6m-dev-b-surround` / vision-bpu-surround；来源二
+  `/home/slam/robot_j6m_ws_navigation_tuning_20261023` / feature/qt-navigation-tuning-20261023。
+  两源 HEAD 均为 5d1028e，但成果包含未提交和未跟踪源码。已在新仓库分别保存来源快照，
+  清单与恢复 tar 位于 runtime/conbine_merge_20261023/，不得只以旧 HEAD 代表源码。
+- 允许在新目录做合并、修复、构建、隔离验证和保存本地提交；不推送、不改源工作树内容。
+- 集成内容：三路 GDC + 原 BPU 双模型 / 原 Qt 视频顶部端口切换；导航调参页、三组参数
+  持久化、Qt 与后端最小面积外接矩形；同时保留共同继承的视觉/AI/导航修复。
+- 本轮 Qt 的导航后端必须在只有 lo 的网络命名空间，使用合成地图/TF/零速 odom。
+  真实三路视频通过仅允许 GET /state 和 /frame/0/1/2 的独立本地桥读取已运行环视服务；
+  不打通车辆 ROS、不发布真实目标/速度，不把模拟调参持久值当作已部署板端。
+- 旧 optimized.sh、surround/operator_qt.sh 的来源目录保护保留，不能直接绕过运行。
+  本目录新入口 scripts/conbine.sh；独立服务、日志、ROS/Qt 配置保存在本目录 runtime。
+- 保留模型身份/帧龄/源会话与端口检查、BPU 独占锁，真实标定模板仍为空；
+  production_ready=false、motion_eligible=false 不变。尚未授权整栈部署、刷机、车辆动作。
+- Release、339 项独立覆盖/Qt 测试、17 项视频协议/转发测试和 7 项后端持久化检查通过。
+  当前运行范围与验证证据见 docs/CONBINE_INTEGRATION_20261023.md。
+
+下列两源记录均为历史，目录、服务和已完成测试不自动代表本合并分支的新验收或授权。
+
+
+## 视觉来源的历史记录
+
 # 环视试验分支工作区说明（2026-10-20）
 
 本工作区由用户明确要求，从现有 vision-bpu 创建，供 J6M 适配相机四路环视方案试验。
@@ -69,6 +97,47 @@
 下面保留继承的历史 AGENTS.md 原文；与本分支目录/状态冲突时，以本说明和用户后续明确指令为准。
 
 ---
+
+## 导航调参来源的历史记录
+
+# 2026-10-23 后续：永久调参 / Qt预览最新
+
+用户要求关闭当前Qt，打开本分支调参Qt，并要求每次修改后重启保留。
+已由原 `j6m-dev-b-surround/distribution/j6m_bpu_navigation/surround/operator_qt.sh stop`
+正常关闭环视Qt会话（原unit已inactive/MainPID0）；原BPU恢复由其原入口完成，未改该分支源码。
+本分支新增 `scripts/navigation_tuning_preview.sh {start|stop|status|test}`，当前预览服务
+`autolabor-navigation-tuning-preview.service`，仅lo的独立网络/PID命名空间，私有master11543；
+真实move_base/TEB/coverage_manager与本分支Qt，合成地图/TF/零速odom，不连接实车/相机/CAN。
+界面标题明确离线；导航调参页内有覆盖/转场TEB/Hybrid三个子页签，高级组自动读实际值。
+基础参数编辑不再依赖地图渲染/区域库，但仍要求后端状态新鲜、无活动任务/预览；
+规划/运动的地图、定位、授权门未放宽。
+Hybrid/转场高级参数永久保存到 `$ROS_HOME/autolabor_navigation/{hybrid,transit}_tuning.json`，
+启动时已存值覆盖launch/YAML默认；临时文件fsync+原子rename成功后才更新运行态和应答。
+保存失败拒绝并回显原值，损坏/越界历史配置拒绝启动；Qt要求后端persistence_protocol=1。
+基础组沿用coverage.yaml和Qt设置。当前用户预览配置为runtime/navigation_tuning_preview/，
+首次初始化后保留；不是板端部署配置，不自动同步J6M。
+验证：Release、333项独立覆盖/Qt用例（Catkin400含重复）通过，真实后端7项保存/失败/重启
+过程检查通过。旧失败证据和最终日志均在validation/tuning_persistence_20261023/。
+未部署/启停实车导航/发真实目标速度/改运动授权，未查询J6M current，未提交推送。
+下面“高级参数仅会话生效”是上一阶段历史，已由本条替代。生产optimized.sh目录保护仍保留。
+
+# 2026-10-23 本工作树最新
+
+本目录现为 `/home/slam/robot_j6m_ws_navigation_tuning_20261023`，独立分支
+`feature/qt-navigation-tuning-20261023`。原 `/home/slam/robot_j6m_ws_navigation_20260907`
+仍为 `0914`，未改动；新 worktree 带入原未提交源码，未提交/推送。
+新增“导航调参”页，基础覆盖参数迁入并保留事务持久化；转场 TEB 16项和 Hybrid 11项
+经 dynamic_reconfigure 回读确认，无需重启。覆盖/转场只在无预览/任务时修改，Hybrid
+在完整搜索之间切换；高级参数仅本次会话生效。Qt确认、后端单区/批次统一使用点集的
+最小面积外接长方形，拒绝退化和面积<0.5m²，原安全/授权门保留。
+Release、覆盖222项、Qt105项及真实插件隔离14项全部通过，0失败；327为独立叶子用例，
+Catkin390含嵌套重复。测试仅lo/合成数据，不是实车验收。初始环境/夹具/页签断言失败
+保留；详见 `docs/QT_NAVIGATION_TUNING_20261023.md` 与 `validation/navigation_tuning_20261023/`。
+本目录可用 `scripts/validate_navigation_tuning.sh {build|test}` 隔离验证；原devel仅作只读
+依赖，未复制构建缓存、私有配置、地图/模型、授权标记。生产启停/部署路径尚未迁移，
+`optimized.sh`旧目录保护保留，禁止绕过保护启动或连接旧会话。
+未部署、启停/接管实车、发初值/目标/速度或改授权；未重新查询J6M current，以下版本和
+运行状态全部为继承历史，不能作为当前实测状态。
 
 # 导航优化专用候选版约束（2026-09-07）
 

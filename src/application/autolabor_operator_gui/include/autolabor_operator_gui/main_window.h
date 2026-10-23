@@ -443,6 +443,8 @@ private:
   QWidget* buildBpuPreviewPage();
   void refreshBpuPreview(const TelemetrySnapshot& data);
   QWidget* buildCoveragePage();
+  QWidget* buildNavigationTuningPage();
+  QWidget* coverage_parameters_widget_ = nullptr;
   QWidget* buildAiControlPage();
   QWidget* buildPlaceholderPage(const QString& title, const QString& subtitle,
                                 const QStringList& planned_items);

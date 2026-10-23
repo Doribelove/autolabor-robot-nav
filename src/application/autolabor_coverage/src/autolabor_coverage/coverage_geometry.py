@@ -17,6 +17,44 @@ import struct
 EPSILON = 1.0e-9
 
 
+def minimum_area_rectangle(points):
+    """Minimum enclosing rectangle: test every edge orientation of convex hull.
+
+    Accept unordered clicks, concavities and duplicate/closing vertices.  Reject
+    non-finite and degenerate selections before they reach grid rasterization.
+    """
+    coordinates = sorted(set((float(p.x), float(p.y)) for p in points))
+    if len(coordinates) < 3 or not all(math.isfinite(v) for p in coordinates for v in p):
+        raise ValueError("rectangle needs at least three finite non-collinear points")
+    def cross(a, b, c):
+        return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
+    lower, upper = [], []
+    for chain, sequence in ((lower, coordinates), (upper, reversed(coordinates))):
+        for p in sequence:
+            while len(chain) >= 2 and cross(chain[-2], chain[-1], p) <= 0:
+                chain.pop()
+            chain.append(p)
+    hull = lower[:-1] + upper[:-1]
+    if len(hull) < 3:
+        raise ValueError("rectangle selection is collinear")
+    # Translate near the origin to retain precision on map coordinates.
+    ox, oy = hull[0]
+    best = None
+    for a, b in zip(hull, hull[1:]+hull[:1]):
+        angle = math.atan2(b[1]-a[1], b[0]-a[0])
+        c, s = math.cos(angle), math.sin(angle)
+        us = [(x-ox)*c+(y-oy)*s for x,y in hull]
+        vs = [-(x-ox)*s+(y-oy)*c for x,y in hull]
+        u0,u1,v0,v1 = min(us),max(us),min(vs),max(vs)
+        area = (u1-u0)*(v1-v0)
+        if best is None or area < best[0] - EPSILON:
+            best = (area, [Point(ox+u*c-v*s, oy+u*s+v*c)
+                           for u,v in ((u0,v0),(u1,v0),(u1,v1),(u0,v1))])
+    if best[0] < 0.5:
+        raise ValueError("rectangle area must be at least 0.5 square meters")
+    return best[1]
+
+
 def occupancy_grid_digest(frame_id, width, height, resolution,
                           origin_position, origin_orientation, data):
     """Return a portable identity for a complete OccupancyGrid.

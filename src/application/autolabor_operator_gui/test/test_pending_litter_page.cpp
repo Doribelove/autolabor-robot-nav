@@ -425,7 +425,7 @@ protected:
     QStringList tabs;
     for (int i = 0; i < window_->tabs_->count(); ++i) tabs << window_->tabs_->tabText(i);
     EXPECT_EQ(QStringList({"综合", "FAST-LIO", "测试", "视觉", "待清扫垃圾", "清扫",
-                           "AI语音控制", "BPU 预览", "日志"}), tabs);
+                           "导航调参", "AI语音控制", "BPU 预览", "日志"}), tabs);
     window_->mapCallback(makeMap());
     const double start = ros::Time::now().toSec() - .2;
     for (int i = 0; i < 4; ++i) window_->visionPositionsCallback(makeFrame(start + i*.01));

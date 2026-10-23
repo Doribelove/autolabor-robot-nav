@@ -4,6 +4,9 @@
 
 #include <QApplication>
 #include <QFont>
+#include <QTabWidget>
+#include <QTimer>
+#include <QPixmap>
 
 int main(int argc, char** argv)
 {
@@ -25,7 +28,24 @@ int main(int argc, char** argv)
   int result = 0;
   {
     autolabor_operator_gui::MainWindow window;
+    ros::NodeHandle startup("~");
+    bool initial_tuning_page = false;
+    startup.param("initial_tuning_page", initial_tuning_page, false);
+    std::string tuning_screenshot;
+    startup.param<std::string>("tuning_screenshot", tuning_screenshot, "");
+    if (initial_tuning_page) {
+      window.setWindowTitle(qgetenv("SURROUND_PREVIEW_URL").isEmpty()
+          ? QStringLiteral("Autolabor 导航调参 · 离线预览（未连接实车）")
+          : QStringLiteral("Autolabor 合并版 · 三路实景 / 导航离线调参"));
+      for (auto* tabs : window.findChildren<QTabWidget*>())
+        for (int i=0;i<tabs->count();++i)
+          if (tabs->tabText(i)==QStringLiteral("导航调参")) tabs->setCurrentIndex(i);
+    }
     window.showMaximized();
+    if (!tuning_screenshot.empty())
+      QTimer::singleShot(6000, &window, [&window,tuning_screenshot]() {
+        window.grab().save(QString::fromStdString(tuning_screenshot));
+      });
     result = application.exec();
   }  // Join application callbacks and destroy RViz before shutting ROS down.
 

@@ -1,4 +1,5 @@
 #include "autolabor_coverage/coverage_global_planner.h"
+#include "autolabor_coverage/tuning_store.h"
 
 #include <base_local_planner/costmap_model.h>
 #include <costmap_2d/cost_values.h>
@@ -370,6 +371,68 @@ void CoverageGlobalPlanner::initialize(std::string name,
   publishHybridPathSafety(false);
   ROS_INFO("coverage sweep collision check horizon: %.2fm",
            sweep_collision_check_horizon_);
+  private_nh_.param("tuning_state_file", tuning_state_file_,
+                    defaultTuningFile("hybrid_tuning.json"));
+  dynamic_reconfigure::Server<HybridTuningConfig>::CallbackType tuning_callback =
+      [this](HybridTuningConfig& config, uint32_t) {
+        std::lock_guard<std::recursive_mutex> guard(tuning_mutex_);
+        if (!std::isfinite(config.hybrid_motion_step)) config.hybrid_motion_step = hybrid_config_.motion_step;
+        if (!std::isfinite(config.hybrid_collision_check_step)) config.hybrid_collision_check_step = hybrid_config_.collision_check_step;
+        if (!std::isfinite(config.hybrid_state_resolution)) config.hybrid_state_resolution = hybrid_config_.state_resolution;
+        if (!std::isfinite(config.hybrid_planning_timeout)) config.hybrid_planning_timeout = hybrid_config_.planning_timeout;
+        if (!std::isfinite(config.hybrid_heuristic_weight)) config.hybrid_heuristic_weight = hybrid_config_.heuristic_weight;
+        if (!std::isfinite(config.hybrid_steering_penalty)) config.hybrid_steering_penalty = hybrid_config_.steering_penalty;
+        if (!std::isfinite(config.hybrid_steering_change_penalty)) config.hybrid_steering_change_penalty = hybrid_config_.steering_change_penalty;
+        if (!std::isfinite(config.hybrid_obstacle_cost_scale)) config.hybrid_obstacle_cost_scale = hybrid_config_.obstacle_cost_scale;
+        if (config.hybrid_steering_samples % 2 == 0)
+          --config.hybrid_steering_samples;
+        if (!sameTuning(config, last_tuning_config_)) {
+          try { saveTuning(tuning_state_file_, config); }
+          catch (const std::exception& error) {
+            config = last_tuning_config_;
+            ROS_ERROR("Hybrid tuning rejected: could not persist: %s", error.what());
+            return;
+          }
+        }
+        last_tuning_config_ = config;
+        hybrid_config_.motion_step = config.hybrid_motion_step;
+        hybrid_config_.collision_check_step = config.hybrid_collision_check_step;
+        hybrid_config_.state_resolution = config.hybrid_state_resolution;
+        hybrid_config_.heading_bins = config.hybrid_heading_bins;
+        hybrid_config_.steering_samples = config.hybrid_steering_samples;
+        hybrid_config_.max_expansions = config.hybrid_max_expansions;
+        hybrid_config_.planning_timeout = config.hybrid_planning_timeout;
+        hybrid_config_.heuristic_weight = config.hybrid_heuristic_weight;
+        hybrid_config_.steering_penalty = config.hybrid_steering_penalty;
+        hybrid_config_.steering_change_penalty = config.hybrid_steering_change_penalty;
+        hybrid_config_.obstacle_cost_scale = config.hybrid_obstacle_cost_scale;
+        // Clear search retry throttling; retain the validated enforced path.
+        std::lock_guard<std::mutex> cache_guard(mutex_);
+        hybrid_last_search_ = ros::WallTime();
+        hybrid_last_search_failed_ = false;
+      };
+  HybridTuningConfig initial = HybridTuningConfig::__getDefault__();
+  initial.hybrid_motion_step = hybrid_config_.motion_step;
+  initial.hybrid_collision_check_step = hybrid_config_.collision_check_step;
+  initial.hybrid_state_resolution = hybrid_config_.state_resolution;
+  initial.hybrid_heading_bins = hybrid_config_.heading_bins;
+  initial.hybrid_steering_samples = hybrid_config_.steering_samples;
+  initial.hybrid_max_expansions = hybrid_config_.max_expansions;
+  initial.hybrid_planning_timeout = hybrid_config_.planning_timeout;
+  initial.hybrid_heuristic_weight = hybrid_config_.heuristic_weight;
+  initial.hybrid_steering_penalty = hybrid_config_.steering_penalty;
+  initial.hybrid_steering_change_penalty = hybrid_config_.steering_change_penalty;
+  initial.hybrid_obstacle_cost_scale = hybrid_config_.obstacle_cost_scale;
+  initial = loadTuning(tuning_state_file_, initial);
+  if (initial.hybrid_steering_samples % 2 == 0)
+    throw std::runtime_error("saved Hybrid steering sample count must be odd");
+  saveTuning(tuning_state_file_, initial);
+  last_tuning_config_ = initial;
+  initial.__toServer__(private_nh_);
+  tuning_server_.reset(new dynamic_reconfigure::Server<HybridTuningConfig>(private_nh_));
+  tuning_server_->updateConfig(initial);
+  tuning_server_->setCallback(tuning_callback);
+  private_nh_.setParam("tuning_persistence_protocol", 1);
   initialized_ = true;
 }
 
@@ -758,6 +821,7 @@ bool CoverageGlobalPlanner::computeTransitions(
         const autolabor_coverage::HybridTransitionRequest&,
         std::uint8_t, const std::string&)>& feedback)
 {
+  std::lock_guard<std::recursive_mutex> tuning_guard(tuning_mutex_);
   const HybridAStarProfile base_profile = hybridProfile(transit_profile);
   if (plan_id.empty() || transitions.empty() ||
       !validHybridProfile(base_profile) ||
@@ -1002,6 +1066,7 @@ bool CoverageGlobalPlanner::makePlan(
     const geometry_msgs::PoseStamped& goal,
     std::vector<geometry_msgs::PoseStamped>& plan)
 {
+  std::lock_guard<std::recursive_mutex> tuning_guard(tuning_mutex_);
   if (!initialized_)
     return false;
   autolabor_coverage::EnforcedPath path;
