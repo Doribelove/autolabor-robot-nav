@@ -861,6 +861,8 @@ bool textIsTrue(const QString& value)
 
 QString visionBackendDisplayName(const QString& backend)
 {
+  if (backend == QStringLiteral("j6m_surround_bpu"))
+    return QStringLiteral("三路环视 / J6M BPU");
   if (backend == QStringLiteral("locateanything"))
     return QStringLiteral("LocateAnything-3B");
   if (backend == QStringLiteral("yolo"))
@@ -920,8 +922,10 @@ double angleDistanceRadians(double first, double second)
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
+  surround_mode_ = !qgetenv("SURROUND_PREVIEW_URL").isEmpty();
   ai_session_token_ = QString::fromUtf8(qgetenv("SWEEPER_AI_SESSION_TOKEN"));
   buildUi();
+  setupSurroundPreview();
   loadCoveragePlannerSettings();
   const auto persist_coverage_parameters = [this]() {
     persistCoveragePlannerSettings();
@@ -966,6 +970,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
   // Paint fresh preview images without running all navigation/diagnostic UI
   // work at video rate. QImages share storage; copy only preview fields.
   connect(&bpu_preview_timer_, &QTimer::timeout, this, [this]() {
+    if (surround_mode_)
+    {
+      if (isVisible() && !isMinimized()) refreshSurroundPreview();
+      return;
+    }
     if (!tabs_ || !isVisible() || isMinimized() ||
         (tabs_->currentIndex() != overview_tab_index_ &&
          tabs_->currentIndex() != bpu_tab_index_))
@@ -2116,7 +2125,9 @@ QWidget* MainWindow::buildBpuPreviewPage()
   page->setObjectName(QStringLiteral("bpuPreviewPage"));
   auto* layout = new QVBoxLayout(page);
   layout->setContentsMargins(16, 12, 16, 14);
-  auto* notice = new QLabel(
+  auto* notice = new QLabel(surround_mode_ ?
+      QStringLiteral("三路环视 · GDC + J6M BPU\n"
+                     "在视觉页视频顶部切换端口。左右两图对应同一源帧；镜头参数精度待验证。") :
       QStringLiteral("J6M BPU · 地面小件候选筛选\n"
                      "绿色 FLOOR：几何符合；橙色 REVIEW：待确认，仍保留。类别名称仅作参考。"
                      "连续确认的高大环境物隐藏，可勾选原始框对照。仅供观察，不表示已确认可清扫。"), page);
@@ -2152,7 +2163,8 @@ QWidget* MainWindow::buildBpuPreviewPage()
     box->addWidget(*status);
     panels->addWidget(group, 1);
   };
-  add_panel(QStringLiteral("ZED 实时画面（复用导航相机）"),
+  add_panel(surround_mode_ ? QStringLiteral("当前端口 GDC 源帧（与识别结果对应）") :
+            QStringLiteral("ZED 实时画面（复用导航相机）"),
             &bpu_live_preview_, &bpu_live_status_);
   add_panel(QStringLiteral("BPU 已完成结果（保留对应源帧）"),
             &bpu_result_preview_, &bpu_result_status_);
@@ -2162,6 +2174,11 @@ QWidget* MainWindow::buildBpuPreviewPage()
 
 void MainWindow::refreshBpuPreview(const TelemetrySnapshot& data)
 {
+  if (surround_mode_)
+  {
+    refreshSurroundPreview();
+    return;
+  }
   const bool overview_visible = tabs_ && tabs_->currentIndex() == overview_tab_index_;
   const bool bpu_page_visible = tabs_ && tabs_->currentIndex() == bpu_tab_index_;
   const bool visible = (overview_visible || bpu_page_visible) && isVisible() && !isMinimized();
@@ -2237,15 +2254,19 @@ QWidget* MainWindow::buildVisionPage()
   auto* image_layout = new QVBoxLayout(image_panel);
   image_layout->setContentsMargins(0, 0, 8, 0);
   image_layout->setSpacing(8);
-  auto* image_title = new QLabel(QStringLiteral("最新完成识别结果帧（保持至下一帧完成）"),
+  auto* image_title = new QLabel(surround_mode_ ?
+                                 QStringLiteral("当前端口识别结果（GDC + J6M BPU）") :
+                                 QStringLiteral("最新完成识别结果帧（保持至下一帧完成）"),
                                  image_panel);
   image_title->setStyleSheet(
       QStringLiteral("font-size:15pt;font-weight:700;color:#dce7f4;padding:4px;"));
   image_layout->addWidget(image_title);
+  if (surround_mode_)
+    image_layout->addWidget(buildSurroundPortBar(image_panel));
   vision_camera_preview_ = new QLabel(
       QStringLiteral("等待首帧识别结果 /fod/debug/image"), image_panel);
   vision_camera_preview_->setAlignment(Qt::AlignCenter);
-  vision_camera_preview_->setMinimumSize(640, 480);
+  vision_camera_preview_->setMinimumSize(640, surround_mode_ ? 400 : 480);
   vision_camera_preview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   vision_camera_preview_->setStyleSheet(
       QStringLiteral("background:#080d13;border:1px solid #334154;border-radius:8px;"
@@ -2293,11 +2314,15 @@ QWidget* MainWindow::buildVisionPage()
   vision_model_combo_->addItem(
       QStringLiteral("detect and classify（trash 检测 + 五材质分类）"),
       QStringLiteral("detect_and_classify"));
+  if (surround_mode_)
+    vision_model_combo_->addItem(QStringLiteral("三路环视 · YOLO11-GAM + 材质分类 / J6M BPU"),
+                                 QStringLiteral("j6m_surround_bpu"));
   configured_vision_backend_ =
       QString::fromUtf8(qgetenv("NVIDIA_FOD_BACKEND")).trimmed();
   if (configured_vision_backend_ != QStringLiteral("yolo") &&
       configured_vision_backend_ != QStringLiteral("locateanything") &&
-      configured_vision_backend_ != QStringLiteral("detect_and_classify"))
+      configured_vision_backend_ != QStringLiteral("detect_and_classify") &&
+      !(surround_mode_ && configured_vision_backend_ == QStringLiteral("j6m_surround_bpu")))
     configured_vision_backend_ = QStringLiteral("yolo");
   const int configured_model_index =
       vision_model_combo_->findData(configured_vision_backend_);
@@ -5450,6 +5475,10 @@ void MainWindow::refreshUi()
       navigation_paused ? QStringLiteral("休眠 / 目标保留")
                         : QStringLiteral("运行 / 可接收目标"));
 
+  if (surround_mode_)
+    refreshSurroundPreview();
+  else
+  {
   const bool recognition_preview_available =
       data.debug_image_received && !data.debug_image.isNull();
   const double recognition_source_age = sourceStampAge(data.debug_image_stamp);
@@ -5635,6 +5664,8 @@ void MainWindow::refreshUi()
                      .arg(data.vision_results.detections.size() - shown);
       vision_detections_->setPlainText(lines.join(QLatin1Char('\n')));
     }
+  }
+
   }
 
   const QString visual_state = !mode_status.visual_state.isEmpty()

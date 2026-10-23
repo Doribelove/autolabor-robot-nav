@@ -1,0 +1,175 @@
+岗位 / 任务
+B：J6M 四路 ISX031 环视实验框架，2026-10-20。
+用户明确要求：查看 /home/slam/j6m-dev-b/bev 新上传的四相机资料，
+先准备相机镜像，在新环视分支按既有评审方案搭建整体框架；
+相机尚未安装、安装外参尚未提供，安装标定后再进入实验。
+
+工作区
+本分支：/home/slam/j6m-dev-b-surround，vision-bpu-surround。
+父分支：/home/slam/j6m-dev-b，vision-bpu（原 ZED + BPU）。
+稳定基线：/home/slam/robot_j6m_ws_navigation_20260907，0914。
+共同 Git 数据库：/home/slam/j6m-dev-b/.git。
+两视觉分支 HEAD 仍为 5d1028efa93cf34d2179b03384085c87a456402a。
+代码为未提交工作树成果，不能只用 HEAD 重建。
+
+授权与边界
+本次仅整理本机资料、实现代码、独立构建、离线测试及制作本地候选包。
+没有刷写 MCU/Acore/其他分区，没有 SSH 到板端部署或执行程序，
+没有启停原 ZED/导航/BPU 服务，没有运行 ROS master、发送目标/速度/清扫命令。
+没有 commit、push、merge、reset 或 clean。
+共同规则为 J6M_五人协作_Codex开发与合并约束_20261019_v3.txt。
+本次更新本分支 AGENTS.md 的当前任务说明，是对用户新授权的记录；
+不是修改全局规则或将历史运动许可延续至本次。
+
+相机镜像与资料
+源 /home/slam/j6m-dev-b/bev/matrix_cam_new.zip 已是截图指定的完整包，
+因此直接取得独立副本并验证，没有重复联网下载。
+副本：runtime/surround_vendor_20261020/matrix_cam_new.zip
+大小 2366565914 bytes
+SHA256 3064e59c0ed68294102aeff0d1a2531f8b47c2e56f27644da11c8d7777759c58
+相机镜像：package/matrix_cam_new/matrix_cam_new/img_packages.tar.gz
+大小 2045043852 bytes
+SHA256 24c0b6cd669d120f3cf92f0a4943a16e6a9a8a915863982aa160bcc6d1396716
+ZIP 所有文件成员 CRC 核验，四个 tar.gz 独立读到 gzip EOF 校验 CRC/trailer；
+3048 个普通文件解压并记录 SHA256。
+记录：manifest.json、extracted-sha256.json、gzip-verification.json。
+目录 extracted/ 下保留镜像、样例、S10_Camera、xmodem_tools；
+工作解压只提取普通文件/目录，原归档完整保留链接，不将其当成系统根目录直接覆盖。
+DOC 已只读转换为 j6使用说明.txt，原 DOC 保留。
+system.img 只读检查：Debian 12；/etc/version 为
+wei.lu@25d246e69553 debug 20260714-200522。
+没有将此版本号等同于整套 SDK/BPU 兼容性结论。
+
+供应商案例 Nx_ISX031_RX4：
+ISX031 / MAX96724 / RX4 / 1920x1536@30 / extra_mode=10；
+deserial_port 0..3，不代表车辆方向。
+默认 config_index=0，无 LPWM，不是已同步四路。
+输入是 CIM YUV422，字节排列和 stride 需实测；不是直接假定 NV12。
+用户的 isx031std 源码含 rclk 修正；尚未替换板端驱动。
+原 test.sh 含 killall、bind mount、自动 dump，未执行或复用。
+另一个 bev环视.zip 检查时为 1507709112 bytes、无中央目录，未使用/修改。
+
+本次实现
+distribution/j6m_bpu_navigation/surround/：
+  contracts.py：帧身份、时钟映射、标定校验；不以接收时间伪装曝光。
+  capture.py / native/capture.cpp：四路 SDK 生命周期、YUV stride/格式、
+    缓冲回收、原始计数器、PYM/GDC 路径和独立设备锁。
+  prepare_vio.py：私有 RX4->PYM->GDC 候选配置生成。
+    供应商通用配置裁 1536 到 1280 行，已纠正为完整标定画幅；
+    输出 runtime/surround_vio_candidate_20261020/，未上板。
+  scheduler.py：四个最新帧槽，15/3/2 Hz 初始预算，倒车优先后路，
+    500 ms 拒收，分类次数/时间预算，无持续排队。
+  inference.py：复用原两份 HBM 与前后处理、驻留加载、原 BPU 独占锁。
+    检测编译模型名仍 detector_zed，GAM 保留；此名称不代表依赖 ZED 输入。
+  geometry.py：标定透视图、光学坐标->base、标定地面平面、源时刻 map 位姿、
+    协方差、有效区域与距离过滤。无外参/定位时不生成地图目标。
+  tracking.py：重叠图和无歧义双向匹配，保留多路证据；独立时刻确认、
+    真实可见帧漏检计数、stale 保留、completed 墓碑、地图/会话切换清空。
+  pipeline.py：整链协调、地图变化无需等待下一相机帧便失效旧目标，
+    当前定位有效性独立报告，保留曝光/标定/模型/校正版本。
+  display.py / preview_server.py：四画面、地面 IPM、Qt 和只读预览传输。
+    后路不推理时仍可显示；显示线程与 BPU 分离，检测不在 BEV 上执行。
+    原生服务的状态和预览图分别检查时效，显示失效不刷成实时。
+  acquire_calibration.py / calibrate.py：后续显式相机标定采图、鱼眼内参、
+    地面控制点外参候选求解；不自动激活候选值。
+  demo.py / __main__.py：合成回放、doctor、显式 run 和 CLI。
+  report.py：离线 P50/P95/P99、源帧龄、分类截断等汇总。
+  bundle.py：仅制作本地源码/HBM/捕获库候选包，不部署。
+  config/：真实标定、端口、时钟/SDK 路径默认未填写；无虚构外参。
+
+新增 src/application/autolabor_surround_vision/：
+5 种版本化 ROS 消息、观察桥和独立 launch。
+桥读取真实 FAST-LIO 源时刻、定位状态和完整 TF 链写 pose 文件；
+只发布 /surround/observations、targets、status，
+可选 /surround/fod_ground_observations 兼容观察输出，默认关闭。
+旧消息定义/旧 FOD 控制器未改，原话题未接管，无控制或障碍物输出。
+depth_valid 始终 false，位置来源为 calibrated_ground_plane。
+当前 production_ready=false、motion_eligible=false。
+同一目标多个相机证据不重复计算独立时间观测次数。
+
+模型
+detector_zed.hbm:
+f2f1f7e9753b53b0494495be44af92a0603b3ee6c71e69e0f58a0d50544a8cb8
+classifier.hbm:
+d4cb80f5f7364d1156ea2275eba9e522991dec309f2c397e74649254fe36a89f
+类别顺序 metal, plastic, paper, glass, kitchen_waste。
+不改原模型或原校准样本。新环视镜头必须另做真实独立精度验证，
+必要时重新 PTQ；本次未宣称相机输入域变化后精度仍已通过。
+
+验证
+证据根目录 validation/surround_framework_20261020/。
+原生捕获库：GCC 9.4 / aarch64，使用本地 Acore API 头文件，-Wall -Wextra -Werror。
+包括真 C ABI + 假 SDK 的 stride、原始时间戳、异常归还 buffer、
+PYM/GDC 归还、CIM NV16、部分启动失败回收测试；未加载板端真实 VIO 库。
+独立 catkin 工作区 runtime/surround_ros_ws，只构建原 fod_msgs 和新 surround 包。
+测试不启动 ROS master，不与车辆 ROS 图通信。
+47 项测试通过：时间/调度、投影/姿态、融合/目标、分类预算、C ABI、ROS 序列化。
+72 帧合成回放、2 个确认目标；不是模型推理、相机性能或车辆实验。
+Qt offscreen 成功；只读预览 loopback GET/JPEG 成功，
+路径逃逸请求 404、POST 501；测试服务器仅本任务进程，随后已停止。
+run 和 calibration-frames 的默认模板均在打开设备前拒绝启动。
+doctor 当前返回 2，列待安装/标定/SDK 配置项，属于预期未就绪状态。
+环境、API 头文件 SHA、ROS 消息 MD5、模型核验和图像资料核验均保存。
+
+源码保护与回退
+本次开工对 1743 个跟踪文件记录 SHA，收尾只改变其中 AGENTS.md、README.md 的
+当前分支说明，其余 1741 个原跟踪文件逐字节未变；原父分支 Git 状态逐字节未变。
+新增环视模块/包为未跟踪源码，原既有修改仍保留，不能 clean。
+AGENTS/README 修改前备份、单独任务差异在本次 validation 目录。
+bev/待同步压缩包.txt 仅追加此次资料核验说明。
+回退应用选择只需继续使用父 vision-bpu 原入口；本次没有板端 current 或服务切换。
+不删除新分支或共享 Git 数据库作为回退手段。
+
+下一步与跨线输入
+详细逐步操作见 distribution/j6m_bpu_navigation/surround/README.md。
+1. A/操作者：核对板型/secure 模式、完整外部备份、正式刷机与回退清单；
+   新镜像 ABI、持久目录、SDK、原 BPU 独占锁和候选包路径。
+2. B/操作者：安装四相机、确认方向/布局、采图、内外参/有效区域/误差验证，
+   曝光时钟与同步、GDC 透视 LUT、真实环视精度与资源负载。
+3. C：真实 map_id、源时刻 map->camera_init->body->base_link、定位有效性和误差；
+   不提供最新位姿冒充曝光位姿，不用恒等 TF 绕过缺失外参。
+4. E：按新地面定位语义适配末段接近/清扫回执；当前只有观察候选，
+   不把 plane range 当旧实测深度。任务状态 API 已具备，未替换正式控制。
+安装/标定/配置清项后可以按文档开始无运动观察实验；
+正式车辆清扫仍需独立实测验收和当次操作授权。
+
+验证日志、候选包具体路径和最终文件清单见本文末尾收尾记录。
+
+收尾记录（2026-10-20）
+最终消息加入 clock_id、rectification_id 和两份模型 SHA 后，重新构建 catkin，
+并重跑全部 47 项测试，全部通过：
+  validation/surround_framework_20261020/catkin_build_final.log
+  validation/surround_framework_20261020/tests_v7.log
+  validation/surround_framework_20261020/ros_message_md5_final.json
+早期日志/消息 MD5 保留用于过程审计，最终接口以上述 final 文件为准。
+
+最终合成回放：
+  validation/surround_framework_20261020/demo_release/
+  validation/surround_framework_20261020/demo_release_metrics.json
+72 帧成功、0 帧拒绝、2 个确认目标；synthetic=true，无硬件推理。
+Qt 截图：
+  validation/surround_framework_20261020/qt_delivered.png
+
+相机完整包四个内部 gzip 均已读至 EOF，CRC 和尾部长度校验通过：
+  runtime/surround_vendor_20261020/gzip-verification.json
+收尾复核另一个 bev环视.zip 仍为 1,507,709,112 字节且缺中央目录：
+  validation/surround_framework_20261020/extra_zip_final_status.json
+
+本地候选目录：
+  runtime/surround_candidate_20261020/
+归档：
+  runtime/surround_candidate_20261020.tar.gz
+大小：15,279,077 字节。
+SHA256：5e23cf77818cb755811316c9989c7e2d2391cc223cd0550be6d0724e2103a703
+包含 63 个清单文件，归档加 MANIFEST 共 64 个普通文件，逐文件与归档内容核对通过。
+保留 2 份原 HBM；不包含 fake SDK 二进制或厂商系统镜像。
+在候选目录独立运行 doctor，两模型 SHA 正确，返回 2、30 个硬件/标定待配置项；
+这是有意保留的未就绪状态，未以候选包检查代替板端 ABI 和相机验收。
+证据：
+  validation/surround_framework_20261020/bundle_verification.json
+  validation/surround_framework_20261020/bundle_doctor.json
+最终源码清单和保护核对：
+  validation/surround_framework_20261020/source-files.json
+  validation/surround_framework_20261020/deliverables-final.json
+  validation/surround_framework_20261020/preservation-check.json
+git diff --check、Python 编译检查通过。没有提交、推送、部署、刷机或车辆动作。

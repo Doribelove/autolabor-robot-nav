@@ -1,0 +1,12 @@
+# Header is publication time; target.last_observed is its own freshness source.
+std_msgs/Header header
+string schema
+string session
+string map_id
+string localization_session
+string calibration_id
+string detector_model_sha256
+string classifier_model_sha256
+bool production_ready
+bool motion_eligible
+autolabor_surround_vision/SurroundTarget[] targets

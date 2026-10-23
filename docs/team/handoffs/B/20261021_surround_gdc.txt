@@ -1,0 +1,81 @@
+B / vision-bpu-surround / 实时鱼眼去畸变改为 GDC
+2026-10-21
+
+用户要求与范围
+用户要求鱼眼去畸变、生成透视图由 GDC 单独处理，不再用 CPU 完成该阶段。
+工作区 /home/slam/j6m-dev-b-surround，分支 vision-bpu-surround。
+仅修改本地环视框架、私有候选配置、离线测试和文档；没有部署、刷机、SSH 上板、
+启停父分支服务、采集相机、启动车辆 ROS 或发控制指令。未提交、推送或合并。
+四路相机尚未安装；真实内外参、透视 LUT、曝光时钟及硬件准入标志保持待配置。
+
+结果
+实时采集路径固定 RX4/CIM -> PYM NV12 layer0 -> GDC -> 透视图 -> CPU YUV 转 BGR。
+检测使用该透视图，YOLO11-GAM 和五材质分类仍由原双 HBM 在 BPU 执行。
+实时预览复用 GDC 图像，BEV 只对透视图做地面投影/融合。
+YUV 转 BGR、缓冲复制/SDK 调用、模型前后处理和 BEV 地面计算仍使用 CPU；
+没有声称整条视觉链 CPU 零占用，也没有测得真实四路 GDC 吞吐或 CPU 降幅。
+
+实现
+capture.py：四路均要求 PYM/NV12/layer0、完整未裁剪的标定画幅、匹配的 GDC 输入/输出
+尺寸和透视 LUT SHA256。启动前读取并固定实际验证过的 LUT 字节，随后每路加载一次。
+缺参或错误配置在 SDK/相机打开前拒绝，主 run 入口在 BPU 初始化前完成上述检查。
+每帧检查 GDC 完成标志、输出尺寸与实测格式，不接受未经 GDC 的实时图像。
+GDC 失败仍沿原读取失败机制丢帧，连续 10 次失败停止该路；不回退 CPU 去畸变。
+原生 capture.cpp 保留输入曝光计数器/序号/采集时刻，vendor_format 改为返回图像的
+格式（启用 GDC 时使用 GDC 输出格式）；ABI 结构仍为 1。四路原生 GDC 继续串行。
+
+geometry.py / pipeline.py：默认只接受已校正透视图。CPU 参考必须显式
+offline_reference=True；仅 replay/参考测试启用。原始实时帧返回 awaiting_gdc，
+不调用 CPU remap 或 BPU；有效实时结果标记 rectification_backend=gdc。
+display.py：实时显示关闭 CPU 校正，未处理图像不叠加透视检测框或参与鸟瞰投影。
+bev.py / bev_cli.py：camera 和 watch 强制透视输入，不生成 CPU 鱼眼查找表。
+watch 外部生产者应输出 GDC 图像和匹配 rectification_id。images/demo 保留离线原图
+输入能力；CPU 透视到地面 remap/融合未迁移。原始内参采图是独立 calibration-frames
+入口，必须不配置 GDC bin，不做 CPU 去畸变，不进入实时推理链。
+
+默认配置
+源码 config/surround.json 和 runtime/surround_bev_config/capture.json：
+四路 kind=pym、layout=NV12、pym_layer=0，选用已有候选
+runtime/surround_vio_candidate_20261020/{vpm_config.json,hb_j6dev.json}。
+layout 是要求值，format_verified=false、vendor_format=null、gdc_bin=null 保留。
+真实 calibration.template.json 和 clock.template.json 未改，未填虚构外参或 LUT。
+捕获库 runtime/surround_gdc_native_20261021/libj6m_surround_capture.so，SHA256：
+881a55810d163db5b4c9f8301220a0231a71ff2864ae89561aae0d6de5b05dfc。
+init-config 现在使用当前配置指定的捕获库，避免继续固定旧库路径。
+
+验证
+证据目录 validation/surround_gdc_20261021_uj139_ij/。
+构建和执行检查均在 bwrap 独立网络/PID/IPC/UTS、合成 /dev 中完成，系统和其他工作区
+只读，仅本工作区可写；未映射相机/BPU/底盘设备，测试未启动 ROS master。
+1. Release 原生库和 fake SDK 构建通过，-Wall -Wextra -Werror；native-build.log。
+2. 全部 78 项通过，无跳过：full-regression-final.log。
+   包含 12 项新增 GDC 准入/拒绝 CPU 回退检查、3 项新增原生异常回收/曝光身份检查、
+   1 项新增 BEV 透视输入检查；原检测、几何、目标融合、ROS 序列化、BEV 回归继续通过。
+   使用私有锁定 NumPy/OpenCV/Pillow 和本分支生成的 ROS 消息依赖，不升级系统包。
+3. bev.sh check、demo、init-config 通过；原环视 demo 72 帧、2 个目标；cli-checks.log。
+   全部为合成/离线，不作为 BPU 推理或实板精度验收。
+4. doctor 返回预期 2，live_rectification=gdc_required、cpu_rectification_fallback=false；
+   缺硬件/标定参数，未宣称 hardware_ready。doctor.json 保留全部待配置项。
+5. 新包的独立目录 init-config/demo 通过；bundle-cli.log。
+   只读借用本机私有 Python 依赖检查候选代码，未复制 AGX venv 到 J6M。
+6. 85 个包内清单文件与归档逐项 SHA256 核对通过；bundle-verification.json。
+   不含 fake SDK 二进制，含正确的候选 VPM/相机 JSON，不依赖开发机厂商目录路径。
+7. 首轮 full-regression.log 保留：新增 LUT 测试夹具写成 17 字节，触发 4 字节对齐
+   拒绝；系统 Python 选到旧 Pillow，原分类预处理缺 Image.Resampling。
+   修正夹具为 16 字节、使用原私有锁定依赖后全量 78 项通过，未降低准入规则。
+
+候选包
+runtime/surround_gdc_candidate_20261021.tar.gz
+大小 113372081 字节，SHA256：
+1478a4c1ca1155cfc0e430cb2c93bd4cc380aa05bad82419e8c5609fb68e8f40。
+包含现有两份原 HBM、当前源码、捕获库、候选 VIO JSON 与 ARM64 Python 3.8/3.11
+离线 wheel。未附厂商系统镜像；GDC LUT 仍待真实标定后生成。
+旧 surround_candidate_20261020 / surround_bev_candidate_20261020 及其归档全部保留。
+新包没有部署到板端；上板仍需匹配镜像 SDK、实测输出格式和四路 GDC 像素/负载验证。
+
+保护和续接
+before/ 保存全部本次修改前环视源码及私有 capture 配置；task-changes.patch 保存差异。
+父 vision-bpu 的跟踪文件 SHA256 与 Git 状态核对未变；本分支既有跟踪业务代码未改，
+仅根 AGENTS.md/README.md 的说明变化。环视源码原为未跟踪文件，继续保留全部改动。
+后续以本记录和模块 README 的 2026-10-21 段为准；原 10 月 20 日的 CPU 实时基线说明
+已被此次 GDC 必需路径取代。正式清扫接入、Qt 主界面布局和车辆控制不在本次修改内。

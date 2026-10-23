@@ -1,0 +1,112 @@
+B 线专项：ZED 直连 J6M 用户态环境部署与回退验证
+日期：2026-10-19；收尾核验：2026-10-19T17:52:01.166976+08:00。
+本地：/home/slam/j6m-dev-b；Git common dir：/home/slam/j6m-dev-b/.git；分支 vision-bpu。
+HEAD：5d1028efa93cf34d2179b03384085c87a456402a，继承的未提交修改保持。
+共同规则 v3.0，SHA256 f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a。
+团队完整基线尚未固化，不用 HEAD 冒充包含所有现场差异的版本。
+
+授权与交付结论
+用户明确要求：“部署zed直连j6m的环境，同时保留当前版本，不行的话可以回退”。
+已部署固定版本 Open Capture、私有 HIDAPI、采集探针、标定副本、环境检查与回退入口。
+已在 J6M 原生系统加载采集库；隔离 OpenCV/ROS 自检和实际启用/回退/再启用通过。
+当前仅用户态环境就绪，真实 ZED 直连出图尚未通过：板端 USB/内核条件不满足。
+没有部署 NVIDIA ZED SDK，没有切换生产相机或视觉后端，没有启动车辆主链。
+
+板端位置
+  根目录：/map/j6m-dev-b/zed-direct/
+  本次版本：releases/20261019_5m7c286u/
+  独立 current：releases/20261019_5m7c286u
+  命令入口：/map/j6m-dev-b/zed-direct/zed-direct
+  本地说明：experiments/j6m_zed_direct_20261019/README.txt
+本次版本约 5.6 MiB，包含源代码、构建产物、安装、版本清单和日志；/map 收尾余约 791 MiB。
+该 current 只选择本实验，不是任何导航或原相机服务的 current；没有后台服务或开机自启。
+
+版本与环境
+Open Capture 头文件版本 0.6.0，视频与传感器模块均编译：
+  https://github.com/stereolabs/zed-open-capture
+  commit 93739154903a66c112ee52c3c6fbfd83b7218617
+HIDAPI 0.14.0，仅 libusb 后端：
+  https://github.com/libusb/hidapi
+  commit d3013f0af3f4029d82872c1a9487ea461a56dee4
+源码归档 SHA256 和下载地址见 upstream.lock.json，全部上游源文件在板端逐项校验未修改。
+GCC 9.4.0，J6M 原生 ARM64 编译，并发 -j2。
+复用原有 /map/autolabor_runtime/rootfs 的 Ubuntu 20.04 / Noetic 和 OpenCV 4.2.0。
+构建/离线自检使用私有 mount 和 network namespace，基础 rootfs 只读，无底盘/相机设备。
+所有输出在新版本目录；不安装全局 apt 包、不更新 ldconfig、不写全局环境变量或 udev。
+上游保留原 aarch64 Cortex-A72 编译选项，不宣称已做 J6M 性能调优。
+采集库、HIDAPI、probe 可以在 J6M Debian 原生用户态加载；OpenCV/ROS 自检走受控 chroot。
+
+关键制品 SHA256
+  install/lib/libzed_open_capture.so
+    1a256a302f528a6e4dade1ad2b06bf00b1ad2dc3ab10c827c5d730f3305b604e
+  install/lib/libhidapi-libusb.so.0.14.0
+    6361f33455bf30fdc32fe37a7ecfe9c0931cebbb699aee6c79f717608988ef46
+  install/bin/zed_capture_probe
+    e2fd9df1b8ca2de9fdf8da038adad6c20499598fe01905b15a9f2c1f3c86848c
+  install/bin/zed_opencv_check
+    15e96cb4cc5863942c7f1e16b2be10c4d4bc893421bbb913371d950272cad20c
+完整安装清单 installed_manifest.json 有 26 项，收尾哈希全部通过。
+
+原相机与版本保留
+AGX 的 /usr/local/zed 4.2.5、CUDA 和原 wrapper 未修改，已复核主 SDK 库/版本配置等原哈希。
+复制的是该相机的独立标定文件 SN23748636.conf，SHA256：
+  8132979f08f13510c1703df30318825ecc3724aa85010c19e2164f357729db95
+标定记录基线 119.998 mm；本次未连接相机，不声称已核实现场序列号或完成深度标定验收。
+原板端 zed-ros-wrapper 源码、基础 Livox、上一轮独立 Livox 制品哈希未变。
+导航版本仍为：
+  /map/robot_j6m_navigation_20260907/rootfs/opt/autolabor/dual_host/current
+  -> /opt/autolabor/dual_host/releases/20260914_095005/install
+本次同时记录并核对原基础/视觉/其他既有 current 链接，无切换。
+
+实测检查与真实限制
+1. 原生编译安装退出 0，约 9.5 秒；不是复制 AGX 的 build/devel/install。
+2. 板端 ldd 对 probe/Open Capture/HIDAPI 全部无缺失库。
+3. probe --version 返回 Open Capture 0.6.0、HIDAPI 0.14.0、cuda_required=false。
+4. 原生传感器枚举正常退出，serials=[]；不把“无设备”当作相机已接收成功。
+5. 隔离 OpenCV SGBM 自检使用合成左右图，预期视差 16 px、实测中位数 16 px，
+   21000 个有效测试点；仅证明 CPU 立体匹配依赖能执行，不是实际相机深度精度验收。
+6. Noetic 的 sensor_msgs/Image、CameraInfo、Imu 导入通过，没有创建 ROS 节点。
+7. check 和 probe 均因硬件缺口返回 20，在打开采集设备前退出。
+8. 实际演练 activate -> rollback -> 无候选状态 -> activate，全部按预期；
+   回退时实验 current 撤回，原文件/导航 current 仍一致。收尾本实验 current 已重新启用。
+
+硬件/内核缺口：
+  /proc/device-tree/soc/usb@39820000/dwc3@39820000/dr_mode = peripheral
+  # CONFIG_MEDIA_SUPPORT is not set
+  未启用 CONFIG_USB_VIDEO_CLASS，modinfo uvcvideo 无模块，/dev/video* 为空。
+  当前未枚举到 USB Host 设备或 ZED 相机。
+  # CONFIG_HID is not set，但本次用 HIDAPI libusb 后端，hidraw 不是该后端必要条件。
+后续需确认 Matrix 板 USB Host 数据接口/供电，并取得匹配当前
+6.1.158-rt58-g4f685f73e030 的 V4L2/UVC 支持方案。没有替换内核、设备树或刷固件。
+仅插到当前 Micro-USB 调试连接不能解决这些条件；未假定存在可用 Host 接口。
+
+使用与回退（在 J6M 上执行）
+  /map/j6m-dev-b/zed-direct/zed-direct status
+  /map/j6m-dev-b/zed-direct/zed-direct self-test
+  /map/j6m-dev-b/zed-direct/zed-direct check
+  /map/j6m-dev-b/zed-direct/zed-direct probe --seconds 10
+回退：
+  /map/j6m-dev-b/zed-direct/zed-direct rollback
+恢复本候选：
+  python3 -B /map/j6m-dev-b/zed-direct/releases/20261019_5m7c286u/zed_direct.py activate
+回退保留制品和历史日志，不启动旧导航、不恢复车辆任务；原版一直保留。
+探针为限时原始图像/IMU 统计，不计算真实深度、不发布 ROS 或调用正式识别后端。
+未来 ROS 图像/深度/IMU 接入仍须处理单位、标定、坐标、原始时间与有效期。
+
+失败记录与收尾
+首次 self-test 的库加载和 OpenCV 已通过，但原 Noetic setup 在 set -u 下读取未定义
+ROS_DISTRO 导致退出。仅修正本候选 offline_inner.sh 的加载方式，复测完全通过；
+初次失败 JSON/日志和修正前脚本保留，没有覆盖失败事实。
+收尾无本任务进程、ROS/Livox/导航进程或 rootfs 挂载残留。
+所有 SSH 阶段的 AGX 临时地址均已撤回，原地址/持久 profile/默认路由不变；J6M 网络未改。
+本地 recipe 之外仅新增本交接及 runtime/zed_direct_deploy_20261019_5m7c286u/ 证据。
+未提交、推送、合并；未升级全局系统、未刷机、未测试车辆运动。
+验证等级：用户态 L1 构建 + L2 合成算法 + L3 实板加载/缺设备退出/回退；
+未完成 L3 真实相机接收、L4 视觉融合或 L5 车辆验收。
+
+证据
+  runtime/zed_direct_deploy_20261019_5m7c286u/final.json
+  runtime/zed_direct_deploy_20261019_5m7c286u/validate.json（首次失败）
+  runtime/zed_direct_deploy_20261019_5m7c286u/validate02.json（复测与回退通过）
+  runtime/zed_direct_deploy_20261019_5m7c286u/final_verification.json
+  recipe、上游锁和最终源码部署包可用于复核；原始 payload 保留，最终包另存 payload_final.tar.gz。

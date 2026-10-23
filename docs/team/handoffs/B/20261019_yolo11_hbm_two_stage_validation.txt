@@ -1,0 +1,137 @@
+B / Codex / 20261019 正式 ONNX → HBM 与 J6M 双阶段推理验证
+记录时间：2026-10-19T20:19:46.898447+08:00
+
+结论与验收边界
+两个指定正式 ONNX 已转换为真实 nash-m HBM，并在 J6M 原生系统中完成离线双阶段推理。
+检测模型保留 GAM；HBM 实际只有 1 个 BPU 子图。分类 HBM 包含 1 个 BPU 子图，以及执行最终五分类 Softmax 的 1 个 CPU 子图。
+达到 L3：实板、无运动、固定离线数据上的模型运行验证。不是 L4 实时视觉/ROS 联调或 L5 车辆验收。
+量化精度尚未验收。production_ready=false、motion_eligible=false 保持不变。
+
+授权、工作树及文件边界
+用户已明确授权配置转换环境、转换已有 ONNX、部署 J6M 并验证双阶段 BPU 推理。
+本机写入只在 /home/slam/j6m-dev-b；分支 vision-bpu。原 AGX 依赖和数据仅只读使用。
+HEAD：5d1028efa93cf34d2179b03384085c87a456402a
+Git common dir：/home/slam/j6m-dev-b/.git
+共同规则：J6M_五人协作_Codex开发与合并约束_20261019_v3.txt；SHA256 f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a。
+开工快照 baseline.json 所列 29 项 tracked 现场修改逐项 SHA256 未变；现有 untracked、子模块与旧发布均保留。
+没有提交、推送、清理 Git，没有刷固件、启动导航或测试车辆动作。没有改变正式 ROS 消息或跟踪/深度/材质投票接口。
+
+本次新增源码与用途
+distribution/j6m_bpu_navigation/tools/board_preprocess.py：无 Torch 的板端前处理；与原校准流程逐字节对照。
+distribution/j6m_bpu_navigation/tools/board_validate.py：同一进程、同一独占锁下的双模型离线验证、计时与错误恢复。
+该验证源码最终部署为 tools/board_validate_v3.py，保留原先部署的 board_validate.py。
+复用了既有 native_tensor.py、libj6m_tensor.so、production_io.py 和原 two_stage.py 的 context_crop。
+原检测阈值 confidence=0.20、NMS IoU=0.60、context_fraction=0.20，类别顺序未改。
+前处理测试：40 个检测 + 50 个分类输入在 AGX/J6M 与原校准张量逐字节一致；另完成 8 种边界图像尺寸对照。
+
+本地环境与资产根目录
+/home/slam/j6m-dev-b/runtime/yolo11_compile_20261019_j4liv6zx
+详细环境/版本与运行方法：ENVIRONMENT.txt。源码下载、wheel、日志、配置、模型均在上述私有目录。
+转换产物是必要的大文件资产，位于被忽略的 runtime；Git HEAD 不包含这些 HBM 或本轮未提交源码，合并交付必须另带清单和模型。
+官方 OE 3.7.0 s100/s600 包：2854436538 字节，SHA256 bc111bcd01e7ecedd9b6599ee8d340e35bdd6c10d31a70ab5bbdcdbdeea103cb。
+HBDK compiler/march/runtime 4.7.5；HMCT 2.6.5 CPU；horizon-tc-ui 3.5.3；CPython 3.10.19。
+ARM64 AGX 上使用私有 Box64 66dafa53302efc771352a6f7b4ca74869dc8c276 执行 x86 官方工具；没有替换数值计算的 stub。
+私有 SciPy 1.11.4 解决 1.10.1 在 Box64 下的导入错误；真实 x86 libgomp 解决 4 回调槽桥接限制。
+BOX64_DYNAREC_STRONGMEM=3、SAFEFLAGS=2、EMULATED_LIBS=libgomp.so.1；SDK 源码未改。
+bwrap 隔离其他目录写入、网络和设备；无全局 Python/ROS/运行库或 binfmt 修改。
+板端复用私有 DNN/UCP 3.14.5 / HBRT 4.9.2、BPU 驱动 2.2.19；兼容性已经实际加载和推理验证。
+板端 OpenCV headless 4.10.0.84、Pillow 10.4.0 为本次私有部署；NumPy 1.26.4 为既有私有依赖。
+
+正式模型与制品 SHA256
+垃圾检测 YOLO11-GAM：
+  源 ONNX：/home/slam/j6m-dev-b/runtime/yolo11_compile_20261019_j4liv6zx/ptq_baseline/models/detector_zed.onnx
+  ONNX SHA256：8c19d7a8f97c975673ae6282e48ab0370ad051e38f63a74ecc7d7c9f415a04b4
+  本地 HBM：/home/slam/j6m-dev-b/runtime/yolo11_compile_20261019_j4liv6zx/attempt03/detector_zed/detector_zed.hbm
+  HBM SHA256：f2f1f7e9753b53b0494495be44af92a0603b3ee6c71e69e0f58a0d50544a8cb8
+  HBM 字节数：14332808
+  J6M：/map/j6m-dev-b/vision-bpu/conversion_runs/20261019_j4liv6zx/models/detector_zed_attempt03.hbm
+  实际模型名：detector_zed
+  输入/输出：[1, 3, 576, 1024] → [1, 5, 12096]，均 F32。
+  子图设备：{"DeviceCategory.Bpu": 1}
+  连续样本推理耗时（去掉首帧）P50/P95：6.0164 / 6.3239 ms。
+五材质分类：
+  源 ONNX：/home/slam/j6m-dev-b/runtime/yolo11_compile_20261019_j4liv6zx/ptq_baseline/models/classifier.onnx
+  ONNX SHA256：3c15d89d9d0fcd33a705cbe52e3f0526139be1efcb789bc6182a707398a35c2d
+  本地 HBM：/home/slam/j6m-dev-b/runtime/yolo11_compile_20261019_j4liv6zx/attempt03/classifier/classifier.hbm
+  HBM SHA256：d4cb80f5f7364d1156ea2275eba9e522991dec309f2c397e74649254fe36a89f
+  HBM 字节数：8407200
+  J6M：/map/j6m-dev-b/vision-bpu/conversion_runs/20261019_j4liv6zx/models/classifier_attempt03.hbm
+  实际模型名：classifier
+  输入/输出：[1, 3, 224, 224] → [1, 5]，均 F32。
+  子图设备：{"DeviceCategory.Bpu": 1, "DeviceCategory.Cpu": 1}
+  连续样本推理耗时（去掉首帧）P50/P95：0.9376 / 1.2114 ms。
+
+编译与失败/取消记录
+采用 PTQ max，per_channel=false，max_percentile=1.0；40+50 份 calibration_train；F32 featuremap/NCHW，输入 DDR，nash-m，core_num=1。
+最终 HBM 使用 O0 官方编译优化级别、jobs=2、debug=true。这里的 O0 不表示 CPU 推理。
+attempt01：默认 max/kl/modelwise 搜索超过 13 分钟无新进展，定点取消；不能据此判定其算法或模型不受支持。
+attempt02：两模型完成量化；检测官方逐节点对照完成。分类的原生 libgomp 桥引起仿真错误，独立改用真实 x86 libgomp 后 50 样本补验通过。
+attempt02 的 O2 调度搜索均定点 SIGTERM 结束，退出 143；未生成 O2 HBM。取消原因和 PID 证据见 cancellation.json。
+attempt03：从 attempt02 的真实量化 BC 编译 O0 HBM，网络结构与校准值保持。分类 274.44 秒，检测 545.79 秒；两个编译进程退出 0。
+日志的 Timeout (0:02:00)! 是 faulthandler 定期堆栈打印，不能误当成任务超时失败。
+
+实际 J6M 双阶段结果
+独立根目录：/map/j6m-dev-b/vision-bpu/conversion_runs/20261019_j4liv6zx
+两个模型在同一进程中加载，沿用 /map/robot_j6m_navigation_20260907/bpu_lab_20260905/preview_worker.lock。
+复用执行器 /map/robot_j6m_navigation_20260907/bpu_production_20261010/build_v5/libj6m_tensor.so。
+执行器 SHA256 5c99bafb0531fac9f8e84c49c8c2d0a6d8e852e5c2217e62750dce93b4a14e3d。
+实际调用 hbDNNInferV2 → hbUCPSubmitTask，调度 HB_UCP_BPU_CORE_0；模型执行不调用 CPU ONNX Runtime。
+板端报告：/map/j6m-dev-b/vision-bpu/conversion_runs/20261019_j4liv6zx/results/infer_20261019T201553_4301/report.json
+检测 40、分类 50，共 90 份输入实际执行；三张实际图片的检测框完成 20% 上下文裁剪及材质分类。
+双阶段样例：000.jpg → paper；001.jpg → metal；002.jpg → 两个 kitchen_waste。这是模型输出，不是人工真值标注。
+本次进程最大 RSS 118.312 MiB；BPU ratio 90 个采样中 85 个大于 0，最大 33；结束后用户和待执行任务清空。
+
+量化数值与识别差异（仅校准数据，非独立精度验收）
+分类：50/50 与类别标签一致，50/50 与 FP32 top1 一致；五类各 10 张。最小输出余弦相似度 0.98529958。
+分类 BPU 与量化 BC 仿真：37/50 张逐位相同，其余最大绝对差 1.1920928955078125e-7。
+检测：40 张，FP32 57 框，BPU 65 框；以 IoU≥0.5 降序贪心配对得到 50 对，FP32 有 7 框未配对，BPU 有 15 框未配对。
+配对框平均 IoU 0.77508、最小 IoU 0.55791，置信度平均绝对差 0.02160。
+检测原始输出余弦相似度均值 0.99884894、最小 0.99830039；该指标会受大坐标数值主导，不能替代检测精度指标。
+上述配对参考是 FP32 输出，不是真值，不能把未配对数直接写成漏检/误检率。必须后续用独立标注集评估 mAP、召回、误检、小目标及逐类分类指标。
+
+离线整帧处理耗时（O0，单位 ms）
+每档预热 3 帧、测量 20 帧；固定图像，为固定负载测试重复真实检测 crop 以达到 4/8 次分类；不是包含 4/8 个不同实物的现场测试。
+包含前处理、输入复制、模型调度/执行、输出复制、NMS、context crop、分类前后处理。
+不包含相机采集、解码、网络传输、深度配对、跟踪、材质投票或与导航竞争。
+每帧分类次数    P50       P95       P99
+0               23.043    23.383    23.404
+1               26.232    26.503    26.719
+4               35.761    35.908    35.913
+8               48.119    48.381    48.411
+
+异常检查与恢复
+每个模型均拒收：错误 shape、错误 dtype、NaN、错误输入数量、无效 timeout=0；共 10 项。
+拒收后各执行一次有效请求，输出与此前同一输入逐位一致。
+这里没有声称测试过真实 BPU 卡死、设备掉电、网络断开、相机丢帧或车辆故障停车。
+
+复现入口
+J6M 上运行（内部检查路径、依赖哈希、模型哈希并获取同一 BPU 独占锁）：
+  python3 -B /map/j6m-dev-b/vision-bpu/conversion_runs/20261019_j4liv6zx/tools/board_validate_v3.py --mode infer
+每次另存 results/infer_<时间>_<PID>/report.json 和原始 NPY，不自动切换后台服务。
+从 AGX 本轮实际执行入口：runtime/yolo11_compile_20261019_j4liv6zx/read_board.py validate_pair（该阶段预约文件为一次性，重跑应另建阶段记录）。
+本轮 SSH 目标 root@192.168.10.100，临时添加 AGX eth0 的 192.168.10.50/24；每次均恢复原地址、持久连接配置和默认路由。
+不要把 ssh 别名或旧 192.168.1.100 当成本次已验证目标；网络接线变化须先核验。
+
+证据与校验
+VALIDATION_SUMMARY.json：全部数值摘要、逐图配对和性能原始时序。
+validate_pair.json：SSH 执行、stdout/stderr、真实板端报告和结束状态。
+board_results/：112 个文件，10811989 字节；包含 90 份推理输出及初测输出、原始报告，逐文件 SHA256 已核验。
+board_results/COLLECTION.json：原始结果清单、大小和 SHA256。
+最终双模型报告 SHA256：be9c322022c7ebec5f17946b0d05b7a7a7c557eb4f84b060b15100160716c389
+operator_placement_summary.json、attempt03/*/*.inspection.json：GAM/注意力算子、实际 HBM 子图及接口。
+final_workspace_state.json、final_state.json、*_summary.json：工作树保护、网络恢复、板端资源和 current。
+源码语法检查、git diff --check 通过；实际前处理与模型运行检查见上述证据，未用 mock 代替硬件结果。
+
+收尾、部署和回退
+未提交或推送。本轮新增源文件和交接报告作为工作树差异保留；HBM/SDK 等资产另带清单交付。
+仅新增本次 conversion_runs 目录；所有测试和本轮编译进程已退出。共享 BPU 独占锁可重新获得。
+J6M /map 剩余 612397056 字节（584.0 MiB）。
+/map/j6m-dev-b/vision-bpu/current → releases/20261019_4t9lkdo2（保持）
+/map/robot_j6m_navigation_20260907/rootfs/opt/autolabor/dual_host/current → /opt/autolabor/dual_host/releases/20260914_095005/install（保持）
+没有启用持久服务，回退无需切换 current；继续使用此前发布即可。保留本次目录作为证据，未删除旧模型或旧环境。
+
+未验收和下一步边界
+1. 检测量化差异需要独立验证集和精度调优；现有 90 份训练校准样本不能形成正式准确率结论。
+2. O2 性能优化未完成，现有数据只代表 O0。
+3. 目前是离线板端双阶段验证；实时相机、传输协议、autolabor_fod_vision 后端切换、原跟踪/投票/深度语义未做本轮联合验收。
+4. 后续接入保持源帧身份、20 ms 深度配对、500 ms 帧龄以及异常拒收；本轮没有将 readiness 或运动资格改为 true。

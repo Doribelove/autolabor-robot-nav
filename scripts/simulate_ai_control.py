@@ -95,11 +95,11 @@ class ScenarioBackend(MockBackend):
         return self._result(dict(self.coverage, map_digest=self.digest,
                                  localized=self.localized))
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg, expected_map_digest=""):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None, expected_map_digest=""):
         assert self.coverage["state"] == "COMPLETED"
         assert not self.coverage["active"] and not self.coverage["batch_active"]
         already_navigated = any(name == "navigate_map_pose" for name, _ in self.calls)
-        assert (x_m, y_m, yaw_deg) == ((0.0, 0.0, 0.0) if already_navigated else (3.125, -4.25, 37.5))
+        assert (x_m, y_m, yaw_deg) == ((0.0, 0.0, None) if already_navigated else (3.125, -4.25, None))
         assert expected_map_digest == ("" if already_navigated else self.digest)
         self._record("navigate_map_pose", dict(x_m=x_m, y_m=y_m, yaw_deg=yaw_deg))
         self.stage = "navigation"
@@ -211,7 +211,7 @@ def execution_case(fault, cloud_row=None, followup=False):
     llm, text = FakeLLM({"steps": sequence()}), TEXT
     if followup:
         llm.document["steps"].append({"tool": "navigate_map_pose", "description": "导航到地图原点", "arguments": {
-            "x_m": 0.0, "y_m": 0.0, "yaw_deg": 0.0}})
+            "x_m": 0.0, "y_m": 0.0}})
         text += "，最后导航到地图原点"
     if cloud_row:
         raw = json.loads((ROOT / "global_maps/map_sets/map_20260829_221335_gimp_cleaned/coverage_regions/fused/regions.json").read_text())

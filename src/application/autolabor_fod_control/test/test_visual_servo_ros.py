@@ -532,7 +532,7 @@ class FakeWorldIntegrationTest(unittest.TestCase):
             end_pose[0],
             end_pose[1],
         )
-        self.assertGreaterEqual(forward, 0.30)
+        self.assertGreaterEqual(forward, 0.50)
         self.assertLessEqual(forward, 0.55)
         self.assertLessEqual(abs(lateral), 0.08)
         with self.lock:
@@ -557,7 +557,7 @@ class FakeWorldIntegrationTest(unittest.TestCase):
         self.assertEqual(proof['completion_policy'], 'visual_servo')
         self.assertEqual(proof['request_id'], 'selected-standard-test')
         self.assertTrue(proof['stopped'])
-        self.assertGreaterEqual(proof['forward_m'], .30)
+        self.assertGreaterEqual(proof['forward_m'], .50)
         self.assertLessEqual(proof['path_m'], .55)
         self.assertFalse(status['selected_coordinate_completion'])
         self.assertNotIn('minimum_distance_m', proof)

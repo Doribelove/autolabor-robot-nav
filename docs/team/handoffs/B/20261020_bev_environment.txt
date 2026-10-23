@@ -1,0 +1,113 @@
+岗位 / 本轮任务
+B，2026-10-20，独立 BEV 计算环境。
+用户要求先不处理相机硬件、安装和外参标定，先配好软件环境，
+让后续四路相机输入能直接进入 BEV 计算。
+
+工作区与授权
+/home/slam/j6m-dev-b-surround，vision-bpu-surround，HEAD 5d1028efa93cf34d2179b03384085c87a456402a。
+Git common dir /home/slam/j6m-dev-b/.git；父 vision-bpu 和原 0914 工作区不改。
+本轮只写新环视模块、私有 runtime/validation、根 README/AGENTS 当前说明及 B 交接。
+已完成依赖下载、私有 venv、原生库构建、独立 BEV 代码、离线图像/Qt/HTTP 验证和打包。
+未 SSH 到 J6M、未板端部署、未刷机、未启动相机/BPU/ROS master/导航或车辆动作。
+没有提交、推送、合并、clean 或 reset。
+团队规则仍为 J6M_五人协作_Codex开发与合并约束_20261019_v3.txt。
+
+环境
+runtime/surround_env/：本机 ARM64 Python 3.8.10 私有 venv，不继承系统/用户 site-packages。
+NumPy 1.24.4，opencv-python-headless 4.10.0.84，Pillow 10.4.0，pip 24.3.1。
+核心模块实测从该 venv 加载，软件 check 返回 software_ready=true。
+原系统/用户 Python 包、ZED 依赖、ROS 环境未升级。
+Qt 仅在 view 命令中只读加载 /usr/lib/python3/dist-packages 中现有 PyQt5；
+计算和图像输出不依赖 Qt。
+runtime/surround_wheels_20261020/：ARM64 CPython 3.8 / 3.11 wheel、哈希锁及 MANIFEST。
+setup 通过已验证的 pip wheel 引导私有环境，不依赖 ensurepip、apt 或网络，
+不覆盖已有 venv，不复制主机 venv 到 J6M；需要目标机已有对应 Python 标准库和 venv 模块。
+
+独立入口
+distribution/j6m_bpu_navigation/surround/bev.sh：
+  setup / check / init-config
+  demo / images / watch / camera
+  view / serve-preview
+不修改公共启停脚本，不启动旧 ZED 链路。
+runtime/surround_bev_config/ 已生成本机私有配置；真实参数仍为待输入值。
+相机接入和参数准备完成后沿用 camera 或 watch；当前 default hardware 入口仍拒绝启动。
+
+BEV 实现
+bev.py：根据已有标定接口预计算原图/透视图到地面的映射表；
+原始鱼眼或普通针孔图一次 remap 到 BEV，支持已校正透视图，
+按有效区域边缘距离加权融合，未覆盖区域黑色、覆盖计数为 0。
+输出是 base_link 下的地面 IPM/环视图，不是学习式三维 BEV 网络或实测高度。
+不需要 BPU、模型、ROS、地图定位或任务状态。
+默认 X=[-4,6] m、Y=[-5,5] m、0.02 m/px，500x500；图上方为 +X、左方为 +Y。
+默认齐全四路、源帧龄 <=500 ms、曝光差 <=50 ms、输出上限 5 Hz。
+这属于配置预算，未宣称真实相机覆盖率、同步或实板吞吐已通过。
+保留源帧身份/源时刻/标定和配置 SHA；计算后再次检查源帧龄。
+同一来源图像不重复发布；缺路、过期、会话重置和混合合成/真实输入拒绝。
+地面映射仍需有效参数；没有虚构或自动填充真实标定。
+
+bev_cli.py：一次离线图像、外部生产者原子更新 frames.json、显式原生相机输入。
+图像路径限制在输入清单目录内；生产者先写不可变图像再原子替换清单。
+在线输入最多四个最新帧槽；退出写 service_stopped/无效状态。
+输出 bev.png、coverage.png、bev.json、preview.jpg、state.json、metrics.jsonl。
+跨文件消费者按 bev_png_sha256 核验读到的是同一输出，再检查状态和源时刻。
+display.py：显示独立 BEV，区分真实离线图像/合成/实时，BEV 不再显示定位必需提示。
+preview_server.py：新增 bev.png、bev.json、coverage.png 三个只读白名单接口，
+连同原三个接口共六个；POST 和路径逃逸拒绝。
+environment.py / requirements-bev.txt：可复现下载、离线安装、核心环境检查。
+bundle.py：可附带双版本 wheel 和指定原生采集库，仍不部署。
+原检测/分类、控制代码、ROS 消息和真实标定模板未修改。
+
+原生库
+runtime/surround_bev_native_20261020/libj6m_surround_capture.so
+SHA256 5ce68cf09b6da3406b54b9c6854684a6b97cb04d172be352bc3b56ed1286a583
+使用 /home/slam/horizen-ch/Acore 头文件、GCC 9.4、Release、-Wall -Wextra -Werror；
+ABI=1 检查通过，6 项 fake SDK 测试通过。没有加载板端实际 VIO 库。
+fake SDK 仅保留在测试构建目录，不打入候选包 lib/。
+上板时仍须匹配具体镜像驱动 ABI，不能将用户态/假 SDK 测试当作相机验收。
+
+验证与证据
+证据目录 validation/surround_bev_environment_20261020/。
+1. full_regression_final.log：原 ROS 可用环境 62/62 通过，包含新增 15 项 BEV 测试。
+2. private_env_tests_final.log：专用 Python 3.8 环境 59 项通过，3 项 ROS 测试按环境跳过。
+3. python311_regression_final.log：ARM64 Debian 12 / Python 3.11.17，同样 59 项通过、3 项 ROS 跳过。
+   3 项 ROS 测试已经在第 1 项实际通过，未把跳过计为执行通过。
+   首次 tests_v1.log 曾把 ROS 消息测试混入纯 BEV venv，因缺 PyYAML 报 3 项错误；
+   保留失败记录，改为按实际组件环境分别验证，未为 BEV 引入 ROS 依赖。
+4. 原生构建与 ABI：native_build.log、native_abi.json。
+5. 环境：environment_check.json；容器 python311-env/environment.json。
+6. Qt：qt_verification.json、qt_bev.png；offscreen 图像和 BEV 标签确认，进程已退出。
+7. entrypoint_verification.json：六个只读资源、PNG 哈希、404/POST 501；
+   camera/watch 缺参在创建输出和打开设备前拒绝；测试 HTTP 子进程随后停止。
+8. 合成四鱼眼图已计算输出到 runtime/surround_bev_demo_20261020/result_final/。
+   红前/绿右/蓝后/黄左四个已知地面点重建，重叠亮度归一、未覆盖区域、
+   生/熟图一致性、源帧龄、曝光差、配置身份、冻结数据不重发等通过。
+   合成覆盖率/处理耗时只证明本固定数据数学和软件路径，不是实板性能或相机覆盖验收。
+9. 容器 image 来自官方 python:3.11-slim-bookworm：
+   Repo digest sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89。
+   镜像 inspect 原文留存。运行时 --network none、只读根文件系统、无硬件设备映射、
+   非 root、cap-drop ALL、2 CPU/2 GiB；全部任务容器 --rm 后退出。
+10. candidate_install_validation.log：从实际归档另解压，在上述离线容器依次执行
+    bev.sh setup -> init-config -> check -> demo，全流程退出 0、生成 BEV。
+    临时安装检查目录 runtime/surround_bev_install_check_20261020/ 保留作为证据，
+    其中容器 venv 不是供 AGX/J6M 直接复制的运行环境。
+11. git diff --check、bash -n、Python compileall 通过。
+
+交付包
+runtime/surround_bev_candidate_20261020.tar.gz
+大小 113,365,081 字节。
+SHA256 e87ecdb04d58fb48f3d809fbf8757f649b99b94a6c594ef6123e0016d0efbecb
+82 个清单文件，归档包含 MANIFEST 共 83 个普通文件；逐文件及归档校验通过。
+包含新旧环视源码、2 份原 HBM、采集库、消息源码及双版本 wheel；
+不含厂商系统镜像、fake SDK 二进制或主机 venv。
+上一个 surround_candidate_20261020 包及上一轮验证资料全部保留。
+
+保护与续接
+开工快照/源码备份在本轮 validation 目录，原 tracked 文件仅更新根 AGENTS/README。
+旧环视源文件仅调整 display.py、preview_server.py、bundle.py 和模块 README。
+新源码清单、增量补丁、交付清单和最终保护核对由本轮 source-files.json、
+task-source.patch、deliverables-final.json、preservation-check.json 记录。
+源头模型、真实 calibration/clock 模板和原父分支工作树保留。
+当前达到 L0/L1/L2；没有 L3/L4 相机/实板联调或车辆验收。
+后续使用新的软件入口与私有配置接输入；不要调用历史启停/刷机脚本。
+不要将软件 check 的 software_ready=true 解释为硬件已就绪或控制可用。
+production_ready=false、motion_eligible=false 保留。

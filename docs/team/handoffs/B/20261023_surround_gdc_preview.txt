@@ -1,0 +1,73 @@
+2026-10-23 三路相机 GDC 透视画面实机预览
+
+用户要求：使用现有三路相机，经 GDC 去畸变后显示三路平面画面。
+工作区 /home/slam/j6m-dev-b-surround，vision-bpu-surround。未提交、推送或合并。
+
+当前结果（16:14）
+- 桌面已打开“J6M 三路 GDC 透视预览”，数值端口 0、1、2 均持续刷新。
+  每路实际输出 960x540 NV12，中心水平视场约 120°，桌面取样显示约 5 fps。
+  4 秒采样各路源序号均增加 120，表示源约 30 fps；不是 GUI 30 fps 的承诺。
+- 三路均 sc_meta.gdc_applied=1、vendor_format=2、777600 字节。
+  板端进程实际打开 /dev/gdc0_src、/dev/gdc0_cap、/dev/pym1_*、/dev/vin1_*。
+  先前单次 GDC 探针连续 40 轮读帧、释放均成功；实时窗口与非黑帧截图已核验。
+- 当前链路：RX1/MAX96712 的三路 ISX031 -> VIN/CIM -> PYM1 layer0 NV12
+  -> GDC0（硬件串行处理各路）-> 私有 localhost HTTP / SSH 隧道 -> AGX Qt。
+  J6M Python 只做调度、内存复制和发送；AGX 做 NV12/RGB 颜色转换和显示缩放。
+  两端实时路径均没有 cv2.remap/CPU 鱼眼去畸变。
+- 此为各路独立透视图，不是地面鸟瞰 BEV，也未验证多相机曝光同步或安装方位。
+  预览帧的接收新鲜度不等于从曝光到显示的延迟。
+
+镜头参数与精度边界
+- 正式 calibration/gdc 配置尚无已核验的相机内参或透视 LUT，未用示例 LUT 冒充。
+- 通过现有 SDK hbn_camera_get_sns_info(..., CAMERA_EEPROM_INTRI_PARAM, ...) 对三路分别
+  成功读取相机内部 Flash 镜头参数，API 返回 0，尺寸 1920x1536，报告 HFOV=200°。
+  相机驱动为现有系统 libisx031std，读取采用 Longhorn Flash 路径，没有烧录参数。
+- 每台 fx/fy 约 445~446 像素，cx/cy 约 960/768，k1~k4 三台各不相同。
+  原始报告保存在 sensor_intrinsics.json；module_serial=0，未据此构造唯一相机身份。
+- SDK 的 distortion_flag/distort_model_type/distort_params 均为 0，当前读取路径未明确
+  报告畸变模型。本次将 k1~k4 按 KB4 / OpenCV fisheye 的 theta 多项式解释，属于调试
+  参数解释；未独立验证光学精度，不能声称完成镜头标定或度量精度验收。
+- 仅离线一次生成每个输出像素到源图的映射点；利用板端 hb_vio_gen_gdc_cfg(CUSTOM)
+  编译为三份真实硬件 LUT（7348 / 7324 / 7348 字节）。实时由 GDC 硬件读取这些 LUT。
+  CPU 网格生成不是实时 CPU 去畸变；没有调用 CPU remap 作为实际显示回退。
+- 所有调试清单保留 accuracy_verified=false、production_ready=false、motion_eligible=false。
+  正式四路配置、空安装标定、ROS 接口及运动授权保持原样。
+
+路径与启动
+本地私有目录：
+  /home/slam/j6m-dev-b-surround/runtime/surround_gdc_preview_20261023/
+板端私有目录：
+  /map/j6m-dev-b/vision-bpu-surround/gdc_preview_20261023/
+重新打开命令（先正常关闭已有相机预览）：
+  /home/slam/j6m-dev-b-surround/runtime/surround_gdc_preview_20261023/open_preview.sh
+关闭本次 Qt 窗口会按已核对 PID/cwd 结束本次板端私有采集，释放相机。
+与原始鱼眼预览共用 /map/j6m-dev-b/vision-bpu-surround/camera.lock，禁止同时占用。
+只使用 127.0.0.1:18780，通过本次 SSH 隧道访问；不对局域网开放预览服务。
+
+主要文件
+  camera_info.cpp / libcamera_info.so / read_intrinsics.py：读取相机镜头参数。
+  sensor_intrinsics.json：真实镜头参数；未知安装外参没有补造。
+  build_maps.py / perspective_candidates.json / port*.grid：离线透视映射及来源说明。
+  gen_gdc.cpp / gen_gdc / port*.bin：SDK LUT 编译工具与三个输出。
+  vpm_gdc.json / hb_j6dev.json：私有三路 RX1 + PYM + GDC 配置。
+  libj6m_surround_capture.so：原 20261021 GDC 原生库，未修改该生产源码/ABI。
+  live_manifest.json：启动前校验库、配置、参数及 LUT 的 SHA256。
+  live_server.py：独立各路读取线程；GDC 输出标记/格式/尺寸校验，错误不回退原始图。
+  viewer.py / open_preview.sh：AGX 桌面窗口及入口；断流会清除陈旧画面。
+  viewer.pid / live.pid：本地/板端实际 PID，后续应按文件核验，不沿用本记录 PID。
+  viewer.log / live_board.log / live_state.json / preview_window.png：当前会话观察结果。
+
+16:14 核对：AGX viewer PID3090483，板端 live_server PID1057429，原始鱼眼采集已正常退出。
+旧父分支 BPU receiver PID16506 仍在；本次没有启停该会话。
+
+验证与记录
+证据目录：validation/surround_gdc_live_20261023_x5sd4qr3/。
+保留读取镜头参数、生成 LUT、GDC 40 轮读帧、SDK logcat、实时序号样本、窗口截图、
+输入文件副本与 SHA256。Python 编译、shell 语法检查和 git diff --check 通过。
+首轮参数读取因自定义 LD_LIBRARY_PATH 漏 sensor 子目录失败，恢复板端原环境后成功；
+该失败日志保留，未据初次失败判相机损坏。首轮本地 C++ 编译缺 hb_mem_mgr.h 的 include
+路径，补充 SDK include 后构建成功；没有部署失败产物。
+实时启动初期 SSH 转发曾报一次 connection refused，随后服务就绪，三路持续刷新。
+
+未刷机、重启板卡、替换全局驱动或安装全局依赖；未启停导航、ZED/BPU 或执行车辆动作。
+未尝试修复第四路，也未把此三路预览当作完整四路 GDC/BEV 生产验收。

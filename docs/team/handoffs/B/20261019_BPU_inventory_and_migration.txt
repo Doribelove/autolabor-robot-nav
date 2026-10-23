@@ -1,0 +1,284 @@
+B 线：J6M BPU 现状盘点与正式垃圾双模型迁移范围
+记录日期：2026-10-19，Asia/Shanghai
+岗位/任务：B 垃圾识别；读取板端已有驱动、工具、框架和 SDK，明确后续工作。
+工作目录：/home/slam/j6m-dev-b
+Git common dir：/home/slam/j6m-dev-b/.git
+分支：vision-bpu
+HEAD：5d1028efa93cf34d2179b03384085c87a456402a
+规则：v3.0；SHA256 f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a
+本地规则副本：.git/vision-bpu-setup/team-rules-v3.txt
+团队共同基线：仍未收到 A 已固化的完整基线/tag；本副本包含继承的未提交成果。
+
+一、结论和本次证据边界
+
+J6M 已有可复用的 BPU 驱动、固件文件、运行库、头文件、参考模型和通用执行器。
+B 线主要需要完成：正式检测/分类 ONNX 转 HBM、正式双模型常驻服务及通信、
+autolabor_fod_vision 后端接入，以及精度、整帧速度和故障验证。
+本轮未发现需要先重写内核驱动的依据。驱动已加载和文件存在不等于正式模型已验收。
+
+本次实际通过 SSH 读取了 J6M；两轮盘点在 AGX 记录的时间分别为：
+  scout：2026-10-19 16:05:31 +08:00
+  details：2026-10-19 16:07:08 +08:00
+板端当时日期为 2025-06-27，与 AGX 不一致；盘点未设置板端时间。
+只读扫描有明确目录和深度范围，见 scout.json / details.json 及采集脚本；
+“未发现”指本次检查范围内未发现，不代表整盘或所有虚拟环境都不存在。
+
+两轮读取都临时给 AGX eth0 增加 192.168.10.50/24，连接 root@192.168.10.100；
+结束后均撤回临时地址，并核对原地址、持久 profile 和默认路由恢复/保持不变。
+16:22:13 的后续复查：eth0 carrier=0、NO-CARRIER、没有活动连接和 IPv4 地址；
+当前已知有线通道暂不可用。该次复查没有修改网络，没有继续尝试板端推理。
+不能仅从 NO-CARRIER 区分网线、交换机、对端网口或 J6M 供电问题。
+
+本次没有运行模型、加载推理动态库、编译板端程序、启动 ROS 或修改板端文件。
+历史 10 月 10 日推理记录与本次文件核验分开记录，不能当成本轮精度/性能结果。
+
+二、板端已有的底层环境、工具和框架
+
+1. 系统和硬件身份
+   原生系统：Debian GNU/Linux 12，aarch64。
+   内核：6.1.158-rt58-g4f685f73e030。
+   设备树 model：Horizon Robotics J6E MatrixB Development Board。
+   compatible：hobot,j6e-matrixB。
+   上述为板端原样读数；项目称 J6M，现有模型契约为 nash-m。
+   后续按设备/厂商配套资料确认编译目标，不仅凭产品简称更改 target。
+
+2. 内核驱动和设备节点：已有，优先复用
+   已加载模块：bpu_framework、bpu_cores、bpu_hw_io_j6、bpu_stl。
+   模块位于 /lib/modules/上述内核版本/hobot-drivers/bpu/，vermagic 对应当前内核。
+   设备节点：/dev/bpu、/dev/bpu_core0、/dev/dcore0_rpmsg_bpu、/dev/ion。
+   sysfs 快照：core_num=1、ratio=0、users 没有使用者条目、task_running 为空。
+   这些是瞬时状态，不是独占预约或完整健康验证。
+   bpu0/fw_version 原始读数 0.0.0，不能用它宣称实际运行固件版本已确认。
+
+3. 固件文件和低层用户库：已有，保持现状
+   bpu-fw-runtime Debian 包版本：1.1.29。
+   固件文件：/lib/firmware/bpu_apm.bin、/lib/firmware/bpu_spu.bin。
+   libbpu-runtime Debian 包版本：2.2.19。
+   用户库：/usr/hobot/lib/libbpu.so.2.2.19；配套头文件在 /usr/hobot/include。
+   2.2.19 是该用户库包版本，不作为四个内核模块的独立版本号。
+   本轮仅核验包、文件和哈希，没有刷写、重新加载或更换固件/驱动。
+
+4. 已锁定的私有推理 SDK 运行部分：可复用，但需保持配套
+   根目录：/map/robot_j6m_navigation_20260907/bpu_lab_20260905/vendor/
+   runtime_4_9_2/lib/：libdnn.so、libhbucp.so、libhbrt4.so 及相关依赖。
+   ucp_include/：hobot/dnn/hb_dnn.h、hobot/hb_ucp.h、hobot/hb_ucp_sys.h。
+   HBRT 静态版本字符串：4.9.2。
+   DNN/UCP 对应历史锁定版本：3.14.5；执行器要求 3.14.5_(4.9.2 HBRT)。
+   三个运行库、三个头文件的本次 SHA256 均与现有构建脚本六项锁定值一致。
+   版本依据为现存文件哈希、静态字符串和历史记录，本轮未调用版本查询 API。
+
+   已有 API 覆盖：模型加载和句柄、输入/输出属性、hbDNNInferV2、
+   UCP SubmitTask/WaitTaskDone/ReleaseTask、缓存内存分配/刷新/释放。
+   ELF 依赖还包括 libhbmem、libhb_arm_rpc、日志/性能等库；不能只复制三个 so
+   就假定依赖齐全。后续按实际依赖清单锁定整个私有运行集合。
+   /app/sample 下还有其他 libdnn/libhbucp/libhbrt4 副本，文件大小与该集合不同；
+   本轮未逐一确认其版本，不能混用或拿它们覆盖已锁定运行库。
+
+5. 诊断和参考工具：已有
+   /usr/hobot/bin/hb_monitor、hbtop；hobot-monitor-runtime 包版本 1.0.0。
+   私有 runtime_4_9_2/bin/hrt_model_exec 文件存在，不在默认 PATH。
+   /app/sample/S83_Sample/S83E06_Tros 下有厂商视觉示例、模型和运行库副本。
+   /app/utils/bpu_group_ratio 下有 bpu_os_test、yolov3.hbm 等参考工具。
+   本轮只查文件/元数据，没有运行压力测试、厂商推理示例或修改 BPU 资源配比。
+
+6. 编译环境：必须区分 C++ 编译和模型编译
+   J6M 原生 Python 3.11.2；现有私有 vendor/python311 提供 NumPy 1.26.4。
+   原生默认 PATH 未找到 gcc/g++/make/cmake；gcc-12-base 包不代表完整编译器。
+   已有 /map/autolabor_runtime/rootfs/usr/bin/aarch64-linux-gnu-g++-9、gcc-9、
+   make、cmake，可由现有脚本只读复用 sysroot 构建 ARM64 执行器。
+   上述工具不负责 ONNX 转 HBM。
+
+   板端默认 PATH 未找到 hb_compile、hb_model_info、hb_perf、hbdk4、docker；
+   检查目录中也没有确认可用的配套 OpenExplorer 模型编译环境。
+   当前 AGX 为 aarch64，默认环境没有 hb_compile，默认 Python 未找到 onnx。
+   现有 production_ptq.py 的正式编译步骤要求 x86_64，以及锁定的
+   horizon-tc-ui、hbdk4、hb_compile 和环境标识/摘要。
+   因此下一项外部输入是与当前板端运行库匹配的 x86 OpenExplorer 环境。
+   精确 OE/HBDK 版本尚未核定，不能自动选“最新版本”或仅凭 HBRT 版本推算。
+
+7. 存储和时间
+   /map 本次可用 876830720 字节，约 836 MiB；总容量约 25.7 GiB。
+   新模型、独立候选目录和性能日志需要先做空间预算，不清理历史发布来腾空间。
+   板端时钟有明显偏差；后续正式双机新鲜度/生命周期验证前需要正确时间基础。
+   只回传 AGX 原始时间戳的 SSH 查询可成功，不代表跨主机时效验证已通过。
+
+三、已有项目实现：能复用到哪一层
+
+板端项目根目录：/map/robot_j6m_navigation_20260907/
+
+1. bpu_lab_20260905
+   已有 FCOS 参考模型、常驻执行及预览相关工具、私有 SDK、共享独占锁。
+   FCOS 模型：models/fcos_nash_m/model.hbm，15572032 字节。
+   SHA256：1daacc7dfde181b65872c47f4fe5db84fd31f19d3ad56aa1fa1d902bb5ffd7fa。
+
+2. bpu_perception_20260906
+   已有 FCOS + CenterPoint 参考双模型服务，可参考其常驻加载、单一任务通道、
+   队列有效期、进程所有权和共享 preview_worker.lock。
+   CenterPoint 模型：models/centerpoint_nash_m/model.hbm，10141400 字节。
+   SHA256：7a12188054b4f5a05c112dd6d8611436d84cda3e060e11f72d1f1e739040593c。
+   该服务的模型与输入输出契约是参考模型专用，不能直接改路径就接垃圾模型。
+   本地对应工具在 experiments/dual_perception_20260906/tools/。
+   CenterPoint 仍仅观察；通用执行器不覆盖其量化输入和 36 输出专用适配范围。
+
+3. bpu_production_20261010
+   已有通用执行器：build_v5/libj6m_tensor.so，43408 字节。
+   SHA256：5c99bafb0531fac9f8e84c49c8c2d0a6d8e852e5c2217e62750dce93b4a14e3d。
+   本次哈希与历史验证摘要一致。动态库仍依赖旧候选的绝对运行库路径。
+   本地实现：distribution/j6m_bpu_navigation/native/tensor_executor.cpp。
+   能读取 shape/stride/dtype/quant，处理缓存一致性、UCP 超时和输出反量化。
+   当前输入限未量化 F32 或 U8，单次输入/输出数量各最多 32；新 HBM 必须核对
+   实际属性，有不支持的类型再做明确适配，不能伪造 FP32 元数据绕过检查。
+
+   tools/native_tensor.py：模型文件/哈希、模型名、张量属性和有限值验证。
+   tools/tensor_stdio.py、tensor_transport.py、tensor_wire.py：SSH 常驻单模型
+   worker 和有界二进制传输，回传 sequence/frame_id/stamp_ns，检查模型身份、
+   长度和超时；异常后关闭连接。候选标记保持 production_ready=false、
+   motion_eligible=false。
+   还缺正式双模型生命周期、跨重连 session 身份、旧结果清退和整帧调度接入。
+   当前每个 worker 加载一个模型并拿共享独占锁，不能各起一个 worker 抢 BPU。
+
+   历史 2026-10-10 摘要记录 FCOS 三次合成输入往返约 85–101 ms；这是参考单模型
+   的历史小样本，不是正式垃圾双模型的整帧速度，也不是本轮测量。
+
+4. 源码一致性检查
+   24 对有本地对应文件的板端源码/文档中，22 对 SHA256 相同。
+   不同的两项是 autolabor_bpu_perception/protocol.py 和 production README。
+   本地 protocol.py 原本已有未提交修改，本轮未覆盖；现存本地版本不能直接
+   当成板端已部署版本，后续通信联调须明确两端协议版本。
+   逐项结果：runtime/bpu_inventory_20261019/asset_comparison.json。
+
+四、正式模型资产和原视觉流程
+
+1. 已有正式 ONNX，尚未发现正式垃圾双模型 HBM
+   本地资产目录：runtime/j6m_bpu_migration_20261010/private_ptq/
+   检测：models/detector_zed.onnx，44918073 字节。
+     SHA256 8c19d7a8f97c975673ae6282e48ab0370ad051e38f63a74ecc7d7c9f415a04b4
+     输入 1×3×576×1024，输出 1×5×12096，单类 trash，必须保留 GAM。
+   分类：models/classifier.onnx，21790881 字节。
+     SHA256 3c15d89d9d0fcd33a705cbe52e3f0526139be1efcb789bc6182a707398a35c2d
+     输入 1×3×224×224，输出 1×5。
+     类别顺序：metal、plastic、paper、glass、kitchen_waste。
+   两个任务已有 compile.yaml 和导出清单；未发现 HBM 或完成编译的记录。
+   校准输入：检测 40 份、分类 50 份（每材质 10 份），记录为 train 来源。
+   本轮 production_ptq.py verify --require-calibration 退出码 0：
+     PTQ workspace verified; production_ready=false
+   这确认已有资产满足工具校验，不代表独立测试集精度或 INT8 验收通过。
+
+   模型目录中的 best6.pt、yolo11_gam_best.pt 哈希均不等于正式检测或分类
+   checkpoint 哈希，不能用这些同名/旧权重替代正式基线。
+   正式 PT 哈希保存在 production_models.json；现配置引用副本外的原训练路径。
+   本轮未读取或修改那些外部路径。后续 GPU 对照或 QAT 需准备对应正式权重。
+
+2. 前后处理可以复用，但必须保持数值契约
+   production_io.py 已有检测 LetterBox、RGB/NCHW/F32/255、CPU NMS、坐标还原，
+   以及分类前处理和五类概率检查。检测当前 conf=0.20、IoU=0.60、最多 50 框。
+   分类原导出输出已是概率，不应再次执行 Softmax。
+   本副本自定义 Ultralytics augment.py 与现有锁定 SHA256 一致：
+     5d1e76fc1126c053ab74cc44551ca99bf933e913a44c1815a5e774e51db1656b
+   编译后的 tensor 名称、layout、stride、scale 等仍需从 HBM 实际读取确认。
+
+3. 当前业务后端仍是 AGX CUDA
+   源文件：src/application/autolabor_fod_vision/src/autolabor_fod_vision/
+           two_stage_runtime.py
+   TwoStageUltralyticsRuntime 强制 CUDA；detect() 内部调用 YOLO.track，包含
+   BoT-SORT 跟踪；classify() 接收最多 8 个 crop，返回五类概率。
+   所以把 device 改成 bpu 不能实现迁移。新后端要提供外部检测结果到跟踪器的
+   适配，并兼容 confidence、模型身份、预热、诊断统计和关闭接口。
+
+   业务入口：src/application/autolabor_fod_vision/scripts/
+             fod_detect_and_classify_node.py
+   原流程包括 ROI、检测/跟踪、context crop、深度/TF、目标关联、分类候选选择、
+   材质投票和结果发布。分类候选还取决于历史目标、清晰度和上次分类结果，
+   不能简单改成板端每个检测框都分类，否则成本和业务行为都会变化。
+   原 FrameEnvelope 的源帧身份、采集时间应传入新推理接口；当前 detect()
+   参数只有 image/frame_index，需要明确扩展，不能用收到结果的时间替换采集时间。
+
+五、B 线后续实施顺序与交付
+
+步骤 1：锁定工具链和输入
+   取得配套的 x86_64 OpenExplorer 环境，固定镜像 digest/OE/HBDK/相关包版本。
+   固定正式 ONNX、校准集、前后处理和运行库哈希；准备独立验证/测试集。
+   核查 GAM 的 MatMul/Softmax 等算子落点及 CPU 回退成本，保留原网络语义。
+   交付：环境锁、模型契约、编译配置和可复现入口。
+
+步骤 2：完成两个正式 HBM
+   先 PTQ，分别编译检测和分类模型；记录实际 tensor 属性和算子分配。
+   使用相同输入逐级对比 GPU/ONNX、量化结果和实板输出，定位精度差异。
+   精度不足先查前后处理、量化和算子问题，再决定是否需要 QAT。
+   交付：两份 HBM、SHA256、属性清单、编译日志和数值/精度报告。
+
+步骤 3：建立正式双模型服务和通信
+   复用执行器，让同一受控服务持有两个模型；统一持有独占锁、调度 BPU0。
+   保持 AGX 原流程选择 crop，服务分别处理检测和已选分类任务。
+   分类 ONNX 当前是 batch=1：一帧 8 个 crop 需要明确串行/调度成本；未经
+   重新导出编译和验证，不能宣称已有 batch=8 HBM。
+   以 session/sequence/源帧/采集时间/模型哈希关联两阶段；定义断连、超时、
+   错误输出、崩溃和重连行为，失败时丢弃过期任务和旧会话结果。
+   若优化为一次上传图像、板端缓存后取 crop，需额外定义缓存所有权、有效期、
+   裁剪坐标和数值一致性；它是后续设计选项，本轮没有实现。
+   交付：双模型服务、客户端、协议和可隔离验证的故障测试。
+
+步骤 4：接回 autolabor_fod_vision
+   可新增 two_stage_bpu_runtime.py（拟定名），提供与原后端一致的识别结果。
+   节点增加后端选择，显式保留跟踪、材质投票、深度/TF、原 topic/frame/时间戳。
+   适配 GPU 专用诊断和 backend_id；保留 20 ms 深度配对容差、500 ms 帧龄拒收、
+   最新帧队列和异常诊断。500 ms 是拒收边界，不是期望处理时间。
+   先输出独立观察结果；正式切换和控制准入需要后续验证及授权。
+   ZED 图像/深度采集仍留 AGX；BPU 推理留 J6M 原生系统，ROS Noetic chroot
+   与私有 SDK 依赖隔离，不把私有 LD_LIBRARY_PATH 全局注入 ROS。
+
+步骤 5：验证准确率、整帧速度和故障
+   精度：检测召回/误检/小目标，五类逐类指标、宏平均和混淆矩阵；测试集独立。
+   性能：分别测 0/1/4/8 个 crop，覆盖采集、传输、前处理、推理、后处理、跟踪、
+   投票及队列等待，记录 P50/P95/P99、吞吐、丢帧、帧龄及 CPU/BPU/内存。
+   故障：网络断连/延迟、服务崩溃、模型/hash 不匹配、非法张量、推理超时、
+   时钟跳变、重连旧结果、BPU 占用和导航资源竞争。
+   阈值由 E 在基准后明确；当前配置 target_fps=8、min_fps=5 不是本轮验收结论。
+
+   传输预算示例（计算值，非实测）：保留当前 F32 输入时，检测一帧 6.75 MiB；
+   分类单 crop 约 0.574 MiB，8 个合计约 4.594 MiB。
+   总输入约 11.344 MiB，在此前观测到的 1 Gbps 链路上，纯数据序列化理论下限
+   已约 95 ms，尚未包含输出、协议、拷贝和推理。需要实测后决定传输优化。
+
+六、文件范围与其他岗位输入
+
+B 主要修改：
+  distribution/j6m_bpu_navigation/ 内模型转换、执行器、通信、前后处理及测试；
+  autolabor_fod_vision 内识别后端、节点接入和相关测试；
+  B 自己的交接、模型资产清单和证据。
+本轮这些业务实现均未修改，只新增本盘点报告和 runtime 证据。
+
+A 提供/协调：完整团队基线和文件所有权、合法新工作目录/候选部署路径、
+服务生命周期与健康检查、私有依赖部署、空间预算和时间同步。
+现有 build_tensor_executor.sh、tensor_stdio.py 等有旧绝对路径保护，后续应
+参数化并继续验证允许路径，不能删除保护后直接在历史候选里开发。
+E 提供/协调：精度和整帧性能基准、系统故障语义、正式控制准入与整体验收。
+不修改 C 的雷达定位、D 的底盘出口或 E 的控制代码；公共 launch/config
+变更与 A 协调。CenterPoint 的禁止导航影响保护保持。
+
+七、本轮验证、交付和续接
+
+开工状态：继承 29 项 tracked 修改及原 untracked 内容，已保存补丁和 1768 条
+源码/交接文件清单。收尾逐文件核验结果见 final_verification.json。
+SDK 六项锁定检查：6/6 一致；本地/板端可对应源码/文档：22/24 一致。
+PTQ 资产校验命令（退出码 0）：
+  python3 -B distribution/j6m_bpu_navigation/tools/production_ptq.py verify \
+    --workspace runtime/j6m_bpu_migration_20261010/private_ptq --require-calibration
+验证等级：L0 源码/契约/资产核验，加实机网络和文件只读盘点；未完成 L3 模型推理。
+未执行：精度测试、性能测试、故障注入、ROS 联调、部署、提交、推送、合并或运动。
+J6M current：本轮未查询或更改；历史 20260914_095005 不作为当前实时确认结果。
+公共接口：本轮无变更，上文步骤和文件名是后续方案。
+恢复：本轮远端无制品或配置改动；两次盘点的临时本机地址已撤回。
+当前有线失联待恢复；保存的盘点结果仍可用于离线设计，重新实板使用前应复核。
+
+证据目录（均在本分支工作区，runtime 为本地忽略资产，交付时须单独保留）：
+  runtime/bpu_inventory_20261019/
+    scope.txt、existing_files_before.json、existing_changes_before.patch
+    read_board.py、scout_remote.py、details_remote.py
+    scout.json、scout_commands.json、scout_summary.json
+    details.json、details_commands.json、details_summary.json
+    local_assets.json、asset_comparison.json、connectivity_recheck.json
+    final_verification.json、final_git_status.txt
+板端固件、模块、运行库、工具及模型的详细路径/大小/SHA256 在上述原始 JSON 中。
+厂商私有头文件快照仅存本地审计目录，不自动打入公开仓库或公开交付物。
+本报告不能代替 HBM 制品、实际双模型接入或最终验收报告。

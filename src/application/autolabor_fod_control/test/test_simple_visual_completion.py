@@ -40,8 +40,8 @@ class SimpleVisualCompletionTest(unittest.TestCase):
         self.assertEqual(node.last_processed_odom_sequence, 10)
         self.assertFalse(node.odom_queue)
 
-    def test_reaching_point_three_requests_completion_without_stop_or_wheel_gate(self):
-        for distance in (.299, .30, .31):
+    def test_reaching_half_meter_requests_completion_without_stop_or_wheel_gate(self):
+        for distance in (.30, .499, .50, .51):
             with self.subTest(distance=distance):
                 node = self.node()
                 node._begin_forward_pass()
@@ -49,8 +49,8 @@ class SimpleVisualCompletionTest(unittest.TestCase):
                 node._update_blind_odometry = mock.Mock(return_value=progress)
                 node._complete_forward_pass = mock.Mock()
                 node._blind_advance_tick()
-                self.assertEqual(node._complete_forward_pass.called, distance >= .30)
-                if distance < .30:
+                self.assertEqual(node._complete_forward_pass.called, distance >= .50)
+                if distance < .50:
                     node._set_motion.assert_called_once_with(.20, 0.0)
 
     def test_odom_fault_cannot_be_converted_to_success(self):

@@ -1,0 +1,79 @@
+B / vision-bpu / ZED RGB + J6M BPU 实时预览
+记录时间：2026-10-19T21:27:22.157005+08:00
+
+任务与结果
+用户要求打开终端展示相机 RGB 和 YOLO BPU 推理界面，并询问执行设备与延迟定义。
+已打开 xterm 终端以及 Qt 窗口“ZED RGB + YOLO11 | J6M BPU”。
+AGX 继续原 ZED SDK 全分辨率 RGB/深度采集、IMU 和无损发送；新增界面只接收和绘制。
+J6M 复用正式 detector_zed_attempt03.hbm 与 classifier_attempt03.hbm、既有 DNN/UCP 执行器及独占 BPU 锁。
+没有在 AGX 加载推理模型，没有另开 ZED 相机进程。
+实际返回过 1 个检测框，材质预测 plastic；没有真值标注，不能由此认定准确率通过。
+production_ready=false、motion_eligible=false。未连接 ROS 或启动车辆控制。
+
+实时指标
+取样时 RGB-D 14.9919 Hz，IMU 199.9827 Hz；GUI 约 15 FPS。
+真实板端检测模型调用 vendor_infer_ms=6.515684，BPU ratio=11（单次快照）。
+新接收进程该次累计 inferred_frames=2131、classified_objects=2118。
+界面“J6M 处理”：已接收解码的帧取出后，detector_input、检测网络调用、NMS、
+最多 8 个实际框的裁剪/分类以及中心深度取值的总时间；实测约 29 ms。
+不包含 AGX 采集/深度计算、RGB-D 传输解码、预览 JPEG 编码和回传。
+界面“采集至显示”：AGX 当前界面刷新时刻减源相机原始 source_stamp_ns，
+实测约 200–275 ms；包含 J6M 处理，不能把两项再相加。
+它是软件界面刷新时的源帧龄，不是屏幕物理扫描到发光的测量。
+15 FPS 表示更新频率，不能当作端到端延迟倒数；阶段可流水并行。
+本轮仅预览联调和短时取样，没有重新执行准确率或导航竞争验收。
+
+实现
+源码 distribution/j6m_bpu_navigation/camera/：
+receiver.py 新增可选预览发布、完整 detections 列表；原时钟/身份/配对门保持。
+preview_stream.py：J6M 私有 HTTP 17446、绑定 192.168.10.100、限制 AGX 地址与 token。
+每个有效推理结果与其原始 BGR 帧一起放入单槽 RAM；请求线程生成 JPEG quality=90
+显示副本。AGX→J6M 的原始 RGB/32FC1 输入仍按既有 LZ4 无损传输。
+最多两个 HTTP 工作线程，套接字 500 ms 超时；不持续保存预览图片到板端。
+preview_gui.py：AGX Qt 显示 RGB、检测框、材质概率和可用的光学深度。
+显示协议 ZP01 携带同一 session/sequence/source_stamp_ns，校验检测模型 SHA、
+backend 和长度。500 ms 过期时清除画面及检测框；不使用旧非空结果填充当前帧。
+CONTRACT.txt 追加预览契约。Q/Esc 关闭窗口，R 只旋转显示，不改变原始坐标或推理。
+
+当前运行位置与启动入口
+本地源码：/home/slam/j6m-dev-b/distribution/j6m_bpu_navigation/camera
+本轮配置/证据：/home/slam/j6m-dev-b/runtime/zed_preview_20261019_wcbqnxg6
+J6M 接收新版本：/map/j6m-dev-b/camera/releases/20261019_preview_wcbqnxg6
+旧 J6M 版本：/map/j6m-dev-b/camera/releases/20261019_6y_rm3_5 完整保留。
+旧 receiver.py SHA256 仍为 88b6b439135e0e58d8de89826908fa81f13bf721df82f5403289f9b6cac86eb2。
+AGX sender/clock 程序与配置继续原 zed_link_20261019_6y_rm3_5，采集 PID 未改变。
+只切换私有接收/对时 unit 到新版本；AGX camera-link 的 unit/自启动链接指向
+本轮私有 unit，以新 config.json 监督新版 J6M 服务。原 unit/config 均保留。
+J6M ZED direct、vision-bpu 和导航 current 三个选择器均未改变。
+需要重新打开终端和界面时：
+  /home/slam/j6m-dev-b/runtime/zed_preview_20261019_wcbqnxg6/open_terminal.sh
+直接在现有终端打开界面：
+  /home/slam/j6m-dev-b/runtime/zed_preview_20261019_wcbqnxg6/start_preview.sh
+关闭预览只关闭显示，采集和 BPU 继续运行。
+若要停止整条私有相机链，应使用当前配置：
+  python3 -B /home/slam/j6m-dev-b/distribution/j6m_bpu_navigation/camera/agx_services.py /home/slam/j6m-dev-b/runtime/zed_preview_20261019_wcbqnxg6/config.json stop
+恢复整条私有相机链：把上述最后 stop 换成 start。
+返回上一版接收服务的专用入口（此脚本本轮仅语法检查，未再次执行完整回退）：
+  python3 -B /home/slam/j6m-dev-b/runtime/zed_preview_20261019_wcbqnxg6/restore_previous_receiver.py
+它检查 unit 归属后切回旧版及其 supervisor；不会删文件、改网络或启动车辆。
+旧接收没有实时预览端口，回退后窗口将显示断连，按 Q 关闭即可。
+
+验证与实际故障记录
+原 camera_wire 6 项测试在 AGX 和 J6M 通过；新增 Python 语法、Shell bash -n、git diff --check 通过。
+真实预览已连续刷新，取样 8 个有效数据包时序号前进且源帧龄均小于 500 ms。
+真实错误 token 请求被 HTTP 403 拒绝。
+离线篡改序号/源时间、backend/模型哈希、超长和截断报文均被解析器拒绝。
+未实测拔线或 GUI 断流恢复；500 ms 清除逻辑已经实现，不把本次活流验证当作故障验收。
+首次复制包含 chronyc 旧 Unix socket 而中止，排除 socket/pid 后准备完成；没有切换旧服务。
+首次切换等待 18 秒未就绪后自动恢复旧服务；HTTPServer 默认启动会执行反向 DNS，
+改为直接使用绑定 IP 后再次切换通过。原失败记录保留。
+GNOME Terminal 返回创建窗口失败；使用已安装 xterm 实际启动成功，两个窗口及新鲜状态已核验。
+原有 29 个 tracked 修改逐文件 SHA256 保持；未清理、重置、提交或推送。
+
+主要证据
+runtime/zed_preview_20261019_wcbqnxg6/：
+baseline.json、prepare_result.json、prepare_retry_result.json、activate_result.json、activate_retry_result.json；
+first_preview_result.json、validation.json、final_board.json、window_verification.txt；
+preview_status.json（运行时更新）、preview_window.png（当时截图）、FINAL_MANIFEST.json；
+terminal_launch.json、terminal_launch_xterm.json、restore_previous_receiver.py。
+配置 token 只存私有 config.json，不写入源码或报告。

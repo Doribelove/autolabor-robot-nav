@@ -1,0 +1,123 @@
+B / vision-bpu-surround / 三路 GDC 相机接 BPU 与原 Qt 端口切换
+2026-10-23
+
+用户要求
+将现有三个端口分别接入识别模块作为视频输入，原 Qt 目标识别视频顶部增加端口切换，
+修改后打开 Qt。用户未授权提交/推送/合并或车辆运动。
+工作区 /home/slam/j6m-dev-b-surround，分支 vision-bpu-surround，HEAD 仍 5d1028e。
+父 vision-bpu 工作树源码和原稳定工作区保持原样。
+
+当前结果：原 Qt 主程序已打开，视觉页用三路 GDC/BPU 视频替换 ZED 视频，顶部端口 0/1/2
+按钮逐个实测通过；全部三路持续识别，每路约 5 fps。未另做替代 Qt 界面。
+用户随后纠正“新版 Qt”的措辞，明确要求在该分支原有界面替换视频、其他部分保持原样；
+本轮据此执行相机识别输入替换必需的临时 BPU 交接，未扩展到车辆控制。
+当前 session_config.json 的 take_over_existing_bpu=true；原 ZED sender PID2757 和时钟未停。
+关闭本次原 Qt 后恢复旧 BPU 接收/自动拉起服务，已通过停止/恢复检查并重新打开原 Qt。
+旧三路独立 GDC 预览已正常退出，相机由此次识别输入链唯一持有。此前“待确认/未运行”为历史。
+
+实现
+- GDC 采集沿用上一轮实板验证的 RX1 0/1/2、PYM1 layer0、GDC0，输出每路 960x540 NV12，
+  约 120° 透视图。新增采集 session 与 camera_port，LUT 和库配置启动时校验 SHA。
+- BPU 由唯一 operator_server 进程持有原 preview_worker.lock 与一对常驻 HBM，公平轮询
+  三路最新帧，未选中的端口仍持续识别。相机进程与模型进程分离，分别加载匹配的 SDK 环境。
+- 原 BpuEngine / detector_input / classifier_input / NMS / context_crop 保留，检测阈值 0.2，
+  每帧最多 8 个分类 crop、分类预算 40 ms，超预算保留检测框并标为 unknown。
+  两个模型文件与执行器沿用板端现有只读资产，没有复制/修改模型或升级全局依赖。
+- Qt 保留原完整 C++ 界面，视觉页视频顶部增加“端口 0 / 1 / 2”按钮。
+  每个报文包含原图 JPEG 显示副本及该帧识别结果，AGX Qt 解码/绘框，不执行模型推理。
+  同时报两个置信度：D 为垃圾检测，C 为五材质分类。空检测帧会清框。
+- 端口切换清除旧图；请求代号和数值端口挡住迟到结果。图像/结果 session、sequence、
+  原时间字段必须一致；拒绝未知模型、错误尺寸、坏框/概率、倒序及已退休会话。
+- 只使用 SDK 读帧 monotonic 年龄做 500 ms 显示缓存门，保留 raw_stamp/hal_received_ns。
+  未验证曝光时钟映射，不伪造 ROS acquisition stamp；推理耗时为板端处理时间。
+  此直接预览接口没有发布 /fod/detections 或其他 ROS 检测/控制消息。
+- 没有安装外参、深度、跟踪 ID 或地图位置，不把三路透视识别当作 BEV/完整环视验收。
+  production_ready=false、motion_eligible=false、accuracy_verified=false、source_clock_verified=false。
+
+本次文件
+ src/application/autolabor_operator_gui/src/main_window.cpp
+ src/application/autolabor_operator_gui/include/autolabor_operator_gui/main_window.h
+ src/application/autolabor_operator_gui/CMakeLists.txt
+ src/application/autolabor_operator_gui/src/surround_preview_client.cpp
+ src/application/autolabor_operator_gui/include/autolabor_operator_gui/surround_preview_client.h
+ src/application/autolabor_operator_gui/src/surround_integration.cpp
+ src/application/autolabor_operator_gui/test/test_surround_preview.cpp
+ distribution/j6m_bpu_navigation/surround/gdc_diagnostic.py
+ distribution/j6m_bpu_navigation/surround/operator_protocol.py
+ distribution/j6m_bpu_navigation/surround/operator_server.py
+ distribution/j6m_bpu_navigation/surround/operator_board_session.py
+ distribution/j6m_bpu_navigation/surround/operator_session.py
+ distribution/j6m_bpu_navigation/surround/operator_env.sh
+ distribution/j6m_bpu_navigation/surround/operator_qt.sh
+ distribution/j6m_bpu_navigation/surround/tests/test_operator_protocol.py
+ distribution/j6m_bpu_navigation/surround/README.md
+
+运行与回收
+本地构建/日志/Qt 配置均在 runtime/surround_operator/；只读复用稳定版已生成消息/ROS 依赖。
+板端当前候选 /map/j6m-dev-b/vision-bpu-surround/operator_20261023_2/（24 个清单文件）。
+_1 是首次缺失 production_ptq.py / production_models.json 的候选，保留失败日志和制品。
+代码在 code/，已校验相机资产在 assets/，配置与 MANIFEST.json 在根目录。
+Python 板端依赖只读复用原模型环境：cv2 4.10.0、numpy 1.26.4、Pillow 10.4.0，导入通过。
+新 transient 用户服务 j6m-b-surround-operator.service；私有 ROS master 127.0.0.1:11342；
+板端 GDC HTTP 127.0.0.1:18780，识别 HTTP 127.0.0.1:18781，后者由专属 SSH 隧道转发。
+
+输入替换时，入口先正常关闭已核对 PID 的上一轮 GDC Qt 预览，再仅暂停
+j6m-b-camera-link.service（AGX 旧 BPU 自动拉起）及 j6m-b-camera-receiver.service（板端旧接收）。
+旧 ZED sender、两端时钟服务、导航/控制不动。新进程沿用原相机锁/BPU 锁，冲突则拒绝启动。
+关闭识别 Qt 或 operator_qt.sh stop 后，结束本次子进程/ROS/隧道，确认 BPU 锁已释放，再恢复
+这次实际暂停的旧服务。恢复前状态记录在 runtime/surround_operator/restore_state.json。
+异常应核对本地 session.log、板端独立 gdc_*.log/inference_*.log 和 session.json；不使用 killall。
+
+固定模型身份（板端只读 sha256sum 与本地预期一致）
+ detector_zed_attempt03.hbm f2f1f7e9753b53b0494495be44af92a0603b3ee6c71e69e0f58a0d50544a8cb8
+ classifier_attempt03.hbm d4cb80f5f7364d1156ea2275eba9e522991dec309f2c397e74649254fe36a89f
+ libj6m_tensor.so 5c99bafb0531fac9f8e84c49c8c2d0a6d8e852e5c2217e62750dce93b4a14e3d
+
+验证证据 validation/surround_operator_20261023/
+- 开工 git status、允许修改的原文件备份、任务范围。
+- Release build.log：原 Qt 构建成功；build_final.log 为后续环视文案的增量构建。
+- protocol_tests.log：10 项源身份、跨端口、过期/未来时间、重复/倒序/退休会话及报文边界通过。
+- qt_preview_tests.log/xml：5 项真实 Qt 解码、坏报文、模型/标记校验、网络切换迟到响应、断流
+  清图及恢复通过；bwrap 独立网络/PID、合成 dev、QT_QPA_PLATFORM=offscreen，无车辆连接。
+- existing_qt_contracts.log：原 Qt 52 项源码契约通过。
+- 初期仅有 22 项源码/资产 SHA、Python 编译和数值依赖导入检查；该阶段未加载 BPU。
+  随后的 _2 完整 24 项预检及实际 BPU 加载/推理结果见下文，不能将初期检查当作最终状态。
+- 一次辅助校验脚本误用 Python 3.9 的 str.removeprefix，在本机 3.8 报错；改为切片后校验
+  通过。该错误不在运行代码中，未造成源码/制品改动。
+
+实际验证补充
+- 第一次启动：三个 GDC 端口均启动成功，BPU 在导入 production_io 的传递依赖时失败，
+  缺 production_ptq.py。会话自动回收相机/模型子进程，并恢复原 ZED 接收/自动拉起服务。
+  _2 补齐 production_ptq.py 与 production_models.json，新增实际 import + contract + 全包
+  SHA 预检，预检在停止旧服务前执行。完整失败与后续成功日志见 board_logs.txt / session.log。
+- _2 实机 24 个配对图像/结果检查全部通过：三端口身份、源会话/序号、GDC 标记、模型后端、
+  图像结果相等和 500 ms SDK 读帧缓存门一致。采样中每路识别计数增加 11，序号增加 66。
+  此窗口均为空目标画面，板端平均处理 22.51 ms，检测器约 6~7 ms；不能当成分类压力或精度验收。
+- 实际板端采集进程打开 /dev/gdc0_*、/dev/pym1_*、/dev/vin1_*、/dev/port_0/1/2；
+  识别进程打开 /dev/bpu、/dev/bpu_core0，加载原 libj6m_tensor/libdnn/libhbrt4，见 board_device_audit.json。
+- 原 Qt 窗口标题仍“Autolabor 无人车操作与诊断台”，可执行文件是本分支
+  runtime/surround_operator/devel/lib/autolabor_operator_gui/autolabor_operator_gui_node。
+  原页签、右侧面板、控制控件及 RViz 开关保留，仅增加视觉视频上方端口选择和输入显示适配。
+  原 Qt 配置只读复制到本次私有 qt-config，未改全局/父分支 Qt 设置。
+- 按实际窗口坐标点击 1 -> 2 -> 0，截图核对按钮高亮、画面、顶部相机状态、检测列表端口一致；
+  同时其余端口的识别计数继续增加。证据 original_qt_selected_port*.png、live_button_test.json。
+- 解决直接预览接入后原顶部“相机/视觉模型”卡片仍读旧 ROS 流的问题；原卡片改读当前环视
+  显示源状态。视频区最小高度在环视模式减少 80 px，为顶部按钮留空间，防止挤压原来源行/列表。
+  此外不调整原 Qt 页面布局或导航/清扫/控制代码。
+- 一次 stop 验证本次会话 inactive、板端 18781 不再监听，旧 receiver 恢复 active，AGX
+  自动拉起服务恢复 active，原 ZED sender 仍 PID2757；随后再次启动原 Qt。见 close_restore_check.json。
+- 本次 ROS 图仅 /autolabor_operator_gui 和 /rosout，位于私有 11342；没有启动导航或车辆控制。
+  原其他设备面板无数据符合本次识别联调范围，不代表导航/底盘功能被删除。
+
+最终显示复核
+- build_video_space.log 构建通过，原 Qt 最终于 17:43 重新打开（PID3357339）。
+  final_original_qt_port1.png、final_original_qt_port2.png 显示来源行/检测列表已无挤压。
+- 桌面同时有人操作其他窗口，坐标点击脚本对端口 0 的一次点击被其他窗口接收；
+  final_original_qt_port0.png / final_checked_qt_port0.png 实际仍为端口 2，不能当作端口 0 证据。
+  随后对已核对的原 Qt 窗口定向发送按钮事件，端口 0 高亮、状态与视频均切换成功，见
+  final_targeted_port0.png。保留上述未命中的截图，不按文件名推定成功。
+- 最后原 Qt 持续显示，桌面操作已切到原 BPU 预览页；final_original_operator.png
+  可见同一源帧的 GDC 图与检测/材质标注。现场有分类框输出，不作为分类精度验收。
+
+没有刷机、改安装外参/曝光映射、提交/推送/合并或清理原资产。真实分类/检测精度、BEV 和
+控制接入仍待后续实验；当前结果是原 Qt 的三路识别输入与端口显示切换通过。

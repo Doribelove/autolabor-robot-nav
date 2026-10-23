@@ -1,0 +1,103 @@
+B camera transport v1 — 2026-10-19
+
+AGX runs ZED SDK 4.2.5 directly (C++, no Python SDK dependency). Camera serial
+23748636, HD720 1280x720 @ 15 Hz, QUALITY depth in meters, stabilization 0,
+no positional tracking. VIEW::LEFT is the rectified, full acquisition-resolution
+BGRA image aligned to MEASURE::DEPTH. It is not Bayer/unrectified video.
+No AGX resizing, ROI selection, normalization, inference, or depth quantization.
+
+Image/depth: AGX 192.168.10.50 -> J6M 192.168.10.100 TCP 17441.
+Header: 4 bytes ZB01, u32 big-endian JSON byte count (max 65536), u32 big-endian
+body byte count. JSON identifies source serial/session/sequence, two immutable
+SDK UNIX-nanosecond acquisition stamps, optical frame, calibration and sizes.
+Body: separate LZ4 blocks, full 1280x720x4 BGRA bytes followed by full
+1280x720 little-endian float32 depth bytes. CRC32 of each original plane is
+checked after decompression. NaN/Inf and their bit patterns are preserved.
+One latest-frame slot bounds capture/network backlog. Old buffered frames are
+not restamped on reconnect; the sender reconnects and selects current data.
+
+IMU protocol 2: separate TCP 17442; u32 big-endian JSON byte count, max 8192.
+Independent fast SDK CURRENT polling; unique native samples selected on a
+200 Hz timestamp grid. No interpolation or invented timestamps. Both calibrated
+and uncalibrated acceleration (m/s^2), angular velocity (deg/s), orientation
+(xyzw), covariance matrices, image-sync indicator, serial/session/sequence,
+and original SDK timestamp are carried. Sampling at 200 Hz deliberately selects
+from the approximately 400 Hz native IMU; it is not a claim to transmit every
+400 Hz hardware sample. Consumers must convert angular units for ROS rad/s.
+Frame ID zed2_imu_sdk_image_frame denotes the explicitly selected SDK IMAGE
+basis. It is not the legacy ROS wrapper's zed2_imu_link: that wrapper selects
+RIGHT_HANDED_Z_UP_X_FWD. A future ROS adapter must convert vector, quaternion,
+covariance and extrinsic bases consistently rather than just copying frame IDs.
+TCP 17442 replaced the initial UDP candidate after two sequence gaps were
+observed. That initial failure and its measurements remain in the handoff.
+
+Longer operation also exposed SDK IMU timestamps slightly ahead of host time.
+The original stamp is still transmitted unchanged. Separate AGX SDK-read begin
+and end wall-clock stamps identify transport delay and the observed SDK/host
+skew; they never replace acquisition time. J6M gates transport age <=500 ms,
+read-call duration <=100 ms and SDK/read separation <=500 ms, then retains the
+raw sample and reports timing.fusion_time_valid (original SDK age -5..500 ms).
+Samples with a future SDK stamp are marked unusable for fusion instead of
+disconnecting the raw data channel and losing subsequent samples.
+source_clock_alignment_accepted=false and fusion_eligible=false remain explicit
+for this candidate; physical IMU/camera timing still needs independent validation.
+No corrected acquisition timestamp is invented. Clock-reference loss continues
+to reject input. This separates complete raw-data delivery from algorithmic use.
+
+Calibration: raw and rectified intrinsics, stereo transform, SDK T_left_from_imu,
+dimensions, units, optical/IMU frame IDs. SDK IMAGE axes: x right, y down,
+z forward. Depth is optical Z, not Euclidean range. Current physical robot-mount
+transform is explicitly unverified; no invented base_link/map transform is sent.
+
+J6M checks peer address, deployment token, model/camera identity, length bounds,
+CRC, calibration consistency, increasing sequences/timestamps, retired source
+sessions, <=20 ms RGB-D pairing, <=500 ms age and synchronized clocks.
+The token is a private-network admission guard, not encryption. Only the
+dedicated AGX/J6M wired addresses are bound. No ROS or control messages are sent.
+
+Clock: AGX uses existing system NTP discipline. A private time reference serves
+NTP at UDP 17444, and four-timestamp probes at UDP 17443. A private Debian ARM64
+chronyd 4.3 on J6M disciplines its system clock to AGX; original timesyncd is
+stopped while this runs and restored by stop/rollback. Probe results must be
+fresh <=5 seconds, measured RTT <10 ms, absolute clock offset <20 ms; otherwise
+RGB-D and IMU are rejected. Chrony monitor is loopback-only UDP 17445.
+No clock packet alters camera acquisition timestamps. Initial chrony convergence
+can deliberately cause data rejection; no old image is made fresh to hide this.
+
+Optional J6M observation worker uses both pinned formal HBM models and the
+existing exclusive BPU lock. Resize/crop/normalize/NMS/classification occur on
+J6M. At most 8 actual detections per frame are classified; excess is reported.
+Simple center-depth output is diagnostic only. Original BoT-SORT, material voting,
+robust depth fusion and ROS candidate delivery remain a separate integration.
+production_ready=false and motion_eligible=false are mandatory.
+
+Optional live display: J6M TCP 17446, authenticated GET /frame, wired AGX peer
+only. The BPU worker publishes one immutable (source BGR image, inference result)
+pair in RAM after a successful fresh inference. The display worker encodes a
+JPEG quality-90 copy on request; this does not change the full-resolution,
+lossless AGX -> J6M RGB/depth input. At most two HTTP workers are allowed and
+client deadlines are bounded. No continuous preview images are saved to disk.
+Wire: ZP01, u32 big-endian metadata length <=65536, u32 JPEG length <=4 MiB,
+then JSON and JPEG. Image and result share session/sequence/source_stamp_ns;
+the viewer verifies these identities, the pinned detector hash and backend.
+All detected boxes are provided; at most eight receive material classification.
+The AGX Qt viewer only decodes/draws the display copy. It loads no inference
+model and opens no camera. Source frames older than 500 ms clear the display
+and boxes; acquisition timestamps are never refreshed to hide delay.
+Closing the viewer leaves capture, clock and BPU services running. R rotates
+only the displayed image/overlays, not calibration or inference coordinates.
+
+Lifecycle: 3 AGX user services (clock, sender, board supervisor) are independent.
+The board supervisor restores only the 2 private J6M services after SSH returns.
+J6M unit definitions/artifacts live under /map/j6m-dev-b/camera/releases; runtime
+systemd links are recreated by the AGX supervisor after board reboot. No J6M
+boot/init/rootfs image is modified. This mechanism requires AGX to recover the
+receiver after a board reboot, which is consistent with AGX owning the camera.
+Reboot behavior is configured; only process/connection recovery was bench-tested.
+
+State/health/result JSON files are bounded snapshots. Every result retains its
+source timestamp and session; consumers must reject stale snapshots, even if a
+latest_result.json file remains after stop. No continuous image/bag archive is
+written. One PNG+float32 NPY proof pair is retained; operational journal records
+are generated by systemd. The first release and all prior navigation/ZED/BPU
+selectors are preserved.

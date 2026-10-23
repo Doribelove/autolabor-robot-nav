@@ -10,8 +10,8 @@ from sweeper_mcp.navigation_grounding import (map_targets, relative_targets,
                                               unresolved_reference_error)
 
 
-def map_step(x=8, y=0, yaw=0):
-    return _step("navigate_map_pose", {"x_m": x, "y_m": y, "yaw_deg": yaw})
+def map_step(x=8, y=0, yaw=None):
+    return _step("navigate_map_pose", dict(x_m=x, y_m=y, **({"yaw_deg": yaw} if yaw is not None else {})))
 
 
 def assert_rejected(text, steps):
@@ -67,6 +67,21 @@ def test_explicit_map_point_then_cleaning_is_preserved():
 def test_wrong_coordinates_and_yaw_are_rejected():
     assert_rejected("到地图坐标(1,2)", [map_step(8, 0)])
     assert_rejected("到地图坐标(1,2)", [map_step(1, 2, 90)])
+    assert_rejected("到地图坐标(1,2)", [map_step(1, 2, 0)])
+    assert_rejected("到地图坐标(1,2)，朝向90度", [map_step(1, 2)])
+
+
+def test_explicit_origin_yaw_and_default_unconstrained_point():
+    assert map_targets("回到地图原点，朝向90度") == [(0, 0, 90)]
+    assert map_targets("到地图坐标(1,2)") == [(1, 2, None)]
+    for text, yaw in (("到地图坐标(1,2)", None),
+                      ("到地图坐标(1,2)，朝向0度", 0),
+                      ("到地图坐标(1,2)，朝向负90度", -90)):
+        result = _runner({"steps": [map_step(1, 2, yaw)]}).run(text, execute=False)
+        assert result["state"] == "PREVIEW"
+    assert_rejected("到地图坐标(1,2)，朝向东", [map_step(1, 2)])
+    assert_rejected("到地图坐标(1,2)，朝向东", [map_step(1, 2, 0)])
+    assert map_targets("地图坐标(1,2)，航向角度90度") == [(1, 2, 90)]
 
 
 def test_numbers_in_region_name_or_repeat_count_are_not_a_point():
@@ -74,11 +89,11 @@ def test_numbers_in_region_name_or_repeat_count_are_not_a_point():
 
 
 def test_origin_and_numeric_notations():
-    assert map_targets("最后返回地图原点") == [(0, 0, 0)]
-    assert map_targets("回到地图上面的原点") == [(0, 0, 0)]
-    assert map_targets("先回地图零点") == [(0, 0, 0)]
-    assert map_targets("回到原点") == [(0, 0, 0)]
-    assert map_targets("回零点") == [(0, 0, 0)]
+    assert map_targets("最后返回地图原点") == [(0, 0, None)]
+    assert map_targets("回到地图上面的原点") == [(0, 0, None)]
+    assert map_targets("先回地图零点") == [(0, 0, None)]
+    assert map_targets("回到原点") == [(0, 0, None)]
+    assert map_targets("回零点") == [(0, 0, None)]
     assert map_targets("回到起点") == []
     assert map_targets("到地图坐标（负一点五，二），朝向90度") == [(-1.5, 2, 90)]
     assert map_targets("map x=3, y=-2, yaw_deg=45") == [(3, -2, 45)]
@@ -86,8 +101,8 @@ def test_origin_and_numeric_notations():
 
 
 def test_relative_explicit_offsets():
-    assert relative_targets("向前两米，然后向右一点五米，左转九十度") == [(2, 0, 0), (0, -1.5, 90)]
-    assert relative_targets("后退0.5米，再顺时针转30度") == [(-0.5, 0, 0), (0, 0, -30)]
+    assert relative_targets("向前两米，然后向右一点五米，左转九十度") == [(2, 0, None), (0, -1.5, 90)]
+    assert relative_targets("后退0.5米，再顺时针转30度") == [(-0.5, 0, None), (0, 0, -30)]
 
 
 def test_preview_history_does_not_authorise_reusing_coordinates():

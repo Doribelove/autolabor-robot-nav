@@ -1,0 +1,9 @@
+B / vision-bpu / 预览置信度显示最终修订
+
+用户最终要求：保留检测置信度，分类显示最高概率的一类及对应置信度；不再把通用垃圾检测类与材质类并列为两种类别。
+已在 preview_gui.py 实施：检测置信度 XX.X% | 分类：塑料 YY.Y%（示例）。分类取五类 probabilities 的 argmax，顺序为金属、塑料、纸类、玻璃、厨余；无分类结果显示待分类。
+仅重启 AGX 显示进程，未改 J6M 模型、阈值、相机采集或 BPU 服务。实时界面恢复约 15 FPS。
+实际代码 SHA256：b4a51393618afb8a9a802b34f9c17854923cfc1956a5ce9e4d946cbb7b248129
+最新清单：runtime/zed_preview_20261019_wcbqnxg6/FINAL_MANIFEST_v3.json。
+前两版 UI 源码及检查记录保存在 confidence_labels_revision/；最新实机截图 highest_class_window.png。
+启动和停止方法沿用 20261019_bpu_rgb_live_preview.txt。未提交或推送。

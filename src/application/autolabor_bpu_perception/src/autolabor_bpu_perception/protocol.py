@@ -6,6 +6,8 @@ command, deserialization of Python objects, or robot-control operation.
 import json
 import math
 import os
+from pathlib import PurePosixPath
+import re
 import select
 import socket
 import struct
@@ -17,6 +19,20 @@ MAGIC = b'ABP1'
 MAX_JSON = 256*1024
 MAX_PAYLOAD = 300000*5*4
 PORT = 11681
+DEFAULT_SSH_TARGET = 'root@192.168.10.100'
+DEFAULT_RELAY_PATH = '/map/robot_j6m_navigation_20260907/bpu_perception_20260906/tools/stdio_relay.py'
+
+
+def relay_command(target, path):
+    """SSH uses a remote shell even with an argv list; accept literal paths only."""
+    if (not isinstance(target, str) or not re.fullmatch(
+            r'(?:[A-Za-z_][A-Za-z0-9_-]*@)?[A-Za-z0-9][A-Za-z0-9.-]*', target)):
+        raise ValueError('Invalid BPU SSH target')
+    if (not isinstance(path, str) or not re.fullmatch(r'/map/[A-Za-z0-9_./-]+', path)
+            or '..' in PurePosixPath(path).parts or not path.endswith('/stdio_relay.py')):
+        raise ValueError('BPU relay must be a literal /map/.../stdio_relay.py path')
+    return ['ssh', '-T', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=4',
+            target, 'python3', '-u', path]
 
 
 def _read(stream, count, deadline):
@@ -89,12 +105,11 @@ def validate_request(header, payload):
 
 
 class Client:
-    def __init__(self, remote=False, timeout=2.0):
+    def __init__(self, remote=False, timeout=2.0,
+                 ssh_target=DEFAULT_SSH_TARGET, relay_path=DEFAULT_RELAY_PATH):
         self.child=None; self.socket=None; self.timeout=timeout
         if remote:
-            self.child=subprocess.Popen(['ssh','-T','-o','BatchMode=yes','-o','ConnectTimeout=4',
-                'root@192.168.10.100','python3','-u',
-                '/map/robot_j6m_navigation_20260907/bpu_perception_20260906/tools/stdio_relay.py'],
+            self.child=subprocess.Popen(relay_command(ssh_target, relay_path),
                 stdin=subprocess.PIPE,stdout=subprocess.PIPE,bufsize=0)
             self.reader,self.writer=self.child.stdout,self.child.stdin
         else:

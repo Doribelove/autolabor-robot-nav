@@ -117,8 +117,8 @@ graph_check_interval_sec: 0.50
 # Positive offset moves the desired pickup line to the right in the image.
 use_camera_principal_point: true
 target_u_offset_px: 0.0
-min_acquire_anchor_v_fraction: 0.20
-max_acquire_anchor_v_fraction: 0.80
+min_acquire_anchor_v_fraction: 0.03
+max_acquire_anchor_v_fraction: 0.97
 # Accept targets across the central 65% of the image width. Keep a small
 # margin inside the runtime gate so pixel jitter cannot acquire and then
 # immediately abort at the edge.
@@ -138,7 +138,7 @@ duplicate_detection_max_depth_delta_m: 0.15
 pixel_filter_alpha: 0.35
 
 # Completion: ten consecutive fresh frames without the locked target,
-# then measure an additional 0.30 m forward from current odometry.
+# then measure an additional 0.50 m forward from current odometry.
 # No bottom/center/area/minimum-approach/time gate. Reappearance resets count.
 loss_confirm_frames: 10
 
@@ -188,7 +188,7 @@ settle_wheel_angle_deg: 2.0
 settle_speed_mps: 0.03
 final_stop_speed_mps: 0.01
 blind_speed_mps: 0.20
-blind_distance_m: 0.30
+blind_distance_m: 0.50
 blind_hard_distance_m: 0.55
 blind_timeout_sec: 12.0
 blind_no_motion_timeout_sec: 2.0

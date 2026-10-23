@@ -7,6 +7,7 @@
 #include <autolabor_coverage/CoverageStatus.h>
 #include <autolabor_operator_gui/coverage_region_store.h>
 #include <autolabor_operator_gui/pending_litter_page.h>
+#include <autolabor_operator_gui/surround_preview_client.h>
 #include <autolabor_fod_msgs/FodDetectionArray.h>
 #include <autolabor_fod_msgs/FodVisionDetectionArray.h>
 #include <autolabor_fod_msgs/FodMapPositionArray.h>
@@ -566,6 +567,12 @@ private:
   ros::Subscriber bpu_preview_status_subscriber_;
   bool bpu_preview_subscribed_ = false;
   bool bpu_show_raw_ = false;  // GUI writes and callback reads under snapshot_mutex_.
+  bool surround_mode_ = false;
+  SurroundPreviewClient* surround_preview_ = nullptr;
+  QLabel* surround_port_status_ = nullptr;
+  QWidget* buildSurroundPortBar(QWidget* parent);
+  void setupSurroundPreview();
+  void refreshSurroundPreview();
   ros::Subscriber detections_subscriber_;
   ros::Subscriber vision_results_subscriber_;
   ros::Subscriber vision_positions_subscriber_;

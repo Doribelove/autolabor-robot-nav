@@ -185,6 +185,30 @@ def test_return_digest_is_checked_before_goal_publication():
     assert published == []
 
 
+def test_omitted_yaw_dispatches_a_per_goal_free_policy_not_a_zero_heading():
+    backend, _ = _backend()
+    dispatched = []
+    backend._publish_owned_goal = lambda *args, **kwargs: (dispatched.append((args, kwargs)) or ToolResult("ok"))
+    assert not backend.navigate_map_pose(.25, 1.25).is_error
+    assert dispatched[0][1]["yaw_free"] is True
+    assert dispatched[0][1]["expected_map_digest"]
+    assert not backend.navigate_map_pose(.25, 1.25, 0).is_error
+    assert "yaw_free" not in dispatched[1][1]
+    assert dispatched[1][0][3] == 0.
+
+
+def test_unconstrained_relative_point_uses_frozen_map_pose_and_rotated_offset():
+    backend, _ = _backend()
+    backend._capture_map_pose = lambda: (dict(x_m=1., y_m=2., yaw_deg=90., map_digest="a"*64), "")
+    calls = []
+    backend.navigate_map_pose = lambda *a, **kw: (calls.append((a, kw)) or ToolResult("ok"))
+    assert not backend.navigate_relative(2., 1.).is_error
+    assert math.isclose(calls[0][0][0], 0., abs_tol=1e-10)
+    assert math.isclose(calls[0][0][1], 4., abs_tol=1e-10)
+    assert len(calls[0][0]) == 2 and "yaw_deg" not in calls[0][1]
+    assert calls[0][1]["expected_map_digest"] == "a"*64
+
+
 def _capture_fixture(age=0.1):
     backend, published = _backend()
     class Stamp:

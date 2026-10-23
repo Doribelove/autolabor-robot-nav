@@ -57,7 +57,7 @@ class MockBackend:
     def get_visual_servo_status(self):
         return self._result(self.visual)
 
-    def navigate_relative(self, forward_m, left_m, delta_yaw_deg):
+    def navigate_relative(self, forward_m, left_m, delta_yaw_deg=None):
         failed = self._record("navigate_relative", locals())
         if failed:
             return failed
@@ -65,7 +65,7 @@ class MockBackend:
         self._finish(self.nav, "succeeded")
         return self._result(self.nav)
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg, expected_map_digest=""):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None, expected_map_digest=""):
         failed = self._record("navigate_map_pose", locals())
         if failed:
             return failed

@@ -1,0 +1,46 @@
+B 线 J6M/BPU 只读连接验证与会话范围续接
+时间：2026-10-19T15:59:48.429345+08:00
+工作目录：/home/slam/j6m-dev-b
+分支：vision-bpu；HEAD：5d1028efa93cf34d2179b03384085c87a456402a
+共同规则：v3.0，SHA256 f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a
+规则本地保存：.git/vision-bpu-setup/team-rules-v3.txt
+
+最新用户范围（本条优先于继承文档中的历史工作路径）：
+“你能尝试连接吗(从现在开始,本对话只处理j6m-dev-b文件夹(vision-bpu分支内的东西)”
+后续本对话的项目文件操作限定本目录、vision-bpu 分支；不修改原稳定目录或其他开发线。
+本轮按该连接请求，执行临时主机网络连接和板端只读查询；不继承历史部署/运动授权。
+
+连接结果：
+- 本机 eth0 身份 4c:bb:47:4c:29:6a，载波 1，1 Gbps；原地址 192.168.1.50/24。
+- 最初访问 192.168.10.100 走 Wi-Fi 默认路由。
+- 使用 nmcli device modify eth0 +ipv4.addresses 192.168.10.50/24，只改当前活动连接，不改持久 profile。
+- 路由随即成为 192.168.10.100 dev eth0 src 192.168.10.50。
+- Ping 2/2 成功，0% 丢包；严格校验既有主机密钥的 root@192.168.10.100 SSH 成功。
+- SSH 使用非交互认证、关闭持久连接和主机密钥更新；未改 ~/.ssh/config 或 known_hosts。
+- 板端 hostname=hobot，machine=aarch64，kernel=6.1.158-rt58-g4f685f73e030。
+- 设备树实际 model=Horizon Robotics J6E MatrixB Development Board；compatible=hobot,j6e-matrixB，原样记录，不据名称推断其他芯片变体。
+
+BPU 只读观测：
+- 设备节点 /dev/bpu、/dev/bpu_core0、/dev/dcore0_rpmsg_bpu 和 /dev/ion 存在。
+- 内核已加载 bpu_hw_io_j6、bpu_stl、bpu_cores、bpu_framework。
+- /sys/devices/system/bpu/core_num=1，ratio=0；快照中 users 无使用者、task_running 为空。
+- bpu0/fw_version 原始读数为 0.0.0，仅记录，不把它作为已核验的实际运行固件版本。
+- 原板端 bpu_production_20261010/build_v5/libj6m_tensor.so 可访问。
+- 原板端 bpu_lab_20260905/models/fcos_nash_m/model.hbm，以及 vendor/runtime_4_9_2/lib 下 libdnn.so、libhbucp.so、libhbrt4.so 可访问。
+- 上述为设备状态与文件目录/元数据检查；未运行模型、未加载推理库、未测试推理协议或正式垃圾双模型。
+- 未读取/更改车辆导航 current，也未启动 ROS、导航、相机、采集或任何车辆动作。
+
+收尾：
+- 已使用 nmcli device modify eth0 -ipv4.addresses 192.168.10.50/24 撤回本次临时地址。
+- 原 eth0 地址集合、持久 IPv4 profile 和默认路由逐项核对恢复/保持一致。
+- 板端只执行 python3 -B 的只读查询；无板端源码、模型、服务、驱动或网络写入。
+- 现有 Git 状态核对不变；仅新增本交接，查询证据写在本副本 runtime 中。
+- 未提交、推送、合并或部署。原有 29 项 tracked 改动及所有 untracked 源码保留。
+- 当前不保留联网会话/临时地址。后续要再连板端，须按当前授权范围临时恢复本机该网段；不要把本轮成功误写成持续连接状态。
+
+证据：
+/home/slam/j6m-dev-b/runtime/bpu_connectivity_20261019_bjix418f/commands.json
+/home/slam/j6m-dev-b/runtime/bpu_connectivity_20261019_bjix418f/board_readonly_inventory.json
+/home/slam/j6m-dev-b/runtime/bpu_connectivity_20261019_bjix418f/summary.json
+验证等级：无模型执行的网络/SSH/设备状态只读检查；不是 BPU 推理、性能、精度或车辆验收。
+下一步仍按实际任务授权执行；共同团队基线和开发/部署入口状态见分支创建交接，未在本轮变更。

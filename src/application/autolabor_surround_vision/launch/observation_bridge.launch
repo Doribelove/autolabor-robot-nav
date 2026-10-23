@@ -1,0 +1,24 @@
+<launch>
+  <arg name="code_root"/>
+  <arg name="session_dir"/>
+  <arg name="pose_output"/>
+  <arg name="map_id"/>
+  <arg name="map_covariance_floor_m2"/>
+  <arg name="base_frame" default="base_link"/>
+  <arg name="odom_topic" default="/Odometry"/>
+  <arg name="localization_status_topic" default="/fast_lio/localization_status"/>
+  <arg name="publish_legacy_observations" default="false"/>
+  <group ns="surround">
+    <node pkg="autolabor_surround_vision" type="surround_bridge.py" name="observation_bridge" output="screen">
+      <param name="code_root" value="$(arg code_root)"/>
+      <param name="session_dir" value="$(arg session_dir)"/>
+      <param name="pose_output" value="$(arg pose_output)"/>
+      <param name="map_id" value="$(arg map_id)"/>
+      <param name="map_covariance_floor_m2" value="$(arg map_covariance_floor_m2)"/>
+      <param name="base_frame" value="$(arg base_frame)"/>
+      <param name="odom_topic" value="$(arg odom_topic)"/>
+      <param name="localization_status_topic" value="$(arg localization_status_topic)"/>
+      <param name="publish_legacy_observations" value="$(arg publish_legacy_observations)"/>
+    </node>
+  </group>
+</launch>

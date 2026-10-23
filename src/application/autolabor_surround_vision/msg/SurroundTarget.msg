@@ -1,0 +1,14 @@
+string target_id
+string status
+string material
+float32 detect_confidence
+float32 classify_confidence
+geometry_msgs/Point point_map
+float64[4] covariance_xy
+time first_observed
+time last_observed
+uint32 independent_observations
+uint32 visible_misses
+autolabor_surround_vision/SurroundSource[] sources
+bool production_ready
+bool motion_eligible

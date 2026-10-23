@@ -1,0 +1,38 @@
+环视试验分支创建交接
+完成时间：2026-10-20T17:28:53.164396+08:00
+
+来源工作目录：/home/slam/j6m-dev-b
+父分支：vision-bpu
+新工作目录：/home/slam/j6m-dev-b-surround
+新分支：vision-bpu-surround
+原项目主线：/home/slam/robot_j6m_ws_navigation_20260907，分支 0914
+Git 基础 HEAD：5d1028efa93cf34d2179b03384085c87a456402a
+共享 Git 数据库：/home/slam/j6m-dev-b/.git
+
+本次采用独立 Git worktree，父目录仍处于 vision-bpu。Git 只新增 vision-bpu-surround 引用及其工作树登记，其他引用、父分支 HEAD、父索引 SHA256 和父工作树 Git 状态均核验不变。
+完整继承父工作树的未提交和未跟踪源码，包括 distribution/j6m_bpu_navigation、既有交接、方案.txt 和 bev/方案.txt。
+已复制 85825 个普通文件、1203 个符号链接，共 14728861481 字节；包含 runtime 内的 ONNX/HBM、校准资料、转换环境、部署证据与工具。逐文件目标 SHA256、权限、链接目标验证通过；普通文件不与父目录共用 inode。
+新旧分支目前同一 HEAD；继承的现有改动仍未提交，本轮没有创建提交或推送，不能仅从 HEAD 取得完整当前成果。
+
+例外与运行态隔离
+bev/bev环视.zip 在复制期间持续增长，ZIP 中央目录尚不可读取，暂未复制；原文件保持原位，见 bev/待同步压缩包.txt。
+父 ZED 服务持续更新的 board_supervisor.json 与 sender.json 复制时内容有效，但随后自然更新；本副本将其整个 state 目录移动至 runtime/inherited_session_state/zed_link_20261019_6y_rm3_5/state，仅保留历史快照，不作为本分支运行状态。
+所有其他文件哈希核验通过。现存运行工具中仍可能有父目录或旧部署的绝对路径；复制不等于本分支已完成路径适配或可直接部署，首次运行须检查设备、进程和文件写入归属。
+
+本轮新增或修改（仅新工作树）
+AGENTS.md：增加本分支当前目录、范围、历史状态边界及共享 Git 数据库说明；继承原文完整保留。
+bev/待同步压缩包.txt：记录仍在写入的源资料包，未伪造完整复制。
+docs/team/handoffs/B/20261020_surround_branch_setup.txt：本交接。
+runtime/inherited_session_state/：归档复制来的旧会话状态目录。
+
+验证与证据：/home/slam/j6m-dev-b/.git/surround-branch-setup/20261020_172242
+baseline.json、source-status-before.porcelain-z、source-staged.patch、source-unstaged.patch：创建前状态。
+copied-files.json：逐文件大小、SHA256/链接及来源快照。
+copy-verification.json：全部复制内容验证，含两份持续更新的原服务状态记录。
+historical-state-relocation.json：旧状态快照迁移与哈希。
+final-verification.json：最终分支、源目录保护与交接校验。
+AGENTS.inherited.md：修改前继承的规则原文。
+
+本次仅建立试验分支与准备副本，未实现环视功能、未构建/运行模型、未刷机/部署、未启停相机或导航、未做车辆动作。
+原有服务保持原状；本轮未连接 J6M，未宣称板端 current 有变化。
+后续环视试验在 /home/slam/j6m-dev-b-surround 进行；父 vision-bpu 与主线 0914 继续保留。

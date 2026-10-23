@@ -193,7 +193,7 @@ TOOL_SPECS = [
         "title": "车体相对导航",
         "description": (
             "相对车辆当前朝向导航。forward_m 正值向前，left_m 正值向左，"
-            "delta_yaw_deg 正值逆时针；仍由 move_base/TEB 和现有安全链执行。"
+            "delta_yaw_deg 正值逆时针；未明确转角时省略此参数，到点朝向不限。仍由 move_base/TEB 和现有安全链执行。"
         ),
         "mutating": True,
         "inputSchema": {
@@ -203,7 +203,7 @@ TOOL_SPECS = [
                 "left_m": {"type": "number", "minimum": -30.0, "maximum": 30.0},
                 "delta_yaw_deg": {"type": "number", "minimum": -180.0, "maximum": 180.0},
             },
-            "required": ["forward_m", "left_m", "delta_yaw_deg"],
+            "required": ["forward_m", "left_m"],
             "additionalProperties": False,
         },
     },
@@ -211,7 +211,7 @@ TOOL_SPECS = [
         "name": "navigate_map_pose",
         "title": "地图绝对位姿导航",
         "description": (
-            "导航到用户明确指定或本轮可信位置快照提供的 map 绝对 x/y/yaw 点位，不能把模糊区域名转换成点；只有三维 ICP LOCALIZED、"
+            "导航到用户明确指定或本轮可信位置快照提供的 map 绝对 x/y 点位；只有明确要求朝向时填写 yaw_deg，否则省略，最终朝向不限。不能把模糊区域名转换成点；只有三维 ICP LOCALIZED、"
             "锁存静态地图与覆盖管理器地图摘要一致，且目标位于空闲栅格时可用。"
         ),
         "mutating": True,
@@ -223,7 +223,7 @@ TOOL_SPECS = [
                 "yaw_deg": {"type": "number", "minimum": -180.0, "maximum": 180.0},
                 "expected_map_digest": {"type": "string", "minLength": 64},
             },
-            "required": ["x_m", "y_m", "yaw_deg"],
+            "required": ["x_m", "y_m"],
             "additionalProperties": False,
         },
     },

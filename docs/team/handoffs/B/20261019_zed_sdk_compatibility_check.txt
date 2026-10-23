@@ -1,0 +1,80 @@
+B 线专项：ZED SDK / ROS 驱动的 J6M 现状与复制部署兼容性
+核验时间：2026-10-19T17:20:03.253022+08:00；本地目录 /home/slam/j6m-dev-b，分支 vision-bpu。
+Git common dir：/home/slam/j6m-dev-b/.git。
+HEAD：5d1028efa93cf34d2179b03384085c87a456402a；团队完整基线尚未固化。
+共同规则 v3.0，SHA256 f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a。
+
+授权与结论
+用户明确要求检查 J6M 是否已有 ZED SDK/驱动，没有则从 AGX 复制部署。
+据此核验当前板端安装、AGX 实际制品及厂商兼容条件。
+结论：J6M 有一份 ROS 驱动源码，但没有可运行的 ZED SDK 环境。
+AGX 的 ZED SDK 4.2.5 是 NVIDIA Jetson/CUDA 版本，直接复制不能在现有 J6M 上运行。
+本轮未执行 SDK 二进制复制、安装或相机启动；没有声称部署成功。
+
+J6M 实测
+板型设备树：Horizon Robotics J6E MatrixB Development Board；aarch64，Debian 原生系统 + 原有 Noetic chroot。
+扫描 /usr/local、/usr/lib、/opt、/map、/userdata，未跟随软链接；
+共扫描 65577 个目录，无扫描超时、无读取错误。
+已发现源码：
+  /map/workspaces/robot_ws/src/perception_camera/zed-ros-wrapper/
+  包括 zed_wrapper、zed_nodelets、zed_ros、zed-ros-interfaces。
+该源码存在不代表 SDK 或驱动已编译安装、相机已能工作。
+未发现 libsl_zed、zed-config.cmake、CUDA 运行库或 ZED Open Capture 安装；
+原生 /usr/local/zed 和 /usr/local/cuda 均不存在，
+/map/autolabor_runtime/rootfs/usr/local/zed 和 usr/local/cuda 也不存在。
+原生 ldconfig 缓存无 ZED/CUDA/NVIDIA 相关库，/dev 无 NVIDIA/nvhost/nvmap 节点。
+板端有 Horizon BPU 和视频相关模块；这些不能作为 NVIDIA CUDA/Jetson 驱动的替代。
+/sys/bus/usb/devices 未读到 USB 设备身份，/dev/video* 为空，没有枚举到 ZED。
+modinfo uvcvideo 返回 1，提示模块不存在；本轮未加载模块、修改内核或设备树。
+/map 余约 796 MiB，使用率 97%，未清理任何发布物或数据。
+
+AGX 实际版本与依赖
+SDK 位置 /usr/local/zed；zed-config-version.cmake 和 Camera.hpp 一致为 4.2.5。
+zed-config.cmake 明确要求 CUDA 11.4；本机 L4T 为 R35.5.0。
+readelf 对 libsl_zed.so 的 NEEDED 字段实际检出：
+  libcuda.so.1
+  libnvargus_socketclient.so
+  libnvbufsurftransform.so.1.0.0
+  libnvbufsurface.so.1.0.0
+以及普通系统库。前三类 NVIDIA/Jetson 依赖在当前 J6M 缺失。
+SDK 主库 SHA256：6b16b24d45b6079510b46ad5b796bae9c3d8ca0b9e955c02c69fb68d4a51cc0b。
+SDK 配置 SHA256：8e4fcc5aa37e8ae3bf18638e011696dfc2fe89e04d1d999712b775a1d4b24021。
+本副本驱动位置：src/perception_camera/zed-ros-wrapper/。
+zed_wrapper/zed_nodelets 包元数据版本 3.5.0；当前 CMake 要求 ZED 4 和 CUDA。
+SDK 4.2.5 与 wrapper 包元数据是不同版本字段，不据此擅自升级或修改。
+同为 ARM64 不意味着 GPU 驱动和二进制平台可互换；现有 BPU 不能直接执行 CUDA 库。
+AGX 当前 USB 列表也没有 ZED，未启动相机探针争抢设备。
+
+可选迁移路径与边界
+1. 保持 AGX 负责 ZED SDK、标定和深度，J6M 负责已授权的正式模型 BPU 适配。
+   此路径仍保留 AGX 相机依赖；本轮没有启动或切换现有流程。
+2. 若目标是 ZED USB 相机直接接 J6M，应单独适配官方 zed-open-capture / UVC。
+   厂商说明 Open Capture 不依赖 CUDA，可获取原始左右图像和 IMU 等传感器数据，
+   并提供 OpenCV 视差/深度示例；这些不等同于 ZED SDK 原来的标定补偿与深度输出。
+   需要先确认实际 USB Host 数据接口、电源、UVC/HID 内核支持和设备枚举，
+   再处理标定、立体匹配、时间同步、ROS 接口和端到端精度/性能验收。
+   本轮未下载或部署替代驱动，也未宣称 Open Capture 已能在本板运行。
+现有 Micro-USB 调试连接不能据此当作 ZED USB3 Host 接入条件。
+
+厂商一手依据（2026-10-19 查阅）
+ZED SDK Linux 安装说明：
+  https://docs.stereolabs.com/docs/development/zed-sdk/linux
+  说明完整 SDK 需要兼容 NVIDIA GPU 和 CUDA。当前页面的版本/算力要求
+  不反向套用为本机 4.2.5 的最低型号要求；本轮以实际 ELF/CMake 依赖为准。
+Can I use the ZED without CUDA?：
+  https://support.stereolabs.com/articles/7166665108-can-i-use-the-zed-without-cuda
+  区分 UVC 左右图像采集与 SDK 在 GPU 上计算实时深度。
+官方 Open Capture：
+  https://github.com/stereolabs/zed-open-capture
+  无 CUDA 的 Linux/ARM 原始采集方案，并说明原始数据和 SDK 标定补偿的差异。
+
+交付、验证与恢复
+本地只新增本交接和 runtime/zed_sdk_audit_20261019_sx7nc_w0/。
+证据：agx.json（版本、库依赖、哈希）、inventory.json（板端扫描/USB/库/模块）、
+inventory_summary.json（网络恢复）、final_verification.json（工作树保护）。
+板端通过严格主机密钥校验 SSH 只读检查；AGX 临时 192.168.10.50/24 已撤回，
+原地址集合、持久 NetworkManager profile、默认路由均保持。
+无导航/相机/底盘启停、无车辆动作、无系统包升级、无固件/内核变更、无提交/推送。
+未修改任何导航 current；本次未单独核验其具体指向。
+通过范围为实板安装/兼容性核验，不是相机接收或深度功能验收。
+已有源码、SDK 和历史证据全部保留，无新增板端制品需要回退。

@@ -1,0 +1,167 @@
+B 线本次专项：Livox ROS Driver 2 部署到 J6M 与 MID360 实收测试
+日期：2026-10-19，Asia/Shanghai；测试执行约 16:57:45–16:58:28（AGX 时间）。
+本地目录：/home/slam/j6m-dev-b；分支：vision-bpu。
+Git common dir：/home/slam/j6m-dev-b/.git。
+HEAD：5d1028efa93cf34d2179b03384085c87a456402a。
+共同规则：v3.0；SHA256 f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a。
+团队固化基线仍未交付；继承的未提交修改保持，不能只用 HEAD 代表全部现有成果。
+
+一、授权与结果
+
+用户最新指令：“你现在在j6m上将AGX上面的livox2的驱动复制过来部署一下,
+然后检查能否ping上雷达点云数据”。
+据此执行源码复制、独立板端编译安装、必要的临时网络设置，以及单独雷达实收验证。
+本轮跨出原 B/C 分工的驱动部署，以用户这条明确指令为准；本地修改仍限本副本。
+没有提交、推送、合并、刷固件、启动导航/底盘/清扫，或修改其他开发线目录。
+
+结果：独立部署和实收成功。J6M 可直接 ping 通 MID360，并持续收到点云和 IMU。
+这是雷达网络/驱动 L3 无运动设备验证，不是完整定位、导航或 BPU 模型验收。
+
+二、来源与板端部署位置
+
+本地来源（均在当前 AGX 开发副本内）：
+  src/perception_livox/Livox-SDK2/
+  src/perception_livox/livox_ros_driver2/
+  src/platform/autolabor_dual_host/config/livox_mid360_nvidia.json（作为独立配置输入）
+SDK/驱动共 324 个源文件、2713149 字节，逐文件 SHA256 见 source_manifest.json。
+源码未修改；仅在部署暂存副本中把 package_ROS1.xml 复制为 package.xml，选择 ROS1。
+没有运行会清理构建目录的厂商 build.sh，没有复制 AGX 的 build/devel/install。
+
+J6M 独立部署根目录：
+  /map/j6m-dev-b/livox2_20261019_2zho_g16/
+主要内容：
+  source/Livox-SDK2/                  传入的 SDK 源码
+  ws/src/livox_ros_driver2/           传入的 ROS 驱动源码
+  sdk/                               本轮板端编译安装的 SDK
+  install/                           本轮板端编译安装的 ROS 驱动和消息
+  mid360.json                         本轮独立接收配置
+  namespace.sh、build_inner.sh        受控 chroot 构建入口
+  build_guardian.py、build_status.json
+  test_inner.sh、receive_test.py、test_guardian.py
+  test_status.json、test_result.json、network_test.json、logs/
+  source_manifest.json、deployment_manifest.json、test_files_manifest.json
+
+J6M 原本已有一份基础 livox_ros_driver2 和 SDK；本轮按当前 AGX 源码重新构建到上述
+新目录，保留原安装。原驱动、三个已核验基础 SDK 文件的 SHA256 收尾均与开工一致。
+未切换导航 current、未修改现有公共启动器或部署白名单。
+
+运行环境：J6M 原生 ARM64 内核 + 已有 Ubuntu 20.04/ROS Noetic rootfs：
+  /map/autolabor_runtime/rootfs
+每次构建/测试使用私有 mount namespace，只读绑定基础 rootfs，把本候选目录映射
+为 chroot 内 /tmp；仅提供 null/zero/random/urandom 等必要节点，不映射底盘串口。
+所有构建、安装、临时文件、ROS home、日志都写候选目录；退出后无 rootfs 挂载残留。
+这是 chroot 内的 ROS 安装，不能直接当 Debian 原生 ROS 可执行程序运行。
+候选文件合计约 35.9 MiB（37675896 字节，收尾快照）；/map 尚余约 796 MiB。
+
+三、构建和制品
+
+编译器：J6M rootfs 内 GNU 9.4.0；并发 -j2，catkin 另限制 -l2。
+SDK CMake 配置版本：0.0.2；驱动源码/启动版本：Livox ROS Driver2 1.2.6。
+驱动 package_ROS1.xml 的包元数据仍是源文件中的 1.0.0，本轮未擅自改版本号。
+主要构建步骤（在候选 chroot 内）：
+  cmake -S /tmp/source/Livox-SDK2 -B /tmp/build-sdk \
+    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/tmp/sdk
+  cmake --build /tmp/build-sdk --target install -- -j2
+  cd /tmp/ws
+  catkin_make install -j2 -l2 -DROS_EDITION=ROS1 -DCMAKE_BUILD_TYPE=Release \
+    -DCATKIN_ENABLE_TESTING=OFF -DCATKIN_WHITELIST_PACKAGES=livox_ros_driver2 \
+    -DCMAKE_INSTALL_PREFIX=/tmp/install \
+    -DLIVOX_LIDAR_SDK_LIBRARY=/tmp/sdk/lib/liblivox_lidar_sdk_static.a \
+    -DCMAKE_CXX_FLAGS=-I/tmp/sdk/include
+SDK、驱动构建与安装均退出码 0，rospack 定位成功，ldd 无 not found。
+livox_ros_driver2/CustomMsg MD5：e4d6829bdfe657cb6c21a746c86b21a6。
+
+本轮驱动可执行文件：
+  install/lib/livox_ros_driver2/livox_ros_driver2_node
+  1480960 字节；SHA256 daeac9e93b1ece121fa94db600930a168b5746cf6f23a1019ba957f9fd81cf8d
+SDK 静态库：
+  sdk/lib/liblivox_lidar_sdk_static.a
+  4844422 字节；SHA256 54fab18ef56234ba091e853a8d6d3e60a9f88f7e2311e0651604bc449cc05b2c
+SDK 共享库：
+  sdk/lib/liblivox_lidar_sdk_shared.so
+  SHA256 49d02e463b215fb2368b041c39cf5654b4ee22e246b8d042fcca622985b62d2a
+mid360.json：
+  SHA256 29dcef0468b4fa9b96fde28c61fc6fcde05cbfff7da29392f51f38e3ffab7b16
+
+四、网络修复与雷达身份
+
+原问题：J6M 只有 eth0=192.168.10.100/24，没有 192.168.1.0/24 直连地址；
+已有雷达配置的接收地址却是 192.168.1.100。仅复制驱动不能解决这项不匹配。
+
+先用 ARP 探测确认 eth0、eth1 都能收到同一 MID360 的应答：
+  MID360 IP：192.168.1.112；MAC：58:b8:58:79:18:dd。
+  驱动检测到的设备 SN：47MDMBB0030112。
+没有根据端口名称猜测线束；外壳端口与 Linux 网口的长期映射仍需现场登记。
+测试选择已有 carrier、无 IPv4 地址的 eth1，MAC de:34:33:b5:2e:d3。
+对 192.168.1.100 执行重复地址探测未收到应答后，仅给 eth1 临时添加：
+  192.168.1.100/24
+原 eth0 SSH 地址和默认路由不变，没有在两个网口重复配置同一个 /24。
+
+临时地址生效后，路由实测为：
+  192.168.1.112 dev eth1 src 192.168.1.100
+J6M 直接 ping 3/3 成功，0% 丢包，独立连通阶段 RTT 平均约 1.85 ms。
+正式接收测试前再次 ping 成功并核对 eth1 邻居 MAC 为上述 MID360。
+没有开启 AGX 转发，雷达数据由 J6M 直接接收。
+
+本轮 mid360.json 从本副本 AGX 配置生成，四项 host 接收 IP 改为 192.168.1.100；
+雷达 IP 保持 192.168.1.112，主机接收端口保持 56101/56201/56301/56401。
+原 AGX 配置和 J6M 旧配置均未覆盖。SDK 启动按该配置设置接收参数和正常工作模式；
+不声称雷达内部运行参数已恢复到测试前，也没有修改雷达固件或静态 IP。
+
+五、真实数据测试结果
+
+只启动新编译的驱动、测试订阅器和独立 ROS master：
+  ROS_MASTER_URI=http://127.0.0.1:11321；ROS_IP=127.0.0.1。
+实际节点为 /livox_lidar_b_validation、/livox_receive_validation、/rosout。
+没有连接车辆正式 master，没有启动 FAST-LIO、导航、底盘、相机或 BPU 推理。
+没有录制 bag；只保存统计和程序日志。
+
+两路数据同时到达后的观察时间：30.091 秒；含等待数据的接收阶段：33.296 秒。
+
+点云 /livox/lidar：
+  消息类型：livox_ros_driver2/CustomMsg（xfer_format=1，与原 CustomMsg 接口一致）。
+  实收 302 帧，6039936 个点，约 10.004 Hz。
+  每帧 19872–20064 个点；最大到达间隔约 120.70 ms。
+  point_num 与实际数组长度全部一致。
+  抽查 38656 个 XYZ 点，非有限值 0；其中 27203 个为非零坐标。
+  本次没有把该 topic 声称为 sensor_msgs/PointCloud2，也没有新增转换节点。
+
+IMU /livox/imu：
+  消息类型：sensor_msgs/Imu；实收 6047 条，约 199.992 Hz。
+  最大到达间隔约 27.41 ms，所检查的角速度/加速度没有非有限值。
+
+两路 frame_id 均为 livox_frame，已观察时间戳无重复或倒退。
+这些结果确认真实数据到达及基本结构/数值有效，不代替全点精度、IMU 单位/标定、
+长时间丢包、断连恢复、FAST-LIO 或导航验收。
+J6M 系统时钟仍在 2025-06-27；本轮没有设置时间。频率使用单调时钟统计。
+消息时间戳也在该旧时间范围，正式跨机定位融合前仍需要正确对时。
+
+六、收尾状态和后续接入
+
+本轮测试驱动和独立 ROS master 均正常退出（退出码 0），收尾无相关残留进程。
+J6M eth1 的测试地址已撤回，恢复测试前 IPv4 集合及默认路由。
+AGX 每次 SSH 使用的临时 192.168.10.50/24 也已撤回，持久 profile/默认路由不变。
+没有写入永久网口设置、开机服务或改导航启动链；部署文件和证据保留。
+因此完成的是“已安装且实收验证通过”，不是“收尾后仍持续发布数据”。
+
+后续 A/C 接入正式启动时，应使用本报告核实的驱动制品/来源、唯一雷达接收端、
+稳定网口身份、接收地址和生命周期，并补齐正确时钟及断连验证。
+测试脚本固定于本次候选和证据路径；再次验证应先另建运行证据目录并保留本次日志，
+不要重复执行固定任务脚本覆盖本次结果。
+复验无需重编基础系统；可复用已安装 SDK/驱动及经审查的 chroot 运行方式。
+如不采用本候选，只需不启用本新目录；原驱动安装和正式导航无需回滚。
+
+七、本地交付与验证证据
+
+本地仅新增本交接和：
+  runtime/livox2_deploy_20261019_2zho_g16/
+包括 source_manifest.json、payload/、payload.tar.gz、各阶段远程脚本、
+AGX 网络恢复记录、原始板端输出和 final_verification.json。
+其中 final.json 保存完整本轮构建日志、接收结果、驱动日志、安装哈希、基础文件
+保护检查、进程/挂载/网络收尾状态。runtime 为忽略资产，跨成员交付需单独附带。
+板端接收结果原件：
+  /map/j6m-dev-b/livox2_20261019_2zho_g16/test_result.json
+本地副本：
+  runtime/livox2_deploy_20261019_2zho_g16/final.json 的 test_result.json 字段。
+原 tracked 差异、所有原状态条目及 324 个驱动/SDK 源文件保持，最终检查另存。
+验证等级：L3 单雷达实板无运动接收；未做 L4 整链或 L5 车辆验收。

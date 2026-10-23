@@ -1,0 +1,68 @@
+B 线：J6M 通信与 MID360 当前接收状态核验
+日期：2026-10-19，Asia/Shanghai
+任务：用户要求再次检查能否与 BPU/J6M 通信，以及板端能否读到 MID360 数据。
+目录：/home/slam/j6m-dev-b；Git common dir：本目录 .git。
+分支：vision-bpu；HEAD：5d1028efa93cf34d2179b03384085c87a456402a。
+规则：v3.0；SHA256 f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a。
+范围：本地新增 B 线核验资料；J6M 只读查询、已知 MID360 地址 ping 和短时被动报文观察。
+本任务不修改 C 线驱动配置，也不启动传感器采集、ROS、导航或 BPU 模型。
+
+结论
+1. AGX 到 J6M 的有线 SSH 已重新成功；USB 调试串口仍未枚举。
+2. AGX 能 ping 通 MID360 192.168.1.112，3/3 回复，0% 丢包。
+3. J6M 到同一 MID360 的 ping 为 0/3；约 8 秒被动观察未捕获该 IP 的报文。
+4. J6M 未发现正在运行的 Livox/ROS/FAST-LIO 匹配进程，11311 本地连接被拒绝，
+   未发现配置中的雷达接收 UDP 端口监听。因此没有当前点云/IMU 接收成功证据。
+5. 以上是当前状态，不表示 J6M 硬件不支持 MID360；尚未进行配置修复或驱动启动验证。
+   雷达数据由 J6M 网口/CPU 驱动接收，后续可按需求交给 BPU 模型处理。
+
+现场网络
+- AGX eth0：MAC 4c:bb:47:4c:29:6a，链路 UP，原地址 192.168.1.50/24。
+- AGX USB 列表仅见 root hub、Realtek hub 和蓝牙，没有历史 FTDI 0403:6011，
+  没有 /dev/ttyUSB*、/dev/ttyACM* 或串口稳定路径。
+- 两次 SSH 核验按本会话既有方式临时添加 AGX 192.168.10.50/24，严格校验已有主机密钥。
+- 目标 root@192.168.10.100，hostname=hobot，aarch64，内核
+  6.1.158-rt58-g4f685f73e030。网络查询时间 16:44:19，报文观察开始时间 16:45:01。
+- J6M eth0=192.168.10.100/24；eth1 有 carrier 但没有 IPv4 地址。
+- J6M 路由到 192.168.1.112 经 192.168.10.50/eth0，没有直连 192.168.1.0/24 路由。
+  本轮没有开启 AGX IP 转发或改 J6M 地址/路由。
+- 板端时间仍为 2025-06-27；本轮没有改时间。
+
+雷达配置与数据证据
+- 读取现存 /map/autolabor_runtime/config/livox_mid360.json，雷达地址为 192.168.1.112。
+  host_net_info 的 cmd/push/point/imu 接收地址都是 192.168.1.100，
+  相应主机端口为 56101/56201/56301/56401。
+- 当前 J6M 没有 192.168.1.100。该文件存在不代表驱动已运行或已加载该配置。
+- 本副本 src/platform/autolabor_dual_host/config/livox_mid360_nvidia.json
+  仍是 AGX 192.168.1.50 接收配置；本轮未更改它，也未启动 AGX 雷达驱动。
+- J6M 上只读查询 /proc、ss、ROS master XML-RPC 连接状态；没有注册订阅/发布节点。
+- tcpdump 在 J6M 的 any 接口观察 8.056 秒，关闭 promiscuous mode，
+  过滤 host 192.168.1.112 and (arp or udp or icmp)。
+  tcpdump 原始统计：0 packets captured，0 packets received by filter，
+  0 packets dropped by kernel。未保存原始 pcap，仅回传摘要到本地证据目录。
+- 这是短时、非混杂观察窗口；不能据此判断其他主机是否收到雷达流，
+  也不能替代启动接收驱动后的点云频率、IMU 和时间戳验收。
+- J6M 的 /dev/bpu、/dev/bpu_core0、/dev/dcore0_rpmsg_bpu 可访问；core_num=1、
+  ratio=0、users 无使用者条目、task_running 为空。没有执行 BPU 推理测试。
+
+收尾与后续
+- 两次 SSH 阶段结束均撤回本轮新增的 AGX 192.168.10.50/24；原地址集合、持久
+  NetworkManager profile 和默认路由核验恢复/保持一致。未保留 SSH 会话。
+- tcpdump 只终止本轮自己创建的短时进程；没有停止其他进程。
+- 没有板端文件、驱动、网络或服务配置修改，没有开启雷达采集。
+- 继承的 tracked/untracked 内容保留；本轮只增加本交接和忽略目录内的证据。
+- 未提交、推送、合并或部署；J6M current 本轮未查询/切换。
+- 下一步需由相应接口负责人确认 MID360 实际接入 J6M 的网口及唯一接收端，
+  再对齐网段、接收 IP 和驱动配置，并在获准的单独设备验证中确认持续点云/IMU。
+  不应仅根据 eth0/eth1 名称或 carrier 推断外部线束对应关系。
+- 验证等级：只读连接/配置检查及短时网络观察；未完成 L3 雷达数据或 BPU 推理验收。
+- 回退：无板端变更需恢复，本次 AGX 临时网络地址已撤回。
+
+证据目录：runtime/bpu_mid360_check_20261019_cqj5fi_7/
+  agx_network.json：AGX 地址、路由及 MID360 ping。
+  network_remote.py、network.json、network_commands.json、network_summary.json。
+  packets_remote.py、packets.json、packets_commands.json、packets_summary.json。
+  git_status_before.z、existing_diff_before.patch、final_verification.json。
+  read_board.py：SSH 只读采集及临时地址恢复工具。
+核验命令：python3 -B 上述目录/read_board.py network 或 packets，均退出码 0。
+不要把证据脚本自动当作持续运行服务或正式启动入口。

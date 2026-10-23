@@ -1,0 +1,91 @@
+{
+  "schema": "j6m.surround.config.v1",
+  "calibration": "distribution/j6m_bpu_navigation/surround/config/calibration.template.json",
+  "pose_input": null,
+  "motion_input": null,
+  "scheduler": {
+    "primary_hz": 15,
+    "side_hz": 3,
+    "rear_turn_hz": 2,
+    "stale_ms": 500
+  },
+  "pipeline": {
+    "fusion_window_ms": 100,
+    "overlap_pairs": [],
+    "projection": {
+      "min_range": 0.3,
+      "max_range": 10,
+      "max_sigma": 0.5
+    }
+  },
+  "capture": {
+    "board_verified": false,
+    "port_mapping_verified": false,
+    "library": "runtime/surround_gdc_native_20261021/libj6m_surround_capture.so",
+    "vio_library": null,
+    "hbmem_library": null,
+    "vpm_config": "runtime/surround_vio_candidate_20261020/vpm_config.json",
+    "camera_config": "runtime/surround_vio_candidate_20261020/hb_j6dev.json",
+    "exclusive_lock": "/map/j6m-dev-b/vision-bpu-surround/camera.lock",
+    "cameras": {
+      "front": {
+        "pipeline": null,
+        "kind": "pym",
+        "layout": "NV12",
+        "vendor_format": null,
+        "format_verified": false,
+        "pym_layer": 0,
+        "gdc_bin": null,
+        "clock_mapping_file": null
+      },
+      "right": {
+        "pipeline": null,
+        "kind": "pym",
+        "layout": "NV12",
+        "vendor_format": null,
+        "format_verified": false,
+        "pym_layer": 0,
+        "gdc_bin": null,
+        "clock_mapping_file": null
+      },
+      "rear": {
+        "pipeline": null,
+        "kind": "pym",
+        "layout": "NV12",
+        "vendor_format": null,
+        "format_verified": false,
+        "pym_layer": 0,
+        "gdc_bin": null,
+        "clock_mapping_file": null
+      },
+      "left": {
+        "pipeline": null,
+        "kind": "pym",
+        "layout": "NV12",
+        "vendor_format": null,
+        "format_verified": false,
+        "pym_layer": 0,
+        "gdc_bin": null,
+        "clock_mapping_file": null
+      }
+    }
+  },
+  "inference": {
+    "library": null,
+    "library_sha256": null,
+    "exclusive_lock": "/map/robot_j6m_navigation_20260907/bpu_lab_20260905/preview_worker.lock",
+    "confidence": 0.2,
+    "max_crops": 4,
+    "classify_budget_ms": 12,
+    "detector_zed": {
+      "path": "runtime/yolo11_compile_20261019_j4liv6zx/attempt03/detector_zed/detector_zed.hbm",
+      "model_name": "detector_zed",
+      "sha256": "f2f1f7e9753b53b0494495be44af92a0603b3ee6c71e69e0f58a0d50544a8cb8"
+    },
+    "classifier": {
+      "path": "runtime/yolo11_compile_20261019_j4liv6zx/attempt03/classifier/classifier.hbm",
+      "model_name": "classifier",
+      "sha256": "d4cb80f5f7364d1156ea2275eba9e522991dec309f2c397e74649254fe36a89f"
+    }
+  }
+}

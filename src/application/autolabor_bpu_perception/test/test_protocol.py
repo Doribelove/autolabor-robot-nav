@@ -2,7 +2,9 @@ import socket
 import threading
 import time
 import unittest
-from autolabor_bpu_perception.protocol import send,receive,validate_request,PREFIX,MAGIC,MAX_PAYLOAD
+from unittest.mock import patch
+from autolabor_bpu_perception.protocol import (send,receive,validate_request,PREFIX,MAGIC,MAX_PAYLOAD,
+    Client,relay_command,DEFAULT_SSH_TARGET,DEFAULT_RELAY_PATH)
 
 
 class ProtocolTest(unittest.TestCase):
@@ -35,6 +37,25 @@ class ProtocolTest(unittest.TestCase):
     def test_nonfinite_json_is_rejected(self):
         raw=b'{"x":NaN}';self.a.sendall(PREFIX.pack(MAGIC,len(raw),0)+raw)
         with self.assertRaises(ValueError):receive(self.b)
+
+    def test_default_remote_endpoint_and_configurable_private_root(self):
+        original=relay_command(DEFAULT_SSH_TARGET,DEFAULT_RELAY_PATH)
+        self.assertEqual(original[-4:],[DEFAULT_SSH_TARGET,'python3','-u',DEFAULT_RELAY_PATH])
+        command=relay_command('root@j6m.example','/map/robot_test/bpu/tools/stdio_relay.py')
+        with patch('autolabor_bpu_perception.protocol.subprocess.Popen') as child:
+            Client(remote=True,ssh_target='root@j6m.example',
+                relay_path='/map/robot_test/bpu/tools/stdio_relay.py')
+            self.assertEqual(child.call_args[0][0],command)
+
+    def test_remote_shell_metacharacters_and_path_escape_rejected_before_spawn(self):
+        for target,path in [('-oProxyCommand=whoami',DEFAULT_RELAY_PATH),
+                ('root@host;id',DEFAULT_RELAY_PATH),('root@$(id)',DEFAULT_RELAY_PATH),
+                (DEFAULT_SSH_TARGET,'/map/a/../b/stdio_relay.py'),
+                (DEFAULT_SSH_TARGET,'/map/a/stdio_relay.py;id'),
+                (DEFAULT_SSH_TARGET,'/tmp/stdio_relay.py')]:
+            with patch('autolabor_bpu_perception.protocol.subprocess.Popen') as child:
+                with self.assertRaises(ValueError):Client(remote=True,ssh_target=target,relay_path=path)
+                child.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()

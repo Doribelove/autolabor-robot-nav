@@ -408,6 +408,10 @@ frame、尺寸、分辨率、完整 origin pose 和全部栅格生成与覆盖�
 
 ## 运行位置
 
+`0914` 的 CPU/BPU 分工、正式垃圾模型迁移工具及源码打包入口见
+[J6M/BPU 工具链初稿](../distribution/j6m_bpu_navigation/README.md)。参考 FCOS/CenterPoint
+已有 BPU 实机记录；正式 YOLO11-GAM + 五材质分类仍待量化、HBM 与实时后端验收。
+
 | 功能 | NVIDIA | J6M |
 |---|---:|---:|
 | ROS master |  | 是 |
@@ -423,6 +427,11 @@ frame、尺寸、分辨率、完整 origin pose 和全部栅格生成与覆盖�
 | FOD 速度仲裁 |  | 是 |
 | 最终速度看门狗 | 是 |  |
 | Qt/RViz | 是 |  |
+| FCOS RGB-D 前处理、源帧深度配对 | CPU |  |
+| FCOS COCO 神经网络推理 |  | BPU（参考检测） |
+| CenterPoint 筛点、pillar 编码、解码 |  | CPU |
+| CenterPoint 神经网络推理 |  | BPU（障碍候选） |
+| YOLO11-GAM + 五类材质分类 | 当前 CUDA | PTQ 初稿；未正式接入 |
 
 ## J6M 文件布局
 

@@ -1,0 +1,83 @@
+2026-10-23 四路相机请求：真实采集与桌面预览
+
+用户要求：已接上四个相机，尝试打开并显示四个画面。
+工作区 /home/slam/j6m-dev-b-surround，vision-bpu-surround；未提交、推送或合并。
+
+本次结果
+1. J6M root@192.168.10.100 在线，J6M_Matrix_V2.0，镜像仍为
+   LNX-PL4.0-WB-20260311-NORMAL debug 20260311-185723。
+2. 上传案例 Nx_ISX031_RX4 的 RX4/MAX96724 四路均无法锁定。
+   根据板卡手册和实际设备树检查其他组：RX0/MAX96712 四路亦未锁定；
+   RX1/MAX96712 端口 0、1、2 成功初始化并输出真实鱼眼图像。
+   RX1 端口 3 多次 link 3 lock timeout，寄存器 0x000c=0x00，最终
+   hb_cam_start=-3505。第四路尚未打通，需要核对第四根线/接头/实际接口。
+   不能称作四路完整验收，也不能仅凭该错误断言相机硬件坏了。
+3. 三路实际源帧 1920x1536 NV12（vendor_format=2，4423680 字节）。
+   启动初帧 Y=16/UV=128，全黑；持续取流后正常显示办公室/桌面场景。
+   4 秒观察每路源序号增加 120（约 30 fps）；桌面每路缩至 640x512、约 5 fps。
+   预览接收新鲜度正常，不代表源曝光时刻到 ROS 时间的映射已校验。
+4. AGX 桌面已打开独立 2x2 Qt 窗口；前三格为实时原始鱼眼，第四格明确显示无链路。
+   按数值端口显示，不猜测前/右/后/左。关闭该窗口会停止本次私有采集。
+   不是原导航 Qt；未修改原界面布局，未启动检测、BEV 或车辆控制。
+
+文件与入口
+本地 runtime/surround_raw_preview_20261023/：
+  viewer.py：独立 AGX Qt 窗口；私有 SSH 连接/127.0.0.1:18779 隧道生命周期。
+  open_preview.sh：重新打开预览，限定本工作树；已有窗口时拒绝重复开采集。
+  rx1_probe/live_server.py：J6M 相机 SDK -> CIM NV12 -> 小尺寸原始图缓存/只读 HTTP。
+  rx1_probe/hb_j6dev.json、vpm_config.json：RX1 数值端口诊断配置。
+  capture_raw.cpp、rx1_probe/libj6m_surround_capture.so：私有诊断适配库。
+  viewer.log、live_board.log、live_state.json、preview_window.png、viewer.pid。
+
+重新打开（先关闭已有窗口）：
+  /home/slam/j6m-dev-b-surround/runtime/surround_raw_preview_20261023/open_preview.sh
+接线改好后需重新打开，以重新初始化当前失败的第四路；当前程序不自动重新上电/重连。
+
+板端私有路径：
+  /map/j6m-dev-b/vision-bpu-surround/raw_preview_20261023/rx1_probe/
+  live.pid 记录本次采集 PID；相机锁在 /map/j6m-dev-b/vision-bpu-surround/camera.lock。
+仅通过该独立窗口/已核对 PID 管理本次采集，不使用 killall、旧部署脚本或系统服务重启。
+
+实现边界与验证
+- 原正式 native/capture.cpp 没有直接改动。当前 CIM 为 NV12，原接口只支持 CIM packed422/NV16
+  和 PYM NV12。私有诊断副本新增 kind=3（CIM NV12）；SDK lease/stride/cache/容量校验保留。
+- 原 NV16 尝试被 hbmem 的 UV 分配边界校验拒绝，没有绕过该检查；随后按实测 NV12 正确读取。
+- 私有 C++ 构建（-Wall -Wextra -Werror）、Python 语法、NV12 缩小/Y-UV 对齐校验通过。
+  三路实际序号持续增加且截图确认为实景，独立窗口实际存在。
+- 未做 CPU 鱼眼去畸变，只做诊断用缩小与 YUV/RGB 转换；GDC LUT 未创建/伪造。
+- 原 production_ready=false / motion_eligible=false、空真实标定与正式 RX4 GDC 候选保持原样。
+  后续如果保留 RX1 接线，必须另行适配正式 VIO/GDC 输入并实板验证；本次不能证明 BEV 就绪。
+- 系统 libvio/libcam/libisx031std SHA 与尝试前一致；未刷机、挂载覆盖系统驱动或安装全局依赖。
+  父工作树旧 ZED/BPU 接收进程保持原 PID，本次不对其启停。
+- 相机 SDK 初次载入的 LD_LIBRARY_PATH 曾漏 sensor 子目录，后恢复板端原环境。
+  RX0 初次私有配置错误添加 rx_index 到 input 层，未切换实际 RX4；纠正到 input.mipi 后重新测量。
+  以上初次失败证据保留；未将错误配置试验当作 RX0 的有效结果。
+- 用户提供的 rclk 驱动曾尝试仅本地私有编译，因缺 cJSON.h 停止；没有部署该驱动。
+  三路正常画面来自现有系统驱动；第四路失败在串行链路锁定阶段，不在 GDC/图像显示阶段。
+
+证据：validation/surround_camera_live_20261023/。
+包括原始探测日志、logcat、接口诊断配置、三路首帧、live_samples.json、系统库 SHA 核验。
+最初三路首帧截图是黑帧，不是最终预览；最终请看 runtime/.../preview_window.png。
+
+关闭/重开验证：向已核对 PID 的本次 Qt 窗口发送正常关闭事件；板端记录 CAMERA_PREVIEW_STOPPED，
+私有采集 PID/端口监听和相机 FD 释放，父 BPU 接收 PID16506 保持。随后重新打开本次预览。
+证据 close_check.txt，最终 PID 以 runtime 的 viewer.pid / 板端 live.pid 为准。
+
+2026-10-23 15:45:31 用户要求再次检查第四个相机。
+正常关闭本次独立 Qt 和板端私有采集，确认旧 PID1016122 退出，然后重新打开相机预览。
+本次新采集仍 STARTED_PORTS [0,1,2]；RX1 link3 两次 200ms 锁定超时，0x000c=0x00，
+最终 hb_cam_start=-3505。0/1/2 三路仍持续输出真实画面。未修改摄像头/驱动配置，
+未刷机或启停旧 ZED/BPU 服务。新窗口保持运行，第四路仍未取得图像。
+新证据：validation/surround_camera_recheck_20261023_rno3wpgj/（before/after/final_state.json、board_restart.log、preview_window.png）。
+
+2026-10-23 15:52:22 用户报告互换端口 0、3 的相机后两格均无画面。
+重启前检查：端口0 get camera frame=-3526；端口3仍是启动时遗留 hb_cam_start=-3505。
+当前诊断采集只初始化启动时成功的端口，没有热插拔重连；串行读0超时还使1/2的接收间隔变长。
+本次正常关闭旧预览及私有采集 PID1032916，确认退出后重新初始化。
+新采集 PID1039085 成功启动 [0,1,2]，0路已恢复真实图像且序号持续增加；3路仍
+link3 lock timeout、0x000c=0x00、hb_cam_start=-3505。窗口恢复为三路实时画面。
+这是交换接线后旧会话没有重初始化造成的暂时双路无图，不能直接判断两台相机损坏。
+互换是在相机端还是 J6M 端待用户回答；尚不能单凭本次结果精确区分线缆与板端接口。
+下一次换接线应先正常关闭独立预览窗口，调整完后通过 open_preview.sh 重新初始化。
+证据：validation/surround_camera_swap_20261023_8varh8cf/。
+没有修改采集配置、驱动或正式 GDC/BEV 设置；父 ZED/BPU 会话未启停。

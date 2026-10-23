@@ -163,6 +163,34 @@ def _publish(backend):
         "map", 4.25, -1.5, math.radians(35.0))
 
 
+def test_yaw_free_goal_refuses_old_stack_before_publishing():
+    backend, request_pub, _ = _backend()
+    backend._rospy.get_param = lambda *a: 0
+    result = backend._publish_owned_goal("map", 4.25, -1.5, 0., yaw_free=True)
+    assert result.is_error and "配套部署" in result.text
+    assert not request_pub.messages
+
+
+def test_yaw_free_goal_requires_marker_in_same_goal_echo():
+    for preserve in (True, False):
+        backend, requests, cancels = _backend()
+        backend._rospy.get_param = lambda *a: 1
+        def published(action):
+            echo = _copy_action(action)
+            if preserve:
+                echo.goal.target_pose.header.seq = action.goal.target_pose.header.seq
+            backend._action_goal_callback(echo)
+            backend._cache("nav_status")(_status_array(_goal_status(action.goal_id.id, 1)))
+        backend._action_request_pub = _OfflinePublisher(published)
+        result = backend._publish_owned_goal("map", 4.25, -1.5, 0., yaw_free=True)
+        assert result.is_error is not preserve
+        if preserve:
+            target = json.loads(result.text)["target"]
+            assert target["yaw_deg"] is None and target["yaw_constrained"] is False
+        else:
+            assert "策略回显丢失" in result.text and cancels.messages
+
+
 def _assert_failed_and_exactly_canceled(result, backend, request_pub, cancel_pub):
     assert result.is_error, result
     assert len(request_pub.messages) == 1

@@ -18,7 +18,7 @@ import uuid
 
 from autolabor_coverage.coverage_geometry import occupancy_grid_digest
 from sweeper_mcp.tools import ToolResult
-from sweeper_mcp.visual_completion import session_id_valid, sequence_valid, visual_completed
+from sweeper_mcp.visual_completion import session_id_valid, sequence_valid, visual_completed, visual_cleaning_completed
 
 
 def _json(data):
@@ -39,6 +39,7 @@ def _public_mode_state(state):
 
 class ROSBackend:
     name = "ros"
+    YAW_FREE_REQUEST = 0xA14F0001
 
     STATUS_NAMES = {
         0: "pending", 1: "active", 2: "preempted", 3: "succeeded",
@@ -651,7 +652,7 @@ class ROSBackend:
         return ""
 
     def _publish_owned_goal(self, frame_id, x, y, yaw_rad,
-                            expected_map_digest=""):
+                            expected_map_digest="", yaw_free=False):
         with self._lock:
             if self._ai_visual_owned:
                 return ToolResult("AI视觉会话尚未确认完成/退出，不能提交后续导航。", True)
@@ -659,6 +660,13 @@ class ROSBackend:
             return ToolResult("另一个 AI 导航目标正在提交，当前目标未发送。", True)
         try:
             self._ensure()
+            if yaw_free:
+                protocols = ["/navigation_pause/yaw_free_goal_protocol",
+                             "/move_base/CoverageGlobalPlanner/yaw_free_goal_protocol",
+                             "/move_base/TebLocalPlannerROS/yaw_free_goal_protocol"]
+                if frame_id != "map" or any(
+                        self._rospy.get_param(key, 0) != 1 for key in protocols):
+                    return ToolResult("当前J6M未提供无朝向目标协议，目标未发送；需要配套部署。", True)
             self._touch_ai_goal_supervision()
             if not str(frame_id).strip() or not all(math.isfinite(float(value))
                                                    for value in (x, y, yaw_rad)):
@@ -699,6 +707,8 @@ class ROSBackend:
             target = action.goal.target_pose
             target.header.stamp = stamp
             target.header.frame_id = frame_id
+            if yaw_free:
+                target.header.seq = self.YAW_FREE_REQUEST
             target.pose.position.x = float(x)
             target.pose.position.y = float(y)
             target.pose.orientation.z = math.sin(yaw_rad * 0.5)
@@ -745,6 +755,8 @@ class ROSBackend:
                             goal_id,
                             "显式 move_base action 回显的目标位姿与请求不一致",
                         )
+                    if yaw_free and candidate.goal.target_pose.header.seq != self.YAW_FREE_REQUEST:
+                        return self._failed_published_goal(goal_id, "无朝向目标策略回显丢失")
                     matching_echo = candidate
                 if (status is not None and status_received is not None and
                         status_received + 0.05 >= started):
@@ -766,7 +778,8 @@ class ROSBackend:
                         "frame_id": frame_id,
                         "target": {
                             "x": x, "y": y,
-                            "yaw_deg": math.degrees(yaw_rad),
+                            "yaw_deg": None if yaw_free else math.degrees(yaw_rad),
+                            "yaw_constrained": not yaw_free,
                         },
                     }))
                 time.sleep(self._goal_confirmation_poll)
@@ -1001,7 +1014,9 @@ class ROSBackend:
             "visual_result": session.get("result", "UNAVAILABLE"),
             "completion": session.get("last_completion", {}),
         }
-        if owned and visual_completed(result, expected_id, baseline):
+        result["cleaning_completed"] = visual_cleaning_completed(result, expected_id, baseline)
+        result["ready_for_next_step"] = visual_completed(result, expected_id, baseline)
+        if owned and result["ready_for_next_step"]:
             with self._lock:
                 if self._ai_visual_session_id == expected_id:
                     self._ai_visual_owned = False
@@ -1009,8 +1024,17 @@ class ROSBackend:
 
     # ---- navigation tools --------------------------------------------------------
 
-    def navigate_relative(self, forward_m, left_m, delta_yaw_deg):
+    def navigate_relative(self, forward_m, left_m, delta_yaw_deg=None):
         self._ensure()
+        if delta_yaw_deg is None:
+            anchor, reason = self._capture_map_pose()
+            if anchor is None:
+                return ToolResult("无朝向相对点需要新鲜map定位: " + reason, True)
+            heading = math.radians(anchor["yaw_deg"])
+            return self.navigate_map_pose(
+                anchor["x_m"] + math.cos(heading)*forward_m - math.sin(heading)*left_m,
+                anchor["y_m"] + math.sin(heading)*forward_m + math.cos(heading)*left_m,
+                expected_map_digest=anchor["map_digest"])
         if math.hypot(forward_m, left_m) < 0.01 and abs(delta_yaw_deg) < 0.1:
             return ToolResult("相对位移与转角均接近零，目标未发送。", True)
         odom = self._snapshot("odom", 0.8)
@@ -1027,11 +1051,12 @@ class ROSBackend:
         return self._publish_owned_goal(
             odom.header.frame_id, target_x, target_y, target_yaw)
 
-    def navigate_map_pose(self, x_m, y_m, yaw_deg, expected_map_digest=""):
+    def navigate_map_pose(self, x_m, y_m, yaw_deg=None, expected_map_digest=""):
+        yaw_free = yaw_deg is None
         try:
             x_m = float(x_m)
             y_m = float(y_m)
-            yaw_deg = float(yaw_deg)
+            yaw_deg = 0.0 if yaw_free else float(yaw_deg)
         except (TypeError, ValueError):
             return ToolResult("地图目标坐标和朝向必须是数值。", True)
         if not all(math.isfinite(value) for value in (x_m, y_m, yaw_deg)):
@@ -1086,9 +1111,10 @@ class ROSBackend:
         occupancy = grid.data[row * width + column]
         if occupancy < 0 or occupancy >= 50:
             return ToolResult("地图目标位于未知或占用栅格，已拒绝。", True)
+        policy = {"yaw_free": True} if yaw_free else {}
         return self._publish_owned_goal(
             "map", x_m, y_m, math.radians(yaw_deg),
-            expected_map_digest=digest)
+            expected_map_digest=digest, **policy)
 
     def cancel_navigation(self):
         self._ensure()

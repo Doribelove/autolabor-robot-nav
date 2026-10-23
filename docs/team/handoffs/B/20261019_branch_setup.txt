@@ -1,0 +1,38 @@
+B 线 vision-bpu 分支创建交接
+创建时间：2026-10-19T15:39:25.132179+08:00
+岗位/任务：B 垃圾识别；本轮仅创建开发分支和独立准备副本。
+共同规则：/home/slam/Desktop/地平线挑战杯/J6M_五人协作_Codex开发与合并约束_20261019_v3.txt
+共同规则版本：v3.0；SHA256：f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a
+工作目录：/home/slam/j6m-dev-b
+Git common dir：/home/slam/j6m-dev-b/.git（独立仓库，无共享对象/外部 .git 指针）
+分支：vision-bpu
+来源：/home/slam/robot_j6m_ws_navigation_20260907，分支 0914
+当前 HEAD：5d1028efa93cf34d2179b03384085c87a456402a
+共同团队基线：尚无 A 线已交付的固化基线/tag；此副本是分支准备成果，不代表团队基线已完成。
+
+创建范围及原有修改：
+- 已复制来源的全部 Git tracked/untracked 源码条目（1766 条），包括尚未提交的 distribution/j6m_bpu_navigation。
+- 既有改动在新副本内继续保持未提交状态；不是本轮 B 新开发，不可把 HEAD 当成完整现场成果。
+- 已独立复制 runtime/j6m_bpu_migration_20261010/private_ptq（106 个文件），包括正式 ONNX、90 份校准输入、契约和转换工具。
+- 原配置、运动授权、构建产物、运行日志、地图及其他被忽略资产仍在原目录；没有复制现场运行配置/授权。
+- 标准 src/CMakeLists.txt 仅链接到不可写的系统 catkin 文件；无指向原项目的可写目录链接。
+- 本轮未改业务代码/公共接口；新增本交接文件，证据保存在 .git/vision-bpu-setup/。
+- source-stable 远端仅记录本机稳定来源；本副本 pushurl 禁用，未配置团队发布远端。
+
+验证与证据：
+- source-files.json：源码路径、类型、权限、大小、SHA256/链接目标。
+- ptq-assets.json：私有 PTQ 输入和工具逐文件大小、SHA256。
+- source-status-before.porcelain-z / source-unstaged.patch：原有修改清单和补丁。
+- verification.json：Git 独立性、分支、复制一致性、来源保护检查。
+- 全部副本文件逐项 SHA256/模式核验通过；普通文件无共享 inode。
+- 来源分支/HEAD、完整 Git 状态、索引哈希、引用、worktree 登记、源码及私有配置/授权哈希均保持。
+- 已完成静态文件与 Git 核验；未做构建、模型推理、ROS 或实板验证。
+
+本轮授权：创建 vision-bpu 分支和必要的独立源码准备副本。
+未进行：提交、推送、合并、部署、设备/网络操作、进程启停、录包、导航或车辆动作。
+J6M current：本轮未连接核验；历史发布记录不能作为当前状态。
+B 后续负责范围：垃圾模型转换、BPU 推理服务/通信、autolabor_fod_vision 识别接入。
+下一步：A 线交付共同完整基线、文件所有权和经过审查的开发入口后，再进行 B 线开发。
+现有脚本仍含原目录的绝对路径与保护，副本不能直接用来启动或部署；不得删除路径保护。
+未改旧版 AGENTS.md；其中历史路径、运行与运动许可不适用于本副本，遵守本次共同 v3 规则。
+回退：停止使用本新副本即可；原 0914 和稳定工作区不需要恢复，未创建/移动其分支或 worktree。

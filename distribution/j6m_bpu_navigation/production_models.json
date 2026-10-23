@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "target": "nash-m",
+  "production_ready": false,
+  "models": {
+    "detector_zed": {
+      "task": "detect",
+      "classes": ["trash"],
+      "checkpoint_sha256": "711b6bb4b4debebcf993f033f23e7e641a02dd279254779f8dafed11b6a79233",
+      "onnx_sha256": "8c19d7a8f97c975673ae6282e48ab0370ad051e38f63a74ecc7d7c9f415a04b4",
+      "input_name": "images",
+      "input_shape": [1, 3, 576, 1024],
+      "output_name": "output0",
+      "output_shape": [1, 5, 12096],
+      "preprocess_id": "ultralytics-letterbox-576x1024-rgb-f32-div255",
+      "gam_required": true,
+      "minimum_calibration_samples": 20
+    },
+    "classifier": {
+      "task": "classify",
+      "classes": ["metal", "plastic", "paper", "glass", "kitchen_waste"],
+      "checkpoint_sha256": "d0cce9310e184e8acd7a6142face16d39aadc9a6e5405b18694346f2315899e9",
+      "onnx_sha256": "3c15d89d9d0fcd33a705cbe52e3f0526139be1efcb789bc6182a707398a35c2d",
+      "input_name": "images",
+      "input_shape": [1, 3, 224, 224],
+      "output_name": "output0",
+      "output_shape": [1, 5],
+      "preprocess_id": "custom-ultralytics-classify-transforms-224",
+      "gam_required": false,
+      "minimum_calibration_samples": 20
+    }
+  }
+}

@@ -1,0 +1,138 @@
+B / vision-bpu / AGX ZED → J6M 相机数据链部署与实测 v2（最终续接）
+记录时间：2026-10-19T21:11:21.960195+08:00
+
+本记录取代初版对当前状态的结论；初版及各次失败、制品修订记录均保留。
+
+结论
+ZED 23748636 已在 AGX 使用原有 SDK 4.2.5 打开，1280×720 彩色及米制 float32 深度经过 LZ4 无损传输到 J6M；独立 TCP IMU 约 200 Hz。
+J6M 已完成实时接收、原始数据 CRC 校验、帧身份/时效/配对检查，并在同进程双模型独占锁下运行正式 HBM 检测观察链。
+六分钟实测窗口执行 5406 帧检测并实际完成 42 次材质分类；分类次数来自成功返回的板端执行计数，5 秒一次的快照未捕获对应非空结果，未保存逐次类别标签或真值，不能据此声称准确率通过。最终版另保留 latest_nonempty_result.json，供后续出现目标时检查，仍保留其原始时间，不冒充当前结果。
+这是 L3 实机相机和 BPU 观察验证及双机数据链故障测试，不是完整原视觉流程 L4 或车辆 L5 验收。
+production_ready=false，motion_eligible=false。没有发布 ROS、目标、速度、TF 或启动车辆导航。
+当前交付为相机采集、数据接收、BPU 观察及持续对时服务保持运行；BPU 锁继续由本服务持有。
+IMU 原始数据链连续性通过；SDK 原始时间与主机时钟的融合对齐尚未验收，source_clock_alignment_accepted=false、fusion_eligible=false。
+
+授权与边界
+本轮用户明确要求：AGX 采集 ZED 彩色/SDK 深度/IMU，J6M 前后处理和模型推理；完整原始分辨率彩色、32FC1 米制深度、IMU 及时间标定信息；落实固定地址、持续对时、独立服务和恢复；先部署相机再打开验证。
+上述明确分工覆盖历史文档中默认不跨机传原图/深度的旧建议。没有扩大为导航控制、刷机、正式合并或原工作区改动。
+工作目录 /home/slam/j6m-dev-b；分支 vision-bpu；HEAD 5d1028efa93cf34d2179b03384085c87a456402a。
+Git common dir /home/slam/j6m-dev-b/.git。共同规则 v3 SHA256 f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a。
+29 个开工时已有 tracked 修改逐文件 SHA256 保持；未清理、重置、提交或推送。源码/依赖/配置正文/证据全部在 B 私有目录。
+为本次明确授权的持久地址及独立服务部署，必要系统注册为：既有 NetworkManager profile 新增一个地址；AGX 用户 systemd 中三个指向 B 目录的服务及 default.target 链接；J6M /run 的两个私有 unit 链接。没有修改其他项目源码或 J6M 启动镜像。
+
+文件及部署
+源码目录：distribution/j6m_bpu_navigation/camera/
+  zed_sender.cpp：直接复用本机 ZED/CUDA SDK 的完整分辨率采集、独立 IMU、LZ4 和有界重连。
+  camera_wire.py：有界解包、无损恢复、CRC/身份/20 ms 配对、序号/会话拒收。
+  receiver.py：J6M 数据服务、时钟与 500 ms 时效检查、观察推理、有限状态文件和证明帧。
+  clock_server.py：AGX 私有 NTP 及四时间戳探针。
+  board_services.py / agx_services.py：独立生命周期、进程归属、板端服务重建和停止恢复。
+  rollback.py：停止并禁用本轮服务、恢复原对时服务、只移除本轮新增的 AGX 地址。
+  test_camera_wire.py / CONTRACT.txt：边界检查和完整传输契约。
+本地部署/构建/证据：/home/slam/j6m-dev-b/runtime/zed_link_20261019_6y_rm3_5
+J6M：/map/j6m-dev-b/camera/releases/20261019_6y_rm3_5
+正式 HBM 只读复用：/map/j6m-dev-b/vision-bpu/conversion_runs/20261019_j4liv6zx
+板端复用 NumPy 1.26.4、OpenCV headless 4.10.0.84、Pillow 10.4.0、BPU 原执行器和运行库；无共享 Python/ROS/SDK 升级。
+新增私有 chronyd 4.3-2+deb12u3 ARM64，仅解包所需二进制，未全局安装软件包。
+AGX 新程序用 C++ SDK，不需要向已有 YOLO Python 环境安装 pyzed。
+FINAL_MANIFEST.json 保存源码、二进制、unit、标定副本及配置 SHA256；配置含私有准入 token，仅保存于私有 runtime，报告不披露 token。
+接收源码 SHA256：88b6b439135e0e58d8de89826908fa81f13bf721df82f5403289f9b6cac86eb2
+
+网络与服务
+AGX 实测 eth0 MAC 4c:bb:47:4c:29:6a，1000 Mb/s；ZED 视频端 USB 5000M，设备可访问且启动前无占用。
+AGX 既有 profile UUID fbaf0051-f208-4c60-96a0-3649764e7aa2 保留 192.168.1.50/24，新增持久 192.168.10.50/24；Wi-Fi 默认路由未变。network_before.json / network_after.json 保存前后快照。
+J6M eth0 1000 Mb/s，192.168.10.100/24；hrut_ipfull g eth0 实读已有持久 IP/掩码/网关 192.168.10.100 / 255.255.255.0 / 192.168.10.50，没有再次改写板端网络。
+RGB-D 协议 1 / TCP 17441；IMU 协议 2 / 独立 TCP 17442；时钟探针 UDP 17443；AGX NTP UDP 17444；J6M chrony 监测只监听本机 127.0.0.1:17445。
+AGX 用户服务：j6m-b-clock、j6m-b-camera-sender、j6m-b-camera-link，已启用。既有用户 Linger=yes。
+J6M 服务：j6m-b-clock、j6m-b-camera-receiver；unit 正文在上述版本目录，运行链接在 /run/systemd/system。
+AGX supervisor 每 10 秒检查并恢复本 B 版本的板端服务，板端重启后由它重建运行链接。未修改 /userdata/init.sh、内核、固件或 overlay 中的持久启动配置。
+两端服务独立；板端重启后恢复依赖 AGX 在线。配置已落地，本轮没有整机断电/重启验收。
+
+采集和协议实测
+HD720 1280×720，15 fps，QUALITY 深度，UNIT::METER，SDK IMAGE 坐标 x右/y下/z前；位置跟踪和深度稳定关闭。
+发送的是与深度对齐的 SDK 左目校正彩色 BGRA8，保持完整采集分辨率；不是 Bayer/未经校正的传感器图，也不是有损编码。
+AGX 不缩放、裁剪或归一化；原始 BGRA 与 32FC1 每平面各 3686400 字节，逐字节 LZ4 压缩和 CRC 校验。NaN/Inf 原样保留。
+IMU 独立 CURRENT 采样，从约 400 Hz 原生唯一采样按时间网格选取 200 Hz；传原始 SDK 时间戳、序号、校准与未校准加速度/角速度、姿态及协方差，不插值、不重复盖时间戳。
+IMU frame_id=zed2_imu_sdk_image_frame，明确为 SDK IMAGE 轴；原 ROS wrapper 选择 RIGHT_HANDED_Z_UP_X_FWD，不复用其 zed2_imu_link 名称冒充同一基底。后续 ROS 接入须同时转换向量、姿态、协方差与外参。
+图像/深度 SDK 时间戳最大实测差 0 ms，20 ms 配对门保持；输出保留源相机序列号、session、sequence、时间戳和 optical frame。
+相机内参、双目外参、SDK IMU→左目外参随帧传输；每次会话另有 current_calibration.json，防止相机重开后读取旧标定。证明帧的 metadata 单独保留。
+车辆安装外参只记录历史来源，当前 T_base_from_left=null / 未复核，没有伪造单位变换用于车辆坐标融合。
+
+最终连续性与性能
+延长观测 73 次快照、360.243 秒；状态计数端点跨度 360.446 秒。
+接收 5407 对 RGB-D、72089 条 IMU；校验 10814 个平面 CRC；实际检测 5406 帧、成功分类 42 次。
+窗口 frame_sequence_gaps=0、imu_sequence_gaps=0，图像与 IMU 无重连，AGX 无 IMU 发送错误。
+原始时间戳测得 RGB-D 14.999254 Hz、IMU 200.004712 Hz。图像/深度协议流量 539.37 Mb/s（不含链路开销/IMU，压缩率随场景变化）。
+接收帧龄 P50/P95/P99：145.249 / 154.024 / 158.834 ms。
+J6M 处理 P50/P95/P99：23.659 / 27.424 / 36.769 ms；样本以无目标帧为主、实际含 42 次分类，不是 8 目标压力负载。
+采集→结果源帧龄 P50/P95/P99：177.556 / 188.074 / 196.944 ms；最大 261.103 ms。
+IMU 从 AGX 读取到板端接收的年龄 P50/P99：1.240 / 3.534 ms；这是读取/传输年龄，不替代原始采样时刻。
+RGB-D 配对差 P50/P99/最大均 0 ms；帧间隔最大 67.712 ms。
+AGX 采集平均 CPU 55.05% 单核、最大 RSS 269.85 MiB；J6M 接收/推理平均 CPU 66.24% 单核、最大 RSS 150.94 MiB；BPU ratio 样本 6–19。
+百分位为窗口末有界滚动样本，CPU/吞吐为窗口差分；IMU ring 最多 9000 条，不能将各指标误称完全相同时间集合。未运行导航，不构成导航竞争验收；RSS 不是 GPU 总显存。
+原始：steady_imu_timing_v3.jsonl；摘要：EXTENDED_SUMMARY.json。初版 60 秒窗口和后续异常记录同时保留。
+六分钟使用 v3 时间/传输实现；最终 v4 仅明确 IMU 协议 2/坐标名并保留非空观察结果。v4 后续实机检查 final_v4.json：约一分钟内 908 对 RGB-D、12109 条 IMU，15/200 Hz、两个序号缺口计数均零，协议/坐标/当前标定身份一致。
+
+持续对时
+AGX 原 systemd-timesyncd 保持；新增私有时间服务以其已同步系统时钟为参考。
+J6M 原 timesyncd 在本私有 chronyd 运行期间停止，避免双重调时；停止/回退入口恢复其原 active 状态。
+chronyc -n tracking/sources 已确认源 192.168.10.50、Leap status Normal、Reach 377；最后偏差约 -7.7 us，RMS 约 11.9 us（该次快照）。
+六分钟窗口双机时钟探针最大绝对偏移 0.710 ms，最大半 RTT 不确定度 1.533 ms；这不是外部 UTC 精度标定。
+探针未同步、过期、RTT 过大或偏移超过 20 ms 时拒收，不修改采集时间戳掩盖问题。
+
+IMU 时间问题、修正及未验收边界
+初版将 SDK 原始 IMU 时间直接套入 -5..500 ms 年龄检查；较长运行出现 frame_age_out_of_bounds，触发断线与序号缺口。此时双机时钟对齐正常，已观察 SDK IMU 时刻略超前于主机参考时间；具体 SDK/设备时钟漂移来源未确认。final_delivery.json、sender_with_sdk_timestamp_rejections.json 与板端 revisions/before_imu_timing_separation/ 保留原失败。
+修正保留 SDK stamp_ns；AGX 另外记录 SDK 读取调用的 host_read_begin_ns/end_ns。J6M 分开校验读取/传输新鲜度并记录 SDK 与主机时差，不替换原始采样时间，也不伪造校正后的时间戳。读取年龄须 -5..500 ms，读取调用不超过 100 ms，SDK/读取时刻差不超过 500 ms；旧时间/失去对时仍拒收。
+原始 SDK 时间超出 -5..500 ms 时，原始数据可继续作为诊断数据传输，但 timing.fusion_time_valid=false；所有本候选 IMU 继续 source_clock_alignment_accepted=false、fusion_eligible=false、corrected_acquisition_stamp_ns=null。当前未实现或放行 IMU 融合。
+六分钟快照中 SDK 时刻减 AGX 实际读取时刻约 -3.111..+4.013 ms；最终 v4 实测一条为 +3.080 ms，证实该差异可在 AGX 端直接观察，不能只靠双机 NTP 消除。完整 200 Hz 数据传输通过不等于 IMU/相机物理时刻对齐已验收。
+
+故障与恢复
+1. J6M 接收服务定点停止，由 AGX supervisor 恢复：7.767 秒内取得新接收 PID、同一源 session 的新鲜图像及 IMU，通过。
+2. AGX 相机采集服务定点重启：6.036 秒内新 source session 恢复，板端随后确认新 session 和当前数据，通过。
+3. 停止 AGX 私有对时服务约 10 秒：板端进入 waiting_for_fresh_data，末 3 次检查接收数不增长、旧检测源时间戳不变化；恢复对时后继续接收，通过。
+   结果：rejects_during_clock_loss=True，recovers=True。
+故障测试有意造成的连接关闭、序号缺口和拒收全部保留在原始记录；不能把稳定窗口零缺口解释为整轮没有中断。
+本轮未拔 USB、拔网线、断电、刷机或运行车辆。进程/TCP 中断和时间源中断恢复不是上述物理故障的替代验收。
+协议模块在 AGX 和真实 J6M 均完成 6 项测试；新增未来 SDK 时间原值保留、禁止融合、旧读取时间拒收；其余覆盖：浮点 NaN/Inf/负零位模式、损坏 CRC、截断压缩/头、超大长度、20 ms 配对边界、身份/布局、重复/倒退/旧会话拒收（部分检查在同一测试内）。
+C++ 编译、Python AST、unit 静态检查和 git diff --check 通过。
+
+证明帧
+本地 proof_original/proof_color.png、proof_depth.npy、proof_metadata.json；J6M state/proof_*。
+PNG 解码回 BGRA 与 NPY float32 重算 CRC 均与发送端原始 CRC 一致。shape=720×1280×4 / 720×1280，深度 dtype=float32。
+该帧深度有限比例 57.65%，NaN 36.65%，+Inf 1.86%，-Inf 3.84%；原始非有限值保留，没有填零伪造深度。
+初始证明帧为近距桌面/设备且朝向倒置；后续 42 次分类没有对应真值标注，不能据此验收垃圾召回、分类准确率或室外深度质量。深度没有外部测距真值，米制传输正确不等于测距精度已验收。
+
+已知未完成
+原 BoT-SORT 跟踪、材质投票、稳健深度融合和 autolabor_fod_vision/ROS 正式回接尚未部署验收。当前深度输出仅中心 5×5 有效值中位数的观察示例，不冒充原语义。
+分类按最多 8 个实际检测框执行，超出数量在结果中记录；已实际触发 42 次分类，但缺少独立现场真值及完整类别结果记录，准确率未验收。
+前次检测 HBM 量化差异仍需独立标注集验证，准确率和生产准入状态不变。
+当前车辆安装姿态需复核；长期老化、USB/整机掉电及复杂高熵场景链路容量仍未验收。
+
+保留与回退
+原 /map/j6m-dev-b/zed-direct/current → releases/20261019_5m7c286u 保持。
+原 /map/j6m-dev-b/vision-bpu/current → releases/20261019_4t9lkdo2 保持。
+导航 current → /opt/autolabor/dual_host/releases/20260914_095005/install 保持。
+原 ZED SDK、Python/ROS 环境、旧发布和离线模型测试全部保留。J6M /map 当前余约 579 MiB；没有清理数据。只存一对证明帧，不持续落原始图像/bag。
+停止本轮服务并释放相机/BPU（AGX 执行，恢复 J6M 原对时服务，保留开机注册及地址）：
+  python3 -B /home/slam/j6m-dev-b/distribution/j6m_bpu_navigation/camera/agx_services.py /home/slam/j6m-dev-b/runtime/zed_link_20261019_6y_rm3_5/config.json stop
+重新启动：
+  python3 -B /home/slam/j6m-dev-b/distribution/j6m_bpu_navigation/camera/agx_services.py /home/slam/j6m-dev-b/runtime/zed_link_20261019_6y_rm3_5/config.json start
+完整撤回本轮服务注册及新增地址（保留全部文件和证据，不启动旧导航）：
+  python3 -B /home/slam/j6m-dev-b/distribution/j6m_bpu_navigation/camera/rollback.py /home/slam/j6m-dev-b/runtime/zed_link_20261019_6y_rm3_5/config.json
+完整网络回退和整机重启未实测。新源码仍是未提交工作树成果，不能仅以 HEAD 作为交付版本；源码/模型/环境以清单与哈希合并交接。
+
+主要证据
+FINAL_MANIFEST.json，baseline.json / final_workspace_check.json，hardware_reservation.json。
+network_before.json / network_after.json / unit_registration.txt / agx_final_services.txt。
+steady_measurement.jsonl / STEADY_SUMMARY.json / proof_validation.json。
+validate_receiver_recovery.json / sender_recovery_validation.json / clock_loss_validation.json；最终 v4 对时失联另复测于 clock_loss_validation_v4.json。
+upload_imu_timing.json / upload_final_metadata.json 记录真实 J6M 的 6 项协议测试及对应源码哈希。final_delivery.json 是发现较长时间 IMU 问题时的历史快照，不作为当前验收。最终代码/状态以 FINAL_MANIFEST.json、EXTENDED_SUMMARY.json、final_v4.json、final_delivery_v4.json 为准。
+初期 UDP IMU 发现 2 个缺口，原记录 snapshot_bpu_v2.json 保留；之后改独立 TCP 的稳定窗口为零缺口。
+首次停止旧 timesyncd 实际耗时约 13 秒，12 秒命令超时记录保留；确认其已停止后启动本私有 chronyd。
+初始 chrony Unix 监测 socket 目录权限错误已改为 0700，并改用本机 UDP 监测；chronyc 查询采用 -n 避免板端反向 DNS 等待。对时实测使用成功的最终快照。
+
+一手接口依据（本机 4.2.5 头文件同时核验）
+/usr/local/zed/include/sl/Camera.hpp 的 retrieveImage/retrieveMeasure/getSensorsData、时间戳和单位定义。
+https://docs.stereolabs.com/docs/development/zed-sdk/modules/sensors/time-synchronization
+https://docs.stereolabs.com/docs/development/zed-sdk/modules/depth-sensing/using-the-api
+https://chrony-project.org/doc/4.3/chrony.conf.html

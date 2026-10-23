@@ -1,0 +1,21 @@
+B 线 USB 串口连接核验
+时间：2026-10-19T16:30:42.973586+08:00
+目录：/home/slam/j6m-dev-b；分支：vision-bpu。
+任务：用户说明目前仅 USB/Type-C 串口线连接，要求实际检查能否与 J6M 通信。
+规则：沿用 v3.0 和本目录此前 B 线交接；不继承部署或运动授权。
+
+结果：AGX 未发现 /dev/ttyUSB* 或 /dev/ttyACM*，/dev/serial/by-id、by-path 也未出现。
+lsusb 仅见 USB root hub、Realtek hub 和蓝牙，没有历史 J6M FTDI 0403:6011 设备。
+eth0、rndis0、usb0 均为 NO-CARRIER；未确认其他可用的 J6M 网络链路。
+Type-C port0 的 data_role 为 host，port1 为 device，port1 有 partner；
+无法仅据此把某一逻辑端口与用户这根线或 J6M 的实际接口对应。
+只能确认当前尚未枚举出串口，不能确定是线材、接线口、供电还是 USB 角色问题。
+
+本轮未打开串口、未发送串口数据、未改串口/USB 角色或网络配置，未执行板端命令。
+未更改业务代码或原有修改，未提交、推送、部署、启停服务或执行车辆动作。
+后续需要确认 USB-A/Type-C 两端分别插哪台设备，以及 J6M 接口标识；
+正确识别调试串口后，再按稳定设备身份及占用情况选择控制台，历史波特率 921600。
+不能猜 ttyUSB 编号，也不能把未经识别的串口当成 J6M 控制台发命令。
+验证等级：本机只读设备枚举，未通过板端串口收发或 SSH。
+回退：没有设备配置/板端状态变更，无需恢复；新增证据和本交接留存。
+详细证据：/home/slam/j6m-dev-b/runtime/bpu_serial_probe_20261019_u7mwilex/snapshot.json

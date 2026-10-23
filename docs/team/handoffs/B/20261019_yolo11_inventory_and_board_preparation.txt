@@ -1,0 +1,159 @@
+B 线：YOLO11 现状核查及板端准备环境部署
+时间：2026-10-19 17:58—18:06，Asia/Shanghai
+工作目录：/home/slam/j6m-dev-b；Git common dir：本目录 .git
+分支：vision-bpu；HEAD：5d1028efa93cf34d2179b03384085c87a456402a
+共同规则：v3；SHA256 f76d46b281312afddfb2c4c0ff6e351e8ea3c6bb3093daa0ebc7f5eecc52469a
+共同基线：仍未收到 A 固化的完整团队基线/tag，HEAD 不包含全部继承成果。
+
+一、用户授权、范围和最终状态
+
+用户先要求核查 J6M 上 YOLO11 配置、BPU 迁移可行性及所需资产，随后明确要求：
+“你检查完直接在j6m上部署缺少的部分”。本轮据此完成可确认兼容的板端准备部署。
+本地仅在 j6m-dev-b 内操作，板端仅新增 /map/j6m-dev-b/vision-bpu。
+没有改动原导航、驱动、固件、系统 Python、全局环境或已有发布版本，没有启动车辆链。
+
+结论：正式 ONNX、配置、模型契约及诊断入口已上板，原执行器及其依赖可加载。
+正式垃圾检测/分类 HBM 仍未生成，正式双模型推理、视觉接入和验收尚未完成。
+本部署是准备环境，不是已能运行的 YOLO11 BPU 识别服务。
+
+二、重新通过 SSH 核查到的已有内容
+
+板端 root@192.168.10.100，aarch64 / Debian 12，内核 6.1.158-rt58-g4f685f73e030。
+设备树 model 为 Horizon Robotics J6E MatrixB Development Board；工程称 J6M。
+既有模型契约 target=nash-m，后续仍需与厂商配套工具链核对，不凭简称更改架构。
+
+J6M 原有 YOLO11 资产位于 /map/workspaces/robot_ws/src/yolo：
+  yolo11n.pt，SHA256 0ebbc80d4a7680d14987a577cd21342b65ecfd94632bd9a8da63ae6417644ee1
+  yolo11s.pt，SHA256 85a76fe86dd8afe384648546b56a7a78580c7cb7b404fc595f97969322d502d5
+  fod_yolo11n_img640_e300_orig/weights/best.pt，SHA256
+    7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500
+  同目录 last.pt，SHA256
+    f65318256b79acac0e0963f6d28620a68f7025434213759b29c6ff3874e87418
+  fod_yolo11n_img640_e300_orig/args.yaml：旧检测训练配置，imgsz=640、epochs=300、
+    device='0'、tracker=botsort.yaml，仍引用原训练机路径。
+这些不是本项目锁定的正式 YOLO11s-GAM + 五类分类双模型，也不是 BPU 可执行文件。
+4 份旧 PT 的部署前后 SHA256 完全一致；未执行不可信 PT/pickle 加载。
+
+BPU 驱动模块：bpu_hw_io_j6、bpu_stl、bpu_cores、bpu_framework 均已加载。
+包版本：libbpu-runtime 2.2.19，bpu-fw-runtime 1.1.29，hobot-monitor-runtime 1.0.0。
+复用私有 SDK：
+  /map/robot_j6m_navigation_20260907/bpu_lab_20260905/vendor/
+  runtime_4_9_2/lib、ucp_include、python311（NumPy 1.26.4）。
+本次实际调用 hbDNNGetVersion 返回 3.14.5_(4.9.2 HBRT)。
+复用执行器：
+  /map/robot_j6m_navigation_20260907/bpu_production_20261010/build_v5/libj6m_tensor.so
+  SHA256 5c99bafb0531fac9f8e84c49c8c2d0a6d8e852e5c2217e62750dce93b4a14e3d
+参考 FCOS、CenterPoint HBM 仍存在，不能当成正式垃圾模型。
+
+本次扫描 /map、/app、/opt、/usr/hobot、/userdata，共 6508 个文件，最大深度 9，
+不跟随目录符号链接，排除 rootfs、site-packages、日志/地图等；具体范围见 board.json。
+未在此范围发现正式 ONNX/HBM 或 OpenExplorer 编译环境。默认 PATH 也无 hb_compile、
+hbdk4、hb_model_info、hb_perf；这不是全盘不存在的绝对证明。
+AGX 为 aarch64，默认 PATH 无编译器；当前 Docker 镜像列表未发现 OpenExplorer 镜像。
+
+三、本轮新增部署内容
+
+板端发布目录：
+  /map/j6m-dev-b/vision-bpu/releases/20261019_4t9lkdo2
+准备包选择器：
+  /map/j6m-dev-b/vision-bpu/current -> releases/20261019_4t9lkdo2
+部署结果：/map/j6m-dev-b/vision-bpu/deployment_result.json
+没有系统服务或既有导航入口使用这个新 current，也没有常驻进程或自动启动项。
+
+新增 30 份文件，74534652 字节（约 71.1 MiB）：
+  ptq/models/detector_zed.onnx：正式单类 trash 检测，保留 GAM；
+    输入 [1,3,576,1024]，输出 [1,5,12096]，opset 13。
+    SHA256 8c19d7a8f97c975673ae6282e48ab0370ad051e38f63a74ecc7d7c9f415a04b4
+  ptq/models/classifier.onnx：正式五类分类；输入 [1,3,224,224]，输出 [1,5]。
+    SHA256 3c15d89d9d0fcd33a705cbe52e3f0526139be1efcb789bc6182a707398a35c2d
+    顺序固定 metal、plastic、paper、glass、kitchen_waste，输出已含 softmax。
+  ptq/jobs/<模型>/compile.yaml、export_manifest.json：固定 nash-m、单核、O2、
+    latency、NCHW featuremap 输入及原导出身份。
+  production_models.json、ptq/contract.json：正式权重/ONNX/张量及类别契约。
+  samples/：两模型各一份真实校准输入，用于诊断张量读取。
+  ptq/calibration/：原校准清单，未复制整套 90 份数据。
+  tools/、test/、native/：现有执行器接口、量化工具、通信/后处理及离线测试源码。
+  environment.py、README.txt：独立准备包状态、自检、选择与撤回入口。
+  DEPENDENCIES.json：六份 SDK 库/头文件及执行器的 SHA256 和版本锁。
+  DEPLOYMENT.json、FILES.json：范围、未完成项、逐文件哈希。
+
+完整检测 40 / 分类 50 份校准数据仍在 AGX：
+  runtime/j6m_bpu_migration_20261010/private_ptq/
+这是应发送到 x86 转换机的完整 PTQ 包；板端准备包不含完整校准数据，不能直接拿两份
+自检输入编译正式模型。90 份样本来自 train，不是独立精度验收集。
+
+现有单模型 worker 继续位于旧 bpu_production_20261010/tools/tensor_stdio.py。
+新包 tools 中保留的原 worker/client 源码仍含历史路径保护，只用于后续适配审阅，
+不能从新目录直接原样启动。本次没有假称已经实现双模型服务或 ROS 业务接口。
+
+四、验证结果和证据
+
+证据根目录：runtime/yolo11_bpu_audit_20261019_4t9lkdo2/
+  board.json / details.json：盘点、旧模型配置和哈希、依赖信息。
+  baseline.json / local_toolchain.json：本地基线和工具链检查。
+  payload/、payload.tar.gz、payload_summary.json：实际部署包及本地恢复副本。
+  upload_remote.py / upload.json：部署脚本、每条验证命令及完整 stdout/stderr。
+  self_test_parsed.json：自检结构化结果；完整原输出含厂商 UCP/DNN 初始化日志。
+  final.json：最终板端选择器、旧权重、BPU 瞬时状态。
+  各 *_summary.json：SSH 成功和本机临时网络地址恢复结果。
+
+部署包压缩 SHA256：ad73b7f72e62272413e229310d6ce1ae2f686ca5a22ea7b3966db8be2d3df609
+模型/配置、29 份载荷文件及 7 份固定依赖校验通过；FILES.json 另由压缩包校验覆盖。
+本地 production_ptq.py verify --require-calibration 退出 0，90 份数据有效。
+本地 unittest discover：22 项通过；同一套测试在 J6M 原生 Python 上 22 项通过。
+J6M environment.py self-test 退出 0：NumPy 1.26.4、执行器六个符号、依赖加载、
+实际 DNN 版本查询、两模型的配置/ONNX 哈希及两份输入张量检查通过。
+未调用模型加载、hbDNNInferV2 或 UCP SubmitTask，没有执行正式或参考 BPU 推理。
+check-models 退出 2 并明确返回 MISSING_FORMAL_HBM，不会误报模型可用。
+activate → rollback → status(selected=false) → activate 实际验证通过。
+git diff --check 通过；进入时已有的 29 份 tracked 修改逐文件 SHA256 未变。
+
+最后读取：BPU ratio=0、users 无条目、task_running 为空，未发现推理/ROS/Livox 进程名。
+这只是检查时的瞬时状态，不是未来资源独占承诺。
+板端 /map 剩余 754110464 字节（约 719 MiB），后续 HBM 与日志需继续预算空间。
+原导航 current 仍为 /opt/autolabor/dual_host/releases/20260914_095005/install；
+基础 chroot current 仍为 20260905_122153/install，ZED 候选仍为 20261019_5m7c286u。
+三者部署前后完全一致。临时增加的 AGX eth0 192.168.10.50/24 每次均撤回；
+原地址、NetworkManager 持久 profile 和默认路由均核对未变。
+
+五、仍缺少什么、后续迁移顺序
+
+1. 配套 x86_64 OpenExplorer CPU 工具链：horizon-tc-ui、hbdk4、hb_compile，
+   固定镜像 digest / 包版本，与现有 DNN 3.14.5 和 HBRT 4.9.2 核对兼容性。
+   当前没有可用的转换主机连接信息，也未确认配套 SDK 包路径；已向用户询问。
+   不能把 x86 镜像直接装到 ARM64 J6M/AGX 当作原生可运行工具链。
+2. 在转换机复用完整 private_ptq，检查并编译两份正式 HBM。
+   检测含 GAM，ONNX 有 MatMul/Softmax 等算子；分类也含注意力相关算子。
+   是否全部在 BPU、是否存在 CPU 回退及其代价，必须看实际编译分配和板端结果。
+3. 对齐 FP32/量化/实板数值，核验分类顺序、前后处理和独立数据集精度。
+4. 实现同一服务常驻两模型、统一独占锁与调度、会话/源帧身份和过期结果丢弃，
+   接回 autolabor_fod_vision 的跟踪、深度配对、材质投票与原发布语义。
+5. 实测 0/1/4/8 crop 整帧速度、P50/P95/P99 和断连/超时/重连等异常处理。
+   本次没有准确率、帧率或全 BPU 覆盖率结果。
+
+不需要为本轮搬运 AGX 的 CUDA、TensorRT、整个 PyTorch 环境或重装 BPU 驱动。
+若需重新导出/QAT，仍需对应正式 PT 和自定义 GAM 源码；不能用旧 PT 替换。
+
+官方参考（仅证明部署路径和架构族支持，不证明本定制模型/版本已验收）：
+  https://github.com/D-Robotics/rdk_model_zoo_s/blob/s100/samples/Vision/ultralytics_yolo/README_cn.md
+  https://doc.oe.horizon.auto/3.5.0/guide/env_install.html
+  https://doc.oe.horizon.auto/en/guide/tools_guide/hb_analyzer.html
+YOLO11 官方示例包含 nash-m 目标；工具链提供 x86 开发环境和 CPU Docker 路线。
+示例要求的 OE 版本不能直接拿来替换本板的已锁定运行库。
+
+六、交付、回退及本地新增文件
+
+在 J6M 检查：
+  python3 -B /map/j6m-dev-b/vision-bpu/current/environment.py status
+  python3 -B /map/j6m-dev-b/vision-bpu/current/environment.py self-test
+撤回本准备包选择器（保留所有文件；不操作导航、相机或推理进程）：
+  python3 -B /map/j6m-dev-b/vision-bpu/current/environment.py rollback
+重新选择：
+  python3 -B /map/j6m-dev-b/vision-bpu/releases/20261019_4t9lkdo2/environment.py activate
+
+本地新增实现：
+  distribution/j6m_bpu_navigation/board/environment.py
+  distribution/j6m_bpu_navigation/board/README.txt
+本交接文件和上述 runtime 证据均为本轮新增。无共享 ROS/通信接口变化。
+未提交、推送或合并；继承的 tracked/untracked 文件全部保留。
+下一项外部输入由用户/A 提供：可用 x86_64 转换机及匹配本板运行库的工具链版本。
