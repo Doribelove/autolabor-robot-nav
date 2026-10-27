@@ -6,6 +6,7 @@ from pathlib import Path
 
 from autolabor_fod_vision.camera_info import (
     load_camera_calibration,
+    rectified_intrinsics,
     uncalibrated,
 )
 
@@ -35,6 +36,15 @@ projection_matrix:
 
 
 class CameraInfoTest(unittest.TestCase):
+    def test_left_rectified_projection_uses_p_and_rejects_stereo_translation(self):
+        p = [500.,0.,320.,0.,0.,510.,240.,0.,0.,0.,1.,0.]
+        self.assertEqual([500.,0.,320.,0.,510.,240.,0.,0.,1.],rectified_intrinsics(p))
+        for index,value in ((3,-60.),(5,float('nan')),(10,0.)):
+            invalid=list(p)
+            invalid[index]=value
+            with self.assertRaises(ValueError):
+                rectified_intrinsics(invalid)
+
     def test_uncalibrated_is_explicit(self):
         calibration = uncalibrated(1280, 720, "camera")
         self.assertFalse(calibration.calibrated)

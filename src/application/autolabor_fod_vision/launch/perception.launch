@@ -169,8 +169,6 @@
            value="$(arg ultralytics_root):$(optenv PYTHONPATH)"/>
       <rosparam command="load"
                 file="$(find autolabor_fod_vision)/config/detect_and_classify.yaml"/>
-      <rosparam command="load" ns="detect_and_classify/map_localization/mount"
-                file="$(find autolabor_bpu_perception)/config/zed_mount.yaml"/>
       <param name="ultralytics_root" value="$(arg ultralytics_root)"/>
       <param name="runtime_token" value="$(arg runtime_token)"/>
       <param name="device" value="$(arg device)"/>

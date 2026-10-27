@@ -5,6 +5,7 @@ Manual installation geometry, independent camera acquisition times. Does not
 publish ROS/TF or control a vehicle. Closing stops only its private J6M capture.
 """
 import argparse
+import base64
 import fcntl
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -18,6 +19,7 @@ import threading
 import time
 import urllib.request
 import uuid
+import zlib
 
 import cv2
 import gi
@@ -283,6 +285,8 @@ class Viewer:
                             x_range_m=self.config['x_range_m'], y_range_m=self.config['y_range_m'],
                             metres_per_pixel=self.bev.resolution, ground_plane=[0, 0, 1, 0],
                             dimensions=[self.bev.width, self.bev.height],
+                            ground_support_zlib_b64=base64.b64encode(zlib.compress(
+                                (counts > 0).astype('uint8').tobytes())).decode('ascii'),
                             T_ground_from_upright_optical={n: t.tolist() for n, t in self.bev.transforms.items()},
                             projection_intrinsics={n: k.tolist() for n, k in self.bev.intrinsics.items()},
                             vehicle_image_masks='manually bounded visible vehicle structure; not ground segmentation',

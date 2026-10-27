@@ -47,7 +47,7 @@ catkin_package(
 catkin_install_python(PROGRAMS
   scripts/fod_navigation_mode_manager.py
   scripts/fod_visual_servo_node.py
-  scripts/pending_litter_cleaner_node.py
+  scripts/bev_cleaner_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
@@ -61,9 +61,8 @@ install(DIRECTORY config launch
 )
 
 if(CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(test/test_bev_cleaning.py)
   catkin_add_nosetests(test/test_mode_manager.py)
-  catkin_add_nosetests(test/test_pending_litter.py)
-  catkin_add_nosetests(test/test_pending_navigation.py)
   catkin_add_nosetests(test/test_visual_servo.py)
   catkin_add_nosetests(test/test_simple_visual_completion.py)
   find_package(rostest REQUIRED)

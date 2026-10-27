@@ -39,7 +39,7 @@ from sensor_msgs.msg import CameraInfo
 from std_msgs.msg import Bool, Empty, Float64, String
 from std_srvs.srv import SetBool, SetBoolResponse
 
-from autolabor_fod_control.pending_litter import map_target_to_wheel_odom
+from autolabor_fod_control.cleaning_geometry import map_target_to_wheel_odom
 from autolabor_fod_control.visual_session import VisualSessionReceipt
 
 from autolabor_fod_control.visual_servo import (

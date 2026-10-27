@@ -1,0 +1,16 @@
+<launch>
+  <node pkg="autolabor_dual_host" type="move_base_pause_bridge.py" name="navigation_pause" output="screen">
+    <param name="require_coverage_state" value="false"/>
+    <param name="required_action_server_node" value="/bev_cleaning"/>
+    <param name="simple_goal_output_topic" value="/unused_simple_goal"/>
+  </node>
+  <node pkg="autolabor_fod_control" type="bev_cleaner_node.py" name="bev_cleaner" output="screen">
+    <!-- Synthetic test geometry only, never a real installation extrinsic. -->
+    <rosparam param="rig_to_base_xyyaw">[0.0, 0.0, 0.0]</rosparam>
+    <param name="detections_url" value="http://127.0.0.1:18984/detections"/>
+  </node>
+  <node pkg="autolabor_fod_control" type="bev_cleaner_node.py" name="bev_unconfigured" output="screen">
+    <param name="detections_url" value="http://127.0.0.1:18984/detections"/>
+  </node>
+  <test pkg="autolabor_fod_control" type="test_bev_cleaning_ros.py" test-name="bev_cleaning" time-limit="100"/>
+</launch>

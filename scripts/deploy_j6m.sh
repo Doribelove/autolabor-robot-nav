@@ -185,7 +185,6 @@ ssh "$target" "set -eu
     rospack find autolabor_bpu_perception >/dev/null
     rosmsg md5 autolabor_fod_msgs/FodMapPositionArray >/dev/null
     rossrv md5 autolabor_fod_msgs/SetFodCleaningTarget | grep -Fxq $pending_target_md5
-    rossrv md5 autolabor_fod_msgs/StartPendingLitterCleaning >/dev/null
     rosmsg md5 autolabor_bpu_perception/DetectedObjects >/dev/null
     rospack find robot_bringup >/dev/null
     rospack find teb_local_planner >/dev/null
@@ -232,8 +231,7 @@ ssh "$target" "set -eu
     rosmsg md5 autolabor_fod_msgs/FodMapPositionArray >/dev/null
     rossrv md5 autolabor_fod_msgs/SetFodCleaningTarget | grep -Fxq $pending_target_md5
     rospack find map_msgs >/dev/null
-    python3 -c \"import map_msgs.msg; import autolabor_fod_control.pending_litter; import autolabor_fod_control.visual_session\"
-    rossrv md5 autolabor_fod_msgs/StartPendingLitterCleaning >/dev/null
+    python3 -c \"import map_msgs.msg; import autolabor_fod_control.bev_cleaning; import autolabor_fod_control.visual_session\"
     rospack find autolabor_coverage >/dev/null
     rospack find autolabor_fod_control >/dev/null
     rospack find teb_local_planner >/dev/null
@@ -258,7 +256,7 @@ ssh "$target" "set -eu
     test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_coverage/config/coverage.yaml
     test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_coverage/config/coverage_factory_defaults.yaml
     test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_fod_control/fod_visual_servo_node.py
-    test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_fod_control/pending_litter_cleaner_node.py
+    test -x /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/autolabor_fod_control/bev_cleaner_node.py
     test -r /opt/autolabor/dual_host/releases/"\$RELEASE"/install/share/autolabor_fod_control/launch/visual_recovery.launch
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_global_planner.so
     test -f /opt/autolabor/dual_host/releases/"\$RELEASE"/install/lib/libcoverage_hybrid_astar.so

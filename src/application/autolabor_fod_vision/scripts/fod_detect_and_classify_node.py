@@ -9,7 +9,6 @@ from pathlib import Path
 import threading
 import time
 import traceback
-import uuid
 from typing import Sequence, Tuple
 
 import cv2
@@ -21,13 +20,11 @@ from autolabor_fod_msgs.msg import (
     FodDetectionArray,
     FodVisionDetection,
     FodVisionDetectionArray,
-    FodMapPosition,
-    FodMapPositionArray,
 )
 from cv_bridge import CvBridge
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from dynamic_reconfigure.srv import Reconfigure
-from geometry_msgs.msg import Point, Point32
+from geometry_msgs.msg import Point32
 from sensor_msgs.msg import CameraInfo, Image, RegionOfInterest
 from std_msgs.msg import String
 from tf.transformations import quaternion_matrix
@@ -50,11 +47,7 @@ from autolabor_fod_vision.two_stage import (
     estimate_clustered_depth,
 )
 from autolabor_fod_vision.two_stage_runtime import TwoStageUltralyticsRuntime
-from autolabor_fod_vision.map_localization import (
-    MapLocalizer, MapTransform, current_point, current_map_point, current_local_point,
-    localization_ready, rectified_intrinsics,
-)
-from autolabor_fod_vision.landmark_stability import LandmarkStability
+from autolabor_fod_vision.camera_info import rectified_intrinsics
 
 
 BACKEND_ID = "detect_and_classify"
@@ -233,15 +226,6 @@ class DetectAndClassifyNode:
                 "detect_and_classify motion requires source-stamped depth matching"
             )
 
-        self.map_localization_enabled = bool(self._p("map_localization/enabled", True))
-        self.map_localizer = (MapLocalizer(self._p("map_localization/mount", {}))
-                              if self.map_localization_enabled else None)
-        self.map_status = "WAITING_LOCALIZATION"
-        self.local_position_status = "WAITING_DEPTH"
-        self.landmark_stability = LandmarkStability()
-        self.odom_session_id = uuid.uuid4().hex
-        self.odom_source_transform = None
-        self._localization_status = ("", float("-inf"))
         self.transform_target = str(self._p("transform/target_frame", "map"))
         self.transform_fallback = str(
             self._p("transform/fallback_target_frame", "")
@@ -440,13 +424,6 @@ class DetectAndClassifyNode:
 
         self.results_pub = rospy.Publisher(
             "/fod/vision/results", FodVisionDetectionArray, queue_size=1
-        )
-        self.map_positions_pub = rospy.Publisher(
-            "/fod/vision/map_positions", FodMapPositionArray, queue_size=1
-        )
-        self.localization_subscriber = rospy.Subscriber(
-            self._p("map_localization/localization_status_topic", "/fast_lio/localization_status"),
-            String, self._localization_callback, queue_size=1,
         )
         # Motion output remains fail-closed per frame: only confirmed material
         # classifications are projected into the legacy interface, and the
@@ -685,75 +662,12 @@ class DetectAndClassifyNode:
         age = now - stamp_sec
         return age if age >= -0.02 else float("inf")
 
-    def _localization_callback(self, message):
-        self._localization_status = (message.data, time.monotonic())
-
-    def _lookup_live_transforms(self, source_frame, stamp_sec):
-        """Return map/local transforms sharing one calibrated camera->base TF."""
-        stamp = rospy.Time.from_sec(stamp_sec)
-
-        def lookup(target, source):
-            transform = self.tf_buffer.lookup_transform(
-                target, source, stamp, rospy.Duration(self.transform_timeout_sec)
-            ).transform
-            q = transform.rotation
-            quat = np.asarray([q.x, q.y, q.z, q.w])
-            if not np.isfinite(quat).all() or abs(np.linalg.norm(quat) - 1.0) > 0.01:
-                raise ValueError("INVALID_TRANSFORM")
-            matrix = quaternion_matrix(quat)
-            t = transform.translation
-            matrix[:3, 3] = [t.x, t.y, t.z]
-            return matrix
-
-        try:
-            base_transform = self.map_localizer.base_transform(source_frame, lookup)
-            radar_transform = self.map_localizer.radar_transform(base_transform)
-        except (tf2_ros.LookupException, tf2_ros.ConnectivityException,
-                tf2_ros.ExtrapolationException):
-            self.local_position_status = self.map_status = "BASE_TF_UNAVAILABLE"
-            return None, None
-        except ValueError as error:
-            self.local_position_status = self.map_status = str(error)
-            return None, None
-        self.local_position_status = "OK"
-        try:
-            self.odom_source_transform = MapTransform(
-                lookup("camera_init", "base_link") @ base_transform.matrix, "camera_init")
-        except (tf2_ros.LookupException, tf2_ros.ConnectivityException,
-                tf2_ros.ExtrapolationException, ValueError):
-            self.odom_source_transform = None
-        if not localization_ready(*self._localization_status, time.monotonic()):
-            self.map_status = "LOCALIZATION_UNAVAILABLE"
-            return None, radar_transform
-        try:
-            result = self.map_localizer.map_transform(base_transform, lookup)
-        except (tf2_ros.LookupException, tf2_ros.ConnectivityException,
-                tf2_ros.ExtrapolationException):
-            self.map_status = "MAP_TF_UNAVAILABLE"
-            return None, radar_transform
-        except ValueError as error:
-            self.map_status = str(error)
-            return None, radar_transform
-        self.map_status = "OK"
-        if self.odom_source_transform is not None:
-            if (self.landmark_stability.last_stamp is not None
-                    and stamp_sec <= self.landmark_stability.last_stamp):
-                self.odom_session_id = uuid.uuid4().hex
-            correction = result.matrix @ np.linalg.inv(self.odom_source_transform.matrix)
-            self.landmark_stability.observe(stamp_sec, correction)
-        return result, radar_transform
-
-    def _lookup_map_transform(self, source_frame, stamp_sec):
-        return self._lookup_live_transforms(source_frame, stamp_sec)[0]
-
     def _lookup_source_transform(
         self, source_frame: str, stamp_sec: float
     ):
         """Look up one exact source-frame transform for all boxes in this RGB frame."""
         if not source_frame or not math.isfinite(stamp_sec):
             return None
-        if self.map_localization_enabled:
-            return self._lookup_map_transform(source_frame, stamp_sec)
         now_monotonic = time.monotonic()
         if now_monotonic < self.tf_backoff_until_monotonic:
             self.tf_backoff_skips += 1
@@ -950,10 +864,6 @@ class DetectAndClassifyNode:
                 sum(1 for target in live_objects if target.world_locked)
             ),
             "tf_valid_detections": str(self.tf_valid_detections),
-            "map_localization_enabled": str(self.map_localization_enabled),
-            "map_position_status": self.map_status,
-            "camera_calibration_sha256": (self.map_localizer.calibration_sha256
-                                           if self.map_localizer else ""),
             "tf_lookup_frames": str(self.tf_lookup_frames),
             "tf_target_attempts": str(self.tf_target_attempts),
             "tf_lookup_successes": str(self.tf_lookup_successes),
@@ -1045,8 +955,6 @@ class DetectAndClassifyNode:
             crops.append(crop)
             appearances.append(appearance_histogram(crop))
 
-        # Live map positions always use current RGB-D, even for locked IDs.
-        # The legacy cache remains available when live map output is disabled.
         known_targets = []
         depth_sample_requested = []
         for detection, appearance in zip(detections, appearances):
@@ -1058,7 +966,6 @@ class DetectAndClassifyNode:
                 self.depth_enabled
                 and (
                     self.motion_enabled
-                    or self.map_localization_enabled
                     or
                     known_target is None
                     or self.object_map.should_sample_depth(
@@ -1082,8 +989,6 @@ class DetectAndClassifyNode:
         camera_info = None
         sync_delta = float("nan")
         depth_array = None
-        self.map_status = "NO_DEPTH"
-        self.local_position_status = "NO_DEPTH"
         camera_matrix = None
         if any(depth_sample_requested):
             self.depth_sync_requests += 1
@@ -1114,8 +1019,7 @@ class DetectAndClassifyNode:
                                 frame.message.height,
                             )
                         )
-                    camera_matrix = (rectified_intrinsics(camera_info.P)
-                                     if self.map_localization_enabled else camera_info.K)
+                    camera_matrix = rectified_intrinsics(camera_info.P)
                     self.depth_synchronized_frames += 1
                 except Exception as error:
                     self.last_error = "depth decode failed: {}".format(error)
@@ -1173,17 +1077,11 @@ class DetectAndClassifyNode:
         # One source-stamped transform per frame, shared across current boxes.
         needs_source_transform = any(
             estimate.valid
-            and (self.map_localization_enabled or known_target is None or not known_target.world_locked)
+            and (known_target is None or not known_target.world_locked)
             for estimate, known_target in zip(depth_estimates, known_targets)
         )
-        source_transform = local_transform = None
-        self.odom_source_transform = None
-        if needs_source_transform or self.map_localization_enabled:
-            if self.map_localization_enabled:
-                source_transform, local_transform = self._lookup_live_transforms(
-                    frame.frame_id, frame.stamp_sec)
-            else:
-                source_transform = self._lookup_source_transform(frame.frame_id, frame.stamp_sec)
+        source_transform = (self._lookup_source_transform(frame.frame_id, frame.stamp_sec)
+                            if needs_source_transform else None)
 
         observations = []
         world_positions = []
@@ -1196,7 +1094,7 @@ class DetectAndClassifyNode:
             if (
                 estimate.valid
                 and source_transform is not None
-                and (self.map_localization_enabled or known_target is None or not known_target.world_locked)
+                and (known_target is None or not known_target.world_locked)
             ):
                 world_position = self._apply_source_transform(
                     estimate.camera_point, source_transform
@@ -1284,24 +1182,12 @@ class DetectAndClassifyNode:
             # not a replacement for a missing current-frame camera depth.  It
             # may be displayed for object identity while depth remains N/A.
             if (
-                not self.map_localization_enabled
-                and world_positions[index] is None
+                world_positions[index] is None
                 and target.world_locked
                 and target.world_position is not None
             ):
                 world_positions[index] = target.world_position.copy()
                 world_frames[index] = target.world_frame
-
-        # Recheck after inference/classification in case localization was lost
-        # while this frame was being processed. Never publish a cached pose.
-        if self.map_localization_enabled:
-            if not localization_ready(*self._localization_status, time.monotonic()):
-                source_transform = None
-                self.map_status = "LOCALIZATION_UNAVAILABLE"
-            world_positions = [current_map_point(e, source_transform) for e in depth_estimates]
-            world_frames = ["map" if p is not None else "" for p in world_positions]
-            if source_transform is None or self.odom_source_transform is None:
-                self.landmark_stability.invalidate("LOCALIZATION_OR_TF_UNAVAILABLE")
 
         processing_ms = (time.perf_counter() - processing_started) * 1000.0
         capture_age = self._source_age(frame.stamp_sec)
@@ -1361,14 +1247,9 @@ class DetectAndClassifyNode:
             message.depth_m = float(estimate.depth_m)
             message.depth_mad_m = float(estimate.mad_m)
             message.depth_sample_count = int(estimate.sample_count)
-            message.world_position_valid = bool(world_position is not None)
-            if world_position is not None:
-                message.world_position = Point(
-                    x=float(world_position[0]),
-                    y=float(world_position[1]),
-                    z=float(world_position[2]),
-                )
-            message.world_frame = str(world_frame)
+            # Map annotation was retired in favour of three-camera BEV cleaning.
+            # Keep wire fields at their invalid defaults for compatibility.
+            message.world_position_valid = False
             message.state = str(target.state)
             message.last_observed = frame.message.header.stamp
             result.detections.append(message)
@@ -1410,52 +1291,6 @@ class DetectAndClassifyNode:
         ]
 
         self.results_pub.publish(result)
-        if self.map_localization_enabled:
-            positions = FodMapPositionArray()
-            positions.header.stamp = frame.message.header.stamp
-            positions.header.frame_id = "map"
-            positions.source_header = frame.message.header
-            positions.backend_id = BACKEND_ID
-            positions.calibration_sha256 = self.map_localizer.calibration_sha256
-            positions.status = self.map_status if result.detections else "NO_DETECTIONS"
-            positions.odom_session_id = self.odom_session_id
-            positions.odom_frame = "camera_init"
-            positions.map_stable = self.landmark_stability.matrix is not None
-            positions.stability_status = self.landmark_stability.status
-            positions.correction_generation = self.landmark_stability.generation
-            if positions.map_stable:
-                positions.stable_map_from_odom = self.landmark_stability.matrix.ravel().tolist()
-            for detection, estimate in zip(result.detections, depth_estimates):
-                position = FodMapPosition()
-                position.object_id = detection.object_id
-                position.track_id = detection.track_id
-                position.material_class = detection.material_class
-                position.bbox = detection.bbox
-                position.position_valid = detection.world_position_valid
-                position.position = (Point(detection.world_position.x, detection.world_position.y,
-                                           float("nan")) if position.position_valid
-                                     else Point(float("nan"), float("nan"), float("nan")))
-                position.status = ("OK" if position.position_valid else
-                                   ("DEPTH_UNAVAILABLE: " + estimate.reason
-                                    if not estimate.valid else self.map_status))
-                local_point = current_local_point(estimate, local_transform)
-                position.local_position_valid = local_point is not None
-                position.local_frame = "mid360"
-                position.local_position = (Point(float(local_point[0]), float(local_point[1]),
-                                                 float("nan")) if local_point is not None
-                                           else Point(float("nan"), float("nan"), float("nan")))
-                position.local_status = ("OK" if position.local_position_valid else
-                                        ("DEPTH_UNAVAILABLE: " + estimate.reason
-                                         if not estimate.valid else self.local_position_status))
-                position.depth_m = detection.depth_m
-                position.depth_mad_m = detection.depth_mad_m
-                position.depth_sample_count = detection.depth_sample_count
-                odom_point = current_point(estimate, self.odom_source_transform, "camera_init")
-                position.odom_position_valid = odom_point is not None
-                position.odom_position = (Point(*map(float, odom_point)) if odom_point is not None
-                                          else Point(float("nan"), float("nan"), float("nan")))
-                positions.positions.append(position)
-            self.map_positions_pub.publish(positions)
         self.legacy_pub.publish(legacy)
         if self.debug_pub.get_num_connections() > 0:
             debug = self._debug_image(

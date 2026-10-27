@@ -6,12 +6,10 @@
 #include <autolabor_canbus_driver/CanBusMessage.h>
 #include <autolabor_coverage/CoverageStatus.h>
 #include <autolabor_operator_gui/coverage_region_store.h>
-#include <autolabor_operator_gui/pending_litter_page.h>
 #include <autolabor_operator_gui/surround_preview_client.h>
 #include <autolabor_operator_gui/bev_preview_client.h>
 #include <autolabor_fod_msgs/FodDetectionArray.h>
 #include <autolabor_fod_msgs/FodVisionDetectionArray.h>
-#include <autolabor_fod_msgs/FodMapPositionArray.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
@@ -278,7 +276,6 @@ struct TelemetrySnapshot
   bool vision_results_received = false;
   autolabor_fod_msgs::FodVisionDetectionArray vision_results;
   ros::WallTime vision_results_received_at;
-  std::deque<std::pair<autolabor_fod_msgs::FodMapPositionArray, ros::WallTime>> vision_position_frames;
   TimedScalar vision_results_fps;
   std::uint64_t rejected_vision_results = 0;
 
@@ -397,7 +394,6 @@ private Q_SLOTS:
   void handleVisionModelSwitchError(QProcess::ProcessError error);
 private:
   friend class RvizCallbackIsolationTest;
-  friend class PendingLitterIntegrationTest;
   struct StatusCard
   {
     QFrame* frame = nullptr;
@@ -438,13 +434,19 @@ private:
   QWidget* buildFastLioPage();
   QWidget* buildTestPage();
   QWidget* buildVisionPage();
-  void refreshPendingLitter();
-  // Caller holds snapshot_mutex_; Qt widgets are updated only by refreshUi.
-  void enqueuePendingLitterInput(const PendingLitterInput& input);
   QWidget* buildBpuPreviewPage();
   QWidget* buildBevPreviewPage();
   void setupBevPreview();
   void refreshBevPreview();
+  void refreshBevCleaning();
+  void requestBevCleaning(bool start);
+  QLabel* bev_cleaning_status_ = nullptr;
+  QPushButton* bev_cleaning_start_ = nullptr;
+  QPushButton* bev_cleaning_stop_ = nullptr;
+  QString bev_cleaner_status_json_;
+  ros::WallTime bev_cleaner_received_;
+  ros::Subscriber bev_cleaner_status_subscriber_;
+  QFutureWatcher<QString>* bev_cleaning_request_ = nullptr;
   BevPreviewClient* bev_preview_ = nullptr;
   QLabel* bev_raw_preview_ = nullptr;
   QLabel* bev_result_preview_ = nullptr;
@@ -535,9 +537,6 @@ private:
   void detectionsCallback(const autolabor_fod_msgs::FodDetectionArray::ConstPtr& msg);
   void visionResultsCallback(
       const autolabor_fod_msgs::FodVisionDetectionArray::ConstPtr& msg);
-  void visionPositionsCallback(const autolabor_fod_msgs::FodMapPositionArray::ConstPtr& msg);
-  void pendingLitterCompletedCallback(const std_msgs::UInt64::ConstPtr& msg);
-  void pendingLitterStatusCallback(const std_msgs::String::ConstPtr& msg);
   void modeStateCallback(const std_msgs::String::ConstPtr& msg);
   void modeStatusCallback(const std_msgs::String::ConstPtr& msg);
   void visualStateCallback(const std_msgs::String::ConstPtr& msg);
@@ -587,9 +586,6 @@ private:
   void refreshSurroundPreview();
   ros::Subscriber detections_subscriber_;
   ros::Subscriber vision_results_subscriber_;
-  ros::Subscriber vision_positions_subscriber_;
-  ros::Subscriber pending_litter_completed_subscriber_;
-  ros::Subscriber pending_litter_status_subscriber_;
   ros::Subscriber mode_state_subscriber_;
   ros::Subscriber mode_status_subscriber_;
   ros::Subscriber visual_state_subscriber_;
@@ -647,11 +643,6 @@ private:
   std::map<QString, QLabel*> values_;
   QLabel* app_subtitle_ = nullptr;
   QTabWidget* tabs_ = nullptr;
-  PendingLitterPage* pending_litter_page_ = nullptr;
-  std::deque<PendingLitterInput> pending_litter_inputs_;
-  std::deque<std::uint64_t> pending_litter_completed_ids_;
-  std::deque<std::string> pending_litter_status_updates_;
-  nav_msgs::OccupancyGrid::ConstPtr pending_litter_map_;
   int overview_tab_index_ = -1;
   int coverage_tab_index_ = -1;
   int ai_tab_index_ = -1;

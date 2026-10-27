@@ -1,6 +1,6 @@
 # 三路环视识别与导航调参合并版
 
-目录 `/home/slam/robot_j6m_ws_conbine`，分支 `robot_j6m_ws_conbine`。
+目录 `/home/slam/robot_j6m_ws_conbine`，当前分支 `1027`。
 本目录是独立 Git 仓库，两个来源的源码快照和合并记录均在本仓库保存，原目录保留。
 
 AI 开发必须遵守 [开发约束](DEVELOPMENT_CONSTRAINTS.md)，不得自行增加影响正常导航的运行限制。
@@ -10,6 +10,9 @@ AI 开发必须遵守 [开发约束](DEVELOPMENT_CONSTRAINTS.md)，不得自行�
 - 原 Qt 三路相机视频、端口 0/1/2 切换、GDC 去畸变与 J6M BPU 检测/材质分类显示。
 - 导航调参页：覆盖规划、转场 TEB、Hybrid A*，后端确认与参数永久保存。
 - Qt 与覆盖后端统一将选区拟合成最小面积外接矩形。
+- 三路 BEV 垃圾检测、米制相对位置及视野内逐步清扫；原垃圾地图标注和页面已删除。
+  安装外参按用户要求预留，本地构建及227项检查通过，尚未部署/实车验收。
+  机构自动控制仍未接入，轨迹通过不等于实际拾取；详见[本次功能说明](docs/BEV_VISIBLE_CLEANING_20261027.txt)。
 
 入口 `scripts/conbine.sh {build|test|start|stop|status}`。
 保留的离线预览为真实相机观察加隔离导航调参：相机数据来自已有环视服务，导航使用合成

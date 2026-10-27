@@ -17,11 +17,14 @@ import numpy as np
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT/'src/application/autolabor_fod_vision/src'))
+sys.path.insert(0, str(PROJECT/'src/application/autolabor_fod_control/src'))
 from autolabor_fod_vision.detector import UltralyticsDetector, annotate_image
+from autolabor_fod_control.bev_cleaning import ground_objects
 
 STOP = threading.Event()
 LOCK = threading.Lock()
 LATEST = None
+OBSERVATIONS = None
 STATUS = {'status': 'loading_yolo'}
 EXPECTED_MODEL = '5efaafa1503db11c2ba261b4429389d96335b4eef4d0fc44d6ca41e7431f2d0f'
 
@@ -52,12 +55,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         with LOCK:
-            latest, status = LATEST, dict(STATUS)
+            latest, status, observations = LATEST, dict(STATUS), OBSERVATIONS
         if self.path == '/state':
             payload = json.dumps(status, allow_nan=False).encode()
             mime = 'application/json'
         elif self.path == '/frame' and latest and time.time()-latest[0] < 2:
             payload, mime = latest[1], 'application/octet-stream'
+        elif self.path == '/detections' and observations and -.2 <= time.time()-observations['observed_epoch_s'] <= 2:
+            payload, mime = json.dumps(observations, allow_nan=False).encode(), 'application/json'
         else:
             self.send_error(503, 'Waiting for fresh YOLO BEV result')
             return
@@ -73,7 +78,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    global LATEST
+    global LATEST, OBSERVATIONS
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='http://127.0.0.1:18883/frame')
     parser.add_argument('--port', type=int, default=18884)
@@ -114,6 +119,17 @@ def main():
                     raise ValueError('Annotated image encoding failed')
                 objects = [dict(class_id=d.class_id, class_name=d.class_name, confidence=d.confidence,
                                 bbox=[d.xmin, d.ymin, d.xmax, d.ymax]) for d in result.detections]
+                # Source capture clocks are not synchronized. Use a conservative
+                # receive/cache-time estimate and expose that limitation.
+                observed = min(s['received_epoch_ns']/1e9 -
+                    s.get('source_age_s', s.get('producer_cache_age_s', 0.))
+                    for s in source['sources'].values())
+                observations = dict(schema='conbine.bev.cleaning.observations.v1',
+                    source_id=identity, config_sha256=source['config_sha256'],
+                    ground_frame=source['frame_id'], observed_epoch_s=observed,
+                    timestamp_basis='oldest source receive time minus reported source/cache age estimate',
+                    ground_objects=ground_objects(source, objects),
+                    metric_accuracy_verified=False, source_exposure_synchronized=False)
                 processed += 1
                 if processed == 1:
                     first = time.monotonic()
@@ -127,10 +143,12 @@ def main():
                     inference_input_sha256=hashlib.sha256(image.tobytes()).hexdigest(),
                     bev_detection_accuracy_verified=False, source_exposure_synchronized=False,
                     metric_accuracy_verified=False)
+                meta['ground_objects'] = observations['ground_objects']
                 header = json.dumps(meta, allow_nan=False).encode()
                 packet = struct.pack('!4sIII', b'BV01', len(header), len(raw_jpeg), len(encoded))+header+raw_jpeg+encoded.tobytes()
                 with LOCK:
                     LATEST = (source['produced_epoch_s'], packet)
+                    OBSERVATIONS = observations
                     STATUS.update(status='live', processed_frames=processed, source_id=identity,
                                   objects=len(objects), inference_ms=result.inference_ms,
                                   inference_fps=meta['inference_fps'], model_sha256=detector.model_sha256,

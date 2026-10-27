@@ -108,6 +108,13 @@ def prepare(mapping=False):
                     ignore=shutil.ignore_patterns('__pycache__'))
     for file in (WS/'src/application/autolabor_coverage/src/autolabor_coverage').glob('*.py'):
         shutil.copy2(file,python/file.name)
+    # Keep the visual controller's shared cleaning geometry in the same private
+    # overlay as its scripts, including generated dynamic-reconfigure classes.
+    fod_python=overlay/'lib/python3/dist-packages/autolabor_fod_control'
+    shutil.copytree(WS/'devel/lib/python3/dist-packages/autolabor_fod_control',fod_python,
+                    ignore=shutil.ignore_patterns('__pycache__'))
+    for file in (WS/'src/application/autolabor_fod_control/src/autolabor_fod_control').glob('*.py'):
+        shutil.copy2(file,fod_python/file.name)
     shutil.copytree(WS/'devel/lib/python3/dist-packages/autolabor_canbus_driver',
                     overlay/'lib/python3/dist-packages/autolabor_canbus_driver',
                     ignore=shutil.ignore_patterns('__pycache__'))
@@ -200,11 +207,18 @@ def run():
         stopping=threading.Event()
         for sig in (signal.SIGINT,signal.SIGTERM):signal.signal(sig,lambda *_:stopping.set())
         children=[]
+        optional_children=[]
         def spawn(name,args,pipe=False):
             stream=(session/(name+'.log')).open('a')
             p=subprocess.Popen(args,stdin=subprocess.PIPE if pipe else subprocess.DEVNULL,
                                stdout=stream,stderr=subprocess.STDOUT,start_new_session=True)
             children.append((name,p,stream));return p
+        def spawn_optional(name,args):
+            stream=(session/(name+'.log')).open('a')
+            p=subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=stream,
+                               stderr=subprocess.STDOUT,start_new_session=True)
+            optional_children.append((name,p,stream))
+            return p
         try:
             board_process=spawn('board',SSH+['python3','-u',board+'/board_guardian.py',board],True)
             def heartbeat():
@@ -223,6 +237,11 @@ def run():
             spawn('gateway',['roslaunch',str(WS/'src/platform/autolabor_dual_host/launch/nvidia_gateway.launch'),
                 'start_livox:=false','start_can:=true',
                 'can_port:='+str(CAN),'motion_enabled:=true'])
+            if not mapping:
+                # Camera/perception failures stay local to this optional feature.
+                # The coordinator starts idle and issues goals only from Qt Start.
+                spawn_optional('bev_perception',['bash',str(WS/'scripts/bev_perception.sh'),'start'])
+                spawn_optional('bev_cleaner',['roslaunch',str(WS/'src/application/autolabor_fod_control/launch/bev_cleaning.launch')])
             # This leaf makes only the map root visible; it never invents a robot pose.
             if not mapping:
                 spawn('map_anchor',['rosrun','tf2_ros','static_transform_publisher',
@@ -243,7 +262,7 @@ def run():
         finally:
             stopping.set()
             # Stop the local gateway before closing the remote ownership lease.
-            for name,p,stream in reversed(children):
+            for name,p,stream in reversed(children+optional_children):
                 if p.poll() is None:
                     if name=='board' and p.stdin:
                         p.stdin.close()

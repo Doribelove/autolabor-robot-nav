@@ -1,0 +1,11 @@
+# T_base_link_from_BEV: [x metres, y metres, yaw radians].
+# BEV origin = ground below the midpoint of the side cameras.
+# Intentionally unspecified until the user supplies the mounting extrinsics.
+# An existing source-stamped map <- camera_rig_ground_estimate TF can also be used.
+rig_to_base_xyyaw: []
+map_frame: map
+base_frame: base_link
+detections_url: http://127.0.0.1:18884/detections
+# Existing visual-cleaning reference, measured forward from base_link.
+cleaning_reference_offset_m: 0.52
+cleaning_tolerance_m: 0.10

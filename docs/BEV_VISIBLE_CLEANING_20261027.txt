@@ -1,0 +1,76 @@
+2026-10-27 三路 BEV 视野逐步清扫
+
+保存与范围
+修改前先建立 1027 分支，提交 48b39af，包含此前所有已跟踪及未跟踪的项目源码、
+脚本、配置和说明。已有忽略规则下的运行目录、地图、模型、rosbag 原件原地保留。
+本次只在本工作区开发、构建与隔离测试；没有部署、启动实车会话或发送实车目标/速度。
+用户明确要求安装外参先预留，后续提供；当前继续使用现有三路 BEV。
+
+删除的旧功能
+- 删除 Qt“待清扫垃圾”地图页面、垃圾点位注册/存储、旧单点选择清扫入口及对应测试。
+- 删除 pending_litter_cleaner 节点、StartPendingLitterCleaning 服务和旧 launch 节点。
+- 删除 detect_and_classify 的 /fod/vision/map_positions 发布及旧专用地图定位实现。
+  Qt 不再订阅或显示旧 map/MID360 垃圾坐标。FodVisionDetection 的旧世界坐标字段
+  保留消息兼容性，但该后端填无效状态；识别/深度与内部目标身份跟踪继续保留。
+- 保留原视觉控制器使用的轮速坐标转换，移入 cleaning_geometry.py；普通导航和
+  区域覆盖的运动权限、速度、TEB/Hybrid 调参、急停、避障及通信超时未修改。
+
+新流程
+1. 沿用左/右硬件 GDC + 前视 ZED 的三路地面 BEV 和现有 CUDA YOLO11-GAM。
+   GroundBev 将真实图像支撑区域的压缩掩码放入 BG01 元数据。只定位有投影支撑
+   的检测框中心；黑色无来源区域不形成清扫目标。按原 raster 半像素约定转换米制
+   坐标，x 向前、y 向左。地面平面估算不等于物体深度/高度真值。
+2. bev_yolo_server 提供 /detections JSON，与当前融合帧 source_id、配置 SHA 关联。
+   时间使用各相机接收时刻减已报告帧龄的最早估算，明确保留曝光未同步及精度未验收。
+3. 主机可选节点 bev_cleaner 读取检测，用源时间的 TF 与安装外参转换到 map；
+   只维护当前视野的短时目标，不保存旧地图垃圾档案。重叠框按空间去重，消失目标
+   过期，同一轮已通过的邻近位置不重复排队，下一轮可重新观察。
+4. 操作者在“BEV 视野清扫”页点击开始后，使用当前代价地图与实际车体外廓检查
+   前进清扫段，查询现有 /move_base/make_plan 的可达路径。每轮先评估最近至多
+   六处候选的多个朝向，以当前接近路径加清扫段长度选择下一处；没有可达候选时
+   继续处理其余可见目标。属于滚动贪心排序，不声称全局旅行商最优。
+5. 通过现有 /move_base_simple/goal -> navigation_pause -> move_base 链路先接近，
+   然后等待接近后的新 BEV 观测。目标消失则跳过；位置明显变化则重新规划。
+   再向前执行清扫段，完成后重新观察、排序和规划下一处，接入本轮新出现的垃圾。
+   节点不发布速度，不更改全局规划器模式，不增加普通导航准入条件。
+6. 仅实际 map->base_link 轨迹的前方清扫参考点经过目标 0.10m 范围才计为通过。
+   使用原视觉清扫参考前偏移 0.52m；后退、原地转向、较大的定位跳变和只返回导航
+   SUCCEEDED 都不能作为通过证据。仍需整段导航成功才提交本轮通过记录。
+7. 停止/异常只取消本任务精确匹配的 GoalID，记录迟到目标的关联令牌；不使用全局
+   空 ID 取消。遇到已有导航任务、覆盖任务或暂停状态时不抢占。
+
+安装外参预留
+文件：src/application/autolabor_fod_control/config/bev_cleaning.yaml
+rig_to_base_xyyaw: []
+含义：BEV 原点在 base_link 中的 [x米, y米, yaw弧度]，x前、y左、yaw逆时针。
+BEV 原点是左右相机中点正下方；不能默认与 base_link 重合。
+以后填入用户提供值并重启该可选节点，也可提供源时间的 map <- BEV 地面系 TF。
+当前缺外参时仍显示三路图像、检测与 BEV 相对位置，状态提示等待安装外参；不生成
+虚构 map 目标。此配置只用于本功能，不影响普通导航。
+
+入口与接口
+- scripts/conbine.sh live-start：下次真实启动时启动主机可选 BEV 感知和清扫节点，
+  初始始终 IDLE，目标由操作者点击开始后产生。模块退出不终止普通导航。
+- scripts/bev_perception.sh start|stop|status：三路采集/YOLO 无第二套 Qt/master 入口。
+  stop 只停止本脚本所属 YOLO 服务；复用的相机服务由 camera_bev.sh 单独管理。
+- 原 camera_bev_qt.sh 仍为独立显示会话，使用私有 master，不能代替真实导航入口。
+- /bev_cleaner/start、/bev_cleaner/cancel：std_srvs/Trigger。
+- /bev_cleaner/status、/bev_cleaner/observations：JSON String。
+- /bev_cleaner/planned_path：当前接近+清扫的 nav_msgs/Path。
+既有感知 Python 进程需要正常重启后才加载本次源码；旧进程的内存实现不会自动更新。
+
+实际能力边界
+目前原区域覆盖的清扫机构也是“未接入、仅执行覆盖导航”。本次同样没有伪造清扫
+机构控制接口；状态/UI 明确标注未接入自动机构控制、pickup_verified=false。
+“轨迹通过”不能写成“垃圾已拾取”，实际拾取效果和实车 BEV 定位精度均待验证。
+相机外参仍为安装估算、三路曝光未同步，不能把隔离测试当作实车垃圾定位验收。
+
+验证
+Release 增量构建通过。
+最终 227 项检查通过：BEV 几何/关联14、ROS任务集成9、Qt契约52、识别跟踪35、
+原视觉控制器92、BEV报文5、Qt集成10、相机内参4、地面投影6。
+scripts/test_bev_cleaning.sh：隔离网络和设备，使用真实协调器、真实导航桥及合成
+HTTP 检测/代价地图/规划器/action server，验证逐点执行、准确停止和各种失败语义。
+另验证 Qt 页面/状态、BEV 报文、原视觉控制器、识别跟踪、相机内参与地面投影。
+结果与初次失败记录保存在 validation/bev_cleaning_20261027/。
+测试使用的 [0,0,0] 外参只存在于隔离测试 launch，没有写入真实配置。

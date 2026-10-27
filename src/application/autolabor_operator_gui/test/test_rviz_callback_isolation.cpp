@@ -133,140 +133,28 @@ protected:
     EXPECT_EQ(6471U, window_->snapshot().cloud_point_count);
   }
 
-  void verifyLiveMapCoordinates()
+  void verifyBevCleaningControls()
   {
-    window_->configured_vision_backend_ = QStringLiteral("detect_and_classify");
-    auto message = boost::make_shared<autolabor_fod_msgs::FodVisionDetectionArray>();
-    message->header.frame_id = "test_left_camera_optical_frame";
-    message->header.stamp = ros::Time::now();
-    message->backend_id = "detect_and_classify";
-    message->depth_synchronized = true;
-    autolabor_fod_msgs::FodVisionDetection detection;
-    detection.backend_id = message->backend_id;
-    detection.object_id = 17;
-    detection.track_id = 1;
-    detection.material_class = "plastic";
-    detection.detect_confidence = 0.9;
-    detection.classify_confidence = 0.95;
-    detection.depth_valid = true;
-    detection.depth_m = 1.2;
-    detection.world_position_valid = true;
-    detection.world_frame = "map";
-    detection.world_position.x = 12.345;
-    detection.world_position.y = -2.5;
-    detection.world_position.z = std::numeric_limits<double>::quiet_NaN();
-    message->detections.push_back(detection);
-    auto positions = boost::make_shared<autolabor_fod_msgs::FodMapPositionArray>();
-    positions->header.frame_id = "map";
-    positions->backend_id = message->backend_id;
-    autolabor_fod_msgs::FodMapPosition point;
-    point.object_id = detection.object_id;
-    point.track_id = detection.track_id;
-    point.local_position_valid = true;
-    point.local_frame = "mid360";
-    point.local_status = "OK";
-    point.local_position.x = 1.25;
-    point.local_position.y = -0.14;
-    point.local_position.z = std::numeric_limits<double>::quiet_NaN();
-    positions->positions.push_back(point);
-    // An unrelated target must not supply this detection's local coordinates.
-    point.object_id = 99;
-    point.track_id = 99;
-    point.local_position.x = 99;
-    positions->positions.insert(positions->positions.begin(), point);
-    auto update = [&](bool positions_first = true, double source_delta = 0.0,
-                      bool wrong_source_frame = false) {
-      message->header.stamp = ros::Time::now();
-      positions->source_header = message->header;
-      positions->source_header.stamp += ros::Duration(source_delta);
-      if (wrong_source_frame)
-        positions->source_header.frame_id = "other_left_camera_optical_frame";
-      positions->header.stamp = positions->source_header.stamp;
-      if (positions_first)
-        window_->visionPositionsCallback(positions);
-      window_->visionResultsCallback(message);
-      if (!positions_first)
-        window_->visionPositionsCallback(positions);
-      window_->refreshUi();
-      return window_->vision_detections_->toPlainText();
-    };
-    const QString both = QStringLiteral(
-        "position:map (12.345,-2.500)m | MID360 (1.250,-0.140)m");
-    const QString only_local = QStringLiteral(
-        "position:map N/A | MID360 (1.250,-0.140)m");
-    const QString only_map = QStringLiteral(
-        "position:map (12.345,-2.500)m | MID360 N/A");
-    const QString neither = QStringLiteral("position:map N/A | MID360 N/A");
-    const QString text = update();
-    EXPECT_TRUE(text.contains(QStringLiteral("object:17")));
-    EXPECT_TRUE(text.contains(QStringLiteral("depth:1.20m")));
-    EXPECT_TRUE(text.contains(both));
-    EXPECT_FALSE(text.contains(QStringLiteral("base_link")));
-    EXPECT_FALSE(text.contains(QStringLiteral("nan")));
-    EXPECT_TRUE(update(false).contains(both));
-    if (qEnvironmentVariableIsSet("VISION_MAP_TEST_SCREENSHOT"))
-    {
-      for (int tab = 0; tab < window_->tabs_->count(); ++tab)
-        if (window_->tabs_->tabText(tab) == QStringLiteral("视觉"))
-          window_->tabs_->setCurrentIndex(tab);
-      window_->setWindowTitle(QStringLiteral("视觉 position 字段验证 · 合成输入"));
-      window_->show();
-      QApplication::processEvents();
-      EXPECT_TRUE(window_->grab().save(qEnvironmentVariable("VISION_MAP_TEST_SCREENSHOT")));
-    }
-
-    message->detections[0].world_position_valid = false;
-    EXPECT_TRUE(update().contains(only_local));
-    message->detections[0].world_position_valid = true;
-    message->detections[0].world_position.x = std::numeric_limits<double>::quiet_NaN();
-    EXPECT_TRUE(update().contains(only_local));
-
-    message->detections[0].world_position.x = 12.345;
-    message->detections[0].world_frame = "odom";
-    EXPECT_TRUE(update().contains(only_local));
-    message->detections[0].world_frame = "map";
-    message->detections[0].depth_valid = false;
-    EXPECT_TRUE(update().contains(QStringLiteral("depth:N/A ") + neither));
-    message->detections[0].depth_valid = true;
-    message->depth_synchronized = false;
-    EXPECT_TRUE(update().contains(neither));
-    message->depth_synchronized = true;
-    EXPECT_TRUE(update().contains(both));
-
-    positions->positions[1].local_position_valid = false;
-    EXPECT_TRUE(update().contains(only_map));
-    positions->positions[1].local_position_valid = true;
-    positions->positions[1].local_position.x = std::numeric_limits<double>::quiet_NaN();
-    EXPECT_TRUE(update().contains(only_map));
-    positions->positions[1].local_position.x = 1.25;
-    positions->positions[1].local_frame = "odom";
-    EXPECT_TRUE(update().contains(only_map));
-    positions->positions[1].local_frame = "base_link";
-    EXPECT_TRUE(update().contains(only_map));
-    positions->positions[1].local_frame = "mid360";
-    positions->positions[1].track_id = 2;
-    EXPECT_TRUE(update().contains(only_map));
-    positions->positions[1].track_id = 1;
-    EXPECT_TRUE(update(true, -0.125).contains(only_map));
-    EXPECT_TRUE(update(true, 0.0, true).contains(only_map));
-    EXPECT_TRUE(update().contains(both));
-    EXPECT_LE(window_->telemetry_.vision_position_frames.size(), 4U);
-
-    for (auto& frame : window_->telemetry_.vision_position_frames)
-      frame.second = ros::WallTime::now() - ros::WallDuration(1);
-    window_->refreshUi();
-    EXPECT_TRUE(window_->vision_detections_->toPlainText().contains(only_map));
-    EXPECT_TRUE(update().contains(both));
-
-    // Neither coordinate can be retained by a stopped producer if ROS time freezes.
-    window_->telemetry_.vision_results_received_at = ros::WallTime::now() - ros::WallDuration(1);
-    window_->refreshUi();
-    EXPECT_TRUE(window_->vision_detections_->toPlainText().contains(neither));
-
-    message->detections.clear();
-    const QString empty = update();
-    EXPECT_TRUE(empty.contains(QStringLiteral("当前帧未检测到目标")));
-    EXPECT_FALSE(empty.contains(QStringLiteral("position:map")));
+    for (auto* tabs : window_->findChildren<QTabWidget*>())
+      for (int i = 0; i < tabs->count(); ++i)
+        EXPECT_NE(QStringLiteral("待清扫垃圾"), tabs->tabText(i));
+    EXPECT_NE(nullptr, window_->findChild<QWidget*>("bevPreviewPage"));
+    EXPECT_NE(nullptr, window_->findChild<QPushButton*>("startBevCleaningButton"));
+    window_->refreshBevCleaning();
+    EXPECT_FALSE(window_->bev_cleaning_start_->isEnabled());
+    window_->bev_cleaner_status_json_ = QStringLiteral(
+        R"({"state":"IDLE","reason":"等待开始","perception":"三路 BEV 在线","active":false,"visible_count":2,"passed_count":1,"skipped_count":0})");
+    window_->bev_cleaner_received_ = ros::WallTime::now();
+    window_->refreshBevCleaning();
+    EXPECT_TRUE(window_->bev_cleaning_start_->isEnabled());
+    EXPECT_FALSE(window_->bev_cleaning_stop_->isEnabled());
+    EXPECT_TRUE(window_->bev_cleaning_status_->text().contains(QStringLiteral("视野目标 2")));
+    window_->bev_cleaner_status_json_ = QStringLiteral(
+        R"({"state":"SWEEPING","reason":"前进清扫","active":true,"visible_count":2,"selected":{"label":"paper"}})");
+    window_->refreshBevCleaning();
+    EXPECT_FALSE(window_->bev_cleaning_start_->isEnabled());
+    EXPECT_TRUE(window_->bev_cleaning_stop_->isEnabled());
+    EXPECT_TRUE(window_->bev_cleaning_status_->text().contains(QStringLiteral("paper")));
   }
 
   void verifyVoiceDraftAndClarification()
@@ -517,9 +405,9 @@ TEST_F(RvizCallbackIsolationTest, ActualTelemetrySubscriptionUsesPrivateWorker)
   verifyTelemetryDelivery();
 }
 
-TEST_F(RvizCallbackIsolationTest, LiveMapCoordinatesInvalidateOnDepthPoseAndStreamLoss)
+TEST_F(RvizCallbackIsolationTest, RemovedMapAnnotationIsReplacedByBevCleaningControls)
 {
-  verifyLiveMapCoordinates();
+  verifyBevCleaningControls();
 }
 
 TEST_F(RvizCallbackIsolationTest, VoiceDraftAndClarificationAreNotExecutableSteps)

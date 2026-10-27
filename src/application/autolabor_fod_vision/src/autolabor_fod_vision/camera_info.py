@@ -1,10 +1,21 @@
 """ROS camera-calibration YAML loading without a camera vendor dependency."""
 
 from dataclasses import dataclass
+import math
 from pathlib import Path
 from typing import List
 
 import yaml
+
+
+def rectified_intrinsics(projection):
+    """Intrinsics for the rectified LEFT image, excluding stereo translation."""
+    p = list(projection)
+    if (len(p) != 12 or not all(math.isfinite(v) for v in p) or p[0] <= 0 or p[5] <= 0
+            or any(abs(p[i]) > 1e-7 for i in (1, 3, 4, 7, 8, 9, 11))
+            or not math.isclose(p[10], 1., abs_tol=1e-7)):
+        raise ValueError('INVALID_LEFT_RECTIFIED_INTRINSICS')
+    return [p[0], 0, p[2], 0, p[5], p[6], 0, 0, 1]
 
 
 @dataclass(frozen=True)
