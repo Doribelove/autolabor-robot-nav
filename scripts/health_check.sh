@@ -313,7 +313,7 @@ PY
 fi
 
 required_packages=(
-  autolabor_coverage autolabor_dual_host autolabor_dual_lidar autolabor_fod_control
+  autolabor_coverage autolabor_dual_host autolabor_fod_control
   autolabor_fod_msgs autolabor_operator_gui fast_lio fast_lio_localization livox_ros_driver2
   robot_bringup sweeper_mcp teb_local_planner zed_wrapper map_server
 )
@@ -482,7 +482,7 @@ if [[ "$mode" == --runtime ]]; then
     fail "J6M ROS master is unreachable at $ROS_MASTER_URI"
   else
     nvidia_nodes=(/nvidia_cmd_vel_watchdog /livox_lidar_publisher2)
-    j6m_nodes=(/laserMapping /avoidance_scan_fusion /move_base /fod_navigation_mode)
+    j6m_nodes=(/laserMapping /mid360_scan_guard /move_base /fod_navigation_mode)
     runtime_nodes=("${nvidia_nodes[@]}" "${j6m_nodes[@]}")
     if [[ "$STATIC_MAP_ENABLED" != false ]]; then
       j6m_nodes+=(/map_server /fast_lio_map_localizer /fast_lio_localization_cmd_vel_gate /coverage_manager /hybrid_teb_command_mux)
@@ -865,10 +865,10 @@ if [[ "$mode" == --runtime ]]; then
     else
       fail "/cmd_vel owner is not exactly /nvidia_cmd_vel_watchdog"
     fi
-    if publisher_owner /scan /avoidance_scan_fusion; then
+    if publisher_owner /scan /mid360_scan_guard; then
       pass "/scan has one owner"
     else
-      fail "/scan owner is not exactly /avoidance_scan_fusion"
+      fail "/scan owner is not exactly /mid360_scan_guard"
     fi
   fi
 fi

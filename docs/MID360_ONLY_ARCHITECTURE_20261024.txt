@@ -1,0 +1,95 @@
+2026-10-24 后续更正：用户已明确要求删除 AI 额外加入的运动限制。
+当前源码的 live-start / mapping-start 正常传入 motion_enabled=true；监视器只记录速度，
+不因非零 /cmd_vel 退出，不再设置额外 /conbine/motion_authorized 禁动参数。
+原急停、避障、定位、通信超时和速度配置不变。Qt 标题为“Autolabor 合并版 · 真实导航”。
+原地图和持久调参保留，冷启动后需操作者按实际位置设置初始位姿。
+本页下方 motion_enabled=false、仅静止观察及急停未就绪等状态均为当时历史，不能作当前限制。
+AI 开发约束见 ../DEVELOPMENT_CONSTRAINTS.md；本次变更证据见
+../validation/motion_enable_20261024/，验证结论以该目录的实际结果为准。
+
+单 MID360 架构与原有旧地图启用交接（2026-10-24）
+
+用户要求
+前后雷达已永久拆除，今后只使用一台 MID360 建图、避障、定位；带地图启动继续使用
+八月底/九月初已建好的 PCD 等地图文件。用户再次强调要使用之前已建好的文件。
+本轮实际车辆会话没有建图、转换或替换地图；建图验证仅使用只有lo的隔离合成数据。
+
+实际加载的原文件
+地图 ID：map_20260829_221335_gimp_cleaned。
+原目录：/map/robot_j6m_navigation_20260907/maps/releases/map_20260829_221335_gimp_cleaned_8c0bf1166ab7。
+三维先验：map_3d/map.pcd（约9.2MiB，原文件）。
+二维导航图：map_fused_2d/map.yaml 与 map.pgm（原文件）。
+manifest.yaml、PCD、YAML、PGM 的 SHA256 固定于 config/conbine_live.json；每次启动重新核验。
+PCD SHA256：7c9f5c43705003dde4a945893b7317f60ece2477448dd4d07117cc15a5f528eb。
+PGM SHA256：6c0ba42b8a0c949c0ba91a8ad4dd033853d9a2f789c4490ad4b56c5ea562b47d。
+PCD 和二维文件直接从原发布目录只读绑定，没有改写原地图、历史来源元数据或原 maps/current。
+历史 maps/current 仍可指9月地图；新入口不读取该链接，也不使用新建图的latest作为默认先验。
+原地图缺失/校验失败时拒绝启动，不自动回退到9月地图。
+
+架构变更
+MID360 点云与内置 IMU 在 J6M 直接接收，提供 FAST-LIO 及三维先验 ICP 输入。
+避障链：/livox/lidar -> 点云转换 -> /mid360/scan -> mid360_scan_guard -> /scan。
+扫描检查帧、角度/距离几何、原时间戳、过去/未来时限及非法范围值；保持源时间戳和frame，
+不重新赋予历史数据新时间，不在断流后重复发布旧扫描，也不接入备用雷达。
+ROS 自身会为转发后的话题分配 header.seq，不将其当作原传感器序列号。
+覆盖准入改为有效新鲜 /scan 与新鲜且有效的 /avoidance/mid360_active；删除 LD19 订阅和必需条件。
+启动 launch 中移除辅助雷达驱动/融合与增强点云依赖，RViz 使用原始 /cloud_registered_body。
+旧模块和历史证据保留，不在当前入口启动，正常图中没有 /dual_lidar 或旧融合状态话题。
+
+今后新建图：MID360 的 /cloud_registered 生成三维 PCD，/mid360/scan 配 FAST-LIO /Odometry
+生成360°二维占据图；保留时序占据确认、车体裁切和轨迹扫掠过滤，再融合持久高度切片。
+新图来源标为 mid360_only；不会将旧地图的 dual_ld19_only 来源元数据伪改为MID360采集。
+实时/离线建图入口均更新，构建入口包含本分支的 voxel_cloud_mapper，Qt 提示已同步。
+
+启动和持久配置
+bash scripts/conbine.sh live-start：加载上述已存在的旧地图。
+bash scripts/conbine.sh live-stop：停止本会话，并等待自己的板端 guardian 确认退出。
+bash scripts/conbine.sh live-status：查看本会话。
+先停止当前会话，再运行 bash scripts/conbine.sh mapping-start：无图模式，Qt 可显式采集新图。
+本次没有在实物会话调用 mapping-start 或启动真实地图采集。
+板端独立会话 /map/conbine_navigation/；正式程序 current 仍指
+/opt/autolabor/dual_host/releases/20260914_095005/install，未切换正式应用版本。
+真实后端 coverage.yaml 中旧 LD19 字段仅在备份后迁移，保留其他用户调参值；不导入离线预览值。
+永久接收 IP=192.168.1.100/24 保留；已有相机/时钟服务未接管，视觉 motion_eligible 门未改。
+
+当前运行与实测
+用户服务 autolabor-conbine-live.service，MainPID351221（仅本轮身份）。
+成功会话 session-20261024_182805-2，master=192.168.10.100:11583。
+15秒独立只读订阅：IMU200.001Hz，FAST-LIO /Odometry9.999Hz，/scan10Hz，底盘/odom10Hz，
+左右轮约49.99Hz；最终 /cmd_vel 与 /cmd_vel_safe、左右轮速度绝对峰值均为0。
+/scan 来源 mid360，mid360_active=true，coverage.avoidance_ready=true，辅助雷达话题列表为空。
+MapDisplay READY，1311x670，分辨率0.1m，已显示原有二维地图。
+18:29操作者在Qt设置真实初值，ICP已LOCALIZED；助手未代发初值/目标，未恢复旧任务。
+一次实测overlap=0.9703、RMSE=0.1795m、inliers=3297，属当前现场配准结果，不是绝对定位精度。
+底盘仍报告手柄/机器人急停，
+chassis_ready=false；看门狗 motion_enabled=false，未开放运动或解除急停。
+用户完成定位后发现move_base启动包遗漏robot_bringup/costmap_plugins.xml及配套库，
+UnknownSpaceGuardLayer未声明导致进程退出，继而Qt没有代价地图和车体轮廓。
+已补齐全部顶层插件XML、libgps_geofence_layer.so，并加入XML资源/库加载预检。
+在原受管PID命名空间内仅恢复已退出的move_base，保留master、雷达、ICP、Qt和操作者定位；
+没有重启整栈或重发初值。该恢复进程随原命名空间回收，记录于move_base_recovery.json。
+后续常规启动将move_base设为required，避免其退出后会话继续表现为正常。
+恢复后8秒独立实收：全局代价图1311x670、局部代价图200x200、4点车体轮廓80条（10Hz），
+map->base_link有效，move_base空闲状态持续发布，Hybrid/转场协议均为1，TEB服务可达。
+Qt已确认全部规划参数同步，屏幕核对代价图恢复。396条最终指令全部零，运动门仍false。
+以上为无运动恢复/显示验证，不是路径执行验收。
+
+验证及证据
+validation/mid360_only_20261024/ 保存本轮日志。
+Release 四包构建成功：CAN、robot_bringup、coverage、GUI。
+Catkin 选定结果按 XML testcase 去重：coverage228、Qt114、CAN19，共361项，0失败。
+另有37项扫描保护/二维建图/切片融合/静态地图测试通过；合计398个独立叶子用例。
+选定测试结果工具最初传了多个目录而报参数格式错误，随后逐目录汇总及 XML 复核均通过，
+没有因汇总命令错误重跑或掩盖业务测试；原调用输出保留于 catkin-tests.log。
+隔离完整建图10项过程检查通过：无辅助雷达可生成三种地图，集成30个扫描、268个占据单元，
+源时间戳/坐标帧保持；停止MID360输入后源失效且没有重发旧扫描。
+首轮发现本分支未构建三维建图程序，已补入正式构建入口，原失败日志保留。
+另一次夹具错误地要求ROS重发布保留 header.seq，已改为正确验证源时间戳/帧，失败证据保留。
+原地图原件校验：original-map-verification.json。
+实物只读检查：live-read-only-validation.json；合成建图：mapping-1792837404546952390/result.json。
+定位后恢复检查：navigation-display-validation.json、costmaps-restored-qt.png。
+首次热恢复使用的/proc/task/children在板端不可用，改用已记录unshare的唯一子进程及NSpid核验；
+失败与修复后预检日志分别保留于costmap-recovery-preflight*.log，未按猜测PID操作。
+原先单独Python回归306项与后续Catkin结果有重合，不重复相加。
+Shell/Python语法、XML launch 参数序列化、板端规划库 dlopen/消息MD5、git diff --check 通过。
+未提交、推送、刷机；未进行车辆动作、真实避障距离/盲区或定位精度验收。

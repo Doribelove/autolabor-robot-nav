@@ -297,7 +297,16 @@ public:
    * @param via_points pointer to a via_point container (can also be a nullptr)
    * @details Any previously set container will be overwritten.
    */
-  void setViaPoints(const ViaPointContainer* via_points) {via_points_ = via_points;}
+  void setViaPoints(const ViaPointContainer* via_points)
+  {
+    via_points_ = via_points;
+    single_via_heading_valid_ = false;
+  }
+
+  /** Retain the source-path direction when sampling leaves one via point.
+   * The reference is read immediately; no caller-owned plan pointer is retained.
+   */
+  void setViaPointReferencePlan(const std::vector<geometry_msgs::PoseStamped>* reference_plan);
   
   /**
    * @brief Access the internal via-point container.
@@ -339,6 +348,7 @@ public:
   {
     clearGraph();
     teb_.clearTimedElasticBand();
+    single_via_heading_valid_ = false;
   }
   
   /**
@@ -682,6 +692,8 @@ protected:
   const TebConfig* cfg_; //!< Config class that stores and manages all related parameters
   ObstContainer* obstacles_; //!< Store obstacles that are relevant for planning
   const ViaPointContainer* via_points_; //!< Store via points for planning
+  bool single_via_heading_valid_ = false;
+  double single_via_heading_ = 0.0; //!< Vehicle heading from the unoptimized reference
   std::vector<ObstContainer> obstacles_per_vertex_; //!< Store the obstacles associated with the n-1 initial vertices
   
   double cost_; //!< Store cost value of the current hyper-graph

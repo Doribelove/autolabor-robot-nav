@@ -1,0 +1,101 @@
+2026-10-24 后续更正：用户已明确要求删除 AI 额外加入的运动限制。
+当前源码的 live-start / mapping-start 正常传入 motion_enabled=true；监视器只记录速度，
+不因非零 /cmd_vel 退出，不再设置额外 /conbine/motion_authorized 禁动参数。
+原急停、避障、定位、通信超时和速度配置不变。Qt 标题为“Autolabor 合并版 · 真实导航”。
+原地图和持久调参保留，冷启动后需操作者按实际位置设置初始位姿。
+本页下方 motion_enabled=false、仅静止观察及急停未就绪等状态均为当时历史，不能作当前限制。
+AI 开发约束见 ../DEVELOPMENT_CONSTRAINTS.md；本次变更证据见
+../validation/motion_enable_20261024/，验证结论以该目录的实际结果为准。
+
+合并版真实导航静止观察启动（2026-10-24）
+
+本文件记录首次真实会话。用户后续已永久移除 LD19，并指定旧 PCD/配套地图；最新有效状态
+见 MID360_ONLY_ARCHITECTURE_20261024.txt。本文件的9月地图和LD19准入仅是首次启动历史。
+
+任务与授权
+用户在本轮确认 CAN 接回本机、MID360 接收地址永久保存后，明确要求“启动整个导航，看看效果”。
+本次适配独立真实导航入口、构建并启动实际输入与操作台；不发送初始位姿、目标或覆盖任务，
+不解除急停，不创建/继承运动授权标记，不切换板端正式发布物，不刷机。
+旧 optimized.sh 和 surround/operator_qt.sh 路径保护原样保留，没有绕过它们运行。
+
+入口与实际会话
+bash scripts/conbine.sh live-start
+bash scripts/conbine.sh live-status
+bash scripts/conbine.sh live-stop
+独立用户服务：autolabor-conbine-live.service；本次 MainPID=199788（仅本次进程身份）。
+专用 ROS master：http://192.168.10.100:11583；本机 ROS_IP=192.168.10.50。
+本次成功会话：session-20261024_175657-2。
+本地：runtime/conbine_live/session-20261024_175657-2/。
+J6M：/map/conbine_navigation/session-20261024_175657-2/。
+退出本次 Qt 或停止上述服务会回收该会话；没有配置导航开机自启。
+
+运行组成
+J6M 使用已验证的 Ubuntu20.04/Noetic rootfs，独立 mount/PID namespace，基础树和原导航安装只读。
+MID360 驱动复用 /map/j6m-dev-b/livox2_20261019_2zho_g16/ 已验证制品，唯一直接接收
+192.168.1.112 的点云/IMU；接收主机为永久地址 eth1=192.168.1.100/24。
+FAST-LIO、ICP 和 TEB 等二进制复用原 20260914_095005 安装；覆盖规划库、覆盖管理器及
+相关 Python/launch/config 使用本合并分支私有会话覆盖层，未原地覆盖旧安装。
+本次阶段性上传的应用运行文件属于上述私有候选，不是正式 current 的新发布。
+板端正式 current 仍为 /opt/autolabor/dual_host/releases/20260914_095005/install。
+
+原地图 map_20260914_064202 来自板端现有 maps/current，17MiB 三维 PCD 在板端只读绑定，
+GUI 获取同一地图的二维文件和 manifest，不替换原地图或沿用历史初始位姿。
+启动 ICP 等待操作者按现场真实位置设置 /initialpose；只发布地图显示用的独立叶 TF，
+不伪造 map->camera_init/base_link。
+
+本机当前 CAN 源码已重新构建。设备按稳定身份 B400CG51 解析，不以 ttyUSB 序号认领硬件。
+原 canbus_driver、m2_driver 和最终速度看门狗运行在本机；采用原启动时参数查询、里程计
+初始化和零速心跳行为。看门狗启动参数固定 motion_enabled=false，视觉运动门 false。
+没有发布非零运动命令、目标、初值、刹车/急停解除命令。左右轮与车辆反馈来自真实底盘。
+Qt 为本分支新构建可执行文件，窗口标题明确“真实导航观察（运动未授权）”。
+本地 bubblewrap 保留网络，其他工作树只读，仅提供确认的串口及显示用 GPU 设备。
+
+相机/BPU 未在本次启动。已有板端 camera receiver PID1438、chronyd PID1467 保持运行，
+本次不接管其服务或 BPU；Qt 相机/视觉卡显示未启动，不将旧帧视为实景。
+前后 LD19 均未发现，本次 /scan 使用 MID360 单源显示。覆盖/运动的 LD19 准入要求未放宽。
+
+参数与持久化隔离
+本次真实后端持久参数：/map/conbine_navigation/persistent/coverage.yaml，及其中 ros-home 下
+autolabor_navigation/{hybrid,transit}_tuning.json。首次使用本分支源码默认配置初始化，
+未复制 runtime/navigation_tuning_preview 的模拟调参持久值。
+本机 Qt 设置：runtime/conbine_live/qt-config；旧预览设置保持原处。
+原 scripts/conbine.sh start/stop/status 仍仅属于离线预览，不混用两种会话。
+
+构建与启动前检查
+隔离 Release 构建 CAN、coverage、GUI 通过；日志 runtime/conbine_live_build_20261024.log。
+新覆盖规划库在 J6M chroot 中 dlopen 成功，生成 cfg/srv 可导入。
+四项跨机消息 MD5（ChassisStatusInfo、ChassisMonitorInfo、ChassisParameter、CoverageStatus）一致。
+实际 roslaunch 启动清单包含雷达、FAST-LIO、ICP、扫描、地图、导航/仲裁/覆盖等 16 个节点。
+增加展开 launch 参数的 XML-RPC 序列化预检，不仅检查节点名称。
+Shell/Python 语法及 git diff --check 通过；CAN 检查通过，见 can-isolated-tests.log。
+该日志的38为 Catkin 嵌套汇总，后续按 XML testcase 复核为19个独立 CAN 用例，均通过。
+
+真实只读验证（15秒）
+runtime/conbine_live/read-only-validation.json 与同名 log 保存独立订阅器结果，退出码0。
+IMU：3013 条，199.976Hz；FAST-LIO /Odometry：151 条，10.003Hz。
+底盘 /odom：151 条，10.000Hz；避障 /scan：151 条，10.000Hz。
+左右轮反馈各752条，约49.994Hz，两路速度绝对峰值均为0。
+/cmd_vel：746条，/cmd_vel_safe：301条，六分量绝对峰值均为0。
+/cmd_vel 唯一发布者为 /nvidia_cmd_vel_watchdog；motion_enabled=false。
+Qt MapDisplay 实际 READY，1176x888，分辨率0.1m；原生桌面截图确认地图已渲染。
+QWidget::grab 不包含 RViz 原生 Ogre 子窗口，qt_live.png 中的黑占位不能单独判为地图失败；
+desktop_current.png 为本次原生桌面显示证据；desktop_final.png 确认 Qt 已置前且地图显示。
+
+当前未就绪项
+ICP 为 WAITING_INITIAL_POSE，尚未全局定位，未设置任何真实初值。
+move_base 进程已运行，但 costmap 等待真实 map->base_link TF，TEB/Hybrid 尚未完成初始化。
+因此 Hybrid tuning_persistence_protocol 尚为0，coverage/transit 为1；Qt 的规划参数同步
+尚待 TEB 服务，不能把库加载预检描述为实际规划或路径执行验收。
+底盘真实状态报告 gamepad_emergency=true、robot_emergency=true，控制器急停位1。
+coverage 的 chassis_ready=false；avoidance_ready=false，原因是前后 LD19 未贡献 /scan。
+这些门没有被降级。当前可观察真实传感器/地图，尚不能执行车辆导航。
+
+保留的失败与收尾证据
+首次实际启动 session-20261024_175621-2 中，生成的雷达 cmdline_str 未声明类型，数字串
+被当作超大整数，ROS XML-RPC 拒绝加载。已显式声明各参数类型并增加展开参数预检。
+首次失败的 guardian_exit.json 及日志保留，确认本次私有图和本机串口已自动回收后重试。
+最初只读验证环境未提供可写 /tmp，catkin setup 的 mktemp 失败；保留
+read-only-validation-env-failure.log，补私有 /tmp 后同一只读验证通过。
+成功会话 board-status.json、board-guardian.json、board-final-snapshot.txt 保存板端快照。
+服务继续运行等待操作员；永久雷达 IP、管理路由、旧 current 和相机服务未撤回/切换。
+未提交或推送。未进行真实目标、规划执行、运动、避障距离或三路视觉联调验收。

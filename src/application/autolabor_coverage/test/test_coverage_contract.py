@@ -349,7 +349,6 @@ class CoverageContractTest(unittest.TestCase):
         self.assertIn("extractCoverageActionSequence", teb_controller)
         self.assertIn("updateFixedGearRecoveryState", teb_controller)
         self.assertIn("resetFixedGearActionState(true)", teb_controller)
-        self.assertIn("Hybrid transition made less than", manager)
         self.assertIn(
             "executing cached Hybrid A* swath transition", manager
         )
@@ -455,7 +454,7 @@ class CoverageContractTest(unittest.TestCase):
         self.assertEqual(
             50.0, config["hybrid_transit_weight_viapoint_heading"]
         )
-        self.assertEqual(2.0, config["hybrid_no_progress_timeout_sec"])
+        self.assertNotIn("hybrid_no_progress_timeout_sec", config)
         self.assertNotIn("obstacle_wait_sec", config)
         self.assertEqual(0.20, config["hybrid_cusp_yaw_tolerance_rad"])
         self.assertEqual(0.60, config["hybrid_cusp_max_forward_speed_mps"])
@@ -722,13 +721,13 @@ class CoverageContractTest(unittest.TestCase):
         config = yaml.safe_load(
             (PACKAGE_ROOT / "config" / "coverage.yaml").read_text(encoding="utf-8")
         )
-        self.assertIs(True, config["require_dual_lidar_for_coverage"])
+        self.assertNotIn("require_dual_lidar_for_coverage", config)
         self.assertEqual(0.5, config["avoidance_scan_fresh_sec"])
-        self.assertEqual(1.0, config["dual_lidar_fresh_sec"])
+        self.assertEqual(1.0, config["mid360_status_fresh_sec"])
         self.assertEqual(0.2, config["avoidance_scan_future_tolerance_sec"])
         self.assertEqual("base_link", config["avoidance_scan_frame"])
         self.assertIn('"/scan", LaserScan', manager)
-        self.assertIn('"/avoidance/dual_lidar_active"', manager)
+        self.assertIn('"/avoidance/mid360_active"', manager)
         self.assertIn("_validate_avoidance_scan", manager)
         self.assertIn("math.isfinite(value) and value > 0.0", manager)
         self.assertIn("not self.avoidance_loss_paused", manager)

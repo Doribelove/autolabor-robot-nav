@@ -79,6 +79,7 @@ namespace autolabor_driver {
 
         float cur_odom_x_ = 0,cur_odom_y_ = 0,cur_odom_yaw_ = 0;
         float cur_vel_ = 0,cur_left_vel_ = 0,cur_right_vel_ = 0,cur_steer_ = 0;
+        float last_steering_command_ = 0;
         ros::Time cur_vel_time_, cur_left_time_, cur_right_time_, cur_steer_time_;
         double poller_rate_hz_;
         double status_query_rate_limit_hz_;

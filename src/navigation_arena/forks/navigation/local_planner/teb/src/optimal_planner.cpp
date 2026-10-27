@@ -93,6 +93,7 @@ void TebOptimalPlanner::initialize(const TebConfig& cfg, ObstContainer* obstacle
   obstacles_ = obstacles;
   robot_model_ = robot_model;
   via_points_ = via_points;
+  single_via_heading_valid_ = false;
   cost_ = HUGE_VAL;
   prefer_rotdir_ = RotType::none;
   setVisualization(visual);
@@ -253,6 +254,7 @@ void TebOptimalPlanner::setVelocityGoal(const geometry_msgs::Twist& vel_goal)
 bool TebOptimalPlanner::plan(const std::vector<geometry_msgs::PoseStamped>& initial_plan, const geometry_msgs::Twist* start_vel, bool free_goal_vel)
 {    
   ROS_ASSERT_MSG(initialized_, "Call initialize() first.");
+  setViaPointReferencePlan(&initial_plan);
   if (!teb_.isInit())
   {
     teb_.initTrajectoryToGoal(initial_plan, cfg_->robot.max_vel_x, cfg_->robot.max_vel_theta, cfg_->trajectory.global_plan_overwrite_orientation,
@@ -295,6 +297,7 @@ bool TebOptimalPlanner::plan(const tf::Pose& start, const tf::Pose& goal, const 
 
 bool TebOptimalPlanner::plan(const PoseSE2& start, const PoseSE2& goal, const geometry_msgs::Twist* start_vel, bool free_goal_vel)
 {	
+  single_via_heading_valid_ = false;
   ROS_ASSERT_MSG(initialized_, "Call initialize() first.");
   if (!teb_.isInit())
   {
@@ -678,6 +681,72 @@ void TebOptimalPlanner::AddEdgesDynamicObstacles(double weight_multiplier)
   }
 }
 
+void TebOptimalPlanner::setViaPointReferencePlan(
+    const std::vector<geometry_msgs::PoseStamped>* reference_plan)
+{
+  single_via_heading_valid_ = false;
+  if (!reference_plan || reference_plan->empty() || !via_points_ ||
+      via_points_->size() != 1)
+    return;
+
+  const Eigen::Vector2d& via = via_points_->front();
+  std::size_t nearest = 0;
+  double nearest_squared = std::numeric_limits<double>::infinity();
+  for (std::size_t i = 0; i < reference_plan->size(); ++i)
+  {
+    const auto& p = reference_plan->at(i).pose.position;
+    const double squared = (Eigen::Vector2d(p.x, p.y) - via).squaredNorm();
+    if (squared < nearest_squared)
+    {
+      nearest_squared = squared;
+      nearest = i;
+    }
+  }
+  // Generated via points are exact source-path samples. An unrelated custom
+  // singleton has no supplied direction; preserve its previous semantics.
+  if (nearest_squared > 1e-12)
+    return;
+
+  const auto& source_pose = reference_plan->at(nearest).pose;
+  const auto& q = source_pose.orientation;
+  const double quaternion_norm = q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w;
+  if (!cfg_->trajectory.global_plan_overwrite_orientation &&
+      std::isfinite(quaternion_norm) && quaternion_norm > 1e-12)
+  {
+    // Hybrid reference orientations already describe the vehicle axis,
+    // including reverse actions; do not add pi a second time.
+    single_via_heading_ = tf::getYaw(q);
+    single_via_heading_valid_ = std::isfinite(single_via_heading_);
+    return;
+  }
+
+  Eigen::Vector2d tangent = Eigen::Vector2d::Zero();
+  for (std::size_t i = nearest + 1; i < reference_plan->size(); ++i)
+  {
+    const auto& p = reference_plan->at(i).pose.position;
+    tangent = Eigen::Vector2d(p.x, p.y) - via;
+    if (tangent.squaredNorm() > 1e-12)
+      break;
+  }
+  if (tangent.squaredNorm() <= 1e-12)
+  {
+    for (std::size_t i = nearest; i > 0; --i)
+    {
+      const auto& p = reference_plan->at(i - 1).pose.position;
+      tangent = via - Eigen::Vector2d(p.x, p.y);
+      if (tangent.squaredNorm() > 1e-12)
+        break;
+    }
+  }
+  if (tangent.allFinite() && tangent.squaredNorm() > 1e-12)
+  {
+    single_via_heading_ = std::atan2(tangent.y(), tangent.x());
+    if (cfg_->robot.motion_direction_mode < 0)
+      single_via_heading_ = g2o::normalize_theta(single_via_heading_ + M_PI);
+    single_via_heading_valid_ = true;
+  }
+}
+
 void TebOptimalPlanner::AddEdgesViaPoints()
 {
   const bool use_position_cost = cfg_->optim.weight_viapoint != 0;
@@ -753,19 +822,20 @@ void TebOptimalPlanner::AddEdgesViaPoints()
         }
       }
 
-      if (tangent_valid)
+      if (tangent_valid || (via_points_->size() == 1 && single_via_heading_valid_))
       {
         Eigen::Matrix<double,2,2> information = Eigen::Matrix<double,2,2>::Zero();
         information(0,0) = cfg_->optim.weight_viapoint_lateral;
         information(1,1) = cfg_->optim.weight_viapoint_heading;
 
-        double reference_heading = std::atan2(tangent.y(), tangent.x());
+        double reference_heading = tangent_valid
+            ? std::atan2(tangent.y(), tangent.x()) : single_via_heading_;
         // Via-point tangents describe path travel, whereas TEB pose headings
         // describe the vehicle's forward axis.  They coincide for a forward
         // fixed-gear action but differ by pi while reversing.  Without this
         // conversion the heading edge fights the reverse kinematics edge and
         // can fold the first optimized pose forward at every replan.
-        if (cfg_->robot.motion_direction_mode < 0)
+        if (tangent_valid && cfg_->robot.motion_direction_mode < 0)
           reference_heading = g2o::normalize_theta(reference_heading + M_PI);
 
         EdgeViaPointDirection* edge_direction = new EdgeViaPointDirection;

@@ -1,0 +1,41 @@
+TEB前两处问题修复（2026-10-25）
+
+用户要求：先修复前进转场权重未按Qt保存值应用，以及单参考点时路径横向/朝向惩罚失效。
+
+修复内容
+1. coverage_manager.py的Hybrid转场配置统一采用
+   hybrid_transit_weight_kinematics_forward_drive，前进和倒车不再分支选用不同来源。
+   Qt保存500时两种挡位均提交500，后续改为750也均提交750。
+   普通导航/清扫直线仍使用各自原有配置，任务结束恢复原配置。
+2. TebOptimalPlanner为单个全局路径采样点保留原始参考路径的车体朝向；
+   要求重算路径朝向的配置则使用原路径相邻不同位置点的切线。
+   该参考在单轨迹及Homotopy候选优化前刷新，以数值保存，不保留调用者临时路径指针。
+   已带车体朝向的Hybrid倒车路径不再附加pi；由几何切线推导倒车朝向时才附加pi。
+   多参考点原有处理保持，未附带参考方向的独立自定义单点保留原语义。
+   仅开启横向/朝向、位置权重为0的Homotopy路径也正确关联这些代价。
+3. scripts/conbine_live_session.py将本工作区新版libteb_local_planner.so和TEB插件描述
+   纳入私有会话包，避免下次live-start仍从原发布物加载旧TEB实现。
+   scripts/validate_navigation_tuning.sh的既有build/test入口加入TEB包。
+
+验证
+- Release定向构建teb_local_planner和test_teb_basics通过。
+- 覆盖管理器状态机163项通过，含前进/倒车500与750的参数提交、原配置恢复回归。
+- 原生TEB23项通过，含4个新用例：单点原路径朝向、倒车不重复加pi、
+  Homotopy两种候选关联模式且位置权重为0、从原路径切线回退及更新后不沿用旧方向。
+- 在仅lo的独立网络/PID环境中运行，没有连接车辆ROS。
+- 隔离执行真实prepare打包流程，远程操作前截断：库、脚本、插件描述SHA逐项一致，
+  私有会话motion_enabled=true保持；无上传或启动。证据packaging_check.json。
+- 复用先前6个问题快照做7组参数、各6轮的原生求解，共252次；
+  单参考点修复改变了部分局部解，但仍有错误方向解。
+  在选定500权重组的固定快照中，仍为17/36次原始负指令；
+  该样本不是在线故障率，不构成实车顿挫改善比例或连续跟踪验收。
+
+状态与范围
+新版已在本工作区devel/lib/libteb_local_planner.so构建完成，下一次正常live-start会打包它。
+本轮未上传到板端、未启动或重启实车导航、未发目标/速度、未切换正式current。
+未修改前视距离、其余优化权重、运动门、看门狗、停车、RS接入或重规划逻辑。
+接入几何不连续、恢复反复取消和底盘执行链问题仍属于后续工作。
+
+全部证据：validation/teb_tracking_fix_20261025/
+build.log、coverage_tests.log、teb_tests.log / teb_tests.xml、native_replay.log、
+replay_comparison.json、packaging_check.json、payload_check/。

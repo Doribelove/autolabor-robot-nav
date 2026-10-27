@@ -257,7 +257,7 @@ class StaticMapNavigationContractTest(unittest.TestCase):
     def test_three_dimensional_and_two_dimensional_maps_share_fast_lio_odometry(self):
         self.assertIn("_input_topic:=/cloud_registered", MAPPING_SESSION)
         self.assertIn("_odom_topic:=/Odometry", MAPPING_SESSION)
-        self.assertIn("--scan-topic /dual_lidar/scan", MAPPING_SESSION)
+        self.assertIn("--scan-topic /mid360/scan", MAPPING_SESSION)
         self.assertIn("--odom-topic /Odometry", MAPPING_SESSION)
         self.assertIn("map_set_fuser.py", MAPPING_SESSION)
 

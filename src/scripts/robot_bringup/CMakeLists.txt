@@ -63,6 +63,7 @@ if(CATKIN_ENABLE_TESTING)
   catkin_add_nosetests(test/test_teb_profile_tuning.py)
   catkin_add_nosetests(test/test_avoidance_scan_fusion_math.py)
   catkin_add_nosetests(test/test_fused_scan_mapper.py)
+  catkin_add_nosetests(test/test_mid360_scan_guard.py)
   catkin_add_nosetests(test/test_map_set_fuser.py)
   catkin_add_nosetests(test/test_localization_cmd_vel_gate.py)
   catkin_add_nosetests(test/test_static_map_navigation.py)
@@ -80,6 +81,7 @@ catkin_install_python(PROGRAMS
   scripts/map_set_fuser.py
   scripts/localization_cmd_vel_gate.py
   scripts/optional_laserscan_fusion.py
+  scripts/mid360_scan_guard.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

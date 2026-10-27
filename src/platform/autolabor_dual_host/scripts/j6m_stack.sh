@@ -17,7 +17,7 @@ set -u
 ROS_MASTER_PORT="${ROS_MASTER_PORT:-11311}"
 WAIT_FOR_NVIDIA_SEC="${WAIT_FOR_NVIDIA_SEC:-300}"
 REQUIRE_CAN="${REQUIRE_CAN:-true}"
-USE_DUAL_LIDAR="${USE_DUAL_LIDAR:-true}"
+USE_DUAL_LIDAR="${USE_DUAL_LIDAR:-false}"
 FOD_MOTION_ENABLED="${FOD_MOTION_ENABLED:-false}"
 NVIDIA_FOD_MODEL_SHA256="${NVIDIA_FOD_MODEL_SHA256-7bf99d4c61343e8cdb37289f2eece6cf18342b508f9b7f80723592edce398500}"
 NVIDIA_FOD_REQUIRED_CLASS_NAMES="${NVIDIA_FOD_REQUIRED_CLASS_NAMES-Metal,Soft,Plastic,Wire,Tool,w}"
@@ -153,7 +153,6 @@ done
 
 echo "NVIDIA gateway is ready; starting J6M FAST-LIO navigation."
 roslaunch autolabor_dual_host j6m_fastlio_navigation.launch \
-  use_dual_lidar:="$USE_DUAL_LIDAR" \
   fod_motion_enabled:="$FOD_MOTION_ENABLED" \
   fod_model_sha256:="$NVIDIA_FOD_MODEL_SHA256" \
   fod_required_class_names:="$NVIDIA_FOD_REQUIRED_CLASS_NAMES" \

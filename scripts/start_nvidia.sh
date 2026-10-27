@@ -60,7 +60,7 @@ self_pid_line="$(sed -n '1p' "$PID_FILE")"
 gateway_pid=$!
 
 deadline=$((SECONDS + WAIT_FOR_NVIDIA_SEC + 60))
-required_nodes=(/nvidia_cmd_vel_watchdog /livox_lidar_publisher2 /laserMapping /avoidance_scan_fusion /move_base /fod_navigation_mode)
+required_nodes=(/nvidia_cmd_vel_watchdog /livox_lidar_publisher2 /laserMapping /mid360_scan_guard /move_base /fod_navigation_mode)
 echo "Waiting for the J6M FAST-LIO navigation graph..."
 while true; do
   if ! kill -0 "$gateway_pid" 2>/dev/null; then

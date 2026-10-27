@@ -1,0 +1,55 @@
+Hybrid低进展自动取消逻辑审查（2026-10-25）
+
+结论：有历史恢复目的，但当前2秒/0.1米直接取消并完整重试的控制作用不适合本轮实车起步/换向响应。建议移除这一短时强制取消触发，不删除整套轨迹进展/边界完成跟踪，也不顺带取消避障、碰撞和底盘急停。本次只审查，未修改控制代码、参数或启停服务。
+
+历史依据：
+42cc37b（2026-09-04 10:03）已含3秒/0.1米无进展取消。
+678fdd9（2026-09-04 16:23）“shorten coverage transition recovery latency”将3秒改2秒、异常重试等待10秒改2秒。
+docs/COVERAGE_REAL_ROBOT_EXPERIMENT_20260904.md:316-339记载当时意图缩短有路径但执行停滞/局部代价拒绝后的恢复时间。过去记录存在真实局部代价拒绝后该机制触发恢复成功的实例（同文件约425行），不能把它说成毫无原始用途。
+2026-09-12改为转场重试窗口耗尽后持续自动重试，见docs/COVERAGE_AUTOMATIC_TRANSITION_RETRY_20260912.md:24-36；该层策略和2秒早取消叠加，形成连续打断的条件。
+
+当前代码行为：
+coverage_manager.py约8589行在planner模式安装、owner确认和send_goal之前启动计时。
+约8969-9012行仅对type=transit检查：map->base_link投影当前路径的进度，自上次进度基准累计至少0.1m才刷新时间。2秒未达即精确取消并返回blocked。
+它没有按期望速度和底盘响应调整，也不把起步/转向建立/换向后的加速或TEB方向稳定等待从计时中排除。
+blocked上层统一进入WAITING_OBSTACLE，并可在当前0.5秒任务重试间隔后继续规划；retry_count=3是每轮数量，不是总尝试上限。
+普通首入口type=entry不走这条短时取消。本轮其初期也进展小，但之后速度逐渐跟上，约19.6秒成功接入。
+
+不能混淆的其他机制：
+1. TEB固定挡位错误/稳定等待返回NO_VALID_CMD；move_base连续无法得到有效控制时，controller_patience=10秒可终止。它不依据车实际位移。
+2. TEB持续返回有效命令、车却不动时，move_base的有效控制时间继续刷新。因此不能说10秒控制超时能完整替代物理低进展检测。
+3. 当前实际oscillation_timeout=0（关闭），不能将此计时器当作现存兜底。
+4. 原有单段总超时=20秒+20秒/米×段长仍在。例如3米的一段为80秒。删除2秒取消后，纯执行无位移而TEB仍给有效命令的情形，可能等待到这一时限才重试。外层原有持续重试也仍存在。
+5. 约3385行还有“rolling chunk已经宣告完成但实际未移动足够”检查，和执行中每2秒取消是不同职责，不建议按同名参数全局搜索一并删除。
+
+意见：
+A. 先移除2秒低进展导致cancel_goal和blocked的干预，可保留进展数据用于离线/界面诊断，不另加速度门、预热准入或新监管节点。
+B. 依靠已有动作状态、碰撞/路径失效事件和单段总超时组织恢复，明确接受“真实持续不动时等待更久”的行为差异，不声称删除后所有卡滞都能10秒自动处理。
+C. 保留终点有向进度、清扫已执行部分、路径偏离、换向物理停车的各自职责；不因该问题删除整个tracker。
+D. WAITING_OBSTACLE不应把底盘响应不足、局部控制失败、搜索失败都描述成障碍物/无路，后续修改时应准确显示原因。
+E. 最后一条线入口25度/恢复20.05度属于独立不一致；需要单独修正，不能靠删无进展计时解决。
+
+测试审查：
+test_coverage_contract.py:458固定断言2秒，仅证明参数没变，不能证明适配执行器。
+在现有状态机测试中未检出hybrid_no_progress_timeout的显式赋值或针对2秒慢起步的用例；部分__new__夹具若进入该分支会走getattr(...,8.0)回退，与真实2秒不同。不得把既有测试全通过当成本机制已实车验证。
+
+move_base语义核对用上游Noetic源码（本工作区未找到move_base.cpp）：
+https://raw.githubusercontent.com/ros-planning/navigation/noetic-devel/move_base/src/move_base.cpp
+computeVelocityCommands成功即刷新last_valid_control_；失败分支才检查controller_patience；oscillation_timeout仅>0时生效。
+
+实验依据：rosbags/localization/20261025_162452/analysis_coverage/下的motion_crosscheck.json、first_entry_motion_check.json及repeated_steering_events.json。
+
+后续讨论：用户提出按TEB是否能持续提供有效控制来触发规划恢复，而非实际车短时位移。
+该职责划分更符合本轮证据：有效运动指令已输出但物理响应慢，不足以推断原路径失效，不应直接触发2秒重新算路。
+但不能仅比较/cmd_vel_teb的速度数值是否为零：该话题是move_base输出，既包含正常到达/停止，也包含失败后的零速。应优先复用TEB computeVelocityCommands返回状态及move_base动作终态。
+本项目TEB固定挡位违规/稳定等待明确返回NO_VALID_CMD，nav_core包装返回false；当前controller_patience=10秒，持续无有效控制会由move_base结束动作，覆盖管理器已将ABORTED/REJECTED转为blocked恢复。
+建议：移除覆盖管理器的短时物理进展取消，让上述已有控制失败链路承担这类重规划；不另加零速计时/监管节点。实际位姿仍用于偏离、边界完成、清扫进度；纯执行持续不动仍由既有单段总超时处理。
+有效零指令但返回SUCCESS、或非零前后振荡等情况不能自动等同于NO_VALID_CMD，现有状态机未声称完整识别所有卡滞。
+该讨论尚未修改/部署控制逻辑。
+
+补充历史：低速有效命令卡滞（用户后续提醒）
+已找到明确记录：docs/NAVIGATION_EXPERIMENT_20260831_REMAINING_ISSUES.md记录导航指令平均0.028m/s、轮速平均0.002m/s，普通目标约138秒几乎无进展；该文件还记录Hybrid已有8秒/0.1m恢复。
+docs/NAVIGATION_EXPERIMENT_20260901_PATH_PLANNING_ISSUES.md约148-193行记录低速+较大角速度、半径中位0.197m（小于1.35m），computeVelocityCommands仍返回有效，长时间不触发controller_patience。当前TEB已有最小转弯半径输出限制，旧根因不能不经实测照搬。
+因此物理低进展恢复有历史用途；问题是2秒一刀切且统一全局重算。删除短时取消+controller_patience=3秒并不覆盖“持续返回SUCCESS但有效小速度无法驱动车辆”的情况，不能宣称完整替代或已彻底修好。
+本轮也有-0.30m/s指令但实车位移小，不能把当前所有现象归于小速度死区。需继续区分起步/换向迟滞、持续低速可执行性及传输/底盘响应。
+尚未部署；本次讨论未再修改控制代码，未擅自增加最低速度或新的运动门。

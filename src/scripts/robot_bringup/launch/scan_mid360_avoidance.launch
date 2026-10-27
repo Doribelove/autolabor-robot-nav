@@ -3,11 +3,8 @@
   <arg name="input_custom" default="/livox/lidar" />
   <arg name="mid360_cloud" default="/mid360/points_avoidance" />
   <arg name="mid360_scan" default="/mid360/scan" />
-  <arg name="dual_lidar_scan" default="/dual_lidar/scan" />
   <arg name="output_scan" default="/scan" />
   <arg name="target_frame" default="base_link" />
-  <arg name="use_dual_lidar" default="true" />
-  <arg name="dual_lidar_timeout" default="0.35" />
 
   <!-- MID360 pose in base_link. Keep these configurable for final tape-measure calibration. -->
   <arg name="sensor_x" default="0.20" />
@@ -71,13 +68,11 @@
     <param name="use_inf" value="true" />
   </node>
 
-  <!-- This is the only publisher of /scan. Stale/absent LD19 data is ignored. -->
-  <node name="avoidance_scan_fusion" pkg="robot_bringup"
-        type="optional_laserscan_fusion.py" output="screen" required="true">
-    <param name="primary_topic" value="$(arg mid360_scan)" />
-    <param name="optional_topic" value="$(arg dual_lidar_scan)" />
-    <param name="output_topic" value="$(arg output_scan)" />
-    <param name="optional_enabled" value="$(arg use_dual_lidar)" />
-    <param name="optional_timeout" value="$(arg dual_lidar_timeout)" />
+  <!-- MID360 is the sole obstacle input. No scan is fabricated on loss. -->
+  <node name="mid360_scan_guard" pkg="robot_bringup"
+        type="mid360_scan_guard.py" output="screen" required="true">
+    <remap from="/mid360/scan" to="$(arg mid360_scan)" />
+    <remap from="/scan" to="$(arg output_scan)" />
+    <param name="scan_timeout" value="0.5" />
   </node>
 </launch>

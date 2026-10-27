@@ -1,0 +1,65 @@
+2026-10-25 将三相机 BEV 接入原 Qt 并运行 YOLO
+
+用户要求：把当前融合加入Qt并显示，再调用YOLO得到处理后的图像。
+已在原autolabor_operator_gui/MainWindow新增“BEV 融合识别”页，并排显示同一融合帧
+的原图和实际YOLO处理图；列出模型、CUDA、实际处理帧率、推理耗时、目标类别/置信度。
+页面原有导航/调参/视觉/BPU等页继续保留。BEV页的相机/模型状态卡显示该页真实数据源，
+不写入后端readiness或改变车辆放行条件。
+
+运行
+  bash scripts/camera_bev_qt.sh start
+  bash scripts/camera_bev_qt.sh status
+  bash scripts/camera_bev_qt.sh stop
+用户服务 autolabor-conbine-camera-bev-qt.service。
+start沿用已有camera_bev.sh融合服务，需要时启动该独立融合服务；默认打开原Qt的BEV页。
+Qt/YOLO会话拥有私有本机ROS master 11587，只供本次原Qt进程注册接口。
+本次请求没有启动导航、move_base、底盘驱动或合成导航栈。
+关闭本次Qt会结束本次GPU推理和私有master；原BEV/相机预览服务保持自身生命周期，
+可用bash scripts/camera_bev.sh stop结束它。原ZED采集/传输/BPU接收服务未被接管或停止。
+
+模型与真实推理
+复用本机 /home/slam/robot_ws/.venv/fod_yolo/bin/python3 的PyTorch 2.0.0+nv23.05/CUDA，
+只读使用本仓库ultralytics_yolo11_custom和既有UltralyticsDetector。
+权重 src/application/autolabor_fod_vision/models/best6.pt，包含GAM_Attention，5类：
+metal/plastic/paper/glass/kitchen_waste。置信度阈值0.25，输入尺寸640。
+模型SHA256：5efaafa1503db11c2ba261b4429389d96335b4eef4d0fc44d6ca41e7431f2d0f。
+模型直接识别600x600三路融合图，不是把旧ZED识别结果贴到BEV上；未重新训练或换权重。
+实际静态场景连续数百帧推理，约5fps，采样推理约30~40ms；采样期间检测数为0，
+Qt明确显示“本帧未检出目标”，没有添加演示框。
+后续现场画面出现物体，实际捕获1个plastic检测框，置信度约0.417，BEV像素框约
+[156.56,381.56,189.61,396.56]；Qt当前窗口也已实拍到真实处理框。
+证据positive_live_result.json、positive_live_yolo.jpg、qt_bev_live_positive.png。
+这是模型实际预测与绘框验证，不将单个现场预测视为独立材质/精度真值。
+模型原训练视角与地面BEV分布不同，本次只证明执行和显示链路工作，不构成召回率、
+分类准确率或BEV精度验收。既有外参估算/17.2度ZED静态姿态估计/未曝光同步限制保留。
+
+实现
+- scripts/three_camera_bev.py：增加127.0.0.1:18883/frame，只读返回当前真实融合帧；
+  提供融合session/sequence、源身份和参数，不为识别另存或回读旧图片代替实时数据。
+- scripts/bev_yolo_server.py：从上述接口读取、调用现有CUDA模型并输出原图/处理图原子报文，
+  监听127.0.0.1:18884，/frame为图像对，/state为真实运行统计。
+- BG01输入与BV01输出均有长度边界；BV01一个包包含元数据、原图JPEG、处理图JPEG。
+  source_id/image_source_id/result_source_id必须一致，Qt拒绝错帧、过期、截断或越界框。
+- Qt新增bev_preview_client、bev_integration模块；原Qt默认能读取本机18884，
+  BEV_PREVIEW_URL可指定本机端点。本次启动参数initial_bev_page打开新页。
+- scripts/bev_qt_session.py、scripts/camera_bev_qt.sh管理本次Qt/推理/master子进程。
+  只使用现有依赖，没有安装/替换全局Python、驱动或模型环境。
+
+验证与证据
+本地Release增量构建，针对Qt新增报文的5项用例通过：
+零检测图像对、有效检测、拒绝错帧结果、拒绝截断、拒绝越界/非数值置信度。
+初次新增测试链接缺main入口，补齐并强制重编译该测试后5/5通过，首次日志保留。
+原Qt源码契约52项最终全部通过；首轮1项仍要求旧/cloud_registered_body_enhanced，
+与任务前已有RViz单MID360配置/cloud_registered_body不符，已对齐该测试的名称和期望。
+没有修改RViz运行配置；初始失败保留于operator_contract_initial_failure.log。
+真实CUDA输出source_id连续递增、与image/result身份一致；Qt日志实际记录
+BEV_YOLO_FRAME_ACCEPTED，窗口截图确认原Qt新页同时显示两图。
+runtime/bev_qt/：
+  build.log / build_test_final.log / build_final.log / build_final_label.log
+  test_bev_preview.log / test_bev_preview.xml
+  operator_contract.log / operator_contract_initial_failure.log
+  live_yolo_verification.json / latest_yolo_packet.bin
+  latest_result.json / latest_bev.jpg / latest_yolo.jpg / qt_bev.png
+  session.log / qt.log / yolo.log / roscore.log
+最终运行状态和新会话持续处理核验记录final_runtime_verification.json。
+未提交、推送、改正式current或修改来源工作树。

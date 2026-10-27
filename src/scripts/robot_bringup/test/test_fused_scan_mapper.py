@@ -30,6 +30,12 @@ def scan(ranges, angle_min=-math.pi / 2.0, increment=math.pi / 2.0):
 
 
 class SparseOccupancyMapperTest(unittest.TestCase):
+    def test_mid360_default_keeps_lateral_obstacles(self):
+        mapper=MODULE.SparseOccupancyMapper(resolution=.5,beam_stride=1,scan_stride=1,
+            base_offset_x=0.,base_offset_y=0.,self_crop=None)
+        mapper.integrate_scan(scan([2.],angle_min=math.pi/2),0.,0.,0.)
+        self.assertEqual(1,mapper.occupied_endpoints)
+        self.assertEqual(360.,mapper.front_rear_fov_deg)
     def test_bresenham_includes_both_endpoints(self):
         self.assertEqual(
             [(0, 0), (1, 0), (2, 1), (3, 1)],
@@ -121,8 +127,8 @@ class SparseOccupancyMapperTest(unittest.TestCase):
             self.assertEqual(0.5, config["resolution"])
             self.assertEqual("complete", metadata["status"])
             self.assertEqual(1, metadata["integrated_scans"])
-            self.assertEqual("/dual_lidar/scan", metadata["scan_topic"])
-            self.assertEqual("dual_ld19_only", metadata["occupancy_source"])
+            self.assertEqual("/mid360/scan", metadata["scan_topic"])
+            self.assertEqual("mid360_only", metadata["occupancy_source"])
             self.assertEqual(5, metadata["min_occupied_observations"])
             self.assertEqual(1, metadata["transient_occupied_cells_filtered"])
 

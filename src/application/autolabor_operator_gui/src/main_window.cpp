@@ -927,6 +927,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
   ai_session_token_ = QString::fromUtf8(qgetenv("SWEEPER_AI_SESSION_TOKEN"));
   buildUi();
   setupSurroundPreview();
+  setupBevPreview();
   loadCoveragePlannerSettings();
   const auto persist_coverage_parameters = [this]() {
     persistCoveragePlannerSettings();
@@ -1564,6 +1565,7 @@ void MainWindow::buildUi()
   tabs_->addTab(buildNavigationTuningPage(), QStringLiteral("导航调参"));
   ai_tab_index_ = tabs_->addTab(buildAiControlPage(), QStringLiteral("AI语音控制"));
   bpu_tab_index_ = tabs_->addTab(buildBpuPreviewPage(), QStringLiteral("BPU 预览"));
+  tabs_->addTab(buildBevPreviewPage(), QStringLiteral("BEV 融合识别"));
   tabs_->addTab(buildLogPage(), QStringLiteral("日志"));
   connect(tabs_, &QTabWidget::currentChanged, this, [this](int index) {
     qInfo() << "[rviz_lifecycle] tab" << index
@@ -3176,6 +3178,27 @@ void MainWindow::setStatus(const QString& key, Health health, const QString& sta
   auto it = status_cards_.find(key);
   if (it == status_cards_.end())
     return;
+  QString shown_state = state, shown_detail = detail;
+  // On the BEV page these two cards describe its actual HTTP camera/model
+  // stream. Other pages continue to display their existing ROS diagnostics.
+  if ((key == QStringLiteral("camera") || key == QStringLiteral("yolo")) &&
+      tabs_ && tabs_->currentWidget() &&
+      tabs_->currentWidget()->objectName() == QStringLiteral("bevPreviewPage") && bev_preview_)
+  {
+    const auto& frame = bev_preview_->frame();
+    if (!frame.raw.isNull())
+    {
+      health = Health::Good;
+      shown_state = key == QStringLiteral("camera") ? QStringLiteral("三路 BEV") : QStringLiteral("识别中");
+      shown_detail = key == QStringLiteral("camera") ? QStringLiteral("左右 GDC + ZED") : QStringLiteral("CUDA · YOLO11-GAM");
+    }
+    else
+    {
+      health = Health::Warning;
+      shown_state = QStringLiteral("等待 BEV");
+      shown_detail = bev_preview_->status();
+    }
+  }
   const QString accent = statusColor(health);
   const QString background = statusBackground(health);
   it->second.frame->setStyleSheet(
@@ -3184,9 +3207,9 @@ void MainWindow::setStatus(const QString& key, Health health, const QString& sta
   it->second.state->setStyleSheet(QStringLiteral("color:%1;border:0;background:transparent;")
                                       .arg(accent));
   it->second.detail->setStyleSheet(QStringLiteral("color:#aab5c3;border:0;background:transparent;"));
-  it->second.state->setText(state);
-  it->second.detail->setText(detail);
-  it->second.frame->setToolTip(state + QStringLiteral(" · ") + detail);
+  it->second.state->setText(shown_state);
+  it->second.detail->setText(shown_detail);
+  it->second.frame->setToolTip(shown_state + QStringLiteral(" · ") + shown_detail);
 }
 
 void MainWindow::appendEvent(const QString& text, bool warning)
@@ -5359,7 +5382,7 @@ void MainWindow::refreshUi()
               QStringLiteral("正在保存三类静态地图"));
   else if (mapper_.state() != QProcess::NotRunning)
     setStatus("record", Health::Good, QStringLiteral("静态建图中"),
-              QStringLiteral("MID360 三维 + 双 LD19 二维"));
+              QStringLiteral("单 MID360 三维 + 二维占据图"));
   else if (recorder_.state() != QProcess::NotRunning && recorder_stop_requested_)
     setStatus("record", Health::Warning, QStringLiteral("录包保存中"),
               QStringLiteral("正在关闭 bag"));
@@ -6001,7 +6024,7 @@ void MainWindow::refreshUi()
   static_map_start_button_->setToolTip(
       static_map_mode_
           ? QStringLiteral("当前已加载静态地图，不能同时建立新地图")
-          : QStringLiteral("同时建立 MID360 三维图和双 LD19 二维图"));
+          : QStringLiteral("仅使用 MID360 建立三维图、二维占据图和高度切片图"));
 
   std::size_t coverage_point_count = 0;
   bool coverage_selecting = false;
@@ -6281,7 +6304,7 @@ void MainWindow::refreshUi()
   values_["coverage_avoidance"]->setText(
       coverage_status_fresh
           ? (coverage.avoidance_ready
-                 ? QStringLiteral("已就绪 · MID360 + 前后 LD19")
+                 ? QStringLiteral("已就绪 · 单 MID360")
                  : QStringLiteral("未就绪 · 覆盖启动/恢复禁用"))
           : QStringLiteral("--"));
   values_["coverage_avoidance"]->setToolTip(
@@ -6450,7 +6473,7 @@ void MainWindow::refreshUi()
                  : (coverage_status_fresh && !coverage.chassis_ready
                         ? QString::fromStdString(coverage.chassis_detail)
                         : (coverage_status_fresh && !coverage.avoidance_ready
-                               ? QStringLiteral("需要新鲜 /scan 且前后 LD19 已参与融合")
+                               ? QStringLiteral("需要新鲜有效的 MID360 扫描及源状态")
                                : QStringLiteral("需要先生成轨迹并达到 LOCALIZED")))))));
   const bool coverage_batch_can_start =
       coverage_editable && !coverage_selecting && !coverage_has_ready_plan &&
@@ -8763,7 +8786,7 @@ void MainWindow::startStaticMapping()
   mapper_.setArguments(QStringList());
   mapper_.setProcessChannelMode(QProcess::SeparateChannels);
   mapper_.start();
-  appendEvent(QStringLiteral("已启动三地图静态建图；占据二维图只使用前后 LD19 数据。"));
+  appendEvent(QStringLiteral("已启动单 MID360 建图；三维、二维占据图与高度切片均来自 MID360。"));
 }
 
 void MainWindow::stopStaticMapping()

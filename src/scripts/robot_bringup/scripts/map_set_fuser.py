@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Project a horizontal 3-D map slice into a dual-LD19 occupancy map."""
+"""Project a horizontal 3-D map slice into a MID360 occupancy map."""
 
 import argparse
 import collections

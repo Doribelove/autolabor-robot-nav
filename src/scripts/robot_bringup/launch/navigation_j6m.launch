@@ -86,7 +86,7 @@
     <param name="move_base/local_costmap/gps_geofence_layer/enabled" type="bool" value="true"/>
   </group>
 
-  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen" required="true">
     <remap from="/move_base_simple/goal" to="$(arg move_base_simple_goal_topic)"/>
     <remap from="/move_base/cmd_vel" to="$(arg move_base_cmd_vel_topic)"/>
     <remap from="cmd_vel" to="$(arg move_base_cmd_vel_topic)"/>
@@ -110,7 +110,8 @@
     <param if="$(arg use_static_map)" name="base_global_planner"
            value="autolabor_coverage/CoverageGlobalPlanner"/>
     <param name="controller_frequency" type="double" value="10.0"/>
-    <param name="controller_patience" type="double" value="10.0"/>
+    <!-- Continuous failure to compute valid control, not measured displacement. -->
+    <param name="controller_patience" type="double" value="3.0"/>
     <param name="planner_frequency" type="double" value="$(arg planner_frequency)"/>
     <!-- The stock rotate recovery is unsafe for an Ackermann chassis. Keep
          recovery motion disabled until the dedicated arc recovery is restored

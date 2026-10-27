@@ -44,9 +44,8 @@ MODE1_TOPICS=(
   /cloud_registered_body
   /cloud_filtered_for_scan
   /mid360/scan
-  /dual_lidar/scan
   /scan
-  /avoidance/dual_lidar_active
+  /avoidance/mid360_active
   /avoidance/source_mode
   /map
   /map_metadata

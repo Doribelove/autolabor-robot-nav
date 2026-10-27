@@ -1,0 +1,14 @@
+普通点到点TEB低速相关设置核查（2026-10-25）
+
+只读检查，未改代码/参数/节点。
+1. 普通点到点使用同一个TebLocalPlannerROS与Navfn全局规划，覆盖入口/Hybrid/清扫通过coverage_manager临时覆盖部分配置。普通基线前进0.8m/s、倒车0.3m/s、角速度0.6rad/s、加速度1m/s²和0.5rad/s²，最小半径1.35m，前视4m。
+2. navigation_j6m.launch声明并写入min_vel_x=0、min_vel_x_backwards=0；配置YAML还写min_vel_theta=-1.5。参数服务器里能读到这些名字，但当前TEB的Robot结构、teb_config.cpp读取、动态配置及速度边均没有使用这些最小速度参数。修改这些参数不等于建立有效最低可执行速度，min_vel_theta=-1.5也不能解释成现成的角速度下限。
+3. 已有TEB原生oscillation_recovery=true、oscillation_filter_duration=10s、oscillation_v_eps=0.1、oscillation_omega_eps=0.1、oscillation_recovery_min_duration=10s。这是期望命令检测：线速度按正/反上限分别归一化，角速度按上限归一化，对有符号值求均值；两均值绝对值低于阈值且角速度符号变化超过一次才判振荡。阈值不是0.1m/s或0.1rad/s。
+4. 缓冲区长度为duration×controller_frequency，至少填满一半才开始检测。10Hz/10s时至少约50次更新，近似5秒后可能开始检测；固定挡位动作重置可能清空缓冲，不保证每个短动作都触发。
+5. 该恢复通过setPreferredTurningDir给优化添加转向方向偏好，减少左右摇摆；没有直接报告NO_VALID_CMD、没有直接取消move_base或调用Hybrid搜索。恒定小速度、角速度不反复变号的情况可能检测不到。
+6. shrink_horizon_backup启用，但针对不可行解的缩短优化视距，也不是最低速度或恒低速重规划机制。
+7. controller_patience当前旧实机会话10秒，本地新launch3秒；只针对连续算不出有效控制，不能覆盖所有“SUCCESS但微小输出”。move_base oscillation_timeout当前为0，处于关闭。
+8. GPS目标减速器参数goal_slowdown_min_speed=0.15是另一套模式参数；当前J6M MID360入口显式goal_slowdown_enabled=false，不能当作本项目当前最低速度设置。
+
+结论：可优先研究/复用现有TEB期望命令缓冲和状态，不能把它说成已有通用持续低速退出，也不能仅把min_vel_x从0调大就宣称有效。后续若调整，需要区分振荡、小速度不可执行、正常到达/减速和实际执行响应。
+主要源码：teb/src/recovery_behaviors.cpp:51-110、teb/src/teb_local_planner_ros.cpp:1357-1399、teb/src/teb_config.cpp:70-95，以及robot_bringup/launch/navigation_j6m.launch。

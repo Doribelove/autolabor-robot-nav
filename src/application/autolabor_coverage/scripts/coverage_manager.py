@@ -420,7 +420,7 @@ class CoverageManager:
         )
         self.hybrid_transit_weight_kinematics_forward_drive = float(
             rospy.get_param(
-                "~hybrid_transit_weight_kinematics_forward_drive", 5.0
+                "~hybrid_transit_weight_kinematics_forward_drive", 500.0
             )
         )
         self.hybrid_transit_selection_viapoint_cost_scale = float(
@@ -476,9 +476,8 @@ class CoverageManager:
         self.hybrid_rolling_max_chunks = int(rospy.get_param(
             "~hybrid_rolling_max_chunks", 64
         ))
-        self.hybrid_no_progress_timeout = float(rospy.get_param(
-            "~hybrid_no_progress_timeout_sec", 2.0
-        ))
+        # Used only after a rolling chunk reports completion, not to interrupt
+        # an active TEB action while steering or vehicle speed is settling.
         self.hybrid_no_progress_distance = float(rospy.get_param(
             "~hybrid_no_progress_distance_m", 0.10
         ))
@@ -516,12 +515,10 @@ class CoverageManager:
                 self.hybrid_transit_weight_viapoint_heading,
                 self.hybrid_transit_weight_kinematics_forward_drive,
                 self.hybrid_transit_selection_viapoint_cost_scale,
-                self.hybrid_no_progress_timeout,
                 self.hybrid_no_progress_distance,
                 self.hybrid_rolling_horizon,
                 self.hybrid_rolling_plan_timeout,
             ))
-            or not 2.0 <= self.hybrid_no_progress_timeout <= 60.0
             or not 0.02 <= self.hybrid_no_progress_distance <= 1.0
             or not 0.10 <= self.hybrid_cusp_max_forward_speed <= 1.70
             or not 3.0 <= self.hybrid_rolling_horizon <= 20.0
@@ -566,8 +563,8 @@ class CoverageManager:
         self.avoidance_scan_fresh_sec = float(
             rospy.get_param("~avoidance_scan_fresh_sec", 0.5)
         )
-        self.dual_lidar_fresh_sec = float(
-            rospy.get_param("~dual_lidar_fresh_sec", 1.0)
+        self.mid360_status_fresh_sec = float(
+            rospy.get_param("~mid360_status_fresh_sec", 1.0)
         )
         self.chassis_status_fresh_sec = float(
             rospy.get_param("~chassis_status_fresh_sec", 3.0)
@@ -584,12 +581,9 @@ class CoverageManager:
         self.avoidance_scan_frame = str(
             rospy.get_param("~avoidance_scan_frame", "base_link")
         ).lstrip("/")
-        self.require_dual_lidar = self._strict_bool(
-            "~require_dual_lidar_for_coverage", True
-        )
         if not all(math.isfinite(value) and value > 0.0 for value in (
                 self.avoidance_scan_fresh_sec,
-                self.dual_lidar_fresh_sec,
+                self.mid360_status_fresh_sec,
                 self.chassis_status_fresh_sec,
                 self.chassis_odom_fresh_sec,
                 self.chassis_monitor_fault_latch_sec,
@@ -924,8 +918,8 @@ class CoverageManager:
         # window.  Treating that one callback as an immediate permanent pause
         # made coverage appear to accept a task and then do nothing.
         self.avoidance_scan_last_valid_wall = 0.0
-        self.dual_lidar_active = False
-        self.dual_lidar_received_wall = 0.0
+        self.mid360_active = False
+        self.mid360_received_wall = 0.0
         self.avoidance_loss_paused = False
         self.chassis_status = None
         self.chassis_status_received_wall = 0.0
@@ -1067,10 +1061,10 @@ class CoverageManager:
         self.avoidance_scan_sub = rospy.Subscriber(
             "/scan", LaserScan, self._avoidance_scan_callback, queue_size=5
         )
-        self.dual_lidar_active_sub = rospy.Subscriber(
-            "/avoidance/dual_lidar_active",
+        self.mid360_active_sub = rospy.Subscriber(
+            "/avoidance/mid360_active",
             Bool,
-            self._dual_lidar_active_callback,
+            self._mid360_active_callback,
             queue_size=5,
         )
         self.chassis_status_sub = rospy.Subscriber(
@@ -1754,10 +1748,10 @@ class CoverageManager:
                 self.avoidance_scan_last_valid_wall = received_wall
         self._pause_for_avoidance_loss()
 
-    def _dual_lidar_active_callback(self, message):
+    def _mid360_active_callback(self, message):
         with self.lock:
-            self.dual_lidar_active = bool(message.data)
-            self.dual_lidar_received_wall = time.monotonic()
+            self.mid360_active = bool(message.data)
+            self.mid360_received_wall = time.monotonic()
         self._pause_for_avoidance_loss()
 
     def _avoidance_ready_locked(self, now=None):
@@ -1781,19 +1775,12 @@ class CoverageManager:
             scan_detail = (
                 "/scan last valid sample is still fresh; latest rejected: {}"
             ).format(self.avoidance_scan_detail)
-        if self.require_dual_lidar:
-            if (
-                self.dual_lidar_received_wall <= 0.0
-                or now - self.dual_lidar_received_wall
-                > self.dual_lidar_fresh_sec
-            ):
-                return False, "front/rear LD19 fusion status is absent or stale"
-            if not self.dual_lidar_active:
-                return False, "front/rear LD19 are not contributing to /scan"
-            return True, "{}; MID360 and front/rear LD19 are active".format(
-                scan_detail
-            )
-        return True, "{}; dual LD19 is not required by configuration".format(
+        if (self.mid360_received_wall <= 0.0 or
+                now-self.mid360_received_wall > self.mid360_status_fresh_sec):
+            return False, "MID360 obstacle-source status is absent or stale"
+        if not self.mid360_active:
+            return False, "MID360 obstacle-source guard is not active"
+        return True, "{}; MID360 is the sole active obstacle source".format(
             scan_detail
         )
 
@@ -3240,7 +3227,8 @@ class CoverageManager:
                 return "failed"
             current, current_yaw = current_pose
             entry_ready, entry_geometry = self._transition_entry_ready(
-                current, current_yaw, final_goal, final_yaw
+                current, current_yaw, final_goal, final_yaw,
+                segment.get("transition_end")
             )
             if entry_ready:
                 segment["entry_recovery"] = False
@@ -3324,6 +3312,7 @@ class CoverageManager:
                             self._transition_entry_ready(
                                 live_pose[0], live_pose[1],
                                 final_goal, final_yaw,
+                                segment.get("transition_end"),
                             )
                         )
                         if entry_ready:
@@ -3480,8 +3469,9 @@ class CoverageManager:
             }
             self._refresh_entry_recovery(segment, point, yaw, goal, goal_yaw)
 
-    def _transition_entry_ready(self, point, yaw, final_goal, final_yaw):
-        """Evaluate the authoritative final swath-entry hand-off region."""
+    def _transition_entry_ready(self, point, yaw, final_goal, final_yaw,
+                                line_end=None):
+        """Accept an acquired forward swath even after passing its old start."""
         position_error = math.hypot(
             float(final_goal.x) - float(point.x),
             float(final_goal.y) - float(point.y),
@@ -3501,10 +3491,17 @@ class CoverageManager:
             "lateral_error": lateral_error,
             "yaw_error": yaw_error,
         }
+        forward_acquired = False
+        if line_end is not None:
+            length = math.hypot(line_end.x - final_goal.x,
+                                line_end.y - final_goal.y)
+            along = ((point.x - final_goal.x) * math.cos(final_yaw)
+                     + (point.y - final_goal.y) * math.sin(final_yaw))
+            forward_acquired = 0.0 <= along < length
         return (
-            position_error <= float(getattr(
+            (forward_acquired or position_error <= float(getattr(
                 self, "entry_position_tolerance", 0.40
-            ))
+            )))
             and lateral_error <= float(getattr(
                 self, "entry_position_tolerance", 0.40
             ))
@@ -3610,7 +3607,7 @@ class CoverageManager:
         return geometry
 
     def _prepare_sweep_entry(self, sweep, segment_index):
-        """Keep TRANSITING until the swath entrance is physically acquired."""
+        """Join the remaining swath from the measured pose, not its old start."""
         execution = sweep.get("_sweep_execution")
         if execution is not None and execution["goal_submitted"]:
             return self._prepare_sweep_resume(sweep, segment_index)
@@ -3624,32 +3621,135 @@ class CoverageManager:
                     "base_link is unavailable"
                 )
             return "failed"
-        geometry = self._sweep_entry_handoff_geometry(
+        geometry = self._sweep_completion_geometry(
             sweep, current_pose[0], current_pose[1]
         )
-        if geometry is not None and geometry["ready"]:
+        path, reason = self._forward_sweep_path(
+            sweep, current_pose[0], current_pose[1], geometry
+        )
+        if path is not None:
+            sweep.pop("_forward_connection_pending", None)
+            sweep["_forward_entry_path"] = path
+            sweep["_forward_join_origin"] = (
+                float(current_pose[0].x), float(current_pose[0].y)
+            )
             return "ready"
+        sweep["_forward_connection_pending"] = True
         with self.lock:
             self.state = "TRANSITING"
             self.current_segment = segment_index + 1
             self.detail = (
-                "sweep {} entrance is outside the hand-off tolerance; "
-                "continuing rolling Hybrid alignment before sweep"
-            ).format(segment_index + 1)
-        if geometry is not None:
-            rospy.logwarn(
-                "coverage sweep %d has not acquired its entrance: position "
-                "%.3f/%.3fm, cross-track %.3f/%.3fm, heading %.1f/%.1fdeg; "
-                "remaining TRANSITING for rolling Hybrid alignment",
-                segment_index + 1,
-                geometry["start_distance"],
-                geometry["position_tolerance"],
-                geometry["cross_track"],
-                geometry["cross_tolerance"],
-                math.degrees(geometry["heading_error"]),
-                math.degrees(geometry["yaw_tolerance"]),
-            )
-        return "entry-recovery"
+                "sweep {} forward connection is pending: {}"
+            ).format(segment_index + 1, reason)
+        return "blocked"
+
+    def _forward_sweep_path(self, sweep, point, yaw, geometry):
+        """Build one forward connection plus the untouched remaining line.
+
+        Called at entry or after a terminal action, never every control tick.
+        Hybrid collision/curvature checks and the normal live sweep costmap
+        checks remain responsible for feasibility; no new motion gate is used.
+        """
+        if geometry is None:
+            return None, "remaining sweep geometry is unavailable"
+        length = geometry["length"]
+        along = min(max(0.0, geometry["along"]),
+                    length - min(1.0e-4, length * .5))
+        dx = (sweep["end"].x - sweep["start"].x) / length
+        dy = (sweep["end"].y - sweep["start"].y) / length
+
+        def on_line(distance):
+            return Point(sweep["start"].x + distance * dx,
+                         sweep["start"].y + distance * dy)
+
+        def suffix(distance):
+            return self._path_for_points(sample_path(
+                on_line(distance), sweep["end"],
+                getattr(self, "path_sample_spacing", .10)), sweep["yaw"])
+
+        path = suffix(along)
+        if (geometry["cross_track"] < 1.0e-6
+                and geometry["heading_error"] < 1.0e-6
+                and geometry["along"] >= 0.0):
+            return path, "continuing the remaining straight line"
+        direct = {"path": path, "gear": 1}
+        joined, _ = self._rebase_joinable_hybrid_part(direct, point, yaw)
+        if joined:
+            return direct["path"], "continuing a joinable forward suffix"
+
+        radius = float(getattr(self, "minimum_turning_radius", 1.35))
+        advance = max(radius, 2.0 * math.sqrt(
+            radius * geometry["cross_track"]),
+            radius * geometry["heading_error"])
+        # A goal too close to a skewed front axle can require a full forward
+        # loop. Try a useful merging distance first, then compare valid paths.
+        targets = list(dict.fromkeys(min(length, along + scale * advance)
+                                     for scale in (2.0, 1.0, 3.0)))
+        requests = []
+        for index, target in enumerate(targets):
+            request = HybridTransitionRequest()
+            request.candidate_index = index
+            request.transition_index = int(sweep.get("swath_index", 0))
+            request.start = self._pose(point, yaw)
+            request.goal = self._pose(on_line(target), sweep["yaw"])
+            # Exact forward tangent on the original line, not its old entrance
+            # region, and never an implicit reverse inside a cleaning action.
+            request.accept_goal_region = False
+            requests.append(request)
+        try:
+            self._wait_for_hybrid_planner(timeout=.5)
+            profile = self._transit_profile(allow_reverse=False)
+            profile.goal_position_tolerance_m = .05
+            profile.goal_yaw_tolerance_rad = .05
+            response = self._call_hybrid_planner(
+                plan_id=self.plan_id, transitions=requests,
+                transit_profile=profile,
+                total_timeout_sec=float(getattr(
+                    self, "hybrid_rolling_plan_timeout", 3.0)))
+        except Exception as error:
+            return None, "forward Hybrid connection unavailable: {}".format(error)
+        if not response.success:
+            return None, response.message or "no forward Hybrid connection"
+        candidates = []
+        for result in response.results:
+            if (result.outcome != HybridTransitionResult.OUTCOME_SUCCESS
+                    or result.candidate_index >= len(targets)
+                    or len(result.path.poses) < 2):
+                continue
+            target = targets[result.candidate_index]
+            end = result.path.poses[-1]
+            first = result.path.poses[0]
+            target_point = on_line(target)
+            if (math.hypot(first.pose.position.x - point.x,
+                           first.pose.position.y - point.y) > 1.0e-4
+                    or abs(math.atan2(math.sin(
+                        self._hybrid_path_pose_yaw(first) - yaw),
+                        math.cos(self._hybrid_path_pose_yaw(first) - yaw))) > 1.0e-4
+                    or math.hypot(end.pose.position.x - target_point.x,
+                           end.pose.position.y - target_point.y) > 1.0e-4
+                    or abs(math.atan2(math.sin(
+                        self._hybrid_path_pose_yaw(end) - sweep["yaw"]),
+                        math.cos(self._hybrid_path_pose_yaw(end) - sweep["yaw"])))
+                    > 1.0e-4):
+                continue
+            try:
+                parts = self._split_hybrid_transition(result.path)
+            except ValueError:
+                continue
+            if len(parts) != 1 or int(parts[0][1]) != 1:
+                continue
+            candidates.append((self._hybrid_path_length(result.path),
+                               target, result.path))
+        if candidates:
+            _, target, connection = min(candidates, key=lambda item: item[0])
+            path = copy.deepcopy(connection)
+            path.poses.extend(copy.deepcopy(suffix(target).poses[1:]))
+            rospy.loginfo(
+                "coverage sweep %d joins forward at %.2f/%.2fm from live "
+                "pose; original line and measured coverage remain unchanged",
+                int(sweep.get("swath_index", 0)) + 1, target, length)
+            return path, "forward Hybrid connection to the remaining swath"
+        return None, "no forward-only connection reaches the remaining line"
 
     def _planned_path(self, route, current=None, transition_paths=None):
         path = Path()
@@ -3936,7 +4036,7 @@ class CoverageManager:
             # preview a region.  Starting is stricter: recompute against the
             # vehicle's current known-free connected component.  Crucially,
             # this expensive work runs without self.lock, so /scan and the
-            # dual-lidar freshness callbacks cannot be starved by replanning.
+            # MID360 freshness callbacks cannot be starved by replanning.
             route_planner = self._planner(grid)
             replanned = self._plan_region_route(
                 route_planner,
@@ -6186,7 +6286,8 @@ class CoverageManager:
             # the manager's explicit entry acceptance gate.
             goal_position_tolerance = (
                 0.20 if straight_tracking else (
-                    self.hybrid_cusp_position_tolerance
+                    (getattr(self, "_teb_hybrid_goal_position_tolerance", None)
+                     or self.hybrid_cusp_position_tolerance)
                     if hybrid_tracking and hybrid_cusp_goal else
                     self.entry_position_tolerance
                 )
@@ -6302,10 +6403,6 @@ class CoverageManager:
                     ),
                     "weight_kinematics_forward_drive": (
                         self.hybrid_transit_weight_kinematics_forward_drive
-                        if backwards > 0.0 else
-                        self.original_teb[
-                            "weight_kinematics_forward_drive"
-                        ]
                     ),
                     "selection_viapoint_cost_scale": (
                         self.hybrid_transit_selection_viapoint_cost_scale
@@ -6762,6 +6859,8 @@ class CoverageManager:
                         float(swath.start.x), float(swath.start.y)
                     ),
                     "transition_goal_yaw": float(yaw),
+                    "transition_end": Point(
+                        float(swath.end.x), float(swath.end.y)),
                 })
             elif online_unsplit:
                 # This comparison mode deliberately gives each complete
@@ -7473,8 +7572,8 @@ class CoverageManager:
     def _prepare_sweep_resume(self, sweep, segment_index):
         """Settle and rejoin only the unexecuted suffix of this exact swath.
 
-        The original endpoints and tracker never change. In particular, a new
-        action does not manufacture entrance history at its shortened start.
+        The original endpoints and observed progress never change. A new
+        action joins the remaining line without inventing previously swept area.
         Keep sampling during braking and retry waits so an ABORTED result at
         the exit can still satisfy the existing directed completion contract.
         """
@@ -7531,11 +7630,9 @@ class CoverageManager:
                 complete, geometry = self._observe_sweep_completion(
                     sweep, tracker, live_pose[0], live_pose[1], speed
                 )
-                pose_error = (
-                    tracker.get("invalidated_reason")
-                    if tracker.get("invalidated", False) else
-                    self._sweep_resume_pose_error(tracker, geometry)
-                )
+                pose_error = (tracker.get("invalidated_reason")
+                              if tracker.get("invalidated", False) else
+                              self._sweep_resume_pose_error(tracker, geometry))
                 if pose_error:
                     return self._pause_sweep_resume(pose_error)
             else:
@@ -7557,21 +7654,13 @@ class CoverageManager:
                     # Keep a nonempty forward path at the goal itself. Its
                     # unchanged move_base goal can then succeed normally; do
                     # not weaken the directed exit-plane completion test.
-                    along = min(max(0.0, geometry["along"]),
-                                geometry["length"] - min(
-                                    1.0e-4, geometry["length"] * 0.5))
-                    ratio = along / geometry["length"]
-                    start = Point(
-                        sweep["start"].x + ratio * (
-                            sweep["end"].x - sweep["start"].x),
-                        sweep["start"].y + ratio * (
-                            sweep["end"].y - sweep["start"].y),
-                    )
-                    execution["resume_path"] = self._path_for_points(
-                        sample_path(start, sweep["end"], getattr(
-                            self, "path_sample_spacing", 0.10
-                        )), sweep["yaw"],
-                    )
+                    path, reason = self._forward_sweep_path(
+                        sweep, live_pose[0], live_pose[1], geometry)
+                    if path is None:
+                        with self.lock:
+                            self.detail = "forward sweep reconnection pending: " + reason
+                        return "blocked"
+                    execution["resume_path"] = path
                     return "ready"
             elif time.monotonic() >= stop_deadline:
                 return self._pause_sweep_resume(
@@ -7594,9 +7683,8 @@ class CoverageManager:
             self, sweep, tracker, point, yaw, geometry=None):
         """Rebuild a stopped sweep tracker only from correlated live evidence.
 
-        Manual resume is the operator's request to inspect the retained task,
-        not permission to invent its missing history.  The original entrance
-        record remains mandatory.  A rejected map sample can be cleared only
+        Retain the measured join-to-current-pose history. A rejected map sample
+        can be cleared only
         when physical /odom explains all motion since the last trusted sample
         and the stopped vehicle is still moving forward in the exact swath
         corridor.
@@ -7607,15 +7695,8 @@ class CoverageManager:
             geometry = self._sweep_completion_geometry(sweep, point, yaw)
         if geometry is None:
             return "the retained sweep geometry is unavailable"
-        cross_tolerance = self._sweep_resume_cross_track_tolerance(
-            tracker, geometry
-        )
         if (
-            geometry["cross_track"] > cross_tolerance
-            or geometry["heading_error"] > float(getattr(
-                self, "sweep_completion_heading_tolerance", 0.35
-            ))
-            or geometry["along"] < float(tracker["max_along"]) - float(getattr(
+            geometry["along"] < float(tracker["max_along"]) - float(getattr(
                 self, "sweep_completion_max_sample_step", 0.50
             ))
         ):
@@ -7643,38 +7724,11 @@ class CoverageManager:
         )
         return ""
 
-    def _sweep_resume_cross_track_tolerance(self, tracker, geometry):
-        """Use the admitted entry tolerance until the swath is acquired."""
-        tolerance = float(getattr(
-            self, "sweep_completion_cross_track_tolerance", 0.30
-        ))
-        if (
-            geometry is not None
-            and max(
-                float(geometry.get("along", float("inf"))),
-                float(tracker.get("max_along", float("-inf"))),
-            ) <= float(getattr(self, "sweep_completion_start_gate", 0.45))
-        ):
-            tolerance = max(
-                tolerance,
-                float(getattr(self, "entry_position_tolerance", 0.40)),
-            )
-        return tolerance
-
     def _sweep_resume_pose_error(self, tracker, geometry):
         if geometry is None or not tracker["armed"] or tracker["invalidated"]:
             return "continuous entrance-to-current-pose history is untrusted"
         if (
-            geometry["cross_track"] > self._sweep_resume_cross_track_tolerance(
-                tracker, geometry
-            )
-            or geometry["heading_error"] > float(getattr(
-                self, "sweep_completion_heading_tolerance", 0.35
-            ))
-            or geometry["along"] < -float(getattr(
-                self, "sweep_completion_start_gate", 0.45
-            ))
-            or geometry["along"] < tracker["max_along"] - float(getattr(
+            geometry["along"] < tracker["max_along"] - float(getattr(
                 self, "sweep_completion_max_sample_step", 0.50
             ))
         ):
@@ -7696,6 +7750,12 @@ class CoverageManager:
         """
         geometry = self._sweep_completion_geometry(segment, point, yaw)
         if geometry is None:
+            tracker["entry_deviation_samples"] = 0
+            return False, geometry
+        if segment.get("_sweep_execution", {}).get("resume_path") is not None:
+            # The prepared forward connector intentionally starts off the old
+            # line. Let TEB track that checked curve instead of canceling it
+            # for not yet satisfying the original entrance corridor.
             tracker["entry_deviation_samples"] = 0
             return False, geometry
         start = segment["start"]
@@ -7741,9 +7801,9 @@ class CoverageManager:
         """Return directed-line completion after physical speed reaches zero.
 
         The exit-plane dot product is deliberately only the final condition.
-        A tracker first has to see this exact segment at its entrance, then see
-        continuous map poses cover most of its length without a localization
-        jump, and finally remain close and aligned to the same directed line.
+        A tracker first observes the admitted live join, then continuous poses
+        over the remaining line without a localization jump. Completion still
+        requires reaching the unchanged directed exit, aligned and stopped.
         """
         geometry = self._sweep_completion_geometry(segment, point, yaw)
         if geometry is None or tracker.get("invalidated", False):
@@ -7761,6 +7821,14 @@ class CoverageManager:
             self, "sweep_completion_heading_tolerance", 0.35
         ))
         if not tracker.get("armed", False):
+            join_origin = segment.get("_forward_join_origin")
+            prepared_forward_join = (
+                join_origin is not None
+                and math.hypot(float(point.x) - join_origin[0],
+                               float(point.y) - join_origin[1]) <= float(getattr(
+                                   self, "sweep_completion_max_sample_step", .50))
+                and geometry["along"] < geometry["length"]
+            )
             start_heading_tolerance = max(
                 heading_tolerance,
                 float(getattr(self, "entry_yaw_tolerance", 0.436332)),
@@ -7770,7 +7838,7 @@ class CoverageManager:
                 # sweep with entry_position_tolerance.  Reuse that exact
                 # contract here so a 0.30/0.40 m split cannot start motion
                 # without arming its completion record.
-                start_distance <= float(getattr(
+                prepared_forward_join or (start_distance <= float(getattr(
                     self, "entry_position_tolerance", 0.40
                 ))
                 and geometry["cross_track"] <= max(
@@ -7779,12 +7847,13 @@ class CoverageManager:
                         self, "entry_position_tolerance", 0.40
                     )),
                 )
-                and geometry["heading_error"] <= start_heading_tolerance
+                and geometry["heading_error"] <= start_heading_tolerance)
             ):
                 tracker["armed"] = True
                 self._remember_completion_pose(tracker, point, yaw)
                 tracker["last_along"] = geometry["along"]
                 tracker["max_along"] = geometry["along"]
+                tracker["start_along"] = max(0.0, geometry["along"])
             geometry["armed"] = tracker.get("armed", False)
             geometry["progress_ratio"] = max(
                 0.0, geometry["along"] / geometry["length"]
@@ -7841,7 +7910,9 @@ class CoverageManager:
         tracker["max_along"] = max(
             float(tracker["max_along"]), geometry["along"]
         )
-        progress_ratio = tracker["max_along"] / geometry["length"]
+        start_along = float(tracker.get("start_along", 0.0))
+        progress_ratio = (tracker["max_along"] - start_along) / max(
+            geometry["length"] - start_along, 1.0e-6)
         pass_margin = float(getattr(
             self, "sweep_completion_pass_margin", 0.02
         ))
@@ -8428,6 +8499,21 @@ class CoverageManager:
             return "succeeded"
         return stop_outcome
 
+    def _short_cusp_position_tolerance(self, segment):
+        """Keep an existing tolerance from consuming most of a short gear leg.
+
+        A 0.30m leg must not finish after moving 0.05m merely because its
+        normal endpoint tolerance is 0.25m. Longer legs retain the saved value.
+        This adjusts action completion, not command admission or speed.
+        """
+        tolerance = self.hybrid_cusp_position_tolerance
+        path = segment.get("path")
+        length = (self._hybrid_path_length(path) if path is not None
+                  else float(segment.get("length", 0.0)))
+        if length > 1.0e-6:
+            tolerance = min(tolerance, .20 * length)
+        return tolerance
+
     def _execute_segment(self, segment, segment_index):
         if not self._wait_while_paused():
             return "canceled"
@@ -8460,6 +8546,12 @@ class CoverageManager:
         precise_hybrid_goal = (
             hybrid_cusp_goal or bool(segment.get("entry_goal_region", False))
         )
+        hybrid_goal_position_tolerance = None
+        if precise_hybrid_goal:
+            hybrid_goal_position_tolerance = (
+                self._short_cusp_position_tolerance(segment)
+                if hybrid_cusp_goal else self.hybrid_cusp_position_tolerance
+            )
         if segment["type"] in ("entry", "transit"):
             live_pose = self._current_pose()
             if live_pose is not None:
@@ -8473,7 +8565,7 @@ class CoverageManager:
                     math.cos(segment["yaw"] - live_yaw),
                 ))
                 position_tolerance = (
-                    self.hybrid_cusp_position_tolerance
+                    hybrid_goal_position_tolerance
                     if precise_hybrid_goal else self.entry_position_tolerance
                 )
                 yaw_tolerance = (
@@ -8567,6 +8659,7 @@ class CoverageManager:
             segment["type"] == "transit" and expected_gear < 0
         )
         self._teb_hybrid_cusp_goal = precise_hybrid_goal
+        self._teb_hybrid_goal_position_tolerance = hybrid_goal_position_tolerance
         try:
             teb_ready = self._set_teb(
                 backwards, segment["type"] == "sweep"
@@ -8575,6 +8668,7 @@ class CoverageManager:
             self._teb_hybrid_tracking_requested = False
             self._teb_hybrid_expected_reverse = False
             self._teb_hybrid_cusp_goal = False
+            self._teb_hybrid_goal_position_tolerance = None
         if not teb_ready:
             return "failed"
         enforced = EnforcedPath()
@@ -8601,33 +8695,20 @@ class CoverageManager:
             self.goal_timeout_per_meter_sec * segment["length"]
         )
         started = time.monotonic()
-        hybrid_no_progress_timeout = getattr(
-            self, "hybrid_no_progress_timeout", 8.0
-        )
-        hybrid_no_progress_distance = getattr(
-            self, "hybrid_no_progress_distance", 0.10
-        )
-        progress_anchor = None
-        progress_anchor_value = None
-        progress_anchor_time = started
         sweep_completion_tracker = None
         transition_completion_tracker = None
         if segment["type"] == "transit":
             live_pose = self._current_pose()
-            if live_pose is not None:
-                progress_anchor = live_pose[0]
             transition_completion_tracker = (
                 self._new_transition_completion_tracker()
             )
             if live_pose is not None:
-                _, initial_geometry = self._observe_transition_completion(
+                self._observe_transition_completion(
                     segment,
                     transition_completion_tracker,
                     live_pose[0],
                     live_pose[1],
                 )
-                if initial_geometry is not None:
-                    progress_anchor_value = initial_geometry["progress"]
         elif segment["type"] == "entry":
             transition_completion_tracker = (
                 self._new_transition_completion_tracker()
@@ -8669,6 +8750,9 @@ class CoverageManager:
                     or "pose continuity was lost before sweep goal submission"
                 )
             if execution.get("resume_path") is not None:
+                enforced.path = copy.deepcopy(execution["resume_path"])
+            if segment.get("_forward_entry_path") is not None:
+                execution["resume_path"] = segment.pop("_forward_entry_path")
                 enforced.path = copy.deepcopy(execution["resume_path"])
         # Arm the exact sweep or Hybrid A* transit mode before move_base accepts
         # the goal.  Without this ordering its first planner cycle could still
@@ -8866,10 +8950,7 @@ class CoverageManager:
                         )
                     )
                     if needs_entry_recovery:
-                        outcome = self._pause_sweep_resume(
-                            "the active sweep left its entry acquisition corridor"
-                        )
-                        return self._cancel_segment_goal(goal_generation, outcome)
+                        return self._cancel_segment_goal(goal_generation, "blocked")
                     sweep_complete, completion_geometry = (
                         self._observe_sweep_completion(
                             segment,
@@ -8980,51 +9061,9 @@ class CoverageManager:
                     return self._cancel_segment_goal(
                         goal_generation, "blocked"
                     )
-            if segment["type"] == "transit":
-                now = time.monotonic()
-                live_pose = self._current_pose()
-                if live_pose is not None:
-                    live_point = live_pose[0]
-                    path_progress = (
-                        boundary_geometry.get("progress")
-                        if boundary_geometry is not None else None
-                    )
-                    made_progress = (
-                        path_progress is not None
-                        and (
-                            progress_anchor_value is None
-                            or path_progress - progress_anchor_value >=
-                                hybrid_no_progress_distance
-                        )
-                    )
-                    if path_progress is None:
-                        made_progress = (
-                            progress_anchor is None or math.hypot(
-                                live_point.x - progress_anchor.x,
-                                live_point.y - progress_anchor.y,
-                            ) >= hybrid_no_progress_distance
-                        )
-                    if made_progress:
-                        progress_anchor = live_point
-                        if path_progress is not None:
-                            progress_anchor_value = path_progress
-                        progress_anchor_time = now
-                    elif now - progress_anchor_time >= (
-                            hybrid_no_progress_timeout):
-                        no_progress_detail = (
-                            "Hybrid transition made less than {:.2f} m "
-                            "progress for {:.1f} s; canceling this attempt "
-                            "for a fresh obstacle replan"
-                        ).format(
-                            hybrid_no_progress_distance,
-                            hybrid_no_progress_timeout,
-                        )
-                        with self.lock:
-                            self.detail = no_progress_detail
-                        rospy.logwarn(no_progress_detail)
-                        return self._cancel_segment_goal(
-                            goal_generation, "blocked"
-                        )
+            # Slow measured movement does not invalidate a planned connector.
+            # TEB control failures reach us through move_base's action result;
+            # retain the existing whole-action timeout for execution stalls.
             if time.monotonic() - started > timeout:
                 return self._cancel_segment_goal(goal_generation, "blocked")
         return "canceled"
@@ -9334,7 +9373,8 @@ class CoverageManager:
 
                     entry_alignment_blocked = (
                         segment["type"] == "sweep"
-                        and entry_recovery_attempts > 0
+                        and (entry_recovery_attempts > 0
+                             or segment.get("_forward_connection_pending", False))
                     )
                     automatic_transition_retry = (
                         segment["type"] in ("transit", "rolling_transit")

@@ -2006,6 +2006,26 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         manager.hybrid_cusp_position_tolerance = 0.12
         manager.hybrid_cusp_yaw_tolerance = 0.15
 
+    def test_short_gear_leg_cannot_consume_its_endpoint_tolerance(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager)
+        manager.hybrid_cusp_position_tolerance = .25
+        point = COVERAGE_MANAGER.Point
+        with mock.patch.object(COVERAGE_MANAGER.rospy.Time, 'now',
+                               return_value=COVERAGE_MANAGER.rospy.Time(100)):
+            short = {'path': manager._path_for_points(
+                [point(0., 0.), point(-.3, 0.)], 0.)}
+            tolerance = manager._short_cusp_position_tolerance(short)
+            self.assertAlmostEqual(.06, tolerance)
+            # The experiment's thirteen falsely early success poses were
+            # still 23.7--25.1cm from the intended cusp.
+            for remaining in [.237, .248, .250, .246, .251, .245, .239, .242]:
+                self.assertGreater(remaining, tolerance)
+            self.assertLess(.03, tolerance)
+            long = {'path': manager._path_for_points(
+                [point(0., 0.), point(3., 0.)], 0.)}
+            self.assertEqual(.25, manager._short_cusp_position_tolerance(long))
+
     def test_transition_projection_uses_yaw_at_nearby_cusp_edges(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
             COVERAGE_MANAGER.CoverageManager
@@ -2740,7 +2760,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertEqual(2, len(selected.transition_paths[1].poses))
         self.assertEqual(80, selected.hybrid_precompute_expansions)
 
-    def test_transit_arms_hybrid_planner_for_close_heading_mismatch(self):
+    def _transit_execution_fixture(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
             COVERAGE_MANAGER.CoverageManager
         )
@@ -2804,6 +2824,33 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             "length": 2.0,
             "path": cached_path,
         }
+        return (manager, transit, configured_reverse_speeds, handoffs,
+                submission_events)
+
+    def test_short_cusp_does_not_skip_after_only_five_centimetres(self):
+        manager, transit, _, _, _ = self._transit_execution_fixture()
+        manager.hybrid_cusp_position_tolerance = .25
+        manager.hybrid_cusp_yaw_tolerance = .2
+        manager._current_pose = lambda: (COVERAGE_MANAGER.Point(-.05, 0.), 0.)
+        manager._set_enforced_path = mock.Mock(return_value=True)
+        transit.update(start=COVERAGE_MANAGER.Point(0., 0.),
+                       end=COVERAGE_MANAGER.Point(-.3, 0.), length=.3,
+                       gear=-1, transition_part=0, transition_part_count=2)
+        captured = []
+        manager._set_teb = lambda *args: captured.append(
+            manager._teb_hybrid_goal_position_tolerance) or True
+        with mock.patch.object(COVERAGE_MANAGER.rospy, 'is_shutdown', return_value=False), \
+                mock.patch.object(COVERAGE_MANAGER.rospy.Time, 'now',
+                                  return_value=COVERAGE_MANAGER.rospy.Time(100)):
+            transit['path'] = manager._path_for_points(
+                [transit['start'], transit['end']], 0.)
+            self.assertEqual('succeeded', manager._execute_segment(transit, 0))
+        self.assertEqual(1, len(manager.move_base.goals))
+        self.assertAlmostEqual(.06, captured[0])
+
+    def test_transit_arms_hybrid_planner_for_close_heading_mismatch(self):
+        (manager, transit, configured_reverse_speeds, handoffs,
+         submission_events) = self._transit_execution_fixture()
         with mock.patch.object(
             COVERAGE_MANAGER.rospy, "is_shutdown", return_value=False
         ), mock.patch.object(
@@ -2826,6 +2873,52 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             ("owner", True, manager.navigation_owner_token),
             ("goal",),
         ], submission_events)
+
+    def test_slow_transit_waits_for_action_result_or_whole_action_timeout(self):
+        for terminal, timeout in (
+                (COVERAGE_MANAGER.GoalStatus.SUCCEEDED, False),
+                (COVERAGE_MANAGER.GoalStatus.ABORTED, False),
+                (COVERAGE_MANAGER.GoalStatus.SUCCEEDED, True)):
+            with self.subTest(terminal=terminal, whole_action_timeout=timeout):
+                manager, transit, _, _, _ = self._transit_execution_fixture()
+                clock = [100.0]
+                # Model an old private configuration still carrying this
+                # attribute. It must no longer cancel a slowly starting car.
+                manager.hybrid_no_progress_timeout = 2.0
+                manager._current_pose = lambda: (
+                    COVERAGE_MANAGER.Point(-1.0 + .005*(clock[0]-100.0), 0), 0)
+                if timeout:
+                    manager.goal_timeout_base_sec = 5.0
+                    manager.goal_timeout_per_meter_sec = 0.0
+
+                class DelayedMoveBase(_SuccessfulMoveBase):
+                    def wait_for_result(self, _duration):
+                        clock[0] += 1.0
+                        return self.cancel_count > 0 or clock[0] >= 110.0
+
+                    def get_state(self):
+                        return (COVERAGE_MANAGER.GoalStatus.PREEMPTED
+                                if self.cancel_count else terminal)
+
+                manager.move_base = DelayedMoveBase()
+                with mock.patch.object(
+                        COVERAGE_MANAGER.rospy, "is_shutdown", return_value=False
+                ), mock.patch.object(
+                        COVERAGE_MANAGER.time, "monotonic",
+                        side_effect=lambda: clock[0]
+                ), mock.patch.object(
+                        COVERAGE_MANAGER.rospy.Time, "now",
+                        side_effect=lambda: COVERAGE_MANAGER.rospy.Time(clock[0])
+                ):
+                    result = manager._execute_segment(transit, 0)
+                expected = ("succeeded" if not timeout and
+                            terminal == COVERAGE_MANAGER.GoalStatus.SUCCEEDED
+                            else "blocked")
+                self.assertEqual(expected, result)
+                self.assertEqual(1 if timeout else 0,
+                                 manager.move_base.cancel_count)
+                self.assertGreater(clock[0], 105.0)
+                self.assertEqual(1, len(manager.move_base.goals))
 
     def test_first_entry_arms_navfn_teb_with_reverse_immediately(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
@@ -3064,9 +3157,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertTrue(tracker["armed"])
         self.assertAlmostEqual(0.339, geometry["cross_track"])
 
-        # That admitted offset remains resumable while the vehicle is still
-        # acquiring the entrance.  Once it has progressed down the swath, the
-        # ordinary 0.30 m tracking-quality corridor applies.
+        # An offset is handled by forward reconnection, not an unconditional
+        # corridor pause. Completion still checks the original line itself.
         tracker["max_along"] = 0.20
         geometry = manager._sweep_completion_geometry(
             segment, COVERAGE_MANAGER.Point(0.20, 0.339), 0.0
@@ -3078,10 +3170,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         geometry = manager._sweep_completion_geometry(
             segment, COVERAGE_MANAGER.Point(1.00, 0.339), 0.0
         )
-        self.assertIn(
-            "outside the retained sweep corridor",
-            manager._sweep_resume_pose_error(tracker, geometry),
-        )
+        self.assertEqual("", manager._sweep_resume_pose_error(tracker, geometry))
 
     def test_large_map_step_is_accepted_when_physical_odom_explains_it(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
@@ -3298,7 +3387,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertFalse(tracker["invalidated"])
         self.assertAlmostEqual(2.18, tracker["max_along"])
 
-    def test_manual_resume_revalidation_rejects_pose_outside_sweep_corridor(self):
+    def test_manual_resume_revalidation_keeps_odom_supported_lateral_motion(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
             COVERAGE_MANAGER.CoverageManager
         )
@@ -3333,16 +3422,12 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         })
         point = COVERAGE_MANAGER.Point(2.0, 0.45)
 
-        error = manager._revalidate_sweep_tracker(
-            segment,
-            tracker,
-            point,
-            0.0,
-            manager._sweep_completion_geometry(segment, point, 0.0),
-        )
-
-        self.assertIn("outside the retained sweep corridor", error)
-        self.assertTrue(tracker["invalidated"])
+        with mock.patch.object(COVERAGE_MANAGER.time, "monotonic", return_value=102.0):
+            error = manager._revalidate_sweep_tracker(
+                segment, tracker, point, 0.0,
+                manager._sweep_completion_geometry(segment, point, 0.0))
+        self.assertEqual("", error)
+        self.assertFalse(tracker["invalidated"])
 
     def test_paused_tracking_records_braking_until_two_stopped_samples(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
@@ -3522,6 +3607,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
                 manager._execute_sweep_entry_recovery = mock.Mock(
                     side_effect=AssertionError("accepted entrance must start sweeping")
                 )
+                manager._forward_sweep_path = mock.Mock(return_value=(
+                    COVERAGE_MANAGER.Path(), "prepared forward path"))
                 original_execute = manager._execute_segment
                 def execute(segment, index):
                     self.assertEqual("SWEEPING", manager.state)
@@ -3557,6 +3644,23 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         ))
         manager._plan_next_rolling_hybrid_chunk.assert_not_called()
         self.assertFalse(segment["entry_recovery"])
+
+    def test_rolling_transition_accepts_progress_past_original_line_start(self):
+        manager = COVERAGE_MANAGER.CoverageManager.__new__(
+            COVERAGE_MANAGER.CoverageManager)
+        manager.lock = threading.RLock()
+        manager.cancel_requested = manager.manual_pause = manager.external_pause = False
+        manager.active = True
+        manager.hybrid_rolling_max_chunks = 1
+        manager._current_pose = lambda: (COVERAGE_MANAGER.Point(2.0, .2), .2)
+        manager._wait_for_transition_stop = mock.Mock(return_value=True)
+        manager._plan_next_rolling_hybrid_chunk = mock.Mock()
+        segment = {"type": "rolling_transit",
+                   "transition_goal": COVERAGE_MANAGER.Point(0, 0),
+                   "transition_goal_yaw": 0.0,
+                   "transition_end": COVERAGE_MANAGER.Point(10, 0)}
+        self.assertEqual("succeeded", manager._execute_rolling_hybrid_transition(segment, 1))
+        manager._plan_next_rolling_hybrid_chunk.assert_not_called()
 
     def test_final_overshoot_evidence_reaches_the_dependent_sweep(self):
         manager, part, tracker = self._entry_overshoot_fixture()
@@ -3727,7 +3831,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         manager._wait_for_transition_stop.assert_called_once_with()
         manager._rebase_joinable_hybrid_part.assert_not_called()
 
-    def test_sweep_handoff_gate_never_enters_sweeping_outside_tolerance(self):
+    def test_sweep_handoff_uses_a_forward_path_instead_of_original_start_gate(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
             COVERAGE_MANAGER.CoverageManager
         )
@@ -3741,21 +3845,24 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             "end": COVERAGE_MANAGER.Point(4.0, 0.0),
             "yaw": 0.0,
         }
+        manager._forward_sweep_path = mock.Mock(return_value=(None, "no path"))
 
         manager.state = "TRANSITING"
         manager._current_pose = lambda: (
             COVERAGE_MANAGER.Point(0.05, 0.42), 0.48
         )
-        self.assertEqual("entry-recovery", manager._prepare_sweep_entry(
+        self.assertEqual("blocked", manager._prepare_sweep_entry(
             sweep, 1
         ))
         self.assertEqual("TRANSITING", manager.state)
         self.assertEqual(2, manager.current_segment)
 
-        # Entry uses the widened 0.40 m basin without widening the 0.30 m
-        # sweep-completion/cusp cross-track contract.
+        prepared = COVERAGE_MANAGER.Path()
+        prepared.poses = [manager._pose(point, 0, COVERAGE_MANAGER.rospy.Time(100))
+                          for point in (COVERAGE_MANAGER.Point(2, .35), sweep["end"])]
+        manager._forward_sweep_path.return_value = (prepared, "forward join")
         manager._current_pose = lambda: (
-            COVERAGE_MANAGER.Point(0.0, 0.35), math.radians(15.0)
+            COVERAGE_MANAGER.Point(2.0, 0.35), math.radians(22.0)
         )
         self.assertEqual("ready", manager._prepare_sweep_entry(sweep, 1))
 
@@ -3764,6 +3871,8 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         )
         self.assertEqual("ready", manager._prepare_sweep_entry(sweep, 1))
         self.assertEqual("TRANSITING", manager.state)
+        self.assertEqual((.05, .12), sweep["_forward_join_origin"])
+        self.assertEqual(0.0, sweep["start"].x)
 
     def test_entry_recovery_planning_cost_favors_short_reverse_alignment(self):
         manager = COVERAGE_MANAGER.CoverageManager.__new__(
@@ -4321,6 +4430,26 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             )
             self.assertEqual(0.12, reverse_transit["xy_goal_tolerance"])
             self.assertEqual(0.15, reverse_transit["yaw_goal_tolerance"])
+            manager._teb_hybrid_goal_position_tolerance = .06
+            self.assertTrue(manager._set_teb(.3, straight_tracking=False))
+            self.assertEqual(.06, updates[-1]['xy_goal_tolerance'])
+            manager._teb_hybrid_goal_position_tolerance = None
+
+            # Values saved by the tuning page must reach both fixed gears,
+            # especially a forward profile whose reverse speed limit is zero.
+            for configured_weight in (500.0, 750.0):
+                manager.hybrid_transit_weight_kinematics_forward_drive = configured_weight
+                for gear in (1, -1):
+                    manager._teb_hybrid_expected_reverse = gear < 0
+                    self.assertTrue(manager._set_teb(
+                        0.0 if gear > 0 else 0.3,
+                        straight_tracking=False, hybrid_tracking=True,
+                    ))
+                    self.assertEqual(gear, updates[-1]["motion_direction_mode"])
+                    self.assertEqual(
+                        configured_weight,
+                        updates[-1]["weight_kinematics_forward_drive"],
+                    )
 
             self.assertTrue(manager._restore_teb())
             self.assertEqual(baseline, updates[-1])
@@ -5559,16 +5688,15 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             COVERAGE_MANAGER.CoverageManager
         )
         manager.avoidance_scan_fresh_sec = 0.5
-        manager.dual_lidar_fresh_sec = 1.0
+        manager.mid360_status_fresh_sec = 1.0
         manager.avoidance_scan_future_tolerance_sec = 0.2
         manager.avoidance_scan_frame = "base_link"
-        manager.require_dual_lidar = True
         manager.avoidance_scan_valid = True
         manager.avoidance_scan_detail = "valid"
         manager.avoidance_scan_received_wall = now - 0.1
         manager.avoidance_scan_last_valid_wall = now - 0.1
-        manager.dual_lidar_active = True
-        manager.dual_lidar_received_wall = now - 0.1
+        manager.mid360_active = True
+        manager.mid360_received_wall = now - 0.1
         manager.avoidance_loss_paused = False
         manager.chassis_status_fresh_sec = 3.0
         manager.chassis_odom_fresh_sec = 1.0
@@ -5613,18 +5741,25 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
             range_max=12.0,
         )
 
-    def test_fresh_scan_and_dual_lidar_are_required_for_coverage(self):
+    def test_fresh_scan_and_mid360_status_allow_coverage_without_ld19(self):
         manager = self._avoidance_manager()
         ready, detail = manager._avoidance_ready_locked(100.0)
         self.assertTrue(ready)
-        self.assertIn("MID360 and front/rear LD19", detail)
+        self.assertIn("MID360 is the sole active obstacle source", detail)
 
-    def test_mid360_only_fallback_fails_coverage_closed(self):
+    def test_inactive_mid360_guard_fails_coverage_closed(self):
         manager = self._avoidance_manager()
-        manager.dual_lidar_active = False
+        manager.mid360_active = False
         ready, detail = manager._avoidance_ready_locked(100.0)
         self.assertFalse(ready)
-        self.assertIn("not contributing", detail)
+        self.assertIn("not active", detail)
+
+    def test_stale_mid360_source_status_fails_even_with_a_fresh_scan(self):
+        manager=self._avoidance_manager()
+        manager.mid360_received_wall=98.0
+        ready,detail=manager._avoidance_ready_locked(100.0)
+        self.assertFalse(ready)
+        self.assertIn("MID360 obstacle-source status",detail)
 
     def test_stale_avoidance_scan_fails_coverage_closed(self):
         manager = self._avoidance_manager()
@@ -5767,7 +5902,7 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
         self.assertTrue(response.success)
         self.assertFalse(manager.manual_pause)
         self.assertFalse(manager.avoidance_loss_paused)
-        manager.dual_lidar_active = False
+        manager.mid360_active = False
         manager.manual_pause = True
         manager.avoidance_loss_paused = True
         with mock.patch.object(
@@ -5826,6 +5961,36 @@ class CoverageManagerStateMachineTest(unittest.TestCase):
 
 
 class CoverageSweepResumeTest(unittest.TestCase):
+
+    def test_prestart_connection_failure_keeps_the_swath_across_retry_windows(self):
+        manager, sweep = self._fixture([
+            (self._approach(10.), COVERAGE_MANAGER.GoalStatus.SUCCEEDED)
+        ], delay=.1)
+        manager.segment_retry_count = 1
+        real = manager._forward_sweep_path
+        calls = []
+
+        def prepare(*args):
+            calls.append(True)
+            if len(calls) <= 5:
+                return None, 'temporarily unavailable connector'
+            return real(*args)
+
+        manager._forward_sweep_path = prepare
+        original = copy.deepcopy(sweep['path'])
+        self.assertEqual('COMPLETED', manager._run_task([], None))
+        self.assertEqual(6, len(calls))
+        self.assertEqual(1, len(manager.move_base.goals))
+        self.assertEqual(original, sweep['path'])
+        self.assertFalse(sweep.get('_forward_connection_pending', False))
+
+    def test_cancel_remains_available_while_prestart_connector_is_unavailable(self):
+        manager, _ = self._fixture([], delay=.1)
+        manager._forward_sweep_path = lambda *args: (None, 'unavailable')
+        manager._test_wait_hook = lambda: setattr(manager, 'cancel_requested', True)
+        self.assertEqual('CANCELED', manager._run_task([], None))
+        self.assertEqual([], manager.move_base.goals)
+
     """Run the real sweep worker with scripted action/pose/clock boundaries."""
 
     def setUp(self):
@@ -6124,15 +6289,21 @@ class CoverageSweepResumeTest(unittest.TestCase):
         self.assertFalse(tracker["invalidated"])
         self.assertGreaterEqual(tracker["max_along"], 10.0)
 
-    def test_waiting_pose_outside_corridor_requires_manual_inspection(self):
+    def test_waiting_offset_requests_connection_without_manual_corridor_pause(self):
         for pose in ((4.0, 0.31, 0.0), (4.0, 0.0, 0.36)):
             with self.subTest(pose=pose):
                 manager, _ = self._fixture([
                     (self._approach() + [pose], COVERAGE_MANAGER.GoalStatus.ABORTED),
                 ])
-                self.assertEqual("CANCELED", manager._run_task([], None))
+                self.assertEqual("blocked", manager._execute_segment(
+                    manager._segments([], None)[0], 0))
+                sweep = manager._segments([], None)[0]
+                manager._forward_sweep_path = mock.Mock(
+                    return_value=(None, "connection blocked"))
+                self.assertEqual("blocked", manager._prepare_sweep_resume(sweep, 0))
                 self.assertEqual(1, len(manager.move_base.goals))
-                self.assertIn("corridor", manager._test_pauses[0][0])
+                self.assertFalse(manager.manual_pause)
+                self.assertEqual([], manager._test_pauses)
 
     def test_missing_nonfinite_or_moving_odom_prevents_resubmission(self):
         for speed in (None, float("nan"), 0.2):
@@ -6311,6 +6482,78 @@ class CoverageSweepResumeTest(unittest.TestCase):
         self.assertEqual(1, manager.move_base.cancel_count)
         paths = [p.path for p in manager._test_paths if p.active]
         self.assertAlmostEqual(4.0, paths[1].poses[0].pose.position.x)
+
+    @staticmethod
+    def _stub_forward_hybrid(manager, reverse=False):
+        calls = []
+        manager._wait_for_hybrid_planner = lambda timeout: None
+
+        def plan(**kwargs):
+            calls.append(kwargs)
+            request = kwargs["transitions"][0]
+            result = COVERAGE_MANAGER.HybridTransitionResult()
+            result.candidate_index = request.candidate_index
+            result.outcome = result.OUTCOME_SUCCESS
+            result.path.header.frame_id = "map"
+            result.path.poses = [copy.deepcopy(request.start),
+                                 copy.deepcopy(request.goal)]
+            if reverse:
+                start = request.start.pose.position
+                result.path.poses.insert(1, manager._pose(
+                    COVERAGE_MANAGER.Point(start.x - .1, start.y), 0.0))
+            return SimpleNamespace(success=True, message="ok", results=[result])
+
+        manager._call_hybrid_planner = plan
+        return calls
+
+    def test_midline_entry_builds_forward_suffix_without_rewinding_or_fake_area(self):
+        manager, sweep = self._fixture([])
+        manager._test_pose = (COVERAGE_MANAGER.Point(2.0, .35), math.radians(22))
+        original = copy.deepcopy(sweep["path"])
+        calls = self._stub_forward_hybrid(manager)
+        covered = copy.deepcopy(manager.covered_cells)
+        self.assertEqual("ready", manager._prepare_sweep_entry(sweep, 0))
+        request = calls[0]["transitions"][0]
+        self.assertFalse(calls[0]["transit_profile"].allow_reverse)
+        self.assertFalse(request.accept_goal_region)
+        self.assertAlmostEqual(2.0, request.start.pose.position.x)
+        self.assertGreater(request.goal.pose.position.x, 2.0)
+        self.assertEqual(original, sweep["path"])
+        self.assertEqual(covered, manager.covered_cells)
+        self.assertEqual(10.0, sweep["_forward_entry_path"].poses[-1].pose.position.x)
+        tracker = manager._new_sweep_completion_tracker()
+        completed, _ = manager._observe_sweep_completion(
+            sweep, tracker, *manager._test_pose, 0.0)
+        self.assertFalse(completed)
+        self.assertTrue(tracker["armed"])
+        self.assertAlmostEqual(2.0, tracker["start_along"])
+
+    def test_recorded_22_degree_entry_abort_rejoins_forward_and_finishes(self):
+        forward = [( .4, .30, .30), (.7, .24, .20),
+                   (1.0, .15, .10), (1.3, .06, .04), (1.6, 0, 0)]
+        manager, sweep = self._fixture([
+            ([(.18, .346, math.radians(22))],
+             COVERAGE_MANAGER.GoalStatus.ABORTED),
+            (forward + self._approach(10.0)[4:],
+             COVERAGE_MANAGER.GoalStatus.SUCCEEDED),
+        ])
+        calls = self._stub_forward_hybrid(manager)
+        original = copy.deepcopy(sweep["path"])
+        self.assertEqual("COMPLETED", manager._run_task([], None))
+        self.assertEqual(2, len(manager.move_base.goals))
+        self.assertEqual([], manager._test_pauses)
+        self.assertEqual(original, sweep["path"])
+        self.assertAlmostEqual(.18, calls[0]["transitions"][0].start.pose.position.x)
+        self.assertGreater(calls[0]["transitions"][0].goal.pose.position.x, .18)
+
+    def test_forward_sweep_connection_rejects_a_reverse_planner_result(self):
+        manager, sweep = self._fixture([])
+        point, yaw = COVERAGE_MANAGER.Point(2, .35), math.radians(22)
+        self._stub_forward_hybrid(manager, reverse=True)
+        path, _ = manager._forward_sweep_path(
+            sweep, point, yaw, manager._sweep_completion_geometry(sweep, point, yaw))
+        self.assertIsNone(path)
+        self.assertFalse(manager.manual_pause)
 
 
 if __name__ == "__main__":

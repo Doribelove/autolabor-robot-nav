@@ -41,6 +41,16 @@ int main(int argc, char** argv)
         for (int i=0;i<tabs->count();++i)
           if (tabs->tabText(i)==QStringLiteral("导航调参")) tabs->setCurrentIndex(i);
     }
+    std::string window_title;
+    startup.param<std::string>("window_title", window_title, "");
+    if (!window_title.empty())
+      window.setWindowTitle(QString::fromStdString(window_title));
+    bool initial_bev_page = false;
+    startup.param("initial_bev_page", initial_bev_page, false);
+    if (initial_bev_page)
+      for (auto* tabs : window.findChildren<QTabWidget*>())
+        for (int i=0; i<tabs->count(); ++i)
+          if (tabs->tabText(i) == QStringLiteral("BEV 融合识别")) tabs->setCurrentIndex(i);
     window.showMaximized();
     if (!tuning_screenshot.empty())
       QTimer::singleShot(6000, &window, [&window,tuning_screenshot]() {

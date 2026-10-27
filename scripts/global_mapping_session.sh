@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROBOT_WS="$(cd "$SCRIPT_DIR/.." && pwd)"
-source "$SCRIPT_DIR/load_config.sh"
+[[ ! -r "${DUAL_HOST_CONFIG:-$ROBOT_WS/config/dual_host.env}" ]] || source "$SCRIPT_DIR/load_config.sh"
 source "$SCRIPT_DIR/setup_env.sh"
 
 MAP_ROOT="${STATIC_MAP_OUTPUT_ROOT:-$ROBOT_WS/global_maps/map_sets}"
@@ -43,15 +43,15 @@ wait_for_message() {
   timeout "$WAIT_SECONDS" rostopic echo -n 1 "$1" >/dev/null 2>&1
 }
 
-for topic in /Odometry /cloud_registered /dual_lidar/scan; do
+for topic in /Odometry /cloud_registered /mid360/scan; do
   wait_for_message "$topic" || {
     echo "Required static-mapping topic is unavailable: $topic" >&2
     exit 3
   }
 done
-dual_state="$(timeout "$WAIT_SECONDS" rostopic echo -n 1 /avoidance/dual_lidar_active 2>/dev/null || true)"
-grep -Eq '^data: (True|true)$' <<<"$dual_state" || {
-  echo "Both fixed-port LD19 sensors must be active before static mapping." >&2
+mid360_state="$(timeout "$WAIT_SECONDS" rostopic echo -n 1 /avoidance/mid360_active 2>/dev/null || true)"
+grep -Eq '^data: (True|true)$' <<<"$mid360_state" || {
+  echo "A fresh valid MID360 scan is required before static mapping." >&2
   exit 3
 }
 
@@ -80,7 +80,7 @@ write_manifest() {
     printf 'pose_source: fast_lio_odometry\n'
     printf 'map_3d:\n  pcd: map_3d/map.pcd\n  voxel_size_m: %s\n' "$VOXEL_SIZE"
     printf '  min_frame_observations: %s\n  max_point_range_m: %s\n' "$VOXEL_MIN_FRAMES" "$POINT_MAX_RANGE"
-    printf 'map_2d:\n  yaml: map_2d/map.yaml\n  occupancy_source: dual_ld19_only\n  resolution_m: %s\n' "$GRID_RESOLUTION"
+    printf 'map_2d:\n  yaml: map_2d/map.yaml\n  occupancy_source: mid360_only\n  resolution_m: %s\n' "$GRID_RESOLUTION"
     printf '  min_occupied_observations: %s\n' "$LIDAR_MIN_FRAMES"
     printf 'map_fused_2d:\n  yaml: map_fused_2d/map.yaml\n  fusion_policy: persistent_occupied_union\n'
     printf '  slice_center_z_m: %s\n  slice_half_width_m: %s\n' "$SLICE_CENTER_Z" "$SLICE_HALF_WIDTH"
@@ -132,7 +132,7 @@ finish_session() {
     fi
   done
 
-  if ! rosrun robot_bringup map_set_fuser.py \
+  if ! python3 -B "$ROBOT_WS/src/scripts/robot_bringup/scripts/map_set_fuser.py" \
       --map-2d "$map_2d_dir/map.yaml" \
       --map-3d "$map_3d_dir/map.pcd" \
       --slice-observations "$slice_observations" \
@@ -167,7 +167,7 @@ finish_session() {
 trap 'finish_session 0' INT TERM
 trap 'finish_session 1' HUP EXIT
 
-echo "Starting MID360 3-D voxel mapping and dual-LD19-only 2-D grid mapping."
+echo "Starting MID360-only 3-D voxel and full-azimuth 2-D grid mapping."
 echo "STATIC_MAPPING_DIRECTORY=$output_dir"
 rosrun robot_bringup voxel_cloud_mapper \
   _input_topic:=/cloud_registered \
@@ -195,10 +195,11 @@ rosrun robot_bringup voxel_cloud_mapper \
   _slice_sweep_angular_step:="$SLICE_SWEEP_ANGULAR_STEP" &
 pointcloud_pid=$!
 
-rosrun robot_bringup fused_scan_mapper.py \
+python3 -B "$ROBOT_WS/src/scripts/robot_bringup/scripts/fused_scan_mapper.py" \
   --ros \
   --output-dir "$map_2d_dir" \
-  --scan-topic /dual_lidar/scan \
+  --scan-topic /mid360/scan \
+  --horizontal-fov-deg 360 \
   --odom-topic /Odometry \
   --resolution "$GRID_RESOLUTION" \
   --base-offset-x "$BASE_OFFSET_X" \

@@ -51,13 +51,6 @@ if [[ "$CAN_PORT_CONFIRMED" == true ]] && dual_host_mode_enabled "$NVIDIA_START_
 elif [[ "$NVIDIA_START_CAN" != false ]]; then
   echo "CAN remains disabled until CAN_PORT exists and CAN_PORT_CONFIRMED=true."
 fi
-start_dual_lidar=false
-if [[ "$DUAL_LIDAR_PORTS_CONFIRMED" == true ]] &&
-   dual_host_mode_enabled "$NVIDIA_START_DUAL_LIDAR" "$FRONT_LIDAR_PORT" "$REAR_LIDAR_PORT"; then
-  start_dual_lidar=true
-elif [[ "$NVIDIA_START_DUAL_LIDAR" != false ]]; then
-  echo "Dual LD19 remains optional/disabled until both ports are present and confirmed."
-fi
 
 if [[ "$start_livox" == true ]]; then
   [[ -r "$LIVOX_CONFIG_FILE" ]] || { echo "Unreadable Livox config: $LIVOX_CONFIG_FILE" >&2; exit 4; }
@@ -74,10 +67,6 @@ if [[ "$start_livox" == true ]]; then
 fi
 if [[ "$start_can" == true && ! -w "$CAN_PORT" ]]; then
   echo "CAN port is not writable by $(id -un): $CAN_PORT" >&2
-  exit 4
-fi
-if [[ "$start_dual_lidar" == true && ( ! -r "$FRONT_LIDAR_PORT" || ! -r "$REAR_LIDAR_PORT" ) ]]; then
-  echo "A confirmed LD19 port is unreadable." >&2
   exit 4
 fi
 
@@ -108,13 +97,8 @@ if [[ "$start_can" == true ]]; then
   refuse_process_conflict '/(m2_driver|canbus_driver)([[:space:]]|$)' "CAN/M2"
   refuse_busy_port "$CAN_PORT" "CAN"
 fi
-if [[ "$start_dual_lidar" == true ]]; then
-  refuse_process_conflict '/ldlidar_stl_ros_node([[:space:]]|$)' "LD19"
-  refuse_busy_port "$FRONT_LIDAR_PORT" "front LD19"
-  refuse_busy_port "$REAR_LIDAR_PORT" "rear LD19"
-fi
 
-echo "Resolved gateway: Livox=$start_livox CAN=$start_can dual_LD19=$start_dual_lidar motion=$MOTION_ENABLED"
+echo "Resolved gateway: Livox=$start_livox CAN=$start_can motion=$MOTION_ENABLED"
 if [[ "${1:-}" == "--check" ]]; then
   exit 0
 fi
@@ -184,10 +168,6 @@ roslaunch autolabor_dual_host nvidia_gateway.launch \
   livox_config:="$LIVOX_CONFIG_FILE" \
   start_can:="$start_can" \
   can_port:="$CAN_PORT" \
-  start_dual_lidar:="$start_dual_lidar" \
-  front_lidar_port:="$FRONT_LIDAR_PORT" \
-  rear_lidar_port:="$REAR_LIDAR_PORT" \
-  lidar_center_distance_m:="$DUAL_LIDAR_CENTER_DISTANCE_M" \
   motion_enabled:="$MOTION_ENABLED" \
   max_linear_speed:="$CMD_VEL_MAX_LINEAR_SPEED" \
   max_angular_speed:="$CMD_VEL_MAX_ANGULAR_SPEED" \

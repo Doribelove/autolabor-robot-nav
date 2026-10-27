@@ -840,7 +840,7 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn('scripts/record_rosbag.sh', GUI_SOURCE)
         self.assertNotIn('record_rosbag.sh', MAPPING_SESSION_TEXT)
         self.assertIn('/cloud_registered', MAPPING_SESSION_TEXT)
-        self.assertIn('/dual_lidar/scan', MAPPING_SESSION_TEXT)
+        self.assertIn('/mid360/scan', MAPPING_SESSION_TEXT)
         self.assertIn('fused_scan_mapper.py', MAPPING_SESSION_TEXT)
         self.assertIn('map_set_fuser.py', MAPPING_SESSION_TEXT)
         self.assertIn('STATIC_MAPPING_LATEST=', MAPPING_SESSION_TEXT)
@@ -855,9 +855,9 @@ class OperatorGuiContractTest(unittest.TestCase):
             "/cloud_registered_body",
             "/Odometry",
             "/mid360/scan",
-            "/dual_lidar/scan",
+            "/mid360/scan",
             "/scan",
-            "/avoidance/dual_lidar_active",
+            "/avoidance/mid360_active",
         ):
             self.assertIn(topic, RECORD_ROSBAG_TEXT)
         self.assertIn('$ROBOT_WS/rosbags', RECORD_ROSBAG_TEXT)
@@ -1152,9 +1152,9 @@ class OperatorGuiContractTest(unittest.TestCase):
         self.assertIn("不等同于相对测量真值的绝对误差", GUI_SOURCE)
         self.assertIn("内部协方差", GUI_SOURCE)
 
-    def test_rviz_shows_enhanced_mid360_cloud(self):
+    def test_rviz_shows_current_mid360_cloud(self):
         self.assertIn("Class: rviz/PointCloud2", RVIZ_CONFIG)
-        self.assertIn("Topic: /cloud_registered_body_enhanced", RVIZ_CONFIG)
+        self.assertIn("Topic: /cloud_registered_body\n", RVIZ_CONFIG)
         cloud_start = RVIZ_CONFIG.index("Class: rviz/PointCloud2")
         cloud_display = RVIZ_CONFIG[
             cloud_start : RVIZ_CONFIG.index("Class: rviz/Path", cloud_start)

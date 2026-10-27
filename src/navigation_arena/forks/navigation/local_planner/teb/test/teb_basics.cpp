@@ -4,6 +4,8 @@
 #include <teb_local_planner/g2o_types/edge_via_point.h>
 #include <teb_local_planner/g2o_types/edge_kinematics.h>
 #include <teb_local_planner/optimal_planner.h>
+#include <teb_local_planner/homotopy_class_planner.h>
+#include <teb_local_planner/h_signature.h>
 #include <teb_local_planner/teb_local_planner_ros.h>
 #include <teb_local_planner/timed_elastic_band.h>
 
@@ -17,6 +19,7 @@ public:
   using teb_local_planner::TebOptimalPlanner::AddEdgesKinematicsCarlike;
   using teb_local_planner::TebOptimalPlanner::AddEdgesViaPoints;
   using teb_local_planner::TebOptimalPlanner::AddTEBVertices;
+  using teb_local_planner::TebOptimalPlanner::clearGraph;
 };
 
 class TestableTebLocalPlannerROS : public teb_local_planner::TebLocalPlannerROS
@@ -28,6 +31,25 @@ public:
   using teb_local_planner::TebLocalPlannerROS::extractCoverageActionSequence;
   using teb_local_planner::TebLocalPlannerROS::motionDirectionChangeRequiresReinitialization;
   using teb_local_planner::TebLocalPlannerROS::updateFixedGearRecoveryState;
+};
+
+class TestableHomotopyPlanner : public teb_local_planner::HomotopyClassPlanner
+{
+public:
+  using teb_local_planner::HomotopyClassPlanner::HomotopyClassPlanner;
+  void associate(teb_local_planner::TebOptimalPlannerPtr candidate,
+                 const std::vector<geometry_msgs::PoseStamped>& reference,
+                 bool all_candidates)
+  {
+    tebs_.clear();
+    equivalence_classes_.clear();
+    tebs_.push_back(candidate);
+    initial_plan_eq_class_ = boost::make_shared<teb_local_planner::HSignature>(*cfg_);
+    equivalence_classes_.emplace_back(initial_plan_eq_class_, false);
+    initial_plan_ = &reference;
+    updateReferenceTrajectoryViaPoints(all_candidates);
+    initial_plan_ = nullptr;
+  }
 };
 
 } // namespace
@@ -285,67 +307,43 @@ TEST(TEBVelocity, CoverageActionSequenceUsesReservedNamespace)
   EXPECT_EQ(0xC1234567u, sequence);
 }
 
-TEST(TEBVelocity, FixedGearRecoveryResetsOnceAndRequiresStableSolutions)
-{
-  bool recovery_active = false;
-  unsigned int stable_cycles = 0;
-  bool reset_planner = false;
-
-  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-      false, false, 3, recovery_active, stable_cycles, reset_planner));
-  EXPECT_TRUE(recovery_active);
-  EXPECT_TRUE(reset_planner);
-
-  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-      false, false, 3, recovery_active, stable_cycles, reset_planner));
-  EXPECT_FALSE(reset_planner);
-
-  // A numerically valid zero is safe but does not prove that the rebuilt band
-  // has settled on the requested direction.
-  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-      true, false, 3, recovery_active, stable_cycles, reset_planner));
-  EXPECT_EQ(0u, stable_cycles);
-
-  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-      true, true, 3, recovery_active, stable_cycles, reset_planner));
-  EXPECT_EQ(1u, stable_cycles);
-  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-      true, true, 3, recovery_active, stable_cycles, reset_planner));
-  EXPECT_EQ(2u, stable_cycles);
-  EXPECT_TRUE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-      true, true, 3, recovery_active, stable_cycles, reset_planner));
-  EXPECT_FALSE(recovery_active);
-  EXPECT_EQ(0u, stable_cycles);
-
-  // Once released, a new violation starts a new episode and permits exactly
-  // one fresh-band reset again.
-  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-      false, false, 3, recovery_active, stable_cycles, reset_planner));
-  EXPECT_TRUE(reset_planner);
-}
-
-TEST(TEBVelocity, FixedGearRecoveryDoesNotReleaseAlternatingOrZeroSolutions)
+TEST(TEBVelocity, WrongDirectionResetsOnceAndNextValidCommandIsReleased)
 {
   bool active = false;
-  unsigned int count = 0;
   bool reset = false;
-  ASSERT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-      false, false, 5, active, count, reset));
-  ASSERT_TRUE(reset);
-  for (int episode = 0; episode < 10; ++episode)
+  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      false, active, reset));
+  EXPECT_TRUE(active);
+  EXPECT_TRUE(reset);
+  for (int i = 0; i < 8; ++i)
   {
-    for (int good = 0; good < 4; ++good)
-    {
-      EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-          true, true, 5, active, count, reset));
-      EXPECT_FALSE(reset);
-    }
-    // Either another wrong sign or a zero interrupts the consecutive evidence.
     EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
-        episode % 2 == 0, false, 5, active, count, reset));
-    EXPECT_TRUE(active);
+        false, active, reset));
     EXPECT_FALSE(reset);
-    EXPECT_EQ(0u, count);
+  }
+  EXPECT_TRUE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      true, active, reset));
+  EXPECT_FALSE(active);
+  EXPECT_FALSE(reset);
+  EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+      false, active, reset));
+  EXPECT_TRUE(reset);
+}
+
+TEST(TEBVelocity, ValidCommandsAreNotSuppressedByAlternatingPriorFailures)
+{
+  bool active = false;
+  bool reset = false;
+  for (int i = 0; i < 10; ++i)
+  {
+    EXPECT_FALSE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+        false, active, reset));
+    EXPECT_TRUE(reset);
+    // A valid stop or a same-direction command can be executed immediately.
+    EXPECT_TRUE(TestableTebLocalPlannerROS::updateFixedGearRecoveryState(
+        true, active, reset));
+    EXPECT_FALSE(reset);
+    EXPECT_FALSE(active);
   }
 }
 
@@ -447,6 +445,120 @@ TEST(TEBViaPointDirection, ReverseGraphComparesVehicleHeadingAgainstTravelPlusPi
     EXPECT_NEAR(0., edge->error()[0], 1e-12);
     EXPECT_NEAR(0., edge->error()[1], 1e-12);
   }
+}
+
+namespace
+{
+
+geometry_msgs::PoseStamped referencePose(double x, double y, double yaw)
+{
+  geometry_msgs::PoseStamped pose;
+  pose.pose.position.x = x;
+  pose.pose.position.y = y;
+  pose.pose.orientation = tf::createQuaternionMsgFromYaw(yaw);
+  return pose;
+}
+
+void checkSingletonReferenceHeading(int gear, bool homotopy, bool all_candidates = false)
+{
+  teb_local_planner::TebConfig cfg;
+  cfg.robot.motion_direction_mode = gear;
+  cfg.trajectory.global_plan_overwrite_orientation = false;
+  cfg.trajectory.via_points_ordered = true;
+  cfg.optim.weight_viapoint = 0.;
+  cfg.optim.weight_viapoint_lateral = 100.;
+  cfg.optim.weight_viapoint_heading = 50.;
+  teb_local_planner::ViaPointContainer via;
+  via.emplace_back(gear * .5, .2);
+  std::vector<geometry_msgs::PoseStamped> reference = {
+      referencePose(0., 0., -.3), referencePose(gear * .5, .2, .6),
+      referencePose(gear * .8, .4, 1.1)};
+  teb_local_planner::ObstContainer obstacles;
+  auto planner = boost::make_shared<TestableTebOptimalPlanner>(cfg, &obstacles);
+  planner->teb().addPose(teb_local_planner::PoseSE2(0., 0., -.3));
+  planner->teb().addPoseAndTimeDiff(teb_local_planner::PoseSE2(gear * .5, .3, .8), .3);
+  planner->teb().addPoseAndTimeDiff(teb_local_planner::PoseSE2(gear * .8, .4, 1.1), .3);
+  if (homotopy)
+  {
+    TestableHomotopyPlanner candidates(cfg, &obstacles,
+        boost::make_shared<teb_local_planner::PointRobotFootprint>(),
+        teb_local_planner::TebVisualizationPtr(), &via);
+    candidates.associate(planner, reference, all_candidates);
+  }
+  else
+  {
+    planner->setViaPoints(&via);
+    planner->setViaPointReferencePlan(&reference);
+  }
+  planner->AddTEBVertices();
+  planner->AddEdgesViaPoints();
+  ASSERT_EQ(1u, planner->optimizer()->edges().size());
+  auto* edge = dynamic_cast<teb_local_planner::EdgeViaPointDirection*>(
+      *planner->optimizer()->edges().begin());
+  ASSERT_NE(nullptr, edge);
+  EXPECT_DOUBLE_EQ(100., edge->information()(0, 0));
+  EXPECT_DOUBLE_EQ(50., edge->information()(1, 1));
+  edge->computeError();
+  EXPECT_NEAR(.1 * std::cos(.6), edge->error()[0], 1e-12);
+  EXPECT_NEAR(.2, edge->error()[1], 1e-12);
+}
+
+} // namespace
+
+TEST(TEBViaPointDirection, SingletonUsesOriginalForwardPathHeading)
+{
+  checkSingletonReferenceHeading(1, false);
+}
+
+TEST(TEBViaPointDirection, SingletonReverseHeadingDoesNotAddPiTwice)
+{
+  checkSingletonReferenceHeading(-1, false);
+}
+
+TEST(TEBViaPointDirection, HomotopyPropagatesSingletonDirectionWithZeroPositionWeight)
+{
+  for (bool all_candidates : {false, true})
+    checkSingletonReferenceHeading(1, true, all_candidates);
+}
+
+TEST(TEBViaPointDirection, SingletonUsesSourceTangentWhenOrientationsAreOverwritten)
+{
+  teb_local_planner::TebConfig cfg;
+  cfg.trajectory.via_points_ordered = true;
+  cfg.trajectory.global_plan_overwrite_orientation = true;
+  cfg.optim.weight_viapoint = 0.;
+  cfg.optim.weight_viapoint_lateral = 100.;
+  cfg.optim.weight_viapoint_heading = 50.;
+  teb_local_planner::ObstContainer obstacles;
+  teb_local_planner::ViaPointContainer via;
+  via.emplace_back(0., .5);
+  std::vector<geometry_msgs::PoseStamped> reference = {
+      referencePose(0., 0., 0.), referencePose(0., .5, 0.),
+      referencePose(0., .5, 0.)}; // duplicate end samples must not lose the tangent
+  TestableTebOptimalPlanner planner(cfg, &obstacles);
+  planner.setViaPoints(&via);
+  planner.setViaPointReferencePlan(&reference);
+  planner.teb().addPose(teb_local_planner::PoseSE2(0., 0., 0.));
+  planner.teb().addPoseAndTimeDiff(teb_local_planner::PoseSE2(.1, .5, M_PI/2+.2), .3);
+  planner.teb().addPoseAndTimeDiff(teb_local_planner::PoseSE2(0., .6, M_PI/2), .3);
+  planner.AddTEBVertices();
+  planner.AddEdgesViaPoints();
+  ASSERT_EQ(1u, planner.optimizer()->edges().size());
+  auto* edge = dynamic_cast<teb_local_planner::EdgeViaPointDirection*>(
+      *planner.optimizer()->edges().begin());
+  ASSERT_NE(nullptr, edge);
+  edge->computeError();
+  EXPECT_NEAR(-.1, edge->error()[0], 1e-12);
+  EXPECT_NEAR(.2, edge->error()[1], 1e-12);
+
+  // A new, unrelated custom singleton must not inherit the old path heading.
+  via.front() = Eigen::Vector2d(4., 5.);
+  planner.setViaPoints(&via);
+  planner.setViaPointReferencePlan(&reference);
+  planner.clearGraph();
+  planner.AddTEBVertices();
+  planner.AddEdgesViaPoints();
+  EXPECT_TRUE(planner.optimizer()->edges().empty());
 }
 
 namespace

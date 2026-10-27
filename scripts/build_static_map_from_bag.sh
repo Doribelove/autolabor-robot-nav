@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROBOT_WS="$(cd "$SCRIPT_DIR/.." && pwd)"
-source "$SCRIPT_DIR/load_config.sh"
+[[ ! -r "${DUAL_HOST_CONFIG:-$ROBOT_WS/config/dual_host.env}" ]] || source "$SCRIPT_DIR/load_config.sh"
 source "$SCRIPT_DIR/setup_env.sh"
 
 ROS_PORT="${OFFLINE_ROS_PORT:-11313}"
@@ -41,8 +41,8 @@ usage() {
 Usage: scripts/build_static_map_from_bag.sh BAG [MAP_NAME]
 
 Offline-build the same three-map set produced by the Qt static-map workflow.
-The bag must contain /cloud_registered, /dual_lidar/scan and /Odometry. A bag
-whose only LaserScan is the historical MID360/LD19 fused /scan is rejected.
+The bag must contain /cloud_registered, /mid360/scan and /Odometry. The scan
+must be the MID360-only stream; historical mixed-sensor /scan is not relabeled.
 EOF
 }
 
@@ -59,7 +59,7 @@ map_name="${2:-bag_$(basename "${BAG_PATH%.bag}")_$(date +%Y%m%d_%H%M%S)}"
 }
 
 bag_topics="$(rosbag info --yaml "$BAG_PATH" | awk '/^[[:space:]]+- topic:/{print $3}')"
-for topic in /cloud_registered /dual_lidar/scan /Odometry; do
+for topic in /cloud_registered /mid360/scan /Odometry; do
   grep -Fxq "$topic" <<<"$bag_topics" || {
     echo "Bag lacks required pure three-map topic: $topic" >&2
     exit 3
@@ -127,8 +127,8 @@ rosrun robot_bringup voxel_cloud_mapper \
   _slice_sweep_angular_step:="$SLICE_SWEEP_ANGULAR_STEP" \
   >"$OUTPUT_DIR/voxel.log" 2>&1 &
 pointcloud_pid=$!
-rosrun robot_bringup fused_scan_mapper.py --bag "$BAG_PATH" \
-  --output-dir "$MAP_2D_DIR" --scan-topic /dual_lidar/scan \
+python3 -B "$ROBOT_WS/src/scripts/robot_bringup/scripts/fused_scan_mapper.py" --bag "$BAG_PATH" \
+  --output-dir "$MAP_2D_DIR" --scan-topic /mid360/scan --horizontal-fov-deg 360 \
   --odom-topic /Odometry --resolution "$GRID_RESOLUTION" \
   --base-offset-x "$BASE_OFFSET_X" --base-offset-y "$BASE_OFFSET_Y" \
   --min-occupied-observations "$LIDAR_MIN_FRAMES" \
@@ -169,7 +169,7 @@ for required in "$MAP_3D_DIR/map.pcd" "$SLICE_OBSERVATIONS" \
                 "$MAP_2D_DIR/map.pgm" "$MAP_2D_DIR/map.yaml"; do
   [[ -s "$required" ]] || { echo "Offline mapper did not produce $required" >&2; exit 5; }
 done
-rosrun robot_bringup map_set_fuser.py \
+python3 -B "$ROBOT_WS/src/scripts/robot_bringup/scripts/map_set_fuser.py" \
   --map-2d "$MAP_2D_DIR/map.yaml" --map-3d "$MAP_3D_DIR/map.pcd" \
   --slice-observations "$SLICE_OBSERVATIONS" \
   --output-dir "$MAP_FUSED_DIR" --slice-center-z "$SLICE_CENTER_Z" \
@@ -189,7 +189,7 @@ map_3d:
   max_point_range_m: $POINT_MAX_RANGE
 map_2d:
   yaml: map_2d/map.yaml
-  occupancy_source: dual_ld19_only
+  occupancy_source: mid360_only
   min_occupied_observations: $LIDAR_MIN_FRAMES
 map_fused_2d:
   yaml: map_fused_2d/map.yaml

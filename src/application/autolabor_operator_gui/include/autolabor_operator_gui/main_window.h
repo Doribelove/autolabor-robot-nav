@@ -8,6 +8,7 @@
 #include <autolabor_operator_gui/coverage_region_store.h>
 #include <autolabor_operator_gui/pending_litter_page.h>
 #include <autolabor_operator_gui/surround_preview_client.h>
+#include <autolabor_operator_gui/bev_preview_client.h>
 #include <autolabor_fod_msgs/FodDetectionArray.h>
 #include <autolabor_fod_msgs/FodVisionDetectionArray.h>
 #include <autolabor_fod_msgs/FodMapPositionArray.h>
@@ -441,6 +442,15 @@ private:
   // Caller holds snapshot_mutex_; Qt widgets are updated only by refreshUi.
   void enqueuePendingLitterInput(const PendingLitterInput& input);
   QWidget* buildBpuPreviewPage();
+  QWidget* buildBevPreviewPage();
+  void setupBevPreview();
+  void refreshBevPreview();
+  BevPreviewClient* bev_preview_ = nullptr;
+  QLabel* bev_raw_preview_ = nullptr;
+  QLabel* bev_result_preview_ = nullptr;
+  QLabel* bev_preview_status_ = nullptr;
+  QPlainTextEdit* bev_detections_ = nullptr;
+  bool bev_screenshot_saved_ = false;
   void refreshBpuPreview(const TelemetrySnapshot& data);
   QWidget* buildCoveragePage();
   QWidget* buildNavigationTuningPage();

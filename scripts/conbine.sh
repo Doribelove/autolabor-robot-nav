@@ -5,5 +5,7 @@ conbine_ws="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 case "${1:-status}" in
   build|test) exec bash "$conbine_ws/scripts/validate_navigation_tuning.sh" "$1" ;;
   start|stop|status) exec python3 -B "$conbine_ws/scripts/conbine_session.py" "$1" ;;
-  *) echo 'Usage: conbine.sh {build|test|start|stop|status}' >&2; exit 2 ;;
+  live-start|live-stop|live-status) exec bash "$conbine_ws/scripts/conbine_live.sh" "${1#live-}" ;;
+  mapping-start) exec bash "$conbine_ws/scripts/conbine_live.sh" start --mapping ;;
+  *) echo 'Usage: conbine.sh {build|test|start|stop|status|live-start|live-stop|live-status|mapping-start}' >&2; exit 2 ;;
 esac

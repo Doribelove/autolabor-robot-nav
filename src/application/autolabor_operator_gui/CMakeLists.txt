@@ -83,6 +83,7 @@ add_library(${PROJECT_NAME}_window STATIC
   src/ai_control.cpp
   src/main_window.cpp
   src/surround_integration.cpp
+  src/bev_integration.cpp
   src/navigation_tuning_page.cpp
   src/pending_litter_page.cpp
   src/pending_litter_integration.cpp
@@ -104,7 +105,9 @@ target_link_libraries(${PROJECT_NAME}_window
 
 add_library(${PROJECT_NAME}_surround STATIC
   src/surround_preview_client.cpp
+  src/bev_preview_client.cpp
   include/autolabor_operator_gui/surround_preview_client.h
+  include/autolabor_operator_gui/bev_preview_client.h
 )
 target_link_libraries(${PROJECT_NAME}_surround Qt5::Widgets Qt5::Network)
 
@@ -116,6 +119,10 @@ target_compile_options(${PROJECT_NAME}_node PRIVATE -g -fno-omit-frame-pointer)
 
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
+  catkin_add_gtest(test_bev_preview test/test_bev_preview.cpp)
+  if(TARGET test_bev_preview)
+    target_link_libraries(test_bev_preview ${PROJECT_NAME}_surround Qt5::Widgets Qt5::Network)
+  endif()
   catkin_add_gtest(test_surround_preview test/test_surround_preview.cpp)
   if(TARGET test_surround_preview)
     target_link_libraries(test_surround_preview ${PROJECT_NAME}_surround Qt5::Widgets Qt5::Network)

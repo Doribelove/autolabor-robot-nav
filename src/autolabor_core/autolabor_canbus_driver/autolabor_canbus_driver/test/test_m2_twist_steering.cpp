@@ -8,6 +8,29 @@
 namespace autolabor_driver {
 namespace {
 
+TEST(M2TwistSteering, ZeroTwistStopsWithoutCenteringAndMovingResumesGeometry) {
+    for (double held : {-0.4, 0.3}) {
+        EXPECT_DOUBLE_EQ(held,
+            twist_to_front_steering_holding_stop(0.0, 0.0, 0.65, 0.5, held));
+        EXPECT_NEAR(std::atan(0.65 * 0.12 / -0.3),
+            twist_to_front_steering_holding_stop(-0.3, 0.12, 0.65, 0.5, held), 1e-12);
+    }
+    EXPECT_DOUBLE_EQ(0.0,
+        sanitize_m2_motion_control(0.0, -0.4, 0.5).relative_velocity);
+}
+
+TEST(M2TwistSteering, StopAngleIsBoundedAndExplicitSteeringStillWorks) {
+    EXPECT_DOUBLE_EQ(0.5,
+        twist_to_front_steering_holding_stop(0.0, 0.0, 0.65, 0.5, 0.8));
+    EXPECT_DOUBLE_EQ(-0.5,
+        twist_to_front_steering_holding_stop(0.0, -0.1, 0.65, 0.5, 0.2));
+    EXPECT_DOUBLE_EQ(0.0,
+        twist_to_front_steering_holding_stop(0.0, 0.0, 0.65, 0.5,
+            std::numeric_limits<double>::quiet_NaN()));
+    EXPECT_DOUBLE_EQ(0.0,
+        sanitize_m2_motion_control(0.0, 0.0, 0.5).steering_angle);
+}
+
 TEST(M2TwistSteering, TwistValidationRejectsNonFiniteCriticalFields) {
     const double nan = std::numeric_limits<double>::quiet_NaN();
     const double inf = std::numeric_limits<double>::infinity();

@@ -1,0 +1,39 @@
+J6M私有导航部署（2026-10-25）
+
+用户要求：将前两处TEB修复部署到J6M，转场TEB方向权重默认500。
+
+部署位置
+板端：/map/conbine_navigation/session-20261025_150231-783689/
+本机：runtime/conbine_live/session-20261025_150231-783689/
+使用既有conbine_live_session.prepare完成实际打包、上传和板端预检；
+runtime/conbine_live/session.json已记录此私有会话。
+后续正常live-start也会从当前工作区携带相同修复及默认值。
+
+方向权重
+- coverage.yaml的hybrid_transit_weight_kinematics_forward_drive：500。
+- coverage_manager.py的无参数回退值：由5改为500。
+- TransitTuning.cfg及本机/板端生成TransitTuningConfig默认值：由5改为500。
+- 板端持久coverage.yaml及Qt保存transit_tuning.json原本已是500，核验保持500。
+- 前进和倒车Hybrid转场均采用该保存值；单点横向/朝向代价修复包含在新版库内。
+
+保留与状态
+已有transit_tuning.json、hybrid_tuning.json、持久coverage.yaml均逐字节未改，
+包括操作者保存的转场前视1.0m等其它值。未用源码默认值覆盖用户其它调参。
+原8月29日PCD与二维地图保持；正式current仍为20260914_095005，原TEB库SHA未变。
+未启动或重启实车导航，未发初值、目标或速度；部署前本机服务inactive、板端无导航进程。
+
+验证
+1. 本机仅重新生成覆盖调参接口，10项调参/持久化测试通过；生成默认值500。
+2. 私有导航完整板端预检通过：插件资源、库/消息ABI、launch展开及XML-RPC参数检查。
+3. 在J6M独立网络/挂载/PID命名空间内加载实际部署的新版TEB库；
+   23项原生TEB测试全部通过，没有连接车辆ROS或底盘设备。
+4. 板端实读确认：generated_default=500、persistent_yaml=500、saved_tuning=500，
+   launch展开的coverage_manager参数同为500。
+5. 库、覆盖脚本、生成配置和插件描述回读SHA与本机打包清单一致。
+
+这些验证证明部署内容和参数一致，不等于实车连续跟踪或顿挫问题已全部解决。
+其余路径接入、重规划恢复和底盘执行链问题尚未在本轮调整。
+
+证据：validation/teb_deploy_20261025/
+deployment_result.json、board_before.json、board_after.json、deployed_sha256.json、
+board_native_check.log、default_build_check.log及deploy.log。

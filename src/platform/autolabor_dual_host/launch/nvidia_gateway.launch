@@ -2,10 +2,6 @@
   <arg name="start_livox" default="true"/>
   <arg name="livox_config"
        default="$(find autolabor_dual_host)/config/livox_mid360_nvidia.json"/>
-  <arg name="start_dual_lidar" default="false"/>
-  <arg name="front_lidar_port" default="/dev/ttyUSB4"/>
-  <arg name="rear_lidar_port" default="/dev/ttyUSB5"/>
-  <arg name="lidar_center_distance_m" default="0.92"/>
   <arg name="start_can" default="false"/>
   <arg name="can_port" default="/dev/ttyUSB0"/>
   <arg name="start_watchdog" default="true"/>
@@ -24,19 +20,6 @@
     </include>
   </group>
 
-  <!-- Front/rear LD19 are optional. Their fused LaserScan is small enough to
-       send to J6M; losing either scanner never replaces the required MID360. -->
-  <include if="$(arg start_dual_lidar)"
-           file="$(find autolabor_dual_lidar)/launch/dual_ld19_fused.launch">
-    <arg name="front_port" value="$(arg front_lidar_port)"/>
-    <arg name="rear_port" value="$(arg rear_lidar_port)"/>
-    <arg name="front_topic" value="/dual_lidar/front/scan_raw"/>
-    <arg name="rear_topic" value="/dual_lidar/rear/scan_raw"/>
-    <arg name="output_topic" value="/dual_lidar/scan"/>
-    <arg name="target_frame" value="base_link"/>
-    <arg name="lidar_center_distance_m" value="$(arg lidar_center_distance_m)"/>
-    <arg name="start_rviz" value="false"/>
-  </include>
 
   <!-- USB-CAN and the M2 protocol remain on NVIDIA because J6M has no usable
        USB host port in this vehicle integration. -->

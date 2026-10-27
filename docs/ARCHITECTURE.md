@@ -1,5 +1,39 @@
 # 双机架构说明
 
+## 当前合并分支：单 MID360（2026-10-24）
+
+用户已永久移除前后 LD19。当前入口为 `scripts/conbine.sh live-start`，单台 MID360
+同时提供建图、避障及 FAST-LIO/ICP 定位输入；不启动、订阅或等待辅助雷达。
+
+```mermaid
+flowchart LR
+  MID[MID360 点云与内置 IMU] --> DRIVER[J6M Livox 驱动]
+  DRIVER --> LIO[FAST-LIO 里程计与注册点云]
+  DRIVER --> SCAN[MID360 投影扫描与时效检查]
+  SCAN --> NAV[避障与导航规划]
+  LIO --> ICP[三维先验 ICP 定位]
+  ICP --> NAV
+  LIO --> MAP[三维点云地图]
+  SCAN --> GRID[二维占据地图]
+  LIO --> GRID
+  NAV --> GATE[本机最终速度看门狗]
+  GATE --> CAN[本机 USB 底盘适配器]
+```
+
+MID360 通过 RJ45 接 J6M 交换网络，J6M `eth1=192.168.1.100/24` 永久接收；
+本机经 `192.168.10.50` 与 J6M `192.168.10.100` 交换 ROS 数据。内置 IMU、原始点云
+不经本机转发。`/mid360/scan → mid360_scan_guard → /scan` 保留源时间戳，扫描
+失效后不重发历史数据；覆盖任务必须同时取得有效扫描及新鲜 `/avoidance/mid360_active`。
+底盘、定位、通信超时和停车检查继续保留；真实入口启用原速度链路，不固定禁止运动。
+
+带图启动固定使用 `map_20260829_221335_gimp_cleaned`，路径及 SHA256 记录在
+`config/conbine_live.json`。该历史地图仍保留原采集来源元数据；新地图以
+`mid360_only` 标识，二维图覆盖 360°。新建图不会自动替换默认先验。
+无图建图模式在停止当前会话后使用 `scripts/conbine.sh mapping-start`，再由 Qt
+启动/结束地图采集；删除额外的固定禁动和监视器非零速度退出逻辑。
+
+下文网络、LD19 融合和部署表属于继承的历史架构，不构成当前合并分支的启动要求。
+
 覆盖导航独立公开版的组件、状态机、并行搜索和距离约束见
 [覆盖算法架构](../distribution/coverage_navigation/repository/docs/ARCHITECTURE.md)。
 导出范围、依赖与提交方法见 [公开发布流程](COVERAGE_OPEN_SOURCE.md)，公开版构建/测试

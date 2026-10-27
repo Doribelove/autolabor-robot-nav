@@ -1,0 +1,38 @@
+2026-10-24 单相机鱼眼 / GDC 实时对比
+
+用户要求：只有一个端口接相机，在同一个界面显示原始鱼眼与 GDC 去畸变画面，不开 Qt。
+
+已打开独立 GTK3 对比窗口。实际只有 RX1/MAX96712 数值端口 0 启动成功；
+1/2/3 启动返回 -3505，未要求缺失端口就绪。窗口左右约 5 fps。
+左侧保留 1920x1536 完整鱼眼视野；右侧为硬件 GDC 输出 960x540、中心约 120° 透视视野。
+显示时保持比例，黑边是等高窗口的留白。没有添加旋转或镜像。
+
+入口：
+  bash scripts/camera_compare.sh start
+  bash scripts/camera_compare.sh status
+  bash scripts/camera_compare.sh stop
+关闭窗口也会正常结束本次板端采集、释放相机及 SSH 隧道。
+本地用户服务：autolabor-conbine-camera-compare.service。
+本地文件：runtime/camera_compare_20261024/。
+板端私有文件：/map/conbine_camera/compare_20261024/。
+HTTP 仅板端 localhost:18881，通过本次 SSH 转发到本地 localhost:18881。
+相机锁复用 /map/j6m-dev-b/vision-bpu-surround/camera.lock，不接管已有相机会话。
+
+数据链路：VIN/CIM -> PYM1 layer0 NV12 -> 复制完整鱼眼 -> 同一输入送硬件 GDC0。
+private capture_pair.cpp 从本仓库 native/capture.cpp 派生，仅增加同输入原图复制。
+两图源序号/时间戳逐帧核对；GDC 输出 gdc_applied=1。
+PYM metadata 使用 MEM_PIX_FMT_NV12=8；GDC 使用 HB_YUV420SP=2。
+SDK 源码 pym.c 在转换后再次写入原生 format，两个数字不同不代表两种像素布局。
+本地只做 NV12/RGB 转换和显示缩放，无实时 CPU 去畸变。
+
+本次重新读取当前相机 Flash 参数并离线生成 LUT，没有借用其他端口的镜头参数。
+以 KB4 theta 多项式解释 k1~k4；SDK 未明确报告畸变模型，光学精度仍未独立验证。
+manifest.json 保留输入 SHA256，accuracy_verified=false。
+没有改正式标定、系统驱动、BPU、导航、底盘控制及原有 Qt。
+
+验证：私有 C++ -Wall -Wextra -Werror 编译通过，Python 编译及 shell 语法通过。
+实际窗口截图 comparison_window.png、两图样本、同帧递增序号样本 verification.json、
+实时元数据 viewer_state.json 和日志均在本地私有目录。
+初次检查把 PYM 原生 format=8 误当 HB_YUV420SP=2，导致拒收；经 SDK 源码确认后修正，
+失败日志保留。修正后真实图像、源序号递增及硬件 GDC 设备 FD 均已核验。
+曾通过正常关闭与重开验证本次采集生命周期；最终保持对比窗口运行。

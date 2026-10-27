@@ -144,6 +144,26 @@ inline double twist_to_front_steering(double linear_velocity,
     return steering;
 }
 
+// A standard zero Twist requests a stop, not a steering-centre operation.
+// Explicit angle commands still use /ackerman_vel and can request zero angle.
+inline double twist_to_front_steering_holding_stop(
+    double linear_velocity, double angular_velocity, double wheelbase,
+    double max_steering_angle, double held_steering_angle) {
+    if (!m2_twist_command_is_valid(linear_velocity, angular_velocity) ||
+        !std::isfinite(wheelbase) || wheelbase <= 0.0 ||
+        !std::isfinite(max_steering_angle) || max_steering_angle <= 0.0) {
+        return 0.0;
+    }
+    if (std::abs(linear_velocity) <= 1e-4 &&
+        std::abs(angular_velocity) <= 1e-2) {
+        if (!std::isfinite(held_steering_angle)) return 0.0;
+        return std::fmax(-max_steering_angle,
+                        std::fmin(max_steering_angle, held_steering_angle));
+    }
+    return twist_to_front_steering(linear_velocity, angular_velocity,
+                                   wheelbase, max_steering_angle);
+}
+
 }  // namespace autolabor_driver
 
 #endif  // AUTOLABOR_CANBUS_DRIVER_M2_TWIST_STEERING_H

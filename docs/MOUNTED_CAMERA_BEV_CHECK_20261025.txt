@@ -1,0 +1,72 @@
+2026-10-25 安装后的 J6M / ZED 相机检查与 BEV 可行性
+
+换口后最新（取代下文第二路未检出的状态）
+用户将第二台更换端口后，重新探测 RX1 的0/1端口均启动成功，2/3仍未锁定。
+两路均重读各自Flash参数、分别生成GDC LUT；已将0/1加入私有采集配置并同时出图。
+同一GTK窗口当前显示端口0原始鱼眼、端口0 GDC、前视ZED、端口1 GDC。
+dual_camera_verification.json核验两路源序号持续递增，每路原图/GDC源身份一致。
+减少第二路预览为仅传GDC图，保留/pair/1供需要完整原图时读取，避免每次传完整鱼眼。
+最终三路验证记录dual_camera_final_verification.json，截图comparison_window.png；
+之前未检出时的文件保留于runtime/camera_bev_check_20261025/before_port_change/。
+换口后能工作说明当前连接可用，尚不能单凭此次恢复区分原端口、接触或线缆的具体原因。
+两路鱼眼当前显示均有安装方向旋转，后续以实测安装外参处理；没有直接写入猜测的外参。
+三台相机均有真实图像，地面BEV的数据输入条件已有；共同车体/地面标定、曝光时间映射、
+实际覆盖与盲区仍待验证，不能把三路出图等同已完成融合或精度验收。
+
+用户要求打开已安装的两台 J6M 相机与本机前视 ZED，判断能否做 BEV 融合。
+已阅读 DEVELOPMENT_CONSTRAINTS.md；仅本项目私有预览与只读检查，未启动导航或运动。
+
+实际发现
+- 本机已有 ZED 采集服务，无需重复打开 USB。沿用现有板端只读预览接口，未改父工作树。
+  相机序列号 23748636，1280x720 左目校正图；RGB-D 约 15Hz，源图像/深度配对差为0。
+  最新采样有限深度比例89.12%，这是有效像素比例，不是精度、地面覆盖率或测距真值。
+  初始检查视野有较多车体/线缆遮挡，后续现场调整后的实时画面已可清楚看到前方地面。
+- RX1/MAX96712 数值端口0成功启动并重读 Flash 内参，1920x1536 NV12。
+  硬件 GDC0 输出960x540、中心约120度透视图；原始/GDC 同源序号和时间戳一致。
+  实际窗口约5Hz，验证源序号1201/1213/1225/1237递增。
+  鱼眼安装后图像朝向倒置，后续应通过实际外参处理方向，不据图猜测车体方位。
+- RX1 的1/2/3端口 sc_start=-3505，SDK明确报告link lock timeout。
+  另检查RX0/MAX96712和RX4/MAX96724，均hb_cam_init=-3601；SDK记录各链路锁定超时。
+  这些结果表示当前配置下第二路没有出图，不能据此断言相机损坏。
+  已询问第二台具体接口标签及安装位置/标定情况，未收到参数时不编造端口和外参。
+
+当前展示
+- 独立 GTK3 窗口，未新开 Qt：J6M 原始/GDC、ZED 左目和第二路未检出说明。
+- bash scripts/camera_bev_check.sh {start|stop|status}，关闭窗口也会结束本次J6M采集。
+- 用户服务 autolabor-conbine-camera-bev-check.service。
+- 本机 runtime/camera_bev_check_20261025/；板端 /map/conbine_camera/bev_check_20261025/。
+- 本次HTTP仅板端127.0.0.1:18882，经SSH隧道访问；ZED继续使用已有17446只读预览。
+- 关闭检查窗口只结束本次J6M采集和窗口，不结束已有ZED采集/接收或原BPU服务。
+
+BEV判断
+硬件/软件路线可行：J6M原始鱼眼 -> GDC透视 -> 车体地面投影；ZED校正彩色图和
+米制深度 -> 同一车体坐标；合成地面纹理，并可另做前方深度障碍层。
+目前不能交付三路可靠融合结果，原因如下：
+1. 第二台J6M相机尚未取得真实图像，无法核验其安装朝向、地面视野及与其它视角的重叠。
+2. 正式安装标定模板 ground_valid/intrinsics_valid/extrinsics_valid 均未通过、外参为空；
+   ZED当前会话 robot_mount.T_base_from_left=null。历史9月安装尺寸不能替代本次外参。
+   已读取镜头内参不等于取得三台相机到车体的旋转/平移、离地高度及地面平面。
+3. GDC仍按Flash k1~k4解释为KB4，SDK未明确畸变模型，光学精度未独立验证。
+4. J6M原始计数/SDK时间与ZED UNIX采集时刻的对应关系尚未验证。主机对时正常
+   不能替代曝光时间对齐；当前窗口各源独立刷新，不是三相机同步融合。
+5. 已有 BevComposer 固定front/right/rear/left四路且初始化遍历四路标定，需按实际
+   三路异构相机适配；不应通过虚构第四路或复制画面绕过。无需新增第四台才可做局部BEV。
+
+下一步
+先核对第二台接头及串行链路，取得三路实景；明确安装位置后，用已知尺寸地面棋盘/
+AprilTag或实测地面控制点标定各相机到共同车体坐标。验证投影后的地面点误差、接缝
+重合与盲区，再按实际曝光时间选帧。地面投影仅适用于地面附近，立体物体不能强压到
+地面当作正确形状；ZED深度只能覆盖自身视野，不赋予其余单目相机真实深度。
+不能在第二路和外参未确认时宣称360度覆盖、融合精度或导航可用。
+
+证据
+runtime/camera_bev_check_20261025/ 中的 comparison_window.png、raw_fisheye.jpg、
+gdc_perspective.jpg、zed_latest.jpg、zed_calibration.json、zed_receiver_summary.json、
+j6m_live_verification.json、sensor_intrinsics.json、perspective_candidates.json、
+sdk_probe_log.txt、viewer_state.json、zed_live_state.json及本次日志。
+私有采集库复用本项目上次已编译的同帧接口，重生成本相机LUT；Python编译与shell语法通过。
+未改系统驱动/正式标定/正式current/导航/底盘/既有相机源服务，也未持续录制原始数据。
+
+一手参考
+https://docs.opencv.org/4.13.0/d9/dab/tutorial_homography.html
+https://docs.stereolabs.com/docs/development/zed-sdk/modules/camera/camera-calibration

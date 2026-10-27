@@ -84,20 +84,20 @@ hybrid_transit_max_reverse_speed_mps: 0.00
 hybrid_transit_max_angular_speed_rps: 0.00
 hybrid_transit_linear_accel_mps2: 0.00
 hybrid_transit_angular_accel_rps2: 0.00
-hybrid_no_progress_timeout_sec: 2.0
+# Completion sanity check for a finished rolling chunk only. Active actions
+# rely on move_base control failures and the existing whole-action timeout.
 hybrid_no_progress_distance_m: 0.10
 segment_retry_count: 3
 final_retry_count: 1
 localization_fresh_sec: 0.75
 watchdog_fresh_sec: 1.0
 avoidance_scan_fresh_sec: 0.5
-dual_lidar_fresh_sec: 1.0
+mid360_status_fresh_sec: 1.0
 chassis_status_fresh_sec: 3.0
 chassis_odom_fresh_sec: 1.0
 chassis_monitor_fault_latch_sec: 3.0
 avoidance_scan_future_tolerance_sec: 0.2
 avoidance_scan_frame: base_link
-require_dual_lidar_for_coverage: true
 goal_timeout_base_sec: 20.0
 goal_timeout_per_meter_sec: 20.0
 enforced_path_service: /move_base/CoverageGlobalPlanner/set_enforced_path

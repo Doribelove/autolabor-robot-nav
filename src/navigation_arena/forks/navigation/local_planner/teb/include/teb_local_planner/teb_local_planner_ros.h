@@ -393,24 +393,18 @@ protected:
       std::uint32_t& sequence);
 
   /**
-   * @brief Update the fail-closed fixed-gear stabilization latch.
+   * @brief Reset a wrong-direction band once, then accept the next valid command.
    *
    * A first wrong-sign command requests exactly one elastic-band reset.  The
-   * command output then remains blocked until the optimizer produces the
-   * requested sign for stable_cycles_required consecutive controller cycles.
+   * Invalid commands remain rejected. A valid command, including a requested
+   * stop, is released immediately without an extra consecutive-cycle hold.
    * @param command_valid Whether the raw optimized command has the fixed gear
-   * @param stable_directional_solution Whether it also has usable signed speed
-   * @param stable_cycles_required Number of consecutive valid cycles to release
-   * @param[in,out] recovery_active True while commands must remain blocked
-   * @param[in,out] stable_cycle_count Current consecutive valid-cycle count
+   * @param[in,out] recovery_active True after a wrong-direction command
    * @param[out] reset_planner True only on entry into one recovery episode
    * @return true when this cycle's valid command may be published
    */
   static bool updateFixedGearRecoveryState(
-      bool command_valid, bool stable_directional_solution,
-      unsigned int stable_cycles_required,
-      bool& recovery_active, unsigned int& stable_cycle_count,
-      bool& reset_planner);
+      bool command_valid, bool& recovery_active, bool& reset_planner);
 
   /**
    * @brief Project a twist command onto the hard carlike curvature bound.
@@ -519,7 +513,6 @@ private:
   bool fixed_gear_action_sequence_valid_; //!< True after receiving a coverage action marker
   std::uint32_t fixed_gear_action_sequence_; //!< Stable ID of the current coverage action
   bool fixed_gear_recovery_active_; //!< Hold zero after a wrong-sign optimized command
-  unsigned int fixed_gear_stable_cycle_count_; //!< Valid raw commands observed while holding zero
   boost::mutex planner_state_mutex_; //!< Serialize band resets with optimization and plan installation
 
   /** Reset TEB and all direction-dependent recovery history at an action boundary. */

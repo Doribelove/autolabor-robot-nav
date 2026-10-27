@@ -154,7 +154,6 @@ class HybridTebCommandMux:
         self.expected_gear = EnforcedPath.GEAR_AUTO
         self.hybrid_active = False
         self.hybrid_path_safe = False
-        self.zero_handoff_cycles = 0
 
         self.tf_buffer = None
         self.tf_listener = None
@@ -196,7 +195,9 @@ class HybridTebCommandMux:
 
     def _disarm_hybrid_locked(self, now):
         if self.hybrid_active or self.path_signature is not None:
-            self.zero_handoff_cycles = max(self.zero_handoff_cycles, 2)
+            # Discard a command from the prior reference, without imposing a
+            # timed zero hold after the new controller output arrives.
+            self.teb_stamp = rospy.Time(0)
         self.hybrid_active = False
         self.path_signature = None
         self.path_points = []
@@ -235,9 +236,7 @@ class HybridTebCommandMux:
                     int(message.path_generation), expected_gear,
                 )
                 if signature != self.path_signature:
-                    self.zero_handoff_cycles = max(
-                        self.zero_handoff_cycles, 2
-                    )
+                    self.teb_stamp = rospy.Time(0)
                     self.hybrid_path_safe = False
                     self.safety_stamp = rospy.Time(0)
                     self.path_signature = signature
@@ -325,8 +324,7 @@ class HybridTebCommandMux:
         now = event.current_real
         with self.lock:
             need_tf = (
-                not self.closing and self.use_tf_pose
-                and self.hybrid_active and self.zero_handoff_cycles <= 0
+                not self.closing and self.use_tf_pose and self.hybrid_active
             )
         tf_pose, tf_stamp = (
             self._tf_pose(now) if need_tf else (None, rospy.Time(0))
@@ -335,9 +333,7 @@ class HybridTebCommandMux:
             if self.closing or rospy.is_shutdown():
                 return
             command = Twist()
-            if self.zero_handoff_cycles > 0:
-                self.zero_handoff_cycles -= 1
-            elif self.hybrid_active:
+            if self.hybrid_active:
                 pose = tf_pose if self.use_tf_pose else self.pose
                 pose_stamp = tf_stamp if self.use_tf_pose else self.pose_stamp
                 fresh = (

@@ -311,7 +311,9 @@ void HomotopyClassPlanner::renewAndAnalyzeOldTebs(bool delete_detours)
 
 void HomotopyClassPlanner::updateReferenceTrajectoryViaPoints(bool all_trajectories)
 {
-  if ( (!all_trajectories && !initial_plan_) || !via_points_ || via_points_->empty() || cfg_->optim.weight_viapoint <= 0)
+  if ( (!all_trajectories && !initial_plan_) || !via_points_ || via_points_->empty() ||
+       (cfg_->optim.weight_viapoint == 0 &&
+        cfg_->optim.weight_viapoint_lateral == 0 && cfg_->optim.weight_viapoint_heading == 0))
     return;
 
   if(equivalence_classes_.size() < tebs_.size())
@@ -326,6 +328,7 @@ void HomotopyClassPlanner::updateReferenceTrajectoryViaPoints(bool all_trajector
     for (std::size_t i=0; i < equivalence_classes_.size(); ++i)
     {
         tebs_[i]->setViaPoints(via_points_);
+        tebs_[i]->setViaPointReferencePlan(initial_plan_);
     }
   }
   else
@@ -334,7 +337,10 @@ void HomotopyClassPlanner::updateReferenceTrajectoryViaPoints(bool all_trajector
     for (std::size_t i=0; i < equivalence_classes_.size(); ++i)
     {
       if(initial_plan_eq_class_->isEqual(*equivalence_classes_[i].first))
+      {
         tebs_[i]->setViaPoints(via_points_);
+        tebs_[i]->setViaPointReferencePlan(initial_plan_);
+      }
       else
         tebs_[i]->setViaPoints(NULL);
     }

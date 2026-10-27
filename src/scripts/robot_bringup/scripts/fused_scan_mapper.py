@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Build a persistent 2-D occupancy map from the dual-LD19 scan.
+"""Build a persistent 2-D occupancy map from the MID360-only scan.
 
-Only the front/rear LD19 measurements are occupancy observations.  FAST-LIO
+Only MID360 measurements are occupancy observations.  FAST-LIO
 odometry supplies the trajectory used to place each scan in the common map
-frame; MID360 scan points are never inserted into this grid.
+frame; other sensor streams are never inserted into this grid.
 
 Two execution modes are supported:
 
@@ -77,7 +77,7 @@ class SparseOccupancyMapper:
         free_space_range=8.0,
         base_offset_x=-0.211,
         base_offset_y=-0.02329,
-        front_rear_fov_deg=120.0,
+        front_rear_fov_deg=360.0,
         self_crop=(-0.75, 0.75, -0.50, 0.50),
         min_occupied_observations=5,
         free_log_odds=-0.35,
@@ -247,7 +247,7 @@ class SparseOccupancyMapper:
 
     def save(self, output_dir, map_name="map", padding_m=1.0):
         if not self.cells or self.integrated_scans == 0:
-            raise RuntimeError("no dual-LD19 scans were integrated; refusing to save empty map")
+            raise RuntimeError("no MID360 scans were integrated; refusing to save empty map")
         output_dir = os.path.abspath(output_dir)
         os.makedirs(output_dir, exist_ok=True)
         padding_cells = max(0, int(math.ceil(padding_m / self.resolution)))
@@ -314,8 +314,8 @@ class SparseOccupancyMapper:
             "frame_id": "map",
             "trajectory_frame": "camera_init",
             "scan_frame": "base_link",
-            "scan_topic": "/dual_lidar/scan",
-            "occupancy_source": "dual_ld19_only",
+            "scan_topic": "/mid360/scan",
+            "occupancy_source": "mid360_only",
             "pose_source": "fast_lio_odometry",
             "odom_topic": "/Odometry",
             "resolution_m": self.resolution,
@@ -333,7 +333,7 @@ class SparseOccupancyMapper:
             "skipped_pose_age": self.skipped_pose_age,
             "frame_rejections": self.frame_rejections,
             "base_offset_xy_m": [self.base_offset_x, self.base_offset_y],
-            "front_rear_fov_deg": self.front_rear_fov_deg,
+            "horizontal_fov_deg": self.front_rear_fov_deg,
             "self_crop_xy_m": list(self.self_crop) if self.self_crop else None,
             "first_base_pose_xyyaw": self.first_base_pose,
             "final_base_pose_xyyaw": self.final_base_pose,
@@ -469,7 +469,7 @@ class LiveMapperNode:
         )
         rospy.on_shutdown(self.save)
         rospy.loginfo(
-            "dual_lidar_grid_mapper: %s + %s -> %s (resolution %.3f m)",
+            "mid360_grid_mapper: %s + %s -> %s (resolution %.3f m)",
             arguments.scan_topic,
             arguments.odom_topic,
             arguments.output_dir,
@@ -494,7 +494,7 @@ class LiveMapperNode:
                 self.mapper.skipped_pose_age += 1
                 self.rospy.logwarn_throttle(
                     5.0,
-                    "dual_lidar_grid_mapper: odometry age %.3f s exceeds %.3f s",
+                    "mid360_grid_mapper: odometry age %.3f s exceeds %.3f s",
                     age,
                     self.arguments.max_pose_age,
                 )
@@ -508,7 +508,7 @@ class LiveMapperNode:
             )
         self.rospy.loginfo_throttle(
             10.0,
-            "dual_lidar_grid_mapper: integrated %d scans, %d sparse cells",
+            "mid360_grid_mapper: integrated %d scans, %d sparse cells",
             self.mapper.integrated_scans,
             len(self.mapper.cells),
         )
@@ -526,11 +526,11 @@ class LiveMapperNode:
                 )
             except Exception as error:  # shutdown path must leave explicit evidence
                 print("MAP_SAVE_FAILED={}".format(error), file=sys.stderr, flush=True)
-                self.rospy.logerr("dual_lidar_grid_mapper: map save failed: %s", error)
+                self.rospy.logerr("mid360_grid_mapper: map save failed: %s", error)
                 return
         try:
             print("MAP_SAVED={}".format(result["yaml"]), flush=True)
-            self.rospy.loginfo("dual_lidar_grid_mapper: saved %s", result["yaml"])
+            self.rospy.loginfo("mid360_grid_mapper: saved %s", result["yaml"])
         except Exception as error:
             print("MAP_SAVE_REPORT_FAILED={}".format(error), file=sys.stderr, flush=True)
 
@@ -538,7 +538,7 @@ class LiveMapperNode:
 def process_live(arguments):
     import rospy
 
-    rospy.init_node("dual_lidar_grid_mapper", disable_signals=False)
+    rospy.init_node("mid360_grid_mapper", disable_signals=False)
     LiveMapperNode(arguments)
     rospy.spin()
     return 0
@@ -551,7 +551,7 @@ def parse_arguments(argv=None):
     mode.add_argument("--bag", help="read an existing rosbag directly")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--map-name", default="map")
-    parser.add_argument("--scan-topic", default="/dual_lidar/scan")
+    parser.add_argument("--scan-topic", default="/mid360/scan", choices=["/mid360/scan"])
     parser.add_argument("--odom-topic", default="/Odometry")
     parser.add_argument("--resolution", type=float, default=0.10)
     parser.add_argument("--beam-stride", type=int, default=4)
@@ -561,7 +561,7 @@ def parse_arguments(argv=None):
     parser.add_argument("--free-space-range", type=float, default=8.0)
     parser.add_argument("--base-offset-x", type=float, default=-0.211)
     parser.add_argument("--base-offset-y", type=float, default=-0.02329)
-    parser.add_argument("--front-rear-fov-deg", type=float, default=120.0)
+    parser.add_argument("--horizontal-fov-deg", dest="front_rear_fov_deg", type=float, default=360.0)
     crop = parser.add_mutually_exclusive_group()
     crop.add_argument("--self-crop", dest="self_crop", action="store_true", default=True)
     crop.add_argument("--no-self-crop", dest="self_crop", action="store_false")

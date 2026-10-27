@@ -3,6 +3,8 @@
 目录 `/home/slam/robot_j6m_ws_conbine`，分支 `robot_j6m_ws_conbine`。
 本目录是独立 Git 仓库，两个来源的源码快照和合并记录均在本仓库保存，原目录保留。
 
+AI 开发必须遵守 [开发约束](DEVELOPMENT_CONSTRAINTS.md)，不得自行增加影响正常导航的运行限制。
+
 合并的主要功能：
 
 - 原 Qt 三路相机视频、端口 0/1/2 切换、GDC 去畸变与 J6M BPU 检测/材质分类显示。
@@ -10,9 +12,28 @@
 - Qt 与覆盖后端统一将选区拟合成最小面积外接矩形。
 
 入口 `scripts/conbine.sh {build|test|start|stop|status}`。
-当前显示目标为真实相机观察加隔离导航调参：相机数据来自已有环视服务，导航使用合成
+保留的离线预览为真实相机观察加隔离导航调参：相机数据来自已有环视服务，导航使用合成
 地图/TF/零速里程计，调参值只保存在本目录；不连接实车导航或启动底盘。
+2026-10-24 新增独立真实导航入口：
+`bash scripts/conbine.sh live-start`、`live-stop`、`live-status`。雷达由 J6M 直接接收，
+本机接底盘 USB 适配器并打开合并版 Qt，正常启用原有速度下发链路。其配置与离线预览完全独立。
+按后续指令永久采用单 MID360 建图/避障/定位，不再依赖前后 LD19。带地图启动直接加载
+已建好的 `map_20260829_221335_gimp_cleaned` 原 PCD 及配套 YAML/PGM，默认配置和原件
+校验值在 `config/conbine_live.json`，不会跟随 `latest/current` 自动换图。操作者已设置真实初值，
+代价地图/车体轮廓已恢复；每次冷启动需按车辆实际位置在 Qt 设置初始位姿。
+本次额外固定禁动及非零速度退出逻辑已删除，原急停、避障与通信超时处理保留。
+停止实机会话后可用 `bash scripts/conbine.sh mapping-start`
+进入无图模式，再由 Qt 启动/结束新的单 MID360 建图；新地图不替换上述默认先验。
+单雷达改造和当前验证见 [本次交接](docs/MID360_ONLY_ARCHITECTURE_20261024.txt)。
+使用范围和验证见 [真实导航启动记录](docs/CONBINE_LIVE_NAVIGATION_20261024.txt)。
 来源、运行依赖和验证进度见 [合并交接](docs/CONBINE_INTEGRATION_20261023.md)。
+
+定位精度测试录制：`bash scripts/record_localization_test.sh start`，
+查看/结束分别使用 `status` / `stop`。录制当前真实导航 master 的全部话题（包含后续新话题），
+涵盖 MID360 原始点云/IMU、三维点云、定位、TF、地图、底盘和导航状态。
+文件位于 `rosbags/localization/日期_时间/`，LZ4 无损压缩，每分钟或2GiB分包，
+同目录保存参数、原始 PCD/二维图和运行配置；独立录制服务不修改导航控制逻辑。
+
 下面两源的历史运行状态和旧启动命令不代表本目录当前状态。
 
 

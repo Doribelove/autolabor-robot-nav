@@ -24,11 +24,11 @@ exec bwrap --die-with-parent --unshare-net --unshare-pid \
     unset ROS_HOSTNAME
     export ROS_MASTER_URI=http://127.0.0.1:11523 ROS_IP=127.0.0.1
     if [[ "$NAV_TUNING_MODE" == build ]]; then
-      exec catkin_make --force-cmake -DCATKIN_WHITELIST_PACKAGES="autolabor_coverage;autolabor_operator_gui" -DCMAKE_BUILD_TYPE=Release -DCATKIN_ENABLE_TESTING=ON -j2 -l2
+      exec catkin_make --force-cmake -DCATKIN_WHITELIST_PACKAGES="autolabor_canbus_driver;robot_bringup;autolabor_coverage;autolabor_operator_gui;teb_local_planner" -DCMAKE_BUILD_TYPE=Release -DCATKIN_ENABLE_TESTING=ON -j2 -l2
     fi
     export QT_QPA_PLATFORM=offscreen
     python3 -B scripts/test_conbine_preview_relay.py
     python3 -B -m unittest distribution.j6m_bpu_navigation.surround.tests.test_operator_protocol
-    catkin_make run_tests_autolabor_coverage run_tests_autolabor_operator_gui -j2 -l2
+    catkin_make run_tests_autolabor_coverage run_tests_autolabor_operator_gui run_tests_teb_local_planner -j2 -l2
     catkin_test_results build/test_results
   '

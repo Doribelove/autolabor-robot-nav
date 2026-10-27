@@ -400,11 +400,16 @@ namespace autolabor_driver{
         // the sign of linear velocity.  A reverse command with the same
         // angular.z needs the opposite steering angle to produce the requested
         // base-frame yaw rate.
-        const float steer_rad = static_cast<float>(twist_to_front_steering(
+        const double steering_age = (ros::Time::now() - cur_steer_time_).toSec();
+        const float held_steering = (!cur_steer_time_.isZero() &&
+            steering_age >= 0.0 && steering_age <= sync_timeout_ &&
+            std::isfinite(cur_steer_)) ? cur_steer_ : last_steering_command_;
+        const float steer_rad = static_cast<float>(twist_to_front_steering_holding_stop(
             target_vel,
             target_angular,
             chassis_parameter_.robot_length,
-            chassis_parameter_.max_steer));
+            chassis_parameter_.max_steer,
+            held_steering));
         // 转化为相对速度
         double relative_vel = target_vel / chassis_parameter_.max_speed;
 
@@ -435,6 +440,7 @@ namespace autolabor_driver{
                 safe_command.steering_angle);
         }
 
+        last_steering_command_ = static_cast<float>(safe_command.steering_angle);
         uint8_t combined_bytes[8];
         autolabor::pack_into_little_endian(
             static_cast<float>(safe_command.relative_velocity),
