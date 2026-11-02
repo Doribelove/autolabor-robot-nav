@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Live GTK ground BEV from two hardware-GDC side cameras and existing ZED.
+"""Live GTK ground BEV from configured hardware-GDC cameras and existing ZED.
 
 Manual installation geometry, independent camera acquisition times. Does not
 publish ROS/TF or control a vehicle. Closing stops only its private J6M capture.
@@ -7,7 +7,6 @@ publish ROS/TF or control a vehicle. Closing stops only its private J6M capture.
 import argparse
 import base64
 import fcntl
-import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
@@ -31,6 +30,8 @@ from gi.repository import Gdk, GdkPixbuf, GLib, Gtk
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT/'distribution/j6m_bpu_navigation'))
 from surround.ground_bev import GroundBev
+from surround.preview_io import SnapshotWriter
+from surround.ground_protocol import encode_view_frame
 
 SSH = ['ssh', '-T', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5',
        '-o', 'ServerAliveInterval=3', '-o', 'ServerAliveCountMax=3']
@@ -42,13 +43,6 @@ cv2.setNumThreads(1)
 def atomic_json(path, value):
     tmp = path.with_name(path.name+'.tmp')
     tmp.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False)+'\n')
-    tmp.replace(path)
-
-
-def atomic_png(path, image):
-    tmp = path.with_name(path.stem+'.tmp.png')
-    if not cv2.imwrite(str(tmp), image):
-        raise RuntimeError('Could not write '+str(path))
     tmp.replace(path)
 
 
@@ -85,13 +79,36 @@ class Pane(Gtk.DrawingArea):
 
 
 class Viewer:
-    def __init__(self, config, assets):
+    def __init__(self, config, assets, bev=None, headless=False):
+        self.headless = headless
+        self.window = None
         self.assets = assets
         self.output = assets/'bev'
         self.output.mkdir(exist_ok=True)
-        self.bev = GroundBev(config)
+        self.bev = bev or GroundBev(config)
+        config = self.bev.config
         self.config = config
+        self.rig_label = '四路环视' if 'rear' in config['cameras'] else '三路 BEV'
+        self.camera_labels = {'front': '前方 · ZED 左目校正图',
+                              'left': '左侧', 'right': '右侧', 'rear': '后方'}
         self.latest, self.lock = {}, threading.Lock()
+        self.preview_packet = None
+        self.views_snapshot = None
+        self.views_cache = None
+        self.views_encode_lock = threading.Lock()
+        self.exporter = SnapshotWriter(self.output)
+        counts = self.bev.support_counts
+        self.support_metadata = dict(
+            blend_mode=self.bev.blend_mode,
+            visual_camera_selection=('maximum minimum ground sampling density; static calibration-based ownership'
+                                     if self.bev.blend_mode == 'single_source' else 'weighted incidence and edge feathering'),
+            source_owner_applied=self.bev.blend_mode == 'single_source',
+            source_owner_names=self.bev.source_names,
+            source_owner_zlib_b64=base64.b64encode(zlib.compress(self.bev.source_owner.tobytes())).decode('ascii'),
+            ground_support_zlib_b64=base64.b64encode(zlib.compress(
+                (counts > 0).astype('uint8').tobytes())).decode('ascii'),
+            geometric_projection_support_fraction=float((counts > 0).mean()),
+            geometric_overlap_fraction=float((counts > 1).mean()))
         self.errors = {}
         self.pending = False
         self.display_slot = None
@@ -104,59 +121,82 @@ class Viewer:
         self.fusion_sequence = 0
         self.fusion_session = uuid.uuid4().hex
         self.saved = False
-        self.window = Gtk.Window(title='三相机地面 BEV · 左右 GDC + 前视 ZED')
-        self.window.set_default_size(1320, 960)
-        self.window.set_position(Gtk.WindowPosition.CENTER)
-        self.window.connect('destroy', lambda *_: Gtk.main_quit())
-        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        outer.set_border_width(14)
-        self.window.add(outer)
-        heading = Gtk.Label(xalign=0)
-        heading.set_markup('<span size="x-large" weight="bold">三相机地面 BEV · 安装尺寸估算预览</span>')
-        outer.pack_start(heading, False, False, 0)
-        body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
-        outer.pack_start(body, True, True, 0)
-        inputs = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        body.pack_start(inputs, True, True, 0)
-        self.source_panes, self.source_labels = {}, {}
-        for name, label in [('left', '左侧 · 端口 0 · GDC · 已旋转 180°'),
-                             ('front', '前方 · ZED 左目校正图'),
-                             ('right', '右侧 · 端口 1 · GDC · 已旋转 180°')]:
-            inputs.pack_start(Gtk.Label(label=label, xalign=0), False, False, 0)
-            pane = Pane(400, 145)
-            inputs.pack_start(pane, True, True, 0)
-            info = Gtk.Label(label='等待实时图像…', xalign=0)
-            inputs.pack_start(info, False, False, 0)
-            self.source_panes[name], self.source_labels[name] = pane, info
-        result = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        body.pack_start(result, True, True, 0)
-        result.pack_start(Gtk.Label(label='上方为车前方 · 左侧为车左侧 · 黑色为无图像区域'), False, False, 0)
-        self.result_pane = Pane(600, 600)
-        result.pack_start(self.result_pane, True, True, 0)
-        controls = Gtk.Box(spacing=14)
-        result.pack_start(controls, False, False, 0)
-        self.mode = Gtk.ComboBoxText()
-        for key, text in [('fusion', '三路融合'), ('left', '只看左侧投影'),
-                           ('front', '只看 ZED 投影'), ('right', '只看右侧投影'),
-                           ('support', '图像来源区域')]:
-            self.mode.append(key, text)
-        self.mode.set_active_id('fusion')
-        self.mode.connect('changed', lambda *_: self.redraw())
-        controls.pack_start(self.mode, False, False, 0)
-        self.grid = Gtk.CheckButton(label='显示 1 m 网格')
-        self.grid.set_active(True)
-        self.grid.connect('toggled', lambda *_: self.redraw())
-        controls.pack_start(self.grid, False, False, 0)
-        result.pack_start(Gtk.Label(label='范围：前 4 m / 后 2 m / 左右各 3 m · 1 cm/像素'), False, False, 0)
-        result.pack_start(Gtk.Label(label='来源颜色：左侧青色 / 前方绿色 / 右侧橙色'), False, False, 0)
-        result.pack_start(Gtk.Label(label='高度 0.71 m · 侧视下俯 15° · ZED 下俯约 %.1f°（静态 IMU 估计）' %
-                                   config['cameras']['front']['pitch_down_deg']), False, False, 0)
-        self.status = Gtk.Label(label='正在接收三路图像…', xalign=0)
-        outer.pack_start(self.status, False, False, 0)
-        note = Gtk.Label(label='地面平面假设；高出地面的物体会拉伸。外参为安装估算，三路曝光尚未同步，尺寸精度待实测。', xalign=0)
-        note.set_line_wrap(True)
-        outer.pack_start(note, False, False, 0)
-        self.window.show_all()
+        if not headless:
+            self.window = Gtk.Window(title=self.rig_label+' · GDC + 前视 ZED')
+            self.window.set_default_size(1320, 960)
+            self.window.set_position(Gtk.WindowPosition.CENTER)
+            self.window.connect('destroy', lambda *_: Gtk.main_quit())
+            outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+            outer.set_border_width(14)
+            self.window.add(outer)
+            heading = Gtk.Label(xalign=0)
+            heading.set_markup('<span size="x-large" weight="bold">'+self.rig_label+' · 安装尺寸估算预览</span>')
+            outer.pack_start(heading, False, False, 0)
+            body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+            outer.pack_start(body, True, True, 0)
+            inputs = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+            body.pack_start(inputs, True, True, 0)
+            self.source_panes, self.source_labels = {}, {}
+            for name in ('left', 'front', 'right', 'rear'):
+                if name not in config['cameras']:
+                    continue
+                camera = config['cameras'][name]
+                label = self.camera_labels[name]
+                if camera['source'] == 'j6m_hardware_gdc':
+                    label += ' · 端口 %d · GDC%s' % (camera['rx1_port'],
+                        ' · 已旋转 180°' if camera['rotate_180'] else '')
+                inputs.pack_start(Gtk.Label(label=label, xalign=0), False, False, 0)
+                pane = Pane(400, 145)
+                inputs.pack_start(pane, True, True, 0)
+                info = Gtk.Label(label='等待实时图像…', xalign=0)
+                inputs.pack_start(info, False, False, 0)
+                self.source_panes[name], self.source_labels[name] = pane, info
+            result = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+            body.pack_start(result, True, True, 0)
+            result.pack_start(Gtk.Label(label='上方为车前方 · 左侧为车左侧 · 黑色为无图像区域'), False, False, 0)
+            self.result_pane = Pane(600, 600)
+            result.pack_start(self.result_pane, True, True, 0)
+            controls = Gtk.Box(spacing=14)
+            result.pack_start(controls, False, False, 0)
+            self.mode = Gtk.ComboBoxText()
+            modes = [('fusion', self.rig_label+'融合')]
+            modes += [(name, '只看'+self.camera_labels[name].split(' · ')[0]+'投影')
+                      for name in ('left', 'front', 'right', 'rear') if name in config['cameras']]
+            modes.append(('support', '图像来源区域'))
+            for key, text in modes:
+                self.mode.append(key, text)
+            self.mode.set_active_id('fusion')
+            self.mode.connect('changed', lambda *_: self.redraw())
+            controls.pack_start(self.mode, False, False, 0)
+            self.grid = Gtk.CheckButton(label='显示 1 m 网格')
+            self.grid.set_active(True)
+            self.grid.connect('toggled', lambda *_: self.redraw())
+            controls.pack_start(self.grid, False, False, 0)
+            xmin, xmax = self.config['x_range_m']
+            ymin, ymax = self.config['y_range_m']
+            region = self.config.get('observation_region')
+            if region:
+                margins = region['distance_from_edges_m']
+                range_label = ('距车体边缘：前 {front:g} m / 后 {rear:g} m / '
+                               '左 {left:g} m / 右 {right:g} m').format(**margins)
+            else:
+                range_label = f'范围：前 {xmax:g} m / 后 {-xmin:g} m / 左 {ymax:g} m / 右 {-ymin:g} m'
+            result.pack_start(Gtk.Label(label=range_label+
+                f' · {100*self.bev.resolution:.2f} cm/像素'), False, False, 0)
+            result.pack_start(Gtk.Label(label='来源颜色：左侧青色 / 前方绿色 / 右侧橙色'+
+                                       (' / 后方紫色' if 'rear' in config['cameras'] else '')), False, False, 0)
+            geometry_label = ' · '.join(
+                '%s高 %.2f m / 下俯 %.1f°' % (self.camera_labels[name].split(' · ')[0],
+                    camera['position_ground_rig_m'][2], camera['pitch_down_deg'])
+                for name, camera in config['cameras'].items())
+            result.pack_start(Gtk.Label(label=geometry_label), False, False, 0)
+            self.status = Gtk.Label(label='正在接收'+self.rig_label+'图像…', xalign=0)
+            outer.pack_start(self.status, False, False, 0)
+            projection_note = '四路均使用彩色图地面投影，不使用深度；高出地面的物体会拉伸。'
+            note = Gtk.Label(label=projection_note+'外参为安装估算，各路曝光尚未同步，尺寸精度待实测。', xalign=0)
+            note.set_line_wrap(True)
+            outer.pack_start(note, False, False, 0)
+            self.window.show_all()
         owner = self
 
         class Handler(BaseHTTPRequestHandler):
@@ -165,20 +205,24 @@ class Viewer:
 
             def do_GET(self):
                 with owner.lock:
-                    pair = owner.display_slot
-                if (self.path != '/frame' or pair is None or any(
+                    packet = owner.preview_packet
+                    snapshot = owner.views_snapshot
+                if (self.path not in ('/frame', '/views') or packet is None or any(
                         time.monotonic()-s['received_monotonic'] > config['max_local_age_s']
-                        for s in pair[4]['sources'].values())):
+                        for s in packet[0]['sources'].values())):
                     self.send_error(503, 'Waiting for fresh ground BEV')
                     return
-                ok, jpeg = cv2.imencode('.jpg', pair[1], [cv2.IMWRITE_JPEG_QUALITY, 94])
-                if not ok:
-                    self.send_error(500)
-                    return
-                meta = dict(pair[4], image_width=owner.bev.width, image_height=owner.bev.height,
-                            encoding='jpeg', protocol='conbine.ground_bev.frame.v1')
-                header = json.dumps(meta, allow_nan=False).encode()
-                payload = struct.pack('!4sII', b'BG01', len(header), len(jpeg))+header+jpeg.tobytes()
+                payload = packet[1]
+                if self.path == '/views':
+                    if snapshot is None:
+                        self.send_error(503, 'Waiting for camera views')
+                        return
+                    # Cache one atomic set. Requests never pair fresh camera
+                    # images with an older BEV result from a separate endpoint.
+                    with owner.views_encode_lock:
+                        if owner.views_cache is None or owner.views_cache[0] != snapshot[0]:
+                            owner.views_cache = (snapshot[0], encode_view_frame(snapshot[1], snapshot[2]))
+                        payload = owner.views_cache[1]
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/octet-stream')
                 self.send_header('Content-Length', str(len(payload)))
@@ -195,7 +239,8 @@ class Viewer:
         for name in config['cameras']:
             threading.Thread(target=self.receive, args=(name,), daemon=True).start()
         threading.Thread(target=self.compose, daemon=True).start()
-        GLib.timeout_add(250, self.check_freshness)
+        if not headless:
+            GLib.timeout_add(250, self.check_freshness)
 
     def fetch(self, name):
         camera = self.config['cameras'][name]
@@ -224,13 +269,15 @@ class Viewer:
             if magic != b'ZP01' or len(data) != 12+n+size:
                 raise ValueError('Invalid ZED preview envelope')
             meta = json.loads(data[12:12+n])['image']
+            image = cv2.imdecode(np.frombuffer(data[12+n:], np.uint8), cv2.IMREAD_COLOR)
             age = (time.time_ns()-meta['source_stamp_ns'])/1e9
             if not -.1 <= age <= self.config['max_local_age_s']:
                 raise ValueError('ZED image is stale')
-            image = cv2.imdecode(np.frombuffer(data[12+n:], np.uint8), cv2.IMREAD_COLOR)
             source = dict(camera=name, session=meta['session'], sequence=meta['sequence'],
                           source_stamp_ns=meta['source_stamp_ns'],
                           clock_domain='ZED SDK UNIX nanoseconds', sdk_rectified=True, source_age_s=age)
+            if 'depth_enabled' in meta:
+                source.update(depth_mode=meta['depth_mode'],depth_enabled=meta['depth_enabled'])
         image = self.bev.upright(name, image)
         source.update(received_monotonic=time.monotonic(), received_epoch_ns=time.time_ns(),
                       rotate_180_applied=camera['rotate_180'])
@@ -238,9 +285,15 @@ class Viewer:
 
     def receive(self, name):
         if name == 'front':
-            config = json.loads(Path('/home/slam/j6m-dev-b/runtime/zed_link_20261019_6y_rm3_5/config.json').read_text())
-            self.zed_request = urllib.request.Request('http://192.168.10.100:17446/frame',
-                                                       headers={'Authorization': 'Bearer '+config['token']})
+            if self.config.get('front_preview_url'):
+                # Reuse the already-open local SDK camera from the four-view window.
+                if self.config['front_preview_url'] != 'http://127.0.0.1:18885/frame':
+                    raise ValueError('Expected local ZED preview endpoint')
+                self.zed_request = urllib.request.Request(self.config['front_preview_url'])
+            else:
+                config = json.loads(Path('/home/slam/j6m-dev-b/runtime/zed_link_20261019_6y_rm3_5/config.json').read_text())
+                self.zed_request = urllib.request.Request('http://192.168.10.100:17446/frame',
+                                                           headers={'Authorization': 'Bearer '+config['token']})
         previous = None
         last_error = 0
         while not STOP.is_set():
@@ -272,6 +325,12 @@ class Viewer:
                     try:
                         images = {n: f[0] for n, f in frames.items()}
                         image, counts, layers = self.bev.compose(images)
+                        projection_ms = (time.monotonic()-begin)*1000
+                        encode_begin = time.monotonic()
+                        ok, jpeg = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 94])
+                        if not ok:
+                            raise RuntimeError('BEV JPEG encoding failed')
+                        encode_ms = (time.monotonic()-encode_begin)*1000
                         self.fusion_sequence += 1
                         metadata = dict(frame_id=self.config['frame_id'], config_sha256=self.bev.config_sha256,
                             fusion_session=self.fusion_session, fusion_sequence=self.fusion_sequence,
@@ -280,38 +339,51 @@ class Viewer:
                             source_exposure_synchronized=False, metric_accuracy_verified=False,
                             actual_visible_ground_coverage_verified=False,
                             pose_source=self.config['pose_source'], sources={n: f[1] for n, f in frames.items()},
+                            configured_cameras=list(self.config['cameras']),
                             source_receive_span_ms=(max(s['received_monotonic'] for _, s in frames.values())-
                                                    min(s['received_monotonic'] for _, s in frames.values()))*1000,
                             x_range_m=self.config['x_range_m'], y_range_m=self.config['y_range_m'],
+                            observation_bounds_m=self.config.get('observation_bounds_m', {
+                                'x_range_m': self.config['x_range_m'], 'y_range_m': self.config['y_range_m']}),
+                            observation_region=self.config.get('observation_region'),
                             metres_per_pixel=self.bev.resolution, ground_plane=[0, 0, 1, 0],
                             dimensions=[self.bev.width, self.bev.height],
-                            ground_support_zlib_b64=base64.b64encode(zlib.compress(
-                                (counts > 0).astype('uint8').tobytes())).decode('ascii'),
                             T_ground_from_upright_optical={n: t.tolist() for n, t in self.bev.transforms.items()},
                             projection_intrinsics={n: k.tolist() for n, k in self.bev.intrinsics.items()},
-                            vehicle_image_masks='manually bounded visible vehicle structure; not ground segmentation',
-                            geometric_projection_support_fraction=float((counts > 0).mean()),
-                            geometric_overlap_fraction=float((counts > 1).mean()),
+                            camera_image_sizes={n: list(im.shape[1::-1]) for n, im in images.items()},
+                            camera_exclusion_polygons={n: c.get('exclude_polygons_upright_px', [])
+                                                       for n, c in self.config['cameras'].items()},
+                            vehicle_image_masks=('manually bounded visible vehicle structure; not ground segmentation'
+                                if any(c.get('exclude_polygons_upright_px') for c in self.config['cameras'].values())
+                                else 'none; masks for the new mounting have not been measured'),
+                            **self.support_metadata,
+                            projection_ms=projection_ms, jpeg_encode_ms=encode_ms,
+                            snapshot_writer=self.exporter.metrics(),
                             processing_ms=(time.monotonic()-begin)*1000)
                         result = (images, image, counts, layers, metadata)
+                        wire_meta = dict(metadata, image_width=self.bev.width, image_height=self.bev.height,
+                                         encoding='jpeg', protocol='conbine.ground_bev.frame.v1')
+                        header = json.dumps(wire_meta, allow_nan=False).encode()
+                        packet = struct.pack('!4sII', b'BG01', len(header), len(jpeg))+header+jpeg.tobytes()
                         with self.lock:
                             self.display_slot = result
-                            if not self.pending:
+                            self.preview_packet = (metadata, packet)
+                            self.views_snapshot = (self.fusion_sequence, packet, images)
+                            if not self.headless and not self.pending:
                                 self.pending = True
                                 GLib.idle_add(self.display)
                         if begin-self.last_export >= 2:
-                            atomic_png(self.output/'bev.png', image)
-                            atomic_png(self.output/'projection_support.png', counts*85)
-                            metadata['bev_png_sha256'] = hashlib.sha256((self.output/'bev.png').read_bytes()).hexdigest()
-                            metadata['projection_support_png_sha256'] = hashlib.sha256((self.output/'projection_support.png').read_bytes()).hexdigest()
-                            for name, frame in images.items():
-                                atomic_png(self.output/(name+'_upright.png'), frame)
-                            atomic_json(self.output/'bev.json', metadata)
+                            self.exporter.submit(result)
                             self.last_export = begin
                         self.last_signature = signature
                     except Exception as exc:
                         print('COMPOSE_ERROR', str(exc), flush=True)
             STOP.wait(max(0, 1/self.config['preview_hz']-(time.monotonic()-begin)))
+
+    def close(self):
+        self.preview_server.shutdown()
+        self.preview_server.server_close()
+        self.exporter.close()
 
     def display(self):
         with self.lock:
@@ -329,7 +401,7 @@ class Viewer:
             self.source_labels[name].set_text('源帧 %d · 本地接收距今 %.0f ms' %
                 (s['sequence'], (now-s['received_monotonic'])*1000))
         fps = (self.count-1)/max(.001, now-self.first_live)
-        self.status.set_text('三路实时地面投影 · %.1f fps · 计算 %.1f ms · 曝光未同步 · 精度待实测' % (fps, meta['processing_ms']))
+        self.status.set_text(self.rig_label+'实时地面投影 · %.1f fps · 计算 %.1f ms · 曝光未同步 · 精度待实测' % (fps, meta['processing_ms']))
         self.redraw()
         if not self.saved and now-self.first_live > 5:
             self.saved = True
@@ -343,7 +415,10 @@ class Viewer:
         mode = self.mode.get_active_id()
         if mode == 'support':
             view = np.zeros_like(image, dtype='float32')
-            for name, color in [('left', [230, 190, 30]), ('front', [70, 210, 70]), ('right', [20, 150, 240])]:
+            for name, color in [('left', [230, 190, 30]), ('front', [70, 210, 70]),
+                                ('right', [20, 150, 240]), ('rear', [200, 70, 200])]:
+                if name not in self.bev.maps:
+                    continue
                 view += (self.bev.maps[name][2] > 0)[..., None]*np.array(color)
             view = (view/np.maximum(counts[..., None], 1)).astype('uint8')
         else:
@@ -377,14 +452,14 @@ class Viewer:
             for name in stale:
                 self.source_panes[name].set_image(None)
                 self.source_labels[name].set_text('等待新图像…')
-            self.status.set_text('等待三路新图像：'+', '.join(stale))
+            self.status.set_text('等待'+self.rig_label+'新图像：'+', '.join(stale))
         return not STOP.is_set()
 
     def screenshot(self):
         window = self.window.get_window()
         pixbuf = Gdk.pixbuf_get_from_window(window, 0, 0, self.window.get_allocated_width(), self.window.get_allocated_height())
         pixbuf.savev(str(self.output/'live_window.png'), 'png', [], [])
-        print('LIVE_THREE_CAMERA_BEV_VERIFIED', flush=True)
+        print('LIVE_GROUND_BEV_DISPLAYED', list(self.config['cameras']), flush=True)
         return False
 
 
@@ -392,30 +467,57 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default=str(PROJECT/'config/three_camera_bev.json'))
     parser.add_argument('--assets', default=str(PROJECT/'runtime/camera_bev_check_20261025'))
+    parser.add_argument('--board-root', default=BOARD)
+    parser.add_argument('--headless', action='store_true', help='Serve BEV to Qt without a separate preview window')
+    parser.add_argument('--check', action='store_true', help='Validate geometry without opening cameras')
+    parser.add_argument('--reuse-capture', action='store_true', help='Read the existing four-view camera service')
     args = parser.parse_args()
     assets = Path(args.assets).resolve()
     config = json.loads(Path(args.config).read_text())
-    print('START_THREE_CAMERA_BEV', time.strftime('%Y-%m-%d %H:%M:%S'),
+    bev = GroundBev(config)  # Validate before acquiring devices or launching any remote process.
+    config = bev.config
+    if not args.board_root.startswith('/map/conbine_camera/') or any(
+            c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/_-' for c in args.board_root):
+        raise ValueError('Expected private /map/conbine_camera path')
+    ports = [c['rx1_port'] for c in config['cameras'].values() if c['source'] == 'j6m_hardware_gdc']
+    manifest = json.loads((assets/'manifest.json').read_text())
+    if sorted(ports) != sorted(manifest['ports']):
+        raise ValueError('Capture manifest ports do not match configured cameras')
+    if args.check:
+        print(json.dumps(dict(cameras=list(config['cameras']), ports=ports,
+                              config_sha256=bev.config_sha256)))
+        return
+    print('START_GROUND_BEV', time.strftime('%Y-%m-%d %H:%M:%S'), list(config['cameras']),
           'ZED_pitch_deg=', config['cameras']['front']['pitch_down_deg'], flush=True)
     lock = open(assets/'bev_viewer.lock', 'a')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    log = open(assets/'bev_board.log', 'ab', buffering=0)
-    proc = subprocess.Popen(SSH+['-o', 'ExitOnForwardFailure=yes', '-L', '18882:127.0.0.1:18882',
-                                'root@192.168.10.100', 'python3 -u '+BOARD+'/server.py'], stdout=log, stderr=log)
+    log, proc = None, None
+    if not args.reuse_capture:
+        log = open(assets/'bev_board.log', 'ab', buffering=0)
+        proc = subprocess.Popen(SSH+['-o', 'ExitOnForwardFailure=yes', '-L', '18882:127.0.0.1:18882',
+                                    'root@192.168.10.100', 'python3 -B -u '+args.board_root+'/server.py'], stdout=log, stderr=log)
+    loop = GLib.MainLoop() if args.headless else None
+    quit_loop = loop.quit if loop is not None else Gtk.main_quit
     for sig in (signal.SIGINT, signal.SIGTERM):
-        signal.signal(sig, lambda *_: GLib.idle_add(Gtk.main_quit))
+        signal.signal(sig, lambda *_: GLib.idle_add(quit_loop))
+    viewer = None
     try:
-        Viewer(config, assets)
-        Gtk.main()
+        viewer = Viewer(config, assets, bev, headless=args.headless)
+        if loop is not None:
+            loop.run()
+        else:
+            Gtk.main()
     finally:
         STOP.set()
-        subprocess.run(SSH+['root@192.168.10.100', 'python3 '+BOARD+'/stop.py'], timeout=10)
-        try:
-            proc.wait(timeout=8)
-        except subprocess.TimeoutExpired:
-            proc.terminate()
-            proc.wait(timeout=5)
-        log.close()
+        if viewer is not None:
+            viewer.close()
+        if proc is not None:
+            try:
+                subprocess.run(SSH+['root@192.168.10.100', 'python3 -B '+args.board_root+'/stop.py'], timeout=10)
+            finally:
+                try: proc.wait(timeout=8)
+                except subprocess.TimeoutExpired: proc.terminate(); proc.wait(timeout=5)
+                log.close()
 
 
 if __name__ == '__main__':

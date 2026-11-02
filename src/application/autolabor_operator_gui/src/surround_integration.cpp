@@ -72,13 +72,7 @@ void MainWindow::refreshSurroundPreview()
     }
   };
   show(vision_camera_preview_, frame.annotated);
-  show(overview_camera_preview_, frame.annotated);
-  show(bpu_result_preview_, frame.annotated);
-  show(bpu_live_preview_, frame.raw);
   if (surround_port_status_) surround_port_status_->setText(status);
-  if (overview_bpu_status_) overview_bpu_status_->setText(status);
-  if (bpu_result_status_) bpu_result_status_->setText(status);
-  if (bpu_live_status_) bpu_live_status_->setText(QStringLiteral("RX1 · 端口 %1 · GDC 透视图").arg(port));
   values_["vision_image_source"]->setText(
       QStringLiteral("RX1 · 端口 %1 · GDC 透视图 → J6M BPU").arg(port));
   values_["vision_image_source"]->setToolTip(

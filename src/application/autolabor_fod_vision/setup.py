@@ -5,7 +5,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 
 setup_args = generate_distutils_setup(
-    packages=["autolabor_fod_vision"],
+    packages=["autolabor_fod_vision", "autolabor_fod_vision.bev_feature"],
     package_dir={"": "src"},
 )
 

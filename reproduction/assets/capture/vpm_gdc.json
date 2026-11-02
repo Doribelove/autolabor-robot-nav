@@ -1,0 +1,572 @@
+{
+  "pipeline0": {
+    "bind": [
+      {
+        "source": "vin_node0",
+        "src_out_channel": 0,
+        "destination": "pym_node0",
+        "dst_input_channel": 0
+      }
+    ],
+    "vin_node0": {
+      "cim": {
+        "input": {
+          "mipi": {
+            "enable": 1,
+            "width": 1920,
+            "height": 1536,
+            "format": 30,
+            "vc_index": 0,
+            "rx_index": 1,
+            "channels": 1,
+            "function": {
+              "enable_frame_id": 1,
+              "set_init_frame_id": 1,
+              "enable_pattern": 0
+            }
+          },
+          "ddr_in": {
+            "rdma_en": 0,
+            "wstride": 4096,
+            "buf_num": 6
+          }
+        },
+        "output": {
+          "cim_isp": {
+            "cim_isp_flyby": 0,
+            "ddr_enable": 1,
+            "buf_num": 6,
+            "format": 30,
+            "pack_mode": 0,
+            "wstride": 0,
+            "roi": {
+              "roi_en": 0,
+              "roi_x": 0,
+              "roi_y": 0,
+              "roi_width": 1920,
+              "roi_height": 1536
+            },
+            "rawds": {
+              "rawds_en": 0,
+              "weight_g0": 9,
+              "weight_g1": 3,
+              "weight_g2": 3,
+              "weight_g3": 1
+            }
+          },
+          "cim_pym": {
+            "cim_pym_flyby": 0
+          },
+          "roi": {
+            "roi_en": 0,
+            "roi_x": 12,
+            "roi_y": 12,
+            "roi_width": 1280,
+            "roi_height": 720,
+            "format": 30,
+            "wstride": 1280
+          },
+          "emb": {
+            "roi": {
+              "roi_en": 0,
+              "roi_x": 0,
+              "roi_y": 0,
+              "roi_width": 1920,
+              "roi_height": 1536
+            },
+            "emb_en": 0,
+            "embeded_dependence": 1,
+            "embeded_width": 1920,
+            "embeded_height": 2,
+            "format": 30,
+            "wstride": 1920
+          }
+        }
+      }
+    },
+    "pym_node0": {
+      "common": {
+        "hw_id": 1,
+        "pym_mode": 3,
+        "slot_id": 4,
+        "output_buf_num": 4,
+        "time_out": 500,
+        "layer_num_trans_next": 0
+      },
+      "chn": {
+        "src_in_width": 1920,
+        "src_in_height": 1536,
+        "src_in_stride_y": 1920,
+        "src_in_stride_uv": 1920,
+        "ds_roi_en": 1,
+        "ds_roi_uv_bypass": 0,
+        "ds_roi": [
+          {
+            "ds_roi_layer": 0,
+            "ds_roi_sel": 0,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 1920,
+            "ds_roi_region_height": 1536,
+            "ds_roi_wstride_y": 1920,
+            "ds_roi_wstride_uv": 1920,
+            "ds_roi_out_width": 1920,
+            "ds_roi_out_height": 1536
+          },
+          {
+            "ds_roi_layer": 0,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 960,
+            "ds_roi_region_height": 640,
+            "ds_roi_wstride_y": 960,
+            "ds_roi_wstride_uv": 960,
+            "ds_roi_out_width": 960,
+            "ds_roi_out_height": 640
+          },
+          {
+            "ds_roi_layer": 1,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 480,
+            "ds_roi_region_height": 320,
+            "ds_roi_wstride_y": 480,
+            "ds_roi_wstride_uv": 480,
+            "ds_roi_out_width": 480,
+            "ds_roi_out_height": 320
+          },
+          {
+            "ds_roi_layer": 2,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 240,
+            "ds_roi_region_height": 160,
+            "ds_roi_wstride_y": 240,
+            "ds_roi_wstride_uv": 240,
+            "ds_roi_out_width": 240,
+            "ds_roi_out_height": 160
+          },
+          {
+            "ds_roi_layer": 3,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 112,
+            "ds_roi_region_height": 80,
+            "ds_roi_wstride_y": 112,
+            "ds_roi_wstride_uv": 112,
+            "ds_roi_out_width": 112,
+            "ds_roi_out_height": 80
+          },
+          {
+            "ds_roi_layer": 4,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 48,
+            "ds_roi_region_height": 40,
+            "ds_roi_wstride_y": 48,
+            "ds_roi_wstride_uv": 48,
+            "ds_roi_out_width": 48,
+            "ds_roi_out_height": 40
+          }
+        ]
+      }
+    },
+    "gdc_node0": {
+      "in_buf_noclean": 0,
+      "in_buf_noncached": 0,
+      "out_buf_noinvalid": 0,
+      "out_buf_noncached": 0,
+      "input_width": 1920,
+      "input_height": 1536,
+      "output_width": 960,
+      "output_height": 540,
+      "buf_num": 4,
+      "fb_buf_num": 4
+    }
+  },
+  "pipeline1": {
+    "bind": [
+      {
+        "source": "vin_node0",
+        "src_out_channel": 0,
+        "destination": "pym_node0",
+        "dst_input_channel": 0
+      }
+    ],
+    "vin_node0": {
+      "cim": {
+        "input": {
+          "mipi": {
+            "enable": 1,
+            "width": 1920,
+            "height": 1536,
+            "format": 30,
+            "vc_index": 1,
+            "rx_index": 1,
+            "channels": 1,
+            "function": {
+              "enable_frame_id": 1,
+              "set_init_frame_id": 1,
+              "enable_pattern": 0
+            }
+          },
+          "ddr_in": {
+            "rdma_en": 0,
+            "wstride": 4096,
+            "buf_num": 6
+          }
+        },
+        "output": {
+          "cim_isp": {
+            "cim_isp_flyby": 0,
+            "ddr_enable": 1,
+            "buf_num": 6,
+            "format": 30,
+            "pack_mode": 0,
+            "wstride": 0,
+            "roi": {
+              "roi_en": 0,
+              "roi_x": 0,
+              "roi_y": 0,
+              "roi_width": 1920,
+              "roi_height": 1536
+            },
+            "rawds": {
+              "rawds_en": 0,
+              "weight_g0": 9,
+              "weight_g1": 3,
+              "weight_g2": 3,
+              "weight_g3": 1
+            }
+          },
+          "cim_pym": {
+            "cim_pym_flyby": 0
+          },
+          "roi": {
+            "roi_en": 0,
+            "roi_x": 12,
+            "roi_y": 12,
+            "roi_width": 1280,
+            "roi_height": 720,
+            "format": 30,
+            "wstride": 1280
+          },
+          "emb": {
+            "roi": {
+              "roi_en": 0,
+              "roi_x": 0,
+              "roi_y": 0,
+              "roi_width": 1920,
+              "roi_height": 1536
+            },
+            "emb_en": 0,
+            "embeded_dependence": 1,
+            "embeded_width": 1920,
+            "embeded_height": 2,
+            "format": 30,
+            "wstride": 1920
+          }
+        }
+      }
+    },
+    "pym_node0": {
+      "common": {
+        "hw_id": 1,
+        "pym_mode": 3,
+        "slot_id": 5,
+        "output_buf_num": 4,
+        "time_out": 500,
+        "layer_num_trans_next": 0
+      },
+      "chn": {
+        "src_in_width": 1920,
+        "src_in_height": 1536,
+        "src_in_stride_y": 1920,
+        "src_in_stride_uv": 1920,
+        "ds_roi_en": 1,
+        "ds_roi_uv_bypass": 0,
+        "ds_roi": [
+          {
+            "ds_roi_layer": 0,
+            "ds_roi_sel": 0,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 1920,
+            "ds_roi_region_height": 1536,
+            "ds_roi_wstride_y": 1920,
+            "ds_roi_wstride_uv": 1920,
+            "ds_roi_out_width": 1920,
+            "ds_roi_out_height": 1536
+          },
+          {
+            "ds_roi_layer": 0,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 960,
+            "ds_roi_region_height": 640,
+            "ds_roi_wstride_y": 960,
+            "ds_roi_wstride_uv": 960,
+            "ds_roi_out_width": 960,
+            "ds_roi_out_height": 640
+          },
+          {
+            "ds_roi_layer": 1,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 480,
+            "ds_roi_region_height": 320,
+            "ds_roi_wstride_y": 480,
+            "ds_roi_wstride_uv": 480,
+            "ds_roi_out_width": 480,
+            "ds_roi_out_height": 320
+          },
+          {
+            "ds_roi_layer": 2,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 240,
+            "ds_roi_region_height": 160,
+            "ds_roi_wstride_y": 240,
+            "ds_roi_wstride_uv": 240,
+            "ds_roi_out_width": 240,
+            "ds_roi_out_height": 160
+          },
+          {
+            "ds_roi_layer": 3,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 112,
+            "ds_roi_region_height": 80,
+            "ds_roi_wstride_y": 112,
+            "ds_roi_wstride_uv": 112,
+            "ds_roi_out_width": 112,
+            "ds_roi_out_height": 80
+          },
+          {
+            "ds_roi_layer": 4,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 48,
+            "ds_roi_region_height": 40,
+            "ds_roi_wstride_y": 48,
+            "ds_roi_wstride_uv": 48,
+            "ds_roi_out_width": 48,
+            "ds_roi_out_height": 40
+          }
+        ]
+      }
+    },
+    "gdc_node0": {
+      "in_buf_noclean": 0,
+      "in_buf_noncached": 0,
+      "out_buf_noinvalid": 0,
+      "out_buf_noncached": 0,
+      "input_width": 1920,
+      "input_height": 1536,
+      "output_width": 960,
+      "output_height": 540,
+      "buf_num": 4,
+      "fb_buf_num": 4
+    }
+  },
+  "pipeline2": {
+    "bind": [
+      {
+        "source": "vin_node0",
+        "src_out_channel": 0,
+        "destination": "pym_node0",
+        "dst_input_channel": 0
+      }
+    ],
+    "vin_node0": {
+      "cim": {
+        "input": {
+          "mipi": {
+            "enable": 1,
+            "width": 1920,
+            "height": 1536,
+            "format": 30,
+            "vc_index": 2,
+            "rx_index": 1,
+            "channels": 1,
+            "function": {
+              "enable_frame_id": 1,
+              "set_init_frame_id": 1,
+              "enable_pattern": 0
+            }
+          },
+          "ddr_in": {
+            "rdma_en": 0,
+            "wstride": 4096,
+            "buf_num": 6
+          }
+        },
+        "output": {
+          "cim_isp": {
+            "cim_isp_flyby": 0,
+            "ddr_enable": 1,
+            "buf_num": 6,
+            "format": 30,
+            "pack_mode": 0,
+            "wstride": 0,
+            "roi": {
+              "roi_en": 0,
+              "roi_x": 0,
+              "roi_y": 0,
+              "roi_width": 1920,
+              "roi_height": 1536
+            },
+            "rawds": {
+              "rawds_en": 0,
+              "weight_g0": 9,
+              "weight_g1": 3,
+              "weight_g2": 3,
+              "weight_g3": 1
+            }
+          },
+          "cim_pym": {
+            "cim_pym_flyby": 0
+          },
+          "roi": {
+            "roi_en": 0,
+            "roi_x": 12,
+            "roi_y": 12,
+            "roi_width": 1280,
+            "roi_height": 720,
+            "format": 30,
+            "wstride": 1280
+          },
+          "emb": {
+            "roi": {
+              "roi_en": 0,
+              "roi_x": 0,
+              "roi_y": 0,
+              "roi_width": 1920,
+              "roi_height": 1536
+            },
+            "emb_en": 0,
+            "embeded_dependence": 1,
+            "embeded_width": 1920,
+            "embeded_height": 2,
+            "format": 30,
+            "wstride": 1920
+          }
+        }
+      }
+    },
+    "pym_node0": {
+      "common": {
+        "hw_id": 1,
+        "pym_mode": 3,
+        "slot_id": 6,
+        "output_buf_num": 4,
+        "time_out": 500,
+        "layer_num_trans_next": 0
+      },
+      "chn": {
+        "src_in_width": 1920,
+        "src_in_height": 1536,
+        "src_in_stride_y": 1920,
+        "src_in_stride_uv": 1920,
+        "ds_roi_en": 1,
+        "ds_roi_uv_bypass": 0,
+        "ds_roi": [
+          {
+            "ds_roi_layer": 0,
+            "ds_roi_sel": 0,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 1920,
+            "ds_roi_region_height": 1536,
+            "ds_roi_wstride_y": 1920,
+            "ds_roi_wstride_uv": 1920,
+            "ds_roi_out_width": 1920,
+            "ds_roi_out_height": 1536
+          },
+          {
+            "ds_roi_layer": 0,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 960,
+            "ds_roi_region_height": 640,
+            "ds_roi_wstride_y": 960,
+            "ds_roi_wstride_uv": 960,
+            "ds_roi_out_width": 960,
+            "ds_roi_out_height": 640
+          },
+          {
+            "ds_roi_layer": 1,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 480,
+            "ds_roi_region_height": 320,
+            "ds_roi_wstride_y": 480,
+            "ds_roi_wstride_uv": 480,
+            "ds_roi_out_width": 480,
+            "ds_roi_out_height": 320
+          },
+          {
+            "ds_roi_layer": 2,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 240,
+            "ds_roi_region_height": 160,
+            "ds_roi_wstride_y": 240,
+            "ds_roi_wstride_uv": 240,
+            "ds_roi_out_width": 240,
+            "ds_roi_out_height": 160
+          },
+          {
+            "ds_roi_layer": 3,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 112,
+            "ds_roi_region_height": 80,
+            "ds_roi_wstride_y": 112,
+            "ds_roi_wstride_uv": 112,
+            "ds_roi_out_width": 112,
+            "ds_roi_out_height": 80
+          },
+          {
+            "ds_roi_layer": 4,
+            "ds_roi_sel": 1,
+            "ds_roi_start_top": 0,
+            "ds_roi_start_left": 0,
+            "ds_roi_region_width": 48,
+            "ds_roi_region_height": 40,
+            "ds_roi_wstride_y": 48,
+            "ds_roi_wstride_uv": 48,
+            "ds_roi_out_width": 48,
+            "ds_roi_out_height": 40
+          }
+        ]
+      }
+    },
+    "gdc_node0": {
+      "in_buf_noclean": 0,
+      "in_buf_noncached": 0,
+      "out_buf_noinvalid": 0,
+      "out_buf_noncached": 0,
+      "input_width": 1920,
+      "input_height": 1536,
+      "output_width": 960,
+      "output_height": 540,
+      "buf_num": 4,
+      "fb_buf_num": 4
+    }
+  }
+}

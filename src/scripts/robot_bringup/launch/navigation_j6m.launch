@@ -10,19 +10,21 @@
   <arg name="odom_topic" default="$(eval '/gps/odom' if arg('localization_source') == 'gps' else '/Odometry')"/>
   <arg name="output_cmd_vel_topic" default="/cmd_vel"/>
   <arg name="use_static_map" default="false"/>
+  <arg name="online_coverage" default="false"/>
+  <arg name="coverage_enabled" default="$(eval arg('use_static_map') or arg('online_coverage'))"/>
   <!-- FAST-LIO /Odometry owns the global pose/TF chain but its twist is zero.
        In static-map mode TEB must use the M2 wheel odometry twist, otherwise
        every 10 Hz optimization cycle incorrectly starts from rest and the
        acceleration edge holds a straight command near 0.6 m/s. -->
   <arg name="teb_odom_topic"
-       default="$(eval '/odom' if arg('use_static_map') else arg('odom_topic'))"/>
+       default="$(eval '/odom' if arg('coverage_enabled') else arg('odom_topic'))"/>
   <arg name="localization_gate_input_topic" default="/cmd_vel_unlocalized"/>
   <arg name="cmd_vel_topic" default="$(eval arg('localization_gate_input_topic') if arg('use_static_map') else ('/cmd_vel_navigation' if arg('goal_slowdown_enabled') else arg('output_cmd_vel_topic')))"/>
   <!-- Static-map move_base always feeds the fail-closed Hybrid/TEB mux.  The
        mux output then passes through the unchanged localization gate. -->
   <arg name="teb_command_topic" default="/cmd_vel_teb"/>
   <arg name="move_base_cmd_vel_topic"
-       default="$(eval arg('teb_command_topic') if arg('use_static_map') else arg('cmd_vel_topic'))"/>
+       default="$(eval arg('teb_command_topic') if arg('coverage_enabled') else arg('cmd_vel_topic'))"/>
   <arg name="xy_goal_tolerance" default="$(eval 0.3 if arg('localization_source') == 'gps' else 0.5)"/>
   <arg name="yaw_goal_tolerance" default="$(eval 6.283 if arg('localization_source') == 'gps' else 0.3)"/>
   <arg name="max_vel_x" default="0.8"/>
@@ -67,9 +69,12 @@
       <param name="status_timeout" value="0.5"/>
       <param name="command_timeout" value="0.5"/>
     </node>
+  </group>
+  <group if="$(arg coverage_enabled)">
     <include file="$(find autolabor_coverage)/launch/coverage.launch">
       <arg name="teb_command_topic" value="$(arg teb_command_topic)"/>
-      <arg name="command_topic" value="$(arg localization_gate_input_topic)"/>
+      <arg name="command_topic" value="$(eval arg('localization_gate_input_topic') if arg('use_static_map') else arg('output_cmd_vel_topic'))"/>
+      <arg name="online_mapping" value="$(arg online_coverage)"/>
       <arg name="odom_topic" value="$(arg teb_odom_topic)"/>
       <arg name="use_tf_pose" value="true"/>
     </include>
@@ -95,19 +100,22 @@
          static-map /odom parameter back to FAST-LIO /Odometry. -->
     <remap from="odom" to="$(arg teb_odom_topic)"/>
 
-    <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="local_costmap"/>
-    <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="global_costmap"/>
-    <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/local_costmap_params_nomap.yaml" command="load"/>
-    <rosparam unless="$(arg use_static_map)" file="$(find conventional)/config/dingo/global_costmap_params_nomap.yaml" command="load"/>
-    <rosparam if="$(arg use_static_map)" file="$(find robot_bringup)/config/costmap_common_static.yaml" command="load" ns="local_costmap"/>
-    <rosparam if="$(arg use_static_map)" file="$(find robot_bringup)/config/costmap_common_static.yaml" command="load" ns="global_costmap"/>
-    <rosparam if="$(arg use_static_map)" file="$(find robot_bringup)/config/local_costmap_static.yaml" command="load"/>
-    <rosparam if="$(arg use_static_map)" file="$(find robot_bringup)/config/global_costmap_static.yaml" command="load"/>
+    <rosparam unless="$(arg coverage_enabled)" file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="local_costmap"/>
+    <rosparam unless="$(arg coverage_enabled)" file="$(find conventional)/config/dingo/costmap_common_params_nomap.yaml" command="load" ns="global_costmap"/>
+    <rosparam unless="$(arg coverage_enabled)" file="$(find conventional)/config/dingo/local_costmap_params_nomap.yaml" command="load"/>
+    <rosparam unless="$(arg coverage_enabled)" file="$(find conventional)/config/dingo/global_costmap_params_nomap.yaml" command="load"/>
+    <rosparam if="$(arg coverage_enabled)" file="$(find robot_bringup)/config/costmap_common_static.yaml" command="load" ns="local_costmap"/>
+    <rosparam if="$(arg coverage_enabled)" file="$(find robot_bringup)/config/costmap_common_static.yaml" command="load" ns="global_costmap"/>
+    <rosparam if="$(arg coverage_enabled)" file="$(find robot_bringup)/config/local_costmap_static.yaml" command="load"/>
+    <rosparam if="$(arg coverage_enabled)" file="$(find robot_bringup)/config/global_costmap_static.yaml" command="load"/>
     <rosparam file="$(find conventional)/config/dingo/teb_local_planner_params_nomap.yaml" command="load"/>
     <rosparam if="$(eval arg('teb_profile_file') != '')" file="$(arg teb_profile_file)" command="load"/>
+    <!-- Physical attachment geometry applies to both static-map and mapping
+         navigation, including TEB's optimization polygon. -->
+    <rosparam file="$(find robot_bringup)/config/vehicle_footprint.yaml" command="load"/>
 
     <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/>
-    <param if="$(arg use_static_map)" name="base_global_planner"
+    <param if="$(arg coverage_enabled)" name="base_global_planner"
            value="autolabor_coverage/CoverageGlobalPlanner"/>
     <param name="controller_frequency" type="double" value="10.0"/>
     <!-- Continuous failure to compute valid control, not measured displacement. -->
@@ -120,6 +128,7 @@
     <param name="clearing_rotation_allowed" type="bool" value="false"/>
 
     <param name="TebLocalPlannerROS/odom_topic" value="$(arg teb_odom_topic)"/>
+    <param if="$(arg online_coverage)" name="TebLocalPlannerROS/map_frame" value="map"/>
     <param name="TebLocalPlannerROS/xy_goal_tolerance" type="double" value="$(arg xy_goal_tolerance)"/>
     <param name="TebLocalPlannerROS/yaw_goal_tolerance" type="double" value="$(arg yaw_goal_tolerance)"/>
     <param name="TebLocalPlannerROS/max_vel_x" type="double" value="$(arg max_vel_x)"/>
@@ -127,131 +136,131 @@
     <param name="TebLocalPlannerROS/max_vel_theta" type="double" value="$(arg max_vel_theta)"/>
     <!-- Static-map navigation checks up to 50 poses across the local TEB
          horizon against the rolling map+scan costmap, not only five poses. -->
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="TebLocalPlannerROS/feasibility_check_no_poses"
            type="int" value="50"/>
     <!-- Retain at least 15% margin inside the 20 m rolling local window.  TEB
          can then validate the complete optimized horizon without its polygon
          footprint repeatedly straddling the moving costmap boundary. -->
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="TebLocalPlannerROS/max_global_plan_lookahead_dist"
            type="double" value="$(arg static_teb_lookahead_dist)"/>
     <!-- Extract the command across two optimized trajectory intervals rather
          than reacting to a single 10 Hz step.  This damps alternating small
          yaw corrections without adding a dead zone or weakening obstacles. -->
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="TebLocalPlannerROS/control_look_ahead_poses"
            type="int" value="2"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="TebLocalPlannerROS/treat_unknown_as_obstacle"
            type="bool" value="true"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner_navfn/allow_unknown"
            type="bool" value="false"/>
-    <rosparam if="$(arg use_static_map)" command="load"
+    <rosparam if="$(arg coverage_enabled)" command="load"
               file="$(find autolabor_coverage)/config/coverage_global_planner.yaml"
               ns="CoverageGlobalPlanner"/>
     <!-- Ordinary point-to-point goals and every region's first swath use one
          Navfn + TEB action.  Only later same-region inter-swath transitions
          request direct live-pose Hybrid A* connectors. -->
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_minimum_turning_radius"
            type="double" value="1.35"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_motion_step"
            type="double" value="0.30"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_collision_check_step"
            type="double" value="0.10"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_state_resolution"
            type="double" value="0.15"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_heading_bins"
            type="int" value="72"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_steering_samples"
            type="int" value="5"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_max_expansions"
            type="int" value="120000"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_planning_timeout"
            type="double" value="3.00"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_primary_window_size"
            type="double" value="6.00"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_fallback_window_size"
            type="double" value="10.00"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_primary_window_timeout"
            type="double" value="0.75"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_fallback_window_timeout"
            type="double" value="1.25"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_parallel_searches"
            type="int" value="2"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_parallel_heuristic_weight"
            type="double" value="1.35"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_parallel_improvement_timeout"
            type="double" value="0.10"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_heuristic_weight"
            type="double" value="1.05"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_steering_penalty"
            type="double" value="0.04"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_steering_change_penalty"
            type="double" value="0.10"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_obstacle_cost_scale"
            type="double" value="0.25"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_use_obstacle_heuristic"
            type="bool" value="true"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_use_nonholonomic_heuristic"
            type="bool" value="true"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_use_analytic_expansion"
            type="bool" value="true"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_analytic_improvement_timeout"
            type="double" value="0.05"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_analytic_gearchange_improvement_timeout"
            type="double" value="0.08"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_analytic_connector_improvement_timeout"
            type="double" value="0.08"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_analytic_expansion_interval"
            type="int" value="200"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_cache_max_deviation"
            type="double" value="0.60"/>
     <!-- The Hybrid TEB command mux uses this plugin's 1 Hz fail-closed safety
          permit. Check 3 m of the manager-owned connector so the permit drops
          before the vehicle can consume its stopping margin; only the manager
          may replace an invalid connector. TEB remains the local controller. -->
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_cache_collision_check_horizon"
            type="double" value="3.00"/>
     <!-- A valid direct Hybrid connector remains immutable.  The 1 Hz planner
          cycle validates/reuses it and searches again only after invalidation;
          unconditional 1 Hz Hybrid search remains a simulation comparison. -->
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_online_kinematic_horizon"
            type="double" value="12.00"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="CoverageGlobalPlanner/hybrid_replan_every_cycle"
            type="bool" value="false"/>
-    <param if="$(arg use_static_map)"
+    <param if="$(arg coverage_enabled)"
            name="TebLocalPlannerROS/reinitialize_on_global_plan"
            type="bool" value="false"/>
     <param name="TebLocalPlannerROS/min_vel_x" type="double" value="$(arg min_vel_x)"/>

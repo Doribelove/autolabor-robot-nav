@@ -1,0 +1,29 @@
+schema_version: 1
+map_id: "map_20261102_171534"
+status: "complete"
+created_at: "2026-11-02T17:19:17+08:00"
+frame_id: map
+pose_source: fast_lio_odometry
+map_3d:
+  pcd: map_3d/map.pcd
+  voxel_size_m: 0.10
+  min_frame_observations: 3
+  max_point_range_m: 20.0
+map_2d:
+  yaml: map_2d/map.yaml
+  occupancy_source: mid360_only
+  resolution_m: 0.10
+  min_occupied_observations: 5
+map_fused_2d:
+  yaml: map_fused_2d/map.yaml
+  fusion_policy: persistent_occupied_union
+  slice_center_z_m: -0.4
+  slice_half_width_m: 0.20
+  min_frame_observations: 20
+  moving_self_crop:
+    enabled: true
+    point_bounds_xy_m: [-0.52, 1.22, -0.40, 0.40]
+    sweep_bounds_xy_m: [-0.52, 1.22, -0.40, 0.40]
+    body_to_base_xyz_m: [-0.011, -0.02329, -0.60588]
+default_static_map_source: fused
+initial_body_z_m: 0.0

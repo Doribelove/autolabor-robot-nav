@@ -73,7 +73,10 @@ while subprocess.run(['systemctl','--user','is-active','--quiet',sys.argv[2]]).r
 if list(root.glob('*.bag.active')):raise RuntimeError('An unfinished bag remains; retain it for recovery')
 PY
     fi
-    systemctl --user stop "$record_unit"
+    # --collect may unload the unit as soon as the recorder closes normally.
+    if systemctl --user is-active --quiet "$record_unit"; then
+      systemctl --user stop "$record_unit"
+    fi
     printf 'Recording stopped and bag files finalized: %s\n' "$(readlink -f "$record_state/current")"
     ;;
   status)

@@ -14,6 +14,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PolygonStamped.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
@@ -253,20 +254,11 @@ struct TelemetrySnapshot
   ros::Time camera_stamp;
   std::string camera_frame_id;
   ros::WallTime camera_received_at;
-  QImage raw_preview;
-  ros::Time raw_preview_stamp;
-  ros::WallTime raw_preview_received_at;
 
   bool debug_image_received = false;
   QImage debug_image;
   ros::Time debug_image_stamp;
   ros::WallTime debug_image_received_at;
-
-  // Experimental display channel: never enters the FOD result/control contract.
-  QImage bpu_preview;
-  ros::Time bpu_preview_stamp;
-  std::string bpu_preview_status;
-  ros::WallTime bpu_preview_status_at;
 
   bool detections_received = false;
   autolabor_fod_msgs::FodDetectionArray detections;
@@ -434,7 +426,15 @@ private:
   QWidget* buildFastLioPage();
   QWidget* buildTestPage();
   QWidget* buildVisionPage();
-  QWidget* buildBpuPreviewPage();
+  QWidget* buildVisionBevPanel(QWidget* parent);
+  void refreshVisionBevPreview();
+  QWidget* vision_bev_panel_ = nullptr;
+  QWidget* vision_legacy_panel_ = nullptr;
+  QMap<QString, QLabel*> vision_bev_views_;
+  QMap<QString, QLabel*> vision_bev_captions_;
+  QLabel* vision_bev_result_ = nullptr;
+  QLabel* vision_bev_status_ = nullptr;
+  QPlainTextEdit* vision_bev_points_ = nullptr;
   QWidget* buildBevPreviewPage();
   void setupBevPreview();
   void refreshBevPreview();
@@ -453,7 +453,6 @@ private:
   QLabel* bev_preview_status_ = nullptr;
   QPlainTextEdit* bev_detections_ = nullptr;
   bool bev_screenshot_saved_ = false;
-  void refreshBpuPreview(const TelemetrySnapshot& data);
   QWidget* buildCoveragePage();
   QWidget* buildNavigationTuningPage();
   QWidget* coverage_parameters_widget_ = nullptr;
@@ -501,6 +500,9 @@ private:
   CoveragePlanningUiParameters coveragePlanningParameters() const;
   void applyEffectiveCoveragePlanningParameters(
       const CoveragePlanningUiParameters& parameters);
+  void adoptBackendCoveragePlan(const autolabor_coverage::CoverageStatus& coverage,
+                                bool map_identity_ready, bool defaults_ready,
+                                bool selecting);
   void scheduleNavigationProfileApply();
   void applyNavigationProfileIfNeeded();
   void handleNavigationProfileApplied();
@@ -532,8 +534,6 @@ private:
   void navigationCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
   void cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg);
   void debugImageCallback(const sensor_msgs::Image::ConstPtr& msg);
-  void bpuPreviewCallback(const sensor_msgs::Image::ConstPtr& msg);
-  void bpuPreviewStatusCallback(const std_msgs::String::ConstPtr& msg);
   void detectionsCallback(const autolabor_fod_msgs::FodDetectionArray::ConstPtr& msg);
   void visionResultsCallback(
       const autolabor_fod_msgs::FodVisionDetectionArray::ConstPtr& msg);
@@ -545,6 +545,7 @@ private:
   void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
   void globalCostmapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg);
   void coveragePointCallback(const geometry_msgs::PointStamped::ConstPtr& msg);
+  void coveragePresetCallback(const geometry_msgs::PolygonStamped::ConstPtr& msg);
   void coverageStatusCallback(
       const autolabor_coverage::CoverageStatus::ConstPtr& msg);
   void aiStatusCallback(const sweeper_mcp::AiControlStatus::ConstPtr& msg);
@@ -574,10 +575,6 @@ private:
   ros::Subscriber navigation_subscriber_;
   ros::Subscriber camera_image_subscriber_;
   ros::Subscriber debug_image_subscriber_;
-  ros::Subscriber bpu_preview_subscriber_;
-  ros::Subscriber bpu_preview_status_subscriber_;
-  bool bpu_preview_subscribed_ = false;
-  bool bpu_show_raw_ = false;  // GUI writes and callback reads under snapshot_mutex_.
   bool surround_mode_ = false;
   SurroundPreviewClient* surround_preview_ = nullptr;
   QLabel* surround_port_status_ = nullptr;
@@ -594,6 +591,8 @@ private:
   ros::Subscriber map_subscriber_;
   ros::Subscriber global_costmap_subscriber_;
   ros::Subscriber coverage_point_subscriber_;
+  ros::Subscriber coverage_preset_subscriber_;
+  std::vector<geometry_msgs::Point> coverage_preset_points_;
   ros::Subscriber coverage_status_subscriber_;
   ros::Subscriber ai_status_subscriber_;
   ros::Subscriber ai_event_subscriber_;
@@ -612,6 +611,7 @@ private:
   bool shutting_down_ = false;
   bool enable_rviz_ = true;
   bool static_map_mode_ = false;
+  bool online_mapping_ = false;
   std::string navigation_mode_label_ = "FAST_LIO";
   std::string odom_topic_ = "/Odometry";
   std::string cloud_topic_ = "/cloud_registered_body";
@@ -629,7 +629,7 @@ private:
   QTimer master_probe_timer_;
   QFutureWatcher<MasterProbeResult> master_probe_watcher_;
   QTimer ui_refresh_timer_;
-  QTimer bpu_preview_timer_;
+  QTimer surround_refresh_timer_;
   QTimer ai_heartbeat_timer_;
   QTimer navigation_profile_apply_timer_;
   QFutureWatcher<NavigationProfileApplyResult> navigation_profile_apply_watcher_;
@@ -646,7 +646,7 @@ private:
   int overview_tab_index_ = -1;
   int coverage_tab_index_ = -1;
   int ai_tab_index_ = -1;
-  int bpu_tab_index_ = -1;
+  int bev_tab_index_ = -1;
   int rviz_attached_tab_index_ = -1;
   QWidget* rviz_host_ = nullptr;
   QVBoxLayout* rviz_layout_ = nullptr;
@@ -707,12 +707,8 @@ private:
   QPushButton* static_map_start_button_ = nullptr;
   QPushButton* static_map_stop_button_ = nullptr;
   QLabel* overview_camera_preview_ = nullptr;
-  QLabel* overview_bpu_status_ = nullptr;
+  QLabel* overview_bev_status_ = nullptr;
   QLabel* vision_camera_preview_ = nullptr;
-  QLabel* bpu_live_preview_ = nullptr;
-  QLabel* bpu_result_preview_ = nullptr;
-  QLabel* bpu_live_status_ = nullptr;
-  QLabel* bpu_result_status_ = nullptr;
   QPlainTextEdit* vision_detections_ = nullptr;
   QComboBox* vision_model_combo_ = nullptr;
   QPushButton* vision_model_switch_button_ = nullptr;
@@ -781,7 +777,6 @@ private:
   CoverageRegionStore coverage_region_store_;
   QVector<CoverageRegionRecord> coverage_region_queue_;
   QString coverage_region_context_key_;
-  ros::WallTime last_raw_preview_conversion_;
   bool mode_request_pending_ = false;
   bool vision_model_switch_pending_ = false;
   bool visual_lock_confidence_request_pending_ = false;

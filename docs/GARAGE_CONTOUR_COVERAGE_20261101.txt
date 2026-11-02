@@ -1,0 +1,70 @@
+地下车库地图2：已验证的连续覆盖路线（2026-11-01）
+
+用户反馈旧路线穿过障碍物，要求考虑车体、回型，后允许80%；快速生成结果为66.9%，
+用户明确“66也够了”，本版据此固定，不再补扫。导航/Qt/相机/录包保持关闭，未发实车目标。
+旧完整导航1_正式录包已正常封存，记录stopped_for_replanning；没有删除旧地图或录包。
+
+地图：rosbags/地下车库建图2/online_map_at_recording_end；实际静态栅格快照在
+validation/garage_full_navigation1_20261101/live_map_cells.npy及live_map_info.json。
+物理车体1.74×0.80m，base_link前1.22m、后0.52m、左右各0.40m。
+碰撞检查含原0.10m余量：前1.32m、后0.62m、半宽0.50m（1.94×1.00m）。
+作业宽1.20m，主回型间距1.02m，最小转弯半径1.35m，允许已有的前进/倒车动作。
+
+最终结果：375条直线清扫段及375条真实连接曲线。
+路线约9483m，其中倒车约1387m；这是可行性优先的保守路线，
+包含重复转场和换向，不能称最短路线。主路线沿旧回型顺序，剩余空地增加局部分区扫线。
+前刷参考点在base_link前1.22m，按1.20m宽刷扫带计算栅格并集：3640.51/5443.83m²，
+即66.87%的已知空闲格。分母未排除难走的已知格；未知格不当作可通行区。
+面积是10cm地图上的几何估计，假定转场和清扫时都开启清扫；并非实车清扫结果。
+现有程序没有自动控制刷盘/风机/喷淋。Qt原执行面积计数仍按其实际清扫段轨迹统计，
+不应与本离线前刷全程并集混作同一个验收值。
+
+本次修复：
+- 旧参考Path用直线连接不同清扫段，可能穿墙；现在缺失连接时仅显示独立扫线标记，
+  不绘制虚假直线。新计划保存真实x/y/yaw曲线，Qt与控制器共用这些曲线。
+- 调用已有Hybrid A*；Navfn只找绕障通道，再以Hybrid生成实际曲线。
+- 检查完整非对称车身内部及边缘、未知格、曲率和非侧移约束，采样间距不大于5cm。
+  最终252387个位姿通过检查，检查样本无碰障、各段端点连续。
+  这是静态地图离线采样验证，尚未实车跟踪或验证动态障碍避让效果。
+- 新外部计划加载器核对地图、区域、宽度、完整轨迹与连接端点。任务开始从最新位姿
+  重新求第一条Hybrid入场曲线；其后保留已验证连接，沿用原TEB和动态碰撞检查。
+  换向使用既有分档段及停车交接；没有新增授权门，也没有自动开始任务。
+- Qt接收后台READY计划ID及实际宽度/参数，修复“后台有计划但开始按钮未关联”的问题。
+
+文件：
+  tools/garage_route_validation.py、garage_hybrid_offline.cpp、garage_drivable_route.py
+  tools/garage_coverage_fill.py、export_garage_route.py、check_garage_plan_import.py
+  src/application/autolabor_coverage/src/autolabor_coverage/external_coverage_plan.py、validated_path.py
+  src/application/autolabor_coverage/scripts/coverage_manager.py
+  src/application/autolabor_operator_gui/src/main_window.cpp、对应头文件及测试
+  config/garage_navigation1.json、scripts/start_garage_coverage.sh、README.md
+
+主要成果（本文件所在仓库根目录相对路径）：
+  validation/garage_drivable_coverage_20261101/verified_route.png
+  validation/garage_drivable_coverage_20261101/verified_plan.json
+  validation/garage_drivable_coverage_20261101/route_xyyaw.csv
+  validation/garage_drivable_coverage_20261101/final_report.json
+  validation/garage_drivable_coverage_20261101/import_validation.json
+
+验证：5项独立几何检查、5项新计划/控制器检查、172项原状态机检查通过；
+Qt重新构建，两个计划身份/参数相关GUI测试在隔离ROS master上通过。
+实际文件经生产加载器导入，生成1562个控制器执行段；未连接实车执行。
+本次只修改本机工程和下一次启动所用配置；没有重新部署启动J6M会话，current未改动。
+
+下次使用（当前未执行这些启动命令）：
+  BEV_DETECTOR_BACKEND=cuda bash scripts/bev_perception.sh start
+  bash scripts/conbine_live.sh start --config config/garage_navigation1.json
+  bash scripts/record_cleaning_experiment.sh start 新实验名称
+  bash scripts/start_garage_coverage.sh --plan-only
+最后一条只生成预览和同步Qt计划，随后在Qt点击“开始覆盖清扫”。
+已有定位/急停等检查保持；重启后应使用当前真实位姿，不能把本次离线起点当新位姿。
+也可执行 bash scripts/start_garage_coverage.sh，先生成当前计划再通过原服务开始导航。
+
+离线复核（无相机/底盘访问，不启动ROS节点）：
+  source /home/slam/robot_ws/.deps/setup.bash
+  source devel/setup.bash
+  python3 tools/check_garage_plan_import.py
+  python3 -m unittest discover -s tests -p test_external_coverage_paths.py -v
+  python3 -m unittest discover -s tests -p test_garage_route_validation.py -v
+生成脚本和旧规划尝试保留供复盘，耗时搜索失败不能解释为对剩余区域已证明不可达。
+旧494段计划、旧录制及证据保留，不再由garage_navigation1配置选用。

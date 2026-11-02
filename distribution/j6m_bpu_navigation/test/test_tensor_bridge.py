@@ -16,6 +16,16 @@ from production_io import classifier_output, detector_output, validate_productio
 
 
 class BridgeTests(unittest.TestCase):
+    def test_quantized_bev_sampling_coordinates_preserve_signed_bytes(self):
+        array = np.array([[-32768, -128, 0, 128, 32767]], dtype=np.int16)[:, ::-1]
+        descriptions, payload = wire.pack_arrays([array])
+        spec = [{'shape': list(array.shape), 'type': 5}]
+        restored = wire.unpack_arrays(descriptions, payload, spec)[0]
+        np.testing.assert_array_equal(restored, array)
+        self.assertEqual(restored.dtype, np.dtype('int16'))
+        with self.assertRaises(ValueError):
+            wire.unpack_arrays(descriptions, payload, [{'shape': list(array.shape), 'type': 7}])
+
     def test_framing_and_noncontiguous_arrays(self):
         array = np.arange(24, dtype=np.float32).reshape(2, 3, 4)[:, :, ::2]
         specs = [{'shape': list(array.shape), 'type': 7}]

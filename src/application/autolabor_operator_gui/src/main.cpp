@@ -50,7 +50,13 @@ int main(int argc, char** argv)
     if (initial_bev_page)
       for (auto* tabs : window.findChildren<QTabWidget*>())
         for (int i=0; i<tabs->count(); ++i)
-          if (tabs->tabText(i) == QStringLiteral("BEV 融合识别")) tabs->setCurrentIndex(i);
+          if (tabs->widget(i)->objectName() == QStringLiteral("bevPreviewPage")) tabs->setCurrentIndex(i);
+    bool initial_vision_page = false;
+    startup.param("initial_vision_page", initial_vision_page, false);
+    if (initial_vision_page)
+      for (auto* tabs : window.findChildren<QTabWidget*>())
+        for (int i=0; i<tabs->count(); ++i)
+          if (tabs->widget(i)->objectName() == QStringLiteral("visionPage")) tabs->setCurrentIndex(i);
     window.showMaximized();
     if (!tuning_screenshot.empty())
       QTimer::singleShot(6000, &window, [&window,tuning_screenshot]() {

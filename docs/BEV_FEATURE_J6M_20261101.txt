@@ -1,0 +1,322 @@
+四相机 BEV 垃圾地图定位 / J6M BPU 开发记录
+2026-11-01，工作区 /home/slam/robot_j6m_ws_conbine，分支 1027
+
+后续更新：OE3.9.1开发包现已到位，官方HF三个BC也已下载；新运行库在J6M完成
+六相机基线及常驻适配器复测。详情和新命令见 docs/OE391_SETUP_20261101.txt。
+HEAL源码、原生x86环境、同步米制标注仍缺。相机/BEV已按用户后续要求关闭。
+下文旧runtime测量和当时进程状态保留为原始阶段记录，不代表当前仍运行。
+
+一、交付状态
+
+本轮完成了官方六相机模型基线、真实四路图像的几何诊断、可运行的四路特征
+融合浮点原型、常驻 BPU 量化输入适配、采集时刻 TF 的 ROS 观测/跟踪/标记链路。
+核心“本车四路垃圾模型的编码器、融合、检测头全部在 BPU 推理”尚未完成。
+没有取得 HEAL 源码，也没有本车同步四路米制垃圾标注，因此没有训练好的四路
+垃圾权重、垃圾 HBM、量化精度报告或实车定位误差。旧像素 BEV 预览仍在运行，
+本轮新模型没有被接入它并冒充已完成替换。
+
+用户后续明确的环境分工：x86_64 Linux 负责正式训练、量化、编译；J6M 负责 HBM
+验证。此前 Jetson 上的浮点检查仅是原型图的前后向/导出验证，没有开展正式训练。
+本轮没有启动导航、目标、速度、自动清扫机构，没有恢复已删除的 Qt 垃圾地图页面。
+独立 RViz 地图垃圾标记是本轮用户新要求，通过独立 /fod/bev/* 话题实现。
+
+二、实际资源与访问检查
+
+开发主机：uname -m = aarch64；/proc/device-tree/model = Jetson AGX Orin Developer Kit；
+Ubuntu 20.04，ROS Noetic。不是 x86 编译机，也不是目标 J6M。
+浮点检查使用 /home/slam/robot_ws/.venv/fod_yolo/bin/python3：
+Torch 2.0.0+nv23.05，torchvision 0.15.1，CUDA 可用。
+
+板卡：root@192.168.10.100，aarch64，hb_version 报 J6M_Matrix_V2.0；
+设备树的 J6E MatrixB 名称与板级型号名不同，已保留两项原始记录。
+板上一个 BPU core；使用现有私有 runtime_4_9_2：
+/map/robot_j6m_navigation_20260907/bpu_lab_20260905/vendor/runtime_4_9_2
+DNN 3.14.5_(4.9.2 HBRT)，UCP 3.14.5；不覆盖系统库或正式 current。
+/map 可用空间不足，模型、编译及测试仅放 /tmp/conbine_bev_vtv2_20261101。
+
+目标开发环境：J6 OpenExplorer 3.9.1，HEAL 0.0.2，
+horizon_plugin_pytorch 3.3.10，hbdk4-compiler 4.11.11。
+这组组件版本与官方模型卡吻合：
+https://huggingface.co/OpenExplorer/bev_vtv2_resnet50
+本机文件搜索及 Docker 镜像检查未找到上述 HEAL/OE 开发包或其 run_docker.sh。
+用户后续指定 /home/slam/horizen-ch 后已专项核查：该目录的底层SDK包含可复用
+BPU/UCP、ISX031同步、时间源及GDC源码；其中7个推理库与当前板端私有库SHA逐项一致。
+未找到匹配HEAL/OE训练编译包。具体路径和限制见 docs/HORIZEN_CH_BEV_RESOURCES_20261101.txt。
+现有旧 x86 工具包：
+/home/slam/j6m-dev-b/runtime/yolo11_compile_20261019_j4liv6zx/sdk-python/
+含 hbdk4 4.7.5、horizon_tc_ui 3.5.3，不能据此宣称匹配环境到位。
+Docker 中两个 amd64 镜像是旧 ros_bridge/fast_lio2；没有找到 OE 镜像。
+
+GitHub：现有 SSH 已认证账号 Doribelove。使用该身份执行
+  git ls-remote git@github.com:HorizonRobotics/Heal.git
+返回 Repository not found。匿名 HTTPS 同样失败；并非没有检查 SSH 身份。
+需要给 Doribelove 授予 HorizonRobotics/Heal 仓库 read 权限：接受该仓库的
+collaborator 邀请，或有该库权限的组织/团队邀请。当前 SSH 接口不能列出待接受邀请，
+因此不声称已经存在某个邀请。也需确认厂商给出的仓库 URL 是否就是此地址。
+取得权限后可在本工作区私有 runtime 中 clone，保存 git rev-parse HEAD、tag 和
+版本文件，再核对 configs/bev_vtv2_resnet50_nuscenes/；当前未获得源码，未伪造配置。
+官方申请入口：https://oe.horizon.auto/labs/Bev_Vtv2_Resnet50
+
+三、官方六相机模型基线（已实测）
+
+固定 Hugging Face revision：1aada6677d1686efca1281a83b137c4592c267fe。
+HBM 本地路径：runtime/bev_feature_20261101/official/nash_m/compile/model.hbm
+大小 75298080 字节；SHA256：
+05443372d993714db0b226de6771a114876217fb02248c7bb1ec077a8b1af2e6
+浮点权重、README、LICENSE/各语言版本、NOTICE 同目录保存，下载清单包含哈希。
+官方浮点 checkpoint 共 877 个 state_dict tensor；仅检查键和形状，没有把其
+HEAL 模块键强行载入 torchvision 原型。文件没有被称为垃圾训练权重。
+
+hrt_model_exec model_info 真实加载成功：bev_vtv2_resnet50_nuscenes。
+输入共 14 个：6 对 NV12 Y/UV（256x704 Y，128x352x2 UV），
+points0/points1 均为 (10,128,128,2) S16，scale 分别为 0.0078125、0.03125。
+输出共 6 个 SCALE S32，通道依次为 2、1、3、2、2、10，空间 128x128。
+这是六相机交通目标 ABI，不能拿四路图片填进去就称为四路垃圾模型。
+
+受控基线：neutral NV12 + 零采样索引，single core / single thread / 100 frames。
+平均模型调用延迟 16.6277 ms；BPU inference 16.5421 ms；59.8973 FPS。
+profile 记录一个 BPU 子图，CPU inference time 0；BPU core process 16.3745 ms。
+这证明该官方 HBM 的实际推理在 BPU；CPU 的文件/内存/提交工作仍然存在。
+没有逐层编译报告，不能把单个子图拆成编码器/融合/检测头各自延迟。
+这些输入仅用于执行与性能检查，未验证交通目标检测精度，亦不是本车垃圾性能。
+
+常驻接口另测：复用 tensor_executor.cpp 的模型加载、cached 内存、stride 拷贝、
+cache flush、hbDNNInferV2、hbUCPSubmitTask、等待及输出反量化。
+新增 S16 SCALE 输入和实际 scale/zero-point 元信息；Python 类型绑定接受 int16。
+12 次相同输入（前 2 次预热），后 10 次 vendor 调用均值 16.8578 ms，
+六个输出均有限值、重复输入最大差为 0。新垃圾 HBM 的真实 ABI 尚不存在，未绑定它。
+板端 native_reference 是常驻 session 的验证程序，不是在线垃圾推理 ROS 节点。
+编译使用既有只读 Ubuntu sysroot；共享库依赖由板端 Debian 运行库解析，实际加载已通过。
+
+测试短暂停止持有旧 BPU 独占锁的 j6m-b-camera-receiver.service，随后恢复 active；
+全过程沿用 preview_worker.lock。四格相机与像素 BEV 源服务保持 active。
+第一次无输入文件的 exploratory perf 仅留证，正式数字取 official_hbm_perf_valid.log。
+
+四、实车四路几何与数据
+
+固定顺序 front,left,right,rear；相机组地面原点在左右镜头中点正下方，X 前、Y 左。
+front：ZED2 左 RGB，serial 23748636，SDK rectified 1280x720；位置(.96,0,.32)m，yaw0/pitch0。
+left：ISX RX1/0，位置(0,+.215,.80)m，yaw+90/pitch-down22°，像素翻正180°。
+right：ISX RX1/1，位置(0,-.215,.80)m，yaw-90/pitch-down22°，像素翻正180°。
+rear：ISX RX1/2，位置(-.24,0,.80)m，yaw180/pitch-down15°，不旋转。
+左右 yaw 按镜头朝车体两侧解释，尚未做联合标定验证。
+高度均是用户提供的镜头离地高度；没有推算 base_link 离地高度。
+相机重新安装后 rig_to_base_xyyaw 为空；旧 [.20,0,0] 不作为新标定使用。
+二维垃圾中心需要确认新的平面 x/y/yaw 对齐；z=0 是地面平面约定，不是底盘高度测量。
+
+当前真实输入不在 ROS image topic 上：
+  前视 http://127.0.0.1:18885/frame（复用持有相机的 ZED SDK）
+  其余 http://127.0.0.1:18882/gdc/0、/1、/2（J6M 硬件 GDC）
+本轮起始 11311/11583/11587 master 均无响应，没有运行中的四路 CameraInfo 或 optical TF。
+旧工程里的 fod_camera_optical_frame、/fod_camera/camera_info 是配置名，不作为四路实测来源。
+
+ISX 原始 1920x1536、Flash 内参和畸变系数：
+  runtime/surround_recalibrated_20261101/sensor_intrinsics.json
+硬件 LUT、各 port 的参考映射及生成 manifest 同目录保留。
+Flash 的 vendor distortion flags 不能直接当 ROS plumb_bob 参数；本次模型使用既有
+GDC 的 120° perspective 960x540 输出，按 rectified pinhole K 投影，不二次去畸变。
+ZED 使用 SDK rectified 左目 K，不把 raw 相机畸变加到该图像上。
+安装参数与透视内参：config/four_camera_bev.json；图像翻正后的主点以及
+letterbox 到 256x448 的半像素中心偏移，均进入新模型采样几何。
+
+采集时间：ZED 为 SDK UNIX 纳秒；J6M 保留 raw_stamp 设备计数，尚无经过验证的
+设备时钟到 ROS epoch 映射。并行 GET 不等于同步曝光，同一 sequence 也不能证明同步。
+当前单组快照保留四个 source timestamp 和各自 clock domain，明确 clock_verified=false。
+不能用 HTTP 到达时间或 now() 替换采集时间，把它强行用于 map TF 或训练校准。
+
+诊断图：validation/bev_feature_20261101/geometry/geometry_comparison.png
+包含四路真实翻正透视图、编号地面参考点、统一米制 BEV、相机覆盖数。
+编号点为计算坐标，不是摆放并尺量的实测点，图标题明确标注；仅支持方向/可见性检查。
+盲区真实保留，墙面、箱子会因旧像素平面投影被拉长。覆盖数图的零值为紫色。
+没有实测坐标和对应像素点，因此没有通过“已知地面点误差”验收。
+geometry_check.py --anchors 可将人选地面接触点反投影为候选，再与输入的实测坐标
+比较，输出 human_verified=false。真值坐标使用 rig X/Y 米，不能把图像框中心当真值。
+
+现有袋：rosbags/localization/20261024_201446/localization_first_300s.bag
+有地图、TF、点云、里程计；没有四路 Image/CameraInfo。前5秒 TF：
+map->camera_init->body->base_link，另 map->autolabor_map_display_anchor。
+现有垃圾标注 /home/slam/yolo11/image_label/annotation_report.json 报 3613 张图、
+3818 个目标，是 VOC/YOLO 图像框和材质类别；未找到四视图同一实例的米制中心。
+这些图像框可以作为二维预训练素材，不能直接变成四视图 BEV 米制训练真值。
+
+需要补的数据：
+1. 新安装的四路联合标定、地面点校验、新 rig 到 base_link 的平面变换。
+2. 曝光时间的统一时钟映射及同步四视图序列；当前原型容许最大 skew 20ms，
+   实车是否足够需按速度和定位误差目标验证，不影响普通导航启停。
+3. 每个时刻同一垃圾在四视图中共享唯一 instance_id、单类 trash、实测/人工核验
+   center_base_m=[x,y]、可见/遮挡信息；没有垃圾的同步帧也需明确人工确认。
+4. 包含交界区、车换位置/转向、不同距离和光照的验证序列，保存同采集时刻 map TF。
+   训练/验证按采集场景或连续序列分开，避免相邻帧混入双方。
+
+五、已实现的四路浮点原型与 HEAL 待接部分
+
+路径：src/application/autolabor_fod_vision/src/autolabor_fod_vision/bev_feature/
+model.py：共享 ResNet50/FPN -> depth/context -> 两次 GridSample -> Mul ->
+四视角/高度采样求和 -> 单一 BEV 特征图 -> 小型 BEV encoder -> trash 热图和 x/y offset。
+这是实际特征融合，未采用四路独立检测框拼接；融合操作在模型图内。
+geometry.py：CPU 根据本车 K/位姿、显式 rig/base 平面变换生成采样网格和 valid。
+网格暂定 x[-2,4]、y[-3,3]m，5cm/cell，120x120；约10cm目标占两格只是设计起点，
+更小垃圾的最小尺寸未确认，分辨率需随实测召回率/BPU资源调整。
+row 增加沿 +X，column 增加沿 +Y；offset 的顺序为 x/y，范围[0,1)。
+全局 BEV 峰值解码与米制 NMS，默认半径12cm；距离更近的不同垃圾可能被误合并，需标注验收。
+data.py：同步/时钟/坐标/图像/唯一实例校验，热图及格内偏移监督。
+
+该原型不等同于 HEAL 0.0.2 移植：
+- 未载入官方 checkpoint；当前结构验证用随机权重。
+- 使用四个地面附近高度假设，尚未移植官方 distance-topk 视锥采样。
+- 原型 BEV encoder 是小型卷积模块，尚未复用官方 ResNet50/FPN BEV encoder。
+- 未完成官方量化模块替换、qint8/qint16 配置、QAT/PTQ 和 nash-m 编译。
+官方 GridSample 分开处理 depth/feature 的参考依据：
+https://developer.horizon.auto/blog/14085
+取得源码后必须按实际源码改 num_views=4、数据相机顺序、视锥索引、预处理和输入导出，
+保留官方 backbone/FPN/LSS/BEV encoder，检测头改为单类 heatmap+xy-offset；
+不能只把模型卡里的6改成4或复用 nuScenes 的 points0/points1。
+
+已实测：Jetson CUDA 原型 shape/fusion smoke 平均42.32ms（3次测量、2次预热），
+输出(1,1,120,120)/(1,2,120,120)；仅作本机原型执行指标，不是BPU或端到端性能。
+真实四路快照完整图反向传播均有非零梯度，ONNX checker通过；导出图包含
+GridSample/Mul/ReduceSum/Conv。文件名 UNTRAINED_graph_smoke.onnx，不能作为已训练模型部署。
+训练、训练后推理和正式导出 CLI 已实现，但没有真实米制训练数据，未执行正式训练。
+
+六、ROS 接入及验证边界
+
+fod_bev_observations_node.py 订阅 /fod/bev/decoded（String JSON，明确的新模型适配边界）：
+  stamp_ns、source_stamps_ns{front,left,right,rear}、clock_domain=ros_epoch_ns、
+  clock_verified=true、frame_id、position_std_m、centers[{x,y,confidence}]、model_bpu_ms。
+采集参考时刻取四路最新时刻，限制组内20ms偏差；不使用发送/接收时刻冒充采集。
+position_std_m 是待残差验证的观测噪声参数；合成测试中 .05 不是实测精度承诺。
+模型输出若是 rig 坐标，必须有该时刻 source->base TF；输入本身已是 base 则直接使用。
+map 转换用采集时刻 map<-base TF，缺失时不退回 Time(0)/最新 TF。
+
+复用 autolabor_fod_msgs/FodGroundObservationArray：
+  /fod/bev/ground_observations（base_link，米）
+  /fod/bev/map_observations（map，米）
+复用 autolabor_fod_vision/tracking.py 的 MultiTargetTracker，map 中关联：
+  /fod/bev/markers（MarkerArray，稳定ID，RViz）
+  /fod/bev/latency（模型BPU耗时、capture到map发布耗时）
+仅做观测/地图显示，不接原自动清扫控制；新 HBM producer 仍待模型完成。
+
+ROS Noetic 私有 master 11591 上，实际 roslaunch + rosbag --clock 回放通过：
+20条合成四路时间/解码中心+移动转向TF，固定地图点(2,1)m稳定，始终1个跟踪ID，
+未重复标点；算术误差约6.28e-16m，只证明坐标实现，绝不是实车定位精度。
+无效时钟、超skew、缺TF、重复旧帧均未产生地图观测。
+回放的约数十毫秒为模拟ROS时钟差，不能作为真实采集到发布延迟。
+本轮真实交界处去重、车换位置地图稳定性、对实测点定位误差均未验收；
+四路垃圾 BPU 延迟、真实端到端延迟均暂无数字。
+评价工具 evaluate.py 将重复点、误差、静止点抖动、跟踪ID及两类延迟分开统计。
+
+七、可复制命令
+
+均在本工作区根目录运行；下列带数据路径的训练命令须在 x86_64 上复制工程后运行。
+A. 下载并校验官方基线（已有文件会校验并复用）：
+  python3 tools/bev_feature/prepare_official.py
+  python3 tools/bev_feature/board_reference_check.py --frames 100 --native --output validation/bev_reference_repeat
+第二条会短暂停止旧 receiver并恢复；所有板端上传在私有 /tmp。
+包含实际 hrt_model_exec model_info/perf；不依赖未提供的 HEAL 源码。
+
+B. 查看数据和几何：
+  source devel/setup.bash
+  /usr/bin/python3 -s tools/bev_feature/check.py bag --bag rosbags/localization/20261024_201446/localization_first_300s.bag
+  python3 tools/bev_feature/geometry_check.py --output validation/bev_geometry_new
+  python3 tools/bev_feature/check.py data --dataset validation/bev_geometry_new/sample.jsonl
+当前真实快照因时钟尚未验证而返回2，这是预期结果。不是合格训练集。
+地面真值CSV列：camera,u,v,instance_id,true_x,true_y；像素来自翻正透视图：
+  python3 tools/bev_feature/geometry_check.py --anchors /path/to/measured_points.csv --output validation/bev_anchors
+该工具必须使用与CSV采集时相同的 config/four_camera_bev.json；输出待人工核验。
+
+C. 样本 JSONL 格式（实际文件一行一个同步组，示意值不可当实测）：
+  {
+    "camera_order":["front","left","right","rear"],
+    "stamp_ns":<四路最大采集纳秒>,
+    "clock_domain":"ros_epoch_ns", "clock_verified":true,
+    "max_skew_ns":20000000, "frame_id":"base_link",
+    "rig_to_base_xyyaw":[<实测x米>,<实测y米>,<实测yaw弧度>],
+    "calibration":"calibration.json", "labels_verified":true,
+    "cameras":{
+      "front":{"image":"front.png","capture_ns":<采集纳秒>,"upright":true},
+      "left":{"image":"left.png","capture_ns":<采集纳秒>,"upright":true},
+      "right":{"image":"right.png","capture_ns":<采集纳秒>,"upright":true},
+      "rear":{"image":"rear.png","capture_ns":<采集纳秒>,"upright":true}},
+    "objects":[{"instance_id":"trash_001","center_base_m":[<x米>,<y米>]}]
+  }
+calibration.json沿用四相机配置格式，保留源几何；图像已翻正，仅transform中的K做对应主点修正。
+
+D. 独立浮点原型（不是 HEAL 的入口）：
+  # Jetson可做结构检查；正式训练限定x86_64
+  /home/slam/robot_ws/.venv/fod_yolo/bin/python3 tools/bev_feature/run.py smoke --output validation/bev_float_smoke
+  /home/slam/robot_ws/.venv/fod_yolo/bin/python3 tools/bev_feature/graph_check.py --sample validation/bev_feature_20261101/geometry/sample.jsonl --output validation/bev_graph_check
+  # 下列在已有 torch/torchvision/numpy/opencv/onnx 的x86_64环境执行：
+  python3 tools/bev_feature/check.py data --dataset /data/m2_bev/train.jsonl
+  python3 tools/bev_feature/run.py train --dataset /data/m2_bev/train.jsonl --epochs 20 --output runs/trash_float
+  python3 tools/bev_feature/run.py export --checkpoint runs/trash_float/checkpoint.pt --output runs/trash_export
+  python3 tools/bev_feature/prepare_inputs.py --dataset /data/m2_bev/calibration.jsonl --output runs/calibration_inputs
+prepare_inputs 只生成同组 images/feature_grid/depth_grid/valid 的npz，不是量化编译。
+推理CLI：run.py infer --checkpoint ... --dataset ... --position-std-m <验证得到的噪声> --output ...，
+生成 decoded.jsonl，明确 float backend，model_bpu_ms=null。当前无训练权重，尚未实数验证此模式。
+
+E. HEAL量化/编译（当前未具备可执行环境）：
+  # 在已授权源码及OE3.9.1开发包到位后的x86主机
+  uname -m
+  git clone git@github.com:HorizonRobotics/Heal.git /path/to/Heal
+  git -C /path/to/Heal rev-parse HEAD
+  # cd 到 OE3.9.1 实际解压目录，按该包说明运行自带 run_docker.sh
+  # 容器内挂载本工作区和 /path/to/Heal 后：
+  python3 tools/bev_feature/check.py toolchain --heal-root /path/to/Heal
+检查需要 HEAL0.0.2/plugin3.3.10/compiler4.11.11，当前主机运行会明确报缺项。
+run_docker.sh 参数已在后续到位开发包中核对，启动命令见 OE391_SETUP_20261101.txt；
+HEAL train/calibration/export/compile CLI 尚未取得，四路 HEAL 配置也尚未落地。
+后续需用本车同步四路npz/训练适配器进行PTQ或QAT，再以nash-m编译，读取真实input/output
+重新绑定，保存编译算子分配报告和板端profiling。现有官方HBM通过不替代这一步。
+
+F. 隔离ROS回放（无需相机/HEAL，不重放历史底盘指令）：
+  # 终端1
+  source devel/setup.bash
+  export ROS_MASTER_URI=http://127.0.0.1:11591 ROS_IP=127.0.0.1 ROS_HOSTNAME=localhost
+  roscore -p 11591
+  # 终端2，同样source和export
+  rosparam set /use_sim_time true
+  roslaunch autolabor_fod_vision bev_feature_observations.launch
+  # 终端3，同样source和export
+  /usr/bin/python3 -s tools/bev_feature/replay_fixture.py --bag validation/bev_feature_20261101/synthetic_tf_centers.bag
+  /usr/bin/python3 -s tools/bev_feature/verify_replay.py --bag validation/bev_feature_20261101/synthetic_tf_centers.bag --output validation/bev_feature_20261101/replay_result.json
+  rviz -d src/application/autolabor_fod_vision/config/bev_feature.rviz
+这是合成固定点回放。真实数据回放需记录相机源及同采集时刻的TF，模型producer尚待完成。
+如回放历史整车包，仅选择视觉及地图所需话题，不将历史cmd_vel/goal重放到真实master。
+
+G. 误差评估：
+  python3 tools/bev_feature/evaluate.py --frames /data/m2_bev/eval_frames.jsonl --output validation/bev_real_metrics.json
+每行包含 stamp_ns、truth[{id,x,y,seam}]、predictions[{x,y,track_id}]，均为map米制。
+同一truth id必须是静止垃圾，seam由标注标明处于交界区；可附真实测得的
+model_bpu_ms 和 capture_to_map_publish_ms。缺少观测时输出null而不是伪造0延迟/0误差。
+
+八、修改文件与验证证据
+
+新增：
+- src/application/autolabor_fod_vision/src/autolabor_fod_vision/bev_feature/{geometry,model,data,__init__}.py
+- src/application/autolabor_fod_vision/scripts/fod_bev_observations_node.py
+- src/application/autolabor_fod_vision/launch/bev_feature_observations.launch
+- src/application/autolabor_fod_vision/config/bev_feature.rviz
+- tools/bev_feature/{prepare_official,board_reference_check,check,geometry_check,run,graph_check,
+  prepare_inputs,replay_fixture,verify_replay,evaluate}.py 及 native_reference.cpp
+- tests/bev_feature/ 几何、时钟、中心解码及评价工具检查
+修改：vision CMakeLists/setup.py注册节点/子包；native/tensor_executor.cpp及tools/native_tensor.py、tensor_wire.py
+加入S16量化输入和量化元数据；README/AGENTS记录状态。保留本轮之前的未提交改动。
+
+验证：6项几何/评估测试、14项tensor桥检查通过；ROS20帧回放及4类无效输入检查通过；
+Jetson完整四路图前后向/ONNX检查通过；J6M常驻原生接口编译与运行通过。
+使用项目setup_env及已有依赖重新完成catkin CMake配置，实际roslaunch找到并运行新节点。
+未做无关的全工作区重编译或实车动作验收。
+
+全部证据：validation/bev_feature_20261101/
+  environment_summary.json / board_hb_version.log / github_ssh_access.log / heal_ssh_access.log
+  official_hbm_model_info.log / official_hbm_perf_valid.log / profile_valid/profiler.csv
+  native_adapter/native_result.json / receiver_restoration.json
+  geometry/ / float_smoke/smoke.json / graph_check/graph_check.json
+  ros_inventory.json / tf_inventory.json / replay_result.json / unit_tests.log / tensor_bridge_tests.log
+
+待用户补充的具体内容：
+- Doribelove 对 HorizonRobotics/Heal 的读取邀请/权限，或可用授权源码目录。
+- x86_64 Linux主机访问方式及可用OE镜像；OE3.9.1开发包及run_docker.sh现已到位。
+- 相机重装后的 rig/base 平面实测关系、四路共同地面点的坐标和像素对应。
+- 本车同步四路序列、统一采集时钟，以及人工核验的垃圾米制中心与独立验证集。
+这些缺项分别阻塞正式HEAL移植/量化编译、地图绝对坐标、模型训练和真实精度验收。

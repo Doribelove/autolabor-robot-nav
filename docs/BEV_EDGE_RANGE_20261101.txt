@@ -1,0 +1,42 @@
+2026-11-01 按车体外边缘设置四向5m观测范围
+
+用户要求范围从车体前/后/左/右边缘计算，四向均5m。物理车体包含前清扫装置：
+front=1.22、rear=0.52、left=right=0.40m，相对原底盘中心；不含导航额外10cm padding。
+因此实际观测/清扫候选边界X[-5.52,6.22]m，Y[-5.40,5.40]m。原点与相机标定不变。
+
+配置入口：config/four_camera_bev.json -> observation_region.distance_from_edges_m
+四个front/rear/left/right当前均5.0。vehicle_edges_m保存上述物理边界，reference为
+vehicle_edges。GroundBev加载时计算observation_bounds_m，使用这份实际范围做像素支持
+裁剪和原图地面观测过滤。每个方向可独立修改，不依赖手算BEV中心坐标。
+原三路未设置observation_region的配置保持原范围语义。
+
+现运行Qt固定600x600，故画布保持等比例600x600，约1.9567cm/像素；
+显示X[-5.52,6.22]、Y[-5.87,5.87]，侧面各0.47m留黑，不进入观测或清扫范围。
+JSON中的x_range_m/y_range_m/metres_per_pixel是显示派生值，在线以边缘距离配置重新
+计算；不可将画布留白宽度当成清扫距离。GTK范围说明显示“距车体边缘”四方向值。
+垃圾二维坐标仍来自原图标定光线与地面求交，显示分辨率不参与其米制计算。
+
+验证：
+- 12项检测/定位/协议检查通过，新增四边界内外1cm、方形画布留白排除、独立改变前向
+  距离3m的检查。
+- 旧三路/四路配置在修改前后投影图与支持区逐像素完全一致，相机K/T及原配置相机字段
+  逐项一致。单路选择融合行为未改。
+- 原投影检查12项中11通过，既有“固定点remap与浮点全幅参考误差<=1”一项失败；用
+  本次修改前ground_bev.py同样复现。尝试显式weighted测试夹具不改变失败后已撤回，
+  未修改融合算法或放宽测试阈值。不得报告该组全通过；失败日志留存。
+- 新范围5组实际BV02尺寸/实际边界/四向距离一致；Qt现有11项报文检查含实际报文通过。
+  在线约4.70fps、投影31ms，采样无垃圾检测，不是实际5m米制精度或拾取验收。
+
+清扫任务非活动时只重开BEV(PID1875372)及YOLO(PID1875377)；四格1013642、
+Qt/真实导航1467434、清扫节点1712302不变且active。相机硬件采集、地图、运动参数、
+深度关闭、模型和后视车体遮罩保持。未发初值、目标、清扫start、速度或机构命令。
+未来只修改距离值，可在宿主执行camera_bev.sh stop后bev_perception.sh start刷新BEV，
+正在运行的新版识别进程会读取新的observation_bounds_m。
+
+修改文件：
+config/four_camera_bev.json
+scripts/three_camera_bev.py
+distribution/j6m_bpu_navigation/surround/ground_bev.py
+ distribution/j6m_bpu_navigation/surround/ground_detections.py
+ distribution/j6m_bpu_navigation/surround/tests/test_ground_detections.py
+证据validation/bev_edge_range_20261101/；未提交推送，保留1027及原工作树。

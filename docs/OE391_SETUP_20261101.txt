@@ -1,0 +1,144 @@
+OE 3.9.1 开发包 / 官方 Hugging Face 模型接入记录
+2026-11-01，工作区 /home/slam/robot_j6m_ws_conbine，分支 1027
+
+本轮按用户“先使用官方模型仓库”执行。已经下载官方编译中间文件，并用新开发包的
+运行库在 J6M 验证官方六相机模型。尚未得到本车四路垃圾 HBM；未启动远程训练服务。
+四路相机、BEV、sender/link/receiver 保持关闭，时钟服务保留，未改变导航或车辆控制。
+
+一、实际取得的资源
+
+主机 uname -m=aarch64，是 Jetson AGX Orin；J6M 为 root@192.168.10.100。
+当前无可访问的 x86_64 编译主机。本轮没有在 ARM 模拟器中运行 x86 训练工具。
+
+用户提供的原包：
+  /home/slam/Downloads/horizon_j6_open_explorer_v3.9.1-py310_20260821.tgz
+  大小 2782682468 字节
+  SHA256 82072b53e6ce0cf34cd0a8764620d7ffb34731592ac1115efabeb4594ef8617b
+解压目录：
+  runtime/oe391_20261101/horizon_j6_open_explorer_v3.9.1-py310_20260821
+8323 个归档成员，普通文件大小逐项一致；gzip CRC 通过。未运行全局安装/resolve脚本。
+原包含指向 /data/horizon_j6/data 的官方链接，仅在预期容器挂载中使用。
+
+已读取 wheel 内 METADATA 和 ELF：
+  hbdk4-compiler 4.11.11，hbdk4-march 4.11.11，x86_64
+  horizon-plugin-pytorch 3.3.10，x86_64
+  plugin 配套构建包括 cu118/torch230、cu126/torch260、cu128/torch280、cu128/torch2100。
+版本号正确不表示可加载；Torch/CUDA 必须与所选 plugin 构建一致。
+这些是归档检查结果，未在 x86 容器里执行 import 或编译。
+
+自带 run_docker.sh 的真实参数为 DATA_PATH cpu|gpu，镜像为：
+  openexplorer/ai_toolchain_ubuntu_22_j6_cpu:v3.9.1
+  openexplorer/ai_toolchain_ubuntu_22_j6_gpu:v3.9.1
+SDK 挂载 /open_explorer，数据挂载 /data/horizon_j6/data。
+本机 manifest 请求出现 EOF，匿名 registry 请求 401；未拉取镜像或启动容器，
+不能确认目标镜像的当前访问权限。后续在 x86 主机使用该官方脚本核对实际环境。
+
+包内有 UCP、ONNX/PTQ 和 plugin 基础示例，没有找到 HEAL 0.0.2 或
+configs/bev_vtv2_resnet50_nuscenes/。GitHub SSH 已认证账号 Doribelove，
+但 git ls-remote git@github.com:HorizonRobotics/Heal.git HEAD 仍返回 Repository not found。
+需要该仓库的读取权限/正确地址，或已有授权源码；尚不能确认存在待接受邀请。
+
+官方仓库：https://huggingface.co/OpenExplorer/bev_vtv2_resnet50
+固定 revision：1aada6677d1686efca1281a83b137c4592c267fe
+本地目录：runtime/bev_feature_20261101/official/
+既有浮点权重和 75298080 字节 HBM 保留，本轮补齐并验证 SHA256：
+  nash_m/compile/quantized_deploy.bc  66461767 字节
+    5cdbdba85f398d16b470eb02a6851b358fc252bd35e6fef7c8600112b671ff21
+  nash_m/quantized_infer.bc          66460060 字节
+    800f24b7a4a7be0517b895d9b87ed277bcfc28c6504e84bfc8a7c518d5acc8fb
+  nash_m/qat.bc                    255065463 字节
+    78798bbb2f5a977a0d201fcf080381320bd8c1c83f90430b6c0345829ca9a794
+官方 HBM SHA256：
+  05443372d993714db0b226de6771a114876217fb02248c7bb1ec077a8b1af2e6
+下载清单包含权重、HBM、BC、许可证和 NOTICE。公开下载无需 HF 登录。
+该 HF 仓库不包含 HEAL 模型 Python 源码；BC 不能直接改成四相机垃圾训练配置。
+
+二、已经实测：官方六相机模型基线
+
+只将开发包七个 ARM64 运行库复制到板端私有目录：
+  /tmp/conbine-oe391-YSqnpbu5/lib
+各文件上传前后 SHA 一致；通过进程 LD_LIBRARY_PATH 使用，不覆盖系统库或正式 current。
+实际 UCP 3.15.8、DNN 3.15.8_(4.11.11 HBRT)。底层 BPU 驱动等仍使用板上已有版本。
+
+hrt_model_exec 复用既有可执行文件，并非新编译的 OE 工具：
+  /map/robot_j6m_navigation_20260907/bpu_lab_20260905/vendor/runtime_4_9_2/bin/hrt_model_exec
+  SHA256 1e21a3e715c14a249c5ea127cbea6f60dbf4aef8428f10fcd91f2a949d6085ef
+本轮 loader.log 和 model_info.log 证明其实际装载的是新 DNN/UCP/HBRT 库。
+模型名 bev_vtv2_resnet50_nuscenes；14 输入（六对 NV12 + 两个 S16 采样网格），
+6 个 S32 SCALE 输出（通道 2/1/3/2/2/10），仍为 nuScenes 六相机交通模型。
+
+正式复测：中性 NV12 + 零采样网格，单核、单线程、100 次：
+  模型调用均值            16.41243 ms
+  profiler BPU 推理均值   16.36031 ms
+  BPU core process 均值   16.25170 ms
+  profiler CPU 推理       0 ms；一个 BPU 子图
+  工具报告吞吐           60.74755 FPS
+CPU 仍负责输入/内存/提交等工作。没有逐层编译报告，不拆分编码器/融合/检测头时延。
+这不是四路垃圾检测准确率，也不是图像采集到地图点发布的端到端延迟。
+
+常驻适配器：首次旧可执行文件因写死 3.14.5 版本而拒绝新库，失败证据保留。
+改为编译时指定目标 DNN 版本；默认旧构建仍为 3.14.5，本次使用新 SDK 头文件及
+3.15.8 目标在 Jetson 编译 ARM64 小程序，上传私有目录后在 J6M 实际执行。
+没有在 Jetson 执行 x86 模型编译。模型加载、stride、分配/flush、任务提交、等待和
+输出反量化均通过；2 次预热 + 10 次测量，vendor 调用均值 16.7451 ms，
+六个输出全部有限，重复输入最大输出差 0。未替换在线推理进程。
+
+三、可复制命令
+
+在当前工作区检查/下载（不启动相机）：
+  cd /home/slam/robot_j6m_ws_conbine
+  export BEV_OE_SDK="$PWD/runtime/oe391_20261101/horizon_j6_open_explorer_v3.9.1-py310_20260821"
+  python3 tools/bev_feature/prepare_official.py --compiler-artifacts
+  python3 tools/bev_feature/oe391_environment.py package --sdk "$BEV_OE_SDK" --output validation/oe391_package_repeat.json
+  python3 tools/bev_feature/board_runtime_check.py --sdk "$BEV_OE_SDK" --output validation/oe391_board_repeat --frames 100
+最后一条复用原 BPU 独占锁；不启停已有服务，锁被占用会退出。需要现有 SSH 连通、
+AArch64 g++（x86 默认 aarch64-linux-gnu-g++），板端临时目录及既有工具路径。
+产出 model_info/perf/profile/native_result、构建/上传哈希和前后服务状态。
+
+将项目、官方模型文件和 SDK 放到 x86_64 Linux 后，以下命令待实际验证：
+  uname -m
+  # 从项目根目录执行，SDK路径按该机实际位置填写：
+  bash tools/bev_feature/oe391.sh /实际路径/horizon_j6_open_explorer_v3.9.1-py310_20260821 cpu
+  # GPU 训练环境将末项改为 gpu，仍调用原包 run_docker.sh。
+容器内：
+  cd /data/horizon_j6/data
+  python3 tools/bev_feature/oe391_environment.py runtime --stage compiler --output validation/oe391_compiler_runtime.json
+  python3 tools/bev_feature/compile_reference.py --output runtime/oe391_reference_compile --jobs 2
+这只重编译固定 SHA 的官方六相机 quantized_deploy.bc；输出新的六路 HBM、哈希、
+输入输出和节点 device 报告，board_validated 始终为 false，需另行上板检查。
+实现依据本包 4.11.11 wheel 的 load/compile/Hbm API，但尚未执行 native x86 编译。
+当前 ARM 主机执行会明确报架构/环境缺项，不创建假 HBM 或成功报告。
+
+取得授权 HEAL 源码并放到项目 runtime/Heal 后，容器内另核对：
+  python3 tools/bev_feature/oe391_environment.py runtime --stage training --heal-root /data/horizon_j6/data/runtime/Heal
+需实际 import compiler/plugin/torch/heal、确认 py310 和版本/二进制匹配，并找到
+HEAL 模型源文件与参考配置。四路训练、量化、导出命令要依据取得的源码修改，
+本轮不把六路 BC 编译命令或现有未训练浮点原型当作四路 HEAL 训练交付。
+四视图样本格式、数据检查、几何和 ROS 隔离回放命令沿用 docs/BEV_FEATURE_J6M_20261101.txt。
+
+四、本轮修改与检查
+
+新增 tools/bev_feature/oe391_environment.py、oe391.sh、compile_reference.py、
+board_runtime_check.py；扩展 prepare_official.py 下载 BC（TLS 校验、固定 SHA、原子清单）。
+check.py 接受官方 plugin 的 +cu*.torch* 构建版本后缀；tensor_executor.cpp 可按 SDK
+编译选择匹配 DNN 版本，原构建默认不变。更新 README、AGENTS 和开发说明。
+新增 tests/test_oe391_environment.py：3 项检查通过，覆盖错误 Torch ABI、缺失 HEAL、
+ARM 不导入 x86 扩展；这是工具逻辑测试，不冒充实际 x86 编译器测试。
+Python 编译、shell 语法、git diff --check 通过。
+
+证据目录 validation/oe391_20261101/：
+  extraction.json、archive_inventory.jsonl、package_report.json、wheel_metadata.json
+  hf_pinned_tree.json、hf_download_retry.log、current_host_runtime.json
+  compiler_api/（只读 API 核对）、compile_on_arm.json、launcher_on_arm.log
+  board_runtime/（首次版本拒绝）、board_runtime_matched/（正式通过）
+  environment_tests_final.log、final_state.json、summary.json
+未提交/推送，保留此前所有工作。
+
+五、剩余缺项及影响
+
+SDK 文件现已到位，不能继续将“开发包未下载”列为阻塞。仍需要：
+1. 可访问的原生 x86_64 Linux 训练/编译环境及可用 OE 镜像：阻塞容器实际验证、量化编译。
+2. HEAL 0.0.2 授权源码/正确仓库权限：阻塞四路距离 top-k LSS、BEV 编码器和垃圾头改造。
+3. 统一采集时钟的四路序列、米制唯一垃圾中心及独立真值：阻塞训练、校准和实测精度。
+4. 重装后 rig/base 平面关系及共同实测地面点：阻塞可靠 map 坐标和几何误差验收。
+当前没有新的交界重复率、静止垃圾地图稳定性、二维定位误差或端到端实测延迟。

@@ -1,0 +1,91 @@
+Windows Intel/AMD 电脑：四相机 BEV 项目的 x86 编译环境
+2026-11-01
+
+用户已确认有 Intel/AMD Windows 10/11 电脑。采用 WSL2 Ubuntu 22.04，
+先验证官方六相机 BC -> J6M HBM，随后接四路模型；这一步只需要 CPU。
+本包不包含 ROS 或训练数据，不代表四路垃圾模型已经训练成功。
+
+1. Windows 安装 WSL2
+
+管理员 PowerShell：
+  wsl --install -d Ubuntu-22.04
+若提示需要重启，重启电脑。首次打开 Ubuntu，创建 Linux 用户和密码。
+PowerShell 检查：
+  wsl -l -v
+Ubuntu-22.04 的 VERSION 应为 2；若为1：
+  wsl --set-version Ubuntu-22.04 2
+
+Ubuntu 窗口中检查：
+  uname -m
+  free -h
+应输出 x86_64。32GB 内存是便于开始编译的建议配置，不是已测最小需求；
+建议留出30GB以上可用空间。若只有16GB可先试，完整BEV编译实际峰值仍待记录。
+GPU训练需要另核对显卡、驱动及Torch/plugin组合，本次不先安装GPU训练栈。
+
+2. 获取并解压本地迁移包
+
+原包路径在 Jetson：
+  /home/slam/robot_j6m_ws_conbine/runtime/x86_solution_20261101/bev_x86_compiler.tar
+可用U盘或局域网传到 Windows 下载目录。也可在 PowerShell 用 scp：
+  scp slam@JETSON_IP:/home/slam/robot_j6m_ws_conbine/runtime/x86_solution_20261101/bev_x86_compiler.tar "$env:USERPROFILE\Downloads\"
+JETSON_IP 必须替换为与该电脑互通的 Jetson 地址；输入的是 Jetson 用户密码。
+不要将IP占位符原样执行。
+
+Ubuntu 中（替换 Windows用户名）：
+  mkdir -p ~/bev-work
+  tar -xf /mnt/c/Users/Windows用户名/Downloads/bev_x86_compiler.tar -C ~/bev-work
+  cd ~/bev-work/bev_x86_compiler
+  sha256sum -c SHA256SUMS
+工作目录放在WSL的Linux文件系统，避免直接在/mnt/c下执行大型编译。
+
+3. 首选：官方 OE 3.9.1 CPU 容器
+
+如果该电脑已有可用 Docker，在上述目录执行包内未修改的官方脚本：
+  bash run_docker.sh "$PWD" cpu
+它使用 openexplorer/ai_toolchain_ubuntu_22_j6_cpu:v3.9.1。
+当前本机对该镜像访问尚未成功验证；若需登录/镜像不可达，不能称容器已就绪。
+容器内：
+  cd /data/horizon_j6/data
+  python3 tools/bev_feature/oe391_environment.py runtime --stage compiler
+  bash tools/bev_feature/x86_compile.sh
+只接受实际 import 通过的 py310 + compiler/march4.11.11，不以镜像名字代替版本验证。
+本迁移包仅含编译基线必要内容，完整训练/量化仍使用用户已取得的完整OE包。
+
+4. 无 Docker 时：先用独立 Python 环境完成 CPU 编译验证
+
+在 Ubuntu 22.04 中执行：
+  sudo apt update
+  sudo apt install -y python3.10-venv python3-pip libgomp1
+  cd ~/bev-work/bev_x86_compiler
+  bash tools/bev_feature/x86_setup.sh
+  bash tools/bev_feature/x86_compile.sh
+setup只在当前目录创建.venv，使用本包官方compiler/march wheel，联网安装numpy/netron。
+不覆盖系统Python或装ROS。此环境不是完整OE训练镜像，先解决BC编译这一独立步骤。
+正式运行尚需在你的x86电脑执行；脚本在Jetson已做语法及ARM拒绝检查。
+
+输出：
+  validation/native_x86_environment.json
+  validation/compile_console.log
+  runtime/native_reference_日期时间/compile_report.json
+  runtime/native_reference_日期时间/official_six_camera_recompiled.hbm
+HBM产生后拷回Jetson，在J6M独立检查真实输入输出和运行结果；编译成功本身不等于
+上板验证，也不等于有四路垃圾模型。不要替换当前在线模型。
+
+5. 让当前开发会话继续协助
+
+先完成 WSL 安装并提供 uname -m、free -h 的输出。若这台机器已经能从 Jetson
+通过 SSH 访问，提供地址、端口、Linux 用户名即可继续实际安装和编译。
+不要在聊天中发送密码、私钥或云端Token；目前没有该Windows电脑的远程连接，
+因此还不能替你在其上执行管理员命令或确认编译通过。
+
+本次本地探索：旧工程确有Box64/QEMU及x86 Python。使用独立4.11.11 wheel，
+QEMU实测成功import编译器并读取官方BEV BC，14输入/6输出，未做完整编译或训练。
+Box64在新版本出现hbmarchGetMarchConfigByName解析失败，保留日志，不改原环境。
+该仿真诊断不计为原生x86验收；有真实Intel/AMD电脑时优先采用上述WSL路线。
+
+参考：
+  https://learn.microsoft.com/en-us/windows/wsl/install
+  https://docs.docker.com/build/building/multi-platform/
+  https://huggingface.co/docs/hub/jobs-overview
+  https://huggingface.co/docs/hub/jobs-pricing
+云端只是备选，本轮未创建付费资源或上传SDK；已有Windows电脑无需先租云服务器。

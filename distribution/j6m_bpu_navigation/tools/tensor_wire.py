@@ -97,14 +97,14 @@ def pack_arrays(arrays):
     import numpy as np
     descriptors, chunks = [], []
     for array in arrays:
-        if not isinstance(array, np.ndarray) or array.dtype not in [np.dtype('uint8'), np.dtype('float32')]:
-            raise ValueError('Only dense U8/F32 arrays are supported')
+        if not isinstance(array, np.ndarray) or array.dtype not in [np.dtype('uint8'), np.dtype('float32'), np.dtype('int16')]:
+            raise ValueError('Only dense U8/F32/S16 arrays are supported')
         if len(chunks) >= 32 or array.nbytes > MAX_PAYLOAD - sum(d['bytes'] for d in descriptors):
             raise ValueError('Oversized tensor list')
         if (not 0 < array.ndim <= 10 or any(n <= 0 for n in array.shape)
                 or not np.isfinite(array).all()):
             raise ValueError('Invalid tensor shape/values')
-        dtype = 'u1' if array.dtype == np.uint8 else '<f4'
+        dtype = {np.dtype('uint8'):'u1', np.dtype('float32'):'<f4', np.dtype('int16'):'<i2'}[array.dtype]
         chunks.append(np.ascontiguousarray(array, dtype=dtype).tobytes())
         descriptors.append({'shape': list(array.shape), 'dtype': dtype, 'bytes': len(chunks[-1])})
     if not 0 < len(descriptors) <= 32 or sum(d['bytes'] for d in descriptors) > MAX_PAYLOAD:
@@ -122,9 +122,9 @@ def unpack_arrays(descriptors, payload, specs, outputs=False):
                 or any(type(n) is not int for n in descriptor['shape'])
                 or type(descriptor.get('bytes')) is not int):
             raise ValueError('Malformed tensor descriptor')
-        dtype = '<f4' if outputs or spec['type'] == 7 else 'u1' if spec['type'] == 3 else None
+        dtype = '<f4' if outputs else {7:'<f4',3:'u1',5:'<i2'}.get(spec['type'])
         count = math.prod(spec['shape'])
-        byte_count = count * (4 if dtype == '<f4' else 1)
+        byte_count = count * {'<f4':4,'u1':1,'<i2':2}.get(dtype,0)
         if (dtype is None or descriptor != {'shape': spec['shape'], 'dtype': dtype, 'bytes': byte_count}
                 or byte_count > MAX_PAYLOAD or cursor + byte_count > len(payload)):
             raise ValueError('Tensor shape/dtype/length differs from loaded HBM')

@@ -1,0 +1,156 @@
+HEAL BEV-VTv2 本车四视图 / J6M BPU 实测预览
+2026-11-01
+
+已完成
+------
+已把本车前/左/右/后四路真实 RGB 接入官方 BEV-VTv2 HBM，在 J6M 实际推理，
+并打开独立 GTK 预览窗口。官方六输入槽位保留；前四个槽位装四路实拍图，
+后两个槽位的投影深度设为 -100，使官方采样算法排除它们。
+这不是重新训练/编译完成的四相机垃圾模型，也不是把四次 YOLO 框当成特征融合。
+原 YOLO 垃圾识别、Qt、导航、清扫管理器及相机进程没有重启或替换。
+
+HEAL 的 ResNet50/FPN、LSS 融合、BEV 编码器、CenterPoint 输出由官方 HBM 执行。
+CPU 做图像裁剪/NV12转换、标定采样索引、S16量化、通信、中心点解码及绘图。
+官方 hrt_model_exec 对实际输入 profiling 得到一个 BPU 子图，模型内部 CPU 时间0；
+这个0不包含上述CPU前后处理。未取得逐层拆分耗时，不把总耗时按模块虚构分配。
+ZED依然是NONE/enable_depth=false。LSS内部学习得到的距离分布属于网络计算，
+没有启用ZED深度采集、RGBD接口或旧深度拼图分支。
+
+来源及版本
+----------
+源码 /home/slam/Downloads/Heal-main.zip，1935519字节。
+SHA256 659bdc7f2f98bd8c7e04560951062b04973a35f6b2afd3ad09c7963520392db2
+ZIP comment: 259e85d9f6f320fe6e5a42475d06c315e947a537
+已检查CRC和路径，解压到 runtime/heal_source_20261101/Heal-main。
+版本文件为 HEAL 0.6.0，配置是 configs/bev_vtv2_resnet50/；并非历史记录的0.0.2。
+保留原LICENSE/NOTICE及第三方许可，未修改解压的官方代码，未将SDK/权重提交到Git。
+
+官方权重/HBM来自本机已有 Hugging Face 固定revision资源：
+OpenExplorer/bev_vtv2_resnet50 @ 1aada6677d1686efca1281a83b137c4592c267fe
+runtime/bev_feature_20261101/official/nash_m/compile/model.hbm
+75298080字节，SHA256:
+05443372d993714db0b226de6771a114876217fb02248c7bb1ec077a8b1af2e6
+源码0.6.0与旧模型卡版本不同。本轮核对了模型配置、真实ABI、采样格式及实际输出；
+没有声称完成该源码浮点模型与旧HBM的逐层数值等价验证。
+
+主机 uname -m=aarch64，Jetson AGX Orin；板端 root@192.168.10.100 为 J6M。
+使用本机OE3.9.1包中AArch64的DNN/UCP3.15.8、HBRT4.11.11，逐文件SHA回读验证。
+板端模型、适配器和7个库放在 /tmp/conbine-heal-*，仅该进程设置LD_LIBRARY_PATH，
+不改系统库、正式current或旧业务程序。部署结果见各运行目录deployment.json。
+复用既有tensor_executor.cpp的分配、stride、缓存、提交、S32反量化实现和原BPU锁。
+
+标定与输入
+----------
+实时读取18883/views的MV01原图组及随帧内外参；左/右已经翻正180度，后视不翻转。
+不额外打开相机。沿用目前GroundBev实际使用的校正内参和光学到地面坐标变换。
+图像先缩放396x704，保留下方256x704；按各路原始尺寸分别缩放内参再减去140行，
+然后转为16x44特征平面的投影。前视与三路ISX的原始分辨率不同，不能共用缩放系数。
+沿用 config/bev_detection_masks.json 的后视车体遮罩，模型输入相应像素置黑；
+预览原图以红色标示排除区域，保存的 *_model_crop.png 可核对实际送入的图。
+新试验不输出垃圾候选到清扫器。原YOLO的前置遮罩和后置框过滤均保持原行为。
+
+直接加载官方源码中独立的纯Torch几何方法和CenterPointBBoxCoder方法体，去掉
+注册装饰器而不修改算法；不通过伪插件导入网络，也不把本机Torch当成BPU模拟器。
+CPU执行环境是现有Jetson Torch2.0/torchvision0.15，显式使用antialias=True；
+完整HEAL训练环境要求的Torch2.8、Python3.10、plugin3.3.10未在本机部署。
+
+官方采样特征点形状[10,128,128,2]，量化scale=1/128；距离点同形状，scale=1/32。
+采样坐标为相对输出格的位移，不能当成普通[-1,1] grid_sample坐标。
+无效值按S16饱和量化，不能强制转换后溢出回有效图像区域。
+输入共14个：6组NV12 Y/UV，两个S16采样张量；输出6个S32 SCALE头：
+reg(2)、height(1)、dim(3)、rot(2)、vel(2)、heatmap(10)，每个128x128。
+
+坐标采用camera_rig_ground_estimate，X前/Y左/Z上；当前rig与base_link的XY相同。
+官方投影使用linspace(-51.2,51.2,128)，检测头解码间隔0.8m，本轮均保持其原约定。
+展示窗口局部范围复用车体四边外5m的现有画布，未把官方模型改成5m范围或高分辨率。
+红/青标记是官方阈值0.1以上的pre-NMS交通候选；尚未部署官方插件的旋转NMS。
+绿色ego是车体原点，不是垃圾。右下是检测概率热图，不是新生成的RGB拼接照片。
+
+已经实测
+--------
+最终后视遮罩输入的证据：validation/heal_bpu_masked_20261101/
+初次未套新试验遮罩的对照保留：validation/heal_bpu_real_20261101/
+两者不影响一直运行的原YOLO遮罩。
+
+1. 真四视图、非全零采样索引在板端完成常驻推理，输出均有限。
+   官方算法为front/left/right/rear选取25777/14636/14585/22960个采样点；
+   这些计数覆盖官方大网格与高度采样，不等于实车地面可见面积或同步精度。
+2. 同一帧逐路将图像替换为中性值，四路均改变网络输出。
+   改变两个排除槽位像素，六个输出头最大差均为0。
+   证明本轮四路确实参与网络计算、两个空位不贡献输出；不等于定位精度验收。
+3. 100帧官方工具profiling：BPU平均16.55614ms，最大16.798ms；
+   模型调用平均16.66450ms，单个BPU子图，模型内部CPU耗时0。
+4. 常驻适配器10次：vendor_infer中位17.24122ms；
+   SSH张量发送、板端推理、结果接收合计中位98.75561ms。
+   该通信数据量仍包括六路图像槽位；它不是仅四路模型的极限性能。
+5. 这组室内实拍在实际清扫范围X[-5.52,6.22]/Y[-5.40,5.40]内，
+   阈值0.1以上候选为0。官方全大网格有39个pre-NMS候选，均为远处自行车候选，
+   最高约0.287，未做实物对应核验，不作为有效垃圾或地图目标。
+6. 三项针对性检查通过：特征/距离采样配对及S16饱和、四方向标定与裁剪、
+   CenterPoint已知格点/偏移的XY轴及米制解码。
+7. GTK独立窗口和四路源序号更新已核实。主导航、Qt、YOLO、BEV和采集PID保持不变。
+8. 后续采集画面显示车辆已换位置，最终在线5527/5535/5542/5551四组均递增；
+   请求图像到解码中位195.12ms。当前靠门/器材的室内场景出现局部bus候选，
+   原图无对应公交车，应视为误检。与前一组固定回放0候选属于不同场景，不能混写。
+   实际图见live_comparison.png，完整逐组候选/时间戳见live_samples.json。
+
+延迟边界：保存包重放不报告曝光到发布延迟。在线latest.json提供
+request_to_decode_ms和fusion_publish_to_decode_ms，后者从已有BEV数据组发布计算，
+不等于相机曝光时刻。四路仍是latest-frame组合、未验证曝光同步，板端相机计数器
+与ZED时钟未统一，未发布新map点，所以采集到map端到端延迟本轮没有测量值。
+预览循环最多1Hz，完整Matplotlib绘图还会降低窗口更新率；不能把BPU的约60fps
+写成四路采集、通信、绘图、地图定位整链路帧率。
+
+可复制命令（在本工作区根目录）
+--------------------------------
+# 查看/启动/关闭独立预览；start复用已运行的18883相机组，关闭窗口也结束该试验。
+bash scripts/heal_bev_preview.sh status
+bash scripts/heal_bev_preview.sh start
+bash scripts/heal_bev_preview.sh stop
+# 原相机BEV服务停止时，PartOf关系会同时结束本试验。
+# 本脚本不会自动重启相机或导航。启动原相机沿用已有camera_surround.sh start。
+
+# 新采样和私有部署：与实时预览互斥使用原BPU锁，先正常停止独立预览。
+bash scripts/heal_bev_preview.sh stop
+/home/slam/robot_ws/.venv/fod_yolo/bin/python3 -s tools/bev_feature/heal_preview.py --deploy --output validation/heal_new_run --frames 10 --ablation
+python3 tools/bev_feature/heal_profile.py --run validation/heal_new_run
+
+# 已保存的真实四视图回放，保留其原始时间；部署目录在板端重启后需重新创建。
+/home/slam/robot_ws/.venv/fod_yolo/bin/python3 -s tools/bev_feature/heal_preview.py --deployment validation/heal_new_run/deployment.json --capture validation/heal_bpu_masked_20261101/capture.mv01 --output validation/heal_replay --frames 10 --ablation
+
+# 几何/解码检查使用本次实际ABI和标定证据。
+/home/slam/robot_ws/.venv/fod_yolo/bin/python3 -s tests/test_heal_reference.py
+
+训练及编译尚待完成
+------------------
+源码权限已不再阻塞。仍缺可访问的原生x86_64 OE开发环境，以及本车同步四视图、
+每件垃圾唯一米制地面中心标注和独立实测定位真值。仅现有图像框不能当作精确米制标签。
+官方模型交通十类无trash，80cm检测网格不适合小垃圾；不能靠改类名或改输入标定完成。
+正式版本需要四路配置和导出输入、近场更细网格、与近距离相适配的采样/距离定义、
+垃圾中心热图与格内XY偏移头，训练后用本车样本量化，再编译nash-m。
+本轮没有假装改好这些结构，也没有执行浮点训练、QAT或重新编译垃圾HBM。
+
+以下是新源码README实际提供的官方六相机模型命令，仅供在匹配x86环境和nuScenes
+数据集就绪后复现；它们不会自动生成本车四路垃圾模型：
+cd runtime/heal_source_20261101/Heal-main
+python3 tools/train.py --config configs/bev_vtv2_resnet50 --stage float
+python3 tools/train.py --config configs/bev_vtv2_resnet50 --stage calibration
+python3 tools/train.py --config configs/bev_vtv2_resnet50 --stage qat
+python3 tools/export_hbir.py --config configs/bev_vtv2_resnet50/deploy.py
+python3 tools/compile_perf.py --config configs/bev_vtv2_resnet50/deploy.py
+
+正式垃圾模型完成后，再接入已有/fod/bev/ground_observations和采集时刻TF/map跟踪。
+本轮不把交通候选伪装成trash消息，不触发清扫，不新增任何运动许可或导航依赖。
+跨相机同一垃圾去重、车辆移动后地图点稳定性、二维实测误差、采集到map延迟均待验收。
+
+本轮文件
+--------
+scripts/heal_bev_preview.sh
+tools/bev_feature/heal_reference.py
+tools/bev_feature/heal_board_worker.py
+tools/bev_feature/heal_preview.py
+tools/bev_feature/heal_profile.py
+tools/bev_feature/heal_viewer.py
+tests/test_heal_reference.py
+本说明与AGENTS.md交接记录。
+保留1027分支及此前未提交改动；未提交、推送或修改源工程/正式current。

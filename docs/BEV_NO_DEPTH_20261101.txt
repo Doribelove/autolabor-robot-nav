@@ -1,0 +1,25 @@
+撤回 ZED 深度融合（2026-11-01）
+
+用户明确“不要这样做，不要深度”。已撤回当前在线深度路径并重开画面。
+前视恢复左目校正RGB；四路统一地面投影，保持single_source重叠取图、四路原图
+垃圾识别及地面点去重。相机安装参数、模型best6、640输入和0.25阈值未改变。
+
+SDK实际关闭：zed_preview_native.cpp设置DEPTH_MODE::NONE，RuntimeParameters
+enable_depth=false，删除深度Mat和retrieveMeasure/RGBD读取函数。
+新增只读查询zp_depth_enabled，从SDK getInitParameters读取实际模式。
+four_camera_view.py只调用zp_read，删除深度缓冲、编码和/rgbd接口；/frame元数据
+记录实际depth_enabled=false、depth_mode=NONE。不是只隐藏深度图或仅改显示开关。
+
+three_camera_bev.py删除深度输入/点云融合分支，仅使用/frame RGB；启动脚本不再
+编译/加载深度栅格库。配置front_depth_enabled=false，Qt/GTK说明同步恢复RGB模式。
+此前独立深度试验模块、测试和证据保留作历史记录，当前入口不导入、不执行它们。
+未经用户重新要求，不恢复深度方案。
+
+验证：原生采集库和Qt构建成功，Python/脚本语法检查通过；真实新报文的Qt8项
+解码检查通过。3次在线采样四路源序号递增，SDK报告NONE/false，BEV元数据不含
+front_depth，/rgbd返回404；约4.98fps，BEV投影28~30ms。
+证据validation/bev_no_depth_20261101/，含SDK实际状态、在线报文、Qt截图及构建日志。
+最终四格768840、BEV768842、Qt会话768846均active，保持供用户查看。
+没有启动导航、发送目标/速度/机构指令；未提交/推送，保留1027及其余既有工作。
+
+正常启动仍为：bash scripts/camera_surround.sh start

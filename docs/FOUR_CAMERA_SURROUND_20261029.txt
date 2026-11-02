@@ -1,0 +1,148 @@
+2026-10-29 四路环视：前视ZED + J6M左右后视
+
+目录与状态
+/home/slam/robot_j6m_ws_conbine，分支1027。开工git status干净，未提交或推送。
+用户要求加入第四路后视、进行环视；所有本地改动及新板端候选均限定本项目。
+原config/three_camera_bev.json完整保留。此前在旧surround目录判断参数缺失不适用于
+本合并目录：本目录已有前/左/右安装估算及三路BEV/YOLO/Qt链路。
+
+本次完成
+1. GroundBev原有投影/融合按配置支持front/left/right及新增rear；完整输入才生成该配置
+   的融合结果。四路配置独立保存，前/左/右字段与原配置逐字一致。
+2. scripts/three_camera_bev.py保留旧文件名与默认三路入口，增加后视源面板、单独后视投影、
+   后视贡献颜色、实际相机列表元数据、可选私有采集目录及只检查参数的--check。
+   四源贡献图的8位显示做饱和，避免第四路贡献值溢出。
+3. YOLO的BG01输入按configured_cameras接收三/四路，不再固定拒绝rear；缺少配置中的
+   后视时拒收，旧三路报文保持兼容。模型、CUDA和原600x600米制网格不变。
+4. Qt接受并保留四路来源元数据，状态显示实际路数。没有修改导航/控制参数或清扫逻辑。
+5. scripts/ground_camera_server.py把原runtime中的硬件采集实现保存为项目源码。
+   scripts/prepare_surround_capture.py在新私有目录读取当前Flash，生成各端口独立LUT、
+   PYM/NV12/GDC配置和SHA清单，保留旧采集包及系统库。禁止覆盖同名旧候选。
+6. scripts/camera_surround.sh沿用既有BEV/YOLO Qt生命周期，提供check/start/stop/status。
+   使用config/four_camera_bev.json，runtime/surround_rear_20261029_2，板端对应私有目录。
+   正常三路仍使用camera_bev.sh / camera_bev_qt.sh默认入口。切换配置先停止原相机预览，
+   不停止导航。四路缺参数时在取得相机或启动远端进程之前明确报错。
+
+实板结果
+RX1端口0/1/2初始化成功且各自读取镜头Flash参数。新检测到端口2，拟对应用户新增后视；
+方向、位置及倒装仍需用户确认。三路均通过PYM1 NV12 layer0 -> GDC0，输出960x540。
+三组采样源序号：0口301/325/349，1口295/319/343，2口295/319/343；原/GDC身份、序号、
+raw_stamp一致，gdc_applied=1，缓存年龄通过现有1.5秒显示预算。
+截图及元数据在validation/surround_rear_20261029_185319/port*_gdc.png、live_gdc_verification.json。
+没有用CPU实时去畸变替代GDC，也没有用示例图冒充新增相机。
+
+板端候选 /map/conbine_camera/surround_rear_20261029_2/；其manifest的10项SHA已读回验证。
+本地runtime/surround_rear_20261029_2/保存相同资产及生成脚本、镜头参数与探测日志。
+首个runtime和板端surround_rear_20261029/候选保留；初次生成器误将每个pipeline内部
+node0重命名为node1/2，VIO初始化-324。SDK节点名是pipeline局部索引，修正后第二个候选
+实际三路GDC成功。未覆盖首个失败候选。
+
+仍缺的现场信息
+config/four_camera_bev.json的rear.position_ground_rig_m/yaw_left_deg/pitch_down_deg/
+rotate_180均为null。坐标原点沿用左右相机中点正下方，x前/y左/z上，位置用米、角度用度。
+需要后视相机的前后/左右偏移、离地高度、朝向、下俯角及倒装情况；不从画面猜物理尺寸。
+2号口当前图像以近处墙面为主，实际安装后的地面可见区域亦需核对。
+原来预留的BEV rig到base_link外参保持原样；本次图像接入不要求改导航放行条件。
+
+前视现状
+原ZED sender仍运行；现有J6M 17446/frame预览本次返回503 Waiting for BPU result。
+receiver.json为waiting_for_fresh_data，latest.connection_error=frame_age_out_of_bounds，
+未拿到当前ZED图像，所以没有宣称四路同时实时出图或真实BEV/YOLO验收。
+未修改父工作树、旧服务、时间阈值、模型或SDK时间，也未把旧截图当作新前视输入。
+
+验证与证据
+- 13项GroundBev几何及实际BG01 JPEG解码测试通过：新增后向覆盖、后视轴方向、缺路拒收、
+  缺安装参数、四路传入YOLO、原三路兼容、过期/未知/重复来源及截断报文。
+- Qt Release构建通过；6项真实JPEG/BV01报文测试通过，包括四路rear来源保留。
+  结果qt_build_v2.log、qt_tests.log/xml。第一次隔离构建/tmp只读失败，绑定本项目私有tmp
+  后重建成功；初期qt_build.log保留。
+- 原三路--check通过；四路--check按真实缺参情况拒绝，不激活假参数。
+- Python语法、shell语法和git diff --check通过。
+新增几何测试中的后视位姿仅为合成夹具，不写入真实配置。
+上述不等于四路BEV实际精度、曝光同步、360度无盲区或实车清扫验收。
+
+恢复/续接
+临时三路GDC诊断进程已由其精确私有stop.py关闭，SSH隧道退出，相机锁释放。
+没有启动导航、底盘、清扫、ROS录包或车辆运动；ZED旧服务保持原状态。
+补齐后视安装信息并恢复原ZED预览后：
+  bash scripts/camera_surround.sh check
+  bash scripts/camera_surround.sh start
+启动仅现有相机BEV/YOLO显示会话，不能替代conbine.sh live-start的真实导航入口。
+停止Qt用camera_surround.sh stop；其相机融合服务按既有约定用camera_bev.sh stop关闭。
+缺参数期间不要把三路服务的状态当成四路成功；status仍反映实际当前运行服务。
+本轮修改前备份、SHA、初始git状态在validation/surround_rear_20261029_185319/before/。
+
+后续：用户要求打开各个画面
+已新增scripts/four_camera_view.sh {start|stop|status}，原独立GTK风格的2x2窗口显示：
+左上前视ZED，右上左视RX1/0，左下右视RX1/1，右下新增后视RX1/2。
+前视以私有C ABI调用本机已有ZED SDK，1280x720左目校正图，HD720/15fps/depth NONE；
+3路J6M仍为960x540真实硬件GDC，按各路独立更新，不生成或伪造BEV融合。
+原ZED BPU预览503仍属历史链路状态；本次直连已实际连续取得前视图像。
+
+本次临时交接只停止j6m-b-camera-sender.service并持有同一camera.lock，未改原服务文件、
+原配置、父工作树、clock/link或板端原receiver。窗口关闭时结束本次ZED句柄和私有GDC，
+释放相机锁，恢复此前运行的sender。已执行一次正常stop：sender恢复active/MainPID182504，
+随后再次打开预览并保持运行。当前使用autolabor-conbine-four-camera-view.service。
+本轮第一次正常关闭时的代码与后续增强的finally均保存于工作树演进；新代码保证远端
+清理异常也走本机sender恢复分支。原外参和三路BEV配置没有改变。
+
+实际四路连续计数、截图与原sender服务配置只读副本在
+validation/four_camera_view_20261029_191258/；窗口运行状态、latest图像、服务日志在
+runtime/four_camera_view_20261029/。四路均有递增源序号/显示计数，前视序列来自本次
+SDK直连读取，SDK原始时间另存，不把本地收图时刻冒充曝光时间。
+左右两路按原安装设置旋转180度；后视默认原朝向，窗口有仅影响显示的180度旋转开关。
+现场画面中新增2号口主要对着墙面，右视较多箱体/托盘遮挡；这些实际视野需用户核对。
+没有启动导航、底盘、目标/速度、清扫或ROS录包；没有提交或推送。
+
+后视安装参数补充（用户2026-10-29）
+用户明确：后视相机在左右相机中心连线中点的后方53厘米、离地80厘米、正对后方。
+按现有地面rig坐标（x前/y左/z上），已保存rear.position_ground_rig_m=[-0.53,0,0.80]，
+yaw_left_deg=180。未改变前/左/右参数，修改前四路配置另存validation/rear_installation_*/before/。
+下俯角和是否倒装仍待用户补充，pitch_down_deg/rotate_180保留null。
+本次只保存已确认尺寸，不重启正在运行的四路原视角窗口或启动缺参的融合服务。
+
+后续：用户确认水平、不倒装，实际四路融合已运行
+用户明确“正对后方，没有向下俯，没有倒装，请看一下进行融合”。已设置后视完整参数：
+position_ground_rig_m=[-0.53,0,0.80]，yaw_left_deg=180，pitch_down_deg=0，rotate_180=false。
+前/左/右配置与原three_camera_bev.json一致；本轮前配置/源码备份及git状态另存
+validation/four_camera_fusion_20261029_192536/before/，没有覆盖此前历史记录或提交。
+
+ZED图像复用
+原17446依赖BPU结果的接口仍不作为四路入口；四格预览的本机SDK采集已连续出图，
+本轮增加只监听127.0.0.1:18885/frame的ZP01图像接口，直接复用该句柄的1280x720左目
+校正图，SDK原始时间戳、源session/序号随JPEG传递，不给图像改曝光时刻。
+四路配置front_preview_url指向该接口、reuse_capture=true。融合通过--reuse-capture
+读现有18882 J6M GDC与18885前视，不另起J6M采集或占用ZED。原三路默认路径保持。
+camera_surround.sh start会先校验参数，再确保四格源、BEV GTK、原Qt/YOLO均启动。
+四格窗口是当前图像源，融合显示期间保持打开；关闭源窗口会释放相机并恢复旧sender，
+融合对缺路/过期照原规则清图。停止Qt按原约定不结束单独的融合/源窗口。
+
+实际融合验证
+真实BG01包含front/left/right/rear完整来源，配置SHA与实际文件一致；后视变换平移
+[-0.53,0,0.80]、光轴[-1,0,0]，后视rotate_180_applied=false，三路gdc_applied=true。
+连续三组融合序号854/858/861，全部四路源序号递增；BV01原图/结果/识别source_id一致。
+实际CUDA YOLO约4.90fps，采样推理约33ms，无目标帧按实际显示0目标，没有加演示框。
+无损PNG未覆盖区域严格为0。初次验证脚本直接要求JPEG空区严格为0，因JPEG边界振铃
+未通过，后改用无损PNG核验；没有改图像或放宽源数据时效。记录verification_notes.txt。
+
+图像与显示
+当前米制网格保持原前4m/后2m/左右3m，1cm/px、600x600。后视水平、垂直视角有限，
+镜头后约0.82m内地面在画幅下方，对应rig中心后方约1.35m内的正后地面不能由该后视覆盖。
+本配置后视正后方约x=-1.355到-1.995m具有几何投影支撑；近车黑区不填补。
+墙、箱、托盘等高于地面的物体会被地面投影拉伸，不能据此宣称地面纹理均已对齐或
+无盲区360度。真实曝光同步、安装精度和遮挡后的实际地面覆盖仍待现场核验。
+
+原Qt“BEV视野清扫”页显示同一四路融合帧的原图/YOLO图，状态栏实际4路约5fps。
+修复旧启动参数仍按“BEV融合识别”旧标签找页的问题，改用bevPreviewPage对象名；
+顶部相机卡片改用报文实际路数，避免仍显示三路。Qt增量Release构建通过。
+GTK参数说明同时显示后视0.80m/0度，四格原始窗口删除过时的“参数待填/方向待核对”文案。
+本次只重开私有相机/显示会话加载上述改动，未启动导航或修改调参/清扫逻辑。
+
+现场资料
+validation/four_camera_fusion_20261029_192536/保存：
+live_fusion_verification.json、actual_four_camera_bev.png、ground_support.png、
+actual_yolo_packet.bin/metadata.json、actual_yolo.jpg、Qt截图及修改前文件。
+当前原始源状态runtime/four_camera_view_20261029/state.json，融合输出
+runtime/surround_rear_20261029_2/bev/，YOLO/Qt输出runtime/bev_qt/。
+当前autolabor-conbine-four-camera-view、camera-bev、camera-bev-qt三个用户服务保持运行。
+Qt仅私有11587图，清扫仍IDLE，没有发初值、导航目标、速度、清扫/液压或录制ROS包。

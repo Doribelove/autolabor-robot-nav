@@ -37,6 +37,7 @@ catkin_package(
 )
 
 catkin_install_python(PROGRAMS
+  scripts/fod_bev_observations_node.py
   scripts/fcos_rgbd_node.py
   scripts/fod_detect_and_classify_node.py
   scripts/fod_detector_node.py

@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 import base64
 import math
+from pathlib import Path
 import unittest
 import zlib
+import yaml
 
 from autolabor_fod_control.bev_cleaning import (
     VisibleTargets, forward_crossing, ground_objects, sweep_candidates, transform_point,
 )
 from autolabor_fod_control.cleaning_geometry import footprint_is_free, map_target_to_wheel_odom
+from autolabor_fod_control.visual_servo import ForwardCoverageTracker
 from types import SimpleNamespace as NS
 
 
@@ -85,6 +88,45 @@ class BevGeometryTest(unittest.TestCase):
         registry.update(obs, 10.2)
         self.assertEqual([], registry.visible(10.2))
 
+    def test_second_target_stays_pending_while_first_is_cleaned_and_view_is_lost(self):
+        registry = VisibleTargets()
+        first = dict(x=1., y=0., label='plastic')
+        second = dict(x=3., y=0., label='paper')
+        registry.update([first, second], 10.)
+        registry.begin_round(10.1)
+        registry.update([first], 14.)
+        self.assertEqual([1], [t.identity for t in registry.visible(14.)])
+        self.assertEqual([1, 2], [t.identity for t in registry.pending()])
+        registry.complete(registry.targets[1])
+        registry.update([], 60.)
+        self.assertEqual([], registry.visible(60.))
+        self.assertEqual([(2, 3., 0.)], [(t.identity, t.x, t.y) for t in registry.pending()])
+
+    def test_redetection_refines_remembered_target_without_duplicate_task(self):
+        registry = VisibleTargets()
+        registry.update([dict(x=2., y=1., label='plastic')], 10.)
+        registry.begin_round(10.)
+        registry.update([], 30.)
+        registry.update([dict(x=2.04, y=.98, label='paper')], 31.)
+        self.assertEqual([1], [t.identity for t in registry.pending()])
+        self.assertEqual((2.04, .98, 'paper'),
+                         (registry.targets[1].x, registry.targets[1].y, registry.targets[1].label))
+        registry.complete(registry.targets[1])
+        registry.update([dict(x=2.03, y=1., label='plastic')], 34.)
+        self.assertEqual([], registry.pending())
+
+    def test_round_memory_is_not_an_idle_map_archive(self):
+        registry = VisibleTargets()
+        registry.update([dict(x=2., y=0., label='paper')], 10.)
+        registry.begin_round(10.)
+        registry.update([], 15.)
+        self.assertEqual(1, len(registry.pending()))
+        registry.end_round(15.)
+        self.assertEqual([], registry.pending())
+        registry.update([dict(x=3., y=0., label='paper')], 16.)
+        registry.update([], 20.)
+        self.assertEqual([], registry.pending())
+
     def test_overlapping_camera_boxes_form_one_cleaning_location(self):
         registry = VisibleTargets()
         registry.update([dict(x=1,y=0,label='paper'),dict(x=1.04,y=0,label='plastic')],10)
@@ -101,6 +143,37 @@ class BevGeometryTest(unittest.TestCase):
 
     def test_existing_visual_controller_wheel_frame_conversion_is_preserved(self):
         self.assertEqual((3.,4.), map_target_to_wheel_odom(0,0,0,1,2,2,2,0))
+
+    def test_front_cleaner_and_side_extent_collide_in_both_headings(self):
+        config = Path(__file__).resolve().parents[4]/'src/scripts/robot_bringup/config/vehicle_footprint.yaml'
+        shape = yaml.safe_load(config.read_text())['global_costmap']['footprint']
+        old = [(.52,.35),(.52,-.35),(-.52,-.35),(-.52,.35)]
+        info = NS(resolution=.02, width=300, height=300,
+                  origin=NS(position=NS(x=0,y=0), orientation=NS(x=0,y=0,z=0,w=1)))
+        for yaw, obstacle in [(0.,(4.10,3.)), (math.pi/2,(3.,4.10)), (0.,(3.,3.38))]:
+            grid = NS(info=info, data=[0]*90000)
+            pose = (3.,3.,yaw)
+            self.assertTrue(footprint_is_free(grid,pose,shape))
+            x,y = (int(round(v/info.resolution)) for v in obstacle)
+            grid.data[y*info.width+x] = 100
+            self.assertTrue(footprint_is_free(grid,pose,old))
+            self.assertFalse(footprint_is_free(grid,pose,shape))
+
+    def test_measured_brush_crossing_uses_attachment_front_for_both_controllers(self):
+        config = Path(__file__).resolve().parents[1]/'config/bev_cleaning.yaml'
+        offset = yaml.safe_load(config.read_text())['cleaning_reference_offset_m']
+        # Brush crosses x=1.24 after 5 cm forward; original chassis nose does not.
+        self.assertTrue(forward_crossing((0,0,0),(.05,0,0),(1.24,0),offset,.01))
+        self.assertFalse(forward_crossing((0,0,0),(.05,0,0),(1.24,0),.52,.01))
+        tracker = ForwardCoverageTracker(1.24,0,offset,.01,0,0,0,.2)
+        self.assertTrue(tracker.update(.05,0,0,.2,.10).covered)
+        reverse = ForwardCoverageTracker(1.24,0,offset,.01,.05,0,0,-.2)
+        self.assertFalse(reverse.update(0,0,0,-.2,.10).covered)
+        for start,end in sweep_candidates((0,0,0),(3,1),offset):
+            poses=[(start[0]+(end[0]-start[0])*i/30,
+                    start[1]+(end[1]-start[1])*i/30,start[2]) for i in range(31)]
+            self.assertTrue(any(forward_crossing(a,b,(3,1),offset,.01)
+                                for a,b in zip(poses,poses[1:])))
 
 
 if __name__ == '__main__':

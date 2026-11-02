@@ -118,6 +118,44 @@ protected:
     EXPECT_FALSE(window_->coverage_width_input_->isEnabled());
   }
 
+  void verifyExternalReadyPlanRestoresIdentityAndParameters()
+  {
+    autolabor_coverage::CoverageStatus status;
+    status.state = "READY";
+    status.plan_id = "offline-contour-plan";
+    status.map_digest = "garage-map-digest";
+    status.operation_width_m = 1.2;
+    status.lane_spacing_m = 1.02;
+    status.max_forward_speed_mps = .8;
+    status.allow_reverse_transit = true;
+    status.max_reverse_speed_mps = .3;
+    status.max_angular_speed_rps = .6;
+    status.linear_accel_mps2 = 1.;
+    status.angular_accel_rps2 = .5;
+    status.direction_change_penalty_sec = .5;
+    status.segment_handoff_penalty_sec = .5;
+    status.transit_replan_period_sec = .5;
+    window_->coverage_plan_id_.clear();
+    window_->adoptBackendCoveragePlan(status, false, true, false);
+    EXPECT_TRUE(window_->coverage_plan_id_.empty());
+    window_->adoptBackendCoveragePlan(status, true, true, true);
+    EXPECT_TRUE(window_->coverage_plan_id_.empty());
+    status.active = true;
+    window_->adoptBackendCoveragePlan(status, true, true, false);
+    EXPECT_TRUE(window_->coverage_plan_id_.empty());
+    status.active = false;
+    window_->adoptBackendCoveragePlan(status, true, true, false);
+    EXPECT_EQ(status.plan_id, window_->coverage_plan_id_);
+    EXPECT_EQ(status.map_digest, window_->coverage_planned_region_map_digest_);
+    EXPECT_DOUBLE_EQ(1.2, window_->coverage_width_input_->value());
+    EXPECT_DOUBLE_EQ(15., window_->coverage_overlap_input_->value());
+    EXPECT_FALSE(window_->coverage_task_lifecycle_started_);
+    EXPECT_FALSE(window_->coverage_command_pending_);
+    status.plan_id = "different-plan";
+    window_->adoptBackendCoveragePlan(status, true, true, false);
+    EXPECT_EQ("offline-contour-plan", window_->coverage_plan_id_);
+  }
+
   void verifyTelemetryDelivery()
   {
     ros::NodeHandle publisher_node;
@@ -137,18 +175,28 @@ protected:
   {
     for (auto* tabs : window_->findChildren<QTabWidget*>())
       for (int i = 0; i < tabs->count(); ++i)
+      {
         EXPECT_NE(QStringLiteral("待清扫垃圾"), tabs->tabText(i));
+        EXPECT_NE(QStringLiteral("BPU 预览"), tabs->tabText(i));
+      }
+    EXPECT_EQ(1, window_->findChildren<QWidget*>("bevPreviewPage").size());
+    auto* open = window_->findChild<QPushButton*>("openBevCleaningButton");
+    ASSERT_NE(nullptr, open);
+    open->click();
+    EXPECT_EQ(QStringLiteral("bevPreviewPage"), window_->tabs_->currentWidget()->objectName());
     EXPECT_NE(nullptr, window_->findChild<QWidget*>("bevPreviewPage"));
     EXPECT_NE(nullptr, window_->findChild<QPushButton*>("startBevCleaningButton"));
     window_->refreshBevCleaning();
     EXPECT_FALSE(window_->bev_cleaning_start_->isEnabled());
     window_->bev_cleaner_status_json_ = QStringLiteral(
-        R"({"state":"IDLE","reason":"等待开始","perception":"三路 BEV 在线","active":false,"visible_count":2,"passed_count":1,"skipped_count":0})");
+        R"({"state":"IDLE","reason":"等待开始","perception":"四路 BEV 在线","active":false,"visible_count":2,"passed_count":1,"skipped_count":0,"camera_count":4,"camera_names":["front","left","right","rear"],"navigation_available":false,"navigation_detail":"导航状态尚不可用"})");
     window_->bev_cleaner_received_ = ros::WallTime::now();
     window_->refreshBevCleaning();
     EXPECT_TRUE(window_->bev_cleaning_start_->isEnabled());
     EXPECT_FALSE(window_->bev_cleaning_stop_->isEnabled());
     EXPECT_TRUE(window_->bev_cleaning_status_->text().contains(QStringLiteral("视野目标 2")));
+    EXPECT_TRUE(window_->bev_cleaning_status_->text().contains(QStringLiteral("4路环视 BEV")));
+    EXPECT_TRUE(window_->bev_cleaning_status_->text().contains(QStringLiteral("导航状态尚不可用")));
     window_->bev_cleaner_status_json_ = QStringLiteral(
         R"({"state":"SWEEPING","reason":"前进清扫","active":true,"visible_count":2,"selected":{"label":"paper"}})");
     window_->refreshBevCleaning();
@@ -460,6 +508,11 @@ TEST_F(RvizCallbackIsolationTest, RestoresEndpointsForgottenByMaster)
 TEST_F(RvizCallbackIsolationTest, ParameterEditingDoesNotRequireMapButRetainsTaskAndFreshnessLocks)
 {
   verifyParameterEditingWithoutMapRetainsTaskLocks();
+}
+
+TEST_F(RvizCallbackIsolationTest, ExternalReadyPlanRestoresIdentityWithoutStartingMotion)
+{
+  verifyExternalReadyPlanRestoresIdentityAndParameters();
 }
 
 TEST_F(RvizCallbackIsolationTest, NavigationTuningPageContainsAllThreeParameterGroups)

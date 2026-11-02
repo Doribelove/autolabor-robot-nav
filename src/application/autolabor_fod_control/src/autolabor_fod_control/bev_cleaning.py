@@ -95,11 +95,30 @@ class Target:
 
 
 class VisibleTargets:
-    """Session-local spatial association; absent targets expire, no map archive."""
+    """Fresh observations while idle; keep unfinished map targets within a round.
+
+Visibility still expires after ttl. A cleaning round's pending locations do not:
+the vehicle can turn away from a target while cleaning another one.
+"""
     def __init__(self, radius=.20, ttl=2.):
         self.radius, self.ttl = radius, ttl
         self.targets, self.passed = {}, []
         self.next_id = 1
+        self.retain_missing = False
+
+    def begin_round(self, now):
+        self.targets = {t.identity: t for t in self.visible(now)}
+        self.passed.clear()
+        self.retain_missing = True
+
+    def end_round(self, now):
+        self.retain_missing = False
+        self.targets = {t.identity: t for t in self.visible(now)}
+        self.passed.clear()
+
+    def pending(self):
+        """Unfinished locations, including targets temporarily out of view."""
+        return list(self.targets.values())
 
     def update(self, observations, stamp):
         used = set()
@@ -121,7 +140,8 @@ class VisibleTargets:
                 self.targets[target.identity] = target
                 self.next_id += 1
             used.add(target.identity)
-        self.targets = {i: t for i, t in self.targets.items() if stamp-t.observed <= self.ttl}
+        if not self.retain_missing:
+            self.targets = {i: t for i, t in self.targets.items() if stamp-t.observed <= self.ttl}
 
     def visible(self, now):
         return [t for t in self.targets.values() if 0 <= now-t.observed <= self.ttl]

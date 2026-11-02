@@ -7,9 +7,10 @@
   <arg name="target_frame" default="base_link" />
 
   <!-- MID360 pose in base_link. Keep these configurable for final tape-measure calibration. -->
-  <arg name="sensor_x" default="0.20" />
+  <arg name="sensor_x" default="0.0" />
   <arg name="sensor_y" default="0.0" />
-  <arg name="sensor_z" default="1.0" />
+  <!-- User measured heights: lidar 0.90 m - base_link 0.25 m = 0.65 m. -->
+  <arg name="sensor_z" default="0.65" />
   <arg name="sensor_roll" default="0.0" />
   <arg name="sensor_pitch" default="0.0" />
   <arg name="sensor_yaw" default="0.0" />
@@ -17,7 +18,7 @@
   <!-- Remove this chassis rectangle in base_link after applying the MID360 pose. -->
   <arg name="crop_enabled" default="true" />
   <arg name="crop_min_x" default="-0.75" />
-  <arg name="crop_max_x" default="0.75" />
+  <arg name="crop_max_x" default="1.22" />
   <arg name="crop_min_y" default="-0.50" />
   <arg name="crop_max_y" default="0.50" />
 

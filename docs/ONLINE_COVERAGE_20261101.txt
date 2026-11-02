@@ -1,0 +1,48 @@
+新场景在线建图覆盖清扫，2026-11-01
+
+18:49状态更新：用户因远程电脑没电要求删除本次录制。覆盖清扫1及准备段均已停止并
+删除，当前没有实验录制；清扫1～4保留。下文录制路径为历史运行记录，现已不存在。
+
+用户指定：沿初始车头10m、横向3m，中心前8m/左3m；先录制，再由用户在Qt开始。
+用户确认框内为平地。区域采样一次真实map->base_link位姿后固定，车辆移动不会拖动框。
+
+启动（实验名称必须未使用）：
+  COVERAGE_CONFIRMED_FLAT=1 bash scripts/online_coverage.sh start 覆盖清扫2
+  bash scripts/online_coverage.sh status
+  bash scripts/online_coverage.sh stop-recording
+未确认平地时不设置COVERAGE_CONFIRMED_FLAT，规划仅采用实际观测地图。
+原已知地图入口和历史地图保留。完整停止仍用README第3节。
+
+实现：
+- conbine_live_session.py、namespace.sh：独立online_coverage模式，不绑定旧地图。
+- j6m_fastlio_navigation.launch、navigation_j6m.launch、coverage.launch：本次FAST-LIO
+  原点接入map，启用现有覆盖规划/Hybrid/TEB/命令链路；扫描范围20m。
+- online_coverage_mapper.py：按扫描时刻TF积累二维占用地图，持续发布/map与保存地图。
+  用户确认框内的未知且无障碍证据格可作为空闲先验；障碍、未积累足够帧数的障碍候选
+  以及框外未知不被擦除。observed_map保存无先验的原始地图。
+- coverage_manager.py：以本次会话身份保持任务，持续更新实际碰撞地图；新鲜FAST-LIO
+  位姿用于本模式定位状态，已知地图模式仍使用原定位状态与地图变化处理。
+- Qt main_window：接收预设矩形、显示并计算覆盖路径；没有自动调用Start。
+- coverage_region_preset.py、online_coverage.sh：启动自动录制，固定区域并送入Qt。
+- record_cleaning_experiment.sh：结束时将在线地图、平地先验、原始观测地图和日志存入包目录。
+
+实测软件验证：
+- tests/test_online_coverage.py，6项通过：动态地图不清任务、静态地图原行为、真实位姿
+  新鲜度与数值、矩形变换、未知/障碍地图、平地先验不能覆盖障碍。
+- 原覆盖管理状态机172项通过；三种launch展开通过；Qt目标构建通过。
+- 实际J6M预检/TF/MID360/FAST-LIO/覆盖链路运行，真实节点表没有map_server或旧地图定位器。
+- 当前session-20261101_182905-2，READY/active=false，localized/chassis_ready/avoidance_ready
+  均true。相同固定框在在线地图积累后刷新，9条清扫线、30.0/30.0平方米、不可覆盖0，
+  预计144.6秒；规划估计不等于实际清扫结果，尚未发送任务或行驶验证。
+- 本次预设作业宽0.80m（装置宽）、重叠15%、道间距0.68m；刷子实际有效宽度待实验核对。
+
+录制与证据：
+  rosbags/覆盖清扫1 -> localization/20261101_182914
+  rosbags/覆盖清扫1_准备 -> localization/20261101_182438（已正常停止的接入准备段）
+  validation/online_coverage_20261101/
+当前正式包持续录制ROS、四路图/检测/BEV与Qt视频。region_request.json保存实际框顶点。
+桌面在最终检查时已锁屏（LockedHint=yes），Qt截图为黑屏，已请用户解锁；ROS和HTTP
+视觉数据仍增长。解锁前这段视频不能当作可见Qt画面。不要擅自解锁或填写用户密码。
+
+现场启动按钮由用户点击；本次没有自动开始覆盖、发导航目标或机构动作。
+旧地图、YOLO模型/标定、无深度BEV、清扫1～4记录均保留。

@@ -1,0 +1,33 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Global Options:
+    Fixed Frame: map
+    Frame Rate: 20
+  Displays:
+    - Class: rviz/Grid
+      Name: Ground grid
+      Enabled: true
+      Cell Size: 1
+      Plane: XY
+      Reference Frame: map
+    - Class: rviz/Map
+      Name: Navigation map
+      Enabled: true
+      Topic: /map
+    - Class: rviz/MarkerArray
+      Name: BEV trash centers
+      Enabled: true
+      Marker Topic: /fod/bev/markers
+  Tools:
+    - Class: rviz/Interact
+    - Class: rviz/MoveCamera
+  Views:
+    Current:
+      Class: rviz/TopDownOrtho
+      Target Frame: map
+      Scale: 80
+      X: 1
+      Y: 0

@@ -6,6 +6,7 @@
   <arg name="command_topic" default="/cmd_vel_unlocalized"/>
   <arg name="odom_topic" default="/odom"/>
   <arg name="use_tf_pose" default="true"/>
+  <arg name="online_mapping" default="false"/>
   <node pkg="autolabor_coverage" type="hybrid_teb_command_mux.py"
         name="hybrid_teb_command_mux" output="screen" required="true">
     <param name="enabled" type="bool" value="true"/>
@@ -28,5 +29,6 @@
     <rosparam file="$(arg config_file)" command="load"/>
     <param name="config_file" value="$(arg config_file)"/>
     <param name="factory_defaults_file" value="$(arg factory_defaults_file)"/>
+    <param name="online_mapping" value="$(arg online_mapping)"/>
   </node>
 </launch>

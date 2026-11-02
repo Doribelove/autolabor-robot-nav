@@ -1,0 +1,33 @@
+2026-11-01 BEV目标“不可达”诊断与修复
+
+现场：前视plastic目标地面估计x=3.60m、y=+0.55~0.56m。导航LOCALIZED、底盘/避障
+ready，覆盖已由操作者取消；BEV清扫终态COMPLETE/跳过1个，泛化原因“不可达或无通过证据”。
+本轮只读诊断没有发送清扫start、初始位姿、导航目标、速度或机构命令。
+
+确定根因：move_base/make_plan实际返回非空路径，Path.header.frame_id为空，所有
+PoseStamped.header.frame_id均为map。bev_cleaner._plan此前要求外层header必须为map，
+因此在检查路径可用性时将真实有效响应丢弃，后续统一显示为不可达。
+修复：只允许外层为空或map；仍逐个检查位姿map、数量、有限数值及起终点误差。
+检查通过后为空的外层补入map及首个位姿时间。坐标系冲突/未知仍拒绝。
+未改变外廓、避障、10cm通过阈值、规划器或控制参数。
+
+证据：result_before_fix.json和result.json，现场4方向中3个直线清扫带无碰撞，
+其中2个规划返回的刷子参考轨迹满足通过；一个方向因外廓碰撞保留不可达。
+真实响应回放：旧代码拒绝，修复后接受22个map位姿；5类异常响应仍拒绝。
+16项几何与11项隔离ROS流程检查通过，其中包含空外层坐标系及错误/未知逐点坐标系。
+
+已重载本机清扫节点：旧roslaunch1468106正常结束，父进程尚未回收的zombie导致首轮
+等待条件误报，确认State=Z及旧节点消失后再启动，并非旧进程仍占用或强制杀进程。
+新临时service autolabor-conbine-bev-cleaner.service MainPID1712302，
+PartOf=autolabor-conbine-live.service，正常live-stop时一同停止；下次live-start仍走
+原入口加载更新源码。当前其他PID不变：live1467434，YOLO1473043，四格1013642，BEV1013644。
+
+重载后使用实际新_choose代码、实时TF/地图/观测/导航状态进行无目标发布的规划查询，
+成功选到代价4.49685m的接近+清扫路径、skipped为空。真实节点IDLE、可见目标1个、
+navigation_available=true，等待操作者重新点击“开始视野清扫”。未冒充实车轨迹通过。
+诊断对象首次缺少持续导航状态订阅产生超时，补齐只读订阅后通过；实际节点订阅原有不变。
+当前未开始新的行驶任务，也未修改垃圾识别、标定或启用深度。未提交推送。
+
+修改：src/application/autolabor_fod_control/scripts/bev_cleaner_node.py
+      src/application/autolabor_fod_control/test/test_bev_cleaning_ros.py
+证据目录：validation/bev_unreachable_20261101/

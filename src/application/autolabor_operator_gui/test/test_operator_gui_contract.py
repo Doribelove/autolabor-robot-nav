@@ -40,55 +40,32 @@ VIEW_GLOBAL_MAP = WORKSPACE_ROOT / "scripts" / "view_global_map.sh"
 
 
 class OperatorGuiContractTest(unittest.TestCase):
-    def test_bpu_preview_is_separate_demand_driven_and_display_only(self):
-        self.assertIn('buildBpuPreviewPage(), QStringLiteral("BPU 预览")', GUI_SOURCE)
-        block = GUI_SOURCE.split('void MainWindow::refreshBpuPreview(', 1)[1].split(
-            'QWidget* MainWindow::buildVisionPage()', 1)[0]
-        for evidence in ('isMinimized()', 'bpu_tab_index_',
-                         '"/fod/bpu_preview/image"',
-                         '"/perception/fcos/raw_preview"',
-                         'bpu_preview_subscriber_.shutdown()',
-                         'image.cacheKey()', 'data.raw_preview',
-                         'data.bpu_preview', '旧结果，不代表当前场景'):
-            self.assertIn(evidence, block)
-        callback = GUI_SOURCE.split('void MainWindow::bpuPreviewCallback(', 1)[1].split(
-            'void MainWindow::detectionsCallback(', 1)[0]
-        for evidence in ('"bpu_preview_demo_only"',
-                         'sourceStampAge(msg->header.stamp) > 3.0',
-                         'msg->header.stamp <= telemetry_.bpu_preview_stamp',
-                         '"bpu_preview_raw_only") != bpu_show_raw_',
-                         'msg->width > 1920', 'msg->height > 1080'):
-            self.assertIn(evidence, callback)
-        for forbidden in ('advertise', '.publish(', 'telemetry_.detections',
-                          'telemetry_.vision_results', 'cmd_vel', 'move_base'):
-            self.assertNotIn(forbidden, block + callback)
+    def test_surround_bev_replaces_the_bpu_preview_page(self):
+        self.assertNotIn('buildBpuPreviewPage', GUI_SOURCE + GUI_HEADER)
+        self.assertNotIn('bpuPreviewPage', GUI_SOURCE)
+        self.assertEqual(1, GUI_SOURCE.count('buildBevPreviewPage(), QStringLiteral("BEV 视野清扫")'))
+        self.assertNotIn('"/fod/bpu_preview/image"', GUI_SOURCE)
+        self.assertNotIn('"/fod/bpu_preview/status"', GUI_SOURCE)
 
-    def test_bpu_preview_does_not_replace_production_backend_or_default_page(self):
+    def test_legacy_preview_startup_opens_replacement_without_changing_vision_backend(self):
         block = GUI_SOURCE.split('QWidget* MainWindow::buildVisionPage()', 1)[1].split(
             'QWidget* MainWindow::buildCoveragePage()', 1)[0]
         self.assertNotIn('QStringLiteral("j6m_fcos")', block)
+        self.assertIn('if (initial_bpu_preview && tabs_)\n    tabs_->setCurrentIndex(bev_tab_index_);', GUI_SOURCE)
         launch = ElementTree.parse(PACKAGE_ROOT / 'launch/operator_gui.launch').getroot()
-        arg = launch.find("arg[@name='initial_bpu_preview']")
-        self.assertEqual(arg.attrib['default'], 'false')
+        self.assertEqual('false', launch.find("arg[@name='initial_bpu_preview']").attrib['default'])
 
-    def test_overview_displays_only_bpu_results_and_keeps_original_vision_controls(self):
+    def test_overview_links_to_the_same_bev_cleaning_stream(self):
         page = GUI_SOURCE.split('QWidget* MainWindow::buildOverviewPage()', 1)[1].split(
             'QWidget* MainWindow::buildFastLioPage()', 1)[0]
-        for evidence in ('J6M BPU 检测画面（仅显示）', '等待 /fod/bpu_preview/image',
-                         'overview_bpu_status_', 'BPU 大画面', '相机与原视觉控制'):
+        for evidence in ('环视 BEV 垃圾识别', 'overview_bev_status_', 'openBevCleaningButton',
+                         'tabs_->setCurrentIndex(bev_tab_index_)', '相机与原视觉控制'):
             self.assertIn(evidence, page)
-        block = GUI_SOURCE.split('void MainWindow::refreshBpuPreview(', 1)[1].split(
-            'QWidget* MainWindow::buildVisionPage()', 1)[0]
-        for evidence in ('(overview_visible || bpu_page_visible)',
-                         'tabs_->currentIndex() == overview_tab_index_',
-                         'update(overview_camera_preview_, data.bpu_preview)',
-                         'overview_bpu_status_->setText(result_status)'):
-            self.assertIn(evidence, block)
-        refresh = GUI_SOURCE.split('void MainWindow::refreshUi()', 1)[1].split(
-            'void MainWindow::', 1)[0]
-        self.assertIn('refreshBpuPreview(data)', refresh)
-        self.assertNotIn('updateImageLabel(overview_camera_preview_', refresh)
-        self.assertNotIn('const QImage overview_preview', refresh)
+        bev = (PACKAGE_ROOT / 'src/bev_integration.cpp').read_text(encoding='utf-8')
+        self.assertIn('updateImageLabel(overview_camera_preview_, frame.annotated', bev)
+        self.assertIn('overview_bev_status_->setText(bev_preview_->status())', bev)
+        surround = (PACKAGE_ROOT / 'src/surround_integration.cpp').read_text(encoding='utf-8')
+        self.assertNotIn('show(overview_camera_preview_', surround)
 
     def test_ai_page_is_three_gate_fail_closed_and_supports_manual_debug(self):
         for evidence in (

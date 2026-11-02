@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Three-camera BEV spot cleaning through the existing ordinary goal bridge.
+"""Surround BEV spot cleaning through the existing ordinary goal bridge.
 
 No velocity publisher, global planner reconfiguration or brush actuator command.
 Only an explicit start request creates goals. Detection runs independently.
@@ -41,7 +41,7 @@ class BevCleaner:
         self.active = False
         self.round_id = ''
         self.state, self.reason = 'IDLE', '等待开始视野清扫'
-        self.perception_reason = '等待三路 BEV 检测'
+        self.perception_reason = '等待环视 BEV 检测'
         self.frame = None
         self.last_identity = None
         self.source_key = None
@@ -53,6 +53,8 @@ class BevCleaner:
         self.selected = None
         self.passed_count = 0
         self.skipped = set()
+        self.skip_reasons = {}
+        self.unfinished = []
         self.route = []
         self.map_frame = rospy.get_param('~map_frame', 'map')
         self.base_frame = rospy.get_param('~base_frame', 'base_link')
@@ -63,7 +65,8 @@ class BevCleaner:
             raise ValueError('rig_to_base_xyyaw must be [x_m, y_m, yaw_rad] or []')
         self.offset = float(rospy.get_param('~cleaning_reference_offset_m', .52))
         self.tolerance = float(rospy.get_param('~cleaning_tolerance_m', .10))
-        if not 0 <= self.offset <= 1. or not .01 <= self.tolerance <= .10:
+        # Front attachments may extend the reference beyond the old 1 m cap.
+        if not math.isfinite(self.offset) or self.offset < 0 or not .01 <= self.tolerance <= .10:
             raise ValueError('Invalid cleaning reference geometry')
         self.tf = tf2_ros.Buffer(cache_time=rospy.Duration(15.))
         self.listener = tf2_ros.TransformListener(self.tf)
@@ -201,9 +204,14 @@ class BevCleaner:
                 positions = self._localize(frame)
                 with self.lock:
                     self.targets.update(positions, observed)
-                    self.perception_reason = '三路 BEV 在线，当前可定位 {} 个目标'.format(len(positions))
+                    cameras = frame.get('configured_cameras', [])
+                    prefix = '{}路{} BEV'.format(len(cameras), '环视' if 'rear' in cameras else '相机') if cameras else 'BEV'
+                    self.perception_reason = '{} 在线，当前可定位 {} 个目标'.format(prefix, len(positions))
                 self.observations_pub.publish(String(data=json.dumps(dict(
                     frame, map_frame=self.map_frame, map_objects=positions), allow_nan=False)))
+            except tf2_ros.TransformException:
+                with self.lock:
+                    self.perception_reason = 'BEV到底盘平面外参已配置，等待导航定位TF'
             except Exception as exc:
                 with self.lock:
                     self.perception_reason = str(exc)
@@ -236,12 +244,16 @@ class BevCleaner:
             self.stop.clear()
             self.round_id = uuid.uuid4().hex
             self.active, self.passed_count = True, 0
-            self.targets.passed.clear()
+            self.targets.begin_round(time.time())
             self.skipped.clear()
-            self.state, self.reason = 'PLANNING', '正在规划当前视野目标'
+            self.skip_reasons.clear()
+            self.unfinished = []
+            self.state, self.reason = 'PLANNING', '已记录待扫目标，正在规划'
+            rospy.loginfo('BEV round %s started with %d map targets',
+                          self.round_id, len(self.targets.pending()))
             threading.Thread(target=self._run, daemon=True).start()
         self._publish()
-        return TriggerResponse(True, '开始逐步清扫当前三路 BEV 视野内的垃圾')
+        return TriggerResponse(True, '开始逐步清扫当前 BEV 视野内的垃圾')
 
     def _cancel_exact(self):
         if self.goal_id and self.action_states.get(self.goal_id) not in self.TERMINAL:
@@ -285,7 +297,10 @@ class BevCleaner:
         if isinstance(outcome[0], Exception):
             raise RuntimeError(str(outcome[0]))
         plan = outcome[0]
-        if plan.header.frame_id != self.map_frame or len(plan.poses) < 2:
+        # move_base/GetPlan may leave Path.header empty while each returned
+        # PoseStamped explicitly names the global frame. Validate those poses
+        # before filling the container header; never guess an unknown frame.
+        if plan.header.frame_id not in ('', self.map_frame) or len(plan.poses) < 2:
             return None
         poses = [(p.pose.position.x, p.pose.position.y) for p in plan.poses]
         if (any(p.header.frame_id != self.map_frame for p in plan.poses)
@@ -293,6 +308,9 @@ class BevCleaner:
                 or math.hypot(poses[0][0]-start[0], poses[0][1]-start[1]) > .3
                 or math.hypot(poses[-1][0]-end[0], poses[-1][1]-end[1]) > .15):
             return None
+        if not plan.header.frame_id:
+            plan.header.frame_id = self.map_frame
+            plan.header.stamp = plan.poses[0].header.stamp
         return plan
 
     def _sweep_free(self, start, end):
@@ -317,7 +335,7 @@ class BevCleaner:
     def _choose(self):
         robot = self._robot()
         with self.lock:
-            targets = copy.deepcopy(self.targets.visible(time.time()))
+            targets = copy.deepcopy(self.targets.pending())
         targets = sorted((t for t in targets if t.identity not in self.skipped),
                          key=lambda t: math.hypot(t.x-robot[0], t.y-robot[1]))[:6]
         choices = []
@@ -345,17 +363,24 @@ class BevCleaner:
             if best:
                 choices.append(best)
             else:
-                self.skipped.add(target.identity)
+                self._skip(target, '未找到可达且无碰撞的接近及清扫路径')
         with self.lock:
             # Planning can take several camera frames. Refresh each candidate's
-            # identity from the current visible set before committing a goal.
-            visible = {t.identity: t for t in self.targets.visible(time.time())}
-            choices = [c for c in choices if c[1].identity in visible and
-                       math.hypot(c[1].x-visible[c[1].identity].x,
-                                  c[1].y-visible[c[1].identity].y) <= self.tolerance]
+            # latest map position, retaining its identity even during a dropout.
+            pending = {t.identity: t for t in self.targets.pending()}
+            choices = [c for c in choices if c[1].identity in pending and
+                       math.hypot(c[1].x-pending[c[1].identity].x,
+                                  c[1].y-pending[c[1].identity].y) <= self.tolerance]
             self.route = [dict(id=c[1].identity, x=c[1].x, y=c[1].y, cost_m=c[0])
                           for c in sorted(choices, key=lambda c: c[0])]
         return min(choices, key=lambda c: c[0]) if choices else None
+
+    def _skip(self, target, reason):
+        with self.lock:
+            self.skipped.add(target.identity)
+            self.skip_reasons[target.identity] = reason
+        rospy.loginfo('BEV target %d unresolved at (%.3f, %.3f): %s',
+                      target.identity, target.x, target.y, reason)
 
     def _navigate(self, pose, target=None):
         self._assert_running()
@@ -398,7 +423,7 @@ class BevCleaner:
         raise RuntimeError('本次清扫导航超时')
 
     def _reobserve(self, target):
-        """At the approach pose, use a new BEV observation before the pass."""
+        """Refine from fresh detections, otherwise keep the recorded map target."""
         arrived = time.time()
         deadline = time.monotonic()+2.
         while time.monotonic() < deadline:
@@ -411,30 +436,41 @@ class BevCleaner:
                     return copy.deepcopy(min(matches, key=lambda t:
                         math.hypot(t.x-target.x, t.y-target.y)))
             self.stop.wait(.05)
-        return None
+        self._assert_running()
+        with self.lock:
+            remembered = self.targets.targets.get(target.identity)
+            if remembered is None:
+                raise RuntimeError('待扫目标记录已重置')
+            self.reason = '目标暂时漏检，按最后记录的地图位置继续清扫'
+            result = copy.deepcopy(remembered)
+        rospy.loginfo('BEV target %d not redetected; using remembered map position (%.3f, %.3f), age %.1fs',
+                      result.identity, result.x, result.y, time.time()-result.observed)
+        return result
 
     def _run(self):
-        final_state, final_reason = 'COMPLETE', '当前可达视野目标已逐步处理'
+        final_state, final_reason = 'COMPLETE', '本轮记录的待扫目标已全部获得轨迹通过证据'
         try:
             for _ in range(100):
                 self._assert_running()
                 with self.lock:
-                    self.state, self.reason = 'PLANNING', '按当前可达路径长度选择下一处垃圾'
+                    self.state, self.reason = 'PLANNING', '从已记录的待扫目标中选择下一处垃圾'
                     self.selected = None
                 choice = self._choose()
                 if choice is None:
                     with self.lock:
-                        remaining = [t for t in self.targets.visible(time.time())
+                        remaining = [t for t in self.targets.pending()
                                      if t.identity not in self.skipped]
                     if remaining:
                         continue
                     if self.skipped:
-                        final_reason = '本轮结束；部分目标不可达或未获得清扫通过证据'
+                        final_reason = '本轮部分完成；仍有目标不可达或未获得清扫通过证据'
                     break
                 _, target, start, end, transit, sweep = choice
                 with self.lock:
                     self.selected = target
-                    self.state, self.reason = 'APPROACHING', '接近下一处垃圾'
+                    self.state, self.reason = 'APPROACHING', '接近下一处已记录的垃圾位置'
+                rospy.loginfo('BEV round %s approaching target %d at (%.3f, %.3f), last seen %.1fs ago',
+                              self.round_id, target.identity, target.x, target.y, time.time()-target.observed)
                 display = Path()
                 display.header = transit.header
                 display.poses = transit.poses+sweep.poses
@@ -444,29 +480,31 @@ class BevCleaner:
                 with self.lock:
                     self.state, self.reason = 'REOBSERVING', '接近后重新观察垃圾位置'
                 current_target = self._reobserve(target)
-                if current_target is None:
-                    self.skipped.add(target.identity)
-                    continue
                 if math.hypot(current_target.x-target.x, current_target.y-target.y) > self.tolerance:
                     continue  # The next plan uses the newly observed location.
                 target = current_target
                 with self.lock:
                     self.selected = target
                 if not self._sweep_free(start, end):
-                    self.skipped.add(target.identity)
+                    self._skip(target, '接近后清扫路径被代价地图阻挡')
                     continue
                 with self.lock:
-                    self.state, self.reason = 'SWEEPING', '沿前进路径经过垃圾，检查实际清扫轨迹'
+                    remembered = time.time()-target.observed > self.targets.ttl
+                    self.state = 'SWEEPING'
+                    self.reason = ('目标暂时漏检，按记录位置执行前进清扫段' if remembered else
+                                   '沿前进路径经过垃圾，检查实际清扫轨迹')
                 crossed = self._navigate(end, target)
                 with self.lock:
                     if crossed:
                         self.targets.complete(target)
                         self.passed_count += 1
+                        rospy.loginfo('BEV target %d trajectory passed; %d map targets remain',
+                                      target.identity, len(self.targets.pending()))
                     else:
-                        self.skipped.add(target.identity)
+                        self._skip(target, '导航结束但实际刷子轨迹未通过目标')
                     self.goal_id, self.expected = '', None
             else:
-                final_reason = '本轮已规划 100 次，可再次开始处理剩余视野目标'
+                final_reason = '本轮已规划 100 次，仍有未处理目标'
         except Exception as exc:
             final_state, final_reason = ('CANCELED' if self.stop.is_set() else 'FAILED'), str(exc)
         finally:
@@ -478,9 +516,17 @@ class BevCleaner:
                 # At most 200 requests in a normal round; bound old tokens.
                 if len(self.retired_requests) > 1024:
                     self.retired_requests.pop(next(iter(self.retired_requests)))
+                self.unfinished = [dict(id=t.identity, x=t.x, y=t.y, label=t.label,
+                    observed=t.observed, reason=self.skip_reasons.get(t.identity, final_reason))
+                    for t in self.targets.pending()]
+                if final_state == 'COMPLETE' and self.unfinished:
+                    final_state = 'PARTIAL'
                 self.state, self.reason = final_state, final_reason
                 self.active, self.selected, self.route = False, None, []
-                self.targets.passed.clear()
+                self.targets.end_round(time.time())
+                rospy.loginfo('BEV round %s ended %s: passed=%d unresolved=%d reasons=%s',
+                              self.round_id, final_state, self.passed_count,
+                              len(self.unfinished), self.skip_reasons)
                 # Retired request tokens still cancel a late bridge acceptance.
                 self.stop.set()
             path = Path()
@@ -492,9 +538,26 @@ class BevCleaner:
         with self.lock:
             t = self.selected
             frame = self.frame
-            payload = dict(state=self.state, reason=self.reason, active=self.active, round_id=self.round_id,
+            now = time.time()
+            pending = [dict(id=p.identity, x=p.x, y=p.y, label=p.label, observed=p.observed)
+                       for p in self.targets.pending()] if self.active else self.unfinished
+            missing_count = sum(now-p['observed'] > self.targets.ttl for p in pending)
+            reason = self.reason
+            if self.active or pending:
+                reason += '；待处理 {} 个（暂未检出 {} 个）'.format(len(pending), missing_count)
+            try:
+                self._navigation_available()
+                navigation_available, navigation_detail = True, '现有导航可接收本任务'
+            except RuntimeError as exc:
+                navigation_available, navigation_detail = False, str(exc)
+            payload = dict(state=self.state, reason=reason, active=self.active, round_id=self.round_id,
+                camera_names=frame.get('configured_cameras', []) if frame else [],
+                camera_count=len(frame.get('configured_cameras', [])) if frame else 0,
+                navigation_available=navigation_available, navigation_detail=navigation_detail,
                 perception=self.perception_reason, passed_count=self.passed_count,
                 skipped_count=len(self.skipped), visible_count=len(self.targets.visible(time.time())),
+                pending_count=len(pending), remembered_count=missing_count,
+                pending_targets=pending, skipped_reasons=self.skip_reasons,
                 selected=dict(id=t.identity, x=t.x, y=t.y, label=t.label) if t else None,
                 route=self.route, goal_id=self.goal_id,
                 rig_to_base_configured=bool(self.rig_pose),

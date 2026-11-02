@@ -1,0 +1,112 @@
+四路原图识别、BEV 地面二维定位与可选 J6M BPU 推理（2026-11-01）
+
+后续更新：用户要求消除重叠，已在线启用单路取图与跨材质双向框关联。
+最新实现/运行状态见 docs/BEV_OVERLAP_FIX_20261101.txt；下文是首次交付记录。
+
+当前交付
+用户最新要求以可用的 BEV、垃圾识别和二维定位为目标，BPU 可以加速。
+已将当前预览/清扫观测入口改为：四路翻正原图识别 -> 按每路内外参投影
+地面接触点 -> 跨相机重叠观测合并 -> BEV 米制网格与坐标标记。
+这条路径使用现有模型，无需先安装 Windows/WSL、获取 HEAL 或重新编译 HBM。
+既有四路特征融合原型与官方六路基线保留；当前入口是观测点融合，不能称为
+学习式四路 BEV 特征融合模型。背景仍使用地面平面投影，墙、箱等立体物体仍会
+拉伸；本次主要消除了在拉伸的 BEV 图上做垃圾检测这一识别误差来源。
+
+原图输入固定 front/left/right/rear，来自同一次 BEV compose 快照，新增 /views
+打包原图与其 BEV/标定/源帧标识。没有重新打开相机。采集快照一致不等于曝光同步。
+沿用当前 config/four_camera_bev.json：X 向前、Y 向左，左右中点地面投影为原点；
+BEV x=[-2,4]m、y=[-3,3]m、每像素0.01m。栅格分辨率不代表定位精度。
+定位用识别框下缘中心（有有效分割接触点时使用该点）的光线与地面相交。
+输出是地面接触点估计，不是真实垃圾占地轮廓的中心。截断接触点、朝天光线、
+车体遮挡和范围外点不发布为有效地面观测。不同相机同标签点相距不超过0.15m时
+做完整组内距离约束的合并，同相机两个目标不会在本步骤合并；该阈值尚未实车整定。
+置信度取组内最大值，不伪造融合后的概率提升。
+
+后端与默认选择
+默认 CUDA：Jetson 原有 best6.pt，输入尺寸640，继续使用当前垃圾模型。
+可选 BPU：J6M 已有 detector_zed_attempt03.hbm，四路逐一推理，图像预处理与
+几何定位/合并在 CPU。常驻推理程序持有原 BPU 独占锁，锁被占用时报告失败；
+不停止其他会话，不自动切换模型。两后端的 checkpoint 不同，不能视为同权重
+量化前后对比，也没有用官方交通类别模型冒充垃圾检测器。
+  CUDA checkpoint SHA256:
+  5efaafa1503db11c2ba261b4429389d96335b4eef4d0fc44d6ca41e7431f2d0f
+  BPU HBM SHA256:
+  f2f1f7e9753b53b0494495be44af92a0603b3ee6c71e69e0f58a0d50544a8cb8
+  BPU source checkpoint SHA256:
+  711b6bb4b4debebcf993f033f23e7e641a02dd279254779f8dafed11b6a79233
+板端只在 /tmp/conbine-ground-detector-* 放推理脚本，读取已有私有库与模型；
+未切换正式 current、替换全局运行库、刷机或修改导航。
+
+入口与复现命令（项目根目录执行）
+配置检查：
+  bash scripts/camera_surround.sh check
+打开四路、BEV 和 Qt，使用默认 CUDA：
+  bash scripts/camera_surround.sh start
+使用已验证的旧垃圾 HBM：
+  BEV_DETECTOR_BACKEND=bpu bash scripts/camera_surround.sh start
+上述 start 不启动真实导航；已有会话运行时不会热切换后端。需切换时先 stop，
+再按所需后端 start。完整结束 Qt、BEV 与四路采集：
+  bash scripts/camera_surround.sh stop
+  bash scripts/camera_bev.sh stop
+  bash scripts/four_camera_view.sh stop
+如果四格启动前旧 ZED sender 正在运行，四格退出会恢复该旧服务，和原生命周期一致。
+
+运行中查看状态及地面点：
+  curl -s http://127.0.0.1:18884/state
+  curl -s http://127.0.0.1:18884/detections
+后者保持 conbine.bev.cleaning.observations.v1，ground_objects 含 x/y（米）、
+confidence、label、source_cameras、position_method、frame_id。
+Qt 继续使用原 BV01 协议，显示实际 CUDA/BPU、BEV 点位和二维坐标；点位周围的小框
+仅为显示标记，不是由 BEV 图检测出的包围框。旧 Qt 垃圾地图页面没有恢复。
+
+无需相机的实际板端回放与旧标注诊断：
+  /usr/bin/python3 -s tools/bev_feature/replay_ground_detector.py --backend bpu --output runtime/ground_check_bpu
+  /home/slam/robot_ws/.venv/fod_yolo/bin/python3 -s tools/bev_feature/replay_ground_detector.py --backend cuda --output runtime/ground_check_cuda
+独立 HTTP 接口贯通检查（临时端口18893/18894，需要 J6M 可连与 BPU 空闲）：
+  /usr/bin/python3 -s tools/bev_feature/check_ground_preview.py --output runtime/ground_http_check
+该检查明确使用历史图片与合成的传输时钟，结果含 offline_replay 和
+synthetic_delivery_clock，不是实车采集到地图发布时延测试，不连接真实 ROS。
+本路径复用已训练/已编译模型，没有新增训练、量化或编译步骤；不能将上述回放
+命令写成四路学习式模型训练完成的证据。
+
+实际验证
+证据根目录 validation/bev_ground_detection_20261101/。
+1. 原图投影/越界过滤/交界合并/近邻保持/原子图像协议等20项检查通过，
+   geometry_tests_final.log。Qt Release 构建成功，8项解码检查通过，qt_tests.log；
+   包括读取真实 BPU 回放服务生成的 BV01 报文。不是只检查模拟后端字符串。
+2. J6M 实际运行四路原图垃圾 HBM；每路 vendor_infer 约6ms，四路约24.5ms。
+   含 JPEG 编码、传输、解码、预处理、拷贝、解码框的四路调用中位145.83ms。
+   默认 CUDA 四路调用中位113.69ms。各为5次调用、去除第1次后统计；本轮两个
+   后端部分诊断并行运行，不是受控性能对比，且权重/输入尺寸不同。
+   因此 BPU 内核快不等于当前跨主机完整流程快于 CUDA；默认暂保留当前模型。
+3. BPU HTTP 回放贯通 original views -> geometry -> BEV frame/detections，
+   http_preview_fixed/result.json 通过，一次四路调用174.64ms。
+   实拍四路回放场景中两后端均没有>=0.25的垃圾框，不能用这组空结果验收定位精度。
+4. 从旧 image_label/images/test 确定性抽20张有框图片，共38个标注；统一缩放
+   最长边1280，按单类垃圾IoU>=0.5匹配。BPU：20预测/19匹配，P=0.95、R=0.50；
+   CUDA640：26预测/20匹配，P=0.769、R=0.526。样本少、与训练集是否重叠未知，
+   不是本车实际精度，召回结果也不足以承诺清扫时不漏检。报告分别在
+   bpu_resized/report.json、cuda_resized/report.json。
+5. 额外尝试CUDA1024，四路中位178.81ms，旧标注17/38匹配；未体现提升，保持640。
+   cuda1024/report.json。首次OpenCV整数参数与诊断大图JPEG大小问题已修正，
+   初次失败证据保留，最终几何/协议与HTTP/Qt检查使用修正后的文件。
+
+尚未实测的效果与下一步
+相机仍按用户此前要求关闭；新逻辑已经落地并完成离线/板端检查，尚未启动实时界面。
+本轮没有车辆运动、导航目标、速度或机构命令。相机/预览与临时测试端口最终均关闭。
+当前坐标 frame_id=camera_rig_ground_estimate。重装后 rig_to_base_xyyaw 仍空，
+不将旧[0.20,0,0]无依据套回新安装；时间戳仍是接收时间/缓存年龄的估计，未验证
+四路曝光时钟一致。本入口不声称已按真实采集时刻完成 map 坐标验收。
+已有独立 ROS 特征观测/map 发布工具保留，不能把它的合成回放当本次实车定位结果。
+需要实际在车旁摆放垃圾、量取几个地面参考点（含两相机交界），比较输出坐标并整定；
+之后车辆换位置检查地图点稳定性。这些实测尚未进行，二维误差与采集到地图时延为
+未测，不能以1cm栅格或合成几何测试替代。当前交付也不代表完整自主拾取清扫验收。
+
+本轮主要文件
+distribution/j6m_bpu_navigation/surround/{ground_protocol.py,ground_detections.py,image_detector.py}
+distribution/j6m_bpu_navigation/surround/tests/test_ground_detections.py
+scripts/{three_camera_bev.py,bev_yolo_server.py,bev_bpu_worker.py,bev_perception.sh,camera_bev_qt.sh}
+src/application/autolabor_operator_gui/src/{bev_preview_client.cpp,bev_integration.cpp}
+src/application/autolabor_operator_gui/test/test_bev_preview.cpp
+tools/bev_feature/{replay_ground_detector.py,check_ground_preview.py}
+保留1027分支和此前未提交改动；未推送。

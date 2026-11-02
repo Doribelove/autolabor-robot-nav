@@ -5,6 +5,971 @@
 本节与该文件是当前规则，下方旧记录中的固定禁动、仅观察及未授权表述属于历史；
 在本地项目规则范围内，用户最新明确要求优先于项目文件和历史交接。
 
+
+
+
+
+2026-11-02 用户要求结束并关闭Qt和导航。已正常live-stop，本次
+session-20261102_171952-2的板端guardian退出码0；主Qt/导航/底盘/清扫节点停止，
+独立YOLO、BEV、四路采集及预览Qt均inactive/MainPID0。四路退出后可能恢复的旧
+j6m-b-camera-sender/link及板端receiver已一并停止；本机ZED与板端ISX锁实际可取得
+并释放，11583/11587/18882～18885无监听，板端17441/17442亦无监听。两录制服务
+及独立建图服务继续inactive/MainPID0。桌面室外落叶清扫包、室外积水清扫包、
+室内垃圾定点清扫包均保留、recording_state=stopped、无.active；新静态图
+map_20261102_171534及其他旧图/录包保留。证据validation/full_shutdown_20261102/。
+当前整套Qt/导航/相机采集关闭，软件停止不代表相机断电；时钟服务保留。
+未更改地图/算法参数、提交或推送，本条取代下方导航及相机仍运行的状态。
+
+2026-11-02 用户“可以了结束了”。已正常停止室内垃圾定点清扫包的ROS与视觉/Qt录制，
+两服务inactive/MainPID0；6个ROS包+5个视觉包+5段Qt录像，ROS跨度298.551秒（约4分59秒），
+4692906269字节（约4.693GB），全部bag索引和视频容器检查通过，无.active残留。
+按既有桌面保存偏好，完整实际目录已原子移动至/home/slam/Desktop/室内垃圾定点清扫包，
+54文件移动前后inode/大小全部一致；内部visual/current用相对链接，项目名称入口和
+localization/20261102_182750兼容链接保持可读。metadata记录stopped、not_evaluated及
+用户原话，未自行判定成功/失败；说明和finalization_check.json随包，已sync落盘。
+证据validation/indoor_garbage_spot_recording_20261102/finalization/desktop_saved.json。
+当前没有实验录制；导航live276675、Qt和四路视觉继续运行，未另发清扫start、目标、
+取消或速度。桌面落叶/积水包及其他地图数据保留，未修改算法配置、提交推送。
+本条取代下方该包持续录制状态。
+
+2026-11-02 用户要求现在录制“室内垃圾定点清扫包”。已18:27:50新建
+rosbags/室内垃圾定点清扫包 -> localization/20261102_182750，ROS及视觉/Qt两服务active，
+三秒实读ROS字节及Qt/四路/识别帧递增，错误均空。继续原导航
+session-20261102_171952-2/live276675与map_20261102_171534，未因实验名称变更切换地图；
+相机/BEV/YOLO不重启，Qt置前，未发送清扫start/目标/速度/取消。metadata记
+in_progress/user_manual_only，当前地图及配置随包保存，结束后沿用桌面保存偏好。
+证据validation/indoor_garbage_spot_recording_20261102/。当前持续录制等待用户结束，
+桌面落叶/积水包保持，积水前两次已删除状态保持；未改算法配置/提交推送。
+本条取代下方录制停止状态，清扫由用户手动开启。
+
+2026-11-02 用户要求停止当前积水录包、保存到桌面并删除前两次。已正常停止两项录制，
+均inactive/MainPID0；第三次181306录制为5个ROS包+5个视觉包+5段Qt视频，ROS跨度
+242.597秒（约4分03秒）、4005793222字节（约4.006GB），bag索引/视频容器检查通过，
+无.active。完整实际目录已原子移动至/home/slam/Desktop/室外积水清扫包，53个文件
+移动前后inode/大小完全一致；visual/current为相对链接，项目rosbags/室外积水清扫包及
+localization/20261102_181306兼容链接仍可访问。实查前两次180839和181043目录均不存在，
+已按之前指令删除，本次没有误删第三次或室外落叶清扫包。metadata记录stopped/
+not_evaluated（未收到成功/失败评价），说明及finalization_check.json随包保存，已sync。
+证据validation/outdoor_water_cleaning_20261102/finalization/desktop_saved.json。
+导航live276675、Qt及相机保持运行，未发送清扫start/取消/目标/速度；当前无实验录制。
+本条替代下方持续录制状态；旧地图和其他录包保留，未改算法配置、提交或推送。
+
+2026-11-02 用户“再来一次”，按紧邻上一轮删除当前积水录包后重录处理并已告知。正常
+停止录制后仅删除第二段localization/20261102_181043及其名称/current链接，43文件
+约2.054GB；首段180839此前已删除。18:13:06同名新建rosbags/室外积水清扫包 ->
+localization/20261102_181306，两录制服务active，三秒ROS/Qt/四路/识别实读递增且无错误。
+metadata保持in_progress/user_manual_only，当前地图/导航配置随包保存，结束后再封包
+移至桌面。未重启导航session-20261102_171952-2/live276675或相机，未发start/目标/
+取消/速度；桌面室外落叶清扫包及其他数据保留。证据
+validation/outdoor_water_cleaning_20261102/deleted_second_take.json与restart2/。
+当前新包持续录制，本条取代第二段进行状态；未改算法/地图/配置或提交推送。
+
+2026-11-02 用户要求刚才积水录包不要、删除后重新开始。已正常停止两项录制，核实
+inactive/MainPID0及无.active后，仅删除室外积水清扫包首段localization/20261102_180839
+及对应名称/current链接，41个文件约1.706GB，证据validation/outdoor_water_cleaning_20261102/
+deleted_first_take.json。18:10:43同名重新开始，当前rosbags/室外积水清扫包 ->
+localization/20261102_181043，两录制服务active，三秒实测ROS/Qt/四路/检测帧递增且
+无错误。新metadata记录重录/in_progress、user_manual_only；结束后沿用桌面保存偏好。
+当前导航session-20261102_171952-2/live276675、Qt/相机/地图保持；未发清扫start、
+目标、取消或速度。桌面室外落叶清扫包及其他历史数据保留，未改算法参数/提交推送。
+证据validation/outdoor_water_cleaning_20261102/restart/。当前持续录制，本条替代下方
+首段录制进行状态；原首段已按用户要求删除，不得当成保留数据。
+
+2026-11-02 用户指定“室外积水清扫包”并要求现在开始录包。已18:08:39启动
+rosbags/室外积水清扫包 -> localization/20261102_180839，ROS/视觉Qt两服务active；
+三秒样本ROS文件字节及Qt/四路/识别帧均递增，错误为空。当前完整导航
+session-20261102_171952-2/live276675、map_20261102_171534及相机/BEV/YOLO保持，
+Qt置前，未发清扫start/目标/速度/取消。metadata为in_progress、user_manual_only，
+assets含当前静态图及导航配置；沿用上一包桌面保存偏好，preferred_final_directory为
+/home/slam/Desktop/室外积水清扫包，当前正在项目路径写入，结束后再正常封包和移至桌面，
+不可在录制中移动目录。证据validation/outdoor_water_cleaning_20261102/及包内检查。
+当前持续录制，等待用户结束；上次桌面室外落叶清扫包保留，未改算法/地图/参数或提交推送。
+本条取代下方录制停止状态，清扫仍由用户手动开启。
+
+2026-11-02 用户结束录包，指定命名“室外落叶清扫包”并要求保存在桌面。已正常停止
+室内定点清扫2的ROS/视觉Qt录制，两服务inactive/MainPID0；7个ROS包+7个视觉包+7段
+Qt录像，ROS跨度362.443秒（约6分02秒）、约6.215GB，所有bag索引/视频容器检查通过，
+无.active残留。完整实际目录已在同一文件系统原子移动到/home/slam/Desktop/室外落叶清扫包，
+59个文件移动前后inode/大小逐项一致；内部visual/current改成相对链接。项目入口已改名
+rosbags/室外落叶清扫包，原物理路径localization/20261102_174852保留兼容软链接指向桌面，
+runtime/localization_recording/current及旧绝对引用仍可解析。recording.json记录新名称、
+原名称及stopped，实验结果not_evaluated（用户未确认成功/失败），封包/桌面保存证据在
+validation/indoor_spot_cleaning2_20261102/finalization/，包内保留finalization_check.json及
+录制说明.txt，已sync。新静态地图及所有原始数据保留；live276675、Qt与相机继续运行，
+未另发清扫start/取消/目标/速度，未修改算法参数。本条取代下方持续录制状态；未提交推送。
+
+2026-11-02 用户“算了，现在开始录包，开始后告诉我”。已17:48:52新建
+rosbags/室内定点清扫2 -> localization/20261102_174852，ROS及视觉/Qt两服务active；
+三秒实读ROS文件字节、Qt/四路RGB/检测帧均递增，视频及两视觉流错误为空。保持当前
+session-20261102_171952-2/live276675、新静态图map_20261102_171534及原相机/BEV/YOLO，
+未因上一轮高度讨论修改地图/参数，也未重启导航。Qt已置前显示；本包assets保存当前
+完整静态地图及独立导航配置，metadata记in_progress、user_manual_only。助手未发清扫
+start、目标、速度或取消；仍由用户手动开始清扫，等待用户通知结束录包和评价结果。
+证据validation/indoor_spot_cleaning2_20261102/及包内recording_initial_check.json。
+当前持续录制，本条取代下方录制停止状态；旧包/地图保留，未提交推送。
+
+2026-11-02 用户询问新静态地图中央蓝色大块障碍（现场只有树叶）。只读分层核查确认：
+ROI map X[3.5,12.5)/Y[6,12)m中静态障碍624格，原二维scan图仅61格，三维切片新增563格
+（90.2%）；实时膨胀半径1.2m使它连成大片蓝色。建图固定Z切片[-.6,-.2]未随局部地面变化。
+PCD低表面RANSAC估计中心(8,9)地面Z约-.410，4351个切片点中85.6%在拟合地面±.15m内，
+说明该固定带已包含地面附近点；拟合不是独立地面测量/树叶语义真值。原实时scan筛选仍为
+base_link Z[.4,.8]，不要将问题等同实时上限过高或只缩膨胀半径。诊断/分层对照图在
+validation/indoor_map_obstacle_review_20261102/，含static/global数组、原PCD分析及统计。
+本轮未更改地图、参数、算法或重启，未发运动命令/清扫start；有图Qt导航继续运行、录制
+保持停止。若后续要求修复应优先按局部地面相对高度重新生成候选静态图，保留墙柱等障碍
+及原图；原始三维PCD可用于离线验证，不直接把低点全部删成自由区域。
+
+2026-11-02 用户确认建图完成，要求用刚建静态地图完整打开Qt。已向核实归属的mapper
+脚本254570发送TERM并正常保存，建图服务inactive/MainPID0；新图
+ global_maps/map_sets/map_20261102_171534的manifest complete，三维714874点、二维
+668×461格/0.10m（含未知外接66.8×46.1m），整套11文件15152943字节。部署至板端
+/map/conbine_navigation/maps/map_20261102_171534，11文件SHA-256全部一致，旧图不变。
+新config/indoor_mapping_20261102.json独立指定该图；重启前实测camera_init/base
+(6.76259,2.18614)、bodyZ .389120仅作ICP初始化种子。正常停止无图旧会话后启动
+session-20261102_171952-2/live276675、完整有图Qt/导航/底盘及BEV清扫节点；相机
+42125/BEV42127/YOLO42132连续、深度NONE。发/initialpose后实读LOCALIZED
+(overlap .9492/rmse .1491/inliers4555)，是算法匹配指标而非独立精度。Qt已最大化前台，
+真实截图确认新图/BEV；地图/定位/底盘/避障ready，规划参数事务已同步，局部代价地图
+收到，cleaner IDLE/active=false/navigation_available=true，覆盖IDLE。未发运动目标或
+清扫start；两录制服务继续inactive。用户手动开始清扫规则保持；本条替代上条建图进行
+状态。复开入口：bash scripts/conbine_live.sh start --config config/indoor_mapping_20261102.json。
+证据validation/indoor_mapping_20261102/，包含保存/校验/位姿种子/定位/实际Qt/状态；
+原地图和室内定点清扫1保留，未修改导航算法或标定文件，未提交推送。
+
+2026-11-02 用户要求先停录包、重新建图，等其通知建图结束后用新地图打开Qt。已正常停止
+室内定点清扫1，两录制服务inactive/MainPID0；25个ROS包+25个视觉包+25段Qt录像，
+ROS跨度1467.761秒、约27.812GB，全部bag索引及视频容器核查通过，无.active；实验结果
+未评价，旧自动清扫回执仍保留。随后正常live-stop，启动无图session-20261102_171409-2/
+live247924及Qt；不加载旧图，无自动清扫节点或新目标，四路42125/BEV42127/YOLO42132连续。
+用户再次“开始建图”后17:15:34正式启动既有global_mapping_session.sh，独立服务
+ autolabor-conbine-static-mapping.service（MainPID254569 bwrap，脚本254570，voxel255312，
+ grid255313），输出global_maps/map_sets/map_20261102_171534。实际RECORDING，历史持久
+点9546、camera_init坐标，Odometry/scan时效约.135秒。复用当前TF的body->base
+(-.011,-.02329,-.60588)及当前车体裁剪前1.22/后.52/半宽.40，仅本次环境传参；原算法和
+标定文件不改。二维扫描地图及三维持久体素正累积，融合地图在正常结束时生成。
+当前不录包，等待用户明确建图结束；到时先向经来源核实的脚本254570发送TERM触发
+正常保存（不能先停ROS或强杀整个进程组），等manifest complete后部署独立地图配置，
+再打开有图Qt，保留旧地图。Qt本身未管理该独立mapper，不要用Qt建图按钮重复启动。
+证据validation/indoor_mapping_20261102/，运行日志runtime/indoor_mapping_20261102/。
+不擅自停止建图或开始清扫；未提交推送。本条替代下方录制进行和静态旧图运行状态。
+
+2026-11-02 用户最新明确清扫由其手动开启，助手只确认录包；此要求替代之前自主开始和
+“重新开始冲”的授权。室内定点清扫1从16:49:01持续录制，路径localization/20261102_164901，
+ROS96859及视觉/Qt96892均active，四路/BEV后处理/Qt约5fps写入且错误为空。主导航
+session-20261102_164336-2/live68309、室内8月地图、Qt及相机不重启。此前按原授权16:50:06
+启动第一轮，记录1次轨迹通过后FAILED（TEB无法找到可用控制，12个未完成）；不等于拾取成功。
+16:51:13重试因无可见目标拒绝，随后短时观察在16:51:49检测到目标后已接受再启动，该轮
+实际PARTIAL/active=false、0通过、1个目标因无无碰撞路径跳过。观察进程已退出，无后台
+自动重试；收到最新要求后未再发start、取消或速度。当前清扫无活动任务，由用户在Qt手动
+开始，录制继续，实验结果仍in_progress。证据validation/indoor_spot_cleaning1_20261102/
+及包内manual_start_handoff.json；metadata已改user_manual_only，原启动回执保留。
+未改算法、阈值或标定，未提交推送。本条取代下方未录制状态。
+
+2026-11-02 用户明确要八月底室内通道地图。已正常停止地下车库会话，改用原
+config/conbine_live.json启动session-20261102_164336-2/live68309，实际地图
+map_20260829_221335_gimp_cleaned，1311×670格、0.1m，原地图校验通过。Qt前台综合页
+已显示室内通道地图；用户在Qt设置初值后16:44:44实读LOCALIZED（后续overlap .9903、
+rmse .1636、inliers4782），规划参数同步成功，覆盖IDLE/active=false且地图/定位/底盘/
+避障均ready。助手只切换显示页，未代发初值/目标/清扫start。四路42125/BEV42127/
+YOLO42132连续运行、深度NONE；两录制服务仍inactive/MainPID0。证据
+validation/indoor_map_qt_start_20261102/，含真实地图截图及localized_status.json。
+当前沿用室内通道有地图模式；本条取代下方地下车库地图及等待初值状态。
+未改算法配置、地图或录包，未提交推送。
+
+2026-11-02 用户要求打开有地图模式。已正常停止上述无地图live/Qt并用
+config/garage_manual_coverage.json启动session-20261102_164145-2/live58817，地图为
+garage_mapping2_20261101，不加载固定全场覆盖计划。Qt已最大化前台显示整张地图，
+/map=926×1147、0.1m、frame=map，static_map_mode=true；四路42125/BEV42127/YOLO42132
+保持连续运行。实际定位WAITING_INITIAL_POSE，覆盖IDLE/active=false/map_ready=true，
+底盘/避障ready，等待用户按真实位置和朝向设置初始位姿；未套用昨日XY或发送初值/目标。
+move_base因map/base TF未建立等待，Qt启动参数同步超时已留证，未称规划完全就绪。
+两录制服务inactive/MainPID0，未改算法/配置或新建录包。证据
+validation/mapped_qt_start_20261102/。当前有地图Qt/导航与相机保持运行，未提交推送；
+本条替代下方无地图运行状态，历史数据及F盘备份保留。
+
+2026-11-02 用户要求完整打开Qt。沿用上次无地图模式启动session-20261102_163822-2，
+live42161、四路42125/BEV42127/YOLO42132均active；主Qt已最大化并置于前台，真实桌面
+确认实时点云、BEV及各页入口可见。MID360/scan/FAST-LIO与底盘数据收到，camera_init
+至base_link TF时效约.058s，40×40m全局/20×20m局部滚动代价地图收到、motion_enabled=true。
+四路两次采样帧号递增，CUDA YOLO11-GAM best6约4.5fps；ZED深度NONE、独立预览隐藏。
+两录制服务inactive/MainPID0，未新建录包或发初值/导航目标/清扫start/速度。
+证据validation/full_qt_start_20261102/。当前Qt、无地图导航及四路视觉保持运行；
+原地图/录包/F盘备份保留，未改算法配置、提交或推送。本条替代下方全部关闭状态。
+
+2026-11-01 用户要求把今天录包复制到F盘。当前接入的移动盘为Doribelove，exFAT、
+UUID B405-D4B7，挂载/media/slam/Doribelove；已复制到其2026-11-01_实验录包目录。
+12组、773个实际文件、122446454377字节（122.446GB），全部源/目标SHA-256一致；
+逐文件大小/清单及源文件未改变检查通过，已sync落盘。exFAT不支持软链接，12个
+visual/current别名保存为Linux软链接.tar（可移植相对目标）及JSON，真实take数据均已
+复制且不重复；权限/时间在FILE_MANIFEST.json保留。目标含说明、SHA256SUMS及校验报告。
+证据validation/data_copy_20261101/。原始数据、地图及成功标记保留；导航/相机继续关闭，
+没有提交推送。本次复制已完成，没有后台复制任务。
+
+2026-11-01 用户要求关闭导航。已正常live-stop，session-20261101_224840-2板端guardian
+退出码0；主Qt/导航/底盘接口及YOLO、BEV、四路采集均停止，对应服务inactive/MainPID0。
+旧sender/link和板端receiver保持inactive；本机ZED与板端ISX相机锁均实测可取得后释放，
+11583/11587/18882～18885相关端口无监听，两项录制继续inactive。无地图导航1成功包
+（894.397秒、约11.493GB）及其他录包、地图、配置保留，未改写原始数据。
+证据validation/mapless_navigation_restart_20261101/shutdown/。当前完整导航、Qt与
+相机采集保持关闭；软件停止不代表切断相机电源。未提交推送，本条替代下方运行状态。
+
+2026-11-01 用户“成功,保存数据包”，随后询问大小和时长。已正常停止无地图导航1的
+ROS及视觉/Qt录制，两服务inactive/MainPID0；15个ROS包、15个视觉包、15段Qt录像，
+ROS跨度894.397秒（约14分54秒），11.493GB/10.704GiB。bag索引和视频容器核查通过，
+无.active残留；rosbags/无地图导航1（localization/20261101_225002）的recording.json
+及实验结果.txt标success，来源user_report。真实末段状态、录制日志及核查报告已保存，
+不将用户反馈补造为独立轨迹精度验收。证据validation/mapless_recording1_20261101/finalization/。
+无地图live663005及Qt保持运行，未启停相机或发送目标/速度，未修改算法配置。
+当前无实验录制；旧地图/成功包保留，未提交推送。本条替代下方持续录制状态。
+
+2026-11-01 用户明确“开始录制”。已于22:50:02新建rosbags/无地图导航1 ->
+localization/20261101_225002，ROS670054及视觉/Qt670088均active，三秒采样ROS包
+43.6->61.1MB、Qt帧30->45、识别帧33->49、四视图帧33->48，错误均空。
+当前无地图live663005/session-20261101_224840-2、Qt及后台相机/BEV/YOLO保持运行；
+未重启导航、代发目标或速度。recording.json记录mapless/in_progress，实读板端状态
+存initial_live_check.json；证据validation/mapless_recording1_20261101/。
+当前持续录制，等待用户结束并确认结果；本条取代下方未录制状态。既有成功包保留，
+未改算法配置、提交或推送。
+
+2026-11-01 用户要求重启完整导航展示无地图导航，并明确等他说录制才开始。已正常
+停止旧live/Qt并确认板端guardian退出，使用原conbine_live.sh start --mapping启动
+session-20261101_224840-2/live663005。不加载旧地图或静态定位器，未启动online-coverage；
+实读Qt static_map_mode=false、导航坐标camera_init，move_base/TEB及底盘运动链路启用。
+MID360/scan/FAST-LIO约10Hz、IMU约192Hz，camera_init->base_link TF时效约.039s；
+40×40m全局滚动代价地图及20×20m局部代价地图收到。Qt真实桌面已显示实时点云、
+四路BEV及YOLO，后台采集498654/BEV498657/YOLO498662连续保留；未弹独立相机窗口。
+两录制服务inactive/MainPID0，没有新录包，必须等待用户明确开始录制。旧自选覆盖1
+成功包及其他地图/录包保留。未发初始位姿/导航目标/非零速度或改变算法标定参数，
+不将启动就绪称为无地图行驶验收。证据validation/mapless_navigation_restart_20261101/。
+完整无地图导航与Qt保持运行，未提交推送；本条替代下方静态地下车库导航运行状态。
+
+2026-11-01 用户“结束,成功”。已正常停止地下车库自选覆盖1的ROS及视觉/Qt录制，
+两服务inactive/MainPID0；9个ROS包、9个视觉包、9段Qt录像，ROS跨度480.950秒，
+约7.954GB，bag索引/视频容器核查通过，无.active残留。rosbags/地下车库自选覆盖1
+（localization/20261101_223840）的recording.json及实验结果.txt已标success，来源user_report。
+final_live_status.json保留停止前实读覆盖READY/active=false、定位LOCALIZED及零速度；
+未将用户成功反馈补写为自动任务COMPLETE或覆盖率验收。证据
+validation/garage_manual_recording_20261101/及包内finalization_check.json。
+完整导航live598352与Qt仍运行，未另发取消/目标/速度，未启停相机或修改算法配置。
+当前无实验录制；旧包及成功标记保留，未提交推送。本条取代下方持续录制状态。
+
+2026-11-01 用户要求重启完整导航并自己选择区域覆盖。已正常取消旧PAUSED任务并封存
+地下车库覆盖清扫1，保留用户success；15个ROS包+15个视觉包+15段Qt视频，897.264秒，
+约15.245GB，索引/视频可读、无.active残留。旧live正常停止，guardian退出确认。
+新增config/garage_manual_coverage.json，使用相同地下车库地图2及标定，去掉固定
+coverage_plan_file；initial_body_z仅按重启前新鲜map/body实读-.201389设初始化种子。
+新session-20261101_223810-2/live598352、主Qt已启动；四路498654/BEV498657/YOLO498662
+保留连续运行。用重启前实测map/base(-3.1793,.7202,yaw约-.0248)作ICP种子，已LOCALIZED，
+新/odom时效约.05s；覆盖IDLE/active=false、plan_id空，external_plan_file实读空，地图/
+底盘/避障ready；宽1.2m/15%重叠及原运动参数保持。旧固定路线一键窗口保持inactive。
+Qt已切清扫页并准备框定工具，由用户点选顶点、确认生成及开始；未代选区域/发新目标。
+22:38:40新建rosbags/地下车库自选覆盖1 -> localization/20261101_223840，ROS601243与
+视觉Qt601280持续录制，帧递增且无错误。README补充自选入口；证据
+validation/garage_manual_restart_20261101/，旧包finalization_check及成功标记保留。
+当前完整导航/相机/新录制保持运行；未改规划算法/安全阈值或板端current，未提交推送。
+本条替代下方旧任务仍活动和旧实验持续录制状态。
+
+2026-11-01 用户“可以,标记为成功”。已将rosbags/地下车库覆盖清扫1的recording.json及
+实验结果.txt记为success，来源user_report。用户已点击独立一键按钮，StartCoverage实际
+accepted=true（1793543277.710198）；标记时节点仍活动，状态PAUSED。因用户本轮只要求标记，
+没有停止录制或取消导航；初始拟停止录制的说明已在操作前依据活动状态纠正。
+ROS/视觉Qt录制及live均active，继续记录，success_report_snapshot.json保留当时完整状态、
+定位、按钮启动回执、录像帧和服务证据。不将用户成功标记伪写为全场66.9%任务完成。
+未修改规划/模型/配置，未代发目标/取消/速度；未提交推送。
+
+2026-11-01 用户要求启动66.9%覆盖版、完整录制，并提供一键开始按钮。已启动真实会话
+session-20261101_222206-2/live498690，Qt/四路498654/BEV498657/YOLO498662运行。
+22:22:44开始rosbags/地下车库覆盖清扫1 -> localization/20261101_222244，ROS502279与
+视觉Qt502312持续录制，帧递增且无错误。用上次实测位姿仅作ICP种子，首次短发布未到
+localizer，保持发布器后实际接收并LOCALIZED（overlap约.999/rmse约.156-.158m）。
+375段新计划在板端加载96.1秒，plan_id 8d26ac62d8824c34a3fc79d46a3b4d5f，READY/active=false；
+定位、底盘、避障均ready。Qt已实际接收后端计划身份及1.2m参数。新独立左下角按钮
+scripts/garage_coverage_button.py/.sh（service509677，PartOf=live）仅在用户点击时调用
+原StartCoverage，一次点击、不弹二次确认；双击去重/禁用点击两项隔离检查通过。
+旧Qt开始按钮仍保留原确认。完整导航/录制持续运行，助手未点击开始或发运动目标。
+初始参数事务因等待map/base和TEB未就绪失败，定位恢复后重试成功；helper避免对
+同值宽度重复提交defaults。证据validation/garage_coverage66_start_20261101/，真实按钮
+截图、READY状态及录制状态已保存，计划/配置随本包保留；README已更新。
+本条替代下方关闭状态。新代码随独立会话overlay加载，未改板端current，未提交推送。
+
+2026-11-01 用户要求尽快得到车能行驶的避障覆盖路线，先允许80%，看到66.9%后明确
+“66也够了”。已固定本版：375扫线/375真实连接，3640.51/5443.83m²（66.87%）；
+全程约9483m/倒车1387m，回型主线+局部空地补线，非最短路线。
+保持1.2m作业宽、1.94×1.00m含余量外廓及R>=1.35m；5cm采样、完整外廓内部/边界、
+未知格/曲率/侧移及连续性检查通过，共252387位姿；面积为假定全程清扫的离线前刷并集，
+不是实车清扫验收。停止未完成搜索，未把丢弃区域称已证明不可达。
+外部计划v2保存真实曲线，生产加载器实读和控制器分段通过（1562执行段）；启动时仅重算
+实时入场，后续复用曲线和原动态避障。缺少连接时不再画穿障碍的虚假Path直线。
+Qt后台READY计划ID/实际参数同步已修复并构建；2项GUI、5项几何、5项导入/执行结构、
+172项状态机检查通过。config/garage_navigation1.json改选新verified_plan.json；
+start_garage_coverage.sh --plan-only预览后可Qt开始，默认则规划后请求开始，本轮未执行。
+成果/报告/用户接受记录在validation/garage_drivable_coverage_20261101/；README/说明已更新。
+导航/Qt/相机/录包继续inactive，未发新目标/速度/清扫start，无新板端部署，current未改；
+上一条已关闭会话及封包结果保持。未提交推送，旧地图、录包、1027和其他改动保留。
+
+2026-11-01 用户反馈Qt开始按钮变灰，核实急停已解除但GUI未关联后台plan_id；尝试在
+Qt载入同框，实读规划失败为GUI旧清扫宽度与后台1.2m不一致，旧READY计划保持。
+随后用户明确关闭导航，称路线不可行、部分位于障碍物内，再要求离线重规划，允许约80%
+覆盖。已取消旧覆盖计划，正常封存完整导航1_正式（18个bag索引可读、无.active），
+记录stopped_for_replanning及用户反馈；正常live-stop，板端guardian退出0。导航/Qt/
+YOLO/BEV/四路采集及录包均inactive/MainPID0；四路退出自动恢复的旧sender/link及板端
+receiver也已停止，时钟保留，ZED与ISX锁可取得释放，无11583/11587/18882～18885监听。
+证据validation/garage_navigation1_shutdown_20261101/。目前全部保持关闭，不自动发车。
+正进行独立离线规划：tools/garage_hybrid_offline.cpp调用已有Hybrid A*，Navfn只提供
+绕障通道，各可执行连接重新用Hybrid计算；garage_route_validation.py独立检查完整
+非对称车体、未知格、半径及横向/原地转动。旧494段有9段未通过更密检查；5项几何
+检查通过。当前计算在validation/garage_drivable_coverage_20261101/，尚未最终完成。
+已修改Qt源码以接收后端READY的计划身份与实际参数，当前正在正确依赖环境下构建和
+验证，未启动新版Qt。旧蓝色直线参考连接不能当作可行路径，下一版需展示真实验证曲线。
+
+2026-11-01 用户询问如何启动覆盖导航。核对发现Qt仅显示后台READY，内部coverage_plan_id
+未关联外部计划，因此不能声称其开始按钮可启动。已新增scripts/start_garage_coverage.sh，
+加载现有ROS环境并调用已保存plan_id的原StartCoverage入口；shell语法通过，未实际执行。
+Qt已切清扫页；尝试载入同一框时界面正在交互滚动，实际未进入选区且未产生新计划，
+不把这次尝试称Qt接管成功。已明确改用该一条命令，避免重启Qt打断正式录制，并说明
+现有覆盖仅导航、不会自动开刷/风机/喷淋。README/说明及正式录包coverage_plan已同步。
+正式录制持续，Qt823帧、四路与识别递增无错误；原READY计划/急停检查保持，未发start。
+
+2026-11-01 21:46 用户要求关闭录包并重新录包，准备开始。已正常停止并封存完整导航1
+（localization/20261101_213955），14个bag索引可读、无.active残留，约6.095GB；保留
+原数据，metadata记录用户要求重录、准备段未评价，未标记成功或失败。21:46:08新建
+rosbags/完整导航1_正式 -> localization/20261101_214608，ROS325894/视觉Qt325925 active，
+两次采样Qt22→100帧、四路/检测递增且无错误，ROS active包增至约200MB，桌面已解锁。
+原导航284725/Qt/相机/识别不重启，494段回型READY/active=false，ICP LOCALIZED，避障
+新鲜；底盘仍报告遥控/车体急停。已告知录制就绪及现有急停状态，未发送start/目标/速度。
+新包保留coverage_plan及initial_live_status.json，证据validation/garage_navigation1_record_restart_20261101/。
+当前新录制持续进行，旧完整导航1及弓字准备/历史建图清扫包保留；未改算法、提交推送。
+
+2026-11-01 21:43 用户要求用地下车库地图2启动完整导航1、自行匹配位姿、1.2m宽全场
+覆盖，并追加必须考虑车体约束、采用回型。已结束旧在线建图会话及被取消后仍计算的
+弓字准备任务，准备包保留为完整导航1_弓字准备。地图/PCD独立部署为
+garage_mapping2_20261101，config/garage_navigation1.json通过新增--config选择，默认旧图
+不变。新session-20261101_213932-2/live284725/Qt285469，原四路12869/BEV12872/YOLO12877
+继续运行、深度NONE。用重启前实测map/base位姿(-1.89492,-.48778,yaw.00437)及推导bodyZ
+-.16920播初值，ICP实际LOCALIZED，最近overlap.9988/rmse.1569/inliers4324；非独立精度。
+回型离线生成、外部计划导入保序，494条有向清扫段逐点校验非对称外廓前1.32/后.62/
+半宽.50，圈间距1.02、最小转弯半径1.35。首入场Navfn/TEB、段间Hybrid/TEB现算，未宣称
+转弯全部验证；5项新测试和172项原状态机检查通过。实际plan_id ced4819ce25242e59c629ebe4e0f0245，
+READY/active=false。参考清扫带约3094.69m²/已知自由格5443.83m²，仍有2349.14m²未覆盖，
+不能称全车库覆盖完成或全部遗漏均不可达；蓝色参考连线不是已验证轨迹。底盘仍报告遥控/
+车体急停，未对新回型发送start/运动目标，已请用户现场解除；避障新鲜，未改限速/急停。
+rosbags/完整导航1 -> localization/20261101_213955，ROS及视觉Qt两服务持续录制。起初
+锁屏，21:41后已解锁；Qt已点“显示整张地图”，实图见qt_full_route.png。路线/CSV/状态/
+配置/说明保存在包内coverage_plan，证据validation/garage_full_navigation1_20261101/，
+docs/GARAGE_CONTOUR_COVERAGE_20261101.txt及README已更新。当前导航/相机/录制保持运行，
+等待急停解除后继续已授权导航；未实车验证回型转场或清扫完成，未提交推送，保留1027。
+
+2026-11-01 21:15 用户确认地下车库建图2成功并要求记录大小。已正常停止ROS与视觉/Qt
+录制，均inactive/MainPID0；recording.json/实验结果.txt标记success（用户确认）。共16个
+ROS包、16个视觉包、16段Qt视频，ROS跨度955.413秒，约30.86GB/28.74GiB；索引/视频
+核查通过，无.active残留。二维地图926x1147格、0.10m分辨率，外接92.6x114.7m（含未知），
+PGM1062138字节。另从末包最后一帧/static_mapping/history_cloud导出完整持久体素PCD，
+1587414点/31748491字节，与mapper的persistentPoints筛选相同，无额外降采样；坐标系
+camera_init与本次map原点一致，来源/时间见pointcloud_snapshot.json。地图和PCD在包内
+online_map_at_recording_end/，精确大小见大小统计.json；PCD为录制终点快照，未停在线mapper。
+导航65352、Qt和相机/识别继续运行，未发取消/目标/速度或切换默认地图；当前没有实验录制。
+证据validation/garage_mapping2_start_20261101/finalization_check.json与final_size_statistics.json。
+第一次失败数据及清扫1～4保留，未提交推送。本条取代下方持续录制状态。
+
+2026-11-01 20:59 用户要求第二次地下车库建图，完整导航与完整包，就绪后等待开始通知。
+已启动新online-coverage会话session-20261101_205923-2/live65352，复用四路12869/BEV12872/
+YOLO12877；未加载旧地图、未沿用覆盖框或平地先验。实际MID360/IMU/FAST-LIO及/map
+新鲜，Qt地图READY，覆盖IDLE/active=false、定位/底盘/避障均true，cmd_vel采样0。
+rosbags/地下车库建图2 -> localization/20261101_205932，自20:59:32开始录制，ROS66228/
+视觉Qt66262均active；两次样本ROS包56→82MB、视觉53→72MB，Qt帧38→53，无视频或
+视觉错误，桌面未锁屏。当前持续录制等待用户通知，未自动开始任务或发送导航目标。
+证据validation/garage_mapping2_start_20261101/及包内initial_live_check.json/README。
+第一次失败记录与清扫1～4保留，未改算法、提交或推送。本条更新上轮导航inactive状态。
+
+2026-11-01 20:58 用户将地下车库建图1标记失败。此前状态询问发现Qt退出，主会话按既有
+生命周期关闭，ROS master已退出；Qt最后有效帧20:55:45.730，视觉/BEV继续录制。现已
+正常停止视觉录制，因master不存在向该包实际rosbag写入进程SIGINT封包，外层随后退出；
+无.active残留，已有包/视频/在线二维地图及PCD/会话日志保留。recording.json和实验结果.txt
+标记failure（用户确认），原因写明完整录制中断，Qt退出根因未确定，不推定用户关闭或崩溃。
+导航和Qt保持inactive，未重启/发目标/速度；相机/BEV/YOLO仍运行，当前无实验录制。
+证据rosbags/地下车库建图1/finalization_check.json及validation/garage_mapping_start_20261101/。
+本条取代下方持续完整录制状态，保留清扫1～4，未提交推送。
+
+2026-11-01 20:50 用户抵达地下停车库，要求完整导航、建图及完整录包，就绪后等其通知
+开始。已启动online-coverage底层模式但未发送区域/平地先验或运动目标，不沿用旧场地
+10x3框；会话session-20261101_205002-2/live12905，四路12869/BEV12872/YOLO12877。
+实际MID360 CustomMsg、IMU、FAST-LIO位姿及在线/map正常；Qt地图READY，覆盖IDLE/
+active=false、localized/chassis_ready/avoidance_ready=true，速度采样0。启动初期底盘参数
+未回复及一条VCU0x24记录保留，末次状态已恢复ready，非行驶验收。CUDA best6约5fps、
+深度NONE、四路持续出图，桌面未锁屏；Qt截图可见，终端有遮挡，顶栏旧录包指示不跟踪
+后台服务。20:50:13开始rosbags/地下车库建图1 -> localization/20261101_205013，ROS14010/
+视觉Qt14042均active，ROS/视觉active包和Qt帧持续增长无录制错误。当前持续录制等待
+用户通知；未开始清扫或自行驾驶。证据validation/garage_mapping_start_20261101/及包内
+README/initial检查。保留历史清扫1～4，覆盖旧包删除状态不变，未改算法或提交推送。
+
+2026-11-01 用户要求关闭完整导航。已正常live-stop，板端本次guardian退出码0；主Qt、
+导航、在线建图、覆盖控制及独立YOLO/BEV/四路采集均关闭，相关服务inactive/MainPID0。
+四路退出后旧sender/link恢复运行，已一并停止并关闭板端receiver；ZED/ISX相机锁实测
+可取得释放，11583/11587/18882～18885无监听，板端无本次会话或私有采集残留。
+录制仍inactive，保持上轮覆盖录包删除结果；时钟服务、配置和历史清扫1～4保留。
+证据validation/online_coverage_20261101/shutdown/。当前整套程序与相机采集保持关闭，
+此条替代下方仍在运行的状态；软件关闭不代表切断相机电源。未提交推送。
+
+2026-11-01 18:49 用户说明远程电脑没电，要求删除本次覆盖录制、稍后再开始。已正常
+停止ROS和视觉/Qt两项录制，均inactive/MainPID0；删除覆盖清扫1及对应准备段的别名与
+实际目录localization/20261101_182914、20261101_182438，共约26.63GB，清除指向该包的
+runtime/localization_recording/current。此前清扫1～4完整保留，覆盖功能和配置保留。
+导航/Qt/相机未另行启停，未发送清扫start或运动目标，当前没有实验录制；待用户通知
+重新开始。本条取代下条持续录制状态，证据validation/online_coverage_20261101/recording_deletion.json。
+
+2026-11-01 用户要求新场景在线建图定位与覆盖清扫，确认长10m沿车头、宽3m，中心
+前8m/左3m，并由用户在Qt点击开始；随后确认区域平地。已新增online-coverage模式，
+本次FAST-LIO原点为map，不加载旧地图/旧定位器；实时扫描建图、既有覆盖/Hybrid/TEB/
+底盘链路启用。任务按会话固定身份，在线地图增长不清空任务。仅确认框内无障碍证据
+的未知格采用可通行先验，真实障碍及候选保留，原始观测地图另存；框外未知保持。
+入口scripts/online_coverage.sh自动录制后画框，Qt预设0.80m作业宽/15%重叠并生成预览。
+6项新检查、172项原状态机检查、三模式launch展开及Qt构建通过。实际会话
+session-20261101_182905-2/live523443，覆盖READY/active=false，定位/底盘/避障均true；
+刷新同一固定框后9条清扫线、30/30平方米、预计144.6秒，命令采样为零。未发清扫start
+或运动目标，尚未实车行驶验收。rosbags/覆盖清扫1指向20261101_182914，ROS523742及
+视觉/Qt523778持续录制；准备段另保留覆盖清扫1_准备。相机396997/BEV396999/YOLO397004
+保持运行，ZED深度NONE。最后检查桌面LockedHint=yes，最终Qt截图黑屏，已请用户解锁；
+不能将锁屏段宣称有效Qt画面。记录docs/ONLINE_COVERAGE_20261101.txt及
+validation/online_coverage_20261101/。保留旧地图、清扫1～4及1027，未提交推送。
+
+2026-11-01 用户结束清扫4并要求标记成功。已正常停止两项录制服务，inactive/MainPID0；
+134.225秒，3个ROS包、3个视觉包、3段Qt视频，约1.98GB，索引/视频核查通过，
+无.active残留。rosbags/清扫4/recording.json及实验结果.txt标记success（用户反馈）；
+末段cleaner实读IDLE/active=false、计数0已存final_live_status.json，未补造自动任务记录。
+证据finalization_check.json及validation/cleaning4_recording_20261101/。导航397034、
+YOLO397004、BEV396999、四路396997仍active，未另发目标/取消/速度；当前无实验录制。
+清扫1/2/3及清扫2工作流保持，未修改算法、提交或推送。
+
+2026-11-01 用户“开始清扫4录制”。已于18:10:36启动，rosbags/清扫4 ->
+localization/20261101_181035，ROS录制420455、视觉/Qt录像420491 active；两次采样
+四路/检测/Qt帧数递增无错误，ROS active包已写入约61MB。保持原live397034、
+YOLO397004、BEV396999、四路396997，不重启导航/相机、不代发初值/目标/清扫start。
+证据validation/cleaning4_recording_20261101/，当前持续录制，实验结果待用户确认；
+清扫1/2/3数据及此前成功标记均保留。未修改算法、提交或推送。
+
+2026-11-01 用户“结束,标记成功”。已正常停止清扫3的ROS及视觉/Qt录制，两服务inactive/
+MainPID0。共151.323秒，3个ROS包、3个视觉包、3段Qt视频，约2.22GB；bag索引和视频
+核查通过，无.active残留。rosbags/清扫3/recording.json及实验结果.txt标记success，
+来源明确为用户反馈；末段cleaner实际IDLE/active=false、计数0保存在final_live_status.json，
+未据现场成功反馈补造自动任务记录。证据finalization_check.json及
+validation/cleaning3_recording_20261101/。导航397034、YOLO397004、BEV396999、
+四路396997保持active，未取消清扫/发目标或速度；当前无实验录制，等待后续要求。
+清扫1/2及清扫2固定工作流均保留，未修改算法、提交或推送。
+
+2026-11-01 用户“开始清扫3录制”。当时实车与回放均inactive，已恢复既有完整实车入口：
+session-20261101_180641-2，live397034、后台四路396997/BEV396999/YOLO397004，
+原地图/单MID360/CUDA best6/深度NONE不变，不弹独立相机窗口。18:06:55开始清扫3，
+rosbags/清扫3 -> localization/20261101_180655，ROS录制398574、视觉/Qt录像398605
+active，四视图/检测/视频计数递增且无错误，实际MID360/IMU收到3/41条样本。
+Qt地图READY，定位WAITING_INITIAL_POSE，cleaner IDLE/active=false、navigation_available=false，
+已通知用户录制开始并需在Qt设置初始位姿后清扫。未代发初值/目标/清扫start/速度。
+initial_live_check.json及validation/cleaning3_recording_20261101/保留启动证据，当前持续
+录制等待用户结束；清扫2固定回放工作流及原包不变，回放保持inactive。未提交或推送。
+
+2026-11-01 用户要求忽略未对齐的旧全局地图，重新定位建图并回放导航；随后确认效果好，
+要求随清扫2保存工作流。已新增mapping回放：原始MID360/IMU重跑FAST-LIO，camera_init
+局部坐标、包内body/base外参、体素历史地图及现有无图move_base/TEB代价地图，Qt同步
+录制的四路识别/BEV；旧地图/定位/TF/规划输出不重播。完整135.728s实际1346帧新位姿，
+预览120885点，正常退出PCD121423点，110次局部代价地图；不是闭环驾驶仿真或米制精度
+验收。证据validation/cleaning2_mapping_replay_20261101/，原源码二进制只读复用并私有复制。
+已保存rosbags/清扫2/replay_workflow/，含固定脚本/Qt/FAST-LIO/mapper/TEB/配置、原参数、
+参考PCD与日志/验证、文件SHA；入口“回放局部建图.sh”默认mapping，可暂停/重播/关闭。
+包内固定版本通过16项只读挂载启用，实测启动及从头重置通过，重播新位姿回到局部原点；
+仍依赖本机Jetson/ROS/现有依赖，不称跨平台独立包。原始6个bag及3段视频未改写。
+当前回放service346773 active，session_20261101_175337，已通过包内入口启动；真实导航/
+YOLO/BEV/四路采集继续inactive，无实车目标或速度。该条取代下方纯录制回放运行状态；
+README及录包说明已更新，保留1027和其他改动，未提交或推送。
+
+2026-11-01 用户要求关闭导航并复现清扫2。已正常live-stop并获板端guardian退出0，
+停止实车YOLO/BEV/四路采集，四服务inactive；新建scripts/replay_cleaning_experiment.sh
+及replay_cleaning_session.py，回放服务307243 active，最终会话
+runtime/cleaning_replay/session_20261101_174503。独立bwrap网络仅lo，无串口/CAN设备，
+私有11593 ROS master、18894 HTTP；图中数据来自录包，未运行定位/规划/清扫/识别后端。
+原Qt显示地图/点云/TF/四路识别/BEV，另有暂停/继续/从头播放/原始Qt录像控制窗口。
+BV02 JPEG、几何、检测不变，适配Qt墙钟时效与回放ID，保留原时间；从/localization
+累积黄色估计轨迹（非规划路径/真值）。实际地图READY、帧递增，11项Qt报文检查和
+报文等价/暂停/继续/重播核对通过；实读节点仅Qt/player/bridge/rosout，当前原速播放。
+包内清扫节点全程IDLE、定位全程LOST，未录到自动清扫任务/规划路径，已向用户说明；
+用户现场成功记录仍保留，未伪造任务终态。证据validation/cleaning2_replay_20261101/，
+README同步回放入口。未修改原录包、导航算法/标定，未发实车目标或速度，未提交推送。
+
+2026-11-01 用户确认“清扫结束”“成功”。已正常停止清扫2的ROS与视觉/Qt录像服务，
+两服务inactive/MainPID0，3个ROS包、3个视觉包、3段Qt视频均封包保留，无.active残留。
+rosbags/清扫2的recording.json与实验结果.txt记录成功，明确来源为用户现场反馈；
+final_live_status.json保留停止时cleaner IDLE/active=false及定位LOST实读，不将用户
+成功反馈等同独立定位/拾取指标验收。finalization_check.json记录索引/视频核查。
+导航、Qt、相机、YOLO保持运行，未另发取消/目标/速度，未修改算法、提交或推送。
+当前无实验录制，本条替代上条清扫2持续录制状态；清扫1失败资料继续保留。
+
+2026-11-01 用户“开始清扫2”，按连续录制上下文新建实验录包，未替用户点击清扫。
+rosbags/清扫2 -> localization/20261101_173738；ROS267739与视觉/Qt录像267771
+均active，四路/识别帧及Qt录像持续写入、无错误；清扫1失败资料原样保留。
+启动实读cleaner IDLE/active=false、可见0，定位LOST，已提示先恢复定位再开始清扫。
+导航/Qt/相机/YOLO未重启，未发初值/目标/速度，当前清扫2持续录制，等待用户停止。
+
+2026-11-01 用户“停止,记录失败”。已停止清扫1的ROS与视觉/Qt录像服务，均inactive/
+MainPID0，所有bag封包无.active残留；本次结果写为失败（用户报告，具体原因待复盘），
+原数据保留rosbags/清扫1，结果见实验结果.txt、recording.json，封包核查见
+finalization_check.json。停止前cleaner为IDLE/active=false，因此未另发取消/速度。
+导航、Qt、后台相机/BEV/YOLO保持运行。正常退出后systemd --collect已卸载录包unit，
+旧脚本末尾重复stop报不存在；已改为仅对active unit停止，补齐会话日志保存，未影响
+bag索引或连续录制。当前无录制任务，本条替代上一条“持续录制”。未提交推送。
+
+2026-11-01 用户准备清扫，要求完整录包供后续Qt显示，并指定命名“清扫1”。已开始
+独立全ROS录制220168及新增HTTP/Qt录像服务227717，持续运行，未结束录制。命名入口
+rosbags/清扫1 -> localization/20261101_172946；ROS从17:29:46开始，修正兼容后的
+视觉take从17:31:05开始，已明确通知用户录制就绪。新入口
+scripts/record_cleaning_experiment.sh start [name]/status/stop，stop只封包不停止清扫。
+保存MV01四路RGB/融合图、BV02同组四路识别及BEV报文到独立visual_*.bag，保留时间戳/
+帧ID/SHA和配置；Qt窗口录像H264/5fps，每60秒分段。不是原生相机帧率同步无损采集，
+互动式Qt回放尚需独立ROS/HTTP回放适配，录像可直接播放。Qt自带录包指示不跟踪该服务。
+最初str.removesuffix与本机Python3.8不兼容已修复并只重启视觉录制，初次文件保留在
+visual/根目录，当前正常take在visual/take_20261101_173105/；全ROS录制未中断。
+已检查封包读取、报文SHA及视频编码，实时无流/录像错误。导航/Qt/YOLO未重启、未发
+初值或清扫start；读到定位LOST已提示用户先确认恢复，清扫当时IDLE/可见目标存在。
+README与录制目录自述已更新，当前仍持续录制，用户将通知何时停止；未提交推送。
+
+2026-11-01 用户要求启动完整导航，并明确只在Qt显示融合BEV，不再弹出独立相机画面。
+已启动真实会话session-20261101_165120-2，live20894、Qt21726、YOLO20843、内嵌
+cleaner22220；四格采集39054/BEV39056以新增--headless运行，不构造GTK窗口，
+bev_perception.sh默认后台模式，独立预览入口保留原用法，README同步说明。
+启动时旧板端相机server777311残留持锁，经原stop.py正常结束后恢复；三组四路源
+序号递增、CUDA best6/live、ZED NONE，实际Qt截图确认融合与识别画面持续显示，
+窗口树无独立四格/BEV窗口。地图READY、CAN和MID360正常，motion_enabled=true；
+FAST-LIO仍WAITING_INITIAL_POSE，move_base在等待map/base TF，尚不能宣称规划已就绪。
+需用户在Qt设置真实初始位姿；未代设初值/发目标/开始清扫，清扫IDLE/active=false。
+两Python语法、三shell语法、四路配置检查与在线链路核对通过；仅改显示启动模式，
+模型/标定/地图/清扫算法未改，HEAL保持inactive。证据
+validation/full_navigation_start_20261101_1651/。本条替代此前PID状态，保留1027及
+其他工作树改动，未提交推送。
+
+2026-11-01 用户进一步要求整个程序含Qt全部重启。已正常live-stop并收到旧板端退出
+确认，再停止YOLO/BEV/四格，随后重新启动全部。新真实会话session-20261101_160719-2，
+live2143194、Qt2143993、四格2143154、BEV2143156、YOLO2143166、内嵌cleaner2144162；
+旧独立cleaner service已随旧live停止，勿误当新清扫节点未运行。Qt地图READY，三组
+四路源序号递增，CUDA best6/live、ZED NONE；清扫IDLE/active=false、记忆字段存在。
+原8月29日地图/单MID360/motion_enabled=true保持；FAST-LIO为WAITING_INITIAL_POSE，
+需要用户在Qt重新设初始位姿。底盘反馈零速、指令链路新鲜，启动有一条既有VCU0x24
+超时记录已留证；未代设初值/发目标/开始清扫或恢复旧任务。HEAL保持inactive。
+证据validation/full_program_restart_20261101/，本条取代上轮“保留原Qt/导航定位”的
+运行状态；本轮只启停程序及记录状态，未修改算法参数、提交或推送。
+
+2026-11-01 用户要求重启实验。已正常重启几何BEV2134569、YOLO2134672及新版记忆
+清扫节点2134848；Qt/导航1467434和四路采集1013642保留。3组四路帧序号递增、
+CUDA best6约4.70fps、ZED深度NONE，map/base TF有效；清扫IDLE/active=false，
+pending=0/visible=0，导航可用，待用户摆放垃圾并点击开始。没有恢复旧轮次或发送
+清扫start/目标/速度，HEAL试验保持inactive。证据validation/bev_memory_restart_20261101/。
+本条更新上述程序PID；未修改算法/参数或提交推送。
+
+2026-11-01 用户决定继续YOLO清扫，反馈两件垃圾只扫一件、另一件移动中漏检后任务结束。
+旧终态实读COMPLETE/通过1/跳过1；代码有2秒失检删除、接近后2秒未重检即跳过两处。
+已增加任务内map目标记忆：当前可见仍2秒时效，本轮pending不因失检过期，规划/结束
+依据pending；重检优先校正，仍漏检则按最后记录坐标清扫，保留碰撞及实际刷子轨迹判据。
+未完成终态改PARTIAL，新增pending/remembered数量、未完成原因及逐目标日志；Qt通过
+已有reason显示待处理/漏检数，无需重编重启。结束/取消后不建长期地图登记，下轮从当前
+观测新建任务。19几何/关联+12隔离ROS检查通过，模拟第二个失检7.6s仍两目标通过。
+只重载cleaner为2038256/IDLE、active=false，旧计数清零，未自动恢复旧任务。
+原BEV窗口当时已停导致YOLO等待图像，恢复几何BEV2026854；Qt/导航1467434、四格
+1013642、YOLO1875377不变，实读CUDA best6/live约4.07fps、当次0目标。HEAL试验
+inactive/MainPID0，BPU锁可取得释放；源码资产保留。未发目标/速度/清扫start，原
+模型/标定/遮罩/深度NONE/导航参数保持。尚待本场景实车拾取验收，非已实测扫净两件。
+说明docs/BEV_TASK_MEMORY_20261101.txt，证据validation/bev_task_memory_20261101/。
+本条替代下方HEAL预览active及旧cleaner PID；保留1027与其他未提交改动，未提交推送。
+
+2026-11-01 用户提供Downloads/Heal-main.zip并要求部署BPU BEV看效果。已校验解压到
+runtime/heal_source_20261101/Heal-main，实际HEAL0.6.0/configs/bev_vtv2_resnet50；
+源码权限不再阻塞。新增独立HEAL预览，直接复用官方纯几何/中心解码方法，四路真实RGB
+按各自标定缩放裁剪生成S16采样索引，官方六槽位HBM的两个空位在几何上排除。
+J6M私有DNN/UCP3.15.8/HBRT4.11.11及常驻tensor executor实跑，14输入/6输出匹配；
+后视沿用已有白色车体像素遮罩。四路逐一遮挡均改变输出，两个空位改图输出差0。
+100帧实际输入profiling单BPU子图平均16.556ms；常驻调用中位17.241ms，含SSH98.756ms。
+3项几何/量化/解码检查通过；固定回放组车旁0个>=0.1候选，全大网格39个远处自行车
+pre-NMS候选。随后现场换位，在线出现bus误检；5527/5535/5542/5551组递增、请求到
+解码中位195.12ms。不能当垃圾或定位精度通过。当前是官方交通权重的四实拍输入试验，
+不是已训练/编译四路垃圾模型，不是新的RGB拼接；尚未部署官方旋转NMS。
+独立autolabor-conbine-heal-bev.service/GTK窗口保持active，scripts/heal_bev_preview.sh
+可start/stop/status，PartOf=camera-bev，关闭独立窗口也结束该BPU worker。
+原Qt/导航1467434、采集1013642、BEV1875372、YOLO1875377及cleaner1712302未动，
+原YOLO继续CUDA，ZED深度NONE；未发目标/速度/清扫start或新map垃圾点。
+原生x86训练环境、同步米制垃圾标注、正式四路细网格垃圾HBM及地图精度仍待完成。
+说明docs/HEAL_BEV_BPU_PREVIEW_20261101.txt，最终证据validation/heal_bpu_masked_20261101/，
+初始未套新试验遮罩对照validation/heal_bpu_real_20261101/保留。未提交推送，保留1027。
+
+2026-11-01 用户要求范围按车体四边向外各5m。已新增四向distance_from_edges_m配置，
+物理边界front1.22/rear.52/left,right.40，实际观测X[-5.52,6.22]/Y[-5.40,5.40]m，
+不包含导航padding。保持600方形等比例显示，侧向画布留白明确排除观测，GTK按边缘显示。
+12项定位/边界检查及11项真实报文Qt检查通过；旧配置前后投影像素完全一致。旧投影组
+11/12通过，固定点/浮点remap参考一项在修改前代码同样失败，未放宽或称全通过。
+新版BEV1875372及YOLO1875377 active，四格1013642、Qt/导航1467434、cleaner1712302
+不变；约4.7fps、投影31ms。五组实际边界验证通过，采样无目标，非5m精度验收。
+未发初值/目标/清扫start/速度/机构命令，标定/模型/遮罩/深度关闭/导航配置保持。
+说明docs/BEV_EDGE_RANGE_20261101.txt，证据validation/bev_edge_range_20261101/。
+本条替代下方中心四向4m范围，保留1027及原改动，未提交推送。
+
+2026-11-01 用户反馈后视不能点击清扫。后视plastic已识别，地面估计(-2.29,+.27)m，
+但原BEV仅后2m，outside_bev_range使visible_count=0；非车体遮罩或导航未就绪。
+已将四路范围统一X/Y[-4,4]m，600x600、1.333cm/像素，原图二维投影坐标不变；GTK
+范围文字改读配置。中间600x800方案被Qt固定尺寸校验拒绝，已改上述正方形显示兼容，
+未声称Qt支持可变尺寸。真实同帧回放及11项Qt报文检查通过，最终后视候选1个、
+active=false、导航可用。仅重开BEV最终PID1811032；采集1013642、YOLO1473043、
+Qt/导航1467434、cleaner1712302不变。未发清扫start/初值/目标/速度/机构命令，
+未验证后视路径与拾取；原模型、深度关闭、遮罩、标定、导航参数保持。
+说明docs/BEV_REAR_RANGE_20261101.txt，证据validation/bev_rear_range_20261101/。
+本条替代旧BEV后2m/左右3m/1cm显示范围，保留1027及原改动，未提交推送。
+
+2026-11-01 用户反馈前方已识别目标却不可达。实读front plastic约(3.60,+.56)m，
+LOCALIZED/导航可用；发现move_base/GetPlan的Path外层frame为空、逐点均map，清扫节点
+错误拒绝有效路径。已兼容外层空header，在逐点坐标系/数值/端点检查后补map，未改外廓、
+避障或通过阈值。真实22点报文回放、5类异常拒绝、16项几何及11项隔离ROS检查通过。
+只正常重载BEV清扫节点为autolabor-conbine-bev-cleaner.service/PID1712302，PartOf=live；
+Qt/导航1467434、YOLO1473043、采集1013642、BEV1013644不变。现场实际_choose只读查询
+选到约4.50m接近+通过路径，跳过为空；真实节点IDLE、可见1目标、导航可用，等待重新开始。
+用户此前自行初始定位/执行并取消过覆盖；本轮未发初值/目标/清扫start/速度/机构命令。
+说明docs/BEV_UNREACHABLE_FIX_20261101.txt，证据validation/bev_unreachable_20261101/。
+本条替代下方等待初始定位及旧清扫节点状态；未提交推送，保留1027及原改动。
+
+2026-11-01 用户要求现在开始测试。已停私有Qt/11587，live-start真实导航会话
+session-20261101_135447-2（PID1467434），原地图/单MID360/motion_enabled=true；采集
+1013642及BEV1013644不变。独立YOLO最初缺ROS Python依赖，bev_perception.sh新增run
+加载现有环境，修复后PID1473043 active；隔离live内部systemd调用失败，本次用宿主
+bev_perception.sh start恢复，该内部调用限制仍保留。四路CUDA best6约4.7fps、10组0目标。
+起初雷达/CAN无数据，随后恢复，实读底盘/避障ready=true、MID360约10Hz、FAST-LIO健康。
+实际刷子参考1.22、雷达Z.65、bodyTF Z-.60588及新外廓均已加载。最后仍等待真实初始位姿，
+map/base未接通、清扫IDLE；未代发初值/目标/清扫start/非零速度/机构命令，10秒采样命令
+均零。Qt/导航/相机/识别保持运行，尚未完成行驶/拾取验收；未恢复深度或换模型。
+说明docs/BEV_CLEANING_TEST_START_20261101.txt，证据validation/bev_cleaning_start_20261101/。
+本条替代下方导航inactive的运行状态；未提交推送，保留原工作树及1027。
+
+2026-11-01 用户确认刷子在装置最前沿，base_link离地实测25cm，并要求核对官网。
+官方参数/尺寸图确认M2原长1040宽700高430mm、离地间隙110mm，但尺寸图/ROS说明/
+官方241125驱动均未定义base_link离地25cm；该值作为用户指定参考点实测值使用，
+不称官方确认。已设两清扫配置参考1.22m，两个控制器去掉旧1m上限、保留有限非负
+校验；MID360 Z=0.65m、FAST-LIO body->base Z=-0.60588m，平面及外廓不变。
+16项几何、两模式launch展开、隔离旧视觉控制器初始化通过；Qt/识别重开1438895，
+实读BEV清扫参考1.22/IDLE，采集1013642及BEV1013644不变。真实导航inactive，无
+目标速度机构命令；雷达外参下次live-start加载。未接通四路无深度连续视觉伺服或
+验证拾取。说明docs/VEHICLE_CONTACT_HEIGHT_20261101.txt，证据validation/vehicle_contact_height_20261101/。
+本条替代下方待接触点/旧Z与旧1m上限状态；未提交推送，保留1027及原工作树。
+
+2026-11-01 用户确认BEV左右中点、MID360、原底盘中心的XY投影重合，前加70cm清扫
+装置、总宽80cm，雷达离地90cm。已写rig_to_base=[0,0,0]，MID360 X/Y=0/0；按原
+配置前后各52cm，外廓改前1.22/后0.52/半宽0.40m，保留10cm余量；costmap/TEB/
+覆盖几何及私有持久coverage相应字段同步，其他调参/地图不变。MID360自车裁剪前沿
+改1.22m，未实车验点云。15项几何及静态地图/无图launch展开通过，Qt/识别重开
+PID1367985、采集1013642/BEV1013644不变，实读平面外参configured=true、IDLE、
+等待导航TF；真实导航inactive，无目标速度机构命令。仍缺base_link离地高度和新装置
+实际接触点（已提问）；雷达0.90m仅确认为离地量，sensor_z仍旧1.0待测，清扫参考
+仍旧0.52待确认，新装置清扫几何尚未配齐。若参考点>1m还需改两控制器
+旧1m参数上限。记录docs/VEHICLE_GEOMETRY_20261101.txt，证据validation/vehicle_geometry_20261101/。
+本条替代下方“rig/base仍空”状态；本地导航配置下次live-start带入，未切正式current。
+
+2026-11-01 用户要求改回项目中的YOLO模型。Qt/独立感知/直接server默认后端已改cuda，
+实际加载YOLO11-GAM best6.pt（SHA256 5efa...1f2d0f），本机Jetson GPU推理；未使用旧
+不同权重的垃圾HBM替代此模型。保留四原图识别、BV02五画面、后视车体遮罩与地面定位，
+深度仍关闭，阈值0.25/输入640不变。10组在线报文模型SHA/四图配对通过，Qt实际CUDA
+报文检查及界面截图通过；约4.87fps、四路调用中位107.77ms，左视塑料瓶6/10组检出，
+存在间歇漏检，非精度验收。Qt/识别PID1202867，四格1013642/BEV1013644未重启；
+真实导航inactive，未发目标速度机构命令，标定/遮罩/清扫配置SHA未变。证据
+validation/vision_yolo_switch_20261101/。本条替代下方默认FCOS状态，保留1027及旧改动。
+
+2026-11-01 用户要求Qt视觉页同时显示四路识别及融合结果，并排除后视白色蘑菇头。
+已新增五画面布局及同组BV02接口，默认进入视觉页，旧BEV页/接口保留；后视960x540
+轮廓遮罩保存在config/bev_detection_masks.json，模型前置黑、模型后按中心/接触点/多数
+覆盖过滤，Qt红色标示。真实J6M同图A/B中原toilet/sink车体误判最终移除，置黑后产生的
+person框也由后过滤移除；前左右结果一致、左视瓶子保留，遮罩外bed等误分类仍存在。
+25组在线BV02均有左瓶二维点，约4.17fps、单路模型调用中位4.262ms、四路131.455ms。
+3项Python/11项Qt及GUI构建通过，真实五画面截图已检查。只重开Qt/识别PID1155648，
+四格1013642/BEV1013644不变且active；深度关闭、真实导航inactive、清扫未执行，
+rig/base仍待确认，未称米制精度或地图定位验收。说明docs/VISION_FOUR_VIEWS_MASK_20261101.txt，
+证据validation/vision_views_mask_20261101/。保留1027及既有改动，未提交推送。
+
+2026-11-01 12:23 用户要求启动融合BEV，准备在地面放垃圾测试识别定位。已启动
+四格/BEV/Qt，PID1013642/1013644/1013649 active，五组四路源序号递增，FCOS BPU约
+4.6fps，Qt接受新会话；ZED仍NONE。启动采样尚无瓶杯候选，不能当作摆放后的测试结果。
+真实导航inactive，未发目标速度机构命令；当前保持运行，等待用户摆放实物。
+证据validation/bev_trash_test_20261101_1223/，本条替代下方关闭状态。
+
+2026-11-01 11:22 用户再次要求启动BEV。四格采集/BEV/Qt已启动，PID
+971223/971225/971229 active；三组实读四路源序号递增，FCOS BPU出图且Qt已接受新会话。
+ZED深度NONE，安装角度仍为实测原值，未应用上轮试调建议；真实导航inactive。
+证据validation/bev_restart_20261101_1122/。随后用户再次要求关闭，已正常停止Qt/FCOS、
+BEV和四格采集；相关服务inactive/MainPID0，本机/板端无对应进程，ZED/ISX/BPU锁均
+释放，18882～18885及11587无监听。关闭证据为该目录shutdown/；当前保持关闭。
+
+2026-11-01 角度分析后用户再次要求关闭程序和相机。Qt/FCOS、BEV和四格采集均已
+正常停止，相关服务inactive/MainPID0；本机/板端无本次采集推理残留进程，ZED/ISX/BPU
+锁释放，18882～18885及11587无监听。证据validation/bev_angle_review_20261101/shutdown/。
+当前程序和相机采集保持关闭，替代下方分析时运行状态；未调整物理角度或标定参数。
+
+2026-11-01 用户要求重新启动BEV并分析相机安装角度。已启动四格/BEV/Qt，PID
+872814/872816/872825 active，FCOS BPU约4.6～4.7fps；20组真实报文/四路图已保存，
+ZED仍NONE、/rgbd404，真实导航inactive，未发目标速度机构命令。观察到桶/箱/墙平面
+投影拉伸，按实际K/高度计算首轮机械试调建议：前20度、左右35度、后35度（均水平
+向下），未写入配置或假定机械已调整。仅俯角不能消除同一立体点的IPM误投；前视
+提高到0.6～0.8m/俯30～40度为可选对照方案，需重测外参及车体遮挡。理想覆盖图不含
+遮挡，非实测新视角/清扫覆盖。说明docs/BEV_CAMERA_ANGLE_REVIEW_20261101.txt，证据
+validation/bev_angle_review_20261101/。本条替代下方相机关闭状态，当前保持运行。
+
+2026-11-01 用户要求关闭程序和相机。已依次正常停止Qt/FCOS、独立感知入口、BEV、
+四格采集；相关服务全部inactive/MainPID0，旧sender/link也保持inactive。
+ZED与J6M相机/BPU锁均可取得后释放，18882/18883/18884/18885/11587无监听，
+板端无本次FCOS worker及私有相机server，采集日志确认PAIRED_CAMERA_STOPPED。
+这是软件停止采集并释放资源，不代表切断相机电源；未改模型/配置或启动导航。
+证据validation/bev_shutdown_20261101/。本条替代下方相机/Qt保持运行状态。
+
+2026-11-01 用户要求Model Lab FCOS结合BEV并使用BPU。已复用J6M FCOS-EfficientNet-B3
+HBM（SHA1daa...d7fa）及原常驻适配器，新增fcos_bpu后端并设为Qt/感知入口默认，
+四路RGB原图识别后地面投影/同类跨相机去重；BPU承担FCOS网络，几何BEV仍CPU，
+不是学习式四路特征融合。ZED继续NONE/enable_depth=false，/rgbd404。COCO80保留原类，
+scene_ground_objects显示全体，清扫接口ground_objects仅瓶子/杯子候选，其他物体不作垃圾。
+Qt显示实际模型及候选说明。11项Python及8项真实报文Qt检查通过，30组/120次板端调用
+中位4.25ms、四路含前后处理/传输130.20ms、约4.74fps；后续正式显示约4.86fps。
+前视检出雨伞，后视圆盘/右视杂物有误判，未检出瓶杯；不称垃圾专用精度/米制误差通过。
+只重开Qt/识别PID794172，采集768840及BEV768842不变；真实导航inactive，清扫IDLE/
+active=false，rig_to_base_xyyaw仍空。未发目标速度机构命令，未恢复深度或改源工作树。
+说明docs/BEV_FCOS_BPU_20261101.txt，证据validation/bev_fcos_bpu_20261101/。
+模型使用已安装旧DNN3.14.5/私有HBRT4.9.2；HEAL精确前后处理等价性未独立验证。
+本条替代下方默认CUDA状态；1027分支/其他未提交改动保留，未提交推送。
+
+2026-11-01 用户明确ZED与BEV深度融合很奇怪，“不要这样做，不要深度”。已彻底
+撤回在线深度路径：SDK DEPTH_MODE::NONE及runtime.enable_depth=false，实际查询
+getInitParameters确认关闭；删除RGBD采集/接口/深度融合分支和启动时深度库构建，
+四路恢复RGB地面投影，single_source及垃圾点去重保留。历史深度试验文件/证据保留，
+当前入口不加载，不因下方旧记录自动恢复深度。Qt/GTK已同步且真实重开，四格768840/
+BEV768842/Qt768846 active，约4.98fps、投影28~30ms；四路序号递增、/rgbd404，
+8项真实报文Qt检查通过。说明docs/BEV_NO_DEPTH_20261101.txt，证据
+validation/bev_no_depth_20261101/。模型/阈值/标定/导航未改，未发目标速度机构命令。
+本条替代下方深度启用状态；未提交/推送，保留1027与其他改动。
+
+2026-11-01 用户质疑周围杂物很多却0目标。实读在线best6四路原图框全部为空，
+rejected_localizations为空，故不是定位/去重过滤掉目标。保存当帧原图离线探测：
+640输入降到0.05仍四路0框；1024输入仅前视地面亮斑paper=0.1495、后视白圆盘
+metal=0.1263两个低分候选，均低于在线0.25，不能当可靠垃圾检测。当前五类材料
+模型没有单独的垃圾桶/雨伞/托盘类别，对眼前杂物场景的检测能力未达成用户预期。
+证据validation/bev_detection_review_20261101/，含真实原图、在线报文和低阈值框图；
+本轮只诊断，在线模型/640输入/0.25阈值及相机/导航状态均未改变。
+
+2026-11-01 用户要求解决前视觉相机垃圾桶拉伸。已启用ZED ULTRA双目深度，同一grab
+的左目RGB/毫米轴向深度通过18885/rgbd配对，原/frame兼容；front_depth_enabled=true。
+前视所属网格改实测3D点X/Y正交投影+最高表面z-buffer，CPU原生加速，不再地面拉伸桶身；
+不可见/无效深度处黑色，仅1像素点绘制扩展。侧后算法/外参/所属区域未变；前视元数据
+使用SDK实际校正内参。不是补全桶形/地面，也没修改垃圾接触点算法或宣称地图定位通过。
+5项深度、24项原地面及8项Qt检查通过，同图原生/参考像素完全一致。实桶可见表面
+X中位1.926m为深度估计，非独立真值或完整桶占地尺寸。原生回放54.15ms；线上投影
+约54ms、四路识别约5fps。证据validation/bev_front_depth_20261101/，说明
+docs/BEV_FRONT_DEPTH_20261101.txt。启用深度时重开过四格采集，最终四格716025/
+BEV738788/Qt738792 active；旧sender保持inactive，未动导航/控制/时钟，未提交推送。
+
+2026-11-01 用户进一步要求消除重叠、以二维垃圾定位为主。四路BEV改single_source，
+每格按几何采样密度选一路图像，消除加权双影；映射/支持范围/盲区不变，三路默认
+weighted保留，四路完整原图仍识别。地面去重增加15cm内双向原图框核对(3px容差)，
+垃圾材质分类不一致不再单独制造重复点；保留每组最多一个同相机观测及完整组内核对。
+Qt显示唯一二维目标与合并计数。24项几何/协议、8项Qt报文检查通过；同图61815个
+重叠格单路供图，投影27.69->27.96ms，非地面拉伸仍存在。已经在线重开BEV/Qt，
+四格源PID669916不变，BEV696187/Qt694295，约4.75~5fps；采样仍0目标，实物交界
+去重/二维精度未验收。未改清扫管理器旧20cm关联、导航/控制或rig/base外参。
+说明docs/BEV_OVERLAP_FIX_20261101.txt，证据validation/bev_blending_20261101/。
+相机保持运行，未发目标/速度/机构命令，未提交/推送。
+
+2026-11-01 用户要求启动查看效果，已通过camera_surround.sh start打开四格采集、
+BEV与Qt，默认CUDA best6.pt。服务PID669916/669918/669922均active，四路源序号
+连续递增，识别约5.0fps、四路调用106~111ms；Qt真实接收并显示新原图识别/地面
+投影结果，采样时0目标。证据validation/bev_ground_live_20261101/，含3次序号、
+源元数据与Qt截图。相机现保持运行，替代下方“相机关闭”状态；未启动真实导航、
+发送目标/速度或机构命令，定位误差与新rig/base对齐仍待实测。
+
+2026-11-01 用户表示不再纠结复杂环境，目标是BEV效果、垃圾识别及二维定位，可用BPU。
+当前入口已改为四路原图识别、相机光线与地面相交、跨相机观测合并，再在BEV绘制米制
+点位；默认沿用Jetson best6.pt，可选BEV_DETECTOR_BACKEND=bpu调用已有垃圾HBM。
+J6M真实原图推理/HTTP回放贯通，单路vendor约6ms，四路完整调用中位145.83ms；CUDA
+113.69ms。权重不同且测试不是受控A/B，不能将BPU核时延当完整链路加速比例。
+20项几何/协议及8项Qt检查通过，Qt已构建但未启动；相机继续inactive，未动导航。
+当前是观测融合而非学习式四路特征融合，不需要先完成x86/HEAL；原研发资产保留。
+20张旧标注诊断BPU匹配19/38、CUDA20/38，训练重叠未知，不当作实车识别精度；
+四路实拍回放没有垃圾检测，不能称真实正样本定位验收。输出为相机组地面接触点估计，
+重装rig/base对齐仍空、曝光同步未验证，米制误差/地图稳定性/采集到map时延未测。
+说明docs/BEV_GROUND_DETECTION_20261101.txt，证据validation/bev_ground_detection_20261101/。
+保留1027与旧改动，未提交/推送，未发送目标/速度/机构命令。
+
+2026-11-01 用户要求协助解决x86环境，确认有Intel/AMD Windows10/11电脑。
+已准备WSL2 Ubuntu22.04说明及本地迁移包，包含官方4.11.11 compiler/march轮子、
+固定六路BEV deploy BC、官方run_docker.sh及独立CPU环境/编译脚本；尚未连到用户
+Windows电脑，未声称原生x86安装或编译通过。优先该电脑，无需先租云端或配GPU。
+本机另只读复用旧工程QEMU/Box64与x86 Python，私有安装新4.11.11轮子；QEMU
+真实import及官方BC的14输入/6输出读取通过，未做完整编译/训练；Box64新版本符号
+hbmarchGetMarchConfigByName解析失败，证据保留。仿真不计原生x86验收，旧源树未写。
+脚本tools/bev_feature/x86_{probe.py,setup.sh,compile.sh}与pack_x86_compiler.py；
+说明docs/X86_WINDOWS_SETUP_20261101.txt，证据validation/x86_solution_20261101/。
+相机/导航未启停，未上传SDK或创建云资源。保留1027及旧改动，未推送。
+
+2026-11-01 用户提供 OE3.9.1 py310 开发包并确认先用官方 Hugging Face 仓库。
+包已解压至 runtime/oe391_20261101/，wheel 实检 compiler/march4.11.11、plugin3.3.10，
+均 x86_64；官方固定 revision 浮点/HBM/三个BC及许可文件已下载并校验。未取得HEAL0.0.2，
+GitHub仍Repository not found；当前主机Jetson，无可访问x86环境，未启动OE容器或正式编译。
+新SDK七个ARM库私有上传/tmp/conbine-oe391-YSqnpbu5，DNN/UCP3.15.8/HBRT4.11.11实读，
+复用旧hrt_model_exec跑100帧，BPU16.36031ms/模型调用16.41243ms，一个BPU子图。
+旧常驻程序因固定版本拒绝，新代码支持编译时SDK版本并以新头文件重编，J6M实际14输入/
+6输出通过，10次vendor均值16.7451ms，有限/重复差0。原构建默认3.14.5保持，未切换在线库。
+新增SDK/容器检查、官方BC编译准备和板端复测工具；3项逻辑检查通过，x86编译尚待执行。
+四路相机/BEV/sender/link/receiver保持inactive，两端时钟保留，未改变导航/车辆控制。
+仍缺HEAL/x86运行环境、同步米制标注与重装rig/base对齐；不能称四路垃圾BPU已交付。
+记录docs/OE391_SETUP_20261101.txt，证据validation/oe391_20261101/。保留1027及既有改动，未推送。
+
+2026-11-01 用户询问软件关闭相机并要求协助，已正常停止四路采集、BEV预览及旧
+ZED sender、camera-link和板端receiver，均inactive/MainPID0；ZED与ISX相机锁
+均释放，18882/18883/18884/18885无监听，板端记录PAIRED_CAMERA_STOPPED且PID文件
+已移除。保留两端时钟服务；未改导航/底盘、配置或物理供电。证据
+validation/camera_stop_20261101/。此条取代下条四格/BEV仍active的运行状态；
+当前组合尚未做12小时连续运行验收。
+
+2026-11-01 用户要求先按现有资源优化。已优化 ground_bev 固定权重/可见区/定点
+remap与有效ROI，BEV每帧缓存一次JPEG，PNG导出转为最多一个待写快照的后台线程。
+同图对照投影中位98.94->30.20ms，单路投影/可见区一致、融合最大差1灰度；在线
+处理中位96.17->33.01ms，约4.9fps，仍为5Hz配置。14项几何/协议及2项写盘检查通过。
+只重启BEV显示(PID507070)，四格源PID303816未变，外参/地图/运动设置未改。
+新增可复现投影/在线性能和旧垃圾HBM诊断工具；J6M旧单类HBM在20张当前BEV上推理
+完成，vendor_infer中位6.296ms、P95 6.450ms，20张均无>=0.25框，无精度真值。
+旧HBM源checkpoint指纹与当前best6不同，未切换在线模型，不是四路BPU特征融合。
+首次试验因camera-link自动重启receiver取消stop，已保留失败证据；修正后仅测试期间
+暂停旧link/receiver并在finally恢复active，时钟和四路采集未停。正式current未改，
+未启动Qt/YOLO/导航或发目标/速度/机构命令。HEAL/匹配x86环境、同步米制标注与
+新rig/base对齐仍缺。说明docs/BEV_OPTIMIZATION_20261101.txt，证据
+validation/bev_optimization_20261101/。保留1027分支与此前未提交改动，未推送。
+
+2026-11-01 用户指定检查/home/slam/horizen-ch。已核查底层SDK：有BPU/UCP示例、
+ISX031驱动/同步配置、全局时间源/Timesync、GDC拼接及六路BEV-CFT nash_m HBM；
+其中complex_scene_test/hrt_model_exec/j6p/lib的7个库与当前私有runtime_4_9_2的SHA
+全部一致，DNN头文件也一致。不同示例另有HBRT4.4.2，不能混用；未找到HEAL源码或
+OE3.9.1训练编译包。板端只读globaltime=2(RTC)、phcindex=0；image_info_t明确tv是
+HAL取帧时间，不能替代曝光。RX1/max96712/ISX031参考与实车触发脚/模组配置不同，
+未直接覆盖或宣称曝光同步成功；ZED跨主机时间映射仍未验证。未改SDK、运行库、
+相机服务或时钟配置。清单docs/HORIZEN_CH_BEV_RESOURCES_20261101.txt，证据
+validation/horizen_ch_resources_20261101/。
+
+2026-11-01 用户要求四路特征BEV垃圾中心定位、J6M BPU加速及独立RViz地图标点，
+后续确认正式训练/量化/编译在x86_64，OE3.9.1、HEAL0.0.2、plugin3.3.10、compiler4.11.11。
+本机实为Jetson AGX Orin；板端hb_version=J6M_Matrix_V2.0。GitHub SSH身份Doribelove
+已认证，但HorizonRobotics/Heal的SSH ls-remote返回Repository not found，尚未取得源码；
+本机及Docker未找到匹配OE开发包。官方固定revision六路HBM大小/SHA通过，私有4.9.2
+runtime实际加载及100帧profiling通过：BPU16.5421ms、模型调用16.6277ms，一个BPU子图，
+不能称为本车四路垃圾性能。常驻tensor executor新增S16 SCALE采样输入/量化元数据，
+板端14输入/6输出与重复输出验证通过。测试暂停旧receiver并恢复active；四格/像素BEV
+持续active，正式current未变。新四路浮点原型在Jetson通过真实图像前后向及ONNX检查，
+未训练、未载官方权重、未完成HEAL距离topk/BEV encoder移植或垃圾HBM；没有替换旧预览。
+新增独立/fod/bev观测/采集时刻TF/map跟踪/RViz标记，实际私有11591合成20帧回放通过，
+不恢复旧Qt地图垃圾页面。6项几何/评价与14项tensor桥检查通过。实拍四图时钟仍未统一，
+rig/base新平面对齐、共同实测地面点、同步四视图米制垃圾标注均缺；图中参考点为计算点，
+没有实车交界去重/地图稳定性/定位误差或端到端延迟验收。正式训练限定x86；未发任何
+车辆目标/速度/机构命令，测试ROS会话收尾停止。说明docs/BEV_FEATURE_J6M_20261101.txt，
+证据validation/bev_feature_20261101/。本轮修改未提交/推送，保留既有1027分支与旧改动。
+
+2026-11-01 用户提供重装外参并澄清角度指镜头主光轴：左右/后高0.80m，左右间距
+0.43m且中线对称，后在中点后0.24m；前在中点前0.96m、高0.32m；主光轴下俯
+左右22度、后15度、前0度。相机组地面原点仍在左右中点正下方，X前/Y左；左右
+y=+/-0.215m，yaw按朝车左/车右取+/-90度，后yaw180，前yaw0，左右翻正180度。
+三/四路配置均更新，移除旧前视IMU姿态及旧安装遮挡掩膜。旧左右Flash内参与当前
+端口互换，已重新读Flash生成私有硬件GDC包runtime/surround_recalibrated_20261101/，
+板端同名/map/conbine_camera/目录，入口默认更新。四格源服务和BEV服务均active，
+四路源递增、新参数SHA及真实融合核对通过，约5.1fps，13项几何/协议检查通过。
+旧camera-connections数字口服务已正常停止，由标准four-camera-view替代；ZED sender
+仍由四格窗口持锁期间暂时停止，退出恢复。未启动YOLO/Qt清扫、导航或机构控制。
+相机全部重装后，新中点与MID360的垂线关系待用户回复；旧rig_to_base=[0.20,0,0]
+已备份并清空，不将本次相机组几何当作车体平面对齐或实测米制精度验收。
+证据validation/camera_geometry_20261101/，说明docs/BEV_GEOMETRY_20261101.txt。
+本条替代以下旧安装参数、旧服务及旧外参有效性状态。
+
+2026-10-31 用户明确RX1端口0=左、1=右、2=后，0/1原图倒置。已保存独立
+config/camera_connections.json并由当前四格预览读取，窗口按前/左/右/后标注，
+左/右像素旋转180度且状态记录camera_role、preview_rotation_deg；后视保留原方向。
+私有预览已重开、4路连续帧和实际翻正画面核对通过，仍用上述233137运行目录；
+证据validation/camera_orientation_20261031/。本条替代下条“未确认映射、未旋转”
+状态；仅端口与预览方向已确认，新安装的米制外参仍待测量，旧BEV外参未启用。
+
+2026-10-31 用户说明所有相机均已连接并要求打开，重新探测RX1的0、1、2号口均
+启动成功、读到各自Flash内参，加上ZED共4路实际持续出图；3号口返回-3505。
+四格仅显示实际4路，按数字端口标注，未确认新左右/后视映射，未旋转鱼眼或套旧
+GDC/BEV外参。原预览服务保持active，当前runtime/camera_recheck_20261031_233137/，
+证据validation/camera_connections_20261031_233137/；未启动导航、BEV、YOLO或清扫。
+本条替代下条的3路接线状态。
+
+2026-10-31 用户换接后要求复查，最新RX1的0、1号口均启动成功且实际持续出图，
+加上前视ZED共3路；2、3号口仍返回-3505。数字端口预览服务保持运行，已切换到
+runtime/camera_recheck_20261031_225641/；原始鱼眼未旋转，左右映射与新安装标定
+仍未确认。新证据validation/camera_connections_20261031_225641/。本条替代下条
+“只有RX1/0出图”的上次接线状态，不据此断言原接口已损坏。
+
+2026-10-31 用户明确所有相机位置及接口均已变化，当前连接前视ZED及左右两台相机，
+本轮只做接线检查。旧相机端口对应、安装位姿及rig_to_base_xyyaw均作为历史记录保留，
+不能当作新安装的有效标定。已打开数字端口原始预览，ZED(23748636)和J6M RX1/0
+两路持续更新；RX1/1、2、3启动返回-3505，RX0、RX4初始化返回-3601，另一台尚未出图，
+不能由此认定物理接口损坏。鱼眼保持未旋转、未套用旧GDC/BEV标定的原始方向。
+当前autolabor-conbine-camera-connections.service运行；占用ZED期间暂时停止旧sender，
+关闭窗口或正常stop该服务会释放相机并恢复原先active的sender。没有启动导航、BEV、
+YOLO或清扫；截图及连续序号证据validation/camera_connections_20261031_225020/，
+私有运行文件runtime/camera_recheck_20261031_225020/。详见docs/CAMERA_CONNECTIONS_20261031.txt。
+
+2026-10-29 用户明确左右相机连线中点与雷达中心的连线垂直于底盘平面，故两者
+底盘平面X/Y重合。已依据现导航MID360-in-base=(0.20,0,1.0)m的平面分量，将
+BEV rig_to_base_xyyaw保存为[0.20,0,0]（末项yaw，不是Z）；沿用车前X/车左Y方向，
+不使用或推算底盘离地高度。launch展开及前/后点转换核对通过，重开私有Qt/YOLO
+显示会话后实读参数一致、rig_to_base_configured=true，状态“平面外参已配置，等待
+导航定位TF”。四格/融合PID未变，真实导航inactive、清扫IDLE/active=false，未发
+目标/速度/机构指令。证据validation/bev_rig_xy_20261029_215635/。本条替代下方
+“平面外参仍空/待用户确认”的当前状态；米制精度与拾取效果仍非实车验收。
+
+2026-10-29 用户要求删除Qt“BPU预览”页，以BEV视野清扫替代并适配已接入的后视。
+已删除独立BPU页及其订阅/原始帧缓存，唯一BEV页放在原入口位置；综合页复用同一BEV
+识别图并链接该页。清扫入口默认选四路配置，原camera_bev.sh三路默认仍保留；检测JSON
+及清扫状态按实际来源显示4路环视，新增导航可用性展示，没有增加运行门或修改原控制。
+Release及91项相关检查通过，只重开Qt/YOLO私有11587显示会话，四格源与BEV融合PID未变。
+实读4路front/left/right/rear、清扫IDLE/active=false、rig_to_base_xyyaw仍空、导航不可用，
+真实导航服务仍inactive；没有启动实车导航或发目标/速度/清扫机构指令。
+用户追问高度：左右0.71m、后视0.80m已用于地面BEV；没有查到base_link到地面的独立
+实测高度。MID360相对base_link的z=1.0是坐标偏移，旧zed_mount.yaml明确非地面高度；
+M2 odom的z=0是二维约定，不能当测量值。仍缺BEV到底盘的平面原点对齐，机构自动
+控制未接入，不宣称完整自主拾取清扫。说明docs/BEV_SURROUND_UI_20261029.txt，证据
+validation/bev_surround_ui_20261029_213616/；本轮未提交/推送，保留此前四路改动。
+
+2026-10-29 用户继续确认后视水平朝后、下俯0度、不倒装，并要求实际融合。
+four_camera_bev.json后视位姿已完整保存：[-0.53,0,0.80]米、yaw180/pitch0/rotate_180=false。
+真实四路BEV及原Qt/YOLO已启动并验证，约4.9fps，四路源序号递增，后视对应RX1/2。
+新增本机127.0.0.1:18885/frame复用四格窗口持有的ZED SDK图像，保留SDK源时间；
+四路BEV用--reuse-capture读已有18882/18885，不重复打开相机或停止该源服务。
+camera_surround.sh start会自动启动四格源服务、融合及原Qt，三路原参数和默认入口保留。
+Qt启动页按bevPreviewPage对象名定位，顶部和状态显示实际4路；GTK显示后视高度0.80/俯角0。
+当前四格、BEV GTK、原Qt三项service均保持运行，ZED旧sender仍按原交接约定暂时停止，
+关闭四格窗口才释放相机并恢复。导航/底盘/目标/速度/清扫未启动，Qt私有master11587。
+同步和独立米制精度仍未验收；水平后视在当前120度透视图中，镜头后约0.82m以内地面
+不在画幅中，BEV保留黑色盲区，墙/箱等立体物体会按平面假设拉伸。
+证据validation/four_camera_fusion_20261029_192536/，含实际四路源/位姿/同帧YOLO验证和截图；
+当前融合输出runtime/surround_rear_20261029_2/bev/。本条替代下方缺角度及未融合的历史状态。
+
+2026-10-29 用户补充后视安装位置：左右相机中点后方53cm、离地80cm、正对后方。
+已写入four_camera_bev.json的rear.position_ground_rig_m=[-0.53,0,0.80]及yaw_left_deg=180。
+下俯角和是否倒装仍待回复，pitch_down_deg/rotate_180保持null；四路原视角预览继续运行。
+
+2026-10-29 后续用户要求打开各个画面。新增scripts/four_camera_view.sh及GTK四格预览，
+J6M复用上述_2私有GDC包的0/1/2，前视通过本机ZED SDK直连HD720/15fps、depth=NONE显示。
+因原17446预览无帧，本次按用户打开相机的范围临时停止j6m-b-camera-sender.service，
+取得其原camera.lock后显示；关闭窗口释放ZED并恢复此前active的sender，已实际stop/恢复/
+再次start验证。clock/link/板端旧receiver未启停，导航和控制未启动。
+当前autolabor-conbine-four-camera-view.service保持active，四格均连续出图；左右沿用原
+180度翻正，后视提供仅显示旋转开关，没有改安装外参。截图与源序列证据在
+validation/four_camera_view_20261029_191258/，当前状态/窗口截图在runtime/four_camera_view_20261029/。
+本条是最新预览状态；前一条ZED503指原BPU预览接口，不表示本次直连前视无画面。
+
+2026-10-29 用户要求在本合并目录加入第四路后视。保留原三路参数，新增
+config/four_camera_bev.json、camera_surround.sh，以及按配置处理三/四路的采集、
+地面投影、YOLO报文与Qt显示。J6M RX1 0/1/2三路已重新读Flash、生成各自GDC LUT，
+实际960x540 GDC同源取帧及连续序号通过；新候选在
+/map/conbine_camera/surround_rear_20261029_2/，首个同名前缀目录的VIO节点名失败证据保留。
+新增2号口拟对应后视，安装位置/高度/yaw/俯角/倒装尚待用户确认，四路配置这些字段保留null；
+不得把测试夹具中的后视位姿写入真实配置。原三路check通过，四路check明确报缺后视参数。
+Qt构建、13项几何/协议及6项Qt报文测试通过，但没有真实四路BEV融合或Qt四路画面验收。
+现有ZED进程仍运行，其17446预览当次返回503，接收端记录frame_age_out_of_bounds；
+本轮未改其时间规则/配置或启停旧服务。临时GDC诊断已关闭、相机锁释放；没有启动导航、
+清扫、录包或车辆运动，未提交/推送。续接见docs/FOUR_CAMERA_SURROUND_20261029.txt。
+
 2026-10-27 用户要求先保存当前工作到1027分支，再删除旧垃圾地图标注/Qt页面，
 改为三路BEV视野内垃圾逐步清扫。已先创建1027并提交保存点48b39af，随后在该分支
 完成本地开发：删除旧待清扫垃圾页面、点位注册表、单点清扫节点/服务和旧专用地图

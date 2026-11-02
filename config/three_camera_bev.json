@@ -3,7 +3,7 @@
   "frame_id": "camera_rig_ground_estimate",
   "origin": "ground point vertically below side-camera midpoint",
   "axes": "x forward, y left, z up; image top is forward",
-  "pose_source": "2026-10-25 user rig dimensions and side tilt; current ZED static gravity attitude estimate",
+  "pose_source": "2026-11-01 user supplied reinstalled camera heights, side spacing, fore/aft offsets and downward pitches; 2026-10-31 user confirmed RX1 assignments and side image inversion",
   "metric_accuracy_verified": false,
   "exposure_synchronization_verified": false,
   "x_range_m": [
@@ -45,34 +45,20 @@
       ],
       "position_ground_rig_m": [
         0,
-        0.185,
-        0.71
+        0.215,
+        0.8
       ],
       "yaw_left_deg": 90,
-      "pitch_down_deg": 15.0,
+      "pitch_down_deg": 22,
       "rotate_180": true,
       "roll_source": "user confirmed upside-down image; corrected by exact 180-degree pixel rotation",
-      "exclude_polygons_upright_px": [
-        [
-          [
-            630,
-            340
-          ],
-          [
-            959,
-            390
-          ],
-          [
-            959,
-            539
-          ],
-          [
-            620,
-            539
-          ]
-        ]
-      ],
-      "exclusion_mask_source": "Conservative polygons over visible vehicle structure in the fixed mounted view; not semantic ground segmentation"
+      "exclude_polygons_upright_px": [],
+      "exclusion_mask_source": "Old mounting masks removed; new mounting vehicle mask has not been measured",
+      "upright_optical_roll_deg": 0.0,
+      "installation_measurement_source": "2026-11-01 user supplied new installation geometry",
+      "height_source": "2026-11-01 user measurement above ground",
+      "pitch_source": "2026-11-01 user: downward from horizontal; front level",
+      "port_assignment_source": "2026-10-31 user: RX1/0 left, RX1/1 right, RX1/2 rear"
     },
     "right": {
       "source": "j6m_hardware_gdc",
@@ -100,34 +86,20 @@
       ],
       "position_ground_rig_m": [
         0,
-        -0.185,
-        0.71
+        -0.215,
+        0.8
       ],
       "yaw_left_deg": -90,
-      "pitch_down_deg": 15.0,
+      "pitch_down_deg": 22,
       "rotate_180": true,
       "roll_source": "user confirmed upside-down image; corrected by exact 180-degree pixel rotation",
-      "exclude_polygons_upright_px": [
-        [
-          [
-            0,
-            415
-          ],
-          [
-            340,
-            430
-          ],
-          [
-            440,
-            539
-          ],
-          [
-            0,
-            539
-          ]
-        ]
-      ],
-      "exclusion_mask_source": "Conservative polygons over visible vehicle structure in the fixed mounted view; not semantic ground segmentation"
+      "exclude_polygons_upright_px": [],
+      "exclusion_mask_source": "Old mounting masks removed; new mounting vehicle mask has not been measured",
+      "upright_optical_roll_deg": 0.0,
+      "installation_measurement_source": "2026-11-01 user supplied new installation geometry",
+      "height_source": "2026-11-01 user measurement above ground",
+      "pitch_source": "2026-11-01 user: downward from horizontal; front level",
+      "port_assignment_source": "2026-10-31 user: RX1/0 left, RX1/1 right, RX1/2 rear"
     },
     "front": {
       "source": "zed_sdk_rectified_left",
@@ -154,88 +126,21 @@
         ]
       ],
       "position_ground_rig_m": [
-        0.08,
-        -0.015,
-        0.71
+        0.96,
+        0,
+        0.32
       ],
-      "yaw_left_deg": 0.0,
-      "pitch_down_deg": 17.200847673121178,
+      "yaw_left_deg": 0,
+      "pitch_down_deg": 0,
       "rotate_180": false,
-      "height_source": "equal camera height approximation supplied by user",
-      "pitch_source": "Current static accelerometer gravity transformed IMU -> left optical with SDK extrinsics; historical 42 degrees conflicts with current mounting",
-      "upright_optical_roll_deg": 0.9498958914990902,
-      "attitude_estimate": {
-        "unique_samples": 5,
-        "first_stamp_ns": 1792937134405552786,
-        "last_stamp_ns": 1792937138529787786,
-        "gravity_up_direction_left_optical": [
-          -0.01583658126064154,
-          -0.9551427082601692,
-          -0.2957221830559966
-        ],
-        "acceleration_norm_mean_m_s2": 9.759281048061059,
-        "pitch_std_deg": 0.03341425362870534,
-        "max_angular_velocity_deg_s": 0.1475885957479477,
-        "assumptions": "stationary camera, locally horizontal floor, factory IMU-to-left extrinsics; yaw supplied by user",
-        "independently_verified": false
-      },
-      "exclude_polygons_upright_px": [
-        [
-          [
-            0,
-            600
-          ],
-          [
-            160,
-            500
-          ],
-          [
-            345,
-            495
-          ],
-          [
-            410,
-            435
-          ],
-          [
-            485,
-            397
-          ],
-          [
-            700,
-            390
-          ],
-          [
-            790,
-            435
-          ],
-          [
-            830,
-            470
-          ],
-          [
-            1010,
-            485
-          ],
-          [
-            1120,
-            535
-          ],
-          [
-            1279,
-            590
-          ],
-          [
-            1279,
-            719
-          ],
-          [
-            0,
-            719
-          ]
-        ]
-      ],
-      "exclusion_mask_source": "Conservative polygons over visible vehicle structure in the fixed mounted view; not semantic ground segmentation"
+      "upright_optical_roll_deg": 0.0,
+      "exclude_polygons_upright_px": [],
+      "exclusion_mask_source": "Old mounting masks removed; new mounting vehicle mask has not been measured",
+      "installation_measurement_source": "2026-11-01 user supplied new installation geometry",
+      "height_source": "2026-11-01 user measurement above ground",
+      "pitch_source": "2026-11-01 user: downward from horizontal; front level"
     }
-  }
+  },
+  "yaw_source": "Front/rear face forward/backward; side cameras assumed facing laterally outward (left +90 deg, right -90 deg)",
+  "installation_calibration_status": "user_measured_rig_geometry; independent_metric_accuracy_unverified"
 }

@@ -79,7 +79,8 @@ class TensorEngine:
             raise ValueError('Device deadline must be 1..8000 ms')
         prepared = []
         for value, spec in zip(tensors, self.metadata['inputs']):
-            dtype = np.dtype('float32') if spec['type'] == 7 else np.dtype('uint8') if spec['type'] == 3 else None
+            dtype = {7: np.dtype('float32'), 3: np.dtype('uint8'),
+                     5: np.dtype('int16')}.get(spec['type'])
             if (dtype is None or not isinstance(value, np.ndarray) or value.dtype != dtype
                     or list(value.shape) != spec['shape'] or not np.isfinite(value).all()):
                 raise ValueError('Input dtype/shape/finite-value mismatch')

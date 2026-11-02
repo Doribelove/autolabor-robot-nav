@@ -7,14 +7,16 @@ base=/map/autolabor_runtime/rootfs
 navigation=/map/robot_j6m_navigation_20260907/rootfs/opt/autolabor/dual_host
 driver=/map/j6m-dev-b/livox2_20261019_2zho_g16
 map_dir="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["board_map_directory"])' "$run_dir/session.json")"
-[[ "$map_dir" == /map/robot_j6m_navigation_20260907/maps/releases/* ]] || exit 2
+[[ -z "$map_dir" || "$map_dir" == /map/robot_j6m_navigation_20260907/maps/releases/* || "$map_dir" == /map/conbine_navigation/maps/* ]] || exit 2
 mount --make-rprivate /
 mount --bind "$base" "$base"
 mount -o remount,bind,ro "$base"
 mount --bind "$run_dir" "$base/tmp"
 mount --bind "$navigation" "$base/opt/autolabor/dual_host"
 mount -o remount,bind,ro "$base/opt/autolabor/dual_host"
-for item in "${driver}/install:livox" "${driver}/sdk:sdk" "${map_dir}:map_set"; do
+bindings=("${driver}/install:livox" "${driver}/sdk:sdk")
+[[ -z "$map_dir" ]] || bindings+=("${map_dir}:map_set")
+for item in "${bindings[@]}"; do
   mount --bind "${item%:*}" "$base/tmp/${item##*:}"
   mount -o remount,bind,ro "$base/tmp/${item##*:}"
 done

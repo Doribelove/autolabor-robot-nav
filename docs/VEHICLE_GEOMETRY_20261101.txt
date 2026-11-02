@@ -1,0 +1,64 @@
+加装清扫装置后的平面对齐与车体轮廓（2026-11-01）
+
+后续补充已落实：刷子在最前沿，参考X=1.22m；base_link高度按用户实测0.25m，
+雷达相对Z=0.65m。25cm未获官方独立确认。当前状态见VEHICLE_CONTACT_HEIGHT_20261101.txt。
+下文保留本轮补充前的检查记录，其中“待确认”及旧高度已由后续记录替代。
+
+用户本次实测说明
+BEV 原点（左右相机连线中点的地面投影）、MID360 雷达中心地面投影、Autolabor
+原底盘中心地面投影重合。车头前方新增长0.70m、宽0.80m清扫装置，整车总宽0.80m。
+MID360 光学测距中心离地0.90m。以上数据替代旧MID360相对底盘向前0.20m的关系。
+
+已确定并写入的几何
+1. bev_cleaning.yaml：rig_to_base_xyyaw=[0,0,0]，第三项是yaw弧度，不是高度。
+   沿用X前/Y左；原底盘坐标原点保持不变，不移到加长后外廓的几何中心。
+2. 现有底盘配置长1.04m、宽0.70m，前后各0.52m，未当作本次独立实测尺寸。
+   按此前尺寸加前伸0.70m：前边x=1.22m、后边x=-0.52m、两侧y=±0.40m，
+   总长1.74m、总宽0.80m。采用整车包围矩形，后部比原底盘略宽，属于保守外廓。
+3. 全局/局部costmap和TEB优化多边形使用相同外廓；原footprint_padding=0.10m不变。
+   覆盖规划的带余量尺寸对应前1.32m、后0.62m、半宽0.50m。
+   vehicle_footprint.yaml在原TEB profile之后加载，静态地图/无图入口均生效，避免
+   代价地图已变大但TEB仍使用旧车体的情况。离线调参预览也加载相同配置。
+4. MID360在base_link中的X/Y改为0/0；FAST-LIO body是IMU坐标系，雷达在IMU中的
+   固有偏移[-0.011,-0.02329,0.04412]不变，因此body->base_link的X/Y为
+   [-0.011,-0.02329]，不能因为雷达/底盘平面中心重合就把IMU到车体变换也清零。
+5. MID360自车裁剪的前沿从0.75m延至装置前沿1.22m；其余裁剪范围和高度筛选不变。
+   此项只完成参数更新，没有启动实车点云验证，尚未验证清扫装置回波去除效果。
+
+尚未确定的量（已询问用户）
+A. base_link原点离地高度h_base未查到独立实测配置。雷达离地0.90m已记录，
+   但MID360相对base_link的Z应为0.90-h_base，不能直接把“离地0.90”写成“相对底盘0.90”。
+   原M2 odom.z=0是二维里程计约定，底板最低处间隙/轮半径也不能替代该参考点高度。
+   本次保留旧sensor_z=1.0及对应body_tf_z=-0.95588，并明确标为待测；不称它们已
+   适配本次安装。相机自身离地高度仍用用户此前提供的左右后0.80m、前0.32m。
+   此缺项不阻塞BEV到车体的二维X/Y转换，但影响雷达三维变换和地面高度筛选。
+B. 清扫装置最前沿x=1.22m是碰撞外廓，尚未确认刷子/吸口真正接触垃圾的纵向位置。
+   现有cleaning_reference_offset_m=0.52是旧车体参考，暂未冒充新装置作业点。
+   用户需说明有效接触线是否在最前沿，或从最前沿向后缩多少。
+   两个清扫控制器现有参考偏移校验上限1.0m；后续若作业点大于1m，需同步修改
+   bev_cleaner_node.py和fod_visual_servo_node.py的旧校验，不能只改YAML。
+   总宽0.80m也未当作有效刷扫宽度；旧区域覆盖operation_width_m=1.00仍为历史
+   作业宽度参数，需依据实际刷扫宽度另行标定，不据此外廓更新宣称覆盖精度通过。
+
+生效范围
+Qt/识别私有会话正常重开至PID1367985；四格采集1013642和BEV1013644未重启。
+实际读取 /bev_cleaner/status：rig_to_base_configured=true、IDLE、
+active=false，提示“BEV到底盘平面外参已配置，等待导航定位TF”。
+真实导航仍inactive；本轮没有发初始位姿、目标、速度或机构命令，没有开始清扫实验。
+真实导航的本地launch/config在下次live-start打包时加载；没有换正式current或刷机。
+J6M私有持久coverage.yaml已备份，只改footprint_front_m和footprint_half_width_m；
+其余调参逐项一致。旧后余量0.62m不变。离线预览已有coverage.yaml也只更新外廓字段。
+保留原地图、原工作树、1027分支及其他未提交改动，未提交推送。
+
+验证与证据
+validation/vehicle_geometry_20261101/：
+- before/和before_sha256.json：本轮涉及文件原件。
+- geometry_tests.log：15项几何检查通过；新增真实配置外廓碰撞用例验证前伸装置和
+  加宽部分的障碍在0/90度朝向下被检出，原小车体会漏掉这些障碍。
+- expanded_static.yaml、expanded_mapping.yaml、expanded_geometry_check.json：
+  隔离网络、无设备环境展开launch，核对costmap/TEB/覆盖外廓及MID360平面偏移一致。
+- persistent_coverage_update.json：板端原文、更新后原文、SHA及备份路径；先前尝试因
+  板端根Python无yaml模块，在修改前失败，改用标准库精确替换后成功，失败说明保留。
+- live_cleaner_status.json、live_detector_state.json、before_services.txt、after_services.txt：
+  实际私有会话参数/状态；YOLO CUDA、无深度、后视遮罩保持，真实导航未启动。
+没有实车导航/清扫误差、地面雷达高度或实际拾取验收。

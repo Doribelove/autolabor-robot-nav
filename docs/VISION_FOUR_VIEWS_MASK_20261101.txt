@@ -1,0 +1,70 @@
+Qt 四路识别画面与后视车体排除（2026-11-01）
+
+结果与入口
+Qt“视觉”页已显示前/左/右/后四幅带框原图，以及右侧融合 BEV 二维点位。
+各画面保持长宽比，显示各路框数/相机帧号，底部列出类别、置信度及 x/y 米制估计。
+camera_surround.sh start 默认打开这个页面，原 BEV 视野清扫页及综合页仍可使用。
+四路仍先在 J6M BPU 上分别运行 FCOS，再由 CPU 做地面投影和观测合并；没有增加
+对拼接图的第二次检测，也不是学习式四路特征融合。ZED 深度继续关闭。
+
+后视车体区域
+配置：config/bev_detection_masks.json。
+坐标对应翻正后的 960x540 后视 GDC 图，左上角为 (0,0)，u 向右、v 向下。
+根据本次实拍白色蘑菇头轮廓设置多边形，包围范围约 u=344..624、v=407..539，
+轮廓外保留少量余量；并非屏蔽整条底部地面。准确顶点见配置文件。
+模型输入前将该区域置黑；解码后继续排除中心或底边中心落入该区域的框，或遮罩
+覆盖框面积至少 50% 的框。若有显式接触点也检查它。排除结果只保留在诊断字段，
+不进入画面目标、二维定位、去重或清扫候选。小范围擦边的相邻目标仍可保留。
+Qt 后视原图以红色显示排除区域，BEV 背景仍保留实际车体影像；这不是图像修补。
+更改相机角度/裁剪/GDC 后需根据新画面重画此多边形，不应继续套用旧像素范围。
+
+五画面配对
+新增本地 /vision_frame（BV02）：一个响应携带 BEV、四路带框预览及同组识别元数据。
+Qt 检查组标识、各路尺寸、JPEG 长度和 SHA256，避免分别取图造成框/画面串帧。
+原 /frame（BV01）及 /detections 保持兼容，原新鲜度处理继续使用。
+同组来源表示软件配对，不表示四个相机已实现曝光级硬件同步。
+
+实测与限制
+1. 同一组四路实拍图在 J6M 做遮罩前后对照（mask_ab.json）：
+   原后视蘑菇头被识别为 toilet=0.519、sink=0.262。
+   置黑后上述类别消失，但遮罩区域仍产生 person=0.281 框；后置区域过滤将其排除。
+   最终后视有效结果没有该车体目标。前/左/右结果在这组对照中完全一致，左视瓶子保留。
+   后视蓝色托盘仍有 bed 误分类，它在遮罩外；不能宣称通用 FCOS 的所有误判已经解决。
+2. 在线采集 25 组新 BV02 报文，逐一验证四路 JPEG 与来源一致，25 组均有左视瓶子。
+   最后一组瓶子约 (0.465, 1.161)m，属于相机组地面坐标的接触点估计，不是地图真值。
+   rig_to_base_xyyaw 仍空，尚无独立米制误差、交界去重、地图稳定性验收。
+3. 本轮五画面样本识别约 4.17fps；100 次单路 vendor_infer_ms 中位 4.262ms，
+   25 次四路调用（含遮罩、传输及检测前后处理）中位 131.455ms。
+   不把该调用时间当作采集到地图发布的端到端时延。
+4. Qt Release 构建成功；3 项 Python 遮罩/报文检查通过，11 项 Qt 报文检查通过，
+   包括实际 BPU BV02。初次 Qt 测试将环境参数误写为小写 bpu，导致大小写断言失败；
+   改为报文真实值 BPU 后 11 项全过，初次日志也保留。实际五画面截图已检查。
+5. 只重开识别/Qt 服务，PID1155648；四格源1013642、BEV1013644保持不变，均 active。
+   真实导航 inactive，未发目标/速度/机构命令，模型/阈值/标定/原工作树未改。
+   保留1027及其他未提交工作，本轮未提交或推送。
+
+主要文件
+- config/bev_detection_masks.json
+- distribution/j6m_bpu_navigation/surround/detection_views.py
+- distribution/j6m_bpu_navigation/surround/tests/test_detection_views.py
+- scripts/bev_yolo_server.py、scripts/bev_qt_session.py
+- src/application/autolabor_operator_gui/include/autolabor_operator_gui/{bev_preview_client,main_window}.h
+- src/application/autolabor_operator_gui/src/{bev_preview_client,bev_integration,main_window,main}.cpp
+- src/application/autolabor_operator_gui/test/test_bev_preview.cpp
+
+可复制命令（工作目录 /home/slam/robot_j6m_ws_conbine）
+启动：bash scripts/camera_surround.sh start
+修改遮罩后，仅重开 Qt/识别：
+  bash scripts/camera_surround.sh stop
+  bash scripts/camera_surround.sh start
+这里的 stop 只停 Qt/识别；如需全部关闭，还需正常停止 camera_bev.sh 和 four_camera_view.sh。
+
+Python 检查：
+  PYTHONPATH="$PWD/distribution/j6m_bpu_navigation" /home/slam/robot_ws/.venv/fod_yolo/bin/python3 -m unittest discover -s distribution/j6m_bpu_navigation/surround/tests -p test_detection_views.py -v
+Qt 实际报文检查：
+  QT_QPA_PLATFORM=offscreen BEV_PREVIEW_TEST_PACKET="$PWD/validation/vision_views_mask_20261101/live.bv02" BEV_PREVIEW_TEST_BACKEND=BPU LD_LIBRARY_PATH="$PWD/devel/lib:/home/slam/robot_j6m_ws_navigation_20260907/devel/lib:${LD_LIBRARY_PATH:-}" devel/lib/autolabor_operator_gui/test_bev_preview
+
+证据：validation/vision_views_mask_20261101/
+before.mv01/before_*.png 为原始输入；mask_ab.json 为真实板端 A/B；masked_*.jpg 为最终预览；
+live.bv02、live_frames.json、live_summary.json 为在线样本；qt_visual_live.png 为新页真实截图；
+build.log、qt_tests.log、services.txt、live_state.json 记录构建、解码及运行状态。

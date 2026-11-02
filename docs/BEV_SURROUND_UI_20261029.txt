@@ -1,0 +1,65 @@
+2026-10-29 环视BEV页面替换及底盘高度核查
+
+用户要求
+删除Qt内不再需要的“BPU预览”页，使用BEV视野清扫替代，并适配已有后视相机。
+用户同时询问是否能自主清扫，以及相机/底盘离地高度是否已有记录。
+
+改动
+- 删除独立BPU预览页面、原始框开关、仅供该预览使用的ROS订阅/回调/帧缓存。
+  保留原“视觉”页的模型切换及控制接口；没有关闭BPU后端或改变导航控制。
+- 唯一“BEV视野清扫”页替代原入口；综合页显示相同BEV识别图并通过按钮跳转。
+  初始页按对象名查找；旧initial_bpu_preview参数作为兼容别名打开BEV页。
+- Qt按实际报文展示前/左/右/后4路环视，真实盲区保留；综合页不再被旧端口画面覆盖。
+- YOLO /detections增加configured_cameras和camera_count；清扫节点从实际观测传递路数，
+  不再固定写“三路”。导航可用性仅展示，使用已有判据，没有增加放行条件。
+- bev_perception.sh为视野清扫默认选四路配置。原camera_bev.sh的独立三路默认仍保留。
+
+实际生效
+Release构建及91项相关检查通过：Qt源码契约52、Qt同帧报文6、Qt实际控件集成10、
+BEV几何/关联14、真实协调器+导航桥的隔离任务集成9。
+重启autolabor-conbine-camera-bev-qt.service加载新版Qt、YOLO及私有清扫状态节点。
+四格源服务和BEV融合服务的ExecStart/PID逐项未变，继续复用18882/18885输入。
+Qt截图确认无“BPU预览”页、只有一个BEV页，顶部及任务状态显示4路环视。
+实读后端：camera_count=4，front/left/right/rear，state=IDLE，active=false，
+rig_to_base_configured=false，navigation_available=false。
+当前仍为私有master11587，真实导航服务inactive；没有启动实车导航、发目标/速度、
+运行清扫机构或录ROS包。四格、融合、Qt三个原服务继续运行。
+
+高度核查
+1. 左右相机离地均0.71m；前视按原等高估算0.71m；后视0.80m。这些数据已用于
+   地面BEV，不缺图像投影所需的相机高度。
+2. 当前导航的base_link->MID360为[0.20,0,1.00]m，见scan_mid360_avoidance.launch。
+   src/application/autolabor_bpu_perception/config/zed_mount.yaml明确写明该坐标桥
+   “not a ground-height measurement”。不能把1.00m当底盘离地高度。
+3. m2_driver.cpp将odom的z和odom->base_link的translation.z写0，这是二维里程计
+   表达。未发现当前车辆的base_footprint->base_link实测高度或独立底盘离地参数。
+   M2配置资料只有轮距/轴距/轮半径，不能由此认定base_link原点的地面高度。
+4. 当前二维清扫主要待补BEV原点（左右相机中点正下方）到底盘base_link的x/y/yaw。
+   相机到地面的高度不能确定该平面原点关系；真实rig_to_base_xyyaw继续留空。
+   未把旧ZED安装记录、轮半径或测试用[0,0,0]写入真实外参。
+
+自主清扫能力
+已具备环视检测及经过隔离验证的可达排序、接近、再次观察、逐点前进清扫路径流程。
+当前未连接真实导航，BEV平面外参待补，清扫机构自动控制仍未接入，不能称完整自主
+垃圾拾取清扫。后视水平安装的近车盲区、地面平面假设、曝光未同步及独立米制精度
+待验证等限制沿用四路融合记录，没有用四路出图代替控制或拾取验收。
+
+证据
+validation/bev_surround_ui_20261029_213616/包含修改前文件、构建/测试日志、
+live_observations.json、live_cleaner_status.json、height_audit.json、服务前后状态、
+qt_bev_surround.png及最终摘要。第一次只读探针因沙箱日志目录/用户bus不可用报错，
+随后将ROS只读采样与宿主服务核对分开完成；没有修改运行时规则。
+本轮只在当前1027工作区修改，保留此前未提交四路成果；未提交或推送。
+
+后续：用户给出平面原点关系，已配置并生效
+用户明确左右相机连线中点与雷达中心的连线垂直于底盘平面。因此两者在底盘平面
+投影重合。当前导航MID360-in-base=[0.20,0,1.0]m，取其X/Y分量，沿用BEV的车前X、
+车左Y方向，配置rig_to_base_xyyaw=[0.20,0,0]。末项为朝向弧度，不是Z高度；没有把
+雷达和相机高度等同，也没有推算底盘离地高度。数值20cm沿用既有导航雷达配置，
+不是新增的独立测量精度声明。
+launch展开实读0.20/0/0，BEV前方2.0m转换为base前方2.2m，BEV后方-1.5m转换为
+base的-1.3m；Python语法检查通过。本次为配置及诊断文案变化，没有重复全量构建。
+重开私有Qt/YOLO会话后，ROS参数及节点状态确认配置已加载，感知状态改为
+“BEV到底盘平面外参已配置，等待导航定位TF”。该平面对齐缺项已补齐。
+当前真实导航仍inactive、清扫IDLE/active=false，四格与BEV融合服务PID逐项未变；
+未发送实车目标、速度或机构命令。证据validation/bev_rig_xy_20261029_215635/。

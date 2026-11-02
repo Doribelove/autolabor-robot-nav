@@ -1,0 +1,55 @@
+四路 BEV 重叠消除与二维垃圾点去重（2026-11-01）
+
+用户明确以重叠消除、二维垃圾定位为目标。本轮已经修改并在正在运行的Qt中生效。
+
+图像：config/four_camera_bev.json 的 blend_mode=single_source。
+每个地面网格只取一台相机的投影像素，不再把多路像素加权叠成双影。
+选择依据为内外参推导的图像像素/地面米雅可比最小奇异值，并考虑图像边缘距离；
+偏好最差方向采样密度仍较高的视角。选择表只按标定计算，亮度变化不会使接缝跳动。
+这是几何采样质量，不是实测图像锐度。接缝可能更明显，墙/桶等非地面物体的透视
+拉伸仍然存在，不把单路取图称为三维校正，也没有通过隐藏远处区域来减少重叠。
+ground_bev 原投影映射、地面坐标、盲区和支持范围逐像素不变；三路旧入口继续默认
+weighted。各相机完整图仍用于识别，显示区域的归属不裁掉检测输入。
+
+地面点：原本仅靠同材质标签和15cm地面距离进行跨相机合并，现增加双向框核对。
+两点均需在15cm以内，且各自地面点反投影落入另一台相机的目标框（3像素容差）。
+完整组内两两核对，避免链式把一串近邻都合成一个。每组最多一个同相机观测。
+现有检测器类别均为垃圾材料；塑料/玻璃等跨视角分类不一致时，几何核对通过仍合并，
+最终标签取最高置信度观测，原成员标签和class_disagreement保留，不虚增置信度。
+它不是外观重识别，15cm/3px仍需要实物整定，不能承诺所有交界场景都无重复或误合并。
+
+接口/Qt：ground_association 提供原图框数、无效地面观测数、合并重复数、唯一目标数。
+ground_objects 增加 association_count/method/class_disagreement；x/y 仍为米，
+frame_id 仍为 camera_rig_ground_estimate。Qt右图改名“垃圾二维定位·去重后目标”，
+显示单路取图及去重统计。没有恢复旧垃圾地图页面，没有调整导航或清扫控制。
+清扫管理器原20cm空间关联/轨迹通过逻辑未改，不能将本次感知层相邻目标测试说成
+整套清扫管理器的近邻拾取验收。
+
+验证（validation/bev_blending_20261101/）
+- 保存改动前同一组真实四视图、配置、源帧信息；重放两种融合，61815个重叠网格
+  修改后全部由单个相机供图，混合相机像素为0。几何支持范围与映射完全相同。
+  comparison.jpg/weighted.png/single_source.png/source_owner.png/comparison.json。
+  地面投影处理中位27.69ms -> 27.96ms，各16次去除第1次，非端到端或BPU时延。
+- 几何/协议/点位检查24项通过（tests.log），覆盖同一物体不同材质分类仍合并、
+  两个不同相机的近邻点因框不对应而保留、同相机两个近邻目标保留、不可见/遮挡
+  区域不成为有效取图来源。以上为合成几何检查，不是实物误差真值。
+- Qt构建成功；真实在线CUDA报文解码等8项通过（qt_tests_corrected.log）。
+  初次回放测试把旧BPU专用预期用于CUDA报文，及首次调整测试位置错误的失败日志
+  均保留；已将外部报文期望后端做成显式参数，BPU独立测试保持原固定预期。
+- 已重开BEV和Qt，四格源PID669916从未重启；最终BEV PID696187，Qt会话694295。
+  四路源序号递增，识别约4.75~5fps，线上metadata确认single_source及双向框关联。
+  final_live_metadata.json/services_final.txt/qt_live.png。
+  采样仍0个垃圾框，不能由空场景认定实物交界去重或米制定位精度通过。
+
+复现
+  /usr/bin/python3 -s tools/bev_feature/check_ground_overlap.py --snapshot validation/bev_blending_20261101
+  PYTHONPATH=distribution/j6m_bpu_navigation /usr/bin/python3 -s -m unittest discover -s distribution/j6m_bpu_navigation/surround/tests -p 'test_ground*.py' -v
+  QT_QPA_PLATFORM=offscreen BEV_PREVIEW_TEST_BACKEND=CUDA BEV_PREVIEW_TEST_PACKET=$PWD/validation/bev_blending_20261101/live_preview.bin devel/lib/autolabor_operator_gui/test_bev_preview
+  bash scripts/camera_surround.sh start
+图像恢复旧混合方式可将四路配置blend_mode改为weighted，重开BEV即可；不需要改标定。
+
+还需现场将同一垃圾移过相机交界，再摆两个相邻垃圾，核对点数量与卷尺位置。
+原新安装rig/base平面对齐和曝光时钟验证仍未完成，未宣称地图定位或自主拾取验收。
+本轮保留1027和既有工作，未提交/推送；相机与Qt保持运行，没有发送导航目标、速度
+或机构命令。主要修改ground_bev.py、ground_detections.py、three_camera_bev.py、
+bev_yolo_server.py、four_camera_bev.json、bev_integration.cpp及对应测试。

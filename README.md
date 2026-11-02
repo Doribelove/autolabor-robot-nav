@@ -1,16 +1,458 @@
-# 三路环视识别与导航调参合并版
+# 环视 BEV 识别与导航调参合并版
 
 目录 `/home/slam/robot_j6m_ws_conbine`，当前分支 `1027`。
 本目录是独立 Git 仓库，两个来源的源码快照和合并记录均在本仓库保存，原目录保留。
 
 AI 开发必须遵守 [开发约束](DEVELOPMENT_CONSTRAINTS.md)，不得自行增加影响正常导航的运行限制。
 
+**另一台电脑复现（2026-11-02）**：从 GitHub 的 `1027` 分支克隆，先看
+[迁移、依赖与启动说明](docs/REPRODUCE_20261102.md)。仓库包含当前源码、YOLO 权重、
+四路标定/采集快照和本次新建地图；ROS/Jetson/J6M 系统依赖及实验录包需另外准备。
+当前导航、Qt、相机和录制均已关闭，下面历史实验记录不代表当前运行状态。
+
+## 当前使用说明（2026-11-01）
+
+日常实验使用本节命令，均在 **Jetson 主机的 `slam` 用户桌面终端**执行。
+当前组合为 **四路相机 → YOLO11-GAM / best6.pt（Jetson CUDA）→ 地面二维定位与BEV → 导航逐点清扫**。
+前视使用ZED左目RGB，左/右/后使用ISX；ZED深度关闭，后视白色车体区域已排除识别。
+HEAL/BPU特征BEV保留为研发试验，当前垃圾清扫使用YOLO。
+
+### 1. 启动完整程序：Qt、导航、相机、YOLO、清扫节点
+
+连接J6M、MID360、底盘USB适配器和四路相机后，在本机执行：
+
+```bash
+cd /home/slam/robot_j6m_ws_conbine
+
+# 结束可能残留的“仅相机显示Qt”，避免重复占用识别接口。
+bash scripts/camera_surround.sh stop
+
+# 在宿主机后台启动四路采集、BEV和YOLO，不弹出独立相机窗口。
+BEV_DETECTOR_BACKEND=cuda bash scripts/bev_perception.sh start
+
+# 启动真实导航、底盘接口、主Qt和新版BEV清扫节点。
+bash scripts/conbine.sh live-start
+```
+
+完整导航只显示主Qt，四路采集与BEV处理在后台运行；在Qt的“视觉”和“BEV 视野清扫”页查看结果。
+主Qt窗口标题是 **“Autolabor 合并版 · 真实导航”**。默认使用单MID360和原地图
+`map_20260829_221335_gimp_cleaned`，启动保留正常底盘指令链路，但不会自动开始清扫或恢复旧目标。
+Jetson地址为 `192.168.10.50`，J6M为 `192.168.10.100`，真实ROS master为
+`http://192.168.10.100:11583`。这些命令使用本机已安装的工程环境，不需要另开ROS master。
+
+相机/YOLO先在宿主机启动，是为了避开导航隔离环境内不能访问用户systemd总线的问题。
+程序由用户服务托管，启动后可以关闭终端。对已运行的服务再次执行 `start` 会复用现有实例；
+需要重新初始化时使用下面的“完整重启”，不会因为再次执行 `live-start` 就重开Qt。
+
+### 2. 在Qt中开始视觉清扫实验
+
+#### 地下车库地图2：自行选区覆盖
+
+当前自选区域入口使用同一张地下车库地图，不加载固定的66.9%路线：
+
+```bash
+BEV_DETECTOR_BACKEND=cuda bash scripts/bev_perception.sh start
+bash scripts/conbine_live.sh start --config config/garage_manual_coverage.json
+bash scripts/record_cleaning_experiment.sh start 新的自选覆盖实验名称
+```
+
+已有另一导航会话时先正常停止再切换配置。进入 Qt 的 **清扫** 页：
+
+1. 点击 **框定覆盖清扫范围**，在地图上依次点击区域顶点。
+2. 点击 **确认区域并生成轨迹**，查看该区域的清扫线。
+3. 点击 **开始覆盖清扫**，按 Qt 原有确认框开始执行。
+
+当前沿用1.2m作业宽、车辆轮廓及转弯约束。区域由操作者选择，不自动开始任务。
+自选模式使用现有选区规划器；固定回型路线和旧实验数据另行保留。
+
+#### 地下车库地图2：考虑车体的回型覆盖
+
+本版固定为用户接受的 **66.9%** 覆盖，约 **3641/5444m²**。
+保留车体余量后的 **1.94×1.00m** 外廓、**1.35m** 最小转弯半径、**1.2m** 作业宽。
+清扫段和连接曲线均通过静态地图离线采样检查，预览不再用未验证直线跨接障碍物。
+本次已启动完整导航与实验录制；路线的离线检查不代表实车跟踪验收。
+
+下次启动并加载预览：
+
+```bash
+BEV_DETECTOR_BACKEND=cuda bash scripts/bev_perception.sh start
+bash scripts/conbine_live.sh start --config config/garage_navigation1.json
+bash scripts/record_cleaning_experiment.sh start 新实验名称
+bash scripts/garage_coverage_button.sh start
+bash scripts/start_garage_coverage.sh --plan-only
+```
+
+路线载入后，左下角“地下车库 · 一键覆盖清扫”窗口的 **一键开始覆盖清扫** 按钮亮起，
+点击一次即调用现有覆盖服务，不再弹第二次确认，也不会自动开始。窗口显示后台录制状态；
+主Qt的“清扫”页保留进度、暂停及取消操作。Qt内的原开始按钮仍保留原确认对话框。
+任务开始从当前真实位姿重新规划入场曲线。也可用 `bash scripts/start_garage_coverage.sh`
+生成并开始导航。
+原定位、急停和动态避障检查保持。覆盖导航尚未自动控制刷盘、风机或喷淋。
+
+[连续路线图](validation/garage_drivable_coverage_20261101/verified_route.png) ·
+[路线及验证说明](docs/GARAGE_CONTOUR_COVERAGE_20261101.txt)
+
+#### 新场景：边建图边定位的区域覆盖清扫
+
+新场景不使用旧地图，直接执行：
+
+```bash
+bash scripts/online_coverage.sh start 覆盖清扫1
+```
+
+若操作者已确认所选框为平地区域，可改用下面这一条启动命令，给该框加入可通行先验
+（两条启动命令选一条执行；已有同名实验时换一个新名称）：
+
+```bash
+COVERAGE_CONFIRMED_FLAT=1 bash scripts/online_coverage.sh start 覆盖清扫1
+```
+
+该入口正常结束上一导航会话，启动MID360/FAST-LIO实时建图定位、二维在线地图和覆盖规划，
+Qt打开后自动开始完整录制，再向Qt送入预设清扫框。已有相机/YOLO后台服务继续复用。
+不需要预先绕场建图或设置旧地图初始位姿。`map`代表本次FAST-LIO启动原点，重新启动
+会建立新的场景坐标系；原有历史地图文件保留。
+
+默认区域沿启动时车头方向长10米、横向宽3米，中心在车前8米、左侧3米；
+四顶点相对采样车位为`(3,1.5)、(13,1.5)、(13,4.5)、(3,4.5)`米，随后固定在场景中。
+实际采样位姿和变换后的顶点保存在本次录包的`region_request.json`。
+Qt自动生成覆盖轨迹，**由操作者点击“开始覆盖”执行**，入口不会自动发运动目标。
+作业宽度按已提供的清扫装置宽度设为0.80米，重叠率沿用15%；有效刷宽不同时在Qt调整。
+
+在线地图持续累积MID360扫描，覆盖任务使用稳定的场景身份，地图增长不会清空任务。
+占用/未知区域仍按原有碰撞规则处理，实际可覆盖面积以Qt计算结果为准；新场景不等于
+所有区域都已被传感器观测。该模式的扫描距离上限为20米，未命中射线沿用原建图器8米
+清空范围；未观测区域不直接填成可通行。现有转弯半径、车辆外廓和避障流程继续使用。
+使用`COVERAGE_CONFIRMED_FLAT=1`时，只将操作者确认的矩形内尚无障碍证据的未知格用于
+可通行先验；实时障碍及尚未累计足够帧数的障碍候选优先保留，框外未知格不改。
+该先验单独记录为`online_map/flat_region_prior.json`，原始观测地图另存于`observed_map/`。
+
+```bash
+bash scripts/online_coverage.sh status
+# 实验完成后停止录制，导航/相机继续运行。
+bash scripts/online_coverage.sh stop-recording
+```
+
+数据在`rosbags/覆盖清扫1/`；在线地图文件在本次`runtime/conbine_live/session-*/online_map/`。
+停止录制时复制当时的二维地图和建图日志到录包目录；原始点云/IMU、在线地图、覆盖状态、
+路径及Qt录像也在录包中。结束整套程序仍使用第3节步骤。下一次实验使用新的名称。
+录制Qt画面时请保持桌面解锁；系统锁屏期间ROS和视觉数据仍会录制，但Qt视频可能是黑屏。
+
+#### 已知地图下的视觉垃圾清扫
+
+1. 等待地图加载，点击 **“② 设置初始位姿”**，按车辆真实位置与车头方向在地图上拖动。
+   每次完整重启后重新设置，等待定位状态变为 `LOCALIZED`。
+2. 在 **“视觉”** 页查看前、左、右、后四路识别画面和融合BEV结果，确认待扫垃圾被识别。
+   红色后视遮罩是车体排除区域。
+3. 打开 **“BEV 视野清扫”** 页，确认目标已定位，点击 **“开始视野清扫”**。
+   做两件垃圾实验时，开始前确认两件都已进入目标列表。
+4. 程序按可达路径选择目标、接近、重新观察，再执行前进清扫段。点击
+   **“停止本次清扫”** 可结束本轮任务，程序和相机继续运行。
+
+**移动中漏检不会再删除本轮待扫目标。** 开始后保存目标的地图位置，重新识别到时更新；
+接近后仍漏检则按最后记录位置继续执行清扫段。界面显示“待处理N个（暂未检出M个）”。
+`COMPLETE` 表示本轮记录目标均获得轨迹通过证据，`PARTIAL` 表示仍有目标不可达或轨迹未通过，
+具体原因保存在清扫状态和日志中。任务结束/取消后，下次开始按当时观测创建新轮次，
+不会自动恢复上一轮任务。刷子参考轨迹通过估计点仍需现场核验实际拾取效果。
+实现与验证见[目标记忆修复记录](docs/BEV_TASK_MEMORY_20261101.txt)。
+
+### 3. 完整停止：包括Qt、导航和四路相机
+
+若正在录制清扫实验，先执行 `bash scripts/record_cleaning_experiment.sh stop` 正常结束录制。
+若仅使用旧ROS录包入口，则执行 `bash scripts/record_localization_test.sh stop`。
+然后依次执行并等待每条命令结束：
+
+```bash
+cd /home/slam/robot_j6m_ws_conbine
+
+if systemctl --user is-active --quiet autolabor-conbine-live.service; then
+  bash scripts/conbine.sh live-stop
+fi
+bash scripts/camera_surround.sh stop
+bash scripts/bev_perception.sh stop
+bash scripts/camera_bev.sh stop
+bash scripts/four_camera_view.sh stop
+```
+
+`live-stop` 停止主Qt、真实导航、底盘接口和随主会话运行的清扫节点；其余命令关闭
+独立预览Qt、YOLO、BEV及相机采集。只关主Qt会触发主导航会话退出，但独立相机服务可能继续运行，
+所以关闭整套程序请使用上述完整流程。软件停止采集并释放设备，不代表切断相机电源。
+
+### 4. 完整重启：Qt也重新打开
+
+如有录包，先按上一节正常停止录制。下面是已用于本车的完整重启顺序：
+
+```bash
+cd /home/slam/robot_j6m_ws_conbine
+
+if systemctl --user is-active --quiet autolabor-conbine-live.service; then
+  bash scripts/conbine.sh live-stop
+fi
+bash scripts/camera_surround.sh stop
+bash scripts/bev_perception.sh stop
+bash scripts/camera_bev.sh stop
+bash scripts/four_camera_view.sh stop
+
+BEV_DETECTOR_BACKEND=cuda bash scripts/bev_perception.sh start
+bash scripts/conbine.sh live-start
+```
+
+完整重启会结束当前任务、清空本轮目标记忆，并重新建立定位会话；Qt打开后按第2节设置初始位姿。
+单独重启BEV/YOLO/清扫节点不会重开Qt。主Qt由真实导航会话托管，需要重开主Qt时按本节重启。
+
+### 5. 查看状态和定位问题
+
+```bash
+cd /home/slam/robot_j6m_ws_conbine
+bash scripts/conbine.sh live-status
+bash scripts/bev_perception.sh status
+bash scripts/four_camera_view.sh status
+
+systemctl --user show \
+  autolabor-conbine-live.service \
+  autolabor-conbine-four-camera-view.service \
+  autolabor-conbine-camera-bev.service \
+  autolabor-conbine-bev-yolo.service \
+  -p Id -p ActiveState -p MainPID
+```
+
+完整启动时清扫节点是主会话的子进程，不要求存在独立的 `autolabor-conbine-bev-cleaner.service`。
+下面的ROS命令可读取定位和清扫状态：
+
+```bash
+cd /home/slam/robot_j6m_ws_conbine
+source /home/slam/robot_ws/.deps/setup.bash
+source devel/setup.bash
+export ROS_MASTER_URI=http://192.168.10.100:11583
+export ROS_IP=192.168.10.50
+unset ROS_HOSTNAME
+
+rostopic echo -n 1 /fast_lio/localization_status
+rostopic echo -n 1 /bev_cleaner/status
+```
+
+| 看到的状态 | 含义与操作 |
+| --- | --- |
+| `WAITING_INITIAL_POSE`，或“等待导航定位TF” | 在主Qt设置真实初始位姿，等待定位完成。 |
+| YOLO状态为 `waiting`、接口返回503 | 尚无新检测结果；先看四路采集和BEV是否运行，再看YOLO日志中的错误。 |
+| 当前可定位目标0个 | 检查四路原图检测框、遮罩和BEV点位；当前没有可加入新任务的目标。 |
+| 任务进行中“待处理>0、暂未检出>0” | 目标仍在本轮任务中，程序继续使用记录位置；无需因漏检重启。 |
+| `PARTIAL` | 查看 `pending_targets`、`skipped_reasons` 和实际场景，未完成目标没有计作清扫通过。 |
+| 能看相机但没有实车地图/定位 | 检查是否打开了独立预览Qt；实车实验使用第1节完整入口。 |
+
+当前会话信息在 `runtime/conbine_live/session.json`，其中 `local` 指向本次会话目录：
+
+| 日志或数据 | 位置 |
+| --- | --- |
+| 主程序启动失败、整体退出 | `runtime/conbine_live/supervisor.log` |
+| Qt、底盘网关、清扫任务日志 | 当前会话目录下 `qt.log`、`gateway.log`、`bev_cleaner.log` |
+| YOLO识别状态与错误 | `runtime/bev_cleaning/yolo.log`、`http://127.0.0.1:18884/state` |
+| BEV融合 | `runtime/surround_recalibrated_20261101/bev_viewer.log` |
+| 四路相机采集 | `runtime/four_camera_view_20261101/viewer.log` |
+| 实验录包 | `rosbags/localization/日期_时间/` |
+
+需要保留清扫过程并在后续查看Qt画面时，使用完整录制入口：
+
+```bash
+bash scripts/record_cleaning_experiment.sh start 清扫1
+bash scripts/record_cleaning_experiment.sh status
+# 实验结束后正常封包；不会停止导航或相机，也不会取消正在执行的清扫任务。
+bash scripts/record_cleaning_experiment.sh stop
+```
+
+`rosbags/清扫1/`是本次日期目录的命名链接，连续录制时不移动正在写入的文件；下次实验换一个名称。
+ROS全话题以LZ4压缩、每60秒或2GiB分包，包含地图、TF、点云、定位、路径、速度、目标和清扫状态。
+`visual/take_*/visual_*.bag`另外保存Qt使用的完整BV02识别报文和MV01四路RGB/融合图报文；
+话题为`/experiment/http/vision`和`/experiment/http/views`，类型为`std_msgs/UInt8MultiArray`。
+报文保留原时间戳、源帧ID、标定和模型信息，`packets.jsonl`记录接收时间与SHA256。
+这是当前约5Hz视觉服务的数据，不是相机原生帧率或硬件同步采集；源帧序号跳变会记录，
+识别流的跳变也可能来自检测器自身跳过的融合帧。
+
+`visual/take_*/qt_*.mkv`为5fps Qt窗口录像，可直接使用视频播放器查看当时界面；
+`qt_frames.jsonl`保存实际截取时间。只录当时可见的Qt页面，其他页面仍可利用保存的数据重建。
+录制服务独立于Qt自带录包按钮，顶部“录包”指示不一定反映此服务状态，以`status`命令为准。
+互动式Qt回放使用下面的专用入口，普通`rosbag play`不会自动恢复HTTP画面。
+不要把含历史控制话题的包直接回放到实车ROS master。ROS参数快照在`parameters_start.json`，
+相机标定、遮罩、清扫配置和RViz配置在`assets/`；正常停止时另保存本会话日志。
+
+只需ROS数据时仍可使用`bash scripts/record_localization_test.sh start`，该入口不录HTTP图像或Qt录像。
+
+#### 回放清扫实验：地图、点云、车辆轨迹及四路识别/BEV
+
+结束录制并正常关闭实车程序后执行：
+
+```bash
+bash scripts/replay_cleaning_experiment.sh start 清扫2
+bash scripts/replay_cleaning_experiment.sh status
+# 也可使用左上角回放控制窗口的按钮。
+bash scripts/replay_cleaning_experiment.sh pause
+bash scripts/replay_cleaning_experiment.sh resume
+bash scripts/replay_cleaning_experiment.sh restart
+bash scripts/replay_cleaning_experiment.sh video
+bash scripts/replay_cleaning_experiment.sh stop
+```
+
+窗口标题为“清扫2 · 完整导航回放（未连接实车）”，可切换Qt各页面；按原速播放一次后保留窗口，
+点击“从头播放”重看。“原始Qt录像”打开连续的现场录屏。回放使用独立网络命名空间、
+本地ROS master和图形设备，不连接底盘/相机，也不重新运行定位、规划、识别或清扫控制器。
+地图、TF、点云及状态来自录包；黄色轨迹由录制的`/localization`位姿累积，仅代表当时的定位估计。
+BV02的JPEG字节、检测与标定保持原样，只适配Qt实时接口的时间检查和重新播放时的帧ID；
+原始时间保留在回放元数据中。暂停时部分Qt实时状态可能因没有新消息显示超时。
+
+清扫2的现场结果按用户反馈记录为成功；该包中BEV清扫节点全程`IDLE`、定位全程`LOST`，
+回放保留这些状态，没有补造自动清扫任务或规划路径。运行日志与状态位于`runtime/cleaning_replay/current/`。
+
+若旧全局地图未完成初始对齐，使用**重新定位建图模式**：
+
+```bash
+bash scripts/replay_cleaning_experiment.sh stop
+bash scripts/replay_cleaning_experiment.sh start 清扫2 mapping
+```
+
+此模式以`camera_init`为局部原点，使用包内原始`/livox/lidar`与`/livox/imu`重新运行FAST-LIO，
+累积持久点云地图和位姿轨迹，并启动现有无静态地图的move_base/TEB，按录制的激光扫描更新
+滚动代价地图。四路识别与BEV继续同步回放。旧`map`、全局定位结果、TF及规划输出不进入
+重算链路，`body -> base_link`外参从本次录包读取；本地FAST-LIO可执行文件复制到私有回放目录使用。
+地图、配置与输出均在回放目录，原工程和实车参数保持不变。
+
+控制窗口的“从头播放”会重新初始化FAST-LIO、点云地图和导航后端。每轮重播或正常关闭时，
+点云地图保存到该会话的`mapping_round_N/map.pcd`。黄色线是重算位姿的轨迹；若通过Qt给出
+新目标，规划只作离线对照，车辆位置仍按录制的传感器运动重建，不会跟随新指令改变。
+此模式无旧地图定位对齐步骤，也不把原包的`LOST`伪改成全局定位成功。
+
+清扫2已将这套局部建图流程随录包保存，包括固定版本的脚本、程序、导航参数、
+首次完整重算的点云地图及验证记录。以后复现本次效果可直接执行：
+
+```bash
+bash rosbags/清扫2/回放局部建图.sh
+# 校验保存的工作流与原始bag/视频
+bash rosbags/清扫2/回放局部建图.sh verify
+```
+
+入口默认使用录包内的固定版本启动`mapping`模式，仍依赖本机ROS/Jetson环境；
+详情在`rosbags/清扫2/replay_workflow/README.txt`。原始bag未改写，新回放结果仍写入
+`runtime/cleaning_replay/`，不会覆盖录包内的参考结果。
+
+### 6. 启动入口的区别
+
+| 需求 | 入口 | 范围 |
+| --- | --- | --- |
+| 实车YOLO视觉清扫 | 第1节：`bev_perception.sh start` + `conbine.sh live-start` | 相机、YOLO、真实导航、主Qt、清扫节点。 |
+| 仅启动真实导航和主Qt | `bash scripts/conbine.sh live-start` | 导航使用原地图；相机模块独立，完整视觉实验仍按第1节启动。 |
+| 仅查看四路相机 | `bash scripts/four_camera_view.sh start` | 四路采集窗口，不启动导航或YOLO。 |
+| 仅相机、BEV、YOLO | `bash scripts/bev_perception.sh start` | 没有新Qt/导航，可供已有主Qt读取。 |
+| 独立视觉预览Qt | `bash scripts/camera_surround.sh start` | 使用私有ROS master 11587，无真实导航；不能用于实车清扫。 |
+| 离线导航调参预览 | `bash scripts/conbine.sh start` | 隔离的合成地图/TF导航预览，不是 `live-start`。 |
+| 单MID360无图建图 | 先 `live-stop`，再 `bash scripts/conbine.sh mapping-start` | 无图模式，由Qt开始/结束建图，不自动替换默认导航地图。 |
+
+独立视觉预览Qt与完整实车模式使用同一组识别接口，应先停止当前模式的Qt/YOLO再切换，
+不要同时启动两套识别进程。`camera_surround.sh stop` 只结束独立显示会话，
+四路采集与BEV仍需按第3节关闭。`camera_bev.sh start` 的原始默认配置是三路，
+本车四路实验统一通过 `bev_perception.sh` 或 `camera_surround.sh` 选择四路配置。
+
+### 7. 当前配置与功能记录
+
+| 设置 | 文件与当前值 |
+| --- | --- |
+| 四路相机、外参、BEV范围 | [four_camera_bev.json](config/four_camera_bev.json)：RX1/0左、1右、2后；左右翻正180°。 |
+| 清扫观察范围 | 同上 `observation_region.distance_from_edges_m`：距车体前/后/左/右边缘各5m，实际范围X `[-5.52,6.22]`、Y `[-5.40,5.40]` 米。 |
+| 后视白色车体遮罩 | [bev_detection_masks.json](config/bev_detection_masks.json)。 |
+| BEV与底盘对齐、刷子位置 | [bev_cleaning.yaml](src/application/autolabor_fod_control/config/bev_cleaning.yaml)：`rig_to_base_xyyaw=[0,0,0]`，刷子参考前伸1.22m。 |
+| 导航地图与主机配置 | [conbine_live.json](config/conbine_live.json)：固定原8月29日地图、单MID360。 |
+
+检测器环境变量只在新进程启动时生效，不能对已运行的服务通过再次 `start` 热切换模型。
+当前默认YOLO输入640、置信度0.25，四路原图分别识别后做地面投影和跨相机去重。
+详见[四路视觉与后视排除](docs/VISION_FOUR_VIEWS_MASK_20261101.txt)、
+[距车体边缘5m设置](docs/BEV_EDGE_RANGE_20261101.txt)、
+[漏检目标记忆](docs/BEV_TASK_MEMORY_20261101.txt)及
+[车体尺寸与刷子参考](docs/VEHICLE_CONTACT_HEIGHT_20261101.txt)。
+HEAL源码已取得并做过BPU试验，当前未用于垃圾清扫；见
+[HEAL试验记录](docs/HEAL_BEV_BPU_PREVIEW_20261101.txt)。
+
+## 历史开发记录
+
+以下保留开发当时的状态、命令和限制；日常启动以本README顶部“当前使用说明”为准。
+
+<details>
+<summary>本合并目录此前的开发记录（展开查看）</summary>
+
+2026-11-01 已按最新测量设置BEV/MID360/原底盘中心平面对齐，并纳入前伸70cm、
+总宽80cm清扫装置：原点不变，外廓前1.22m/后0.52m/半宽0.40m。BEV平面外参已在线
+生效；导航轮廓将在下次真实启动加载。刷子已确认在最前沿，参考点为中心前1.22m；
+按用户实测base_link离地25cm、雷达离地90cm，雷达相对Z改0.65m。官网确认原底盘
+尺寸，但未给出base_link的25cm定义，故该高度标为用户实测。详见
+[接触点、高度与官方核对](docs/VEHICLE_CONTACT_HEIGHT_20261101.txt)。
+
+2026-11-01 按最新要求，默认识别已切回项目的 **YOLO11-GAM / best6.pt / Jetson CUDA**。
+沿用原640输入和0.25阈值，输出金属、塑料、纸、玻璃、厨余五类；四路画面、BEV二维定位
+及后视车体遮罩保留。已在线切换并验证约4.87fps，左视塑料瓶有检出但存在间歇漏检。
+启动仍为 `bash scripts/camera_surround.sh start`；需要切回FCOS时可在停止Qt/识别后用
+`BEV_DETECTOR_BACKEND=fcos_bpu bash scripts/camera_surround.sh start`。
+本次实际报文、模型SHA和界面截图见 `validation/vision_yolo_switch_20261101/`。
+
+2026-11-01 Qt“视觉”页已显示**前/左/右/后四路带框原图＋融合 BEV 二维点位**，
+后视白色蘑菇头以红色区域标出，并从识别及定位中排除。遮罩配置为
+`config/bev_detection_masks.json`，修改后重开 Qt/识别即可生效。新入口默认打开视觉页；
+相机与程序当前保持运行，真实导航未启动。实拍连续25组均识别到左视瓶子，车体区域
+误报已排除；遮罩外仍有类别误判。实现及验证见[五画面与车体排除记录](docs/VISION_FOUR_VIEWS_MASK_20261101.txt)。
+
+2026-11-01 此前接入 **地平线 FCOS-EfficientNet-B3 / J6M BPU**，
+四路彩色原图逐路识别，按相机标定估算地面接触点，在 BEV 显示米制位置并合并重复观测。
+不使用深度；BEV 拼接及几何定位仍在 CPU。显示 COCO80 原始类别，瓶子/杯子作为清扫候选，
+其余物体仅显示。启动 `bash scripts/camera_surround.sh start`；已有会话需先 `stop` 再启动。
+实测单路模型调用中位4.25ms，四路含传输/前后处理中位130.20ms，连续识别约4.74fps。
+当前场景雨伞能检出，也有类别误判，不能据此宣称垃圾专用识别或米制精度通过。
+详细实现、启动/回退命令及验证见[FCOS 与 BEV 接入记录](docs/BEV_FCOS_BPU_20261101.txt)。
+
+2026-11-01 按用户最新要求撤回深度融合：ZED SDK深度实际关闭，仅输出左目RGB，
+恢复四路地面投影，保留重叠取图和垃圾点去重。相机/Qt已重开，约5fps。
+见[撤回深度记录](docs/BEV_NO_DEPTH_20261101.txt)；此前深度试验只作历史记录。
+
+2026-11-01 四路BEV已启用重叠区单路取图；二维垃圾去重增加双向原图框核对，
+支持合并跨视角材质分类不一致的同一物体。Qt已在线更新，约5fps。
+[重叠消除记录与对照图说明](docs/BEV_OVERLAP_FIX_20261101.txt)；实物交界去重与米制误差仍待验证。
+
+2026-11-01 按用户最新目标，当前入口改为**四路原图识别 → 地面二维投影 → 重叠观测合并 → BEV 标点**。
+此前接通过垃圾 HBM 的 J6M BPU 后端及 FCOS；最新默认恢复 Jetson 的 best6.pt，如上。
+这条路径无需等待 HEAL 或 x86 编译环境。历史检测器仍可选择 `BEV_DETECTOR_BACKEND=cuda`
+或 `BEV_DETECTOR_BACKEND=bpu`。早期几何/协议20项及Qt8项通过，真实BPU离线回放贯通。
+实车米制误差和重装后的rig/base对齐尚未验收；当前交付是地面观测融合。
+实现、实测时延、识别局限与命令见[四路垃圾地面定位记录](docs/BEV_GROUND_DETECTION_20261101.txt)。
+以下 x86/HEAL 材料用于保留的学习式特征融合研发路线，不再阻塞上述入口。
+
+已为用户的 Intel/AMD Windows 电脑准备 [WSL2 编译环境安装步骤](docs/X86_WINDOWS_SETUP_20261101.txt)
+和本地迁移包；该电脑尚未连接验证。Jetson 的 QEMU 已加载新编译器/官方 BC，尚未完整编译。
+
+2026-11-01 OE 3.9.1 开发包已解压核对，官方 Hugging Face 浮点权重/HBM/BC 已取得。
+新运行库在 J6M 跑通六相机基线，BPU 均值 16.36ms，常驻适配器复测通过。
+命令和实测范围见 [OE 3.9.1 接入记录](docs/OE391_SETUP_20261101.txt)；仍需 x86 主机、
+HEAL 源码及同步米制数据，尚无四路垃圾 HBM。该轮结束时相机和 BEV 已关闭；当前状态见上方新记录。
+
+2026-11-01 新增四路特征 BEV 开发模块和独立 RViz 地图观测链路，详见
+[J6M 特征融合开发记录及命令](docs/BEV_FEATURE_J6M_20261101.txt)。官方六相机 HBM
+已在 J6M 实测，四路浮点原型及 ROS 合成回放通过；本车垃圾模型仍缺 HEAL 访问权限、
+匹配的 x86 OE 开发环境和同步米制训练数据，尚未训练/编译为四路垃圾 HBM。
+现有相机预览继续使用像素平面投影，不将其标为新 BPU 特征模型。
+
+2026-11-01 按用户重装后的尺寸更新相机外参：左右/后视高0.80m，左右间距0.43m，
+后视在左右中点后0.24m，前视在中点前0.96m、高0.32m；镜头主光轴下俯角为
+左右22°、后视15°、前视0°。RX1端口0/1/2分别为左/右/后，左右图像翻正180°。
+四路参数在 `config/four_camera_bev.json`，三路入口也同步相同的新安装参数。
+`bash scripts/camera_surround.sh check` 检查参数，用 `start` 打开BEV/YOLO Qt。
+已按当前端口重读Flash、重新生成硬件GDC，四格源和新外参BEV预览曾实测约5fps；
+本轮未启动YOLO/Qt清扫或导航。曝光同步、米制精度仍待实测，保留真实盲区。
+新标定和验证见[安装更新记录](docs/BEV_GEOMETRY_20261101.txt)，
+原实现历史见[后视接入记录](docs/FOUR_CAMERA_SURROUND_20261029.txt)。
+Qt 的“BPU 预览”页现已由唯一的“BEV 视野清扫”页替代，综合页也复用同一融合识别图。
+后端按实际前/左/右/后来源显示四路环视。相机组与原底盘中心现已确认XY重合，
+当前 `rig_to_base_xyyaw=[0,0,0]`，旧 `[0.20,0,0]` 仅为历史记录。
+当前导航会话及清扫机构自动控制尚未接通，不能称为完整自主拾取清扫。
+
 合并的主要功能：
 
 - 原 Qt 三路相机视频、端口 0/1/2 切换、GDC 去畸变与 J6M BPU 检测/材质分类显示。
 - 导航调参页：覆盖规划、转场 TEB、Hybrid A*，后端确认与参数永久保存。
 - Qt 与覆盖后端统一将选区拟合成最小面积外接矩形。
-- 三路 BEV 垃圾检测、米制相对位置及视野内逐步清扫；原垃圾地图标注和页面已删除。
+- 环视 BEV 垃圾检测、米制相对位置及视野内逐步清扫；原垃圾地图标注和页面已删除。
   安装外参按用户要求预留，本地构建及227项检查通过，尚未部署/实车验收。
   机构自动控制仍未接入，轨迹通过不等于实际拾取；详见[本次功能说明](docs/BEV_VISIBLE_CLEANING_20261027.txt)。
 
@@ -39,6 +481,10 @@ AI 开发必须遵守 [开发约束](DEVELOPMENT_CONSTRAINTS.md)，不得自行�
 
 下面两源的历史运行状态和旧启动命令不代表本目录当前状态。
 
+</details>
+
+<details>
+<summary>视觉与导航来源工程的历史说明（旧路径和旧命令，展开查看）</summary>
 
 ## 视觉来源的历史记录
 
@@ -1800,3 +2246,5 @@ FOD_MOTION_ENABLED=false
 ```
 
 详细 topic 链和回滚说明见 [架构说明](/home/slam/robot_j6m_ws/docs/ARCHITECTURE.md)；当前未完成事项见 [工作交接](/home/slam/robot_j6m_ws/docs/HANDOFF.md)。
+
+</details>

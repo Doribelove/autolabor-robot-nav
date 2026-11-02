@@ -4,14 +4,15 @@ project_root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 unit=autolabor-conbine-camera-bev-qt.service
 case "${1:-start}" in
   start)
+    bash "$project_root/scripts/camera_bev.sh" start
     if systemctl --user is-active --quiet "$unit"; then
-      echo 'BEV / YOLO Qt 已运行'
+      echo 'BEV / 识别 Qt 已运行'
       exit 0
     fi
-    bash "$project_root/scripts/camera_bev.sh" start
     mkdir -p "$project_root/runtime/bev_qt"
     systemd-run --user --unit="$unit" --collect --working-directory="$project_root" \
       --setenv="DISPLAY=${DISPLAY:-:0}" --setenv="XAUTHORITY=${XAUTHORITY:-/run/user/1000/gdm/Xauthority}" \
+      --setenv="BEV_DETECTOR_BACKEND=${BEV_DETECTOR_BACKEND:-cuda}" \
       --property=KillMode=mixed --property=TimeoutStopSec=40 \
       --property="StandardOutput=append:$project_root/runtime/bev_qt/session.log" \
       --property="StandardError=append:$project_root/runtime/bev_qt/session.log" \

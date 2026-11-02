@@ -199,6 +199,13 @@ def _commit_staged_yaml(staged_path, target_path):
 class CoverageManager:
     def __init__(self):
         self.lock = threading.RLock()
+        self.online_mapping = bool(rospy.get_param("~online_mapping", False))
+        session_id = str(rospy.get_param("/conbine/session/session", ""))
+        if self.online_mapping and not session_id:
+            raise ValueError("online coverage requires the current mapping session identity")
+        self.online_map_identity = hashlib.sha256(
+            ("online-fastlio-map:" + session_id).encode("utf-8")
+        ).hexdigest()
         self.config_file = os.path.abspath(str(rospy.get_param("~config_file", "")))
         self.factory_defaults_file = os.path.abspath(
             str(rospy.get_param("~factory_defaults_file", ""))
@@ -216,6 +223,7 @@ class CoverageManager:
         self.plan_map_digest = ""
         self.region = PolygonStamped()
         self.operation_width = float(rospy.get_param("~operation_width_m", 1.00))
+        self.external_plan_file = str(rospy.get_param("~external_plan_file", "")).strip()
         self.overlap_ratio = float(rospy.get_param("~overlap_ratio", 0.15))
         self.allow_reverse_transit = self._strict_bool("~allow_reverse_transit", True)
         self.reverse_transit_speed = float(
@@ -1614,6 +1622,8 @@ class CoverageManager:
 
     def _map_callback(self, message):
         try:
+            if getattr(self, "online_mapping", False) and message.header.frame_id != "map":
+                raise ValueError("online coverage grid must use this session's map frame")
             grid = GridMap(
                 message.info.width,
                 message.info.height,
@@ -1641,6 +1651,12 @@ class CoverageManager:
                 ),
                 message.data,
             )
+            if getattr(self, "online_mapping", False):
+                # A mapping session keeps its coordinate origin while observed cells
+                # grow/change. Keep the task geometry; refresh its planning grid.
+                # Live costmaps and the existing Hybrid/TEB collision checks still
+                # evaluate obstacles along every executed segment.
+                digest = self.online_map_identity
         except ValueError as error:
             rospy.logerr_throttle(2.0, "coverage rejected map: %s", error)
             return
@@ -1670,10 +1686,14 @@ class CoverageManager:
                         "static map changed during coverage"
                     )
             elif self.state == "IDLE":
-                self.detail = "static map ready; select a coverage region"
+                self.detail = ("online map ready; select a coverage region"
+                               if getattr(self, "online_mapping", False)
+                               else "static map ready; select a coverage region")
         self._publish_status()
 
     def _localization_callback(self, message):
+        if getattr(self, "online_mapping", False):
+            return
         with self.lock:
             self.localized = message.data.startswith("state=LOCALIZED;")
             self.localization_received_wall = time.monotonic()
@@ -1936,6 +1956,17 @@ class CoverageManager:
         with self.lock:
             self.odom = copy.deepcopy(message)
             self.odom_received_wall = time.monotonic()
+            if getattr(self, "online_mapping", False):
+                p, q = message.pose.pose.position, message.pose.pose.orientation
+                age = (rospy.Time.now() - message.header.stamp).to_sec()
+                self.localized = (
+                    message.header.frame_id == "camera_init" and
+                    message.child_frame_id == "body" and
+                    0.0 <= age <= self.localization_fresh_sec and
+                    all(math.isfinite(v) for v in (p.x, p.y, p.z, q.x, q.y, q.z, q.w)) and
+                    q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w > 1.0e-12
+                )
+                self.localization_received_wall = self.odom_received_wall
 
     def _localization_is_fresh(self):
         with self.lock:
@@ -2334,6 +2365,11 @@ class CoverageManager:
         the complete route cost.  No route-level step constructs or caches an
         executable connector.
         """
+        external = getattr(self, 'external_plan_file', '')
+        if external:
+            from autolabor_coverage.external_coverage_plan import load_plan
+            return load_plan(external, route_planner, points, operation_width,
+                             overlap_ratio, route_origin, route_yaw, time_parameters)
         lightweight = bool(
             getattr(self, "online_hybrid_without_precompute", False)
             or getattr(self, "hierarchical_hybrid_on_demand", False)
@@ -2536,13 +2572,18 @@ class CoverageManager:
         region.polygon.points = [Point32(x=p.x, y=p.y, z=0.0) for p in points]
         region.header.frame_id = "map"
         region.header.stamp = rospy.Time.now()
-        planned_path = self._planned_path(route, current)
+        saved_transitions = getattr(plan, "transition_paths", None)
+        planned_path = (
+            self._planned_path(route, current)
+            if saved_transitions is None else
+            self._planned_path(route, current, saved_transitions)
+        )
         first_entry_path = None
         first_entry_error = ""
         if current_pose is not None:
             try:
-                first_entry_path = self._first_entry_navfn_preview(
-                    current_pose[0], current_pose[1], route
+                first_entry_path = self._plan_entry_preview(
+                    plan, current_pose[0], current_pose[1], route
                 )
             except RuntimeError as error:
                 first_entry_error = str(error)
@@ -2746,6 +2787,32 @@ class CoverageManager:
         for a bounded 60-second window.  A proven static no-path invalidates
         only that route candidate, never silently skips its following swath.
         """
+        if getattr(plan, "verified_external_transitions", False):
+            # Inter-swath curves belong to this exact immutable map. Rebuild
+            # only the entry from the live pose; never restore its recorded
+            # start pose or replace the remaining curves with straight links.
+            selected = copy.deepcopy(plan)
+            request = HybridTransitionRequest()
+            request.candidate_index = 0
+            request.transition_index = 0
+            request.start = self._pose(current, current_yaw)
+            first = selected.swaths[0]
+            request.goal = self._pose(first.start, self._swath_yaw(first))
+            self._wait_for_hybrid_planner(timeout=0.5)
+            response = self._call_hybrid_planner(
+                plan_id=plan_id, transitions=[request],
+                transit_profile=self._transit_profile(),
+                total_timeout_sec=self.hybrid_precompute_timeout_sec,
+            )
+            result = next((r for r in response.results
+                           if r.candidate_index == 0 and r.transition_index == 0), None)
+            if (not response.success or result is None or
+                    result.outcome != HybridTransitionResult.OUTCOME_SUCCESS):
+                raise RuntimeError("current-pose entry to the saved route failed: " +
+                                   (result.reason if result is not None else response.message))
+            selected.transition_paths[0] = copy.deepcopy(result.path)
+            selected.alternative_plans = []
+            return selected
         candidates = list(getattr(plan, "alternative_plans", None) or [plan])[:4]
         online_unsplit = getattr(
             self, "online_hybrid_without_precompute", False
@@ -3755,6 +3822,14 @@ class CoverageManager:
         path = Path()
         path.header.frame_id = "map"
         path.header.stamp = rospy.Time.now()
+        # A nav_msgs/Path draws an edge between every pair of poses. Missing
+        # connectors cannot be represented as gaps. Keep the independent
+        # LINE_LIST swath markers, and publish a complete path only when all
+        # inter-swath connectors are available.
+        if len(route) > 1 and (not transition_paths or
+                len(transition_paths) != len(route) or
+                any(p is None or not p.poses for p in transition_paths[1:])):
+            return path
         for swath_index, swath in enumerate(route):
             cached = (
                 transition_paths[swath_index]
@@ -3766,30 +3841,17 @@ class CoverageManager:
                     copied = copy.deepcopy(pose)
                     copied.header.stamp = path.header.stamp
                     path.poses.append(copied)
-            else:
-                if swath_index > 0:
-                    previous = route[swath_index - 1]
-                    transition_start = previous.end
-                elif current is not None:
-                    transition_start = current
-                else:
-                    transition_start = None
-                if transition_start is not None:
-                    transit_yaw = math.atan2(
-                        swath.start.y - transition_start.y,
-                        swath.start.x - transition_start.x,
-                    )
-                    for point in sample_path(
-                            transition_start, swath.start,
-                            self.path_sample_spacing):
-                        path.poses.append(self._pose(
-                            point, transit_yaw, path.header.stamp
-                        ))
             sweep_yaw = math.atan2(swath.end.y - swath.start.y,
                                    swath.end.x - swath.start.x)
             for point in sample_path(swath.start, swath.end, self.path_sample_spacing):
                 path.poses.append(self._pose(point, sweep_yaw, path.header.stamp))
         return path
+
+    def _plan_entry_preview(self, plan, current, yaw, route):
+        if getattr(plan, "verified_external_transitions", False):
+            paths = getattr(plan, "transition_paths", [])
+            return copy.deepcopy(paths[0]) if paths else None
+        return self._first_entry_navfn_preview(current, yaw, route)
 
     def _publish_markers(self, route, region):
         array = MarkerArray()
@@ -4089,8 +4151,8 @@ class CoverageManager:
         first_entry_path = None
         if route:
             try:
-                first_entry_path = self._first_entry_navfn_preview(
-                    current, current_yaw, route
+                first_entry_path = self._plan_entry_preview(
+                    replanned, current, current_yaw, route
                 )
             except RuntimeError as error:
                 return self._finish_start_failure(
@@ -4960,8 +5022,8 @@ class CoverageManager:
             route, current, transition_paths=transition_paths
         )
         try:
-            first_entry_path = self._first_entry_navfn_preview(
-                current, current_yaw, route
+            first_entry_path = self._plan_entry_preview(
+                plan, current, current_yaw, route
             )
         except RuntimeError as error:
             with self.lock:
@@ -5337,7 +5399,9 @@ class CoverageManager:
             self.detail = "TEB parameters from the previous task are not restored"
             return False
         if not self.localized or now - self.localization_received_wall > self.localization_fresh_sec:
-            self.detail = "known-map localization is not LOCALIZED and fresh"
+            self.detail = ("online FAST-LIO pose is unavailable or stale"
+                           if getattr(self, "online_mapping", False)
+                           else "known-map localization is not LOCALIZED and fresh")
             return False
         if now - self.watchdog_received_wall > self.watchdog_fresh_sec:
             self.detail = "NVIDIA command watchdog status is stale"
@@ -6831,7 +6895,12 @@ class CoverageManager:
             # turn the Navfn topology into rolling Hybrid chunks or cusp
             # actions.  Only later same-region line-to-line connectors use
             # direct live-pose Hybrid A*.
-            if hierarchical and swath_index == 0:
+            if (getattr(self, "external_plan_file", "") and
+                    transition_path is not None and transition_path.poses):
+                segments.extend(self._hybrid_transition_segments(
+                    transition_path, swath_index, cursor, swath.start, yaw,
+                ))
+            elif hierarchical and swath_index == 0:
                 segments.append({
                     "type": "entry",
                     "swath_index": swath_index,

@@ -68,6 +68,7 @@ def prepare():
         if ns:attributes['ns']=ns
         ET.SubElement(node,'rosparam',**attributes)
     ET.SubElement(node,'rosparam',file=str(WS/'src/navigation_arena/arena-rosnav-3D/arena_navigation/arena_local_planer/model_based/conventional/config/dingo/teb_local_planner_params_nomap.yaml'),command='load')
+    ET.SubElement(node,'rosparam',file=str(WS/'src/scripts/robot_bringup/config/vehicle_footprint.yaml'),command='load')
     original=ET.parse(WS/'src/scripts/robot_bringup/launch/navigation_j6m.launch').getroot()
     for item in original.find("node[@name='move_base']"):
         if item.tag=='param' and item.get('name','').startswith('CoverageGlobalPlanner/'):

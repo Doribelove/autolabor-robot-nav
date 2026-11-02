@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QImage>
 #include <QJsonObject>
+#include <QMap>
 #include <QNetworkAccessManager>
 #include <QPointer>
 #include <QTimer>
@@ -14,6 +15,7 @@ struct BevPreviewFrame
 {
   QImage raw;
   QImage annotated;
+  QMap<QString, QImage> camera_images;
   QJsonObject metadata;
 };
 bool decodeBevPreview(const QByteArray& packet, BevPreviewFrame* frame, QString* error);

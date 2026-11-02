@@ -59,8 +59,8 @@ def main():
         # There is no navigator on this private master; real cleaning uses live-start.
         spawn('bev_cleaner', ['roslaunch', str(PROJECT/'src/application/autolabor_fod_control/launch/bev_cleaning.launch')], env)
         gui = spawn('qt', [str(PROJECT/'devel/lib/autolabor_operator_gui/autolabor_operator_gui_node'),
-                          '_initial_bev_page:=true', '_enable_rviz:=false',
-                          '_window_title:=Autolabor · 三相机 BEV / YOLO 实时识别'], env)
+                          '_initial_vision_page:=true', '_enable_rviz:=false',
+                          '_window_title:=Autolabor · 环视 BEV 视野清扫'], env)
         while not STOP.wait(.2):
             if gui.poll() is not None:
                 if gui.returncode:

@@ -5,10 +5,11 @@
   <arg name="body_tf_parent" default="body"/>
   <arg name="body_tf_child" default="base_link"/>
   <!-- body is the FAST-LIO IMU frame. Values are derived from
-       base_link->MID360=(0.20,0,1.00) and lidar-in-IMU extrinsic_T. -->
-  <arg name="body_tf_x" default="-0.211"/>
+       base_link->MID360=(0,0,0.65) and lidar-in-IMU extrinsic_T.
+       Z uses user-measured ground heights: lidar 0.90 m, base_link 0.25 m. -->
+  <arg name="body_tf_x" default="-0.011"/>
   <arg name="body_tf_y" default="-0.02329"/>
-  <arg name="body_tf_z" default="-0.95588"/>
+  <arg name="body_tf_z" default="-0.60588"/>
   <include file="$(find fast_lio)/launch/mapping_mid360.launch">
     <arg name="odom_pub_en" value="$(arg odom_pub_en)"/>
     <arg name="tf_pub_en" value="$(arg tf_pub_en)"/>

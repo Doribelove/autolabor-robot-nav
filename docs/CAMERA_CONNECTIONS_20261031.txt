@@ -1,0 +1,58 @@
+2026-10-31 相机重新接线检查
+
+用户随后确认端口与方向（最新状态）：
+RX1/0=左，RX1/1=右，RX1/2=后，左右原图倒置。
+保存config/camera_connections.json，当前四格预览直接读取该配置，标出前/左/右/后，
+在接收左右原始鱼眼帧后各旋转180度，再显示并保存图像，状态记录源端口、camera_role
+及preview_rotation_deg；后视与ZED保持原方向。源HTTP原始像素及其时间戳、序号不变。
+正常重开预览服务，实际4路连续更新与左右翻正画面已核对。
+运行目录仍为runtime/camera_recheck_20261031_233137/。
+证据validation/camera_orientation_20261031/。
+该配置只保存端口对应和预览旋转，不包含新安装位置、俯仰或BEV到底盘的平面外参；
+这些米制标定仍需重新测量，未启用旧BEV标定或导航清扫。
+
+23:31 全部连接后再次检查（最新状态）：
+RX1的0、1、2号口均启动成功、读到各自Flash内参，3号口仍返回-3505。
+ZED加三路鱼眼共4路实际持续出图，按实际4路显示四格窗口，保留数字端口名称。
+未确认新安装的左右/后视映射，未套旧GDC/BEV标定，未旋转鱼眼。
+原预览服务active，现运行runtime/camera_recheck_20261031_233137/viewer.py；
+板端私有目录/map/conbine_camera/camera_recheck_20261031_233137/。
+截图、实拍及连续帧证据validation/camera_connections_20261031_233137/。
+未启动导航、BEV、YOLO或清扫，关闭窗口仍正常释放相机并恢复原sender。
+以下为历史接线记录。
+
+22:56 换接后复查（最新状态）：
+重新初始化RX1四个端口，0、1号口均启动成功，并读取到各自Flash内参；
+2、3号口仍hb_cam_start -3505。新预览实读ZED、RX1/0、RX1/1共3路持续更新。
+窗口仍按数字端口显示，左右对应及新安装外参尚未确认，鱼眼不旋转，不套旧BEV。
+同一预览服务现运行runtime/camera_recheck_20261031_225641/viewer.py，
+板端私有目录/map/conbine_camera/camera_recheck_20261031_225641/。
+证据validation/camera_connections_20261031_225641/。以下为换接前的检查记录。
+
+用户说明所有相机位置、接口已变化，目前连接ZED及左右两台相机，可能一个接口损坏。
+此次范围为启动、查看各路图像。旧相机安装参数、端口映射及BEV到底盘的平面变换
+仅保留历史配置，没有作为本轮预览或新安装标定使用。
+
+实测结果：
+- 前视ZED 2，序列号23748636，SDK HD720/15fps、depth=NONE，显示1280x720左目校正图。
+- J6M RX1/0，ISX031，1920x1536原始CIM NV12，预览抽样为640x512，约5fps；
+  未用旧GDC LUT、未旋转。原始鱼眼画面倒置，暂不标为左或右。
+- RX1/1、2、3：hb_cam_start -3505，没有图像。
+- RX0、RX4：hb_cam_init -3601，没有初始化成功。
+- 两路成功画面的源序号、时间戳持续递增，窗口中实际图像已检查并保存。
+  未出图不足以区分接口、线缆、供电或相机本体故障；需要现场换线/换口对照。
+
+运行状态及管理：
+systemctl --user status autolabor-conbine-camera-connections.service
+systemctl --user stop autolabor-conbine-camera-connections.service
+
+窗口保持开启。原j6m-b-camera-sender.service此前active，为本次ZED直连预览暂时停止；
+关闭窗口或正常停止预览服务，会释放原camera.lock并恢复sender。J6M原camera-link、
+clock及receiver未停止。未启动导航、YOLO、BEV融合、ROS清扫会话或发送车辆/机构指令。
+没有改正式current、刷机、修改来源工作树、提交或推送。
+
+运行文件：runtime/camera_recheck_20261031_225020/
+板端私有文件：/map/conbine_camera/camera_recheck_20261031_225020/
+预览采用已有SDK库的私有副本、数字端口HTTP预览及独立GTK窗口。
+证据：validation/camera_connections_20261031_225020/
+包含探测日志、窗口截图、两路实拍及live_verification.json连续帧核验。

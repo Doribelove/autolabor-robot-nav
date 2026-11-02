@@ -1,6 +1,6 @@
 <launch>
   <arg name="config_file" default="$(find autolabor_fod_control)/config/bev_cleaning.yaml"/>
-  <!-- Optional leaf on the host with the three-camera BEV HTTP endpoint. -->
+  <!-- Optional leaf on the host with the surround BEV HTTP endpoint. -->
   <node pkg="autolabor_fod_control" type="bev_cleaner_node.py" name="bev_cleaner" output="screen">
     <rosparam command="load" file="$(arg config_file)"/>
   </node>

@@ -1,0 +1,49 @@
+2026-11-01 相机重装外参与四路地面BEV
+
+用户提供实装尺寸，且再次明确“相机中轴线”指镜头主光轴。下俯角从水平面向地面
+为正，与倒装图像翻正的180度像素旋转分开处理。
+坐标原点：左右镜头连线中点正下方的地面点；X车前、Y车左、Z向上；单位米。
+
+方向    X       Y        Z       yaw左正    主光轴下俯   图像翻正
+左      0       +0.215   0.80    +90        22           180
+右      0       -0.215   0.80    -90        22           180
+后     -0.24     0       0.80    180        15           0
+前     +0.96     0       0.32    0          0            0
+
+左右镜头水平朝向按车左/车右处理。RX1/0=左、RX1/1=右、RX1/2=后；前视ZED23748636。
+配置：config/four_camera_bev.json、config/three_camera_bev.json，端口与预览旋转配置
+config/camera_connections.json。旧参数已备份到validation/camera_geometry_20261101/*.before。
+旧前视IMU姿态估计和原安装车身遮挡多边形不再适用，已移除。当前没有新车身掩膜；
+仅按真实投影范围保留黑色盲区，立体物体仍可能按地面假设拉伸。
+
+当前0/1相机的Flash内参与旧GDC包的端口相反，因此不能仅修改俯角后复用原端口LUT。
+已用prepare_surround_capture.py重新读当前Flash，生成三份960x540/HFOV120度硬件GDC，
+本地/板端私有包SHA回读一致；旧包不覆盖、来源工作树不修改、正式current不切换。
+新包：runtime/surround_recalibrated_20261101/
+板端：/map/conbine_camera/surround_recalibrated_20261101/
+
+原数字口接线检查服务已正常关闭，现运行：
+autolabor-conbine-four-camera-view.service（四格GDC源，ZED直连及前视18885复用）
+autolabor-conbine-camera-bev.service（四路新外参融合，复用源18882/18885）
+camera_surround.sh和bev_perception.sh默认指向新包。
+只查看BEV、不启动YOLO/Qt清扫的命令：
+CAMERA_BEV_CONFIG="$PWD/config/four_camera_bev.json" \
+CAMERA_BEV_ASSETS="$PWD/runtime/surround_recalibrated_20261101" \
+CAMERA_BEV_BOARD_ROOT=/map/conbine_camera/surround_recalibrated_20261101 \
+bash scripts/camera_bev.sh start
+停止BEV：bash scripts/camera_bev.sh stop
+停止四格：bash scripts/four_camera_view.sh stop
+关闭四格会释放相机并恢复此前active的ZED sender，clock/link/旧receiver未改动。
+
+验证：13项相关几何/协议检查通过，新增水平前视地面投影验证，避免对0度俯仰使用
+有限主光轴落地点。解析验证左右主光轴地面落点为(0,+/-2.195069,0)m，后视落点为
+(-3.225641,0,0)m；前视主光轴水平，与地面无有限交点，其下半幅仍可投影地面。
+实读四路源序号持续递增，实际HTTP BEV参数SHA/四路变换/左右仅翻正一次均一致，
+采样融合约5.1fps，截图和帧保存于validation/camera_geometry_20261101/。
+实际盲区保留为黑色，曝光未同步、米制精度及拾取效果未独立实测。
+
+本次新数据只确定相机组内部几何，不确定相机组到base_link的X/Y原点。
+相机位置全部改变后，旧“左右中点与MID360中心垂直对齐”关系待重新确认；当前
+bev_cleaning.yaml的rig_to_base_xyyaw=[]，旧[0.20,0,0]已备份。
+这是清除过期视觉标定，普通导航和原运动链路未改动；本轮未启动导航、YOLO、Qt
+清扫、发送目标/速度/机构指令，未宣称完整自主拾取可用。未提交、推送或刷机。

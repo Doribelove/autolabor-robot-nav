@@ -1,0 +1,198 @@
+{
+  "schema": "conbine.four_camera_ground_bev.v1",
+  "frame_id": "camera_rig_ground_estimate",
+  "origin": "ground point vertically below side-camera midpoint",
+  "axes": "x forward, y left, z up; image top is forward",
+  "pose_source": "2026-11-01 user supplied reinstalled camera heights, side spacing, fore/aft offsets and downward pitches; 2026-10-31 user confirmed RX1 assignments and side image inversion",
+  "metric_accuracy_verified": false,
+  "exposure_synchronization_verified": false,
+  "observation_region": {
+    "reference": "vehicle_edges",
+    "vehicle_edges_m": {"front": 1.22, "rear": 0.52, "left": 0.40, "right": 0.40},
+    "distance_from_edges_m": {"front": 5.0, "rear": 5.0, "left": 5.0, "right": 5.0},
+    "source": "Physical body including front cleaner; navigation padding excluded. User requested 5 m from each edge."
+  },
+  "preview_canvas_pixels": 600,
+  "range_source": "The following canvas fields are derived at load time from observation_region; black padding is excluded from observations.",
+  "x_range_m": [
+    -5.52,
+    6.22
+  ],
+  "y_range_m": [
+    -5.87,
+    5.87
+  ],
+  "metres_per_pixel": 0.019566666666666666,
+  "feather_pixels": 40.0,
+  "blend_mode": "single_source",
+  "preview_hz": 5.0,
+  "max_local_age_s": 1.5,
+  "cameras": {
+    "left": {
+      "source": "j6m_hardware_gdc",
+      "rx1_port": 0,
+      "perspective_size": [
+        960,
+        540
+      ],
+      "K_perspective": [
+        [
+          276.8394540764256,
+          0,
+          479.5
+        ],
+        [
+          0,
+          276.8394540764256,
+          269.5
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "position_ground_rig_m": [
+        0,
+        0.215,
+        0.8
+      ],
+      "yaw_left_deg": 90,
+      "pitch_down_deg": 22,
+      "rotate_180": true,
+      "roll_source": "user confirmed upside-down image; corrected by exact 180-degree pixel rotation",
+      "exclude_polygons_upright_px": [],
+      "exclusion_mask_source": "Old mounting masks removed; new mounting vehicle mask has not been measured",
+      "upright_optical_roll_deg": 0.0,
+      "installation_measurement_source": "2026-11-01 user supplied new installation geometry",
+      "height_source": "2026-11-01 user measurement above ground",
+      "pitch_source": "2026-11-01 user: downward from horizontal; front level",
+      "port_assignment_source": "2026-10-31 user: RX1/0 left, RX1/1 right, RX1/2 rear"
+    },
+    "right": {
+      "source": "j6m_hardware_gdc",
+      "rx1_port": 1,
+      "perspective_size": [
+        960,
+        540
+      ],
+      "K_perspective": [
+        [
+          276.8394540764256,
+          0,
+          479.5
+        ],
+        [
+          0,
+          276.8394540764256,
+          269.5
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "position_ground_rig_m": [
+        0,
+        -0.215,
+        0.8
+      ],
+      "yaw_left_deg": -90,
+      "pitch_down_deg": 22,
+      "rotate_180": true,
+      "roll_source": "user confirmed upside-down image; corrected by exact 180-degree pixel rotation",
+      "exclude_polygons_upright_px": [],
+      "exclusion_mask_source": "Old mounting masks removed; new mounting vehicle mask has not been measured",
+      "upright_optical_roll_deg": 0.0,
+      "installation_measurement_source": "2026-11-01 user supplied new installation geometry",
+      "height_source": "2026-11-01 user measurement above ground",
+      "pitch_source": "2026-11-01 user: downward from horizontal; front level",
+      "port_assignment_source": "2026-10-31 user: RX1/0 left, RX1/1 right, RX1/2 rear"
+    },
+    "front": {
+      "source": "zed_sdk_rectified_left",
+      "serial": 23748636,
+      "perspective_size": [
+        1280,
+        720
+      ],
+      "K_perspective": [
+        [
+          523.8282470703125,
+          0,
+          634.917724609375
+        ],
+        [
+          0,
+          523.8282470703125,
+          366.0965881347656
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "position_ground_rig_m": [
+        0.96,
+        0,
+        0.32
+      ],
+      "yaw_left_deg": 0,
+      "pitch_down_deg": 0,
+      "rotate_180": false,
+      "upright_optical_roll_deg": 0.0,
+      "exclude_polygons_upright_px": [],
+      "exclusion_mask_source": "Old mounting masks removed; new mounting vehicle mask has not been measured",
+      "installation_measurement_source": "2026-11-01 user supplied new installation geometry",
+      "height_source": "2026-11-01 user measurement above ground",
+      "pitch_source": "2026-11-01 user: downward from horizontal; front level"
+    },
+    "rear": {
+      "source": "j6m_hardware_gdc",
+      "rx1_port": 2,
+      "perspective_size": [
+        960,
+        540
+      ],
+      "K_perspective": [
+        [
+          276.8394540764256,
+          0,
+          479.5
+        ],
+        [
+          0,
+          276.8394540764256,
+          269.5
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "position_ground_rig_m": [
+        -0.24,
+        0,
+        0.8
+      ],
+      "yaw_left_deg": 180,
+      "pitch_down_deg": 15,
+      "rotate_180": false,
+      "port_assignment_source": "2026-10-31 user: RX1/0 left, RX1/1 right, RX1/2 rear",
+      "exclude_polygons_upright_px": [],
+      "installation_measurement_source": "2026-11-01 user supplied new installation geometry",
+      "upright_optical_roll_deg": 0.0,
+      "exclusion_mask_source": "Old mounting masks removed; new mounting vehicle mask has not been measured",
+      "height_source": "2026-11-01 user measurement above ground",
+      "pitch_source": "2026-11-01 user: downward from horizontal; front level"
+    }
+  },
+  "reuse_capture": true,
+  "front_preview_url": "http://127.0.0.1:18885/frame",
+  "front_depth_enabled": false,
+  "yaw_source": "Front/rear face forward/backward; side cameras assumed facing laterally outward (left +90 deg, right -90 deg)",
+  "installation_calibration_status": "user_measured_rig_geometry; independent_metric_accuracy_unverified"
+}

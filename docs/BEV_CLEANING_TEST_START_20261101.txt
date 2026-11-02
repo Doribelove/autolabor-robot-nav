@@ -1,0 +1,32 @@
+2026-11-01 BEV清扫测试启动
+
+用户要求“现在开始测试”。通过现有live-start启动真实导航会话
+session-20261101_135447-2（本机MainPID1467434），单MID360、原8月29日地图、
+motion_enabled=true，未替操作者发初始位姿、目标、清扫start服务或非零速度。
+私有预览Qt/11587已正常停止，切换真实导航Qt/11583；四格1013642和BEV1013644保持。
+独立YOLO服务MainPID1473043，CUDA best6.pt，四路原图检测+地面投影；未恢复深度。
+
+启动时发现：
+1. live会话内的隔离环境无法连接用户systemd总线，optional感知启动失败；本次在宿主
+   执行bash scripts/bev_perception.sh start恢复，未重启导航/相机。
+2. 独立YOLO服务缺dynamic_reconfigure Python依赖；修改bev_perception.sh，新增run
+   分支加载现有ROS/devel环境，与Qt会话保持相同依赖来源。bash -n及实际启动通过。
+   初次失败日志保留。当前未更改live入口内部systemd调用方式，该调用的限制仍存在；
+   复现时可先在宿主执行bev_perception.sh start，再live-start。
+3. 起初MID360无点云、底盘无CAN回包；随后实际恢复，未改通信配置/伪填底盘参数。
+
+实际核查：
+- 连续10组四路结果，约4.7fps，均0检测；不能把空场结果当垃圾识别/定位精度通过。
+- 10秒只读ROS采样收到CAN6306、雷达105、IMU2086、/odom104、/scan104条。
+  同期/cmd_vel520及/cmd_vel_safe207条均零。
+- 底盘chassis_ready=true、avoidance_ready=true，雷达约10Hz。
+- 实读刷子reference=1.22，rig_to_base=[0,0,0]，costmap及TEB外廓x[-.52,1.22]/y±.40，
+  lidar相对base Z=.65、body->base Z=-.60588。原过滤高度范围与padding保持。
+- 真实Qt截图显示CAN/FAST-LIO/点云/IMU/避障正常，四路BEV/YOLO在线、原地图已显示。
+- 当前WAITING_INITIAL_POSE，map<-base_link尚不存在，move_base等待定位完成。
+  清扫IDLE；尚未执行真实垃圾接近、通过或拾取。刷子机构未接入自动控制。
+
+后续由操作者在Qt“②设置初始位姿”按真实位置/朝向标定；定位成功后放置垃圾，
+在“视觉”核对框与坐标，再在“BEV视野清扫”执行“开始视野清扫”。
+证据：validation/bev_cleaning_start_20261101/。本轮不录制额外rosbag、不切正式current、
+不提交推送；服务保持运行等待实验。

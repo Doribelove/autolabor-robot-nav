@@ -1,0 +1,13 @@
+# Bounding rectangle of the original chassis and the front cleaner.
+# Origin stays at the original chassis centre, X forward/Y left (2026-11-01).
+# Apply after planner profiles in the move_base namespace; margins unchanged.
+local_costmap:
+  footprint: &vehicle_outline [[1.22, 0.40], [1.22, -0.40], [-0.52, -0.40], [-0.52, 0.40]]
+  footprint_padding: 0.10
+global_costmap:
+  footprint: *vehicle_outline
+  footprint_padding: 0.10
+TebLocalPlannerROS:
+  footprint_model:
+    type: polygon
+    vertices: *vehicle_outline

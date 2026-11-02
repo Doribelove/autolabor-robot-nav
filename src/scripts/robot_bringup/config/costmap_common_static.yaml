@@ -2,7 +2,9 @@ map_type: costmap
 transform_tolerance: 1.0
 meter_scoring: true
 
-footprint: [[0.52, 0.35], [0.52, -0.35], [-0.52, -0.35], [-0.52, 0.35]]
+# Original chassis front/rear 0.52 m, plus 0.70 m front cleaner; total width 0.80 m.
+# Keep in sync with vehicle_footprint.yaml, which also supplies the TEB polygon.
+footprint: [[1.22, 0.40], [1.22, -0.40], [-0.52, -0.40], [-0.52, 0.40]]
 footprint_padding: 0.10
 
 obstacle_range: 10.0

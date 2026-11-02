@@ -1006,8 +1006,9 @@ class FodVisualServoNode:
             if not low <= value <= high:
                 raise ValueError("%s must be between %.2f and %.2f" % (name, low, high))
 
-        if not 0.0 <= self.cleaning_reference_offset_m <= 1.0:
-            raise ValueError("cleaning reference offset must be between 0 and 1m")
+        # The measured front attachment puts the brush 1.22 m ahead of base.
+        if not math.isfinite(self.cleaning_reference_offset_m) or self.cleaning_reference_offset_m < 0.0:
+            raise ValueError("cleaning reference offset must be finite and non-negative")
         if not 0.01 <= self.cleaning_coverage_tolerance_m <= MAX_CLEANING_COVERAGE_TOLERANCE_M:
             raise ValueError("cleaning coverage tolerance exceeds the 0.10m limit")
         if not 0.0 <= self.cleaning_min_forward_step_m <= 0.01:

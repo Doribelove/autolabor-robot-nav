@@ -40,8 +40,11 @@ class BevCleaningIntegration(unittest.TestCase):
         cls.reject = False
         cls.stale = False
         cls.hide_on_approach = False
+        cls.hide_other_on_approach = False
         cls.prove_motion = True
         cls.blocked = set()
+        cls.plan_frame = 'map'
+        cls.plan_pose_frame = 'map'
         cls.tf = tf2_ros.TransformBroadcaster()
         cls.grid_pub = rospy.Publisher('/move_base/global_costmap/costmap', OccupancyGrid, queue_size=1)
         cls.status_sub = rospy.Subscriber('/bev_cleaner/status', String,
@@ -70,6 +73,7 @@ class BevCleaningIntegration(unittest.TestCase):
                     data=json.dumps(dict(schema='conbine.bev.cleaning.observations.v1',
                         source_id=dict(session='isolated-test',sequence=cls.sequence),
                         config_sha256='synthetic-only', ground_frame='camera_rig_ground_estimate',
+                        configured_cameras=['front','left','right','rear'],camera_count=4,
                         observed_epoch_s=cls.observation_stamp-(10 if cls.stale else 0), ground_objects=points)).encode()
                 self.send_response(200)
                 self.send_header('Content-Length',str(len(data)))
@@ -119,11 +123,12 @@ class BevCleaningIntegration(unittest.TestCase):
     @classmethod
     def plan(cls,request):
         plan=Path()
-        plan.header.frame_id='map'
+        plan.header.frame_id=cls.plan_frame
         a,b=request.start.pose.position,request.goal.pose.position
         n=max(2,math.ceil(math.hypot(b.x-a.x,b.y-a.y)/.05))
         for i in range(n+1):
             p=copy.deepcopy(request.goal)
+            p.header.frame_id=cls.plan_pose_frame
             p.pose.position.x=a.x+(b.x-a.x)*i/n
             p.pose.position.y=a.y+(b.y-a.y)*i/n
             plan.poses.append(p)
@@ -135,6 +140,9 @@ class BevCleaningIntegration(unittest.TestCase):
         if cls.hide_on_approach:
             cls.objects=[]
             cls.hide_on_approach=False
+        if cls.hide_other_on_approach:
+            cls.objects=cls.objects[:1]
+            cls.hide_other_on_approach=False
         p,q=goal.target_pose.pose.position,goal.target_pose.pose.orientation
         desired=(p.x,p.y,math.atan2(2*q.w*q.z,1-2*q.z*q.z))
         started=time.monotonic()
@@ -168,7 +176,9 @@ class BevCleaningIntegration(unittest.TestCase):
         cls.wait(lambda: not cls.nav.get('active_ordinary_goal_ids'),'previous action released')
         cls.hold=cls.reject=cls.stale=False
         cls.hide_on_approach=False
+        cls.hide_other_on_approach=False
         cls.prove_motion=True
+        cls.plan_frame=cls.plan_pose_frame='map'
         cls.pose=(0.,0.,0.)
         cls.objects=[]
         cls.goals.clear();cls.cancels.clear();cls.blocked.clear()
@@ -196,14 +206,18 @@ class BevCleaningIntegration(unittest.TestCase):
         self.assertEqual(4,len(cls.goals))
         self.assertLess(cls.goals[0].target_pose.pose.position.x,cls.goals[2].target_pose.pose.position.x)
         self.assertFalse(cls.status['pickup_verified'])
+        self.assertEqual(4,cls.status['camera_count'])
+        self.assertIn('rear',cls.status['camera_names'])
 
     def test_02_navigation_success_without_motion_is_not_cleaning(self):
         cls=type(self)
         cls.prove_motion=False
         self.start([(2.,0.)])
-        self.terminal()
+        self.terminal('PARTIAL')
         self.assertEqual(0,cls.status['passed_count'])
         self.assertEqual(1,cls.status['skipped_count'])
+        self.assertEqual(1,cls.status['pending_count'])
+        self.assertIn('实际刷子轨迹未通过', next(iter(cls.status['skipped_reasons'].values())))
 
     def test_03_stop_cancels_only_the_exact_current_goal(self):
         cls=type(self)
@@ -247,18 +261,19 @@ class BevCleaningIntegration(unittest.TestCase):
         cls=type(self)
         cls.blocked={(x,y) for x in range(96,105) for y in range(76,85)}
         self.start([(2.,0.)])
-        self.terminal()
+        self.terminal('PARTIAL')
         self.assertEqual(0,cls.status['passed_count'])
         self.assertEqual(1,cls.status['skipped_count'])
         self.assertEqual([],cls.goals)
 
-    def test_08_disappeared_litter_is_not_blindly_swept_after_approach(self):
+    def test_08_lost_detection_keeps_recorded_location_for_actual_sweep(self):
         cls=type(self)
         cls.hide_on_approach=True
         self.start([(2.,0.)])
         self.terminal()
-        self.assertEqual(0,cls.status['passed_count'])
-        self.assertEqual(1,len(cls.goals))
+        self.assertEqual(1,cls.status['passed_count'])
+        self.assertEqual(0,cls.status['pending_count'])
+        self.assertEqual(2,len(cls.goals))
 
     def test_09_new_litter_in_view_is_planned_after_the_current_pass(self):
         cls=type(self)
@@ -268,6 +283,42 @@ class BevCleaningIntegration(unittest.TestCase):
         self.terminal()
         self.assertEqual(2,cls.status['passed_count'])
         self.assertEqual(4,len(cls.goals))
+
+    def test_10_move_base_empty_path_header_with_map_poses_is_usable(self):
+        cls=type(self)
+        cls.plan_frame=''
+        self.start([(2.,0.)])
+        self.terminal()
+        self.assertEqual(1,cls.status['passed_count'])
+        self.assertEqual(2,len(cls.goals))
+
+    def test_11_empty_path_header_does_not_assume_pose_frame(self):
+        cls=type(self)
+        cls.plan_frame=''
+        for frame in ('', 'odom'):
+            cls.plan_pose_frame=frame
+            self.start([(2.,0.)])
+            self.terminal('PARTIAL')
+            self.assertEqual(0,cls.status['passed_count'])
+            self.assertEqual([],cls.goals)
+
+    def test_12_second_target_lost_during_first_approach_is_still_cleaned(self):
+        cls=type(self)
+        cls.hold=True
+        cls.hide_other_on_approach=True
+        self.start([(2.,0.),(3.8,0.)])
+        cls.wait(lambda: len(cls.goals)==1, 'first approach started')
+        # Other target disappears for longer than the original 2-second TTL.
+        cls.wait(lambda: cls.status.get('remembered_count')==1, 'second target remembered', timeout=5)
+        self.assertEqual(2,cls.status['pending_count'])
+        self.assertEqual(1,cls.status['visible_count'])
+        cls.hold=False
+        self.terminal()
+        self.assertEqual(2,cls.status['passed_count'])
+        self.assertEqual(0,cls.status['pending_count'])
+        self.assertEqual(0,cls.status['skipped_count'])
+        self.assertEqual(4,len(cls.goals))
+        self.assertGreater(cls.goals[2].target_pose.pose.position.x, 2.)
 
 
 if __name__=='__main__':

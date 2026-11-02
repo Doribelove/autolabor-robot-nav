@@ -1,0 +1,114 @@
+/home/slam/horizen-ch 对四相机 BEV 项目的可用资源核查
+2026-11-01，仅文件读取、库哈希比对及板端只读时间源查询。
+
+结论：有能直接复用的板端推理、相机和同步资源，而且正在使用的私有BPU运行库
+与这里的一套文件完全一致。但本目录未找到HEAL/BEV-VTv2训练源码及OE3.9.1
+开发环境，不能由这些底层SDK文件直接训练、量化和编译四路垃圾模型。
+
+已展开文件检查共158278个路径，HBM文件173个，Python wheel 0个。
+代码内容检索未命中bev_vtv2、LSSTransformer、CenterPointHead、horizon_plugin_pytorch。
+模型格式名中的唯一.bc是Linux内核timeconst.bc（bc计算器源码），不是模型中间表示。
+另完整读取31073257257字节的acore.tar.gz目录，166652个条目，tar返回0；
+未匹配到HEAL、BEV-VTv2、匹配插件/编译器、run_docker.sh或wheel安装包。
+独立v3.1手册zip的3166个条目也未包含这些资源。压缩包未展开或改写。
+结果另存validation/horizen_ch_resources_20261101/archive_inventory.json。
+
+1. 当前板端已可复用的完整推理运行库
+
+/home/slam/horizen-ch/Acore/test/qualitytest/source/complex_scene_test/hrt_model_exec/j6p/
+
+其lib目录以下7个库的SHA256均与当前J6M私有runtime_4_9_2对应文件一致：
+libdnn.so、libhbrt4.so、libhbucp.so、libhb_arm_rpc.so、libhbtl.so、libhlog_wrapper.so、
+libperfetto_sdk.so。虽然目录名含j6p，这次判断依据是实际文件哈希及前一轮J6M运行结果。
+当前已通过官方六相机HBM及常驻输入输出测试的运行库就是同一组字节，
+无须替换正在使用的板端运行库。
+
+头文件：
+Acore/test/qualitytest/source/S09_VPS/feature_test/ucp_bpu/include_lnx/hobot/dnn/hb_dnn.h
+SHA与当前常驻程序使用头文件一致。
+
+注意目录内不止一套库：ucp_bpu/lib/libhbrt4.so的版本字符串是4.4.2，
+S04_BPU/tool_chain_hbrt/00_deps/aarch64/00_hbrt/lib/libhbrt4.so是4.9.2。
+不能把各示例的lib混用，也不能将HBRT运行库当作hbdk4-compiler4.11.11。
+
+2. 原生BPU/UCP推理示例源码
+
+Acore/test/qualitytest/source/S09_VPS/feature_test/ucp_bpu/src/bpu_os_ucp.cpp
+Acore/test/qualitytest/source/S09_VPS/feature_test/ucp_bpu/src/tensor_util.cpp
+
+实际包含hbDNNInferV2、UCP任务处理、cached tensor内存管理等，可用于复核常驻程序。
+S04_BPU/tool_chain_hbrt/01_testcase/还提供HBRT输入准备、graph推理、输出解析和多线程测试。
+这些是板端执行参考，不包含ResNet/FPN/LSS的训练定义、QAT或HEAL配置。
+
+3. 找到的BEV模型
+
+Acore/test/qualitytest/source/S04_BPU/tool_chain_hbrt/02_j6_test/TestModel/nash_m_model/acu/
+bev_cft_efficientnetb3_nuscenes__1__nash_m__arg0-6x3x512x1408-ddr__O0__single__1000__balance.hbm
+
+大小29093256字节。文件名和内部标识均为BEV-CFT/EfficientNetB3/nuScenes六相机；
+另有nash_p版本。本目录没有对应浮点权重、训练配置和模型源码。
+二进制还含cpu_segment标识，不能仅凭HBM存在就宣称融合全在BPU上。
+本轮只检查该模型元信息/字符串，未启停服务或将它替换到垃圾识别系统。
+它可用于旧模型运行参考；当前已通过的指定BEV-VTv2六路HBM继续作为任务基线。
+
+4. 与当前ISX031有关的源码和配置
+
+传感器驱动：
+Acore/hbre/camsys/libcam/src/sensor/isx031std/isx031std_utility.c
+Acore/hbre/camsys/libcam/src/sensor/isx031std/inc/isx031std_setting.h
+
+能看到TRIG_SHUTTER_SYNC/TRIG_EXTERNAL以及Sensor/Serializer/Deserializer触发配置。
+其中sensor_config_index_trig_shutter_mode实现具体同步模式；这部分可用于适配本车三路ISX。
+
+较贴近当前RX1/max96712的参考配置：
+Acore/test/samples/platform_samples/source/S83_Sample/S83E04_Module/camera_sample/cfg/j6e/
+case_matrix/4V_4xISX031_RX1_HK/hb_j6dev.json
+
+它的port地址与当前前三路相近，config_index=512；但trig_pin=5、extra_mode=5、
+sensor_mode=1，与当前trig_pin=14、extra_mode=10、sensor_mode=5、config_index=0不同。
+其comment还残留ovx3c描述，应以实际sensor_name=isx031std和源码为准。
+不能直接覆盖当前正在出图的配置；需要按实际模组/接线核对触发链路。
+
+另有完整LPWM同步配置：
+同目录case_matrix/4V_4xISX031_SYNC_RX4/{hb_j6dev.json,lpwm.json,vpm_config.json}
+该示例为RX4/max96724，与当前RX1/max96712不同，可借鉴流程和参数含义。
+LPWM同步仅解决接入J6的ISX侧；前视ZED仍需单独处理跨主机时间映射及帧配对。
+
+5. 时间戳语义及同步资料（本轮新增的有用证据）
+
+Acore/hbre/camsys/libvio/include/hb_vpm_data_info.h 的 image_info_t 明确：
+  time_stamp：硬件时间戳；
+  tv：HAL取帧的系统时间；
+  trig_tv：LPWM触发系统时间。
+因此tv不能直接替代曝光采集时间。其他结构的us注释不能直接套到time_stamp字段。
+
+Acore/document/html/_sources/j6_sysdev/timesync/j6_sysdev_global_time.rst.txt
+说明globaltime：0=SYSTIME，1=PHC，2=RTC。
+本轮板端只读实查globaltime=2、phcindex=0，确认当前全局时间源选择RTC；
+这并不证明每个图像字段的单位、曝光偏移或其到ROS epoch的映射已经校准。
+
+Acore/document/html/_sources/j6_media_debug/camera/thematic/
+j6_media_debug_camera_thematic_synchronization.rst.txt
+说明LPWM/SerDes/FSYNC、多路相机与PPS，以及CIM Frame Start时间戳。
+
+Acore/test/samples/platform_samples/source/S83_Sample/S83E10_Timesync/timesync_sample/
+提供RTC/PHC/Linux时间同步示例，可用于研究统一时间轴；没有在本轮运行这些授时脚本。
+
+6. GDC/鸟瞰拼接示例
+
+Acore/test/samples/platform_samples/source/S83_Sample/S83E04_Module/gdc_stitch_sample/
+代码入口src/gdc_stitch_sample.c。
+有GDC鱼眼校正、videostitch及LUT的实际调用，可以支持图像预处理/几何诊断。
+这是图像像素拼接，不能代替用户要求的BPU四路特征融合和垃圾检测头。
+
+7. 仍缺的资源
+
+未找到HEAL0.0.2、configs/bev_vtv2_resnet50_nuscenes/、
+horizon_plugin_pytorch3.3.10、hbdk4-compiler4.11.11及OE3.9.1 run_docker.sh。
+Acore/mcu是底层系统SDK。底软v3.1手册不等于OE3.9.1算法开发包。
+本次发现消除了“没有板端执行/相机同步参考源码”的疑问，但未解除训练和模型编译的缺项。
+
+证据目录：validation/horizen_ch_resources_20261101/
+资源清单resource_inventory.json；库逐项比对runtime_board_comparison.json；
+版本候选runtime_versions.json、dnn_candidates.json；时间源board_time_source.json；
+搜索和压缩包清单同目录保留。/home/slam/horizen-ch内容没有修改，运行服务没有重启。

@@ -37,7 +37,8 @@ def remote(script,check=True,timeout=40):
 def validate_configured_map(live_config):
     if live_config['sensor_layout']!='mid360_only':raise RuntimeError('Only the MID360 sensor layout is supported')
     map_dir=live_config['board_map_directory']
-    if not map_dir.startswith('/map/robot_j6m_navigation_20260907/maps/releases/'):
+    if not map_dir.startswith(('/map/robot_j6m_navigation_20260907/maps/releases/',
+                               '/map/conbine_navigation/maps/')):
         raise RuntimeError('Map must name an immutable board release directory')
     # Pin the requested historical prior; never fall back to the mutable September current link.
     verify='''import hashlib,json,pathlib
@@ -52,9 +53,10 @@ print('Pinned MID360 prior: '+c['default_map_id'])
     command(SSH+['python3','-'],input=verify)
     return map_dir
 
-def prepare(mapping=False):
-    live_config=json.loads((WS/'config/conbine_live.json').read_text())
-    map_dir=validate_configured_map(live_config)
+def prepare(mapping=False, online_coverage=False):
+    live_config=json.loads(Path(os.environ.get('CONBINE_LIVE_CONFIG',
+                                str(WS/'config/conbine_live.json'))).read_text())
+    map_dir='' if mapping else validate_configured_map(live_config)
     ROOT.mkdir(parents=True,exist_ok=True)
     session=ROOT/('session-'+time.strftime('%Y%m%d_%H%M%S')+'-'+str(os.getpid()))
     session.mkdir()
@@ -67,8 +69,8 @@ def prepare(mapping=False):
     (payload/'hosts').write_text('127.0.0.1 localhost\n192.168.10.100 hobot\n192.168.10.50 slam-desktop\n')
     identity={'workspace':str(WS),'session':session.name,'board':board,
               'master':'http://192.168.10.100:11583','motion_enabled':True,
-              'sensor_layout':'mid360_only','mapping_mode':mapping,
-              'map_id':live_config['default_map_id'],'board_map_directory':map_dir}
+              'sensor_layout':'mid360_only','mapping_mode':mapping,'online_coverage':online_coverage,
+              'map_id':session.name if mapping else live_config['default_map_id'],'board_map_directory':map_dir}
     (payload/'session.json').write_text(json.dumps(identity,indent=2)+'\n')
     shutil.copy2(WS/'src/platform/autolabor_dual_host/config/livox_mid360_nvidia.json',payload/'mid360.json')
     config=json.loads((payload/'mid360.json').read_text())
@@ -134,10 +136,16 @@ def prepare(mapping=False):
     inc=ET.SubElement(launch,'include',file='$(find autolabor_dual_host)/launch/j6m_fastlio_navigation.launch')
     for key,value in {'start_relays':'false','start_enhanced_cloud':'false',
                       'use_static_map':str(not mapping).lower(),'map_file':'/tmp/map_set/map_fused_2d/map.yaml',
+                      'online_coverage':str(online_coverage).lower(),
                       'fast_lio_map_file':'/tmp/map_set/map_3d/map.pcd',
+                      'fast_lio_initial_body_z':str(live_config.get('initial_body_z',0.0)),
                       'fod_motion_enabled':'false','max_linear_speed':'0.8',
                       'max_angular_speed':'0.6'}.items():
         ET.SubElement(inc,'arg',name=key,value=value)
+    if live_config.get('coverage_plan_file'):
+        shutil.copy2(live_config['coverage_plan_file'],payload/'external_coverage_plan.json')
+        ET.SubElement(launch,'param',name='/coverage_manager/external_plan_file',
+                      value='/tmp/external_coverage_plan.json')
     ET.ElementTree(launch).write(payload/'navigation.launch',encoding='unicode')
     archive=session/'payload.tar.gz'
     with tarfile.open(archive,'w:gz') as tar:
@@ -178,6 +186,11 @@ if not config.exists():config.write_bytes((root/'overlay/share/autolabor_coverag
         generated=WS/'devel/lib/python3/dist-packages'/package/'msg'/('_'+name+'.py')
         expected=re.search(r'_md5sum\s*=\s*"([0-9a-f]+)"',generated.read_text()).group(1)
         if expected!=md5:raise RuntimeError('Cross-host message mismatch: '+typ)
+    if mapping:
+        local_map=session/'online_map';local_map.mkdir()
+        identity['local_map_directory']=str(local_map)
+        (ROOT/'session.json').write_text(json.dumps(dict(identity,local=str(session)),indent=2)+'\n')
+        return session,board
     # Fetch the immutable existing map for the GUI, without modifying its source.
     local_map=ROOT/'maps'/live_config['default_map_id'];local_map.mkdir(parents=True,exist_ok=True)
     r=subprocess.run(SSH+['tar','-czhf','-','-C',map_dir,
@@ -201,8 +214,10 @@ def run():
         if not CAN.exists():raise RuntimeError('Confirmed chassis adapter absent')
         owners=command(['fuser',str(CAN.resolve())],False)
         if owners.stdout.strip():raise RuntimeError('CAN adapter occupied: '+owners.stdout)
-        mapping=os.environ.get('CONBINE_LIVE_MODE','navigation')=='mapping'
-        session,board=prepare(mapping)
+        mode=os.environ.get('CONBINE_LIVE_MODE','navigation')
+        online_coverage=mode=='online_coverage'
+        mapping=mode in ('mapping','online_coverage')
+        session,board=prepare(mapping,online_coverage)
         record=json.loads((ROOT/'session.json').read_text())
         stopping=threading.Event()
         for sig in (signal.SIGINT,signal.SIGTERM):signal.signal(sig,lambda *_:stopping.set())
@@ -237,21 +252,31 @@ def run():
             spawn('gateway',['roslaunch',str(WS/'src/platform/autolabor_dual_host/launch/nvidia_gateway.launch'),
                 'start_livox:=false','start_can:=true',
                 'can_port:='+str(CAN),'motion_enabled:=true'])
+            if online_coverage:
+                spawn('online_map',['python3','-B',str(WS/'src/scripts/robot_bringup/scripts/online_coverage_mapper.py'),
+                                    '--output-dir',record['local_map_directory']])
+                spawn('online_cloud',[str(WS/'devel/lib/robot_bringup/voxel_cloud_mapper'),
+                    '__name:=online_voxel_mapper','_output_file:='+str(Path(record['local_map_directory'])/'map.pcd'),
+                    '_body_to_base_x:=-0.011','_body_to_base_y:=-0.02329','_body_to_base_z:=-0.60588',
+                    '_slice_self_crop_min_x:=-0.52','_slice_self_crop_max_x:=1.22',
+                    '_slice_self_crop_min_y:=-0.40','_slice_self_crop_max_y:=0.40',
+                    '_slice_sweep_front:=1.22','_slice_sweep_rear:=0.52','_slice_sweep_half_width:=0.40'])
             if not mapping:
                 # Camera/perception failures stay local to this optional feature.
                 # The coordinator starts idle and issues goals only from Qt Start.
                 spawn_optional('bev_perception',['bash',str(WS/'scripts/bev_perception.sh'),'start'])
                 spawn_optional('bev_cleaner',['roslaunch',str(WS/'src/application/autolabor_fod_control/launch/bev_cleaning.launch')])
             # This leaf makes only the map root visible; it never invents a robot pose.
-            if not mapping:
+            if not mapping or online_coverage:
                 spawn('map_anchor',['rosrun','tf2_ros','static_transform_publisher',
                                     '0','0','0','0','0','0','1','map','autolabor_map_display_anchor'])
             spawn('qt',[str(WS/'devel/lib/autolabor_operator_gui/autolabor_operator_gui_node'),
-                '__name:=autolabor_operator_gui','_static_map_mode:='+str(not mapping).lower(),
-                '_rviz_startup_fixed_frame:='+('camera_init' if mapping else 'map'),
-                '_rviz_navigation_fixed_frame:='+('camera_init' if mapping else 'map'),
+                '__name:=autolabor_operator_gui','_static_map_mode:='+str(not mapping or online_coverage).lower(),
+                '_online_mapping:='+str(online_coverage).lower(),
+                '_rviz_startup_fixed_frame:='+('camera_init' if mapping and not online_coverage else 'map'),
+                '_rviz_navigation_fixed_frame:='+('camera_init' if mapping and not online_coverage else 'map'),
                 '_static_map_set:='+record['local_map_directory'],'_coverage_region_root:='+record['local_map_directory'],
-                '_navigation_mode_label:=REAL_NAVIGATION',
+                '_navigation_mode_label:='+('在线建图覆盖（本次场景）' if online_coverage else 'REAL_NAVIGATION'),
                 '_window_title:=Autolabor 合并版 · 真实导航',
                 '_configured_vision_backend:=j6m_surround_bpu','_vision_backend_switch_script:=',
                 '_rviz_config:='+str(WS/'src/application/autolabor_operator_gui/config/operator_navigation.rviz'),
@@ -275,19 +300,24 @@ def run():
                 stream.close()
 
 def main():
-    action=argparse.ArgumentParser();action.add_argument('action',choices=['start','stop','status','run']);action.add_argument('--mapping',action='store_true');args=action.parse_args()
+    action=argparse.ArgumentParser();action.add_argument('action',choices=['start','stop','status','run']);action.add_argument('--mapping',action='store_true');action.add_argument('--online-coverage',action='store_true');action.add_argument('--config',type=Path);args=action.parse_args()
+    if args.online_coverage:args.mapping=True
     if args.action=='run':return run()
     existing=command(['systemctl','--user','show',UNIT,'-p','ExecStart','--value'],False).stdout
     if existing.strip() and str(WS/'scripts/conbine_live.sh') not in existing:raise RuntimeError('Service identity mismatch')
     if args.action=='start':
         if command(['systemctl','--user','is-active','--quiet',UNIT],False).returncode==0:
-            if (ROOT/'session.json').exists() and json.loads((ROOT/'session.json').read_text()).get('mapping_mode',False)!=args.mapping:
+            current=json.loads((ROOT/'session.json').read_text()) if (ROOT/'session.json').exists() else {}
+            if current.get('mapping_mode',False)!=args.mapping or current.get('online_coverage',False)!=args.online_coverage:
                 raise RuntimeError('Stop the current live session before changing mapping/navigation mode')
+            if args.config and current.get('map_id')!=json.loads(args.config.read_text())['default_map_id']:
+                raise RuntimeError('Stop the current live session before changing its map')
             return
         r=command(['systemd-run','--user','--unit='+UNIT,'--collect','--property=KillMode=mixed',
                   '--property=TimeoutStopSec=65','--setenv=DISPLAY='+os.environ.get('DISPLAY',':0'),
                   '--setenv=XAUTHORITY='+os.environ.get('XAUTHORITY','/run/user/1000/gdm/Xauthority'),
-                  '--setenv=CONBINE_LIVE_MODE='+('mapping' if args.mapping else 'navigation'),
+                  '--setenv=CONBINE_LIVE_CONFIG='+str((args.config or WS/'config/conbine_live.json').resolve()),
+                  '--setenv=CONBINE_LIVE_MODE='+('online_coverage' if args.online_coverage else ('mapping' if args.mapping else 'navigation')),
                   '/bin/bash',str(WS/'scripts/conbine_live.sh'),'run'])
         print(r.stdout+r.stderr)
     elif args.action=='stop':

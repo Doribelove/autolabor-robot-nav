@@ -1,0 +1,89 @@
+FCOS + 四路 BEV 二维定位 / J6M BPU（2026-11-01）
+
+按用户要求使用地平线 Model Lab FCOS，复用已安装的 FCOS-EfficientNet-B3 HBM，
+无需另行训练/编译即可运行。官方模型说明：
+https://huggingface.co/OpenExplorer/fcos_efficientnetb3
+该页面目前发布版本不等同于本机旧 HBM；以下身份/速度以实际安装文件和运行日志为准。
+
+实现
+1. J6M 一个常驻 FCOS 模型依次识别 front/left/right/rear 四路原图。
+   等比例缩放至896内，左上对齐、黑色补边、BGR->I420->NV12，保持图像比例。
+   两个U8输入为Y [1,896,896,1]、UV [1,448,448,2]；15个S32量化输出反量化。
+   80类COCO保留原类别。score=sigmoid(class)*sigmoid(centerness)，阈值0.20，
+   LTRB*stride，类内NMS IoU0.6；按实际取整后的XY缩放分别还原原图框。
+   复用原实验 decoder；与授权 HEAL 精确前后处理数值等价性仍未独立核验。
+2. BPU执行FCOS网络：旧适配器hbDNNInferV2创建任务，hbUCPSubmitTask指定BPU_CORE_0。
+   J6M CPU负责JPEG解码/NV12准备/输出反量化/NMS，Jetson CPU负责传输/几何/绘图/Qt。
+   本次不是将几何BEV或学习式BEV特征融合放到BPU，不能称四视角特征联合网络。
+3. 检测框底部中点按各相机K和外参投到地面Z=0，得到rig平面米制x/y；不是深度，
+   不是实测物体占地中心。跨相机15cm内且双方原图框互投影匹配时合并，同相机不合并。
+   FCOS要求类别一致；旧材料专用检测器仍支持材质标签冲突合并。
+4. /frame与/detections新增scene_ground_objects供显示所有可投影物体。
+   兼容原清扫接口ground_objects：FCOS仅bottle/cup进入清扫候选，不把人/家具等标为垃圾。
+   这是类别选择，不能证明瓶杯确为废弃物。Qt显示全体目标及候选数量，不自动启动清扫。
+   未更改普通导航或运动控制；本次不发目标、速度、机构命令。
+5. ZED SDK继续DEPTH_MODE::NONE，front_depth_enabled=false，未修改相机标定/拼接。
+   平面IPM中的立体物体拉伸仍存在；识别使用原图，不用拉伸后的BEV图作模型输入。
+
+实际资源
+J6M模型：/map/robot_j6m_navigation_20260907/bpu_lab_20260905/models/fcos_nash_m/model.hbm
+模型SHA256：1daacc7dfde181b65872c47f4fe5db84fd31f19d3ad56aa1fa1d902bb5ffd7fa
+适配器：同一lab/bin/libfcos_resident.so
+适配器SHA256：3f3534566e73f19bf10963131c8cbff206aa7a6f98ff1f65dd45b2b13e4fa8aa
+私有vendor/runtime_4_9_2，日志确认DNN/UCP3.14.5、HBRT4.9.2。
+复用lab/vendor/python311内NumPy和既有conversion_runs/20261019_j4liv6zx/deps内OpenCV。
+使用原preview_worker.lock，临时worker只上传/tmp/conbine-ground-detector-*；不切换正式current。
+浮点checkpoint身份未知，source_checkpoint_sha256=null，不伪造为本机垃圾模型。
+
+本轮修改文件
+scripts/bev_fcos_worker.py：新增常驻FCOS RGB worker。
+distribution/j6m_bpu_navigation/surround/fcos_image.py：NV12准备/原图框恢复/COCO标签。
+distribution/j6m_bpu_navigation/surround/image_detector.py：复用SSH二进制传输，新增fcos_bpu。
+distribution/j6m_bpu_navigation/surround/ground_detections.py：通用类别按同类关联。
+scripts/bev_yolo_server.py：模型选择、全场景/清扫候选分开、实际阈值/运行库/延迟元数据。
+scripts/camera_bev_qt.sh、scripts/bev_perception.sh：默认fcos_bpu，原cuda/bpu仍可选。
+Qt src/bev_integration.cpp、src/main_window.cpp、src/bev_preview_client.cpp：实际模型显示、
+全类别定位结果、候选说明；没有恢复旧BPU页面。
+surround/tests/test_fcos_image.py、test_ground_detections.py：缩放/补边与同类跨视角关联检查。
+README.md、AGENTS.md及本说明。
+
+实测（validation/bev_fcos_bpu_20261101/）
+- 11项Python检查通过：NV12布局/比例、真实取整缩放回算、padding框、地面投影/重复融合。
+- Qt目标构建通过，8项报文检查通过，含真实FCOS四路报文frame.bv01。
+- 当前真实相机一组图送J6M重复推理3轮，保存原图/原图框图/BEV点图/offline_report.json。
+- 独立18886连续30组真实报文，120次模型调用：vendor_infer_ms中位4.2503、P95 4.5699。
+  该计时包括任务提交/等待，不是硬件纯核profile；未伪装成端到端时延。
+  四路含本机JPEG编码、SSH、板端前后处理：中位130.2038ms、P95 139.9341ms；
+  首帧最大343.95ms（保留，不删除离群值）。实际识别4.736fps，源BEV约5fps。
+  BEV生成至结果中位267.8250ms；最老来源接收/缓存时间估算至结果694.8769ms。
+  相机曝光时钟未统一，后一项不是已验证曝光到发布延迟，更不是到map发布延迟。
+  数据见server_frames.json/server_metrics.json；board.log保留首次缺cv2路径错误及修复后加载日志。
+- 前视实际雨伞约0.69，另有后视白色圆盘误判toilet/sink、右视杂物低分误判飞机等。
+  30组中清扫候选0。垃圾桶没有专用COCO类别，不宣称已识别垃圾桶或全部垃圾。
+- 最终正式Qt已重开为PID794172，采集PID768840、BEV PID768842保持不变。
+  18884实际返回BPU/FCOS，新帧序号持续增加，后续抽样4.86fps。
+  前视实际来源depth_mode=NONE/depth_enabled=false，/rgbd404。
+  真实导航inactive/MainPID0，私有清扫状态IDLE/active=false、rig_to_base_configured=false。
+  证据live_states.json/live_frames.json/live_services.txt/cleaner_status.txt与Qt截图。
+
+边界
+COCO80是通用物体检测，垃圾材质/脏污/小碎片识别仍需针对本车数据训练，不能仅靠换显示标签。
+立体物体未触地、框底接触点不准确或图像边缘截断时，地面点可能有偏差；误判也可能形成点。
+没有实物跨相机移动、车辆换位、独立实测地面真值，重复点/地图稳定性/二维米制误差尚未验收。
+重装相机组到底盘平面偏移仍未重新确认，rig_to_base_xyyaw=[]；本次只显示rig坐标，
+没有伪造base/map位置，未接通完整自主拾取，也没有启动真实导航。
+
+可复制命令（工作目录/home/slam/robot_j6m_ws_conbine）
+启动当前默认FCOS+BPU+Qt：
+  bash scripts/camera_surround.sh start
+查看实际模型/四路/帧率：
+  bash scripts/camera_surround.sh status
+  curl -fsS http://127.0.0.1:18884/state
+  curl -fsS http://127.0.0.1:18884/detections
+重开Qt与检测器（保留原相机采集/BEV拼接）：
+  bash scripts/camera_surround.sh stop
+  BEV_DETECTOR_BACKEND=fcos_bpu bash scripts/camera_surround.sh start
+需要切回原best6或原单类trash HBM时，先stop再将上条backend换为cuda或bpu。
+停止Qt/识别用camera_surround.sh stop；这条命令不关闭相机，沿用原生命周期。
+两路推理后端不可同时抢同一个BPU锁；当前服务启动失败时看runtime/bev_qt/bpu.log。
+不调用训练/量化命令：此次复用已有官方FCOS HBM，没有训练或编译新的垃圾模型。

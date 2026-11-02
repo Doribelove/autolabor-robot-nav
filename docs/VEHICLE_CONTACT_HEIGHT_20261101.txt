@@ -1,0 +1,62 @@
+刷子接触点、base_link高度和M2官方资料核对（2026-11-01）
+
+本轮补充
+用户确认刷子位于新增装置最前沿，并实测base_link参考点离地0.25m；随后要求进一步
+确认25cm。已查阅官方参数页、尺寸图、ROS驱动说明，并下载官方2024-11-25驱动只读
+检查，未安装或替换本项目驱动。
+
+核对结论
+官方M2原底盘1040x700x430mm、轴距650mm、轮距600mm、离地高度110mm。
+尺寸图还标注轮胎直径320mm，但没有base_link原点。官方驱动只声明base_frame，
+平面里程计/TF的z=0，未定义base_link相对物理地面的高度，也不带M2 URDF。
+因此不能从官方资料独立确认“base_link离地250mm”；它保留为用户指定参考点的
+实测高度。110mm离地间隙、430mm车高、160mm轮心高度均不能自动替代该原点高度。
+当前工程的原长1.04m、宽0.70m与官网一致，不需修改上一轮外廓计算。
+
+官方来源
+参数：https://www.autolabor.com.cn/pro/detail/8
+尺寸图：https://www.autolabor.com.cn/usedoc/m2/chassis/imgs/1.png
+驱动说明：https://www.autolabor.com.cn/usedoc/m2/chassis/chassis-m2
+官方页面实际加载的说明正文：https://www.autolabor.com.cn/usedoc/m2/chassis/chassis-m2.md
+驱动：https://download.autolabor.com.cn/M2/autolabor_canbus_driver-241125.zip
+驱动包SHA256：bd59d0df98755655c315a3bb6ac32d2acb9d887201f2d5b2fce4b4c3e0bd8c31。
+
+已写入并验证
+1. BEV二维外参仍[0,0,0]（XY重合、yaw=0），车体原点不随清扫装置前移。
+2. 刷子中心参考点X=0.52+0.70=1.22m；bev_cleaning.yaml及visual_servo.yaml同步。
+   两控制器删除旧的1m上限，仍检查有限非负值和原清扫容差，不改变速度/转向/停止逻辑。
+   二维完成判据使用新刷子参考轨迹；没有把整车中心到达垃圾处算作清扫。
+3. MID360在base_link中Z=0.90-0.25=0.65m，导航入口和独立避障入口同步。
+   FAST-LIO仍使用原雷达到IMU固有偏移，body->base_link为
+   [-0.011,-0.02329,-0.60588]m。独立fast_lio.launch与组合入口一致。
+4. 地面在base_link中的Z为-0.25m。BEV仍采用镜头到地面的0.80/0.32m高度，不将
+   雷达/底盘相对高度错误地写入相机地面投影参数。
+5. 原碰撞外廓前1.22m、后0.52m、半宽0.40m及原10cm余量保持。
+   本轮不再改J6M持久调参、地图或导航速度。原障碍高度阈值仍为base_link下0.40..0.80m，
+   按本次参考高度对应离地0.65..1.05m；未重新调这个高度窗口或完成低矮障碍实车验收。
+
+验证与生效状态
+- 16项几何检查通过：新增1.22m参考点实际前进通过、倒车不算通过、四种接近朝向
+  的清扫段通过，以及原视觉控制器的参考点跟踪算法。
+- 静态地图/无图导航launch展开，雷达Z=0.65和旧视觉控制器参考1.22参数核对通过。
+- 隔离网络/设备的真实旧视觉控制器启动，通过1.22m配置初始化并发布状态，随后停止。
+  首次隔离试验因测试PYTHONPATH把源码包排在生成cfg之前而导入失败；调整测试环境
+  路径后通过，未改生产包路径或模型。失败日志保留。
+- 当前Qt/识别会话已正常重开PID1438895，BEV清扫节点实读参考1.22、平面外参配置
+  完整，IDLE/active=false，等待导航TF；YOLO CUDA继续live，采集1013642/BEV1013644未重启。
+- 真实导航inactive；雷达新外参在下次live-start打包加载。本轮未发目标/速度/机构
+  命令，没有确认实际拾取效果，也没有把旧深度视觉控制器接成四路无深度连续伺服。
+  25cm使用用户实测来源，不标记为官方确认或独立现场复测。
+
+主要修改
+src/application/autolabor_fod_control/config/{bev_cleaning,visual_servo}.yaml
+src/application/autolabor_fod_control/scripts/{bev_cleaner_node,fod_visual_servo_node}.py
+src/application/autolabor_fod_control/test/test_bev_cleaning.py
+src/platform/autolabor_dual_host/launch/j6m_fastlio_navigation.launch
+src/scripts/robot_bringup/launch/{scan_mid360_avoidance,fast_lio}.launch
+对应旧launch契约中的雷达Z期望值同步；没有宣称全部历史契约测试通过。
+
+证据：validation/vehicle_contact_height_20261101/
+含官方参数正文/尺寸图/原驱动包与摘要、before/备份、geometry_tests.log、展开参数、
+geometry_check.json、visual_node_status.json、在线节点参数及服务状态。
+本轮未提交/推送，保留1027及已有改动；没有修改来源工作树或正式current。

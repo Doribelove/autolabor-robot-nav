@@ -1,0 +1,78 @@
+前视垃圾桶拉伸修正：ZED 实测深度俯视投影（2026-11-01）
+
+历史试验：用户随后明确不要深度，当前已撤回SDK深度及在线融合路径。
+以docs/BEV_NO_DEPTH_20261101.txt为最新状态；以下说明不是当前运行配置。
+
+用户明确需要解决前视垃圾桶被拉伸，本轮仅替换前视的 BEV 显示投影。
+现已在真实相机和当前 Qt 中生效，前视不再把桶身按地面平面投到远处。
+左/右/后三路仍使用原 GDC、安装参数、地面投影和单路取图。
+
+实现
+原ZED预览是DEPTH_MODE::NONE。现在同一SDK grab取左目RGB和DEPTH_U16_MM，
+ULTRA模式、HD720/15fps，获取循环约5Hz；米制初始化，深度输出明确为光轴Z的
+uint16毫米值，0无效。confidence_threshold=50、texture_confidence_threshold=100，
+enable_fill_mode=false，范围0.3~10m。依据本机SDK Camera.hpp的深度/单位定义接入，
+没有把单目推测、相机安装高度或接收时间伪装成实测深度。
+同帧/RGBD接口127.0.0.1:18885/rgbd，ZD01封装校验长度、摘要、尺寸、采集时间。
+原/frame图像接口保留，设备仍由唯一四格预览持有；没有第二次打开ZED。
+
+RGBD按SDK实际校正内参反投影，再用现有相机组位姿转到rig X/Y/Z。
+前视所属网格改用真实点云的X/Y，正交俯视z-buffer取最高实测表面颜色；不对物体
+套地面单应、不人为画完整圆桶、不估补桶背面的形状。有效深度以外、被桶或墙遮住
+的区域保留黑色；只有已观测点周围每轴1个像素（1cm）的点绘制扩展，无大范围补洞。
+显示高度范围[-0.2,2.0]m排除明显地面以下/天花板返回，未修改用户给定安装高度或俯角。
+不是地面分割，也没有根据这张室内图自动修改安装外参。
+
+当前SDK实际校正K：fx=fy=525.038879，cx=634.917908，cy=366.100159。
+SDK自校正值与配置原fx=523.828247略有差别，深度反投影和发布的前视观测内参采用
+同帧SDK值，来源记录在front_depth.K_rectified；不悄悄覆盖用户外参。
+四路垃圾检测继续使用各自原图；现有垃圾地面接触点算法没有改成三维垃圾检测，
+不会把垃圾桶表面深度或这次显示修正当作真实垃圾二维定位误差验收。
+
+为了实时显示，新增独立CPU原生z-buffer，camera_bev.sh在需要时编译到
+runtime/bev_depth/libfront_depth_raster.so；无SDK依赖。NumPy参考路径保留用于对照。
+深度计算在Jetson的ZED SDK/GPU，栅格投影在CPU；当前垃圾检测仍CUDA best6.pt。
+本轮没有将深度网络编译为J6M BPU模型，也没有切换已有垃圾模型。
+
+实测与证据
+根目录 validation/bev_front_depth_20261101/。
+1. rgbd_packet.bin/front_rgb.png/front_depth_mm.png/rgbd_source.json 是同一真实
+   ZED采集帧。有效深度约75.2%。前视RGB/深度源序号与采集时间严格同帧。
+2. comparison.jpg 左为同一前视RGB按地面投影，右为实测深度投影。对桶身手工选取
+   原图ROI x=(605,690)、y=(370,485)，其可见表面X的5/50/95百分位为
+   1.902/1.926/1.955m（相机组地面原点前方，不是距前相机的距离）。
+   原地面假设把同批像素投到X=2.448/3.697/17.931m，远端被BEV边缘截断。
+   此统计解释拉伸消除；该ROI不是整个桶的占地轮廓，也没有卷尺真值，不能宣称
+   定位误差为几厘米。原视角中看不到的桶顶/背面不会被重建出来。
+3. 同图非前视所属区域像素完全不变；NumPy与原生投影逐像素一致，最大差0。
+   native_check.json：原生深度投影调用中位54.15ms，参考实现先前179.38ms；
+   这不含ZED深度计算、图像传输或垃圾模型，不能冒充BPU/采集到map时延。
+4. 5项深度几何/遮挡/原生对照/协议检查、原24项地面回归均通过。Qt构建成功，
+   包含真实在线深度版报文的8项Qt解码检查通过。日志分别为tests_native.log、
+   ground_regression.log、build_qt_final.log、qt_packet_tests.log。
+5. 最终3次在线采样四路源递增，四路识别约5.0fps，BEV投影计算53.7~54.3ms，
+   四路垃圾模型调用116.6~126.9ms；front_depth.render_backend=native_cpu，
+   深度源序号/时间与源RGB一致。live_samples.json/live_metadata.json/qt_live.png。
+   这些是短时显示检查，不是12小时耐久或实车地图定位验收。
+
+运行状态与命令
+当前四格PID716025、BEV738788、Qt会话738792均active。启用深度需要重新打开
+ZED，受现有四格会话生命周期影响，当时四路采集有一次短暂重开；左右后处理算法
+保持不变。后续优化仅重开BEV/Qt。旧sender原为inactive，未恢复它、未改变时钟。
+没有启动真实导航、发送目标/速度/机构指令；rig/base对齐与地图定位验收状态未变。
+
+  bash scripts/camera_surround.sh start
+  curl -s http://127.0.0.1:18884/state
+  curl --fail http://127.0.0.1:18885/rgbd -o runtime/front_rgbd.bin
+  PYTHONPATH=distribution/j6m_bpu_navigation /usr/bin/python3 -s -m unittest discover -s distribution/j6m_bpu_navigation/surround/tests -p 'test_front_depth.py' -v
+
+四路配置front_depth_enabled=true，切回false并重开BEV会恢复旧前视地面投影，
+不是停止ZED SDK深度计算；本轮默认保持实测深度。停止入口仍按原生命周期使用。
+
+文件
+scripts/zed_preview_native.cpp：同帧RGBD采集与实际内参。
+scripts/four_camera_view.py：RGBD快照/接口，原图接口兼容。
+scripts/front_depth_raster.cpp、surround/front_depth.py：正交投影、协议及原生绑定。
+scripts/{three_camera_bev.py,camera_bev.sh}、config/four_camera_bev.json：接入与构建。
+surround/tests/test_front_depth.py、Qt bev_integration.cpp：验证与真实显示说明。
+surround路径均位于distribution/j6m_bpu_navigation/。保留1027与旧工作，未提交/推送。

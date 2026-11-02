@@ -969,32 +969,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
   connect(&ui_refresh_timer_, &QTimer::timeout, this, &MainWindow::refreshUi);
   ui_refresh_timer_.start(250);
 
-  // Paint fresh preview images without running all navigation/diagnostic UI
-  // work at video rate. QImages share storage; copy only preview fields.
-  connect(&bpu_preview_timer_, &QTimer::timeout, this, [this]() {
-    if (surround_mode_)
-    {
-      if (isVisible() && !isMinimized()) refreshSurroundPreview();
-      return;
-    }
-    if (!tabs_ || !isVisible() || isMinimized() ||
-        (tabs_->currentIndex() != overview_tab_index_ &&
-         tabs_->currentIndex() != bpu_tab_index_))
-      return;
-    TelemetrySnapshot preview;
-    {
-      std::lock_guard<std::mutex> lock(snapshot_mutex_);
-      preview.raw_preview = telemetry_.raw_preview;
-      preview.raw_preview_stamp = telemetry_.raw_preview_stamp;
-      preview.bpu_preview = telemetry_.bpu_preview;
-      preview.bpu_preview_stamp = telemetry_.bpu_preview_stamp;
-      preview.bpu_preview_status = telemetry_.bpu_preview_status;
-      preview.bpu_preview_status_at = telemetry_.bpu_preview_status_at;
-    }
-    refreshBpuPreview(preview);
+  // The legacy vision page still refreshes its selected surround port.
+  connect(&surround_refresh_timer_, &QTimer::timeout, this, [this]() {
+    if (surround_mode_ && isVisible() && !isMinimized()) refreshSurroundPreview();
   });
-  bpu_preview_timer_.setTimerType(Qt::PreciseTimer);
-  bpu_preview_timer_.start(33);
+  surround_refresh_timer_.setTimerType(Qt::PreciseTimer);
+  surround_refresh_timer_.start(33);
 
   connect(&master_probe_timer_, &QTimer::timeout, this, &MainWindow::requestMasterProbe);
   connect(&master_probe_watcher_, &QFutureWatcher<MasterProbeResult>::finished, this,
@@ -1163,6 +1143,47 @@ void MainWindow::applyEffectiveCoveragePlanningParameters(
       parameters.transit_replan_period_sec);
 }
 
+void MainWindow::adoptBackendCoveragePlan(
+    const autolabor_coverage::CoverageStatus& coverage,
+    bool map_identity_ready, bool defaults_ready, bool selecting)
+{
+  // Plans can be prepared by the offline planner/ROS service as well as this
+  // window. Restore their identity and effective parameters without starting
+  // motion. A backend READY label alone previously left Start permanently
+  // disabled because only the GUI planning callback populated plan_id.
+  if (map_identity_ready && defaults_ready &&
+      coverage.state == "READY" && !coverage.plan_id.empty() &&
+      !coverage.active && !coverage.batch_active && coverage.batch_id.empty() &&
+      coverage_plan_id_.empty() && coverage_batch_id_.empty() &&
+      !selecting && !coverage_plan_pending_ &&
+      !coverage_command_pending_ && !coverage_batch_start_pending_ &&
+      !coverage_cancel_pending_ && !coverage_cancel_requested_ &&
+      !coverage_task_lifecycle_started_ &&
+      std::isfinite(coverage.operation_width_m) && coverage.operation_width_m > 0.0)
+  {
+    CoveragePlanningUiParameters restored = coveragePlanningParameters();
+    restored.operation_width_m = coverage.operation_width_m;
+    restored.overlap_ratio = 1.0 - coverage.lane_spacing_m / coverage.operation_width_m;
+    restored.max_forward_speed_mps = coverage.max_forward_speed_mps;
+    restored.allow_reverse = coverage.allow_reverse_transit;
+    restored.max_reverse_speed_mps = coverage.max_reverse_speed_mps;
+    restored.max_angular_speed_rps = coverage.max_angular_speed_rps;
+    restored.linear_accel_mps2 = coverage.linear_accel_mps2;
+    restored.angular_accel_rps2 = coverage.angular_accel_rps2;
+    restored.direction_change_penalty_sec = coverage.direction_change_penalty_sec;
+    restored.segment_handoff_penalty_sec = coverage.segment_handoff_penalty_sec;
+    restored.transit_replan_period_sec = coverage.transit_replan_period_sec;
+    applyEffectiveCoveragePlanningParameters(restored);
+    persistCoveragePlannerSettings();
+    coverage_plan_id_ = coverage.plan_id;
+    coverage_planned_region_map_digest_ = coverage.map_digest;
+    coverage_planned_region_points_.clear();
+    coverage_planned_region_source_id_.clear();
+    ++coverage_plan_generation_;
+    appendEvent(QStringLiteral("已载入后端覆盖计划及其参数，可在就绪后点击“开始覆盖清扫”。"));
+  }
+}
+
 void MainWindow::scheduleNavigationProfileApply()
 {
   navigation_profile_synced_ = false;
@@ -1276,7 +1297,7 @@ MainWindow::~MainWindow()
   shutting_down_ = true;
   master_probe_timer_.stop();
   ui_refresh_timer_.stop();
-  bpu_preview_timer_.stop();
+  surround_refresh_timer_.stop();
   ai_heartbeat_timer_.stop();
   navigation_profile_apply_timer_.stop();
   if (master_probe_watcher_.isRunning())
@@ -1562,8 +1583,7 @@ void MainWindow::buildUi()
   coverage_tab_index_ = tabs_->addTab(buildCoveragePage(), QStringLiteral("清扫"));
   tabs_->addTab(buildNavigationTuningPage(), QStringLiteral("导航调参"));
   ai_tab_index_ = tabs_->addTab(buildAiControlPage(), QStringLiteral("AI语音控制"));
-  bpu_tab_index_ = tabs_->addTab(buildBpuPreviewPage(), QStringLiteral("BPU 预览"));
-  tabs_->addTab(buildBevPreviewPage(), QStringLiteral("BEV 视野清扫"));
+  bev_tab_index_ = tabs_->addTab(buildBevPreviewPage(), QStringLiteral("BEV 视野清扫"));
   tabs_->addTab(buildLogPage(), QStringLiteral("日志"));
   connect(tabs_, &QTabWidget::currentChanged, this, [this](int index) {
     qInfo() << "[rviz_lifecycle] tab" << index
@@ -1791,10 +1811,10 @@ QWidget* MainWindow::buildOverviewPage()
   side_layout->setContentsMargins(10, 0, 10, 8);
   side_layout->setSpacing(14);
 
-  auto* camera = new QGroupBox(QStringLiteral("J6M BPU 检测画面（仅显示）"), side_content);
+  auto* camera = new QGroupBox(QStringLiteral("环视 BEV 垃圾识别"), side_content);
   auto* camera_layout = new QVBoxLayout(camera);
   overview_camera_preview_ = new QLabel(
-      QStringLiteral("等待 /fod/bpu_preview/image"), camera);
+      QStringLiteral("等待环视 BEV 识别画面"), camera);
   overview_camera_preview_->setAlignment(Qt::AlignCenter);
   overview_camera_preview_->setMinimumHeight(210);
   overview_camera_preview_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1802,15 +1822,16 @@ QWidget* MainWindow::buildOverviewPage()
       QStringLiteral("background:#080d13;border:1px solid #334154;border-radius:6px;"
                      "color:#718096;font-size:11pt;"));
   camera_layout->addWidget(overview_camera_preview_, 1);
-  overview_bpu_status_ = new QLabel(QStringLiteral("等待 BPU 预览桥接器"), camera);
-  overview_bpu_status_->setTextFormat(Qt::PlainText);
-  overview_bpu_status_->setWordWrap(true);
-  camera_layout->addWidget(overview_bpu_status_);
+  overview_bev_status_ = new QLabel(QStringLiteral("等待环视 BEV / 识别结果"), camera);
+  overview_bev_status_->setTextFormat(Qt::PlainText);
+  overview_bev_status_->setWordWrap(true);
+  camera_layout->addWidget(overview_bev_status_);
   auto* camera_buttons = new QHBoxLayout();
-  auto* open_bpu = new QPushButton(QStringLiteral("BPU 大画面"), camera);
-  connect(open_bpu, &QPushButton::clicked, this,
-          [this]() { tabs_->setCurrentIndex(bpu_tab_index_); });
-  camera_buttons->addWidget(open_bpu);
+  auto* open_bev = new QPushButton(QStringLiteral("BEV 视野清扫"), camera);
+  open_bev->setObjectName(QStringLiteral("openBevCleaningButton"));
+  connect(open_bev, &QPushButton::clicked, this,
+          [this]() { tabs_->setCurrentIndex(bev_tab_index_); });
+  camera_buttons->addWidget(open_bev);
   auto* open_vision = new QPushButton(QStringLiteral("相机与原视觉控制"), camera);
   connect(open_vision, &QPushButton::clicked, this, [this]() { tabs_->setCurrentIndex(3); });
   camera_buttons->addWidget(open_vision);
@@ -2121,137 +2142,20 @@ QWidget* MainWindow::buildTestPage()
   return scroll;
 }
 
-QWidget* MainWindow::buildBpuPreviewPage()
-{
-  auto* page = new QWidget(this);
-  page->setObjectName(QStringLiteral("bpuPreviewPage"));
-  auto* layout = new QVBoxLayout(page);
-  layout->setContentsMargins(16, 12, 16, 14);
-  auto* notice = new QLabel(surround_mode_ ?
-      QStringLiteral("三路环视 · GDC + J6M BPU\n"
-                     "在视觉页视频顶部切换端口。左右两图对应同一源帧；镜头参数精度待验证。") :
-      QStringLiteral("J6M BPU · 地面小件候选筛选\n"
-                     "绿色 FLOOR：几何符合；橙色 REVIEW：待确认，仍保留。类别名称仅作参考。"
-                     "连续确认的高大环境物隐藏，可勾选原始框对照。仅供观察，不表示已确认可清扫。"), page);
-  notice->setWordWrap(true);
-  notice->setStyleSheet(QStringLiteral("color:#92400e;background:#fef3c7;padding:10px;"));
-  layout->addWidget(notice);
-  auto* raw_boxes = new QCheckBox(QStringLiteral("显示原始检测框（综合页同步切换）"), page);
-  raw_boxes->setObjectName(QStringLiteral("bpuRawBoxesCheckbox"));
-  layout->addWidget(raw_boxes);
-  connect(raw_boxes, &QCheckBox::toggled, this, [this](bool checked) {
-    bpu_preview_subscriber_.shutdown();
-    bpu_preview_status_subscriber_.shutdown();
-    bpu_preview_subscribed_ = false;
-    std::lock_guard<std::mutex> lock(snapshot_mutex_);
-    bpu_show_raw_ = checked;
-    telemetry_.bpu_preview = QImage();
-    telemetry_.bpu_preview_stamp = ros::Time();
-  });
-  auto* panels = new QHBoxLayout();
-  const auto add_panel = [page, panels](const QString& title, QLabel** preview,
-                                       QLabel** status) {
-    auto* group = new QGroupBox(title, page);
-    auto* box = new QVBoxLayout(group);
-    *preview = new QLabel(QStringLiteral("等待图像"), group);
-    (*preview)->setAlignment(Qt::AlignCenter);
-    (*preview)->setMinimumSize(320, 240);
-    (*preview)->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    (*preview)->setStyleSheet(QStringLiteral("background:#080d13;color:#dce7f4;"));
-    box->addWidget(*preview, 1);
-    *status = new QLabel(group);
-    (*status)->setWordWrap(true);
-    (*status)->setMinimumHeight(80);
-    box->addWidget(*status);
-    panels->addWidget(group, 1);
-  };
-  add_panel(surround_mode_ ? QStringLiteral("当前端口 GDC 源帧（与识别结果对应）") :
-            QStringLiteral("ZED 实时画面（复用导航相机）"),
-            &bpu_live_preview_, &bpu_live_status_);
-  add_panel(QStringLiteral("BPU 已完成结果（保留对应源帧）"),
-            &bpu_result_preview_, &bpu_result_status_);
-  layout->addLayout(panels, 1);
-  return page;
-}
-
-void MainWindow::refreshBpuPreview(const TelemetrySnapshot& data)
-{
-  if (surround_mode_)
-  {
-    refreshSurroundPreview();
-    return;
-  }
-  const bool overview_visible = tabs_ && tabs_->currentIndex() == overview_tab_index_;
-  const bool bpu_page_visible = tabs_ && tabs_->currentIndex() == bpu_tab_index_;
-  const bool visible = (overview_visible || bpu_page_visible) && isVisible() && !isMinimized();
-  const bool wanted = visible && ros_interfaces_ready_ && node_;
-  if (wanted && !bpu_preview_subscribed_)
-  {
-    bpu_preview_subscriber_ = node_->subscribe(
-        bpu_show_raw_ ? "/perception/fcos/raw_preview" : "/fod/bpu_preview/image",
-        1, &MainWindow::bpuPreviewCallback, this);
-    bpu_preview_status_subscriber_ = node_->subscribe(
-        "/fod/bpu_preview/status", 1, &MainWindow::bpuPreviewStatusCallback, this);
-    bpu_preview_subscribed_ = true;
-  }
-  else if (!wanted && bpu_preview_subscribed_)
-  {
-    bpu_preview_subscriber_.shutdown();
-    bpu_preview_status_subscriber_.shutdown();
-    bpu_preview_subscribed_ = false;
-  }
-  if (!visible)
-    return;
-  // Retain the last image but label its age. Never put old boxes on new RGB.
-  // Avoid rescaling/uploading the same image at every UI timer tick.
-  const auto update = [this](QLabel* label, const QImage& image) {
-    if (label->property("bpuImageKey").toLongLong() != image.cacheKey() ||
-        label->property("bpuImageSize").toSize() != label->size())
-    {
-      updateImageLabel(label, image, QStringLiteral("等待图像 / 桥接器未启动"));
-      label->setProperty("bpuImageKey", image.cacheKey());
-      label->setProperty("bpuImageSize", label->size());
-    }
-  };
-  if (overview_visible)
-    update(overview_camera_preview_, data.bpu_preview);
-  if (bpu_page_visible)
-  {
-    update(bpu_live_preview_, data.raw_preview);
-    update(bpu_result_preview_, data.bpu_preview);
-  }
-  const double camera_age = sourceStampAge(data.raw_preview_stamp);
-  const double result_age = sourceStampAge(data.bpu_preview_stamp);
-  bpu_live_status_->setText(
-      data.raw_preview.isNull() ? QStringLiteral("等待 /fod_camera/image_raw")
-      : QStringLiteral("%1 · 源帧 %2\n相机连续更新，不等待 BPU。")
-            .arg(camera_age <= 3.0 ? QStringLiteral("相机在线")
-                                   : QStringLiteral("相机断流/时间异常，保留旧画面"))
-            .arg(ageText(camera_age)));
-  const QString bridge = wallAge(data.bpu_preview_status_at) <= 3.0
-      ? QString::fromStdString(data.bpu_preview_status)
-      : QStringLiteral("桥接器未连接/状态超时；使用实验目录的 Qt BPU 启动入口");
-  const QString result_status =
-      QStringLiteral("%1\n%2 · %3")
-          .arg(bridge)
-          .arg(data.bpu_preview.isNull() ? QStringLiteral("等待首帧")
-                                        : QStringLiteral("结果源帧 %1").arg(ageText(result_age)))
-          .arg(result_age <= 3.0 ? QStringLiteral("仅显示，不可用于控制")
-                                 : QStringLiteral("旧结果，不代表当前场景"));
-  if (overview_visible)
-    overview_bpu_status_->setText(result_status);
-  if (bpu_page_visible)
-    bpu_result_status_->setText(result_status);
-}
-
 QWidget* MainWindow::buildVisionPage()
 {
   auto* page = new QWidget(this);
+  page->setObjectName(QStringLiteral("visionPage"));
   auto* root = new QVBoxLayout(page);
   root->setContentsMargins(16, 12, 16, 14);
   root->setSpacing(10);
 
+  vision_bev_panel_ = buildVisionBevPanel(page);
+  root->addWidget(vision_bev_panel_, 1);
+  vision_bev_panel_->setVisible(!qgetenv("BEV_PREVIEW_URL").isEmpty());
   auto* splitter = new QSplitter(Qt::Horizontal, page);
+  vision_legacy_panel_ = splitter;
+  splitter->setVisible(qgetenv("BEV_PREVIEW_URL").isEmpty());
   auto* image_panel = new QWidget(splitter);
   auto* image_layout = new QVBoxLayout(image_panel);
   image_layout->setContentsMargins(0, 0, 8, 0);
@@ -3181,14 +3085,19 @@ void MainWindow::setStatus(const QString& key, Health health, const QString& sta
   // stream. Other pages continue to display their existing ROS diagnostics.
   if ((key == QStringLiteral("camera") || key == QStringLiteral("yolo")) &&
       tabs_ && tabs_->currentWidget() &&
-      tabs_->currentWidget()->objectName() == QStringLiteral("bevPreviewPage") && bev_preview_)
+      (tabs_->currentWidget()->objectName() == QStringLiteral("bevPreviewPage") ||
+       (tabs_->currentWidget()->objectName() == QStringLiteral("visionPage") &&
+        vision_bev_panel_ && !vision_bev_panel_->isHidden()) ||
+       tabs_->currentIndex() == overview_tab_index_) && bev_preview_)
   {
     const auto& frame = bev_preview_->frame();
     if (!frame.raw.isNull())
     {
       health = Health::Good;
-      shown_state = key == QStringLiteral("camera") ? QStringLiteral("三路 BEV") : QStringLiteral("识别中");
-      shown_detail = key == QStringLiteral("camera") ? QStringLiteral("左右 GDC + ZED") : QStringLiteral("CUDA · YOLO11-GAM");
+      const int camera_count = frame.metadata["source_metadata"].toObject()["sources"].toObject().size();
+      shown_state = key == QStringLiteral("camera") ? QStringLiteral("%1路 BEV").arg(camera_count) : QStringLiteral("识别中");
+      shown_detail = key == QStringLiteral("camera") ? QStringLiteral("GDC + ZED")
+          : frame.metadata["model_name"].toString();
     }
     else
     {
@@ -3286,8 +3195,9 @@ void MainWindow::setupRosInterfaces()
   tf_listener_.reset(new tf2_ros::TransformListener(tf_buffer_, *node_, false));
   node_->param("enable_rviz", enable_rviz_, true);
   node_->param("static_map_mode", static_map_mode_, false);
+  node_->param("online_mapping", online_mapping_, false);
   if (rviz_map_controls_)
-    rviz_map_controls_->setVisible(static_map_mode_ && enable_rviz_);
+    rviz_map_controls_->setVisible(static_map_mode_ && !online_mapping_ && enable_rviz_);
   if (rviz_history_controls_)
     rviz_history_controls_->setVisible(!static_map_mode_ && enable_rviz_);
   const std::string default_rviz =
@@ -3381,6 +3291,8 @@ void MainWindow::setupRosInterfaces()
       &MainWindow::globalCostmapCallback, this);
   coverage_point_subscriber_ = node_->subscribe(
       "/coverage/clicked_point", 20, &MainWindow::coveragePointCallback, this);
+  coverage_preset_subscriber_ = node_->subscribe(
+      "/coverage/preset_region", 1, &MainWindow::coveragePresetCallback, this);
   coverage_status_subscriber_ = node_->subscribe(
       "/coverage/status", 10, &MainWindow::coverageStatusCallback, this);
   ai_status_subscriber_ = node_->subscribe(
@@ -3400,10 +3312,11 @@ void MainWindow::setupRosInterfaces()
                               ? "WAITING_RVIZ"
                               : "DISABLED");
   ros_interfaces_ready_ = true;
+  // Keep older launchers compatible by opening the replacement page.
   bool initial_bpu_preview = false;
   node_->param("initial_bpu_preview", initial_bpu_preview, false);
   if (initial_bpu_preview && tabs_)
-    tabs_->setCurrentIndex(bpu_tab_index_);
+    tabs_->setCurrentIndex(bev_tab_index_);
   bool initial_vision_page = false;
   node_->param("initial_vision_page", initial_vision_page, false);
   if (initial_vision_page && tabs_)
@@ -3690,6 +3603,13 @@ bool MainWindow::ensureStaticMapDisplayReady(const TelemetrySnapshot& data)
       map_display->getWidth() == static_cast<int>(data.map_width) &&
       map_display->getHeight() == static_cast<int>(data.map_height) &&
       std::abs(map_display->getResolution() - data.map_resolution) <= 1e-6;
+  if (online_mapping_ && dimensions_match)
+  {
+    rviz_map_ready_message_count_ = data.map_message_count;
+    publishMapDisplayStatus("READY;source=online_mapping;width=" + std::to_string(data.map_width) +
+                           ";height=" + std::to_string(data.map_height));
+    return true;
+  }
   // The GUI's telemetry subscriber and the embedded rviz/Map display are two
   // independent subscribers.  On Jetson/X11 the latter can miss map_server's
   // first latched delivery while VisualizationFrame is being embedded.  Force
@@ -4295,9 +4215,6 @@ void MainWindow::shutdownRosInterfaces()
   navigation_subscriber_.shutdown();
   camera_image_subscriber_.shutdown();
   debug_image_subscriber_.shutdown();
-  bpu_preview_subscriber_.shutdown();
-  bpu_preview_status_subscriber_.shutdown();
-  bpu_preview_subscribed_ = false;
   detections_subscriber_.shutdown();
   vision_results_subscriber_.shutdown();
   bev_cleaner_status_subscriber_.shutdown();
@@ -4309,6 +4226,7 @@ void MainWindow::shutdownRosInterfaces()
   map_subscriber_.shutdown();
   global_costmap_subscriber_.shutdown();
   coverage_point_subscriber_.shutdown();
+  coverage_preset_subscriber_.shutdown();
   coverage_status_subscriber_.shutdown();
   ai_status_subscriber_.shutdown();
   ai_event_subscriber_.shutdown();
@@ -4565,6 +4483,31 @@ void MainWindow::coveragePointCallback(
   publishCoverageDraft();
 }
 
+void MainWindow::coveragePresetCallback(const geometry_msgs::PolygonStamped::ConstPtr& msg)
+{
+  if (!online_mapping_ || msg->header.frame_id != "map" || msg->polygon.points.size() != 4)
+    return;
+  std::vector<geometry_msgs::Point> points;
+  for (const auto& vertex : msg->polygon.points)
+  {
+    if (!std::isfinite(vertex.x) || !std::isfinite(vertex.y)) return;
+    geometry_msgs::Point point;
+    point.x = vertex.x; point.y = vertex.y; point.z = 0.0;
+    points.push_back(point);
+  }
+  QMetaObject::invokeMethod(this, [this, points]() {
+    if (shutting_down_ || coverage_task_lifecycle_started_ ||
+        !coverage_batch_id_.empty() || coverage_plan_pending_ || coverage_command_pending_)
+      return;
+    coverage_preset_points_ = points;
+    double operation_width = 0.80;
+    node_->param("preset_operation_width_m", operation_width, 0.80);
+    if (std::isfinite(operation_width) && operation_width > 0.0)
+      coverage_width_input_->setValue(operation_width);
+    appendEvent(QStringLiteral("已收到相对车位确定的清扫框，等待在线地图和规划参数就绪。"));
+  }, Qt::QueuedConnection);
+}
+
 void MainWindow::coverageStatusCallback(
     const autolabor_coverage::CoverageStatus::ConstPtr& msg)
 {
@@ -4594,32 +4537,14 @@ void MainWindow::aiEventCallback(const sweeper_mcp::AiEvent::ConstPtr& msg)
 void MainWindow::cameraImageCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
   const ros::WallTime now = ros::WallTime::now();
-  bool convert_preview = false;
-  {
-    std::lock_guard<std::mutex> lock(snapshot_mutex_);
-    telemetry_.camera_received = true;
-    telemetry_.camera_width = msg->width;
-    telemetry_.camera_height = msg->height;
-    telemetry_.camera_encoding = msg->encoding;
-    telemetry_.camera_stamp = msg->header.stamp;
-    telemetry_.camera_frame_id = msg->header.frame_id;
-    telemetry_.camera_received_at = now;
-    if (last_raw_preview_conversion_.isZero() ||
-        (now - last_raw_preview_conversion_).toSec() >= 0.20)
-    {
-      last_raw_preview_conversion_ = now;
-      convert_preview = true;
-    }
-  }
-  if (!convert_preview)
-    return;
-  QImage preview;
-  if (!imageMessageToQImage(*msg, &preview))
-    return;
   std::lock_guard<std::mutex> lock(snapshot_mutex_);
-  telemetry_.raw_preview = preview;
-  telemetry_.raw_preview_stamp = msg->header.stamp;
-  telemetry_.raw_preview_received_at = now;
+  telemetry_.camera_received = true;
+  telemetry_.camera_width = msg->width;
+  telemetry_.camera_height = msg->height;
+  telemetry_.camera_encoding = msg->encoding;
+  telemetry_.camera_stamp = msg->header.stamp;
+  telemetry_.camera_frame_id = msg->header.frame_id;
+  telemetry_.camera_received_at = now;
 }
 
 void MainWindow::debugImageCallback(const sensor_msgs::Image::ConstPtr& msg)
@@ -4639,36 +4564,6 @@ void MainWindow::debugImageCallback(const sensor_msgs::Image::ConstPtr& msg)
   telemetry_.debug_image = preview;
   telemetry_.debug_image_stamp = msg->header.stamp;
   telemetry_.debug_image_received_at = now;
-}
-
-void MainWindow::bpuPreviewCallback(const sensor_msgs::Image::ConstPtr& msg)
-{
-  // Dedicated display-only message; no changes to production detection state.
-  if ((msg->header.frame_id != "bpu_preview_demo_only" &&
-       msg->header.frame_id != "bpu_preview_raw_only") ||
-      msg->width == 0 || msg->width > 1920 || msg->height == 0 || msg->height > 1080 ||
-      sourceStampAge(msg->header.stamp) > 3.0)
-    return;
-  QImage preview;
-  if (!imageMessageToQImage(*msg, &preview))
-    return;
-  std::lock_guard<std::mutex> lock(snapshot_mutex_);
-  // Drop callbacks queued before a view switch, even at the same source stamp.
-  if ((msg->header.frame_id == "bpu_preview_raw_only") != bpu_show_raw_)
-    return;
-  if (msg->header.stamp <= telemetry_.bpu_preview_stamp)
-    return;
-  telemetry_.bpu_preview = preview;
-  telemetry_.bpu_preview_stamp = msg->header.stamp;
-}
-
-void MainWindow::bpuPreviewStatusCallback(const std_msgs::String::ConstPtr& msg)
-{
-  if (msg->data.size() > 512)
-    return;
-  std::lock_guard<std::mutex> lock(snapshot_mutex_);
-  telemetry_.bpu_preview_status = msg->data;
-  telemetry_.bpu_preview_status_at = ros::WallTime::now();
 }
 
 void MainWindow::detectionsCallback(
@@ -5088,7 +4983,6 @@ void MainWindow::refreshUi()
   if (rviz_initialized_ && tabs_)
     positionRvizOverlay(tabs_->currentIndex());
   const TelemetrySnapshot data = snapshot();
-  refreshBpuPreview(data);
   refreshBevCleaning();
   refreshAiUi(data);
   const FastLioHealthResult fastlio = evaluateFastLioHealth(data);
@@ -5168,6 +5062,7 @@ void MainWindow::refreshUi()
   updateNavigationPathDisplays(data);
   if (overview_map_ready && rviz_attached_tab_index_ == overview_tab_index_ &&
       !overview_3d_map_enabled_ &&
+      (!online_mapping_ || overview_fitted_map_count_ == 0) &&
       overview_fitted_map_count_ != data.map_message_count &&
       fitRvizMapView(rviz_frame_, data))
   {
@@ -5180,6 +5075,7 @@ void MainWindow::refreshUi()
   if (static_map_mode_ && rviz_initialized_ &&
       rviz_attached_tab_index_ == coverage_tab_index_ && data.map_received &&
       embedded_map_ready &&
+      (!online_mapping_ || coverage_fitted_map_count_ == 0) &&
       coverage_fitted_map_count_ != data.map_message_count &&
       fitRvizMapView(rviz_frame_, data))
   {
@@ -5443,7 +5339,9 @@ void MainWindow::refreshUi()
       navigation_paused ? QStringLiteral("休眠 / 目标保留")
                         : QStringLiteral("运行 / 可接收目标"));
 
-  if (surround_mode_)
+  if (vision_bev_panel_ && !vision_bev_panel_->isHidden())
+    refreshVisionBevPreview();
+  else if (surround_mode_)
     refreshSurroundPreview();
   else
   {
@@ -5944,6 +5842,8 @@ void MainWindow::refreshUi()
   const bool coverage_map_identity_ready =
       coverage_store_ready && coverage_status_fresh && !coverage.map_digest.empty() &&
       coverage_region_store_.mapDigest().toStdString() == coverage.map_digest;
+  adoptBackendCoveragePlan(coverage, coverage_map_identity_ready,
+                           coverage_planning_defaults_ready, coverage_selecting);
   const bool coverage_active = data.coverage_status_received && coverage.active;
   const bool coverage_batch_active =
       data.coverage_status_received && coverage.batch_active;
@@ -6242,6 +6142,21 @@ void MainWindow::refreshUi()
                                        !coverage_active &&
                                        !coverage_batch_active &&
                                        !coverage_backend_busy;
+  if (!coverage_preset_points_.empty() && coverage_editable &&
+      coverage_planning_defaults_ready && coverage_parameters_within_cap)
+  {
+    {
+      std::lock_guard<std::mutex> lock(snapshot_mutex_);
+      coverage_draft_points_ = coverage_preset_points_;
+      coverage_selecting_ = true;
+      coverage_draft_source_region_id_.clear();
+    }
+    coverage_preset_points_.clear();
+    tabs_->setCurrentIndex(coverage_tab_index_);
+    publishCoverageDraft();
+    confirmCoverageSelection();
+    return;
+  }
   // Parameter defaults do not require a rendered map or a region library.
   // Planning/motion retain coverage_editable and all map/localization gates.
   const bool coverage_parameters_editable =
@@ -6834,7 +6749,7 @@ void MainWindow::confirmCoverageSelection()
   coverage_plan_pending_ = true;
   const std::uint64_t plan_generation = ++coverage_plan_generation_;
   selectCoveragePointTool(false);
-  appendEvent(QStringLiteral("正在按静态地图障碍物裁剪覆盖区域并生成弓字轨迹……"));
+  appendEvent(QStringLiteral("正在按当前规划配置生成覆盖轨迹……"));
 
   auto* watcher = new QFutureWatcher<CoveragePlanUiResult>(this);
   connect(watcher, &QFutureWatcher<CoveragePlanUiResult>::finished, this,

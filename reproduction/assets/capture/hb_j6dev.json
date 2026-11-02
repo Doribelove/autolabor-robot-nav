@@ -1,0 +1,71 @@
+{
+  "comment": "Private RX1 GDC inputs; vehicle directions belong to the BEV config",
+  "global": {
+    "partial_enable": 1,
+    "init_in_seq": 1
+  },
+  "port_0": {
+    "sensor_name": "isx031std",
+    "serial_addr": "0x41",
+    "sensor_addr": "0x11",
+    "eeprom_addr": "0x51",
+    "calib_lname": "disable",
+    "sensor_mode": 5,
+    "fps": 30,
+    "width": 1920,
+    "height": 1536,
+    "extra_mode": 10,
+    "config_index": 0,
+    "deserial_index": 1,
+    "deserial_port": 0
+  },
+  "port_1": {
+    "sensor_name": "isx031std",
+    "serial_addr": "0x45",
+    "sensor_addr": "0x15",
+    "eeprom_addr": "0x55",
+    "calib_lname": "disable",
+    "sensor_mode": 5,
+    "fps": 30,
+    "width": 1920,
+    "height": 1536,
+    "extra_mode": 10,
+    "config_index": 0,
+    "deserial_index": 1,
+    "deserial_port": 1
+  },
+  "port_2": {
+    "sensor_name": "isx031std",
+    "serial_addr": "0x43",
+    "sensor_addr": "0x13",
+    "eeprom_addr": "0x53",
+    "calib_lname": "disable",
+    "sensor_mode": 5,
+    "fps": 30,
+    "width": 1920,
+    "height": 1536,
+    "extra_mode": 10,
+    "config_index": 0,
+    "deserial_index": 1,
+    "deserial_port": 2
+  },
+  "deserial_1": {
+    "deserial_name": "max96712",
+    "deserial_addr": "0x29",
+    "deserial_gpio": {
+      "camerr_pin": [
+        4,
+        6,
+        8,
+        10
+      ],
+      "trig_pin": [
+        14
+      ]
+    },
+    "poc": {
+      "poc_addr": "0x28",
+      "poc_map": "0x3210"
+    }
+  }
+}

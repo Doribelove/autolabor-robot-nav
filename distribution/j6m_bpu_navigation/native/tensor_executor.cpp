@@ -1,5 +1,10 @@
-// J6M private DNN 3.14.5 / UCP adapter. No ROS, sensors or vehicle commands.
+// J6M private DNN / UCP adapter. No ROS, sensors or vehicle commands.
 // Vendor headers and libraries remain outside the distributable source tree.
+// New SDK builds supply the matching runtime version alongside their headers.
+// Existing build commands continue targeting the previously validated runtime.
+#ifndef J6M_DNN_EXPECTED_VERSION
+#define J6M_DNN_EXPECTED_VERSION "3.14.5_(4.9.2 HBRT)"
+#endif
 #include "hobot/dnn/hb_dnn.h"
 #include <chrono>
 #include <cmath>
@@ -62,11 +67,14 @@ void validate(hbDNNTensorProperties& p, bool input) {
   if (input && p.alignedByteSize <= 0) p.alignedByteSize = last_offset + bytes;
   require(p.alignedByteSize >= last_offset + static_cast<int64_t>(bytes) &&
           p.alignedByteSize <= kMaxBytes, "Invalid aligned allocation size");
-  if (input) {
-    require(p.quantiType == NONE &&
-            (p.tensorType == HB_DNN_TENSOR_TYPE_F32 || p.tensorType == HB_DNN_TENSOR_TYPE_U8),
-            "Expected unquantized F32 featuremap or U8 reference input");
+  if (input && p.quantiType == NONE) {
+    require(p.tensorType == HB_DNN_TENSOR_TYPE_F32 || p.tensorType == HB_DNN_TENSOR_TYPE_U8,
+            "Expected unquantized F32 featuremap or U8 image input");
   } else if (p.quantiType == SCALE) {
+    // BEV sampling coordinates are prequantized S16, in the model's own scale.
+    // The caller passes exact typed bytes; never silently reinterpret floats.
+    if (input) require(p.tensorType == HB_DNN_TENSOR_TYPE_S16,
+                       "Expected S16 quantized BEV sampling input");
     require(p.tensorType != HB_DNN_TENSOR_TYPE_F32 && p.quantizeAxis >= 0 &&
             p.quantizeAxis < rank, "Invalid quantization type or axis");
     const int n = p.validShape.dimensionSize[p.quantizeAxis];
@@ -120,8 +128,8 @@ struct Session {
   }
   void load(const char* path, const char* expected_name) {
     const char* version = hbDNNGetVersion();
-    require(version && std::string(version) == "3.14.5_(4.9.2 HBRT)",
-            "Unvalidated DNN ABI; expected private 3.14.5 / HBRT 4.9.2");
+    require(version && std::string(version) == J6M_DNN_EXPECTED_VERSION,
+            "DNN runtime differs from build target: " J6M_DNN_EXPECTED_VERSION);
     check(hbDNNInitializeFromFiles(&packed, &path, 1), "load HBM");
     const char** names = nullptr; int count = 0;
     check(hbDNNGetModelNameList(&names, &count, packed), "model names");
@@ -159,7 +167,18 @@ struct Session {
         }
         info << "],\"type\":" << p.tensorType << ",\"quant\":" << p.quantiType
              << ",\"axis\":" << p.quantizeAxis << ",\"bytes\":" << p.alignedByteSize
-             << ",\"scale_len\":" << p.scale.scaleLen << ",\"zero_len\":" << p.scale.zeroPointLen << '}';
+             << ",\"scale_len\":" << p.scale.scaleLen << ",\"zero_len\":" << p.scale.zeroPointLen;
+        info << ",\"scales\":[";
+        if (p.quantiType == SCALE) for (int j = 0; j < p.scale.scaleLen; ++j) {
+          if (j) info << ',';
+          info << p.scale.scaleData[j];
+        }
+        info << "],\"zero_points\":[";
+        if (p.quantiType == SCALE) for (int j = 0; j < p.scale.zeroPointLen; ++j) {
+          if (j) info << ',';
+          info << p.scale.zeroPointData[j];
+        }
+        info << "]}";
       }
       info << ']';
     }
